@@ -1,5 +1,3 @@
 {
-  "framework": null,
-  "buildCommand": "echo 'Static site'",
-  "outputDirectory": "dist"
+  "framework": "nextjs"
 }
