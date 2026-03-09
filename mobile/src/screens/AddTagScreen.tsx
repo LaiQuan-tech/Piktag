@@ -58,6 +58,9 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
   const [presetName, setPresetName] = useState('');
   const [savingPreset, setSavingPreset] = useState(false);
 
+  // Track which preset was applied (for linking scan sessions)
+  const [appliedPresetId, setAppliedPresetId] = useState<string | null>(null);
+
   // QR / session state
   const [qrValue, setQrValue] = useState('');
   const [scanSession, setScanSession] = useState<ScanSession | null>(null);
@@ -151,6 +154,7 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
   const handleApplyPreset = async (preset: TagPreset) => {
     setEventLocation(preset.location || '');
     setEventTags(preset.tags || []);
+    setAppliedPresetId(preset.id);
     setShowPresetsModal(false);
 
     // Update last_used_at
@@ -215,6 +219,7 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
           .from('piktag_scan_sessions')
           .insert({
             host_user_id: user.id,
+            preset_id: appliedPresetId,
             event_date: eventDate,
             event_location: eventLocation,
             event_tags: eventTags,
@@ -405,7 +410,6 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
 
         {/* 熱門標籤 Section */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>{t('addTag.softTagsTitle')}</Text>
           <View style={styles.popularChipsContainer}>
             {POPULAR_TAGS.soft.map((tag) => {
               const isSelected = eventTags.includes(tag);
@@ -432,7 +436,6 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>{t('addTag.hardTagsTitle')}</Text>
           <View style={styles.popularChipsContainer}>
             {POPULAR_TAGS.hard.map((tag) => {
               const isSelected = eventTags.includes(tag);
