@@ -29,7 +29,6 @@ import {
   Gift,
   Heart,
   Clock,
-  Bell,
 } from 'lucide-react-native';
 import { COLORS } from '../constants/theme';
 import { supabase } from '../lib/supabase';
@@ -663,13 +662,6 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
               onPress={() => setSortModalVisible(true)}
             >
               <Settings2 size={24} color={COLORS.gray600} />
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.headerIconBtn}
-              activeOpacity={0.6}
-              onPress={() => navigation.navigate('NotificationsTab')}
-            >
-              <Bell size={24} color={COLORS.gray600} />
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.headerIconBtn}
