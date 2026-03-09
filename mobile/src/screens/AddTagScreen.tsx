@@ -291,13 +291,7 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
     <>
       {/* Header */}
       <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
-        <TouchableOpacity
-          onPress={() => navigation.goBack()}
-          activeOpacity={0.6}
-          style={styles.headerSideBtn}
-        >
-          <X size={24} color={COLORS.gray900} />
-        </TouchableOpacity>
+        <View style={styles.headerSideBtn} />
         <Text style={styles.headerTitle}># 準備社交</Text>
         <TouchableOpacity
           onPress={() => {

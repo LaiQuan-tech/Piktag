@@ -43,6 +43,7 @@ const AuthStack = createNativeStackNavigator();
 const HomeStack = createNativeStackNavigator();
 const SearchStack = createNativeStackNavigator();
 // const ChatStack = createNativeStackNavigator(); // Chat — commented out
+const AddTagStack = createNativeStackNavigator();
 const NotificationStack = createNativeStackNavigator();
 const ProfileStack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -86,6 +87,15 @@ function SearchStackNavigator() {
 //     </ChatStack.Navigator>
 //   );
 // }
+
+function AddTagStackNavigator() {
+  return (
+    <AddTagStack.Navigator screenOptions={{ headerShown: false }}>
+      <AddTagStack.Screen name="AddTagMain" component={AddTagScreen} />
+      <AddTagStack.Screen name="ScanResult" component={ScanResultScreen} />
+    </AddTagStack.Navigator>
+  );
+}
 
 function NotificationStackNavigator() {
   return (
@@ -156,7 +166,7 @@ function MainTabs() {
       />
       <Tab.Screen
         name="AddTagTab"
-        component={AddTagScreen}
+        component={AddTagStackNavigator}
         options={{
           tabBarIcon: ({ color, focused }) => (
             <Hash
@@ -166,12 +176,6 @@ function MainTabs() {
             />
           ),
         }}
-        listeners={({ navigation }) => ({
-          tabPress: (e) => {
-            e.preventDefault();
-            navigation.navigate('AddTagModal');
-          },
-        })}
       />
       <Tab.Screen
         name="NotificationsTab"
@@ -213,16 +217,8 @@ function MainNavigator({ needsOnboarding }: { needsOnboarding: boolean }) {
         <RootStack.Screen name="Onboarding" component={OnboardingScreen} />
       ) : null}
       <RootStack.Screen name="Main" component={MainTabs} />
-      <RootStack.Screen
-        name="AddTagModal"
-        component={AddTagScreen}
-        options={{ presentation: 'modal' }}
-      />
-      <RootStack.Screen
-        name="ScanResult"
-        component={ScanResultScreen}
-        options={{ presentation: 'modal' }}
-      />
+      {/* AddTagModal removed — # is now a regular tab, not a modal */}
+      {/* ScanResult moved into AddTagStackNavigator */}
     </RootStack.Navigator>
   );
 }
