@@ -667,7 +667,7 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
             <TouchableOpacity
               style={styles.headerIconBtn}
               activeOpacity={0.6}
-              onPress={() => navigation.navigate('Notifications')}
+              onPress={() => navigation.navigate('NotificationsTab')}
             >
               <Bell size={24} color={COLORS.gray600} />
             </TouchableOpacity>

@@ -9,8 +9,8 @@ import {
   StatusBar,
   Linking,
   ActivityIndicator,
-  TextInput,
   Alert,
+  TextInput,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
@@ -539,11 +539,12 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
             style={styles.primaryButton}
             activeOpacity={0.8}
             onPress={() => {
-              // Navigate to chat with this friend
-              navigation.navigate('LikesTab', {
-                screen: 'ChatDetail',
-                params: { friendId, friendName: displayName },
-              });
+              // Chat feature temporarily disabled
+              Alert.alert('即將推出', '聊天功能即將上線，敬請期待！');
+              // navigation.navigate('LikesTab', {
+              //   screen: 'ChatDetail',
+              //   params: { friendId, friendName: displayName },
+              // });
             }}
           >
             <MessageCircle size={18} color={COLORS.gray900} />

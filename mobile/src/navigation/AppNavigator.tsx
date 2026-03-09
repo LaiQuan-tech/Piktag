@@ -6,7 +6,7 @@ import {
   Home,
   Search,
   Hash,
-  Heart,
+  Bell,
   User,
 } from 'lucide-react-native';
 import { Session } from '@supabase/supabase-js';
@@ -22,8 +22,9 @@ import OnboardingScreen from '../screens/auth/OnboardingScreen';
 import ConnectionsScreen from '../screens/ConnectionsScreen';
 import SearchScreen from '../screens/SearchScreen';
 import AddTagScreen from '../screens/AddTagScreen';
-import ChatListScreen from '../screens/ChatListScreen';
-import ChatDetailScreen from '../screens/ChatDetailScreen';
+// Chat screens — commented out, to be restored when chat feature is re-enabled
+// import ChatListScreen from '../screens/ChatListScreen';
+// import ChatDetailScreen from '../screens/ChatDetailScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import EditProfileScreen from '../screens/EditProfileScreen';
 import UserDetailScreen from '../screens/UserDetailScreen';
@@ -41,7 +42,8 @@ import ManageTagsScreen from '../screens/ManageTagsScreen';
 const AuthStack = createNativeStackNavigator();
 const HomeStack = createNativeStackNavigator();
 const SearchStack = createNativeStackNavigator();
-const ChatStack = createNativeStackNavigator();
+// const ChatStack = createNativeStackNavigator(); // Chat — commented out
+const NotificationStack = createNativeStackNavigator();
 const ProfileStack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
@@ -60,7 +62,8 @@ function HomeStackNavigator() {
       <HomeStack.Screen name="Connections" component={ConnectionsScreen} />
       <HomeStack.Screen name="FriendDetail" component={FriendDetailScreen} />
       <HomeStack.Screen name="UserDetail" component={UserDetailScreen} />
-      <HomeStack.Screen name="Notifications" component={NotificationsScreen} />
+      {/* Notifications moved to dedicated tab — keep here for deep-link compatibility */}
+      {/* <HomeStack.Screen name="Notifications" component={NotificationsScreen} /> */}
     </HomeStack.Navigator>
   );
 }
@@ -74,12 +77,21 @@ function SearchStackNavigator() {
   );
 }
 
-function ChatStackNavigator() {
+// Chat stack — commented out, to be restored when chat feature is re-enabled
+// function ChatStackNavigator() {
+//   return (
+//     <ChatStack.Navigator screenOptions={{ headerShown: false }}>
+//       <ChatStack.Screen name="ChatList" component={ChatListScreen} />
+//       <ChatStack.Screen name="ChatDetail" component={ChatDetailScreen} />
+//     </ChatStack.Navigator>
+//   );
+// }
+
+function NotificationStackNavigator() {
   return (
-    <ChatStack.Navigator screenOptions={{ headerShown: false }}>
-      <ChatStack.Screen name="ChatList" component={ChatListScreen} />
-      <ChatStack.Screen name="ChatDetail" component={ChatDetailScreen} />
-    </ChatStack.Navigator>
+    <NotificationStack.Navigator screenOptions={{ headerShown: false }}>
+      <NotificationStack.Screen name="NotificationMain" component={NotificationsScreen} />
+    </NotificationStack.Navigator>
   );
 }
 
@@ -162,11 +174,11 @@ function MainTabs() {
         })}
       />
       <Tab.Screen
-        name="LikesTab"
-        component={ChatStackNavigator}
+        name="NotificationsTab"
+        component={NotificationStackNavigator}
         options={{
           tabBarIcon: ({ color, focused }) => (
-            <Heart
+            <Bell
               size={24}
               color={color}
               strokeWidth={focused ? 2.5 : 2}

@@ -9,6 +9,7 @@ import {
   StatusBar,
   Linking,
   ActivityIndicator,
+  Alert,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
@@ -174,14 +175,16 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
   };
 
   const handleMessage = () => {
-    if (!profile) return;
-    navigation.navigate('LikesTab', {
-      screen: 'ChatDetail',
-      params: {
-        friendId: userId,
-        friendName: profile.full_name || profile.username || 'Unknown',
-      },
-    });
+    // Chat feature temporarily disabled
+    Alert.alert('即將推出', '聊天功能即將上線，敬請期待！');
+    // if (!profile) return;
+    // navigation.navigate('LikesTab', {
+    //   screen: 'ChatDetail',
+    //   params: {
+    //     friendId: userId,
+    //     friendName: profile.full_name || profile.username || 'Unknown',
+    //   },
+    // });
   };
 
   const handleOpenLink = (url: string) => {
