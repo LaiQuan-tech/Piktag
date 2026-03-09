@@ -55,6 +55,7 @@ export type Connection = {
   birthday: string | null;
   anniversary: string | null;
   contract_expiry: string | null;
+  scan_session_id: string | null;
   created_at: string;
   updated_at?: string;
   connected_user?: PiktagProfile; // joined
@@ -145,4 +146,29 @@ export type TagSnapshot = {
   usage_count: number;
   snapshot_date: string;
   created_at: string;
+};
+
+export type TagPreset = {
+  id: string;
+  user_id: string;
+  name: string;
+  location: string;
+  tags: string[];
+  created_at: string;
+  last_used_at: string;
+};
+
+export type ScanSession = {
+  id: string;
+  host_user_id: string;
+  preset_id: string | null;
+  event_date: string;
+  event_location: string;
+  event_tags: string[];
+  qr_code_data: string;
+  scan_count: number;
+  is_active: boolean;
+  created_at: string;
+  expires_at: string;
+  host_user?: PiktagProfile; // joined
 };

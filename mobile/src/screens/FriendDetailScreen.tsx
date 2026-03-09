@@ -89,6 +89,7 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
   const [biolinks, setBiolinks] = useState<Biolink[]>([]);
   const [mutualFriends, setMutualFriends] = useState(0);
   const [mutualTags, setMutualTags] = useState(0);
+  const [scanEventTags, setScanEventTags] = useState<string[]>([]);
 
   // CRM reminder state
   const [birthday, setBirthday] = useState<string>('');
@@ -121,6 +122,18 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
           setBirthday(connData.birthday || '');
           setAnniversary(connData.anniversary || '');
           setContractExpiry(connData.contract_expiry || '');
+
+          // Fetch event tags from scan session if available
+          if (connData.scan_session_id) {
+            const { data: sessionData } = await supabase
+              .from('piktag_scan_sessions')
+              .select('event_tags')
+              .eq('id', connData.scan_session_id)
+              .single();
+            if (sessionData?.event_tags) {
+              setScanEventTags(sessionData.event_tags);
+            }
+          }
         }
       }
 
@@ -543,7 +556,7 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
         </View>
 
         {/* Met Record Section */}
-        {(metDate || metLocation || connectionNote) && (
+        {(metDate || metLocation || connectionNote || scanEventTags.length > 0) && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>相識紀錄</Text>
             <View style={styles.recordCard}>
@@ -568,14 +581,30 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
                 </>
               ) : null}
               {connectionNote ? (
-                <View style={styles.recordRow}>
-                  <FileText size={16} color={COLORS.gray400} />
-                  <Text style={styles.recordLabel}>備註</Text>
-                  <Text style={[styles.recordValue, styles.recordNotes]}>
-                    {connectionNote}
-                  </Text>
-                </View>
+                <>
+                  <View style={styles.recordRow}>
+                    <FileText size={16} color={COLORS.gray400} />
+                    <Text style={styles.recordLabel}>備註</Text>
+                    <Text style={[styles.recordValue, styles.recordNotes]}>
+                      {connectionNote}
+                    </Text>
+                  </View>
+                  {scanEventTags.length > 0 && <View style={styles.recordDivider} />}
+                </>
               ) : null}
+              {scanEventTags.length > 0 && (
+                <View style={styles.recordRow}>
+                  <Tag size={16} color={COLORS.gray400} />
+                  <Text style={styles.recordLabel}>活動標籤</Text>
+                  <View style={{ flex: 1, flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
+                    {scanEventTags.map((etag, i) => (
+                      <View key={i} style={styles.tagChip}>
+                        <Text style={styles.tagChipText}>#{etag}</Text>
+                      </View>
+                    ))}
+                  </View>
+                </View>
+              )}
             </View>
           </View>
         )}

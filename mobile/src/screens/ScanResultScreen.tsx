@@ -1,0 +1,562 @@
+import React, { useState, useEffect } from 'react';
+import {
+  View,
+  Text,
+  Image,
+  ScrollView,
+  TouchableOpacity,
+  StyleSheet,
+  StatusBar,
+  Alert,
+  ActivityIndicator,
+} from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { X } from 'lucide-react-native';
+import { COLORS } from '../constants/theme';
+import { supabase } from '../lib/supabase';
+import { useAuth } from '../hooks/useAuth';
+import type { PiktagProfile } from '../types';
+
+type ScanResultParams = {
+  sessionId: string;
+  hostUserId: string;
+  hostName: string;
+  eventDate: string;
+  eventLocation: string;
+  hostTags: string[];
+};
+
+type ScanResultScreenProps = {
+  navigation: any;
+  route: {
+    params: ScanResultParams;
+  };
+};
+
+export default function ScanResultScreen({ navigation, route }: ScanResultScreenProps) {
+  const insets = useSafeAreaInsets();
+  const { user } = useAuth();
+  const {
+    sessionId,
+    hostUserId,
+    hostName,
+    eventDate,
+    eventLocation,
+    hostTags,
+  } = route.params;
+
+  const [hostProfile, setHostProfile] = useState<PiktagProfile | null>(null);
+  const [selectedHostTags, setSelectedHostTags] = useState<Set<string>>(new Set());
+  const [myTags, setMyTags] = useState<string[]>([]);
+  const [selectedMyTags, setSelectedMyTags] = useState<Set<string>>(new Set());
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (user) {
+      fetchData();
+    }
+  }, [user]);
+
+  const fetchData = async () => {
+    if (!user) return;
+
+    try {
+      setLoading(true);
+
+      // Fetch host profile
+      const { data: profileData } = await supabase
+        .from('piktag_profiles')
+        .select('*')
+        .eq('id', hostUserId)
+        .single();
+
+      if (profileData) {
+        setHostProfile(profileData);
+      }
+
+      // Fetch my tags
+      const { data: myTagsData } = await supabase
+        .from('piktag_user_tags')
+        .select('*, tag:piktag_tags(*)')
+        .eq('user_id', user.id);
+
+      if (myTagsData) {
+        const tagNames = myTagsData
+          .map((ut: any) => ut.tag?.name || '')
+          .filter(Boolean);
+        setMyTags(tagNames);
+        // Pre-select all my tags
+        setSelectedMyTags(new Set(tagNames));
+      }
+
+      // Pre-select all host tags
+      setSelectedHostTags(new Set(hostTags));
+    } catch (err) {
+      console.error('Error fetching scan result data:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const toggleHostTag = (tag: string) => {
+    setSelectedHostTags((prev) => {
+      const next = new Set(prev);
+      if (next.has(tag)) {
+        next.delete(tag);
+      } else {
+        next.add(tag);
+      }
+      return next;
+    });
+  };
+
+  const toggleMyTag = (tag: string) => {
+    setSelectedMyTags((prev) => {
+      const next = new Set(prev);
+      if (next.has(tag)) {
+        next.delete(tag);
+      } else {
+        next.add(tag);
+      }
+      return next;
+    });
+  };
+
+  const toggleSelectAllHostTags = () => {
+    if (selectedHostTags.size === hostTags.length) {
+      setSelectedHostTags(new Set());
+    } else {
+      setSelectedHostTags(new Set(hostTags));
+    }
+  };
+
+  const toggleSelectAllMyTags = () => {
+    if (selectedMyTags.size === myTags.length) {
+      setSelectedMyTags(new Set());
+    } else {
+      setSelectedMyTags(new Set(myTags));
+    }
+  };
+
+  const handleConfirm = async () => {
+    if (!user) return;
+
+    setSubmitting(true);
+    try {
+      // Gather all selected tags from both sides
+      const allSelectedTags = [
+        ...Array.from(selectedHostTags),
+        ...Array.from(selectedMyTags),
+      ];
+      // Deduplicate
+      const uniqueTags = [...new Set(allSelectedTags)];
+
+      // Find or create tag records for each selected tag name
+      const tagIds: string[] = [];
+      for (const tagName of uniqueTags) {
+        const rawName = tagName.startsWith('#') ? tagName.slice(1) : tagName;
+
+        // Check if tag exists
+        const { data: existingTag } = await supabase
+          .from('piktag_tags')
+          .select('id')
+          .eq('name', rawName)
+          .single();
+
+        if (existingTag) {
+          tagIds.push(existingTag.id);
+        } else {
+          // Create new tag
+          const { data: newTag } = await supabase
+            .from('piktag_tags')
+            .insert({ name: rawName })
+            .select('id')
+            .single();
+
+          if (newTag) {
+            tagIds.push(newTag.id);
+          }
+        }
+      }
+
+      // Insert connection
+      const { data: connectionData, error: connectionError } = await supabase
+        .from('piktag_connections')
+        .insert({
+          user_id: user.id,
+          friend_id: hostUserId,
+          met_date: eventDate,
+          met_location: eventLocation,
+          scan_session_id: sessionId,
+        })
+        .select('id')
+        .single();
+
+      if (connectionError || !connectionData) {
+        console.error('Error creating connection:', connectionError);
+        Alert.alert('錯誤', '無法加為好友，請稍後再試。');
+        setSubmitting(false);
+        return;
+      }
+
+      // Insert connection tags
+      if (tagIds.length > 0) {
+        const connectionTagRows = tagIds.map((tagId) => ({
+          connection_id: connectionData.id,
+          tag_id: tagId,
+        }));
+
+        const { error: tagsError } = await supabase
+          .from('piktag_connection_tags')
+          .insert(connectionTagRows);
+
+        if (tagsError) {
+          console.error('Error inserting connection tags:', tagsError);
+        }
+      }
+
+      // Update scan session scan_count
+      await supabase.rpc('increment_scan_count', { session_id: sessionId }).catch(async () => {
+        // Fallback: manual increment
+        const { data: sessionData } = await supabase
+          .from('piktag_scan_sessions')
+          .select('scan_count')
+          .eq('id', sessionId)
+          .single();
+
+        if (sessionData) {
+          await supabase
+            .from('piktag_scan_sessions')
+            .update({ scan_count: (sessionData.scan_count || 0) + 1 })
+            .eq('id', sessionId);
+        }
+      });
+
+      Alert.alert('成功', `已成功加 ${hostName} 為好友！`, [
+        {
+          text: '確定',
+          onPress: () => {
+            navigation.navigate('HomeTab');
+          },
+        },
+      ]);
+    } catch (err) {
+      console.error('Error confirming friend:', err);
+      Alert.alert('錯誤', '發生未預期的錯誤，請稍後再試。');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const avatarUri = hostProfile?.avatar_url
+    || `https://ui-avatars.com/api/?name=${encodeURIComponent(hostName)}&background=f3f4f6&color=6b7280`;
+  const displayName = hostProfile?.full_name || hostName;
+  const username = hostProfile?.username || '';
+
+  const allHostSelected = hostTags.length > 0 && selectedHostTags.size === hostTags.length;
+  const allMySelected = myTags.length > 0 && selectedMyTags.size === myTags.length;
+
+  if (loading) {
+    return (
+      <View style={styles.container}>
+        <StatusBar barStyle="dark-content" backgroundColor={COLORS.white} />
+        <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
+          <Text style={styles.headerTitle}>加為好友</Text>
+          <TouchableOpacity
+            style={styles.closeBtn}
+            onPress={() => navigation.goBack()}
+            activeOpacity={0.6}
+          >
+            <X size={24} color={COLORS.gray900} />
+          </TouchableOpacity>
+        </View>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={COLORS.piktag500} />
+        </View>
+      </View>
+    );
+  }
+
+  return (
+    <View style={styles.container}>
+      <StatusBar barStyle="dark-content" backgroundColor={COLORS.white} />
+
+      {/* Header */}
+      <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
+        <Text style={styles.headerTitle}>加為好友</Text>
+        <TouchableOpacity
+          style={styles.closeBtn}
+          onPress={() => navigation.goBack()}
+          activeOpacity={0.6}
+        >
+          <X size={24} color={COLORS.gray900} />
+        </TouchableOpacity>
+      </View>
+
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Host Profile Section */}
+        <View style={styles.profileSection}>
+          <Image
+            source={{ uri: avatarUri }}
+            style={styles.avatar}
+          />
+          <Text style={styles.fullName}>{displayName}</Text>
+          {username ? (
+            <Text style={styles.usernameText}>@{username}</Text>
+          ) : null}
+        </View>
+
+        {/* Host Tags Section */}
+        {hostTags.length > 0 && (
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>對方的標籤</Text>
+              <TouchableOpacity
+                onPress={toggleSelectAllHostTags}
+                activeOpacity={0.7}
+              >
+                <Text
+                  style={[
+                    styles.selectAllText,
+                    allHostSelected && styles.selectAllTextActive,
+                  ]}
+                >
+                  全選
+                </Text>
+              </TouchableOpacity>
+            </View>
+            <View style={styles.chipsContainer}>
+              {hostTags.map((tag) => {
+                const isSelected = selectedHostTags.has(tag);
+                return (
+                  <TouchableOpacity
+                    key={tag}
+                    style={[
+                      styles.chip,
+                      isSelected ? styles.chipSelected : styles.chipUnselected,
+                    ]}
+                    onPress={() => toggleHostTag(tag)}
+                    activeOpacity={0.7}
+                  >
+                    <Text
+                      style={[
+                        styles.chipText,
+                        isSelected ? styles.chipTextSelected : styles.chipTextUnselected,
+                      ]}
+                    >
+                      {tag.startsWith('#') ? tag : `#${tag}`}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          </View>
+        )}
+
+        {/* My Tags Section */}
+        {myTags.length > 0 && (
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>我的標籤</Text>
+              <TouchableOpacity
+                onPress={toggleSelectAllMyTags}
+                activeOpacity={0.7}
+              >
+                <Text
+                  style={[
+                    styles.selectAllText,
+                    allMySelected && styles.selectAllTextActive,
+                  ]}
+                >
+                  全選
+                </Text>
+              </TouchableOpacity>
+            </View>
+            <View style={styles.chipsContainer}>
+              {myTags.map((tag) => {
+                const isSelected = selectedMyTags.has(tag);
+                return (
+                  <TouchableOpacity
+                    key={tag}
+                    style={[
+                      styles.chip,
+                      isSelected ? styles.chipSelected : styles.chipUnselected,
+                    ]}
+                    onPress={() => toggleMyTag(tag)}
+                    activeOpacity={0.7}
+                  >
+                    <Text
+                      style={[
+                        styles.chipText,
+                        isSelected ? styles.chipTextSelected : styles.chipTextUnselected,
+                      ]}
+                    >
+                      {tag.startsWith('#') ? tag : `#${tag}`}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          </View>
+        )}
+      </ScrollView>
+
+      {/* CTA Button */}
+      <View style={[styles.ctaContainer, { paddingBottom: insets.bottom + 16 }]}>
+        <TouchableOpacity
+          style={[styles.ctaButton, submitting && styles.ctaButtonDisabled]}
+          onPress={handleConfirm}
+          activeOpacity={0.8}
+          disabled={submitting}
+        >
+          {submitting ? (
+            <ActivityIndicator size={20} color={COLORS.gray900} />
+          ) : (
+            <Text style={styles.ctaButtonText}>確認加為好友</Text>
+          )}
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: COLORS.white,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingBottom: 16,
+    backgroundColor: COLORS.white,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.gray100,
+  },
+  headerTitle: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: COLORS.gray900,
+    lineHeight: 32,
+  },
+  closeBtn: {
+    padding: 4,
+  },
+  loadingContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingBottom: 120,
+  },
+  profileSection: {
+    alignItems: 'center',
+    paddingTop: 32,
+    paddingBottom: 8,
+  },
+  avatar: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: COLORS.gray100,
+    borderWidth: 2,
+    borderColor: COLORS.gray100,
+  },
+  fullName: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: COLORS.gray900,
+    marginTop: 14,
+  },
+  usernameText: {
+    fontSize: 15,
+    color: COLORS.gray500,
+    marginTop: 4,
+  },
+  section: {
+    paddingHorizontal: 20,
+    paddingTop: 28,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 14,
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: COLORS.gray900,
+  },
+  selectAllText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: COLORS.gray400,
+  },
+  selectAllTextActive: {
+    color: COLORS.piktag600,
+  },
+  chipsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+  },
+  chip: {
+    borderRadius: 9999,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+  },
+  chipSelected: {
+    backgroundColor: COLORS.piktag500,
+    borderWidth: 1,
+    borderColor: COLORS.piktag500,
+  },
+  chipUnselected: {
+    backgroundColor: COLORS.white,
+    borderWidth: 1,
+    borderColor: COLORS.gray200,
+  },
+  chipText: {
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  chipTextSelected: {
+    color: COLORS.gray900,
+  },
+  chipTextUnselected: {
+    color: COLORS.gray700,
+  },
+  ctaContainer: {
+    paddingHorizontal: 20,
+    paddingTop: 12,
+    backgroundColor: COLORS.white,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.gray100,
+  },
+  ctaButton: {
+    backgroundColor: COLORS.piktag500,
+    borderRadius: 14,
+    paddingVertical: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  ctaButtonDisabled: {
+    opacity: 0.7,
+  },
+  ctaButtonText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: COLORS.gray900,
+  },
+});

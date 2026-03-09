@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -9,409 +9,619 @@ import {
   StatusBar,
   Alert,
   ActivityIndicator,
+  Modal,
+  Share,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { X, Hash, EyeOff, Eye } from 'lucide-react-native';
+import { X, Star, ArrowLeft, Share2, Trash2 } from 'lucide-react-native';
+import QRCode from 'react-native-qrcode-svg';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
 import { COLORS } from '../constants/theme';
-import type { Tag, UserTag } from '../types';
+import type { TagPreset, ScanSession, PiktagProfile } from '../types';
 
 type AddTagScreenProps = {
   navigation: any;
 };
 
+function formatDate(date: Date): string {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}/${m}/${d}`;
+}
+
 export default function AddTagScreen({ navigation }: AddTagScreenProps) {
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
-  const [tagInput, setTagInput] = useState('');
-  const [myTags, setMyTags] = useState<(UserTag & { tag?: Tag })[]>([]);
-  const [popularTags, setPopularTags] = useState<Tag[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [addingTag, setAddingTag] = useState(false);
-  const [removingTagId, setRemovingTagId] = useState<string | null>(null);
-  const [isPrivate, setIsPrivate] = useState(false);
 
-  useEffect(() => {
-    if (user) {
-      loadMyTags();
-      loadPopularTags();
+  // Mode: 'setup' or 'qr'
+  const [mode, setMode] = useState<'setup' | 'qr'>('setup');
+
+  // Setup form state
+  const [eventDate, setEventDate] = useState(formatDate(new Date()));
+  const [isEditingDate, setIsEditingDate] = useState(false);
+  const [eventLocation, setEventLocation] = useState('');
+  const [eventTags, setEventTags] = useState<string[]>([]);
+  const [tagInput, setTagInput] = useState('');
+
+  // Save preset
+  const [showPresetNameInput, setShowPresetNameInput] = useState(false);
+  const [presetName, setPresetName] = useState('');
+  const [savingPreset, setSavingPreset] = useState(false);
+
+  // QR / session state
+  const [qrValue, setQrValue] = useState('');
+  const [scanSession, setScanSession] = useState<ScanSession | null>(null);
+  const [generating, setGenerating] = useState(false);
+
+  // Presets modal
+  const [showPresetsModal, setShowPresetsModal] = useState(false);
+  const [presets, setPresets] = useState<TagPreset[]>([]);
+  const [loadingPresets, setLoadingPresets] = useState(false);
+  const [deletingPresetId, setDeletingPresetId] = useState<string | null>(null);
+
+  // ─── Load presets ───
+  const loadPresets = useCallback(async () => {
+    if (!user) return;
+    setLoadingPresets(true);
+    try {
+      const { data, error } = await supabase
+        .from('piktag_tag_presets')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('last_used_at', { ascending: false });
+
+      if (!error && data) {
+        setPresets(data as TagPreset[]);
+      }
+    } catch {
+      // ignore
+    } finally {
+      setLoadingPresets(false);
     }
   }, [user]);
 
-  const loadMyTags = async () => {
-    if (!user) return;
-    try {
-      const { data, error } = await supabase
-        .from('piktag_user_tags')
-        .select('*, tag:piktag_tags(*)')
-        .eq('user_id', user.id)
-        .order('position');
-
-      if (!error && data) {
-        setMyTags(data);
-      }
-    } catch {} finally {
-      setLoading(false);
+  useEffect(() => {
+    if (user) {
+      loadPresets();
     }
-  };
+  }, [user, loadPresets]);
 
-  const loadPopularTags = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('piktag_tags')
-        .select('*')
-        .order('usage_count', { ascending: false })
-        .limit(12);
-
-      if (!error && data) {
-        setPopularTags(data);
-      }
-    } catch {}
-  };
-
-  const myTagNames = myTags.map((t) => {
-    const name = t.tag?.name ?? '';
-    return name.startsWith('#') ? name : `#${name}`;
-  });
-
-  const handleAddTag = async () => {
-    if (!user) return;
+  // ─── Add tag ───
+  const handleAddTag = () => {
     const trimmed = tagInput.trim();
     if (!trimmed) return;
-
-    // Normalize: remove leading # for DB storage, keep for display comparison
-    const rawName = trimmed.startsWith('#') ? trimmed.slice(1) : trimmed;
-    const displayName = `#${rawName}`;
-
-    if (myTagNames.includes(displayName)) {
-      Alert.alert('\u6a19\u7c64\u5df2\u5b58\u5728', '\u6b64\u6a19\u7c64\u5df2\u5728\u4f60\u7684\u5217\u8868\u4e2d\u3002');
+    if (eventTags.includes(trimmed)) {
+      Alert.alert('標籤已存在', '此標籤已在列表中。');
       return;
     }
+    setEventTags((prev) => [...prev, trimmed]);
+    setTagInput('');
+  };
 
-    setAddingTag(true);
+  // ─── Remove tag ───
+  const handleRemoveTag = (tag: string) => {
+    setEventTags((prev) => prev.filter((t) => t !== tag));
+  };
+
+  // ─── Save preset ───
+  const handleSavePreset = async () => {
+    if (!user) return;
+    const name = presetName.trim();
+    if (!name) {
+      Alert.alert('請輸入模板名稱');
+      return;
+    }
+    setSavingPreset(true);
     try {
-      // 1. Check if tag exists
-      let tagId: string;
-      const { data: existingTag, error: findError } = await supabase
-        .from('piktag_tags')
-        .select('id')
-        .eq('name', rawName)
+      const { error } = await supabase.from('piktag_tag_presets').insert({
+        user_id: user.id,
+        name,
+        location: eventLocation,
+        tags: eventTags,
+      });
+
+      if (error) {
+        Alert.alert('錯誤', '無法儲存模板，請稍後再試。');
+      } else {
+        Alert.alert('已儲存', `模板「${name}」已儲存。`);
+        setPresetName('');
+        setShowPresetNameInput(false);
+        loadPresets();
+      }
+    } catch {
+      Alert.alert('錯誤', '無法儲存模板，請稍後再試。');
+    } finally {
+      setSavingPreset(false);
+    }
+  };
+
+  // ─── Apply preset ───
+  const handleApplyPreset = async (preset: TagPreset) => {
+    setEventLocation(preset.location || '');
+    setEventTags(preset.tags || []);
+    setShowPresetsModal(false);
+
+    // Update last_used_at
+    try {
+      await supabase
+        .from('piktag_tag_presets')
+        .update({ last_used_at: new Date().toISOString() })
+        .eq('id', preset.id);
+    } catch {
+      // ignore
+    }
+  };
+
+  // ─── Delete preset ───
+  const handleDeletePreset = async (id: string) => {
+    setDeletingPresetId(id);
+    try {
+      const { error } = await supabase
+        .from('piktag_tag_presets')
+        .delete()
+        .eq('id', id);
+
+      if (error) {
+        Alert.alert('錯誤', '無法刪除模板。');
+      } else {
+        setPresets((prev) => prev.filter((p) => p.id !== id));
+      }
+    } catch {
+      Alert.alert('錯誤', '無法刪除模板。');
+    } finally {
+      setDeletingPresetId(null);
+    }
+  };
+
+  // ─── Generate QR Code ───
+  const handleGenerateQr = async () => {
+    if (!user) return;
+    if (!eventDate.trim()) {
+      Alert.alert('請輸入日期');
+      return;
+    }
+    setGenerating(true);
+    try {
+      // 1. Fetch user profile for display name
+      const { data: profileData } = await supabase
+        .from('piktag_profiles')
+        .select('full_name, username')
+        .eq('id', user.id)
         .single();
 
-      if (existingTag && !findError) {
-        tagId = existingTag.id;
-      } else {
-        // 2. Create new tag
-        const { data: newTag, error: createError } = await supabase
-          .from('piktag_tags')
-          .insert({ name: rawName })
-          .select('id')
-          .single();
+      const displayName =
+        (profileData as PiktagProfile | null)?.full_name ||
+        (profileData as PiktagProfile | null)?.username ||
+        '使用者';
 
-        if (createError || !newTag) {
-          Alert.alert('\u932f\u8aa4', '\u7121\u6cd5\u65b0\u589e\u6a19\u7c64\uff0c\u8acb\u7a0d\u5f8c\u518d\u8a66\u3002');
-          setAddingTag(false);
-          return;
-        }
-        tagId = newTag.id;
-      }
+      // 2. Build QR payload
+      const payload = {
+        type: 'piktag_connect',
+        v: 1,
+        sid: '', // will be set after insert
+        uid: user.id,
+        name: displayName,
+        date: eventDate,
+        loc: eventLocation,
+        tags: eventTags,
+      };
 
-      // 3. Calculate next position
-      const nextPosition = myTags.length;
-
-      // 4. Link tag to user
-      const { error: linkError } = await supabase
-        .from('piktag_user_tags')
+      // 3. Insert scan session (without qr_code_data first to get ID)
+      const { data: sessionData, error: sessionError } = await supabase
+        .from('piktag_scan_sessions')
         .insert({
-          user_id: user.id,
-          tag_id: tagId,
-          position: nextPosition,
-          is_private: isPrivate,
-        });
+          host_user_id: user.id,
+          event_date: eventDate,
+          event_location: eventLocation,
+          event_tags: eventTags,
+          qr_code_data: '', // placeholder
+        })
+        .select('*')
+        .single();
 
-      if (linkError) {
-        Alert.alert('\u932f\u8aa4', '\u7121\u6cd5\u65b0\u589e\u6a19\u7c64\uff0c\u8acb\u7a0d\u5f8c\u518d\u8a66\u3002');
-        setAddingTag(false);
+      if (sessionError || !sessionData) {
+        Alert.alert('錯誤', '無法建立掃碼活動，請稍後再試。');
+        setGenerating(false);
         return;
       }
 
-      // 5. Increment usage_count
+      // 4. Update payload with session ID and encode
+      payload.sid = sessionData.id;
+      const jsonString = JSON.stringify(payload);
+      const encoded = btoa(jsonString);
+
+      // 5. Update session with final qr_code_data
       await supabase
-        .from('piktag_tags')
-        .update({ usage_count: (existingTag ? 1 : 1) })
-        .eq('id', tagId);
+        .from('piktag_scan_sessions')
+        .update({ qr_code_data: encoded })
+        .eq('id', sessionData.id);
 
-      // Use RPC if available, otherwise do a raw increment
-      await supabase.rpc('increment_tag_usage', { tag_id: tagId }).catch(() => {
-        // Fallback: just ignore if RPC doesn't exist, the update above is a basic fallback
-      });
-
-      // Reload tags
-      setTagInput('');
-      setIsPrivate(false);
-      await loadMyTags();
-      loadPopularTags();
+      // 6. Set state
+      setQrValue(encoded);
+      setScanSession({ ...sessionData, qr_code_data: encoded } as ScanSession);
+      setMode('qr');
     } catch {
-      Alert.alert('\u932f\u8aa4', '\u7121\u6cd5\u65b0\u589e\u6a19\u7c64\uff0c\u8acb\u7a0d\u5f8c\u518d\u8a66\u3002');
+      Alert.alert('錯誤', '無法產生 QR Code，請稍後再試。');
     } finally {
-      setAddingTag(false);
+      setGenerating(false);
     }
   };
 
-  const handleRemoveTag = async (userTag: UserTag & { tag?: Tag }) => {
-    if (!user) return;
-    setRemovingTagId(userTag.id);
-
+  // ─── Share QR ───
+  const handleShare = async () => {
     try {
-      // 1. Delete from piktag_user_tags
-      const { error: deleteError } = await supabase
-        .from('piktag_user_tags')
-        .delete()
-        .eq('id', userTag.id);
-
-      if (deleteError) {
-        Alert.alert('\u932f\u8aa4', '\u7121\u6cd5\u79fb\u9664\u6a19\u7c64\uff0c\u8acb\u7a0d\u5f8c\u518d\u8a66\u3002');
-        setRemovingTagId(null);
-        return;
-      }
-
-      // 2. Decrement usage_count on piktag_tags
-      if (userTag.tag_id) {
-        await supabase.rpc('decrement_tag_usage', { tag_id: userTag.tag_id }).catch(async () => {
-          // Fallback: manually decrement
-          const { data: tagData } = await supabase
-            .from('piktag_tags')
-            .select('usage_count')
-            .eq('id', userTag.tag_id)
-            .single();
-
-          if (tagData && tagData.usage_count > 0) {
-            await supabase
-              .from('piktag_tags')
-              .update({ usage_count: tagData.usage_count - 1 })
-              .eq('id', userTag.tag_id);
-          }
-        });
-      }
-
-      // Reload tags
-      await loadMyTags();
-      loadPopularTags();
-    } catch {
-      Alert.alert('\u932f\u8aa4', '\u7121\u6cd5\u79fb\u9664\u6a19\u7c64\uff0c\u8acb\u7a0d\u5f8c\u518d\u8a66\u3002');
-    } finally {
-      setRemovingTagId(null);
-    }
-  };
-
-  const handleAddPopularTag = async (tag: Tag) => {
-    if (!user) return;
-    const displayName = tag.name.startsWith('#') ? tag.name : `#${tag.name}`;
-    if (myTagNames.includes(displayName)) return;
-
-    setAddingTag(true);
-    try {
-      const nextPosition = myTags.length;
-
-      const { error: linkError } = await supabase
-        .from('piktag_user_tags')
-        .insert({
-          user_id: user.id,
-          tag_id: tag.id,
-          position: nextPosition,
-        });
-
-      if (linkError) {
-        Alert.alert('\u932f\u8aa4', '\u7121\u6cd5\u65b0\u589e\u6a19\u7c64\uff0c\u8acb\u7a0d\u5f8c\u518d\u8a66\u3002');
-        setAddingTag(false);
-        return;
-      }
-
-      // Increment usage_count
-      await supabase.rpc('increment_tag_usage', { tag_id: tag.id }).catch(async () => {
-        // Fallback
-        await supabase
-          .from('piktag_tags')
-          .update({ usage_count: (tag.usage_count || 0) + 1 })
-          .eq('id', tag.id);
+      await Share.share({
+        message: `PikTag 社交活動\n日期：${eventDate}\n地點：${eventLocation}\n標籤：${eventTags.join(', ')}\n\n掃描 QR Code 加入連線！`,
       });
-
-      await loadMyTags();
-      loadPopularTags();
     } catch {
-      Alert.alert('\u932f\u8aa4', '\u7121\u6cd5\u65b0\u589e\u6a19\u7c64\uff0c\u8acb\u7a0d\u5f8c\u518d\u8a66\u3002');
-    } finally {
-      setAddingTag(false);
+      // user cancelled
     }
   };
 
-  const getTagDisplayName = (userTag: UserTag & { tag?: Tag }) => {
-    const name = userTag.tag?.name ?? '';
-    return name.startsWith('#') ? name : `#${name}`;
-  };
+  // ─── Render Setup Mode ───
+  const renderSetupMode = () => (
+    <>
+      {/* Header */}
+      <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          activeOpacity={0.6}
+          style={styles.headerSideBtn}
+        >
+          <X size={24} color={COLORS.gray900} />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}># 準備社交</Text>
+        <TouchableOpacity
+          onPress={() => {
+            loadPresets();
+            setShowPresetsModal(true);
+          }}
+          activeOpacity={0.6}
+          style={styles.headerSideBtn}
+        >
+          <Star size={24} color={COLORS.piktag500} />
+        </TouchableOpacity>
+      </View>
+
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+      >
+        {/* 日期 Section */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>日期</Text>
+          {isEditingDate ? (
+            <View style={styles.inputRow}>
+              <TextInput
+                style={styles.textInput}
+                value={eventDate}
+                onChangeText={setEventDate}
+                placeholder="YYYY/MM/DD"
+                placeholderTextColor={COLORS.gray400}
+                autoFocus
+                onBlur={() => setIsEditingDate(false)}
+                returnKeyType="done"
+                onSubmitEditing={() => setIsEditingDate(false)}
+              />
+            </View>
+          ) : (
+            <TouchableOpacity
+              style={styles.inputRow}
+              onPress={() => setIsEditingDate(true)}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.dateDisplayText}>{eventDate || '點擊設定日期'}</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+
+        {/* 地點 Section */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>地點</Text>
+          <View style={styles.inputRow}>
+            <TextInput
+              style={styles.textInput}
+              value={eventLocation}
+              onChangeText={setEventLocation}
+              placeholder="輸入活動地點..."
+              placeholderTextColor={COLORS.gray400}
+            />
+          </View>
+        </View>
+
+        {/* 自訂標籤 Section */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>自訂標籤</Text>
+          <View style={styles.tagInputRow}>
+            <View style={[styles.inputRow, { flex: 1 }]}>
+              <TextInput
+                style={styles.textInput}
+                value={tagInput}
+                onChangeText={setTagInput}
+                placeholder="輸入標籤..."
+                placeholderTextColor={COLORS.gray400}
+                returnKeyType="done"
+                onSubmitEditing={handleAddTag}
+              />
+            </View>
+            <TouchableOpacity
+              style={styles.addTagBtn}
+              onPress={handleAddTag}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.addTagBtnText}>新增</Text>
+            </TouchableOpacity>
+          </View>
+
+          {eventTags.length > 0 && (
+            <View style={styles.chipsContainer}>
+              {eventTags.map((tag) => (
+                <View key={tag} style={styles.tagChip}>
+                  <Text style={styles.tagChipText}>{tag}</Text>
+                  <TouchableOpacity
+                    onPress={() => handleRemoveTag(tag)}
+                    style={styles.chipRemoveBtn}
+                    activeOpacity={0.6}
+                  >
+                    <X size={14} color={COLORS.piktag600} />
+                  </TouchableOpacity>
+                </View>
+              ))}
+            </View>
+          )}
+        </View>
+
+        {/* 儲存為常用模板 */}
+        <View style={styles.section}>
+          {!showPresetNameInput ? (
+            <TouchableOpacity
+              style={styles.outlineButton}
+              onPress={() => setShowPresetNameInput(true)}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.outlineButtonText}>儲存為常用模板</Text>
+            </TouchableOpacity>
+          ) : (
+            <View>
+              <View style={styles.inputRow}>
+                <TextInput
+                  style={styles.textInput}
+                  value={presetName}
+                  onChangeText={setPresetName}
+                  placeholder="輸入模板名稱..."
+                  placeholderTextColor={COLORS.gray400}
+                  autoFocus
+                  returnKeyType="done"
+                  onSubmitEditing={handleSavePreset}
+                />
+              </View>
+              <View style={styles.presetSaveRow}>
+                <TouchableOpacity
+                  style={styles.presetCancelBtn}
+                  onPress={() => {
+                    setShowPresetNameInput(false);
+                    setPresetName('');
+                  }}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.presetCancelBtnText}>取消</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.presetConfirmBtn, savingPreset && styles.buttonDisabled]}
+                  onPress={handleSavePreset}
+                  activeOpacity={0.8}
+                  disabled={savingPreset}
+                >
+                  {savingPreset ? (
+                    <ActivityIndicator size={16} color={COLORS.gray900} />
+                  ) : (
+                    <Text style={styles.presetConfirmBtnText}>儲存</Text>
+                  )}
+                </TouchableOpacity>
+              </View>
+            </View>
+          )}
+        </View>
+
+        {/* 產生 QR Code CTA */}
+        <View style={styles.section}>
+          <TouchableOpacity
+            style={[styles.primaryButton, generating && styles.buttonDisabled]}
+            onPress={handleGenerateQr}
+            activeOpacity={0.8}
+            disabled={generating}
+          >
+            {generating ? (
+              <ActivityIndicator size={18} color={COLORS.gray900} />
+            ) : (
+              <Text style={styles.primaryButtonText}>產生 QR Code</Text>
+            )}
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+    </>
+  );
+
+  // ─── Render QR Mode ───
+  const renderQrMode = () => (
+    <>
+      {/* Header */}
+      <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
+        <TouchableOpacity
+          onPress={() => setMode('setup')}
+          activeOpacity={0.6}
+          style={styles.headerBackBtn}
+        >
+          <ArrowLeft size={20} color={COLORS.gray900} />
+          <Text style={styles.headerBackText}>返回編輯</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          onPress={handleShare}
+          activeOpacity={0.6}
+          style={styles.headerSideBtn}
+        >
+          <Share2 size={22} color={COLORS.gray900} />
+        </TouchableOpacity>
+      </View>
+
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.qrScrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Branded title */}
+        <Text style={styles.qrBrandTitle}># PikTag</Text>
+
+        {/* QR Code */}
+        <View style={styles.qrWrapper}>
+          <QRCode value={qrValue} size={200} backgroundColor={COLORS.white} />
+        </View>
+
+        {/* Event info */}
+        <Text style={styles.qrEventInfo}>
+          {eventDate}
+          {eventLocation ? ` · ${eventLocation}` : ''}
+        </Text>
+
+        {/* Tags */}
+        {eventTags.length > 0 && (
+          <View style={styles.qrTagsContainer}>
+            {eventTags.map((tag) => (
+              <View key={tag} style={styles.tagChip}>
+                <Text style={styles.tagChipText}>{tag}</Text>
+              </View>
+            ))}
+          </View>
+        )}
+
+        {/* Scan count */}
+        <Text style={styles.qrScanCount}>
+          {'\uD83D\uDCCB'} 掃碼 {scanSession?.scan_count ?? 0} 次
+        </Text>
+
+        {/* Edit button */}
+        <TouchableOpacity
+          style={styles.outlineButton}
+          onPress={() => setMode('setup')}
+          activeOpacity={0.7}
+        >
+          <Text style={styles.outlineButtonText}>
+            {'\u270F\uFE0F'} 修改標籤設定
+          </Text>
+        </TouchableOpacity>
+      </ScrollView>
+    </>
+  );
+
+  // ─── Presets Modal ───
+  const renderPresetsModal = () => (
+    <Modal
+      visible={showPresetsModal}
+      animationType="slide"
+      transparent
+      onRequestClose={() => setShowPresetsModal(false)}
+    >
+      <View style={styles.modalOverlay}>
+        <View style={[styles.modalContainer, { paddingTop: insets.top + 16 }]}>
+          {/* Modal header */}
+          <View style={styles.modalHeader}>
+            <Text style={styles.modalTitle}>常用模板</Text>
+            <TouchableOpacity
+              onPress={() => setShowPresetsModal(false)}
+              activeOpacity={0.6}
+              style={styles.headerSideBtn}
+            >
+              <X size={24} color={COLORS.gray900} />
+            </TouchableOpacity>
+          </View>
+
+          {/* Modal body */}
+          {loadingPresets ? (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="large" color={COLORS.piktag500} />
+            </View>
+          ) : presets.length === 0 ? (
+            <View style={styles.emptyContainer}>
+              <Text style={styles.emptyText}>尚無常用模板</Text>
+            </View>
+          ) : (
+            <ScrollView
+              style={styles.modalScrollView}
+              showsVerticalScrollIndicator={false}
+            >
+              {presets.map((preset) => (
+                <TouchableOpacity
+                  key={preset.id}
+                  style={styles.presetItem}
+                  activeOpacity={0.7}
+                  onLongPress={() => {
+                    Alert.alert(
+                      '刪除模板',
+                      `確定要刪除「${preset.name}」嗎？`,
+                      [
+                        { text: '取消', style: 'cancel' },
+                        {
+                          text: '刪除',
+                          style: 'destructive',
+                          onPress: () => handleDeletePreset(preset.id),
+                        },
+                      ]
+                    );
+                  }}
+                >
+                  <View style={styles.presetItemContent}>
+                    <Text style={styles.presetItemName}>{preset.name}</Text>
+                    {preset.location ? (
+                      <Text style={styles.presetItemLocation} numberOfLines={1}>
+                        {preset.location}
+                      </Text>
+                    ) : null}
+                    {preset.tags && preset.tags.length > 0 && (
+                      <View style={styles.presetTagsPreview}>
+                        {preset.tags.slice(0, 4).map((tag) => (
+                          <View key={tag} style={styles.presetTagMini}>
+                            <Text style={styles.presetTagMiniText}>{tag}</Text>
+                          </View>
+                        ))}
+                        {preset.tags.length > 4 && (
+                          <Text style={styles.presetMoreText}>
+                            +{preset.tags.length - 4}
+                          </Text>
+                        )}
+                      </View>
+                    )}
+                  </View>
+                  <View style={styles.presetItemActions}>
+                    {deletingPresetId === preset.id ? (
+                      <ActivityIndicator size={16} color={COLORS.gray400} />
+                    ) : (
+                      <TouchableOpacity
+                        style={styles.presetApplyBtn}
+                        onPress={() => handleApplyPreset(preset)}
+                        activeOpacity={0.8}
+                      >
+                        <Text style={styles.presetApplyBtnText}>套用</Text>
+                      </TouchableOpacity>
+                    )}
+                  </View>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          )}
+        </View>
+      </View>
+    </Modal>
+  );
 
   return (
     <View style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor={COLORS.white} />
-
-      {/* Header */}
-      <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
-        <Text style={styles.headerTitle}>
-          {'\u6a19\u7c64\u7ba1\u7406'}
-        </Text>
-        <TouchableOpacity
-          style={styles.closeBtn}
-          onPress={() => navigation.goBack()}
-          activeOpacity={0.6}
-          accessibilityRole="button"
-          accessibilityLabel={'\u95dc\u9589'}
-        >
-          <X size={24} color={COLORS.gray900} />
-        </TouchableOpacity>
-      </View>
-
-      {loading ? (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={COLORS.piktag500} />
-        </View>
-      ) : (
-        <ScrollView
-          style={styles.scrollView}
-          contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
-        >
-          {/* My Tags Section */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>
-              {'\u6211\u7684\u6a19\u7c64'}
-            </Text>
-            {myTags.length === 0 ? (
-              <Text style={styles.emptyText}>
-                {'\u9084\u6c92\u6709\u6a19\u7c64\uff0c\u65b0\u589e\u4e00\u500b\u5427\uff01'}
-              </Text>
-            ) : (
-              <View style={styles.chipsContainer}>
-                {myTags.map((userTag) => (
-                  <View key={userTag.id} style={[styles.myTagChip, (userTag as any).is_private && styles.myTagChipPrivate]}>
-                    {(userTag as any).is_private && (
-                      <EyeOff size={12} color={COLORS.gray500} />
-                    )}
-                    <Text style={styles.myTagChipText}>
-                      {getTagDisplayName(userTag)}
-                    </Text>
-                    <TouchableOpacity
-                      onPress={() => handleRemoveTag(userTag)}
-                      style={styles.chipRemoveBtn}
-                      activeOpacity={0.6}
-                      disabled={removingTagId === userTag.id}
-                    >
-                      {removingTagId === userTag.id ? (
-                        <ActivityIndicator size={14} color={COLORS.piktag600} />
-                      ) : (
-                        <X size={14} color={COLORS.piktag600} />
-                      )}
-                    </TouchableOpacity>
-                  </View>
-                ))}
-              </View>
-            )}
-          </View>
-
-          {/* Divider */}
-          <View style={styles.divider} />
-
-          {/* Add Tag Section */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>
-              {'\u65b0\u589e\u6a19\u7c64'}
-            </Text>
-            <View style={styles.inputRow}>
-              <Hash size={20} color={COLORS.gray400} style={styles.inputIcon} />
-              <TextInput
-                style={styles.textInput}
-                placeholder={'\u8f38\u5165\u65b0\u6a19\u7c64...'}
-                placeholderTextColor={COLORS.gray400}
-                value={tagInput}
-                onChangeText={setTagInput}
-                returnKeyType="done"
-                onSubmitEditing={handleAddTag}
-                editable={!addingTag}
-              />
-            </View>
-            <TouchableOpacity
-              style={styles.privacyToggle}
-              activeOpacity={0.7}
-              onPress={() => setIsPrivate(!isPrivate)}
-            >
-              {isPrivate ? (
-                <EyeOff size={18} color={COLORS.piktag600} />
-              ) : (
-                <Eye size={18} color={COLORS.gray400} />
-              )}
-              <Text style={[styles.privacyText, isPrivate && styles.privacyTextActive]}>
-                {isPrivate ? '僅自己可見' : '公開標籤'}
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.addButton, addingTag && styles.addButtonDisabled]}
-              onPress={handleAddTag}
-              activeOpacity={0.8}
-              disabled={addingTag}
-            >
-              {addingTag ? (
-                <ActivityIndicator size={18} color={COLORS.gray900} />
-              ) : (
-                <Text style={styles.addButtonText}>
-                  {'\u65b0\u589e'}
-                </Text>
-              )}
-            </TouchableOpacity>
-          </View>
-
-          {/* Popular Tags Section */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>
-              {'\u71b1\u9580\u6a19\u7c64\u63a8\u85a6'}
-            </Text>
-            <View style={styles.chipsContainer}>
-              {popularTags.map((tag) => {
-                const displayName = tag.name.startsWith('#')
-                  ? tag.name
-                  : `#${tag.name}`;
-                const isAdded = myTagNames.includes(displayName);
-                return (
-                  <TouchableOpacity
-                    key={tag.id}
-                    style={[
-                      styles.popularTagChip,
-                      isAdded && styles.popularTagChipAdded,
-                    ]}
-                    onPress={() => handleAddPopularTag(tag)}
-                    activeOpacity={0.7}
-                    disabled={isAdded || addingTag}
-                  >
-                    <Text
-                      style={[
-                        styles.popularTagChipText,
-                        isAdded && styles.popularTagChipTextAdded,
-                      ]}
-                    >
-                      {displayName}
-                    </Text>
-                  </TouchableOpacity>
-                );
-              })}
-              {popularTags.length === 0 && (
-                <Text style={styles.emptyText}>
-                  {'\u66ab\u7121\u71b1\u9580\u6a19\u7c64'}
-                </Text>
-              )}
-            </View>
-          </View>
-        </ScrollView>
-      )}
+      {mode === 'setup' ? renderSetupMode() : renderQrMode()}
+      {renderPresetsModal()}
     </View>
   );
 }
@@ -421,6 +631,8 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.white,
   },
+
+  // ── Header ──
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -437,15 +649,34 @@ const styles = StyleSheet.create({
     color: COLORS.gray900,
     lineHeight: 32,
   },
-  closeBtn: {
+  headerSideBtn: {
     padding: 4,
   },
+  headerBackBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    padding: 4,
+  },
+  headerBackText: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: COLORS.gray900,
+  },
+
+  // ── Scroll ──
   scrollView: {
     flex: 1,
   },
   scrollContent: {
     paddingBottom: 100,
   },
+  qrScrollContent: {
+    paddingBottom: 100,
+    alignItems: 'center',
+  },
+
+  // ── Sections ──
   section: {
     paddingHorizontal: 20,
     paddingTop: 24,
@@ -456,12 +687,55 @@ const styles = StyleSheet.create({
     color: COLORS.gray900,
     marginBottom: 14,
   },
+
+  // ── Input ──
+  inputRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.gray100,
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    height: 48,
+  },
+  textInput: {
+    flex: 1,
+    fontSize: 16,
+    color: COLORS.gray900,
+    padding: 0,
+  },
+  dateDisplayText: {
+    fontSize: 16,
+    color: COLORS.gray900,
+  },
+
+  // ── Tag input row ──
+  tagInputRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  addTagBtn: {
+    backgroundColor: COLORS.piktag500,
+    borderRadius: 14,
+    paddingVertical: 12,
+    paddingHorizontal: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  addTagBtnText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: COLORS.gray900,
+  },
+
+  // ── Chips ──
   chipsContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 10,
+    marginTop: 14,
   },
-  myTagChip: {
+  tagChip: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: COLORS.piktag50,
@@ -471,13 +745,7 @@ const styles = StyleSheet.create({
     paddingRight: 10,
     gap: 6,
   },
-  myTagChipPrivate: {
-    backgroundColor: COLORS.gray100,
-    borderWidth: 1,
-    borderColor: COLORS.gray200,
-    borderStyle: 'dashed',
-  },
-  myTagChipText: {
+  tagChipText: {
     fontSize: 14,
     fontWeight: '500',
     color: COLORS.piktag600,
@@ -485,86 +753,208 @@ const styles = StyleSheet.create({
   chipRemoveBtn: {
     padding: 2,
   },
-  divider: {
-    height: 1,
-    backgroundColor: COLORS.gray100,
-    marginHorizontal: 20,
-    marginTop: 24,
-  },
-  inputRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: COLORS.gray100,
-    borderRadius: 16,
-    paddingHorizontal: 16,
-    height: 48,
-  },
-  inputIcon: {
-    marginRight: 10,
-  },
-  textInput: {
-    flex: 1,
-    fontSize: 16,
-    color: COLORS.gray900,
-    padding: 0,
-  },
-  privacyToggle: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginTop: 12,
-    paddingVertical: 4,
-  },
-  privacyText: {
-    fontSize: 14,
-    color: COLORS.gray400,
-  },
-  privacyTextActive: {
-    color: COLORS.piktag600,
-    fontWeight: '500',
-  },
-  addButton: {
+
+  // ── Buttons ──
+  primaryButton: {
     backgroundColor: COLORS.piktag500,
     borderRadius: 14,
     paddingVertical: 14,
     alignItems: 'center',
-    marginTop: 14,
   },
-  addButtonDisabled: {
-    opacity: 0.7,
-  },
-  addButtonText: {
+  primaryButtonText: {
     fontSize: 16,
     fontWeight: '700',
     color: COLORS.gray900,
   },
-  popularTagChip: {
+  outlineButton: {
     borderWidth: 1,
     borderColor: COLORS.gray200,
+    borderRadius: 14,
+    paddingVertical: 14,
+    alignItems: 'center',
+  },
+  outlineButtonText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: COLORS.gray700,
+  },
+  buttonDisabled: {
+    opacity: 0.7,
+  },
+
+  // ── Save preset row ──
+  presetSaveRow: {
+    flexDirection: 'row',
+    gap: 10,
+    marginTop: 12,
+  },
+  presetCancelBtn: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: COLORS.gray200,
+    borderRadius: 14,
+    paddingVertical: 12,
+    alignItems: 'center',
+  },
+  presetCancelBtnText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: COLORS.gray500,
+  },
+  presetConfirmBtn: {
+    flex: 1,
+    backgroundColor: COLORS.piktag500,
+    borderRadius: 14,
+    paddingVertical: 12,
+    alignItems: 'center',
+  },
+  presetConfirmBtnText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: COLORS.gray900,
+  },
+
+  // ── QR Mode ──
+  qrBrandTitle: {
+    fontSize: 28,
+    fontWeight: '800',
+    color: COLORS.gray900,
+    marginTop: 32,
+    marginBottom: 24,
+  },
+  qrWrapper: {
+    padding: 16,
+    borderWidth: 2,
+    borderColor: COLORS.piktag500,
+    borderRadius: 16,
+    backgroundColor: COLORS.white,
+    marginBottom: 24,
+  },
+  qrEventInfo: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: COLORS.gray700,
+    marginBottom: 16,
+  },
+  qrTagsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+    paddingHorizontal: 20,
+    justifyContent: 'center',
+    marginBottom: 20,
+  },
+  qrScanCount: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: COLORS.gray900,
+    marginBottom: 24,
+  },
+
+  // ── Modal ──
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    justifyContent: 'flex-end',
+  },
+  modalContainer: {
+    backgroundColor: COLORS.white,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    paddingHorizontal: 20,
+    paddingBottom: 40,
+    maxHeight: '80%',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 20,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: COLORS.gray900,
+  },
+  modalScrollView: {
+    flex: 1,
+  },
+
+  // ── Preset items ──
+  presetItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.gray50,
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 12,
+  },
+  presetItemContent: {
+    flex: 1,
+    marginRight: 12,
+  },
+  presetItemName: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: COLORS.gray900,
+    marginBottom: 4,
+  },
+  presetItemLocation: {
+    fontSize: 14,
+    color: COLORS.gray500,
+    marginBottom: 8,
+  },
+  presetTagsPreview: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+    alignItems: 'center',
+  },
+  presetTagMini: {
+    backgroundColor: COLORS.piktag50,
     borderRadius: 9999,
+    paddingVertical: 4,
+    paddingHorizontal: 10,
+  },
+  presetTagMiniText: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: COLORS.piktag600,
+  },
+  presetMoreText: {
+    fontSize: 12,
+    color: COLORS.gray400,
+    fontWeight: '500',
+  },
+  presetItemActions: {
+    justifyContent: 'center',
+  },
+  presetApplyBtn: {
+    backgroundColor: COLORS.piktag500,
+    borderRadius: 10,
     paddingVertical: 8,
     paddingHorizontal: 16,
   },
-  popularTagChipAdded: {
-    backgroundColor: COLORS.piktag500,
-    borderColor: COLORS.piktag500,
-  },
-  popularTagChipText: {
+  presetApplyBtnText: {
     fontSize: 14,
-    fontWeight: '500',
-    color: COLORS.gray700,
-  },
-  popularTagChipTextAdded: {
+    fontWeight: '700',
     color: COLORS.gray900,
   },
+
+  // ── Misc ──
   loadingContainer: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
+    paddingVertical: 40,
+  },
+  emptyContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 40,
   },
   emptyText: {
     fontSize: 14,
     color: COLORS.gray400,
-    paddingVertical: 8,
   },
 });

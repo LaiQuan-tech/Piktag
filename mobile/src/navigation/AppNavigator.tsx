@@ -34,6 +34,8 @@ import InviteScreen from '../screens/InviteScreen';
 import LocationContactsScreen from '../screens/LocationContactsScreen';
 import SocialStatsScreen from '../screens/SocialStatsScreen';
 import NotificationsScreen from '../screens/NotificationsScreen';
+import ScanResultScreen from '../screens/ScanResultScreen';
+import ManageTagsScreen from '../screens/ManageTagsScreen';
 
 // Stack Navigators
 const AuthStack = createNativeStackNavigator();
@@ -91,6 +93,7 @@ function ProfileStackNavigator() {
       <ProfileStack.Screen name="Invite" component={InviteScreen} />
       <ProfileStack.Screen name="LocationContacts" component={LocationContactsScreen} />
       <ProfileStack.Screen name="SocialStats" component={SocialStatsScreen} />
+      <ProfileStack.Screen name="ManageTags" component={ManageTagsScreen} />
     </ProfileStack.Navigator>
   );
 }
@@ -201,6 +204,11 @@ function MainNavigator({ needsOnboarding }: { needsOnboarding: boolean }) {
       <RootStack.Screen
         name="AddTagModal"
         component={AddTagScreen}
+        options={{ presentation: 'modal' }}
+      />
+      <RootStack.Screen
+        name="ScanResult"
+        component={ScanResultScreen}
         options={{ presentation: 'modal' }}
       />
     </RootStack.Navigator>

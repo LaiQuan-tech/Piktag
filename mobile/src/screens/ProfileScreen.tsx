@@ -19,6 +19,7 @@ import {
   Phone,
   Mail,
   Link,
+  Tag,
 } from 'lucide-react-native';
 import { COLORS } from '../constants/theme';
 import { supabase } from '../lib/supabase';
@@ -283,6 +284,16 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
           </TouchableOpacity>
         </View>
 
+        {/* Manage Tags Button */}
+        <TouchableOpacity
+          style={styles.manageTagsButton}
+          activeOpacity={0.7}
+          onPress={() => navigation.navigate('ManageTags')}
+        >
+          <Tag size={18} color={COLORS.piktag600} />
+          <Text style={styles.manageTagsText}>管理我的標籤</Text>
+        </TouchableOpacity>
+
         {/* Contact buttons */}
         <View style={styles.contactSection}>
           {profile?.phone ? (
@@ -494,6 +505,22 @@ const styles = StyleSheet.create({
     height: 24,
     borderRadius: 4,
     backgroundColor: COLORS.gray100,
+  },
+  manageTagsButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: COLORS.gray200,
+    borderRadius: 12,
+    paddingVertical: 12,
+    gap: 8,
+    marginBottom: 20,
+  },
+  manageTagsText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: COLORS.piktag600,
   },
   emptyText: {
     fontSize: 14,
