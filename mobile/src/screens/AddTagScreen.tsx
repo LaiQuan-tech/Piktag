@@ -75,8 +75,10 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
       if (!error && data) {
         setPresets(data as TagPreset[]);
       }
+      // If table doesn't exist, just leave presets empty
     } catch {
-      // ignore
+      // Table may not exist yet — ignore
+      setPresets([]);
     } finally {
       setLoadingPresets(false);
     }
@@ -196,11 +198,36 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
         (profileData as PiktagProfile | null)?.username ||
         '使用者';
 
-      // 2. Build QR payload
+      // 2. Try to create a scan session in DB (graceful fallback if table doesn't exist)
+      let sessionId = `local_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+      let sessionData: any = null;
+
+      try {
+        const { data, error } = await supabase
+          .from('piktag_scan_sessions')
+          .insert({
+            host_user_id: user.id,
+            event_date: eventDate,
+            event_location: eventLocation,
+            event_tags: eventTags,
+            qr_code_data: '', // placeholder
+          })
+          .select('*')
+          .single();
+
+        if (!error && data) {
+          sessionId = data.id;
+          sessionData = data;
+        }
+      } catch {
+        // DB table may not exist yet — continue with local session ID
+      }
+
+      // 3. Build QR payload
       const payload = {
         type: 'piktag_connect',
         v: 1,
-        sid: '', // will be set after insert
+        sid: sessionId,
         uid: user.id,
         name: displayName,
         date: eventDate,
@@ -208,41 +235,40 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
         tags: eventTags,
       };
 
-      // 3. Insert scan session (without qr_code_data first to get ID)
-      const { data: sessionData, error: sessionError } = await supabase
-        .from('piktag_scan_sessions')
-        .insert({
-          host_user_id: user.id,
-          event_date: eventDate,
-          event_location: eventLocation,
-          event_tags: eventTags,
-          qr_code_data: '', // placeholder
-        })
-        .select('*')
-        .single();
+      const jsonString = JSON.stringify(payload);
+      // Use encodeURIComponent + unescape for safe base64 with non-ASCII chars
+      const encoded = btoa(unescape(encodeURIComponent(jsonString)));
 
-      if (sessionError || !sessionData) {
-        Alert.alert('錯誤', '無法建立掃碼活動，請稍後再試。');
-        setGenerating(false);
-        return;
+      // 4. Update session in DB if it was created
+      if (sessionData) {
+        try {
+          await supabase
+            .from('piktag_scan_sessions')
+            .update({ qr_code_data: encoded })
+            .eq('id', sessionData.id);
+        } catch {
+          // ignore
+        }
       }
 
-      // 4. Update payload with session ID and encode
-      payload.sid = sessionData.id;
-      const jsonString = JSON.stringify(payload);
-      const encoded = btoa(jsonString);
-
-      // 5. Update session with final qr_code_data
-      await supabase
-        .from('piktag_scan_sessions')
-        .update({ qr_code_data: encoded })
-        .eq('id', sessionData.id);
-
-      // 6. Set state
+      // 5. Set state — build a local ScanSession object for display
       setQrValue(encoded);
-      setScanSession({ ...sessionData, qr_code_data: encoded } as ScanSession);
+      setScanSession({
+        id: sessionId,
+        host_user_id: user.id,
+        preset_id: null,
+        event_date: eventDate,
+        event_location: eventLocation,
+        event_tags: eventTags,
+        qr_code_data: encoded,
+        scan_count: 0,
+        is_active: true,
+        created_at: new Date().toISOString(),
+        expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+      } as ScanSession);
       setMode('qr');
-    } catch {
+    } catch (err) {
+      console.error('QR generation error:', err);
       Alert.alert('錯誤', '無法產生 QR Code，請稍後再試。');
     } finally {
       setGenerating(false);
