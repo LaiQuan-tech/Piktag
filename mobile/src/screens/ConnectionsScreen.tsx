@@ -30,6 +30,7 @@ import {
   Heart,
   Clock,
 } from 'lucide-react-native';
+import { useTranslation } from 'react-i18next';
 import { COLORS } from '../constants/theme';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
@@ -42,13 +43,7 @@ type ConnectionWithTags = Connection & {
 
 type SortOption = 'newest' | 'oldest' | 'alpha' | 'updated' | 'nearby';
 
-const SORT_OPTIONS: { key: SortOption; label: string }[] = [
-  { key: 'newest', label: '從新到舊' },
-  { key: 'oldest', label: '從舊到新' },
-  { key: 'alpha', label: '依字母排序' },
-  { key: 'updated', label: '最近更新' },
-  { key: 'nearby', label: '依目前地點排列' },
-];
+const SORT_OPTION_KEYS: SortOption[] = ['newest', 'oldest', 'alpha', 'updated', 'nearby'];
 
 function haversineDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
   const R = 6371;
@@ -68,7 +63,16 @@ type ConnectionsScreenProps = {
 };
 
 export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps) {
+  const { t } = useTranslation();
   const { user } = useAuth();
+
+  const SORT_OPTIONS: { key: SortOption; label: string }[] = [
+    { key: 'newest', label: t('connections.sortNewest') },
+    { key: 'oldest', label: t('connections.sortOldest') },
+    { key: 'alpha', label: t('connections.sortAlpha') },
+    { key: 'updated', label: t('connections.sortUpdated') },
+    { key: 'nearby', label: t('connections.sortNearby') },
+  ];
   const [connections, setConnections] = useState<ConnectionWithTags[]>([]);
   const [loading, setLoading] = useState(true);
   const [sortBy, setSortBy] = useState<SortOption>('newest');
@@ -216,13 +220,13 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
         const reminders: any[] = [];
         for (const c of data) {
           if (c.birthday && c.birthday.slice(5) === mmdd) {
-            reminders.push({ ...c, reminderType: 'birthday', reminderLabel: '生日' });
+            reminders.push({ ...c, reminderType: 'birthday', reminderLabel: t('connections.reminderBirthday') });
           }
           if (c.anniversary && c.anniversary.slice(5) === mmdd) {
-            reminders.push({ ...c, reminderType: 'anniversary', reminderLabel: '紀念日' });
+            reminders.push({ ...c, reminderType: 'anniversary', reminderLabel: t('connections.reminderAnniversary') });
           }
           if (c.contract_expiry && c.contract_expiry.slice(5) === mmdd) {
-            reminders.push({ ...c, reminderType: 'contract_expiry', reminderLabel: '合約到期' });
+            reminders.push({ ...c, reminderType: 'contract_expiry', reminderLabel: t('connections.reminderContractExpiry') });
           }
         }
         setCrmReminders(reminders);
@@ -412,11 +416,11 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
               .then(() => {});
           }
         } else {
-          Alert.alert('位置權限', '需要位置權限才能依地點排列');
+          Alert.alert(t('connections.alertLocationPermTitle'), t('connections.alertLocationPermMessage'));
           return;
         }
       } catch {
-        Alert.alert('錯誤', '無法取得目前位置');
+        Alert.alert(t('common.error'), t('connections.alertLocationError'));
         return;
       }
     }
@@ -484,7 +488,7 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
     return (
       <View style={styles.emptyContainer}>
         <Text style={styles.emptyText}>
-          {'還沒有人脈，去搜尋認識新朋友吧！'}
+          {t('connections.emptyText')}
         </Text>
       </View>
     );
@@ -499,7 +503,7 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
         <View style={styles.recHeader}>
           <View style={styles.recHeaderLeft}>
             <CalendarHeart size={16} color="#a855f7" />
-            <Text style={[styles.recHeaderText, { color: '#a855f7' }]}>{'歷史上的今天'}</Text>
+            <Text style={[styles.recHeaderText, { color: '#a855f7' }]}>{t('connections.onThisDayTitle')}</Text>
           </View>
           <TouchableOpacity onPress={() => setOnThisDayDismissed(true)} activeOpacity={0.6}>
             <X size={18} color={COLORS.gray400} />
@@ -522,7 +526,7 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
               <View style={styles.recInfo}>
                 <Text style={styles.recName} numberOfLines={1}>{name}</Text>
                 <Text style={styles.recUsername}>
-                  {yearsAgo > 0 ? `${yearsAgo} 年前的今天認識` : '今天認識'}
+                  {yearsAgo > 0 ? t('connections.yearsAgoMet', { yearsAgo }) : t('connections.todayMet')}
                 </Text>
               </View>
             </TouchableOpacity>
@@ -544,7 +548,7 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
         <View style={styles.recHeader}>
           <View style={styles.recHeaderLeft}>
             <Gift size={16} color="#ec4899" />
-            <Text style={[styles.recHeaderText, { color: '#ec4899' }]}>{'今日提醒'}</Text>
+            <Text style={[styles.recHeaderText, { color: '#ec4899' }]}>{t('connections.todayReminderTitle')}</Text>
           </View>
           <TouchableOpacity onPress={() => setRemindersDismissed(true)} activeOpacity={0.6}>
             <X size={18} color={COLORS.gray400} />
@@ -584,7 +588,7 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
         <View style={styles.recHeader}>
           <View style={styles.recHeaderLeft}>
             <Sparkles size={16} color={COLORS.piktag600} />
-            <Text style={styles.recHeaderText}>{'今日推薦人脈'}</Text>
+            <Text style={styles.recHeaderText}>{t('connections.dailyRecommendationTitle')}</Text>
           </View>
           <TouchableOpacity onPress={() => setRecDismissed(true)} activeOpacity={0.6}>
             <X size={18} color={COLORS.gray400} />
@@ -608,7 +612,7 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
             <Text style={styles.recUsername}>@{recommendation.username}</Text>
             {recommendation.shared_tag_count > 0 && (
               <Text style={styles.recTagCount}>
-                {recommendation.shared_tag_count}{'個共同標籤'}
+                {recommendation.shared_tag_count}{t('connections.sharedTagCount')}
               </Text>
             )}
           </View>
@@ -629,7 +633,7 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
         <View style={styles.header}>
           <View style={styles.headerLeft}>
             <Text style={styles.headerTitle}>
-              {'已選取 '}{selectedIds.size}{' 位'}
+              {t('connections.selectedCount', { count: selectedIds.size })}
             </Text>
           </View>
           <View style={styles.headerRight}>
@@ -652,8 +656,8 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
       ) : (
         <View style={styles.header}>
           <View style={styles.headerLeft}>
-            <Text style={styles.headerTitle}>#{new Date().getFullYear()}年{new Date().getMonth() + 1}月{new Date().getDate()}日</Text>
-            <Text style={styles.headerSubtitle}>#台北市大安區</Text>
+            <Text style={styles.headerTitle}>#{t('connections.headerDate', { year: new Date().getFullYear(), month: new Date().getMonth() + 1, day: new Date().getDate() })}</Text>
+            <Text style={styles.headerSubtitle}>{t('connections.headerSubtitle')}</Text>
           </View>
           <View style={styles.headerRight}>
             <TouchableOpacity
@@ -719,7 +723,7 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
           >
             <Tag size={20} color={COLORS.white} />
             <Text style={styles.batchBtnText}>
-              {'批次加標籤 ('}{selectedIds.size}{')'}
+              {t('connections.batchTagButton', { count: selectedIds.size })}
             </Text>
           </TouchableOpacity>
         </View>
@@ -738,7 +742,7 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
           onPress={() => setSortModalVisible(false)}
         >
           <View style={styles.sortModal}>
-            <Text style={styles.sortModalTitle}>{'排序方式'}</Text>
+            <Text style={styles.sortModalTitle}>{t('connections.sortModalTitle')}</Text>
             {SORT_OPTIONS.map((option) => (
               <TouchableOpacity
                 key={option.key}
@@ -777,11 +781,11 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
         >
           <View style={styles.batchTagModal}>
             <Text style={styles.sortModalTitle}>
-              {'為 '}{selectedIds.size}{' 位好友加標籤'}
+              {t('connections.batchTagModalTitle', { count: selectedIds.size })}
             </Text>
             <TextInput
               style={styles.batchTagInput}
-              placeholder="輸入標籤名稱（例如：尾牙）"
+              placeholder={t('connections.batchTagPlaceholder')}
               placeholderTextColor={COLORS.gray400}
               value={batchTagInput}
               onChangeText={setBatchTagInput}
@@ -797,7 +801,7 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
               disabled={!batchTagInput.trim() || batchTagLoading}
             >
               <Text style={styles.batchTagSubmitText}>
-                {batchTagLoading ? '處理中...' : '確認'}
+                {batchTagLoading ? t('common.processing') : t('common.confirm')}
               </Text>
             </TouchableOpacity>
           </View>

@@ -12,6 +12,7 @@ import {
   Platform,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 import * as Clipboard from 'expo-clipboard';
 import {
   ArrowLeft,
@@ -50,6 +51,7 @@ function generateCode(): string {
 }
 
 export default function InviteScreen({ navigation }: InviteScreenProps) {
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
   const [quota, setQuota] = useState(0);
@@ -97,7 +99,7 @@ export default function InviteScreen({ navigation }: InviteScreenProps) {
   const handleGenerateInvite = async () => {
     if (!user) return;
     if (quota <= 0) {
-      Alert.alert('名額已用完', '你的邀請名額已用完，每 24 小時會恢復 1 個名額');
+      Alert.alert(t('invite.alertQuotaUsedTitle'), t('invite.alertQuotaUsedMessage'));
       return;
     }
 
@@ -117,7 +119,7 @@ export default function InviteScreen({ navigation }: InviteScreenProps) {
 
       if (inviteErr) {
         console.error('Error creating invite:', inviteErr);
-        Alert.alert('錯誤', '無法產生邀請碼');
+        Alert.alert(t('common.error'), t('invite.alertGenerateError'));
         return;
       }
 
@@ -145,14 +147,14 @@ export default function InviteScreen({ navigation }: InviteScreenProps) {
   const handleCopyCode = async (code: string) => {
     try {
       await Clipboard.setStringAsync(code);
-      Alert.alert('已複製', `邀請碼 ${code} 已複製到剪貼簿`);
+      Alert.alert(t('invite.alertCopiedTitle'), t('invite.alertCopiedMessage', { code }));
     } catch {}
   };
 
   const handleShareInvite = async (code: string) => {
     try {
       await Share.share({
-        message: `我在用 PikTag 管理人脈，快來加入！使用邀請碼 ${code} 註冊：${APP_URL}`,
+        message: t('invite.shareMessage', { code, url: APP_URL }),
       });
     } catch {}
   };
@@ -168,7 +170,7 @@ export default function InviteScreen({ navigation }: InviteScreenProps) {
           {isUsed ? (
             <View style={styles.usedBadge}>
               <Check size={12} color={COLORS.piktag600} />
-              <Text style={styles.usedBadgeText}>已使用</Text>
+              <Text style={styles.usedBadgeText}>{t('invite.usedBadge')}</Text>
             </View>
           ) : (
             <View style={styles.inviteActions}>
@@ -209,7 +211,7 @@ export default function InviteScreen({ navigation }: InviteScreenProps) {
         >
           <ArrowLeft size={24} color={COLORS.gray900} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>邀請好友</Text>
+        <Text style={styles.headerTitle}>{t('invite.headerTitle')}</Text>
         <View style={styles.headerSpacer} />
       </View>
 
@@ -224,7 +226,7 @@ export default function InviteScreen({ navigation }: InviteScreenProps) {
             <View style={styles.quotaIconCircle}>
               <Gift size={28} color={COLORS.piktag600} />
             </View>
-            <Text style={styles.quotaTitle}>剩餘邀請名額</Text>
+            <Text style={styles.quotaTitle}>{t('invite.quotaTitle')}</Text>
             <Text style={styles.quotaNumber}>
               {quota} <Text style={styles.quotaMax}>/ {maxQuota}</Text>
             </Text>
@@ -238,7 +240,7 @@ export default function InviteScreen({ navigation }: InviteScreenProps) {
             </View>
             <View style={styles.quotaHint}>
               <Clock size={14} color={COLORS.gray400} />
-              <Text style={styles.quotaHintText}>每 24 小時恢復 1 個名額</Text>
+              <Text style={styles.quotaHintText}>{t('invite.quotaHint')}</Text>
             </View>
 
             <TouchableOpacity
@@ -255,7 +257,7 @@ export default function InviteScreen({ navigation }: InviteScreenProps) {
               ) : (
                 <>
                   <UserPlus size={18} color={COLORS.gray900} />
-                  <Text style={styles.generateBtnText}>產生邀請碼</Text>
+                  <Text style={styles.generateBtnText}>{t('invite.generateButton')}</Text>
                 </>
               )}
             </TouchableOpacity>
@@ -264,7 +266,7 @@ export default function InviteScreen({ navigation }: InviteScreenProps) {
           {/* Invites List */}
           <View style={styles.listHeader}>
             <Text style={styles.listHeaderText}>
-              邀請紀錄 ({invites.length})
+              {t('invite.inviteRecordHeader')} ({invites.length})
             </Text>
           </View>
 
@@ -275,7 +277,7 @@ export default function InviteScreen({ navigation }: InviteScreenProps) {
             contentContainerStyle={styles.listContent}
             showsVerticalScrollIndicator={false}
             ListEmptyComponent={
-              <Text style={styles.emptyText}>尚無邀請紀錄</Text>
+              <Text style={styles.emptyText}>{t('invite.noInvites')}</Text>
             }
           />
         </>

@@ -11,6 +11,7 @@ import {
   Alert,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 import { ArrowLeft, MapPin, Navigation } from 'lucide-react-native';
 import * as Location from 'expo-location';
 import { COLORS } from '../constants/theme';
@@ -35,11 +36,12 @@ function haversineDistance(lat1: number, lon1: number, lat2: number, lon2: numbe
 }
 
 export default function LocationContactsScreen({ navigation }: LocationContactsScreenProps) {
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [contacts, setContacts] = useState<any[]>([]);
-  const [locationName, setLocationName] = useState('目前位置');
+  const [locationName, setLocationName] = useState(t('locationContacts.defaultLocation'));
   const [metLocationContacts, setMetLocationContacts] = useState<any[]>([]);
 
   useEffect(() => {
@@ -52,7 +54,7 @@ export default function LocationContactsScreen({ navigation }: LocationContactsS
     try {
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== 'granted') {
-        Alert.alert('位置權限', '需要位置權限才能使用此功能');
+        Alert.alert(t('locationContacts.alertPermTitle'), t('locationContacts.alertPermMessage'));
         setLoading(false);
         return;
       }
@@ -67,7 +69,7 @@ export default function LocationContactsScreen({ navigation }: LocationContactsS
         if (results && results.length > 0) {
           geoAddr = results[0];
           setLocationName(
-            [geoAddr.city, geoAddr.district || geoAddr.subregion].filter(Boolean).join(' ') || '目前位置'
+            [geoAddr.city, geoAddr.district || geoAddr.subregion].filter(Boolean).join(' ') || t('locationContacts.defaultLocation')
           );
         }
       } catch (e) {
@@ -163,7 +165,7 @@ export default function LocationContactsScreen({ navigation }: LocationContactsS
           )}
           {item.met_location && (
             <Text style={styles.contactMet} numberOfLines={1}>
-              在 {item.met_location} 認識
+              {t('locationContacts.metAtPrefix')}{item.met_location}{t('locationContacts.metAtSuffix')}
             </Text>
           )}
         </View>
@@ -184,7 +186,7 @@ export default function LocationContactsScreen({ navigation }: LocationContactsS
         >
           <ArrowLeft size={24} color={COLORS.gray900} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>在這地點你認識誰</Text>
+        <Text style={styles.headerTitle}>{t('locationContacts.headerTitle')}</Text>
         <View style={{ width: 32 }} />
       </View>
 
@@ -209,7 +211,7 @@ export default function LocationContactsScreen({ navigation }: LocationContactsS
             <>
               {contacts.length > 0 && (
                 <Text style={styles.sectionLabel}>
-                  附近的人脈（{contacts.length}）
+                  {t('locationContacts.nearbySection', { count: contacts.length })}
                 </Text>
               )}
             </>
@@ -219,7 +221,7 @@ export default function LocationContactsScreen({ navigation }: LocationContactsS
               {metLocationContacts.length > 0 && (
                 <>
                   <Text style={[styles.sectionLabel, { marginTop: 24 }]}>
-                    在此地點認識的人（{metLocationContacts.length}）
+                    {t('locationContacts.metHereSection', { count: metLocationContacts.length })}
                   </Text>
                   {metLocationContacts.map((item) => {
                     const profile = item.connected_user;
@@ -245,7 +247,7 @@ export default function LocationContactsScreen({ navigation }: LocationContactsS
                             {name}
                           </Text>
                           <Text style={styles.contactMet} numberOfLines={1}>
-                            在 {item.met_location} 認識
+                            {t('locationContacts.metAtPrefix')}{item.met_location}{t('locationContacts.metAtSuffix')}
                           </Text>
                         </View>
                       </TouchableOpacity>
@@ -257,7 +259,7 @@ export default function LocationContactsScreen({ navigation }: LocationContactsS
                 <View style={styles.emptyContainer}>
                   <MapPin size={48} color={COLORS.gray200} />
                   <Text style={styles.emptyText}>
-                    附近沒有找到認識的人
+                    {t('locationContacts.emptyText')}
                   </Text>
                 </View>
               )}

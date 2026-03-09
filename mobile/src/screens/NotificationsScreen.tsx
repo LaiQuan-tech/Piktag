@@ -11,6 +11,7 @@ import {
   RefreshControl,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 import { Bell, CheckCheck } from 'lucide-react-native';
 import { COLORS, SPACING } from '../constants/theme';
 import { supabase } from '../lib/supabase';
@@ -23,12 +24,7 @@ type NotificationsScreenProps = {
 
 type NotificationTab = 'all' | 'follow' | 'tag' | 'crm';
 
-const TABS: { key: NotificationTab; label: string }[] = [
-  { key: 'all', label: '全部' },
-  { key: 'follow', label: '追蹤' },
-  { key: 'tag', label: '標籤' },
-  { key: 'crm', label: 'CRM' },
-];
+const TAB_KEYS: NotificationTab[] = ['all', 'follow', 'tag', 'crm'];
 
 function filterNotifications(
   notifications: Notification[],
@@ -52,7 +48,7 @@ function filterNotifications(
   }
 }
 
-function formatTimeAgo(dateString: string): string {
+function formatTimeAgo(dateString: string, t: (key: string, options?: any) => string): string {
   const now = new Date();
   const date = new Date(dateString);
   const diffMs = now.getTime() - date.getTime();
@@ -61,17 +57,25 @@ function formatTimeAgo(dateString: string): string {
   const diffDays = Math.floor(diffMs / 86400000);
   const diffWeeks = Math.floor(diffDays / 7);
 
-  if (diffMins < 1) return '剛剛';
-  if (diffMins < 60) return `${diffMins} 分鐘前`;
-  if (diffHours < 24) return `${diffHours} 小時前`;
-  if (diffDays === 1) return '昨天';
-  if (diffDays < 7) return `${diffDays} 天前`;
-  if (diffWeeks < 4) return `${diffWeeks} 週前`;
+  if (diffMins < 1) return t('notifications.timeJustNow');
+  if (diffMins < 60) return t('notifications.timeMinutesAgo', { count: diffMins });
+  if (diffHours < 24) return t('notifications.timeHoursAgo', { count: diffHours });
+  if (diffDays === 1) return t('notifications.timeYesterday');
+  if (diffDays < 7) return t('notifications.timeDaysAgo', { count: diffDays });
+  if (diffWeeks < 4) return t('notifications.timeWeeksAgo', { count: diffWeeks });
   return date.toLocaleDateString('zh-TW');
 }
 
 export default function NotificationsScreen({ navigation }: NotificationsScreenProps) {
+  const { t } = useTranslation();
   const { user } = useAuth();
+
+  const TAB_LABELS: Record<NotificationTab, string> = {
+    all: t('notifications.tabAll'),
+    follow: t('notifications.tabFollow'),
+    tag: t('notifications.tabTag'),
+    crm: t('notifications.tabCrm'),
+  };
   const [activeTab, setActiveTab] = useState<NotificationTab>('all');
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
@@ -211,7 +215,7 @@ export default function NotificationsScreen({ navigation }: NotificationsScreenP
             {body}
           </Text>
           <Text style={styles.notificationTime}>
-            {formatTimeAgo(item.created_at)}
+            {formatTimeAgo(item.created_at, t)}
           </Text>
         </View>
       </TouchableOpacity>
@@ -221,7 +225,7 @@ export default function NotificationsScreen({ navigation }: NotificationsScreenP
   const renderEmptyState = () => (
     <View style={styles.emptyState}>
       <Bell size={64} color={COLORS.gray200} />
-      <Text style={styles.emptyStateText}>目前沒有通知</Text>
+      <Text style={styles.emptyStateText}>{t('notifications.emptyState')}</Text>
     </View>
   );
 
@@ -230,7 +234,7 @@ export default function NotificationsScreen({ navigation }: NotificationsScreenP
       <SafeAreaView style={styles.container} edges={['top']}>
         <StatusBar barStyle="dark-content" backgroundColor={COLORS.white} />
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>通知</Text>
+          <Text style={styles.headerTitle}>{t('notifications.headerTitle')}</Text>
         </View>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={COLORS.piktag500} />
@@ -245,7 +249,7 @@ export default function NotificationsScreen({ navigation }: NotificationsScreenP
 
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>通知</Text>
+        <Text style={styles.headerTitle}>{t('notifications.headerTitle')}</Text>
         {hasUnread && (
           <TouchableOpacity
             style={styles.markAllButton}
@@ -259,20 +263,20 @@ export default function NotificationsScreen({ navigation }: NotificationsScreenP
 
       {/* Tab Switcher */}
       <View style={styles.tabContainer}>
-        {TABS.map((tab) => (
+        {TAB_KEYS.map((key) => (
           <TouchableOpacity
-            key={tab.key}
-            style={[styles.tab, activeTab === tab.key && styles.tabActive]}
-            onPress={() => setActiveTab(tab.key)}
+            key={key}
+            style={[styles.tab, activeTab === key && styles.tabActive]}
+            onPress={() => setActiveTab(key)}
             activeOpacity={0.6}
           >
             <Text
               style={[
                 styles.tabText,
-                activeTab === tab.key && styles.tabTextActive,
+                activeTab === key && styles.tabTextActive,
               ]}
             >
-              {tab.label}
+              {TAB_LABELS[key]}
             </Text>
           </TouchableOpacity>
         ))}

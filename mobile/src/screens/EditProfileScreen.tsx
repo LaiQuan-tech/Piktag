@@ -16,6 +16,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ArrowLeft, Plus, Pencil, Trash2, X } from 'lucide-react-native';
+import { useTranslation } from 'react-i18next';
 import { COLORS } from '../constants/theme';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
@@ -40,6 +41,7 @@ type BiolinkFormData = {
 };
 
 export default function EditProfileScreen({ navigation }: EditProfileScreenProps) {
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
   const userId = user?.id;
@@ -74,7 +76,7 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
       .eq('id', userId)
       .single();
     if (error) {
-      Alert.alert('錯誤', '無法載入個人資料');
+      Alert.alert(t('common.error'), t('editProfile.alertLoadError'));
       return;
     }
     if (data) {
@@ -134,13 +136,13 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
         .eq('id', userId);
 
       if (error) {
-        Alert.alert('錯誤', '儲存失敗，請稍後再試');
+        Alert.alert(t('common.error'), t('editProfile.alertSaveError'));
         return;
       }
-      Alert.alert('成功', '個人資訊已更新');
+      Alert.alert(t('editProfile.alertSuccessTitle'), t('editProfile.alertSuccessMessage'));
       navigation.goBack();
     } catch {
-      Alert.alert('錯誤', '儲存失敗，請稍後再試');
+      Alert.alert(t('common.error'), t('editProfile.alertSaveError'));
     } finally {
       setSaving(false);
     }
@@ -182,7 +184,7 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
   const handleSaveBiolink = async () => {
     if (!userId) return;
     if (!biolinkForm.platform.trim() || !biolinkForm.url.trim()) {
-      Alert.alert('提示', '請填寫平台名稱和連結');
+      Alert.alert(t('editProfile.alertHintTitle'), t('editProfile.alertFillRequired'));
       return;
     }
 
@@ -202,7 +204,7 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
           .eq('id', editingBiolink.id);
 
         if (error) {
-          Alert.alert('錯誤', '更新連結失敗');
+          Alert.alert(t('common.error'), t('editProfile.alertUpdateLinkError'));
           return;
         }
       } else {
@@ -220,7 +222,7 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
           });
 
         if (error) {
-          Alert.alert('錯誤', '新增連結失敗');
+          Alert.alert(t('common.error'), t('editProfile.alertAddLinkError'));
           return;
         }
       }
@@ -228,7 +230,7 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
       closeBiolinkModal();
       await fetchBiolinks();
     } catch {
-      Alert.alert('錯誤', '操作失敗，請稍後再試');
+      Alert.alert(t('common.error'), t('editProfile.alertOperationError'));
     } finally {
       setSavingBiolink(false);
     }
@@ -236,12 +238,12 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
 
   const handleDeleteBiolink = (biolink: Biolink) => {
     Alert.alert(
-      '刪除連結',
-      `確定要刪除「${biolink.label || biolink.platform}」嗎？`,
+      t('editProfile.alertDeleteLinkTitle'),
+      t('editProfile.alertDeleteLinkMessage', { name: biolink.label || biolink.platform }),
       [
-        { text: '取消', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: '刪除',
+          text: t('common.delete'),
           style: 'destructive',
           onPress: async () => {
             const { error } = await supabase
@@ -250,7 +252,7 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
               .eq('id', biolink.id);
 
             if (error) {
-              Alert.alert('錯誤', '刪除連結失敗');
+              Alert.alert(t('common.error'), t('editProfile.alertDeleteLinkError'));
               return;
             }
             // Refetch to update positions
@@ -273,7 +275,7 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
           >
             <ArrowLeft size={24} color={COLORS.gray900} />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>編輯個人資訊</Text>
+          <Text style={styles.headerTitle}>{t('editProfile.headerTitle')}</Text>
           <View style={{ width: 40 }} />
         </View>
         <View style={styles.loadingContainer}>
@@ -296,7 +298,7 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
         >
           <ArrowLeft size={24} color={COLORS.gray900} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>編輯個人資訊</Text>
+        <Text style={styles.headerTitle}>{t('editProfile.headerTitle')}</Text>
         <TouchableOpacity
           onPress={handleSave}
           activeOpacity={0.6}
@@ -305,7 +307,7 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
           {saving ? (
             <ActivityIndicator size="small" color={COLORS.piktag600} />
           ) : (
-            <Text style={styles.headerSaveText}>儲存</Text>
+            <Text style={styles.headerSaveText}>{t('editProfile.headerSave')}</Text>
           )}
         </TouchableOpacity>
       </View>
@@ -331,42 +333,42 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
               style={styles.avatar}
             />
             <TouchableOpacity style={styles.changeAvatarBtn} activeOpacity={0.7}>
-              <Text style={styles.changeAvatarText}>更換頭像</Text>
+              <Text style={styles.changeAvatarText}>{t('editProfile.changeAvatar')}</Text>
             </TouchableOpacity>
           </View>
 
           {/* Form Fields */}
           <View style={styles.formSection}>
             <View style={styles.fieldGroup}>
-              <Text style={styles.fieldLabel}>姓名</Text>
+              <Text style={styles.fieldLabel}>{t('editProfile.nameLabel')}</Text>
               <TextInput
                 style={styles.fieldInput}
                 value={form.full_name}
                 onChangeText={(v) => updateField('full_name', v)}
-                placeholder="輸入姓名"
+                placeholder={t('editProfile.namePlaceholder')}
                 placeholderTextColor={COLORS.gray400}
               />
             </View>
 
             <View style={styles.fieldGroup}>
-              <Text style={styles.fieldLabel}>用戶名稱</Text>
+              <Text style={styles.fieldLabel}>{t('editProfile.usernameLabel')}</Text>
               <TextInput
                 style={styles.fieldInput}
                 value={form.username}
                 onChangeText={(v) => updateField('username', v)}
-                placeholder="輸入用戶名稱"
+                placeholder={t('editProfile.usernamePlaceholder')}
                 placeholderTextColor={COLORS.gray400}
                 autoCapitalize="none"
               />
             </View>
 
             <View style={styles.fieldGroup}>
-              <Text style={styles.fieldLabel}>個人簡介</Text>
+              <Text style={styles.fieldLabel}>{t('editProfile.bioLabel')}</Text>
               <TextInput
                 style={[styles.fieldInput, styles.fieldInputMultiline]}
                 value={form.bio}
                 onChangeText={(v) => updateField('bio', v)}
-                placeholder="輸入個人簡介"
+                placeholder={t('editProfile.bioPlaceholder')}
                 placeholderTextColor={COLORS.gray400}
                 multiline
                 numberOfLines={4}
@@ -375,23 +377,23 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
             </View>
 
             <View style={styles.fieldGroup}>
-              <Text style={styles.fieldLabel}>電話</Text>
+              <Text style={styles.fieldLabel}>{t('editProfile.phoneLabel')}</Text>
               <TextInput
                 style={styles.fieldInput}
                 value={form.phone}
                 onChangeText={(v) => updateField('phone', v)}
-                placeholder="輸入電話號碼"
+                placeholder={t('editProfile.phonePlaceholder')}
                 placeholderTextColor={COLORS.gray400}
                 keyboardType="phone-pad"
               />
             </View>
 
             <View style={styles.fieldGroup}>
-              <Text style={styles.fieldLabel}>E-mail</Text>
+              <Text style={styles.fieldLabel}>{t('editProfile.emailLabel')}</Text>
               <TextInput
                 style={[styles.fieldInput, styles.fieldInputDisabled]}
                 value={form.email}
-                placeholder="輸入電子郵件"
+                placeholder={t('editProfile.emailPlaceholder')}
                 placeholderTextColor={COLORS.gray400}
                 keyboardType="email-address"
                 autoCapitalize="none"
@@ -402,9 +404,9 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
 
           {/* Biolinks Section */}
           <View style={styles.biolinksSection}>
-            <Text style={styles.sectionTitle}>社交連結</Text>
+            <Text style={styles.sectionTitle}>{t('editProfile.socialLinksTitle')}</Text>
             {biolinks.length === 0 && (
-              <Text style={styles.emptyText}>尚無社交連結</Text>
+              <Text style={styles.emptyText}>{t('editProfile.noSocialLinks')}</Text>
             )}
             {biolinks.map((link) => (
               <View key={link.id} style={styles.biolinkItem}>
@@ -443,7 +445,7 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
               activeOpacity={0.7}
             >
               <Plus size={20} color={COLORS.piktag600} />
-              <Text style={styles.addBiolinkText}>新增連結</Text>
+              <Text style={styles.addBiolinkText}>{t('editProfile.addLink')}</Text>
             </TouchableOpacity>
           </View>
 
@@ -458,7 +460,7 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
               {saving ? (
                 <ActivityIndicator size="small" color={COLORS.gray900} />
               ) : (
-                <Text style={styles.saveButtonText}>儲存變更</Text>
+                <Text style={styles.saveButtonText}>{t('editProfile.saveChanges')}</Text>
               )}
             </TouchableOpacity>
           </View>
@@ -476,7 +478,7 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
           <View style={[styles.modalContent, { paddingBottom: insets.bottom + 20 }]}>
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>
-                {editingBiolink ? '編輯連結' : '新增連結'}
+                {editingBiolink ? t('editProfile.modalTitleEdit') : t('editProfile.modalTitleAdd')}
               </Text>
               <TouchableOpacity onPress={closeBiolinkModal} activeOpacity={0.6}>
                 <X size={24} color={COLORS.gray900} />
@@ -485,27 +487,27 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
 
             <View style={styles.modalBody}>
               <View style={styles.fieldGroup}>
-                <Text style={styles.fieldLabel}>平台名稱</Text>
+                <Text style={styles.fieldLabel}>{t('editProfile.platformLabel')}</Text>
                 <TextInput
                   style={styles.fieldInput}
                   value={biolinkForm.platform}
                   onChangeText={(v) =>
                     setBiolinkForm((prev) => ({ ...prev, platform: v }))
                   }
-                  placeholder="例如：Instagram、YouTube"
+                  placeholder={t('editProfile.platformPlaceholder')}
                   placeholderTextColor={COLORS.gray400}
                 />
               </View>
 
               <View style={styles.fieldGroup}>
-                <Text style={styles.fieldLabel}>連結網址</Text>
+                <Text style={styles.fieldLabel}>{t('editProfile.urlLabel')}</Text>
                 <TextInput
                   style={styles.fieldInput}
                   value={biolinkForm.url}
                   onChangeText={(v) =>
                     setBiolinkForm((prev) => ({ ...prev, url: v }))
                   }
-                  placeholder="https://"
+                  placeholder={t('editProfile.urlPlaceholder')}
                   placeholderTextColor={COLORS.gray400}
                   autoCapitalize="none"
                   keyboardType="url"
@@ -513,14 +515,14 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
               </View>
 
               <View style={styles.fieldGroup}>
-                <Text style={styles.fieldLabel}>顯示名稱（選填）</Text>
+                <Text style={styles.fieldLabel}>{t('editProfile.displayNameLabel')}</Text>
                 <TextInput
                   style={styles.fieldInput}
                   value={biolinkForm.label}
                   onChangeText={(v) =>
                     setBiolinkForm((prev) => ({ ...prev, label: v }))
                   }
-                  placeholder="自訂顯示名稱"
+                  placeholder={t('editProfile.displayNamePlaceholder')}
                   placeholderTextColor={COLORS.gray400}
                 />
               </View>
@@ -539,7 +541,7 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
                 <ActivityIndicator size="small" color={COLORS.gray900} />
               ) : (
                 <Text style={styles.modalSaveBtnText}>
-                  {editingBiolink ? '更新' : '新增'}
+                  {editingBiolink ? t('editProfile.modalButtonUpdate') : t('editProfile.modalButtonAdd')}
                 </Text>
               )}
             </TouchableOpacity>

@@ -2,6 +2,7 @@ import React from 'react';
 import { StatusBar } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import './src/i18n'; // Initialize i18n
 import AppNavigator from './src/navigation/AppNavigator';
 
 export default function App() {

@@ -22,6 +22,7 @@ import {
 } from 'lucide-react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Location from 'expo-location';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '../lib/supabase';
 import { COLORS } from '../constants/theme';
 import { useAuth } from '../hooks/useAuth';
@@ -32,44 +33,44 @@ const MAX_RECENT_SEARCHES = 10;
 
 type CategoryKey = 'popular' | 'nearby' | 'verified' | 'recent' | 'nearby_tags';
 
-const CATEGORIES: {
+const CATEGORY_DEFS: {
   icon: typeof Hash;
-  label: string;
+  labelKey: string;
   bgColor: string;
   iconColor: string;
   key: CategoryKey;
 }[] = [
   {
     icon: Hash,
-    label: '\u71b1\u9580\u6a19\u7c64',
+    labelKey: 'search.categoryPopular',
     bgColor: COLORS.piktag50,
     iconColor: COLORS.piktag600,
     key: 'popular',
   },
   {
     icon: MapPin,
-    label: '\u9644\u8fd1\u6703\u54e1',
+    labelKey: 'search.categoryNearby',
     bgColor: COLORS.gray50,
     iconColor: COLORS.gray600,
     key: 'nearby',
   },
   {
     icon: CheckCircle2,
-    label: '\u8a8d\u8b49\u6703\u54e1',
+    labelKey: 'search.categoryVerified',
     bgColor: COLORS.blue50,
     iconColor: COLORS.blue500,
     key: 'verified',
   },
   {
     icon: Flame,
-    label: '\u9644\u8fd1\u71b1\u6a19',
+    labelKey: 'search.categoryNearbyTags',
     bgColor: '#fff7ed',
     iconColor: '#f97316',
     key: 'nearby_tags',
   },
   {
     icon: Clock,
-    label: '\u6700\u8fd1\u641c\u5c0b',
+    labelKey: 'search.categoryRecent',
     bgColor: COLORS.gray50,
     iconColor: COLORS.gray600,
     key: 'recent',
@@ -81,6 +82,7 @@ type SearchScreenProps = {
 };
 
 export default function SearchScreen({ navigation }: SearchScreenProps) {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const [isFocused, setIsFocused] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -423,7 +425,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
     <SafeAreaView style={styles.container} edges={['top']}>
       <StatusBar barStyle="dark-content" backgroundColor={COLORS.white} />
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>{'\u641c\u5c0b'}</Text>
+        <Text style={styles.headerTitle}>{t('search.headerTitle')}</Text>
         <View
           style={[
             styles.searchContainer,
@@ -437,7 +439,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
           />
           <TextInput
             style={styles.searchInput}
-            placeholder={'\u6a19\u7c64\u3001\u6703\u54e1\u5e33\u865f\u7b49'}
+            placeholder={t('search.searchPlaceholder')}
             placeholderTextColor={COLORS.gray400}
             value={searchQuery}
             onChangeText={handleSearchChange}
@@ -457,12 +459,12 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
       >
         {/* Category section label */}
         <Text style={styles.categorySectionLabel}>
-          {'\u4f9d\u5206\u985e\u641c\u5c0b'}
+          {t('search.categorySectionLabel')}
         </Text>
 
         {/* Category buttons */}
         <View style={styles.categoriesRow}>
-          {CATEGORIES.map((cat, index) => {
+          {CATEGORY_DEFS.map((cat, index) => {
             const IconComponent = cat.icon;
             const isActive = activeCategory === cat.key;
             return (
@@ -487,7 +489,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
                     isActive && styles.categoryLabelActive,
                   ]}
                 >
-                  {cat.label}
+                  {t(cat.labelKey)}
                 </Text>
               </TouchableOpacity>
             );
@@ -506,7 +508,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
           <View>
             {recentSearches.length === 0 ? (
               <Text style={styles.emptyText}>
-                {'\u9084\u6c92\u6709\u641c\u5c0b\u7d00\u9304'}
+                {t('search.noRecentSearches')}
               </Text>
             ) : (
               recentSearches.map((query, index) => (
@@ -529,12 +531,12 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
           <View style={styles.profilesSection}>
             {searchQuery.trim() !== '' && (
               <Text style={styles.resultSectionLabel}>
-                {'\u6703\u54e1'}
+                {t('search.profilesSectionLabel')}
               </Text>
             )}
             {profiles.length === 0 && !loading ? (
               <Text style={styles.emptyText}>
-                {'\u627e\u4e0d\u5230\u76f8\u95dc\u6703\u54e1'}
+                {t('search.noProfilesFound')}
               </Text>
             ) : (
               profiles.map((profile) => (
@@ -557,7 +559,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
                   <View style={styles.profileInfo}>
                     <View style={styles.profileNameRow}>
                       <Text style={styles.profileName} numberOfLines={1}>
-                        {profile.full_name || profile.username || '\u672a\u547d\u540d'}
+                        {profile.full_name || profile.username || t('common.unnamed')}
                       </Text>
                       {profile.is_verified && (
                         <CheckCircle2
@@ -586,12 +588,12 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
           <View>
             {searchQuery.trim() !== '' && tags.length > 0 && (
               <Text style={styles.resultSectionLabel}>
-                {'\u6a19\u7c64'}
+                {t('search.tagsSectionLabel')}
               </Text>
             )}
             {tags.length === 0 && searchQuery.trim() !== '' ? (
               <Text style={styles.emptyText}>
-                {'\u627e\u4e0d\u5230\u76f8\u95dc\u6a19\u7c64'}
+                {t('search.noTagsFound')}
               </Text>
             ) : (
               <View style={styles.tagsGrid}>
@@ -622,7 +624,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
                           isHighlighted && styles.tagCountHighlighted,
                         ]}
                       >
-                        {tag.usage_count}{'\u4f4d\u64c1\u6709'}
+                        {tag.usage_count}{t('search.tagCountSuffix')}
                       </Text>
                     </TouchableOpacity>
                   );

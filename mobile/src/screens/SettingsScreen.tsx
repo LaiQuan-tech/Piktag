@@ -13,6 +13,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ArrowLeft, ChevronRight } from 'lucide-react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useTranslation } from 'react-i18next';
 import { COLORS } from '../constants/theme';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
@@ -37,7 +38,15 @@ type SettingsGroup = {
 const LANGUAGE_OPTIONS: { key: string; label: string }[] = [
   { key: 'zh-TW', label: '繁體中文' },
   { key: 'en', label: 'English' },
+  { key: 'zh-CN', label: '简体中文' },
   { key: 'ja', label: '日本語' },
+  { key: 'es', label: 'Español' },
+  { key: 'fr', label: 'Français' },
+  { key: 'ar', label: 'العربية' },
+  { key: 'hi', label: 'हिन्दी' },
+  { key: 'bn', label: 'বাংলা' },
+  { key: 'pt', label: 'Português' },
+  { key: 'ru', label: 'Русский' },
 ];
 
 const APP_VERSION = '1.0.0';
@@ -45,6 +54,7 @@ const APP_VERSION = '1.0.0';
 export default function SettingsScreen({ navigation }: SettingsScreenProps) {
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
+  const { t, i18n } = useTranslation();
 
   const [profile, setProfile] = useState<PiktagProfile | null>(null);
   const [isPublic, setIsPublic] = useState(true);
@@ -68,7 +78,12 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
           if (!error && data) {
             setProfile(data);
             setIsPublic(data.is_public);
-            setCurrentLanguage(data.language || 'zh-TW');
+            const profileLang = data.language || 'zh-TW';
+            setCurrentLanguage(profileLang);
+            // Sync i18n with profile language
+            if (i18n.language !== profileLang) {
+              i18n.changeLanguage(profileLang);
+            }
           }
         }
 
@@ -112,7 +127,7 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
     if (error) {
       console.warn('Failed to update privacy:', error.message);
       setIsPublic(!newValue); // Revert
-      Alert.alert('錯誤', '無法更新隱私設定，請稍後再試');
+      Alert.alert(t('common.error'), t('settings.alertPrivacyError'));
     }
   };
 
@@ -127,9 +142,9 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
       text: lang.label + (currentLanguage === lang.key ? ' ✓' : ''),
       onPress: () => handleLanguageChange(lang.key),
     }));
-    buttons.push({ text: '取消', onPress: () => {} });
+    buttons.push({ text: t('common.cancel'), onPress: () => {} });
 
-    Alert.alert('選擇語言', undefined, buttons);
+    Alert.alert(t('settings.alertLanguagePickerTitle'), undefined, buttons);
   };
 
   const handleLanguageChange = async (langKey: string) => {
@@ -137,6 +152,9 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
 
     const prevLang = currentLanguage;
     setCurrentLanguage(langKey);
+
+    // Change app language immediately
+    i18n.changeLanguage(langKey);
 
     const { error } = await supabase
       .from('piktag_profiles')
@@ -146,7 +164,8 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
     if (error) {
       console.warn('Failed to update language:', error.message);
       setCurrentLanguage(prevLang); // Revert
-      Alert.alert('錯誤', '無法更新語言設定，請稍後再試');
+      i18n.changeLanguage(prevLang); // Revert i18n
+      Alert.alert(t('common.error'), t('settings.alertLanguageError'));
     }
   };
 
@@ -157,14 +176,14 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
   };
 
   const handleAbout = () => {
-    Alert.alert('關於 PikTag', `版本：${APP_VERSION}\n\nPikTag - 讓人脈連結更智慧`);
+    Alert.alert(t('settings.alertAboutTitle'), t('settings.alertAboutMessage', { version: APP_VERSION }));
   };
 
   const handleLogout = async () => {
-    Alert.alert('登出', '確定要登出嗎？', [
-      { text: '取消', style: 'cancel' },
+    Alert.alert(t('settings.alertLogoutTitle'), t('settings.alertLogoutMessage'), [
+      { text: t('common.cancel'), style: 'cancel' },
       {
-        text: '登出',
+        text: t('settings.alertLogoutButton'),
         style: 'destructive',
         onPress: async () => {
           await supabase.auth.signOut();
@@ -175,17 +194,16 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
 
   const handleDeleteAccount = () => {
     Alert.alert(
-      '刪除帳號',
-      '此操作無法復原，確定要刪除你的帳號嗎？所有資料將永久刪除。',
+      t('settings.alertDeleteAccountTitle'),
+      t('settings.alertDeleteAccountMessage'),
       [
-        { text: '取消', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: '確認刪除',
+          text: t('settings.alertDeleteAccountConfirm'),
           style: 'destructive',
           onPress: async () => {
             if (!user) return;
             try {
-              // Delete profile data first
               const { error: profileError } = await supabase
                 .from('piktag_profiles')
                 .delete()
@@ -195,11 +213,10 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
                 console.warn('Profile deletion error:', profileError.message);
               }
 
-              // Sign out (account deletion via Supabase admin would need server-side)
               await supabase.auth.signOut();
-              Alert.alert('帳號已刪除', '你的帳號已成功刪除');
+              Alert.alert(t('settings.alertAccountDeletedTitle'), t('settings.alertAccountDeletedMessage'));
             } catch (err: any) {
-              Alert.alert('錯誤', err.message || '刪除帳號時發生錯誤');
+              Alert.alert(t('common.error'), err.message || t('settings.alertDeleteError'));
             }
           },
         },
@@ -212,15 +229,15 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
 
   const settingsGroups: SettingsGroup[] = [
     {
-      title: '帳號',
+      title: t('settings.groupAccount'),
       items: [
-        { label: '帳號資訊', onPress: handleAccountInfo },
-        { label: '通訊錄同步', onPress: () => navigation.navigate('ContactSync') },
-        { label: '邀請好友', onPress: () => navigation.navigate('Invite') },
-        { label: '在這地點你認識誰', onPress: () => navigation.navigate('LocationContacts') },
-        { label: '社交統計報表', onPress: () => navigation.navigate('SocialStats') },
+        { label: t('settings.accountInfo'), onPress: handleAccountInfo },
+        { label: t('settings.contactSync'), onPress: () => navigation.navigate('ContactSync') },
+        { label: t('settings.inviteFriends'), onPress: () => navigation.navigate('Invite') },
+        { label: t('settings.locationContacts'), onPress: () => navigation.navigate('LocationContacts') },
+        { label: t('settings.socialStats'), onPress: () => navigation.navigate('SocialStats') },
         {
-          label: '隱私設定',
+          label: t('settings.privacySettings'),
           onPress: handlePrivacyToggle,
           rightElement: (
             <Switch
@@ -232,7 +249,7 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
           ),
         },
         {
-          label: '通知設定',
+          label: t('settings.notificationSettings'),
           onPress: handleNotificationsToggle,
           rightElement: (
             <Switch
@@ -246,10 +263,10 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
       ],
     },
     {
-      title: '一般',
+      title: t('settings.groupGeneral'),
       items: [
         {
-          label: '語言',
+          label: t('settings.language'),
           onPress: handleLanguagePicker,
           rightElement: (
             <View style={styles.languageRight}>
@@ -259,7 +276,7 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
           ),
         },
         {
-          label: '深色模式',
+          label: t('settings.darkMode'),
           onPress: handleDarkModeToggle,
           rightElement: (
             <Switch
@@ -270,7 +287,7 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
             />
           ),
         },
-        { label: '關於 PikTag', onPress: handleAbout },
+        { label: t('settings.aboutPikTag'), onPress: handleAbout },
       ],
     },
   ];
@@ -287,7 +304,7 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
           >
             <ArrowLeft size={24} color={COLORS.gray900} />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>設定</Text>
+          <Text style={styles.headerTitle}>{t('settings.headerTitle')}</Text>
           <View style={styles.headerSpacer} />
         </View>
         <View style={styles.loadingContainer}>
@@ -310,7 +327,7 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
         >
           <ArrowLeft size={24} color={COLORS.gray900} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>設定</Text>
+        <Text style={styles.headerTitle}>{t('settings.headerTitle')}</Text>
         <View style={styles.headerSpacer} />
       </View>
 
@@ -356,7 +373,7 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
           onPress={handleLogout}
           activeOpacity={0.7}
         >
-          <Text style={styles.logoutText}>登出</Text>
+          <Text style={styles.logoutText}>{t('settings.logoutButton')}</Text>
         </TouchableOpacity>
 
         {/* Delete Account Button */}
@@ -365,7 +382,7 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
           onPress={handleDeleteAccount}
           activeOpacity={0.7}
         >
-          <Text style={styles.deleteAccountText}>刪除帳號</Text>
+          <Text style={styles.deleteAccountText}>{t('settings.deleteAccountButton')}</Text>
         </TouchableOpacity>
       </ScrollView>
     </View>

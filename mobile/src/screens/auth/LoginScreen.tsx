@@ -11,6 +11,7 @@ import {
   Platform,
   ScrollView,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { Hash } from 'lucide-react-native';
 import { supabase } from '../../lib/supabase';
 import { COLORS, SPACING, BORDER_RADIUS } from '../../constants/theme';
@@ -20,13 +21,14 @@ type LoginScreenProps = {
 };
 
 export default function LoginScreen({ navigation }: LoginScreenProps) {
+  const { t } = useTranslation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleLogin = async () => {
     if (!email.trim() || !password.trim()) {
-      Alert.alert('錯誤', '請輸入電子郵件和密碼');
+      Alert.alert(t('common.error'), t('auth.login.alertEmptyFields'));
       return;
     }
 
@@ -38,10 +40,10 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
       });
 
       if (error) {
-        Alert.alert('登入失敗', error.message);
+        Alert.alert(t('auth.login.alertLoginFailedTitle'), error.message);
       }
     } catch (err: any) {
-      Alert.alert('錯誤', err.message || '發生未知錯誤');
+      Alert.alert(t('common.error'), err.message || t('common.unknownError'));
     } finally {
       setLoading(false);
     }
@@ -60,16 +62,16 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
         <View style={styles.logoContainer}>
           <View style={styles.logoRow}>
             <Hash size={40} color={COLORS.piktag500} strokeWidth={2.5} />
-            <Text style={styles.logoText}>PikTag</Text>
+            <Text style={styles.logoText}>{t('common.brandName')}</Text>
           </View>
-          <Text style={styles.subtitle}>用標籤記住每個人</Text>
+          <Text style={styles.subtitle}>{t('common.brandSlogan')}</Text>
         </View>
 
         {/* Form */}
         <View style={styles.formContainer}>
           <TextInput
             style={styles.input}
-            placeholder="電子郵件"
+            placeholder={t('auth.login.emailPlaceholder')}
             placeholderTextColor={COLORS.gray400}
             value={email}
             onChangeText={setEmail}
@@ -80,7 +82,7 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
 
           <TextInput
             style={styles.input}
-            placeholder="密碼"
+            placeholder={t('auth.login.passwordPlaceholder')}
             placeholderTextColor={COLORS.gray400}
             value={password}
             onChangeText={setPassword}
@@ -97,7 +99,7 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
             {loading ? (
               <ActivityIndicator color={COLORS.white} />
             ) : (
-              <Text style={styles.loginButtonText}>登入</Text>
+              <Text style={styles.loginButtonText}>{t('auth.login.loginButton')}</Text>
             )}
           </TouchableOpacity>
         </View>
@@ -111,8 +113,8 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
           testID="register-link"
         >
           <View style={styles.footerRow}>
-            <Text style={styles.footerText}>還沒有帳號？ </Text>
-            <Text style={[styles.footerText, styles.footerLink]}>立即註冊</Text>
+            <Text style={styles.footerText}>{t('auth.login.noAccountPrompt')}</Text>
+            <Text style={[styles.footerText, styles.footerLink]}>{t('auth.login.registerLink')}</Text>
           </View>
         </TouchableOpacity>
       </ScrollView>

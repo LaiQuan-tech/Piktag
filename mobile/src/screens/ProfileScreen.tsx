@@ -21,6 +21,7 @@ import {
   Link,
   Tag,
 } from 'lucide-react-native';
+import { useTranslation } from 'react-i18next';
 import { COLORS } from '../constants/theme';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
@@ -32,6 +33,7 @@ type ProfileScreenProps = {
 };
 
 export default function ProfileScreen({ navigation }: ProfileScreenProps) {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const userId = user?.id;
 
@@ -170,7 +172,7 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
       {/* Sticky Header */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>
-          {profile?.full_name || '未設定姓名'}
+          {profile?.full_name || t('profile.nameNotSet')}
         </Text>
         <View style={styles.headerRight}>
           <TouchableOpacity
@@ -214,7 +216,7 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
           <View style={styles.profileLeft}>
             <View style={styles.usernameRow}>
               <Text style={styles.usernameText}>
-                {profile?.username || '未設定用戶名稱'}
+                {profile?.username || t('profile.usernameNotSet')}
               </Text>
               {profile?.is_verified && (
                 <CheckCircle2
@@ -239,7 +241,7 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
 
         {/* Bio */}
         <Text style={styles.bio}>
-          {profile?.bio || '尚無個人簡介'}
+          {profile?.bio || t('profile.noBio')}
         </Text>
 
         {/* Tags */}
@@ -253,17 +255,17 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
                   index === 0 ? styles.tagPrimary : styles.tagSecondary,
                 ]}
               >
-                #{ut.tag?.name || '標籤'}
+                #{ut.tag?.name || t('profile.tagFallback')}
               </Text>
             ))
           ) : (
-            <Text style={styles.emptyText}>尚無標籤</Text>
+            <Text style={styles.emptyText}>{t('profile.noTags')}</Text>
           )}
         </View>
 
         {/* Friend count */}
         <Text style={styles.friendCount}>
-          {formatFollowerCount(followerCount)}位朋友
+          {formatFollowerCount(followerCount)}{t('profile.friendCountSuffix')}
         </Text>
 
         {/* Two action buttons side by side */}
@@ -273,14 +275,14 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
             activeOpacity={0.7}
             onPress={() => setQrVisible(true)}
           >
-            <Text style={styles.shareButtonText}>分享個人檔案</Text>
+            <Text style={styles.shareButtonText}>{t('profile.shareProfile')}</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.editButton}
             activeOpacity={0.7}
             onPress={() => navigation.navigate('EditProfile')}
           >
-            <Text style={styles.editButtonText}>編輯個人資訊</Text>
+            <Text style={styles.editButtonText}>{t('profile.editProfile')}</Text>
           </TouchableOpacity>
         </View>
 
@@ -291,7 +293,7 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
           onPress={() => navigation.navigate('ManageTags')}
         >
           <Tag size={18} color={COLORS.piktag600} />
-          <Text style={styles.manageTagsText}>管理我的標籤</Text>
+          <Text style={styles.manageTagsText}>{t('profile.manageTags')}</Text>
         </TouchableOpacity>
 
         {/* Contact buttons */}
@@ -303,7 +305,7 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
               onPress={() => Linking.openURL(`tel:${profile.phone}`).catch(() => {})}
             >
               <Phone size={20} color={COLORS.gray900} />
-              <Text style={styles.contactButtonText}>電話</Text>
+              <Text style={styles.contactButtonText}>{t('common.phone')}</Text>
             </TouchableOpacity>
           ) : null}
 
@@ -314,7 +316,7 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
               onPress={() => Linking.openURL(`mailto:${user.email}`).catch(() => {})}
             >
               <Mail size={20} color={COLORS.gray900} />
-              <Text style={styles.contactButtonText}>E-mail</Text>
+              <Text style={styles.contactButtonText}>{t('common.email')}</Text>
             </TouchableOpacity>
           ) : null}
 
@@ -339,7 +341,7 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
             ))}
 
           {!profile?.phone && !user?.email && biolinks.filter((bl) => bl.is_active).length === 0 && (
-            <Text style={styles.emptyText}>尚無聯繫方式</Text>
+            <Text style={styles.emptyText}>{t('profile.noContactMethods')}</Text>
           )}
         </View>
       </ScrollView>

@@ -37,16 +37,17 @@ import {
   Clock,
   Bell,
 } from 'lucide-react-native';
+import { useTranslation } from 'react-i18next';
 import { COLORS } from '../constants/theme';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
 import type { Connection, PiktagProfile, Note, Biolink } from '../types';
 
 type ReminderField = 'birthday' | 'anniversary' | 'contract_expiry';
-const REMINDER_LABELS: Record<ReminderField, string> = {
-  birthday: '生日',
-  anniversary: '紀念日',
-  contract_expiry: '合約到期',
+const REMINDER_LABEL_KEYS: Record<ReminderField, string> = {
+  birthday: 'friendDetail.reminderBirthday',
+  anniversary: 'friendDetail.reminderAnniversary',
+  contract_expiry: 'friendDetail.reminderContractExpiry',
 };
 
 type BiolinkType = 'instagram' | 'facebook' | 'youtube' | 'twitter' | 'linkedin' | 'website' | 'other';
@@ -77,6 +78,7 @@ function getBiolinkIcon(type: BiolinkType) {
 const NOTE_COLORS = ['#FEF3C7', '#DBEAFE', '#D1FAE5', '#FCE7F3', '#EDE9FE', '#FEE2E2'];
 
 export default function FriendDetailScreen({ navigation, route }: FriendDetailScreenProps) {
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
   const { connectionId, friendId } = route.params || {};
@@ -254,7 +256,7 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
 
     if (error) {
       console.error('Error adding note:', error);
-      Alert.alert('Error', 'Failed to add note');
+      Alert.alert(t('common.error'), t('friendDetail.alertNoteAddError'));
       return;
     }
 
@@ -282,7 +284,7 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
 
     if (error) {
       console.error('Error updating note:', error);
-      Alert.alert('Error', 'Failed to update note');
+      Alert.alert(t('common.error'), t('friendDetail.alertNoteUpdateError'));
       return;
     }
 
@@ -295,10 +297,10 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
   };
 
   const handleDeleteNote = (noteId: string) => {
-    Alert.alert('刪除便利貼', '確定要刪除這個便利貼嗎？', [
-      { text: '取消', style: 'cancel' },
+    Alert.alert(t('friendDetail.alertDeleteNoteTitle'), t('friendDetail.alertDeleteNoteMessage'), [
+      { text: t('common.cancel'), style: 'cancel' },
       {
-        text: '刪除',
+        text: t('common.delete'),
         style: 'destructive',
         onPress: async () => {
           const { error } = await supabase
@@ -308,7 +310,7 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
 
           if (error) {
             console.error('Error deleting note:', error);
-            Alert.alert('Error', 'Failed to delete note');
+            Alert.alert(t('common.error'), t('friendDetail.alertNoteDeleteError'));
             return;
           }
           setNotes((prev) => prev.filter((n) => n.id !== noteId));
@@ -361,7 +363,7 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
     }
     Linking.openURL(url).catch((err) => {
       console.warn('Failed to open URL:', err);
-      Alert.alert('錯誤', '無法開啟此連結');
+      Alert.alert(t('common.error'), t('friendDetail.alertOpenLinkError'));
     });
   };
 
@@ -381,7 +383,7 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
       const m = parseInt(month, 10);
       const d = parseInt(day, 10);
       if (m < 1 || m > 12 || d < 1 || d > 31) {
-        Alert.alert('錯誤', '請輸入有效的日期格式 (MM-DD)');
+        Alert.alert(t('common.error'), t('friendDetail.alertInvalidDate'));
         return;
       }
       dateStr = `2000-${month}-${day}`;
@@ -393,7 +395,7 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
       .eq('id', connectionId);
 
     if (error) {
-      Alert.alert('錯誤', '無法儲存提醒日期');
+      Alert.alert(t('common.error'), t('friendDetail.alertSaveReminderError'));
     } else {
       if (field === 'birthday') setBirthday(dateStr);
       if (field === 'anniversary') setAnniversary(dateStr);
@@ -525,11 +527,11 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
         <View style={styles.statsRow}>
           <View style={styles.statBox}>
             <Text style={styles.statNumber}>{mutualFriends}</Text>
-            <Text style={styles.statLabel}>共同朋友</Text>
+            <Text style={styles.statLabel}>{t('friendDetail.mutualFriendsLabel')}</Text>
           </View>
           <View style={styles.statBox}>
             <Text style={styles.statNumber}>{mutualTags}</Text>
-            <Text style={styles.statLabel}>共同標籤</Text>
+            <Text style={styles.statLabel}>{t('friendDetail.mutualTagsLabel')}</Text>
           </View>
         </View>
 
@@ -540,7 +542,7 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
             activeOpacity={0.8}
             onPress={() => {
               // Chat feature temporarily disabled
-              Alert.alert('即將推出', '聊天功能即將上線，敬請期待！');
+              Alert.alert(t('common.comingSoonTitle'), t('common.comingSoonChat'));
               // navigation.navigate('LikesTab', {
               //   screen: 'ChatDetail',
               //   params: { friendId, friendName: displayName },
@@ -548,24 +550,24 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
             }}
           >
             <MessageCircle size={18} color={COLORS.gray900} />
-            <Text style={styles.primaryButtonText}>發送訊息</Text>
+            <Text style={styles.primaryButtonText}>{t('friendDetail.sendMessage')}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.outlineButton} activeOpacity={0.8}>
             <Tag size={18} color={COLORS.gray700} />
-            <Text style={styles.outlineButtonText}>管理標籤</Text>
+            <Text style={styles.outlineButtonText}>{t('friendDetail.manageTags')}</Text>
           </TouchableOpacity>
         </View>
 
         {/* Met Record Section */}
         {(metDate || metLocation || connectionNote || scanEventTags.length > 0) && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>相識紀錄</Text>
+            <Text style={styles.sectionTitle}>{t('friendDetail.metRecordTitle')}</Text>
             <View style={styles.recordCard}>
               {metDate ? (
                 <>
                   <View style={styles.recordRow}>
                     <Calendar size={16} color={COLORS.gray400} />
-                    <Text style={styles.recordLabel}>認識日期</Text>
+                    <Text style={styles.recordLabel}>{t('friendDetail.metDateLabel')}</Text>
                     <Text style={styles.recordValue}>{metDate}</Text>
                   </View>
                   {(metLocation || connectionNote) && <View style={styles.recordDivider} />}
@@ -575,7 +577,7 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
                 <>
                   <View style={styles.recordRow}>
                     <MapPin size={16} color={COLORS.gray400} />
-                    <Text style={styles.recordLabel}>地點</Text>
+                    <Text style={styles.recordLabel}>{t('friendDetail.metLocationLabel')}</Text>
                     <Text style={styles.recordValue}>{metLocation}</Text>
                   </View>
                   {connectionNote ? <View style={styles.recordDivider} /> : null}
@@ -585,7 +587,7 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
                 <>
                   <View style={styles.recordRow}>
                     <FileText size={16} color={COLORS.gray400} />
-                    <Text style={styles.recordLabel}>備註</Text>
+                    <Text style={styles.recordLabel}>{t('friendDetail.metNoteLabel')}</Text>
                     <Text style={[styles.recordValue, styles.recordNotes]}>
                       {connectionNote}
                     </Text>
@@ -596,7 +598,7 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
               {scanEventTags.length > 0 && (
                 <View style={styles.recordRow}>
                   <Tag size={16} color={COLORS.gray400} />
-                  <Text style={styles.recordLabel}>活動標籤</Text>
+                  <Text style={styles.recordLabel}>{t('friendDetail.eventTagsLabel')}</Text>
                   <View style={{ flex: 1, flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
                     {scanEventTags.map((etag, i) => (
                       <View key={i} style={styles.tagChip}>
@@ -613,7 +615,7 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
         {/* Sticky Notes Section */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>便利貼</Text>
+            <Text style={styles.sectionTitle}>{t('friendDetail.stickyNotesTitle')}</Text>
             <TouchableOpacity
               onPress={() => {
                 setIsAddingNote(true);
@@ -632,7 +634,7 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
             <View style={[styles.noteForm, { backgroundColor: noteColor }]}>
               <TextInput
                 style={styles.noteInput}
-                placeholder="寫下你的便利貼..."
+                placeholder={t('friendDetail.notePlaceholder')}
                 placeholderTextColor={COLORS.gray400}
                 value={noteContent}
                 onChangeText={setNoteContent}
@@ -661,14 +663,14 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
                     setNoteContent('');
                   }}
                 >
-                  <Text style={styles.noteFormCancelText}>取消</Text>
+                  <Text style={styles.noteFormCancelText}>{t('friendDetail.noteCancel')}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={styles.noteFormSave}
                   onPress={editingNoteId ? handleUpdateNote : handleAddNote}
                 >
                   <Text style={styles.noteFormSaveText}>
-                    {editingNoteId ? '更新' : '新增'}
+                    {editingNoteId ? t('friendDetail.noteUpdate') : t('friendDetail.noteAdd')}
                   </Text>
                 </TouchableOpacity>
               </View>
@@ -677,7 +679,7 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
 
           {/* Notes List */}
           {notes.length === 0 && !isAddingNote && (
-            <Text style={styles.emptyNotesText}>還沒有便利貼</Text>
+            <Text style={styles.emptyNotesText}>{t('friendDetail.noNotes')}</Text>
           )}
           {notes.map((note) => (
             <View key={note.id} style={[styles.noteCard, { backgroundColor: note.color || NOTE_COLORS[0] }]}>
@@ -717,7 +719,7 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
         {/* CRM Reminders Section */}
         {connectionId && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>重要提醒</Text>
+            <Text style={styles.sectionTitle}>{t('friendDetail.remindersTitle')}</Text>
             <View style={styles.recordCard}>
               {([
                 { field: 'birthday' as ReminderField, value: birthday, icon: <Gift size={16} color={COLORS.pink500} /> },
@@ -728,12 +730,12 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
                   {idx > 0 && <View style={styles.recordDivider} />}
                   <View style={styles.reminderRow}>
                     {item.icon}
-                    <Text style={styles.recordLabel}>{REMINDER_LABELS[item.field]}</Text>
+                    <Text style={styles.recordLabel}>{t(REMINDER_LABEL_KEYS[item.field])}</Text>
                     {editingReminder === item.field ? (
                       <View style={styles.reminderEditRow}>
                         <TextInput
                           style={styles.reminderInput}
-                          placeholder="MM-DD 或 YYYY-MM-DD"
+                          placeholder={t('friendDetail.reminderPlaceholder')}
                           placeholderTextColor={COLORS.gray400}
                           value={reminderInput}
                           onChangeText={setReminderInput}
@@ -741,7 +743,7 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
                           onSubmitEditing={() => handleSaveReminder(item.field)}
                         />
                         <TouchableOpacity onPress={() => handleSaveReminder(item.field)}>
-                          <Text style={styles.reminderSaveBtn}>儲存</Text>
+                          <Text style={styles.reminderSaveBtn}>{t('friendDetail.reminderSave')}</Text>
                         </TouchableOpacity>
                       </View>
                     ) : (
@@ -753,14 +755,14 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
                         }}
                       >
                         <Text style={[styles.recordValue, !item.value && { color: COLORS.gray400 }]}>
-                          {item.value ? formatReminderDate(item.value) : '點擊設定'}
+                          {item.value ? formatReminderDate(item.value) : t('friendDetail.reminderSetPrompt')}
                         </Text>
                         {item.value && (
                           <TouchableOpacity
                             onPress={() => handleClearReminder(item.field)}
                             style={{ marginLeft: 8, padding: 4 }}
                           >
-                            <Text style={{ fontSize: 12, color: COLORS.red500 }}>清除</Text>
+                            <Text style={{ fontSize: 12, color: COLORS.red500 }}>{t('friendDetail.reminderClear')}</Text>
                           </TouchableOpacity>
                         )}
                       </TouchableOpacity>
@@ -775,7 +777,7 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
         {/* Biolinks Section */}
         {biolinks.length > 0 && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>社群連結</Text>
+            <Text style={styles.sectionTitle}>{t('friendDetail.biolinksTitle')}</Text>
             <View style={styles.biolinksCard}>
               {biolinks.map((link, index) => (
                 <React.Fragment key={link.id}>

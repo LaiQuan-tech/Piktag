@@ -11,6 +11,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 import { X } from 'lucide-react-native';
 import { COLORS } from '../constants/theme';
 import { supabase } from '../lib/supabase';
@@ -34,6 +35,7 @@ type ScanResultScreenProps = {
 };
 
 export default function ScanResultScreen({ navigation, route }: ScanResultScreenProps) {
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
   const {
@@ -195,7 +197,7 @@ export default function ScanResultScreen({ navigation, route }: ScanResultScreen
 
       if (connectionError || !connectionData) {
         console.error('Error creating connection:', connectionError);
-        Alert.alert('錯誤', '無法加為好友，請稍後再試。');
+        Alert.alert(t('common.error'), t('scanResult.alertAddFriendError'));
         setSubmitting(false);
         return;
       }
@@ -233,9 +235,9 @@ export default function ScanResultScreen({ navigation, route }: ScanResultScreen
         }
       });
 
-      Alert.alert('成功', `已成功加 ${hostName} 為好友！`, [
+      Alert.alert(t('scanResult.alertSuccessTitle'), t('scanResult.alertSuccessMessage', { name: hostName }), [
         {
-          text: '確定',
+          text: t('scanResult.alertSuccessConfirm'),
           onPress: () => {
             navigation.navigate('HomeTab');
           },
@@ -243,7 +245,7 @@ export default function ScanResultScreen({ navigation, route }: ScanResultScreen
       ]);
     } catch (err) {
       console.error('Error confirming friend:', err);
-      Alert.alert('錯誤', '發生未預期的錯誤，請稍後再試。');
+      Alert.alert(t('common.error'), t('scanResult.alertUnexpectedError'));
     } finally {
       setSubmitting(false);
     }
@@ -262,7 +264,7 @@ export default function ScanResultScreen({ navigation, route }: ScanResultScreen
       <View style={styles.container}>
         <StatusBar barStyle="dark-content" backgroundColor={COLORS.white} />
         <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
-          <Text style={styles.headerTitle}>加為好友</Text>
+          <Text style={styles.headerTitle}>{t('scanResult.headerTitle')}</Text>
           <TouchableOpacity
             style={styles.closeBtn}
             onPress={() => navigation.goBack()}
@@ -284,7 +286,7 @@ export default function ScanResultScreen({ navigation, route }: ScanResultScreen
 
       {/* Header */}
       <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
-        <Text style={styles.headerTitle}>加為好友</Text>
+        <Text style={styles.headerTitle}>{t('scanResult.headerTitle')}</Text>
         <TouchableOpacity
           style={styles.closeBtn}
           onPress={() => navigation.goBack()}
@@ -315,7 +317,7 @@ export default function ScanResultScreen({ navigation, route }: ScanResultScreen
         {hostTags.length > 0 && (
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>對方的標籤</Text>
+              <Text style={styles.sectionTitle}>{t('scanResult.hostTagsTitle')}</Text>
               <TouchableOpacity
                 onPress={toggleSelectAllHostTags}
                 activeOpacity={0.7}
@@ -326,7 +328,7 @@ export default function ScanResultScreen({ navigation, route }: ScanResultScreen
                     allHostSelected && styles.selectAllTextActive,
                   ]}
                 >
-                  全選
+                  {t('scanResult.selectAll')}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -362,7 +364,7 @@ export default function ScanResultScreen({ navigation, route }: ScanResultScreen
         {myTags.length > 0 && (
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>我的標籤</Text>
+              <Text style={styles.sectionTitle}>{t('scanResult.myTagsTitle')}</Text>
               <TouchableOpacity
                 onPress={toggleSelectAllMyTags}
                 activeOpacity={0.7}
@@ -373,7 +375,7 @@ export default function ScanResultScreen({ navigation, route }: ScanResultScreen
                     allMySelected && styles.selectAllTextActive,
                   ]}
                 >
-                  全選
+                  {t('scanResult.selectAll')}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -417,7 +419,7 @@ export default function ScanResultScreen({ navigation, route }: ScanResultScreen
           {submitting ? (
             <ActivityIndicator size={20} color={COLORS.gray900} />
           ) : (
-            <Text style={styles.ctaButtonText}>確認加為好友</Text>
+            <Text style={styles.ctaButtonText}>{t('scanResult.confirmButton')}</Text>
           )}
         </TouchableOpacity>
       </View>

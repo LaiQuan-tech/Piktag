@@ -15,10 +15,36 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { X, Star, ArrowLeft, Share2, Trash2 } from 'lucide-react-native';
 import QRCode from 'react-native-qrcode-svg';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
 import { COLORS } from '../constants/theme';
 import type { TagPreset, ScanSession, PiktagProfile } from '../types';
+
+// ─── Popular Tags Constants ───
+const POPULAR_TAGS = {
+  soft: {
+    zodiac: [
+      '#牡羊座', '#金牛座', '#雙子座', '#巨蟹座', '#獅子座', '#處女座',
+      '#天秤座', '#天蠍座', '#射手座', '#摩羯座', '#水瓶座', '#雙魚座',
+    ],
+    interests: [
+      '#攝影', '#旅行', '#美食', '#健身', '#音樂', '#電影',
+      '#閱讀', '#咖啡', '#寵物', '#遊戲', '#瑜伽', '#露營',
+    ],
+    mbti: [
+      '#INTJ', '#INFP', '#ENFP', '#ENTJ', '#INTP', '#ENFJ',
+      '#ISFJ', '#ISTP',
+    ],
+  },
+  hard: {
+    career: [
+      '#工程師', '#設計師', '#行銷', '#業務', '#創業', '#PM',
+      '#金融', '#醫療', '#教育', '#法律', '#自媒體', '#電商',
+      '#AI', '#區塊鏈',
+    ],
+  },
+};
 
 type AddTagScreenProps = {
   navigation: any;
@@ -32,6 +58,7 @@ function formatDate(date: Date): string {
 }
 
 export default function AddTagScreen({ navigation }: AddTagScreenProps) {
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
 
@@ -95,7 +122,7 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
     const trimmed = tagInput.trim();
     if (!trimmed) return;
     if (eventTags.includes(trimmed)) {
-      Alert.alert('標籤已存在', '此標籤已在列表中。');
+      Alert.alert(t('addTag.alertTagExists'), t('addTag.alertTagExistsMessage'));
       return;
     }
     setEventTags((prev) => [...prev, trimmed]);
@@ -112,7 +139,7 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
     if (!user) return;
     const name = presetName.trim();
     if (!name) {
-      Alert.alert('請輸入模板名稱');
+      Alert.alert(t('addTag.alertEnterPresetName'));
       return;
     }
     setSavingPreset(true);
@@ -125,15 +152,15 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
       });
 
       if (error) {
-        Alert.alert('錯誤', '無法儲存模板，請稍後再試。');
+        Alert.alert(t('common.error'), t('addTag.alertPresetSaveError'));
       } else {
-        Alert.alert('已儲存', `模板「${name}」已儲存。`);
+        Alert.alert(t('addTag.alertPresetSavedTitle'), t('addTag.alertPresetSavedMessage', { name }));
         setPresetName('');
         setShowPresetNameInput(false);
         loadPresets();
       }
     } catch {
-      Alert.alert('錯誤', '無法儲存模板，請稍後再試。');
+      Alert.alert(t('common.error'), t('addTag.alertPresetSaveError'));
     } finally {
       setSavingPreset(false);
     }
@@ -166,12 +193,12 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
         .eq('id', id);
 
       if (error) {
-        Alert.alert('錯誤', '無法刪除模板。');
+        Alert.alert(t('common.error'), t('addTag.alertPresetDeleteError'));
       } else {
         setPresets((prev) => prev.filter((p) => p.id !== id));
       }
     } catch {
-      Alert.alert('錯誤', '無法刪除模板。');
+      Alert.alert(t('common.error'), t('addTag.alertPresetDeleteError'));
     } finally {
       setDeletingPresetId(null);
     }
@@ -181,7 +208,7 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
   const handleGenerateQr = async () => {
     if (!user) return;
     if (!eventDate.trim()) {
-      Alert.alert('請輸入日期');
+      Alert.alert(t('addTag.alertEnterDate'));
       return;
     }
     setGenerating(true);
@@ -196,7 +223,7 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
       const displayName =
         (profileData as PiktagProfile | null)?.full_name ||
         (profileData as PiktagProfile | null)?.username ||
-        '使用者';
+        t('addTag.defaultDisplayName');
 
       // 2. Try to create a scan session in DB (graceful fallback if table doesn't exist)
       let sessionId = `local_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
@@ -269,7 +296,7 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
       setMode('qr');
     } catch (err) {
       console.error('QR generation error:', err);
-      Alert.alert('錯誤', '無法產生 QR Code，請稍後再試。');
+      Alert.alert(t('common.error'), t('addTag.alertQrError'));
     } finally {
       setGenerating(false);
     }
@@ -279,7 +306,7 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
   const handleShare = async () => {
     try {
       await Share.share({
-        message: `PikTag 社交活動\n日期：${eventDate}\n地點：${eventLocation}\n標籤：${eventTags.join(', ')}\n\n掃描 QR Code 加入連線！`,
+        message: t('addTag.shareMessage', { eventDate, eventLocation, tags: eventTags.join(', ') }),
       });
     } catch {
       // user cancelled
@@ -292,7 +319,7 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
       {/* Header */}
       <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
         <View style={styles.headerSideBtn} />
-        <Text style={styles.headerTitle}># 準備社交</Text>
+        <Text style={styles.headerTitle}>{t('addTag.headerTitle')}</Text>
         <TouchableOpacity
           onPress={() => {
             loadPresets();
@@ -313,14 +340,14 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
       >
         {/* 日期 Section */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>日期</Text>
+          <Text style={styles.sectionTitle}>{t('addTag.dateLabel')}</Text>
           {isEditingDate ? (
             <View style={styles.inputRow}>
               <TextInput
                 style={styles.textInput}
                 value={eventDate}
                 onChangeText={setEventDate}
-                placeholder="YYYY/MM/DD"
+                placeholder={t('addTag.datePlaceholder')}
                 placeholderTextColor={COLORS.gray400}
                 autoFocus
                 onBlur={() => setIsEditingDate(false)}
@@ -334,20 +361,20 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
               onPress={() => setIsEditingDate(true)}
               activeOpacity={0.7}
             >
-              <Text style={styles.dateDisplayText}>{eventDate || '點擊設定日期'}</Text>
+              <Text style={styles.dateDisplayText}>{eventDate || t('addTag.dateDisplayFallback')}</Text>
             </TouchableOpacity>
           )}
         </View>
 
         {/* 地點 Section */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>地點</Text>
+          <Text style={styles.sectionTitle}>{t('addTag.locationLabel')}</Text>
           <View style={styles.inputRow}>
             <TextInput
               style={styles.textInput}
               value={eventLocation}
               onChangeText={setEventLocation}
-              placeholder="輸入活動地點..."
+              placeholder={t('addTag.locationPlaceholder')}
               placeholderTextColor={COLORS.gray400}
             />
           </View>
@@ -355,14 +382,14 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
 
         {/* 自訂標籤 Section */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>自訂標籤</Text>
+          <Text style={styles.sectionTitle}>{t('addTag.customTagsLabel')}</Text>
           <View style={styles.tagInputRow}>
             <View style={[styles.inputRow, { flex: 1 }]}>
               <TextInput
                 style={styles.textInput}
                 value={tagInput}
                 onChangeText={setTagInput}
-                placeholder="輸入標籤..."
+                placeholder={t('addTag.tagPlaceholder')}
                 placeholderTextColor={COLORS.gray400}
                 returnKeyType="done"
                 onSubmitEditing={handleAddTag}
@@ -373,7 +400,7 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
               onPress={handleAddTag}
               activeOpacity={0.8}
             >
-              <Text style={styles.addTagBtnText}>新增</Text>
+              <Text style={styles.addTagBtnText}>{t('common.add')}</Text>
             </TouchableOpacity>
           </View>
 
@@ -395,6 +422,115 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
           )}
         </View>
 
+        {/* 熱門標籤 Section */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>{t('addTag.softTagsTitle')}</Text>
+
+          <Text style={styles.subSectionTitle}>{t('addTag.zodiacSubtitle')}</Text>
+          <View style={styles.popularChipsContainer}>
+            {POPULAR_TAGS.soft.zodiac.map((tag) => {
+              const isSelected = eventTags.includes(tag);
+              return (
+                <TouchableOpacity
+                  key={tag}
+                  style={[styles.popularChip, isSelected && styles.popularChipSelected]}
+                  onPress={() => {
+                    if (!isSelected) {
+                      setEventTags((prev) => [...prev, tag]);
+                    } else {
+                      setEventTags((prev) => prev.filter((t) => t !== tag));
+                    }
+                  }}
+                  activeOpacity={0.7}
+                >
+                  <Text style={[styles.popularChipText, isSelected && styles.popularChipTextSelected]}>
+                    {tag}{isSelected ? ' ✓' : ''}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+
+          <Text style={styles.subSectionTitle}>{t('addTag.interestsSubtitle')}</Text>
+          <View style={styles.popularChipsContainer}>
+            {POPULAR_TAGS.soft.interests.map((tag) => {
+              const isSelected = eventTags.includes(tag);
+              return (
+                <TouchableOpacity
+                  key={tag}
+                  style={[styles.popularChip, isSelected && styles.popularChipSelected]}
+                  onPress={() => {
+                    if (!isSelected) {
+                      setEventTags((prev) => [...prev, tag]);
+                    } else {
+                      setEventTags((prev) => prev.filter((t) => t !== tag));
+                    }
+                  }}
+                  activeOpacity={0.7}
+                >
+                  <Text style={[styles.popularChipText, isSelected && styles.popularChipTextSelected]}>
+                    {tag}{isSelected ? ' ✓' : ''}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+
+          <Text style={styles.subSectionTitle}>{t('addTag.mbtiSubtitle')}</Text>
+          <View style={styles.popularChipsContainer}>
+            {POPULAR_TAGS.soft.mbti.map((tag) => {
+              const isSelected = eventTags.includes(tag);
+              return (
+                <TouchableOpacity
+                  key={tag}
+                  style={[styles.popularChip, isSelected && styles.popularChipSelected]}
+                  onPress={() => {
+                    if (!isSelected) {
+                      setEventTags((prev) => [...prev, tag]);
+                    } else {
+                      setEventTags((prev) => prev.filter((t) => t !== tag));
+                    }
+                  }}
+                  activeOpacity={0.7}
+                >
+                  <Text style={[styles.popularChipText, isSelected && styles.popularChipTextSelected]}>
+                    {tag}{isSelected ? ' ✓' : ''}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>{t('addTag.hardTagsTitle')}</Text>
+
+          <Text style={styles.subSectionTitle}>{t('addTag.careerSubtitle')}</Text>
+          <View style={styles.popularChipsContainer}>
+            {POPULAR_TAGS.hard.career.map((tag) => {
+              const isSelected = eventTags.includes(tag);
+              return (
+                <TouchableOpacity
+                  key={tag}
+                  style={[styles.popularChip, isSelected && styles.popularChipSelected]}
+                  onPress={() => {
+                    if (!isSelected) {
+                      setEventTags((prev) => [...prev, tag]);
+                    } else {
+                      setEventTags((prev) => prev.filter((t) => t !== tag));
+                    }
+                  }}
+                  activeOpacity={0.7}
+                >
+                  <Text style={[styles.popularChipText, isSelected && styles.popularChipTextSelected]}>
+                    {tag}{isSelected ? ' ✓' : ''}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </View>
+
         {/* 儲存為常用模板 */}
         <View style={styles.section}>
           {!showPresetNameInput ? (
@@ -403,7 +539,7 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
               onPress={() => setShowPresetNameInput(true)}
               activeOpacity={0.7}
             >
-              <Text style={styles.outlineButtonText}>儲存為常用模板</Text>
+              <Text style={styles.outlineButtonText}>{t('addTag.saveAsPreset')}</Text>
             </TouchableOpacity>
           ) : (
             <View>
@@ -412,7 +548,7 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
                   style={styles.textInput}
                   value={presetName}
                   onChangeText={setPresetName}
-                  placeholder="輸入模板名稱..."
+                  placeholder={t('addTag.presetNamePlaceholder')}
                   placeholderTextColor={COLORS.gray400}
                   autoFocus
                   returnKeyType="done"
@@ -428,7 +564,7 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
                   }}
                   activeOpacity={0.7}
                 >
-                  <Text style={styles.presetCancelBtnText}>取消</Text>
+                  <Text style={styles.presetCancelBtnText}>{t('common.cancel')}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={[styles.presetConfirmBtn, savingPreset && styles.buttonDisabled]}
@@ -439,7 +575,7 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
                   {savingPreset ? (
                     <ActivityIndicator size={16} color={COLORS.gray900} />
                   ) : (
-                    <Text style={styles.presetConfirmBtnText}>儲存</Text>
+                    <Text style={styles.presetConfirmBtnText}>{t('common.save')}</Text>
                   )}
                 </TouchableOpacity>
               </View>
@@ -458,7 +594,7 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
             {generating ? (
               <ActivityIndicator size={18} color={COLORS.gray900} />
             ) : (
-              <Text style={styles.primaryButtonText}>產生 QR Code</Text>
+              <Text style={styles.primaryButtonText}>{t('addTag.generateQrButton')}</Text>
             )}
           </TouchableOpacity>
         </View>
@@ -477,7 +613,7 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
           style={styles.headerBackBtn}
         >
           <ArrowLeft size={20} color={COLORS.gray900} />
-          <Text style={styles.headerBackText}>返回編輯</Text>
+          <Text style={styles.headerBackText}>{t('addTag.backToEdit')}</Text>
         </TouchableOpacity>
         <TouchableOpacity
           onPress={handleShare}
@@ -494,7 +630,7 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
         showsVerticalScrollIndicator={false}
       >
         {/* Branded title */}
-        <Text style={styles.qrBrandTitle}># PikTag</Text>
+        <Text style={styles.qrBrandTitle}>{t('addTag.qrBrandTitle')}</Text>
 
         {/* QR Code */}
         <View style={styles.qrWrapper}>
@@ -520,7 +656,7 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
 
         {/* Scan count */}
         <Text style={styles.qrScanCount}>
-          {'\uD83D\uDCCB'} 掃碼 {scanSession?.scan_count ?? 0} 次
+          {'\uD83D\uDCCB'} {t('addTag.scanCount', { count: scanSession?.scan_count ?? 0 })}
         </Text>
 
         {/* Edit button */}
@@ -530,7 +666,7 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
           activeOpacity={0.7}
         >
           <Text style={styles.outlineButtonText}>
-            {'\u270F\uFE0F'} 修改標籤設定
+            {'\u270F\uFE0F'} {t('addTag.editTagSettings')}
           </Text>
         </TouchableOpacity>
       </ScrollView>
@@ -549,7 +685,7 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
         <View style={[styles.modalContainer, { paddingTop: insets.top + 16 }]}>
           {/* Modal header */}
           <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>常用模板</Text>
+            <Text style={styles.modalTitle}>{t('addTag.presetsModalTitle')}</Text>
             <TouchableOpacity
               onPress={() => setShowPresetsModal(false)}
               activeOpacity={0.6}
@@ -566,7 +702,7 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
             </View>
           ) : presets.length === 0 ? (
             <View style={styles.emptyContainer}>
-              <Text style={styles.emptyText}>尚無常用模板</Text>
+              <Text style={styles.emptyText}>{t('addTag.noPresets')}</Text>
             </View>
           ) : (
             <ScrollView
@@ -580,12 +716,12 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
                   activeOpacity={0.7}
                   onLongPress={() => {
                     Alert.alert(
-                      '刪除模板',
-                      `確定要刪除「${preset.name}」嗎？`,
+                      t('addTag.alertDeletePresetTitle'),
+                      t('addTag.alertDeletePresetMessage', { name: preset.name }),
                       [
-                        { text: '取消', style: 'cancel' },
+                        { text: t('common.cancel'), style: 'cancel' },
                         {
-                          text: '刪除',
+                          text: t('common.delete'),
                           style: 'destructive',
                           onPress: () => handleDeletePreset(preset.id),
                         },
@@ -624,7 +760,7 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
                         onPress={() => handleApplyPreset(preset)}
                         activeOpacity={0.8}
                       >
-                        <Text style={styles.presetApplyBtnText}>套用</Text>
+                        <Text style={styles.presetApplyBtnText}>{t('addTag.applyPreset')}</Text>
                       </TouchableOpacity>
                     )}
                   </View>
@@ -772,6 +908,44 @@ const styles = StyleSheet.create({
   },
   chipRemoveBtn: {
     padding: 2,
+  },
+
+  // ── Sub-section title ──
+  subSectionTitle: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: COLORS.gray500,
+    marginBottom: 10,
+    marginTop: 4,
+  },
+
+  // ── Popular tags ──
+  popularChipsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginBottom: 16,
+  },
+  popularChip: {
+    backgroundColor: COLORS.gray100,
+    borderRadius: 9999,
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    borderWidth: 1.5,
+    borderColor: 'transparent',
+  },
+  popularChipSelected: {
+    backgroundColor: COLORS.piktag50,
+    borderColor: COLORS.piktag500,
+  },
+  popularChipText: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: COLORS.gray600,
+  },
+  popularChipTextSelected: {
+    color: COLORS.piktag600,
+    fontWeight: '600',
   },
 
   // ── Buttons ──

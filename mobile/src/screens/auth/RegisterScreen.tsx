@@ -11,6 +11,7 @@ import {
   Platform,
   ScrollView,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { Hash } from 'lucide-react-native';
 import { supabase } from '../../lib/supabase';
 import { COLORS, SPACING, BORDER_RADIUS } from '../../constants/theme';
@@ -20,6 +21,7 @@ type RegisterScreenProps = {
 };
 
 export default function RegisterScreen({ navigation }: RegisterScreenProps) {
+  const { t } = useTranslation();
   const [fullName, setFullName] = useState('');
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
@@ -28,12 +30,12 @@ export default function RegisterScreen({ navigation }: RegisterScreenProps) {
 
   const handleRegister = async () => {
     if (!fullName.trim() || !username.trim() || !email.trim() || !password.trim()) {
-      Alert.alert('錯誤', '請填寫所有欄位');
+      Alert.alert(t('common.error'), t('auth.register.alertEmptyFields'));
       return;
     }
 
     if (password.length < 6) {
-      Alert.alert('錯誤', '密碼至少需要 6 個字元');
+      Alert.alert(t('common.error'), t('auth.register.alertPasswordTooShort'));
       return;
     }
 
@@ -52,9 +54,9 @@ export default function RegisterScreen({ navigation }: RegisterScreenProps) {
 
       if (error) {
         if (error.message.includes('already registered') || error.message.includes('already been registered')) {
-          Alert.alert('註冊失敗', '此電子郵件已被註冊，請直接登入');
+          Alert.alert(t('auth.register.alertRegisterFailedTitle'), t('auth.register.alertEmailTaken'));
         } else {
-          Alert.alert('註冊失敗', error.message);
+          Alert.alert(t('auth.register.alertRegisterFailedTitle'), error.message);
         }
         return;
       }
@@ -63,10 +65,10 @@ export default function RegisterScreen({ navigation }: RegisterScreenProps) {
       // The auth state change listener in AppNavigator will detect the session
       // and automatically switch to MainTabs.
       if (data.session) {
-        Alert.alert('註冊成功', '歡迎加入 PikTag！');
+        Alert.alert(t('auth.register.alertSuccessTitle'), t('auth.register.alertSuccessMessage'));
       }
     } catch (err: any) {
-      Alert.alert('錯誤', err.message || '發生未知錯誤');
+      Alert.alert(t('common.error'), err.message || t('common.unknownError'));
     } finally {
       setLoading(false);
     }
@@ -85,16 +87,16 @@ export default function RegisterScreen({ navigation }: RegisterScreenProps) {
         <View style={styles.logoContainer}>
           <View style={styles.logoRow}>
             <Hash size={40} color={COLORS.piktag500} strokeWidth={2.5} />
-            <Text style={styles.logoText}>PikTag</Text>
+            <Text style={styles.logoText}>{t('common.brandName')}</Text>
           </View>
-          <Text style={styles.subtitle}>用標籤記住每個人</Text>
+          <Text style={styles.subtitle}>{t('common.brandSlogan')}</Text>
         </View>
 
         {/* Form */}
         <View style={styles.formContainer}>
           <TextInput
             style={styles.input}
-            placeholder="姓名"
+            placeholder={t('auth.register.namePlaceholder')}
             placeholderTextColor={COLORS.gray400}
             value={fullName}
             onChangeText={setFullName}
@@ -103,7 +105,7 @@ export default function RegisterScreen({ navigation }: RegisterScreenProps) {
 
           <TextInput
             style={styles.input}
-            placeholder="用戶名稱"
+            placeholder={t('auth.register.usernamePlaceholder')}
             placeholderTextColor={COLORS.gray400}
             value={username}
             onChangeText={setUsername}
@@ -113,7 +115,7 @@ export default function RegisterScreen({ navigation }: RegisterScreenProps) {
 
           <TextInput
             style={styles.input}
-            placeholder="電子郵件"
+            placeholder={t('auth.register.emailPlaceholder')}
             placeholderTextColor={COLORS.gray400}
             value={email}
             onChangeText={setEmail}
@@ -124,7 +126,7 @@ export default function RegisterScreen({ navigation }: RegisterScreenProps) {
 
           <TextInput
             style={styles.input}
-            placeholder="密碼"
+            placeholder={t('auth.register.passwordPlaceholder')}
             placeholderTextColor={COLORS.gray400}
             value={password}
             onChangeText={setPassword}
@@ -141,7 +143,7 @@ export default function RegisterScreen({ navigation }: RegisterScreenProps) {
             {loading ? (
               <ActivityIndicator color={COLORS.white} />
             ) : (
-              <Text style={styles.registerButtonText}>註冊</Text>
+              <Text style={styles.registerButtonText}>{t('auth.register.registerButton')}</Text>
             )}
           </TouchableOpacity>
         </View>
@@ -154,8 +156,8 @@ export default function RegisterScreen({ navigation }: RegisterScreenProps) {
           accessibilityRole="button"
         >
           <View style={styles.footerRow}>
-            <Text style={styles.footerText}>已有帳號？ </Text>
-            <Text style={[styles.footerText, styles.footerLink]}>登入</Text>
+            <Text style={styles.footerText}>{t('auth.register.hasAccountPrompt')}</Text>
+            <Text style={[styles.footerText, styles.footerLink]}>{t('auth.register.loginLink')}</Text>
           </View>
         </TouchableOpacity>
       </ScrollView>

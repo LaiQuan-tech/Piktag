@@ -11,6 +11,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 import { X, Hash, EyeOff, Eye } from 'lucide-react-native';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
@@ -22,6 +23,7 @@ type ManageTagsScreenProps = {
 };
 
 export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) {
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
   const [tagInput, setTagInput] = useState('');
@@ -85,7 +87,7 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
     const displayName = `#${rawName}`;
 
     if (myTagNames.includes(displayName)) {
-      Alert.alert('\u6a19\u7c64\u5df2\u5b58\u5728', '\u6b64\u6a19\u7c64\u5df2\u5728\u4f60\u7684\u5217\u8868\u4e2d\u3002');
+      Alert.alert(t('manageTags.alertTagExists'), t('manageTags.alertTagExistsMessage'));
       return;
     }
 
@@ -110,7 +112,7 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
           .single();
 
         if (createError || !newTag) {
-          Alert.alert('\u932f\u8aa4', '\u7121\u6cd5\u65b0\u589e\u6a19\u7c64\uff0c\u8acb\u7a0d\u5f8c\u518d\u8a66\u3002');
+          Alert.alert(t('common.error'), t('manageTags.alertAddError'));
           setAddingTag(false);
           return;
         }
@@ -131,7 +133,7 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
         });
 
       if (linkError) {
-        Alert.alert('\u932f\u8aa4', '\u7121\u6cd5\u65b0\u589e\u6a19\u7c64\uff0c\u8acb\u7a0d\u5f8c\u518d\u8a66\u3002');
+        Alert.alert(t('common.error'), t('manageTags.alertAddError'));
         setAddingTag(false);
         return;
       }
@@ -153,7 +155,7 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
       await loadMyTags();
       loadPopularTags();
     } catch {
-      Alert.alert('\u932f\u8aa4', '\u7121\u6cd5\u65b0\u589e\u6a19\u7c64\uff0c\u8acb\u7a0d\u5f8c\u518d\u8a66\u3002');
+      Alert.alert(t('common.error'), t('manageTags.alertAddError'));
     } finally {
       setAddingTag(false);
     }
@@ -171,7 +173,7 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
         .eq('id', userTag.id);
 
       if (deleteError) {
-        Alert.alert('\u932f\u8aa4', '\u7121\u6cd5\u79fb\u9664\u6a19\u7c64\uff0c\u8acb\u7a0d\u5f8c\u518d\u8a66\u3002');
+        Alert.alert(t('common.error'), t('manageTags.alertRemoveError'));
         setRemovingTagId(null);
         return;
       }
@@ -199,7 +201,7 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
       await loadMyTags();
       loadPopularTags();
     } catch {
-      Alert.alert('\u932f\u8aa4', '\u7121\u6cd5\u79fb\u9664\u6a19\u7c64\uff0c\u8acb\u7a0d\u5f8c\u518d\u8a66\u3002');
+      Alert.alert(t('common.error'), t('manageTags.alertRemoveError'));
     } finally {
       setRemovingTagId(null);
     }
@@ -223,7 +225,7 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
         });
 
       if (linkError) {
-        Alert.alert('\u932f\u8aa4', '\u7121\u6cd5\u65b0\u589e\u6a19\u7c64\uff0c\u8acb\u7a0d\u5f8c\u518d\u8a66\u3002');
+        Alert.alert(t('common.error'), t('manageTags.alertAddError'));
         setAddingTag(false);
         return;
       }
@@ -240,7 +242,7 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
       await loadMyTags();
       loadPopularTags();
     } catch {
-      Alert.alert('\u932f\u8aa4', '\u7121\u6cd5\u65b0\u589e\u6a19\u7c64\uff0c\u8acb\u7a0d\u5f8c\u518d\u8a66\u3002');
+      Alert.alert(t('common.error'), t('manageTags.alertAddError'));
     } finally {
       setAddingTag(false);
     }
@@ -258,14 +260,14 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
       {/* Header */}
       <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
         <Text style={styles.headerTitle}>
-          {'\u6a19\u7c64\u7ba1\u7406'}
+          {t('manageTags.headerTitle')}
         </Text>
         <TouchableOpacity
           style={styles.closeBtn}
           onPress={() => navigation.goBack()}
           activeOpacity={0.6}
           accessibilityRole="button"
-          accessibilityLabel={'\u95dc\u9589'}
+          accessibilityLabel={t('manageTags.closeAccessibilityLabel')}
         >
           <X size={24} color={COLORS.gray900} />
         </TouchableOpacity>
@@ -285,11 +287,11 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
           {/* My Tags Section */}
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>
-              {'\u6211\u7684\u6a19\u7c64'}
+              {t('manageTags.myTagsTitle')}
             </Text>
             {myTags.length === 0 ? (
               <Text style={styles.emptyText}>
-                {'\u9084\u6c92\u6709\u6a19\u7c64\uff0c\u65b0\u589e\u4e00\u500b\u5427\uff01'}
+                {t('manageTags.noTagsYet')}
               </Text>
             ) : (
               <View style={styles.chipsContainer}>
@@ -325,13 +327,13 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
           {/* Add Tag Section */}
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>
-              {'\u65b0\u589e\u6a19\u7c64'}
+              {t('manageTags.addTagTitle')}
             </Text>
             <View style={styles.inputRow}>
               <Hash size={20} color={COLORS.gray400} style={styles.inputIcon} />
               <TextInput
                 style={styles.textInput}
-                placeholder={'\u8f38\u5165\u65b0\u6a19\u7c64...'}
+                placeholder={t('manageTags.tagInputPlaceholder')}
                 placeholderTextColor={COLORS.gray400}
                 value={tagInput}
                 onChangeText={setTagInput}
@@ -351,7 +353,7 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
                 <Eye size={18} color={COLORS.gray400} />
               )}
               <Text style={[styles.privacyText, isPrivate && styles.privacyTextActive]}>
-                {isPrivate ? '僅自己可見' : '公開標籤'}
+                {isPrivate ? t('manageTags.privacyPrivate') : t('manageTags.privacyPublic')}
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
@@ -364,7 +366,7 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
                 <ActivityIndicator size={18} color={COLORS.gray900} />
               ) : (
                 <Text style={styles.addButtonText}>
-                  {'\u65b0\u589e'}
+                  {t('manageTags.addButton')}
                 </Text>
               )}
             </TouchableOpacity>
@@ -373,7 +375,7 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
           {/* Popular Tags Section */}
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>
-              {'\u71b1\u9580\u6a19\u7c64\u63a8\u85a6'}
+              {t('manageTags.popularTagsTitle')}
             </Text>
             <View style={styles.chipsContainer}>
               {popularTags.map((tag) => {
@@ -405,7 +407,7 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
               })}
               {popularTags.length === 0 && (
                 <Text style={styles.emptyText}>
-                  {'\u66ab\u7121\u71b1\u9580\u6a19\u7c64'}
+                  {t('manageTags.noPopularTags')}
                 </Text>
               )}
             </View>

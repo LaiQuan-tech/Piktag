@@ -20,6 +20,7 @@ import {
   Link as LinkIcon,
   ExternalLink,
 } from 'lucide-react-native';
+import { useTranslation } from 'react-i18next';
 import { COLORS } from '../constants/theme';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
@@ -31,6 +32,7 @@ type UserDetailScreenProps = {
 };
 
 export default function UserDetailScreen({ navigation, route }: UserDetailScreenProps) {
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const { user: authUser } = useAuth();
   const userId = route.params?.userId;
@@ -176,7 +178,7 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
 
   const handleMessage = () => {
     // Chat feature temporarily disabled
-    Alert.alert('即將推出', '聊天功能即將上線，敬請期待！');
+    Alert.alert(t('common.comingSoonTitle'), t('common.comingSoonChat'));
     // if (!profile) return;
     // navigation.navigate('LikesTab', {
     //   screen: 'ChatDetail',
@@ -225,11 +227,11 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
           >
             <ArrowLeft size={24} color={COLORS.gray900} />
           </TouchableOpacity>
-          <Text style={styles.headerUsername}>Not Found</Text>
+          <Text style={styles.headerUsername}>{t('userDetail.headerNotFound')}</Text>
           <View style={styles.headerSpacer} />
         </View>
         <View style={styles.loadingContainer}>
-          <Text style={styles.emptyText}>找不到此用戶</Text>
+          <Text style={styles.emptyText}>{t('userDetail.userNotFound')}</Text>
         </View>
       </View>
     );
@@ -307,11 +309,11 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
           {/* Mutual Info */}
           <View style={styles.mutualRow}>
             <Text style={styles.mutualText}>
-              共同朋友 {mutualFriends} 位
+              {t('userDetail.mutualFriendsPrefix')}{mutualFriends}{t('userDetail.mutualFriendsSuffix')}
             </Text>
-            <Text style={styles.mutualDot}>{'  '}|{'  '}</Text>
+            <Text style={styles.mutualDot}>{t('userDetail.mutualSeparator')}</Text>
             <Text style={styles.mutualText}>
-              共同標籤 {mutualTags} 個
+              {t('userDetail.mutualTagsPrefix')}{mutualTags}{t('userDetail.mutualTagsSuffix')}
             </Text>
           </View>
         </View>
@@ -338,7 +340,7 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
                     : styles.followButtonTextDefault,
                 ]}
               >
-                {isFollowing ? '已追蹤' : '追蹤'}
+                {isFollowing ? t('userDetail.following') : t('userDetail.follow')}
               </Text>
             )}
           </TouchableOpacity>
@@ -349,14 +351,14 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
             activeOpacity={0.8}
           >
             <MessageCircle size={20} color={COLORS.piktag500} />
-            <Text style={styles.messageButtonText}>傳訊息</Text>
+            <Text style={styles.messageButtonText}>{t('userDetail.sendMessage')}</Text>
           </TouchableOpacity>
         </View>
 
         {/* Biolinks Section */}
         {biolinks.length > 0 && (
           <View style={styles.biolinksSection}>
-            <Text style={styles.sectionTitle}>社交連結</Text>
+            <Text style={styles.sectionTitle}>{t('userDetail.socialLinksTitle')}</Text>
             {biolinks.map((link) => (
               <TouchableOpacity
                 key={link.id}
@@ -380,7 +382,7 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
         {/* All Tags Section */}
         {tags.length > 0 && (
           <View style={styles.allTagsSection}>
-            <Text style={styles.sectionTitle}>所有標籤</Text>
+            <Text style={styles.sectionTitle}>{t('userDetail.allTagsTitle')}</Text>
             <View style={styles.allTagsGrid}>
               {tags.map((tag, index) => (
                 <View key={index} style={styles.allTagChip}>

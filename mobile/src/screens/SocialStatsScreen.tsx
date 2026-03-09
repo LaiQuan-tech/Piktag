@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 import {
   ArrowLeft,
   Users,
@@ -47,6 +48,7 @@ type StatsData = {
 type TimeRange = 'week' | 'month' | 'all';
 
 export default function SocialStatsScreen({ navigation }: SocialStatsScreenProps) {
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
@@ -263,7 +265,7 @@ export default function SocialStatsScreen({ navigation }: SocialStatsScreenProps
         >
           <ArrowLeft size={24} color={COLORS.gray900} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>社交統計報表</Text>
+        <Text style={styles.headerTitle}>{t('socialStats.headerTitle')}</Text>
         <View style={{ width: 32 }} />
       </View>
 
@@ -294,7 +296,7 @@ export default function SocialStatsScreen({ navigation }: SocialStatsScreenProps
                     timeRange === range && styles.timeRangeTextActive,
                   ]}
                 >
-                  {range === 'week' ? '本週' : range === 'month' ? '本月' : '全部'}
+                  {range === 'week' ? t('socialStats.timeRangeWeek') : range === 'month' ? t('socialStats.timeRangeMonth') : t('socialStats.timeRangeAll')}
                 </Text>
               </TouchableOpacity>
             ))}
@@ -304,40 +306,40 @@ export default function SocialStatsScreen({ navigation }: SocialStatsScreenProps
           <View style={styles.statsGrid}>
             <StatCard
               icon={<Users size={20} color="#3b82f6" />}
-              label="總人脈"
+              label={t('socialStats.totalConnections')}
               value={stats.totalConnections}
-              subValue={`本月 +${stats.connectionsThisMonth}`}
+              subValue={t('socialStats.totalConnectionsSub', { count: stats.connectionsThisMonth })}
               bgColor="#eff6ff"
             />
             <StatCard
               icon={<Tag size={20} color="#f5c518" />}
-              label="使用標籤數"
+              label={t('socialStats.totalTags')}
               value={stats.totalTags}
-              subValue={`平均 ${stats.averageTagsPerConnection}/人`}
+              subValue={t('socialStats.totalTagsSub', { avg: stats.averageTagsPerConnection })}
               bgColor="#fef9e8"
             />
             <StatCard
               icon={<MessageCircle size={20} color="#22c55e" />}
-              label="發送訊息"
+              label={t('socialStats.totalMessages')}
               value={stats.totalMessages}
-              subValue={`本週 +${stats.messagesThisWeek}`}
+              subValue={t('socialStats.totalMessagesSub', { count: stats.messagesThisWeek })}
               bgColor="#f0fdf4"
             />
             <StatCard
               icon={<TrendingUp size={20} color="#ec4899" />}
-              label="連結點擊"
+              label={t('socialStats.biolinksClicks')}
               value={stats.biolinksClicks}
               bgColor="#fdf2f8"
             />
             <StatCard
               icon={<Star size={20} color="#f97316" />}
-              label="認證好友"
+              label={t('socialStats.verifiedFriends')}
               value={stats.verifiedFriends}
               bgColor="#fff7ed"
             />
             <StatCard
               icon={<BarChart3 size={20} color="#a855f7" />}
-              label="便利貼"
+              label={t('socialStats.totalNotes')}
               value={stats.totalNotes}
               bgColor="#f5f3ff"
             />
@@ -346,7 +348,7 @@ export default function SocialStatsScreen({ navigation }: SocialStatsScreenProps
           {/* Top Tags */}
           {stats.topTags.length > 0 && (
             <View style={styles.topTagsSection}>
-              <Text style={styles.sectionTitle}>最常用標籤 Top 5</Text>
+              <Text style={styles.sectionTitle}>{t('socialStats.topTagsTitle')}</Text>
               {stats.topTags.map((tag, index) => (
                 <View key={tag.name} style={styles.topTagRow}>
                   <View style={styles.topTagRank}>
@@ -375,10 +377,10 @@ export default function SocialStatsScreen({ navigation }: SocialStatsScreenProps
 
           {/* Timeline */}
           <View style={styles.timelineSection}>
-            <Text style={styles.sectionTitle}>人脈時間軸</Text>
+            <Text style={styles.sectionTitle}>{t('socialStats.timelineTitle')}</Text>
             <View style={styles.timelineRow}>
               <Calendar size={16} color={COLORS.gray500} />
-              <Text style={styles.timelineLabel}>最早人脈</Text>
+              <Text style={styles.timelineLabel}>{t('socialStats.oldestConnection')}</Text>
               <Text style={styles.timelineValue}>
                 {formatDate(stats.oldestConnection)}
               </Text>
@@ -386,7 +388,7 @@ export default function SocialStatsScreen({ navigation }: SocialStatsScreenProps
             <View style={styles.timelineDivider} />
             <View style={styles.timelineRow}>
               <Calendar size={16} color={COLORS.piktag600} />
-              <Text style={styles.timelineLabel}>最新人脈</Text>
+              <Text style={styles.timelineLabel}>{t('socialStats.newestConnection')}</Text>
               <Text style={styles.timelineValue}>
                 {formatDate(stats.newestConnection)}
               </Text>
@@ -395,12 +397,11 @@ export default function SocialStatsScreen({ navigation }: SocialStatsScreenProps
 
           {/* Weekly summary */}
           <View style={styles.summaryCard}>
-            <Text style={styles.summaryTitle}>本週摘要</Text>
+            <Text style={styles.summaryTitle}>{t('socialStats.weeklySummaryTitle')}</Text>
             <Text style={styles.summaryText}>
-              本週新增了 {stats.connectionsThisWeek} 位人脈，
-              發送了 {stats.messagesThisWeek} 則訊息。
+              {t('socialStats.weeklySummaryText', { connections: stats.connectionsThisWeek, messages: stats.messagesThisWeek })}
               {stats.biolinksClicks > 0
-                ? `你的社群連結被點擊了 ${stats.biolinksClicks} 次！`
+                ? t('socialStats.weeklySummaryClicks', { clicks: stats.biolinksClicks })
                 : ''}
             </Text>
           </View>
