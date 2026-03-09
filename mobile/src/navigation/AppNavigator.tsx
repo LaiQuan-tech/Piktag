@@ -92,7 +92,6 @@ function AddTagStackNavigator() {
   return (
     <AddTagStack.Navigator screenOptions={{ headerShown: false }}>
       <AddTagStack.Screen name="AddTagMain" component={AddTagScreen} />
-      <AddTagStack.Screen name="ScanResult" component={ScanResultScreen} />
     </AddTagStack.Navigator>
   );
 }
@@ -218,7 +217,11 @@ function MainNavigator({ needsOnboarding }: { needsOnboarding: boolean }) {
       ) : null}
       <RootStack.Screen name="Main" component={MainTabs} />
       {/* AddTagModal removed — # is now a regular tab, not a modal */}
-      {/* ScanResult moved into AddTagStackNavigator */}
+      <RootStack.Screen
+        name="ScanResult"
+        component={ScanResultScreen}
+        options={{ presentation: 'modal' }}
+      />
     </RootStack.Navigator>
   );
 }
