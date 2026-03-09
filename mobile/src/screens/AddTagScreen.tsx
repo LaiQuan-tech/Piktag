@@ -23,27 +23,8 @@ import type { TagPreset, ScanSession, PiktagProfile } from '../types';
 
 // ─── Popular Tags Constants ───
 const POPULAR_TAGS = {
-  soft: {
-    zodiac: [
-      '#牡羊座', '#金牛座', '#雙子座', '#巨蟹座', '#獅子座', '#處女座',
-      '#天秤座', '#天蠍座', '#射手座', '#摩羯座', '#水瓶座', '#雙魚座',
-    ],
-    interests: [
-      '#攝影', '#旅行', '#美食', '#健身', '#音樂', '#電影',
-      '#閱讀', '#咖啡', '#寵物', '#遊戲', '#瑜伽', '#露營',
-    ],
-    mbti: [
-      '#INTJ', '#INFP', '#ENFP', '#ENTJ', '#INTP', '#ENFJ',
-      '#ISFJ', '#ISTP',
-    ],
-  },
-  hard: {
-    career: [
-      '#工程師', '#設計師', '#行銷', '#業務', '#創業', '#PM',
-      '#金融', '#醫療', '#教育', '#法律', '#自媒體', '#電商',
-      '#AI', '#區塊鏈',
-    ],
-  },
+  soft: ['#攝影', '#旅行', '#美食', '#健身', '#音樂'],
+  hard: ['#工程師', '#設計師', '#行銷', '#創業', '#PM'],
 };
 
 type AddTagScreenProps = {
@@ -425,60 +406,8 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
         {/* 熱門標籤 Section */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>{t('addTag.softTagsTitle')}</Text>
-
-          <Text style={styles.subSectionTitle}>{t('addTag.zodiacSubtitle')}</Text>
           <View style={styles.popularChipsContainer}>
-            {POPULAR_TAGS.soft.zodiac.map((tag) => {
-              const isSelected = eventTags.includes(tag);
-              return (
-                <TouchableOpacity
-                  key={tag}
-                  style={[styles.popularChip, isSelected && styles.popularChipSelected]}
-                  onPress={() => {
-                    if (!isSelected) {
-                      setEventTags((prev) => [...prev, tag]);
-                    } else {
-                      setEventTags((prev) => prev.filter((t) => t !== tag));
-                    }
-                  }}
-                  activeOpacity={0.7}
-                >
-                  <Text style={[styles.popularChipText, isSelected && styles.popularChipTextSelected]}>
-                    {tag}{isSelected ? ' ✓' : ''}
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
-
-          <Text style={styles.subSectionTitle}>{t('addTag.interestsSubtitle')}</Text>
-          <View style={styles.popularChipsContainer}>
-            {POPULAR_TAGS.soft.interests.map((tag) => {
-              const isSelected = eventTags.includes(tag);
-              return (
-                <TouchableOpacity
-                  key={tag}
-                  style={[styles.popularChip, isSelected && styles.popularChipSelected]}
-                  onPress={() => {
-                    if (!isSelected) {
-                      setEventTags((prev) => [...prev, tag]);
-                    } else {
-                      setEventTags((prev) => prev.filter((t) => t !== tag));
-                    }
-                  }}
-                  activeOpacity={0.7}
-                >
-                  <Text style={[styles.popularChipText, isSelected && styles.popularChipTextSelected]}>
-                    {tag}{isSelected ? ' ✓' : ''}
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
-
-          <Text style={styles.subSectionTitle}>{t('addTag.mbtiSubtitle')}</Text>
-          <View style={styles.popularChipsContainer}>
-            {POPULAR_TAGS.soft.mbti.map((tag) => {
+            {POPULAR_TAGS.soft.map((tag) => {
               const isSelected = eventTags.includes(tag);
               return (
                 <TouchableOpacity
@@ -504,10 +433,8 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>{t('addTag.hardTagsTitle')}</Text>
-
-          <Text style={styles.subSectionTitle}>{t('addTag.careerSubtitle')}</Text>
           <View style={styles.popularChipsContainer}>
-            {POPULAR_TAGS.hard.career.map((tag) => {
+            {POPULAR_TAGS.hard.map((tag) => {
               const isSelected = eventTags.includes(tag);
               return (
                 <TouchableOpacity
@@ -908,15 +835,6 @@ const styles = StyleSheet.create({
   },
   chipRemoveBtn: {
     padding: 2,
-  },
-
-  // ── Sub-section title ──
-  subSectionTitle: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: COLORS.gray500,
-    marginBottom: 10,
-    marginTop: 4,
   },
 
   // ── Popular tags ──
