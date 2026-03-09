@@ -29,7 +29,7 @@ type OnboardingScreenProps = {
   navigation: any;
 };
 
-const SUPABASE_URL = 'https://kbwfdskulxnhjckdvghj.supabase.co';
+const SUPABASE_URL = 'https://utlhlkhlzirfjmvcrerm.supabase.co';
 
 type SocialLinkKey = 'facebook' | 'instagram' | 'linkedin';
 
