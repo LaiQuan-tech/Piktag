@@ -182,15 +182,35 @@ export default function ScanResultScreen({ navigation, route }: ScanResultScreen
         }
       }
 
+      // Check if connection already exists
+      const { data: existingConnection } = await supabase
+        .from('piktag_connections')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('connected_user_id', hostUserId)
+        .maybeSingle();
+
+      if (existingConnection) {
+        Alert.alert(
+          t('scanResult.alreadyConnectedTitle', { defaultValue: 'Already Connected' }),
+          t('scanResult.alreadyConnectedMessage', {
+            name: hostName,
+            defaultValue: `You are already connected with ${hostName}.`,
+          }),
+        );
+        setSubmitting(false);
+        return;
+      }
+
       // Insert connection
       const { data: connectionData, error: connectionError } = await supabase
         .from('piktag_connections')
         .insert({
           user_id: user.id,
-          friend_id: hostUserId,
-          met_date: eventDate,
+          connected_user_id: hostUserId,
+          met_at: new Date().toISOString(),
           met_location: eventLocation,
-          scan_session_id: sessionId,
+          note: eventDate + (eventLocation ? ' · ' + eventLocation : ''),
         })
         .select('id')
         .single();
@@ -218,22 +238,12 @@ export default function ScanResultScreen({ navigation, route }: ScanResultScreen
         }
       }
 
-      // Update scan session scan_count
-      await supabase.rpc('increment_scan_count', { session_id: sessionId }).catch(async () => {
-        // Fallback: manual increment
-        const { data: sessionData } = await supabase
-          .from('piktag_scan_sessions')
-          .select('scan_count')
-          .eq('id', sessionId)
-          .single();
-
-        if (sessionData) {
-          await supabase
-            .from('piktag_scan_sessions')
-            .update({ scan_count: (sessionData.scan_count || 0) + 1 })
-            .eq('id', sessionId);
-        }
-      });
+      // Try to increment scan count (may fail due to RLS - that's OK)
+      try {
+        await supabase.rpc('increment_scan_count', { session_id: sessionId });
+      } catch {
+        // Ignore - scanner might not have permission
+      }
 
       Alert.alert(t('scanResult.alertSuccessTitle'), t('scanResult.alertSuccessMessage', { name: hostName }), [
         {

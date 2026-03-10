@@ -36,6 +36,7 @@ import LocationContactsScreen from '../screens/LocationContactsScreen';
 import SocialStatsScreen from '../screens/SocialStatsScreen';
 import NotificationsScreen from '../screens/NotificationsScreen';
 import ScanResultScreen from '../screens/ScanResultScreen';
+import CameraScanScreen from '../screens/CameraScanScreen';
 import ManageTagsScreen from '../screens/ManageTagsScreen';
 
 // Stack Navigators
@@ -92,6 +93,7 @@ function AddTagStackNavigator() {
   return (
     <AddTagStack.Navigator screenOptions={{ headerShown: false }}>
       <AddTagStack.Screen name="AddTagMain" component={AddTagScreen} />
+      <AddTagStack.Screen name="CameraScan" component={CameraScanScreen} />
     </AddTagStack.Navigator>
   );
 }
