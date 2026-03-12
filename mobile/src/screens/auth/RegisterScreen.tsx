@@ -97,14 +97,24 @@ export default function RegisterScreen({ navigation }: RegisterScreenProps) {
             autoCorrect={false}
           />
 
-          <TextInput
-            style={styles.input}
-            placeholder={t('auth.register.passwordPlaceholder')}
-            placeholderTextColor={COLORS.gray400}
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry
-          />
+          <View>
+            <TextInput
+              style={[
+                styles.input,
+                password.length > 0 && password.length < 6 && styles.inputError,
+              ]}
+              placeholder={t('auth.register.passwordPlaceholder')}
+              placeholderTextColor={COLORS.gray400}
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry
+            />
+            {password.length > 0 && password.length < 6 && (
+              <Text style={styles.errorHint}>
+                {t('auth.register.passwordHint', { defaultValue: '密碼至少需要 6 個字元' })}
+              </Text>
+            )}
+          </View>
 
           <TouchableOpacity
             style={[styles.registerButton, loading && styles.registerButtonDisabled]}
@@ -180,6 +190,15 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: COLORS.gray900,
     backgroundColor: COLORS.white,
+  },
+  inputError: {
+    borderColor: '#EF4444',
+  },
+  errorHint: {
+    fontSize: 13,
+    color: '#EF4444',
+    marginTop: 6,
+    marginLeft: SPACING.xl,
   },
   registerButton: {
     backgroundColor: COLORS.piktag500,
