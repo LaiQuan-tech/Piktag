@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -43,8 +43,6 @@ type ConnectionWithTags = Connection & {
 
 type SortOption = 'newest' | 'oldest' | 'alpha' | 'updated' | 'nearby';
 
-const SORT_OPTION_KEYS: SortOption[] = ['newest', 'oldest', 'alpha', 'updated', 'nearby'];
-
 function haversineDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
   const R = 6371;
   const dLat = ((lat2 - lat1) * Math.PI) / 180;
@@ -58,6 +56,66 @@ function haversineDistance(lat1: number, lon1: number, lat2: number, lon2: numbe
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
+// --- Memoized list item component ---
+type ConnectionItemProps = {
+  item: ConnectionWithTags;
+  isSelected: boolean;
+  selectMode: boolean;
+  onPress: (item: ConnectionWithTags) => void;
+  onLongPress: (item: ConnectionWithTags) => void;
+};
+
+const ConnectionItem = React.memo(({ item, isSelected, selectMode, onPress, onLongPress }: ConnectionItemProps) => {
+  const profile = item.connected_user;
+  const displayName = item.nickname || profile?.full_name || profile?.username || 'Unknown';
+  const username = profile?.username || '';
+  const verified = profile?.is_verified || false;
+  const avatarUri = profile?.avatar_url
+    || `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=f3f4f6&color=6b7280`;
+
+  return (
+    <TouchableOpacity
+      style={[styles.connectionItem, isSelected && styles.connectionItemSelected]}
+      activeOpacity={0.7}
+      onPress={() => onPress(item)}
+      onLongPress={() => onLongPress(item)}
+    >
+      {selectMode && (
+        <View style={styles.checkboxContainer}>
+          {isSelected ? (
+            <CheckSquare size={22} color={COLORS.piktag600} />
+          ) : (
+            <Square size={22} color={COLORS.gray400} />
+          )}
+        </View>
+      )}
+      <Image source={{ uri: avatarUri }} style={styles.avatar} />
+      <View style={styles.textSection}>
+        <Text style={styles.name} numberOfLines={1}>{displayName}</Text>
+        <View style={styles.usernameRow}>
+          <Text style={styles.username}>@{username}</Text>
+          {verified && (
+            <CheckCircle2
+              size={16}
+              color={COLORS.blue500}
+              fill={COLORS.blue500}
+              strokeWidth={0}
+              style={styles.verifiedIcon}
+            />
+          )}
+        </View>
+        {item.tags.length > 0 && (
+          <View style={styles.tagsRow}>
+            {item.tags.map((tag, index) => (
+              <Text key={index} style={styles.tag}>{tag}</Text>
+            ))}
+          </View>
+        )}
+      </View>
+    </TouchableOpacity>
+  );
+});
+
 type ConnectionsScreenProps = {
   navigation: any;
 };
@@ -66,13 +124,14 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
   const { t } = useTranslation();
   const { user } = useAuth();
 
-  const SORT_OPTIONS: { key: SortOption; label: string }[] = [
-    { key: 'newest', label: t('connections.sortNewest') },
-    { key: 'oldest', label: t('connections.sortOldest') },
-    { key: 'alpha', label: t('connections.sortAlpha') },
-    { key: 'updated', label: t('connections.sortUpdated') },
-    { key: 'nearby', label: t('connections.sortNearby') },
-  ];
+  const SORT_OPTIONS = useMemo(() => [
+    { key: 'newest' as SortOption, label: t('connections.sortNewest') },
+    { key: 'oldest' as SortOption, label: t('connections.sortOldest') },
+    { key: 'alpha' as SortOption, label: t('connections.sortAlpha') },
+    { key: 'updated' as SortOption, label: t('connections.sortUpdated') },
+    { key: 'nearby' as SortOption, label: t('connections.sortNearby') },
+  ], [t]);
+
   const [connections, setConnections] = useState<ConnectionWithTags[]>([]);
   const [loading, setLoading] = useState(true);
   const [sortBy, setSortBy] = useState<SortOption>('newest');
@@ -82,11 +141,11 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
   const [recommendation, setRecommendation] = useState<any>(null);
   const [recDismissed, setRecDismissed] = useState(false);
 
-  // On this day
+  // On this day (derived from connections data)
   const [onThisDay, setOnThisDay] = useState<any[]>([]);
   const [onThisDayDismissed, setOnThisDayDismissed] = useState(false);
 
-  // CRM reminders
+  // CRM reminders (derived from connections data)
   const [crmReminders, setCrmReminders] = useState<any[]>([]);
   const [remindersDismissed, setRemindersDismissed] = useState(false);
 
@@ -100,64 +159,82 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
   // Location state
   const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null);
 
+  // --- Optimized: single nested-select query for connections + tags ---
   const fetchConnections = useCallback(async () => {
     if (!user) return;
 
     try {
-      setLoading(true);
-
+      // Single query: connections + profiles + tags (nested select)
       const { data: connectionsData, error: connectionsError } = await supabase
         .from('piktag_connections')
-        .select('*, connected_user:piktag_profiles!connected_user_id(*)')
+        .select(`
+          *,
+          connected_user:piktag_profiles!connected_user_id(*),
+          connection_tags:piktag_connection_tags(*, tag:piktag_tags!tag_id(*))
+        `)
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
       if (connectionsError) {
         console.error('Error fetching connections:', connectionsError);
         setConnections([]);
+        setOnThisDay([]);
+        setCrmReminders([]);
         return;
       }
 
       if (!connectionsData || connectionsData.length === 0) {
         setConnections([]);
+        setOnThisDay([]);
+        setCrmReminders([]);
         return;
       }
 
-      const connectionIds = connectionsData.map((c: Connection) => c.id);
-      const { data: tagsData, error: tagsError } = await supabase
-        .from('piktag_connection_tags')
-        .select('*, tag:piktag_tags!tag_id(*)')
-        .in('connection_id', connectionIds);
+      // Merge tags from nested select
+      const merged: ConnectionWithTags[] = connectionsData.map((conn: any) => ({
+        ...conn,
+        tags: (conn.connection_tags || [])
+          .map((ct: any) => ct.tag?.name ? `#${ct.tag.name}` : '')
+          .filter(Boolean),
+      }));
+      setConnections(merged);
 
-      if (tagsError) {
-        console.error('Error fetching connection tags:', tagsError);
-      }
+      // --- Derive "On This Day" from already-fetched data (no extra query) ---
+      const today = new Date();
+      const month = today.getMonth() + 1;
+      const day = today.getDate();
 
-      const tagsByConnection: Record<string, string[]> = {};
-      if (tagsData) {
-        for (const ct of tagsData as ConnectionTag[]) {
-          if (!tagsByConnection[ct.connection_id]) {
-            tagsByConnection[ct.connection_id] = [];
-          }
-          if (ct.tag?.name) {
-            tagsByConnection[ct.connection_id].push(`#${ct.tag.name}`);
-          }
+      const onThisDayMatches = connectionsData.filter((c: any) => {
+        if (!c.met_at) return false;
+        const metDate = new Date(c.met_at);
+        return metDate.getMonth() + 1 === month &&
+               metDate.getDate() === day &&
+               metDate.getFullYear() !== today.getFullYear();
+      });
+      setOnThisDay(onThisDayMatches);
+
+      // --- Derive CRM reminders from already-fetched data (no extra query) ---
+      const mmdd = `${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+      const reminderResults: any[] = [];
+      for (const c of connectionsData) {
+        if (c.birthday && c.birthday.slice(5) === mmdd) {
+          reminderResults.push({ ...c, reminderType: 'birthday', reminderLabel: t('connections.reminderBirthday') });
+        }
+        if (c.anniversary && c.anniversary.slice(5) === mmdd) {
+          reminderResults.push({ ...c, reminderType: 'anniversary', reminderLabel: t('connections.reminderAnniversary') });
+        }
+        if (c.contract_expiry && c.contract_expiry.slice(5) === mmdd) {
+          reminderResults.push({ ...c, reminderType: 'contract_expiry', reminderLabel: t('connections.reminderContractExpiry') });
         }
       }
-
-      const merged: ConnectionWithTags[] = connectionsData.map((conn: Connection) => ({
-        ...conn,
-        tags: tagsByConnection[conn.id] || [],
-      }));
-
-      setConnections(merged);
+      setCrmReminders(reminderResults);
     } catch (err) {
       console.error('Unexpected error fetching connections:', err);
       setConnections([]);
-    } finally {
-      setLoading(false);
+      setOnThisDay([]);
+      setCrmReminders([]);
     }
-  }, [user]);
+  }, [user, t]);
 
   const fetchRecommendation = useCallback(async () => {
     if (!user) return;
@@ -174,105 +251,46 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
     }
   }, [user]);
 
-  const fetchOnThisDay = useCallback(async () => {
-    if (!user) return;
-    try {
-      const today = new Date();
-      const month = today.getMonth() + 1;
-      const day = today.getDate();
-      // Query connections whose met_at has same month/day but different year
-      const { data } = await supabase
-        .from('piktag_connections')
-        .select('*, connected_user:piktag_profiles!connected_user_id(*)')
-        .eq('user_id', user.id)
-        .not('met_at', 'is', null);
-
-      if (data) {
-        const matches = data.filter((c: any) => {
-          if (!c.met_at) return false;
-          const metDate = new Date(c.met_at);
-          return metDate.getMonth() + 1 === month &&
-                 metDate.getDate() === day &&
-                 metDate.getFullYear() !== today.getFullYear();
-        });
-        setOnThisDay(matches);
-      }
-    } catch (err) {
-      console.warn('Failed to fetch On This Day:', err);
-    }
-  }, [user]);
-
-  const fetchCrmReminders = useCallback(async () => {
-    if (!user) return;
-    try {
-      const today = new Date();
-      const month = String(today.getMonth() + 1).padStart(2, '0');
-      const day = String(today.getDate()).padStart(2, '0');
-      const mmdd = `${month}-${day}`;
-
-      // Find connections with birthday/anniversary/contract_expiry matching today's MM-DD
-      const { data } = await supabase
-        .from('piktag_connections')
-        .select('*, connected_user:piktag_profiles!connected_user_id(*)')
-        .eq('user_id', user.id);
-
-      if (data) {
-        const reminders: any[] = [];
-        for (const c of data) {
-          if (c.birthday && c.birthday.slice(5) === mmdd) {
-            reminders.push({ ...c, reminderType: 'birthday', reminderLabel: t('connections.reminderBirthday') });
-          }
-          if (c.anniversary && c.anniversary.slice(5) === mmdd) {
-            reminders.push({ ...c, reminderType: 'anniversary', reminderLabel: t('connections.reminderAnniversary') });
-          }
-          if (c.contract_expiry && c.contract_expiry.slice(5) === mmdd) {
-            reminders.push({ ...c, reminderType: 'contract_expiry', reminderLabel: t('connections.reminderContractExpiry') });
-          }
-        }
-        setCrmReminders(reminders);
-      }
-    } catch (err) {
-      console.warn('Failed to fetch CRM reminders:', err);
-    }
-  }, [user]);
-
+  // --- Optimized: Promise.all for parallel execution, unified loading ---
   useFocusEffect(
     useCallback(() => {
-      fetchConnections();
-      fetchRecommendation();
-      fetchOnThisDay();
-      fetchCrmReminders();
-    }, [fetchConnections, fetchRecommendation, fetchOnThisDay, fetchCrmReminders])
+      const loadAll = async () => {
+        if (!user) return;
+        setLoading(true);
+        try {
+          await Promise.all([
+            fetchConnections(),
+            fetchRecommendation(),
+          ]);
+        } finally {
+          setLoading(false);
+        }
+      };
+      loadAll();
+    }, [user, fetchConnections, fetchRecommendation])
   );
 
-  const getSortedConnections = useCallback(() => {
+  // --- Optimized: useMemo for sorted connections ---
+  const sortedConnections = useMemo(() => {
     const sorted = [...connections];
     switch (sortBy) {
       case 'newest':
         sorted.sort(
-          (a, b) =>
-            new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+          (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
         );
         break;
       case 'oldest':
         sorted.sort(
-          (a, b) =>
-            new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+          (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
         );
         break;
       case 'alpha':
         sorted.sort((a, b) => {
           const nameA = (
-            a.nickname ||
-            a.connected_user?.full_name ||
-            a.connected_user?.username ||
-            ''
+            a.nickname || a.connected_user?.full_name || a.connected_user?.username || ''
           ).toLowerCase();
           const nameB = (
-            b.nickname ||
-            b.connected_user?.full_name ||
-            b.connected_user?.username ||
-            ''
+            b.nickname || b.connected_user?.full_name || b.connected_user?.username || ''
           ).toLowerCase();
           return nameA.localeCompare(nameB, 'zh-Hant');
         });
@@ -307,44 +325,41 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
     return sorted;
   }, [connections, sortBy, userLocation]);
 
-  const handleConnectionPress = (item: ConnectionWithTags) => {
+  // --- Optimized: useCallback for handlers ---
+  const handleConnectionPress = useCallback((item: ConnectionWithTags) => {
     if (selectMode) {
-      toggleSelection(item.id);
+      setSelectedIds((prev) => {
+        const next = new Set(prev);
+        if (next.has(item.id)) {
+          next.delete(item.id);
+        } else {
+          next.add(item.id);
+        }
+        return next;
+      });
     } else {
       navigation.navigate('FriendDetail', {
         connectionId: item.id,
         friendId: item.connected_user_id,
       });
     }
-  };
+  }, [selectMode, navigation]);
 
-  const handleConnectionLongPress = (item: ConnectionWithTags) => {
+  const handleConnectionLongPress = useCallback((item: ConnectionWithTags) => {
     if (!selectMode) {
       setSelectMode(true);
       setSelectedIds(new Set([item.id]));
     }
-  };
+  }, [selectMode]);
 
-  const toggleSelection = (id: string) => {
-    setSelectedIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) {
-        next.delete(id);
-      } else {
-        next.add(id);
-      }
-      return next;
-    });
-  };
-
-  const exitSelectMode = () => {
+  const exitSelectMode = useCallback(() => {
     setSelectMode(false);
     setSelectedIds(new Set());
-  };
+  }, []);
 
-  const selectAll = () => {
+  const selectAll = useCallback(() => {
     setSelectedIds(new Set(connections.map((c) => c.id)));
-  };
+  }, [connections]);
 
   const handleBatchTagSubmit = async () => {
     const tagName = batchTagInput.trim().replace(/^#/, '');
@@ -352,7 +367,6 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
 
     setBatchTagLoading(true);
     try {
-      // Find or create the tag
       let tagId: string;
       const { data: existingTag } = await supabase
         .from('piktag_tags')
@@ -375,7 +389,6 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
         tagId = newTag.id;
       }
 
-      // Insert connection_tags for all selected connections (skip duplicates)
       const rows = Array.from(selectedIds).map((connectionId) => ({
         connection_id: connectionId,
         tag_id: tagId,
@@ -407,7 +420,6 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
         if (status === 'granted') {
           const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
           setUserLocation({ latitude: loc.coords.latitude, longitude: loc.coords.longitude });
-          // Also update own profile with location
           if (user) {
             supabase
               .from('piktag_profiles')
@@ -428,201 +440,174 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
     setSortModalVisible(false);
   };
 
-  const renderItem = ({ item }: { item: ConnectionWithTags }) => {
-    const profile = item.connected_user;
-    const displayName = item.nickname || profile?.full_name || profile?.username || 'Unknown';
-    const username = profile?.username || '';
-    const verified = profile?.is_verified || false;
-    const avatarUri = profile?.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=f3f4f6&color=6b7280`;
-    const isSelected = selectedIds.has(item.id);
+  // --- Optimized: useCallback renderItem with memoized ConnectionItem ---
+  const renderItem = useCallback(({ item }: { item: ConnectionWithTags }) => (
+    <ConnectionItem
+      item={item}
+      isSelected={selectedIds.has(item.id)}
+      selectMode={selectMode}
+      onPress={handleConnectionPress}
+      onLongPress={handleConnectionLongPress}
+    />
+  ), [selectedIds, selectMode, handleConnectionPress, handleConnectionLongPress]);
 
-    return (
-      <TouchableOpacity
-        style={[styles.connectionItem, isSelected && styles.connectionItemSelected]}
-        activeOpacity={0.7}
-        onPress={() => handleConnectionPress(item)}
-        onLongPress={() => handleConnectionLongPress(item)}
-      >
-        {selectMode && (
-          <View style={styles.checkboxContainer}>
-            {isSelected ? (
-              <CheckSquare size={22} color={COLORS.piktag600} />
-            ) : (
-              <Square size={22} color={COLORS.gray400} />
-            )}
-          </View>
-        )}
-        <Image source={{ uri: avatarUri }} style={styles.avatar} />
-        <View style={styles.textSection}>
-          <Text style={styles.name} numberOfLines={1}>
-            {displayName}
-          </Text>
-          <View style={styles.usernameRow}>
-            <Text style={styles.username}>@{username}</Text>
-            {verified && (
-              <CheckCircle2
-                size={16}
-                color={COLORS.blue500}
-                fill={COLORS.blue500}
-                strokeWidth={0}
-                style={styles.verifiedIcon}
-              />
-            )}
-          </View>
-          {item.tags.length > 0 && (
-            <View style={styles.tagsRow}>
-              {item.tags.map((tag, index) => (
-                <Text key={index} style={styles.tag}>
-                  {tag}
-                </Text>
-              ))}
-            </View>
-          )}
-        </View>
-      </TouchableOpacity>
-    );
-  };
-
-  const renderEmpty = () => {
+  const renderEmpty = useCallback(() => {
     if (loading) return null;
     return (
       <View style={styles.emptyContainer}>
-        <Text style={styles.emptyText}>
-          {t('connections.emptyText')}
-        </Text>
+        <Text style={styles.emptyText}>{t('connections.emptyText')}</Text>
       </View>
     );
-  };
+  }, [loading, t]);
 
-  const sortedConnections = getSortedConnections();
+  // --- Optimized: stable keyExtractor ---
+  const keyExtractor = useCallback((item: ConnectionWithTags) => item.id, []);
 
-  const renderOnThisDay = () => {
-    if (onThisDay.length === 0 || onThisDayDismissed || selectMode) return null;
-    return (
-      <View style={styles.onThisDayCard}>
-        <View style={styles.recHeader}>
-          <View style={styles.recHeaderLeft}>
-            <CalendarHeart size={16} color="#a855f7" />
-            <Text style={[styles.recHeaderText, { color: '#a855f7' }]}>{t('connections.onThisDayTitle')}</Text>
-          </View>
-          <TouchableOpacity onPress={() => setOnThisDayDismissed(true)} activeOpacity={0.6}>
-            <X size={18} color={COLORS.gray400} />
-          </TouchableOpacity>
-        </View>
-        {onThisDay.map((conn) => {
-          const profile = conn.connected_user;
-          const name = conn.nickname || profile?.full_name || profile?.username || 'Unknown';
-          const avatarUri = profile?.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=f3f4f6&color=6b7280`;
-          const metYear = conn.met_at ? new Date(conn.met_at).getFullYear() : '';
-          const yearsAgo = metYear ? new Date().getFullYear() - metYear : 0;
-          return (
-            <TouchableOpacity
-              key={conn.id}
-              style={styles.recBody}
-              activeOpacity={0.7}
-              onPress={() => navigation.navigate('FriendDetail', { connectionId: conn.id, friendId: conn.connected_user_id })}
-            >
-              <Image source={{ uri: avatarUri }} style={styles.recAvatar} />
-              <View style={styles.recInfo}>
-                <Text style={styles.recName} numberOfLines={1}>{name}</Text>
-                <Text style={styles.recUsername}>
-                  {yearsAgo > 0 ? t('connections.yearsAgoMet', { yearsAgo }) : t('connections.todayMet')}
-                </Text>
-              </View>
+  // --- Optimized: stable ListHeaderComponent via useMemo ---
+  const listHeader = useMemo(() => {
+    const renderOnThisDay = () => {
+      if (onThisDay.length === 0 || onThisDayDismissed || selectMode) return null;
+      return (
+        <View style={styles.onThisDayCard}>
+          <View style={styles.recHeader}>
+            <View style={styles.recHeaderLeft}>
+              <CalendarHeart size={16} color="#a855f7" />
+              <Text style={[styles.recHeaderText, { color: '#a855f7' }]}>{t('connections.onThisDayTitle')}</Text>
+            </View>
+            <TouchableOpacity onPress={() => setOnThisDayDismissed(true)} activeOpacity={0.6}>
+              <X size={18} color={COLORS.gray400} />
             </TouchableOpacity>
-          );
-        })}
-      </View>
-    );
-  };
-
-  const renderCrmReminders = () => {
-    if (crmReminders.length === 0 || remindersDismissed || selectMode) return null;
-    const getIcon = (type: string) => {
-      if (type === 'birthday') return <Gift size={16} color="#ec4899" />;
-      if (type === 'anniversary') return <Heart size={16} color="#ef4444" />;
-      return <Clock size={16} color="#f97316" />;
-    };
-    return (
-      <View style={styles.reminderCard}>
-        <View style={styles.recHeader}>
-          <View style={styles.recHeaderLeft}>
-            <Gift size={16} color="#ec4899" />
-            <Text style={[styles.recHeaderText, { color: '#ec4899' }]}>{t('connections.todayReminderTitle')}</Text>
           </View>
-          <TouchableOpacity onPress={() => setRemindersDismissed(true)} activeOpacity={0.6}>
-            <X size={18} color={COLORS.gray400} />
-          </TouchableOpacity>
-        </View>
-        {crmReminders.map((conn, idx) => {
-          const profile = conn.connected_user;
-          const name = conn.nickname || profile?.full_name || profile?.username || 'Unknown';
-          const avatarUri = profile?.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=f3f4f6&color=6b7280`;
-          return (
-            <TouchableOpacity
-              key={`${conn.id}-${conn.reminderType}`}
-              style={styles.recBody}
-              activeOpacity={0.7}
-              onPress={() => navigation.navigate('FriendDetail', { connectionId: conn.id, friendId: conn.connected_user_id })}
-            >
-              <Image source={{ uri: avatarUri }} style={styles.recAvatar} />
-              <View style={styles.recInfo}>
-                <Text style={styles.recName} numberOfLines={1}>{name}</Text>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 2 }}>
-                  {getIcon(conn.reminderType)}
-                  <Text style={styles.recUsername}>{conn.reminderLabel}</Text>
+          {onThisDay.map((conn) => {
+            const profile = conn.connected_user;
+            const name = conn.nickname || profile?.full_name || profile?.username || 'Unknown';
+            const avatarUri = profile?.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=f3f4f6&color=6b7280`;
+            const metYear = conn.met_at ? new Date(conn.met_at).getFullYear() : '';
+            const yearsAgo = metYear ? new Date().getFullYear() - (metYear as number) : 0;
+            return (
+              <TouchableOpacity
+                key={conn.id}
+                style={styles.recBody}
+                activeOpacity={0.7}
+                onPress={() => navigation.navigate('FriendDetail', { connectionId: conn.id, friendId: conn.connected_user_id })}
+              >
+                <Image source={{ uri: avatarUri }} style={styles.recAvatar} />
+                <View style={styles.recInfo}>
+                  <Text style={styles.recName} numberOfLines={1}>{name}</Text>
+                  <Text style={styles.recUsername}>
+                    {yearsAgo > 0 ? t('connections.yearsAgoMet', { yearsAgo }) : t('connections.todayMet')}
+                  </Text>
                 </View>
-              </View>
-            </TouchableOpacity>
-          );
-        })}
-      </View>
-    );
-  };
-
-  const renderRecommendation = () => {
-    if (!recommendation || recDismissed || selectMode) return null;
-    const avatarUri = recommendation.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(recommendation.full_name || recommendation.username || 'U')}&background=f3f4f6&color=6b7280`;
-    return (
-      <View style={styles.recCard}>
-        <View style={styles.recHeader}>
-          <View style={styles.recHeaderLeft}>
-            <Sparkles size={16} color={COLORS.piktag600} />
-            <Text style={styles.recHeaderText}>{t('connections.dailyRecommendationTitle')}</Text>
-          </View>
-          <TouchableOpacity onPress={() => setRecDismissed(true)} activeOpacity={0.6}>
-            <X size={18} color={COLORS.gray400} />
-          </TouchableOpacity>
+              </TouchableOpacity>
+            );
+          })}
         </View>
-        <TouchableOpacity
-          style={styles.recBody}
-          activeOpacity={0.7}
-          onPress={() => navigation.navigate('UserDetail', { userId: recommendation.user_id })}
-        >
-          <Image source={{ uri: avatarUri }} style={styles.recAvatar} />
-          <View style={styles.recInfo}>
-            <View style={styles.recNameRow}>
-              <Text style={styles.recName} numberOfLines={1}>
-                {recommendation.full_name || recommendation.username}
-              </Text>
-              {recommendation.is_verified && (
-                <CheckCircle2 size={14} color={COLORS.blue500} fill={COLORS.blue500} strokeWidth={0} style={{ marginLeft: 4 }} />
+      );
+    };
+
+    const renderCrmReminders = () => {
+      if (crmReminders.length === 0 || remindersDismissed || selectMode) return null;
+      const getIcon = (type: string) => {
+        if (type === 'birthday') return <Gift size={16} color="#ec4899" />;
+        if (type === 'anniversary') return <Heart size={16} color="#ef4444" />;
+        return <Clock size={16} color="#f97316" />;
+      };
+      return (
+        <View style={styles.reminderCard}>
+          <View style={styles.recHeader}>
+            <View style={styles.recHeaderLeft}>
+              <Gift size={16} color="#ec4899" />
+              <Text style={[styles.recHeaderText, { color: '#ec4899' }]}>{t('connections.todayReminderTitle')}</Text>
+            </View>
+            <TouchableOpacity onPress={() => setRemindersDismissed(true)} activeOpacity={0.6}>
+              <X size={18} color={COLORS.gray400} />
+            </TouchableOpacity>
+          </View>
+          {crmReminders.map((conn, idx) => {
+            const profile = conn.connected_user;
+            const name = conn.nickname || profile?.full_name || profile?.username || 'Unknown';
+            const avatarUri = profile?.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=f3f4f6&color=6b7280`;
+            return (
+              <TouchableOpacity
+                key={`${conn.id}-${conn.reminderType}`}
+                style={styles.recBody}
+                activeOpacity={0.7}
+                onPress={() => navigation.navigate('FriendDetail', { connectionId: conn.id, friendId: conn.connected_user_id })}
+              >
+                <Image source={{ uri: avatarUri }} style={styles.recAvatar} />
+                <View style={styles.recInfo}>
+                  <Text style={styles.recName} numberOfLines={1}>{name}</Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 2 }}>
+                    {getIcon(conn.reminderType)}
+                    <Text style={styles.recUsername}>{conn.reminderLabel}</Text>
+                  </View>
+                </View>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+      );
+    };
+
+    const renderRecommendation = () => {
+      if (!recommendation || recDismissed || selectMode) return null;
+      const avatarUri = recommendation.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(recommendation.full_name || recommendation.username || 'U')}&background=f3f4f6&color=6b7280`;
+      return (
+        <View style={styles.recCard}>
+          <View style={styles.recHeader}>
+            <View style={styles.recHeaderLeft}>
+              <Sparkles size={16} color={COLORS.piktag600} />
+              <Text style={styles.recHeaderText}>{t('connections.dailyRecommendationTitle')}</Text>
+            </View>
+            <TouchableOpacity onPress={() => setRecDismissed(true)} activeOpacity={0.6}>
+              <X size={18} color={COLORS.gray400} />
+            </TouchableOpacity>
+          </View>
+          <TouchableOpacity
+            style={styles.recBody}
+            activeOpacity={0.7}
+            onPress={() => navigation.navigate('UserDetail', { userId: recommendation.user_id })}
+          >
+            <Image source={{ uri: avatarUri }} style={styles.recAvatar} />
+            <View style={styles.recInfo}>
+              <View style={styles.recNameRow}>
+                <Text style={styles.recName} numberOfLines={1}>
+                  {recommendation.full_name || recommendation.username}
+                </Text>
+                {recommendation.is_verified && (
+                  <CheckCircle2 size={14} color={COLORS.blue500} fill={COLORS.blue500} strokeWidth={0} style={{ marginLeft: 4 }} />
+                )}
+              </View>
+              <Text style={styles.recUsername}>@{recommendation.username}</Text>
+              {recommendation.shared_tag_count > 0 && (
+                <Text style={styles.recTagCount}>
+                  {recommendation.shared_tag_count}{t('connections.sharedTagCount')}
+                </Text>
               )}
             </View>
-            <Text style={styles.recUsername}>@{recommendation.username}</Text>
-            {recommendation.shared_tag_count > 0 && (
-              <Text style={styles.recTagCount}>
-                {recommendation.shared_tag_count}{t('connections.sharedTagCount')}
-              </Text>
-            )}
-          </View>
-          <View style={styles.recAction}>
-            <UserPlus size={20} color={COLORS.piktag600} />
-          </View>
-        </TouchableOpacity>
-      </View>
+            <View style={styles.recAction}>
+              <UserPlus size={20} color={COLORS.piktag600} />
+            </View>
+          </TouchableOpacity>
+        </View>
+      );
+    };
+
+    return (
+      <>
+        {renderCrmReminders()}
+        {renderOnThisDay()}
+        {renderRecommendation()}
+      </>
     );
-  };
+  }, [onThisDay, onThisDayDismissed, crmReminders, remindersDismissed, recommendation, recDismissed, selectMode, t, navigation]);
+
+  // --- Optimized: stable contentContainerStyle ---
+  const contentContainerStyle = useMemo(() => [
+    styles.listContent,
+    connections.length === 0 && styles.listContentEmpty,
+    selectMode && { paddingBottom: 160 },
+  ], [connections.length, selectMode]);
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -695,21 +680,15 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
         <FlatList
           data={sortedConnections}
           renderItem={renderItem}
-          keyExtractor={(item) => item.id}
-          contentContainerStyle={[
-            styles.listContent,
-            connections.length === 0 && styles.listContentEmpty,
-            selectMode && { paddingBottom: 160 },
-          ]}
+          keyExtractor={keyExtractor}
+          contentContainerStyle={contentContainerStyle}
           showsVerticalScrollIndicator={false}
-          ListHeaderComponent={() => (
-            <>
-              {renderCrmReminders()}
-              {renderOnThisDay()}
-              {renderRecommendation()}
-            </>
-          )}
+          ListHeaderComponent={listHeader}
           ListEmptyComponent={renderEmpty}
+          initialNumToRender={10}
+          maxToRenderPerBatch={10}
+          windowSize={5}
+          removeClippedSubviews={true}
         />
       )}
 
