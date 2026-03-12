@@ -18,7 +18,9 @@ const linking = {
             screens: {
               Connections: 'connections',
               FriendDetail: 'friend/:id',
-              UserDetail: 'user/:id',
+              UserDetail: {
+                path: 'u/:username',
+              },
             },
           },
           AddTagTab: {

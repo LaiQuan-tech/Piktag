@@ -1,14 +1,15 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import {
   View,
   Text,
   TextInput,
-  ScrollView,
+  FlatList,
   TouchableOpacity,
   StyleSheet,
   StatusBar,
   ActivityIndicator,
   Image,
+  ListRenderItemInfo,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
@@ -77,6 +78,184 @@ const CATEGORY_DEFS: {
   },
 ];
 
+// ── Memoized list item components ──
+
+type ProfileCardProps = {
+  profile: PiktagProfile;
+  onPress: (profile: PiktagProfile) => void;
+  t: (key: string) => string;
+};
+
+const ProfileCard = React.memo(function ProfileCard({ profile, onPress, t }: ProfileCardProps) {
+  const handlePress = useCallback(() => {
+    onPress(profile);
+  }, [onPress, profile]);
+
+  return (
+    <TouchableOpacity
+      style={styles.profileCard}
+      onPress={handlePress}
+      activeOpacity={0.7}
+    >
+      {profile.avatar_url ? (
+        <Image
+          source={{ uri: profile.avatar_url }}
+          style={styles.profileAvatar}
+        />
+      ) : (
+        <View style={styles.profileAvatarPlaceholder}>
+          <User size={20} color={COLORS.gray400} />
+        </View>
+      )}
+      <View style={styles.profileInfo}>
+        <View style={styles.profileNameRow}>
+          <Text style={styles.profileName} numberOfLines={1}>
+            {profile.full_name || profile.username || t('common.unnamed')}
+          </Text>
+          {profile.is_verified && (
+            <CheckCircle2
+              size={16}
+              color={COLORS.blue500}
+              fill={COLORS.blue500}
+              strokeWidth={0}
+              style={verifiedBadgeStyle}
+            />
+          )}
+        </View>
+        {profile.username && (
+          <Text style={styles.profileUsername} numberOfLines={1}>
+            @{profile.username}
+          </Text>
+        )}
+      </View>
+    </TouchableOpacity>
+  );
+});
+
+const verifiedBadgeStyle = { marginLeft: 4 };
+
+type TagCardProps = {
+  tag: Tag;
+  isHighlighted: boolean;
+  onPress: (tag: Tag) => void;
+  countSuffix: string;
+};
+
+const TagCard = React.memo(function TagCard({ tag, isHighlighted, onPress, countSuffix }: TagCardProps) {
+  const handlePress = useCallback(() => {
+    onPress(tag);
+  }, [onPress, tag]);
+
+  return (
+    <TouchableOpacity
+      style={[
+        styles.tagCard,
+        isHighlighted && styles.tagCardHighlighted,
+      ]}
+      activeOpacity={0.7}
+      onPress={handlePress}
+    >
+      <Text
+        style={[
+          styles.tagName,
+          isHighlighted && styles.tagNameHighlighted,
+        ]}
+        numberOfLines={1}
+      >
+        #{tag.name}
+      </Text>
+      <Text
+        style={[
+          styles.tagCount,
+          isHighlighted && styles.tagCountHighlighted,
+        ]}
+      >
+        {tag.usage_count}{countSuffix}
+      </Text>
+    </TouchableOpacity>
+  );
+});
+
+type RecentSearchItemProps = {
+  query: string;
+  onPress: (query: string) => void;
+};
+
+const RecentSearchItem = React.memo(function RecentSearchItem({ query, onPress }: RecentSearchItemProps) {
+  const handlePress = useCallback(() => {
+    onPress(query);
+  }, [onPress, query]);
+
+  return (
+    <TouchableOpacity
+      style={styles.recentSearchItem}
+      onPress={handlePress}
+      activeOpacity={0.7}
+    >
+      <Clock size={16} color={COLORS.gray400} />
+      <Text style={styles.recentSearchText}>{query}</Text>
+    </TouchableOpacity>
+  );
+});
+
+type CategoryButtonProps = {
+  cat: (typeof CATEGORY_DEFS)[number];
+  isActive: boolean;
+  onPress: (key: CategoryKey) => void;
+  label: string;
+};
+
+const CategoryButton = React.memo(function CategoryButton({ cat, isActive, onPress, label }: CategoryButtonProps) {
+  const handlePress = useCallback(() => {
+    onPress(cat.key);
+  }, [onPress, cat.key]);
+
+  const IconComponent = cat.icon;
+  const circleStyle = useMemo(
+    () => [
+      styles.categoryIconCircle,
+      { backgroundColor: cat.bgColor },
+      isActive && styles.categoryIconCircleActive,
+    ],
+    [cat.bgColor, isActive],
+  );
+
+  return (
+    <TouchableOpacity
+      style={styles.categoryItem}
+      activeOpacity={0.7}
+      onPress={handlePress}
+    >
+      <View style={circleStyle}>
+        <IconComponent size={24} color={cat.iconColor} />
+      </View>
+      <Text
+        style={[
+          styles.categoryLabel,
+          isActive && styles.categoryLabelActive,
+        ]}
+      >
+        {label}
+      </Text>
+    </TouchableOpacity>
+  );
+});
+
+// ── Helper: get user location (shared by nearby profiles & nearby tags) ──
+
+async function getUserLocation(): Promise<{ lat: number; lng: number } | null> {
+  try {
+    const { status } = await Location.requestForegroundPermissionsAsync();
+    if (status !== 'granted') return null;
+    const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
+    return { lat: loc.coords.latitude, lng: loc.coords.longitude };
+  } catch {
+    return null;
+  }
+}
+
+// ── Main component ──
+
 type SearchScreenProps = {
   navigation: any;
 };
@@ -95,38 +274,37 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
 
-  // Debounce timer ref
+  // Refs for stable closures
   const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const recentSearchesRef = useRef(recentSearches);
+  recentSearchesRef.current = recentSearches;
 
-  // Load popular tags on mount
-  useEffect(() => {
-    loadPopularTags();
-    loadRecentSearches();
-  }, []);
+  // ── Data loaders (all wrapped in useCallback) ──
 
-  const loadRecentSearches = async () => {
+  const loadRecentSearches = useCallback(async () => {
     try {
       const stored = await AsyncStorage.getItem(RECENT_SEARCHES_KEY);
       if (stored) {
         setRecentSearches(JSON.parse(stored));
       }
     } catch {}
-  };
+  }, []);
 
-  const saveRecentSearch = async (query: string) => {
+  const saveRecentSearch = useCallback(async (query: string) => {
     try {
       const trimmed = query.trim();
       if (!trimmed) return;
-      const updated = [trimmed, ...recentSearches.filter((s) => s !== trimmed)].slice(
+      const current = recentSearchesRef.current;
+      const updated = [trimmed, ...current.filter((s) => s !== trimmed)].slice(
         0,
         MAX_RECENT_SEARCHES,
       );
       setRecentSearches(updated);
       await AsyncStorage.setItem(RECENT_SEARCHES_KEY, JSON.stringify(updated));
     } catch {}
-  };
+  }, []);
 
-  const loadPopularTags = async () => {
+  const loadPopularTags = useCallback(async () => {
     setLoading(true);
     try {
       const { data, error } = await supabase
@@ -142,9 +320,9 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
       setLoading(false);
       setInitialLoading(false);
     }
-  };
+  }, []);
 
-  const loadVerifiedProfiles = async () => {
+  const loadVerifiedProfiles = useCallback(async () => {
     setLoading(true);
     setTags([]);
     try {
@@ -160,31 +338,21 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
     } catch {} finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const loadNearbyProfiles = async () => {
+  const loadNearbyProfiles = useCallback(async () => {
     setLoading(true);
     setTags([]);
     try {
-      // Request GPS permission and get location
-      const { status } = await Location.requestForegroundPermissionsAsync();
-      let userLat: number | null = null;
-      let userLng: number | null = null;
+      const location = await getUserLocation();
 
-      if (status === 'granted') {
-        try {
-          const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
-          userLat = loc.coords.latitude;
-          userLng = loc.coords.longitude;
-          // Update own profile location
-          if (user) {
-            supabase
-              .from('piktag_profiles')
-              .update({ latitude: userLat, longitude: userLng })
-              .eq('id', user.id)
-              .then(() => {});
-          }
-        } catch {}
+      // Fire profile‑location update in background (no await)
+      if (location && user) {
+        supabase
+          .from('piktag_profiles')
+          .update({ latitude: location.lat, longitude: location.lng })
+          .eq('id', user.id)
+          .then(() => {});
       }
 
       // Fetch profiles with lat/lng
@@ -196,14 +364,15 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
         .limit(50);
 
       if (!error && data) {
-        if (userLat != null && userLng != null) {
+        if (location) {
+          const { lat: userLat, lng: userLng } = location;
           // Sort by distance
           const sorted = data.sort((a: PiktagProfile, b: PiktagProfile) => {
             const distA = Math.sqrt(
-              Math.pow((a.latitude || 0) - userLat!, 2) + Math.pow((a.longitude || 0) - userLng!, 2)
+              Math.pow((a.latitude || 0) - userLat, 2) + Math.pow((a.longitude || 0) - userLng, 2)
             );
             const distB = Math.sqrt(
-              Math.pow((b.latitude || 0) - userLat!, 2) + Math.pow((b.longitude || 0) - userLng!, 2)
+              Math.pow((b.latitude || 0) - userLat, 2) + Math.pow((b.longitude || 0) - userLng, 2)
             );
             return distA - distB;
           });
@@ -215,29 +384,21 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
     } catch {} finally {
       setLoading(false);
     }
-  };
+  }, [user]);
 
-  const loadNearbyTags = async () => {
+  const loadNearbyTags = useCallback(async () => {
     setLoading(true);
     setProfiles([]);
     try {
-      const { status } = await Location.requestForegroundPermissionsAsync();
-      let userLat: number | null = null;
-      let userLng: number | null = null;
+      const location = await getUserLocation();
 
-      if (status === 'granted') {
-        try {
-          const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
-          userLat = loc.coords.latitude;
-          userLng = loc.coords.longitude;
-        } catch {}
-      }
-
-      if (userLat == null || userLng == null) {
+      if (!location) {
         // Fallback to regular popular tags
         loadPopularTags();
         return;
       }
+
+      const { lat: userLat, lng: userLng } = location;
 
       // Find nearby profiles (within ~50km rough filter)
       const latRange = 0.5; // ~50km
@@ -279,12 +440,12 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
       if (tagData) {
         const tagMap: Record<string, { tag: any; count: number }> = {};
         for (const ct of tagData) {
-          const t = (ct as any).tag;
-          if (t) {
-            if (!tagMap[t.id]) {
-              tagMap[t.id] = { tag: t, count: 0 };
+          const tItem = (ct as any).tag;
+          if (tItem) {
+            if (!tagMap[tItem.id]) {
+              tagMap[tItem.id] = { tag: tItem, count: 0 };
             }
-            tagMap[t.id].count++;
+            tagMap[tItem.id].count++;
           }
         }
         const sorted = Object.values(tagMap)
@@ -296,41 +457,50 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
     } catch {} finally {
       setLoading(false);
     }
-  };
+  }, [loadPopularTags]);
 
-  const handleCategoryPress = (key: CategoryKey) => {
+  // ── Load initial data on mount (parallel) ──
+
+  useEffect(() => {
+    Promise.all([loadPopularTags(), loadRecentSearches()]);
+  }, [loadPopularTags, loadRecentSearches]);
+
+  // ── Event handlers (all useCallback) ──
+
+  const handleCategoryPress = useCallback((key: CategoryKey) => {
     setSearchQuery('');
     setProfiles([]);
     setTags([]);
 
-    if (activeCategory === key) {
-      // Toggle off - go back to popular
-      setActiveCategory(null);
-      loadPopularTags();
-      return;
-    }
-
-    setActiveCategory(key);
-
-    switch (key) {
-      case 'popular':
+    setActiveCategory((prev) => {
+      if (prev === key) {
+        // Toggle off - go back to popular
         loadPopularTags();
-        break;
-      case 'nearby':
-        loadNearbyProfiles();
-        break;
-      case 'verified':
-        loadVerifiedProfiles();
-        break;
-      case 'nearby_tags':
-        loadNearbyTags();
-        break;
-      case 'recent':
-        // Just show recent searches from local state
-        setLoading(false);
-        break;
-    }
-  };
+        return null;
+      }
+
+      switch (key) {
+        case 'popular':
+          loadPopularTags();
+          break;
+        case 'nearby':
+          loadNearbyProfiles();
+          break;
+        case 'verified':
+          loadVerifiedProfiles();
+          break;
+        case 'nearby_tags':
+          loadNearbyTags();
+          break;
+        case 'recent':
+          // Just show recent searches from local state
+          setLoading(false);
+          break;
+      }
+
+      return key;
+    });
+  }, [loadPopularTags, loadNearbyProfiles, loadVerifiedProfiles, loadNearbyTags]);
 
   const performSearch = useCallback(
     async (query: string) => {
@@ -381,56 +551,307 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
         setLoading(false);
       }
     },
-    [recentSearches],
+    [loadPopularTags, saveRecentSearch],
   );
 
-  const handleSearchChange = (text: string) => {
-    setSearchQuery(text);
+  const handleSearchChange = useCallback(
+    (text: string) => {
+      setSearchQuery(text);
 
-    if (debounceTimer.current) {
-      clearTimeout(debounceTimer.current);
-    }
+      if (debounceTimer.current) {
+        clearTimeout(debounceTimer.current);
+      }
 
-    debounceTimer.current = setTimeout(() => {
-      performSearch(text);
-    }, 300);
-  };
+      debounceTimer.current = setTimeout(() => {
+        performSearch(text);
+      }, 300);
+    },
+    [performSearch],
+  );
 
-  const handleRecentSearchTap = (query: string) => {
-    setSearchQuery(query);
-    performSearch(query);
-  };
+  const handleRecentSearchTap = useCallback(
+    (query: string) => {
+      setSearchQuery(query);
+      performSearch(query);
+    },
+    [performSearch],
+  );
 
-  const handleTagPress = (tag: Tag) => {
-    navigation.navigate('TagDetail', { tagId: tag.id, tagName: tag.name });
-  };
+  const handleTagPress = useCallback(
+    (tag: Tag) => {
+      navigation.navigate('TagDetail', { tagId: tag.id, tagName: tag.name });
+    },
+    [navigation],
+  );
 
-  const handleProfilePress = (profile: PiktagProfile) => {
-    navigation.navigate('UserDetail', { userId: profile.id });
-  };
+  const handleProfilePress = useCallback(
+    (profile: PiktagProfile) => {
+      navigation.navigate('UserDetail', { userId: profile.id });
+    },
+    [navigation],
+  );
 
-  // Determine what content mode to show
-  const showProfiles =
-    activeCategory === 'nearby' ||
-    activeCategory === 'verified' ||
-    (searchQuery.trim() && profiles.length > 0);
-  const showTags =
-    (activeCategory !== 'nearby' &&
-    activeCategory !== 'verified' &&
-    activeCategory !== 'recent') ||
-    activeCategory === 'nearby_tags';
+  const handleFocus = useCallback(() => setIsFocused(true), []);
+  const handleBlur = useCallback(() => setIsFocused(false), []);
+  const handleSubmitEditing = useCallback(() => {
+    performSearch(searchQuery);
+  }, [performSearch, searchQuery]);
+
+  // ── Computed display flags (memoized) ──
+
+  const trimmedQuery = useMemo(() => searchQuery.trim(), [searchQuery]);
+
+  const showProfiles = useMemo(
+    () =>
+      activeCategory === 'nearby' ||
+      activeCategory === 'verified' ||
+      (trimmedQuery !== '' && profiles.length > 0),
+    [activeCategory, trimmedQuery, profiles.length],
+  );
+
+  const showTags = useMemo(
+    () =>
+      (activeCategory !== 'nearby' &&
+        activeCategory !== 'verified' &&
+        activeCategory !== 'recent') ||
+      activeCategory === 'nearby_tags',
+    [activeCategory],
+  );
+
   const showRecent = activeCategory === 'recent';
 
+  // ── Memoized translated suffix for tag counts ──
+  const tagCountSuffix = useMemo(() => t('search.tagCountSuffix'), [t]);
+
+  // ── FlatList data and renderers ──
+
+  // Build a single flat data array for the main FlatList to avoid nested ScrollView/FlatList issues.
+  // We use a discriminated‑union item type so we can render different sections.
+
+  type ListItem =
+    | { type: 'categories' }
+    | { type: 'loading' }
+    | { type: 'recentHeader' }
+    | { type: 'recentEmpty' }
+    | { type: 'recentItem'; query: string; index: number }
+    | { type: 'profilesHeader' }
+    | { type: 'profilesEmpty' }
+    | { type: 'profileItem'; profile: PiktagProfile }
+    | { type: 'tagsHeader' }
+    | { type: 'tagsEmpty' }
+    | { type: 'tagsGrid' };
+
+  const listData = useMemo<ListItem[]>(() => {
+    const items: ListItem[] = [];
+
+    // 1. Categories row (always)
+    items.push({ type: 'categories' });
+
+    // 2. Loading
+    if (loading || initialLoading) {
+      items.push({ type: 'loading' });
+      return items; // show nothing else while loading
+    }
+
+    // 3. Recent searches section
+    if (showRecent) {
+      if (recentSearches.length === 0) {
+        items.push({ type: 'recentEmpty' });
+      } else {
+        recentSearches.forEach((query, index) => {
+          items.push({ type: 'recentItem', query, index });
+        });
+      }
+    }
+
+    // 4. Profile results section
+    if (showProfiles) {
+      if (trimmedQuery !== '') {
+        items.push({ type: 'profilesHeader' });
+      }
+      if (profiles.length === 0) {
+        items.push({ type: 'profilesEmpty' });
+      } else {
+        profiles.forEach((profile) => {
+          items.push({ type: 'profileItem', profile });
+        });
+      }
+    }
+
+    // 5. Tags section
+    if (showTags && !initialLoading) {
+      if (trimmedQuery !== '' && tags.length > 0) {
+        items.push({ type: 'tagsHeader' });
+      }
+      if (tags.length === 0 && trimmedQuery !== '') {
+        items.push({ type: 'tagsEmpty' });
+      } else if (tags.length > 0) {
+        items.push({ type: 'tagsGrid' });
+      }
+    }
+
+    return items;
+  }, [
+    loading,
+    initialLoading,
+    showRecent,
+    recentSearches,
+    showProfiles,
+    trimmedQuery,
+    profiles,
+    showTags,
+    tags,
+  ]);
+
+  const keyExtractor = useCallback((item: ListItem, index: number): string => {
+    switch (item.type) {
+      case 'categories':
+        return 'categories';
+      case 'loading':
+        return 'loading';
+      case 'recentHeader':
+        return 'recentHeader';
+      case 'recentEmpty':
+        return 'recentEmpty';
+      case 'recentItem':
+        return `recent-${item.index}`;
+      case 'profilesHeader':
+        return 'profilesHeader';
+      case 'profilesEmpty':
+        return 'profilesEmpty';
+      case 'profileItem':
+        return `profile-${item.profile.id}`;
+      case 'tagsHeader':
+        return 'tagsHeader';
+      case 'tagsEmpty':
+        return 'tagsEmpty';
+      case 'tagsGrid':
+        return 'tagsGrid';
+      default:
+        return `item-${index}`;
+    }
+  }, []);
+
+  const renderItem = useCallback(
+    ({ item }: ListRenderItemInfo<ListItem>) => {
+      switch (item.type) {
+        case 'categories':
+          return (
+            <View style={styles.categoriesRow}>
+              {CATEGORY_DEFS.map((cat) => (
+                <CategoryButton
+                  key={cat.key}
+                  cat={cat}
+                  isActive={activeCategory === cat.key}
+                  onPress={handleCategoryPress}
+                  label={t(cat.labelKey)}
+                />
+              ))}
+            </View>
+          );
+
+        case 'loading':
+          return (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="large" color={COLORS.piktag500} />
+            </View>
+          );
+
+        case 'recentEmpty':
+          return (
+            <Text style={styles.emptyText}>
+              {t('search.noRecentSearches')}
+            </Text>
+          );
+
+        case 'recentItem':
+          return (
+            <RecentSearchItem
+              query={item.query}
+              onPress={handleRecentSearchTap}
+            />
+          );
+
+        case 'profilesHeader':
+          return (
+            <Text style={styles.resultSectionLabel}>
+              {t('search.profilesSectionLabel')}
+            </Text>
+          );
+
+        case 'profilesEmpty':
+          return (
+            <Text style={styles.emptyText}>
+              {t('search.noProfilesFound')}
+            </Text>
+          );
+
+        case 'profileItem':
+          return (
+            <ProfileCard
+              profile={item.profile}
+              onPress={handleProfilePress}
+              t={t}
+            />
+          );
+
+        case 'tagsHeader':
+          return (
+            <Text style={styles.resultSectionLabel}>
+              {t('search.tagsSectionLabel')}
+            </Text>
+          );
+
+        case 'tagsEmpty':
+          return (
+            <Text style={styles.emptyText}>
+              {t('search.noTagsFound')}
+            </Text>
+          );
+
+        case 'tagsGrid':
+          return (
+            <View style={styles.tagsGrid}>
+              {tags.map((tag, index) => (
+                <TagCard
+                  key={tag.id}
+                  tag={tag}
+                  isHighlighted={index === 4}
+                  onPress={handleTagPress}
+                  countSuffix={tagCountSuffix}
+                />
+              ))}
+            </View>
+          );
+
+        default:
+          return null;
+      }
+    },
+    [
+      activeCategory,
+      handleCategoryPress,
+      handleRecentSearchTap,
+      handleProfilePress,
+      handleTagPress,
+      tags,
+      tagCountSuffix,
+      t,
+    ],
+  );
+
+  // ── Memoized search container style ──
+  const searchContainerStyle = useMemo(
+    () => [styles.searchContainer, isFocused && styles.searchContainerFocused],
+    [isFocused],
+  );
+
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <SafeAreaView style={styles.container} edges={topEdges}>
       <StatusBar barStyle="dark-content" backgroundColor={COLORS.white} />
       <View style={styles.header}>
-        <View
-          style={[
-            styles.searchContainer,
-            isFocused && styles.searchContainerFocused,
-          ]}
-        >
+        <Text style={styles.headerTitle}># PikTag</Text>
+        <View style={searchContainerStyle}>
           <Search
             size={20}
             color={COLORS.gray400}
@@ -442,195 +863,33 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
             placeholderTextColor={COLORS.gray400}
             value={searchQuery}
             onChangeText={handleSearchChange}
-            onFocus={() => setIsFocused(true)}
-            onBlur={() => setIsFocused(false)}
+            onFocus={handleFocus}
+            onBlur={handleBlur}
             returnKeyType="search"
-            onSubmitEditing={() => performSearch(searchQuery)}
+            onSubmitEditing={handleSubmitEditing}
           />
         </View>
       </View>
 
-      <ScrollView
+      <FlatList
+        data={listData}
+        keyExtractor={keyExtractor}
+        renderItem={renderItem}
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
-      >
-        {/* Category buttons */}
-        <View style={styles.categoriesRow}>
-          {CATEGORY_DEFS.map((cat, index) => {
-            const IconComponent = cat.icon;
-            const isActive = activeCategory === cat.key;
-            return (
-              <TouchableOpacity
-                key={index}
-                style={styles.categoryItem}
-                activeOpacity={0.7}
-                onPress={() => handleCategoryPress(cat.key)}
-              >
-                <View
-                  style={[
-                    styles.categoryIconCircle,
-                    { backgroundColor: cat.bgColor },
-                    isActive && styles.categoryIconCircleActive,
-                  ]}
-                >
-                  <IconComponent size={24} color={cat.iconColor} />
-                </View>
-                <Text
-                  style={[
-                    styles.categoryLabel,
-                    isActive && styles.categoryLabelActive,
-                  ]}
-                >
-                  {t(cat.labelKey)}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-
-        {/* Loading indicator */}
-        {(loading || initialLoading) && (
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color={COLORS.piktag500} />
-          </View>
-        )}
-
-        {/* Recent searches */}
-        {showRecent && !loading && (
-          <View>
-            {recentSearches.length === 0 ? (
-              <Text style={styles.emptyText}>
-                {t('search.noRecentSearches')}
-              </Text>
-            ) : (
-              recentSearches.map((query, index) => (
-                <TouchableOpacity
-                  key={index}
-                  style={styles.recentSearchItem}
-                  onPress={() => handleRecentSearchTap(query)}
-                  activeOpacity={0.7}
-                >
-                  <Clock size={16} color={COLORS.gray400} />
-                  <Text style={styles.recentSearchText}>{query}</Text>
-                </TouchableOpacity>
-              ))
-            )}
-          </View>
-        )}
-
-        {/* Profile results (search results or category) */}
-        {showProfiles && !loading && (
-          <View style={styles.profilesSection}>
-            {searchQuery.trim() !== '' && (
-              <Text style={styles.resultSectionLabel}>
-                {t('search.profilesSectionLabel')}
-              </Text>
-            )}
-            {profiles.length === 0 && !loading ? (
-              <Text style={styles.emptyText}>
-                {t('search.noProfilesFound')}
-              </Text>
-            ) : (
-              profiles.map((profile) => (
-                <TouchableOpacity
-                  key={profile.id}
-                  style={styles.profileCard}
-                  onPress={() => handleProfilePress(profile)}
-                  activeOpacity={0.7}
-                >
-                  {profile.avatar_url ? (
-                    <Image
-                      source={{ uri: profile.avatar_url }}
-                      style={styles.profileAvatar}
-                    />
-                  ) : (
-                    <View style={styles.profileAvatarPlaceholder}>
-                      <User size={20} color={COLORS.gray400} />
-                    </View>
-                  )}
-                  <View style={styles.profileInfo}>
-                    <View style={styles.profileNameRow}>
-                      <Text style={styles.profileName} numberOfLines={1}>
-                        {profile.full_name || profile.username || t('common.unnamed')}
-                      </Text>
-                      {profile.is_verified && (
-                        <CheckCircle2
-                          size={16}
-                          color={COLORS.blue500}
-                          fill={COLORS.blue500}
-                          strokeWidth={0}
-                          style={{ marginLeft: 4 }}
-                        />
-                      )}
-                    </View>
-                    {profile.username && (
-                      <Text style={styles.profileUsername} numberOfLines={1}>
-                        @{profile.username}
-                      </Text>
-                    )}
-                  </View>
-                </TouchableOpacity>
-              ))
-            )}
-          </View>
-        )}
-
-        {/* Tag results (search results or category) */}
-        {showTags && !loading && !initialLoading && (
-          <View>
-            {searchQuery.trim() !== '' && tags.length > 0 && (
-              <Text style={styles.resultSectionLabel}>
-                {t('search.tagsSectionLabel')}
-              </Text>
-            )}
-            {tags.length === 0 && searchQuery.trim() !== '' ? (
-              <Text style={styles.emptyText}>
-                {t('search.noTagsFound')}
-              </Text>
-            ) : (
-              <View style={styles.tagsGrid}>
-                {tags.map((tag, index) => {
-                  const isHighlighted = index === 4;
-                  return (
-                    <TouchableOpacity
-                      key={tag.id}
-                      style={[
-                        styles.tagCard,
-                        isHighlighted && styles.tagCardHighlighted,
-                      ]}
-                      activeOpacity={0.7}
-                      onPress={() => handleTagPress(tag)}
-                    >
-                      <Text
-                        style={[
-                          styles.tagName,
-                          isHighlighted && styles.tagNameHighlighted,
-                        ]}
-                        numberOfLines={1}
-                      >
-                        #{tag.name}
-                      </Text>
-                      <Text
-                        style={[
-                          styles.tagCount,
-                          isHighlighted && styles.tagCountHighlighted,
-                        ]}
-                      >
-                        {tag.usage_count}{t('search.tagCountSuffix')}
-                      </Text>
-                    </TouchableOpacity>
-                  );
-                })}
-              </View>
-            )}
-          </View>
-        )}
-      </ScrollView>
+        removeClippedSubviews={true}
+        maxToRenderPerBatch={10}
+        windowSize={7}
+        initialNumToRender={8}
+      />
     </SafeAreaView>
   );
 }
+
+// Stable array reference for SafeAreaView edges
+const topEdges: ('top')[] = ['top'];
 
 const styles = StyleSheet.create({
   container: {

@@ -35,8 +35,10 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const { user: authUser } = useAuth();
-  const userId = route.params?.userId;
+  const paramUserId = route.params?.userId;
+  const paramUsername = route.params?.username;
 
+  const [resolvedUserId, setResolvedUserId] = useState<string | null>(paramUserId || null);
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<PiktagProfile | null>(null);
   const [tags, setTags] = useState<string[]>([]);
@@ -47,7 +49,25 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
   const [followLoading, setFollowLoading] = useState(false);
 
   const fetchData = useCallback(async () => {
-    if (!authUser || !userId) return;
+    if (!authUser) return;
+
+    // Resolve userId: either passed directly or looked up from username
+    let userId = resolvedUserId;
+    if (!userId && paramUsername) {
+      const { data: lookupData } = await supabase
+        .from('piktag_profiles')
+        .select('id')
+        .eq('username', paramUsername)
+        .single();
+      if (lookupData) {
+        userId = lookupData.id;
+        setResolvedUserId(userId);
+      } else {
+        setLoading(false);
+        return;
+      }
+    }
+    if (!userId) return;
 
     try {
       setLoading(true);
@@ -128,7 +148,7 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
     } finally {
       setLoading(false);
     }
-  }, [authUser, userId]);
+  }, [authUser, resolvedUserId, paramUsername]);
 
   useFocusEffect(
     useCallback(() => {
@@ -137,7 +157,7 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
   );
 
   const handleToggleFollow = async () => {
-    if (!authUser || !userId || followLoading) return;
+    if (!authUser || !resolvedUserId || followLoading) return;
 
     setFollowLoading(true);
     try {
@@ -147,7 +167,7 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
           .from('piktag_follows')
           .delete()
           .eq('follower_id', authUser.id)
-          .eq('following_id', userId);
+          .eq('following_id', resolvedUserId);
 
         if (error) {
           console.error('Error unfollowing:', error);
@@ -160,7 +180,7 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
           .from('piktag_follows')
           .insert({
             follower_id: authUser.id,
-            following_id: userId,
+            following_id: resolvedUserId,
           });
 
         if (error) {

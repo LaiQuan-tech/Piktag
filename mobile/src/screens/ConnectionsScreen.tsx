@@ -640,7 +640,9 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
         </View>
       ) : (
         <View style={styles.header}>
-          <View style={styles.headerLeft} />
+          <View style={styles.headerLeft}>
+            <Text style={styles.headerTitle}># PikTag</Text>
+          </View>
           <View style={styles.headerRight}>
             <TouchableOpacity
               style={styles.headerIconBtn}

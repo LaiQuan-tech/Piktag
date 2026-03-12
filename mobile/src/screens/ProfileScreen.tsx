@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -32,6 +32,58 @@ type ProfileScreenProps = {
   navigation: any;
 };
 
+// --- Memoized sub-components to prevent unnecessary re-renders ---
+
+const BiolinkItem = React.memo(function BiolinkItem({
+  biolink,
+  onPress,
+}: {
+  biolink: Biolink;
+  onPress: (url: string) => void;
+}) {
+  const handlePress = useCallback(() => {
+    onPress(biolink.url);
+  }, [biolink.url, onPress]);
+
+  return (
+    <TouchableOpacity
+      style={styles.contactButton}
+      activeOpacity={0.7}
+      onPress={handlePress}
+    >
+      {(biolink as any).icon_url ? (
+        <Image source={{ uri: (biolink as any).icon_url }} style={styles.biolinkIcon} />
+      ) : (
+        <Link size={20} color={COLORS.gray900} />
+      )}
+      <Text style={styles.contactButtonText}>
+        {biolink.label || biolink.platform}
+      </Text>
+    </TouchableOpacity>
+  );
+});
+
+const TagItem = React.memo(function TagItem({
+  userTag,
+  isPrimary,
+  fallbackLabel,
+}: {
+  userTag: UserTag;
+  isPrimary: boolean;
+  fallbackLabel: string;
+}) {
+  return (
+    <Text
+      style={[
+        styles.tag,
+        isPrimary ? styles.tagPrimary : styles.tagSecondary,
+      ]}
+    >
+      #{userTag.tag?.name || fallbackLabel}
+    </Text>
+  );
+});
+
 export default function ProfileScreen({ navigation }: ProfileScreenProps) {
   const { t } = useTranslation();
   const { user } = useAuth();
@@ -44,6 +96,8 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [qrVisible, setQrVisible] = useState(false);
+
+  // --- Data fetching (already uses Promise.all for parallel calls) ---
 
   const fetchProfile = useCallback(async () => {
     if (!userId) return;
@@ -127,25 +181,101 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
     setRefreshing(false);
   }, [fetchAllData]);
 
-  const formatFollowerCount = (count: number): string => {
-    if (count >= 1000000) {
-      return `${(count / 1000000).toFixed(1).replace(/\.0$/, '')}M`;
-    }
-    if (count >= 1000) {
-      return count.toLocaleString();
-    }
-    return count.toString();
-  };
+  // --- Memoized computed values ---
 
-  const handleOpenBiolink = (url: string) => {
+  const formattedFollowerCount = useMemo((): string => {
+    if (followerCount >= 1000000) {
+      return `${(followerCount / 1000000).toFixed(1).replace(/\.0$/, '')}M`;
+    }
+    if (followerCount >= 1000) {
+      return followerCount.toLocaleString();
+    }
+    return followerCount.toString();
+  }, [followerCount]);
+
+  const activeBiolinks = useMemo(
+    () => biolinks.filter((bl) => bl.is_active),
+    [biolinks],
+  );
+
+  const avatarSource = useMemo(
+    () =>
+      profile?.avatar_url
+        ? { uri: profile.avatar_url }
+        : { uri: 'https://picsum.photos/seed/profile/200/200' },
+    [profile?.avatar_url],
+  );
+
+  const headerTitle = useMemo(
+    () => profile?.full_name || t('profile.nameNotSet'),
+    [profile?.full_name, t],
+  );
+
+  const displayUsername = useMemo(
+    () => profile?.username || t('profile.usernameNotSet'),
+    [profile?.username, t],
+  );
+
+  const displayBio = useMemo(
+    () => profile?.bio || t('profile.noBio'),
+    [profile?.bio, t],
+  );
+
+  const hasNoContactMethods = useMemo(
+    () => !profile?.phone && !user?.email && activeBiolinks.length === 0,
+    [profile?.phone, user?.email, activeBiolinks.length],
+  );
+
+  // --- Stable callback references for child components ---
+
+  const handleOpenBiolink = useCallback((url: string) => {
     if (url) {
       Linking.openURL(url).catch(() => {});
     }
-  };
+  }, []);
+
+  const handleOpenQr = useCallback(() => {
+    setQrVisible(true);
+  }, []);
+
+  const handleCloseQr = useCallback(() => {
+    setQrVisible(false);
+  }, []);
+
+  const handleNavigateSettings = useCallback(() => {
+    navigation.navigate('Settings');
+  }, [navigation]);
+
+  const handleNavigateEditProfile = useCallback(() => {
+    navigation.navigate('EditProfile');
+  }, [navigation]);
+
+  const handleNavigateManageTags = useCallback(() => {
+    navigation.navigate('ManageTags');
+  }, [navigation]);
+
+  const handleCallPhone = useCallback(() => {
+    if (profile?.phone) {
+      Linking.openURL(`tel:${profile.phone}`).catch(() => {});
+    }
+  }, [profile?.phone]);
+
+  const handleSendEmail = useCallback(() => {
+    if (user?.email) {
+      Linking.openURL(`mailto:${user.email}`).catch(() => {});
+    }
+  }, [user?.email]);
+
+  // --- Memoized QrCodeModal props ---
+
+  const qrUsername = useMemo(() => profile?.username || '', [profile?.username]);
+  const qrFullName = useMemo(() => profile?.full_name || '', [profile?.full_name]);
+
+  // --- Render ---
 
   if (loading) {
     return (
-      <SafeAreaView style={styles.container} edges={['top']}>
+      <SafeAreaView style={styles.container} edges={TOP_EDGES}>
         <StatusBar barStyle="dark-content" backgroundColor={COLORS.white} />
         <View style={styles.header}>
           <Text style={styles.headerTitle}>{' '}</Text>
@@ -166,26 +296,26 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <SafeAreaView style={styles.container} edges={TOP_EDGES}>
       <StatusBar barStyle="dark-content" backgroundColor={COLORS.white} />
 
       {/* Sticky Header */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>
-          {profile?.full_name || t('profile.nameNotSet')}
+          {headerTitle}
         </Text>
         <View style={styles.headerRight}>
           <TouchableOpacity
             style={styles.headerIconBtn}
             activeOpacity={0.6}
-            onPress={() => setQrVisible(true)}
+            onPress={handleOpenQr}
           >
             <QrCode size={24} color={COLORS.gray900} />
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.headerIconBtn}
             activeOpacity={0.6}
-            onPress={() => navigation.navigate('Settings')}
+            onPress={handleNavigateSettings}
           >
             <Settings size={24} color={COLORS.gray900} />
           </TouchableOpacity>
@@ -194,15 +324,16 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
 
       <QrCodeModal
         visible={qrVisible}
-        onClose={() => setQrVisible(false)}
-        username={profile?.username || ''}
-        fullName={profile?.full_name || ''}
+        onClose={handleCloseQr}
+        username={qrUsername}
+        fullName={qrFullName}
       />
 
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
+        removeClippedSubviews
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -216,7 +347,7 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
           <View style={styles.profileLeft}>
             <View style={styles.usernameRow}>
               <Text style={styles.usernameText}>
-                {profile?.username || t('profile.usernameNotSet')}
+                {displayUsername}
               </Text>
               {profile?.is_verified && (
                 <CheckCircle2
@@ -230,33 +361,26 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
             </View>
           </View>
           <Image
-            source={
-              profile?.avatar_url
-                ? { uri: profile.avatar_url }
-                : { uri: 'https://picsum.photos/seed/profile/200/200' }
-            }
+            source={avatarSource}
             style={styles.avatar}
           />
         </View>
 
         {/* Bio */}
         <Text style={styles.bio}>
-          {profile?.bio || t('profile.noBio')}
+          {displayBio}
         </Text>
 
         {/* Tags */}
         <View style={styles.tagsRow}>
           {userTags.length > 0 ? (
             userTags.map((ut, index) => (
-              <Text
+              <TagItem
                 key={ut.id}
-                style={[
-                  styles.tag,
-                  index === 0 ? styles.tagPrimary : styles.tagSecondary,
-                ]}
-              >
-                #{ut.tag?.name || t('profile.tagFallback')}
-              </Text>
+                userTag={ut}
+                isPrimary={index === 0}
+                fallbackLabel={t('profile.tagFallback')}
+              />
             ))
           ) : (
             <Text style={styles.emptyText}>{t('profile.noTags')}</Text>
@@ -265,7 +389,7 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
 
         {/* Friend count */}
         <Text style={styles.friendCount}>
-          {formatFollowerCount(followerCount)}{t('profile.friendCountSuffix')}
+          {formattedFollowerCount}{t('profile.friendCountSuffix')}
         </Text>
 
         {/* Two action buttons side by side */}
@@ -273,14 +397,14 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
           <TouchableOpacity
             style={styles.shareButton}
             activeOpacity={0.7}
-            onPress={() => setQrVisible(true)}
+            onPress={handleOpenQr}
           >
             <Text style={styles.shareButtonText}>{t('profile.shareProfile')}</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.editButton}
             activeOpacity={0.7}
-            onPress={() => navigation.navigate('EditProfile')}
+            onPress={handleNavigateEditProfile}
           >
             <Text style={styles.editButtonText}>{t('profile.editProfile')}</Text>
           </TouchableOpacity>
@@ -290,7 +414,7 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
         <TouchableOpacity
           style={styles.manageTagsButton}
           activeOpacity={0.7}
-          onPress={() => navigation.navigate('ManageTags')}
+          onPress={handleNavigateManageTags}
         >
           <Tag size={18} color={COLORS.piktag600} />
           <Text style={styles.manageTagsText}>{t('profile.manageTags')}</Text>
@@ -302,7 +426,7 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
             <TouchableOpacity
               style={styles.contactButton}
               activeOpacity={0.7}
-              onPress={() => Linking.openURL(`tel:${profile.phone}`).catch(() => {})}
+              onPress={handleCallPhone}
             >
               <Phone size={20} color={COLORS.gray900} />
               <Text style={styles.contactButtonText}>{t('common.phone')}</Text>
@@ -313,34 +437,22 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
             <TouchableOpacity
               style={styles.contactButton}
               activeOpacity={0.7}
-              onPress={() => Linking.openURL(`mailto:${user.email}`).catch(() => {})}
+              onPress={handleSendEmail}
             >
               <Mail size={20} color={COLORS.gray900} />
               <Text style={styles.contactButtonText}>{t('common.email')}</Text>
             </TouchableOpacity>
           ) : null}
 
-          {biolinks
-            .filter((bl) => bl.is_active)
-            .map((bl) => (
-              <TouchableOpacity
-                key={bl.id}
-                style={styles.contactButton}
-                activeOpacity={0.7}
-                onPress={() => handleOpenBiolink(bl.url)}
-              >
-                {(bl as any).icon_url ? (
-                  <Image source={{ uri: (bl as any).icon_url }} style={styles.biolinkIcon} />
-                ) : (
-                  <Link size={20} color={COLORS.gray900} />
-                )}
-                <Text style={styles.contactButtonText}>
-                  {bl.label || bl.platform}
-                </Text>
-              </TouchableOpacity>
-            ))}
+          {activeBiolinks.map((bl) => (
+            <BiolinkItem
+              key={bl.id}
+              biolink={bl}
+              onPress={handleOpenBiolink}
+            />
+          ))}
 
-          {!profile?.phone && !user?.email && biolinks.filter((bl) => bl.is_active).length === 0 && (
+          {hasNoContactMethods && (
             <Text style={styles.emptyText}>{t('profile.noContactMethods')}</Text>
           )}
         </View>
@@ -348,6 +460,9 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
     </SafeAreaView>
   );
 }
+
+// Stable array reference for SafeAreaView edges prop
+const TOP_EDGES = ['top'] as const;
 
 const styles = StyleSheet.create({
   container: {

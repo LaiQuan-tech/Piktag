@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -18,6 +18,98 @@ import { useAuth } from '../hooks/useAuth';
 import { COLORS } from '../constants/theme';
 import type { Tag, UserTag } from '../types';
 
+// ── Memoized sub-components ────────────────────────────────────────────────
+
+type MyTagChipProps = {
+  userTag: UserTag & { tag?: Tag };
+  displayName: string;
+  isRemoving: boolean;
+  onRemove: (userTag: UserTag & { tag?: Tag }) => void;
+};
+
+const MyTagChip = React.memo(function MyTagChip({
+  userTag,
+  displayName,
+  isRemoving,
+  onRemove,
+}: MyTagChipProps) {
+  const handlePress = useCallback(() => {
+    onRemove(userTag);
+  }, [onRemove, userTag]);
+
+  return (
+    <View
+      style={[
+        styles.myTagChip,
+        (userTag as any).is_private && styles.myTagChipPrivate,
+      ]}
+    >
+      {(userTag as any).is_private && (
+        <EyeOff size={12} color={COLORS.gray500} />
+      )}
+      <Text style={styles.myTagChipText}>{displayName}</Text>
+      <TouchableOpacity
+        onPress={handlePress}
+        style={styles.chipRemoveBtn}
+        activeOpacity={0.6}
+        disabled={isRemoving}
+      >
+        {isRemoving ? (
+          <ActivityIndicator size={14} color={COLORS.piktag600} />
+        ) : (
+          <X size={14} color={COLORS.piktag600} />
+        )}
+      </TouchableOpacity>
+    </View>
+  );
+});
+
+type PopularTagChipProps = {
+  tag: Tag;
+  isAdded: boolean;
+  isDisabled: boolean;
+  onPress: (tag: Tag) => void;
+};
+
+const PopularTagChip = React.memo(function PopularTagChip({
+  tag,
+  isAdded,
+  isDisabled,
+  onPress,
+}: PopularTagChipProps) {
+  const displayName = useMemo(
+    () => (tag.name.startsWith('#') ? tag.name : `#${tag.name}`),
+    [tag.name],
+  );
+
+  const handlePress = useCallback(() => {
+    onPress(tag);
+  }, [onPress, tag]);
+
+  return (
+    <TouchableOpacity
+      style={[
+        styles.popularTagChip,
+        isAdded && styles.popularTagChipAdded,
+      ]}
+      onPress={handlePress}
+      activeOpacity={0.7}
+      disabled={isAdded || isDisabled}
+    >
+      <Text
+        style={[
+          styles.popularTagChipText,
+          isAdded && styles.popularTagChipTextAdded,
+        ]}
+      >
+        {displayName}
+      </Text>
+    </TouchableOpacity>
+  );
+});
+
+// ── Main screen ────────────────────────────────────────────────────────────
+
 type ManageTagsScreenProps = {
   navigation: any;
 };
@@ -34,14 +126,9 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
   const [removingTagId, setRemovingTagId] = useState<string | null>(null);
   const [isPrivate, setIsPrivate] = useState(false);
 
-  useEffect(() => {
-    if (user) {
-      loadMyTags();
-      loadPopularTags();
-    }
-  }, [user]);
+  // ── Data loading (useCallback + Promise.all) ───────────────────────────
 
-  const loadMyTags = async () => {
+  const loadMyTags = useCallback(async () => {
     if (!user) return;
     try {
       const { data, error } = await supabase
@@ -50,15 +137,18 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
         .eq('user_id', user.id)
         .order('position');
 
+      if (error) {
+        console.warn('[ManageTagsScreen] loadMyTags error:', error.message);
+      }
       if (!error && data) {
         setMyTags(data);
       }
-    } catch {} finally {
-      setLoading(false);
+    } catch (err) {
+      console.warn('[ManageTagsScreen] loadMyTags exception:', err);
     }
-  };
+  }, [user]);
 
-  const loadPopularTags = async () => {
+  const loadPopularTags = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from('piktag_tags')
@@ -66,18 +156,60 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
         .order('usage_count', { ascending: false })
         .limit(12);
 
+      if (error) {
+        console.warn('[ManageTagsScreen] loadPopularTags error:', error.message);
+      }
       if (!error && data) {
         setPopularTags(data);
       }
-    } catch {}
-  };
+    } catch (err) {
+      console.warn('[ManageTagsScreen] loadPopularTags exception:', err);
+    }
+  }, []);
 
-  const myTagNames = myTags.map((t) => {
-    const name = t.tag?.name ?? '';
-    return name.startsWith('#') ? name : `#${name}`;
-  });
+  useEffect(() => {
+    if (!user) return;
+    let cancelled = false;
 
-  const handleAddTag = async () => {
+    (async () => {
+      try {
+        await Promise.all([loadMyTags(), loadPopularTags()]);
+      } catch (err) {
+        console.warn('[ManageTagsScreen] initial load error:', err);
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [user, loadMyTags, loadPopularTags]);
+
+  // ── Computed values (useMemo) ──────────────────────────────────────────
+
+  const myTagNames = useMemo(
+    () =>
+      myTags.map((t) => {
+        const name = t.tag?.name ?? '';
+        return name.startsWith('#') ? name : `#${name}`;
+      }),
+    [myTags],
+  );
+
+  const getTagDisplayName = useCallback(
+    (userTag: UserTag & { tag?: Tag }) => {
+      const name = userTag.tag?.name ?? '';
+      return name.startsWith('#') ? name : `#${name}`;
+    },
+    [],
+  );
+
+  // ── Handlers (useCallback) ────────────────────────────────────────────
+
+  const handleAddTag = useCallback(async () => {
     if (!user) return;
     const trimmed = tagInput.trim();
     if (!trimmed) return;
@@ -101,6 +233,10 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
         .eq('name', rawName)
         .single();
 
+      if (findError) {
+        console.warn('[ManageTagsScreen] handleAddTag findError:', findError.message);
+      }
+
       if (existingTag && !findError) {
         tagId = existingTag.id;
       } else {
@@ -112,6 +248,7 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
           .single();
 
         if (createError || !newTag) {
+          console.warn('[ManageTagsScreen] handleAddTag createError:', createError?.message);
           Alert.alert(t('common.error'), t('manageTags.alertAddError'));
           setAddingTag(false);
           return;
@@ -133,6 +270,7 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
         });
 
       if (linkError) {
+        console.warn('[ManageTagsScreen] handleAddTag linkError:', linkError.message);
         Alert.alert(t('common.error'), t('manageTags.alertAddError'));
         setAddingTag(false);
         return;
@@ -145,113 +283,143 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
         .eq('id', tagId);
 
       // Use RPC if available, otherwise do a raw increment
-      await supabase.rpc('increment_tag_usage', { tag_id: tagId }).catch(() => {
+      await supabase.rpc('increment_tag_usage', { tag_id: tagId }).catch((err) => {
         // Fallback: just ignore if RPC doesn't exist, the update above is a basic fallback
+        console.warn('[ManageTagsScreen] increment_tag_usage RPC fallback:', err);
       });
 
       // Reload tags
       setTagInput('');
       setIsPrivate(false);
-      await loadMyTags();
-      loadPopularTags();
-    } catch {
+      await Promise.all([loadMyTags(), loadPopularTags()]);
+    } catch (err) {
+      console.warn('[ManageTagsScreen] handleAddTag exception:', err);
       Alert.alert(t('common.error'), t('manageTags.alertAddError'));
     } finally {
       setAddingTag(false);
     }
-  };
+  }, [user, tagInput, myTagNames, myTags.length, isPrivate, t, loadMyTags, loadPopularTags]);
 
-  const handleRemoveTag = async (userTag: UserTag & { tag?: Tag }) => {
-    if (!user) return;
-    setRemovingTagId(userTag.id);
+  const handleRemoveTag = useCallback(
+    async (userTag: UserTag & { tag?: Tag }) => {
+      if (!user) return;
+      setRemovingTagId(userTag.id);
 
-    try {
-      // 1. Delete from piktag_user_tags
-      const { error: deleteError } = await supabase
-        .from('piktag_user_tags')
-        .delete()
-        .eq('id', userTag.id);
+      try {
+        // 1. Delete from piktag_user_tags
+        const { error: deleteError } = await supabase
+          .from('piktag_user_tags')
+          .delete()
+          .eq('id', userTag.id);
 
-      if (deleteError) {
+        if (deleteError) {
+          console.warn('[ManageTagsScreen] handleRemoveTag deleteError:', deleteError.message);
+          Alert.alert(t('common.error'), t('manageTags.alertRemoveError'));
+          setRemovingTagId(null);
+          return;
+        }
+
+        // 2. Decrement usage_count on piktag_tags
+        if (userTag.tag_id) {
+          await supabase
+            .rpc('decrement_tag_usage', { tag_id: userTag.tag_id })
+            .catch(async (err) => {
+              console.warn('[ManageTagsScreen] decrement_tag_usage RPC fallback:', err);
+              // Fallback: manually decrement
+              try {
+                const { data: tagData } = await supabase
+                  .from('piktag_tags')
+                  .select('usage_count')
+                  .eq('id', userTag.tag_id)
+                  .single();
+
+                if (tagData && tagData.usage_count > 0) {
+                  await supabase
+                    .from('piktag_tags')
+                    .update({ usage_count: tagData.usage_count - 1 })
+                    .eq('id', userTag.tag_id);
+                }
+              } catch (fallbackErr) {
+                console.warn('[ManageTagsScreen] decrement fallback exception:', fallbackErr);
+              }
+            });
+        }
+
+        // Reload tags
+        await Promise.all([loadMyTags(), loadPopularTags()]);
+      } catch (err) {
+        console.warn('[ManageTagsScreen] handleRemoveTag exception:', err);
         Alert.alert(t('common.error'), t('manageTags.alertRemoveError'));
+      } finally {
         setRemovingTagId(null);
-        return;
       }
+    },
+    [user, t, loadMyTags, loadPopularTags],
+  );
 
-      // 2. Decrement usage_count on piktag_tags
-      if (userTag.tag_id) {
-        await supabase.rpc('decrement_tag_usage', { tag_id: userTag.tag_id }).catch(async () => {
-          // Fallback: manually decrement
-          const { data: tagData } = await supabase
-            .from('piktag_tags')
-            .select('usage_count')
-            .eq('id', userTag.tag_id)
-            .single();
+  const handleAddPopularTag = useCallback(
+    async (tag: Tag) => {
+      if (!user) return;
+      const displayName = tag.name.startsWith('#') ? tag.name : `#${tag.name}`;
+      if (myTagNames.includes(displayName)) return;
 
-          if (tagData && tagData.usage_count > 0) {
-            await supabase
-              .from('piktag_tags')
-              .update({ usage_count: tagData.usage_count - 1 })
-              .eq('id', userTag.tag_id);
-          }
-        });
-      }
+      setAddingTag(true);
+      try {
+        const nextPosition = myTags.length;
 
-      // Reload tags
-      await loadMyTags();
-      loadPopularTags();
-    } catch {
-      Alert.alert(t('common.error'), t('manageTags.alertRemoveError'));
-    } finally {
-      setRemovingTagId(null);
-    }
-  };
+        const { error: linkError } = await supabase
+          .from('piktag_user_tags')
+          .insert({
+            user_id: user.id,
+            tag_id: tag.id,
+            position: nextPosition,
+          });
 
-  const handleAddPopularTag = async (tag: Tag) => {
-    if (!user) return;
-    const displayName = tag.name.startsWith('#') ? tag.name : `#${tag.name}`;
-    if (myTagNames.includes(displayName)) return;
+        if (linkError) {
+          console.warn('[ManageTagsScreen] handleAddPopularTag linkError:', linkError.message);
+          Alert.alert(t('common.error'), t('manageTags.alertAddError'));
+          setAddingTag(false);
+          return;
+        }
 
-    setAddingTag(true);
-    try {
-      const nextPosition = myTags.length;
-
-      const { error: linkError } = await supabase
-        .from('piktag_user_tags')
-        .insert({
-          user_id: user.id,
-          tag_id: tag.id,
-          position: nextPosition,
-        });
-
-      if (linkError) {
-        Alert.alert(t('common.error'), t('manageTags.alertAddError'));
-        setAddingTag(false);
-        return;
-      }
-
-      // Increment usage_count
-      await supabase.rpc('increment_tag_usage', { tag_id: tag.id }).catch(async () => {
-        // Fallback
+        // Increment usage_count
         await supabase
-          .from('piktag_tags')
-          .update({ usage_count: (tag.usage_count || 0) + 1 })
-          .eq('id', tag.id);
-      });
+          .rpc('increment_tag_usage', { tag_id: tag.id })
+          .catch(async (err) => {
+            console.warn('[ManageTagsScreen] increment_tag_usage RPC fallback:', err);
+            // Fallback
+            try {
+              await supabase
+                .from('piktag_tags')
+                .update({ usage_count: (tag.usage_count || 0) + 1 })
+                .eq('id', tag.id);
+            } catch (fallbackErr) {
+              console.warn('[ManageTagsScreen] increment fallback exception:', fallbackErr);
+            }
+          });
 
-      await loadMyTags();
-      loadPopularTags();
-    } catch {
-      Alert.alert(t('common.error'), t('manageTags.alertAddError'));
-    } finally {
-      setAddingTag(false);
-    }
-  };
+        await Promise.all([loadMyTags(), loadPopularTags()]);
+      } catch (err) {
+        console.warn('[ManageTagsScreen] handleAddPopularTag exception:', err);
+        Alert.alert(t('common.error'), t('manageTags.alertAddError'));
+      } finally {
+        setAddingTag(false);
+      }
+    },
+    [user, myTagNames, myTags.length, t, loadMyTags, loadPopularTags],
+  );
 
-  const getTagDisplayName = (userTag: UserTag & { tag?: Tag }) => {
-    const name = userTag.tag?.name ?? '';
-    return name.startsWith('#') ? name : `#${name}`;
-  };
+  // ── Stable event handler references ───────────────────────────────────
+
+  const handleGoBack = useCallback(() => {
+    navigation.goBack();
+  }, [navigation]);
+
+  const togglePrivacy = useCallback(() => {
+    setIsPrivate((prev) => !prev);
+  }, []);
+
+  // ── Render ────────────────────────────────────────────────────────────
 
   return (
     <View style={styles.container}>
@@ -264,7 +432,7 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
         </Text>
         <TouchableOpacity
           style={styles.closeBtn}
-          onPress={() => navigation.goBack()}
+          onPress={handleGoBack}
           activeOpacity={0.6}
           accessibilityRole="button"
           accessibilityLabel={t('manageTags.closeAccessibilityLabel')}
@@ -296,26 +464,13 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
             ) : (
               <View style={styles.chipsContainer}>
                 {myTags.map((userTag) => (
-                  <View key={userTag.id} style={[styles.myTagChip, (userTag as any).is_private && styles.myTagChipPrivate]}>
-                    {(userTag as any).is_private && (
-                      <EyeOff size={12} color={COLORS.gray500} />
-                    )}
-                    <Text style={styles.myTagChipText}>
-                      {getTagDisplayName(userTag)}
-                    </Text>
-                    <TouchableOpacity
-                      onPress={() => handleRemoveTag(userTag)}
-                      style={styles.chipRemoveBtn}
-                      activeOpacity={0.6}
-                      disabled={removingTagId === userTag.id}
-                    >
-                      {removingTagId === userTag.id ? (
-                        <ActivityIndicator size={14} color={COLORS.piktag600} />
-                      ) : (
-                        <X size={14} color={COLORS.piktag600} />
-                      )}
-                    </TouchableOpacity>
-                  </View>
+                  <MyTagChip
+                    key={userTag.id}
+                    userTag={userTag}
+                    displayName={getTagDisplayName(userTag)}
+                    isRemoving={removingTagId === userTag.id}
+                    onRemove={handleRemoveTag}
+                  />
                 ))}
               </View>
             )}
@@ -345,7 +500,7 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
             <TouchableOpacity
               style={styles.privacyToggle}
               activeOpacity={0.7}
-              onPress={() => setIsPrivate(!isPrivate)}
+              onPress={togglePrivacy}
             >
               {isPrivate ? (
                 <EyeOff size={18} color={COLORS.piktag600} />
@@ -384,25 +539,13 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
                   : `#${tag.name}`;
                 const isAdded = myTagNames.includes(displayName);
                 return (
-                  <TouchableOpacity
+                  <PopularTagChip
                     key={tag.id}
-                    style={[
-                      styles.popularTagChip,
-                      isAdded && styles.popularTagChipAdded,
-                    ]}
-                    onPress={() => handleAddPopularTag(tag)}
-                    activeOpacity={0.7}
-                    disabled={isAdded || addingTag}
-                  >
-                    <Text
-                      style={[
-                        styles.popularTagChipText,
-                        isAdded && styles.popularTagChipTextAdded,
-                      ]}
-                    >
-                      {displayName}
-                    </Text>
-                  </TouchableOpacity>
+                    tag={tag}
+                    isAdded={isAdded}
+                    isDisabled={addingTag}
+                    onPress={handleAddPopularTag}
+                  />
                 );
               })}
               {popularTags.length === 0 && (

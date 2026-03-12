@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -66,16 +66,87 @@ function formatTimeAgo(dateString: string, t: (key: string, options?: any) => st
   return date.toLocaleDateString('zh-TW');
 }
 
+// --- Memoized notification item component ---
+type NotificationItemProps = {
+  item: Notification;
+  onMarkAsRead: (id: string) => void;
+  t: (key: string, options?: any) => string;
+};
+
+const NotificationItem = React.memo(function NotificationItem({
+  item,
+  onMarkAsRead,
+  t,
+}: NotificationItemProps) {
+  const avatarUrl = item.data?.avatar_url || null;
+  const username = item.data?.username || item.title || '';
+  const body = item.body || '';
+
+  const handlePress = useCallback(() => {
+    onMarkAsRead(item.id);
+  }, [onMarkAsRead, item.id]);
+
+  return (
+    <TouchableOpacity
+      style={[
+        styles.notificationItem,
+        !item.is_read && styles.notificationItemUnread,
+      ]}
+      activeOpacity={0.7}
+      onPress={handlePress}
+    >
+      {avatarUrl ? (
+        <Image source={{ uri: avatarUrl }} style={styles.avatar} />
+      ) : (
+        <View style={[styles.avatar, styles.avatarPlaceholder]}>
+          <Bell size={20} color={COLORS.gray400} />
+        </View>
+      )}
+      <View style={styles.notificationContent}>
+        <Text style={styles.notificationText}>
+          {username ? (
+            <>
+              <Text style={styles.notificationUsername}>{username}</Text>
+              {'  '}
+            </>
+          ) : null}
+          {body}
+        </Text>
+        <Text style={styles.notificationTime}>
+          {formatTimeAgo(item.created_at, t)}
+        </Text>
+      </View>
+    </TouchableOpacity>
+  );
+});
+
+// --- Empty state component (stable reference) ---
+const EmptyState = React.memo(function EmptyState({
+  text,
+}: {
+  text: string;
+}) {
+  return (
+    <View style={styles.emptyState}>
+      <Bell size={64} color={COLORS.gray200} />
+      <Text style={styles.emptyStateText}>{text}</Text>
+    </View>
+  );
+});
+
 export default function NotificationsScreen({ navigation }: NotificationsScreenProps) {
   const { t } = useTranslation();
   const { user } = useAuth();
 
-  const TAB_LABELS: Record<NotificationTab, string> = {
-    all: t('notifications.tabAll'),
-    follow: t('notifications.tabFollow'),
-    tag: t('notifications.tabTag'),
-    crm: t('notifications.tabCrm'),
-  };
+  const TAB_LABELS: Record<NotificationTab, string> = useMemo(
+    () => ({
+      all: t('notifications.tabAll'),
+      follow: t('notifications.tabFollow'),
+      tag: t('notifications.tabTag'),
+      crm: t('notifications.tabCrm'),
+    }),
+    [t]
+  );
   const [activeTab, setActiveTab] = useState<NotificationTab>('all');
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
@@ -141,7 +212,7 @@ export default function NotificationsScreen({ navigation }: NotificationsScreenP
     fetchNotifications();
   }, [fetchNotifications]);
 
-  const handleMarkAsRead = async (notifId: string) => {
+  const handleMarkAsRead = useCallback(async (notifId: string) => {
     // Optimistic update
     setNotifications((prev) =>
       prev.map((n) => (n.id === notifId ? { ...n, is_read: true } : n))
@@ -157,9 +228,9 @@ export default function NotificationsScreen({ navigation }: NotificationsScreenP
       // Revert on failure
       fetchNotifications();
     }
-  };
+  }, [fetchNotifications]);
 
-  const handleMarkAllAsRead = async () => {
+  const handleMarkAllAsRead = useCallback(async () => {
     if (!user) return;
 
     const unreadIds = notifications.filter((n) => !n.is_read).map((n) => n.id);
@@ -178,55 +249,47 @@ export default function NotificationsScreen({ navigation }: NotificationsScreenP
       console.warn('Failed to mark all as read:', error.message);
       fetchNotifications();
     }
-  };
+  }, [user, notifications, fetchNotifications]);
 
-  const filteredNotifications = filterNotifications(notifications, activeTab);
-  const hasUnread = notifications.some((n) => !n.is_read);
+  // useMemo for computed values
+  const filteredNotifications = useMemo(
+    () => filterNotifications(notifications, activeTab),
+    [notifications, activeTab]
+  );
 
-  const renderNotificationItem = ({ item }: { item: Notification }) => {
-    const avatarUrl = item.data?.avatar_url || null;
-    const username = item.data?.username || item.title || '';
-    const body = item.body || '';
+  const hasUnread = useMemo(
+    () => notifications.some((n) => !n.is_read),
+    [notifications]
+  );
 
-    return (
-      <TouchableOpacity
-        style={[
-          styles.notificationItem,
-          !item.is_read && styles.notificationItemUnread,
-        ]}
-        activeOpacity={0.7}
-        onPress={() => handleMarkAsRead(item.id)}
-      >
-        {avatarUrl ? (
-          <Image source={{ uri: avatarUrl }} style={styles.avatar} />
-        ) : (
-          <View style={[styles.avatar, styles.avatarPlaceholder]}>
-            <Bell size={20} color={COLORS.gray400} />
-          </View>
-        )}
-        <View style={styles.notificationContent}>
-          <Text style={styles.notificationText}>
-            {username ? (
-              <>
-                <Text style={styles.notificationUsername}>{username}</Text>
-                {'  '}
-              </>
-            ) : null}
-            {body}
-          </Text>
-          <Text style={styles.notificationTime}>
-            {formatTimeAgo(item.created_at, t)}
-          </Text>
-        </View>
-      </TouchableOpacity>
-    );
-  };
+  // useCallback for renderItem
+  const renderNotificationItem = useCallback(
+    ({ item }: { item: Notification }) => (
+      <NotificationItem item={item} onMarkAsRead={handleMarkAsRead} t={t} />
+    ),
+    [handleMarkAsRead, t]
+  );
 
-  const renderEmptyState = () => (
-    <View style={styles.emptyState}>
-      <Bell size={64} color={COLORS.gray200} />
-      <Text style={styles.emptyStateText}>{t('notifications.emptyState')}</Text>
-    </View>
+  // useCallback for keyExtractor
+  const keyExtractor = useCallback((item: Notification) => item.id, []);
+
+  // Stable ListEmptyComponent reference
+  const emptyStateText = t('notifications.emptyState');
+  const listEmptyComponent = useMemo(
+    () => <EmptyState text={emptyStateText} />,
+    [emptyStateText]
+  );
+
+  // Stable RefreshControl reference
+  const refreshControl = useMemo(
+    () => (
+      <RefreshControl
+        refreshing={refreshing}
+        onRefresh={handleRefresh}
+        tintColor={COLORS.piktag500}
+      />
+    ),
+    [refreshing, handleRefresh]
   );
 
   if (loading) {
@@ -246,7 +309,7 @@ export default function NotificationsScreen({ navigation }: NotificationsScreenP
 
       {/* Header */}
       <View style={styles.header}>
-        <View style={{ flex: 1 }} />
+        <Text style={styles.headerTitle}># PikTag</Text>
         {hasUnread && (
           <TouchableOpacity
             style={styles.markAllButton}
@@ -283,17 +346,15 @@ export default function NotificationsScreen({ navigation }: NotificationsScreenP
       <FlatList
         data={filteredNotifications}
         renderItem={renderNotificationItem}
-        keyExtractor={(item) => item.id}
+        keyExtractor={keyExtractor}
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
-        ListEmptyComponent={renderEmptyState}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={handleRefresh}
-            tintColor={COLORS.piktag500}
-          />
-        }
+        ListEmptyComponent={listEmptyComponent}
+        refreshControl={refreshControl}
+        initialNumToRender={10}
+        maxToRenderPerBatch={10}
+        windowSize={5}
+        removeClippedSubviews={true}
       />
     </SafeAreaView>
   );
