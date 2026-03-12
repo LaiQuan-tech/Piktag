@@ -48,7 +48,14 @@
       "loginLink": "Log In"
     },
     "onboarding": {
-      "defaultTags": ["#Startup", "#Design", "#Development", "#Photography", "#Music", "#Marketing"],
+      "defaultTags": [
+        "#Startup",
+        "#Design",
+        "#Development",
+        "#Photography",
+        "#Music",
+        "#Marketing"
+      ],
       "alertUserNotFound": "User information not found",
       "step1Title": "Tell us about yourself",
       "step1Description": "Write a short bio so others can get to know you",
@@ -397,5 +404,11 @@
     "alertTagExistsMessage": "This tag is already in your list.",
     "alertAddError": "Unable to add tag, please try again later.",
     "alertRemoveError": "Unable to remove tag, please try again later."
+  },
+  "tagDetail": {
+    "unknownTag": "Unknown Tag",
+    "usageCount": "{{count}} uses",
+    "emptyTitle": "No Connections Yet",
+    "emptyText": "No connections are using this tag"
   }
 }

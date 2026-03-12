@@ -402,7 +402,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
   };
 
   const handleTagPress = (tag: Tag) => {
-    navigation.navigate('UserDetail', { tagId: tag.id, tagName: tag.name });
+    navigation.navigate('TagDetail', { tagId: tag.id, tagName: tag.name });
   };
 
   const handleProfilePress = (profile: PiktagProfile) => {

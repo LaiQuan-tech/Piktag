@@ -38,6 +38,7 @@ import NotificationsScreen from '../screens/NotificationsScreen';
 import ScanResultScreen from '../screens/ScanResultScreen';
 import CameraScanScreen from '../screens/CameraScanScreen';
 import ManageTagsScreen from '../screens/ManageTagsScreen';
+import TagDetailScreen from '../screens/TagDetailScreen';
 
 // Stack Navigators
 const AuthStack = createNativeStackNavigator();
@@ -75,6 +76,8 @@ function SearchStackNavigator() {
     <SearchStack.Navigator screenOptions={{ headerShown: false }}>
       <SearchStack.Screen name="SearchMain" component={SearchScreen} />
       <SearchStack.Screen name="UserDetail" component={UserDetailScreen} />
+      <SearchStack.Screen name="TagDetail" component={TagDetailScreen} />
+      <SearchStack.Screen name="FriendDetail" component={FriendDetailScreen} />
     </SearchStack.Navigator>
   );
 }

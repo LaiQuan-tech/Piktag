@@ -404,5 +404,11 @@
     "alertTagExistsMessage": "此標籤已在你的列表中。",
     "alertAddError": "無法新增標籤，請稍後再試。",
     "alertRemoveError": "無法移除標籤，請稍後再試。"
+  },
+  "tagDetail": {
+    "unknownTag": "未知標籤",
+    "usageCount": "共 {{count}} 次使用",
+    "emptyTitle": "尚無相關人脈",
+    "emptyText": "目前沒有人脈使用此標籤"
   }
 }
