@@ -155,15 +155,18 @@ const TagCard = React.memo(function TagCard({ tag, isHighlighted, onPress, count
       activeOpacity={0.7}
       onPress={handlePress}
     >
-      <Text
-        style={[
-          styles.tagName,
-          isHighlighted && styles.tagNameHighlighted,
-        ]}
-        numberOfLines={1}
-      >
-        #{tag.name}
-      </Text>
+      <View style={styles.tagCardRow}>
+        <Hash size={14} color={isHighlighted ? COLORS.white : COLORS.piktag500} strokeWidth={2.5} />
+        <Text
+          style={[
+            styles.tagName,
+            isHighlighted && styles.tagNameHighlighted,
+          ]}
+          numberOfLines={1}
+        >
+          {tag.name}
+        </Text>
+      </View>
       <Text
         style={[
           styles.tagCount,
@@ -987,38 +990,43 @@ const styles = StyleSheet.create({
   tagsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 12,
+    gap: 8,
   },
   tagCard: {
-    width: '48.5%',
-    borderWidth: 1,
-    borderColor: COLORS.gray200,
-    borderRadius: 16,
-    paddingVertical: 20,
-    paddingHorizontal: 16,
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: COLORS.gray100,
+    borderRadius: 20,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    gap: 8,
   },
   tagCardHighlighted: {
     backgroundColor: COLORS.piktag500,
-    borderColor: COLORS.piktag500,
+  },
+  tagCardRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    flex: 1,
   },
   tagName: {
-    fontSize: 18,
-    fontWeight: '700',
+    fontSize: 14,
+    fontWeight: '600',
     color: COLORS.gray900,
-    lineHeight: 24,
-    marginBottom: 4,
+    lineHeight: 20,
   },
   tagNameHighlighted: {
-    color: COLORS.gray900,
+    color: COLORS.white,
   },
   tagCount: {
-    fontSize: 12,
-    color: COLORS.gray500,
-    lineHeight: 16,
+    fontSize: 11,
+    color: COLORS.gray400,
+    lineHeight: 14,
   },
   tagCountHighlighted: {
-    color: COLORS.gray800,
+    color: 'rgba(255,255,255,0.7)',
   },
   loadingContainer: {
     paddingVertical: 40,
