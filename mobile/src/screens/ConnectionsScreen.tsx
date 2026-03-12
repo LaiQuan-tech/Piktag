@@ -640,10 +640,7 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
         </View>
       ) : (
         <View style={styles.header}>
-          <View style={styles.headerLeft}>
-            <Text style={styles.headerTitle}>#{t('connections.headerDate', { year: new Date().getFullYear(), month: new Date().getMonth() + 1, day: new Date().getDate() })}</Text>
-            <Text style={styles.headerSubtitle}>{t('connections.headerSubtitle')}</Text>
-          </View>
+          <View style={styles.headerLeft} />
           <View style={styles.headerRight}>
             <TouchableOpacity
               style={styles.headerIconBtn}

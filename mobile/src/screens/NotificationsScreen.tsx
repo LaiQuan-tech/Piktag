@@ -233,9 +233,6 @@ export default function NotificationsScreen({ navigation }: NotificationsScreenP
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
         <StatusBar barStyle="dark-content" backgroundColor={COLORS.white} />
-        <View style={styles.header}>
-          <Text style={styles.headerTitle}>{t('notifications.headerTitle')}</Text>
-        </View>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={COLORS.piktag500} />
         </View>
@@ -249,7 +246,7 @@ export default function NotificationsScreen({ navigation }: NotificationsScreenP
 
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>{t('notifications.headerTitle')}</Text>
+        <View style={{ flex: 1 }} />
         {hasUnread && (
           <TouchableOpacity
             style={styles.markAllButton}

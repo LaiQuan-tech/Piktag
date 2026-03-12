@@ -425,7 +425,6 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
     <SafeAreaView style={styles.container} edges={['top']}>
       <StatusBar barStyle="dark-content" backgroundColor={COLORS.white} />
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>{t('search.headerTitle')}</Text>
         <View
           style={[
             styles.searchContainer,
@@ -457,11 +456,6 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
-        {/* Category section label */}
-        <Text style={styles.categorySectionLabel}>
-          {t('search.categorySectionLabel')}
-        </Text>
-
         {/* Category buttons */}
         <View style={styles.categoriesRow}>
           {CATEGORY_DEFS.map((cat, index) => {
