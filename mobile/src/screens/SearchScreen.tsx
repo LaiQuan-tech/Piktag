@@ -312,7 +312,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
     try {
       const { data, error } = await supabase
         .from('piktag_tags')
-        .select('*')
+        .select('id, name, category, usage_count')
         .order('usage_count', { ascending: false })
         .limit(20);
 
@@ -331,7 +331,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
     try {
       const { data, error } = await supabase
         .from('piktag_profiles')
-        .select('*')
+        .select('id, username, full_name, avatar_url, is_verified')
         .eq('is_verified', true)
         .limit(20);
 
@@ -361,7 +361,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
       // Fetch profiles with lat/lng
       const { data, error } = await supabase
         .from('piktag_profiles')
-        .select('*')
+        .select('id, username, full_name, avatar_url, is_verified, latitude, longitude')
         .not('latitude', 'is', null)
         .not('longitude', 'is', null)
         .limit(50);
@@ -522,13 +522,13 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
         const [tagsResult, profilesResult] = await Promise.all([
           supabase
             .from('piktag_tags')
-            .select('*')
+            .select('id, name, category, usage_count')
             .ilike('name', `%${trimmed}%`)
             .order('usage_count', { ascending: false })
             .limit(20),
           supabase
             .from('piktag_profiles')
-            .select('*')
+            .select('id, username, full_name, avatar_url, is_verified')
             .or(`username.ilike.%${trimmed}%,full_name.ilike.%${trimmed}%`)
             .limit(20),
         ]);
@@ -571,6 +571,13 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
     },
     [performSearch],
   );
+
+  // Cleanup debounce timer on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceTimer.current) clearTimeout(debounceTimer.current);
+    };
+  }, []);
 
   const handleRecentSearchTap = useCallback(
     (query: string) => {

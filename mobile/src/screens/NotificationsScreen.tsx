@@ -158,7 +158,7 @@ export default function NotificationsScreen({ navigation }: NotificationsScreenP
     try {
       const { data, error } = await supabase
         .from('piktag_notifications')
-        .select('*')
+        .select('id, user_id, type, title, body, data, is_read, created_at')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false })
         .limit(50);

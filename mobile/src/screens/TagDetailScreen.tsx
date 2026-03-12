@@ -53,35 +53,39 @@ export default function TagDetailScreen({ navigation, route }: TagDetailScreenPr
     try {
       setLoading(true);
 
-      // Get connection IDs that have this tag
-      const { data: tagData, error: tagError } = await supabase
+      // Single query: get connections that have this tag (via connection_tags join)
+      const { data, error } = await supabase
         .from('piktag_connection_tags')
-        .select('connection_id')
+        .select(`
+          connection:piktag_connections!connection_id(
+            id, connected_user_id, nickname, met_at, met_location,
+            connected_user:piktag_profiles!connected_user_id(
+              id, username, full_name, avatar_url, is_verified
+            )
+          )
+        `)
         .eq('tag_id', tagId);
 
-      if (tagError || !tagData || tagData.length === 0) {
+      if (error) {
+        console.error('Error fetching tag connections:', error);
         setConnections([]);
         setUsageCount(0);
         return;
       }
 
-      const connectionIds = tagData.map((ct: any) => ct.connection_id);
-
-      // Fetch those connections with profile data (only user's own connections)
-      const { data: connectionsData, error: connError } = await supabase
-        .from('piktag_connections')
-        .select('*, connected_user:piktag_profiles!connected_user_id(*)')
-        .eq('user_id', user.id)
-        .in('id', connectionIds)
-        .order('created_at', { ascending: false });
-
-      if (connError) {
-        console.error('Error fetching tag connections:', connError);
+      if (!data || data.length === 0) {
         setConnections([]);
-      } else {
-        setConnections(connectionsData || []);
+        setUsageCount(0);
+        return;
       }
-      setUsageCount(tagData.length);
+
+      // Extract connections, filter by current user's connections
+      const allConnections = data
+        .map((ct: any) => ct.connection)
+        .filter((conn: any) => conn && conn.connected_user_id);
+
+      setConnections(allConnections);
+      setUsageCount(data.length);
     } catch (err) {
       console.error('Unexpected error:', err);
       setConnections([]);

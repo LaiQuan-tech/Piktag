@@ -35,6 +35,7 @@ import { COLORS } from '../constants/theme';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
 import * as Location from 'expo-location';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { Connection, ConnectionTag } from '../types';
 
 type ConnectionWithTags = Connection & {
@@ -132,6 +133,8 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
     { key: 'nearby' as SortOption, label: t('connections.sortNearby') },
   ], [t]);
 
+  const lastFetchRef = React.useRef<number>(0);
+
   const [connections, setConnections] = useState<ConnectionWithTags[]>([]);
   const [loading, setLoading] = useState(true);
   const [sortBy, setSortBy] = useState<SortOption>('newest');
@@ -168,9 +171,14 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
       const { data: connectionsData, error: connectionsError } = await supabase
         .from('piktag_connections')
         .select(`
-          *,
-          connected_user:piktag_profiles!connected_user_id(*),
-          connection_tags:piktag_connection_tags(*, tag:piktag_tags!tag_id(*))
+          id, user_id, connected_user_id, nickname, created_at, updated_at,
+          met_at, birthday, anniversary, contract_expiry,
+          connected_user:piktag_profiles!connected_user_id(
+            id, full_name, username, avatar_url, is_verified, latitude, longitude
+          ),
+          connection_tags:piktag_connection_tags(
+            tag:piktag_tags!tag_id(name)
+          )
         `)
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
@@ -239,10 +247,26 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
   const fetchRecommendation = useCallback(async () => {
     if (!user) return;
     try {
+      // Check local cache first (recommendation changes once per day)
+      const cacheKey = `piktag_rec_${user.id}`;
+      const cached = await AsyncStorage.getItem(cacheKey);
+      if (cached) {
+        const { date, data: cachedData } = JSON.parse(cached);
+        if (date === new Date().toISOString().slice(0, 10)) {
+          setRecommendation(cachedData);
+          return;
+        }
+      }
+
       const { data, error } = await supabase
         .rpc('get_daily_recommendation', { p_user_id: user.id });
       if (!error && data && data.length > 0) {
         setRecommendation(data[0]);
+        // Cache for today
+        await AsyncStorage.setItem(cacheKey, JSON.stringify({
+          date: new Date().toISOString().slice(0, 10),
+          data: data[0],
+        }));
       } else {
         setRecommendation(null);
       }
@@ -251,11 +275,13 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
     }
   }, [user]);
 
-  // --- Optimized: Promise.all for parallel execution, unified loading ---
+  // --- Optimized: Promise.all for parallel execution, unified loading, with cooldown ---
   useFocusEffect(
     useCallback(() => {
       const loadAll = async () => {
         if (!user) return;
+        const now = Date.now();
+        if (now - lastFetchRef.current < 30000 && lastFetchRef.current > 0) return;
         setLoading(true);
         try {
           await Promise.all([
@@ -264,6 +290,7 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
           ]);
         } finally {
           setLoading(false);
+          lastFetchRef.current = Date.now();
         }
       };
       loadAll();
