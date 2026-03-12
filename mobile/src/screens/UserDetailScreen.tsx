@@ -16,7 +16,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import {
   ArrowLeft,
   CheckCircle2,
-  MessageCircle,
+
   Link as LinkIcon,
   ExternalLink,
 } from 'lucide-react-native';
@@ -196,19 +196,6 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
     }
   };
 
-  const handleMessage = () => {
-    // Chat feature temporarily disabled
-    Alert.alert(t('common.comingSoonTitle'), t('common.comingSoonChat'));
-    // if (!profile) return;
-    // navigation.navigate('LikesTab', {
-    //   screen: 'ChatDetail',
-    //   params: {
-    //     friendId: userId,
-    //     friendName: profile.full_name || profile.username || 'Unknown',
-    //   },
-    // });
-  };
-
   const handleOpenLink = (url: string) => {
     Linking.openURL(url).catch(() => {});
   };
@@ -365,14 +352,6 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
             )}
           </TouchableOpacity>
 
-          <TouchableOpacity
-            style={styles.messageButton}
-            onPress={handleMessage}
-            activeOpacity={0.8}
-          >
-            <MessageCircle size={20} color={COLORS.piktag500} />
-            <Text style={styles.messageButtonText}>{t('userDetail.sendMessage')}</Text>
-          </TouchableOpacity>
         </View>
 
         {/* Biolinks Section */}
@@ -567,23 +546,6 @@ const styles = StyleSheet.create({
   },
   followButtonTextFollowing: {
     color: COLORS.gray700,
-  },
-  messageButton: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: COLORS.white,
-    borderWidth: 2,
-    borderColor: COLORS.piktag500,
-    borderRadius: 12,
-    paddingVertical: 14,
-    gap: 8,
-  },
-  messageButtonText: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: COLORS.piktag600,
   },
   biolinksSection: {
     paddingHorizontal: 20,

@@ -17,7 +17,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import {
   ArrowLeft,
   CheckCircle2,
-  MessageCircle,
+
   Tag,
   Calendar,
   MapPin,
@@ -537,24 +537,9 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
 
         {/* Action Buttons */}
         <View style={styles.actionsRow}>
-          <TouchableOpacity
-            style={styles.primaryButton}
-            activeOpacity={0.8}
-            onPress={() => {
-              // Chat feature temporarily disabled
-              Alert.alert(t('common.comingSoonTitle'), t('common.comingSoonChat'));
-              // navigation.navigate('LikesTab', {
-              //   screen: 'ChatDetail',
-              //   params: { friendId, friendName: displayName },
-              // });
-            }}
-          >
-            <MessageCircle size={18} color={COLORS.gray900} />
-            <Text style={styles.primaryButtonText}>{t('friendDetail.sendMessage')}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.outlineButton} activeOpacity={0.8}>
-            <Tag size={18} color={COLORS.gray700} />
-            <Text style={styles.outlineButtonText}>{t('friendDetail.manageTags')}</Text>
+          <TouchableOpacity style={styles.primaryButton} activeOpacity={0.8}>
+            <Tag size={18} color={COLORS.gray900} />
+            <Text style={styles.primaryButtonText}>{t('friendDetail.manageTags')}</Text>
           </TouchableOpacity>
         </View>
 
@@ -938,6 +923,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: COLORS.gray900,
   },
+  // outlineButton kept below for other uses
   outlineButton: {
     flex: 1,
     flexDirection: 'row',
