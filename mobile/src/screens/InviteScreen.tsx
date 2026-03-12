@@ -39,7 +39,7 @@ type Invite = {
   created_at: string;
 };
 
-const APP_URL = 'https://dist-gamma-pink.vercel.app';
+const APP_URL = 'https://go.pikt.ag';
 
 function generateCode(): string {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';

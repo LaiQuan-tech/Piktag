@@ -9,7 +9,7 @@ import AppNavigator from './src/navigation/AppNavigator';
 const prefix = Linking.createURL('/');
 
 const linking = {
-  prefixes: [prefix, 'piktag://', 'https://piktag-app.vercel.app'],
+  prefixes: [prefix, 'piktag://', 'https://go.pikt.ag'],
   config: {
     screens: {
       Main: {

@@ -20,7 +20,7 @@ type QrCodeModalProps = {
   fullName: string;
 };
 
-const APP_BASE_URL = 'https://piktag-app.vercel.app';
+const APP_BASE_URL = 'https://go.pikt.ag';
 
 export default function QrCodeModal({
   visible,
