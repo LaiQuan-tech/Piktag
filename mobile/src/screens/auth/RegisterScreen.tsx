@@ -22,14 +22,12 @@ type RegisterScreenProps = {
 
 export default function RegisterScreen({ navigation }: RegisterScreenProps) {
   const { t } = useTranslation();
-  const [fullName, setFullName] = useState('');
-  const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleRegister = async () => {
-    if (!fullName.trim() || !username.trim() || !email.trim() || !password.trim()) {
+    if (!email.trim() || !password.trim()) {
       Alert.alert(t('common.error'), t('auth.register.alertEmptyFields'));
       return;
     }
@@ -44,12 +42,6 @@ export default function RegisterScreen({ navigation }: RegisterScreenProps) {
       const { data, error } = await supabase.auth.signUp({
         email: email.trim(),
         password,
-        options: {
-          data: {
-            full_name: fullName.trim(),
-            username: username.trim(),
-          },
-        },
       });
 
       if (error) {
@@ -94,25 +86,6 @@ export default function RegisterScreen({ navigation }: RegisterScreenProps) {
 
         {/* Form */}
         <View style={styles.formContainer}>
-          <TextInput
-            style={styles.input}
-            placeholder={t('auth.register.namePlaceholder')}
-            placeholderTextColor={COLORS.gray400}
-            value={fullName}
-            onChangeText={setFullName}
-            autoCapitalize="words"
-          />
-
-          <TextInput
-            style={styles.input}
-            placeholder={t('auth.register.usernamePlaceholder')}
-            placeholderTextColor={COLORS.gray400}
-            value={username}
-            onChangeText={setUsername}
-            autoCapitalize="none"
-            autoCorrect={false}
-          />
-
           <TextInput
             style={styles.input}
             placeholder={t('auth.register.emailPlaceholder')}
