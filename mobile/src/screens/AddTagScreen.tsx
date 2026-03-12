@@ -305,7 +305,7 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
       {/* Header */}
       <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
         <View style={styles.headerSideBtn} />
-        <Text style={styles.headerTitle}>{t('addTag.headerTitle')}</Text>
+        <Text style={styles.headerTitle}># PikTag</Text>
         <TouchableOpacity
           onPress={() => {
             loadPresets();
