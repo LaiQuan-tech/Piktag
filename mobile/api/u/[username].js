@@ -1,0 +1,224 @@
+const SUPABASE_URL = 'https://kbwfdskulxnhjckdvghj.supabase.co';
+const SUPABASE_ANON_KEY =
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtid2Zkc2t1bHhuaGpja2R2Z2hqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEzOTgwNTAsImV4cCI6MjA4Njk3NDA1MH0.q1wxMahfity_5An5I_PPSoxglJeKHXX6ohYeGvsaIC8';
+
+const BRAND_COLOR = '#e8b931';
+const BRAND_BG = '#fffdf5';
+
+const PLATFORM_ICONS = {
+  instagram: '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>',
+  facebook: '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>',
+  twitter: '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z"/></svg>',
+  linkedin: '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>',
+  youtube: '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19.1c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.25 29 29 0 0 0-.46-5.33z"/><polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02"/></svg>',
+  tiktok: '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5"/></svg>',
+  github: '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>',
+  website: '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>',
+  line: '<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63h2.386c.346 0 .627.285.627.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63.346 0 .628.285.628.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.282.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.078 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/></svg>',
+};
+
+function getIconSvg(platform) {
+  const key = (platform || '').toLowerCase();
+  return PLATFORM_ICONS[key] || PLATFORM_ICONS['website'] || '';
+}
+
+function escapeHtml(str) {
+  if (!str) return '';
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+module.exports = async function handler(req, res) {
+  const { username } = req.query;
+  const usernameStr = Array.isArray(username) ? username[0] : username;
+
+  if (!usernameStr) {
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    return res.status(404).send(notFoundPage());
+  }
+
+  try {
+    const profileRes = await fetch(
+      `${SUPABASE_URL}/rest/v1/piktag_profiles?username=eq.${encodeURIComponent(usernameStr)}&select=id,username,full_name,avatar_url,bio,is_verified,website,location`,
+      {
+        headers: {
+          apikey: SUPABASE_ANON_KEY,
+          Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+        },
+      }
+    );
+    const profiles = await profileRes.json();
+
+    if (!profiles || profiles.length === 0) {
+      res.setHeader('Content-Type', 'text/html; charset=utf-8');
+      return res.status(404).send(notFoundPage());
+    }
+
+    const profile = profiles[0];
+
+    const [biolinksRes, userTagsRes] = await Promise.all([
+      fetch(
+        `${SUPABASE_URL}/rest/v1/piktag_biolinks?user_id=eq.${profile.id}&is_active=eq.true&select=platform,url,label,position&order=position.asc`,
+        {
+          headers: {
+            apikey: SUPABASE_ANON_KEY,
+            Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+          },
+        }
+      ),
+      fetch(
+        `${SUPABASE_URL}/rest/v1/piktag_user_tags?user_id=eq.${profile.id}&select=tag_id,piktag_tags(name)`,
+        {
+          headers: {
+            apikey: SUPABASE_ANON_KEY,
+            Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+          },
+        }
+      ),
+    ]);
+
+    const biolinks = await biolinksRes.json();
+    const userTags = await userTagsRes.json();
+
+    const tags = (userTags || [])
+      .map((ut) => ut.piktag_tags?.name)
+      .filter(Boolean);
+
+    const html = renderProfilePage(profile, biolinks || [], tags);
+
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.setHeader('Cache-Control', 's-maxage=300, stale-while-revalidate=600');
+    return res.status(200).send(html);
+  } catch (err) {
+    console.error('Error rendering profile:', err);
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    return res.status(500).send(notFoundPage());
+  }
+};
+
+function renderProfilePage(profile, biolinks, tags) {
+  const name = escapeHtml(profile.full_name || profile.username || 'PikTag User');
+  const username = escapeHtml(profile.username || '');
+  const bio = profile.bio ? escapeHtml(profile.bio) : '';
+  const avatarUrl =
+    profile.avatar_url ||
+    `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=f3f4f6&color=6b7280&size=200`;
+  const isVerified = profile.is_verified;
+  const ogDescription = bio || `@${username} on PikTag`;
+  const pageTitle = `${name} (@${username}) | PikTag`;
+  const pageUrl = `https://go.pikt.ag/u/${username}`;
+
+  const verifiedBadge = isVerified
+    ? '<svg viewBox="0 0 24 24" width="18" height="18" style="margin-left:4px;vertical-align:middle"><circle cx="12" cy="12" r="10" fill="#3b82f6"/><path d="M9 12l2 2 4-4" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+    : '';
+
+  const tagsHtml = tags.length > 0
+    ? `<div class="tags">${tags.map((t) => `<span class="tag">#${escapeHtml(t)}</span>`).join('')}</div>`
+    : '';
+
+  const biolinksHtml = biolinks.length > 0
+    ? biolinks
+        .map((link) => {
+          const label = escapeHtml(link.label || link.platform || 'Link');
+          const url = escapeHtml(link.url || '#');
+          const icon = getIconSvg(link.platform || 'website');
+          return `<a href="${url}" class="biolink" target="_blank" rel="noopener noreferrer">${icon}<span>${label}</span><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6M15 3h6v6M10 14L21 3"/></svg></a>`;
+        })
+        .join('')
+    : '';
+
+  return `<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>${pageTitle}</title>
+  <meta name="description" content="${escapeHtml(ogDescription)}">
+  <meta property="og:type" content="profile">
+  <meta property="og:title" content="${pageTitle}">
+  <meta property="og:description" content="${escapeHtml(ogDescription)}">
+  <meta property="og:image" content="${escapeHtml(avatarUrl)}">
+  <meta property="og:url" content="${pageUrl}">
+  <meta property="og:site_name" content="PikTag">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="${pageTitle}">
+  <meta name="twitter:description" content="${escapeHtml(ogDescription)}">
+  <meta name="twitter:image" content="${escapeHtml(avatarUrl)}">
+  <link rel="icon" href="/favicon.ico">
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:${BRAND_BG};color:#1a1a1a;min-height:100vh;display:flex;flex-direction:column;align-items:center}
+    .container{max-width:480px;width:100%;padding:40px 20px 120px;display:flex;flex-direction:column;align-items:center}
+    .logo{font-size:20px;font-weight:700;color:${BRAND_COLOR};margin-bottom:32px}
+    .avatar{width:96px;height:96px;border-radius:50%;object-fit:cover;border:3px solid ${BRAND_COLOR};margin-bottom:16px}
+    .name-row{display:flex;align-items:center;gap:2px;margin-bottom:4px}
+    .name{font-size:24px;font-weight:700;color:#111}
+    .username{font-size:15px;color:#666;margin-bottom:12px}
+    .bio{font-size:15px;color:#444;text-align:center;line-height:1.6;margin-bottom:16px;max-width:360px}
+    .tags{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin-bottom:24px}
+    .tag{background:#fff;border:1.5px solid ${BRAND_COLOR};color:#b8941f;font-size:13px;font-weight:600;padding:4px 12px;border-radius:20px}
+    .biolinks{width:100%;display:flex;flex-direction:column;gap:10px}
+    .biolink{display:flex;align-items:center;gap:12px;background:#fff;border:1.5px solid #e5e5e5;border-radius:14px;padding:14px 18px;text-decoration:none;color:#333;font-size:15px;font-weight:500;transition:all .15s}
+    .biolink:hover{border-color:${BRAND_COLOR};box-shadow:0 2px 8px rgba(232,185,49,.15)}
+    .biolink span{flex:1}
+    .biolink svg{flex-shrink:0;color:#888}
+    .biolink svg:first-child{color:${BRAND_COLOR}}
+    .banner{position:fixed;bottom:0;left:0;right:0;background:linear-gradient(135deg,${BRAND_COLOR} 0%,#d4a72a 100%);padding:16px 20px;display:flex;align-items:center;justify-content:center;gap:12px;box-shadow:0 -4px 20px rgba(0,0,0,.1);z-index:100}
+    .banner-content{display:flex;flex-direction:column;align-items:center;gap:4px}
+    .banner-title{font-size:16px;font-weight:700;color:#fff}
+    .banner-subtitle{font-size:13px;color:rgba(255,255,255,.85)}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="logo"># PikTag</div>
+    <img class="avatar" src="${escapeHtml(avatarUrl)}" alt="${name}" onerror="this.src='https://ui-avatars.com/api/?name=U&background=f3f4f6&color=6b7280&size=200'">
+    <div class="name-row">
+      <span class="name">${name}</span>
+      ${verifiedBadge}
+    </div>
+    <div class="username">@${username}</div>
+    ${bio ? `<div class="bio">${bio}</div>` : ''}
+    ${tagsHtml}
+    ${biolinksHtml ? `<div class="biolinks">${biolinksHtml}</div>` : ''}
+  </div>
+  <div class="banner">
+    <div class="banner-content">
+      <div class="banner-title">\ud83d\udcf1 \u7528 PikTag \u8a18\u4f4f\u6bcf\u500b\u91cd\u8981\u7684\u4eba</div>
+      <div class="banner-subtitle">\u5373\u5c07\u4e0a\u7dda\uff0c\u656c\u8acb\u671f\u5f85</div>
+    </div>
+  </div>
+</body>
+</html>`;
+}
+
+function notFoundPage() {
+  return `<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>\u627e\u4e0d\u5230\u4f7f\u7528\u8005 | PikTag</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:${BRAND_BG};display:flex;align-items:center;justify-content:center;min-height:100vh;text-align:center;padding:20px}
+    .logo{font-size:24px;font-weight:700;color:${BRAND_COLOR};margin-bottom:16px}
+    h1{font-size:20px;color:#333;margin-bottom:8px}
+    p{font-size:15px;color:#666;margin-bottom:24px}
+    a{color:${BRAND_COLOR};text-decoration:none;font-weight:600}
+  </style>
+</head>
+<body>
+  <div>
+    <div class="logo"># PikTag</div>
+    <h1>\u627e\u4e0d\u5230\u9019\u500b\u4f7f\u7528\u8005</h1>
+    <p>\u8acb\u78ba\u8a8d\u9023\u7d50\u662f\u5426\u6b63\u78ba</p>
+    <a href="https://go.pikt.ag">\u56de\u5230 PikTag</a>
+  </div>
+</body>
+</html>`;
+}
