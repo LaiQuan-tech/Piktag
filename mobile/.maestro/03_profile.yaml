@@ -1,0 +1,32 @@
+appId: host.exp.Exponent
+---
+# E2E Test: Profile Screen
+# Tests that profile screen loads and key elements are visible
+
+- launchApp
+
+# Login
+- tapOn:
+    text: "Email"
+- inputText: "${TEST_EMAIL}"
+- tapOn:
+    text: "Password"
+- inputText: "${TEST_PASSWORD}"
+- hideKeyboard
+- tapOn:
+    text: "Login"
+- waitForAnimationToEnd
+
+# Navigate to Profile tab
+- tapOn:
+    id: "profile-tab"
+- waitForAnimationToEnd
+
+# Verify profile screen elements
+- assertVisible:
+    text: "Profile"
+    timeout: 8000
+
+# Check Edit Profile button is present
+- assertVisible:
+    text: "Edit Profile"

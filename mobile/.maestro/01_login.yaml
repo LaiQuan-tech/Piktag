@@ -1,0 +1,30 @@
+appId: host.exp.Exponent
+---
+# E2E Test: Login Flow
+# Tests that user can successfully log in with valid credentials
+
+- launchApp
+
+# Wait for login screen to load
+- assertVisible: "PikTag"
+
+# Enter credentials
+- tapOn:
+    text: "Email"
+- inputText: "${TEST_EMAIL}"
+- tapOn:
+    text: "Password"
+- inputText: "${TEST_PASSWORD}"
+
+# Dismiss keyboard
+- hideKeyboard
+
+# Tap login button
+- tapOn:
+    text: "Login"
+
+# Wait for home screen to appear (connections tab)
+- waitForAnimationToEnd
+- assertVisible:
+    text: "Connections"
+    timeout: 10000

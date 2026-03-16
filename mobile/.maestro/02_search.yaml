@@ -1,0 +1,47 @@
+appId: host.exp.Exponent
+---
+# E2E Test: Search Flow
+# Tests search functionality and category browsing
+
+- launchApp
+
+# Login first
+- tapOn:
+    text: "Email"
+- inputText: "${TEST_EMAIL}"
+- tapOn:
+    text: "Password"
+- inputText: "${TEST_PASSWORD}"
+- hideKeyboard
+- tapOn:
+    text: "Login"
+- waitForAnimationToEnd
+
+# Navigate to Search tab
+- tapOn:
+    id: "search-tab"
+- waitForAnimationToEnd
+
+# Verify search screen loaded
+- assertVisible:
+    text: "Search"
+
+# Tap on search bar and type
+- tapOn:
+    id: "search-input"
+- inputText: "design"
+- waitForAnimationToEnd
+
+# Verify results appear (tags or profiles)
+- assertVisible:
+    text: "design"
+    timeout: 5000
+
+# Clear search
+- clearText
+- hideKeyboard
+
+# Test Popular category
+- tapOn:
+    text: "Popular"
+- waitForAnimationToEnd

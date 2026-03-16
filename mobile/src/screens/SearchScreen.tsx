@@ -25,12 +25,15 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Location from 'expo-location';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '../lib/supabase';
+import { getCache, setCache } from '../lib/dataCache';
 import { COLORS } from '../constants/theme';
 import { useAuth } from '../hooks/useAuth';
 import type { Tag, PiktagProfile } from '../types';
 
 const RECENT_SEARCHES_KEY = 'piktag_recent_searches';
 const MAX_RECENT_SEARCHES = 10;
+const CACHE_KEY_POPULAR_TAGS = 'search_popular_tags';
+const CACHE_KEY_SEARCH_QUERY = 'search_last_query';
 
 type CategoryKey = 'popular' | 'nearby' | 'verified' | 'recent' | 'nearby_tags';
 
@@ -281,6 +284,14 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
   const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const recentSearchesRef = useRef(recentSearches);
   recentSearchesRef.current = recentSearches;
+  const isMountedRef = useRef(true);
+
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
 
   // ── Data loaders (all wrapped in useCallback) ──
 
@@ -308,7 +319,15 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
   }, []);
 
   const loadPopularTags = useCallback(async () => {
-    setLoading(true);
+    const cached = getCache<Tag[]>(CACHE_KEY_POPULAR_TAGS);
+    if (cached) {
+      setTags(cached);
+      setLoading(false);
+      setInitialLoading(false);
+    } else {
+      setLoading(true);
+    }
+
     try {
       const { data, error } = await supabase
         .from('piktag_tags')
@@ -317,6 +336,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
         .limit(20);
 
       if (!error && data) {
+        setCache(CACHE_KEY_POPULAR_TAGS, data);
         setTags(data);
       }
     } catch {} finally {
@@ -366,7 +386,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
         .not('longitude', 'is', null)
         .limit(50);
 
-      if (!error && data) {
+      if (!error && data && isMountedRef.current) {
         if (location) {
           const { lat: userLat, lng: userLng } = location;
           // Sort by distance
@@ -1002,12 +1022,11 @@ const styles = StyleSheet.create({
   tagCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
     backgroundColor: COLORS.gray100,
     borderRadius: 20,
     paddingVertical: 10,
     paddingHorizontal: 14,
-    gap: 8,
+    gap: 6,
   },
   tagCardHighlighted: {
     backgroundColor: COLORS.piktag500,
@@ -1016,7 +1035,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    flex: 1,
   },
   tagName: {
     fontSize: 14,

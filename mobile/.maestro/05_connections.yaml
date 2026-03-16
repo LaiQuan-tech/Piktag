@@ -1,0 +1,30 @@
+appId: host.exp.Exponent
+---
+# E2E Test: Connections Home Screen
+# Tests that connections list loads and is interactive
+
+- launchApp
+
+# Login
+- tapOn:
+    text: "Email"
+- inputText: "${TEST_EMAIL}"
+- tapOn:
+    text: "Password"
+- inputText: "${TEST_PASSWORD}"
+- hideKeyboard
+- tapOn:
+    text: "Login"
+- waitForAnimationToEnd
+
+# Should land on Connections (Home) tab by default
+- assertVisible:
+    text: "Connections"
+    timeout: 10000
+
+# Verify no crash after loading
+- waitForAnimationToEnd
+
+# Scroll down to check list renders
+- scroll
+- waitForAnimationToEnd

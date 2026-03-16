@@ -32,7 +32,10 @@ import {
 } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { COLORS } from '../constants/theme';
+import InitialsAvatar from '../components/InitialsAvatar';
 import { supabase } from '../lib/supabase';
+import { getCache, setCache, CACHE_KEYS } from '../lib/dataCache';
+import { ConnectionsScreenSkeleton } from '../components/SkeletonLoader';
 import { useAuth } from '../hooks/useAuth';
 import * as Location from 'expo-location';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -71,8 +74,7 @@ const ConnectionItem = React.memo(({ item, isSelected, selectMode, onPress, onLo
   const displayName = item.nickname || profile?.full_name || profile?.username || 'Unknown';
   const username = profile?.username || '';
   const verified = profile?.is_verified || false;
-  const avatarUri = profile?.avatar_url
-    || `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=f3f4f6&color=6b7280`;
+  const avatarUrl = profile?.avatar_url || null;
 
   return (
     <TouchableOpacity
@@ -90,7 +92,11 @@ const ConnectionItem = React.memo(({ item, isSelected, selectMode, onPress, onLo
           )}
         </View>
       )}
-      <Image source={{ uri: avatarUri }} style={styles.avatar} />
+      {avatarUrl ? (
+        <Image source={{ uri: avatarUrl }} style={styles.avatar} />
+      ) : (
+        <InitialsAvatar name={displayName} size={56} style={styles.avatarInitials} />
+      )}
       <View style={styles.textSection}>
         <Text style={styles.name} numberOfLines={1}>{displayName}</Text>
         <View style={styles.usernameRow}>
@@ -162,16 +168,30 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
   // Location state
   const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null);
 
+  // FlatList performance: fixed item height for getItemLayout
+  // connectionItem: paddingVertical 16*2=32 + borderBottomWidth 1 = 33 overhead
+  // No tags: avatar height 56 dominates content → 33 + 56 = 89
+  // With tags row: textSection paddingTop 2 + name lineHeight 24 + usernameRow marginTop 2 + lineHeight 20 + tagsRow marginTop 6 + lineHeight 20 = 74 > 56 → 33 + 74 = 107
+  // Use maximum (items with tags) to avoid layout clipping
+  const CONNECTION_ITEM_HEIGHT = 107;
+
   // --- Optimized: single nested-select query for connections + tags ---
   const fetchConnections = useCallback(async () => {
     if (!user) return;
+
+    // Stale-while-revalidate: serve from cache instantly, then refresh in background
+    const cached = getCache<ConnectionWithTags[]>(CACHE_KEYS.CONNECTIONS);
+    if (cached) {
+      setConnections(cached);
+      setLoading(false);
+    }
 
     try {
       // Single query: connections + profiles + tags (nested select)
       const { data: connectionsData, error: connectionsError } = await supabase
         .from('piktag_connections')
         .select(`
-          id, user_id, connected_user_id, nickname, created_at, updated_at,
+          id, user_id, connected_user_id, nickname, created_at,
           met_at, birthday, anniversary, contract_expiry,
           connected_user:piktag_profiles!connected_user_id(
             id, full_name, username, avatar_url, is_verified, latitude, longitude
@@ -185,16 +205,20 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
 
       if (connectionsError) {
         console.error('Error fetching connections:', connectionsError);
-        setConnections([]);
-        setOnThisDay([]);
-        setCrmReminders([]);
+        if (!cached) {
+          setConnections([]);
+          setOnThisDay([]);
+          setCrmReminders([]);
+        }
         return;
       }
 
       if (!connectionsData || connectionsData.length === 0) {
-        setConnections([]);
-        setOnThisDay([]);
-        setCrmReminders([]);
+        if (!cached) {
+          setConnections([]);
+          setOnThisDay([]);
+          setCrmReminders([]);
+        }
         return;
       }
 
@@ -205,6 +229,7 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
           .map((ct: any) => ct.tag?.name ? `#${ct.tag.name}` : '')
           .filter(Boolean),
       }));
+      setCache(CACHE_KEYS.CONNECTIONS, merged);
       setConnections(merged);
 
       // --- Derive "On This Day" from already-fetched data (no extra query) ---
@@ -238,9 +263,11 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
       setCrmReminders(reminderResults);
     } catch (err) {
       console.error('Unexpected error fetching connections:', err);
-      setConnections([]);
-      setOnThisDay([]);
-      setCrmReminders([]);
+      if (!cached) {
+        setConnections([]);
+        setOnThisDay([]);
+        setCrmReminders([]);
+      }
     }
   }, [user, t]);
 
@@ -325,8 +352,8 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
       case 'updated':
         sorted.sort(
           (a, b) =>
-            new Date(b.updated_at || b.created_at).getTime() -
-            new Date(a.updated_at || a.created_at).getTime()
+            new Date(b.created_at).getTime() -
+            new Date(a.created_at).getTime()
         );
         break;
       case 'nearby':
@@ -508,7 +535,7 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
           {onThisDay.map((conn) => {
             const profile = conn.connected_user;
             const name = conn.nickname || profile?.full_name || profile?.username || 'Unknown';
-            const avatarUri = profile?.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=f3f4f6&color=6b7280`;
+            const avatarUrl = profile?.avatar_url || null;
             const metYear = conn.met_at ? new Date(conn.met_at).getFullYear() : '';
             const yearsAgo = metYear ? new Date().getFullYear() - (metYear as number) : 0;
             return (
@@ -518,7 +545,11 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
                 activeOpacity={0.7}
                 onPress={() => navigation.navigate('FriendDetail', { connectionId: conn.id, friendId: conn.connected_user_id })}
               >
-                <Image source={{ uri: avatarUri }} style={styles.recAvatar} />
+                {avatarUrl ? (
+                  <Image source={{ uri: avatarUrl }} style={styles.recAvatar} />
+                ) : (
+                  <InitialsAvatar name={name} size={48} />
+                )}
                 <View style={styles.recInfo}>
                   <Text style={styles.recName} numberOfLines={1}>{name}</Text>
                   <Text style={styles.recUsername}>
@@ -553,7 +584,7 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
           {crmReminders.map((conn, idx) => {
             const profile = conn.connected_user;
             const name = conn.nickname || profile?.full_name || profile?.username || 'Unknown';
-            const avatarUri = profile?.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=f3f4f6&color=6b7280`;
+            const avatarUrl = profile?.avatar_url || null;
             return (
               <TouchableOpacity
                 key={`${conn.id}-${conn.reminderType}`}
@@ -561,7 +592,11 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
                 activeOpacity={0.7}
                 onPress={() => navigation.navigate('FriendDetail', { connectionId: conn.id, friendId: conn.connected_user_id })}
               >
-                <Image source={{ uri: avatarUri }} style={styles.recAvatar} />
+                {avatarUrl ? (
+                  <Image source={{ uri: avatarUrl }} style={styles.recAvatar} />
+                ) : (
+                  <InitialsAvatar name={name} size={48} />
+                )}
                 <View style={styles.recInfo}>
                   <Text style={styles.recName} numberOfLines={1}>{name}</Text>
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 2 }}>
@@ -578,7 +613,8 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
 
     const renderRecommendation = () => {
       if (!recommendation || recDismissed || selectMode) return null;
-      const avatarUri = recommendation.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(recommendation.full_name || recommendation.username || 'U')}&background=f3f4f6&color=6b7280`;
+      const recAvatarUrl = recommendation.avatar_url || null;
+      const recDisplayName = recommendation.full_name || recommendation.username || 'U';
       return (
         <View style={styles.recCard}>
           <View style={styles.recHeader}>
@@ -595,7 +631,11 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
             activeOpacity={0.7}
             onPress={() => navigation.navigate('UserDetail', { userId: recommendation.user_id })}
           >
-            <Image source={{ uri: avatarUri }} style={styles.recAvatar} />
+            {recAvatarUrl ? (
+              <Image source={{ uri: recAvatarUrl }} style={styles.recAvatar} />
+            ) : (
+              <InitialsAvatar name={recDisplayName} size={48} />
+            )}
             <View style={styles.recInfo}>
               <View style={styles.recNameRow}>
                 <Text style={styles.recName} numberOfLines={1}>
@@ -698,10 +738,8 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
         </View>
       )}
 
-      {loading ? (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={COLORS.piktag500} />
-        </View>
+      {loading && connections.length === 0 ? (
+        <ConnectionsScreenSkeleton />
       ) : (
         <FlatList
           data={sortedConnections}
@@ -715,6 +753,11 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
           maxToRenderPerBatch={10}
           windowSize={5}
           removeClippedSubviews={true}
+          getItemLayout={(_data, index) => ({
+            length: CONNECTION_ITEM_HEIGHT,
+            offset: CONNECTION_ITEM_HEIGHT * index,
+            index,
+          })}
         />
       )}
 
@@ -914,6 +957,10 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: COLORS.gray100,
     backgroundColor: COLORS.gray100,
+  },
+  avatarInitials: {
+    borderWidth: 1,
+    borderColor: COLORS.gray100,
   },
   textSection: {
     flex: 1,

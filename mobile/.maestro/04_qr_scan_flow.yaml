@@ -1,0 +1,32 @@
+appId: host.exp.Exponent
+---
+# E2E Test: QR / Add Tag Flow
+# Tests the QR generation screen (AddTag tab)
+
+- launchApp
+
+# Login
+- tapOn:
+    text: "Email"
+- inputText: "${TEST_EMAIL}"
+- tapOn:
+    text: "Password"
+- inputText: "${TEST_PASSWORD}"
+- hideKeyboard
+- tapOn:
+    text: "Login"
+- waitForAnimationToEnd
+
+# Navigate to Add Tag (QR) tab
+- tapOn:
+    id: "add-tab"
+- waitForAnimationToEnd
+
+# Verify QR screen loaded - should show event setup form
+- assertVisible:
+    timeout: 8000
+    text: "Generate QR"
+
+# Verify back camera scan button is visible
+- assertVisible:
+    text: "Scan QR"

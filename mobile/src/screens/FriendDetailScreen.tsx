@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useReducer } from 'react';
 import {
   View,
   Text,
@@ -39,6 +39,7 @@ import {
 } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { COLORS } from '../constants/theme';
+import InitialsAvatar from '../components/InitialsAvatar';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
 import type { Connection, PiktagProfile, Note, Biolink } from '../types';
@@ -77,6 +78,49 @@ function getBiolinkIcon(type: BiolinkType) {
 
 const NOTE_COLORS = ['#FEF3C7', '#DBEAFE', '#D1FAE5', '#FCE7F3', '#EDE9FE', '#FEE2E2'];
 
+type FriendData = {
+  connection: Connection | null;
+  profile: PiktagProfile | null;
+  tags: string[];
+  notes: Note[];
+  biolinks: Biolink[];
+  mutualFriends: number;
+  mutualTags: number;
+  scanEventTags: string[];
+};
+
+const initialFriendData: FriendData = {
+  connection: null,
+  profile: null,
+  tags: [],
+  notes: [],
+  biolinks: [],
+  mutualFriends: 0,
+  mutualTags: 0,
+  scanEventTags: [],
+};
+
+type FriendDataAction =
+  | { type: 'SET_INITIAL'; payload: Partial<FriendData> }
+  | { type: 'SET_SCAN_EVENT_TAGS'; scanEventTags: string[] }
+  | { type: 'SET_MUTUAL_TAGS'; mutualTags: number }
+  | { type: 'SET_NOTES'; notes: Note[] };
+
+function friendDataReducer(state: FriendData, action: FriendDataAction): FriendData {
+  switch (action.type) {
+    case 'SET_INITIAL':
+      return { ...state, ...action.payload };
+    case 'SET_SCAN_EVENT_TAGS':
+      return { ...state, scanEventTags: action.scanEventTags };
+    case 'SET_MUTUAL_TAGS':
+      return { ...state, mutualTags: action.mutualTags };
+    case 'SET_NOTES':
+      return { ...state, notes: action.notes };
+    default:
+      return state;
+  }
+}
+
 export default function FriendDetailScreen({ navigation, route }: FriendDetailScreenProps) {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
@@ -84,14 +128,8 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
   const { connectionId, friendId } = route.params || {};
 
   const [loading, setLoading] = useState(true);
-  const [connection, setConnection] = useState<Connection | null>(null);
-  const [profile, setProfile] = useState<PiktagProfile | null>(null);
-  const [tags, setTags] = useState<string[]>([]);
-  const [notes, setNotes] = useState<Note[]>([]);
-  const [biolinks, setBiolinks] = useState<Biolink[]>([]);
-  const [mutualFriends, setMutualFriends] = useState(0);
-  const [mutualTags, setMutualTags] = useState(0);
-  const [scanEventTags, setScanEventTags] = useState<string[]>([]);
+  const [friendData, dispatchFriendData] = useReducer(friendDataReducer, initialFriendData);
+  const { connection, profile, tags, notes, biolinks, mutualFriends, mutualTags, scanEventTags } = friendData;
 
   // CRM reminder state
   const [birthday, setBirthday] = useState<string>('');
@@ -112,119 +150,124 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
     try {
       setLoading(true);
 
-      // Fetch connection details (if connectionId provided)
-      if (connectionId) {
-        const { data: connData } = await supabase
-          .from('piktag_connections')
+      // Phase 1: all independent queries in parallel
+      const [
+        connResult,
+        profileResult,
+        notesResult,
+        biolinksResult,
+        connTagsResult,
+        myConnectionsResult,
+        friendConnectionsResult,
+      ] = await Promise.all([
+        connectionId
+          ? supabase.from('piktag_connections').select('*').eq('id', connectionId).single()
+          : Promise.resolve({ data: null, error: null }),
+        supabase.from('piktag_profiles').select('*').eq('id', friendId).single(),
+        supabase
+          .from('piktag_notes')
           .select('*')
-          .eq('id', connectionId)
-          .single();
-        if (connData) {
-          setConnection(connData);
-          setBirthday(connData.birthday || '');
-          setAnniversary(connData.anniversary || '');
-          setContractExpiry(connData.contract_expiry || '');
+          .eq('user_id', user.id)
+          .eq('target_user_id', friendId)
+          .order('is_pinned', { ascending: false })
+          .order('updated_at', { ascending: false }),
+        supabase
+          .from('piktag_biolinks')
+          .select('*')
+          .eq('user_id', friendId)
+          .eq('is_active', true)
+          .order('position', { ascending: true }),
+        connectionId
+          ? supabase
+              .from('piktag_connection_tags')
+              .select('*, tag:piktag_tags!tag_id(*)')
+              .eq('connection_id', connectionId)
+          : Promise.resolve({ data: null, error: null }),
+        supabase.from('piktag_connections').select('connected_user_id').eq('user_id', user.id),
+        supabase.from('piktag_connections').select('id, connected_user_id').eq('user_id', friendId),
+      ]);
 
-          // Fetch event tags from scan session if available
-          if (connData.scan_session_id) {
-            const { data: sessionData } = await supabase
-              .from('piktag_scan_sessions')
-              .select('event_tags')
-              .eq('id', connData.scan_session_id)
-              .single();
-            if (sessionData?.event_tags) {
-              setScanEventTags(sessionData.event_tags);
+      const connData = connResult.data;
+
+      // Batch all phase-1 state into a single dispatch (1 re-render instead of 8)
+      const mutualFriendsCount = (() => {
+        if (!myConnectionsResult.data || !friendConnectionsResult.data) return 0;
+        const myFriendIds = new Set(myConnectionsResult.data.map((c: any) => c.connected_user_id));
+        return friendConnectionsResult.data.filter((c: any) =>
+          myFriendIds.has(c.connected_user_id),
+        ).length;
+      })();
+
+      dispatchFriendData({
+        type: 'SET_INITIAL',
+        payload: {
+          connection: connData ?? null,
+          profile: profileResult.data ?? null,
+          notes: notesResult.data ?? [],
+          biolinks: biolinksResult.data ?? [],
+          tags: connTagsResult.data
+            ? connTagsResult.data
+                .map((ct: any) => (ct.tag?.name ? `#${ct.tag.name}` : ''))
+                .filter(Boolean)
+            : [],
+          mutualFriends: mutualFriendsCount,
+        },
+      });
+
+      if (connData) {
+        setBirthday(connData.birthday || '');
+        setAnniversary(connData.anniversary || '');
+        setContractExpiry(connData.contract_expiry || '');
+      }
+
+      // Phase 2: queries that depend on phase 1 results (run in parallel)
+      const phase2: Promise<void>[] = [];
+
+      // Scan session tags (depends on connData.scan_session_id)
+      if (connData?.scan_session_id) {
+        phase2.push(
+          supabase
+            .from('piktag_scan_sessions')
+            .select('event_tags')
+            .eq('id', connData.scan_session_id)
+            .single()
+            .then(({ data }) => {
+              if (data?.event_tags)
+                dispatchFriendData({ type: 'SET_SCAN_EVENT_TAGS', scanEventTags: data.event_tags });
+            }),
+        );
+      }
+
+      // Mutual tags (depends on friend's connection ids from phase 1)
+      if (connectionId && friendConnectionsResult.data && friendConnectionsResult.data.length > 0) {
+        const friendConnIds = friendConnectionsResult.data.map((c: any) => c.id);
+        phase2.push(
+          Promise.all([
+            supabase
+              .from('piktag_connection_tags')
+              .select('tag_id')
+              .eq('connection_id', connectionId),
+            supabase
+              .from('piktag_connection_tags')
+              .select('tag_id')
+              .in('connection_id', friendConnIds),
+          ]).then(([myTagsResult, friendTagsResult]) => {
+            if (myTagsResult.data && friendTagsResult.data) {
+              const myTagIds = new Set(myTagsResult.data.map((t: any) => t.tag_id));
+              dispatchFriendData({
+                type: 'SET_MUTUAL_TAGS',
+                mutualTags: new Set(
+                  friendTagsResult.data
+                    .filter((t: any) => myTagIds.has(t.tag_id))
+                    .map((t: any) => t.tag_id),
+                ).size,
+              });
             }
-          }
-        }
+          }),
+        );
       }
 
-      // Fetch friend's profile
-      const { data: profileData } = await supabase
-        .from('piktag_profiles')
-        .select('*')
-        .eq('id', friendId)
-        .single();
-      if (profileData) setProfile(profileData);
-
-      // Fetch connection tags
-      if (connectionId) {
-        const { data: tagsData } = await supabase
-          .from('piktag_connection_tags')
-          .select('*, tag:piktag_tags!tag_id(*)')
-          .eq('connection_id', connectionId);
-        if (tagsData) {
-          setTags(tagsData.map((ct: any) => ct.tag?.name ? `#${ct.tag.name}` : '').filter(Boolean));
-        }
-      }
-
-      // Fetch notes
-      const { data: notesData } = await supabase
-        .from('piktag_notes')
-        .select('*')
-        .eq('user_id', user.id)
-        .eq('target_user_id', friendId)
-        .order('is_pinned', { ascending: false })
-        .order('updated_at', { ascending: false });
-      if (notesData) setNotes(notesData);
-
-      // Fetch biolinks
-      const { data: biolinksData } = await supabase
-        .from('piktag_biolinks')
-        .select('*')
-        .eq('user_id', friendId)
-        .eq('is_active', true)
-        .order('position', { ascending: true });
-      if (biolinksData) setBiolinks(biolinksData);
-
-      // Calculate mutual friends
-      // Friends of current user
-      const { data: myConnections } = await supabase
-        .from('piktag_connections')
-        .select('connected_user_id')
-        .eq('user_id', user.id);
-
-      // Friends of the friend
-      const { data: friendConnections } = await supabase
-        .from('piktag_connections')
-        .select('connected_user_id')
-        .eq('user_id', friendId);
-
-      if (myConnections && friendConnections) {
-        const myFriendIds = new Set(myConnections.map((c: any) => c.connected_user_id));
-        const mutual = friendConnections.filter((c: any) => myFriendIds.has(c.connected_user_id));
-        setMutualFriends(mutual.length);
-      }
-
-      // Calculate mutual tags
-      if (connectionId) {
-        const { data: myTags } = await supabase
-          .from('piktag_connection_tags')
-          .select('tag_id')
-          .eq('connection_id', connectionId);
-
-        // Get all tag_ids used by friend's connections
-        const { data: friendConnectionsList } = await supabase
-          .from('piktag_connections')
-          .select('id')
-          .eq('user_id', friendId);
-
-        if (myTags && friendConnectionsList && friendConnectionsList.length > 0) {
-          const friendConnIds = friendConnectionsList.map((c: any) => c.id);
-          const { data: friendTags } = await supabase
-            .from('piktag_connection_tags')
-            .select('tag_id')
-            .in('connection_id', friendConnIds);
-
-          if (friendTags) {
-            const myTagIds = new Set(myTags.map((t: any) => t.tag_id));
-            const mutualTagCount = new Set(
-              friendTags.filter((t: any) => myTagIds.has(t.tag_id)).map((t: any) => t.tag_id)
-            ).size;
-            setMutualTags(mutualTagCount);
-          }
-        }
-      }
+      if (phase2.length > 0) await Promise.all(phase2);
     } catch (err) {
       console.error('Error fetching friend data:', err);
     } finally {
@@ -261,7 +304,7 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
     }
 
     if (data) {
-      setNotes((prev) => [data, ...prev]);
+      dispatchFriendData({ type: 'SET_NOTES', notes: [data, ...notes] });
     }
     setNoteContent('');
     setNoteColor(NOTE_COLORS[0]);
@@ -289,7 +332,7 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
     }
 
     if (data) {
-      setNotes((prev) => prev.map((n) => (n.id === editingNoteId ? data : n)));
+      dispatchFriendData({ type: 'SET_NOTES', notes: notes.map((n) => (n.id === editingNoteId ? data : n)) });
     }
     setNoteContent('');
     setNoteColor(NOTE_COLORS[0]);
@@ -313,7 +356,7 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
             Alert.alert(t('common.error'), t('friendDetail.alertNoteDeleteError'));
             return;
           }
-          setNotes((prev) => prev.filter((n) => n.id !== noteId));
+          dispatchFriendData({ type: 'SET_NOTES', notes: notes.filter((n) => n.id !== noteId) });
         },
       },
     ]);
@@ -333,14 +376,15 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
     }
 
     if (data) {
-      setNotes((prev) =>
-        prev
+      dispatchFriendData({
+        type: 'SET_NOTES',
+        notes: notes
           .map((n) => (n.id === note.id ? data : n))
           .sort((a, b) => {
             if (a.is_pinned !== b.is_pinned) return a.is_pinned ? -1 : 1;
             return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime();
-          })
-      );
+          }),
+      });
     }
   };
 
@@ -461,7 +505,7 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
   const displayName = connection?.nickname || profile?.full_name || profile?.username || 'Unknown';
   const username = profile?.username || '';
   const verified = profile?.is_verified || false;
-  const avatarUri = profile?.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=f3f4f6&color=6b7280`;
+  const avatarUrl = profile?.avatar_url || null;
   const metDate = connection?.met_at || '';
   const metLocation = connection?.met_location || '';
   const connectionNote = connection?.note || '';
@@ -491,10 +535,14 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
       >
         {/* Profile Section */}
         <View style={styles.profileSection}>
-          <Image
-            source={{ uri: avatarUri }}
-            style={styles.avatar}
-          />
+          {avatarUrl ? (
+            <Image
+              source={{ uri: avatarUrl }}
+              style={styles.avatar}
+            />
+          ) : (
+            <InitialsAvatar name={displayName} size={100} style={styles.avatarInitials} />
+          )}
           <View style={styles.nameRow}>
             <Text style={styles.fullName}>{displayName}</Text>
             {verified && (
@@ -830,6 +878,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingTop: 28,
     paddingBottom: 8,
+  },
+  avatarInitials: {
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
   },
   avatar: {
     width: 100,

@@ -16,7 +16,11 @@ import { Bell, CheckCheck } from 'lucide-react-native';
 import { COLORS, SPACING } from '../constants/theme';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
+import { getCache, setCache, CACHE_KEYS } from '../lib/dataCache';
 import type { Notification } from '../types';
+import { SkeletonBox } from '../components/SkeletonLoader';
+
+const NOTIFICATION_ITEM_HEIGHT = 76;
 
 type NotificationsScreenProps = {
   navigation?: any;
@@ -134,6 +138,29 @@ const EmptyState = React.memo(function EmptyState({
   );
 });
 
+const NotificationsScreenSkeleton = React.memo(function NotificationsScreenSkeleton() {
+  return (
+    <View style={{ flex: 1, backgroundColor: '#fff' }}>
+      {/* Tab row skeleton */}
+      <View style={{ flexDirection: 'row', gap: 8, paddingHorizontal: 20, paddingVertical: 12 }}>
+        {[80, 60, 50, 50].map((w, i) => (
+          <SkeletonBox key={i} width={w} height={32} borderRadius={16} />
+        ))}
+      </View>
+      {/* 6 notification item skeletons */}
+      {Array.from({ length: 6 }).map((_, i) => (
+        <View key={i} style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, paddingVertical: 10, gap: 12 }}>
+          <SkeletonBox width={44} height={44} borderRadius={22} />
+          <View style={{ flex: 1, gap: 8 }}>
+            <SkeletonBox width="80%" height={14} borderRadius={7} />
+            <SkeletonBox width="50%" height={12} borderRadius={6} />
+          </View>
+        </View>
+      ))}
+    </View>
+  );
+});
+
 export default function NotificationsScreen({ navigation }: NotificationsScreenProps) {
   const { t } = useTranslation();
   const { user } = useAuth();
@@ -155,6 +182,16 @@ export default function NotificationsScreen({ navigation }: NotificationsScreenP
   const fetchNotifications = useCallback(async () => {
     if (!user) return;
 
+    // Show cached data immediately (stale-while-revalidate)
+    const cached = getCache<Notification[]>(CACHE_KEYS.NOTIFICATIONS);
+    if (cached) {
+      setNotifications(cached);
+      setLoading(false);
+    } else {
+      setLoading(true);
+    }
+
+    // Always fetch fresh data in the background
     try {
       const { data, error } = await supabase
         .from('piktag_notifications')
@@ -168,7 +205,10 @@ export default function NotificationsScreen({ navigation }: NotificationsScreenP
         return;
       }
 
-      setNotifications(data ?? []);
+      if (data) {
+        setCache(CACHE_KEYS.NOTIFICATIONS, data);
+        setNotifications(data);
+      }
     } catch (err) {
       console.warn('Notifications fetch error:', err);
     } finally {
@@ -292,15 +332,8 @@ export default function NotificationsScreen({ navigation }: NotificationsScreenP
     [refreshing, handleRefresh]
   );
 
-  if (loading) {
-    return (
-      <SafeAreaView style={styles.container} edges={['top']}>
-        <StatusBar barStyle="dark-content" backgroundColor={COLORS.white} />
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={COLORS.piktag500} />
-        </View>
-      </SafeAreaView>
-    );
+  if (loading && notifications.length === 0) {
+    return <NotificationsScreenSkeleton />;
   }
 
   return (
@@ -355,6 +388,11 @@ export default function NotificationsScreen({ navigation }: NotificationsScreenP
         maxToRenderPerBatch={10}
         windowSize={5}
         removeClippedSubviews={true}
+        getItemLayout={(_data, index) => ({
+          length: NOTIFICATION_ITEM_HEIGHT,
+          offset: NOTIFICATION_ITEM_HEIGHT * index,
+          index,
+        })}
       />
     </SafeAreaView>
   );

@@ -113,6 +113,7 @@ function ProfileStackNavigator() {
 function MainTabs() {
   return (
     <Tab.Navigator
+      detachInactiveScreens={true}
       screenOptions={{
         headerShown: false,
         tabBarShowLabel: false,

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -51,6 +51,7 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
   const [isEditingDate, setIsEditingDate] = useState(false);
   const [eventLocation, setEventLocation] = useState('');
   const [eventTags, setEventTags] = useState<string[]>([]);
+  const eventTagSet = useMemo(() => new Set(eventTags), [eventTags]);
   const [tagInput, setTagInput] = useState('');
 
   // Save preset
@@ -412,7 +413,7 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
         <View style={styles.section}>
           <View style={styles.popularChipsContainer}>
             {POPULAR_TAGS.soft.map((tag) => {
-              const isSelected = eventTags.includes(tag);
+              const isSelected = eventTagSet.has(tag);
               return (
                 <TouchableOpacity
                   key={tag}
@@ -438,7 +439,7 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
         <View style={styles.section}>
           <View style={styles.popularChipsContainer}>
             {POPULAR_TAGS.hard.map((tag) => {
-              const isSelected = eventTags.includes(tag);
+              const isSelected = eventTagSet.has(tag);
               return (
                 <TouchableOpacity
                   key={tag}
@@ -707,7 +708,7 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
     <View style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor={COLORS.white} />
       {mode === 'setup' ? renderSetupMode() : renderQrMode()}
-      {renderPresetsModal()}
+      {showPresetsModal && renderPresetsModal()}
     </View>
   );
 }

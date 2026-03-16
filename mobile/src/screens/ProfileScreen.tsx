@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import {
   View,
   Text,
@@ -7,7 +7,6 @@ import {
   TouchableOpacity,
   StyleSheet,
   StatusBar,
-  ActivityIndicator,
   Linking,
   RefreshControl,
 } from 'react-native';
@@ -23,9 +22,11 @@ import {
 } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { COLORS } from '../constants/theme';
+import { useFocusEffect } from '@react-navigation/native';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
 import QrCodeModal from '../components/QrCodeModal';
+import { ProfileScreenSkeleton } from '../components/SkeletonLoader';
 import type { PiktagProfile, UserTag, Biolink } from '../types';
 
 type ProfileScreenProps = {
@@ -167,13 +168,16 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
     };
   }, [fetchAllData]);
 
-  // Refetch data when navigating back from EditProfile
-  useEffect(() => {
-    const unsubscribe = navigation.addListener('focus', () => {
+  // Refetch data when navigating back from EditProfile (with 30s cooldown)
+  const lastFocusFetchRef = useRef(0);
+  useFocusEffect(
+    useCallback(() => {
+      const now = Date.now();
+      if (now - lastFocusFetchRef.current < 30000 && lastFocusFetchRef.current > 0) return;
+      lastFocusFetchRef.current = now;
       fetchAllData();
-    });
-    return unsubscribe;
-  }, [navigation, fetchAllData]);
+    }, [fetchAllData]),
+  );
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -274,25 +278,7 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
   // --- Render ---
 
   if (loading) {
-    return (
-      <SafeAreaView style={styles.container} edges={TOP_EDGES}>
-        <StatusBar barStyle="dark-content" backgroundColor={COLORS.white} />
-        <View style={styles.header}>
-          <Text style={styles.headerTitle}>{' '}</Text>
-          <View style={styles.headerRight}>
-            <TouchableOpacity style={styles.headerIconBtn} activeOpacity={0.6}>
-              <QrCode size={24} color={COLORS.gray900} />
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.headerIconBtn} activeOpacity={0.6}>
-              <Settings size={24} color={COLORS.gray900} />
-            </TouchableOpacity>
-          </View>
-        </View>
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={COLORS.piktag500} />
-        </View>
-      </SafeAreaView>
-    );
+    return <ProfileScreenSkeleton />;
   }
 
   return (
