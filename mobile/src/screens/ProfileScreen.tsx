@@ -289,13 +289,6 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
           <TouchableOpacity
             style={styles.headerIconBtn}
             activeOpacity={0.6}
-            onPress={handleOpenQr}
-          >
-            <QrCode size={24} color={COLORS.gray900} />
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.headerIconBtn}
-            activeOpacity={0.6}
             onPress={handleNavigateSettings}
           >
             <Settings size={24} color={COLORS.gray900} />
