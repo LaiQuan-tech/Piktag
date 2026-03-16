@@ -22,8 +22,6 @@ import OnboardingScreen from '../screens/auth/OnboardingScreen';
 import ConnectionsScreen from '../screens/ConnectionsScreen';
 import SearchScreen from '../screens/SearchScreen';
 import AddTagScreen from '../screens/AddTagScreen';
-import ChatListScreen from '../screens/ChatListScreen';
-import ChatDetailScreen from '../screens/ChatDetailScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import EditProfileScreen from '../screens/EditProfileScreen';
 import UserDetailScreen from '../screens/UserDetailScreen';
@@ -39,7 +37,6 @@ import NotificationsScreen from '../screens/NotificationsScreen';
 const AuthStack = createNativeStackNavigator();
 const HomeStack = createNativeStackNavigator();
 const SearchStack = createNativeStackNavigator();
-const ChatStack = createNativeStackNavigator();
 const ProfileStack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
@@ -69,15 +66,6 @@ function SearchStackNavigator() {
       <SearchStack.Screen name="SearchMain" component={SearchScreen} />
       <SearchStack.Screen name="UserDetail" component={UserDetailScreen} />
     </SearchStack.Navigator>
-  );
-}
-
-function ChatStackNavigator() {
-  return (
-    <ChatStack.Navigator screenOptions={{ headerShown: false }}>
-      <ChatStack.Screen name="ChatList" component={ChatListScreen} />
-      <ChatStack.Screen name="ChatDetail" component={ChatDetailScreen} />
-    </ChatStack.Navigator>
   );
 }
 
@@ -160,7 +148,7 @@ function MainTabs() {
       />
       <Tab.Screen
         name="LikesTab"
-        component={ChatStackNavigator}
+        component={NotificationsScreen}
         options={{
           tabBarIcon: ({ color, focused }) => (
             <Heart

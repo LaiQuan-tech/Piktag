@@ -80,36 +80,6 @@ export type Biolink = {
   created_at: string;
 };
 
-export type Conversation = {
-  id: string;
-  type: 'direct' | 'group';
-  name: string | null;
-  created_at: string;
-  updated_at: string;
-  // joined
-  participants?: ConversationParticipant[];
-  last_message?: Message;
-};
-
-export type ConversationParticipant = {
-  id: string;
-  conversation_id: string;
-  user_id: string;
-  joined_at: string;
-  user?: PiktagProfile; // joined
-};
-
-export type Message = {
-  id: string;
-  conversation_id: string;
-  sender_id: string;
-  content: string;
-  type: 'text' | 'image' | 'voice' | 'sticker';
-  is_read: boolean;
-  created_at: string;
-  sender?: PiktagProfile; // joined
-};
-
 export type Note = {
   id: string;
   user_id: string;

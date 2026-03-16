@@ -22,9 +22,6 @@ import OnboardingScreen from '../screens/auth/OnboardingScreen';
 import ConnectionsScreen from '../screens/ConnectionsScreen';
 import SearchScreen from '../screens/SearchScreen';
 import AddTagScreen from '../screens/AddTagScreen';
-// Chat screens — commented out, to be restored when chat feature is re-enabled
-// import ChatListScreen from '../screens/ChatListScreen';
-// import ChatDetailScreen from '../screens/ChatDetailScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import EditProfileScreen from '../screens/EditProfileScreen';
 import UserDetailScreen from '../screens/UserDetailScreen';
@@ -44,7 +41,6 @@ import TagDetailScreen from '../screens/TagDetailScreen';
 const AuthStack = createNativeStackNavigator();
 const HomeStack = createNativeStackNavigator();
 const SearchStack = createNativeStackNavigator();
-// const ChatStack = createNativeStackNavigator(); // Chat — commented out
 const AddTagStack = createNativeStackNavigator();
 const NotificationStack = createNativeStackNavigator();
 const ProfileStack = createNativeStackNavigator();
@@ -81,16 +77,6 @@ function SearchStackNavigator() {
     </SearchStack.Navigator>
   );
 }
-
-// Chat stack — commented out, to be restored when chat feature is re-enabled
-// function ChatStackNavigator() {
-//   return (
-//     <ChatStack.Navigator screenOptions={{ headerShown: false }}>
-//       <ChatStack.Screen name="ChatList" component={ChatListScreen} />
-//       <ChatStack.Screen name="ChatDetail" component={ChatDetailScreen} />
-//     </ChatStack.Navigator>
-//   );
-// }
 
 function AddTagStackNavigator() {
   return (

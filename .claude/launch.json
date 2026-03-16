@@ -2,9 +2,9 @@
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "piktag-mobile-dev",
-      "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev"],
+      "name": "piktag-dev",
+      "runtimeExecutable": "/bin/bash",
+      "runtimeArgs": ["/Users/cataholic/.gemini/File/PikTag-mobile/.claude/start-dev.sh"],
       "port": 3000
     }
   ]

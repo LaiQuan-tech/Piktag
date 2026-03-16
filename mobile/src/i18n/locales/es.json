@@ -19,8 +19,7 @@
     "noTags": "No tags yet",
     "email": "Email",
     "phone": "Phone",
-    "comingSoonTitle": "Coming Soon",
-    "comingSoonChat": "Chat feature is coming soon, stay tuned!"
+    "comingSoonTitle": "Coming Soon"
   },
   "auth": {
     "login": {

@@ -19,8 +19,7 @@
     "noTags": "尚無標籤",
     "email": "E-mail",
     "phone": "電話",
-    "comingSoonTitle": "即將推出",
-    "comingSoonChat": "聊天功能即將上線，敬請期待！"
+    "comingSoonTitle": "即將推出"
   },
   "auth": {
     "login": {
