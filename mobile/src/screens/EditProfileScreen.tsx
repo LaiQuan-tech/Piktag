@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -15,12 +15,12 @@ import {
   Modal,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ArrowLeft, Plus, Pencil, Trash2, X } from 'lucide-react-native';
+import { ArrowLeft, Plus, Pencil, Trash2, X, Hash, EyeOff, Eye } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { COLORS } from '../constants/theme';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
-import type { Biolink } from '../types';
+import type { Biolink, Tag, UserTag } from '../types';
 
 type EditProfileScreenProps = {
   navigation: any;
@@ -39,6 +39,98 @@ type BiolinkFormData = {
   url: string;
   label: string;
 };
+
+// ── Memoized tag sub-components ─────────────────────────────────────────────
+
+type MyTagChipProps = {
+  userTag: UserTag & { tag?: Tag };
+  displayName: string;
+  isRemoving: boolean;
+  onRemove: (userTag: UserTag & { tag?: Tag }) => void;
+};
+
+const MyTagChip = React.memo(function MyTagChip({
+  userTag,
+  displayName,
+  isRemoving,
+  onRemove,
+}: MyTagChipProps) {
+  const handlePress = useCallback(() => {
+    onRemove(userTag);
+  }, [onRemove, userTag]);
+
+  return (
+    <View
+      style={[
+        styles.tag_myTagChip,
+        (userTag as any).is_private && styles.tag_myTagChipPrivate,
+      ]}
+    >
+      {(userTag as any).is_private && (
+        <EyeOff size={12} color={COLORS.gray500} />
+      )}
+      <Text style={styles.tag_myTagChipText}>{displayName}</Text>
+      <TouchableOpacity
+        onPress={handlePress}
+        style={styles.tag_chipRemoveBtn}
+        activeOpacity={0.6}
+        disabled={isRemoving}
+      >
+        {isRemoving ? (
+          <ActivityIndicator size={14} color={COLORS.piktag600} />
+        ) : (
+          <X size={14} color={COLORS.piktag600} />
+        )}
+      </TouchableOpacity>
+    </View>
+  );
+});
+
+type PopularTagChipProps = {
+  tag: Tag;
+  isAdded: boolean;
+  isDisabled: boolean;
+  onPress: (tag: Tag) => void;
+};
+
+const PopularTagChip = React.memo(function PopularTagChip({
+  tag,
+  isAdded,
+  isDisabled,
+  onPress,
+}: PopularTagChipProps) {
+  const displayName = useMemo(
+    () => (tag.name.startsWith('#') ? tag.name : `#${tag.name}`),
+    [tag.name],
+  );
+
+  const handlePress = useCallback(() => {
+    onPress(tag);
+  }, [onPress, tag]);
+
+  return (
+    <TouchableOpacity
+      style={[
+        styles.tag_popularTagChip,
+        isAdded && styles.tag_popularTagChipAdded,
+      ]}
+      onPress={handlePress}
+      activeOpacity={0.7}
+      disabled={isAdded || isDisabled}
+    >
+      <Text
+        style={[
+          styles.tag_popularTagChipText,
+          isAdded && styles.tag_popularTagChipTextAdded,
+        ]}
+      >
+        {displayName}
+      </Text>
+    </TouchableOpacity>
+  );
+});
+
+// ── Main screen ──────────────────────────────────────────────────────────────
 
 export default function EditProfileScreen({ navigation }: EditProfileScreenProps) {
   const { t } = useTranslation();
@@ -67,6 +159,15 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
     label: '',
   });
   const [savingBiolink, setSavingBiolink] = useState(false);
+
+  // Tags state
+  const [userTags, setUserTags] = useState<(UserTag & { tag?: Tag })[]>([]);
+  const [popularTags, setPopularTags] = useState<Tag[]>([]);
+  const [tagInput, setTagInput] = useState('');
+  const [addingTag, setAddingTag] = useState(false);
+  const [removingTagId, setRemovingTagId] = useState<string | null>(null);
+  const [isTagPrivate, setIsTagPrivate] = useState(false);
+  const [tagsLoading, setTagsLoading] = useState(false);
 
   const fetchProfile = useCallback(async () => {
     if (!userId) return;
@@ -103,18 +204,62 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
     }
   }, [userId]);
 
+  const fetchUserTags = useCallback(async () => {
+    if (!userId) return;
+    try {
+      const { data, error } = await supabase
+        .from('piktag_user_tags')
+        .select('*, tag:piktag_tags(*)')
+        .eq('user_id', userId)
+        .order('position');
+
+      if (error) {
+        console.warn('[EditProfileScreen] fetchUserTags error:', error.message);
+      }
+      if (!error && data) {
+        setUserTags(data);
+      }
+    } catch (err) {
+      console.warn('[EditProfileScreen] fetchUserTags exception:', err);
+    }
+  }, [userId]);
+
+  const fetchPopularTags = useCallback(async () => {
+    try {
+      const { data, error } = await supabase
+        .from('piktag_tags')
+        .select('*')
+        .order('usage_count', { ascending: false })
+        .limit(12);
+
+      if (error) {
+        console.warn('[EditProfileScreen] fetchPopularTags error:', error.message);
+      }
+      if (!error && data) {
+        setPopularTags(data);
+      }
+    } catch (err) {
+      console.warn('[EditProfileScreen] fetchPopularTags exception:', err);
+    }
+  }, []);
+
   useEffect(() => {
     let isMounted = true;
     const load = async () => {
       setLoading(true);
-      await Promise.all([fetchProfile(), fetchBiolinks()]);
+      await Promise.all([
+        fetchProfile(),
+        fetchBiolinks(),
+        fetchUserTags(),
+        fetchPopularTags(),
+      ]);
       if (isMounted) setLoading(false);
     };
     load();
     return () => {
       isMounted = false;
     };
-  }, [fetchProfile, fetchBiolinks]);
+  }, [fetchProfile, fetchBiolinks, fetchUserTags, fetchPopularTags]);
 
   const updateField = (field: keyof FormData, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -262,6 +407,225 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
       ]
     );
   };
+
+  // --- Tag CRUD (immediate save, not tied to form save) ---
+
+  const userTagNames = useMemo(
+    () =>
+      userTags.map((ut) => {
+        const name = ut.tag?.name ?? '';
+        return name.startsWith('#') ? name : `#${name}`;
+      }),
+    [userTags],
+  );
+
+  const getTagDisplayName = useCallback(
+    (userTag: UserTag & { tag?: Tag }) => {
+      const name = userTag.tag?.name ?? '';
+      return name.startsWith('#') ? name : `#${name}`;
+    },
+    [],
+  );
+
+  const handleAddTag = useCallback(async () => {
+    if (!userId) return;
+    const trimmed = tagInput.trim();
+    if (!trimmed) return;
+
+    // Normalize: remove leading # for DB storage, keep for display comparison
+    const rawName = trimmed.startsWith('#') ? trimmed.slice(1) : trimmed;
+    const displayName = `#${rawName}`;
+
+    if (userTagNames.includes(displayName)) {
+      Alert.alert(t('manageTags.alertTagExists'), t('manageTags.alertTagExistsMessage'));
+      return;
+    }
+
+    setAddingTag(true);
+    try {
+      // 1. Check if tag exists
+      let tagId: string;
+      const { data: existingTag, error: findError } = await supabase
+        .from('piktag_tags')
+        .select('id')
+        .eq('name', rawName)
+        .single();
+
+      if (findError) {
+        console.warn('[EditProfileScreen] handleAddTag findError:', findError.message);
+      }
+
+      if (existingTag && !findError) {
+        tagId = existingTag.id;
+      } else {
+        // 2. Create new tag
+        const { data: newTag, error: createError } = await supabase
+          .from('piktag_tags')
+          .insert({ name: rawName })
+          .select('id')
+          .single();
+
+        if (createError || !newTag) {
+          console.warn('[EditProfileScreen] handleAddTag createError:', createError?.message);
+          Alert.alert(t('common.error'), t('manageTags.alertAddError'));
+          setAddingTag(false);
+          return;
+        }
+        tagId = newTag.id;
+      }
+
+      // 3. Calculate next position
+      const nextPosition = userTags.length;
+
+      // 4. Link tag to user
+      const { error: linkError } = await supabase
+        .from('piktag_user_tags')
+        .insert({
+          user_id: userId,
+          tag_id: tagId,
+          position: nextPosition,
+          is_private: isTagPrivate,
+        });
+
+      if (linkError) {
+        console.warn('[EditProfileScreen] handleAddTag linkError:', linkError.message);
+        Alert.alert(t('common.error'), t('manageTags.alertAddError'));
+        setAddingTag(false);
+        return;
+      }
+
+      // 5. Increment usage_count via RPC, fallback to direct update
+      await supabase
+        .from('piktag_tags')
+        .update({ usage_count: 1 })
+        .eq('id', tagId);
+
+      await supabase.rpc('increment_tag_usage', { tag_id: tagId }).catch((err) => {
+        console.warn('[EditProfileScreen] increment_tag_usage RPC fallback:', err);
+      });
+
+      // Reload tags
+      setTagInput('');
+      setIsTagPrivate(false);
+      await Promise.all([fetchUserTags(), fetchPopularTags()]);
+    } catch (err) {
+      console.warn('[EditProfileScreen] handleAddTag exception:', err);
+      Alert.alert(t('common.error'), t('manageTags.alertAddError'));
+    } finally {
+      setAddingTag(false);
+    }
+  }, [userId, tagInput, userTagNames, userTags.length, isTagPrivate, t, fetchUserTags, fetchPopularTags]);
+
+  const handleRemoveTag = useCallback(
+    async (userTag: UserTag & { tag?: Tag }) => {
+      if (!userId) return;
+      setRemovingTagId(userTag.id);
+
+      try {
+        // 1. Delete from piktag_user_tags
+        const { error: deleteError } = await supabase
+          .from('piktag_user_tags')
+          .delete()
+          .eq('id', userTag.id);
+
+        if (deleteError) {
+          console.warn('[EditProfileScreen] handleRemoveTag deleteError:', deleteError.message);
+          Alert.alert(t('common.error'), t('manageTags.alertRemoveError'));
+          setRemovingTagId(null);
+          return;
+        }
+
+        // 2. Decrement usage_count on piktag_tags
+        if (userTag.tag_id) {
+          await supabase
+            .rpc('decrement_tag_usage', { tag_id: userTag.tag_id })
+            .catch(async (err) => {
+              console.warn('[EditProfileScreen] decrement_tag_usage RPC fallback:', err);
+              try {
+                const { data: tagData } = await supabase
+                  .from('piktag_tags')
+                  .select('usage_count')
+                  .eq('id', userTag.tag_id)
+                  .single();
+
+                if (tagData && tagData.usage_count > 0) {
+                  await supabase
+                    .from('piktag_tags')
+                    .update({ usage_count: tagData.usage_count - 1 })
+                    .eq('id', userTag.tag_id);
+                }
+              } catch (fallbackErr) {
+                console.warn('[EditProfileScreen] decrement fallback exception:', fallbackErr);
+              }
+            });
+        }
+
+        // Reload tags
+        await Promise.all([fetchUserTags(), fetchPopularTags()]);
+      } catch (err) {
+        console.warn('[EditProfileScreen] handleRemoveTag exception:', err);
+        Alert.alert(t('common.error'), t('manageTags.alertRemoveError'));
+      } finally {
+        setRemovingTagId(null);
+      }
+    },
+    [userId, t, fetchUserTags, fetchPopularTags],
+  );
+
+  const handleAddPopularTag = useCallback(
+    async (tag: Tag) => {
+      if (!userId) return;
+      const displayName = tag.name.startsWith('#') ? tag.name : `#${tag.name}`;
+      if (userTagNames.includes(displayName)) return;
+
+      setAddingTag(true);
+      try {
+        const nextPosition = userTags.length;
+
+        const { error: linkError } = await supabase
+          .from('piktag_user_tags')
+          .insert({
+            user_id: userId,
+            tag_id: tag.id,
+            position: nextPosition,
+          });
+
+        if (linkError) {
+          console.warn('[EditProfileScreen] handleAddPopularTag linkError:', linkError.message);
+          Alert.alert(t('common.error'), t('manageTags.alertAddError'));
+          setAddingTag(false);
+          return;
+        }
+
+        // Increment usage_count
+        await supabase
+          .rpc('increment_tag_usage', { tag_id: tag.id })
+          .catch(async (err) => {
+            console.warn('[EditProfileScreen] increment_tag_usage RPC fallback:', err);
+            try {
+              await supabase
+                .from('piktag_tags')
+                .update({ usage_count: (tag.usage_count || 0) + 1 })
+                .eq('id', tag.id);
+            } catch (fallbackErr) {
+              console.warn('[EditProfileScreen] increment fallback exception:', fallbackErr);
+            }
+          });
+
+        await Promise.all([fetchUserTags(), fetchPopularTags()]);
+      } catch (err) {
+        console.warn('[EditProfileScreen] handleAddPopularTag exception:', err);
+        Alert.alert(t('common.error'), t('manageTags.alertAddError'));
+      } finally {
+        setAddingTag(false);
+      }
+    },
+    [userId, userTagNames, userTags.length, t, fetchUserTags, fetchPopularTags],
+  );
+
+  const toggleTagPrivacy = useCallback(() => {
+    setIsTagPrivate((prev) => !prev);
+  }, []);
 
   if (loading) {
     return (
@@ -447,6 +811,100 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
               <Plus size={20} color={COLORS.piktag600} />
               <Text style={styles.addBiolinkText}>{t('editProfile.addLink')}</Text>
             </TouchableOpacity>
+          </View>
+
+          {/* Tags Section */}
+          <View style={styles.tag_divider} />
+
+          {/* My Tags */}
+          <View style={styles.tag_section}>
+            <Text style={styles.sectionTitle}>{t('manageTags.myTagsTitle')}</Text>
+            {userTags.length === 0 ? (
+              <Text style={styles.emptyText}>{t('manageTags.noTagsYet')}</Text>
+            ) : (
+              <View style={styles.tag_chipsContainer}>
+                {userTags.map((userTag) => (
+                  <MyTagChip
+                    key={userTag.id}
+                    userTag={userTag}
+                    displayName={getTagDisplayName(userTag)}
+                    isRemoving={removingTagId === userTag.id}
+                    onRemove={handleRemoveTag}
+                  />
+                ))}
+              </View>
+            )}
+          </View>
+
+          {/* Add Tag Input */}
+          <View style={styles.tag_section}>
+            <Text style={styles.sectionTitle}>{t('manageTags.addTagTitle')}</Text>
+            <View style={styles.tag_inputRow}>
+              <Hash size={20} color={COLORS.gray400} style={styles.tag_inputIcon} />
+              <TextInput
+                style={styles.tag_textInput}
+                placeholder={t('manageTags.tagInputPlaceholder')}
+                placeholderTextColor={COLORS.gray400}
+                value={tagInput}
+                onChangeText={setTagInput}
+                returnKeyType="done"
+                onSubmitEditing={handleAddTag}
+                editable={!addingTag}
+              />
+            </View>
+            <TouchableOpacity
+              style={styles.tag_privacyToggle}
+              activeOpacity={0.7}
+              onPress={toggleTagPrivacy}
+            >
+              {isTagPrivate ? (
+                <EyeOff size={18} color={COLORS.piktag600} />
+              ) : (
+                <Eye size={18} color={COLORS.gray400} />
+              )}
+              <Text style={[styles.tag_privacyText, isTagPrivate && styles.tag_privacyTextActive]}>
+                {isTagPrivate ? t('manageTags.privacyPrivate') : t('manageTags.privacyPublic')}
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.tag_addButton, addingTag && styles.tag_addButtonDisabled]}
+              onPress={handleAddTag}
+              activeOpacity={0.8}
+              disabled={addingTag}
+            >
+              {addingTag ? (
+                <ActivityIndicator size={18} color={COLORS.gray900} />
+              ) : (
+                <Text style={styles.tag_addButtonText}>{t('manageTags.addButton')}</Text>
+              )}
+            </TouchableOpacity>
+          </View>
+
+          {/* Popular Tags */}
+          <View style={styles.tag_divider} />
+
+          <View style={styles.tag_section}>
+            <Text style={styles.sectionTitle}>{t('manageTags.popularTagsTitle')}</Text>
+            <View style={styles.tag_chipsContainer}>
+              {popularTags.map((tag) => {
+                const displayName = tag.name.startsWith('#')
+                  ? tag.name
+                  : `#${tag.name}`;
+                const isAdded = userTagNames.includes(displayName);
+                return (
+                  <PopularTagChip
+                    key={tag.id}
+                    tag={tag}
+                    isAdded={isAdded}
+                    isDisabled={addingTag}
+                    onPress={handleAddPopularTag}
+                  />
+                );
+              })}
+              {popularTags.length === 0 && (
+                <Text style={styles.emptyText}>{t('manageTags.noPopularTags')}</Text>
+              )}
+            </View>
           </View>
 
           {/* Save Button */}
@@ -766,6 +1224,112 @@ const styles = StyleSheet.create({
   modalSaveBtnText: {
     fontSize: 17,
     fontWeight: '700',
+    color: COLORS.gray900,
+  },
+  // Tag styles (prefixed with tag_ to avoid conflicts)
+  tag_section: {
+    paddingHorizontal: 20,
+    paddingTop: 24,
+  },
+  tag_divider: {
+    height: 1,
+    backgroundColor: COLORS.gray100,
+    marginHorizontal: 20,
+    marginTop: 24,
+  },
+  tag_chipsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+  },
+  tag_myTagChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.piktag50,
+    borderRadius: 9999,
+    paddingVertical: 8,
+    paddingLeft: 14,
+    paddingRight: 10,
+    gap: 6,
+  },
+  tag_myTagChipPrivate: {
+    backgroundColor: COLORS.gray100,
+    borderWidth: 1,
+    borderColor: COLORS.gray200,
+    borderStyle: 'dashed',
+  },
+  tag_myTagChipText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: COLORS.piktag600,
+  },
+  tag_chipRemoveBtn: {
+    padding: 2,
+  },
+  tag_inputRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.gray100,
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    height: 48,
+  },
+  tag_inputIcon: {
+    marginRight: 10,
+  },
+  tag_textInput: {
+    flex: 1,
+    fontSize: 16,
+    color: COLORS.gray900,
+    padding: 0,
+  },
+  tag_privacyToggle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginTop: 12,
+    paddingVertical: 4,
+  },
+  tag_privacyText: {
+    fontSize: 14,
+    color: COLORS.gray400,
+  },
+  tag_privacyTextActive: {
+    color: COLORS.piktag600,
+    fontWeight: '500',
+  },
+  tag_addButton: {
+    backgroundColor: COLORS.piktag500,
+    borderRadius: 14,
+    paddingVertical: 14,
+    alignItems: 'center',
+    marginTop: 14,
+  },
+  tag_addButtonDisabled: {
+    opacity: 0.7,
+  },
+  tag_addButtonText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: COLORS.gray900,
+  },
+  tag_popularTagChip: {
+    borderWidth: 1,
+    borderColor: COLORS.gray200,
+    borderRadius: 9999,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+  },
+  tag_popularTagChipAdded: {
+    backgroundColor: COLORS.piktag500,
+    borderColor: COLORS.piktag500,
+  },
+  tag_popularTagChipText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: COLORS.gray700,
+  },
+  tag_popularTagChipTextAdded: {
     color: COLORS.gray900,
   },
 });

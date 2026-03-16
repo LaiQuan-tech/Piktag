@@ -18,7 +18,6 @@ import {
   Phone,
   Mail,
   Link,
-  Tag,
 } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { COLORS } from '../constants/theme';
@@ -254,10 +253,6 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
     navigation.navigate('EditProfile');
   }, [navigation]);
 
-  const handleNavigateManageTags = useCallback(() => {
-    navigation.navigate('ManageTags');
-  }, [navigation]);
-
   const handleCallPhone = useCallback(() => {
     if (profile?.phone) {
       Linking.openURL(`tel:${profile.phone}`).catch(() => {});
@@ -395,16 +390,6 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
             <Text style={styles.editButtonText}>{t('profile.editProfile')}</Text>
           </TouchableOpacity>
         </View>
-
-        {/* Manage Tags Button */}
-        <TouchableOpacity
-          style={styles.manageTagsButton}
-          activeOpacity={0.7}
-          onPress={handleNavigateManageTags}
-        >
-          <Tag size={18} color={COLORS.piktag600} />
-          <Text style={styles.manageTagsText}>{t('profile.manageTags')}</Text>
-        </TouchableOpacity>
 
         {/* Contact buttons */}
         <View style={styles.contactSection}>
@@ -608,22 +593,6 @@ const styles = StyleSheet.create({
     height: 24,
     borderRadius: 4,
     backgroundColor: COLORS.gray100,
-  },
-  manageTagsButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: COLORS.gray200,
-    borderRadius: 12,
-    paddingVertical: 12,
-    gap: 8,
-    marginBottom: 20,
-  },
-  manageTagsText: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: COLORS.piktag600,
   },
   emptyText: {
     fontSize: 14,

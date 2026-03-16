@@ -34,7 +34,6 @@ import SocialStatsScreen from '../screens/SocialStatsScreen';
 import NotificationsScreen from '../screens/NotificationsScreen';
 import ScanResultScreen from '../screens/ScanResultScreen';
 import CameraScanScreen from '../screens/CameraScanScreen';
-import ManageTagsScreen from '../screens/ManageTagsScreen';
 import TagDetailScreen from '../screens/TagDetailScreen';
 
 // Stack Navigators
@@ -105,7 +104,6 @@ function ProfileStackNavigator() {
       <ProfileStack.Screen name="Invite" component={InviteScreen} />
       <ProfileStack.Screen name="LocationContacts" component={LocationContactsScreen} />
       <ProfileStack.Screen name="SocialStats" component={SocialStatsScreen} />
-      <ProfileStack.Screen name="ManageTags" component={ManageTagsScreen} />
     </ProfileStack.Navigator>
   );
 }
