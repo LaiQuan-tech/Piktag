@@ -1520,8 +1520,10 @@ const styles = StyleSheet.create({
   newLinkForm: {
     backgroundColor: '#F9FAFB',
     borderRadius: 12,
-    padding: 12,
-    gap: 10,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    padding: 14,
+    gap: 12,
   },
   newLinkHeader: {
     flexDirection: 'row',
@@ -1536,8 +1538,8 @@ const styles = StyleSheet.create({
   },
   newLinkActions: {
     flexDirection: 'row',
-    justifyContent: 'flex-end',
-    gap: 12,
+    justifyContent: 'space-between',
+    alignItems: 'center',
     marginTop: 4,
   },
   cancelBtn: {
