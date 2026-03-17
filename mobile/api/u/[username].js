@@ -43,7 +43,7 @@ module.exports = async function handler(req, res) {
 
   try {
     const profileRes = await fetch(
-      `${SUPABASE_URL}/rest/v1/piktag_profiles?username=eq.${encodeURIComponent(usernameStr)}&select=id,username,full_name,avatar_url,bio,is_verified,website,location`,
+      `${SUPABASE_URL}/rest/v1/piktag_profiles?username=eq.${encodeURIComponent(usernameStr)}&select=id,username,full_name,avatar_url,bio,is_verified,is_public,website,location`,
       {
         headers: {
           apikey: SUPABASE_ANON_KEY,
@@ -88,7 +88,7 @@ module.exports = async function handler(req, res) {
       .map((ut) => ut.piktag_tags?.name)
       .filter(Boolean);
 
-    const html = renderProfilePage(profile, biolinks || [], tags);
+    const html = renderProfilePage(profile, profile.is_public !== false ? (biolinks || []) : null, tags);
 
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
     res.setHeader('Cache-Control', 's-maxage=300, stale-while-revalidate=600');
@@ -120,16 +120,18 @@ function renderProfilePage(profile, biolinks, tags) {
     ? `<div class="tags">${tags.map((t) => `<span class="tag">#${escapeHtml(t)}</span>`).join('')}</div>`
     : '';
 
-  const biolinksHtml = biolinks.length > 0
-    ? biolinks
-        .map((link) => {
-          const label = escapeHtml(link.label || link.platform || 'Link');
-          const url = escapeHtml(link.url || '#');
-          const icon = getIconSvg(link.platform || 'website');
-          return `<a href="${url}" class="biolink" target="_blank" rel="noopener noreferrer">${icon}<span>${label}</span><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6M15 3h6v6M10 14L21 3"/></svg></a>`;
-        })
-        .join('')
-    : '';
+  const biolinksHtml = biolinks === null
+    ? `<div class="private-notice"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg><span>此用戶的聯絡資訊不公開</span></div>`
+    : biolinks.length > 0
+      ? biolinks
+          .map((link) => {
+            const label = escapeHtml(link.label || link.platform || 'Link');
+            const url = escapeHtml(link.url || '#');
+            const icon = getIconSvg(link.platform || 'website');
+            return `<a href="${url}" class="biolink" target="_blank" rel="noopener noreferrer">${icon}<span>${label}</span><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6M15 3h6v6M10 14L21 3"/></svg></a>`;
+          })
+          .join('')
+      : '';
 
   return `<!DOCTYPE html>
 <html lang="zh-TW">
@@ -167,6 +169,7 @@ function renderProfilePage(profile, biolinks, tags) {
     .biolink span{flex:1}
     .biolink svg{flex-shrink:0;color:#888}
     .biolink svg:first-child{color:${BRAND_COLOR}}
+    .private-notice{display:flex;align-items:center;gap:8px;background:#f9fafb;border:1.5px solid #e5e7eb;border-radius:12px;padding:14px 18px;color:#6b7280;font-size:14px;font-weight:500;width:100%}
     .banner{position:fixed;bottom:0;left:0;right:0;background:linear-gradient(135deg,${BRAND_COLOR} 0%,#d4a72a 100%);padding:16px 20px;display:flex;align-items:center;justify-content:center;gap:12px;box-shadow:0 -4px 20px rgba(0,0,0,.1);z-index:100}
     .banner-content{display:flex;flex-direction:column;align-items:center;gap:4px}
     .banner-title{font-size:16px;font-weight:700;color:#fff}
