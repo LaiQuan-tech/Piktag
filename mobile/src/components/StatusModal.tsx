@@ -106,7 +106,7 @@ export default function StatusModal({
           {/* Handle bar */}
           <View style={styles.handleBar} />
 
-          <Text style={styles.title}>{'我的狀態'}</Text>
+          <Text style={styles.title}>{'分享近況'}</Text>
 
           <TextInput
             style={styles.input}
