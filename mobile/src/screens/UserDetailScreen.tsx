@@ -16,7 +16,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import {
   ArrowLeft,
   CheckCircle2,
-
+  Lock,
   Link as LinkIcon,
   ExternalLink,
 } from 'lucide-react-native';
@@ -47,6 +47,7 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
   const [mutualTags, setMutualTags] = useState(0);
   const [isFollowing, setIsFollowing] = useState(false);
   const [followLoading, setFollowLoading] = useState(false);
+  const [isFriend, setIsFriend] = useState(false);
 
   const fetchData = useCallback(async () => {
     if (!authUser) return;
@@ -126,6 +127,16 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
         const mutual = theirConnections.filter((c: any) => myFriendIds.has(c.connected_user_id));
         setMutualFriends(mutual.length);
       }
+
+      // Check if authUser and userId are directly connected
+      const { data: connectionData } = await supabase
+        .from('piktag_connections')
+        .select('id')
+        .or(
+          `and(user_id.eq.${authUser.id},connected_user_id.eq.${userId}),and(user_id.eq.${userId},connected_user_id.eq.${authUser.id})`
+        )
+        .maybeSingle();
+      setIsFriend(!!connectionData);
 
       // Calculate mutual tags
       const { data: myUserTags } = await supabase
@@ -355,7 +366,18 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
         </View>
 
         {/* Biolinks Section */}
-        {biolinks.length > 0 && (
+        {(!profile.is_public && !isFriend) ? (
+          <View style={styles.biolinksSection}>
+            <Text style={styles.sectionTitle}>{t('userDetail.socialLinksTitle')}</Text>
+            <View style={styles.privateBiolinkCard}>
+              <Lock size={20} color={COLORS.gray400} />
+              <View style={{ flex: 1 }}>
+                <Text style={styles.privateBiolinkTitle}>聯絡資訊不公開</Text>
+                <Text style={styles.privateBiolinkDesc}>加為好友後即可查看</Text>
+              </View>
+            </View>
+          </View>
+        ) : biolinks.length > 0 ? (
           <View style={styles.biolinksSection}>
             <Text style={styles.sectionTitle}>{t('userDetail.socialLinksTitle')}</Text>
             {biolinks.map((link) => (
@@ -376,7 +398,7 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
               </TouchableOpacity>
             ))}
           </View>
-        )}
+        ) : null}
 
         {/* All Tags Section */}
         {tags.length > 0 && (
@@ -577,6 +599,26 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: COLORS.gray500,
     marginTop: 2,
+  },
+  privateBiolinkCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    backgroundColor: '#F9FAFB',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    padding: 16,
+  },
+  privateBiolinkTitle: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#374151',
+    marginBottom: 2,
+  },
+  privateBiolinkDesc: {
+    fontSize: 13,
+    color: '#9CA3AF',
   },
   allTagsSection: {
     paddingHorizontal: 20,
