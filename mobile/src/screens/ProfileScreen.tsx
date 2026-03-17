@@ -333,9 +333,17 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
           />
         }
       >
-        {/* Profile section: username left, avatar right */}
+        {/* Profile section: avatar left, info right (Instagram style) */}
         <View style={styles.profileRow}>
-          <View style={styles.profileLeft}>
+          <TouchableOpacity onPress={() => setStatusModalVisible(true)} activeOpacity={0.8}>
+            <View style={[styles.avatarWrapper, currentStatus ? styles.avatarRing : null]}>
+              <Image
+                source={avatarSource}
+                style={styles.avatar}
+              />
+            </View>
+          </TouchableOpacity>
+          <View style={styles.profileRight}>
             <View style={styles.usernameRow}>
               <Text style={styles.usernameText}>
                 {displayUsername}
@@ -350,15 +358,10 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
                 />
               )}
             </View>
+            <Text style={styles.friendCount}>
+              {formattedFollowerCount}{t('profile.friendCountSuffix')}
+            </Text>
           </View>
-          <TouchableOpacity onPress={() => setStatusModalVisible(true)} activeOpacity={0.8}>
-            <View style={[styles.avatarWrapper, currentStatus ? styles.avatarRing : null]}>
-              <Image
-                source={avatarSource}
-                style={styles.avatar}
-              />
-            </View>
-          </TouchableOpacity>
         </View>
 
         {/* Bio */}
@@ -381,11 +384,6 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
             <Text style={styles.emptyText}>{t('profile.noTags')}</Text>
           )}
         </View>
-
-        {/* Friend count */}
-        <Text style={styles.friendCount}>
-          {formattedFollowerCount}{t('profile.friendCountSuffix')}
-        </Text>
 
         {/* Two action buttons side by side */}
         <View style={styles.actionButtonsRow}>
@@ -502,12 +500,13 @@ const styles = StyleSheet.create({
   profileRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
     marginBottom: 16,
+    gap: 16,
   },
-  profileLeft: {
+  profileRight: {
     flex: 1,
-    marginRight: 16,
+    justifyContent: 'center',
+    gap: 6,
   },
   usernameRow: {
     flexDirection: 'row',
@@ -564,7 +563,6 @@ const styles = StyleSheet.create({
   friendCount: {
     fontSize: 14,
     color: COLORS.gray500,
-    marginBottom: 20,
   },
   actionButtonsRow: {
     flexDirection: 'row',
