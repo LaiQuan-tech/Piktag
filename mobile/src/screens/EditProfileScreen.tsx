@@ -856,7 +856,7 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
                     onPress={() => {
                       setSelectedPlatform(p.key);
                       setShowPlatformPicker(false);
-                      setNewLinkUrl(p.key !== 'custom' ? '' : '');
+                      setNewLinkAccount('');
                       setNewLinkLabel(p.key === 'custom' ? '' : p.label);
                     }}
                   >
