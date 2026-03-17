@@ -1,6 +1,7 @@
 {
   "rewrites": [
     { "source": "/u/:username", "destination": "/api/u/:username" },
-    { "source": "/download", "destination": "/download.html" }
+    { "source": "/download", "destination": "/download.html" },
+    { "source": "/scan", "destination": "/scan.html" }
   ]
 }

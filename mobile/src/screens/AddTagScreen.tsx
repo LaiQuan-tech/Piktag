@@ -78,16 +78,13 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
     if (!user) return;
     setLoadingPresets(true);
     try {
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from('piktag_tag_presets')
         .select('*')
         .eq('user_id', user.id)
-        .order('last_used_at', { ascending: false });
+        .order('created_at', { ascending: false });
 
-      if (!error && data) {
-        setPresets(data as TagPreset[]);
-      }
-      // If table doesn't exist, just leave presets empty
+      setPresets((data as TagPreset[]) ?? []);
     } catch {
       // Table may not exist yet — ignore
       setPresets([]);
@@ -120,35 +117,35 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
   };
 
   // ─── Save preset ───
-  const handleSavePreset = async () => {
+  const handleSavePreset = () => {
     if (!user) return;
-    const name = presetName.trim();
-    if (!name) {
-      Alert.alert(t('addTag.alertEnterPresetName'));
-      return;
-    }
-    setSavingPreset(true);
-    try {
-      const { error } = await supabase.from('piktag_tag_presets').insert({
-        user_id: user.id,
-        name,
-        location: eventLocation,
-        tags: eventTags,
-      });
-
-      if (error) {
-        Alert.alert(t('common.error'), t('addTag.alertPresetSaveError'));
-      } else {
-        Alert.alert(t('addTag.alertPresetSavedTitle'), t('addTag.alertPresetSavedMessage', { name }));
-        setPresetName('');
-        setShowPresetNameInput(false);
-        loadPresets();
-      }
-    } catch {
-      Alert.alert(t('common.error'), t('addTag.alertPresetSaveError'));
-    } finally {
-      setSavingPreset(false);
-    }
+    Alert.prompt(
+      '儲存為常用模板',
+      '請輸入模板名稱',
+      async (name) => {
+        if (!name?.trim()) return;
+        setSavingPreset(true);
+        try {
+          const { error } = await supabase.from('piktag_tag_presets').insert({
+            user_id: user.id,
+            name: name.trim(),
+            location: eventLocation,
+            tags: eventTags,
+          });
+          if (error) {
+            Alert.alert(t('common.error'), t('addTag.alertPresetSaveError'));
+          } else {
+            Alert.alert(t('addTag.alertPresetSavedTitle'), t('addTag.alertPresetSavedMessage', { name: name.trim() }));
+            loadPresets();
+          }
+        } catch {
+          Alert.alert(t('common.error'), t('addTag.alertPresetSaveError'));
+        } finally {
+          setSavingPreset(false);
+        }
+      },
+      'plain-text',
+    );
   };
 
   // ─── Apply preset ───
@@ -252,6 +249,7 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
       const jsonString = JSON.stringify(payload);
       // Use encodeURIComponent + unescape for safe base64 with non-ASCII chars
       const encoded = btoa(unescape(encodeURIComponent(jsonString)));
+      const qrUrl = `https://go.pikt.ag/scan?d=${encoded}`;
 
       // 4. Update session in DB if it was created
       if (sessionData) {
@@ -266,7 +264,7 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
       }
 
       // 5. Set state — build a local ScanSession object for display
-      setQrValue(encoded);
+      setQrValue(qrUrl);
       setScanSession({
         id: sessionId,
         host_user_id: user.id,
@@ -308,8 +306,8 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
         <View style={styles.headerSideBtn} />
         <Text style={styles.headerTitle}># PikTag</Text>
         <TouchableOpacity
-          onPress={() => {
-            loadPresets();
+          onPress={async () => {
+            await loadPresets();
             setShowPresetsModal(true);
           }}
           activeOpacity={0.6}
@@ -464,54 +462,17 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
 
         {/* 儲存為常用模板 */}
         <View style={styles.section}>
-          {!showPresetNameInput ? (
-            <TouchableOpacity
-              style={styles.outlineButton}
-              onPress={() => setShowPresetNameInput(true)}
-              activeOpacity={0.7}
-            >
-              <Text style={styles.outlineButtonText}>{t('addTag.saveAsPreset')}</Text>
-            </TouchableOpacity>
-          ) : (
-            <View>
-              <View style={styles.inputRow}>
-                <TextInput
-                  style={styles.textInput}
-                  value={presetName}
-                  onChangeText={setPresetName}
-                  placeholder={t('addTag.presetNamePlaceholder')}
-                  placeholderTextColor={COLORS.gray400}
-                  autoFocus
-                  returnKeyType="done"
-                  onSubmitEditing={handleSavePreset}
-                />
-              </View>
-              <View style={styles.presetSaveRow}>
-                <TouchableOpacity
-                  style={styles.presetCancelBtn}
-                  onPress={() => {
-                    setShowPresetNameInput(false);
-                    setPresetName('');
-                  }}
-                  activeOpacity={0.7}
-                >
-                  <Text style={styles.presetCancelBtnText}>{t('common.cancel')}</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.presetConfirmBtn, savingPreset && styles.buttonDisabled]}
-                  onPress={handleSavePreset}
-                  activeOpacity={0.8}
-                  disabled={savingPreset}
-                >
-                  {savingPreset ? (
-                    <ActivityIndicator size={16} color={COLORS.gray900} />
-                  ) : (
-                    <Text style={styles.presetConfirmBtnText}>{t('common.save')}</Text>
-                  )}
-                </TouchableOpacity>
-              </View>
-            </View>
-          )}
+          <TouchableOpacity
+            style={styles.outlineButton}
+            onPress={handleSavePreset}
+            activeOpacity={0.7}
+            disabled={savingPreset}
+          >
+            {savingPreset
+              ? <ActivityIndicator size={16} color={COLORS.piktag500} />
+              : <Text style={styles.outlineButtonText}>{t('addTag.saveAsPreset')}</Text>
+            }
+          </TouchableOpacity>
         </View>
 
         {/* 產生 QR Code CTA */}
