@@ -171,6 +171,8 @@ function renderProfilePage(profile, biolinks, tags) {
     .banner-content{display:flex;flex-direction:column;align-items:center;gap:4px}
     .banner-title{font-size:16px;font-weight:700;color:#fff}
     .banner-subtitle{font-size:13px;color:rgba(255,255,255,.85)}
+    .follow-btn{display:inline-block;background:#e8b931;color:#1a1a1a;font-weight:700;border-radius:24px;padding:12px 48px;font-size:16px;border:none;cursor:pointer;margin-top:16px;margin-bottom:8px}
+    .follow-btn:active{opacity:0.8}
   </style>
 </head>
 <body>
@@ -183,6 +185,7 @@ function renderProfilePage(profile, biolinks, tags) {
     </div>
     <div class="username">@${username}</div>
     ${bio ? `<div class="bio">${bio}</div>` : ''}
+    <button class="follow-btn" onclick="handleFollow()">追蹤</button>
     ${tagsHtml}
     ${biolinksHtml ? `<div class="biolinks">${biolinksHtml}</div>` : ''}
   </div>
@@ -192,6 +195,19 @@ function renderProfilePage(profile, biolinks, tags) {
       <div class="banner-subtitle">\u5373\u5c07\u4e0a\u7dda\uff0c\u656c\u8acb\u671f\u5f85</div>
     </div>
   </div>
+  <script>
+function handleFollow() {
+  var username = '${username}';
+  var name = encodeURIComponent('${name}');
+  var appUrl = 'piktag://u/' + username;
+  var downloadUrl = 'https://go.pikt.ag/download?name=' + name + '&username=' + username;
+  var timer = setTimeout(function() { window.location = downloadUrl; }, 600);
+  document.addEventListener('visibilitychange', function() {
+    if (document.hidden) clearTimeout(timer);
+  });
+  window.location = appUrl;
+}
+</script>
 </body>
 </html>`;
 }
