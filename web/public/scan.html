@@ -123,11 +123,6 @@
 
     function openInApp() {
       const appUrl = 'piktag://scan?d=' + encodeURIComponent(d);
-      const downloadUrl = 'https://go.pikt.ag/download';
-      var timer = setTimeout(function() { window.location = downloadUrl; }, 600);
-      document.addEventListener('visibilitychange', function() {
-        if (document.hidden) clearTimeout(timer);
-      });
       window.location = appUrl;
     }
   </script>
