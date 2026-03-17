@@ -18,9 +18,28 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ArrowLeft, Plus, Pencil, Trash2, X, Hash, EyeOff, Eye } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { COLORS } from '../constants/theme';
+import PlatformIcon from '../components/PlatformIcon';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
 import type { Biolink, Tag, UserTag } from '../types';
+
+const PRESET_PLATFORMS = [
+  { key: 'instagram', label: 'Instagram' },
+  { key: 'facebook', label: 'Facebook' },
+  { key: 'linkedin', label: 'LinkedIn' },
+  { key: 'line', label: 'Line' },
+  { key: 'website', label: '個人網站' },
+  { key: 'custom', label: '自訂連結' },
+];
+
+const PLATFORM_PLACEHOLDERS: Record<string, string> = {
+  instagram: 'https://instagram.com/你的帳號',
+  facebook: 'https://facebook.com/你的帳號',
+  linkedin: 'https://linkedin.com/in/你的帳號',
+  line: 'https://line.me/ti/p/你的ID',
+  website: 'https://你的網站.com',
+  custom: 'https://',
+};
 
 type EditProfileScreenProps = {
   navigation: any;
@@ -159,6 +178,12 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
     label: '',
   });
   const [savingBiolink, setSavingBiolink] = useState(false);
+
+  // Platform picker state
+  const [showPlatformPicker, setShowPlatformPicker] = useState(false);
+  const [selectedPlatform, setSelectedPlatform] = useState<string | null>(null);
+  const [newLinkUrl, setNewLinkUrl] = useState('');
+  const [newLinkLabel, setNewLinkLabel] = useState('');
 
   // Tags state
   const [userTags, setUserTags] = useState<(UserTag & { tag?: Tag })[]>([]);
@@ -803,14 +828,92 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
                 </View>
               </View>
             ))}
-            <TouchableOpacity
-              style={styles.addBiolinkBtn}
-              onPress={openAddBiolinkModal}
-              activeOpacity={0.7}
-            >
-              <Plus size={20} color={COLORS.piktag600} />
-              <Text style={styles.addBiolinkText}>{t('editProfile.addLink')}</Text>
-            </TouchableOpacity>
+            {/* Platform picker flow */}
+            {!showPlatformPicker && !selectedPlatform && (
+              <TouchableOpacity onPress={() => setShowPlatformPicker(true)} style={styles.addLinkBtn}>
+                <Plus size={18} color={COLORS.piktag500} />
+                <Text style={styles.addLinkBtnText}>新增連結</Text>
+              </TouchableOpacity>
+            )}
+
+            {showPlatformPicker && !selectedPlatform && (
+              <View style={styles.platformPicker}>
+                <Text style={styles.pickerTitle}>選擇平台</Text>
+                {PRESET_PLATFORMS.map((p) => (
+                  <TouchableOpacity
+                    key={p.key}
+                    style={styles.platformOption}
+                    onPress={() => {
+                      setSelectedPlatform(p.key);
+                      setShowPlatformPicker(false);
+                      setNewLinkUrl(p.key !== 'custom' ? '' : '');
+                      setNewLinkLabel(p.key === 'custom' ? '' : p.label);
+                    }}
+                  >
+                    <PlatformIcon platform={p.key} size={28} />
+                    <Text style={styles.platformOptionText}>{p.label}</Text>
+                  </TouchableOpacity>
+                ))}
+                <TouchableOpacity onPress={() => setShowPlatformPicker(false)}>
+                  <Text style={styles.cancelText}>取消</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+
+            {selectedPlatform && (
+              <View style={styles.newLinkForm}>
+                <View style={styles.newLinkHeader}>
+                  <PlatformIcon platform={selectedPlatform} size={24} />
+                  <Text style={styles.newLinkPlatformName}>
+                    {PRESET_PLATFORMS.find(p => p.key === selectedPlatform)?.label}
+                  </Text>
+                </View>
+                {selectedPlatform === 'custom' && (
+                  <TextInput
+                    style={styles.input}
+                    placeholder="連結名稱"
+                    value={newLinkLabel}
+                    onChangeText={setNewLinkLabel}
+                  />
+                )}
+                <TextInput
+                  style={styles.input}
+                  placeholder={PLATFORM_PLACEHOLDERS[selectedPlatform] || 'https://'}
+                  value={newLinkUrl}
+                  onChangeText={setNewLinkUrl}
+                  autoCapitalize="none"
+                  keyboardType="url"
+                />
+                <View style={styles.newLinkActions}>
+                  <TouchableOpacity onPress={() => { setSelectedPlatform(null); setNewLinkUrl(''); setNewLinkLabel(''); }} style={styles.cancelBtn}>
+                    <Text style={styles.cancelText}>取消</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={styles.saveBtn}
+                    onPress={async () => {
+                      if (!newLinkUrl.trim() || !userId) return;
+                      const label = selectedPlatform === 'custom' ? newLinkLabel : PRESET_PLATFORMS.find(p => p.key === selectedPlatform)?.label ?? '';
+                      const { data, error } = await supabase.from('piktag_biolinks').insert({
+                        user_id: userId,
+                        platform: selectedPlatform,
+                        label,
+                        url: newLinkUrl.trim(),
+                        is_active: true,
+                        position: biolinks.length,
+                      }).select().single();
+                      if (!error && data) {
+                        setBiolinks(prev => [...prev, data]);
+                        setSelectedPlatform(null);
+                        setNewLinkUrl('');
+                        setNewLinkLabel('');
+                      }
+                    }}
+                  >
+                    <Text style={styles.saveBtnText}>新增</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            )}
           </View>
 
           {/* Tags Section */}
@@ -1330,6 +1433,95 @@ const styles = StyleSheet.create({
     color: COLORS.gray700,
   },
   tag_popularTagChipTextAdded: {
+    color: COLORS.gray900,
+  },
+  addLinkBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingVertical: 12,
+    paddingHorizontal: 4,
+  },
+  addLinkBtnText: {
+    color: COLORS.piktag500,
+    fontSize: 15,
+    fontWeight: '500',
+  },
+  platformPicker: {
+    backgroundColor: '#F9FAFB',
+    borderRadius: 12,
+    padding: 12,
+    gap: 4,
+  },
+  pickerTitle: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: COLORS.gray500,
+    marginBottom: 8,
+    paddingHorizontal: 4,
+  },
+  platformOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    paddingVertical: 10,
+    paddingHorizontal: 4,
+  },
+  platformOptionText: {
+    fontSize: 15,
+    color: COLORS.gray900,
+    fontWeight: '500',
+  },
+  newLinkForm: {
+    backgroundColor: '#F9FAFB',
+    borderRadius: 12,
+    padding: 12,
+    gap: 10,
+  },
+  newLinkHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginBottom: 4,
+  },
+  newLinkPlatformName: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: COLORS.gray900,
+  },
+  newLinkActions: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    gap: 12,
+    marginTop: 4,
+  },
+  cancelBtn: {
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+  },
+  cancelText: {
+    color: COLORS.gray500,
+    fontSize: 14,
+    textAlign: 'center',
+    paddingVertical: 8,
+  },
+  saveBtn: {
+    backgroundColor: COLORS.piktag500,
+    borderRadius: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+  },
+  saveBtnText: {
+    color: COLORS.white,
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  input: {
+    backgroundColor: COLORS.gray100,
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    fontSize: 16,
     color: COLORS.gray900,
   },
 });

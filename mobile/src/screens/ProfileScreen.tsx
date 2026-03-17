@@ -22,6 +22,7 @@ import {
   Link,
   Pencil,
 } from 'lucide-react-native';
+import PlatformIcon from '../components/PlatformIcon';
 import { useTranslation } from 'react-i18next';
 import { COLORS } from '../constants/theme';
 import { useFocusEffect } from '@react-navigation/native';
@@ -55,11 +56,7 @@ const BiolinkItem = React.memo(function BiolinkItem({
       activeOpacity={0.7}
       onPress={handlePress}
     >
-      {(biolink as any).icon_url ? (
-        <Image source={{ uri: (biolink as any).icon_url }} style={styles.biolinkIcon} />
-      ) : (
-        <Link size={20} color={COLORS.gray900} />
-      )}
+      <PlatformIcon platform={biolink.platform} size={22} />
       <Text style={styles.contactButtonText}>
         {biolink.label || biolink.platform}
       </Text>
