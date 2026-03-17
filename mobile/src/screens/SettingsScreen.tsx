@@ -57,7 +57,6 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
   const { t, i18n } = useTranslation();
 
   const [profile, setProfile] = useState<PiktagProfile | null>(null);
-  const [isPublic, setIsPublic] = useState(true);
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [darkModeEnabled, setDarkModeEnabled] = useState(false);
   const [currentLanguage, setCurrentLanguage] = useState('zh-TW');
@@ -77,7 +76,6 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
 
           if (!error && data) {
             setProfile(data);
-            setIsPublic(data.is_public);
             const profileLang = data.language || 'zh-TW';
             setCurrentLanguage(profileLang);
             // Sync i18n with profile language
@@ -111,24 +109,6 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
 
   const handleAccountInfo = () => {
     navigation.navigate('EditProfile');
-  };
-
-  const handlePrivacyToggle = async () => {
-    if (!user) return;
-
-    const newValue = !isPublic;
-    setIsPublic(newValue);
-
-    const { error } = await supabase
-      .from('piktag_profiles')
-      .update({ is_public: newValue })
-      .eq('id', user.id);
-
-    if (error) {
-      console.warn('Failed to update privacy:', error.message);
-      setIsPublic(!newValue); // Revert
-      Alert.alert(t('common.error'), t('settings.alertPrivacyError'));
-    }
   };
 
   const handleNotificationsToggle = async () => {
@@ -234,18 +214,6 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
         { label: t('settings.contactSync'), onPress: () => navigation.navigate('ContactSync') },
         { label: t('settings.inviteFriends'), onPress: () => navigation.navigate('Invite') },
         { label: t('settings.socialStats'), onPress: () => navigation.navigate('SocialStats') },
-        {
-          label: t('settings.privacySettings'),
-          onPress: handlePrivacyToggle,
-          rightElement: (
-            <Switch
-              value={isPublic}
-              onValueChange={handlePrivacyToggle}
-              trackColor={{ false: COLORS.gray200, true: COLORS.piktag300 }}
-              thumbColor={isPublic ? COLORS.piktag500 : COLORS.gray400}
-            />
-          ),
-        },
         {
           label: t('settings.notificationSettings'),
           onPress: handleNotificationsToggle,
