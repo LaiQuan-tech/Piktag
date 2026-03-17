@@ -9,7 +9,9 @@ import {
   StatusBar,
   Linking,
   RefreshControl,
+  Animated,
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   QrCode,
@@ -18,6 +20,7 @@ import {
   Phone,
   Mail,
   Link,
+  Pencil,
 } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { COLORS } from '../constants/theme';
@@ -99,6 +102,8 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
   const [qrVisible, setQrVisible] = useState(false);
   const [currentStatus, setCurrentStatus] = useState<string | null>(null);
   const [statusModalVisible, setStatusModalVisible] = useState(false);
+  const [showTooltip, setShowTooltip] = useState(false);
+  const tooltipOpacity = useRef(new Animated.Value(0)).current;
 
   // --- Data fetching (already uses Promise.all for parallel calls) ---
 
@@ -183,6 +188,29 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
       isMounted = false;
     };
   }, [fetchAllData]);
+
+  // Tooltip: show once, dismiss after 3s, remember via AsyncStorage
+  useEffect(() => {
+    AsyncStorage.getItem('status_tooltip_seen').then((seen) => {
+      if (!seen) {
+        setShowTooltip(true);
+        Animated.timing(tooltipOpacity, {
+          toValue: 1,
+          duration: 300,
+          useNativeDriver: true,
+        }).start();
+        const timer = setTimeout(() => {
+          Animated.timing(tooltipOpacity, {
+            toValue: 0,
+            duration: 400,
+            useNativeDriver: true,
+          }).start(() => setShowTooltip(false));
+          AsyncStorage.setItem('status_tooltip_seen', '1');
+        }, 3000);
+        return () => clearTimeout(timer);
+      }
+    });
+  }, [tooltipOpacity]);
 
   // Refetch data when navigating back from EditProfile (with 30s cooldown)
   const lastFocusFetchRef = useRef(0);
@@ -335,14 +363,27 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
       >
         {/* Profile section: avatar left, info right (Instagram style) */}
         <View style={styles.profileRow}>
-          <TouchableOpacity onPress={() => setStatusModalVisible(true)} activeOpacity={0.8}>
-            <View style={[styles.avatarWrapper, currentStatus ? styles.avatarRing : null]}>
-              <Image
-                source={avatarSource}
-                style={styles.avatar}
-              />
-            </View>
-          </TouchableOpacity>
+          <View>
+            <TouchableOpacity onPress={() => setStatusModalVisible(true)} activeOpacity={0.8}>
+              <View style={[styles.avatarWrapper, currentStatus ? styles.avatarRing : null]}>
+                <Image
+                  source={avatarSource}
+                  style={styles.avatar}
+                />
+              </View>
+              {/* Pencil badge */}
+              <View style={styles.pencilBadge}>
+                <Pencil size={10} color={COLORS.white} />
+              </View>
+            </TouchableOpacity>
+            {/* One-time tooltip bubble */}
+            {showTooltip && (
+              <Animated.View style={[styles.tooltip, { opacity: tooltipOpacity }]}>
+                <Text style={styles.tooltipText}>點我寫便利貼</Text>
+                <View style={styles.tooltipArrow} />
+              </Animated.View>
+            )}
+          </View>
           <View style={styles.profileRight}>
             <View style={styles.usernameRow}>
               <Text style={styles.usernameText}>
@@ -524,6 +565,51 @@ const styles = StyleSheet.create({
   avatarWrapper: {
     borderRadius: 50,
     padding: 3,
+  },
+  pencilBadge: {
+    position: 'absolute',
+    bottom: 2,
+    right: 2,
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: COLORS.piktag500,
+    borderWidth: 2,
+    borderColor: COLORS.white,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  tooltip: {
+    position: 'absolute',
+    bottom: -42,
+    left: '50%',
+    transform: [{ translateX: -56 }],
+    backgroundColor: COLORS.gray900,
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    width: 112,
+    alignItems: 'center',
+    zIndex: 10,
+  },
+  tooltipText: {
+    color: COLORS.white,
+    fontSize: 12,
+    fontWeight: '500',
+  },
+  tooltipArrow: {
+    position: 'absolute',
+    top: -6,
+    left: '50%',
+    transform: [{ translateX: -5 }],
+    width: 0,
+    height: 0,
+    borderLeftWidth: 5,
+    borderRightWidth: 5,
+    borderBottomWidth: 6,
+    borderLeftColor: 'transparent',
+    borderRightColor: 'transparent',
+    borderBottomColor: COLORS.gray900,
   },
   avatarRing: {
     borderWidth: 3,
