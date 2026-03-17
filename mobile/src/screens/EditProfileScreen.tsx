@@ -32,13 +32,23 @@ const PRESET_PLATFORMS = [
   { key: 'custom', label: '自訂連結' },
 ];
 
-const PLATFORM_PLACEHOLDERS: Record<string, string> = {
-  instagram: 'https://instagram.com/你的帳號',
-  facebook: 'https://facebook.com/你的帳號',
-  linkedin: 'https://linkedin.com/in/你的帳號',
-  line: 'https://line.me/ti/p/你的ID',
-  website: 'https://你的網站.com',
-  custom: 'https://',
+// Fixed prefix shown as grey label; user only types the account/path part
+const PLATFORM_PREFIXES: Record<string, string> = {
+  instagram: 'https://instagram.com/',
+  facebook: 'https://facebook.com/',
+  linkedin: 'https://linkedin.com/in/',
+  line: 'https://line.me/ti/p/~',
+  website: 'https://',
+  custom: '',
+};
+
+const PLATFORM_ACCOUNT_PLACEHOLDER: Record<string, string> = {
+  instagram: '帳號名稱',
+  facebook: '帳號名稱',
+  linkedin: '帳號名稱',
+  line: 'Line ID',
+  website: '你的網站網址',
+  custom: 'https://...',
 };
 
 type EditProfileScreenProps = {
@@ -182,7 +192,7 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
   // Platform picker state
   const [showPlatformPicker, setShowPlatformPicker] = useState(false);
   const [selectedPlatform, setSelectedPlatform] = useState<string | null>(null);
-  const [newLinkUrl, setNewLinkUrl] = useState('');
+  const [newLinkAccount, setNewLinkAccount] = useState('');
   const [newLinkLabel, setNewLinkLabel] = useState('');
 
   // Tags state
@@ -876,35 +886,48 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
                     onChangeText={setNewLinkLabel}
                   />
                 )}
-                <TextInput
-                  style={styles.input}
-                  placeholder={PLATFORM_PLACEHOLDERS[selectedPlatform] || 'https://'}
-                  value={newLinkUrl}
-                  onChangeText={setNewLinkUrl}
-                  autoCapitalize="none"
-                  keyboardType="url"
-                />
+                {/* Prefix + account input row */}
+                <View style={styles.prefixInputRow}>
+                  {PLATFORM_PREFIXES[selectedPlatform] ? (
+                    <Text style={styles.prefixText} numberOfLines={1}>
+                      {PLATFORM_PREFIXES[selectedPlatform]}
+                    </Text>
+                  ) : null}
+                  <TextInput
+                    style={styles.accountInput}
+                    placeholder={PLATFORM_ACCOUNT_PLACEHOLDER[selectedPlatform] || ''}
+                    value={newLinkAccount}
+                    onChangeText={setNewLinkAccount}
+                    autoCapitalize="none"
+                    keyboardType="url"
+                    autoFocus
+                  />
+                </View>
                 <View style={styles.newLinkActions}>
-                  <TouchableOpacity onPress={() => { setSelectedPlatform(null); setNewLinkUrl(''); setNewLinkLabel(''); }} style={styles.cancelBtn}>
+                  <TouchableOpacity onPress={() => { setSelectedPlatform(null); setNewLinkAccount(''); setNewLinkLabel(''); }} style={styles.cancelBtn}>
                     <Text style={styles.cancelText}>取消</Text>
                   </TouchableOpacity>
                   <TouchableOpacity
                     style={styles.saveBtn}
                     onPress={async () => {
-                      if (!newLinkUrl.trim() || !userId) return;
+                      if (!newLinkAccount.trim() || !userId) return;
+                      const prefix = PLATFORM_PREFIXES[selectedPlatform] ?? '';
+                      const fullUrl = selectedPlatform === 'custom'
+                        ? newLinkAccount.trim()
+                        : `${prefix}${newLinkAccount.trim()}`;
                       const label = selectedPlatform === 'custom' ? newLinkLabel : PRESET_PLATFORMS.find(p => p.key === selectedPlatform)?.label ?? '';
                       const { data, error } = await supabase.from('piktag_biolinks').insert({
                         user_id: userId,
                         platform: selectedPlatform,
                         label,
-                        url: newLinkUrl.trim(),
+                        url: fullUrl,
                         is_active: true,
                         position: biolinks.length,
                       }).select().single();
                       if (!error && data) {
                         setBiolinks(prev => [...prev, data]);
                         setSelectedPlatform(null);
-                        setNewLinkUrl('');
+                        setNewLinkAccount('');
                         setNewLinkLabel('');
                       }
                     }}
@@ -1471,6 +1494,28 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: COLORS.gray900,
     fontWeight: '500',
+  },
+  prefixInputRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.white,
+    borderWidth: 1,
+    borderColor: COLORS.gray200 ?? '#E5E7EB',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    gap: 2,
+  },
+  prefixText: {
+    fontSize: 14,
+    color: COLORS.gray400 ?? '#9CA3AF',
+    flexShrink: 0,
+  },
+  accountInput: {
+    flex: 1,
+    fontSize: 14,
+    color: COLORS.gray900,
+    padding: 0,
   },
   newLinkForm: {
     backgroundColor: '#F9FAFB',
