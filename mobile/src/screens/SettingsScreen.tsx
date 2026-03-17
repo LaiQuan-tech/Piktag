@@ -231,10 +231,8 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
     {
       title: t('settings.groupAccount'),
       items: [
-        { label: t('settings.accountInfo'), onPress: handleAccountInfo },
         { label: t('settings.contactSync'), onPress: () => navigation.navigate('ContactSync') },
         { label: t('settings.inviteFriends'), onPress: () => navigation.navigate('Invite') },
-        { label: t('settings.locationContacts'), onPress: () => navigation.navigate('LocationContacts') },
         { label: t('settings.socialStats'), onPress: () => navigation.navigate('SocialStats') },
         {
           label: t('settings.privacySettings'),
