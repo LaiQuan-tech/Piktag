@@ -91,7 +91,7 @@ module.exports = async function handler(req, res) {
     const html = renderProfilePage(profile, profile.is_public !== false ? (biolinks || []) : null, tags);
 
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
-    res.setHeader('Cache-Control', 's-maxage=300, stale-while-revalidate=600');
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
     return res.status(200).send(html);
   } catch (err) {
     console.error('Error rendering profile:', err);
