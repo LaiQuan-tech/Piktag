@@ -26,6 +26,7 @@ import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
 import QrCodeModal from '../components/QrCodeModal';
 import { ProfileScreenSkeleton } from '../components/SkeletonLoader';
+import StatusModal from '../components/StatusModal';
 import type { PiktagProfile, UserTag, Biolink } from '../types';
 
 type ProfileScreenProps = {
@@ -96,6 +97,8 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [qrVisible, setQrVisible] = useState(false);
+  const [currentStatus, setCurrentStatus] = useState<string | null>(null);
+  const [statusModalVisible, setStatusModalVisible] = useState(false);
 
   // --- Data fetching (already uses Promise.all for parallel calls) ---
 
@@ -134,6 +137,19 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
     }
   }, [userId]);
 
+  const fetchStatus = useCallback(async () => {
+    if (!userId) return;
+    const { data } = await supabase
+      .from('piktag_user_status')
+      .select('text')
+      .eq('user_id', userId)
+      .gt('expires_at', new Date().toISOString())
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .single();
+    setCurrentStatus(data?.text ?? null);
+  }, [userId]);
+
   const fetchFollowerCount = useCallback(async () => {
     if (!userId) return;
     const { count, error } = await supabase
@@ -151,8 +167,9 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
       fetchUserTags(),
       fetchBiolinks(),
       fetchFollowerCount(),
+      fetchStatus(),
     ]);
-  }, [fetchProfile, fetchUserTags, fetchBiolinks, fetchFollowerCount]);
+  }, [fetchProfile, fetchUserTags, fetchBiolinks, fetchFollowerCount, fetchStatus]);
 
   useEffect(() => {
     let isMounted = true;
@@ -334,10 +351,14 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
               )}
             </View>
           </View>
-          <Image
-            source={avatarSource}
-            style={styles.avatar}
-          />
+          <TouchableOpacity onPress={() => setStatusModalVisible(true)} activeOpacity={0.8}>
+            <View style={[styles.avatarWrapper, currentStatus ? styles.avatarRing : null]}>
+              <Image
+                source={avatarSource}
+                style={styles.avatar}
+              />
+            </View>
+          </TouchableOpacity>
         </View>
 
         {/* Bio */}
@@ -421,6 +442,13 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
           )}
         </View>
       </ScrollView>
+
+      <StatusModal
+        visible={statusModalVisible}
+        onClose={() => setStatusModalVisible(false)}
+        initialText={currentStatus}
+        onStatusUpdated={(text) => setCurrentStatus(text)}
+      />
     </SafeAreaView>
   );
 }
@@ -493,6 +521,14 @@ const styles = StyleSheet.create({
   },
   verifiedIcon: {
     marginLeft: 6,
+  },
+  avatarWrapper: {
+    borderRadius: 50,
+    padding: 3,
+  },
+  avatarRing: {
+    borderWidth: 3,
+    borderColor: '#C13584',
   },
   avatar: {
     width: 80,

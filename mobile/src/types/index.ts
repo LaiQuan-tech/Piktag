@@ -142,3 +142,11 @@ export type ScanSession = {
   expires_at: string;
   host_user?: PiktagProfile; // joined
 };
+
+export interface UserStatus {
+  id: string;
+  user_id: string;
+  text: string;
+  created_at: string;
+  expires_at: string;
+}

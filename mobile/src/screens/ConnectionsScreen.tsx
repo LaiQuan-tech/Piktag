@@ -3,6 +3,7 @@ import {
   View,
   Text,
   FlatList,
+  ScrollView,
   Image,
   TouchableOpacity,
   StyleSheet,
@@ -165,6 +166,14 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
   const [batchTagInput, setBatchTagInput] = useState('');
   const [batchTagLoading, setBatchTagLoading] = useState(false);
 
+  // Friend statuses (Instagram Stories-style row)
+  const [friendStatuses, setFriendStatuses] = useState<Array<{
+    user_id: string;
+    text: string;
+    avatar_url: string | null;
+    username: string;
+  }>>([]);
+
   // Location state
   const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null);
 
@@ -302,6 +311,40 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
     }
   }, [user]);
 
+  const fetchFriendStatuses = useCallback(async () => {
+    if (!user) return;
+    // Get friend IDs from connections
+    const { data: connections } = await supabase
+      .from('piktag_connections')
+      .select('requester_id, addressee_id')
+      .or(`requester_id.eq.${user.id},addressee_id.eq.${user.id}`)
+      .eq('status', 'accepted');
+
+    if (!connections || connections.length === 0) return;
+
+    const friendIds = connections.map((c) =>
+      c.requester_id === user.id ? c.addressee_id : c.requester_id
+    );
+
+    // Get active statuses for those friends
+    const { data: statuses } = await supabase
+      .from('piktag_user_status')
+      .select('user_id, text, piktag_profiles!inner(avatar_url, username)')
+      .in('user_id', friendIds)
+      .gt('expires_at', new Date().toISOString());
+
+    if (statuses) {
+      setFriendStatuses(
+        statuses.map((s: any) => ({
+          user_id: s.user_id,
+          text: s.text,
+          avatar_url: s.piktag_profiles?.avatar_url ?? null,
+          username: s.piktag_profiles?.username ?? '',
+        }))
+      );
+    }
+  }, [user]);
+
   // --- Optimized: Promise.all for parallel execution, unified loading, with cooldown ---
   useFocusEffect(
     useCallback(() => {
@@ -314,6 +357,7 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
           await Promise.all([
             fetchConnections(),
             fetchRecommendation(),
+            fetchFriendStatuses(),
           ]);
         } finally {
           setLoading(false);
@@ -321,7 +365,7 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
         }
       };
       loadAll();
-    }, [user, fetchConnections, fetchRecommendation])
+    }, [user, fetchConnections, fetchRecommendation, fetchFriendStatuses])
   );
 
   // --- Optimized: useMemo for sorted connections ---
@@ -660,14 +704,50 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
       );
     };
 
+    const renderFriendStatuses = () => {
+      if (friendStatuses.length === 0 || selectMode) return null;
+      return (
+        <View style={styles.statusSection}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.statusScrollContent}
+          >
+            {friendStatuses.map((item) => (
+              <View key={item.user_id} style={styles.statusItem}>
+                <View style={styles.statusAvatarRing}>
+                  {item.avatar_url ? (
+                    <Image source={{ uri: item.avatar_url }} style={styles.statusAvatar} />
+                  ) : (
+                    <View style={[styles.statusAvatar, styles.statusAvatarFallback]}>
+                      <Text style={styles.statusAvatarInitial}>
+                        {item.username.charAt(0).toUpperCase()}
+                      </Text>
+                    </View>
+                  )}
+                </View>
+                <Text style={styles.statusUsername} numberOfLines={1}>
+                  {item.username}
+                </Text>
+                <Text style={styles.statusPreview} numberOfLines={2}>
+                  {item.text}
+                </Text>
+              </View>
+            ))}
+          </ScrollView>
+        </View>
+      );
+    };
+
     return (
       <>
+        {renderFriendStatuses()}
         {renderCrmReminders()}
         {renderOnThisDay()}
         {renderRecommendation()}
       </>
     );
-  }, [onThisDay, onThisDayDismissed, crmReminders, remindersDismissed, recommendation, recDismissed, selectMode, t, navigation]);
+  }, [friendStatuses, onThisDay, onThisDayDismissed, crmReminders, remindersDismissed, recommendation, recDismissed, selectMode, t, navigation]);
 
   // --- Optimized: stable contentContainerStyle ---
   const contentContainerStyle = useMemo(() => [
@@ -1174,5 +1254,55 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '700',
     color: COLORS.gray900,
+  },
+  // Friend statuses row
+  statusSection: {
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F3F4F6',
+  },
+  statusScrollContent: {
+    paddingHorizontal: 16,
+    gap: 12,
+  },
+  statusItem: {
+    width: 80,
+    alignItems: 'center',
+  },
+  statusAvatarRing: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    borderWidth: 2.5,
+    borderColor: '#C13584',
+    padding: 2,
+    marginBottom: 4,
+  },
+  statusAvatar: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+  },
+  statusAvatarFallback: {
+    backgroundColor: '#E5E7EB',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  statusAvatarInitial: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#6B7280',
+  },
+  statusUsername: {
+    fontSize: 11,
+    color: '#374151',
+    textAlign: 'center',
+    marginBottom: 2,
+  },
+  statusPreview: {
+    fontSize: 10,
+    color: '#9CA3AF',
+    textAlign: 'center',
+    lineHeight: 13,
   },
 });
