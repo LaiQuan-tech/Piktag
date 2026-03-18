@@ -1,7 +1,8 @@
 {
   "expo": {
-    "name": "mobile",
-    "slug": "mobile",
+    "name": "PikTag",
+    "slug": "piktag",
+    "owner": "closeforgeai",
     "scheme": "piktag",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -15,25 +16,41 @@
     },
     "ios": {
       "supportsTablet": true,
+      "bundleIdentifier": "ag.pikt.app",
       "infoPlist": {
-        "NSCameraUsageDescription": "PikTag needs camera access to scan QR codes"
+        "NSCameraUsageDescription": "PikTag needs camera access to scan QR codes",
+        "NSPhotoLibraryUsageDescription": "PikTag needs photo library access to update your profile picture",
+        "NSPhotoLibraryAddUsageDescription": "PikTag needs photo library access to update your profile picture"
       }
     },
     "android": {
+      "package": "ag.pikt.app",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "permissions": ["CAMERA"]
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.READ_MEDIA_IMAGES",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
       "expo-localization",
-      "expo-camera"
-    ]
+      "expo-camera",
+      "expo-image-picker"
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "713740e1-6546-4448-97d4-04868daf8fbd"
+      }
+    }
   }
 }

@@ -15,11 +15,12 @@ import {
   Modal,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ArrowLeft, Plus, Pencil, Trash2, X, Hash, EyeOff, Eye } from 'lucide-react-native';
+import { ArrowLeft, Plus, Pencil, Trash2, X, Hash, EyeOff, Eye, Camera } from 'lucide-react-native';
+import * as ImagePicker from 'expo-image-picker';
 import { useTranslation } from 'react-i18next';
 import { COLORS } from '../constants/theme';
 import PlatformIcon from '../components/PlatformIcon';
-import { supabase } from '../lib/supabase';
+import { supabase, supabaseUrl, supabaseAnonKey } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
 import type { Biolink, Tag, UserTag } from '../types';
 
@@ -178,6 +179,7 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
 
   // Biolink modal state
   const [biolinkModalVisible, setBiolinkModalVisible] = useState(false);
@@ -226,6 +228,78 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
       setAvatarUrl(data.avatar_url);
     }
   }, [userId, user?.email]);
+
+  const handleChangeAvatar = useCallback(async () => {
+    if (!userId) return;
+
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('需要相簿權限', '請在設定中允許存取相簿');
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.8,
+    });
+
+    if (result.canceled || !result.assets[0]) return;
+
+    const asset = result.assets[0];
+    const ext = asset.uri.split('.').pop()?.toLowerCase() || 'jpg';
+    const filePath = `${userId}/avatar.${ext}`;
+
+    try {
+      setUploadingAvatar(true);
+
+      const { data: sessionData } = await supabase.auth.getSession();
+      const accessToken = sessionData?.session?.access_token;
+      if (!accessToken) throw new Error('未登入');
+
+      const mimeType = ext === 'jpg' ? 'image/jpeg' : `image/${ext}`;
+      const formData = new FormData();
+      formData.append('file', {
+        uri: asset.uri,
+        name: `avatar.${ext}`,
+        type: mimeType,
+      } as any);
+
+      const uploadRes = await fetch(
+        `${supabaseUrl}/storage/v1/object/avatars/${filePath}`,
+        {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            apikey: supabaseAnonKey,
+            'x-upsert': 'true',
+          },
+          body: formData,
+        }
+      );
+
+      if (!uploadRes.ok) {
+        const err = await uploadRes.json();
+        throw new Error(err.message || '上傳失敗');
+      }
+
+      const publicUrl = `${supabaseUrl}/storage/v1/object/public/avatars/${filePath}?t=${Date.now()}`;
+
+      const { error: updateError } = await supabase
+        .from('piktag_profiles')
+        .update({ avatar_url: publicUrl })
+        .eq('id', userId);
+
+      if (updateError) throw updateError;
+
+      setAvatarUrl(publicUrl);
+    } catch (err: any) {
+      Alert.alert('上傳失敗', err.message || '請稍後再試');
+    } finally {
+      setUploadingAvatar(false);
+    }
+  }, [userId]);
 
   const fetchBiolinks = useCallback(async () => {
     if (!userId) return;
@@ -723,16 +797,21 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
         >
           {/* Avatar Section */}
           <View style={styles.avatarSection}>
-            <Image
-              source={
-                avatarUrl
-                  ? { uri: avatarUrl }
-                  : { uri: 'https://picsum.photos/seed/profile/200/200' }
-              }
-              style={styles.avatar}
-            />
-            <TouchableOpacity style={styles.changeAvatarBtn} activeOpacity={0.7}>
-              <Text style={styles.changeAvatarText}>{t('editProfile.changeAvatar')}</Text>
+            <TouchableOpacity onPress={handleChangeAvatar} activeOpacity={0.8} disabled={uploadingAvatar}>
+              <Image
+                source={
+                  avatarUrl
+                    ? { uri: avatarUrl }
+                    : { uri: 'https://picsum.photos/seed/profile/200/200' }
+                }
+                style={styles.avatar}
+              />
+              <View style={styles.cameraBadge}>
+                {uploadingAvatar
+                  ? <ActivityIndicator size="small" color={COLORS.white} />
+                  : <Camera size={16} color={COLORS.white} />
+                }
+              </View>
             </TouchableOpacity>
           </View>
 
@@ -1191,10 +1270,18 @@ const styles = StyleSheet.create({
     borderColor: COLORS.gray100,
     backgroundColor: COLORS.gray100,
   },
-  changeAvatarBtn: {
-    marginTop: 12,
-    paddingVertical: 8,
-    paddingHorizontal: 16,
+  cameraBadge: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: COLORS.piktag500,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: COLORS.white,
   },
   changeAvatarText: {
     fontSize: 14,
