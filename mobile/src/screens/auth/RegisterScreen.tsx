@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -12,7 +12,7 @@ import {
   ScrollView,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { Hash } from 'lucide-react-native';
+import { Hash, Eye, EyeOff } from 'lucide-react-native';
 import { supabase } from '../../lib/supabase';
 import { COLORS, SPACING, BORDER_RADIUS } from '../../constants/theme';
 
@@ -24,7 +24,12 @@ export default function RegisterScreen({ navigation }: RegisterScreenProps) {
   const { t } = useTranslation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const passwordRef = useRef<TextInput>(null);
+  const confirmPasswordRef = useRef<TextInput>(null);
 
   const handleRegister = async () => {
     if (!email.trim() || !password.trim()) {
@@ -34,6 +39,11 @@ export default function RegisterScreen({ navigation }: RegisterScreenProps) {
 
     if (password.length < 6) {
       Alert.alert(t('common.error'), t('auth.register.alertPasswordTooShort'));
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      Alert.alert(t('common.error'), t('auth.register.alertPasswordMismatch'));
       return;
     }
 
@@ -53,9 +63,6 @@ export default function RegisterScreen({ navigation }: RegisterScreenProps) {
         return;
       }
 
-      // Signup success - email is auto-confirmed on staging.
-      // The auth state change listener in AppNavigator will detect the session
-      // and automatically switch to MainTabs.
       if (data.session) {
         Alert.alert(t('auth.register.alertSuccessTitle'), t('auth.register.alertSuccessMessage'));
       }
@@ -65,6 +72,8 @@ export default function RegisterScreen({ navigation }: RegisterScreenProps) {
       setLoading(false);
     }
   };
+
+  const passwordsMatch = confirmPassword.length === 0 || password === confirmPassword;
 
   return (
     <KeyboardAvoidingView
@@ -95,23 +104,76 @@ export default function RegisterScreen({ navigation }: RegisterScreenProps) {
             keyboardType="email-address"
             autoCapitalize="none"
             autoCorrect={false}
+            returnKeyType="next"
+            onSubmitEditing={() => passwordRef.current?.focus()}
           />
 
           <View>
-            <TextInput
-              style={[
-                styles.input,
-                password.length > 0 && password.length < 6 && styles.inputError,
-              ]}
-              placeholder={t('auth.register.passwordPlaceholder')}
-              placeholderTextColor={COLORS.gray400}
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry
-            />
+            <View style={[
+              styles.passwordContainer,
+              password.length > 0 && password.length < 6 && styles.inputError,
+            ]}>
+              <TextInput
+                ref={passwordRef}
+                style={styles.passwordInput}
+                placeholder={t('auth.register.passwordPlaceholder')}
+                placeholderTextColor={COLORS.gray400}
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry={!showPassword}
+                returnKeyType="next"
+                onSubmitEditing={() => confirmPasswordRef.current?.focus()}
+              />
+              <TouchableOpacity
+                style={styles.eyeButton}
+                onPress={() => setShowPassword(!showPassword)}
+                activeOpacity={0.6}
+              >
+                {showPassword ? (
+                  <EyeOff size={20} color={COLORS.gray500} />
+                ) : (
+                  <Eye size={20} color={COLORS.gray500} />
+                )}
+              </TouchableOpacity>
+            </View>
             {password.length > 0 && password.length < 6 && (
               <Text style={styles.errorHint}>
                 {t('auth.register.passwordHint', { defaultValue: '密碼至少需要 6 個字元' })}
+              </Text>
+            )}
+          </View>
+
+          <View>
+            <View style={[
+              styles.passwordContainer,
+              !passwordsMatch && styles.inputError,
+            ]}>
+              <TextInput
+                ref={confirmPasswordRef}
+                style={styles.passwordInput}
+                placeholder={t('auth.register.confirmPasswordPlaceholder')}
+                placeholderTextColor={COLORS.gray400}
+                value={confirmPassword}
+                onChangeText={setConfirmPassword}
+                secureTextEntry={!showConfirmPassword}
+                returnKeyType="done"
+                onSubmitEditing={handleRegister}
+              />
+              <TouchableOpacity
+                style={styles.eyeButton}
+                onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+                activeOpacity={0.6}
+              >
+                {showConfirmPassword ? (
+                  <EyeOff size={20} color={COLORS.gray500} />
+                ) : (
+                  <Eye size={20} color={COLORS.gray500} />
+                )}
+              </TouchableOpacity>
+            </View>
+            {!passwordsMatch && (
+              <Text style={styles.errorHint}>
+                {t('auth.register.alertPasswordMismatch')}
               </Text>
             )}
           </View>
@@ -190,6 +252,25 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: COLORS.gray900,
     backgroundColor: COLORS.white,
+  },
+  passwordContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: COLORS.gray200,
+    borderRadius: BORDER_RADIUS.xl,
+    backgroundColor: COLORS.white,
+  },
+  passwordInput: {
+    flex: 1,
+    paddingHorizontal: SPACING.xl,
+    paddingVertical: 14,
+    fontSize: 16,
+    color: COLORS.gray900,
+  },
+  eyeButton: {
+    paddingHorizontal: SPACING.lg,
+    paddingVertical: 14,
   },
   inputError: {
     borderColor: '#EF4444',

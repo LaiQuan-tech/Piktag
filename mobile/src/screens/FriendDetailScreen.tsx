@@ -577,10 +577,18 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
             <Text style={styles.statNumber}>{mutualFriends}</Text>
             <Text style={styles.statLabel}>{t('friendDetail.mutualFriendsLabel')}</Text>
           </View>
-          <View style={styles.statBox}>
-            <Text style={styles.statNumber}>{mutualTags}</Text>
+          <TouchableOpacity
+            style={styles.statBox}
+            activeOpacity={0.7}
+            onPress={() => {
+              if (profile?.id) {
+                navigation.navigate('UserDetail', { userId: profile.id });
+              }
+            }}
+          >
+            <Text style={[styles.statNumber, mutualTags > 0 && { color: COLORS.piktag600 }]}>{mutualTags}</Text>
             <Text style={styles.statLabel}>{t('friendDetail.mutualTagsLabel')}</Text>
-          </View>
+          </TouchableOpacity>
         </View>
 
         {/* Action Buttons */}

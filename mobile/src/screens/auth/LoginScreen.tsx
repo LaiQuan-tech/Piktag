@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -12,7 +12,7 @@ import {
   ScrollView,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { Hash } from 'lucide-react-native';
+import { Hash, Eye, EyeOff } from 'lucide-react-native';
 import { supabase } from '../../lib/supabase';
 import { COLORS, SPACING, BORDER_RADIUS } from '../../constants/theme';
 
@@ -25,6 +25,9 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [resetLoading, setResetLoading] = useState(false);
+  const passwordRef = useRef<TextInput>(null);
 
   const handleLogin = async () => {
     if (!email.trim() || !password.trim()) {
@@ -46,6 +49,30 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
       Alert.alert(t('common.error'), err.message || t('common.unknownError'));
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleForgotPassword = async () => {
+    if (!email.trim()) {
+      Alert.alert(t('common.error'), t('auth.login.alertEnterEmailFirst'));
+      return;
+    }
+
+    setResetLoading(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email.trim());
+      if (error) {
+        Alert.alert(t('common.error'), error.message);
+      } else {
+        Alert.alert(
+          t('auth.login.alertResetSentTitle'),
+          t('auth.login.alertResetSentMessage')
+        );
+      }
+    } catch (err: any) {
+      Alert.alert(t('common.error'), err.message || t('common.unknownError'));
+    } finally {
+      setResetLoading(false);
     }
   };
 
@@ -78,16 +105,50 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
             keyboardType="email-address"
             autoCapitalize="none"
             autoCorrect={false}
+            returnKeyType="next"
+            onSubmitEditing={() => passwordRef.current?.focus()}
           />
 
-          <TextInput
-            style={styles.input}
-            placeholder={t('auth.login.passwordPlaceholder')}
-            placeholderTextColor={COLORS.gray400}
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry
-          />
+          <View style={styles.passwordContainer}>
+            <TextInput
+              ref={passwordRef}
+              style={styles.passwordInput}
+              placeholder={t('auth.login.passwordPlaceholder')}
+              placeholderTextColor={COLORS.gray400}
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry={!showPassword}
+              returnKeyType="done"
+              onSubmitEditing={handleLogin}
+            />
+            <TouchableOpacity
+              style={styles.eyeButton}
+              onPress={() => setShowPassword(!showPassword)}
+              activeOpacity={0.6}
+            >
+              {showPassword ? (
+                <EyeOff size={20} color={COLORS.gray500} />
+              ) : (
+                <Eye size={20} color={COLORS.gray500} />
+              )}
+            </TouchableOpacity>
+          </View>
+
+          {/* Forgot Password */}
+          <TouchableOpacity
+            style={styles.forgotPasswordBtn}
+            onPress={handleForgotPassword}
+            disabled={resetLoading}
+            activeOpacity={0.7}
+          >
+            {resetLoading ? (
+              <ActivityIndicator size="small" color={COLORS.piktag500} />
+            ) : (
+              <Text style={styles.forgotPasswordText}>
+                {t('auth.login.forgotPassword')}
+              </Text>
+            )}
+          </TouchableOpacity>
 
           <TouchableOpacity
             style={[styles.loginButton, loading && styles.loginButtonDisabled]}
@@ -164,6 +225,36 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: COLORS.gray900,
     backgroundColor: COLORS.white,
+  },
+  passwordContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: COLORS.gray200,
+    borderRadius: BORDER_RADIUS.xl,
+    backgroundColor: COLORS.white,
+  },
+  passwordInput: {
+    flex: 1,
+    paddingHorizontal: SPACING.xl,
+    paddingVertical: 14,
+    fontSize: 16,
+    color: COLORS.gray900,
+  },
+  eyeButton: {
+    paddingHorizontal: SPACING.lg,
+    paddingVertical: 14,
+  },
+  forgotPasswordBtn: {
+    alignSelf: 'flex-end',
+    paddingVertical: 4,
+    minHeight: 28,
+    justifyContent: 'center',
+  },
+  forgotPasswordText: {
+    fontSize: 14,
+    color: COLORS.piktag600,
+    fontWeight: '500',
   },
   loginButton: {
     backgroundColor: COLORS.piktag500,

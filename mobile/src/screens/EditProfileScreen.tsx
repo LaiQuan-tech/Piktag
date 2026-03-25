@@ -24,14 +24,15 @@ import { supabase, supabaseUrl, supabaseAnonKey } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
 import type { Biolink, Tag, UserTag } from '../types';
 
-const PRESET_PLATFORMS = [
-  { key: 'instagram', label: 'Instagram' },
-  { key: 'facebook', label: 'Facebook' },
-  { key: 'linkedin', label: 'LinkedIn' },
-  { key: 'line', label: 'Line' },
-  { key: 'website', label: '個人網站' },
-  { key: 'custom', label: '自訂連結' },
-];
+// Platform labels that need i18n are resolved inside the component
+const PRESET_PLATFORM_KEYS = ['instagram', 'facebook', 'linkedin', 'line', 'website', 'custom'];
+
+const PLATFORM_LABELS_STATIC: Record<string, string> = {
+  instagram: 'Instagram',
+  facebook: 'Facebook',
+  linkedin: 'LinkedIn',
+  line: 'Line',
+};
 
 // Fixed prefix shown as grey label; user only types the account/path part
 const PLATFORM_PREFIXES: Record<string, string> = {
@@ -43,12 +44,12 @@ const PLATFORM_PREFIXES: Record<string, string> = {
   custom: '',
 };
 
-const PLATFORM_ACCOUNT_PLACEHOLDER: Record<string, string> = {
-  instagram: '帳號名稱',
-  facebook: '帳號名稱',
-  linkedin: '帳號名稱',
-  line: 'Line ID',
-  website: '你的網站網址',
+const PLATFORM_PLACEHOLDER_KEYS: Record<string, string> = {
+  instagram: 'editProfile.accountName',
+  facebook: 'editProfile.accountName',
+  linkedin: 'editProfile.accountName',
+  line: 'editProfile.lineId',
+  website: 'editProfile.yourWebsite',
   custom: 'https://...',
 };
 
@@ -921,30 +922,33 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
             {!showPlatformPicker && !selectedPlatform && (
               <TouchableOpacity onPress={() => setShowPlatformPicker(true)} style={styles.addLinkBtn}>
                 <Plus size={18} color={COLORS.piktag500} />
-                <Text style={styles.addLinkBtnText}>新增連結</Text>
+                <Text style={styles.addLinkBtnText}>{t('editProfile.addLink')}</Text>
               </TouchableOpacity>
             )}
 
             {showPlatformPicker && !selectedPlatform && (
               <View style={styles.platformPicker}>
-                <Text style={styles.pickerTitle}>選擇平台</Text>
-                {PRESET_PLATFORMS.map((p) => (
-                  <TouchableOpacity
-                    key={p.key}
-                    style={styles.platformOption}
-                    onPress={() => {
-                      setSelectedPlatform(p.key);
-                      setShowPlatformPicker(false);
-                      setNewLinkAccount('');
-                      setNewLinkLabel(p.key === 'custom' ? '' : p.label);
-                    }}
-                  >
-                    <PlatformIcon platform={p.key} size={28} />
-                    <Text style={styles.platformOptionText}>{p.label}</Text>
-                  </TouchableOpacity>
-                ))}
+                <Text style={styles.pickerTitle}>{t('editProfile.selectPlatform')}</Text>
+                {PRESET_PLATFORM_KEYS.map((key) => {
+                  const label = PLATFORM_LABELS_STATIC[key] || t(`editProfile.${key === 'website' ? 'personalWebsite' : 'customLink'}`);
+                  return (
+                    <TouchableOpacity
+                      key={key}
+                      style={styles.platformOption}
+                      onPress={() => {
+                        setSelectedPlatform(key);
+                        setShowPlatformPicker(false);
+                        setNewLinkAccount('');
+                        setNewLinkLabel(key === 'custom' ? '' : label);
+                      }}
+                    >
+                      <PlatformIcon platform={key} size={28} />
+                      <Text style={styles.platformOptionText}>{label}</Text>
+                    </TouchableOpacity>
+                  );
+                })}
                 <TouchableOpacity onPress={() => setShowPlatformPicker(false)}>
-                  <Text style={styles.cancelText}>取消</Text>
+                  <Text style={styles.cancelText}>{t('common.cancel')}</Text>
                 </TouchableOpacity>
               </View>
             )}
@@ -954,13 +958,13 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
                 <View style={styles.newLinkHeader}>
                   <PlatformIcon platform={selectedPlatform} size={24} />
                   <Text style={styles.newLinkPlatformName}>
-                    {PRESET_PLATFORMS.find(p => p.key === selectedPlatform)?.label}
+                    {PLATFORM_LABELS_STATIC[selectedPlatform] || t(`editProfile.${selectedPlatform === 'website' ? 'personalWebsite' : 'customLink'}`)}
                   </Text>
                 </View>
                 {selectedPlatform === 'custom' && (
                   <TextInput
                     style={styles.input}
-                    placeholder="連結名稱"
+                    placeholder={t('editProfile.linkName')}
                     value={newLinkLabel}
                     onChangeText={setNewLinkLabel}
                   />
@@ -974,7 +978,7 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
                   ) : null}
                   <TextInput
                     style={styles.accountInput}
-                    placeholder={PLATFORM_ACCOUNT_PLACEHOLDER[selectedPlatform] || ''}
+                    placeholder={PLATFORM_PLACEHOLDER_KEYS[selectedPlatform]?.startsWith('editProfile.') ? t(PLATFORM_PLACEHOLDER_KEYS[selectedPlatform]) : (PLATFORM_PLACEHOLDER_KEYS[selectedPlatform] || '')}
                     value={newLinkAccount}
                     onChangeText={setNewLinkAccount}
                     autoCapitalize="none"
@@ -984,7 +988,7 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
                 </View>
                 <View style={styles.newLinkActions}>
                   <TouchableOpacity onPress={() => { setSelectedPlatform(null); setNewLinkAccount(''); setNewLinkLabel(''); }} style={styles.cancelBtn}>
-                    <Text style={styles.cancelText}>取消</Text>
+                    <Text style={styles.cancelText}>{t('common.cancel')}</Text>
                   </TouchableOpacity>
                   <TouchableOpacity
                     style={styles.saveBtn}
@@ -994,7 +998,7 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
                       const fullUrl = selectedPlatform === 'custom'
                         ? newLinkAccount.trim()
                         : `${prefix}${newLinkAccount.trim()}`;
-                      const label = selectedPlatform === 'custom' ? newLinkLabel : PRESET_PLATFORMS.find(p => p.key === selectedPlatform)?.label ?? '';
+                      const label = selectedPlatform === 'custom' ? newLinkLabel : (PLATFORM_LABELS_STATIC[selectedPlatform] || t(`editProfile.${selectedPlatform === 'website' ? 'personalWebsite' : 'customLink'}`));
                       const { data, error } = await supabase.from('piktag_biolinks').insert({
                         user_id: userId,
                         platform: selectedPlatform,

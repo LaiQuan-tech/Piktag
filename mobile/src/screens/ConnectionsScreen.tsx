@@ -30,6 +30,8 @@ import {
   Gift,
   Heart,
   Clock,
+  QrCode,
+  Hash,
 } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { COLORS } from '../constants/theme';
@@ -159,12 +161,28 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
   const [crmReminders, setCrmReminders] = useState<any[]>([]);
   const [remindersDismissed, setRemindersDismissed] = useState(false);
 
+  // Tag filter state
+  const [filterTag, setFilterTag] = useState<string | null>(null);
+  const [filterModalVisible, setFilterModalVisible] = useState(false);
+
   // Batch selection state
   const [selectMode, setSelectMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [batchTagModalVisible, setBatchTagModalVisible] = useState(false);
   const [batchTagInput, setBatchTagInput] = useState('');
   const [batchTagLoading, setBatchTagLoading] = useState(false);
+
+  // Tag-based stranger recommendations
+  const [tagRecommendations, setTagRecommendations] = useState<Array<{
+    id: string;
+    username: string | null;
+    full_name: string | null;
+    avatar_url: string | null;
+    is_verified: boolean;
+    mutual_tag_count: number;
+    mutual_tags: string[];
+  }>>([]);
+  const [tagRecDismissed, setTagRecDismissed] = useState(false);
 
   // Friend statuses (Instagram Stories-style row)
   const [friendStatuses, setFriendStatuses] = useState<Array<{
@@ -345,6 +363,85 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
     }
   }, [user]);
 
+  // --- Fetch tag-based stranger recommendations ---
+  const fetchTagRecommendations = useCallback(async () => {
+    if (!user) return;
+    try {
+      // 1. Get my tag_ids
+      const { data: myTags } = await supabase
+        .from('piktag_user_tags')
+        .select('tag_id, piktag_tags!inner(name)')
+        .eq('user_id', user.id);
+
+      if (!myTags || myTags.length === 0) return;
+
+      const myTagIds = myTags.map((t: any) => t.tag_id);
+      const myTagNameMap = new Map(myTags.map((t: any) => [t.tag_id, (t.piktag_tags as any)?.name || '']));
+
+      // 2. Get my connected user ids to exclude
+      const { data: myConns } = await supabase
+        .from('piktag_connections')
+        .select('connected_user_id')
+        .eq('user_id', user.id);
+      const connectedIds = new Set((myConns || []).map((c: any) => c.connected_user_id));
+      connectedIds.add(user.id);
+
+      // 3. Find other users who share my tags
+      const { data: sharedTagUsers } = await supabase
+        .from('piktag_user_tags')
+        .select('user_id, tag_id')
+        .in('tag_id', myTagIds)
+        .eq('is_private', false);
+
+      if (!sharedTagUsers) return;
+
+      // Count mutual tags per user
+      const userTagMap = new Map<string, string[]>();
+      for (const ut of sharedTagUsers) {
+        if (connectedIds.has(ut.user_id)) continue;
+        if (!userTagMap.has(ut.user_id)) userTagMap.set(ut.user_id, []);
+        const tagName = myTagNameMap.get(ut.tag_id);
+        if (tagName) userTagMap.get(ut.user_id)!.push(tagName);
+      }
+
+      // Sort by mutual count desc, take top 10
+      const sorted = Array.from(userTagMap.entries())
+        .sort((a, b) => b[1].length - a[1].length)
+        .slice(0, 10);
+
+      if (sorted.length === 0) {
+        setTagRecommendations([]);
+        return;
+      }
+
+      // 4. Fetch profiles
+      const userIds = sorted.map(([uid]) => uid);
+      const { data: profiles } = await supabase
+        .from('piktag_profiles')
+        .select('id, username, full_name, avatar_url, is_verified')
+        .in('id', userIds)
+        .eq('is_public', true);
+
+      if (!profiles) {
+        setTagRecommendations([]);
+        return;
+      }
+
+      const profileMap = new Map(profiles.map((p: any) => [p.id, p]));
+      const results = sorted
+        .filter(([uid]) => profileMap.has(uid))
+        .map(([uid, tags]) => ({
+          ...profileMap.get(uid)!,
+          mutual_tag_count: tags.length,
+          mutual_tags: tags,
+        }));
+
+      setTagRecommendations(results);
+    } catch (err) {
+      console.error('Tag recommendations error:', err);
+    }
+  }, [user]);
+
   // --- Optimized: Promise.all for parallel execution, unified loading, with cooldown ---
   useFocusEffect(
     useCallback(() => {
@@ -358,6 +455,7 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
             fetchConnections(),
             fetchRecommendation(),
             fetchFriendStatuses(),
+            fetchTagRecommendations(),
           ]);
         } finally {
           setLoading(false);
@@ -365,7 +463,7 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
         }
       };
       loadAll();
-    }, [user, fetchConnections, fetchRecommendation, fetchFriendStatuses])
+    }, [user, fetchConnections, fetchRecommendation, fetchFriendStatuses, fetchTagRecommendations])
   );
 
   // --- Optimized: useMemo for sorted connections ---
@@ -420,8 +518,19 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
         }
         break;
     }
+    // Apply tag filter
+    if (filterTag) {
+      return sorted.filter((c) => c.tags.includes(filterTag));
+    }
     return sorted;
-  }, [connections, sortBy, userLocation]);
+  }, [connections, sortBy, userLocation, filterTag]);
+
+  // All unique tags from connections for filter modal
+  const allConnectionTags = useMemo(() => {
+    const tagSet = new Set<string>();
+    connections.forEach((c) => c.tags.forEach((t) => tagSet.add(t)));
+    return Array.from(tagSet).sort();
+  }, [connections]);
 
   // --- Optimized: useCallback for handlers ---
   const handleConnectionPress = useCallback((item: ConnectionWithTags) => {
@@ -553,10 +662,19 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
     if (loading) return null;
     return (
       <View style={styles.emptyContainer}>
-        <Text style={styles.emptyText}>{t('connections.emptyText')}</Text>
+        <QrCode size={64} color={COLORS.gray200} style={{ marginBottom: 16 }} />
+        <Text style={styles.emptyTitle}>{t('connections.emptyGuideTitle')}</Text>
+        <Text style={styles.emptyText}>{t('connections.emptyGuideMessage')}</Text>
+        <TouchableOpacity
+          style={styles.emptyButton}
+          onPress={() => navigation.navigate('AddTagTab', { screen: 'CameraScan' })}
+          activeOpacity={0.8}
+        >
+          <Text style={styles.emptyButtonText}>{t('connections.emptyGuideButton')}</Text>
+        </TouchableOpacity>
       </View>
     );
-  }, [loading, t]);
+  }, [loading, t, navigation]);
 
   // --- Optimized: stable keyExtractor ---
   const keyExtractor = useCallback((item: ConnectionWithTags) => item.id, []);
@@ -739,15 +857,68 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
       );
     };
 
+    const renderTagRecommendations = () => {
+      if (tagRecommendations.length === 0 || tagRecDismissed || selectMode) return null;
+      return (
+        <View style={styles.tagRecCard}>
+          <View style={styles.recHeader}>
+            <View style={styles.recHeaderLeft}>
+              <Hash size={16} color={COLORS.piktag600} />
+              <Text style={styles.recHeaderText}>{t('connections.recommendTitle')}</Text>
+            </View>
+            <TouchableOpacity onPress={() => setTagRecDismissed(true)} activeOpacity={0.6}>
+              <X size={18} color={COLORS.gray400} />
+            </TouchableOpacity>
+          </View>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.tagRecScrollContent}
+          >
+            {tagRecommendations.slice(0, 6).map((rec) => {
+              const displayName = rec.full_name || rec.username || '';
+              return (
+                <TouchableOpacity
+                  key={rec.id}
+                  style={styles.tagRecItem}
+                  activeOpacity={0.7}
+                  onPress={() => navigation.navigate('UserDetail', { userId: rec.id })}
+                >
+                  {rec.avatar_url ? (
+                    <Image source={{ uri: rec.avatar_url }} style={styles.tagRecAvatar} />
+                  ) : (
+                    <InitialsAvatar name={displayName} size={56} />
+                  )}
+                  <Text style={styles.tagRecName} numberOfLines={1}>{displayName}</Text>
+                  <View style={styles.tagRecBadge}>
+                    <Hash size={10} color={COLORS.piktag600} strokeWidth={2.5} />
+                    <Text style={styles.tagRecBadgeText}>
+                      {t('connections.mutualTagCount', { count: rec.mutual_tag_count })}
+                    </Text>
+                  </View>
+                  {rec.mutual_tags.length > 0 && (
+                    <Text style={styles.tagRecTags} numberOfLines={1}>
+                      {rec.mutual_tags.slice(0, 2).map(t => `#${t}`).join(' ')}
+                    </Text>
+                  )}
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
+        </View>
+      );
+    };
+
     return (
       <>
         {renderFriendStatuses()}
+        {renderTagRecommendations()}
         {renderCrmReminders()}
         {renderOnThisDay()}
         {renderRecommendation()}
       </>
     );
-  }, [friendStatuses, onThisDay, onThisDayDismissed, crmReminders, remindersDismissed, recommendation, recDismissed, selectMode, t, navigation]);
+  }, [friendStatuses, onThisDay, onThisDayDismissed, crmReminders, remindersDismissed, recommendation, recDismissed, tagRecommendations, tagRecDismissed, selectMode, t, navigation]);
 
   // --- Optimized: stable contentContainerStyle ---
   const contentContainerStyle = useMemo(() => [
@@ -794,6 +965,13 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
             <TouchableOpacity
               style={styles.headerIconBtn}
               activeOpacity={0.6}
+              onPress={() => setFilterModalVisible(true)}
+            >
+              <Tag size={24} color={filterTag ? COLORS.piktag600 : COLORS.gray600} />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.headerIconBtn}
+              activeOpacity={0.6}
               onPress={() => setSortModalVisible(true)}
             >
               <Settings2 size={24} color={COLORS.gray600} />
@@ -809,12 +987,24 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
         </View>
       )}
 
-      {/* Sort indicator */}
-      {!selectMode && sortBy !== 'newest' && (
+      {/* Sort / Filter indicators */}
+      {!selectMode && (sortBy !== 'newest' || filterTag) && (
         <View style={styles.sortIndicator}>
-          <Text style={styles.sortIndicatorText}>
-            {SORT_OPTIONS.find((o) => o.key === sortBy)?.label}
-          </Text>
+          {sortBy !== 'newest' && (
+            <Text style={styles.sortIndicatorText}>
+              {SORT_OPTIONS.find((o) => o.key === sortBy)?.label}
+            </Text>
+          )}
+          {filterTag && (
+            <TouchableOpacity
+              style={styles.filterIndicatorChip}
+              onPress={() => setFilterTag(null)}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.filterIndicatorText}>{filterTag}</Text>
+              <X size={14} color={COLORS.piktag600} />
+            </TouchableOpacity>
+          )}
         </View>
       )}
 
@@ -893,6 +1083,54 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
             ))}
           </View>
         </TouchableOpacity>
+      </Modal>
+
+      {/* Tag Filter Modal */}
+      <Modal
+        visible={filterModalVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setFilterModalVisible(false)}
+      >
+        <View style={styles.filterModalOverlay}>
+          <View style={styles.filterModalContainer}>
+            <View style={styles.filterModalHeader}>
+              <Text style={styles.filterModalTitle}>{t('connections.filterByTag')}</Text>
+              <TouchableOpacity onPress={() => setFilterModalVisible(false)} activeOpacity={0.6}>
+                <X size={24} color={COLORS.gray900} />
+              </TouchableOpacity>
+            </View>
+            {filterTag && (
+              <TouchableOpacity
+                style={styles.filterClearBtn}
+                onPress={() => { setFilterTag(null); setFilterModalVisible(false); }}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.filterClearText}>{t('connections.clearFilter')}</Text>
+              </TouchableOpacity>
+            )}
+            <ScrollView showsVerticalScrollIndicator={false} style={{ maxHeight: 400 }}>
+              {allConnectionTags.length === 0 ? (
+                <Text style={styles.filterEmptyText}>{t('connections.noTagsToFilter')}</Text>
+              ) : (
+                <View style={styles.filterTagsWrap}>
+                  {allConnectionTags.map((tag) => (
+                    <TouchableOpacity
+                      key={tag}
+                      style={[styles.filterTagChip, filterTag === tag && styles.filterTagChipActive]}
+                      onPress={() => { setFilterTag(tag); setFilterModalVisible(false); }}
+                      activeOpacity={0.7}
+                    >
+                      <Text style={[styles.filterTagChipText, filterTag === tag && styles.filterTagChipTextActive]}>
+                        {tag}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              )}
+            </ScrollView>
+          </View>
+        </View>
       </Modal>
 
       {/* Batch Tag Modal */}
@@ -1007,11 +1245,30 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: 40,
   },
+  emptyTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: COLORS.gray700,
+    textAlign: 'center',
+    marginBottom: 8,
+  },
   emptyText: {
     fontSize: 16,
     color: COLORS.gray500,
     textAlign: 'center',
     lineHeight: 24,
+  },
+  emptyButton: {
+    marginTop: 20,
+    backgroundColor: COLORS.piktag500,
+    borderRadius: 14,
+    paddingVertical: 14,
+    paddingHorizontal: 32,
+  },
+  emptyButtonText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: COLORS.gray900,
   },
   connectionItem: {
     flexDirection: 'row',
@@ -1304,5 +1561,143 @@ const styles = StyleSheet.create({
     color: '#9CA3AF',
     textAlign: 'center',
     lineHeight: 13,
+  },
+
+  // Tag Recommendations
+  tagRecCard: {
+    marginHorizontal: 16,
+    marginTop: 12,
+    marginBottom: 8,
+    backgroundColor: COLORS.white,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: COLORS.gray100,
+    paddingVertical: 14,
+  },
+  tagRecScrollContent: {
+    paddingHorizontal: 16,
+    gap: 14,
+  },
+  tagRecItem: {
+    width: 100,
+    alignItems: 'center',
+    gap: 4,
+  },
+  tagRecAvatar: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: COLORS.gray100,
+    marginBottom: 4,
+  },
+  tagRecName: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: COLORS.gray900,
+    textAlign: 'center',
+  },
+  tagRecBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
+    backgroundColor: COLORS.piktag50,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 8,
+  },
+  tagRecBadgeText: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: COLORS.piktag600,
+  },
+  tagRecTags: {
+    fontSize: 10,
+    color: COLORS.gray500,
+    textAlign: 'center',
+  },
+
+  // Filter indicator
+  filterIndicatorChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: COLORS.piktag50,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: COLORS.piktag300,
+  },
+  filterIndicatorText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: COLORS.piktag600,
+  },
+
+  // Filter Modal
+  filterModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    justifyContent: 'flex-end',
+  },
+  filterModalContainer: {
+    backgroundColor: COLORS.white,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    paddingTop: 20,
+    paddingHorizontal: 20,
+    paddingBottom: 40,
+  },
+  filterModalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 16,
+  },
+  filterModalTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: COLORS.gray900,
+  },
+  filterClearBtn: {
+    alignSelf: 'flex-start',
+    marginBottom: 12,
+  },
+  filterClearText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: COLORS.red500,
+  },
+  filterEmptyText: {
+    fontSize: 14,
+    color: COLORS.gray400,
+    textAlign: 'center',
+    paddingVertical: 24,
+  },
+  filterTagsWrap: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+  },
+  filterTagChip: {
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 20,
+    backgroundColor: COLORS.gray100,
+    borderWidth: 1.5,
+    borderColor: 'transparent',
+  },
+  filterTagChipActive: {
+    backgroundColor: COLORS.piktag50,
+    borderColor: COLORS.piktag500,
+  },
+  filterTagChipText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: COLORS.gray700,
+  },
+  filterTagChipTextActive: {
+    color: COLORS.piktag600,
+    fontWeight: '700',
   },
 });

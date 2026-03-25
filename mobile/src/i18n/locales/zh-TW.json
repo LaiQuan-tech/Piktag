@@ -29,7 +29,11 @@
       "passwordPlaceholder": "密碼",
       "loginButton": "登入",
       "noAccountPrompt": "還沒有帳號？ ",
-      "registerLink": "立即註冊"
+      "registerLink": "立即註冊",
+      "forgotPassword": "忘記密碼？",
+      "alertEnterEmailFirst": "請先輸入電子郵件，我們會寄送重設密碼的連結",
+      "alertResetSentTitle": "已寄出",
+      "alertResetSentMessage": "重設密碼連結已寄至您的信箱，請查收"
     },
     "register": {
       "alertEmptyFields": "請填寫所有欄位",
@@ -44,10 +48,19 @@
       "passwordPlaceholder": "密碼",
       "registerButton": "註冊",
       "hasAccountPrompt": "已有帳號？ ",
-      "loginLink": "登入"
+      "loginLink": "登入",
+      "confirmPasswordPlaceholder": "確認密碼",
+      "alertPasswordMismatch": "兩次密碼輸入不一致"
     },
     "onboarding": {
-      "defaultTags": ["#創業", "#設計", "#開發", "#攝影", "#音樂", "#行銷"],
+      "defaultTags": [
+        "#創業",
+        "#設計",
+        "#開發",
+        "#攝影",
+        "#音樂",
+        "#行銷"
+      ],
       "alertUserNotFound": "找不到使用者資訊",
       "step1Title": "告訴我們你是誰",
       "step1Description": "寫一段簡短的自我介紹，讓其他人更了解你",
@@ -94,7 +107,16 @@
     "batchTagModalTitle": "為 {{count}} 位好友加標籤",
     "batchTagPlaceholder": "輸入標籤名稱（例如：尾牙）",
     "batchTagProcessing": "處理中...",
-    "batchTagConfirm": "確認"
+    "batchTagConfirm": "確認",
+    "emptyGuideTitle": "還沒有人脈",
+    "emptyGuideMessage": "去掃描 QR Code 認識新朋友吧！",
+    "emptyGuideButton": "開始掃描",
+    "recommendTitle": "你可能認識",
+    "mutualTagCount": "{{count}} 個共同標籤",
+    "viewProfile": "查看",
+    "filterByTag": "依標籤篩選",
+    "clearFilter": "清除篩選",
+    "noTagsToFilter": "目前沒有可篩選的標籤"
   },
   "search": {
     "headerTitle": "搜尋",
@@ -110,7 +132,13 @@
     "noProfilesFound": "找不到相關會員",
     "tagsSectionLabel": "標籤",
     "noTagsFound": "找不到相關標籤",
-    "tagCountSuffix": "位擁有"
+    "tagCountSuffix": "位擁有",
+    "clearHistory": "清除搜尋紀錄",
+    "clearHistoryConfirmTitle": "清除搜尋紀錄",
+    "clearHistoryConfirmMessage": "確定要清除所有搜尋紀錄嗎？",
+    "tagUsersTitle": "使用此標籤的用戶",
+    "viewAllTagUsers": "查看全部 {{count}} 位",
+    "categoryUncategorized": "其他"
   },
   "addTag": {
     "headerTitle": "# 準備社交",
@@ -134,7 +162,7 @@
     "tagPlaceholder": "輸入標籤...",
     "addButton": "新增",
     "saveAsPreset": "儲存為常用模板",
-    "presetNamePlaceholder": "輸入模板名稱...",
+    "presetNamePlaceholder": "例如：每週讀書會",
     "cancelButton": "取消",
     "saveButton": "儲存",
     "generateQrButton": "產生 QR Code",
@@ -152,7 +180,11 @@
     "noPresets": "尚無常用模板",
     "applyPreset": "套用",
     "shareMessage": "PikTag 社交活動\n日期：{{eventDate}}\n地點：{{eventLocation}}\n標籤：{{tags}}\n\n掃描 QR Code 加入連線！",
-    "defaultDisplayName": "使用者"
+    "defaultDisplayName": "使用者",
+    "presetNamePrompt": "請輸入模板名稱",
+    "popularTagsSoftTitle": "興趣標籤",
+    "popularTagsHardTitle": "職業標籤",
+    "longPressToDelete": "長按可刪除模板"
   },
   "profile": {
     "nameNotSet": "未設定姓名",
@@ -164,7 +196,8 @@
     "shareProfile": "分享個人檔案",
     "editProfile": "編輯個人資訊",
     "manageTags": "管理我的標籤",
-    "noContactMethods": "尚無聯繫方式"
+    "noContactMethods": "尚無聯繫方式",
+    "statusTooltip": "點我寫便利貼"
   },
   "editProfile": {
     "headerTitle": "編輯個人資訊",
@@ -205,7 +238,14 @@
     "displayNameLabel": "顯示名稱（選填）",
     "displayNamePlaceholder": "自訂顯示名稱",
     "modalButtonUpdate": "更新",
-    "modalButtonAdd": "新增"
+    "modalButtonAdd": "新增",
+    "accountName": "帳號名稱",
+    "yourWebsite": "你的網站網址",
+    "lineId": "Line ID",
+    "personalWebsite": "個人網站",
+    "customLink": "自訂連結",
+    "selectPlatform": "選擇平台",
+    "linkName": "連結名稱"
   },
   "friendDetail": {
     "reminderBirthday": "生日",
@@ -290,7 +330,8 @@
     "darkMode": "深色模式",
     "aboutPikTag": "關於 PikTag",
     "logoutButton": "登出",
-    "deleteAccountButton": "刪除帳號"
+    "deleteAccountButton": "刪除帳號",
+    "alertDeleteAccountNote": "此操作無法復原，您的帳號和所有資料將被永久刪除"
   },
   "contactSync": {
     "headerTitle": "通訊錄同步",
@@ -408,6 +449,12 @@
     "unknownTag": "未知標籤",
     "usageCount": "共 {{count}} 次使用",
     "emptyTitle": "尚無相關人脈",
-    "emptyText": "目前沒有人脈使用此標籤"
+    "emptyText": "目前沒有人脈使用此標籤",
+    "tabExplore": "探索",
+    "tabConnections": "我的人脈",
+    "mutualTags": "{{count}} 個共同標籤",
+    "exploreEmptyTitle": "目前沒有其他用戶",
+    "exploreEmptyText": "還沒有其他公開用戶使用此標籤",
+    "viewAll": "查看全部"
   }
 }

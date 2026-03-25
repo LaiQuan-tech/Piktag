@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -10,9 +10,10 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ArrowLeft, Hash, CheckCircle2 } from 'lucide-react-native';
+import { ArrowLeft, Hash, CheckCircle2, Users, UserPlus } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { COLORS } from '../constants/theme';
+import InitialsAvatar from '../components/InitialsAvatar';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
 
@@ -37,23 +38,37 @@ type ConnectionWithProfile = {
   } | null;
 };
 
+type ExploreUser = {
+  id: string;
+  username: string | null;
+  full_name: string | null;
+  avatar_url: string | null;
+  is_verified: boolean;
+  mutual_tag_count: number;
+};
+
+type TabKey = 'connections' | 'explore';
+
 export default function TagDetailScreen({ navigation, route }: TagDetailScreenProps) {
   const { t } = useTranslation();
   const { user } = useAuth();
   const tagId = route.params?.tagId;
   const tagName = route.params?.tagName;
+  const initialTab = route.params?.initialTab as TabKey | undefined;
 
+  const [activeTab, setActiveTab] = useState<TabKey>(initialTab || 'explore');
   const [connections, setConnections] = useState<ConnectionWithProfile[]>([]);
+  const [exploreUsers, setExploreUsers] = useState<ExploreUser[]>([]);
   const [loading, setLoading] = useState(true);
+  const [exploreLoading, setExploreLoading] = useState(true);
   const [usageCount, setUsageCount] = useState(0);
+  const [totalUserCount, setTotalUserCount] = useState(0);
 
+  // --- Fetch connections with this tag (existing logic) ---
   const fetchTagConnections = useCallback(async () => {
     if (!user || !tagId) return;
-
     try {
       setLoading(true);
-
-      // Single query: get connections that have this tag (via connection_tags join)
       const { data, error } = await supabase
         .from('piktag_connection_tags')
         .select(`
@@ -79,7 +94,6 @@ export default function TagDetailScreen({ navigation, route }: TagDetailScreenPr
         return;
       }
 
-      // Extract connections, filter by current user's connections
       const allConnections = data
         .map((ct: any) => ct.connection)
         .filter((conn: any) => conn && conn.connected_user_id);
@@ -94,44 +108,126 @@ export default function TagDetailScreen({ navigation, route }: TagDetailScreenPr
     }
   }, [user, tagId]);
 
+  // --- Fetch all public users with this tag (NEW: explore) ---
+  const fetchExploreUsers = useCallback(async () => {
+    if (!user || !tagId) return;
+    try {
+      setExploreLoading(true);
+
+      // 1. Get all public user_ids who have this tag (non-private)
+      const { data: userTagsData, error: utError } = await supabase
+        .from('piktag_user_tags')
+        .select('user_id')
+        .eq('tag_id', tagId)
+        .eq('is_private', false);
+
+      if (utError || !userTagsData) {
+        setExploreUsers([]);
+        setTotalUserCount(0);
+        return;
+      }
+
+      // Exclude self
+      const otherUserIds = userTagsData
+        .map((ut: any) => ut.user_id)
+        .filter((uid: string) => uid !== user.id);
+
+      setTotalUserCount(otherUserIds.length);
+
+      if (otherUserIds.length === 0) {
+        setExploreUsers([]);
+        return;
+      }
+
+      // 2. Fetch profiles (only public)
+      const { data: profilesData, error: pError } = await supabase
+        .from('piktag_profiles')
+        .select('id, username, full_name, avatar_url, is_verified')
+        .in('id', otherUserIds)
+        .eq('is_public', true);
+
+      if (pError || !profilesData) {
+        setExploreUsers([]);
+        return;
+      }
+
+      // 3. Get current user's tag_ids for mutual count
+      const { data: myTags } = await supabase
+        .from('piktag_user_tags')
+        .select('tag_id')
+        .eq('user_id', user.id);
+
+      const myTagIds = new Set((myTags || []).map((t: any) => t.tag_id));
+
+      // 4. For each explore user, count mutual tags
+      const userIds = profilesData.map((p: any) => p.id);
+      const { data: theirTags } = await supabase
+        .from('piktag_user_tags')
+        .select('user_id, tag_id')
+        .in('user_id', userIds)
+        .eq('is_private', false);
+
+      const mutualCountMap = new Map<string, number>();
+      (theirTags || []).forEach((t: any) => {
+        if (myTagIds.has(t.tag_id)) {
+          mutualCountMap.set(t.user_id, (mutualCountMap.get(t.user_id) || 0) + 1);
+        }
+      });
+
+      // 5. Build explore user list, sorted by mutual tag count desc
+      const result: ExploreUser[] = profilesData.map((p: any) => ({
+        id: p.id,
+        username: p.username,
+        full_name: p.full_name,
+        avatar_url: p.avatar_url,
+        is_verified: p.is_verified,
+        mutual_tag_count: mutualCountMap.get(p.id) || 0,
+      }));
+
+      result.sort((a, b) => b.mutual_tag_count - a.mutual_tag_count);
+      setExploreUsers(result);
+    } catch (err) {
+      console.error('Explore fetch error:', err);
+      setExploreUsers([]);
+    } finally {
+      setExploreLoading(false);
+    }
+  }, [user, tagId]);
+
   useEffect(() => {
     fetchTagConnections();
-  }, [fetchTagConnections]);
+    fetchExploreUsers();
+  }, [fetchTagConnections, fetchExploreUsers]);
 
-  const renderItem = useCallback(({ item }: { item: ConnectionWithProfile }) => {
+  // --- Connection item renderer ---
+  const renderConnectionItem = useCallback(({ item }: { item: ConnectionWithProfile }) => {
     const profile = item.connected_user;
     const displayName = item.nickname || profile?.full_name || profile?.username || 'Unknown';
     const username = profile?.username || '';
     const verified = profile?.is_verified || false;
-    const avatarUri = profile?.avatar_url
-      || `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=f3f4f6&color=6b7280`;
 
     return (
       <TouchableOpacity
-        style={styles.connectionItem}
+        style={styles.userItem}
         activeOpacity={0.7}
         onPress={() => navigation.navigate('FriendDetail', {
           connectionId: item.id,
           friendId: item.connected_user_id,
         })}
       >
-        <Image source={{ uri: avatarUri }} style={styles.avatar} />
+        {profile?.avatar_url ? (
+          <Image source={{ uri: profile.avatar_url }} style={styles.avatar} />
+        ) : (
+          <InitialsAvatar name={displayName} size={48} style={styles.avatar} />
+        )}
         <View style={styles.textSection}>
           <View style={styles.nameRow}>
             <Text style={styles.name} numberOfLines={1}>{displayName}</Text>
             {verified && (
-              <CheckCircle2
-                size={16}
-                color={COLORS.blue500}
-                fill={COLORS.blue500}
-                strokeWidth={0}
-                style={{ marginLeft: 4 }}
-              />
+              <CheckCircle2 size={16} color={COLORS.blue500} fill={COLORS.blue500} strokeWidth={0} style={{ marginLeft: 4 }} />
             )}
           </View>
-          {username ? (
-            <Text style={styles.username}>@{username}</Text>
-          ) : null}
+          {username ? <Text style={styles.username}>@{username}</Text> : null}
           {item.met_location ? (
             <Text style={styles.metLocation} numberOfLines={1}>{item.met_location}</Text>
           ) : null}
@@ -140,7 +236,55 @@ export default function TagDetailScreen({ navigation, route }: TagDetailScreenPr
     );
   }, [navigation]);
 
-  const keyExtractor = useCallback((item: ConnectionWithProfile) => item.id, []);
+  // --- Explore user item renderer ---
+  const renderExploreItem = useCallback(({ item }: { item: ExploreUser }) => {
+    const displayName = item.full_name || item.username || 'Unknown';
+
+    return (
+      <TouchableOpacity
+        style={styles.userItem}
+        activeOpacity={0.7}
+        onPress={() => navigation.navigate('UserDetail', { userId: item.id })}
+      >
+        {item.avatar_url ? (
+          <Image source={{ uri: item.avatar_url }} style={styles.avatar} />
+        ) : (
+          <InitialsAvatar name={displayName} size={48} style={styles.avatar} />
+        )}
+        <View style={styles.textSection}>
+          <View style={styles.nameRow}>
+            <Text style={styles.name} numberOfLines={1}>{displayName}</Text>
+            {item.is_verified && (
+              <CheckCircle2 size={16} color={COLORS.blue500} fill={COLORS.blue500} strokeWidth={0} style={{ marginLeft: 4 }} />
+            )}
+          </View>
+          {item.username ? <Text style={styles.username}>@{item.username}</Text> : null}
+          {item.mutual_tag_count > 0 && (
+            <View style={styles.mutualBadge}>
+              <Hash size={12} color={COLORS.piktag600} strokeWidth={2} />
+              <Text style={styles.mutualText}>
+                {t('tagDetail.mutualTags', { count: item.mutual_tag_count })}
+              </Text>
+            </View>
+          )}
+        </View>
+        <TouchableOpacity
+          style={styles.viewProfileBtn}
+          activeOpacity={0.7}
+          onPress={() => navigation.navigate('UserDetail', { userId: item.id })}
+        >
+          <UserPlus size={18} color={COLORS.piktag600} />
+        </TouchableOpacity>
+      </TouchableOpacity>
+    );
+  }, [navigation, t]);
+
+  const connectionKeyExtractor = useCallback((item: ConnectionWithProfile) => item.id, []);
+  const exploreKeyExtractor = useCallback((item: ExploreUser) => item.id, []);
+
+  const isConnectionsTab = activeTab === 'connections';
+  const currentLoading = isConnectionsTab ? loading : exploreLoading;
+  const currentData = isConnectionsTab ? connections : exploreUsers;
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -161,22 +305,56 @@ export default function TagDetailScreen({ navigation, route }: TagDetailScreenPr
             <Text style={styles.tagTitle}>{tagName || t('tagDetail.unknownTag')}</Text>
           </View>
           <Text style={styles.tagSubtitle}>
-            {t('tagDetail.usageCount', { count: usageCount })}
+            {t('tagDetail.usageCount', { count: usageCount + totalUserCount })}
           </Text>
         </View>
         <View style={styles.backBtn} />
       </View>
 
+      {/* Tab Bar */}
+      <View style={styles.tabBar}>
+        <TouchableOpacity
+          style={[styles.tab, activeTab === 'explore' && styles.tabActive]}
+          onPress={() => setActiveTab('explore')}
+          activeOpacity={0.7}
+        >
+          <Users size={16} color={activeTab === 'explore' ? COLORS.piktag600 : COLORS.gray500} />
+          <Text style={[styles.tabText, activeTab === 'explore' && styles.tabTextActive]}>
+            {t('tagDetail.tabExplore')}
+          </Text>
+          {totalUserCount > 0 && (
+            <View style={styles.tabBadge}>
+              <Text style={styles.tabBadgeText}>{totalUserCount}</Text>
+            </View>
+          )}
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.tab, activeTab === 'connections' && styles.tabActive]}
+          onPress={() => setActiveTab('connections')}
+          activeOpacity={0.7}
+        >
+          <Hash size={16} color={activeTab === 'connections' ? COLORS.piktag600 : COLORS.gray500} />
+          <Text style={[styles.tabText, activeTab === 'connections' && styles.tabTextActive]}>
+            {t('tagDetail.tabConnections')}
+          </Text>
+          {usageCount > 0 && (
+            <View style={styles.tabBadge}>
+              <Text style={styles.tabBadgeText}>{usageCount}</Text>
+            </View>
+          )}
+        </TouchableOpacity>
+      </View>
+
       {/* Content */}
-      {loading ? (
+      {currentLoading ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={COLORS.piktag500} />
         </View>
-      ) : (
+      ) : isConnectionsTab ? (
         <FlatList
           data={connections}
-          renderItem={renderItem}
-          keyExtractor={keyExtractor}
+          renderItem={renderConnectionItem}
+          keyExtractor={connectionKeyExtractor}
           contentContainerStyle={[
             styles.listContent,
             connections.length === 0 && styles.listContentEmpty,
@@ -184,9 +362,30 @@ export default function TagDetailScreen({ navigation, route }: TagDetailScreenPr
           showsVerticalScrollIndicator={false}
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
-              <Hash size={48} color={COLORS.gray300} strokeWidth={1.5} />
+              <Hash size={48} color={COLORS.gray200} strokeWidth={1.5} />
               <Text style={styles.emptyTitle}>{t('tagDetail.emptyTitle')}</Text>
               <Text style={styles.emptyText}>{t('tagDetail.emptyText')}</Text>
+            </View>
+          }
+          initialNumToRender={10}
+          maxToRenderPerBatch={10}
+          windowSize={5}
+        />
+      ) : (
+        <FlatList
+          data={exploreUsers}
+          renderItem={renderExploreItem}
+          keyExtractor={exploreKeyExtractor}
+          contentContainerStyle={[
+            styles.listContent,
+            exploreUsers.length === 0 && styles.listContentEmpty,
+          ]}
+          showsVerticalScrollIndicator={false}
+          ListEmptyComponent={
+            <View style={styles.emptyContainer}>
+              <Users size={48} color={COLORS.gray200} strokeWidth={1.5} />
+              <Text style={styles.emptyTitle}>{t('tagDetail.exploreEmptyTitle')}</Text>
+              <Text style={styles.emptyText}>{t('tagDetail.exploreEmptyText')}</Text>
             </View>
           }
           initialNumToRender={10}
@@ -237,6 +436,49 @@ const styles = StyleSheet.create({
     color: COLORS.gray500,
     marginTop: 2,
   },
+
+  // Tab Bar
+  tabBar: {
+    flexDirection: 'row',
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.gray100,
+  },
+  tab: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 14,
+    gap: 6,
+    borderBottomWidth: 2,
+    borderBottomColor: 'transparent',
+  },
+  tabActive: {
+    borderBottomColor: COLORS.piktag500,
+  },
+  tabText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: COLORS.gray500,
+  },
+  tabTextActive: {
+    color: COLORS.piktag600,
+  },
+  tabBadge: {
+    backgroundColor: COLORS.gray100,
+    borderRadius: 10,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    minWidth: 24,
+    alignItems: 'center',
+  },
+  tabBadgeText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: COLORS.gray600,
+  },
+
+  // List
   loadingContainer: {
     flex: 1,
     alignItems: 'center',
@@ -248,7 +490,7 @@ const styles = StyleSheet.create({
   listContentEmpty: {
     flex: 1,
   },
-  connectionItem: {
+  userItem: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 20,
@@ -288,6 +530,32 @@ const styles = StyleSheet.create({
     color: COLORS.gray400,
     marginTop: 2,
   },
+  mutualBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    marginTop: 4,
+    backgroundColor: COLORS.piktag50,
+    alignSelf: 'flex-start',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 10,
+  },
+  mutualText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: COLORS.piktag600,
+  },
+  viewProfileBtn: {
+    width: 40,
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 20,
+    backgroundColor: COLORS.piktag50,
+  },
+
+  // Empty
   emptyContainer: {
     flex: 1,
     alignItems: 'center',

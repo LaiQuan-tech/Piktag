@@ -9,13 +9,15 @@ import {
   Alert,
   Switch,
   ActivityIndicator,
+  Modal,
+  FlatList,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ArrowLeft, ChevronRight } from 'lucide-react-native';
+import { ArrowLeft, ChevronRight, Check, X } from 'lucide-react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTranslation } from 'react-i18next';
 import { COLORS } from '../constants/theme';
-import { supabase } from '../lib/supabase';
+import { supabase, supabaseUrl, supabaseAnonKey } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
 import type { PiktagProfile } from '../types';
 
@@ -61,12 +63,12 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
   const [darkModeEnabled, setDarkModeEnabled] = useState(false);
   const [currentLanguage, setCurrentLanguage] = useState('zh-TW');
   const [loadingProfile, setLoadingProfile] = useState(true);
+  const [languageModalVisible, setLanguageModalVisible] = useState(false);
 
   // Load profile and stored preferences on mount
   useEffect(() => {
     const loadSettings = async () => {
       try {
-        // Fetch profile from Supabase
         if (user) {
           const { data, error } = await supabase
             .from('piktag_profiles')
@@ -78,14 +80,12 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
             setProfile(data);
             const profileLang = data.language || 'zh-TW';
             setCurrentLanguage(profileLang);
-            // Sync i18n with profile language
             if (i18n.language !== profileLang) {
               i18n.changeLanguage(profileLang);
             }
           }
         }
 
-        // Load AsyncStorage preferences
         const [storedNotifications, storedDarkMode] = await Promise.all([
           AsyncStorage.getItem('piktag_notifications_enabled'),
           AsyncStorage.getItem('piktag_dark_mode'),
@@ -107,10 +107,6 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
     loadSettings();
   }, [user]);
 
-  const handleAccountInfo = () => {
-    navigation.navigate('EditProfile');
-  };
-
   const handleNotificationsToggle = async () => {
     const newValue = !notificationsEnabled;
     setNotificationsEnabled(newValue);
@@ -118,22 +114,15 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
   };
 
   const handleLanguagePicker = () => {
-    const buttons = LANGUAGE_OPTIONS.map((lang) => ({
-      text: lang.label + (currentLanguage === lang.key ? ' ✓' : ''),
-      onPress: () => handleLanguageChange(lang.key),
-    }));
-    buttons.push({ text: t('common.cancel'), onPress: () => {} });
-
-    Alert.alert(t('settings.alertLanguagePickerTitle'), undefined, buttons);
+    setLanguageModalVisible(true);
   };
 
   const handleLanguageChange = async (langKey: string) => {
     if (!user) return;
 
+    setLanguageModalVisible(false);
     const prevLang = currentLanguage;
     setCurrentLanguage(langKey);
-
-    // Change app language immediately
     i18n.changeLanguage(langKey);
 
     const { error } = await supabase
@@ -143,8 +132,8 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
 
     if (error) {
       console.warn('Failed to update language:', error.message);
-      setCurrentLanguage(prevLang); // Revert
-      i18n.changeLanguage(prevLang); // Revert i18n
+      setCurrentLanguage(prevLang);
+      i18n.changeLanguage(prevLang);
       Alert.alert(t('common.error'), t('settings.alertLanguageError'));
     }
   };
@@ -175,7 +164,7 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
   const handleDeleteAccount = () => {
     Alert.alert(
       t('settings.alertDeleteAccountTitle'),
-      t('settings.alertDeleteAccountMessage'),
+      t('settings.alertDeleteAccountNote'),
       [
         { text: t('common.cancel'), style: 'cancel' },
         {
@@ -184,13 +173,27 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
           onPress: async () => {
             if (!user) return;
             try {
-              const { error: profileError } = await supabase
-                .from('piktag_profiles')
-                .delete()
-                .eq('id', user.id);
+              // Call edge function to delete user account properly (auth + data)
+              const { data: { session } } = await supabase.auth.getSession();
+              const token = session?.access_token;
 
-              if (profileError) {
-                console.warn('Profile deletion error:', profileError.message);
+              if (token) {
+                try {
+                  await fetch(`${supabaseUrl}/functions/v1/delete-user`, {
+                    method: 'POST',
+                    headers: {
+                      'Content-Type': 'application/json',
+                      'Authorization': `Bearer ${token}`,
+                    },
+                    body: JSON.stringify({ user_id: user.id }),
+                  });
+                } catch {
+                  // Fallback: at least delete profile data
+                  await supabase.from('piktag_profiles').delete().eq('id', user.id);
+                }
+              } else {
+                // No session token, delete profile only
+                await supabase.from('piktag_profiles').delete().eq('id', user.id);
               }
 
               await supabase.auth.signOut();
@@ -351,6 +354,51 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
           <Text style={styles.deleteAccountText}>{t('settings.deleteAccountButton')}</Text>
         </TouchableOpacity>
       </ScrollView>
+
+      {/* Language Selection Modal */}
+      <Modal
+        visible={languageModalVisible}
+        animationType="slide"
+        transparent
+        onRequestClose={() => setLanguageModalVisible(false)}
+      >
+        <View style={styles.langModalOverlay}>
+          <View style={[styles.langModalContainer, { paddingBottom: insets.bottom + 20 }]}>
+            <View style={styles.langModalHeader}>
+              <Text style={styles.langModalTitle}>{t('settings.alertLanguagePickerTitle')}</Text>
+              <TouchableOpacity
+                onPress={() => setLanguageModalVisible(false)}
+                activeOpacity={0.6}
+                style={styles.langModalCloseBtn}
+              >
+                <X size={24} color={COLORS.gray900} />
+              </TouchableOpacity>
+            </View>
+            <FlatList
+              data={LANGUAGE_OPTIONS}
+              keyExtractor={(item) => item.key}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  style={styles.langOptionItem}
+                  onPress={() => handleLanguageChange(item.key)}
+                  activeOpacity={0.6}
+                >
+                  <Text style={[
+                    styles.langOptionText,
+                    currentLanguage === item.key && styles.langOptionTextActive,
+                  ]}>
+                    {item.label}
+                  </Text>
+                  {currentLanguage === item.key && (
+                    <Check size={20} color={COLORS.piktag500} />
+                  )}
+                </TouchableOpacity>
+              )}
+              ItemSeparatorComponent={() => <View style={styles.langOptionSeparator} />}
+            />
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -452,5 +500,54 @@ const styles = StyleSheet.create({
   languageValue: {
     fontSize: 14,
     color: COLORS.gray500,
+  },
+
+  // Language Modal
+  langModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    justifyContent: 'flex-end',
+  },
+  langModalContainer: {
+    backgroundColor: COLORS.white,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    paddingTop: 20,
+    paddingHorizontal: 20,
+    maxHeight: '70%',
+  },
+  langModalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 16,
+  },
+  langModalTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: COLORS.gray900,
+  },
+  langModalCloseBtn: {
+    padding: 4,
+  },
+  langOptionItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 16,
+    paddingHorizontal: 4,
+  },
+  langOptionText: {
+    fontSize: 16,
+    color: COLORS.gray700,
+    fontWeight: '500',
+  },
+  langOptionTextActive: {
+    color: COLORS.piktag600,
+    fontWeight: '700',
+  },
+  langOptionSeparator: {
+    height: 1,
+    backgroundColor: COLORS.gray100,
   },
 });

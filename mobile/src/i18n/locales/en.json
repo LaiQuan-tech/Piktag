@@ -29,7 +29,11 @@
       "passwordPlaceholder": "Password",
       "loginButton": "Log In",
       "noAccountPrompt": "Don't have an account? ",
-      "registerLink": "Sign Up"
+      "registerLink": "Sign Up",
+      "forgotPassword": "Forgot password?",
+      "alertEnterEmailFirst": "Please enter your email first, we will send a password reset link",
+      "alertResetSentTitle": "Email Sent",
+      "alertResetSentMessage": "A password reset link has been sent to your email"
     },
     "register": {
       "alertEmptyFields": "Please fill in all fields",
@@ -44,10 +48,19 @@
       "passwordPlaceholder": "Password",
       "registerButton": "Sign Up",
       "hasAccountPrompt": "Already have an account? ",
-      "loginLink": "Log In"
+      "loginLink": "Log In",
+      "confirmPasswordPlaceholder": "Confirm Password",
+      "alertPasswordMismatch": "Passwords do not match"
     },
     "onboarding": {
-      "defaultTags": ["#Startup", "#Design", "#Development", "#Photography", "#Music", "#Marketing"],
+      "defaultTags": [
+        "#Startup",
+        "#Design",
+        "#Development",
+        "#Photography",
+        "#Music",
+        "#Marketing"
+      ],
       "alertUserNotFound": "User information not found",
       "step1Title": "Tell us about yourself",
       "step1Description": "Write a short bio so others can get to know you",
@@ -94,7 +107,16 @@
     "batchTagModalTitle": "Add tag for {{count}} friends",
     "batchTagPlaceholder": "Enter tag name (e.g., Party)",
     "batchTagProcessing": "Processing...",
-    "batchTagConfirm": "Confirm"
+    "batchTagConfirm": "Confirm",
+    "emptyGuideTitle": "No connections yet",
+    "emptyGuideMessage": "Scan a QR code to meet new friends!",
+    "emptyGuideButton": "Start Scanning",
+    "recommendTitle": "People you may know",
+    "mutualTagCount": "{{count}} mutual tags",
+    "viewProfile": "View",
+    "filterByTag": "Filter by Tag",
+    "clearFilter": "Clear Filter",
+    "noTagsToFilter": "No tags available to filter"
   },
   "search": {
     "headerTitle": "Search",
@@ -110,7 +132,13 @@
     "noProfilesFound": "No matching members found",
     "tagsSectionLabel": "Tags",
     "noTagsFound": "No matching tags found",
-    "tagCountSuffix": "members"
+    "tagCountSuffix": "members",
+    "clearHistory": "Clear search history",
+    "clearHistoryConfirmTitle": "Clear Search History",
+    "clearHistoryConfirmMessage": "Are you sure you want to clear all search history?",
+    "tagUsersTitle": "People using this tag",
+    "viewAllTagUsers": "View all {{count}}",
+    "categoryUncategorized": "Other"
   },
   "addTag": {
     "headerTitle": "# Get Social",
@@ -134,7 +162,7 @@
     "tagPlaceholder": "Enter tag...",
     "addButton": "Add",
     "saveAsPreset": "Save as template",
-    "presetNamePlaceholder": "Enter template name...",
+    "presetNamePlaceholder": "e.g. Weekly Book Club",
     "cancelButton": "Cancel",
     "saveButton": "Save",
     "generateQrButton": "Generate QR Code",
@@ -152,7 +180,11 @@
     "noPresets": "No templates yet",
     "applyPreset": "Apply",
     "shareMessage": "PikTag Social Event\nDate: {{eventDate}}\nLocation: {{eventLocation}}\nTags: {{tags}}\n\nScan QR Code to connect!",
-    "defaultDisplayName": "User"
+    "defaultDisplayName": "User",
+    "presetNamePrompt": "Enter a name for this preset",
+    "popularTagsSoftTitle": "Interest Tags",
+    "popularTagsHardTitle": "Profession Tags",
+    "longPressToDelete": "Long press to delete a preset"
   },
   "profile": {
     "nameNotSet": "Name not set",
@@ -164,7 +196,8 @@
     "shareProfile": "Share Profile",
     "editProfile": "Edit Profile",
     "manageTags": "Manage My Tags",
-    "noContactMethods": "No contact methods"
+    "noContactMethods": "No contact methods",
+    "statusTooltip": "Tap to set status"
   },
   "editProfile": {
     "headerTitle": "Edit Profile",
@@ -205,7 +238,14 @@
     "displayNameLabel": "Display Name (optional)",
     "displayNamePlaceholder": "Custom display name",
     "modalButtonUpdate": "Update",
-    "modalButtonAdd": "Add"
+    "modalButtonAdd": "Add",
+    "accountName": "Account name",
+    "yourWebsite": "Your website URL",
+    "lineId": "Line ID",
+    "personalWebsite": "Personal Website",
+    "customLink": "Custom Link",
+    "selectPlatform": "Select Platform",
+    "linkName": "Link Name"
   },
   "friendDetail": {
     "reminderBirthday": "Birthday",
@@ -290,7 +330,8 @@
     "darkMode": "Dark Mode",
     "aboutPikTag": "About PikTag",
     "logoutButton": "Log Out",
-    "deleteAccountButton": "Delete Account"
+    "deleteAccountButton": "Delete Account",
+    "alertDeleteAccountNote": "This action cannot be undone. Your account and all data will be permanently deleted"
   },
   "contactSync": {
     "headerTitle": "Contact Sync",
@@ -408,6 +449,12 @@
     "unknownTag": "Unknown Tag",
     "usageCount": "{{count}} uses",
     "emptyTitle": "No Connections Yet",
-    "emptyText": "No connections are using this tag"
+    "emptyText": "No connections are using this tag",
+    "tabExplore": "Explore",
+    "tabConnections": "My Connections",
+    "mutualTags": "{{count}} mutual tags",
+    "exploreEmptyTitle": "No users found",
+    "exploreEmptyText": "No public users have used this tag yet",
+    "viewAll": "View All"
   }
 }

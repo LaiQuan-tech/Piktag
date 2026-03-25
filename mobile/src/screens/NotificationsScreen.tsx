@@ -67,7 +67,7 @@ function formatTimeAgo(dateString: string, t: (key: string, options?: any) => st
   if (diffDays === 1) return t('notifications.timeYesterday');
   if (diffDays < 7) return t('notifications.timeDaysAgo', { count: diffDays });
   if (diffWeeks < 4) return t('notifications.timeWeeksAgo', { count: diffWeeks });
-  return date.toLocaleDateString('zh-TW');
+  return date.toLocaleDateString();
 }
 
 // --- Memoized notification item component ---

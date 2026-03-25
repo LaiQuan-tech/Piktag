@@ -58,6 +58,8 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
   const [showPresetNameInput, setShowPresetNameInput] = useState(false);
   const [presetName, setPresetName] = useState('');
   const [savingPreset, setSavingPreset] = useState(false);
+  const [showPresetNameModal, setShowPresetNameModal] = useState(false);
+  const [presetNameInput, setPresetNameInput] = useState('');
 
   // Track which preset was applied (for linking scan sessions)
   const [appliedPresetId, setAppliedPresetId] = useState<string | null>(null);
@@ -119,33 +121,32 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
   // ─── Save preset ───
   const handleSavePreset = () => {
     if (!user) return;
-    Alert.prompt(
-      '儲存為常用模板',
-      '請輸入模板名稱',
-      async (name) => {
-        if (!name?.trim()) return;
-        setSavingPreset(true);
-        try {
-          const { error } = await supabase.from('piktag_tag_presets').insert({
-            user_id: user.id,
-            name: name.trim(),
-            location: eventLocation,
-            tags: eventTags,
-          });
-          if (error) {
-            Alert.alert(t('common.error'), t('addTag.alertPresetSaveError'));
-          } else {
-            Alert.alert(t('addTag.alertPresetSavedTitle'), t('addTag.alertPresetSavedMessage', { name: name.trim() }));
-            loadPresets();
-          }
-        } catch {
-          Alert.alert(t('common.error'), t('addTag.alertPresetSaveError'));
-        } finally {
-          setSavingPreset(false);
-        }
-      },
-      'plain-text',
-    );
+    setPresetNameInput('');
+    setShowPresetNameModal(true);
+  };
+
+  const handleConfirmSavePreset = async () => {
+    if (!presetNameInput.trim() || !user) return;
+    setSavingPreset(true);
+    setShowPresetNameModal(false);
+    try {
+      const { error } = await supabase.from('piktag_tag_presets').insert({
+        user_id: user.id,
+        name: presetNameInput.trim(),
+        location: eventLocation,
+        tags: eventTags,
+      });
+      if (error) {
+        Alert.alert(t('common.error'), t('addTag.alertPresetSaveError'));
+      } else {
+        Alert.alert(t('addTag.alertPresetSavedTitle'), t('addTag.alertPresetSavedMessage', { name: presetNameInput.trim() }));
+        loadPresets();
+      }
+    } catch {
+      Alert.alert(t('common.error'), t('addTag.alertPresetSaveError'));
+    } finally {
+      setSavingPreset(false);
+    }
   };
 
   // ─── Apply preset ───
@@ -588,6 +589,11 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
           </View>
 
           {/* Modal body */}
+          {/* Hint about long-press to delete */}
+          {presets.length > 0 && (
+            <Text style={styles.presetHintText}>{t('addTag.longPressToDelete')}</Text>
+          )}
+
           {loadingPresets ? (
             <View style={styles.loadingContainer}>
               <ActivityIndicator size="large" color={COLORS.piktag500} />
@@ -670,6 +676,48 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
       <StatusBar barStyle="dark-content" backgroundColor={COLORS.white} />
       {mode === 'setup' ? renderSetupMode() : renderQrMode()}
       {showPresetsModal && renderPresetsModal()}
+
+      {/* Preset Name Input Modal (cross-platform replacement for Alert.prompt) */}
+      <Modal
+        visible={showPresetNameModal}
+        animationType="fade"
+        transparent
+        onRequestClose={() => setShowPresetNameModal(false)}
+      >
+        <View style={styles.presetNameModalOverlay}>
+          <View style={styles.presetNameModalContainer}>
+            <Text style={styles.presetNameModalTitle}>{t('addTag.saveAsPreset')}</Text>
+            <Text style={styles.presetNameModalSubtitle}>{t('addTag.presetNamePrompt')}</Text>
+            <TextInput
+              style={styles.presetNameModalInput}
+              value={presetNameInput}
+              onChangeText={setPresetNameInput}
+              placeholder={t('addTag.presetNamePlaceholder')}
+              placeholderTextColor={COLORS.gray400}
+              autoFocus
+              returnKeyType="done"
+              onSubmitEditing={handleConfirmSavePreset}
+            />
+            <View style={styles.presetNameModalButtons}>
+              <TouchableOpacity
+                style={styles.presetNameModalCancelBtn}
+                onPress={() => setShowPresetNameModal(false)}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.presetNameModalCancelText}>{t('common.cancel')}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.presetNameModalConfirmBtn, !presetNameInput.trim() && styles.buttonDisabled]}
+                onPress={handleConfirmSavePreset}
+                activeOpacity={0.8}
+                disabled={!presetNameInput.trim()}
+              >
+                <Text style={styles.presetNameModalConfirmText}>{t('common.confirm')}</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -1033,5 +1081,77 @@ const styles = StyleSheet.create({
   emptyText: {
     fontSize: 14,
     color: COLORS.gray400,
+  },
+
+  // ── Preset Name Modal ──
+  presetNameModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 40,
+  },
+  presetNameModalContainer: {
+    backgroundColor: COLORS.white,
+    borderRadius: 16,
+    padding: 24,
+    width: '100%',
+  },
+  presetNameModalTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: COLORS.gray900,
+    marginBottom: 4,
+  },
+  presetNameModalSubtitle: {
+    fontSize: 14,
+    color: COLORS.gray500,
+    marginBottom: 16,
+  },
+  presetNameModalInput: {
+    borderWidth: 1,
+    borderColor: COLORS.gray200,
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    fontSize: 16,
+    color: COLORS.gray900,
+    backgroundColor: COLORS.gray50,
+    marginBottom: 20,
+  },
+  presetNameModalButtons: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  presetNameModalCancelBtn: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: COLORS.gray200,
+    borderRadius: 12,
+    paddingVertical: 12,
+    alignItems: 'center',
+  },
+  presetNameModalCancelText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: COLORS.gray500,
+  },
+  presetNameModalConfirmBtn: {
+    flex: 1,
+    backgroundColor: COLORS.piktag500,
+    borderRadius: 12,
+    paddingVertical: 12,
+    alignItems: 'center',
+  },
+  presetNameModalConfirmText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: COLORS.gray900,
+  },
+  presetHintText: {
+    fontSize: 13,
+    color: COLORS.gray400,
+    textAlign: 'center',
+    marginBottom: 12,
   },
 });

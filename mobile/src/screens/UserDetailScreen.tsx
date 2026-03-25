@@ -44,6 +44,7 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
   const [biolinks, setBiolinks] = useState<Biolink[]>([]);
   const [mutualFriends, setMutualFriends] = useState(0);
   const [mutualTags, setMutualTags] = useState(0);
+  const [mutualTagList, setMutualTagList] = useState<{ id: string; name: string }[]>([]);
   const [isFollowing, setIsFollowing] = useState(false);
   const [followLoading, setFollowLoading] = useState(false);
 
@@ -126,21 +127,24 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
         setMutualFriends(mutual.length);
       }
 
-      // Calculate mutual tags
+      // Calculate mutual tags (with names for clickable display)
       const { data: myUserTags } = await supabase
         .from('piktag_user_tags')
-        .select('tag_id')
+        .select('tag_id, piktag_tags!inner(id, name)')
         .eq('user_id', authUser.id);
 
       const { data: theirUserTags } = await supabase
         .from('piktag_user_tags')
         .select('tag_id')
-        .eq('user_id', userId);
+        .eq('user_id', userId)
+        .eq('is_private', false);
 
       if (myUserTags && theirUserTags) {
         const myTagIds = new Set(myUserTags.map((t: any) => t.tag_id));
-        const mutualTagCount = theirUserTags.filter((t: any) => myTagIds.has(t.tag_id)).length;
-        setMutualTags(mutualTagCount);
+        const myTagMap = new Map(myUserTags.map((t: any) => [t.tag_id, { id: (t.piktag_tags as any)?.id, name: (t.piktag_tags as any)?.name }]));
+        const mutualIds = theirUserTags.filter((t: any) => myTagIds.has(t.tag_id));
+        setMutualTags(mutualIds.length);
+        setMutualTagList(mutualIds.map((t: any) => myTagMap.get(t.tag_id)).filter(Boolean) as { id: string; name: string }[]);
       }
     } catch (err) {
       console.error('Error fetching user data:', err);
@@ -322,6 +326,22 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
               {t('userDetail.mutualTagsPrefix')}{mutualTags}{t('userDetail.mutualTagsSuffix')}
             </Text>
           </View>
+
+          {/* Clickable mutual tags */}
+          {mutualTagList.length > 0 && (
+            <View style={styles.mutualTagsRow}>
+              {mutualTagList.map((tag) => (
+                <TouchableOpacity
+                  key={tag.id}
+                  style={styles.mutualTagChip}
+                  onPress={() => navigation.navigate('TagDetail', { tagId: tag.id, tagName: tag.name, initialTab: 'explore' })}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.mutualTagChipText}>#{tag.name}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
         </View>
 
         {/* Action Buttons */}
@@ -514,6 +534,25 @@ const styles = StyleSheet.create({
   mutualDot: {
     fontSize: 14,
     color: COLORS.gray400,
+  },
+  mutualTagsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginTop: 10,
+  },
+  mutualTagChip: {
+    backgroundColor: COLORS.piktag50,
+    borderRadius: 12,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderWidth: 1,
+    borderColor: COLORS.piktag300,
+  },
+  mutualTagChipText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: COLORS.piktag600,
   },
   actionsSection: {
     flexDirection: 'row',

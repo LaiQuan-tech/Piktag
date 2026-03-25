@@ -10,6 +10,7 @@ import {
   ActivityIndicator,
   Image,
   ListRenderItemInfo,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
@@ -276,6 +277,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
   // Data states
   const [tags, setTags] = useState<Tag[]>([]);
   const [profiles, setProfiles] = useState<PiktagProfile[]>([]);
+  const [tagUsers, setTagUsers] = useState<{ tag: Tag; users: any[] }[]>([]);
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
@@ -555,8 +557,35 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
 
         if (!tagsResult.error && tagsResult.data) {
           setTags(tagsResult.data);
+
+          // Fetch users who have the top matched tags (max 3 tags, 5 users each)
+          const topTags = tagsResult.data.slice(0, 3);
+          if (topTags.length > 0) {
+            const tagUserResults: { tag: Tag; users: any[] }[] = [];
+            for (const tag of topTags) {
+              const { data: utData } = await supabase
+                .from('piktag_user_tags')
+                .select('user_id, piktag_profiles!inner(id, username, full_name, avatar_url, is_verified, is_public)')
+                .eq('tag_id', tag.id)
+                .eq('is_private', false)
+                .limit(5);
+
+              if (utData && utData.length > 0) {
+                const users = utData
+                  .map((ut: any) => ut.piktag_profiles)
+                  .filter((p: any) => p && p.is_public && p.id !== user?.id);
+                if (users.length > 0) {
+                  tagUserResults.push({ tag, users });
+                }
+              }
+            }
+            setTagUsers(tagUserResults);
+          } else {
+            setTagUsers([]);
+          }
         } else {
           setTags([]);
+          setTagUsers([]);
         }
 
         if (!profilesResult.error && profilesResult.data) {
@@ -664,12 +693,14 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
     | { type: 'recentHeader' }
     | { type: 'recentEmpty' }
     | { type: 'recentItem'; query: string; index: number }
+    | { type: 'clearHistoryBtn' }
     | { type: 'profilesHeader' }
     | { type: 'profilesEmpty' }
     | { type: 'profileItem'; profile: PiktagProfile }
     | { type: 'tagsHeader' }
     | { type: 'tagsEmpty' }
-    | { type: 'tagsGrid' };
+    | { type: 'tagsGrid' }
+    | { type: 'tagUsersSection'; tagUserData: { tag: Tag; users: any[] } };
 
   const listData = useMemo<ListItem[]>(() => {
     const items: ListItem[] = [];
@@ -688,6 +719,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
       if (recentSearches.length === 0) {
         items.push({ type: 'recentEmpty' });
       } else {
+        items.push({ type: 'clearHistoryBtn' });
         recentSearches.forEach((query, index) => {
           items.push({ type: 'recentItem', query, index });
         });
@@ -720,6 +752,13 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
       }
     }
 
+    // 6. Tag users preview (people using matched tags)
+    if (trimmedQuery !== '' && tagUsers.length > 0) {
+      tagUsers.forEach((tu) => {
+        items.push({ type: 'tagUsersSection', tagUserData: tu });
+      });
+    }
+
     return items;
   }, [
     loading,
@@ -731,6 +770,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
     profiles,
     showTags,
     tags,
+    tagUsers,
   ]);
 
   const keyExtractor = useCallback((item: ListItem, index: number): string => {
@@ -757,6 +797,10 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
         return 'tagsEmpty';
       case 'tagsGrid':
         return 'tagsGrid';
+      case 'clearHistoryBtn':
+        return 'clearHistoryBtn';
+      case 'tagUsersSection':
+        return `tagUsers-${item.tagUserData?.tag?.id || index}`;
       default:
         return `item-${index}`;
     }
@@ -785,6 +829,33 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
             <View style={styles.loadingContainer}>
               <ActivityIndicator size="large" color={COLORS.piktag500} />
             </View>
+          );
+
+        case 'clearHistoryBtn':
+          return (
+            <TouchableOpacity
+              style={styles.clearHistoryBtn}
+              onPress={() => {
+                Alert.alert(
+                  t('search.clearHistoryConfirmTitle'),
+                  t('search.clearHistoryConfirmMessage'),
+                  [
+                    { text: t('common.cancel'), style: 'cancel' },
+                    {
+                      text: t('common.confirm'),
+                      style: 'destructive',
+                      onPress: async () => {
+                        await AsyncStorage.removeItem(RECENT_SEARCHES_KEY);
+                        setRecentSearches([]);
+                      },
+                    },
+                  ]
+                );
+              }}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.clearHistoryText}>{t('search.clearHistory')}</Text>
+            </TouchableOpacity>
           );
 
         case 'recentEmpty':
@@ -839,20 +910,108 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
             </Text>
           );
 
-        case 'tagsGrid':
+        case 'tagsGrid': {
+          // Group tags by category if not in search mode
+          const categories = new Map<string, typeof tags>();
+          tags.forEach((tag) => {
+            const cat = (tag as any).category || t('search.categoryUncategorized');
+            if (!categories.has(cat)) categories.set(cat, []);
+            categories.get(cat)!.push(tag);
+          });
+
+          // If all in one category or searching, show flat grid
+          if (categories.size <= 1 || trimmedQuery !== '') {
+            return (
+              <View style={styles.tagsGrid}>
+                {tags.map((tag, index) => (
+                  <TagCard
+                    key={tag.id}
+                    tag={tag}
+                    isHighlighted={index === 4}
+                    onPress={handleTagPress}
+                    countSuffix={tagCountSuffix}
+                  />
+                ))}
+              </View>
+            );
+          }
+
+          // Show grouped by category
           return (
-            <View style={styles.tagsGrid}>
-              {tags.map((tag, index) => (
-                <TagCard
-                  key={tag.id}
-                  tag={tag}
-                  isHighlighted={index === 4}
-                  onPress={handleTagPress}
-                  countSuffix={tagCountSuffix}
-                />
+            <View>
+              {Array.from(categories.entries()).map(([catName, catTags]) => (
+                <View key={catName} style={styles.tagCategorySection}>
+                  <Text style={styles.tagCategoryTitle}>{catName}</Text>
+                  <View style={styles.tagsGrid}>
+                    {catTags.map((tag, index) => (
+                      <TagCard
+                        key={tag.id}
+                        tag={tag}
+                        isHighlighted={false}
+                        onPress={handleTagPress}
+                        countSuffix={tagCountSuffix}
+                      />
+                    ))}
+                  </View>
+                </View>
               ))}
             </View>
           );
+        }
+
+        case 'tagUsersSection': {
+          const { tag: sectionTag, users: sectionUsers } = item.tagUserData;
+          return (
+            <View style={styles.tagUsersSection}>
+              <View style={styles.tagUsersSectionHeader}>
+                <View style={styles.tagUsersTitleRow}>
+                  <Hash size={14} color={COLORS.piktag600} strokeWidth={2.5} />
+                  <Text style={styles.tagUsersSectionTitle}>{sectionTag.name}</Text>
+                </View>
+                <TouchableOpacity
+                  onPress={() => navigation.navigate('TagDetail', {
+                    tagId: sectionTag.id,
+                    tagName: sectionTag.name,
+                    initialTab: 'explore',
+                  })}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.tagUsersViewAll}>{t('tagDetail.viewAll')}</Text>
+                </TouchableOpacity>
+              </View>
+              <FlatList
+                horizontal
+                data={sectionUsers}
+                keyExtractor={(u: any) => u.id}
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.tagUsersHorizontalList}
+                renderItem={({ item: u }) => (
+                  <TouchableOpacity
+                    style={styles.tagUserCard}
+                    activeOpacity={0.7}
+                    onPress={() => navigation.navigate('UserDetail', { userId: u.id })}
+                  >
+                    {u.avatar_url ? (
+                      <Image source={{ uri: u.avatar_url }} style={styles.tagUserAvatar} />
+                    ) : (
+                      <View style={[styles.tagUserAvatar, styles.tagUserAvatarPlaceholder]}>
+                        <User size={20} color={COLORS.gray400} />
+                      </View>
+                    )}
+                    <Text style={styles.tagUserName} numberOfLines={1}>
+                      {u.full_name || u.username || ''}
+                    </Text>
+                    {u.username && (
+                      <Text style={styles.tagUserUsername} numberOfLines={1}>
+                        @{u.username}
+                      </Text>
+                    )}
+                  </TouchableOpacity>
+                )}
+              />
+            </View>
+          );
+        }
 
         default:
           return null;
@@ -866,6 +1025,8 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
       handleTagPress,
       tags,
       tagCountSuffix,
+      tagUsers,
+      navigation,
       t,
     ],
   );
@@ -1123,5 +1284,88 @@ const styles = StyleSheet.create({
   recentSearchText: {
     fontSize: 15,
     color: COLORS.gray700,
+  },
+  clearHistoryBtn: {
+    alignSelf: 'flex-end',
+    paddingHorizontal: 20,
+    paddingVertical: 8,
+  },
+  clearHistoryText: {
+    fontSize: 13,
+    color: COLORS.red500,
+    fontWeight: '500',
+  },
+
+  // Tag Category
+  tagCategorySection: {
+    marginBottom: 16,
+  },
+  tagCategoryTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: COLORS.gray700,
+    paddingHorizontal: 20,
+    marginBottom: 10,
+    marginTop: 8,
+  },
+
+  // Tag Users Section
+  tagUsersSection: {
+    paddingTop: 20,
+    paddingBottom: 8,
+  },
+  tagUsersSectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    marginBottom: 12,
+  },
+  tagUsersTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  tagUsersSectionTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: COLORS.gray900,
+  },
+  tagUsersViewAll: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: COLORS.piktag600,
+  },
+  tagUsersHorizontalList: {
+    paddingHorizontal: 16,
+    gap: 12,
+  },
+  tagUserCard: {
+    width: 90,
+    alignItems: 'center',
+    gap: 4,
+  },
+  tagUserAvatar: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: COLORS.gray100,
+  },
+  tagUserAvatarPlaceholder: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: COLORS.gray200,
+  },
+  tagUserName: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: COLORS.gray900,
+    textAlign: 'center',
+  },
+  tagUserUsername: {
+    fontSize: 11,
+    color: COLORS.gray500,
+    textAlign: 'center',
   },
 });

@@ -29,6 +29,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
 import QrCodeModal from '../components/QrCodeModal';
+import InitialsAvatar from '../components/InitialsAvatar';
 import { ProfileScreenSkeleton } from '../components/SkeletonLoader';
 import StatusModal from '../components/StatusModal';
 import type { PiktagProfile, UserTag, Biolink } from '../types';
@@ -243,11 +244,12 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
     [biolinks],
   );
 
+  const hasAvatar = !!profile?.avatar_url;
   const avatarSource = useMemo(
     () =>
       profile?.avatar_url
         ? { uri: profile.avatar_url }
-        : { uri: 'https://picsum.photos/seed/profile/200/200' },
+        : null,
     [profile?.avatar_url],
   );
 
@@ -363,10 +365,18 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
           <View>
             <TouchableOpacity onPress={() => setStatusModalVisible(true)} activeOpacity={0.8}>
               <View style={[styles.avatarWrapper, currentStatus ? styles.avatarRing : null]}>
-                <Image
-                  source={avatarSource}
-                  style={styles.avatar}
-                />
+                {hasAvatar ? (
+                  <Image
+                    source={avatarSource!}
+                    style={styles.avatar}
+                  />
+                ) : (
+                  <InitialsAvatar
+                    name={profile?.full_name || profile?.username || ''}
+                    size={80}
+                    style={styles.avatar}
+                  />
+                )}
               </View>
               {/* Pencil badge */}
               <View style={styles.pencilBadge}>
@@ -376,7 +386,7 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
             {/* One-time tooltip bubble */}
             {showTooltip && (
               <Animated.View style={[styles.tooltip, { opacity: tooltipOpacity }]}>
-                <Text style={styles.tooltipText}>點我寫便利貼</Text>
+                <Text style={styles.tooltipText}>{t('profile.statusTooltip')}</Text>
                 <View style={styles.tooltipArrow} />
               </Animated.View>
             )}
