@@ -1,5 +1,10 @@
 // PikTag Types - aligned with Supabase DB schema
 
+// Semantic Tag Types — applying Semantic HTML concepts to people
+export type SemanticType = 'identity' | 'skill' | 'interest' | 'social' | 'meta' | 'relation';
+
+export const SEMANTIC_TYPE_ORDER: SemanticType[] = ['identity', 'skill', 'interest', 'social', 'meta', 'relation'];
+
 export type PiktagProfile = {
   id: string;
   username: string | null;
@@ -21,7 +26,9 @@ export type PiktagProfile = {
 export type Tag = {
   id: string;
   name: string;
-  category: string | null;
+  semantic_type: SemanticType | null;
+  parent_tag_id: string | null;
+  aliases: string[];
   usage_count: number;
   created_at: string;
 };
@@ -31,6 +38,9 @@ export type UserTag = {
   user_id: string;
   tag_id: string;
   position: number;
+  weight: number;
+  semantic_type: SemanticType | null;
+  is_private?: boolean;
   created_at: string;
   tag?: Tag; // joined
 };
@@ -65,6 +75,7 @@ export type ConnectionTag = {
   id: string;
   connection_id: string;
   tag_id: string;
+  semantic_type: SemanticType | null;
   created_at: string;
   tag?: Tag; // joined
 };

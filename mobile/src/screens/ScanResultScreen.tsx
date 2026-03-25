@@ -53,6 +53,15 @@ export default function ScanResultScreen({ navigation, route }: ScanResultScreen
   const [selectedMyTags, setSelectedMyTags] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [selectedRelation, setSelectedRelation] = useState<string | null>(null);
+
+  const RELATION_PRESETS = [
+    { key: 'friend', label: t('scanResult.relationFriend') },
+    { key: 'colleague', label: t('scanResult.relationColleague') },
+    { key: 'classmate', label: t('scanResult.relationClassmate') },
+    { key: 'partner', label: t('scanResult.relationPartner') },
+    { key: 'client', label: t('scanResult.relationClient') },
+  ];
 
   useEffect(() => {
     if (user) {
@@ -238,6 +247,37 @@ export default function ScanResultScreen({ navigation, route }: ScanResultScreen
         }
       }
 
+      // Insert relation tag if selected
+      if (selectedRelation) {
+        const relationTagName = selectedRelation;
+        let relationTagId: string | null = null;
+
+        const { data: existingRelTag } = await supabase
+          .from('piktag_tags')
+          .select('id')
+          .eq('name', relationTagName)
+          .single();
+
+        if (existingRelTag) {
+          relationTagId = existingRelTag.id;
+        } else {
+          const { data: newRelTag } = await supabase
+            .from('piktag_tags')
+            .insert({ name: relationTagName, semantic_type: 'relation' })
+            .select('id')
+            .single();
+          relationTagId = newRelTag?.id || null;
+        }
+
+        if (relationTagId) {
+          await supabase.from('piktag_connection_tags').insert({
+            connection_id: connectionData.id,
+            tag_id: relationTagId,
+            semantic_type: 'relation',
+          });
+        }
+      }
+
       // Try to increment scan count (may fail due to RLS - that's OK)
       try {
         await supabase.rpc('increment_scan_count', { session_id: sessionId });
@@ -416,6 +456,35 @@ export default function ScanResultScreen({ navigation, route }: ScanResultScreen
             </View>
           </View>
         )}
+        {/* Relation Type Section */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>{t('scanResult.relationTitle')}</Text>
+          <View style={styles.chipsContainer}>
+            {RELATION_PRESETS.map((rel) => {
+              const isSelected = selectedRelation === rel.key;
+              return (
+                <TouchableOpacity
+                  key={rel.key}
+                  style={[
+                    styles.chip,
+                    isSelected ? styles.chipSelected : styles.chipUnselected,
+                  ]}
+                  onPress={() => setSelectedRelation(isSelected ? null : rel.key)}
+                  activeOpacity={0.7}
+                >
+                  <Text
+                    style={[
+                      styles.chipText,
+                      isSelected ? styles.chipTextSelected : styles.chipTextUnselected,
+                    ]}
+                  >
+                    {rel.label}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </View>
       </ScrollView>
 
       {/* CTA Button */}

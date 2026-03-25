@@ -63,6 +63,8 @@ export default function TagDetailScreen({ navigation, route }: TagDetailScreenPr
   const [exploreLoading, setExploreLoading] = useState(true);
   const [usageCount, setUsageCount] = useState(0);
   const [totalUserCount, setTotalUserCount] = useState(0);
+  const [tagSemanticType, setTagSemanticType] = useState<string | null>(null);
+  const [parentTagName, setParentTagName] = useState<string | null>(null);
 
   // --- Fetch connections with this tag (existing logic) ---
   const fetchTagConnections = useCallback(async () => {
@@ -194,10 +196,32 @@ export default function TagDetailScreen({ navigation, route }: TagDetailScreenPr
     }
   }, [user, tagId]);
 
+  // --- Fetch tag metadata (semantic_type, parent) ---
+  const fetchTagMeta = useCallback(async () => {
+    if (!tagId) return;
+    const { data } = await supabase
+      .from('piktag_tags')
+      .select('semantic_type, parent_tag_id')
+      .eq('id', tagId)
+      .single();
+    if (data) {
+      setTagSemanticType(data.semantic_type);
+      if (data.parent_tag_id) {
+        const { data: parent } = await supabase
+          .from('piktag_tags')
+          .select('name')
+          .eq('id', data.parent_tag_id)
+          .single();
+        if (parent) setParentTagName(parent.name);
+      }
+    }
+  }, [tagId]);
+
   useEffect(() => {
     fetchTagConnections();
     fetchExploreUsers();
-  }, [fetchTagConnections, fetchExploreUsers]);
+    fetchTagMeta();
+  }, [fetchTagConnections, fetchExploreUsers, fetchTagMeta]);
 
   // --- Connection item renderer ---
   const renderConnectionItem = useCallback(({ item }: { item: ConnectionWithProfile }) => {
@@ -304,9 +328,19 @@ export default function TagDetailScreen({ navigation, route }: TagDetailScreenPr
             <Hash size={18} color={COLORS.piktag600} strokeWidth={2.5} />
             <Text style={styles.tagTitle}>{tagName || t('tagDetail.unknownTag')}</Text>
           </View>
+          {tagSemanticType && (
+            <Text style={styles.tagSemanticLabel}>
+              {t(`semanticType.${tagSemanticType}`)}
+            </Text>
+          )}
           <Text style={styles.tagSubtitle}>
             {t('tagDetail.usageCount', { count: usageCount + totalUserCount })}
           </Text>
+          {parentTagName && (
+            <Text style={styles.tagParent}>
+              {t('semanticType.parentTag')}: #{parentTagName}
+            </Text>
+          )}
         </View>
         <View style={styles.backBtn} />
       </View>
@@ -431,9 +465,22 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: COLORS.gray900,
   },
+  tagSemanticLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: COLORS.gray500,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginTop: 2,
+  },
   tagSubtitle: {
     fontSize: 13,
     color: COLORS.gray500,
+    marginTop: 2,
+  },
+  tagParent: {
+    fontSize: 12,
+    color: COLORS.gray400,
     marginTop: 2,
   },
 

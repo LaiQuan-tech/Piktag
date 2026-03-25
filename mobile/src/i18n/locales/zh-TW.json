@@ -138,7 +138,8 @@
     "clearHistoryConfirmMessage": "確定要清除所有搜尋紀錄嗎？",
     "tagUsersTitle": "使用此標籤的用戶",
     "viewAllTagUsers": "查看全部 {{count}} 位",
-    "categoryUncategorized": "其他"
+    "categoryUncategorized": "其他",
+    "allCategories": "全部"
   },
   "addTag": {
     "headerTitle": "# 準備社交",
@@ -426,7 +427,13 @@
     "hostTagsTitle": "對方的標籤",
     "myTagsTitle": "我的標籤",
     "selectAll": "全選",
-    "confirmButton": "確認加為好友"
+    "confirmButton": "確認加為好友",
+    "relationTitle": "你們的關係",
+    "relationFriend": "朋友",
+    "relationColleague": "同事",
+    "relationClassmate": "同學",
+    "relationPartner": "合夥人",
+    "relationClient": "客戶"
   },
   "manageTags": {
     "headerTitle": "標籤管理",
@@ -456,5 +463,22 @@
     "exploreEmptyTitle": "目前沒有其他用戶",
     "exploreEmptyText": "還沒有其他公開用戶使用此標籤",
     "viewAll": "查看全部"
+  },
+  "semanticType": {
+    "identity": "身份",
+    "skill": "技能",
+    "interest": "興趣",
+    "social": "社群",
+    "meta": "背景",
+    "relation": "關係",
+    "other": "其他",
+    "identityHint": "描述你是誰",
+    "skillHint": "你擅長什麼",
+    "interestHint": "你喜歡什麼",
+    "socialHint": "你屬於什麼組織或社群",
+    "metaHint": "地點、年份等背景資訊",
+    "relationHint": "你和對方的關係",
+    "selectType": "選擇標籤類型",
+    "parentTag": "上層標籤"
   }
 }

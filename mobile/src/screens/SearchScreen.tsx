@@ -11,6 +11,7 @@ import {
   Image,
   ListRenderItemInfo,
   Alert,
+  ScrollView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
@@ -281,6 +282,8 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
+  const [tagCategories, setTagCategories] = useState<string[]>([]);
+  const [selectedTagCategory, setSelectedTagCategory] = useState<string | null>(null);
 
   // Refs for stable closures
   const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -324,6 +327,9 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
     const cached = getCache<Tag[]>(CACHE_KEY_POPULAR_TAGS);
     if (cached) {
       setTags(cached);
+      // Extract categories
+      const cats = [...new Set(cached.map((t: any) => t.semantic_type).filter(Boolean))] as string[];
+      setTagCategories(cats);
       setLoading(false);
       setInitialLoading(false);
     } else {
@@ -333,13 +339,16 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
     try {
       const { data, error } = await supabase
         .from('piktag_tags')
-        .select('id, name, category, usage_count')
+        .select('id, name, semantic_type, usage_count')
         .order('usage_count', { ascending: false })
-        .limit(20);
+        .limit(50);
 
       if (!error && data) {
         setCache(CACHE_KEY_POPULAR_TAGS, data);
         setTags(data);
+        // Extract unique categories
+        const cats = [...new Set(data.map((t: any) => t.semantic_type).filter(Boolean))] as string[];
+        setTagCategories(cats);
       }
     } catch {} finally {
       setLoading(false);
@@ -459,7 +468,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
       // Get tag counts for these connections
       const { data: tagData } = await supabase
         .from('piktag_connection_tags')
-        .select('tag:piktag_tags!tag_id(id, name, category, usage_count, created_at)')
+        .select('tag:piktag_tags!tag_id(id, name, semantic_type, usage_count, created_at)')
         .in('connection_id', connIds);
 
       if (tagData) {
@@ -544,7 +553,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
         const [tagsResult, profilesResult] = await Promise.all([
           supabase
             .from('piktag_tags')
-            .select('id, name, category, usage_count')
+            .select('id, name, semantic_type, usage_count')
             .ilike('name', `%${trimmed}%`)
             .order('usage_count', { ascending: false })
             .limit(20),
@@ -681,6 +690,12 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
 
   // ── Memoized translated suffix for tag counts ──
   const tagCountSuffix = useMemo(() => t('search.tagCountSuffix'), [t]);
+
+  // Filtered tags by selected category
+  const filteredTags = useMemo(() => {
+    if (!selectedTagCategory) return tags.slice(0, 20);
+    return tags.filter((t) => t.semantic_type === selectedTagCategory).slice(0, 20);
+  }, [tags, selectedTagCategory]);
 
   // ── FlatList data and renderers ──
 
@@ -911,16 +926,8 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
           );
 
         case 'tagsGrid': {
-          // Group tags by category if not in search mode
-          const categories = new Map<string, typeof tags>();
-          tags.forEach((tag) => {
-            const cat = (tag as any).category || t('search.categoryUncategorized');
-            if (!categories.has(cat)) categories.set(cat, []);
-            categories.get(cat)!.push(tag);
-          });
-
-          // If all in one category or searching, show flat grid
-          if (categories.size <= 1 || trimmedQuery !== '') {
+          // When searching, show flat grid
+          if (trimmedQuery !== '') {
             return (
               <View style={styles.tagsGrid}>
                 {tags.map((tag, index) => (
@@ -936,25 +943,49 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
             );
           }
 
-          // Show grouped by category
+          // Category chips + filtered grid
           return (
             <View>
-              {Array.from(categories.entries()).map(([catName, catTags]) => (
-                <View key={catName} style={styles.tagCategorySection}>
-                  <Text style={styles.tagCategoryTitle}>{catName}</Text>
-                  <View style={styles.tagsGrid}>
-                    {catTags.map((tag, index) => (
-                      <TagCard
-                        key={tag.id}
-                        tag={tag}
-                        isHighlighted={false}
-                        onPress={handleTagPress}
-                        countSuffix={tagCountSuffix}
-                      />
-                    ))}
-                  </View>
-                </View>
-              ))}
+              {tagCategories.length > 0 && (
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={styles.categoryChipsRow}
+                >
+                  <TouchableOpacity
+                    style={[styles.categoryChip, !selectedTagCategory && styles.categoryChipActive]}
+                    onPress={() => setSelectedTagCategory(null)}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={[styles.categoryChipText, !selectedTagCategory && styles.categoryChipTextActive]}>
+                      {t('search.allCategories')}
+                    </Text>
+                  </TouchableOpacity>
+                  {tagCategories.map((cat) => (
+                    <TouchableOpacity
+                      key={cat}
+                      style={[styles.categoryChip, selectedTagCategory === cat && styles.categoryChipActive]}
+                      onPress={() => setSelectedTagCategory(selectedTagCategory === cat ? null : cat)}
+                      activeOpacity={0.7}
+                    >
+                      <Text style={[styles.categoryChipText, selectedTagCategory === cat && styles.categoryChipTextActive]}>
+                        {cat}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              )}
+              <View style={styles.tagsGrid}>
+                {filteredTags.map((tag, index) => (
+                  <TagCard
+                    key={tag.id}
+                    tag={tag}
+                    isHighlighted={index === 0}
+                    onPress={handleTagPress}
+                    countSuffix={tagCountSuffix}
+                  />
+                ))}
+              </View>
             </View>
           );
         }
@@ -1024,6 +1055,9 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
       handleProfilePress,
       handleTagPress,
       tags,
+      filteredTags,
+      tagCategories,
+      selectedTagCategory,
       tagCountSuffix,
       tagUsers,
       navigation,
@@ -1307,6 +1341,34 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     marginBottom: 10,
     marginTop: 8,
+  },
+
+  // Category Chips
+  categoryChipsRow: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    gap: 8,
+    flexDirection: 'row',
+  },
+  categoryChip: {
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 20,
+    backgroundColor: COLORS.gray100,
+    borderWidth: 1.5,
+    borderColor: 'transparent',
+  },
+  categoryChipActive: {
+    backgroundColor: COLORS.piktag50,
+    borderColor: COLORS.piktag500,
+  },
+  categoryChipText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: COLORS.gray600,
+  },
+  categoryChipTextActive: {
+    color: COLORS.piktag600,
   },
 
   // Tag Users Section

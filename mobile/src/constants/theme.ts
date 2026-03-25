@@ -60,3 +60,13 @@ export const BORDER_RADIUS = {
   xxl: 24,
   full: 9999,
 };
+
+// Semantic Tag Types — display order and i18n keys
+export const SEMANTIC_TYPES = [
+  { key: 'identity', labelKey: 'semanticType.identity' },
+  { key: 'skill', labelKey: 'semanticType.skill' },
+  { key: 'interest', labelKey: 'semanticType.interest' },
+  { key: 'social', labelKey: 'semanticType.social' },
+  { key: 'meta', labelKey: 'semanticType.meta' },
+  { key: 'relation', labelKey: 'semanticType.relation' },
+] as const;

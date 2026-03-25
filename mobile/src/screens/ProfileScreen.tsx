@@ -32,7 +32,9 @@ import QrCodeModal from '../components/QrCodeModal';
 import InitialsAvatar from '../components/InitialsAvatar';
 import { ProfileScreenSkeleton } from '../components/SkeletonLoader';
 import StatusModal from '../components/StatusModal';
-import type { PiktagProfile, UserTag, Biolink } from '../types';
+import type { PiktagProfile, UserTag, Biolink, SemanticType } from '../types';
+import { SEMANTIC_TYPE_ORDER } from '../types';
+import { SEMANTIC_TYPES } from '../constants/theme';
 
 type ProfileScreenProps = {
   navigation: any;
@@ -268,6 +270,33 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
     [profile?.bio, t],
   );
 
+  // Group tags by semantic type for display
+  const groupedTags = useMemo(() => {
+    if (userTags.length === 0) return [];
+    const groups = new Map<string, UserTag[]>();
+    userTags.forEach((ut) => {
+      const type = ut.semantic_type || ut.tag?.semantic_type || 'other';
+      if (!groups.has(type)) groups.set(type, []);
+      groups.get(type)!.push(ut);
+    });
+    // Sort groups by SEMANTIC_TYPE_ORDER
+    const ordered: { type: string; tags: UserTag[] }[] = [];
+    for (const st of SEMANTIC_TYPE_ORDER) {
+      if (groups.has(st)) {
+        ordered.push({ type: st, tags: groups.get(st)! });
+        groups.delete(st);
+      }
+    }
+    // Add remaining (uncategorized) at the end
+    if (groups.has('other')) {
+      ordered.push({ type: 'other', tags: groups.get('other')! });
+    }
+    groups.forEach((tags, type) => {
+      if (type !== 'other') ordered.push({ type, tags });
+    });
+    return ordered;
+  }, [userTags]);
+
   const hasNoContactMethods = useMemo(
     () => !profile?.phone && !user?.email && activeBiolinks.length === 0,
     [profile?.phone, user?.email, activeBiolinks.length],
@@ -417,21 +446,30 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
           {displayBio}
         </Text>
 
-        {/* Tags */}
-        <View style={styles.tagsRow}>
-          {userTags.length > 0 ? (
-            userTags.map((ut, index) => (
-              <TagItem
-                key={ut.id}
-                userTag={ut}
-                isPrimary={index === 0}
-                fallbackLabel={t('profile.tagFallback')}
-              />
-            ))
-          ) : (
+        {/* Tags — grouped by semantic type */}
+        {groupedTags.length > 0 ? (
+          groupedTags.map((group) => (
+            <View key={group.type} style={styles.tagGroup}>
+              <Text style={styles.tagGroupTitle}>
+                {t(`semanticType.${group.type}`)}
+              </Text>
+              <View style={styles.tagsRow}>
+                {group.tags.map((ut, index) => (
+                  <TagItem
+                    key={ut.id}
+                    userTag={ut}
+                    isPrimary={index === 0 && group.type === 'identity'}
+                    fallbackLabel={t('profile.tagFallback')}
+                  />
+                ))}
+              </View>
+            </View>
+          ))
+        ) : (
+          <View style={styles.tagsRow}>
             <Text style={styles.emptyText}>{t('profile.noTags')}</Text>
-          )}
-        </View>
+          </View>
+        )}
 
         {/* Two action buttons side by side */}
         <View style={styles.actionButtonsRow}>
@@ -634,13 +672,24 @@ const styles = StyleSheet.create({
     lineHeight: 22,
     marginBottom: 12,
   },
+  tagGroup: {
+    marginBottom: 8,
+  },
+  tagGroupTitle: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: COLORS.gray400,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: 4,
+  },
   tagsRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 4,
     columnGap: 12,
     rowGap: 4,
-    marginBottom: 12,
+    marginBottom: 4,
   },
   tag: {
     fontSize: 14,

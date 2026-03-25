@@ -138,7 +138,8 @@
     "clearHistoryConfirmMessage": "Are you sure you want to clear all search history?",
     "tagUsersTitle": "People using this tag",
     "viewAllTagUsers": "View all {{count}}",
-    "categoryUncategorized": "Other"
+    "categoryUncategorized": "Other",
+    "allCategories": "All"
   },
   "addTag": {
     "headerTitle": "# Get Social",
@@ -426,7 +427,13 @@
     "hostTagsTitle": "Their Tags",
     "myTagsTitle": "My Tags",
     "selectAll": "Select All",
-    "confirmButton": "Confirm Add Friend"
+    "confirmButton": "Confirm Add Friend",
+    "relationTitle": "Your Relationship",
+    "relationFriend": "Friend",
+    "relationColleague": "Colleague",
+    "relationClassmate": "Classmate",
+    "relationPartner": "Partner",
+    "relationClient": "Client"
   },
   "manageTags": {
     "headerTitle": "Manage Tags",
@@ -456,5 +463,22 @@
     "exploreEmptyTitle": "No users found",
     "exploreEmptyText": "No public users have used this tag yet",
     "viewAll": "View All"
+  },
+  "semanticType": {
+    "identity": "Identity",
+    "skill": "Skills",
+    "interest": "Interests",
+    "social": "Communities",
+    "meta": "Background",
+    "relation": "Relation",
+    "other": "Other",
+    "identityHint": "Who you are",
+    "skillHint": "What you can do",
+    "interestHint": "What you enjoy",
+    "socialHint": "Organizations or communities you belong to",
+    "metaHint": "Location, year, or other context",
+    "relationHint": "Your relationship with this person",
+    "selectType": "Select tag type",
+    "parentTag": "Parent tag"
   }
 }

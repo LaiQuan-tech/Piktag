@@ -125,6 +125,7 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
   const [addingTag, setAddingTag] = useState(false);
   const [removingTagId, setRemovingTagId] = useState<string | null>(null);
   const [isPrivate, setIsPrivate] = useState(false);
+  const [selectedSemanticType, setSelectedSemanticType] = useState<string | null>(null);
 
   // ── Data loading (useCallback + Promise.all) ───────────────────────────
 
@@ -267,6 +268,7 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
           tag_id: tagId,
           position: nextPosition,
           is_private: isPrivate,
+          semantic_type: selectedSemanticType || null,
         });
 
       if (linkError) {
@@ -291,6 +293,7 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
       // Reload tags
       setTagInput('');
       setIsPrivate(false);
+      setSelectedSemanticType(null);
       await Promise.all([loadMyTags(), loadPopularTags()]);
     } catch (err) {
       console.warn('[ManageTagsScreen] handleAddTag exception:', err);
@@ -298,7 +301,7 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
     } finally {
       setAddingTag(false);
     }
-  }, [user, tagInput, myTagNames, myTags.length, isPrivate, t, loadMyTags, loadPopularTags]);
+  }, [user, tagInput, myTagNames, myTags.length, isPrivate, selectedSemanticType, t, loadMyTags, loadPopularTags]);
 
   const handleRemoveTag = useCallback(
     async (userTag: UserTag & { tag?: Tag }) => {
@@ -511,6 +514,24 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
                 {isPrivate ? t('manageTags.privacyPrivate') : t('manageTags.privacyPublic')}
               </Text>
             </TouchableOpacity>
+            {/* Semantic Type Selector */}
+            <View style={styles.semanticTypeRow}>
+              <Text style={styles.semanticTypeLabel}>{t('semanticType.selectType')}</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.semanticTypeChips}>
+                {(['identity', 'skill', 'interest', 'social', 'meta'] as const).map((st) => (
+                  <TouchableOpacity
+                    key={st}
+                    style={[styles.semanticTypeChip, selectedSemanticType === st && styles.semanticTypeChipActive]}
+                    onPress={() => setSelectedSemanticType(selectedSemanticType === st ? null : st)}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={[styles.semanticTypeChipText, selectedSemanticType === st && styles.semanticTypeChipTextActive]}>
+                      {t(`semanticType.${st}`)}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            </View>
             <TouchableOpacity
               style={[styles.addButton, addingTag && styles.addButtonDisabled]}
               onPress={handleAddTag}
@@ -711,5 +732,41 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: COLORS.gray400,
     paddingVertical: 8,
+  },
+
+  // Semantic Type Selector
+  semanticTypeRow: {
+    marginTop: 8,
+  },
+  semanticTypeLabel: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: COLORS.gray500,
+    marginBottom: 8,
+  },
+  semanticTypeChips: {
+    gap: 8,
+    flexDirection: 'row',
+  },
+  semanticTypeChip: {
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 20,
+    backgroundColor: COLORS.gray100,
+    borderWidth: 1.5,
+    borderColor: 'transparent',
+  },
+  semanticTypeChipActive: {
+    backgroundColor: COLORS.piktag50,
+    borderColor: COLORS.piktag500,
+  },
+  semanticTypeChipText: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: COLORS.gray600,
+  },
+  semanticTypeChipTextActive: {
+    color: COLORS.piktag600,
+    fontWeight: '700',
   },
 });
