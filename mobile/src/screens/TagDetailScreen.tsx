@@ -52,10 +52,11 @@ type TabKey = 'connections' | 'explore';
 export default function TagDetailScreen({ navigation, route }: TagDetailScreenProps) {
   const { t } = useTranslation();
   const { user } = useAuth();
-  const tagId = route.params?.tagId;
+  const paramTagId = route.params?.tagId;
   const tagName = route.params?.tagName;
   const initialTab = route.params?.initialTab as TabKey | undefined;
 
+  const [resolvedTagId, setResolvedTagId] = useState<string | null>(paramTagId || null);
   const [activeTab, setActiveTab] = useState<TabKey>(initialTab || 'explore');
   const [connections, setConnections] = useState<ConnectionWithProfile[]>([]);
   const [exploreUsers, setExploreUsers] = useState<ExploreUser[]>([]);
@@ -65,6 +66,24 @@ export default function TagDetailScreen({ navigation, route }: TagDetailScreenPr
   const [totalUserCount, setTotalUserCount] = useState(0);
   const [tagSemanticType, setTagSemanticType] = useState<string | null>(null);
   const [parentTagName, setParentTagName] = useState<string | null>(null);
+
+  // Resolve tagId from tagName if not provided
+  useEffect(() => {
+    if (paramTagId) { setResolvedTagId(paramTagId); return; }
+    if (!tagName) return;
+    const resolve = async () => {
+      const { data } = await supabase
+        .from('piktag_tags')
+        .select('id')
+        .eq('name', tagName)
+        .single();
+      if (data) setResolvedTagId(data.id);
+      else setLoading(false); // tag not found
+    };
+    resolve();
+  }, [paramTagId, tagName]);
+
+  const tagId = resolvedTagId;
 
   // --- Fetch connections with this tag (existing logic) ---
   const fetchTagConnections = useCallback(async () => {
