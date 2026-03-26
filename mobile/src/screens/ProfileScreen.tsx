@@ -297,20 +297,17 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
                 </Animated.View>
               )}
             </View>
-            {/* Stats — right side of avatar */}
+            {/* Stats — IG inline style */}
             <View style={styles.statsRow}>
-              <View style={styles.statItem}>
-                <Text style={styles.statNumber}>{userTags.length}</Text>
-                <Text style={styles.statLabel}>{t('profile.statTags')}</Text>
-              </View>
-              <View style={styles.statItem}>
-                <Text style={styles.statNumber}>{friendCount}</Text>
-                <Text style={styles.statLabel}>{t('profile.statFriends')}</Text>
-              </View>
-              <View style={styles.statItem}>
-                <Text style={styles.statNumber}>{formattedFollowerCount}</Text>
-                <Text style={styles.statLabel}>{t('profile.statFollowers')}</Text>
-              </View>
+              <Text style={styles.statText}>
+                <Text style={styles.statNumber}>{userTags.length}</Text>{t('profile.statTags')}
+              </Text>
+              <Text style={styles.statText}>
+                <Text style={styles.statNumber}>{friendCount}</Text>{t('profile.statFriends')}
+              </Text>
+              <Text style={styles.statText}>
+                <Text style={styles.statNumber}>{formattedFollowerCount}</Text>{t('profile.statFollowers')}
+              </Text>
             </View>
           </View>
 
@@ -557,22 +554,17 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-around',
+    justifyContent: 'center',
+    gap: 16,
   },
-  statItem: {
-    alignItems: 'center',
-    flex: 1,
+  statText: {
+    fontSize: 14,
+    color: COLORS.gray500,
   },
   statNumber: {
-    fontSize: 18,
-    fontWeight: '800',
+    fontWeight: '700',
     color: COLORS.gray900,
-  },
-  statLabel: {
-    fontSize: 12,
-    fontWeight: '500',
-    color: COLORS.gray500,
-    marginTop: 2,
+    marginRight: 2,
   },
   bio: {
     fontSize: 14,

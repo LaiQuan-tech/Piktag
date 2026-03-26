@@ -327,22 +327,17 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
             </View>
           )}
 
-          {/* Stats: 共同標籤 | 共同好友 | 追蹤者 */}
+          {/* Stats — IG inline style */}
           <View style={styles.statsRow}>
-            <View style={styles.statItem}>
-              <Text style={[styles.statNumber, mutualTags > 0 && { color: COLORS.piktag600 }]}>{mutualTags}</Text>
-              <Text style={styles.statLabel}>{t('userDetail.statMutualTags')}</Text>
-            </View>
-            <View style={styles.statDivider} />
-            <View style={styles.statItem}>
-              <Text style={styles.statNumber}>{mutualFriends}</Text>
-              <Text style={styles.statLabel}>{t('userDetail.statMutualFriends')}</Text>
-            </View>
-            <View style={styles.statDivider} />
-            <View style={styles.statItem}>
-              <Text style={styles.statNumber}>{followerCount}</Text>
-              <Text style={styles.statLabel}>{t('userDetail.statFollowers')}</Text>
-            </View>
+            <Text style={styles.statText}>
+              <Text style={[styles.statNumber, mutualTags > 0 && { color: COLORS.piktag600 }]}>{mutualTags}</Text>{t('userDetail.statMutualTags')}
+            </Text>
+            <Text style={styles.statText}>
+              <Text style={styles.statNumber}>{mutualFriends}</Text>{t('userDetail.statMutualFriends')}
+            </Text>
+            <Text style={styles.statText}>
+              <Text style={styles.statNumber}>{followerCount}</Text>{t('userDetail.statFollowers')}
+            </Text>
           </View>
 
           {/* Clickable mutual tags */}
@@ -553,28 +548,18 @@ const styles = StyleSheet.create({
   statsRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 16,
+    gap: 16,
+    marginTop: 14,
     marginBottom: 4,
   },
-  statItem: {
-    flex: 1,
-    alignItems: 'center',
+  statText: {
+    fontSize: 14,
+    color: COLORS.gray500,
   },
   statNumber: {
-    fontSize: 20,
-    fontWeight: '800',
+    fontWeight: '700',
     color: COLORS.gray900,
-  },
-  statLabel: {
-    fontSize: 11,
-    fontWeight: '500',
-    color: COLORS.gray500,
-    marginTop: 2,
-  },
-  statDivider: {
-    width: 1,
-    height: 28,
-    backgroundColor: COLORS.gray200,
+    marginRight: 2,
   },
   mutualTagsRow: {
     flexDirection: 'row',

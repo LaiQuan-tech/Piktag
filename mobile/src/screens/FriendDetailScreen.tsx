@@ -552,20 +552,17 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
             ) : (
               <InitialsAvatar name={displayName} size={80} style={styles.avatar} />
             )}
-            {/* Stats — right side */}
+            {/* Stats — IG inline style */}
             <View style={styles.statsRow}>
-              <View style={styles.statBox}>
-                <Text style={[styles.statNumber, mutualTags > 0 && { color: COLORS.piktag600 }]}>{mutualTags}</Text>
-                <Text style={styles.statLabel}>{t('friendDetail.mutualTagsLabel')}</Text>
-              </View>
-              <View style={styles.statBox}>
-                <Text style={styles.statNumber}>{mutualFriends}</Text>
-                <Text style={styles.statLabel}>{t('friendDetail.mutualFriendsLabel')}</Text>
-              </View>
-              <View style={styles.statBox}>
-                <Text style={styles.statNumber}>{followerCount}</Text>
-                <Text style={styles.statLabel}>{t('friendDetail.followersLabel')}</Text>
-              </View>
+              <Text style={styles.statText}>
+                <Text style={[styles.statNumber, mutualTags > 0 && { color: COLORS.piktag600 }]}>{mutualTags}</Text>{t('friendDetail.mutualTagsLabel')}
+              </Text>
+              <Text style={styles.statText}>
+                <Text style={styles.statNumber}>{mutualFriends}</Text>{t('friendDetail.mutualFriendsLabel')}
+              </Text>
+              <Text style={styles.statText}>
+                <Text style={styles.statNumber}>{followerCount}</Text>{t('friendDetail.followersLabel')}
+              </Text>
             </View>
           </View>
 
@@ -909,16 +906,17 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-around',
+    justifyContent: 'center',
+    gap: 16,
   },
-  statBox: {
-    flex: 1,
-    alignItems: 'center',
+  statText: {
+    fontSize: 14,
+    color: COLORS.gray500,
   },
   statNumber: {
-    fontSize: 18,
-    fontWeight: '800',
+    fontWeight: '700',
     color: COLORS.gray900,
+    marginRight: 2,
   },
   statLabel: {
     fontSize: 13,
