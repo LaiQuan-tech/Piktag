@@ -270,19 +270,20 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
         );
       }
 
-      // Mutual tags (depends on friend's connection ids from phase 1)
-      if (connectionId && friendConnectionsResult.data && friendConnectionsResult.data.length > 0) {
-        const friendConnIds = friendConnectionsResult.data.map((c: any) => c.id);
+      // Mutual tags — compare user_tags (public tags), not connection_tags
+      if (user && friendId) {
         phase2.push(
           Promise.all([
             supabase
-              .from('piktag_connection_tags')
+              .from('piktag_user_tags')
               .select('tag_id')
-              .eq('connection_id', connectionId),
+              .eq('user_id', user.id)
+              .eq('is_private', false),
             supabase
-              .from('piktag_connection_tags')
+              .from('piktag_user_tags')
               .select('tag_id')
-              .in('connection_id', friendConnIds),
+              .eq('user_id', friendId)
+              .eq('is_private', false),
           ]).then(([myTagsResult, friendTagsResult]) => {
             if (myTagsResult.data && friendTagsResult.data) {
               const myTagIds = new Set(myTagsResult.data.map((t: any) => t.tag_id));
