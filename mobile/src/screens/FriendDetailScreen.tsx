@@ -535,34 +535,30 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Profile Section */}
+        {/* Profile Section — avatar, name, username, bio, tags all together */}
         <View style={styles.profileSection}>
-          {avatarUrl ? (
-            <Image
-              source={{ uri: avatarUrl }}
-              style={styles.avatar}
-            />
-          ) : (
-            <InitialsAvatar name={displayName} size={100} style={styles.avatarInitials} />
-          )}
-          <View style={styles.nameRow}>
-            <Text style={styles.fullName}>{displayName}</Text>
-            {verified && (
-              <CheckCircle2
-                size={20}
-                color={COLORS.blue500}
-                fill={COLORS.blue500}
-                strokeWidth={0}
-                style={styles.verifiedIcon}
-              />
+          <View style={styles.profileRow}>
+            {avatarUrl ? (
+              <Image source={{ uri: avatarUrl }} style={styles.avatar} />
+            ) : (
+              <InitialsAvatar name={displayName} size={72} style={styles.avatar} />
             )}
+            <View style={styles.profileInfo}>
+              <View style={styles.nameRow}>
+                <Text style={styles.fullName}>{displayName}</Text>
+                {verified && (
+                  <CheckCircle2 size={16} color={COLORS.blue500} fill={COLORS.blue500} strokeWidth={0} style={{ marginLeft: 4 }} />
+                )}
+              </View>
+              <Text style={styles.usernameText}>@{username}</Text>
+            </View>
           </View>
-          <Text style={styles.usernameText}>@{username}</Text>
-        </View>
 
-        {/* Tags — clickable */}
-        {tags.length > 0 && (
-          <View style={styles.tagsSection}>
+          {/* Bio */}
+          {profile?.bio ? <Text style={styles.bio}>{profile.bio}</Text> : null}
+
+          {/* Tags — directly under bio, always visible */}
+          {tags.length > 0 && (
             <View style={styles.tagsWrap}>
               {tags.map((tag, index) => (
                 <TouchableOpacity
@@ -575,10 +571,10 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
                 </TouchableOpacity>
               ))}
             </View>
-          </View>
-        )}
+          )}
+        </View>
 
-        {/* Stats Row */}
+        {/* Stats Row (inline) */}
         <View style={styles.statsRow}>
           <View style={styles.statBox}>
             <Text style={styles.statNumber}>{mutualFriends}</Text>
@@ -587,24 +583,60 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
           <TouchableOpacity
             style={styles.statBox}
             activeOpacity={0.7}
-            onPress={() => {
-              if (profile?.id) {
-                navigation.navigate('UserDetail', { userId: profile.id });
-              }
-            }}
+            onPress={() => { if (profile?.id) navigation.navigate('UserDetail', { userId: profile.id }); }}
           >
             <Text style={[styles.statNumber, mutualTags > 0 && { color: COLORS.piktag600 }]}>{mutualTags}</Text>
             <Text style={styles.statLabel}>{t('friendDetail.mutualTagsLabel')}</Text>
           </TouchableOpacity>
         </View>
 
-        {/* Action Buttons */}
-        <View style={styles.actionsRow}>
-          <TouchableOpacity style={styles.primaryButton} activeOpacity={0.8}>
-            <Tag size={18} color={COLORS.gray900} />
-            <Text style={styles.primaryButtonText}>{t('friendDetail.manageTags')}</Text>
-          </TouchableOpacity>
-        </View>
+        {/* ===== SECTION 2: Social Links — IG Highlights style circles ===== */}
+        {biolinks.length > 0 && (
+          <View style={styles.socialSection}>
+            <Text style={styles.sectionTitle}>{t('friendDetail.biolinksTitle')}</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.socialScrollContent}>
+              {biolinks.map((link) => (
+                <TouchableOpacity
+                  key={link.id}
+                  style={styles.socialCircleItem}
+                  onPress={() => handleOpenLink(link.url, link.id)}
+                  activeOpacity={0.7}
+                >
+                  <View style={styles.socialCircleRing}>
+                    <View style={styles.socialCircleInner}>
+                      <PlatformIcon platform={link.platform} size={28} />
+                    </View>
+                  </View>
+                  <Text style={styles.socialCircleLabel} numberOfLines={1}>
+                    {link.label || link.platform}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        )}
+
+        {/* ===== SECTION 3: Link Bio — Linktree style cards ===== */}
+        {biolinks.length > 0 && (
+          <View style={styles.linkBioSection}>
+            {biolinks.map((link) => (
+              <TouchableOpacity
+                key={link.id}
+                style={styles.linkCard}
+                onPress={() => handleOpenLink(link.url, link.id)}
+                activeOpacity={0.7}
+              >
+                <PlatformIcon platform={link.platform} size={22} />
+                <Text style={styles.linkCardText} numberOfLines={1}>
+                  {link.label || link.platform}
+                </Text>
+                <ExternalLink size={16} color={COLORS.gray400} />
+              </TouchableOpacity>
+            ))}
+          </View>
+        )}
+
+        {/* ===== SECTION 4: CRM & Management (below the fold) ===== */}
 
         {/* Met Record Section */}
         {(metDate || metLocation || connectionNote || scanEventTags.length > 0) && (
@@ -636,9 +668,7 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
                   <View style={styles.recordRow}>
                     <FileText size={16} color={COLORS.gray400} />
                     <Text style={styles.recordLabel}>{t('friendDetail.metNoteLabel')}</Text>
-                    <Text style={[styles.recordValue, styles.recordNotes]}>
-                      {connectionNote}
-                    </Text>
+                    <Text style={[styles.recordValue, styles.recordNotes]}>{connectionNote}</Text>
                   </View>
                   {scanEventTags.length > 0 && <View style={styles.recordDivider} />}
                 </>
@@ -649,9 +679,10 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
                   <Text style={styles.recordLabel}>{t('friendDetail.eventTagsLabel')}</Text>
                   <View style={{ flex: 1, flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
                     {scanEventTags.map((etag, i) => (
-                      <View key={i} style={styles.tagChip}>
+                      <TouchableOpacity key={i} style={styles.tagChip} activeOpacity={0.6}
+                        onPress={() => navigation.navigate('TagDetail', { tagName: etag, initialTab: 'explore' })}>
                         <Text style={styles.tagChipText}>#{etag}</Text>
-                      </View>
+                      </TouchableOpacity>
                     ))}
                   </View>
                 </View>
@@ -665,19 +696,13 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>{t('friendDetail.stickyNotesTitle')}</Text>
             <TouchableOpacity
-              onPress={() => {
-                setIsAddingNote(true);
-                setEditingNoteId(null);
-                setNoteContent('');
-                setNoteColor(NOTE_COLORS[0]);
-              }}
+              onPress={() => { setIsAddingNote(true); setEditingNoteId(null); setNoteContent(''); setNoteColor(NOTE_COLORS[0]); }}
               activeOpacity={0.7}
             >
               <Plus size={22} color={COLORS.gray600} />
             </TouchableOpacity>
           </View>
 
-          {/* Add/Edit Note Form */}
           {(isAddingNote || editingNoteId) && (
             <View style={[styles.noteForm, { backgroundColor: noteColor }]}>
               <TextInput
@@ -693,70 +718,37 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
                 {NOTE_COLORS.map((color) => (
                   <TouchableOpacity
                     key={color}
-                    style={[
-                      styles.noteColorDot,
-                      { backgroundColor: color },
-                      noteColor === color && styles.noteColorDotActive,
-                    ]}
+                    style={[styles.noteColorDot, { backgroundColor: color }, noteColor === color && styles.noteColorDotActive]}
                     onPress={() => setNoteColor(color)}
                   />
                 ))}
               </View>
               <View style={styles.noteFormActions}>
-                <TouchableOpacity
-                  style={styles.noteFormCancel}
-                  onPress={() => {
-                    setIsAddingNote(false);
-                    setEditingNoteId(null);
-                    setNoteContent('');
-                  }}
-                >
+                <TouchableOpacity style={styles.noteFormCancel} onPress={() => { setIsAddingNote(false); setEditingNoteId(null); setNoteContent(''); }}>
                   <Text style={styles.noteFormCancelText}>{t('friendDetail.noteCancel')}</Text>
                 </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.noteFormSave}
-                  onPress={editingNoteId ? handleUpdateNote : handleAddNote}
-                >
-                  <Text style={styles.noteFormSaveText}>
-                    {editingNoteId ? t('friendDetail.noteUpdate') : t('friendDetail.noteAdd')}
-                  </Text>
+                <TouchableOpacity style={styles.noteFormSave} onPress={editingNoteId ? handleUpdateNote : handleAddNote}>
+                  <Text style={styles.noteFormSaveText}>{editingNoteId ? t('friendDetail.noteUpdate') : t('friendDetail.noteAdd')}</Text>
                 </TouchableOpacity>
               </View>
             </View>
           )}
 
-          {/* Notes List */}
           {notes.length === 0 && !isAddingNote && (
             <Text style={styles.emptyNotesText}>{t('friendDetail.noNotes')}</Text>
           )}
           {notes.map((note) => (
             <View key={note.id} style={[styles.noteCard, { backgroundColor: note.color || NOTE_COLORS[0] }]}>
-              {note.is_pinned && (
-                <View style={styles.notePinBadge}>
-                  <Pin size={12} color={COLORS.gray600} />
-                </View>
-              )}
+              {note.is_pinned && (<View style={styles.notePinBadge}><Pin size={12} color={COLORS.gray600} /></View>)}
               <Text style={styles.noteCardText}>{note.content}</Text>
               <View style={styles.noteCardActions}>
-                <TouchableOpacity
-                  onPress={() => handleTogglePin(note)}
-                  style={styles.noteActionBtn}
-                >
-                  <Pin
-                    size={16}
-                    color={note.is_pinned ? COLORS.piktag600 : COLORS.gray400}
-                  />
+                <TouchableOpacity onPress={() => handleTogglePin(note)} style={styles.noteActionBtn}>
+                  <Pin size={16} color={note.is_pinned ? COLORS.piktag600 : COLORS.gray400} />
                 </TouchableOpacity>
-                <TouchableOpacity
-                  onPress={() => startEditNote(note)}
-                  style={styles.noteActionBtn}
-                >
+                <TouchableOpacity onPress={() => startEditNote(note)} style={styles.noteActionBtn}>
                   <Edit3 size={16} color={COLORS.gray400} />
                 </TouchableOpacity>
-                <TouchableOpacity
-                  onPress={() => handleDeleteNote(note.id)}
-                  style={styles.noteActionBtn}
-                >
+                <TouchableOpacity onPress={() => handleDeleteNote(note.id)} style={styles.noteActionBtn}>
                   <Trash2 size={16} color={COLORS.red500} />
                 </TouchableOpacity>
               </View>
@@ -781,35 +773,18 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
                     <Text style={styles.recordLabel}>{t(REMINDER_LABEL_KEYS[item.field])}</Text>
                     {editingReminder === item.field ? (
                       <View style={styles.reminderEditRow}>
-                        <TextInput
-                          style={styles.reminderInput}
-                          placeholder={t('friendDetail.reminderPlaceholder')}
-                          placeholderTextColor={COLORS.gray400}
-                          value={reminderInput}
-                          onChangeText={setReminderInput}
-                          autoFocus
-                          onSubmitEditing={() => handleSaveReminder(item.field)}
-                        />
+                        <TextInput style={styles.reminderInput} placeholder={t('friendDetail.reminderPlaceholder')} placeholderTextColor={COLORS.gray400} value={reminderInput} onChangeText={setReminderInput} autoFocus onSubmitEditing={() => handleSaveReminder(item.field)} />
                         <TouchableOpacity onPress={() => handleSaveReminder(item.field)}>
                           <Text style={styles.reminderSaveBtn}>{t('friendDetail.reminderSave')}</Text>
                         </TouchableOpacity>
                       </View>
                     ) : (
-                      <TouchableOpacity
-                        style={styles.reminderValueRow}
-                        onPress={() => {
-                          setEditingReminder(item.field);
-                          setReminderInput(item.value || '');
-                        }}
-                      >
+                      <TouchableOpacity style={styles.reminderValueRow} onPress={() => { setEditingReminder(item.field); setReminderInput(item.value || ''); }}>
                         <Text style={[styles.recordValue, !item.value && { color: COLORS.gray400 }]}>
                           {item.value ? formatReminderDate(item.value) : t('friendDetail.reminderSetPrompt')}
                         </Text>
                         {item.value && (
-                          <TouchableOpacity
-                            onPress={() => handleClearReminder(item.field)}
-                            style={{ marginLeft: 8, padding: 4 }}
-                          >
+                          <TouchableOpacity onPress={() => handleClearReminder(item.field)} style={{ marginLeft: 8, padding: 4 }}>
                             <Text style={{ fontSize: 12, color: COLORS.red500 }}>{t('friendDetail.reminderClear')}</Text>
                           </TouchableOpacity>
                         )}
@@ -819,52 +794,6 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
                 </React.Fragment>
               ))}
             </View>
-          </View>
-        )}
-
-        {/* Social Links — IG Highlights style circles */}
-        {biolinks.length > 0 && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>{t('friendDetail.biolinksTitle')}</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.socialScrollContent}>
-              {biolinks.map((link) => (
-                <TouchableOpacity
-                  key={link.id}
-                  style={styles.socialCircleItem}
-                  onPress={() => handleOpenLink(link.url, link.id)}
-                  activeOpacity={0.7}
-                >
-                  <View style={styles.socialCircleRing}>
-                    <View style={styles.socialCircleInner}>
-                      <PlatformIcon platform={link.platform} size={28} />
-                    </View>
-                  </View>
-                  <Text style={styles.socialCircleLabel} numberOfLines={1}>
-                    {link.label || link.platform}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-          </View>
-        )}
-
-        {/* Link Bio — Linktree style cards */}
-        {biolinks.length > 0 && (
-          <View style={styles.linkBioSection}>
-            {biolinks.map((link) => (
-              <TouchableOpacity
-                key={link.id}
-                style={styles.linkCard}
-                onPress={() => handleOpenLink(link.url, link.id)}
-                activeOpacity={0.7}
-              >
-                <PlatformIcon platform={link.platform} size={22} />
-                <Text style={styles.linkCardText} numberOfLines={1}>
-                  {link.label || link.platform}
-                </Text>
-                <ExternalLink size={16} color={COLORS.gray400} />
-              </TouchableOpacity>
-            ))}
           </View>
         )}
       </ScrollView>
@@ -909,61 +838,64 @@ const styles = StyleSheet.create({
     paddingBottom: 100,
   },
   profileSection: {
-    alignItems: 'center',
-    paddingTop: 28,
-    paddingBottom: 8,
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 16,
   },
-  avatarInitials: {
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
+  profileRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 16,
+    marginBottom: 12,
+  },
+  profileInfo: {
+    flex: 1,
+    justifyContent: 'center',
+    gap: 4,
   },
   avatar: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
+    width: 72,
+    height: 72,
+    borderRadius: 36,
     backgroundColor: COLORS.gray100,
-    borderWidth: 2,
-    borderColor: COLORS.gray100,
   },
   nameRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 14,
   },
   fullName: {
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: '700',
     color: COLORS.gray900,
   },
-  verifiedIcon: {
-    marginLeft: 6,
-  },
   usernameText: {
-    fontSize: 15,
+    fontSize: 14,
     color: COLORS.gray500,
-    marginTop: 4,
   },
-  tagsSection: {
-    paddingHorizontal: 20,
-    paddingTop: 16,
-    alignItems: 'center',
+  bio: {
+    fontSize: 14,
+    color: COLORS.gray700,
+    lineHeight: 21,
+    marginBottom: 12,
   },
   tagsWrap: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    justifyContent: 'center',
     gap: 8,
+    marginBottom: 4,
   },
   tagChip: {
-    backgroundColor: COLORS.piktag50,
-    borderRadius: 9999,
+    backgroundColor: COLORS.gray50,
+    borderRadius: 16,
     paddingVertical: 6,
-    paddingHorizontal: 14,
+    paddingHorizontal: 12,
+    borderWidth: 1,
+    borderColor: COLORS.gray200,
   },
   tagChipText: {
     fontSize: 14,
     fontWeight: '500',
-    color: COLORS.piktag600,
+    color: COLORS.gray800,
   },
   statsRow: {
     flexDirection: 'row',
@@ -1217,7 +1149,13 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.gray200,
   },
 
-  // Social Circles (IG Highlights style)
+  // Social Section
+  socialSection: {
+    paddingTop: 8,
+    paddingBottom: 16,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.gray100,
+  },
   socialScrollContent: {
     paddingHorizontal: 4,
     gap: 16,
