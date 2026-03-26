@@ -200,12 +200,11 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
           .eq('user_id', friendId)
           .eq('is_active', true)
           .order('position', { ascending: true }),
-        connectionId
-          ? supabase
-              .from('piktag_connection_tags')
-              .select('*, tag:piktag_tags!tag_id(*)')
-              .eq('connection_id', connectionId)
-          : Promise.resolve({ data: null, error: null }),
+        supabase
+          .from('piktag_user_tags')
+          .select('*, tag:piktag_tags!tag_id(*)')
+          .eq('user_id', friendId)
+          .eq('is_private', false),
         supabase.from('piktag_connections').select('connected_user_id').eq('user_id', user.id),
         supabase.from('piktag_connections').select('id, connected_user_id').eq('user_id', friendId),
       ]);
