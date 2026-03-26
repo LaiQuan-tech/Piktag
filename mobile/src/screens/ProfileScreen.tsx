@@ -257,7 +257,7 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
 
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>{headerTitle}</Text>
+        <Text style={styles.headerTitle}>{displayUsername}</Text>
         <View style={styles.headerRight}>
           <TouchableOpacity style={styles.headerIconBtn} activeOpacity={0.6} onPress={handleNavigateSettings}>
             <Settings size={24} color={COLORS.gray900} />
@@ -275,7 +275,7 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
       >
         {/* ============ SECTION 1: Personal Info + Tags ============ */}
         <View style={styles.profileSection}>
-          {/* Avatar + Name Row */}
+          {/* Avatar + Stats Row (IG layout) */}
           <View style={styles.profileRow}>
             <View>
               <TouchableOpacity onPress={() => setStatusModalVisible(true)} activeOpacity={0.8}>
@@ -283,7 +283,7 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
                   {hasAvatar ? (
                     <Image source={avatarSource!} style={styles.avatar} />
                   ) : (
-                    <InitialsAvatar name={profile?.full_name || profile?.username || ''} size={72} style={styles.avatar} />
+                    <InitialsAvatar name={profile?.full_name || profile?.username || ''} size={80} style={styles.avatar} />
                   )}
                 </View>
                 <View style={styles.pencilBadge}>
@@ -297,35 +297,36 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
                 </Animated.View>
               )}
             </View>
-            <View style={styles.profileInfo}>
-              <View style={styles.usernameRow}>
-                <Text style={styles.usernameText}>@{displayUsername}</Text>
-                {profile?.is_verified && (
-                  <CheckCircle2 size={16} color={COLORS.blue500} fill={COLORS.blue500} strokeWidth={0} style={{ marginLeft: 4 }} />
-                )}
+            {/* Stats — right side of avatar */}
+            <View style={styles.statsRow}>
+              <View style={styles.statItem}>
+                <Text style={styles.statNumber}>{userTags.length}</Text>
+                <Text style={styles.statLabel}>{t('profile.statTags')}</Text>
               </View>
-              {/* 三欄統計：標籤 | 朋友 | 追蹤者 */}
-              <View style={styles.statsRow}>
-                <View style={styles.statItem}>
-                  <Text style={styles.statNumber}>{userTags.length}</Text>
-                  <Text style={styles.statLabel}>{t('profile.statTags')}</Text>
-                </View>
-                <View style={styles.statDivider} />
-                <View style={styles.statItem}>
-                  <Text style={styles.statNumber}>{friendCount}</Text>
-                  <Text style={styles.statLabel}>{t('profile.statFriends')}</Text>
-                </View>
-                <View style={styles.statDivider} />
-                <View style={styles.statItem}>
-                  <Text style={styles.statNumber}>{formattedFollowerCount}</Text>
-                  <Text style={styles.statLabel}>{t('profile.statFollowers')}</Text>
-                </View>
+              <View style={styles.statItem}>
+                <Text style={styles.statNumber}>{friendCount}</Text>
+                <Text style={styles.statLabel}>{t('profile.statFriends')}</Text>
+              </View>
+              <View style={styles.statItem}>
+                <Text style={styles.statNumber}>{formattedFollowerCount}</Text>
+                <Text style={styles.statLabel}>{t('profile.statFollowers')}</Text>
               </View>
             </View>
           </View>
 
+          {/* Name + Username */}
+          <View style={styles.nameSection}>
+            <Text style={styles.displayName}>{headerTitle}</Text>
+            <View style={styles.usernameRow}>
+              <Text style={styles.usernameText}>@{displayUsername}</Text>
+              {profile?.is_verified && (
+                <CheckCircle2 size={14} color={COLORS.blue500} fill={COLORS.blue500} strokeWidth={0} style={{ marginLeft: 4 }} />
+              )}
+            </View>
+          </View>
+
           {/* Bio */}
-          <Text style={styles.bio}>{displayBio}</Text>
+          {profile?.bio ? <Text style={styles.bio}>{profile.bio}</Text> : null}
 
           {/* Tags — flat inline, all clickable */}
           <View style={styles.tagsWrap}>
@@ -472,8 +473,8 @@ const styles = StyleSheet.create({
   profileRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 14,
-    gap: 16,
+    marginBottom: 12,
+    gap: 20,
   },
   avatarWrapper: {
     borderRadius: 50,
@@ -484,10 +485,19 @@ const styles = StyleSheet.create({
     borderColor: '#C13584',
   },
   avatar: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
+    width: 80,
+    height: 80,
+    borderRadius: 40,
     backgroundColor: COLORS.gray100,
+  },
+  nameSection: {
+    marginBottom: 6,
+  },
+  displayName: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: COLORS.gray900,
+    lineHeight: 22,
   },
   pencilBadge: {
     position: 'absolute',
@@ -534,24 +544,20 @@ const styles = StyleSheet.create({
     borderRightColor: 'transparent',
     borderBottomColor: COLORS.gray900,
   },
-  profileInfo: {
-    flex: 1,
-    justifyContent: 'center',
-    gap: 4,
-  },
   usernameRow: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   usernameText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: COLORS.gray900,
+    fontSize: 14,
+    fontWeight: '500',
+    color: COLORS.gray500,
   },
   statsRow: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 8,
+    justifyContent: 'space-around',
   },
   statItem: {
     alignItems: 'center',
@@ -563,15 +569,10 @@ const styles = StyleSheet.create({
     color: COLORS.gray900,
   },
   statLabel: {
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: '500',
     color: COLORS.gray500,
-    marginTop: 1,
-  },
-  statDivider: {
-    width: 1,
-    height: 24,
-    backgroundColor: COLORS.gray200,
+    marginTop: 2,
   },
   bio: {
     fontSize: 14,

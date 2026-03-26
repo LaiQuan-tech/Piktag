@@ -544,29 +544,46 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Profile Section — avatar, name, username, bio, tags all together */}
+        {/* IG Layout: Avatar + Stats row */}
         <View style={styles.profileSection}>
           <View style={styles.profileRow}>
             {avatarUrl ? (
               <Image source={{ uri: avatarUrl }} style={styles.avatar} />
             ) : (
-              <InitialsAvatar name={displayName} size={72} style={styles.avatar} />
+              <InitialsAvatar name={displayName} size={80} style={styles.avatar} />
             )}
-            <View style={styles.profileInfo}>
-              <View style={styles.nameRow}>
-                <Text style={styles.fullName}>{displayName}</Text>
-                {verified && (
-                  <CheckCircle2 size={16} color={COLORS.blue500} fill={COLORS.blue500} strokeWidth={0} style={{ marginLeft: 4 }} />
-                )}
+            {/* Stats — right side */}
+            <View style={styles.statsRow}>
+              <View style={styles.statBox}>
+                <Text style={[styles.statNumber, mutualTags > 0 && { color: COLORS.piktag600 }]}>{mutualTags}</Text>
+                <Text style={styles.statLabel}>{t('friendDetail.mutualTagsLabel')}</Text>
               </View>
-              <Text style={styles.usernameText}>@{username}</Text>
+              <View style={styles.statBox}>
+                <Text style={styles.statNumber}>{mutualFriends}</Text>
+                <Text style={styles.statLabel}>{t('friendDetail.mutualFriendsLabel')}</Text>
+              </View>
+              <View style={styles.statBox}>
+                <Text style={styles.statNumber}>{followerCount}</Text>
+                <Text style={styles.statLabel}>{t('friendDetail.followersLabel')}</Text>
+              </View>
             </View>
+          </View>
+
+          {/* Name + Username */}
+          <View style={styles.nameSection}>
+            <View style={styles.nameRow}>
+              <Text style={styles.fullName}>{displayName}</Text>
+              {verified && (
+                <CheckCircle2 size={16} color={COLORS.blue500} fill={COLORS.blue500} strokeWidth={0} style={{ marginLeft: 4 }} />
+              )}
+            </View>
+            <Text style={styles.usernameText}>@{username}</Text>
           </View>
 
           {/* Bio */}
           {profile?.bio ? <Text style={styles.bio}>{profile.bio}</Text> : null}
 
-          {/* Tags — directly under bio, always visible */}
+          {/* Tags */}
           {tags.length > 0 && (
             <View style={styles.tagsWrap}>
               {tags.map((tag, index) => (
@@ -581,24 +598,6 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
               ))}
             </View>
           )}
-        </View>
-
-        {/* Stats Row: 共同標籤 | 共同好友 | 追蹤者 */}
-        <View style={styles.statsRow}>
-          <View style={styles.statBox}>
-            <Text style={[styles.statNumber, mutualTags > 0 && { color: COLORS.piktag600 }]}>{mutualTags}</Text>
-            <Text style={styles.statLabel}>{t('friendDetail.mutualTagsLabel')}</Text>
-          </View>
-          <View style={styles.statDivider} />
-          <View style={styles.statBox}>
-            <Text style={styles.statNumber}>{mutualFriends}</Text>
-            <Text style={styles.statLabel}>{t('friendDetail.mutualFriendsLabel')}</Text>
-          </View>
-          <View style={styles.statDivider} />
-          <View style={styles.statBox}>
-            <Text style={styles.statNumber}>{followerCount}</Text>
-            <Text style={styles.statLabel}>{t('friendDetail.followersLabel')}</Text>
-          </View>
         </View>
 
         {/* ===== SECTION 2: Social Links — IG Highlights style circles ===== */}
@@ -856,18 +855,13 @@ const styles = StyleSheet.create({
   profileRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 16,
+    gap: 20,
     marginBottom: 12,
   },
-  profileInfo: {
-    flex: 1,
-    justifyContent: 'center',
-    gap: 4,
-  },
   avatar: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
+    width: 80,
+    height: 80,
+    borderRadius: 40,
     backgroundColor: COLORS.gray100,
   },
   nameRow: {
@@ -875,7 +869,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   fullName: {
-    fontSize: 20,
+    fontSize: 16,
     fontWeight: '700',
     color: COLORS.gray900,
   },
@@ -908,24 +902,21 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: COLORS.gray800,
   },
+  nameSection: {
+    marginBottom: 6,
+  },
   statsRow: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingTop: 20,
-    paddingBottom: 8,
+    justifyContent: 'space-around',
   },
   statBox: {
     flex: 1,
     alignItems: 'center',
   },
-  statDivider: {
-    width: 1,
-    height: 28,
-    backgroundColor: COLORS.gray200,
-  },
   statNumber: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: '800',
     color: COLORS.gray900,
   },
