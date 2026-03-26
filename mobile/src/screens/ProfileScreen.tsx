@@ -4,6 +4,7 @@ import {
   Text,
   Image,
   ScrollView,
+  FlatList,
   TouchableOpacity,
   StyleSheet,
   StatusBar,
@@ -14,13 +15,10 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
-  QrCode,
   Settings,
   CheckCircle2,
-  Phone,
-  Mail,
-  Link,
   Pencil,
+  ExternalLink,
 } from 'lucide-react-native';
 import PlatformIcon from '../components/PlatformIcon';
 import { useTranslation } from 'react-i18next';
@@ -32,59 +30,58 @@ import QrCodeModal from '../components/QrCodeModal';
 import InitialsAvatar from '../components/InitialsAvatar';
 import { ProfileScreenSkeleton } from '../components/SkeletonLoader';
 import StatusModal from '../components/StatusModal';
-import type { PiktagProfile, UserTag, Biolink, SemanticType } from '../types';
-import { SEMANTIC_TYPE_ORDER } from '../types';
-import { SEMANTIC_TYPES } from '../constants/theme';
+import type { PiktagProfile, UserTag, Biolink } from '../types';
 
 type ProfileScreenProps = {
   navigation: any;
 };
 
-// --- Memoized sub-components to prevent unnecessary re-renders ---
-
-const BiolinkItem = React.memo(function BiolinkItem({
+// --- Memoized Social Circle Item (IG Highlights style) ---
+const SocialCircle = React.memo(function SocialCircle({
   biolink,
   onPress,
 }: {
   biolink: Biolink;
   onPress: (url: string) => void;
 }) {
-  const handlePress = useCallback(() => {
-    onPress(biolink.url);
-  }, [biolink.url, onPress]);
-
   return (
     <TouchableOpacity
-      style={styles.contactButton}
+      style={styles.socialCircleItem}
       activeOpacity={0.7}
-      onPress={handlePress}
+      onPress={() => onPress(biolink.url)}
     >
-      <PlatformIcon platform={biolink.platform} size={22} />
-      <Text style={styles.contactButtonText}>
+      <View style={styles.socialCircleRing}>
+        <View style={styles.socialCircleInner}>
+          <PlatformIcon platform={biolink.platform} size={28} />
+        </View>
+      </View>
+      <Text style={styles.socialCircleLabel} numberOfLines={1}>
         {biolink.label || biolink.platform}
       </Text>
     </TouchableOpacity>
   );
 });
 
-const TagItem = React.memo(function TagItem({
-  userTag,
-  isPrimary,
-  fallbackLabel,
+// --- Memoized Linktree-style Link Card ---
+const LinkCard = React.memo(function LinkCard({
+  biolink,
+  onPress,
 }: {
-  userTag: UserTag;
-  isPrimary: boolean;
-  fallbackLabel: string;
+  biolink: Biolink;
+  onPress: (url: string) => void;
 }) {
   return (
-    <Text
-      style={[
-        styles.tag,
-        isPrimary ? styles.tagPrimary : styles.tagSecondary,
-      ]}
+    <TouchableOpacity
+      style={styles.linkCard}
+      activeOpacity={0.7}
+      onPress={() => onPress(biolink.url)}
     >
-      #{userTag.tag?.name || fallbackLabel}
-    </Text>
+      <PlatformIcon platform={biolink.platform} size={22} />
+      <Text style={styles.linkCardText} numberOfLines={1}>
+        {biolink.label || biolink.platform}
+      </Text>
+      <ExternalLink size={16} color={COLORS.gray400} />
+    </TouchableOpacity>
   );
 });
 
@@ -105,7 +102,7 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
   const [showTooltip, setShowTooltip] = useState(false);
   const tooltipOpacity = useRef(new Animated.Value(0)).current;
 
-  // --- Data fetching (already uses Promise.all for parallel calls) ---
+  // --- Data fetching ---
 
   const fetchProfile = useCallback(async () => {
     if (!userId) return;
@@ -114,9 +111,7 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
       .select('*')
       .eq('id', userId)
       .single();
-    if (!error && data) {
-      setProfile(data as PiktagProfile);
-    }
+    if (!error && data) setProfile(data as PiktagProfile);
   }, [userId]);
 
   const fetchUserTags = useCallback(async () => {
@@ -125,9 +120,7 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
       .from('piktag_user_tags')
       .select('*, tag:piktag_tags(*)')
       .eq('user_id', userId);
-    if (!error && data) {
-      setUserTags(data as UserTag[]);
-    }
+    if (!error && data) setUserTags(data as UserTag[]);
   }, [userId]);
 
   const fetchBiolinks = useCallback(async () => {
@@ -137,9 +130,7 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
       .select('*')
       .eq('user_id', userId)
       .order('position');
-    if (!error && data) {
-      setBiolinks(data as Biolink[]);
-    }
+    if (!error && data) setBiolinks(data as Biolink[]);
   }, [userId]);
 
   const fetchStatus = useCallback(async () => {
@@ -161,19 +152,11 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
       .from('piktag_follows')
       .select('id', { count: 'exact', head: true })
       .eq('following_id', userId);
-    if (!error && count !== null) {
-      setFollowerCount(count);
-    }
+    if (!error && count !== null) setFollowerCount(count);
   }, [userId]);
 
   const fetchAllData = useCallback(async () => {
-    await Promise.all([
-      fetchProfile(),
-      fetchUserTags(),
-      fetchBiolinks(),
-      fetchFollowerCount(),
-      fetchStatus(),
-    ]);
+    await Promise.all([fetchProfile(), fetchUserTags(), fetchBiolinks(), fetchFollowerCount(), fetchStatus()]);
   }, [fetchProfile, fetchUserTags, fetchBiolinks, fetchFollowerCount, fetchStatus]);
 
   useEffect(() => {
@@ -184,27 +167,17 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
       if (isMounted) setLoading(false);
     };
     load();
-    return () => {
-      isMounted = false;
-    };
+    return () => { isMounted = false; };
   }, [fetchAllData]);
 
-  // Tooltip: show once, dismiss after 3s, remember via AsyncStorage
+  // Tooltip
   useEffect(() => {
     AsyncStorage.getItem('status_tooltip_seen').then((seen) => {
       if (!seen) {
         setShowTooltip(true);
-        Animated.timing(tooltipOpacity, {
-          toValue: 1,
-          duration: 300,
-          useNativeDriver: true,
-        }).start();
+        Animated.timing(tooltipOpacity, { toValue: 1, duration: 300, useNativeDriver: true }).start();
         const timer = setTimeout(() => {
-          Animated.timing(tooltipOpacity, {
-            toValue: 0,
-            duration: 400,
-            useNativeDriver: true,
-          }).start(() => setShowTooltip(false));
+          Animated.timing(tooltipOpacity, { toValue: 0, duration: 400, useNativeDriver: true }).start(() => setShowTooltip(false));
           AsyncStorage.setItem('status_tooltip_seen', '1');
         }, 3000);
         return () => clearTimeout(timer);
@@ -212,7 +185,7 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
     });
   }, [tooltipOpacity]);
 
-  // Refetch data when navigating back from EditProfile (with 30s cooldown)
+  // Refetch on focus
   const lastFocusFetchRef = useRef(0);
   useFocusEffect(
     useCallback(() => {
@@ -229,299 +202,188 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
     setRefreshing(false);
   }, [fetchAllData]);
 
-  // --- Memoized computed values ---
+  // --- Computed values ---
 
   const formattedFollowerCount = useMemo((): string => {
-    if (followerCount >= 1000000) {
-      return `${(followerCount / 1000000).toFixed(1).replace(/\.0$/, '')}M`;
-    }
-    if (followerCount >= 1000) {
-      return followerCount.toLocaleString();
-    }
+    if (followerCount >= 1000000) return `${(followerCount / 1000000).toFixed(1).replace(/\.0$/, '')}M`;
+    if (followerCount >= 1000) return followerCount.toLocaleString();
     return followerCount.toString();
   }, [followerCount]);
 
-  const activeBiolinks = useMemo(
-    () => biolinks.filter((bl) => bl.is_active),
-    [biolinks],
-  );
+  const activeBiolinks = useMemo(() => biolinks.filter((bl) => bl.is_active), [biolinks]);
 
   const hasAvatar = !!profile?.avatar_url;
-  const avatarSource = useMemo(
-    () =>
-      profile?.avatar_url
-        ? { uri: profile.avatar_url }
-        : null,
-    [profile?.avatar_url],
-  );
+  const avatarSource = useMemo(() => profile?.avatar_url ? { uri: profile.avatar_url } : null, [profile?.avatar_url]);
 
-  const headerTitle = useMemo(
-    () => profile?.full_name || t('profile.nameNotSet'),
-    [profile?.full_name, t],
-  );
+  const headerTitle = useMemo(() => profile?.full_name || t('profile.nameNotSet'), [profile?.full_name, t]);
+  const displayUsername = useMemo(() => profile?.username || t('profile.usernameNotSet'), [profile?.username, t]);
+  const displayBio = useMemo(() => profile?.bio || t('profile.noBio'), [profile?.bio, t]);
 
-  const displayUsername = useMemo(
-    () => profile?.username || t('profile.usernameNotSet'),
-    [profile?.username, t],
-  );
-
-  const displayBio = useMemo(
-    () => profile?.bio || t('profile.noBio'),
-    [profile?.bio, t],
-  );
-
-  // Group tags by semantic type for display
-  const groupedTags = useMemo(() => {
-    if (userTags.length === 0) return [];
-    const groups = new Map<string, UserTag[]>();
-    userTags.forEach((ut) => {
-      const type = ut.semantic_type || ut.tag?.semantic_type || 'other';
-      if (!groups.has(type)) groups.set(type, []);
-      groups.get(type)!.push(ut);
-    });
-    // Sort groups by SEMANTIC_TYPE_ORDER
-    const ordered: { type: string; tags: UserTag[] }[] = [];
-    for (const st of SEMANTIC_TYPE_ORDER) {
-      if (groups.has(st)) {
-        ordered.push({ type: st, tags: groups.get(st)! });
-        groups.delete(st);
-      }
-    }
-    // Add remaining (uncategorized) at the end
-    if (groups.has('other')) {
-      ordered.push({ type: 'other', tags: groups.get('other')! });
-    }
-    groups.forEach((tags, type) => {
-      if (type !== 'other') ordered.push({ type, tags });
-    });
-    return ordered;
-  }, [userTags]);
-
-  const hasNoContactMethods = useMemo(
-    () => !profile?.phone && !user?.email && activeBiolinks.length === 0,
-    [profile?.phone, user?.email, activeBiolinks.length],
-  );
-
-  // --- Stable callback references for child components ---
+  // --- Callbacks ---
 
   const handleOpenBiolink = useCallback((url: string) => {
-    if (url) {
-      Linking.openURL(url).catch(() => {});
-    }
+    if (url) Linking.openURL(url).catch(() => {});
   }, []);
 
-  const handleOpenQr = useCallback(() => {
-    setQrVisible(true);
-  }, []);
-
-  const handleCloseQr = useCallback(() => {
-    setQrVisible(false);
-  }, []);
-
-  const handleNavigateSettings = useCallback(() => {
-    navigation.navigate('Settings');
+  const handleTagPress = useCallback((tagId: string, tagName: string) => {
+    navigation.navigate('TagDetail', { tagId, tagName, initialTab: 'explore' });
   }, [navigation]);
 
-  const handleNavigateEditProfile = useCallback(() => {
-    navigation.navigate('EditProfile');
-  }, [navigation]);
-
-  const handleCallPhone = useCallback(() => {
-    if (profile?.phone) {
-      Linking.openURL(`tel:${profile.phone}`).catch(() => {});
-    }
-  }, [profile?.phone]);
-
-  const handleSendEmail = useCallback(() => {
-    if (user?.email) {
-      Linking.openURL(`mailto:${user.email}`).catch(() => {});
-    }
-  }, [user?.email]);
-
-  // --- Memoized QrCodeModal props ---
+  const handleOpenQr = useCallback(() => setQrVisible(true), []);
+  const handleCloseQr = useCallback(() => setQrVisible(false), []);
+  const handleNavigateSettings = useCallback(() => navigation.navigate('Settings'), [navigation]);
+  const handleNavigateEditProfile = useCallback(() => navigation.navigate('EditProfile'), [navigation]);
 
   const qrUsername = useMemo(() => profile?.username || '', [profile?.username]);
   const qrFullName = useMemo(() => profile?.full_name || '', [profile?.full_name]);
 
   // --- Render ---
 
-  if (loading) {
-    return <ProfileScreenSkeleton />;
-  }
+  if (loading) return <ProfileScreenSkeleton />;
 
   return (
     <SafeAreaView style={styles.container} edges={TOP_EDGES}>
       <StatusBar barStyle="dark-content" backgroundColor={COLORS.white} />
 
-      {/* Sticky Header */}
+      {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>
-          {headerTitle}
-        </Text>
+        <Text style={styles.headerTitle}>{headerTitle}</Text>
         <View style={styles.headerRight}>
-          <TouchableOpacity
-            style={styles.headerIconBtn}
-            activeOpacity={0.6}
-            onPress={handleNavigateSettings}
-          >
+          <TouchableOpacity style={styles.headerIconBtn} activeOpacity={0.6} onPress={handleNavigateSettings}>
             <Settings size={24} color={COLORS.gray900} />
           </TouchableOpacity>
         </View>
       </View>
 
-      <QrCodeModal
-        visible={qrVisible}
-        onClose={handleCloseQr}
-        username={qrUsername}
-        fullName={qrFullName}
-      />
+      <QrCodeModal visible={qrVisible} onClose={handleCloseQr} username={qrUsername} fullName={qrFullName} />
 
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
-        removeClippedSubviews
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            tintColor={COLORS.piktag500}
-          />
-        }
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.piktag500} />}
       >
-        {/* Profile section: avatar left, info right (Instagram style) */}
-        <View style={styles.profileRow}>
-          <View>
-            <TouchableOpacity onPress={() => setStatusModalVisible(true)} activeOpacity={0.8}>
-              <View style={[styles.avatarWrapper, currentStatus ? styles.avatarRing : null]}>
-                {hasAvatar ? (
-                  <Image
-                    source={avatarSource!}
-                    style={styles.avatar}
-                  />
-                ) : (
-                  <InitialsAvatar
-                    name={profile?.full_name || profile?.username || ''}
-                    size={80}
-                    style={styles.avatar}
-                  />
-                )}
-              </View>
-              {/* Pencil badge */}
-              <View style={styles.pencilBadge}>
-                <Pencil size={10} color={COLORS.white} />
-              </View>
-            </TouchableOpacity>
-            {/* One-time tooltip bubble */}
-            {showTooltip && (
-              <Animated.View style={[styles.tooltip, { opacity: tooltipOpacity }]}>
-                <Text style={styles.tooltipText}>{t('profile.statusTooltip')}</Text>
-                <View style={styles.tooltipArrow} />
-              </Animated.View>
-            )}
-          </View>
-          <View style={styles.profileRight}>
-            <View style={styles.usernameRow}>
-              <Text style={styles.usernameText}>
-                {displayUsername}
-              </Text>
-              {profile?.is_verified && (
-                <CheckCircle2
-                  size={18}
-                  color={COLORS.blue500}
-                  fill={COLORS.blue500}
-                  strokeWidth={0}
-                  style={styles.verifiedIcon}
-                />
+        {/* ============ SECTION 1: Personal Info + Tags ============ */}
+        <View style={styles.profileSection}>
+          {/* Avatar + Name Row */}
+          <View style={styles.profileRow}>
+            <View>
+              <TouchableOpacity onPress={() => setStatusModalVisible(true)} activeOpacity={0.8}>
+                <View style={[styles.avatarWrapper, currentStatus ? styles.avatarRing : null]}>
+                  {hasAvatar ? (
+                    <Image source={avatarSource!} style={styles.avatar} />
+                  ) : (
+                    <InitialsAvatar name={profile?.full_name || profile?.username || ''} size={72} style={styles.avatar} />
+                  )}
+                </View>
+                <View style={styles.pencilBadge}>
+                  <Pencil size={10} color={COLORS.white} />
+                </View>
+              </TouchableOpacity>
+              {showTooltip && (
+                <Animated.View style={[styles.tooltip, { opacity: tooltipOpacity }]}>
+                  <Text style={styles.tooltipText}>{t('profile.statusTooltip')}</Text>
+                  <View style={styles.tooltipArrow} />
+                </Animated.View>
               )}
             </View>
-            <Text style={styles.friendCount}>
-              {formattedFollowerCount}{t('profile.friendCountSuffix')}
-            </Text>
+            <View style={styles.profileInfo}>
+              <View style={styles.usernameRow}>
+                <Text style={styles.usernameText}>@{displayUsername}</Text>
+                {profile?.is_verified && (
+                  <CheckCircle2 size={16} color={COLORS.blue500} fill={COLORS.blue500} strokeWidth={0} style={{ marginLeft: 4 }} />
+                )}
+              </View>
+              <Text style={styles.followerCount}>
+                {formattedFollowerCount} {t('profile.friendCountSuffix')}
+              </Text>
+            </View>
+          </View>
+
+          {/* Bio */}
+          <Text style={styles.bio}>{displayBio}</Text>
+
+          {/* Tags — flat inline, all clickable */}
+          <View style={styles.tagsWrap}>
+            {userTags.length > 0 ? (
+              userTags.map((ut) => (
+                <TouchableOpacity
+                  key={ut.id}
+                  style={styles.tagChip}
+                  activeOpacity={0.6}
+                  onPress={() => {
+                    if (ut.tag?.id && ut.tag?.name) handleTagPress(ut.tag.id, ut.tag.name);
+                  }}
+                >
+                  <Text style={styles.tagChipText}>#{ut.tag?.name || t('profile.tagFallback')}</Text>
+                </TouchableOpacity>
+              ))
+            ) : (
+              <Text style={styles.emptyText}>{t('profile.noTags')}</Text>
+            )}
+          </View>
+
+          {/* Action buttons */}
+          <View style={styles.actionButtonsRow}>
+            <TouchableOpacity style={styles.shareButton} activeOpacity={0.7} onPress={handleOpenQr}>
+              <Text style={styles.shareButtonText}>{t('profile.shareProfile')}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.editButton} activeOpacity={0.7} onPress={handleNavigateEditProfile}>
+              <Text style={styles.editButtonText}>{t('profile.editProfile')}</Text>
+            </TouchableOpacity>
           </View>
         </View>
 
-        {/* Bio */}
-        <Text style={styles.bio}>
-          {displayBio}
-        </Text>
-
-        {/* Tags — grouped by semantic type */}
-        {groupedTags.length > 0 ? (
-          groupedTags.map((group) => (
-            <View key={group.type} style={styles.tagGroup}>
-              <Text style={styles.tagGroupTitle}>
-                {t(`semanticType.${group.type}`)}
-              </Text>
-              <View style={styles.tagsRow}>
-                {group.tags.map((ut, index) => (
-                  <TagItem
-                    key={ut.id}
-                    userTag={ut}
-                    isPrimary={index === 0 && group.type === 'identity'}
-                    fallbackLabel={t('profile.tagFallback')}
-                  />
-                ))}
-              </View>
-            </View>
-          ))
-        ) : (
-          <View style={styles.tagsRow}>
-            <Text style={styles.emptyText}>{t('profile.noTags')}</Text>
+        {/* ============ SECTION 2: Social Links (IG Highlights style) ============ */}
+        {activeBiolinks.length > 0 && (
+          <View style={styles.socialSection}>
+            <Text style={styles.sectionTitle}>{t('profile.socialLinksTitle')}</Text>
+            <FlatList
+              horizontal
+              data={activeBiolinks}
+              keyExtractor={(item) => item.id}
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.socialScrollContent}
+              renderItem={({ item }) => (
+                <SocialCircle biolink={item} onPress={handleOpenBiolink} />
+              )}
+            />
           </View>
         )}
 
-        {/* Two action buttons side by side */}
-        <View style={styles.actionButtonsRow}>
-          <TouchableOpacity
-            style={styles.shareButton}
-            activeOpacity={0.7}
-            onPress={handleOpenQr}
-          >
-            <Text style={styles.shareButtonText}>{t('profile.shareProfile')}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.editButton}
-            activeOpacity={0.7}
-            onPress={handleNavigateEditProfile}
-          >
-            <Text style={styles.editButtonText}>{t('profile.editProfile')}</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Contact buttons */}
-        <View style={styles.contactSection}>
-          {profile?.phone ? (
-            <TouchableOpacity
-              style={styles.contactButton}
-              activeOpacity={0.7}
-              onPress={handleCallPhone}
-            >
-              <Phone size={20} color={COLORS.gray900} />
-              <Text style={styles.contactButtonText}>{t('common.phone')}</Text>
-            </TouchableOpacity>
-          ) : null}
-
-          {user?.email ? (
-            <TouchableOpacity
-              style={styles.contactButton}
-              activeOpacity={0.7}
-              onPress={handleSendEmail}
-            >
-              <Mail size={20} color={COLORS.gray900} />
-              <Text style={styles.contactButtonText}>{t('common.email')}</Text>
-            </TouchableOpacity>
-          ) : null}
+        {/* ============ SECTION 3: Link Bio (Linktree style cards) ============ */}
+        <View style={styles.linkBioSection}>
+          <Text style={styles.sectionTitle}>{t('profile.linkBioTitle')}</Text>
 
           {activeBiolinks.map((bl) => (
-            <BiolinkItem
-              key={bl.id}
-              biolink={bl}
-              onPress={handleOpenBiolink}
-            />
+            <LinkCard key={bl.id} biolink={bl} onPress={handleOpenBiolink} />
           ))}
 
-          {hasNoContactMethods && (
+          {profile?.phone && (
+            <TouchableOpacity
+              style={styles.linkCard}
+              activeOpacity={0.7}
+              onPress={() => Linking.openURL(`tel:${profile.phone}`).catch(() => {})}
+            >
+              <Text style={styles.linkCardEmoji}>📞</Text>
+              <Text style={styles.linkCardText}>{profile.phone}</Text>
+              <ExternalLink size={16} color={COLORS.gray400} />
+            </TouchableOpacity>
+          )}
+
+          {user?.email && (
+            <TouchableOpacity
+              style={styles.linkCard}
+              activeOpacity={0.7}
+              onPress={() => Linking.openURL(`mailto:${user.email}`).catch(() => {})}
+            >
+              <Text style={styles.linkCardEmoji}>✉️</Text>
+              <Text style={styles.linkCardText}>{user.email}</Text>
+              <ExternalLink size={16} color={COLORS.gray400} />
+            </TouchableOpacity>
+          )}
+
+          {activeBiolinks.length === 0 && !profile?.phone && !user?.email && (
             <Text style={styles.emptyText}>{t('profile.noContactMethods')}</Text>
           )}
         </View>
@@ -537,7 +399,6 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
   );
 }
 
-// Stable array reference for SafeAreaView edges prop
 const TOP_EDGES = ['top'] as const;
 
 const styles = StyleSheet.create({
@@ -545,22 +406,23 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.white,
   },
+
+  // Header
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
-    paddingBottom: 16,
-    paddingTop: 12,
+    paddingBottom: 12,
+    paddingTop: 8,
     backgroundColor: COLORS.white,
     borderBottomWidth: 1,
     borderBottomColor: COLORS.gray100,
   },
   headerTitle: {
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: '700',
     color: COLORS.gray900,
-    lineHeight: 32,
   },
   headerRight: {
     flexDirection: 'row',
@@ -574,47 +436,39 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingHorizontal: 20,
-    paddingTop: 24,
     paddingBottom: 100,
   },
-  loadingContainer: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+
+  // ===== Section 1: Profile Info + Tags =====
+  profileSection: {
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 16,
   },
   profileRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 14,
     gap: 16,
-  },
-  profileRight: {
-    flex: 1,
-    justifyContent: 'center',
-    gap: 6,
-  },
-  usernameRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  usernameText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: COLORS.gray900,
-    lineHeight: 22,
-  },
-  verifiedIcon: {
-    marginLeft: 6,
   },
   avatarWrapper: {
     borderRadius: 50,
-    padding: 3,
+    padding: 2,
+  },
+  avatarRing: {
+    borderWidth: 3,
+    borderColor: '#C13584',
+  },
+  avatar: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: COLORS.gray100,
   },
   pencilBadge: {
     position: 'absolute',
-    bottom: 2,
-    right: 2,
+    bottom: 0,
+    right: 0,
     width: 22,
     height: 22,
     borderRadius: 11,
@@ -626,98 +480,93 @@ const styles = StyleSheet.create({
   },
   tooltip: {
     position: 'absolute',
-    bottom: -42,
+    bottom: -38,
     left: '50%',
-    transform: [{ translateX: -56 }],
+    transform: [{ translateX: -52 }],
     backgroundColor: COLORS.gray900,
     borderRadius: 8,
     paddingHorizontal: 10,
-    paddingVertical: 6,
-    width: 112,
+    paddingVertical: 5,
+    width: 104,
     alignItems: 'center',
     zIndex: 10,
   },
   tooltipText: {
     color: COLORS.white,
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '500',
   },
   tooltipArrow: {
     position: 'absolute',
-    top: -6,
+    top: -5,
     left: '50%',
     transform: [{ translateX: -5 }],
     width: 0,
     height: 0,
     borderLeftWidth: 5,
     borderRightWidth: 5,
-    borderBottomWidth: 6,
+    borderBottomWidth: 5,
     borderLeftColor: 'transparent',
     borderRightColor: 'transparent',
     borderBottomColor: COLORS.gray900,
   },
-  avatarRing: {
-    borderWidth: 3,
-    borderColor: '#C13584',
+  profileInfo: {
+    flex: 1,
+    justifyContent: 'center',
+    gap: 4,
   },
-  avatar: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: COLORS.gray100,
+  usernameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  usernameText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: COLORS.gray900,
+  },
+  followerCount: {
+    fontSize: 14,
+    color: COLORS.gray500,
   },
   bio: {
     fontSize: 14,
     color: COLORS.gray700,
-    lineHeight: 22,
-    marginBottom: 12,
+    lineHeight: 21,
+    marginBottom: 14,
   },
-  tagGroup: {
-    marginBottom: 8,
-  },
-  tagGroupTitle: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: COLORS.gray400,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-    marginBottom: 4,
-  },
-  tagsRow: {
+
+  // Tags — flat inline clickable
+  tagsWrap: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 4,
-    columnGap: 12,
-    rowGap: 4,
-    marginBottom: 4,
+    gap: 8,
+    marginBottom: 18,
   },
-  tag: {
+  tagChip: {
+    backgroundColor: COLORS.gray50,
+    borderRadius: 16,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderWidth: 1,
+    borderColor: COLORS.gray200,
+  },
+  tagChipText: {
     fontSize: 14,
-    lineHeight: 20,
-  },
-  tagPrimary: {
-    color: COLORS.piktag600,
     fontWeight: '500',
+    color: COLORS.gray800,
   },
-  tagSecondary: {
-    color: COLORS.gray500,
-  },
-  friendCount: {
-    fontSize: 14,
-    color: COLORS.gray500,
-  },
+
+  // Action Buttons
   actionButtonsRow: {
     flexDirection: 'row',
-    gap: 12,
-    marginBottom: 20,
+    gap: 10,
   },
   shareButton: {
     flex: 1,
     backgroundColor: COLORS.piktag500,
     borderRadius: 12,
-    paddingVertical: 14,
+    paddingVertical: 12,
     alignItems: 'center',
-    justifyContent: 'center',
   },
   shareButtonText: {
     fontSize: 15,
@@ -727,44 +576,101 @@ const styles = StyleSheet.create({
   editButton: {
     flex: 1,
     backgroundColor: COLORS.white,
-    borderWidth: 2,
-    borderColor: COLORS.piktag500,
+    borderWidth: 1.5,
+    borderColor: COLORS.gray300,
     borderRadius: 12,
-    paddingVertical: 14,
+    paddingVertical: 12,
     alignItems: 'center',
-    justifyContent: 'center',
   },
   editButtonText: {
     fontSize: 15,
+    fontWeight: '600',
+    color: COLORS.gray700,
+  },
+
+  // ===== Section 2: Social Links (IG Highlights) =====
+  socialSection: {
+    paddingTop: 8,
+    paddingBottom: 16,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.gray100,
+  },
+  sectionTitle: {
+    fontSize: 13,
     fontWeight: '700',
-    color: COLORS.piktag600,
+    color: COLORS.gray500,
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
+    paddingHorizontal: 20,
+    marginBottom: 12,
+    marginTop: 12,
   },
-  contactSection: {
-    gap: 12,
+  socialScrollContent: {
+    paddingHorizontal: 16,
+    gap: 16,
   },
-  contactButton: {
-    flexDirection: 'row',
+  socialCircleItem: {
+    alignItems: 'center',
+    width: 68,
+  },
+  socialCircleRing: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    borderWidth: 2,
+    borderColor: COLORS.gray200,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 2,
-    borderColor: COLORS.gray100,
-    borderRadius: 16,
-    paddingVertical: 16,
+    marginBottom: 6,
+  },
+  socialCircleInner: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: COLORS.gray50,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  socialCircleLabel: {
+    fontSize: 11,
+    fontWeight: '500',
+    color: COLORS.gray700,
+    textAlign: 'center',
+  },
+
+  // ===== Section 3: Link Bio (Linktree style) =====
+  linkBioSection: {
+    paddingHorizontal: 20,
+    paddingTop: 8,
+    paddingBottom: 20,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.gray100,
     gap: 10,
   },
-  contactButtonText: {
-    fontSize: 18,
-    fontWeight: '700',
+  linkCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.white,
+    borderWidth: 1.5,
+    borderColor: COLORS.gray200,
+    borderRadius: 16,
+    paddingVertical: 16,
+    paddingHorizontal: 18,
+    gap: 12,
+  },
+  linkCardText: {
+    flex: 1,
+    fontSize: 16,
+    fontWeight: '600',
     color: COLORS.gray900,
   },
-  biolinkIcon: {
-    width: 24,
-    height: 24,
-    borderRadius: 4,
-    backgroundColor: COLORS.gray100,
+  linkCardEmoji: {
+    fontSize: 20,
   },
+
   emptyText: {
     fontSize: 14,
     color: COLORS.gray400,
+    paddingVertical: 8,
   },
 });

@@ -198,7 +198,9 @@
     "editProfile": "Edit Profile",
     "manageTags": "Manage My Tags",
     "noContactMethods": "No contact methods",
-    "statusTooltip": "Tap to set status"
+    "statusTooltip": "Tap to set status",
+    "socialLinksTitle": "Social Links",
+    "linkBioTitle": "Links"
   },
   "editProfile": {
     "headerTitle": "Edit Profile",
@@ -297,7 +299,8 @@
     "follow": "Follow",
     "sendMessage": "Message",
     "socialLinksTitle": "Social Links",
-    "allTagsTitle": "All Tags"
+    "allTagsTitle": "All Tags",
+    "linkBioTitle": "Links"
   },
   "settings": {
     "headerTitle": "Settings",

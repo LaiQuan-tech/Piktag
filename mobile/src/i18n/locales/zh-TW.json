@@ -198,7 +198,9 @@
     "editProfile": "編輯個人資訊",
     "manageTags": "管理我的標籤",
     "noContactMethods": "尚無聯繫方式",
-    "statusTooltip": "點我寫便利貼"
+    "statusTooltip": "點我寫便利貼",
+    "socialLinksTitle": "社交連結",
+    "linkBioTitle": "連結"
   },
   "editProfile": {
     "headerTitle": "編輯個人資訊",
@@ -297,7 +299,8 @@
     "follow": "追蹤",
     "sendMessage": "傳訊息",
     "socialLinksTitle": "社交連結",
-    "allTagsTitle": "所有標籤"
+    "allTagsTitle": "所有標籤",
+    "linkBioTitle": "連結"
   },
   "settings": {
     "headerTitle": "設定",

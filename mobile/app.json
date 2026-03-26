@@ -2,7 +2,6 @@
   "expo": {
     "name": "PikTag",
     "slug": "piktag",
-    "owner": "closeforgeai",
     "scheme": "piktag",
     "version": "1.0.0",
     "orientation": "portrait",

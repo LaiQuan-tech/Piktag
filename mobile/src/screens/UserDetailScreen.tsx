@@ -21,6 +21,7 @@ import {
 } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { COLORS } from '../constants/theme';
+import PlatformIcon from '../components/PlatformIcon';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
 import type { PiktagProfile, Biolink } from '../types';
@@ -299,19 +300,21 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
           {/* Bio */}
           {bio ? <Text style={styles.bio}>{bio}</Text> : null}
 
-          {/* Tags */}
+          {/* Tags — flat inline clickable chips */}
           {tags.length > 0 && (
-            <View style={styles.tagsRow}>
+            <View style={styles.tagsWrap}>
               {tags.map((tag, index) => (
-                <Text
+                <TouchableOpacity
                   key={index}
-                  style={[
-                    styles.tag,
-                    index === 0 ? styles.tagPrimary : styles.tagSecondary,
-                  ]}
+                  style={styles.tagChip}
+                  activeOpacity={0.6}
+                  onPress={() => {
+                    // Navigate to tag detail - need to find tag id first
+                    navigation.navigate('TagDetail', { tagName: tag.replace('#', ''), initialTab: 'explore' });
+                  }}
                 >
-                  {tag}
-                </Text>
+                  <Text style={styles.tagChipText}>{tag}</Text>
+                </TouchableOpacity>
               ))}
             </View>
           )}
@@ -373,43 +376,54 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
 
         </View>
 
-        {/* Biolinks Section */}
+        {/* Social Links — IG Highlights style circles */}
         {biolinks.length > 0 && (
-          <View style={styles.biolinksSection}>
+          <View style={styles.socialSection}>
             <Text style={styles.sectionTitle}>{t('userDetail.socialLinksTitle')}</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.socialScrollContent}>
+              {biolinks.map((link) => (
+                <TouchableOpacity
+                  key={link.id}
+                  style={styles.socialCircleItem}
+                  onPress={() => handleOpenLink(link.url)}
+                  activeOpacity={0.7}
+                >
+                  <View style={styles.socialCircleRing}>
+                    <View style={styles.socialCircleInner}>
+                      <PlatformIcon platform={link.platform} size={28} />
+                    </View>
+                  </View>
+                  <Text style={styles.socialCircleLabel} numberOfLines={1}>
+                    {link.label || link.platform}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        )}
+
+        {/* Link Bio — Linktree style cards */}
+        {biolinks.length > 0 && (
+          <View style={styles.linkBioSection}>
+            <Text style={styles.sectionTitle}>{t('userDetail.linkBioTitle')}</Text>
             {biolinks.map((link) => (
               <TouchableOpacity
                 key={link.id}
-                style={styles.biolinkItem}
+                style={styles.linkCard}
                 onPress={() => handleOpenLink(link.url)}
                 activeOpacity={0.7}
               >
-                <LinkIcon size={20} color={COLORS.gray500} />
-                <View style={styles.biolinkInfo}>
-                  <Text style={styles.biolinkTitle}>{link.label || link.platform}</Text>
-                  <Text style={styles.biolinkUrl} numberOfLines={1}>
-                    {link.url}
-                  </Text>
-                </View>
-                <ExternalLink size={18} color={COLORS.gray400} />
+                <PlatformIcon platform={link.platform} size={22} />
+                <Text style={styles.linkCardText} numberOfLines={1}>
+                  {link.label || link.platform}
+                </Text>
+                <ExternalLink size={16} color={COLORS.gray400} />
               </TouchableOpacity>
             ))}
           </View>
         )}
 
-        {/* All Tags Section */}
-        {tags.length > 0 && (
-          <View style={styles.allTagsSection}>
-            <Text style={styles.sectionTitle}>{t('userDetail.allTagsTitle')}</Text>
-            <View style={styles.allTagsGrid}>
-              {tags.map((tag, index) => (
-                <View key={index} style={styles.allTagChip}>
-                  <Text style={styles.allTagChipText}>{tag}</Text>
-                </View>
-              ))}
-            </View>
-          </View>
-        )}
+        {/* All Tags Section removed — tags now shown inline in profile section */}
       </ScrollView>
     </View>
   );
@@ -585,56 +599,102 @@ const styles = StyleSheet.create({
   followButtonTextFollowing: {
     color: COLORS.gray700,
   },
-  biolinksSection: {
-    paddingHorizontal: 20,
-    paddingTop: 28,
+  // Tags — flat inline clickable (matching ProfileScreen)
+  tagsWrap: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginTop: 14,
   },
+  tagChip: {
+    backgroundColor: COLORS.gray50,
+    borderRadius: 16,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderWidth: 1,
+    borderColor: COLORS.gray200,
+  },
+  tagChipText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: COLORS.gray800,
+  },
+
   sectionTitle: {
-    fontSize: 16,
+    fontSize: 13,
     fontWeight: '700',
-    color: COLORS.gray900,
-    marginBottom: 14,
+    color: COLORS.gray500,
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
+    paddingHorizontal: 20,
+    marginBottom: 12,
+    marginTop: 12,
   },
-  biolinkItem: {
+
+  // Social Circles (IG Highlights style)
+  socialSection: {
+    paddingTop: 8,
+    paddingBottom: 16,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.gray100,
+  },
+  socialScrollContent: {
+    paddingHorizontal: 16,
+    gap: 16,
+  },
+  socialCircleItem: {
+    alignItems: 'center',
+    width: 68,
+  },
+  socialCircleRing: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    borderWidth: 2,
+    borderColor: COLORS.gray200,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 6,
+  },
+  socialCircleInner: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: COLORS.gray50,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  socialCircleLabel: {
+    fontSize: 11,
+    fontWeight: '500',
+    color: COLORS.gray700,
+    textAlign: 'center',
+  },
+
+  // Link Bio (Linktree style)
+  linkBioSection: {
+    paddingHorizontal: 20,
+    paddingTop: 8,
+    paddingBottom: 20,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.gray100,
+    gap: 10,
+  },
+  linkCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 14,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.gray100,
+    backgroundColor: COLORS.white,
+    borderWidth: 1.5,
+    borderColor: COLORS.gray200,
+    borderRadius: 16,
+    paddingVertical: 16,
+    paddingHorizontal: 18,
     gap: 12,
   },
-  biolinkInfo: {
+  linkCardText: {
     flex: 1,
-  },
-  biolinkTitle: {
     fontSize: 16,
     fontWeight: '600',
     color: COLORS.gray900,
-  },
-  biolinkUrl: {
-    fontSize: 13,
-    color: COLORS.gray500,
-    marginTop: 2,
-  },
-  allTagsSection: {
-    paddingHorizontal: 20,
-    paddingTop: 28,
-  },
-  allTagsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 10,
-  },
-  allTagChip: {
-    borderWidth: 1,
-    borderColor: COLORS.gray200,
-    borderRadius: 9999,
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-  },
-  allTagChipText: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: COLORS.gray700,
   },
 });

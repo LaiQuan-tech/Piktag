@@ -36,9 +36,11 @@ import {
   Heart,
   Clock,
   Bell,
+  ExternalLink,
 } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { COLORS } from '../constants/theme';
+import PlatformIcon from '../components/PlatformIcon';
 import InitialsAvatar from '../components/InitialsAvatar';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
@@ -558,14 +560,19 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
           <Text style={styles.usernameText}>@{username}</Text>
         </View>
 
-        {/* Tags */}
+        {/* Tags — clickable */}
         {tags.length > 0 && (
           <View style={styles.tagsSection}>
             <View style={styles.tagsWrap}>
               {tags.map((tag, index) => (
-                <View key={index} style={styles.tagChip}>
+                <TouchableOpacity
+                  key={index}
+                  style={styles.tagChip}
+                  activeOpacity={0.6}
+                  onPress={() => navigation.navigate('TagDetail', { tagName: tag.replace('#', ''), initialTab: 'explore' })}
+                >
                   <Text style={styles.tagChipText}>{tag}</Text>
-                </View>
+                </TouchableOpacity>
               ))}
             </View>
           </View>
@@ -815,30 +822,49 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
           </View>
         )}
 
-        {/* Biolinks Section */}
+        {/* Social Links — IG Highlights style circles */}
         {biolinks.length > 0 && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>{t('friendDetail.biolinksTitle')}</Text>
-            <View style={styles.biolinksCard}>
-              {biolinks.map((link, index) => (
-                <React.Fragment key={link.id}>
-                  <TouchableOpacity
-                    style={styles.biolinkRow}
-                    onPress={() => handleOpenLink(link.url, link.id)}
-                    activeOpacity={0.7}
-                  >
-                    {getBiolinkIcon(link.platform as BiolinkType)}
-                    <Text style={styles.biolinkTitle}>{link.label || link.platform}</Text>
-                    <Text style={styles.biolinkUrl} numberOfLines={1}>
-                      {link.url.replace('https://', '')}
-                    </Text>
-                  </TouchableOpacity>
-                  {index < biolinks.length - 1 && (
-                    <View style={styles.biolinkDivider} />
-                  )}
-                </React.Fragment>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.socialScrollContent}>
+              {biolinks.map((link) => (
+                <TouchableOpacity
+                  key={link.id}
+                  style={styles.socialCircleItem}
+                  onPress={() => handleOpenLink(link.url, link.id)}
+                  activeOpacity={0.7}
+                >
+                  <View style={styles.socialCircleRing}>
+                    <View style={styles.socialCircleInner}>
+                      <PlatformIcon platform={link.platform} size={28} />
+                    </View>
+                  </View>
+                  <Text style={styles.socialCircleLabel} numberOfLines={1}>
+                    {link.label || link.platform}
+                  </Text>
+                </TouchableOpacity>
               ))}
-            </View>
+            </ScrollView>
+          </View>
+        )}
+
+        {/* Link Bio — Linktree style cards */}
+        {biolinks.length > 0 && (
+          <View style={styles.linkBioSection}>
+            {biolinks.map((link) => (
+              <TouchableOpacity
+                key={link.id}
+                style={styles.linkCard}
+                onPress={() => handleOpenLink(link.url, link.id)}
+                activeOpacity={0.7}
+              >
+                <PlatformIcon platform={link.platform} size={22} />
+                <Text style={styles.linkCardText} numberOfLines={1}>
+                  {link.label || link.platform}
+                </Text>
+                <ExternalLink size={16} color={COLORS.gray400} />
+              </TouchableOpacity>
+            ))}
           </View>
         )}
       </ScrollView>
@@ -1189,5 +1215,64 @@ const styles = StyleSheet.create({
   biolinkDivider: {
     height: 1,
     backgroundColor: COLORS.gray200,
+  },
+
+  // Social Circles (IG Highlights style)
+  socialScrollContent: {
+    paddingHorizontal: 4,
+    gap: 16,
+  },
+  socialCircleItem: {
+    alignItems: 'center',
+    width: 68,
+  },
+  socialCircleRing: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    borderWidth: 2,
+    borderColor: COLORS.gray200,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 6,
+  },
+  socialCircleInner: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: COLORS.gray50,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  socialCircleLabel: {
+    fontSize: 11,
+    fontWeight: '500',
+    color: COLORS.gray700,
+    textAlign: 'center',
+  },
+
+  // Link Bio (Linktree style)
+  linkBioSection: {
+    paddingHorizontal: 20,
+    paddingTop: 8,
+    paddingBottom: 12,
+    gap: 10,
+  },
+  linkCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.white,
+    borderWidth: 1.5,
+    borderColor: COLORS.gray200,
+    borderRadius: 16,
+    paddingVertical: 16,
+    paddingHorizontal: 18,
+    gap: 12,
+  },
+  linkCardText: {
+    flex: 1,
+    fontSize: 16,
+    fontWeight: '600',
+    color: COLORS.gray900,
   },
 });
