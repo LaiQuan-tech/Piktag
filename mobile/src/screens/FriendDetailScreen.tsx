@@ -506,12 +506,11 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
     }
   }, [connectionId]);
 
-  // Open pick tag modal
+  // Open pick tag modal (includes hidden tags)
   const openPickTagModal = useCallback(async () => {
-    await fetchFriendPublicTags();
-    await loadPickedTags();
+    await Promise.all([fetchFriendPublicTags(), loadPickedTags(), fetchHiddenTags()]);
     setPickTagModalVisible(true);
-  }, [fetchFriendPublicTags, loadPickedTags]);
+  }, [fetchFriendPublicTags, loadPickedTags, fetchHiddenTags]);
 
   // Toggle a tag selection in the modal
   const togglePickTag = (tagId: string) => {
@@ -562,9 +561,9 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
         setIsFollowing(true);
 
         // After follow success → show Pick Tag modal only if friend has public tags
-        const tags = await fetchFriendPublicTags();
-        if (tags.length > 0) {
-          await loadPickedTags();
+        const ftags = await fetchFriendPublicTags();
+        if (ftags.length > 0) {
+          await Promise.all([loadPickedTags(), fetchHiddenTags()]);
           setPickTagModalVisible(true);
         }
       }
@@ -879,50 +878,6 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
             )}
           </View>
         </View>
-
-        {/* ===== Hidden Tags (only I can see) ===== */}
-        {isFollowing && (
-          <View style={styles.hiddenTagSection}>
-            <View style={styles.hiddenTagHeader}>
-              <Text style={styles.hiddenTagTitle}>🔒 {t('friendDetail.hiddenTagsTitle')}</Text>
-            </View>
-
-            {/* Existing hidden tags */}
-            {hiddenTags.length > 0 && (
-              <View style={styles.hiddenTagsWrap}>
-                {hiddenTags.map((ht) => (
-                  <View key={ht.id} style={styles.hiddenTagChip}>
-                    <Text style={styles.hiddenTagChipText}>#{ht.name}</Text>
-                    <TouchableOpacity onPress={() => handleRemoveHiddenTag(ht.id)} activeOpacity={0.6} style={styles.hiddenTagRemove}>
-                      <Text style={styles.hiddenTagRemoveText}>×</Text>
-                    </TouchableOpacity>
-                  </View>
-                ))}
-              </View>
-            )}
-
-            {/* Add hidden tag input */}
-            <View style={styles.hiddenTagInputRow}>
-              <TextInput
-                style={styles.hiddenTagInput}
-                value={hiddenTagInput}
-                onChangeText={setHiddenTagInput}
-                placeholder={t('friendDetail.hiddenTagPlaceholder')}
-                placeholderTextColor={COLORS.gray400}
-                returnKeyType="done"
-                onSubmitEditing={handleAddHiddenTag}
-              />
-              <TouchableOpacity
-                style={[styles.hiddenTagAddBtn, (!hiddenTagInput.trim() || addingHiddenTag) && { opacity: 0.5 }]}
-                onPress={handleAddHiddenTag}
-                disabled={!hiddenTagInput.trim() || addingHiddenTag}
-                activeOpacity={0.7}
-              >
-                <Text style={styles.hiddenTagAddText}>{t('common.add')}</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        )}
 
         {/* ===== SECTION 2: Social Links — IG Highlights style circles ===== */}
         {biolinks.length > 0 && (
@@ -1242,6 +1197,45 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
                 })}
               </View>
             )}
+
+            {/* Divider */}
+            <View style={styles.pickModalDivider} />
+
+            {/* Hidden tags section */}
+            <Text style={styles.pickModalSectionTitle}>🔒 {t('friendDetail.hiddenTagsTitle')}</Text>
+
+            {hiddenTags.length > 0 && (
+              <View style={styles.pickModalTagsWrap}>
+                {hiddenTags.map((ht) => (
+                  <View key={ht.id} style={styles.hiddenTagChip}>
+                    <Text style={styles.hiddenTagChipText}>#{ht.name}</Text>
+                    <TouchableOpacity onPress={() => handleRemoveHiddenTag(ht.id)} activeOpacity={0.6} style={styles.hiddenTagRemove}>
+                      <Text style={styles.hiddenTagRemoveText}>×</Text>
+                    </TouchableOpacity>
+                  </View>
+                ))}
+              </View>
+            )}
+
+            <View style={styles.hiddenTagInputRow}>
+              <TextInput
+                style={styles.hiddenTagInput}
+                value={hiddenTagInput}
+                onChangeText={setHiddenTagInput}
+                placeholder={t('friendDetail.hiddenTagPlaceholder')}
+                placeholderTextColor={COLORS.gray400}
+                returnKeyType="done"
+                onSubmitEditing={handleAddHiddenTag}
+              />
+              <TouchableOpacity
+                style={[styles.hiddenTagAddBtn, (!hiddenTagInput.trim() || addingHiddenTag) && { opacity: 0.5 }]}
+                onPress={handleAddHiddenTag}
+                disabled={!hiddenTagInput.trim() || addingHiddenTag}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.hiddenTagAddText}>{t('common.add')}</Text>
+              </TouchableOpacity>
+            </View>
 
             {/* Save button */}
             <TouchableOpacity
@@ -1983,6 +1977,17 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '700',
     color: COLORS.piktag600,
+  },
+  pickModalDivider: {
+    height: 1,
+    backgroundColor: COLORS.gray100,
+    marginVertical: 20,
+  },
+  pickModalSectionTitle: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: COLORS.gray500,
+    marginBottom: 12,
   },
   pickModalSaveBtn: {
     backgroundColor: COLORS.piktag500,
