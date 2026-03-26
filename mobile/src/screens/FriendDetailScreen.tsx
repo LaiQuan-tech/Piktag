@@ -140,6 +140,9 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
   const [isFollowing, setIsFollowing] = useState(false);
   const [followLoading, setFollowLoading] = useState(false);
 
+  // Unfollow confirm modal
+  const [unfollowModalVisible, setUnfollowModalVisible] = useState(false);
+
   // Pick Tag Modal state (shown after follow, or via "標籤" button)
   const [pickTagModalVisible, setPickTagModalVisible] = useState(false);
   const [friendPublicTags, setFriendPublicTags] = useState<{ id: string; name: string }[]>([]);
@@ -498,23 +501,8 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
     setFollowLoading(true);
     try {
       if (isFollowing) {
-        // Confirm before unfollowing
         setFollowLoading(false);
-        Alert.alert(
-          t('friendDetail.unfollowTitle'),
-          t('friendDetail.unfollowMessage', { name: displayName }),
-          [
-            { text: t('common.cancel'), style: 'cancel' },
-            {
-              text: t('friendDetail.unfollowConfirm'),
-              style: 'destructive',
-              onPress: async () => {
-                await supabase.from('piktag_follows').delete().eq('follower_id', user.id).eq('following_id', friendId);
-                setIsFollowing(false);
-              },
-            },
-          ]
-        );
+        setUnfollowModalVisible(true);
         return;
       } else {
         await supabase.from('piktag_follows').insert({ follower_id: user.id, following_id: friendId });
@@ -532,6 +520,13 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
     } finally {
       setFollowLoading(false);
     }
+  };
+
+  const handleConfirmUnfollow = async () => {
+    if (!user || !friendId) return;
+    setUnfollowModalVisible(false);
+    await supabase.from('piktag_follows').delete().eq('follower_id', user.id).eq('following_id', friendId);
+    setIsFollowing(false);
   };
 
   const handleOpenLink = async (url: string, biolinkId: string) => {
@@ -961,6 +956,39 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
           </View>
         )}
       </ScrollView>
+
+      {/* ====== Unfollow Confirm Modal ====== */}
+      <Modal
+        visible={unfollowModalVisible}
+        animationType="fade"
+        transparent
+        onRequestClose={() => setUnfollowModalVisible(false)}
+      >
+        <View style={styles.unfollowModalOverlay}>
+          <View style={styles.unfollowModalContainer}>
+            <Text style={styles.unfollowModalTitle}>{t('friendDetail.unfollowTitle')}</Text>
+            <Text style={styles.unfollowModalMessage}>
+              {t('friendDetail.unfollowMessage', { name: displayName })}
+            </Text>
+            <View style={styles.unfollowModalButtons}>
+              <TouchableOpacity
+                style={styles.unfollowModalCancelBtn}
+                onPress={() => setUnfollowModalVisible(false)}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.unfollowModalCancelText}>{t('common.cancel')}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.unfollowModalConfirmBtn}
+                onPress={handleConfirmUnfollow}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.unfollowModalConfirmText}>{t('friendDetail.unfollowConfirm')}</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
 
       {/* ====== Pick Tag Modal ====== */}
       <Modal
@@ -1475,6 +1503,65 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: COLORS.gray900,
+  },
+
+  // Unfollow Modal
+  unfollowModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 40,
+  },
+  unfollowModalContainer: {
+    backgroundColor: COLORS.white,
+    borderRadius: 16,
+    padding: 24,
+    width: '100%',
+    alignItems: 'center',
+  },
+  unfollowModalTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: COLORS.gray900,
+    marginBottom: 8,
+  },
+  unfollowModalMessage: {
+    fontSize: 15,
+    color: COLORS.gray500,
+    textAlign: 'center',
+    lineHeight: 22,
+    marginBottom: 24,
+  },
+  unfollowModalButtons: {
+    flexDirection: 'row',
+    gap: 12,
+    width: '100%',
+  },
+  unfollowModalCancelBtn: {
+    flex: 1,
+    borderWidth: 1.5,
+    borderColor: COLORS.gray300,
+    borderRadius: 12,
+    paddingVertical: 12,
+    alignItems: 'center',
+  },
+  unfollowModalCancelText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: COLORS.gray700,
+  },
+  unfollowModalConfirmBtn: {
+    flex: 1,
+    backgroundColor: '#EF4444',
+    borderRadius: 12,
+    paddingVertical: 12,
+    alignItems: 'center',
+  },
+  unfollowModalConfirmText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: COLORS.white,
   },
 
   // Pick Tag Modal
