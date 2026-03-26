@@ -88,6 +88,7 @@ type FriendData = {
   biolinks: Biolink[];
   mutualFriends: number;
   mutualTags: number;
+  followerCount: number;
   scanEventTags: string[];
 };
 
@@ -99,6 +100,7 @@ const initialFriendData: FriendData = {
   biolinks: [],
   mutualFriends: 0,
   mutualTags: 0,
+  followerCount: 0,
   scanEventTags: [],
 };
 
@@ -131,7 +133,7 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
 
   const [loading, setLoading] = useState(true);
   const [friendData, dispatchFriendData] = useReducer(friendDataReducer, initialFriendData);
-  const { connection, profile, tags, notes, biolinks, mutualFriends, mutualTags, scanEventTags } = friendData;
+  const { connection, profile, tags, notes, biolinks, mutualFriends, mutualTags, followerCount, scanEventTags } = friendData;
 
   // CRM reminder state
   const [birthday, setBirthday] = useState<string>('');
@@ -200,6 +202,12 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
         ).length;
       })();
 
+      // Fetch friend's follower count
+      const { count: fFollowerCount } = await supabase
+        .from('piktag_follows')
+        .select('id', { count: 'exact', head: true })
+        .eq('following_id', friendId);
+
       dispatchFriendData({
         type: 'SET_INITIAL',
         payload: {
@@ -213,6 +221,7 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
                 .filter(Boolean)
             : [],
           mutualFriends: mutualFriendsCount,
+          followerCount: fFollowerCount ?? 0,
         },
       });
 
@@ -574,20 +583,22 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
           )}
         </View>
 
-        {/* Stats Row (inline) */}
+        {/* Stats Row: 共同標籤 | 共同好友 | 追蹤者 */}
         <View style={styles.statsRow}>
+          <View style={styles.statBox}>
+            <Text style={[styles.statNumber, mutualTags > 0 && { color: COLORS.piktag600 }]}>{mutualTags}</Text>
+            <Text style={styles.statLabel}>{t('friendDetail.mutualTagsLabel')}</Text>
+          </View>
+          <View style={styles.statDivider} />
           <View style={styles.statBox}>
             <Text style={styles.statNumber}>{mutualFriends}</Text>
             <Text style={styles.statLabel}>{t('friendDetail.mutualFriendsLabel')}</Text>
           </View>
-          <TouchableOpacity
-            style={styles.statBox}
-            activeOpacity={0.7}
-            onPress={() => { if (profile?.id) navigation.navigate('UserDetail', { userId: profile.id }); }}
-          >
-            <Text style={[styles.statNumber, mutualTags > 0 && { color: COLORS.piktag600 }]}>{mutualTags}</Text>
-            <Text style={styles.statLabel}>{t('friendDetail.mutualTagsLabel')}</Text>
-          </TouchableOpacity>
+          <View style={styles.statDivider} />
+          <View style={styles.statBox}>
+            <Text style={styles.statNumber}>{followerCount}</Text>
+            <Text style={styles.statLabel}>{t('friendDetail.followersLabel')}</Text>
+          </View>
         </View>
 
         {/* ===== SECTION 2: Social Links — IG Highlights style circles ===== */}
@@ -899,20 +910,23 @@ const styles = StyleSheet.create({
   },
   statsRow: {
     flexDirection: 'row',
+    alignItems: 'center',
     paddingHorizontal: 20,
-    paddingTop: 24,
-    gap: 12,
+    paddingTop: 20,
+    paddingBottom: 8,
   },
   statBox: {
     flex: 1,
-    backgroundColor: COLORS.gray50,
-    borderRadius: 14,
-    paddingVertical: 16,
     alignItems: 'center',
   },
+  statDivider: {
+    width: 1,
+    height: 28,
+    backgroundColor: COLORS.gray200,
+  },
   statNumber: {
-    fontSize: 22,
-    fontWeight: '700',
+    fontSize: 20,
+    fontWeight: '800',
     color: COLORS.gray900,
   },
   statLabel: {

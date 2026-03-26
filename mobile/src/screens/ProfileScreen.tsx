@@ -94,6 +94,7 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
   const [userTags, setUserTags] = useState<UserTag[]>([]);
   const [biolinks, setBiolinks] = useState<Biolink[]>([]);
   const [followerCount, setFollowerCount] = useState<number>(0);
+  const [friendCount, setFriendCount] = useState<number>(0);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [qrVisible, setQrVisible] = useState(false);
@@ -155,9 +156,18 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
     if (!error && count !== null) setFollowerCount(count);
   }, [userId]);
 
+  const fetchFriendCount = useCallback(async () => {
+    if (!userId) return;
+    const { count, error } = await supabase
+      .from('piktag_connections')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', userId);
+    if (!error && count !== null) setFriendCount(count);
+  }, [userId]);
+
   const fetchAllData = useCallback(async () => {
-    await Promise.all([fetchProfile(), fetchUserTags(), fetchBiolinks(), fetchFollowerCount(), fetchStatus()]);
-  }, [fetchProfile, fetchUserTags, fetchBiolinks, fetchFollowerCount, fetchStatus]);
+    await Promise.all([fetchProfile(), fetchUserTags(), fetchBiolinks(), fetchFollowerCount(), fetchFriendCount(), fetchStatus()]);
+  }, [fetchProfile, fetchUserTags, fetchBiolinks, fetchFollowerCount, fetchFriendCount, fetchStatus]);
 
   useEffect(() => {
     let isMounted = true;
@@ -294,9 +304,23 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
                   <CheckCircle2 size={16} color={COLORS.blue500} fill={COLORS.blue500} strokeWidth={0} style={{ marginLeft: 4 }} />
                 )}
               </View>
-              <Text style={styles.followerCount}>
-                {formattedFollowerCount} {t('profile.friendCountSuffix')}
-              </Text>
+              {/* 三欄統計：標籤 | 朋友 | 追蹤者 */}
+              <View style={styles.statsRow}>
+                <View style={styles.statItem}>
+                  <Text style={styles.statNumber}>{userTags.length}</Text>
+                  <Text style={styles.statLabel}>{t('profile.statTags')}</Text>
+                </View>
+                <View style={styles.statDivider} />
+                <View style={styles.statItem}>
+                  <Text style={styles.statNumber}>{friendCount}</Text>
+                  <Text style={styles.statLabel}>{t('profile.statFriends')}</Text>
+                </View>
+                <View style={styles.statDivider} />
+                <View style={styles.statItem}>
+                  <Text style={styles.statNumber}>{formattedFollowerCount}</Text>
+                  <Text style={styles.statLabel}>{t('profile.statFollowers')}</Text>
+                </View>
+              </View>
             </View>
           </View>
 
@@ -524,9 +548,30 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: COLORS.gray900,
   },
-  followerCount: {
-    fontSize: 14,
+  statsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  statItem: {
+    alignItems: 'center',
+    flex: 1,
+  },
+  statNumber: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: COLORS.gray900,
+  },
+  statLabel: {
+    fontSize: 11,
+    fontWeight: '500',
     color: COLORS.gray500,
+    marginTop: 1,
+  },
+  statDivider: {
+    width: 1,
+    height: 24,
+    backgroundColor: COLORS.gray200,
   },
   bio: {
     fontSize: 14,

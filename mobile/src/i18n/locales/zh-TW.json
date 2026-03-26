@@ -200,7 +200,10 @@
     "noContactMethods": "尚無聯繫方式",
     "statusTooltip": "點我寫便利貼",
     "socialLinksTitle": "社交連結",
-    "linkBioTitle": "連結"
+    "linkBioTitle": "連結",
+    "statTags": "標籤",
+    "statFriends": "朋友",
+    "statFollowers": "追蹤者"
   },
   "editProfile": {
     "headerTitle": "編輯個人資訊",
@@ -285,7 +288,8 @@
     "reminderSave": "儲存",
     "reminderSetPrompt": "點擊設定",
     "reminderClear": "清除",
-    "biolinksTitle": "社群連結"
+    "biolinksTitle": "社群連結",
+    "followersLabel": "追蹤者"
   },
   "userDetail": {
     "headerNotFound": "Not Found",
@@ -300,7 +304,10 @@
     "sendMessage": "傳訊息",
     "socialLinksTitle": "社交連結",
     "allTagsTitle": "所有標籤",
-    "linkBioTitle": "連結"
+    "linkBioTitle": "連結",
+    "statMutualTags": "共同標籤",
+    "statMutualFriends": "共同好友",
+    "statFollowers": "追蹤者"
   },
   "settings": {
     "headerTitle": "設定",

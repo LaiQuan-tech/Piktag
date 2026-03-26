@@ -46,6 +46,7 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
   const [mutualFriends, setMutualFriends] = useState(0);
   const [mutualTags, setMutualTags] = useState(0);
   const [mutualTagList, setMutualTagList] = useState<{ id: string; name: string }[]>([]);
+  const [followerCount, setFollowerCount] = useState(0);
   const [isFollowing, setIsFollowing] = useState(false);
   const [followLoading, setFollowLoading] = useState(false);
 
@@ -147,6 +148,13 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
         setMutualTags(mutualIds.length);
         setMutualTagList(mutualIds.map((t: any) => myTagMap.get(t.tag_id)).filter(Boolean) as { id: string; name: string }[]);
       }
+
+      // Fetch follower count
+      const { count: fCount } = await supabase
+        .from('piktag_follows')
+        .select('id', { count: 'exact', head: true })
+        .eq('following_id', userId);
+      setFollowerCount(fCount ?? 0);
     } catch (err) {
       console.error('Error fetching user data:', err);
     } finally {
@@ -319,15 +327,22 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
             </View>
           )}
 
-          {/* Mutual Info */}
-          <View style={styles.mutualRow}>
-            <Text style={styles.mutualText}>
-              {t('userDetail.mutualFriendsPrefix')}{mutualFriends}{t('userDetail.mutualFriendsSuffix')}
-            </Text>
-            <Text style={styles.mutualDot}>{t('userDetail.mutualSeparator')}</Text>
-            <Text style={styles.mutualText}>
-              {t('userDetail.mutualTagsPrefix')}{mutualTags}{t('userDetail.mutualTagsSuffix')}
-            </Text>
+          {/* Stats: 共同標籤 | 共同好友 | 追蹤者 */}
+          <View style={styles.statsRow}>
+            <View style={styles.statItem}>
+              <Text style={[styles.statNumber, mutualTags > 0 && { color: COLORS.piktag600 }]}>{mutualTags}</Text>
+              <Text style={styles.statLabel}>{t('userDetail.statMutualTags')}</Text>
+            </View>
+            <View style={styles.statDivider} />
+            <View style={styles.statItem}>
+              <Text style={styles.statNumber}>{mutualFriends}</Text>
+              <Text style={styles.statLabel}>{t('userDetail.statMutualFriends')}</Text>
+            </View>
+            <View style={styles.statDivider} />
+            <View style={styles.statItem}>
+              <Text style={styles.statNumber}>{followerCount}</Text>
+              <Text style={styles.statLabel}>{t('userDetail.statFollowers')}</Text>
+            </View>
           </View>
 
           {/* Clickable mutual tags */}
@@ -535,19 +550,31 @@ const styles = StyleSheet.create({
   tagSecondary: {
     color: COLORS.gray500,
   },
-  mutualRow: {
+  statsRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 14,
+    marginTop: 16,
+    marginBottom: 4,
   },
-  mutualText: {
-    fontSize: 14,
+  statItem: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  statNumber: {
+    fontSize: 20,
+    fontWeight: '800',
+    color: COLORS.gray900,
+  },
+  statLabel: {
+    fontSize: 11,
+    fontWeight: '500',
     color: COLORS.gray500,
-    lineHeight: 20,
+    marginTop: 2,
   },
-  mutualDot: {
-    fontSize: 14,
-    color: COLORS.gray400,
+  statDivider: {
+    width: 1,
+    height: 28,
+    backgroundColor: COLORS.gray200,
   },
   mutualTagsRow: {
     flexDirection: 'row',

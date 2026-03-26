@@ -200,7 +200,10 @@
     "noContactMethods": "No contact methods",
     "statusTooltip": "Tap to set status",
     "socialLinksTitle": "Social Links",
-    "linkBioTitle": "Links"
+    "linkBioTitle": "Links",
+    "statTags": "Tags",
+    "statFriends": "Friends",
+    "statFollowers": "Followers"
   },
   "editProfile": {
     "headerTitle": "Edit Profile",
@@ -285,7 +288,8 @@
     "reminderSave": "Save",
     "reminderSetPrompt": "Tap to set",
     "reminderClear": "Clear",
-    "biolinksTitle": "Social Links"
+    "biolinksTitle": "Social Links",
+    "followersLabel": "Followers"
   },
   "userDetail": {
     "headerNotFound": "Not Found",
@@ -300,7 +304,10 @@
     "sendMessage": "Message",
     "socialLinksTitle": "Social Links",
     "allTagsTitle": "All Tags",
-    "linkBioTitle": "Links"
+    "linkBioTitle": "Links",
+    "statMutualTags": "Mutual Tags",
+    "statMutualFriends": "Mutual Friends",
+    "statFollowers": "Followers"
   },
   "settings": {
     "headerTitle": "Settings",
