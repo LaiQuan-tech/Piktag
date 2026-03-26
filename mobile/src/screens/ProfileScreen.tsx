@@ -331,6 +331,18 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
             )}
           </View>
 
+          {/* Stats — one line above buttons */}
+          <Text style={styles.statsLine}>
+            <Text style={styles.statNumber}>{userTags.length}</Text>
+            <Text style={styles.statLabel}>{t('profile.statTags')}</Text>
+            <Text style={styles.statDot}> · </Text>
+            <Text style={styles.statNumber}>{friendCount}</Text>
+            <Text style={styles.statLabel}>{t('profile.statFriends')}</Text>
+            <Text style={styles.statDot}> · </Text>
+            <Text style={styles.statNumber}>{formattedFollowerCount}</Text>
+            <Text style={styles.statLabel}>{t('profile.statFollowers')}</Text>
+          </Text>
+
           {/* Action buttons */}
           <View style={styles.actionButtonsRow}>
             <TouchableOpacity style={styles.shareButton} activeOpacity={0.7} onPress={handleOpenQr}>
@@ -339,21 +351,6 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
             <TouchableOpacity style={styles.editButton} activeOpacity={0.7} onPress={handleNavigateEditProfile}>
               <Text style={styles.editButtonText}>{t('profile.editProfile')}</Text>
             </TouchableOpacity>
-          </View>
-
-          {/* Stats — one line under buttons */}
-          <View style={styles.statsRow}>
-            <Text style={styles.statText}>
-              <Text style={styles.statNumber}>{userTags.length}</Text>{t('profile.statTags')}
-            </Text>
-            <Text style={styles.statDot}>·</Text>
-            <Text style={styles.statText}>
-              <Text style={styles.statNumber}>{friendCount}</Text>{t('profile.statFriends')}
-            </Text>
-            <Text style={styles.statDot}>·</Text>
-            <Text style={styles.statText}>
-              <Text style={styles.statNumber}>{formattedFollowerCount}</Text>{t('profile.statFollowers')}
-            </Text>
           </View>
         </View>
 
@@ -555,22 +552,19 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: COLORS.gray500,
   },
-  statsRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    marginTop: 4,
-  },
-  statText: {
+  statsLine: {
     fontSize: 14,
     color: COLORS.gray500,
+    marginBottom: 14,
   },
   statNumber: {
     fontWeight: '700',
     color: COLORS.gray900,
   },
+  statLabel: {
+    color: COLORS.gray500,
+  },
   statDot: {
-    fontSize: 14,
     color: COLORS.gray400,
   },
   bio: {
