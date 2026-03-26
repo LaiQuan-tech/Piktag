@@ -318,7 +318,7 @@ export default function TagDetailScreen({ navigation, route }: TagDetailScreenPr
       <View style={styles.header}>
         <TouchableOpacity
           style={styles.backBtn}
-          onPress={() => navigation.goBack()}
+          onPress={() => navigation.canGoBack() ? navigation.goBack() : navigation.navigate('Connections')}
           activeOpacity={0.7}
         >
           <ArrowLeft size={24} color={COLORS.gray900} />
