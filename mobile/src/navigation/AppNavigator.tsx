@@ -60,8 +60,7 @@ function HomeStackNavigator() {
       <HomeStack.Screen name="Connections" component={ConnectionsScreen} />
       <HomeStack.Screen name="FriendDetail" component={FriendDetailScreen} />
       <HomeStack.Screen name="UserDetail" component={UserDetailScreen} />
-      {/* Notifications moved to dedicated tab — keep here for deep-link compatibility */}
-      {/* <HomeStack.Screen name="Notifications" component={NotificationsScreen} /> */}
+      <HomeStack.Screen name="TagDetail" component={TagDetailScreen} />
     </HomeStack.Navigator>
   );
 }
@@ -104,6 +103,8 @@ function ProfileStackNavigator() {
       <ProfileStack.Screen name="Invite" component={InviteScreen} />
       <ProfileStack.Screen name="LocationContacts" component={LocationContactsScreen} />
       <ProfileStack.Screen name="SocialStats" component={SocialStatsScreen} />
+      <ProfileStack.Screen name="TagDetail" component={TagDetailScreen} />
+      <ProfileStack.Screen name="UserDetail" component={UserDetailScreen} />
     </ProfileStack.Navigator>
   );
 }
