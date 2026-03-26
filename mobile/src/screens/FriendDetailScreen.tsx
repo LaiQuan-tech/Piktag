@@ -11,6 +11,7 @@ import {
   ActivityIndicator,
   Alert,
   TextInput,
+  Modal,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
@@ -138,6 +139,12 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
   // Follow state
   const [isFollowing, setIsFollowing] = useState(false);
   const [followLoading, setFollowLoading] = useState(false);
+
+  // Pick Tag Modal state (shown after follow, or via "標籤" button)
+  const [pickTagModalVisible, setPickTagModalVisible] = useState(false);
+  const [friendPublicTags, setFriendPublicTags] = useState<{ id: string; name: string }[]>([]);
+  const [pickedTagIds, setPickedTagIds] = useState<Set<string>>(new Set());
+  const [pickTagLoading, setPickTagLoading] = useState(false);
 
   // CRM reminder state
   const [birthday, setBirthday] = useState<string>('');
@@ -412,6 +419,78 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
     setIsAddingNote(false);
   };
 
+  // Fetch friend's public tags for the pick modal
+  const fetchFriendPublicTags = useCallback(async () => {
+    if (!friendId) return;
+    const { data } = await supabase
+      .from('piktag_user_tags')
+      .select('tag_id, piktag_tags!inner(id, name)')
+      .eq('user_id', friendId)
+      .eq('is_private', false);
+
+    if (data) {
+      const tags = data
+        .map((ut: any) => ({ id: ut.piktag_tags?.id, name: ut.piktag_tags?.name }))
+        .filter((t: any) => t.id && t.name);
+      setFriendPublicTags(tags);
+    }
+  }, [friendId]);
+
+  // Load already-picked tags for this connection
+  const loadPickedTags = useCallback(async () => {
+    if (!connectionId) return;
+    const { data } = await supabase
+      .from('piktag_connection_tags')
+      .select('tag_id')
+      .eq('connection_id', connectionId);
+    if (data) {
+      setPickedTagIds(new Set(data.map((ct: any) => ct.tag_id)));
+    }
+  }, [connectionId]);
+
+  // Open pick tag modal
+  const openPickTagModal = useCallback(async () => {
+    await fetchFriendPublicTags();
+    await loadPickedTags();
+    setPickTagModalVisible(true);
+  }, [fetchFriendPublicTags, loadPickedTags]);
+
+  // Toggle a tag selection in the modal
+  const togglePickTag = (tagId: string) => {
+    setPickedTagIds(prev => {
+      const next = new Set(prev);
+      if (next.has(tagId)) next.delete(tagId);
+      else next.add(tagId);
+      return next;
+    });
+  };
+
+  // Save picked tags
+  const handleSavePickedTags = async () => {
+    if (!connectionId || !user) return;
+    setPickTagLoading(true);
+    try {
+      // Delete existing connection_tags for this connection
+      await supabase.from('piktag_connection_tags').delete().eq('connection_id', connectionId);
+
+      // Insert picked ones
+      if (pickedTagIds.size > 0) {
+        const rows = Array.from(pickedTagIds).map(tagId => ({
+          connection_id: connectionId,
+          tag_id: tagId,
+        }));
+        await supabase.from('piktag_connection_tags').insert(rows);
+      }
+
+      setPickTagModalVisible(false);
+    } catch (err) {
+      console.error('Save picked tags error:', err);
+      Alert.alert(t('common.error'), t('friendDetail.alertPickTagError'));
+    } finally {
+      setPickTagLoading(false);
+    }
+  };
+
   const handleToggleFollow = async () => {
     if (!user || !friendId || followLoading) return;
     setFollowLoading(true);
@@ -422,6 +501,11 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
       } else {
         await supabase.from('piktag_follows').insert({ follower_id: user.id, following_id: friendId });
         setIsFollowing(true);
+
+        // After follow success → show Pick Tag modal
+        await fetchFriendPublicTags();
+        await loadPickedTags();
+        setPickTagModalVisible(true);
       }
     } catch (err) {
       console.error('Follow toggle error:', err);
@@ -642,7 +726,7 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
               <TouchableOpacity
                 style={styles.tagButton}
                 activeOpacity={0.7}
-                onPress={() => {/* TODO: tag action */}}
+                onPress={openPickTagModal}
               >
                 <Text style={styles.tagButtonText}>{t('friendDetail.tagAction')}</Text>
               </TouchableOpacity>
@@ -857,6 +941,70 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
           </View>
         )}
       </ScrollView>
+
+      {/* ====== Pick Tag Modal ====== */}
+      <Modal
+        visible={pickTagModalVisible}
+        animationType="slide"
+        transparent
+        onRequestClose={() => setPickTagModalVisible(false)}
+      >
+        <View style={styles.pickModalOverlay}>
+          <View style={styles.pickModalContainer}>
+            {/* Header */}
+            <View style={styles.pickModalHeader}>
+              <Text style={styles.pickModalTitle}>{t('friendDetail.pickTagTitle')}</Text>
+              <TouchableOpacity onPress={() => setPickTagModalVisible(false)} activeOpacity={0.6}>
+                <Text style={styles.pickModalCloseText}>{t('common.close')}</Text>
+              </TouchableOpacity>
+            </View>
+
+            <Text style={styles.pickModalSubtitle}>
+              {t('friendDetail.pickTagSubtitle', { name: displayName })}
+            </Text>
+
+            {/* Tag list */}
+            {friendPublicTags.length === 0 ? (
+              <Text style={styles.pickModalEmpty}>{t('friendDetail.pickTagEmpty')}</Text>
+            ) : (
+              <View style={styles.pickModalTagsWrap}>
+                {friendPublicTags.map((tag) => {
+                  const isSelected = pickedTagIds.has(tag.id);
+                  return (
+                    <TouchableOpacity
+                      key={tag.id}
+                      style={[styles.pickModalTag, isSelected && styles.pickModalTagSelected]}
+                      onPress={() => togglePickTag(tag.id)}
+                      activeOpacity={0.7}
+                    >
+                      <Text style={[styles.pickModalTagText, isSelected && styles.pickModalTagTextSelected]}>
+                        #{tag.name}
+                      </Text>
+                      {isSelected && <Text style={styles.pickModalCheck}>✓</Text>}
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            )}
+
+            {/* Save button */}
+            <TouchableOpacity
+              style={[styles.pickModalSaveBtn, pickTagLoading && { opacity: 0.7 }]}
+              onPress={handleSavePickedTags}
+              disabled={pickTagLoading}
+              activeOpacity={0.8}
+            >
+              {pickTagLoading ? (
+                <ActivityIndicator size="small" color={COLORS.gray900} />
+              ) : (
+                <Text style={styles.pickModalSaveText}>
+                  {t('friendDetail.pickTagSave', { count: pickedTagIds.size })}
+                </Text>
+              )}
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -1306,6 +1454,96 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 16,
     fontWeight: '600',
+    color: COLORS.gray900,
+  },
+
+  // Pick Tag Modal
+  pickModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    justifyContent: 'flex-end',
+  },
+  pickModalContainer: {
+    backgroundColor: COLORS.white,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    paddingTop: 20,
+    paddingHorizontal: 20,
+    paddingBottom: 40,
+    maxHeight: '75%',
+  },
+  pickModalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 6,
+  },
+  pickModalTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: COLORS.gray900,
+  },
+  pickModalCloseText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: COLORS.gray500,
+  },
+  pickModalSubtitle: {
+    fontSize: 14,
+    color: COLORS.gray500,
+    marginBottom: 20,
+    lineHeight: 20,
+  },
+  pickModalEmpty: {
+    fontSize: 14,
+    color: COLORS.gray400,
+    textAlign: 'center',
+    paddingVertical: 30,
+  },
+  pickModalTagsWrap: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+    marginBottom: 24,
+  },
+  pickModalTag: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 20,
+    backgroundColor: COLORS.gray50,
+    borderWidth: 1.5,
+    borderColor: COLORS.gray200,
+  },
+  pickModalTagSelected: {
+    backgroundColor: COLORS.piktag50,
+    borderColor: COLORS.piktag500,
+  },
+  pickModalTagText: {
+    fontSize: 15,
+    fontWeight: '500',
+    color: COLORS.gray700,
+  },
+  pickModalTagTextSelected: {
+    color: COLORS.piktag600,
+    fontWeight: '700',
+  },
+  pickModalCheck: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: COLORS.piktag600,
+  },
+  pickModalSaveBtn: {
+    backgroundColor: COLORS.piktag500,
+    borderRadius: 14,
+    paddingVertical: 14,
+    alignItems: 'center',
+  },
+  pickModalSaveText: {
+    fontSize: 16,
+    fontWeight: '700',
     color: COLORS.gray900,
   },
 });

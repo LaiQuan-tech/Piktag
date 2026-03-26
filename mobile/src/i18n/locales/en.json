@@ -292,7 +292,12 @@
     "followersLabel": "Followers",
     "follow": "Follow",
     "following": "Following",
-    "tagAction": "Tag"
+    "tagAction": "Tag",
+    "pickTagTitle": "Pick Tags",
+    "pickTagSubtitle": "Choose tags that best represent {{name}} to help you remember",
+    "pickTagEmpty": "This friend has no public tags yet",
+    "pickTagSave": "Save ({{count}})",
+    "alertPickTagError": "Failed to save tags"
   },
   "userDetail": {
     "headerNotFound": "Not Found",

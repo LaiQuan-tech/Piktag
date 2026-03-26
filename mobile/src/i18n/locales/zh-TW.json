@@ -292,7 +292,12 @@
     "followersLabel": "追蹤者",
     "follow": "追蹤",
     "following": "追蹤中",
-    "tagAction": "標籤"
+    "tagAction": "標籤",
+    "pickTagTitle": "選擇標籤",
+    "pickTagSubtitle": "選擇最能代表 {{name}} 的標籤，方便你之後找到這位朋友",
+    "pickTagEmpty": "這位朋友還沒有設定公開標籤",
+    "pickTagSave": "儲存 ({{count}})",
+    "alertPickTagError": "儲存標籤時發生錯誤"
   },
   "userDetail": {
     "headerNotFound": "Not Found",
