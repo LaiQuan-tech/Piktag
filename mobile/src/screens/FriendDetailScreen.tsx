@@ -149,6 +149,11 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
   const [pickedTagIds, setPickedTagIds] = useState<Set<string>>(new Set());
   const [pickTagLoading, setPickTagLoading] = useState(false);
 
+  // Hidden tags state (private tags only I can see)
+  const [hiddenTags, setHiddenTags] = useState<{ id: string; tagId: string; name: string }[]>([]);
+  const [hiddenTagInput, setHiddenTagInput] = useState('');
+  const [addingHiddenTag, setAddingHiddenTag] = useState(false);
+
   // CRM reminder state
   const [birthday, setBirthday] = useState<string>('');
   const [anniversary, setAnniversary] = useState<string>('');
@@ -522,6 +527,67 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
     }
   };
 
+  // --- Hidden tags (private) ---
+  const fetchHiddenTags = useCallback(async () => {
+    if (!connectionId) return;
+    const { data } = await supabase
+      .from('piktag_connection_tags')
+      .select('id, tag_id, piktag_tags!inner(name)')
+      .eq('connection_id', connectionId)
+      .eq('is_private', true);
+    if (data) {
+      setHiddenTags(data.map((ct: any) => ({
+        id: ct.id,
+        tagId: ct.tag_id,
+        name: ct.piktag_tags?.name || '',
+      })));
+    }
+  }, [connectionId]);
+
+  // Fetch hidden tags on load
+  useFocusEffect(
+    useCallback(() => {
+      if (connectionId) fetchHiddenTags();
+    }, [connectionId, fetchHiddenTags])
+  );
+
+  const handleAddHiddenTag = async () => {
+    const name = hiddenTagInput.trim().replace(/^#/, '');
+    if (!name || !connectionId || !user) return;
+    setAddingHiddenTag(true);
+    try {
+      // Find or create tag
+      let tagId: string;
+      const { data: existing } = await supabase.from('piktag_tags').select('id').eq('name', name).single();
+      if (existing) {
+        tagId = existing.id;
+      } else {
+        const { data: newTag } = await supabase.from('piktag_tags').insert({ name }).select('id').single();
+        if (!newTag) { setAddingHiddenTag(false); return; }
+        tagId = newTag.id;
+      }
+
+      // Insert as private connection tag
+      await supabase.from('piktag_connection_tags').insert({
+        connection_id: connectionId,
+        tag_id: tagId,
+        is_private: true,
+      });
+
+      setHiddenTagInput('');
+      fetchHiddenTags();
+    } catch (err) {
+      console.error('Add hidden tag error:', err);
+    } finally {
+      setAddingHiddenTag(false);
+    }
+  };
+
+  const handleRemoveHiddenTag = async (ctId: string) => {
+    await supabase.from('piktag_connection_tags').delete().eq('id', ctId);
+    setHiddenTags(prev => prev.filter(t => t.id !== ctId));
+  };
+
   const handleConfirmUnfollow = async () => {
     if (!user || !friendId) return;
     setUnfollowModalVisible(false);
@@ -748,6 +814,50 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
             )}
           </View>
         </View>
+
+        {/* ===== Hidden Tags (only I can see) ===== */}
+        {isFollowing && (
+          <View style={styles.hiddenTagSection}>
+            <View style={styles.hiddenTagHeader}>
+              <Text style={styles.hiddenTagTitle}>🔒 {t('friendDetail.hiddenTagsTitle')}</Text>
+            </View>
+
+            {/* Existing hidden tags */}
+            {hiddenTags.length > 0 && (
+              <View style={styles.hiddenTagsWrap}>
+                {hiddenTags.map((ht) => (
+                  <View key={ht.id} style={styles.hiddenTagChip}>
+                    <Text style={styles.hiddenTagChipText}>#{ht.name}</Text>
+                    <TouchableOpacity onPress={() => handleRemoveHiddenTag(ht.id)} activeOpacity={0.6} style={styles.hiddenTagRemove}>
+                      <Text style={styles.hiddenTagRemoveText}>×</Text>
+                    </TouchableOpacity>
+                  </View>
+                ))}
+              </View>
+            )}
+
+            {/* Add hidden tag input */}
+            <View style={styles.hiddenTagInputRow}>
+              <TextInput
+                style={styles.hiddenTagInput}
+                value={hiddenTagInput}
+                onChangeText={setHiddenTagInput}
+                placeholder={t('friendDetail.hiddenTagPlaceholder')}
+                placeholderTextColor={COLORS.gray400}
+                returnKeyType="done"
+                onSubmitEditing={handleAddHiddenTag}
+              />
+              <TouchableOpacity
+                style={[styles.hiddenTagAddBtn, (!hiddenTagInput.trim() || addingHiddenTag) && { opacity: 0.5 }]}
+                onPress={handleAddHiddenTag}
+                disabled={!hiddenTagInput.trim() || addingHiddenTag}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.hiddenTagAddText}>{t('common.add')}</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        )}
 
         {/* ===== SECTION 2: Social Links — IG Highlights style circles ===== */}
         {biolinks.length > 0 && (
@@ -1503,6 +1613,81 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: COLORS.gray900,
+  },
+
+  // Hidden Tags
+  hiddenTagSection: {
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.gray100,
+  },
+  hiddenTagHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  hiddenTagTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: COLORS.gray500,
+  },
+  hiddenTagsWrap: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginBottom: 12,
+  },
+  hiddenTagChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FEF3C7',
+    borderRadius: 16,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderWidth: 1,
+    borderColor: '#FDE68A',
+    gap: 4,
+  },
+  hiddenTagChipText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#92400E',
+  },
+  hiddenTagRemove: {
+    paddingHorizontal: 2,
+  },
+  hiddenTagRemoveText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#B45309',
+  },
+  hiddenTagInputRow: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  hiddenTagInput: {
+    flex: 1,
+    backgroundColor: COLORS.gray50,
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    fontSize: 14,
+    color: COLORS.gray900,
+    borderWidth: 1,
+    borderColor: COLORS.gray200,
+  },
+  hiddenTagAddBtn: {
+    backgroundColor: COLORS.gray900,
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    justifyContent: 'center',
+  },
+  hiddenTagAddText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: COLORS.white,
   },
 
   // Unfollow Modal

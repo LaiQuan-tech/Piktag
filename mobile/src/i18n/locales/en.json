@@ -300,7 +300,9 @@
     "alertPickTagError": "Failed to save tags",
     "unfollowTitle": "Unfollow",
     "unfollowMessage": "Are you sure you want to unfollow {{name}}?",
-    "unfollowConfirm": "Unfollow"
+    "unfollowConfirm": "Unfollow",
+    "hiddenTagsTitle": "Hidden Tags (only you can see)",
+    "hiddenTagPlaceholder": "Add hidden tag, e.g. ex-colleague"
   },
   "userDetail": {
     "headerNotFound": "Not Found",

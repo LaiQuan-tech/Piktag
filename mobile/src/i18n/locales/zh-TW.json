@@ -300,7 +300,9 @@
     "alertPickTagError": "儲存標籤時發生錯誤",
     "unfollowTitle": "取消追蹤",
     "unfollowMessage": "確定要取消追蹤 {{name}} 嗎？",
-    "unfollowConfirm": "取消追蹤"
+    "unfollowConfirm": "取消追蹤",
+    "hiddenTagsTitle": "隱藏標籤（只有你看得到）",
+    "hiddenTagPlaceholder": "新增隱藏標籤，如：前同事"
   },
   "userDetail": {
     "headerNotFound": "Not Found",
