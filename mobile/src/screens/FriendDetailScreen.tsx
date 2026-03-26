@@ -535,7 +535,7 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
           <ArrowLeft size={24} color={COLORS.gray900} />
         </TouchableOpacity>
         <Text style={styles.headerName} numberOfLines={1}>
-          {displayName}
+          {username}
         </Text>
         <View style={styles.headerSpacer} />
       </View>
