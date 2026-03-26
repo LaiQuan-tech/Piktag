@@ -289,7 +289,10 @@
     "reminderSetPrompt": "點擊設定",
     "reminderClear": "清除",
     "biolinksTitle": "社群連結",
-    "followersLabel": "追蹤者"
+    "followersLabel": "追蹤者",
+    "follow": "追蹤",
+    "following": "追蹤中",
+    "tagAction": "標籤"
   },
   "userDetail": {
     "headerNotFound": "Not Found",

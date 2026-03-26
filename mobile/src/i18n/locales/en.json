@@ -289,7 +289,10 @@
     "reminderSetPrompt": "Tap to set",
     "reminderClear": "Clear",
     "biolinksTitle": "Social Links",
-    "followersLabel": "Followers"
+    "followersLabel": "Followers",
+    "follow": "Follow",
+    "following": "Following",
+    "tagAction": "Tag"
   },
   "userDetail": {
     "headerNotFound": "Not Found",

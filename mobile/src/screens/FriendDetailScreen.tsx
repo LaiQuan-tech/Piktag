@@ -135,6 +135,10 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
   const [friendData, dispatchFriendData] = useReducer(friendDataReducer, initialFriendData);
   const { connection, profile, tags, notes, biolinks, mutualFriends, mutualTags, followerCount, scanEventTags } = friendData;
 
+  // Follow state
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [followLoading, setFollowLoading] = useState(false);
+
   // CRM reminder state
   const [birthday, setBirthday] = useState<string>('');
   const [anniversary, setAnniversary] = useState<string>('');
@@ -202,11 +206,13 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
         ).length;
       })();
 
-      // Fetch friend's follower count
-      const { count: fFollowerCount } = await supabase
-        .from('piktag_follows')
-        .select('id', { count: 'exact', head: true })
-        .eq('following_id', friendId);
+      // Fetch friend's follower count + check if following
+      const [followerResult, followingResult] = await Promise.all([
+        supabase.from('piktag_follows').select('id', { count: 'exact', head: true }).eq('following_id', friendId),
+        supabase.from('piktag_follows').select('id').eq('follower_id', user!.id).eq('following_id', friendId).single(),
+      ]);
+      const fFollowerCount = followerResult.count;
+      setIsFollowing(!!followingResult.data);
 
       dispatchFriendData({
         type: 'SET_INITIAL',
@@ -406,6 +412,24 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
     setIsAddingNote(false);
   };
 
+  const handleToggleFollow = async () => {
+    if (!user || !friendId || followLoading) return;
+    setFollowLoading(true);
+    try {
+      if (isFollowing) {
+        await supabase.from('piktag_follows').delete().eq('follower_id', user.id).eq('following_id', friendId);
+        setIsFollowing(false);
+      } else {
+        await supabase.from('piktag_follows').insert({ follower_id: user.id, following_id: friendId });
+        setIsFollowing(true);
+      }
+    } catch (err) {
+      console.error('Follow toggle error:', err);
+    } finally {
+      setFollowLoading(false);
+    }
+  };
+
   const handleOpenLink = async (url: string, biolinkId: string) => {
     // Track click
     if (user) {
@@ -544,41 +568,28 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* IG Layout: Avatar + Stats row */}
+        {/* Threads style layout */}
         <View style={styles.profileSection}>
+          {/* Avatar + Name/Username */}
           <View style={styles.profileRow}>
             {avatarUrl ? (
               <Image source={{ uri: avatarUrl }} style={styles.avatar} />
             ) : (
-              <InitialsAvatar name={displayName} size={80} style={styles.avatar} />
+              <InitialsAvatar name={displayName} size={56} style={styles.avatar} />
             )}
-            {/* Stats — IG inline style */}
-            <View style={styles.statsRow}>
-              <Text style={styles.statText}>
-                <Text style={[styles.statNumber, mutualTags > 0 && { color: COLORS.piktag600 }]}>{mutualTags}</Text>{t('friendDetail.mutualTagsLabel')}
-              </Text>
-              <Text style={styles.statText}>
-                <Text style={styles.statNumber}>{mutualFriends}</Text>{t('friendDetail.mutualFriendsLabel')}
-              </Text>
-              <Text style={styles.statText}>
-                <Text style={styles.statNumber}>{followerCount}</Text>{t('friendDetail.followersLabel')}
-              </Text>
+            <View style={styles.nameSection}>
+              <View style={styles.nameRow}>
+                <Text style={styles.fullName}>{displayName}</Text>
+                {verified && (
+                  <CheckCircle2 size={16} color={COLORS.blue500} fill={COLORS.blue500} strokeWidth={0} style={{ marginLeft: 4 }} />
+                )}
+              </View>
+              <Text style={styles.usernameText}>@{username}</Text>
             </View>
           </View>
 
-          {/* Name + Username */}
-          <View style={styles.nameSection}>
-            <View style={styles.nameRow}>
-              <Text style={styles.fullName}>{displayName}</Text>
-              {verified && (
-                <CheckCircle2 size={16} color={COLORS.blue500} fill={COLORS.blue500} strokeWidth={0} style={{ marginLeft: 4 }} />
-              )}
-            </View>
-            <Text style={styles.usernameText}>@{username}</Text>
-          </View>
-
-          {/* Bio */}
-          {profile?.bio ? <Text style={styles.bio}>{profile.bio}</Text> : null}
+          {/* Bio (max 3 lines) */}
+          {profile?.bio ? <Text style={styles.bio} numberOfLines={3}>{profile.bio}</Text> : null}
 
           {/* Tags */}
           {tags.length > 0 && (
@@ -595,6 +606,48 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
               ))}
             </View>
           )}
+
+          {/* Stats — subtle one line, doesn't steal from tags */}
+          <Text style={styles.statsLine}>
+            <Text style={[styles.statNumber, mutualTags > 0 && { color: COLORS.piktag600 }]}>{mutualTags}</Text>
+            <Text style={styles.statLabel}>{t('friendDetail.mutualTagsLabel')}</Text>
+            <Text style={styles.statDot}> · </Text>
+            <Text style={styles.statNumber}>{mutualFriends}</Text>
+            <Text style={styles.statLabel}>{t('friendDetail.mutualFriendsLabel')}</Text>
+            <Text style={styles.statDot}> · </Text>
+            <Text style={styles.statNumber}>{followerCount}</Text>
+            <Text style={styles.statLabel}>{t('friendDetail.followersLabel')}</Text>
+          </Text>
+
+          {/* Action buttons — Follow logic */}
+          <View style={styles.actionButtonsRow}>
+            <TouchableOpacity
+              style={[
+                styles.followButton,
+                isFollowing ? styles.followButtonFollowing : styles.followButtonDefault,
+              ]}
+              onPress={handleToggleFollow}
+              activeOpacity={0.8}
+              disabled={followLoading}
+            >
+              {followLoading ? (
+                <ActivityIndicator size="small" color={isFollowing ? COLORS.gray700 : COLORS.white} />
+              ) : (
+                <Text style={isFollowing ? styles.followButtonTextFollowing : styles.followButtonTextDefault}>
+                  {isFollowing ? t('friendDetail.following') : t('friendDetail.follow')}
+                </Text>
+              )}
+            </TouchableOpacity>
+            {isFollowing && (
+              <TouchableOpacity
+                style={styles.tagButton}
+                activeOpacity={0.7}
+                onPress={() => {/* TODO: tag action */}}
+              >
+                <Text style={styles.tagButtonText}>{t('friendDetail.tagAction')}</Text>
+              </TouchableOpacity>
+            )}
+          </View>
         </View>
 
         {/* ===== SECTION 2: Social Links — IG Highlights style circles ===== */}
@@ -900,28 +953,67 @@ const styles = StyleSheet.create({
     color: COLORS.gray800,
   },
   nameSection: {
-    marginBottom: 6,
-  },
-  statsRow: {
     flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 16,
+    gap: 2,
   },
-  statText: {
+  statsLine: {
     fontSize: 14,
     color: COLORS.gray500,
+    marginBottom: 14,
   },
   statNumber: {
     fontWeight: '700',
     color: COLORS.gray900,
-    marginRight: 2,
   },
   statLabel: {
-    fontSize: 13,
     color: COLORS.gray500,
-    marginTop: 4,
+  },
+  statDot: {
+    color: COLORS.gray400,
+  },
+  actionButtonsRow: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  followButton: {
+    flex: 1,
+    borderRadius: 12,
+    paddingVertical: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  followButtonDefault: {
+    backgroundColor: COLORS.piktag500,
+  },
+  followButtonFollowing: {
+    backgroundColor: COLORS.white,
+    borderWidth: 1.5,
+    borderColor: COLORS.gray300,
+  },
+  followButtonTextDefault: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: COLORS.gray900,
+  },
+  followButtonTextFollowing: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: COLORS.gray700,
+  },
+  tagButton: {
+    flex: 1,
+    backgroundColor: COLORS.white,
+    borderWidth: 1.5,
+    borderColor: COLORS.gray300,
+    borderRadius: 12,
+    paddingVertical: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  tagButtonText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: COLORS.gray700,
   },
   actionsRow: {
     flexDirection: 'row',

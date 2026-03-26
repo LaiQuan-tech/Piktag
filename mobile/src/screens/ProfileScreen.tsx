@@ -273,9 +273,9 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
         showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.piktag500} />}
       >
-        {/* ============ SECTION 1: Personal Info + Tags ============ */}
+        {/* ============ SECTION 1: Personal Info + Tags (Threads style) ============ */}
         <View style={styles.profileSection}>
-          {/* Avatar + Stats Row (IG layout) */}
+          {/* Avatar + Name/Username */}
           <View style={styles.profileRow}>
             <View>
               <TouchableOpacity onPress={() => setStatusModalVisible(true)} activeOpacity={0.8}>
@@ -283,11 +283,11 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
                   {hasAvatar ? (
                     <Image source={avatarSource!} style={styles.avatar} />
                   ) : (
-                    <InitialsAvatar name={profile?.full_name || profile?.username || ''} size={80} style={styles.avatar} />
+                    <InitialsAvatar name={profile?.full_name || profile?.username || ''} size={56} style={styles.avatar} />
                   )}
                 </View>
                 <View style={styles.pencilBadge}>
-                  <Pencil size={10} color={COLORS.white} />
+                  <Pencil size={9} color={COLORS.white} />
                 </View>
               </TouchableOpacity>
               {showTooltip && (
@@ -297,33 +297,19 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
                 </Animated.View>
               )}
             </View>
-            {/* Stats — IG inline style */}
-            <View style={styles.statsRow}>
-              <Text style={styles.statText}>
-                <Text style={styles.statNumber}>{userTags.length}</Text>{t('profile.statTags')}
-              </Text>
-              <Text style={styles.statText}>
-                <Text style={styles.statNumber}>{friendCount}</Text>{t('profile.statFriends')}
-              </Text>
-              <Text style={styles.statText}>
-                <Text style={styles.statNumber}>{formattedFollowerCount}</Text>{t('profile.statFollowers')}
-              </Text>
-            </View>
-          </View>
-
-          {/* Name + Username */}
-          <View style={styles.nameSection}>
-            <Text style={styles.displayName}>{headerTitle}</Text>
-            <View style={styles.usernameRow}>
+            <View style={styles.nameSection}>
+              <View style={styles.nameRow}>
+                <Text style={styles.displayName}>{headerTitle}</Text>
+                {profile?.is_verified && (
+                  <CheckCircle2 size={16} color={COLORS.blue500} fill={COLORS.blue500} strokeWidth={0} style={{ marginLeft: 4 }} />
+                )}
+              </View>
               <Text style={styles.usernameText}>@{displayUsername}</Text>
-              {profile?.is_verified && (
-                <CheckCircle2 size={14} color={COLORS.blue500} fill={COLORS.blue500} strokeWidth={0} style={{ marginLeft: 4 }} />
-              )}
             </View>
           </View>
 
-          {/* Bio */}
-          {profile?.bio ? <Text style={styles.bio}>{profile.bio}</Text> : null}
+          {/* Bio (max 3 lines) */}
+          {profile?.bio ? <Text style={styles.bio} numberOfLines={3}>{profile.bio}</Text> : null}
 
           {/* Tags — flat inline, all clickable */}
           <View style={styles.tagsWrap}>
@@ -353,6 +339,21 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
             <TouchableOpacity style={styles.editButton} activeOpacity={0.7} onPress={handleNavigateEditProfile}>
               <Text style={styles.editButtonText}>{t('profile.editProfile')}</Text>
             </TouchableOpacity>
+          </View>
+
+          {/* Stats — one line under buttons */}
+          <View style={styles.statsRow}>
+            <Text style={styles.statText}>
+              <Text style={styles.statNumber}>{userTags.length}</Text>{t('profile.statTags')}
+            </Text>
+            <Text style={styles.statDot}>·</Text>
+            <Text style={styles.statText}>
+              <Text style={styles.statNumber}>{friendCount}</Text>{t('profile.statFriends')}
+            </Text>
+            <Text style={styles.statDot}>·</Text>
+            <Text style={styles.statText}>
+              <Text style={styles.statNumber}>{formattedFollowerCount}</Text>{t('profile.statFollowers')}
+            </Text>
           </View>
         </View>
 
@@ -470,8 +471,8 @@ const styles = StyleSheet.create({
   profileRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 12,
-    gap: 20,
+    marginBottom: 10,
+    gap: 14,
   },
   avatarWrapper: {
     borderRadius: 50,
@@ -482,27 +483,31 @@ const styles = StyleSheet.create({
     borderColor: '#C13584',
   },
   avatar: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
     backgroundColor: COLORS.gray100,
   },
   nameSection: {
-    marginBottom: 6,
+    flex: 1,
+    gap: 2,
+  },
+  nameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   displayName: {
-    fontSize: 16,
+    fontSize: 20,
     fontWeight: '700',
     color: COLORS.gray900,
-    lineHeight: 22,
   },
   pencilBadge: {
     position: 'absolute',
-    bottom: 0,
-    right: 0,
-    width: 22,
-    height: 22,
-    borderRadius: 11,
+    bottom: -1,
+    right: -1,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
     backgroundColor: COLORS.piktag500,
     borderWidth: 2,
     borderColor: COLORS.white,
@@ -551,11 +556,10 @@ const styles = StyleSheet.create({
     color: COLORS.gray500,
   },
   statsRow: {
-    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    gap: 16,
+    gap: 6,
+    marginTop: 4,
   },
   statText: {
     fontSize: 14,
@@ -564,7 +568,10 @@ const styles = StyleSheet.create({
   statNumber: {
     fontWeight: '700',
     color: COLORS.gray900,
-    marginRight: 2,
+  },
+  statDot: {
+    fontSize: 14,
+    color: COLORS.gray400,
   },
   bio: {
     fontSize: 14,
