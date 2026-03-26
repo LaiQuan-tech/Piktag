@@ -81,10 +81,17 @@ function getBiolinkIcon(type: BiolinkType) {
 
 const NOTE_COLORS = ['#FEF3C7', '#DBEAFE', '#D1FAE5', '#FCE7F3', '#EDE9FE', '#FEE2E2'];
 
+type FriendTag = {
+  tagId: string;
+  name: string;
+  isPicked: boolean;    // I picked this tag for this friend
+  pickCount: number;    // How many people picked this tag on this friend
+};
+
 type FriendData = {
   connection: Connection | null;
   profile: PiktagProfile | null;
-  tags: string[];
+  tags: FriendTag[];
   notes: Note[];
   biolinks: Biolink[];
   mutualFriends: number;
@@ -109,6 +116,7 @@ type FriendDataAction =
   | { type: 'SET_INITIAL'; payload: Partial<FriendData> }
   | { type: 'SET_SCAN_EVENT_TAGS'; scanEventTags: string[] }
   | { type: 'SET_MUTUAL_TAGS'; mutualTags: number }
+  | { type: 'SET_TAGS'; tags: FriendTag[] }
   | { type: 'SET_NOTES'; notes: Note[] };
 
 function friendDataReducer(state: FriendData, action: FriendDataAction): FriendData {
@@ -119,6 +127,8 @@ function friendDataReducer(state: FriendData, action: FriendDataAction): FriendD
       return { ...state, scanEventTags: action.scanEventTags };
     case 'SET_MUTUAL_TAGS':
       return { ...state, mutualTags: action.mutualTags };
+    case 'SET_TAGS':
+      return { ...state, tags: action.tags };
     case 'SET_NOTES':
       return { ...state, notes: action.notes };
     default:
@@ -235,11 +245,7 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
           profile: profileResult.data ?? null,
           notes: notesResult.data ?? [],
           biolinks: biolinksResult.data ?? [],
-          tags: connTagsResult.data
-            ? connTagsResult.data
-                .map((ct: any) => (ct.tag?.name ? `#${ct.tag.name}` : ''))
-                .filter(Boolean)
-            : [],
+          tags: [], // will be set in phase 2 after pick data is fetched
           mutualFriends: mutualFriendsCount,
           followerCount: fFollowerCount ?? 0,
         },
@@ -269,34 +275,71 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
         );
       }
 
-      // Mutual tags — compare user_tags (public tags), not connection_tags
-      if (user && friendId) {
-        phase2.push(
-          Promise.all([
-            supabase
-              .from('piktag_user_tags')
+      // Build enriched tags: friend's public user_tags + pick data + mutual check
+      if (user && friendId && connTagsResult.data) {
+        phase2.push((async () => {
+          // 1. Get my tag_ids for mutual check
+          const { data: myUserTags } = await supabase
+            .from('piktag_user_tags')
+            .select('tag_id')
+            .eq('user_id', user.id)
+            .eq('is_private', false);
+          const myTagIds = new Set((myUserTags || []).map((t: any) => t.tag_id));
+
+          // 2. Get my picked tags for this connection
+          const myPickedTagIds = new Set<string>();
+          if (connectionId) {
+            const { data: myPicks } = await supabase
+              .from('piktag_connection_tags')
               .select('tag_id')
-              .eq('user_id', user.id)
-              .eq('is_private', false),
-            supabase
-              .from('piktag_user_tags')
+              .eq('connection_id', connectionId)
+              .eq('is_private', false);
+            (myPicks || []).forEach((p: any) => myPickedTagIds.add(p.tag_id));
+          }
+
+          // 3. Get how many people picked each of friend's tags
+          //    (count connection_tags referencing each tag for connections TO this friend)
+          const { data: allConnsToFriend } = await supabase
+            .from('piktag_connections')
+            .select('id')
+            .eq('connected_user_id', friendId);
+          const connIdsToFriend = (allConnsToFriend || []).map((c: any) => c.id);
+
+          const pickCountMap = new Map<string, number>();
+          if (connIdsToFriend.length > 0) {
+            const { data: allPicks } = await supabase
+              .from('piktag_connection_tags')
               .select('tag_id')
-              .eq('user_id', friendId)
-              .eq('is_private', false),
-          ]).then(([myTagsResult, friendTagsResult]) => {
-            if (myTagsResult.data && friendTagsResult.data) {
-              const myTagIds = new Set(myTagsResult.data.map((t: any) => t.tag_id));
-              dispatchFriendData({
-                type: 'SET_MUTUAL_TAGS',
-                mutualTags: new Set(
-                  friendTagsResult.data
-                    .filter((t: any) => myTagIds.has(t.tag_id))
-                    .map((t: any) => t.tag_id),
-                ).size,
-              });
-            }
-          }),
-        );
+              .in('connection_id', connIdsToFriend)
+              .eq('is_private', false);
+            (allPicks || []).forEach((p: any) => {
+              pickCountMap.set(p.tag_id, (pickCountMap.get(p.tag_id) || 0) + 1);
+            });
+          }
+
+          // 4. Build FriendTag array from friend's user_tags
+          const friendTags: FriendTag[] = connTagsResult.data
+            .filter((ut: any) => ut.tag?.name)
+            .map((ut: any) => ({
+              tagId: ut.tag.id || ut.tag_id,
+              name: ut.tag.name,
+              isPicked: myPickedTagIds.has(ut.tag.id || ut.tag_id),
+              pickCount: pickCountMap.get(ut.tag.id || ut.tag_id) || 0,
+            }));
+
+          // 5. Sort: isPicked first, then by pickCount desc, then alphabetical
+          friendTags.sort((a, b) => {
+            if (a.isPicked !== b.isPicked) return a.isPicked ? -1 : 1;
+            if (a.pickCount !== b.pickCount) return b.pickCount - a.pickCount;
+            return a.name.localeCompare(b.name);
+          });
+
+          dispatchFriendData({ type: 'SET_TAGS', tags: friendTags });
+
+          // 6. Also set mutual tags count
+          const mutualCount = friendTags.filter(t => myTagIds.has(t.tagId)).length;
+          dispatchFriendData({ type: 'SET_MUTUAL_TAGS', mutualTags: mutualCount });
+        })());
       }
 
       if (phase2.length > 0) await Promise.all(phase2);
@@ -756,17 +799,19 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
           {/* Bio (max 3 lines) */}
           {profile?.bio ? <Text style={styles.bio} numberOfLines={3}>{profile.bio}</Text> : null}
 
-          {/* Tags */}
+          {/* Tags — sorted: picked first, then by pick count, max 2 rows */}
           {tags.length > 0 && (
             <View style={styles.tagsWrap}>
-              {tags.map((tag, index) => (
+              {tags.map((tag) => (
                 <TouchableOpacity
-                  key={index}
-                  style={styles.tagChip}
+                  key={tag.tagId}
+                  style={[styles.tagChip, tag.isPicked && styles.tagChipPicked]}
                   activeOpacity={0.6}
-                  onPress={() => navigation.navigate('TagDetail', { tagName: tag.replace('#', ''), initialTab: 'explore' })}
+                  onPress={() => navigation.navigate('TagDetail', { tagId: tag.tagId, tagName: tag.name, initialTab: 'explore' })}
                 >
-                  <Text style={styles.tagChipText}>{tag}</Text>
+                  <Text style={[styles.tagChipText, tag.isPicked && styles.tagChipTextPicked]}>
+                    #{tag.name}
+                  </Text>
                 </TouchableOpacity>
               ))}
             </View>
@@ -1244,6 +1289,8 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     gap: 8,
     marginBottom: 4,
+    maxHeight: 76,
+    overflow: 'hidden',
   },
   tagChip: {
     backgroundColor: COLORS.gray50,
@@ -1253,10 +1300,18 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: COLORS.gray200,
   },
+  tagChipPicked: {
+    backgroundColor: COLORS.piktag50,
+    borderColor: COLORS.piktag500,
+  },
   tagChipText: {
     fontSize: 14,
     fontWeight: '500',
     color: COLORS.gray800,
+  },
+  tagChipTextPicked: {
+    color: COLORS.piktag600,
+    fontWeight: '700',
   },
   nameSection: {
     flex: 1,
