@@ -297,7 +297,10 @@
     "pickTagSubtitle": "Choose tags that best represent {{name}} to help you remember",
     "pickTagEmpty": "This friend has no public tags yet",
     "pickTagSave": "Save ({{count}})",
-    "alertPickTagError": "Failed to save tags"
+    "alertPickTagError": "Failed to save tags",
+    "unfollowTitle": "Unfollow",
+    "unfollowMessage": "Are you sure you want to unfollow {{name}}?",
+    "unfollowConfirm": "Unfollow"
   },
   "userDetail": {
     "headerNotFound": "Not Found",

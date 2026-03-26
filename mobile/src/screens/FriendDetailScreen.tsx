@@ -498,8 +498,24 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
     setFollowLoading(true);
     try {
       if (isFollowing) {
-        await supabase.from('piktag_follows').delete().eq('follower_id', user.id).eq('following_id', friendId);
-        setIsFollowing(false);
+        // Confirm before unfollowing
+        setFollowLoading(false);
+        Alert.alert(
+          t('friendDetail.unfollowTitle'),
+          t('friendDetail.unfollowMessage', { name: displayName }),
+          [
+            { text: t('common.cancel'), style: 'cancel' },
+            {
+              text: t('friendDetail.unfollowConfirm'),
+              style: 'destructive',
+              onPress: async () => {
+                await supabase.from('piktag_follows').delete().eq('follower_id', user.id).eq('following_id', friendId);
+                setIsFollowing(false);
+              },
+            },
+          ]
+        );
+        return;
       } else {
         await supabase.from('piktag_follows').insert({ follower_id: user.id, following_id: friendId });
         setIsFollowing(true);
