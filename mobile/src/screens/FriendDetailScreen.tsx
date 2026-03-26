@@ -1511,13 +1511,13 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.4)',
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 40,
   },
   unfollowModalContainer: {
     backgroundColor: COLORS.white,
     borderRadius: 16,
     padding: 24,
-    width: '100%',
+    width: 300,
+    maxWidth: '85%',
     alignItems: 'center',
   },
   unfollowModalTitle: {
