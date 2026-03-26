@@ -419,9 +419,9 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
     setIsAddingNote(false);
   };
 
-  // Fetch friend's public tags for the pick modal
-  const fetchFriendPublicTags = useCallback(async () => {
-    if (!friendId) return;
+  // Fetch friend's public tags for the pick modal — returns tags array
+  const fetchFriendPublicTags = useCallback(async (): Promise<{ id: string; name: string }[]> => {
+    if (!friendId) return [];
     const { data } = await supabase
       .from('piktag_user_tags')
       .select('tag_id, piktag_tags!inner(id, name)')
@@ -433,7 +433,9 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
         .map((ut: any) => ({ id: ut.piktag_tags?.id, name: ut.piktag_tags?.name }))
         .filter((t: any) => t.id && t.name);
       setFriendPublicTags(tags);
+      return tags;
     }
+    return [];
   }, [friendId]);
 
   // Load already-picked tags for this connection
@@ -502,10 +504,12 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
         await supabase.from('piktag_follows').insert({ follower_id: user.id, following_id: friendId });
         setIsFollowing(true);
 
-        // After follow success → show Pick Tag modal
-        await fetchFriendPublicTags();
-        await loadPickedTags();
-        setPickTagModalVisible(true);
+        // After follow success → show Pick Tag modal only if friend has public tags
+        const tags = await fetchFriendPublicTags();
+        if (tags.length > 0) {
+          await loadPickedTags();
+          setPickTagModalVisible(true);
+        }
       }
     } catch (err) {
       console.error('Follow toggle error:', err);
