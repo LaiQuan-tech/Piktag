@@ -159,6 +159,10 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
   const [pickedTagIds, setPickedTagIds] = useState<Set<string>>(new Set());
   const [pickTagLoading, setPickTagLoading] = useState(false);
 
+  // Mutual tags detail modal
+  const [mutualTagNames, setMutualTagNames] = useState<{ id: string; name: string }[]>([]);
+  const [mutualTagModalVisible, setMutualTagModalVisible] = useState(false);
+
   // Hidden tags state (private tags only I can see)
   const [hiddenTags, setHiddenTags] = useState<{ id: string; tagId: string; name: string }[]>([]);
   const [hiddenTagInput, setHiddenTagInput] = useState('');
@@ -336,9 +340,10 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
 
           dispatchFriendData({ type: 'SET_TAGS', tags: friendTags });
 
-          // 6. Also set mutual tags count
-          const mutualCount = friendTags.filter(t => myTagIds.has(t.tagId)).length;
-          dispatchFriendData({ type: 'SET_MUTUAL_TAGS', mutualTags: mutualCount });
+          // 6. Also set mutual tags count + names
+          const mutualList = friendTags.filter(t => myTagIds.has(t.tagId));
+          dispatchFriendData({ type: 'SET_MUTUAL_TAGS', mutualTags: mutualList.length });
+          setMutualTagNames(mutualList.map(t => ({ id: t.tagId, name: t.name })));
         })());
       }
 
@@ -817,17 +822,32 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
             </View>
           )}
 
-          {/* Stats — subtle one line, doesn't steal from tags */}
-          <Text style={styles.statsLine}>
-            <Text style={[styles.statNumber, mutualTags > 0 && { color: COLORS.piktag600 }]}>{mutualTags}</Text>
-            <Text style={styles.statLabel}>{t('friendDetail.mutualTagsLabel')}</Text>
-            <Text style={styles.statDot}> · </Text>
-            <Text style={styles.statNumber}>{mutualFriends}</Text>
-            <Text style={styles.statLabel}>{t('friendDetail.mutualFriendsLabel')}</Text>
-            <Text style={styles.statDot}> · </Text>
-            <Text style={styles.statNumber}>{followerCount}</Text>
-            <Text style={styles.statLabel}>{t('friendDetail.followersLabel')}</Text>
-          </Text>
+          {/* Stats — subtle one line */}
+          <View style={styles.statsLineRow}>
+            {mutualTags > 0 ? (
+              <TouchableOpacity onPress={() => setMutualTagModalVisible(true)} activeOpacity={0.6}>
+                <Text style={styles.statTextClickable}>
+                  <Text style={[styles.statNumber, { color: COLORS.piktag600 }]}>{mutualTags}</Text>
+                  <Text style={{ color: COLORS.piktag600 }}>{t('friendDetail.mutualTagsLabel')}</Text>
+                </Text>
+              </TouchableOpacity>
+            ) : (
+              <Text style={styles.statText}>
+                <Text style={styles.statNumber}>{mutualTags}</Text>
+                <Text style={styles.statLabel}>{t('friendDetail.mutualTagsLabel')}</Text>
+              </Text>
+            )}
+            <Text style={styles.statDot}>·</Text>
+            <Text style={styles.statText}>
+              <Text style={styles.statNumber}>{mutualFriends}</Text>
+              <Text style={styles.statLabel}>{t('friendDetail.mutualFriendsLabel')}</Text>
+            </Text>
+            <Text style={styles.statDot}>·</Text>
+            <Text style={styles.statText}>
+              <Text style={styles.statNumber}>{followerCount}</Text>
+              <Text style={styles.statLabel}>{t('friendDetail.followersLabel')}</Text>
+            </Text>
+          </View>
 
           {/* Action buttons — Follow logic */}
           <View style={styles.actionButtonsRow}>
@@ -1112,6 +1132,39 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
         )}
       </ScrollView>
 
+      {/* ====== Mutual Tags Modal ====== */}
+      <Modal
+        visible={mutualTagModalVisible}
+        animationType="fade"
+        transparent
+        onRequestClose={() => setMutualTagModalVisible(false)}
+      >
+        <TouchableOpacity
+          style={styles.mutualModalOverlay}
+          activeOpacity={1}
+          onPress={() => setMutualTagModalVisible(false)}
+        >
+          <View style={styles.mutualModalContainer}>
+            <Text style={styles.mutualModalTitle}>{t('friendDetail.mutualTagsModalTitle')}</Text>
+            <View style={styles.mutualModalTagsWrap}>
+              {mutualTagNames.map((tag) => (
+                <TouchableOpacity
+                  key={tag.id}
+                  style={styles.mutualModalTag}
+                  activeOpacity={0.7}
+                  onPress={() => {
+                    setMutualTagModalVisible(false);
+                    navigation.navigate('TagDetail', { tagId: tag.id, tagName: tag.name, initialTab: 'explore' });
+                  }}
+                >
+                  <Text style={styles.mutualModalTagText}>#{tag.name}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+        </TouchableOpacity>
+      </Modal>
+
       {/* ====== Unfollow Confirm Modal ====== */}
       <Modal
         visible={unfollowModalVisible}
@@ -1316,11 +1369,6 @@ const styles = StyleSheet.create({
   nameSection: {
     flex: 1,
     gap: 2,
-  },
-  statsLine: {
-    fontSize: 14,
-    color: COLORS.gray500,
-    marginBottom: 14,
   },
   statNumber: {
     fontWeight: '700',
@@ -1668,6 +1716,60 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: COLORS.gray900,
+  },
+
+  // Stats line
+  statsLineRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 14,
+  },
+  statText: {
+    fontSize: 14,
+    color: COLORS.gray500,
+  },
+  statTextClickable: {
+    fontSize: 14,
+  },
+
+  // Mutual Tags Modal
+  mutualModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  mutualModalContainer: {
+    backgroundColor: COLORS.white,
+    borderRadius: 16,
+    padding: 24,
+    width: 300,
+    maxWidth: '85%',
+  },
+  mutualModalTitle: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: COLORS.gray900,
+    marginBottom: 16,
+  },
+  mutualModalTagsWrap: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+  },
+  mutualModalTag: {
+    backgroundColor: COLORS.piktag50,
+    borderRadius: 16,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderWidth: 1,
+    borderColor: COLORS.piktag500,
+  },
+  mutualModalTagText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: COLORS.piktag600,
   },
 
   // Hidden Tags

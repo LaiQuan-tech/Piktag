@@ -302,7 +302,8 @@
     "unfollowMessage": "Are you sure you want to unfollow {{name}}?",
     "unfollowConfirm": "Unfollow",
     "hiddenTagsTitle": "Hidden Tags (only you can see)",
-    "hiddenTagPlaceholder": "Add hidden tag, e.g. ex-colleague"
+    "hiddenTagPlaceholder": "Add hidden tag, e.g. ex-colleague",
+    "mutualTagsModalTitle": "Mutual Tags"
   },
   "userDetail": {
     "headerNotFound": "Not Found",

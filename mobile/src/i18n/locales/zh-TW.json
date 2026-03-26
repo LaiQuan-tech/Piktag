@@ -302,7 +302,8 @@
     "unfollowMessage": "確定要取消追蹤 {{name}} 嗎？",
     "unfollowConfirm": "取消追蹤",
     "hiddenTagsTitle": "隱藏標籤（只有你看得到）",
-    "hiddenTagPlaceholder": "新增隱藏標籤，如：前同事"
+    "hiddenTagPlaceholder": "新增隱藏標籤，如：前同事",
+    "mutualTagsModalTitle": "共同標籤"
   },
   "userDetail": {
     "headerNotFound": "Not Found",
