@@ -506,6 +506,23 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
     }
   }, [connectionId]);
 
+  // --- Hidden tags (private) --- (must be before openPickTagModal)
+  const fetchHiddenTags = useCallback(async () => {
+    if (!connectionId) return;
+    const { data } = await supabase
+      .from('piktag_connection_tags')
+      .select('id, tag_id, piktag_tags!inner(name)')
+      .eq('connection_id', connectionId)
+      .eq('is_private', true);
+    if (data) {
+      setHiddenTags(data.map((ct: any) => ({
+        id: ct.id,
+        tagId: ct.tag_id,
+        name: ct.piktag_tags?.name || '',
+      })));
+    }
+  }, [connectionId]);
+
   // Open pick tag modal (includes hidden tags)
   const openPickTagModal = useCallback(async () => {
     await Promise.all([fetchFriendPublicTags(), loadPickedTags(), fetchHiddenTags()]);
@@ -573,23 +590,6 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
       setFollowLoading(false);
     }
   };
-
-  // --- Hidden tags (private) ---
-  const fetchHiddenTags = useCallback(async () => {
-    if (!connectionId) return;
-    const { data } = await supabase
-      .from('piktag_connection_tags')
-      .select('id, tag_id, piktag_tags!inner(name)')
-      .eq('connection_id', connectionId)
-      .eq('is_private', true);
-    if (data) {
-      setHiddenTags(data.map((ct: any) => ({
-        id: ct.id,
-        tagId: ct.tag_id,
-        name: ct.piktag_tags?.name || '',
-      })));
-    }
-  }, [connectionId]);
 
   // Fetch hidden tags on load
   useFocusEffect(
@@ -1391,7 +1391,7 @@ const styles = StyleSheet.create({
   followButtonFollowing: {
     backgroundColor: COLORS.white,
     borderWidth: 1.5,
-    borderColor: COLORS.gray300,
+    borderColor: COLORS.gray200,
   },
   followButtonTextDefault: {
     fontSize: 15,
@@ -1407,7 +1407,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.white,
     borderWidth: 1.5,
-    borderColor: COLORS.gray300,
+    borderColor: COLORS.gray200,
     borderRadius: 12,
     paddingVertical: 12,
     alignItems: 'center',
@@ -1877,7 +1877,7 @@ const styles = StyleSheet.create({
   unfollowModalCancelBtn: {
     flex: 1,
     borderWidth: 1.5,
-    borderColor: COLORS.gray300,
+    borderColor: COLORS.gray200,
     borderRadius: 12,
     paddingVertical: 12,
     alignItems: 'center',
