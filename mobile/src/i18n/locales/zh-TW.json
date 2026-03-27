@@ -313,7 +313,7 @@
     "mutualTagsPrefix": "共同標籤 ",
     "mutualTagsSuffix": " 個",
     "mutualSeparator": "  |  ",
-    "following": "已追蹤",
+    "following": "追蹤中",
     "follow": "追蹤",
     "sendMessage": "傳訊息",
     "socialLinksTitle": "社交連結",
@@ -321,7 +321,10 @@
     "linkBioTitle": "連結",
     "statMutualTags": "共同標籤",
     "statMutualFriends": "共同好友",
-    "statFollowers": "追蹤者"
+    "statFollowers": "追蹤者",
+    "unfollowTitle": "取消追蹤",
+    "unfollowMessage": "確定要取消追蹤 {{name}} 嗎？",
+    "unfollowConfirm": "取消追蹤"
   },
   "settings": {
     "headerTitle": "設定",

@@ -321,7 +321,10 @@
     "linkBioTitle": "Links",
     "statMutualTags": "Mutual Tags",
     "statMutualFriends": "Mutual Friends",
-    "statFollowers": "Followers"
+    "statFollowers": "Followers",
+    "unfollowTitle": "Unfollow",
+    "unfollowMessage": "Are you sure you want to unfollow {{name}}?",
+    "unfollowConfirm": "Unfollow"
   },
   "settings": {
     "headerTitle": "Settings",

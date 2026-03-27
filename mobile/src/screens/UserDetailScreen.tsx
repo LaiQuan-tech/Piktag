@@ -10,6 +10,7 @@ import {
   Linking,
   ActivityIndicator,
   Alert,
+  Modal,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
@@ -49,6 +50,7 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
   const [followerCount, setFollowerCount] = useState(0);
   const [isFollowing, setIsFollowing] = useState(false);
   const [followLoading, setFollowLoading] = useState(false);
+  const [unfollowModalVisible, setUnfollowModalVisible] = useState(false);
 
   const fetchData = useCallback(async () => {
     if (!authUser) return;
@@ -168,24 +170,22 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
     }, [fetchData])
   );
 
+  const handleConfirmUnfollow = async () => {
+    if (!authUser || !resolvedUserId) return;
+    setUnfollowModalVisible(false);
+    await supabase.from('piktag_follows').delete().eq('follower_id', authUser.id).eq('following_id', resolvedUserId);
+    setIsFollowing(false);
+  };
+
   const handleToggleFollow = async () => {
     if (!authUser || !resolvedUserId || followLoading) return;
 
     setFollowLoading(true);
     try {
       if (isFollowing) {
-        // Unfollow
-        const { error } = await supabase
-          .from('piktag_follows')
-          .delete()
-          .eq('follower_id', authUser.id)
-          .eq('following_id', resolvedUserId);
-
-        if (error) {
-          console.error('Error unfollowing:', error);
-          return;
-        }
-        setIsFollowing(false);
+        setFollowLoading(false);
+        setUnfollowModalVisible(true);
+        return;
       } else {
         // Follow
         const { error } = await supabase
@@ -435,6 +435,39 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
 
         {/* All Tags Section removed — tags now shown inline in profile section */}
       </ScrollView>
+
+      {/* Unfollow Confirm Modal */}
+      <Modal
+        visible={unfollowModalVisible}
+        animationType="fade"
+        transparent
+        onRequestClose={() => setUnfollowModalVisible(false)}
+      >
+        <View style={styles.unfollowModalOverlay}>
+          <View style={styles.unfollowModalContainer}>
+            <Text style={styles.unfollowModalTitle}>{t('userDetail.unfollowTitle')}</Text>
+            <Text style={styles.unfollowModalMessage}>
+              {t('userDetail.unfollowMessage', { name: profile?.full_name || profile?.username || '' })}
+            </Text>
+            <View style={styles.unfollowModalButtons}>
+              <TouchableOpacity
+                style={styles.unfollowModalCancelBtn}
+                onPress={() => setUnfollowModalVisible(false)}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.unfollowModalCancelText}>{t('common.cancel')}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.unfollowModalConfirmBtn}
+                onPress={handleConfirmUnfollow}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.unfollowModalConfirmText}>{t('userDetail.unfollowConfirm')}</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -708,5 +741,64 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: COLORS.gray900,
+  },
+
+  // Unfollow Modal
+  unfollowModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  unfollowModalContainer: {
+    backgroundColor: COLORS.white,
+    borderRadius: 16,
+    padding: 24,
+    width: 300,
+    maxWidth: '85%',
+    alignItems: 'center',
+  },
+  unfollowModalTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: COLORS.gray900,
+    marginBottom: 8,
+  },
+  unfollowModalMessage: {
+    fontSize: 15,
+    color: COLORS.gray500,
+    textAlign: 'center',
+    lineHeight: 22,
+    marginBottom: 24,
+  },
+  unfollowModalButtons: {
+    flexDirection: 'row',
+    gap: 12,
+    width: '100%',
+  },
+  unfollowModalCancelBtn: {
+    flex: 1,
+    borderWidth: 1.5,
+    borderColor: COLORS.gray200,
+    borderRadius: 12,
+    paddingVertical: 12,
+    alignItems: 'center',
+  },
+  unfollowModalCancelText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: COLORS.gray700,
+  },
+  unfollowModalConfirmBtn: {
+    flex: 1,
+    backgroundColor: '#EF4444',
+    borderRadius: 12,
+    paddingVertical: 12,
+    alignItems: 'center',
+  },
+  unfollowModalConfirmText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: COLORS.white,
   },
 });
