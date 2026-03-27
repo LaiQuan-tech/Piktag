@@ -433,10 +433,7 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
               <Text style={styles.statNumber}>{followerCount}</Text>{t('userDetail.statFollowers')}
             </Text>
           </View>
-        </View>
 
-        {/* Action Buttons */}
-        <View style={styles.actionsSection}>
           {/* Action buttons */}
           <View style={styles.actionButtonsRow}>
             <TouchableOpacity
@@ -783,12 +780,6 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '600',
     color: COLORS.piktag600,
-  },
-  actionsSection: {
-    flexDirection: 'row',
-    paddingHorizontal: 20,
-    marginTop: 24,
-    gap: 12,
   },
   followButton: {
     flex: 1,
