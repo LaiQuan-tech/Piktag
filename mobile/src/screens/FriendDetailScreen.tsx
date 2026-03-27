@@ -1303,13 +1303,13 @@ const styles = StyleSheet.create({
   profileRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 20,
-    marginBottom: 12,
+    gap: 14,
+    marginBottom: 10,
   },
   avatar: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
     backgroundColor: COLORS.gray100,
   },
   nameRow: {
@@ -1467,10 +1467,14 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   sectionTitle: {
-    fontSize: 16,
+    fontSize: 13,
     fontWeight: '700',
-    color: COLORS.gray900,
+    color: COLORS.gray500,
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
+    paddingHorizontal: 20,
     marginBottom: 12,
+    marginTop: 12,
   },
   recordCard: {
     backgroundColor: COLORS.gray50,

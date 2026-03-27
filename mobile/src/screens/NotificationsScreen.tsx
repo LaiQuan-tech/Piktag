@@ -132,7 +132,7 @@ const EmptyState = React.memo(function EmptyState({
 }) {
   return (
     <View style={styles.emptyState}>
-      <Bell size={64} color={COLORS.gray200} />
+      <Bell size={48} color={COLORS.gray200} />
       <Text style={styles.emptyStateText}>{text}</Text>
     </View>
   );

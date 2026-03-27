@@ -806,7 +806,7 @@ const styles = StyleSheet.create({
   followButton: {
     flex: 1,
     borderRadius: 12,
-    paddingVertical: 14,
+    paddingVertical: 12,
     alignItems: 'center',
     justifyContent: 'center',
   },
