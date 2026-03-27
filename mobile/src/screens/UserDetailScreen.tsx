@@ -287,12 +287,13 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
         {/* Profile Info */}
         <View style={styles.profileSection}>
           <View style={styles.profileRow}>
-            <View style={styles.profileTextCol}>
+            <Image source={{ uri: avatarUri }} style={styles.avatar} />
+            <View style={styles.nameSection}>
               <View style={styles.nameRow}>
                 <Text style={styles.name}>{displayName}</Text>
                 {verified && (
                   <CheckCircle2
-                    size={20}
+                    size={16}
                     color={COLORS.blue500}
                     fill={COLORS.blue500}
                     strokeWidth={0}
@@ -302,7 +303,6 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
               </View>
               <Text style={styles.usernameText}>@{username}</Text>
             </View>
-            <Image source={{ uri: avatarUri }} style={styles.avatar} />
           </View>
 
           {/* Bio */}
@@ -521,37 +521,35 @@ const styles = StyleSheet.create({
   profileRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    gap: 14,
+    marginBottom: 10,
   },
-  profileTextCol: {
+  avatar: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: COLORS.gray100,
+  },
+  nameSection: {
     flex: 1,
-    marginRight: 16,
+    gap: 2,
   },
   nameRow: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   name: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: '700',
     color: COLORS.gray900,
-    lineHeight: 32,
   },
   verifiedIcon: {
-    marginLeft: 8,
+    marginLeft: 4,
   },
   usernameText: {
-    fontSize: 15,
+    fontSize: 14,
+    fontWeight: '500',
     color: COLORS.gray500,
-    marginTop: 4,
-  },
-  avatar: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    borderWidth: 2,
-    borderColor: COLORS.gray100,
-    backgroundColor: COLORS.gray100,
   },
   bio: {
     fontSize: 15,
