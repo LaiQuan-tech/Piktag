@@ -1816,6 +1816,7 @@ const styles = StyleSheet.create({
   hiddenTagInputRow: {
     flexDirection: 'row',
     gap: 10,
+    marginBottom: 20,
   },
   hiddenTagInput: {
     flex: 1,
