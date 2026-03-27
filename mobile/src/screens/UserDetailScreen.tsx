@@ -11,6 +11,8 @@ import {
   ActivityIndicator,
   Alert,
   Modal,
+  Share,
+  Platform,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
@@ -19,6 +21,7 @@ import {
   CheckCircle2,
   Link as LinkIcon,
   ExternalLink,
+  Share2,
 } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { COLORS } from '../constants/theme';
@@ -381,7 +384,23 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
           <ArrowLeft size={24} color={COLORS.gray900} />
         </TouchableOpacity>
         <Text style={styles.headerUsername}>@{username}</Text>
-        <View style={styles.headerSpacer} />
+        <TouchableOpacity
+          style={styles.headerShareBtn}
+          onPress={async () => {
+            const profileUrl = `https://pikt.ag/${username}`;
+            try {
+              await Share.share({
+                message: Platform.OS === 'ios'
+                  ? `${displayName} (@${username}) on PikTag`
+                  : `${displayName} (@${username}) on PikTag\n${profileUrl}`,
+                url: Platform.OS === 'ios' ? profileUrl : undefined,
+              });
+            } catch {}
+          }}
+          activeOpacity={0.6}
+        >
+          <Share2 size={22} color={COLORS.gray900} />
+        </TouchableOpacity>
       </View>
 
       <ScrollView
@@ -690,6 +709,9 @@ const styles = StyleSheet.create({
   },
   headerSpacer: {
     width: 32,
+  },
+  headerShareBtn: {
+    padding: 4,
   },
   loadingContainer: {
     flex: 1,

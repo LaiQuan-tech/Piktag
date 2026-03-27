@@ -12,6 +12,8 @@ import {
   Alert,
   TextInput,
   Modal,
+  Share,
+  Platform,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
@@ -38,6 +40,7 @@ import {
   Clock,
   Bell,
   ExternalLink,
+  Share2,
 } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { COLORS } from '../constants/theme';
@@ -773,7 +776,24 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
         <Text style={styles.headerName} numberOfLines={1}>
           {username}
         </Text>
-        <View style={styles.headerSpacer} />
+        <TouchableOpacity
+          style={styles.headerShareBtn}
+          onPress={async () => {
+            const profileUrl = `https://pikt.ag/${username}`;
+            const name = displayName || username;
+            try {
+              await Share.share({
+                message: Platform.OS === 'ios'
+                  ? `${name} (@${username}) on PikTag`
+                  : `${name} (@${username}) on PikTag\n${profileUrl}`,
+                url: Platform.OS === 'ios' ? profileUrl : undefined,
+              });
+            } catch {}
+          }}
+          activeOpacity={0.6}
+        >
+          <Share2 size={22} color={COLORS.gray900} />
+        </TouchableOpacity>
       </View>
 
       <ScrollView
@@ -1286,6 +1306,9 @@ const styles = StyleSheet.create({
   },
   headerSpacer: {
     width: 32,
+  },
+  headerShareBtn: {
+    padding: 4,
   },
   loadingContainer: {
     flex: 1,
