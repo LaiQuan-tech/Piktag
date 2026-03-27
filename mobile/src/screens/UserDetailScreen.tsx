@@ -51,6 +51,7 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
   const [isFollowing, setIsFollowing] = useState(false);
   const [followLoading, setFollowLoading] = useState(false);
   const [unfollowModalVisible, setUnfollowModalVisible] = useState(false);
+  const [mutualTagModalVisible, setMutualTagModalVisible] = useState(false);
 
   const fetchData = useCallback(async () => {
     if (!authUser) return;
@@ -327,34 +328,29 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
             </View>
           )}
 
-          {/* Stats — IG inline style */}
+          {/* Stats — one line, mutual tags clickable */}
           <View style={styles.statsRow}>
-            <Text style={styles.statText}>
-              <Text style={[styles.statNumber, mutualTags > 0 && { color: COLORS.piktag600 }]}>{mutualTags}</Text>{t('userDetail.statMutualTags')}
-            </Text>
+            {mutualTags > 0 ? (
+              <TouchableOpacity onPress={() => setMutualTagModalVisible(true)} activeOpacity={0.6}>
+                <Text style={styles.statTextClickable}>
+                  <Text style={[styles.statNumber, { color: COLORS.piktag600 }]}>{mutualTags}</Text>
+                  <Text style={{ color: COLORS.piktag600 }}>{t('userDetail.statMutualTags')}</Text>
+                </Text>
+              </TouchableOpacity>
+            ) : (
+              <Text style={styles.statText}>
+                <Text style={styles.statNumber}>{mutualTags}</Text>{t('userDetail.statMutualTags')}
+              </Text>
+            )}
+            <Text style={styles.statDot}>·</Text>
             <Text style={styles.statText}>
               <Text style={styles.statNumber}>{mutualFriends}</Text>{t('userDetail.statMutualFriends')}
             </Text>
+            <Text style={styles.statDot}>·</Text>
             <Text style={styles.statText}>
               <Text style={styles.statNumber}>{followerCount}</Text>{t('userDetail.statFollowers')}
             </Text>
           </View>
-
-          {/* Clickable mutual tags */}
-          {mutualTagList.length > 0 && (
-            <View style={styles.mutualTagsRow}>
-              {mutualTagList.map((tag) => (
-                <TouchableOpacity
-                  key={tag.id}
-                  style={styles.mutualTagChip}
-                  onPress={() => navigation.navigate('TagDetail', { tagId: tag.id, tagName: tag.name, initialTab: 'explore' })}
-                  activeOpacity={0.7}
-                >
-                  <Text style={styles.mutualTagChipText}>#{tag.name}</Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          )}
         </View>
 
         {/* Action Buttons */}
@@ -435,6 +431,39 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
 
         {/* All Tags Section removed — tags now shown inline in profile section */}
       </ScrollView>
+
+      {/* Mutual Tags Modal */}
+      <Modal
+        visible={mutualTagModalVisible}
+        animationType="fade"
+        transparent
+        onRequestClose={() => setMutualTagModalVisible(false)}
+      >
+        <TouchableOpacity
+          style={styles.mutualModalOverlay}
+          activeOpacity={1}
+          onPress={() => setMutualTagModalVisible(false)}
+        >
+          <View style={styles.mutualModalContainer}>
+            <Text style={styles.mutualModalTitle}>{t('userDetail.mutualTagsModalTitle')}</Text>
+            <View style={styles.mutualModalTagsWrap}>
+              {mutualTagList.map((tag) => (
+                <TouchableOpacity
+                  key={tag.id}
+                  style={styles.mutualModalTag}
+                  activeOpacity={0.7}
+                  onPress={() => {
+                    setMutualTagModalVisible(false);
+                    navigation.navigate('TagDetail', { tagId: tag.id, tagName: tag.name, initialTab: 'explore' });
+                  }}
+                >
+                  <Text style={styles.mutualModalTagText}>#{tag.name}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+        </TouchableOpacity>
+      </Modal>
 
       {/* Unfollow Confirm Modal */}
       <Modal
@@ -739,6 +768,53 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: COLORS.gray900,
+  },
+
+  statTextClickable: {
+    fontSize: 14,
+  },
+  statDot: {
+    fontSize: 14,
+    color: COLORS.gray400,
+  },
+
+  // Mutual Tags Modal
+  mutualModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  mutualModalContainer: {
+    backgroundColor: COLORS.white,
+    borderRadius: 16,
+    padding: 24,
+    width: 300,
+    maxWidth: '85%',
+  },
+  mutualModalTitle: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: COLORS.gray900,
+    marginBottom: 16,
+  },
+  mutualModalTagsWrap: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+  },
+  mutualModalTag: {
+    backgroundColor: COLORS.piktag50,
+    borderRadius: 16,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderWidth: 1,
+    borderColor: COLORS.piktag500,
+  },
+  mutualModalTagText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: COLORS.piktag600,
   },
 
   // Unfollow Modal
