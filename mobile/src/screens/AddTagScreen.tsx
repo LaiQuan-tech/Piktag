@@ -250,7 +250,7 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
       const jsonString = JSON.stringify(payload);
       // Use encodeURIComponent + unescape for safe base64 with non-ASCII chars
       const encoded = btoa(unescape(encodeURIComponent(jsonString)));
-      const qrUrl = `https://go.pikt.ag/scan?d=${encoded}`;
+      const qrUrl = `https://pikt.ag/s?d=${encoded}`;
 
       // 4. Update session in DB if it was created
       if (sessionData) {

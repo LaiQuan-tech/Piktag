@@ -9,7 +9,7 @@ import AppNavigator from './src/navigation/AppNavigator';
 const prefix = Linking.createURL('/');
 
 const linking = {
-  prefixes: [prefix, 'piktag://', 'https://go.pikt.ag'],
+  prefixes: [prefix, 'piktag://', 'https://pikt.ag', 'https://www.pikt.ag'],
   config: {
     screens: {
       Main: {
@@ -19,7 +19,7 @@ const linking = {
               Connections: 'connections',
               FriendDetail: 'friend/:id',
               UserDetail: {
-                path: 'u/:username',
+                path: ':username',
               },
             },
           },

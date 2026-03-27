@@ -203,7 +203,9 @@
     "linkBioTitle": "Links",
     "statTags": "Tags",
     "statFriends": "Friends",
-    "statFollowers": "Followers"
+    "statFollowers": "Followers",
+    "copyLink": "Copy Link",
+    "share": "Share"
   },
   "editProfile": {
     "headerTitle": "Edit Profile",

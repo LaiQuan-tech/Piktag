@@ -39,7 +39,7 @@ type Invite = {
   created_at: string;
 };
 
-const APP_URL = 'https://go.pikt.ag';
+const APP_URL = 'https://pikt.ag';
 
 function generateCode(): string {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';

@@ -203,7 +203,9 @@
     "linkBioTitle": "連結",
     "statTags": "標籤",
     "statFriends": "朋友",
-    "statFollowers": "追蹤者"
+    "statFollowers": "追蹤者",
+    "copyLink": "複製連結",
+    "share": "分享"
   },
   "editProfile": {
     "headerTitle": "編輯個人資訊",
