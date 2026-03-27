@@ -101,16 +101,38 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
         .maybeSingle();
       setIsFollowing(!!followData);
 
-      // Fetch user's tags (exclude private tags from other users)
-      const { data: userTagsData } = await supabase
-        .from('piktag_user_tags')
-        .select('*, tag:piktag_tags!tag_id(*)')
-        .eq('user_id', userId)
-        .eq('is_private', false)
-        .order('position', { ascending: true });
+      // Fetch user's tags + my tags for mutual check + pick count for sorting
+      const [userTagsResult, myTagsResult] = await Promise.all([
+        supabase.from('piktag_user_tags').select('*, tag:piktag_tags!tag_id(*)').eq('user_id', userId).eq('is_private', false),
+        supabase.from('piktag_user_tags').select('tag_id').eq('user_id', authUser.id).eq('is_private', false),
+      ]);
 
-      if (userTagsData && userTagsData.length > 0) {
-        setTags(userTagsData.map((ut: any) => ut.tag?.name ? `#${ut.tag.name}` : '').filter(Boolean));
+      if (userTagsResult.data && userTagsResult.data.length > 0) {
+        const myTagIds = new Set((myTagsResult.data || []).map((t: any) => t.tag_id));
+
+        // Get pick counts — how many connections tagged this user with each tag
+        const { data: allConnsToUser } = await supabase.from('piktag_connections').select('id').eq('connected_user_id', userId);
+        const connIds = (allConnsToUser || []).map((c: any) => c.id);
+        const pickCountMap = new Map<string, number>();
+        if (connIds.length > 0) {
+          const { data: allPicks } = await supabase.from('piktag_connection_tags').select('tag_id').in('connection_id', connIds).eq('is_private', false);
+          (allPicks || []).forEach((p: any) => pickCountMap.set(p.tag_id, (pickCountMap.get(p.tag_id) || 0) + 1));
+        }
+
+        // Sort: mutual first, then by pick count, then position
+        const sorted = userTagsResult.data
+          .filter((ut: any) => ut.tag?.name)
+          .sort((a: any, b: any) => {
+            const aIsMutual = myTagIds.has(a.tag_id) ? 1 : 0;
+            const bIsMutual = myTagIds.has(b.tag_id) ? 1 : 0;
+            if (aIsMutual !== bIsMutual) return bIsMutual - aIsMutual;
+            const aPick = pickCountMap.get(a.tag_id) || 0;
+            const bPick = pickCountMap.get(b.tag_id) || 0;
+            if (aPick !== bPick) return bPick - aPick;
+            return (a.position || 0) - (b.position || 0);
+          });
+
+        setTags(sorted.map((ut: any) => `#${ut.tag.name}`));
       }
 
       // Fetch biolinks
