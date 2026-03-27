@@ -267,15 +267,15 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
       // Scan session tags (depends on connData.scan_session_id)
       if (connData?.scan_session_id) {
         phase2.push(
-          supabase
+          Promise.resolve(supabase
             .from('piktag_scan_sessions')
             .select('event_tags')
             .eq('id', connData.scan_session_id)
             .single()
-            .then(({ data }) => {
-              if (data?.event_tags)
-                dispatchFriendData({ type: 'SET_SCAN_EVENT_TAGS', scanEventTags: data.event_tags });
-            }),
+          ).then(({ data }) => {
+            if (data?.event_tags)
+              dispatchFriendData({ type: 'SET_SCAN_EVENT_TAGS', scanEventTags: data.event_tags });
+          }),
         );
       }
 

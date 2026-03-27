@@ -254,7 +254,7 @@ export default function ContactSyncScreen({ navigation }: ContactSyncScreenProps
         </View>
       ) : permissionDenied ? (
         <View style={styles.emptyContainer}>
-          <Users size={48} color={COLORS.gray300} />
+          <Users size={48} color={COLORS.gray200} />
           <Text style={styles.emptyTitle}>{t('contactSync.permissionDeniedTitle')}</Text>
           <Text style={styles.emptyText}>
             {Platform.OS === 'web'
@@ -264,7 +264,7 @@ export default function ContactSyncScreen({ navigation }: ContactSyncScreenProps
         </View>
       ) : contacts.length === 0 ? (
         <View style={styles.emptyContainer}>
-          <Users size={48} color={COLORS.gray300} />
+          <Users size={48} color={COLORS.gray200} />
           <Text style={styles.emptyTitle}>{t('contactSync.emptyTitle')}</Text>
           <Text style={styles.emptyText}>{t('contactSync.emptyText')}</Text>
         </View>

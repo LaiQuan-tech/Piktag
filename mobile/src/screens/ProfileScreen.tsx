@@ -616,7 +616,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.white,
     borderWidth: 1.5,
-    borderColor: COLORS.gray300,
+    borderColor: COLORS.gray200,
     borderRadius: 12,
     paddingVertical: 12,
     alignItems: 'center',
