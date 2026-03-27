@@ -317,7 +317,7 @@ export default function ScanResultScreen({ navigation, route }: ScanResultScreen
           <Text style={styles.headerTitle}>{t('scanResult.headerTitle')}</Text>
           <TouchableOpacity
             style={styles.closeBtn}
-            onPress={() => navigation.goBack()}
+            onPress={() => navigation.canGoBack() ? navigation.goBack() : navigation.navigate("Connections")}
             activeOpacity={0.6}
           >
             <X size={24} color={COLORS.gray900} />
@@ -339,7 +339,7 @@ export default function ScanResultScreen({ navigation, route }: ScanResultScreen
         <Text style={styles.headerTitle}>{t('scanResult.headerTitle')}</Text>
         <TouchableOpacity
           style={styles.closeBtn}
-          onPress={() => navigation.goBack()}
+          onPress={() => navigation.canGoBack() ? navigation.goBack() : navigation.navigate("Connections")}
           activeOpacity={0.6}
         >
           <X size={24} color={COLORS.gray900} />

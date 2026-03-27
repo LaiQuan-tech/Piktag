@@ -268,7 +268,7 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
         <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
           <TouchableOpacity
             style={styles.headerBackBtn}
-            onPress={() => navigation.goBack()}
+            onPress={() => navigation.canGoBack() ? navigation.goBack() : navigation.navigate("Connections")}
             activeOpacity={0.6}
           >
             <ArrowLeft size={24} color={COLORS.gray900} />
@@ -291,7 +291,7 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
       <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
         <TouchableOpacity
           style={styles.headerBackBtn}
-          onPress={() => navigation.goBack()}
+          onPress={() => navigation.canGoBack() ? navigation.goBack() : navigation.navigate("Connections")}
           activeOpacity={0.6}
         >
           <ArrowLeft size={24} color={COLORS.gray900} />

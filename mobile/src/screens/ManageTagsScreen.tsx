@@ -415,7 +415,7 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
   // ── Stable event handler references ───────────────────────────────────
 
   const handleGoBack = useCallback(() => {
-    navigation.goBack();
+    navigation.canGoBack() ? navigation.goBack() : navigation.navigate("Connections");
   }, [navigation]);
 
   const togglePrivacy = useCallback(() => {

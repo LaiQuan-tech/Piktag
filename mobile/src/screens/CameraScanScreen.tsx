@@ -132,7 +132,7 @@ export default function CameraScanScreen({ navigation }: CameraScanScreenProps) 
         <View style={[styles.headerOverlay, { paddingTop: insets.top + 12 }]}>
           <TouchableOpacity
             style={styles.closeButton}
-            onPress={() => navigation.goBack()}
+            onPress={() => navigation.canGoBack() ? navigation.goBack() : navigation.navigate("Connections")}
             activeOpacity={0.6}
           >
             <X size={24} color={COLORS.white} />
@@ -183,7 +183,7 @@ export default function CameraScanScreen({ navigation }: CameraScanScreenProps) 
         <View style={[styles.headerOverlay, { paddingTop: insets.top + 12 }]}>
           <TouchableOpacity
             style={styles.closeButton}
-            onPress={() => navigation.goBack()}
+            onPress={() => navigation.canGoBack() ? navigation.goBack() : navigation.navigate("Connections")}
             activeOpacity={0.6}
           >
             <X size={24} color={COLORS.white} />

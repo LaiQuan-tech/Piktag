@@ -395,7 +395,7 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
         return;
       }
       Alert.alert(t('editProfile.alertSuccessTitle'), t('editProfile.alertSuccessMessage'));
-      navigation.goBack();
+      navigation.canGoBack() ? navigation.goBack() : navigation.navigate("Connections");
     } catch {
       Alert.alert(t('common.error'), t('editProfile.alertSaveError'));
     } finally {
@@ -744,7 +744,7 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
         <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
           <TouchableOpacity
             style={styles.headerBackBtn}
-            onPress={() => navigation.goBack()}
+            onPress={() => navigation.canGoBack() ? navigation.goBack() : navigation.navigate("Connections")}
             activeOpacity={0.6}
           >
             <ArrowLeft size={24} color={COLORS.gray900} />
@@ -767,7 +767,7 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
       <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
         <TouchableOpacity
           style={styles.headerBackBtn}
-          onPress={() => navigation.goBack()}
+          onPress={() => navigation.canGoBack() ? navigation.goBack() : navigation.navigate("Connections")}
           activeOpacity={0.6}
         >
           <ArrowLeft size={24} color={COLORS.gray900} />
