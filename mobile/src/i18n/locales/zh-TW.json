@@ -325,7 +325,12 @@
     "unfollowTitle": "取消追蹤",
     "unfollowMessage": "確定要取消追蹤 {{name}} 嗎？",
     "unfollowConfirm": "取消追蹤",
-    "mutualTagsModalTitle": "共同標籤"
+    "mutualTagsModalTitle": "共同標籤",
+    "tagAction": "標籤",
+    "pickTagTitle": "選擇標籤",
+    "pickTagSubtitle": "選擇最能代表 {{name}} 的標籤，方便你之後找到",
+    "pickTagEmpty": "這位用戶還沒有設定公開標籤",
+    "pickTagSave": "儲存 ({{count}})"
   },
   "settings": {
     "headerTitle": "設定",

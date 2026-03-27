@@ -325,7 +325,12 @@
     "unfollowTitle": "Unfollow",
     "unfollowMessage": "Are you sure you want to unfollow {{name}}?",
     "unfollowConfirm": "Unfollow",
-    "mutualTagsModalTitle": "Mutual Tags"
+    "mutualTagsModalTitle": "Mutual Tags",
+    "tagAction": "Tag",
+    "pickTagTitle": "Pick Tags",
+    "pickTagSubtitle": "Choose tags that best represent {{name}}",
+    "pickTagEmpty": "This user has no public tags yet",
+    "pickTagSave": "Save ({{count}})"
   },
   "settings": {
     "headerTitle": "Settings",
