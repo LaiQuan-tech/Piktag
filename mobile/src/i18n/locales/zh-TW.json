@@ -485,7 +485,11 @@
     "alertTagExists": "標籤已存在",
     "alertTagExistsMessage": "此標籤已在你的列表中。",
     "alertAddError": "無法新增標籤，請稍後再試。",
-    "alertRemoveError": "無法移除標籤，請稍後再試。"
+    "alertRemoveError": "無法移除標籤，請稍後再試。",
+    "conceptMatchTitle": "已找到對應概念",
+    "conceptMatchMessage": "「{{input}}」已自動對應到「{{concept}}」",
+    "suggestionsTitle": "你是指以下標籤嗎？",
+    "createNewAnyway": "都不是，建立新標籤"
   },
   "tagDetail": {
     "unknownTag": "未知標籤",

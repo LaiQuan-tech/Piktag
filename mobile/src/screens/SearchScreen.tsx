@@ -549,14 +549,20 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
       setActiveCategory(null);
 
       try {
-        // Search both tags and profiles in parallel
-        const [tagsResult, profilesResult] = await Promise.all([
+        // Search tags (by name + aliases), profiles in parallel
+        const [tagsResult, aliasResult, profilesResult] = await Promise.all([
           supabase
             .from('piktag_tags')
-            .select('id, name, semantic_type, usage_count')
+            .select('id, name, semantic_type, usage_count, concept_id')
             .ilike('name', `%${trimmed}%`)
             .order('usage_count', { ascending: false })
             .limit(20),
+          // Also search via tag_aliases → tag_concepts → piktag_tags
+          supabase
+            .from('tag_aliases')
+            .select('concept_id, concept:tag_concepts(canonical_name, semantic_type)')
+            .ilike('alias', `%${trimmed}%`)
+            .limit(10),
           supabase
             .from('piktag_profiles')
             .select('id, username, full_name, avatar_url, is_verified')
@@ -564,25 +570,72 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
             .limit(20),
         ]);
 
-        if (!tagsResult.error && tagsResult.data) {
-          setTags(tagsResult.data);
+        // Merge alias results: find tags by concept_id
+        console.log('[Search] tagsResult:', JSON.stringify(tagsResult.data?.map((t: any) => ({name: t.name, concept_id: t.concept_id}))));
+        console.log('[Search] aliasResult:', JSON.stringify(aliasResult.data));
+        let mergedTags = tagsResult.data || [];
+        if (!aliasResult.error && aliasResult.data && aliasResult.data.length > 0) {
+          const conceptIds = aliasResult.data.map((a: any) => a.concept_id).filter(Boolean);
+          if (conceptIds.length > 0) {
+            const { data: conceptTags } = await supabase
+              .from('piktag_tags')
+              .select('id, name, semantic_type, usage_count, concept_id')
+              .in('concept_id', conceptIds)
+              .order('usage_count', { ascending: false })
+              .limit(10);
 
-          // Fetch users who have the top matched tags (max 3 tags, 5 users each)
-          const topTags = tagsResult.data.slice(0, 3);
+            if (conceptTags) {
+              // Deduplicate by tag id
+              const existingIds = new Set(mergedTags.map((t: any) => t.id));
+              for (const ct of conceptTags) {
+                if (!existingIds.has(ct.id)) {
+                  mergedTags.push(ct);
+                }
+              }
+            }
+          }
+        }
+
+        if (mergedTags.length > 0) {
+          setTags(mergedTags);
+
+          // Fetch users who have the top matched tags OR same concept (max 3 tags, 10 users each)
+          const topTags = mergedTags.slice(0, 3);
           if (topTags.length > 0) {
             const tagUserResults: { tag: Tag; users: any[] }[] = [];
             for (const tag of topTags) {
+              // Find all tag_ids sharing the same concept
+              let allTagIds = [tag.id];
+              console.log('[Search] tag:', tag.name, 'concept_id:', (tag as any).concept_id);
+              if ((tag as any).concept_id) {
+                const { data: siblingTags } = await supabase
+                  .from('piktag_tags')
+                  .select('id')
+                  .eq('concept_id', (tag as any).concept_id);
+                if (siblingTags) {
+                  allTagIds = [...new Set([tag.id, ...siblingTags.map((t: any) => t.id)])];
+                  console.log('[Search] siblingTags:', siblingTags.length, 'allTagIds:', allTagIds);
+                }
+              }
+
               const { data: utData } = await supabase
                 .from('piktag_user_tags')
                 .select('user_id, piktag_profiles!inner(id, username, full_name, avatar_url, is_verified, is_public)')
-                .eq('tag_id', tag.id)
+                .in('tag_id', allTagIds)
                 .eq('is_private', false)
-                .limit(5);
+                .limit(10);
 
+              console.log('[Search] utData for', tag.name, ':', utData?.length, 'results');
               if (utData && utData.length > 0) {
+                // Deduplicate users (same user may have multiple synonym tags)
+                const seenIds = new Set<string>();
                 const users = utData
                   .map((ut: any) => ut.piktag_profiles)
-                  .filter((p: any) => p && p.is_public && p.id !== user?.id);
+                  .filter((p: any) => {
+                    if (!p || !p.is_public || p.id === user?.id || seenIds.has(p.id)) return false;
+                    seenIds.add(p.id);
+                    return true;
+                  });
                 if (users.length > 0) {
                   tagUserResults.push({ tag, users });
                 }

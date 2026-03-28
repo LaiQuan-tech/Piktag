@@ -85,11 +85,36 @@ export default function TagDetailScreen({ navigation, route }: TagDetailScreenPr
 
   const tagId = resolvedTagId;
 
+  // --- Helper: get all sibling tag_ids sharing the same concept ---
+  const getSiblingTagIds = useCallback(async (tid: string): Promise<string[]> => {
+    // Get concept_id for this tag
+    const { data: tagData } = await supabase
+      .from('piktag_tags')
+      .select('concept_id')
+      .eq('id', tid)
+      .single();
+
+    if (!tagData?.concept_id) return [tid];
+
+    // Get all tags with the same concept
+    const { data: siblings } = await supabase
+      .from('piktag_tags')
+      .select('id')
+      .eq('concept_id', tagData.concept_id);
+
+    if (!siblings || siblings.length === 0) return [tid];
+    return [...new Set([tid, ...siblings.map((s: any) => s.id)])];
+  }, []);
+
   // --- Fetch connections with this tag (existing logic) ---
   const fetchTagConnections = useCallback(async () => {
     if (!user || !tagId) return;
     try {
       setLoading(true);
+
+      // Get all sibling tag_ids (same concept)
+      const allTagIds = await getSiblingTagIds(tagId);
+
       const { data, error } = await supabase
         .from('piktag_connection_tags')
         .select(`
@@ -100,7 +125,7 @@ export default function TagDetailScreen({ navigation, route }: TagDetailScreenPr
             )
           )
         `)
-        .eq('tag_id', tagId);
+        .in('tag_id', allTagIds);
 
       if (error) {
         console.error('Error fetching tag connections:', error);
@@ -127,7 +152,7 @@ export default function TagDetailScreen({ navigation, route }: TagDetailScreenPr
     } finally {
       setLoading(false);
     }
-  }, [user, tagId]);
+  }, [user, tagId, getSiblingTagIds]);
 
   // --- Fetch all public users with this tag (NEW: explore) ---
   const fetchExploreUsers = useCallback(async () => {
@@ -135,11 +160,14 @@ export default function TagDetailScreen({ navigation, route }: TagDetailScreenPr
     try {
       setExploreLoading(true);
 
-      // 1. Get all public user_ids who have this tag (non-private)
+      // Get all sibling tag_ids (same concept)
+      const allTagIds = await getSiblingTagIds(tagId);
+
+      // 1. Get all public user_ids who have this tag OR same concept (non-private)
       const { data: userTagsData, error: utError } = await supabase
         .from('piktag_user_tags')
         .select('user_id')
-        .eq('tag_id', tagId)
+        .in('tag_id', allTagIds)
         .eq('is_private', false);
 
       if (utError || !userTagsData) {
@@ -148,10 +176,12 @@ export default function TagDetailScreen({ navigation, route }: TagDetailScreenPr
         return;
       }
 
-      // Exclude self
-      const otherUserIds = userTagsData
-        .map((ut: any) => ut.user_id)
-        .filter((uid: string) => uid !== user.id);
+      // Exclude self + deduplicate
+      const otherUserIds = [...new Set(
+        userTagsData
+          .map((ut: any) => ut.user_id)
+          .filter((uid: string) => uid !== user.id)
+      )];
 
       setTotalUserCount(otherUserIds.length);
 
@@ -213,7 +243,7 @@ export default function TagDetailScreen({ navigation, route }: TagDetailScreenPr
     } finally {
       setExploreLoading(false);
     }
-  }, [user, tagId]);
+  }, [user, tagId, getSiblingTagIds]);
 
   // --- Fetch tag metadata (semantic_type, parent) ---
   const fetchTagMeta = useCallback(async () => {

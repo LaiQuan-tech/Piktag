@@ -13,6 +13,10 @@ import hi from './locales/hi.json';
 import bn from './locales/bn.json';
 import pt from './locales/pt.json';
 import ru from './locales/ru.json';
+import ko from './locales/ko.json';
+import id from './locales/id.json';
+import th from './locales/th.json';
+import tr from './locales/tr.json';
 
 const resources = {
   'zh-TW': { translation: zhTW },
@@ -26,6 +30,10 @@ const resources = {
   bn: { translation: bn },
   pt: { translation: pt },
   ru: { translation: ru },
+  ko: { translation: ko },
+  id: { translation: id },
+  th: { translation: th },
+  tr: { translation: tr },
 };
 
 // Detect user's preferred language from device

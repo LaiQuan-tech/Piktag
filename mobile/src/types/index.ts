@@ -23,14 +23,34 @@ export type PiktagProfile = {
   updated_at: string;
 };
 
+export type TagConcept = {
+  id: string;
+  canonical_name: string;
+  semantic_type: SemanticType | null;
+  embedding: number[] | null;
+  usage_count: number;
+  created_at: string;
+};
+
+export type TagAlias = {
+  id: string;
+  alias: string;
+  concept_id: string;
+  language: string;
+  created_at: string;
+  concept?: TagConcept; // joined
+};
+
 export type Tag = {
   id: string;
   name: string;
   semantic_type: SemanticType | null;
   parent_tag_id: string | null;
   aliases: string[];
+  concept_id: string | null;
   usage_count: number;
   created_at: string;
+  concept?: TagConcept; // joined
 };
 
 export type UserTag = {

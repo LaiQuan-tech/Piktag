@@ -16,7 +16,9 @@ import { X, Hash, EyeOff, Eye } from 'lucide-react-native';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
 import { COLORS } from '../constants/theme';
-import type { Tag, UserTag } from '../types';
+import { resolveTag, acceptSuggestion } from '../lib/tagResolver';
+import type { Tag, UserTag, TagConcept } from '../types';
+import type { SimilarConcept } from '../lib/tagResolver';
 
 // ── Memoized sub-components ────────────────────────────────────────────────
 
@@ -126,6 +128,8 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
   const [removingTagId, setRemovingTagId] = useState<string | null>(null);
   const [isPrivate, setIsPrivate] = useState(false);
   const [selectedSemanticType, setSelectedSemanticType] = useState<string | null>(null);
+  const [conceptSuggestions, setConceptSuggestions] = useState<SimilarConcept[]>([]);
+  const [conceptMatch, setConceptMatch] = useState<{ tag: Tag; concept: TagConcept } | null>(null);
 
   // ── Data loading (useCallback + Promise.all) ───────────────────────────
 
@@ -210,12 +214,41 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
 
   // ── Handlers (useCallback) ────────────────────────────────────────────
 
+  /**
+   * Link a resolved tag to the current user (shared by handleAddTag & handleAcceptSuggestion).
+   */
+  const linkTagToUser = useCallback(async (tagId: string) => {
+    if (!user) return false;
+    const nextPosition = myTags.length;
+    const { error: linkError } = await supabase
+      .from('piktag_user_tags')
+      .insert({
+        user_id: user.id,
+        tag_id: tagId,
+        position: nextPosition,
+        is_private: isPrivate,
+        semantic_type: selectedSemanticType || null,
+      });
+
+    if (linkError) {
+      console.warn('[ManageTagsScreen] linkTagToUser error:', linkError.message);
+      Alert.alert(t('common.error'), t('manageTags.alertAddError'));
+      return false;
+    }
+
+    // Increment usage_count
+    await supabase.rpc('increment_tag_usage', { tag_id: tagId }).catch((err) => {
+      console.warn('[ManageTagsScreen] increment_tag_usage RPC fallback:', err);
+    });
+
+    return true;
+  }, [user, myTags.length, isPrivate, selectedSemanticType, t]);
+
   const handleAddTag = useCallback(async () => {
     if (!user) return;
     const trimmed = tagInput.trim();
     if (!trimmed) return;
 
-    // Normalize: remove leading # for DB storage, keep for display comparison
     const rawName = trimmed.startsWith('#') ? trimmed.slice(1) : trimmed;
     const displayName = `#${rawName}`;
 
@@ -225,83 +258,138 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
     }
 
     setAddingTag(true);
+    setConceptSuggestions([]);
+    setConceptMatch(null);
+
     try {
-      // 1. Check if tag exists
-      let tagId: string;
-      const { data: existingTag, error: findError } = await supabase
-        .from('piktag_tags')
-        .select('id')
-        .eq('name', rawName)
-        .single();
+      // Resolve tag via concept system (pass userId for context-based disambiguation)
+      const result = await resolveTag(rawName, user.id);
 
-      if (findError) {
-        console.warn('[ManageTagsScreen] handleAddTag findError:', findError.message);
-      }
-
-      if (existingTag && !findError) {
-        tagId = existingTag.id;
-      } else {
-        // 2. Create new tag
-        const { data: newTag, error: createError } = await supabase
-          .from('piktag_tags')
-          .insert({ name: rawName })
-          .select('id')
-          .single();
-
-        if (createError || !newTag) {
-          console.warn('[ManageTagsScreen] handleAddTag createError:', createError?.message);
-          Alert.alert(t('common.error'), t('manageTags.alertAddError'));
-          setAddingTag(false);
-          return;
+      if (result.type === 'exact') {
+        // Alias matched — show which concept it mapped to
+        const mappedName = result.concept.canonical_name;
+        if (mappedName !== rawName) {
+          setConceptMatch({ tag: result.tag, concept: result.concept });
+          // Show brief notice that it mapped to existing concept
+          Alert.alert(
+            t('manageTags.conceptMatchTitle'),
+            t('manageTags.conceptMatchMessage', { input: rawName, concept: mappedName }),
+          );
         }
-        tagId = newTag.id;
-      }
-
-      // 3. Calculate next position
-      const nextPosition = myTags.length;
-
-      // 4. Link tag to user
-      const { error: linkError } = await supabase
-        .from('piktag_user_tags')
-        .insert({
-          user_id: user.id,
-          tag_id: tagId,
-          position: nextPosition,
-          is_private: isPrivate,
-          semantic_type: selectedSemanticType || null,
-        });
-
-      if (linkError) {
-        console.warn('[ManageTagsScreen] handleAddTag linkError:', linkError.message);
-        Alert.alert(t('common.error'), t('manageTags.alertAddError'));
+        // Link the resolved tag to user
+        const ok = await linkTagToUser(result.tag.id);
+        if (ok) {
+          setTagInput('');
+          setIsPrivate(false);
+          setSelectedSemanticType(null);
+          setConceptMatch(null);
+          await Promise.all([loadMyTags(), loadPopularTags()]);
+        }
+      } else if (result.type === 'similar') {
+        // Show suggestions — user picks one or creates new
+        setConceptSuggestions(result.suggestions);
         setAddingTag(false);
-        return;
+        return; // Don't clear input, let user decide
+      } else {
+        // Brand new concept created
+        const ok = await linkTagToUser(result.tag.id);
+        if (ok) {
+          setTagInput('');
+          setIsPrivate(false);
+          setSelectedSemanticType(null);
+          await Promise.all([loadMyTags(), loadPopularTags()]);
+        }
       }
-
-      // 5. Increment usage_count
-      await supabase
-        .from('piktag_tags')
-        .update({ usage_count: (existingTag ? 1 : 1) })
-        .eq('id', tagId);
-
-      // Use RPC if available, otherwise do a raw increment
-      await supabase.rpc('increment_tag_usage', { tag_id: tagId }).catch((err) => {
-        // Fallback: just ignore if RPC doesn't exist, the update above is a basic fallback
-        console.warn('[ManageTagsScreen] increment_tag_usage RPC fallback:', err);
-      });
-
-      // Reload tags
-      setTagInput('');
-      setIsPrivate(false);
-      setSelectedSemanticType(null);
-      await Promise.all([loadMyTags(), loadPopularTags()]);
     } catch (err) {
       console.warn('[ManageTagsScreen] handleAddTag exception:', err);
       Alert.alert(t('common.error'), t('manageTags.alertAddError'));
     } finally {
       setAddingTag(false);
     }
-  }, [user, tagInput, myTagNames, myTags.length, isPrivate, selectedSemanticType, t, loadMyTags, loadPopularTags]);
+  }, [user, tagInput, myTagNames, t, linkTagToUser, loadMyTags, loadPopularTags]);
+
+  /**
+   * User accepted a concept suggestion from embedding similarity.
+   */
+  const handleAcceptSuggestion = useCallback(async (suggestion: SimilarConcept) => {
+    if (!user) return;
+    const rawName = tagInput.trim().replace(/^#/, '');
+    setAddingTag(true);
+
+    try {
+      const result = await acceptSuggestion(rawName, suggestion.concept_id);
+      if (!result) {
+        Alert.alert(t('common.error'), t('manageTags.alertAddError'));
+        return;
+      }
+
+      const ok = await linkTagToUser(result.tag.id);
+      if (ok) {
+        setTagInput('');
+        setIsPrivate(false);
+        setSelectedSemanticType(null);
+        setConceptSuggestions([]);
+        await Promise.all([loadMyTags(), loadPopularTags()]);
+      }
+    } catch (err) {
+      console.warn('[ManageTagsScreen] handleAcceptSuggestion:', err);
+      Alert.alert(t('common.error'), t('manageTags.alertAddError'));
+    } finally {
+      setAddingTag(false);
+    }
+  }, [user, tagInput, t, linkTagToUser, loadMyTags, loadPopularTags]);
+
+  /**
+   * User rejected all suggestions — create as new concept.
+   */
+  const handleCreateNewAnyway = useCallback(async () => {
+    if (!user) return;
+    const rawName = tagInput.trim().replace(/^#/, '');
+    if (!rawName) return;
+
+    setAddingTag(true);
+    setConceptSuggestions([]);
+
+    try {
+      // Force create new concept (bypass similarity check)
+      const { data: concept, error: cErr } = await supabase
+        .from('tag_concepts')
+        .insert({ canonical_name: rawName })
+        .select('*')
+        .single();
+
+      if (cErr || !concept) {
+        Alert.alert(t('common.error'), t('manageTags.alertAddError'));
+        return;
+      }
+
+      await supabase.from('tag_aliases').insert({ alias: rawName, concept_id: concept.id });
+
+      const { data: tag, error: tErr } = await supabase
+        .from('piktag_tags')
+        .insert({ name: rawName, concept_id: concept.id })
+        .select('*')
+        .single();
+
+      if (tErr || !tag) {
+        Alert.alert(t('common.error'), t('manageTags.alertAddError'));
+        return;
+      }
+
+      const ok = await linkTagToUser(tag.id);
+      if (ok) {
+        setTagInput('');
+        setIsPrivate(false);
+        setSelectedSemanticType(null);
+        await Promise.all([loadMyTags(), loadPopularTags()]);
+      }
+    } catch (err) {
+      console.warn('[ManageTagsScreen] handleCreateNewAnyway:', err);
+      Alert.alert(t('common.error'), t('manageTags.alertAddError'));
+    } finally {
+      setAddingTag(false);
+    }
+  }, [user, tagInput, t, linkTagToUser, loadMyTags, loadPopularTags]);
 
   const handleRemoveTag = useCallback(
     async (userTag: UserTag & { tag?: Tag }) => {
@@ -546,6 +634,39 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
                 </Text>
               )}
             </TouchableOpacity>
+
+            {/* Concept Suggestions (from embedding similarity) */}
+            {conceptSuggestions.length > 0 && (
+              <View style={styles.suggestionsContainer}>
+                <Text style={styles.suggestionsTitle}>
+                  {t('manageTags.suggestionsTitle')}
+                </Text>
+                {conceptSuggestions.map((s) => (
+                  <TouchableOpacity
+                    key={s.concept_id}
+                    style={styles.suggestionChip}
+                    onPress={() => handleAcceptSuggestion(s)}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={styles.suggestionText}>
+                      #{s.canonical_name}
+                    </Text>
+                    <Text style={styles.suggestionScore}>
+                      {Math.round(s.similarity * 100)}%
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+                <TouchableOpacity
+                  style={styles.createNewButton}
+                  onPress={handleCreateNewAnyway}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.createNewText}>
+                    {t('manageTags.createNewAnyway')}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            )}
           </View>
 
           {/* Popular Tags Section */}
@@ -768,5 +889,53 @@ const styles = StyleSheet.create({
   semanticTypeChipTextActive: {
     color: COLORS.piktag600,
     fontWeight: '700',
+  },
+
+  // Concept Suggestions
+  suggestionsContainer: {
+    marginTop: 16,
+    padding: 16,
+    backgroundColor: COLORS.gray50,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: COLORS.gray200,
+  },
+  suggestionsTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: COLORS.gray700,
+    marginBottom: 12,
+  },
+  suggestionChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: COLORS.white,
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: COLORS.gray200,
+  },
+  suggestionText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: COLORS.piktag600,
+  },
+  suggestionScore: {
+    fontSize: 13,
+    color: COLORS.gray400,
+  },
+  createNewButton: {
+    alignItems: 'center',
+    paddingVertical: 10,
+    marginTop: 4,
+  },
+  createNewText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: COLORS.gray500,
+    textDecorationLine: 'underline',
   },
 });
