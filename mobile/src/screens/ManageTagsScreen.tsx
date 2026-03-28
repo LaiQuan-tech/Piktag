@@ -23,7 +23,7 @@ import type { Tag, UserTag } from '../types';
 const MAX_TAGS = 10;
 const MAX_TAG_LENGTH = 30;
 const MAX_PINNED = 2;
-const GEMINI_API_KEY = 'AIzaSyDH-V3AsQsowqYYYYSGunPMpQjgUoIRTIQ';
+const GEMINI_API_KEY = process.env.EXPO_PUBLIC_GEMINI_API_KEY || '';
 
 type ManageTagsScreenProps = { navigation: any };
 
@@ -62,7 +62,7 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
   }, []);
 
   const loadAiSuggestions = useCallback(async () => {
-    if (!user || GEMINI_API_KEY === 'REPLACE_WITH_NEW_KEY') return;
+    if (!user || !GEMINI_API_KEY) return;
     try {
       setAiLoading(true);
       const { data: profile } = await supabase
