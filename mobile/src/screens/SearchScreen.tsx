@@ -1063,15 +1063,11 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
                   <Text style={styles.tagUsersViewAll}>{t('tagDetail.viewAll')}</Text>
                 </TouchableOpacity>
               </View>
-              <FlatList
-                horizontal
-                data={sectionUsers}
-                keyExtractor={(u: any) => u.id}
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={styles.tagUsersHorizontalList}
-                renderItem={({ item: u }) => (
+              <View style={styles.tagUsersList}>
+                {sectionUsers.map((u: any) => (
                   <TouchableOpacity
-                    style={styles.tagUserCard}
+                    key={u.id}
+                    style={styles.tagUserRow}
                     activeOpacity={0.7}
                     onPress={() => navigation.navigate('UserDetail', { userId: u.id })}
                   >
@@ -1082,17 +1078,19 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
                         <User size={20} color={COLORS.gray400} />
                       </View>
                     )}
-                    <Text style={styles.tagUserName} numberOfLines={1}>
-                      {u.full_name || u.username || ''}
-                    </Text>
-                    {u.username && (
-                      <Text style={styles.tagUserUsername} numberOfLines={1}>
-                        @{u.username}
+                    <View style={styles.tagUserInfo}>
+                      <Text style={styles.tagUserName} numberOfLines={1}>
+                        {u.full_name || u.username || ''}
                       </Text>
-                    )}
+                      {u.username && (
+                        <Text style={styles.tagUserUsername} numberOfLines={1}>
+                          @{u.username}
+                        </Text>
+                      )}
+                    </View>
                   </TouchableOpacity>
-                )}
-              />
+                ))}
+              </View>
             </View>
           );
         }
@@ -1451,19 +1449,20 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: COLORS.piktag600,
   },
-  tagUsersHorizontalList: {
-    paddingHorizontal: 16,
-    gap: 12,
+  tagUsersList: {
+    paddingHorizontal: 20,
   },
-  tagUserCard: {
-    width: 90,
+  tagUserRow: {
+    flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.gray100,
   },
   tagUserAvatar: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     backgroundColor: COLORS.gray100,
   },
   tagUserAvatarPlaceholder: {
@@ -1472,15 +1471,18 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: COLORS.gray200,
   },
+  tagUserInfo: {
+    flex: 1,
+    marginLeft: 12,
+  },
   tagUserName: {
-    fontSize: 13,
+    fontSize: 15,
     fontWeight: '600',
     color: COLORS.gray900,
-    textAlign: 'center',
   },
   tagUserUsername: {
-    fontSize: 11,
+    fontSize: 13,
     color: COLORS.gray500,
-    textAlign: 'center',
+    marginTop: 2,
   },
 });
