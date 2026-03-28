@@ -1,5 +1,6 @@
 import React from 'react';
 import { StatusBar, View, Platform, StyleSheet } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { NavigationContainer } from '@react-navigation/native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import * as Linking from 'expo-linking';
@@ -45,12 +46,14 @@ export default function App() {
   const isWeb = Platform.OS === 'web';
 
   const content = (
-    <SafeAreaProvider>
-      <NavigationContainer linking={linking}>
-        <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
-        <AppNavigator />
-      </NavigationContainer>
-    </SafeAreaProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <SafeAreaProvider>
+        <NavigationContainer linking={linking}>
+          <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+          <AppNavigator />
+        </NavigationContainer>
+      </SafeAreaProvider>
+    </GestureHandlerRootView>
   );
 
   // Web: center content in a phone-sized container (like Instagram web)

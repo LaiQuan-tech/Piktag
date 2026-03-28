@@ -9,6 +9,7 @@
     "add": "新增",
     "update": "更新",
     "close": "關閉",
+    "done": "完成",
     "back": "返回",
     "processing": "處理中...",
     "success": "成功",
@@ -492,8 +493,17 @@
     "createNewAnyway": "都不是，建立新標籤",
     "pinLimitTitle": "置頂上限",
     "pinLimitMessage": "最多只能置頂 {{max}} 個標籤",
-    "dragHint": "長按拖動排序",
-    "aiSuggestionsTitle": "AI 為你推薦"
+    "dragHint": "長按可置頂，上下箭頭排序",
+    "aiSuggestionsTitle": "AI 為你推薦",
+    "pinTag": "置頂標籤",
+    "unpinTag": "取消置頂",
+    "publicTagsTitle": "公開標籤",
+    "publicTagsSubtitle": "管理你的標籤和技能",
+    "tagCount": "已新增 ({{count}}/{{max}}):",
+    "dragSort": "拖曳排序",
+    "dragSelectTarget": "點選要交換位置的標籤",
+    "tagLimitTitle": "標籤上限",
+    "tagLimitMessage": "最多只能新增 {{max}} 個標籤"
   },
   "tagDetail": {
     "unknownTag": "未知標籤",

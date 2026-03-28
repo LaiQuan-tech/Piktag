@@ -9,6 +9,7 @@
     "add": "Add",
     "update": "Update",
     "close": "Close",
+    "done": "Done",
     "back": "Back",
     "processing": "Processing...",
     "success": "Success",
@@ -492,8 +493,17 @@
     "createNewAnyway": "None of these, create new tag",
     "pinLimitTitle": "Pin limit reached",
     "pinLimitMessage": "You can pin up to {{max}} tags",
-    "dragHint": "Long press to drag and reorder",
-    "aiSuggestionsTitle": "AI suggestions for you"
+    "dragHint": "Long press to pin, arrows to reorder",
+    "aiSuggestionsTitle": "AI suggestions for you",
+    "pinTag": "Pin tag",
+    "unpinTag": "Unpin tag",
+    "publicTagsTitle": "Public Tags",
+    "publicTagsSubtitle": "Manage your tags and skills",
+    "tagCount": "Added ({{count}}/{{max}}):",
+    "dragSort": "Drag to sort",
+    "dragSelectTarget": "Tap the tag to swap with",
+    "tagLimitTitle": "Tag limit",
+    "tagLimitMessage": "You can add up to {{max}} tags"
   },
   "tagDetail": {
     "unknownTag": "Unknown Tag",

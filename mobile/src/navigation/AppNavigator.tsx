@@ -35,6 +35,7 @@ import NotificationsScreen from '../screens/NotificationsScreen';
 import ScanResultScreen from '../screens/ScanResultScreen';
 import CameraScanScreen from '../screens/CameraScanScreen';
 import TagDetailScreen from '../screens/TagDetailScreen';
+import ManageTagsScreen from '../screens/ManageTagsScreen';
 
 // Stack Navigators
 const AuthStack = createNativeStackNavigator();
@@ -98,6 +99,7 @@ function ProfileStackNavigator() {
     <ProfileStack.Navigator screenOptions={{ headerShown: false }}>
       <ProfileStack.Screen name="ProfileMain" component={ProfileScreen} />
       <ProfileStack.Screen name="EditProfile" component={EditProfileScreen} />
+      <ProfileStack.Screen name="ManageTags" component={ManageTagsScreen} />
       <ProfileStack.Screen name="Settings" component={SettingsScreen} />
       <ProfileStack.Screen name="ContactSync" component={ContactSyncScreen} />
       <ProfileStack.Screen name="Invite" component={InviteScreen} />

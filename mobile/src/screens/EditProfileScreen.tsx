@@ -371,6 +371,14 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
     };
   }, [fetchProfile, fetchBiolinks, fetchUserTags, fetchPopularTags]);
 
+  // Refresh tags when returning from ManageTagsScreen
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', () => {
+      fetchUserTags();
+    });
+    return unsubscribe;
+  }, [navigation, fetchUserTags]);
+
   const updateField = (field: keyof FormData, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }));
   };
@@ -1022,98 +1030,29 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
             )}
           </View>
 
-          {/* Tags Section */}
+          {/* Tags Section — navigate to ManageTagsScreen */}
           <View style={styles.tag_divider} />
 
-          {/* My Tags */}
           <View style={styles.tag_section}>
             <Text style={styles.sectionTitle}>{t('manageTags.myTagsTitle')}</Text>
-            {userTags.length === 0 ? (
-              <Text style={styles.emptyText}>{t('manageTags.noTagsYet')}</Text>
-            ) : (
+            {userTags.length > 0 && (
               <View style={styles.tag_chipsContainer}>
                 {userTags.map((userTag) => (
-                  <MyTagChip
-                    key={userTag.id}
-                    userTag={userTag}
-                    displayName={getTagDisplayName(userTag)}
-                    isRemoving={removingTagId === userTag.id}
-                    onRemove={handleRemoveTag}
-                  />
+                  <View key={userTag.id} style={styles.tag_previewChip}>
+                    <Text style={styles.tag_previewChipText}>
+                      {getTagDisplayName(userTag)}
+                    </Text>
+                  </View>
                 ))}
               </View>
             )}
-          </View>
-
-          {/* Add Tag Input */}
-          <View style={styles.tag_section}>
-            <Text style={styles.sectionTitle}>{t('manageTags.addTagTitle')}</Text>
-            <View style={styles.tag_inputRow}>
-              <Hash size={20} color={COLORS.gray400} style={styles.tag_inputIcon} />
-              <TextInput
-                style={styles.tag_textInput}
-                placeholder={t('manageTags.tagInputPlaceholder')}
-                placeholderTextColor={COLORS.gray400}
-                value={tagInput}
-                onChangeText={setTagInput}
-                returnKeyType="done"
-                onSubmitEditing={handleAddTag}
-                editable={!addingTag}
-              />
-            </View>
             <TouchableOpacity
-              style={styles.tag_privacyToggle}
+              style={styles.tag_manageButton}
+              onPress={() => navigation.navigate('ManageTags')}
               activeOpacity={0.7}
-              onPress={toggleTagPrivacy}
             >
-              {isTagPrivate ? (
-                <EyeOff size={18} color={COLORS.piktag600} />
-              ) : (
-                <Eye size={18} color={COLORS.gray400} />
-              )}
-              <Text style={[styles.tag_privacyText, isTagPrivate && styles.tag_privacyTextActive]}>
-                {isTagPrivate ? t('manageTags.privacyPrivate') : t('manageTags.privacyPublic')}
-              </Text>
+              <Text style={styles.tag_manageButtonText}>{t('manageTags.headerTitle')}</Text>
             </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.tag_addButton, addingTag && styles.tag_addButtonDisabled]}
-              onPress={handleAddTag}
-              activeOpacity={0.8}
-              disabled={addingTag}
-            >
-              {addingTag ? (
-                <ActivityIndicator size={18} color={COLORS.gray900} />
-              ) : (
-                <Text style={styles.tag_addButtonText}>{t('manageTags.addButton')}</Text>
-              )}
-            </TouchableOpacity>
-          </View>
-
-          {/* Popular Tags */}
-          <View style={styles.tag_divider} />
-
-          <View style={styles.tag_section}>
-            <Text style={styles.sectionTitle}>{t('manageTags.popularTagsTitle')}</Text>
-            <View style={styles.tag_chipsContainer}>
-              {popularTags.map((tag) => {
-                const displayName = tag.name.startsWith('#')
-                  ? tag.name
-                  : `#${tag.name}`;
-                const isAdded = userTagNames.includes(displayName);
-                return (
-                  <PopularTagChip
-                    key={tag.id}
-                    tag={tag}
-                    isAdded={isAdded}
-                    isDisabled={addingTag}
-                    onPress={handleAddPopularTag}
-                  />
-                );
-              })}
-              {popularTags.length === 0 && (
-                <Text style={styles.emptyText}>{t('manageTags.noPopularTags')}</Text>
-              )}
-            </View>
           </View>
 
           {/* Save Button */}
@@ -1458,6 +1397,34 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 10,
+  },
+  tag_previewChip: {
+    backgroundColor: COLORS.piktag50,
+    borderRadius: 9999,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+  },
+  tag_previewChipText: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: COLORS.piktag600,
+  },
+  tag_moreText: {
+    fontSize: 13,
+    color: COLORS.gray400,
+    alignSelf: 'center',
+  },
+  tag_manageButton: {
+    backgroundColor: COLORS.piktag500,
+    borderRadius: 14,
+    paddingVertical: 12,
+    alignItems: 'center',
+    marginTop: 14,
+  },
+  tag_manageButtonText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: COLORS.gray900,
   },
   tag_myTagChip: {
     flexDirection: 'row',
