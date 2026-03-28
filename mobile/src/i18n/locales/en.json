@@ -489,7 +489,11 @@
     "conceptMatchTitle": "Concept matched",
     "conceptMatchMessage": "\"{{input}}\" has been mapped to \"{{concept}}\"",
     "suggestionsTitle": "Did you mean one of these?",
-    "createNewAnyway": "None of these, create new tag"
+    "createNewAnyway": "None of these, create new tag",
+    "pinLimitTitle": "Pin limit reached",
+    "pinLimitMessage": "You can pin up to {{max}} tags",
+    "dragHint": "Long press to drag and reorder",
+    "aiSuggestionsTitle": "AI suggestions for you"
   },
   "tagDetail": {
     "unknownTag": "Unknown Tag",

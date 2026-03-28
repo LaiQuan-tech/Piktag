@@ -120,8 +120,18 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
     const { data, error } = await supabase
       .from('piktag_user_tags')
       .select('*, tag:piktag_tags(*)')
-      .eq('user_id', userId);
-    if (!error && data) setUserTags(data as UserTag[]);
+      .eq('user_id', userId)
+      .order('position');
+    if (!error && data) {
+      // Pinned tags first, then by position
+      const sorted = [...data].sort((a: any, b: any) => {
+        const aPinned = a.is_pinned ? 1 : 0;
+        const bPinned = b.is_pinned ? 1 : 0;
+        if (aPinned !== bPinned) return bPinned - aPinned;
+        return (a.position || 0) - (b.position || 0);
+      });
+      setUserTags(sorted as UserTag[]);
+    }
   }, [userId]);
 
   const fetchBiolinks = useCallback(async () => {

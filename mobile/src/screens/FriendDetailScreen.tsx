@@ -89,6 +89,9 @@ type FriendTag = {
   name: string;
   isPicked: boolean;    // I picked this tag for this friend
   pickCount: number;    // How many people picked this tag on this friend
+  isMutual: boolean;    // We share this tag
+  isPinned: boolean;    // Friend pinned this tag
+  position: number;     // Friend's own tag order
 };
 
 type FriendData = {
@@ -332,13 +335,18 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
               name: ut.tag.name,
               isPicked: myPickedTagIds.has(ut.tag.id || ut.tag_id),
               pickCount: pickCountMap.get(ut.tag.id || ut.tag_id) || 0,
+              isMutual: myTagIds.has(ut.tag.id || ut.tag_id),
+              isPinned: ut.is_pinned || false,
+              position: ut.position ?? 0,
             }));
 
-          // 5. Sort: isPicked first, then by pickCount desc, then alphabetical
+          // 5. Sort: isPinned → isPicked → pickCount → mutual → position
           friendTags.sort((a, b) => {
+            if (a.isPinned !== b.isPinned) return a.isPinned ? -1 : 1;
             if (a.isPicked !== b.isPicked) return a.isPicked ? -1 : 1;
             if (a.pickCount !== b.pickCount) return b.pickCount - a.pickCount;
-            return a.name.localeCompare(b.name);
+            if (a.isMutual !== b.isMutual) return a.isMutual ? -1 : 1;
+            return a.position - b.position;
           });
 
           dispatchFriendData({ type: 'SET_TAGS', tags: friendTags });

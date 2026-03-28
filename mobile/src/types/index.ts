@@ -61,6 +61,7 @@ export type UserTag = {
   weight: number;
   semantic_type: SemanticType | null;
   is_private?: boolean;
+  is_pinned?: boolean;
   created_at: string;
   tag?: Tag; // joined
 };

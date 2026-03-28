@@ -122,16 +122,19 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
           (allPicks || []).forEach((p: any) => pickCountMap.set(p.tag_id, (pickCountMap.get(p.tag_id) || 0) + 1));
         }
 
-        // Sort: mutual first, then by pick count, then position
+        // Sort: isPinned → pickCount → mutual → position (no isPicked for strangers)
         const sorted = userTagsResult.data
           .filter((ut: any) => ut.tag?.name)
           .sort((a: any, b: any) => {
-            const aIsMutual = myTagIds.has(a.tag_id) ? 1 : 0;
-            const bIsMutual = myTagIds.has(b.tag_id) ? 1 : 0;
-            if (aIsMutual !== bIsMutual) return bIsMutual - aIsMutual;
+            const aPinned = a.is_pinned ? 1 : 0;
+            const bPinned = b.is_pinned ? 1 : 0;
+            if (aPinned !== bPinned) return bPinned - aPinned;
             const aPick = pickCountMap.get(a.tag_id) || 0;
             const bPick = pickCountMap.get(b.tag_id) || 0;
             if (aPick !== bPick) return bPick - aPick;
+            const aIsMutual = myTagIds.has(a.tag_id) ? 1 : 0;
+            const bIsMutual = myTagIds.has(b.tag_id) ? 1 : 0;
+            if (aIsMutual !== bIsMutual) return bIsMutual - aIsMutual;
             return (a.position || 0) - (b.position || 0);
           });
 

@@ -489,7 +489,11 @@
     "conceptMatchTitle": "已找到對應概念",
     "conceptMatchMessage": "「{{input}}」已自動對應到「{{concept}}」",
     "suggestionsTitle": "你是指以下標籤嗎？",
-    "createNewAnyway": "都不是，建立新標籤"
+    "createNewAnyway": "都不是，建立新標籤",
+    "pinLimitTitle": "置頂上限",
+    "pinLimitMessage": "最多只能置頂 {{max}} 個標籤",
+    "dragHint": "長按拖動排序",
+    "aiSuggestionsTitle": "AI 為你推薦"
   },
   "tagDetail": {
     "unknownTag": "未知標籤",
