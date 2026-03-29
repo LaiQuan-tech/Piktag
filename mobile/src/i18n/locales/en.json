@@ -500,7 +500,8 @@
     "publicTagsTitle": "Public Tags",
     "publicTagsSubtitle": "Manage your tags and skills",
     "tagCount": "Added ({{count}}/{{max}}):",
-    "dragSort": "Drag to sort",
+    "dragSort": "Sort",
+    "longPressToReorder": "Long press and drag to reorder",
     "dragSelectTarget": "Tap the tag to swap with",
     "tagLimitTitle": "Tag limit",
     "tagLimitMessage": "You can add up to {{max}} tags"

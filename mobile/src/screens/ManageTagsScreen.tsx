@@ -14,7 +14,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import { X, Hash, Pin, Sparkles } from 'lucide-react-native';
+import { X, Hash, Pin, Sparkles, ArrowLeftRight } from 'lucide-react-native';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
 import { COLORS } from '../constants/theme';
@@ -37,6 +37,7 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
   const [loading, setLoading] = useState(true);
   const [addingTag, setAddingTag] = useState(false);
 
+  const [selectedTagId, setSelectedTagId] = useState<string | null>(null);
   const [aiSuggestions, setAiSuggestions] = useState<string[]>([]);
   const [aiLoading, setAiLoading] = useState(false);
 
@@ -210,9 +211,53 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
     await loadMyTags();
   }, [user, myTagNames, myTags.length, findOrCreateTag, linkTagToUser, loadMyTags]);
 
+  /** Tap-to-swap: tap first tag to select, tap second to swap positions */
+  const handleTagTap = useCallback(async (tappedTag: UserTag & { tag?: Tag }) => {
+    if (!selectedTagId) {
+      // First tap: select this tag
+      setSelectedTagId(tappedTag.id);
+      return;
+    }
+    if (selectedTagId === tappedTag.id) {
+      // Tap same tag: deselect
+      setSelectedTagId(null);
+      return;
+    }
+    // Second tap: swap positions
+    const fromIdx = myTags.findIndex(t => t.id === selectedTagId);
+    const toIdx = myTags.findIndex(t => t.id === tappedTag.id);
+    if (fromIdx === -1 || toIdx === -1) { setSelectedTagId(null); return; }
+    // Optimistic swap
+    const updated = [...myTags];
+    [updated[fromIdx], updated[toIdx]] = [updated[toIdx], updated[fromIdx]];
+    setMyTags(updated);
+    setSelectedTagId(null);
+    // Save to DB
+    try {
+      await Promise.all(updated.map((tag, i) =>
+        supabase.from('piktag_user_tags').update({ position: i }).eq('id', tag.id)
+      ));
+    } catch { await loadMyTags(); }
+  }, [selectedTagId, myTags, loadMyTags]);
+
+  /** Toggle pin on a tag (max 2 pinned) */
+  const handleTogglePin = useCallback(async (userTag: UserTag & { tag?: Tag }) => {
+    if (!user) return;
+    const isPinned = (userTag as any).is_pinned || false;
+    if (!isPinned) {
+      const pinnedCount = myTags.filter((t) => (t as any).is_pinned).length;
+      if (pinnedCount >= MAX_PINNED) return;
+    }
+    setMyTags(prev => prev.map(t => t.id === userTag.id ? { ...t, is_pinned: !isPinned } as any : t));
+    await supabase.from('piktag_user_tags').update({ is_pinned: !isPinned }).eq('id', userTag.id);
+    await loadMyTags();
+  }, [user, myTags, loadMyTags]);
+
   const handleGoBack = useCallback(() => {
     navigation.canGoBack() ? navigation.goBack() : navigation.navigate("Connections");
   }, [navigation]);
+
+  const pinnedCount = useMemo(() => myTags.filter((t) => (t as any).is_pinned).length, [myTags]);
 
   // ── Render ────────────────────────────────────────────────────────────
 
@@ -245,31 +290,48 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
               <Text style={styles.sectionSubtitle}>{t('manageTags.publicTagsSubtitle')}</Text>
             </View>
 
-            {/* Tag count */}
+            {/* Tag count + pin count */}
             <View style={styles.tagCountRow}>
               <Text style={[styles.tagCountText, myTags.length >= MAX_TAGS && { color: '#EF4444', fontWeight: '600' }]}>
                 {t('manageTags.tagCount', { count: myTags.length, max: MAX_TAGS })}
                 {myTags.length >= MAX_TAGS ? ' ⚠️' : ''}
               </Text>
+              {myTags.length > 0 && (
+                <Text style={styles.tagCountText}>📌 {pinnedCount}/{MAX_PINNED}</Text>
+              )}
             </View>
+
+            {/* Swap hint */}
+            {selectedTagId && (
+              <View style={styles.swapHintBar}>
+                <ArrowLeftRight size={14} color={COLORS.piktag600} />
+                <Text style={styles.swapHintText}>{t('manageTags.dragSelectTarget') || '點選要交換位置的標籤'}</Text>
+                <Pressable onPress={() => setSelectedTagId(null)}>
+                  <Text style={styles.swapCancel}>{t('common.cancel') || '取消'}</Text>
+                </Pressable>
+              </View>
+            )}
 
             {/* My tags as chips */}
             <View style={styles.chipsWrap}>
               {myTags.map((ut) => {
                 const isPinned = (ut as any).is_pinned;
+                const isSelected = ut.id === selectedTagId;
                 const name = ut.tag?.name ?? '';
                 const dn = name.startsWith('#') ? name : `#${name}`;
                 return (
-                  <View key={ut.id} style={[styles.chip, isPinned && styles.chipPinned]}>
+                  <Pressable
+                    key={ut.id}
+                    style={[styles.chip, isPinned && styles.chipPinned, isSelected && styles.chipSelected]}
+                    onPress={() => handleTagTap(ut)}
+                    onLongPress={() => handleTogglePin(ut)}
+                  >
                     {isPinned && <Pin size={11} color={COLORS.piktag600} fill={COLORS.piktag600} />}
                     <Text style={[styles.chipText, isPinned && styles.chipTextPinned]}>{dn}</Text>
-                    <Pressable
-                      onPress={() => handleRemoveTag(ut)}
-                      style={styles.chipX}
-                    >
-                      <X size={16} color={COLORS.gray500} />
+                    <Pressable onPress={() => handleRemoveTag(ut)} style={styles.chipX}>
+                      <X size={14} color={COLORS.gray400} />
                     </Pressable>
-                  </View>
+                  </Pressable>
                 );
               })}
               {myTags.length === 0 && (
@@ -314,11 +376,7 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
                   }).map((tag) => {
                     const dn = tag.name.startsWith('#') ? tag.name : `#${tag.name}`;
                     return (
-                      <Pressable
-                        key={tag.id}
-                        style={styles.popularChip}
-                        onPress={() => handleAddPopularTag(tag)}
-                      >
+                      <Pressable key={tag.id} style={styles.popularChip} onPress={() => handleAddPopularTag(tag)}>
                         <Text style={styles.popularChipText}>+ {dn}</Text>
                       </Pressable>
                     );
@@ -384,19 +442,29 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20, paddingTop: 12, paddingBottom: 10,
   },
   tagCountText: { fontSize: 13, color: COLORS.gray500 },
-  // Chip mode
+  // Chips
   chipsWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, paddingHorizontal: 20 },
   chip: {
-    flexDirection: 'row', alignItems: 'center', gap: 6,
+    flexDirection: 'row', alignItems: 'center', gap: 5,
     backgroundColor: COLORS.gray100, borderRadius: 20,
-    paddingVertical: 8, paddingLeft: 14, paddingRight: 8,
-    borderWidth: 1.5, borderColor: 'transparent',
+    paddingVertical: 8, paddingLeft: 14, paddingRight: 6,
+    borderWidth: 2, borderColor: 'transparent',
   },
-  chipPinned: { backgroundColor: '#FFFBEB', borderColor: COLORS.piktag500 },
+  chipPinned: { backgroundColor: '#FFFBEB', borderColor: COLORS.piktag400 },
+  chipSelected: { borderColor: COLORS.piktag500, backgroundColor: COLORS.piktag50 },
   chipText: { fontSize: 14, fontWeight: '500', color: COLORS.gray900 },
   chipTextPinned: { fontWeight: '700', color: COLORS.piktag600 },
   chipX: { padding: 4 },
-  emptyText: { fontSize: 14, color: COLORS.gray400, paddingVertical: 8 },
+  emptyText: { fontSize: 14, color: COLORS.gray400, paddingHorizontal: 20, paddingVertical: 8 },
+
+  // Swap hint
+  swapHintBar: {
+    flexDirection: 'row', alignItems: 'center', gap: 6,
+    marginHorizontal: 20, marginBottom: 8, paddingVertical: 8, paddingHorizontal: 12,
+    backgroundColor: COLORS.piktag50, borderRadius: 10, borderWidth: 1, borderColor: COLORS.piktag500,
+  },
+  swapHintText: { flex: 1, fontSize: 13, color: COLORS.piktag600 },
+  swapCancel: { fontSize: 13, fontWeight: '600', color: COLORS.gray500 },
 
   // AI
   aiSection: { paddingHorizontal: 20, paddingTop: 24 },

@@ -500,7 +500,8 @@
     "publicTagsTitle": "公開標籤",
     "publicTagsSubtitle": "管理你的標籤和技能",
     "tagCount": "已新增 ({{count}}/{{max}}):",
-    "dragSort": "拖曳排序",
+    "dragSort": "排序",
+    "longPressToReorder": "長按拖曳可排序",
     "dragSelectTarget": "點選要交換位置的標籤",
     "tagLimitTitle": "標籤上限",
     "tagLimitMessage": "最多只能新增 {{max}} 個標籤"
