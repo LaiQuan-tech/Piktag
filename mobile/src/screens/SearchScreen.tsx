@@ -591,12 +591,13 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
 
     // 5. Tags section
     if (showTags && !initialLoading) {
-      if (trimmedQuery !== '' && tags.length > 0) {
+      if (trimmedQuery !== '') {
         items.push({ type: 'tagsHeader' });
       }
-      if (tags.length === 0 && trimmedQuery !== '') {
-        items.push({ type: 'tagsEmpty' });
-      } else if (tags.length > 0) {
+      if (tags.length === 0) {
+        if (trimmedQuery !== '') items.push({ type: 'tagsEmpty' });
+        // When empty search + no tags loaded yet, show nothing (loading handled above)
+      } else {
         items.push({ type: 'tagsGrid' });
       }
     }
@@ -606,6 +607,11 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
       tagUsers.forEach((tu) => {
         items.push({ type: 'tagUsersSection', tagUserData: tu });
       });
+    }
+
+    // Fallback: if nothing to show at all, show empty state
+    if (items.length === 0) {
+      items.push({ type: 'tagsEmpty' });
     }
 
     return items;
