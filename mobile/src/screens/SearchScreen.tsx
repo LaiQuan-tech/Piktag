@@ -19,6 +19,7 @@ import {
   Hash,
   User,
   Clock,
+  MapPin,
 } from 'lucide-react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Location from 'expo-location';
@@ -193,6 +194,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
   const [nearbyTags, setNearbyTags] = useState<Tag[]>([]);
+  const [searchTab, setSearchTab] = useState<'popular' | 'nearby' | 'results'>('popular');
   const [tagCategories, setTagCategories] = useState<string[]>([]);
   const [selectedTagCategory, setSelectedTagCategory] = useState<string | null>(null);
 
@@ -503,6 +505,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
   const handleSearchChange = useCallback(
     (text: string) => {
       setSearchQuery(text);
+      if (text.trim()) setSearchTab('results'); // auto-switch to results
 
       if (debounceTimer.current) {
         clearTimeout(debounceTimer.current);
@@ -606,58 +609,52 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
       return items;
     }
 
-    if (trimmedQuery === '') {
-      // ── Empty search: show browse mode ──
+    switch (searchTab) {
+      case 'popular':
+        // 搜尋紀錄 + 熱門標籤
+        if (recentSearches.length > 0) {
+          items.push({ type: 'sectionLabel', label: t('search.recentSearchesLabel') || '搜尋紀錄', showClear: true });
+          recentSearches.forEach((query, index) => {
+            items.push({ type: 'recentItem', query, index });
+          });
+        }
+        if (tags.length > 0) {
+          items.push({ type: 'tagsGrid' });
+        }
+        break;
 
-      // Section: 搜尋紀錄
-      if (recentSearches.length > 0) {
-        items.push({ type: 'sectionLabel', label: t('search.recentSearchesLabel') || '搜尋紀錄', showClear: true });
-        recentSearches.forEach((query, index) => {
-          items.push({ type: 'recentItem', query, index });
-        });
-      }
+      case 'nearby':
+        // 附近標籤
+        if (nearbyTags.length > 0) {
+          items.push({ type: 'nearbyTagsGrid' });
+        } else {
+          items.push({ type: 'tagsEmpty' });
+        }
+        break;
 
-      // Section: 熱門標籤
-      if (tags.length > 0) {
-        items.push({ type: 'sectionLabel', label: t('search.popularTagsLabel') || '熱門標籤' });
-        items.push({ type: 'tagsGrid' });
-      }
-
-      // Section: 附近標籤
-      if (nearbyTags.length > 0) {
-        items.push({ type: 'sectionLabel', label: t('search.nearbyTagsLabel') || '附近標籤' });
-        items.push({ type: 'nearbyTagsGrid' });
-      }
-
-    } else {
-      // ── Search results mode ──
-
-      // Section: 搜尋結果
-      items.push({ type: 'sectionLabel', label: t('search.searchResultsLabel') || '搜尋結果' });
-
-      // Profiles
-      if (profiles.length > 0) {
-        profiles.forEach((profile) => {
-          items.push({ type: 'profileItem', profile });
-        });
-      }
-
-      // Tags
-      if (tags.length > 0) {
-        items.push({ type: 'tagsGrid' });
-      }
-
-      // Tag users preview
-      if (tagUsers.length > 0) {
-        tagUsers.forEach((tu) => {
-          items.push({ type: 'tagUsersSection', tagUserData: tu });
-        });
-      }
-
-      // No results
-      if (profiles.length === 0 && tags.length === 0) {
-        items.push({ type: 'profilesEmpty' });
-      }
+      case 'results':
+        // 搜尋結果
+        if (trimmedQuery === '') {
+          items.push({ type: 'profilesEmpty' }); // hint to type something
+        } else {
+          if (profiles.length > 0) {
+            profiles.forEach((profile) => {
+              items.push({ type: 'profileItem', profile });
+            });
+          }
+          if (tags.length > 0) {
+            items.push({ type: 'tagsGrid' });
+          }
+          if (tagUsers.length > 0) {
+            tagUsers.forEach((tu) => {
+              items.push({ type: 'tagUsersSection', tagUserData: tu });
+            });
+          }
+          if (profiles.length === 0 && tags.length === 0) {
+            items.push({ type: 'profilesEmpty' });
+          }
+        }
+        break;
     }
 
     return items;
@@ -673,6 +670,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
     tags,
     nearbyTags,
     tagUsers,
+    searchTab,
   ]);
 
   const keyExtractor = useCallback((item: ListItem, index: number): string => {
@@ -1001,6 +999,40 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
         </View>
       </View>
 
+      {/* Tab bar: 熱門標籤 | 附近標籤 | 搜尋結果 */}
+      <View style={styles.tabBar}>
+        <TouchableOpacity
+          style={[styles.tabItem, searchTab === 'popular' && styles.tabItemActive]}
+          onPress={() => setSearchTab('popular')}
+          activeOpacity={0.7}
+        >
+          <Hash size={16} color={searchTab === 'popular' ? COLORS.piktag600 : COLORS.gray400} />
+          <Text style={[styles.tabItemText, searchTab === 'popular' && styles.tabItemTextActive]}>
+            {t('search.popularTagsLabel') || '熱門標籤'}
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.tabItem, searchTab === 'nearby' && styles.tabItemActive]}
+          onPress={() => setSearchTab('nearby')}
+          activeOpacity={0.7}
+        >
+          <MapPin size={16} color={searchTab === 'nearby' ? COLORS.piktag600 : COLORS.gray400} />
+          <Text style={[styles.tabItemText, searchTab === 'nearby' && styles.tabItemTextActive]}>
+            {t('search.nearbyTagsLabel') || '附近標籤'}
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.tabItem, searchTab === 'results' && styles.tabItemActive]}
+          onPress={() => setSearchTab('results')}
+          activeOpacity={0.7}
+        >
+          <Search size={16} color={searchTab === 'results' ? COLORS.piktag600 : COLORS.gray400} />
+          <Text style={[styles.tabItemText, searchTab === 'results' && styles.tabItemTextActive]}>
+            {t('search.searchResultsLabel') || '搜尋結果'}
+          </Text>
+        </TouchableOpacity>
+      </View>
+
       <FlatList
         data={listData}
         keyExtractor={keyExtractor}
@@ -1039,6 +1071,34 @@ const styles = StyleSheet.create({
     color: COLORS.gray900,
     lineHeight: 32,
     marginBottom: 16,
+  },
+  tabBar: {
+    flexDirection: 'row',
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.gray100,
+    paddingHorizontal: 16,
+  },
+  tabItem: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 4,
+    paddingVertical: 10,
+    borderBottomWidth: 2,
+    borderBottomColor: 'transparent',
+  },
+  tabItemActive: {
+    borderBottomColor: COLORS.piktag500,
+  },
+  tabItemText: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: COLORS.gray400,
+  },
+  tabItemTextActive: {
+    color: COLORS.piktag600,
+    fontWeight: '700',
   },
   searchContainer: {
     flexDirection: 'row',
