@@ -401,7 +401,7 @@ export default function NotificationsScreen({ navigation }: NotificationsScreenP
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "transparent",
+    backgroundColor: COLORS.white,
   },
   header: {
     flexDirection: 'row',

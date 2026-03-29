@@ -274,7 +274,7 @@ export default function LocationContactsScreen({ navigation }: LocationContactsS
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "transparent",
+    backgroundColor: COLORS.white,
   },
   header: {
     flexDirection: 'row',

@@ -434,7 +434,7 @@ const TOP_EDGES = ['top'] as const;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "transparent",
+    backgroundColor: COLORS.white,
   },
 
   // Header

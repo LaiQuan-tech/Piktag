@@ -310,7 +310,7 @@ export default function ContactSyncScreen({ navigation }: ContactSyncScreenProps
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "transparent",
+    backgroundColor: COLORS.white,
   },
   header: {
     flexDirection: 'row',

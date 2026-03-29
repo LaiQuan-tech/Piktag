@@ -522,7 +522,7 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "transparent",
+    backgroundColor: COLORS.white,
   },
   scrollContent: {
     flexGrow: 1,
@@ -579,7 +579,7 @@ const styles = StyleSheet.create({
     paddingVertical: SPACING.md,
     fontSize: 16,
     color: COLORS.gray900,
-    backgroundColor: "transparent",
+    backgroundColor: COLORS.white,
     minHeight: 120,
     marginBottom: SPACING.xxl,
   },

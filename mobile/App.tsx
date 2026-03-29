@@ -1,13 +1,12 @@
 import React from 'react';
 import { StatusBar, View, Platform, StyleSheet } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { NavigationContainer, DefaultTheme, DarkTheme } from '@react-navigation/native';
+import { NavigationContainer } from '@react-navigation/native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import * as Linking from 'expo-linking';
 import './src/i18n'; // Initialize i18n
 import AppNavigator from './src/navigation/AppNavigator';
-import { ThemeProvider, useTheme } from './src/context/ThemeContext';
-import GradientBackground from './src/components/GradientBackground';
+import { ThemeProvider } from './src/context/ThemeContext';
 
 const prefix = Linking.createURL('/');
 
@@ -44,40 +43,26 @@ const linking = {
   },
 };
 
-function AppContent() {
-  const { colors, isDark } = useTheme();
+export default function App() {
   const isWeb = Platform.OS === 'web';
 
   const content = (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <GradientBackground>
+    <ThemeProvider>
+      <GestureHandlerRootView style={{ flex: 1 }}>
         <SafeAreaProvider>
-          <NavigationContainer
-            linking={linking}
-            theme={isDark ? {
-              ...DarkTheme,
-              colors: { ...DarkTheme.colors, background: 'transparent', card: 'transparent', border: 'transparent' },
-            } : {
-              ...DefaultTheme,
-              colors: { ...DefaultTheme.colors, background: '#FFFFFF', card: '#FFFFFF' },
-            }}
-          >
-            <StatusBar
-              barStyle={isDark ? 'light-content' : 'dark-content'}
-              backgroundColor="transparent"
-              translucent={isDark}
-            />
+          <NavigationContainer linking={linking}>
+            <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
             <AppNavigator />
           </NavigationContainer>
         </SafeAreaProvider>
-      </GradientBackground>
-    </GestureHandlerRootView>
+      </GestureHandlerRootView>
+    </ThemeProvider>
   );
 
   if (isWeb) {
     return (
-      <View style={[webStyles.outerContainer, { backgroundColor: isDark ? '#000' : '#F5F5F5' }]}>
-        <View style={[webStyles.innerContainer, { backgroundColor: colors.background }]}>
+      <View style={webStyles.outerContainer}>
+        <View style={webStyles.innerContainer}>
           {content}
         </View>
       </View>
@@ -85,14 +70,6 @@ function AppContent() {
   }
 
   return content;
-}
-
-export default function App() {
-  return (
-    <ThemeProvider>
-      <AppContent />
-    </ThemeProvider>
-  );
 }
 
 const webStyles = StyleSheet.create({

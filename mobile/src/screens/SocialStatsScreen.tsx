@@ -610,7 +610,7 @@ export default function SocialStatsScreen({ navigation }: SocialStatsScreenProps
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "transparent",
+    backgroundColor: COLORS.white,
   },
   header: {
     flexDirection: 'row',

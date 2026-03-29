@@ -12,7 +12,6 @@ import {
 import { Session } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
 import { COLORS } from '../constants/theme';
-import { useTheme } from '../context/ThemeContext';
 
 // Auth Screens
 import LoginScreen from '../screens/auth/LoginScreen';
@@ -50,7 +49,7 @@ const Tab = createBottomTabNavigator();
 
 function AuthNavigator() {
   return (
-    <AuthStack.Navigator screenOptions={{ headerShown: false, contentStyle: { backgroundColor: 'transparent' } }}>
+    <AuthStack.Navigator screenOptions={{ headerShown: false }}>
       <AuthStack.Screen name="Login" component={LoginScreen} />
       <AuthStack.Screen name="Register" component={RegisterScreen} />
       <AuthStack.Screen name="PhoneAuth" component={PhoneAuthScreen} />
@@ -60,7 +59,7 @@ function AuthNavigator() {
 
 function HomeStackNavigator() {
   return (
-    <HomeStack.Navigator screenOptions={{ headerShown: false, contentStyle: { backgroundColor: 'transparent' } }}>
+    <HomeStack.Navigator screenOptions={{ headerShown: false }}>
       <HomeStack.Screen name="Connections" component={ConnectionsScreen} />
       <HomeStack.Screen name="FriendDetail" component={FriendDetailScreen} />
       <HomeStack.Screen name="UserDetail" component={UserDetailScreen} />
@@ -71,7 +70,7 @@ function HomeStackNavigator() {
 
 function SearchStackNavigator() {
   return (
-    <SearchStack.Navigator screenOptions={{ headerShown: false, contentStyle: { backgroundColor: 'transparent' } }}>
+    <SearchStack.Navigator screenOptions={{ headerShown: false }}>
       <SearchStack.Screen name="SearchMain" component={SearchScreen} />
       <SearchStack.Screen name="UserDetail" component={UserDetailScreen} />
       <SearchStack.Screen name="TagDetail" component={TagDetailScreen} />
@@ -82,7 +81,7 @@ function SearchStackNavigator() {
 
 function AddTagStackNavigator() {
   return (
-    <AddTagStack.Navigator screenOptions={{ headerShown: false, contentStyle: { backgroundColor: 'transparent' } }}>
+    <AddTagStack.Navigator screenOptions={{ headerShown: false }}>
       <AddTagStack.Screen name="AddTagMain" component={AddTagScreen} />
       <AddTagStack.Screen name="CameraScan" component={CameraScanScreen} />
     </AddTagStack.Navigator>
@@ -91,7 +90,7 @@ function AddTagStackNavigator() {
 
 function NotificationStackNavigator() {
   return (
-    <NotificationStack.Navigator screenOptions={{ headerShown: false, contentStyle: { backgroundColor: 'transparent' } }}>
+    <NotificationStack.Navigator screenOptions={{ headerShown: false }}>
       <NotificationStack.Screen name="NotificationMain" component={NotificationsScreen} />
     </NotificationStack.Navigator>
   );
@@ -99,7 +98,7 @@ function NotificationStackNavigator() {
 
 function ProfileStackNavigator() {
   return (
-    <ProfileStack.Navigator screenOptions={{ headerShown: false, contentStyle: { backgroundColor: 'transparent' } }}>
+    <ProfileStack.Navigator screenOptions={{ headerShown: false }}>
       <ProfileStack.Screen name="ProfileMain" component={ProfileScreen} />
       <ProfileStack.Screen name="EditProfile" component={EditProfileScreen} />
       <ProfileStack.Screen name="ManageTags" component={ManageTagsScreen} />
@@ -115,7 +114,6 @@ function ProfileStackNavigator() {
 }
 
 function MainTabs() {
-  const { colors, isDark } = useTheme();
   return (
     <Tab.Navigator
       detachInactiveScreens={true}
@@ -123,16 +121,15 @@ function MainTabs() {
         headerShown: false,
         tabBarShowLabel: false,
         tabBarStyle: {
-          backgroundColor: isDark ? 'rgba(0,0,0,0.4)' : COLORS.white,
-          borderTopWidth: isDark ? 0 : 1,
+          backgroundColor: COLORS.white,
+          borderTopWidth: 1,
           borderTopColor: COLORS.gray100,
           paddingBottom: 28,
           paddingTop: 10,
           height: 80,
         },
-        tabBarActiveTintColor: colors.piktag500,
-        tabBarInactiveTintColor: isDark ? 'rgba(255,255,255,0.4)' : COLORS.gray400,
-        sceneStyle: { backgroundColor: 'transparent' },
+        tabBarActiveTintColor: COLORS.piktag500,
+        tabBarInactiveTintColor: COLORS.gray400,
       }}
     >
       <Tab.Screen
@@ -209,7 +206,7 @@ const RootStack = createNativeStackNavigator();
 
 function MainNavigator({ needsOnboarding }: { needsOnboarding: boolean }) {
   return (
-    <RootStack.Navigator screenOptions={{ headerShown: false, contentStyle: { backgroundColor: 'transparent' } }}>
+    <RootStack.Navigator screenOptions={{ headerShown: false }}>
       {needsOnboarding ? (
         <RootStack.Screen name="Onboarding" component={OnboardingScreen} />
       ) : null}

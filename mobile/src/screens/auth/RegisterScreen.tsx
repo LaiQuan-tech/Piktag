@@ -253,7 +253,7 @@ export default function RegisterScreen({ navigation }: RegisterScreenProps) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "transparent",
+    backgroundColor: COLORS.white,
   },
   scrollContent: {
     flexGrow: 1,
@@ -291,7 +291,7 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     fontSize: 16,
     color: COLORS.gray900,
-    backgroundColor: "transparent",
+    backgroundColor: COLORS.white,
   },
   passwordContainer: {
     flexDirection: 'row',

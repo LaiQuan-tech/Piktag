@@ -193,7 +193,7 @@ export default function PhoneAuthScreen({ navigation }: PhoneAuthScreenProps) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "transparent" },
+  container: { flex: 1, backgroundColor: COLORS.white },
   scrollContent: { flexGrow: 1, paddingHorizontal: SPACING.xxl },
   backBtn: { paddingTop: 60, paddingBottom: SPACING.lg },
   content: { flex: 1, justifyContent: 'center', paddingBottom: 80 },
@@ -214,7 +214,7 @@ const styles = StyleSheet.create({
   phoneInput: {
     flex: 1, borderWidth: 1, borderColor: COLORS.gray200, borderRadius: BORDER_RADIUS.xl,
     paddingHorizontal: SPACING.xl, paddingVertical: 14, fontSize: 18,
-    color: COLORS.gray900, backgroundColor: "transparent", letterSpacing: 1,
+    color: COLORS.gray900, backgroundColor: COLORS.white, letterSpacing: 1,
   },
   otpInput: {
     borderWidth: 1, borderColor: COLORS.gray200, borderRadius: BORDER_RADIUS.xl,

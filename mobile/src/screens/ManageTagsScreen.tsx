@@ -470,7 +470,7 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "transparent" },
+  container: { flex: 1, backgroundColor: COLORS.white },
   flex1: { flex: 1 },
   header: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
