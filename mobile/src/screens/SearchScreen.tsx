@@ -17,11 +17,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   Search,
   Hash,
-  MapPin,
-  CheckCircle2,
-  Clock,
   User,
-  Flame,
 } from 'lucide-react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Location from 'expo-location';
@@ -37,51 +33,7 @@ const MAX_RECENT_SEARCHES = 10;
 const CACHE_KEY_POPULAR_TAGS = 'search_popular_tags';
 const CACHE_KEY_SEARCH_QUERY = 'search_last_query';
 
-type CategoryKey = 'popular' | 'nearby' | 'verified' | 'recent' | 'nearby_tags';
-
-const CATEGORY_DEFS: {
-  icon: typeof Hash;
-  labelKey: string;
-  bgColor: string;
-  iconColor: string;
-  key: CategoryKey;
-}[] = [
-  {
-    icon: Hash,
-    labelKey: 'search.categoryPopular',
-    bgColor: COLORS.piktag50,
-    iconColor: COLORS.piktag600,
-    key: 'popular',
-  },
-  {
-    icon: MapPin,
-    labelKey: 'search.categoryNearby',
-    bgColor: COLORS.gray50,
-    iconColor: COLORS.gray600,
-    key: 'nearby',
-  },
-  {
-    icon: CheckCircle2,
-    labelKey: 'search.categoryVerified',
-    bgColor: COLORS.blue50,
-    iconColor: COLORS.blue500,
-    key: 'verified',
-  },
-  {
-    icon: Flame,
-    labelKey: 'search.categoryNearbyTags',
-    bgColor: '#fff7ed',
-    iconColor: '#f97316',
-    key: 'nearby_tags',
-  },
-  {
-    icon: Clock,
-    labelKey: 'search.categoryRecent',
-    bgColor: COLORS.gray50,
-    iconColor: COLORS.gray600,
-    key: 'recent',
-  },
-];
+type CategoryKey = 'popular' | 'nearby' | 'recent';
 
 // ── Memoized list item components ──
 
@@ -206,49 +158,6 @@ const RecentSearchItem = React.memo(function RecentSearchItem({ query, onPress }
   );
 });
 
-type CategoryButtonProps = {
-  cat: (typeof CATEGORY_DEFS)[number];
-  isActive: boolean;
-  onPress: (key: CategoryKey) => void;
-  label: string;
-};
-
-const CategoryButton = React.memo(function CategoryButton({ cat, isActive, onPress, label }: CategoryButtonProps) {
-  const handlePress = useCallback(() => {
-    onPress(cat.key);
-  }, [onPress, cat.key]);
-
-  const IconComponent = cat.icon;
-  const circleStyle = useMemo(
-    () => [
-      styles.categoryIconCircle,
-      { backgroundColor: cat.bgColor },
-      isActive && styles.categoryIconCircleActive,
-    ],
-    [cat.bgColor, isActive],
-  );
-
-  return (
-    <TouchableOpacity
-      style={styles.categoryItem}
-      activeOpacity={0.7}
-      onPress={handlePress}
-    >
-      <View style={circleStyle}>
-        <IconComponent size={24} color={cat.iconColor} />
-      </View>
-      <Text
-        style={[
-          styles.categoryLabel,
-          isActive && styles.categoryLabelActive,
-        ]}
-      >
-        {label}
-      </Text>
-    </TouchableOpacity>
-  );
-});
-
 // ── Helper: get user location (shared by nearby profiles & nearby tags) ──
 
 async function getUserLocation(): Promise<{ lat: number; lng: number } | null> {
@@ -356,24 +265,6 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
     }
   }, []);
 
-  const loadVerifiedProfiles = useCallback(async () => {
-    setLoading(true);
-    setTags([]);
-    try {
-      const { data, error } = await supabase
-        .from('piktag_profiles')
-        .select('id, username, full_name, avatar_url, is_verified')
-        .eq('is_verified', true)
-        .limit(20);
-
-      if (!error && data) {
-        setProfiles(data);
-      }
-    } catch {} finally {
-      setLoading(false);
-    }
-  }, []);
-
   const loadNearbyProfiles = useCallback(async () => {
     setLoading(true);
     setTags([]);
@@ -420,79 +311,6 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
     }
   }, [user]);
 
-  const loadNearbyTags = useCallback(async () => {
-    setLoading(true);
-    setProfiles([]);
-    try {
-      const location = await getUserLocation();
-
-      if (!location) {
-        // Fallback to regular popular tags
-        loadPopularTags();
-        return;
-      }
-
-      const { lat: userLat, lng: userLng } = location;
-
-      // Find nearby profiles (within ~50km rough filter)
-      const latRange = 0.5; // ~50km
-      const lngRange = 0.5;
-      const { data: nearbyProfiles } = await supabase
-        .from('piktag_profiles')
-        .select('id')
-        .gte('latitude', userLat - latRange)
-        .lte('latitude', userLat + latRange)
-        .gte('longitude', userLng - lngRange)
-        .lte('longitude', userLng + lngRange);
-
-      if (!nearbyProfiles || nearbyProfiles.length === 0) {
-        loadPopularTags();
-        return;
-      }
-
-      const nearbyIds = nearbyProfiles.map((p: any) => p.id);
-
-      // Get tags used by nearby users' connections
-      const { data: nearbyConnections } = await supabase
-        .from('piktag_connections')
-        .select('id')
-        .in('user_id', nearbyIds);
-
-      if (!nearbyConnections || nearbyConnections.length === 0) {
-        loadPopularTags();
-        return;
-      }
-
-      const connIds = nearbyConnections.map((c: any) => c.id);
-
-      // Get tag counts for these connections
-      const { data: tagData } = await supabase
-        .from('piktag_connection_tags')
-        .select('tag:piktag_tags!tag_id(id, name, semantic_type, usage_count, created_at)')
-        .in('connection_id', connIds);
-
-      if (tagData) {
-        const tagMap: Record<string, { tag: any; count: number }> = {};
-        for (const ct of tagData) {
-          const tItem = (ct as any).tag;
-          if (tItem) {
-            if (!tagMap[tItem.id]) {
-              tagMap[tItem.id] = { tag: tItem, count: 0 };
-            }
-            tagMap[tItem.id].count++;
-          }
-        }
-        const sorted = Object.values(tagMap)
-          .sort((a, b) => b.count - a.count)
-          .slice(0, 20)
-          .map((item) => ({ ...item.tag, usage_count: item.count }));
-        setTags(sorted);
-      }
-    } catch {} finally {
-      setLoading(false);
-    }
-  }, [loadPopularTags]);
-
   // ── Load initial data on mount (parallel) ──
 
   useEffect(() => {
@@ -505,36 +323,13 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
     setSearchQuery('');
     setProfiles([]);
     setTags([]);
-
-    setActiveCategory((prev) => {
-      if (prev === key) {
-        // Toggle off - go back to popular
-        loadPopularTags();
-        return null;
-      }
-
-      switch (key) {
-        case 'popular':
-          loadPopularTags();
-          break;
-        case 'nearby':
-          loadNearbyProfiles();
-          break;
-        case 'verified':
-          loadVerifiedProfiles();
-          break;
-        case 'nearby_tags':
-          loadNearbyTags();
-          break;
-        case 'recent':
-          // Just show recent searches from local state
-          setLoading(false);
-          break;
-      }
-
-      return key;
-    });
-  }, [loadPopularTags, loadNearbyProfiles, loadVerifiedProfiles, loadNearbyTags]);
+    setActiveCategory(key === 'popular' ? null : key);
+    switch (key) {
+      case 'popular': loadPopularTags(); break;
+      case 'nearby': loadNearbyProfiles(); break;
+      case 'recent': setLoading(false); break;
+    }
+  }, [loadPopularTags, loadNearbyProfiles]);
 
   const performSearch = useCallback(
     async (query: string) => {
@@ -756,7 +551,6 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
   // We use a discriminated‑union item type so we can render different sections.
 
   type ListItem =
-    | { type: 'categories' }
     | { type: 'loading' }
     | { type: 'recentHeader' }
     | { type: 'recentEmpty' }
@@ -773,8 +567,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
   const listData = useMemo<ListItem[]>(() => {
     const items: ListItem[] = [];
 
-    // 1. Categories row (always)
-    items.push({ type: 'categories' });
+    // (categories removed — simplified to search + feed)
 
     // 2. Loading
     if (loading || initialLoading) {
@@ -843,8 +636,6 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
 
   const keyExtractor = useCallback((item: ListItem, index: number): string => {
     switch (item.type) {
-      case 'categories':
-        return 'categories';
       case 'loading':
         return 'loading';
       case 'recentHeader':
@@ -877,21 +668,6 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
   const renderItem = useCallback(
     ({ item }: ListRenderItemInfo<ListItem>) => {
       switch (item.type) {
-        case 'categories':
-          return (
-            <View style={styles.categoriesRow}>
-              {CATEGORY_DEFS.map((cat) => (
-                <CategoryButton
-                  key={cat.key}
-                  cat={cat}
-                  isActive={activeCategory === cat.key}
-                  onPress={handleCategoryPress}
-                  label={t(cat.labelKey)}
-                />
-              ))}
-            </View>
-          );
-
         case 'loading':
           return (
             <View style={styles.loadingContainer}>
@@ -1228,37 +1004,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: COLORS.gray700,
     marginBottom: 16,
-  },
-  categoriesRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 28,
-  },
-  categoryItem: {
-    alignItems: 'center',
-    flex: 1,
-  },
-  categoryIconCircle: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 8,
-  },
-  categoryIconCircleActive: {
-    borderWidth: 2,
-    borderColor: COLORS.piktag500,
-  },
-  categoryLabel: {
-    fontSize: 12,
-    color: COLORS.gray700,
-    fontWeight: '500',
-    lineHeight: 16,
-  },
-  categoryLabelActive: {
-    color: COLORS.piktag600,
-    fontWeight: '700',
   },
   tagsGrid: {
     flexDirection: 'row',
