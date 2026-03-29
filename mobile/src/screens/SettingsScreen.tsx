@@ -19,6 +19,7 @@ import { useTranslation } from 'react-i18next';
 import { COLORS } from '../constants/theme';
 import { supabase, supabaseUrl, supabaseAnonKey } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
+import { useTheme } from '../context/ThemeContext';
 import type { PiktagProfile } from '../types';
 
 type SettingsScreenProps = {
@@ -60,7 +61,8 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
 
   const [profile, setProfile] = useState<PiktagProfile | null>(null);
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
-  const [darkModeEnabled, setDarkModeEnabled] = useState(false);
+  const { isDark } = useTheme();
+  const [darkModeEnabled, setDarkModeEnabled] = useState(isDark);
   const [currentLanguage, setCurrentLanguage] = useState('zh-TW');
   const [loadingProfile, setLoadingProfile] = useState(true);
   const [languageModalVisible, setLanguageModalVisible] = useState(false);
@@ -138,10 +140,12 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
     }
   };
 
-  const handleDarkModeToggle = async () => {
+  const { setMode: setThemeMode } = useTheme();
+
+  const handleDarkModeToggle = () => {
     const newValue = !darkModeEnabled;
     setDarkModeEnabled(newValue);
-    await AsyncStorage.setItem('piktag_dark_mode', String(newValue));
+    setThemeMode(newValue ? 'dark' : 'light');
   };
 
   const handleAbout = () => {
