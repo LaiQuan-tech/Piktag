@@ -150,6 +150,8 @@
     "categoryVerified": "Verified Members",
     "categoryNearbyTags": "Nearby Hot Tags",
     "categoryRecent": "Recent Searches",
+    "recentSearchesLabel": "Recent Searches",
+    "popularTagsLabel": "Popular Tags",
     "noRecentSearches": "No recent searches",
     "profilesSectionLabel": "Members",
     "noProfilesFound": "No matching members found",

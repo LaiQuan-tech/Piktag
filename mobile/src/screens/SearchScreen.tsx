@@ -546,6 +546,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
 
   type ListItem =
     | { type: 'loading' }
+    | { type: 'sectionLabel'; label: string; showClear?: boolean }
     | { type: 'recentHeader' }
     | { type: 'recentEmpty' }
     | { type: 'recentItem'; query: string; index: number }
@@ -567,51 +568,51 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
       return items;
     }
 
-    // 2. Recent searches (when search box is empty)
-    if (showRecent) {
-      items.push({ type: 'clearHistoryBtn' });
-      recentSearches.forEach((query, index) => {
-        items.push({ type: 'recentItem', query, index });
-      });
-    }
+    if (trimmedQuery === '') {
+      // ── Empty search: show browse mode ──
 
-    // 4. Profile results section
-    if (showProfiles) {
-      if (trimmedQuery !== '') {
-        items.push({ type: 'profilesHeader' });
+      // Section: 搜尋紀錄
+      if (recentSearches.length > 0) {
+        items.push({ type: 'sectionLabel', label: t('search.recentSearchesLabel') || '搜尋紀錄', showClear: true });
+        recentSearches.forEach((query, index) => {
+          items.push({ type: 'recentItem', query, index });
+        });
       }
-      if (profiles.length === 0) {
-        items.push({ type: 'profilesEmpty' });
-      } else {
+
+      // Section: 熱門標籤
+      if (tags.length > 0) {
+        items.push({ type: 'sectionLabel', label: t('search.popularTagsLabel') || '熱門標籤' });
+        items.push({ type: 'tagsGrid' });
+      }
+
+    } else {
+      // ── Search results mode ──
+
+      // Profiles
+      if (profiles.length > 0) {
+        items.push({ type: 'profilesHeader' });
         profiles.forEach((profile) => {
           items.push({ type: 'profileItem', profile });
         });
       }
-    }
 
-    // 5. Tags section
-    if (showTags && !initialLoading) {
-      if (trimmedQuery !== '') {
+      // Tags
+      if (tags.length > 0) {
         items.push({ type: 'tagsHeader' });
-      }
-      if (tags.length === 0) {
-        if (trimmedQuery !== '') items.push({ type: 'tagsEmpty' });
-        // When empty search + no tags loaded yet, show nothing (loading handled above)
-      } else {
         items.push({ type: 'tagsGrid' });
       }
-    }
 
-    // 6. Tag users preview (people using matched tags)
-    if (trimmedQuery !== '' && tagUsers.length > 0) {
-      tagUsers.forEach((tu) => {
-        items.push({ type: 'tagUsersSection', tagUserData: tu });
-      });
-    }
+      // Tag users preview
+      if (tagUsers.length > 0) {
+        tagUsers.forEach((tu) => {
+          items.push({ type: 'tagUsersSection', tagUserData: tu });
+        });
+      }
 
-    // Fallback: if nothing to show at all, show empty state
-    if (items.length === 0) {
-      items.push({ type: 'tagsEmpty' });
+      // No results
+      if (profiles.length === 0 && tags.length === 0) {
+        items.push({ type: 'profilesEmpty' });
+      }
     }
 
     return items;
@@ -632,6 +633,8 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
     switch (item.type) {
       case 'loading':
         return 'loading';
+      case 'sectionLabel':
+        return `section-${item.label}`;
       case 'recentHeader':
         return 'recentHeader';
       case 'recentEmpty':
@@ -694,6 +697,24 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
             >
               <Text style={styles.clearHistoryText}>{t('search.clearHistory')}</Text>
             </TouchableOpacity>
+          );
+
+        case 'sectionLabel':
+          return (
+            <View style={styles.sectionLabelRow}>
+              <Text style={styles.sectionLabelText}>{item.label}</Text>
+              {item.showClear && (
+                <TouchableOpacity
+                  onPress={async () => {
+                    await AsyncStorage.removeItem(RECENT_SEARCHES_KEY);
+                    setRecentSearches([]);
+                  }}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.sectionLabelClear}>{t('search.clearHistory') || '清除'}</Text>
+                </TouchableOpacity>
+              )}
+            </View>
           );
 
         case 'recentEmpty':
@@ -1047,6 +1068,23 @@ const styles = StyleSheet.create({
     color: COLORS.gray400,
     textAlign: 'center',
     paddingVertical: 24,
+  },
+  sectionLabelRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
+    marginTop: 16,
+  },
+  sectionLabelText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: COLORS.gray900,
+  },
+  sectionLabelClear: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: COLORS.gray400,
   },
   resultSectionLabel: {
     fontSize: 14,
