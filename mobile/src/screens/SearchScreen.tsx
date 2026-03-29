@@ -192,6 +192,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
+  const [nearbyTags, setNearbyTags] = useState<Tag[]>([]);
   const [tagCategories, setTagCategories] = useState<string[]>([]);
   const [selectedTagCategory, setSelectedTagCategory] = useState<string | null>(null);
 
@@ -312,11 +313,46 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
     }
   }, [user]);
 
+  const loadNearbyTags = useCallback(async () => {
+    try {
+      const location = await getUserLocation();
+      if (!location) return;
+      const { lat: userLat, lng: userLng } = location;
+      const range = 0.5; // ~50km
+      const { data: nearbyProfiles } = await supabase
+        .from('piktag_profiles').select('id')
+        .gte('latitude', userLat - range).lte('latitude', userLat + range)
+        .gte('longitude', userLng - range).lte('longitude', userLng + range);
+      if (!nearbyProfiles || nearbyProfiles.length === 0) return;
+      const nearbyIds = nearbyProfiles.map((p: any) => p.id);
+      const { data: nearbyConns } = await supabase
+        .from('piktag_connections').select('id').in('user_id', nearbyIds);
+      if (!nearbyConns || nearbyConns.length === 0) return;
+      const { data: tagData } = await supabase
+        .from('piktag_connection_tags')
+        .select('tag:piktag_tags!tag_id(id, name, semantic_type, usage_count)')
+        .in('connection_id', nearbyConns.map((c: any) => c.id));
+      if (tagData) {
+        const tagMap: Record<string, { tag: any; count: number }> = {};
+        for (const ct of tagData) {
+          const tItem = (ct as any).tag;
+          if (tItem && !tagMap[tItem.id]) tagMap[tItem.id] = { tag: tItem, count: 0 };
+          if (tItem) tagMap[tItem.id].count++;
+        }
+        setNearbyTags(
+          Object.values(tagMap).sort((a, b) => b.count - a.count).slice(0, 15)
+            .map((item) => ({ ...item.tag, usage_count: item.count }))
+        );
+      }
+    } catch { /* ignore */ }
+  }, []);
+
   // ── Load initial data on mount (parallel) ──
 
   useEffect(() => {
     Promise.all([loadPopularTags(), loadRecentSearches()]);
-  }, [loadPopularTags, loadRecentSearches]);
+    loadNearbyTags(); // background, don't block
+  }, [loadPopularTags, loadRecentSearches, loadNearbyTags]);
 
   // ── Event handlers (all useCallback) ──
 
@@ -558,6 +594,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
     | { type: 'tagsHeader' }
     | { type: 'tagsEmpty' }
     | { type: 'tagsGrid' }
+    | { type: 'nearbyTagsGrid' }
     | { type: 'tagUsersSection'; tagUserData: { tag: Tag; users: any[] } };
 
   const listData = useMemo<ListItem[]>(() => {
@@ -586,12 +623,20 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
         items.push({ type: 'tagsGrid' });
       }
 
+      // Section: 附近標籤
+      if (nearbyTags.length > 0) {
+        items.push({ type: 'sectionLabel', label: t('search.nearbyTagsLabel') || '附近標籤' });
+        items.push({ type: 'nearbyTagsGrid' });
+      }
+
     } else {
       // ── Search results mode ──
 
+      // Section: 搜尋結果
+      items.push({ type: 'sectionLabel', label: t('search.searchResultsLabel') || '搜尋結果' });
+
       // Profiles
       if (profiles.length > 0) {
-        items.push({ type: 'profilesHeader' });
         profiles.forEach((profile) => {
           items.push({ type: 'profileItem', profile });
         });
@@ -599,7 +644,6 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
 
       // Tags
       if (tags.length > 0) {
-        items.push({ type: 'tagsHeader' });
         items.push({ type: 'tagsGrid' });
       }
 
@@ -627,6 +671,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
     profiles,
     showTags,
     tags,
+    nearbyTags,
     tagUsers,
   ]);
 
@@ -654,6 +699,8 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
         return 'tagsEmpty';
       case 'tagsGrid':
         return 'tagsGrid';
+      case 'nearbyTagsGrid':
+        return 'nearbyTagsGrid';
       case 'clearHistoryBtn':
         return 'clearHistoryBtn';
       case 'tagUsersSection':
@@ -834,6 +881,21 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
             </View>
           );
         }
+
+        case 'nearbyTagsGrid':
+          return (
+            <View style={styles.tagsGrid}>
+              {nearbyTags.map((tag) => (
+                <TagCard
+                  key={tag.id}
+                  tag={tag}
+                  isHighlighted={false}
+                  onPress={handleTagPress}
+                  countSuffix={tagCountSuffix}
+                />
+              ))}
+            </View>
+          );
 
         case 'tagUsersSection': {
           const { tag: sectionTag, users: sectionUsers } = item.tagUserData;

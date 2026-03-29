@@ -152,6 +152,8 @@
     "categoryRecent": "Recent Searches",
     "recentSearchesLabel": "Recent Searches",
     "popularTagsLabel": "Popular Tags",
+    "nearbyTagsLabel": "Nearby Tags",
+    "searchResultsLabel": "Search Results",
     "noRecentSearches": "No recent searches",
     "profilesSectionLabel": "Members",
     "noProfilesFound": "No matching members found",
