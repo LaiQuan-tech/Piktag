@@ -38,6 +38,7 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
   const [popularTags, setPopularTags] = useState<Tag[]>([]);
   const [loading, setLoading] = useState(true);
   const [addingTag, setAddingTag] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
   const [selectedTagId, setSelectedTagId] = useState<string | null>(null); // web only
   const [aiSuggestions, setAiSuggestions] = useState<string[]>([]);
   const [aiLoading, setAiLoading] = useState(false);
@@ -106,8 +107,11 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
     if (!user) return;
     let cancelled = false;
     (async () => {
-      await Promise.all([loadMyTags(), loadPopularTags(), loadAiSuggestions()]);
+      // Load tags + popular first (fast), show page immediately
+      await Promise.all([loadMyTags(), loadPopularTags()]);
       if (!cancelled) setLoading(false);
+      // AI suggestions load in background (slow, has its own aiLoading state)
+      loadAiSuggestions();
     })();
     return () => { cancelled = true; };
   }, [user, loadMyTags, loadPopularTags, loadAiSuggestions]);
@@ -204,10 +208,30 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
     if (!user) return;
     const isPinned = (userTag as any).is_pinned || false;
     if (!isPinned && pinnedCount >= MAX_PINNED) return;
-    setMyTags(prev => prev.map(t => t.id === userTag.id ? { ...t, is_pinned: !isPinned } as any : t));
-    await supabase.from('piktag_user_tags').update({ is_pinned: !isPinned }).eq('id', userTag.id);
-    await loadMyTags();
-  }, [user, pinnedCount, loadMyTags]);
+    const newPinned = !isPinned;
+    // Optimistic: toggle pin + move to front (pin) or keep position (unpin)
+    let newOrder: typeof myTags;
+    setMyTags(prev => {
+      const updated = prev.map(t => t.id === userTag.id ? { ...t, is_pinned: newPinned } as any : t);
+      if (newPinned) {
+        const tag = updated.find(t => t.id === userTag.id)!;
+        const rest = updated.filter(t => t.id !== userTag.id);
+        newOrder = [tag, ...rest];
+      } else {
+        newOrder = updated;
+      }
+      return newOrder;
+    });
+    // DB: update pin flag + positions (fire and forget)
+    supabase.from('piktag_user_tags').update({ is_pinned: newPinned }).eq('id', userTag.id).then(() => {
+      const order = newPinned
+        ? [userTag, ...myTags.filter(t => t.id !== userTag.id)]
+        : myTags;
+      Promise.all(order.map((tag, i) =>
+        supabase.from('piktag_user_tags').update({ position: i }).eq('id', tag.id)
+      ));
+    });
+  }, [user, pinnedCount, myTags]);
 
   /** Chip reorder — save positions to DB */
   const handleChipReorder = useCallback(async (newItems: { id: string; label: string; isPinned?: boolean }[]) => {
@@ -287,6 +311,7 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
             contentContainerStyle={styles.scrollContent}
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="always"
+            scrollEnabled={!isDragging}
           >
             {/* Section header */}
             <View style={styles.sectionHeader}>
@@ -322,6 +347,7 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
                 onReorder={handleChipReorder}
                 onRemove={handleChipRemove}
                 onDoubleTap={handleChipDoubleTap}
+                onDragStateChange={setIsDragging}
               />
             ) : (
               <>

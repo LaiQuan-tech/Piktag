@@ -1,13 +1,15 @@
 import React, { useState, useCallback, useRef } from 'react';
 import { View, Text, Pressable, StyleSheet, LayoutChangeEvent, Platform } from 'react-native';
-import { Gesture, GestureDetector, GestureHandlerRootView } from 'react-native-gesture-handler';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withSpring,
   withTiming,
+  withSequence,
   runOnJS,
 } from 'react-native-reanimated';
+import * as Haptics from 'expo-haptics';
 import { X, Pin } from 'lucide-react-native';
 import { COLORS } from '../constants/theme';
 
@@ -22,6 +24,7 @@ type DraggableChipsProps = {
   onReorder: (newItems: ChipItem[]) => void;
   onRemove: (item: ChipItem) => void;
   onDoubleTap?: (item: ChipItem) => void;
+  onDragStateChange?: (isDragging: boolean) => void;
 };
 
 type ChipLayout = {
@@ -33,7 +36,7 @@ type ChipLayout = {
 
 const SPRING_CONFIG = { damping: 20, stiffness: 300, mass: 0.8 };
 
-export default function DraggableChips({ items, onReorder, onRemove, onDoubleTap }: DraggableChipsProps) {
+export default function DraggableChips({ items, onReorder, onRemove, onDoubleTap, onDragStateChange }: DraggableChipsProps) {
   const [layouts, setLayouts] = useState<Map<string, ChipLayout>>(new Map());
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const containerRef = useRef<View>(null);
@@ -91,8 +94,8 @@ export default function DraggableChips({ items, onReorder, onRemove, onDoubleTap
           item={item}
           isDragging={draggingId === item.id}
           onLayout={(e) => onChipLayout(item.id, e)}
-          onDragStart={() => setDraggingId(item.id)}
-          onDragEnd={() => setDraggingId(null)}
+          onDragStart={() => { setDraggingId(item.id); onDragStateChange?.(true); }}
+          onDragEnd={() => { setDraggingId(null); onDragStateChange?.(false); }}
           onDragMove={(absX, absY) => {
             // Convert absolute to container-relative
             const relX = absX - containerLayout.current.x;
@@ -153,12 +156,17 @@ function DraggableChip({
       runOnJS(onDragEnd)();
     });
 
+  const doDoubleTap = useCallback(() => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    onDoubleTap?.();
+  }, [onDoubleTap]);
+
   const tapGesture = Gesture.Tap()
     .onEnd(() => {
       if (onDoubleTap) {
         const now = Date.now();
         if (now - lastTapTime.current < 400) {
-          runOnJS(onDoubleTap)();
+          runOnJS(doDoubleTap)();
           lastTapTime.current = 0;
         } else {
           lastTapTime.current = now;
