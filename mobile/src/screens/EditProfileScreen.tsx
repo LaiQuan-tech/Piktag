@@ -1161,7 +1161,7 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.white,
+    backgroundColor: "transparent",
   },
   flex: {
     flex: 1,

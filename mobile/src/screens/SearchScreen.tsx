@@ -1170,7 +1170,7 @@ const topEdges: ('top')[] = ['top'];
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.white,
+    backgroundColor: "transparent",
   },
   header: {
     paddingHorizontal: 20,

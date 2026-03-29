@@ -1,7 +1,7 @@
 import React from 'react';
 import { StatusBar, View, Platform, StyleSheet } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { NavigationContainer } from '@react-navigation/native';
+import { NavigationContainer, DefaultTheme, DarkTheme } from '@react-navigation/native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import * as Linking from 'expo-linking';
 import './src/i18n'; // Initialize i18n
@@ -52,7 +52,16 @@ function AppContent() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <GradientBackground>
         <SafeAreaProvider>
-          <NavigationContainer linking={linking}>
+          <NavigationContainer
+            linking={linking}
+            theme={isDark ? {
+              ...DarkTheme,
+              colors: { ...DarkTheme.colors, background: 'transparent', card: 'transparent', border: 'transparent' },
+            } : {
+              ...DefaultTheme,
+              colors: { ...DefaultTheme.colors, background: '#FFFFFF', card: '#FFFFFF' },
+            }}
+          >
             <StatusBar
               barStyle={isDark ? 'light-content' : 'dark-content'}
               backgroundColor="transparent"

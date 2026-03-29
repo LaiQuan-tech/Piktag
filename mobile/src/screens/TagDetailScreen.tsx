@@ -483,7 +483,7 @@ export default function TagDetailScreen({ navigation, route }: TagDetailScreenPr
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.white,
+    backgroundColor: "transparent",
   },
   header: {
     flexDirection: 'row',
