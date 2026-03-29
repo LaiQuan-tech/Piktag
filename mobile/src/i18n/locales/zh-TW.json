@@ -502,6 +502,7 @@
     "tagCount": "已新增 ({{count}}/{{max}}):",
     "dragSort": "排序",
     "longPressToReorder": "長按拖曳可排序",
+    "nativeHint": "長按拖曳排序 · 雙擊置頂",
     "dragSelectTarget": "點選要交換位置的標籤",
     "tagLimitTitle": "標籤上限",
     "tagLimitMessage": "最多只能新增 {{max}} 個標籤"

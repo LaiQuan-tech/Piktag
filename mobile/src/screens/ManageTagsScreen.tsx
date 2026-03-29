@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import {
   View,
   Text,
@@ -14,16 +14,26 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import { X, Hash, Pin, Sparkles, ArrowLeftRight } from 'lucide-react-native';
+import { X, Hash, Pin, Sparkles, ArrowLeftRight, GripVertical, AlertTriangle } from 'lucide-react-native';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
 import { COLORS } from '../constants/theme';
 import type { Tag, UserTag } from '../types';
 
+// Conditionally import DraggableFlatList only on native
+let DraggableFlatList: any = null;
+let ScaleDecorator: any = null;
+if (Platform.OS !== 'web') {
+  const dfl = require('react-native-draggable-flatlist');
+  DraggableFlatList = dfl.default;
+  ScaleDecorator = dfl.ScaleDecorator;
+}
+
 const MAX_TAGS = 10;
 const MAX_TAG_LENGTH = 30;
 const MAX_PINNED = 2;
 const GEMINI_API_KEY = process.env.EXPO_PUBLIC_GEMINI_API_KEY || '';
+const IS_NATIVE = Platform.OS !== 'web';
 
 type ManageTagsScreenProps = { navigation: any };
 
@@ -36,8 +46,7 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
   const [popularTags, setPopularTags] = useState<Tag[]>([]);
   const [loading, setLoading] = useState(true);
   const [addingTag, setAddingTag] = useState(false);
-
-  const [selectedTagId, setSelectedTagId] = useState<string | null>(null);
+  const [selectedTagId, setSelectedTagId] = useState<string | null>(null); // web only
   const [aiSuggestions, setAiSuggestions] = useState<string[]>([]);
   const [aiLoading, setAiLoading] = useState(false);
 
@@ -73,7 +82,6 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
         .single();
       if (!profile?.bio) { setAiSuggestions([]); return; }
 
-      // Detect user's language for AI suggestions
       const userLang = profile.bio.match(/[\u4e00-\u9fff]/) ? '繁體中文' :
         profile.bio.match(/[\u3040-\u30ff]/) ? '日本語' :
         profile.bio.match(/[\uac00-\ud7af]/) ? '한국어' :
@@ -127,9 +135,10 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
     [aiSuggestions, myTagNames],
   );
 
+  const pinnedCount = useMemo(() => myTags.filter((t) => (t as any).is_pinned).length, [myTags]);
+
   // ── Helpers ──────────────────────────────────────────────────────────
 
-  /** Look up or create a tag by name, return tag id */
   const findOrCreateTag = useCallback(async (name: string): Promise<string | null> => {
     let { data: tag } = await supabase
       .from('piktag_tags').select('id').eq('name', name).maybeSingle();
@@ -141,7 +150,6 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
     return tag?.id ?? null;
   }, []);
 
-  /** Link a tag to current user */
   const linkTagToUser = useCallback(async (tagId: string): Promise<boolean> => {
     if (!user) return false;
     const { error } = await supabase
@@ -154,41 +162,33 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
 
   // ── Handlers ───────────────────────────────────────────────────────────
 
-  /** Delete tag — no lock, supports rapid clicking */
   const handleRemoveTag = useCallback(async (userTag: UserTag & { tag?: Tag }) => {
     if (!user) return;
-    // Optimistic: remove from UI immediately
     setMyTags(prev => prev.filter(t => t.id !== userTag.id));
     try {
       await supabase.from('piktag_user_tags').delete().eq('id', userTag.id);
       if (userTag.tag_id) await supabase.rpc('decrement_tag_usage', { tag_id: userTag.tag_id }).catch(() => {});
     } catch { /* ignore */ }
-    await loadMyTags(); // sync with DB
+    await loadMyTags();
   }, [user, loadMyTags]);
 
-  /** Add tag from input bar */
   const handleAddTag = useCallback(async () => {
     if (!user) return;
     const rawName = tagInput.trim().replace(/^#/, '');
     if (!rawName || myTags.length >= MAX_TAGS) return;
     if (myTagNames.includes(`#${rawName}`)) return;
-    // Optimistic UI: show immediately
     setMyTags(prev => [...prev, { id: `temp-${Date.now()}`, user_id: user.id, tag_id: '', tag: { id: '', name: rawName } } as any]);
     setTagInput('');
-    // DB sync
     try {
       const tagId = await findOrCreateTag(rawName);
       if (tagId) await linkTagToUser(tagId);
     } catch { /* ignore */ }
-    await loadMyTags(); // replace temp with real data
+    await loadMyTags();
   }, [user, tagInput, myTags.length, myTagNames, findOrCreateTag, linkTagToUser, loadMyTags]);
 
-  /** Add popular tag */
   const handleAddPopularTag = useCallback(async (tag: Tag) => {
     if (!user || myTags.length >= MAX_TAGS) return;
-    // Optimistic UI: show immediately
     setMyTags(prev => [...prev, { id: `temp-${Date.now()}`, user_id: user.id, tag_id: tag.id, tag } as any]);
-    // DB sync
     try {
       await supabase.from('piktag_user_tags')
         .insert({ user_id: user.id, tag_id: tag.id, position: myTags.length });
@@ -197,13 +197,10 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
     await loadMyTags();
   }, [user, myTags.length, loadMyTags]);
 
-  /** Add AI suggested tag */
   const handleAddAiTag = useCallback(async (tagName: string) => {
     if (!user || myTagNames.includes(`#${tagName}`) || myTags.length >= MAX_TAGS) return;
-    // Optimistic UI: show immediately
     setMyTags(prev => [...prev, { id: `temp-${Date.now()}`, user_id: user.id, tag_id: '', tag: { id: '', name: tagName } } as any]);
     setAiSuggestions(prev => prev.filter(s => s !== tagName));
-    // DB sync
     try {
       const tagId = await findOrCreateTag(tagName);
       if (tagId) await linkTagToUser(tagId);
@@ -211,28 +208,37 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
     await loadMyTags();
   }, [user, myTagNames, myTags.length, findOrCreateTag, linkTagToUser, loadMyTags]);
 
-  /** Tap-to-swap: tap first tag to select, tap second to swap positions */
+  const handleTogglePin = useCallback(async (userTag: UserTag & { tag?: Tag }) => {
+    if (!user) return;
+    const isPinned = (userTag as any).is_pinned || false;
+    if (!isPinned && pinnedCount >= MAX_PINNED) return;
+    setMyTags(prev => prev.map(t => t.id === userTag.id ? { ...t, is_pinned: !isPinned } as any : t));
+    await supabase.from('piktag_user_tags').update({ is_pinned: !isPinned }).eq('id', userTag.id);
+    await loadMyTags();
+  }, [user, pinnedCount, loadMyTags]);
+
+  /** Native: drag-to-reorder */
+  const handleDragEnd = useCallback(async ({ data, from, to }: { data: typeof myTags; from: number; to: number }) => {
+    if (from === to) return;
+    setMyTags(data);
+    try {
+      await Promise.all(data.map((tag, i) =>
+        supabase.from('piktag_user_tags').update({ position: i }).eq('id', tag.id)
+      ));
+    } catch { await loadMyTags(); }
+  }, [loadMyTags]);
+
+  /** Web: tap-to-swap */
   const handleTagTap = useCallback(async (tappedTag: UserTag & { tag?: Tag }) => {
-    if (!selectedTagId) {
-      // First tap: select this tag
-      setSelectedTagId(tappedTag.id);
-      return;
-    }
-    if (selectedTagId === tappedTag.id) {
-      // Tap same tag: deselect
-      setSelectedTagId(null);
-      return;
-    }
-    // Second tap: swap positions
+    if (!selectedTagId) { setSelectedTagId(tappedTag.id); return; }
+    if (selectedTagId === tappedTag.id) { setSelectedTagId(null); return; }
     const fromIdx = myTags.findIndex(t => t.id === selectedTagId);
     const toIdx = myTags.findIndex(t => t.id === tappedTag.id);
     if (fromIdx === -1 || toIdx === -1) { setSelectedTagId(null); return; }
-    // Optimistic swap
     const updated = [...myTags];
     [updated[fromIdx], updated[toIdx]] = [updated[toIdx], updated[fromIdx]];
     setMyTags(updated);
     setSelectedTagId(null);
-    // Save to DB
     try {
       await Promise.all(updated.map((tag, i) =>
         supabase.from('piktag_user_tags').update({ position: i }).eq('id', tag.id)
@@ -240,24 +246,127 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
     } catch { await loadMyTags(); }
   }, [selectedTagId, myTags, loadMyTags]);
 
-  /** Toggle pin on a tag (max 2 pinned) */
-  const handleTogglePin = useCallback(async (userTag: UserTag & { tag?: Tag }) => {
-    if (!user) return;
-    const isPinned = (userTag as any).is_pinned || false;
-    if (!isPinned) {
-      const pinnedCount = myTags.filter((t) => (t as any).is_pinned).length;
-      if (pinnedCount >= MAX_PINNED) return;
-    }
-    setMyTags(prev => prev.map(t => t.id === userTag.id ? { ...t, is_pinned: !isPinned } as any : t));
-    await supabase.from('piktag_user_tags').update({ is_pinned: !isPinned }).eq('id', userTag.id);
-    await loadMyTags();
-  }, [user, myTags, loadMyTags]);
-
   const handleGoBack = useCallback(() => {
     navigation.canGoBack() ? navigation.goBack() : navigation.navigate("Connections");
   }, [navigation]);
 
-  const pinnedCount = useMemo(() => myTags.filter((t) => (t as any).is_pinned).length, [myTags]);
+  // ── Shared sub-components ──────────────────────────────────────────────
+
+  const footerContent = (
+    <View>
+      {/* AI Suggestions */}
+      {filteredAiSuggestions.length > 0 && myTags.length < MAX_TAGS && (
+        <View style={styles.aiSection}>
+          <View style={styles.aiHeader}>
+            <Sparkles size={16} color={COLORS.piktag600} />
+            <Text style={styles.aiTitle}>{t('manageTags.aiSuggestionsTitle')}</Text>
+          </View>
+          <View style={styles.chipsWrap}>
+            {filteredAiSuggestions.map((s) => (
+              <Pressable key={s} style={styles.aiChip} onPress={() => handleAddAiTag(s)}>
+                <Text style={styles.aiChipText}>+ #{s}</Text>
+              </Pressable>
+            ))}
+          </View>
+        </View>
+      )}
+      {aiLoading && (
+        <View style={styles.aiSection}>
+          <View style={styles.aiHeader}>
+            <Sparkles size={16} color={COLORS.piktag600} />
+            <Text style={styles.aiTitle}>{t('manageTags.aiSuggestionsTitle')}</Text>
+          </View>
+          <ActivityIndicator size="small" color={COLORS.piktag500} style={{ marginTop: 8 }} />
+        </View>
+      )}
+      {/* Popular Tags */}
+      {myTags.length < MAX_TAGS && (
+        <View style={styles.popularSection}>
+          <Text style={styles.popularTitle}>{t('manageTags.popularTagsTitle')}</Text>
+          <View style={styles.chipsWrap}>
+            {popularTags.filter(tag => {
+              const dn = tag.name.startsWith('#') ? tag.name : `#${tag.name}`;
+              return !myTagNames.includes(dn);
+            }).map((tag) => {
+              const dn = tag.name.startsWith('#') ? tag.name : `#${tag.name}`;
+              return (
+                <Pressable key={tag.id} style={styles.popularChip} onPress={() => handleAddPopularTag(tag)}>
+                  <Text style={styles.popularChipText}>+ {dn}</Text>
+                </Pressable>
+              );
+            })}
+          </View>
+        </View>
+      )}
+      <View style={{ height: 20 }} />
+    </View>
+  );
+
+  const headerContent = (
+    <View>
+      <View style={styles.sectionHeader}>
+        <Text style={styles.sectionTitle}>{t('manageTags.publicTagsTitle')}</Text>
+        <Text style={styles.sectionSubtitle}>{t('manageTags.publicTagsSubtitle')}</Text>
+      </View>
+      <View style={styles.tagCountRow}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+          <Text style={[styles.tagCountText, myTags.length >= MAX_TAGS && { color: '#EF4444', fontWeight: '600' }]}>
+            {t('manageTags.tagCount', { count: myTags.length, max: MAX_TAGS })}
+          </Text>
+          {myTags.length >= MAX_TAGS && <AlertTriangle size={13} color="#EF4444" />}
+        </View>
+        {myTags.length > 0 && (
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
+            <Pin size={12} color={COLORS.gray400} />
+            <Text style={styles.tagCountText}>{pinnedCount}/{MAX_PINNED}</Text>
+          </View>
+        )}
+      </View>
+      {myTags.length > 0 && IS_NATIVE && (
+        <Text style={styles.sortHint}>{t('manageTags.nativeHint') || '長按拖曳排序 · 雙擊置頂'}</Text>
+      )}
+    </View>
+  );
+
+  // ── Native: DraggableFlatList render item ───────────────────────────────
+
+  /** Double-tap detection for native pin toggle */
+  const lastTapRef = React.useRef<{ id: string; time: number }>({ id: '', time: 0 });
+
+  const handleNativeTap = useCallback((item: UserTag & { tag?: Tag }) => {
+    const now = Date.now();
+    if (lastTapRef.current.id === item.id && now - lastTapRef.current.time < 400) {
+      // Double tap → toggle pin
+      handleTogglePin(item);
+      lastTapRef.current = { id: '', time: 0 };
+    } else {
+      lastTapRef.current = { id: item.id, time: now };
+    }
+  }, [handleTogglePin]);
+
+  const renderNativeItem = useCallback(({ item, drag, isActive }: any) => {
+    const name = item.tag?.name ?? '';
+    const dn = name.startsWith('#') ? name : `#${name}`;
+    const isPinned = (item as any).is_pinned;
+    const Wrapper = ScaleDecorator || View;
+    return (
+      <Wrapper>
+        <Pressable
+          onPress={() => handleNativeTap(item)}
+          onLongPress={drag}
+          disabled={isActive}
+          style={[styles.nativeRow, isActive && styles.nativeRowActive, isPinned && styles.nativeRowPinned]}
+        >
+          <GripVertical size={16} color={isActive ? COLORS.piktag500 : COLORS.gray300} />
+          {isPinned && <Pin size={13} color={COLORS.piktag600} fill={COLORS.piktag600} />}
+          <Text style={[styles.nativeRowText, isPinned && styles.chipTextPinned]} numberOfLines={1}>{dn}</Text>
+          <Pressable onPress={() => handleRemoveTag(item)} style={styles.chipX} hitSlop={8}>
+            <X size={15} color={COLORS.gray400} />
+          </Pressable>
+        </Pressable>
+      </Wrapper>
+    );
+  }, [handleRemoveTag, handleNativeTap]);
 
   // ── Render ────────────────────────────────────────────────────────────
 
@@ -278,115 +387,72 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
         </View>
       ) : (
         <View style={styles.flex1}>
-          <ScrollView
-            style={styles.flex1}
-            contentContainerStyle={styles.scrollContent}
-            showsVerticalScrollIndicator={false}
-            keyboardShouldPersistTaps="always"
-          >
-            {/* Section header */}
-            <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>{t('manageTags.publicTagsTitle')}</Text>
-              <Text style={styles.sectionSubtitle}>{t('manageTags.publicTagsSubtitle')}</Text>
-            </View>
 
-            {/* Tag count + pin count */}
-            <View style={styles.tagCountRow}>
-              <Text style={[styles.tagCountText, myTags.length >= MAX_TAGS && { color: '#EF4444', fontWeight: '600' }]}>
-                {t('manageTags.tagCount', { count: myTags.length, max: MAX_TAGS })}
-                {myTags.length >= MAX_TAGS ? ' ⚠️' : ''}
-              </Text>
-              {myTags.length > 0 && (
-                <Text style={styles.tagCountText}>📌 {pinnedCount}/{MAX_PINNED}</Text>
-              )}
-            </View>
-
-            {/* Swap hint */}
-            {selectedTagId && (
-              <View style={styles.swapHintBar}>
-                <ArrowLeftRight size={14} color={COLORS.piktag600} />
-                <Text style={styles.swapHintText}>{t('manageTags.dragSelectTarget') || '點選要交換位置的標籤'}</Text>
-                <Pressable onPress={() => setSelectedTagId(null)}>
-                  <Text style={styles.swapCancel}>{t('common.cancel') || '取消'}</Text>
-                </Pressable>
-              </View>
-            )}
-
-            {/* My tags as chips */}
-            <View style={styles.chipsWrap}>
-              {myTags.map((ut) => {
-                const isPinned = (ut as any).is_pinned;
-                const isSelected = ut.id === selectedTagId;
-                const name = ut.tag?.name ?? '';
-                const dn = name.startsWith('#') ? name : `#${name}`;
-                return (
-                  <Pressable
-                    key={ut.id}
-                    style={[styles.chip, isPinned && styles.chipPinned, isSelected && styles.chipSelected]}
-                    onPress={() => handleTagTap(ut)}
-                    onLongPress={() => handleTogglePin(ut)}
-                  >
-                    {isPinned && <Pin size={11} color={COLORS.piktag600} fill={COLORS.piktag600} />}
-                    <Text style={[styles.chipText, isPinned && styles.chipTextPinned]}>{dn}</Text>
-                    <Pressable onPress={() => handleRemoveTag(ut)} style={styles.chipX}>
-                      <X size={14} color={COLORS.gray400} />
-                    </Pressable>
-                  </Pressable>
-                );
-              })}
-              {myTags.length === 0 && (
+          {/* ── Native: DraggableFlatList ── */}
+          {IS_NATIVE && DraggableFlatList ? (
+            <DraggableFlatList
+              data={myTags}
+              keyExtractor={(item: any) => item.id}
+              onDragEnd={handleDragEnd}
+              renderItem={renderNativeItem}
+              containerStyle={styles.flex1}
+              contentContainerStyle={styles.scrollContent}
+              ListHeaderComponent={headerContent}
+              ListEmptyComponent={
                 <Text style={styles.emptyText}>{t('manageTags.noTagsYet')}</Text>
+              }
+              ListFooterComponent={footerContent}
+            />
+          ) : (
+            /* ── Web: ScrollView + chips + tap-to-swap ── */
+            <ScrollView
+              style={styles.flex1}
+              contentContainerStyle={styles.scrollContent}
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="always"
+            >
+              {headerContent}
+
+              {/* Swap hint (web only) */}
+              {selectedTagId && (
+                <View style={styles.swapHintBar}>
+                  <ArrowLeftRight size={14} color={COLORS.piktag600} />
+                  <Text style={styles.swapHintText}>{t('manageTags.dragSelectTarget') || '點選要交換位置的標籤'}</Text>
+                  <Pressable onPress={() => setSelectedTagId(null)}>
+                    <Text style={styles.swapCancel}>{t('common.cancel') || '取消'}</Text>
+                  </Pressable>
+                </View>
               )}
-            </View>
 
-            {/* AI Suggestions */}
-            {filteredAiSuggestions.length > 0 && myTags.length < MAX_TAGS && (
-              <View style={styles.aiSection}>
-                <View style={styles.aiHeader}>
-                  <Sparkles size={16} color={COLORS.piktag600} />
-                  <Text style={styles.aiTitle}>{t('manageTags.aiSuggestionsTitle')}</Text>
-                </View>
-                <View style={styles.chipsWrap}>
-                  {filteredAiSuggestions.map((s) => (
-                    <Pressable key={s} style={styles.aiChip} onPress={() => handleAddAiTag(s)}>
-                      <Text style={styles.aiChipText}>+ #{s}</Text>
-                    </Pressable>
-                  ))}
-                </View>
-              </View>
-            )}
-            {aiLoading && (
-              <View style={styles.aiSection}>
-                <View style={styles.aiHeader}>
-                  <Sparkles size={16} color={COLORS.piktag600} />
-                  <Text style={styles.aiTitle}>{t('manageTags.aiSuggestionsTitle')}</Text>
-                </View>
-                <ActivityIndicator size="small" color={COLORS.piktag500} style={{ marginTop: 8 }} />
-              </View>
-            )}
-
-            {/* Popular Tags */}
-            {myTags.length < MAX_TAGS && (
-              <View style={styles.popularSection}>
-                <Text style={styles.popularTitle}>{t('manageTags.popularTagsTitle')}</Text>
-                <View style={styles.chipsWrap}>
-                  {popularTags.filter(tag => {
-                    const dn = tag.name.startsWith('#') ? tag.name : `#${tag.name}`;
-                    return !myTagNames.includes(dn);
-                  }).map((tag) => {
-                    const dn = tag.name.startsWith('#') ? tag.name : `#${tag.name}`;
-                    return (
-                      <Pressable key={tag.id} style={styles.popularChip} onPress={() => handleAddPopularTag(tag)}>
-                        <Text style={styles.popularChipText}>+ {dn}</Text>
+              <View style={styles.chipsWrap}>
+                {myTags.map((ut) => {
+                  const isPinned = (ut as any).is_pinned;
+                  const isSelected = ut.id === selectedTagId;
+                  const name = ut.tag?.name ?? '';
+                  const dn = name.startsWith('#') ? name : `#${name}`;
+                  return (
+                    <Pressable
+                      key={ut.id}
+                      style={[styles.chip, isPinned && styles.chipPinned, isSelected && styles.chipSelected]}
+                      onPress={() => handleTagTap(ut)}
+                      onLongPress={() => handleTogglePin(ut)}
+                    >
+                      {isPinned && <Pin size={11} color={COLORS.piktag600} fill={COLORS.piktag600} />}
+                      <Text style={[styles.chipText, isPinned && styles.chipTextPinned]}>{dn}</Text>
+                      <Pressable onPress={() => handleRemoveTag(ut)} style={styles.chipX}>
+                        <X size={14} color={COLORS.gray400} />
                       </Pressable>
-                    );
-                  })}
-                </View>
+                    </Pressable>
+                  );
+                })}
+                {myTags.length === 0 && (
+                  <Text style={styles.emptyText}>{t('manageTags.noTagsYet')}</Text>
+                )}
               </View>
-            )}
 
-            <View style={{ height: 20 }} />
-          </ScrollView>
+              {footerContent}
+            </ScrollView>
+          )}
 
           {/* Fixed bottom input */}
           <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
@@ -442,7 +508,22 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20, paddingTop: 12, paddingBottom: 10,
   },
   tagCountText: { fontSize: 13, color: COLORS.gray500 },
-  // Chips
+  sortHint: { fontSize: 12, color: COLORS.gray400, paddingHorizontal: 20, marginBottom: 6 },
+
+  // Native drag rows — compact, chip-like
+  nativeRow: {
+    flexDirection: 'row', alignItems: 'center', gap: 8,
+    marginHorizontal: 20, marginBottom: 6, paddingVertical: 10, paddingHorizontal: 12,
+    backgroundColor: COLORS.gray50, borderRadius: 14, borderWidth: 1.5, borderColor: COLORS.gray100,
+  },
+  nativeRowActive: {
+    backgroundColor: COLORS.piktag50, borderColor: COLORS.piktag500,
+    shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.12, shadowRadius: 8, elevation: 6,
+  },
+  nativeRowPinned: { backgroundColor: '#FFFBEB', borderColor: COLORS.piktag400 },
+  nativeRowText: { flex: 1, fontSize: 15, fontWeight: '500', color: COLORS.gray900 },
+
+  // Web chips
   chipsWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, paddingHorizontal: 20 },
   chip: {
     flexDirection: 'row', alignItems: 'center', gap: 5,
@@ -457,7 +538,7 @@ const styles = StyleSheet.create({
   chipX: { padding: 4 },
   emptyText: { fontSize: 14, color: COLORS.gray400, paddingHorizontal: 20, paddingVertical: 8 },
 
-  // Swap hint
+  // Swap hint (web)
   swapHintBar: {
     flexDirection: 'row', alignItems: 'center', gap: 6,
     marginHorizontal: 20, marginBottom: 8, paddingVertical: 8, paddingHorizontal: 12,
