@@ -518,23 +518,17 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
   const trimmedQuery = useMemo(() => searchQuery.trim(), [searchQuery]);
 
   const showProfiles = useMemo(
-    () =>
-      activeCategory === 'nearby' ||
-      activeCategory === 'verified' ||
-      (trimmedQuery !== '' && profiles.length > 0),
-    [activeCategory, trimmedQuery, profiles.length],
+    () => trimmedQuery !== '' && profiles.length > 0,
+    [trimmedQuery, profiles.length],
   );
 
   const showTags = useMemo(
-    () =>
-      (activeCategory !== 'nearby' &&
-        activeCategory !== 'verified' &&
-        activeCategory !== 'recent') ||
-      activeCategory === 'nearby_tags',
-    [activeCategory],
+    () => trimmedQuery === '' || tags.length > 0,
+    [trimmedQuery, tags.length],
   );
 
-  const showRecent = activeCategory === 'recent';
+  // Show recent searches when search box is empty
+  const showRecent = trimmedQuery === '' && recentSearches.length > 0;
 
   // ── Memoized translated suffix for tag counts ──
   const tagCountSuffix = useMemo(() => t('search.tagCountSuffix'), [t]);
@@ -567,24 +561,18 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
   const listData = useMemo<ListItem[]>(() => {
     const items: ListItem[] = [];
 
-    // (categories removed — simplified to search + feed)
-
-    // 2. Loading
+    // 1. Loading
     if (loading || initialLoading) {
       items.push({ type: 'loading' });
-      return items; // show nothing else while loading
+      return items;
     }
 
-    // 3. Recent searches section
+    // 2. Recent searches (when search box is empty)
     if (showRecent) {
-      if (recentSearches.length === 0) {
-        items.push({ type: 'recentEmpty' });
-      } else {
-        items.push({ type: 'clearHistoryBtn' });
-        recentSearches.forEach((query, index) => {
-          items.push({ type: 'recentItem', query, index });
-        });
-      }
+      items.push({ type: 'clearHistoryBtn' });
+      recentSearches.forEach((query, index) => {
+        items.push({ type: 'recentItem', query, index });
+      });
     }
 
     // 4. Profile results section
