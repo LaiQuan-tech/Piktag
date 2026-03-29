@@ -26,24 +26,20 @@ type NotificationsScreenProps = {
   navigation?: any;
 };
 
-type NotificationTab = 'all' | 'follow' | 'tag' | 'crm';
+type NotificationTab = 'social' | 'reminders';
 
-const TAB_KEYS: NotificationTab[] = ['all', 'follow', 'tag', 'crm'];
+const TAB_KEYS: NotificationTab[] = ['social', 'reminders'];
 
 function filterNotifications(
   notifications: Notification[],
   tab: NotificationTab
 ): Notification[] {
   switch (tab) {
-    case 'follow':
+    case 'social':
       return notifications.filter(
-        (n) => n.type === 'follow' || n.type === 'friend'
+        (n) => n.type === 'follow' || n.type === 'friend' || n.type === 'tag_added' || n.type === 'recommendation' || n.type === 'tag_trending'
       );
-    case 'tag':
-      return notifications.filter(
-        (n) => n.type === 'tag_added' || n.type === 'recommendation' || n.type === 'tag_trending'
-      );
-    case 'crm':
+    case 'reminders':
       return notifications.filter(
         (n) => n.type === 'biolink_click' || n.type === 'reminder' || n.type === 'birthday' || n.type === 'anniversary' || n.type === 'contract_expiry'
       );
@@ -167,14 +163,12 @@ export default function NotificationsScreen({ navigation }: NotificationsScreenP
 
   const TAB_LABELS: Record<NotificationTab, string> = useMemo(
     () => ({
-      all: t('notifications.tabAll'),
-      follow: t('notifications.tabFollow'),
-      tag: t('notifications.tabTag'),
-      crm: t('notifications.tabCrm'),
+      social: t('notifications.tabSocial') || '社交',
+      reminders: t('notifications.tabReminders') || '提醒',
     }),
     [t]
   );
-  const [activeTab, setActiveTab] = useState<NotificationTab>('all');
+  const [activeTab, setActiveTab] = useState<NotificationTab>('social');
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);

@@ -465,10 +465,8 @@
   },
   "notifications": {
     "headerTitle": "通知",
-    "tabAll": "全部",
-    "tabFollow": "追蹤",
-    "tabTag": "標籤",
-    "tabCrm": "CRM",
+    "tabSocial": "社交",
+    "tabReminders": "提醒",
     "timeJustNow": "剛剛",
     "timeMinutesAgo": "{{count}} 分鐘前",
     "timeHoursAgo": "{{count}} 小時前",

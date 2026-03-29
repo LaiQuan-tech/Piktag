@@ -5,7 +5,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import {
   Home,
   Search,
-  Hash,
+  QrCode,
   Bell,
   User,
 } from 'lucide-react-native';
@@ -163,8 +163,8 @@ function MainTabs() {
         component={AddTagStackNavigator}
         options={{
           tabBarIcon: ({ color, focused }) => (
-            <Hash
-              size={36}
+            <QrCode
+              size={28}
               color={color}
               strokeWidth={focused ? 2.5 : 2}
             />

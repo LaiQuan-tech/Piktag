@@ -465,10 +465,8 @@
   },
   "notifications": {
     "headerTitle": "Notifications",
-    "tabAll": "All",
-    "tabFollow": "Follow",
-    "tabTag": "Tag",
-    "tabCrm": "CRM",
+    "tabSocial": "Social",
+    "tabReminders": "Reminders",
     "timeJustNow": "Just now",
     "timeMinutesAgo": "{{count}}m ago",
     "timeHoursAgo": "{{count}}h ago",

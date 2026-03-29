@@ -48,7 +48,7 @@ import PlatformIcon from '../components/PlatformIcon';
 import InitialsAvatar from '../components/InitialsAvatar';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
-import type { Connection, PiktagProfile, Note, Biolink } from '../types';
+import type { Connection, PiktagProfile, Biolink } from '../types';
 
 type ReminderField = 'birthday' | 'anniversary' | 'contract_expiry';
 const REMINDER_LABEL_KEYS: Record<ReminderField, string> = {
@@ -82,8 +82,6 @@ function getBiolinkIcon(type: BiolinkType) {
   }
 }
 
-const NOTE_COLORS = ['#FEF3C7', '#DBEAFE', '#D1FAE5', '#FCE7F3', '#EDE9FE', '#FEE2E2'];
-
 type FriendTag = {
   tagId: string;
   name: string;
@@ -98,7 +96,6 @@ type FriendData = {
   connection: Connection | null;
   profile: PiktagProfile | null;
   tags: FriendTag[];
-  notes: Note[];
   biolinks: Biolink[];
   mutualFriends: number;
   mutualTags: number;
@@ -110,7 +107,6 @@ const initialFriendData: FriendData = {
   connection: null,
   profile: null,
   tags: [],
-  notes: [],
   biolinks: [],
   mutualFriends: 0,
   mutualTags: 0,
@@ -122,8 +118,7 @@ type FriendDataAction =
   | { type: 'SET_INITIAL'; payload: Partial<FriendData> }
   | { type: 'SET_SCAN_EVENT_TAGS'; scanEventTags: string[] }
   | { type: 'SET_MUTUAL_TAGS'; mutualTags: number }
-  | { type: 'SET_TAGS'; tags: FriendTag[] }
-  | { type: 'SET_NOTES'; notes: Note[] };
+  | { type: 'SET_TAGS'; tags: FriendTag[] };
 
 function friendDataReducer(state: FriendData, action: FriendDataAction): FriendData {
   switch (action.type) {
@@ -135,8 +130,6 @@ function friendDataReducer(state: FriendData, action: FriendDataAction): FriendD
       return { ...state, mutualTags: action.mutualTags };
     case 'SET_TAGS':
       return { ...state, tags: action.tags };
-    case 'SET_NOTES':
-      return { ...state, notes: action.notes };
     default:
       return state;
   }
@@ -150,7 +143,7 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
 
   const [loading, setLoading] = useState(true);
   const [friendData, dispatchFriendData] = useReducer(friendDataReducer, initialFriendData);
-  const { connection, profile, tags, notes, biolinks, mutualFriends, mutualTags, followerCount, scanEventTags } = friendData;
+  const { connection, profile, tags, biolinks, mutualFriends, mutualTags, followerCount, scanEventTags } = friendData;
 
   // Follow state
   const [isFollowing, setIsFollowing] = useState(false);
@@ -181,12 +174,6 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
   const [editingReminder, setEditingReminder] = useState<ReminderField | null>(null);
   const [reminderInput, setReminderInput] = useState('');
 
-  // Note editing state
-  const [isAddingNote, setIsAddingNote] = useState(false);
-  const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
-  const [noteContent, setNoteContent] = useState('');
-  const [noteColor, setNoteColor] = useState(NOTE_COLORS[0]);
-
   const fetchData = useCallback(async () => {
     if (!user || !friendId) return;
 
@@ -197,7 +184,6 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
       const [
         connResult,
         profileResult,
-        notesResult,
         biolinksResult,
         connTagsResult,
         myConnectionsResult,
@@ -207,13 +193,6 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
           ? supabase.from('piktag_connections').select('*').eq('id', connectionId).single()
           : Promise.resolve({ data: null, error: null }),
         supabase.from('piktag_profiles').select('*').eq('id', friendId).single(),
-        supabase
-          .from('piktag_notes')
-          .select('*')
-          .eq('user_id', user.id)
-          .eq('target_user_id', friendId)
-          .order('is_pinned', { ascending: false })
-          .order('updated_at', { ascending: false }),
         supabase
           .from('piktag_biolinks')
           .select('*')
@@ -253,7 +232,6 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
         payload: {
           connection: connData ?? null,
           profile: profileResult.data ?? null,
-          notes: notesResult.data ?? [],
           biolinks: biolinksResult.data ?? [],
           tags: [], // will be set in phase 2 after pick data is fetched
           mutualFriends: mutualFriendsCount,
@@ -373,119 +351,6 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
   );
 
   // --- Note CRUD ---
-  const handleAddNote = async () => {
-    if (!user || !friendId || !noteContent.trim()) return;
-
-    const { data, error } = await supabase
-      .from('piktag_notes')
-      .insert({
-        user_id: user.id,
-        target_user_id: friendId,
-        content: noteContent.trim(),
-        color: noteColor,
-        is_pinned: false,
-      })
-      .select()
-      .single();
-
-    if (error) {
-      console.error('Error adding note:', error);
-      Alert.alert(t('common.error'), t('friendDetail.alertNoteAddError'));
-      return;
-    }
-
-    if (data) {
-      dispatchFriendData({ type: 'SET_NOTES', notes: [data, ...notes] });
-    }
-    setNoteContent('');
-    setNoteColor(NOTE_COLORS[0]);
-    setIsAddingNote(false);
-  };
-
-  const handleUpdateNote = async () => {
-    if (!editingNoteId || !noteContent.trim()) return;
-
-    const { data, error } = await supabase
-      .from('piktag_notes')
-      .update({
-        content: noteContent.trim(),
-        color: noteColor,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', editingNoteId)
-      .select()
-      .single();
-
-    if (error) {
-      console.error('Error updating note:', error);
-      Alert.alert(t('common.error'), t('friendDetail.alertNoteUpdateError'));
-      return;
-    }
-
-    if (data) {
-      dispatchFriendData({ type: 'SET_NOTES', notes: notes.map((n) => (n.id === editingNoteId ? data : n)) });
-    }
-    setNoteContent('');
-    setNoteColor(NOTE_COLORS[0]);
-    setEditingNoteId(null);
-  };
-
-  const handleDeleteNote = (noteId: string) => {
-    Alert.alert(t('friendDetail.alertDeleteNoteTitle'), t('friendDetail.alertDeleteNoteMessage'), [
-      { text: t('common.cancel'), style: 'cancel' },
-      {
-        text: t('common.delete'),
-        style: 'destructive',
-        onPress: async () => {
-          const { error } = await supabase
-            .from('piktag_notes')
-            .delete()
-            .eq('id', noteId);
-
-          if (error) {
-            console.error('Error deleting note:', error);
-            Alert.alert(t('common.error'), t('friendDetail.alertNoteDeleteError'));
-            return;
-          }
-          dispatchFriendData({ type: 'SET_NOTES', notes: notes.filter((n) => n.id !== noteId) });
-        },
-      },
-    ]);
-  };
-
-  const handleTogglePin = async (note: Note) => {
-    const { data, error } = await supabase
-      .from('piktag_notes')
-      .update({ is_pinned: !note.is_pinned })
-      .eq('id', note.id)
-      .select()
-      .single();
-
-    if (error) {
-      console.error('Error toggling pin:', error);
-      return;
-    }
-
-    if (data) {
-      dispatchFriendData({
-        type: 'SET_NOTES',
-        notes: notes
-          .map((n) => (n.id === note.id ? data : n))
-          .sort((a, b) => {
-            if (a.is_pinned !== b.is_pinned) return a.is_pinned ? -1 : 1;
-            return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime();
-          }),
-      });
-    }
-  };
-
-  const startEditNote = (note: Note) => {
-    setEditingNoteId(note.id);
-    setNoteContent(note.content);
-    setNoteColor(note.color);
-    setIsAddingNote(false);
-  };
-
   // Fetch friend's public tags for the pick modal — returns tags array
   const fetchFriendPublicTags = useCallback(async (): Promise<{ id: string; name: string }[]> => {
     if (!friendId) return [];
@@ -766,7 +631,6 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
   const avatarUrl = profile?.avatar_url || null;
   const metDate = connection?.met_at || '';
   const metLocation = connection?.met_location || '';
-  const connectionNote = connection?.note || '';
 
   return (
     <View style={styles.container}>
@@ -956,7 +820,7 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
         {/* ===== SECTION 4: CRM & Management (below the fold) ===== */}
 
         {/* Met Record Section */}
-        {(metDate || metLocation || connectionNote || scanEventTags.length > 0) && (
+        {(metDate || metLocation || scanEventTags.length > 0) && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>{t('friendDetail.metRecordTitle')}</Text>
             <View style={styles.recordCard}>
@@ -967,7 +831,7 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
                     <Text style={styles.recordLabel}>{t('friendDetail.metDateLabel')}</Text>
                     <Text style={styles.recordValue}>{metDate}</Text>
                   </View>
-                  {(metLocation || connectionNote) && <View style={styles.recordDivider} />}
+                  {(metLocation || scanEventTags.length > 0) && <View style={styles.recordDivider} />}
                 </>
               ) : null}
               {metLocation ? (
@@ -976,16 +840,6 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
                     <MapPin size={16} color={COLORS.gray400} />
                     <Text style={styles.recordLabel}>{t('friendDetail.metLocationLabel')}</Text>
                     <Text style={styles.recordValue}>{metLocation}</Text>
-                  </View>
-                  {connectionNote ? <View style={styles.recordDivider} /> : null}
-                </>
-              ) : null}
-              {connectionNote ? (
-                <>
-                  <View style={styles.recordRow}>
-                    <FileText size={16} color={COLORS.gray400} />
-                    <Text style={styles.recordLabel}>{t('friendDetail.metNoteLabel')}</Text>
-                    <Text style={[styles.recordValue, styles.recordNotes]}>{connectionNote}</Text>
                   </View>
                   {scanEventTags.length > 0 && <View style={styles.recordDivider} />}
                 </>
@@ -1007,71 +861,6 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
             </View>
           </View>
         )}
-
-        {/* Sticky Notes Section */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>{t('friendDetail.stickyNotesTitle')}</Text>
-            <TouchableOpacity
-              onPress={() => { setIsAddingNote(true); setEditingNoteId(null); setNoteContent(''); setNoteColor(NOTE_COLORS[0]); }}
-              activeOpacity={0.7}
-            >
-              <Plus size={22} color={COLORS.gray600} />
-            </TouchableOpacity>
-          </View>
-
-          {(isAddingNote || editingNoteId) && (
-            <View style={[styles.noteForm, { backgroundColor: noteColor }]}>
-              <TextInput
-                style={styles.noteInput}
-                placeholder={t('friendDetail.notePlaceholder')}
-                placeholderTextColor={COLORS.gray400}
-                value={noteContent}
-                onChangeText={setNoteContent}
-                multiline
-                autoFocus
-              />
-              <View style={styles.noteColorRow}>
-                {NOTE_COLORS.map((color) => (
-                  <TouchableOpacity
-                    key={color}
-                    style={[styles.noteColorDot, { backgroundColor: color }, noteColor === color && styles.noteColorDotActive]}
-                    onPress={() => setNoteColor(color)}
-                  />
-                ))}
-              </View>
-              <View style={styles.noteFormActions}>
-                <TouchableOpacity style={styles.noteFormCancel} onPress={() => { setIsAddingNote(false); setEditingNoteId(null); setNoteContent(''); }}>
-                  <Text style={styles.noteFormCancelText}>{t('friendDetail.noteCancel')}</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.noteFormSave} onPress={editingNoteId ? handleUpdateNote : handleAddNote}>
-                  <Text style={styles.noteFormSaveText}>{editingNoteId ? t('friendDetail.noteUpdate') : t('friendDetail.noteAdd')}</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          )}
-
-          {notes.length === 0 && !isAddingNote && (
-            <Text style={styles.emptyNotesText}>{t('friendDetail.noNotes')}</Text>
-          )}
-          {notes.map((note) => (
-            <View key={note.id} style={[styles.noteCard, { backgroundColor: note.color || NOTE_COLORS[0] }]}>
-              {note.is_pinned && (<View style={styles.notePinBadge}><Pin size={12} color={COLORS.gray600} /></View>)}
-              <Text style={styles.noteCardText}>{note.content}</Text>
-              <View style={styles.noteCardActions}>
-                <TouchableOpacity onPress={() => handleTogglePin(note)} style={styles.noteActionBtn}>
-                  <Pin size={16} color={note.is_pinned ? COLORS.piktag600 : COLORS.gray400} />
-                </TouchableOpacity>
-                <TouchableOpacity onPress={() => startEditNote(note)} style={styles.noteActionBtn}>
-                  <Edit3 size={16} color={COLORS.gray400} />
-                </TouchableOpacity>
-                <TouchableOpacity onPress={() => handleDeleteNote(note.id)} style={styles.noteActionBtn}>
-                  <Trash2 size={16} color={COLORS.red500} />
-                </TouchableOpacity>
-              </View>
-            </View>
-          ))}
-        </View>
 
         {/* CRM Reminders Section */}
         {connectionId && (
@@ -1538,89 +1327,6 @@ const styles = StyleSheet.create({
     height: 1,
     backgroundColor: COLORS.gray200,
     marginVertical: 10,
-  },
-  // Sticky Notes
-  noteForm: {
-    borderRadius: 14,
-    padding: 16,
-    marginBottom: 12,
-  },
-  noteInput: {
-    fontSize: 15,
-    color: COLORS.gray900,
-    minHeight: 60,
-    textAlignVertical: 'top',
-  },
-  noteColorRow: {
-    flexDirection: 'row',
-    gap: 10,
-    marginTop: 12,
-  },
-  noteColorDot: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    borderWidth: 2,
-    borderColor: 'transparent',
-  },
-  noteColorDotActive: {
-    borderColor: COLORS.gray700,
-  },
-  noteFormActions: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    gap: 12,
-    marginTop: 12,
-  },
-  noteFormCancel: {
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-  },
-  noteFormCancelText: {
-    fontSize: 14,
-    color: COLORS.gray500,
-    fontWeight: '600',
-  },
-  noteFormSave: {
-    backgroundColor: COLORS.piktag500,
-    paddingVertical: 8,
-    paddingHorizontal: 20,
-    borderRadius: 8,
-  },
-  noteFormSaveText: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: COLORS.gray900,
-  },
-  emptyNotesText: {
-    fontSize: 14,
-    color: COLORS.gray400,
-    textAlign: 'center',
-    paddingVertical: 20,
-  },
-  noteCard: {
-    borderRadius: 14,
-    padding: 16,
-    marginBottom: 10,
-  },
-  notePinBadge: {
-    position: 'absolute',
-    top: 10,
-    right: 10,
-  },
-  noteCardText: {
-    fontSize: 15,
-    color: COLORS.gray900,
-    lineHeight: 22,
-  },
-  noteCardActions: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    gap: 16,
-    marginTop: 10,
-  },
-  noteActionBtn: {
-    padding: 4,
   },
   // CRM Reminders
   reminderRow: {
