@@ -183,6 +183,7 @@
     "locationLabel": "地點",
     "locationPlaceholder": "輸入活動地點...",
     "customTagsLabel": "自訂標籤",
+    "hiddenTagHint": "這些標籤僅自己可見，幫助你記住在哪認識",
     "tagPlaceholder": "輸入標籤...",
     "addButton": "新增",
     "saveAsPreset": "儲存為常用模板",

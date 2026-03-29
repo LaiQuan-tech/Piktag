@@ -48,7 +48,6 @@ export default function ScanResultScreen({ navigation, route }: ScanResultScreen
   } = route.params;
 
   const [hostProfile, setHostProfile] = useState<PiktagProfile | null>(null);
-  const [selectedHostTags, setSelectedHostTags] = useState<Set<string>>(new Set());
   const [myTags, setMyTags] = useState<string[]>([]);
   const [selectedMyTags, setSelectedMyTags] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
@@ -101,25 +100,11 @@ export default function ScanResultScreen({ navigation, route }: ScanResultScreen
         setSelectedMyTags(new Set(tagNames));
       }
 
-      // Pre-select all host tags
-      setSelectedHostTags(new Set(hostTags));
     } catch (err) {
       console.error('Error fetching scan result data:', err);
     } finally {
       setLoading(false);
     }
-  };
-
-  const toggleHostTag = (tag: string) => {
-    setSelectedHostTags((prev) => {
-      const next = new Set(prev);
-      if (next.has(tag)) {
-        next.delete(tag);
-      } else {
-        next.add(tag);
-      }
-      return next;
-    });
   };
 
   const toggleMyTag = (tag: string) => {
@@ -132,14 +117,6 @@ export default function ScanResultScreen({ navigation, route }: ScanResultScreen
       }
       return next;
     });
-  };
-
-  const toggleSelectAllHostTags = () => {
-    if (selectedHostTags.size === hostTags.length) {
-      setSelectedHostTags(new Set());
-    } else {
-      setSelectedHostTags(new Set(hostTags));
-    }
   };
 
   const toggleSelectAllMyTags = () => {
@@ -155,40 +132,29 @@ export default function ScanResultScreen({ navigation, route }: ScanResultScreen
 
     setSubmitting(true);
     try {
-      // Gather all selected tags from both sides
-      const allSelectedTags = [
-        ...Array.from(selectedHostTags),
-        ...Array.from(selectedMyTags),
-      ];
-      // Deduplicate
-      const uniqueTags = [...new Set(allSelectedTags)];
-
-      // Find or create tag records for each selected tag name
-      const tagIds: string[] = [];
-      for (const tagName of uniqueTags) {
+      // Helper: find or create tag by name
+      const findOrCreateTag = async (tagName: string): Promise<string | null> => {
         const rawName = tagName.startsWith('#') ? tagName.slice(1) : tagName;
+        const { data: existing } = await supabase
+          .from('piktag_tags').select('id').eq('name', rawName).maybeSingle();
+        if (existing) return existing.id;
+        const { data: created } = await supabase
+          .from('piktag_tags').insert({ name: rawName }).select('id').single();
+        return created?.id || null;
+      };
 
-        // Check if tag exists
-        const { data: existingTag } = await supabase
-          .from('piktag_tags')
-          .select('id')
-          .eq('name', rawName)
-          .single();
+      // Resolve public tags (from my selected tags)
+      const publicTagIds: string[] = [];
+      for (const tagName of Array.from(selectedMyTags)) {
+        const id = await findOrCreateTag(tagName);
+        if (id) publicTagIds.push(id);
+      }
 
-        if (existingTag) {
-          tagIds.push(existingTag.id);
-        } else {
-          // Create new tag
-          const { data: newTag } = await supabase
-            .from('piktag_tags')
-            .insert({ name: rawName })
-            .select('id')
-            .single();
-
-          if (newTag) {
-            tagIds.push(newTag.id);
-          }
-        }
+      // Resolve private tags (from host's QR event tags — hidden from scanner)
+      const privateTagIds: string[] = [];
+      for (const tagName of hostTags) {
+        const id = await findOrCreateTag(tagName);
+        if (id) privateTagIds.push(id);
       }
 
       // Check if connection already exists
@@ -231,20 +197,36 @@ export default function ScanResultScreen({ navigation, route }: ScanResultScreen
         return;
       }
 
-      // Insert connection tags
-      if (tagIds.length > 0) {
-        const connectionTagRows = tagIds.map((tagId) => ({
-          connection_id: connectionData.id,
-          tag_id: tagId,
-        }));
+      // Insert public connection tags (from scanner's own tags)
+      if (publicTagIds.length > 0) {
+        await supabase.from('piktag_connection_tags').insert(
+          publicTagIds.map(tagId => ({ connection_id: connectionData.id, tag_id: tagId, is_private: false }))
+        ).catch(() => {});
+      }
 
-        const { error: tagsError } = await supabase
-          .from('piktag_connection_tags')
-          .insert(connectionTagRows);
+      // Insert private connection tags (from QR event tags — only scanner sees)
+      if (privateTagIds.length > 0) {
+        await supabase.from('piktag_connection_tags').insert(
+          privateTagIds.map(tagId => ({ connection_id: connectionData.id, tag_id: tagId, is_private: true }))
+        ).catch(() => {});
+      }
 
-        if (tagsError) {
-          console.error('Error inserting connection tags:', tagsError);
-        }
+      // Also create reverse connection for host + attach private tags
+      const { data: reverseConn } = await supabase
+        .from('piktag_connections')
+        .upsert({
+          user_id: hostUserId,
+          connected_user_id: user.id,
+          met_at: new Date().toISOString(),
+          met_location: eventLocation,
+          note: eventDate + (eventLocation ? ' · ' + eventLocation : ''),
+        }, { onConflict: 'user_id,connected_user_id' })
+        .select('id').single();
+
+      if (reverseConn && privateTagIds.length > 0) {
+        await supabase.from('piktag_connection_tags').insert(
+          privateTagIds.map(tagId => ({ connection_id: reverseConn.id, tag_id: tagId, is_private: true }))
+        ).catch(() => {});
       }
 
       // Insert relation tag if selected
@@ -306,7 +288,6 @@ export default function ScanResultScreen({ navigation, route }: ScanResultScreen
   const displayName = hostProfile?.full_name || hostName;
   const username = hostProfile?.username || '';
 
-  const allHostSelected = hostTags.length > 0 && selectedHostTags.size === hostTags.length;
   const allMySelected = myTags.length > 0 && selectedMyTags.size === myTags.length;
 
   if (loading) {
@@ -362,53 +343,6 @@ export default function ScanResultScreen({ navigation, route }: ScanResultScreen
             <Text style={styles.usernameText}>@{username}</Text>
           ) : null}
         </View>
-
-        {/* Host Tags Section */}
-        {hostTags.length > 0 && (
-          <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>{t('scanResult.hostTagsTitle')}</Text>
-              <TouchableOpacity
-                onPress={toggleSelectAllHostTags}
-                activeOpacity={0.7}
-              >
-                <Text
-                  style={[
-                    styles.selectAllText,
-                    allHostSelected && styles.selectAllTextActive,
-                  ]}
-                >
-                  {t('scanResult.selectAll')}
-                </Text>
-              </TouchableOpacity>
-            </View>
-            <View style={styles.chipsContainer}>
-              {hostTags.map((tag) => {
-                const isSelected = selectedHostTags.has(tag);
-                return (
-                  <TouchableOpacity
-                    key={tag}
-                    style={[
-                      styles.chip,
-                      isSelected ? styles.chipSelected : styles.chipUnselected,
-                    ]}
-                    onPress={() => toggleHostTag(tag)}
-                    activeOpacity={0.7}
-                  >
-                    <Text
-                      style={[
-                        styles.chipText,
-                        isSelected ? styles.chipTextSelected : styles.chipTextUnselected,
-                      ]}
-                    >
-                      {tag.startsWith('#') ? tag : `#${tag}`}
-                    </Text>
-                  </TouchableOpacity>
-                );
-              })}
-            </View>
-          </View>
-        )}
 
         {/* My Tags Section */}
         {myTags.length > 0 && (

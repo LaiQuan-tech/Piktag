@@ -369,6 +369,7 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
         {/* 自訂標籤 Section */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>{t('addTag.customTagsLabel')}</Text>
+          <Text style={styles.hiddenTagHint}>{t('addTag.hiddenTagHint') || '這些標籤僅自己可見，幫助你記住在哪認識'}</Text>
           <View style={styles.tagInputRow}>
             <View style={[styles.inputRow, { flex: 1 }]}>
               <TextInput
@@ -781,7 +782,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '700',
     color: COLORS.gray900,
-    marginBottom: 14,
+    marginBottom: 4,
+  },
+  hiddenTagHint: {
+    fontSize: 12,
+    color: COLORS.gray400,
+    marginBottom: 12,
   },
 
   // ── Input ──

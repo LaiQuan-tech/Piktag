@@ -183,6 +183,7 @@
     "locationLabel": "Location",
     "locationPlaceholder": "Enter event location...",
     "customTagsLabel": "Custom Tags",
+    "hiddenTagHint": "Only visible to you — helps you remember where you met",
     "tagPlaceholder": "Enter tag...",
     "addButton": "Add",
     "saveAsPreset": "Save as template",
