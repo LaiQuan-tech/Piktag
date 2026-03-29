@@ -194,7 +194,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
   const [nearbyTags, setNearbyTags] = useState<Tag[]>([]);
-  const [searchTab, setSearchTab] = useState<'popular' | 'nearby' | 'results'>('popular');
+  const [searchTab, setSearchTab] = useState<'popular' | 'nearby' | 'history'>('popular');
   const [tagCategories, setTagCategories] = useState<string[]>([]);
   const [selectedTagCategory, setSelectedTagCategory] = useState<string | null>(null);
 
@@ -505,7 +505,6 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
   const handleSearchChange = useCallback(
     (text: string) => {
       setSearchQuery(text);
-      if (text.trim()) setSearchTab('results'); // auto-switch to results
 
       if (debounceTimer.current) {
         clearTimeout(debounceTimer.current);
@@ -609,52 +608,52 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
       return items;
     }
 
-    switch (searchTab) {
-      case 'popular':
-        // 搜尋紀錄 + 熱門標籤
-        if (recentSearches.length > 0) {
-          items.push({ type: 'sectionLabel', label: t('search.recentSearchesLabel') || '搜尋紀錄', showClear: true });
-          recentSearches.forEach((query, index) => {
-            items.push({ type: 'recentItem', query, index });
-          });
-        }
-        if (tags.length > 0) {
-          items.push({ type: 'tagsGrid' });
-        }
-        break;
-
-      case 'nearby':
-        // 附近標籤
-        if (nearbyTags.length > 0) {
-          items.push({ type: 'nearbyTagsGrid' });
-        } else {
-          items.push({ type: 'tagsEmpty' });
-        }
-        break;
-
-      case 'results':
-        // 搜尋結果
-        if (trimmedQuery === '') {
-          items.push({ type: 'profilesEmpty' }); // hint to type something
-        } else {
-          if (profiles.length > 0) {
-            profiles.forEach((profile) => {
-              items.push({ type: 'profileItem', profile });
-            });
-          }
+    // If user is typing, show search results regardless of tab
+    if (trimmedQuery !== '') {
+      if (profiles.length > 0) {
+        profiles.forEach((profile) => {
+          items.push({ type: 'profileItem', profile });
+        });
+      }
+      if (tags.length > 0) {
+        items.push({ type: 'tagsGrid' });
+      }
+      if (tagUsers.length > 0) {
+        tagUsers.forEach((tu) => {
+          items.push({ type: 'tagUsersSection', tagUserData: tu });
+        });
+      }
+      if (profiles.length === 0 && tags.length === 0) {
+        items.push({ type: 'profilesEmpty' });
+      }
+    } else {
+      // No query — show tab content
+      switch (searchTab) {
+        case 'popular':
           if (tags.length > 0) {
             items.push({ type: 'tagsGrid' });
           }
-          if (tagUsers.length > 0) {
-            tagUsers.forEach((tu) => {
-              items.push({ type: 'tagUsersSection', tagUserData: tu });
+          break;
+
+        case 'nearby':
+          if (nearbyTags.length > 0) {
+            items.push({ type: 'nearbyTagsGrid' });
+          } else {
+            items.push({ type: 'tagsEmpty' });
+          }
+          break;
+
+        case 'history':
+          if (recentSearches.length > 0) {
+            items.push({ type: 'sectionLabel', label: '', showClear: true });
+            recentSearches.forEach((query, index) => {
+              items.push({ type: 'recentItem', query, index });
             });
+          } else {
+            items.push({ type: 'recentEmpty' });
           }
-          if (profiles.length === 0 && tags.length === 0) {
-            items.push({ type: 'profilesEmpty' });
-          }
-        }
-        break;
+          break;
+      }
     }
 
     return items;
@@ -1022,13 +1021,13 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[styles.tabItem, searchTab === 'results' && styles.tabItemActive]}
-          onPress={() => setSearchTab('results')}
+          style={[styles.tabItem, searchTab === 'history' && styles.tabItemActive]}
+          onPress={() => setSearchTab('history')}
           activeOpacity={0.7}
         >
-          <Search size={16} color={searchTab === 'results' ? COLORS.piktag600 : COLORS.gray400} />
-          <Text style={[styles.tabItemText, searchTab === 'results' && styles.tabItemTextActive]}>
-            {t('search.searchResultsLabel') || '搜尋結果'}
+          <Clock size={16} color={searchTab === 'history' ? COLORS.piktag600 : COLORS.gray400} />
+          <Text style={[styles.tabItemText, searchTab === 'history' && styles.tabItemTextActive]}>
+            {t('search.recentSearchesLabel') || '搜尋紀錄'}
           </Text>
         </TouchableOpacity>
       </View>
