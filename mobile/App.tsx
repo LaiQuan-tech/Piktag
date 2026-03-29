@@ -6,6 +6,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import * as Linking from 'expo-linking';
 import './src/i18n'; // Initialize i18n
 import AppNavigator from './src/navigation/AppNavigator';
+import { ThemeProvider, useTheme } from './src/context/ThemeContext';
 
 const prefix = Linking.createURL('/');
 
@@ -42,25 +43,28 @@ const linking = {
   },
 };
 
-export default function App() {
+function AppContent() {
+  const { colors, isDark } = useTheme();
   const isWeb = Platform.OS === 'web';
 
   const content = (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
         <NavigationContainer linking={linking}>
-          <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+          <StatusBar
+            barStyle={isDark ? 'light-content' : 'dark-content'}
+            backgroundColor={colors.background}
+          />
           <AppNavigator />
         </NavigationContainer>
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );
 
-  // Web: center content in a phone-sized container (like Instagram web)
   if (isWeb) {
     return (
-      <View style={webStyles.outerContainer}>
-        <View style={webStyles.innerContainer}>
+      <View style={[webStyles.outerContainer, { backgroundColor: isDark ? '#000' : '#F5F5F5' }]}>
+        <View style={[webStyles.innerContainer, { backgroundColor: colors.background }]}>
           {content}
         </View>
       </View>
@@ -68,6 +72,14 @@ export default function App() {
   }
 
   return content;
+}
+
+export default function App() {
+  return (
+    <ThemeProvider>
+      <AppContent />
+    </ThemeProvider>
+  );
 }
 
 const webStyles = StyleSheet.create({
