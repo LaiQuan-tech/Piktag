@@ -336,7 +336,7 @@ export default function NotificationsScreen({ navigation }: NotificationsScreenP
 
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}># PikTag</Text>
+        <Text style={styles.headerTitle}>{t('notifications.headerTitle')}</Text>
         {hasUnread && (
           <TouchableOpacity
             style={styles.markAllButton}

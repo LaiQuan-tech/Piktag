@@ -977,7 +977,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
     <SafeAreaView style={styles.container} edges={topEdges}>
       <StatusBar barStyle="dark-content" backgroundColor={COLORS.white} />
       <View style={styles.header}>
-        <Text style={styles.headerTitle}># PikTag</Text>
+        <Text style={styles.headerTitle}>{t('search.headerTitle') || '搜尋'}</Text>
         <View style={searchContainerStyle}>
           <Search
             size={20}
