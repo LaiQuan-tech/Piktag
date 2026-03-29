@@ -45,9 +45,11 @@ const LIGHT = {
   textTertiary: '#9ca3af',
 };
 
-// ── Dark palette ───────────────────────────────────────────────────────
+// ── Dark palette (Linktree-inspired gradient style) ────────────────────
+// Background is transparent — actual gradient is rendered by GradientBackground component
+// Cards use semi-transparent surfaces for depth
 const DARK: typeof LIGHT = {
-  // Brand — slightly brighter for dark backgrounds
+  // Brand — brighter for dark backgrounds
   piktag50: '#2a2315',
   piktag100: '#3d3118',
   piktag200: '#5c4a1a',
@@ -56,17 +58,17 @@ const DARK: typeof LIGHT = {
   piktag500: '#f5c518',
   piktag600: '#fad44a',
 
-  // Grays — inverted
-  white: '#0f0f0f',
-  gray50: '#1a1a1a',
-  gray100: '#222222',
-  gray200: '#2e2e2e',
-  gray300: '#3d3d3d',
-  gray400: '#666666',
-  gray500: '#8a8a8a',
-  gray600: '#a3a3a3',
-  gray700: '#c4c4c4',
-  gray800: '#e0e0e0',
+  // Grays — soft, not pure black
+  white: 'transparent',       // background is gradient, not flat color
+  gray50: 'rgba(255,255,255,0.04)',
+  gray100: 'rgba(255,255,255,0.08)',
+  gray200: 'rgba(255,255,255,0.12)',
+  gray300: 'rgba(255,255,255,0.16)',
+  gray400: 'rgba(255,255,255,0.4)',
+  gray500: 'rgba(255,255,255,0.55)',
+  gray600: 'rgba(255,255,255,0.7)',
+  gray700: 'rgba(255,255,255,0.8)',
+  gray800: 'rgba(255,255,255,0.9)',
   gray900: '#f0f0f0',
   black: '#FFFFFF',
 
@@ -79,11 +81,11 @@ const DARK: typeof LIGHT = {
   green500: '#4ade80',
   purple500: '#c084fc',
 
-  // Semantic backgrounds
-  background: '#0f0f0f',
-  backgroundSecondary: '#1a1a1a',
-  card: '#1e1e1e',
-  border: '#2e2e2e',
+  // Semantic backgrounds — semi-transparent for gradient to show through
+  background: 'transparent',
+  backgroundSecondary: 'rgba(255,255,255,0.05)',
+  card: 'rgba(255,255,255,0.1)',
+  border: 'rgba(255,255,255,0.15)',
   text: '#f0f0f0',
   textSecondary: '#8a8a8a',
   textTertiary: '#666666',
@@ -94,6 +96,18 @@ export const COLORS = LIGHT;
 export const COLORS_DARK = DARK;
 
 export type ColorPalette = typeof LIGHT;
+
+// ── Dark mode gradient presets (Linktree-inspired) ─────────────────────
+export const DARK_GRADIENTS = {
+  // Default: deep purple → dark navy
+  default: ['#0f0a1e', '#1a1035', '#0d1a2e'] as const,
+  // Midnight: dark blue → dark teal
+  midnight: ['#0a1628', '#0d1f35', '#0a2a2e'] as const,
+  // Brand: dark gold → deep purple
+  brand: ['#1a1508', '#1a0f1e', '#0f0a1e'] as const,
+  // Charcoal: warm dark gray gradient
+  charcoal: ['#1a1a1a', '#1f1a24', '#1a1a22'] as const,
+};
 
 // ── Typography ─────────────────────────────────────────────────────────
 // Bold, high-contrast typography for professional feel

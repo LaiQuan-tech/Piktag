@@ -7,6 +7,7 @@ import * as Linking from 'expo-linking';
 import './src/i18n'; // Initialize i18n
 import AppNavigator from './src/navigation/AppNavigator';
 import { ThemeProvider, useTheme } from './src/context/ThemeContext';
+import GradientBackground from './src/components/GradientBackground';
 
 const prefix = Linking.createURL('/');
 
@@ -49,15 +50,18 @@ function AppContent() {
 
   const content = (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <SafeAreaProvider>
-        <NavigationContainer linking={linking}>
-          <StatusBar
-            barStyle={isDark ? 'light-content' : 'dark-content'}
-            backgroundColor={colors.background}
-          />
-          <AppNavigator />
-        </NavigationContainer>
-      </SafeAreaProvider>
+      <GradientBackground>
+        <SafeAreaProvider>
+          <NavigationContainer linking={linking}>
+            <StatusBar
+              barStyle={isDark ? 'light-content' : 'dark-content'}
+              backgroundColor="transparent"
+              translucent={isDark}
+            />
+            <AppNavigator />
+          </NavigationContainer>
+        </SafeAreaProvider>
+      </GradientBackground>
     </GestureHandlerRootView>
   );
 
