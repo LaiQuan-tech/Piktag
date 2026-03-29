@@ -235,29 +235,16 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
         // DB table may not exist yet — continue with local session ID
       }
 
-      // 3. Build QR payload
-      const payload = {
-        type: 'piktag_connect',
-        v: 1,
-        sid: sessionId,
-        uid: user.id,
-        name: displayName,
-        date: eventDate,
-        loc: eventLocation,
-        tags: eventTags,
-      };
-
-      const jsonString = JSON.stringify(payload);
-      // Use encodeURIComponent + unescape for safe base64 with non-ASCII chars
-      const encoded = btoa(unescape(encodeURIComponent(jsonString)));
-      const qrUrl = `https://pikt.ag/s?d=${encoded}`;
+      // 3. Build QR URL — standard URL that any camera can scan
+      const username = (profileData as PiktagProfile | null)?.username || user.id;
+      const qrUrl = `https://pikt.ag/${username}?sid=${sessionId}`;
 
       // 4. Update session in DB if it was created
       if (sessionData) {
         try {
           await supabase
             .from('piktag_scan_sessions')
-            .update({ qr_code_data: encoded })
+            .update({ qr_code_data: qrUrl })
             .eq('id', sessionData.id);
         } catch {
           // ignore

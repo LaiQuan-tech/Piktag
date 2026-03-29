@@ -66,29 +66,24 @@ export default function CameraScanScreen({ navigation }: CameraScanScreenProps) 
     }
   }, []);
 
+  /** Try to parse new URL format: https://pikt.ag/{username}?sid={sessionId} */
+  const parseUrlFormat = useCallback((rawValue: string): { username: string; sid?: string } | null => {
+    try {
+      const url = new URL(rawValue);
+      if (url.hostname === 'pikt.ag' || url.hostname === 'www.pikt.ag') {
+        const path = url.pathname.replace(/^\//, '');
+        if (path && path !== 's') {
+          return { username: path, sid: url.searchParams.get('sid') || undefined };
+        }
+      }
+    } catch { /* not a URL */ }
+    return null;
+  }, []);
+
   const handleBarcodeScanned = useCallback(
     (result: { data: string }) => {
       if (scanned) return;
-
       setScanned(true);
-
-      const payload = decodeQrValue(result.data);
-
-      if (!payload) {
-        Alert.alert(
-          t('camera.invalidQr', { defaultValue: 'Invalid QR Code' }),
-          t('camera.invalidQrMessage', {
-            defaultValue: 'This QR code is not a valid PikTag connection code.',
-          }),
-        );
-
-        // Reset scan flag after 3 seconds to allow re-scanning
-        scanTimeoutRef.current = setTimeout(() => {
-          setScanned(false);
-        }, 3000);
-
-        return;
-      }
 
       // Clear any pending timeout
       if (scanTimeoutRef.current) {
@@ -96,21 +91,42 @@ export default function CameraScanScreen({ navigation }: CameraScanScreenProps) 
         scanTimeoutRef.current = null;
       }
 
-      navigation.navigate('ScanResult', {
-        sessionId: payload.sid,
-        hostUserId: payload.uid,
-        hostName: payload.name,
-        eventDate: payload.date,
-        eventLocation: payload.loc,
-        hostTags: payload.tags || [],
-      });
+      // Try new URL format first: https://pikt.ag/{username}?sid=xxx
+      const urlResult = parseUrlFormat(result.data);
+      if (urlResult) {
+        navigation.navigate('UserDetail', {
+          username: urlResult.username,
+          sid: urlResult.sid,
+        });
+        scanTimeoutRef.current = setTimeout(() => setScanned(false), 3000);
+        return;
+      }
 
-      // Reset scan flag after navigation so user can scan again if they come back
-      scanTimeoutRef.current = setTimeout(() => {
-        setScanned(false);
-      }, 3000);
+      // Try old base64 payload format (backward compat)
+      const payload = decodeQrValue(result.data);
+      if (payload) {
+        navigation.navigate('ScanResult', {
+          sessionId: payload.sid,
+          hostUserId: payload.uid,
+          hostName: payload.name,
+          eventDate: payload.date,
+          eventLocation: payload.loc,
+          hostTags: payload.tags || [],
+        });
+        scanTimeoutRef.current = setTimeout(() => setScanned(false), 3000);
+        return;
+      }
+
+      // Invalid QR
+      Alert.alert(
+        t('camera.invalidQr', { defaultValue: 'Invalid QR Code' }),
+        t('camera.invalidQrMessage', {
+          defaultValue: 'This QR code is not a valid PikTag connection code.',
+        }),
+      );
+      scanTimeoutRef.current = setTimeout(() => setScanned(false), 3000);
     },
-    [scanned, decodeQrValue, navigation, t],
+    [scanned, decodeQrValue, parseUrlFormat, navigation, t],
   );
 
   // Permission not yet determined

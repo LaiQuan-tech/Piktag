@@ -41,6 +41,7 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
   const { user: authUser } = useAuth();
   const paramUserId = route.params?.userId;
   const paramUsername = route.params?.username;
+  const paramSid = route.params?.sid; // Session ID from QR code scan
 
   const [resolvedUserId, setResolvedUserId] = useState<string | null>(paramUserId || null);
   const [loading, setLoading] = useState(true);
@@ -57,6 +58,7 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
   const [mutualTagModalVisible, setMutualTagModalVisible] = useState(false);
 
   // Pick Tag Modal
+  const [addFriendLoading, setAddFriendLoading] = useState(false);
   const [pickTagModalVisible, setPickTagModalVisible] = useState(false);
   const [friendPublicTags, setFriendPublicTags] = useState<{ id: string; name: string }[]>([]);
   const [pickedTagIds, setPickedTagIds] = useState<Set<string>>(new Set());
@@ -206,6 +208,68 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
       fetchData();
     }, [fetchData])
   );
+
+  // --- QR Code add friend (when sid param is present) ---
+  const handleAddFriendFromQr = useCallback(async () => {
+    if (!authUser || !resolvedUserId || !paramSid) return;
+    if (connectionId) { Alert.alert(t('scanResult.alreadyConnectedTitle')); return; }
+    setAddFriendLoading(true);
+    try {
+      // Fetch session to get event_tags
+      const { data: session } = await supabase
+        .from('piktag_scan_sessions')
+        .select('event_tags, event_date, event_location')
+        .eq('id', paramSid)
+        .single();
+
+      const eventTags: string[] = session?.event_tags || [];
+      const note = [session?.event_date, session?.event_location].filter(Boolean).join(' · ');
+
+      // Create connection (scanner → host)
+      const { data: conn } = await supabase
+        .from('piktag_connections')
+        .insert({ user_id: authUser.id, connected_user_id: resolvedUserId, met_at: new Date().toISOString(), met_location: session?.event_location || '', note })
+        .select('id').single();
+
+      // Create reverse connection (host → scanner)
+      const { data: reverseConn } = await supabase
+        .from('piktag_connections')
+        .upsert({ user_id: resolvedUserId, connected_user_id: authUser.id, met_at: new Date().toISOString(), met_location: session?.event_location || '', note },
+          { onConflict: 'user_id,connected_user_id' })
+        .select('id').single();
+
+      // Save event_tags as private connection tags (both sides)
+      if (eventTags.length > 0) {
+        const tagIds: string[] = [];
+        for (const tagName of eventTags) {
+          const raw = tagName.startsWith('#') ? tagName.slice(1) : tagName;
+          let { data: tag } = await supabase.from('piktag_tags').select('id').eq('name', raw).maybeSingle();
+          if (!tag) { const { data: nt } = await supabase.from('piktag_tags').insert({ name: raw }).select('id').single(); tag = nt; }
+          if (tag) tagIds.push(tag.id);
+        }
+        if (conn && tagIds.length > 0) {
+          await supabase.from('piktag_connection_tags').insert(
+            tagIds.map(tid => ({ connection_id: conn.id, tag_id: tid, is_private: true }))
+          ).catch(() => {});
+        }
+        if (reverseConn && tagIds.length > 0) {
+          await supabase.from('piktag_connection_tags').insert(
+            tagIds.map(tid => ({ connection_id: reverseConn.id, tag_id: tid, is_private: true }))
+          ).catch(() => {});
+        }
+      }
+
+      // Increment scan count
+      await supabase.rpc('increment_scan_count', { session_id: paramSid }).catch(() => {});
+
+      if (conn) setConnectionId(conn.id);
+      Alert.alert(t('scanResult.alertSuccessTitle'), t('scanResult.alertSuccessMessage', { name: profile?.full_name || '' }));
+    } catch (err) {
+      console.error('Error adding friend from QR:', err);
+      Alert.alert(t('common.error'), t('scanResult.alertAddFriendError'));
+    }
+    setAddFriendLoading(false);
+  }, [authUser, resolvedUserId, paramSid, connectionId, profile, t]);
 
   // --- Pick Tag functions ---
   const fetchFriendPublicTags = useCallback(async (): Promise<{ id: string; name: string }[]> => {
@@ -477,6 +541,22 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
               <Text style={styles.statNumber}>{followerCount}</Text>{t('userDetail.statFollowers')}
             </Text>
           </View>
+
+          {/* QR Add Friend button — shown when arriving from QR scan */}
+          {paramSid && !connectionId && (
+            <TouchableOpacity
+              style={styles.qrAddFriendBtn}
+              onPress={handleAddFriendFromQr}
+              disabled={addFriendLoading}
+              activeOpacity={0.8}
+            >
+              {addFriendLoading ? (
+                <ActivityIndicator color={COLORS.white} />
+              ) : (
+                <Text style={styles.qrAddFriendText}>{t('scanResult.confirmButton') || '加為好友'}</Text>
+              )}
+            </TouchableOpacity>
+          )}
 
           {/* Action buttons */}
           <View style={styles.actionButtonsRow}>
@@ -827,6 +907,19 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '600',
     color: COLORS.piktag600,
+  },
+  qrAddFriendBtn: {
+    backgroundColor: COLORS.piktag500,
+    borderRadius: 12,
+    paddingVertical: 14,
+    alignItems: 'center',
+    marginHorizontal: 20,
+    marginTop: 12,
+  },
+  qrAddFriendText: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: COLORS.white,
   },
   followButton: {
     flex: 1,
