@@ -47,7 +47,8 @@
       "expo-camera",
       "expo-image-picker",
       [
-        "expo-contacts",
+        "expo-apple-authentication",
+      "expo-contacts",
         {
           "contactsPermission": "PikTag uses your contacts to help you find friends."
         }

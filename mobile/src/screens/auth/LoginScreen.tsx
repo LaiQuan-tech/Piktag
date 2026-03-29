@@ -12,8 +12,10 @@ import {
   ScrollView,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { Hash, Eye, EyeOff } from 'lucide-react-native';
+import { Hash, Eye, EyeOff, Phone } from 'lucide-react-native';
 import { supabase } from '../../lib/supabase';
+import { signInWithApple } from '../../lib/appleAuth';
+import { signInWithGoogle } from '../../lib/googleAuth';
 import { COLORS, SPACING, BORDER_RADIUS } from '../../constants/theme';
 
 type LoginScreenProps = {
@@ -27,6 +29,7 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [resetLoading, setResetLoading] = useState(false);
+  const [socialLoading, setSocialLoading] = useState<string | null>(null);
   const passwordRef = useRef<TextInput>(null);
 
   const handleLogin = async () => {
@@ -74,6 +77,20 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
     } finally {
       setResetLoading(false);
     }
+  };
+
+  const handleApple = async () => {
+    setSocialLoading('apple');
+    try { await signInWithApple(); }
+    catch (err: any) { if (err.code !== 'ERR_CANCELED') Alert.alert(t('common.error'), err.message); }
+    finally { setSocialLoading(null); }
+  };
+
+  const handleGoogle = async () => {
+    setSocialLoading('google');
+    try { await signInWithGoogle(); }
+    catch (err: any) { Alert.alert(t('common.error'), err.message); }
+    finally { setSocialLoading(null); }
   };
 
   return (
@@ -162,6 +179,60 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
             ) : (
               <Text style={styles.loginButtonText}>{t('auth.login.loginButton')}</Text>
             )}
+          </TouchableOpacity>
+        </View>
+
+        {/* Divider */}
+        <View style={styles.dividerRow}>
+          <View style={styles.dividerLine} />
+          <Text style={styles.dividerText}>{t('auth.login.orDivider') || '或'}</Text>
+          <View style={styles.dividerLine} />
+        </View>
+
+        {/* Social Login */}
+        <View style={styles.socialContainer}>
+          {Platform.OS === 'ios' && (
+            <TouchableOpacity
+              style={styles.socialBtn}
+              onPress={handleApple}
+              disabled={!!socialLoading}
+              activeOpacity={0.8}
+            >
+              {socialLoading === 'apple' ? (
+                <ActivityIndicator color={COLORS.gray900} />
+              ) : (
+                <>
+                  <Text style={styles.appleIcon}>{'\uF8FF'}</Text>
+                  <Text style={styles.socialBtnText}>{t('auth.login.continueWithApple') || 'Apple 登入'}</Text>
+                </>
+              )}
+            </TouchableOpacity>
+          )}
+
+          <TouchableOpacity
+            style={styles.socialBtn}
+            onPress={handleGoogle}
+            disabled={!!socialLoading}
+            activeOpacity={0.8}
+          >
+            {socialLoading === 'google' ? (
+              <ActivityIndicator color={COLORS.gray900} />
+            ) : (
+              <>
+                <Text style={styles.googleIcon}>G</Text>
+                <Text style={styles.socialBtnText}>{t('auth.login.continueWithGoogle') || 'Google 登入'}</Text>
+              </>
+            )}
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.socialBtn}
+            onPress={() => navigation.navigate('PhoneAuth')}
+            disabled={!!socialLoading}
+            activeOpacity={0.8}
+          >
+            <Phone size={20} color={COLORS.gray700} />
+            <Text style={styles.socialBtnText}>{t('auth.login.continueWithPhone') || '手機號碼登入'}</Text>
           </TouchableOpacity>
         </View>
 
@@ -272,9 +343,25 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: 'bold',
   },
+  // Divider
+  dividerRow: { flexDirection: 'row', alignItems: 'center', marginTop: 28, marginBottom: 20 },
+  dividerLine: { flex: 1, height: 1, backgroundColor: COLORS.gray200 },
+  dividerText: { paddingHorizontal: 14, fontSize: 13, color: COLORS.gray400 },
+
+  // Social buttons
+  socialContainer: { gap: 10 },
+  socialBtn: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10,
+    borderWidth: 1, borderColor: COLORS.gray200, borderRadius: BORDER_RADIUS.xl,
+    paddingVertical: 14, backgroundColor: COLORS.white,
+  },
+  socialBtnText: { fontSize: 16, fontWeight: '600', color: COLORS.gray800 },
+  appleIcon: { fontSize: 20, color: COLORS.gray900 },
+  googleIcon: { fontSize: 18, fontWeight: '700', color: '#4285F4' },
+
   footer: {
     alignItems: 'center',
-    marginTop: SPACING.xxxl,
+    marginTop: SPACING.xl,
     padding: SPACING.md,
   },
   footerRow: {
