@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
   Alert,
   Platform,
+  Share,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
@@ -21,6 +22,7 @@ import {
   Search,
   Phone,
   Mail,
+  Send,
 } from 'lucide-react-native';
 import { COLORS } from '../constants/theme';
 import { supabase } from '../lib/supabase';
@@ -93,6 +95,15 @@ export default function ContactSyncScreen({ navigation }: ContactSyncScreenProps
     loadContacts();
   }, [loadContacts]);
 
+  const handleInvite = async (contact: PhoneContact) => {
+    try {
+      await Share.share({
+        message: t('contactSync.inviteMessage', { name: contact.name }) ||
+          `${contact.name}，我在用 PikTag，一起來交換標籤吧！下載：https://pikt.ag`,
+      });
+    } catch { /* cancelled */ }
+  };
+
   const handleImportContact = async (contact: PhoneContact) => {
     if (!user) return;
 
@@ -143,9 +154,8 @@ export default function ContactSyncScreen({ navigation }: ContactSyncScreenProps
           setImportedIds((prev) => new Set(prev).add(contact.id));
         }
       } else {
-        // No match found - still mark as imported but show info
-        setImportedIds((prev) => new Set(prev).add(contact.id));
-        Alert.alert(t('contactSync.alertNotOnPikTagTitle'), t('contactSync.alertNotOnPikTagMessage', { name: contact.name }));
+        // No match found — offer invite
+        handleInvite(contact);
       }
     } catch (err) {
       console.error('Import error:', err);

@@ -672,6 +672,13 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
         >
           <Text style={styles.emptyButtonText}>{t('connections.emptyGuideButton')}</Text>
         </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.emptyButton, { backgroundColor: COLORS.gray100, marginTop: 10 }]}
+          onPress={() => navigation.navigate('ProfileTab', { screen: 'ContactSync' })}
+          activeOpacity={0.8}
+        >
+          <Text style={[styles.emptyButtonText, { color: COLORS.gray700 }]}>{t('connections.syncContactsButton') || '同步通訊錄找朋友'}</Text>
+        </TouchableOpacity>
       </View>
     );
   }, [loading, t, navigation]);

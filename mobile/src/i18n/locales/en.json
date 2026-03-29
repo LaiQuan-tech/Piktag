@@ -71,6 +71,11 @@
       "step2Title": "Add your social links",
       "step2Description": "Let others find you on different platforms",
       "socialLinkPlaceholder": "Enter your {{label}} link",
+      "step3ContactTitle": "Find your friends",
+      "step3ContactDescription": "Sync your contacts to automatically add friends already on PikTag",
+      "syncNow": "Sync Contacts",
+      "skipForNow": "Skip for now",
+      "contactResultText": "Found {{matched}} friends",
       "step3Title": "All set! Start exploring",
       "step3Description": "Your account is ready, start using PikTag now",
       "backButton": "Back",
@@ -112,6 +117,7 @@
     "emptyGuideTitle": "No connections yet",
     "emptyGuideMessage": "Scan a QR code to meet new friends!",
     "emptyGuideButton": "Start Scanning",
+    "syncContactsButton": "Sync contacts to find friends",
     "recommendTitle": "People you may know",
     "mutualTagCount": "{{count}} mutual tags",
     "viewProfile": "View",
@@ -385,7 +391,8 @@
     "alertNotOnPikTagMessage": "{{name}} is not on PikTag yet, invite them to join!",
     "alertBatchImportTitle": "Batch Import",
     "alertBatchImportMessage": "Are you sure you want to import all {{count}} contacts?",
-    "alertBatchImportConfirm": "Import"
+    "alertBatchImportConfirm": "Import",
+    "inviteMessage": "Hey {{name}}, I'm using PikTag to exchange tags! Join me: https://pikt.ag"
   },
   "invite": {
     "headerTitle": "Invite Friends",

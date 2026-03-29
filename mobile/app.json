@@ -19,7 +19,8 @@
       "infoPlist": {
         "NSCameraUsageDescription": "PikTag needs camera access to scan QR codes",
         "NSPhotoLibraryUsageDescription": "PikTag needs photo library access to update your profile picture",
-        "NSPhotoLibraryAddUsageDescription": "PikTag needs photo library access to update your profile picture"
+        "NSPhotoLibraryAddUsageDescription": "PikTag needs photo library access to update your profile picture",
+        "NSContactsUsageDescription": "PikTag uses your contacts to help you find friends who are already on PikTag"
       }
     },
     "android": {
@@ -34,8 +35,8 @@
         "android.permission.CAMERA",
         "android.permission.READ_MEDIA_IMAGES",
         "android.permission.READ_EXTERNAL_STORAGE",
-        "android.permission.CAMERA",
-        "android.permission.RECORD_AUDIO"
+        "android.permission.RECORD_AUDIO",
+        "android.permission.READ_CONTACTS"
       ]
     },
     "web": {
@@ -44,7 +45,13 @@
     "plugins": [
       "expo-localization",
       "expo-camera",
-      "expo-image-picker"
+      "expo-image-picker",
+      [
+        "expo-contacts",
+        {
+          "contactsPermission": "PikTag uses your contacts to help you find friends."
+        }
+      ]
     ],
     "extra": {
       "eas": {

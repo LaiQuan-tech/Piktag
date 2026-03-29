@@ -71,6 +71,11 @@
       "step2Title": "新增你的社交連結",
       "step2Description": "讓其他人可以在不同平台上找到你",
       "socialLinkPlaceholder": "輸入你的 {{label}} 連結",
+      "step3ContactTitle": "找到你的朋友",
+      "step3ContactDescription": "同步通訊錄，自動加入已在 PikTag 的朋友",
+      "syncNow": "同步通訊錄",
+      "skipForNow": "稍後再說",
+      "contactResultText": "已找到 {{matched}} 位朋友",
       "step3Title": "完成！開始探索",
       "step3Description": "你的帳號已設定完成，現在可以開始使用 PikTag 了",
       "backButton": "上一步",
@@ -112,6 +117,7 @@
     "emptyGuideTitle": "還沒有人脈",
     "emptyGuideMessage": "去掃描 QR Code 認識新朋友吧！",
     "emptyGuideButton": "開始掃描",
+    "syncContactsButton": "同步通訊錄找朋友",
     "recommendTitle": "你可能認識",
     "mutualTagCount": "{{count}} 個共同標籤",
     "viewProfile": "查看",
@@ -385,7 +391,8 @@
     "alertNotOnPikTagMessage": "{{name}} 尚未加入 PikTag，邀請他們加入吧！",
     "alertBatchImportTitle": "批次匯入",
     "alertBatchImportMessage": "確定要匯入全部 {{count}} 位通訊錄聯絡人嗎？",
-    "alertBatchImportConfirm": "匯入"
+    "alertBatchImportConfirm": "匯入",
+    "inviteMessage": "{{name}}，我在用 PikTag，一起來交換標籤吧！下載：https://pikt.ag"
   },
   "invite": {
     "headerTitle": "邀請好友",

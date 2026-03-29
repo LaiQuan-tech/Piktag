@@ -21,7 +21,10 @@ import {
   Linkedin,
   X,
   Sparkles,
+  Users,
+  UserCheck,
 } from 'lucide-react-native';
+import * as Contacts from 'expo-contacts';
 import { supabase } from '../../lib/supabase';
 import { COLORS, SPACING, BORDER_RADIUS } from '../../constants/theme';
 
@@ -48,6 +51,8 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
   });
   const [editingSocial, setEditingSocial] = useState<SocialLinkKey | null>(null);
   const [loading, setLoading] = useState(false);
+  const [contactSyncing, setContactSyncing] = useState(false);
+  const [contactResult, setContactResult] = useState<{ matched: number; total: number } | null>(null);
   const aiDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const fetchAiTags = useCallback(async (bioText: string) => {
@@ -79,7 +84,7 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
     aiDebounceRef.current = setTimeout(() => fetchAiTags(text), 600);
   };
 
-  const totalSteps = 3;
+  const totalSteps = 4;
 
   const toggleTag = (tag: string) => {
     setSelectedTags((prev) =>
@@ -335,7 +340,109 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
     </View>
   );
 
+  const handleContactSync = async () => {
+    setContactSyncing(true);
+    try {
+      const { status } = await Contacts.requestPermissionsAsync();
+      if (status !== 'granted') {
+        setContactSyncing(false);
+        goNext(); // Skip to completion
+        return;
+      }
+
+      const { data } = await Contacts.getContactsAsync({
+        fields: [Contacts.Fields.PhoneNumbers, Contacts.Fields.Emails],
+      });
+
+      if (!data || data.length === 0) {
+        setContactResult({ matched: 0, total: 0 });
+        setContactSyncing(false);
+        return;
+      }
+
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
+      if (!currentUser) { setContactSyncing(false); return; }
+
+      // Collect all phones and emails
+      const phones: string[] = [];
+      const emails: string[] = [];
+      for (const c of data) {
+        if (c.phoneNumbers) {
+          for (const p of c.phoneNumbers) {
+            if (p.number) phones.push(p.number.replace(/[\s\-\(\)]/g, ''));
+          }
+        }
+        if (c.emails) {
+          for (const e of c.emails) {
+            if (e.email) emails.push(e.email.toLowerCase());
+          }
+        }
+      }
+
+      // Batch match against piktag_profiles
+      let matched = 0;
+      if (phones.length > 0) {
+        const { data: phoneMatches } = await supabase
+          .from('piktag_profiles')
+          .select('id')
+          .in('phone', phones.slice(0, 200))
+          .neq('id', currentUser.id);
+        if (phoneMatches) {
+          for (const m of phoneMatches) {
+            await supabase.from('piktag_connections')
+              .upsert({ user_id: currentUser.id, connected_user_id: m.id }, { onConflict: 'user_id,connected_user_id' });
+            matched++;
+          }
+        }
+      }
+
+      setContactResult({ matched, total: data.length });
+    } catch (err) {
+      console.warn('[Onboarding] contactSync error:', err);
+    }
+    setContactSyncing(false);
+  };
+
   const renderStep3 = () => (
+    <View style={styles.stepContentCenter}>
+      <View style={styles.contactSyncIcon}>
+        <Users size={56} color={COLORS.piktag500} />
+      </View>
+      <Text style={styles.stepTitle}>{t('auth.onboarding.step3ContactTitle') || '找到你的朋友'}</Text>
+      <Text style={styles.stepDescription}>
+        {t('auth.onboarding.step3ContactDescription') || '同步通訊錄，自動加入已在 PikTag 的朋友'}
+      </Text>
+
+      {contactResult ? (
+        <View style={styles.contactResultBox}>
+          <UserCheck size={24} color={COLORS.piktag600} />
+          <Text style={styles.contactResultText}>
+            {t('auth.onboarding.contactResultText', { matched: contactResult.matched, total: contactResult.total }) ||
+              `已找到 ${contactResult.matched} 位朋友`}
+          </Text>
+        </View>
+      ) : (
+        <TouchableOpacity
+          style={[styles.syncBtn, contactSyncing && { opacity: 0.6 }]}
+          onPress={handleContactSync}
+          disabled={contactSyncing}
+          activeOpacity={0.8}
+        >
+          {contactSyncing ? (
+            <ActivityIndicator color={COLORS.white} size="small" />
+          ) : (
+            <Text style={styles.syncBtnText}>{t('auth.onboarding.syncNow') || '同步通訊錄'}</Text>
+          )}
+        </TouchableOpacity>
+      )}
+
+      <TouchableOpacity onPress={goNext} style={styles.skipBtn} activeOpacity={0.7}>
+        <Text style={styles.skipBtnText}>{t('auth.onboarding.skipForNow') || '稍後再說'}</Text>
+      </TouchableOpacity>
+    </View>
+  );
+
+  const renderStep4 = () => (
     <View style={styles.stepContentCenter}>
       <View style={styles.successIconContainer}>
         <CheckCircle size={72} color={COLORS.piktag500} />
@@ -355,6 +462,8 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
         return renderStep2();
       case 2:
         return renderStep3();
+      case 3:
+        return renderStep4();
       default:
         return null;
     }
@@ -564,6 +673,29 @@ const styles = StyleSheet.create({
   socialInputClose: {
     padding: SPACING.sm,
   },
+  // Contact sync step
+  contactSyncIcon: {
+    marginBottom: SPACING.xl,
+    width: 100, height: 100, borderRadius: 50,
+    backgroundColor: COLORS.piktag50,
+    alignItems: 'center', justifyContent: 'center',
+  },
+  syncBtn: {
+    backgroundColor: COLORS.piktag500, borderRadius: BORDER_RADIUS.lg,
+    paddingVertical: 14, paddingHorizontal: 32, marginTop: SPACING.xl,
+    alignItems: 'center', minWidth: 200,
+  },
+  syncBtnText: { fontSize: 16, fontWeight: '700', color: COLORS.white },
+  skipBtn: { marginTop: SPACING.md, padding: SPACING.sm },
+  skipBtnText: { fontSize: 14, color: COLORS.gray500 },
+  contactResultBox: {
+    flexDirection: 'row', alignItems: 'center', gap: 10,
+    backgroundColor: COLORS.piktag50, borderRadius: BORDER_RADIUS.lg,
+    paddingVertical: 14, paddingHorizontal: 20, marginTop: SPACING.xl,
+    borderWidth: 1, borderColor: COLORS.piktag500,
+  },
+  contactResultText: { fontSize: 15, fontWeight: '600', color: COLORS.piktag600 },
+
   successIconContainer: {
     marginBottom: SPACING.xxl,
   },
