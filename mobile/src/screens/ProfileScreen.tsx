@@ -354,32 +354,6 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
             <Text style={styles.statLabel}>{t('profile.statFollowers')}</Text>
           </Text>
 
-          {/* Profile completeness */}
-          {(() => {
-            const checks = [
-              { done: !!profile?.avatar_url, label: t('profile.completenessAvatar') || '頭像' },
-              { done: !!profile?.bio, label: t('profile.completenessBio') || 'Bio' },
-              { done: userTags.length > 0, label: t('profile.completenessTags') || '標籤' },
-              { done: activeBiolinks.length > 0, label: t('profile.completenessLinks') || '連結' },
-            ];
-            const done = checks.filter(c => c.done).length;
-            const total = checks.length;
-            const pct = Math.round((done / total) * 100);
-            if (pct >= 100) return null; // Hide when complete
-            const missing = checks.filter(c => !c.done);
-            return (
-              <TouchableOpacity style={styles.completenessBar} onPress={handleNavigateEditProfile} activeOpacity={0.7}>
-                <View style={styles.completenessHeader}>
-                  <Text style={styles.completenessText}>{t('profile.completenessLabel') || '檔案完成度'} {pct}%</Text>
-                  <Text style={styles.completenessMissing}>{missing.map(m => m.label).join('、')}</Text>
-                </View>
-                <View style={styles.completenessTrack}>
-                  <View style={[styles.completenessFill, { width: `${pct}%` }]} />
-                </View>
-              </TouchableOpacity>
-            );
-          })()}
-
           {/* Action buttons */}
           <View style={styles.actionButtonsRow}>
             <TouchableOpacity style={styles.shareButton} activeOpacity={0.7} onPress={handleOpenQr}>
