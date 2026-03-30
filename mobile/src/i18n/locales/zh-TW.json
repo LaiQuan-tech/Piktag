@@ -411,6 +411,8 @@
     "language": "語言",
     "darkMode": "深色模式",
     "aboutPikTag": "關於 PikTag",
+    "privacyPolicy": "隱私權政策",
+    "termsOfService": "服務條款",
     "logoutButton": "登出",
     "deleteAccountButton": "刪除帳號",
     "alertDeleteAccountNote": "此操作無法復原，您的帳號和所有資料將被永久刪除"

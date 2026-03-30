@@ -37,6 +37,8 @@ import ScanResultScreen from '../screens/ScanResultScreen';
 import CameraScanScreen from '../screens/CameraScanScreen';
 import TagDetailScreen from '../screens/TagDetailScreen';
 import ManageTagsScreen from '../screens/ManageTagsScreen';
+import PrivacyPolicyScreen from '../screens/legal/PrivacyPolicyScreen';
+import TermsOfServiceScreen from '../screens/legal/TermsOfServiceScreen';
 
 // Stack Navigators
 const AuthStack = createNativeStackNavigator();
@@ -109,6 +111,8 @@ function ProfileStackNavigator() {
       <ProfileStack.Screen name="SocialStats" component={SocialStatsScreen} />
       <ProfileStack.Screen name="TagDetail" component={TagDetailScreen} />
       <ProfileStack.Screen name="UserDetail" component={UserDetailScreen} />
+      <ProfileStack.Screen name="PrivacyPolicy" component={PrivacyPolicyScreen} />
+      <ProfileStack.Screen name="TermsOfService" component={TermsOfServiceScreen} />
     </ProfileStack.Navigator>
   );
 }

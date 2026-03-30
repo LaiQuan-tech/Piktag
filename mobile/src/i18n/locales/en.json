@@ -411,6 +411,8 @@
     "language": "Language",
     "darkMode": "Dark Mode",
     "aboutPikTag": "About PikTag",
+    "privacyPolicy": "Privacy Policy",
+    "termsOfService": "Terms of Service",
     "logoutButton": "Log Out",
     "deleteAccountButton": "Delete Account",
     "alertDeleteAccountNote": "This action cannot be undone. Your account and all data will be permanently deleted"
