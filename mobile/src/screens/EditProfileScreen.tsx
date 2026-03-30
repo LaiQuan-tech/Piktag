@@ -73,6 +73,7 @@ type BiolinkFormData = {
   platform: string;
   url: string;
   label: string;
+  display_mode: 'icon' | 'card';
 };
 
 // ── Memoized tag sub-components ─────────────────────────────────────────────
@@ -191,6 +192,7 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
     platform: '',
     url: '',
     label: '',
+    display_mode: 'card',
   });
   const [savingBiolink, setSavingBiolink] = useState(false);
 
@@ -424,6 +426,7 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
       platform: biolink.platform,
       url: biolink.url,
       label: biolink.label || '',
+      display_mode: biolink.display_mode || 'card',
     });
     setBiolinkModalVisible(true);
   };
@@ -431,7 +434,7 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
   const closeBiolinkModal = () => {
     setBiolinkModalVisible(false);
     setEditingBiolink(null);
-    setBiolinkForm({ platform: '', url: '', label: '' });
+    setBiolinkForm({ platform: '', url: '', label: '', display_mode: 'card' });
   };
 
   const getIconUrl = (url: string): string | null => {
@@ -462,6 +465,7 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
             url: biolinkForm.url.trim(),
             label: biolinkForm.label.trim() || null,
             icon_url: iconUrl,
+            display_mode: biolinkForm.display_mode,
           })
           .eq('id', editingBiolink.id);
 
@@ -479,6 +483,7 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
             url: biolinkForm.url.trim(),
             label: biolinkForm.label.trim() || null,
             icon_url: iconUrl,
+            display_mode: biolinkForm.display_mode,
             position: nextPosition,
             is_active: true,
           });
@@ -1107,6 +1112,30 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
                   placeholderTextColor={COLORS.gray400}
                 />
               </View>
+              {/* Display Mode Toggle */}
+              <View style={styles.fieldGroup}>
+                <Text style={styles.fieldLabel}>{t('editProfile.displayModeLabel') || '顯示方式'}</Text>
+                <View style={styles.displayModeRow}>
+                  <TouchableOpacity
+                    style={[styles.displayModeBtn, biolinkForm.display_mode === 'icon' && styles.displayModeBtnActive]}
+                    onPress={() => setBiolinkForm(prev => ({ ...prev, display_mode: 'icon' }))}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={[styles.displayModeBtnText, biolinkForm.display_mode === 'icon' && styles.displayModeBtnTextActive]}>
+                      {t('editProfile.displayModeIcon') || 'Icon 並排'}
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[styles.displayModeBtn, biolinkForm.display_mode === 'card' && styles.displayModeBtnActive]}
+                    onPress={() => setBiolinkForm(prev => ({ ...prev, display_mode: 'card' }))}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={[styles.displayModeBtnText, biolinkForm.display_mode === 'card' && styles.displayModeBtnTextActive]}>
+                      {t('editProfile.displayModeCard') || '清單卡片'}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
             </View>
 
             <TouchableOpacity
@@ -1344,6 +1373,30 @@ const styles = StyleSheet.create({
   },
   modalBody: {
     gap: 16,
+  },
+  displayModeRow: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  displayModeBtn: {
+    flex: 1,
+    paddingVertical: 10,
+    borderRadius: 10,
+    borderWidth: 1.5,
+    borderColor: COLORS.gray200,
+    alignItems: 'center',
+  },
+  displayModeBtnActive: {
+    borderColor: COLORS.piktag500,
+    backgroundColor: COLORS.piktag50,
+  },
+  displayModeBtnText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: COLORS.gray500,
+  },
+  displayModeBtnTextActive: {
+    color: COLORS.piktag600,
   },
   modalSaveBtn: {
     backgroundColor: COLORS.piktag500,
