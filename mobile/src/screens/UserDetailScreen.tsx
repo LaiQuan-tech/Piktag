@@ -57,6 +57,8 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
   const [followLoading, setFollowLoading] = useState(false);
   const [unfollowModalVisible, setUnfollowModalVisible] = useState(false);
   const [mutualTagModalVisible, setMutualTagModalVisible] = useState(false);
+  const [isCloseFriend, setIsCloseFriend] = useState(false);
+  const [similarUsers, setSimilarUsers] = useState<PiktagProfile[]>([]);
 
   // Pick Tag Modal
   const [addFriendLoading, setAddFriendLoading] = useState(false);
@@ -201,6 +203,39 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
       ]);
       setFollowerCount(followerResult.count ?? 0);
       if (connResult.data) setConnectionId(connResult.data.id);
+
+      // Check close friend
+      const { data: cfData } = await supabase
+        .from('piktag_close_friends')
+        .select('id')
+        .eq('user_id', authUser.id)
+        .eq('close_friend_id', userId)
+        .maybeSingle();
+      setIsCloseFriend(!!cfData);
+
+      // Fetch similar users (share same tags, exclude self + this user)
+      if (theirUserTags && theirUserTags.length > 0) {
+        const theirTagIds = theirUserTags.map((t: any) => t.tag_id);
+        const { data: sharedTagUsers } = await supabase
+          .from('piktag_user_tags')
+          .select('user_id')
+          .in('tag_id', theirTagIds)
+          .eq('is_private', false);
+        if (sharedTagUsers) {
+          const userIds = [...new Set(sharedTagUsers.map((u: any) => u.user_id))]
+            .filter(id => id !== userId && id !== authUser.id)
+            .slice(0, 10);
+          if (userIds.length > 0) {
+            const { data: profiles } = await supabase
+              .from('piktag_profiles')
+              .select('id, username, full_name, avatar_url, is_verified')
+              .in('id', userIds)
+              .eq('is_public', true)
+              .limit(6);
+            if (profiles) setSimilarUsers(profiles);
+          }
+        }
+      }
     } catch (err) {
       console.error('Error fetching user data:', err);
     } finally {
@@ -335,6 +370,19 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
     setUnfollowModalVisible(false);
     await supabase.from('piktag_follows').delete().eq('follower_id', authUser.id).eq('following_id', resolvedUserId);
     setIsFollowing(false);
+  };
+
+  const handleToggleCloseFriend = async () => {
+    if (!authUser || !resolvedUserId) return;
+    if (isCloseFriend) {
+      await supabase.from('piktag_close_friends').delete()
+        .eq('user_id', authUser.id).eq('close_friend_id', resolvedUserId);
+      setIsCloseFriend(false);
+    } else {
+      await supabase.from('piktag_close_friends')
+        .upsert({ user_id: authUser.id, close_friend_id: resolvedUserId }, { onConflict: 'user_id,close_friend_id' });
+      setIsCloseFriend(true);
+    }
   };
 
   const handleToggleFollow = async () => {
@@ -591,8 +639,48 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
                 <Text style={styles.tagButtonText}>{t('userDetail.tagAction')}</Text>
               </TouchableOpacity>
             )}
+            {isFollowing && (
+              <TouchableOpacity
+                style={[styles.closeFriendBtn, isCloseFriend && styles.closeFriendBtnActive]}
+                activeOpacity={0.7}
+                onPress={handleToggleCloseFriend}
+              >
+                <Text style={[styles.closeFriendBtnText, isCloseFriend && styles.closeFriendBtnTextActive]}>
+                  {isCloseFriend ? (t('userDetail.closeFriendRemove') || '摯友') : (t('userDetail.closeFriendAdd') || '設為摯友')}
+                </Text>
+              </TouchableOpacity>
+            )}
           </View>
         </View>
+
+        {/* Similar Users — IG style "Suggested for you" */}
+        {similarUsers.length > 0 && (
+          <View style={styles.similarSection}>
+            <Text style={styles.similarTitle}>{t('userDetail.similarUsersTitle') || '更多類似會員'}</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.similarScroll}>
+              {similarUsers.map((u) => (
+                <TouchableOpacity
+                  key={u.id}
+                  style={styles.similarCard}
+                  activeOpacity={0.7}
+                  onPress={() => navigation.push('UserDetail', { userId: u.id })}
+                >
+                  {u.avatar_url ? (
+                    <Image source={{ uri: u.avatar_url }} style={styles.similarAvatar} />
+                  ) : (
+                    <View style={[styles.similarAvatar, styles.similarAvatarFallback]}>
+                      <Text style={styles.similarAvatarInitial}>
+                        {(u.full_name || u.username || '?').charAt(0).toUpperCase()}
+                      </Text>
+                    </View>
+                  )}
+                  <Text style={styles.similarName} numberOfLines={1}>{u.full_name || u.username}</Text>
+                  <Text style={styles.similarUsername} numberOfLines={1}>@{u.username}</Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        )}
 
         {/* Social Links — IG Highlights style circles */}
         {biolinks.length > 0 && (
@@ -1064,6 +1152,76 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  closeFriendBtn: {
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    backgroundColor: COLORS.white,
+    borderWidth: 1.5,
+    borderColor: COLORS.gray200,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  closeFriendBtnActive: {
+    borderColor: COLORS.piktag500,
+    backgroundColor: COLORS.piktag50,
+  },
+  closeFriendBtnText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: COLORS.gray500,
+  },
+  closeFriendBtnTextActive: {
+    color: COLORS.piktag600,
+  },
+  // Similar users section
+  similarSection: {
+    paddingTop: 16,
+    paddingBottom: 8,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.gray100,
+  },
+  similarTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: COLORS.gray700,
+    paddingHorizontal: 20,
+    marginBottom: 12,
+  },
+  similarScroll: {
+    paddingHorizontal: 16,
+    gap: 12,
+  },
+  similarCard: {
+    width: 100,
+    alignItems: 'center',
+    gap: 4,
+  },
+  similarAvatar: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: COLORS.gray100,
+  },
+  similarAvatarFallback: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  similarAvatarInitial: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: COLORS.gray500,
+  },
+  similarName: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: COLORS.gray900,
+    textAlign: 'center',
+  },
+  similarUsername: {
+    fontSize: 11,
+    color: COLORS.gray400,
+    textAlign: 'center',
   },
   tagButtonText: {
     fontSize: 15,
