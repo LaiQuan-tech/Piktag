@@ -354,6 +354,32 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
             <Text style={styles.statLabel}>{t('profile.statFollowers')}</Text>
           </Text>
 
+          {/* Profile completeness */}
+          {(() => {
+            const checks = [
+              { done: !!profile?.avatar_url, label: t('profile.completenessAvatar') || '頭像' },
+              { done: !!profile?.bio, label: t('profile.completenessBio') || 'Bio' },
+              { done: tags.length > 0, label: t('profile.completenessTags') || '標籤' },
+              { done: activeBiolinks.length > 0, label: t('profile.completenessLinks') || '連結' },
+            ];
+            const done = checks.filter(c => c.done).length;
+            const total = checks.length;
+            const pct = Math.round((done / total) * 100);
+            if (pct >= 100) return null; // Hide when complete
+            const missing = checks.filter(c => !c.done);
+            return (
+              <Pressable style={styles.completenessBar} onPress={handleNavigateEditProfile}>
+                <View style={styles.completenessHeader}>
+                  <Text style={styles.completenessText}>{t('profile.completenessLabel') || '檔案完成度'} {pct}%</Text>
+                  <Text style={styles.completenessMissing}>{missing.map(m => m.label).join('、')}</Text>
+                </View>
+                <View style={styles.completenessTrack}>
+                  <View style={[styles.completenessFill, { width: `${pct}%` }]} />
+                </View>
+              </Pressable>
+            );
+          })()}
+
           {/* Action buttons */}
           <View style={styles.actionButtonsRow}>
             <TouchableOpacity style={styles.shareButton} activeOpacity={0.7} onPress={handleOpenQr}>
@@ -629,6 +655,42 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '600',
     color: COLORS.gray700,
+  },
+
+  // ===== Profile completeness =====
+  completenessBar: {
+    marginTop: 12,
+    padding: 12,
+    backgroundColor: COLORS.gray50,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: COLORS.gray100,
+  },
+  completenessHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 6,
+  },
+  completenessText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: COLORS.gray700,
+  },
+  completenessMissing: {
+    fontSize: 12,
+    color: COLORS.piktag600,
+  },
+  completenessTrack: {
+    height: 4,
+    backgroundColor: COLORS.gray200,
+    borderRadius: 2,
+    overflow: 'hidden',
+  },
+  completenessFill: {
+    height: 4,
+    backgroundColor: COLORS.piktag500,
+    borderRadius: 2,
   },
 
   // ===== Icon row (display_mode = 'icon') =====
