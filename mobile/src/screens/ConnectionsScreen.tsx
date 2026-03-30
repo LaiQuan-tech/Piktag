@@ -149,14 +149,6 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
   const [sortBy, setSortBy] = useState<SortOption>('newest');
   const [sortModalVisible, setSortModalVisible] = useState(false);
 
-  // Daily recommendation
-  const [recommendation, setRecommendation] = useState<any>(null);
-  const [recDismissed, setRecDismissed] = useState(false);
-
-  // On this day (derived from connections data)
-  const [onThisDay, setOnThisDay] = useState<any[]>([]);
-  const [onThisDayDismissed, setOnThisDayDismissed] = useState(false);
-
   // CRM reminders (derived from connections data)
   const [crmReminders, setCrmReminders] = useState<any[]>([]);
   const [remindersDismissed, setRemindersDismissed] = useState(false);
@@ -171,26 +163,6 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
   const [batchTagModalVisible, setBatchTagModalVisible] = useState(false);
   const [batchTagInput, setBatchTagInput] = useState('');
   const [batchTagLoading, setBatchTagLoading] = useState(false);
-
-  // Tag-based stranger recommendations
-  const [tagRecommendations, setTagRecommendations] = useState<Array<{
-    id: string;
-    username: string | null;
-    full_name: string | null;
-    avatar_url: string | null;
-    is_verified: boolean;
-    mutual_tag_count: number;
-    mutual_tags: string[];
-  }>>([]);
-  const [tagRecDismissed, setTagRecDismissed] = useState(false);
-
-  // Friend statuses (Instagram Stories-style row)
-  const [friendStatuses, setFriendStatuses] = useState<Array<{
-    user_id: string;
-    text: string;
-    avatar_url: string | null;
-    username: string;
-  }>>([]);
 
   // Location state
   const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null);
@@ -234,7 +206,7 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
         console.error('Error fetching connections:', connectionsError);
         if (!cached) {
           setConnections([]);
-          setOnThisDay([]);
+
           setCrmReminders([]);
         }
         return;
@@ -243,7 +215,7 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
       if (!connectionsData || connectionsData.length === 0) {
         if (!cached) {
           setConnections([]);
-          setOnThisDay([]);
+
           setCrmReminders([]);
         }
         return;
@@ -263,15 +235,6 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
       const today = new Date();
       const month = today.getMonth() + 1;
       const day = today.getDate();
-
-      const onThisDayMatches = connectionsData.filter((c: any) => {
-        if (!c.met_at) return false;
-        const metDate = new Date(c.met_at);
-        return metDate.getMonth() + 1 === month &&
-               metDate.getDate() === day &&
-               metDate.getFullYear() !== today.getFullYear();
-      });
-      setOnThisDay(onThisDayMatches);
 
       // --- Derive CRM reminders from already-fetched data (no extra query) ---
       const mmdd = `${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
@@ -298,151 +261,7 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
     }
   }, [user, t]);
 
-  const fetchRecommendation = useCallback(async () => {
-    if (!user) return;
-    try {
-      // Check local cache first (recommendation changes once per day)
-      const cacheKey = `piktag_rec_${user.id}`;
-      const cached = await AsyncStorage.getItem(cacheKey);
-      if (cached) {
-        const { date, data: cachedData } = JSON.parse(cached);
-        if (date === new Date().toISOString().slice(0, 10)) {
-          setRecommendation(cachedData);
-          return;
-        }
-      }
-
-      const { data, error } = await supabase
-        .rpc('get_daily_recommendation', { p_user_id: user.id });
-      if (!error && data && data.length > 0) {
-        setRecommendation(data[0]);
-        // Cache for today
-        await AsyncStorage.setItem(cacheKey, JSON.stringify({
-          date: new Date().toISOString().slice(0, 10),
-          data: data[0],
-        }));
-      } else {
-        setRecommendation(null);
-      }
-    } catch {
-      setRecommendation(null);
-    }
-  }, [user]);
-
-  const fetchFriendStatuses = useCallback(async () => {
-    if (!user) return;
-    // Get friend IDs from connections
-    const { data: connections } = await supabase
-      .from('piktag_connections')
-      .select('requester_id, addressee_id')
-      .or(`requester_id.eq.${user.id},addressee_id.eq.${user.id}`)
-      .eq('status', 'accepted');
-
-    if (!connections || connections.length === 0) return;
-
-    const friendIds = connections.map((c) =>
-      c.requester_id === user.id ? c.addressee_id : c.requester_id
-    );
-
-    // Get active statuses for those friends
-    const { data: statuses } = await supabase
-      .from('piktag_user_status')
-      .select('user_id, text, piktag_profiles!inner(avatar_url, username)')
-      .in('user_id', friendIds)
-      .gt('expires_at', new Date().toISOString());
-
-    if (statuses) {
-      setFriendStatuses(
-        statuses.map((s: any) => ({
-          user_id: s.user_id,
-          text: s.text,
-          avatar_url: s.piktag_profiles?.avatar_url ?? null,
-          username: s.piktag_profiles?.username ?? '',
-        }))
-      );
-    }
-  }, [user]);
-
-  // --- Fetch tag-based stranger recommendations ---
-  const fetchTagRecommendations = useCallback(async () => {
-    if (!user) return;
-    try {
-      // 1. Get my tag_ids
-      const { data: myTags } = await supabase
-        .from('piktag_user_tags')
-        .select('tag_id, piktag_tags!inner(name)')
-        .eq('user_id', user.id);
-
-      if (!myTags || myTags.length === 0) return;
-
-      const myTagIds = myTags.map((t: any) => t.tag_id);
-      const myTagNameMap = new Map(myTags.map((t: any) => [t.tag_id, (t.piktag_tags as any)?.name || '']));
-
-      // 2. Get my connected user ids to exclude
-      const { data: myConns } = await supabase
-        .from('piktag_connections')
-        .select('connected_user_id')
-        .eq('user_id', user.id);
-      const connectedIds = new Set((myConns || []).map((c: any) => c.connected_user_id));
-      connectedIds.add(user.id);
-
-      // 3. Find other users who share my tags
-      const { data: sharedTagUsers } = await supabase
-        .from('piktag_user_tags')
-        .select('user_id, tag_id')
-        .in('tag_id', myTagIds)
-        .eq('is_private', false);
-
-      if (!sharedTagUsers) return;
-
-      // Count mutual tags per user
-      const userTagMap = new Map<string, string[]>();
-      for (const ut of sharedTagUsers) {
-        if (connectedIds.has(ut.user_id)) continue;
-        if (!userTagMap.has(ut.user_id)) userTagMap.set(ut.user_id, []);
-        const tagName = myTagNameMap.get(ut.tag_id);
-        if (tagName) userTagMap.get(ut.user_id)!.push(tagName);
-      }
-
-      // Sort by mutual count desc, take top 10
-      const sorted = Array.from(userTagMap.entries())
-        .sort((a, b) => b[1].length - a[1].length)
-        .slice(0, 10);
-
-      if (sorted.length === 0) {
-        setTagRecommendations([]);
-        return;
-      }
-
-      // 4. Fetch profiles
-      const userIds = sorted.map(([uid]) => uid);
-      const { data: profiles } = await supabase
-        .from('piktag_profiles')
-        .select('id, username, full_name, avatar_url, is_verified')
-        .in('id', userIds)
-        .eq('is_public', true);
-
-      if (!profiles) {
-        setTagRecommendations([]);
-        return;
-      }
-
-      const profileMap = new Map(profiles.map((p: any) => [p.id, p]));
-      const results = sorted
-        .filter(([uid]) => profileMap.has(uid))
-        .map(([uid, tags]) => ({
-          ...profileMap.get(uid)!,
-          mutual_tag_count: tags.length,
-          mutual_tags: tags,
-        }));
-
-      setTagRecommendations(results);
-    } catch (err) {
-      console.error('Tag recommendations error:', err);
-    }
-  }, [user]);
-
-  // --- Optimized: Promise.all for parallel execution, unified loading, with cooldown ---
+  // --- Optimized: load connections with cooldown ---
   useFocusEffect(
     useCallback(() => {
       const loadAll = async () => {
@@ -451,19 +270,14 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
         if (now - lastFetchRef.current < 30000 && lastFetchRef.current > 0) return;
         setLoading(true);
         try {
-          await Promise.all([
-            fetchConnections(),
-            fetchRecommendation(),
-            fetchFriendStatuses(),
-            fetchTagRecommendations(),
-          ]);
+          await fetchConnections();
         } finally {
           setLoading(false);
           lastFetchRef.current = Date.now();
         }
       };
       loadAll();
-    }, [user, fetchConnections, fetchRecommendation, fetchFriendStatuses, fetchTagRecommendations])
+    }, [user, fetchConnections])
   );
 
   // --- Optimized: useMemo for sorted connections ---
@@ -688,50 +502,6 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
 
   // --- Optimized: stable ListHeaderComponent via useMemo ---
   const listHeader = useMemo(() => {
-    const renderOnThisDay = () => {
-      if (onThisDay.length === 0 || onThisDayDismissed || selectMode) return null;
-      return (
-        <View style={styles.onThisDayCard}>
-          <View style={styles.recHeader}>
-            <View style={styles.recHeaderLeft}>
-              <CalendarHeart size={16} color="#a855f7" />
-              <Text style={[styles.recHeaderText, { color: '#a855f7' }]}>{t('connections.onThisDayTitle')}</Text>
-            </View>
-            <TouchableOpacity onPress={() => setOnThisDayDismissed(true)} activeOpacity={0.6}>
-              <X size={18} color={COLORS.gray400} />
-            </TouchableOpacity>
-          </View>
-          {onThisDay.map((conn) => {
-            const profile = conn.connected_user;
-            const name = conn.nickname || profile?.full_name || profile?.username || 'Unknown';
-            const avatarUrl = profile?.avatar_url || null;
-            const metYear = conn.met_at ? new Date(conn.met_at).getFullYear() : '';
-            const yearsAgo = metYear ? new Date().getFullYear() - (metYear as number) : 0;
-            return (
-              <TouchableOpacity
-                key={conn.id}
-                style={styles.recBody}
-                activeOpacity={0.7}
-                onPress={() => navigation.navigate('FriendDetail', { connectionId: conn.id, friendId: conn.connected_user_id })}
-              >
-                {avatarUrl ? (
-                  <Image source={{ uri: avatarUrl }} style={styles.recAvatar} />
-                ) : (
-                  <InitialsAvatar name={name} size={48} />
-                )}
-                <View style={styles.recInfo}>
-                  <Text style={styles.recName} numberOfLines={1}>{name}</Text>
-                  <Text style={styles.recUsername}>
-                    {yearsAgo > 0 ? t('connections.yearsAgoMet', { yearsAgo }) : t('connections.todayMet')}
-                  </Text>
-                </View>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-      );
-    };
-
     const renderCrmReminders = () => {
       if (crmReminders.length === 0 || remindersDismissed || selectMode) return null;
       const getIcon = (type: string) => {
@@ -780,152 +550,12 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
       );
     };
 
-    const renderRecommendation = () => {
-      if (!recommendation || recDismissed || selectMode) return null;
-      const recAvatarUrl = recommendation.avatar_url || null;
-      const recDisplayName = recommendation.full_name || recommendation.username || 'U';
-      return (
-        <View style={styles.recCard}>
-          <View style={styles.recHeader}>
-            <View style={styles.recHeaderLeft}>
-              <Sparkles size={16} color={COLORS.piktag600} />
-              <Text style={styles.recHeaderText}>{t('connections.dailyRecommendationTitle')}</Text>
-            </View>
-            <TouchableOpacity onPress={() => setRecDismissed(true)} activeOpacity={0.6}>
-              <X size={18} color={COLORS.gray400} />
-            </TouchableOpacity>
-          </View>
-          <TouchableOpacity
-            style={styles.recBody}
-            activeOpacity={0.7}
-            onPress={() => navigation.navigate('UserDetail', { userId: recommendation.user_id })}
-          >
-            {recAvatarUrl ? (
-              <Image source={{ uri: recAvatarUrl }} style={styles.recAvatar} />
-            ) : (
-              <InitialsAvatar name={recDisplayName} size={48} />
-            )}
-            <View style={styles.recInfo}>
-              <View style={styles.recNameRow}>
-                <Text style={styles.recName} numberOfLines={1}>
-                  {recommendation.full_name || recommendation.username}
-                </Text>
-                {recommendation.is_verified && (
-                  <CheckCircle2 size={14} color={COLORS.blue500} fill={COLORS.blue500} strokeWidth={0} style={{ marginLeft: 4 }} />
-                )}
-              </View>
-              <Text style={styles.recUsername}>@{recommendation.username}</Text>
-              {recommendation.shared_tag_count > 0 && (
-                <Text style={styles.recTagCount}>
-                  {recommendation.shared_tag_count}{t('connections.sharedTagCount')}
-                </Text>
-              )}
-            </View>
-            <View style={styles.recAction}>
-              <UserPlus size={20} color={COLORS.piktag600} />
-            </View>
-          </TouchableOpacity>
-        </View>
-      );
-    };
-
-    const renderFriendStatuses = () => {
-      if (friendStatuses.length === 0 || selectMode) return null;
-      return (
-        <View style={styles.statusSection}>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.statusScrollContent}
-          >
-            {friendStatuses.map((item) => (
-              <View key={item.user_id} style={styles.statusItem}>
-                <View style={styles.statusAvatarRing}>
-                  {item.avatar_url ? (
-                    <Image source={{ uri: item.avatar_url }} style={styles.statusAvatar} />
-                  ) : (
-                    <View style={[styles.statusAvatar, styles.statusAvatarFallback]}>
-                      <Text style={styles.statusAvatarInitial}>
-                        {item.username.charAt(0).toUpperCase()}
-                      </Text>
-                    </View>
-                  )}
-                </View>
-                <Text style={styles.statusUsername} numberOfLines={1}>
-                  {item.username}
-                </Text>
-                <Text style={styles.statusPreview} numberOfLines={2}>
-                  {item.text}
-                </Text>
-              </View>
-            ))}
-          </ScrollView>
-        </View>
-      );
-    };
-
-    const renderTagRecommendations = () => {
-      if (tagRecommendations.length === 0 || tagRecDismissed || selectMode) return null;
-      return (
-        <View style={styles.tagRecCard}>
-          <View style={styles.recHeader}>
-            <View style={styles.recHeaderLeft}>
-              <Hash size={16} color={COLORS.piktag600} />
-              <Text style={styles.recHeaderText}>{t('connections.recommendTitle')}</Text>
-            </View>
-            <TouchableOpacity onPress={() => setTagRecDismissed(true)} activeOpacity={0.6}>
-              <X size={18} color={COLORS.gray400} />
-            </TouchableOpacity>
-          </View>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.tagRecScrollContent}
-          >
-            {tagRecommendations.slice(0, 6).map((rec) => {
-              const displayName = rec.full_name || rec.username || '';
-              return (
-                <TouchableOpacity
-                  key={rec.id}
-                  style={styles.tagRecItem}
-                  activeOpacity={0.7}
-                  onPress={() => navigation.navigate('UserDetail', { userId: rec.id })}
-                >
-                  {rec.avatar_url ? (
-                    <Image source={{ uri: rec.avatar_url }} style={styles.tagRecAvatar} />
-                  ) : (
-                    <InitialsAvatar name={displayName} size={56} />
-                  )}
-                  <Text style={styles.tagRecName} numberOfLines={1}>{displayName}</Text>
-                  <View style={styles.tagRecBadge}>
-                    <Hash size={10} color={COLORS.piktag600} strokeWidth={2.5} />
-                    <Text style={styles.tagRecBadgeText}>
-                      {t('connections.mutualTagCount', { count: rec.mutual_tag_count })}
-                    </Text>
-                  </View>
-                  {rec.mutual_tags.length > 0 && (
-                    <Text style={styles.tagRecTags} numberOfLines={1}>
-                      {rec.mutual_tags.slice(0, 2).map(t => `#${t}`).join(' ')}
-                    </Text>
-                  )}
-                </TouchableOpacity>
-              );
-            })}
-          </ScrollView>
-        </View>
-      );
-    };
-
     return (
       <>
-        {renderFriendStatuses()}
-        {renderTagRecommendations()}
         {renderCrmReminders()}
-        {renderOnThisDay()}
-        {renderRecommendation()}
       </>
     );
-  }, [friendStatuses, onThisDay, onThisDayDismissed, crmReminders, remindersDismissed, recommendation, recDismissed, tagRecommendations, tagRecDismissed, selectMode, t, navigation]);
+  }, [crmReminders, remindersDismissed, selectMode, t, navigation]);
 
   // --- Optimized: stable contentContainerStyle ---
   const contentContainerStyle = useMemo(() => [
