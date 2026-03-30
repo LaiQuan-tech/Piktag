@@ -1,6 +1,6 @@
 import React from 'react';
 import Svg, { Path, Rect, Circle, Defs, LinearGradient, Stop, G } from 'react-native-svg';
-import { Globe, Link } from 'lucide-react-native';
+import { Globe, Link, Phone, Mail } from 'lucide-react-native';
 
 type Props = {
   platform: string;
@@ -67,6 +67,14 @@ export default function PlatformIcon({ platform, size = 24 }: Props) {
         <Path d="M16 11.5H15V9.5H16V11.5Z" fill="#00C300" />
       </Svg>
     );
+  }
+
+  if (key === 'phone' || key === '電話') {
+    return <Phone size={size} color="#059669" />;
+  }
+
+  if (key === 'email' || key === 'mail') {
+    return <Mail size={size} color="#2563EB" />;
   }
 
   if (key === 'website' || key === '個人網站') {

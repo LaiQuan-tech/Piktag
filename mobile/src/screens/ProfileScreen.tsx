@@ -19,9 +19,6 @@ import {
   CheckCircle2,
   Pencil,
   ExternalLink,
-  Phone,
-  Mail,
-  Globe,
   MessageCircle,
 } from 'lucide-react-native';
 import PlatformIcon from '../components/PlatformIcon';
@@ -368,76 +365,43 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
           </View>
         </View>
 
-        {/* ============ SECTION 2: 聯絡方式 (Contact Info) ============ */}
-        {(profile?.phone || user?.email) && (
-          <View style={styles.contactSection}>
-            <Text style={styles.sectionTitle}>{t('profile.contactInfoTitle') || '聯絡方式'}</Text>
-            <View style={styles.contactGrid}>
-              {profile?.phone && (
-                <TouchableOpacity
-                  style={styles.contactCard}
-                  activeOpacity={0.7}
-                  onPress={() => Linking.openURL(`tel:${profile.phone}`).catch(() => {})}
-                >
-                  <View style={[styles.contactIconWrap, { backgroundColor: '#ECFDF5' }]}>
-                    <Phone size={18} color="#059669" />
-                  </View>
-                  <Text style={styles.contactLabel}>{t('profile.phoneLabel') || '電話'}</Text>
-                  <Text style={styles.contactValue} numberOfLines={1}>{profile.phone}</Text>
-                </TouchableOpacity>
-              )}
-              {user?.email && (
-                <TouchableOpacity
-                  style={styles.contactCard}
-                  activeOpacity={0.7}
-                  onPress={() => Linking.openURL(`mailto:${user.email}`).catch(() => {})}
-                >
-                  <View style={[styles.contactIconWrap, { backgroundColor: '#EFF6FF' }]}>
-                    <Mail size={18} color="#2563EB" />
-                  </View>
-                  <Text style={styles.contactLabel}>{t('profile.emailLabel') || 'Email'}</Text>
-                  <Text style={styles.contactValue} numberOfLines={1}>{user.email}</Text>
-                </TouchableOpacity>
-              )}
-              {profile?.website && (
-                <TouchableOpacity
-                  style={styles.contactCard}
-                  activeOpacity={0.7}
-                  onPress={() => Linking.openURL(profile.website!.startsWith('http') ? profile.website! : `https://${profile.website}`).catch(() => {})}
-                >
-                  <View style={[styles.contactIconWrap, { backgroundColor: '#F5F3FF' }]}>
-                    <Globe size={18} color="#7C3AED" />
-                  </View>
-                  <Text style={styles.contactLabel}>{t('profile.websiteLabel') || '網站'}</Text>
-                  <Text style={styles.contactValue} numberOfLines={1}>{profile.website}</Text>
-                </TouchableOpacity>
-              )}
-            </View>
+        {/* ============ SECTION 2: Icon 並排區 (display_mode = 'icon') ============ */}
+        {activeBiolinks.filter(bl => bl.display_mode === 'icon').length > 0 && (
+          <View style={styles.iconRow}>
+            {activeBiolinks.filter(bl => bl.display_mode === 'icon').map((bl) => (
+              <TouchableOpacity
+                key={bl.id}
+                style={styles.iconCircle}
+                activeOpacity={0.7}
+                onPress={() => handleOpenBiolink(bl)}
+              >
+                <View style={styles.iconCircleInner}>
+                  <PlatformIcon platform={bl.platform} size={22} />
+                </View>
+              </TouchableOpacity>
+            ))}
           </View>
         )}
 
-        {/* ============ SECTION 3: 社交帳號 (Social Accounts) ============ */}
-        {activeBiolinks.length > 0 && (
-          <View style={styles.socialSection}>
-            <Text style={styles.sectionTitle}>{t('profile.socialLinksTitle')}</Text>
-            <View style={styles.socialGrid}>
-              {activeBiolinks.map((bl) => (
-                <TouchableOpacity
-                  key={bl.id}
-                  style={styles.socialCard}
-                  activeOpacity={0.7}
-                  onPress={() => handleOpenBiolink(bl)}
-                >
-                  <View style={styles.socialCardIcon}>
-                    <PlatformIcon platform={bl.platform} size={24} />
-                  </View>
-                  <Text style={styles.socialCardLabel} numberOfLines={1}>
-                    {bl.label || bl.platform}
-                  </Text>
-                  <ExternalLink size={14} color={COLORS.gray300} />
-                </TouchableOpacity>
-              ))}
-            </View>
+        {/* ============ SECTION 3: 清單按鈕區 (display_mode = 'card') ============ */}
+        {activeBiolinks.filter(bl => bl.display_mode === 'card').length > 0 && (
+          <View style={styles.cardSection}>
+            {activeBiolinks.filter(bl => bl.display_mode === 'card').map((bl) => (
+              <TouchableOpacity
+                key={bl.id}
+                style={styles.socialCard}
+                activeOpacity={0.7}
+                onPress={() => handleOpenBiolink(bl)}
+              >
+                <View style={styles.socialCardIcon}>
+                  <PlatformIcon platform={bl.platform} size={24} />
+                </View>
+                <Text style={styles.socialCardLabel} numberOfLines={1}>
+                  {bl.label || bl.platform}
+                </Text>
+                <ExternalLink size={14} color={COLORS.gray300} />
+              </TouchableOpacity>
+            ))}
           </View>
         )}
 
@@ -665,6 +629,41 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '600',
     color: COLORS.gray700,
+  },
+
+  // ===== Icon row (display_mode = 'icon') =====
+  iconRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 16,
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.gray100,
+  },
+  iconCircle: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  iconCircleInner: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: COLORS.gray50,
+    borderWidth: 1.5,
+    borderColor: COLORS.gray200,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  // ===== Card section (display_mode = 'card') =====
+  cardSection: {
+    paddingHorizontal: 20,
+    paddingTop: 8,
+    paddingBottom: 16,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.gray100,
+    gap: 8,
   },
 
   // ===== Section: Shared =====

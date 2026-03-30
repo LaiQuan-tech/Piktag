@@ -101,6 +101,8 @@ export type ConnectionTag = {
   tag?: Tag; // joined
 };
 
+export type BiolinkDisplayMode = 'icon' | 'card';
+
 export type Biolink = {
   id: string;
   user_id: string;
@@ -109,6 +111,7 @@ export type Biolink = {
   label: string | null;
   position: number;
   is_active: boolean;
+  display_mode: BiolinkDisplayMode;
   created_at: string;
 };
 
