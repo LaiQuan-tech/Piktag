@@ -368,7 +368,7 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
             if (pct >= 100) return null; // Hide when complete
             const missing = checks.filter(c => !c.done);
             return (
-              <Pressable style={styles.completenessBar} onPress={handleNavigateEditProfile}>
+              <TouchableOpacity style={styles.completenessBar} onPress={handleNavigateEditProfile} activeOpacity={0.7}>
                 <View style={styles.completenessHeader}>
                   <Text style={styles.completenessText}>{t('profile.completenessLabel') || '檔案完成度'} {pct}%</Text>
                   <Text style={styles.completenessMissing}>{missing.map(m => m.label).join('、')}</Text>
@@ -376,7 +376,7 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
                 <View style={styles.completenessTrack}>
                   <View style={[styles.completenessFill, { width: `${pct}%` }]} />
                 </View>
-              </Pressable>
+              </TouchableOpacity>
             );
           })()}
 
