@@ -38,6 +38,19 @@ function formatDate(date: Date): string {
   return `${y}/${m}/${d}`;
 }
 
+function getQuickDates(): { label: string; date: Date }[] {
+  const today = new Date();
+  const tomorrow = new Date(today); tomorrow.setDate(today.getDate() + 1);
+  const saturday = new Date(today); saturday.setDate(today.getDate() + (6 - today.getDay()));
+  const nextWeek = new Date(today); nextWeek.setDate(today.getDate() + 7);
+  return [
+    { label: '今天', date: today },
+    { label: '明天', date: tomorrow },
+    { label: '本週末', date: saturday },
+    { label: '下週', date: nextWeek },
+  ];
+}
+
 export default function AddTagScreen({ navigation }: AddTagScreenProps) {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
@@ -48,7 +61,8 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
 
   // Setup form state
   const [eventDate, setEventDate] = useState(formatDate(new Date()));
-  const [isEditingDate, setIsEditingDate] = useState(false);
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [selectedDateObj, setSelectedDateObj] = useState(new Date());
   const [eventLocation, setEventLocation] = useState('');
   const [eventTags, setEventTags] = useState<string[]>([]);
   const eventTagSet = useMemo(() => new Set(eventTags), [eventTags]);
@@ -310,28 +324,84 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
         {/* 日期 Section */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>{t('addTag.dateLabel')}</Text>
-          {isEditingDate ? (
-            <View style={styles.inputRow}>
-              <TextInput
-                style={styles.textInput}
-                value={eventDate}
-                onChangeText={setEventDate}
-                placeholder={t('addTag.datePlaceholder')}
-                placeholderTextColor={COLORS.gray400}
-                autoFocus
-                onBlur={() => setIsEditingDate(false)}
-                returnKeyType="done"
-                onSubmitEditing={() => setIsEditingDate(false)}
-              />
-            </View>
-          ) : (
+
+          {/* Quick date buttons */}
+          <View style={styles.quickDateRow}>
+            {getQuickDates().map((qd) => {
+              const isSelected = eventDate === formatDate(qd.date);
+              return (
+                <TouchableOpacity
+                  key={qd.label}
+                  style={[styles.quickDateBtn, isSelected && styles.quickDateBtnActive]}
+                  onPress={() => { setEventDate(formatDate(qd.date)); setSelectedDateObj(qd.date); setShowDatePicker(false); }}
+                  activeOpacity={0.7}
+                >
+                  <Text style={[styles.quickDateText, isSelected && styles.quickDateTextActive]}>{qd.label}</Text>
+                </TouchableOpacity>
+              );
+            })}
             <TouchableOpacity
-              style={styles.inputRow}
-              onPress={() => setIsEditingDate(true)}
+              style={[styles.quickDateBtn, showDatePicker && styles.quickDateBtnActive]}
+              onPress={() => setShowDatePicker(!showDatePicker)}
               activeOpacity={0.7}
             >
-              <Text style={styles.dateDisplayText}>{eventDate || t('addTag.dateDisplayFallback')}</Text>
+              <Text style={[styles.quickDateText, showDatePicker && styles.quickDateTextActive]}>
+                {t('addTag.pickDate') || '選日期'}
+              </Text>
             </TouchableOpacity>
+          </View>
+
+          {/* Selected date display */}
+          <Text style={styles.selectedDateText}>{eventDate}</Text>
+
+          {/* Simple month calendar (when expanded) */}
+          {showDatePicker && (
+            <View style={styles.calendarGrid}>
+              {(() => {
+                const year = selectedDateObj.getFullYear();
+                const month = selectedDateObj.getMonth();
+                const firstDay = new Date(year, month, 1).getDay();
+                const daysInMonth = new Date(year, month + 1, 0).getDate();
+                const days: (number | null)[] = Array(firstDay).fill(null);
+                for (let i = 1; i <= daysInMonth; i++) days.push(i);
+
+                return (
+                  <>
+                    <View style={styles.calendarHeader}>
+                      <TouchableOpacity onPress={() => { const d = new Date(selectedDateObj); d.setMonth(d.getMonth() - 1); setSelectedDateObj(d); }}>
+                        <Text style={styles.calendarNav}>{'<'}</Text>
+                      </TouchableOpacity>
+                      <Text style={styles.calendarMonthText}>{year}/{String(month + 1).padStart(2, '0')}</Text>
+                      <TouchableOpacity onPress={() => { const d = new Date(selectedDateObj); d.setMonth(d.getMonth() + 1); setSelectedDateObj(d); }}>
+                        <Text style={styles.calendarNav}>{'>'}</Text>
+                      </TouchableOpacity>
+                    </View>
+                    <View style={styles.calendarWeekRow}>
+                      {['日', '一', '二', '三', '四', '五', '六'].map(d => (
+                        <Text key={d} style={styles.calendarWeekDay}>{d}</Text>
+                      ))}
+                    </View>
+                    <View style={styles.calendarDaysGrid}>
+                      {days.map((day, i) => {
+                        if (!day) return <View key={`empty-${i}`} style={styles.calendarDayCell} />;
+                        const dateStr = formatDate(new Date(year, month, day));
+                        const isToday = dateStr === formatDate(new Date());
+                        const isSelected = dateStr === eventDate;
+                        return (
+                          <TouchableOpacity
+                            key={day}
+                            style={[styles.calendarDayCell, isSelected && styles.calendarDayCellSelected]}
+                            onPress={() => { setEventDate(dateStr); setShowDatePicker(false); }}
+                          >
+                            <Text style={[styles.calendarDayText, isToday && styles.calendarDayToday, isSelected && styles.calendarDayTextSelected]}>{day}</Text>
+                          </TouchableOpacity>
+                        );
+                      })}
+                    </View>
+                  </>
+                );
+              })()}
+            </View>
           )}
         </View>
 
@@ -840,9 +910,100 @@ const styles = StyleSheet.create({
     color: COLORS.gray900,
     padding: 0,
   },
-  dateDisplayText: {
-    fontSize: 16,
+  // Quick date buttons
+  quickDateRow: {
+    flexDirection: 'row',
+    gap: 8,
+    flexWrap: 'wrap',
+    marginBottom: 8,
+  },
+  quickDateBtn: {
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    borderRadius: 10,
+    borderWidth: 1.5,
+    borderColor: COLORS.gray200,
+    backgroundColor: COLORS.white,
+  },
+  quickDateBtnActive: {
+    borderColor: COLORS.piktag500,
+    backgroundColor: COLORS.piktag50,
+  },
+  quickDateText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: COLORS.gray600,
+  },
+  quickDateTextActive: {
+    color: COLORS.piktag600,
+    fontWeight: '700',
+  },
+  selectedDateText: {
+    fontSize: 15,
+    fontWeight: '600',
     color: COLORS.gray900,
+    marginBottom: 4,
+  },
+  // Calendar
+  calendarGrid: {
+    marginTop: 8,
+    backgroundColor: COLORS.gray50,
+    borderRadius: 12,
+    padding: 12,
+  },
+  calendarHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  calendarNav: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: COLORS.gray600,
+    paddingHorizontal: 12,
+  },
+  calendarMonthText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: COLORS.gray900,
+  },
+  calendarWeekRow: {
+    flexDirection: 'row',
+    marginBottom: 4,
+  },
+  calendarWeekDay: {
+    flex: 1,
+    textAlign: 'center',
+    fontSize: 12,
+    fontWeight: '600',
+    color: COLORS.gray400,
+  },
+  calendarDaysGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+  },
+  calendarDayCell: {
+    width: '14.28%',
+    aspectRatio: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  calendarDayCellSelected: {
+    backgroundColor: COLORS.piktag500,
+    borderRadius: 20,
+  },
+  calendarDayText: {
+    fontSize: 14,
+    color: COLORS.gray700,
+  },
+  calendarDayToday: {
+    fontWeight: '700',
+    color: COLORS.piktag600,
+  },
+  calendarDayTextSelected: {
+    color: COLORS.white,
+    fontWeight: '700',
   },
 
   // ── Tag input row ──
