@@ -335,6 +335,8 @@
     "follow": "Follow",
     "following": "Following",
     "tagAction": "Tag",
+    "closeFriendAdd": "Close Friend",
+    "closeFriendRemove": "Close",
     "pickTagTitle": "Pick Tags",
     "pickTagSubtitle": "Choose tags that best represent {{name}} to help you remember",
     "pickTagEmpty": "This friend has no public tags yet",

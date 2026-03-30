@@ -49,6 +49,7 @@ import InitialsAvatar from '../components/InitialsAvatar';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
 import type { Connection, PiktagProfile, Biolink } from '../types';
+import { getViewerRelation, filterBiolinksByVisibility } from '../lib/biolinkVisibility';
 
 type ReminderField = 'birthday' | 'anniversary' | 'contract_expiry';
 const REMINDER_LABEL_KEYS: Record<ReminderField, string> = {
@@ -158,6 +159,9 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
   const [pickedTagIds, setPickedTagIds] = useState<Set<string>>(new Set());
   const [pickTagLoading, setPickTagLoading] = useState(false);
 
+  // Close friend state
+  const [isCloseFriend, setIsCloseFriend] = useState(false);
+
   // Mutual tags detail modal
   const [mutualTagNames, setMutualTagNames] = useState<{ id: string; name: string }[]>([]);
   const [mutualTagModalVisible, setMutualTagModalVisible] = useState(false);
@@ -232,7 +236,10 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
         payload: {
           connection: connData ?? null,
           profile: profileResult.data ?? null,
-          biolinks: biolinksResult.data ?? [],
+          biolinks: filterBiolinksByVisibility(
+            biolinksResult.data ?? [],
+            await getViewerRelation(user?.id, friendId)
+          ),
           tags: [], // will be set in phase 2 after pick data is fetched
           mutualFriends: mutualFriendsCount,
           followerCount: fFollowerCount ?? 0,
@@ -244,6 +251,15 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
         setAnniversary(connData.anniversary || '');
         setContractExpiry(connData.contract_expiry || '');
       }
+
+      // Check close friend status
+      const { data: cfData } = await supabase
+        .from('piktag_close_friends')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('close_friend_id', friendId)
+        .maybeSingle();
+      setIsCloseFriend(!!cfData);
 
       // Phase 2: queries that depend on phase 1 results (run in parallel)
       const phase2: Promise<void>[] = [];
@@ -438,6 +454,19 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
       Alert.alert(t('common.error'), t('friendDetail.alertPickTagError'));
     } finally {
       setPickTagLoading(false);
+    }
+  };
+
+  const handleToggleCloseFriend = async () => {
+    if (!user || !friendId) return;
+    if (isCloseFriend) {
+      await supabase.from('piktag_close_friends').delete()
+        .eq('user_id', user.id).eq('close_friend_id', friendId);
+      setIsCloseFriend(false);
+    } else {
+      await supabase.from('piktag_close_friends')
+        .upsert({ user_id: user.id, close_friend_id: friendId }, { onConflict: 'user_id,close_friend_id' });
+      setIsCloseFriend(true);
     }
   };
 
@@ -766,6 +795,17 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
                 onPress={openPickTagModal}
               >
                 <Text style={styles.tagButtonText}>{t('friendDetail.tagAction')}</Text>
+              </TouchableOpacity>
+            )}
+            {isFollowing && (
+              <TouchableOpacity
+                style={[styles.closeFriendBtn, isCloseFriend && styles.closeFriendBtnActive]}
+                activeOpacity={0.7}
+                onPress={handleToggleCloseFriend}
+              >
+                <Text style={[styles.closeFriendBtnText, isCloseFriend && styles.closeFriendBtnTextActive]}>
+                  {isCloseFriend ? (t('friendDetail.closeFriendRemove') || '摯友') : (t('friendDetail.closeFriendAdd') || '設為摯友')}
+                </Text>
               </TouchableOpacity>
             )}
           </View>
@@ -1232,6 +1272,28 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  closeFriendBtn: {
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    backgroundColor: COLORS.white,
+    borderWidth: 1.5,
+    borderColor: COLORS.gray200,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  closeFriendBtnActive: {
+    borderColor: COLORS.piktag500,
+    backgroundColor: COLORS.piktag50,
+  },
+  closeFriendBtnText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: COLORS.gray500,
+  },
+  closeFriendBtnTextActive: {
+    color: COLORS.piktag600,
   },
   tagButtonText: {
     fontSize: 15,

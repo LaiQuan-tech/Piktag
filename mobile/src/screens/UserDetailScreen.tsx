@@ -29,6 +29,7 @@ import PlatformIcon from '../components/PlatformIcon';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
 import type { PiktagProfile, Biolink } from '../types';
+import { getViewerRelation, filterBiolinksByVisibility } from '../lib/biolinkVisibility';
 
 type UserDetailScreenProps = {
   navigation: any;
@@ -150,7 +151,11 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
         .eq('user_id', userId)
         .eq('is_active', true)
         .order('position', { ascending: true });
-      if (biolinksData) setBiolinks(biolinksData);
+      if (biolinksData) {
+        // Filter biolinks by viewer's relationship
+        const relation = await getViewerRelation(authUser?.id, userId);
+        setBiolinks(filterBiolinksByVisibility(biolinksData, relation));
+      }
 
       // Calculate mutual friends
       const { data: myConnections } = await supabase
