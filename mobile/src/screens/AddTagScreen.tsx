@@ -44,7 +44,7 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
   const { user } = useAuth();
 
   // Mode: 'setup' or 'qr'
-  const [mode, setMode] = useState<'setup' | 'qr' | 'event'>('setup');
+  const [mode, setMode] = useState<'qr' | 'event'>('qr'); // Start with QR visible
 
   // Setup form state
   const [eventDate, setEventDate] = useState(formatDate(new Date()));
@@ -68,6 +68,9 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
   const [qrValue, setQrValue] = useState('');
   const [scanSession, setScanSession] = useState<ScanSession | null>(null);
   const [generating, setGenerating] = useState(false);
+
+  // Settings modal (edit tags/location/date)
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
 
   // Presets modal
   const [showPresetsModal, setShowPresetsModal] = useState(false);
@@ -191,10 +194,6 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
   // ─── Generate QR Code ───
   const handleGenerateQr = async () => {
     if (!user) return;
-    if (!eventDate.trim()) {
-      Alert.alert(t('addTag.alertEnterDate'));
-      return;
-    }
     setGenerating(true);
     try {
       // 1. Fetch user profile for display name
@@ -274,6 +273,13 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
       setGenerating(false);
     }
   };
+
+  // Auto-generate QR on mount (no need to press button)
+  useEffect(() => {
+    if (user && !qrValue && !generating) {
+      handleGenerateQr();
+    }
+  }, [user]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ─── Share QR ───
   const handleShare = async () => {
@@ -468,7 +474,7 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
         <View style={styles.section}>
           <TouchableOpacity
             style={[styles.primaryButton, generating && styles.buttonDisabled]}
-            onPress={handleGenerateQr}
+            onPress={async () => { setShowSettingsModal(false); await handleGenerateQr(); }}
             activeOpacity={0.8}
             disabled={generating}
           >
@@ -489,7 +495,7 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
       {/* Header */}
       <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
         <TouchableOpacity
-          onPress={() => setMode('setup')}
+          onPress={() => setShowSettingsModal(true)}
           activeOpacity={0.6}
           style={styles.headerBackBtn}
         >
@@ -552,7 +558,7 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
         {/* Edit button */}
         <TouchableOpacity
           style={styles.outlineButton}
-          onPress={() => setMode('setup')}
+          onPress={() => setShowSettingsModal(true)}
           activeOpacity={0.7}
         >
           <Text style={styles.outlineButtonText}>
@@ -671,8 +677,12 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
   return (
     <View style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor={COLORS.white} />
-      {mode === 'setup' && renderSetupMode()}
-      {mode === 'qr' && renderQrMode()}
+      {mode === 'qr' && (qrValue ? renderQrMode() : (
+        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+          <ActivityIndicator size="large" color={COLORS.piktag500} />
+          <Text style={{ marginTop: 12, color: COLORS.gray500 }}>{t('addTag.generatingQr') || '產生 QR Code...'}</Text>
+        </View>
+      ))}
       {mode === 'event' && (
         <View style={styles.eventModeContainer}>
           <StatusBar barStyle="light-content" backgroundColor="#000000" />
@@ -715,6 +725,13 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
         </View>
       )}
       {showPresetsModal && renderPresetsModal()}
+
+      {/* Settings Modal — edit tags/location/date then regenerate QR */}
+      <Modal visible={showSettingsModal} animationType="slide" onRequestClose={() => setShowSettingsModal(false)}>
+        <View style={{ flex: 1, backgroundColor: COLORS.white }}>
+          {renderSetupMode()}
+        </View>
+      </Modal>
 
       {/* Preset Name Input Modal (cross-platform replacement for Alert.prompt) */}
       <Modal
