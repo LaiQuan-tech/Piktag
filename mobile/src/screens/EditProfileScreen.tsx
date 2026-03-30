@@ -74,6 +74,7 @@ type BiolinkFormData = {
   url: string;
   label: string;
   display_mode: 'icon' | 'card';
+  visibility: 'public' | 'friends' | 'close_friends' | 'private';
 };
 
 // ── Memoized tag sub-components ─────────────────────────────────────────────
@@ -193,6 +194,7 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
     url: '',
     label: '',
     display_mode: 'card',
+    visibility: 'public',
   });
   const [savingBiolink, setSavingBiolink] = useState(false);
 
@@ -427,6 +429,7 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
       url: biolink.url,
       label: biolink.label || '',
       display_mode: biolink.display_mode || 'card',
+      visibility: biolink.visibility || 'public',
     });
     setBiolinkModalVisible(true);
   };
@@ -434,7 +437,7 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
   const closeBiolinkModal = () => {
     setBiolinkModalVisible(false);
     setEditingBiolink(null);
-    setBiolinkForm({ platform: '', url: '', label: '', display_mode: 'card' });
+    setBiolinkForm({ platform: '', url: '', label: '', display_mode: 'card', visibility: 'public' });
   };
 
   const getIconUrl = (url: string): string | null => {
@@ -466,6 +469,7 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
             label: biolinkForm.label.trim() || null,
             icon_url: iconUrl,
             display_mode: biolinkForm.display_mode,
+            visibility: biolinkForm.visibility,
           })
           .eq('id', editingBiolink.id);
 
@@ -484,6 +488,7 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
             label: biolinkForm.label.trim() || null,
             icon_url: iconUrl,
             display_mode: biolinkForm.display_mode,
+            visibility: biolinkForm.visibility,
             position: nextPosition,
             is_active: true,
           });
@@ -1136,6 +1141,30 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
                   </TouchableOpacity>
                 </View>
               </View>
+
+              {/* Visibility Picker */}
+              <View style={styles.fieldGroup}>
+                <Text style={styles.fieldLabel}>{t('editProfile.visibilityLabel') || '誰能看到'}</Text>
+                <View style={styles.visibilityRow}>
+                  {([
+                    { key: 'public', label: t('editProfile.visibilityPublic') || '公開' },
+                    { key: 'friends', label: t('editProfile.visibilityFriends') || '朋友' },
+                    { key: 'close_friends', label: t('editProfile.visibilityCloseFriends') || '摯友' },
+                    { key: 'private', label: t('editProfile.visibilityPrivate') || '自己' },
+                  ] as const).map((opt) => (
+                    <TouchableOpacity
+                      key={opt.key}
+                      style={[styles.visibilityBtn, biolinkForm.visibility === opt.key && styles.visibilityBtnActive]}
+                      onPress={() => setBiolinkForm(prev => ({ ...prev, visibility: opt.key }))}
+                      activeOpacity={0.7}
+                    >
+                      <Text style={[styles.visibilityBtnText, biolinkForm.visibility === opt.key && styles.visibilityBtnTextActive]}>
+                        {opt.label}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
             </View>
 
             <TouchableOpacity
@@ -1396,6 +1425,30 @@ const styles = StyleSheet.create({
     color: COLORS.gray500,
   },
   displayModeBtnTextActive: {
+    color: COLORS.piktag600,
+  },
+  visibilityRow: {
+    flexDirection: 'row',
+    gap: 6,
+  },
+  visibilityBtn: {
+    flex: 1,
+    paddingVertical: 8,
+    borderRadius: 8,
+    borderWidth: 1.5,
+    borderColor: COLORS.gray200,
+    alignItems: 'center',
+  },
+  visibilityBtnActive: {
+    borderColor: COLORS.piktag500,
+    backgroundColor: COLORS.piktag50,
+  },
+  visibilityBtnText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: COLORS.gray500,
+  },
+  visibilityBtnTextActive: {
     color: COLORS.piktag600,
   },
   modalSaveBtn: {

@@ -102,6 +102,7 @@ export type ConnectionTag = {
 };
 
 export type BiolinkDisplayMode = 'icon' | 'card';
+export type BiolinkVisibility = 'public' | 'friends' | 'close_friends' | 'private';
 
 export type Biolink = {
   id: string;
@@ -112,6 +113,7 @@ export type Biolink = {
   position: number;
   is_active: boolean;
   display_mode: BiolinkDisplayMode;
+  visibility: BiolinkVisibility;
   icon_url?: string | null;
   created_at: string;
 };
