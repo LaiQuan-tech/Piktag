@@ -25,9 +25,11 @@ import { useAuth } from '../hooks/useAuth';
 import type { Biolink, Tag, UserTag } from '../types';
 
 // Platform labels that need i18n are resolved inside the component
-const PRESET_PLATFORM_KEYS = ['instagram', 'facebook', 'linkedin', 'line', 'website', 'custom'];
+const PRESET_PLATFORM_KEYS = ['phone', 'email', 'instagram', 'facebook', 'linkedin', 'line', 'website', 'custom'];
 
 const PLATFORM_LABELS_STATIC: Record<string, string> = {
+  phone: 'Phone',
+  email: 'Email',
   instagram: 'Instagram',
   facebook: 'Facebook',
   linkedin: 'LinkedIn',
@@ -36,6 +38,8 @@ const PLATFORM_LABELS_STATIC: Record<string, string> = {
 
 // Fixed prefix shown as grey label; user only types the account/path part
 const PLATFORM_PREFIXES: Record<string, string> = {
+  phone: 'tel:',
+  email: 'mailto:',
   instagram: 'https://instagram.com/',
   facebook: 'https://facebook.com/',
   linkedin: 'https://linkedin.com/in/',
@@ -45,6 +49,8 @@ const PLATFORM_PREFIXES: Record<string, string> = {
 };
 
 const PLATFORM_PLACEHOLDER_KEYS: Record<string, string> = {
+  phone: 'editProfile.phonePlaceholder',
+  email: 'editProfile.emailPlaceholder',
   instagram: 'editProfile.accountName',
   facebook: 'editProfile.accountName',
   linkedin: 'editProfile.accountName',
@@ -61,8 +67,6 @@ type FormData = {
   full_name: string;
   username: string;
   bio: string;
-  phone: string;
-  email: string;
 };
 
 type BiolinkFormData = {
@@ -173,8 +177,6 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
     full_name: '',
     username: '',
     bio: '',
-    phone: '',
-    email: '',
   });
   const [biolinks, setBiolinks] = useState<Biolink[]>([]);
   const [loading, setLoading] = useState(true);
@@ -223,8 +225,6 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
         full_name: data.full_name || '',
         username: data.username || '',
         bio: data.bio || '',
-        phone: data.phone || '',
-        email: user?.email || '',
       });
       setAvatarUrl(data.avatar_url);
     }
@@ -393,7 +393,6 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
           full_name: form.full_name.trim() || null,
           username: form.username.trim() || null,
           bio: form.bio.trim() || null,
-          phone: form.phone.trim() || null,
           updated_at: new Date().toISOString(),
         })
         .eq('id', userId);
@@ -863,30 +862,6 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
               />
             </View>
 
-            <View style={styles.fieldGroup}>
-              <Text style={styles.fieldLabel}>{t('editProfile.phoneLabel')}</Text>
-              <TextInput
-                style={styles.fieldInput}
-                value={form.phone}
-                onChangeText={(v) => updateField('phone', v)}
-                placeholder={t('editProfile.phonePlaceholder')}
-                placeholderTextColor={COLORS.gray400}
-                keyboardType="phone-pad"
-              />
-            </View>
-
-            <View style={styles.fieldGroup}>
-              <Text style={styles.fieldLabel}>{t('editProfile.emailLabel')}</Text>
-              <TextInput
-                style={[styles.fieldInput, styles.fieldInputDisabled]}
-                value={form.email}
-                placeholder={t('editProfile.emailPlaceholder')}
-                placeholderTextColor={COLORS.gray400}
-                keyboardType="email-address"
-                autoCapitalize="none"
-                editable={false}
-              />
-            </View>
           </View>
 
           {/* Tags Section — navigate to ManageTagsScreen */}
