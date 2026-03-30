@@ -115,11 +115,9 @@ const ConnectionItem = React.memo(({ item, isSelected, selectMode, onPress, onLo
           )}
         </View>
         {item.tags.length > 0 && (
-          <View style={styles.tagsRow}>
-            {item.tags.map((tag, index) => (
-              <Text key={index} style={styles.tag}>{tag}</Text>
-            ))}
-          </View>
+          <Text style={styles.tagsLine} numberOfLines={1}>
+            {item.tags.join('  ')}
+          </Text>
         )}
       </View>
     </TouchableOpacity>
@@ -996,17 +994,11 @@ const styles = StyleSheet.create({
   verifiedIcon: {
     marginLeft: 4,
   },
-  tagsRow: {
-    flexDirection: 'row',
-    marginTop: 4,
-    gap: 6,
-    overflow: 'hidden',
-    maxHeight: 20,
-  },
-  tag: {
+  tagsLine: {
     fontSize: 13,
     color: COLORS.gray400,
     lineHeight: 18,
+    marginTop: 3,
   },
   // On This Day card
   onThisDayCard: {
