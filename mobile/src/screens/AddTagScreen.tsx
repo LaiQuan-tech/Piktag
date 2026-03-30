@@ -256,7 +256,7 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
         event_date: eventDate,
         event_location: eventLocation,
         event_tags: eventTags,
-        qr_code_data: encoded,
+        qr_code_data: qrUrl,
         scan_count: 0,
         is_active: true,
         created_at: new Date().toISOString(),
