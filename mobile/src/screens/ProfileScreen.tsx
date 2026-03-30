@@ -19,6 +19,10 @@ import {
   CheckCircle2,
   Pencil,
   ExternalLink,
+  Phone,
+  Mail,
+  Globe,
+  MessageCircle,
 } from 'lucide-react-native';
 import PlatformIcon from '../components/PlatformIcon';
 import { useTranslation } from 'react-i18next';
@@ -364,59 +368,85 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
           </View>
         </View>
 
-        {/* ============ SECTION 2: Social Links (IG Highlights style) ============ */}
-        {activeBiolinks.length > 0 && (
-          <View style={styles.socialSection}>
-            <Text style={styles.sectionTitle}>{t('profile.socialLinksTitle')}</Text>
-            <FlatList
-              horizontal
-              data={activeBiolinks}
-              keyExtractor={(item) => item.id}
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.socialScrollContent}
-              renderItem={({ item }) => (
-                <SocialCircle biolink={item} onPress={handleOpenBiolink} />
+        {/* ============ SECTION 2: 聯絡方式 (Contact Info) ============ */}
+        {(profile?.phone || user?.email) && (
+          <View style={styles.contactSection}>
+            <Text style={styles.sectionTitle}>{t('profile.contactInfoTitle') || '聯絡方式'}</Text>
+            <View style={styles.contactGrid}>
+              {profile?.phone && (
+                <TouchableOpacity
+                  style={styles.contactCard}
+                  activeOpacity={0.7}
+                  onPress={() => Linking.openURL(`tel:${profile.phone}`).catch(() => {})}
+                >
+                  <View style={[styles.contactIconWrap, { backgroundColor: '#ECFDF5' }]}>
+                    <Phone size={18} color="#059669" />
+                  </View>
+                  <Text style={styles.contactLabel}>{t('profile.phoneLabel') || '電話'}</Text>
+                  <Text style={styles.contactValue} numberOfLines={1}>{profile.phone}</Text>
+                </TouchableOpacity>
               )}
-            />
+              {user?.email && (
+                <TouchableOpacity
+                  style={styles.contactCard}
+                  activeOpacity={0.7}
+                  onPress={() => Linking.openURL(`mailto:${user.email}`).catch(() => {})}
+                >
+                  <View style={[styles.contactIconWrap, { backgroundColor: '#EFF6FF' }]}>
+                    <Mail size={18} color="#2563EB" />
+                  </View>
+                  <Text style={styles.contactLabel}>{t('profile.emailLabel') || 'Email'}</Text>
+                  <Text style={styles.contactValue} numberOfLines={1}>{user.email}</Text>
+                </TouchableOpacity>
+              )}
+              {profile?.website && (
+                <TouchableOpacity
+                  style={styles.contactCard}
+                  activeOpacity={0.7}
+                  onPress={() => Linking.openURL(profile.website!.startsWith('http') ? profile.website! : `https://${profile.website}`).catch(() => {})}
+                >
+                  <View style={[styles.contactIconWrap, { backgroundColor: '#F5F3FF' }]}>
+                    <Globe size={18} color="#7C3AED" />
+                  </View>
+                  <Text style={styles.contactLabel}>{t('profile.websiteLabel') || '網站'}</Text>
+                  <Text style={styles.contactValue} numberOfLines={1}>{profile.website}</Text>
+                </TouchableOpacity>
+              )}
+            </View>
           </View>
         )}
 
-        {/* ============ SECTION 3: Link Bio (Linktree style cards) ============ */}
-        <View style={styles.linkBioSection}>
-          <Text style={styles.sectionTitle}>{t('profile.linkBioTitle')}</Text>
+        {/* ============ SECTION 3: 社交帳號 (Social Accounts) ============ */}
+        {activeBiolinks.length > 0 && (
+          <View style={styles.socialSection}>
+            <Text style={styles.sectionTitle}>{t('profile.socialLinksTitle')}</Text>
+            <View style={styles.socialGrid}>
+              {activeBiolinks.map((bl) => (
+                <TouchableOpacity
+                  key={bl.id}
+                  style={styles.socialCard}
+                  activeOpacity={0.7}
+                  onPress={() => handleOpenBiolink(bl)}
+                >
+                  <View style={styles.socialCardIcon}>
+                    <PlatformIcon platform={bl.platform} size={24} />
+                  </View>
+                  <Text style={styles.socialCardLabel} numberOfLines={1}>
+                    {bl.label || bl.platform}
+                  </Text>
+                  <ExternalLink size={14} color={COLORS.gray300} />
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+        )}
 
-          {activeBiolinks.map((bl) => (
-            <LinkCard key={bl.id} biolink={bl} onPress={handleOpenBiolink} />
-          ))}
-
-          {profile?.phone && (
-            <TouchableOpacity
-              style={styles.linkCard}
-              activeOpacity={0.7}
-              onPress={() => Linking.openURL(`tel:${profile.phone}`).catch(() => {})}
-            >
-              <Text style={styles.linkCardEmoji}>📞</Text>
-              <Text style={styles.linkCardText}>{profile.phone}</Text>
-              <ExternalLink size={16} color={COLORS.gray400} />
-            </TouchableOpacity>
-          )}
-
-          {user?.email && (
-            <TouchableOpacity
-              style={styles.linkCard}
-              activeOpacity={0.7}
-              onPress={() => Linking.openURL(`mailto:${user.email}`).catch(() => {})}
-            >
-              <Text style={styles.linkCardEmoji}>✉️</Text>
-              <Text style={styles.linkCardText}>{user.email}</Text>
-              <ExternalLink size={16} color={COLORS.gray400} />
-            </TouchableOpacity>
-          )}
-
-          {activeBiolinks.length === 0 && !profile?.phone && !user?.email && (
+        {activeBiolinks.length === 0 && !profile?.phone && !user?.email && (
+          <View style={styles.emptySection}>
+            <MessageCircle size={32} color={COLORS.gray200} />
             <Text style={styles.emptyText}>{t('profile.noContactMethods')}</Text>
-          )}
-        </View>
+          </View>
+        )}
       </ScrollView>
 
       <StatusModal
@@ -637,13 +667,7 @@ const styles = StyleSheet.create({
     color: COLORS.gray700,
   },
 
-  // ===== Section 2: Social Links (IG Highlights) =====
-  socialSection: {
-    paddingTop: 8,
-    paddingBottom: 16,
-    borderTopWidth: 1,
-    borderTopColor: COLORS.gray100,
-  },
+  // ===== Section: Shared =====
   sectionTitle: {
     fontSize: 13,
     fontWeight: '700',
@@ -654,67 +678,94 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     marginTop: 12,
   },
-  socialScrollContent: {
-    paddingHorizontal: 16,
-    gap: 16,
-  },
-  socialCircleItem: {
-    alignItems: 'center',
-    width: 68,
-  },
-  socialCircleRing: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    borderWidth: 2,
-    borderColor: COLORS.gray200,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 6,
-  },
-  socialCircleInner: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
-    backgroundColor: COLORS.gray50,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  socialCircleLabel: {
-    fontSize: 11,
-    fontWeight: '500',
-    color: COLORS.gray700,
-    textAlign: 'center',
-  },
 
-  // ===== Section 3: Link Bio (Linktree style) =====
-  linkBioSection: {
-    paddingHorizontal: 20,
+  // ===== Section 2: Contact Info =====
+  contactSection: {
     paddingTop: 8,
-    paddingBottom: 20,
+    paddingBottom: 16,
     borderTopWidth: 1,
     borderTopColor: COLORS.gray100,
-    gap: 10,
   },
-  linkCard: {
+  contactGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+    paddingHorizontal: 20,
+  },
+  contactCard: {
+    flex: 1,
+    minWidth: 140,
+    backgroundColor: COLORS.white,
+    borderWidth: 1.5,
+    borderColor: COLORS.gray100,
+    borderRadius: 14,
+    paddingVertical: 14,
+    paddingHorizontal: 14,
+    gap: 6,
+  },
+  contactIconWrap: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 4,
+  },
+  contactLabel: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: COLORS.gray400,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  contactValue: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: COLORS.gray900,
+  },
+
+  // ===== Section 3: Social Accounts =====
+  socialSection: {
+    paddingTop: 8,
+    paddingBottom: 16,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.gray100,
+  },
+  socialGrid: {
+    paddingHorizontal: 20,
+    gap: 8,
+  },
+  socialCard: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: COLORS.white,
     borderWidth: 1.5,
-    borderColor: COLORS.gray200,
-    borderRadius: 16,
-    paddingVertical: 16,
-    paddingHorizontal: 18,
+    borderColor: COLORS.gray100,
+    borderRadius: 14,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
     gap: 12,
   },
-  linkCardText: {
+  socialCardIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: COLORS.gray50,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  socialCardLabel: {
     flex: 1,
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '600',
     color: COLORS.gray900,
   },
-  linkCardEmoji: {
-    fontSize: 20,
+
+  // ===== Empty state =====
+  emptySection: {
+    alignItems: 'center',
+    paddingVertical: 32,
+    gap: 8,
   },
 
   emptyText: {
