@@ -44,7 +44,7 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
   const { user } = useAuth();
 
   // Mode: 'setup' or 'qr'
-  const [mode, setMode] = useState<'setup' | 'qr'>('setup');
+  const [mode, setMode] = useState<'setup' | 'qr' | 'event'>('setup');
 
   // Setup form state
   const [eventDate, setEventDate] = useState(formatDate(new Date()));
@@ -540,6 +540,15 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
           {'\uD83D\uDCCB'} {t('addTag.scanCount', { count: scanSession?.scan_count ?? 0 })}
         </Text>
 
+        {/* Event mode button */}
+        <TouchableOpacity
+          style={styles.eventModeBtn}
+          onPress={() => setMode('event')}
+          activeOpacity={0.8}
+        >
+          <Text style={styles.eventModeBtnText}>{t('addTag.eventModeBtn') || '活動模式'}</Text>
+        </TouchableOpacity>
+
         {/* Edit button */}
         <TouchableOpacity
           style={styles.outlineButton}
@@ -662,7 +671,49 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
   return (
     <View style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor={COLORS.white} />
-      {mode === 'setup' ? renderSetupMode() : renderQrMode()}
+      {mode === 'setup' && renderSetupMode()}
+      {mode === 'qr' && renderQrMode()}
+      {mode === 'event' && (
+        <View style={styles.eventModeContainer}>
+          <StatusBar barStyle="light-content" backgroundColor="#000000" />
+          {/* Close button */}
+          <TouchableOpacity
+            style={[styles.eventCloseBtn, { top: insets.top + 12 }]}
+            onPress={() => setMode('qr')}
+            activeOpacity={0.7}
+          >
+            <X size={28} color="#FFFFFF" />
+          </TouchableOpacity>
+
+          {/* Event info */}
+          <Text style={styles.eventTitle}>
+            {eventLocation || eventDate || 'PikTag'}
+          </Text>
+
+          {/* Large QR Code */}
+          <View style={styles.eventQrWrapper}>
+            <QRCode value={qrValue} size={280} backgroundColor="#FFFFFF" />
+          </View>
+
+          {/* Scan count */}
+          <Text style={styles.eventScanCount}>
+            {scanSession?.scan_count ?? 0} {t('addTag.eventScanned') || '人已掃描'}
+          </Text>
+
+          {/* Tags */}
+          {eventTags.length > 0 && (
+            <View style={styles.eventTagsRow}>
+              {eventTags.slice(0, 5).map((tag) => (
+                <View key={tag} style={styles.eventTagChip}>
+                  <Text style={styles.eventTagText}>{tag}</Text>
+                </View>
+              ))}
+            </View>
+          )}
+
+          <Text style={styles.eventHint}>{t('addTag.eventHint') || '讓朋友掃描加你為好友'}</Text>
+        </View>
+      )}
       {showPresetsModal && renderPresetsModal()}
 
       {/* Preset Name Input Modal (cross-platform replacement for Alert.prompt) */}
@@ -883,6 +934,75 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '700',
     color: COLORS.gray900,
+  },
+  // Event mode button
+  eventModeBtn: {
+    backgroundColor: COLORS.gray900,
+    borderRadius: 14,
+    paddingVertical: 14,
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  eventModeBtnText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: COLORS.white,
+  },
+  // Event mode fullscreen
+  eventModeContainer: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: '#000000',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 100,
+  },
+  eventCloseBtn: {
+    position: 'absolute',
+    right: 20,
+    zIndex: 101,
+    padding: 4,
+  },
+  eventTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    marginBottom: 24,
+    textAlign: 'center',
+  },
+  eventQrWrapper: {
+    padding: 20,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    marginBottom: 20,
+  },
+  eventScanCount: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: COLORS.piktag500,
+    marginBottom: 16,
+  },
+  eventTagsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    justifyContent: 'center',
+    paddingHorizontal: 40,
+    marginBottom: 16,
+  },
+  eventTagChip: {
+    paddingVertical: 4,
+    paddingHorizontal: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.3)',
+  },
+  eventTagText: {
+    fontSize: 14,
+    color: 'rgba(255,255,255,0.7)',
+  },
+  eventHint: {
+    fontSize: 14,
+    color: 'rgba(255,255,255,0.4)',
   },
   outlineButton: {
     borderWidth: 1,
