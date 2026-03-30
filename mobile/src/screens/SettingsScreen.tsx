@@ -218,6 +218,19 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
     {
       title: t('settings.groupAccount'),
       items: [
+        { label: t('settings.changePassword') || '修改密碼', onPress: () => {
+          Alert.alert(
+            t('settings.changePasswordTitle') || '修改密碼',
+            t('settings.changePasswordMessage') || '我們會發送密碼重設信到你的 Email',
+            [
+              { text: t('common.cancel'), style: 'cancel' },
+              { text: t('settings.sendResetEmail') || '發送', onPress: async () => {
+                const { error } = await supabase.auth.resetPasswordForEmail(user?.email || '');
+                if (!error) Alert.alert(t('settings.resetEmailSent') || '已發送', t('settings.resetEmailSentMessage') || '請查看你的信箱');
+              }},
+            ]
+          );
+        }},
         { label: t('settings.contactSync'), onPress: () => navigation.navigate('ContactSync') },
         { label: t('settings.inviteFriends'), onPress: () => navigation.navigate('Invite') },
         { label: t('settings.socialStats'), onPress: () => navigation.navigate('SocialStats') },
@@ -351,6 +364,32 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
           <Text style={styles.logoutText}>{t('settings.logoutButton')}</Text>
         </TouchableOpacity>
 
+        {/* Deactivate Account Button */}
+        <TouchableOpacity
+          style={styles.deactivateButton}
+          onPress={() => {
+            Alert.alert(
+              t('settings.deactivateTitle') || '停用帳號',
+              t('settings.deactivateMessage') || '停用後你的個人頁將隱藏，其他人找不到你。你可以隨時重新登入恢復。',
+              [
+                { text: t('common.cancel'), style: 'cancel' },
+                {
+                  text: t('settings.deactivateConfirm') || '停用',
+                  style: 'destructive',
+                  onPress: async () => {
+                    if (!userId) return;
+                    await supabase.from('piktag_profiles').update({ is_public: false }).eq('id', userId);
+                    await supabase.auth.signOut();
+                  },
+                },
+              ]
+            );
+          }}
+          activeOpacity={0.7}
+        >
+          <Text style={styles.deactivateText}>{t('settings.deactivateButton') || '停用帳號'}</Text>
+        </TouchableOpacity>
+
         {/* Delete Account Button */}
         <TouchableOpacity
           style={styles.deleteAccountButton}
@@ -482,6 +521,20 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: COLORS.red500,
+  },
+  deactivateButton: {
+    marginHorizontal: 20,
+    marginTop: 12,
+    paddingVertical: 14,
+    alignItems: 'center',
+    borderRadius: 12,
+    borderWidth: 1.5,
+    borderColor: COLORS.gray200,
+  },
+  deactivateText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: COLORS.gray500,
   },
   deleteAccountButton: {
     marginTop: 12,
