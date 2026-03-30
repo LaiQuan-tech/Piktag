@@ -552,10 +552,24 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
 
     return (
       <>
+        {/* Review new friends banner */}
+        {connections.length > 0 && (
+          <TouchableOpacity
+            style={styles.reviewBanner}
+            activeOpacity={0.8}
+            onPress={() => navigation.navigate('ActivityReview', { recentMinutes: 10080 })}
+          >
+            <View style={styles.reviewBannerLeft}>
+              <Text style={styles.reviewBannerTitle}>{t('connections.reviewBannerTitle') || '整理新朋友'}</Text>
+              <Text style={styles.reviewBannerSubtitle}>{t('connections.reviewBannerSubtitle') || '快速加標籤和備註'}</Text>
+            </View>
+            <Text style={styles.reviewBannerArrow}>→</Text>
+          </TouchableOpacity>
+        )}
         {renderCrmReminders()}
       </>
     );
-  }, [crmReminders, remindersDismissed, selectMode, t, navigation]);
+  }, [connections.length, crmReminders, remindersDismissed, selectMode, t, navigation]);
 
   // --- Optimized: stable contentContainerStyle ---
   const contentContainerStyle = useMemo(() => [
@@ -984,6 +998,22 @@ const styles = StyleSheet.create({
     borderColor: '#e9d5ff',
   },
   // CRM Reminder card
+  reviewBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    margin: 16,
+    marginBottom: 8,
+    padding: 16,
+    backgroundColor: COLORS.piktag50,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: COLORS.piktag400,
+  },
+  reviewBannerLeft: { flex: 1 },
+  reviewBannerTitle: { fontSize: 15, fontWeight: '700', color: COLORS.piktag600 },
+  reviewBannerSubtitle: { fontSize: 13, color: COLORS.gray500, marginTop: 2 },
+  reviewBannerArrow: { fontSize: 20, color: COLORS.piktag500 },
   reminderCard: {
     margin: 16,
     marginBottom: 0,
