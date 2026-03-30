@@ -273,7 +273,7 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
       // Create connection (scanner → host)
       const { data: conn } = await supabase
         .from('piktag_connections')
-        .insert({ user_id: authUser.id, connected_user_id: resolvedUserId, met_at: new Date().toISOString(), met_location: session?.event_location || '', note })
+        .insert({ user_id: authUser.id, connected_user_id: resolvedUserId, met_at: new Date().toISOString(), met_location: session?.event_location || '', note, scan_session_id: paramSid || null })
         .select('id').single();
 
       // Create reverse connection (host → scanner)

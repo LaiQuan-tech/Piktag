@@ -553,6 +553,14 @@
     "tagLimitTitle": "標籤上限",
     "tagLimitMessage": "最多只能新增 {{max}} 個標籤"
   },
+  "activityReview": {
+    "noNewFriends": "沒有需要整理的新朋友",
+    "summaryTitle": "整理完成",
+    "summaryText": "已整理 {{people}} 位朋友，加了 {{tags}} 個標籤",
+    "addTagPlaceholder": "加隱藏標籤...",
+    "swipeHint": "← 左滑跳過 · 右滑下一位 →",
+    "skip": "跳過"
+  },
   "tagDetail": {
     "unknownTag": "未知標籤",
     "usageCount": "共 {{count}} 次使用",

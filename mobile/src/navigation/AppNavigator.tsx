@@ -39,6 +39,7 @@ import TagDetailScreen from '../screens/TagDetailScreen';
 import ManageTagsScreen from '../screens/ManageTagsScreen';
 import PrivacyPolicyScreen from '../screens/legal/PrivacyPolicyScreen';
 import TermsOfServiceScreen from '../screens/legal/TermsOfServiceScreen';
+import ActivityReviewScreen from '../screens/ActivityReviewScreen';
 
 // Stack Navigators
 const AuthStack = createNativeStackNavigator();
@@ -219,6 +220,11 @@ function MainNavigator({ needsOnboarding }: { needsOnboarding: boolean }) {
       <RootStack.Screen
         name="ScanResult"
         component={ScanResultScreen}
+        options={{ presentation: 'modal' }}
+      />
+      <RootStack.Screen
+        name="ActivityReview"
+        component={ActivityReviewScreen}
         options={{ presentation: 'modal' }}
       />
     </RootStack.Navigator>

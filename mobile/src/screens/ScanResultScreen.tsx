@@ -186,6 +186,7 @@ export default function ScanResultScreen({ navigation, route }: ScanResultScreen
           met_at: new Date().toISOString(),
           met_location: eventLocation,
           note: eventDate + (eventLocation ? ' · ' + eventLocation : ''),
+          scan_session_id: sessionId || null,
         })
         .select('id')
         .single();

@@ -553,6 +553,14 @@
     "tagLimitTitle": "Tag limit",
     "tagLimitMessage": "You can add up to {{max}} tags"
   },
+  "activityReview": {
+    "noNewFriends": "No new friends to review",
+    "summaryTitle": "Review Complete",
+    "summaryText": "Reviewed {{people}} friends, added {{tags}} tags",
+    "addTagPlaceholder": "Add hidden tag...",
+    "swipeHint": "← Swipe left to skip · Right for next →",
+    "skip": "Skip"
+  },
   "tagDetail": {
     "unknownTag": "Unknown Tag",
     "usageCount": "{{count}} uses",
