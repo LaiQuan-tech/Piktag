@@ -134,6 +134,8 @@
     "emptyGuideMessage": "Scan a QR code to meet new friends!",
     "emptyGuideButton": "Start Scanning",
     "syncContactsButton": "Sync contacts to find friends",
+    "reviewBannerTitle": "Review New Friends",
+    "reviewBannerSubtitle": "Quickly add tags and notes",
     "recommendTitle": "People you may know",
     "mutualTagCount": "{{count}} mutual tags",
     "viewProfile": "View",
@@ -188,6 +190,7 @@
     "locationPlaceholder": "Enter event location...",
     "customTagsLabel": "Custom Tags",
     "hiddenTagHint": "Only visible to you — helps you remember where you met",
+    "pickDate": "Pick Date",
     "tagPlaceholder": "Enter tag...",
     "addButton": "Add",
     "saveAsPreset": "Save as template",
@@ -598,7 +601,8 @@
     "summaryText": "Reviewed {{people}} friends, added {{tags}} tags",
     "addTagPlaceholder": "Add hidden tag...",
     "swipeHint": "← Swipe left to skip · Right for next →",
-    "skip": "Skip"
+    "skip": "Skip",
+    "next": "Next"
   },
   "tagDetail": {
     "unknownTag": "Unknown Tag",

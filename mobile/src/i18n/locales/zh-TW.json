@@ -134,6 +134,8 @@
     "emptyGuideMessage": "去掃描 QR Code 認識新朋友吧！",
     "emptyGuideButton": "開始掃描",
     "syncContactsButton": "同步通訊錄找朋友",
+    "reviewBannerTitle": "整理新朋友",
+    "reviewBannerSubtitle": "快速加標籤和備註",
     "recommendTitle": "你可能認識",
     "mutualTagCount": "{{count}} 個共同標籤",
     "viewProfile": "查看",
@@ -188,6 +190,7 @@
     "locationPlaceholder": "輸入活動地點...",
     "customTagsLabel": "自訂標籤",
     "hiddenTagHint": "這些標籤僅自己可見，幫助你記住在哪認識",
+    "pickDate": "選日期",
     "tagPlaceholder": "輸入標籤...",
     "addButton": "新增",
     "saveAsPreset": "儲存為常用模板",
@@ -598,7 +601,8 @@
     "summaryText": "已整理 {{people}} 位朋友，加了 {{tags}} 個標籤",
     "addTagPlaceholder": "加隱藏標籤...",
     "swipeHint": "← 左滑跳過 · 右滑下一位 →",
-    "skip": "跳過"
+    "skip": "跳過",
+    "next": "下一位"
   },
   "tagDetail": {
     "unknownTag": "未知標籤",
