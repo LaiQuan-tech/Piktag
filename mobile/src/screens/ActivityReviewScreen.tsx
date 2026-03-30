@@ -86,14 +86,34 @@ export default function ActivityReviewScreen({ navigation, route }: Props) {
             .in('connection_id', connIds)
             .eq('is_private', true);
 
-          const tagMap = new Map<string, string[]>();
+          // Hidden tags per connection
+          const hiddenTagMap = new Map<string, string[]>();
           if (tagData) {
             for (const ct of tagData) {
               const name = (ct as any).tag?.name;
               if (!name) continue;
-              const arr = tagMap.get(ct.connection_id) || [];
+              const arr = hiddenTagMap.get(ct.connection_id) || [];
               arr.push(name);
-              tagMap.set(ct.connection_id, arr);
+              hiddenTagMap.set(ct.connection_id, arr);
+            }
+          }
+
+          // Fetch public tags for each connected user
+          const userIds = data.map((c: any) => c.connected_user_id);
+          const { data: publicTagData } = await supabase
+            .from('piktag_user_tags')
+            .select('user_id, tag:piktag_tags!tag_id(name)')
+            .in('user_id', userIds)
+            .eq('is_private', false);
+
+          const publicTagMap = new Map<string, string[]>();
+          if (publicTagData) {
+            for (const ut of publicTagData) {
+              const name = (ut as any).tag?.name;
+              if (!name) continue;
+              const arr = publicTagMap.get(ut.user_id) || [];
+              arr.push(name);
+              publicTagMap.set(ut.user_id, arr);
             }
           }
 
@@ -104,7 +124,10 @@ export default function ActivityReviewScreen({ navigation, route }: Props) {
             met_at: c.met_at,
             met_location: c.met_location,
             profile: c.connected_user,
-            existingTags: tagMap.get(c.id) || [],
+            existingTags: [
+              ...(publicTagMap.get(c.connected_user_id) || []),
+              ...(hiddenTagMap.get(c.id) || []),
+            ],
           })));
         }
       } catch (err) {
