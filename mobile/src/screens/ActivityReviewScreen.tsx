@@ -388,7 +388,16 @@ export default function ActivityReviewScreen({ navigation, route }: Props) {
             <Text style={styles.addBtnText}>{t('common.add') || '新增'}</Text>
           </Pressable>
         </View>
-        <Text style={styles.swipeHint}>{t('activityReview.swipeHint') || '← 左滑跳過 · 右滑下一位 →'}</Text>
+        <View style={styles.actionRow}>
+          <Pressable style={styles.skipActionBtn} onPress={() => swipeAway('left')}>
+            <X size={20} color={COLORS.gray500} />
+            <Text style={styles.skipActionText}>{t('activityReview.skip') || '跳過'}</Text>
+          </Pressable>
+          <Pressable style={styles.nextActionBtn} onPress={() => swipeAway('right')}>
+            <Check size={20} color={COLORS.white} />
+            <Text style={styles.nextActionText}>{t('activityReview.next') || '下一位'}</Text>
+          </Pressable>
+        </View>
       </View>
     </View>
   );
@@ -432,7 +441,11 @@ const styles = StyleSheet.create({
   textInput: { flex: 1, fontSize: 15, color: COLORS.gray900, padding: 0 },
   addBtn: { backgroundColor: COLORS.piktag500, borderRadius: 16, paddingVertical: 6, paddingHorizontal: 14 },
   addBtnText: { fontSize: 14, fontWeight: '700', color: COLORS.white },
-  swipeHint: { fontSize: 12, color: COLORS.gray400, textAlign: 'center', marginTop: 8 },
+  actionRow: { flexDirection: 'row', gap: 12, marginTop: 10 },
+  skipActionBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 12, borderRadius: 14, borderWidth: 1.5, borderColor: COLORS.gray200, backgroundColor: COLORS.white },
+  skipActionText: { fontSize: 15, fontWeight: '600', color: COLORS.gray500 },
+  nextActionBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 12, borderRadius: 14, backgroundColor: COLORS.piktag500 },
+  nextActionText: { fontSize: 15, fontWeight: '700', color: COLORS.white },
   // Empty + Summary
   emptyContainer: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 16 },
   emptyTitle: { fontSize: 18, fontWeight: '600', color: COLORS.gray500 },
