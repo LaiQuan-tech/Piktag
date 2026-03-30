@@ -171,34 +171,36 @@ export default function ActivityReviewScreen({ navigation, route }: Props) {
     }
   }, [currentIndex, connections, pickedTags]);
 
-  // Add hidden tag to current connection
-  const handleAddTag = useCallback(async () => {
+  // Add hidden tag to current connection — optimistic UI first, DB in background
+  const handleAddTag = useCallback(() => {
     if (!tagInput.trim() || currentIndex >= connections.length) return;
     const conn = connections[currentIndex];
     const rawTag = tagInput.trim().replace(/^#/, '');
+    if (!rawTag) return;
 
-    // Find or create tag
-    let { data: tag } = await supabase.from('piktag_tags').select('id').eq('name', rawTag).maybeSingle();
-    if (!tag) {
-      const { data: newTag } = await supabase.from('piktag_tags').insert({ name: rawTag }).select('id').single();
-      tag = newTag;
-    }
-    if (tag) {
-      await supabase.from('piktag_connection_tags').insert({
-        connection_id: conn.id, tag_id: tag.id, is_private: true,
-      }).catch(() => {});
-
-      // Track locally
-      setAddedTags(prev => {
-        const next = new Map(prev);
-        const arr = next.get(conn.id) || [];
-        arr.push(rawTag);
-        next.set(conn.id, arr);
-        return next;
-      });
-      setTotalTagsAdded(prev => prev + 1);
-    }
+    // Optimistic: show on card immediately
+    setAddedTags(prev => {
+      const next = new Map(prev);
+      const arr = [...(next.get(conn.id) || []), rawTag];
+      next.set(conn.id, arr);
+      return next;
+    });
+    setTotalTagsAdded(prev => prev + 1);
     setTagInput('');
+
+    // DB sync in background
+    (async () => {
+      let { data: tag } = await supabase.from('piktag_tags').select('id').eq('name', rawTag).maybeSingle();
+      if (!tag) {
+        const { data: newTag } = await supabase.from('piktag_tags').insert({ name: rawTag }).select('id').single();
+        tag = newTag;
+      }
+      if (tag) {
+        await supabase.from('piktag_connection_tags').insert({
+          connection_id: conn.id, tag_id: tag.id, is_private: true,
+        }).catch(() => {});
+      }
+    })();
   }, [tagInput, currentIndex, connections]);
 
   // Go to next card
