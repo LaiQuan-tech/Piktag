@@ -139,8 +139,9 @@ export default function ActivityReviewScreen({ navigation, route }: Props) {
 
   // Toggle pick a public tag
   const handleTogglePick = useCallback(async (tagName: string) => {
-    if (!current) return;
-    const connId = current.id;
+    const curr = currentIndex < connections.length ? connections[currentIndex] : null;
+    if (!curr) return;
+    const connId = curr.id;
     setPickedTags(prev => {
       const next = new Map(prev);
       const set = new Set(next.get(connId) || []);
@@ -168,7 +169,7 @@ export default function ActivityReviewScreen({ navigation, route }: Props) {
           .catch(() => {});
       }
     }
-  }, [current, pickedTags]);
+  }, [currentIndex, connections, pickedTags]);
 
   // Add hidden tag to current connection
   const handleAddTag = useCallback(async () => {
