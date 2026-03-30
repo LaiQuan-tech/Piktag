@@ -42,6 +42,8 @@ import {
   ExternalLink,
   Share2,
   MoreHorizontal,
+  X,
+  AlertTriangle,
 } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { COLORS } from '../constants/theme';
@@ -457,6 +459,12 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
     } finally {
       setPickTagLoading(false);
     }
+  };
+
+  const handleReport = async (reason: string) => {
+    if (!user || !friendId) return;
+    await supabase.from('piktag_reports').insert({ reporter_id: user.id, reported_id: friendId, reason });
+    Alert.alert(t('friendDetail.reportedTitle') || '已檢舉', t('friendDetail.reportedMessage') || '感謝你的回報，我們會盡快處理');
   };
 
   const handleToggleCloseFriend = async () => {
@@ -1120,7 +1128,40 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
               }}
             >
               <Share2 size={20} color={COLORS.gray600} />
-              <Text style={styles.moreItemText}>{t('friendDetail.shareProfile') || '分享個人檔案'}</Text>
+              <Text style={styles.moreItemText}>{t('friendDetail.shareProfile') || '分享'}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.moreItem}
+              onPress={async () => {
+                setMoreMenuVisible(false);
+                if (!user || !friendId) return;
+                await supabase.from('piktag_blocks')
+                  .upsert({ blocker_id: user.id, blocked_id: friendId }, { onConflict: 'blocker_id,blocked_id' });
+                Alert.alert(t('friendDetail.blockedTitle') || '已封鎖', t('friendDetail.blockedMessage') || '你將不再看到此用戶');
+                navigation.goBack();
+              }}
+            >
+              <X size={20} color="#EF4444" />
+              <Text style={[styles.moreItemText, { color: '#EF4444' }]}>{t('friendDetail.blockUser') || '封鎖'}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.moreItem}
+              onPress={() => {
+                setMoreMenuVisible(false);
+                Alert.alert(
+                  t('friendDetail.reportTitle') || '檢舉用戶',
+                  t('friendDetail.reportMessage') || '請選擇檢舉原因',
+                  [
+                    { text: t('friendDetail.reportSpam') || '垃圾訊息', onPress: () => handleReport('spam') },
+                    { text: t('friendDetail.reportHarassment') || '騷擾', onPress: () => handleReport('harassment') },
+                    { text: t('friendDetail.reportFake') || '假帳號', onPress: () => handleReport('fake_account') },
+                    { text: t('common.cancel') || '取消', style: 'cancel' },
+                  ]
+                );
+              }}
+            >
+              <AlertTriangle size={20} color={COLORS.gray600} />
+              <Text style={styles.moreItemText}>{t('friendDetail.reportUser') || '檢舉'}</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.moreCancelBtn} onPress={() => setMoreMenuVisible(false)}>
               <Text style={styles.moreCancelText}>{t('common.cancel') || '取消'}</Text>

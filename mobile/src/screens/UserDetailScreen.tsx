@@ -24,6 +24,8 @@ import {
   Share2,
   MoreHorizontal,
   Heart,
+  X,
+  AlertTriangle,
 } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { COLORS } from '../constants/theme';
@@ -373,6 +375,16 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
     setUnfollowModalVisible(false);
     await supabase.from('piktag_follows').delete().eq('follower_id', authUser.id).eq('following_id', resolvedUserId);
     setIsFollowing(false);
+  };
+
+  const reportUser = async (reason: string) => {
+    if (!authUser || !resolvedUserId) return;
+    await supabase.from('piktag_reports').insert({
+      reporter_id: authUser.id,
+      reported_id: resolvedUserId,
+      reason,
+    });
+    Alert.alert(t('userDetail.reportedTitle') || '已檢舉', t('userDetail.reportedMessage') || '感謝你的回報，我們會盡快處理');
   };
 
   const handleToggleCloseFriend = async () => {
@@ -869,7 +881,40 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
               }}
             >
               <Share2 size={20} color={COLORS.gray600} />
-              <Text style={styles.moreItemText}>{t('userDetail.shareProfile') || '分享個人檔案'}</Text>
+              <Text style={styles.moreItemText}>{t('userDetail.shareProfile') || '分享'}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.moreItem}
+              onPress={async () => {
+                setMoreMenuVisible(false);
+                if (!authUser || !resolvedUserId) return;
+                await supabase.from('piktag_blocks')
+                  .upsert({ blocker_id: authUser.id, blocked_id: resolvedUserId }, { onConflict: 'blocker_id,blocked_id' });
+                Alert.alert(t('userDetail.blockedTitle') || '已封鎖', t('userDetail.blockedMessage') || '你將不再看到此用戶');
+                navigation.goBack();
+              }}
+            >
+              <X size={20} color="#EF4444" />
+              <Text style={[styles.moreItemText, { color: '#EF4444' }]}>{t('userDetail.blockUser') || '封鎖'}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.moreItem}
+              onPress={() => {
+                setMoreMenuVisible(false);
+                Alert.alert(
+                  t('userDetail.reportTitle') || '檢舉用戶',
+                  t('userDetail.reportMessage') || '請選擇檢舉原因',
+                  [
+                    { text: t('userDetail.reportSpam') || '垃圾訊息', onPress: () => reportUser('spam') },
+                    { text: t('userDetail.reportHarassment') || '騷擾', onPress: () => reportUser('harassment') },
+                    { text: t('userDetail.reportFake') || '假帳號', onPress: () => reportUser('fake_account') },
+                    { text: t('common.cancel') || '取消', style: 'cancel' },
+                  ]
+                );
+              }}
+            >
+              <AlertTriangle size={20} color={COLORS.gray600} />
+              <Text style={styles.moreItemText}>{t('userDetail.reportUser') || '檢舉'}</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.moreCancelBtn} onPress={() => setMoreMenuVisible(false)}>
               <Text style={styles.moreCancelText}>{t('common.cancel') || '取消'}</Text>
