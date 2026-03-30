@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useReducer } from 'react';
+import React, { useState, useCallback, useReducer, useMemo } from 'react';
 import {
   View,
   Text,
@@ -53,6 +53,7 @@ import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
 import type { Connection, PiktagProfile, Biolink } from '../types';
 import { getViewerRelation, filterBiolinksByVisibility } from '../lib/biolinkVisibility';
+import { calculateStrength, getStrengthLabel } from '../lib/connectionStrength';
 
 type ReminderField = 'birthday' | 'anniversary' | 'contract_expiry';
 const REMINDER_LABEL_KEYS: Record<ReminderField, string> = {
@@ -671,6 +672,22 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
   const metDate = connection?.met_at || '';
   const metLocation = connection?.met_location || '';
 
+  // Connection strength
+  const strengthScore = useMemo(() => {
+    const daysSinceMet = metDate ? Math.floor((Date.now() - new Date(metDate).getTime()) / 86400000) : 0;
+    return calculateStrength({
+      mutualTagCount: mutualTags,
+      daysSinceMet,
+      hasBirthday: !!birthday,
+      hasAnniversary: !!anniversary,
+      hasContractExpiry: !!contractExpiry,
+      isCloseFriend,
+      hiddenTagCount: hiddenTags.length,
+      pickedTagCount: tags.filter(t => t.isPicked).length,
+    });
+  }, [metDate, mutualTags, birthday, anniversary, contractExpiry, isCloseFriend, hiddenTags, tags]);
+  const strengthInfo = getStrengthLabel(strengthScore);
+
   return (
     <View style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor={COLORS.white} />
@@ -716,7 +733,12 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
                   <CheckCircle2 size={16} color={COLORS.blue500} fill={COLORS.blue500} strokeWidth={0} style={{ marginLeft: 4 }} />
                 )}
               </View>
-              <Text style={styles.usernameText}>@{username}</Text>
+              <View style={styles.usernameRow}>
+                <Text style={styles.usernameText}>@{username}</Text>
+                <View style={[styles.strengthBadge, { backgroundColor: strengthInfo.color + '18' }]}>
+                  <Text style={[styles.strengthText, { color: strengthInfo.color }]}>{strengthInfo.label}</Text>
+                </View>
+              </View>
             </View>
           </View>
 
@@ -1047,7 +1069,7 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
             <View style={styles.pickModalDivider} />
 
             {/* Hidden tags section */}
-            <Text style={styles.pickModalSectionTitle}>🔒 {t('friendDetail.hiddenTagsTitle')}</Text>
+            <Text style={styles.pickModalSectionTitle}>{t('friendDetail.hiddenTagsTitle')}</Text>
 
             {hiddenTags.length > 0 && (
               <View style={styles.pickModalTagsWrap}>
@@ -1238,9 +1260,23 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: COLORS.gray900,
   },
+  usernameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
   usernameText: {
     fontSize: 14,
     color: COLORS.gray500,
+  },
+  strengthBadge: {
+    paddingVertical: 2,
+    paddingHorizontal: 8,
+    borderRadius: 8,
+  },
+  strengthText: {
+    fontSize: 11,
+    fontWeight: '700',
   },
   bio: {
     fontSize: 14,
