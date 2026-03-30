@@ -112,6 +112,7 @@ export type Biolink = {
   position: number;
   is_active: boolean;
   display_mode: BiolinkDisplayMode;
+  icon_url?: string | null;
   created_at: string;
 };
 

@@ -1,20 +1,48 @@
 import React from 'react';
+import { Image, View, StyleSheet } from 'react-native';
 import Svg, { Path, Rect, Circle } from 'react-native-svg';
-import { Globe, Link, Phone, Mail } from 'lucide-react-native';
+import {
+  Globe, Link, Phone, Mail, MessageSquare, Send, Music, Video,
+  Twitch, Github, Twitter, Youtube, ShoppingBag, Podcast,
+} from 'lucide-react-native';
 
-// Unified monochrome icon color — professional, clean
+// Unified monochrome icon color
 const ICON_COLOR = '#374151'; // gray700
 
 type Props = {
   platform: string;
   size?: number;
   color?: string;
+  iconUrl?: string | null; // Favicon URL from DB
 };
 
-export default function PlatformIcon({ platform, size = 24, color = ICON_COLOR }: Props) {
+// Extended platform → lucide icon mapping for common services
+const LUCIDE_MAP: Record<string, any> = {
+  twitter: Twitter,
+  x: Twitter,
+  youtube: Youtube,
+  github: Github,
+  twitch: Twitch,
+  telegram: Send,
+  whatsapp: MessageSquare,
+  wechat: MessageSquare,
+  discord: MessageSquare,
+  signal: MessageSquare,
+  tiktok: Music,
+  spotify: Music,
+  threads: MessageSquare,
+  medium: Globe,
+  substack: Globe,
+  shopee: ShoppingBag,
+  podcast: Podcast,
+  vimeo: Video,
+};
+
+export default function PlatformIcon({ platform, size = 24, color = ICON_COLOR, iconUrl }: Props) {
   const key = platform?.toLowerCase();
 
-  // Instagram — monochrome outline
+  // ── SVG custom icons (major platforms) ──
+
   if (key === 'instagram') {
     return (
       <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
@@ -26,7 +54,6 @@ export default function PlatformIcon({ platform, size = 24, color = ICON_COLOR }
     );
   }
 
-  // Facebook — monochrome outline
   if (key === 'facebook') {
     return (
       <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
@@ -39,7 +66,6 @@ export default function PlatformIcon({ platform, size = 24, color = ICON_COLOR }
     );
   }
 
-  // LinkedIn — monochrome outline
   if (key === 'linkedin') {
     return (
       <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
@@ -51,7 +77,6 @@ export default function PlatformIcon({ platform, size = 24, color = ICON_COLOR }
     );
   }
 
-  // LINE — monochrome outline
   if (key === 'line') {
     return (
       <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
@@ -64,17 +89,34 @@ export default function PlatformIcon({ platform, size = 24, color = ICON_COLOR }
     );
   }
 
-  if (key === 'phone' || key === '電話') {
-    return <Phone size={size} color={color} />;
+  // ── Lucide icons (contact + common services) ──
+
+  if (key === 'phone' || key === '電話') return <Phone size={size} color={color} />;
+  if (key === 'email' || key === 'mail') return <Mail size={size} color={color} />;
+  if (key === 'website' || key === '個人網站') return <Globe size={size} color={color} />;
+
+  // Check extended lucide mapping
+  const LucideIcon = LUCIDE_MAP[key];
+  if (LucideIcon) return <LucideIcon size={size} color={color} />;
+
+  // ── Favicon fallback (from DB icon_url or auto-generated) ──
+
+  if (iconUrl) {
+    return (
+      <Image
+        source={{ uri: iconUrl }}
+        style={[styles.faviconImage, { width: size, height: size, borderRadius: size / 4 }]}
+        resizeMode="contain"
+      />
+    );
   }
 
-  if (key === 'email' || key === 'mail') {
-    return <Mail size={size} color={color} />;
-  }
-
-  if (key === 'website' || key === '個人網站') {
-    return <Globe size={size} color={color} />;
-  }
-
+  // ── Default: generic link icon ──
   return <Link size={size} color={color} />;
 }
+
+const styles = StyleSheet.create({
+  faviconImage: {
+    backgroundColor: '#f9fafb',
+  },
+});

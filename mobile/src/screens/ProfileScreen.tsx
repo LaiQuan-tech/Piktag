@@ -53,7 +53,7 @@ const SocialCircle = React.memo(function SocialCircle({
     >
       <View style={styles.socialCircleRing}>
         <View style={styles.socialCircleInner}>
-          <PlatformIcon platform={biolink.platform} size={28} />
+          <PlatformIcon platform={biolink.platform} size={28} iconUrl={biolink.icon_url} />
         </View>
       </View>
       <Text style={styles.socialCircleLabel} numberOfLines={1}>
@@ -77,7 +77,7 @@ const LinkCard = React.memo(function LinkCard({
       activeOpacity={0.7}
       onPress={() => onPress(biolink.url)}
     >
-      <PlatformIcon platform={biolink.platform} size={22} />
+      <PlatformIcon platform={biolink.platform} size={22} iconUrl={biolink.icon_url} />
       <Text style={styles.linkCardText} numberOfLines={1}>
         {biolink.label || biolink.platform}
       </Text>
@@ -376,7 +376,7 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
                 onPress={() => handleOpenBiolink(bl)}
               >
                 <View style={styles.iconCircleInner}>
-                  <PlatformIcon platform={bl.platform} size={22} />
+                  <PlatformIcon platform={bl.platform} size={22} iconUrl={bl.icon_url} />
                 </View>
               </TouchableOpacity>
             ))}
@@ -394,7 +394,7 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
                 onPress={() => handleOpenBiolink(bl)}
               >
                 <View style={styles.socialCardIcon}>
-                  <PlatformIcon platform={bl.platform} size={24} />
+                  <PlatformIcon platform={bl.platform} size={24} iconUrl={bl.icon_url} />
                 </View>
                 <Text style={styles.socialCardLabel} numberOfLines={1}>
                   {bl.label || bl.platform}
