@@ -788,8 +788,6 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
                 <Text style={styles.tagButtonText}>{t('friendDetail.tagAction')}</Text>
               </TouchableOpacity>
             )}
-            {/* Close friend moved to header ⋯ menu */
-            )}
           </View>
         </View>
 
