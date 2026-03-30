@@ -41,6 +41,7 @@ import {
   Bell,
   ExternalLink,
   Share2,
+  MoreHorizontal,
 } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { COLORS } from '../constants/theme';
@@ -159,8 +160,9 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
   const [pickedTagIds, setPickedTagIds] = useState<Set<string>>(new Set());
   const [pickTagLoading, setPickTagLoading] = useState(false);
 
-  // Close friend state
+  // Close friend + more menu state
   const [isCloseFriend, setIsCloseFriend] = useState(false);
+  const [moreMenuVisible, setMoreMenuVisible] = useState(false);
 
   // Mutual tags detail modal
   const [mutualTagNames, setMutualTagNames] = useState<{ id: string; name: string }[]>([]);
@@ -679,21 +681,10 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
         </Text>
         <TouchableOpacity
           style={styles.headerShareBtn}
-          onPress={async () => {
-            const profileUrl = `https://pikt.ag/${username}`;
-            const name = displayName || username;
-            try {
-              await Share.share({
-                message: Platform.OS === 'ios'
-                  ? `${name} (@${username}) on PikTag`
-                  : `${name} (@${username}) on PikTag\n${profileUrl}`,
-                url: Platform.OS === 'ios' ? profileUrl : undefined,
-              });
-            } catch {}
-          }}
+          onPress={() => setMoreMenuVisible(true)}
           activeOpacity={0.6}
         >
-          <Share2 size={22} color={COLORS.gray900} />
+          <MoreHorizontal size={24} color={COLORS.gray900} />
         </TouchableOpacity>
       </View>
 
@@ -797,16 +788,7 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
                 <Text style={styles.tagButtonText}>{t('friendDetail.tagAction')}</Text>
               </TouchableOpacity>
             )}
-            {isFollowing && (
-              <TouchableOpacity
-                style={[styles.closeFriendBtn, isCloseFriend && styles.closeFriendBtnActive]}
-                activeOpacity={0.7}
-                onPress={handleToggleCloseFriend}
-              >
-                <Text style={[styles.closeFriendBtnText, isCloseFriend && styles.closeFriendBtnTextActive]}>
-                  {isCloseFriend ? (t('friendDetail.closeFriendRemove') || '摯友') : (t('friendDetail.closeFriendAdd') || '設為摯友')}
-                </Text>
-              </TouchableOpacity>
+            {/* Close friend moved to header ⋯ menu */
             )}
           </View>
         </View>
@@ -1112,6 +1094,42 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
           </View>
         </View>
       </Modal>
+      {/* More Menu Modal */}
+      <Modal visible={moreMenuVisible} transparent animationType="fade" onRequestClose={() => setMoreMenuVisible(false)}>
+        <TouchableOpacity style={styles.moreOverlay} activeOpacity={1} onPress={() => setMoreMenuVisible(false)}>
+          <View style={[styles.moreSheet, { paddingBottom: insets.bottom + 16 }]}>
+            <TouchableOpacity
+              style={styles.moreItem}
+              onPress={() => { setMoreMenuVisible(false); handleToggleCloseFriend(); }}
+            >
+              <Heart size={20} color={isCloseFriend ? COLORS.piktag600 : COLORS.gray600} fill={isCloseFriend ? COLORS.piktag600 : 'transparent'} />
+              <Text style={[styles.moreItemText, isCloseFriend && { color: COLORS.piktag600 }]}>
+                {isCloseFriend ? (t('friendDetail.closeFriendRemove') || '已設為摯友') : (t('friendDetail.closeFriendAdd') || '設為摯友')}
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.moreItem}
+              onPress={async () => {
+                setMoreMenuVisible(false);
+                const profileUrl = `https://pikt.ag/${username}`;
+                const name = displayName || username;
+                try {
+                  await Share.share({
+                    message: Platform.OS === 'ios' ? `${name} (@${username}) on PikTag` : `${name} (@${username}) on PikTag\n${profileUrl}`,
+                    url: Platform.OS === 'ios' ? profileUrl : undefined,
+                  });
+                } catch {}
+              }}
+            >
+              <Share2 size={20} color={COLORS.gray600} />
+              <Text style={styles.moreItemText}>{t('friendDetail.shareProfile') || '分享個人檔案'}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.moreCancelBtn} onPress={() => setMoreMenuVisible(false)}>
+              <Text style={styles.moreCancelText}>{t('common.cancel') || '取消'}</Text>
+            </TouchableOpacity>
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </View>
   );
 }
@@ -1273,28 +1291,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  closeFriendBtn: {
-    paddingVertical: 12,
-    paddingHorizontal: 14,
-    backgroundColor: COLORS.white,
-    borderWidth: 1.5,
-    borderColor: COLORS.gray200,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  closeFriendBtnActive: {
-    borderColor: COLORS.piktag500,
-    backgroundColor: COLORS.piktag50,
-  },
-  closeFriendBtnText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: COLORS.gray500,
-  },
-  closeFriendBtnTextActive: {
-    color: COLORS.piktag600,
-  },
+  // More menu
+  moreOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-end' },
+  moreSheet: { backgroundColor: COLORS.white, borderTopLeftRadius: 20, borderTopRightRadius: 20, paddingTop: 16, paddingHorizontal: 20 },
+  moreItem: { flexDirection: 'row', alignItems: 'center', gap: 14, paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: COLORS.gray100 },
+  moreItemText: { fontSize: 16, fontWeight: '500', color: COLORS.gray900 },
+  moreCancelBtn: { alignItems: 'center', paddingVertical: 16, marginTop: 4 },
+  moreCancelText: { fontSize: 16, fontWeight: '600', color: COLORS.gray500 },
   tagButtonText: {
     fontSize: 15,
     fontWeight: '600',
