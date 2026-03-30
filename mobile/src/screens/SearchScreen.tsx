@@ -20,6 +20,7 @@ import {
   User,
   Clock,
   MapPin,
+  TrendingUp,
 } from 'lucide-react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Location from 'expo-location';
@@ -98,9 +99,10 @@ type TagCardProps = {
   isHighlighted: boolean;
   onPress: (tag: Tag) => void;
   countSuffix: string;
+  rank?: number; // 1-based rank, top 3 get trending indicator
 };
 
-const TagCard = React.memo(function TagCard({ tag, isHighlighted, onPress, countSuffix }: TagCardProps) {
+const TagCard = React.memo(function TagCard({ tag, isHighlighted, onPress, countSuffix, rank }: TagCardProps) {
   const handlePress = useCallback(() => {
     onPress(tag);
   }, [onPress, tag]);
@@ -126,14 +128,19 @@ const TagCard = React.memo(function TagCard({ tag, isHighlighted, onPress, count
           {tag.name}
         </Text>
       </View>
-      <Text
-        style={[
-          styles.tagCount,
-          isHighlighted && styles.tagCountHighlighted,
-        ]}
-      >
-        {tag.usage_count}{countSuffix}
-      </Text>
+      <View style={styles.tagCountRow}>
+        {rank && rank <= 3 && (
+          <TrendingUp size={12} color={isHighlighted ? COLORS.white : '#059669'} />
+        )}
+        <Text
+          style={[
+            styles.tagCount,
+            isHighlighted && styles.tagCountHighlighted,
+          ]}
+        >
+          {tag.usage_count}{countSuffix}
+        </Text>
+      </View>
     </TouchableOpacity>
   );
 });
@@ -826,6 +833,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
                     isHighlighted={index === 4}
                     onPress={handleTagPress}
                     countSuffix={tagCountSuffix}
+                    rank={index + 1}
                   />
                 ))}
               </View>
@@ -872,6 +880,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
                     isHighlighted={index === 0}
                     onPress={handleTagPress}
                     countSuffix={tagCountSuffix}
+                    rank={index + 1}
                   />
                 ))}
               </View>
@@ -1172,6 +1181,11 @@ const styles = StyleSheet.create({
   },
   tagNameHighlighted: {
     color: COLORS.white,
+  },
+  tagCountRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
   },
   tagCount: {
     fontSize: 11,
