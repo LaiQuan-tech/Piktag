@@ -889,6 +889,31 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
             </View>
           </View>
 
+          {/* Tags Section — navigate to ManageTagsScreen */}
+          <View style={styles.tag_divider} />
+
+          <View style={styles.tag_section}>
+            <Text style={styles.sectionTitle}>{t('manageTags.myTagsTitle')}</Text>
+            {userTags.length > 0 && (
+              <View style={styles.tag_chipsContainer}>
+                {userTags.map((userTag) => (
+                  <View key={userTag.id} style={styles.tag_previewChip}>
+                    <Text style={styles.tag_previewChipText}>
+                      {getTagDisplayName(userTag)}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            )}
+            <TouchableOpacity
+              style={styles.tag_manageButton}
+              onPress={() => navigation.navigate('ManageTags')}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.tag_manageButtonText}>{t('manageTags.headerTitle')}</Text>
+            </TouchableOpacity>
+          </View>
+
           {/* Biolinks Section */}
           <View style={styles.biolinksSection}>
             <Text style={styles.sectionTitle}>{t('editProfile.socialLinksTitle')}</Text>
@@ -1028,31 +1053,6 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
                 </View>
               </View>
             )}
-          </View>
-
-          {/* Tags Section — navigate to ManageTagsScreen */}
-          <View style={styles.tag_divider} />
-
-          <View style={styles.tag_section}>
-            <Text style={styles.sectionTitle}>{t('manageTags.myTagsTitle')}</Text>
-            {userTags.length > 0 && (
-              <View style={styles.tag_chipsContainer}>
-                {userTags.map((userTag) => (
-                  <View key={userTag.id} style={styles.tag_previewChip}>
-                    <Text style={styles.tag_previewChipText}>
-                      {getTagDisplayName(userTag)}
-                    </Text>
-                  </View>
-                ))}
-              </View>
-            )}
-            <TouchableOpacity
-              style={styles.tag_manageButton}
-              onPress={() => navigation.navigate('ManageTags')}
-              activeOpacity={0.7}
-            >
-              <Text style={styles.tag_manageButtonText}>{t('manageTags.headerTitle')}</Text>
-            </TouchableOpacity>
           </View>
 
           {/* Save Button */}
