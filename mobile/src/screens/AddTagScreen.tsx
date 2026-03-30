@@ -533,7 +533,7 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
 
         {/* Scan count */}
         <Text style={styles.qrScanCount}>
-          {'\uD83D\uDCCB'} {t('addTag.scanCount', { count: scanSession?.scan_count ?? 0 })}
+          {t('addTag.scanCount', { count: scanSession?.scan_count ?? 0 })}
         </Text>
 
         {/* Event mode button */}
@@ -552,7 +552,7 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
           activeOpacity={0.7}
         >
           <Text style={styles.outlineButtonText}>
-            {'\u270F\uFE0F'} {t('addTag.editTagSettings')}
+            {t('addTag.editTagSettings')}
           </Text>
         </TouchableOpacity>
       </ScrollView>
