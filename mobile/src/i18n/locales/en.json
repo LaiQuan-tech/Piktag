@@ -337,6 +337,7 @@
     "tagAction": "Tag",
     "closeFriendAdd": "Close Friend",
     "closeFriendRemove": "Close",
+    "shareProfile": "Share",
     "pickTagTitle": "Pick Tags",
     "pickTagSubtitle": "Choose tags that best represent {{name}} to help you remember",
     "pickTagEmpty": "This friend has no public tags yet",

@@ -337,6 +337,7 @@
     "tagAction": "標籤",
     "closeFriendAdd": "設為摯友",
     "closeFriendRemove": "摯友",
+    "shareProfile": "分享",
     "pickTagTitle": "選擇標籤",
     "pickTagSubtitle": "選擇最能代表 {{name}} 的標籤，方便你之後找到這位朋友",
     "pickTagEmpty": "這位朋友還沒有設定公開標籤",
