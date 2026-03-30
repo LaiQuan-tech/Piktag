@@ -25,7 +25,8 @@ type ReviewConnection = {
   met_at: string;
   met_location: string;
   profile: PiktagProfile | null;
-  existingTags: string[];
+  publicTags: string[];   // friend's own public tags (pickable)
+  hiddenTags: string[];   // private connection tags
 };
 
 type Props = { navigation: any; route: any };
@@ -39,6 +40,7 @@ export default function ActivityReviewScreen({ navigation, route }: Props) {
 
   const [connections, setConnections] = useState<ReviewConnection[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [pickedTags, setPickedTags] = useState<Map<string, Set<string>>>(new Map()); // connId → picked tag names
   const [loading, setLoading] = useState(true);
   const [tagInput, setTagInput] = useState('');
   const [addedTags, setAddedTags] = useState<Map<string, string[]>>(new Map());
@@ -124,10 +126,8 @@ export default function ActivityReviewScreen({ navigation, route }: Props) {
             met_at: c.met_at,
             met_location: c.met_location,
             profile: c.connected_user,
-            existingTags: [
-              ...(publicTagMap.get(c.connected_user_id) || []),
-              ...(hiddenTagMap.get(c.id) || []),
-            ],
+            publicTags: publicTagMap.get(c.connected_user_id) || [],
+            hiddenTags: hiddenTagMap.get(c.id) || [],
           })));
         }
       } catch (err) {
@@ -137,7 +137,40 @@ export default function ActivityReviewScreen({ navigation, route }: Props) {
     })();
   }, [user, sessionId, recentMinutes]);
 
-  // Add tag to current connection
+  // Toggle pick a public tag
+  const handleTogglePick = useCallback(async (tagName: string) => {
+    if (!current) return;
+    const connId = current.id;
+    setPickedTags(prev => {
+      const next = new Map(prev);
+      const set = new Set(next.get(connId) || []);
+      if (set.has(tagName)) {
+        set.delete(tagName);
+      } else {
+        set.add(tagName);
+      }
+      next.set(connId, set);
+      return next;
+    });
+
+    // Save to DB: find tag id → upsert connection_tag
+    let { data: tag } = await supabase.from('piktag_tags').select('id').eq('name', tagName).maybeSingle();
+    if (tag) {
+      const isNowPicked = !(pickedTags.get(connId)?.has(tagName));
+      if (isNowPicked) {
+        await supabase.from('piktag_connection_tags').upsert(
+          { connection_id: connId, tag_id: tag.id, is_private: false },
+          { onConflict: 'connection_id,tag_id' }
+        ).catch(() => {});
+      } else {
+        await supabase.from('piktag_connection_tags').delete()
+          .eq('connection_id', connId).eq('tag_id', tag.id).eq('is_private', false)
+          .catch(() => {});
+      }
+    }
+  }, [current, pickedTags]);
+
+  // Add hidden tag to current connection
   const handleAddTag = useCallback(async () => {
     if (!tagInput.trim() || currentIndex >= connections.length) return;
     const conn = connections[currentIndex];
@@ -212,7 +245,7 @@ export default function ActivityReviewScreen({ navigation, route }: Props) {
   // Current connection
   const current = currentIndex < connections.length ? connections[currentIndex] : null;
   const currentAddedTags = current ? (addedTags.get(current.id) || []) : [];
-  const allTags = current ? [...current.existingTags, ...currentAddedTags] : [];
+  const currentPickedSet = current ? (pickedTags.get(current.id) || new Set()) : new Set();
   const isComplete = currentIndex >= connections.length && !loading;
 
   if (loading) {
@@ -303,12 +336,30 @@ export default function ActivityReviewScreen({ navigation, route }: Props) {
               ) : null}
             </View>
 
-            {/* Tags */}
-            {allTags.length > 0 && (
+            {/* Public tags — tap to pick */}
+            {current!.publicTags.length > 0 && (
               <View style={styles.tagChips}>
-                {allTags.map((tag, i) => (
-                  <View key={`${tag}-${i}`} style={styles.tagChip}>
-                    <Text style={styles.tagChipText}>#{tag}</Text>
+                {current!.publicTags.map((tag) => {
+                  const isPicked = currentPickedSet.has(tag);
+                  return (
+                    <Pressable
+                      key={`pub-${tag}`}
+                      style={[styles.tagChip, isPicked && styles.tagChipPicked]}
+                      onPress={() => handleTogglePick(tag)}
+                    >
+                      <Text style={[styles.tagChipText, isPicked && styles.tagChipTextPicked]}>#{tag}</Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            )}
+
+            {/* Hidden tags already added */}
+            {(current!.hiddenTags.length > 0 || currentAddedTags.length > 0) && (
+              <View style={[styles.tagChips, { marginTop: 6 }]}>
+                {[...current!.hiddenTags, ...currentAddedTags].map((tag, i) => (
+                  <View key={`hid-${tag}-${i}`} style={styles.hiddenTagChip}>
+                    <Text style={styles.hiddenTagChipText}>#{tag}</Text>
                   </View>
                 ))}
               </View>
@@ -366,8 +417,12 @@ const styles = StyleSheet.create({
   metItem: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   metText: { fontSize: 13, color: COLORS.gray500 },
   tagChips: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, justifyContent: 'center' },
-  tagChip: { backgroundColor: COLORS.piktag50, borderRadius: 12, paddingVertical: 4, paddingHorizontal: 10, borderWidth: 1, borderColor: COLORS.piktag400 },
-  tagChipText: { fontSize: 13, fontWeight: '500', color: COLORS.piktag600 },
+  tagChip: { backgroundColor: COLORS.gray100, borderRadius: 12, paddingVertical: 6, paddingHorizontal: 12, borderWidth: 1.5, borderColor: COLORS.gray200 },
+  tagChipPicked: { backgroundColor: COLORS.piktag50, borderColor: COLORS.piktag500 },
+  tagChipText: { fontSize: 13, fontWeight: '500', color: COLORS.gray600 },
+  tagChipTextPicked: { color: COLORS.piktag600, fontWeight: '700' },
+  hiddenTagChip: { backgroundColor: COLORS.gray50, borderRadius: 12, paddingVertical: 4, paddingHorizontal: 10, borderWidth: 1, borderColor: COLORS.gray200, borderStyle: 'dashed' as any },
+  hiddenTagChipText: { fontSize: 12, color: COLORS.gray400, fontStyle: 'italic' as any },
   // Input
   inputBar: { paddingHorizontal: 16, paddingTop: 8, borderTopWidth: 1, borderTopColor: COLORS.gray100 },
   inputRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.gray100, borderRadius: 20, paddingLeft: 14, paddingRight: 4, height: 44, gap: 8 },
