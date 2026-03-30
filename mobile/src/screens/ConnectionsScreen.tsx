@@ -221,12 +221,34 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
         return;
       }
 
-      // Merge tags from nested select
+      // Fetch public tags for all connected users
+      const connUserIds = connectionsData.map((c: any) => c.connected_user_id);
+      const { data: publicTagsData } = await supabase
+        .from('piktag_user_tags')
+        .select('user_id, tag:piktag_tags!tag_id(name)')
+        .in('user_id', connUserIds)
+        .eq('is_private', false);
+
+      const publicTagMap = new Map<string, string[]>();
+      if (publicTagsData) {
+        for (const ut of publicTagsData) {
+          const name = (ut as any).tag?.name;
+          if (!name) continue;
+          const arr = publicTagMap.get(ut.user_id) || [];
+          if (!arr.includes(`#${name}`)) arr.push(`#${name}`);
+          publicTagMap.set(ut.user_id, arr);
+        }
+      }
+
+      // Merge: public tags + picked tags
       const merged: ConnectionWithTags[] = connectionsData.map((conn: any) => ({
         ...conn,
-        tags: (conn.connection_tags || [])
-          .map((ct: any) => ct.tag?.name ? `#${ct.tag.name}` : '')
-          .filter(Boolean),
+        tags: [
+          ...(publicTagMap.get(conn.connected_user_id) || []),
+          ...(conn.connection_tags || [])
+            .map((ct: any) => ct.tag?.name ? `#${ct.tag.name}` : '')
+            .filter(Boolean),
+        ].filter((v, i, a) => a.indexOf(v) === i), // deduplicate
       }));
       setCache(CACHE_KEYS.CONNECTIONS, merged);
       setConnections(merged);
@@ -976,16 +998,15 @@ const styles = StyleSheet.create({
   },
   tagsRow: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginTop: 6,
-    gap: 4,
-    columnGap: 12,
-    rowGap: 4,
+    marginTop: 4,
+    gap: 6,
+    overflow: 'hidden',
+    maxHeight: 20,
   },
   tag: {
-    fontSize: 14,
-    color: COLORS.gray500,
-    lineHeight: 20,
+    fontSize: 13,
+    color: COLORS.gray400,
+    lineHeight: 18,
   },
   // On This Day card
   onThisDayCard: {
