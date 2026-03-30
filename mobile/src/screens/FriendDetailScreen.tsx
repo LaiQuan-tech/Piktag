@@ -643,6 +643,23 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
     }
   };
 
+  // Connection strength (must be before any early return)
+  const metDate = connection?.met_at || '';
+  const strengthScore = useMemo(() => {
+    const daysSinceMet = metDate ? Math.floor((Date.now() - new Date(metDate).getTime()) / 86400000) : 0;
+    return calculateStrength({
+      mutualTagCount: mutualTags,
+      daysSinceMet,
+      hasBirthday: !!birthday,
+      hasAnniversary: !!anniversary,
+      hasContractExpiry: !!contractExpiry,
+      isCloseFriend,
+      hiddenTagCount: hiddenTags.length,
+      pickedTagCount: tags.filter(t => t.isPicked).length,
+    });
+  }, [metDate, mutualTags, birthday, anniversary, contractExpiry, isCloseFriend, hiddenTags, tags]);
+  const strengthInfo = getStrengthLabel(strengthScore);
+
   if (loading) {
     return (
       <View style={styles.container}>
@@ -669,24 +686,7 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
   const username = profile?.username || '';
   const verified = profile?.is_verified || false;
   const avatarUrl = profile?.avatar_url || null;
-  const metDate = connection?.met_at || '';
   const metLocation = connection?.met_location || '';
-
-  // Connection strength
-  const strengthScore = useMemo(() => {
-    const daysSinceMet = metDate ? Math.floor((Date.now() - new Date(metDate).getTime()) / 86400000) : 0;
-    return calculateStrength({
-      mutualTagCount: mutualTags,
-      daysSinceMet,
-      hasBirthday: !!birthday,
-      hasAnniversary: !!anniversary,
-      hasContractExpiry: !!contractExpiry,
-      isCloseFriend,
-      hiddenTagCount: hiddenTags.length,
-      pickedTagCount: tags.filter(t => t.isPicked).length,
-    });
-  }, [metDate, mutualTags, birthday, anniversary, contractExpiry, isCloseFriend, hiddenTags, tags]);
-  const strengthInfo = getStrengthLabel(strengthScore);
 
   return (
     <View style={styles.container}>
