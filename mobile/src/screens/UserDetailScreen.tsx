@@ -22,6 +22,8 @@ import {
   Link as LinkIcon,
   ExternalLink,
   Share2,
+  MoreHorizontal,
+  Heart,
 } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { COLORS } from '../constants/theme';
@@ -58,6 +60,7 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
   const [unfollowModalVisible, setUnfollowModalVisible] = useState(false);
   const [mutualTagModalVisible, setMutualTagModalVisible] = useState(false);
   const [isCloseFriend, setIsCloseFriend] = useState(false);
+  const [moreMenuVisible, setMoreMenuVisible] = useState(false);
   const [similarUsers, setSimilarUsers] = useState<PiktagProfile[]>([]);
 
   // Pick Tag Modal
@@ -505,21 +508,11 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
         </TouchableOpacity>
         <Text style={styles.headerUsername}>@{username}</Text>
         <TouchableOpacity
-          style={styles.headerShareBtn}
-          onPress={async () => {
-            const profileUrl = `https://pikt.ag/${username}`;
-            try {
-              await Share.share({
-                message: Platform.OS === 'ios'
-                  ? `${displayName} (@${username}) on PikTag`
-                  : `${displayName} (@${username}) on PikTag\n${profileUrl}`,
-                url: Platform.OS === 'ios' ? profileUrl : undefined,
-              });
-            } catch {}
-          }}
+          style={styles.headerMoreBtn}
+          onPress={() => setMoreMenuVisible(true)}
           activeOpacity={0.6}
         >
-          <Share2 size={22} color={COLORS.gray900} />
+          <MoreHorizontal size={24} color={COLORS.gray900} />
         </TouchableOpacity>
       </View>
 
@@ -637,17 +630,6 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
                 onPress={openPickTagModal}
               >
                 <Text style={styles.tagButtonText}>{t('userDetail.tagAction')}</Text>
-              </TouchableOpacity>
-            )}
-            {isFollowing && (
-              <TouchableOpacity
-                style={[styles.closeFriendBtn, isCloseFriend && styles.closeFriendBtnActive]}
-                activeOpacity={0.7}
-                onPress={handleToggleCloseFriend}
-              >
-                <Text style={[styles.closeFriendBtnText, isCloseFriend && styles.closeFriendBtnTextActive]}>
-                  {isCloseFriend ? (t('userDetail.closeFriendRemove') || '摯友') : (t('userDetail.closeFriendAdd') || '設為摯友')}
-                </Text>
               </TouchableOpacity>
             )}
           </View>
@@ -855,6 +837,46 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
           </View>
         </View>
       </Modal>
+      {/* More Menu Modal */}
+      <Modal visible={moreMenuVisible} transparent animationType="fade" onRequestClose={() => setMoreMenuVisible(false)}>
+        <TouchableOpacity style={styles.moreOverlay} activeOpacity={1} onPress={() => setMoreMenuVisible(false)}>
+          <View style={[styles.moreSheet, { paddingBottom: insets.bottom + 16 }]}>
+            <TouchableOpacity
+              style={styles.moreItem}
+              onPress={() => {
+                setMoreMenuVisible(false);
+                handleToggleCloseFriend();
+              }}
+            >
+              <Heart size={20} color={isCloseFriend ? COLORS.piktag600 : COLORS.gray600} fill={isCloseFriend ? COLORS.piktag600 : 'transparent'} />
+              <Text style={[styles.moreItemText, isCloseFriend && { color: COLORS.piktag600 }]}>
+                {isCloseFriend ? (t('userDetail.closeFriendRemove') || '已設為摯友') : (t('userDetail.closeFriendAdd') || '設為摯友')}
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.moreItem}
+              onPress={async () => {
+                setMoreMenuVisible(false);
+                const profileUrl = `https://pikt.ag/${username}`;
+                try {
+                  await Share.share({
+                    message: Platform.OS === 'ios'
+                      ? `${displayName} (@${username}) on PikTag`
+                      : `${displayName} (@${username}) on PikTag\n${profileUrl}`,
+                    url: Platform.OS === 'ios' ? profileUrl : undefined,
+                  });
+                } catch {}
+              }}
+            >
+              <Share2 size={20} color={COLORS.gray600} />
+              <Text style={styles.moreItemText}>{t('userDetail.shareProfile') || '分享個人檔案'}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.moreCancelBtn} onPress={() => setMoreMenuVisible(false)}>
+              <Text style={styles.moreCancelText}>{t('common.cancel') || '取消'}</Text>
+            </TouchableOpacity>
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </View>
   );
 }
@@ -885,9 +907,6 @@ const styles = StyleSheet.create({
   },
   headerSpacer: {
     width: 32,
-  },
-  headerShareBtn: {
-    padding: 4,
   },
   loadingContainer: {
     flex: 1,
@@ -1153,26 +1172,42 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  closeFriendBtn: {
-    paddingVertical: 12,
-    paddingHorizontal: 14,
+  headerMoreBtn: { padding: 4 },
+  // More menu (bottom sheet style)
+  moreOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    justifyContent: 'flex-end',
+  },
+  moreSheet: {
     backgroundColor: COLORS.white,
-    borderWidth: 1.5,
-    borderColor: COLORS.gray200,
-    borderRadius: 12,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingTop: 16,
+    paddingHorizontal: 20,
+  },
+  moreItem: {
+    flexDirection: 'row',
     alignItems: 'center',
+    gap: 14,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.gray100,
   },
-  closeFriendBtnActive: {
-    borderColor: COLORS.piktag500,
-    backgroundColor: COLORS.piktag50,
+  moreItemText: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: COLORS.gray900,
   },
-  closeFriendBtnText: {
-    fontSize: 13,
+  moreCancelBtn: {
+    alignItems: 'center',
+    paddingVertical: 16,
+    marginTop: 4,
+  },
+  moreCancelText: {
+    fontSize: 16,
     fontWeight: '600',
     color: COLORS.gray500,
-  },
-  closeFriendBtnTextActive: {
-    color: COLORS.piktag600,
   },
   // Similar users section
   similarSection: {
