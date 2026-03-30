@@ -359,7 +359,7 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
             const checks = [
               { done: !!profile?.avatar_url, label: t('profile.completenessAvatar') || '頭像' },
               { done: !!profile?.bio, label: t('profile.completenessBio') || 'Bio' },
-              { done: tags.length > 0, label: t('profile.completenessTags') || '標籤' },
+              { done: userTags.length > 0, label: t('profile.completenessTags') || '標籤' },
               { done: activeBiolinks.length > 0, label: t('profile.completenessLinks') || '連結' },
             ];
             const done = checks.filter(c => c.done).length;
