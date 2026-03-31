@@ -314,7 +314,7 @@ export default function SocialStatsScreen({ navigation }: SocialStatsScreenProps
               label="使用標籤數"
               value={stats.totalTags}
               subValue={`平均 ${stats.averageTagsPerConnection}/人`}
-              bgColor="#fef9e8"
+              bgColor="#e6fafb"
             />
             <StatCard
               icon={<MessageCircle size={20} color="#22c55e" />}
