@@ -131,7 +131,7 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
           <View style={[styles.passwordContainer, { borderColor: colors.border, backgroundColor: colors.card }]}>
             <TextInput
               ref={passwordRef}
-              style={[styles.passwordInput, { color: colors.text }]}
+              style={[styles.passwordInput, { color: '#000000' }]}
               placeholder={t('auth.login.passwordPlaceholder')}
               placeholderTextColor={colors.textTertiary}
               value={password}
