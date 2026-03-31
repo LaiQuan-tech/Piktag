@@ -739,8 +739,8 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
           {/* Bio (max 3 lines) */}
           {profile?.bio ? <Text style={styles.bio} numberOfLines={3}>{profile.bio}</Text> : null}
 
-          {/* Tags — sorted: picked first, then by pick count, max 2 rows */}
-          {tags.length > 0 && (
+          {/* Tags — user tags + event tags combined */}
+          {(tags.length > 0 || scanEventTags.length > 0) && (
             <View style={styles.tagsWrap}>
               {tags.map((tag) => (
                 <TouchableOpacity
@@ -752,6 +752,16 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
                   <Text style={[styles.tagChipText, tag.isPicked && styles.tagChipTextPicked]}>
                     #{tag.name}
                   </Text>
+                </TouchableOpacity>
+              ))}
+              {scanEventTags.map((etag, i) => (
+                <TouchableOpacity
+                  key={`event-${i}`}
+                  style={styles.tagChip}
+                  activeOpacity={0.6}
+                  onPress={() => navigation.navigate('TagDetail', { tagName: etag, initialTab: 'explore' })}
+                >
+                  <Text style={styles.tagChipText}>#{etag}</Text>
                 </TouchableOpacity>
               ))}
             </View>
@@ -863,25 +873,7 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
 
         {/* ===== SECTION 4: CRM & Management (below the fold) ===== */}
 
-        {/* Event Tags (met date/location removed — handled via anniversary notifications) */}
-        {scanEventTags.length > 0 && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>{t('friendDetail.eventTagsLabel')}</Text>
-            <View style={styles.recordCard}>
-              <View style={styles.recordRow}>
-                <Tag size={16} color={COLORS.gray400} />
-                <View style={{ flex: 1, flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
-                  {scanEventTags.map((etag, i) => (
-                    <TouchableOpacity key={i} style={styles.tagChip} activeOpacity={0.6}
-                      onPress={() => navigation.navigate('TagDetail', { tagName: etag, initialTab: 'explore' })}>
-                      <Text style={styles.tagChipText}>#{etag}</Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              </View>
-            </View>
-          </View>
-        )}
+        {/* Event tags moved to tags section above bio */}
 
         {/* Birthday */}
         {connectionId && (
