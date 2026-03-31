@@ -1,13 +1,22 @@
 // PikTag Theme Constants - matching reference UI exactly
 export const COLORS = {
-  // PikTag brand colors (golden/yellow)
-  piktag50: '#fef9e8',
-  piktag100: '#fdf2c6',
-  piktag200: '#fce890',
-  piktag300: '#fadd51',
-  piktag400: '#f8cf22',
-  piktag500: '#f5c518',
-  piktag600: '#d9a50b',
+  // PikTag brand colors (teal/cyan)
+  piktag50: '#e6fafb',
+  piktag100: '#b3f0f3',
+  piktag200: '#80e6eb',
+  piktag300: '#4ddce3',
+  piktag400: '#1ad2db',
+  piktag500: '#0fcdd6',
+  piktag600: '#0ab3bb',
+
+  // PikTag accent colors (yellow)
+  accent50: '#fefce8',
+  accent100: '#fdf8c6',
+  accent200: '#fcf290',
+  accent300: '#faec51',
+  accent400: '#f8e537',
+  accent500: '#f8e537',
+  accent600: '#d9c50b',
 
   // Grays
   white: '#FFFFFF',

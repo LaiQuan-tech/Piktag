@@ -310,7 +310,7 @@ export default function SocialStatsScreen({ navigation }: SocialStatsScreenProps
               bgColor="#eff6ff"
             />
             <StatCard
-              icon={<Tag size={20} color="#f5c518" />}
+              icon={<Tag size={20} color="#0fcdd6" />}
               label="使用標籤數"
               value={stats.totalTags}
               subValue={`平均 ${stats.averageTagsPerConnection}/人`}
