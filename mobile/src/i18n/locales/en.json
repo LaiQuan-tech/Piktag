@@ -189,6 +189,7 @@
     "locationLabel": "Location",
     "locationPlaceholder": "Enter event location...",
     "currentLocation": "Current Location",
+    "selectLocation": "Select Location",
     "manualInput": "Manual Input",
     "locationPermDenied": "Location permission denied",
     "customTagsLabel": "Custom Tags",

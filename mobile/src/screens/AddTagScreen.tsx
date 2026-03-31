@@ -546,7 +546,7 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
               ) : (
                 <Navigation size={14} color={COLORS.gray600} />
               )}
-              <Text style={styles.quickDateText}>{t('addTag.currentLocation') || '目前位置'}</Text>
+              <Text style={styles.quickDateText}>{t('addTag.selectLocation') || '選擇地點'}</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.quickDateBtn, showLocationInput && styles.quickDateBtnActive]}
