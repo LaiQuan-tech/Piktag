@@ -142,10 +142,15 @@ export default function ActivityReviewScreen({ navigation, route }: Props) {
     const curr = currentIndex < connections.length ? connections[currentIndex] : null;
     if (!curr) return;
     const connId = curr.id;
+
+    // Determine toggle direction BEFORE updating state
+    const wasAlreadyPicked = pickedTags.get(connId)?.has(tagName) || false;
+    const isNowPicked = !wasAlreadyPicked;
+
     setPickedTags(prev => {
       const next = new Map(prev);
       const set = new Set(next.get(connId) || []);
-      if (set.has(tagName)) {
+      if (wasAlreadyPicked) {
         set.delete(tagName);
       } else {
         set.add(tagName);
@@ -154,10 +159,9 @@ export default function ActivityReviewScreen({ navigation, route }: Props) {
       return next;
     });
 
-    // Save to DB: find tag id → upsert connection_tag
+    // Save to DB: find tag id → upsert/delete connection_tag
     let { data: tag } = await supabase.from('piktag_tags').select('id').eq('name', tagName).maybeSingle();
     if (tag) {
-      const isNowPicked = !(pickedTags.get(connId)?.has(tagName));
       if (isNowPicked) {
         await supabase.from('piktag_connection_tags').upsert(
           { connection_id: connId, tag_id: tag.id, is_private: false },
