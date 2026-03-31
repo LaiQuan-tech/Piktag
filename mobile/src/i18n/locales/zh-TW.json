@@ -216,7 +216,7 @@
     "careerSubtitle": "職業 / 產業",
     "presetsModalTitle": "常用模板",
     "noPresets": "尚無常用模板",
-    "applyPreset": "套用",
+    "applyPreset": "使用",
     "shareMessage": "PikTag 社交活動\n日期：{{eventDate}}\n地點：{{eventLocation}}\n標籤：{{tags}}\n\n掃描 QR Code 加入連線！",
     "defaultDisplayName": "使用者",
     "presetNamePrompt": "請輸入模板名稱",

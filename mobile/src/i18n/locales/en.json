@@ -216,7 +216,7 @@
     "careerSubtitle": "Career / Industry",
     "presetsModalTitle": "Templates",
     "noPresets": "No templates yet",
-    "applyPreset": "Apply",
+    "applyPreset": "Use",
     "shareMessage": "PikTag Social Event\nDate: {{eventDate}}\nLocation: {{eventLocation}}\nTags: {{tags}}\n\nScan QR Code to connect!",
     "defaultDisplayName": "User",
     "presetNamePrompt": "Enter a name for this preset",

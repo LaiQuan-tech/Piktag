@@ -215,6 +215,9 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
     } catch {
       // ignore
     }
+
+    // Directly generate QR — "使用" not just "套用"
+    setTimeout(() => handleGenerateQr(), 100);
   };
 
   // ─── Delete preset ───
