@@ -206,6 +206,15 @@ export default function ScanResultScreen({ navigation, route }: ScanResultScreen
       }
 
       // Insert private connection tags (from QR event tags — only scanner sees)
+      // Also add event location and date as hidden tags
+      const metaTagNames: string[] = [];
+      if (eventLocation?.trim()) metaTagNames.push(eventLocation.trim());
+      if (eventDate?.trim()) metaTagNames.push(eventDate.trim());
+      for (const metaName of metaTagNames) {
+        const id = await findOrCreateTag(metaName);
+        if (id && !privateTagIds.includes(id)) privateTagIds.push(id);
+      }
+
       if (privateTagIds.length > 0) {
         await supabase.from('piktag_connection_tags').insert(
           privateTagIds.map(tagId => ({ connection_id: connectionData.id, tag_id: tagId, is_private: true }))
