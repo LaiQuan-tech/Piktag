@@ -62,7 +62,7 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
   const [mode, setMode] = useState<'setup' | 'qr' | 'event'>('setup');
 
   // Setup form state
-  const [eventDate, setEventDate] = useState(formatDate(new Date()));
+  const [eventDate, setEventDate] = useState('');
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [selectedDateObj, setSelectedDateObj] = useState(new Date());
   const [locatingGps, setLocatingGps] = useState(false);
