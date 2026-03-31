@@ -1,0 +1,30 @@
+{
+  "name": "PikTag Dev",
+  "image": "mcr.microsoft.com/devcontainers/javascript-node:22",
+  "features": {
+    "ghcr.io/devcontainers/features/github-cli:1": {}
+  },
+  "forwardPorts": [3000, 8081, 19000, 19006, 54321],
+  "portsAttributes": {
+    "3000": { "label": "Next.js Web", "onAutoForward": "openBrowser" },
+    "8081": { "label": "Metro Bundler" },
+    "19000": { "label": "Expo DevTools" },
+    "19006": { "label": "Expo Web" },
+    "54321": { "label": "Supabase Studio" }
+  },
+  "postCreateCommand": "npm install && cd mobile && npm install",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "bradlc.vscode-tailwindcss",
+        "ms-vscode.vscode-typescript-next"
+      ],
+      "settings": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
+        "editor.formatOnSave": true
+      }
+    }
+  }
+}
