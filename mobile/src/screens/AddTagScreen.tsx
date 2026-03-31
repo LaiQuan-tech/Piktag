@@ -69,6 +69,8 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
   const [recentLocations, setRecentLocations] = useState<string[]>([]);
   const [showLocationInput, setShowLocationInput] = useState(false);
   const [eventLocation, setEventLocation] = useState('');
+  const [nearbyPlaces, setNearbyPlaces] = useState<{ name: string; address: string }[]>([]);
+  const [loadingNearby, setLoadingNearby] = useState(false);
   const [eventTags, setEventTags] = useState<string[]>([]);
   const eventTagSet = useMemo(() => new Set(eventTags), [eventTags]);
   const [tagInput, setTagInput] = useState('');
@@ -124,31 +126,86 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
     }
   }, [user, loadPresets]);
 
+  const saveToRecent = (name: string) => {
+    setRecentLocations(prev => {
+      const next = [name, ...prev.filter(l => l !== name)].slice(0, 5);
+      AsyncStorage.setItem('piktag_recent_locations', JSON.stringify(next));
+      return next;
+    });
+  };
+
   const handleGetCurrentLocation = async () => {
     setLocatingGps(true);
+    setLoadingNearby(true);
+    setNearbyPlaces([]);
     try {
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== 'granted') {
         Alert.alert(t('addTag.locationPermDenied') || '位置權限被拒');
         setLocatingGps(false);
+        setLoadingNearby(false);
         return;
       }
       const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
-      const [place] = await Location.reverseGeocodeAsync({ latitude: loc.coords.latitude, longitude: loc.coords.longitude });
+      const { latitude, longitude } = loc.coords;
+
+      // Set current location name via Expo
+      const [place] = await Location.reverseGeocodeAsync({ latitude, longitude });
       if (place) {
         const name = [place.name, place.district, place.city].filter(Boolean).join(', ');
         setEventLocation(name);
-        // Save to recent
-        setRecentLocations(prev => {
-          const next = [name, ...prev.filter(l => l !== name)].slice(0, 5);
-          AsyncStorage.setItem('piktag_recent_locations', JSON.stringify(next));
-          return next;
+        saveToRecent(name);
+      }
+
+      // Fetch nearby places from OpenStreetMap Nominatim
+      try {
+        const radius = 0.003; // ~300m
+        const url = `https://nominatim.openstreetmap.org/search?format=json&limit=10&bounded=1&viewbox=${longitude - radius},${latitude + radius},${longitude + radius},${latitude - radius}&addressdetails=1&q=*`;
+        const res = await fetch(url, {
+          headers: { 'User-Agent': 'PikTag/1.0 (ag.pikt.app)', 'Accept-Language': 'zh-TW,zh,en' },
         });
+        const data = await res.json();
+        if (Array.isArray(data) && data.length > 0) {
+          const places = data
+            .filter((p: any) => p.display_name)
+            .map((p: any) => ({
+              name: p.name || p.display_name.split(',')[0],
+              address: p.display_name.split(',').slice(0, 3).join(', '),
+            }))
+            .filter((p: any) => p.name);
+          setNearbyPlaces(places);
+        }
+      } catch {
+        // Fallback: use Expo reverse geocode with offset points for nearby
+        const offsets = [
+          { lat: 0.001, lng: 0 }, { lat: -0.001, lng: 0 },
+          { lat: 0, lng: 0.001 }, { lat: 0, lng: -0.001 },
+          { lat: 0.0015, lng: 0.0015 }, { lat: -0.0015, lng: -0.0015 },
+        ];
+        const fallbackPlaces: { name: string; address: string }[] = [];
+        const seen = new Set<string>();
+        for (const off of offsets) {
+          try {
+            const [p] = await Location.reverseGeocodeAsync({
+              latitude: latitude + off.lat,
+              longitude: longitude + off.lng,
+            });
+            if (p?.name && !seen.has(p.name)) {
+              seen.add(p.name);
+              fallbackPlaces.push({
+                name: p.name,
+                address: [p.street, p.district, p.city].filter(Boolean).join(', '),
+              });
+            }
+          } catch {}
+        }
+        setNearbyPlaces(fallbackPlaces);
       }
     } catch (err) {
       console.warn('Location error:', err);
     }
     setLocatingGps(false);
+    setLoadingNearby(false);
   };
 
   // ─── Add tag ───
@@ -497,6 +554,38 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
           {eventLocation ? (
             <Text style={styles.selectedDateText}>{eventLocation}</Text>
           ) : null}
+
+          {/* Nearby places list */}
+          {loadingNearby && (
+            <View style={{ paddingVertical: 12, alignItems: 'center' }}>
+              <ActivityIndicator size="small" color={COLORS.piktag500} />
+              <Text style={{ fontSize: 13, color: COLORS.gray400, marginTop: 6 }}>搜尋附近地點...</Text>
+            </View>
+          )}
+          {!loadingNearby && nearbyPlaces.length > 0 && (
+            <View style={{ marginTop: 8 }}>
+              <Text style={{ fontSize: 13, color: COLORS.gray500, marginBottom: 6 }}>附近地點</Text>
+              {nearbyPlaces.map((place, i) => (
+                <TouchableOpacity
+                  key={`nearby-${i}`}
+                  style={{
+                    paddingVertical: 10, paddingHorizontal: 12,
+                    borderBottomWidth: i < nearbyPlaces.length - 1 ? 1 : 0,
+                    borderBottomColor: COLORS.gray100,
+                  }}
+                  onPress={() => {
+                    setEventLocation(place.name);
+                    saveToRecent(place.name);
+                    setNearbyPlaces([]);
+                  }}
+                  activeOpacity={0.6}
+                >
+                  <Text style={{ fontSize: 15, fontWeight: '600', color: COLORS.gray900 }}>{place.name}</Text>
+                  <Text style={{ fontSize: 12, color: COLORS.gray400, marginTop: 2 }} numberOfLines={1}>{place.address}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
 
           {/* Manual input (expandable) */}
           {showLocationInput && (
