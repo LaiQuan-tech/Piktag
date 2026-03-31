@@ -863,45 +863,22 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
 
         {/* ===== SECTION 4: CRM & Management (below the fold) ===== */}
 
-        {/* Met Record Section */}
-        {(metDate || metLocation || scanEventTags.length > 0) && (
+        {/* Event Tags (met date/location removed — handled via anniversary notifications) */}
+        {scanEventTags.length > 0 && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>{t('friendDetail.metRecordTitle')}</Text>
+            <Text style={styles.sectionTitle}>{t('friendDetail.eventTagsLabel')}</Text>
             <View style={styles.recordCard}>
-              {metDate ? (
-                <>
-                  <View style={styles.recordRow}>
-                    <Calendar size={16} color={COLORS.gray400} />
-                    <Text style={styles.recordLabel}>{t('friendDetail.metDateLabel')}</Text>
-                    <Text style={styles.recordValue}>{metDate}</Text>
-                  </View>
-                  {(metLocation || scanEventTags.length > 0) && <View style={styles.recordDivider} />}
-                </>
-              ) : null}
-              {metLocation ? (
-                <>
-                  <View style={styles.recordRow}>
-                    <MapPin size={16} color={COLORS.gray400} />
-                    <Text style={styles.recordLabel}>{t('friendDetail.metLocationLabel')}</Text>
-                    <Text style={styles.recordValue}>{metLocation}</Text>
-                  </View>
-                  {scanEventTags.length > 0 && <View style={styles.recordDivider} />}
-                </>
-              ) : null}
-              {scanEventTags.length > 0 && (
-                <View style={styles.recordRow}>
-                  <Tag size={16} color={COLORS.gray400} />
-                  <Text style={styles.recordLabel}>{t('friendDetail.eventTagsLabel')}</Text>
-                  <View style={{ flex: 1, flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
-                    {scanEventTags.map((etag, i) => (
-                      <TouchableOpacity key={i} style={styles.tagChip} activeOpacity={0.6}
-                        onPress={() => navigation.navigate('TagDetail', { tagName: etag, initialTab: 'explore' })}>
-                        <Text style={styles.tagChipText}>#{etag}</Text>
-                      </TouchableOpacity>
-                    ))}
-                  </View>
+              <View style={styles.recordRow}>
+                <Tag size={16} color={COLORS.gray400} />
+                <View style={{ flex: 1, flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
+                  {scanEventTags.map((etag, i) => (
+                    <TouchableOpacity key={i} style={styles.tagChip} activeOpacity={0.6}
+                      onPress={() => navigation.navigate('TagDetail', { tagName: etag, initialTab: 'explore' })}>
+                      <Text style={styles.tagChipText}>#{etag}</Text>
+                    </TouchableOpacity>
+                  ))}
                 </View>
-              )}
+              </View>
             </View>
           </View>
         )}
