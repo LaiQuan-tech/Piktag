@@ -307,6 +307,12 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
         { label: t('settings.termsOfService') || '服務條款', onPress: () => navigation.navigate('TermsOfService') },
       ],
     },
+    {
+      title: t('settings.groupTools') || 'Tools',
+      items: [
+        { label: t('settings.upscaleImage') || 'AI Image Upscaler', onPress: () => navigation.navigate('UpscaleImage') },
+      ],
+    },
   ];
 
   if (loadingProfile) {

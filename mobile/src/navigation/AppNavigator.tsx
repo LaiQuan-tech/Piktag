@@ -40,6 +40,7 @@ import ManageTagsScreen from '../screens/ManageTagsScreen';
 import PrivacyPolicyScreen from '../screens/legal/PrivacyPolicyScreen';
 import TermsOfServiceScreen from '../screens/legal/TermsOfServiceScreen';
 import ActivityReviewScreen from '../screens/ActivityReviewScreen';
+import UpscaleImageScreen from '../screens/UpscaleImageScreen';
 
 // Stack Navigators
 const AuthStack = createNativeStackNavigator();
@@ -114,6 +115,7 @@ function ProfileStackNavigator() {
       <ProfileStack.Screen name="UserDetail" component={UserDetailScreen} />
       <ProfileStack.Screen name="PrivacyPolicy" component={PrivacyPolicyScreen} />
       <ProfileStack.Screen name="TermsOfService" component={TermsOfServiceScreen} />
+      <ProfileStack.Screen name="UpscaleImage" component={UpscaleImageScreen} />
     </ProfileStack.Navigator>
   );
 }
