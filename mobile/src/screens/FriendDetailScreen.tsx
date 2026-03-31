@@ -1333,7 +1333,7 @@ const styles = StyleSheet.create({
   followButtonTextDefault: {
     fontSize: 15,
     fontWeight: '700',
-    color: COLORS.gray900,
+    color: '#FFFFFF',
   },
   followButtonTextFollowing: {
     fontSize: 15,
@@ -1381,7 +1381,7 @@ const styles = StyleSheet.create({
   primaryButtonText: {
     fontSize: 15,
     fontWeight: '700',
-    color: COLORS.gray900,
+    color: '#FFFFFF',
   },
   // outlineButton kept below for other uses
   outlineButton: {

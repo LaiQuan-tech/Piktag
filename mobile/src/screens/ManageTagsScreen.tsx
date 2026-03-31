@@ -543,5 +543,5 @@ const styles = StyleSheet.create({
   charCount: { fontSize: 12, color: COLORS.gray400 },
   addBtn: { backgroundColor: COLORS.piktag500, borderRadius: 20, paddingVertical: 8, paddingHorizontal: 16 },
   addBtnDisabled: { opacity: 0.4 },
-  addBtnText: { fontSize: 14, fontWeight: '700', color: COLORS.gray900 },
+  addBtnText: { fontSize: 14, fontWeight: '700', color: '#FFFFFF' },
 });

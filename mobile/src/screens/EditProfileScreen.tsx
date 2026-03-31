@@ -1374,7 +1374,7 @@ const styles = StyleSheet.create({
   saveButtonText: {
     fontSize: 17,
     fontWeight: '700',
-    color: COLORS.gray900,
+    color: '#FFFFFF',
   },
   // Modal styles
   modalOverlay: {
@@ -1505,7 +1505,7 @@ const styles = StyleSheet.create({
   tag_manageButtonText: {
     fontSize: 15,
     fontWeight: '700',
-    color: COLORS.gray900,
+    color: '#FFFFFF',
   },
   tag_myTagChip: {
     flexDirection: 'row',
@@ -1576,7 +1576,7 @@ const styles = StyleSheet.create({
   tag_addButtonText: {
     fontSize: 16,
     fontWeight: '700',
-    color: COLORS.gray900,
+    color: '#FFFFFF',
   },
   tag_popularTagChip: {
     borderWidth: 1,

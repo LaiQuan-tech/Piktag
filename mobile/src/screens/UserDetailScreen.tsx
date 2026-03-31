@@ -1098,7 +1098,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   followButtonTextDefault: {
-    color: COLORS.gray900,
+    color: '#FFFFFF',
   },
   followButtonTextFollowing: {
     color: COLORS.gray700,
