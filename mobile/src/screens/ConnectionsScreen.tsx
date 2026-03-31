@@ -191,7 +191,7 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
           id, user_id, connected_user_id, nickname, created_at,
           met_at, birthday,
           connected_user:piktag_profiles!connected_user_id(
-            id, full_name, username, avatar_url, is_verified, latitude, longitude
+            id, full_name, username, avatar_url, is_verified, latitude, longitude, birthday
           ),
           connection_tags:piktag_connection_tags(
             tag:piktag_tags!tag_id(name)
@@ -260,11 +260,31 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
       const mmdd = `${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
       const reminderResults: any[] = [];
       for (const c of connectionsData) {
-        if (c.birthday && c.birthday.slice(5) === mmdd) {
+        // Check connection-level birthday OR profile-level birthday
+        const connBday = c.birthday;
+        const profileBday = (c.connected_user as any)?.birthday;
+        const bday = connBday || profileBday;
+        if (bday && bday.includes(mmdd)) {
           reminderResults.push({ ...c, reminderType: 'birthday', reminderLabel: t('connections.reminderBirthday') });
         }
       }
       setCrmReminders(reminderResults);
+
+      // Auto-create birthday notifications (once per day per person)
+      if (reminderResults.length > 0) {
+        for (const r of reminderResults) {
+          const profile = r.connected_user;
+          const name = r.nickname || profile?.full_name || profile?.username || '';
+          await supabase.from('piktag_notifications').upsert({
+            user_id: user.id,
+            type: 'birthday',
+            title: t('connections.birthdayNotifTitle', { name }) || `${name} 今天生日`,
+            body: t('connections.birthdayNotifBody', { name }) || `別忘了祝 ${name} 生日快樂`,
+            is_read: false,
+            created_at: new Date().toISOString(),
+          }, { onConflict: 'user_id,type,title' }).catch(() => {});
+        }
+      }
     } catch (err) {
       console.error('Unexpected error fetching connections:', err);
       if (!cached) {
