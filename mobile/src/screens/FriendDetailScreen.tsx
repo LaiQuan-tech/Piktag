@@ -875,32 +875,14 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
 
         {/* Event tags moved to tags section above bio */}
 
-        {/* Birthday */}
-        {connectionId && (
+        {/* Birthday — read from profile (set during registration) */}
+        {profile?.birthday && (
           <View style={styles.section}>
             <View style={styles.recordCard}>
               <View style={styles.reminderRow}>
                 <Gift size={16} color={COLORS.pink500} />
                 <Text style={styles.recordLabel}>{t('friendDetail.reminderBirthday')}</Text>
-                {editingReminder === 'birthday' ? (
-                  <View style={styles.reminderEditRow}>
-                    <TextInput style={styles.reminderInput} placeholder="MM-DD" placeholderTextColor={COLORS.gray400} value={reminderInput} onChangeText={setReminderInput} autoFocus onSubmitEditing={() => handleSaveReminder('birthday')} />
-                    <TouchableOpacity onPress={() => handleSaveReminder('birthday')}>
-                      <Text style={styles.reminderSaveBtn}>{t('friendDetail.reminderSave')}</Text>
-                    </TouchableOpacity>
-                  </View>
-                ) : (
-                  <TouchableOpacity style={styles.reminderValueRow} onPress={() => { setEditingReminder('birthday'); setReminderInput(birthday || ''); }}>
-                    <Text style={[styles.recordValue, !birthday && { color: COLORS.gray400 }]}>
-                      {birthday ? formatReminderDate(birthday) : t('friendDetail.reminderSetPrompt')}
-                    </Text>
-                    {birthday ? (
-                      <TouchableOpacity onPress={() => handleClearReminder('birthday')} style={{ marginLeft: 8, padding: 4 }}>
-                        <Text style={{ fontSize: 12, color: COLORS.red500 }}>{t('friendDetail.reminderClear')}</Text>
-                      </TouchableOpacity>
-                    ) : null}
-                  </TouchableOpacity>
-                )}
+                <Text style={styles.recordValue}>{formatReminderDate(profile.birthday)}</Text>
               </View>
             </View>
           </View>

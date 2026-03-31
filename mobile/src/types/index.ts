@@ -19,6 +19,7 @@ export type PiktagProfile = {
   is_public: boolean;
   latitude: number | null;
   longitude: number | null;
+  birthday: string | null;
   created_at: string;
   updated_at: string;
 };
