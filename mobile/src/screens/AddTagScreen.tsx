@@ -157,33 +157,50 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
         saveToRecent(name);
       }
 
-      // Fetch nearby places from OpenStreetMap Nominatim
-      try {
-        const radius = 0.003; // ~300m
-        const url = `https://nominatim.openstreetmap.org/search?format=json&limit=10&bounded=1&viewbox=${longitude - radius},${latitude + radius},${longitude + radius},${latitude - radius}&addressdetails=1&q=*`;
-        const res = await fetch(url, {
-          headers: { 'User-Agent': 'PikTag/1.0 (ag.pikt.app)', 'Accept-Language': 'zh-TW,zh,en' },
-        });
-        const data = await res.json();
-        if (Array.isArray(data) && data.length > 0) {
-          const places = data
-            .filter((p: any) => p.display_name)
-            .map((p: any) => ({
-              name: p.name || p.display_name.split(',')[0],
-              address: p.display_name.split(',').slice(0, 3).join(', '),
-            }))
-            .filter((p: any) => p.name);
-          setNearbyPlaces(places);
-        }
-      } catch {
-        // Fallback: use Expo reverse geocode with offset points for nearby
+      // Fetch nearby POIs from Overpass API (OpenStreetMap, free)
+      const fetchNearby = async () => {
+        try {
+          const overpassQuery = `[out:json][timeout:10];(node["name"](around:300,${latitude},${longitude});way["name"]["building"](around:300,${latitude},${longitude}););out center 15;`;
+          const res = await fetch('https://overpass-api.de/api/interpreter', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: `data=${encodeURIComponent(overpassQuery)}`,
+          });
+          const data = await res.json();
+          if (data?.elements?.length > 0) {
+            const seen = new Set<string>();
+            const places = data.elements
+              .filter((el: any) => el.tags?.name)
+              .map((el: any) => {
+                const tags = el.tags;
+                const addr = [tags['addr:street'], tags['addr:city']].filter(Boolean).join(', ');
+                return { name: tags.name, address: addr || tags.amenity || tags.shop || '' };
+              })
+              .filter((p: any) => {
+                if (seen.has(p.name)) return false;
+                seen.add(p.name);
+                return true;
+              })
+              .slice(0, 10);
+            if (places.length > 0) {
+              setNearbyPlaces(places);
+              return;
+            }
+          }
+        } catch {}
+
+        // Fallback: Expo reverse geocode with offset points
         const offsets = [
           { lat: 0.001, lng: 0 }, { lat: -0.001, lng: 0 },
           { lat: 0, lng: 0.001 }, { lat: 0, lng: -0.001 },
-          { lat: 0.0015, lng: 0.0015 }, { lat: -0.0015, lng: -0.0015 },
+          { lat: 0.001, lng: 0.001 }, { lat: -0.001, lng: -0.001 },
+          { lat: 0.002, lng: 0 }, { lat: 0, lng: 0.002 },
+          { lat: -0.002, lng: 0 }, { lat: 0, lng: -0.002 },
         ];
         const fallbackPlaces: { name: string; address: string }[] = [];
         const seen = new Set<string>();
+        // Add current location name
+        if (place?.name) seen.add(place.name);
         for (const off of offsets) {
           try {
             const [p] = await Location.reverseGeocodeAsync({
@@ -198,14 +215,18 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
               });
             }
           } catch {}
+          if (fallbackPlaces.length >= 8) break;
         }
         setNearbyPlaces(fallbackPlaces);
-      }
+      };
+      setLocatingGps(false);
+      await fetchNearby();
+      setLoadingNearby(false);
     } catch (err) {
       console.warn('Location error:', err);
+      setLocatingGps(false);
+      setLoadingNearby(false);
     }
-    setLocatingGps(false);
-    setLoadingNearby(false);
   };
 
   // ─── Add tag ───
@@ -565,25 +586,24 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
           {!loadingNearby && nearbyPlaces.length > 0 && (
             <View style={{ marginTop: 8 }}>
               <Text style={{ fontSize: 13, color: COLORS.gray500, marginBottom: 6 }}>附近地點</Text>
-              {nearbyPlaces.map((place, i) => (
-                <TouchableOpacity
-                  key={`nearby-${i}`}
-                  style={{
-                    paddingVertical: 10, paddingHorizontal: 12,
-                    borderBottomWidth: i < nearbyPlaces.length - 1 ? 1 : 0,
-                    borderBottomColor: COLORS.gray100,
-                  }}
-                  onPress={() => {
-                    setEventLocation(place.name);
-                    saveToRecent(place.name);
-                    setNearbyPlaces([]);
-                  }}
-                  activeOpacity={0.6}
-                >
-                  <Text style={{ fontSize: 15, fontWeight: '600', color: COLORS.gray900 }}>{place.name}</Text>
-                  <Text style={{ fontSize: 12, color: COLORS.gray400, marginTop: 2 }} numberOfLines={1}>{place.address}</Text>
-                </TouchableOpacity>
-              ))}
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+                {nearbyPlaces.map((place, i) => {
+                  const isSelected = eventLocation === place.name;
+                  return (
+                    <TouchableOpacity
+                      key={`nearby-${i}`}
+                      style={[styles.quickDateBtn, isSelected && styles.quickDateBtnActive]}
+                      onPress={() => {
+                        if (isSelected) { setEventLocation(''); } else { setEventLocation(place.name); saveToRecent(place.name); }
+                      }}
+                      activeOpacity={0.6}
+                    >
+                      <MapPin size={12} color={isSelected ? COLORS.piktag600 : COLORS.gray400} />
+                      <Text style={[styles.quickDateText, isSelected && styles.quickDateTextActive]} numberOfLines={1}>{place.name}</Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
             </View>
           )}
 
