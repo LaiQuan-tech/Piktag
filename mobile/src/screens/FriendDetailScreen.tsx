@@ -89,6 +89,7 @@ type FriendTag = {
   tagId: string;
   name: string;
   isPicked: boolean;    // I picked this tag for this friend
+  isHidden: boolean;    // My private tag for this friend
   pickCount: number;    // How many people picked this tag on this friend
   isMutual: boolean;    // We share this tag
   isPinned: boolean;    // Friend pinned this tag
@@ -327,16 +328,44 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
               tagId: ut.tag.id || ut.tag_id,
               name: ut.tag.name,
               isPicked: myPickedTagIds.has(ut.tag.id || ut.tag_id),
+              isHidden: false,
               pickCount: pickCountMap.get(ut.tag.id || ut.tag_id) || 0,
               isMutual: myTagIds.has(ut.tag.id || ut.tag_id),
               isPinned: ut.is_pinned || false,
               position: ut.position ?? 0,
             }));
 
-          // 5. Sort: isPinned → isPicked → pickCount → mutual → position
+          // 5a. Append hidden tags (my private tags for this friend)
+          if (connectionId) {
+            const { data: hiddenData } = await supabase
+              .from('piktag_connection_tags')
+              .select('tag_id, piktag_tags!inner(id, name)')
+              .eq('connection_id', connectionId)
+              .eq('is_private', true);
+            if (hiddenData) {
+              for (const ht of hiddenData) {
+                const htName = (ht as any).piktag_tags?.name;
+                if (!htName) continue;
+                if (friendTags.some(t => t.tagId === ht.tag_id)) continue;
+                friendTags.push({
+                  tagId: ht.tag_id,
+                  name: htName,
+                  isPicked: false,
+                  isHidden: true,
+                  pickCount: 0,
+                  isMutual: false,
+                  isPinned: false,
+                  position: 9999,
+                });
+              }
+            }
+          }
+
+          // 5b. Sort: isPinned → isPicked → isHidden → pickCount → mutual → position
           friendTags.sort((a, b) => {
             if (a.isPinned !== b.isPinned) return a.isPinned ? -1 : 1;
             if (a.isPicked !== b.isPicked) return a.isPicked ? -1 : 1;
+            if (a.isHidden !== b.isHidden) return a.isHidden ? -1 : 1;
             if (a.pickCount !== b.pickCount) return b.pickCount - a.pickCount;
             if (a.isMutual !== b.isMutual) return a.isMutual ? -1 : 1;
             return a.position - b.position;
@@ -745,11 +774,11 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
               {tags.map((tag) => (
                 <TouchableOpacity
                   key={tag.tagId}
-                  style={[styles.tagChip, tag.isPicked && styles.tagChipPicked]}
+                  style={[styles.tagChip, tag.isPicked && styles.tagChipPicked, tag.isHidden && styles.hiddenTagChip]}
                   activeOpacity={0.6}
                   onPress={() => navigation.navigate('TagDetail', { tagId: tag.tagId, tagName: tag.name, initialTab: 'explore' })}
                 >
-                  <Text style={[styles.tagChipText, tag.isPicked && styles.tagChipTextPicked]}>
+                  <Text style={[styles.tagChipText, tag.isPicked && styles.tagChipTextPicked, tag.isHidden && styles.hiddenTagChipText]}>
                     #{tag.name}
                   </Text>
                 </TouchableOpacity>
