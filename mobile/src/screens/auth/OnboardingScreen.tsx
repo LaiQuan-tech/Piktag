@@ -47,6 +47,7 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
     linkedin: '',
   });
   const [editingSocial, setEditingSocial] = useState<SocialLinkKey | null>(null);
+  const [birthday, setBirthday] = useState('');
   const [loading, setLoading] = useState(false);
   const aiDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -99,7 +100,7 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
       // Update profile with bio
       const { error: profileError } = await supabase
         .from('piktag_profiles')
-        .update({ bio: bio.trim() })
+        .update({ bio: bio.trim(), birthday: birthday.trim() || null })
         .eq('id', user.id);
 
       if (profileError) {
@@ -221,6 +222,20 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
         numberOfLines={4}
         textAlignVertical="top"
       />
+
+      {/* Birthday */}
+      <View style={styles.birthdayRow}>
+        <Text style={styles.birthdayLabel}>{t('auth.onboarding.birthdayLabel') || '生日'}</Text>
+        <TextInput
+          style={styles.birthdayInput}
+          placeholder="MM/DD"
+          placeholderTextColor={COLORS.gray400}
+          value={birthday}
+          onChangeText={setBirthday}
+          keyboardType="numbers-and-punctuation"
+          maxLength={5}
+        />
+      </View>
 
       <View style={styles.tagSectionHeader}>
         <Sparkles size={18} color={COLORS.piktag600} />
@@ -472,7 +487,29 @@ const styles = StyleSheet.create({
     color: COLORS.gray900,
     backgroundColor: COLORS.white,
     minHeight: 120,
+    marginBottom: SPACING.lg,
+  },
+  birthdayRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
     marginBottom: SPACING.xxl,
+  },
+  birthdayLabel: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: COLORS.gray700,
+  },
+  birthdayInput: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: COLORS.gray200,
+    borderRadius: BORDER_RADIUS.lg,
+    paddingHorizontal: SPACING.lg,
+    paddingVertical: 10,
+    fontSize: 16,
+    color: COLORS.gray900,
+    backgroundColor: COLORS.white,
   },
   tagSectionHeader: {
     flexDirection: 'row',

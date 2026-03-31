@@ -55,11 +55,9 @@ import type { Connection, PiktagProfile, Biolink } from '../types';
 import { getViewerRelation, filterBiolinksByVisibility } from '../lib/biolinkVisibility';
 import { calculateStrength, getStrengthLabel } from '../lib/connectionStrength';
 
-type ReminderField = 'birthday' | 'anniversary' | 'contract_expiry';
+type ReminderField = 'birthday';
 const REMINDER_LABEL_KEYS: Record<ReminderField, string> = {
   birthday: 'friendDetail.reminderBirthday',
-  anniversary: 'friendDetail.reminderAnniversary',
-  contract_expiry: 'friendDetail.reminderContractExpiry',
 };
 
 type BiolinkType = 'instagram' | 'facebook' | 'youtube' | 'twitter' | 'linkedin' | 'website' | 'other';
@@ -178,8 +176,6 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
 
   // CRM reminder state
   const [birthday, setBirthday] = useState<string>('');
-  const [anniversary, setAnniversary] = useState<string>('');
-  const [contractExpiry, setContractExpiry] = useState<string>('');
   const [editingReminder, setEditingReminder] = useState<ReminderField | null>(null);
   const [reminderInput, setReminderInput] = useState('');
 
@@ -253,8 +249,6 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
 
       if (connData) {
         setBirthday(connData.birthday || '');
-        setAnniversary(connData.anniversary || '');
-        setContractExpiry(connData.contract_expiry || '');
       }
 
       // Check close friend status
@@ -651,13 +645,13 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
       mutualTagCount: mutualTags,
       daysSinceMet,
       hasBirthday: !!birthday,
-      hasAnniversary: !!anniversary,
-      hasContractExpiry: !!contractExpiry,
+      hasAnniversary: false,
+      hasContractExpiry: false,
       isCloseFriend,
       hiddenTagCount: hiddenTags.length,
       pickedTagCount: tags.filter(t => t.isPicked).length,
     });
-  }, [metDate, mutualTags, birthday, anniversary, contractExpiry, isCloseFriend, hiddenTags, tags]);
+  }, [metDate, mutualTags, birthday, isCloseFriend, hiddenTags, tags]);
   const strengthInfo = getStrengthLabel(strengthScore);
 
   if (loading) {
@@ -912,43 +906,33 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
           </View>
         )}
 
-        {/* CRM Reminders Section */}
+        {/* Birthday */}
         {connectionId && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>{t('friendDetail.remindersTitle')}</Text>
             <View style={styles.recordCard}>
-              {([
-                { field: 'birthday' as ReminderField, value: birthday, icon: <Gift size={16} color={COLORS.pink500} /> },
-                { field: 'anniversary' as ReminderField, value: anniversary, icon: <Heart size={16} color={COLORS.red500} /> },
-                { field: 'contract_expiry' as ReminderField, value: contractExpiry, icon: <Clock size={16} color={COLORS.orange500} /> },
-              ]).map((item, idx) => (
-                <React.Fragment key={item.field}>
-                  {idx > 0 && <View style={styles.recordDivider} />}
-                  <View style={styles.reminderRow}>
-                    {item.icon}
-                    <Text style={styles.recordLabel}>{t(REMINDER_LABEL_KEYS[item.field])}</Text>
-                    {editingReminder === item.field ? (
-                      <View style={styles.reminderEditRow}>
-                        <TextInput style={styles.reminderInput} placeholder={t('friendDetail.reminderPlaceholder')} placeholderTextColor={COLORS.gray400} value={reminderInput} onChangeText={setReminderInput} autoFocus onSubmitEditing={() => handleSaveReminder(item.field)} />
-                        <TouchableOpacity onPress={() => handleSaveReminder(item.field)}>
-                          <Text style={styles.reminderSaveBtn}>{t('friendDetail.reminderSave')}</Text>
-                        </TouchableOpacity>
-                      </View>
-                    ) : (
-                      <TouchableOpacity style={styles.reminderValueRow} onPress={() => { setEditingReminder(item.field); setReminderInput(item.value || ''); }}>
-                        <Text style={[styles.recordValue, !item.value && { color: COLORS.gray400 }]}>
-                          {item.value ? formatReminderDate(item.value) : t('friendDetail.reminderSetPrompt')}
-                        </Text>
-                        {item.value && (
-                          <TouchableOpacity onPress={() => handleClearReminder(item.field)} style={{ marginLeft: 8, padding: 4 }}>
-                            <Text style={{ fontSize: 12, color: COLORS.red500 }}>{t('friendDetail.reminderClear')}</Text>
-                          </TouchableOpacity>
-                        )}
-                      </TouchableOpacity>
-                    )}
+              <View style={styles.reminderRow}>
+                <Gift size={16} color={COLORS.pink500} />
+                <Text style={styles.recordLabel}>{t('friendDetail.reminderBirthday')}</Text>
+                {editingReminder === 'birthday' ? (
+                  <View style={styles.reminderEditRow}>
+                    <TextInput style={styles.reminderInput} placeholder="MM-DD" placeholderTextColor={COLORS.gray400} value={reminderInput} onChangeText={setReminderInput} autoFocus onSubmitEditing={() => handleSaveReminder('birthday')} />
+                    <TouchableOpacity onPress={() => handleSaveReminder('birthday')}>
+                      <Text style={styles.reminderSaveBtn}>{t('friendDetail.reminderSave')}</Text>
+                    </TouchableOpacity>
                   </View>
-                </React.Fragment>
-              ))}
+                ) : (
+                  <TouchableOpacity style={styles.reminderValueRow} onPress={() => { setEditingReminder('birthday'); setReminderInput(birthday || ''); }}>
+                    <Text style={[styles.recordValue, !birthday && { color: COLORS.gray400 }]}>
+                      {birthday ? formatReminderDate(birthday) : t('friendDetail.reminderSetPrompt')}
+                    </Text>
+                    {birthday ? (
+                      <TouchableOpacity onPress={() => handleClearReminder('birthday')} style={{ marginLeft: 8, padding: 4 }}>
+                        <Text style={{ fontSize: 12, color: COLORS.red500 }}>{t('friendDetail.reminderClear')}</Text>
+                      </TouchableOpacity>
+                    ) : null}
+                  </TouchableOpacity>
+                )}
+              </View>
             </View>
           </View>
         )}

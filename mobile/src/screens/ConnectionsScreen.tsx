@@ -189,7 +189,7 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
         .from('piktag_connections')
         .select(`
           id, user_id, connected_user_id, nickname, created_at,
-          met_at, birthday, anniversary, contract_expiry,
+          met_at, birthday,
           connected_user:piktag_profiles!connected_user_id(
             id, full_name, username, avatar_url, is_verified, latitude, longitude
           ),
@@ -262,12 +262,6 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
       for (const c of connectionsData) {
         if (c.birthday && c.birthday.slice(5) === mmdd) {
           reminderResults.push({ ...c, reminderType: 'birthday', reminderLabel: t('connections.reminderBirthday') });
-        }
-        if (c.anniversary && c.anniversary.slice(5) === mmdd) {
-          reminderResults.push({ ...c, reminderType: 'anniversary', reminderLabel: t('connections.reminderAnniversary') });
-        }
-        if (c.contract_expiry && c.contract_expiry.slice(5) === mmdd) {
-          reminderResults.push({ ...c, reminderType: 'contract_expiry', reminderLabel: t('connections.reminderContractExpiry') });
         }
       }
       setCrmReminders(reminderResults);
@@ -526,7 +520,7 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
       if (crmReminders.length === 0 || remindersDismissed || selectMode) return null;
       const getIcon = (type: string) => {
         if (type === 'birthday') return <Gift size={16} color="#ec4899" />;
-        if (type === 'anniversary') return <Heart size={16} color="#ef4444" />;
+        // anniversary/contract_expiry removed — only birthday
         return <Clock size={16} color="#f97316" />;
       };
       return (
