@@ -104,7 +104,7 @@ const ConnectionItem = React.memo(({ item, isSelected, selectMode, onPress, onLo
         <Text style={styles.name} numberOfLines={1}>{displayName}</Text>
         <View style={styles.usernameRow}>
           <Text style={styles.username}>@{username}</Text>
-          {verified && (
+          {/* {verified && (
             <CheckCircle2
               size={16}
               color={COLORS.blue500}
@@ -112,7 +112,7 @@ const ConnectionItem = React.memo(({ item, isSelected, selectMode, onPress, onLo
               strokeWidth={0}
               style={styles.verifiedIcon}
             />
-          )}
+          )} */}
         </View>
         {item.tags.length > 0 && (
           <Text style={styles.tagsLine} numberOfLines={1}>

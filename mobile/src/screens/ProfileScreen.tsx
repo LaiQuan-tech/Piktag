@@ -311,9 +311,9 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
             <View style={styles.nameSection}>
               <View style={styles.nameRow}>
                 <Text style={styles.displayName}>{headerTitle}</Text>
-                {profile?.is_verified && (
+                {/* {profile?.is_verified && (
                   <CheckCircle2 size={16} color={COLORS.blue500} fill={COLORS.blue500} strokeWidth={0} style={{ marginLeft: 4 }} />
-                )}
+                )} */}
               </View>
               <Text style={styles.usernameText}>@{displayUsername}</Text>
             </View>

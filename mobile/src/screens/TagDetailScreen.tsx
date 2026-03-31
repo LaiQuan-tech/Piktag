@@ -296,9 +296,9 @@ export default function TagDetailScreen({ navigation, route }: TagDetailScreenPr
         <View style={styles.textSection}>
           <View style={styles.nameRow}>
             <Text style={styles.name} numberOfLines={1}>{displayName}</Text>
-            {verified && (
+            {/* {verified && (
               <CheckCircle2 size={16} color={COLORS.blue500} fill={COLORS.blue500} strokeWidth={0} style={{ marginLeft: 4 }} />
-            )}
+            )} */}
           </View>
           {username ? <Text style={styles.username}>@{username}</Text> : null}
           {item.met_location ? (
@@ -327,9 +327,9 @@ export default function TagDetailScreen({ navigation, route }: TagDetailScreenPr
         <View style={styles.textSection}>
           <View style={styles.nameRow}>
             <Text style={styles.name} numberOfLines={1}>{displayName}</Text>
-            {item.is_verified && (
+            {/* {item.is_verified && (
               <CheckCircle2 size={16} color={COLORS.blue500} fill={COLORS.blue500} strokeWidth={0} style={{ marginLeft: 4 }} />
-            )}
+            )} */}
           </View>
           {item.username ? <Text style={styles.username}>@{item.username}</Text> : null}
           {item.mutual_tag_count > 0 && (

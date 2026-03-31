@@ -72,7 +72,7 @@ const ProfileCard = React.memo(function ProfileCard({ profile, onPress, t }: Pro
           <Text style={styles.profileName} numberOfLines={1}>
             {profile.full_name || profile.username || t('common.unnamed')}
           </Text>
-          {profile.is_verified && (
+          {/* {profile.is_verified && (
             <CheckCircle2
               size={16}
               color={COLORS.blue500}
@@ -80,7 +80,7 @@ const ProfileCard = React.memo(function ProfileCard({ profile, onPress, t }: Pro
               strokeWidth={0}
               style={verifiedBadgeStyle}
             />
-          )}
+          )} */}
         </View>
         {profile.username && (
           <Text style={styles.profileUsername} numberOfLines={1}>

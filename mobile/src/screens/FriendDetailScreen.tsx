@@ -723,9 +723,9 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
             <View style={styles.nameSection}>
               <View style={styles.nameRow}>
                 <Text style={styles.fullName}>{displayName}</Text>
-                {verified && (
+                {/* {verified && (
                   <CheckCircle2 size={16} color={COLORS.blue500} fill={COLORS.blue500} strokeWidth={0} style={{ marginLeft: 4 }} />
-                )}
+                )} */}
               </View>
               <View style={styles.usernameRow}>
                 <Text style={styles.usernameText}>@{username}</Text>

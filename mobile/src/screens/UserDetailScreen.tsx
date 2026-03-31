@@ -540,7 +540,7 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
             <View style={styles.nameSection}>
               <View style={styles.nameRow}>
                 <Text style={styles.name}>{displayName}</Text>
-                {verified && (
+                {/* {verified && (
                   <CheckCircle2
                     size={16}
                     color={COLORS.blue500}
@@ -548,7 +548,7 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
                     strokeWidth={0}
                     style={styles.verifiedIcon}
                   />
-                )}
+                )} */}
               </View>
               <Text style={styles.usernameText}>@{username}</Text>
             </View>
