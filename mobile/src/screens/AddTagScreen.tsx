@@ -23,11 +23,8 @@ import { useAuth } from '../hooks/useAuth';
 import { COLORS } from '../constants/theme';
 import type { TagPreset, ScanSession, PiktagProfile } from '../types';
 
-// ─── Popular Tags Constants ───
-const POPULAR_TAGS = {
-  soft: ['#攝影', '#旅行', '#美食', '#健身', '#音樂'],
-  hard: ['#工程師', '#設計師', '#行銷', '#創業', '#PM'],
-};
+// ─── Fallback Popular Tags (used if DB fetch fails) ───
+const FALLBACK_POPULAR_TAGS = ['#攝影', '#旅行', '#美食', '#健身', '#音樂', '#工程師', '#設計師', '#行銷', '#創業', '#PM'];
 
 type AddTagScreenProps = {
   navigation: any;
@@ -71,6 +68,7 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
   const [eventLocation, setEventLocation] = useState('');
   const [nearbyPlaces, setNearbyPlaces] = useState<{ name: string; address: string }[]>([]);
   const [loadingNearby, setLoadingNearby] = useState(false);
+  const [popularTags, setPopularTags] = useState<string[]>(FALLBACK_POPULAR_TAGS);
   const [eventTags, setEventTags] = useState<string[]>([]);
   const eventTagSet = useMemo(() => new Set(eventTags), [eventTags]);
   const [tagInput, setTagInput] = useState('');
@@ -123,6 +121,18 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
       AsyncStorage.getItem('piktag_recent_locations').then(val => {
         if (val) setRecentLocations(JSON.parse(val));
       });
+      // Fetch popular tags from DB (sorted by usage)
+      supabase
+        .from('piktag_tags')
+        .select('name, usage_count')
+        .order('usage_count', { ascending: false })
+        .limit(15)
+        .then(({ data }) => {
+          if (data && data.length > 0) {
+            setPopularTags(data.map((t: any) => `#${t.name}`));
+          }
+        })
+        .catch(() => {});
     }
   }, [user, loadPresets]);
 
@@ -675,33 +685,7 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
         {/* 熱門標籤 Section */}
         <View style={styles.section}>
           <View style={styles.popularChipsContainer}>
-            {POPULAR_TAGS.soft.map((tag) => {
-              const isSelected = eventTagSet.has(tag);
-              return (
-                <TouchableOpacity
-                  key={tag}
-                  style={[styles.popularChip, isSelected && styles.popularChipSelected]}
-                  onPress={() => {
-                    if (!isSelected) {
-                      setEventTags((prev) => [...prev, tag]);
-                    } else {
-                      setEventTags((prev) => prev.filter((t) => t !== tag));
-                    }
-                  }}
-                  activeOpacity={0.7}
-                >
-                  <Text style={[styles.popularChipText, isSelected && styles.popularChipTextSelected]}>
-                    {tag}{isSelected ? ' ✓' : ''}
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
-        </View>
-
-        <View style={styles.section}>
-          <View style={styles.popularChipsContainer}>
-            {POPULAR_TAGS.hard.map((tag) => {
+            {popularTags.map((tag) => {
               const isSelected = eventTagSet.has(tag);
               return (
                 <TouchableOpacity
