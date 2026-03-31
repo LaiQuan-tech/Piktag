@@ -13,7 +13,9 @@ import {
   Share,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { X, Star, ArrowLeft, Share2, Trash2 } from 'lucide-react-native';
+import { X, Star, ArrowLeft, Share2, Trash2, MapPin, Navigation } from 'lucide-react-native';
+import * as Location from 'expo-location';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import QRCode from 'react-native-qrcode-svg';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '../lib/supabase';
@@ -63,6 +65,9 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
   const [eventDate, setEventDate] = useState(formatDate(new Date()));
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [selectedDateObj, setSelectedDateObj] = useState(new Date());
+  const [locatingGps, setLocatingGps] = useState(false);
+  const [recentLocations, setRecentLocations] = useState<string[]>([]);
+  const [showLocationInput, setShowLocationInput] = useState(false);
   const [eventLocation, setEventLocation] = useState('');
   const [eventTags, setEventTags] = useState<string[]>([]);
   const eventTagSet = useMemo(() => new Set(eventTags), [eventTags]);
@@ -112,8 +117,39 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
   useEffect(() => {
     if (user) {
       loadPresets();
+      // Load recent locations
+      AsyncStorage.getItem('piktag_recent_locations').then(val => {
+        if (val) setRecentLocations(JSON.parse(val));
+      });
     }
   }, [user, loadPresets]);
+
+  const handleGetCurrentLocation = async () => {
+    setLocatingGps(true);
+    try {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert(t('addTag.locationPermDenied') || '位置權限被拒');
+        setLocatingGps(false);
+        return;
+      }
+      const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
+      const [place] = await Location.reverseGeocodeAsync({ latitude: loc.coords.latitude, longitude: loc.coords.longitude });
+      if (place) {
+        const name = [place.name, place.district, place.city].filter(Boolean).join(', ');
+        setEventLocation(name);
+        // Save to recent
+        setRecentLocations(prev => {
+          const next = [name, ...prev.filter(l => l !== name)].slice(0, 5);
+          AsyncStorage.setItem('piktag_recent_locations', JSON.stringify(next));
+          return next;
+        });
+      }
+    } catch (err) {
+      console.warn('Location error:', err);
+    }
+    setLocatingGps(false);
+  };
 
   // ─── Add tag ───
   const handleAddTag = () => {
@@ -408,15 +444,70 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
         {/* 地點 Section */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>{t('addTag.locationLabel')}</Text>
-          <View style={styles.inputRow}>
-            <TextInput
-              style={styles.textInput}
-              value={eventLocation}
-              onChangeText={setEventLocation}
-              placeholder={t('addTag.locationPlaceholder')}
-              placeholderTextColor={COLORS.gray400}
-            />
+
+          {/* Quick location buttons */}
+          <View style={styles.quickDateRow}>
+            <TouchableOpacity
+              style={[styles.quickDateBtn, locatingGps && { opacity: 0.6 }]}
+              onPress={handleGetCurrentLocation}
+              disabled={locatingGps}
+              activeOpacity={0.7}
+            >
+              {locatingGps ? (
+                <ActivityIndicator size={14} color={COLORS.piktag600} />
+              ) : (
+                <Navigation size={14} color={COLORS.gray600} />
+              )}
+              <Text style={styles.quickDateText}>{t('addTag.currentLocation') || '目前位置'}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.quickDateBtn, showLocationInput && styles.quickDateBtnActive]}
+              onPress={() => setShowLocationInput(!showLocationInput)}
+              activeOpacity={0.7}
+            >
+              <Text style={[styles.quickDateText, showLocationInput && styles.quickDateTextActive]}>
+                {t('addTag.manualInput') || '手動輸入'}
+              </Text>
+            </TouchableOpacity>
           </View>
+
+          {/* Recent locations */}
+          {recentLocations.length > 0 && !showLocationInput && (
+            <View style={styles.quickDateRow}>
+              {recentLocations.slice(0, 3).map((loc) => (
+                <TouchableOpacity
+                  key={loc}
+                  style={[styles.quickDateBtn, eventLocation === loc && styles.quickDateBtnActive]}
+                  onPress={() => setEventLocation(loc)}
+                  activeOpacity={0.7}
+                >
+                  <MapPin size={12} color={eventLocation === loc ? COLORS.piktag600 : COLORS.gray400} />
+                  <Text style={[styles.quickDateText, eventLocation === loc && styles.quickDateTextActive]} numberOfLines={1}>
+                    {loc}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
+
+          {/* Selected location display */}
+          {eventLocation ? (
+            <Text style={styles.selectedDateText}>{eventLocation}</Text>
+          ) : null}
+
+          {/* Manual input (expandable) */}
+          {showLocationInput && (
+            <View style={styles.inputRow}>
+              <TextInput
+                style={styles.textInput}
+                value={eventLocation}
+                onChangeText={setEventLocation}
+                placeholder={t('addTag.locationPlaceholder')}
+                placeholderTextColor={COLORS.gray400}
+                autoFocus
+              />
+            </View>
+          )}
         </View>
 
         {/* 自訂標籤 Section */}
@@ -918,6 +1009,9 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   quickDateBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
     paddingVertical: 8,
     paddingHorizontal: 14,
     borderRadius: 10,
