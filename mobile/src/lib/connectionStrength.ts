@@ -44,7 +44,7 @@ export function calculateStrength(input: StrengthInput): number {
  * Get a human-readable strength label + color
  */
 export function getStrengthLabel(score: number): { label: string; color: string } {
-  if (score >= 80) return { label: '密友', color: '#059669' };    // green
+  if (score >= 80) return { label: '密友', color: '#f8e537' };    // accent gold
   if (score >= 60) return { label: '熟識', color: '#2563EB' };    // blue
   if (score >= 40) return { label: '認識', color: '#D97706' };    // amber
   if (score >= 20) return { label: '初識', color: '#9CA3AF' };    // gray

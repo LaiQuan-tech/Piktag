@@ -116,6 +116,7 @@ const NotificationItem = React.memo(function NotificationItem({
           {formatTimeAgo(item.created_at, t)}
         </Text>
       </View>
+      {!item.is_read && <View style={styles.unreadDot} />}
     </TouchableOpacity>
   );
 });
@@ -483,6 +484,14 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: COLORS.gray400,
     marginTop: 4,
+  },
+  unreadDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: COLORS.accent500,
+    marginLeft: 8,
+    alignSelf: 'center',
   },
   emptyState: {
     flex: 1,

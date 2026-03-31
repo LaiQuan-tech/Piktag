@@ -645,6 +645,9 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
         <View style={styles.header}>
           <View style={styles.headerLeft}>
             <Text style={styles.headerTitle}># PikTag</Text>
+            <Text style={styles.headerSubtitle}>
+              <Text style={styles.headerCount}>{sortedConnections.length}</Text> {t('connections.friendsLabel') || 'friends'}
+            </Text>
           </View>
           <View style={styles.headerRight}>
             <TouchableOpacity
@@ -891,6 +894,10 @@ const styles = StyleSheet.create({
     color: COLORS.gray500,
     marginTop: 2,
     lineHeight: 20,
+  },
+  headerCount: {
+    fontWeight: '700',
+    color: COLORS.accent500,
   },
   headerRight: {
     flexDirection: 'row',

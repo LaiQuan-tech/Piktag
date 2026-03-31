@@ -12,6 +12,15 @@ const LIGHT = {
   piktag500: '#0fcdd6',
   piktag600: '#0ab3bb',
 
+  // Accent (yellow)
+  accent50: '#fffef0',
+  accent100: '#fefcd6',
+  accent200: '#fdf8a8',
+  accent300: '#faf37a',
+  accent400: '#f8e537',
+  accent500: '#f8e537',
+  accent600: '#d4c42e',
+
   // Grays
   white: '#FFFFFF',
   gray50: '#f9fafb',
@@ -57,6 +66,15 @@ const DARK: typeof LIGHT = {
   piktag400: '#0fbbc5',
   piktag500: '#0fcdd6',
   piktag600: '#3ddbe3',
+
+  // Accent (yellow) — for dark mode
+  accent50: '#2a2508',
+  accent100: '#3d3510',
+  accent200: '#5c5018',
+  accent300: '#8a7a20',
+  accent400: '#f8e537',
+  accent500: '#f8e537',
+  accent600: '#faea6a',
 
   // Grays — soft, not pure black
   white: 'transparent',       // background is gradient, not flat color

@@ -445,7 +445,7 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
           activeOpacity={0.6}
           style={styles.headerSideBtn}
         >
-          <Star size={24} color={COLORS.piktag500} />
+          <Star size={24} color={COLORS.accent400} />
         </TouchableOpacity>
       </View>
 

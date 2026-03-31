@@ -130,7 +130,7 @@ const TagCard = React.memo(function TagCard({ tag, isHighlighted, onPress, count
       </View>
       <View style={styles.tagCountRow}>
         {rank && rank <= 3 && (
-          <TrendingUp size={12} color={isHighlighted ? COLORS.white : '#059669'} />
+          <TrendingUp size={12} color={isHighlighted ? COLORS.white : COLORS.accent500} />
         )}
         <Text
           style={[
