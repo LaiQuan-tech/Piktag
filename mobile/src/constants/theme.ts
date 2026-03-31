@@ -3,14 +3,14 @@
 
 // ── Light palette ──────────────────────────────────────────────────────
 const LIGHT = {
-  // Brand (golden/yellow)
-  piktag50: '#fef9e8',
-  piktag100: '#fdf2c6',
-  piktag200: '#fce890',
-  piktag300: '#fadd51',
-  piktag400: '#f8cf22',
-  piktag500: '#f5c518',
-  piktag600: '#d9a50b',
+  // Brand (teal/cyan)
+  piktag50: '#e6fafb',
+  piktag100: '#b3f0f3',
+  piktag200: '#80e6eb',
+  piktag300: '#4ddce3',
+  piktag400: '#1ad2db',
+  piktag500: '#0fcdd6',
+  piktag600: '#0ab3bb',
 
   // Grays
   white: '#FFFFFF',
@@ -50,13 +50,13 @@ const LIGHT = {
 // Cards use semi-transparent surfaces for depth
 const DARK: typeof LIGHT = {
   // Brand — brighter for dark backgrounds
-  piktag50: '#2a2315',
-  piktag100: '#3d3118',
-  piktag200: '#5c4a1a',
-  piktag300: '#8a6f1c',
-  piktag400: '#c49b16',
-  piktag500: '#f5c518',
-  piktag600: '#fad44a',
+  piktag50: '#0a2a2e',
+  piktag100: '#0d3d42',
+  piktag200: '#125c63',
+  piktag300: '#1a8a93',
+  piktag400: '#0fbbc5',
+  piktag500: '#0fcdd6',
+  piktag600: '#3ddbe3',
 
   // Grays — soft, not pure black
   white: 'transparent',       // background is gradient, not flat color
