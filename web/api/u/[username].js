@@ -2,8 +2,10 @@ const SUPABASE_URL = 'https://kbwfdskulxnhjckdvghj.supabase.co';
 const SUPABASE_ANON_KEY =
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtid2Zkc2t1bHhuaGpja2R2Z2hqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEzOTgwNTAsImV4cCI6MjA4Njk3NDA1MH0.q1wxMahfity_5An5I_PPSoxglJeKHXX6ohYeGvsaIC8';
 
-const BRAND_COLOR = '#e8b931';
-const BRAND_BG = '#fffdf5';
+const BRAND_COLOR = '#D4E20F';
+const BRAND_ACCENT = '#00B4D8';
+const BRAND_DARK = '#0077C0';
+const BRAND_BG = '#f8fffe';
 
 const PLATFORM_ICONS = {
   instagram: '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>',
@@ -153,25 +155,25 @@ function renderProfilePage(profile, biolinks, tags) {
     *{margin:0;padding:0;box-sizing:border-box}
     body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:${BRAND_BG};color:#1a1a1a;min-height:100vh;display:flex;flex-direction:column;align-items:center}
     .container{max-width:480px;width:100%;padding:40px 20px 120px;display:flex;flex-direction:column;align-items:center}
-    .logo{font-size:20px;font-weight:700;color:${BRAND_COLOR};margin-bottom:32px}
-    .avatar{width:96px;height:96px;border-radius:50%;object-fit:cover;border:3px solid ${BRAND_COLOR};margin-bottom:16px}
+    .logo{font-size:20px;font-weight:700;color:${BRAND_COLOR};margin-bottom:32px;text-shadow:0 1px 2px rgba(0,0,0,.08)}
+    .avatar{width:96px;height:96px;border-radius:50%;object-fit:cover;border:3px solid ${BRAND_ACCENT};margin-bottom:16px}
     .name-row{display:flex;align-items:center;gap:2px;margin-bottom:4px}
-    .name{font-size:24px;font-weight:700;color:#111}
-    .username{font-size:15px;color:#666;margin-bottom:12px}
+    .name{font-size:24px;font-weight:700;color:${BRAND_DARK}}
+    .username{font-size:15px;color:${BRAND_ACCENT};margin-bottom:12px}
     .bio{font-size:15px;color:#444;text-align:center;line-height:1.6;margin-bottom:16px;max-width:360px}
     .tags{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin-bottom:24px}
-    .tag{background:#fff;border:1.5px solid ${BRAND_COLOR};color:#b8941f;font-size:13px;font-weight:600;padding:4px 12px;border-radius:20px}
+    .tag{background:#fff;border:1.5px solid ${BRAND_COLOR};color:#7a8a00;font-size:13px;font-weight:600;padding:4px 12px;border-radius:20px}
     .biolinks{width:100%;display:flex;flex-direction:column;gap:10px}
-    .biolink{display:flex;align-items:center;gap:12px;background:#fff;border:1.5px solid #e5e5e5;border-radius:14px;padding:14px 18px;text-decoration:none;color:#333;font-size:15px;font-weight:500;transition:all .15s}
-    .biolink:hover{border-color:${BRAND_COLOR};box-shadow:0 2px 8px rgba(232,185,49,.15)}
+    .biolink{display:flex;align-items:center;gap:12px;background:#fff;border:1.5px solid #e0f0f0;border-radius:14px;padding:14px 18px;text-decoration:none;color:#333;font-size:15px;font-weight:500;transition:all .15s}
+    .biolink:hover{border-color:${BRAND_ACCENT};box-shadow:0 2px 8px rgba(0,180,216,.15)}
     .biolink span{flex:1}
     .biolink svg{flex-shrink:0;color:#888}
-    .biolink svg:first-child{color:${BRAND_COLOR}}
-    .banner{position:fixed;bottom:0;left:0;right:0;background:linear-gradient(135deg,${BRAND_COLOR} 0%,#d4a72a 100%);padding:16px 20px;display:flex;align-items:center;justify-content:center;gap:12px;box-shadow:0 -4px 20px rgba(0,0,0,.1);z-index:100}
+    .biolink svg:first-child{color:${BRAND_ACCENT}}
+    .banner{position:fixed;bottom:0;left:0;right:0;background:linear-gradient(135deg,${BRAND_ACCENT} 0%,${BRAND_DARK} 100%);padding:16px 20px;display:flex;align-items:center;justify-content:center;gap:12px;box-shadow:0 -4px 20px rgba(0,0,0,.1);z-index:100}
     .banner-content{display:flex;flex-direction:column;align-items:center;gap:4px}
     .banner-title{font-size:16px;font-weight:700;color:#fff}
     .banner-subtitle{font-size:13px;color:rgba(255,255,255,.85)}
-    .follow-btn{display:inline-block;background:#e8b931;color:#1a1a1a;font-weight:700;border-radius:24px;padding:12px 48px;font-size:16px;border:none;cursor:pointer;margin-top:16px;margin-bottom:8px}
+    .follow-btn{display:inline-block;background:${BRAND_COLOR};color:#1a1a1a;font-weight:700;border-radius:24px;padding:12px 48px;font-size:16px;border:none;cursor:pointer;margin-top:16px;margin-bottom:8px}
     .follow-btn:active{opacity:0.8}
   </style>
 </head>
@@ -222,10 +224,10 @@ function notFoundPage() {
   <style>
     *{margin:0;padding:0;box-sizing:border-box}
     body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:${BRAND_BG};display:flex;align-items:center;justify-content:center;min-height:100vh;text-align:center;padding:20px}
-    .logo{font-size:24px;font-weight:700;color:${BRAND_COLOR};margin-bottom:16px}
-    h1{font-size:20px;color:#333;margin-bottom:8px}
-    p{font-size:15px;color:#666;margin-bottom:24px}
-    a{color:${BRAND_COLOR};text-decoration:none;font-weight:600}
+    .logo{font-size:24px;font-weight:700;color:${BRAND_COLOR};margin-bottom:16px;text-shadow:0 1px 2px rgba(0,0,0,.08)}
+    h1{font-size:20px;color:${BRAND_DARK};margin-bottom:8px}
+    p{font-size:15px;color:${BRAND_ACCENT};margin-bottom:24px}
+    a{color:${BRAND_ACCENT};text-decoration:none;font-weight:600}
   </style>
 </head>
 <body>
