@@ -329,16 +329,6 @@ export default function ActivityReviewScreen({ navigation, route }: Props) {
             {profile?.username && <Text style={styles.cardUsername}>@{profile.username}</Text>}
             {profile?.bio && <Text style={styles.cardBio} numberOfLines={2}>{profile.bio}</Text>}
 
-            {/* Met info */}
-            <View style={styles.metRow}>
-              {current!.met_location ? (
-                <View style={styles.metItem}>
-                  <MapPin size={14} color={COLORS.gray400} />
-                  <Text style={styles.metText}>{current!.met_location}</Text>
-                </View>
-              ) : null}
-            </View>
-
             {/* Public tags — tap to pick */}
             {current!.publicTags.length > 0 && (
               <View style={styles.tagChips}>
