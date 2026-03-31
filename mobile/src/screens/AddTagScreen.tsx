@@ -429,7 +429,7 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
                 <TouchableOpacity
                   key={qd.label}
                   style={[styles.quickDateBtn, isSelected && styles.quickDateBtnActive]}
-                  onPress={() => { setEventDate(formatDate(qd.date)); setSelectedDateObj(qd.date); setShowDatePicker(false); }}
+                  onPress={() => { if (isSelected) { setEventDate(''); } else { setEventDate(formatDate(qd.date)); setSelectedDateObj(qd.date); } setShowDatePicker(false); }}
                   activeOpacity={0.7}
                 >
                   <Text style={[styles.quickDateText, isSelected && styles.quickDateTextActive]}>{qd.label}</Text>
