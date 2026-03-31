@@ -150,57 +150,69 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
       const { latitude, longitude } = loc.coords;
 
       // Set current location name via Expo
-      const [place] = await Location.reverseGeocodeAsync({ latitude, longitude });
-      if (place) {
-        const name = [place.name, place.district, place.city].filter(Boolean).join(', ');
-        setEventLocation(name);
-        saveToRecent(name);
-      }
+      let currentPlaceName = '';
+      try {
+        const [place] = await Location.reverseGeocodeAsync({ latitude, longitude });
+        if (place) {
+          currentPlaceName = [place.name, place.district, place.city].filter(Boolean).join(', ');
+          setEventLocation(currentPlaceName);
+          saveToRecent(currentPlaceName);
+        }
+      } catch {}
+      setLocatingGps(false);
 
-      // Fetch nearby POIs from Overpass API (OpenStreetMap, free)
-      const fetchNearby = async () => {
+      // Fetch nearby POIs — try Overpass first, then multiple Overpass mirrors, then fallback
+      const overpassServers = [
+        'https://overpass-api.de/api/interpreter',
+        'https://overpass.kumi.systems/api/interpreter',
+      ];
+      const overpassQuery = `[out:json][timeout:8];(node["name"](around:500,${latitude},${longitude}););out 15;`;
+
+      let foundPlaces = false;
+      for (const server of overpassServers) {
+        if (foundPlaces) break;
         try {
-          const overpassQuery = `[out:json][timeout:10];(node["name"](around:300,${latitude},${longitude});way["name"]["building"](around:300,${latitude},${longitude}););out center 15;`;
-          const res = await fetch('https://overpass-api.de/api/interpreter', {
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 8000);
+          const res = await fetch(server, {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
             body: `data=${encodeURIComponent(overpassQuery)}`,
+            signal: controller.signal,
           });
+          clearTimeout(timeoutId);
           const data = await res.json();
           if (data?.elements?.length > 0) {
             const seen = new Set<string>();
+            if (currentPlaceName) seen.add(currentPlaceName);
             const places = data.elements
-              .filter((el: any) => el.tags?.name)
+              .filter((el: any) => el.tags?.name && !seen.has(el.tags.name))
               .map((el: any) => {
-                const tags = el.tags;
-                const addr = [tags['addr:street'], tags['addr:city']].filter(Boolean).join(', ');
-                return { name: tags.name, address: addr || tags.amenity || tags.shop || '' };
-              })
-              .filter((p: any) => {
-                if (seen.has(p.name)) return false;
-                seen.add(p.name);
-                return true;
+                seen.add(el.tags.name);
+                return { name: el.tags.name, address: '' };
               })
               .slice(0, 10);
             if (places.length > 0) {
               setNearbyPlaces(places);
-              return;
+              foundPlaces = true;
             }
           }
         } catch {}
+      }
 
-        // Fallback: Expo reverse geocode with offset points
+      // Fallback: Expo reverse geocode with offset points (always works)
+      if (!foundPlaces) {
         const offsets = [
-          { lat: 0.001, lng: 0 }, { lat: -0.001, lng: 0 },
-          { lat: 0, lng: 0.001 }, { lat: 0, lng: -0.001 },
-          { lat: 0.001, lng: 0.001 }, { lat: -0.001, lng: -0.001 },
-          { lat: 0.002, lng: 0 }, { lat: 0, lng: 0.002 },
-          { lat: -0.002, lng: 0 }, { lat: 0, lng: -0.002 },
+          { lat: 0.0008, lng: 0 }, { lat: -0.0008, lng: 0 },
+          { lat: 0, lng: 0.0008 }, { lat: 0, lng: -0.0008 },
+          { lat: 0.0012, lng: 0.0012 }, { lat: -0.0012, lng: -0.0012 },
+          { lat: 0.0018, lng: 0 }, { lat: 0, lng: 0.0018 },
+          { lat: -0.0018, lng: 0 }, { lat: 0, lng: -0.0018 },
+          { lat: 0.0025, lng: 0.0025 }, { lat: -0.0025, lng: -0.0025 },
         ];
         const fallbackPlaces: { name: string; address: string }[] = [];
         const seen = new Set<string>();
-        // Add current location name
-        if (place?.name) seen.add(place.name);
+        if (currentPlaceName) seen.add(currentPlaceName);
         for (const off of offsets) {
           try {
             const [p] = await Location.reverseGeocodeAsync({
@@ -209,18 +221,13 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
             });
             if (p?.name && !seen.has(p.name)) {
               seen.add(p.name);
-              fallbackPlaces.push({
-                name: p.name,
-                address: [p.street, p.district, p.city].filter(Boolean).join(', '),
-              });
+              fallbackPlaces.push({ name: p.name, address: '' });
             }
           } catch {}
           if (fallbackPlaces.length >= 8) break;
         }
         setNearbyPlaces(fallbackPlaces);
-      };
-      setLocatingGps(false);
-      await fetchNearby();
+      }
       setLoadingNearby(false);
     } catch (err) {
       console.warn('Location error:', err);
