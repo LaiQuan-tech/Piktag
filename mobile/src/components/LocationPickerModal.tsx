@@ -45,17 +45,17 @@ type LocationPickerModalProps = {
   initialLocation?: string;
 };
 
-/** Web: Google Maps Static API (image) */
+/** Web: Google Maps Embed API (iframe) */
 function WebMapView({ latitude, longitude, address }: { latitude: number; longitude: number; address: string }) {
   if (!isWeb) return null;
-  const mapWidth = Math.min(Math.round(SCREEN_WIDTH), 640);
-  const mapHeight = Math.round(MAP_HEIGHT_EXPANDED);
-  const src = `https://maps.googleapis.com/maps/api/staticmap?center=${latitude},${longitude}&zoom=16&size=${mapWidth}x${mapHeight}&scale=2&markers=color:red%7C${latitude},${longitude}&key=${GOOGLE_PLACES_API_KEY}&language=zh-TW`;
+  const src = `https://www.google.com/maps?q=${latitude},${longitude}&z=16&output=embed`;
   return (
-    <View style={{ flex: 1 }}>
-      <Image
-        source={{ uri: src }}
-        style={{ width: '100%' as any, height: '100%' as any, resizeMode: 'cover' }}
+    <View style={{ flex: 1, position: 'relative' }}>
+      {/* @ts-ignore - iframe is web-only */}
+      <iframe
+        src={src}
+        style={{ width: '100%', height: '100%', border: 'none' }}
+        loading="lazy"
       />
       {address ? (
         <View style={styles.webAddressOverlay}>
