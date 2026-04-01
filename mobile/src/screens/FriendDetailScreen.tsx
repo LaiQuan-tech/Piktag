@@ -169,6 +169,8 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
   // Mutual tags detail modal
   const [mutualTagNames, setMutualTagNames] = useState<{ id: string; name: string }[]>([]);
   const [mutualTagModalVisible, setMutualTagModalVisible] = useState(false);
+  const [mutualFriendProfiles, setMutualFriendProfiles] = useState<any[]>([]);
+  const [mutualFriendsModalVisible, setMutualFriendsModalVisible] = useState(false);
 
   // Hidden tags state (private tags only I can see)
   const [hiddenTags, setHiddenTags] = useState<{ id: string; tagId: string; name: string }[]>([]);
@@ -220,9 +222,18 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
       const mutualFriendsCount = (() => {
         if (!myConnectionsResult.data || !friendConnectionsResult.data) return 0;
         const myFriendIds = new Set(myConnectionsResult.data.map((c: any) => c.connected_user_id));
-        return friendConnectionsResult.data.filter((c: any) =>
-          myFriendIds.has(c.connected_user_id),
-        ).length;
+        const mutualIds = friendConnectionsResult.data
+          .filter((c: any) => myFriendIds.has(c.connected_user_id))
+          .map((c: any) => c.connected_user_id);
+        // Fetch mutual friend profiles in background
+        if (mutualIds.length > 0) {
+          supabase
+            .from('piktag_profiles')
+            .select('id, username, full_name, avatar_url')
+            .in('id', mutualIds.slice(0, 20))
+            .then(({ data }) => { if (data) setMutualFriendProfiles(data); });
+        }
+        return mutualIds.length;
       })();
 
       // Fetch friend's follower count + check if following
@@ -813,10 +824,12 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
               </Text>
             )}
             <Text style={styles.statDot}>·</Text>
-            <Text style={styles.statText}>
-              <Text style={styles.statNumber}>{mutualFriends}</Text>
-              <Text style={styles.statLabel}>{t('friendDetail.mutualFriendsLabel')}</Text>
-            </Text>
+            <TouchableOpacity onPress={() => mutualFriends > 0 && setMutualFriendsModalVisible(true)} activeOpacity={0.7}>
+              <Text style={styles.statText}>
+                <Text style={styles.statNumber}>{mutualFriends}</Text>
+                <Text style={styles.statLabel}>{t('friendDetail.mutualFriendsLabel')}</Text>
+              </Text>
+            </TouchableOpacity>
             <Text style={styles.statDot}>·</Text>
             <Text style={styles.statText}>
               <Text style={styles.statNumber}>{followerCount}</Text>
@@ -945,6 +958,49 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
                   }}
                 >
                   <Text style={styles.mutualModalTagText}>#{tag.name}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+        </TouchableOpacity>
+      </Modal>
+
+      {/* ====== Mutual Friends Modal ====== */}
+      <Modal
+        visible={mutualFriendsModalVisible}
+        animationType="fade"
+        transparent
+        onRequestClose={() => setMutualFriendsModalVisible(false)}
+      >
+        <TouchableOpacity
+          style={styles.mutualModalOverlay}
+          activeOpacity={1}
+          onPress={() => setMutualFriendsModalVisible(false)}
+        >
+          <View style={styles.mutualModalContainer}>
+            <Text style={styles.mutualModalTitle}>{t('friendDetail.mutualFriendsModalTitle') || '共同好友'}</Text>
+            <View style={{ gap: 12, marginTop: 8 }}>
+              {mutualFriendProfiles.map((p) => (
+                <TouchableOpacity
+                  key={p.id}
+                  style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}
+                  activeOpacity={0.7}
+                  onPress={() => {
+                    setMutualFriendsModalVisible(false);
+                    navigation.navigate('UserDetail', { userId: p.id });
+                  }}
+                >
+                  {p.avatar_url ? (
+                    <Image source={{ uri: p.avatar_url }} style={{ width: 40, height: 40, borderRadius: 20 }} />
+                  ) : (
+                    <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: COLORS.gray200, alignItems: 'center', justifyContent: 'center' }}>
+                      <Text style={{ fontSize: 16, color: COLORS.gray500 }}>{(p.full_name || p.username || '?')[0]}</Text>
+                    </View>
+                  )}
+                  <View>
+                    <Text style={{ fontSize: 15, fontWeight: '600', color: COLORS.gray900 }}>{p.full_name || p.username || '?'}</Text>
+                    {p.username && <Text style={{ fontSize: 13, color: COLORS.gray500 }}>@{p.username}</Text>}
+                  </View>
                 </TouchableOpacity>
               ))}
             </View>
