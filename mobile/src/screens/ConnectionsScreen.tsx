@@ -48,6 +48,7 @@ import type { Connection, ConnectionTag } from '../types';
 
 type ConnectionWithTags = Connection & {
   tags: string[];
+  semanticTypes: string[]; // unique semantic types from all tags
 };
 
 type FriendStatus = {
@@ -166,7 +167,7 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
   const [remindersDismissed, setRemindersDismissed] = useState(false);
 
   // Tag filter state
-  const [filterTag, setFilterTag] = useState<string | null>(null);
+  const [filterSemanticType, setFilterSemanticType] = useState<string | null>(null);
   const [filterModalVisible, setFilterModalVisible] = useState(false);
 
   // Batch selection state
@@ -211,7 +212,7 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
           connection_tags:piktag_connection_tags(
             position,
             is_private,
-            tag:piktag_tags!tag_id(name)
+            tag:piktag_tags!tag_id(name, semantic_type)
           )
         `)
         .eq('user_id', user.id)
@@ -240,7 +241,7 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
       const connUserIds = connectionsData.map((c: any) => c.connected_user_id);
       const { data: publicTagsData } = await supabase
         .from('piktag_user_tags')
-        .select('user_id, tag_id, is_pinned, position, tag:piktag_tags!tag_id(name, pick_count)')
+        .select('user_id, tag_id, is_pinned, position, tag:piktag_tags!tag_id(name, pick_count, semantic_type)')
         .in('user_id', connUserIds)
         .eq('is_private', false)
         .order('position');
@@ -254,7 +255,7 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
       const myTagNames = new Set((myTagsData || []).map((t: any) => t.tag?.name).filter(Boolean));
 
       // Build public tag map with sorting metadata
-      type TagMeta = { name: string; isPinned: boolean; pickCount: number; isMutual: boolean; position: number };
+      type TagMeta = { name: string; isPinned: boolean; pickCount: number; isMutual: boolean; position: number; semanticType: string | null };
       const publicTagMetaMap = new Map<string, TagMeta[]>();
       if (publicTagsData) {
         for (const ut of publicTagsData as any[]) {
@@ -268,6 +269,7 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
               pickCount: ut.tag?.pick_count ?? 0,
               isMutual: myTagNames.has(name),
               position: ut.position ?? 0,
+              semanticType: ut.tag?.semantic_type ?? null,
             });
           }
           publicTagMetaMap.set(ut.user_id, arr);
@@ -308,14 +310,14 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
         for (const name of pickedNames) {
           if (!seen.has(name)) {
             seen.add(name);
-            allTagMetas.push({ name, isPinned: false, isPicked: true, isHidden: false, pickCount: 0, isMutual: myTagNames.has(name), position: 999 });
+            allTagMetas.push({ name, isPinned: false, isPicked: true, isHidden: false, pickCount: 0, isMutual: myTagNames.has(name), position: 999, semanticType: null });
           }
         }
         // Add hidden tags
         for (const name of hiddenNames) {
           if (!seen.has(name)) {
             seen.add(name);
-            allTagMetas.push({ name, isPinned: false, isPicked: false, isHidden: true, pickCount: 0, isMutual: false, position: 999 });
+            allTagMetas.push({ name, isPinned: false, isPicked: false, isHidden: true, pickCount: 0, isMutual: false, position: 999, semanticType: null });
           }
         }
 
@@ -329,7 +331,8 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
           return a.position - b.position;
         });
 
-        return { ...conn, tags: allTagMetas.map(t => `#${t.name}`) };
+        const semanticTypes = [...new Set(allTagMetas.map(t => t.semanticType).filter(Boolean))] as string[];
+        return { ...conn, tags: allTagMetas.map(t => `#${t.name}`), semanticTypes };
       });
       setCache(CACHE_KEYS.CONNECTIONS, merged);
       setConnections(merged);
@@ -497,22 +500,21 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
         break;
     }
     // Apply tag filter
-    if (filterTag) {
-      return sorted.filter((c) => c.tags.includes(filterTag));
+    if (filterSemanticType) {
+      return sorted.filter((c) => (c.semanticTypes || []).includes(filterSemanticType));
     }
     return sorted;
-  }, [connections, sortBy, userLocation, filterTag]);
+  }, [connections, sortBy, userLocation, filterSemanticType]);
 
-  // Top 10 tags by usage count across connections
-  const allConnectionTags = useMemo(() => {
-    const tagCount = new Map<string, number>();
-    connections.forEach((c) => c.tags.forEach((t) => {
-      tagCount.set(t, (tagCount.get(t) || 0) + 1);
+  // All unique semantic types from connections (for filter)
+  const allSemanticTypes = useMemo(() => {
+    const typeCount = new Map<string, number>();
+    connections.forEach((c) => (c.semanticTypes || []).forEach((st) => {
+      typeCount.set(st, (typeCount.get(st) || 0) + 1);
     }));
-    return [...tagCount.entries()]
+    return [...typeCount.entries()]
       .sort((a, b) => b[1] - a[1])
-      .slice(0, 10)
-      .map(([tag]) => tag);
+      .map(([type]) => type);
   }, [connections]);
 
   // --- Optimized: useCallback for handlers ---
@@ -835,7 +837,7 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
               activeOpacity={0.6}
               onPress={() => setFilterModalVisible(true)}
             >
-              <Tag size={24} color={filterTag ? COLORS.piktag600 : COLORS.gray600} />
+              <Tag size={24} color={filterSemanticType ? COLORS.piktag600 : COLORS.gray600} />
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.headerIconBtn}
@@ -856,20 +858,20 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
       )}
 
       {/* Sort / Filter indicators */}
-      {!selectMode && (sortBy !== 'newest' || filterTag) && (
+      {!selectMode && (sortBy !== 'newest' || filterSemanticType) && (
         <View style={styles.sortIndicator}>
           {sortBy !== 'newest' && (
             <Text style={styles.sortIndicatorText}>
               {SORT_OPTIONS.find((o) => o.key === sortBy)?.label}
             </Text>
           )}
-          {filterTag && (
+          {filterSemanticType && (
             <TouchableOpacity
               style={styles.filterIndicatorChip}
-              onPress={() => setFilterTag(null)}
+              onPress={() => setFilterSemanticType(null)}
               activeOpacity={0.7}
             >
-              <Text style={styles.filterIndicatorText}>{filterTag}</Text>
+              <Text style={styles.filterIndicatorText}>{t(`semanticType.${filterSemanticType}`) || filterSemanticType}</Text>
               <X size={14} color={COLORS.piktag600} />
             </TouchableOpacity>
           )}
@@ -968,29 +970,29 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
                 <X size={24} color={COLORS.gray900} />
               </TouchableOpacity>
             </View>
-            {filterTag && (
+            {filterSemanticType && (
               <TouchableOpacity
                 style={styles.filterClearBtn}
-                onPress={() => { setFilterTag(null); setFilterModalVisible(false); }}
+                onPress={() => { setFilterSemanticType(null); setFilterModalVisible(false); }}
                 activeOpacity={0.7}
               >
                 <Text style={styles.filterClearText}>{t('connections.clearFilter')}</Text>
               </TouchableOpacity>
             )}
             <ScrollView showsVerticalScrollIndicator={false} style={{ maxHeight: 400 }}>
-              {allConnectionTags.length === 0 ? (
+              {allSemanticTypes.length === 0 ? (
                 <Text style={styles.filterEmptyText}>{t('connections.noTagsToFilter')}</Text>
               ) : (
-                <View style={styles.filterTagsWrap}>
-                  {allConnectionTags.map((tag) => (
+                <View style={styles.filterSemanticTypesWrap}>
+                  {allSemanticTypes.map((st) => (
                     <TouchableOpacity
-                      key={tag}
-                      style={[styles.filterTagChip, filterTag === tag && styles.filterTagChipActive]}
-                      onPress={() => { setFilterTag(tag); setFilterModalVisible(false); }}
+                      key={st}
+                      style={[styles.filterSemanticTypeChip, filterSemanticType === st && styles.filterSemanticTypeChipActive]}
+                      onPress={() => { setFilterSemanticType(st); setFilterModalVisible(false); }}
                       activeOpacity={0.7}
                     >
-                      <Text style={[styles.filterTagChipText, filterTag === tag && styles.filterTagChipTextActive]}>
-                        {tag}
+                      <Text style={[styles.filterSemanticTypeChipText, filterSemanticType === st && styles.filterSemanticTypeChipTextActive]}>
+                        {t(`semanticType.${st}`) || st}
                       </Text>
                     </TouchableOpacity>
                   ))}
@@ -1625,12 +1627,12 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     paddingVertical: 24,
   },
-  filterTagsWrap: {
+  filterSemanticTypesWrap: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 10,
   },
-  filterTagChip: {
+  filterSemanticTypeChip: {
     paddingHorizontal: 14,
     paddingVertical: 10,
     borderRadius: 20,
@@ -1638,16 +1640,16 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: 'transparent',
   },
-  filterTagChipActive: {
+  filterSemanticTypeChipActive: {
     backgroundColor: COLORS.piktag50,
     borderColor: COLORS.piktag500,
   },
-  filterTagChipText: {
+  filterSemanticTypeChipText: {
     fontSize: 14,
     fontWeight: '500',
     color: COLORS.gray700,
   },
-  filterTagChipTextActive: {
+  filterSemanticTypeChipTextActive: {
     color: COLORS.piktag600,
     fontWeight: '700',
   },
