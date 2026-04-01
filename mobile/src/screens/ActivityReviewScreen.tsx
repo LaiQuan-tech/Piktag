@@ -61,6 +61,7 @@ export default function ActivityReviewScreen({ navigation, route }: Props) {
           .from('piktag_connections')
           .select('id, connected_user_id, nickname, met_at, met_location, connected_user:piktag_profiles!connected_user_id(id, username, full_name, avatar_url, bio, is_verified)')
           .eq('user_id', user.id)
+          .eq('is_reviewed', false)
           .order('created_at', { ascending: false });
 
         if (sessionId) {
@@ -208,13 +209,18 @@ export default function ActivityReviewScreen({ navigation, route }: Props) {
   }, [tagInput, currentIndex, connections]);
 
   // Go to next card
-  const goNext = useCallback(() => {
+  const goNext = useCallback((markReviewed = true) => {
+    // Mark current connection as reviewed in DB
+    if (markReviewed && currentIndex < connections.length) {
+      const connId = connections[currentIndex].id;
+      supabase.from('piktag_connections').update({ is_reviewed: true }).eq('id', connId).then(() => {});
+    }
     translateX.value = withTiming(0, { duration: 200 });
     rotate.value = withTiming(0, { duration: 200 });
     cardOpacity.value = withTiming(1, { duration: 200 });
     setCurrentIndex(prev => prev + 1);
     setTagInput('');
-  }, []);
+  }, [currentIndex, connections]);
 
   // Swipe away animation then next
   const swipeAway = useCallback((direction: 'left' | 'right') => {
@@ -222,7 +228,7 @@ export default function ActivityReviewScreen({ navigation, route }: Props) {
     translateX.value = withTiming(target, { duration: 300 });
     cardOpacity.value = withTiming(0, { duration: 300 });
     setTimeout(() => {
-      runOnJS(goNext)();
+      runOnJS(goNext)(true);
     }, 320);
   }, [goNext]);
 
@@ -319,8 +325,8 @@ export default function ActivityReviewScreen({ navigation, route }: Props) {
           )}
           <Text style={styles.headerCount}>{currentIndex + 1} / {connections.length}</Text>
         </View>
-        <Pressable onPress={goNext} style={styles.skipBtn}>
-          <Text style={styles.skipText}>{t('activityReview.skip') || '跳過'}</Text>
+        <Pressable onPress={() => goNext(true)} style={styles.skipBtn}>
+          <Text style={styles.skipText}>{t('activityReview.done') || '完成'}</Text>
         </Pressable>
       </View>
 
@@ -383,13 +389,9 @@ export default function ActivityReviewScreen({ navigation, route }: Props) {
           </Pressable>
         </View>
         <View style={styles.actionRow}>
-          <Pressable style={styles.skipActionBtn} onPress={() => swipeAway('left')}>
-            <X size={20} color={COLORS.gray500} />
-            <Text style={styles.skipActionText}>{t('activityReview.skip') || '跳過'}</Text>
-          </Pressable>
           <Pressable style={styles.nextActionBtn} onPress={() => swipeAway('right')}>
             <Check size={20} color={COLORS.white} />
-            <Text style={styles.nextActionText}>{t('activityReview.next') || '下一位'}</Text>
+            <Text style={styles.nextActionText}>{t('activityReview.done') || '完成'}</Text>
           </Pressable>
         </View>
       </View>

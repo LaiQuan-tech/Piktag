@@ -604,9 +604,10 @@
     "summaryTitle": "整理完成",
     "summaryText": "已整理 {{people}} 位朋友，加了 {{tags}} 個標籤",
     "addTagPlaceholder": "加隱藏標籤...",
-    "swipeHint": "← 左滑跳過 · 右滑下一位 →",
+    "swipeHint": "滑動整理下一位 →",
     "skip": "跳過",
-    "next": "下一位"
+    "next": "下一位",
+    "done": "完成"
   },
   "tagDetail": {
     "unknownTag": "未知標籤",
