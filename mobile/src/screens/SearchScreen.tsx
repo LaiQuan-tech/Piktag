@@ -830,7 +830,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
                   <TagCard
                     key={tag.id}
                     tag={tag}
-                    isHighlighted={index === 4}
+                    isHighlighted={false}
                     onPress={handleTagPress}
                     countSuffix={tagCountSuffix}
                     rank={index + 1}
@@ -877,7 +877,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
                   <TagCard
                     key={tag.id}
                     tag={tag}
-                    isHighlighted={index === 0}
+                    isHighlighted={false}
                     onPress={handleTagPress}
                     countSuffix={tagCountSuffix}
                     rank={index + 1}
