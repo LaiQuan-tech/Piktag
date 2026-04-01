@@ -97,53 +97,34 @@ const verifiedBadgeStyle = { marginLeft: 4 };
 
 type TagCardProps = {
   tag: Tag;
-  isSelected: boolean;
+  isHighlighted: boolean;
   onPress: (tag: Tag) => void;
-  onLongPress?: (tag: Tag) => void;
   countSuffix: string;
   isTrending?: boolean;
 };
 
-const TagCard = React.memo(function TagCard({ tag, isSelected, onPress, onLongPress, countSuffix, isTrending }: TagCardProps) {
+const TagCard = React.memo(function TagCard({ tag, onPress, countSuffix, isTrending }: TagCardProps) {
   const handlePress = useCallback(() => {
     onPress(tag);
   }, [onPress, tag]);
-  const handleLongPress = useCallback(() => {
-    onLongPress?.(tag);
-  }, [onLongPress, tag]);
 
   return (
     <TouchableOpacity
-      style={[
-        styles.tagCard,
-        isSelected && styles.tagCardHighlighted,
-      ]}
+      style={styles.tagCard}
       activeOpacity={0.7}
       onPress={handlePress}
-      onLongPress={handleLongPress}
     >
       <View style={styles.tagCardRow}>
-        <Hash size={14} color={isSelected ? COLORS.white : COLORS.piktag500} strokeWidth={2.5} />
-        <Text
-          style={[
-            styles.tagName,
-            isSelected && styles.tagNameHighlighted,
-          ]}
-          numberOfLines={1}
-        >
+        <Hash size={14} color={COLORS.piktag500} strokeWidth={2.5} />
+        <Text style={styles.tagName} numberOfLines={1}>
           {tag.name}
         </Text>
       </View>
       <View style={styles.tagCountRow}>
         {isTrending && (
-          <TrendingUp size={12} color={isSelected ? COLORS.white : COLORS.accent500} />
+          <TrendingUp size={12} color={COLORS.accent500} />
         )}
-        <Text
-          style={[
-            styles.tagCount,
-            isSelected && styles.tagCountHighlighted,
-          ]}
-        >
+        <Text style={styles.tagCount}>
           {tag.usage_count}{countSuffix}
         </Text>
       </View>
@@ -212,10 +193,6 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
   const [selectedTagCategory, setSelectedTagCategory] = useState<string | null>(null);
   const [trendingTagIds, setTrendingTagIds] = useState<Set<string>>(new Set());
 
-  // Multi-tag selection for intersection search
-  const [selectedTags, setSelectedTags] = useState<Tag[]>([]);
-  const [intersectionUsers, setIntersectionUsers] = useState<PiktagProfile[]>([]);
-  const [loadingIntersection, setLoadingIntersection] = useState(false);
 
   // Refs for stable closures
   const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -583,91 +560,11 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
 
   const handleTagPress = useCallback(
     (tag: Tag) => {
-      setSelectedTags(prev => {
-        const exists = prev.find(t => t.id === tag.id);
-        if (exists) {
-          // Deselect
-          return prev.filter(t => t.id !== tag.id);
-        } else {
-          // Select (add to list)
-          return [...prev, tag];
-        }
-      });
-    },
-    [],
-  );
-
-  const handleTagLongPress = useCallback(
-    (tag: Tag) => {
       navigation.navigate('TagDetail', { tagId: tag.id, tagName: tag.name });
     },
     [navigation],
   );
 
-  const removeSelectedTag = useCallback((tagId: string) => {
-    setSelectedTags(prev => prev.filter(t => t.id !== tagId));
-  }, []);
-
-  // Fetch intersection users when selectedTags changes
-  const selectedTagIdsKey = selectedTags.map(t => t.id).join(',');
-  useEffect(() => {
-    if (selectedTags.length === 0) {
-      setIntersectionUsers([]);
-      setLoadingIntersection(false);
-      return;
-    }
-
-    let cancelled = false;
-    setLoadingIntersection(true);
-
-    const fetchIntersection = async () => {
-      try {
-        const tagIds = selectedTags.map(t => t.id);
-        const userIdSets: Set<string>[] = [];
-
-        for (const tagId of tagIds) {
-          const { data } = await supabase
-            .from('piktag_user_tags')
-            .select('user_id')
-            .eq('tag_id', tagId)
-            .eq('is_private', false);
-          if (cancelled) return;
-          userIdSets.push(new Set((data || []).map(d => d.user_id)));
-        }
-
-        if (cancelled || userIdSets.length === 0) return;
-
-        let intersection = userIdSets[0];
-        for (let i = 1; i < userIdSets.length; i++) {
-          intersection = new Set([...intersection].filter(id => userIdSets[i].has(id)));
-        }
-
-        const userIds = [...intersection].slice(0, 30);
-        if (cancelled) return;
-
-        if (userIds.length === 0) {
-          setIntersectionUsers([]);
-          setLoadingIntersection(false);
-          return;
-        }
-
-        const { data: profileData } = await supabase
-          .from('piktag_profiles')
-          .select('id, username, full_name, avatar_url, bio, is_verified')
-          .in('id', userIds);
-
-        if (!cancelled) {
-          setIntersectionUsers((profileData || []) as PiktagProfile[]);
-        }
-      } catch (err) {
-        console.warn('Intersection search error:', err);
-      }
-      if (!cancelled) setLoadingIntersection(false);
-    };
-
-    fetchIntersection();
-    return () => { cancelled = true; };
-  }, [selectedTagIdsKey]);
 
   const handleProfilePress = useCallback(
     (profile: PiktagProfile) => {
@@ -953,9 +850,8 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
                   <TagCard
                     key={tag.id}
                     tag={tag}
-                    isSelected={!!selectedTags.find(t => t.id === tag.id)}
+                    isHighlighted={false}
                     onPress={handleTagPress}
-                    onLongPress={handleTagLongPress}
                     countSuffix={tagCountSuffix}
                     isTrending={trendingTagIds.has(tag.id)}
                   />
@@ -1001,62 +897,14 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
                   <TagCard
                     key={tag.id}
                     tag={tag}
-                    isSelected={!!selectedTags.find(t => t.id === tag.id)}
+                    isHighlighted={false}
                     onPress={handleTagPress}
-                    onLongPress={handleTagLongPress}
                     countSuffix={tagCountSuffix}
                     isTrending={trendingTagIds.has(tag.id)}
                   />
                 ))}
               </View>
 
-              {/* Intersection results — inline */}
-              {selectedTags.length > 0 && (
-                <View style={styles.selectedTagsBar}>
-                  <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, paddingHorizontal: 16 }}>
-                    {selectedTags.map((st) => (
-                      <TouchableOpacity key={st.id} style={styles.selectedTagChip} onPress={() => removeSelectedTag(st.id)} activeOpacity={0.7}>
-                        <Text style={styles.selectedTagChipText}>#{st.name}</Text>
-                        <X size={14} color={COLORS.white} />
-                      </TouchableOpacity>
-                    ))}
-                    <TouchableOpacity style={styles.clearAllBtn} onPress={() => setSelectedTags([])} activeOpacity={0.7}>
-                      <Text style={styles.clearAllText}>{t('search.clearAll') || '清除全部'}</Text>
-                    </TouchableOpacity>
-                  </View>
-                  <Text style={styles.intersectionHint}>
-                    {t('search.intersectionHint', { count: selectedTags.length }) || `交集搜尋：${selectedTags.length} 個標籤`}
-                  </Text>
-                  {loadingIntersection ? (
-                    <ActivityIndicator size="small" color={COLORS.piktag500} style={{ marginTop: 12 }} />
-                  ) : intersectionUsers.length > 0 ? (
-                    <View style={{ paddingHorizontal: 16, paddingTop: 8 }}>
-                      <Text style={{ fontSize: 13, color: COLORS.gray500, marginBottom: 8 }}>
-                        {t('search.intersectionResultCount', { count: intersectionUsers.length }) || `找到 ${intersectionUsers.length} 位`}
-                      </Text>
-                      {intersectionUsers.map((u) => (
-                        <TouchableOpacity key={u.id} style={styles.tagUserItem} activeOpacity={0.7} onPress={() => handleProfilePress(u)}>
-                          {u.avatar_url ? (
-                            <Image source={{ uri: u.avatar_url }} style={styles.tagUserAvatar} />
-                          ) : (
-                            <View style={[styles.tagUserAvatar, styles.tagUserAvatarPlaceholder]}>
-                              <User size={20} color={COLORS.gray400} />
-                            </View>
-                          )}
-                          <View style={styles.tagUserInfo}>
-                            <Text style={styles.tagUserName} numberOfLines={1}>{u.full_name || u.username || ''}</Text>
-                            {u.username && <Text style={styles.tagUserUsername} numberOfLines={1}>@{u.username}</Text>}
-                          </View>
-                        </TouchableOpacity>
-                      ))}
-                    </View>
-                  ) : (
-                    <Text style={{ fontSize: 14, color: COLORS.gray400, textAlign: 'center', paddingVertical: 12 }}>
-                      {t('search.noIntersectionResults') || '沒有同時擁有這些標籤的人'}
-                    </Text>
-                  )}
-                </View>
-              )}
             </View>
           );
         }
@@ -1068,9 +916,8 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
                 <TagCard
                   key={tag.id}
                   tag={tag}
-                  isSelected={!!selectedTags.find(t => t.id === tag.id)}
+                  isHighlighted={false}
                   onPress={handleTagPress}
-                  onLongPress={handleTagLongPress}
                   countSuffix={tagCountSuffix}
                   isTrending={trendingTagIds.has(tag.id)}
                 />
@@ -1140,11 +987,6 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
       handleRecentSearchTap,
       handleProfilePress,
       handleTagPress,
-      handleTagLongPress,
-      removeSelectedTag,
-      selectedTags,
-      intersectionUsers,
-      loadingIntersection,
       tags,
       filteredTags,
       tagCategories,
