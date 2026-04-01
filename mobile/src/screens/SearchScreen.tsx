@@ -12,6 +12,7 @@ import {
   ListRenderItemInfo,
   Alert,
   ScrollView,
+  Pressable,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
@@ -102,46 +103,49 @@ type TagCardProps = {
   rank?: number; // 1-based rank, top 3 get trending indicator
 };
 
-const TagCard = React.memo(function TagCard({ tag, isHighlighted, onPress, countSuffix, rank }: TagCardProps) {
+const TagCard = React.memo(function TagCard({ tag, isHighlighted: _unused, onPress, countSuffix, rank }: TagCardProps) {
   const handlePress = useCallback(() => {
     onPress(tag);
   }, [onPress, tag]);
 
   return (
-    <TouchableOpacity
-      style={[
+    <Pressable
+      style={({ pressed }) => [
         styles.tagCard,
-        isHighlighted && styles.tagCardHighlighted,
+        pressed && styles.tagCardHighlighted,
       ]}
-      activeOpacity={0.7}
       onPress={handlePress}
     >
-      <View style={styles.tagCardRow}>
-        <Hash size={14} color={isHighlighted ? COLORS.white : COLORS.piktag500} strokeWidth={2.5} />
-        <Text
-          style={[
-            styles.tagName,
-            isHighlighted && styles.tagNameHighlighted,
-          ]}
-          numberOfLines={1}
-        >
-          {tag.name}
-        </Text>
-      </View>
-      <View style={styles.tagCountRow}>
-        {rank && rank <= 3 && (
-          <TrendingUp size={12} color={isHighlighted ? COLORS.white : COLORS.accent500} />
-        )}
-        <Text
-          style={[
-            styles.tagCount,
-            isHighlighted && styles.tagCountHighlighted,
-          ]}
-        >
-          {tag.usage_count}{countSuffix}
-        </Text>
-      </View>
-    </TouchableOpacity>
+      {({ pressed }) => (
+        <>
+          <View style={styles.tagCardRow}>
+            <Hash size={14} color={pressed ? COLORS.white : COLORS.piktag500} strokeWidth={2.5} />
+            <Text
+              style={[
+                styles.tagName,
+                pressed && styles.tagNameHighlighted,
+              ]}
+              numberOfLines={1}
+            >
+              {tag.name}
+            </Text>
+          </View>
+          <View style={styles.tagCountRow}>
+            {rank && rank <= 3 && (
+              <TrendingUp size={12} color={pressed ? COLORS.white : COLORS.accent500} />
+            )}
+            <Text
+              style={[
+                styles.tagCount,
+                pressed && styles.tagCountHighlighted,
+              ]}
+            >
+              {tag.usage_count}{countSuffix}
+            </Text>
+          </View>
+        </>
+      )}
+    </Pressable>
   );
 });
 
