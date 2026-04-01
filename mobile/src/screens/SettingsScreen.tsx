@@ -154,19 +154,26 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
     Alert.alert(t('settings.alertAboutTitle'), t('settings.alertAboutMessage', { version: APP_VERSION }));
   };
 
+  const doLogout = async () => {
+    try {
+      await supabase.auth.signOut();
+    } catch {
+      // If signOut API fails, force clear local session
+      await supabase.auth.signOut({ scope: 'local' });
+    }
+  };
+
   const handleLogout = async () => {
     if (Platform.OS === 'web') {
       const ok = window.confirm(t('settings.alertLogoutMessage') || '確定要登出嗎？');
-      if (ok) await supabase.auth.signOut();
+      if (ok) await doLogout();
     } else {
       Alert.alert(t('settings.alertLogoutTitle'), t('settings.alertLogoutMessage'), [
         { text: t('common.cancel'), style: 'cancel' },
         {
           text: t('settings.alertLogoutButton'),
           style: 'destructive',
-          onPress: async () => {
-            await supabase.auth.signOut();
-          },
+          onPress: doLogout,
         },
       ]);
     }
