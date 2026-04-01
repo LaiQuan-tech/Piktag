@@ -392,6 +392,25 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
           reminderResults.push({ ...c, reminderType: 'birthday', reminderLabel: t('connections.reminderBirthday') });
         }
       }
+
+      // Follow-up reminders: 3, 7, 30 days after meeting
+      const followUpIntervals = [
+        { days: 3, label: t('connections.followUp3d') || '認識 3 天了，打個招呼' },
+        { days: 7, label: t('connections.followUp7d') || '已經一週了，聊聊近況' },
+        { days: 30, label: t('connections.followUp30d') || '認識一個月了，保持聯繫' },
+      ];
+      const nowMs = today.getTime();
+      for (const c of connectionsData) {
+        const createdMs = new Date(c.created_at).getTime();
+        const daysSinceMet = Math.floor((nowMs - createdMs) / (1000 * 60 * 60 * 24));
+        for (const interval of followUpIntervals) {
+          if (daysSinceMet === interval.days) {
+            reminderResults.push({ ...c, reminderType: 'follow_up', reminderLabel: interval.label });
+            break;
+          }
+        }
+      }
+
       setCrmReminders(reminderResults);
 
       // Auto-create birthday notifications (once per day per person)
@@ -678,15 +697,19 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
       if (crmReminders.length === 0 || remindersDismissed || selectMode) return null;
       const getIcon = (type: string) => {
         if (type === 'birthday') return <Gift size={16} color="#ec4899" />;
-        // anniversary/contract_expiry removed — only birthday
+        if (type === 'follow_up') return <Heart size={16} color={COLORS.piktag500} />;
         return <Clock size={16} color="#f97316" />;
       };
+
+      const reminderTitle = reminderResults.some(r => r.reminderType === 'birthday')
+        ? t('connections.todayReminderTitle')
+        : t('connections.followUpTitle') || '該跟進了';
       return (
         <View style={styles.reminderCard}>
           <View style={styles.recHeader}>
             <View style={styles.recHeaderLeft}>
               <Gift size={16} color="#ec4899" />
-              <Text style={[styles.recHeaderText, { color: '#ec4899' }]}>{t('connections.todayReminderTitle')}</Text>
+              <Text style={[styles.recHeaderText, { color: '#ec4899' }]}>{reminderTitle}</Text>
             </View>
             <TouchableOpacity onPress={() => setRemindersDismissed(true)} activeOpacity={0.6}>
               <X size={18} color={COLORS.gray400} />

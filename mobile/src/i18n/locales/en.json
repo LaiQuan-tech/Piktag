@@ -105,6 +105,10 @@
   "connections": {
     "friendsLabel": "friends",
     "closeFriendsLabel": "close friends",
+    "followUpTitle": "Time to follow up",
+    "followUp3d": "Met 3 days ago, say hi",
+    "followUp7d": "It's been a week, catch up",
+    "followUp30d": "One month since you met, stay in touch",
     "sortNewest": "Newest first",
     "sortOldest": "Oldest first",
     "sortAlpha": "Alphabetical",

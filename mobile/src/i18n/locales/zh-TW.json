@@ -105,6 +105,10 @@
   "connections": {
     "friendsLabel": "位朋友",
     "closeFriendsLabel": "位摯友",
+    "followUpTitle": "該跟進了",
+    "followUp3d": "認識 3 天了，打個招呼",
+    "followUp7d": "已經一週了，聊聊近況",
+    "followUp30d": "認識一個月了，保持聯繫",
     "sortNewest": "從新到舊",
     "sortOldest": "從舊到新",
     "sortAlpha": "依字母排序",
