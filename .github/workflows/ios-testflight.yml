@@ -96,8 +96,10 @@ jobs:
 
       - name: Upload to TestFlight
         run: |
+          IPA_PATH=$(find $RUNNER_TEMP/export -name "*.ipa" -print -quit)
+          echo "Uploading: $IPA_PATH"
           xcrun altool --upload-app \
-            -f $RUNNER_TEMP/export/*.ipa \
+            -f "$IPA_PATH" \
             --type ios \
             --apiKey ${{ secrets.ASC_API_KEY_ID }} \
             --apiIssuer ${{ secrets.ASC_API_KEY_ISSUER_ID }}
