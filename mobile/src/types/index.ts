@@ -98,6 +98,7 @@ export type ConnectionTag = {
   connection_id: string;
   tag_id: string;
   semantic_type: SemanticType | null;
+  position: number;
   created_at: string;
   tag?: Tag; // joined
 };

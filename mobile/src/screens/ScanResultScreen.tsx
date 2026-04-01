@@ -198,10 +198,10 @@ export default function ScanResultScreen({ navigation, route }: ScanResultScreen
         return;
       }
 
-      // Insert public connection tags (from scanner's own tags)
+      // Insert public connection tags (from scanner's own tags) with position
       if (publicTagIds.length > 0) {
         await supabase.from('piktag_connection_tags').insert(
-          publicTagIds.map(tagId => ({ connection_id: connectionData.id, tag_id: tagId, is_private: false }))
+          publicTagIds.map((tagId, i) => ({ connection_id: connectionData.id, tag_id: tagId, is_private: false, position: i }))
         ).catch(() => {});
       }
 
@@ -216,8 +216,9 @@ export default function ScanResultScreen({ navigation, route }: ScanResultScreen
       }
 
       if (privateTagIds.length > 0) {
+        const publicCount = publicTagIds.length;
         await supabase.from('piktag_connection_tags').insert(
-          privateTagIds.map(tagId => ({ connection_id: connectionData.id, tag_id: tagId, is_private: true }))
+          privateTagIds.map((tagId, i) => ({ connection_id: connectionData.id, tag_id: tagId, is_private: true, position: publicCount + i }))
         ).catch(() => {});
       }
 

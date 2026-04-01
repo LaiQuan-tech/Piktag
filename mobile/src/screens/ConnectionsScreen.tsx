@@ -194,6 +194,7 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
             id, full_name, username, avatar_url, is_verified, latitude, longitude, birthday
           ),
           connection_tags:piktag_connection_tags(
+            position,
             tag:piktag_tags!tag_id(name)
           )
         `)
@@ -244,6 +245,7 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
         tags: [
           ...(publicTagMap.get(conn.connected_user_id) || []),
           ...(conn.connection_tags || [])
+            .sort((a: any, b: any) => (a.position ?? 0) - (b.position ?? 0))
             .map((ct: any) => ct.tag?.name ? `#${ct.tag.name}` : '')
             .filter(Boolean),
         ].filter((v, i, a) => a.indexOf(v) === i), // deduplicate

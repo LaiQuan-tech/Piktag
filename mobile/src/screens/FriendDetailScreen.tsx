@@ -467,11 +467,12 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
       // Delete existing connection_tags for this connection
       await supabase.from('piktag_connection_tags').delete().eq('connection_id', connectionId);
 
-      // Insert picked ones
+      // Insert picked ones with position (preserving order)
       if (pickedTagIds.size > 0) {
-        const rows = Array.from(pickedTagIds).map(tagId => ({
+        const rows = Array.from(pickedTagIds).map((tagId, i) => ({
           connection_id: connectionId,
           tag_id: tagId,
+          position: i,
         }));
         await supabase.from('piktag_connection_tags').insert(rows);
       }
