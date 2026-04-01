@@ -501,6 +501,12 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
     }
     // Apply tag filter
     if (filterSemanticType) {
+      if (filterSemanticType.startsWith('__search:')) {
+        // Concept-based search: match by tag names
+        const matchTags = filterSemanticType.replace('__search:', '').split(',');
+        return sorted.filter((c) => c.tags.some(t => matchTags.includes(t)));
+      }
+      // Semantic type filter
       return sorted.filter((c) => (c.semanticTypes || []).includes(filterSemanticType));
     }
     return sorted;
@@ -871,7 +877,11 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
               onPress={() => setFilterSemanticType(null)}
               activeOpacity={0.7}
             >
-              <Text style={styles.filterIndicatorText}>{t(`semanticType.${filterSemanticType}`) || filterSemanticType}</Text>
+              <Text style={styles.filterIndicatorText}>
+                {filterSemanticType.startsWith('__search:')
+                  ? filterSemanticType.replace('__search:', '').split(',').slice(0, 3).join(' ')
+                  : (t(`semanticType.${filterSemanticType}`) || filterSemanticType)}
+              </Text>
               <X size={14} color={COLORS.piktag600} />
             </TouchableOpacity>
           )}
@@ -979,7 +989,48 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
                 <Text style={styles.filterClearText}>{t('connections.clearFilter')}</Text>
               </TouchableOpacity>
             )}
-            <ScrollView showsVerticalScrollIndicator={false} style={{ maxHeight: 400 }}>
+
+            {/* Search input with concept matching */}
+            <TextInput
+              style={styles.filterSearchInput}
+              placeholder={t('connections.filterSearchPlaceholder') || '搜尋標籤（如：創業、設計）'}
+              placeholderTextColor={COLORS.gray400}
+              onSubmitEditing={async (e) => {
+                const query = e.nativeEvent.text.trim().replace(/#/g, '');
+                if (!query) return;
+                // Search by name + concept aliases
+                const { data: directTags } = await supabase
+                  .from('piktag_tags')
+                  .select('name, concept_id')
+                  .ilike('name', `%${query}%`)
+                  .limit(10);
+                const { data: aliasTags } = await supabase
+                  .from('tag_aliases')
+                  .select('concept_id')
+                  .ilike('alias', `%${query}%`)
+                  .limit(10);
+                // Collect all concept_ids
+                const conceptIds = new Set<string>();
+                (directTags || []).forEach((t: any) => t.concept_id && conceptIds.add(t.concept_id));
+                (aliasTags || []).forEach((a: any) => a.concept_id && conceptIds.add(a.concept_id));
+                // Get all tag names under these concepts
+                let matchNames = new Set((directTags || []).map((t: any) => `#${t.name}`));
+                if (conceptIds.size > 0) {
+                  const { data: siblingTags } = await supabase
+                    .from('piktag_tags')
+                    .select('name')
+                    .in('concept_id', [...conceptIds]);
+                  (siblingTags || []).forEach((t: any) => matchNames.add(`#${t.name}`));
+                }
+                // Filter connections that have any of these tags
+                setFilterSemanticType(`__search:${[...matchNames].join(',')}`);
+                setFilterModalVisible(false);
+              }}
+              returnKeyType="search"
+            />
+
+            {/* Semantic type category chips */}
+            <ScrollView showsVerticalScrollIndicator={false} style={{ maxHeight: 300 }}>
               {allSemanticTypes.length === 0 ? (
                 <Text style={styles.filterEmptyText}>{t('connections.noTagsToFilter')}</Text>
               ) : (
@@ -1626,6 +1677,16 @@ const styles = StyleSheet.create({
     color: COLORS.gray400,
     textAlign: 'center',
     paddingVertical: 24,
+  },
+  filterSearchInput: {
+    borderWidth: 1,
+    borderColor: COLORS.gray200,
+    borderRadius: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    fontSize: 15,
+    color: COLORS.gray900,
+    marginBottom: 14,
   },
   filterSemanticTypesWrap: {
     flexDirection: 'row',
