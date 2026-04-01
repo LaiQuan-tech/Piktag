@@ -11,6 +11,7 @@ import {
   Dimensions,
   Keyboard,
   Platform,
+  Image,
 } from 'react-native';
 import { X, Search, MapPin, Navigation, ChevronUp, ChevronDown } from 'lucide-react-native';
 import * as Location from 'expo-location';
@@ -44,19 +45,17 @@ type LocationPickerModalProps = {
   initialLocation?: string;
 };
 
-/** Web: Google Maps Embed via iframe */
+/** Web: Google Maps Static API (image) */
 function WebMapView({ latitude, longitude, address }: { latitude: number; longitude: number; address: string }) {
   if (!isWeb) return null;
-  const src = `https://www.google.com/maps/embed/v1/place?key=${GOOGLE_PLACES_API_KEY}&q=${latitude},${longitude}&zoom=16&language=zh-TW`;
+  const mapWidth = Math.min(Math.round(SCREEN_WIDTH), 640);
+  const mapHeight = Math.round(MAP_HEIGHT_EXPANDED);
+  const src = `https://maps.googleapis.com/maps/api/staticmap?center=${latitude},${longitude}&zoom=16&size=${mapWidth}x${mapHeight}&scale=2&markers=color:red%7C${latitude},${longitude}&key=${GOOGLE_PLACES_API_KEY}&language=zh-TW`;
   return (
     <View style={{ flex: 1 }}>
-      {/* @ts-ignore - iframe is web-only */}
-      <iframe
-        src={src}
-        style={{ width: '100%', height: '100%', border: 'none' }}
-        allowFullScreen
-        loading="lazy"
-        referrerPolicy="no-referrer-when-downgrade"
+      <Image
+        source={{ uri: src }}
+        style={{ width: '100%' as any, height: '100%' as any, resizeMode: 'cover' }}
       />
       {address ? (
         <View style={styles.webAddressOverlay}>
