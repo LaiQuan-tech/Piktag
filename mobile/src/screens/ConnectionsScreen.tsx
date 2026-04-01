@@ -239,17 +239,17 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
         }
       }
 
-      // Merge: public tags + picked tags
-      const merged: ConnectionWithTags[] = connectionsData.map((conn: any) => ({
-        ...conn,
-        tags: [
-          ...(publicTagMap.get(conn.connected_user_id) || []),
-          ...(conn.connection_tags || [])
-            .sort((a: any, b: any) => (a.position ?? 0) - (b.position ?? 0))
-            .map((ct: any) => ct.tag?.name ? `#${ct.tag.name}` : '')
-            .filter(Boolean),
-        ].filter((v, i, a) => a.indexOf(v) === i), // deduplicate
-      }));
+      // Merge: picked tags first (by position), then remaining public tags
+      const merged: ConnectionWithTags[] = connectionsData.map((conn: any) => {
+        const pickedTags = (conn.connection_tags || [])
+          .sort((a: any, b: any) => (a.position ?? 0) - (b.position ?? 0))
+          .map((ct: any) => ct.tag?.name ? `#${ct.tag.name}` : '')
+          .filter(Boolean);
+        const publicTags = (publicTagMap.get(conn.connected_user_id) || []);
+        // Picked first, then public tags not already picked
+        const allTags = [...pickedTags, ...publicTags].filter((v, i, a) => a.indexOf(v) === i);
+        return { ...conn, tags: allTags };
+      });
       setCache(CACHE_KEYS.CONNECTIONS, merged);
       setConnections(merged);
 
