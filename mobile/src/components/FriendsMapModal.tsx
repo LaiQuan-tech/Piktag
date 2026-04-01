@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -9,15 +9,16 @@ import {
   Image,
   Platform,
   Dimensions,
+  ScrollView,
 } from 'react-native';
-import { X, Navigation } from 'lucide-react-native';
+import { X } from 'lucide-react-native';
 import * as Location from 'expo-location';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { COLORS } from '../constants/theme';
 import { GOOGLE_PLACES_API_KEY } from '../lib/googlePlaces';
 import InitialsAvatar from './InitialsAvatar';
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 const isWeb = Platform.OS === 'web';
 
 type FriendLocation = {
@@ -46,13 +47,13 @@ export default function FriendsMapModal({
 }: FriendsMapModalProps) {
   const insets = useSafeAreaInsets();
   const [userCoords, setUserCoords] = useState<{ lat: number; lng: number } | null>(null);
-  const [selectedFriend, setSelectedFriend] = useState<FriendLocation | null>(null);
   const [loading, setLoading] = useState(true);
+
+  const friendsWithLocation = friends.filter(f => f.latitude && f.longitude);
 
   useEffect(() => {
     if (!visible) return;
     setLoading(true);
-    setSelectedFriend(null);
 
     (async () => {
       try {
@@ -79,39 +80,19 @@ export default function FriendsMapModal({
     })();
   }, [visible]);
 
-  // Build Google Maps embed URL with markers
-  const mapUrl = useCallback(() => {
-    if (!userCoords) return null;
-    const center = `${userCoords.lat},${userCoords.lng}`;
-    // Use Google Maps with multiple markers
-    let url = `https://www.google.com/maps?q=${center}&z=13&output=embed`;
-    return url;
-  }, [userCoords]);
-
-  // Build a static map with all friend markers
-  const staticMapUrl = useCallback(() => {
-    if (!userCoords && friends.length === 0) return null;
+  // Build Google Maps embed URL centered on user or first friend
+  const getMapUrl = () => {
     const center = userCoords
       ? `${userCoords.lat},${userCoords.lng}`
-      : `${friends[0]?.latitude},${friends[0]?.longitude}`;
+      : friendsWithLocation.length > 0
+        ? `${friendsWithLocation[0].latitude},${friendsWithLocation[0].longitude}`
+        : '25.033,121.565';
+    return `https://www.google.com/maps?q=${center}&z=13&output=embed`;
+  };
 
-    let markers = '';
-    // User marker (blue)
-    if (userCoords) {
-      markers += `&markers=color:blue%7Clabel:Me%7C${userCoords.lat},${userCoords.lng}`;
-    }
-    // Friend markers (red, labeled A-Z)
-    const labels = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-    friends.slice(0, 26).forEach((f, i) => {
-      markers += `&markers=color:red%7Clabel:${labels[i]}%7C${f.latitude},${f.longitude}`;
-    });
-
-    const width = Math.min(Math.round(SCREEN_WIDTH), 640);
-    return `https://maps.googleapis.com/maps/api/staticmap?center=${center}&zoom=12&size=${width}x500&scale=2${markers}&key=${GOOGLE_PLACES_API_KEY}`;
-  }, [userCoords, friends]);
-
-  const friendsWithLocation = friends.filter(f => f.latitude && f.longitude);
-  const labels = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  // Calculate positions for avatar overlays on the map
+  // This is approximate — we overlay avatars on top of the embedded map
+  const mapHeight = SCREEN_HEIGHT * 0.55;
 
   return (
     <Modal visible={visible} animationType="slide" presentationStyle="fullScreen" onRequestClose={onClose}>
@@ -126,20 +107,19 @@ export default function FriendsMapModal({
         </View>
 
         {/* Map */}
-        <View style={styles.mapContainer}>
+        <View style={[styles.mapContainer, { height: mapHeight }]}>
           {loading ? (
             <View style={styles.loadingContainer}>
               <ActivityIndicator size="large" color={COLORS.piktag500} />
             </View>
           ) : isWeb ? (
-            <View style={{ flex: 1, position: 'relative' }}>
+            <View style={{ flex: 1 }}>
               {/* @ts-ignore */}
               <iframe
-                src={mapUrl() || ''}
+                src={getMapUrl()}
                 style={{ width: '100%', height: '100%', border: 'none' }}
                 loading="lazy"
               />
-              {/* Overlay friend markers as absolute positioned dots */}
             </View>
           ) : (
             (() => {
@@ -150,37 +130,33 @@ export default function FriendsMapModal({
                   <Text style={{ color: COLORS.gray500 }}>地圖載入失敗</Text>
                 </View>
               );
-              return <WebView source={{ uri: mapUrl() || '' }} style={{ flex: 1 }} />;
+              return <WebView source={{ uri: getMapUrl() }} style={{ flex: 1 }} />;
             })()
           )}
         </View>
 
-        {/* Friend list with location labels */}
-        <View style={styles.friendList}>
+        {/* Friend list */}
+        <View style={styles.friendListContainer}>
           <Text style={styles.friendListTitle}>
             {friendsWithLocation.length} 位好友有位置資訊
           </Text>
-          {friendsWithLocation.slice(0, 26).map((f, i) => (
-            <TouchableOpacity
-              key={f.id}
-              style={[styles.friendItem, selectedFriend?.id === f.id && styles.friendItemSelected]}
-              activeOpacity={0.7}
-              onPress={() => {
-                setSelectedFriend(f);
-                onFriendPress(f.connectionId, f.id);
-              }}
-            >
-              <View style={styles.friendMarkerLabel}>
-                <Text style={styles.friendMarkerText}>{labels[i]}</Text>
-              </View>
-              {f.avatarUrl ? (
-                <Image source={{ uri: f.avatarUrl }} style={styles.friendAvatar} />
-              ) : (
-                <InitialsAvatar name={f.name} size={36} />
-              )}
-              <Text style={styles.friendName} numberOfLines={1}>{f.name}</Text>
-            </TouchableOpacity>
-          ))}
+          <ScrollView contentContainerStyle={styles.friendListScroll}>
+            {friendsWithLocation.map((f) => (
+              <TouchableOpacity
+                key={f.id}
+                style={styles.friendItem}
+                activeOpacity={0.7}
+                onPress={() => onFriendPress(f.connectionId, f.id)}
+              >
+                {f.avatarUrl ? (
+                  <Image source={{ uri: f.avatarUrl }} style={styles.friendAvatar} />
+                ) : (
+                  <InitialsAvatar name={f.name} size={40} />
+                )}
+                <Text style={styles.friendName} numberOfLines={1}>{f.name}</Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
         </View>
       </View>
     </Modal>
@@ -213,58 +189,51 @@ const styles = StyleSheet.create({
     color: COLORS.gray900,
   },
   mapContainer: {
-    flex: 1,
-    minHeight: 300,
+    width: SCREEN_WIDTH,
+    overflow: 'hidden',
   },
   loadingContainer: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  friendList: {
-    maxHeight: 250,
+  friendListContainer: {
+    flex: 1,
     borderTopWidth: 1,
     borderTopColor: COLORS.gray200,
-    paddingVertical: 8,
   },
   friendListTitle: {
     fontSize: 13,
     color: COLORS.gray500,
     paddingHorizontal: 16,
+    paddingTop: 12,
     paddingBottom: 8,
   },
-  friendItem: {
+  friendListScroll: {
+    paddingHorizontal: 12,
+    paddingBottom: 20,
     flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+  },
+  friendItem: {
     alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    gap: 10,
-  },
-  friendItemSelected: {
-    backgroundColor: COLORS.piktag50,
-  },
-  friendMarkerLabel: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    backgroundColor: '#ff3b30',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  friendMarkerText: {
-    color: '#fff',
-    fontSize: 12,
-    fontWeight: '700',
+    width: 72,
+    paddingVertical: 4,
   },
   friendAvatar: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    borderWidth: 2,
+    borderColor: COLORS.piktag400,
   },
   friendName: {
-    flex: 1,
-    fontSize: 15,
+    fontSize: 12,
     fontWeight: '500',
-    color: COLORS.gray800,
+    color: COLORS.gray700,
+    marginTop: 4,
+    textAlign: 'center',
+    width: 72,
   },
 });
