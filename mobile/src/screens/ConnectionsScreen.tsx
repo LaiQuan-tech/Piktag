@@ -1030,7 +1030,7 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
               returnKeyType="search"
             />
 
-            {/* Semantic type category chips */}
+            {/* Quick filter: top tags by usage */}
             <ScrollView showsVerticalScrollIndicator={false} style={{ maxHeight: 300 }}>
               {allConnectionTags.length === 0 ? (
                 <Text style={styles.filterEmptyText}>{t('connections.noTagsToFilter')}</Text>
