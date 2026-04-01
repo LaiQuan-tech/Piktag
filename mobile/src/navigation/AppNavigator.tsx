@@ -64,9 +64,6 @@ function HomeStackNavigator() {
   return (
     <HomeStack.Navigator screenOptions={{ headerShown: false }}>
       <HomeStack.Screen name="Connections" component={ConnectionsScreen} />
-      <HomeStack.Screen name="FriendDetail" component={FriendDetailScreen} />
-      <HomeStack.Screen name="UserDetail" component={UserDetailScreen} />
-      <HomeStack.Screen name="TagDetail" component={TagDetailScreen} />
     </HomeStack.Navigator>
   );
 }
@@ -75,9 +72,6 @@ function SearchStackNavigator() {
   return (
     <SearchStack.Navigator screenOptions={{ headerShown: false }}>
       <SearchStack.Screen name="SearchMain" component={SearchScreen} />
-      <SearchStack.Screen name="UserDetail" component={UserDetailScreen} />
-      <SearchStack.Screen name="TagDetail" component={TagDetailScreen} />
-      <SearchStack.Screen name="FriendDetail" component={FriendDetailScreen} />
     </SearchStack.Navigator>
   );
 }
@@ -86,7 +80,6 @@ function AddTagStackNavigator() {
   return (
     <AddTagStack.Navigator screenOptions={{ headerShown: false }}>
       <AddTagStack.Screen name="AddTagMain" component={AddTagScreen} />
-      <AddTagStack.Screen name="CameraScan" component={CameraScanScreen} />
     </AddTagStack.Navigator>
   );
 }
@@ -103,17 +96,6 @@ function ProfileStackNavigator() {
   return (
     <ProfileStack.Navigator screenOptions={{ headerShown: false }}>
       <ProfileStack.Screen name="ProfileMain" component={ProfileScreen} />
-      <ProfileStack.Screen name="EditProfile" component={EditProfileScreen} />
-      <ProfileStack.Screen name="ManageTags" component={ManageTagsScreen} />
-      <ProfileStack.Screen name="Settings" component={SettingsScreen} />
-      <ProfileStack.Screen name="ContactSync" component={ContactSyncScreen} />
-      <ProfileStack.Screen name="Invite" component={InviteScreen} />
-      <ProfileStack.Screen name="LocationContacts" component={LocationContactsScreen} />
-      <ProfileStack.Screen name="SocialStats" component={SocialStatsScreen} />
-      <ProfileStack.Screen name="TagDetail" component={TagDetailScreen} />
-      <ProfileStack.Screen name="UserDetail" component={UserDetailScreen} />
-      <ProfileStack.Screen name="PrivacyPolicy" component={PrivacyPolicyScreen} />
-      <ProfileStack.Screen name="TermsOfService" component={TermsOfServiceScreen} />
     </ProfileStack.Navigator>
   );
 }
@@ -216,7 +198,23 @@ function MainNavigator({ needsOnboarding }: { needsOnboarding: boolean }) {
         <RootStack.Screen name="Onboarding" component={OnboardingScreen} />
       ) : null}
       <RootStack.Screen name="Main" component={MainTabs} />
-      {/* AddTagModal removed — # is now a regular tab, not a modal */}
+
+      {/* Task/detail screens — no tab bar */}
+      <RootStack.Screen name="FriendDetail" component={FriendDetailScreen} />
+      <RootStack.Screen name="UserDetail" component={UserDetailScreen} />
+      <RootStack.Screen name="TagDetail" component={TagDetailScreen} />
+      <RootStack.Screen name="EditProfile" component={EditProfileScreen} />
+      <RootStack.Screen name="ManageTags" component={ManageTagsScreen} />
+      <RootStack.Screen name="Settings" component={SettingsScreen} />
+      <RootStack.Screen name="ContactSync" component={ContactSyncScreen} />
+      <RootStack.Screen name="Invite" component={InviteScreen} />
+      <RootStack.Screen name="LocationContacts" component={LocationContactsScreen} />
+      <RootStack.Screen name="SocialStats" component={SocialStatsScreen} />
+      <RootStack.Screen name="CameraScan" component={CameraScanScreen} />
+      <RootStack.Screen name="PrivacyPolicy" component={PrivacyPolicyScreen} />
+      <RootStack.Screen name="TermsOfService" component={TermsOfServiceScreen} />
+
+      {/* Modal screens */}
       <RootStack.Screen
         name="ScanResult"
         component={ScanResultScreen}
