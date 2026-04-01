@@ -1,0 +1,30 @@
+name: Daily Cron Jobs
+
+on:
+  schedule:
+    - cron: '0 1 * * *'   # 每天 UTC 01:00 (台灣 09:00) — 跟進提醒
+    - cron: '0 19 * * *'  # 每天 UTC 19:00 (台灣 03:00) — 語意標籤歸類
+  workflow_dispatch:       # 手動觸發
+
+jobs:
+  followup-check:
+    runs-on: ubuntu-latest
+    if: github.event.schedule == '0 1 * * *' || github.event_name == 'workflow_dispatch'
+    steps:
+      - name: Trigger daily-followup-check
+        run: |
+          curl -s -X POST \
+            "https://kbwfdskulxnhjckdvghj.supabase.co/functions/v1/daily-followup-check" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" \
+            -H "Content-Type: application/json"
+
+  auto-link-concepts:
+    runs-on: ubuntu-latest
+    if: github.event.schedule == '0 19 * * *' || github.event_name == 'workflow_dispatch'
+    steps:
+      - name: Trigger auto-link-concepts
+        run: |
+          curl -s -X POST \
+            "https://kbwfdskulxnhjckdvghj.supabase.co/functions/v1/auto-link-concepts" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" \
+            -H "Content-Type: application/json"
