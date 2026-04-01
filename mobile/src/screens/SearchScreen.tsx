@@ -578,20 +578,59 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
     [navigation],
   );
 
-  const handleSearchByTags = useCallback(() => {
+  const handleSearchByTags = useCallback(async () => {
     if (selectedTagIds.length === 0) return;
     const selected = tags.filter(t => selectedTagIdSet.has(t.id));
     if (selected.length === 1) {
-      // Single tag: go to TagDetail directly
       navigation.navigate('TagDetail', { tagId: selected[0].id, tagName: selected[0].name });
-    } else {
-      // Multiple tags: put in search bar as "#tag1 #tag2"
-      const query = selected.map(t => `#${t.name}`).join(' ');
-      setSearchQuery(query);
-      performSearch(query);
+      setSelectedTagIds([]);
+      return;
     }
+
+    // Multiple tags: do intersection search
+    setSearchQuery(selected.map(t => t.name).join(' + '));
+    setLoading(true);
+
+    try {
+      // Get user_ids for each tag, then intersect
+      const userIdSets: Set<string>[] = [];
+      for (const tagId of selectedTagIds) {
+        const { data } = await supabase
+          .from('piktag_user_tags')
+          .select('user_id')
+          .eq('tag_id', tagId)
+          .eq('is_private', false);
+        userIdSets.push(new Set((data || []).map((d: any) => d.user_id)));
+      }
+
+      // Intersect
+      let intersection = userIdSets[0] || new Set();
+      for (let i = 1; i < userIdSets.length; i++) {
+        intersection = new Set([...intersection].filter(id => userIdSets[i].has(id)));
+      }
+
+      const userIds = [...intersection].slice(0, 30);
+
+      if (userIds.length > 0) {
+        const { data: profileData } = await supabase
+          .from('piktag_profiles')
+          .select('id, username, full_name, avatar_url, is_verified')
+          .in('id', userIds);
+        setProfiles((profileData || []) as PiktagProfile[]);
+      } else {
+        setProfiles([]);
+      }
+
+      // Show selected tags in tag list
+      setTags(selected);
+    } catch (err) {
+      console.warn('Intersection search error:', err);
+      setProfiles([]);
+    }
+
+    setLoading(false);
     setSelectedTagIds([]);
-  }, [selectedTagIds, selectedTagIdSet, tags, navigation, performSearch]);
+  }, [selectedTagIds, selectedTagIdSet, tags, navigation]);
 
 
   const handleProfilePress = useCallback(
