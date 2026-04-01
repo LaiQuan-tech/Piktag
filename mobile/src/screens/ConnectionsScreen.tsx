@@ -503,11 +503,16 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
     return sorted;
   }, [connections, sortBy, userLocation, filterTag]);
 
-  // All unique tags from connections for filter modal
+  // Top 10 tags by usage count across connections
   const allConnectionTags = useMemo(() => {
-    const tagSet = new Set<string>();
-    connections.forEach((c) => c.tags.forEach((t) => tagSet.add(t)));
-    return Array.from(tagSet).sort();
+    const tagCount = new Map<string, number>();
+    connections.forEach((c) => c.tags.forEach((t) => {
+      tagCount.set(t, (tagCount.get(t) || 0) + 1);
+    }));
+    return [...tagCount.entries()]
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 10)
+      .map(([tag]) => tag);
   }, [connections]);
 
   // --- Optimized: useCallback for handlers ---
