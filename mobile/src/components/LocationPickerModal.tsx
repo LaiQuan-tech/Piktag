@@ -85,6 +85,7 @@ export default function LocationPickerModal({
   });
   const [currentAddress, setCurrentAddress] = useState('');
   const [locating, setLocating] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
 
   // Places list
   const [nearbyPlaces, setNearbyPlaces] = useState<PlaceResult[]>([]);
@@ -110,44 +111,69 @@ export default function LocationPickerModal({
     };
   }, [visible]);
 
+  const fetchLocationData = useCallback(async (latitude: number, longitude: number) => {
+    setCoords({ latitude, longitude });
+    setRegion({ latitude, longitude, latitudeDelta: 0.008, longitudeDelta: 0.008 });
+    if (!isWeb) {
+      mapRef.current?.animateToRegion({ latitude, longitude, latitudeDelta: 0.008, longitudeDelta: 0.008 }, 500);
+    }
+
+    // Reverse geocode
+    if (isWeb) {
+      try {
+        const res = await fetch(
+          `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${GOOGLE_PLACES_API_KEY}&language=zh-TW`
+        );
+        const data = await res.json();
+        if (data.status === 'REQUEST_DENIED') {
+          setErrorMsg('Geocoding API 未啟用，請到 Google Cloud Console 啟用');
+        } else if (data.results?.[0]) {
+          const addr = data.results[0].formatted_address;
+          setCurrentAddress(addr.split(',').slice(0, 2).join(',').trim());
+        }
+      } catch (e: any) {
+        setErrorMsg('Geocoding 錯誤: ' + (e.message || ''));
+      }
+    } else {
+      try {
+        const [place] = await Location.reverseGeocodeAsync({ latitude, longitude });
+        if (place) {
+          setCurrentAddress([place.name, place.district, place.city].filter(Boolean).join(', '));
+        }
+      } catch {}
+    }
+
+    setLocating(false);
+
+    // Fetch nearby places
+    setLoadingNearby(true);
+    const places = await fetchNearbyPlaces(latitude, longitude, 500, 15);
+    if (places.length === 0) {
+      setErrorMsg(prev => prev || '找不到附近地點，請確認 Google Places API (New) 已啟用');
+    }
+    setNearbyPlaces(places);
+    setLoadingNearby(false);
+  }, []);
+
   const getCurrentLocation = useCallback(async () => {
     setLocating(true);
+    setErrorMsg('');
     try {
       // Web: use browser geolocation API
       if (isWeb && typeof navigator !== 'undefined' && navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
-          async (position) => {
-            const { latitude, longitude } = position.coords;
-            setCoords({ latitude, longitude });
-            setRegion({ latitude, longitude, latitudeDelta: 0.008, longitudeDelta: 0.008 });
-
-            // Reverse geocode via Google — use short name from nearby place
-            try {
-              const res = await fetch(
-                `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${GOOGLE_PLACES_API_KEY}&language=zh-TW&result_type=point_of_interest|premise|sublocality`
-              );
-              const data = await res.json();
-              if (data.results?.[0]) {
-                // Extract short name from address components
-                const components = data.results[0].address_components || [];
-                const poi = components.find((c: any) => c.types.includes('point_of_interest'));
-                const sublocality = components.find((c: any) => c.types.includes('sublocality'));
-                const locality = components.find((c: any) => c.types.includes('locality'));
-                const shortName = [poi?.long_name, sublocality?.long_name, locality?.long_name].filter(Boolean).join(', ');
-                setCurrentAddress(shortName || data.results[0].formatted_address.split(',').slice(0, 2).join(','));
-              }
-            } catch {}
-
-            setLocating(false);
-
-            // Fetch nearby
-            setLoadingNearby(true);
-            const places = await fetchNearbyPlaces(latitude, longitude, 500, 15);
-            setNearbyPlaces(places);
-            setLoadingNearby(false);
+          (position) => {
+            fetchLocationData(position.coords.latitude, position.coords.longitude);
           },
-          () => {
+          (err) => {
             setLocating(false);
+            if (err.code === 1) {
+              setErrorMsg('位置權限被拒絕，請在瀏覽器設定中允許位置存取');
+            } else if (err.code === 2) {
+              setErrorMsg('無法取得位置，請確認 GPS 已開啟');
+            } else {
+              setErrorMsg('位置請求逾時，請重試');
+            }
           },
           { enableHighAccuracy: true, timeout: 10000 }
         );
@@ -158,36 +184,16 @@ export default function LocationPickerModal({
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== 'granted') {
         setLocating(false);
+        setErrorMsg('位置權限被拒絕');
         return;
       }
       const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
-      const { latitude, longitude } = loc.coords;
-
-      const newRegion = { latitude, longitude, latitudeDelta: 0.008, longitudeDelta: 0.008 };
-      setCoords({ latitude, longitude });
-      setRegion(newRegion);
-      mapRef.current?.animateToRegion(newRegion, 500);
-
-      // Reverse geocode — show short place name, not full address
-      try {
-        const [place] = await Location.reverseGeocodeAsync({ latitude, longitude });
-        if (place) {
-          const shortName = [place.name, place.district, place.city].filter(Boolean).join(', ');
-          setCurrentAddress(shortName);
-        }
-      } catch {}
-
+      await fetchLocationData(loc.coords.latitude, loc.coords.longitude);
+    } catch (e: any) {
       setLocating(false);
-
-      // Fetch nearby places
-      setLoadingNearby(true);
-      const places = await fetchNearbyPlaces(latitude, longitude, 500, 15);
-      setNearbyPlaces(places);
-      setLoadingNearby(false);
-    } catch {
-      setLocating(false);
+      setErrorMsg('位置錯誤: ' + (e.message || '未知錯誤'));
     }
-  }, []);
+  }, [fetchLocationData]);
 
   const handleSearchChange = (text: string) => {
     setSearchText(text);
@@ -340,6 +346,13 @@ export default function LocationPickerModal({
             )}
           </View>
         </View>
+
+        {/* Error message */}
+        {errorMsg ? (
+          <View style={{ paddingHorizontal: 16, paddingVertical: 8, backgroundColor: '#fff3cd' }}>
+            <Text style={{ fontSize: 13, color: '#856404' }}>{errorMsg}</Text>
+          </View>
+        ) : null}
 
         {/* Places list */}
         {isLoading ? (
