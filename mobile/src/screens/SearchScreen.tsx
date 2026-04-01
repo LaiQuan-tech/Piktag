@@ -727,9 +727,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
     | { type: 'tagsEmpty' }
     | { type: 'tagsGrid' }
     | { type: 'nearbyTagsGrid' }
-    | { type: 'tagUsersSection'; tagUserData: { tag: Tag; users: any[] } }
-    | { type: 'selectedTagsBar' }
-    | { type: 'intersectionResults' };
+    | { type: 'tagUsersSection'; tagUserData: { tag: Tag; users: any[] } };
 
   const listData = useMemo<ListItem[]>(() => {
     const items: ListItem[] = [];
@@ -765,11 +763,6 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
           if (tags.length > 0) {
             items.push({ type: 'tagsGrid' });
           }
-          // Show intersection results below tags when multi-selecting
-          if (selectedTags.length > 0) {
-            items.push({ type: 'selectedTagsBar' });
-            items.push({ type: 'intersectionResults' });
-          }
           break;
 
         case 'nearby':
@@ -777,10 +770,6 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
             items.push({ type: 'nearbyTagsGrid' });
           } else {
             items.push({ type: 'tagsEmpty' });
-          }
-          if (selectedTags.length > 0) {
-            items.push({ type: 'selectedTagsBar' });
-            items.push({ type: 'intersectionResults' });
           }
           break;
 
@@ -811,7 +800,6 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
     nearbyTags,
     tagUsers,
     searchTab,
-    selectedTags,
   ]);
 
   const keyExtractor = useCallback((item: ListItem, index: number): string => {
@@ -844,10 +832,6 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
         return 'clearHistoryBtn';
       case 'tagUsersSection':
         return `tagUsers-${item.tagUserData?.tag?.id || index}`;
-      case 'selectedTagsBar':
-        return 'selectedTagsBar';
-      case 'intersectionResults':
-        return 'intersectionResults';
       default:
         return `item-${index}`;
     }
@@ -1025,6 +1009,54 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
                   />
                 ))}
               </View>
+
+              {/* Intersection results — inline */}
+              {selectedTags.length > 0 && (
+                <View style={styles.selectedTagsBar}>
+                  <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, paddingHorizontal: 16 }}>
+                    {selectedTags.map((st) => (
+                      <TouchableOpacity key={st.id} style={styles.selectedTagChip} onPress={() => removeSelectedTag(st.id)} activeOpacity={0.7}>
+                        <Text style={styles.selectedTagChipText}>#{st.name}</Text>
+                        <X size={14} color={COLORS.white} />
+                      </TouchableOpacity>
+                    ))}
+                    <TouchableOpacity style={styles.clearAllBtn} onPress={() => setSelectedTags([])} activeOpacity={0.7}>
+                      <Text style={styles.clearAllText}>{t('search.clearAll') || '清除全部'}</Text>
+                    </TouchableOpacity>
+                  </View>
+                  <Text style={styles.intersectionHint}>
+                    {t('search.intersectionHint', { count: selectedTags.length }) || `交集搜尋：${selectedTags.length} 個標籤`}
+                  </Text>
+                  {loadingIntersection ? (
+                    <ActivityIndicator size="small" color={COLORS.piktag500} style={{ marginTop: 12 }} />
+                  ) : intersectionUsers.length > 0 ? (
+                    <View style={{ paddingHorizontal: 16, paddingTop: 8 }}>
+                      <Text style={{ fontSize: 13, color: COLORS.gray500, marginBottom: 8 }}>
+                        {t('search.intersectionResultCount', { count: intersectionUsers.length }) || `找到 ${intersectionUsers.length} 位`}
+                      </Text>
+                      {intersectionUsers.map((u) => (
+                        <TouchableOpacity key={u.id} style={styles.tagUserItem} activeOpacity={0.7} onPress={() => handleProfilePress(u)}>
+                          {u.avatar_url ? (
+                            <Image source={{ uri: u.avatar_url }} style={styles.tagUserAvatar} />
+                          ) : (
+                            <View style={[styles.tagUserAvatar, styles.tagUserAvatarPlaceholder]}>
+                              <User size={20} color={COLORS.gray400} />
+                            </View>
+                          )}
+                          <View style={styles.tagUserInfo}>
+                            <Text style={styles.tagUserName} numberOfLines={1}>{u.full_name || u.username || ''}</Text>
+                            {u.username && <Text style={styles.tagUserUsername} numberOfLines={1}>@{u.username}</Text>}
+                          </View>
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+                  ) : (
+                    <Text style={{ fontSize: 14, color: COLORS.gray400, textAlign: 'center', paddingVertical: 12 }}>
+                      {t('search.noIntersectionResults') || '沒有同時擁有這些標籤的人'}
+                    </Text>
+                  )}
+                </View>
+              )}
             </View>
           );
         }
@@ -1097,84 +1129,6 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
             </View>
           );
         }
-
-        case 'selectedTagsBar':
-          return (
-            <View style={styles.selectedTagsBar}>
-              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, paddingHorizontal: 16 }}>
-                {selectedTags.map((tag) => (
-                  <TouchableOpacity
-                    key={tag.id}
-                    style={styles.selectedTagChip}
-                    onPress={() => removeSelectedTag(tag.id)}
-                    activeOpacity={0.7}
-                  >
-                    <Text style={styles.selectedTagChipText}>#{tag.name}</Text>
-                    <X size={14} color={COLORS.white} />
-                  </TouchableOpacity>
-                ))}
-                <TouchableOpacity
-                  style={styles.clearAllBtn}
-                  onPress={() => setSelectedTags([])}
-                  activeOpacity={0.7}
-                >
-                  <Text style={styles.clearAllText}>{t('search.clearAll') || '清除全部'}</Text>
-                </TouchableOpacity>
-              </View>
-              <Text style={styles.intersectionHint}>
-                {t('search.intersectionHint', { count: selectedTags.length }) || `交集搜尋：${selectedTags.length} 個標籤`}
-              </Text>
-            </View>
-          );
-
-        case 'intersectionResults':
-          if (loadingIntersection) {
-            return (
-              <View style={{ paddingVertical: 20, alignItems: 'center' }}>
-                <ActivityIndicator size="small" color={COLORS.piktag500} />
-              </View>
-            );
-          }
-          if (intersectionUsers.length === 0) {
-            return (
-              <View style={{ paddingVertical: 20, alignItems: 'center' }}>
-                <Text style={{ fontSize: 14, color: COLORS.gray400 }}>
-                  {t('search.noIntersectionResults') || '沒有同時擁有這些標籤的人'}
-                </Text>
-              </View>
-            );
-          }
-          return (
-            <View style={{ paddingHorizontal: 16, paddingBottom: 12 }}>
-              <Text style={{ fontSize: 13, color: COLORS.gray500, marginBottom: 8 }}>
-                {t('search.intersectionResultCount', { count: intersectionUsers.length }) || `找到 ${intersectionUsers.length} 位`}
-              </Text>
-              {intersectionUsers.map((u) => (
-                <TouchableOpacity
-                  key={u.id}
-                  style={styles.tagUserItem}
-                  activeOpacity={0.7}
-                  onPress={() => handleProfilePress(u)}
-                >
-                  {u.avatar_url ? (
-                    <Image source={{ uri: u.avatar_url }} style={styles.tagUserAvatar} />
-                  ) : (
-                    <View style={[styles.tagUserAvatar, styles.tagUserAvatarPlaceholder]}>
-                      <User size={20} color={COLORS.gray400} />
-                    </View>
-                  )}
-                  <View style={styles.tagUserInfo}>
-                    <Text style={styles.tagUserName} numberOfLines={1}>
-                      {u.full_name || u.username || ''}
-                    </Text>
-                    {u.username && (
-                      <Text style={styles.tagUserUsername} numberOfLines={1}>@{u.username}</Text>
-                    )}
-                  </View>
-                </TouchableOpacity>
-              ))}
-            </View>
-          );
 
         default:
           return null;
