@@ -167,7 +167,7 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
   const [remindersDismissed, setRemindersDismissed] = useState(false);
 
   // Tag filter state
-  const [filterSemanticType, setFilterSemanticType] = useState<string | null>(null);
+  const [filterTag, setFilterTag] = useState<string | null>(null);
   const [filterModalVisible, setFilterModalVisible] = useState(false);
 
   // Batch selection state
@@ -500,27 +500,28 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
         break;
     }
     // Apply tag filter
-    if (filterSemanticType) {
-      if (filterSemanticType.startsWith('__search:')) {
+    if (filterTag) {
+      if (filterTag.startsWith('__search:')) {
         // Concept-based search: match by tag names
-        const matchTags = filterSemanticType.replace('__search:', '').split(',');
+        const matchTags = filterTag.replace('__search:', '').split(',');
         return sorted.filter((c) => c.tags.some(t => matchTags.includes(t)));
       }
-      // Semantic type filter
-      return sorted.filter((c) => (c.semanticTypes || []).includes(filterSemanticType));
+      // Direct tag filter
+      return sorted.filter((c) => c.tags.includes(filterTag));
     }
     return sorted;
-  }, [connections, sortBy, userLocation, filterSemanticType]);
+  }, [connections, sortBy, userLocation, filterTag]);
 
   // All unique semantic types from connections (for filter)
-  const allSemanticTypes = useMemo(() => {
-    const typeCount = new Map<string, number>();
-    connections.forEach((c) => (c.semanticTypes || []).forEach((st) => {
-      typeCount.set(st, (typeCount.get(st) || 0) + 1);
+  const allConnectionTags = useMemo(() => {
+    const tagCount = new Map<string, number>();
+    connections.forEach((c) => c.tags.forEach((t) => {
+      tagCount.set(t, (tagCount.get(t) || 0) + 1);
     }));
-    return [...typeCount.entries()]
+    return [...tagCount.entries()]
       .sort((a, b) => b[1] - a[1])
-      .map(([type]) => type);
+      .slice(0, 10)
+      .map(([tag]) => tag);
   }, [connections]);
 
   // --- Optimized: useCallback for handlers ---
@@ -843,7 +844,7 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
               activeOpacity={0.6}
               onPress={() => setFilterModalVisible(true)}
             >
-              <Tag size={24} color={filterSemanticType ? COLORS.piktag600 : COLORS.gray600} />
+              <Tag size={24} color={filterTag ? COLORS.piktag600 : COLORS.gray600} />
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.headerIconBtn}
@@ -864,23 +865,23 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
       )}
 
       {/* Sort / Filter indicators */}
-      {!selectMode && (sortBy !== 'newest' || filterSemanticType) && (
+      {!selectMode && (sortBy !== 'newest' || filterTag) && (
         <View style={styles.sortIndicator}>
           {sortBy !== 'newest' && (
             <Text style={styles.sortIndicatorText}>
               {SORT_OPTIONS.find((o) => o.key === sortBy)?.label}
             </Text>
           )}
-          {filterSemanticType && (
+          {filterTag && (
             <TouchableOpacity
               style={styles.filterIndicatorChip}
-              onPress={() => setFilterSemanticType(null)}
+              onPress={() => setFilterTag(null)}
               activeOpacity={0.7}
             >
               <Text style={styles.filterIndicatorText}>
-                {filterSemanticType.startsWith('__search:')
-                  ? filterSemanticType.replace('__search:', '').split(',').slice(0, 3).join(' ')
-                  : (t(`semanticType.${filterSemanticType}`) || filterSemanticType)}
+                {filterTag.startsWith('__search:')
+                  ? filterTag.replace('__search:', '').split(',').slice(0, 3).join(' ')
+                  : filterTag}
               </Text>
               <X size={14} color={COLORS.piktag600} />
             </TouchableOpacity>
@@ -980,10 +981,10 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
                 <X size={24} color={COLORS.gray900} />
               </TouchableOpacity>
             </View>
-            {filterSemanticType && (
+            {filterTag && (
               <TouchableOpacity
                 style={styles.filterClearBtn}
-                onPress={() => { setFilterSemanticType(null); setFilterModalVisible(false); }}
+                onPress={() => { setFilterTag(null); setFilterModalVisible(false); }}
                 activeOpacity={0.7}
               >
                 <Text style={styles.filterClearText}>{t('connections.clearFilter')}</Text>
@@ -1023,7 +1024,7 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
                   (siblingTags || []).forEach((t: any) => matchNames.add(`#${t.name}`));
                 }
                 // Filter connections that have any of these tags
-                setFilterSemanticType(`__search:${[...matchNames].join(',')}`);
+                setFilterTag(`__search:${[...matchNames].join(',')}`);
                 setFilterModalVisible(false);
               }}
               returnKeyType="search"
@@ -1031,19 +1032,19 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
 
             {/* Semantic type category chips */}
             <ScrollView showsVerticalScrollIndicator={false} style={{ maxHeight: 300 }}>
-              {allSemanticTypes.length === 0 ? (
+              {allConnectionTags.length === 0 ? (
                 <Text style={styles.filterEmptyText}>{t('connections.noTagsToFilter')}</Text>
               ) : (
-                <View style={styles.filterSemanticTypesWrap}>
-                  {allSemanticTypes.map((st) => (
+                <View style={styles.filterTagsWrap}>
+                  {allConnectionTags.map((st) => (
                     <TouchableOpacity
                       key={st}
-                      style={[styles.filterSemanticTypeChip, filterSemanticType === st && styles.filterSemanticTypeChipActive]}
-                      onPress={() => { setFilterSemanticType(st); setFilterModalVisible(false); }}
+                      style={[styles.filterTagChip, filterTag === st && styles.filterTagChipActive]}
+                      onPress={() => { setFilterTag(st); setFilterModalVisible(false); }}
                       activeOpacity={0.7}
                     >
-                      <Text style={[styles.filterSemanticTypeChipText, filterSemanticType === st && styles.filterSemanticTypeChipTextActive]}>
-                        {t(`semanticType.${st}`) || st}
+                      <Text style={[styles.filterTagChipText, filterTag === st && styles.filterTagChipTextActive]}>
+                        {st}
                       </Text>
                     </TouchableOpacity>
                   ))}
@@ -1688,12 +1689,12 @@ const styles = StyleSheet.create({
     color: COLORS.gray900,
     marginBottom: 14,
   },
-  filterSemanticTypesWrap: {
+  filterTagsWrap: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 10,
   },
-  filterSemanticTypeChip: {
+  filterTagChip: {
     paddingHorizontal: 14,
     paddingVertical: 10,
     borderRadius: 20,
@@ -1701,16 +1702,16 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: 'transparent',
   },
-  filterSemanticTypeChipActive: {
+  filterTagChipActive: {
     backgroundColor: COLORS.piktag50,
     borderColor: COLORS.piktag500,
   },
-  filterSemanticTypeChipText: {
+  filterTagChipText: {
     fontSize: 14,
     fontWeight: '500',
     color: COLORS.gray700,
   },
-  filterSemanticTypeChipTextActive: {
+  filterTagChipTextActive: {
     color: COLORS.piktag600,
     fontWeight: '700',
   },
