@@ -147,6 +147,8 @@
   },
   "search": {
     "clearAll": "清除全部",
+    "tagsSelected": "個標籤已選",
+    "searchBtn": "搜尋",
     "intersectionHint": "交集搜尋：{{count}} 個標籤",
     "noIntersectionResults": "沒有同時擁有這些標籤的人",
     "intersectionResultCount": "找到 {{count}} 位",

@@ -97,34 +97,32 @@ const verifiedBadgeStyle = { marginLeft: 4 };
 
 type TagCardProps = {
   tag: Tag;
-  isHighlighted: boolean;
+  isSelected?: boolean;
   onPress: (tag: Tag) => void;
+  onLongPress?: (tag: Tag) => void;
   countSuffix: string;
   isTrending?: boolean;
 };
 
-const TagCard = React.memo(function TagCard({ tag, onPress, countSuffix, isTrending }: TagCardProps) {
-  const handlePress = useCallback(() => {
-    onPress(tag);
-  }, [onPress, tag]);
-
+const TagCard = React.memo(function TagCard({ tag, isSelected, onPress, onLongPress, countSuffix, isTrending }: TagCardProps) {
   return (
     <TouchableOpacity
-      style={styles.tagCard}
+      style={[styles.tagCard, isSelected && styles.tagCardHighlighted]}
       activeOpacity={0.7}
-      onPress={handlePress}
+      onPress={() => onPress(tag)}
+      onLongPress={onLongPress ? () => onLongPress(tag) : undefined}
     >
       <View style={styles.tagCardRow}>
-        <Hash size={14} color={COLORS.piktag500} strokeWidth={2.5} />
-        <Text style={styles.tagName} numberOfLines={1}>
+        <Hash size={14} color={isSelected ? COLORS.white : COLORS.piktag500} strokeWidth={2.5} />
+        <Text style={[styles.tagName, isSelected && styles.tagNameHighlighted]} numberOfLines={1}>
           {tag.name}
         </Text>
       </View>
       <View style={styles.tagCountRow}>
         {isTrending && (
-          <TrendingUp size={12} color={COLORS.accent500} />
+          <TrendingUp size={12} color={isSelected ? COLORS.white : COLORS.accent500} />
         )}
-        <Text style={styles.tagCount}>
+        <Text style={[styles.tagCount, isSelected && styles.tagCountHighlighted]}>
           {tag.usage_count}{countSuffix}
         </Text>
       </View>
@@ -192,6 +190,9 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
   const [tagCategories, setTagCategories] = useState<string[]>([]);
   const [selectedTagCategory, setSelectedTagCategory] = useState<string | null>(null);
   const [trendingTagIds, setTrendingTagIds] = useState<Set<string>>(new Set());
+
+  // Multi-tag selection (toggle only, no fetch until search button pressed)
+  const [selectedTagIds, setSelectedTagIds] = useState<Set<string>>(new Set());
 
 
   // Refs for stable closures
@@ -560,10 +561,40 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
 
   const handleTagPress = useCallback(
     (tag: Tag) => {
+      setSelectedTagIds(prev => {
+        const next = new Set(prev);
+        if (next.has(tag.id)) {
+          next.delete(tag.id);
+        } else {
+          next.add(tag.id);
+        }
+        return next;
+      });
+    },
+    [],
+  );
+
+  const handleTagLongPress = useCallback(
+    (tag: Tag) => {
       navigation.navigate('TagDetail', { tagId: tag.id, tagName: tag.name });
     },
     [navigation],
   );
+
+  const handleSearchByTags = useCallback(() => {
+    if (selectedTagIds.size === 0) return;
+    const selected = tags.filter(t => selectedTagIds.has(t.id));
+    if (selected.length === 1) {
+      // Single tag: go to TagDetail directly
+      navigation.navigate('TagDetail', { tagId: selected[0].id, tagName: selected[0].name });
+    } else {
+      // Multiple tags: put in search bar as "#tag1 #tag2"
+      const query = selected.map(t => `#${t.name}`).join(' ');
+      setSearchQuery(query);
+      performSearch(query);
+    }
+    setSelectedTagIds(new Set());
+  }, [selectedTagIds, tags, navigation, performSearch]);
 
 
   const handleProfilePress = useCallback(
@@ -850,8 +881,9 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
                   <TagCard
                     key={tag.id}
                     tag={tag}
-                    isHighlighted={false}
+                    isSelected={selectedTagIds.has(tag.id)}
                     onPress={handleTagPress}
+                    onLongPress={handleTagLongPress}
                     countSuffix={tagCountSuffix}
                     isTrending={trendingTagIds.has(tag.id)}
                   />
@@ -897,8 +929,9 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
                   <TagCard
                     key={tag.id}
                     tag={tag}
-                    isHighlighted={false}
+                    isSelected={selectedTagIds.has(tag.id)}
                     onPress={handleTagPress}
+                    onLongPress={handleTagLongPress}
                     countSuffix={tagCountSuffix}
                     isTrending={trendingTagIds.has(tag.id)}
                   />
@@ -916,8 +949,9 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
                 <TagCard
                   key={tag.id}
                   tag={tag}
-                  isHighlighted={false}
+                  isSelected={selectedTagIds.has(tag.id)}
                   onPress={handleTagPress}
+                    onLongPress={handleTagLongPress}
                   countSuffix={tagCountSuffix}
                   isTrending={trendingTagIds.has(tag.id)}
                 />
@@ -987,6 +1021,8 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
       handleRecentSearchTap,
       handleProfilePress,
       handleTagPress,
+      handleTagLongPress,
+      selectedTagIds,
       tags,
       filteredTags,
       tagCategories,
@@ -1077,6 +1113,22 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
         windowSize={7}
         initialNumToRender={8}
       />
+
+      {/* Floating search button when tags are selected */}
+      {selectedTagIds.size > 0 && (
+        <View style={styles.floatingSearchBar}>
+          <Text style={styles.floatingSearchText}>
+            {selectedTagIds.size} {t('search.tagsSelected') || '個標籤已選'}
+          </Text>
+          <TouchableOpacity style={styles.floatingClearBtn} onPress={() => setSelectedTagIds(new Set())} activeOpacity={0.7}>
+            <Text style={styles.floatingClearText}>{t('search.clearAll') || '清除'}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.floatingSearchBtn} onPress={handleSearchByTags} activeOpacity={0.8}>
+            <Search size={16} color={COLORS.white} />
+            <Text style={styles.floatingSearchBtnText}>{t('search.searchBtn') || '搜尋'}</Text>
+          </TouchableOpacity>
+        </View>
+      )}
     </SafeAreaView>
   );
 }
@@ -1085,7 +1137,50 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
 const topEdges: ('top')[] = ['top'];
 
 const styles = StyleSheet.create({
-  // Selected tags bar
+  // Floating search bar
+  floatingSearchBar: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.gray200,
+    gap: 10,
+  },
+  floatingSearchText: {
+    flex: 1,
+    fontSize: 14,
+    fontWeight: '600',
+    color: COLORS.gray700,
+  },
+  floatingClearBtn: {
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+  },
+  floatingClearText: {
+    fontSize: 13,
+    color: COLORS.gray500,
+  },
+  floatingSearchBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.piktag500,
+    borderRadius: 20,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    gap: 6,
+  },
+  floatingSearchBtnText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: COLORS.white,
+  },
+  // Selected tags bar (unused, kept for reference)
   selectedTagsBar: {
     paddingVertical: 10,
     borderBottomWidth: 1,
