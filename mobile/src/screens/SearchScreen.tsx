@@ -609,40 +609,33 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
   }, []);
 
   // Fetch intersection users when selectedTags changes
+  const selectedTagIdsKey = selectedTags.map(t => t.id).join(',');
   useEffect(() => {
     if (selectedTags.length === 0) {
       setIntersectionUsers([]);
+      setLoadingIntersection(false);
       return;
     }
 
     let cancelled = false;
-    (async () => {
-      setLoadingIntersection(true);
+    setLoadingIntersection(true);
+
+    const fetchIntersection = async () => {
       try {
         const tagIds = selectedTags.map(t => t.id);
-
-        // Get user_ids who have ALL selected tags
-        // Strategy: for each tag, get set of user_ids, then intersect
         const userIdSets: Set<string>[] = [];
+
         for (const tagId of tagIds) {
           const { data } = await supabase
             .from('piktag_user_tags')
             .select('user_id')
             .eq('tag_id', tagId)
             .eq('is_private', false);
-          if (data) {
-            userIdSets.push(new Set(data.map(d => d.user_id)));
-          } else {
-            userIdSets.push(new Set());
-          }
+          if (cancelled) return;
+          userIdSets.push(new Set((data || []).map(d => d.user_id)));
         }
 
-        // Intersect all sets
-        if (userIdSets.length === 0 || cancelled) {
-          if (!cancelled) setIntersectionUsers([]);
-          setLoadingIntersection(false);
-          return;
-        }
+        if (cancelled || userIdSets.length === 0) return;
 
         let intersection = userIdSets[0];
         for (let i = 1; i < userIdSets.length; i++) {
@@ -650,29 +643,31 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
         }
 
         const userIds = [...intersection].slice(0, 30);
-        if (userIds.length === 0 || cancelled) {
-          if (!cancelled) setIntersectionUsers([]);
+        if (cancelled) return;
+
+        if (userIds.length === 0) {
+          setIntersectionUsers([]);
           setLoadingIntersection(false);
           return;
         }
 
-        // Fetch profiles
         const { data: profileData } = await supabase
           .from('piktag_profiles')
           .select('id, username, full_name, avatar_url, bio, is_verified')
           .in('id', userIds);
 
-        if (!cancelled && profileData) {
-          setIntersectionUsers(profileData as PiktagProfile[]);
+        if (!cancelled) {
+          setIntersectionUsers((profileData || []) as PiktagProfile[]);
         }
       } catch (err) {
         console.warn('Intersection search error:', err);
       }
       if (!cancelled) setLoadingIntersection(false);
-    })();
+    };
 
+    fetchIntersection();
     return () => { cancelled = true; };
-  }, [selectedTags]);
+  }, [selectedTagIdsKey]);
 
   const handleProfilePress = useCallback(
     (profile: PiktagProfile) => {
