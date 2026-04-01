@@ -63,6 +63,7 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
 
   const [profile, setProfile] = useState<PiktagProfile | null>(null);
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+  const [shareLocation, setShareLocation] = useState(true);
   const { isDark } = useTheme();
   const [darkModeEnabled, setDarkModeEnabled] = useState(isDark);
   const [currentLanguage, setCurrentLanguage] = useState('zh-TW');
@@ -82,6 +83,7 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
 
           if (!error && data) {
             setProfile(data);
+            setShareLocation(data.share_location !== false);
             const profileLang = data.language || 'zh-TW';
             setCurrentLanguage(profileLang);
             if (i18n.language !== profileLang) {
@@ -115,6 +117,18 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
     const newValue = !notificationsEnabled;
     setNotificationsEnabled(newValue);
     await AsyncStorage.setItem('piktag_notifications_enabled', String(newValue));
+  };
+
+  const handleShareLocationToggle = async () => {
+    if (!user) return;
+    const newValue = !shareLocation;
+    setShareLocation(newValue);
+    // Update DB: if turning off, also clear lat/lng
+    if (newValue) {
+      await supabase.from('piktag_profiles').update({ share_location: true }).eq('id', user.id);
+    } else {
+      await supabase.from('piktag_profiles').update({ share_location: false, latitude: null, longitude: null }).eq('id', user.id);
+    }
   };
 
   const handleLanguagePicker = () => {
@@ -285,6 +299,18 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
               onValueChange={handleNotificationsToggle}
               trackColor={{ false: COLORS.gray200, true: COLORS.piktag300 }}
               thumbColor={notificationsEnabled ? COLORS.piktag500 : COLORS.gray400}
+            />
+          ),
+        },
+        {
+          label: t('settings.shareLocation') || '分享所在地點',
+          onPress: handleShareLocationToggle,
+          rightElement: (
+            <Switch
+              value={shareLocation}
+              onValueChange={handleShareLocationToggle}
+              trackColor={{ false: COLORS.gray200, true: COLORS.piktag300 }}
+              thumbColor={shareLocation ? COLORS.piktag500 : COLORS.gray400}
             />
           ),
         },

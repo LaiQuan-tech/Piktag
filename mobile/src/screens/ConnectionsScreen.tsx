@@ -205,7 +205,7 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
           id, user_id, connected_user_id, nickname, created_at,
           met_at, birthday,
           connected_user:piktag_profiles!connected_user_id(
-            id, full_name, username, avatar_url, is_verified, latitude, longitude, birthday
+            id, full_name, username, avatar_url, is_verified, latitude, longitude, birthday, share_location
           ),
           connection_tags:piktag_connection_tags(
             position,
@@ -1025,7 +1025,7 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
         friends={connections
           .filter(c => {
             const p = c.connected_user as any;
-            return p?.latitude && p?.longitude;
+            return p?.latitude && p?.longitude && p?.share_location !== false;
           })
           .map(c => {
             const p = c.connected_user as any;
