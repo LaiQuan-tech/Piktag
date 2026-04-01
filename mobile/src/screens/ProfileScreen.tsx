@@ -210,9 +210,7 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
   const lastFocusFetchRef = useRef(0);
   useFocusEffect(
     useCallback(() => {
-      const now = Date.now();
-      if (now - lastFocusFetchRef.current < 30000 && lastFocusFetchRef.current > 0) return;
-      lastFocusFetchRef.current = now;
+      // Always refetch on focus to catch edits from EditProfile
       fetchAllData();
     }, [fetchAllData]),
   );
