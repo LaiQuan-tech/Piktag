@@ -146,6 +146,10 @@
     "noTagsToFilter": "No tags available to filter"
   },
   "search": {
+    "clearAll": "Clear all",
+    "intersectionHint": "Intersection: {{count}} tags",
+    "noIntersectionResults": "No one has all these tags",
+    "intersectionResultCount": "Found {{count}} people",
     "headerTitle": "Search",
     "searchPlaceholder": "Tags, usernames, etc.",
     "categorySectionLabel": "Browse by category",

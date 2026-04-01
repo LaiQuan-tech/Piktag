@@ -97,54 +97,56 @@ const verifiedBadgeStyle = { marginLeft: 4 };
 
 type TagCardProps = {
   tag: Tag;
-  isHighlighted: boolean;
+  isSelected: boolean;
   onPress: (tag: Tag) => void;
+  onLongPress?: (tag: Tag) => void;
   countSuffix: string;
   isTrending?: boolean;
 };
 
-const TagCard = React.memo(function TagCard({ tag, isHighlighted: _unused, onPress, countSuffix, isTrending }: TagCardProps) {
+const TagCard = React.memo(function TagCard({ tag, isSelected, onPress, onLongPress, countSuffix, isTrending }: TagCardProps) {
   const handlePress = useCallback(() => {
     onPress(tag);
   }, [onPress, tag]);
+  const handleLongPress = useCallback(() => {
+    onLongPress?.(tag);
+  }, [onLongPress, tag]);
 
   return (
     <Pressable
       style={({ pressed }) => [
         styles.tagCard,
-        pressed && styles.tagCardHighlighted,
+        isSelected && styles.tagCardHighlighted,
+        pressed && !isSelected && { opacity: 0.7 },
       ]}
       onPress={handlePress}
+      onLongPress={handleLongPress}
     >
-      {({ pressed }) => (
-        <>
-          <View style={styles.tagCardRow}>
-            <Hash size={14} color={pressed ? COLORS.white : COLORS.piktag500} strokeWidth={2.5} />
-            <Text
-              style={[
-                styles.tagName,
-                pressed && styles.tagNameHighlighted,
-              ]}
-              numberOfLines={1}
-            >
-              {tag.name}
-            </Text>
-          </View>
-          <View style={styles.tagCountRow}>
-            {isTrending && (
-              <TrendingUp size={12} color={pressed ? COLORS.white : COLORS.accent500} />
-            )}
-            <Text
-              style={[
-                styles.tagCount,
-                pressed && styles.tagCountHighlighted,
-              ]}
-            >
-              {tag.usage_count}{countSuffix}
-            </Text>
-          </View>
-        </>
-      )}
+      <View style={styles.tagCardRow}>
+        <Hash size={14} color={isSelected ? COLORS.white : COLORS.piktag500} strokeWidth={2.5} />
+        <Text
+          style={[
+            styles.tagName,
+            isSelected && styles.tagNameHighlighted,
+          ]}
+          numberOfLines={1}
+        >
+          {tag.name}
+        </Text>
+      </View>
+      <View style={styles.tagCountRow}>
+        {isTrending && (
+          <TrendingUp size={12} color={isSelected ? COLORS.white : COLORS.accent500} />
+        )}
+        <Text
+          style={[
+            styles.tagCount,
+            isSelected && styles.tagCountHighlighted,
+          ]}
+        >
+          {tag.usage_count}{countSuffix}
+        </Text>
+      </View>
     </Pressable>
   );
 });
@@ -209,6 +211,11 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
   const [tagCategories, setTagCategories] = useState<string[]>([]);
   const [selectedTagCategory, setSelectedTagCategory] = useState<string | null>(null);
   const [trendingTagIds, setTrendingTagIds] = useState<Set<string>>(new Set());
+
+  // Multi-tag selection for intersection search
+  const [selectedTags, setSelectedTags] = useState<Tag[]>([]);
+  const [intersectionUsers, setIntersectionUsers] = useState<PiktagProfile[]>([]);
+  const [loadingIntersection, setLoadingIntersection] = useState(false);
 
   // Refs for stable closures
   const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -576,10 +583,96 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
 
   const handleTagPress = useCallback(
     (tag: Tag) => {
+      setSelectedTags(prev => {
+        const exists = prev.find(t => t.id === tag.id);
+        if (exists) {
+          // Deselect
+          return prev.filter(t => t.id !== tag.id);
+        } else {
+          // Select (add to list)
+          return [...prev, tag];
+        }
+      });
+    },
+    [],
+  );
+
+  const handleTagLongPress = useCallback(
+    (tag: Tag) => {
       navigation.navigate('TagDetail', { tagId: tag.id, tagName: tag.name });
     },
     [navigation],
   );
+
+  const removeSelectedTag = useCallback((tagId: string) => {
+    setSelectedTags(prev => prev.filter(t => t.id !== tagId));
+  }, []);
+
+  // Fetch intersection users when selectedTags changes
+  useEffect(() => {
+    if (selectedTags.length === 0) {
+      setIntersectionUsers([]);
+      return;
+    }
+
+    let cancelled = false;
+    (async () => {
+      setLoadingIntersection(true);
+      try {
+        const tagIds = selectedTags.map(t => t.id);
+
+        // Get user_ids who have ALL selected tags
+        // Strategy: for each tag, get set of user_ids, then intersect
+        const userIdSets: Set<string>[] = [];
+        for (const tagId of tagIds) {
+          const { data } = await supabase
+            .from('piktag_user_tags')
+            .select('user_id')
+            .eq('tag_id', tagId)
+            .eq('is_private', false);
+          if (data) {
+            userIdSets.push(new Set(data.map(d => d.user_id)));
+          } else {
+            userIdSets.push(new Set());
+          }
+        }
+
+        // Intersect all sets
+        if (userIdSets.length === 0 || cancelled) {
+          if (!cancelled) setIntersectionUsers([]);
+          setLoadingIntersection(false);
+          return;
+        }
+
+        let intersection = userIdSets[0];
+        for (let i = 1; i < userIdSets.length; i++) {
+          intersection = new Set([...intersection].filter(id => userIdSets[i].has(id)));
+        }
+
+        const userIds = [...intersection].slice(0, 30);
+        if (userIds.length === 0 || cancelled) {
+          if (!cancelled) setIntersectionUsers([]);
+          setLoadingIntersection(false);
+          return;
+        }
+
+        // Fetch profiles
+        const { data: profileData } = await supabase
+          .from('piktag_profiles')
+          .select('id, username, full_name, avatar_url, bio, is_verified')
+          .in('id', userIds);
+
+        if (!cancelled && profileData) {
+          setIntersectionUsers(profileData as PiktagProfile[]);
+        }
+      } catch (err) {
+        console.warn('Intersection search error:', err);
+      }
+      if (!cancelled) setLoadingIntersection(false);
+    })();
+
+    return () => { cancelled = true; };
+  }, [selectedTags]);
 
   const handleProfilePress = useCallback(
     (profile: PiktagProfile) => {
@@ -639,7 +732,9 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
     | { type: 'tagsEmpty' }
     | { type: 'tagsGrid' }
     | { type: 'nearbyTagsGrid' }
-    | { type: 'tagUsersSection'; tagUserData: { tag: Tag; users: any[] } };
+    | { type: 'tagUsersSection'; tagUserData: { tag: Tag; users: any[] } }
+    | { type: 'selectedTagsBar' }
+    | { type: 'intersectionResults' };
 
   const listData = useMemo<ListItem[]>(() => {
     const items: ListItem[] = [];
@@ -648,6 +743,12 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
     if (loading || initialLoading) {
       items.push({ type: 'loading' });
       return items;
+    }
+
+    // Selected tags bar + intersection results (always show when tags selected)
+    if (selectedTags.length > 0) {
+      items.push({ type: 'selectedTagsBar' });
+      items.push({ type: 'intersectionResults' });
     }
 
     // If user is typing, show search results regardless of tab
@@ -712,6 +813,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
     nearbyTags,
     tagUsers,
     searchTab,
+    selectedTags,
   ]);
 
   const keyExtractor = useCallback((item: ListItem, index: number): string => {
@@ -865,8 +967,9 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
                   <TagCard
                     key={tag.id}
                     tag={tag}
-                    isHighlighted={false}
+                    isSelected={!!selectedTags.find(t => t.id === tag.id)}
                     onPress={handleTagPress}
+                    onLongPress={handleTagLongPress}
                     countSuffix={tagCountSuffix}
                     isTrending={trendingTagIds.has(tag.id)}
                   />
@@ -912,8 +1015,9 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
                   <TagCard
                     key={tag.id}
                     tag={tag}
-                    isHighlighted={false}
+                    isSelected={!!selectedTags.find(t => t.id === tag.id)}
                     onPress={handleTagPress}
+                    onLongPress={handleTagLongPress}
                     countSuffix={tagCountSuffix}
                     isTrending={trendingTagIds.has(tag.id)}
                   />
@@ -930,8 +1034,9 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
                 <TagCard
                   key={tag.id}
                   tag={tag}
-                  isHighlighted={false}
+                  isSelected={!!selectedTags.find(t => t.id === tag.id)}
                   onPress={handleTagPress}
+                  onLongPress={handleTagLongPress}
                   countSuffix={tagCountSuffix}
                   isTrending={trendingTagIds.has(tag.id)}
                 />
@@ -991,6 +1096,84 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
           );
         }
 
+        case 'selectedTagsBar':
+          return (
+            <View style={styles.selectedTagsBar}>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingHorizontal: 16 }}>
+                {selectedTags.map((tag) => (
+                  <TouchableOpacity
+                    key={tag.id}
+                    style={styles.selectedTagChip}
+                    onPress={() => removeSelectedTag(tag.id)}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={styles.selectedTagChipText}>#{tag.name}</Text>
+                    <X size={14} color={COLORS.white} />
+                  </TouchableOpacity>
+                ))}
+                <TouchableOpacity
+                  style={styles.clearAllBtn}
+                  onPress={() => setSelectedTags([])}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.clearAllText}>{t('search.clearAll') || '清除全部'}</Text>
+                </TouchableOpacity>
+              </ScrollView>
+              <Text style={styles.intersectionHint}>
+                {t('search.intersectionHint', { count: selectedTags.length }) || `交集搜尋：${selectedTags.length} 個標籤`}
+              </Text>
+            </View>
+          );
+
+        case 'intersectionResults':
+          if (loadingIntersection) {
+            return (
+              <View style={{ paddingVertical: 20, alignItems: 'center' }}>
+                <ActivityIndicator size="small" color={COLORS.piktag500} />
+              </View>
+            );
+          }
+          if (intersectionUsers.length === 0) {
+            return (
+              <View style={{ paddingVertical: 20, alignItems: 'center' }}>
+                <Text style={{ fontSize: 14, color: COLORS.gray400 }}>
+                  {t('search.noIntersectionResults') || '沒有同時擁有這些標籤的人'}
+                </Text>
+              </View>
+            );
+          }
+          return (
+            <View style={{ paddingHorizontal: 16, paddingBottom: 12 }}>
+              <Text style={{ fontSize: 13, color: COLORS.gray500, marginBottom: 8 }}>
+                {t('search.intersectionResultCount', { count: intersectionUsers.length }) || `找到 ${intersectionUsers.length} 位`}
+              </Text>
+              {intersectionUsers.map((u) => (
+                <TouchableOpacity
+                  key={u.id}
+                  style={styles.tagUserItem}
+                  activeOpacity={0.7}
+                  onPress={() => handleProfilePress(u)}
+                >
+                  {u.avatar_url ? (
+                    <Image source={{ uri: u.avatar_url }} style={styles.tagUserAvatar} />
+                  ) : (
+                    <View style={[styles.tagUserAvatar, styles.tagUserAvatarPlaceholder]}>
+                      <User size={20} color={COLORS.gray400} />
+                    </View>
+                  )}
+                  <View style={styles.tagUserInfo}>
+                    <Text style={styles.tagUserName} numberOfLines={1}>
+                      {u.full_name || u.username || ''}
+                    </Text>
+                    {u.username && (
+                      <Text style={styles.tagUserUsername} numberOfLines={1}>@{u.username}</Text>
+                    )}
+                  </View>
+                </TouchableOpacity>
+              ))}
+            </View>
+          );
+
         default:
           return null;
       }
@@ -1001,10 +1184,16 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
       handleRecentSearchTap,
       handleProfilePress,
       handleTagPress,
+      handleTagLongPress,
+      removeSelectedTag,
+      selectedTags,
+      intersectionUsers,
+      loadingIntersection,
       tags,
       filteredTags,
       tagCategories,
       selectedTagCategory,
+      trendingTagIds,
       tagCountSuffix,
       tagUsers,
       navigation,
@@ -1098,6 +1287,43 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
 const topEdges: ('top')[] = ['top'];
 
 const styles = StyleSheet.create({
+  // Selected tags bar
+  selectedTagsBar: {
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.gray200,
+    backgroundColor: COLORS.gray50,
+  },
+  selectedTagChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.piktag500,
+    borderRadius: 16,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    gap: 6,
+  },
+  selectedTagChipText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: COLORS.white,
+  },
+  clearAllBtn: {
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    justifyContent: 'center',
+  },
+  clearAllText: {
+    fontSize: 13,
+    color: COLORS.gray500,
+  },
+  intersectionHint: {
+    fontSize: 12,
+    color: COLORS.gray400,
+    paddingHorizontal: 16,
+    paddingTop: 6,
+  },
+  // Main styles
   container: {
     flex: 1,
     backgroundColor: COLORS.white,

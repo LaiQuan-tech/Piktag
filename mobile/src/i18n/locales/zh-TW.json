@@ -146,6 +146,10 @@
     "noTagsToFilter": "目前沒有可篩選的標籤"
   },
   "search": {
+    "clearAll": "清除全部",
+    "intersectionHint": "交集搜尋：{{count}} 個標籤",
+    "noIntersectionResults": "沒有同時擁有這些標籤的人",
+    "intersectionResultCount": "找到 {{count}} 位",
     "headerTitle": "搜尋",
     "searchPlaceholder": "標籤、會員帳號等",
     "categorySectionLabel": "依分類搜尋",
