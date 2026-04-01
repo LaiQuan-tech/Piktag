@@ -221,40 +221,100 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
         return;
       }
 
-      // Fetch public tags for all connected users
+      // Fetch public tags for all connected users (with is_pinned, position, pick_count)
       const connUserIds = connectionsData.map((c: any) => c.connected_user_id);
       const { data: publicTagsData } = await supabase
         .from('piktag_user_tags')
-        .select('user_id, tag:piktag_tags!tag_id(name)')
+        .select('user_id, tag_id, is_pinned, position, tag:piktag_tags!tag_id(name, pick_count)')
         .in('user_id', connUserIds)
-        .eq('is_private', false);
+        .eq('is_private', false)
+        .order('position');
 
-      const publicTagMap = new Map<string, string[]>();
+      // Fetch current user's own tag names for isMutual check
+      const { data: myTagsData } = await supabase
+        .from('piktag_user_tags')
+        .select('tag:piktag_tags!tag_id(name)')
+        .eq('user_id', user.id)
+        .eq('is_private', false);
+      const myTagNames = new Set((myTagsData || []).map((t: any) => t.tag?.name).filter(Boolean));
+
+      // Build public tag map with sorting metadata
+      type TagMeta = { name: string; isPinned: boolean; pickCount: number; isMutual: boolean; position: number };
+      const publicTagMetaMap = new Map<string, TagMeta[]>();
       if (publicTagsData) {
-        for (const ut of publicTagsData) {
-          const name = (ut as any).tag?.name;
+        for (const ut of publicTagsData as any[]) {
+          const name = ut.tag?.name;
           if (!name) continue;
-          const arr = publicTagMap.get(ut.user_id) || [];
-          if (!arr.includes(`#${name}`)) arr.push(`#${name}`);
-          publicTagMap.set(ut.user_id, arr);
+          const arr = publicTagMetaMap.get(ut.user_id) || [];
+          if (!arr.find(t => t.name === name)) {
+            arr.push({
+              name,
+              isPinned: !!ut.is_pinned,
+              pickCount: ut.tag?.pick_count ?? 0,
+              isMutual: myTagNames.has(name),
+              position: ut.position ?? 0,
+            });
+          }
+          publicTagMetaMap.set(ut.user_id, arr);
         }
       }
 
-      // Merge: picked tags first, then remaining public tags that weren't picked
+      // Merge with full priority sorting:
+      // 1.isPinned  2.isPicked  3.isHidden  4.pickCount  5.isMutual  6.position
       const merged: ConnectionWithTags[] = connectionsData.map((conn: any) => {
-        // Picked tags from connection_tags (public only, sorted by position)
-        const pickedTagNames = (conn.connection_tags || [])
-          .filter((ct: any) => !ct.is_private)
-          .sort((a: any, b: any) => (a.position ?? 0) - (b.position ?? 0))
-          .map((ct: any) => ct.tag?.name ? `#${ct.tag.name}` : '')
-          .filter(Boolean);
-        const pickedSet = new Set(pickedTagNames);
+        const connTags = conn.connection_tags || [];
 
-        // Public tags that are NOT already picked
-        const remainingPublicTags = (publicTagMap.get(conn.connected_user_id) || [])
-          .filter((t: string) => !pickedSet.has(t));
+        // Build picked tag set (public connection_tags)
+        const pickedNames = new Set(
+          connTags.filter((ct: any) => !ct.is_private).map((ct: any) => ct.tag?.name).filter(Boolean)
+        );
+        // Hidden tags (private connection_tags)
+        const hiddenNames = new Set(
+          connTags.filter((ct: any) => ct.is_private).map((ct: any) => ct.tag?.name).filter(Boolean)
+        );
 
-        return { ...conn, tags: [...pickedTagNames, ...remainingPublicTags] };
+        // Get friend's public tags with metadata
+        const friendTags = publicTagMetaMap.get(conn.connected_user_id) || [];
+
+        // Build combined tag list with all sorting fields
+        const allTagMetas: { name: string; isPinned: boolean; isPicked: boolean; isHidden: boolean; pickCount: number; isMutual: boolean; position: number }[] = [];
+        const seen = new Set<string>();
+
+        // Add friend's public tags
+        for (const t of friendTags) {
+          seen.add(t.name);
+          allTagMetas.push({
+            ...t,
+            isPicked: pickedNames.has(t.name),
+            isHidden: false,
+          });
+        }
+        // Add picked tags not in public tags
+        for (const name of pickedNames) {
+          if (!seen.has(name)) {
+            seen.add(name);
+            allTagMetas.push({ name, isPinned: false, isPicked: true, isHidden: false, pickCount: 0, isMutual: myTagNames.has(name), position: 999 });
+          }
+        }
+        // Add hidden tags
+        for (const name of hiddenNames) {
+          if (!seen.has(name)) {
+            seen.add(name);
+            allTagMetas.push({ name, isPinned: false, isPicked: false, isHidden: true, pickCount: 0, isMutual: false, position: 999 });
+          }
+        }
+
+        // Sort by priority: isPinned → isPicked → isHidden → pickCount → isMutual → position
+        allTagMetas.sort((a, b) => {
+          if (a.isPinned !== b.isPinned) return a.isPinned ? -1 : 1;
+          if (a.isPicked !== b.isPicked) return a.isPicked ? -1 : 1;
+          if (a.isHidden !== b.isHidden) return a.isHidden ? -1 : 1;
+          if (a.pickCount !== b.pickCount) return b.pickCount - a.pickCount;
+          if (a.isMutual !== b.isMutual) return a.isMutual ? -1 : 1;
+          return a.position - b.position;
+        });
+
+        return { ...conn, tags: allTagMetas.map(t => `#${t.name}`) };
       });
       setCache(CACHE_KEYS.CONNECTIONS, merged);
       setConnections(merged);
