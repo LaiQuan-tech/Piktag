@@ -19,6 +19,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import QRCode from 'react-native-qrcode-svg';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '../lib/supabase';
+import { fetchNearbyPlaces, autocompletePlaces, type PlaceResult } from '../lib/googlePlaces';
 import { useAuth } from '../hooks/useAuth';
 import { COLORS } from '../constants/theme';
 import type { TagPreset, ScanSession, PiktagProfile } from '../types';
@@ -66,8 +67,12 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
   const [recentLocations, setRecentLocations] = useState<string[]>([]);
   const [showLocationInput, setShowLocationInput] = useState(false);
   const [eventLocation, setEventLocation] = useState('');
-  const [nearbyPlaces, setNearbyPlaces] = useState<{ name: string; address: string }[]>([]);
+  const [nearbyPlaces, setNearbyPlaces] = useState<PlaceResult[]>([]);
   const [loadingNearby, setLoadingNearby] = useState(false);
+  const [autocompleteSuggestions, setAutocompleteSuggestions] = useState<PlaceResult[]>([]);
+  const [loadingAutocomplete, setLoadingAutocomplete] = useState(false);
+  const [userCoords, setUserCoords] = useState<{ lat: number; lng: number } | null>(null);
+  const autocompleteTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
   const [popularTags, setPopularTags] = useState<string[]>(FALLBACK_POPULAR_TAGS);
   const [eventTags, setEventTags] = useState<string[]>([]);
   const eventTagSet = useMemo(() => new Set(eventTags), [eventTags]);
@@ -158,92 +163,48 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
       }
       const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
       const { latitude, longitude } = loc.coords;
+      setUserCoords({ lat: latitude, lng: longitude });
 
-      // Set current location name via Expo
-      let currentPlaceName = '';
+      // Set current location name via Expo reverse geocode
       try {
         const [place] = await Location.reverseGeocodeAsync({ latitude, longitude });
         if (place) {
-          currentPlaceName = [place.name, place.district, place.city].filter(Boolean).join(', ');
+          const currentPlaceName = [place.name, place.district, place.city].filter(Boolean).join(', ');
           setEventLocation(currentPlaceName);
           saveToRecent(currentPlaceName);
         }
       } catch {}
       setLocatingGps(false);
 
-      // Fetch nearby POIs — try Overpass first, then multiple Overpass mirrors, then fallback
-      const overpassServers = [
-        'https://overpass-api.de/api/interpreter',
-        'https://overpass.kumi.systems/api/interpreter',
-      ];
-      const overpassQuery = `[out:json][timeout:8];(node["name"](around:500,${latitude},${longitude}););out 15;`;
-
-      let foundPlaces = false;
-      for (const server of overpassServers) {
-        if (foundPlaces) break;
-        try {
-          const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), 8000);
-          const res = await fetch(server, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: `data=${encodeURIComponent(overpassQuery)}`,
-            signal: controller.signal,
-          });
-          clearTimeout(timeoutId);
-          const data = await res.json();
-          if (data?.elements?.length > 0) {
-            const seen = new Set<string>();
-            if (currentPlaceName) seen.add(currentPlaceName);
-            const places = data.elements
-              .filter((el: any) => el.tags?.name && !seen.has(el.tags.name))
-              .map((el: any) => {
-                seen.add(el.tags.name);
-                return { name: el.tags.name, address: '' };
-              })
-              .slice(0, 10);
-            if (places.length > 0) {
-              setNearbyPlaces(places);
-              foundPlaces = true;
-            }
-          }
-        } catch {}
-      }
-
-      // Fallback: Expo reverse geocode with offset points (always works)
-      if (!foundPlaces) {
-        const offsets = [
-          { lat: 0.0008, lng: 0 }, { lat: -0.0008, lng: 0 },
-          { lat: 0, lng: 0.0008 }, { lat: 0, lng: -0.0008 },
-          { lat: 0.0012, lng: 0.0012 }, { lat: -0.0012, lng: -0.0012 },
-          { lat: 0.0018, lng: 0 }, { lat: 0, lng: 0.0018 },
-          { lat: -0.0018, lng: 0 }, { lat: 0, lng: -0.0018 },
-          { lat: 0.0025, lng: 0.0025 }, { lat: -0.0025, lng: -0.0025 },
-        ];
-        const fallbackPlaces: { name: string; address: string }[] = [];
-        const seen = new Set<string>();
-        if (currentPlaceName) seen.add(currentPlaceName);
-        for (const off of offsets) {
-          try {
-            const [p] = await Location.reverseGeocodeAsync({
-              latitude: latitude + off.lat,
-              longitude: longitude + off.lng,
-            });
-            if (p?.name && !seen.has(p.name)) {
-              seen.add(p.name);
-              fallbackPlaces.push({ name: p.name, address: '' });
-            }
-          } catch {}
-          if (fallbackPlaces.length >= 8) break;
-        }
-        setNearbyPlaces(fallbackPlaces);
-      }
+      // Fetch nearby places using Google Places API
+      const places = await fetchNearbyPlaces(latitude, longitude, 500, 10);
+      setNearbyPlaces(places);
       setLoadingNearby(false);
     } catch (err) {
       console.warn('Location error:', err);
       setLocatingGps(false);
       setLoadingNearby(false);
     }
+  };
+
+  // Autocomplete handler for manual location input
+  const handleLocationInputChange = (text: string) => {
+    setEventLocation(text);
+    if (autocompleteTimerRef.current) clearTimeout(autocompleteTimerRef.current);
+    if (text.length < 2) {
+      setAutocompleteSuggestions([]);
+      return;
+    }
+    setLoadingAutocomplete(true);
+    autocompleteTimerRef.current = setTimeout(async () => {
+      const results = await autocompletePlaces(
+        text,
+        userCoords?.lat,
+        userCoords?.lng,
+      );
+      setAutocompleteSuggestions(results);
+      setLoadingAutocomplete(false);
+    }, 300);
   };
 
   // ─── Add tag ───
@@ -602,13 +563,13 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
           )}
           {!loadingNearby && nearbyPlaces.length > 0 && (
             <View style={{ marginTop: 8 }}>
-              <Text style={{ fontSize: 13, color: COLORS.gray500, marginBottom: 6 }}>附近地點</Text>
+              <Text style={{ fontSize: 13, color: COLORS.gray500, marginBottom: 6 }}>{t('addTag.nearbyTagsLabel') || '附近地點'}</Text>
               <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
                 {nearbyPlaces.map((place, i) => {
                   const isSelected = eventLocation === place.name;
                   return (
                     <TouchableOpacity
-                      key={`nearby-${i}`}
+                      key={`nearby-${place.placeId || i}`}
                       style={[styles.quickDateBtn, isSelected && styles.quickDateBtnActive]}
                       onPress={() => {
                         if (isSelected) { setEventLocation(''); } else { setEventLocation(place.name); saveToRecent(place.name); }
@@ -624,17 +585,48 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
             </View>
           )}
 
-          {/* Manual input (expandable) */}
+          {/* Manual input with autocomplete */}
           {showLocationInput && (
-            <View style={styles.inputRow}>
-              <TextInput
-                style={styles.textInput}
-                value={eventLocation}
-                onChangeText={setEventLocation}
-                placeholder={t('addTag.locationPlaceholder')}
-                placeholderTextColor={COLORS.gray400}
-                autoFocus
-              />
+            <View>
+              <View style={styles.inputRow}>
+                <TextInput
+                  style={styles.textInput}
+                  value={eventLocation}
+                  onChangeText={handleLocationInputChange}
+                  placeholder={t('addTag.locationPlaceholder')}
+                  placeholderTextColor={COLORS.gray400}
+                  autoFocus
+                />
+              </View>
+              {loadingAutocomplete && (
+                <View style={{ paddingVertical: 8, alignItems: 'center' }}>
+                  <ActivityIndicator size="small" color={COLORS.piktag500} />
+                </View>
+              )}
+              {!loadingAutocomplete && autocompleteSuggestions.length > 0 && (
+                <View style={{ marginTop: 4, borderRadius: 10, backgroundColor: COLORS.gray50 || '#f8f8f8', overflow: 'hidden' }}>
+                  {autocompleteSuggestions.map((place, i) => (
+                    <TouchableOpacity
+                      key={`ac-${place.placeId || i}`}
+                      style={{ paddingVertical: 10, paddingHorizontal: 14, borderBottomWidth: i < autocompleteSuggestions.length - 1 ? 1 : 0, borderBottomColor: COLORS.gray200 || '#e5e5e5' }}
+                      onPress={() => {
+                        setEventLocation(place.name);
+                        saveToRecent(place.name);
+                        setAutocompleteSuggestions([]);
+                      }}
+                      activeOpacity={0.6}
+                    >
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                        <MapPin size={14} color={COLORS.gray500} />
+                        <View style={{ flex: 1 }}>
+                          <Text style={{ fontSize: 14, color: COLORS.gray800 || '#333', fontWeight: '500' }}>{place.name}</Text>
+                          {place.address ? <Text style={{ fontSize: 12, color: COLORS.gray400, marginTop: 2 }} numberOfLines={1}>{place.address}</Text> : null}
+                        </View>
+                      </View>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              )}
             </View>
           )}
         </View>
