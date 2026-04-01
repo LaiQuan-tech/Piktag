@@ -100,10 +100,10 @@ type TagCardProps = {
   isHighlighted: boolean;
   onPress: (tag: Tag) => void;
   countSuffix: string;
-  rank?: number; // 1-based rank, top 3 get trending indicator
+  isTrending?: boolean;
 };
 
-const TagCard = React.memo(function TagCard({ tag, isHighlighted: _unused, onPress, countSuffix, rank }: TagCardProps) {
+const TagCard = React.memo(function TagCard({ tag, isHighlighted: _unused, onPress, countSuffix, isTrending }: TagCardProps) {
   const handlePress = useCallback(() => {
     onPress(tag);
   }, [onPress, tag]);
@@ -131,7 +131,7 @@ const TagCard = React.memo(function TagCard({ tag, isHighlighted: _unused, onPre
             </Text>
           </View>
           <View style={styles.tagCountRow}>
-            {rank && rank <= 3 && (
+            {isTrending && (
               <TrendingUp size={12} color={pressed ? COLORS.white : COLORS.accent500} />
             )}
             <Text
@@ -208,6 +208,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
   const [searchTab, setSearchTab] = useState<'popular' | 'nearby' | 'history'>('popular');
   const [tagCategories, setTagCategories] = useState<string[]>([]);
   const [selectedTagCategory, setSelectedTagCategory] = useState<string | null>(null);
+  const [trendingTagIds, setTrendingTagIds] = useState<Set<string>>(new Set());
 
   // Refs for stable closures
   const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -273,6 +274,36 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
         // Extract unique categories
         const cats = [...new Set(data.map((t: any) => t.semantic_type).filter(Boolean))] as string[];
         setTagCategories(cats);
+
+        // Calculate trending: count user_tags created in last 7 days per tag
+        const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+        const tagIds = data.map((t: any) => t.id);
+        const { data: recentData } = await supabase
+          .from('piktag_user_tags')
+          .select('tag_id')
+          .in('tag_id', tagIds)
+          .gte('created_at', sevenDaysAgo);
+
+        if (recentData && recentData.length > 0) {
+          // Count recent additions per tag
+          const recentCounts = new Map<string, number>();
+          for (const r of recentData) {
+            recentCounts.set(r.tag_id, (recentCounts.get(r.tag_id) || 0) + 1);
+          }
+          // Tag is trending if recent growth >= 3 new users in 7 days,
+          // or recent growth is >= 20% of total usage
+          const trending = new Set<string>();
+          for (const tag of data) {
+            const recent = recentCounts.get(tag.id) || 0;
+            const growthRate = tag.usage_count > 0 ? recent / tag.usage_count : 0;
+            if (recent >= 3 || growthRate >= 0.2) {
+              trending.add(tag.id);
+            }
+          }
+          setTrendingTagIds(trending);
+        } else {
+          setTrendingTagIds(new Set());
+        }
       }
     } catch {} finally {
       setLoading(false);
@@ -830,14 +861,14 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
           if (trimmedQuery !== '') {
             return (
               <View style={styles.tagsGrid}>
-                {tags.map((tag, index) => (
+                {tags.map((tag) => (
                   <TagCard
                     key={tag.id}
                     tag={tag}
                     isHighlighted={false}
                     onPress={handleTagPress}
                     countSuffix={tagCountSuffix}
-                    rank={index + 1}
+                    isTrending={trendingTagIds.has(tag.id)}
                   />
                 ))}
               </View>
@@ -877,14 +908,14 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
                 </ScrollView>
               )}
               <View style={styles.tagsGrid}>
-                {filteredTags.map((tag, index) => (
+                {filteredTags.map((tag) => (
                   <TagCard
                     key={tag.id}
                     tag={tag}
                     isHighlighted={false}
                     onPress={handleTagPress}
                     countSuffix={tagCountSuffix}
-                    rank={index + 1}
+                    isTrending={trendingTagIds.has(tag.id)}
                   />
                 ))}
               </View>
@@ -902,6 +933,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
                   isHighlighted={false}
                   onPress={handleTagPress}
                   countSuffix={tagCountSuffix}
+                  isTrending={trendingTagIds.has(tag.id)}
                 />
               ))}
             </View>
