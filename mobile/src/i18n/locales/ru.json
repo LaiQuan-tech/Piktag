@@ -409,5 +409,20 @@
     "usageCount": "{{count}} uses",
     "emptyTitle": "No Connections Yet",
     "emptyText": "No connections are using this tag"
+  },
+  "semanticType": {
+    "identity": "Личность",
+    "skill": "Навыки",
+    "interest": "Интересы",
+    "social": "Сообщества",
+    "meta": "Контекст",
+    "relation": "Отношения",
+    "other": "Другое",
+    "identityHint": "Кто вы",
+    "skillHint": "Что вы умеете",
+    "interestHint": "Что вам нравится",
+    "socialHint": "Группы и сообщества",
+    "metaHint": "Контекст: место, год",
+    "relationHint": "Как познакомились"
   }
 }

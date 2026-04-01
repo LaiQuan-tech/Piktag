@@ -409,5 +409,20 @@
     "usageCount": "{{count}} uses",
     "emptyTitle": "No Connections Yet",
     "emptyText": "No connections are using this tag"
+  },
+  "semanticType": {
+    "identity": "পরিচয়",
+    "skill": "দক্ষতা",
+    "interest": "আগ্রহ",
+    "social": "সম্প্রদায়",
+    "meta": "পটভূমি",
+    "relation": "সম্পর্ক",
+    "other": "অন্যান্য",
+    "identityHint": "আপনি কে",
+    "skillHint": "আপনি কী পারেন",
+    "interestHint": "আপনি কী উপভোগ করেন",
+    "socialHint": "গোষ্ঠী ও সম্প্রদায়",
+    "metaHint": "অবস্থান, বছর ইত্যাদি প্রসঙ্গ",
+    "relationHint": "কীভাবে পরিচিত হলেন"
   }
 }

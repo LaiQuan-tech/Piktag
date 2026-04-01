@@ -409,5 +409,20 @@
     "usageCount": "{{count}} uses",
     "emptyTitle": "No Connections Yet",
     "emptyText": "No connections are using this tag"
+  },
+  "semanticType": {
+    "identity": "पहचान",
+    "skill": "कौशल",
+    "interest": "रुचियाँ",
+    "social": "समुदाय",
+    "meta": "पृष्ठभूमि",
+    "relation": "संबंध",
+    "other": "अन्य",
+    "identityHint": "आप कौन हैं",
+    "skillHint": "आप क्या कर सकते हैं",
+    "interestHint": "आप क्या पसंद करते हैं",
+    "socialHint": "समूह और समुदाय",
+    "metaHint": "स्थान, वर्ष जैसा संदर्भ",
+    "relationHint": "कैसे मिले"
   }
 }

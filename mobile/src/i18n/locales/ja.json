@@ -409,5 +409,20 @@
     "usageCount": "{{count}} uses",
     "emptyTitle": "No Connections Yet",
     "emptyText": "No connections are using this tag"
+  },
+  "semanticType": {
+    "identity": "アイデンティティ",
+    "skill": "スキル",
+    "interest": "興味",
+    "social": "コミュニティ",
+    "meta": "背景",
+    "relation": "関係",
+    "other": "その他",
+    "identityHint": "あなたは誰",
+    "skillHint": "何ができるか",
+    "interestHint": "何を楽しむか",
+    "socialHint": "グループとコミュニティ",
+    "metaHint": "場所、年などのコンテキスト",
+    "relationHint": "どうやって知り合ったか"
   }
 }

@@ -409,5 +409,20 @@
     "usageCount": "{{count}} uses",
     "emptyTitle": "No Connections Yet",
     "emptyText": "No connections are using this tag"
+  },
+  "semanticType": {
+    "identity": "الهوية",
+    "skill": "المهارات",
+    "interest": "الاهتمامات",
+    "social": "المجتمعات",
+    "meta": "الخلفية",
+    "relation": "العلاقة",
+    "other": "أخرى",
+    "identityHint": "من أنت",
+    "skillHint": "ما تجيده",
+    "interestHint": "ما تستمتع به",
+    "socialHint": "المجموعات والمجتمعات",
+    "metaHint": "سياق مثل الموقع والسنة",
+    "relationHint": "كيف تعرفتم"
   }
 }

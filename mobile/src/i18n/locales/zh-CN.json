@@ -409,5 +409,20 @@
     "usageCount": "{{count}} uses",
     "emptyTitle": "No Connections Yet",
     "emptyText": "No connections are using this tag"
+  },
+  "semanticType": {
+    "identity": "身份",
+    "skill": "技能",
+    "interest": "兴趣",
+    "social": "社群",
+    "meta": "背景",
+    "relation": "关系",
+    "other": "其他",
+    "identityHint": "描述你是谁",
+    "skillHint": "你擅长什么",
+    "interestHint": "你喜欢什么",
+    "socialHint": "群组与社群",
+    "metaHint": "地点、年份等背景信息",
+    "relationHint": "你们怎么认识的"
   }
 }
