@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useRef } from 'react';
 import {
   View,
   Text,
@@ -12,6 +12,7 @@ import {
   Modal,
   TextInput,
   Alert,
+  Dimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
@@ -46,6 +47,13 @@ import type { Connection, ConnectionTag } from '../types';
 
 type ConnectionWithTags = Connection & {
   tags: string[];
+};
+
+type FriendStatus = {
+  userId: string;
+  name: string;
+  avatarUrl: string | null;
+  statusText: string;
 };
 
 type SortOption = 'newest' | 'oldest' | 'alpha' | 'updated' | 'nearby';
@@ -146,6 +154,9 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
   const [loading, setLoading] = useState(true);
   const [sortBy, setSortBy] = useState<SortOption>('newest');
   const [sortModalVisible, setSortModalVisible] = useState(false);
+
+  // Friend statuses (IG-style stories bar)
+  const [friendStatuses, setFriendStatuses] = useState<FriendStatus[]>([]);
 
   // CRM reminders (derived from connections data)
   const [crmReminders, setCrmReminders] = useState<any[]>([]);
@@ -318,6 +329,37 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
       });
       setCache(CACHE_KEYS.CONNECTIONS, merged);
       setConnections(merged);
+
+      // --- Fetch friend statuses for stories bar ---
+      const { data: statusData } = await supabase
+        .from('piktag_user_status')
+        .select('user_id, text')
+        .in('user_id', connUserIds)
+        .gt('expires_at', new Date().toISOString())
+        .order('created_at', { ascending: false });
+
+      if (statusData && statusData.length > 0) {
+        // Deduplicate: one status per user (latest)
+        const seenUsers = new Set<string>();
+        const statuses: FriendStatus[] = [];
+        for (const s of statusData) {
+          if (seenUsers.has(s.user_id)) continue;
+          seenUsers.add(s.user_id);
+          const conn = connectionsData.find((c: any) => c.connected_user_id === s.user_id);
+          const profile = conn?.connected_user as any;
+          if (profile) {
+            statuses.push({
+              userId: s.user_id,
+              name: conn.nickname || profile.full_name || profile.username || '?',
+              avatarUrl: profile.avatar_url || null,
+              statusText: s.text,
+            });
+          }
+        }
+        setFriendStatuses(statuses);
+      } else {
+        setFriendStatuses([]);
+      }
 
       // --- Derive "On This Day" from already-fetched data (no extra query) ---
       const today = new Date();
@@ -652,8 +694,42 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
       );
     };
 
+    const renderStoriesBar = () => {
+      if (friendStatuses.length === 0 || selectMode) return null;
+      return (
+        <View style={styles.storiesContainer}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.storiesScroll}>
+            {friendStatuses.map((s) => (
+              <TouchableOpacity
+                key={s.userId}
+                style={styles.storyItem}
+                activeOpacity={0.7}
+                onPress={() => {
+                  const conn = connections.find(c => c.connected_user_id === s.userId);
+                  if (conn) navigation.navigate('FriendDetail', { connectionId: conn.id, friendId: s.userId });
+                }}
+              >
+                <View style={styles.storyAvatarRing}>
+                  {s.avatarUrl ? (
+                    <Image source={{ uri: s.avatarUrl }} style={styles.storyAvatar} />
+                  ) : (
+                    <InitialsAvatar name={s.name} size={56} />
+                  )}
+                </View>
+                <Text style={styles.storyName} numberOfLines={1}>{s.name}</Text>
+                <Text style={styles.storyText} numberOfLines={1}>{s.statusText}</Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
+      );
+    };
+
     return (
       <>
+        {/* IG-style stories bar */}
+        {renderStoriesBar()}
+
         {/* Review new friends banner */}
         {connections.length > 0 && (
           <TouchableOpacity
@@ -671,7 +747,7 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
         {renderCrmReminders()}
       </>
     );
-  }, [connections.length, crmReminders, remindersDismissed, selectMode, t, navigation]);
+  }, [connections, friendStatuses, crmReminders, remindersDismissed, selectMode, t, navigation]);
 
   // --- Optimized: stable contentContainerStyle ---
   const contentContainerStyle = useMemo(() => [
@@ -934,6 +1010,51 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
 }
 
 const styles = StyleSheet.create({
+  // --- Stories bar styles ---
+  storiesContainer: {
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.gray200,
+    paddingVertical: 12,
+  },
+  storiesScroll: {
+    paddingHorizontal: 12,
+    gap: 16,
+  },
+  storyItem: {
+    alignItems: 'center',
+    width: 68,
+  },
+  storyAvatarRing: {
+    width: 62,
+    height: 62,
+    borderRadius: 31,
+    borderWidth: 2.5,
+    borderColor: '#C13584',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 2,
+  },
+  storyAvatar: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+  },
+  storyName: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: COLORS.gray800,
+    marginTop: 4,
+    textAlign: 'center',
+    width: 68,
+  },
+  storyText: {
+    fontSize: 10,
+    color: COLORS.gray500,
+    textAlign: 'center',
+    width: 68,
+    marginTop: 1,
+  },
+  // --- Main styles ---
   container: {
     flex: 1,
     backgroundColor: COLORS.white,
