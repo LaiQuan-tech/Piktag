@@ -866,7 +866,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
                       activeOpacity={0.7}
                     >
                       <Text style={[styles.categoryChipText, selectedTagCategory === cat && styles.categoryChipTextActive]}>
-                        {cat}
+                        {t(`semanticType.${cat}`) || cat}
                       </Text>
                     </TouchableOpacity>
                   ))}
