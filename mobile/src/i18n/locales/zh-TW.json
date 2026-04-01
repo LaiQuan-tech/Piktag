@@ -536,6 +536,8 @@
     "presetScansTitle": "各模板掃碼次數",
     "presetScansEmpty": "尚無模板掃碼紀錄",
     "scanCountSuffix": "次",
+    "networkCompositionTitle": "人脈組成",
+    "networkCompositionEmpty": "尚無分類資料",
     "topTagsTitle": "最常用標籤 Top 5",
     "topTagsEmpty": "尚無標籤資料",
     "topLocationsTitle": "Top 5 認識地點",

@@ -48,6 +48,7 @@ type DashboardData = {
   presetScans: PresetScan[];
   totalQrScans: number;
   topTags: { name: string; count: number }[];
+  semanticBreakdown: { type: string; count: number; percentage: number }[];
   topLocations: LocationStat[];
   activeLocationsThisMonth: LocationStat[];
   totalBiolinkClicks: number;
@@ -62,6 +63,7 @@ const INITIAL_DATA: DashboardData = {
   presetScans: [],
   totalQrScans: 0,
   topTags: [],
+  semanticBreakdown: [],
   topLocations: [],
   activeLocationsThisMonth: [],
   totalBiolinkClicks: 0,
@@ -127,7 +129,7 @@ export default function SocialStatsScreen({ navigation }: SocialStatsScreenProps
         connectionIdList.length > 0
           ? supabase
               .from('piktag_connection_tags')
-              .select('tag:piktag_tags!tag_id(name)')
+              .select('tag:piktag_tags!tag_id(name, semantic_type)')
               .in('connection_id', connectionIdList)
           : Promise.resolve({ data: [] }),
         // 5. Scan sessions
@@ -210,6 +212,26 @@ export default function SocialStatsScreen({ navigation }: SocialStatsScreenProps
         .slice(0, 5)
         .map(([name, count]) => ({ name, count }));
 
+      // ── Semantic type breakdown (pie chart data) ──
+      const semanticCounts: Record<string, number> = {};
+      let totalSemanticTags = 0;
+      if (connectionTagsResult.data) {
+        for (const ct of connectionTagsResult.data) {
+          const st = (ct as any).tag?.semantic_type;
+          if (st) {
+            semanticCounts[st] = (semanticCounts[st] || 0) + 1;
+            totalSemanticTags++;
+          }
+        }
+      }
+      const semanticBreakdown = Object.entries(semanticCounts)
+        .sort(([, a], [, b]) => b - a)
+        .map(([type, count]) => ({
+          type,
+          count,
+          percentage: totalSemanticTags > 0 ? Math.round((count / totalSemanticTags) * 100) : 0,
+        }));
+
       // ── Preset scans ──
       const presetMap: Record<string, string> = {};
       if (presetsResult.data) {
@@ -273,6 +295,7 @@ export default function SocialStatsScreen({ navigation }: SocialStatsScreenProps
         presetScans,
         totalQrScans,
         topTags,
+        semanticBreakdown,
         topLocations,
         activeLocationsThisMonth,
         totalBiolinkClicks,
@@ -531,6 +554,58 @@ export default function SocialStatsScreen({ navigation }: SocialStatsScreenProps
             )}
           </View>
 
+          {/* ── Network Composition (Semantic Breakdown) ── */}
+          <View style={styles.sectionContainer}>
+            <SectionTitle title={t('dashboard.networkCompositionTitle') || '人脈組成'} />
+            {data.semanticBreakdown.length > 0 ? (
+              <View>
+                {/* Simple horizontal bar breakdown */}
+                <View style={styles.compositionBarContainer}>
+                  {data.semanticBreakdown.map((item, i) => (
+                    <View
+                      key={item.type}
+                      style={[
+                        styles.compositionBarSegment,
+                        {
+                          flex: item.percentage,
+                          backgroundColor: [
+                            COLORS.piktag400, COLORS.blue500, COLORS.orange500,
+                            COLORS.pink500, COLORS.green500, COLORS.purple500,
+                            COLORS.red500, '#6366f1',
+                          ][i % 8],
+                        },
+                      ]}
+                    />
+                  ))}
+                </View>
+                {/* Legend */}
+                <View style={styles.compositionLegend}>
+                  {data.semanticBreakdown.map((item, i) => (
+                    <View key={item.type} style={styles.compositionLegendItem}>
+                      <View
+                        style={[
+                          styles.compositionLegendDot,
+                          {
+                            backgroundColor: [
+                              COLORS.piktag400, COLORS.blue500, COLORS.orange500,
+                              COLORS.pink500, COLORS.green500, COLORS.purple500,
+                              COLORS.red500, '#6366f1',
+                            ][i % 8],
+                          },
+                        ]}
+                      />
+                      <Text style={styles.compositionLegendText}>
+                        {t(`semanticType.${item.type}`) || item.type} {item.percentage}%
+                      </Text>
+                    </View>
+                  ))}
+                </View>
+              </View>
+            ) : (
+              <EmptyState text={t('dashboard.networkCompositionEmpty') || '尚無分類資料'} />
+            )}
+          </View>
+
           {/* ── Top 5 Tags ── */}
           <View style={styles.sectionContainer}>
             <SectionTitle title={t('dashboard.topTagsTitle')} />
@@ -698,6 +773,35 @@ const styles = StyleSheet.create({
   // ── Sections ──
   sectionContainer: {
     marginBottom: 28,
+  },
+  compositionBarContainer: {
+    flexDirection: 'row',
+    height: 20,
+    borderRadius: 10,
+    overflow: 'hidden',
+    marginBottom: 12,
+  },
+  compositionBarSegment: {
+    height: '100%',
+  },
+  compositionLegend: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+  },
+  compositionLegendItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  compositionLegendDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+  },
+  compositionLegendText: {
+    fontSize: 13,
+    color: COLORS.gray600,
   },
   sectionTitle: {
     fontSize: 16,
