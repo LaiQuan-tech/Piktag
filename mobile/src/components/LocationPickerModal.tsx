@@ -121,14 +121,20 @@ export default function LocationPickerModal({
             setCoords({ latitude, longitude });
             setRegion({ latitude, longitude, latitudeDelta: 0.008, longitudeDelta: 0.008 });
 
-            // Reverse geocode via Google
+            // Reverse geocode via Google — use short name from nearby place
             try {
               const res = await fetch(
-                `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${GOOGLE_PLACES_API_KEY}&language=zh-TW`
+                `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${GOOGLE_PLACES_API_KEY}&language=zh-TW&result_type=point_of_interest|premise|sublocality`
               );
               const data = await res.json();
               if (data.results?.[0]) {
-                setCurrentAddress(data.results[0].formatted_address);
+                // Extract short name from address components
+                const components = data.results[0].address_components || [];
+                const poi = components.find((c: any) => c.types.includes('point_of_interest'));
+                const sublocality = components.find((c: any) => c.types.includes('sublocality'));
+                const locality = components.find((c: any) => c.types.includes('locality'));
+                const shortName = [poi?.long_name, sublocality?.long_name, locality?.long_name].filter(Boolean).join(', ');
+                setCurrentAddress(shortName || data.results[0].formatted_address.split(',').slice(0, 2).join(','));
               }
             } catch {}
 
@@ -162,12 +168,12 @@ export default function LocationPickerModal({
       setRegion(newRegion);
       mapRef.current?.animateToRegion(newRegion, 500);
 
-      // Reverse geocode
+      // Reverse geocode — show short place name, not full address
       try {
         const [place] = await Location.reverseGeocodeAsync({ latitude, longitude });
         if (place) {
-          const addr = [place.postalCode, place.country, place.region, place.city, place.district, place.street, place.name].filter(Boolean).join('');
-          setCurrentAddress(addr);
+          const shortName = [place.name, place.district, place.city].filter(Boolean).join(', ');
+          setCurrentAddress(shortName);
         }
       } catch {}
 
@@ -223,9 +229,6 @@ export default function LocationPickerModal({
       </View>
       <View style={styles.placeInfo}>
         <Text style={styles.placeName}>{item.name}</Text>
-        {item.address ? (
-          <Text style={styles.placeAddress} numberOfLines={1}>{item.address}</Text>
-        ) : null}
       </View>
     </TouchableOpacity>
   );
