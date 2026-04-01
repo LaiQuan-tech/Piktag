@@ -103,6 +103,8 @@
     }
   },
   "connections": {
+    "friendsLabel": "friends",
+    "closeFriendsLabel": "close friends",
     "sortNewest": "Newest first",
     "sortOldest": "Oldest first",
     "sortAlpha": "Alphabetical",

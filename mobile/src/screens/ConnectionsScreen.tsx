@@ -157,6 +157,7 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
 
   // Friend statuses (IG-style stories bar)
   const [friendStatuses, setFriendStatuses] = useState<FriendStatus[]>([]);
+  const [closeFriendCount, setCloseFriendCount] = useState(0);
 
   // CRM reminders (derived from connections data)
   const [crmReminders, setCrmReminders] = useState<any[]>([]);
@@ -360,6 +361,13 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
       } else {
         setFriendStatuses([]);
       }
+
+      // --- Fetch close friend count ---
+      const { count: cfCount } = await supabase
+        .from('piktag_close_friends')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', user.id);
+      setCloseFriendCount(cfCount ?? 0);
 
       // --- Derive "On This Day" from already-fetched data (no extra query) ---
       const today = new Date();
@@ -790,7 +798,10 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
           <View style={styles.headerLeft}>
             <Text style={styles.headerTitle}># PikTag</Text>
             <Text style={styles.headerSubtitle}>
-              <Text style={styles.headerCount}>{sortedConnections.length}</Text> {t('connections.friendsLabel') || 'friends'}
+              <Text style={styles.headerCount}>{sortedConnections.length}</Text>{' '}{t('connections.friendsLabel') || 'friends'}
+              {closeFriendCount > 0 && (
+                <Text>{'  ·  '}<Text style={styles.headerCount}>{closeFriendCount}</Text>{' '}{t('connections.closeFriendsLabel') || '摯友'}</Text>
+              )}
             </Text>
           </View>
           <View style={styles.headerRight}>
