@@ -43,6 +43,7 @@ import { ConnectionsScreenSkeleton } from '../components/SkeletonLoader';
 import { useAuth } from '../hooks/useAuth';
 import * as Location from 'expo-location';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import FriendsMapModal, { type FriendLocation } from '../components/FriendsMapModal';
 import type { Connection, ConnectionTag } from '../types';
 
 type ConnectionWithTags = Connection & {
@@ -176,6 +177,7 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
 
   // Location state
   const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null);
+  const [mapVisible, setMapVisible] = useState(false);
 
   // FlatList performance: fixed item height for getItemLayout
   // connectionItem: paddingVertical 16*2=32 + borderBottomWidth 1 = 33 overhead
@@ -822,9 +824,9 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
             <TouchableOpacity
               style={styles.headerIconBtn}
               activeOpacity={0.6}
-              onPress={() => handleSortSelect('nearby')}
+              onPress={() => setMapVisible(true)}
             >
-              <MapPin size={24} color={sortBy === 'nearby' ? COLORS.piktag600 : COLORS.gray600} />
+              <MapPin size={24} color={COLORS.gray600} />
             </TouchableOpacity>
           </View>
         </View>
@@ -1016,6 +1018,31 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
           </View>
         </TouchableOpacity>
       </Modal>
+      {/* Friends Map Modal */}
+      <FriendsMapModal
+        visible={mapVisible}
+        onClose={() => setMapVisible(false)}
+        friends={connections
+          .filter(c => {
+            const p = c.connected_user as any;
+            return p?.latitude && p?.longitude;
+          })
+          .map(c => {
+            const p = c.connected_user as any;
+            return {
+              id: c.connected_user_id,
+              connectionId: c.id,
+              name: c.nickname || p?.full_name || p?.username || '?',
+              avatarUrl: p?.avatar_url || null,
+              latitude: p.latitude,
+              longitude: p.longitude,
+            };
+          })}
+        onFriendPress={(connectionId, friendId) => {
+          setMapVisible(false);
+          navigation.navigate('FriendDetail', { connectionId, friendId });
+        }}
+      />
     </SafeAreaView>
   );
 }
