@@ -116,7 +116,7 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
         {/* Form */}
         <View style={styles.formContainer}>
           <TextInput
-            style={[styles.input, { borderColor: colors.border, color: colors.text, backgroundColor: colors.card }]}
+            style={[styles.input, { borderColor: colors.border, color: '#111827', backgroundColor: '#f9fafb' }]}
             placeholder={t('auth.login.emailPlaceholder')}
             placeholderTextColor={colors.textTertiary}
             value={email}
@@ -128,7 +128,7 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
             onSubmitEditing={() => passwordRef.current?.focus()}
           />
 
-          <View style={[styles.passwordContainer, { borderColor: colors.border, backgroundColor: colors.card }]}>
+          <View style={[styles.passwordContainer, { borderColor: colors.border, backgroundColor: '#f9fafb' }]}>
             <TextInput
               ref={passwordRef}
               style={[styles.passwordInput, { color: '#000000' }]}
