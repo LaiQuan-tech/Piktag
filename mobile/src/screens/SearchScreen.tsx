@@ -400,7 +400,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
 
   const performSearch = useCallback(
     async (query: string) => {
-      const trimmed = query.trim();
+      const trimmed = query.trim().replace(/#/g, '').trim();
       if (!trimmed) {
         setActiveCategory(null);
         loadPopularTags();
