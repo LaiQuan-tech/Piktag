@@ -510,6 +510,8 @@
     "social": "커뮤니티",
     "meta": "배경",
     "relation": "관계",
+    "personality": "성격",
+    "career": "직업",
     "other": "기타",
     "identityHint": "나는 누구인가",
     "skillHint": "할 수 있는 것",

@@ -629,6 +629,8 @@
     "social": "Communities",
     "meta": "Background",
     "relation": "Relation",
+    "personality": "Personality",
+    "career": "Career",
     "other": "Other",
     "identityHint": "Who you are",
     "skillHint": "What you can do",

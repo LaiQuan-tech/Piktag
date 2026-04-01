@@ -510,6 +510,8 @@
     "social": "ชุมชน",
     "meta": "ข้อมูลพื้นหลัง",
     "relation": "ความสัมพันธ์",
+    "personality": "บุคลิกภาพ",
+    "career": "อาชีพ",
     "other": "อื่น ๆ",
     "identityHint": "คุณเป็นใคร",
     "skillHint": "คุณทำอะไรได้",

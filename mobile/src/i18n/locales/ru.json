@@ -417,6 +417,8 @@
     "social": "Сообщества",
     "meta": "Контекст",
     "relation": "Отношения",
+    "personality": "Личность",
+    "career": "Карьера",
     "other": "Другое",
     "identityHint": "Кто вы",
     "skillHint": "Что вы умеете",
