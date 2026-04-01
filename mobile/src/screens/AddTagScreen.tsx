@@ -14,12 +14,11 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { X, Star, ArrowLeft, Share2, Trash2, MapPin, Navigation } from 'lucide-react-native';
-import * as Location from 'expo-location';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import QRCode from 'react-native-qrcode-svg';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '../lib/supabase';
-import { fetchNearbyPlaces, autocompletePlaces, type PlaceResult } from '../lib/googlePlaces';
+import LocationPickerModal from '../components/LocationPickerModal';
 import { useAuth } from '../hooks/useAuth';
 import { COLORS } from '../constants/theme';
 import type { TagPreset, ScanSession, PiktagProfile } from '../types';
@@ -63,16 +62,9 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
   const [eventDate, setEventDate] = useState('');
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [selectedDateObj, setSelectedDateObj] = useState(new Date());
-  const [locatingGps, setLocatingGps] = useState(false);
   const [recentLocations, setRecentLocations] = useState<string[]>([]);
-  const [showLocationInput, setShowLocationInput] = useState(false);
   const [eventLocation, setEventLocation] = useState('');
-  const [nearbyPlaces, setNearbyPlaces] = useState<PlaceResult[]>([]);
-  const [loadingNearby, setLoadingNearby] = useState(false);
-  const [autocompleteSuggestions, setAutocompleteSuggestions] = useState<PlaceResult[]>([]);
-  const [loadingAutocomplete, setLoadingAutocomplete] = useState(false);
-  const [userCoords, setUserCoords] = useState<{ lat: number; lng: number } | null>(null);
-  const autocompleteTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [showLocationPicker, setShowLocationPicker] = useState(false);
   const [popularTags, setPopularTags] = useState<string[]>(FALLBACK_POPULAR_TAGS);
   const [eventTags, setEventTags] = useState<string[]>([]);
   const eventTagSet = useMemo(() => new Set(eventTags), [eventTags]);
@@ -149,62 +141,9 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
     });
   };
 
-  const handleGetCurrentLocation = async () => {
-    setLocatingGps(true);
-    setLoadingNearby(true);
-    setNearbyPlaces([]);
-    try {
-      const { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== 'granted') {
-        Alert.alert(t('addTag.locationPermDenied') || '位置權限被拒');
-        setLocatingGps(false);
-        setLoadingNearby(false);
-        return;
-      }
-      const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
-      const { latitude, longitude } = loc.coords;
-      setUserCoords({ lat: latitude, lng: longitude });
-
-      // Set current location name via Expo reverse geocode
-      try {
-        const [place] = await Location.reverseGeocodeAsync({ latitude, longitude });
-        if (place) {
-          const currentPlaceName = [place.name, place.district, place.city].filter(Boolean).join(', ');
-          setEventLocation(currentPlaceName);
-          saveToRecent(currentPlaceName);
-        }
-      } catch {}
-      setLocatingGps(false);
-
-      // Fetch nearby places using Google Places API
-      const places = await fetchNearbyPlaces(latitude, longitude, 500, 10);
-      setNearbyPlaces(places);
-      setLoadingNearby(false);
-    } catch (err) {
-      console.warn('Location error:', err);
-      setLocatingGps(false);
-      setLoadingNearby(false);
-    }
-  };
-
-  // Autocomplete handler for manual location input
-  const handleLocationInputChange = (text: string) => {
-    setEventLocation(text);
-    if (autocompleteTimerRef.current) clearTimeout(autocompleteTimerRef.current);
-    if (text.length < 2) {
-      setAutocompleteSuggestions([]);
-      return;
-    }
-    setLoadingAutocomplete(true);
-    autocompleteTimerRef.current = setTimeout(async () => {
-      const results = await autocompletePlaces(
-        text,
-        userCoords?.lat,
-        userCoords?.lng,
-      );
-      setAutocompleteSuggestions(results);
-      setLoadingAutocomplete(false);
-    }, 300);
+  const handleLocationSelected = (placeName: string, _address: string) => {
+    setEventLocation(placeName);
+    saveToRecent(placeName);
   };
 
   // ─── Add tag ───
@@ -504,34 +443,20 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>{t('addTag.locationLabel')}</Text>
 
-          {/* Quick location buttons */}
+          {/* Select location button — opens map modal */}
           <View style={styles.quickDateRow}>
             <TouchableOpacity
-              style={[styles.quickDateBtn, locatingGps && { opacity: 0.6 }]}
-              onPress={handleGetCurrentLocation}
-              disabled={locatingGps}
+              style={styles.quickDateBtn}
+              onPress={() => setShowLocationPicker(true)}
               activeOpacity={0.7}
             >
-              {locatingGps ? (
-                <ActivityIndicator size={14} color={COLORS.piktag600} />
-              ) : (
-                <Navigation size={14} color={COLORS.gray600} />
-              )}
+              <Navigation size={14} color={COLORS.gray600} />
               <Text style={styles.quickDateText}>{t('addTag.selectLocation') || '選擇地點'}</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.quickDateBtn, showLocationInput && styles.quickDateBtnActive]}
-              onPress={() => setShowLocationInput(!showLocationInput)}
-              activeOpacity={0.7}
-            >
-              <Text style={[styles.quickDateText, showLocationInput && styles.quickDateTextActive]}>
-                {t('addTag.manualInput') || '手動輸入'}
-              </Text>
             </TouchableOpacity>
           </View>
 
           {/* Recent locations */}
-          {recentLocations.length > 0 && !showLocationInput && (
+          {recentLocations.length > 0 && (
             <View style={styles.quickDateRow}>
               {recentLocations.slice(0, 3).map((loc) => (
                 <TouchableOpacity
@@ -553,83 +478,15 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
           {eventLocation ? (
             <Text style={styles.selectedDateText}>{eventLocation}</Text>
           ) : null}
-
-          {/* Nearby places list */}
-          {loadingNearby && (
-            <View style={{ paddingVertical: 12, alignItems: 'center' }}>
-              <ActivityIndicator size="small" color={COLORS.piktag500} />
-              <Text style={{ fontSize: 13, color: COLORS.gray400, marginTop: 6 }}>搜尋附近地點...</Text>
-            </View>
-          )}
-          {!loadingNearby && nearbyPlaces.length > 0 && (
-            <View style={{ marginTop: 8 }}>
-              <Text style={{ fontSize: 13, color: COLORS.gray500, marginBottom: 6 }}>{t('addTag.nearbyTagsLabel') || '附近地點'}</Text>
-              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
-                {nearbyPlaces.map((place, i) => {
-                  const isSelected = eventLocation === place.name;
-                  return (
-                    <TouchableOpacity
-                      key={`nearby-${place.placeId || i}`}
-                      style={[styles.quickDateBtn, isSelected && styles.quickDateBtnActive]}
-                      onPress={() => {
-                        if (isSelected) { setEventLocation(''); } else { setEventLocation(place.name); saveToRecent(place.name); }
-                      }}
-                      activeOpacity={0.6}
-                    >
-                      <MapPin size={12} color={isSelected ? COLORS.piktag600 : COLORS.gray400} />
-                      <Text style={[styles.quickDateText, isSelected && styles.quickDateTextActive]} numberOfLines={1}>{place.name}</Text>
-                    </TouchableOpacity>
-                  );
-                })}
-              </View>
-            </View>
-          )}
-
-          {/* Manual input with autocomplete */}
-          {showLocationInput && (
-            <View>
-              <View style={styles.inputRow}>
-                <TextInput
-                  style={styles.textInput}
-                  value={eventLocation}
-                  onChangeText={handleLocationInputChange}
-                  placeholder={t('addTag.locationPlaceholder')}
-                  placeholderTextColor={COLORS.gray400}
-                  autoFocus
-                />
-              </View>
-              {loadingAutocomplete && (
-                <View style={{ paddingVertical: 8, alignItems: 'center' }}>
-                  <ActivityIndicator size="small" color={COLORS.piktag500} />
-                </View>
-              )}
-              {!loadingAutocomplete && autocompleteSuggestions.length > 0 && (
-                <View style={{ marginTop: 4, borderRadius: 10, backgroundColor: COLORS.gray50 || '#f8f8f8', overflow: 'hidden' }}>
-                  {autocompleteSuggestions.map((place, i) => (
-                    <TouchableOpacity
-                      key={`ac-${place.placeId || i}`}
-                      style={{ paddingVertical: 10, paddingHorizontal: 14, borderBottomWidth: i < autocompleteSuggestions.length - 1 ? 1 : 0, borderBottomColor: COLORS.gray200 || '#e5e5e5' }}
-                      onPress={() => {
-                        setEventLocation(place.name);
-                        saveToRecent(place.name);
-                        setAutocompleteSuggestions([]);
-                      }}
-                      activeOpacity={0.6}
-                    >
-                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                        <MapPin size={14} color={COLORS.gray500} />
-                        <View style={{ flex: 1 }}>
-                          <Text style={{ fontSize: 14, color: COLORS.gray800 || '#333', fontWeight: '500' }}>{place.name}</Text>
-                          {place.address ? <Text style={{ fontSize: 12, color: COLORS.gray400, marginTop: 2 }} numberOfLines={1}>{place.address}</Text> : null}
-                        </View>
-                      </View>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              )}
-            </View>
-          )}
         </View>
+
+        {/* Location Picker Modal */}
+        <LocationPickerModal
+          visible={showLocationPicker}
+          onClose={() => setShowLocationPicker(false)}
+          onSelect={handleLocationSelected}
+          initialLocation={eventLocation}
+        />
 
         {/* 自訂標籤 Section */}
         <View style={styles.section}>

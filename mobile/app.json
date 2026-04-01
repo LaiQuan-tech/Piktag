@@ -16,11 +16,15 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "ag.pikt.app",
+      "config": {
+        "googleMapsApiKey": "AIzaSyC6JCMjAF48uv5vNjgtox3-qUqhFBQLtnI"
+      },
       "infoPlist": {
         "NSCameraUsageDescription": "PikTag needs camera access to scan QR codes",
         "NSPhotoLibraryUsageDescription": "PikTag needs photo library access to update your profile picture",
         "NSPhotoLibraryAddUsageDescription": "PikTag needs photo library access to update your profile picture",
-        "NSContactsUsageDescription": "PikTag uses your contacts to help you find friends who are already on PikTag"
+        "NSContactsUsageDescription": "PikTag uses your contacts to help you find friends who are already on PikTag",
+        "NSLocationWhenInUseUsageDescription": "PikTag uses your location to find nearby places"
       }
     },
     "android": {
@@ -29,6 +33,11 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyC6JCMjAF48uv5vNjgtox3-qUqhFBQLtnI"
+        }
+      },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
       "permissions": [
@@ -36,7 +45,9 @@
         "android.permission.READ_MEDIA_IMAGES",
         "android.permission.READ_EXTERNAL_STORAGE",
         "android.permission.RECORD_AUDIO",
-        "android.permission.READ_CONTACTS"
+        "android.permission.READ_CONTACTS",
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.ACCESS_COARSE_LOCATION"
       ]
     },
     "web": {
