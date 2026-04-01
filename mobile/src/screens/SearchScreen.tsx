@@ -745,12 +745,6 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
       return items;
     }
 
-    // Selected tags bar + intersection results (always show when tags selected)
-    if (selectedTags.length > 0) {
-      items.push({ type: 'selectedTagsBar' });
-      items.push({ type: 'intersectionResults' });
-    }
-
     // If user is typing, show search results regardless of tab
     if (trimmedQuery !== '') {
       if (profiles.length > 0) {
@@ -776,6 +770,11 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
           if (tags.length > 0) {
             items.push({ type: 'tagsGrid' });
           }
+          // Show intersection results below tags when multi-selecting
+          if (selectedTags.length > 0) {
+            items.push({ type: 'selectedTagsBar' });
+            items.push({ type: 'intersectionResults' });
+          }
           break;
 
         case 'nearby':
@@ -783,6 +782,10 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
             items.push({ type: 'nearbyTagsGrid' });
           } else {
             items.push({ type: 'tagsEmpty' });
+          }
+          if (selectedTags.length > 0) {
+            items.push({ type: 'selectedTagsBar' });
+            items.push({ type: 'intersectionResults' });
           }
           break;
 
