@@ -64,13 +64,7 @@
           "contactsPermission": "PikTag uses your contacts to help you find friends."
         }
       ],
-      "expo-web-browser",
-      [
-        "react-native-maps",
-        {
-          "googleMapsApiKey": "AIzaSyC6JCMjAF48uv5vNjgtox3-qUqhFBQLtnI"
-        }
-      ]
+      "expo-web-browser"
     ],
     "extra": {
       "eas": {

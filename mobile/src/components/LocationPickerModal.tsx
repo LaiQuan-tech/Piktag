@@ -11,7 +11,6 @@ import {
   Dimensions,
   Keyboard,
   Platform,
-  Image,
 } from 'react-native';
 import { X, Search, MapPin, Navigation, ChevronUp, ChevronDown } from 'lucide-react-native';
 import * as Location from 'expo-location';
@@ -25,19 +24,6 @@ const MAP_HEIGHT_COLLAPSED = SCREEN_HEIGHT * 0.25;
 
 const isWeb = Platform.OS === 'web';
 
-// Conditionally import MapView for native only
-let MapView: any = null;
-let Marker: any = null;
-let PROVIDER_GOOGLE: any = null;
-if (!isWeb) {
-  try {
-    const maps = require('react-native-maps');
-    MapView = maps.default;
-    Marker = maps.Marker;
-    PROVIDER_GOOGLE = maps.PROVIDER_GOOGLE;
-  } catch {}
-}
-
 type LocationPickerModalProps = {
   visible: boolean;
   onClose: () => void;
@@ -45,18 +31,44 @@ type LocationPickerModalProps = {
   initialLocation?: string;
 };
 
-/** Web: Google Maps Embed API (iframe) */
-function WebMapView({ latitude, longitude, address }: { latitude: number; longitude: number; address: string }) {
-  if (!isWeb) return null;
+/** Google Maps embed view — iframe on web, WebView on native */
+function EmbedMapView({ latitude, longitude, address }: { latitude: number; longitude: number; address: string }) {
   const src = `https://www.google.com/maps?q=${latitude},${longitude}&z=16&output=embed`;
+
+  if (isWeb) {
+    return (
+      <View style={{ flex: 1, position: 'relative' }}>
+        {/* @ts-ignore - iframe is web-only */}
+        <iframe
+          src={src}
+          style={{ width: '100%', height: '100%', border: 'none' }}
+          loading="lazy"
+        />
+        {address ? (
+          <View style={styles.webAddressOverlay}>
+            <Text style={styles.webAddressText} numberOfLines={2}>{address}</Text>
+          </View>
+        ) : null}
+      </View>
+    );
+  }
+
+  // Native: use react-native WebView
+  let WebView: any = null;
+  try { WebView = require('react-native-webview').default; } catch {}
+
+  if (!WebView) {
+    return (
+      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#f3f4f6' }}>
+        <MapPin size={32} color={COLORS.gray400} />
+        <Text style={{ color: COLORS.gray500, marginTop: 8, fontSize: 13 }}>{address || '目前位置'}</Text>
+      </View>
+    );
+  }
+
   return (
     <View style={{ flex: 1, position: 'relative' }}>
-      {/* @ts-ignore - iframe is web-only */}
-      <iframe
-        src={src}
-        style={{ width: '100%', height: '100%', border: 'none' }}
-        loading="lazy"
-      />
+      <WebView source={{ uri: src }} style={{ flex: 1 }} />
       {address ? (
         <View style={styles.webAddressOverlay}>
           <Text style={styles.webAddressText} numberOfLines={2}>{address}</Text>
@@ -73,16 +85,9 @@ export default function LocationPickerModal({
   initialLocation,
 }: LocationPickerModalProps) {
   const insets = useSafeAreaInsets();
-  const mapRef = useRef<any>(null);
   const searchInputRef = useRef<TextInput>(null);
 
   const [coords, setCoords] = useState({ latitude: 25.033, longitude: 121.5654 });
-  const [region, setRegion] = useState({
-    latitude: 25.033,
-    longitude: 121.5654,
-    latitudeDelta: 0.008,
-    longitudeDelta: 0.008,
-  });
   const [currentAddress, setCurrentAddress] = useState('');
   const [locating, setLocating] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
@@ -113,10 +118,7 @@ export default function LocationPickerModal({
 
   const fetchLocationData = useCallback(async (latitude: number, longitude: number) => {
     setCoords({ latitude, longitude });
-    setRegion({ latitude, longitude, latitudeDelta: 0.008, longitudeDelta: 0.008 });
-    if (!isWeb) {
-      mapRef.current?.animateToRegion({ latitude, longitude, latitudeDelta: 0.008, longitudeDelta: 0.008 }, 500);
-    }
+    // coords state update triggers EmbedMapView re-render
 
     // Reverse geocode
     if (isWeb) {
@@ -258,38 +260,7 @@ export default function LocationPickerModal({
 
         {/* Map */}
         <View style={[styles.mapContainer, { height: mapHeight }]}>
-          {isWeb ? (
-            <WebMapView latitude={coords.latitude} longitude={coords.longitude} address={currentAddress} />
-          ) : MapView ? (
-            <MapView
-              ref={mapRef}
-              style={styles.map}
-              provider={PROVIDER_GOOGLE}
-              region={region}
-              onRegionChangeComplete={setRegion}
-              showsUserLocation
-              showsMyLocationButton={false}
-            >
-              {Marker && (
-                <Marker coordinate={coords}>
-                  <View style={styles.markerContainer}>
-                    <View style={styles.markerBubble}>
-                      <Text style={styles.markerText} numberOfLines={2}>
-                        {currentAddress || '目前位置'}
-                      </Text>
-                    </View>
-                    <View style={styles.markerArrow} />
-                    <View style={styles.markerDot} />
-                  </View>
-                </Marker>
-              )}
-            </MapView>
-          ) : (
-            <View style={[styles.map, { alignItems: 'center', justifyContent: 'center', backgroundColor: COLORS.gray100 }]}>
-              <MapPin size={32} color={COLORS.gray400} />
-              <Text style={{ color: COLORS.gray500, marginTop: 8 }}>地圖載入中...</Text>
-            </View>
-          )}
+          <EmbedMapView latitude={coords.latitude} longitude={coords.longitude} address={currentAddress} />
 
           {/* Recenter button */}
           <TouchableOpacity
@@ -412,41 +383,6 @@ const styles = StyleSheet.create({
   },
   map: {
     flex: 1,
-  },
-  markerContainer: {
-    alignItems: 'center',
-  },
-  markerBubble: {
-    backgroundColor: COLORS.gray900,
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    maxWidth: 220,
-  },
-  markerText: {
-    color: '#fff',
-    fontSize: 13,
-    fontWeight: '500',
-    lineHeight: 18,
-  },
-  markerArrow: {
-    width: 0,
-    height: 0,
-    borderLeftWidth: 8,
-    borderRightWidth: 8,
-    borderTopWidth: 8,
-    borderLeftColor: 'transparent',
-    borderRightColor: 'transparent',
-    borderTopColor: COLORS.gray900,
-  },
-  markerDot: {
-    width: 14,
-    height: 14,
-    borderRadius: 7,
-    backgroundColor: '#ff3b30',
-    borderWidth: 2,
-    borderColor: '#fff',
-    marginTop: 2,
   },
   recenterBtn: {
     position: 'absolute',
