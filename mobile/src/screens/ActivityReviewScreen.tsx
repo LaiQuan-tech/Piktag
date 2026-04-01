@@ -164,8 +164,12 @@ export default function ActivityReviewScreen({ navigation, route }: Props) {
     let { data: tag } = await supabase.from('piktag_tags').select('id').eq('name', tagName).maybeSingle();
     if (tag) {
       if (isNowPicked) {
+        // Get current max position for this connection
+        const { data: existing } = await supabase.from('piktag_connection_tags')
+          .select('position').eq('connection_id', connId).order('position', { ascending: false }).limit(1);
+        const nextPos = (existing?.[0]?.position ?? -1) + 1;
         await supabase.from('piktag_connection_tags').upsert(
-          { connection_id: connId, tag_id: tag.id, is_private: false },
+          { connection_id: connId, tag_id: tag.id, is_private: false, position: nextPos },
           { onConflict: 'connection_id,tag_id' }
         ).catch(() => {});
       } else {

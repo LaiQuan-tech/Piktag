@@ -195,6 +195,7 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
           ),
           connection_tags:piktag_connection_tags(
             position,
+            is_private,
             tag:piktag_tags!tag_id(name)
           )
         `)
@@ -239,16 +240,21 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
         }
       }
 
-      // Merge: picked tags first (by position), then remaining public tags
+      // Merge: picked tags first, then remaining public tags that weren't picked
       const merged: ConnectionWithTags[] = connectionsData.map((conn: any) => {
-        const pickedTags = (conn.connection_tags || [])
+        // Picked tags from connection_tags (public only, sorted by position)
+        const pickedTagNames = (conn.connection_tags || [])
+          .filter((ct: any) => !ct.is_private)
           .sort((a: any, b: any) => (a.position ?? 0) - (b.position ?? 0))
           .map((ct: any) => ct.tag?.name ? `#${ct.tag.name}` : '')
           .filter(Boolean);
-        const publicTags = (publicTagMap.get(conn.connected_user_id) || []);
-        // Picked first, then public tags not already picked
-        const allTags = [...pickedTags, ...publicTags].filter((v, i, a) => a.indexOf(v) === i);
-        return { ...conn, tags: allTags };
+        const pickedSet = new Set(pickedTagNames);
+
+        // Public tags that are NOT already picked
+        const remainingPublicTags = (publicTagMap.get(conn.connected_user_id) || [])
+          .filter((t: string) => !pickedSet.has(t));
+
+        return { ...conn, tags: [...pickedTagNames, ...remainingPublicTags] };
       });
       setCache(CACHE_KEYS.CONNECTIONS, merged);
       setConnections(merged);
