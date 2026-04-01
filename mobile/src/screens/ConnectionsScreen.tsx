@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo, useRef } from 'react';
+import React, { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -158,6 +158,7 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
 
   // Friend statuses (IG-style stories bar)
   const [friendStatuses, setFriendStatuses] = useState<FriendStatus[]>([]);
+  const [viewedStatusIds, setViewedStatusIds] = useState<Set<string>>(new Set());
   const [closeFriendCount, setCloseFriendCount] = useState(0);
 
   // CRM reminders (derived from connections data)
@@ -416,6 +417,15 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
   }, [user, t]);
 
   // --- Optimized: load connections with cooldown ---
+  // Load viewed status IDs from storage
+  useEffect(() => {
+    AsyncStorage.getItem('piktag_viewed_statuses').then(val => {
+      if (val) {
+        try { setViewedStatusIds(new Set(JSON.parse(val))); } catch {}
+      }
+    });
+  }, []);
+
   useFocusEffect(
     useCallback(() => {
       const loadAll = async () => {
@@ -705,16 +715,24 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
     };
 
     const renderStoriesBar = () => {
-      if (friendStatuses.length === 0 || selectMode) return null;
+      const unreadStatuses = friendStatuses.filter(s => !viewedStatusIds.has(s.userId));
+      if (unreadStatuses.length === 0 || selectMode) return null;
       return (
         <View style={styles.storiesContainer}>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.storiesScroll}>
-            {friendStatuses.map((s) => (
+            {unreadStatuses.map((s) => (
               <TouchableOpacity
                 key={s.userId}
                 style={styles.storyItem}
                 activeOpacity={0.7}
                 onPress={() => {
+                  // Mark as viewed
+                  setViewedStatusIds(prev => {
+                    const next = new Set(prev);
+                    next.add(s.userId);
+                    AsyncStorage.setItem('piktag_viewed_statuses', JSON.stringify([...next]));
+                    return next;
+                  });
                   const conn = connections.find(c => c.connected_user_id === s.userId);
                   if (conn) navigation.navigate('FriendDetail', { connectionId: conn.id, friendId: s.userId });
                 }}
@@ -757,7 +775,7 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
         {renderCrmReminders()}
       </>
     );
-  }, [connections, friendStatuses, crmReminders, remindersDismissed, selectMode, t, navigation]);
+  }, [connections, friendStatuses, viewedStatusIds, crmReminders, remindersDismissed, selectMode, t, navigation]);
 
   // --- Optimized: stable contentContainerStyle ---
   const contentContainerStyle = useMemo(() => [
