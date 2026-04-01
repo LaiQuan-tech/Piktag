@@ -634,6 +634,8 @@
     "career": "職業",
     "other": "其他",
     "identityHint": "描述你是誰",
+    "personalityHint": "你的性格特質",
+    "careerHint": "你的職業或工作",
     "skillHint": "你擅長什麼",
     "interestHint": "你喜歡什麼",
     "socialHint": "你屬於什麼組織或社群",

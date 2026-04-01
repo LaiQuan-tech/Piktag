@@ -178,6 +178,8 @@ export const BORDER_RADIUS = {
 // ── Semantic Tag Types ─────────────────────────────────────────────────
 export const SEMANTIC_TYPES = [
   { key: 'identity', labelKey: 'semanticType.identity' },
+  { key: 'personality', labelKey: 'semanticType.personality' },
+  { key: 'career', labelKey: 'semanticType.career' },
   { key: 'skill', labelKey: 'semanticType.skill' },
   { key: 'interest', labelKey: 'semanticType.interest' },
   { key: 'social', labelKey: 'semanticType.social' },

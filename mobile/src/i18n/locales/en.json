@@ -633,6 +633,8 @@
     "career": "Career",
     "other": "Other",
     "identityHint": "Who you are",
+    "personalityHint": "Your personality traits",
+    "careerHint": "Your job or profession",
     "skillHint": "What you can do",
     "interestHint": "What you enjoy",
     "socialHint": "Organizations or communities you belong to",
