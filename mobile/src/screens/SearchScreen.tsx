@@ -192,7 +192,8 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
   const [trendingTagIds, setTrendingTagIds] = useState<Set<string>>(new Set());
 
   // Multi-tag selection (toggle only, no fetch until search button pressed)
-  const [selectedTagIds, setSelectedTagIds] = useState<Set<string>>(new Set());
+  const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
+  const selectedTagIdSet = useMemo(() => new Set(selectedTagIds), [selectedTagIds]);
 
 
   // Refs for stable closures
@@ -561,15 +562,11 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
 
   const handleTagPress = useCallback(
     (tag: Tag) => {
-      setSelectedTagIds(prev => {
-        const next = new Set(prev);
-        if (next.has(tag.id)) {
-          next.delete(tag.id);
-        } else {
-          next.add(tag.id);
-        }
-        return next;
-      });
+      setSelectedTagIds(prev =>
+        prev.includes(tag.id)
+          ? prev.filter(id => id !== tag.id)
+          : [...prev, tag.id]
+      );
     },
     [],
   );
@@ -582,8 +579,8 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
   );
 
   const handleSearchByTags = useCallback(() => {
-    if (selectedTagIds.size === 0) return;
-    const selected = tags.filter(t => selectedTagIds.has(t.id));
+    if (selectedTagIds.length === 0) return;
+    const selected = tags.filter(t => selectedTagIdSet.has(t.id));
     if (selected.length === 1) {
       // Single tag: go to TagDetail directly
       navigation.navigate('TagDetail', { tagId: selected[0].id, tagName: selected[0].name });
@@ -593,8 +590,8 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
       setSearchQuery(query);
       performSearch(query);
     }
-    setSelectedTagIds(new Set());
-  }, [selectedTagIds, tags, navigation, performSearch]);
+    setSelectedTagIds([]);
+  }, [selectedTagIds, selectedTagIdSet, tags, navigation, performSearch]);
 
 
   const handleProfilePress = useCallback(
@@ -881,7 +878,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
                   <TagCard
                     key={tag.id}
                     tag={tag}
-                    isSelected={selectedTagIds.has(tag.id)}
+                    isSelected={selectedTagIdSet.has(tag.id)}
                     onPress={handleTagPress}
                     onLongPress={handleTagLongPress}
                     countSuffix={tagCountSuffix}
@@ -929,7 +926,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
                   <TagCard
                     key={tag.id}
                     tag={tag}
-                    isSelected={selectedTagIds.has(tag.id)}
+                    isSelected={selectedTagIdSet.has(tag.id)}
                     onPress={handleTagPress}
                     onLongPress={handleTagLongPress}
                     countSuffix={tagCountSuffix}
@@ -949,7 +946,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
                 <TagCard
                   key={tag.id}
                   tag={tag}
-                  isSelected={selectedTagIds.has(tag.id)}
+                  isSelected={selectedTagIdSet.has(tag.id)}
                   onPress={handleTagPress}
                     onLongPress={handleTagLongPress}
                   countSuffix={tagCountSuffix}
@@ -1022,7 +1019,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
       handleProfilePress,
       handleTagPress,
       handleTagLongPress,
-      selectedTagIds,
+      selectedTagIdSet,
       tags,
       filteredTags,
       tagCategories,
@@ -1115,12 +1112,12 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
       />
 
       {/* Floating search button when tags are selected */}
-      {selectedTagIds.size > 0 && (
+      {selectedTagIds.length > 0 && (
         <View style={styles.floatingSearchBar}>
           <Text style={styles.floatingSearchText}>
-            {selectedTagIds.size} {t('search.tagsSelected') || '個標籤已選'}
+            {selectedTagIds.length} {t('search.tagsSelected') || '個標籤已選'}
           </Text>
-          <TouchableOpacity style={styles.floatingClearBtn} onPress={() => setSelectedTagIds(new Set())} activeOpacity={0.7}>
+          <TouchableOpacity style={styles.floatingClearBtn} onPress={() => setSelectedTagIds([])} activeOpacity={0.7}>
             <Text style={styles.floatingClearText}>{t('search.clearAll') || '清除'}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.floatingSearchBtn} onPress={handleSearchByTags} activeOpacity={0.8}>
