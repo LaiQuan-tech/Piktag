@@ -94,4 +94,4 @@ jobs:
             -authenticationKeyIssuerID ${{ secrets.ASC_API_KEY_ISSUER_ID }} \
             -allowProvisioningUpdates
 
-          echo "✅ Export and upload to App Store Connect completed successfully"
+          echo "✅ Upload to App Store Connect / TestFlight completed successfully"
