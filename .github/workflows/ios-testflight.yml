@@ -42,12 +42,22 @@ jobs:
           mkdir -p ~/private_keys
           echo "$ASC_API_KEY_P8" > ~/private_keys/AuthKey_${{ secrets.ASC_API_KEY_ID }}.p8
 
+      - name: Find workspace name
+        id: ws
+        working-directory: mobile/ios
+        run: |
+          WS=$(ls -d *.xcworkspace | head -1)
+          SCHEME="${WS%.xcworkspace}"
+          echo "workspace=$WS" >> $GITHUB_OUTPUT
+          echo "scheme=$SCHEME" >> $GITHUB_OUTPUT
+          echo "Found workspace: $WS, scheme: $SCHEME"
+
       - name: Build iOS Archive
         working-directory: mobile/ios
         run: |
           xcodebuild archive \
-            -workspace mobile.xcworkspace \
-            -scheme mobile \
+            -workspace "${{ steps.ws.outputs.workspace }}" \
+            -scheme "${{ steps.ws.outputs.scheme }}" \
             -configuration Release \
             -destination 'generic/platform=iOS' \
             -archivePath $RUNNER_TEMP/mobile.xcarchive \
