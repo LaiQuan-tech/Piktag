@@ -6,17 +6,13 @@ import {
   StyleSheet,
   Modal,
   ActivityIndicator,
-  Image,
   Platform,
   Dimensions,
-  ScrollView,
 } from 'react-native';
 import { X } from 'lucide-react-native';
 import * as Location from 'expo-location';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { COLORS } from '../constants/theme';
-import { GOOGLE_PLACES_API_KEY } from '../lib/googlePlaces';
-import InitialsAvatar from './InitialsAvatar';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 const isWeb = Platform.OS === 'web';
@@ -92,7 +88,7 @@ export default function FriendsMapModal({
 
   // Calculate positions for avatar overlays on the map
   // This is approximate — we overlay avatars on top of the embedded map
-  const mapHeight = SCREEN_HEIGHT * 0.55;
+  const mapHeight = SCREEN_HEIGHT - insets.top - 56; // full height minus header
 
   return (
     <Modal visible={visible} animationType="slide" presentationStyle="fullScreen" onRequestClose={onClose}>
@@ -135,29 +131,6 @@ export default function FriendsMapModal({
           )}
         </View>
 
-        {/* Friend list */}
-        <View style={styles.friendListContainer}>
-          <Text style={styles.friendListTitle}>
-            {friendsWithLocation.length} 位好友有位置資訊
-          </Text>
-          <ScrollView contentContainerStyle={styles.friendListScroll}>
-            {friendsWithLocation.map((f) => (
-              <TouchableOpacity
-                key={f.id}
-                style={styles.friendItem}
-                activeOpacity={0.7}
-                onPress={() => onFriendPress(f.connectionId, f.id)}
-              >
-                {f.avatarUrl ? (
-                  <Image source={{ uri: f.avatarUrl }} style={styles.friendAvatar} />
-                ) : (
-                  <InitialsAvatar name={f.name} size={40} />
-                )}
-                <Text style={styles.friendName} numberOfLines={1}>{f.name}</Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-        </View>
       </View>
     </Modal>
   );
@@ -196,44 +169,5 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  friendListContainer: {
-    flex: 1,
-    borderTopWidth: 1,
-    borderTopColor: COLORS.gray200,
-  },
-  friendListTitle: {
-    fontSize: 13,
-    color: COLORS.gray500,
-    paddingHorizontal: 16,
-    paddingTop: 12,
-    paddingBottom: 8,
-  },
-  friendListScroll: {
-    paddingHorizontal: 12,
-    paddingBottom: 20,
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 12,
-  },
-  friendItem: {
-    alignItems: 'center',
-    width: 72,
-    paddingVertical: 4,
-  },
-  friendAvatar: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    borderWidth: 2,
-    borderColor: COLORS.piktag400,
-  },
-  friendName: {
-    fontSize: 12,
-    fontWeight: '500',
-    color: COLORS.gray700,
-    marginTop: 4,
-    textAlign: 'center',
-    width: 72,
   },
 });
