@@ -102,9 +102,11 @@ type TagCardProps = {
   onLongPress?: (tag: Tag) => void;
   countSuffix: string;
   isTrending?: boolean;
+  showSemanticType?: boolean;
+  semanticTypeLabel?: string;
 };
 
-const TagCard = React.memo(function TagCard({ tag, isSelected, onPress, onLongPress, countSuffix, isTrending }: TagCardProps) {
+const TagCard = React.memo(function TagCard({ tag, isSelected, onPress, onLongPress, countSuffix, isTrending, showSemanticType, semanticTypeLabel }: TagCardProps) {
   return (
     <TouchableOpacity
       style={[styles.tagCard, isSelected && styles.tagCardHighlighted]}
@@ -117,6 +119,11 @@ const TagCard = React.memo(function TagCard({ tag, isSelected, onPress, onLongPr
         <Text style={[styles.tagName, isSelected && styles.tagNameHighlighted]} numberOfLines={1}>
           {tag.name}
         </Text>
+        {showSemanticType && semanticTypeLabel ? (
+          <View style={[styles.semanticBadge, isSelected && styles.semanticBadgeSelected]}>
+            <Text style={[styles.semanticBadgeText, isSelected && styles.semanticBadgeTextSelected]}>{semanticTypeLabel}</Text>
+          </View>
+        ) : null}
       </View>
       <View style={styles.tagCountRow}>
         {isTrending && (
@@ -945,6 +952,8 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
                     onLongPress={handleTagLongPress}
                     countSuffix={tagCountSuffix}
                     isTrending={trendingTagIds.has(tag.id)}
+                    showSemanticType
+                    semanticTypeLabel={tag.semantic_type ? t(`semanticType.${tag.semantic_type}`) : undefined}
                   />
                 ))}
               </View>
@@ -1196,6 +1205,25 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
 const topEdges: ('top')[] = ['top'];
 
 const styles = StyleSheet.create({
+  // Semantic type badge
+  semanticBadge: {
+    backgroundColor: COLORS.gray100,
+    borderRadius: 8,
+    paddingHorizontal: 6,
+    paddingVertical: 1,
+    marginLeft: 4,
+  },
+  semanticBadgeSelected: {
+    backgroundColor: 'rgba(255,255,255,0.25)',
+  },
+  semanticBadgeText: {
+    fontSize: 10,
+    color: COLORS.gray500,
+    fontWeight: '500',
+  },
+  semanticBadgeTextSelected: {
+    color: 'rgba(255,255,255,0.8)',
+  },
   // Floating search bar
   floatingSearchBar: {
     position: 'absolute',
