@@ -400,37 +400,60 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
 
   const performSearch = useCallback(
     async (query: string) => {
-      const trimmed = query.trim().replace(/#/g, '').trim();
-      if (!trimmed) {
+      // Strip # and split by common delimiters (space, comma, 、，)
+      const keywords = query.trim()
+        .replace(/#/g, '')
+        .split(/[\s,，、]+/)
+        .map(k => k.trim())
+        .filter(Boolean);
+
+      if (keywords.length === 0) {
         setActiveCategory(null);
         loadPopularTags();
         return;
       }
 
+      // Use first keyword for main search (profiles + aliases)
+      const mainKeyword = keywords[0];
+
       setLoading(true);
       setActiveCategory(null);
 
       try {
-        // Search tags (by name + aliases), profiles in parallel
-        const [tagsResult, aliasResult, profilesResult] = await Promise.all([
+        // Search tags: match ANY keyword
+        const tagPromises = keywords.map(kw =>
           supabase
             .from('piktag_tags')
             .select('id, name, semantic_type, usage_count, concept_id')
-            .ilike('name', `%${trimmed}%`)
+            .ilike('name', `%${kw}%`)
             .order('usage_count', { ascending: false })
-            .limit(20),
-          // Also search via tag_aliases → tag_concepts → piktag_tags
+            .limit(20)
+        );
+
+        const [aliasResult, profilesResult, ...tagResults] = await Promise.all([
+          // Alias search with first keyword
           supabase
             .from('tag_aliases')
             .select('concept_id, concept:tag_concepts(canonical_name, semantic_type)')
-            .ilike('alias', `%${trimmed}%`)
+            .ilike('alias', `%${mainKeyword}%`)
             .limit(10),
+          // Profile search with first keyword
           supabase
             .from('piktag_profiles')
             .select('id, username, full_name, avatar_url, is_verified')
-            .or(`username.ilike.%${trimmed}%,full_name.ilike.%${trimmed}%`)
+            .or(`username.ilike.%${mainKeyword}%,full_name.ilike.%${mainKeyword}%`)
             .limit(20),
+          ...tagPromises,
         ]);
+
+        // Merge tag results, deduplicate by id
+        const tagMap = new Map<string, any>();
+        for (const result of tagResults) {
+          for (const tag of (result.data || [])) {
+            if (!tagMap.has(tag.id)) tagMap.set(tag.id, tag);
+          }
+        }
+        const tagsResult = { data: [...tagMap.values()].sort((a, b) => b.usage_count - a.usage_count) };
 
         // Merge alias results: find tags by concept_id
         console.log('[Search] tagsResult:', JSON.stringify(tagsResult.data?.map((t: any) => ({name: t.name, concept_id: t.concept_id}))));
@@ -519,7 +542,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
         }
 
         // Save to recent searches
-        saveRecentSearch(trimmed);
+        saveRecentSearch(query.trim());
       } catch {
         setTags([]);
         setProfiles([]);
