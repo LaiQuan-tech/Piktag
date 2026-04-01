@@ -113,12 +113,12 @@ const TagCard = React.memo(function TagCard({ tag, isSelected, onPress, onLongPr
   }, [onLongPress, tag]);
 
   return (
-    <Pressable
-      style={({ pressed }) => [
+    <TouchableOpacity
+      style={[
         styles.tagCard,
         isSelected && styles.tagCardHighlighted,
-        pressed && !isSelected && { opacity: 0.7 },
       ]}
+      activeOpacity={0.7}
       onPress={handlePress}
       onLongPress={handleLongPress}
     >
@@ -147,7 +147,7 @@ const TagCard = React.memo(function TagCard({ tag, isSelected, onPress, onLongPr
           {tag.usage_count}{countSuffix}
         </Text>
       </View>
-    </Pressable>
+    </TouchableOpacity>
   );
 });
 
@@ -849,6 +849,10 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
         return 'clearHistoryBtn';
       case 'tagUsersSection':
         return `tagUsers-${item.tagUserData?.tag?.id || index}`;
+      case 'selectedTagsBar':
+        return 'selectedTagsBar';
+      case 'intersectionResults':
+        return 'intersectionResults';
       default:
         return `item-${index}`;
     }
@@ -1102,7 +1106,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
         case 'selectedTagsBar':
           return (
             <View style={styles.selectedTagsBar}>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingHorizontal: 16 }}>
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, paddingHorizontal: 16 }}>
                 {selectedTags.map((tag) => (
                   <TouchableOpacity
                     key={tag.id}
@@ -1121,7 +1125,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
                 >
                   <Text style={styles.clearAllText}>{t('search.clearAll') || '清除全部'}</Text>
                 </TouchableOpacity>
-              </ScrollView>
+              </View>
               <Text style={styles.intersectionHint}>
                 {t('search.intersectionHint', { count: selectedTags.length }) || `交集搜尋：${selectedTags.length} 個標籤`}
               </Text>
