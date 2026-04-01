@@ -12,6 +12,7 @@ import {
   Modal,
   FlatList,
   Share,
+  Platform,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ArrowLeft, ChevronRight, Check, X } from 'lucide-react-native';
@@ -154,16 +155,21 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
   };
 
   const handleLogout = async () => {
-    Alert.alert(t('settings.alertLogoutTitle'), t('settings.alertLogoutMessage'), [
-      { text: t('common.cancel'), style: 'cancel' },
-      {
-        text: t('settings.alertLogoutButton'),
-        style: 'destructive',
-        onPress: async () => {
-          await supabase.auth.signOut();
+    if (Platform.OS === 'web') {
+      const ok = window.confirm(t('settings.alertLogoutMessage') || '確定要登出嗎？');
+      if (ok) await supabase.auth.signOut();
+    } else {
+      Alert.alert(t('settings.alertLogoutTitle'), t('settings.alertLogoutMessage'), [
+        { text: t('common.cancel'), style: 'cancel' },
+        {
+          text: t('settings.alertLogoutButton'),
+          style: 'destructive',
+          onPress: async () => {
+            await supabase.auth.signOut();
+          },
         },
-      },
-    ]);
+      ]);
+    }
   };
 
   const handleDeleteAccount = () => {
