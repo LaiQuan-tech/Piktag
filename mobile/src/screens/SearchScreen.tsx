@@ -202,6 +202,9 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
   const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
   const selectedTagIdSet = useMemo(() => new Set(selectedTagIds), [selectedTagIds]);
 
+  // Smart recommendations
+  const [recommendedUsers, setRecommendedUsers] = useState<PiktagProfile[]>([]);
+
 
   // Refs for stable closures
   const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -386,10 +389,71 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
 
   // ── Load initial data on mount (parallel) ──
 
+  // Load smart recommendations based on shared tags
+  const loadRecommendations = useCallback(async () => {
+    if (!user) return;
+    try {
+      // Get my tag IDs
+      const { data: myTags } = await supabase
+        .from('piktag_user_tags')
+        .select('tag_id')
+        .eq('user_id', user.id)
+        .eq('is_private', false);
+      if (!myTags || myTags.length === 0) return;
+
+      const myTagIds = myTags.map(t => t.tag_id);
+
+      // Get my existing connection user IDs (to exclude)
+      const { data: myConns } = await supabase
+        .from('piktag_connections')
+        .select('connected_user_id')
+        .eq('user_id', user.id);
+      const connUserIds = new Set((myConns || []).map(c => c.connected_user_id));
+      connUserIds.add(user.id); // exclude self
+
+      // Find users who share at least one tag with me
+      const { data: sharedTagUsers } = await supabase
+        .from('piktag_user_tags')
+        .select('user_id, tag_id')
+        .in('tag_id', myTagIds)
+        .eq('is_private', false)
+        .limit(200);
+      if (!sharedTagUsers) return;
+
+      // Count shared tags per user
+      const userSharedCount = new Map<string, number>();
+      for (const ut of sharedTagUsers) {
+        if (connUserIds.has(ut.user_id)) continue; // skip existing friends
+        userSharedCount.set(ut.user_id, (userSharedCount.get(ut.user_id) || 0) + 1);
+      }
+
+      // Sort by most shared tags, take top 10
+      const topUserIds = [...userSharedCount.entries()]
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 10)
+        .map(([uid]) => uid);
+
+      if (topUserIds.length === 0) return;
+
+      // Fetch profiles
+      const { data: profiles } = await supabase
+        .from('piktag_profiles')
+        .select('id, username, full_name, avatar_url, bio, is_verified')
+        .in('id', topUserIds)
+        .eq('is_public', true);
+
+      if (profiles) {
+        // Sort by shared count
+        profiles.sort((a, b) => (userSharedCount.get(b.id) || 0) - (userSharedCount.get(a.id) || 0));
+        setRecommendedUsers(profiles as PiktagProfile[]);
+      }
+    } catch {}
+  }, [user]);
+
   useEffect(() => {
-    Promise.all([loadPopularTags(), loadRecentSearches()]);
+    Promise.all([loadPopularTags(), loadRecentSearches(), loadRecommendations()]);
     loadNearbyTags(); // background, don't block
-  }, [loadPopularTags, loadRecentSearches, loadNearbyTags]);
+  }, [loadPopularTags, loadRecentSearches, loadNearbyTags, loadRecommendations]);
 
   // ── Event handlers (all useCallback) ──
 
@@ -721,7 +785,8 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
     | { type: 'tagsEmpty' }
     | { type: 'tagsGrid' }
     | { type: 'nearbyTagsGrid' }
-    | { type: 'tagUsersSection'; tagUserData: { tag: Tag; users: any[] } };
+    | { type: 'tagUsersSection'; tagUserData: { tag: Tag; users: any[] } }
+    | { type: 'recommendedUsers' };
 
   const listData = useMemo<ListItem[]>(() => {
     const items: ListItem[] = [];
@@ -754,6 +819,9 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
       // No query — show tab content
       switch (searchTab) {
         case 'popular':
+          if (recommendedUsers.length > 0) {
+            items.push({ type: 'recommendedUsers' });
+          }
           if (tags.length > 0) {
             items.push({ type: 'tagsGrid' });
           }
@@ -794,6 +862,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
     nearbyTags,
     tagUsers,
     searchTab,
+    recommendedUsers,
   ]);
 
   const keyExtractor = useCallback((item: ListItem, index: number): string => {
@@ -826,6 +895,8 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
         return 'clearHistoryBtn';
       case 'tagUsersSection':
         return `tagUsers-${item.tagUserData?.tag?.id || index}`;
+      case 'recommendedUsers':
+        return 'recommendedUsers';
       default:
         return `item-${index}`;
     }
@@ -1079,6 +1150,36 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
           );
         }
 
+        case 'recommendedUsers':
+          return (
+            <View style={{ paddingHorizontal: 16, paddingBottom: 16 }}>
+              <Text style={{ fontSize: 16, fontWeight: '700', color: COLORS.gray900, marginBottom: 10 }}>
+                {t('search.recommendedTitle') || '你可能想認識'}
+              </Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 14 }}>
+                {recommendedUsers.map((u) => (
+                  <TouchableOpacity
+                    key={u.id}
+                    style={{ alignItems: 'center', width: 80 }}
+                    activeOpacity={0.7}
+                    onPress={() => handleProfilePress(u)}
+                  >
+                    {u.avatar_url ? (
+                      <Image source={{ uri: u.avatar_url }} style={{ width: 56, height: 56, borderRadius: 28, borderWidth: 2, borderColor: COLORS.piktag300 }} />
+                    ) : (
+                      <View style={{ width: 56, height: 56, borderRadius: 28, backgroundColor: COLORS.gray200, alignItems: 'center', justifyContent: 'center' }}>
+                        <User size={24} color={COLORS.gray400} />
+                      </View>
+                    )}
+                    <Text style={{ fontSize: 12, fontWeight: '500', color: COLORS.gray700, marginTop: 4, textAlign: 'center' }} numberOfLines={1}>
+                      {u.full_name || u.username || ''}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            </View>
+          );
+
         default:
           return null;
       }
@@ -1090,6 +1191,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
       handleProfilePress,
       handleTagPress,
       handleTagLongPress,
+      recommendedUsers,
       selectedTagIdSet,
       tags,
       filteredTags,

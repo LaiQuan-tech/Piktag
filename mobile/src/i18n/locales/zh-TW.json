@@ -151,6 +151,7 @@
   },
   "search": {
     "clearAll": "清除全部",
+    "recommendedTitle": "你可能想認識",
     "tagsSelected": "個標籤已選",
     "searchBtn": "搜尋",
     "intersectionHint": "交集搜尋：{{count}} 個標籤",
