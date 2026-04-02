@@ -210,7 +210,6 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
             id, full_name, username, avatar_url, is_verified, latitude, longitude, birthday
           ),
           connection_tags:piktag_connection_tags(
-            position,
             is_private,
             tag:piktag_tags!tag_id(name)
           )
@@ -237,14 +236,13 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
         return;
       }
 
-      // Fetch public tags for all connected users (with is_pinned, position, pick_count)
+      // Fetch public tags for all connected users
       const connUserIds = connectionsData.map((c: any) => c.connected_user_id);
       const { data: publicTagsData } = await supabase
         .from('piktag_user_tags')
-        .select('user_id, tag_id, is_pinned, position, tag:piktag_tags!tag_id(name)')
+        .select('user_id, tag_id, tag:piktag_tags!tag_id(name)')
         .in('user_id', connUserIds)
-        .eq('is_private', false)
-        .order('position');
+        .eq('is_private', false);
 
       // Fetch current user's own tag names for isMutual check
       const { data: myTagsData } = await supabase
@@ -265,10 +263,10 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
           if (!arr.find(t => t.name === name)) {
             arr.push({
               name,
-              isPinned: !!ut.is_pinned,
+              isPinned: false,
               pickCount: 0,
               isMutual: myTagNames.has(name),
-              position: ut.position ?? 0,
+              position: 0,
             });
           }
           publicTagMetaMap.set(ut.user_id, arr);
@@ -436,7 +434,6 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
       console.error('Unexpected error fetching connections:', err);
       if (!cached) {
         setConnections([]);
-        setOnThisDay([]);
         setCrmReminders([]);
       }
     }
