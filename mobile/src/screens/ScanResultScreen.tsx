@@ -558,7 +558,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   chipTextSelected: {
-    color: COLORS.gray900,
+    color: '#FFFFFF',
   },
   chipTextUnselected: {
     color: COLORS.gray700,

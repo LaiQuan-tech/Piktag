@@ -1089,9 +1089,9 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.piktag500,
   },
   followButtonFollowing: {
-    backgroundColor: COLORS.white,
+    backgroundColor: COLORS.piktag50,
     borderWidth: 2,
-    borderColor: COLORS.gray200,
+    borderColor: COLORS.piktag500,
   },
   followButtonText: {
     fontSize: 16,
@@ -1101,7 +1101,7 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
   followButtonTextFollowing: {
-    color: COLORS.gray700,
+    color: COLORS.piktag600,
   },
   // Tags — flat inline clickable (matching ProfileScreen)
   tagsWrap: {

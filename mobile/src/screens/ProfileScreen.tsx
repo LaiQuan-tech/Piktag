@@ -479,7 +479,7 @@ const styles = StyleSheet.create({
   },
   avatarRing: {
     borderWidth: 3,
-    borderColor: '#C13584',
+    borderColor: COLORS.piktag500,
   },
   avatar: {
     width: 56,
