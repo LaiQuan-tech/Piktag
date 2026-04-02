@@ -213,8 +213,13 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
-      if (connectionsError) {
+      if (connectionsError || !connectionsData) {
         console.error('Error fetching connections:', connectionsError);
+        // Keep cached data, don't clear
+        return;
+      }
+
+      if (connectionsData.length === 0) {
         if (!cached) {
           setConnections([]);
           setCrmReminders([]);
@@ -222,62 +227,34 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
         return;
       }
 
-      if (!connectionsData || connectionsData.length === 0) {
-        if (!cached) {
-          setConnections([]);
-
-          setCrmReminders([]);
-        }
-        return;
-      }
-
-      // Fetch public tags for all connected users
+      // Build connections first (without tags — tags are optional)
       const connUserIds = connectionsData.map((c: any) => c.connected_user_id);
-      const { data: publicTagsData } = await supabase
-        .from('piktag_user_tags')
-        .select('user_id, tag_id, tag:piktag_tags!tag_id(name)')
-        .in('user_id', connUserIds)
-        .eq('is_private', false);
+      let tagMap = new Map<string, string[]>();
 
-      // Fetch current user's own tag names for isMutual check
-      const { data: myTagsData } = await supabase
-        .from('piktag_user_tags')
-        .select('tag:piktag_tags!tag_id(name)')
-        .eq('user_id', user.id)
-        .eq('is_private', false);
-      const myTagNames = new Set((myTagsData || []).map((t: any) => t.tag?.name).filter(Boolean));
+      // Fetch public tags (optional — failure won't break connections)
+      try {
+        const { data: publicTagsData } = await supabase
+          .from('piktag_user_tags')
+          .select('user_id, tag_id, tag:piktag_tags!tag_id(name)')
+          .in('user_id', connUserIds)
+          .eq('is_private', false);
 
-      // Build public tag map with sorting metadata
-      type TagMeta = { name: string; isPinned: boolean; pickCount: number; isMutual: boolean; position: number };
-      const publicTagMetaMap = new Map<string, TagMeta[]>();
-      if (publicTagsData) {
-        for (const ut of publicTagsData as any[]) {
-          const name = ut.tag?.name;
-          if (!name) continue;
-          const arr = publicTagMetaMap.get(ut.user_id) || [];
-          if (!arr.find(t => t.name === name)) {
-            arr.push({
-              name,
-              isPinned: false,
-              pickCount: 0,
-              isMutual: myTagNames.has(name),
-              position: 0,
-            });
+        if (publicTagsData) {
+          for (const ut of publicTagsData as any[]) {
+            const name = ut.tag?.name;
+            if (!name) continue;
+            const arr = tagMap.get(ut.user_id) || [];
+            if (!arr.includes(`#${name}`)) arr.push(`#${name}`);
+            tagMap.set(ut.user_id, arr);
           }
-          publicTagMetaMap.set(ut.user_id, arr);
         }
-      }
+      } catch {}
 
-      // Merge: public tags for each connection
-      const merged: ConnectionWithTags[] = connectionsData.map((conn: any) => {
-        const friendTags = publicTagMetaMap.get(conn.connected_user_id) || [];
-        // Sort: mutual first, then by name
-        friendTags.sort((a, b) => {
-          if (a.isMutual !== b.isMutual) return a.isMutual ? -1 : 1;
-          return a.name.localeCompare(b.name);
-        });
-        return { ...conn, tags: friendTags.map(t => `#${t.name}`), semanticTypes: [] };
-      });
+      const merged: ConnectionWithTags[] = connectionsData.map((conn: any) => ({
+        ...conn,
+        tags: tagMap.get(conn.connected_user_id) || [],
+        semanticTypes: [],
+      }));
       setCache(CACHE_KEYS.CONNECTIONS, merged);
       setConnections(merged);
 
