@@ -77,6 +77,27 @@ serve(async (req) => {
           created_at: now.toISOString(),
         }, { onConflict: 'user_id,type,title' }).catch(() => {});
 
+        // Send push notification if user has push_token
+        const { data: profile } = await supabase
+          .from('piktag_profiles')
+          .select('push_token')
+          .eq('id', conn.user_id)
+          .single();
+
+        if (profile?.push_token) {
+          await fetch('https://exp.host/--/api/v2/push/send', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              to: profile.push_token,
+              title,
+              body,
+              data: { type: 'follow_up', connectionId: conn.id },
+              sound: 'default',
+            }),
+          }).catch(() => {});
+        }
+
         totalCreated++;
       }
     }

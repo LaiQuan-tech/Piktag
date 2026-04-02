@@ -12,6 +12,7 @@ import {
 import { Session } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
 import { COLORS } from '../constants/theme';
+import { registerForPushNotifications } from '../lib/pushNotifications';
 
 // Auth Screens
 import LoginScreen from '../screens/auth/LoginScreen';
@@ -240,6 +241,7 @@ export default function AppNavigator() {
       setSession(currentSession);
       if (currentSession?.user) {
         checkOnboardingStatus(currentSession.user.id, currentSession.user.created_at);
+        registerForPushNotifications(currentSession.user.id).catch(() => {});
       } else {
         setLoading(false);
       }
