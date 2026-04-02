@@ -192,7 +192,7 @@
     "phonePlaceholder": "Enter phone number",
     "emailLabel": "Email",
     "emailPlaceholder": "Enter email",
-    "socialLinksTitle": "Social Links",
+    "socialLinksTitle": "Ссылки и контакты",
     "noSocialLinks": "No social links",
     "addLink": "Add Link",
     "saveChanges": "Save Changes",
@@ -255,7 +255,7 @@
     "following": "Following",
     "follow": "Follow",
     "sendMessage": "Message",
-    "socialLinksTitle": "Social Links",
+    "socialLinksTitle": "Ссылки и контакты",
     "allTagsTitle": "All Tags"
   },
   "settings": {

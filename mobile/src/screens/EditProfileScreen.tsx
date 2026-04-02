@@ -15,7 +15,7 @@ import {
   Modal,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ArrowLeft, Plus, Pencil, Trash2, X, Hash, EyeOff, Eye, Camera } from 'lucide-react-native';
+import { ArrowLeft, Plus, Pencil, Trash2, X, Hash, EyeOff, Eye, Camera, ChevronUp, ChevronDown } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { useTranslation } from 'react-i18next';
 import { COLORS } from '../constants/theme';
@@ -508,6 +508,24 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
     }
   };
 
+  const handleReorderBiolink = async (index: number, direction: 'up' | 'down') => {
+    const swapIndex = direction === 'up' ? index - 1 : index + 1;
+    if (swapIndex < 0 || swapIndex >= biolinks.length) return;
+
+    const newList = [...biolinks];
+    [newList[index], newList[swapIndex]] = [newList[swapIndex], newList[index]];
+    setBiolinks(newList);
+
+    // Update positions in DB
+    try {
+      await Promise.all(
+        newList.map((link, i) =>
+          supabase.from('piktag_biolinks').update({ position: i }).eq('id', link.id)
+        )
+      );
+    } catch {}
+  };
+
   const handleDeleteBiolink = (biolink: Biolink) => {
     Alert.alert(
       t('editProfile.alertDeleteLinkTitle'),
@@ -892,11 +910,25 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
             {biolinks.length === 0 && (
               <Text style={styles.emptyText}>{t('editProfile.noSocialLinks')}</Text>
             )}
-            {biolinks.map((link) => (
+            {biolinks.map((link, index) => (
               <View key={link.id} style={styles.biolinkItem}>
-                {(link as any).icon_url ? (
-                  <Image source={{ uri: (link as any).icon_url }} style={styles.biolinkIcon} />
-                ) : null}
+                {/* Reorder buttons */}
+                <View style={styles.biolinkReorder}>
+                  <TouchableOpacity
+                    onPress={() => handleReorderBiolink(index, 'up')}
+                    activeOpacity={0.6}
+                    disabled={index === 0}
+                  >
+                    <ChevronUp size={18} color={index === 0 ? COLORS.gray200 : COLORS.gray500} />
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={() => handleReorderBiolink(index, 'down')}
+                    activeOpacity={0.6}
+                    disabled={index === biolinks.length - 1}
+                  >
+                    <ChevronDown size={18} color={index === biolinks.length - 1 ? COLORS.gray200 : COLORS.gray500} />
+                  </TouchableOpacity>
+                </View>
                 <View style={styles.biolinkInfo}>
                   <Text style={styles.biolinkTitle}>
                     {link.label || link.platform}
@@ -1294,6 +1326,12 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: COLORS.gray400,
     marginBottom: 8,
+  },
+  biolinkReorder: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 8,
+    gap: 2,
   },
   biolinkItem: {
     flexDirection: 'row',
