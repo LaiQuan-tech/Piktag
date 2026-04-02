@@ -15,7 +15,8 @@ import {
   Modal,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ArrowLeft, Plus, Pencil, Trash2, X, Hash, EyeOff, Eye, Camera, ChevronUp, ChevronDown } from 'lucide-react-native';
+import { ArrowLeft, Plus, Pencil, Trash2, X, Hash, EyeOff, Eye, Camera, GripVertical } from 'lucide-react-native';
+import DraggableFlatList, { RenderItemParams, ScaleDecorator } from 'react-native-draggable-flatlist';
 import * as ImagePicker from 'expo-image-picker';
 import { useTranslation } from 'react-i18next';
 import { COLORS } from '../constants/theme';
@@ -508,18 +509,12 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
     }
   };
 
-  const handleReorderBiolink = async (index: number, direction: 'up' | 'down') => {
-    const swapIndex = direction === 'up' ? index - 1 : index + 1;
-    if (swapIndex < 0 || swapIndex >= biolinks.length) return;
-
-    const newList = [...biolinks];
-    [newList[index], newList[swapIndex]] = [newList[swapIndex], newList[index]];
-    setBiolinks(newList);
-
+  const handleDragEnd = async ({ data }: { data: Biolink[] }) => {
+    setBiolinks(data);
     // Update positions in DB
     try {
       await Promise.all(
-        newList.map((link, i) =>
+        data.map((link, i) =>
           supabase.from('piktag_biolinks').update({ position: i }).eq('id', link.id)
         )
       );
@@ -910,51 +905,50 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
             {biolinks.length === 0 && (
               <Text style={styles.emptyText}>{t('editProfile.noSocialLinks')}</Text>
             )}
-            {biolinks.map((link, index) => (
-              <View key={link.id} style={styles.biolinkItem}>
-                {/* Reorder buttons */}
-                <View style={styles.biolinkReorder}>
+            <DraggableFlatList
+              data={biolinks}
+              keyExtractor={(item) => item.id}
+              onDragEnd={handleDragEnd}
+              scrollEnabled={false}
+              renderItem={({ item: link, drag, isActive }: RenderItemParams<Biolink>) => (
+                <ScaleDecorator>
                   <TouchableOpacity
-                    onPress={() => handleReorderBiolink(index, 'up')}
-                    activeOpacity={0.6}
-                    disabled={index === 0}
+                    activeOpacity={0.7}
+                    onLongPress={drag}
+                    disabled={isActive}
+                    style={[styles.biolinkItem, isActive && { backgroundColor: COLORS.gray50, borderRadius: 12 }]}
                   >
-                    <ChevronUp size={18} color={index === 0 ? COLORS.gray200 : COLORS.gray500} />
+                    <TouchableOpacity onPressIn={drag} style={styles.biolinkDragHandle}>
+                      <GripVertical size={20} color={COLORS.gray400} />
+                    </TouchableOpacity>
+                    <View style={styles.biolinkInfo}>
+                      <Text style={styles.biolinkTitle}>
+                        {link.label || link.platform}
+                      </Text>
+                      <Text style={styles.biolinkUrl} numberOfLines={1}>
+                        {link.url}
+                      </Text>
+                    </View>
+                    <View style={styles.biolinkActions}>
+                      <TouchableOpacity
+                        style={styles.biolinkActionBtn}
+                        activeOpacity={0.6}
+                        onPress={() => openEditBiolinkModal(link)}
+                      >
+                        <Pencil size={18} color={COLORS.gray500} />
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={styles.biolinkActionBtn}
+                        onPress={() => handleDeleteBiolink(link)}
+                        activeOpacity={0.6}
+                      >
+                        <Trash2 size={18} color={COLORS.red500} />
+                      </TouchableOpacity>
+                    </View>
                   </TouchableOpacity>
-                  <TouchableOpacity
-                    onPress={() => handleReorderBiolink(index, 'down')}
-                    activeOpacity={0.6}
-                    disabled={index === biolinks.length - 1}
-                  >
-                    <ChevronDown size={18} color={index === biolinks.length - 1 ? COLORS.gray200 : COLORS.gray500} />
-                  </TouchableOpacity>
-                </View>
-                <View style={styles.biolinkInfo}>
-                  <Text style={styles.biolinkTitle}>
-                    {link.label || link.platform}
-                  </Text>
-                  <Text style={styles.biolinkUrl} numberOfLines={1}>
-                    {link.url}
-                  </Text>
-                </View>
-                <View style={styles.biolinkActions}>
-                  <TouchableOpacity
-                    style={styles.biolinkActionBtn}
-                    activeOpacity={0.6}
-                    onPress={() => openEditBiolinkModal(link)}
-                  >
-                    <Pencil size={18} color={COLORS.gray500} />
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={styles.biolinkActionBtn}
-                    onPress={() => handleDeleteBiolink(link)}
-                    activeOpacity={0.6}
-                  >
-                    <Trash2 size={18} color={COLORS.red500} />
-                  </TouchableOpacity>
-                </View>
-              </View>
-            ))}
+                </ScaleDecorator>
+              )}
+            />
             {/* Platform picker flow */}
             {!showPlatformPicker && !selectedPlatform && (
               <TouchableOpacity onPress={() => setShowPlatformPicker(true)} style={styles.addLinkBtn}>
@@ -1327,11 +1321,10 @@ const styles = StyleSheet.create({
     color: COLORS.gray400,
     marginBottom: 8,
   },
-  biolinkReorder: {
-    alignItems: 'center',
+  biolinkDragHandle: {
+    paddingRight: 10,
+    paddingVertical: 8,
     justifyContent: 'center',
-    marginRight: 8,
-    gap: 2,
   },
   biolinkItem: {
     flexDirection: 'row',
