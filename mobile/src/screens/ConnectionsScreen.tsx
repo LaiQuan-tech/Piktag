@@ -255,16 +255,28 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
       setCache(CACHE_KEYS.CONNECTIONS, merged);
       setConnections(merged);
 
-      // --- Fetch friend statuses for stories bar ---
+      // --- Fetch friend statuses for stories bar (only followed users) ---
       let statusData: any[] | null = null;
       try {
-        const res = await supabase
-          .from('piktag_user_status')
-          .select('user_id, text')
-          .in('user_id', connUserIds)
-          .gt('expires_at', new Date().toISOString())
-          .order('created_at', { ascending: false });
-        statusData = res.data;
+        // Get users I follow
+        const { data: followsData } = await supabase
+          .from('piktag_follows')
+          .select('following_id')
+          .eq('follower_id', user.id);
+        const followingIds = new Set((followsData || []).map((f: any) => f.following_id));
+
+        // Only fetch statuses from followed users
+        const followedConnUserIds = connUserIds.filter((id: string) => followingIds.has(id));
+
+        if (followedConnUserIds.length > 0) {
+          const res = await supabase
+            .from('piktag_user_status')
+            .select('user_id, text')
+            .in('user_id', followedConnUserIds)
+            .gt('expires_at', new Date().toISOString())
+            .order('created_at', { ascending: false });
+          statusData = res.data;
+        }
       } catch {}
 
       if (statusData && statusData.length > 0) {
