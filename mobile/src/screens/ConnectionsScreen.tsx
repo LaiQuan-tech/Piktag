@@ -207,12 +207,12 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
           id, user_id, connected_user_id, nickname, created_at,
           met_at, birthday,
           connected_user:piktag_profiles!connected_user_id(
-            id, full_name, username, avatar_url, is_verified, latitude, longitude, birthday, share_location
+            id, full_name, username, avatar_url, is_verified, latitude, longitude, birthday
           ),
           connection_tags:piktag_connection_tags(
             position,
             is_private,
-            tag:piktag_tags!tag_id(name, semantic_type)
+            tag:piktag_tags!tag_id(name)
           )
         `)
         .eq('user_id', user.id)
@@ -241,7 +241,7 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
       const connUserIds = connectionsData.map((c: any) => c.connected_user_id);
       const { data: publicTagsData } = await supabase
         .from('piktag_user_tags')
-        .select('user_id, tag_id, is_pinned, position, tag:piktag_tags!tag_id(name, pick_count, semantic_type)')
+        .select('user_id, tag_id, is_pinned, position, tag:piktag_tags!tag_id(name)')
         .in('user_id', connUserIds)
         .eq('is_private', false)
         .order('position');
@@ -255,7 +255,7 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
       const myTagNames = new Set((myTagsData || []).map((t: any) => t.tag?.name).filter(Boolean));
 
       // Build public tag map with sorting metadata
-      type TagMeta = { name: string; isPinned: boolean; pickCount: number; isMutual: boolean; position: number; semanticType: string | null };
+      type TagMeta = { name: string; isPinned: boolean; pickCount: number; isMutual: boolean; position: number };
       const publicTagMetaMap = new Map<string, TagMeta[]>();
       if (publicTagsData) {
         for (const ut of publicTagsData as any[]) {
@@ -266,10 +266,9 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
             arr.push({
               name,
               isPinned: !!ut.is_pinned,
-              pickCount: ut.tag?.pick_count ?? 0,
+              pickCount: 0,
               isMutual: myTagNames.has(name),
               position: ut.position ?? 0,
-              semanticType: ut.tag?.semantic_type ?? null,
             });
           }
           publicTagMetaMap.set(ut.user_id, arr);
@@ -310,14 +309,14 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
         for (const name of pickedNames) {
           if (!seen.has(name)) {
             seen.add(name);
-            allTagMetas.push({ name, isPinned: false, isPicked: true, isHidden: false, pickCount: 0, isMutual: myTagNames.has(name), position: 999, semanticType: null });
+            allTagMetas.push({ name, isPinned: false, isPicked: true, isHidden: false, pickCount: 0, isMutual: myTagNames.has(name), position: 999 });
           }
         }
         // Add hidden tags
         for (const name of hiddenNames) {
           if (!seen.has(name)) {
             seen.add(name);
-            allTagMetas.push({ name, isPinned: false, isPicked: false, isHidden: true, pickCount: 0, isMutual: false, position: 999, semanticType: null });
+            allTagMetas.push({ name, isPinned: false, isPicked: false, isHidden: true, pickCount: 0, isMutual: false, position: 999 });
           }
         }
 
@@ -331,19 +330,22 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
           return a.position - b.position;
         });
 
-        const semanticTypes = [...new Set(allTagMetas.map(t => t.semanticType).filter(Boolean))] as string[];
-        return { ...conn, tags: allTagMetas.map(t => `#${t.name}`), semanticTypes };
+        return { ...conn, tags: allTagMetas.map(t => `#${t.name}`), semanticTypes: [] };
       });
       setCache(CACHE_KEYS.CONNECTIONS, merged);
       setConnections(merged);
 
       // --- Fetch friend statuses for stories bar ---
-      const { data: statusData } = await supabase
-        .from('piktag_user_status')
-        .select('user_id, text')
-        .in('user_id', connUserIds)
-        .gt('expires_at', new Date().toISOString())
-        .order('created_at', { ascending: false });
+      let statusData: any[] | null = null;
+      try {
+        const res = await supabase
+          .from('piktag_user_status')
+          .select('user_id, text')
+          .in('user_id', connUserIds)
+          .gt('expires_at', new Date().toISOString())
+          .order('created_at', { ascending: false });
+        statusData = res.data;
+      } catch {}
 
       if (statusData && statusData.length > 0) {
         // Deduplicate: one status per user (latest)
@@ -369,11 +371,13 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
       }
 
       // --- Fetch close friend count ---
-      const { count: cfCount } = await supabase
-        .from('piktag_close_friends')
-        .select('*', { count: 'exact', head: true })
-        .eq('user_id', user.id);
-      setCloseFriendCount(cfCount ?? 0);
+      try {
+        const { count: cfCount } = await supabase
+          .from('piktag_close_friends')
+          .select('*', { count: 'exact', head: true })
+          .eq('user_id', user.id);
+        setCloseFriendCount(cfCount ?? 0);
+      } catch { setCloseFriendCount(0); }
 
       // --- Derive "On This Day" from already-fetched data (no extra query) ---
       const today = new Date();
@@ -847,7 +851,7 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
       ) : (
         <View style={styles.header}>
           <View style={styles.headerLeft}>
-            <Image source={require('../../assets/logo.png')} style={{ width: 120, height: 28, resizeMode: 'contain' }} />
+            <Text style={styles.headerTitle}>#piktag</Text>
             <Text style={styles.headerSubtitle}>
               <Text style={styles.headerCount}>{sortedConnections.length}</Text>{' '}{t('connections.friendsLabel') || 'friends'}
               {closeFriendCount > 0 && (
