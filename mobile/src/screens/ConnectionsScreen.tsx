@@ -163,8 +163,6 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
   const [closeFriendCount, setCloseFriendCount] = useState(0);
 
   // CRM reminders (derived from connections data)
-  const [crmReminders, setCrmReminders] = useState<any[]>([]);
-  const [remindersDismissed, setRemindersDismissed] = useState(false);
 
   // Tag filter state
   const [filterTag, setFilterTag] = useState<string | null>(null);
@@ -222,7 +220,6 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
       // Empty result only clears if we have no cached data at all
       if (connectionsData.length === 0 && !cached) {
         setConnections([]);
-        setCrmReminders([]);
         return;
       }
       if (connectionsData.length === 0) return;
@@ -302,65 +299,10 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
         setCloseFriendCount(cfCount ?? 0);
       } catch { setCloseFriendCount(0); }
 
-      // --- "On This Day" handled by daily-followup-check Edge Function as notification ---
-      const today = new Date();
-      const month = today.getMonth() + 1;
-      const day = today.getDate();
-
-      // --- Derive CRM reminders from already-fetched data (no extra query) ---
-      const mmdd = `${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-      const reminderResults: any[] = [];
-      for (const c of connectionsData) {
-        // Check connection-level birthday OR profile-level birthday
-        const connBday = c.birthday;
-        const profileBday = (c.connected_user as any)?.birthday;
-        const bday = connBday || profileBday;
-        if (bday && bday.includes(mmdd)) {
-          reminderResults.push({ ...c, reminderType: 'birthday', reminderLabel: t('connections.reminderBirthday') });
-        }
-      }
-
-      // Follow-up reminders: 3, 7, 30 days after meeting
-      const followUpIntervals = [
-        { days: 3, label: t('connections.followUp3d') || '認識 3 天了，打個招呼' },
-        { days: 7, label: t('connections.followUp7d') || '已經一週了，聊聊近況' },
-        { days: 30, label: t('connections.followUp30d') || '認識一個月了，保持聯繫' },
-      ];
-      const nowMs = today.getTime();
-      for (const c of connectionsData) {
-        const createdMs = new Date(c.created_at).getTime();
-        const daysSinceMet = Math.floor((nowMs - createdMs) / (1000 * 60 * 60 * 24));
-        for (const interval of followUpIntervals) {
-          if (daysSinceMet === interval.days) {
-            reminderResults.push({ ...c, reminderType: 'follow_up', reminderLabel: interval.label });
-            break;
-          }
-        }
-      }
-
-      setCrmReminders(reminderResults);
-
-      // Auto-create birthday notifications (once per day per person)
-      // Auto-create birthday notifications (best effort, don't crash on failure)
-      try {
-        for (const r of reminderResults) {
-          const profile = r.connected_user;
-          const name = r.nickname || profile?.full_name || profile?.username || '';
-          await supabase.from('piktag_notifications').upsert({
-            user_id: user.id,
-            type: 'birthday',
-            title: t('connections.birthdayNotifTitle', { name }) || `${name} 今天生日`,
-            body: t('connections.birthdayNotifBody', { name }) || `別忘了祝 ${name} 生日快樂`,
-            is_read: false,
-            created_at: new Date().toISOString(),
-          }, { onConflict: 'user_id,type,title' });
-        }
-      } catch {}
     } catch (err) {
       console.error('Unexpected error fetching connections:', err);
       if (!cached) {
         setConnections([]);
-        setCrmReminders([]);
       }
     }
   }, [user, t]);
@@ -620,59 +562,6 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
 
   // --- Optimized: stable ListHeaderComponent via useMemo ---
   const listHeader = useMemo(() => {
-    const renderCrmReminders = () => {
-      if (crmReminders.length === 0 || remindersDismissed || selectMode) return null;
-      const getIcon = (type: string) => {
-        if (type === 'birthday') return <Gift size={16} color="#ec4899" />;
-        if (type === 'follow_up') return <Heart size={16} color={COLORS.piktag500} />;
-        return <Clock size={16} color="#f97316" />;
-      };
-
-      const reminderTitle = crmReminders.some(r => r.reminderType === 'birthday')
-        ? t('connections.todayReminderTitle')
-        : t('connections.followUpTitle') || '該跟進了';
-      return (
-        <View style={styles.reminderCard}>
-          <View style={styles.recHeader}>
-            <View style={styles.recHeaderLeft}>
-              <Gift size={16} color="#ec4899" />
-              <Text style={[styles.recHeaderText, { color: '#ec4899' }]}>{reminderTitle}</Text>
-            </View>
-            <TouchableOpacity onPress={() => setRemindersDismissed(true)} activeOpacity={0.6}>
-              <X size={18} color={COLORS.gray400} />
-            </TouchableOpacity>
-          </View>
-          {crmReminders.map((conn, idx) => {
-            const profile = conn.connected_user;
-            const name = conn.nickname || profile?.full_name || profile?.username || 'Unknown';
-            const avatarUrl = profile?.avatar_url || null;
-            return (
-              <TouchableOpacity
-                key={`${conn.id}-${conn.reminderType}`}
-                style={styles.recBody}
-                activeOpacity={0.7}
-                onPress={() => navigation.navigate('FriendDetail', { connectionId: conn.id, friendId: conn.connected_user_id })}
-              >
-                {avatarUrl ? (
-                  <Image source={{ uri: avatarUrl }} style={styles.recAvatar} />
-                ) : (
-                  <InitialsAvatar name={name} size={48} />
-                )}
-                <View style={styles.recInfo}>
-                  <Text style={styles.recName} numberOfLines={1}>{name}</Text>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 2 }}>
-                    {getIcon(conn.reminderType)}
-                    <Text style={styles.recUsername}>{conn.reminderLabel}</Text>
-                  </View>
-                </View>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-      );
-    };
-
-    const renderStoriesBar = () => {
       const unreadStatuses = friendStatuses.filter(s => !viewedStatusIds.has(s.userId));
       if (unreadStatuses.length === 0 || selectMode) return null;
       return (
@@ -730,10 +619,9 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
             <Text style={styles.reviewBannerArrow}>→</Text>
           </TouchableOpacity>
         )}
-        {renderCrmReminders()}
       </>
     );
-  }, [connections, friendStatuses, viewedStatusIds, crmReminders, remindersDismissed, selectMode, t, navigation]);
+  }, [connections, friendStatuses, viewedStatusIds, selectMode, t, navigation]);
 
   // --- Optimized: stable contentContainerStyle ---
   const contentContainerStyle = useMemo(() => [
