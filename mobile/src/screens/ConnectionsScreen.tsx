@@ -1353,7 +1353,7 @@ const styles = StyleSheet.create({
     height: 60,
     borderRadius: 30,
     borderWidth: 2.5,
-    borderColor: '#C13584',
+    borderColor: COLORS.piktag400,
     padding: 2,
     marginBottom: 4,
   },

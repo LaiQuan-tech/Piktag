@@ -1363,9 +1363,9 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.piktag500,
   },
   followButtonFollowing: {
-    backgroundColor: COLORS.white,
+    backgroundColor: COLORS.piktag50,
     borderWidth: 1.5,
-    borderColor: COLORS.gray200,
+    borderColor: COLORS.piktag500,
   },
   followButtonTextDefault: {
     fontSize: 15,
@@ -1375,7 +1375,7 @@ const styles = StyleSheet.create({
   followButtonTextFollowing: {
     fontSize: 15,
     fontWeight: '600',
-    color: COLORS.gray700,
+    color: COLORS.piktag600,
   },
   tagButton: {
     flex: 1,
