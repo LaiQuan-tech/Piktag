@@ -1379,9 +1379,7 @@ const styles = StyleSheet.create({
   },
   tagButton: {
     flex: 1,
-    backgroundColor: COLORS.white,
-    borderWidth: 1.5,
-    borderColor: COLORS.gray200,
+    backgroundColor: COLORS.piktag500,
     borderRadius: 12,
     paddingVertical: 12,
     alignItems: 'center',
@@ -1396,8 +1394,8 @@ const styles = StyleSheet.create({
   moreCancelText: { fontSize: 16, fontWeight: '600', color: COLORS.gray500 },
   tagButtonText: {
     fontSize: 15,
-    fontWeight: '600',
-    color: COLORS.gray700,
+    fontWeight: '700',
+    color: '#FFFFFF',
   },
   actionsRow: {
     flexDirection: 'row',
