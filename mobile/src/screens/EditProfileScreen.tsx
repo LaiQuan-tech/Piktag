@@ -627,9 +627,9 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
         .update({ usage_count: 1 })
         .eq('id', tagId);
 
-      await supabase.rpc('increment_tag_usage', { tag_id: tagId }).catch((err) => {
-        console.warn('[EditProfileScreen] increment_tag_usage RPC fallback:', err);
-      });
+      try { await supabase.rpc('increment_tag_usage', { tag_id: tagId }); } catch(err) {
+        console.warn("[EditProfileScreen] increment_tag_usage fallback:", err);
+      }
 
       // Reload tags
       setTagInput('');
@@ -664,27 +664,20 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
 
         // 2. Decrement usage_count on piktag_tags
         if (userTag.tag_id) {
-          await supabase
-            .rpc('decrement_tag_usage', { tag_id: userTag.tag_id })
-            .catch(async (err) => {
-              console.warn('[EditProfileScreen] decrement_tag_usage RPC fallback:', err);
-              try {
-                const { data: tagData } = await supabase
-                  .from('piktag_tags')
-                  .select('usage_count')
-                  .eq('id', userTag.tag_id)
-                  .single();
-
-                if (tagData && tagData.usage_count > 0) {
-                  await supabase
-                    .from('piktag_tags')
-                    .update({ usage_count: tagData.usage_count - 1 })
-                    .eq('id', userTag.tag_id);
-                }
-              } catch (fallbackErr) {
-                console.warn('[EditProfileScreen] decrement fallback exception:', fallbackErr);
+          try {
+            await supabase.rpc('decrement_tag_usage', { tag_id: userTag.tag_id });
+          } catch {
+            try {
+              const { data: tagData } = await supabase
+                .from('piktag_tags')
+                .select('usage_count')
+                .eq('id', userTag.tag_id)
+                .single();
+              if (tagData && tagData.usage_count > 0) {
+                await supabase.from('piktag_tags').update({ usage_count: tagData.usage_count - 1 }).eq('id', userTag.tag_id);
               }
-            });
+            } catch {}
+          }
         }
 
         // Reload tags
@@ -725,19 +718,13 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
         }
 
         // Increment usage_count
-        await supabase
-          .rpc('increment_tag_usage', { tag_id: tag.id })
-          .catch(async (err) => {
-            console.warn('[EditProfileScreen] increment_tag_usage RPC fallback:', err);
-            try {
-              await supabase
-                .from('piktag_tags')
-                .update({ usage_count: (tag.usage_count || 0) + 1 })
-                .eq('id', tag.id);
-            } catch (fallbackErr) {
-              console.warn('[EditProfileScreen] increment fallback exception:', fallbackErr);
-            }
-          });
+        try {
+          await supabase.rpc('increment_tag_usage', { tag_id: tag.id });
+        } catch {
+          try {
+            await supabase.from('piktag_tags').update({ usage_count: (tag.usage_count || 0) + 1 }).eq('id', tag.id);
+          } catch {}
+        }
 
         await Promise.all([fetchUserTags(), fetchPopularTags()]);
       } catch (err) {

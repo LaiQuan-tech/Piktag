@@ -295,17 +295,17 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
         if (conn && tagIds.length > 0) {
           await supabase.from('piktag_connection_tags').insert(
             tagIds.map(tid => ({ connection_id: conn.id, tag_id: tid, is_private: true }))
-          ).catch(() => {});
+          );
         }
         if (reverseConn && tagIds.length > 0) {
           await supabase.from('piktag_connection_tags').insert(
             tagIds.map(tid => ({ connection_id: reverseConn.id, tag_id: tid, is_private: true }))
-          ).catch(() => {});
+          );
         }
       }
 
       // Increment scan count
-      await supabase.rpc('increment_scan_count', { session_id: paramSid }).catch(() => {});
+      await supabase.rpc('increment_scan_count', { session_id: paramSid });
 
       if (conn) setConnectionId(conn.id);
       Alert.alert(t('scanResult.alertSuccessTitle'), t('scanResult.alertSuccessMessage', { name: profile?.full_name || '' }));
@@ -452,7 +452,7 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
   };
 
   const handleOpenLink = (url: string) => {
-    Linking.openURL(url).catch(() => {});
+    Linking.openURL(url);
   };
 
   if (loading) {

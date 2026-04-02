@@ -202,7 +202,7 @@ export default function ScanResultScreen({ navigation, route }: ScanResultScreen
       if (publicTagIds.length > 0) {
         await supabase.from('piktag_connection_tags').insert(
           publicTagIds.map((tagId, i) => ({ connection_id: connectionData.id, tag_id: tagId, is_private: false, position: i }))
-        ).catch(() => {});
+        );
       }
 
       // Insert private connection tags (from QR event tags — only scanner sees)
@@ -219,7 +219,7 @@ export default function ScanResultScreen({ navigation, route }: ScanResultScreen
         const publicCount = publicTagIds.length;
         await supabase.from('piktag_connection_tags').insert(
           privateTagIds.map((tagId, i) => ({ connection_id: connectionData.id, tag_id: tagId, is_private: true, position: publicCount + i }))
-        ).catch(() => {});
+        );
       }
 
       // Also create reverse connection for host + attach private tags
@@ -237,7 +237,7 @@ export default function ScanResultScreen({ navigation, route }: ScanResultScreen
       if (reverseConn && privateTagIds.length > 0) {
         await supabase.from('piktag_connection_tags').insert(
           privateTagIds.map(tagId => ({ connection_id: reverseConn.id, tag_id: tagId, is_private: true }))
-        ).catch(() => {});
+        );
       }
 
       // Insert relation tag if selected

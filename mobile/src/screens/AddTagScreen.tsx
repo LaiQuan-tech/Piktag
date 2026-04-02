@@ -128,8 +128,7 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
           if (data && data.length > 0) {
             setPopularTags(data.map((t: any) => `#${t.name}`));
           }
-        })
-        .catch(() => {});
+        });
     }
   }, [user, loadPresets]);
 

@@ -171,11 +171,12 @@ export default function ActivityReviewScreen({ navigation, route }: Props) {
         await supabase.from('piktag_connection_tags').upsert(
           { connection_id: connId, tag_id: tag.id, is_private: false, position: nextPos },
           { onConflict: 'connection_id,tag_id' }
-        ).catch(() => {});
+        );
       } else {
-        await supabase.from('piktag_connection_tags').delete()
-          .eq('connection_id', connId).eq('tag_id', tag.id).eq('is_private', false)
-          .catch(() => {});
+        try {
+          await supabase.from('piktag_connection_tags').delete()
+            .eq('connection_id', connId).eq('tag_id', tag.id).eq('is_private', false);
+        } catch {}
       }
     }
   }, [currentIndex, connections, pickedTags]);
@@ -207,7 +208,7 @@ export default function ActivityReviewScreen({ navigation, route }: Props) {
       if (tag) {
         await supabase.from('piktag_connection_tags').insert({
           connection_id: conn.id, tag_id: tag.id, is_private: true,
-        }).catch(() => {});
+        });
       }
     })();
   }, [tagInput, currentIndex, connections]);

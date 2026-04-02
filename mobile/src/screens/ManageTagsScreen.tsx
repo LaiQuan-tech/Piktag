@@ -152,7 +152,7 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
       .from('piktag_user_tags')
       .insert({ user_id: user.id, tag_id: tagId, position: myTags.length });
     if (error) return false;
-    await supabase.rpc('increment_tag_usage', { tag_id: tagId }).catch(() => {});
+    await supabase.rpc('increment_tag_usage', { tag_id: tagId });
     return true;
   }, [user, myTags.length]);
 
@@ -163,7 +163,7 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
     setMyTags(prev => prev.filter(t => t.id !== userTag.id));
     try {
       await supabase.from('piktag_user_tags').delete().eq('id', userTag.id);
-      if (userTag.tag_id) await supabase.rpc('decrement_tag_usage', { tag_id: userTag.tag_id }).catch(() => {});
+      if (userTag.tag_id) await supabase.rpc('decrement_tag_usage', { tag_id: userTag.tag_id });
     } catch { /* ignore */ }
     await loadMyTags();
   }, [user, loadMyTags]);
@@ -188,7 +188,7 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
     try {
       await supabase.from('piktag_user_tags')
         .insert({ user_id: user.id, tag_id: tag.id, position: myTags.length });
-      await supabase.rpc('increment_tag_usage', { tag_id: tag.id }).catch(() => {});
+      await supabase.rpc('increment_tag_usage', { tag_id: tag.id });
     } catch { /* ignore */ }
     await loadMyTags();
   }, [user, myTags.length, loadMyTags]);
