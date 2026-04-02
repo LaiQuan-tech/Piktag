@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PikTag 開發規格書 v1.0</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', -apple-system, sans-serif; color: #1a1a1a; line-height: 1.7; padding: 40px; max-width: 900px; margin: 0 auto; }
+  h1 { font-size: 32px; font-weight: 800; margin-bottom: 8px; color: #2563eb; }
+  h2 { font-size: 22px; font-weight: 700; margin-top: 40px; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 2px solid #e5e7eb; color: #1e293b; }
+  h3 { font-size: 17px; font-weight: 600; margin-top: 24px; margin-bottom: 10px; color: #334155; }
+  p, li { font-size: 14px; color: #374151; }
+  ul, ol { margin-left: 20px; margin-bottom: 12px; }
+  li { margin-bottom: 4px; }
+  table { width: 100%; border-collapse: collapse; margin: 12px 0 20px; font-size: 13px; }
+  th, td { border: 1px solid #e5e7eb; padding: 8px 12px; text-align: left; }
+  th { background: #f8fafc; font-weight: 600; color: #1e293b; }
+  .subtitle { font-size: 16px; color: #64748b; margin-bottom: 4px; }
+  .version { font-size: 13px; color: #94a3b8; margin-bottom: 32px; }
+  .section-badge { display: inline-block; background: #2563eb; color: #fff; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 4px; margin-right: 6px; }
+  .badge-green { background: #16a34a; }
+  .badge-yellow { background: #d97706; }
+  .badge-gray { background: #64748b; }
+  code { background: #f1f5f9; padding: 1px 5px; border-radius: 3px; font-size: 13px; }
+  .page-break { page-break-before: always; }
+  @media print { body { padding: 20px; } h2 { page-break-after: avoid; } }
+</style>
+</head>
+<body>
+
+<h1>#piktag</h1>
+<p class="subtitle">開發規格書 — 對外測試版</p>
+<p class="version">版本 1.0.0 | 2026-04-02 | Confidential</p>
+
+<h2>1. 產品定位</h2>
+<p><strong>PikTag</strong> 是一個基於 <strong>Link in Bio + Semantic Tag + 排序演算法</strong> 的人脈管理平台，結合輕量 CRM 功能，幫助使用者記住每一個重要的人。</p>
+
+<h3>1.1 核心價值</h3>
+<ul>
+  <li><strong>Link in Bio</strong> — 個人公開頁面（pikt.ag/username），展示社交連結與標籤</li>
+  <li><strong>Semantic Tag</strong> — 語意標籤系統，自動歸類同義標籤（#媽祖 = #天上聖母 = #Mazu）</li>
+  <li><strong>Smart Sorting</strong> — 標籤 6 級排序演算法（isPinned → isPicked → isHidden → pickCount → isMutual → position）</li>
+  <li><strong>輕量 CRM</strong> — 跟進提醒、生日提醒、人脈洞察</li>
+</ul>
+
+<h3>1.2 目標市場</h3>
+<p>全球多語系支援（15 種語言），主要市場：台灣、日本、韓國、東南亞、北美</p>
+
+<h2>2. 技術架構</h2>
+
+<h3>2.1 Tech Stack</h3>
+<table>
+  <tr><th>層級</th><th>技術</th><th>說明</th></tr>
+  <tr><td>Mobile App</td><td>React Native + Expo (SDK 54)</td><td>iOS / Android / Web 三平台</td></tr>
+  <tr><td>Navigation</td><td>React Navigation 7</td><td>Bottom Tab + Native Stack</td></tr>
+  <tr><td>Backend</td><td>Supabase (PostgreSQL + Auth + Realtime)</td><td>BaaS，含 Row Level Security</td></tr>
+  <tr><td>Edge Functions</td><td>Supabase Edge Functions (Deno)</td><td>Serverless 邏輯</td></tr>
+  <tr><td>Web Profile</td><td>Vercel Serverless (Node.js)</td><td>SSR 個人公開頁</td></tr>
+  <tr><td>CI/CD</td><td>GitHub Actions</td><td>自動部署 TestFlight + Vercel</td></tr>
+  <tr><td>AI</td><td>Google Gemini Embedding</td><td>語意標籤自動歸類</td></tr>
+</table>
+
+<h3>2.2 資料庫架構（主要表格）</h3>
+<table>
+  <tr><th>表格</th><th>用途</th><th>RLS</th></tr>
+  <tr><td>piktag_profiles</td><td>使用者個人資料</td><td>✅</td></tr>
+  <tr><td>piktag_connections</td><td>好友連線關係</td><td>✅ user_id = auth.uid()</td></tr>
+  <tr><td>piktag_follows</td><td>追蹤關係</td><td>✅</td></tr>
+  <tr><td>piktag_tags</td><td>標籤（全域）</td><td>✅ 所有人可讀</td></tr>
+  <tr><td>piktag_user_tags</td><td>使用者的標籤（公開/私密）</td><td>✅</td></tr>
+  <tr><td>piktag_connection_tags</td><td>好友連線標籤（picked/hidden）</td><td>✅</td></tr>
+  <tr><td>piktag_biolinks</td><td>社交連結 / 聯絡方式</td><td>✅</td></tr>
+  <tr><td>piktag_notifications</td><td>通知</td><td>✅</td></tr>
+  <tr><td>piktag_user_status</td><td>每日動態（24h 過期）</td><td>✅</td></tr>
+  <tr><td>piktag_scan_sessions</td><td>QR Code 掃描紀錄</td><td>✅</td></tr>
+  <tr><td>piktag_tag_presets</td><td>標籤預設組合</td><td>✅</td></tr>
+  <tr><td>piktag_close_friends</td><td>摯友</td><td>✅</td></tr>
+  <tr><td>tag_concepts</td><td>語意概念（含 embedding vector）</td><td>✅</td></tr>
+  <tr><td>tag_aliases</td><td>標籤別名</td><td>✅</td></tr>
+</table>
+
+<h2 class="page-break">3. 功能清單</h2>
+
+<h3>3.1 導航結構</h3>
+<table>
+  <tr><th>Tab</th><th>頁面</th><th>說明</th></tr>
+  <tr><td>🏠 Home</td><td>ConnectionsScreen</td><td>好友清單 + Stories + 篩選</td></tr>
+  <tr><td>🔍 Search</td><td>SearchScreen</td><td>標籤搜尋 + Smart 推薦 + 探索</td></tr>
+  <tr><td>📱 QR</td><td>AddTagScreen</td><td>QR Code 產生 + 地點選擇 + 標籤</td></tr>
+  <tr><td>🔔 Notifications</td><td>NotificationsScreen</td><td>社交通知 + 提醒通知</td></tr>
+  <tr><td>👤 Profile</td><td>ProfileScreen</td><td>個人頁 + 近況 + Bio Links</td></tr>
+</table>
+
+<p><strong>第二/三層頁面（隱藏 Tab Bar）：</strong>FriendDetail、UserDetail、TagDetail、EditProfile、ManageTags、Settings、CameraScan、ContactSync、Invite、LocationContacts、SocialStats、ActivityReview、ScanResult</p>
+
+<h3>3.2 好友頁（ConnectionsScreen）</h3>
+<ul>
+  <li><strong>Stories Bar</strong> — IG 風格橫向滾動，只顯示已追蹤好友的近況，漸層圈（藍→紫→粉），點選後標記已讀消失</li>
+  <li><strong>好友清單</strong> — 排序（最新/最舊/字母/地點）、標籤篩選（前 10 個最多人有的）</li>
+  <li><strong>好友地圖</strong> — 全螢幕 Google Maps 顯示好友位置</li>
+  <li><strong>朋友數 + 摯友數</strong> — Header 顯示</li>
+  <li><strong>整理新朋友</strong> — Banner 連結到 ActivityReview</li>
+</ul>
+
+<h3>3.3 搜尋頁（SearchScreen）</h3>
+<ul>
+  <li><strong>三個 Tab</strong> — 熱門標籤 / 附近標籤 / 搜尋紀錄</li>
+  <li><strong>語意分類篩選</strong> — 個性 / 職業 / 興趣（動態從 DB 取得）</li>
+  <li><strong>趨勢指標</strong> — 近 7 天成長 ≥3 人或 ≥20% 顯示 TrendingUp</li>
+  <li><strong>多標籤交集搜尋</strong> — 選多個標籤 → 按搜尋 → 找同時有這些標籤的人</li>
+  <li><strong>搜尋欄</strong> — 支援 # 號去除、多分隔符（空格/逗號/頓號）、搜尋結果顯示語意類型</li>
+  <li><strong>Smart 推薦</strong> — 「你可能想認識」基於共同標籤推薦</li>
+  <li><strong>語系優先</strong> — 依手機系統語言排序熱門標籤</li>
+</ul>
+
+<h3>3.4 QR Code Tab（AddTagScreen）</h3>
+<ul>
+  <li><strong>日期選擇</strong> — 快速日期（今天/明天/本週末/下週）+ 日曆</li>
+  <li><strong>地點選擇</strong> — 全螢幕地圖 Modal（Google Places API + Autocomplete）</li>
+  <li><strong>標籤選擇</strong> — 預設熱門標籤（6 個）+ 自訂標籤</li>
+  <li><strong>QR Code 產生</strong> — 含日期/地點/標籤資訊</li>
+  <li><strong>預設組合</strong> — 儲存/載入/套用標籤組合</li>
+</ul>
+
+<h3>3.5 通知頁（NotificationsScreen）</h3>
+<table>
+  <tr><th>分類</th><th>類型</th><th>觸發方式</th></tr>
+  <tr><td rowspan="5">社交</td><td>follow</td><td>有人追蹤你</td></tr>
+  <tr><td>friend</td><td>新好友連線</td></tr>
+  <tr><td>tag_added</td><td>有人給你加標籤</td></tr>
+  <tr><td>recommendation</td><td>推薦</td></tr>
+  <tr><td>tag_trending</td><td>標籤趨勢上升</td></tr>
+  <tr><td rowspan="5">提醒</td><td>birthday</td><td>好友生日（Edge Function 每日檢查）</td></tr>
+  <tr><td>reminder (follow_up)</td><td>認識 3/7/30 天跟進提醒</td></tr>
+  <tr><td>reminder (on_this_day)</td><td>N 年前的今天認識了誰</td></tr>
+  <tr><td>biolink_click</td><td>有人點了你的 Bio Link</td></tr>
+  <tr><td>anniversary</td><td>紀念日（預留）</td></tr>
+</table>
+
+<h3>3.6 個人頁（ProfileScreen）</h3>
+<ul>
+  <li><strong>近況</strong> — 頭像點擊設定（24h 過期），有近況時頭像顯示漸層圈</li>
+  <li><strong>Bio Links</strong> — 社交連結 + 聯絡方式，支援拖拉排序</li>
+  <li><strong>標籤</strong> — 公開/私密標籤，pinned 優先</li>
+  <li><strong>統計</strong> — 標籤數 / 好友數 / 追蹤者數</li>
+</ul>
+
+<h3>3.7 好友詳細頁（FriendDetailScreen）</h3>
+<ul>
+  <li><strong>標籤 6 級排序</strong> — isPinned → isPicked → isHidden → pickCount → isMutual → position</li>
+  <li><strong>Pick 標籤</strong> — 選擇對你最重要的標籤</li>
+  <li><strong>共同好友</strong> — 點擊數字展開列表</li>
+  <li><strong>共同標籤</strong> — 點擊展開</li>
+  <li><strong>追蹤 / 取消追蹤</strong></li>
+  <li><strong>設為摯友</strong></li>
+</ul>
+
+<h2 class="page-break">4. Semantic Tag 系統</h2>
+
+<h3>4.1 語意類型（SemanticType）</h3>
+<table>
+  <tr><th>Key</th><th>zh-TW</th><th>en</th><th>說明</th></tr>
+  <tr><td>identity</td><td>身份</td><td>Identity</td><td>描述你是誰</td></tr>
+  <tr><td>personality</td><td>個性</td><td>Personality</td><td>性格特質</td></tr>
+  <tr><td>career</td><td>職業</td><td>Career</td><td>工作或職業</td></tr>
+  <tr><td>skill</td><td>技能</td><td>Skills</td><td>擅長什麼</td></tr>
+  <tr><td>interest</td><td>興趣</td><td>Interests</td><td>喜歡什麼</td></tr>
+  <tr><td>social</td><td>社群</td><td>Communities</td><td>組織或社群</td></tr>
+  <tr><td>meta</td><td>背景</td><td>Background</td><td>地點、年份等</td></tr>
+  <tr><td>relation</td><td>關係</td><td>Relation</td><td>和對方的關係</td></tr>
+</table>
+
+<h3>4.2 概念歸類系統（tag_concepts）</h3>
+<ul>
+  <li><strong>tag_concepts</strong> — 語意概念表，含 embedding vector(3072)</li>
+  <li><strong>tag_aliases</strong> — 別名對應（多對一）</li>
+  <li><strong>auto-link-concepts</strong> — Edge Function，用 Gemini Embedding 自動歸類</li>
+  <li><strong>find_similar_concepts()</strong> — PostgreSQL 函式，cosine similarity ≥ 0.85</li>
+  <li>範例：#媽祖 ≈ #天上聖母 ≈ #Mazu → 同一 concept</li>
+</ul>
+
+<h2>5. Edge Functions</h2>
+<table>
+  <tr><th>函式</th><th>功能</th><th>觸發方式</th></tr>
+  <tr><td>daily-followup-check</td><td>跟進提醒（3/7/30 天）+ 歷史上的今天 + 推播</td><td>GitHub Actions cron 每天 09:00 UTC+8</td></tr>
+  <tr><td>daily-birthday-check</td><td>生日提醒通知</td><td>GitHub Actions cron</td></tr>
+  <tr><td>auto-link-concepts</td><td>語意標籤自動歸類（Gemini Embedding）</td><td>GitHub Actions cron 每天 03:00 UTC+8</td></tr>
+  <tr><td>generate-embedding</td><td>產生文字 embedding</td><td>HTTP 呼叫</td></tr>
+</table>
+
+<h2>6. CI/CD 流程</h2>
+
+<h3>6.1 自動部署</h3>
+<table>
+  <tr><th>事件</th><th>觸發</th><th>結果</th></tr>
+  <tr><td>Push to main + mobile/ 變更</td><td>GitHub Actions</td><td>iOS build → TestFlight 上傳</td></tr>
+  <tr><td>Push to main</td><td>Vercel (piktag)</td><td>Web app 自動部署</td></tr>
+  <tr><td>Push to main</td><td>Vercel (lqtech-bio)</td><td>個人公開頁自動部署</td></tr>
+  <tr><td>每日 cron</td><td>GitHub Actions</td><td>Edge Functions 定時執行</td></tr>
+</table>
+
+<h3>6.2 專案結構</h3>
+<table>
+  <tr><th>Vercel 專案</th><th>域名</th><th>Root Directory</th><th>用途</th></tr>
+  <tr><td>piktag</td><td>piktag.vercel.app</td><td>mobile</td><td>Mobile Web App</td></tr>
+  <tr><td>lqtech-bio</td><td>lqtech-bio.vercel.app</td><td>web</td><td>個人公開頁 API</td></tr>
+  <tr><td>piktag-landing</td><td>pikt.ag</td><td>—</td><td>官方網站（預留）</td></tr>
+</table>
+
+<h2 class="page-break">7. 多語系支援</h2>
+
+<h3>7.1 支援語系（15 種）</h3>
+<table>
+  <tr><th>代碼</th><th>語言</th><th>代碼</th><th>語言</th><th>代碼</th><th>語言</th></tr>
+  <tr><td>zh-TW</td><td>繁體中文</td><td>en</td><td>English</td><td>zh-CN</td><td>简体中文</td></tr>
+  <tr><td>ja</td><td>日本語</td><td>ko</td><td>한국어</td><td>es</td><td>Español</td></tr>
+  <tr><td>fr</td><td>Français</td><td>pt</td><td>Português</td><td>de</td><td>—</td></tr>
+  <tr><td>ar</td><td>العربية</td><td>hi</td><td>हिन्दी</td><td>bn</td><td>বাংলা</td></tr>
+  <tr><td>id</td><td>Indonesia</td><td>th</td><td>ไทย</td><td>tr</td><td>Türkçe</td></tr>
+  <tr><td>ru</td><td>Русский</td><td></td><td></td><td></td><td></td></tr>
+</table>
+<p>Fallback 語系：zh-TW。所有用語已調整為各語言口語化用法。</p>
+
+<h2>8. 品牌設計</h2>
+
+<h3>8.1 配色系統</h3>
+<table>
+  <tr><th>用途</th><th>Light Mode</th><th>Dark Mode</th></tr>
+  <tr><td>品牌主色</td><td><span style="color:#2563eb">■</span> #2563eb</td><td><span style="color:#818cf8">■</span> #818cf8</td></tr>
+  <tr><td>品牌輔色</td><td><span style="color:#8b5cf6">■</span> #8b5cf6</td><td><span style="color:#a78bfa">■</span> #a78bfa</td></tr>
+  <tr><td>漸層</td><td colspan="2">#2563eb → #7c3aed → #ec4899（藍→紫→粉）</td></tr>
+  <tr><td>風格參考</td><td colspan="2">Linear / Stripe / Arc browser（2025 北美主流）</td></tr>
+</table>
+
+<h3>8.2 Typography</h3>
+<ul>
+  <li>Display: 34px / 800 weight</li>
+  <li>H1: 28px / 700</li>
+  <li>H2: 22px / 700</li>
+  <li>Body: 16px / 400</li>
+  <li>Caption: 13px / 500</li>
+  <li>Web: Inter 字體</li>
+</ul>
+
+<h2>9. API Keys & 外部服務</h2>
+<table>
+  <tr><th>服務</th><th>用途</th><th>Key 位置</th></tr>
+  <tr><td>Supabase</td><td>資料庫 + Auth</td><td>mobile/src/lib/supabase.ts</td></tr>
+  <tr><td>Google Places API (New)</td><td>地點搜尋 + Autocomplete</td><td>mobile/src/lib/googlePlaces.ts</td></tr>
+  <tr><td>Google Geocoding API</td><td>反向地理編碼</td><td>同上</td></tr>
+  <tr><td>Google Maps</td><td>地圖顯示（embed）</td><td>app.json</td></tr>
+  <tr><td>Gemini Embedding</td><td>語意標籤歸類</td><td>Supabase Secrets: GEMINI_API_KEY</td></tr>
+  <tr><td>App Store Connect</td><td>TestFlight 上傳</td><td>GitHub Secrets: ASC_API_KEY_*</td></tr>
+  <tr><td>Expo Push</td><td>推播通知</td><td>expo projectId in app.json</td></tr>
+</table>
+
+<h2>10. 已知限制 & 待做事項</h2>
+
+<h3>10.1 已知限制</h3>
+<ul>
+  <li>Dark Mode 部分頁面尚未完全適配（已用 COLORS 常量，需要切換到 useTheme）</li>
+  <li>推播通知僅在實體裝置有效（Web 不支援 Expo Push Token）</li>
+  <li>好友地圖使用 Google Maps embed（非原生 MapView），互動性有限</li>
+  <li>Vercel 免費方案每日 100 次部署限制</li>
+</ul>
+
+<h3>10.2 待做事項</h3>
+<ul>
+  <li>私人筆記 — 對好友加自由文字備忘錄</li>
+  <li>活動分組 — 按場景/活動回顧人脈</li>
+  <li>NFC 碰一下加好友</li>
+  <li>TagDetail 頁「相關標籤」UI 完善</li>
+  <li>公開個人頁 logo 大小優化</li>
+  <li>Dark Mode 全面適配</li>
+</ul>
+
+<hr style="margin-top:40px;border:none;border-top:1px solid #e5e7eb">
+<p style="text-align:center;color:#94a3b8;font-size:12px;margin-top:16px">PikTag Confidential — 2026 LaiQuan Tech</p>
+
+</body>
+</html>
