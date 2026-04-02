@@ -2,11 +2,11 @@ const SUPABASE_URL = 'https://kbwfdskulxnhjckdvghj.supabase.co';
 const SUPABASE_ANON_KEY =
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtid2Zkc2t1bHhuaGpja2R2Z2hqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEzOTgwNTAsImV4cCI6MjA4Njk3NDA1MH0.q1wxMahfity_5An5I_PPSoxglJeKHXX6ohYeGvsaIC8';
 
-const BRAND_COLOR = '#2563eb';
-const BRAND_ACCENT = '#8b5cf6';
-const BRAND_DARK = '#1d4ed8';
-const BRAND_BG = '#fafbff';
-const BRAND_GRADIENT = 'linear-gradient(135deg, #2563eb 0%, #7c3aed 50%, #ec4899 100%)';
+const BRAND_COLOR = '#2dc7ce';
+const BRAND_ACCENT = '#1a9ba1';
+const BRAND_DARK = '#1a9ba1';
+const BRAND_BG = '#f5fdfd';
+const BRAND_GRADIENT = 'linear-gradient(135deg, #1a9ba1 0%, #2dc7ce 40%, #5dd6db 70%, #a8e8eb 100%)';
 
 const PLATFORM_ICONS = {
   instagram: '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>',
@@ -156,7 +156,7 @@ function renderProfilePage(profile, biolinks, tags) {
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Poppins:wght@700;800&display=swap" rel="stylesheet">
   <style>
     *{margin:0;padding:0;box-sizing:border-box}
-    body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:linear-gradient(160deg,#eff6ff 0%,#f5f3ff 50%,#fdf2f8 100%);color:#1a1a1a;min-height:100vh;display:flex;flex-direction:column;align-items:center}
+    body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:linear-gradient(160deg,#f0fdfd 0%,#f5fdfd 50%,#f0fafa 100%);color:#1a1a1a;min-height:100vh;display:flex;flex-direction:column;align-items:center}
     .container{max-width:480px;width:100%;padding:32px 20px 140px;display:flex;flex-direction:column;align-items:center}
 
     /* Logo */
