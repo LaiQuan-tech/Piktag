@@ -1461,7 +1461,7 @@ const styles = StyleSheet.create({
   modalSaveBtnText: {
     fontSize: 17,
     fontWeight: '700',
-    color: COLORS.gray900,
+    color: '#FFFFFF',
   },
   // Tag styles (prefixed with tag_ to avoid conflicts)
   tag_section: {

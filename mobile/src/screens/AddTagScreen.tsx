@@ -24,7 +24,7 @@ import { COLORS } from '../constants/theme';
 import type { TagPreset, ScanSession, PiktagProfile } from '../types';
 
 // ─── Fallback Popular Tags (used if DB fetch fails) ───
-const FALLBACK_POPULAR_TAGS = ['#攝影', '#旅行', '#美食', '#健身', '#音樂', '#工程師', '#設計師', '#行銷', '#創業', '#PM'];
+const FALLBACK_POPULAR_TAGS = ['#攝影', '#旅行', '#美食', '#健身', '#音樂', '#工程師'];
 
 type AddTagScreenProps = {
   navigation: any;
@@ -123,7 +123,7 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
         .from('piktag_tags')
         .select('name, usage_count')
         .order('usage_count', { ascending: false })
-        .limit(15)
+        .limit(6)
         .then(({ data }) => {
           if (data && data.length > 0) {
             setPopularTags(data.map((t: any) => `#${t.name}`));
@@ -1069,7 +1069,7 @@ const styles = StyleSheet.create({
   addTagBtnText: {
     fontSize: 15,
     fontWeight: '700',
-    color: COLORS.gray900,
+    color: '#FFFFFF',
   },
 
   // ── Chips ──
@@ -1253,7 +1253,7 @@ const styles = StyleSheet.create({
   presetConfirmBtnText: {
     fontSize: 15,
     fontWeight: '700',
-    color: COLORS.gray900,
+    color: '#FFFFFF',
   },
 
   // ── QR Mode ──
@@ -1380,7 +1380,7 @@ const styles = StyleSheet.create({
   presetApplyBtnText: {
     fontSize: 14,
     fontWeight: '700',
-    color: COLORS.gray900,
+    color: '#FFFFFF',
   },
 
   // ── Misc ──
