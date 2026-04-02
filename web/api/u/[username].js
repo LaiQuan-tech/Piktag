@@ -151,36 +151,67 @@ function renderProfilePage(profile, biolinks, tags) {
   <meta name="twitter:description" content="${escapeHtml(ogDescription)}">
   <meta name="twitter:image" content="${escapeHtml(avatarUrl)}">
   <link rel="icon" href="/favicon.ico">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
     *{margin:0;padding:0;box-sizing:border-box}
-    body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:${BRAND_BG};color:#1a1a1a;min-height:100vh;display:flex;flex-direction:column;align-items:center}
-    .container{max-width:480px;width:100%;padding:40px 20px 120px;display:flex;flex-direction:column;align-items:center}
-    .logo{font-size:20px;font-weight:700;color:${BRAND_COLOR};margin-bottom:32px}
-    .avatar{width:96px;height:96px;border-radius:50%;object-fit:cover;border:3px solid ${BRAND_COLOR};margin-bottom:16px}
-    .name-row{display:flex;align-items:center;gap:2px;margin-bottom:4px}
-    .name{font-size:24px;font-weight:700;color:#1a1a1a}
-    .username{font-size:15px;color:${BRAND_COLOR};margin-bottom:12px}
-    .bio{font-size:15px;color:#444;text-align:center;line-height:1.6;margin-bottom:16px;max-width:360px}
-    .tags{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin-bottom:24px}
-    .tag{background:#fff;border:1.5px solid ${BRAND_COLOR};color:${BRAND_DARK};font-size:13px;font-weight:600;padding:4px 12px;border-radius:20px}
-    .biolinks{width:100%;display:flex;flex-direction:column;gap:10px}
-    .biolink{display:flex;align-items:center;gap:12px;background:#fff;border:1.5px solid #e5e5e5;border-radius:14px;padding:14px 18px;text-decoration:none;color:#333;font-size:15px;font-weight:500;transition:all .15s}
-    .biolink:hover{border-color:${BRAND_COLOR};box-shadow:0 2px 8px rgba(15,205,214,.15)}
+    body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:linear-gradient(160deg,#f0fdfd 0%,#fefce8 50%,#f0fdfd 100%);color:#1a1a1a;min-height:100vh;display:flex;flex-direction:column;align-items:center}
+    .container{max-width:480px;width:100%;padding:32px 20px 140px;display:flex;flex-direction:column;align-items:center}
+
+    /* Logo */
+    .logo{font-size:22px;font-weight:800;letter-spacing:-0.5px;margin-bottom:28px;opacity:0;animation:fadeDown .5s ease forwards}
+    .logo span{color:${BRAND_COLOR}}
+
+    /* Avatar with gradient ring */
+    .avatar-wrapper{position:relative;margin-bottom:18px;opacity:0;animation:scaleIn .5s ease .1s forwards}
+    .avatar-ring{width:108px;height:108px;border-radius:54px;padding:3px;background:linear-gradient(135deg,${BRAND_COLOR},${BRAND_ACCENT},${BRAND_COLOR})}
+    .avatar{width:102px;height:102px;border-radius:51px;object-fit:cover;border:3px solid #fff}
+
+    /* Name & username */
+    .name-row{display:flex;align-items:center;gap:4px;margin-bottom:4px;opacity:0;animation:fadeUp .5s ease .2s forwards}
+    .name{font-size:26px;font-weight:800;letter-spacing:-0.5px}
+    .username{font-size:15px;color:${BRAND_DARK};font-weight:600;margin-bottom:14px;opacity:0;animation:fadeUp .5s ease .25s forwards}
+    .bio{font-size:15px;color:#555;text-align:center;line-height:1.7;margin-bottom:18px;max-width:360px;opacity:0;animation:fadeUp .5s ease .3s forwards}
+
+    /* Follow button */
+    .follow-btn{background:linear-gradient(135deg,${BRAND_COLOR},${BRAND_DARK});color:#fff;font-weight:700;border-radius:28px;padding:13px 52px;font-size:16px;border:none;cursor:pointer;margin-bottom:20px;box-shadow:0 4px 16px rgba(15,205,214,.3);transition:all .2s;opacity:0;animation:fadeUp .5s ease .35s forwards}
+    .follow-btn:hover{transform:translateY(-2px);box-shadow:0 6px 24px rgba(15,205,214,.4)}
+    .follow-btn:active{transform:translateY(0);opacity:0.9}
+
+    /* Tags */
+    .tags{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin-bottom:24px;opacity:0;animation:fadeUp .5s ease .4s forwards}
+    .tag{background:rgba(255,255,255,.8);backdrop-filter:blur(8px);border:1.5px solid ${BRAND_COLOR};color:${BRAND_DARK};font-size:13px;font-weight:600;padding:6px 14px;border-radius:20px;transition:all .15s}
+    .tag:hover{background:${BRAND_COLOR};color:#fff;transform:translateY(-1px)}
+
+    /* Bio links */
+    .biolinks{width:100%;display:flex;flex-direction:column;gap:10px;opacity:0;animation:fadeUp .5s ease .45s forwards}
+    .biolink{display:flex;align-items:center;gap:12px;background:rgba(255,255,255,.85);backdrop-filter:blur(12px);border:1px solid rgba(229,229,229,.6);border-radius:16px;padding:16px 20px;text-decoration:none;color:#333;font-size:15px;font-weight:500;transition:all .2s;box-shadow:0 1px 4px rgba(0,0,0,.04)}
+    .biolink:hover{transform:translateY(-2px);border-color:${BRAND_COLOR};box-shadow:0 4px 16px rgba(15,205,214,.12)}
     .biolink span{flex:1}
-    .biolink svg{flex-shrink:0;color:#888}
+    .biolink svg{flex-shrink:0;color:#aaa;transition:color .15s}
     .biolink svg:first-child{color:${BRAND_COLOR}}
-    .banner{position:fixed;bottom:0;left:0;right:0;background:linear-gradient(135deg,${BRAND_COLOR} 0%,${BRAND_DARK} 100%);padding:16px 20px;display:flex;align-items:center;justify-content:center;gap:12px;box-shadow:0 -4px 20px rgba(0,0,0,.1);z-index:100}
-    .banner-content{display:flex;flex-direction:column;align-items:center;gap:4px}
-    .banner-title{font-size:16px;font-weight:700;color:#fff}
-    .banner-subtitle{font-size:13px;color:rgba(255,255,255,.85)}
-    .follow-btn{display:inline-block;background:${BRAND_ACCENT};color:#1a1a1a;font-weight:700;border-radius:24px;padding:12px 48px;font-size:16px;border:none;cursor:pointer;margin-top:16px;margin-bottom:8px}
-    .follow-btn:active{opacity:0.8}
+    .biolink:hover svg{color:${BRAND_DARK}}
+
+    /* Banner */
+    .banner{position:fixed;bottom:0;left:0;right:0;background:linear-gradient(135deg,${BRAND_COLOR} 0%,${BRAND_DARK} 100%);padding:14px 20px;display:flex;align-items:center;justify-content:center;gap:12px;box-shadow:0 -4px 24px rgba(0,0,0,.12);z-index:100;backdrop-filter:blur(12px)}
+    .banner-content{display:flex;flex-direction:column;align-items:center;gap:2px}
+    .banner-title{font-size:15px;font-weight:700;color:#fff}
+    .banner-subtitle{font-size:12px;color:rgba(255,255,255,.8)}
+
+    /* Animations */
+    @keyframes fadeDown{from{opacity:0;transform:translateY(-12px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes scaleIn{from{opacity:0;transform:scale(.85)}to{opacity:1;transform:scale(1)}}
   </style>
 </head>
 <body>
   <div class="container">
-    <div class="logo"># PikTag</div>
-    <img class="avatar" src="${escapeHtml(avatarUrl)}" alt="${name}" onerror="this.src='https://ui-avatars.com/api/?name=U&background=f3f4f6&color=6b7280&size=200'">
+    <div class="logo"><span>#</span> PikTag</div>
+    <div class="avatar-wrapper">
+      <div class="avatar-ring">
+        <img class="avatar" src="${escapeHtml(avatarUrl)}" alt="${name}" onerror="this.src='https://ui-avatars.com/api/?name=U&background=f3f4f6&color=6b7280&size=200'">
+      </div>
+    </div>
     <div class="name-row">
       <span class="name">${name}</span>
       ${verifiedBadge}
@@ -193,8 +224,8 @@ function renderProfilePage(profile, biolinks, tags) {
   </div>
   <div class="banner">
     <div class="banner-content">
-      <div class="banner-title">\ud83d\udcf1 \u7528 PikTag \u8a18\u4f4f\u6bcf\u500b\u91cd\u8981\u7684\u4eba</div>
-      <div class="banner-subtitle">\u5373\u5c07\u4e0a\u7dda\uff0c\u656c\u8acb\u671f\u5f85</div>
+      <div class="banner-title">用 PikTag 記住每個重要的人</div>
+      <div class="banner-subtitle">下載 App 開始建立你的人脈</div>
     </div>
   </div>
   <script>
