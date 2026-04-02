@@ -153,16 +153,16 @@ function renderProfilePage(profile, biolinks, tags) {
   <meta name="twitter:image" content="${escapeHtml(avatarUrl)}">
   <link rel="icon" href="/favicon.ico">
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Poppins:wght@700;800&display=swap" rel="stylesheet">
   <style>
     *{margin:0;padding:0;box-sizing:border-box}
     body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:linear-gradient(160deg,#eff6ff 0%,#f5f3ff 50%,#fdf2f8 100%);color:#1a1a1a;min-height:100vh;display:flex;flex-direction:column;align-items:center}
     .container{max-width:480px;width:100%;padding:32px 20px 140px;display:flex;flex-direction:column;align-items:center}
 
     /* Logo */
-    .logo{margin-bottom:28px;opacity:0;animation:fadeDown .5s ease forwards}
-    .logo-text{font-size:36px;font-weight:800;color:${BRAND_COLOR};letter-spacing:-1px}
-    .logo-hash{font-size:40px;font-weight:800;color:${BRAND_COLOR};opacity:.7;margin-right:2px}
+    .logo{display:flex;align-items:center;gap:6px;margin-bottom:28px;opacity:0;animation:fadeDown .5s ease forwards}
+    .logo img{width:36px;height:36px}
+    .logo-text{font-family:'Poppins',sans-serif;font-size:28px;font-weight:800;color:${BRAND_COLOR};letter-spacing:-0.5px}
 
     /* Avatar with gradient ring */
     .avatar-wrapper{position:relative;margin-bottom:18px;opacity:0;animation:scaleIn .5s ease .1s forwards}
@@ -208,7 +208,7 @@ function renderProfilePage(profile, biolinks, tags) {
 </head>
 <body>
   <div class="container">
-    <div class="logo"><span class="logo-hash">#</span><span class="logo-text">piktag</span></div>
+    <div class="logo"><img src="/logo-icon.png" alt="#"><span class="logo-text">piktag</span></div>
     <div class="avatar-wrapper">
       <div class="avatar-ring">
         <img class="avatar" src="${escapeHtml(avatarUrl)}" alt="${name}" onerror="this.src='https://ui-avatars.com/api/?name=U&background=f3f4f6&color=6b7280&size=200'">
