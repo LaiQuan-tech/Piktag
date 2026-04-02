@@ -379,7 +379,7 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
         setCloseFriendCount(cfCount ?? 0);
       } catch { setCloseFriendCount(0); }
 
-      // --- Derive "On This Day" from already-fetched data (no extra query) ---
+      // --- "On This Day" handled by daily-followup-check Edge Function as notification ---
       const today = new Date();
       const month = today.getMonth() + 1;
       const day = today.getDate();

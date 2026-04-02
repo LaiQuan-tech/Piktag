@@ -102,8 +102,66 @@ serve(async (req) => {
       }
     }
 
+    // --- "On This Day" — N years ago today ---
+    const todayMonth = now.getMonth() + 1;
+    const todayDay = now.getDate();
+    const thisYear = now.getFullYear();
+
+    // Find connections created on this day in previous years
+    const { data: allConnections } = await supabase
+      .from('piktag_connections')
+      .select(`
+        id, user_id, connected_user_id, created_at, nickname,
+        connected_user:piktag_profiles!connected_user_id(full_name, username)
+      `);
+
+    if (allConnections) {
+      for (const conn of allConnections) {
+        const created = new Date(conn.created_at);
+        if (created.getMonth() + 1 === todayMonth && created.getDate() === todayDay && created.getFullYear() < thisYear) {
+          const yearsAgo = thisYear - created.getFullYear();
+          const profile = (conn as any).connected_user;
+          const name = conn.nickname || profile?.full_name || profile?.username || '朋友';
+          const title = `${yearsAgo} 年前的今天，你認識了 ${name}`;
+          const body = '回顧一下這段人脈吧';
+
+          await supabase.from('piktag_notifications').upsert({
+            user_id: conn.user_id,
+            type: 'reminder',
+            title,
+            body,
+            data: { reminder_type: 'on_this_day', years_ago: yearsAgo, connection_id: conn.id },
+            is_read: false,
+            created_at: now.toISOString(),
+          }, { onConflict: 'user_id,type,title' }).catch(() => {});
+
+          // Push notification
+          const { data: userProfile } = await supabase
+            .from('piktag_profiles')
+            .select('push_token')
+            .eq('id', conn.user_id)
+            .single();
+          if (userProfile?.push_token) {
+            await fetch('https://exp.host/--/api/v2/push/send', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                to: userProfile.push_token,
+                title,
+                body,
+                data: { type: 'on_this_day', connectionId: conn.id },
+                sound: 'default',
+              }),
+            }).catch(() => {});
+          }
+
+          totalCreated++;
+        }
+      }
+    }
+
     return new Response(
-      JSON.stringify({ message: 'Follow-up check completed', reminders_created: totalCreated }),
+      JSON.stringify({ message: 'Follow-up + On This Day check completed', reminders_created: totalCreated }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (err) {
