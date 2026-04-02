@@ -179,7 +179,7 @@ type SearchScreenProps = {
 };
 
 export default function SearchScreen({ navigation }: SearchScreenProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { user } = useAuth();
   const [isFocused, setIsFocused] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -244,11 +244,22 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
     } catch {}
   }, []);
 
+  // Detect tag language from text characters
+  const detectTagLang = useCallback((name: string): string => {
+    if (/[\u4e00-\u9fff]/.test(name)) return 'zh';     // CJK Chinese
+    if (/[\u3040-\u309f\u30a0-\u30ff]/.test(name)) return 'ja'; // Hiragana/Katakana
+    if (/[\uac00-\ud7af]/.test(name)) return 'ko';     // Korean
+    if (/[\u0e00-\u0e7f]/.test(name)) return 'th';     // Thai
+    if (/[\u0600-\u06ff]/.test(name)) return 'ar';     // Arabic
+    if (/[\u0900-\u097f]/.test(name)) return 'hi';     // Hindi
+    if (/[\u0980-\u09ff]/.test(name)) return 'bn';     // Bengali
+    return 'en'; // Latin/default
+  }, []);
+
   const loadPopularTags = useCallback(async () => {
     const cached = getCache<Tag[]>(CACHE_KEY_POPULAR_TAGS);
     if (cached) {
       setTags(cached);
-      // Extract categories
       const cats = [...new Set(cached.map((t: any) => t.semantic_type).filter(Boolean))] as string[];
       setTagCategories(cats);
       setLoading(false);
@@ -257,18 +268,31 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
       setLoading(true);
     }
 
+    // Get user's language prefix (zh-TW → zh, en → en)
+    const userLang = (i18n.language || 'zh-TW').split('-')[0];
+
     try {
+      // Fetch more tags, then sort by language affinity + usage
       const { data, error } = await supabase
         .from('piktag_tags')
         .select('id, name, semantic_type, usage_count')
         .order('usage_count', { ascending: false })
-        .limit(50);
+        .limit(150);
 
       if (!error && data) {
-        setCache(CACHE_KEY_POPULAR_TAGS, data);
-        setTags(data);
-        // Extract unique categories
-        const cats = [...new Set(data.map((t: any) => t.semantic_type).filter(Boolean))] as string[];
+        // Sort: same language first, then by usage_count
+        const sorted = [...data].sort((a, b) => {
+          const aLang = detectTagLang(a.name);
+          const bLang = detectTagLang(b.name);
+          const aMatch = aLang === userLang ? 1 : 0;
+          const bMatch = bLang === userLang ? 1 : 0;
+          if (aMatch !== bMatch) return bMatch - aMatch;
+          return b.usage_count - a.usage_count;
+        }).slice(0, 50);
+
+        setCache(CACHE_KEY_POPULAR_TAGS, sorted);
+        setTags(sorted);
+        const cats = [...new Set(sorted.map((t: any) => t.semantic_type).filter(Boolean))] as string[];
         setTagCategories(cats);
 
         // Calculate trending: count user_tags created in last 7 days per tag
