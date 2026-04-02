@@ -3,6 +3,7 @@ import {
   View,
   Text,
   FlatList,
+  ScrollView,
   Image,
   TouchableOpacity,
   StyleSheet,
@@ -66,6 +67,7 @@ export default function TagDetailScreen({ navigation, route }: TagDetailScreenPr
   const [totalUserCount, setTotalUserCount] = useState(0);
   const [tagSemanticType, setTagSemanticType] = useState<string | null>(null);
   const [parentTagName, setParentTagName] = useState<string | null>(null);
+  const [relatedTags, setRelatedTags] = useState<{ id: string; name: string; usage_count: number }[]>([]);
 
   // Resolve tagId from tagName if not provided
   useEffect(() => {
@@ -250,7 +252,7 @@ export default function TagDetailScreen({ navigation, route }: TagDetailScreenPr
     if (!tagId) return;
     const { data } = await supabase
       .from('piktag_tags')
-      .select('semantic_type, parent_tag_id')
+      .select('semantic_type, parent_tag_id, concept_id')
       .eq('id', tagId)
       .single();
     if (data) {
@@ -262,6 +264,17 @@ export default function TagDetailScreen({ navigation, route }: TagDetailScreenPr
           .eq('id', data.parent_tag_id)
           .single();
         if (parent) setParentTagName(parent.name);
+      }
+      // Fetch related tags (same concept, excluding self)
+      if (data.concept_id) {
+        const { data: siblings } = await supabase
+          .from('piktag_tags')
+          .select('id, name, usage_count')
+          .eq('concept_id', data.concept_id)
+          .neq('id', tagId)
+          .order('usage_count', { ascending: false })
+          .limit(10);
+        if (siblings && siblings.length > 0) setRelatedTags(siblings);
       }
     }
   }, [tagId]);
@@ -393,6 +406,26 @@ export default function TagDetailScreen({ navigation, route }: TagDetailScreenPr
         </View>
         <View style={styles.backBtn} />
       </View>
+
+      {/* Related Tags */}
+      {relatedTags.length > 0 && (
+        <View style={styles.relatedContainer}>
+          <Text style={styles.relatedTitle}>{t('tagDetail.relatedTags') || '相關標籤'}</Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingHorizontal: 16 }}>
+            {relatedTags.map((rt) => (
+              <TouchableOpacity
+                key={rt.id}
+                style={styles.relatedChip}
+                activeOpacity={0.7}
+                onPress={() => navigation.push('TagDetail', { tagId: rt.id, tagName: rt.name })}
+              >
+                <Text style={styles.relatedChipText}>#{rt.name}</Text>
+                <Text style={styles.relatedChipCount}>{rt.usage_count}</Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
+      )}
 
       {/* Tab Bar */}
       <View style={styles.tabBar}>
@@ -534,6 +567,36 @@ const styles = StyleSheet.create({
   },
 
   // Tab Bar
+  relatedContainer: {
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.gray200,
+  },
+  relatedTitle: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: COLORS.gray500,
+    paddingHorizontal: 16,
+    marginBottom: 8,
+  },
+  relatedChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.gray100,
+    borderRadius: 16,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    gap: 6,
+  },
+  relatedChipText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: COLORS.piktag600,
+  },
+  relatedChipCount: {
+    fontSize: 11,
+    color: COLORS.gray400,
+  },
   tabBar: {
     flexDirection: 'row',
     borderBottomWidth: 1,

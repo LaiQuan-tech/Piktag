@@ -628,6 +628,7 @@
   "tagDetail": {
     "unknownTag": "未知標籤",
     "usageCount": "共 {{count}} 次使用",
+    "relatedTags": "相關標籤",
     "emptyTitle": "尚無相關人脈",
     "emptyText": "目前沒有人脈使用此標籤",
     "tabExplore": "探索",
