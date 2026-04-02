@@ -36,6 +36,7 @@ import {
 } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { COLORS } from '../constants/theme';
+import { LinearGradient } from 'expo-linear-gradient';
 import InitialsAvatar from '../components/InitialsAvatar';
 import { supabase } from '../lib/supabase';
 import { getCache, setCache, CACHE_KEYS } from '../lib/dataCache';
@@ -596,13 +597,20 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
                   if (conn) navigation.navigate('FriendDetail', { connectionId: conn.id, friendId: s.userId });
                 }}
               >
-                <View style={styles.storyAvatarRing}>
-                  {s.avatarUrl ? (
-                    <Image source={{ uri: s.avatarUrl }} style={styles.storyAvatar} />
-                  ) : (
-                    <InitialsAvatar name={s.name} size={56} />
-                  )}
-                </View>
+                <LinearGradient
+                  colors={['#f09433', '#e6683c', '#dc2743', '#cc2366', '#bc1888']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  style={styles.storyAvatarRing}
+                >
+                  <View style={styles.storyAvatarInner}>
+                    {s.avatarUrl ? (
+                      <Image source={{ uri: s.avatarUrl }} style={styles.storyAvatar} />
+                    ) : (
+                      <InitialsAvatar name={s.name} size={52} />
+                    )}
+                  </View>
+                </LinearGradient>
                 <Text style={styles.storyName} numberOfLines={1}>{s.name}</Text>
                 <Text style={styles.storyText} numberOfLines={1}>{s.statusText}</Text>
               </TouchableOpacity>
@@ -941,11 +949,18 @@ const styles = StyleSheet.create({
     width: 68,
   },
   storyAvatarRing: {
-    width: 62,
-    height: 62,
-    borderRadius: 31,
-    borderWidth: 2.5,
-    borderColor: '#C13584',
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 3,
+  },
+  storyAvatarInner: {
+    width: 58,
+    height: 58,
+    borderRadius: 29,
+    backgroundColor: '#fff',
     alignItems: 'center',
     justifyContent: 'center',
     padding: 2,
