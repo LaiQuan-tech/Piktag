@@ -1,6 +1,4 @@
 {
-  "buildCommand": "echo done",
-  "outputDirectory": "public",
   "rewrites": [
     { "source": "/download", "destination": "/download.html" },
     { "source": "/scan", "destination": "/scan.html" },
