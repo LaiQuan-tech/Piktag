@@ -443,8 +443,8 @@ const styles = StyleSheet.create({
   addBtn: { backgroundColor: COLORS.piktag500, borderRadius: 16, paddingVertical: 6, paddingHorizontal: 14 },
   addBtnText: { fontSize: 14, fontWeight: '700', color: COLORS.white },
   actionRow: { flexDirection: 'row', gap: 12, marginTop: 10 },
-  skipActionBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 12, borderRadius: 14, borderWidth: 1.5, borderColor: COLORS.gray200, backgroundColor: COLORS.white },
-  skipActionText: { fontSize: 15, fontWeight: '600', color: COLORS.gray500 },
+  skipActionBtn: { flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, paddingVertical: 12, borderRadius: 14, borderWidth: 1.5, borderColor: COLORS.piktag500, backgroundColor: COLORS.piktag50 },
+  skipActionText: { fontSize: 15, fontWeight: '600', color: COLORS.piktag600 },
   nextActionBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 12, borderRadius: 14, backgroundColor: COLORS.piktag500 },
   nextActionText: { fontSize: 15, fontWeight: '700', color: COLORS.white },
   // Empty + Summary

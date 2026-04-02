@@ -1425,7 +1425,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: COLORS.gray200,
+    borderColor: COLORS.piktag500,
     borderRadius: 14,
     paddingVertical: 14,
     gap: 8,
@@ -1433,7 +1433,7 @@ const styles = StyleSheet.create({
   outlineButtonText: {
     fontSize: 15,
     fontWeight: '600',
-    color: COLORS.gray700,
+    color: COLORS.piktag600,
   },
   section: {
     paddingHorizontal: 20,
