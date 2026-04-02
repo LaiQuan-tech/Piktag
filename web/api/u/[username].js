@@ -206,7 +206,7 @@ function renderProfilePage(profile, biolinks, tags) {
 </head>
 <body>
   <div class="container">
-    <div class="logo"><img src="/logo.png" alt="PikTag" style="width:70%;max-width:320px;height:auto"></div>
+    <div class="logo"><img src="/logo-icon.png" alt="PikTag" style="width:64px;height:64px"></div>
     <div class="avatar-wrapper">
       <div class="avatar-ring">
         <img class="avatar" src="${escapeHtml(avatarUrl)}" alt="${name}" onerror="this.src='https://ui-avatars.com/api/?name=U&background=f3f4f6&color=6b7280&size=200'">
