@@ -1704,7 +1704,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
   },
   cancelText: {
-    color: COLORS.gray500,
+    color: COLORS.piktag600,
     fontSize: 14,
     textAlign: 'center',
     paddingVertical: 8,

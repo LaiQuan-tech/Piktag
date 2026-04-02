@@ -1209,7 +1209,7 @@ const styles = StyleSheet.create({
   },
   outlineButton: {
     borderWidth: 1,
-    borderColor: COLORS.gray200,
+    borderColor: COLORS.piktag500,
     borderRadius: 14,
     paddingVertical: 14,
     alignItems: 'center',
@@ -1217,7 +1217,7 @@ const styles = StyleSheet.create({
   outlineButtonText: {
     fontSize: 15,
     fontWeight: '600',
-    color: COLORS.gray700,
+    color: COLORS.piktag600,
   },
   buttonDisabled: {
     opacity: 0.7,
@@ -1232,7 +1232,7 @@ const styles = StyleSheet.create({
   presetCancelBtn: {
     flex: 1,
     borderWidth: 1,
-    borderColor: COLORS.gray200,
+    borderColor: COLORS.piktag500,
     borderRadius: 14,
     paddingVertical: 12,
     alignItems: 'center',
@@ -1240,7 +1240,7 @@ const styles = StyleSheet.create({
   presetCancelBtnText: {
     fontSize: 15,
     fontWeight: '600',
-    color: COLORS.gray500,
+    color: COLORS.piktag600,
   },
   presetConfirmBtn: {
     flex: 1,
