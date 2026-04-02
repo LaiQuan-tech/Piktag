@@ -575,6 +575,7 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
 
   // --- Optimized: stable ListHeaderComponent via useMemo ---
   const listHeader = useMemo(() => {
+    const renderStoriesBar = () => {
       const unreadStatuses = friendStatuses.filter(s => !viewedStatusIds.has(s.userId));
       if (unreadStatuses.length === 0 || selectMode) return null;
       return (
