@@ -194,13 +194,13 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
 
     // Stale-while-revalidate: serve from cache instantly, then refresh in background
     const cached = getCache<ConnectionWithTags[]>(CACHE_KEYS.CONNECTIONS);
-    if (cached) {
+    if (cached && cached.length > 0) {
       setConnections(cached);
       setLoading(false);
     }
 
     try {
-      // Fetch connections + profiles (simple query first)
+      // Fetch connections + profiles
       const { data: connectionsData, error: connectionsError } = await supabase
         .from('piktag_connections')
         .select(`
@@ -213,19 +213,19 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
+      // On error, keep existing data
       if (connectionsError || !connectionsData) {
         console.error('Error fetching connections:', connectionsError);
-        // Keep cached data, don't clear
         return;
       }
 
-      if (connectionsData.length === 0) {
-        if (!cached) {
-          setConnections([]);
-          setCrmReminders([]);
-        }
+      // Empty result only clears if we have no cached data at all
+      if (connectionsData.length === 0 && !cached) {
+        setConnections([]);
+        setCrmReminders([]);
         return;
       }
+      if (connectionsData.length === 0) return;
 
       // Build connections first (without tags — tags are optional)
       const connUserIds = connectionsData.map((c: any) => c.connected_user_id);
@@ -389,7 +389,7 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
         }
       };
       loadAll();
-    }, [user, fetchConnections])
+    }, [fetchConnections])
   );
 
   // --- Optimized: useMemo for sorted connections ---
