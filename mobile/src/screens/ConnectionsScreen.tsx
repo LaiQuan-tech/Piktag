@@ -341,7 +341,8 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
       setCrmReminders(reminderResults);
 
       // Auto-create birthday notifications (once per day per person)
-      if (reminderResults.length > 0) {
+      // Auto-create birthday notifications (best effort, don't crash on failure)
+      try {
         for (const r of reminderResults) {
           const profile = r.connected_user;
           const name = r.nickname || profile?.full_name || profile?.username || '';
@@ -352,9 +353,9 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
             body: t('connections.birthdayNotifBody', { name }) || `別忘了祝 ${name} 生日快樂`,
             is_read: false,
             created_at: new Date().toISOString(),
-          }, { onConflict: 'user_id,type,title' }).catch(() => {});
+          }, { onConflict: 'user_id,type,title' });
         }
-      }
+      } catch {}
     } catch (err) {
       console.error('Unexpected error fetching connections:', err);
       if (!cached) {
@@ -627,7 +628,7 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
         return <Clock size={16} color="#f97316" />;
       };
 
-      const reminderTitle = reminderResults.some(r => r.reminderType === 'birthday')
+      const reminderTitle = crmReminders.some(r => r.reminderType === 'birthday')
         ? t('connections.todayReminderTitle')
         : t('connections.followUpTitle') || '該跟進了';
       return (
