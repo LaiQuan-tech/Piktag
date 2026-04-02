@@ -160,8 +160,8 @@ function renderProfilePage(profile, biolinks, tags) {
 
     /* Logo */
     .logo{margin-bottom:28px;opacity:0;animation:fadeDown .5s ease forwards}
-    .logo img{width:280px!important;height:auto!important}
-    .logo span{color:${BRAND_COLOR}}
+    .logo-text{font-size:36px;font-weight:800;color:${BRAND_COLOR};letter-spacing:-1px}
+    .logo-hash{font-size:40px;font-weight:800;color:${BRAND_COLOR};opacity:.7;margin-right:2px}
 
     /* Avatar with gradient ring */
     .avatar-wrapper{position:relative;margin-bottom:18px;opacity:0;animation:scaleIn .5s ease .1s forwards}
@@ -207,7 +207,7 @@ function renderProfilePage(profile, biolinks, tags) {
 </head>
 <body>
   <div class="container">
-    <div class="logo"><img src="/logo.png" alt="PikTag"></div>
+    <div class="logo"><span class="logo-hash">#</span><span class="logo-text">piktag</span></div>
     <div class="avatar-wrapper">
       <div class="avatar-ring">
         <img class="avatar" src="${escapeHtml(avatarUrl)}" alt="${name}" onerror="this.src='https://ui-avatars.com/api/?name=U&background=f3f4f6&color=6b7280&size=200'">
