@@ -200,7 +200,7 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
     }
 
     try {
-      // Single query: connections + profiles + tags (nested select)
+      // Fetch connections + profiles (simple query first)
       const { data: connectionsData, error: connectionsError } = await supabase
         .from('piktag_connections')
         .select(`
@@ -208,10 +208,6 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
           met_at, birthday,
           connected_user:piktag_profiles!connected_user_id(
             id, full_name, username, avatar_url, is_verified, latitude, longitude, birthday
-          ),
-          connection_tags:piktag_connection_tags(
-            is_private,
-            tag:piktag_tags!tag_id(name)
           )
         `)
         .eq('user_id', user.id)
@@ -221,7 +217,6 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
         console.error('Error fetching connections:', connectionsError);
         if (!cached) {
           setConnections([]);
-
           setCrmReminders([]);
         }
         return;
@@ -273,62 +268,15 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
         }
       }
 
-      // Merge with full priority sorting:
-      // 1.isPinned  2.isPicked  3.isHidden  4.pickCount  5.isMutual  6.position
+      // Merge: public tags for each connection
       const merged: ConnectionWithTags[] = connectionsData.map((conn: any) => {
-        const connTags = conn.connection_tags || [];
-
-        // Build picked tag set (public connection_tags)
-        const pickedNames = new Set(
-          connTags.filter((ct: any) => !ct.is_private).map((ct: any) => ct.tag?.name).filter(Boolean)
-        );
-        // Hidden tags (private connection_tags)
-        const hiddenNames = new Set(
-          connTags.filter((ct: any) => ct.is_private).map((ct: any) => ct.tag?.name).filter(Boolean)
-        );
-
-        // Get friend's public tags with metadata
         const friendTags = publicTagMetaMap.get(conn.connected_user_id) || [];
-
-        // Build combined tag list with all sorting fields
-        const allTagMetas: { name: string; isPinned: boolean; isPicked: boolean; isHidden: boolean; pickCount: number; isMutual: boolean; position: number }[] = [];
-        const seen = new Set<string>();
-
-        // Add friend's public tags
-        for (const t of friendTags) {
-          seen.add(t.name);
-          allTagMetas.push({
-            ...t,
-            isPicked: pickedNames.has(t.name),
-            isHidden: false,
-          });
-        }
-        // Add picked tags not in public tags
-        for (const name of pickedNames) {
-          if (!seen.has(name)) {
-            seen.add(name);
-            allTagMetas.push({ name, isPinned: false, isPicked: true, isHidden: false, pickCount: 0, isMutual: myTagNames.has(name), position: 999 });
-          }
-        }
-        // Add hidden tags
-        for (const name of hiddenNames) {
-          if (!seen.has(name)) {
-            seen.add(name);
-            allTagMetas.push({ name, isPinned: false, isPicked: false, isHidden: true, pickCount: 0, isMutual: false, position: 999 });
-          }
-        }
-
-        // Sort by priority: isPinned → isPicked → isHidden → pickCount → isMutual → position
-        allTagMetas.sort((a, b) => {
-          if (a.isPinned !== b.isPinned) return a.isPinned ? -1 : 1;
-          if (a.isPicked !== b.isPicked) return a.isPicked ? -1 : 1;
-          if (a.isHidden !== b.isHidden) return a.isHidden ? -1 : 1;
-          if (a.pickCount !== b.pickCount) return b.pickCount - a.pickCount;
+        // Sort: mutual first, then by name
+        friendTags.sort((a, b) => {
           if (a.isMutual !== b.isMutual) return a.isMutual ? -1 : 1;
-          return a.position - b.position;
+          return a.name.localeCompare(b.name);
         });
-
-        return { ...conn, tags: allTagMetas.map(t => `#${t.name}`), semanticTypes: [] };
+        return { ...conn, tags: friendTags.map(t => `#${t.name}`), semanticTypes: [] };
       });
       setCache(CACHE_KEYS.CONNECTIONS, merged);
       setConnections(merged);
