@@ -159,7 +159,8 @@ function renderProfilePage(profile, biolinks, tags) {
     .container{max-width:480px;width:100%;padding:32px 20px 140px;display:flex;flex-direction:column;align-items:center}
 
     /* Logo */
-    .logo{font-size:22px;font-weight:800;letter-spacing:-0.5px;margin-bottom:28px;opacity:0;animation:fadeDown .5s ease forwards}
+    .logo{margin-bottom:28px;opacity:0;animation:fadeDown .5s ease forwards}
+    .logo img{width:500px!important;height:auto!important;max-width:100%}
     .logo span{color:${BRAND_COLOR}}
 
     /* Avatar with gradient ring */
