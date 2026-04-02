@@ -59,7 +59,7 @@ function EmbedMapView({ latitude, longitude, address }: { latitude: number; long
 
   if (!WebView) {
     return (
-      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#f3f4f6' }}>
+      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: COLORS.gray100 }}>
         <MapPin size={32} color={COLORS.gray400} />
         <Text style={{ color: COLORS.gray500, marginTop: 8, fontSize: 13 }}>{address || '目前位置'}</Text>
       </View>
@@ -354,7 +354,7 @@ export default function LocationPickerModal({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: COLORS.white,
   },
   header: {
     flexDirection: 'row',
@@ -391,7 +391,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#fff',
+    backgroundColor: COLORS.white,
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 10,

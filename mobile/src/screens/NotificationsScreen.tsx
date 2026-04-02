@@ -137,7 +137,7 @@ const EmptyState = React.memo(function EmptyState({
 
 const NotificationsScreenSkeleton = React.memo(function NotificationsScreenSkeleton() {
   return (
-    <View style={{ flex: 1, backgroundColor: '#fff' }}>
+    <View style={{ flex: 1, backgroundColor: COLORS.white }}>
       {/* Tab row skeleton */}
       <View style={{ flexDirection: 'row', gap: 8, paddingHorizontal: 20, paddingVertical: 12 }}>
         {[80, 60, 50, 50].map((w, i) => (
