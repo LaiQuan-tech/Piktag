@@ -112,7 +112,7 @@ function renderProfilePage(profile, biolinks, tags) {
   const isVerified = profile.is_verified;
   const ogDescription = bio || `@${username} on PikTag`;
   const pageTitle = `${name} (@${username}) | PikTag`;
-  const pageUrl = `https://go.pikt.ag/u/${username}`;
+  const pageUrl = `https://pikt.ag/${username}`;
 
   const verifiedBadge = isVerified
     ? '<svg viewBox="0 0 24 24" width="18" height="18" style="margin-left:4px;vertical-align:middle"><circle cx="12" cy="12" r="10" fill="#3b82f6"/><path d="M9 12l2 2 4-4" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>'
@@ -233,7 +233,7 @@ function handleFollow() {
   var username = '${username}';
   var name = encodeURIComponent('${name}');
   var appUrl = 'piktag://u/' + username;
-  var downloadUrl = 'https://go.pikt.ag/download?name=' + name + '&username=' + username;
+  var downloadUrl = 'https://pikt.ag/download?name=' + name + '&username=' + username;
   var timer = setTimeout(function() { window.location = downloadUrl; }, 600);
   document.addEventListener('visibilitychange', function() {
     if (document.hidden) clearTimeout(timer);
@@ -266,7 +266,7 @@ function notFoundPage() {
     <div class="logo"># PikTag</div>
     <h1>\u627e\u4e0d\u5230\u9019\u500b\u4f7f\u7528\u8005</h1>
     <p>\u8acb\u78ba\u8a8d\u9023\u7d50\u662f\u5426\u6b63\u78ba</p>
-    <a href="https://go.pikt.ag">\u56de\u5230 PikTag</a>
+    <a href="https://pikt.ag">\u56de\u5230 PikTag</a>
   </div>
 </body>
 </html>`;
