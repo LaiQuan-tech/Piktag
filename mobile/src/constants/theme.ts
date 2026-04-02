@@ -3,23 +3,29 @@
 
 // ── Light palette ──────────────────────────────────────────────────────
 const LIGHT = {
-  // Brand (teal/cyan)
-  piktag50: '#e6fafb',
-  piktag100: '#b3f0f3',
-  piktag200: '#80e6eb',
-  piktag300: '#4ddce3',
-  piktag400: '#1ad2db',
-  piktag500: '#0fcdd6',
-  piktag600: '#0ab3bb',
+  // Brand (CES-inspired blue → teal → green)
+  piktag50: '#e8f4fd',
+  piktag100: '#bde0f7',
+  piktag200: '#7ec8ef',
+  piktag300: '#00B4D8',
+  piktag400: '#0096c7',
+  piktag500: '#0077b6',
+  piktag600: '#005f8a',
 
-  // Accent (yellow)
-  accent50: '#fffef0',
-  accent100: '#fefcd6',
-  accent200: '#fdf8a8',
-  accent300: '#faf37a',
-  accent400: '#f8e537',
-  accent500: '#f8e537',
-  accent600: '#d4c42e',
+  // Accent (CES yellow-green)
+  accent50: '#f7fde8',
+  accent100: '#eafabd',
+  accent200: '#d8f58a',
+  accent300: '#C5E636',
+  accent400: '#b0d42e',
+  accent500: '#9bbf26',
+  accent600: '#7a9a1e',
+
+  // Brand gradient colors (for LinearGradient usage)
+  gradientStart: '#0072CE',
+  gradientMid: '#00B4D8',
+  gradientEnd: '#2EC4B6',
+  gradientAccent: '#C5E636',
 
   // Grays
   white: '#FFFFFF',
@@ -58,23 +64,29 @@ const LIGHT = {
 // Background is transparent — actual gradient is rendered by GradientBackground component
 // Cards use semi-transparent surfaces for depth
 const DARK: typeof LIGHT = {
-  // Brand — brighter for dark backgrounds
-  piktag50: '#0a2a2e',
-  piktag100: '#0d3d42',
-  piktag200: '#125c63',
-  piktag300: '#1a8a93',
-  piktag400: '#0fbbc5',
-  piktag500: '#0fcdd6',
-  piktag600: '#3ddbe3',
+  // Brand — brighter for dark backgrounds (Vercel-inspired dark)
+  piktag50: '#0a1628',
+  piktag100: '#0d2240',
+  piktag200: '#1a4a6e',
+  piktag300: '#2998c9',
+  piktag400: '#3dbde0',
+  piktag500: '#56ccf2',
+  piktag600: '#7edaf5',
 
-  // Accent (yellow) — for dark mode
-  accent50: '#2a2508',
-  accent100: '#3d3510',
-  accent200: '#5c5018',
-  accent300: '#8a7a20',
-  accent400: '#f8e537',
-  accent500: '#f8e537',
-  accent600: '#faea6a',
+  // Accent (yellow-green) — for dark mode
+  accent50: '#1a2508',
+  accent100: '#2d3d10',
+  accent200: '#4a6018',
+  accent300: '#8ab020',
+  accent400: '#C5E636',
+  accent500: '#d4ee5a',
+  accent600: '#e0f580',
+
+  // Brand gradient colors
+  gradientStart: '#3dbde0',
+  gradientMid: '#56ccf2',
+  gradientEnd: '#2EC4B6',
+  gradientAccent: '#C5E636',
 
   // Grays — soft, not pure black
   white: 'transparent',       // background is gradient, not flat color

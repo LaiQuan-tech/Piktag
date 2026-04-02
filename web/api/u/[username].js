@@ -2,10 +2,11 @@ const SUPABASE_URL = 'https://kbwfdskulxnhjckdvghj.supabase.co';
 const SUPABASE_ANON_KEY =
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtid2Zkc2t1bHhuaGpja2R2Z2hqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEzOTgwNTAsImV4cCI6MjA4Njk3NDA1MH0.q1wxMahfity_5An5I_PPSoxglJeKHXX6ohYeGvsaIC8';
 
-const BRAND_COLOR = '#0fcdd6';
-const BRAND_ACCENT = '#f8e537';
-const BRAND_DARK = '#0ab3bb';
-const BRAND_BG = '#f5fefe';
+const BRAND_COLOR = '#0077b6';
+const BRAND_ACCENT = '#C5E636';
+const BRAND_DARK = '#005f8a';
+const BRAND_BG = '#f0f7fc';
+const BRAND_GRADIENT = 'linear-gradient(135deg, #0072CE 0%, #00B4D8 40%, #2EC4B6 70%, #C5E636 100%)';
 
 const PLATFORM_ICONS = {
   instagram: '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>',
@@ -165,7 +166,7 @@ function renderProfilePage(profile, biolinks, tags) {
 
     /* Avatar with gradient ring */
     .avatar-wrapper{position:relative;margin-bottom:18px;opacity:0;animation:scaleIn .5s ease .1s forwards}
-    .avatar-ring{width:108px;height:108px;border-radius:54px;padding:3px;background:linear-gradient(135deg,${BRAND_COLOR},${BRAND_ACCENT},${BRAND_COLOR})}
+    .avatar-ring{width:108px;height:108px;border-radius:54px;padding:3px;background:${BRAND_GRADIENT}}
     .avatar{width:102px;height:102px;border-radius:51px;object-fit:cover;border:3px solid #fff}
 
     /* Name & username */
@@ -175,8 +176,8 @@ function renderProfilePage(profile, biolinks, tags) {
     .bio{font-size:15px;color:#555;text-align:center;line-height:1.7;margin-bottom:18px;max-width:360px;opacity:0;animation:fadeUp .5s ease .3s forwards}
 
     /* Follow button */
-    .follow-btn{background:linear-gradient(135deg,${BRAND_COLOR},${BRAND_DARK});color:#fff;font-weight:700;border-radius:28px;padding:13px 52px;font-size:16px;border:none;cursor:pointer;margin-bottom:20px;box-shadow:0 4px 16px rgba(15,205,214,.3);transition:all .2s;opacity:0;animation:fadeUp .5s ease .35s forwards}
-    .follow-btn:hover{transform:translateY(-2px);box-shadow:0 6px 24px rgba(15,205,214,.4)}
+    .follow-btn{background:${BRAND_GRADIENT};color:#fff;font-weight:700;border-radius:28px;padding:13px 52px;font-size:16px;border:none;cursor:pointer;margin-bottom:20px;box-shadow:0 4px 16px rgba(0,119,182,.3);transition:all .2s;opacity:0;animation:fadeUp .5s ease .35s forwards}
+    .follow-btn:hover{transform:translateY(-2px);box-shadow:0 6px 24px rgba(0,119,182,.4)}
     .follow-btn:active{transform:translateY(0);opacity:0.9}
 
     /* Tags */
@@ -194,7 +195,7 @@ function renderProfilePage(profile, biolinks, tags) {
     .biolink:hover svg{color:${BRAND_DARK}}
 
     /* Banner */
-    .banner{position:fixed;bottom:0;left:0;right:0;background:linear-gradient(135deg,${BRAND_COLOR} 0%,${BRAND_DARK} 100%);padding:14px 20px;display:flex;align-items:center;justify-content:center;gap:12px;box-shadow:0 -4px 24px rgba(0,0,0,.12);z-index:100;backdrop-filter:blur(12px)}
+    .banner{position:fixed;bottom:0;left:0;right:0;background:${BRAND_GRADIENT};padding:14px 20px;display:flex;align-items:center;justify-content:center;gap:12px;box-shadow:0 -4px 24px rgba(0,0,0,.12);z-index:100;backdrop-filter:blur(12px)}
     .banner-content{display:flex;flex-direction:column;align-items:center;gap:2px}
     .banner-title{font-size:15px;font-weight:700;color:#fff}
     .banner-subtitle{font-size:12px;color:rgba(255,255,255,.8)}
