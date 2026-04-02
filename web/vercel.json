@@ -1,11 +1,6 @@
 {
   "buildCommand": "echo done",
   "outputDirectory": "public",
-  "functions": {
-    "api/**/*.js": {
-      "runtime": "@vercel/node@3"
-    }
-  },
   "rewrites": [
     { "source": "/download", "destination": "/download.html" },
     { "source": "/scan", "destination": "/scan.html" },
