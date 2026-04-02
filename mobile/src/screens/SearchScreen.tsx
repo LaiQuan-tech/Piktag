@@ -26,6 +26,7 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Location from 'expo-location';
 import { useTranslation } from 'react-i18next';
+import * as Localization from 'expo-localization';
 import { supabase } from '../lib/supabase';
 import { getCache, setCache } from '../lib/dataCache';
 import { COLORS } from '../constants/theme';
@@ -179,7 +180,7 @@ type SearchScreenProps = {
 };
 
 export default function SearchScreen({ navigation }: SearchScreenProps) {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const { user } = useAuth();
   const [isFocused, setIsFocused] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -268,8 +269,9 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
       setLoading(true);
     }
 
-    // Get user's language prefix (zh-TW → zh, en → en)
-    const userLang = (i18n.language || 'zh-TW').split('-')[0];
+    // Use device system language (not app setting)
+    const deviceLocale = Localization.getLocales()?.[0]?.languageCode || 'zh';
+    const userLang = deviceLocale;
 
     try {
       // Fetch more tags, then sort by language affinity + usage
