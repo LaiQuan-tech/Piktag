@@ -847,7 +847,7 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
       ) : (
         <View style={styles.header}>
           <View style={styles.headerLeft}>
-            <Text style={styles.headerTitle}># PikTag</Text>
+            <Image source={require('../../assets/logo.png')} style={{ width: 120, height: 28, resizeMode: 'contain' }} />
             <Text style={styles.headerSubtitle}>
               <Text style={styles.headerCount}>{sortedConnections.length}</Text>{' '}{t('connections.friendsLabel') || 'friends'}
               {closeFriendCount > 0 && (
