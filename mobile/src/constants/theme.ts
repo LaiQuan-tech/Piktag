@@ -3,29 +3,29 @@
 
 // ── Light palette ──────────────────────────────────────────────────────
 const LIGHT = {
-  // Brand (Teal — #2dc7ce base)
-  piktag50: '#f0fdfd',
-  piktag100: '#ccf2f4',
-  piktag200: '#99e5e9',
-  piktag300: '#5dd6db',
-  piktag400: '#2dc7ce',
-  piktag500: '#2dc7ce',
-  piktag600: '#1a9ba1',
+  // Brand (Purple — #aa00ff base)
+  piktag50: '#f5e6ff',
+  piktag100: '#e6b3ff',
+  piktag200: '#d580ff',
+  piktag300: '#c44dff',
+  piktag400: '#bf00ff',
+  piktag500: '#aa00ff',
+  piktag600: '#8800cc',
 
-  // Accent (darker teal for contrast)
-  accent50: '#f0fdfd',
-  accent100: '#ccf2f4',
-  accent200: '#99e5e9',
-  accent300: '#5dd6db',
-  accent400: '#2dc7ce',
-  accent500: '#1a9ba1',
-  accent600: '#137377',
+  // Accent (deep purple for contrast on white)
+  accent50: '#f0e6ff',
+  accent100: '#d9b3ff',
+  accent200: '#c280ff',
+  accent300: '#aa4dff',
+  accent400: '#8c52ff',
+  accent500: '#7a3de8',
+  accent600: '#360066',
 
-  // Brand gradient colors
-  gradientStart: '#0cc0df',
-  gradientMid: '#5dd6a8',
-  gradientEnd: '#ffde59',
-  gradientAccent: '#ffde59',
+  // Brand gradient colors (linear 90deg: #ff5757 → #8c52ff)
+  gradientStart: '#ff5757',
+  gradientMid: '#c44dff',
+  gradientEnd: '#8c52ff',
+  gradientAccent: '#360066',
 
   // Grays
   white: '#FFFFFF',
@@ -64,29 +64,29 @@ const LIGHT = {
 // Background is transparent — actual gradient is rendered by GradientBackground component
 // Cards use semi-transparent surfaces for depth
 const DARK: typeof LIGHT = {
-  // Brand — brighter for dark backgrounds (Vercel-inspired dark)
-  piktag50: '#0a1e1f',
-  piktag100: '#0d2e30',
-  piktag200: '#1a4a4d',
-  piktag300: '#2dc7ce',
-  piktag400: '#45d1d7',
-  piktag500: '#5dd6db',
-  piktag600: '#a8e8eb',
+  // Brand — brighter for dark backgrounds
+  piktag50: '#1a0033',
+  piktag100: '#2d0059',
+  piktag200: '#4a0099',
+  piktag300: '#bf00ff',
+  piktag400: '#cc33ff',
+  piktag500: '#d966ff',
+  piktag600: '#e699ff',
 
-  // Accent (teal) — for dark mode
-  accent50: '#0a1e1f',
-  accent100: '#0d2e30',
-  accent200: '#1a4a4d',
-  accent300: '#2dc7ce',
-  accent400: '#45d1d7',
-  accent500: '#5dd6db',
-  accent600: '#a8e8eb',
+  // Accent (purple) — for dark mode
+  accent50: '#1a0033',
+  accent100: '#2d0059',
+  accent200: '#4a0099',
+  accent300: '#8c52ff',
+  accent400: '#a77fff',
+  accent500: '#c2a6ff',
+  accent600: '#e6d9ff',
 
   // Brand gradient colors
-  gradientStart: '#0cc0df',
-  gradientMid: '#5dd6a8',
-  gradientEnd: '#ffde59',
-  gradientAccent: '#ffde59',
+  gradientStart: '#ff5757',
+  gradientMid: '#c44dff',
+  gradientEnd: '#8c52ff',
+  gradientAccent: '#360066',
 
   // Grays — soft, not pure black
   white: 'transparent',       // background is gradient, not flat color

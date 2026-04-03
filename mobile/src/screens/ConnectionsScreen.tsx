@@ -599,7 +599,7 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
                 }}
               >
                 <LinearGradient
-                  colors={['#0cc0df', '#5dd6a8', '#ffde59']}
+                  colors={['#ff5757', '#c44dff', '#8c52ff']}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 1 }}
                   style={styles.storyAvatarRing}
@@ -1081,7 +1081,7 @@ const styles = StyleSheet.create({
   emptyButtonText: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#1a1a1a',
+    color: '#FFFFFF',
   },
   connectionItem: {
     flexDirection: 'row',

@@ -2,11 +2,11 @@ const SUPABASE_URL = 'https://kbwfdskulxnhjckdvghj.supabase.co';
 const SUPABASE_ANON_KEY =
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtid2Zkc2t1bHhuaGpja2R2Z2hqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEzOTgwNTAsImV4cCI6MjA4Njk3NDA1MH0.q1wxMahfity_5An5I_PPSoxglJeKHXX6ohYeGvsaIC8';
 
-const BRAND_COLOR = '#2dc7ce';
-const BRAND_ACCENT = '#1a9ba1';
-const BRAND_DARK = '#1a9ba1';
-const BRAND_BG = '#f5fdfd';
-const BRAND_GRADIENT = 'linear-gradient(135deg, #0cc0df 0%, #5dd6a8 50%, #ffde59 100%)';
+const BRAND_COLOR = '#aa00ff';
+const BRAND_ACCENT = '#8c52ff';
+const BRAND_DARK = '#360066';
+const BRAND_BG = '#faf5ff';
+const BRAND_GRADIENT = 'linear-gradient(90deg, #ff5757 0%, #8c52ff 100%)';
 
 const PLATFORM_ICONS = {
   instagram: '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>',
@@ -156,7 +156,7 @@ function renderProfilePage(profile, biolinks, tags) {
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Poppins:wght@700;800&display=swap" rel="stylesheet">
   <style>
     *{margin:0;padding:0;box-sizing:border-box}
-    body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:linear-gradient(160deg,#f0fdfd 0%,#f5fdfd 50%,#f0fafa 100%);color:#1a1a1a;min-height:100vh;display:flex;flex-direction:column;align-items:center}
+    body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:linear-gradient(160deg,#faf5ff 0%,#fff5f5 50%,#f5f0ff 100%);color:#1a1a1a;min-height:100vh;display:flex;flex-direction:column;align-items:center}
     .container{max-width:480px;width:100%;padding:32px 20px 140px;display:flex;flex-direction:column;align-items:center}
 
     /* Logo */
@@ -166,7 +166,7 @@ function renderProfilePage(profile, biolinks, tags) {
 
     /* Avatar with gradient ring */
     .avatar-wrapper{position:relative;margin-bottom:18px;opacity:0;animation:scaleIn .5s ease .1s forwards}
-    .avatar-ring{width:108px;height:108px;border-radius:54px;padding:3px;background:linear-gradient(135deg,#0cc0df,#5dd6a8,#ffde59,#0cc0df);background-size:300% 300%;animation:gradientFlow 5s ease infinite}
+    .avatar-ring{width:108px;height:108px;border-radius:54px;padding:3px;background:linear-gradient(90deg,#ff5757,#c44dff,#8c52ff,#ff5757);background-size:300% 300%;animation:gradientFlow 5s ease infinite}
     .avatar{width:102px;height:102px;border-radius:51px;object-fit:cover;border:3px solid #fff}
 
     /* Name & username */
@@ -176,8 +176,8 @@ function renderProfilePage(profile, biolinks, tags) {
     .bio{font-size:15px;color:#555;text-align:center;line-height:1.7;margin-bottom:18px;max-width:360px;opacity:0;animation:fadeUp .5s ease .3s forwards}
 
     /* Follow button */
-    .follow-btn{background:${BRAND_GRADIENT};color:#1a1a1a;font-weight:700;border-radius:28px;padding:13px 52px;font-size:16px;border:none;cursor:pointer;margin-bottom:20px;box-shadow:0 4px 16px rgba(0,119,182,.3);transition:all .2s;opacity:0;animation:fadeUp .5s ease .35s forwards}
-    .follow-btn:hover{transform:translateY(-2px);box-shadow:0 6px 24px rgba(0,119,182,.4)}
+    .follow-btn{background:${BRAND_GRADIENT};color:#fff;font-weight:700;border-radius:28px;padding:13px 52px;font-size:16px;border:none;cursor:pointer;margin-bottom:20px;box-shadow:0 4px 16px rgba(170,0,255,.3);transition:all .2s;opacity:0;animation:fadeUp .5s ease .35s forwards}
+    .follow-btn:hover{transform:translateY(-2px);box-shadow:0 6px 24px rgba(170,0,255,.4)}
     .follow-btn:active{transform:translateY(0);opacity:0.9}
 
     /* Tags */
@@ -188,7 +188,7 @@ function renderProfilePage(profile, biolinks, tags) {
     /* Bio links */
     .biolinks{width:100%;display:flex;flex-direction:column;gap:10px;opacity:0;animation:fadeUp .5s ease .45s forwards}
     .biolink{display:flex;align-items:center;gap:12px;background:rgba(255,255,255,.85);backdrop-filter:blur(12px);border:1px solid rgba(229,229,229,.6);border-radius:16px;padding:16px 20px;text-decoration:none;color:#333;font-size:15px;font-weight:500;transition:all .2s;box-shadow:0 1px 4px rgba(0,0,0,.04)}
-    .biolink:hover{transform:translateY(-2px);border-color:${BRAND_COLOR};box-shadow:0 4px 16px rgba(15,205,214,.12)}
+    .biolink:hover{transform:translateY(-2px);border-color:${BRAND_COLOR};box-shadow:0 4px 16px rgba(170,0,255,.12)}
     .biolink span{flex:1}
     .biolink svg{flex-shrink:0;color:#aaa;transition:color .15s}
     .biolink svg:first-child{color:${BRAND_COLOR}}
@@ -196,8 +196,8 @@ function renderProfilePage(profile, biolinks, tags) {
 
     /* Banner */
     .banner{position:fixed;bottom:0;left:0;right:0;background:${BRAND_GRADIENT};padding:16px 20px;display:flex;align-items:center;justify-content:center;box-shadow:0 -4px 24px rgba(0,0,0,.12);z-index:100;cursor:pointer;text-decoration:none;gap:8px}
-    .banner-text{font-size:15px;font-weight:700;color:#1a1a1a}
-    .banner-arrow{font-size:18px;color:#1a1a1a}
+    .banner-text{font-size:15px;font-weight:700;color:#fff}
+    .banner-arrow{font-size:18px;color:#fff}
 
     /* Animations */
     @keyframes gradientFlow{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}

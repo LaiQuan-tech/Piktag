@@ -441,12 +441,12 @@ const styles = StyleSheet.create({
   inputRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.gray100, borderRadius: 20, paddingLeft: 14, paddingRight: 4, height: 44, gap: 8 },
   textInput: { flex: 1, fontSize: 15, color: COLORS.gray900, padding: 0 },
   addBtn: { backgroundColor: COLORS.piktag500, borderRadius: 16, paddingVertical: 6, paddingHorizontal: 14 },
-  addBtnText: { fontSize: 14, fontWeight: '700', color: '#1a1a1a' },
+  addBtnText: { fontSize: 14, fontWeight: '700', color: '#FFFFFF' },
   actionRow: { flexDirection: 'row', gap: 12, marginTop: 10 },
   skipActionBtn: { flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, paddingVertical: 12, borderRadius: 14, borderWidth: 1.5, borderColor: COLORS.piktag500, backgroundColor: COLORS.piktag50 },
   skipActionText: { fontSize: 15, fontWeight: '600', color: COLORS.piktag600 },
   nextActionBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 12, borderRadius: 14, backgroundColor: COLORS.piktag500 },
-  nextActionText: { fontSize: 15, fontWeight: '700', color: '#1a1a1a' },
+  nextActionText: { fontSize: 15, fontWeight: '700', color: '#FFFFFF' },
   // Empty + Summary
   emptyContainer: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 16 },
   emptyTitle: { fontSize: 18, fontWeight: '600', color: COLORS.gray500 },
@@ -454,5 +454,5 @@ const styles = StyleSheet.create({
   summaryTitle: { fontSize: 24, fontWeight: '700', color: COLORS.gray900 },
   summaryText: { fontSize: 16, color: COLORS.gray600 },
   doneBtn: { backgroundColor: COLORS.piktag500, borderRadius: 14, paddingVertical: 14, paddingHorizontal: 32, marginTop: 8 },
-  doneBtnText: { fontSize: 16, fontWeight: '700', color: '#1a1a1a' },
+  doneBtnText: { fontSize: 16, fontWeight: '700', color: '#FFFFFF' },
 });

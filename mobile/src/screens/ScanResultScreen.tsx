@@ -558,7 +558,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   chipTextSelected: {
-    color: '#1a1a1a',
+    color: '#FFFFFF',
   },
   chipTextUnselected: {
     color: COLORS.gray700,
@@ -583,6 +583,6 @@ const styles = StyleSheet.create({
   ctaButtonText: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#1a1a1a',
+    color: '#FFFFFF',
   },
 });

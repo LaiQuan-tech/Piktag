@@ -478,7 +478,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: { fontSize: 22, fontWeight: '700', color: COLORS.gray900 },
   doneBtn: { paddingVertical: 6, paddingHorizontal: 14, borderRadius: 16, backgroundColor: COLORS.piktag500 },
-  doneBtnText: { fontSize: 15, fontWeight: '700', color: '#1a1a1a' },
+  doneBtnText: { fontSize: 15, fontWeight: '700', color: '#FFFFFF' },
   loadingContainer: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   scrollContent: { paddingBottom: 20 },
 
@@ -543,5 +543,5 @@ const styles = StyleSheet.create({
   charCount: { fontSize: 12, color: COLORS.gray400 },
   addBtn: { backgroundColor: COLORS.piktag500, borderRadius: 20, paddingVertical: 8, paddingHorizontal: 16 },
   addBtnDisabled: { opacity: 0.4 },
-  addBtnText: { fontSize: 14, fontWeight: '700', color: '#1a1a1a' },
+  addBtnText: { fontSize: 14, fontWeight: '700', color: '#FFFFFF' },
 });

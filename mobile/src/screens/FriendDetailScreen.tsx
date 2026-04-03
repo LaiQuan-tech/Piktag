@@ -1370,7 +1370,7 @@ const styles = StyleSheet.create({
   followButtonTextDefault: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#1a1a1a',
+    color: '#FFFFFF',
   },
   followButtonTextFollowing: {
     fontSize: 15,
@@ -1395,7 +1395,7 @@ const styles = StyleSheet.create({
   tagButtonText: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#1a1a1a',
+    color: '#FFFFFF',
   },
   actionsRow: {
     flexDirection: 'row',
@@ -1416,7 +1416,7 @@ const styles = StyleSheet.create({
   primaryButtonText: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#1a1a1a',
+    color: '#FFFFFF',
   },
   // outlineButton kept below for other uses
   outlineButton: {

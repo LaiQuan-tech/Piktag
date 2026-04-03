@@ -394,7 +394,7 @@ const styles = StyleSheet.create({
   generateBtnText: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#1a1a1a',
+    color: '#FFFFFF',
   },
   listHeader: {
     paddingHorizontal: 20,

@@ -303,7 +303,7 @@ const styles = StyleSheet.create({
   permissionButtonText: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#1a1a1a',
+    color: '#FFFFFF',
   },
   scanOverlay: {
     ...StyleSheet.absoluteFillObject,
