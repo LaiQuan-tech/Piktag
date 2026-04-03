@@ -6,6 +6,7 @@ import {
   Home,
   Search,
   QrCode,
+  Hash,
   Bell,
   User,
 } from 'lucide-react-native';
@@ -151,7 +152,7 @@ function MainTabs() {
         component={AddTagStackNavigator}
         options={{
           tabBarIcon: ({ color, focused }) => (
-            <QrCode
+            <Hash
               size={28}
               color={color}
               strokeWidth={focused ? 2.5 : 2}
