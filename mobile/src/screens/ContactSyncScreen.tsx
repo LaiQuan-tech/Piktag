@@ -387,7 +387,7 @@ const styles = StyleSheet.create({
   importAllBtnText: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: '#1a1a1a',
   },
   listContent: {
     paddingBottom: 100,

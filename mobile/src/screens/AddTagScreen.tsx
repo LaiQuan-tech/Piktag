@@ -1078,7 +1078,7 @@ const styles = StyleSheet.create({
   addTagBtnText: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: '#1a1a1a',
   },
 
   // ── Chips ──
@@ -1146,7 +1146,7 @@ const styles = StyleSheet.create({
   primaryButtonText: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: '#1a1a1a',
   },
   // Event mode button
   qrActionButtons: {
@@ -1199,7 +1199,7 @@ const styles = StyleSheet.create({
   eventTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: '#1a1a1a',
     marginBottom: 24,
     textAlign: 'center',
   },
@@ -1283,7 +1283,7 @@ const styles = StyleSheet.create({
   presetConfirmBtnText: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: '#1a1a1a',
   },
 
   // ── QR Mode ──
@@ -1410,7 +1410,7 @@ const styles = StyleSheet.create({
   presetApplyBtnText: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: '#1a1a1a',
   },
 
   // ── Misc ──

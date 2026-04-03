@@ -176,7 +176,7 @@ function renderProfilePage(profile, biolinks, tags) {
     .bio{font-size:15px;color:#555;text-align:center;line-height:1.7;margin-bottom:18px;max-width:360px;opacity:0;animation:fadeUp .5s ease .3s forwards}
 
     /* Follow button */
-    .follow-btn{background:${BRAND_GRADIENT};color:#fff;font-weight:700;border-radius:28px;padding:13px 52px;font-size:16px;border:none;cursor:pointer;margin-bottom:20px;box-shadow:0 4px 16px rgba(0,119,182,.3);transition:all .2s;opacity:0;animation:fadeUp .5s ease .35s forwards}
+    .follow-btn{background:${BRAND_GRADIENT};color:#1a1a1a;font-weight:700;border-radius:28px;padding:13px 52px;font-size:16px;border:none;cursor:pointer;margin-bottom:20px;box-shadow:0 4px 16px rgba(0,119,182,.3);transition:all .2s;opacity:0;animation:fadeUp .5s ease .35s forwards}
     .follow-btn:hover{transform:translateY(-2px);box-shadow:0 6px 24px rgba(0,119,182,.4)}
     .follow-btn:active{transform:translateY(0);opacity:0.9}
 

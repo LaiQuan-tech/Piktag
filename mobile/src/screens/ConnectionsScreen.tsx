@@ -1081,7 +1081,7 @@ const styles = StyleSheet.create({
   emptyButtonText: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: '#1a1a1a',
   },
   connectionItem: {
     flexDirection: 'row',

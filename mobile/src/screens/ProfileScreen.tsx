@@ -612,7 +612,7 @@ const styles = StyleSheet.create({
   shareButtonText: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: '#1a1a1a',
   },
   editButton: {
     flex: 1,

@@ -1392,7 +1392,7 @@ const styles = StyleSheet.create({
   saveButtonText: {
     fontSize: 17,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: '#1a1a1a',
   },
   // Modal styles
   modalOverlay: {
@@ -1479,7 +1479,7 @@ const styles = StyleSheet.create({
   modalSaveBtnText: {
     fontSize: 17,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: '#1a1a1a',
   },
   // Tag styles (prefixed with tag_ to avoid conflicts)
   tag_section: {
@@ -1523,7 +1523,7 @@ const styles = StyleSheet.create({
   tag_manageButtonText: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: '#1a1a1a',
   },
   tag_myTagChip: {
     flexDirection: 'row',
@@ -1594,7 +1594,7 @@ const styles = StyleSheet.create({
   tag_addButtonText: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: '#1a1a1a',
   },
   tag_popularTagChip: {
     borderWidth: 1,
