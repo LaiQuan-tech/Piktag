@@ -413,7 +413,7 @@ const styles = StyleSheet.create({
   headerSubtitle: { fontSize: 13, color: COLORS.gray500 },
   headerCount: { fontSize: 15, fontWeight: '700', color: COLORS.gray900 },
   skipBtn: { padding: 4 },
-  skipText: { fontSize: 15, fontWeight: '600', color: COLORS.gray500 },
+  skipText: { fontSize: 15, fontWeight: '600', color: COLORS.piktag600 },
   // Card
   cardContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 20 },
   card: {

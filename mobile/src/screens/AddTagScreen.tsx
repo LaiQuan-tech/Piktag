@@ -977,7 +977,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     borderRadius: 10,
     borderWidth: 1.5,
-    borderColor: COLORS.gray200,
+    borderColor: COLORS.piktag200,
     backgroundColor: COLORS.white,
   },
   quickDateBtnActive: {

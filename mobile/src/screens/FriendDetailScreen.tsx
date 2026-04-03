@@ -47,6 +47,7 @@ import {
 } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { COLORS } from '../constants/theme';
+import { LinearGradient } from 'expo-linear-gradient';
 import PlatformIcon from '../components/PlatformIcon';
 import InitialsAvatar from '../components/InitialsAvatar';
 import { supabase } from '../lib/supabase';
@@ -839,23 +840,39 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
 
           {/* Action buttons — Follow logic */}
           <View style={styles.actionButtonsRow}>
-            <TouchableOpacity
-              style={[
-                styles.followButton,
-                isFollowing ? styles.followButtonFollowing : styles.followButtonDefault,
-              ]}
-              onPress={handleToggleFollow}
-              activeOpacity={0.8}
-              disabled={followLoading}
-            >
-              {followLoading ? (
-                <ActivityIndicator size="small" color={isFollowing ? COLORS.gray700 : COLORS.white} />
-              ) : (
-                <Text style={isFollowing ? styles.followButtonTextFollowing : styles.followButtonTextDefault}>
-                  {isFollowing ? t('friendDetail.following') : t('friendDetail.follow')}
-                </Text>
-              )}
-            </TouchableOpacity>
+            {isFollowing ? (
+              <TouchableOpacity
+                style={[styles.followButton, styles.followButtonFollowing]}
+                onPress={handleToggleFollow}
+                activeOpacity={0.8}
+                disabled={followLoading}
+              >
+                {followLoading ? (
+                  <ActivityIndicator size="small" color={COLORS.piktag600} />
+                ) : (
+                  <Text style={styles.followButtonTextFollowing}>
+                    {t('friendDetail.following')}
+                  </Text>
+                )}
+              </TouchableOpacity>
+            ) : (
+              <TouchableOpacity onPress={handleToggleFollow} activeOpacity={0.8} disabled={followLoading} style={{ flex: 1 }}>
+                <LinearGradient
+                  colors={['#ff5757', '#c44dff', '#8c52ff']}
+                  start={{ x: 0, y: 0.5 }}
+                  end={{ x: 1, y: 0.5 }}
+                  style={[styles.followButton, { borderRadius: 12 }]}
+                >
+                  {followLoading ? (
+                    <ActivityIndicator size="small" color="#fff" />
+                  ) : (
+                    <Text style={styles.followButtonTextDefault}>
+                      {t('friendDetail.follow')}
+                    </Text>
+                  )}
+                </LinearGradient>
+              </TouchableOpacity>
+            )}
             {isFollowing && (
               <TouchableOpacity
                 style={styles.tagButton}
@@ -1391,7 +1408,7 @@ const styles = StyleSheet.create({
   moreItem: { flexDirection: 'row', alignItems: 'center', gap: 14, paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: COLORS.gray100 },
   moreItemText: { fontSize: 16, fontWeight: '500', color: COLORS.gray900 },
   moreCancelBtn: { alignItems: 'center', paddingVertical: 16, marginTop: 4 },
-  moreCancelText: { fontSize: 16, fontWeight: '600', color: COLORS.gray500 },
+  moreCancelText: { fontSize: 16, fontWeight: '600', color: COLORS.piktag600 },
   tagButtonText: {
     fontSize: 15,
     fontWeight: '700',

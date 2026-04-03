@@ -1430,7 +1430,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     borderRadius: 10,
     borderWidth: 1.5,
-    borderColor: COLORS.gray200,
+    borderColor: COLORS.piktag200,
     alignItems: 'center',
   },
   displayModeBtnActive: {
@@ -1454,7 +1454,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: 8,
     borderWidth: 1.5,
-    borderColor: COLORS.gray200,
+    borderColor: COLORS.piktag200,
     alignItems: 'center',
   },
   visibilityBtnActive: {
