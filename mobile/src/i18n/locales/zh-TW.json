@@ -218,6 +218,7 @@
     "backToEdit": "返回編輯",
     "qrBrandTitle": "# PikTag",
     "scanCount": "掃碼 {{count}} 次",
+    "scanQrCode": "掃描 QR Code",
     "editTagSettings": "修改標籤設定",
     "eventModeBtn": "活動模式",
     "eventScanned": "人已掃描",

@@ -215,6 +215,7 @@
     "backToEdit": "Back to Edit",
     "qrBrandTitle": "# PikTag",
     "scanCount": "Scanned {{count}} times",
+    "scanQrCode": "Scan QR Code",
     "editTagSettings": "Edit tag settings",
     "eventModeBtn": "Event Mode",
     "eventScanned": "scanned",
