@@ -120,7 +120,7 @@ function renderProfilePage(profile, biolinks, tags) {
     : '';
 
   const tagsHtml = tags.length > 0
-    ? `<div class="tags">${tags.map((t) => `<span class="tag">#${escapeHtml(t)}</span>`).join('')}</div>`
+    ? `<div class="tags">${tags.map((t) => `<a href="javascript:void(0)" onclick="handleFollow()" class="tag">#${escapeHtml(t)}</a>`).join('')}</div>`
     : '';
 
   const biolinksHtml = biolinks.length > 0
@@ -166,7 +166,7 @@ function renderProfilePage(profile, biolinks, tags) {
 
     /* Avatar with gradient ring */
     .avatar-wrapper{position:relative;margin-bottom:18px;opacity:0;animation:scaleIn .5s ease .1s forwards}
-    .avatar-ring{width:108px;height:108px;border-radius:54px;padding:3px;background:${BRAND_GRADIENT}}
+    .avatar-ring{width:108px;height:108px;border-radius:54px;padding:3px;background:linear-gradient(135deg,#0cc0df,#5dd6a8,#ffde59,#0cc0df);background-size:300% 300%;animation:gradientFlow 3s ease infinite}
     .avatar{width:102px;height:102px;border-radius:51px;object-fit:cover;border:3px solid #fff}
 
     /* Name & username */
@@ -182,7 +182,7 @@ function renderProfilePage(profile, biolinks, tags) {
 
     /* Tags */
     .tags{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin-bottom:24px;opacity:0;animation:fadeUp .5s ease .4s forwards}
-    .tag{background:rgba(255,255,255,.8);backdrop-filter:blur(8px);border:1.5px solid ${BRAND_COLOR};color:${BRAND_DARK};font-size:13px;font-weight:600;padding:6px 14px;border-radius:20px;transition:all .15s}
+    .tag{background:rgba(255,255,255,.8);backdrop-filter:blur(8px);border:1.5px solid ${BRAND_COLOR};color:${BRAND_DARK};font-size:13px;font-weight:600;padding:6px 14px;border-radius:20px;transition:all .15s;text-decoration:none;cursor:pointer}
     .tag:hover{background:${BRAND_COLOR};color:#fff;transform:translateY(-1px)}
 
     /* Bio links */
@@ -202,6 +202,7 @@ function renderProfilePage(profile, biolinks, tags) {
     .banner-btn{background:#1a1a1a;color:#fff;font-size:13px;font-weight:700;border:none;border-radius:20px;padding:10px 20px;cursor:pointer;white-space:nowrap}
 
     /* Animations */
+    @keyframes gradientFlow{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
     @keyframes fadeDown{from{opacity:0;transform:translateY(-12px)}to{opacity:1;transform:translateY(0)}}
     @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
     @keyframes scaleIn{from{opacity:0;transform:scale(.85)}to{opacity:1;transform:scale(1)}}
