@@ -599,7 +599,7 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
                 }}
               >
                 <LinearGradient
-                  colors={['#1a9ba1', '#2dc7ce', '#5dd6db']}
+                  colors={['#0cc0df', '#5dd6a8', '#ffde59']}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 1 }}
                   style={styles.storyAvatarRing}

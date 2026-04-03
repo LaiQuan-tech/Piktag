@@ -6,7 +6,7 @@ const BRAND_COLOR = '#2dc7ce';
 const BRAND_ACCENT = '#1a9ba1';
 const BRAND_DARK = '#1a9ba1';
 const BRAND_BG = '#f5fdfd';
-const BRAND_GRADIENT = 'linear-gradient(135deg, #1a9ba1 0%, #2dc7ce 40%, #5dd6db 70%, #a8e8eb 100%)';
+const BRAND_GRADIENT = 'linear-gradient(135deg, #0cc0df 0%, #5dd6a8 50%, #ffde59 100%)';
 
 const PLATFORM_ICONS = {
   instagram: '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>',

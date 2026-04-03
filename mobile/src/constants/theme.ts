@@ -22,10 +22,10 @@ const LIGHT = {
   accent600: '#137377',
 
   // Brand gradient colors
-  gradientStart: '#1a9ba1',
-  gradientMid: '#2dc7ce',
-  gradientEnd: '#5dd6db',
-  gradientAccent: '#a8e8eb',
+  gradientStart: '#0cc0df',
+  gradientMid: '#5dd6a8',
+  gradientEnd: '#ffde59',
+  gradientAccent: '#ffde59',
 
   // Grays
   white: '#FFFFFF',
@@ -83,10 +83,10 @@ const DARK: typeof LIGHT = {
   accent600: '#a8e8eb',
 
   // Brand gradient colors
-  gradientStart: '#2dc7ce',
-  gradientMid: '#5dd6db',
-  gradientEnd: '#a8e8eb',
-  gradientAccent: '#ccf2f4',
+  gradientStart: '#0cc0df',
+  gradientMid: '#5dd6a8',
+  gradientEnd: '#ffde59',
+  gradientAccent: '#ffde59',
 
   // Grays — soft, not pure black
   white: 'transparent',       // background is gradient, not flat color

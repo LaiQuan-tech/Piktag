@@ -1151,6 +1151,7 @@ const styles = StyleSheet.create({
   // Event mode button
   qrActionButtons: {
     width: '100%',
+    paddingHorizontal: 24,
     gap: 12,
     marginTop: 8,
   },
