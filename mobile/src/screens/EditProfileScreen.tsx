@@ -20,6 +20,7 @@ import DraggableFlatList, { RenderItemParams, ScaleDecorator } from 'react-nativ
 import * as ImagePicker from 'expo-image-picker';
 import { useTranslation } from 'react-i18next';
 import { COLORS } from '../constants/theme';
+import { LinearGradient } from 'expo-linear-gradient';
 import PlatformIcon from '../components/PlatformIcon';
 import { supabase, supabaseUrl, supabaseAnonKey } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
@@ -1056,16 +1057,22 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
           {/* Save Button */}
           <View style={styles.saveSection}>
             <TouchableOpacity
-              style={[styles.saveButton, saving && styles.saveButtonDisabled]}
               onPress={handleSave}
               activeOpacity={0.8}
               disabled={saving}
             >
-              {saving ? (
-                <ActivityIndicator size="small" color={COLORS.gray900} />
-              ) : (
-                <Text style={styles.saveButtonText}>{t('editProfile.saveChanges')}</Text>
-              )}
+              <LinearGradient
+                colors={['#ff5757', '#c44dff', '#8c52ff']}
+                start={{ x: 0, y: 0.5 }}
+                end={{ x: 1, y: 0.5 }}
+                style={[styles.saveButton, saving && styles.saveButtonDisabled]}
+              >
+                {saving ? (
+                  <ActivityIndicator size="small" color="#FFFFFF" />
+                ) : (
+                  <Text style={styles.saveButtonText}>{t('editProfile.saveChanges')}</Text>
+                )}
+              </LinearGradient>
             </TouchableOpacity>
           </View>
         </ScrollView>

@@ -25,6 +25,7 @@ import {
   Send,
 } from 'lucide-react-native';
 import { COLORS } from '../constants/theme';
+import { LinearGradient } from 'expo-linear-gradient';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
 
@@ -286,11 +287,17 @@ export default function ContactSyncScreen({ navigation }: ContactSyncScreenProps
               {t('contactSync.contactCount', { count: contacts.length })}
             </Text>
             <TouchableOpacity
-              style={styles.importAllBtn}
               onPress={handleImportAll}
               activeOpacity={0.7}
             >
-              <Text style={styles.importAllBtnText}>{t('contactSync.importAll')}</Text>
+              <LinearGradient
+                colors={['#ff5757', '#c44dff', '#8c52ff']}
+                start={{ x: 0, y: 0.5 }}
+                end={{ x: 1, y: 0.5 }}
+                style={styles.importAllBtn}
+              >
+                <Text style={styles.importAllBtnText}>{t('contactSync.importAll')}</Text>
+              </LinearGradient>
             </TouchableOpacity>
           </View>
 

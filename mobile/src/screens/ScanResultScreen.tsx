@@ -14,6 +14,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { X } from 'lucide-react-native';
 import { COLORS } from '../constants/theme';
+import { LinearGradient } from 'expo-linear-gradient';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
 import type { PiktagProfile } from '../types';
@@ -435,16 +436,22 @@ export default function ScanResultScreen({ navigation, route }: ScanResultScreen
       {/* CTA Button */}
       <View style={[styles.ctaContainer, { paddingBottom: insets.bottom + 16 }]}>
         <TouchableOpacity
-          style={[styles.ctaButton, submitting && styles.ctaButtonDisabled]}
           onPress={handleConfirm}
           activeOpacity={0.8}
           disabled={submitting}
         >
-          {submitting ? (
-            <ActivityIndicator size={20} color={COLORS.gray900} />
-          ) : (
-            <Text style={styles.ctaButtonText}>{t('scanResult.confirmButton')}</Text>
-          )}
+          <LinearGradient
+            colors={['#ff5757', '#c44dff', '#8c52ff']}
+            start={{ x: 0, y: 0.5 }}
+            end={{ x: 1, y: 0.5 }}
+            style={[styles.ctaButton, submitting && styles.ctaButtonDisabled]}
+          >
+            {submitting ? (
+              <ActivityIndicator size={20} color="#FFFFFF" />
+            ) : (
+              <Text style={styles.ctaButtonText}>{t('scanResult.confirmButton')}</Text>
+            )}
+          </LinearGradient>
         </TouchableOpacity>
       </View>
     </View>

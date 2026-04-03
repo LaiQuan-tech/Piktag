@@ -553,11 +553,17 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
         <Text style={styles.emptyTitle}>{t('connections.emptyGuideTitle')}</Text>
         <Text style={styles.emptyText}>{t('connections.emptyGuideMessage')}</Text>
         <TouchableOpacity
-          style={styles.emptyButton}
           onPress={() => navigation.navigate('AddTagTab', { screen: 'CameraScan' })}
           activeOpacity={0.8}
         >
-          <Text style={styles.emptyButtonText}>{t('connections.emptyGuideButton')}</Text>
+          <LinearGradient
+            colors={['#ff5757', '#c44dff', '#8c52ff']}
+            start={{ x: 0, y: 0.5 }}
+            end={{ x: 1, y: 0.5 }}
+            style={styles.emptyButton}
+          >
+            <Text style={styles.emptyButtonText}>{t('connections.emptyGuideButton')}</Text>
+          </LinearGradient>
         </TouchableOpacity>
         <TouchableOpacity
           style={[styles.emptyButton, { backgroundColor: COLORS.piktag50, borderWidth: 1.5, borderColor: COLORS.piktag500, marginTop: 10 }]}

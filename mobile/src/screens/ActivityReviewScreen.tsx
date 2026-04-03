@@ -13,6 +13,7 @@ import { X, Check, Tag, MapPin, Calendar } from 'lucide-react-native';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
 import { COLORS } from '../constants/theme';
+import { LinearGradient } from 'expo-linear-gradient';
 import type { PiktagProfile } from '../types';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -281,8 +282,15 @@ export default function ActivityReviewScreen({ navigation, route }: Props) {
         <StatusBar barStyle="dark-content" />
         <View style={styles.emptyContainer}>
           <Text style={styles.emptyTitle}>{t('activityReview.noNewFriends') || '沒有需要整理的新朋友'}</Text>
-          <Pressable style={styles.doneBtn} onPress={() => navigation.goBack()}>
-            <Text style={styles.doneBtnText}>{t('common.done') || '完成'}</Text>
+          <Pressable onPress={() => navigation.goBack()}>
+            <LinearGradient
+              colors={['#ff5757', '#c44dff', '#8c52ff']}
+              start={{ x: 0, y: 0.5 }}
+              end={{ x: 1, y: 0.5 }}
+              style={styles.doneBtn}
+            >
+              <Text style={styles.doneBtnText}>{t('common.done') || '完成'}</Text>
+            </LinearGradient>
           </Pressable>
         </View>
       </View>
@@ -301,8 +309,15 @@ export default function ActivityReviewScreen({ navigation, route }: Props) {
             {t('activityReview.summaryText', { people: connections.length, tags: totalTagsAdded }) ||
               `已整理 ${connections.length} 位朋友，加了 ${totalTagsAdded} 個標籤`}
           </Text>
-          <Pressable style={styles.doneBtn} onPress={() => navigation.goBack()}>
-            <Text style={styles.doneBtnText}>{t('common.done') || '完成'}</Text>
+          <Pressable onPress={() => navigation.goBack()}>
+            <LinearGradient
+              colors={['#ff5757', '#c44dff', '#8c52ff']}
+              start={{ x: 0, y: 0.5 }}
+              end={{ x: 1, y: 0.5 }}
+              style={styles.doneBtn}
+            >
+              <Text style={styles.doneBtnText}>{t('common.done') || '完成'}</Text>
+            </LinearGradient>
           </Pressable>
         </View>
       </View>
