@@ -224,7 +224,7 @@ function renderProfilePage(profile, biolinks, tags) {
     ${biolinksHtml ? `<div class="biolinks">${biolinksHtml}</div>` : ''}
   </div>
   <a class="banner" href="https://pikt.ag/download">
-    <span class="banner-text">下載 PikTag App</span>
+    <span class="banner-text">下載 #PikTag App</span>
     <span class="banner-arrow">→</span>
   </a>
   <script>
