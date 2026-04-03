@@ -626,16 +626,6 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
           <QRCode value={qrValue} size={200} backgroundColor={COLORS.white} />
         </View>
 
-        {/* Camera scan button */}
-        <TouchableOpacity
-          style={styles.cameraScanBtn}
-          onPress={() => navigation.navigate('CameraScan')}
-          activeOpacity={0.7}
-        >
-          <Camera size={20} color={COLORS.piktag600} />
-          <Text style={styles.cameraScanBtnText}>{t('addTag.scanQrCode') || '掃描 QR Code'}</Text>
-        </TouchableOpacity>
-
         {/* Event info */}
         <Text style={styles.qrEventInfo}>
           {eventDate}
@@ -658,25 +648,35 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
           {t('addTag.scanCount', { count: scanSession?.scan_count ?? 0 })}
         </Text>
 
-        {/* Event mode button */}
-        <TouchableOpacity
-          style={styles.eventModeBtn}
-          onPress={() => setMode('event')}
-          activeOpacity={0.8}
-        >
-          <Text style={styles.eventModeBtnText}>{t('addTag.eventModeBtn') || '活動模式'}</Text>
-        </TouchableOpacity>
+        {/* Action buttons */}
+        <View style={styles.qrActionButtons}>
+          <TouchableOpacity
+            style={styles.eventModeBtn}
+            onPress={() => setMode('event')}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.eventModeBtnText}>{t('addTag.eventModeBtn') || '活動模式'}</Text>
+          </TouchableOpacity>
 
-        {/* Edit button */}
-        <TouchableOpacity
-          style={styles.outlineButton}
-          onPress={() => setMode('setup')}
-          activeOpacity={0.7}
-        >
-          <Text style={styles.outlineButtonText}>
-            {t('addTag.editTagSettings')}
-          </Text>
-        </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.outlineButton}
+            onPress={() => setMode('setup')}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.outlineButtonText}>
+              {t('addTag.editTagSettings')}
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.cameraScanBtn}
+            onPress={() => navigation.navigate('CameraScan')}
+            activeOpacity={0.7}
+          >
+            <Camera size={20} color={COLORS.piktag600} />
+            <Text style={styles.cameraScanBtnText}>{t('addTag.scanQrCode') || '掃描 QR Code'}</Text>
+          </TouchableOpacity>
+        </View>
       </ScrollView>
     </>
   );
@@ -1149,34 +1149,37 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
   // Event mode button
-  cameraScanBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    backgroundColor: COLORS.piktag50,
-    borderWidth: 1.5,
-    borderColor: COLORS.piktag500,
-    borderRadius: 14,
-    paddingVertical: 12,
-    marginBottom: 16,
-  },
-  cameraScanBtnText: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: COLORS.piktag600,
+  qrActionButtons: {
+    width: '100%',
+    gap: 12,
+    marginTop: 8,
   },
   eventModeBtn: {
     backgroundColor: COLORS.piktag500,
     borderRadius: 14,
-    paddingVertical: 14,
+    paddingVertical: 16,
     alignItems: 'center',
-    marginBottom: 10,
   },
   eventModeBtnText: {
     fontSize: 16,
     fontWeight: '700',
     color: COLORS.white,
+  },
+  cameraScanBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+    backgroundColor: COLORS.piktag50,
+    borderWidth: 1.5,
+    borderColor: COLORS.piktag500,
+    borderRadius: 14,
+    paddingVertical: 16,
+  },
+  cameraScanBtnText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: COLORS.piktag600,
   },
   // Event mode fullscreen
   eventModeContainer: {
@@ -1235,10 +1238,10 @@ const styles = StyleSheet.create({
     color: 'rgba(255,255,255,0.4)',
   },
   outlineButton: {
-    borderWidth: 1,
+    borderWidth: 1.5,
     borderColor: COLORS.piktag500,
     borderRadius: 14,
-    paddingVertical: 14,
+    paddingVertical: 16,
     alignItems: 'center',
   },
   outlineButtonText: {
