@@ -166,7 +166,7 @@ function renderProfilePage(profile, biolinks, tags) {
 
     /* Avatar with gradient ring */
     .avatar-wrapper{position:relative;margin-bottom:18px;opacity:0;animation:scaleIn .5s ease .1s forwards}
-    .avatar-ring{width:108px;height:108px;border-radius:54px;padding:3px;background:linear-gradient(135deg,#0cc0df,#5dd6a8,#ffde59,#0cc0df);background-size:300% 300%;animation:gradientFlow 3s ease infinite}
+    .avatar-ring{width:108px;height:108px;border-radius:54px;padding:3px;background:linear-gradient(135deg,#0cc0df,#5dd6a8,#ffde59,#0cc0df);background-size:300% 300%;animation:gradientFlow 5s ease infinite}
     .avatar{width:102px;height:102px;border-radius:51px;object-fit:cover;border:3px solid #fff}
 
     /* Name & username */
