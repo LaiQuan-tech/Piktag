@@ -195,10 +195,11 @@ function renderProfilePage(profile, biolinks, tags) {
     .biolink:hover svg{color:${BRAND_DARK}}
 
     /* Banner */
-    .banner{position:fixed;bottom:0;left:0;right:0;background:${BRAND_GRADIENT};padding:14px 20px;display:flex;align-items:center;justify-content:center;gap:12px;box-shadow:0 -4px 24px rgba(0,0,0,.12);z-index:100;backdrop-filter:blur(12px)}
-    .banner-content{display:flex;flex-direction:column;align-items:center;gap:2px}
-    .banner-title{font-size:15px;font-weight:700;color:#fff}
-    .banner-subtitle{font-size:12px;color:rgba(255,255,255,.8)}
+    .banner{position:fixed;bottom:0;left:0;right:0;background:${BRAND_GRADIENT};padding:12px 20px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 -4px 24px rgba(0,0,0,.12);z-index:100}
+    .banner-content{display:flex;flex-direction:column;gap:1px}
+    .banner-title{font-size:14px;font-weight:700;color:#1a1a1a}
+    .banner-subtitle{font-size:11px;color:#333}
+    .banner-btn{background:#1a1a1a;color:#fff;font-size:13px;font-weight:700;border:none;border-radius:20px;padding:10px 20px;cursor:pointer;white-space:nowrap}
 
     /* Animations */
     @keyframes fadeDown{from{opacity:0;transform:translateY(-12px)}to{opacity:1;transform:translateY(0)}}
@@ -223,11 +224,12 @@ function renderProfilePage(profile, biolinks, tags) {
     ${tagsHtml}
     ${biolinksHtml ? `<div class="biolinks">${biolinksHtml}</div>` : ''}
   </div>
-  <div class="banner">
+  <div class="banner" onclick="window.location='https://pikt.ag/download'">
     <div class="banner-content">
-      <div class="banner-title">用 PikTag 記住每個重要的人</div>
-      <div class="banner-subtitle">下載 App 開始建立你的人脈</div>
+      <div class="banner-title">#piktag</div>
+      <div class="banner-subtitle">記住每個重要的人</div>
     </div>
+    <button class="banner-btn" onclick="event.stopPropagation();window.location='https://pikt.ag/download'">下載 App</button>
   </div>
   <script>
 function handleFollow() {
