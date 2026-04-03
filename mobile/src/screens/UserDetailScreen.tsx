@@ -29,6 +29,7 @@ import {
 } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { COLORS } from '../constants/theme';
+import { LinearGradient } from 'expo-linear-gradient';
 import PlatformIcon from '../components/PlatformIcon';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
@@ -618,23 +619,39 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
 
           {/* Action buttons */}
           <View style={styles.actionButtonsRow}>
-            <TouchableOpacity
-              style={[
-                styles.followButton,
-                isFollowing ? styles.followButtonFollowing : styles.followButtonDefault,
-              ]}
-              onPress={handleToggleFollow}
-              activeOpacity={0.8}
-              disabled={followLoading}
-            >
-              {followLoading ? (
-                <ActivityIndicator size="small" color={isFollowing ? COLORS.gray700 : COLORS.white} />
-              ) : (
-                <Text style={isFollowing ? styles.followButtonTextFollowing : styles.followButtonTextDefault}>
-                  {isFollowing ? t('userDetail.following') : t('userDetail.follow')}
-                </Text>
-              )}
-            </TouchableOpacity>
+            {isFollowing ? (
+              <TouchableOpacity
+                style={[styles.followButton, styles.followButtonFollowing]}
+                onPress={handleToggleFollow}
+                activeOpacity={0.8}
+                disabled={followLoading}
+              >
+                {followLoading ? (
+                  <ActivityIndicator size="small" color={COLORS.piktag600} />
+                ) : (
+                  <Text style={styles.followButtonTextFollowing}>
+                    {t('userDetail.following')}
+                  </Text>
+                )}
+              </TouchableOpacity>
+            ) : (
+              <TouchableOpacity onPress={handleToggleFollow} activeOpacity={0.8} disabled={followLoading} style={{ flex: 1 }}>
+                <LinearGradient
+                  colors={['#ff5757', '#c44dff', '#8c52ff']}
+                  start={{ x: 0, y: 0.5 }}
+                  end={{ x: 1, y: 0.5 }}
+                  style={[styles.followButton, { borderRadius: 14 }]}
+                >
+                  {followLoading ? (
+                    <ActivityIndicator size="small" color="#fff" />
+                  ) : (
+                    <Text style={styles.followButtonTextDefault}>
+                      {t('userDetail.follow')}
+                    </Text>
+                  )}
+                </LinearGradient>
+              </TouchableOpacity>
+            )}
             {isFollowing && (
               <TouchableOpacity
                 style={styles.tagButton}

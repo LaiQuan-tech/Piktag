@@ -21,6 +21,7 @@ import { supabase } from '../lib/supabase';
 import LocationPickerModal from '../components/LocationPickerModal';
 import { useAuth } from '../hooks/useAuth';
 import { COLORS } from '../constants/theme';
+import { LinearGradient } from 'expo-linear-gradient';
 import type { TagPreset, ScanSession, PiktagProfile } from '../types';
 
 // ─── Fallback Popular Tags (used if DB fetch fails) ───
@@ -574,17 +575,19 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
 
         {/* 產生 QR Code CTA */}
         <View style={styles.section}>
-          <TouchableOpacity
-            style={[styles.primaryButton, generating && styles.buttonDisabled]}
-            onPress={handleGenerateQr}
-            activeOpacity={0.8}
-            disabled={generating}
-          >
-            {generating ? (
-              <ActivityIndicator size={18} color={COLORS.gray900} />
-            ) : (
-              <Text style={styles.primaryButtonText}>{t('addTag.generateQrButton')}</Text>
-            )}
+          <TouchableOpacity onPress={handleGenerateQr} activeOpacity={0.8} disabled={generating}>
+            <LinearGradient
+              colors={['#ff5757', '#c44dff', '#8c52ff']}
+              start={{ x: 0, y: 0.5 }}
+              end={{ x: 1, y: 0.5 }}
+              style={[styles.primaryButton, generating && { opacity: 0.5 }]}
+            >
+              {generating ? (
+                <ActivityIndicator size={18} color="#fff" />
+              ) : (
+                <Text style={styles.primaryButtonText}>{t('addTag.generateQrButton')}</Text>
+              )}
+            </LinearGradient>
           </TouchableOpacity>
         </View>
       </ScrollView>
