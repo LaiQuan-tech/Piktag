@@ -335,7 +335,7 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
       {/* Header */}
       <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
         <View style={styles.headerSideBtn} />
-        <Text style={styles.headerTitle}># PikTag</Text>
+        <Text style={styles.headerTitle}>#piktag</Text>
         <TouchableOpacity
           onPress={async () => {
             await loadPresets();
@@ -805,7 +805,7 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
 
           {/* Event info */}
           <Text style={styles.eventTitle}>
-            {eventLocation || eventDate || 'PikTag'}
+            {eventLocation || eventDate || '#piktag'}
           </Text>
 
           {/* Large QR Code */}

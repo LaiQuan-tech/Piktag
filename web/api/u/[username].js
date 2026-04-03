@@ -104,7 +104,7 @@ module.exports = async function handler(req, res) {
 };
 
 function renderProfilePage(profile, biolinks, tags) {
-  const name = escapeHtml(profile.full_name || profile.username || 'PikTag User');
+  const name = escapeHtml(profile.full_name || profile.username || '#piktag User');
   const username = escapeHtml(profile.username || '');
   const bio = profile.bio ? escapeHtml(profile.bio) : '';
   const avatarUrl =
@@ -112,7 +112,7 @@ function renderProfilePage(profile, biolinks, tags) {
     `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=f3f4f6&color=6b7280&size=200`;
   const isVerified = profile.is_verified;
   const ogDescription = bio || `@${username} on PikTag`;
-  const pageTitle = `${name} (@${username}) | PikTag`;
+  const pageTitle = `${name} (@${username}) | #piktag`;
   const pageUrl = `https://pikt.ag/${username}`;
 
   const verifiedBadge = isVerified
@@ -146,7 +146,7 @@ function renderProfilePage(profile, biolinks, tags) {
   <meta property="og:description" content="${escapeHtml(ogDescription)}">
   <meta property="og:image" content="${escapeHtml(avatarUrl)}">
   <meta property="og:url" content="${pageUrl}">
-  <meta property="og:site_name" content="PikTag">
+  <meta property="og:site_name" content="#piktag">
   <meta name="twitter:card" content="summary">
   <meta name="twitter:title" content="${pageTitle}">
   <meta name="twitter:description" content="${escapeHtml(ogDescription)}">
@@ -224,7 +224,7 @@ function renderProfilePage(profile, biolinks, tags) {
     ${biolinksHtml ? `<div class="biolinks">${biolinksHtml}</div>` : ''}
   </div>
   <a class="banner" href="https://pikt.ag/download">
-    <span class="banner-text">下載 #PikTag App</span>
+    <span class="banner-text">下載 ##piktag App</span>
     <span class="banner-arrow">→</span>
   </a>
   <script>
@@ -250,7 +250,7 @@ function notFoundPage() {
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>\u627e\u4e0d\u5230\u4f7f\u7528\u8005 | PikTag</title>
+  <title>\u627e\u4e0d\u5230\u4f7f\u7528\u8005 | #piktag</title>
   <style>
     *{margin:0;padding:0;box-sizing:border-box}
     body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:${BRAND_BG};display:flex;align-items:center;justify-content:center;min-height:100vh;text-align:center;padding:20px}

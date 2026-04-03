@@ -28,7 +28,7 @@ export default function PrivacyPolicyScreen({ navigation }: Props) {
         <Text style={styles.li}>• Usage data: interactions, QR scans, tag activity</Text>
 
         <Text style={styles.h2}>2. How We Use Your Information</Text>
-        <Text style={styles.li}>• Provide and improve PikTag services</Text>
+        <Text style={styles.li}>• Provide and improve #piktag services</Text>
         <Text style={styles.li}>• Connect you with other users through tags and QR codes</Text>
         <Text style={styles.li}>• Send notifications about friend activity and reminders</Text>
         <Text style={styles.li}>• Generate AI-powered tag suggestions (using anonymized data)</Text>
@@ -36,7 +36,7 @@ export default function PrivacyPolicyScreen({ navigation }: Props) {
 
         <Text style={styles.h2}>3. Information Sharing</Text>
         <Text style={styles.p}>We do NOT sell your personal information. We share data only:</Text>
-        <Text style={styles.li}>• With other PikTag users according to your privacy settings (public/friends/close friends/private)</Text>
+        <Text style={styles.li}>• With other #piktag users according to your privacy settings (public/friends/close friends/private)</Text>
         <Text style={styles.li}>• With service providers (Supabase for database, Google for AI features)</Text>
         <Text style={styles.li}>• When required by law</Text>
 

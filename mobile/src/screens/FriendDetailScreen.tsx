@@ -1164,7 +1164,7 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
                 const name = displayName || username;
                 try {
                   await Share.share({
-                    message: Platform.OS === 'ios' ? `${name} (@${username}) on PikTag` : `${name} (@${username}) on PikTag\n${profileUrl}`,
+                    message: Platform.OS === 'ios' ? `${name} (@${username}) on #piktag` : `${name} (@${username}) on #piktag\n${profileUrl}`,
                     url: Platform.OS === 'ios' ? profileUrl : undefined,
                   });
                 } catch {}

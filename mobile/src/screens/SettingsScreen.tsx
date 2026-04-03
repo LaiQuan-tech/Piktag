@@ -285,7 +285,7 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
                 ].map(v => `"${(v || '').replace(/"/g, '""')}"`).join(',');
               }))
               .join('\n');
-            await Share.share({ message: csv, title: 'PikTag Contacts Export' });
+            await Share.share({ message: csv, title: '#piktag Contacts Export' });
           } catch (err) {
             console.warn('Export error:', err);
           }
@@ -341,7 +341,7 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
             />
           ),
         },
-        { label: t('settings.aboutPikTag'), onPress: handleAbout },
+        { label: t('settings.aboutPiktag'), onPress: handleAbout },
         { label: t('settings.privacyPolicy') || '隱私權政策', onPress: () => navigation.navigate('PrivacyPolicy') },
         { label: t('settings.termsOfService') || '服務條款', onPress: () => navigation.navigate('TermsOfService') },
       ],
