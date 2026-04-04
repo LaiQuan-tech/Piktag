@@ -14,6 +14,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeft, Hash, CheckCircle2, Users, UserPlus } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { COLORS } from '../constants/theme';
+import { useTheme } from '../context/ThemeContext';
 import InitialsAvatar from '../components/InitialsAvatar';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
@@ -52,6 +53,7 @@ type TabKey = 'connections' | 'explore';
 
 export default function TagDetailScreen({ navigation, route }: TagDetailScreenProps) {
   const { t } = useTranslation();
+  const { colors, isDark } = useTheme();
   const { user } = useAuth();
   const paramTagId = route.params?.tagId;
   const tagName = route.params?.tagName;
@@ -374,7 +376,7 @@ export default function TagDetailScreen({ navigation, route }: TagDetailScreenPr
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <StatusBar barStyle="dark-content" backgroundColor={COLORS.white} />
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={colors.white} />
 
       {/* Header */}
       <View style={styles.header}>

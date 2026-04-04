@@ -13,6 +13,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { X } from 'lucide-react-native';
 import { COLORS } from '../constants/theme';
+import { useTheme } from '../context/ThemeContext';
 
 type CameraScanScreenProps = {
   navigation: any;
@@ -34,6 +35,7 @@ const SCAN_FRAME_SIZE = SCREEN_WIDTH * 0.65;
 
 export default function CameraScanScreen({ navigation }: CameraScanScreenProps) {
   const { t } = useTranslation();
+  const { colors, isDark } = useTheme();
   const insets = useSafeAreaInsets();
   const [permission, requestPermission] = useCameraPermissions();
   const [scanned, setScanned] = useState(false);

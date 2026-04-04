@@ -24,6 +24,7 @@ import {
   UserPlus,
 } from 'lucide-react-native';
 import { COLORS } from '../constants/theme';
+import { useTheme } from '../context/ThemeContext';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
 
@@ -52,6 +53,7 @@ function generateCode(): string {
 
 export default function InviteScreen({ navigation }: InviteScreenProps) {
   const { t } = useTranslation();
+  const { colors, isDark } = useTheme();
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
   const [quota, setQuota] = useState(0);
@@ -200,7 +202,7 @@ export default function InviteScreen({ navigation }: InviteScreenProps) {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor={COLORS.white} />
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={colors.white} />
 
       {/* Header */}
       <View style={[styles.header, { paddingTop: insets.top + 8 }]}>

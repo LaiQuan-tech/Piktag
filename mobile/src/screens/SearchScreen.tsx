@@ -30,6 +30,7 @@ import * as Localization from 'expo-localization';
 import { supabase } from '../lib/supabase';
 import { getCache, setCache } from '../lib/dataCache';
 import { COLORS } from '../constants/theme';
+import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../hooks/useAuth';
 import type { Tag, PiktagProfile } from '../types';
 
@@ -181,6 +182,7 @@ type SearchScreenProps = {
 
 export default function SearchScreen({ navigation }: SearchScreenProps) {
   const { t } = useTranslation();
+  const { colors, isDark } = useTheme();
   const { user } = useAuth();
   const [isFocused, setIsFocused] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -1239,7 +1241,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
 
   return (
     <SafeAreaView style={styles.container} edges={topEdges}>
-      <StatusBar barStyle="dark-content" backgroundColor={COLORS.white} />
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={colors.white} />
       <View style={styles.header}>
         <Text style={styles.headerTitle}>{t('search.headerTitle') || '搜尋'}</Text>
         <View style={searchContainerStyle}>

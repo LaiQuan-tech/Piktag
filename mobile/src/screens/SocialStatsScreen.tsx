@@ -22,6 +22,7 @@ import {
 } from 'lucide-react-native';
 import Svg, { Path, Circle, Line, Text as SvgText } from 'react-native-svg';
 import { COLORS } from '../constants/theme';
+import { useTheme } from '../context/ThemeContext';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
 
@@ -72,6 +73,7 @@ const INITIAL_DATA: DashboardData = {
 
 export default function SocialStatsScreen({ navigation }: SocialStatsScreenProps) {
   const { t } = useTranslation();
+  const { colors, isDark } = useTheme();
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
@@ -460,7 +462,7 @@ export default function SocialStatsScreen({ navigation }: SocialStatsScreenProps
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor={COLORS.white} />
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={colors.white} />
 
       {/* Header */}
       <View style={[styles.header, { paddingTop: insets.top + 8 }]}>

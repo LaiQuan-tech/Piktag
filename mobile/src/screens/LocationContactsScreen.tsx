@@ -15,6 +15,7 @@ import { useTranslation } from 'react-i18next';
 import { ArrowLeft, MapPin, Navigation } from 'lucide-react-native';
 import * as Location from 'expo-location';
 import { COLORS } from '../constants/theme';
+import { useTheme } from '../context/ThemeContext';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
 
@@ -37,6 +38,7 @@ function haversineDistance(lat1: number, lon1: number, lat2: number, lon2: numbe
 
 export default function LocationContactsScreen({ navigation }: LocationContactsScreenProps) {
   const { t } = useTranslation();
+  const { colors, isDark } = useTheme();
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
@@ -176,7 +178,7 @@ export default function LocationContactsScreen({ navigation }: LocationContactsS
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor={COLORS.white} />
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={colors.white} />
 
       <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
         <TouchableOpacity

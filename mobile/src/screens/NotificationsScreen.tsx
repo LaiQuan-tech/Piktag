@@ -14,6 +14,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { Bell, CheckCheck } from 'lucide-react-native';
 import { COLORS, SPACING } from '../constants/theme';
+import { useTheme } from '../context/ThemeContext';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
 import { getCache, setCache, CACHE_KEYS } from '../lib/dataCache';
@@ -160,6 +161,7 @@ const NotificationsScreenSkeleton = React.memo(function NotificationsScreenSkele
 
 export default function NotificationsScreen({ navigation }: NotificationsScreenProps) {
   const { t } = useTranslation();
+  const { colors, isDark } = useTheme();
   const { user } = useAuth();
 
   const TAB_LABELS: Record<NotificationTab, string> = useMemo(
@@ -333,7 +335,7 @@ export default function NotificationsScreen({ navigation }: NotificationsScreenP
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <StatusBar barStyle="dark-content" backgroundColor={COLORS.white} />
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={colors.white} />
 
       {/* Header */}
       <View style={styles.header}>

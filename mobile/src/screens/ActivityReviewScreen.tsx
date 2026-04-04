@@ -13,6 +13,7 @@ import { X, Check, Tag, MapPin, Calendar } from 'lucide-react-native';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
 import { COLORS } from '../constants/theme';
+import { useTheme } from '../context/ThemeContext';
 import { LinearGradient } from 'expo-linear-gradient';
 import type { PiktagProfile } from '../types';
 
@@ -34,6 +35,7 @@ type Props = { navigation: any; route: any };
 
 export default function ActivityReviewScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
+  const { colors, isDark } = useTheme();
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
   const sessionId = route.params?.sessionId;
@@ -270,7 +272,7 @@ export default function ActivityReviewScreen({ navigation, route }: Props) {
   if (loading) {
     return (
       <View style={[styles.container, { paddingTop: insets.top }]}>
-        <StatusBar barStyle="dark-content" />
+        <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
         <ActivityIndicator size="large" color={COLORS.piktag500} style={{ flex: 1 }} />
       </View>
     );
@@ -279,7 +281,7 @@ export default function ActivityReviewScreen({ navigation, route }: Props) {
   if (connections.length === 0) {
     return (
       <View style={[styles.container, { paddingTop: insets.top }]}>
-        <StatusBar barStyle="dark-content" />
+        <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
         <View style={styles.emptyContainer}>
           <Text style={styles.emptyTitle}>{t('activityReview.noNewFriends') || '沒有需要整理的新朋友'}</Text>
           <Pressable onPress={() => navigation.goBack()}>
@@ -301,7 +303,7 @@ export default function ActivityReviewScreen({ navigation, route }: Props) {
   if (isComplete) {
     return (
       <View style={[styles.container, { paddingTop: insets.top }]}>
-        <StatusBar barStyle="dark-content" />
+        <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
         <View style={styles.summaryContainer}>
           <Check size={64} color={COLORS.piktag500} />
           <Text style={styles.summaryTitle}>{t('activityReview.summaryTitle') || '整理完成'}</Text>
@@ -330,7 +332,7 @@ export default function ActivityReviewScreen({ navigation, route }: Props) {
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
 
       {/* Header */}
       <View style={styles.header}>

@@ -18,6 +18,7 @@ import { X, Hash, Pin, Sparkles, ArrowLeftRight, AlertTriangle } from 'lucide-re
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
 import { COLORS } from '../constants/theme';
+import { useTheme } from '../context/ThemeContext';
 import DraggableChips from '../components/DraggableChips';
 import type { Tag, UserTag } from '../types';
 
@@ -31,6 +32,7 @@ type ManageTagsScreenProps = { navigation: any };
 
 export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) {
   const { t } = useTranslation();
+  const { colors, isDark } = useTheme();
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
   const [tagInput, setTagInput] = useState('');
@@ -291,7 +293,7 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor={COLORS.white} />
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={colors.white} />
 
       <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
         <Text style={styles.headerTitle}>{t('manageTags.headerTitle')}</Text>

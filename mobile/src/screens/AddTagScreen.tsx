@@ -21,6 +21,7 @@ import { supabase } from '../lib/supabase';
 import LocationPickerModal from '../components/LocationPickerModal';
 import { useAuth } from '../hooks/useAuth';
 import { COLORS } from '../constants/theme';
+import { useTheme } from '../context/ThemeContext';
 import { LinearGradient } from 'expo-linear-gradient';
 import type { TagPreset, ScanSession, PiktagProfile } from '../types';
 
@@ -53,6 +54,7 @@ function getQuickDates(): { label: string; date: Date }[] {
 
 export default function AddTagScreen({ navigation }: AddTagScreenProps) {
   const { t } = useTranslation();
+  const { colors, isDark } = useTheme();
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
 
@@ -626,7 +628,7 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
 
         {/* QR Code */}
         <View style={styles.qrWrapper}>
-          <QRCode value={qrValue} size={200} backgroundColor={COLORS.white} />
+          <QRCode value={qrValue} size={200} backgroundColor={colors.white} />
         </View>
 
         {/* Event info */}
@@ -791,7 +793,7 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor={COLORS.white} />
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={colors.white} />
       {mode === 'setup' && renderSetupMode()}
       {mode === 'qr' && renderQrMode()}
       {mode === 'event' && (

@@ -25,6 +25,7 @@ import {
   Send,
 } from 'lucide-react-native';
 import { COLORS } from '../constants/theme';
+import { useTheme } from '../context/ThemeContext';
 import { LinearGradient } from 'expo-linear-gradient';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
@@ -43,6 +44,7 @@ type PhoneContact = {
 
 export default function ContactSyncScreen({ navigation }: ContactSyncScreenProps) {
   const { t } = useTranslation();
+  const { colors, isDark } = useTheme();
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
   const [contacts, setContacts] = useState<PhoneContact[]>([]);
@@ -243,7 +245,7 @@ export default function ContactSyncScreen({ navigation }: ContactSyncScreenProps
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor={COLORS.white} />
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={colors.white} />
 
       {/* Header */}
       <View style={[styles.header, { paddingTop: insets.top + 8 }]}>

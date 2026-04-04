@@ -24,6 +24,7 @@ import {
 import PlatformIcon from '../components/PlatformIcon';
 import { useTranslation } from 'react-i18next';
 import { COLORS } from '../constants/theme';
+import { useTheme } from '../context/ThemeContext';
 import { useFocusEffect } from '@react-navigation/native';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
@@ -88,6 +89,7 @@ const LinkCard = React.memo(function LinkCard({
 
 export default function ProfileScreen({ navigation }: ProfileScreenProps) {
   const { t } = useTranslation();
+  const { colors, isDark } = useTheme();
   const { user } = useAuth();
   const userId = user?.id;
 
@@ -262,7 +264,7 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
 
   return (
     <SafeAreaView style={styles.container} edges={TOP_EDGES}>
-      <StatusBar barStyle="dark-content" backgroundColor={COLORS.white} />
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={colors.white} />
 
       {/* Header */}
       <View style={styles.header}>

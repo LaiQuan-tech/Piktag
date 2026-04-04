@@ -20,6 +20,7 @@ import DraggableFlatList, { RenderItemParams, ScaleDecorator } from 'react-nativ
 import * as ImagePicker from 'expo-image-picker';
 import { useTranslation } from 'react-i18next';
 import { COLORS } from '../constants/theme';
+import { useTheme } from '../context/ThemeContext';
 import { LinearGradient } from 'expo-linear-gradient';
 import PlatformIcon from '../components/PlatformIcon';
 import { supabase, supabaseUrl, supabaseAnonKey } from '../lib/supabase';
@@ -173,6 +174,7 @@ const PopularTagChip = React.memo(function PopularTagChip({
 
 export default function EditProfileScreen({ navigation }: EditProfileScreenProps) {
   const { t } = useTranslation();
+  const { colors, isDark } = useTheme();
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
   const userId = user?.id;
@@ -758,7 +760,7 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
   if (loading) {
     return (
       <View style={styles.container}>
-        <StatusBar barStyle="dark-content" backgroundColor={COLORS.white} />
+        <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={colors.white} />
         <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
           <TouchableOpacity
             style={styles.headerBackBtn}
@@ -779,7 +781,7 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor={COLORS.white} />
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={colors.white} />
 
       {/* Header */}
       <View style={[styles.header, { paddingTop: insets.top + 12 }]}>

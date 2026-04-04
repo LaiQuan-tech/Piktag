@@ -36,6 +36,7 @@ import {
 } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { COLORS } from '../constants/theme';
+import { useTheme } from '../context/ThemeContext';
 import { LinearGradient } from 'expo-linear-gradient';
 import InitialsAvatar from '../components/InitialsAvatar';
 import { supabase } from '../lib/supabase';
@@ -141,6 +142,7 @@ type ConnectionsScreenProps = {
 
 export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps) {
   const { t } = useTranslation();
+  const { colors, isDark } = useTheme();
   const { user } = useAuth();
 
   const SORT_OPTIONS = useMemo(() => [
@@ -659,7 +661,7 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <StatusBar barStyle="dark-content" backgroundColor={COLORS.white} />
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={colors.white} />
 
       {/* Header: normal or select mode */}
       {selectMode ? (

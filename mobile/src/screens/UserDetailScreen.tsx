@@ -29,6 +29,7 @@ import {
 } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { COLORS } from '../constants/theme';
+import { useTheme } from '../context/ThemeContext';
 import { LinearGradient } from 'expo-linear-gradient';
 import PlatformIcon from '../components/PlatformIcon';
 import { supabase } from '../lib/supabase';
@@ -43,6 +44,7 @@ type UserDetailScreenProps = {
 
 export default function UserDetailScreen({ navigation, route }: UserDetailScreenProps) {
   const { t } = useTranslation();
+  const { colors, isDark } = useTheme();
   const insets = useSafeAreaInsets();
   const { user: authUser } = useAuth();
   const paramUserId = route.params?.userId;
@@ -459,7 +461,7 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
   if (loading) {
     return (
       <View style={styles.container}>
-        <StatusBar barStyle="dark-content" backgroundColor={COLORS.white} />
+        <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={colors.white} />
         <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
           <TouchableOpacity
             style={styles.headerBackBtn}
@@ -481,7 +483,7 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
   if (!profile) {
     return (
       <View style={styles.container}>
-        <StatusBar barStyle="dark-content" backgroundColor={COLORS.white} />
+        <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={colors.white} />
         <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
           <TouchableOpacity
             style={styles.headerBackBtn}
@@ -508,7 +510,7 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor={COLORS.white} />
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={colors.white} />
 
       {/* Header */}
       <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
