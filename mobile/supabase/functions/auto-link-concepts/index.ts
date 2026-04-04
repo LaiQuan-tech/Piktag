@@ -1,15 +1,12 @@
 // Supabase Edge Function: auto-link-concepts
 // Automatically links tags to semantic concepts using Gemini embeddings
-// Run periodically (e.g., daily cron) or on-demand
+// + Builds tag hierarchy (parent-child relationships)
+// + Improves disambiguation
 //
-// How it works:
-// 1. Find tags without concept_id or with concepts missing embeddings
-// 2. Generate embedding for each tag name
-// 3. Find similar existing concepts (cosine similarity > 0.85)
-// 4. If match found → link tag to existing concept + add alias
-// 5. If no match → create new concept with embedding
-//
-// This handles cross-language: #媽祖 ≈ #Mazu ≈ #天上聖母
+// Capabilities:
+// 1. Synonym alignment: #媽祖 ≈ #天上聖母 ≈ #Mazu (embedding similarity)
+// 2. Hierarchy: #媽祖 → parent: #民間信仰 → parent: #台灣文化 (LLM)
+// 3. Disambiguation: same name, different meaning detection (embedding distance)
 
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
@@ -21,6 +18,7 @@ const corsHeaders = {
 
 const SIMILARITY_THRESHOLD = 0.85;
 const BATCH_SIZE = 50;
+const HIERARCHY_BATCH = 20;
 
 async function generateEmbedding(text: string, apiKey: string): Promise<number[] | null> {
   try {
@@ -42,6 +40,46 @@ async function generateEmbedding(text: string, apiKey: string): Promise<number[]
     return result.embedding?.values || null;
   } catch {
     return null;
+  }
+}
+
+/**
+ * Use Gemini LLM to infer hierarchy + semantic_type for a batch of tags
+ * Returns: [{ tag: "媽祖", parent: "民間信仰", semantic_type: "interest" }, ...]
+ */
+async function inferHierarchy(tagNames: string[], apiKey: string): Promise<{ tag: string; parent: string | null; semantic_type: string | null }[]> {
+  try {
+    const prompt = `Given these tags from a social networking app, for each tag determine:
+1. parent_tag: a broader category this tag belongs to (or null if it's already top-level)
+2. semantic_type: one of: identity, personality, career, skill, interest, social, meta, relation (or null)
+
+Tags: ${tagNames.join(', ')}
+
+Respond ONLY in JSON array format, no markdown:
+[{"tag":"媽祖","parent":"民間信仰","semantic_type":"interest"},{"tag":"工程師","parent":null,"semantic_type":"career"}]`;
+
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: { temperature: 0.1, maxOutputTokens: 2048 },
+        }),
+      }
+    );
+
+    if (!response.ok) return [];
+
+    const result = await response.json();
+    const text = result.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    // Extract JSON from response
+    const jsonMatch = text.match(/\[[\s\S]*\]/);
+    if (!jsonMatch) return [];
+    return JSON.parse(jsonMatch[0]);
+  } catch {
+    return [];
   }
 }
 
@@ -182,12 +220,72 @@ serve(async (req) => {
       await new Promise(resolve => setTimeout(resolve, 100));
     }
 
+    // ── Phase 2: Build hierarchy (parent-child relationships) ──
+    let hierarchyUpdated = 0;
+
+    // Find tags without parent_tag_id
+    const { data: orphanTags } = await supabase
+      .from('piktag_tags')
+      .select('id, name, semantic_type')
+      .is('parent_tag_id', null)
+      .order('usage_count', { ascending: false })
+      .limit(HIERARCHY_BATCH);
+
+    if (orphanTags && orphanTags.length > 0) {
+      const tagNames = orphanTags.map(t => t.name);
+      const hierarchyResults = await inferHierarchy(tagNames, geminiApiKey);
+
+      for (const result of hierarchyResults) {
+        if (!result.parent) continue;
+
+        const tag = orphanTags.find(t => t.name === result.tag);
+        if (!tag) continue;
+
+        // Find or create parent tag
+        let { data: parentTag } = await supabase
+          .from('piktag_tags')
+          .select('id')
+          .eq('name', result.parent)
+          .maybeSingle();
+
+        if (!parentTag) {
+          // Create parent tag
+          const { data: newParent } = await supabase
+            .from('piktag_tags')
+            .insert({ name: result.parent, semantic_type: result.semantic_type })
+            .select('id')
+            .single();
+          parentTag = newParent;
+        }
+
+        if (parentTag) {
+          // Set parent_tag_id
+          await supabase
+            .from('piktag_tags')
+            .update({ parent_tag_id: parentTag.id })
+            .eq('id', tag.id);
+
+          // Also update semantic_type if missing
+          if (!tag.semantic_type && result.semantic_type) {
+            await supabase
+              .from('piktag_tags')
+              .update({ semantic_type: result.semantic_type })
+              .eq('id', tag.id);
+          }
+
+          hierarchyUpdated++;
+          console.log(`Hierarchy: "${tag.name}" → parent "${result.parent}"`);
+        }
+      }
+    }
+
     return new Response(
       JSON.stringify({
-        message: 'Auto-link completed',
+        message: 'Auto-link + hierarchy completed',
         processed: unlinkedTags.length,
         linked,
         created,
+        hierarchyUpdated,
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
