@@ -60,11 +60,10 @@ const LIGHT = {
   textTertiary: '#9ca3af',
 };
 
-// ── Dark palette (Linktree-inspired gradient style) ────────────────────
-// Background is transparent — actual gradient is rendered by GradientBackground component
-// Cards use semi-transparent surfaces for depth
+// ── Dark palette (Vercel-inspired pure black) ────────────────────────
+// Pure black background, semi-transparent cards, bright brand colors
 const DARK: typeof LIGHT = {
-  // Brand — brighter for dark backgrounds
+  // Brand — brighter purple for dark backgrounds
   piktag50: '#1a0033',
   piktag100: '#2d0059',
   piktag200: '#4a0099',
@@ -82,28 +81,28 @@ const DARK: typeof LIGHT = {
   accent500: '#c2a6ff',
   accent600: '#e6d9ff',
 
-  // Brand gradient colors
+  // Brand gradient colors (same — pops more on dark)
   gradientStart: '#ff5757',
   gradientMid: '#c44dff',
   gradientEnd: '#8c52ff',
   gradientAccent: '#360066',
 
-  // Grays — soft, not pure black
-  white: 'transparent',       // background is gradient, not flat color
-  gray50: 'rgba(255,255,255,0.04)',
-  gray100: 'rgba(255,255,255,0.08)',
-  gray200: 'rgba(255,255,255,0.12)',
-  gray300: 'rgba(255,255,255,0.16)',
+  // Grays — pure black base
+  white: '#000000',
+  gray50: 'rgba(255,255,255,0.03)',
+  gray100: 'rgba(255,255,255,0.06)',
+  gray200: 'rgba(255,255,255,0.1)',
+  gray300: 'rgba(255,255,255,0.15)',
   gray400: 'rgba(255,255,255,0.4)',
-  gray500: 'rgba(255,255,255,0.55)',
-  gray600: 'rgba(255,255,255,0.7)',
+  gray500: 'rgba(255,255,255,0.5)',
+  gray600: 'rgba(255,255,255,0.65)',
   gray700: 'rgba(255,255,255,0.8)',
   gray800: 'rgba(255,255,255,0.9)',
   gray900: '#f0f0f0',
   black: '#FFFFFF',
 
-  // Accents — same or slightly adjusted
-  blue50: '#1a2332',
+  // Accents
+  blue50: '#0a0a1a',
   blue500: '#60a5fa',
   red500: '#f87171',
   pink500: '#f472b6',
@@ -111,14 +110,14 @@ const DARK: typeof LIGHT = {
   green500: '#4ade80',
   purple500: '#c084fc',
 
-  // Semantic backgrounds — semi-transparent for gradient to show through
-  background: 'transparent',
-  backgroundSecondary: 'rgba(255,255,255,0.05)',
-  card: 'rgba(255,255,255,0.1)',
-  border: 'rgba(255,255,255,0.15)',
+  // Semantic backgrounds
+  background: '#000000',
+  backgroundSecondary: 'rgba(255,255,255,0.04)',
+  card: 'rgba(255,255,255,0.06)',
+  border: 'rgba(255,255,255,0.1)',
   text: '#f0f0f0',
-  textSecondary: '#8a8a8a',
-  textTertiary: '#666666',
+  textSecondary: 'rgba(255,255,255,0.5)',
+  textTertiary: 'rgba(255,255,255,0.35)',
 };
 
 // ── Export (default = light, components use useTheme() for dynamic) ────

@@ -13,6 +13,7 @@ import {
 import { Session } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
 import { COLORS } from '../constants/theme';
+import { useTheme } from '../context/ThemeContext';
 import { registerForPushNotifications } from '../lib/pushNotifications';
 
 // Auth Screens
@@ -103,6 +104,7 @@ function ProfileStackNavigator() {
 }
 
 function MainTabs() {
+  const { colors, isDark } = useTheme();
   return (
     <Tab.Navigator
       detachInactiveScreens={true}
@@ -110,15 +112,15 @@ function MainTabs() {
         headerShown: false,
         tabBarShowLabel: false,
         tabBarStyle: {
-          backgroundColor: COLORS.white,
-          borderTopWidth: 1,
-          borderTopColor: COLORS.gray100,
+          backgroundColor: isDark ? '#000000' : '#FFFFFF',
+          borderTopWidth: isDark ? 0.5 : 1,
+          borderTopColor: isDark ? 'rgba(255,255,255,0.1)' : COLORS.gray100,
           paddingBottom: 28,
           paddingTop: 10,
           height: 80,
         },
-        tabBarActiveTintColor: COLORS.piktag500,
-        tabBarInactiveTintColor: COLORS.gray400,
+        tabBarActiveTintColor: isDark ? '#d966ff' : COLORS.piktag500,
+        tabBarInactiveTintColor: isDark ? 'rgba(255,255,255,0.35)' : COLORS.gray400,
       }}
     >
       <Tab.Screen
