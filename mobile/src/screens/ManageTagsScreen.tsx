@@ -292,7 +292,7 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
   // ── Render ────────────────────────────────────────────────────────────
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={colors.white} />
 
       <View style={[styles.header, { paddingTop: insets.top + 12 }]}>

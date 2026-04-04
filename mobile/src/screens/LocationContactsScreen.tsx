@@ -177,7 +177,7 @@ export default function LocationContactsScreen({ navigation }: LocationContactsS
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={colors.white} />
 
       <View style={[styles.header, { paddingTop: insets.top + 8 }]}>

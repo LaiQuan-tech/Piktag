@@ -244,7 +244,7 @@ export default function ContactSyncScreen({ navigation }: ContactSyncScreenProps
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={colors.white} />
 
       {/* Header */}

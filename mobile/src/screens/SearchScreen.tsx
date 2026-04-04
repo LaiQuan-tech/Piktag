@@ -1240,10 +1240,10 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
   );
 
   return (
-    <SafeAreaView style={styles.container} edges={topEdges}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={topEdges}>
       <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={colors.white} />
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>{t('search.headerTitle') || '搜尋'}</Text>
+        <Text style={[styles.headerTitle, { color: colors.text }]}>{t('search.headerTitle') || '搜尋'}</Text>
         <View style={searchContainerStyle}>
           <Search
             size={20}

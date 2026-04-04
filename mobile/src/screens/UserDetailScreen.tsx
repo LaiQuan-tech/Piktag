@@ -460,7 +460,7 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
 
   if (loading) {
     return (
-      <View style={styles.container}>
+      <View style={[styles.container, { backgroundColor: colors.background }]}>
         <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={colors.white} />
         <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
           <TouchableOpacity
@@ -482,7 +482,7 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
 
   if (!profile) {
     return (
-      <View style={styles.container}>
+      <View style={[styles.container, { backgroundColor: colors.background }]}>
         <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={colors.white} />
         <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
           <TouchableOpacity
@@ -509,7 +509,7 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
   const bio = profile.bio || '';
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={colors.white} />
 
       {/* Header */}
@@ -532,7 +532,7 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
       </View>
 
       <ScrollView
-        style={styles.scrollView}
+        style={[styles.scrollView, { backgroundColor: colors.background }]}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >

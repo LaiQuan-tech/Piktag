@@ -700,7 +700,7 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
 
   if (loading) {
     return (
-      <View style={styles.container}>
+      <View style={[styles.container, { backgroundColor: colors.background }]}>
         <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={colors.white} />
         <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
           <TouchableOpacity
@@ -727,7 +727,7 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
   const metLocation = connection?.met_location || '';
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={colors.white} />
 
       {/* Header */}

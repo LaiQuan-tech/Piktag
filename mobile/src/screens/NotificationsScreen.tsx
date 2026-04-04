@@ -334,12 +334,12 @@ export default function NotificationsScreen({ navigation }: NotificationsScreenP
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
       <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={colors.white} />
 
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>{t('notifications.headerTitle')}</Text>
+        <Text style={[styles.headerTitle, { color: colors.text }]}>{t('notifications.headerTitle')}</Text>
         {hasUnread && (
           <TouchableOpacity
             style={styles.markAllButton}

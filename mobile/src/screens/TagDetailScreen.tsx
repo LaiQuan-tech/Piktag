@@ -375,7 +375,7 @@ export default function TagDetailScreen({ navigation, route }: TagDetailScreenPr
   const currentData = isConnectionsTab ? connections : exploreUsers;
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
       <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={colors.white} />
 
       {/* Header */}

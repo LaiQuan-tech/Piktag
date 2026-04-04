@@ -263,12 +263,12 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
   if (loading) return <ProfileScreenSkeleton />;
 
   return (
-    <SafeAreaView style={styles.container} edges={TOP_EDGES}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={TOP_EDGES}>
       <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={colors.white} />
 
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>{displayUsername}</Text>
+        <Text style={[styles.headerTitle, { color: colors.text }]}>{displayUsername}</Text>
         <View style={styles.headerRight}>
           <TouchableOpacity style={styles.headerIconBtn} activeOpacity={0.6} onPress={handleNavigateSettings}>
             <Settings size={24} color={COLORS.gray900} />

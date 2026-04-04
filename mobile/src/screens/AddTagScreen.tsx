@@ -792,7 +792,7 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
   );
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={colors.white} />
       {mode === 'setup' && renderSetupMode()}
       {mode === 'qr' && renderQrMode()}

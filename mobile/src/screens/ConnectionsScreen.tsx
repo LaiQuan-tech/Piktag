@@ -660,14 +660,14 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
   ], [connections.length, selectMode]);
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
       <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={colors.white} />
 
       {/* Header: normal or select mode */}
       {selectMode ? (
         <View style={styles.header}>
           <View style={styles.headerLeft}>
-            <Text style={styles.headerTitle}>
+            <Text style={[styles.headerTitle, { color: colors.text }]}>
               {t('connections.selectedCount', { count: selectedIds.size })}
             </Text>
           </View>
@@ -691,7 +691,7 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
       ) : (
         <View style={styles.header}>
           <View style={styles.headerLeft}>
-            <Text style={styles.headerTitle}>#piktag</Text>
+            <Text style={[styles.headerTitle, { color: colors.text }]}>#piktag</Text>
             <Text style={styles.headerSubtitle}>
               <Text style={styles.headerCount}>{sortedConnections.length}</Text>{' '}{t('connections.friendsLabel') || 'friends'}
               {closeFriendCount > 0 && (

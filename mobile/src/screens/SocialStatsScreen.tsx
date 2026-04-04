@@ -461,7 +461,7 @@ export default function SocialStatsScreen({ navigation }: SocialStatsScreenProps
   const newFriendsValue = timeRange === 'week' ? data.friendsThisWeek : data.friendsThisMonth;
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={colors.white} />
 
       {/* Header */}
