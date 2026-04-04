@@ -26,6 +26,7 @@ import {
   Heart,
   X,
   AlertTriangle,
+  UserPlus,
 } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { COLORS } from '../constants/theme';
@@ -67,6 +68,8 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
   const [isCloseFriend, setIsCloseFriend] = useState(false);
   const [moreMenuVisible, setMoreMenuVisible] = useState(false);
   const [similarUsers, setSimilarUsers] = useState<PiktagProfile[]>([]);
+  const [showSimilar, setShowSimilar] = useState(false);
+  const [similarMutualFriends, setSimilarMutualFriends] = useState<Map<string, any[]>>(new Map());
 
   // Pick Tag Modal
   const [addFriendLoading, setAddFriendLoading] = useState(false);
@@ -240,7 +243,27 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
               .in('id', userIds)
               .eq('is_public', true)
               .limit(6);
-            if (profiles) setSimilarUsers(profiles);
+            if (profiles) {
+              setSimilarUsers(profiles);
+              // Fetch mutual friends for each similar user
+              const myConns = await supabase.from('piktag_connections').select('connected_user_id').eq('user_id', authUser.id);
+              if (myConns.data) {
+                const myFriendIds = new Set(myConns.data.map((c: any) => c.connected_user_id));
+                const mutualMap = new Map<string, any[]>();
+                for (const p of profiles) {
+                  const { data: theirConns } = await supabase
+                    .from('piktag_connections')
+                    .select('connected_user_id, connected_user:piktag_profiles!connected_user_id(id, avatar_url, full_name)')
+                    .eq('user_id', p.id)
+                    .limit(50);
+                  if (theirConns) {
+                    const mutuals = theirConns.filter((c: any) => myFriendIds.has(c.connected_user_id)).map((c: any) => c.connected_user).slice(0, 3);
+                    if (mutuals.length > 0) mutualMap.set(p.id, mutuals);
+                  }
+                }
+                setSimilarMutualFriends(mutualMap);
+              }
+            }
           }
         }
       }
@@ -663,34 +686,82 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
                 <Text style={styles.tagButtonText}>{t('userDetail.tagAction')}</Text>
               </TouchableOpacity>
             )}
+            {/* Similar users trigger button */}
+            <TouchableOpacity
+              style={styles.suggestBtn}
+              activeOpacity={0.7}
+              onPress={() => setShowSimilar(!showSimilar)}
+            >
+              <UserPlus size={20} color={showSimilar ? COLORS.piktag500 : COLORS.gray500} />
+            </TouchableOpacity>
           </View>
         </View>
 
         {/* Similar Users — IG style "Suggested for you" */}
-        {similarUsers.length > 0 && (
+        {showSimilar && similarUsers.length > 0 && (
           <View style={styles.similarSection}>
-            <Text style={styles.similarTitle}>{t('userDetail.similarUsersTitle') || '更多類似會員'}</Text>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, marginBottom: 12 }}>
+              <Text style={styles.similarTitle}>{t('userDetail.similarUsersTitle') || '為你推薦'}</Text>
+              <TouchableOpacity onPress={() => setShowSimilar(false)} activeOpacity={0.6}>
+                <X size={18} color={COLORS.gray400} />
+              </TouchableOpacity>
+            </View>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.similarScroll}>
-              {similarUsers.map((u) => (
-                <TouchableOpacity
-                  key={u.id}
-                  style={styles.similarCard}
-                  activeOpacity={0.7}
-                  onPress={() => navigation.push('UserDetail', { userId: u.id })}
-                >
-                  {u.avatar_url ? (
-                    <Image source={{ uri: u.avatar_url }} style={styles.similarAvatar} />
-                  ) : (
-                    <View style={[styles.similarAvatar, styles.similarAvatarFallback]}>
-                      <Text style={styles.similarAvatarInitial}>
-                        {(u.full_name || u.username || '?').charAt(0).toUpperCase()}
-                      </Text>
-                    </View>
-                  )}
-                  <Text style={styles.similarName} numberOfLines={1}>{u.full_name || u.username}</Text>
-                  <Text style={styles.similarUsername} numberOfLines={1}>@{u.username}</Text>
-                </TouchableOpacity>
-              ))}
+              {similarUsers.map((u) => {
+                const mutuals = similarMutualFriends.get(u.id) || [];
+                return (
+                  <View key={u.id} style={styles.similarCard}>
+                    <TouchableOpacity
+                      activeOpacity={0.7}
+                      onPress={() => navigation.push('UserDetail', { userId: u.id })}
+                    >
+                      {u.avatar_url ? (
+                        <Image source={{ uri: u.avatar_url }} style={styles.similarAvatar} />
+                      ) : (
+                        <View style={[styles.similarAvatar, styles.similarAvatarFallback]}>
+                          <Text style={styles.similarAvatarInitial}>
+                            {(u.full_name || u.username || '?').charAt(0).toUpperCase()}
+                          </Text>
+                        </View>
+                      )}
+                      <Text style={styles.similarName} numberOfLines={1}>{u.full_name || u.username}</Text>
+                    </TouchableOpacity>
+                    {/* Mutual friends avatars */}
+                    {mutuals.length > 0 && (
+                      <View style={styles.mutualAvatarsRow}>
+                        {mutuals.map((m: any, i: number) => (
+                          <Image
+                            key={m.id}
+                            source={{ uri: m.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(m.full_name || '?')}&size=40` }}
+                            style={[styles.mutualMiniAvatar, { marginLeft: i > 0 ? -8 : 0, zIndex: 3 - i }]}
+                          />
+                        ))}
+                        <Text style={styles.mutualCountText}>{mutuals.length} 共同好友</Text>
+                      </View>
+                    )}
+                    {/* Follow button */}
+                    <TouchableOpacity
+                      style={styles.similarFollowBtn}
+                      activeOpacity={0.8}
+                      onPress={async () => {
+                        try {
+                          await supabase.from('piktag_follows').insert({ follower_id: user?.id, following_id: u.id });
+                          setSimilarUsers(prev => prev.filter(s => s.id !== u.id));
+                        } catch {}
+                      }}
+                    >
+                      <LinearGradient
+                        colors={['#ff5757', '#c44dff', '#8c52ff']}
+                        start={{ x: 0, y: 0.5 }}
+                        end={{ x: 1, y: 0.5 }}
+                        style={styles.similarFollowGradient}
+                      >
+                        <Text style={styles.similarFollowText}>{t('userDetail.follow') || '追蹤'}</Text>
+                      </LinearGradient>
+                    </TouchableOpacity>
+                  </View>
+                );
+              })}
             </ScrollView>
           </View>
         )}
@@ -1280,26 +1351,39 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: COLORS.gray100,
   },
+  suggestBtn: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    borderWidth: 1.5,
+    borderColor: COLORS.gray200,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   similarTitle: {
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: '700',
-    color: COLORS.gray700,
-    paddingHorizontal: 20,
-    marginBottom: 12,
+    color: COLORS.gray900,
   },
   similarScroll: {
     paddingHorizontal: 16,
-    gap: 12,
+    gap: 14,
   },
   similarCard: {
-    width: 100,
+    width: 150,
+    backgroundColor: COLORS.white,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: COLORS.gray200,
+    paddingVertical: 16,
+    paddingHorizontal: 12,
     alignItems: 'center',
-    gap: 4,
+    gap: 6,
   },
   similarAvatar: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
+    width: 72,
+    height: 72,
+    borderRadius: 36,
     backgroundColor: COLORS.gray100,
   },
   similarAvatarFallback: {
@@ -1307,20 +1391,47 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   similarAvatarInitial: {
-    fontSize: 22,
+    fontSize: 24,
     fontWeight: '700',
     color: COLORS.gray500,
   },
   similarName: {
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: '600',
     color: COLORS.gray900,
     textAlign: 'center',
   },
-  similarUsername: {
+  mutualAvatarsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginTop: 2,
+  },
+  mutualMiniAvatar: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    borderWidth: 1.5,
+    borderColor: COLORS.white,
+  },
+  mutualCountText: {
     fontSize: 11,
-    color: COLORS.gray400,
-    textAlign: 'center',
+    color: COLORS.gray500,
+    marginLeft: 2,
+  },
+  similarFollowBtn: {
+    width: '100%',
+    marginTop: 8,
+  },
+  similarFollowGradient: {
+    borderRadius: 10,
+    paddingVertical: 8,
+    alignItems: 'center',
+  },
+  similarFollowText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#FFFFFF',
   },
   tagButtonText: {
     fontSize: 15,
