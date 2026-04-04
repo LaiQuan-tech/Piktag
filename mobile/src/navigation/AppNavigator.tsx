@@ -114,13 +114,13 @@ function MainTabs() {
         tabBarStyle: {
           backgroundColor: isDark ? '#000000' : '#FFFFFF',
           borderTopWidth: isDark ? 0.5 : 1,
-          borderTopColor: isDark ? 'rgba(255,255,255,0.1)' : COLORS.gray100,
+          borderTopColor: isDark ? '#363636' : COLORS.gray100,
           paddingBottom: 28,
           paddingTop: 10,
           height: 80,
         },
-        tabBarActiveTintColor: isDark ? '#d966ff' : COLORS.piktag500,
-        tabBarInactiveTintColor: isDark ? 'rgba(255,255,255,0.35)' : COLORS.gray400,
+        tabBarActiveTintColor: isDark ? '#ffffff' : COLORS.piktag500,
+        tabBarInactiveTintColor: isDark ? '#8e8e8e' : COLORS.gray400,
       }}
     >
       <Tab.Screen

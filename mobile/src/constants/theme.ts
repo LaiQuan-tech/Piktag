@@ -60,10 +60,10 @@ const LIGHT = {
   textTertiary: '#9ca3af',
 };
 
-// ── Dark palette (Vercel-inspired pure black) ────────────────────────
-// Pure black background, semi-transparent cards, bright brand colors
+// ── Dark palette (IG-inspired pure black) ────────────────────────────
+// Pure black background, dark gray cards, white text, brand color accents
 const DARK: typeof LIGHT = {
-  // Brand — brighter purple for dark backgrounds
+  // Brand — bright purple for dark backgrounds
   piktag50: '#1a0033',
   piktag100: '#2d0059',
   piktag200: '#4a0099',
@@ -87,19 +87,19 @@ const DARK: typeof LIGHT = {
   gradientEnd: '#8c52ff',
   gradientAccent: '#360066',
 
-  // Grays — pure black base
+  // Grays — IG dark mode style
   white: '#000000',
-  gray50: 'rgba(255,255,255,0.03)',
-  gray100: 'rgba(255,255,255,0.06)',
-  gray200: 'rgba(255,255,255,0.1)',
-  gray300: 'rgba(255,255,255,0.15)',
-  gray400: 'rgba(255,255,255,0.4)',
-  gray500: 'rgba(255,255,255,0.5)',
-  gray600: 'rgba(255,255,255,0.65)',
-  gray700: 'rgba(255,255,255,0.8)',
-  gray800: 'rgba(255,255,255,0.9)',
-  gray900: '#f0f0f0',
-  black: '#FFFFFF',
+  gray50: '#0a0a0a',
+  gray100: '#1c1c1e',
+  gray200: '#363636',
+  gray300: '#444444',
+  gray400: '#a8a8a8',
+  gray500: '#8e8e8e',
+  gray600: '#c7c7c7',
+  gray700: '#dbdbdb',
+  gray800: '#efefef',
+  gray900: '#ffffff',
+  black: '#ffffff',
 
   // Accents
   blue50: '#0a0a1a',
@@ -110,14 +110,14 @@ const DARK: typeof LIGHT = {
   green500: '#4ade80',
   purple500: '#c084fc',
 
-  // Semantic backgrounds
+  // Semantic backgrounds — IG style
   background: '#000000',
-  backgroundSecondary: 'rgba(255,255,255,0.04)',
-  card: 'rgba(255,255,255,0.06)',
-  border: 'rgba(255,255,255,0.1)',
-  text: '#f0f0f0',
-  textSecondary: 'rgba(255,255,255,0.5)',
-  textTertiary: 'rgba(255,255,255,0.35)',
+  backgroundSecondary: '#1c1c1e',
+  card: '#1c1c1e',
+  border: '#363636',
+  text: '#ffffff',
+  textSecondary: '#a8a8a8',
+  textTertiary: '#8e8e8e',
 };
 
 // ── Export (default = light, components use useTheme() for dynamic) ────
