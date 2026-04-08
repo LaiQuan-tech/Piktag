@@ -3,8 +3,8 @@ const path = require('path');
 
 const config = getDefaultConfig(__dirname);
 
-// Only stub truly native-only modules (no web implementation at all)
 const NATIVE_ONLY_MODULES = [
+  'react-native-reanimated',
   'react-native-draggable-flatlist',
   'expo-screen-capture',
   'expo-camera',
