@@ -3,15 +3,21 @@ import { StatusBar, View, Platform, StyleSheet } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { NavigationContainer } from '@react-navigation/native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import * as Linking from 'expo-linking';
 import './src/i18n'; // Initialize i18n
 import AppNavigator from './src/navigation/AppNavigator';
 import { ThemeProvider } from './src/context/ThemeContext';
 
-const prefix = Linking.createURL('/');
+// expo-linking can crash on web — use safe prefix
+let prefix = '';
+try {
+  if (Platform.OS !== 'web') {
+    const Linking = require('expo-linking');
+    prefix = Linking.createURL('/');
+  }
+} catch {}
 
 const linking = {
-  prefixes: [prefix, 'piktag://', 'https://pikt.ag', 'https://www.pikt.ag'],
+  prefixes: [prefix, 'piktag://', 'https://pikt.ag', 'https://www.pikt.ag'].filter(Boolean),
   config: {
     screens: {
       Main: {
