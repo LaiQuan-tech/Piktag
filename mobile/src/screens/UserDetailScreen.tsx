@@ -5,6 +5,7 @@ import {
   Image,
   ScrollView,
   TouchableOpacity,
+  TextInput,
   StyleSheet,
   StatusBar,
   Linking,
@@ -78,6 +79,11 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
   const [pickedTagIds, setPickedTagIds] = useState<Set<string>>(new Set());
   const [pickTagLoading, setPickTagLoading] = useState(false);
   const [connectionId, setConnectionId] = useState<string | null>(null);
+
+  // Hidden tags state (private tags only I can see)
+  const [hiddenTags, setHiddenTags] = useState<{ id: string; tagId: string; name: string }[]>([]);
+  const [hiddenTagInput, setHiddenTagInput] = useState('');
+  const [addingHiddenTag, setAddingHiddenTag] = useState(false);
 
   const fetchData = useCallback(async () => {
     if (!authUser) return;
@@ -365,10 +371,9 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
   }, [connectionId]);
 
   const openPickTagModal = useCallback(async () => {
-    await fetchFriendPublicTags();
-    if (connectionId) await loadPickedTags();
+    await Promise.all([fetchFriendPublicTags(), connectionId ? loadPickedTags() : Promise.resolve(), connectionId ? fetchHiddenTags() : Promise.resolve()]);
     setPickTagModalVisible(true);
-  }, [fetchFriendPublicTags, loadPickedTags, connectionId]);
+  }, [fetchFriendPublicTags, loadPickedTags, fetchHiddenTags, connectionId]);
 
   const togglePickTag = (tagId: string) => {
     setPickedTagIds(prev => {
@@ -394,6 +399,56 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
     } finally {
       setPickTagLoading(false);
     }
+  };
+
+  // --- Hidden tags (private) ---
+  const fetchHiddenTags = useCallback(async () => {
+    if (!connectionId) return;
+    const { data } = await supabase
+      .from('piktag_connection_tags')
+      .select('id, tag_id, piktag_tags!inner(name)')
+      .eq('connection_id', connectionId)
+      .eq('is_private', true);
+    if (data) {
+      setHiddenTags(data.map((ct: any) => ({
+        id: ct.id,
+        tagId: ct.tag_id,
+        name: ct.piktag_tags?.name || '',
+      })));
+    }
+  }, [connectionId]);
+
+  const handleAddHiddenTag = async () => {
+    const name = hiddenTagInput.trim().replace(/^#/, '');
+    if (!name || !connectionId || !authUser) return;
+    setAddingHiddenTag(true);
+    try {
+      let tagId: string;
+      const { data: existing } = await supabase.from('piktag_tags').select('id').eq('name', name).single();
+      if (existing) {
+        tagId = existing.id;
+      } else {
+        const { data: newTag } = await supabase.from('piktag_tags').insert({ name }).select('id').single();
+        if (!newTag) { setAddingHiddenTag(false); return; }
+        tagId = newTag.id;
+      }
+      await supabase.from('piktag_connection_tags').insert({
+        connection_id: connectionId,
+        tag_id: tagId,
+        is_private: true,
+      });
+      setHiddenTagInput('');
+      fetchHiddenTags();
+    } catch (err) {
+      console.error('Add hidden tag error:', err);
+    } finally {
+      setAddingHiddenTag(false);
+    }
+  };
+
+  const handleRemoveHiddenTag = async (ctId: string) => {
+    await supabase.from('piktag_connection_tags').delete().eq('id', ctId);
+    setHiddenTags(prev => prev.filter(t => t.id !== ctId));
   };
 
   const handleConfirmUnfollow = async () => {
@@ -844,6 +899,46 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
                 })}
               </View>
             )}
+            {/* Divider */}
+            <View style={styles.pickModalDivider} />
+
+            {/* Hidden tags section */}
+            <Text style={styles.pickModalSectionTitle}>{t('friendDetail.hiddenTagsTitle') || '隱藏標籤'}</Text>
+
+            {hiddenTags.length > 0 && (
+              <View style={styles.pickModalTagsWrap}>
+                {hiddenTags.map((ht) => (
+                  <View key={ht.id} style={styles.hiddenTagChip}>
+                    <Text style={styles.hiddenTagChipText}>#{ht.name}</Text>
+                    <TouchableOpacity onPress={() => handleRemoveHiddenTag(ht.id)} activeOpacity={0.6} style={styles.hiddenTagRemove}>
+                      <Text style={styles.hiddenTagRemoveText}>×</Text>
+                    </TouchableOpacity>
+                  </View>
+                ))}
+              </View>
+            )}
+
+            <View style={styles.hiddenTagInputRow}>
+              <TextInput
+                style={styles.hiddenTagInput}
+                value={hiddenTagInput}
+                onChangeText={setHiddenTagInput}
+                placeholder={t('friendDetail.hiddenTagPlaceholder') || '新增隱藏標籤...'}
+                placeholderTextColor={COLORS.gray400}
+                returnKeyType="done"
+                onSubmitEditing={handleAddHiddenTag}
+              />
+              <TouchableOpacity
+                style={[styles.hiddenTagAddBtn, (!hiddenTagInput.trim() || addingHiddenTag) && { opacity: 0.5 }]}
+                onPress={handleAddHiddenTag}
+                disabled={!hiddenTagInput.trim() || addingHiddenTag}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.hiddenTagAddText}>{t('common.add') || '新增'}</Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* Save button */}
             <TouchableOpacity
               style={[styles.pickModalSaveBtn, pickTagLoading && { opacity: 0.7 }]}
               onPress={handleSavePickedTags}
@@ -1522,6 +1617,65 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '700',
     color: COLORS.gray900,
+  },
+  pickModalDivider: {
+    height: 1,
+    backgroundColor: COLORS.gray100,
+    marginVertical: 16,
+  },
+  pickModalSectionTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: COLORS.gray700,
+    marginBottom: 10,
+  },
+  hiddenTagChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.gray100,
+    borderRadius: 16,
+    paddingVertical: 6,
+    paddingLeft: 12,
+    paddingRight: 4,
+    gap: 4,
+  },
+  hiddenTagChipText: {
+    fontSize: 13,
+    color: COLORS.gray700,
+  },
+  hiddenTagRemove: {
+    padding: 4,
+  },
+  hiddenTagRemoveText: {
+    fontSize: 16,
+    color: COLORS.gray400,
+    fontWeight: '600',
+  },
+  hiddenTagInputRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginTop: 10,
+  },
+  hiddenTagInput: {
+    flex: 1,
+    backgroundColor: COLORS.gray100,
+    borderRadius: 20,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    fontSize: 14,
+    color: COLORS.gray900,
+  },
+  hiddenTagAddBtn: {
+    backgroundColor: COLORS.piktag500,
+    borderRadius: 16,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+  },
+  hiddenTagAddText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#FFFFFF',
   },
 
   statTextClickable: {
