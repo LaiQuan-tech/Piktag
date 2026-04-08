@@ -329,18 +329,6 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
             </View>
           ),
         },
-        {
-          label: t('settings.darkMode'),
-          onPress: handleDarkModeToggle,
-          rightElement: (
-            <Switch
-              value={darkModeEnabled}
-              onValueChange={handleDarkModeToggle}
-              trackColor={{ false: COLORS.gray200, true: COLORS.piktag300 }}
-              thumbColor={darkModeEnabled ? COLORS.piktag500 : COLORS.gray400}
-            />
-          ),
-        },
         { label: t('settings.aboutPiktag'), onPress: handleAbout },
         { label: t('settings.privacyPolicy') || '隱私權政策', onPress: () => navigation.navigate('PrivacyPolicy') },
         { label: t('settings.termsOfService') || '服務條款', onPress: () => navigation.navigate('TermsOfService') },
