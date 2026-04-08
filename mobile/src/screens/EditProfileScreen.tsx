@@ -886,8 +886,9 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
                 placeholder={t('editProfile.bioPlaceholder')}
                 placeholderTextColor={COLORS.gray400}
                 multiline
-                numberOfLines={4}
+                numberOfLines={2}
                 textAlignVertical="top"
+                maxLength={150}
               />
             </View>
 
@@ -1325,7 +1326,7 @@ const styles = StyleSheet.create({
     color: COLORS.gray900,
   },
   fieldInputMultiline: {
-    minHeight: 100,
+    minHeight: 64,
     paddingTop: 14,
   },
   fieldInputDisabled: {
