@@ -70,6 +70,22 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
     if (!user || !GEMINI_API_KEY) return;
     try {
       setAiLoading(true);
+
+      // Check cache first (avoid repeated API calls)
+      const cacheKey = `piktag_ai_tags_${user.id}`;
+      const cached = await AsyncStorage.getItem(cacheKey);
+      if (cached) {
+        try {
+          const { suggestions, timestamp } = JSON.parse(cached);
+          // Cache valid for 24 hours
+          if (Date.now() - timestamp < 24 * 60 * 60 * 1000 && suggestions?.length > 0) {
+            setAiSuggestions(suggestions);
+            setAiLoading(false);
+            return;
+          }
+        } catch {}
+      }
+
       const { data: profile } = await supabase
         .from('piktag_profiles')
         .select('bio, full_name, location')
@@ -113,7 +129,12 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
         const text = result.candidates?.[0]?.content?.parts?.[0]?.text || '';
         console.log('[AI Tags] Response:', text);
         const match = text.match(/\[[\s\S]*?\]/);
-        if (match) setAiSuggestions((JSON.parse(match[0]) as string[]).slice(0, 8));
+        if (match) {
+          const suggestions = (JSON.parse(match[0]) as string[]).slice(0, 8);
+          setAiSuggestions(suggestions);
+          // Cache for 24 hours
+          AsyncStorage.setItem(cacheKey, JSON.stringify({ suggestions, timestamp: Date.now() }));
+        }
       } else {
         console.warn('[AI Tags] API error:', response.status, await response.text().catch(() => ''));
       }
