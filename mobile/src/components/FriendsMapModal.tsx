@@ -83,7 +83,11 @@ export default function FriendsMapModal({
       : friendsWithLocation.length > 0
         ? `${friendsWithLocation[0].latitude},${friendsWithLocation[0].longitude}`
         : '25.033,121.565';
-    return `https://www.google.com/maps?q=${center}&z=13&output=embed`;
+    // Use embed for web (iframe), regular maps URL for native (WebView)
+    if (isWeb) {
+      return `https://www.google.com/maps?q=${center}&z=13&output=embed`;
+    }
+    return `https://www.google.com/maps/@${center},13z`;
   };
 
   // Calculate positions for avatar overlays on the map
