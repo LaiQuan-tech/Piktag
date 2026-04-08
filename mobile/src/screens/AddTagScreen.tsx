@@ -117,19 +117,46 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
   useEffect(() => {
     if (user) {
       loadPresets();
+      // Load cached QR for offline use
+      AsyncStorage.getItem('piktag_last_qr').then(val => {
+        if (val) {
+          try {
+            const cached = JSON.parse(val);
+            if (cached.url && !qrValue) {
+              setQrValue(cached.url);
+              if (cached.date) setEventDate(cached.date);
+              if (cached.location) setEventLocation(cached.location);
+              if (cached.tags) setEventTags(cached.tags);
+            }
+          } catch {}
+        }
+      });
       // Load recent locations
       AsyncStorage.getItem('piktag_recent_locations').then(val => {
         if (val) setRecentLocations(JSON.parse(val));
       });
-      // Fetch popular tags from DB (sorted by usage)
+      // Fetch user's own most-used tags first, fallback to global popular
       supabase
-        .from('piktag_tags')
-        .select('name, usage_count')
-        .order('usage_count', { ascending: false })
+        .from('piktag_user_tags')
+        .select('tag:piktag_tags!tag_id(name)')
+        .eq('user_id', user.id)
+        .eq('is_private', false)
         .limit(6)
         .then(({ data }) => {
-          if (data && data.length > 0) {
-            setPopularTags(data.map((t: any) => `#${t.name}`));
+          if (data && data.length >= 3) {
+            setPopularTags(data.map((t: any) => `#${t.tag?.name}`).filter(Boolean));
+          } else {
+            // Not enough personal tags, use global popular
+            supabase
+              .from('piktag_tags')
+              .select('name, usage_count')
+              .order('usage_count', { ascending: false })
+              .limit(6)
+              .then(({ data: globalData }) => {
+                if (globalData && globalData.length > 0) {
+                  setPopularTags(globalData.map((t: any) => `#${t.name}`));
+                }
+              });
           }
         });
     }
@@ -299,6 +326,8 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
 
       // 5. Set state — build a local ScanSession object for display
       setQrValue(qrUrl);
+      // Cache QR code for offline use
+      AsyncStorage.setItem('piktag_last_qr', JSON.stringify({ url: qrUrl, date: eventDate, location: eventLocation, tags: eventTags }));
       setScanSession({
         id: sessionId,
         host_user_id: user.id,

@@ -24,7 +24,7 @@ import type { Tag, UserTag } from '../types';
 
 const MAX_TAGS = 10;
 const MAX_TAG_LENGTH = 30;
-const MAX_PINNED = 2;
+const MAX_PINNED = 1;
 const GEMINI_API_KEY = process.env.EXPO_PUBLIC_GEMINI_API_KEY || 'AIzaSyC6JCMjAF48uv5vNjgtox3-qUqhFBQLtnI';
 
 
