@@ -141,16 +141,24 @@ function renderProfilePage(profile, biolinks, tags) {
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>${pageTitle}</title>
   <meta name="description" content="${escapeHtml(ogDescription)}">
+  <meta name="keywords" content="${tags.join(', ')}, #piktag, ${escapeHtml(name)}, networking">
+  <meta name="author" content="${escapeHtml(name)}">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="${pageUrl}">
   <meta property="og:type" content="profile">
   <meta property="og:title" content="${pageTitle}">
   <meta property="og:description" content="${escapeHtml(ogDescription)}">
   <meta property="og:image" content="${escapeHtml(avatarUrl)}">
   <meta property="og:url" content="${pageUrl}">
   <meta property="og:site_name" content="#piktag">
+  <meta property="profile:username" content="${username}">
   <meta name="twitter:card" content="summary">
   <meta name="twitter:title" content="${pageTitle}">
   <meta name="twitter:description" content="${escapeHtml(ogDescription)}">
   <meta name="twitter:image" content="${escapeHtml(avatarUrl)}">
+  <script type="application/ld+json">
+  {"@context":"https://schema.org","@type":"Person","name":"${escapeHtml(name)}","url":"${pageUrl}","image":"${escapeHtml(avatarUrl)}","description":"${escapeHtml(ogDescription)}","sameAs":[${biolinks.map(l => `"${escapeHtml(l.url)}"`).join(',')}]}
+  </script>
   <link rel="icon" href="/favicon.ico">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Poppins:wght@700;800&display=swap" rel="stylesheet">
