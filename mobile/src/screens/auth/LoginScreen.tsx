@@ -106,10 +106,7 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
       >
         {/* Logo Area */}
         <View style={styles.logoContainer}>
-          <View style={styles.logoRow}>
-            <Hash size={40} color={colors.piktag500} strokeWidth={2.5} />
-            <Text style={[styles.logoText, { color: colors.piktag500 }]}>{t('common.brandName')}</Text>
-          </View>
+          <Text style={[styles.logoText, { color: colors.piktag500 }]}>{t('common.brandName')}</Text>
           <Text style={[styles.subtitle, { color: colors.textSecondary }]}>{t('common.brandSlogan')}</Text>
         </View>
 

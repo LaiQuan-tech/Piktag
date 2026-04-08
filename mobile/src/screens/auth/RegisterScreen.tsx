@@ -89,10 +89,7 @@ export default function RegisterScreen({ navigation }: RegisterScreenProps) {
       >
         {/* Logo Area */}
         <View style={styles.logoContainer}>
-          <View style={styles.logoRow}>
-            <Hash size={40} color={COLORS.piktag500} strokeWidth={2.5} />
-            <Text style={styles.logoText}>{t('common.brandName')}</Text>
-          </View>
+          <Text style={styles.logoText}>{t('common.brandName')}</Text>
           <Text style={styles.subtitle}>{t('common.brandSlogan')}</Text>
         </View>
 
