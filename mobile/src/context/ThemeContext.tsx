@@ -23,7 +23,7 @@ const STORAGE_KEY = 'piktag_theme_mode';
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const systemScheme = useColorScheme(); // 'light' | 'dark' | null
-  const [mode, setModeState] = useState<ThemeMode>('system');
+  const [mode, setModeState] = useState<ThemeMode>('light');
 
   // Load saved preference
   useEffect(() => {
