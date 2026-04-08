@@ -734,10 +734,27 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
     try {
       const userIdSets: Set<string>[] = [];
       for (const tagId of selectedTagIds) {
+        // Expand tag to include all sibling tags (same concept = same meaning)
+        let allTagIds = [tagId];
+        try {
+          const { data: tagData } = await supabase
+            .from('piktag_tags')
+            .select('concept_id')
+            .eq('id', tagId)
+            .single();
+          if (tagData?.concept_id) {
+            const { data: siblings } = await supabase
+              .from('piktag_tags')
+              .select('id')
+              .eq('concept_id', tagData.concept_id);
+            if (siblings) allTagIds = siblings.map((s: any) => s.id);
+          }
+        } catch {}
+
         const { data } = await supabase
           .from('piktag_user_tags')
           .select('user_id')
-          .eq('tag_id', tagId)
+          .in('tag_id', allTagIds)
           .eq('is_private', false);
         userIdSets.push(new Set((data || []).map((d: any) => d.user_id)));
       }
