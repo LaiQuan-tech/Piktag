@@ -1,3 +1,9 @@
 {
-  "framework": "nextjs"
+  "buildCommand": "cd mobile && npx expo export --platform web",
+  "outputDirectory": "mobile/dist",
+  "framework": null,
+  "routes": [
+    { "handle": "filesystem" },
+    { "src": "/(.*)", "dest": "/index.html" }
+  ]
 }
