@@ -3,8 +3,6 @@ const path = require('path');
 
 const config = getDefaultConfig(__dirname);
 
-// On web platform, replace native-only modules with empty stubs
-// to prevent "Cannot access before initialization" TDZ errors
 const NATIVE_ONLY_MODULES = [
   'react-native-draggable-flatlist',
   'expo-screen-capture',
@@ -12,8 +10,8 @@ const NATIVE_ONLY_MODULES = [
   'expo-haptics',
 ];
 
-const stubPath = path.resolve(__dirname, 'src/stubs/empty-module.js');
-const reanimatedStubPath = path.resolve(__dirname, 'src/stubs/reanimated-stub.js');
+const stubPath = path.resolve(__dirname, 'src/stubs/empty-module.ts');
+const reanimatedStubPath = path.resolve(__dirname, 'src/stubs/reanimated-stub.ts');
 
 const originalResolveRequest = config.resolver.resolveRequest;
 
