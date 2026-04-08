@@ -1,7 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { ActivityIndicator, View, StyleSheet } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import * as Linking from 'expo-linking';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   Home,
   Search,
@@ -233,10 +235,44 @@ function MainNavigator({ needsOnboarding }: { needsOnboarding: boolean }) {
   );
 }
 
+// Parse sid from a piktag deep link URL
+function parseSidFromUrl(url: string | null): { username?: string; sid?: string } | null {
+  if (!url) return null;
+  try {
+    // Handle piktag://username?sid=xxx or https://pikt.ag/username?sid=xxx
+    const parsed = new URL(url.replace('piktag://', 'https://piktag.app/'));
+    const sid = parsed.searchParams.get('sid');
+    const pathParts = parsed.pathname.replace(/^\//, '').split('/');
+    const username = pathParts[0] || undefined;
+    if (sid && username) return { username, sid };
+  } catch {}
+  return null;
+}
+
+const PENDING_DEEP_LINK_KEY = 'piktag_pending_deep_link';
+
 export default function AppNavigator() {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [needsOnboarding, setNeedsOnboarding] = useState(false);
+  const navigationRef = useRef<any>(null);
+
+  // Capture deep links — if user is not logged in, save for after registration
+  useEffect(() => {
+    const captureDeepLink = (url: string | null) => {
+      const parsed = parseSidFromUrl(url);
+      if (parsed?.sid) {
+        AsyncStorage.setItem(PENDING_DEEP_LINK_KEY, JSON.stringify(parsed));
+      }
+    };
+
+    // Check initial URL (app opened via deep link)
+    Linking.getInitialURL().then(captureDeepLink);
+
+    // Listen for new deep links while app is open
+    const sub = Linking.addEventListener('url', (event) => captureDeepLink(event.url));
+    return () => sub.remove();
+  }, []);
 
   useEffect(() => {
     // Get initial session
@@ -256,6 +292,8 @@ export default function AppNavigator() {
         setSession(newSession);
         if (newSession?.user) {
           checkOnboardingStatus(newSession.user.id, newSession.user.created_at);
+          // Resolve pending connections for newly registered users
+          resolvePendingDeepLink(newSession.user.id, newSession.user.created_at);
         } else {
           setNeedsOnboarding(false);
           setLoading(false);
@@ -301,6 +339,38 @@ export default function AppNavigator() {
       setNeedsOnboarding(false);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Resolve pending deep link connections after registration
+  const resolvePendingDeepLink = async (userId: string, userCreatedAt: string) => {
+    try {
+      // Only for new users (registered within 5 minutes)
+      const diffMs = Date.now() - new Date(userCreatedAt).getTime();
+      if (diffMs > 5 * 60 * 1000) return;
+
+      const stored = await AsyncStorage.getItem(PENDING_DEEP_LINK_KEY);
+      if (!stored) return;
+
+      const { sid } = JSON.parse(stored) as { username?: string; sid?: string };
+      if (!sid) return;
+
+      // Clear stored deep link immediately to prevent double processing
+      await AsyncStorage.removeItem(PENDING_DEEP_LINK_KEY);
+
+      // Call the DB function to resolve pending connection
+      const { data, error } = await supabase.rpc('resolve_pending_connections', {
+        p_new_user_id: userId,
+        p_scan_session_id: sid,
+      });
+
+      if (error) {
+        console.warn('[PendingConn] resolve error:', error.message);
+      } else if (data && Array.isArray(data) && data.length > 0) {
+        console.log('[PendingConn] Auto-connected:', data);
+      }
+    } catch (err) {
+      console.warn('[PendingConn] resolvePendingDeepLink error:', err);
     }
   };
 

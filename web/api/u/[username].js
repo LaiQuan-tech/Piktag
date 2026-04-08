@@ -36,8 +36,9 @@ function escapeHtml(str) {
 }
 
 module.exports = async function handler(req, res) {
-  const { username } = req.query;
+  const { username, sid } = req.query;
   const usernameStr = Array.isArray(username) ? username[0] : username;
+  const sidStr = Array.isArray(sid) ? sid[0] : (sid || '');
 
   if (!usernameStr) {
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
@@ -91,7 +92,26 @@ module.exports = async function handler(req, res) {
       .map((ut) => ut.piktag_tags?.name)
       .filter(Boolean);
 
-    const html = renderProfilePage(profile, biolinks || [], tags);
+    // Record pending connection if sid is present (non-member scanned QR)
+    if (sidStr) {
+      try {
+        await fetch(`${SUPABASE_URL}/rest/v1/piktag_pending_connections`, {
+          method: 'POST',
+          headers: {
+            apikey: SUPABASE_ANON_KEY,
+            Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+            'Content-Type': 'application/json',
+            Prefer: 'return=minimal',
+          },
+          body: JSON.stringify({
+            host_user_id: profile.id,
+            scan_session_id: sidStr,
+          }),
+        });
+      } catch { /* ignore — table may not exist yet */ }
+    }
+
+    const html = renderProfilePage(profile, biolinks || [], tags, sidStr);
 
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
     res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
@@ -103,7 +123,7 @@ module.exports = async function handler(req, res) {
   }
 };
 
-function renderProfilePage(profile, biolinks, tags) {
+function renderProfilePage(profile, biolinks, tags, sid) {
   const name = escapeHtml(profile.full_name || profile.username || '#piktag User');
   const username = escapeHtml(profile.username || '');
   const bio = profile.bio ? escapeHtml(profile.bio) : '';
@@ -231,7 +251,7 @@ function renderProfilePage(profile, biolinks, tags) {
     ${tagsHtml}
     ${biolinksHtml ? `<div class="biolinks">${biolinksHtml}</div>` : ''}
   </div>
-  <a class="banner" href="https://pikt.ag/download">
+  <a class="banner" href="https://pikt.ag/download?username=${username}${sid ? '&sid=' + escapeHtml(sid) : ''}">
     <span class="banner-text">下載 #piktag App</span>
     <span class="banner-arrow">→</span>
   </a>
@@ -239,8 +259,10 @@ function renderProfilePage(profile, biolinks, tags) {
 function handleFollow() {
   var username = '${username}';
   var name = encodeURIComponent('${name}');
-  var appUrl = 'piktag://u/' + username;
-  var downloadUrl = 'https://pikt.ag/download?name=' + name + '&username=' + username;
+  var sid = '${escapeHtml(sid || '')}';
+  var sidParam = sid ? '?sid=' + sid : '';
+  var appUrl = 'piktag://' + username + sidParam;
+  var downloadUrl = 'https://pikt.ag/download?name=' + name + '&username=' + username + (sid ? '&sid=' + sid : '');
   var timer = setTimeout(function() { window.location = downloadUrl; }, 600);
   document.addEventListener('visibilitychange', function() {
     if (document.hidden) clearTimeout(timer);
