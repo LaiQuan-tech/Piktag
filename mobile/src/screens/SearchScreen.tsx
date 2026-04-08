@@ -22,6 +22,7 @@ import {
   Clock,
   MapPin,
   TrendingUp,
+  X,
 } from 'lucide-react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Location from 'expo-location';
@@ -1303,6 +1304,16 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
             returnKeyType="search"
             onSubmitEditing={handleSubmitEditing}
           />
+          {searchQuery.length > 0 && (
+            <TouchableOpacity
+              onPress={() => handleSearchChange('')}
+              style={styles.searchClearBtn}
+              activeOpacity={0.6}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            >
+              <X size={16} color={COLORS.gray400} />
+            </TouchableOpacity>
+          )}
         </View>
       </View>
 
@@ -1543,6 +1554,10 @@ const styles = StyleSheet.create({
   },
   searchIcon: {
     marginRight: 10,
+  },
+  searchClearBtn: {
+    padding: 4,
+    marginLeft: 4,
   },
   searchInput: {
     flex: 1,

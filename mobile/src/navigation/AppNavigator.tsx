@@ -1,8 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { ActivityIndicator, View, StyleSheet } from 'react-native';
+import { ActivityIndicator, View, StyleSheet, Platform } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import * as Linking from 'expo-linking';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   Home,
@@ -257,21 +256,28 @@ export default function AppNavigator() {
   const [needsOnboarding, setNeedsOnboarding] = useState(false);
   const navigationRef = useRef<any>(null);
 
-  // Capture deep links — if user is not logged in, save for after registration
+  // Capture deep links — only on native (web handles routing differently)
   useEffect(() => {
-    const captureDeepLink = (url: string | null) => {
-      const parsed = parseSidFromUrl(url);
-      if (parsed?.sid) {
-        AsyncStorage.setItem(PENDING_DEEP_LINK_KEY, JSON.stringify(parsed));
-      }
-    };
+    if (Platform.OS === 'web') return;
 
-    // Check initial URL (app opened via deep link)
-    Linking.getInitialURL().then(captureDeepLink);
+    let sub: any;
+    (async () => {
+      try {
+        const Linking = await import('expo-linking');
+        const captureDeepLink = (url: string | null) => {
+          const parsed = parseSidFromUrl(url);
+          if (parsed?.sid) {
+            AsyncStorage.setItem(PENDING_DEEP_LINK_KEY, JSON.stringify(parsed));
+          }
+        };
 
-    // Listen for new deep links while app is open
-    const sub = Linking.addEventListener('url', (event) => captureDeepLink(event.url));
-    return () => sub.remove();
+        const initialUrl = await Linking.getInitialURL();
+        captureDeepLink(initialUrl);
+
+        sub = Linking.addEventListener('url', (event: any) => captureDeepLink(event.url));
+      } catch {}
+    })();
+    return () => { if (sub) sub.remove(); };
   }, []);
 
   useEffect(() => {
