@@ -2,6 +2,7 @@
   "rewrites": [
     { "source": "/download", "destination": "/download.html" },
     { "source": "/scan", "destination": "/scan.html" },
+    { "source": "/tag/:tagname", "destination": "/api/tag/:tagname" },
     { "source": "/:username", "destination": "/api/u/:username" }
   ]
 }

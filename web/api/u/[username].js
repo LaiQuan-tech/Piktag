@@ -140,7 +140,7 @@ function renderProfilePage(profile, biolinks, tags, sid) {
     : '';
 
   const tagsHtml = tags.length > 0
-    ? `<div class="tags">${tags.map((t) => `<a href="javascript:void(0)" onclick="handleFollow()" class="tag">#${escapeHtml(t)}</a>`).join('')}</div>`
+    ? `<div class="tags">${tags.map((t) => `<a href="/tag/${encodeURIComponent(t)}" class="tag">#${escapeHtml(t)}</a>`).join('')}</div>`
     : '';
 
   const biolinksHtml = biolinks.length > 0
