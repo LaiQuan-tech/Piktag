@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -11,22 +11,32 @@ import {
   Platform,
   ScrollView,
 } from 'react-native';
-import { Hash } from 'lucide-react-native';
+import { useTranslation } from 'react-i18next';
+import { Hash, Eye, EyeOff, Phone } from 'lucide-react-native';
 import { supabase } from '../../lib/supabase';
-import { COLORS, SPACING, BORDER_RADIUS } from '../../constants/theme';
+import { signInWithApple } from '../../lib/appleAuth';
+import { signInWithGoogle } from '../../lib/googleAuth';
+import { SPACING, BORDER_RADIUS, TYPOGRAPHY } from '../../constants/theme';
+import { useTheme } from '../../context/ThemeContext';
 
 type LoginScreenProps = {
   navigation: any;
 };
 
 export default function LoginScreen({ navigation }: LoginScreenProps) {
+  const { t } = useTranslation();
+  const { colors, isDark } = useTheme();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [resetLoading, setResetLoading] = useState(false);
+  const [socialLoading, setSocialLoading] = useState<string | null>(null);
+  const passwordRef = useRef<TextInput>(null);
 
   const handleLogin = async () => {
     if (!email.trim() || !password.trim()) {
-      Alert.alert('錯誤', '請輸入電子郵件和密碼');
+      Alert.alert(t('common.error'), t('auth.login.alertEmptyFields'));
       return;
     }
 
@@ -38,18 +48,56 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
       });
 
       if (error) {
-        Alert.alert('登入失敗', error.message);
+        Alert.alert(t('auth.login.alertLoginFailedTitle'), error.message);
       }
     } catch (err: any) {
-      Alert.alert('錯誤', err.message || '發生未知錯誤');
+      Alert.alert(t('common.error'), err.message || t('common.unknownError'));
     } finally {
       setLoading(false);
     }
   };
 
+  const handleForgotPassword = async () => {
+    if (!email.trim()) {
+      Alert.alert(t('common.error'), t('auth.login.alertEnterEmailFirst'));
+      return;
+    }
+
+    setResetLoading(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email.trim());
+      if (error) {
+        Alert.alert(t('common.error'), error.message);
+      } else {
+        Alert.alert(
+          t('auth.login.alertResetSentTitle'),
+          t('auth.login.alertResetSentMessage')
+        );
+      }
+    } catch (err: any) {
+      Alert.alert(t('common.error'), err.message || t('common.unknownError'));
+    } finally {
+      setResetLoading(false);
+    }
+  };
+
+  const handleApple = async () => {
+    setSocialLoading('apple');
+    try { await signInWithApple(); }
+    catch (err: any) { if (err.code !== 'ERR_CANCELED') Alert.alert(t('common.error'), err.message); }
+    finally { setSocialLoading(null); }
+  };
+
+  const handleGoogle = async () => {
+    setSocialLoading('google');
+    try { await signInWithGoogle(); }
+    catch (err: any) { Alert.alert(t('common.error'), err.message); }
+    finally { setSocialLoading(null); }
+  };
+
   return (
     <KeyboardAvoidingView
-      style={styles.container}
+      style={[styles.container, { backgroundColor: colors.background }]}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <ScrollView
@@ -58,47 +106,132 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
       >
         {/* Logo Area */}
         <View style={styles.logoContainer}>
-          <View style={styles.logoRow}>
-            <Hash size={40} color={COLORS.piktag500} strokeWidth={2.5} />
-            <Text style={styles.logoText}>PikTag</Text>
-          </View>
-          <Text style={styles.subtitle}>用標籤記住每個人</Text>
+          <Text style={[styles.logoText, { color: colors.piktag500 }]}>{t('common.brandName')}</Text>
+          <Text style={[styles.subtitle, { color: colors.textSecondary }]}>{t('common.brandSlogan')}</Text>
         </View>
 
         {/* Form */}
         <View style={styles.formContainer}>
           <TextInput
-            style={styles.input}
-            placeholder="電子郵件"
-            placeholderTextColor={COLORS.gray400}
+            style={[styles.input, { borderColor: colors.border, color: '#111827', backgroundColor: '#f9fafb' }]}
+            placeholder={t('auth.login.emailPlaceholder')}
+            placeholderTextColor={colors.textTertiary}
             value={email}
             onChangeText={setEmail}
             keyboardType="email-address"
             autoCapitalize="none"
             autoCorrect={false}
+            returnKeyType="next"
+            onSubmitEditing={() => passwordRef.current?.focus()}
           />
 
-          <TextInput
-            style={styles.input}
-            placeholder="密碼"
-            placeholderTextColor={COLORS.gray400}
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry
-          />
+          <View style={[styles.passwordContainer, { borderColor: colors.border, backgroundColor: '#f9fafb' }]}>
+            <TextInput
+              ref={passwordRef}
+              style={[styles.passwordInput, { color: '#000000' }]}
+              placeholder={t('auth.login.passwordPlaceholder')}
+              placeholderTextColor={colors.textTertiary}
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry={!showPassword}
+              returnKeyType="done"
+              onSubmitEditing={handleLogin}
+            />
+            <TouchableOpacity
+              style={styles.eyeButton}
+              onPress={() => setShowPassword(!showPassword)}
+              activeOpacity={0.6}
+            >
+              {showPassword ? (
+                <EyeOff size={20} color={colors.textSecondary} />
+              ) : (
+                <Eye size={20} color={colors.textSecondary} />
+              )}
+            </TouchableOpacity>
+          </View>
+
+          {/* Forgot Password */}
+          <TouchableOpacity
+            style={styles.forgotPasswordBtn}
+            onPress={handleForgotPassword}
+            disabled={resetLoading}
+            activeOpacity={0.7}
+          >
+            {resetLoading ? (
+              <ActivityIndicator size="small" color={colors.piktag500} />
+            ) : (
+              <Text style={[styles.forgotPasswordText, { color: colors.piktag600 }]}>
+                {t('auth.login.forgotPassword')}
+              </Text>
+            )}
+          </TouchableOpacity>
 
           <TouchableOpacity
-            style={[styles.loginButton, loading && styles.loginButtonDisabled]}
+            style={[styles.loginButton, { backgroundColor: colors.piktag500 }, loading && styles.loginButtonDisabled]}
             onPress={handleLogin}
             disabled={loading}
             activeOpacity={0.8}
             accessibilityRole="button"
           >
             {loading ? (
-              <ActivityIndicator color={COLORS.white} />
+              <ActivityIndicator color="#FFFFFF" />
             ) : (
-              <Text style={styles.loginButtonText}>登入</Text>
+              <Text style={styles.loginButtonText}>{t('auth.login.loginButton')}</Text>
             )}
+          </TouchableOpacity>
+        </View>
+
+        {/* Divider */}
+        <View style={styles.dividerRow}>
+          <View style={[styles.dividerLine, { backgroundColor: colors.border }]} />
+          <Text style={[styles.dividerText, { color: colors.textTertiary }]}>{t('auth.login.orDivider') || '或'}</Text>
+          <View style={[styles.dividerLine, { backgroundColor: colors.border }]} />
+        </View>
+
+        {/* Social Login */}
+        <View style={styles.socialContainer}>
+          {Platform.OS === 'ios' && (
+            <TouchableOpacity
+              style={[styles.socialBtn, { borderColor: colors.border, backgroundColor: colors.card }]}
+              onPress={handleApple}
+              disabled={!!socialLoading}
+              activeOpacity={0.8}
+            >
+              {socialLoading === 'apple' ? (
+                <ActivityIndicator color={colors.text} />
+              ) : (
+                <>
+                  <Text style={[styles.appleIcon, { color: colors.text }]}>{'\uF8FF'}</Text>
+                  <Text style={[styles.socialBtnText, { color: colors.text }]}>{t('auth.login.continueWithApple') || 'Apple 登入'}</Text>
+                </>
+              )}
+            </TouchableOpacity>
+          )}
+
+          <TouchableOpacity
+            style={[styles.socialBtn, { borderColor: colors.border, backgroundColor: colors.card }]}
+            onPress={handleGoogle}
+            disabled={!!socialLoading}
+            activeOpacity={0.8}
+          >
+            {socialLoading === 'google' ? (
+              <ActivityIndicator color={colors.text} />
+            ) : (
+              <>
+                <Text style={styles.googleIcon}>G</Text>
+                <Text style={[styles.socialBtnText, { color: colors.text }]}>{t('auth.login.continueWithGoogle') || 'Google 登入'}</Text>
+              </>
+            )}
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.socialBtn, { borderColor: colors.border, backgroundColor: colors.card }]}
+            onPress={() => navigation.navigate('PhoneAuth')}
+            disabled={!!socialLoading}
+            activeOpacity={0.8}
+          >
+            <Phone size={20} color={colors.textSecondary} />
+            <Text style={[styles.socialBtnText, { color: colors.text }]}>{t('auth.login.continueWithPhone') || '手機號碼登入'}</Text>
           </TouchableOpacity>
         </View>
 
@@ -111,8 +244,8 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
           testID="register-link"
         >
           <View style={styles.footerRow}>
-            <Text style={styles.footerText}>還沒有帳號？ </Text>
-            <Text style={[styles.footerText, styles.footerLink]}>立即註冊</Text>
+            <Text style={[styles.footerText, { color: colors.textSecondary }]}>{t('auth.login.noAccountPrompt')}</Text>
+            <Text style={[styles.footerText, styles.footerLink, { color: colors.piktag600 }]}>{t('auth.login.registerLink')}</Text>
           </View>
         </TouchableOpacity>
       </ScrollView>
@@ -121,79 +254,51 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-  },
-  scrollContent: {
-    flexGrow: 1,
-    justifyContent: 'center',
-    paddingHorizontal: SPACING.xxl,
-  },
-  logoContainer: {
-    alignItems: 'center',
-    marginBottom: 48,
-  },
-  logoRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginBottom: SPACING.sm,
-  },
-  logoText: {
-    fontSize: 48,
-    fontWeight: 'bold',
-    color: COLORS.piktag500,
-  },
-  subtitle: {
-    fontSize: 16,
-    color: COLORS.gray500,
-    marginTop: SPACING.sm,
-  },
-  formContainer: {
-    gap: SPACING.lg,
-  },
+  container: { flex: 1 },
+  scrollContent: { flexGrow: 1, justifyContent: 'center', paddingHorizontal: SPACING.xxl },
+  logoContainer: { alignItems: 'center', marginBottom: 48 },
+  logoRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: SPACING.sm },
+  logoText: { ...TYPOGRAPHY.display, fontSize: 44 },
+  subtitle: { ...TYPOGRAPHY.body, marginTop: SPACING.sm },
+  formContainer: { gap: SPACING.lg },
   input: {
-    borderWidth: 1,
-    borderColor: COLORS.gray200,
-    borderRadius: BORDER_RADIUS.xl,
-    paddingHorizontal: SPACING.xl,
-    paddingVertical: 14,
-    fontSize: 16,
-    color: COLORS.gray900,
-    backgroundColor: COLORS.white,
+    borderWidth: 1, borderRadius: BORDER_RADIUS.lg,
+    paddingHorizontal: SPACING.xl, paddingVertical: 14,
+    ...TYPOGRAPHY.body,
   },
+  passwordContainer: {
+    flexDirection: 'row', alignItems: 'center',
+    borderWidth: 1, borderRadius: BORDER_RADIUS.lg,
+  },
+  passwordInput: {
+    flex: 1, paddingHorizontal: SPACING.xl, paddingVertical: 14,
+    ...TYPOGRAPHY.body,
+  },
+  eyeButton: { paddingHorizontal: SPACING.lg, paddingVertical: 14 },
+  forgotPasswordBtn: { alignSelf: 'flex-end', paddingVertical: 4, minHeight: 28, justifyContent: 'center' },
+  forgotPasswordText: { ...TYPOGRAPHY.label },
   loginButton: {
-    backgroundColor: COLORS.piktag500,
-    borderRadius: BORDER_RADIUS.xl,
-    paddingVertical: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: SPACING.sm,
+    borderRadius: BORDER_RADIUS.lg, paddingVertical: 16,
+    alignItems: 'center', justifyContent: 'center', marginTop: SPACING.sm,
   },
-  loginButtonDisabled: {
-    opacity: 0.7,
+  loginButtonDisabled: { opacity: 0.7 },
+  loginButtonText: { ...TYPOGRAPHY.button, color: '#FFFFFF' },
+  // Divider
+  dividerRow: { flexDirection: 'row', alignItems: 'center', marginTop: 28, marginBottom: 20 },
+  dividerLine: { flex: 1, height: 1 },
+  dividerText: { paddingHorizontal: 14, ...TYPOGRAPHY.caption },
+  // Social buttons
+  socialContainer: { gap: 10 },
+  socialBtn: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10,
+    borderWidth: 1, borderRadius: BORDER_RADIUS.lg, paddingVertical: 14,
   },
-  loginButtonText: {
-    color: COLORS.white,
-    fontSize: 17,
-    fontWeight: 'bold',
-  },
-  footer: {
-    alignItems: 'center',
-    marginTop: SPACING.xxxl,
-    padding: SPACING.md,
-  },
-  footerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  footerText: {
-    fontSize: 14,
-    color: COLORS.gray500,
-  },
-  footerLink: {
-    color: COLORS.piktag600,
-    fontWeight: '600',
-  },
+  socialBtnText: { ...TYPOGRAPHY.bodyBold },
+  appleIcon: { fontSize: 20 },
+  googleIcon: { fontSize: 18, fontWeight: '700', color: '#4285F4' },
+  // Footer
+  footer: { alignItems: 'center', marginTop: SPACING.xl, padding: SPACING.md },
+  footerRow: { flexDirection: 'row', alignItems: 'center' },
+  footerText: { ...TYPOGRAPHY.label },
+  footerLink: { fontWeight: '600' },
 });

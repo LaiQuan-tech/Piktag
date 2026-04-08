@@ -11,6 +11,7 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import {
   ChevronLeft,
   ChevronRight,
@@ -28,12 +29,13 @@ type OnboardingScreenProps = {
   navigation: any;
 };
 
-const DEFAULT_TAGS = ['#創業', '#設計', '#開發', '#攝影', '#音樂', '#行銷'];
 const SUPABASE_URL = 'https://kbwfdskulxnhjckdvghj.supabase.co';
 
 type SocialLinkKey = 'facebook' | 'instagram' | 'linkedin';
 
 export default function OnboardingScreen({ navigation }: OnboardingScreenProps) {
+  const { t } = useTranslation();
+  const DEFAULT_TAGS = t('auth.onboarding.defaultTags', { returnObjects: true }) as string[];
   const [step, setStep] = useState(0);
   const [bio, setBio] = useState('');
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
@@ -45,6 +47,7 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
     linkedin: '',
   });
   const [editingSocial, setEditingSocial] = useState<SocialLinkKey | null>(null);
+  const [birthday, setBirthday] = useState('');
   const [loading, setLoading] = useState(false);
   const aiDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -90,14 +93,14 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
-        Alert.alert('錯誤', '找不到使用者資訊');
+        Alert.alert(t('common.error'), t('auth.onboarding.alertUserNotFound'));
         return;
       }
 
       // Update profile with bio
       const { error: profileError } = await supabase
         .from('piktag_profiles')
-        .update({ bio: bio.trim() })
+        .update({ bio: bio.trim(), birthday: birthday.trim() || null })
         .eq('id', user.id);
 
       if (profileError) {
@@ -167,7 +170,7 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
         routes: [{ name: 'Main' }],
       });
     } catch (err: any) {
-      Alert.alert('錯誤', err.message || '發生未知錯誤');
+      Alert.alert(t('common.error'), err.message || t('common.unknownError'));
     } finally {
       setLoading(false);
     }
@@ -204,14 +207,14 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
 
   const renderStep1 = () => (
     <View style={styles.stepContent}>
-      <Text style={styles.stepTitle}>告訴我們你是誰</Text>
+      <Text style={styles.stepTitle}>{t('auth.onboarding.step1Title')}</Text>
       <Text style={styles.stepDescription}>
-        寫一段簡短的自我介紹，讓其他人更了解你
+        {t('auth.onboarding.step1Description')}
       </Text>
 
       <TextInput
         style={styles.bioInput}
-        placeholder="例如：我是一名軟體工程師，熱愛設計和開源..."
+        placeholder={t('auth.onboarding.step1BioPlaceholder')}
         placeholderTextColor={COLORS.gray400}
         value={bio}
         onChangeText={handleBioChange}
@@ -220,13 +223,27 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
         textAlignVertical="top"
       />
 
+      {/* Birthday */}
+      <View style={styles.birthdayRow}>
+        <Text style={styles.birthdayLabel}>{t('auth.onboarding.birthdayLabel') || '生日'}</Text>
+        <TextInput
+          style={styles.birthdayInput}
+          placeholder="MM/DD"
+          placeholderTextColor={COLORS.gray400}
+          value={birthday}
+          onChangeText={setBirthday}
+          keyboardType="numbers-and-punctuation"
+          maxLength={5}
+        />
+      </View>
+
       <View style={styles.tagSectionHeader}>
         <Sparkles size={18} color={COLORS.piktag600} />
-        <Text style={styles.tagSectionTitle}>AI 建議的標籤</Text>
+        <Text style={styles.tagSectionTitle}>{t('auth.onboarding.aiTagSectionTitle')}</Text>
         {aiLoading && <ActivityIndicator size="small" color={COLORS.piktag500} style={{ marginLeft: 8 }} />}
       </View>
       <Text style={styles.tagSectionDescription}>
-        根據你的自我介紹，AI 幫你推薦了以下標籤
+        {t('auth.onboarding.aiTagSectionDescription')}
       </Text>
       <View style={styles.tagsContainer}>
         {suggestedTags.map((tag) => (
@@ -256,26 +273,26 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
   const socialPlatforms: { key: SocialLinkKey; label: string; icon: React.ReactNode }[] = [
     {
       key: 'facebook',
-      label: 'Facebook',
+      label: t('auth.onboarding.facebookLabel'),
       icon: <Facebook size={20} color={COLORS.gray700} />,
     },
     {
       key: 'instagram',
-      label: 'Instagram',
+      label: t('auth.onboarding.instagramLabel'),
       icon: <Instagram size={20} color={COLORS.gray700} />,
     },
     {
       key: 'linkedin',
-      label: 'LinkedIn',
+      label: t('auth.onboarding.linkedinLabel'),
       icon: <Linkedin size={20} color={COLORS.gray700} />,
     },
   ];
 
   const renderStep2 = () => (
     <View style={styles.stepContent}>
-      <Text style={styles.stepTitle}>新增你的社交連結</Text>
+      <Text style={styles.stepTitle}>{t('auth.onboarding.step2Title')}</Text>
       <Text style={styles.stepDescription}>
-        讓其他人可以在不同平台上找到你
+        {t('auth.onboarding.step2Description')}
       </Text>
 
       <View style={styles.socialLinksContainer}>
@@ -309,7 +326,7 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
               <View style={styles.socialInputContainer}>
                 <TextInput
                   style={styles.socialInput}
-                  placeholder={`輸入你的 ${label} 連結`}
+                  placeholder={t('auth.onboarding.socialLinkPlaceholder', { label })}
                   placeholderTextColor={COLORS.gray400}
                   value={socialLinks[key]}
                   onChangeText={(text) =>
@@ -338,9 +355,9 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
       <View style={styles.successIconContainer}>
         <CheckCircle size={72} color={COLORS.piktag500} />
       </View>
-      <Text style={styles.successTitle}>完成！開始探索</Text>
+      <Text style={styles.successTitle}>{t('auth.onboarding.step3Title')}</Text>
       <Text style={styles.successDescription}>
-        你的帳號已設定完成，現在可以開始使用 PikTag 了
+        {t('auth.onboarding.step3Description')}
       </Text>
     </View>
   );
@@ -380,7 +397,7 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
             activeOpacity={0.7}
           >
             <ChevronLeft size={20} color={COLORS.gray700} />
-            <Text style={styles.backButtonText}>上一步</Text>
+            <Text style={styles.backButtonText}>{t('auth.onboarding.backButton')}</Text>
           </TouchableOpacity>
         ) : (
           <View />
@@ -395,10 +412,10 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
           {loading ? (
             <ActivityIndicator color={COLORS.white} size="small" />
           ) : step === totalSteps - 1 ? (
-            <Text style={styles.nextButtonText}>進入 PikTag</Text>
+            <Text style={styles.nextButtonText}>{t('auth.onboarding.enterPikTag')}</Text>
           ) : (
             <>
-              <Text style={styles.nextButtonText}>下一步</Text>
+              <Text style={styles.nextButtonText}>{t('auth.onboarding.nextButton')}</Text>
               <ChevronRight size={20} color={COLORS.white} />
             </>
           )}
@@ -411,7 +428,7 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
+    backgroundColor: COLORS.white,
   },
   scrollContent: {
     flexGrow: 1,
@@ -470,7 +487,29 @@ const styles = StyleSheet.create({
     color: COLORS.gray900,
     backgroundColor: COLORS.white,
     minHeight: 120,
+    marginBottom: SPACING.lg,
+  },
+  birthdayRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
     marginBottom: SPACING.xxl,
+  },
+  birthdayLabel: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: COLORS.gray700,
+  },
+  birthdayInput: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: COLORS.gray200,
+    borderRadius: BORDER_RADIUS.lg,
+    paddingHorizontal: SPACING.lg,
+    paddingVertical: 10,
+    fontSize: 16,
+    color: COLORS.gray900,
+    backgroundColor: COLORS.white,
   },
   tagSectionHeader: {
     flexDirection: 'row',
@@ -562,6 +601,29 @@ const styles = StyleSheet.create({
   socialInputClose: {
     padding: SPACING.sm,
   },
+  // Contact sync step
+  contactSyncIcon: {
+    marginBottom: SPACING.xl,
+    width: 100, height: 100, borderRadius: 50,
+    backgroundColor: COLORS.piktag50,
+    alignItems: 'center', justifyContent: 'center',
+  },
+  syncBtn: {
+    backgroundColor: COLORS.piktag500, borderRadius: BORDER_RADIUS.lg,
+    paddingVertical: 14, paddingHorizontal: 32, marginTop: SPACING.xl,
+    alignItems: 'center', minWidth: 200,
+  },
+  syncBtnText: { fontSize: 16, fontWeight: '700', color: COLORS.white },
+  skipBtn: { marginTop: SPACING.md, padding: SPACING.sm },
+  skipBtnText: { fontSize: 14, color: COLORS.gray500 },
+  contactResultBox: {
+    flexDirection: 'row', alignItems: 'center', gap: 10,
+    backgroundColor: COLORS.piktag50, borderRadius: BORDER_RADIUS.lg,
+    paddingVertical: 14, paddingHorizontal: 20, marginTop: SPACING.xl,
+    borderWidth: 1, borderColor: COLORS.piktag500,
+  },
+  contactResultText: { fontSize: 15, fontWeight: '600', color: COLORS.piktag600 },
+
   successIconContainer: {
     marginBottom: SPACING.xxl,
   },

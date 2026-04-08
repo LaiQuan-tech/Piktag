@@ -1,7 +1,8 @@
 {
   "expo": {
-    "name": "mobile",
-    "slug": "mobile",
+    "name": "#piktag",
+    "slug": "piktag",
+    "scheme": "piktag",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -13,18 +14,62 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "ag.pikt.app",
+      "config": {
+        "googleMapsApiKey": "AIzaSyC6JCMjAF48uv5vNjgtox3-qUqhFBQLtnI"
+      },
+      "infoPlist": {
+        "NSCameraUsageDescription": "PikTag needs camera access to scan QR codes",
+        "NSPhotoLibraryUsageDescription": "PikTag needs photo library access to update your profile picture",
+        "NSPhotoLibraryAddUsageDescription": "PikTag needs photo library access to update your profile picture",
+        "NSContactsUsageDescription": "PikTag uses your contacts to help you find friends who are already on PikTag",
+        "NSLocationWhenInUseUsageDescription": "PikTag uses your location to find nearby places"
+      }
     },
     "android": {
+      "package": "ag.pikt.app",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyC6JCMjAF48uv5vNjgtox3-qUqhFBQLtnI"
+        }
+      },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.READ_MEDIA_IMAGES",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.READ_CONTACTS",
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.ACCESS_COARSE_LOCATION"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-localization",
+      "expo-camera",
+      "expo-image-picker",
+      "expo-apple-authentication",
+      [
+        "expo-contacts",
+        {
+          "contactsPermission": "PikTag uses your contacts to help you find friends."
+        }
+      ],
+      "expo-web-browser"
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "713740e1-6546-4448-97d4-04868daf8fbd"
+      }
     }
   }
 }

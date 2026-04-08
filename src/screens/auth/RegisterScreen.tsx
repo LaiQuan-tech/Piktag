@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -11,8 +11,11 @@ import {
   Platform,
   ScrollView,
 } from 'react-native';
-import { Hash } from 'lucide-react-native';
+import { useTranslation } from 'react-i18next';
+import { Hash, Eye, EyeOff, Phone } from 'lucide-react-native';
 import { supabase } from '../../lib/supabase';
+import { signInWithApple } from '../../lib/appleAuth';
+import { signInWithGoogle } from '../../lib/googleAuth';
 import { COLORS, SPACING, BORDER_RADIUS } from '../../constants/theme';
 
 type RegisterScreenProps = {
@@ -20,20 +23,30 @@ type RegisterScreenProps = {
 };
 
 export default function RegisterScreen({ navigation }: RegisterScreenProps) {
-  const [fullName, setFullName] = useState('');
-  const [username, setUsername] = useState('');
+  const { t } = useTranslation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [socialLoading, setSocialLoading] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const passwordRef = useRef<TextInput>(null);
+  const confirmPasswordRef = useRef<TextInput>(null);
 
   const handleRegister = async () => {
-    if (!fullName.trim() || !username.trim() || !email.trim() || !password.trim()) {
-      Alert.alert('錯誤', '請填寫所有欄位');
+    if (!email.trim() || !password.trim()) {
+      Alert.alert(t('common.error'), t('auth.register.alertEmptyFields'));
       return;
     }
 
     if (password.length < 6) {
-      Alert.alert('錯誤', '密碼至少需要 6 個字元');
+      Alert.alert(t('common.error'), t('auth.register.alertPasswordTooShort'));
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      Alert.alert(t('common.error'), t('auth.register.alertPasswordMismatch'));
       return;
     }
 
@@ -42,35 +55,28 @@ export default function RegisterScreen({ navigation }: RegisterScreenProps) {
       const { data, error } = await supabase.auth.signUp({
         email: email.trim(),
         password,
-        options: {
-          data: {
-            full_name: fullName.trim(),
-            username: username.trim(),
-          },
-        },
       });
 
       if (error) {
         if (error.message.includes('already registered') || error.message.includes('already been registered')) {
-          Alert.alert('註冊失敗', '此電子郵件已被註冊，請直接登入');
+          Alert.alert(t('auth.register.alertRegisterFailedTitle'), t('auth.register.alertEmailTaken'));
         } else {
-          Alert.alert('註冊失敗', error.message);
+          Alert.alert(t('auth.register.alertRegisterFailedTitle'), error.message);
         }
         return;
       }
 
-      // Signup success - email is auto-confirmed on staging.
-      // The auth state change listener in AppNavigator will detect the session
-      // and automatically switch to MainTabs.
       if (data.session) {
-        Alert.alert('註冊成功', '歡迎加入 PikTag！');
+        Alert.alert(t('auth.register.alertSuccessTitle'), t('auth.register.alertSuccessMessage'));
       }
     } catch (err: any) {
-      Alert.alert('錯誤', err.message || '發生未知錯誤');
+      Alert.alert(t('common.error'), err.message || t('common.unknownError'));
     } finally {
       setLoading(false);
     }
   };
+
+  const passwordsMatch = confirmPassword.length === 0 || password === confirmPassword;
 
   return (
     <KeyboardAvoidingView
@@ -83,53 +89,94 @@ export default function RegisterScreen({ navigation }: RegisterScreenProps) {
       >
         {/* Logo Area */}
         <View style={styles.logoContainer}>
-          <View style={styles.logoRow}>
-            <Hash size={40} color={COLORS.piktag500} strokeWidth={2.5} />
-            <Text style={styles.logoText}>PikTag</Text>
-          </View>
-          <Text style={styles.subtitle}>用標籤記住每個人</Text>
+          <Text style={styles.logoText}>{t('common.brandName')}</Text>
+          <Text style={styles.subtitle}>{t('common.brandSlogan')}</Text>
         </View>
 
         {/* Form */}
         <View style={styles.formContainer}>
           <TextInput
             style={styles.input}
-            placeholder="姓名"
-            placeholderTextColor={COLORS.gray400}
-            value={fullName}
-            onChangeText={setFullName}
-            autoCapitalize="words"
-          />
-
-          <TextInput
-            style={styles.input}
-            placeholder="用戶名稱"
-            placeholderTextColor={COLORS.gray400}
-            value={username}
-            onChangeText={setUsername}
-            autoCapitalize="none"
-            autoCorrect={false}
-          />
-
-          <TextInput
-            style={styles.input}
-            placeholder="電子郵件"
+            placeholder={t('auth.register.emailPlaceholder')}
             placeholderTextColor={COLORS.gray400}
             value={email}
             onChangeText={setEmail}
             keyboardType="email-address"
             autoCapitalize="none"
             autoCorrect={false}
+            returnKeyType="next"
+            onSubmitEditing={() => passwordRef.current?.focus()}
           />
 
-          <TextInput
-            style={styles.input}
-            placeholder="密碼"
-            placeholderTextColor={COLORS.gray400}
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry
-          />
+          <View>
+            <View style={[
+              styles.passwordContainer,
+              password.length > 0 && password.length < 6 && styles.inputError,
+            ]}>
+              <TextInput
+                ref={passwordRef}
+                style={[styles.passwordInput, { color: '#000000' }]}
+                placeholder={t('auth.register.passwordPlaceholder')}
+                placeholderTextColor={COLORS.gray400}
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry={!showPassword}
+                returnKeyType="next"
+                onSubmitEditing={() => confirmPasswordRef.current?.focus()}
+              />
+              <TouchableOpacity
+                style={styles.eyeButton}
+                onPress={() => setShowPassword(!showPassword)}
+                activeOpacity={0.6}
+              >
+                {showPassword ? (
+                  <EyeOff size={20} color={COLORS.gray500} />
+                ) : (
+                  <Eye size={20} color={COLORS.gray500} />
+                )}
+              </TouchableOpacity>
+            </View>
+            {password.length > 0 && password.length < 6 && (
+              <Text style={styles.errorHint}>
+                {t('auth.register.passwordHint', { defaultValue: '密碼至少需要 6 個字元' })}
+              </Text>
+            )}
+          </View>
+
+          <View>
+            <View style={[
+              styles.passwordContainer,
+              !passwordsMatch && styles.inputError,
+            ]}>
+              <TextInput
+                ref={confirmPasswordRef}
+                style={[styles.passwordInput, { color: '#000000' }]}
+                placeholder={t('auth.register.confirmPasswordPlaceholder')}
+                placeholderTextColor={COLORS.gray400}
+                value={confirmPassword}
+                onChangeText={setConfirmPassword}
+                secureTextEntry={!showConfirmPassword}
+                returnKeyType="done"
+                onSubmitEditing={handleRegister}
+              />
+              <TouchableOpacity
+                style={styles.eyeButton}
+                onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+                activeOpacity={0.6}
+              >
+                {showConfirmPassword ? (
+                  <EyeOff size={20} color={COLORS.gray500} />
+                ) : (
+                  <Eye size={20} color={COLORS.gray500} />
+                )}
+              </TouchableOpacity>
+            </View>
+            {!passwordsMatch && (
+              <Text style={styles.errorHint}>
+                {t('auth.register.alertPasswordMismatch')}
+              </Text>
+            )}
+          </View>
 
           <TouchableOpacity
             style={[styles.registerButton, loading && styles.registerButtonDisabled]}
@@ -141,8 +188,45 @@ export default function RegisterScreen({ navigation }: RegisterScreenProps) {
             {loading ? (
               <ActivityIndicator color={COLORS.white} />
             ) : (
-              <Text style={styles.registerButtonText}>註冊</Text>
+              <Text style={styles.registerButtonText}>{t('auth.register.registerButton')}</Text>
             )}
+          </TouchableOpacity>
+        </View>
+
+        {/* Divider */}
+        <View style={styles.dividerRow}>
+          <View style={styles.dividerLine} />
+          <Text style={styles.dividerText}>{t('auth.login.orDivider') || '或'}</Text>
+          <View style={styles.dividerLine} />
+        </View>
+
+        {/* Social Login */}
+        <View style={styles.socialContainer}>
+          {Platform.OS === 'ios' && (
+            <TouchableOpacity style={styles.socialBtn} onPress={async () => {
+              setSocialLoading('apple');
+              try { await signInWithApple(); } catch (err: any) { if (err.code !== 'ERR_CANCELED') Alert.alert(t('common.error'), err.message); }
+              setSocialLoading(null);
+            }} disabled={!!socialLoading} activeOpacity={0.8}>
+              {socialLoading === 'apple' ? <ActivityIndicator color={COLORS.gray900} /> : <>
+                <Text style={styles.appleIcon}>{'\uF8FF'}</Text>
+                <Text style={styles.socialBtnText}>{t('auth.login.continueWithApple') || 'Apple 登入'}</Text>
+              </>}
+            </TouchableOpacity>
+          )}
+          <TouchableOpacity style={styles.socialBtn} onPress={async () => {
+            setSocialLoading('google');
+            try { await signInWithGoogle(); } catch (err: any) { Alert.alert(t('common.error'), err.message); }
+            setSocialLoading(null);
+          }} disabled={!!socialLoading} activeOpacity={0.8}>
+            {socialLoading === 'google' ? <ActivityIndicator color={COLORS.gray900} /> : <>
+              <Text style={styles.googleIcon}>G</Text>
+              <Text style={styles.socialBtnText}>{t('auth.login.continueWithGoogle') || 'Google 登入'}</Text>
+            </>}
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.socialBtn} onPress={() => navigation.navigate('PhoneAuth')} disabled={!!socialLoading} activeOpacity={0.8}>
+            <Phone size={20} color={COLORS.gray700} />
+            <Text style={styles.socialBtnText}>{t('auth.login.continueWithPhone') || '手機號碼登入'}</Text>
           </TouchableOpacity>
         </View>
 
@@ -154,8 +238,8 @@ export default function RegisterScreen({ navigation }: RegisterScreenProps) {
           accessibilityRole="button"
         >
           <View style={styles.footerRow}>
-            <Text style={styles.footerText}>已有帳號？ </Text>
-            <Text style={[styles.footerText, styles.footerLink]}>登入</Text>
+            <Text style={styles.footerText}>{t('auth.register.hasAccountPrompt')}</Text>
+            <Text style={[styles.footerText, styles.footerLink]}>{t('auth.register.loginLink')}</Text>
           </View>
         </TouchableOpacity>
       </ScrollView>
@@ -166,7 +250,7 @@ export default function RegisterScreen({ navigation }: RegisterScreenProps) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
+    backgroundColor: COLORS.white,
   },
   scrollContent: {
     flexGrow: 1,
@@ -206,6 +290,34 @@ const styles = StyleSheet.create({
     color: COLORS.gray900,
     backgroundColor: COLORS.white,
   },
+  passwordContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: COLORS.gray200,
+    borderRadius: BORDER_RADIUS.xl,
+    backgroundColor: COLORS.white,
+  },
+  passwordInput: {
+    flex: 1,
+    paddingHorizontal: SPACING.xl,
+    paddingVertical: 14,
+    fontSize: 16,
+    color: COLORS.gray900,
+  },
+  eyeButton: {
+    paddingHorizontal: SPACING.lg,
+    paddingVertical: 14,
+  },
+  inputError: {
+    borderColor: '#EF4444',
+  },
+  errorHint: {
+    fontSize: 13,
+    color: '#EF4444',
+    marginTop: 6,
+    marginLeft: SPACING.xl,
+  },
   registerButton: {
     backgroundColor: COLORS.piktag500,
     borderRadius: BORDER_RADIUS.xl,
@@ -222,6 +334,18 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: 'bold',
   },
+  dividerRow: { flexDirection: 'row', alignItems: 'center', marginTop: 28, marginBottom: 20 },
+  dividerLine: { flex: 1, height: 1, backgroundColor: COLORS.gray200 },
+  dividerText: { paddingHorizontal: 14, fontSize: 13, color: COLORS.gray400 },
+  socialContainer: { gap: 10 },
+  socialBtn: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10,
+    borderWidth: 1, borderColor: COLORS.gray200, borderRadius: BORDER_RADIUS.xl,
+    paddingVertical: 14, backgroundColor: COLORS.white,
+  },
+  socialBtnText: { fontSize: 16, fontWeight: '600', color: COLORS.gray800 },
+  appleIcon: { fontSize: 20, color: COLORS.gray900 },
+  googleIcon: { fontSize: 18, fontWeight: '700', color: '#4285F4' },
   footer: {
     alignItems: 'center',
     marginTop: SPACING.xxxl,

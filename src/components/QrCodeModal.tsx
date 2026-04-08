@@ -11,6 +11,7 @@ import {
 import QRCode from 'react-native-qrcode-svg';
 import { X, Copy, Share2 } from 'lucide-react-native';
 import * as Clipboard from 'expo-clipboard';
+import { useTranslation } from 'react-i18next';
 import { COLORS } from '../constants/theme';
 
 type QrCodeModalProps = {
@@ -20,7 +21,7 @@ type QrCodeModalProps = {
   fullName: string;
 };
 
-const APP_BASE_URL = 'https://dist-gamma-pink.vercel.app';
+const APP_BASE_URL = 'https://pikt.ag';
 
 export default function QrCodeModal({
   visible,
@@ -28,7 +29,8 @@ export default function QrCodeModal({
   username,
   fullName,
 }: QrCodeModalProps) {
-  const profileUrl = `${APP_BASE_URL}/u/${username}`;
+  const { t } = useTranslation();
+  const profileUrl = `${APP_BASE_URL}/${username}`;
 
   const handleCopyLink = async () => {
     await Clipboard.setStringAsync(profileUrl);
@@ -83,7 +85,7 @@ export default function QrCodeModal({
               activeOpacity={0.7}
             >
               <Copy size={20} color={COLORS.gray900} />
-              <Text style={styles.actionBtnText}>{'複製連結'}</Text>
+              <Text style={styles.actionBtnText}>{t('profile.copyLink')}</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.actionBtn, styles.shareBtn]}
@@ -91,7 +93,7 @@ export default function QrCodeModal({
               activeOpacity={0.7}
             >
               <Share2 size={20} color={COLORS.gray900} />
-              <Text style={styles.actionBtnText}>{'分享'}</Text>
+              <Text style={styles.actionBtnText}>{t('profile.share')}</Text>
             </TouchableOpacity>
           </View>
         </View>

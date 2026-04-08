@@ -9,8 +9,10 @@ import {
   ActivityIndicator,
   Alert,
   Platform,
+  Share,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 import * as Contacts from 'expo-contacts';
 import {
   ArrowLeft,
@@ -20,8 +22,11 @@ import {
   Search,
   Phone,
   Mail,
+  Send,
 } from 'lucide-react-native';
 import { COLORS } from '../constants/theme';
+import { useTheme } from '../context/ThemeContext';
+import { LinearGradient } from 'expo-linear-gradient';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
 
@@ -38,6 +43,8 @@ type PhoneContact = {
 };
 
 export default function ContactSyncScreen({ navigation }: ContactSyncScreenProps) {
+  const { t } = useTranslation();
+  const { colors, isDark } = useTheme();
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
   const [contacts, setContacts] = useState<PhoneContact[]>([]);
@@ -91,6 +98,15 @@ export default function ContactSyncScreen({ navigation }: ContactSyncScreenProps
     loadContacts();
   }, [loadContacts]);
 
+  const handleInvite = async (contact: PhoneContact) => {
+    try {
+      await Share.share({
+        message: t('contactSync.inviteMessage', { name: contact.name }) ||
+          `${contact.name}，我在用 #piktag，一起來交換標籤吧！下載：https://pikt.ag`,
+      });
+    } catch { /* cancelled */ }
+  };
+
   const handleImportContact = async (contact: PhoneContact) => {
     if (!user) return;
 
@@ -136,14 +152,13 @@ export default function ContactSyncScreen({ navigation }: ContactSyncScreenProps
 
         if (error) {
           console.error('Error importing contact:', error);
-          Alert.alert('錯誤', '匯入失敗');
+          Alert.alert(t('common.error'), t('contactSync.alertImportError'));
         } else {
           setImportedIds((prev) => new Set(prev).add(contact.id));
         }
       } else {
-        // No match found - still mark as imported but show info
-        setImportedIds((prev) => new Set(prev).add(contact.id));
-        Alert.alert('尚未加入 PikTag', `${contact.name} 尚未加入 PikTag，邀請他們加入吧！`);
+        // No match found — offer invite
+        handleInvite(contact);
       }
     } catch (err) {
       console.error('Import error:', err);
@@ -159,12 +174,12 @@ export default function ContactSyncScreen({ navigation }: ContactSyncScreenProps
   const handleImportAll = async () => {
     if (contacts.length === 0) return;
     Alert.alert(
-      '批次匯入',
-      `確定要匯入全部 ${contacts.length} 位通訊錄聯絡人嗎？`,
+      t('contactSync.alertBatchImportTitle'),
+      t('contactSync.alertBatchImportMessage', { count: contacts.length }),
       [
-        { text: '取消', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: '匯入',
+          text: t('contactSync.alertBatchImportConfirm'),
           onPress: async () => {
             for (const c of contacts) {
               if (!importedIds.has(c.id)) {
@@ -229,56 +244,62 @@ export default function ContactSyncScreen({ navigation }: ContactSyncScreenProps
   };
 
   return (
-    <View style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor={COLORS.white} />
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={colors.white} />
 
       {/* Header */}
       <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
         <TouchableOpacity
           style={styles.backBtn}
-          onPress={() => navigation.goBack()}
+          onPress={() => navigation.canGoBack() ? navigation.goBack() : navigation.navigate("Connections")}
           activeOpacity={0.6}
         >
           <ArrowLeft size={24} color={COLORS.gray900} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>通訊錄同步</Text>
+        <Text style={styles.headerTitle}>{t('contactSync.headerTitle')}</Text>
         <View style={styles.headerSpacer} />
       </View>
 
       {loading ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={COLORS.piktag500} />
-          <Text style={styles.loadingText}>讀取通訊錄中...</Text>
+          <Text style={styles.loadingText}>{t('contactSync.loadingText')}</Text>
         </View>
       ) : permissionDenied ? (
         <View style={styles.emptyContainer}>
-          <Users size={48} color={COLORS.gray300} />
-          <Text style={styles.emptyTitle}>無法存取通訊錄</Text>
+          <Users size={48} color={COLORS.gray200} />
+          <Text style={styles.emptyTitle}>{t('contactSync.permissionDeniedTitle')}</Text>
           <Text style={styles.emptyText}>
             {Platform.OS === 'web'
-              ? '通訊錄同步功能僅在手機 App 上可用'
-              : '請在設定中允許 PikTag 存取您的通訊錄'}
+              ? t('contactSync.permissionDeniedWeb')
+              : t('contactSync.permissionDeniedNative')}
           </Text>
         </View>
       ) : contacts.length === 0 ? (
         <View style={styles.emptyContainer}>
-          <Users size={48} color={COLORS.gray300} />
-          <Text style={styles.emptyTitle}>通訊錄為空</Text>
-          <Text style={styles.emptyText}>找不到任何聯絡人</Text>
+          <Users size={48} color={COLORS.gray200} />
+          <Text style={styles.emptyTitle}>{t('contactSync.emptyTitle')}</Text>
+          <Text style={styles.emptyText}>{t('contactSync.emptyText')}</Text>
         </View>
       ) : (
         <>
           {/* Import All button */}
           <View style={styles.importAllBar}>
             <Text style={styles.contactCountText}>
-              共 {contacts.length} 位聯絡人
+              {t('contactSync.contactCount', { count: contacts.length })}
             </Text>
             <TouchableOpacity
-              style={styles.importAllBtn}
               onPress={handleImportAll}
               activeOpacity={0.7}
             >
-              <Text style={styles.importAllBtnText}>全部匯入</Text>
+              <LinearGradient
+                colors={['#ff5757', '#c44dff', '#8c52ff']}
+                start={{ x: 0, y: 0.5 }}
+                end={{ x: 1, y: 0.5 }}
+                style={styles.importAllBtn}
+              >
+                <Text style={styles.importAllBtnText}>{t('contactSync.importAll')}</Text>
+              </LinearGradient>
             </TouchableOpacity>
           </View>
 
@@ -375,7 +396,7 @@ const styles = StyleSheet.create({
   importAllBtnText: {
     fontSize: 14,
     fontWeight: '700',
-    color: COLORS.gray900,
+    color: '#FFFFFF',
   },
   listContent: {
     paddingBottom: 100,

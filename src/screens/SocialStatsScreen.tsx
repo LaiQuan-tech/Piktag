@@ -7,71 +7,84 @@ import {
   StyleSheet,
   StatusBar,
   ActivityIndicator,
+  Dimensions,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 import {
   ArrowLeft,
   Users,
-  Tag,
-  MessageCircle,
   TrendingUp,
-  Calendar,
-  Star,
-  BarChart3,
+  Link2,
+  QrCode,
   Hash,
+  MapPin,
 } from 'lucide-react-native';
+import Svg, { Path, Circle, Line, Text as SvgText } from 'react-native-svg';
 import { COLORS } from '../constants/theme';
+import { useTheme } from '../context/ThemeContext';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
+
+const SCREEN_WIDTH = Dimensions.get('window').width;
+const CHART_WIDTH = SCREEN_WIDTH - 40; // 20px padding each side
+const CHART_HEIGHT = 160;
 
 type SocialStatsScreenProps = {
   navigation: any;
 };
 
-type StatsData = {
-  totalConnections: number;
-  connectionsThisWeek: number;
-  connectionsThisMonth: number;
-  totalTags: number;
-  topTags: { name: string; count: number }[];
-  totalNotes: number;
-  totalMessages: number;
-  messagesThisWeek: number;
-  biolinksClicks: number;
-  verifiedFriends: number;
-  averageTagsPerConnection: number;
-  oldestConnection: string | null;
-  newestConnection: string | null;
-};
-
 type TimeRange = 'week' | 'month' | 'all';
 
+type GrowthPoint = { date: string; cumulative: number };
+type LocationStat = { location: string; count: number };
+type PresetScan = { name: string; totalScans: number };
+type BiolinkStat = { platform: string; label: string | null; clickCount: number };
+
+type DashboardData = {
+  totalFriends: number;
+  friendsThisWeek: number;
+  friendsThisMonth: number;
+  growthCurve: GrowthPoint[];
+  presetScans: PresetScan[];
+  totalQrScans: number;
+  topTags: { name: string; count: number }[];
+  semanticBreakdown: { type: string; count: number; percentage: number }[];
+  topLocations: LocationStat[];
+  activeLocationsThisMonth: LocationStat[];
+  totalBiolinkClicks: number;
+  topBiolinks: BiolinkStat[];
+};
+
+const INITIAL_DATA: DashboardData = {
+  totalFriends: 0,
+  friendsThisWeek: 0,
+  friendsThisMonth: 0,
+  growthCurve: [],
+  presetScans: [],
+  totalQrScans: 0,
+  topTags: [],
+  semanticBreakdown: [],
+  topLocations: [],
+  activeLocationsThisMonth: [],
+  totalBiolinkClicks: 0,
+  topBiolinks: [],
+};
+
 export default function SocialStatsScreen({ navigation }: SocialStatsScreenProps) {
+  const { t } = useTranslation();
+  const { colors, isDark } = useTheme();
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [timeRange, setTimeRange] = useState<TimeRange>('month');
-  const [stats, setStats] = useState<StatsData>({
-    totalConnections: 0,
-    connectionsThisWeek: 0,
-    connectionsThisMonth: 0,
-    totalTags: 0,
-    topTags: [],
-    totalNotes: 0,
-    totalMessages: 0,
-    messagesThisWeek: 0,
-    biolinksClicks: 0,
-    verifiedFriends: 0,
-    averageTagsPerConnection: 0,
-    oldestConnection: null,
-    newestConnection: null,
-  });
+  const [data, setData] = useState<DashboardData>(INITIAL_DATA);
 
   useEffect(() => {
-    fetchStats();
+    fetchDashboard();
   }, [user, timeRange]);
 
-  const fetchStats = async () => {
+  const fetchDashboard = async () => {
     if (!user) return;
     setLoading(true);
 
@@ -80,85 +93,113 @@ export default function SocialStatsScreen({ navigation }: SocialStatsScreenProps
       const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
       const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
 
-      // Determine date filter based on timeRange
-      const rangeStart = timeRange === 'week' ? weekAgo.toISOString()
-        : timeRange === 'month' ? monthAgo.toISOString()
-        : null;
-
-      // First fetch connection IDs (needed for tags query)
+      // Fetch all connection IDs first (needed for tags query)
       const { data: connIds } = await supabase
         .from('piktag_connections')
         .select('id')
         .eq('user_id', user.id);
       const connectionIdList = connIds?.map((c: any) => c.id) || [];
 
-      // Parallel queries
-      let connectionsQuery = supabase
-        .from('piktag_connections')
-        .select('id, created_at, connected_user:piktag_profiles!connected_user_id(is_verified)', { count: 'exact' })
-        .eq('user_id', user.id);
-      if (rangeStart) connectionsQuery = connectionsQuery.gte('created_at', rangeStart);
-
-      let notesQuery = supabase
-        .from('piktag_notes')
-        .select('id', { count: 'exact' })
-        .eq('user_id', user.id);
-      if (rangeStart) notesQuery = notesQuery.gte('created_at', rangeStart);
-
-      let messagesQuery = supabase
-        .from('piktag_messages')
-        .select('id', { count: 'exact' })
-        .eq('sender_id', user.id);
-      if (rangeStart) messagesQuery = messagesQuery.gte('created_at', rangeStart);
-
-      let biolinksQuery = supabase
-        .from('piktag_biolink_clicks')
-        .select('id, biolink:piktag_biolinks!biolink_id(user_id)', { count: 'exact' })
-        .not('clicker_user_id', 'eq', user.id);
-      if (rangeStart) biolinksQuery = biolinksQuery.gte('created_at', rangeStart);
-
       const [
-        connectionsResult,
-        connectionsWeekResult,
-        connectionsMonthResult,
+        allConnectionsResult,
+        weekConnectionsResult,
+        monthConnectionsResult,
         connectionTagsResult,
-        notesResult,
-        messagesResult,
-        messagesWeekResult,
-        biolinksClicksResult,
+        scanSessionsResult,
+        presetsResult,
+        biolinkClicksResult,
       ] = await Promise.all([
-        connectionsQuery,
-        // Connections this week (always fetch for subValue)
+        // 1. All connections (for growth curve, locations, total count)
+        supabase
+          .from('piktag_connections')
+          .select('id, created_at, met_location')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: true }),
+        // 2. Connections this week
         supabase
           .from('piktag_connections')
           .select('id', { count: 'exact' })
           .eq('user_id', user.id)
           .gte('created_at', weekAgo.toISOString()),
-        // Connections this month (always fetch for subValue)
+        // 3. Connections this month
         supabase
           .from('piktag_connections')
           .select('id', { count: 'exact' })
           .eq('user_id', user.id)
           .gte('created_at', monthAgo.toISOString()),
-        // Connection tags (for top tags)
+        // 4. Connection tags (top 5 tags)
         connectionIdList.length > 0
           ? supabase
               .from('piktag_connection_tags')
-              .select('tag:piktag_tags!tag_id(name)')
+              .select('tag:piktag_tags!tag_id(name, semantic_type)')
               .in('connection_id', connectionIdList)
-          : Promise.resolve({ data: [], count: 0 }),
-        notesQuery,
-        messagesQuery,
-        // Messages this week (always fetch for subValue)
+          : Promise.resolve({ data: [] }),
+        // 5. Scan sessions
         supabase
-          .from('piktag_messages')
-          .select('id', { count: 'exact' })
-          .eq('sender_id', user.id)
-          .gte('created_at', weekAgo.toISOString()),
-        biolinksQuery,
+          .from('piktag_scan_sessions')
+          .select('preset_id, scan_count')
+          .eq('host_user_id', user.id),
+        // 6. Presets
+        supabase
+          .from('piktag_tag_presets')
+          .select('id, name')
+          .eq('user_id', user.id),
+        // 7. Biolink clicks
+        supabase
+          .from('piktag_biolink_clicks')
+          .select('biolink_id, biolink:piktag_biolinks!biolink_id(user_id, platform, label)')
+          .not('clicker_user_id', 'eq', user.id),
       ]);
 
-      // Calculate top tags
+      const allConnections = allConnectionsResult.data || [];
+
+      // ── Growth curve ──
+      const dateMap: Record<string, number> = {};
+      for (const conn of allConnections) {
+        const d = conn.created_at.slice(0, 10); // YYYY-MM-DD
+        dateMap[d] = (dateMap[d] || 0) + 1;
+      }
+      const sortedDates = Object.keys(dateMap).sort();
+      let cumulative = 0;
+      const growthCurve: GrowthPoint[] = sortedDates.map((date) => {
+        cumulative += dateMap[date];
+        return { date, cumulative };
+      });
+
+      // Filter growth curve by time range
+      const rangeStart = timeRange === 'week' ? weekAgo.toISOString().slice(0, 10)
+        : timeRange === 'month' ? monthAgo.toISOString().slice(0, 10)
+        : null;
+      const filteredGrowth = rangeStart
+        ? growthCurve.filter((p) => p.date >= rangeStart)
+        : growthCurve;
+
+      // ── Top 5 locations ──
+      const locMap: Record<string, number> = {};
+      for (const conn of allConnections) {
+        const loc = conn.met_location;
+        if (loc && loc.trim()) {
+          locMap[loc] = (locMap[loc] || 0) + 1;
+        }
+      }
+      const topLocations = Object.entries(locMap)
+        .sort(([, a], [, b]) => b - a)
+        .slice(0, 5)
+        .map(([location, count]) => ({ location, count }));
+
+      // ── Active locations this month ──
+      const monthLocMap: Record<string, number> = {};
+      for (const conn of allConnections) {
+        if (conn.created_at >= monthAgo.toISOString() && conn.met_location?.trim()) {
+          monthLocMap[conn.met_location] = (monthLocMap[conn.met_location] || 0) + 1;
+        }
+      }
+      const activeLocationsThisMonth = Object.entries(monthLocMap)
+        .sort(([, a], [, b]) => b - a)
+        .slice(0, 10)
+        .map(([location, count]) => ({ location, count }));
+
+      // ── Top 5 tags ──
       const tagCounts: Record<string, number> = {};
       if (connectionTagsResult.data) {
         for (const ct of connectionTagsResult.data) {
@@ -173,63 +214,218 @@ export default function SocialStatsScreen({ navigation }: SocialStatsScreenProps
         .slice(0, 5)
         .map(([name, count]) => ({ name, count }));
 
-      // Count verified friends
-      let verifiedCount = 0;
-      if (connectionsResult.data) {
-        verifiedCount = connectionsResult.data.filter(
-          (c: any) => c.connected_user?.is_verified
-        ).length;
+      // ── Semantic type breakdown (pie chart data) ──
+      const semanticCounts: Record<string, number> = {};
+      let totalSemanticTags = 0;
+      if (connectionTagsResult.data) {
+        for (const ct of connectionTagsResult.data) {
+          const st = (ct as any).tag?.semantic_type;
+          if (st) {
+            semanticCounts[st] = (semanticCounts[st] || 0) + 1;
+            totalSemanticTags++;
+          }
+        }
+      }
+      const semanticBreakdown = Object.entries(semanticCounts)
+        .sort(([, a], [, b]) => b - a)
+        .map(([type, count]) => ({
+          type,
+          count,
+          percentage: totalSemanticTags > 0 ? Math.round((count / totalSemanticTags) * 100) : 0,
+        }));
+
+      // ── Preset scans ──
+      const presetMap: Record<string, string> = {};
+      if (presetsResult.data) {
+        for (const p of presetsResult.data) {
+          presetMap[p.id] = p.name;
+        }
+      }
+      const presetScanMap: Record<string, number> = {};
+      let totalQrScans = 0;
+      if (scanSessionsResult.data) {
+        for (const s of scanSessionsResult.data) {
+          const sc = s.scan_count || 0;
+          totalQrScans += sc;
+          if (s.preset_id && presetMap[s.preset_id]) {
+            presetScanMap[s.preset_id] = (presetScanMap[s.preset_id] || 0) + sc;
+          }
+        }
+      }
+      const presetScans = Object.entries(presetScanMap)
+        .map(([id, totalScans]) => ({ name: presetMap[id], totalScans }))
+        .sort((a, b) => b.totalScans - a.totalScans);
+
+      // If no preset-linked sessions, show sessions by event_location as fallback
+      if (presetScans.length === 0 && scanSessionsResult.data) {
+        const sessionLocMap: Record<string, number> = {};
+        for (const s of scanSessionsResult.data) {
+          const label = s.event_location || s.event_date || 'QR Session';
+          sessionLocMap[label] = (sessionLocMap[label] || 0) + (s.scan_count || 0);
+        }
+        // We won't add these to presetScans to keep the empty state clear
       }
 
-      // Get oldest/newest
-      let oldest: string | null = null;
-      let newest: string | null = null;
-      if (connectionsResult.data && connectionsResult.data.length > 0) {
-        const sorted = [...connectionsResult.data].sort(
-          (a: any, b: any) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
-        );
-        oldest = sorted[0].created_at;
-        newest = sorted[sorted.length - 1].created_at;
-      }
-
-      const totalConnections = connectionsResult.count || 0;
-      const totalTagsUsed = connectionTagsResult.data?.length || 0;
-
-      // Filter biolink clicks to only own biolinks
-      const ownClicks = biolinksClicksResult.data?.filter(
+      // ── Biolink clicks ──
+      const ownClicks = (biolinkClicksResult.data || []).filter(
         (c: any) => c.biolink?.user_id === user.id
-      ).length || 0;
+      );
+      const totalBiolinkClicks = ownClicks.length;
 
-      setStats({
-        totalConnections,
-        connectionsThisWeek: connectionsWeekResult.count || 0,
-        connectionsThisMonth: connectionsMonthResult.count || 0,
-        totalTags: Object.keys(tagCounts).length,
+      const biolinkCountMap: Record<string, { platform: string; label: string | null; count: number }> = {};
+      for (const c of ownClicks) {
+        const id = (c as any).biolink_id;
+        if (!biolinkCountMap[id]) {
+          biolinkCountMap[id] = {
+            platform: (c as any).biolink?.platform || '',
+            label: (c as any).biolink?.label || null,
+            count: 0,
+          };
+        }
+        biolinkCountMap[id].count++;
+      }
+      const topBiolinks = Object.values(biolinkCountMap)
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 5)
+        .map((b) => ({ platform: b.platform, label: b.label, clickCount: b.count }));
+
+      setData({
+        totalFriends: allConnections.length,
+        friendsThisWeek: weekConnectionsResult.count || 0,
+        friendsThisMonth: monthConnectionsResult.count || 0,
+        growthCurve: filteredGrowth,
+        presetScans,
+        totalQrScans,
         topTags,
-        totalNotes: notesResult.count || 0,
-        totalMessages: messagesResult.count || 0,
-        messagesThisWeek: messagesWeekResult.count || 0,
-        biolinksClicks: ownClicks,
-        verifiedFriends: verifiedCount,
-        averageTagsPerConnection: totalConnections > 0
-          ? Math.round((totalTagsUsed / totalConnections) * 10) / 10
-          : 0,
-        oldestConnection: oldest,
-        newestConnection: newest,
+        semanticBreakdown,
+        topLocations,
+        activeLocationsThisMonth,
+        totalBiolinkClicks,
+        topBiolinks,
       });
     } catch (err) {
-      console.error('Error fetching stats:', err);
+      console.error('Dashboard fetch error:', err);
     } finally {
       setLoading(false);
     }
   };
 
-  const formatDate = (dateStr: string | null) => {
-    if (!dateStr) return '-';
-    const d = new Date(dateStr);
-    return `${d.getFullYear()}/${d.getMonth() + 1}/${d.getDate()}`;
+  // ─── Line Chart Component ───
+  const renderLineChart = (points: GrowthPoint[]) => {
+    if (points.length < 2) return null;
+
+    const padding = { top: 10, right: 10, bottom: 30, left: 40 };
+    const w = CHART_WIDTH - padding.left - padding.right;
+    const h = CHART_HEIGHT - padding.top - padding.bottom;
+
+    const values = points.map((p) => p.cumulative);
+    const minVal = Math.min(...values);
+    const maxVal = Math.max(...values);
+    const range = maxVal - minVal || 1;
+
+    const xStep = w / (points.length - 1);
+
+    const pathParts: string[] = [];
+    const dots: { x: number; y: number; val: number }[] = [];
+
+    points.forEach((p, i) => {
+      const x = padding.left + i * xStep;
+      const y = padding.top + h - ((p.cumulative - minVal) / range) * h;
+      dots.push({ x, y, val: p.cumulative });
+      if (i === 0) pathParts.push(`M ${x} ${y}`);
+      else pathParts.push(`L ${x} ${y}`);
+    });
+
+    // Area fill path
+    const areaPath = pathParts.join(' ')
+      + ` L ${padding.left + (points.length - 1) * xStep} ${padding.top + h}`
+      + ` L ${padding.left} ${padding.top + h} Z`;
+
+    // X-axis labels (show ~5 evenly spaced)
+    const labelStep = Math.max(1, Math.floor(points.length / 5));
+    const xLabels = points.filter((_, i) => i % labelStep === 0 || i === points.length - 1);
+
+    return (
+      <Svg width={CHART_WIDTH} height={CHART_HEIGHT}>
+        {/* Area fill */}
+        <Path d={areaPath} fill={COLORS.piktag100} opacity={0.5} />
+        {/* Line */}
+        <Path d={pathParts.join(' ')} fill="none" stroke={COLORS.piktag500} strokeWidth={2.5} />
+        {/* Dots */}
+        {dots.map((d, i) => (
+          <Circle key={i} cx={d.x} cy={d.y} r={3} fill={COLORS.piktag500} />
+        ))}
+        {/* Y-axis labels */}
+        <SvgText x={padding.left - 6} y={padding.top + 4} fontSize={10} fill={COLORS.gray400} textAnchor="end">
+          {maxVal}
+        </SvgText>
+        <SvgText x={padding.left - 6} y={padding.top + h + 4} fontSize={10} fill={COLORS.gray400} textAnchor="end">
+          {minVal}
+        </SvgText>
+        {/* X-axis labels */}
+        {xLabels.map((p, i) => {
+          const idx = points.indexOf(p);
+          const x = padding.left + idx * xStep;
+          return (
+            <SvgText
+              key={i}
+              x={x}
+              y={CHART_HEIGHT - 4}
+              fontSize={9}
+              fill={COLORS.gray400}
+              textAnchor="middle"
+            >
+              {p.date.slice(5)} {/* MM-DD */}
+            </SvgText>
+          );
+        })}
+        {/* Baseline */}
+        <Line
+          x1={padding.left}
+          y1={padding.top + h}
+          x2={CHART_WIDTH - padding.right}
+          y2={padding.top + h}
+          stroke={COLORS.gray200}
+          strokeWidth={1}
+        />
+      </Svg>
+    );
   };
 
+  // ─── Bar Row Component ───
+  const renderBarRow = (
+    items: { label: string; value: number }[],
+    maxValue: number,
+    barColor: string = COLORS.piktag400,
+    showRank: boolean = true,
+  ) => (
+    <>
+      {items.map((item, index) => (
+        <View key={item.label} style={styles.barRow}>
+          {showRank && (
+            <View style={styles.barRank}>
+              <Text style={styles.barRankText}>{index + 1}</Text>
+            </View>
+          )}
+          <Text style={styles.barLabel} numberOfLines={1}>{item.label}</Text>
+          <View style={styles.barTrack}>
+            <View
+              style={[
+                styles.barFill,
+                {
+                  width: `${Math.max((item.value / (maxValue || 1)) * 100, 8)}%`,
+                  backgroundColor: barColor,
+                },
+              ]}
+            />
+          </View>
+          <Text style={styles.barValue}>{item.value}</Text>
+        </View>
+      ))}
+    </>
+  );
+
+  // ─── Stat Card ───
   const StatCard = ({
     icon,
     label,
@@ -247,23 +443,37 @@ export default function SocialStatsScreen({ navigation }: SocialStatsScreenProps
       {icon}
       <Text style={styles.statValue}>{value}</Text>
       <Text style={styles.statLabel}>{label}</Text>
-      {subValue && <Text style={styles.statSubValue}>{subValue}</Text>}
+      {subValue ? <Text style={styles.statSubValue}>{subValue}</Text> : null}
     </View>
   );
 
-  return (
-    <View style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor={COLORS.white} />
+  // ─── Section Title ───
+  const SectionTitle = ({ title }: { title: string }) => (
+    <Text style={styles.sectionTitle}>{title}</Text>
+  );
 
+  // ─── Empty State ───
+  const EmptyState = ({ text }: { text: string }) => (
+    <Text style={styles.emptyText}>{text}</Text>
+  );
+
+  const newFriendsLabel = timeRange === 'week' ? t('dashboard.newFriendsWeek') : t('dashboard.newFriendsMonth');
+  const newFriendsValue = timeRange === 'week' ? data.friendsThisWeek : data.friendsThisMonth;
+
+  return (
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={colors.white} />
+
+      {/* Header */}
       <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
         <TouchableOpacity
           style={styles.backBtn}
-          onPress={() => navigation.goBack()}
+          onPress={() => navigation.canGoBack() ? navigation.goBack() : navigation.navigate("Connections")}
           activeOpacity={0.6}
         >
           <ArrowLeft size={24} color={COLORS.gray900} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>社交統計報表</Text>
+        <Text style={styles.headerTitle}>{t('dashboard.headerTitle')}</Text>
         <View style={{ width: 32 }} />
       </View>
 
@@ -276,133 +486,197 @@ export default function SocialStatsScreen({ navigation }: SocialStatsScreenProps
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
-          {/* Time range selector */}
+          {/* Time Range Selector */}
           <View style={styles.timeRangeRow}>
             {(['week', 'month', 'all'] as TimeRange[]).map((range) => (
               <TouchableOpacity
                 key={range}
-                style={[
-                  styles.timeRangeBtn,
-                  timeRange === range && styles.timeRangeBtnActive,
-                ]}
+                style={[styles.timeRangeBtn, timeRange === range && styles.timeRangeBtnActive]}
                 onPress={() => setTimeRange(range)}
                 activeOpacity={0.7}
               >
-                <Text
-                  style={[
-                    styles.timeRangeText,
-                    timeRange === range && styles.timeRangeTextActive,
-                  ]}
-                >
-                  {range === 'week' ? '本週' : range === 'month' ? '本月' : '全部'}
+                <Text style={[styles.timeRangeText, timeRange === range && styles.timeRangeTextActive]}>
+                  {range === 'week' ? t('dashboard.timeRangeWeek') : range === 'month' ? t('dashboard.timeRangeMonth') : t('dashboard.timeRangeAll')}
                 </Text>
               </TouchableOpacity>
             ))}
           </View>
 
-          {/* Main stats grid */}
+          {/* ── Overview Cards (2x2) ── */}
           <View style={styles.statsGrid}>
             <StatCard
               icon={<Users size={20} color="#3b82f6" />}
-              label="總人脈"
-              value={stats.totalConnections}
-              subValue={`本月 +${stats.connectionsThisMonth}`}
+              label={t('dashboard.totalFriends')}
+              value={data.totalFriends}
               bgColor="#eff6ff"
             />
             <StatCard
-              icon={<Tag size={20} color="#0fcdd6" />}
-              label="使用標籤數"
-              value={stats.totalTags}
-              subValue={`平均 ${stats.averageTagsPerConnection}/人`}
-              bgColor="#e6fafb"
-            />
-            <StatCard
-              icon={<MessageCircle size={20} color="#22c55e" />}
-              label="發送訊息"
-              value={stats.totalMessages}
-              subValue={`本週 +${stats.messagesThisWeek}`}
+              icon={<TrendingUp size={20} color="#22c55e" />}
+              label={newFriendsLabel}
+              value={newFriendsValue}
+              subValue={t('dashboard.newFriendsSub', { count: newFriendsValue })}
               bgColor="#f0fdf4"
             />
             <StatCard
-              icon={<TrendingUp size={20} color="#ec4899" />}
-              label="連結點擊"
-              value={stats.biolinksClicks}
+              icon={<Link2 size={20} color="#ec4899" />}
+              label={t('dashboard.totalLinkClicks')}
+              value={data.totalBiolinkClicks}
               bgColor="#fdf2f8"
             />
             <StatCard
-              icon={<Star size={20} color="#f97316" />}
-              label="認證好友"
-              value={stats.verifiedFriends}
+              icon={<QrCode size={20} color="#f97316" />}
+              label={t('dashboard.totalQrScans')}
+              value={data.totalQrScans}
               bgColor="#fff7ed"
-            />
-            <StatCard
-              icon={<BarChart3 size={20} color="#a855f7" />}
-              label="便利貼"
-              value={stats.totalNotes}
-              bgColor="#f5f3ff"
             />
           </View>
 
-          {/* Top Tags */}
-          {stats.topTags.length > 0 && (
-            <View style={styles.topTagsSection}>
-              <Text style={styles.sectionTitle}>最常用標籤 Top 5</Text>
-              {stats.topTags.map((tag, index) => (
-                <View key={tag.name} style={styles.topTagRow}>
-                  <View style={styles.topTagRank}>
-                    <Text style={styles.topTagRankText}>{index + 1}</Text>
-                  </View>
-                  <Hash size={14} color={COLORS.piktag600} />
-                  <Text style={styles.topTagName}>{tag.name}</Text>
-                  <View style={styles.topTagBarContainer}>
+          {/* ── Growth Curve ── */}
+          <View style={styles.sectionContainer}>
+            <SectionTitle title={t('dashboard.growthCurveTitle')} />
+            {data.growthCurve.length >= 2 ? (
+              renderLineChart(data.growthCurve)
+            ) : (
+              <EmptyState text={t('dashboard.growthCurveEmpty')} />
+            )}
+          </View>
+
+          {/* ── Preset Scans ── */}
+          <View style={styles.sectionContainer}>
+            <SectionTitle title={t('dashboard.presetScansTitle')} />
+            {data.presetScans.length > 0 ? (
+              renderBarRow(
+                data.presetScans.map((p) => ({ label: p.name, value: p.totalScans })),
+                data.presetScans[0]?.totalScans || 1,
+                COLORS.orange500,
+                false,
+              )
+            ) : (
+              <EmptyState text={t('dashboard.presetScansEmpty')} />
+            )}
+          </View>
+
+          {/* ── Network Composition (Semantic Breakdown) ── */}
+          <View style={styles.sectionContainer}>
+            <SectionTitle title={t('dashboard.networkCompositionTitle') || '人脈組成'} />
+            {data.semanticBreakdown.length > 0 ? (
+              <View>
+                {/* Simple horizontal bar breakdown */}
+                <View style={styles.compositionBarContainer}>
+                  {data.semanticBreakdown.map((item, i) => (
                     <View
+                      key={item.type}
                       style={[
-                        styles.topTagBar,
+                        styles.compositionBarSegment,
                         {
-                          width: `${Math.max(
-                            (tag.count / (stats.topTags[0]?.count || 1)) * 100,
-                            10
-                          )}%`,
+                          flex: item.percentage,
+                          backgroundColor: [
+                            COLORS.piktag400, COLORS.blue500, COLORS.orange500,
+                            COLORS.pink500, COLORS.green500, COLORS.purple500,
+                            COLORS.red500, '#6366f1',
+                          ][i % 8],
                         },
                       ]}
                     />
-                  </View>
-                  <Text style={styles.topTagCount}>{tag.count}</Text>
+                  ))}
                 </View>
-              ))}
-            </View>
-          )}
-
-          {/* Timeline */}
-          <View style={styles.timelineSection}>
-            <Text style={styles.sectionTitle}>人脈時間軸</Text>
-            <View style={styles.timelineRow}>
-              <Calendar size={16} color={COLORS.gray500} />
-              <Text style={styles.timelineLabel}>最早人脈</Text>
-              <Text style={styles.timelineValue}>
-                {formatDate(stats.oldestConnection)}
-              </Text>
-            </View>
-            <View style={styles.timelineDivider} />
-            <View style={styles.timelineRow}>
-              <Calendar size={16} color={COLORS.piktag600} />
-              <Text style={styles.timelineLabel}>最新人脈</Text>
-              <Text style={styles.timelineValue}>
-                {formatDate(stats.newestConnection)}
-              </Text>
-            </View>
+                {/* Legend */}
+                <View style={styles.compositionLegend}>
+                  {data.semanticBreakdown.map((item, i) => (
+                    <View key={item.type} style={styles.compositionLegendItem}>
+                      <View
+                        style={[
+                          styles.compositionLegendDot,
+                          {
+                            backgroundColor: [
+                              COLORS.piktag400, COLORS.blue500, COLORS.orange500,
+                              COLORS.pink500, COLORS.green500, COLORS.purple500,
+                              COLORS.red500, '#6366f1',
+                            ][i % 8],
+                          },
+                        ]}
+                      />
+                      <Text style={styles.compositionLegendText}>
+                        {t(`semanticType.${item.type}`) || item.type} {item.percentage}%
+                      </Text>
+                    </View>
+                  ))}
+                </View>
+              </View>
+            ) : (
+              <EmptyState text={t('dashboard.networkCompositionEmpty') || '尚無分類資料'} />
+            )}
           </View>
 
-          {/* Weekly summary */}
-          <View style={styles.summaryCard}>
-            <Text style={styles.summaryTitle}>本週摘要</Text>
-            <Text style={styles.summaryText}>
-              本週新增了 {stats.connectionsThisWeek} 位人脈，
-              發送了 {stats.messagesThisWeek} 則訊息。
-              {stats.biolinksClicks > 0
-                ? `你的社群連結被點擊了 ${stats.biolinksClicks} 次！`
-                : ''}
-            </Text>
+          {/* ── Top 5 Tags ── */}
+          <View style={styles.sectionContainer}>
+            <SectionTitle title={t('dashboard.topTagsTitle')} />
+            {data.topTags.length > 0 ? (
+              renderBarRow(
+                data.topTags.map((tag) => ({ label: `#${tag.name}`, value: tag.count })),
+                data.topTags[0]?.count || 1,
+                COLORS.piktag400,
+              )
+            ) : (
+              <EmptyState text={t('dashboard.topTagsEmpty')} />
+            )}
+          </View>
+
+          {/* ── Top 5 Locations ── */}
+          <View style={styles.sectionContainer}>
+            <SectionTitle title={t('dashboard.topLocationsTitle')} />
+            {data.topLocations.length > 0 ? (
+              renderBarRow(
+                data.topLocations.map((loc) => ({ label: loc.location, value: loc.count })),
+                data.topLocations[0]?.count || 1,
+                COLORS.blue500,
+              )
+            ) : (
+              <EmptyState text={t('dashboard.topLocationsEmpty')} />
+            )}
+          </View>
+
+          {/* ── Active Locations This Month ── */}
+          <View style={styles.sectionContainer}>
+            <SectionTitle title={t('dashboard.activeLocationsTitle')} />
+            {data.activeLocationsThisMonth.length > 0 ? (
+              <View style={styles.chipRow}>
+                {data.activeLocationsThisMonth.map((loc) => (
+                  <View key={loc.location} style={styles.locationChip}>
+                    <MapPin size={12} color={COLORS.piktag600} />
+                    <Text style={styles.locationChipText}>{loc.location}</Text>
+                    <Text style={styles.locationChipCount}>{loc.count}</Text>
+                  </View>
+                ))}
+              </View>
+            ) : (
+              <EmptyState text={t('dashboard.activeLocationsEmpty')} />
+            )}
+          </View>
+
+          {/* ── Top Biolinks ── */}
+          <View style={styles.sectionContainer}>
+            <SectionTitle title={t('dashboard.topBiolinksTitle')} />
+            {data.topBiolinks.length > 0 ? (
+              <>
+                {data.topBiolinks.map((link, index) => (
+                  <View key={index} style={styles.biolinkRow}>
+                    <View style={styles.biolinkRank}>
+                      <Text style={styles.biolinkRankText}>{index + 1}</Text>
+                    </View>
+                    <View style={styles.biolinkInfo}>
+                      <Text style={styles.biolinkPlatform}>{link.platform}</Text>
+                      {link.label ? <Text style={styles.biolinkLabel} numberOfLines={1}>{link.label}</Text> : null}
+                    </View>
+                    <Text style={styles.biolinkClicks}>
+                      {t('dashboard.clickCount', { count: link.clickCount })}
+                    </Text>
+                  </View>
+                ))}
+              </>
+            ) : (
+              <EmptyState text={t('dashboard.topBiolinksEmpty')} />
+            )}
           </View>
         </ScrollView>
       )}
@@ -444,6 +718,8 @@ const styles = StyleSheet.create({
     padding: 20,
     paddingBottom: 100,
   },
+
+  // ── Time Range ──
   timeRangeRow: {
     flexDirection: 'row',
     gap: 8,
@@ -466,6 +742,8 @@ const styles = StyleSheet.create({
   timeRangeTextActive: {
     color: COLORS.gray900,
   },
+
+  // ── Stats Grid ──
   statsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -493,8 +771,39 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: COLORS.gray500,
   },
-  topTagsSection: {
-    marginBottom: 24,
+
+  // ── Sections ──
+  sectionContainer: {
+    marginBottom: 28,
+  },
+  compositionBarContainer: {
+    flexDirection: 'row',
+    height: 20,
+    borderRadius: 10,
+    overflow: 'hidden',
+    marginBottom: 12,
+  },
+  compositionBarSegment: {
+    height: '100%',
+  },
+  compositionLegend: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+  },
+  compositionLegendItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  compositionLegendDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+  },
+  compositionLegendText: {
+    fontSize: 13,
+    color: COLORS.gray600,
   },
   sectionTitle: {
     fontSize: 16,
@@ -502,13 +811,21 @@ const styles = StyleSheet.create({
     color: COLORS.gray900,
     marginBottom: 14,
   },
-  topTagRow: {
+  emptyText: {
+    fontSize: 14,
+    color: COLORS.gray400,
+    textAlign: 'center',
+    paddingVertical: 20,
+  },
+
+  // ── Bar Chart Rows ──
+  barRow: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: 10,
     gap: 8,
   },
-  topTagRank: {
+  barRank: {
     width: 24,
     height: 24,
     borderRadius: 12,
@@ -516,78 +833,106 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  topTagRankText: {
+  barRankText: {
     fontSize: 12,
     fontWeight: '700',
     color: COLORS.piktag600,
   },
-  topTagName: {
-    fontSize: 15,
+  barLabel: {
+    fontSize: 14,
     fontWeight: '600',
     color: COLORS.gray900,
     width: 80,
   },
-  topTagBarContainer: {
+  barTrack: {
     flex: 1,
     height: 8,
     backgroundColor: COLORS.gray100,
     borderRadius: 4,
   },
-  topTagBar: {
+  barFill: {
     height: 8,
-    backgroundColor: COLORS.piktag400,
     borderRadius: 4,
   },
-  topTagCount: {
+  barValue: {
     fontSize: 14,
     fontWeight: '600',
     color: COLORS.gray600,
     width: 30,
     textAlign: 'right',
   },
-  timelineSection: {
-    backgroundColor: COLORS.gray50,
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 24,
+
+  // ── Location Chips ──
+  chipRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
   },
-  timelineRow: {
+  locationChip: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
-    paddingVertical: 6,
+    backgroundColor: COLORS.gray50,
+    borderRadius: 9999,
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    gap: 6,
+    borderWidth: 1,
+    borderColor: COLORS.gray200,
   },
-  timelineLabel: {
-    fontSize: 14,
-    color: COLORS.gray600,
+  locationChipText: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: COLORS.gray700,
+  },
+  locationChipCount: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: COLORS.piktag600,
+    backgroundColor: COLORS.piktag50,
+    borderRadius: 10,
+    paddingHorizontal: 6,
+    paddingVertical: 1,
+    overflow: 'hidden',
+  },
+
+  // ── Biolink Rows ──
+  biolinkRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    gap: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.gray100,
+  },
+  biolinkRank: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: '#fdf2f8',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  biolinkRankText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#ec4899',
+  },
+  biolinkInfo: {
     flex: 1,
   },
-  timelineValue: {
-    fontSize: 14,
+  biolinkPlatform: {
+    fontSize: 15,
     fontWeight: '600',
     color: COLORS.gray900,
   },
-  timelineDivider: {
-    height: 1,
-    backgroundColor: COLORS.gray200,
-    marginVertical: 8,
+  biolinkLabel: {
+    fontSize: 12,
+    color: COLORS.gray500,
+    marginTop: 2,
   },
-  summaryCard: {
-    backgroundColor: COLORS.piktag50,
-    borderRadius: 16,
-    padding: 20,
-    borderWidth: 1,
-    borderColor: COLORS.piktag100,
-  },
-  summaryTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: COLORS.gray900,
-    marginBottom: 8,
-  },
-  summaryText: {
-    fontSize: 14,
-    color: COLORS.gray700,
-    lineHeight: 22,
+  biolinkClicks: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: COLORS.gray500,
   },
 });

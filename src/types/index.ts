@@ -1,5 +1,10 @@
 // PikTag Types - aligned with Supabase DB schema
 
+// Semantic Tag Types — applying Semantic HTML concepts to people
+export type SemanticType = 'identity' | 'personality' | 'career' | 'skill' | 'interest' | 'social' | 'meta' | 'relation';
+
+export const SEMANTIC_TYPE_ORDER: SemanticType[] = ['identity', 'personality', 'career', 'skill', 'interest', 'social', 'meta', 'relation'];
+
 export type PiktagProfile = {
   id: string;
   username: string | null;
@@ -14,16 +19,39 @@ export type PiktagProfile = {
   is_public: boolean;
   latitude: number | null;
   longitude: number | null;
+  birthday: string | null;
   created_at: string;
   updated_at: string;
+};
+
+export type TagConcept = {
+  id: string;
+  canonical_name: string;
+  semantic_type: SemanticType | null;
+  embedding: number[] | null;
+  usage_count: number;
+  created_at: string;
+};
+
+export type TagAlias = {
+  id: string;
+  alias: string;
+  concept_id: string;
+  language: string;
+  created_at: string;
+  concept?: TagConcept; // joined
 };
 
 export type Tag = {
   id: string;
   name: string;
-  category: string | null;
+  semantic_type: SemanticType | null;
+  parent_tag_id: string | null;
+  aliases: string[];
+  concept_id: string | null;
   usage_count: number;
   created_at: string;
+  concept?: TagConcept; // joined
 };
 
 export type UserTag = {
@@ -31,6 +59,10 @@ export type UserTag = {
   user_id: string;
   tag_id: string;
   position: number;
+  weight: number;
+  semantic_type: SemanticType | null;
+  is_private?: boolean;
+  is_pinned?: boolean;
   created_at: string;
   tag?: Tag; // joined
 };
@@ -55,6 +87,7 @@ export type Connection = {
   birthday: string | null;
   anniversary: string | null;
   contract_expiry: string | null;
+  scan_session_id: string | null;
   created_at: string;
   updated_at?: string;
   connected_user?: PiktagProfile; // joined
@@ -64,9 +97,14 @@ export type ConnectionTag = {
   id: string;
   connection_id: string;
   tag_id: string;
+  semantic_type: SemanticType | null;
+  position: number;
   created_at: string;
   tag?: Tag; // joined
 };
+
+export type BiolinkDisplayMode = 'icon' | 'card';
+export type BiolinkVisibility = 'public' | 'friends' | 'close_friends' | 'private';
 
 export type Biolink = {
   id: string;
@@ -76,6 +114,9 @@ export type Biolink = {
   label: string | null;
   position: number;
   is_active: boolean;
+  display_mode: BiolinkDisplayMode;
+  visibility: BiolinkVisibility;
+  icon_url?: string | null;
   created_at: string;
 };
 
@@ -116,3 +157,36 @@ export type TagSnapshot = {
   snapshot_date: string;
   created_at: string;
 };
+
+export type TagPreset = {
+  id: string;
+  user_id: string;
+  name: string;
+  location: string;
+  tags: string[];
+  created_at: string;
+  last_used_at: string;
+};
+
+export type ScanSession = {
+  id: string;
+  host_user_id: string;
+  preset_id: string | null;
+  event_date: string;
+  event_location: string;
+  event_tags: string[];
+  qr_code_data: string;
+  scan_count: number;
+  is_active: boolean;
+  created_at: string;
+  expires_at: string;
+  host_user?: PiktagProfile; // joined
+};
+
+export interface UserStatus {
+  id: string;
+  user_id: string;
+  text: string;
+  created_at: string;
+  expires_at: string;
+}

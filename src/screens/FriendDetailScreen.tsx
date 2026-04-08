@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useReducer, useMemo, useEffect } from 'react';
 import {
   View,
   Text,
@@ -9,15 +9,18 @@ import {
   StatusBar,
   Linking,
   ActivityIndicator,
-  TextInput,
   Alert,
+  TextInput,
+  Modal,
+  Share,
+  Platform,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import {
   ArrowLeft,
   CheckCircle2,
-  MessageCircle,
+
   Tag,
   Calendar,
   MapPin,
@@ -36,17 +39,28 @@ import {
   Heart,
   Clock,
   Bell,
+  ExternalLink,
+  Share2,
+  MoreHorizontal,
+  X,
+  AlertTriangle,
 } from 'lucide-react-native';
+import { useTranslation } from 'react-i18next';
 import { COLORS } from '../constants/theme';
+import { useTheme } from '../context/ThemeContext';
+import { LinearGradient } from 'expo-linear-gradient';
+import * as ScreenCapture from 'expo-screen-capture';
+import PlatformIcon from '../components/PlatformIcon';
+import InitialsAvatar from '../components/InitialsAvatar';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
-import type { Connection, PiktagProfile, Note, Biolink } from '../types';
+import type { Connection, PiktagProfile, Biolink } from '../types';
+import { getViewerRelation, filterBiolinksByVisibility } from '../lib/biolinkVisibility';
+import { calculateStrength, getStrengthLabel } from '../lib/connectionStrength';
 
-type ReminderField = 'birthday' | 'anniversary' | 'contract_expiry';
-const REMINDER_LABELS: Record<ReminderField, string> = {
-  birthday: '生日',
-  anniversary: '紀念日',
-  contract_expiry: '合約到期',
+type ReminderField = 'birthday';
+const REMINDER_LABEL_KEYS: Record<ReminderField, string> = {
+  birthday: 'friendDetail.reminderBirthday',
 };
 
 type BiolinkType = 'instagram' | 'facebook' | 'youtube' | 'twitter' | 'linkedin' | 'website' | 'other';
@@ -74,34 +88,109 @@ function getBiolinkIcon(type: BiolinkType) {
   }
 }
 
-const NOTE_COLORS = ['#FEF3C7', '#DBEAFE', '#D1FAE5', '#FCE7F3', '#EDE9FE', '#FEE2E2'];
+type FriendTag = {
+  tagId: string;
+  name: string;
+  isPicked: boolean;    // I picked this tag for this friend
+  isHidden: boolean;    // My private tag for this friend
+  pickCount: number;    // How many people picked this tag on this friend
+  isMutual: boolean;    // We share this tag
+  isPinned: boolean;    // Friend pinned this tag
+  position: number;     // Friend's own tag order
+};
+
+type FriendData = {
+  connection: Connection | null;
+  profile: PiktagProfile | null;
+  tags: FriendTag[];
+  biolinks: Biolink[];
+  mutualFriends: number;
+  mutualTags: number;
+  followerCount: number;
+  scanEventTags: string[];
+};
+
+const initialFriendData: FriendData = {
+  connection: null,
+  profile: null,
+  tags: [],
+  biolinks: [],
+  mutualFriends: 0,
+  mutualTags: 0,
+  followerCount: 0,
+  scanEventTags: [],
+};
+
+type FriendDataAction =
+  | { type: 'SET_INITIAL'; payload: Partial<FriendData> }
+  | { type: 'SET_SCAN_EVENT_TAGS'; scanEventTags: string[] }
+  | { type: 'SET_MUTUAL_TAGS'; mutualTags: number }
+  | { type: 'SET_TAGS'; tags: FriendTag[] };
+
+function friendDataReducer(state: FriendData, action: FriendDataAction): FriendData {
+  switch (action.type) {
+    case 'SET_INITIAL':
+      return { ...state, ...action.payload };
+    case 'SET_SCAN_EVENT_TAGS':
+      return { ...state, scanEventTags: action.scanEventTags };
+    case 'SET_MUTUAL_TAGS':
+      return { ...state, mutualTags: action.mutualTags };
+    case 'SET_TAGS':
+      return { ...state, tags: action.tags };
+    default:
+      return state;
+  }
+}
 
 export default function FriendDetailScreen({ navigation, route }: FriendDetailScreenProps) {
+  const { t } = useTranslation();
+  const { colors, isDark } = useTheme();
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
   const { connectionId, friendId } = route.params || {};
 
+  // Prevent screenshots on this page (protects hidden tags)
+  useEffect(() => {
+    ScreenCapture.preventScreenCaptureAsync();
+    return () => { ScreenCapture.allowScreenCaptureAsync(); };
+  }, []);
+
   const [loading, setLoading] = useState(true);
-  const [connection, setConnection] = useState<Connection | null>(null);
-  const [profile, setProfile] = useState<PiktagProfile | null>(null);
-  const [tags, setTags] = useState<string[]>([]);
-  const [notes, setNotes] = useState<Note[]>([]);
-  const [biolinks, setBiolinks] = useState<Biolink[]>([]);
-  const [mutualFriends, setMutualFriends] = useState(0);
-  const [mutualTags, setMutualTags] = useState(0);
+  const [friendData, dispatchFriendData] = useReducer(friendDataReducer, initialFriendData);
+  const { connection, profile, tags, biolinks, mutualFriends, mutualTags, followerCount, scanEventTags } = friendData;
+
+  // Follow state
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [followLoading, setFollowLoading] = useState(false);
+
+  // Unfollow confirm modal
+  const [unfollowModalVisible, setUnfollowModalVisible] = useState(false);
+
+  // Pick Tag Modal state (shown after follow, or via "標籤" button)
+  const [pickTagModalVisible, setPickTagModalVisible] = useState(false);
+  const [friendPublicTags, setFriendPublicTags] = useState<{ id: string; name: string }[]>([]);
+  const [pickedTagIds, setPickedTagIds] = useState<Set<string>>(new Set());
+  const [pickTagLoading, setPickTagLoading] = useState(false);
+
+  // Close friend + more menu state
+  const [isCloseFriend, setIsCloseFriend] = useState(false);
+  const [moreMenuVisible, setMoreMenuVisible] = useState(false);
+
+  // Mutual tags detail modal
+  const [mutualTagNames, setMutualTagNames] = useState<{ id: string; name: string }[]>([]);
+  const [mutualTagModalVisible, setMutualTagModalVisible] = useState(false);
+  const [mutualFriendProfiles, setMutualFriendProfiles] = useState<any[]>([]);
+  const [mutualFriendsModalVisible, setMutualFriendsModalVisible] = useState(false);
+
+  // Hidden tags state (private tags only I can see)
+  const [hiddenTags, setHiddenTags] = useState<{ id: string; tagId: string; name: string }[]>([]);
+  const [hiddenTagInput, setHiddenTagInput] = useState('');
+  const [addingHiddenTag, setAddingHiddenTag] = useState(false);
 
   // CRM reminder state
   const [birthday, setBirthday] = useState<string>('');
-  const [anniversary, setAnniversary] = useState<string>('');
-  const [contractExpiry, setContractExpiry] = useState<string>('');
   const [editingReminder, setEditingReminder] = useState<ReminderField | null>(null);
   const [reminderInput, setReminderInput] = useState('');
-
-  // Note editing state
-  const [isAddingNote, setIsAddingNote] = useState(false);
-  const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
-  const [noteContent, setNoteContent] = useState('');
-  const [noteColor, setNoteColor] = useState(NOTE_COLORS[0]);
 
   const fetchData = useCallback(async () => {
     if (!user || !friendId) return;
@@ -109,107 +198,207 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
     try {
       setLoading(true);
 
-      // Fetch connection details (if connectionId provided)
-      if (connectionId) {
-        const { data: connData } = await supabase
-          .from('piktag_connections')
+      // Phase 1: all independent queries in parallel
+      const [
+        connResult,
+        profileResult,
+        biolinksResult,
+        connTagsResult,
+        myConnectionsResult,
+        friendConnectionsResult,
+      ] = await Promise.all([
+        connectionId
+          ? supabase.from('piktag_connections').select('*').eq('id', connectionId).single()
+          : Promise.resolve({ data: null, error: null }),
+        supabase.from('piktag_profiles').select('*').eq('id', friendId).single(),
+        supabase
+          .from('piktag_biolinks')
           .select('*')
-          .eq('id', connectionId)
-          .single();
-        if (connData) {
-          setConnection(connData);
-          setBirthday(connData.birthday || '');
-          setAnniversary(connData.anniversary || '');
-          setContractExpiry(connData.contract_expiry || '');
-        }
-      }
-
-      // Fetch friend's profile
-      const { data: profileData } = await supabase
-        .from('piktag_profiles')
-        .select('*')
-        .eq('id', friendId)
-        .single();
-      if (profileData) setProfile(profileData);
-
-      // Fetch connection tags
-      if (connectionId) {
-        const { data: tagsData } = await supabase
-          .from('piktag_connection_tags')
+          .eq('user_id', friendId)
+          .eq('is_active', true)
+          .order('position', { ascending: true }),
+        supabase
+          .from('piktag_user_tags')
           .select('*, tag:piktag_tags!tag_id(*)')
-          .eq('connection_id', connectionId);
-        if (tagsData) {
-          setTags(tagsData.map((ct: any) => ct.tag?.name ? `#${ct.tag.name}` : '').filter(Boolean));
+          .eq('user_id', friendId)
+          .eq('is_private', false),
+        supabase.from('piktag_connections').select('connected_user_id').eq('user_id', user.id),
+        supabase.from('piktag_connections').select('id, connected_user_id').eq('user_id', friendId),
+      ]);
+
+      const connData = connResult.data;
+
+      // Batch all phase-1 state into a single dispatch (1 re-render instead of 8)
+      const mutualFriendsCount = (() => {
+        if (!myConnectionsResult.data || !friendConnectionsResult.data) return 0;
+        const myFriendIds = new Set(myConnectionsResult.data.map((c: any) => c.connected_user_id));
+        const mutualIds = friendConnectionsResult.data
+          .filter((c: any) => myFriendIds.has(c.connected_user_id))
+          .map((c: any) => c.connected_user_id);
+        // Fetch mutual friend profiles in background
+        if (mutualIds.length > 0) {
+          supabase
+            .from('piktag_profiles')
+            .select('id, username, full_name, avatar_url')
+            .in('id', mutualIds.slice(0, 20))
+            .then(({ data }) => { if (data) setMutualFriendProfiles(data); });
         }
+        return mutualIds.length;
+      })();
+
+      // Fetch friend's follower count + check if following
+      const [followerResult, followingResult] = await Promise.all([
+        supabase.from('piktag_follows').select('id', { count: 'exact', head: true }).eq('following_id', friendId),
+        supabase.from('piktag_follows').select('id').eq('follower_id', user!.id).eq('following_id', friendId).single(),
+      ]);
+      const fFollowerCount = followerResult.count;
+      setIsFollowing(!!followingResult.data);
+
+      dispatchFriendData({
+        type: 'SET_INITIAL',
+        payload: {
+          connection: connData ?? null,
+          profile: profileResult.data ?? null,
+          biolinks: filterBiolinksByVisibility(
+            biolinksResult.data ?? [],
+            await getViewerRelation(user?.id, friendId)
+          ),
+          tags: [], // will be set in phase 2 after pick data is fetched
+          mutualFriends: mutualFriendsCount,
+          followerCount: fFollowerCount ?? 0,
+        },
+      });
+
+      if (connData) {
+        setBirthday(connData.birthday || '');
       }
 
-      // Fetch notes
-      const { data: notesData } = await supabase
-        .from('piktag_notes')
-        .select('*')
+      // Check close friend status
+      const { data: cfData } = await supabase
+        .from('piktag_close_friends')
+        .select('id')
         .eq('user_id', user.id)
-        .eq('target_user_id', friendId)
-        .order('is_pinned', { ascending: false })
-        .order('updated_at', { ascending: false });
-      if (notesData) setNotes(notesData);
+        .eq('close_friend_id', friendId)
+        .maybeSingle();
+      setIsCloseFriend(!!cfData);
 
-      // Fetch biolinks
-      const { data: biolinksData } = await supabase
-        .from('piktag_biolinks')
-        .select('*')
-        .eq('user_id', friendId)
-        .eq('is_active', true)
-        .order('position', { ascending: true });
-      if (biolinksData) setBiolinks(biolinksData);
+      // Phase 2: queries that depend on phase 1 results (run in parallel)
+      const phase2: Promise<void>[] = [];
 
-      // Calculate mutual friends
-      // Friends of current user
-      const { data: myConnections } = await supabase
-        .from('piktag_connections')
-        .select('connected_user_id')
-        .eq('user_id', user.id);
-
-      // Friends of the friend
-      const { data: friendConnections } = await supabase
-        .from('piktag_connections')
-        .select('connected_user_id')
-        .eq('user_id', friendId);
-
-      if (myConnections && friendConnections) {
-        const myFriendIds = new Set(myConnections.map((c: any) => c.connected_user_id));
-        const mutual = friendConnections.filter((c: any) => myFriendIds.has(c.connected_user_id));
-        setMutualFriends(mutual.length);
+      // Scan session tags (depends on connData.scan_session_id)
+      if (connData?.scan_session_id) {
+        phase2.push(
+          Promise.resolve(supabase
+            .from('piktag_scan_sessions')
+            .select('event_tags')
+            .eq('id', connData.scan_session_id)
+            .single()
+          ).then(({ data }) => {
+            if (data?.event_tags)
+              dispatchFriendData({ type: 'SET_SCAN_EVENT_TAGS', scanEventTags: data.event_tags });
+          }),
+        );
       }
 
-      // Calculate mutual tags
-      if (connectionId) {
-        const { data: myTags } = await supabase
-          .from('piktag_connection_tags')
-          .select('tag_id')
-          .eq('connection_id', connectionId);
-
-        // Get all tag_ids used by friend's connections
-        const { data: friendConnectionsList } = await supabase
-          .from('piktag_connections')
-          .select('id')
-          .eq('user_id', friendId);
-
-        if (myTags && friendConnectionsList && friendConnectionsList.length > 0) {
-          const friendConnIds = friendConnectionsList.map((c: any) => c.id);
-          const { data: friendTags } = await supabase
-            .from('piktag_connection_tags')
+      // Build enriched tags: friend's public user_tags + pick data + mutual check
+      if (user && friendId && connTagsResult.data) {
+        phase2.push((async () => {
+          // 1. Get my tag_ids for mutual check
+          const { data: myUserTags } = await supabase
+            .from('piktag_user_tags')
             .select('tag_id')
-            .in('connection_id', friendConnIds);
+            .eq('user_id', user.id)
+            .eq('is_private', false);
+          const myTagIds = new Set((myUserTags || []).map((t: any) => t.tag_id));
 
-          if (friendTags) {
-            const myTagIds = new Set(myTags.map((t: any) => t.tag_id));
-            const mutualTagCount = new Set(
-              friendTags.filter((t: any) => myTagIds.has(t.tag_id)).map((t: any) => t.tag_id)
-            ).size;
-            setMutualTags(mutualTagCount);
+          // 2. Get my picked tags for this connection
+          const myPickedTagIds = new Set<string>();
+          if (connectionId) {
+            const { data: myPicks } = await supabase
+              .from('piktag_connection_tags')
+              .select('tag_id')
+              .eq('connection_id', connectionId)
+              .eq('is_private', false);
+            (myPicks || []).forEach((p: any) => myPickedTagIds.add(p.tag_id));
           }
-        }
+
+          // 3. Get how many people picked each of friend's tags
+          //    (count connection_tags referencing each tag for connections TO this friend)
+          const { data: allConnsToFriend } = await supabase
+            .from('piktag_connections')
+            .select('id')
+            .eq('connected_user_id', friendId);
+          const connIdsToFriend = (allConnsToFriend || []).map((c: any) => c.id);
+
+          const pickCountMap = new Map<string, number>();
+          if (connIdsToFriend.length > 0) {
+            const { data: allPicks } = await supabase
+              .from('piktag_connection_tags')
+              .select('tag_id')
+              .in('connection_id', connIdsToFriend)
+              .eq('is_private', false);
+            (allPicks || []).forEach((p: any) => {
+              pickCountMap.set(p.tag_id, (pickCountMap.get(p.tag_id) || 0) + 1);
+            });
+          }
+
+          // 4. Build FriendTag array from friend's user_tags
+          const friendTags: FriendTag[] = connTagsResult.data
+            .filter((ut: any) => ut.tag?.name)
+            .map((ut: any) => ({
+              tagId: ut.tag.id || ut.tag_id,
+              name: ut.tag.name,
+              isPicked: myPickedTagIds.has(ut.tag.id || ut.tag_id),
+              isHidden: false,
+              pickCount: pickCountMap.get(ut.tag.id || ut.tag_id) || 0,
+              isMutual: myTagIds.has(ut.tag.id || ut.tag_id),
+              isPinned: ut.is_pinned || false,
+              position: ut.position ?? 0,
+            }));
+
+          // 5a. Append hidden tags (my private tags for this friend)
+          if (connectionId) {
+            const { data: hiddenData } = await supabase
+              .from('piktag_connection_tags')
+              .select('tag_id, piktag_tags!inner(id, name)')
+              .eq('connection_id', connectionId)
+              .eq('is_private', true);
+            if (hiddenData) {
+              for (const ht of hiddenData) {
+                const htName = (ht as any).piktag_tags?.name;
+                if (!htName) continue;
+                if (friendTags.some(t => t.tagId === ht.tag_id)) continue;
+                friendTags.push({
+                  tagId: ht.tag_id,
+                  name: htName,
+                  isPicked: false,
+                  isHidden: true,
+                  pickCount: 0,
+                  isMutual: false,
+                  isPinned: false,
+                  position: 9999,
+                });
+              }
+            }
+          }
+
+          // 5b. Sort: isPinned → pickCount (high→low) → position
+          friendTags.sort((a, b) => {
+            if (a.isPinned !== b.isPinned) return a.isPinned ? -1 : 1;
+            if (a.pickCount !== b.pickCount) return b.pickCount - a.pickCount;
+            return a.position - b.position;
+          });
+
+          dispatchFriendData({ type: 'SET_TAGS', tags: friendTags });
+
+          // 6. Also set mutual tags count + names
+          const mutualList = friendTags.filter(t => myTagIds.has(t.tagId));
+          dispatchFriendData({ type: 'SET_MUTUAL_TAGS', mutualTags: mutualList.length });
+          setMutualTagNames(mutualList.map(t => ({ id: t.tagId, name: t.name })));
+        })());
       }
+
+      if (phase2.length > 0) await Promise.all(phase2);
     } catch (err) {
       console.error('Error fetching friend data:', err);
     } finally {
@@ -224,116 +413,191 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
   );
 
   // --- Note CRUD ---
-  const handleAddNote = async () => {
-    if (!user || !friendId || !noteContent.trim()) return;
-
-    const { data, error } = await supabase
-      .from('piktag_notes')
-      .insert({
-        user_id: user.id,
-        target_user_id: friendId,
-        content: noteContent.trim(),
-        color: noteColor,
-        is_pinned: false,
-      })
-      .select()
-      .single();
-
-    if (error) {
-      console.error('Error adding note:', error);
-      Alert.alert('Error', 'Failed to add note');
-      return;
-    }
+  // Fetch friend's public tags for the pick modal — returns tags array
+  const fetchFriendPublicTags = useCallback(async (): Promise<{ id: string; name: string }[]> => {
+    if (!friendId) return [];
+    const { data } = await supabase
+      .from('piktag_user_tags')
+      .select('tag_id, piktag_tags!inner(id, name)')
+      .eq('user_id', friendId)
+      .eq('is_private', false);
 
     if (data) {
-      setNotes((prev) => [data, ...prev]);
+      const tags = data
+        .map((ut: any) => ({ id: ut.piktag_tags?.id, name: ut.piktag_tags?.name }))
+        .filter((t: any) => t.id && t.name);
+      setFriendPublicTags(tags);
+      return tags;
     }
-    setNoteContent('');
-    setNoteColor(NOTE_COLORS[0]);
-    setIsAddingNote(false);
-  };
+    return [];
+  }, [friendId]);
 
-  const handleUpdateNote = async () => {
-    if (!editingNoteId || !noteContent.trim()) return;
-
-    const { data, error } = await supabase
-      .from('piktag_notes')
-      .update({
-        content: noteContent.trim(),
-        color: noteColor,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', editingNoteId)
-      .select()
-      .single();
-
-    if (error) {
-      console.error('Error updating note:', error);
-      Alert.alert('Error', 'Failed to update note');
-      return;
-    }
-
+  // Load already-picked tags for this connection
+  const loadPickedTags = useCallback(async () => {
+    if (!connectionId) return;
+    const { data } = await supabase
+      .from('piktag_connection_tags')
+      .select('tag_id')
+      .eq('connection_id', connectionId);
     if (data) {
-      setNotes((prev) => prev.map((n) => (n.id === editingNoteId ? data : n)));
+      setPickedTagIds(new Set(data.map((ct: any) => ct.tag_id)));
     }
-    setNoteContent('');
-    setNoteColor(NOTE_COLORS[0]);
-    setEditingNoteId(null);
-  };
+  }, [connectionId]);
 
-  const handleDeleteNote = (noteId: string) => {
-    Alert.alert('刪除便利貼', '確定要刪除這個便利貼嗎？', [
-      { text: '取消', style: 'cancel' },
-      {
-        text: '刪除',
-        style: 'destructive',
-        onPress: async () => {
-          const { error } = await supabase
-            .from('piktag_notes')
-            .delete()
-            .eq('id', noteId);
-
-          if (error) {
-            console.error('Error deleting note:', error);
-            Alert.alert('Error', 'Failed to delete note');
-            return;
-          }
-          setNotes((prev) => prev.filter((n) => n.id !== noteId));
-        },
-      },
-    ]);
-  };
-
-  const handleTogglePin = async (note: Note) => {
-    const { data, error } = await supabase
-      .from('piktag_notes')
-      .update({ is_pinned: !note.is_pinned })
-      .eq('id', note.id)
-      .select()
-      .single();
-
-    if (error) {
-      console.error('Error toggling pin:', error);
-      return;
-    }
-
+  // --- Hidden tags (private) --- (must be before openPickTagModal)
+  const fetchHiddenTags = useCallback(async () => {
+    if (!connectionId) return;
+    const { data } = await supabase
+      .from('piktag_connection_tags')
+      .select('id, tag_id, piktag_tags!inner(name)')
+      .eq('connection_id', connectionId)
+      .eq('is_private', true);
     if (data) {
-      setNotes((prev) =>
-        prev
-          .map((n) => (n.id === note.id ? data : n))
-          .sort((a, b) => {
-            if (a.is_pinned !== b.is_pinned) return a.is_pinned ? -1 : 1;
-            return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime();
-          })
-      );
+      setHiddenTags(data.map((ct: any) => ({
+        id: ct.id,
+        tagId: ct.tag_id,
+        name: ct.piktag_tags?.name || '',
+      })));
+    }
+  }, [connectionId]);
+
+  // Open pick tag modal (includes hidden tags)
+  const openPickTagModal = useCallback(async () => {
+    await Promise.all([fetchFriendPublicTags(), loadPickedTags(), fetchHiddenTags()]);
+    setPickTagModalVisible(true);
+  }, [fetchFriendPublicTags, loadPickedTags, fetchHiddenTags]);
+
+  // Toggle a tag selection in the modal
+  const togglePickTag = (tagId: string) => {
+    setPickedTagIds(prev => {
+      const next = new Set(prev);
+      if (next.has(tagId)) next.delete(tagId);
+      else next.add(tagId);
+      return next;
+    });
+  };
+
+  // Save picked tags
+  const handleSavePickedTags = async () => {
+    if (!connectionId || !user) return;
+    setPickTagLoading(true);
+    try {
+      // Delete existing connection_tags for this connection
+      await supabase.from('piktag_connection_tags').delete().eq('connection_id', connectionId);
+
+      // Insert picked ones with position (preserving order)
+      if (pickedTagIds.size > 0) {
+        const rows = Array.from(pickedTagIds).map((tagId, i) => ({
+          connection_id: connectionId,
+          tag_id: tagId,
+          position: i,
+        }));
+        await supabase.from('piktag_connection_tags').insert(rows);
+      }
+
+      setPickTagModalVisible(false);
+    } catch (err) {
+      console.error('Save picked tags error:', err);
+      Alert.alert(t('common.error'), t('friendDetail.alertPickTagError'));
+    } finally {
+      setPickTagLoading(false);
     }
   };
 
-  const startEditNote = (note: Note) => {
-    setEditingNoteId(note.id);
-    setNoteContent(note.content);
-    setNoteColor(note.color);
-    setIsAddingNote(false);
+  const handleReport = async (reason: string) => {
+    if (!user || !friendId) return;
+    await supabase.from('piktag_reports').insert({ reporter_id: user.id, reported_id: friendId, reason });
+    Alert.alert(t('friendDetail.reportedTitle') || '已檢舉', t('friendDetail.reportedMessage') || '感謝你的回報，我們會盡快處理');
+  };
+
+  const handleToggleCloseFriend = async () => {
+    if (!user || !friendId) return;
+    if (isCloseFriend) {
+      await supabase.from('piktag_close_friends').delete()
+        .eq('user_id', user.id).eq('close_friend_id', friendId);
+      setIsCloseFriend(false);
+    } else {
+      await supabase.from('piktag_close_friends')
+        .upsert({ user_id: user.id, close_friend_id: friendId }, { onConflict: 'user_id,close_friend_id' });
+      setIsCloseFriend(true);
+    }
+  };
+
+  const handleToggleFollow = async () => {
+    if (!user || !friendId || followLoading) return;
+    setFollowLoading(true);
+    try {
+      if (isFollowing) {
+        setFollowLoading(false);
+        setUnfollowModalVisible(true);
+        return;
+      } else {
+        await supabase.from('piktag_follows').insert({ follower_id: user.id, following_id: friendId });
+        setIsFollowing(true);
+
+        // After follow success → show Pick Tag modal only if friend has public tags
+        const ftags = await fetchFriendPublicTags();
+        if (ftags.length > 0) {
+          await Promise.all([loadPickedTags(), fetchHiddenTags()]);
+          setPickTagModalVisible(true);
+        }
+      }
+    } catch (err) {
+      console.error('Follow toggle error:', err);
+    } finally {
+      setFollowLoading(false);
+    }
+  };
+
+  // Fetch hidden tags on load
+  useFocusEffect(
+    useCallback(() => {
+      if (connectionId) fetchHiddenTags();
+    }, [connectionId, fetchHiddenTags])
+  );
+
+  const handleAddHiddenTag = async () => {
+    const name = hiddenTagInput.trim().replace(/^#/, '');
+    if (!name || !connectionId || !user) return;
+    setAddingHiddenTag(true);
+    try {
+      // Find or create tag
+      let tagId: string;
+      const { data: existing } = await supabase.from('piktag_tags').select('id').eq('name', name).single();
+      if (existing) {
+        tagId = existing.id;
+      } else {
+        const { data: newTag } = await supabase.from('piktag_tags').insert({ name }).select('id').single();
+        if (!newTag) { setAddingHiddenTag(false); return; }
+        tagId = newTag.id;
+      }
+
+      // Insert as private connection tag
+      await supabase.from('piktag_connection_tags').insert({
+        connection_id: connectionId,
+        tag_id: tagId,
+        is_private: true,
+      });
+
+      setHiddenTagInput('');
+      fetchHiddenTags();
+    } catch (err) {
+      console.error('Add hidden tag error:', err);
+    } finally {
+      setAddingHiddenTag(false);
+    }
+  };
+
+  const handleRemoveHiddenTag = async (ctId: string) => {
+    await supabase.from('piktag_connection_tags').delete().eq('id', ctId);
+    setHiddenTags(prev => prev.filter(t => t.id !== ctId));
+  };
+
+  const handleConfirmUnfollow = async () => {
+    if (!user || !friendId) return;
+    setUnfollowModalVisible(false);
+    await supabase.from('piktag_follows').delete().eq('follower_id', user.id).eq('following_id', friendId);
+    setIsFollowing(false);
   };
 
   const handleOpenLink = async (url: string, biolinkId: string) => {
@@ -348,7 +612,7 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
     }
     Linking.openURL(url).catch((err) => {
       console.warn('Failed to open URL:', err);
-      Alert.alert('錯誤', '無法開啟此連結');
+      Alert.alert(t('common.error'), t('friendDetail.alertOpenLinkError'));
     });
   };
 
@@ -368,7 +632,7 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
       const m = parseInt(month, 10);
       const d = parseInt(day, 10);
       if (m < 1 || m > 12 || d < 1 || d > 31) {
-        Alert.alert('錯誤', '請輸入有效的日期格式 (MM-DD)');
+        Alert.alert(t('common.error'), t('friendDetail.alertInvalidDate'));
         return;
       }
       dateStr = `2000-${month}-${day}`;
@@ -380,7 +644,7 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
       .eq('id', connectionId);
 
     if (error) {
-      Alert.alert('錯誤', '無法儲存提醒日期');
+      Alert.alert(t('common.error'), t('friendDetail.alertSaveReminderError'));
     } else {
       if (field === 'birthday') setBirthday(dateStr);
       if (field === 'anniversary') setAnniversary(dateStr);
@@ -421,14 +685,31 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
     }
   };
 
+  // Connection strength (must be before any early return)
+  const metDate = connection?.met_at || '';
+  const strengthScore = useMemo(() => {
+    const daysSinceMet = metDate ? Math.floor((Date.now() - new Date(metDate).getTime()) / 86400000) : 0;
+    return calculateStrength({
+      mutualTagCount: mutualTags,
+      daysSinceMet,
+      hasBirthday: !!birthday,
+      hasAnniversary: false,
+      hasContractExpiry: false,
+      isCloseFriend,
+      hiddenTagCount: hiddenTags.length,
+      pickedTagCount: tags.filter(t => t.isPicked).length,
+    });
+  }, [metDate, mutualTags, birthday, isCloseFriend, hiddenTags, tags]);
+  const strengthInfo = getStrengthLabel(strengthScore);
+
   if (loading) {
     return (
-      <View style={styles.container}>
-        <StatusBar barStyle="dark-content" backgroundColor={COLORS.white} />
+      <View style={[styles.container, { backgroundColor: colors.background }]}>
+        <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={colors.white} />
         <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
           <TouchableOpacity
             style={styles.backBtn}
-            onPress={() => navigation.goBack()}
+            onPress={() => navigation.canGoBack() ? navigation.goBack() : navigation.navigate('Connections')}
             activeOpacity={0.6}
           >
             <ArrowLeft size={24} color={COLORS.gray900} />
@@ -446,329 +727,517 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
   const displayName = connection?.nickname || profile?.full_name || profile?.username || 'Unknown';
   const username = profile?.username || '';
   const verified = profile?.is_verified || false;
-  const avatarUri = profile?.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=f3f4f6&color=6b7280`;
-  const metDate = connection?.met_at || '';
+  const avatarUrl = profile?.avatar_url || null;
   const metLocation = connection?.met_location || '';
-  const connectionNote = connection?.note || '';
 
   return (
-    <View style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor={COLORS.white} />
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={colors.white} />
 
       {/* Header */}
       <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
         <TouchableOpacity
           style={styles.backBtn}
-          onPress={() => navigation.goBack()}
+          onPress={() => navigation.canGoBack() ? navigation.goBack() : navigation.navigate('Connections')}
           activeOpacity={0.6}
         >
           <ArrowLeft size={24} color={COLORS.gray900} />
         </TouchableOpacity>
         <Text style={styles.headerName} numberOfLines={1}>
-          {displayName}
+          {username}
         </Text>
-        <View style={styles.headerSpacer} />
+        <TouchableOpacity
+          style={styles.headerShareBtn}
+          onPress={() => setMoreMenuVisible(true)}
+          activeOpacity={0.6}
+        >
+          <MoreHorizontal size={24} color={COLORS.gray900} />
+        </TouchableOpacity>
       </View>
 
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Profile Section */}
+        {/* Threads style layout */}
         <View style={styles.profileSection}>
-          <Image
-            source={{ uri: avatarUri }}
-            style={styles.avatar}
-          />
-          <View style={styles.nameRow}>
-            <Text style={styles.fullName}>{displayName}</Text>
-            {verified && (
-              <CheckCircle2
-                size={20}
-                color={COLORS.blue500}
-                fill={COLORS.blue500}
-                strokeWidth={0}
-                style={styles.verifiedIcon}
-              />
+          {/* Avatar + Name/Username */}
+          <View style={styles.profileRow}>
+            {avatarUrl ? (
+              <Image source={{ uri: avatarUrl }} style={styles.avatar} />
+            ) : (
+              <InitialsAvatar name={displayName} size={56} style={styles.avatar} />
+            )}
+            <View style={styles.nameSection}>
+              <View style={styles.nameRow}>
+                <Text style={styles.fullName}>{displayName}</Text>
+                {/* {verified && (
+                  <CheckCircle2 size={16} color={COLORS.blue500} fill={COLORS.blue500} strokeWidth={0} style={{ marginLeft: 4 }} />
+                )} */}
+              </View>
+              <View style={styles.usernameRow}>
+                <Text style={styles.usernameText}>@{username}</Text>
+                <View style={[styles.strengthBadge, { backgroundColor: strengthInfo.color + '18' }]}>
+                  <Text style={[styles.strengthText, { color: strengthInfo.color }]}>{strengthInfo.label}</Text>
+                </View>
+              </View>
+            </View>
+          </View>
+
+          {/* Headline */}
+          {profile?.headline ? <Text style={styles.headline}>{profile.headline}</Text> : null}
+
+          {/* Bio (max 3 lines) */}
+          {profile?.bio ? <Text style={styles.bio} numberOfLines={3}>{profile.bio}</Text> : null}
+
+          {/* Tags — user tags + event tags combined */}
+          {(tags.length > 0 || scanEventTags.length > 0) && (
+            <View style={styles.tagsWrap}>
+              {tags.map((tag) => (
+                <TouchableOpacity
+                  key={tag.tagId}
+                  style={[styles.tagChip, tag.isPicked && styles.tagChipPicked, tag.isHidden && styles.hiddenTagChip]}
+                  activeOpacity={0.6}
+                  onPress={() => navigation.navigate('TagDetail', { tagId: tag.tagId, tagName: tag.name, initialTab: 'explore' })}
+                >
+                  <Text style={[styles.tagChipText, tag.isPicked && styles.tagChipTextPicked, tag.isHidden && styles.hiddenTagChipText]}>
+                    #{tag.name}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+              {scanEventTags.map((etag, i) => (
+                <TouchableOpacity
+                  key={`event-${i}`}
+                  style={styles.tagChip}
+                  activeOpacity={0.6}
+                  onPress={() => navigation.navigate('TagDetail', { tagName: etag, initialTab: 'explore' })}
+                >
+                  <Text style={styles.tagChipText}>#{etag}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
+
+          {/* Stats — subtle one line */}
+          <View style={styles.statsLineRow}>
+            {mutualTags > 0 ? (
+              <TouchableOpacity onPress={() => setMutualTagModalVisible(true)} activeOpacity={0.6}>
+                <Text style={styles.statTextClickable}>
+                  <Text style={[styles.statNumber, { color: COLORS.piktag600 }]}>{mutualTags}</Text>
+                  <Text style={{ color: COLORS.piktag600 }}>{t('friendDetail.mutualTagsLabel')}</Text>
+                </Text>
+              </TouchableOpacity>
+            ) : (
+              <Text style={styles.statText}>
+                <Text style={styles.statNumber}>{mutualTags}</Text>
+                <Text style={styles.statLabel}>{t('friendDetail.mutualTagsLabel')}</Text>
+              </Text>
+            )}
+            <Text style={styles.statDot}>·</Text>
+            <TouchableOpacity onPress={() => mutualFriends > 0 && setMutualFriendsModalVisible(true)} activeOpacity={0.7}>
+              <Text style={styles.statText}>
+                <Text style={styles.statNumber}>{mutualFriends}</Text>
+                <Text style={styles.statLabel}>{t('friendDetail.mutualFriendsLabel')}</Text>
+              </Text>
+            </TouchableOpacity>
+            <Text style={styles.statDot}>·</Text>
+            <Text style={styles.statText}>
+              <Text style={styles.statNumber}>{followerCount}</Text>
+              <Text style={styles.statLabel}>{t('friendDetail.followersLabel')}</Text>
+            </Text>
+          </View>
+
+          {/* Action buttons — Follow logic */}
+          <View style={styles.actionButtonsRow}>
+            {isFollowing ? (
+              <TouchableOpacity
+                style={[styles.followButton, styles.followButtonFollowing]}
+                onPress={handleToggleFollow}
+                activeOpacity={0.8}
+                disabled={followLoading}
+              >
+                {followLoading ? (
+                  <ActivityIndicator size="small" color={COLORS.piktag600} />
+                ) : (
+                  <Text style={styles.followButtonTextFollowing}>
+                    {t('friendDetail.following')}
+                  </Text>
+                )}
+              </TouchableOpacity>
+            ) : (
+              <TouchableOpacity onPress={handleToggleFollow} activeOpacity={0.8} disabled={followLoading} style={{ flex: 1 }}>
+                <LinearGradient
+                  colors={['#ff5757', '#c44dff', '#8c52ff']}
+                  start={{ x: 0, y: 0.5 }}
+                  end={{ x: 1, y: 0.5 }}
+                  style={[styles.followButton, { borderRadius: 12 }]}
+                >
+                  {followLoading ? (
+                    <ActivityIndicator size="small" color="#fff" />
+                  ) : (
+                    <Text style={styles.followButtonTextDefault}>
+                      {t('friendDetail.follow')}
+                    </Text>
+                  )}
+                </LinearGradient>
+              </TouchableOpacity>
+            )}
+            {isFollowing && (
+              <TouchableOpacity
+                style={styles.tagButton}
+                activeOpacity={0.7}
+                onPress={openPickTagModal}
+              >
+                <Text style={styles.tagButtonText}>{t('friendDetail.tagAction')}</Text>
+              </TouchableOpacity>
             )}
           </View>
-          <Text style={styles.usernameText}>@{username}</Text>
         </View>
 
-        {/* Tags */}
-        {tags.length > 0 && (
-          <View style={styles.tagsSection}>
-            <View style={styles.tagsWrap}>
-              {tags.map((tag, index) => (
-                <View key={index} style={styles.tagChip}>
-                  <Text style={styles.tagChipText}>{tag}</Text>
-                </View>
-              ))}
-            </View>
-          </View>
-        )}
-
-        {/* Stats Row */}
-        <View style={styles.statsRow}>
-          <View style={styles.statBox}>
-            <Text style={styles.statNumber}>{mutualFriends}</Text>
-            <Text style={styles.statLabel}>共同朋友</Text>
-          </View>
-          <View style={styles.statBox}>
-            <Text style={styles.statNumber}>{mutualTags}</Text>
-            <Text style={styles.statLabel}>共同標籤</Text>
-          </View>
-        </View>
-
-        {/* Action Buttons */}
-        <View style={styles.actionsRow}>
-          <TouchableOpacity
-            style={styles.primaryButton}
-            activeOpacity={0.8}
-            onPress={() => {
-              // Navigate to chat with this friend
-              navigation.navigate('LikesTab', {
-                screen: 'ChatDetail',
-                params: { friendId, friendName: displayName },
-              });
-            }}
-          >
-            <MessageCircle size={18} color={COLORS.gray900} />
-            <Text style={styles.primaryButtonText}>發送訊息</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.outlineButton} activeOpacity={0.8}>
-            <Tag size={18} color={COLORS.gray700} />
-            <Text style={styles.outlineButtonText}>管理標籤</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Met Record Section */}
-        {(metDate || metLocation || connectionNote) && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>相識紀錄</Text>
-            <View style={styles.recordCard}>
-              {metDate ? (
-                <>
-                  <View style={styles.recordRow}>
-                    <Calendar size={16} color={COLORS.gray400} />
-                    <Text style={styles.recordLabel}>認識日期</Text>
-                    <Text style={styles.recordValue}>{metDate}</Text>
-                  </View>
-                  {(metLocation || connectionNote) && <View style={styles.recordDivider} />}
-                </>
-              ) : null}
-              {metLocation ? (
-                <>
-                  <View style={styles.recordRow}>
-                    <MapPin size={16} color={COLORS.gray400} />
-                    <Text style={styles.recordLabel}>地點</Text>
-                    <Text style={styles.recordValue}>{metLocation}</Text>
-                  </View>
-                  {connectionNote ? <View style={styles.recordDivider} /> : null}
-                </>
-              ) : null}
-              {connectionNote ? (
-                <View style={styles.recordRow}>
-                  <FileText size={16} color={COLORS.gray400} />
-                  <Text style={styles.recordLabel}>備註</Text>
-                  <Text style={[styles.recordValue, styles.recordNotes]}>
-                    {connectionNote}
-                  </Text>
-                </View>
-              ) : null}
-            </View>
-          </View>
-        )}
-
-        {/* Sticky Notes Section */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>便利貼</Text>
-            <TouchableOpacity
-              onPress={() => {
-                setIsAddingNote(true);
-                setEditingNoteId(null);
-                setNoteContent('');
-                setNoteColor(NOTE_COLORS[0]);
-              }}
-              activeOpacity={0.7}
-            >
-              <Plus size={22} color={COLORS.gray600} />
-            </TouchableOpacity>
-          </View>
-
-          {/* Add/Edit Note Form */}
-          {(isAddingNote || editingNoteId) && (
-            <View style={[styles.noteForm, { backgroundColor: noteColor }]}>
-              <TextInput
-                style={styles.noteInput}
-                placeholder="寫下你的便利貼..."
-                placeholderTextColor={COLORS.gray400}
-                value={noteContent}
-                onChangeText={setNoteContent}
-                multiline
-                autoFocus
-              />
-              <View style={styles.noteColorRow}>
-                {NOTE_COLORS.map((color) => (
-                  <TouchableOpacity
-                    key={color}
-                    style={[
-                      styles.noteColorDot,
-                      { backgroundColor: color },
-                      noteColor === color && styles.noteColorDotActive,
-                    ]}
-                    onPress={() => setNoteColor(color)}
-                  />
-                ))}
-              </View>
-              <View style={styles.noteFormActions}>
-                <TouchableOpacity
-                  style={styles.noteFormCancel}
-                  onPress={() => {
-                    setIsAddingNote(false);
-                    setEditingNoteId(null);
-                    setNoteContent('');
-                  }}
-                >
-                  <Text style={styles.noteFormCancelText}>取消</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.noteFormSave}
-                  onPress={editingNoteId ? handleUpdateNote : handleAddNote}
-                >
-                  <Text style={styles.noteFormSaveText}>
-                    {editingNoteId ? '更新' : '新增'}
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          )}
-
-          {/* Notes List */}
-          {notes.length === 0 && !isAddingNote && (
-            <Text style={styles.emptyNotesText}>還沒有便利貼</Text>
-          )}
-          {notes.map((note) => (
-            <View key={note.id} style={[styles.noteCard, { backgroundColor: note.color || NOTE_COLORS[0] }]}>
-              {note.is_pinned && (
-                <View style={styles.notePinBadge}>
-                  <Pin size={12} color={COLORS.gray600} />
-                </View>
-              )}
-              <Text style={styles.noteCardText}>{note.content}</Text>
-              <View style={styles.noteCardActions}>
-                <TouchableOpacity
-                  onPress={() => handleTogglePin(note)}
-                  style={styles.noteActionBtn}
-                >
-                  <Pin
-                    size={16}
-                    color={note.is_pinned ? COLORS.piktag600 : COLORS.gray400}
-                  />
-                </TouchableOpacity>
-                <TouchableOpacity
-                  onPress={() => startEditNote(note)}
-                  style={styles.noteActionBtn}
-                >
-                  <Edit3 size={16} color={COLORS.gray400} />
-                </TouchableOpacity>
-                <TouchableOpacity
-                  onPress={() => handleDeleteNote(note.id)}
-                  style={styles.noteActionBtn}
-                >
-                  <Trash2 size={16} color={COLORS.red500} />
-                </TouchableOpacity>
-              </View>
-            </View>
-          ))}
-        </View>
-
-        {/* CRM Reminders Section */}
-        {connectionId && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>重要提醒</Text>
-            <View style={styles.recordCard}>
-              {([
-                { field: 'birthday' as ReminderField, value: birthday, icon: <Gift size={16} color={COLORS.pink500} /> },
-                { field: 'anniversary' as ReminderField, value: anniversary, icon: <Heart size={16} color={COLORS.red500} /> },
-                { field: 'contract_expiry' as ReminderField, value: contractExpiry, icon: <Clock size={16} color={COLORS.orange500} /> },
-              ]).map((item, idx) => (
-                <React.Fragment key={item.field}>
-                  {idx > 0 && <View style={styles.recordDivider} />}
-                  <View style={styles.reminderRow}>
-                    {item.icon}
-                    <Text style={styles.recordLabel}>{REMINDER_LABELS[item.field]}</Text>
-                    {editingReminder === item.field ? (
-                      <View style={styles.reminderEditRow}>
-                        <TextInput
-                          style={styles.reminderInput}
-                          placeholder="MM-DD 或 YYYY-MM-DD"
-                          placeholderTextColor={COLORS.gray400}
-                          value={reminderInput}
-                          onChangeText={setReminderInput}
-                          autoFocus
-                          onSubmitEditing={() => handleSaveReminder(item.field)}
-                        />
-                        <TouchableOpacity onPress={() => handleSaveReminder(item.field)}>
-                          <Text style={styles.reminderSaveBtn}>儲存</Text>
-                        </TouchableOpacity>
-                      </View>
-                    ) : (
-                      <TouchableOpacity
-                        style={styles.reminderValueRow}
-                        onPress={() => {
-                          setEditingReminder(item.field);
-                          setReminderInput(item.value || '');
-                        }}
-                      >
-                        <Text style={[styles.recordValue, !item.value && { color: COLORS.gray400 }]}>
-                          {item.value ? formatReminderDate(item.value) : '點擊設定'}
-                        </Text>
-                        {item.value && (
-                          <TouchableOpacity
-                            onPress={() => handleClearReminder(item.field)}
-                            style={{ marginLeft: 8, padding: 4 }}
-                          >
-                            <Text style={{ fontSize: 12, color: COLORS.red500 }}>清除</Text>
-                          </TouchableOpacity>
-                        )}
-                      </TouchableOpacity>
-                    )}
-                  </View>
-                </React.Fragment>
-              ))}
-            </View>
-          </View>
-        )}
-
-        {/* Biolinks Section */}
+        {/* ===== SECTION 2: Social Links — IG Highlights style circles ===== */}
         {biolinks.length > 0 && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>社群連結</Text>
-            <View style={styles.biolinksCard}>
-              {biolinks.map((link, index) => (
-                <React.Fragment key={link.id}>
-                  <TouchableOpacity
-                    style={styles.biolinkRow}
-                    onPress={() => handleOpenLink(link.url, link.id)}
-                    activeOpacity={0.7}
-                  >
-                    {getBiolinkIcon(link.platform as BiolinkType)}
-                    <Text style={styles.biolinkTitle}>{link.label || link.platform}</Text>
-                    <Text style={styles.biolinkUrl} numberOfLines={1}>
-                      {link.url.replace('https://', '')}
-                    </Text>
-                  </TouchableOpacity>
-                  {index < biolinks.length - 1 && (
-                    <View style={styles.biolinkDivider} />
-                  )}
-                </React.Fragment>
+          <View style={styles.socialSection}>
+            <Text style={styles.sectionTitle}>{t('friendDetail.biolinksTitle')}</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.socialScrollContent}>
+              {biolinks.map((link) => (
+                <TouchableOpacity
+                  key={link.id}
+                  style={styles.socialCircleItem}
+                  onPress={() => handleOpenLink(link.url, link.id)}
+                  activeOpacity={0.7}
+                >
+                  <View style={styles.socialCircleRing}>
+                    <View style={styles.socialCircleInner}>
+                      <PlatformIcon platform={link.platform} size={28} />
+                    </View>
+                  </View>
+                  <Text style={styles.socialCircleLabel} numberOfLines={1}>
+                    {link.label || link.platform}
+                  </Text>
+                </TouchableOpacity>
               ))}
+            </ScrollView>
+          </View>
+        )}
+
+        {/* ===== SECTION 3: Link Bio — Linktree style cards ===== */}
+        {biolinks.length > 0 && (
+          <View style={styles.linkBioSection}>
+            {biolinks.map((link) => (
+              <TouchableOpacity
+                key={link.id}
+                style={styles.linkCard}
+                onPress={() => handleOpenLink(link.url, link.id)}
+                activeOpacity={0.7}
+              >
+                <PlatformIcon platform={link.platform} size={22} />
+                <Text style={styles.linkCardText} numberOfLines={1}>
+                  {link.label || link.platform}
+                </Text>
+                <ExternalLink size={16} color={COLORS.gray400} />
+              </TouchableOpacity>
+            ))}
+          </View>
+        )}
+
+        {/* ===== SECTION 4: CRM & Management (below the fold) ===== */}
+
+        {/* Event tags moved to tags section above bio */}
+
+        {/* Birthday — read from profile (set during registration) */}
+        {profile?.birthday && (
+          <View style={styles.section}>
+            <View style={styles.recordCard}>
+              <View style={styles.reminderRow}>
+                <Gift size={16} color={COLORS.pink500} />
+                <Text style={styles.recordLabel}>{t('friendDetail.reminderBirthday')}</Text>
+                <Text style={styles.recordValue}>{formatReminderDate(profile.birthday)}</Text>
+              </View>
             </View>
           </View>
         )}
       </ScrollView>
+
+      {/* ====== Mutual Tags Modal ====== */}
+      <Modal
+        visible={mutualTagModalVisible}
+        animationType="fade"
+        transparent
+        onRequestClose={() => setMutualTagModalVisible(false)}
+      >
+        <TouchableOpacity
+          style={styles.mutualModalOverlay}
+          activeOpacity={1}
+          onPress={() => setMutualTagModalVisible(false)}
+        >
+          <View style={styles.mutualModalContainer}>
+            <Text style={styles.mutualModalTitle}>{t('friendDetail.mutualTagsModalTitle')}</Text>
+            <View style={styles.mutualModalTagsWrap}>
+              {mutualTagNames.map((tag) => (
+                <TouchableOpacity
+                  key={tag.id}
+                  style={styles.mutualModalTag}
+                  activeOpacity={0.7}
+                  onPress={() => {
+                    setMutualTagModalVisible(false);
+                    navigation.navigate('TagDetail', { tagId: tag.id, tagName: tag.name, initialTab: 'explore' });
+                  }}
+                >
+                  <Text style={styles.mutualModalTagText}>#{tag.name}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+        </TouchableOpacity>
+      </Modal>
+
+      {/* ====== Mutual Friends Modal ====== */}
+      <Modal
+        visible={mutualFriendsModalVisible}
+        animationType="fade"
+        transparent
+        onRequestClose={() => setMutualFriendsModalVisible(false)}
+      >
+        <TouchableOpacity
+          style={styles.mutualModalOverlay}
+          activeOpacity={1}
+          onPress={() => setMutualFriendsModalVisible(false)}
+        >
+          <View style={styles.mutualModalContainer}>
+            <Text style={styles.mutualModalTitle}>{t('friendDetail.mutualFriendsModalTitle') || '共同好友'}</Text>
+            <View style={{ gap: 12, marginTop: 8 }}>
+              {mutualFriendProfiles.map((p) => (
+                <TouchableOpacity
+                  key={p.id}
+                  style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}
+                  activeOpacity={0.7}
+                  onPress={() => {
+                    setMutualFriendsModalVisible(false);
+                    navigation.navigate('UserDetail', { userId: p.id });
+                  }}
+                >
+                  {p.avatar_url ? (
+                    <Image source={{ uri: p.avatar_url }} style={{ width: 40, height: 40, borderRadius: 20 }} />
+                  ) : (
+                    <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: COLORS.gray200, alignItems: 'center', justifyContent: 'center' }}>
+                      <Text style={{ fontSize: 16, color: COLORS.gray500 }}>{(p.full_name || p.username || '?')[0]}</Text>
+                    </View>
+                  )}
+                  <View>
+                    <Text style={{ fontSize: 15, fontWeight: '600', color: COLORS.gray900 }}>{p.full_name || p.username || '?'}</Text>
+                    {p.username && <Text style={{ fontSize: 13, color: COLORS.gray500 }}>@{p.username}</Text>}
+                  </View>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+        </TouchableOpacity>
+      </Modal>
+
+      {/* ====== Unfollow Confirm Modal ====== */}
+      <Modal
+        visible={unfollowModalVisible}
+        animationType="fade"
+        transparent
+        onRequestClose={() => setUnfollowModalVisible(false)}
+      >
+        <View style={styles.unfollowModalOverlay}>
+          <View style={styles.unfollowModalContainer}>
+            <Text style={styles.unfollowModalTitle}>{t('friendDetail.unfollowTitle')}</Text>
+            <Text style={styles.unfollowModalMessage}>
+              {t('friendDetail.unfollowMessage', { name: displayName })}
+            </Text>
+            <View style={styles.unfollowModalButtons}>
+              <TouchableOpacity
+                style={styles.unfollowModalCancelBtn}
+                onPress={() => setUnfollowModalVisible(false)}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.unfollowModalCancelText}>{t('common.cancel')}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.unfollowModalConfirmBtn}
+                onPress={handleConfirmUnfollow}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.unfollowModalConfirmText}>{t('friendDetail.unfollowConfirm')}</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* ====== Pick Tag Modal ====== */}
+      <Modal
+        visible={pickTagModalVisible}
+        animationType="slide"
+        transparent
+        onRequestClose={() => setPickTagModalVisible(false)}
+      >
+        <View style={styles.pickModalOverlay}>
+          <View style={styles.pickModalContainer}>
+            {/* Header */}
+            <View style={styles.pickModalHeader}>
+              <Text style={styles.pickModalTitle}>{t('friendDetail.pickTagTitle')}</Text>
+              <TouchableOpacity onPress={() => setPickTagModalVisible(false)} activeOpacity={0.6}>
+                <Text style={styles.pickModalCloseText}>{t('common.close')}</Text>
+              </TouchableOpacity>
+            </View>
+
+            <Text style={styles.pickModalSubtitle}>
+              {t('friendDetail.pickTagSubtitle', { name: displayName })}
+            </Text>
+
+            {/* Tag list */}
+            {friendPublicTags.length === 0 ? (
+              <Text style={styles.pickModalEmpty}>{t('friendDetail.pickTagEmpty')}</Text>
+            ) : (
+              <View style={styles.pickModalTagsWrap}>
+                {friendPublicTags.map((tag) => {
+                  const isSelected = pickedTagIds.has(tag.id);
+                  return (
+                    <TouchableOpacity
+                      key={tag.id}
+                      style={[styles.pickModalTag, isSelected && styles.pickModalTagSelected]}
+                      onPress={() => togglePickTag(tag.id)}
+                      activeOpacity={0.7}
+                    >
+                      <Text style={[styles.pickModalTagText, isSelected && styles.pickModalTagTextSelected]}>
+                        #{tag.name}
+                      </Text>
+                      {isSelected && <Text style={styles.pickModalCheck}>✓</Text>}
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            )}
+
+            {/* Divider */}
+            <View style={styles.pickModalDivider} />
+
+            {/* Hidden tags section */}
+            <Text style={styles.pickModalSectionTitle}>{t('friendDetail.hiddenTagsTitle')}</Text>
+
+            {hiddenTags.length > 0 && (
+              <View style={styles.pickModalTagsWrap}>
+                {hiddenTags.map((ht) => (
+                  <View key={ht.id} style={styles.hiddenTagChip}>
+                    <Text style={styles.hiddenTagChipText}>#{ht.name}</Text>
+                    <TouchableOpacity onPress={() => handleRemoveHiddenTag(ht.id)} activeOpacity={0.6} style={styles.hiddenTagRemove}>
+                      <Text style={styles.hiddenTagRemoveText}>×</Text>
+                    </TouchableOpacity>
+                  </View>
+                ))}
+              </View>
+            )}
+
+            <View style={styles.hiddenTagInputRow}>
+              <TextInput
+                style={styles.hiddenTagInput}
+                value={hiddenTagInput}
+                onChangeText={setHiddenTagInput}
+                placeholder={t('friendDetail.hiddenTagPlaceholder')}
+                placeholderTextColor={COLORS.gray400}
+                returnKeyType="done"
+                onSubmitEditing={handleAddHiddenTag}
+              />
+              <TouchableOpacity
+                style={[styles.hiddenTagAddBtn, (!hiddenTagInput.trim() || addingHiddenTag) && { opacity: 0.5 }]}
+                onPress={handleAddHiddenTag}
+                disabled={!hiddenTagInput.trim() || addingHiddenTag}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.hiddenTagAddText}>{t('common.add')}</Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* Save button */}
+            <TouchableOpacity
+              style={[styles.pickModalSaveBtn, pickTagLoading && { opacity: 0.7 }]}
+              onPress={handleSavePickedTags}
+              disabled={pickTagLoading}
+              activeOpacity={0.8}
+            >
+              {pickTagLoading ? (
+                <ActivityIndicator size="small" color={COLORS.gray900} />
+              ) : (
+                <Text style={styles.pickModalSaveText}>
+                  {t('friendDetail.pickTagSave', { count: pickedTagIds.size })}
+                </Text>
+              )}
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+      {/* More Menu Modal */}
+      <Modal visible={moreMenuVisible} transparent animationType="fade" onRequestClose={() => setMoreMenuVisible(false)}>
+        <TouchableOpacity style={styles.moreOverlay} activeOpacity={1} onPress={() => setMoreMenuVisible(false)}>
+          <View style={[styles.moreSheet, { paddingBottom: insets.bottom + 16 }]}>
+            <TouchableOpacity
+              style={styles.moreItem}
+              onPress={() => { setMoreMenuVisible(false); handleToggleCloseFriend(); }}
+            >
+              <Heart size={20} color={isCloseFriend ? COLORS.piktag600 : COLORS.gray600} fill={isCloseFriend ? COLORS.piktag600 : 'transparent'} />
+              <Text style={[styles.moreItemText, isCloseFriend && { color: COLORS.piktag600 }]}>
+                {isCloseFriend ? (t('friendDetail.closeFriendRemove') || '已設為摯友') : (t('friendDetail.closeFriendAdd') || '設為摯友')}
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.moreItem}
+              onPress={async () => {
+                setMoreMenuVisible(false);
+                const profileUrl = `https://pikt.ag/${username}`;
+                const name = displayName || username;
+                try {
+                  await Share.share({
+                    message: Platform.OS === 'ios' ? `${name} (@${username}) on #piktag` : `${name} (@${username}) on #piktag\n${profileUrl}`,
+                    url: Platform.OS === 'ios' ? profileUrl : undefined,
+                  });
+                } catch {}
+              }}
+            >
+              <Share2 size={20} color={COLORS.gray600} />
+              <Text style={styles.moreItemText}>{t('friendDetail.shareProfile') || '分享'}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.moreItem}
+              onPress={async () => {
+                setMoreMenuVisible(false);
+                if (!user || !friendId) return;
+                await supabase.from('piktag_blocks')
+                  .upsert({ blocker_id: user.id, blocked_id: friendId }, { onConflict: 'blocker_id,blocked_id' });
+                Alert.alert(t('friendDetail.blockedTitle') || '已封鎖', t('friendDetail.blockedMessage') || '你將不再看到此用戶');
+                navigation.goBack();
+              }}
+            >
+              <X size={20} color="#EF4444" />
+              <Text style={[styles.moreItemText, { color: '#EF4444' }]}>{t('friendDetail.blockUser') || '封鎖'}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.moreItem}
+              onPress={() => {
+                setMoreMenuVisible(false);
+                Alert.alert(
+                  t('friendDetail.reportTitle') || '檢舉用戶',
+                  t('friendDetail.reportMessage') || '請選擇檢舉原因',
+                  [
+                    { text: t('friendDetail.reportSpam') || '垃圾訊息', onPress: () => handleReport('spam') },
+                    { text: t('friendDetail.reportHarassment') || '騷擾', onPress: () => handleReport('harassment') },
+                    { text: t('friendDetail.reportFake') || '假帳號', onPress: () => handleReport('fake_account') },
+                    { text: t('common.cancel') || '取消', style: 'cancel' },
+                  ]
+                );
+              }}
+            >
+              <AlertTriangle size={20} color={COLORS.gray600} />
+              <Text style={styles.moreItemText}>{t('friendDetail.reportUser') || '檢舉'}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.moreCancelBtn} onPress={() => setMoreMenuVisible(false)}>
+              <Text style={styles.moreCancelText}>{t('common.cancel') || '取消'}</Text>
+            </TouchableOpacity>
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </View>
   );
 }
@@ -801,6 +1270,9 @@ const styles = StyleSheet.create({
   headerSpacer: {
     width: 32,
   },
+  headerShareBtn: {
+    padding: 4,
+  },
   loadingContainer: {
     flex: 1,
     alignItems: 'center',
@@ -810,80 +1282,153 @@ const styles = StyleSheet.create({
     paddingBottom: 100,
   },
   profileSection: {
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 16,
+  },
+  profileRow: {
+    flexDirection: 'row',
     alignItems: 'center',
-    paddingTop: 28,
-    paddingBottom: 8,
+    gap: 14,
+    marginBottom: 10,
   },
   avatar: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
     backgroundColor: COLORS.gray100,
-    borderWidth: 2,
-    borderColor: COLORS.gray100,
   },
   nameRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 14,
   },
   fullName: {
-    fontSize: 22,
+    fontSize: 16,
     fontWeight: '700',
     color: COLORS.gray900,
   },
-  verifiedIcon: {
-    marginLeft: 6,
+  usernameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
   usernameText: {
-    fontSize: 15,
+    fontSize: 14,
     color: COLORS.gray500,
-    marginTop: 4,
   },
-  tagsSection: {
+  strengthBadge: {
+    paddingVertical: 2,
+    paddingHorizontal: 8,
+    borderRadius: 8,
+  },
+  strengthText: {
+    fontSize: 11,
+    fontWeight: '700',
+  },
+  headline: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: COLORS.piktag600,
+    marginBottom: 4,
     paddingHorizontal: 20,
-    paddingTop: 16,
-    alignItems: 'center',
+  },
+  bio: {
+    fontSize: 14,
+    color: COLORS.gray700,
+    lineHeight: 21,
+    marginBottom: 12,
   },
   tagsWrap: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    justifyContent: 'center',
     gap: 8,
+    marginBottom: 4,
+    maxHeight: 76,
+    overflow: 'hidden',
   },
   tagChip: {
-    backgroundColor: COLORS.piktag50,
-    borderRadius: 9999,
+    backgroundColor: COLORS.gray50,
+    borderRadius: 16,
     paddingVertical: 6,
-    paddingHorizontal: 14,
+    paddingHorizontal: 12,
+    borderWidth: 1,
+    borderColor: COLORS.gray200,
+  },
+  tagChipPicked: {
+    backgroundColor: COLORS.piktag50,
+    borderColor: COLORS.piktag500,
   },
   tagChipText: {
     fontSize: 14,
     fontWeight: '500',
+    color: COLORS.gray800,
+  },
+  tagChipTextPicked: {
     color: COLORS.piktag600,
+    fontWeight: '700',
   },
-  statsRow: {
-    flexDirection: 'row',
-    paddingHorizontal: 20,
-    paddingTop: 24,
-    gap: 12,
-  },
-  statBox: {
+  nameSection: {
     flex: 1,
-    backgroundColor: COLORS.gray50,
-    borderRadius: 14,
-    paddingVertical: 16,
-    alignItems: 'center',
+    gap: 2,
   },
   statNumber: {
-    fontSize: 22,
     fontWeight: '700',
     color: COLORS.gray900,
   },
   statLabel: {
-    fontSize: 13,
     color: COLORS.gray500,
-    marginTop: 4,
+  },
+  statDot: {
+    color: COLORS.gray400,
+  },
+  actionButtonsRow: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  followButton: {
+    flex: 1,
+    borderRadius: 12,
+    paddingVertical: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  followButtonDefault: {
+    backgroundColor: COLORS.piktag500,
+  },
+  followButtonFollowing: {
+    backgroundColor: COLORS.piktag50,
+    borderWidth: 1.5,
+    borderColor: COLORS.piktag500,
+  },
+  followButtonTextDefault: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+  followButtonTextFollowing: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: COLORS.piktag600,
+  },
+  tagButton: {
+    flex: 1,
+    backgroundColor: COLORS.piktag500,
+    borderRadius: 12,
+    paddingVertical: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  // More menu
+  moreOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-end' },
+  moreSheet: { backgroundColor: COLORS.white, borderTopLeftRadius: 20, borderTopRightRadius: 20, paddingTop: 16, paddingHorizontal: 20 },
+  moreItem: { flexDirection: 'row', alignItems: 'center', gap: 14, paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: COLORS.gray100 },
+  moreItemText: { fontSize: 16, fontWeight: '500', color: COLORS.gray900 },
+  moreCancelBtn: { alignItems: 'center', paddingVertical: 16, marginTop: 4 },
+  moreCancelText: { fontSize: 16, fontWeight: '600', color: COLORS.piktag600 },
+  tagButtonText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#FFFFFF',
   },
   actionsRow: {
     flexDirection: 'row',
@@ -904,15 +1449,16 @@ const styles = StyleSheet.create({
   primaryButtonText: {
     fontSize: 15,
     fontWeight: '700',
-    color: COLORS.gray900,
+    color: '#FFFFFF',
   },
+  // outlineButton kept below for other uses
   outlineButton: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: COLORS.gray200,
+    borderColor: COLORS.piktag500,
     borderRadius: 14,
     paddingVertical: 14,
     gap: 8,
@@ -920,7 +1466,7 @@ const styles = StyleSheet.create({
   outlineButtonText: {
     fontSize: 15,
     fontWeight: '600',
-    color: COLORS.gray700,
+    color: COLORS.piktag600,
   },
   section: {
     paddingHorizontal: 20,
@@ -933,10 +1479,14 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   sectionTitle: {
-    fontSize: 16,
+    fontSize: 13,
     fontWeight: '700',
-    color: COLORS.gray900,
+    color: COLORS.gray500,
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
+    paddingHorizontal: 20,
     marginBottom: 12,
+    marginTop: 12,
   },
   recordCard: {
     backgroundColor: COLORS.gray50,
@@ -969,89 +1519,6 @@ const styles = StyleSheet.create({
     height: 1,
     backgroundColor: COLORS.gray200,
     marginVertical: 10,
-  },
-  // Sticky Notes
-  noteForm: {
-    borderRadius: 14,
-    padding: 16,
-    marginBottom: 12,
-  },
-  noteInput: {
-    fontSize: 15,
-    color: COLORS.gray900,
-    minHeight: 60,
-    textAlignVertical: 'top',
-  },
-  noteColorRow: {
-    flexDirection: 'row',
-    gap: 10,
-    marginTop: 12,
-  },
-  noteColorDot: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    borderWidth: 2,
-    borderColor: 'transparent',
-  },
-  noteColorDotActive: {
-    borderColor: COLORS.gray700,
-  },
-  noteFormActions: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    gap: 12,
-    marginTop: 12,
-  },
-  noteFormCancel: {
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-  },
-  noteFormCancelText: {
-    fontSize: 14,
-    color: COLORS.gray500,
-    fontWeight: '600',
-  },
-  noteFormSave: {
-    backgroundColor: COLORS.piktag500,
-    paddingVertical: 8,
-    paddingHorizontal: 20,
-    borderRadius: 8,
-  },
-  noteFormSaveText: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: COLORS.gray900,
-  },
-  emptyNotesText: {
-    fontSize: 14,
-    color: COLORS.gray400,
-    textAlign: 'center',
-    paddingVertical: 20,
-  },
-  noteCard: {
-    borderRadius: 14,
-    padding: 16,
-    marginBottom: 10,
-  },
-  notePinBadge: {
-    position: 'absolute',
-    top: 10,
-    right: 10,
-  },
-  noteCardText: {
-    fontSize: 15,
-    color: COLORS.gray900,
-    lineHeight: 22,
-  },
-  noteCardActions: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    gap: 16,
-    marginTop: 10,
-  },
-  noteActionBtn: {
-    padding: 4,
   },
   // CRM Reminders
   reminderRow: {
@@ -1111,5 +1578,360 @@ const styles = StyleSheet.create({
   biolinkDivider: {
     height: 1,
     backgroundColor: COLORS.gray200,
+  },
+
+  // Social Section
+  socialSection: {
+    paddingTop: 8,
+    paddingBottom: 16,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.gray100,
+  },
+  socialScrollContent: {
+    paddingHorizontal: 4,
+    gap: 16,
+  },
+  socialCircleItem: {
+    alignItems: 'center',
+    width: 68,
+  },
+  socialCircleRing: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    borderWidth: 2,
+    borderColor: COLORS.gray200,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 6,
+  },
+  socialCircleInner: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: COLORS.gray50,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  socialCircleLabel: {
+    fontSize: 11,
+    fontWeight: '500',
+    color: COLORS.gray700,
+    textAlign: 'center',
+  },
+
+  // Link Bio (Linktree style)
+  linkBioSection: {
+    paddingHorizontal: 20,
+    paddingTop: 8,
+    paddingBottom: 12,
+    gap: 10,
+  },
+  linkCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.white,
+    borderWidth: 1.5,
+    borderColor: COLORS.gray200,
+    borderRadius: 16,
+    paddingVertical: 16,
+    paddingHorizontal: 18,
+    gap: 12,
+  },
+  linkCardText: {
+    flex: 1,
+    fontSize: 16,
+    fontWeight: '600',
+    color: COLORS.gray900,
+  },
+
+  // Stats line
+  statsLineRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 14,
+  },
+  statText: {
+    fontSize: 14,
+    color: COLORS.gray500,
+  },
+  statTextClickable: {
+    fontSize: 14,
+  },
+
+  // Mutual Tags Modal
+  mutualModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  mutualModalContainer: {
+    backgroundColor: COLORS.white,
+    borderRadius: 16,
+    padding: 24,
+    width: 300,
+    maxWidth: '85%',
+  },
+  mutualModalTitle: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: COLORS.gray900,
+    marginBottom: 16,
+  },
+  mutualModalTagsWrap: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+  },
+  mutualModalTag: {
+    backgroundColor: COLORS.piktag50,
+    borderRadius: 16,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderWidth: 1,
+    borderColor: COLORS.piktag500,
+  },
+  mutualModalTagText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: COLORS.piktag600,
+  },
+
+  // Hidden Tags
+  hiddenTagSection: {
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.gray100,
+  },
+  hiddenTagHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  hiddenTagTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: COLORS.gray500,
+  },
+  hiddenTagsWrap: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginBottom: 12,
+  },
+  hiddenTagChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FEF3C7',
+    borderRadius: 16,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderWidth: 1,
+    borderColor: '#FDE68A',
+    gap: 4,
+  },
+  hiddenTagChipText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#92400E',
+  },
+  hiddenTagRemove: {
+    paddingHorizontal: 2,
+  },
+  hiddenTagRemoveText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#B45309',
+  },
+  hiddenTagInputRow: {
+    flexDirection: 'row',
+    gap: 10,
+    marginBottom: 20,
+  },
+  hiddenTagInput: {
+    flex: 1,
+    backgroundColor: COLORS.gray50,
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    fontSize: 14,
+    color: COLORS.gray900,
+    borderWidth: 1,
+    borderColor: COLORS.gray200,
+  },
+  hiddenTagAddBtn: {
+    backgroundColor: COLORS.gray900,
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    justifyContent: 'center',
+  },
+  hiddenTagAddText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: COLORS.white,
+  },
+
+  // Unfollow Modal
+  unfollowModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  unfollowModalContainer: {
+    backgroundColor: COLORS.white,
+    borderRadius: 16,
+    padding: 24,
+    width: 300,
+    maxWidth: '85%',
+    alignItems: 'center',
+  },
+  unfollowModalTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: COLORS.gray900,
+    marginBottom: 8,
+  },
+  unfollowModalMessage: {
+    fontSize: 15,
+    color: COLORS.gray500,
+    textAlign: 'center',
+    lineHeight: 22,
+    marginBottom: 24,
+  },
+  unfollowModalButtons: {
+    flexDirection: 'row',
+    gap: 12,
+    width: '100%',
+  },
+  unfollowModalCancelBtn: {
+    flex: 1,
+    borderWidth: 1.5,
+    borderColor: COLORS.gray200,
+    borderRadius: 12,
+    paddingVertical: 12,
+    alignItems: 'center',
+  },
+  unfollowModalCancelText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: COLORS.gray700,
+  },
+  unfollowModalConfirmBtn: {
+    flex: 1,
+    backgroundColor: '#EF4444',
+    borderRadius: 12,
+    paddingVertical: 12,
+    alignItems: 'center',
+  },
+  unfollowModalConfirmText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: COLORS.white,
+  },
+
+  // Pick Tag Modal
+  pickModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    justifyContent: 'flex-end',
+  },
+  pickModalContainer: {
+    backgroundColor: COLORS.white,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    paddingTop: 20,
+    paddingHorizontal: 20,
+    paddingBottom: 40,
+    maxHeight: '75%',
+  },
+  pickModalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 6,
+  },
+  pickModalTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: COLORS.gray900,
+  },
+  pickModalCloseText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: COLORS.gray500,
+  },
+  pickModalSubtitle: {
+    fontSize: 14,
+    color: COLORS.gray500,
+    marginBottom: 20,
+    lineHeight: 20,
+  },
+  pickModalEmpty: {
+    fontSize: 14,
+    color: COLORS.gray400,
+    textAlign: 'center',
+    paddingVertical: 30,
+  },
+  pickModalTagsWrap: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+    marginBottom: 24,
+  },
+  pickModalTag: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 20,
+    backgroundColor: COLORS.gray50,
+    borderWidth: 1.5,
+    borderColor: COLORS.gray200,
+  },
+  pickModalTagSelected: {
+    backgroundColor: COLORS.piktag50,
+    borderColor: COLORS.piktag500,
+  },
+  pickModalTagText: {
+    fontSize: 15,
+    fontWeight: '500',
+    color: COLORS.gray700,
+  },
+  pickModalTagTextSelected: {
+    color: COLORS.piktag600,
+    fontWeight: '700',
+  },
+  pickModalCheck: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: COLORS.piktag600,
+  },
+  pickModalDivider: {
+    height: 1,
+    backgroundColor: COLORS.gray100,
+    marginVertical: 20,
+  },
+  pickModalSectionTitle: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: COLORS.gray500,
+    marginBottom: 12,
+  },
+  pickModalSaveBtn: {
+    backgroundColor: COLORS.piktag500,
+    borderRadius: 14,
+    paddingVertical: 14,
+    alignItems: 'center',
+  },
+  pickModalSaveText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: COLORS.gray900,
   },
 });

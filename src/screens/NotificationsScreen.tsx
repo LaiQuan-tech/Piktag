@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -11,39 +11,36 @@ import {
   RefreshControl,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 import { Bell, CheckCheck } from 'lucide-react-native';
 import { COLORS, SPACING } from '../constants/theme';
+import { useTheme } from '../context/ThemeContext';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
+import { getCache, setCache, CACHE_KEYS } from '../lib/dataCache';
 import type { Notification } from '../types';
+import { SkeletonBox } from '../components/SkeletonLoader';
+
+const NOTIFICATION_ITEM_HEIGHT = 76;
 
 type NotificationsScreenProps = {
   navigation?: any;
 };
 
-type NotificationTab = 'all' | 'follow' | 'tag' | 'crm';
+type NotificationTab = 'social' | 'reminders';
 
-const TABS: { key: NotificationTab; label: string }[] = [
-  { key: 'all', label: '全部' },
-  { key: 'follow', label: '追蹤' },
-  { key: 'tag', label: '標籤' },
-  { key: 'crm', label: 'CRM' },
-];
+const TAB_KEYS: NotificationTab[] = ['social', 'reminders'];
 
 function filterNotifications(
   notifications: Notification[],
   tab: NotificationTab
 ): Notification[] {
   switch (tab) {
-    case 'follow':
+    case 'social':
       return notifications.filter(
-        (n) => n.type === 'follow' || n.type === 'friend'
+        (n) => n.type === 'follow' || n.type === 'friend' || n.type === 'tag_added' || n.type === 'recommendation' || n.type === 'tag_trending'
       );
-    case 'tag':
-      return notifications.filter(
-        (n) => n.type === 'tag_added' || n.type === 'recommendation' || n.type === 'tag_trending'
-      );
-    case 'crm':
+    case 'reminders':
       return notifications.filter(
         (n) => n.type === 'biolink_click' || n.type === 'reminder' || n.type === 'birthday' || n.type === 'anniversary' || n.type === 'contract_expiry'
       );
@@ -52,7 +49,7 @@ function filterNotifications(
   }
 }
 
-function formatTimeAgo(dateString: string): string {
+function formatTimeAgo(dateString: string, t: (key: string, options?: any) => string): string {
   const now = new Date();
   const date = new Date(dateString);
   const diffMs = now.getTime() - date.getTime();
@@ -61,18 +58,120 @@ function formatTimeAgo(dateString: string): string {
   const diffDays = Math.floor(diffMs / 86400000);
   const diffWeeks = Math.floor(diffDays / 7);
 
-  if (diffMins < 1) return '剛剛';
-  if (diffMins < 60) return `${diffMins} 分鐘前`;
-  if (diffHours < 24) return `${diffHours} 小時前`;
-  if (diffDays === 1) return '昨天';
-  if (diffDays < 7) return `${diffDays} 天前`;
-  if (diffWeeks < 4) return `${diffWeeks} 週前`;
-  return date.toLocaleDateString('zh-TW');
+  if (diffMins < 1) return t('notifications.timeJustNow');
+  if (diffMins < 60) return t('notifications.timeMinutesAgo', { count: diffMins });
+  if (diffHours < 24) return t('notifications.timeHoursAgo', { count: diffHours });
+  if (diffDays === 1) return t('notifications.timeYesterday');
+  if (diffDays < 7) return t('notifications.timeDaysAgo', { count: diffDays });
+  if (diffWeeks < 4) return t('notifications.timeWeeksAgo', { count: diffWeeks });
+  return date.toLocaleDateString();
 }
 
+// --- Memoized notification item component ---
+type NotificationItemProps = {
+  item: Notification;
+  onMarkAsRead: (id: string) => void;
+  t: (key: string, options?: any) => string;
+};
+
+const NotificationItem = React.memo(function NotificationItem({
+  item,
+  onMarkAsRead,
+  t,
+}: NotificationItemProps) {
+  const avatarUrl = item.data?.avatar_url || null;
+  const username = item.data?.username || item.title || '';
+  const body = item.body || '';
+
+  const handlePress = useCallback(() => {
+    onMarkAsRead(item.id);
+  }, [onMarkAsRead, item.id]);
+
+  return (
+    <TouchableOpacity
+      style={[
+        styles.notificationItem,
+        !item.is_read && styles.notificationItemUnread,
+      ]}
+      activeOpacity={0.7}
+      onPress={handlePress}
+    >
+      {avatarUrl ? (
+        <Image source={{ uri: avatarUrl }} style={styles.avatar} />
+      ) : (
+        <View style={[styles.avatar, styles.avatarPlaceholder]}>
+          <Bell size={20} color={COLORS.gray400} />
+        </View>
+      )}
+      <View style={styles.notificationContent}>
+        <Text style={styles.notificationText}>
+          {username ? (
+            <>
+              <Text style={styles.notificationUsername}>{username}</Text>
+              {'  '}
+            </>
+          ) : null}
+          {body}
+        </Text>
+        <Text style={styles.notificationTime}>
+          {formatTimeAgo(item.created_at, t)}
+        </Text>
+      </View>
+      {!item.is_read && <View style={styles.unreadDot} />}
+    </TouchableOpacity>
+  );
+});
+
+// --- Empty state component (stable reference) ---
+const EmptyState = React.memo(function EmptyState({
+  text,
+}: {
+  text: string;
+}) {
+  return (
+    <View style={styles.emptyState}>
+      <Bell size={48} color={COLORS.gray200} />
+      <Text style={styles.emptyStateText}>{text}</Text>
+    </View>
+  );
+});
+
+const NotificationsScreenSkeleton = React.memo(function NotificationsScreenSkeleton() {
+  return (
+    <View style={{ flex: 1, backgroundColor: COLORS.white }}>
+      {/* Tab row skeleton */}
+      <View style={{ flexDirection: 'row', gap: 8, paddingHorizontal: 20, paddingVertical: 12 }}>
+        {[80, 60, 50, 50].map((w, i) => (
+          <SkeletonBox key={i} width={w} height={32} borderRadius={16} />
+        ))}
+      </View>
+      {/* 6 notification item skeletons */}
+      {Array.from({ length: 6 }).map((_, i) => (
+        <View key={i} style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, paddingVertical: 10, gap: 12 }}>
+          <SkeletonBox width={44} height={44} borderRadius={22} />
+          <View style={{ flex: 1, gap: 8 }}>
+            <SkeletonBox width="80%" height={14} borderRadius={7} />
+            <SkeletonBox width="50%" height={12} borderRadius={6} />
+          </View>
+        </View>
+      ))}
+    </View>
+  );
+});
+
 export default function NotificationsScreen({ navigation }: NotificationsScreenProps) {
+  const { t } = useTranslation();
+  const { colors, isDark } = useTheme();
   const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState<NotificationTab>('all');
+
+  const TAB_LABELS: Record<NotificationTab, string> = useMemo(
+    () => ({
+      social: t('notifications.tabSocial') || '社交',
+      reminders: t('notifications.tabReminders') || '提醒',
+    }),
+    [t]
+  );
+  const [activeTab, setActiveTab] = useState<NotificationTab>('social');
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -80,10 +179,20 @@ export default function NotificationsScreen({ navigation }: NotificationsScreenP
   const fetchNotifications = useCallback(async () => {
     if (!user) return;
 
+    // Show cached data immediately (stale-while-revalidate)
+    const cached = getCache<Notification[]>(CACHE_KEYS.NOTIFICATIONS);
+    if (cached) {
+      setNotifications(cached);
+      setLoading(false);
+    } else {
+      setLoading(true);
+    }
+
+    // Always fetch fresh data in the background
     try {
       const { data, error } = await supabase
         .from('piktag_notifications')
-        .select('*')
+        .select('id, user_id, type, title, body, data, is_read, created_at')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false })
         .limit(50);
@@ -93,7 +202,10 @@ export default function NotificationsScreen({ navigation }: NotificationsScreenP
         return;
       }
 
-      setNotifications(data ?? []);
+      if (data) {
+        setCache(CACHE_KEYS.NOTIFICATIONS, data);
+        setNotifications(data);
+      }
     } catch (err) {
       console.warn('Notifications fetch error:', err);
     } finally {
@@ -137,7 +249,7 @@ export default function NotificationsScreen({ navigation }: NotificationsScreenP
     fetchNotifications();
   }, [fetchNotifications]);
 
-  const handleMarkAsRead = async (notifId: string) => {
+  const handleMarkAsRead = useCallback(async (notifId: string) => {
     // Optimistic update
     setNotifications((prev) =>
       prev.map((n) => (n.id === notifId ? { ...n, is_read: true } : n))
@@ -153,9 +265,9 @@ export default function NotificationsScreen({ navigation }: NotificationsScreenP
       // Revert on failure
       fetchNotifications();
     }
-  };
+  }, [fetchNotifications]);
 
-  const handleMarkAllAsRead = async () => {
+  const handleMarkAllAsRead = useCallback(async () => {
     if (!user) return;
 
     const unreadIds = notifications.filter((n) => !n.is_read).map((n) => n.id);
@@ -174,78 +286,60 @@ export default function NotificationsScreen({ navigation }: NotificationsScreenP
       console.warn('Failed to mark all as read:', error.message);
       fetchNotifications();
     }
-  };
+  }, [user, notifications, fetchNotifications]);
 
-  const filteredNotifications = filterNotifications(notifications, activeTab);
-  const hasUnread = notifications.some((n) => !n.is_read);
-
-  const renderNotificationItem = ({ item }: { item: Notification }) => {
-    const avatarUrl = item.data?.avatar_url || null;
-    const username = item.data?.username || item.title || '';
-    const body = item.body || '';
-
-    return (
-      <TouchableOpacity
-        style={[
-          styles.notificationItem,
-          !item.is_read && styles.notificationItemUnread,
-        ]}
-        activeOpacity={0.7}
-        onPress={() => handleMarkAsRead(item.id)}
-      >
-        {avatarUrl ? (
-          <Image source={{ uri: avatarUrl }} style={styles.avatar} />
-        ) : (
-          <View style={[styles.avatar, styles.avatarPlaceholder]}>
-            <Bell size={20} color={COLORS.gray400} />
-          </View>
-        )}
-        <View style={styles.notificationContent}>
-          <Text style={styles.notificationText}>
-            {username ? (
-              <>
-                <Text style={styles.notificationUsername}>{username}</Text>
-                {'  '}
-              </>
-            ) : null}
-            {body}
-          </Text>
-          <Text style={styles.notificationTime}>
-            {formatTimeAgo(item.created_at)}
-          </Text>
-        </View>
-      </TouchableOpacity>
-    );
-  };
-
-  const renderEmptyState = () => (
-    <View style={styles.emptyState}>
-      <Bell size={64} color={COLORS.gray200} />
-      <Text style={styles.emptyStateText}>目前沒有通知</Text>
-    </View>
+  // useMemo for computed values
+  const filteredNotifications = useMemo(
+    () => filterNotifications(notifications, activeTab),
+    [notifications, activeTab]
   );
 
-  if (loading) {
-    return (
-      <SafeAreaView style={styles.container} edges={['top']}>
-        <StatusBar barStyle="dark-content" backgroundColor={COLORS.white} />
-        <View style={styles.header}>
-          <Text style={styles.headerTitle}>通知</Text>
-        </View>
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={COLORS.piktag500} />
-        </View>
-      </SafeAreaView>
-    );
+  const hasUnread = useMemo(
+    () => notifications.some((n) => !n.is_read),
+    [notifications]
+  );
+
+  // useCallback for renderItem
+  const renderNotificationItem = useCallback(
+    ({ item }: { item: Notification }) => (
+      <NotificationItem item={item} onMarkAsRead={handleMarkAsRead} t={t} />
+    ),
+    [handleMarkAsRead, t]
+  );
+
+  // useCallback for keyExtractor
+  const keyExtractor = useCallback((item: Notification) => item.id, []);
+
+  // Stable ListEmptyComponent reference
+  const emptyStateText = t('notifications.emptyState');
+  const listEmptyComponent = useMemo(
+    () => <EmptyState text={emptyStateText} />,
+    [emptyStateText]
+  );
+
+  // Stable RefreshControl reference
+  const refreshControl = useMemo(
+    () => (
+      <RefreshControl
+        refreshing={refreshing}
+        onRefresh={handleRefresh}
+        tintColor={COLORS.piktag500}
+      />
+    ),
+    [refreshing, handleRefresh]
+  );
+
+  if (loading && notifications.length === 0) {
+    return <NotificationsScreenSkeleton />;
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
-      <StatusBar barStyle="dark-content" backgroundColor={COLORS.white} />
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={colors.white} />
 
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>通知</Text>
+        <Text style={[styles.headerTitle, { color: colors.text }]}>{t('notifications.headerTitle')}</Text>
         {hasUnread && (
           <TouchableOpacity
             style={styles.markAllButton}
@@ -259,20 +353,20 @@ export default function NotificationsScreen({ navigation }: NotificationsScreenP
 
       {/* Tab Switcher */}
       <View style={styles.tabContainer}>
-        {TABS.map((tab) => (
+        {TAB_KEYS.map((key) => (
           <TouchableOpacity
-            key={tab.key}
-            style={[styles.tab, activeTab === tab.key && styles.tabActive]}
-            onPress={() => setActiveTab(tab.key)}
+            key={key}
+            style={[styles.tab, activeTab === key && styles.tabActive]}
+            onPress={() => setActiveTab(key)}
             activeOpacity={0.6}
           >
             <Text
               style={[
                 styles.tabText,
-                activeTab === tab.key && styles.tabTextActive,
+                activeTab === key && styles.tabTextActive,
               ]}
             >
-              {tab.label}
+              {TAB_LABELS[key]}
             </Text>
           </TouchableOpacity>
         ))}
@@ -282,17 +376,20 @@ export default function NotificationsScreen({ navigation }: NotificationsScreenP
       <FlatList
         data={filteredNotifications}
         renderItem={renderNotificationItem}
-        keyExtractor={(item) => item.id}
+        keyExtractor={keyExtractor}
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
-        ListEmptyComponent={renderEmptyState}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={handleRefresh}
-            tintColor={COLORS.piktag500}
-          />
-        }
+        ListEmptyComponent={listEmptyComponent}
+        refreshControl={refreshControl}
+        initialNumToRender={10}
+        maxToRenderPerBatch={10}
+        windowSize={5}
+        removeClippedSubviews={true}
+        getItemLayout={(_data, index) => ({
+          length: NOTIFICATION_ITEM_HEIGHT,
+          offset: NOTIFICATION_ITEM_HEIGHT * index,
+          index,
+        })}
       />
     </SafeAreaView>
   );
@@ -389,6 +486,14 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: COLORS.gray400,
     marginTop: 4,
+  },
+  unreadDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: COLORS.accent500,
+    marginLeft: 8,
+    alignSelf: 'center',
   },
   emptyState: {
     flex: 1,
