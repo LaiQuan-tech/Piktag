@@ -227,6 +227,8 @@
     "namePlaceholder": "Adını gir",
     "usernameLabel": "Kullanıcı Adı",
     "usernamePlaceholder": "Kullanıcı adını gir",
+    "headlineLabel": "Unvan / Rol",
+    "headlinePlaceholder": "örn: PM @ Google, Serbest Tasarımcı",
     "bioLabel": "Biyografi",
     "bioPlaceholder": "Biyografini gir",
     "phoneLabel": "Telefon",

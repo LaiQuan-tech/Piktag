@@ -186,6 +186,8 @@
     "namePlaceholder": "Enter name",
     "usernameLabel": "Username",
     "usernamePlaceholder": "Enter username",
+    "headlineLabel": "职称 / 身份",
+    "headlinePlaceholder": "例：PM @ Google、自由接案设计师",
     "bioLabel": "Bio",
     "bioPlaceholder": "Enter bio",
     "phoneLabel": "Phone",

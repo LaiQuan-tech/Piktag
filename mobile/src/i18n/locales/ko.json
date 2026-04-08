@@ -227,6 +227,8 @@
     "namePlaceholder": "이름을 입력하세요",
     "usernameLabel": "사용자 이름",
     "usernamePlaceholder": "사용자 이름을 입력하세요",
+    "headlineLabel": "직함 / 역할",
+    "headlinePlaceholder": "예: PM @ Google, 프리랜서 디자이너",
     "bioLabel": "소개",
     "bioPlaceholder": "소개글을 입력하세요",
     "phoneLabel": "전화번호",

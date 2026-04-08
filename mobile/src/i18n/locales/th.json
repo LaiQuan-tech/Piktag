@@ -227,6 +227,8 @@
     "namePlaceholder": "กรอกชื่อ",
     "usernameLabel": "ชื่อผู้ใช้",
     "usernamePlaceholder": "กรอกชื่อผู้ใช้",
+    "headlineLabel": "ตำแหน่ง / บทบาท",
+    "headlinePlaceholder": "เช่น: PM @ Google, นักออกแบบฟรีแลนซ์",
     "bioLabel": "ประวัติย่อ",
     "bioPlaceholder": "กรอกประวัติย่อ",
     "phoneLabel": "โทรศัพท์",

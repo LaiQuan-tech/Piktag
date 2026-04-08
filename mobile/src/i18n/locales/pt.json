@@ -186,6 +186,8 @@
     "namePlaceholder": "Enter name",
     "usernameLabel": "Username",
     "usernamePlaceholder": "Enter username",
+    "headlineLabel": "Título / Função",
+    "headlinePlaceholder": "ex: PM @ Google, Designer freelancer",
     "bioLabel": "Bio",
     "bioPlaceholder": "Enter bio",
     "phoneLabel": "Phone",
