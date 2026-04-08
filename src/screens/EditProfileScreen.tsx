@@ -16,11 +16,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ArrowLeft, Plus, Pencil, Trash2, X, Hash, EyeOff, Eye, Camera, GripVertical } from 'lucide-react-native';
-// react-native-draggable-flatlist crashes on web — conditional require
-const DraggableFlatListModule = Platform.OS !== 'web' ? require('react-native-draggable-flatlist') : null;
-const DraggableFlatList = DraggableFlatListModule?.default;
-type RenderItemParams<T> = any;
-const ScaleDecorator = DraggableFlatListModule?.ScaleDecorator || (({ children }: any) => children);
+import DraggableFlatList, { RenderItemParams, ScaleDecorator } from 'react-native-draggable-flatlist';
 import * as ImagePicker from 'expo-image-picker';
 import { useTranslation } from 'react-i18next';
 import { COLORS } from '../constants/theme';

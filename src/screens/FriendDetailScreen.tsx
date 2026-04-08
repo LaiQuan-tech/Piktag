@@ -49,8 +49,7 @@ import { useTranslation } from 'react-i18next';
 import { COLORS } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
 import { LinearGradient } from 'expo-linear-gradient';
-// expo-screen-capture crashes on web — conditional require
-const ScreenCapture = require('react-native').Platform.OS !== 'web' ? require('expo-screen-capture') : null;
+import * as ScreenCapture from 'expo-screen-capture';
 import PlatformIcon from '../components/PlatformIcon';
 import InitialsAvatar from '../components/InitialsAvatar';
 import { supabase } from '../lib/supabase';
@@ -152,8 +151,8 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
 
   // Prevent screenshots on this page (protects hidden tags)
   useEffect(() => {
-    ScreenCapture?.preventScreenCaptureAsync();
-    return () => { ScreenCapture?.allowScreenCaptureAsync(); };
+    ScreenCapture.preventScreenCaptureAsync();
+    return () => { ScreenCapture.allowScreenCaptureAsync(); };
   }, []);
 
   const [loading, setLoading] = useState(true);

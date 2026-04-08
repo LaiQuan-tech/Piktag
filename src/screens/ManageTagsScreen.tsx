@@ -20,8 +20,7 @@ import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
 import { COLORS } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
-// DraggableChips uses react-native-reanimated which crashes on web
-const DraggableChips = Platform.OS !== 'web' ? require('../components/DraggableChips').default : null;
+import DraggableChips from '../components/DraggableChips';
 import type { Tag, UserTag } from '../types';
 
 const MAX_TAGS = 10;

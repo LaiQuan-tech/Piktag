@@ -8,10 +8,7 @@ import {
   Alert,
   Dimensions,
 } from 'react-native';
-// expo-camera crashes on web — conditional require
-const expoCamera = require('react-native').Platform.OS !== 'web' ? require('expo-camera') : {};
-const CameraView = expoCamera.CameraView;
-const useCameraPermissions = expoCamera.useCameraPermissions || (() => [null, () => {}]);
+import { CameraView, useCameraPermissions } from 'expo-camera';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { X } from 'lucide-react-native';
