@@ -212,6 +212,8 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
   // Refs for stable closures
   const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const skipNextSearch = useRef(false);
+  const [intersectionMode, setIntersectionMode] = useState(false);
+  const [intersectionProfiles, setIntersectionProfiles] = useState<PiktagProfile[]>([]);
   const recentSearchesRef = useRef(recentSearches);
   recentSearchesRef.current = recentSearches;
   const isMountedRef = useRef(true);
@@ -657,10 +659,16 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
     (text: string) => {
       setSearchQuery(text);
 
-      // Skip if triggered by handleSearchByTags (intersection results already set)
+      // Skip if triggered by handleSearchByTags
       if (skipNextSearch.current) {
         skipNextSearch.current = false;
         return;
+      }
+
+      // Exit intersection mode when user types
+      if (intersectionMode) {
+        setIntersectionMode(false);
+        setIntersectionProfiles([]);
       }
 
       if (debounceTimer.current) {
@@ -717,15 +725,13 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
     }
 
     // Multiple tags: do intersection search
-    // Set query display text without triggering performSearch
+    setIntersectionMode(true);
+    setIntersectionProfiles([]);
+    setSearchQuery(selected.map(t => t.name).join(' + '));
     skipNextSearch.current = true;
     if (debounceTimer.current) clearTimeout(debounceTimer.current);
-    setSearchQuery(selected.map(t => t.name).join(' + '));
-    setLoading(true);
-    setTagUsers([]); // Clear tag user sections
 
     try {
-      // Get user_ids for each tag, then intersect
       const userIdSets: Set<string>[] = [];
       for (const tagId of selectedTagIds) {
         const { data } = await supabase
@@ -736,7 +742,6 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
         userIdSets.push(new Set((data || []).map((d: any) => d.user_id)));
       }
 
-      // Intersect
       let intersection = userIdSets[0] || new Set();
       for (let i = 1; i < userIdSets.length; i++) {
         intersection = new Set([...intersection].filter(id => userIdSets[i].has(id)));
@@ -749,13 +754,8 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
           .from('piktag_profiles')
           .select('id, username, full_name, avatar_url, is_verified')
           .in('id', userIds);
-        setProfiles((profileData || []) as PiktagProfile[]);
-      } else {
-        setProfiles([]);
+        setIntersectionProfiles((profileData || []) as PiktagProfile[]);
       }
-
-      // Show selected tags in tag list
-      setTags([]);  // Hide tags grid — only show profiles
     } catch (err) {
       console.warn('Intersection search error:', err);
       setProfiles([]);
@@ -836,6 +836,18 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
       return items;
     }
 
+    // Intersection mode — only show matching profiles
+    if (intersectionMode) {
+      if (intersectionProfiles.length > 0) {
+        intersectionProfiles.forEach((profile) => {
+          items.push({ type: 'profileItem', profile });
+        });
+      } else {
+        items.push({ type: 'profilesEmpty' });
+      }
+      return items;
+    }
+
     // If user is typing, show search results regardless of tab
     if (trimmedQuery !== '') {
       if (profiles.length > 0) {
@@ -901,6 +913,8 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
     nearbyTags,
     tagUsers,
     searchTab,
+    intersectionMode,
+    intersectionProfiles,
     recommendedUsers,
   ]);
 
