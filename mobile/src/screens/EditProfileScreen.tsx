@@ -888,7 +888,7 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
                 multiline
                 numberOfLines={2}
                 textAlignVertical="top"
-                maxLength={150}
+                maxLength={80}
               />
             </View>
 
