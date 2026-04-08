@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useReducer, useMemo } from 'react';
+import React, { useState, useCallback, useReducer, useMemo, useEffect } from 'react';
 import {
   View,
   Text,
@@ -49,6 +49,7 @@ import { useTranslation } from 'react-i18next';
 import { COLORS } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
 import { LinearGradient } from 'expo-linear-gradient';
+import * as ScreenCapture from 'expo-screen-capture';
 import PlatformIcon from '../components/PlatformIcon';
 import InitialsAvatar from '../components/InitialsAvatar';
 import { supabase } from '../lib/supabase';
@@ -147,6 +148,12 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
   const { connectionId, friendId } = route.params || {};
+
+  // Prevent screenshots on this page (protects hidden tags)
+  useEffect(() => {
+    ScreenCapture.preventScreenCaptureAsync();
+    return () => { ScreenCapture.allowScreenCaptureAsync(); };
+  }, []);
 
   const [loading, setLoading] = useState(true);
   const [friendData, dispatchFriendData] = useReducer(friendDataReducer, initialFriendData);
