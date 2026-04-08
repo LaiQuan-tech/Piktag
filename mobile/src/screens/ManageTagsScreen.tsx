@@ -75,12 +75,28 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
         .select('bio, full_name, location')
         .eq('id', user.id)
         .single();
-      if (!profile?.bio) { setAiSuggestions([]); return; }
 
-      const userLang = profile.bio.match(/[\u4e00-\u9fff]/) ? '繁體中文' :
-        profile.bio.match(/[\u3040-\u30ff]/) ? '日本語' :
-        profile.bio.match(/[\uac00-\ud7af]/) ? '한국어' :
-        profile.bio.match(/[\u0e00-\u0e7f]/) ? 'ภาษาไทย' : 'the same language as the bio';
+      // Build context from bio, name, location, or existing tags
+      const bioText = profile?.bio || '';
+      const nameText = profile?.full_name || '';
+      const locationText = profile?.location || '';
+
+      // Also get user's existing tags for context
+      const { data: existingTags } = await supabase
+        .from('piktag_user_tags')
+        .select('tag:piktag_tags!tag_id(name)')
+        .eq('user_id', user.id)
+        .eq('is_private', false)
+        .limit(10);
+      const tagNames = (existingTags || []).map((t: any) => t.tag?.name).filter(Boolean).join(', ');
+
+      const context = [bioText, nameText, locationText, tagNames].filter(Boolean).join('\n');
+      if (!context.trim()) { setAiSuggestions([]); return; }
+
+      const userLang = context.match(/[\u4e00-\u9fff]/) ? '繁體中文' :
+        context.match(/[\u3040-\u30ff]/) ? '日本語' :
+        context.match(/[\uac00-\ud7af]/) ? '한국어' :
+        context.match(/[\u0e00-\u0e7f]/) ? 'ภาษาไทย' : 'the same language as the content';
 
       const response = await fetch(
         `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`,
@@ -88,15 +104,18 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            contents: [{ parts: [{ text: `Based on this person's bio, suggest 5-8 short hashtag keywords (without #). Keywords MUST be in ${userLang}. Only use English for internationally recognized terms (e.g. PM, IoT, AI). Return ONLY a JSON array of strings, nothing else.\n\nBio: ${profile.bio}\nName: ${profile.full_name || ''}\nLocation: ${profile.location || ''}` }] }],
+            contents: [{ parts: [{ text: `Based on this person's profile, suggest 5-8 short hashtag keywords (without #). Keywords MUST be in ${userLang}. Only use English for internationally recognized terms (e.g. PM, IoT, AI). Return ONLY a JSON array of strings, nothing else.\n\nBio: ${bioText}\nName: ${nameText}\nLocation: ${locationText}\nExisting tags: ${tagNames}` }] }],
           }),
         }
       );
       if (response.ok) {
         const result = await response.json();
         const text = result.candidates?.[0]?.content?.parts?.[0]?.text || '';
+        console.log('[AI Tags] Response:', text);
         const match = text.match(/\[[\s\S]*?\]/);
         if (match) setAiSuggestions((JSON.parse(match[0]) as string[]).slice(0, 8));
+      } else {
+        console.warn('[AI Tags] API error:', response.status, await response.text().catch(() => ''));
       }
     } catch (err) {
       console.warn('[ManageTagsScreen] loadAiSuggestions:', err);
