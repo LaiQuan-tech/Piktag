@@ -626,22 +626,6 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
             </Text>
           </View>
 
-          {/* QR Add Friend button — shown when arriving from QR scan */}
-          {paramSid && !connectionId && (
-            <TouchableOpacity
-              style={styles.qrAddFriendBtn}
-              onPress={handleAddFriendFromQr}
-              disabled={addFriendLoading}
-              activeOpacity={0.8}
-            >
-              {addFriendLoading ? (
-                <ActivityIndicator color={COLORS.white} />
-              ) : (
-                <Text style={styles.qrAddFriendText}>{t('scanResult.confirmButton') || '加為好友'}</Text>
-              )}
-            </TouchableOpacity>
-          )}
-
           {/* Action buttons */}
           <View style={styles.actionButtonsRow}>
             {isFollowing ? (
