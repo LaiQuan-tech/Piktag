@@ -710,8 +710,11 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
     }
 
     // Multiple tags: do intersection search
+    // Set query display text without triggering performSearch
+    if (debounceTimer.current) clearTimeout(debounceTimer.current);
     setSearchQuery(selected.map(t => t.name).join(' + '));
     setLoading(true);
+    setTagUsers([]); // Clear tag user sections
 
     try {
       // Get user_ids for each tag, then intersect
