@@ -529,6 +529,7 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
   const username = profile.username || '';
   const verified = profile.is_verified || false;
   const avatarUri = profile.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=f3f4f6&color=6b7280`;
+  const headline = profile.headline || '';
   const bio = profile.bio || '';
 
   return (
@@ -579,6 +580,9 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
               <Text style={styles.usernameText}>@{username}</Text>
             </View>
           </View>
+
+          {/* Headline */}
+          {headline ? <Text style={styles.headline}>{headline}</Text> : null}
 
           {/* Bio */}
           {bio ? <Text style={styles.bio}>{bio}</Text> : null}
@@ -1078,6 +1082,13 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '500',
     color: COLORS.gray500,
+  },
+  headline: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: COLORS.piktag600,
+    textAlign: 'center',
+    marginTop: 6,
   },
   bio: {
     fontSize: 15,

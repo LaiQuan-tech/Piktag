@@ -69,6 +69,7 @@ type EditProfileScreenProps = {
 type FormData = {
   full_name: string;
   username: string;
+  headline: string;
   bio: string;
 };
 
@@ -182,6 +183,7 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
   const [form, setForm] = useState<FormData>({
     full_name: '',
     username: '',
+    headline: '',
     bio: '',
   });
   const [biolinks, setBiolinks] = useState<Biolink[]>([]);
@@ -232,6 +234,7 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
       setForm({
         full_name: data.full_name || '',
         username: data.username || '',
+        headline: data.headline || '',
         bio: data.bio || '',
       });
       setAvatarUrl(data.avatar_url);
@@ -400,6 +403,7 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
         .update({
           full_name: form.full_name.trim() || null,
           username: form.username.trim() || null,
+          headline: form.headline.trim() || null,
           bio: form.bio.trim() || null,
           updated_at: new Date().toISOString(),
         })
@@ -858,6 +862,18 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
                 placeholder={t('editProfile.usernamePlaceholder')}
                 placeholderTextColor={COLORS.gray400}
                 autoCapitalize="none"
+              />
+            </View>
+
+            <View style={styles.fieldGroup}>
+              <Text style={styles.fieldLabel}>{t('editProfile.headlineLabel') || '職稱 / 身份'}</Text>
+              <TextInput
+                style={styles.fieldInput}
+                value={form.headline}
+                onChangeText={(v) => updateField('headline', v)}
+                placeholder={t('editProfile.headlinePlaceholder') || '例：PM @ Google、自由接案設計師'}
+                placeholderTextColor={COLORS.gray400}
+                maxLength={50}
               />
             </View>
 

@@ -55,7 +55,7 @@ module.exports = async function handler(req, res) {
     // 3. Fetch profiles
     const idsFilter = userIds.map(id => `"${id}"`).join(',');
     const profilesRes = await fetch(
-      `${SUPABASE_URL}/rest/v1/piktag_profiles?id=in.(${idsFilter})&select=id,username,full_name,avatar_url,is_verified`,
+      `${SUPABASE_URL}/rest/v1/piktag_profiles?id=in.(${idsFilter})&select=id,username,full_name,avatar_url,headline,is_verified`,
       { headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` } }
     );
     const profiles = await profilesRes.json();
@@ -79,6 +79,7 @@ module.exports = async function handler(req, res) {
       username: p.username,
       name: p.full_name || p.username || '',
       avatar: p.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(p.full_name || 'U')}&background=f3e8ff&color=8c52ff&size=200`,
+      headline: p.headline || '',
       verified: p.is_verified || false,
       tags: tagsByUser[p.id] || [],
     }));
@@ -117,6 +118,7 @@ function renderPage(tagName, usageCount, members) {
         <img class="card-avatar" src="${escapeHtml(m.avatar)}" alt="${escapeHtml(m.name)}" loading="lazy" onerror="this.src='https://ui-avatars.com/api/?name=U&background=f3e8ff&color=8c52ff&size=200'">
       </div>
       <div class="card-name">${escapeHtml(m.name)}${verifiedSvg}</div>
+      ${m.headline ? `<div class="card-headline">${escapeHtml(m.headline)}</div>` : ''}
       <div class="card-tags">${tagsHtml}</div>
     </a>`;
   }).join('');
@@ -172,6 +174,7 @@ function renderPage(tagName, usageCount, members) {
     .card-avatar-wrap{display:flex;justify-content:center;margin-bottom:12px}
     .card-avatar{width:72px;height:72px;border-radius:50%;object-fit:cover;border:2.5px solid #f3e8ff}
     .card-name{font-size:15px;font-weight:700;text-align:center;margin-bottom:8px;display:flex;align-items:center;justify-content:center;line-height:1.3}
+    .card-headline{font-size:12px;font-weight:600;color:${BRAND_ACCENT};text-align:center;margin-bottom:6px;line-height:1.4}
     .card-tags{font-size:12.5px;color:${BRAND_ACCENT};line-height:1.8;text-align:center;word-break:break-word}
     .mtag{display:inline;margin:0 2px;white-space:nowrap}
 

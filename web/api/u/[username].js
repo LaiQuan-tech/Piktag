@@ -47,7 +47,7 @@ module.exports = async function handler(req, res) {
 
   try {
     const profileRes = await fetch(
-      `${SUPABASE_URL}/rest/v1/piktag_profiles?username=eq.${encodeURIComponent(usernameStr)}&select=id,username,full_name,avatar_url,bio,is_verified,website,location`,
+      `${SUPABASE_URL}/rest/v1/piktag_profiles?username=eq.${encodeURIComponent(usernameStr)}&select=id,username,full_name,avatar_url,bio,headline,is_verified,website,location`,
       {
         headers: {
           apikey: SUPABASE_ANON_KEY,
@@ -126,6 +126,7 @@ module.exports = async function handler(req, res) {
 function renderProfilePage(profile, biolinks, tags, sid) {
   const name = escapeHtml(profile.full_name || profile.username || '#piktag User');
   const username = escapeHtml(profile.username || '');
+  const headline = profile.headline ? escapeHtml(profile.headline) : '';
   const bio = profile.bio ? escapeHtml(profile.bio) : '';
   const avatarUrl =
     profile.avatar_url ||
@@ -201,6 +202,7 @@ function renderProfilePage(profile, biolinks, tags, sid) {
     .name-row{display:flex;align-items:center;gap:4px;margin-bottom:4px;opacity:0;animation:fadeUp .5s ease .2s forwards}
     .name{font-size:26px;font-weight:800;letter-spacing:-0.5px}
     .username{font-size:15px;color:${BRAND_DARK};font-weight:600;margin-bottom:14px;opacity:0;animation:fadeUp .5s ease .25s forwards}
+    .headline{font-size:14px;font-weight:600;color:${BRAND_ACCENT};text-align:center;margin-bottom:10px;opacity:0;animation:fadeUp .5s ease .28s forwards}
     .bio{font-size:15px;color:#555;text-align:center;line-height:1.7;margin-bottom:18px;max-width:360px;opacity:0;animation:fadeUp .5s ease .3s forwards}
 
     /* Follow button */
@@ -246,6 +248,7 @@ function renderProfilePage(profile, biolinks, tags, sid) {
       ${verifiedBadge}
     </div>
     <div class="username">@${username}</div>
+    ${headline ? `<div class="headline">${headline}</div>` : ''}
     ${bio ? `<div class="bio">${bio}</div>` : ''}
     <button class="follow-btn" onclick="handleFollow()">追蹤</button>
     ${tagsHtml}

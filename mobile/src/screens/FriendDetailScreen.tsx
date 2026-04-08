@@ -784,6 +784,9 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
             </View>
           </View>
 
+          {/* Headline */}
+          {profile?.headline ? <Text style={styles.headline}>{profile.headline}</Text> : null}
+
           {/* Bio (max 3 lines) */}
           {profile?.bio ? <Text style={styles.bio} numberOfLines={3}>{profile.bio}</Text> : null}
 
@@ -1321,6 +1324,13 @@ const styles = StyleSheet.create({
   strengthText: {
     fontSize: 11,
     fontWeight: '700',
+  },
+  headline: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: COLORS.piktag600,
+    marginBottom: 4,
+    paddingHorizontal: 20,
   },
   bio: {
     fontSize: 14,
