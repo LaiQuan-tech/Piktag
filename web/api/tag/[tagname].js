@@ -149,13 +149,16 @@ function renderPage(tagName, usageCount, members) {
     body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:linear-gradient(160deg,#faf5ff 0%,#fff5f5 50%,#f5f0ff 100%);color:#1a1a1a;min-height:100vh}
 
     /* Header */
-    .header{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.85);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-bottom:1px solid rgba(0,0,0,.06);padding:16px 20px}
-    .header-inner{max-width:960px;margin:0 auto;display:flex;align-items:center;justify-content:space-between}
-    .header-left{display:flex;align-items:center;gap:12px}
-    .logo{font-family:'Poppins',sans-serif;font-size:20px;font-weight:800;color:${BRAND_COLOR};text-decoration:none}
-    .tag-title{font-size:22px;font-weight:800;color:${BRAND_DARK};letter-spacing:-0.3px}
-    .tag-count{font-size:13px;color:#888;font-weight:500}
-    .header-cta{background:${BRAND_GRADIENT};color:#fff;font-weight:700;border:none;border-radius:24px;padding:10px 24px;font-size:14px;cursor:pointer;text-decoration:none;transition:all .2s;box-shadow:0 2px 12px rgba(170,0,255,.25)}
+    .header{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.85);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-bottom:1px solid rgba(0,0,0,.06);padding:14px 20px}
+    .header-inner{max-width:960px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:12px}
+    .header-left{display:flex;align-items:center;gap:16px;min-width:0}
+    .logo{font-family:'Poppins',sans-serif;font-size:20px;font-weight:800;color:${BRAND_COLOR};text-decoration:none;flex-shrink:0}
+    .logo-text{display:none}
+    @media(min-width:640px){.logo-text{display:inline}}
+    .tag-info{min-width:0}
+    .tag-title{font-size:20px;font-weight:800;color:${BRAND_DARK};letter-spacing:-0.3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .tag-count{font-size:12px;color:#999;font-weight:500}
+    .header-cta{background:${BRAND_GRADIENT};color:#fff;font-weight:700;border:none;border-radius:24px;padding:10px 24px;font-size:14px;cursor:pointer;text-decoration:none;transition:all .2s;box-shadow:0 2px 12px rgba(170,0,255,.25);flex-shrink:0;white-space:nowrap}
     .header-cta:hover{transform:translateY(-1px);box-shadow:0 4px 20px rgba(170,0,255,.35)}
 
     /* Masonry Grid */
@@ -201,8 +204,8 @@ function renderPage(tagName, usageCount, members) {
   <div class="header">
     <div class="header-inner">
       <div class="header-left">
-        <a href="/" class="logo">#piktag</a>
-        <div>
+        <a href="/" class="logo">#<span class="logo-text">piktag</span></a>
+        <div class="tag-info">
           <div class="tag-title">#${escapeHtml(tagName)}</div>
           <div class="tag-count">${usageCount} 人</div>
         </div>
