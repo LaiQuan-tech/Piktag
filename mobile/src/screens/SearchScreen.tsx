@@ -211,6 +211,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
 
   // Refs for stable closures
   const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const skipNextSearch = useRef(false);
   const recentSearchesRef = useRef(recentSearches);
   recentSearchesRef.current = recentSearches;
   const isMountedRef = useRef(true);
@@ -656,6 +657,12 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
     (text: string) => {
       setSearchQuery(text);
 
+      // Skip if triggered by handleSearchByTags (intersection results already set)
+      if (skipNextSearch.current) {
+        skipNextSearch.current = false;
+        return;
+      }
+
       if (debounceTimer.current) {
         clearTimeout(debounceTimer.current);
       }
@@ -711,6 +718,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
 
     // Multiple tags: do intersection search
     // Set query display text without triggering performSearch
+    skipNextSearch.current = true;
     if (debounceTimer.current) clearTimeout(debounceTimer.current);
     setSearchQuery(selected.map(t => t.name).join(' + '));
     setLoading(true);
@@ -747,7 +755,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
       }
 
       // Show selected tags in tag list
-      setTags(selected);
+      setTags([]);  // Hide tags grid — only show profiles
     } catch (err) {
       console.warn('Intersection search error:', err);
       setProfiles([]);
