@@ -186,7 +186,7 @@ function renderProfilePage(profile, biolinks, tags, sid) {
   <style>
     *{margin:0;padding:0;box-sizing:border-box}
     body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:linear-gradient(160deg,#faf5ff 0%,#fff5f5 50%,#f5f0ff 100%);color:#1a1a1a;min-height:100vh;display:flex;flex-direction:column;align-items:center}
-    .container{max-width:480px;width:100%;padding:32px 20px 140px;display:flex;flex-direction:column;align-items:center}
+    .container{max-width:480px;width:100%;padding:32px 20px 140px;display:flex;flex-direction:column;align-items:center;position:relative}
 
     /* Logo */
     .logo{display:flex;align-items:center;gap:6px;margin-bottom:28px;opacity:0;animation:fadeDown .5s ease forwards}
@@ -224,6 +224,13 @@ function renderProfilePage(profile, biolinks, tags, sid) {
     .biolink svg:first-child{color:${BRAND_COLOR}}
     .biolink:hover svg{color:${BRAND_DARK}}
 
+    /* Share button */
+    .share-btn{position:absolute;top:20px;right:20px;width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.85);backdrop-filter:blur(8px);border:1px solid rgba(0,0,0,.06);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .2s;opacity:0;animation:fadeDown .5s ease .1s forwards;z-index:10}
+    .share-btn:hover{background:#fff;box-shadow:0 2px 12px rgba(0,0,0,.1);transform:scale(1.05)}
+    .share-btn:active{transform:scale(.95)}
+    .share-toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(20px);background:#333;color:#fff;padding:10px 20px;border-radius:24px;font-size:14px;font-weight:600;opacity:0;transition:all .3s;pointer-events:none;z-index:200}
+    .share-toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
     /* Banner */
     .banner{position:fixed;bottom:0;left:0;right:0;background:${BRAND_GRADIENT};padding:16px 20px;display:flex;align-items:center;justify-content:center;box-shadow:0 -4px 24px rgba(0,0,0,.12);z-index:100;cursor:pointer;text-decoration:none;gap:8px}
     .banner-text{font-size:15px;font-weight:700;color:#fff}
@@ -238,6 +245,9 @@ function renderProfilePage(profile, biolinks, tags, sid) {
 </head>
 <body>
   <div class="container">
+    <button class="share-btn" onclick="handleShare()" aria-label="分享">
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="${BRAND_COLOR}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+    </button>
     <div class="avatar-wrapper">
       <div class="avatar-ring">
         <img class="avatar" src="${escapeHtml(avatarUrl)}" alt="${name}" onerror="this.src='https://ui-avatars.com/api/?name=U&background=f3f4f6&color=6b7280&size=200'">
@@ -258,7 +268,21 @@ function renderProfilePage(profile, biolinks, tags, sid) {
     <span class="banner-text">下載 #piktag App</span>
     <span class="banner-arrow">→</span>
   </a>
+  <div class="share-toast" id="share-toast">已複製連結</div>
   <script>
+function handleShare() {
+  var url = 'https://pikt.ag/${username}';
+  var title = '${name} (@${username}) | #piktag';
+  if (navigator.share) {
+    navigator.share({ title: title, url: url }).catch(function(){});
+  } else {
+    navigator.clipboard.writeText(url).then(function() {
+      var toast = document.getElementById('share-toast');
+      toast.classList.add('show');
+      setTimeout(function() { toast.classList.remove('show'); }, 2000);
+    }).catch(function(){});
+  }
+}
 function handleFollow() {
   var username = '${username}';
   var name = encodeURIComponent('${name}');
