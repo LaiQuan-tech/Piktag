@@ -113,7 +113,12 @@ const ConnectionItem = React.memo(({ item, isSelected, selectMode, onPress, onLo
         <InitialsAvatar name={displayName} size={56} style={styles.avatarInitials} />
       )}
       <View style={styles.textSection}>
-        <Text style={styles.name} numberOfLines={1}>{displayName}</Text>
+        <View style={styles.nameRow}>
+          <Text style={styles.name} numberOfLines={1}>{displayName}</Text>
+          {item.is_reviewed === false && (
+            <View style={styles.newBadge}><Text style={styles.newBadgeText}>{t('connections.newBadge') || '新'}</Text></View>
+          )}
+        </View>
         <View style={styles.usernameRow}>
           <Text style={styles.username}>@{username}</Text>
           {/* {verified && (
@@ -164,6 +169,7 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
   const [friendStatuses, setFriendStatuses] = useState<FriendStatus[]>([]);
   const [viewedStatusIds, setViewedStatusIds] = useState<Set<string>>(new Set());
   const [closeFriendCount, setCloseFriendCount] = useState(0);
+  const [unreviewedCount, setUnreviewedCount] = useState(0);
 
   // CRM reminders (derived from connections data)
 
@@ -206,7 +212,7 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
         .from('piktag_connections')
         .select(`
           id, user_id, connected_user_id, nickname, created_at,
-          met_at, birthday,
+          met_at, birthday, is_reviewed,
           connected_user:piktag_profiles!connected_user_id(
             id, full_name, username, avatar_url, is_verified, latitude, longitude, birthday
           )
@@ -313,6 +319,16 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
           .eq('user_id', user.id);
         setCloseFriendCount(cfCount ?? 0);
       } catch { setCloseFriendCount(0); }
+
+      // Count unreviewed connections
+      try {
+        const { count: urCount } = await supabase
+          .from('piktag_connections')
+          .select('*', { count: 'exact', head: true })
+          .eq('user_id', user.id)
+          .eq('is_reviewed', false);
+        setUnreviewedCount(urCount ?? 0);
+      } catch { setUnreviewedCount(0); }
 
     } catch (err) {
       console.error('Unexpected error fetching connections:', err);
@@ -634,20 +650,7 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
         {/* IG-style stories bar */}
         {renderStoriesBar()}
 
-        {/* Review new friends banner */}
-        {connections.length > 0 && (
-          <TouchableOpacity
-            style={styles.reviewBanner}
-            activeOpacity={0.8}
-            onPress={() => navigation.navigate('ActivityReview', { recentMinutes: 10080 })}
-          >
-            <View style={styles.reviewBannerLeft}>
-              <Text style={styles.reviewBannerTitle}>{t('connections.reviewBannerTitle') || '整理新朋友'}</Text>
-              <Text style={styles.reviewBannerSubtitle}>{t('connections.reviewBannerSubtitle') || '快速加標籤和備註'}</Text>
-            </View>
-            <Text style={styles.reviewBannerArrow}>→</Text>
-          </TouchableOpacity>
-        )}
+        {/* Review banner removed — replaced by inline "X 位待整理 →" in header */}
       </>
     );
   }, [connections, friendStatuses, viewedStatusIds, selectMode, t, navigation]);
@@ -692,12 +695,24 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
         <View style={styles.header}>
           <View style={styles.headerLeft}>
             <Text style={[styles.headerTitle, { color: colors.text }]}>#piktag</Text>
-            <Text style={styles.headerSubtitle}>
-              <Text style={styles.headerCount}>{sortedConnections.length}</Text>{' '}{t('connections.friendsLabel') || 'friends'}
-              {closeFriendCount > 0 && (
-                <Text>{'  ·  '}<Text style={styles.headerCount}>{closeFriendCount}</Text>{' '}{t('connections.closeFriendsLabel') || '摯友'}</Text>
+            <View style={styles.headerSubtitleRow}>
+              <Text style={styles.headerSubtitle}>
+                <Text style={styles.headerCount}>{sortedConnections.length}</Text>{' '}{t('connections.friendsLabel') || 'friends'}
+                {closeFriendCount > 0 && (
+                  <Text>{'  ·  '}<Text style={styles.headerCount}>{closeFriendCount}</Text>{' '}{t('connections.closeFriendsLabel') || '摯友'}</Text>
+                )}
+              </Text>
+              {unreviewedCount > 0 && (
+                <TouchableOpacity
+                  activeOpacity={0.6}
+                  onPress={() => navigation.navigate('ActivityReview', { recentMinutes: 10080 })}
+                >
+                  <Text style={styles.unreviewedLink}>
+                    {'  ·  '}{unreviewedCount} {t('connections.unreviewedLabel') || '位待整理'} →
+                  </Text>
+                </TouchableOpacity>
               )}
-            </Text>
+            </View>
           </View>
           <View style={styles.headerRight}>
             <TouchableOpacity
@@ -1125,11 +1140,28 @@ const styles = StyleSheet.create({
     marginLeft: 14,
     paddingTop: 2,
   },
+  nameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
   name: {
     fontSize: 18,
     fontWeight: '700',
     color: COLORS.gray900,
     lineHeight: 24,
+    flexShrink: 1,
+  },
+  newBadge: {
+    backgroundColor: COLORS.piktag500,
+    borderRadius: 8,
+    paddingHorizontal: 6,
+    paddingVertical: 1,
+  },
+  newBadgeText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#FFFFFF',
   },
   usernameRow: {
     flexDirection: 'row',
@@ -1161,22 +1193,17 @@ const styles = StyleSheet.create({
     borderColor: '#e9d5ff',
   },
   // CRM Reminder card
-  reviewBanner: {
+  headerSubtitleRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    margin: 16,
-    marginBottom: 8,
-    padding: 16,
-    backgroundColor: COLORS.piktag50,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: COLORS.piktag400,
+    flexWrap: 'wrap',
+    marginTop: 2,
   },
-  reviewBannerLeft: { flex: 1 },
-  reviewBannerTitle: { fontSize: 15, fontWeight: '700', color: COLORS.piktag600 },
-  reviewBannerSubtitle: { fontSize: 13, color: COLORS.gray500, marginTop: 2 },
-  reviewBannerArrow: { fontSize: 20, color: COLORS.piktag500 },
+  unreviewedLink: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: COLORS.piktag600,
+  },
   reminderCard: {
     margin: 16,
     marginBottom: 0,
