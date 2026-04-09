@@ -57,6 +57,7 @@ jobs:
         working-directory: mobile/ios
         run: |
           set +e
+          set -o pipefail
           xcodebuild archive \
             -workspace "${{ steps.ws.outputs.workspace }}" \
             -scheme "${{ steps.ws.outputs.scheme }}" \
@@ -71,7 +72,6 @@ jobs:
             DEVELOPMENT_TEAM=3NU6HAGX6Z \
             2>&1 | tee $RUNNER_TEMP/xcodebuild.log
           BUILD_EXIT=$?
-          set -e
           if [ $BUILD_EXIT -ne 0 ]; then
             echo ""
             echo "========================================="
