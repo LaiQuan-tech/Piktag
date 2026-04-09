@@ -73,13 +73,18 @@ jobs:
           if [ $BUILD_EXIT -ne 0 ]; then
             echo "::error::xcodebuild archive failed (exit $BUILD_EXIT)"
             echo ""
-            echo "=== ERROR lines ==="
-            grep -E " error: | error:$|^.*error:" $RUNNER_TEMP/xcodebuild.log | grep -v "^note:" | head -40 || true
-            echo ""
-            echo "=== Last 60 lines ==="
-            tail -60 $RUNNER_TEMP/xcodebuild.log
+            echo "=== Non-note lines (last 150) ==="
+            grep -v "^note:" $RUNNER_TEMP/xcodebuild.log | tail -150
             exit $BUILD_EXIT
           fi
+
+      - name: Upload build log on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: xcodebuild-log
+          path: ${{ runner.temp }}/xcodebuild.log
+          if-no-files-found: ignore
 
       - name: Export and Upload to TestFlight
         run: |
