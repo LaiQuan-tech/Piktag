@@ -1298,6 +1298,8 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
             onBlur={handleBlur}
             returnKeyType="search"
             onSubmitEditing={handleSubmitEditing}
+            accessibilityLabel="搜尋"
+            accessibilityRole="search"
           />
           {searchQuery.length > 0 && (
             <TouchableOpacity
@@ -1305,6 +1307,8 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
               style={styles.searchClearBtn}
               activeOpacity={0.6}
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              accessibilityLabel="清除搜尋"
+              accessibilityRole="button"
             >
               <X size={16} color={COLORS.gray400} />
             </TouchableOpacity>
@@ -1318,6 +1322,9 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
           style={[styles.tabItem, searchTab === 'popular' && styles.tabItemActive]}
           onPress={() => setSearchTab('popular')}
           activeOpacity={0.7}
+          accessibilityLabel="熱門標籤"
+          accessibilityRole="tab"
+          accessibilityState={{ selected: searchTab === 'popular' }}
         >
           <Hash size={16} color={searchTab === 'popular' ? COLORS.piktag600 : COLORS.gray400} />
           <Text style={[styles.tabItemText, searchTab === 'popular' && styles.tabItemTextActive]}>
@@ -1328,6 +1335,9 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
           style={[styles.tabItem, searchTab === 'nearby' && styles.tabItemActive]}
           onPress={() => setSearchTab('nearby')}
           activeOpacity={0.7}
+          accessibilityLabel="附近標籤"
+          accessibilityRole="tab"
+          accessibilityState={{ selected: searchTab === 'nearby' }}
         >
           <MapPin size={16} color={searchTab === 'nearby' ? COLORS.piktag600 : COLORS.gray400} />
           <Text style={[styles.tabItemText, searchTab === 'nearby' && styles.tabItemTextActive]}>
@@ -1338,6 +1348,9 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
           style={[styles.tabItem, searchTab === 'history' && styles.tabItemActive]}
           onPress={() => setSearchTab('history')}
           activeOpacity={0.7}
+          accessibilityLabel="搜尋紀錄"
+          accessibilityRole="tab"
+          accessibilityState={{ selected: searchTab === 'history' }}
         >
           <Clock size={16} color={searchTab === 'history' ? COLORS.piktag600 : COLORS.gray400} />
           <Text style={[styles.tabItemText, searchTab === 'history' && styles.tabItemTextActive]}>
