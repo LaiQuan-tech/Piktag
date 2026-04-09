@@ -55,6 +55,7 @@ jobs:
       - name: Build iOS Archive
         working-directory: mobile/ios
         run: |
+          set -o pipefail
           xcodebuild archive \
             -workspace "${{ steps.ws.outputs.workspace }}" \
             -scheme "${{ steps.ws.outputs.scheme }}" \
@@ -66,7 +67,15 @@ jobs:
             -authenticationKeyIssuerID ${{ secrets.ASC_API_KEY_ISSUER_ID }} \
             -allowProvisioningUpdates \
             CODE_SIGN_STYLE=Automatic \
-            DEVELOPMENT_TEAM=3NU6HAGX6Z
+            DEVELOPMENT_TEAM=3NU6HAGX6Z \
+            2>&1 | tee $RUNNER_TEMP/xcodebuild.log
+          BUILD_EXIT=${PIPESTATUS[0]}
+          if [ $BUILD_EXIT -ne 0 ]; then
+            echo "::error::xcodebuild archive failed (exit $BUILD_EXIT)"
+            echo "=== Last 200 lines of build log ==="
+            tail -200 $RUNNER_TEMP/xcodebuild.log
+            exit $BUILD_EXIT
+          fi
 
       - name: Export and Upload to TestFlight
         run: |
