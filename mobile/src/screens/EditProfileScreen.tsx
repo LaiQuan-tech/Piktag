@@ -793,6 +793,8 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
           style={styles.headerBackBtn}
           onPress={() => navigation.canGoBack() ? navigation.goBack() : navigation.navigate("Connections")}
           activeOpacity={0.6}
+          accessibilityLabel="返回"
+          accessibilityRole="button"
         >
           <ArrowLeft size={24} color={COLORS.gray900} />
         </TouchableOpacity>
@@ -801,6 +803,8 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
           onPress={handleSave}
           activeOpacity={0.6}
           disabled={saving}
+          accessibilityLabel="儲存"
+          accessibilityRole="button"
         >
           {saving ? (
             <ActivityIndicator size="small" color={COLORS.piktag600} />
@@ -822,7 +826,7 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
         >
           {/* Avatar Section */}
           <View style={styles.avatarSection}>
-            <TouchableOpacity onPress={handleChangeAvatar} activeOpacity={0.8} disabled={uploadingAvatar}>
+            <TouchableOpacity onPress={handleChangeAvatar} activeOpacity={0.8} disabled={uploadingAvatar} accessibilityLabel="更換大頭貼" accessibilityRole="button">
               <Image
                 source={
                   avatarUrl
