@@ -20,6 +20,7 @@
         "googleMapsApiKey": "AIzaSyC6JCMjAF48uv5vNjgtox3-qUqhFBQLtnI"
       },
       "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false,
         "NSCameraUsageDescription": "PikTag needs camera access to scan QR codes",
         "NSPhotoLibraryUsageDescription": "PikTag needs photo library access to update your profile picture",
         "NSPhotoLibraryAddUsageDescription": "PikTag needs photo library access to update your profile picture",
