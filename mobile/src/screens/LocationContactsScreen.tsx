@@ -18,9 +18,11 @@ import { COLORS } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import type { Connection } from '../types';
 
 type LocationContactsScreenProps = {
-  navigation: any;
+  navigation: NativeStackNavigationProp<any>;
 };
 
 function haversineDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
@@ -109,7 +111,7 @@ export default function LocationContactsScreen({ navigation }: LocationContactsS
             ),
           }))
           .filter((c: any) => c.distance < 10) // Within 10km
-          .sort((a: any, b: any) => a.distance - b.distance);
+          .sort((a: Connection & { distance: number }, b: Connection & { distance: number }) => a.distance - b.distance);
 
         setContacts(nearbyProfiles);
 
@@ -135,7 +137,7 @@ export default function LocationContactsScreen({ navigation }: LocationContactsS
     }
   };
 
-  const renderContact = ({ item }: { item: any }) => {
+  const renderContact = ({ item }: { item: Connection & { distance?: number } }) => {
     const profile = item.connected_user;
     const name = item.nickname || profile?.full_name || profile?.username || 'Unknown';
     const avatarUri =

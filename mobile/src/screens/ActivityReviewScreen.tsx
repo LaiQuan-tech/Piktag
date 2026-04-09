@@ -15,6 +15,8 @@ import { useAuth } from '../hooks/useAuth';
 import { COLORS } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
 import { LinearGradient } from 'expo-linear-gradient';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import type { RouteProp } from '@react-navigation/native';
 import type { PiktagProfile } from '../types';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -31,7 +33,10 @@ type ReviewConnection = {
   hiddenTags: string[];   // private connection tags
 };
 
-type Props = { navigation: any; route: any };
+type Props = {
+  navigation: NativeStackNavigationProp<any>;
+  route: RouteProp<any>;
+};
 
 export default function ActivityReviewScreen({ navigation, route }: Props) {
   const { t } = useTranslation();

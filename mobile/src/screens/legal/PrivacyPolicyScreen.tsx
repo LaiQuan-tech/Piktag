@@ -3,8 +3,9 @@ import { View, Text, ScrollView, StyleSheet, StatusBar, TouchableOpacity } from 
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ArrowLeft } from 'lucide-react-native';
 import { COLORS } from '../../constants/theme';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
-type Props = { navigation: any };
+type Props = { navigation: NativeStackNavigationProp<any> };
 
 export default function PrivacyPolicyScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets();

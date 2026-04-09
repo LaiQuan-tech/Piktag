@@ -284,7 +284,7 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
 
       // 2. Try to create a scan session in DB (graceful fallback if table doesn't exist)
       let sessionId = `local_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
-      let sessionData: any = null;
+      let sessionData: ScanSession | null = null;
 
       try {
         const { data, error } = await supabase
