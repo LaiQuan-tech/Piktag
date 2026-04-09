@@ -559,8 +559,6 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
         const tagsResult = { data: [...tagMap.values()].sort((a, b) => b.usage_count - a.usage_count) };
 
         // Merge alias results: find tags by concept_id
-        console.log('[Search] tagsResult:', JSON.stringify(tagsResult.data?.map((t: any) => ({name: t.name, concept_id: t.concept_id}))));
-        console.log('[Search] aliasResult:', JSON.stringify(aliasResult.data));
         let mergedTags = tagsResult.data || [];
         if (!aliasResult.error && aliasResult.data && aliasResult.data.length > 0) {
           const conceptIds = aliasResult.data.map((a: any) => a.concept_id).filter(Boolean);
@@ -594,7 +592,6 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
             for (const tag of topTags) {
               // Find all tag_ids sharing the same concept
               let allTagIds = [tag.id];
-              console.log('[Search] tag:', tag.name, 'concept_id:', (tag as any).concept_id);
               if ((tag as any).concept_id) {
                 const { data: siblingTags } = await supabase
                   .from('piktag_tags')
@@ -602,7 +599,6 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
                   .eq('concept_id', (tag as any).concept_id);
                 if (siblingTags) {
                   allTagIds = [...new Set([tag.id, ...siblingTags.map((t: any) => t.id)])];
-                  console.log('[Search] siblingTags:', siblingTags.length, 'allTagIds:', allTagIds);
                 }
               }
 
@@ -613,7 +609,6 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
                 .eq('is_private', false)
                 .limit(10);
 
-              console.log('[Search] utData for', tag.name, ':', utData?.length, 'results');
               if (utData && utData.length > 0) {
                 // Deduplicate users (same user may have multiple synonym tags)
                 const seenIds = new Set<string>();

@@ -1,4 +1,4 @@
-export const GOOGLE_PLACES_API_KEY = 'AIzaSyC6JCMjAF48uv5vNjgtox3-qUqhFBQLtnI';
+export const GOOGLE_PLACES_API_KEY = process.env.EXPO_PUBLIC_GOOGLE_PLACES_API_KEY || 'AIzaSyC6JCMjAF48uv5vNjgtox3-qUqhFBQLtnI';
 
 export type PlaceResult = {
   name: string;

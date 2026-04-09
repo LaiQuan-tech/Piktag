@@ -424,7 +424,8 @@
     "pickTagTitle": "Pick Tags",
     "pickTagSubtitle": "Choose tags that best represent {{name}}",
     "pickTagEmpty": "This user has no public tags yet",
-    "pickTagSave": "Save ({{count}})"
+    "pickTagSave": "Save ({{count}})",
+    "hiddenTagPlaceholder": "Add hidden tag..."
   },
   "settings": {
     "headerTitle": "Settings",
@@ -618,6 +619,7 @@
     "summaryTitle": "Review Complete",
     "summaryText": "Reviewed {{people}} friends, added {{tags}} tags",
     "addTagPlaceholder": "Add hidden tag...",
+    "hiddenTagPlaceholder": "Add hidden tag...",
     "swipeHint": "← Swipe left to skip · Right for next →",
     "skip": "Skip",
     "next": "Next"

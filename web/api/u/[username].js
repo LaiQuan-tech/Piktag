@@ -114,7 +114,7 @@ module.exports = async function handler(req, res) {
     const html = renderProfilePage(profile, biolinks || [], tags, sidStr);
 
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
-    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.setHeader('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=3600');
     return res.status(200).send(html);
   } catch (err) {
     console.error('Error rendering profile:', err);
@@ -181,6 +181,7 @@ function renderProfilePage(profile, biolinks, tags, sid) {
   {"@context":"https://schema.org","@type":"Person","name":"${escapeHtml(name)}","url":"${pageUrl}","image":"${escapeHtml(avatarUrl)}","description":"${escapeHtml(ogDescription)}","sameAs":[${biolinks.map(l => `"${escapeHtml(l.url)}"`).join(',')}]}
   </script>
   <link rel="icon" href="/favicon.ico">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Poppins:wght@700;800&display=swap" rel="stylesheet">
   <style>

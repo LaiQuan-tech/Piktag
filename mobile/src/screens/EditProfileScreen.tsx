@@ -1066,7 +1066,7 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
                       }
                     }}
                   >
-                    <Text style={styles.saveBtnText}>新增</Text>
+                    <Text style={styles.saveBtnText}>{t('common.add') || '新增'}</Text>
                   </TouchableOpacity>
                 </View>
               </View>
