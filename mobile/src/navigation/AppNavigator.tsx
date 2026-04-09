@@ -372,8 +372,6 @@ export default function AppNavigator() {
 
       if (error) {
         console.warn('[PendingConn] resolve error:', error.message);
-      } else if (data && Array.isArray(data) && data.length > 0) {
-        console.log('[PendingConn] Auto-connected:', data);
       }
     } catch (err) {
       console.warn('[PendingConn] resolvePendingDeepLink error:', err);

@@ -427,7 +427,8 @@
     "pickTagTitle": "選擇標籤",
     "pickTagSubtitle": "選擇最能代表 {{name}} 的標籤，方便你之後找到",
     "pickTagEmpty": "這位用戶還沒有設定公開標籤",
-    "pickTagSave": "儲存 ({{count}})"
+    "pickTagSave": "儲存 ({{count}})",
+    "hiddenTagPlaceholder": "新增隱藏標籤..."
   },
   "settings": {
     "headerTitle": "設定",
@@ -623,6 +624,7 @@
     "summaryTitle": "整理完成",
     "summaryText": "已整理 {{people}} 位朋友，加了 {{tags}} 個標籤",
     "addTagPlaceholder": "加隱藏標籤...",
+    "hiddenTagPlaceholder": "加隱藏標籤...",
     "swipeHint": "滑動整理下一位 →",
     "skip": "跳過",
     "next": "下一位",

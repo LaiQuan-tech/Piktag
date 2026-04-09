@@ -399,7 +399,7 @@ export default function ActivityReviewScreen({ navigation, route }: Props) {
           <Tag size={18} color={COLORS.gray400} />
           <TextInput
             style={styles.textInput}
-            placeholder={t('activityReview.addTagPlaceholder') || '加隱藏標籤...'}
+            placeholder={t('activityReview.hiddenTagPlaceholder') || '加隱藏標籤...'}
             placeholderTextColor={COLORS.gray400}
             value={tagInput}
             onChangeText={setTagInput}

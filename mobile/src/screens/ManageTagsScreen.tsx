@@ -129,7 +129,6 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
       if (response.ok) {
         const result = await response.json();
         const text = result.candidates?.[0]?.content?.parts?.[0]?.text || '';
-        console.log('[AI Tags] Response:', text);
         const match = text.match(/\[[\s\S]*?\]/);
         if (match) {
           const suggestions = (JSON.parse(match[0]) as string[]).slice(0, 8);

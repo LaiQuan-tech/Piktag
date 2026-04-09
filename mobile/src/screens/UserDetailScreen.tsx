@@ -923,7 +923,7 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
                 style={styles.hiddenTagInput}
                 value={hiddenTagInput}
                 onChangeText={setHiddenTagInput}
-                placeholder={t('friendDetail.hiddenTagPlaceholder') || '新增隱藏標籤...'}
+                placeholder={t('userDetail.hiddenTagPlaceholder') || '新增隱藏標籤...'}
                 placeholderTextColor={COLORS.gray400}
                 returnKeyType="done"
                 onSubmitEditing={handleAddHiddenTag}
