@@ -63,6 +63,7 @@
           }
         }
       ],
+      "expo-notifications",
       "expo-localization",
       "expo-camera",
       "expo-image-picker",
