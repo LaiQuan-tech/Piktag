@@ -97,6 +97,8 @@ const ConnectionItem = React.memo(({ item, isSelected, selectMode, onPress, onLo
       activeOpacity={0.7}
       onPress={() => onPress(item)}
       onLongPress={() => onLongPress(item)}
+      accessibilityLabel={displayName}
+      accessibilityRole="button"
     >
       {selectMode && (
         <View style={styles.checkboxContainer}>
@@ -706,6 +708,8 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
                 <TouchableOpacity
                   activeOpacity={0.6}
                   onPress={() => navigation.navigate('ActivityReview', { recentMinutes: 10080 })}
+                  accessibilityLabel={`${unreviewedCount} 位待整理`}
+                  accessibilityRole="link"
                 >
                   <Text style={styles.unreviewedLink}>
                     {'  ·  '}{unreviewedCount} {t('connections.unreviewedLabel') || '位待整理'} →
@@ -719,6 +723,8 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
               style={styles.headerIconBtn}
               activeOpacity={0.6}
               onPress={() => setFilterModalVisible(true)}
+              accessibilityLabel="篩選標籤"
+              accessibilityRole="button"
             >
               <Tag size={24} color={filterTag ? COLORS.piktag600 : COLORS.gray600} />
             </TouchableOpacity>
@@ -726,6 +732,8 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
               style={styles.headerIconBtn}
               activeOpacity={0.6}
               onPress={() => setSortModalVisible(true)}
+              accessibilityLabel="排序"
+              accessibilityRole="button"
             >
               <Settings2 size={24} color={COLORS.gray600} />
             </TouchableOpacity>
@@ -733,6 +741,8 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
               style={styles.headerIconBtn}
               activeOpacity={0.6}
               onPress={() => setMapVisible(true)}
+              accessibilityLabel="地圖檢視"
+              accessibilityRole="button"
             >
               <MapPin size={24} color={COLORS.gray600} />
             </TouchableOpacity>
