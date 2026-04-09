@@ -72,8 +72,12 @@ jobs:
           BUILD_EXIT=${PIPESTATUS[0]}
           if [ $BUILD_EXIT -ne 0 ]; then
             echo "::error::xcodebuild archive failed (exit $BUILD_EXIT)"
-            echo "=== Last 200 lines of build log ==="
-            tail -200 $RUNNER_TEMP/xcodebuild.log
+            echo ""
+            echo "=== ERROR lines ==="
+            grep -E " error: | error:$|^.*error:" $RUNNER_TEMP/xcodebuild.log | grep -v "^note:" | head -40 || true
+            echo ""
+            echo "=== Last 60 lines ==="
+            tail -60 $RUNNER_TEMP/xcodebuild.log
             exit $BUILD_EXIT
           fi
 
