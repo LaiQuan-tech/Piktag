@@ -56,7 +56,7 @@ jobs:
       - name: Build iOS Archive
         working-directory: mobile/ios
         run: |
-          set -o pipefail
+          set +e
           xcodebuild archive \
             -workspace "${{ steps.ws.outputs.workspace }}" \
             -scheme "${{ steps.ws.outputs.scheme }}" \
@@ -70,12 +70,15 @@ jobs:
             CODE_SIGN_STYLE=Automatic \
             DEVELOPMENT_TEAM=3NU6HAGX6Z \
             2>&1 | tee $RUNNER_TEMP/xcodebuild.log
-          BUILD_EXIT=${PIPESTATUS[0]}
+          BUILD_EXIT=$?
+          set -e
           if [ $BUILD_EXIT -ne 0 ]; then
-            echo "::error::xcodebuild archive failed (exit $BUILD_EXIT)"
             echo ""
-            echo "=== Non-note lines (last 150) ==="
-            grep -v "^note:" $RUNNER_TEMP/xcodebuild.log | tail -150
+            echo "========================================="
+            echo "=== ACTUAL ERRORS (non-note lines)  ==="
+            echo "========================================="
+            grep -v "^note:" $RUNNER_TEMP/xcodebuild.log | grep -v "^$" | tail -80 || true
+            echo "========================================="
             exit $BUILD_EXIT
           fi
 
