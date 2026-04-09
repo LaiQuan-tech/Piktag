@@ -32,10 +32,11 @@ import QrCodeModal from '../components/QrCodeModal';
 import InitialsAvatar from '../components/InitialsAvatar';
 import { ProfileScreenSkeleton } from '../components/SkeletonLoader';
 import StatusModal from '../components/StatusModal';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { PiktagProfile, UserTag, Biolink } from '../types';
 
 type ProfileScreenProps = {
-  navigation: any;
+  navigation: NativeStackNavigationProp<any>;
 };
 
 // --- Memoized Social Circle Item (IG Highlights style) ---
@@ -127,7 +128,7 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
       .order('position');
     if (!error && data) {
       // Pinned tags first, then by position
-      const sorted = [...data].sort((a: any, b: any) => {
+      const sorted = [...data].sort((a: UserTag, b: UserTag) => {
         const aPinned = a.is_pinned ? 1 : 0;
         const bPinned = b.is_pinned ? 1 : 0;
         if (aPinned !== bPinned) return bPinned - aPinned;

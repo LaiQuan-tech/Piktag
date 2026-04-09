@@ -15,8 +15,9 @@ import { useTranslation } from 'react-i18next';
 import { ArrowLeft, Phone, Shield } from 'lucide-react-native';
 import { supabase } from '../../lib/supabase';
 import { COLORS, SPACING, BORDER_RADIUS } from '../../constants/theme';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
-type PhoneAuthScreenProps = { navigation: any };
+type PhoneAuthScreenProps = { navigation: NativeStackNavigationProp<any> };
 
 export default function PhoneAuthScreen({ navigation }: PhoneAuthScreenProps) {
   const { t } = useTranslation();

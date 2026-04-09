@@ -22,6 +22,7 @@ import { COLORS } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
 // DraggableChips uses react-native-reanimated which crashes on web
 const DraggableChips = Platform.OS !== 'web' ? require('../components/DraggableChips').default : null;
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { Tag, UserTag } from '../types';
 
 const MAX_TAGS = 10;
@@ -30,7 +31,7 @@ const MAX_PINNED = 1;
 const GEMINI_API_KEY = process.env.EXPO_PUBLIC_GEMINI_API_KEY || 'AIzaSyCoAQFKm3lSwAPD2pnf6Icz37eUyFfwx2Y';
 
 
-type ManageTagsScreenProps = { navigation: any };
+type ManageTagsScreenProps = { navigation: NativeStackNavigationProp<any> };
 
 export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) {
   const { t } = useTranslation();
