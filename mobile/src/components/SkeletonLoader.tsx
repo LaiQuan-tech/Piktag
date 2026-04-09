@@ -29,7 +29,22 @@ export const SkeletonBox = React.memo(function SkeletonBox({
   const opacity = useRef(new Animated.Value(0.3)).current;
 
   useEffect(() => {
-    const animation = Animated.loop(
+    // NOTE: Previously used Animated.loop(Animated.sequence([...])) with
+    // useNativeDriver: true. That combination triggers a known RN bug on
+    // iOS (Old Architecture): when many SkeletonBox instances unmount at
+    // once (e.g. 20+ skeletons in ProfileScreenSkeleton as data loads),
+    // the native animated module can throw NSInvalidArgumentException
+    // from RCTNativeAnimatedNodesManager stopAnimation:, which RN then
+    // reports via RCTExceptionsManager → RCTFatal → abort.
+    //
+    // Fix: replicate the pulse loop manually using a .start() callback
+    // chain guarded by a mounted flag, and clean up by calling
+    // stopAnimation() on the Value itself (which is safe) rather than on
+    // a composite Animated.loop handle.
+    let mounted = true;
+
+    const pulse = () => {
+      if (!mounted) return;
       Animated.sequence([
         Animated.timing(opacity, {
           toValue: 0.7,
@@ -41,10 +56,17 @@ export const SkeletonBox = React.memo(function SkeletonBox({
           duration: 500,
           useNativeDriver: true,
         }),
-      ]),
-    );
-    animation.start();
-    return () => animation.stop();
+      ]).start(({ finished }) => {
+        if (mounted && finished) pulse();
+      });
+    };
+
+    pulse();
+
+    return () => {
+      mounted = false;
+      opacity.stopAnimation();
+    };
   }, [opacity]);
 
   return (
