@@ -6,6 +6,7 @@ on:
     branches: [main]
     paths:
       - 'mobile/**'
+      - '.github/workflows/ios-testflight.yml'
 
 jobs:
   build-and-upload:
