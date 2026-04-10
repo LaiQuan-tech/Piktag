@@ -29,7 +29,7 @@ import type { Tag, UserTag } from '../types';
 const MAX_TAGS = 10;
 const MAX_TAG_LENGTH = 30;
 const MAX_PINNED = 1;
-const GEMINI_API_KEY = process.env.EXPO_PUBLIC_GEMINI_API_KEY || 'AIzaSyCoAQFKm3lSwAPD2pnf6Icz37eUyFfwx2Y';
+const GEMINI_API_KEY = process.env.EXPO_PUBLIC_GEMINI_API_KEY || 'AIzaSyAxoSZOyzXYNPPQqRXh2ifLGgjTVOd7QA4';
 
 
 type ManageTagsScreenProps = { navigation: NativeStackNavigationProp<any> };
