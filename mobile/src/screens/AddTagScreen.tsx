@@ -42,13 +42,9 @@ function formatDate(date: Date): string {
 function getQuickDates(): { label: string; date: Date }[] {
   const today = new Date();
   const tomorrow = new Date(today); tomorrow.setDate(today.getDate() + 1);
-  const saturday = new Date(today); saturday.setDate(today.getDate() + (6 - today.getDay()));
-  const nextWeek = new Date(today); nextWeek.setDate(today.getDate() + 7);
   return [
     { label: '今天', date: today },
     { label: '明天', date: tomorrow },
-    { label: '本週末', date: saturday },
-    { label: '下週', date: nextWeek },
   ];
 }
 
