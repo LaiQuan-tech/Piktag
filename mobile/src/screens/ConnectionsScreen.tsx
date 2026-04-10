@@ -85,13 +85,6 @@ type ConnectionItemProps = {
 };
 
 const ConnectionItem = React.memo(({ item, isSelected, selectMode, onPress, onLongPress }: ConnectionItemProps) => {
-  // NOTE: `t` must be called inside the component, not captured from the
-  // outer file scope. ConnectionItem is defined at module level (outside
-  // ConnectionsScreen), so it has no closure access to the outer `t` from
-  // useTranslation(). Under Hermes release mode this previously caused
-  // `ReferenceError: Property 't' doesn't exist` the moment this item tried
-  // to render inside the FlatList after login.
-  const { t } = useTranslation();
   const profile = item.connected_user;
   const displayName = item.nickname || profile?.full_name || profile?.username || 'Unknown';
   const username = profile?.username || '';
@@ -125,7 +118,7 @@ const ConnectionItem = React.memo(({ item, isSelected, selectMode, onPress, onLo
         <View style={styles.nameRow}>
           <Text style={styles.name} numberOfLines={1}>{displayName}</Text>
           {item.is_reviewed === false && (
-            <View style={styles.newBadge}><Text style={styles.newBadgeText}>{t('connections.newBadge') || '新'}</Text></View>
+            <Text style={styles.newBadgeText}>new</Text>
           )}
         </View>
         <View style={styles.usernameRow}>
@@ -1169,16 +1162,12 @@ const styles = StyleSheet.create({
     lineHeight: 24,
     flexShrink: 1,
   },
-  newBadge: {
-    backgroundColor: COLORS.piktag500,
-    borderRadius: 8,
-    paddingHorizontal: 6,
-    paddingVertical: 1,
-  },
   newBadgeText: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: '#FFFFFF',
+    fontSize: 10,
+    fontWeight: '600',
+    color: COLORS.piktag600,
+    letterSpacing: 0.3,
+    marginLeft: 2,
   },
   usernameRow: {
     flexDirection: 'row',
