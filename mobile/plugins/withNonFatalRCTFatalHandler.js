@@ -1,51 +1,88 @@
 // Expo config plugin: patch AppDelegate.swift to install a non-fatal
-// RCTFatal handler.
+// RCTFatal handler that also surfaces errors visibly on screen.
 //
 // Why this exists
 // ---------------
-// We have been chasing a chain of production iOS launch crashes caused by
-// native modules throwing NSException during startup (builds 14, 15, 16,
-// 17, 18, 19). Each crash followed the same pattern:
+// We have been chasing a chain of production iOS launch crashes caused
+// by native modules throwing NSException during startup. Each crash
+// followed this pattern:
 //
 //   RCTFatal (RCTAssert.m:147)
-//   ← -[RCTExceptionsManager reportFatal:stack:...]
+//   ← -[RCTExceptionsManager reportFatal:...]
 //   ← -[RCTExceptionsManager reportException:]
 //   ← @catch inside -[RCTModuleMethod invokeWithBridge:module:arguments:]
 //
-// i.e. some native module's method threw, RN's @catch block converted the
-// NSException into a fatal report, and RCTFatal called abort().
+// Release-mode crash logs are symbol-stripped so we cannot identify
+// WHICH native module is throwing. An earlier version of this plugin
+// just swallowed the fatal (NSLog only) — that stopped the crash but
+// left the app rendering a white screen, because the RN bridge ended
+// up in an unusable partial-init state and we had no visibility into
+// what had happened.
 //
-// The release-mode crash logs have been stripped of symbol information so
-// we cannot identify *which* native module method is throwing without an
-// enormous guess-and-check loop. Instead we take the surgical path: replace
-// the default RCTFatal handler with one that logs the error and returns
-// without killing the process. This converts every would-be crash into a
-// warning, so the app can keep running, we can see the UI, and any
-// remaining issues become debuggable from the JS side (errors will surface
-// via console.warn and whatever UI feedback the user observes).
-//
-// The default RN fatal handler calls `abort()` in release builds. Setting
-// a custom handler via `RCTSetFatalHandler` completely replaces that
-// behavior. JS-side error reporting (ExceptionsManager / LogBox) is
-// orthogonal and still works — we install this only to stop the process
-// from being killed.
+// This version adds a visible red overlay banner at the top of the
+// UIWindow that appends every fatal error message as it arrives. The
+// user can screenshot the overlay and send it back so we can apply a
+// targeted fix, instead of playing guess-and-check with TestFlight
+// builds.
 
 const { withAppDelegate } = require('@expo/config-plugins');
 
-const IMPORT_LINE = 'import React';
 const INSTALL_MARKER = '// [piktag] non-fatal RCTFatal handler installed';
 const INSTALL_BLOCK = `
     ${INSTALL_MARKER}
     RCTSetFatalHandler { error in
       let nsError = error as NSError?
       let message = nsError?.localizedDescription ?? "unknown error"
-      NSLog("[piktag][RCTFatal] %@", message)
+      let domain = nsError?.domain ?? "?"
+      let code = nsError?.code ?? 0
+      let line = String(format: "[%@#%ld] %@", domain, code, message)
+      NSLog("[piktag][RCTFatal] %@", line)
       if let userInfo = nsError?.userInfo, !userInfo.isEmpty {
         NSLog("[piktag][RCTFatal] userInfo: %@", userInfo)
       }
+
+      DispatchQueue.main.async {
+        guard let window = UIApplication.shared.windows.first(where: { $0.isKeyWindow })
+                         ?? UIApplication.shared.windows.first else { return }
+
+        // Reuse a single overlay label across invocations so repeated
+        // errors append instead of stacking views. The tag is an
+        // arbitrary high number unlikely to collide with RN-created views.
+        let overlayTag = 999887
+        let label: UILabel
+        if let existing = window.viewWithTag(overlayTag) as? UILabel {
+          label = existing
+        } else {
+          label = UILabel()
+          label.tag = overlayTag
+          label.numberOfLines = 0
+          label.lineBreakMode = .byWordWrapping
+          label.backgroundColor = UIColor.red.withAlphaComponent(0.92)
+          label.textColor = .white
+          label.font = UIFont.monospacedSystemFont(ofSize: 10, weight: .regular)
+          label.textAlignment = .left
+          label.translatesAutoresizingMaskIntoConstraints = false
+          label.layer.zPosition = 9999
+          label.isUserInteractionEnabled = false
+          window.addSubview(label)
+          NSLayoutConstraint.activate([
+            label.topAnchor.constraint(equalTo: window.safeAreaLayoutGuide.topAnchor, constant: 4),
+            label.leadingAnchor.constraint(equalTo: window.leadingAnchor, constant: 4),
+            label.trailingAnchor.constraint(equalTo: window.trailingAnchor, constant: -4),
+          ])
+        }
+
+        let prefix = "• "
+        let newLine = prefix + line
+        let existingText = label.text ?? ""
+        if !existingText.contains(newLine) {
+          label.text = existingText.isEmpty ? newLine : existingText + "\\n" + newLine
+        }
+      }
+
       // Intentionally do NOT call abort(). Swallow the fatal so the app
-      // keeps running; surviving with a logged warning is better than a
-      // production launch crash.
+      // keeps running; surviving with an on-screen warning is better than
+      // a production launch crash.
     }
 `;
 
@@ -58,30 +95,10 @@ module.exports = function withNonFatalRCTFatalHandler(config) {
       return config;
     }
 
-    // Ensure `import React` is present (AppDelegate.swift in SDK 54 already
-    // imports React, but guard against a future change).
-    if (!contents.includes(IMPORT_LINE)) {
-      contents = contents.replace(
-        /(import Expo\n)/,
-        `$1${IMPORT_LINE}\n`,
-      );
-    }
-
-    // Insert the RCTSetFatalHandler call at the very start of
-    // `application(_:didFinishLaunchingWithOptions:)`. SDK 54's generated
-    // AppDelegate.swift has this signature:
-    //
-    //   public override func application(
-    //     _ application: UIApplication,
-    //     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
-    //   ) -> Bool {
-    //     ...
-    //
-    // We anchor on the opening brace of that method and inject right after.
+    // Anchor on the SDK 54 method signature. Throw loudly if it changes
+    // in a future SDK so the failure is noticed instead of silent.
     const methodSignatureRegex = /(public override func application\([^)]*\)\s*->\s*Bool\s*\{)/;
     if (!methodSignatureRegex.test(contents)) {
-      // Fallback: if the signature has changed in a future SDK, bail out
-      // loudly so CI surfaces the problem instead of silently doing nothing.
       throw new Error(
         '[withNonFatalRCTFatalHandler] Could not find expected ' +
         'application(_:didFinishLaunchingWithOptions:) signature in ' +
