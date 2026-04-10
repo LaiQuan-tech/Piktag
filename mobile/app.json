@@ -55,6 +55,7 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
+      "./plugins/withNonFatalRCTFatalHandler.js",
       [
         "expo-build-properties",
         {
