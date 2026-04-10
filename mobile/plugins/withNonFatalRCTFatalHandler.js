@@ -42,9 +42,10 @@ const INSTALL_BLOCK = `
       }
 
       // Pull the JS stack frames out of userInfo. RN stores them under
-      // RCTJSStackTraceKey when the error originated on the JS side.
+      // "RCTJSStackTraceKey" (note: the key name includes the "Key" suffix;
+      // defined in React/Base/RCTAssert.m).
       var stackLines: [String] = []
-      if let stackArray = nsError?.userInfo["RCTJSStackTrace"] as? [[String: Any]] {
+      if let stackArray = nsError?.userInfo["RCTJSStackTraceKey"] as? [[String: Any]] {
         for (i, frame) in stackArray.prefix(8).enumerated() {
           let methodName = frame["methodName"] as? String ?? "?"
           let file = frame["file"] as? String ?? "?"
@@ -56,7 +57,7 @@ const INSTALL_BLOCK = `
         }
       }
       // Also try the Obj-C call stack for non-JS native errors.
-      if stackLines.isEmpty, let objcStack = nsError?.userInfo["RCTObjCStackTrace"] as? [String] {
+      if stackLines.isEmpty, let objcStack = nsError?.userInfo["RCTObjCStackTraceKey"] as? [String] {
         for (i, frame) in objcStack.prefix(6).enumerated() {
           stackLines.append(String(format: "  %d. %@", i, frame))
         }
@@ -67,37 +68,43 @@ const INSTALL_BLOCK = `
         guard let window = UIApplication.shared.windows.first(where: { $0.isKeyWindow })
                          ?? UIApplication.shared.windows.first else { return }
 
-        let overlayTag = 999887
-        let label: UILabel
-        if let existing = window.viewWithTag(overlayTag) as? UILabel {
-          label = existing
-        } else {
-          label = UILabel()
-          label.tag = overlayTag
-          label.numberOfLines = 0
-          label.lineBreakMode = .byCharWrapping
-          label.backgroundColor = UIColor.red.withAlphaComponent(0.95)
-          label.textColor = .white
-          label.font = UIFont.monospacedSystemFont(ofSize: 9, weight: .regular)
-          label.textAlignment = .left
-          label.translatesAutoresizingMaskIntoConstraints = false
-          label.layer.zPosition = 9999
-          label.isUserInteractionEnabled = false
-          window.addSubview(label)
-          NSLayoutConstraint.activate([
-            label.topAnchor.constraint(equalTo: window.safeAreaLayoutGuide.topAnchor, constant: 2),
-            label.leadingAnchor.constraint(equalTo: window.leadingAnchor, constant: 2),
-            label.trailingAnchor.constraint(equalTo: window.trailingAnchor, constant: -2),
-          ])
-        }
-
         // Compose the block for this error: header line + stack lines.
         var block = "• " + header
         for s in stackLines { block += "\\n" + s }
 
-        let existingText = label.text ?? ""
+        // Auto-copy to clipboard on every new error so the user can just
+        // paste into chat instead of trying to read a tiny on-screen label.
+        let overlayTag = 999887
+        let textView: UITextView
+        if let existing = window.viewWithTag(overlayTag) as? UITextView {
+          textView = existing
+        } else {
+          textView = UITextView()
+          textView.tag = overlayTag
+          textView.isEditable = false
+          textView.isSelectable = true
+          textView.isScrollEnabled = true
+          textView.backgroundColor = UIColor.red.withAlphaComponent(0.95)
+          textView.textColor = .white
+          textView.font = UIFont.monospacedSystemFont(ofSize: 11, weight: .regular)
+          textView.textContainer.lineBreakMode = .byCharWrapping
+          textView.translatesAutoresizingMaskIntoConstraints = false
+          textView.layer.zPosition = 9999
+          window.addSubview(textView)
+          NSLayoutConstraint.activate([
+            textView.topAnchor.constraint(equalTo: window.safeAreaLayoutGuide.topAnchor, constant: 2),
+            textView.leadingAnchor.constraint(equalTo: window.leadingAnchor, constant: 2),
+            textView.trailingAnchor.constraint(equalTo: window.trailingAnchor, constant: -2),
+            textView.heightAnchor.constraint(equalToConstant: 260),
+          ])
+        }
+
+        let existingText = textView.text ?? ""
         if !existingText.contains(block) {
-          label.text = existingText.isEmpty ? block : existingText + "\\n" + block
+          let newText = existingText.isEmpty ? block : existingText + "\\n" + block
+          textView.text = newText
+          // Put the full error on the clipboard so the user can paste.
+          UIPasteboard.general.string = newText
         }
       }
 
