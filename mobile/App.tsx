@@ -1,5 +1,6 @@
 import React from 'react';
-import { StatusBar, View, Platform, StyleSheet } from 'react-native';
+import { View, Platform, StyleSheet } from 'react-native';
+import { StatusBar as ExpoStatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { NavigationContainer } from '@react-navigation/native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -57,7 +58,7 @@ export default function App() {
       <GestureHandlerRootView style={{ flex: 1 }}>
         <SafeAreaProvider>
           <NavigationContainer linking={linking}>
-            <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+            <ExpoStatusBar style="dark" />
             <AppNavigator />
           </NavigationContainer>
         </SafeAreaProvider>
