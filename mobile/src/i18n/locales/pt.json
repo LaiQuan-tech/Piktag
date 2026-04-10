@@ -44,7 +44,8 @@
       "passwordPlaceholder": "Password",
       "registerButton": "Sign Up",
       "hasAccountPrompt": "Already have an account? ",
-      "loginLink": "Log In"
+      "loginLink": "Log In",
+      "passwordHint": "A senha deve ter pelo menos 6 caracteres"
     },
     "onboarding": {
       "defaultTags": [
@@ -71,7 +72,8 @@
       "nextButton": "Next",
       "facebookLabel": "Facebook",
       "instagramLabel": "Instagram",
-      "linkedinLabel": "LinkedIn"
+      "linkedinLabel": "LinkedIn",
+      "birthdayLabel": "Aniversário"
     }
   },
   "connections": {
@@ -101,7 +103,8 @@
     "batchTagPlaceholder": "Enter tag name (e.g., Party)",
     "batchTagProcessing": "Processing...",
     "batchTagConfirm": "Confirm",
-    "newBadge": "Novo"
+    "newBadge": "Novo",
+    "unreviewedLabel": "para revisar"
   },
   "search": {
     "headerTitle": "Search",
@@ -245,7 +248,8 @@
     "reminderSave": "Save",
     "reminderSetPrompt": "Tap to set",
     "reminderClear": "Clear",
-    "biolinksTitle": "Social Links"
+    "biolinksTitle": "Social Links",
+    "mutualFriendsModalTitle": "Amigos em Comum"
   },
   "userDetail": {
     "headerNotFound": "Not Found",
@@ -388,7 +392,9 @@
     "hostTagsTitle": "Their Tags",
     "myTagsTitle": "My Tags",
     "selectAll": "Select All",
-    "confirmButton": "Confirm Add Friend"
+    "confirmButton": "Confirm Add Friend",
+    "alreadyConnectedTitle": "Já Conectado",
+    "alreadyConnectedMessage": "Vocês já são amigos."
   },
   "manageTags": {
     "headerTitle": "Manage Tags",
@@ -429,5 +435,13 @@
     "socialHint": "Grupos e comunidades",
     "metaHint": "Local, ano, contexto",
     "relationHint": "Como se conheceram"
+  },
+  "camera": {
+    "title": "Acesso à Câmera",
+    "grantPermission": "Conceder Permissão",
+    "instruction": "Aponte sua câmera para um código QR #piktag",
+    "invalidQr": "Código QR Inválido",
+    "invalidQrMessage": "Este código QR não é um código de conexão #piktag válido.",
+    "permissionMessage": "#piktag precisa de acesso à câmera para escanear códigos QR e se conectar com amigos."
   }
 }

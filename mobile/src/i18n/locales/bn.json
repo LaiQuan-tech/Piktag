@@ -44,7 +44,8 @@
       "passwordPlaceholder": "Password",
       "registerButton": "Sign Up",
       "hasAccountPrompt": "Already have an account? ",
-      "loginLink": "Log In"
+      "loginLink": "Log In",
+      "passwordHint": "পাসওয়ার্ডটিতে কমপক্ষে 6 অক্ষর থাকতে হবে"
     },
     "onboarding": {
       "defaultTags": [
@@ -71,7 +72,8 @@
       "nextButton": "Next",
       "facebookLabel": "Facebook",
       "instagramLabel": "Instagram",
-      "linkedinLabel": "LinkedIn"
+      "linkedinLabel": "LinkedIn",
+      "birthdayLabel": "জন্মদিন"
     }
   },
   "connections": {
@@ -101,7 +103,8 @@
     "batchTagPlaceholder": "Enter tag name (e.g., Party)",
     "batchTagProcessing": "Processing...",
     "batchTagConfirm": "Confirm",
-    "newBadge": "নতুন"
+    "newBadge": "নতুন",
+    "unreviewedLabel": "পর্যালোচনার জন্য"
   },
   "search": {
     "headerTitle": "Search",
@@ -245,7 +248,8 @@
     "reminderSave": "Save",
     "reminderSetPrompt": "Tap to set",
     "reminderClear": "Clear",
-    "biolinksTitle": "Social Links"
+    "biolinksTitle": "Social Links",
+    "mutualFriendsModalTitle": "পারস্পরিক বন্ধু"
   },
   "userDetail": {
     "headerNotFound": "Not Found",
@@ -388,7 +392,9 @@
     "hostTagsTitle": "Their Tags",
     "myTagsTitle": "My Tags",
     "selectAll": "Select All",
-    "confirmButton": "Confirm Add Friend"
+    "confirmButton": "Confirm Add Friend",
+    "alreadyConnectedTitle": "ইতিমধ্যে সংযুক্ত",
+    "alreadyConnectedMessage": "আপনারা ইতিমধ্যে বন্ধু।"
   },
   "manageTags": {
     "headerTitle": "Manage Tags",
@@ -429,5 +435,13 @@
     "socialHint": "গ্রুপ ও কমিউনিটি",
     "metaHint": "জায়গা, বছর ইত্যাদি",
     "relationHint": "কীভাবে চেনা হলো"
+  },
+  "camera": {
+    "title": "ক্যামেরা অ্যাক্সেস",
+    "grantPermission": "অনুমতি দিন",
+    "instruction": "আপনার ক্যামেরাটি একটি #piktag QR কোডে নির্দেশ করুন",
+    "invalidQr": "অবৈধ QR কোড",
+    "invalidQrMessage": "এই QR কোডটি একটি বৈধ #piktag সংযোগ কোড নয়।",
+    "permissionMessage": "#piktag এর QR কোড স্ক্যান করতে এবং বন্ধুদের সাথে সংযোগ করতে ক্যামেরা অ্যাক্সেসের প্রয়োজন।"
   }
 }

@@ -44,7 +44,8 @@
       "passwordPlaceholder": "Password",
       "registerButton": "Sign Up",
       "hasAccountPrompt": "Already have an account? ",
-      "loginLink": "Log In"
+      "loginLink": "Log In",
+      "passwordHint": "يجب أن تتكون كلمة المرور من 6 أحرف على الأقل"
     },
     "onboarding": {
       "defaultTags": [
@@ -71,7 +72,8 @@
       "nextButton": "Next",
       "facebookLabel": "Facebook",
       "instagramLabel": "Instagram",
-      "linkedinLabel": "LinkedIn"
+      "linkedinLabel": "LinkedIn",
+      "birthdayLabel": "تاريخ الميلاد"
     }
   },
   "connections": {
@@ -101,7 +103,8 @@
     "batchTagPlaceholder": "Enter tag name (e.g., Party)",
     "batchTagProcessing": "Processing...",
     "batchTagConfirm": "Confirm",
-    "newBadge": "جديد"
+    "newBadge": "جديد",
+    "unreviewedLabel": "قيد المراجعة"
   },
   "search": {
     "headerTitle": "Search",
@@ -245,7 +248,8 @@
     "reminderSave": "Save",
     "reminderSetPrompt": "Tap to set",
     "reminderClear": "Clear",
-    "biolinksTitle": "Social Links"
+    "biolinksTitle": "Social Links",
+    "mutualFriendsModalTitle": "الأصدقاء المشتركون"
   },
   "userDetail": {
     "headerNotFound": "Not Found",
@@ -388,7 +392,9 @@
     "hostTagsTitle": "Their Tags",
     "myTagsTitle": "My Tags",
     "selectAll": "Select All",
-    "confirmButton": "Confirm Add Friend"
+    "confirmButton": "Confirm Add Friend",
+    "alreadyConnectedTitle": "متصل بالفعل",
+    "alreadyConnectedMessage": "أنتما أصدقاء بالفعل."
   },
   "manageTags": {
     "headerTitle": "Manage Tags",
@@ -429,5 +435,13 @@
     "socialHint": "المجموعات والمجتمعات",
     "metaHint": "سياق مثل الموقع والسنة",
     "relationHint": "كيف تعرفتم"
+  },
+  "camera": {
+    "title": "الوصول إلى الكاميرا",
+    "grantPermission": "منح الإذن",
+    "instruction": "وجه الكاميرا نحو رمز QR #piktag",
+    "invalidQr": "رمز QR غير صالح",
+    "invalidQrMessage": "رمز QR هذا ليس رمز اتصال #piktag صالحًا.",
+    "permissionMessage": "يحتاج #piktag إلى الوصول إلى الكاميرا لمسح رموز QR والاتصال بالأصدقاء."
   }
 }

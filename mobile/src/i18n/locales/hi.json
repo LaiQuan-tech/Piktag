@@ -44,7 +44,8 @@
       "passwordPlaceholder": "Password",
       "registerButton": "Sign Up",
       "hasAccountPrompt": "Already have an account? ",
-      "loginLink": "Log In"
+      "loginLink": "Log In",
+      "passwordHint": "पासवर्ड कम से कम 6 अक्षर का होना चाहिए"
     },
     "onboarding": {
       "defaultTags": [
@@ -71,7 +72,8 @@
       "nextButton": "Next",
       "facebookLabel": "Facebook",
       "instagramLabel": "Instagram",
-      "linkedinLabel": "LinkedIn"
+      "linkedinLabel": "LinkedIn",
+      "birthdayLabel": "जन्मदिन"
     }
   },
   "connections": {
@@ -101,7 +103,8 @@
     "batchTagPlaceholder": "Enter tag name (e.g., Party)",
     "batchTagProcessing": "Processing...",
     "batchTagConfirm": "Confirm",
-    "newBadge": "नया"
+    "newBadge": "नया",
+    "unreviewedLabel": "समीक्षा के लिए"
   },
   "search": {
     "headerTitle": "Search",
@@ -245,7 +248,8 @@
     "reminderSave": "Save",
     "reminderSetPrompt": "Tap to set",
     "reminderClear": "Clear",
-    "biolinksTitle": "Social Links"
+    "biolinksTitle": "Social Links",
+    "mutualFriendsModalTitle": "सामान्य मित्र"
   },
   "userDetail": {
     "headerNotFound": "Not Found",
@@ -388,7 +392,9 @@
     "hostTagsTitle": "Their Tags",
     "myTagsTitle": "My Tags",
     "selectAll": "Select All",
-    "confirmButton": "Confirm Add Friend"
+    "confirmButton": "Confirm Add Friend",
+    "alreadyConnectedTitle": "पहले से जुड़ा हुआ",
+    "alreadyConnectedMessage": "आप पहले से ही दोस्त हैं।"
   },
   "manageTags": {
     "headerTitle": "Manage Tags",
@@ -429,5 +435,13 @@
     "socialHint": "ग्रुप और कम्युनिटी",
     "metaHint": "जगह, साल वगैरह",
     "relationHint": "कैसे मिले"
+  },
+  "camera": {
+    "title": "कैमरा एक्सेस",
+    "grantPermission": "अनुमति दें",
+    "instruction": "अपने कैमरे को #piktag QR कोड पर इंगित करें",
+    "invalidQr": "अमान्य QR कोड",
+    "invalidQrMessage": "यह QR कोड मान्य #piktag कनेक्शन कोड नहीं है।",
+    "permissionMessage": "#piktag को QR कोड स्कैन करने और दोस्तों से जुड़ने के लिए कैमरा एक्सेस की आवश्यकता है।"
   }
 }

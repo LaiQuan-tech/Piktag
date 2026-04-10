@@ -67,7 +67,8 @@
       "hasAccountPrompt": "已有帳號？ ",
       "loginLink": "登入",
       "confirmPasswordPlaceholder": "確認密碼",
-      "alertPasswordMismatch": "兩次密碼輸入不一致"
+      "alertPasswordMismatch": "兩次密碼輸入不一致",
+      "passwordHint": "密碼至少需要 6 個字元"
     },
     "onboarding": {
       "defaultTags": [
@@ -99,7 +100,8 @@
       "nextButton": "下一步",
       "facebookLabel": "Facebook",
       "instagramLabel": "Instagram",
-      "linkedinLabel": "LinkedIn"
+      "linkedinLabel": "LinkedIn",
+      "birthdayLabel": "生日"
     }
   },
   "connections": {
@@ -148,7 +150,8 @@
     "filterByTag": "依標籤篩選",
     "clearFilter": "清除篩選",
     "noTagsToFilter": "目前沒有可篩選的標籤",
-    "newBadge": "新"
+    "newBadge": "新",
+    "unreviewedLabel": "位待整理"
   },
   "search": {
     "clearAll": "清除全部",
@@ -386,7 +389,8 @@
     "unfollowConfirm": "取消追蹤",
     "hiddenTagsTitle": "隱藏標籤（只有你看得到）",
     "hiddenTagPlaceholder": "新增隱藏標籤，如：前同事",
-    "mutualTagsModalTitle": "共同標籤"
+    "mutualTagsModalTitle": "共同標籤",
+    "mutualFriendsModalTitle": "共同朋友"
   },
   "userDetail": {
     "headerNotFound": "Not Found",
@@ -582,7 +586,9 @@
     "relationColleague": "同事",
     "relationClassmate": "同學",
     "relationPartner": "合夥人",
-    "relationClient": "客戶"
+    "relationClient": "客戶",
+    "alreadyConnectedTitle": "已連結",
+    "alreadyConnectedMessage": "你們已經是朋友了"
   },
   "manageTags": {
     "headerTitle": "標籤管理",
@@ -664,5 +670,13 @@
     "relationHint": "你和對方的關係",
     "selectType": "選擇標籤類型",
     "parentTag": "上層標籤"
+  },
+  "camera": {
+    "title": "相機存取",
+    "grantPermission": "授予權限",
+    "instruction": "將相機對準 #piktag QR 碼",
+    "invalidQr": "無效的 QR 碼",
+    "invalidQrMessage": "這不是有效的 #piktag 連結 QR 碼",
+    "permissionMessage": "#piktag 需要相機權限以掃描 QR 碼並連結朋友"
   }
 }

@@ -44,7 +44,8 @@
       "passwordPlaceholder": "Password",
       "registerButton": "Sign Up",
       "hasAccountPrompt": "Already have an account? ",
-      "loginLink": "Log In"
+      "loginLink": "Log In",
+      "passwordHint": "パスワードは6文字以上必要です"
     },
     "onboarding": {
       "defaultTags": [
@@ -71,7 +72,8 @@
       "nextButton": "Next",
       "facebookLabel": "Facebook",
       "instagramLabel": "Instagram",
-      "linkedinLabel": "LinkedIn"
+      "linkedinLabel": "LinkedIn",
+      "birthdayLabel": "誕生日"
     }
   },
   "connections": {
@@ -101,7 +103,8 @@
     "batchTagPlaceholder": "Enter tag name (e.g., Party)",
     "batchTagProcessing": "Processing...",
     "batchTagConfirm": "Confirm",
-    "newBadge": "新"
+    "newBadge": "新",
+    "unreviewedLabel": "件未整理"
   },
   "search": {
     "headerTitle": "Search",
@@ -245,7 +248,8 @@
     "reminderSave": "Save",
     "reminderSetPrompt": "Tap to set",
     "reminderClear": "Clear",
-    "biolinksTitle": "Social Links"
+    "biolinksTitle": "Social Links",
+    "mutualFriendsModalTitle": "共通の友達"
   },
   "userDetail": {
     "headerNotFound": "Not Found",
@@ -388,7 +392,9 @@
     "hostTagsTitle": "Their Tags",
     "myTagsTitle": "My Tags",
     "selectAll": "Select All",
-    "confirmButton": "Confirm Add Friend"
+    "confirmButton": "Confirm Add Friend",
+    "alreadyConnectedTitle": "既に接続済み",
+    "alreadyConnectedMessage": "あなたたちは既に友達です"
   },
   "manageTags": {
     "headerTitle": "Manage Tags",
@@ -429,5 +435,13 @@
     "socialHint": "所属グループやコミュニティ",
     "metaHint": "場所や年などの背景情報",
     "relationHint": "どうやって知り合ったか"
+  },
+  "camera": {
+    "title": "カメラアクセス",
+    "grantPermission": "権限を付与",
+    "instruction": "カメラを #piktag QR コードに向けてください",
+    "invalidQr": "無効なQRコード",
+    "invalidQrMessage": "このQRコードは有効な #piktag 接続コードではありません",
+    "permissionMessage": "#piktag はQRコードをスキャンして友達とつながるためにカメラへのアクセスが必要です"
   }
 }
