@@ -35,19 +35,38 @@ const INSTALL_BLOCK = `
       let message = nsError?.localizedDescription ?? "unknown error"
       let domain = nsError?.domain ?? "?"
       let code = nsError?.code ?? 0
-      let line = String(format: "[%@#%ld] %@", domain, code, message)
-      NSLog("[piktag][RCTFatal] %@", line)
+      let header = String(format: "[%@#%ld] %@", domain, code, message)
+      NSLog("[piktag][RCTFatal] %@", header)
       if let userInfo = nsError?.userInfo, !userInfo.isEmpty {
-        NSLog("[piktag][RCTFatal] userInfo: %@", userInfo)
+        NSLog("[piktag][RCTFatal] userInfo keys: %@", Array(userInfo.keys))
       }
+
+      // Pull the JS stack frames out of userInfo. RN stores them under
+      // RCTJSStackTraceKey when the error originated on the JS side.
+      var stackLines: [String] = []
+      if let stackArray = nsError?.userInfo["RCTJSStackTrace"] as? [[String: Any]] {
+        for (i, frame) in stackArray.prefix(8).enumerated() {
+          let methodName = frame["methodName"] as? String ?? "?"
+          let file = frame["file"] as? String ?? "?"
+          let lineNumber = frame["lineNumber"] as? Int ?? -1
+          let column = frame["column"] as? Int ?? -1
+          // Show just the final path component of file so it fits on screen.
+          let shortFile = (file as NSString).lastPathComponent
+          stackLines.append(String(format: "  %d. %@ @ %@:%d:%d", i, methodName, shortFile, lineNumber, column))
+        }
+      }
+      // Also try the Obj-C call stack for non-JS native errors.
+      if stackLines.isEmpty, let objcStack = nsError?.userInfo["RCTObjCStackTrace"] as? [String] {
+        for (i, frame) in objcStack.prefix(6).enumerated() {
+          stackLines.append(String(format: "  %d. %@", i, frame))
+        }
+      }
+      for s in stackLines { NSLog("[piktag][RCTFatal]%@", s) }
 
       DispatchQueue.main.async {
         guard let window = UIApplication.shared.windows.first(where: { $0.isKeyWindow })
                          ?? UIApplication.shared.windows.first else { return }
 
-        // Reuse a single overlay label across invocations so repeated
-        // errors append instead of stacking views. The tag is an
-        // arbitrary high number unlikely to collide with RN-created views.
         let overlayTag = 999887
         let label: UILabel
         if let existing = window.viewWithTag(overlayTag) as? UILabel {
@@ -56,27 +75,29 @@ const INSTALL_BLOCK = `
           label = UILabel()
           label.tag = overlayTag
           label.numberOfLines = 0
-          label.lineBreakMode = .byWordWrapping
-          label.backgroundColor = UIColor.red.withAlphaComponent(0.92)
+          label.lineBreakMode = .byCharWrapping
+          label.backgroundColor = UIColor.red.withAlphaComponent(0.95)
           label.textColor = .white
-          label.font = UIFont.monospacedSystemFont(ofSize: 10, weight: .regular)
+          label.font = UIFont.monospacedSystemFont(ofSize: 9, weight: .regular)
           label.textAlignment = .left
           label.translatesAutoresizingMaskIntoConstraints = false
           label.layer.zPosition = 9999
           label.isUserInteractionEnabled = false
           window.addSubview(label)
           NSLayoutConstraint.activate([
-            label.topAnchor.constraint(equalTo: window.safeAreaLayoutGuide.topAnchor, constant: 4),
-            label.leadingAnchor.constraint(equalTo: window.leadingAnchor, constant: 4),
-            label.trailingAnchor.constraint(equalTo: window.trailingAnchor, constant: -4),
+            label.topAnchor.constraint(equalTo: window.safeAreaLayoutGuide.topAnchor, constant: 2),
+            label.leadingAnchor.constraint(equalTo: window.leadingAnchor, constant: 2),
+            label.trailingAnchor.constraint(equalTo: window.trailingAnchor, constant: -2),
           ])
         }
 
-        let prefix = "• "
-        let newLine = prefix + line
+        // Compose the block for this error: header line + stack lines.
+        var block = "• " + header
+        for s in stackLines { block += "\\n" + s }
+
         let existingText = label.text ?? ""
-        if !existingText.contains(newLine) {
-          label.text = existingText.isEmpty ? newLine : existingText + "\\n" + newLine
+        if !existingText.contains(block) {
+          label.text = existingText.isEmpty ? block : existingText + "\\n" + block
         }
       }
 
