@@ -85,6 +85,13 @@ type ConnectionItemProps = {
 };
 
 const ConnectionItem = React.memo(({ item, isSelected, selectMode, onPress, onLongPress }: ConnectionItemProps) => {
+  // NOTE: `t` must be called inside the component, not captured from the
+  // outer file scope. ConnectionItem is defined at module level (outside
+  // ConnectionsScreen), so it has no closure access to the outer `t` from
+  // useTranslation(). Under Hermes release mode this previously caused
+  // `ReferenceError: Property 't' doesn't exist` the moment this item tried
+  // to render inside the FlatList after login.
+  const { t } = useTranslation();
   const profile = item.connected_user;
   const displayName = item.nickname || profile?.full_name || profile?.username || 'Unknown';
   const username = profile?.username || '';
