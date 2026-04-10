@@ -116,7 +116,8 @@
     "viewProfile": "Lihat",
     "filterByTag": "Filter berdasarkan Tag",
     "clearFilter": "Hapus Filter",
-    "noTagsToFilter": "Tidak ada tag untuk difilter"
+    "noTagsToFilter": "Tidak ada tag untuk difilter",
+    "newBadge": "Baru"
   },
   "search": {
     "headerTitle": "Cari",

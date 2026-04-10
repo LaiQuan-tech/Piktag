@@ -100,7 +100,8 @@
     "batchTagModalTitle": "Add tag for {{count}} friends",
     "batchTagPlaceholder": "Enter tag name (e.g., Party)",
     "batchTagProcessing": "Processing...",
-    "batchTagConfirm": "Confirm"
+    "batchTagConfirm": "Confirm",
+    "newBadge": "নতুন"
   },
   "search": {
     "headerTitle": "Search",

@@ -147,7 +147,8 @@
     "viewProfile": "View",
     "filterByTag": "Filter by Tag",
     "clearFilter": "Clear Filter",
-    "noTagsToFilter": "No tags available to filter"
+    "noTagsToFilter": "No tags available to filter",
+    "newBadge": "New"
   },
   "search": {
     "clearAll": "Clear all",

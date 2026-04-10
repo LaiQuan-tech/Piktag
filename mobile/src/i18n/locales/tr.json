@@ -116,7 +116,8 @@
     "viewProfile": "Görüntüle",
     "filterByTag": "Etikete Göre Filtrele",
     "clearFilter": "Filtreyi Temizle",
-    "noTagsToFilter": "Filtrelenecek etiket yok"
+    "noTagsToFilter": "Filtrelenecek etiket yok",
+    "newBadge": "Yeni"
   },
   "search": {
     "headerTitle": "Ara",
