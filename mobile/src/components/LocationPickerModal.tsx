@@ -17,6 +17,7 @@ import * as Location from 'expo-location';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { COLORS } from '../constants/theme';
 import { fetchNearbyPlaces, autocompletePlaces, type PlaceResult, GOOGLE_PLACES_API_KEY } from '../lib/googlePlaces';
+import { logApiUsage } from '../lib/apiUsage';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 const MAP_HEIGHT_EXPANDED = SCREEN_HEIGHT * 0.42;
@@ -123,6 +124,7 @@ export default function LocationPickerModal({
     // Reverse geocode
     if (isWeb) {
       try {
+        logApiUsage('geocoding');
         const res = await fetch(
           `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${GOOGLE_PLACES_API_KEY}&language=zh-TW`
         );

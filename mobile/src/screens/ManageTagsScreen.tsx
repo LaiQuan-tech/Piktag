@@ -17,6 +17,7 @@ import { useTranslation } from 'react-i18next';
 import { X, Hash, Pin, Sparkles, ArrowLeftRight, AlertTriangle } from 'lucide-react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from '../lib/supabase';
+import { logApiUsage } from '../lib/apiUsage';
 import { useAuth } from '../hooks/useAuth';
 import { COLORS } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
@@ -138,6 +139,7 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
 
       for (const model of models) {
         try {
+          logApiUsage('gemini_generate', { model });
           const response = await fetch(
             `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`,
             {
