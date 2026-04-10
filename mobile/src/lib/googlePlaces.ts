@@ -1,3 +1,5 @@
+import { logApiUsage } from './apiUsage';
+
 export const GOOGLE_PLACES_API_KEY = process.env.EXPO_PUBLIC_GOOGLE_PLACES_API_KEY || 'AIzaSyC6JCMjAF48uv5vNjgtox3-qUqhFBQLtnI';
 
 export type PlaceResult = {
@@ -15,6 +17,7 @@ export async function fetchNearbyPlaces(
   radiusMeters = 500,
   maxResults = 10,
 ): Promise<PlaceResult[]> {
+  logApiUsage('places_nearby', { radiusMeters, maxResults });
   try {
     const url = 'https://places.googleapis.com/v1/places:searchNearby';
     const body = {
@@ -68,6 +71,7 @@ export async function autocompletePlaces(
   maxResults = 5,
 ): Promise<PlaceResult[]> {
   if (!input || input.length < 2) return [];
+  logApiUsage('places_autocomplete', { inputLength: input.length, maxResults });
 
   try {
     const url = 'https://places.googleapis.com/v1/places:autocomplete';

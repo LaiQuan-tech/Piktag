@@ -13,6 +13,7 @@ import * as Location from 'expo-location';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { COLORS } from '../constants/theme';
 import { GOOGLE_PLACES_API_KEY } from '../lib/googlePlaces';
+import { logApiUsage } from '../lib/apiUsage';
 
 const isWeb = Platform.OS === 'web';
 
@@ -249,6 +250,12 @@ export default function FriendsMapModal({
   // we can place a "you are here" avatar and auto-center the map.
   useEffect(() => {
     if (!visible) return;
+    // Each time the modal becomes visible we instantiate a fresh
+    // google.maps.Map via the embedded HTML, which counts as one
+    // Maps JavaScript API "map load" on the Google billing side.
+    // Log it so we can cross-reference against Cloud Console later.
+    logApiUsage('maps_js_map_load', { friendCount: friendsWithLocation.length });
+
     let cancelled = false;
     setLocating(true);
 
