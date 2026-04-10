@@ -109,6 +109,32 @@ function buildMapHtml(
       } catch (e) {}
     }
 
+    function showInlineError(msg) {
+      var el = document.getElementById('fallback');
+      if (el) {
+        el.textContent = msg;
+        el.style.display = 'flex';
+      }
+      postToHost({ type: 'error', message: msg });
+    }
+
+    // Google Maps calls this global hook when the API key is
+    // rejected for any auth reason (key invalid, API not enabled,
+    // referrer / bundle restriction mismatch, billing disabled).
+    // Without this, Maps takes over <body> with its own generic
+    // "this page didn't load Google Maps correctly" screen and the
+    // host app has no way to tell what went wrong.
+    window.gm_authFailure = function () {
+      showInlineError('Google Maps 認證失敗：請確認 Cloud Console 有啟用 Maps JavaScript API、API key 未被 referrer 規則擋掉、billing 帳號有效。');
+    };
+
+    // Capture top-level script errors (e.g. script tag load failure)
+    // and forward them to the host so we can see them on the red
+    // debug overlay without a JS console.
+    window.addEventListener('error', function (ev) {
+      showInlineError('JS error: ' + (ev && ev.message ? ev.message : 'unknown'));
+    });
+
     function escapeText(s) {
       const d = document.createElement('div');
       d.textContent = s;
@@ -239,6 +265,7 @@ export default function FriendsMapModal({
   const insets = useSafeAreaInsets();
   const [userCoords, setUserCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [locating, setLocating] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
 
   const friendsWithLocation = useMemo(
@@ -292,16 +319,28 @@ export default function FriendsMapModal({
     return () => { cancelled = true; };
   }, [visible]);
 
+  // Reset the error banner every time the modal is (re)opened so a
+  // stale failure from a previous attempt doesn't linger.
+  useEffect(() => {
+    if (visible) setLoadError(null);
+  }, [visible]);
+
   // Message handler — invoked from the WebView (native) or from the
-  // iframe (web) when the in-map HTML posts a friend click.
+  // iframe (web) when the in-map HTML posts a friend click or an
+  // authentication / script-load error.
   const handleMessage = (raw: unknown) => {
     if (!raw) return;
     let data: any = raw;
     if (typeof raw === 'string') {
       try { data = JSON.parse(raw); } catch { return; }
     }
-    if (data && data.type === 'friendClick' && data.connectionId && data.friendId) {
+    if (!data || typeof data !== 'object') return;
+    if (data.type === 'friendClick' && data.connectionId && data.friendId) {
       onFriendPress(data.connectionId, data.friendId);
+      return;
+    }
+    if (data.type === 'error' && typeof data.message === 'string') {
+      setLoadError(data.message);
     }
   };
 
@@ -356,6 +395,15 @@ export default function FriendsMapModal({
           <View style={styles.headerBtn} />
         </View>
 
+        {/* Inline load error (visible to user, no JS console needed) */}
+        {loadError && (
+          <View style={styles.errorBanner}>
+            <Text style={styles.errorBannerText} numberOfLines={6}>
+              {loadError}
+            </Text>
+          </View>
+        )}
+
         {/* Map */}
         <View style={styles.mapContainer}>
           {locating && !userCoords && friendsWithLocation.length === 0 ? (
@@ -382,10 +430,18 @@ export default function FriendsMapModal({
                   </View>
                 );
               }
+              // NOTE: baseUrl is important. Google Maps will send
+              // the current document's origin as the HTTP Referer
+              // when it loads its own internal scripts, and the
+              // Google Maps Platform API key referrer restriction
+              // matches against that Referer. Setting baseUrl to
+              // our production web origin means: if the user
+              // restricts the API key to https://pikt.ag/* then
+              // the iOS WebView will satisfy the restriction.
               return (
                 <WebView
                   originWhitelist={['*']}
-                  source={{ html, baseUrl: 'https://maps.googleapis.com' }}
+                  source={{ html, baseUrl: 'https://pikt.ag' }}
                   style={{ flex: 1, backgroundColor: '#e5e7eb' }}
                   javaScriptEnabled
                   domStorageEnabled
@@ -427,5 +483,17 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  errorBanner: {
+    backgroundColor: '#FEE2E2',
+    borderBottomWidth: 1,
+    borderBottomColor: '#FCA5A5',
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+  },
+  errorBannerText: {
+    fontSize: 12,
+    lineHeight: 17,
+    color: '#991B1B',
   },
 });
