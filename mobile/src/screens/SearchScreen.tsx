@@ -837,7 +837,6 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
     | { type: 'tagsEmpty' }
     | { type: 'tagsGrid' }
     | { type: 'nearbyTagsGrid' }
-    | { type: 'tagUsersSection'; tagUserData: { tag: Tag; users: any[] } }
     | { type: 'recommendedUsers' };
 
   const listData = useMemo<ListItem[]>(() => {
@@ -861,22 +860,38 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
       return items;
     }
 
-    // If user is typing, show search results regardless of tab
+    // If user is typing, show a single flat, deduplicated list of
+    // matching users — no tag pill row, no "#tag 查看全部" grouped
+    // sections, no separate profile-vs-tag-match buckets. Algorithm
+    // can still be complex (profile match + tag match + concept synonym
+    // match happen in performSearch), but the presentation is a single
+    // list so the UI stays thin.
     if (trimmedQuery !== '') {
-      if (profiles.length > 0) {
-        profiles.forEach((profile) => {
+      const seenIds = new Set<string>();
+      const mergedProfiles: PiktagProfile[] = [];
+
+      // 1) Direct name/username matches first — higher signal.
+      for (const p of profiles) {
+        if (p?.id && !seenIds.has(p.id)) {
+          seenIds.add(p.id);
+          mergedProfiles.push(p);
+        }
+      }
+      // 2) Users matched via their public tags, deduplicated across tag groups.
+      for (const tu of tagUsers) {
+        for (const u of tu.users) {
+          if (u?.id && !seenIds.has(u.id)) {
+            seenIds.add(u.id);
+            mergedProfiles.push(u as PiktagProfile);
+          }
+        }
+      }
+
+      if (mergedProfiles.length > 0) {
+        for (const profile of mergedProfiles) {
           items.push({ type: 'profileItem', profile });
-        });
-      }
-      if (tags.length > 0) {
-        items.push({ type: 'tagsGrid' });
-      }
-      if (tagUsers.length > 0) {
-        tagUsers.forEach((tu) => {
-          items.push({ type: 'tagUsersSection', tagUserData: tu });
-        });
-      }
-      if (profiles.length === 0 && tags.length === 0) {
+        }
+      } else {
         items.push({ type: 'profilesEmpty' });
       }
     } else {
@@ -959,8 +974,6 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
         return 'nearbyTagsGrid';
       case 'clearHistoryBtn':
         return 'clearHistoryBtn';
-      case 'tagUsersSection':
-        return `tagUsers-${item.tagUserData?.tag?.id || index}`;
       case 'recommendedUsers':
         return 'recommendedUsers';
       default:
@@ -1163,58 +1176,6 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
               ))}
             </View>
           );
-
-        case 'tagUsersSection': {
-          const { tag: sectionTag, users: sectionUsers } = item.tagUserData;
-          return (
-            <View style={styles.tagUsersSection}>
-              <View style={styles.tagUsersSectionHeader}>
-                <View style={styles.tagUsersTitleRow}>
-                  <Hash size={14} color={COLORS.piktag600} strokeWidth={2.5} />
-                  <Text style={styles.tagUsersSectionTitle}>{sectionTag.name}</Text>
-                </View>
-                <TouchableOpacity
-                  onPress={() => navigation.navigate('TagDetail', {
-                    tagId: sectionTag.id,
-                    tagName: sectionTag.name,
-                    initialTab: 'explore',
-                  })}
-                  activeOpacity={0.7}
-                >
-                  <Text style={styles.tagUsersViewAll}>{t('tagDetail.viewAll')}</Text>
-                </TouchableOpacity>
-              </View>
-              <View style={styles.tagUsersList}>
-                {sectionUsers.map((u: any) => (
-                  <TouchableOpacity
-                    key={u.id}
-                    style={styles.tagUserRow}
-                    activeOpacity={0.7}
-                    onPress={() => navigation.navigate('UserDetail', { userId: u.id })}
-                  >
-                    {u.avatar_url ? (
-                      <Image source={{ uri: u.avatar_url }} style={styles.tagUserAvatar} />
-                    ) : (
-                      <View style={[styles.tagUserAvatar, styles.tagUserAvatarPlaceholder]}>
-                        <User size={20} color={COLORS.gray400} />
-                      </View>
-                    )}
-                    <View style={styles.tagUserInfo}>
-                      <Text style={styles.tagUserName} numberOfLines={1}>
-                        {u.full_name || u.username || ''}
-                      </Text>
-                      {u.username && (
-                        <Text style={styles.tagUserUsername} numberOfLines={1}>
-                          @{u.username}
-                        </Text>
-                      )}
-                    </View>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </View>
-          );
-        }
 
         case 'recommendedUsers':
           return (
@@ -1770,69 +1731,5 @@ const styles = StyleSheet.create({
   },
   categoryChipTextActive: {
     color: COLORS.piktag600,
-  },
-
-  // Tag Users Section
-  tagUsersSection: {
-    paddingTop: 20,
-    paddingBottom: 8,
-  },
-  tagUsersSectionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    marginBottom: 12,
-  },
-  tagUsersTitleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  tagUsersSectionTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: COLORS.gray900,
-  },
-  tagUsersViewAll: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: COLORS.piktag600,
-  },
-  tagUsersList: {
-    paddingHorizontal: 20,
-  },
-  tagUserRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.gray100,
-  },
-  tagUserAvatar: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: COLORS.gray100,
-  },
-  tagUserAvatarPlaceholder: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: COLORS.gray200,
-  },
-  tagUserInfo: {
-    flex: 1,
-    marginLeft: 12,
-  },
-  tagUserName: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: COLORS.gray900,
-  },
-  tagUserUsername: {
-    fontSize: 13,
-    color: COLORS.gray500,
-    marginTop: 2,
   },
 });
