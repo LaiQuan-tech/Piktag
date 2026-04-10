@@ -17,7 +17,7 @@
       "supportsTablet": true,
       "bundleIdentifier": "ag.pikt.app",
       "config": {
-        "googleMapsApiKey": "AIzaSyC6JCMjAF48uv5vNjgtox3-qUqhFBQLtnI"
+        "googleMapsApiKey": "AIzaSyA7EfF5bYvUSGeNE0T8DAiLR53SpZTTzlY"
       },
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
@@ -36,7 +36,7 @@
       },
       "config": {
         "googleMaps": {
-          "apiKey": "AIzaSyC6JCMjAF48uv5vNjgtox3-qUqhFBQLtnI"
+          "apiKey": "AIzaSyA7EfF5bYvUSGeNE0T8DAiLR53SpZTTzlY"
         }
       },
       "edgeToEdgeEnabled": true,
