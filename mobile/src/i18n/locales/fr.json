@@ -44,7 +44,8 @@
       "passwordPlaceholder": "Password",
       "registerButton": "Sign Up",
       "hasAccountPrompt": "Already have an account? ",
-      "loginLink": "Log In"
+      "loginLink": "Log In",
+      "passwordHint": "Le mot de passe doit contenir au moins 6 caractères"
     },
     "onboarding": {
       "defaultTags": [
@@ -71,7 +72,8 @@
       "nextButton": "Next",
       "facebookLabel": "Facebook",
       "instagramLabel": "Instagram",
-      "linkedinLabel": "LinkedIn"
+      "linkedinLabel": "LinkedIn",
+      "birthdayLabel": "Anniversaire"
     }
   },
   "connections": {
@@ -101,7 +103,8 @@
     "batchTagPlaceholder": "Enter tag name (e.g., Party)",
     "batchTagProcessing": "Processing...",
     "batchTagConfirm": "Confirm",
-    "newBadge": "Nouveau"
+    "newBadge": "Nouveau",
+    "unreviewedLabel": "à examiner"
   },
   "search": {
     "headerTitle": "Search",
@@ -245,7 +248,8 @@
     "reminderSave": "Save",
     "reminderSetPrompt": "Tap to set",
     "reminderClear": "Clear",
-    "biolinksTitle": "Social Links"
+    "biolinksTitle": "Social Links",
+    "mutualFriendsModalTitle": "Amis en Commun"
   },
   "userDetail": {
     "headerNotFound": "Not Found",
@@ -388,7 +392,9 @@
     "hostTagsTitle": "Their Tags",
     "myTagsTitle": "My Tags",
     "selectAll": "Select All",
-    "confirmButton": "Confirm Add Friend"
+    "confirmButton": "Confirm Add Friend",
+    "alreadyConnectedTitle": "Déjà Connecté",
+    "alreadyConnectedMessage": "Vous êtes déjà amis."
   },
   "manageTags": {
     "headerTitle": "Manage Tags",
@@ -429,5 +435,13 @@
     "socialHint": "Groupes et communautés",
     "metaHint": "Lieu, année, contexte",
     "relationHint": "Comment vous vous êtes rencontrés"
+  },
+  "camera": {
+    "title": "Accès à la Caméra",
+    "grantPermission": "Accorder la Permission",
+    "instruction": "Pointez votre caméra vers un code QR #piktag",
+    "invalidQr": "Code QR Invalide",
+    "invalidQrMessage": "Ce code QR n'est pas un code de connexion #piktag valide.",
+    "permissionMessage": "#piktag a besoin d'accéder à la caméra pour scanner les codes QR et se connecter avec des amis."
   }
 }

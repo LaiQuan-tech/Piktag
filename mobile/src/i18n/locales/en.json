@@ -67,7 +67,8 @@
       "hasAccountPrompt": "Already have an account? ",
       "loginLink": "Log In",
       "confirmPasswordPlaceholder": "Confirm Password",
-      "alertPasswordMismatch": "Passwords do not match"
+      "alertPasswordMismatch": "Passwords do not match",
+      "passwordHint": "Password must be at least 6 characters"
     },
     "onboarding": {
       "defaultTags": [
@@ -99,7 +100,8 @@
       "nextButton": "Next",
       "facebookLabel": "Facebook",
       "instagramLabel": "Instagram",
-      "linkedinLabel": "LinkedIn"
+      "linkedinLabel": "LinkedIn",
+      "birthdayLabel": "Birthday"
     }
   },
   "connections": {
@@ -148,7 +150,8 @@
     "filterByTag": "Filter by Tag",
     "clearFilter": "Clear Filter",
     "noTagsToFilter": "No tags available to filter",
-    "newBadge": "New"
+    "newBadge": "New",
+    "unreviewedLabel": "to review"
   },
   "search": {
     "clearAll": "Clear all",
@@ -383,7 +386,8 @@
     "unfollowConfirm": "Unfollow",
     "hiddenTagsTitle": "Hidden Tags (only you can see)",
     "hiddenTagPlaceholder": "Add hidden tag, e.g. ex-colleague",
-    "mutualTagsModalTitle": "Mutual Tags"
+    "mutualTagsModalTitle": "Mutual Tags",
+    "mutualFriendsModalTitle": "Mutual Friends"
   },
   "userDetail": {
     "headerNotFound": "Not Found",
@@ -577,7 +581,9 @@
     "relationColleague": "Colleague",
     "relationClassmate": "Classmate",
     "relationPartner": "Partner",
-    "relationClient": "Client"
+    "relationClient": "Client",
+    "alreadyConnectedTitle": "Already Connected",
+    "alreadyConnectedMessage": "You are already friends."
   },
   "manageTags": {
     "headerTitle": "Manage Tags",
@@ -657,5 +663,13 @@
     "relationHint": "Your relationship with this person",
     "selectType": "Select tag type",
     "parentTag": "Parent tag"
+  },
+  "camera": {
+    "title": "Camera Access",
+    "grantPermission": "Grant Permission",
+    "instruction": "Point your camera at a #piktag QR code",
+    "invalidQr": "Invalid QR Code",
+    "invalidQrMessage": "This QR code is not a valid #piktag connection code.",
+    "permissionMessage": "#piktag needs camera access to scan QR codes and connect with friends."
   }
 }

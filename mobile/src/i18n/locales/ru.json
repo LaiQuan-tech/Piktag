@@ -44,7 +44,8 @@
       "passwordPlaceholder": "Password",
       "registerButton": "Sign Up",
       "hasAccountPrompt": "Already have an account? ",
-      "loginLink": "Log In"
+      "loginLink": "Log In",
+      "passwordHint": "Пароль должен содержать минимум 6 символов"
     },
     "onboarding": {
       "defaultTags": [
@@ -71,7 +72,8 @@
       "nextButton": "Next",
       "facebookLabel": "Facebook",
       "instagramLabel": "Instagram",
-      "linkedinLabel": "LinkedIn"
+      "linkedinLabel": "LinkedIn",
+      "birthdayLabel": "День рождения"
     }
   },
   "connections": {
@@ -101,7 +103,8 @@
     "batchTagPlaceholder": "Enter tag name (e.g., Party)",
     "batchTagProcessing": "Processing...",
     "batchTagConfirm": "Confirm",
-    "newBadge": "Новое"
+    "newBadge": "Новое",
+    "unreviewedLabel": "на проверке"
   },
   "search": {
     "headerTitle": "Search",
@@ -245,7 +248,8 @@
     "reminderSave": "Save",
     "reminderSetPrompt": "Tap to set",
     "reminderClear": "Clear",
-    "biolinksTitle": "Social Links"
+    "biolinksTitle": "Social Links",
+    "mutualFriendsModalTitle": "Общие друзья"
   },
   "userDetail": {
     "headerNotFound": "Not Found",
@@ -388,7 +392,9 @@
     "hostTagsTitle": "Their Tags",
     "myTagsTitle": "My Tags",
     "selectAll": "Select All",
-    "confirmButton": "Confirm Add Friend"
+    "confirmButton": "Confirm Add Friend",
+    "alreadyConnectedTitle": "Уже подключено",
+    "alreadyConnectedMessage": "Вы уже друзья."
   },
   "manageTags": {
     "headerTitle": "Manage Tags",
@@ -429,5 +435,13 @@
     "socialHint": "Группы и сообщества",
     "metaHint": "Место, год и другой контекст",
     "relationHint": "Как познакомились"
+  },
+  "camera": {
+    "title": "Доступ к камере",
+    "grantPermission": "Предоставить разрешение",
+    "instruction": "Наведите камеру на QR-код #piktag",
+    "invalidQr": "Неверный QR-код",
+    "invalidQrMessage": "Этот QR-код не является действительным кодом подключения #piktag.",
+    "permissionMessage": "#piktag нужен доступ к камере для сканирования QR-кодов и подключения к друзьям."
   }
 }
