@@ -147,7 +147,8 @@
     "viewProfile": "查看",
     "filterByTag": "依標籤篩選",
     "clearFilter": "清除篩選",
-    "noTagsToFilter": "目前沒有可篩選的標籤"
+    "noTagsToFilter": "目前沒有可篩選的標籤",
+    "newBadge": "新"
   },
   "search": {
     "clearAll": "清除全部",

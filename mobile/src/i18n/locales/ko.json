@@ -116,7 +116,8 @@
     "viewProfile": "보기",
     "filterByTag": "태그로 필터",
     "clearFilter": "필터 해제",
-    "noTagsToFilter": "필터할 태그가 없어요"
+    "noTagsToFilter": "필터할 태그가 없어요",
+    "newBadge": "새"
   },
   "search": {
     "headerTitle": "검색",
