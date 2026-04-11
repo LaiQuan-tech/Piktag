@@ -103,7 +103,7 @@ export type ConnectionTag = {
   tag?: Tag; // joined
 };
 
-export type BiolinkDisplayMode = 'icon' | 'card';
+export type BiolinkDisplayMode = 'icon' | 'card' | 'both';
 export type BiolinkVisibility = 'public' | 'friends' | 'close_friends' | 'private';
 
 export type Biolink = {

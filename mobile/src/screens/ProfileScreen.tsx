@@ -372,9 +372,9 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
         </View>
 
         {/* ============ SECTION 2: Icon 並排區 (display_mode = 'icon') ============ */}
-        {activeBiolinks.filter(bl => bl.display_mode === 'icon').length > 0 && (
+        {activeBiolinks.filter(bl => bl.display_mode === 'icon' || bl.display_mode === 'both').length > 0 && (
           <View style={styles.iconRow}>
-            {activeBiolinks.filter(bl => bl.display_mode === 'icon').map((bl) => (
+            {activeBiolinks.filter(bl => bl.display_mode === 'icon' || bl.display_mode === 'both').map((bl) => (
               <TouchableOpacity
                 key={bl.id}
                 style={styles.iconCircle}
@@ -390,9 +390,9 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
         )}
 
         {/* ============ SECTION 3: 清單按鈕區 (display_mode = 'card') ============ */}
-        {activeBiolinks.filter(bl => bl.display_mode === 'card').length > 0 && (
+        {activeBiolinks.filter(bl => bl.display_mode === 'card' || bl.display_mode === 'both').length > 0 && (
           <View style={styles.cardSection}>
-            {activeBiolinks.filter(bl => bl.display_mode === 'card').map((bl) => (
+            {activeBiolinks.filter(bl => bl.display_mode === 'card' || bl.display_mode === 'both').map((bl) => (
               <TouchableOpacity
                 key={bl.id}
                 style={styles.socialCard}

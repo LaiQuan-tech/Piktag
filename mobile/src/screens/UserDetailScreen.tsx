@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -58,6 +58,14 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
   const [profile, setProfile] = useState<PiktagProfile | null>(null);
   const [tags, setTags] = useState<string[]>([]);
   const [biolinks, setBiolinks] = useState<Biolink[]>([]);
+  const iconBiolinks = useMemo(
+    () => biolinks.filter(bl => bl.display_mode === 'icon' || bl.display_mode === 'both'),
+    [biolinks]
+  );
+  const cardBiolinks = useMemo(
+    () => biolinks.filter(bl => bl.display_mode === 'card' || bl.display_mode === 'both'),
+    [biolinks]
+  );
   const [mutualFriends, setMutualFriends] = useState(0);
   const [mutualTags, setMutualTags] = useState(0);
   const [mutualTagList, setMutualTagList] = useState<{ id: string; name: string }[]>([]);
@@ -810,11 +818,11 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
         )}
 
         {/* Social Links — IG Highlights style circles */}
-        {biolinks.length > 0 && (
+        {iconBiolinks.length > 0 && (
           <View style={styles.socialSection}>
             <Text style={styles.sectionTitle}>{t('userDetail.socialLinksTitle')}</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.socialScrollContent}>
-              {biolinks.map((link) => (
+              {iconBiolinks.map((link) => (
                 <TouchableOpacity
                   key={link.id}
                   style={styles.socialCircleItem}
@@ -836,10 +844,10 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
         )}
 
         {/* Link Bio — Linktree style cards */}
-        {biolinks.length > 0 && (
+        {cardBiolinks.length > 0 && (
           <View style={styles.linkBioSection}>
             <Text style={styles.sectionTitle}>{t('userDetail.linkBioTitle')}</Text>
-            {biolinks.map((link) => (
+            {cardBiolinks.map((link) => (
               <TouchableOpacity
                 key={link.id}
                 style={styles.linkCard}

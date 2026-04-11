@@ -77,7 +77,7 @@ type BiolinkFormData = {
   platform: string;
   url: string;
   label: string;
-  display_mode: 'icon' | 'card';
+  display_mode: 'icon' | 'card' | 'both';
   visibility: 'public' | 'friends' | 'close_friends' | 'private';
 };
 
@@ -1180,6 +1180,15 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
                   >
                     <Text style={[styles.displayModeBtnText, biolinkForm.display_mode === 'card' && styles.displayModeBtnTextActive]}>
                       {t('editProfile.displayModeCard') || '清單卡片'}
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[styles.displayModeBtn, biolinkForm.display_mode === 'both' && styles.displayModeBtnActive]}
+                    onPress={() => setBiolinkForm(prev => ({ ...prev, display_mode: 'both' }))}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={[styles.displayModeBtnText, biolinkForm.display_mode === 'both' && styles.displayModeBtnTextActive]}>
+                      {t('editProfile.displayModeBoth') || '全部顯示'}
                     </Text>
                   </TouchableOpacity>
                 </View>

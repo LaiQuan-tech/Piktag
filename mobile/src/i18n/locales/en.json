@@ -306,6 +306,7 @@
     "displayModeLabel": "Display Mode",
     "displayModeIcon": "Icon Row",
     "displayModeCard": "List Card",
+    "displayModeBoth": "Show All",
     "visibilityLabel": "Who can see",
     "visibilityPublic": "Public",
     "visibilityFriends": "Friends",

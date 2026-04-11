@@ -209,6 +209,10 @@
     "urlLabel": "URL",
     "urlPlaceholder": "https://",
     "displayNameLabel": "Display Name (optional)",
+      "displayModeLabel": "প্রদর্শন",
+      "displayModeIcon": "আইকন সারি",
+      "displayModeCard": "তালিকা কার্ড",
+      "displayModeBoth": "সব দেখান",
     "displayNamePlaceholder": "Custom display name",
     "modalButtonUpdate": "Update",
     "modalButtonAdd": "Add"
