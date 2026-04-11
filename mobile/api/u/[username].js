@@ -2,8 +2,8 @@ const SUPABASE_URL = 'https://kbwfdskulxnhjckdvghj.supabase.co';
 const SUPABASE_ANON_KEY =
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtid2Zkc2t1bHhuaGpja2R2Z2hqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEzOTgwNTAsImV4cCI6MjA4Njk3NDA1MH0.q1wxMahfity_5An5I_PPSoxglJeKHXX6ohYeGvsaIC8';
 
-const BRAND_COLOR = '#0fcdd6';
-const BRAND_BG = '#f5fefe';
+const BRAND_COLOR = '#aa00ff';
+const BRAND_BG = '#faf5ff';
 
 const PLATFORM_ICONS = {
   instagram: '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>',
@@ -160,14 +160,14 @@ function renderProfilePage(profile, biolinks, tags) {
     .username{font-size:15px;color:#666;margin-bottom:12px}
     .bio{font-size:15px;color:#444;text-align:center;line-height:1.6;margin-bottom:16px;max-width:360px}
     .tags{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin-bottom:24px}
-    .tag{background:#fff;border:1.5px solid ${BRAND_COLOR};color:#0ab3bb;font-size:13px;font-weight:600;padding:4px 12px;border-radius:20px}
+    .tag{background:#fff;border:1.5px solid ${BRAND_COLOR};color:#8800cc;font-size:13px;font-weight:600;padding:4px 12px;border-radius:20px}
     .biolinks{width:100%;display:flex;flex-direction:column;gap:10px}
     .biolink{display:flex;align-items:center;gap:12px;background:#fff;border:1.5px solid #e5e5e5;border-radius:14px;padding:14px 18px;text-decoration:none;color:#333;font-size:15px;font-weight:500;transition:all .15s}
-    .biolink:hover{border-color:${BRAND_COLOR};box-shadow:0 2px 8px rgba(15,205,214,.15)}
+    .biolink:hover{border-color:${BRAND_COLOR};box-shadow:0 2px 8px rgba(170,0,255,.15)}
     .biolink span{flex:1}
     .biolink svg{flex-shrink:0;color:#888}
     .biolink svg:first-child{color:${BRAND_COLOR}}
-    .banner{position:fixed;bottom:0;left:0;right:0;background:linear-gradient(135deg,${BRAND_COLOR} 0%,#0ab3bb 100%);padding:16px 20px;display:flex;align-items:center;justify-content:center;gap:12px;box-shadow:0 -4px 20px rgba(0,0,0,.1);z-index:100}
+    .banner{position:fixed;bottom:0;left:0;right:0;background:linear-gradient(135deg,#ff5757 0%,#8c52ff 100%);padding:16px 20px;display:flex;align-items:center;justify-content:center;gap:12px;box-shadow:0 -4px 20px rgba(0,0,0,.1);z-index:100}
     .banner-content{display:flex;flex-direction:column;align-items:center;gap:4px}
     .banner-title{font-size:16px;font-weight:700;color:#fff}
     .banner-subtitle{font-size:13px;color:rgba(255,255,255,.85)}
