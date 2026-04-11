@@ -1,4 +1,4 @@
-const { SUPABASE_URL, SUPABASE_ANON_KEY, BRAND_COLOR, BRAND_ACCENT, BRAND_DARK, BRAND_BG, BRAND_GRADIENT, escapeHtml } = require('../_config');
+const { SUPABASE_URL, SUPABASE_ANON_KEY, BRAND_COLOR, BRAND_ACCENT, BRAND_DARK, BRAND_BG, BRAND_GRADIENT, escapeHtml, detectLocale } = require('../_config');
 
 const PLATFORM_ICONS = {
   instagram: '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>',
@@ -23,10 +23,11 @@ module.exports = async function handler(req, res) {
   const { username, sid } = req.query;
   const usernameStr = Array.isArray(username) ? username[0] : username;
   const sidStr = Array.isArray(sid) ? sid[0] : (sid || '');
+  const locale = detectLocale(req);
 
   if (!usernameStr) {
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
-    return res.status(404).send(notFoundPage());
+    return res.status(404).send(notFoundPage(locale));
   }
 
   try {
@@ -43,7 +44,7 @@ module.exports = async function handler(req, res) {
 
     if (!profiles || profiles.length === 0) {
       res.setHeader('Content-Type', 'text/html; charset=utf-8');
-      return res.status(404).send(notFoundPage());
+      return res.status(404).send(notFoundPage(locale));
     }
 
     const profile = profiles[0];
@@ -95,7 +96,7 @@ module.exports = async function handler(req, res) {
       } catch { /* ignore — table may not exist yet */ }
     }
 
-    const html = renderProfilePage(profile, biolinks || [], tags, sidStr);
+    const html = renderProfilePage(profile, biolinks || [], tags, sidStr, locale);
 
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
     res.setHeader('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=3600');
@@ -103,11 +104,11 @@ module.exports = async function handler(req, res) {
   } catch (err) {
     console.error('Error rendering profile:', err);
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
-    return res.status(500).send(notFoundPage());
+    return res.status(500).send(notFoundPage(locale));
   }
 };
 
-function renderProfilePage(profile, biolinks, tags, sid) {
+function renderProfilePage(profile, biolinks, tags, sid, locale) {
   const name = escapeHtml(profile.full_name || profile.username || '#piktag User');
   const username = escapeHtml(profile.username || '');
   const headline = profile.headline ? escapeHtml(profile.headline) : '';
@@ -140,7 +141,7 @@ function renderProfilePage(profile, biolinks, tags, sid) {
     : '';
 
   return `<!DOCTYPE html>
-<html lang="zh-TW">
+<html lang="${locale.htmlLang}">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -230,7 +231,7 @@ function renderProfilePage(profile, biolinks, tags, sid) {
 </head>
 <body>
   <div class="container">
-    <button class="share-btn" onclick="handleShare()" aria-label="分享">
+    <button class="share-btn" onclick="handleShare()" aria-label="${locale.shareAria}">
       <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="${BRAND_COLOR}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
     </button>
     <div class="avatar-wrapper">
@@ -245,15 +246,15 @@ function renderProfilePage(profile, biolinks, tags, sid) {
     <div class="username">@${username}</div>
     ${headline ? `<div class="headline">${headline}</div>` : ''}
     ${bio ? `<div class="bio">${bio}</div>` : ''}
-    <button class="follow-btn" onclick="handleFollow()">追蹤</button>
+    <button class="follow-btn" onclick="handleFollow()">${locale.follow}</button>
     ${tagsHtml}
     ${biolinksHtml ? `<div class="biolinks">${biolinksHtml}</div>` : ''}
   </div>
   <a class="banner" href="https://pikt.ag/download?username=${username}${sid ? '&sid=' + escapeHtml(sid) : ''}">
-    <span class="banner-text">下載 #piktag App</span>
+    <span class="banner-text">${locale.bannerText}</span>
     <span class="banner-arrow">→</span>
   </a>
-  <div class="share-toast" id="share-toast">已複製連結</div>
+  <div class="share-toast" id="share-toast">${locale.toastCopied}</div>
   <script>
 function handleShare() {
   var url = 'https://pikt.ag/${username}';
@@ -286,13 +287,13 @@ function handleFollow() {
 </html>`;
 }
 
-function notFoundPage() {
+function notFoundPage(locale) {
   return `<!DOCTYPE html>
-<html lang="zh-TW">
+<html lang="${locale.htmlLang}">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>\u627e\u4e0d\u5230\u4f7f\u7528\u8005 | #piktag</title>
+  <title>${locale.notFoundTitle} | #piktag</title>
   <style>
     *{margin:0;padding:0;box-sizing:border-box}
     body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:${BRAND_BG};display:flex;align-items:center;justify-content:center;min-height:100vh;text-align:center;padding:20px}
@@ -305,9 +306,9 @@ function notFoundPage() {
 <body>
   <div>
     <div class="logo"># PikTag</div>
-    <h1>\u627e\u4e0d\u5230\u9019\u500b\u4f7f\u7528\u8005</h1>
-    <p>\u8acb\u78ba\u8a8d\u9023\u7d50\u662f\u5426\u6b63\u78ba</p>
-    <a href="https://pikt.ag">\u56de\u5230 PikTag</a>
+    <h1>${locale.notFoundHeading}</h1>
+    <p>${locale.notFoundText}</p>
+    <a href="https://pikt.ag">${locale.notFoundBack}</a>
   </div>
 </body>
 </html>`;
