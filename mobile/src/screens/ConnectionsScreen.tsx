@@ -707,7 +707,7 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
               {unreviewedCount > 0 && (
                 <TouchableOpacity
                   activeOpacity={0.6}
-                  onPress={() => navigation.navigate('ActivityReview', { recentMinutes: 10080 })}
+                  onPress={() => navigation.navigate('ActivityReview')}
                   accessibilityLabel={`${unreviewedCount} 位待整理`}
                   accessibilityRole="link"
                 >

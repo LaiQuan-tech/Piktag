@@ -44,7 +44,6 @@ export default function ActivityReviewScreen({ navigation, route }: Props) {
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
   const sessionId = route.params?.sessionId;
-  const recentMinutes = route.params?.recentMinutes || 60;
 
   const [connections, setConnections] = useState<ReviewConnection[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -81,11 +80,9 @@ export default function ActivityReviewScreen({ navigation, route }: Props) {
             .eq('id', sessionId)
             .single();
           if (session) setSessionInfo({ date: session.event_date, location: session.event_location });
-        } else {
-          // Recent connections (last N minutes)
-          const since = new Date(Date.now() - recentMinutes * 60 * 1000).toISOString();
-          query = query.gte('created_at', since);
         }
+        // Otherwise: show ALL unreviewed connections regardless of age
+        // (fixes bug where count on main screen would not match detail list)
 
         const { data } = await query.limit(50);
         if (data) {
