@@ -1,34 +1,58 @@
-import * as AuthSession from 'expo-auth-session';
-import * as Crypto from 'expo-crypto';
-import { supabase, supabaseUrl } from './supabase';
+import * as WebBrowser from 'expo-web-browser';
+import * as Linking from 'expo-linking';
+import { supabase } from './supabase';
 
+// Ensures auth session completes when the browser redirects back to the app
+WebBrowser.maybeCompleteAuthSession();
+
+/**
+ * Sign in with Google using the Supabase-recommended OAuth PKCE flow.
+ * - Uses supabase.auth.signInWithOAuth to obtain the authorization URL
+ * - Opens the URL inside a WebBrowser auth session (ASWebAuthenticationSession on iOS)
+ * - Parses the returned `code` query param and exchanges it for a Supabase session
+ *
+ * Requires the Supabase client to be configured with `flowType: 'pkce'`.
+ */
 export async function signInWithGoogle() {
-  // Generate PKCE code verifier/challenge
-  const codeVerifier = AuthSession.generateCodeVerifier();
-  const codeChallenge = await Crypto.digestStringAsync(
-    Crypto.CryptoDigestAlgorithm.SHA256,
-    codeVerifier,
-    { encoding: Crypto.CryptoEncoding.BASE64 },
-  );
+  // Deep link the browser will redirect back to when auth completes.
+  // Must match one of the "Redirect URLs" configured in Supabase Auth settings.
+  const redirectTo = Linking.createURL('auth/callback');
 
-  const redirectUri = AuthSession.makeRedirectUri({ scheme: 'piktag', path: 'auth/callback' });
+  // Ask Supabase to build the provider-specific authorize URL (but don't redirect yet).
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: 'google',
+    options: {
+      redirectTo,
+      skipBrowserRedirect: true,
+    },
+  });
 
-  // Build Supabase OAuth URL with PKCE
-  const authUrl =
-    `${supabaseUrl}/auth/v1/authorize?` +
-    `provider=google` +
-    `&redirect_to=${encodeURIComponent(redirectUri)}` +
-    `&code_challenge=${encodeURIComponent(codeChallenge)}` +
-    `&code_challenge_method=S256`;
+  if (error) throw error;
+  if (!data?.url) throw new Error('Google Sign-In failed: no authorization URL');
 
-  // Open browser for Google login
-  const result = await AuthSession.startAsync({ authUrl });
+  // Open the authorize URL in a secure in-app browser session.
+  // This returns when the provider redirects to `redirectTo`.
+  const result = await WebBrowser.openAuthSessionAsync(data.url, redirectTo);
 
-  if (result.type === 'success' && result.params?.code) {
-    const { data, error } = await supabase.auth.exchangeCodeForSession(result.params.code);
-    if (error) throw error;
-    return data;
+  if (result.type === 'cancel' || result.type === 'dismiss') {
+    return null; // user cancelled
   }
 
-  return null; // user cancelled
+  if (result.type !== 'success') {
+    throw new Error(`Google Sign-In failed: ${result.type}`);
+  }
+
+  // Pull the ?code=... param out of the redirect URL and exchange it for a session.
+  const url = new URL(result.url);
+  const code = url.searchParams.get('code');
+
+  if (!code) {
+    throw new Error('Google Sign-In failed: no authorization code returned');
+  }
+
+  const { data: sessionData, error: exchangeError } =
+    await supabase.auth.exchangeCodeForSession(code);
+
+  if (exchangeError) throw exchangeError;
+  return sessionData;
 }
