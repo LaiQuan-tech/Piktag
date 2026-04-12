@@ -95,8 +95,8 @@ export default function InviteScreen({ navigation }: InviteScreenProps) {
   }, [user]);
 
   useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+    if (user) fetchData();
+  }, [user]);
 
   const handleGenerateInvite = async () => {
     if (!user) return;
@@ -133,14 +133,34 @@ export default function InviteScreen({ navigation }: InviteScreenProps) {
 
       if (quotaErr) {
         console.error('Error updating quota:', quotaErr);
+        // Rollback the invite row we just created
+        if (invite?.id) {
+          const { error: rollbackErr } = await supabase
+            .from('piktag_invites')
+            .delete()
+            .eq('id', invite.id);
+          if (rollbackErr) {
+            console.error('Error rolling back invite:', rollbackErr);
+          }
+        }
+        Alert.alert(
+          t('common.error'),
+          quotaErr.message || t('invite.alertGenerateError')
+        );
+        return;
       }
 
+      // Only update local state after server update succeeded
       setQuota((q) => Math.max(0, q - 1));
       if (invite) {
         setInvites((prev) => [invite, ...prev]);
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Generate invite error:', err);
+      Alert.alert(
+        t('common.error'),
+        err?.message || t('invite.alertGenerateError')
+      );
     } finally {
       setGenerating(false);
     }
@@ -150,13 +170,22 @@ export default function InviteScreen({ navigation }: InviteScreenProps) {
     try {
       await Clipboard.setStringAsync(code);
       Alert.alert(t('invite.alertCopiedTitle'), t('invite.alertCopiedMessage', { code }));
-    } catch {}
+    } catch (err) {
+      console.warn('[Invite] copy failed:', err);
+      Alert.alert(t('common.error'), 'Failed to copy');
+    }
   };
 
   const handleShareInvite = async (code: string) => {
     try {
+      const universalLink = `https://pikt.ag/i/${code}`;
+      const deepLink = `piktag://invite/${code}`;
       await Share.share({
-        message: t('invite.shareMessage', { code, url: APP_URL }),
+        message: t('invite.shareMessage', {
+          code,
+          url: universalLink,
+          deepLink,
+        }),
       });
     } catch {}
   };
