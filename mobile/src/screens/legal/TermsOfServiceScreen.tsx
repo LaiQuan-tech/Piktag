@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, ScrollView, StyleSheet, StatusBar, TouchableOpacity } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ArrowLeft } from 'lucide-react-native';
+import { useTranslation } from 'react-i18next';
 import { COLORS } from '../../constants/theme';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
@@ -9,61 +10,62 @@ type Props = { navigation: NativeStackNavigationProp<any> };
 
 export default function TermsOfServiceScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets();
+  const { t } = useTranslation();
   return (
     <View style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor={COLORS.white} />
       <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}><ArrowLeft size={24} color={COLORS.gray900} /></TouchableOpacity>
-        <Text style={styles.headerTitle}>Terms of Service</Text>
+        <Text style={styles.headerTitle}>{t('termsOfService.headerTitle')}</Text>
         <View style={{ width: 32 }} />
       </View>
       <ScrollView contentContainerStyle={styles.content}>
-        <Text style={styles.updated}>Last updated: March 30, 2026</Text>
+        <Text style={styles.updated}>{t('termsOfService.lastUpdated')}</Text>
 
-        <Text style={styles.h2}>1. Acceptance</Text>
-        <Text style={styles.p}>By using PikTag, you agree to these Terms of Service. If you do not agree, do not use the app.</Text>
+        <Text style={styles.h2}>{t('termsOfService.section1Title')}</Text>
+        <Text style={styles.p}>{t('termsOfService.section1Body')}</Text>
 
-        <Text style={styles.h2}>2. Account</Text>
-        <Text style={styles.li}>• You must be at least 13 years old to use PikTag</Text>
-        <Text style={styles.li}>• You are responsible for maintaining the security of your account</Text>
-        <Text style={styles.li}>• One person, one account. Do not create fake or duplicate accounts</Text>
-        <Text style={styles.li}>• You may deactivate or delete your account at any time</Text>
+        <Text style={styles.h2}>{t('termsOfService.section2Title')}</Text>
+        <Text style={styles.li}>{t('termsOfService.section2Bullet1')}</Text>
+        <Text style={styles.li}>{t('termsOfService.section2Bullet2')}</Text>
+        <Text style={styles.li}>{t('termsOfService.section2Bullet3')}</Text>
+        <Text style={styles.li}>{t('termsOfService.section2Bullet4')}</Text>
 
-        <Text style={styles.h2}>3. User Content</Text>
-        <Text style={styles.li}>• You own the content you create (bio, tags, links, notes)</Text>
-        <Text style={styles.li}>• You grant PikTag a license to display your public content to other users</Text>
-        <Text style={styles.li}>• You must not post content that is illegal, harmful, or violates others' rights</Text>
+        <Text style={styles.h2}>{t('termsOfService.section3Title')}</Text>
+        <Text style={styles.li}>{t('termsOfService.section3Bullet1')}</Text>
+        <Text style={styles.li}>{t('termsOfService.section3Bullet2')}</Text>
+        <Text style={styles.li}>{t('termsOfService.section3Bullet3')}</Text>
 
-        <Text style={styles.h2}>4. Acceptable Use</Text>
-        <Text style={styles.p}>You agree NOT to:</Text>
-        <Text style={styles.li}>• Harass, bully, or threaten other users</Text>
-        <Text style={styles.li}>• Create fake profiles or impersonate others</Text>
-        <Text style={styles.li}>• Use PikTag for spam, phishing, or fraud</Text>
-        <Text style={styles.li}>• Scrape or collect user data without consent</Text>
-        <Text style={styles.li}>• Attempt to reverse engineer or exploit the app</Text>
+        <Text style={styles.h2}>{t('termsOfService.section4Title')}</Text>
+        <Text style={styles.p}>{t('termsOfService.section4Intro')}</Text>
+        <Text style={styles.li}>{t('termsOfService.section4Bullet1')}</Text>
+        <Text style={styles.li}>{t('termsOfService.section4Bullet2')}</Text>
+        <Text style={styles.li}>{t('termsOfService.section4Bullet3')}</Text>
+        <Text style={styles.li}>{t('termsOfService.section4Bullet4')}</Text>
+        <Text style={styles.li}>{t('termsOfService.section4Bullet5')}</Text>
 
-        <Text style={styles.h2}>5. QR Codes & Tags</Text>
-        <Text style={styles.li}>• QR codes you generate are associated with your account</Text>
-        <Text style={styles.li}>• Hidden tags attached via QR code are private and visible only to you</Text>
-        <Text style={styles.li}>• Batch tag modification may require a paid subscription in the future</Text>
+        <Text style={styles.h2}>{t('termsOfService.section5Title')}</Text>
+        <Text style={styles.li}>{t('termsOfService.section5Bullet1')}</Text>
+        <Text style={styles.li}>{t('termsOfService.section5Bullet2')}</Text>
+        <Text style={styles.li}>{t('termsOfService.section5Bullet3')}</Text>
 
-        <Text style={styles.h2}>6. Premium Features</Text>
-        <Text style={styles.p}>Some features (pinned tags, batch tag management) may require a paid subscription. Pricing will be announced separately.</Text>
+        <Text style={styles.h2}>{t('termsOfService.section6Title')}</Text>
+        <Text style={styles.p}>{t('termsOfService.section6Body')}</Text>
 
-        <Text style={styles.h2}>7. Termination</Text>
-        <Text style={styles.p}>We may suspend or terminate accounts that violate these terms. You may appeal by contacting support@pikt.ag.</Text>
+        <Text style={styles.h2}>{t('termsOfService.section7Title')}</Text>
+        <Text style={styles.p}>{t('termsOfService.section7Body')}</Text>
 
-        <Text style={styles.h2}>8. Disclaimer</Text>
-        <Text style={styles.p}>PikTag is provided "as is" without warranty. We are not responsible for user-generated content or interactions between users.</Text>
+        <Text style={styles.h2}>{t('termsOfService.section8Title')}</Text>
+        <Text style={styles.p}>{t('termsOfService.section8Body')}</Text>
 
-        <Text style={styles.h2}>9. Limitation of Liability</Text>
-        <Text style={styles.p}>PikTag Inc. shall not be liable for indirect, incidental, or consequential damages arising from your use of the service.</Text>
+        <Text style={styles.h2}>{t('termsOfService.section9Title')}</Text>
+        <Text style={styles.p}>{t('termsOfService.section9Body')}</Text>
 
-        <Text style={styles.h2}>10. Governing Law</Text>
-        <Text style={styles.p}>These terms are governed by the laws of the Republic of China (Taiwan).</Text>
+        <Text style={styles.h2}>{t('termsOfService.section10Title')}</Text>
+        <Text style={styles.p}>{t('termsOfService.section10Body')}</Text>
 
-        <Text style={styles.h2}>11. Contact</Text>
-        <Text style={styles.p}>PikTag Inc.{'\n'}Email: support@pikt.ag</Text>
+        <Text style={styles.h2}>{t('termsOfService.section11Title')}</Text>
+        <Text style={styles.p}>{t('termsOfService.section11Body')}</Text>
 
         <View style={{ height: 40 }} />
       </ScrollView>

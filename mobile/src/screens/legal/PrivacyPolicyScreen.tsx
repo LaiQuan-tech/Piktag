@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, ScrollView, StyleSheet, StatusBar, TouchableOpacity } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ArrowLeft } from 'lucide-react-native';
+import { useTranslation } from 'react-i18next';
 import { COLORS } from '../../constants/theme';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
@@ -9,58 +10,59 @@ type Props = { navigation: NativeStackNavigationProp<any> };
 
 export default function PrivacyPolicyScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets();
+  const { t } = useTranslation();
   return (
     <View style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor={COLORS.white} />
       <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}><ArrowLeft size={24} color={COLORS.gray900} /></TouchableOpacity>
-        <Text style={styles.headerTitle}>Privacy Policy</Text>
+        <Text style={styles.headerTitle}>{t('privacyPolicy.headerTitle')}</Text>
         <View style={{ width: 32 }} />
       </View>
       <ScrollView contentContainerStyle={styles.content}>
-        <Text style={styles.updated}>Last updated: March 30, 2026</Text>
+        <Text style={styles.updated}>{t('privacyPolicy.lastUpdated')}</Text>
 
-        <Text style={styles.h2}>1. Information We Collect</Text>
-        <Text style={styles.p}>PikTag Inc. ("we", "us") collects the following information when you use our app:</Text>
-        <Text style={styles.li}>• Account information: email, phone number, name, username, profile photo</Text>
-        <Text style={styles.li}>• Profile data: bio, tags, social links, biolinks</Text>
-        <Text style={styles.li}>• Contacts: with your permission, we access your device contacts to help you find friends on PikTag</Text>
-        <Text style={styles.li}>• Location: with your permission, approximate location for nearby features</Text>
-        <Text style={styles.li}>• Usage data: interactions, QR scans, tag activity</Text>
+        <Text style={styles.h2}>{t('privacyPolicy.section1Title')}</Text>
+        <Text style={styles.p}>{t('privacyPolicy.section1Intro')}</Text>
+        <Text style={styles.li}>{t('privacyPolicy.section1Bullet1')}</Text>
+        <Text style={styles.li}>{t('privacyPolicy.section1Bullet2')}</Text>
+        <Text style={styles.li}>{t('privacyPolicy.section1Bullet3')}</Text>
+        <Text style={styles.li}>{t('privacyPolicy.section1Bullet4')}</Text>
+        <Text style={styles.li}>{t('privacyPolicy.section1Bullet5')}</Text>
 
-        <Text style={styles.h2}>2. How We Use Your Information</Text>
-        <Text style={styles.li}>• Provide and improve PikTag services</Text>
-        <Text style={styles.li}>• Connect you with other users through tags and QR codes</Text>
-        <Text style={styles.li}>• Send notifications about friend activity and reminders</Text>
-        <Text style={styles.li}>• Generate AI-powered tag suggestions (using anonymized data)</Text>
-        <Text style={styles.li}>• Ensure safety and prevent abuse</Text>
+        <Text style={styles.h2}>{t('privacyPolicy.section2Title')}</Text>
+        <Text style={styles.li}>{t('privacyPolicy.section2Bullet1')}</Text>
+        <Text style={styles.li}>{t('privacyPolicy.section2Bullet2')}</Text>
+        <Text style={styles.li}>{t('privacyPolicy.section2Bullet3')}</Text>
+        <Text style={styles.li}>{t('privacyPolicy.section2Bullet4')}</Text>
+        <Text style={styles.li}>{t('privacyPolicy.section2Bullet5')}</Text>
 
-        <Text style={styles.h2}>3. Information Sharing</Text>
-        <Text style={styles.p}>We do NOT sell your personal information. We share data only:</Text>
-        <Text style={styles.li}>• With other PikTag users according to your privacy settings (public/friends/close friends/private)</Text>
-        <Text style={styles.li}>• With service providers (Supabase for database, Google for AI features)</Text>
-        <Text style={styles.li}>• When required by law</Text>
+        <Text style={styles.h2}>{t('privacyPolicy.section3Title')}</Text>
+        <Text style={styles.p}>{t('privacyPolicy.section3Intro')}</Text>
+        <Text style={styles.li}>{t('privacyPolicy.section3Bullet1')}</Text>
+        <Text style={styles.li}>{t('privacyPolicy.section3Bullet2')}</Text>
+        <Text style={styles.li}>{t('privacyPolicy.section3Bullet3')}</Text>
 
-        <Text style={styles.h2}>4. Your Privacy Controls</Text>
-        <Text style={styles.li}>• Each social link/contact has 4 visibility levels: Public, Friends, Close Friends, Only Me</Text>
-        <Text style={styles.li}>• Tags can be set as public or private</Text>
-        <Text style={styles.li}>• Hidden tags on connections are visible only to you</Text>
-        <Text style={styles.li}>• You can block and report users at any time</Text>
+        <Text style={styles.h2}>{t('privacyPolicy.section4Title')}</Text>
+        <Text style={styles.li}>{t('privacyPolicy.section4Bullet1')}</Text>
+        <Text style={styles.li}>{t('privacyPolicy.section4Bullet2')}</Text>
+        <Text style={styles.li}>{t('privacyPolicy.section4Bullet3')}</Text>
+        <Text style={styles.li}>{t('privacyPolicy.section4Bullet4')}</Text>
 
-        <Text style={styles.h2}>5. Data Retention</Text>
-        <Text style={styles.p}>We retain your data while your account is active. You can deactivate or delete your account at any time from Settings. Upon deletion, we remove your data within 30 days.</Text>
+        <Text style={styles.h2}>{t('privacyPolicy.section5Title')}</Text>
+        <Text style={styles.p}>{t('privacyPolicy.section5Body')}</Text>
 
-        <Text style={styles.h2}>6. Security</Text>
-        <Text style={styles.p}>We use industry-standard encryption and security measures. Data is stored on Supabase (PostgreSQL) with Row Level Security policies.</Text>
+        <Text style={styles.h2}>{t('privacyPolicy.section6Title')}</Text>
+        <Text style={styles.p}>{t('privacyPolicy.section6Body')}</Text>
 
-        <Text style={styles.h2}>7. Children</Text>
-        <Text style={styles.p}>PikTag is not intended for users under 13. We do not knowingly collect data from children.</Text>
+        <Text style={styles.h2}>{t('privacyPolicy.section7Title')}</Text>
+        <Text style={styles.p}>{t('privacyPolicy.section7Body')}</Text>
 
-        <Text style={styles.h2}>8. Changes</Text>
-        <Text style={styles.p}>We may update this policy. We will notify you of significant changes through the app.</Text>
+        <Text style={styles.h2}>{t('privacyPolicy.section8Title')}</Text>
+        <Text style={styles.p}>{t('privacyPolicy.section8Body')}</Text>
 
-        <Text style={styles.h2}>9. Contact</Text>
-        <Text style={styles.p}>PikTag Inc.{'\n'}Email: privacy@pikt.ag</Text>
+        <Text style={styles.h2}>{t('privacyPolicy.section9Title')}</Text>
+        <Text style={styles.p}>{t('privacyPolicy.section9Body')}</Text>
 
         <View style={{ height: 40 }} />
       </ScrollView>
