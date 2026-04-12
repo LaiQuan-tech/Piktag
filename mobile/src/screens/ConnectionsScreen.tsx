@@ -700,7 +700,7 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
       ) : (
         <View style={styles.header}>
           <View style={styles.headerLeft}>
-            <Text style={[styles.headerTitle, { color: colors.text }]}>#piktag</Text>
+            <Text style={[styles.headerTitle, { color: colors.text }]}>PikTag</Text>
             <View style={styles.headerSubtitleRow}>
               <Text style={styles.headerSubtitle}>
                 <Text style={styles.headerCount}>{sortedConnections.length}</Text>{' '}{t('connections.friendsLabel') || 'friends'}

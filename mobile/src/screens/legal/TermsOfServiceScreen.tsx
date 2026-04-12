@@ -31,14 +31,14 @@ export default function TermsOfServiceScreen({ navigation }: Props) {
 
         <Text style={styles.h2}>3. User Content</Text>
         <Text style={styles.li}>• You own the content you create (bio, tags, links, notes)</Text>
-        <Text style={styles.li}>• You grant #piktag a license to display your public content to other users</Text>
+        <Text style={styles.li}>• You grant PikTag a license to display your public content to other users</Text>
         <Text style={styles.li}>• You must not post content that is illegal, harmful, or violates others' rights</Text>
 
         <Text style={styles.h2}>4. Acceptable Use</Text>
         <Text style={styles.p}>You agree NOT to:</Text>
         <Text style={styles.li}>• Harass, bully, or threaten other users</Text>
         <Text style={styles.li}>• Create fake profiles or impersonate others</Text>
-        <Text style={styles.li}>• Use #piktag for spam, phishing, or fraud</Text>
+        <Text style={styles.li}>• Use PikTag for spam, phishing, or fraud</Text>
         <Text style={styles.li}>• Scrape or collect user data without consent</Text>
         <Text style={styles.li}>• Attempt to reverse engineer or exploit the app</Text>
 

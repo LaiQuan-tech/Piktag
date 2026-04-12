@@ -123,7 +123,7 @@ export default function CameraScanScreen({ navigation }: CameraScanScreenProps) 
       Alert.alert(
         t('camera.invalidQr', { defaultValue: 'Invalid QR Code' }),
         t('camera.invalidQrMessage', {
-          defaultValue: 'This QR code is not a valid #piktag connection code.',
+          defaultValue: 'This QR code is not a valid PikTag connection code.',
         }),
       );
       scanTimeoutRef.current = setTimeout(() => setScanned(false), 3000);
@@ -164,7 +164,7 @@ export default function CameraScanScreen({ navigation }: CameraScanScreenProps) 
           <Text style={styles.permissionMessage}>
             {t('camera.permissionMessage', {
               defaultValue:
-                '#piktag needs camera access to scan QR codes and connect with friends.',
+                'PikTag needs camera access to scan QR codes and connect with friends.',
             })}
           </Text>
           <TouchableOpacity
@@ -240,7 +240,7 @@ export default function CameraScanScreen({ navigation }: CameraScanScreenProps) 
         <View style={styles.instructionContainer}>
           <Text style={styles.instructionText}>
             {t('camera.instruction', {
-              defaultValue: 'Point your camera at a #piktag QR code',
+              defaultValue: 'Point your camera at a PikTag QR code',
             })}
           </Text>
         </View>

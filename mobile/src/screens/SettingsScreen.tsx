@@ -285,7 +285,7 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
                 ].map(v => `"${(v || '').replace(/"/g, '""')}"`).join(',');
               }))
               .join('\n');
-            await Share.share({ message: csv, title: '#piktag Contacts Export' });
+            await Share.share({ message: csv, title: 'PikTag Contacts Export' });
           } catch (err) {
             console.warn('Export error:', err);
           }

@@ -1054,8 +1054,8 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
                 try {
                   await Share.share({
                     message: Platform.OS === 'ios'
-                      ? `${displayName} (@${username}) on #piktag`
-                      : `${displayName} (@${username}) on #piktag\n${profileUrl}`,
+                      ? `${displayName} (@${username}) on PikTag`
+                      : `${displayName} (@${username}) on PikTag\n${profileUrl}`,
                     url: Platform.OS === 'ios' ? profileUrl : undefined,
                   });
                 } catch {}

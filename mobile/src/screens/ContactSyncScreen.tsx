@@ -102,7 +102,7 @@ export default function ContactSyncScreen({ navigation }: ContactSyncScreenProps
     try {
       await Share.share({
         message: t('contactSync.inviteMessage', { name: contact.name }) ||
-          `${contact.name}，我在用 #piktag，一起來交換標籤吧！下載：https://pikt.ag`,
+          `${contact.name}，我在用 PikTag，一起來交換標籤吧！下載：https://pikt.ag`,
       });
     } catch { /* cancelled */ }
   };
