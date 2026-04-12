@@ -371,6 +371,7 @@
     "accountInfo": "Hesap Bilgileri",
     "contactSync": "Kişi Senkronizasyonu",
     "inviteFriends": "Arkadaş Davet Et",
+    "redeemInvite": "Davet kodu kullan",
     "locationContacts": "Burada tanıdıkların",
     "socialStats": "Kişisel Pano",
     "privacySettings": "Gizlilik Ayarları",
@@ -633,5 +634,21 @@
     "emptyHistory": "Henüz puan etkinliği yok",
     "plusOne": "+1 P",
     "pointsUnit": "P"
+  },
+  "redeemInvite": {
+    "headerTitle": "Davet Kullan",
+    "title": "Davet kodunuz mu var?",
+    "subtitle": "Sizi davet eden kişiyle bağlantı kurmak için aşağıya kodu girin.",
+    "placeholder": "PIK-XXXXXX",
+    "button": "Kullan",
+    "successTitle": "Davet kullanıldı",
+    "successMessage": "Artık sizi davet eden kişiyle bağlantı kurabilirsiniz!",
+    "errorEmpty": "Lütfen bir davet kodu girin",
+    "errorNotAuthenticated": "Lütfen önce giriş yapın",
+    "errorGeneric": "Davet kullanılamadı",
+    "error_invite_not_found": "Davet kodu bulunamadı",
+    "error_already_redeemed": "Bu davet zaten kullanılmış",
+    "error_expired": "Bu davetin süresi dolmuş",
+    "error_cannot_redeem_own": "Kendi davetinizi kullanamazsınız"
   }
 }

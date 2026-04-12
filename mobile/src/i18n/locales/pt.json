@@ -301,7 +301,8 @@
     "darkMode": "Dark Mode",
     "aboutPiktag": "關於 PikTag",
     "logoutButton": "Log Out",
-    "deleteAccountButton": "Delete Account"
+    "deleteAccountButton": "Delete Account",
+    "redeemInvite": "Resgatar código de convite"
   },
   "contactSync": {
     "headerTitle": "Contact Sync",
@@ -538,5 +539,21 @@
     "emptyHistory": "Nenhuma atividade de pontos ainda",
     "plusOne": "+1 P",
     "pointsUnit": "P"
+  },
+  "redeemInvite": {
+    "headerTitle": "Resgatar convite",
+    "title": "Tem um código de convite?",
+    "subtitle": "Insira o código abaixo para se conectar com quem te convidou.",
+    "placeholder": "PIK-XXXXXX",
+    "button": "Resgatar",
+    "successTitle": "Convite resgatado",
+    "successMessage": "Agora você pode se conectar com quem te convidou!",
+    "errorEmpty": "Por favor, insira um código de convite",
+    "errorNotAuthenticated": "Por favor, faça login primeiro",
+    "errorGeneric": "Falha ao resgatar convite",
+    "error_invite_not_found": "Código de convite não encontrado",
+    "error_already_redeemed": "Este convite já foi resgatado",
+    "error_expired": "Este convite expirou",
+    "error_cannot_redeem_own": "Você não pode resgatar seu próprio convite"
   }
 }

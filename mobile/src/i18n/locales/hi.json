@@ -301,7 +301,8 @@
     "darkMode": "Dark Mode",
     "aboutPiktag": "關於 PikTag",
     "logoutButton": "Log Out",
-    "deleteAccountButton": "Delete Account"
+    "deleteAccountButton": "Delete Account",
+    "redeemInvite": "आमंत्रण कोड का उपयोग करें"
   },
   "contactSync": {
     "headerTitle": "Contact Sync",
@@ -538,5 +539,21 @@
     "emptyHistory": "अभी तक कोई पॉइंट्स गतिविधि नहीं",
     "plusOne": "+1 P",
     "pointsUnit": "P"
+  },
+  "redeemInvite": {
+    "headerTitle": "आमंत्रण कोड का उपयोग",
+    "title": "क्या आपके पास आमंत्रण कोड है?",
+    "subtitle": "नीचे कोड दर्ज करके उस व्यक्ति से जुड़ें जिसने आपको आमंत्रित किया।",
+    "placeholder": "PIK-XXXXXX",
+    "button": "उपयोग करें",
+    "successTitle": "आमंत्रण उपयोग किया गया",
+    "successMessage": "अब आप उस व्यक्ति से जुड़ सकते हैं जिसने आपको आमंत्रित किया!",
+    "errorEmpty": "कृपया एक आमंत्रण कोड दर्ज करें",
+    "errorNotAuthenticated": "कृपया पहले साइन इन करें",
+    "errorGeneric": "आमंत्रण का उपयोग करने में विफल",
+    "error_invite_not_found": "आमंत्रण कोड नहीं मिला",
+    "error_already_redeemed": "यह आमंत्रण पहले ही उपयोग किया जा चुका है",
+    "error_expired": "यह आमंत्रण समाप्त हो गया है",
+    "error_cannot_redeem_own": "आप अपने स्वयं के आमंत्रण का उपयोग नहीं कर सकते"
   }
 }

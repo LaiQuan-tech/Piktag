@@ -292,6 +292,7 @@
     "accountInfo": "Account Info",
     "contactSync": "Contact Sync",
     "inviteFriends": "Invite Friends",
+    "redeemInvite": "Utiliser un code d'invitation",
     "locationContacts": "Who you know here",
     "socialStats": "Personal Dashboard",
     "privacySettings": "Privacy Settings",
@@ -538,5 +539,21 @@
     "emptyHistory": "Aucune activité de points pour le moment",
     "plusOne": "+1 P",
     "pointsUnit": "P"
+  },
+  "redeemInvite": {
+    "headerTitle": "Utiliser un code d'invitation",
+    "title": "Vous avez un code d'invitation ?",
+    "subtitle": "Saisissez le code ci-dessous pour vous connecter avec la personne qui vous a invité.",
+    "placeholder": "PIK-XXXXXX",
+    "button": "Utiliser",
+    "successTitle": "Invitation utilisée",
+    "successMessage": "Vous pouvez maintenant vous connecter avec la personne qui vous a invité !",
+    "errorEmpty": "Veuillez saisir un code d'invitation",
+    "errorNotAuthenticated": "Veuillez d'abord vous connecter",
+    "errorGeneric": "Échec de l'utilisation de l'invitation",
+    "error_invite_not_found": "Code d'invitation introuvable",
+    "error_already_redeemed": "Cette invitation a déjà été utilisée",
+    "error_expired": "Cette invitation a expiré",
+    "error_cannot_redeem_own": "Vous ne pouvez pas utiliser votre propre invitation"
   }
 }

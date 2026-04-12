@@ -292,6 +292,7 @@
     "accountInfo": "Account Info",
     "contactSync": "Contact Sync",
     "inviteFriends": "Invite Friends",
+    "redeemInvite": "استخدام رمز الدعوة",
     "locationContacts": "Who you know here",
     "socialStats": "Personal Dashboard",
     "privacySettings": "Privacy Settings",
@@ -538,5 +539,21 @@
     "emptyHistory": "لا توجد أنشطة نقاط بعد",
     "plusOne": "+1 P",
     "pointsUnit": "P"
+  },
+  "redeemInvite": {
+    "headerTitle": "استخدام رمز الدعوة",
+    "title": "هل لديك رمز دعوة؟",
+    "subtitle": "أدخل الرمز أدناه للتواصل مع الشخص الذي دعاك.",
+    "placeholder": "PIK-XXXXXX",
+    "button": "استخدام",
+    "successTitle": "تم استخدام الدعوة",
+    "successMessage": "يمكنك الآن التواصل مع الشخص الذي دعاك!",
+    "errorEmpty": "يرجى إدخال رمز الدعوة",
+    "errorNotAuthenticated": "يرجى تسجيل الدخول أولاً",
+    "errorGeneric": "فشل استخدام الدعوة",
+    "error_invite_not_found": "رمز الدعوة غير موجود",
+    "error_already_redeemed": "تم استخدام هذه الدعوة بالفعل",
+    "error_expired": "انتهت صلاحية هذه الدعوة",
+    "error_cannot_redeem_own": "لا يمكنك استخدام دعوتك الخاصة"
   }
 }

@@ -368,6 +368,7 @@
     "accountInfo": "계정 정보",
     "contactSync": "연락처 동기화",
     "inviteFriends": "친구 초대",
+    "redeemInvite": "초대 코드 사용",
     "locationContacts": "이 근처의 아는 사람",
     "socialStats": "개인 대시보드",
     "privacySettings": "개인정보 설정",
@@ -411,6 +412,22 @@
     "inviteRecordHeader": "초대 내역",
     "usedBadge": "사용됨",
     "noInvites": "초대 내역이 없어요"
+  },
+  "redeemInvite": {
+    "headerTitle": "초대 코드 사용",
+    "title": "초대 코드가 있나요?",
+    "subtitle": "아래에 코드를 입력하여 초대해 준 친구와 연결하세요.",
+    "placeholder": "PIK-XXXXXX",
+    "button": "사용하기",
+    "successTitle": "코드 사용 완료",
+    "successMessage": "이제 초대해 준 친구와 연결할 수 있습니다!",
+    "errorEmpty": "초대 코드를 입력해 주세요",
+    "errorNotAuthenticated": "먼저 로그인해 주세요",
+    "errorGeneric": "코드 사용에 실패했습니다",
+    "error_invite_not_found": "초대 코드를 찾을 수 없습니다",
+    "error_already_redeemed": "이미 사용된 초대 코드입니다",
+    "error_expired": "만료된 초대 코드입니다",
+    "error_cannot_redeem_own": "자신의 초대 코드는 사용할 수 없습니다"
   },
   "locationContacts": {
     "headerTitle": "이 근처의 아는 사람",

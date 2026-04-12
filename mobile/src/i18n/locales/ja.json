@@ -295,6 +295,7 @@
     "accountInfo": "Account Info",
     "contactSync": "Contact Sync",
     "inviteFriends": "Invite Friends",
+    "redeemInvite": "招待コードを引き換え",
     "locationContacts": "Who you know here",
     "socialStats": "Personal Dashboard",
     "privacySettings": "Privacy Settings",
@@ -538,5 +539,21 @@
     "emptyHistory": "ポイント履歴はまだありません",
     "plusOne": "+1 P",
     "pointsUnit": "P"
+  },
+  "redeemInvite": {
+    "headerTitle": "招待コードを引き換え",
+    "title": "招待コードをお持ちですか？",
+    "subtitle": "下のコードを入力して、招待してくれた人とつながりましょう。",
+    "placeholder": "PIK-XXXXXX",
+    "button": "引き換える",
+    "successTitle": "引き換え完了",
+    "successMessage": "招待してくれた人とつながれるようになりました！",
+    "errorEmpty": "招待コードを入力してください",
+    "errorNotAuthenticated": "先にサインインしてください",
+    "errorGeneric": "引き換えに失敗しました",
+    "error_invite_not_found": "招待コードが見つかりません",
+    "error_already_redeemed": "この招待コードはすでに使用されています",
+    "error_expired": "この招待コードは期限切れです",
+    "error_cannot_redeem_own": "自分の招待コードは引き換えできません"
   }
 }

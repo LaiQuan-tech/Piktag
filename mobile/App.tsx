@@ -45,6 +45,9 @@ const linking = {
           },
         },
       },
+      RedeemInvite: {
+        path: 'invite/:code',
+      },
       ScanResult: 'scan-result',
     },
   },

@@ -260,6 +260,7 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
         }},
         { label: t('settings.contactSync'), onPress: () => navigation.navigate('ContactSync') },
         { label: t('settings.inviteFriends'), onPress: () => navigation.navigate('Invite') },
+        { label: t('settings.redeemInvite') || '兌換邀請碼', onPress: () => navigation.navigate('RedeemInvite') },
         { label: t('settings.socialStats'), onPress: () => navigation.navigate('SocialStats') },
         {
           label: t('settings.notificationSettings'),

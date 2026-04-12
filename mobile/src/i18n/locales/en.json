@@ -465,6 +465,7 @@
     "resetEmailSentMessage": "Please check your inbox",
     "contactSync": "Contact Sync",
     "inviteFriends": "Invite Friends",
+    "redeemInvite": "Redeem Invite Code",
     "locationContacts": "Who you know here",
     "socialStats": "Personal Dashboard",
     "privacySettings": "Privacy Settings",
@@ -516,6 +517,22 @@
     "inviteRecordHeader": "Invite History",
     "usedBadge": "Used",
     "noInvites": "No invite history"
+  },
+  "redeemInvite": {
+    "headerTitle": "Redeem Invite",
+    "title": "Got an invite code?",
+    "subtitle": "Enter the code below to connect with the person who invited you.",
+    "placeholder": "PIK-XXXXXX",
+    "button": "Redeem",
+    "successTitle": "Invite redeemed",
+    "successMessage": "You can now connect with the person who invited you!",
+    "errorEmpty": "Please enter an invite code",
+    "errorNotAuthenticated": "Please sign in first",
+    "errorGeneric": "Failed to redeem invite",
+    "error_invite_not_found": "Invite code not found",
+    "error_already_redeemed": "This invite has already been redeemed",
+    "error_expired": "This invite has expired",
+    "error_cannot_redeem_own": "You cannot redeem your own invite"
   },
   "locationContacts": {
     "headerTitle": "Who you know here",

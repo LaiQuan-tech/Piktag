@@ -468,6 +468,7 @@
     "resetEmailSentMessage": "請查看你的信箱",
     "contactSync": "通訊錄同步",
     "inviteFriends": "邀請好友",
+    "redeemInvite": "兌換邀請碼",
     "locationContacts": "在這地點你認識誰",
     "socialStats": "個人儀表板",
     "privacySettings": "公開帳號",
@@ -767,5 +768,21 @@
     "emptyHistory": "尚無點數紀錄",
     "plusOne": "+1 P",
     "pointsUnit": "P"
+  },
+  "redeemInvite": {
+    "headerTitle": "兌換邀請碼",
+    "title": "收到邀請碼了嗎？",
+    "subtitle": "輸入下方的代碼，就能與邀請你的朋友建立連結。",
+    "placeholder": "PIK-XXXXXX",
+    "button": "兌換",
+    "successTitle": "兌換成功",
+    "successMessage": "你現在可以和邀請你的朋友建立連結了！",
+    "errorEmpty": "請輸入邀請碼",
+    "errorNotAuthenticated": "請先登入",
+    "errorGeneric": "兌換失敗",
+    "error_invite_not_found": "找不到這個邀請碼",
+    "error_already_redeemed": "這個邀請碼已經被使用過了",
+    "error_expired": "邀請碼已過期",
+    "error_cannot_redeem_own": "不能兌換自己的邀請碼"
   }
 }

@@ -304,7 +304,8 @@
     "darkMode": "Dark Mode",
     "aboutPiktag": "關於 PikTag",
     "logoutButton": "Log Out",
-    "deleteAccountButton": "Delete Account"
+    "deleteAccountButton": "Delete Account",
+    "redeemInvite": "兑换邀请码"
   },
   "contactSync": {
     "headerTitle": "Contact Sync",
@@ -538,5 +539,21 @@
     "emptyHistory": "尚无点数记录",
     "plusOne": "+1 P",
     "pointsUnit": "P"
+  },
+  "redeemInvite": {
+    "headerTitle": "兑换邀请码",
+    "title": "收到邀请码了吗？",
+    "subtitle": "输入下方的代码，就能与邀请你的朋友建立连接。",
+    "placeholder": "PIK-XXXXXX",
+    "button": "兑换",
+    "successTitle": "兑换成功",
+    "successMessage": "你现在可以和邀请你的朋友建立连接了！",
+    "errorEmpty": "请输入邀请码",
+    "errorNotAuthenticated": "请先登录",
+    "errorGeneric": "兑换失败",
+    "error_invite_not_found": "找不到这个邀请码",
+    "error_already_redeemed": "这个邀请码已经被使用过了",
+    "error_expired": "邀请码已过期",
+    "error_cannot_redeem_own": "不能兑换自己的邀请码"
   }
 }

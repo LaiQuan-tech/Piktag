@@ -368,6 +368,7 @@
     "accountInfo": "Info Akun",
     "contactSync": "Sinkronisasi Kontak",
     "inviteFriends": "Undang Teman",
+    "redeemInvite": "Tukar kode undangan",
     "locationContacts": "Siapa yang kamu kenal di sini",
     "socialStats": "Dasbor Pribadi",
     "privacySettings": "Pengaturan Privasi",
@@ -411,6 +412,22 @@
     "inviteRecordHeader": "Riwayat Undangan",
     "usedBadge": "Terpakai",
     "noInvites": "Tidak ada riwayat undangan"
+  },
+  "redeemInvite": {
+    "headerTitle": "Tukar Undangan",
+    "title": "Punya kode undangan?",
+    "subtitle": "Masukkan kode di bawah untuk terhubung dengan orang yang mengundang Anda.",
+    "placeholder": "PIK-XXXXXX",
+    "button": "Tukar",
+    "successTitle": "Undangan ditukar",
+    "successMessage": "Anda sekarang dapat terhubung dengan orang yang mengundang Anda!",
+    "errorEmpty": "Silakan masukkan kode undangan",
+    "errorNotAuthenticated": "Silakan masuk terlebih dahulu",
+    "errorGeneric": "Gagal menukar undangan",
+    "error_invite_not_found": "Kode undangan tidak ditemukan",
+    "error_already_redeemed": "Undangan ini sudah ditukar",
+    "error_expired": "Undangan ini telah kedaluwarsa",
+    "error_cannot_redeem_own": "Anda tidak dapat menukar undangan Anda sendiri"
   },
   "locationContacts": {
     "headerTitle": "Siapa yang kamu kenal di sini",

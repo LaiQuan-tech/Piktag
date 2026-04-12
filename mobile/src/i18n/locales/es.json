@@ -292,6 +292,7 @@
     "accountInfo": "Account Info",
     "contactSync": "Contact Sync",
     "inviteFriends": "Invite Friends",
+    "redeemInvite": "Canjear código de invitación",
     "locationContacts": "Who you know here",
     "socialStats": "Personal Dashboard",
     "privacySettings": "Privacy Settings",
@@ -538,5 +539,21 @@
     "emptyHistory": "Aún no hay actividad de puntos",
     "plusOne": "+1 P",
     "pointsUnit": "P"
+  },
+  "redeemInvite": {
+    "headerTitle": "Canjear invitación",
+    "title": "¿Tienes un código de invitación?",
+    "subtitle": "Introduce el código para conectarte con quien te invitó.",
+    "placeholder": "PIK-XXXXXX",
+    "button": "Canjear",
+    "successTitle": "Invitación canjeada",
+    "successMessage": "¡Ahora puedes conectarte con quien te invitó!",
+    "errorEmpty": "Por favor, introduce un código de invitación",
+    "errorNotAuthenticated": "Inicia sesión primero",
+    "errorGeneric": "Error al canjear la invitación",
+    "error_invite_not_found": "Código de invitación no encontrado",
+    "error_already_redeemed": "Esta invitación ya ha sido canjeada",
+    "error_expired": "Esta invitación ha caducado",
+    "error_cannot_redeem_own": "No puedes canjear tu propia invitación"
   }
 }

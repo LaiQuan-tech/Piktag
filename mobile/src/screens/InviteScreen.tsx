@@ -66,6 +66,14 @@ export default function InviteScreen({ navigation }: InviteScreenProps) {
   const fetchData = useCallback(async () => {
     if (!user) return;
     try {
+      // Auto-recover quota if 24h have passed
+      // Uses _rpc suffix to avoid collision with existing trigger function
+      try {
+        await supabase.rpc('recover_invite_quota_rpc');
+      } catch (recErr) {
+        console.warn('[Invite] quota recovery error:', recErr);
+      }
+
       // Fetch quota + p_points from profile
       const { data: profileData } = await supabase
         .from('piktag_profiles')

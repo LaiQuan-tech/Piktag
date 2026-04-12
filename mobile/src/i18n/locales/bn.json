@@ -292,6 +292,7 @@
     "accountInfo": "Account Info",
     "contactSync": "Contact Sync",
     "inviteFriends": "Invite Friends",
+    "redeemInvite": "আমন্ত্রণ কোড ব্যবহার করুন",
     "locationContacts": "Who you know here",
     "socialStats": "Personal Dashboard",
     "privacySettings": "Privacy Settings",
@@ -334,6 +335,22 @@
     "inviteRecordHeader": "Invite History",
     "usedBadge": "Used",
     "noInvites": "No invite history"
+  },
+  "redeemInvite": {
+    "headerTitle": "আমন্ত্রণ কোড ব্যবহার",
+    "title": "আমন্ত্রণ কোড আছে?",
+    "subtitle": "নিচে কোড দিয়ে আপনাকে যিনি আমন্ত্রণ জানিয়েছেন তার সাথে যুক্ত হন।",
+    "placeholder": "PIK-XXXXXX",
+    "button": "ব্যবহার করুন",
+    "successTitle": "আমন্ত্রণ ব্যবহৃত হয়েছে",
+    "successMessage": "আপনি এখন যিনি আমন্ত্রণ জানিয়েছেন তার সাথে যুক্ত হতে পারবেন!",
+    "errorEmpty": "অনুগ্রহ করে একটি আমন্ত্রণ কোড লিখুন",
+    "errorNotAuthenticated": "প্রথমে সাইন ইন করুন",
+    "errorGeneric": "আমন্ত্রণ ব্যবহার করতে ব্যর্থ হয়েছে",
+    "error_invite_not_found": "আমন্ত্রণ কোড পাওয়া যায়নি",
+    "error_already_redeemed": "এই আমন্ত্রণ ইতিমধ্যে ব্যবহার করা হয়েছে",
+    "error_expired": "এই আমন্ত্রণের মেয়াদ শেষ হয়েছে",
+    "error_cannot_redeem_own": "আপনি নিজের আমন্ত্রণ ব্যবহার করতে পারবেন না"
   },
   "locationContacts": {
     "headerTitle": "Who you know here",

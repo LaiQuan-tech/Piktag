@@ -368,6 +368,7 @@
     "accountInfo": "ข้อมูลบัญชี",
     "contactSync": "ซิงค์รายชื่อ",
     "inviteFriends": "เชิญเพื่อน",
+    "redeemInvite": "ใช้รหัสเชิญ",
     "locationContacts": "คนที่คุณรู้จักที่นี่",
     "socialStats": "แดชบอร์ดส่วนตัว",
     "privacySettings": "การตั้งค่าความเป็นส่วนตัว",
@@ -411,6 +412,22 @@
     "inviteRecordHeader": "ประวัติการเชิญ",
     "usedBadge": "ใช้แล้ว",
     "noInvites": "ไม่มีประวัติการเชิญ"
+  },
+  "redeemInvite": {
+    "headerTitle": "ใช้รหัสเชิญ",
+    "title": "มีรหัสเชิญใช่ไหม?",
+    "subtitle": "ใส่รหัสด้านล่างเพื่อเชื่อมต่อกับผู้ที่เชิญคุณ",
+    "placeholder": "PIK-XXXXXX",
+    "button": "ใช้รหัส",
+    "successTitle": "ใช้รหัสสำเร็จ",
+    "successMessage": "ตอนนี้คุณสามารถเชื่อมต่อกับผู้ที่เชิญคุณได้แล้ว!",
+    "errorEmpty": "กรุณาใส่รหัสเชิญ",
+    "errorNotAuthenticated": "กรุณาเข้าสู่ระบบก่อน",
+    "errorGeneric": "ใช้รหัสเชิญไม่สำเร็จ",
+    "error_invite_not_found": "ไม่พบรหัสเชิญ",
+    "error_already_redeemed": "รหัสเชิญนี้ถูกใช้ไปแล้ว",
+    "error_expired": "รหัสเชิญนี้หมดอายุ",
+    "error_cannot_redeem_own": "ไม่สามารถใช้รหัสเชิญของตัวเองได้"
   },
   "locationContacts": {
     "headerTitle": "คนที่คุณรู้จักที่นี่",

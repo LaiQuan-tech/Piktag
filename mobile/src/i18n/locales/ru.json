@@ -292,6 +292,7 @@
     "accountInfo": "Account Info",
     "contactSync": "Contact Sync",
     "inviteFriends": "Invite Friends",
+    "redeemInvite": "Использовать код приглашения",
     "locationContacts": "Who you know here",
     "socialStats": "Personal Dashboard",
     "privacySettings": "Privacy Settings",
@@ -538,5 +539,21 @@
     "emptyHistory": "Активности баллов пока нет",
     "plusOne": "+1 P",
     "pointsUnit": "P"
+  },
+  "redeemInvite": {
+    "headerTitle": "Использовать приглашение",
+    "title": "Есть код приглашения?",
+    "subtitle": "Введите код ниже, чтобы связаться с человеком, который вас пригласил.",
+    "placeholder": "PIK-XXXXXX",
+    "button": "Использовать",
+    "successTitle": "Приглашение использовано",
+    "successMessage": "Теперь вы можете связаться с человеком, который вас пригласил!",
+    "errorEmpty": "Пожалуйста, введите код приглашения",
+    "errorNotAuthenticated": "Пожалуйста, сначала войдите в систему",
+    "errorGeneric": "Не удалось использовать приглашение",
+    "error_invite_not_found": "Код приглашения не найден",
+    "error_already_redeemed": "Это приглашение уже использовано",
+    "error_expired": "Срок действия этого приглашения истёк",
+    "error_cannot_redeem_own": "Вы не можете использовать собственное приглашение"
   }
 }
