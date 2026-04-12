@@ -379,7 +379,7 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
                 key={bl.id}
                 style={styles.iconCircle}
                 activeOpacity={0.7}
-                onPress={() => handleOpenBiolink(bl)}
+                onPress={() => handleOpenBiolink(bl.url)}
               >
                 <View style={styles.iconCircleInner}>
                   <PlatformIcon platform={bl.platform} size={22} iconUrl={bl.icon_url} />
@@ -397,7 +397,7 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
                 key={bl.id}
                 style={styles.socialCard}
                 activeOpacity={0.7}
-                onPress={() => handleOpenBiolink(bl)}
+                onPress={() => handleOpenBiolink(bl.url)}
               >
                 <View style={styles.socialCardIcon}>
                   <PlatformIcon platform={bl.platform} size={24} iconUrl={bl.icon_url} />

@@ -202,7 +202,7 @@ function renderPage(tagName, usageCount, members) {
           <div class="tag-count">${usageCount} 人</div>
         </div>
       </div>
-      <a href="https://pikt.ag/download" class="header-cta">下載 App</a>
+      <a href="https://pikt.ag/download" class="header-cta" target="_blank" rel="noopener noreferrer">下載 App</a>
     </div>
   </div>
 
@@ -212,7 +212,7 @@ function renderPage(tagName, usageCount, members) {
   </div>
 
   <div class="bottom-spacer"></div>
-  <a class="banner" href="https://pikt.ag/download">
+  <a class="banner" href="https://pikt.ag/download" target="_blank" rel="noopener noreferrer">
     <span class="banner-text">下載 #piktag App 認識他們</span>
     <span class="banner-arrow">→</span>
   </a>

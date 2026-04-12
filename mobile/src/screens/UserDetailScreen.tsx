@@ -541,7 +541,7 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
   };
 
   const handleOpenLink = (url: string) => {
-    Linking.openURL(url);
+    if (url) Linking.openURL(url).catch(() => {});
   };
 
   if (loading) {

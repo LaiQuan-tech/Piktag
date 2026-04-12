@@ -210,7 +210,7 @@
     "urlPlaceholder": "https://",
     "displayNameLabel": "Display Name (optional)",
     "displayModeLabel": "显示方式",
-    "displayModeIcon": "Icon 并排",
+    "displayModeIcon": "图示并排",
     "displayModeCard": "清单卡片",
     "displayModeBoth": "全部显示",
     "displayNamePlaceholder": "Custom display name",

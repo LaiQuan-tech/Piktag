@@ -13,6 +13,7 @@ import {
   Platform,
   ActivityIndicator,
   Modal,
+  Linking,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ArrowLeft, Plus, Pencil, Trash2, X, Hash, EyeOff, Eye, Camera, GripVertical } from 'lucide-react-native';
@@ -446,6 +447,10 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
     setBiolinkModalVisible(false);
     setEditingBiolink(null);
     setBiolinkForm({ platform: '', url: '', label: '', display_mode: 'card', visibility: 'public' });
+  };
+
+  const handleOpenLink = (url: string) => {
+    if (url) Linking.openURL(url).catch(() => {});
   };
 
   const getIconUrl = (url: string): string | null => {
@@ -938,6 +943,7 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
                 <ScaleDecorator>
                   <TouchableOpacity
                     activeOpacity={0.7}
+                    onPress={() => handleOpenLink(link.url)}
                     onLongPress={drag}
                     disabled={isActive}
                     style={[styles.biolinkItem, isActive && { backgroundColor: COLORS.gray50, borderRadius: 12 }]}
@@ -1170,7 +1176,7 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
                     activeOpacity={0.7}
                   >
                     <Text style={[styles.displayModeBtnText, biolinkForm.display_mode === 'icon' && styles.displayModeBtnTextActive]}>
-                      {t('editProfile.displayModeIcon') || 'Icon 並排'}
+                      {t('editProfile.displayModeIcon') || '圖示並排'}
                     </Text>
                   </TouchableOpacity>
                   <TouchableOpacity
