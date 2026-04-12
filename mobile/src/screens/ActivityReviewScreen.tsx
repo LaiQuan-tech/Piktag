@@ -141,7 +141,7 @@ export default function ActivityReviewScreen({ navigation, route }: Props) {
       }
       setLoading(false);
     })();
-  }, [user, sessionId, recentMinutes]);
+  }, [user, sessionId]);
 
   // Toggle pick a public tag
   const handleTogglePick = useCallback(async (tagName: string) => {
