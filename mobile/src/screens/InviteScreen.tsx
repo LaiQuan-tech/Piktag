@@ -58,6 +58,7 @@ export default function InviteScreen({ navigation }: InviteScreenProps) {
   const { user } = useAuth();
   const [quota, setQuota] = useState(0);
   const [maxQuota, setMaxQuota] = useState(5);
+  const [pPoints, setPPoints] = useState(0);
   const [invites, setInvites] = useState<Invite[]>([]);
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
@@ -65,16 +66,17 @@ export default function InviteScreen({ navigation }: InviteScreenProps) {
   const fetchData = useCallback(async () => {
     if (!user) return;
     try {
-      // Fetch quota from profile
+      // Fetch quota + p_points from profile
       const { data: profileData } = await supabase
         .from('piktag_profiles')
-        .select('invite_quota, invite_quota_max')
+        .select('invite_quota, invite_quota_max, p_points')
         .eq('id', user.id)
         .single();
 
       if (profileData) {
-        setQuota(profileData.invite_quota);
-        setMaxQuota(profileData.invite_quota_max);
+        setQuota(profileData.invite_quota ?? 0);
+        setMaxQuota(profileData.invite_quota_max ?? 5);
+        setPPoints(profileData.p_points ?? 0);
       }
 
       // Fetch invites
@@ -294,6 +296,17 @@ export default function InviteScreen({ navigation }: InviteScreenProps) {
             </TouchableOpacity>
           </View>
 
+          {/* P Points Card */}
+          <TouchableOpacity
+            onPress={() => navigation.navigate('PointsHistory')}
+            style={styles.pointsCard}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.pointsLabel}>{t('points.balance')}</Text>
+            <Text style={styles.pointsValue}>{pPoints} {t('points.pointsUnit')}</Text>
+            <Text style={styles.pointsHint}>{t('points.redeemHint')}</Text>
+          </TouchableOpacity>
+
           {/* Invites List */}
           <View style={styles.listHeader}>
             <Text style={styles.listHeaderText}>
@@ -497,5 +510,29 @@ const styles = StyleSheet.create({
     color: COLORS.gray400,
     textAlign: 'center',
     paddingVertical: 40,
+  },
+  pointsCard: {
+    backgroundColor: COLORS.piktag50,
+    borderWidth: 1,
+    borderColor: COLORS.piktag100,
+    borderRadius: 16,
+    padding: 16,
+    margin: 16,
+    alignItems: 'center',
+  },
+  pointsLabel: {
+    fontSize: 13,
+    color: COLORS.gray500,
+  },
+  pointsValue: {
+    fontSize: 28,
+    fontWeight: '800',
+    color: COLORS.piktag600,
+    marginTop: 4,
+  },
+  pointsHint: {
+    fontSize: 11,
+    color: COLORS.gray400,
+    marginTop: 2,
   },
 });

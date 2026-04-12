@@ -44,6 +44,7 @@ import ManageTagsScreen from '../screens/ManageTagsScreen';
 import PrivacyPolicyScreen from '../screens/legal/PrivacyPolicyScreen';
 import TermsOfServiceScreen from '../screens/legal/TermsOfServiceScreen';
 import ActivityReviewScreen from '../screens/ActivityReviewScreen';
+import PointsHistoryScreen from '../screens/PointsHistoryScreen';
 
 // Stack Navigators
 const AuthStack = createNativeStackNavigator();
@@ -218,6 +219,7 @@ function MainNavigator({ needsOnboarding }: { needsOnboarding: boolean }) {
       <RootStack.Screen name="CameraScan" component={CameraScanScreen} />
       <RootStack.Screen name="PrivacyPolicy" component={PrivacyPolicyScreen} />
       <RootStack.Screen name="TermsOfService" component={TermsOfServiceScreen} />
+      <RootStack.Screen name="PointsHistory" component={PointsHistoryScreen} />
 
       {/* Modal screens */}
       <RootStack.Screen

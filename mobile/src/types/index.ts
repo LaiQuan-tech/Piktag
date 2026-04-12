@@ -21,6 +21,8 @@ export type PiktagProfile = {
   longitude: number | null;
   location_updated_at?: string | null;
   birthday: string | null;
+  p_points?: number;
+  p_points_lifetime?: number;
   created_at: string;
   updated_at: string;
 };
@@ -191,3 +193,15 @@ export interface UserStatus {
   created_at: string;
   expires_at: string;
 }
+
+export type PointsLedgerEntry = {
+  id: string;
+  user_id: string;
+  delta: number;
+  balance_after: number;
+  reason: 'invite_accepted' | 'redeemed' | 'admin_grant' | string;
+  ref_type: string | null;
+  ref_id: string | null;
+  metadata: Record<string, unknown> | null;
+  created_at: string;
+};

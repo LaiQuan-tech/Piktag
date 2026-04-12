@@ -360,6 +360,17 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
             <Text style={styles.statLabel}>{t('profile.statFollowers')}</Text>
           </Text>
 
+          {/* P Points */}
+          <TouchableOpacity
+            onPress={() => navigation.navigate('PointsHistory')}
+            activeOpacity={0.7}
+            style={styles.pPointsRow}
+          >
+            <Text style={styles.pPointsText}>
+              {profile?.p_points ?? 0} {t('points.pointsUnit')}
+            </Text>
+          </TouchableOpacity>
+
           {/* Action buttons */}
           <View style={styles.actionButtonsRow}>
             <TouchableOpacity style={styles.shareButton} activeOpacity={0.7} onPress={handleOpenQr}>
@@ -566,6 +577,15 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: COLORS.gray500,
     marginBottom: 14,
+  },
+  pPointsRow: {
+    alignSelf: 'flex-start',
+    marginBottom: 14,
+  },
+  pPointsText: {
+    color: COLORS.piktag600,
+    fontSize: 14,
+    fontWeight: '600',
   },
   statNumber: {
     fontWeight: '700',
