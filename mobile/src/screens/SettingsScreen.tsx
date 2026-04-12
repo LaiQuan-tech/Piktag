@@ -11,7 +11,6 @@ import {
   ActivityIndicator,
   Modal,
   FlatList,
-  Share,
   Platform,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -262,34 +261,6 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
         { label: t('settings.contactSync'), onPress: () => navigation.navigate('ContactSync') },
         { label: t('settings.inviteFriends'), onPress: () => navigation.navigate('Invite') },
         { label: t('settings.socialStats'), onPress: () => navigation.navigate('SocialStats') },
-        { label: t('settings.exportContacts') || '匯出通訊錄', onPress: async () => {
-          if (!userId) return;
-          try {
-            const { data } = await supabase
-              .from('piktag_connections')
-              .select('nickname, met_at, met_location, connected_user:piktag_profiles!connected_user_id(full_name, username, phone)')
-              .eq('user_id', userId);
-            if (!data || data.length === 0) {
-              Alert.alert(t('settings.exportEmpty') || '沒有資料', t('settings.exportEmptyMessage') || '你還沒有任何好友');
-              return;
-            }
-            const csv = ['Name,Username,Phone,Met At,Met Location']
-              .concat(data.map((c: any) => {
-                const p = c.connected_user;
-                return [
-                  c.nickname || p?.full_name || '',
-                  p?.username || '',
-                  p?.phone || '',
-                  c.met_at || '',
-                  c.met_location || '',
-                ].map(v => `"${(v || '').replace(/"/g, '""')}"`).join(',');
-              }))
-              .join('\n');
-            await Share.share({ message: csv, title: 'PikTag Contacts Export' });
-          } catch (err) {
-            console.warn('Export error:', err);
-          }
-        }},
         {
           label: t('settings.notificationSettings'),
           onPress: handleNotificationsToggle,
