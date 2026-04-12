@@ -92,18 +92,27 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
 
   // ─── Load presets ───
   const loadPresets = useCallback(async () => {
-    if (!user) return;
+    if (!user?.id) {
+      console.warn('[AddTag] loadPresets: no user.id, skipping');
+      return;
+    }
     setLoadingPresets(true);
     try {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('piktag_tag_presets')
         .select('*')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
-      setPresets((data as TagPreset[]) ?? []);
-    } catch {
-      // Table may not exist yet — ignore
+      if (error) {
+        console.warn('[AddTag] loadPresets error:', error.message, error.code);
+        setPresets([]);
+      } else {
+        console.log('[AddTag] loadPresets:', data?.length ?? 0, 'presets for user', user.id);
+        setPresets((data as TagPreset[]) ?? []);
+      }
+    } catch (err) {
+      console.warn('[AddTag] loadPresets threw:', err);
       setPresets([]);
     } finally {
       setLoadingPresets(false);
@@ -242,12 +251,14 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
 
   // ─── Delete preset ───
   const handleDeletePreset = async (id: string) => {
+    if (!user?.id) return;
     setDeletingPresetId(id);
     try {
       const { error } = await supabase
         .from('piktag_tag_presets')
         .delete()
-        .eq('id', id);
+        .eq('id', id)
+        .eq('user_id', user.id);
 
       if (error) {
         Alert.alert(t('common.error'), t('addTag.alertPresetDeleteError'));
