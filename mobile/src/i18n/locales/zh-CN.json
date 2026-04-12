@@ -76,6 +76,9 @@
       "birthdayLabel": "生日"
     }
   },
+  "friendsMap": {
+    "staleHint": "只显示最近 24 小时内有更新位置的朋友"
+  },
   "connections": {
     "sortNewest": "Newest first",
     "sortOldest": "Oldest first",

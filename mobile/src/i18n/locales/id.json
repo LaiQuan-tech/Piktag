@@ -542,5 +542,8 @@
     "invalidQr": "Kode QR Tidak Valid",
     "invalidQrMessage": "Kode QR ini bukan kode koneksi #piktag yang valid.",
     "permissionMessage": "#piktag memerlukan akses kamera untuk memindai kode QR dan terhubung dengan teman."
+  },
+  "friendsMap": {
+    "staleHint": "Hanya menampilkan teman yang lokasinya diperbarui dalam 24 jam terakhir"
   }
 }

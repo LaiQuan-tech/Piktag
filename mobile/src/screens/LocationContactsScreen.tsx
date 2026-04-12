@@ -83,7 +83,7 @@ export default function LocationContactsScreen({ navigation }: LocationContactsS
       // Update own profile location
       supabase
         .from('piktag_profiles')
-        .update({ latitude, longitude })
+        .update({ latitude, longitude, location_updated_at: new Date().toISOString() })
         .eq('id', user.id)
         .then(({ error }) => { if (error) console.warn('Location update failed:', error.message); });
 

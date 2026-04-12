@@ -76,6 +76,9 @@
       "birthdayLabel": "誕生日"
     }
   },
+  "friendsMap": {
+    "staleHint": "過去24時間以内に位置情報を更新した友達のみ表示"
+  },
   "connections": {
     "sortNewest": "Newest first",
     "sortOldest": "Oldest first",

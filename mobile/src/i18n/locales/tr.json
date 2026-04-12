@@ -122,6 +122,9 @@
     "newBadge": "Yeni",
     "unreviewedLabel": "incelenecek"
   },
+  "friendsMap": {
+    "staleHint": "Yalnızca son 24 saat içinde konumu güncellenen arkadaşlar gösteriliyor"
+  },
   "search": {
     "headerTitle": "Ara",
     "searchPlaceholder": "Etiketler, kullanıcı adları vb.",

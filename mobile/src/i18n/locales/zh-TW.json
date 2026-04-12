@@ -153,6 +153,9 @@
     "newBadge": "新",
     "unreviewedLabel": "位待整理"
   },
+  "friendsMap": {
+    "staleHint": "只顯示最近 24 小時內有更新位置的朋友"
+  },
   "search": {
     "clearAll": "清除全部",
     "recommendedTitle": "你可能想認識",

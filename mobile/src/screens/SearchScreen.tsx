@@ -349,7 +349,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
       if (location && user) {
         supabase
           .from('piktag_profiles')
-          .update({ latitude: location.lat, longitude: location.lng })
+          .update({ latitude: location.lat, longitude: location.lng, location_updated_at: new Date().toISOString() })
           .eq('id', user.id)
           .then(() => {});
       }

@@ -127,7 +127,7 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
     if (newValue) {
       await supabase.from('piktag_profiles').update({ share_location: true }).eq('id', user.id);
     } else {
-      await supabase.from('piktag_profiles').update({ share_location: false, latitude: null, longitude: null }).eq('id', user.id);
+      await supabase.from('piktag_profiles').update({ share_location: false, latitude: null, longitude: null, location_updated_at: null }).eq('id', user.id);
     }
   };
 

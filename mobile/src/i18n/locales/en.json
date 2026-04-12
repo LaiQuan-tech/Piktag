@@ -153,6 +153,9 @@
     "newBadge": "New",
     "unreviewedLabel": "to review"
   },
+  "friendsMap": {
+    "staleHint": "Only showing friends whose location was updated in the last 24 hours"
+  },
   "search": {
     "clearAll": "Clear all",
     "intersectionHint": "Intersection: {{count}} tags",

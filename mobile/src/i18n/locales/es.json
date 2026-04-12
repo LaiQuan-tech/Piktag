@@ -447,5 +447,8 @@
     "invalidQr": "Código QR Inválido",
     "invalidQrMessage": "Este código QR no es un código de conexión #piktag válido.",
     "permissionMessage": "#piktag necesita acceso a la cámara para escanear códigos QR y conectar con amigos."
+  },
+  "friendsMap": {
+    "staleHint": "Solo se muestran amigos cuya ubicación se actualizó en las últimas 24 horas"
   }
 }

@@ -216,7 +216,7 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
           id, user_id, connected_user_id, nickname, created_at,
           met_at, birthday, is_reviewed,
           connected_user:piktag_profiles!connected_user_id(
-            id, full_name, username, avatar_url, is_verified, latitude, longitude, birthday
+            id, full_name, username, avatar_url, is_verified, latitude, longitude, location_updated_at, birthday
           )
         `)
         .eq('user_id', user.id)
@@ -537,7 +537,11 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
           if (user) {
             supabase
               .from('piktag_profiles')
-              .update({ latitude: loc.coords.latitude, longitude: loc.coords.longitude })
+              .update({
+                latitude: loc.coords.latitude,
+                longitude: loc.coords.longitude,
+                location_updated_at: new Date().toISOString(),
+              })
               .eq('id', user.id)
               .then(() => {});
           }

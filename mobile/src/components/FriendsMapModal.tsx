@@ -24,6 +24,15 @@ type FriendLocation = {
   avatarUrl: string | null;
   latitude: number;
   longitude: number;
+  location_updated_at?: string | null;
+};
+
+const STALE_THRESHOLD_MS = 24 * 60 * 60 * 1000; // 24 hours
+const isLocationFresh = (loc: string | null | undefined): boolean => {
+  if (!loc) return false;
+  const ts = new Date(loc).getTime();
+  if (!Number.isFinite(ts)) return false;
+  return Date.now() - ts < STALE_THRESHOLD_MS;
 };
 
 type FriendsMapModalProps = {
@@ -269,7 +278,13 @@ export default function FriendsMapModal({
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
 
   const friendsWithLocation = useMemo(
-    () => friends.filter((f) => typeof f.latitude === 'number' && typeof f.longitude === 'number'),
+    () =>
+      friends.filter(
+        (f) =>
+          typeof f.latitude === 'number' &&
+          typeof f.longitude === 'number' &&
+          isLocationFresh((f as any).location_updated_at),
+      ),
     [friends],
   );
 
@@ -395,6 +410,11 @@ export default function FriendsMapModal({
           <View style={styles.headerBtn} />
         </View>
 
+        {/* Stale-location hint */}
+        <Text style={styles.staleHint}>
+          只顯示最近 24 小時內有更新位置的朋友
+        </Text>
+
         {/* Inline load error (visible to user, no JS console needed) */}
         {loadError && (
           <View style={styles.errorBanner}>
@@ -483,6 +503,14 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  staleHint: {
+    fontSize: 12,
+    color: COLORS.gray500,
+    textAlign: 'center',
+    paddingHorizontal: 20,
+    marginTop: 8,
+    marginBottom: 8,
   },
   errorBanner: {
     backgroundColor: '#FEE2E2',
