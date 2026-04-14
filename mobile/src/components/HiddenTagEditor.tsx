@@ -363,9 +363,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 7,
     borderRadius: 16,
-    backgroundColor: COLORS.piktag50,
+    // Match the UNSELECTED public tag chip style in FriendDetailScreen
+    // (pickModalTag): neutral gray fill + gray border. Earlier this used
+    // piktag50/piktag200, which visually matched the SELECTED public chip
+    // and misled users into thinking the tags were already picked.
+    backgroundColor: COLORS.gray50,
     borderWidth: 1,
-    borderColor: COLORS.piktag200,
+    borderColor: COLORS.gray200,
   },
   pickChipAction: {
     backgroundColor: COLORS.white,
@@ -377,7 +381,7 @@ const styles = StyleSheet.create({
   },
   pickChipText: {
     fontSize: 13,
-    color: COLORS.piktag600,
+    color: COLORS.gray700,
     fontWeight: '500',
   },
   pickChipTextDisabled: {
