@@ -291,6 +291,21 @@ export default function LocationPickerModal({
           )}
         </TouchableOpacity>
 
+        {/* "Use current location" — works even when Places API (New) fails,
+            because the address comes from expo-location's native reverse
+            geocoder (iOS CoreLocation / Android Geocoder), not Google Places. */}
+        {currentAddress ? (
+          <TouchableOpacity
+            style={styles.currentLocationRow}
+            onPress={() => handleSelectPlace({ name: currentAddress, address: currentAddress, placeId: '' })}
+            activeOpacity={0.6}
+          >
+            <MapPin size={18} color={COLORS.piktag600} />
+            <Text style={styles.currentLocationText} numberOfLines={1}>{currentAddress}</Text>
+            <Text style={styles.currentLocationHint}>使用</Text>
+          </TouchableOpacity>
+        ) : null}
+
         {/* Search bar */}
         <View style={styles.searchContainer}>
           <View style={styles.searchBar}>
@@ -300,10 +315,18 @@ export default function LocationPickerModal({
               style={styles.searchInput}
               value={searchText}
               onChangeText={handleSearchChange}
-              placeholder="搜尋"
+              placeholder="搜尋或直接輸入地點名稱"
               placeholderTextColor={COLORS.gray400}
-              returnKeyType="search"
+              returnKeyType="done"
               onFocus={() => setMapExpanded(false)}
+              onSubmitEditing={() => {
+                // Fallback path when Places API returns nothing (e.g. API not
+                // enabled / billing / network): use the raw typed text as the
+                // location tag. Users can always exit with a typed string.
+                const v = searchText.trim();
+                if (!v) return;
+                handleSelectPlace({ name: v, address: '', placeId: '' });
+              }}
             />
             {searchText.length > 0 && (
               <TouchableOpacity
@@ -320,10 +343,12 @@ export default function LocationPickerModal({
           </View>
         </View>
 
-        {/* Error message */}
+        {/* Error message — surfaced as a neutral hint, not a blocker. Users
+            can still select a location via the tappable current-location row
+            above, or by typing in the search box and pressing Done. */}
         {errorMsg ? (
-          <View style={{ paddingHorizontal: 16, paddingVertical: 8, backgroundColor: '#fff3cd' }}>
-            <Text style={{ fontSize: 13, color: '#856404' }}>{errorMsg}</Text>
+          <View style={styles.errorBanner}>
+            <Text style={styles.errorBannerText}>找不到附近地點，你可以用上方的當前位置,或在搜尋框直接輸入地點名稱後按完成。</Text>
           </View>
         ) : null}
 
@@ -417,6 +442,39 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     borderBottomWidth: 1,
     borderBottomColor: COLORS.gray200,
+  },
+  currentLocationRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: COLORS.piktag50,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.gray200,
+  },
+  currentLocationText: {
+    flex: 1,
+    fontSize: 14,
+    color: COLORS.gray900,
+    fontWeight: '500',
+  },
+  currentLocationHint: {
+    fontSize: 13,
+    color: COLORS.piktag600,
+    fontWeight: '600',
+  },
+  errorBanner: {
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    backgroundColor: COLORS.gray50,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.gray200,
+  },
+  errorBannerText: {
+    fontSize: 12,
+    color: COLORS.gray600,
+    lineHeight: 18,
   },
   searchContainer: {
     paddingHorizontal: 16,

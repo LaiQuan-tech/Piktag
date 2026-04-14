@@ -1673,18 +1673,18 @@ const styles = StyleSheet.create({
   hiddenTagChip: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FEF3C7',
+    backgroundColor: COLORS.piktag100,
     borderRadius: 16,
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderWidth: 1,
-    borderColor: '#FDE68A',
+    borderColor: COLORS.piktag200,
     gap: 4,
   },
   hiddenTagChipText: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#92400E',
+    color: COLORS.piktag600,
   },
   // Unfollow Modal
   unfollowModalOverlay: {
