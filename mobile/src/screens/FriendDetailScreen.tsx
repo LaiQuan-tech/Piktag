@@ -14,6 +14,7 @@ import {
   Modal,
   Share,
   Platform,
+  KeyboardAvoidingView,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
@@ -1074,7 +1075,10 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
         transparent
         onRequestClose={() => setPickTagModalVisible(false)}
       >
-        <View style={styles.pickModalOverlay}>
+        <KeyboardAvoidingView
+          style={styles.pickModalOverlay}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        >
           <View style={styles.pickModalContainer}>
             {/* Header */}
             <View style={styles.pickModalHeader}>
@@ -1167,7 +1171,7 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
               )}
             </TouchableOpacity>
           </View>
-        </View>
+        </KeyboardAvoidingView>
       </Modal>
       {/* More Menu Modal */}
       <Modal visible={moreMenuVisible} transparent animationType="fade" onRequestClose={() => setMoreMenuVisible(false)}>
