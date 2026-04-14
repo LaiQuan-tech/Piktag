@@ -14,6 +14,7 @@ import {
   Modal,
   Share,
   Platform,
+  KeyboardAvoidingView,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
@@ -874,7 +875,10 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
         transparent
         onRequestClose={() => setPickTagModalVisible(false)}
       >
-        <View style={styles.pickModalOverlay}>
+        <KeyboardAvoidingView
+          style={styles.pickModalOverlay}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        >
           <View style={styles.pickModalContainer}>
             <View style={styles.pickModalHeader}>
               <Text style={styles.pickModalTitle}>{t('userDetail.pickTagTitle')}</Text>
@@ -962,7 +966,7 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
               )}
             </TouchableOpacity>
           </View>
-        </View>
+        </KeyboardAvoidingView>
       </Modal>
 
       {/* Mutual Tags Modal */}
