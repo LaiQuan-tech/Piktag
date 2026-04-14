@@ -10,7 +10,6 @@ import {
   Linking,
   ActivityIndicator,
   Alert,
-  TextInput,
   Modal,
   Share,
   Platform,
@@ -53,6 +52,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import * as ScreenCapture from 'expo-screen-capture';
 import PlatformIcon from '../components/PlatformIcon';
 import InitialsAvatar from '../components/InitialsAvatar';
+import HiddenTagEditor from '../components/HiddenTagEditor';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
 import type { Connection, PiktagProfile, Biolink } from '../types';
@@ -183,10 +183,10 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
   const [mutualFriendProfiles, setMutualFriendProfiles] = useState<any[]>([]);
   const [mutualFriendsModalVisible, setMutualFriendsModalVisible] = useState(false);
 
-  // Hidden tags state (private tags only I can see)
+  // Hidden tags state (private tags only I can see).
+  // Add/remove logic lives in <HiddenTagEditor>; this component only owns the
+  // list and refetches via fetchHiddenTags after any change.
   const [hiddenTags, setHiddenTags] = useState<{ id: string; tagId: string; name: string }[]>([]);
-  const [hiddenTagInput, setHiddenTagInput] = useState('');
-  const [addingHiddenTag, setAddingHiddenTag] = useState(false);
 
   // CRM reminder state
   const [birthday, setBirthday] = useState<string>('');
@@ -556,43 +556,6 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
       if (connectionId) fetchHiddenTags();
     }, [connectionId, fetchHiddenTags])
   );
-
-  const handleAddHiddenTag = async () => {
-    const name = hiddenTagInput.trim().replace(/^#/, '');
-    if (!name || !connectionId || !user) return;
-    setAddingHiddenTag(true);
-    try {
-      // Find or create tag
-      let tagId: string;
-      const { data: existing } = await supabase.from('piktag_tags').select('id').eq('name', name).single();
-      if (existing) {
-        tagId = existing.id;
-      } else {
-        const { data: newTag } = await supabase.from('piktag_tags').insert({ name }).select('id').single();
-        if (!newTag) { setAddingHiddenTag(false); return; }
-        tagId = newTag.id;
-      }
-
-      // Insert as private connection tag
-      await supabase.from('piktag_connection_tags').insert({
-        connection_id: connectionId,
-        tag_id: tagId,
-        is_private: true,
-      });
-
-      setHiddenTagInput('');
-      fetchHiddenTags();
-    } catch (err) {
-      console.error('Add hidden tag error:', err);
-    } finally {
-      setAddingHiddenTag(false);
-    }
-  };
-
-  const handleRemoveHiddenTag = async (ctId: string) => {
-    await supabase.from('piktag_connection_tags').delete().eq('id', ctId);
-    setHiddenTags(prev => prev.filter(t => t.id !== ctId));
-  };
 
   const handleConfirmUnfollow = async () => {
     if (!user || !friendId) return;
@@ -1080,14 +1043,18 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         >
           <View style={styles.pickModalContainer}>
-            {/* Header */}
+            {/* Header (fixed) */}
             <View style={styles.pickModalHeader}>
               <Text style={styles.pickModalTitle}>{t('friendDetail.pickTagTitle')}</Text>
               <TouchableOpacity onPress={() => setPickTagModalVisible(false)} activeOpacity={0.6}>
                 <Text style={styles.pickModalCloseText}>{t('common.close')}</Text>
               </TouchableOpacity>
             </View>
-
+            <ScrollView
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
+              contentContainerStyle={{ paddingBottom: 12 }}
+            >
             <Text style={styles.pickModalSubtitle}>
               {t('friendDetail.pickTagSubtitle', { name: displayName })}
             </Text>
@@ -1119,43 +1086,20 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
             {/* Divider */}
             <View style={styles.pickModalDivider} />
 
-            {/* Hidden tags section */}
+            {/* Hidden tags section — tap-based editor with time / location /
+                frequently-used chips to reduce keyboard friction */}
             <Text style={styles.pickModalSectionTitle}>{t('friendDetail.hiddenTagsTitle')}</Text>
-
-            {hiddenTags.length > 0 && (
-              <View style={styles.pickModalTagsWrap}>
-                {hiddenTags.map((ht) => (
-                  <View key={ht.id} style={styles.hiddenTagChip}>
-                    <Text style={styles.hiddenTagChipText}>#{ht.name}</Text>
-                    <TouchableOpacity onPress={() => handleRemoveHiddenTag(ht.id)} activeOpacity={0.6} style={styles.hiddenTagRemove}>
-                      <Text style={styles.hiddenTagRemoveText}>×</Text>
-                    </TouchableOpacity>
-                  </View>
-                ))}
-              </View>
-            )}
-
-            <View style={styles.hiddenTagInputRow}>
-              <TextInput
-                style={styles.hiddenTagInput}
-                value={hiddenTagInput}
-                onChangeText={setHiddenTagInput}
-                placeholder={t('friendDetail.hiddenTagPlaceholder')}
-                placeholderTextColor={COLORS.gray400}
-                returnKeyType="done"
-                onSubmitEditing={handleAddHiddenTag}
+            {connectionId && user && (
+              <HiddenTagEditor
+                connectionId={connectionId}
+                userId={user.id}
+                hiddenTags={hiddenTags}
+                onTagsChanged={fetchHiddenTags}
               />
-              <TouchableOpacity
-                style={[styles.hiddenTagAddBtn, (!hiddenTagInput.trim() || addingHiddenTag) && { opacity: 0.5 }]}
-                onPress={handleAddHiddenTag}
-                disabled={!hiddenTagInput.trim() || addingHiddenTag}
-                activeOpacity={0.7}
-              >
-                <Text style={styles.hiddenTagAddText}>{t('common.add')}</Text>
-              </TouchableOpacity>
-            </View>
+            )}
+            </ScrollView>
 
-            {/* Save button */}
+            {/* Save button (pinned below scroll area) */}
             <TouchableOpacity
               style={[styles.pickModalSaveBtn, pickTagLoading && { opacity: 0.7 }]}
               onPress={handleSavePickedTags}
@@ -1742,43 +1686,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#92400E',
   },
-  hiddenTagRemove: {
-    paddingHorizontal: 2,
-  },
-  hiddenTagRemoveText: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#B45309',
-  },
-  hiddenTagInputRow: {
-    flexDirection: 'row',
-    gap: 10,
-    marginBottom: 20,
-  },
-  hiddenTagInput: {
-    flex: 1,
-    backgroundColor: COLORS.gray50,
-    borderRadius: 12,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    fontSize: 14,
-    color: COLORS.gray900,
-    borderWidth: 1,
-    borderColor: COLORS.gray200,
-  },
-  hiddenTagAddBtn: {
-    backgroundColor: COLORS.gray900,
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    justifyContent: 'center',
-  },
-  hiddenTagAddText: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: COLORS.white,
-  },
-
   // Unfollow Modal
   unfollowModalOverlay: {
     flex: 1,
@@ -1851,7 +1758,7 @@ const styles = StyleSheet.create({
     paddingTop: 20,
     paddingHorizontal: 20,
     paddingBottom: 40,
-    maxHeight: '75%',
+    maxHeight: '88%',
   },
   pickModalHeader: {
     flexDirection: 'row',

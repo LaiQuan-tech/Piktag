@@ -1,4 +1,17 @@
 {
+  "hiddenTagEditor": {
+    "timeTitle": "Когда познакомились",
+    "locationTitle": "Где познакомились",
+    "frequentTitle": "Часто используемые",
+    "addedTitle": "Добавленные",
+    "today": "Сегодня",
+    "yesterday": "Вчера",
+    "thisMonth": "В этом месяце",
+    "thisYear": "В этом году",
+    "pickLocation": "Выбрать место",
+    "other": "Другое",
+    "otherPlaceholder": "Введите новый тег…"
+  },
   "common": {
     "error": "Error",
     "unknownError": "Something went wrong",

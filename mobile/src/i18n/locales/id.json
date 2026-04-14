@@ -1,4 +1,17 @@
 {
+  "hiddenTagEditor": {
+    "timeTitle": "Kapan bertemu",
+    "locationTitle": "Di mana bertemu",
+    "frequentTitle": "Sering digunakan",
+    "addedTitle": "Ditambahkan",
+    "today": "Hari ini",
+    "yesterday": "Kemarin",
+    "thisMonth": "Bulan ini",
+    "thisYear": "Tahun ini",
+    "pickLocation": "Pilih lokasi",
+    "other": "Lainnya",
+    "otherPlaceholder": "Ketik tag baru…"
+  },
   "common": {
     "error": "Kesalahan",
     "unknownError": "Ada yang salah nih",

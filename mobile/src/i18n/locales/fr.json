@@ -1,4 +1,17 @@
 {
+  "hiddenTagEditor": {
+    "timeTitle": "Quand vous vous êtes rencontrés",
+    "locationTitle": "Où vous vous êtes rencontrés",
+    "frequentTitle": "Fréquemment utilisés",
+    "addedTitle": "Ajoutés",
+    "today": "Aujourd'hui",
+    "yesterday": "Hier",
+    "thisMonth": "Ce mois-ci",
+    "thisYear": "Cette année",
+    "pickLocation": "Choisir un lieu",
+    "other": "Autre",
+    "otherPlaceholder": "Saisir une nouvelle étiquette…"
+  },
   "common": {
     "error": "Error",
     "unknownError": "Something went wrong",

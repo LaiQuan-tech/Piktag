@@ -1,4 +1,17 @@
 {
+  "hiddenTagEditor": {
+    "timeTitle": "When you met",
+    "locationTitle": "Where you met",
+    "frequentTitle": "Frequently used",
+    "addedTitle": "Added",
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "thisMonth": "This month",
+    "thisYear": "This year",
+    "pickLocation": "Pick location",
+    "other": "Other",
+    "otherPlaceholder": "Type a new tag…"
+  },
   "common": {
     "error": "Error",
     "unknownError": "Something went wrong",

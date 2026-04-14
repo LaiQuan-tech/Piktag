@@ -1,4 +1,17 @@
 {
+  "hiddenTagEditor": {
+    "timeTitle": "متى التقيتما",
+    "locationTitle": "أين التقيتما",
+    "frequentTitle": "الأكثر استخدامًا",
+    "addedTitle": "تمت الإضافة",
+    "today": "اليوم",
+    "yesterday": "أمس",
+    "thisMonth": "هذا الشهر",
+    "thisYear": "هذه السنة",
+    "pickLocation": "اختيار مكان",
+    "other": "أخرى",
+    "otherPlaceholder": "اكتب وسمًا جديدًا…"
+  },
   "common": {
     "error": "Error",
     "unknownError": "Something went wrong",

@@ -1,4 +1,17 @@
 {
+  "hiddenTagEditor": {
+    "timeTitle": "कब मिले",
+    "locationTitle": "कहाँ मिले",
+    "frequentTitle": "अक्सर इस्तेमाल",
+    "addedTitle": "जोड़े गए",
+    "today": "आज",
+    "yesterday": "कल",
+    "thisMonth": "इस महीने",
+    "thisYear": "इस साल",
+    "pickLocation": "स्थान चुनें",
+    "other": "अन्य",
+    "otherPlaceholder": "नया टैग लिखें…"
+  },
   "common": {
     "error": "Error",
     "unknownError": "Something went wrong",

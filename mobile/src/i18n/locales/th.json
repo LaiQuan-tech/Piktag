@@ -1,4 +1,17 @@
 {
+  "hiddenTagEditor": {
+    "timeTitle": "เจอเมื่อไร",
+    "locationTitle": "เจอที่ไหน",
+    "frequentTitle": "ใช้บ่อย",
+    "addedTitle": "เพิ่มแล้ว",
+    "today": "วันนี้",
+    "yesterday": "เมื่อวาน",
+    "thisMonth": "เดือนนี้",
+    "thisYear": "ปีนี้",
+    "pickLocation": "เลือกสถานที่",
+    "other": "อื่น ๆ",
+    "otherPlaceholder": "พิมพ์แท็กใหม่…"
+  },
   "common": {
     "error": "ข้อผิดพลาด",
     "unknownError": "เกิดข้อผิดพลาดที่ไม่ทราบสาเหตุ",

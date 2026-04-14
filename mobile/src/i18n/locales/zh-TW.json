@@ -1,4 +1,17 @@
 {
+  "hiddenTagEditor": {
+    "timeTitle": "認識時間",
+    "locationTitle": "認識地點",
+    "frequentTitle": "常用標籤",
+    "addedTitle": "已加入",
+    "today": "今天",
+    "yesterday": "昨天",
+    "thisMonth": "本月",
+    "thisYear": "今年",
+    "pickLocation": "選擇地點",
+    "other": "其他",
+    "otherPlaceholder": "輸入新標籤…"
+  },
   "common": {
     "error": "錯誤",
     "unknownError": "出了點問題",
