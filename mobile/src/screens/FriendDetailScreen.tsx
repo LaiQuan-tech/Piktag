@@ -483,20 +483,30 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
     if (!connectionId || !user) return;
     setPickTagLoading(true);
     try {
-      // Delete existing connection_tags for this connection
-      await supabase.from('piktag_connection_tags').delete().eq('connection_id', connectionId);
+      // Delete only the PUBLIC picked tags — hidden tags (is_private=true)
+      // must survive because <HiddenTagEditor> writes them live to the same
+      // table and the user expects them to persist across save.
+      await supabase
+        .from('piktag_connection_tags')
+        .delete()
+        .eq('connection_id', connectionId)
+        .eq('is_private', false);
 
-      // Insert picked ones with position (preserving order)
+      // Re-insert picked public tags with position (preserving order)
       if (pickedTagIds.size > 0) {
         const rows = Array.from(pickedTagIds).map((tagId, i) => ({
           connection_id: connectionId,
           tag_id: tagId,
           position: i,
+          is_private: false,
         }));
         await supabase.from('piktag_connection_tags').insert(rows);
       }
 
       setPickTagModalVisible(false);
+      // Refresh the friend page's visible tag chips + strength score
+      // so the user sees the change immediately without navigating away.
+      fetchData();
     } catch (err) {
       console.error('Save picked tags error:', err);
       Alert.alert(t('common.error'), t('friendDetail.alertPickTagError'));
@@ -1053,6 +1063,7 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
             <ScrollView
               showsVerticalScrollIndicator={false}
               keyboardShouldPersistTaps="handled"
+              automaticallyAdjustKeyboardInsets={Platform.OS === 'ios'}
               contentContainerStyle={{ paddingBottom: 12 }}
             >
             <Text style={styles.pickModalSubtitle}>
@@ -1107,11 +1118,9 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
               activeOpacity={0.8}
             >
               {pickTagLoading ? (
-                <ActivityIndicator size="small" color={COLORS.gray900} />
+                <ActivityIndicator size="small" color={COLORS.white} />
               ) : (
-                <Text style={styles.pickModalSaveText}>
-                  {t('friendDetail.pickTagSave', { count: pickedTagIds.size })}
-                </Text>
+                <Text style={styles.pickModalSaveText}>{t('common.save')}</Text>
               )}
             </TouchableOpacity>
           </View>
@@ -1843,6 +1852,6 @@ const styles = StyleSheet.create({
   pickModalSaveText: {
     fontSize: 16,
     fontWeight: '700',
-    color: COLORS.gray900,
+    color: COLORS.white,
   },
 });

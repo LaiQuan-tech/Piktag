@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTranslation } from 'react-i18next';
-import { Plus, X, MapPin, ChevronDown, ChevronUp } from 'lucide-react-native';
+import { Plus, X, MapPin } from 'lucide-react-native';
 import { supabase } from '../lib/supabase';
 import { COLORS } from '../constants/theme';
 import LocationPickerModal from './LocationPickerModal';
@@ -20,7 +20,10 @@ type Props = {
   connectionId: string;
   userId: string;
   hiddenTags: HiddenTag[];
-  onTagsChanged: () => void;
+  // Parent's refetch callback. May return a Promise — if it does, the editor
+  // awaits it before letting the user fire the next action, so local state
+  // (notably the "already added" chip markers) stays in sync with the DB.
+  onTagsChanged: () => Promise<void> | void;
 };
 
 const RECENT_LOCATIONS_KEY = 'piktag_recent_locations';
@@ -50,7 +53,6 @@ export default function HiddenTagEditor({ connectionId, userId, hiddenTags, onTa
   const [frequentTags, setFrequentTags] = useState<{ id: string; name: string }[]>([]);
   const [recentLocations, setRecentLocations] = useState<string[]>([]);
   const [locationPickerVisible, setLocationPickerVisible] = useState(false);
-  const [textExpanded, setTextExpanded] = useState(false);
   const [textValue, setTextValue] = useState('');
   const [busy, setBusy] = useState(false);
 
@@ -116,12 +118,15 @@ export default function HiddenTagEditor({ connectionId, userId, hiddenTags, onTa
   };
 
   // Core add: every chip tap and the text-input fallback funnel through here.
-  // Same find-or-create → insert flow FriendDetailScreen.handleAddHiddenTag
-  // previously implemented inline — extracted here so all paths share it.
+  // Deliberately NO dedup check on `name` — the chip UI already greys out
+  // already-added chips via `alreadyAdded` state, and a client-side dedup
+  // check on text input was causing a race: after removing a tag, the parent's
+  // hiddenTags prop hadn't refreshed yet, so re-adding the same string silently
+  // no-op'd. Better to let the DB accept the row (or reject on unique
+  // constraint) than to swallow the user's tap.
   const applyHiddenTag = async (rawName: string) => {
     const name = rawName.trim().replace(/^#/, '');
     if (!name || !connectionId || busy) return;
-    if (currentNames.has(name)) return; // Already added to this connection
 
     setBusy(true);
     try {
@@ -147,7 +152,8 @@ export default function HiddenTagEditor({ connectionId, userId, hiddenTags, onTa
         tag_id: tagId,
         is_private: true,
       });
-      onTagsChanged();
+      // Await parent refetch so the next user action sees fresh state.
+      await onTagsChanged();
       // Also refresh frequent list so the tag we just added bubbles up next time
       loadFrequentTags();
     } catch (err) {
@@ -162,7 +168,8 @@ export default function HiddenTagEditor({ connectionId, userId, hiddenTags, onTa
     setBusy(true);
     try {
       await supabase.from('piktag_connection_tags').delete().eq('id', id);
-      onTagsChanged();
+      // Await parent refetch so a subsequent re-add sees the empty list.
+      await onTagsChanged();
     } catch (err) {
       console.warn('[HiddenTagEditor] removeHiddenTag failed:', err);
     } finally {
@@ -302,44 +309,30 @@ export default function HiddenTagEditor({ connectionId, userId, hiddenTags, onTa
         </>
       )}
 
-      {/* ── Other (collapsible text input escape hatch) ───── */}
-      <TouchableOpacity
-        style={styles.otherToggle}
-        onPress={() => setTextExpanded((v) => !v)}
-        activeOpacity={0.6}
-      >
-        <Text style={styles.otherToggleText}>{t('hiddenTagEditor.other')}</Text>
-        {textExpanded ? (
-          <ChevronUp size={14} color={COLORS.gray500} />
-        ) : (
-          <ChevronDown size={14} color={COLORS.gray500} />
-        )}
-      </TouchableOpacity>
-      {textExpanded && (
-        <View style={styles.inputRow}>
-          <TextInput
-            style={styles.input}
-            value={textValue}
-            onChangeText={setTextValue}
-            placeholder={t('hiddenTagEditor.otherPlaceholder')}
-            placeholderTextColor={COLORS.gray400}
-            returnKeyType="done"
-            onSubmitEditing={handleTextSubmit}
-          />
-          <TouchableOpacity
-            style={[styles.addBtn, (!textValue.trim() || busy) && { opacity: 0.5 }]}
-            onPress={handleTextSubmit}
-            disabled={!textValue.trim() || busy}
-            activeOpacity={0.7}
-          >
-            {busy ? (
-              <ActivityIndicator size="small" color={COLORS.white} />
-            ) : (
-              <Text style={styles.addBtnText}>{t('common.add')}</Text>
-            )}
-          </TouchableOpacity>
-        </View>
-      )}
+      {/* ── Free-text input (always visible, simplest escape hatch) ── */}
+      <View style={styles.inputRow}>
+        <TextInput
+          style={styles.input}
+          value={textValue}
+          onChangeText={setTextValue}
+          placeholder={t('hiddenTagEditor.otherPlaceholder')}
+          placeholderTextColor={COLORS.gray400}
+          returnKeyType="done"
+          onSubmitEditing={handleTextSubmit}
+        />
+        <TouchableOpacity
+          style={[styles.addBtn, (!textValue.trim() || busy) && { opacity: 0.5 }]}
+          onPress={handleTextSubmit}
+          disabled={!textValue.trim() || busy}
+          activeOpacity={0.7}
+        >
+          {busy ? (
+            <ActivityIndicator size="small" color={COLORS.white} />
+          ) : (
+            <Text style={styles.addBtnText}>{t('common.add')}</Text>
+          )}
+        </TouchableOpacity>
+      </View>
 
       <LocationPickerModal
         visible={locationPickerVisible}
@@ -408,23 +401,11 @@ const styles = StyleSheet.create({
   addedChipRemove: {
     padding: 2,
   },
-  otherToggle: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    marginTop: 16,
-    paddingVertical: 6,
-  },
-  otherToggleText: {
-    fontSize: 13,
-    color: COLORS.gray500,
-    fontWeight: '500',
-  },
   inputRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    marginTop: 6,
+    marginTop: 16,
   },
   input: {
     flex: 1,

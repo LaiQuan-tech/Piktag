@@ -402,6 +402,8 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
         await supabase.from('piktag_connection_tags').insert(rows);
       }
       setPickTagModalVisible(false);
+      // Refresh visible tags on the user page after save
+      fetchData();
     } catch (err) {
       console.error('Save picked tags error:', err);
     } finally {
@@ -855,6 +857,7 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
             <ScrollView
               showsVerticalScrollIndicator={false}
               keyboardShouldPersistTaps="handled"
+              automaticallyAdjustKeyboardInsets={Platform.OS === 'ios'}
               contentContainerStyle={{ paddingBottom: 12 }}
             >
             <Text style={styles.pickModalSubtitle}>
@@ -905,11 +908,9 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
               activeOpacity={0.8}
             >
               {pickTagLoading ? (
-                <ActivityIndicator size="small" color={COLORS.gray900} />
+                <ActivityIndicator size="small" color={COLORS.white} />
               ) : (
-                <Text style={styles.pickModalSaveText}>
-                  {t('userDetail.pickTagSave', { count: pickedTagIds.size })}
-                </Text>
+                <Text style={styles.pickModalSaveText}>{t('common.save')}</Text>
               )}
             </TouchableOpacity>
           </View>
@@ -1575,7 +1576,7 @@ const styles = StyleSheet.create({
   pickModalSaveText: {
     fontSize: 16,
     fontWeight: '700',
-    color: COLORS.gray900,
+    color: COLORS.white,
   },
   pickModalDivider: {
     height: 1,
