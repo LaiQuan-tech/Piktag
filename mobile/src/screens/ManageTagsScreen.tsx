@@ -132,8 +132,9 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
 
       // Try newer model first, fall back to older ones. Gemini has
       // deprecated some model names over time and silently moved users.
-      const models = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash'];
-      let lastError = '';
+      // gemini-1.5-flash was removed from v1beta in late 2025 — do not re-add.
+      const models = ['gemini-2.5-flash', 'gemini-2.5-flash-lite', 'gemini-2.0-flash'];
+      const errors: string[] = [];
       let parsedSuggestions: string[] | null = null;
       let rawResponseSnippet = '';
 
@@ -153,8 +154,9 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
 
           if (!response.ok) {
             const body = await response.text().catch(() => '');
-            lastError = `${model}: HTTP ${response.status} ${body.slice(0, 120)}`;
-            console.warn('[AI Tags]', lastError);
+            const msg = `${model}: HTTP ${response.status} ${body.slice(0, 120)}`;
+            errors.push(msg);
+            console.warn('[AI Tags]', msg);
             continue;
           }
 
@@ -163,7 +165,7 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
           rawResponseSnippet = text.slice(0, 200);
 
           if (!text) {
-            lastError = `${model}: empty response body`;
+            errors.push(`${model}: empty response body`);
             continue;
           }
 
@@ -188,15 +190,15 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
                 parsedSuggestions = stringTags;
                 break;
               }
-              lastError = `${model}: array had no string items`;
+              errors.push(`${model}: array had no string items`);
             } else {
-              lastError = `${model}: parsed value is not an array`;
+              errors.push(`${model}: parsed value is not an array`);
             }
           } catch (e: any) {
-            lastError = `${model}: JSON parse failed (${e?.message ?? 'unknown'})`;
+            errors.push(`${model}: JSON parse failed (${e?.message ?? 'unknown'})`);
           }
         } catch (e: any) {
-          lastError = `${model}: fetch threw (${e?.message ?? 'unknown'})`;
+          errors.push(`${model}: fetch threw (${e?.message ?? 'unknown'})`);
         }
       }
 
@@ -206,7 +208,8 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
         AsyncStorage.setItem(cacheKey, JSON.stringify({ suggestions: parsedSuggestions, timestamp: Date.now() }));
       } else {
         const suffix = rawResponseSnippet ? ' ｜ raw: ' + rawResponseSnippet : '';
-        setAiError(lastError ? lastError + suffix : '所有模型都失敗了');
+        const joined = errors.length ? errors.join(' ｜ ') : '所有模型都失敗了';
+        setAiError(joined + suffix);
       }
     } catch (err: any) {
       console.warn('[ManageTagsScreen] loadAiSuggestions:', err);

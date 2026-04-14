@@ -26,7 +26,7 @@ import type { Tag, UserTag } from '../types';
 const MAX_TAGS = 10;
 const MAX_TAG_LENGTH = 30;
 const MAX_PINNED = 1;
-const GEMINI_API_KEY = process.env.EXPO_PUBLIC_GEMINI_API_KEY || 'AIzaSyCoAQFKm3lSwAPD2pnf6Icz37eUyFfwx2Y';
+const GEMINI_API_KEY = process.env.EXPO_PUBLIC_GEMINI_API_KEY || 'AIzaSyAxoSZOyzXYNPPQqRXh2ifLGgjTVOd7QA4';
 
 
 type ManageTagsScreenProps = { navigation: any };
@@ -45,6 +45,7 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
   const [selectedTagId, setSelectedTagId] = useState<string | null>(null); // web only
   const [aiSuggestions, setAiSuggestions] = useState<string[]>([]);
   const [aiLoading, setAiLoading] = useState(false);
+  const [aiError, setAiError] = useState<string | null>(null);
 
   // ── Data loading ───────────────────────────────────────────────────────
 
@@ -71,6 +72,7 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
     if (!user || !GEMINI_API_KEY) return;
     try {
       setAiLoading(true);
+      setAiError(null);
 
       // Check cache first (avoid repeated API calls)
       const cacheKey = `piktag_ai_tags_${user.id}`;
@@ -115,32 +117,65 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
         context.match(/[\uac00-\ud7af]/) ? '한국어' :
         context.match(/[\u0e00-\u0e7f]/) ? 'ภาษาไทย' : 'the same language as the content';
 
-      const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: `Based on this person's profile, suggest 5-8 short hashtag keywords (without #). Keywords MUST be in ${userLang}. Only use English for internationally recognized terms (e.g. PM, IoT, AI). Return ONLY a JSON array of strings, nothing else.\n\nBio: ${bioText}\nName: ${nameText}\nLocation: ${locationText}\nExisting tags: ${tagNames}` }] }],
-          }),
+      const prompt = `Based on this person's profile, suggest 5-8 short hashtag keywords (without #). Keywords MUST be in ${userLang}. Only use English for internationally recognized terms (e.g. PM, IoT, AI). Return ONLY a JSON array of strings, nothing else.\n\nBio: ${bioText}\nName: ${nameText}\nLocation: ${locationText}\nExisting tags: ${tagNames}`;
+
+      // Try newer model first, fall back to older ones. gemini-1.5-flash
+      // was removed from v1beta in late 2025 — do not re-add.
+      const models = ['gemini-2.5-flash', 'gemini-2.5-flash-lite', 'gemini-2.0-flash'];
+      const errors: string[] = [];
+      let parsedSuggestions: string[] | null = null;
+
+      for (const model of models) {
+        try {
+          const response = await fetch(
+            `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`,
+            {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                contents: [{ parts: [{ text: prompt }] }],
+              }),
+            }
+          );
+          if (!response.ok) {
+            const body = await response.text().catch(() => '');
+            const msg = `${model}: HTTP ${response.status} ${body.slice(0, 120)}`;
+            errors.push(msg);
+            console.warn('[AI Tags]', msg);
+            continue;
+          }
+          const result = await response.json();
+          const text = result.candidates?.[0]?.content?.parts?.[0]?.text || '';
+          const match = text.match(/\[[\s\S]*?\]/);
+          if (match) {
+            try {
+              const suggestions = (JSON.parse(match[0]) as string[]).slice(0, 8);
+              if (suggestions.length > 0) {
+                parsedSuggestions = suggestions;
+                break;
+              }
+              errors.push(`${model}: empty array`);
+            } catch (e: any) {
+              errors.push(`${model}: JSON parse failed (${e?.message ?? 'unknown'})`);
+            }
+          } else {
+            errors.push(`${model}: no array in response`);
+          }
+        } catch (e: any) {
+          errors.push(`${model}: fetch threw (${e?.message ?? 'unknown'})`);
         }
-      );
-      if (response.ok) {
-        const result = await response.json();
-        const text = result.candidates?.[0]?.content?.parts?.[0]?.text || '';
-        console.log('[AI Tags] Response:', text);
-        const match = text.match(/\[[\s\S]*?\]/);
-        if (match) {
-          const suggestions = (JSON.parse(match[0]) as string[]).slice(0, 8);
-          setAiSuggestions(suggestions);
-          // Cache for 24 hours
-          AsyncStorage.setItem(cacheKey, JSON.stringify({ suggestions, timestamp: Date.now() }));
-        }
-      } else {
-        console.warn('[AI Tags] API error:', response.status, await response.text().catch(() => ''));
       }
-    } catch (err) {
+
+      if (parsedSuggestions && parsedSuggestions.length > 0) {
+        setAiSuggestions(parsedSuggestions);
+        // Cache for 24 hours
+        AsyncStorage.setItem(cacheKey, JSON.stringify({ suggestions: parsedSuggestions, timestamp: Date.now() }));
+      } else {
+        setAiError(errors.length ? errors.join(' ｜ ') : '所有模型都失敗了');
+      }
+    } catch (err: any) {
       console.warn('[ManageTagsScreen] loadAiSuggestions:', err);
+      setAiError(err?.message || String(err));
     } finally {
       setAiLoading(false);
     }
@@ -456,6 +491,15 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
                 <ActivityIndicator size="small" color={COLORS.piktag500} style={{ marginTop: 8 }} />
               </View>
             )}
+            {!aiLoading && aiError && aiSuggestions.length === 0 && myTags.length < MAX_TAGS && (
+              <View style={styles.aiSection}>
+                <View style={styles.aiHeader}>
+                  <Sparkles size={16} color={COLORS.piktag600} />
+                  <Text style={styles.aiTitle}>{t('manageTags.aiSuggestionsTitle')}</Text>
+                </View>
+                <Text style={styles.aiErrorText}>{aiError}</Text>
+              </View>
+            )}
 
             {/* Popular Tags */}
             {myTags.length < MAX_TAGS && (
@@ -564,6 +608,7 @@ const styles = StyleSheet.create({
   aiSection: { paddingHorizontal: 20, paddingTop: 24 },
   aiHeader: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 10 },
   aiTitle: { fontSize: 15, fontWeight: '600', color: COLORS.piktag600 },
+  aiErrorText: { fontSize: 12, color: COLORS.gray500, marginTop: 4, lineHeight: 16 },
   aiChip: {
     paddingVertical: 8, paddingHorizontal: 14, borderRadius: 20,
     backgroundColor: COLORS.piktag50, borderWidth: 1, borderColor: COLORS.piktag500,
