@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -86,7 +86,6 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
   const [pickTagModalVisible, setPickTagModalVisible] = useState(false);
   const [friendPublicTags, setFriendPublicTags] = useState<{ id: string; name: string }[]>([]);
   const [pickedTagIds, setPickedTagIds] = useState<Set<string>>(new Set());
-  const [pickTagLoading, setPickTagLoading] = useState(false);
   const [connectionId, setConnectionId] = useState<string | null>(null);
 
   // Hidden tags state (private tags only I can see).
@@ -383,33 +382,49 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
     setPickTagModalVisible(true);
   }, [fetchFriendPublicTags, loadPickedTags, fetchHiddenTags, connectionId]);
 
-  const togglePickTag = (tagId: string) => {
+  // Toggle a public tag pick. Live-writes to DB — see FriendDetailScreen for
+  // rationale (removes the "新增 vs 儲存" double-button confusion).
+  const togglePickTag = async (tagId: string) => {
+    if (!connectionId) return;
+    const wasPicked = pickedTagIds.has(tagId);
     setPickedTagIds(prev => {
       const next = new Set(prev);
-      if (next.has(tagId)) next.delete(tagId);
+      if (wasPicked) next.delete(tagId);
       else next.add(tagId);
       return next;
     });
-  };
-
-  const handleSavePickedTags = async () => {
-    if (!connectionId || !authUser) return;
-    setPickTagLoading(true);
     try {
-      await supabase.from('piktag_connection_tags').delete().eq('connection_id', connectionId).eq('is_private', false);
-      if (pickedTagIds.size > 0) {
-        const rows = Array.from(pickedTagIds).map(tagId => ({ connection_id: connectionId, tag_id: tagId, is_private: false }));
-        await supabase.from('piktag_connection_tags').insert(rows);
+      if (wasPicked) {
+        await supabase
+          .from('piktag_connection_tags')
+          .delete()
+          .eq('connection_id', connectionId)
+          .eq('tag_id', tagId)
+          .eq('is_private', false);
+      } else {
+        await supabase
+          .from('piktag_connection_tags')
+          .insert({ connection_id: connectionId, tag_id: tagId, is_private: false });
       }
-      setPickTagModalVisible(false);
-      // Refresh visible tags on the user page after save
-      fetchData();
     } catch (err) {
-      console.error('Save picked tags error:', err);
-    } finally {
-      setPickTagLoading(false);
+      console.warn('togglePickTag failed:', err);
+      setPickedTagIds(prev => {
+        const next = new Set(prev);
+        if (wasPicked) next.add(tagId);
+        else next.delete(tagId);
+        return next;
+      });
     }
   };
+
+  // Refresh user page after Pick Tag modal closes (everything inside is live).
+  const prevPickModalVisible = useRef(false);
+  useEffect(() => {
+    if (prevPickModalVisible.current && !pickTagModalVisible) {
+      fetchData();
+    }
+    prevPickModalVisible.current = pickTagModalVisible;
+  }, [pickTagModalVisible, fetchData]);
 
   // --- Hidden tags (private) ---
   const fetchHiddenTags = useCallback(async () => {
@@ -899,20 +914,7 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
               />
             )}
             </ScrollView>
-
-            {/* Save button (pinned below scroll area) */}
-            <TouchableOpacity
-              style={[styles.pickModalSaveBtn, pickTagLoading && { opacity: 0.7 }]}
-              onPress={handleSavePickedTags}
-              disabled={pickTagLoading}
-              activeOpacity={0.8}
-            >
-              {pickTagLoading ? (
-                <ActivityIndicator size="small" color={COLORS.white} />
-              ) : (
-                <Text style={styles.pickModalSaveText}>{t('common.save')}</Text>
-              )}
-            </TouchableOpacity>
+            {/* No save button — live edits via togglePickTag + HiddenTagEditor */}
           </View>
         </KeyboardAvoidingView>
       </Modal>
@@ -1566,17 +1568,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '700',
     color: COLORS.piktag600,
-  },
-  pickModalSaveBtn: {
-    backgroundColor: COLORS.piktag500,
-    borderRadius: 14,
-    paddingVertical: 14,
-    alignItems: 'center',
-  },
-  pickModalSaveText: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: COLORS.white,
   },
   pickModalDivider: {
     height: 1,

@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   StyleSheet,
   ActivityIndicator,
+  Keyboard,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTranslation } from 'react-i18next';
@@ -184,11 +185,20 @@ export default function HiddenTagEditor({ connectionId, userId, hiddenTags, onTa
     applyHiddenTag(placeName);
   };
 
-  const handleTextSubmit = () => {
+  // Submit the free-text input. After the tag is actually applied, dismiss
+  // the keyboard so:
+  //   1. The Pick Tag modal re-expands to its full vertical space.
+  //   2. The newly-added chip (just rendered in "已加入" above the input)
+  //      becomes visible without the user having to scroll.
+  // This is the feedback mechanism — "I pressed 新增 and nothing happened"
+  // was really "the chip was added but the keyboard was covering half the
+  // modal so I couldn't see it."
+  const handleTextSubmit = async () => {
     const v = textValue.trim();
     if (!v) return;
-    applyHiddenTag(v);
     setTextValue('');
+    await applyHiddenTag(v);
+    Keyboard.dismiss();
   };
 
   // Time chips — 4 quick presets. Stored as localized date strings so they

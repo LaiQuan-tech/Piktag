@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useReducer, useMemo, useEffect } from 'react';
+import React, { useState, useCallback, useReducer, useMemo, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -171,7 +171,6 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
   const [pickTagModalVisible, setPickTagModalVisible] = useState(false);
   const [friendPublicTags, setFriendPublicTags] = useState<{ id: string; name: string }[]>([]);
   const [pickedTagIds, setPickedTagIds] = useState<Set<string>>(new Set());
-  const [pickTagLoading, setPickTagLoading] = useState(false);
 
   // Close friend + more menu state
   const [isCloseFriend, setIsCloseFriend] = useState(false);
@@ -468,52 +467,55 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
     setPickTagModalVisible(true);
   }, [fetchFriendPublicTags, loadPickedTags, fetchHiddenTags]);
 
-  // Toggle a tag selection in the modal
-  const togglePickTag = (tagId: string) => {
+  // Toggle a public tag pick. Writes live to the DB (INSERT on select,
+  // DELETE on unselect) so there is no separate "儲存" step — the modal
+  // becomes a pure live editor, matching how HiddenTagEditor already works.
+  // Optimistic local update with revert-on-error.
+  const togglePickTag = async (tagId: string) => {
+    if (!connectionId) return;
+    const wasPicked = pickedTagIds.has(tagId);
     setPickedTagIds(prev => {
       const next = new Set(prev);
-      if (next.has(tagId)) next.delete(tagId);
+      if (wasPicked) next.delete(tagId);
       else next.add(tagId);
       return next;
     });
-  };
-
-  // Save picked tags
-  const handleSavePickedTags = async () => {
-    if (!connectionId || !user) return;
-    setPickTagLoading(true);
     try {
-      // Delete only the PUBLIC picked tags — hidden tags (is_private=true)
-      // must survive because <HiddenTagEditor> writes them live to the same
-      // table and the user expects them to persist across save.
-      await supabase
-        .from('piktag_connection_tags')
-        .delete()
-        .eq('connection_id', connectionId)
-        .eq('is_private', false);
-
-      // Re-insert picked public tags with position (preserving order)
-      if (pickedTagIds.size > 0) {
-        const rows = Array.from(pickedTagIds).map((tagId, i) => ({
-          connection_id: connectionId,
-          tag_id: tagId,
-          position: i,
-          is_private: false,
-        }));
-        await supabase.from('piktag_connection_tags').insert(rows);
+      if (wasPicked) {
+        await supabase
+          .from('piktag_connection_tags')
+          .delete()
+          .eq('connection_id', connectionId)
+          .eq('tag_id', tagId)
+          .eq('is_private', false);
+      } else {
+        await supabase
+          .from('piktag_connection_tags')
+          .insert({ connection_id: connectionId, tag_id: tagId, is_private: false });
       }
-
-      setPickTagModalVisible(false);
-      // Refresh the friend page's visible tag chips + strength score
-      // so the user sees the change immediately without navigating away.
-      fetchData();
     } catch (err) {
-      console.error('Save picked tags error:', err);
-      Alert.alert(t('common.error'), t('friendDetail.alertPickTagError'));
-    } finally {
-      setPickTagLoading(false);
+      console.warn('togglePickTag failed:', err);
+      // Revert optimistic update
+      setPickedTagIds(prev => {
+        const next = new Set(prev);
+        if (wasPicked) next.add(tagId);
+        else next.delete(tagId);
+        return next;
+      });
     }
   };
+
+  // Refresh the friend page's visible tag chips + strength score after the
+  // Pick Tag modal closes. Everything inside the modal is live-saved now
+  // (togglePickTag + HiddenTagEditor both write on every tap), so all we need
+  // is a one-shot refresh of the parent once the user dismisses the modal.
+  const prevPickModalVisible = useRef(false);
+  useEffect(() => {
+    if (prevPickModalVisible.current && !pickTagModalVisible) {
+      fetchData();
+    }
+    prevPickModalVisible.current = pickTagModalVisible;
+  }, [pickTagModalVisible, fetchData]);
 
   const handleReport = async (reason: string) => {
     if (!user || !friendId) return;
@@ -1109,20 +1111,9 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
               />
             )}
             </ScrollView>
-
-            {/* Save button (pinned below scroll area) */}
-            <TouchableOpacity
-              style={[styles.pickModalSaveBtn, pickTagLoading && { opacity: 0.7 }]}
-              onPress={handleSavePickedTags}
-              disabled={pickTagLoading}
-              activeOpacity={0.8}
-            >
-              {pickTagLoading ? (
-                <ActivityIndicator size="small" color={COLORS.white} />
-              ) : (
-                <Text style={styles.pickModalSaveText}>{t('common.save')}</Text>
-              )}
-            </TouchableOpacity>
+            {/* No save button — all changes (public picks via togglePickTag
+                and hidden tags via HiddenTagEditor) are written live on tap.
+                The friend page refreshes once the modal closes. */}
           </View>
         </KeyboardAvoidingView>
       </Modal>
@@ -1842,16 +1833,5 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: COLORS.gray500,
     marginBottom: 12,
-  },
-  pickModalSaveBtn: {
-    backgroundColor: COLORS.piktag500,
-    borderRadius: 14,
-    paddingVertical: 14,
-    alignItems: 'center',
-  },
-  pickModalSaveText: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: COLORS.white,
   },
 });
