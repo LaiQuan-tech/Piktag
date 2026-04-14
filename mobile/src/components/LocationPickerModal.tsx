@@ -291,21 +291,6 @@ export default function LocationPickerModal({
           )}
         </TouchableOpacity>
 
-        {/* "Use current location" — works even when Places API (New) fails,
-            because the address comes from expo-location's native reverse
-            geocoder (iOS CoreLocation / Android Geocoder), not Google Places. */}
-        {currentAddress ? (
-          <TouchableOpacity
-            style={styles.currentLocationRow}
-            onPress={() => handleSelectPlace({ name: currentAddress, address: currentAddress, placeId: '' })}
-            activeOpacity={0.6}
-          >
-            <MapPin size={18} color={COLORS.piktag600} />
-            <Text style={styles.currentLocationText} numberOfLines={1}>{currentAddress}</Text>
-            <Text style={styles.currentLocationHint}>使用</Text>
-          </TouchableOpacity>
-        ) : null}
-
         {/* Search bar */}
         <View style={styles.searchContainer}>
           <View style={styles.searchBar}>
@@ -442,27 +427,6 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     borderBottomWidth: 1,
     borderBottomColor: COLORS.gray200,
-  },
-  currentLocationRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    backgroundColor: COLORS.piktag50,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.gray200,
-  },
-  currentLocationText: {
-    flex: 1,
-    fontSize: 14,
-    color: COLORS.gray900,
-    fontWeight: '500',
-  },
-  currentLocationHint: {
-    fontSize: 13,
-    color: COLORS.piktag600,
-    fontWeight: '600',
   },
   errorBanner: {
     paddingHorizontal: 16,
