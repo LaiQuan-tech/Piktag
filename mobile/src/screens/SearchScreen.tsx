@@ -385,38 +385,64 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
     }
   }, [user]);
 
+  // Why the 附近標籤 tab is empty — surfaced in the UI so "just blank" is
+  // never the result of a failed step. null = no load attempted yet / success.
+  const [nearbyTagsEmptyReason, setNearbyTagsEmptyReason] = useState<
+    'loading' | 'no_permission' | 'no_nearby_profiles' | 'no_nearby_conns' | 'no_nearby_tags' | 'error' | null
+  >('loading');
+
   const loadNearbyTags = useCallback(async () => {
+    setNearbyTagsEmptyReason('loading');
     try {
       const location = await getUserLocation();
-      if (!location) return;
+      if (!location) {
+        setNearbyTagsEmptyReason('no_permission');
+        return;
+      }
       const { lat: userLat, lng: userLng } = location;
       const range = 0.5; // ~50km
       const { data: nearbyProfiles } = await supabase
         .from('piktag_profiles').select('id')
         .gte('latitude', userLat - range).lte('latitude', userLat + range)
         .gte('longitude', userLng - range).lte('longitude', userLng + range);
-      if (!nearbyProfiles || nearbyProfiles.length === 0) return;
+      if (!nearbyProfiles || nearbyProfiles.length === 0) {
+        setNearbyTags([]);
+        setNearbyTagsEmptyReason('no_nearby_profiles');
+        return;
+      }
       const nearbyIds = nearbyProfiles.map((p: any) => p.id);
       const { data: nearbyConns } = await supabase
         .from('piktag_connections').select('id').in('user_id', nearbyIds);
-      if (!nearbyConns || nearbyConns.length === 0) return;
+      if (!nearbyConns || nearbyConns.length === 0) {
+        setNearbyTags([]);
+        setNearbyTagsEmptyReason('no_nearby_conns');
+        return;
+      }
       const { data: tagData } = await supabase
         .from('piktag_connection_tags')
         .select('tag:piktag_tags!tag_id(id, name, semantic_type, usage_count)')
         .in('connection_id', nearbyConns.map((c: any) => c.id));
-      if (tagData) {
-        const tagMap: Record<string, { tag: any; count: number }> = {};
-        for (const ct of tagData) {
-          const tItem = (ct as any).tag;
-          if (tItem && !tagMap[tItem.id]) tagMap[tItem.id] = { tag: tItem, count: 0 };
-          if (tItem) tagMap[tItem.id].count++;
-        }
-        setNearbyTags(
-          Object.values(tagMap).sort((a, b) => b.count - a.count).slice(0, 15)
-            .map((item) => ({ ...item.tag, usage_count: item.count }))
-        );
+      if (!tagData || tagData.length === 0) {
+        setNearbyTags([]);
+        setNearbyTagsEmptyReason('no_nearby_tags');
+        return;
       }
-    } catch { /* ignore */ }
+      const tagMap: Record<string, { tag: any; count: number }> = {};
+      for (const ct of tagData) {
+        const tItem = (ct as any).tag;
+        if (tItem && !tagMap[tItem.id]) tagMap[tItem.id] = { tag: tItem, count: 0 };
+        if (tItem) tagMap[tItem.id].count++;
+      }
+      const sorted = Object.values(tagMap)
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 15)
+        .map((item) => ({ ...item.tag, usage_count: item.count }));
+      setNearbyTags(sorted);
+      setNearbyTagsEmptyReason(sorted.length === 0 ? 'no_nearby_tags' : null);
+    } catch (err) {
+      console.warn('[SearchScreen] loadNearbyTags failed:', err);
+      setNearbyTagsEmptyReason('error');
+    }
   }, []);
 
   // ── Load initial data on mount (parallel) ──
@@ -1081,12 +1107,47 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
             </Text>
           );
 
-        case 'tagsEmpty':
+        case 'tagsEmpty': {
+          // Diagnostic empty state for the 附近標籤 tab so users can see WHY
+          // the list is empty and tap to retry. Previously this was a single
+          // "找不到相關標籤" line with no feedback about GPS permission, an
+          // empty local user base, profiles with no connections, etc.
+          let reasonText: string;
+          switch (nearbyTagsEmptyReason) {
+            case 'loading':
+              reasonText = '載入中…';
+              break;
+            case 'no_permission':
+              reasonText = '需要位置權限才能顯示附近標籤';
+              break;
+            case 'no_nearby_profiles':
+              reasonText = '附近約 50km 內沒有其他會員';
+              break;
+            case 'no_nearby_conns':
+              reasonText = '附近會員尚未建立連結';
+              break;
+            case 'no_nearby_tags':
+              reasonText = '附近會員的連結都還沒有標籤';
+              break;
+            case 'error':
+              reasonText = '載入失敗';
+              break;
+            default:
+              reasonText = t('search.noTagsFound');
+          }
           return (
-            <Text style={styles.emptyText}>
-              {t('search.noTagsFound')}
-            </Text>
+            <TouchableOpacity
+              onPress={loadNearbyTags}
+              style={{ paddingVertical: 24, alignItems: 'center' }}
+              activeOpacity={0.6}
+            >
+              <Text style={styles.emptyText}>{reasonText}</Text>
+              <Text style={{ fontSize: 12, color: COLORS.piktag600, marginTop: 6, fontWeight: '600' }}>
+                點此重試
+              </Text>
+            </TouchableOpacity>
           );
+        }
 
         case 'tagsGrid': {
           // When searching, show flat grid
@@ -1229,6 +1290,8 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
       tagUsers,
       navigation,
       t,
+      nearbyTagsEmptyReason,
+      loadNearbyTags,
     ],
   );
 
