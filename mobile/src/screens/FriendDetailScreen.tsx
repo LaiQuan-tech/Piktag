@@ -1155,7 +1155,13 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
                     message: Platform.OS === 'ios' ? `${name} (@${username}) on PikTag` : `${name} (@${username}) on PikTag\n${profileUrl}`,
                     url: Platform.OS === 'ios' ? profileUrl : undefined,
                   });
-                } catch {}
+                } catch (err) {
+                  console.warn('[FriendDetail] Share failed:', err);
+                  // User-cancelled share also throws; only alert on real errors.
+                  if (err instanceof Error && !/(dismiss|cancel)/i.test(err.message)) {
+                    Alert.alert(t('common.error'), t('common.unknownError'));
+                  }
+                }
               }}
             >
               <Share2 size={20} color={COLORS.gray600} />

@@ -404,9 +404,13 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
           setTrendingTagIds(new Set());
         }
       }
-    } catch {} finally {
-      setLoading(false);
-      setInitialLoading(false);
+    } catch (err) {
+      console.warn('[SearchScreen] loadPopularTags fell all the way through — both nearby and global paths failed:', err);
+    } finally {
+      if (isMountedRef.current) {
+        setLoading(false);
+        setInitialLoading(false);
+      }
     }
   }, []);
 
@@ -520,7 +524,10 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
         profiles.sort((a, b) => (userSharedCount.get(b.id) || 0) - (userSharedCount.get(a.id) || 0));
         setRecommendedUsers(profiles as PiktagProfile[]);
       }
-    } catch {}
+    } catch (err) {
+      // Recommendations are a secondary feature — log but don't block.
+      console.warn('[SearchScreen] loadRecommendations failed:', err);
+    }
   }, [user]);
 
   useEffect(() => {
@@ -681,7 +688,8 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
 
         // Save to recent searches
         saveRecentSearch(query.trim());
-      } catch {
+      } catch (err) {
+        console.warn('[SearchScreen] search query failed:', err);
         setTags([]);
         setProfiles([]);
       } finally {
@@ -785,7 +793,9 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
               .eq('concept_id', tagData.concept_id);
             if (siblings) allTagIds = siblings.map((s: any) => s.id);
           }
-        } catch {}
+        } catch (err) {
+          console.warn('[SearchScreen] sibling tag lookup failed, falling back to single tag:', err);
+        }
 
         const { data } = await supabase
           .from('piktag_user_tags')

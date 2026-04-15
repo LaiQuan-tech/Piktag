@@ -7,6 +7,7 @@ import {
   StyleSheet,
   ActivityIndicator,
   Keyboard,
+  Alert,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTranslation } from 'react-i18next';
@@ -159,6 +160,7 @@ export default function HiddenTagEditor({ connectionId, userId, hiddenTags, onTa
       loadFrequentTags();
     } catch (err) {
       console.warn('[HiddenTagEditor] applyHiddenTag failed:', err);
+      Alert.alert(t('common.error'), t('common.unknownError'));
     } finally {
       setBusy(false);
     }
@@ -173,6 +175,7 @@ export default function HiddenTagEditor({ connectionId, userId, hiddenTags, onTa
       await onTagsChanged();
     } catch (err) {
       console.warn('[HiddenTagEditor] removeHiddenTag failed:', err);
+      Alert.alert(t('common.error'), t('common.unknownError'));
     } finally {
       setBusy(false);
     }

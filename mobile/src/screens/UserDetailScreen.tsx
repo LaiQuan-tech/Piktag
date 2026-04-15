@@ -782,7 +782,10 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
                         try {
                           await supabase.from('piktag_follows').insert({ follower_id: user?.id, following_id: u.id });
                           setSimilarUsers(prev => prev.filter(s => s.id !== u.id));
-                        } catch {}
+                        } catch (err) {
+                          console.warn('[UserDetail] follow similar user failed:', err);
+                          Alert.alert(t('common.error'), t('common.unknownError'));
+                        }
                       }}
                     >
                       <LinearGradient

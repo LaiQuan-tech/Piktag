@@ -197,7 +197,14 @@ export default function InviteScreen({ navigation }: InviteScreenProps) {
           deepLink,
         }),
       });
-    } catch {}
+    } catch (err) {
+      console.warn('[Invite] share failed:', err);
+      // Share sheet cancellation also throws here on some platforms —
+      // only surface to user if it's clearly not a dismissal.
+      if (err instanceof Error && !/(dismiss|cancel)/i.test(err.message)) {
+        Alert.alert(t('common.error'), t('common.unknownError'));
+      }
+    }
   };
 
   const renderInvite = ({ item }: { item: Invite }) => {
