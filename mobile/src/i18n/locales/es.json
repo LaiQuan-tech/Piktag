@@ -543,15 +543,15 @@
     "section11Body": "PikTag Inc.\nCorreo electrónico: support@pikt.ag"
   },
   "points": {
-    "balance": "Puntos P",
-    "lifetime": "Puntos P acumulados",
+    "balance": "Monedas P",
+    "lifetime": "Monedas P acumuladas",
     "inviteReward": "Recompensa por invitación",
-    "redeemHint": "Úsalos para futuros servicios de pago",
-    "historyTitle": "Historial de puntos",
+    "redeemHint": "Úsalas para futuros servicios de pago",
+    "historyTitle": "Historial de Monedas P",
     "reasonInviteAccepted": "Un amigo aceptó la invitación",
     "reasonAdminGrant": "Recompensa del sistema",
     "reasonRedeemed": "Canjeado",
-    "emptyHistory": "Aún no hay actividad de puntos",
+    "emptyHistory": "Aún no hay actividad de Monedas P",
     "plusOne": "+1 P",
     "pointsUnit": "P"
   },

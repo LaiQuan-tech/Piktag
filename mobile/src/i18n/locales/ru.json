@@ -543,15 +543,15 @@
     "section11Body": "PikTag Inc.\nЭлектронная почта: support@pikt.ag"
   },
   "points": {
-    "balance": "Баланс P-баллов",
-    "lifetime": "Всего P-баллов",
+    "balance": "Баланс P-монет",
+    "lifetime": "Всего P-монет",
     "inviteReward": "Награда за приглашение",
     "redeemHint": "Используйте для будущих платных услуг",
-    "historyTitle": "История баллов",
+    "historyTitle": "История P-монет",
     "reasonInviteAccepted": "Друг принял приглашение",
     "reasonAdminGrant": "Системная награда",
     "reasonRedeemed": "Использовано",
-    "emptyHistory": "Активности баллов пока нет",
+    "emptyHistory": "Активности P-монет пока нет",
     "plusOne": "+1 P",
     "pointsUnit": "P"
   },

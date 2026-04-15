@@ -559,15 +559,15 @@
     "section11Body": "PikTag Inc.\nইমেইল: support@pikt.ag"
   },
   "points": {
-    "balance": "P পয়েন্ট ব্যালেন্স",
-    "lifetime": "সর্বমোট P পয়েন্ট",
+    "balance": "P কয়েন ব্যালেন্স",
+    "lifetime": "সর্বমোট P কয়েন",
     "inviteReward": "আমন্ত্রণ পুরস্কার",
     "redeemHint": "ভবিষ্যৎ প্রিমিয়াম সেবায় ব্যবহার করুন",
-    "historyTitle": "পয়েন্ট ইতিহাস",
+    "historyTitle": "P কয়েন ইতিহাস",
     "reasonInviteAccepted": "বন্ধু আমন্ত্রণ গ্রহণ করেছে",
     "reasonAdminGrant": "সিস্টেম পুরস্কার",
     "reasonRedeemed": "ব্যবহৃত",
-    "emptyHistory": "এখনও কোন পয়েন্ট কার্যকলাপ নেই",
+    "emptyHistory": "এখনও কোন P কয়েন কার্যকলাপ নেই",
     "plusOne": "+1 P",
     "pointsUnit": "P"
   }

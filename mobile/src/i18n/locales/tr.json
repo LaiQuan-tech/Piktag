@@ -636,15 +636,15 @@
     "section11Body": "PikTag Inc.\nE-posta: support@pikt.ag"
   },
   "points": {
-    "balance": "P Puan Bakiyesi",
-    "lifetime": "Toplam P Puanı",
+    "balance": "P Jeton Bakiyesi",
+    "lifetime": "Toplam P Jetonu",
     "inviteReward": "Davet ödülü",
     "redeemHint": "Gelecekteki ücretli hizmetler için kullanın",
-    "historyTitle": "Puan Geçmişi",
+    "historyTitle": "P Jeton Geçmişi",
     "reasonInviteAccepted": "Arkadaş daveti kabul etti",
     "reasonAdminGrant": "Sistem ödülü",
     "reasonRedeemed": "Kullanıldı",
-    "emptyHistory": "Henüz puan etkinliği yok",
+    "emptyHistory": "Henüz P Jetonu etkinliği yok",
     "plusOne": "+1 P",
     "pointsUnit": "P"
   },

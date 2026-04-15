@@ -779,15 +779,15 @@
     "section11Body": "PikTag Inc.\nEmail: support@pikt.ag"
   },
   "points": {
-    "balance": "P Points",
+    "balance": "P Coins",
     "lifetime": "Lifetime Earned",
     "inviteReward": "Invite Reward",
-    "redeemHint": "Use P Points for future paid services",
-    "historyTitle": "Points History",
+    "redeemHint": "Use P Coins for future paid services",
+    "historyTitle": "P Coin History",
     "reasonInviteAccepted": "Friend accepted invite",
     "reasonAdminGrant": "System reward",
     "reasonRedeemed": "Redeemed",
-    "emptyHistory": "No points activity yet",
+    "emptyHistory": "No P Coin activity yet",
     "plusOne": "+1 P",
     "pointsUnit": "P"
   }

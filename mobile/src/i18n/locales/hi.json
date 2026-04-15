@@ -543,15 +543,15 @@
     "section11Body": "PikTag Inc.\nईमेल: support@pikt.ag"
   },
   "points": {
-    "balance": "P पॉइंट्स बैलेंस",
-    "lifetime": "कुल P पॉइंट्स",
+    "balance": "P सिक्के बैलेंस",
+    "lifetime": "कुल P सिक्के",
     "inviteReward": "आमंत्रण पुरस्कार",
     "redeemHint": "भविष्य की प्रीमियम सेवाओं के लिए उपयोग करें",
-    "historyTitle": "पॉइंट्स इतिहास",
+    "historyTitle": "P सिक्के इतिहास",
     "reasonInviteAccepted": "मित्र ने आमंत्रण स्वीकार किया",
     "reasonAdminGrant": "सिस्टम पुरस्कार",
     "reasonRedeemed": "उपयोग किया गया",
-    "emptyHistory": "अभी तक कोई पॉइंट्स गतिविधि नहीं",
+    "emptyHistory": "अभी तक कोई P सिक्के गतिविधि नहीं",
     "plusOne": "+1 P",
     "pointsUnit": "P"
   },

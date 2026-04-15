@@ -543,17 +543,17 @@
     "section11Body": "PikTag Inc.\n电子邮件：support@pikt.ag"
   },
   "points": {
-    "balance": "P 点余额",
-    "lifetime": "累计 P 点",
+    "balance": "P币余额",
+    "lifetime": "累计 P币",
     "inviteReward": "邀请奖励",
     "redeemHint": "未来可抵扣付费服务",
-    "historyTitle": "点数记录",
+    "historyTitle": "P币记录",
     "reasonInviteAccepted": "朋友接受邀请",
     "reasonAdminGrant": "系统奖励",
     "reasonRedeemed": "已抵扣",
-    "emptyHistory": "尚无点数记录",
-    "plusOne": "+1 P",
-    "pointsUnit": "P"
+    "emptyHistory": "尚无 P币记录",
+    "plusOne": "+1 P币",
+    "pointsUnit": "P币"
   },
   "redeemInvite": {
     "headerTitle": "兑换邀请码",

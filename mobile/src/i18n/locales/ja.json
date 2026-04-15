@@ -543,17 +543,17 @@
     "section11Body": "PikTag Inc.\nメール：support@pikt.ag"
   },
   "points": {
-    "balance": "P ポイント残高",
-    "lifetime": "累計 P ポイント",
+    "balance": "Pコイン残高",
+    "lifetime": "累計 Pコイン",
     "inviteReward": "招待ボーナス",
     "redeemHint": "将来の有料サービスでご利用いただけます",
-    "historyTitle": "ポイント履歴",
+    "historyTitle": "Pコイン履歴",
     "reasonInviteAccepted": "友達が招待を承認",
     "reasonAdminGrant": "システム報酬",
     "reasonRedeemed": "引き換え済み",
-    "emptyHistory": "ポイント履歴はまだありません",
-    "plusOne": "+1 P",
-    "pointsUnit": "P"
+    "emptyHistory": "Pコイン履歴はまだありません",
+    "plusOne": "+1 Pコイン",
+    "pointsUnit": "Pコイン"
   },
   "redeemInvite": {
     "headerTitle": "招待コードを引き換え",

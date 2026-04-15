@@ -653,16 +653,16 @@
     "section11Body": "본 이용약관에 관하여 문의 사항이 있으신 경우 support@piktag.app 으로 연락하여 주시기 바랍니다."
   },
   "points": {
-    "balance": "P 포인트 잔액",
-    "lifetime": "누적 P 포인트",
+    "balance": "P 코인 잔액",
+    "lifetime": "누적 P 코인",
     "inviteReward": "초대 보상",
     "redeemHint": "향후 유료 서비스 사용",
-    "historyTitle": "포인트 기록",
+    "historyTitle": "P 코인 기록",
     "reasonInviteAccepted": "친구가 초대 수락",
     "reasonAdminGrant": "시스템 보상",
     "reasonRedeemed": "사용됨",
-    "emptyHistory": "아직 포인트 활동 없음",
-    "plusOne": "+1 P",
-    "pointsUnit": "P"
+    "emptyHistory": "아직 P 코인 활동 없음",
+    "plusOne": "+1 P 코인",
+    "pointsUnit": "P 코인"
   }
 }

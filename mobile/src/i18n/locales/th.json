@@ -652,15 +652,15 @@
     "section11Body": "PikTag Inc.\nอีเมล: support@pikt.ag"
   },
   "points": {
-    "balance": "ยอด P Points",
-    "lifetime": "P Points สะสม",
+    "balance": "ยอด P Coin",
+    "lifetime": "P Coin สะสม",
     "inviteReward": "รางวัลเชิญเพื่อน",
     "redeemHint": "ใช้สำหรับบริการแบบชำระเงินในอนาคต",
-    "historyTitle": "ประวัติคะแนน",
+    "historyTitle": "ประวัติ P Coin",
     "reasonInviteAccepted": "เพื่อนยอมรับคำเชิญ",
     "reasonAdminGrant": "รางวัลจากระบบ",
     "reasonRedeemed": "ใช้แล้ว",
-    "emptyHistory": "ยังไม่มีกิจกรรมคะแนน",
+    "emptyHistory": "ยังไม่มีกิจกรรม P Coin",
     "plusOne": "+1 P",
     "pointsUnit": "P"
   }
