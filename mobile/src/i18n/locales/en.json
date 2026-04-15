@@ -1,4 +1,11 @@
 {
+  "tabs": {
+    "home": "Home",
+    "search": "Search",
+    "addTag": "Add Tag",
+    "notifications": "Notifications",
+    "profile": "Profile"
+  },
   "hiddenTagEditor": {
     "timeTitle": "When you met",
     "locationTitle": "Where you met",

@@ -15,6 +15,7 @@ import { Session } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
 import { COLORS } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
+import { useTranslation } from 'react-i18next';
 import { registerForPushNotifications } from '../lib/pushNotifications';
 
 // Auth Screens — eager (needed before session resolves)
@@ -104,6 +105,7 @@ function ProfileStackNavigator() {
 
 function MainTabs() {
   const { colors, isDark } = useTheme();
+  const { t } = useTranslation();
   return (
     <Tab.Navigator
       detachInactiveScreens={true}
@@ -126,6 +128,7 @@ function MainTabs() {
         name="HomeTab"
         component={HomeStackNavigator}
         options={{
+          tabBarAccessibilityLabel: t('tabs.home'),
           tabBarIcon: ({ color, focused }) => (
             <Home
               size={24}
@@ -139,6 +142,7 @@ function MainTabs() {
         name="SearchTab"
         component={SearchStackNavigator}
         options={{
+          tabBarAccessibilityLabel: t('tabs.search'),
           tabBarIcon: ({ color, focused }) => (
             <Search
               size={24}
@@ -152,6 +156,7 @@ function MainTabs() {
         name="AddTagTab"
         component={AddTagStackNavigator}
         options={{
+          tabBarAccessibilityLabel: t('tabs.addTag'),
           tabBarIcon: ({ color, focused }) => (
             <Hash
               size={28}
@@ -165,6 +170,7 @@ function MainTabs() {
         name="NotificationsTab"
         component={NotificationStackNavigator}
         options={{
+          tabBarAccessibilityLabel: t('tabs.notifications'),
           tabBarIcon: ({ color, focused }) => (
             <Bell
               size={24}
@@ -178,6 +184,7 @@ function MainTabs() {
         name="ProfileTab"
         component={ProfileStackNavigator}
         options={{
+          tabBarAccessibilityLabel: t('tabs.profile'),
           tabBarIcon: ({ color, focused }) => (
             <User
               size={24}
