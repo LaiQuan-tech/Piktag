@@ -275,17 +275,26 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
       );
 
       const connUserIds = connectionsData.map((c: any) => c.connected_user_id);
+      const connectionIds = connectionsData.map((c: any) => c.id);
       const followedConnUserIds = connUserIds.filter((id: string) => followingIds.has(id));
 
-      // --- Wave 2: public tags + statuses in parallel ---
-      // Both depend on connUserIds (from Wave 1's connections result).
-      // Statuses additionally depends on followingIds (from Wave 1's follows result).
-      const [publicTagsRes, statusRes] = await Promise.allSettled([
+      // --- Wave 2: MY tags on these connections + statuses in parallel ---
+      // The "tags" row underneath each friend's name in the list (and the
+      // "filter by tag" menu in the header) previously showed each FRIEND's
+      // own self-declared public tags from piktag_user_tags. That was
+      // misleading — it reflected how the friend described themselves, not
+      // how the current user had categorized them. We now show the CURRENT
+      // USER's own tags on each connection (both private hidden tags and
+      // public picked tags), since that matches how people actually organize
+      // their friend list.
+      //
+      // No is_private filter = both hidden and public pick tags are included.
+      const [myTagsRes, statusRes] = await Promise.allSettled([
         supabase
-          .from('piktag_user_tags')
-          .select('user_id, tag_id, tag:piktag_tags!tag_id(name)')
-          .in('user_id', connUserIds)
-          .eq('is_private', false),
+          .from('piktag_connection_tags')
+          .select('connection_id, tag:piktag_tags!tag_id(name)')
+          .in('connection_id', connectionIds)
+          .limit(5000),
         followedConnUserIds.length > 0
           ? supabase
               .from('piktag_user_status')
@@ -296,21 +305,23 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
           : Promise.resolve({ data: null as any[] | null }),
       ]);
 
-      // Build tag map from public tags result
+      // Build tag map from my-tags-on-connections result.
+      // Keyed by connection_id now (not user_id), since the same friend may
+      // appear in my connections list more than once in edge cases.
       const tagMap = new Map<string, string[]>();
-      if (publicTagsRes.status === 'fulfilled' && publicTagsRes.value.data) {
-        for (const ut of publicTagsRes.value.data as any[]) {
-          const name = ut.tag?.name;
+      if (myTagsRes.status === 'fulfilled' && myTagsRes.value.data) {
+        for (const ct of myTagsRes.value.data as any[]) {
+          const name = ct.tag?.name;
           if (!name) continue;
-          const arr = tagMap.get(ut.user_id) || [];
+          const arr = tagMap.get(ct.connection_id) || [];
           if (!arr.includes(`#${name}`)) arr.push(`#${name}`);
-          tagMap.set(ut.user_id, arr);
+          tagMap.set(ct.connection_id, arr);
         }
       }
 
       const merged: ConnectionWithTags[] = connectionsData.map((conn: any) => ({
         ...conn,
-        tags: tagMap.get(conn.connected_user_id) || [],
+        tags: tagMap.get(conn.id) || [],
         semanticTypes: [],
       }));
       setCache(CACHE_KEYS.CONNECTIONS, merged);
