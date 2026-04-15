@@ -197,7 +197,7 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
   // Use maximum (items with tags) to avoid layout clipping
   const CONNECTION_ITEM_HEIGHT = 107;
 
-  // --- Optimized: single nested-select query for connections + tags ---
+  // --- Optimized: parallelized query waves for connections + tags + statuses ---
   const fetchConnections = useCallback(async () => {
     if (!user) return;
 
@@ -209,20 +209,50 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
     }
 
     try {
-      // Fetch connections + profiles
-      const { data: connectionsData, error: connectionsError } = await supabase
-        .from('piktag_connections')
-        .select(`
-          id, user_id, connected_user_id, nickname, created_at,
-          met_at, birthday, is_reviewed,
-          connected_user:piktag_profiles!connected_user_id(
-            id, full_name, username, avatar_url, is_verified, latitude, longitude, location_updated_at, birthday
-          )
-        `)
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
+      // --- Wave 1: 4 independent queries in parallel ---
+      // connections, follows, close-friend count, unreviewed count have no dependencies
+      // on each other — fire them all at once to maximize network concurrency.
+      const [connRes, followsRes, closeFriendRes, unreviewedRes] = await Promise.allSettled([
+        supabase
+          .from('piktag_connections')
+          .select(`
+            id, user_id, connected_user_id, nickname, created_at,
+            met_at, birthday, is_reviewed,
+            connected_user:piktag_profiles!connected_user_id(
+              id, full_name, username, avatar_url, is_verified, latitude, longitude, location_updated_at, birthday
+            )
+          `)
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false }),
+        supabase
+          .from('piktag_follows')
+          .select('following_id')
+          .eq('follower_id', user.id),
+        supabase
+          .from('piktag_close_friends')
+          .select('*', { count: 'exact', head: true })
+          .eq('user_id', user.id),
+        supabase
+          .from('piktag_connections')
+          .select('*', { count: 'exact', head: true })
+          .eq('user_id', user.id)
+          .eq('is_reviewed', false),
+      ]);
 
-      // On error, keep existing data
+      // Apply count results (non-critical — failure shouldn't block connections)
+      setCloseFriendCount(
+        closeFriendRes.status === 'fulfilled' ? (closeFriendRes.value.count ?? 0) : 0
+      );
+      setUnreviewedCount(
+        unreviewedRes.status === 'fulfilled' ? (unreviewedRes.value.count ?? 0) : 0
+      );
+
+      // Critical: connections must succeed
+      if (connRes.status !== 'fulfilled') {
+        console.error('Error fetching connections:', connRes.reason);
+        return;
+      }
+      const { data: connectionsData, error: connectionsError } = connRes.value;
       if (connectionsError || !connectionsData) {
         console.error('Error fetching connections:', connectionsError);
         return;
@@ -235,28 +265,46 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
       }
       if (connectionsData.length === 0) return;
 
-      // Build connections first (without tags — tags are optional)
-      const connUserIds = connectionsData.map((c: any) => c.connected_user_id);
-      let tagMap = new Map<string, string[]>();
+      // Extract follow set (used below to scope the status query)
+      const followingIds = new Set<string>(
+        followsRes.status === 'fulfilled' && followsRes.value.data
+          ? (followsRes.value.data as any[]).map((f: any) => f.following_id)
+          : []
+      );
 
-      // Fetch public tags (optional — failure won't break connections)
-      try {
-        const { data: publicTagsData } = await supabase
+      const connUserIds = connectionsData.map((c: any) => c.connected_user_id);
+      const followedConnUserIds = connUserIds.filter((id: string) => followingIds.has(id));
+
+      // --- Wave 2: public tags + statuses in parallel ---
+      // Both depend on connUserIds (from Wave 1's connections result).
+      // Statuses additionally depends on followingIds (from Wave 1's follows result).
+      const [publicTagsRes, statusRes] = await Promise.allSettled([
+        supabase
           .from('piktag_user_tags')
           .select('user_id, tag_id, tag:piktag_tags!tag_id(name)')
           .in('user_id', connUserIds)
-          .eq('is_private', false);
+          .eq('is_private', false),
+        followedConnUserIds.length > 0
+          ? supabase
+              .from('piktag_user_status')
+              .select('user_id, text')
+              .in('user_id', followedConnUserIds)
+              .gt('expires_at', new Date().toISOString())
+              .order('created_at', { ascending: false })
+          : Promise.resolve({ data: null as any[] | null }),
+      ]);
 
-        if (publicTagsData) {
-          for (const ut of publicTagsData as any[]) {
-            const name = ut.tag?.name;
-            if (!name) continue;
-            const arr = tagMap.get(ut.user_id) || [];
-            if (!arr.includes(`#${name}`)) arr.push(`#${name}`);
-            tagMap.set(ut.user_id, arr);
-          }
+      // Build tag map from public tags result
+      const tagMap = new Map<string, string[]>();
+      if (publicTagsRes.status === 'fulfilled' && publicTagsRes.value.data) {
+        for (const ut of publicTagsRes.value.data as any[]) {
+          const name = ut.tag?.name;
+          if (!name) continue;
+          const arr = tagMap.get(ut.user_id) || [];
+          if (!arr.includes(`#${name}`)) arr.push(`#${name}`);
+          tagMap.set(ut.user_id, arr);
         }
-      } catch {}
+      }
 
       const merged: ConnectionWithTags[] = connectionsData.map((conn: any) => ({
         ...conn,
@@ -266,30 +314,9 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
       setCache(CACHE_KEYS.CONNECTIONS, merged);
       setConnections(merged);
 
-      // --- Fetch friend statuses for stories bar (only followed users) ---
-      let statusData: any[] | null = null;
-      try {
-        // Get users I follow
-        const { data: followsData } = await supabase
-          .from('piktag_follows')
-          .select('following_id')
-          .eq('follower_id', user.id);
-        const followingIds = new Set((followsData || []).map((f: any) => f.following_id));
-
-        // Only fetch statuses from followed users
-        const followedConnUserIds = connUserIds.filter((id: string) => followingIds.has(id));
-
-        if (followedConnUserIds.length > 0) {
-          const res = await supabase
-            .from('piktag_user_status')
-            .select('user_id, text')
-            .in('user_id', followedConnUserIds)
-            .gt('expires_at', new Date().toISOString())
-            .order('created_at', { ascending: false });
-          statusData = res.data;
-        }
-      } catch {}
-
+      // Build friend statuses from status result
+      const statusData =
+        statusRes.status === 'fulfilled' && statusRes.value.data ? statusRes.value.data : null;
       if (statusData && statusData.length > 0) {
         // Deduplicate: one status per user (latest)
         const seenUsers = new Set<string>();
@@ -312,26 +339,6 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
       } else {
         setFriendStatuses([]);
       }
-
-      // --- Fetch close friend count ---
-      try {
-        const { count: cfCount } = await supabase
-          .from('piktag_close_friends')
-          .select('*', { count: 'exact', head: true })
-          .eq('user_id', user.id);
-        setCloseFriendCount(cfCount ?? 0);
-      } catch { setCloseFriendCount(0); }
-
-      // Count unreviewed connections
-      try {
-        const { count: urCount } = await supabase
-          .from('piktag_connections')
-          .select('*', { count: 'exact', head: true })
-          .eq('user_id', user.id)
-          .eq('is_reviewed', false);
-        setUnreviewedCount(urCount ?? 0);
-      } catch { setUnreviewedCount(0); }
-
     } catch (err) {
       console.error('Unexpected error fetching connections:', err);
       if (!cached) {
