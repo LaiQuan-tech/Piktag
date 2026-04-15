@@ -325,24 +325,38 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
 
           // 3. Get how many people picked each of friend's tags
           //    (count connection_tags referencing each tag for connections TO this friend)
-          const { data: allConnsToFriend } = await supabase
-            .from('piktag_connections')
-            .select('id')
-            .eq('connected_user_id', friendId)
-            .limit(2000);
-          const connIdsToFriend = (allConnsToFriend || []).map((c: any) => c.id);
+          //
+          // Previously this fetched ALL public picks for ALL tags on every
+          // connection-to-friend row — for a popular user with 500 followers
+          // and 100 tags-per-follower that's 50k rows we then threw 99% away.
+          //
+          // Optimization: scope the picks query to ONLY the friend's own tags
+          // via .in('tag_id', friendTagIds). We don't care about any other tag.
+          const friendTagIds = (connTagsResult.data || [])
+            .map((ut: any) => ut.tag?.id || ut.tag_id)
+            .filter(Boolean);
 
           const pickCountMap = new Map<string, number>();
-          if (connIdsToFriend.length > 0) {
-            const { data: allPicks } = await supabase
-              .from('piktag_connection_tags')
-              .select('tag_id')
-              .in('connection_id', connIdsToFriend)
-              .eq('is_private', false)
-              .limit(5000);
-            (allPicks || []).forEach((p: any) => {
-              pickCountMap.set(p.tag_id, (pickCountMap.get(p.tag_id) || 0) + 1);
-            });
+          if (friendTagIds.length > 0) {
+            const { data: allConnsToFriend } = await supabase
+              .from('piktag_connections')
+              .select('id')
+              .eq('connected_user_id', friendId)
+              .limit(2000);
+            const connIdsToFriend = (allConnsToFriend || []).map((c: any) => c.id);
+
+            if (connIdsToFriend.length > 0) {
+              const { data: allPicks } = await supabase
+                .from('piktag_connection_tags')
+                .select('tag_id')
+                .in('connection_id', connIdsToFriend)
+                .in('tag_id', friendTagIds)
+                .eq('is_private', false)
+                .limit(5000);
+              (allPicks || []).forEach((p: any) => {
+                pickCountMap.set(p.tag_id, (pickCountMap.get(p.tag_id) || 0) + 1);
+              });
+            }
           }
 
           // 4. Build FriendTag array from friend's user_tags
