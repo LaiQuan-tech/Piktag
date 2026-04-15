@@ -16,6 +16,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   Settings,
+  Gift,
   CheckCircle2,
   Pencil,
   ExternalLink,
@@ -254,6 +255,7 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
   const handleOpenQr = useCallback(() => setQrVisible(true), []);
   const handleCloseQr = useCallback(() => setQrVisible(false), []);
   const handleNavigateSettings = useCallback(() => navigation.navigate('Settings'), [navigation]);
+  const handleNavigateRedeemInvite = useCallback(() => navigation.navigate('RedeemInvite'), [navigation]);
   const handleNavigateEditProfile = useCallback(() => navigation.navigate('EditProfile'), [navigation]);
 
   const qrUsername = useMemo(() => profile?.username || '', [profile?.username]);
@@ -271,6 +273,9 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
       <View style={styles.header}>
         <Text style={[styles.headerTitle, { color: colors.text }]}>{displayUsername}</Text>
         <View style={styles.headerRight}>
+          <TouchableOpacity style={styles.headerIconBtn} activeOpacity={0.6} onPress={handleNavigateRedeemInvite} accessibilityLabel={t('settings.redeemInvite') || '兌換邀請碼'} accessibilityRole="button">
+            <Gift size={24} color={COLORS.piktag600} />
+          </TouchableOpacity>
           <TouchableOpacity style={styles.headerIconBtn} activeOpacity={0.6} onPress={handleNavigateSettings} accessibilityLabel="設定" accessibilityRole="button">
             <Settings size={24} color={COLORS.gray900} />
           </TouchableOpacity>
