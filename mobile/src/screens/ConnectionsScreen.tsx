@@ -12,6 +12,8 @@ import {
   TextInput,
   Alert,
   Dimensions,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { Image } from 'expo-image';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -916,38 +918,46 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
         animationType="fade"
         onRequestClose={() => setBatchTagModalVisible(false)}
       >
-        <TouchableOpacity
-          style={styles.modalOverlay}
-          activeOpacity={1}
-          onPress={() => setBatchTagModalVisible(false)}
+        {/* KAV wrapping the bottom-sheet overlay so the sheet floats above
+            the soft keyboard instead of being buried under it when the
+            autoFocus'd TextInput brings the keyboard up. */}
+        <KeyboardAvoidingView
+          style={{ flex: 1 }}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         >
-          <View style={styles.batchTagModal}>
-            <Text style={styles.sortModalTitle}>
-              {t('connections.batchTagModalTitle', { count: selectedIds.size })}
-            </Text>
-            <TextInput
-              style={styles.batchTagInput}
-              placeholder={t('connections.batchTagPlaceholder')}
-              placeholderTextColor={COLORS.gray400}
-              value={batchTagInput}
-              onChangeText={setBatchTagInput}
-              autoFocus
-            />
-            <TouchableOpacity
-              style={[
-                styles.batchTagSubmitBtn,
-                (!batchTagInput.trim() || batchTagLoading) && styles.batchTagSubmitBtnDisabled,
-              ]}
-              activeOpacity={0.7}
-              onPress={handleBatchTagSubmit}
-              disabled={!batchTagInput.trim() || batchTagLoading}
-            >
-              <Text style={styles.batchTagSubmitText}>
-                {batchTagLoading ? t('common.processing') : t('common.confirm')}
+          <TouchableOpacity
+            style={styles.modalOverlay}
+            activeOpacity={1}
+            onPress={() => setBatchTagModalVisible(false)}
+          >
+            <View style={styles.batchTagModal}>
+              <Text style={styles.sortModalTitle}>
+                {t('connections.batchTagModalTitle', { count: selectedIds.size })}
               </Text>
-            </TouchableOpacity>
-          </View>
-        </TouchableOpacity>
+              <TextInput
+                style={styles.batchTagInput}
+                placeholder={t('connections.batchTagPlaceholder')}
+                placeholderTextColor={COLORS.gray400}
+                value={batchTagInput}
+                onChangeText={setBatchTagInput}
+                autoFocus
+              />
+              <TouchableOpacity
+                style={[
+                  styles.batchTagSubmitBtn,
+                  (!batchTagInput.trim() || batchTagLoading) && styles.batchTagSubmitBtnDisabled,
+                ]}
+                activeOpacity={0.7}
+                onPress={handleBatchTagSubmit}
+                disabled={!batchTagInput.trim() || batchTagLoading}
+              >
+                <Text style={styles.batchTagSubmitText}>
+                  {batchTagLoading ? t('common.processing') : t('common.confirm')}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </TouchableOpacity>
+        </KeyboardAvoidingView>
       </Modal>
       {/* Friends Map Modal */}
       <FriendsMapModal

@@ -11,6 +11,8 @@ import {
   ActivityIndicator,
   Modal,
   Share,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { X, Star, ArrowLeft, Share2, Trash2, MapPin, Navigation, Camera } from 'lucide-react-native';
@@ -392,6 +394,8 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag"
+        automaticallyAdjustKeyboardInsets={Platform.OS === 'ios'}
       >
         {/* 日期 Section */}
         <View style={styles.section}>
@@ -883,39 +887,47 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
         transparent
         onRequestClose={() => setShowPresetNameModal(false)}
       >
-        <View style={styles.presetNameModalOverlay}>
-          <View style={styles.presetNameModalContainer}>
-            <Text style={styles.presetNameModalTitle}>{t('addTag.saveAsPreset')}</Text>
-            <Text style={styles.presetNameModalSubtitle}>{t('addTag.presetNamePrompt')}</Text>
-            <TextInput
-              style={styles.presetNameModalInput}
-              value={presetNameInput}
-              onChangeText={setPresetNameInput}
-              placeholder={t('addTag.presetNamePlaceholder')}
-              placeholderTextColor={COLORS.gray400}
-              autoFocus
-              returnKeyType="done"
-              onSubmitEditing={handleConfirmSavePreset}
-            />
-            <View style={styles.presetNameModalButtons}>
-              <TouchableOpacity
-                style={styles.presetNameModalCancelBtn}
-                onPress={() => setShowPresetNameModal(false)}
-                activeOpacity={0.7}
-              >
-                <Text style={styles.presetNameModalCancelText}>{t('common.cancel')}</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.presetNameModalConfirmBtn, !presetNameInput.trim() && styles.buttonDisabled]}
-                onPress={handleConfirmSavePreset}
-                activeOpacity={0.8}
-                disabled={!presetNameInput.trim()}
-              >
-                <Text style={styles.presetNameModalConfirmText}>{t('common.confirm')}</Text>
-              </TouchableOpacity>
+        {/* KAV wraps the centered dialog so when the autoFocus'd TextInput
+            brings up the keyboard, the whole dialog floats up above it
+            instead of being partially covered. */}
+        <KeyboardAvoidingView
+          style={{ flex: 1 }}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        >
+          <View style={styles.presetNameModalOverlay}>
+            <View style={styles.presetNameModalContainer}>
+              <Text style={styles.presetNameModalTitle}>{t('addTag.saveAsPreset')}</Text>
+              <Text style={styles.presetNameModalSubtitle}>{t('addTag.presetNamePrompt')}</Text>
+              <TextInput
+                style={styles.presetNameModalInput}
+                value={presetNameInput}
+                onChangeText={setPresetNameInput}
+                placeholder={t('addTag.presetNamePlaceholder')}
+                placeholderTextColor={COLORS.gray400}
+                autoFocus
+                returnKeyType="done"
+                onSubmitEditing={handleConfirmSavePreset}
+              />
+              <View style={styles.presetNameModalButtons}>
+                <TouchableOpacity
+                  style={styles.presetNameModalCancelBtn}
+                  onPress={() => setShowPresetNameModal(false)}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.presetNameModalCancelText}>{t('common.cancel')}</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.presetNameModalConfirmBtn, !presetNameInput.trim() && styles.buttonDisabled]}
+                  onPress={handleConfirmSavePreset}
+                  activeOpacity={0.8}
+                  disabled={!presetNameInput.trim()}
+                >
+                  <Text style={styles.presetNameModalConfirmText}>{t('common.confirm')}</Text>
+                </TouchableOpacity>
+              </View>
             </View>
           </View>
-        </View>
+        </KeyboardAvoidingView>
       </Modal>
     </View>
   );
