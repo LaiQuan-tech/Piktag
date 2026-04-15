@@ -17,6 +17,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ArrowLeft, ChevronRight, Check, X } from 'lucide-react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTranslation } from 'react-i18next';
+import { changeLanguageSafe } from '../i18n';
 import { COLORS } from '../constants/theme';
 import { supabase, supabaseUrl, supabaseAnonKey } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
@@ -86,7 +87,8 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
             const profileLang = data.language || 'zh-TW';
             setCurrentLanguage(profileLang);
             if (i18n.language !== profileLang) {
-              i18n.changeLanguage(profileLang);
+              // Lazy-loads the locale bundle if not already in memory.
+              await changeLanguageSafe(profileLang);
             }
           }
         }
@@ -140,7 +142,8 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
     setLanguageModalVisible(false);
     const prevLang = currentLanguage;
     setCurrentLanguage(langKey);
-    i18n.changeLanguage(langKey);
+    // Lazy-loads the locale JSON first if not already resident.
+    await changeLanguageSafe(langKey);
 
     const { error } = await supabase
       .from('piktag_profiles')
@@ -150,7 +153,7 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
     if (error) {
       console.warn('Failed to update language:', error.message);
       setCurrentLanguage(prevLang);
-      i18n.changeLanguage(prevLang);
+      await changeLanguageSafe(prevLang);
       Alert.alert(t('common.error'), t('settings.alertLanguageError'));
     }
   };
