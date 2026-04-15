@@ -29,6 +29,7 @@ import { useTheme } from '../context/ThemeContext';
 import { useFocusEffect } from '@react-navigation/native';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
+import { getCache, setCache, CACHE_KEYS } from '../lib/dataCache';
 import QrCodeModal from '../components/QrCodeModal';
 import InitialsAvatar from '../components/InitialsAvatar';
 import { ProfileScreenSkeleton } from '../components/SkeletonLoader';
@@ -184,10 +185,49 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
     await Promise.all([fetchProfile(), fetchUserTags(), fetchBiolinks(), fetchFollowerCount(), fetchFriendCount(), fetchStatus()]);
   }, [fetchProfile, fetchUserTags, fetchBiolinks, fetchFollowerCount, fetchFriendCount, fetchStatus]);
 
+  // Persist the six state slices to the in-memory dataCache so that
+  // re-entering ProfileScreen within the TTL window paints instantly
+  // instead of waiting for 6 queries. The effect is gated on state
+  // actually being present to avoid caching an intermediate blank.
+  useEffect(() => {
+    if (!userId) return;
+    if (!profile) return; // profile is the anchor; no point caching without it
+    setCache(CACHE_KEYS.PROFILE, {
+      profile,
+      userTags,
+      biolinks,
+      followerCount,
+      friendCount,
+      currentStatus,
+    });
+  }, [userId, profile, userTags, biolinks, followerCount, friendCount, currentStatus]);
+
   useEffect(() => {
     let isMounted = true;
     const load = async () => {
-      setLoading(true);
+      // Stale-while-revalidate: if we have a cached snapshot, paint it
+      // immediately and refetch in the background without a loading state.
+      const cached = getCache<{
+        profile: PiktagProfile;
+        userTags: UserTag[];
+        biolinks: Biolink[];
+        followerCount: number;
+        friendCount: number;
+        currentStatus: string | null;
+      }>(CACHE_KEYS.PROFILE);
+
+      if (cached) {
+        setProfile(cached.profile);
+        setUserTags(cached.userTags);
+        setBiolinks(cached.biolinks);
+        setFollowerCount(cached.followerCount);
+        setFriendCount(cached.friendCount);
+        setCurrentStatus(cached.currentStatus);
+        setLoading(false);
+      } else {
+        setLoading(true);
+      }
+
       await fetchAllData();
       if (isMounted) setLoading(false);
     };
