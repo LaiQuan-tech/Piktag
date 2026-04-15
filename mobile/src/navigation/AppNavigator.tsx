@@ -17,35 +17,31 @@ import { COLORS } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
 import { registerForPushNotifications } from '../lib/pushNotifications';
 
-// Auth Screens
+// Auth Screens — eager (needed before session resolves)
 import LoginScreen from '../screens/auth/LoginScreen';
 import RegisterScreen from '../screens/auth/RegisterScreen';
 import OnboardingScreen from '../screens/auth/OnboardingScreen';
 import PhoneAuthScreen from '../screens/auth/PhoneAuthScreen';
 
-// Main Screens
+// Tab-level screens — eager (loaded on first render of MainTabs)
 import ConnectionsScreen from '../screens/ConnectionsScreen';
 import SearchScreen from '../screens/SearchScreen';
 import AddTagScreen from '../screens/AddTagScreen';
 import ProfileScreen from '../screens/ProfileScreen';
-import EditProfileScreen from '../screens/EditProfileScreen';
-import UserDetailScreen from '../screens/UserDetailScreen';
-import FriendDetailScreen from '../screens/FriendDetailScreen';
-import SettingsScreen from '../screens/SettingsScreen';
-import ContactSyncScreen from '../screens/ContactSyncScreen';
-import InviteScreen from '../screens/InviteScreen';
-import LocationContactsScreen from '../screens/LocationContactsScreen';
-import SocialStatsScreen from '../screens/SocialStatsScreen';
 import NotificationsScreen from '../screens/NotificationsScreen';
-import ScanResultScreen from '../screens/ScanResultScreen';
-import CameraScanScreen from '../screens/CameraScanScreen';
+
+// Primary drill-downs — eager (hit on almost every session, navigation
+// animation would mask any lazy-require latency but the module cost is
+// significant enough that keeping them warm is the better tradeoff)
+import FriendDetailScreen from '../screens/FriendDetailScreen';
+import UserDetailScreen from '../screens/UserDetailScreen';
 import TagDetailScreen from '../screens/TagDetailScreen';
-import ManageTagsScreen from '../screens/ManageTagsScreen';
-import PrivacyPolicyScreen from '../screens/legal/PrivacyPolicyScreen';
-import TermsOfServiceScreen from '../screens/legal/TermsOfServiceScreen';
-import ActivityReviewScreen from '../screens/ActivityReviewScreen';
-import PointsHistoryScreen from '../screens/PointsHistoryScreen';
-import RedeemInviteScreen from '../screens/RedeemInviteScreen';
+import ScanResultScreen from '../screens/ScanResultScreen';
+
+// Secondary screens — lazy-loaded via getComponent prop below (13 screens
+// for ~500-800KB of deferred module evaluation). The inline require()
+// pattern is Metro-friendly and doesn't need Suspense boilerplate. The
+// module is pulled in on first navigation to that screen.
 
 // Stack Navigators
 const AuthStack = createNativeStackNavigator();
@@ -207,31 +203,72 @@ function MainNavigator({ needsOnboarding }: { needsOnboarding: boolean }) {
       <RootStack.Screen name="Main" component={MainTabs} />
 
       {/* Task/detail screens — no tab bar */}
+      {/* Eager: primary drill-downs hit on every session */}
       <RootStack.Screen name="FriendDetail" component={FriendDetailScreen} />
       <RootStack.Screen name="UserDetail" component={UserDetailScreen} />
       <RootStack.Screen name="TagDetail" component={TagDetailScreen} />
-      <RootStack.Screen name="EditProfile" component={EditProfileScreen} />
-      <RootStack.Screen name="ManageTags" component={ManageTagsScreen} />
-      <RootStack.Screen name="Settings" component={SettingsScreen} />
-      <RootStack.Screen name="ContactSync" component={ContactSyncScreen} />
-      <RootStack.Screen name="Invite" component={InviteScreen} />
-      <RootStack.Screen name="LocationContacts" component={LocationContactsScreen} />
-      <RootStack.Screen name="SocialStats" component={SocialStatsScreen} />
-      <RootStack.Screen name="CameraScan" component={CameraScanScreen} />
-      <RootStack.Screen name="PrivacyPolicy" component={PrivacyPolicyScreen} />
-      <RootStack.Screen name="TermsOfService" component={TermsOfServiceScreen} />
-      <RootStack.Screen name="PointsHistory" component={PointsHistoryScreen} />
-      <RootStack.Screen name="RedeemInvite" component={RedeemInviteScreen} />
+
+      {/* Lazy: secondary screens loaded on first navigation */}
+      <RootStack.Screen
+        name="EditProfile"
+        getComponent={() => require('../screens/EditProfileScreen').default}
+      />
+      <RootStack.Screen
+        name="ManageTags"
+        getComponent={() => require('../screens/ManageTagsScreen').default}
+      />
+      <RootStack.Screen
+        name="Settings"
+        getComponent={() => require('../screens/SettingsScreen').default}
+      />
+      <RootStack.Screen
+        name="ContactSync"
+        getComponent={() => require('../screens/ContactSyncScreen').default}
+      />
+      <RootStack.Screen
+        name="Invite"
+        getComponent={() => require('../screens/InviteScreen').default}
+      />
+      <RootStack.Screen
+        name="LocationContacts"
+        getComponent={() => require('../screens/LocationContactsScreen').default}
+      />
+      <RootStack.Screen
+        name="SocialStats"
+        getComponent={() => require('../screens/SocialStatsScreen').default}
+      />
+      <RootStack.Screen
+        name="CameraScan"
+        getComponent={() => require('../screens/CameraScanScreen').default}
+      />
+      <RootStack.Screen
+        name="PrivacyPolicy"
+        getComponent={() => require('../screens/legal/PrivacyPolicyScreen').default}
+      />
+      <RootStack.Screen
+        name="TermsOfService"
+        getComponent={() => require('../screens/legal/TermsOfServiceScreen').default}
+      />
+      <RootStack.Screen
+        name="PointsHistory"
+        getComponent={() => require('../screens/PointsHistoryScreen').default}
+      />
+      <RootStack.Screen
+        name="RedeemInvite"
+        getComponent={() => require('../screens/RedeemInviteScreen').default}
+      />
 
       {/* Modal screens */}
+      {/* Eager: QR scan result is part of the primary scan flow */}
       <RootStack.Screen
         name="ScanResult"
         component={ScanResultScreen}
         options={{ presentation: 'modal' }}
       />
+      {/* Lazy: one-time review flow */}
       <RootStack.Screen
         name="ActivityReview"
-        component={ActivityReviewScreen}
+        getComponent={() => require('../screens/ActivityReviewScreen').default}
         options={{ presentation: 'modal' }}
       />
     </RootStack.Navigator>
