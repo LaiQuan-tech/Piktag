@@ -20,7 +20,6 @@ import {
   Hash,
   User,
   Clock,
-  MapPin,
   TrendingUp,
   X,
 } from 'lucide-react-native';
@@ -196,8 +195,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
-  const [nearbyTags, setNearbyTags] = useState<Tag[]>([]);
-  const [searchTab, setSearchTab] = useState<'popular' | 'nearby' | 'history'>('popular');
+  const [searchTab, setSearchTab] = useState<'popular' | 'history'>('popular');
   const [tagCategories, setTagCategories] = useState<string[]>([]);
   const [selectedTagCategory, setSelectedTagCategory] = useState<string | null>(null);
   const [trendingTagIds, setTrendingTagIds] = useState<Set<string>>(new Set());
@@ -279,6 +277,64 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
     const deviceLocale = Localization.getLocales()?.[0]?.languageCode || 'zh';
     const userLang = deviceLocale;
 
+    // STRATEGY: prefer tags that are popular among NEARBY users. If we can
+    // get enough tags from the ~50km radius, those are way more relevant than
+    // the global top-150. If nearby returns nothing or too little (no GPS,
+    // no neighbors, RLS, etc.), fall back to the global popular set so the
+    // tab is never empty.
+    //
+    // This replaces what used to be two separate tabs (熱門標籤 + 附近標籤)
+    // — same name, smarter content.
+    try {
+      const location = await getUserLocation();
+      if (location) {
+        const { lat: userLat, lng: userLng } = location;
+        const range = 0.5; // ~50km box
+        const { data: nearbyProfiles } = await supabase
+          .from('piktag_profiles').select('id')
+          .gte('latitude', userLat - range).lte('latitude', userLat + range)
+          .gte('longitude', userLng - range).lte('longitude', userLng + range);
+        if (nearbyProfiles && nearbyProfiles.length > 0) {
+          const nearbyIds = nearbyProfiles.map((p: any) => p.id);
+          const { data: nearbyConns } = await supabase
+            .from('piktag_connections').select('id').in('user_id', nearbyIds);
+          if (nearbyConns && nearbyConns.length > 0) {
+            const { data: tagData } = await supabase
+              .from('piktag_connection_tags')
+              .select('tag:piktag_tags!tag_id(id, name, semantic_type, usage_count)')
+              .in('connection_id', nearbyConns.map((c: any) => c.id));
+            if (tagData && tagData.length > 0) {
+              const tagMap: Record<string, { tag: any; count: number }> = {};
+              for (const ct of tagData) {
+                const tItem = (ct as any).tag;
+                if (tItem && !tagMap[tItem.id]) tagMap[tItem.id] = { tag: tItem, count: 0 };
+                if (tItem) tagMap[tItem.id].count++;
+              }
+              const nearbySorted = Object.values(tagMap)
+                .sort((a, b) => b.count - a.count)
+                .slice(0, 50)
+                .map((item) => ({ ...item.tag, usage_count: item.count }));
+              // Only commit if we got a meaningful number — otherwise the
+              // trickle would feel weirder than the global default.
+              if (nearbySorted.length >= 5) {
+                setCache(CACHE_KEY_POPULAR_TAGS, nearbySorted);
+                setTags(nearbySorted);
+                const cats = [...new Set(nearbySorted.map((t: any) => t.semantic_type).filter(Boolean))] as string[];
+                setTagCategories(cats);
+                setTrendingTagIds(new Set()); // trending only meaningful in global view
+                setLoading(false);
+                setInitialLoading(false);
+                return;
+              }
+            }
+          }
+        }
+      }
+    } catch (err) {
+      console.warn('[SearchScreen] nearby-first popular tags failed, falling back:', err);
+    }
+
+    // Fallback: global popular tags (original behaviour).
     try {
       // Fetch more tags, then sort by language affinity + usage
       const { data, error } = await supabase
@@ -385,66 +441,6 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
     }
   }, [user]);
 
-  // Why the 附近標籤 tab is empty — surfaced in the UI so "just blank" is
-  // never the result of a failed step. null = no load attempted yet / success.
-  const [nearbyTagsEmptyReason, setNearbyTagsEmptyReason] = useState<
-    'loading' | 'no_permission' | 'no_nearby_profiles' | 'no_nearby_conns' | 'no_nearby_tags' | 'error' | null
-  >('loading');
-
-  const loadNearbyTags = useCallback(async () => {
-    setNearbyTagsEmptyReason('loading');
-    try {
-      const location = await getUserLocation();
-      if (!location) {
-        setNearbyTagsEmptyReason('no_permission');
-        return;
-      }
-      const { lat: userLat, lng: userLng } = location;
-      const range = 0.5; // ~50km
-      const { data: nearbyProfiles } = await supabase
-        .from('piktag_profiles').select('id')
-        .gte('latitude', userLat - range).lte('latitude', userLat + range)
-        .gte('longitude', userLng - range).lte('longitude', userLng + range);
-      if (!nearbyProfiles || nearbyProfiles.length === 0) {
-        setNearbyTags([]);
-        setNearbyTagsEmptyReason('no_nearby_profiles');
-        return;
-      }
-      const nearbyIds = nearbyProfiles.map((p: any) => p.id);
-      const { data: nearbyConns } = await supabase
-        .from('piktag_connections').select('id').in('user_id', nearbyIds);
-      if (!nearbyConns || nearbyConns.length === 0) {
-        setNearbyTags([]);
-        setNearbyTagsEmptyReason('no_nearby_conns');
-        return;
-      }
-      const { data: tagData } = await supabase
-        .from('piktag_connection_tags')
-        .select('tag:piktag_tags!tag_id(id, name, semantic_type, usage_count)')
-        .in('connection_id', nearbyConns.map((c: any) => c.id));
-      if (!tagData || tagData.length === 0) {
-        setNearbyTags([]);
-        setNearbyTagsEmptyReason('no_nearby_tags');
-        return;
-      }
-      const tagMap: Record<string, { tag: any; count: number }> = {};
-      for (const ct of tagData) {
-        const tItem = (ct as any).tag;
-        if (tItem && !tagMap[tItem.id]) tagMap[tItem.id] = { tag: tItem, count: 0 };
-        if (tItem) tagMap[tItem.id].count++;
-      }
-      const sorted = Object.values(tagMap)
-        .sort((a, b) => b.count - a.count)
-        .slice(0, 15)
-        .map((item) => ({ ...item.tag, usage_count: item.count }));
-      setNearbyTags(sorted);
-      setNearbyTagsEmptyReason(sorted.length === 0 ? 'no_nearby_tags' : null);
-    } catch (err) {
-      console.warn('[SearchScreen] loadNearbyTags failed:', err);
-      setNearbyTagsEmptyReason('error');
-    }
-  }, []);
-
   // ── Load initial data on mount (parallel) ──
 
   // Load smart recommendations based on shared tags
@@ -510,8 +506,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
 
   useEffect(() => {
     Promise.all([loadPopularTags(), loadRecentSearches(), loadRecommendations()]);
-    loadNearbyTags(); // background, don't block
-  }, [loadPopularTags, loadRecentSearches, loadNearbyTags, loadRecommendations]);
+  }, [loadPopularTags, loadRecentSearches, loadRecommendations]);
 
   // ── Event handlers (all useCallback) ──
 
@@ -862,7 +857,6 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
     | { type: 'tagsHeader' }
     | { type: 'tagsEmpty' }
     | { type: 'tagsGrid' }
-    | { type: 'nearbyTagsGrid' }
     | { type: 'recommendedUsers' };
 
   const listData = useMemo<ListItem[]>(() => {
@@ -921,7 +915,10 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
         items.push({ type: 'profilesEmpty' });
       }
     } else {
-      // No query — show tab content
+      // No query — show tab content. Note: 熱門標籤 now means
+      // "popular tags from nearby users (with global fallback)" — see
+      // loadPopularTags. The previously-separate 附近標籤 tab was merged
+      // into this one so the user sees a single relevant list.
       switch (searchTab) {
         case 'popular':
           if (recommendedUsers.length > 0) {
@@ -929,12 +926,6 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
           }
           if (tags.length > 0) {
             items.push({ type: 'tagsGrid' });
-          }
-          break;
-
-        case 'nearby':
-          if (nearbyTags.length > 0) {
-            items.push({ type: 'nearbyTagsGrid' });
           } else {
             items.push({ type: 'tagsEmpty' });
           }
@@ -964,7 +955,6 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
     profiles,
     showTags,
     tags,
-    nearbyTags,
     tagUsers,
     searchTab,
     intersectionMode,
@@ -996,8 +986,6 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
         return 'tagsEmpty';
       case 'tagsGrid':
         return 'tagsGrid';
-      case 'nearbyTagsGrid':
-        return 'nearbyTagsGrid';
       case 'clearHistoryBtn':
         return 'clearHistoryBtn';
       case 'recommendedUsers':
@@ -1107,47 +1095,12 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
             </Text>
           );
 
-        case 'tagsEmpty': {
-          // Diagnostic empty state for the 附近標籤 tab so users can see WHY
-          // the list is empty and tap to retry. Previously this was a single
-          // "找不到相關標籤" line with no feedback about GPS permission, an
-          // empty local user base, profiles with no connections, etc.
-          let reasonText: string;
-          switch (nearbyTagsEmptyReason) {
-            case 'loading':
-              reasonText = '載入中…';
-              break;
-            case 'no_permission':
-              reasonText = '需要位置權限才能顯示附近標籤';
-              break;
-            case 'no_nearby_profiles':
-              reasonText = '附近約 50km 內沒有其他會員';
-              break;
-            case 'no_nearby_conns':
-              reasonText = '附近會員尚未建立連結';
-              break;
-            case 'no_nearby_tags':
-              reasonText = '附近會員的連結都還沒有標籤';
-              break;
-            case 'error':
-              reasonText = '載入失敗';
-              break;
-            default:
-              reasonText = t('search.noTagsFound');
-          }
+        case 'tagsEmpty':
           return (
-            <TouchableOpacity
-              onPress={loadNearbyTags}
-              style={{ paddingVertical: 24, alignItems: 'center' }}
-              activeOpacity={0.6}
-            >
-              <Text style={styles.emptyText}>{reasonText}</Text>
-              <Text style={{ fontSize: 12, color: COLORS.piktag600, marginTop: 6, fontWeight: '600' }}>
-                點此重試
-              </Text>
-            </TouchableOpacity>
+            <Text style={styles.emptyText}>
+              {t('search.noTagsFound')}
+            </Text>
           );
-        }
 
         case 'tagsGrid': {
           // When searching, show flat grid
@@ -1221,23 +1174,6 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
           );
         }
 
-        case 'nearbyTagsGrid':
-          return (
-            <View style={styles.tagsGrid}>
-              {nearbyTags.map((tag) => (
-                <TagCard
-                  key={tag.id}
-                  tag={tag}
-                  isSelected={selectedTagIdSet.has(tag.id)}
-                  onPress={handleTagPress}
-                    onLongPress={handleTagLongPress}
-                  countSuffix={tagCountSuffix}
-                  isTrending={trendingTagIds.has(tag.id)}
-                />
-              ))}
-            </View>
-          );
-
         case 'recommendedUsers':
           return (
             <View style={{ paddingHorizontal: 16, paddingBottom: 16 }}>
@@ -1290,8 +1226,6 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
       tagUsers,
       navigation,
       t,
-      nearbyTagsEmptyReason,
-      loadNearbyTags,
     ],
   );
 
@@ -1340,7 +1274,8 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
         </View>
       </View>
 
-      {/* Tab bar: 熱門標籤 | 附近標籤 | 搜尋結果 */}
+      {/* Tab bar: 熱門標籤 | 搜尋紀錄
+          (附近標籤 was merged into 熱門標籤 — see loadPopularTags) */}
       <View style={styles.tabBar}>
         <TouchableOpacity
           style={[styles.tabItem, searchTab === 'popular' && styles.tabItemActive]}
@@ -1353,19 +1288,6 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
           <Hash size={16} color={searchTab === 'popular' ? COLORS.piktag600 : COLORS.gray400} />
           <Text style={[styles.tabItemText, searchTab === 'popular' && styles.tabItemTextActive]}>
             {t('search.popularTagsLabel') || '熱門標籤'}
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.tabItem, searchTab === 'nearby' && styles.tabItemActive]}
-          onPress={() => setSearchTab('nearby')}
-          activeOpacity={0.7}
-          accessibilityLabel="附近標籤"
-          accessibilityRole="tab"
-          accessibilityState={{ selected: searchTab === 'nearby' }}
-        >
-          <MapPin size={16} color={searchTab === 'nearby' ? COLORS.piktag600 : COLORS.gray400} />
-          <Text style={[styles.tabItemText, searchTab === 'nearby' && styles.tabItemTextActive]}>
-            {t('search.nearbyTagsLabel') || '附近標籤'}
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
