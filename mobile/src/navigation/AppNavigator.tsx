@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { ActivityIndicator, View, StyleSheet, Platform } from 'react-native';
+import { ActivityIndicator, View, StyleSheet, Platform, InteractionManager } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -290,7 +290,15 @@ export default function AppNavigator() {
       setSession(currentSession);
       if (currentSession?.user) {
         checkOnboardingStatus(currentSession.user.id, currentSession.user.created_at);
-        registerForPushNotifications(currentSession.user.id).catch(() => {});
+        // Defer push notification registration until after the first frame
+        // has been painted and the main screen's mount work has settled.
+        // This frees up the JS thread during the critical boot-to-interactive
+        // window (~1-2s). Permissions dialog + token fetch + DB write were
+        // previously competing with the ConnectionsScreen first-mount queries.
+        const userId = currentSession.user.id;
+        InteractionManager.runAfterInteractions(() => {
+          registerForPushNotifications(userId).catch(() => {});
+        });
       } else {
         setLoading(false);
       }
