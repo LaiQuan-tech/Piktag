@@ -8,20 +8,15 @@ import {
   Modal,
   FlatList,
   ActivityIndicator,
-  Dimensions,
   Keyboard,
   Platform,
 } from 'react-native';
-import { X, Search, MapPin, Navigation, ChevronUp, ChevronDown } from 'lucide-react-native';
+import { X, Search, MapPin, Navigation } from 'lucide-react-native';
 import * as Location from 'expo-location';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { COLORS } from '../constants/theme';
 import { fetchNearbyPlaces, autocompletePlaces, type PlaceResult, GOOGLE_PLACES_API_KEY } from '../lib/googlePlaces';
 import { logApiUsage } from '../lib/apiUsage';
-
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
-const MAP_HEIGHT_EXPANDED = SCREEN_HEIGHT * 0.42;
-const MAP_HEIGHT_COLLAPSED = SCREEN_HEIGHT * 0.25;
 
 const isWeb = Platform.OS === 'web';
 
@@ -31,53 +26,6 @@ type LocationPickerModalProps = {
   onSelect: (placeName: string, address: string) => void;
   initialLocation?: string;
 };
-
-/** Google Maps embed view — iframe on web, WebView on native */
-function EmbedMapView({ latitude, longitude, address }: { latitude: number; longitude: number; address: string }) {
-  const src = `https://www.google.com/maps?q=${latitude},${longitude}&z=16&output=embed`;
-
-  if (isWeb) {
-    return (
-      <View style={{ flex: 1, position: 'relative' }}>
-        {/* @ts-ignore - iframe is web-only */}
-        <iframe
-          src={src}
-          style={{ width: '100%', height: '100%', border: 'none' }}
-          loading="lazy"
-        />
-        {address ? (
-          <View style={styles.webAddressOverlay}>
-            <Text style={styles.webAddressText} numberOfLines={2}>{address}</Text>
-          </View>
-        ) : null}
-      </View>
-    );
-  }
-
-  // Native: use react-native WebView
-  let WebView: any = null;
-  try { WebView = require('react-native-webview').default; } catch {}
-
-  if (!WebView) {
-    return (
-      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: COLORS.gray100 }}>
-        <MapPin size={32} color={COLORS.gray400} />
-        <Text style={{ color: COLORS.gray500, marginTop: 8, fontSize: 13 }}>{address || '目前位置'}</Text>
-      </View>
-    );
-  }
-
-  return (
-    <View style={{ flex: 1, position: 'relative' }}>
-      <WebView source={{ uri: src }} style={{ flex: 1 }} />
-      {address ? (
-        <View style={styles.webAddressOverlay}>
-          <Text style={styles.webAddressText} numberOfLines={2}>{address}</Text>
-        </View>
-      ) : null}
-    </View>
-  );
-}
 
 export default function LocationPickerModal({
   visible,
@@ -104,9 +52,6 @@ export default function LocationPickerModal({
   const [isSearchMode, setIsSearchMode] = useState(false);
   const searchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Map expand/collapse
-  const [mapExpanded, setMapExpanded] = useState(true);
-
   // Get current location on modal open
   useEffect(() => {
     if (visible) {
@@ -119,7 +64,6 @@ export default function LocationPickerModal({
 
   const fetchLocationData = useCallback(async (latitude: number, longitude: number) => {
     setCoords({ latitude, longitude });
-    // coords state update triggers EmbedMapView re-render
 
     // Reverse geocode
     if (isWeb) {
@@ -226,7 +170,6 @@ export default function LocationPickerModal({
 
   const displayPlaces = isSearchMode ? searchResults : nearbyPlaces;
   const isLoading = isSearchMode ? loadingSearch : loadingNearby;
-  const mapHeight = mapExpanded ? MAP_HEIGHT_EXPANDED : MAP_HEIGHT_COLLAPSED;
 
   const renderPlaceItem = ({ item }: { item: PlaceResult; index: number }) => (
     <TouchableOpacity
@@ -251,45 +194,39 @@ export default function LocationPickerModal({
       onRequestClose={onClose}
     >
       <View style={[styles.container, { paddingTop: insets.top }]}>
-        {/* Header */}
+        {/* Header — with recenter action on the right (no more map means the
+            recenter button previously floating over the map now lives here). */}
         <View style={styles.header}>
           <TouchableOpacity onPress={onClose} style={styles.headerBtn} activeOpacity={0.6}>
             <X size={22} color={COLORS.gray800} />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>位置資訊</Text>
-          <View style={styles.headerBtn} />
-        </View>
-
-        {/* Map */}
-        <View style={[styles.mapContainer, { height: mapHeight }]}>
-          <EmbedMapView latitude={coords.latitude} longitude={coords.longitude} address={currentAddress} />
-
-          {/* Recenter button */}
+          <Text style={styles.headerTitle}>選擇地點</Text>
           <TouchableOpacity
-            style={styles.recenterBtn}
             onPress={getCurrentLocation}
-            activeOpacity={0.7}
+            style={styles.headerBtn}
+            activeOpacity={0.6}
+            disabled={locating}
           >
             {locating ? (
               <ActivityIndicator size={18} color={COLORS.gray700} />
             ) : (
-              <Navigation size={18} color={COLORS.gray700} />
+              <Navigation size={20} color={COLORS.gray700} />
             )}
           </TouchableOpacity>
         </View>
 
-        {/* Toggle map size */}
-        <TouchableOpacity
-          style={styles.toggleMapBtn}
-          onPress={() => setMapExpanded(!mapExpanded)}
-          activeOpacity={0.7}
-        >
-          {mapExpanded ? (
-            <ChevronUp size={20} color={COLORS.gray400} />
-          ) : (
-            <ChevronDown size={20} color={COLORS.gray400} />
-          )}
-        </TouchableOpacity>
+        {/* Current-location context — small gray text, not tappable. Here as
+            an information display only; selection happens via the list or
+            search. Intentionally not tappable because the address string is
+            not a POI name and is not what users want to record as a tag. */}
+        {currentAddress ? (
+          <View style={styles.currentAddressRow}>
+            <MapPin size={14} color={COLORS.gray500} />
+            <Text style={styles.currentAddressText} numberOfLines={1}>
+              {currentAddress}
+            </Text>
+          </View>
+        ) : null}
 
         {/* Search bar */}
         <View style={styles.searchContainer}>
@@ -303,7 +240,6 @@ export default function LocationPickerModal({
               placeholder="搜尋或直接輸入地點名稱"
               placeholderTextColor={COLORS.gray400}
               returnKeyType="done"
-              onFocus={() => setMapExpanded(false)}
               onSubmitEditing={() => {
                 // Fallback path when Places API returns nothing (e.g. API not
                 // enabled / billing / network): use the raw typed text as the
@@ -329,11 +265,11 @@ export default function LocationPickerModal({
         </View>
 
         {/* Error message — surfaced as a neutral hint, not a blocker. Users
-            can still select a location via the tappable current-location row
-            above, or by typing in the search box and pressing Done. */}
+            can still select a location by typing in the search box above and
+            pressing the keyboard Done key. */}
         {errorMsg ? (
           <View style={styles.errorBanner}>
-            <Text style={styles.errorBannerText}>找不到附近地點，你可以用上方的當前位置,或在搜尋框直接輸入地點名稱後按完成。</Text>
+            <Text style={styles.errorBannerText}>找不到附近地點,在搜尋框直接輸入地點名稱後按完成即可。</Text>
           </View>
         ) : null}
 
@@ -388,45 +324,18 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: COLORS.gray900,
   },
-  mapContainer: {
-    width: SCREEN_WIDTH,
-    overflow: 'hidden',
-    position: 'relative',
+  currentAddressRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 16,
+    paddingTop: 10,
+    paddingBottom: 4,
   },
-  map: {
+  currentAddressText: {
     flex: 1,
-  },
-  recenterBtn: {
-    position: 'absolute',
-    top: 12,
-    left: 12,
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: COLORS.white,
-    alignItems: 'center',
-    justifyContent: 'center',
-    zIndex: 10,
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.15,
-        shadowRadius: 4,
-      },
-      android: {
-        elevation: 4,
-      },
-      web: {
-        boxShadow: '0 2px 6px rgba(0,0,0,0.15)',
-      } as any,
-    }),
-  },
-  toggleMapBtn: {
-    alignItems: 'center',
-    paddingVertical: 6,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.gray200,
+    fontSize: 12,
+    color: COLORS.gray500,
   },
   errorBanner: {
     paddingHorizontal: 16,
@@ -501,20 +410,5 @@ const styles = StyleSheet.create({
   emptyText: {
     fontSize: 14,
     color: COLORS.gray400,
-  },
-  webAddressOverlay: {
-    position: 'absolute',
-    bottom: 12,
-    left: 12,
-    right: 12,
-    backgroundColor: 'rgba(0,0,0,0.75)',
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-  },
-  webAddressText: {
-    color: '#fff',
-    fontSize: 13,
-    fontWeight: '500',
   },
 });
