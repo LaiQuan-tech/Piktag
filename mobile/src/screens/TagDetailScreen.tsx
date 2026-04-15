@@ -401,9 +401,6 @@ export default function TagDetailScreen({ navigation, route }: TagDetailScreenPr
               {t(`semanticType.${tagSemanticType}`)}
             </Text>
           )}
-          <Text style={styles.tagSubtitle}>
-            {t('tagDetail.usageCount', { count: usageCount + totalUserCount })}
-          </Text>
           {parentTagName && (
             <Text style={styles.tagParent}>
               {t('semanticType.parentTag')}: #{parentTagName}
@@ -562,11 +559,6 @@ const styles = StyleSheet.create({
     color: COLORS.gray500,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
-    marginTop: 2,
-  },
-  tagSubtitle: {
-    fontSize: 13,
-    color: COLORS.gray500,
     marginTop: 2,
   },
   tagParent: {
