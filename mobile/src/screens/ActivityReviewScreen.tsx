@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   View, Text, Image, TextInput, Pressable, StyleSheet, StatusBar,
-  ActivityIndicator, Dimensions, Alert,
+  ActivityIndicator, Dimensions, Alert, KeyboardAvoidingView, Platform,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
@@ -333,7 +333,15 @@ export default function ActivityReviewScreen({ navigation, route }: Props) {
   const avatarUri = profile?.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=f3f4f6&color=374151&size=200`;
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
+    // KeyboardAvoidingView so the bottom input bar pushes up above the
+    // on-screen keyboard when the user taps "加隱藏標籤..." — otherwise
+    // the keyboard completely covers the input field and the bottom
+    // "完成" action button. iOS uses padding (smoother, native feel);
+    // Android uses height (needed because soft keyboard resizes layout).
+    <KeyboardAvoidingView
+      style={[styles.container, { paddingTop: insets.top }]}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
       <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
 
       {/* Header */}
@@ -419,7 +427,7 @@ export default function ActivityReviewScreen({ navigation, route }: Props) {
           </Pressable>
         </View>
       </View>
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 
