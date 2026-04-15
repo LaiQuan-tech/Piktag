@@ -122,25 +122,30 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
   }, [user]);
 
   useEffect(() => {
+    // Cancelled-flag pattern for unmount safety. All async callbacks in
+    // this effect check `cancelled` before calling setState to avoid
+    // "setState on unmounted component" warnings if the user navigates
+    // away before the AsyncStorage reads / Supabase queries resolve.
+    let cancelled = false;
     if (user) {
       loadPresets();
       // Load cached QR for offline use
       AsyncStorage.getItem('piktag_last_qr').then(val => {
-        if (val) {
-          try {
-            const cached = JSON.parse(val);
-            if (cached.url && !qrValue) {
-              setQrValue(cached.url);
-              if (cached.date) setEventDate(cached.date);
-              if (cached.location) setEventLocation(cached.location);
-              if (cached.tags) setEventTags(cached.tags);
-            }
-          } catch {}
-        }
+        if (cancelled || !val) return;
+        try {
+          const cached = JSON.parse(val);
+          if (cached.url && !qrValue) {
+            setQrValue(cached.url);
+            if (cached.date) setEventDate(cached.date);
+            if (cached.location) setEventLocation(cached.location);
+            if (cached.tags) setEventTags(cached.tags);
+          }
+        } catch {}
       });
       // Load recent locations
       AsyncStorage.getItem('piktag_recent_locations').then(val => {
-        if (val) setRecentLocations(JSON.parse(val));
+        if (cancelled || !val) return;
+        setRecentLocations(JSON.parse(val));
       });
       // Fetch user's own most-used tags first, fallback to global popular
       supabase
@@ -150,6 +155,7 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
         .eq('is_private', false)
         .limit(6)
         .then(({ data }) => {
+          if (cancelled) return;
           if (data && data.length >= 3) {
             setPopularTags(data.map((t: any) => `#${t.tag?.name}`).filter(Boolean));
           } else {
@@ -160,6 +166,7 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
               .order('usage_count', { ascending: false })
               .limit(6)
               .then(({ data: globalData }) => {
+                if (cancelled) return;
                 if (globalData && globalData.length > 0) {
                   setPopularTags(globalData.map((t: any) => `#${t.name}`));
                 }
@@ -167,6 +174,7 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
           }
         });
     }
+    return () => { cancelled = true; };
   }, [user, loadPresets]);
 
   const saveToRecent = (name: string) => {

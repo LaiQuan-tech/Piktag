@@ -451,8 +451,10 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
           setProfiles(data.filter((p: PiktagProfile) => p.id !== user?.id).slice(0, 20));
         }
       }
-    } catch {} finally {
-      setLoading(false);
+    } catch (err) {
+      console.warn('[SearchScreen] loadNearbyProfiles failed:', err);
+    } finally {
+      if (isMountedRef.current) setLoading(false);
     }
   }, [user]);
 
