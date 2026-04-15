@@ -43,7 +43,7 @@ import { supabase } from '../lib/supabase';
 import { getCache, setCache, CACHE_KEYS } from '../lib/dataCache';
 import { ConnectionsScreenSkeleton } from '../components/SkeletonLoader';
 import { useAuth } from '../hooks/useAuth';
-import * as Location from 'expo-location';
+import { requestForegroundPermissionsAsync, getCurrentPositionAsync, Accuracy } from 'expo-location';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import FriendsMapModal, { type FriendLocation } from '../components/FriendsMapModal';
 import type { Connection, ConnectionTag } from '../types';
@@ -530,9 +530,9 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
   const handleSortSelect = async (option: SortOption) => {
     if (option === 'nearby' && !userLocation) {
       try {
-        const { status } = await Location.requestForegroundPermissionsAsync();
+        const { status } = await requestForegroundPermissionsAsync();
         if (status === 'granted') {
-          const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
+          const loc = await getCurrentPositionAsync({ accuracy: Accuracy.Balanced });
           setUserLocation({ latitude: loc.coords.latitude, longitude: loc.coords.longitude });
           if (user) {
             supabase

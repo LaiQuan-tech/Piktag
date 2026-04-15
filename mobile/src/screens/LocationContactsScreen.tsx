@@ -13,7 +13,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { ArrowLeft, MapPin, Navigation } from 'lucide-react-native';
-import * as Location from 'expo-location';
+import { requestForegroundPermissionsAsync, getCurrentPositionAsync, reverseGeocodeAsync, Accuracy, type LocationGeocodedAddress } from 'expo-location';
 import { COLORS } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
 import { supabase } from '../lib/supabase';
@@ -56,20 +56,20 @@ export default function LocationContactsScreen({ navigation }: LocationContactsS
     if (!user) return;
     setLoading(true);
     try {
-      const { status } = await Location.requestForegroundPermissionsAsync();
+      const { status } = await requestForegroundPermissionsAsync();
       if (status !== 'granted') {
         Alert.alert(t('locationContacts.alertPermTitle'), t('locationContacts.alertPermMessage'));
         setLoading(false);
         return;
       }
 
-      const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
+      const loc = await getCurrentPositionAsync({ accuracy: Accuracy.Balanced });
       const { latitude, longitude } = loc.coords;
 
       // Reverse geocode for location name
-      let geoAddr: Location.LocationGeocodedAddress | null = null;
+      let geoAddr: LocationGeocodedAddress | null = null;
       try {
-        const results = await Location.reverseGeocodeAsync({ latitude, longitude });
+        const results = await reverseGeocodeAsync({ latitude, longitude });
         if (results && results.length > 0) {
           geoAddr = results[0];
           setLocationName(

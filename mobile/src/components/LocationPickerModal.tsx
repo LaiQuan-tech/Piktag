@@ -12,7 +12,7 @@ import {
   Platform,
 } from 'react-native';
 import { X, Search, MapPin, Navigation } from 'lucide-react-native';
-import * as Location from 'expo-location';
+import { requestForegroundPermissionsAsync, getCurrentPositionAsync, reverseGeocodeAsync, Accuracy } from 'expo-location';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { COLORS } from '../constants/theme';
 import { fetchNearbyPlaces, autocompletePlaces, type PlaceResult, GOOGLE_PLACES_API_KEY } from '../lib/googlePlaces';
@@ -84,7 +84,7 @@ export default function LocationPickerModal({
       }
     } else {
       try {
-        const [place] = await Location.reverseGeocodeAsync({ latitude, longitude });
+        const [place] = await reverseGeocodeAsync({ latitude, longitude });
         if (place) {
           setCurrentAddress([place.name, place.district, place.city].filter(Boolean).join(', '));
         }
@@ -129,13 +129,13 @@ export default function LocationPickerModal({
       }
 
       // Native: use expo-location
-      const { status } = await Location.requestForegroundPermissionsAsync();
+      const { status } = await requestForegroundPermissionsAsync();
       if (status !== 'granted') {
         setLocating(false);
         setErrorMsg('位置權限被拒絕');
         return;
       }
-      const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
+      const loc = await getCurrentPositionAsync({ accuracy: Accuracy.Balanced });
       await fetchLocationData(loc.coords.latitude, loc.coords.longitude);
     } catch (e: any) {
       setLocating(false);

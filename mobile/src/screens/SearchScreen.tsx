@@ -24,7 +24,7 @@ import {
   X,
 } from 'lucide-react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import * as Location from 'expo-location';
+import { requestForegroundPermissionsAsync, getCurrentPositionAsync, Accuracy } from 'expo-location';
 import { useTranslation } from 'react-i18next';
 import * as Localization from 'expo-localization';
 import { supabase } from '../lib/supabase';
@@ -165,9 +165,9 @@ const RecentSearchItem = React.memo(function RecentSearchItem({ query, onPress }
 
 async function getUserLocation(): Promise<{ lat: number; lng: number } | null> {
   try {
-    const { status } = await Location.requestForegroundPermissionsAsync();
+    const { status } = await requestForegroundPermissionsAsync();
     if (status !== 'granted') return null;
-    const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
+    const loc = await getCurrentPositionAsync({ accuracy: Accuracy.Balanced });
     return { lat: loc.coords.latitude, lng: loc.coords.longitude };
   } catch {
     return null;

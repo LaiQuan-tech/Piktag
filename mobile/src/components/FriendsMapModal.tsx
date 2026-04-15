@@ -9,7 +9,7 @@ import {
   Platform,
 } from 'react-native';
 import { X } from 'lucide-react-native';
-import * as Location from 'expo-location';
+import { requestForegroundPermissionsAsync, getCurrentPositionAsync, Accuracy } from 'expo-location';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { COLORS } from '../constants/theme';
 import { GOOGLE_PLACES_API_KEY } from '../lib/googlePlaces';
@@ -315,10 +315,10 @@ export default function FriendsMapModal({
             { enableHighAccuracy: false, timeout: 6000, maximumAge: 60000 },
           );
         } else {
-          const { status } = await Location.requestForegroundPermissionsAsync();
+          const { status } = await requestForegroundPermissionsAsync();
           if (status === 'granted') {
-            const loc = await Location.getCurrentPositionAsync({
-              accuracy: Location.Accuracy.Balanced,
+            const loc = await getCurrentPositionAsync({
+              accuracy: Accuracy.Balanced,
             });
             if (!cancelled) {
               setUserCoords({ lat: loc.coords.latitude, lng: loc.coords.longitude });
