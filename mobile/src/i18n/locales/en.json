@@ -6,6 +6,19 @@
     "notifications": "Notifications",
     "profile": "Profile"
   },
+  "locationPicker": {
+    "title": "Pick a location",
+    "noNearbyPlaces": "No nearby places found. Type a name in the search box and press Done.",
+    "noResults": "No matching places"
+  },
+  "friendsMap": {
+    "title": "Friends map",
+    "friendCount_one": "{{count}} friend",
+    "friendCount_other": "{{count}} friends",
+    "noSharedLocations": "No one is sharing their location",
+    "loadFailed": "Failed to load map",
+    "staleHint": "Only friends who updated their location in the last 24 hours are shown"
+  },
   "hiddenTagEditor": {
     "timeTitle": "When you met",
     "locationTitle": "Where you met",
@@ -32,6 +45,7 @@
     "done": "Done",
     "back": "Back",
     "processing": "Processing...",
+    "retry": "Retry",
     "success": "Success",
     "unknown": "Unknown",
     "unnamed": "Unnamed",

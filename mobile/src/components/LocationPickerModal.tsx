@@ -14,6 +14,7 @@ import {
 import { X, Search, MapPin, Navigation } from 'lucide-react-native';
 import { requestForegroundPermissionsAsync, getCurrentPositionAsync, reverseGeocodeAsync, Accuracy } from 'expo-location';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 import { COLORS } from '../constants/theme';
 import { fetchNearbyPlaces, autocompletePlaces, type PlaceResult, GOOGLE_PLACES_API_KEY } from '../lib/googlePlaces';
 import { logApiUsage } from '../lib/apiUsage';
@@ -33,6 +34,7 @@ export default function LocationPickerModal({
   onSelect,
   initialLocation,
 }: LocationPickerModalProps) {
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const searchInputRef = useRef<TextInput>(null);
 
@@ -200,7 +202,7 @@ export default function LocationPickerModal({
           <TouchableOpacity onPress={onClose} style={styles.headerBtn} activeOpacity={0.6}>
             <X size={22} color={COLORS.gray800} />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>選擇地點</Text>
+          <Text style={styles.headerTitle}>{t('locationPicker.title')}</Text>
           <TouchableOpacity
             onPress={getCurrentLocation}
             style={styles.headerBtn}
@@ -269,7 +271,7 @@ export default function LocationPickerModal({
             pressing the keyboard Done key. */}
         {errorMsg ? (
           <View style={styles.errorBanner}>
-            <Text style={styles.errorBannerText}>找不到附近地點,在搜尋框直接輸入地點名稱後按完成即可。</Text>
+            <Text style={styles.errorBannerText}>{t('locationPicker.noNearbyPlaces')}</Text>
           </View>
         ) : null}
 
@@ -288,7 +290,7 @@ export default function LocationPickerModal({
             ListEmptyComponent={
               isSearchMode && searchText.length >= 2 ? (
                 <View style={styles.emptyContainer}>
-                  <Text style={styles.emptyText}>找不到相關地點</Text>
+                  <Text style={styles.emptyText}>{t('locationPicker.noResults')}</Text>
                 </View>
               ) : null
             }

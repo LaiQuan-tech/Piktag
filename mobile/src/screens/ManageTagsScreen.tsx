@@ -549,7 +549,7 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
                     loadAiSuggestions();
                   }}
                 >
-                  <Text style={styles.aiRetryText}>重試</Text>
+                  <Text style={styles.aiRetryText}>{t('common.retry')}</Text>
                 </Pressable>
               </View>
             )}

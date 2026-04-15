@@ -11,6 +11,7 @@ import {
 import { X } from 'lucide-react-native';
 import { requestForegroundPermissionsAsync, getCurrentPositionAsync, Accuracy } from 'expo-location';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 import { COLORS } from '../constants/theme';
 import { GOOGLE_PLACES_API_KEY } from '../lib/googlePlaces';
 import { logApiUsage } from '../lib/apiUsage';
@@ -271,6 +272,7 @@ export default function FriendsMapModal({
   friends,
   onFriendPress,
 }: FriendsMapModalProps) {
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const [userCoords, setUserCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [locating, setLocating] = useState(true);
@@ -400,11 +402,11 @@ export default function FriendsMapModal({
             <X size={22} color={COLORS.gray800} />
           </TouchableOpacity>
           <View style={styles.headerTitleWrap}>
-            <Text style={styles.headerTitle}>好友地圖</Text>
+            <Text style={styles.headerTitle}>{t('friendsMap.title')}</Text>
             <Text style={styles.headerSubtitle}>
               {friendsWithLocation.length > 0
-                ? `${friendsWithLocation.length} 位朋友`
-                : '尚無朋友分享位置'}
+                ? t('friendsMap.friendCount', { count: friendsWithLocation.length })
+                : t('friendsMap.noSharedLocations')}
             </Text>
           </View>
           <View style={styles.headerBtn} />
@@ -412,7 +414,7 @@ export default function FriendsMapModal({
 
         {/* Stale-location hint */}
         <Text style={styles.staleHint}>
-          只顯示最近 24 小時內有更新位置的朋友
+          {t('friendsMap.staleHint')}
         </Text>
 
         {/* Inline load error (visible to user, no JS console needed) */}
@@ -446,7 +448,7 @@ export default function FriendsMapModal({
               if (!WebView) {
                 return (
                   <View style={styles.loadingContainer}>
-                    <Text style={{ color: COLORS.gray500 }}>地圖載入失敗</Text>
+                    <Text style={{ color: COLORS.gray500 }}>{t('friendsMap.loadFailed')}</Text>
                   </View>
                 );
               }

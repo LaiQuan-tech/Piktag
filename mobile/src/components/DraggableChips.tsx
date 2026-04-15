@@ -11,6 +11,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { impactAsync, ImpactFeedbackStyle } from 'expo-haptics';
 import { X, Pin } from 'lucide-react-native';
+import { useTranslation } from 'react-i18next';
 import { COLORS } from '../constants/theme';
 
 type ChipItem = {
@@ -37,6 +38,7 @@ type ChipLayout = {
 const SPRING_CONFIG = { damping: 20, stiffness: 300, mass: 0.8 };
 
 export default function DraggableChips({ items, onReorder, onRemove, onDoubleTap, onDragStateChange }: DraggableChipsProps) {
+  const { t } = useTranslation();
   const [layouts, setLayouts] = useState<Map<string, ChipLayout>>(new Map());
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const containerRef = useRef<View>(null);
@@ -108,7 +110,7 @@ export default function DraggableChips({ items, onReorder, onRemove, onDoubleTap
         />
       ))}
       {items.length === 0 && (
-        <Text style={styles.emptyText}>尚無標籤</Text>
+        <Text style={styles.emptyText}>{t('common.noTags')}</Text>
       )}
     </View>
   );
