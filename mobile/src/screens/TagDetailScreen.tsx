@@ -429,23 +429,11 @@ export default function TagDetailScreen({ navigation, route }: TagDetailScreenPr
         </View>
       )}
 
-      {/* Tab Bar */}
+      {/* Tab Bar — 追蹤 on the LEFT (my actual followed connections for
+          this tag), 探索 on the RIGHT (all public users for this tag).
+          The left tab used to be 探索 but the user explicitly asked to
+          swap so the personal view comes first. */}
       <View style={styles.tabBar}>
-        <TouchableOpacity
-          style={[styles.tab, activeTab === 'explore' && styles.tabActive]}
-          onPress={() => setActiveTab('explore')}
-          activeOpacity={0.7}
-        >
-          <Users size={16} color={activeTab === 'explore' ? COLORS.piktag600 : COLORS.gray500} />
-          <Text style={[styles.tabText, activeTab === 'explore' && styles.tabTextActive]}>
-            {t('tagDetail.tabExplore')}
-          </Text>
-          {totalUserCount > 0 && (
-            <View style={styles.tabBadge}>
-              <Text style={styles.tabBadgeText}>{totalUserCount}</Text>
-            </View>
-          )}
-        </TouchableOpacity>
         <TouchableOpacity
           style={[styles.tab, activeTab === 'connections' && styles.tabActive]}
           onPress={() => setActiveTab('connections')}
@@ -458,6 +446,21 @@ export default function TagDetailScreen({ navigation, route }: TagDetailScreenPr
           {usageCount > 0 && (
             <View style={styles.tabBadge}>
               <Text style={styles.tabBadgeText}>{usageCount}</Text>
+            </View>
+          )}
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.tab, activeTab === 'explore' && styles.tabActive]}
+          onPress={() => setActiveTab('explore')}
+          activeOpacity={0.7}
+        >
+          <Users size={16} color={activeTab === 'explore' ? COLORS.piktag600 : COLORS.gray500} />
+          <Text style={[styles.tabText, activeTab === 'explore' && styles.tabTextActive]}>
+            {t('tagDetail.tabExplore')}
+          </Text>
+          {totalUserCount > 0 && (
+            <View style={styles.tabBadge}>
+              <Text style={styles.tabBadgeText}>{totalUserCount}</Text>
             </View>
           )}
         </TouchableOpacity>
