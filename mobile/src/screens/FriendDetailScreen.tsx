@@ -221,9 +221,10 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
           .from('piktag_user_tags')
           .select('*, tag:piktag_tags!tag_id(*)')
           .eq('user_id', friendId)
-          .eq('is_private', false),
-        supabase.from('piktag_connections').select('connected_user_id').eq('user_id', user.id),
-        supabase.from('piktag_connections').select('id, connected_user_id').eq('user_id', friendId),
+          .eq('is_private', false)
+          .limit(500),
+        supabase.from('piktag_connections').select('connected_user_id').eq('user_id', user.id).limit(2000),
+        supabase.from('piktag_connections').select('id, connected_user_id').eq('user_id', friendId).limit(2000),
       ]);
 
       const connData = connResult.data;
@@ -308,7 +309,8 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
             .from('piktag_user_tags')
             .select('tag_id')
             .eq('user_id', user.id)
-            .eq('is_private', false);
+            .eq('is_private', false)
+            .limit(500);
           const myTagIds = new Set((myUserTags || []).map((t: any) => t.tag_id));
 
           // 2. Get my picked tags for this connection
@@ -327,7 +329,8 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
           const { data: allConnsToFriend } = await supabase
             .from('piktag_connections')
             .select('id')
-            .eq('connected_user_id', friendId);
+            .eq('connected_user_id', friendId)
+            .limit(2000);
           const connIdsToFriend = (allConnsToFriend || []).map((c: any) => c.id);
 
           const pickCountMap = new Map<string, number>();
@@ -336,7 +339,8 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
               .from('piktag_connection_tags')
               .select('tag_id')
               .in('connection_id', connIdsToFriend)
-              .eq('is_private', false);
+              .eq('is_private', false)
+              .limit(5000);
             (allPicks || []).forEach((p: any) => {
               pickCountMap.set(p.tag_id, (pickCountMap.get(p.tag_id) || 0) + 1);
             });

@@ -293,16 +293,18 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
         const { data: nearbyProfiles } = await supabase
           .from('piktag_profiles').select('id')
           .gte('latitude', userLat - range).lte('latitude', userLat + range)
-          .gte('longitude', userLng - range).lte('longitude', userLng + range);
+          .gte('longitude', userLng - range).lte('longitude', userLng + range)
+          .limit(500);
         if (nearbyProfiles && nearbyProfiles.length > 0) {
           const nearbyIds = nearbyProfiles.map((p: any) => p.id);
           const { data: nearbyConns } = await supabase
-            .from('piktag_connections').select('id').in('user_id', nearbyIds);
+            .from('piktag_connections').select('id').in('user_id', nearbyIds).limit(2000);
           if (nearbyConns && nearbyConns.length > 0) {
             const { data: tagData } = await supabase
               .from('piktag_connection_tags')
               .select('tag:piktag_tags!tag_id(id, name, semantic_type, usage_count)')
-              .in('connection_id', nearbyConns.map((c: any) => c.id));
+              .in('connection_id', nearbyConns.map((c: any) => c.id))
+              .limit(5000);
             if (tagData && tagData.length > 0) {
               const tagMap: Record<string, { tag: any; count: number }> = {};
               for (const ct of tagData) {
@@ -366,7 +368,8 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
           .from('piktag_user_tags')
           .select('tag_id')
           .in('tag_id', tagIds)
-          .gte('created_at', sevenDaysAgo);
+          .gte('created_at', sevenDaysAgo)
+          .limit(3000);
 
         if (recentData && recentData.length > 0) {
           // Count recent additions per tag
@@ -452,7 +455,8 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
         .from('piktag_user_tags')
         .select('tag_id')
         .eq('user_id', user.id)
-        .eq('is_private', false);
+        .eq('is_private', false)
+        .limit(500);
       if (!myTags || myTags.length === 0) return;
 
       const myTagIds = myTags.map(t => t.tag_id);
@@ -461,7 +465,8 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
       const { data: myConns } = await supabase
         .from('piktag_connections')
         .select('connected_user_id')
-        .eq('user_id', user.id);
+        .eq('user_id', user.id)
+        .limit(2000);
       const connUserIds = new Set((myConns || []).map(c => c.connected_user_id));
       connUserIds.add(user.id); // exclude self
 

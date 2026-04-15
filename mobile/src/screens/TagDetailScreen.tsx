@@ -129,7 +129,8 @@ export default function TagDetailScreen({ navigation, route }: TagDetailScreenPr
             )
           )
         `)
-        .in('tag_id', allTagIds);
+        .in('tag_id', allTagIds)
+        .limit(1000);
 
       if (error) {
         console.error('Error fetching tag connections:', error);
@@ -172,7 +173,8 @@ export default function TagDetailScreen({ navigation, route }: TagDetailScreenPr
         .from('piktag_user_tags')
         .select('user_id')
         .in('tag_id', allTagIds)
-        .eq('is_private', false);
+        .eq('is_private', false)
+        .limit(2000);
 
       if (utError || !userTagsData) {
         setExploreUsers([]);
@@ -210,7 +212,8 @@ export default function TagDetailScreen({ navigation, route }: TagDetailScreenPr
       const { data: myTags } = await supabase
         .from('piktag_user_tags')
         .select('tag_id')
-        .eq('user_id', user.id);
+        .eq('user_id', user.id)
+        .limit(500);
 
       const myTagIds = new Set((myTags || []).map((t: any) => t.tag_id));
 
@@ -220,7 +223,8 @@ export default function TagDetailScreen({ navigation, route }: TagDetailScreenPr
         .from('piktag_user_tags')
         .select('user_id, tag_id')
         .in('user_id', userIds)
-        .eq('is_private', false);
+        .eq('is_private', false)
+        .limit(2000);
 
       const mutualCountMap = new Map<string, number>();
       (theirTags || []).forEach((t: any) => {
