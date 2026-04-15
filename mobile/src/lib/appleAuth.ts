@@ -1,11 +1,11 @@
-import * as AppleAuthentication from 'expo-apple-authentication';
+import { signInAsync, AppleAuthenticationScope } from 'expo-apple-authentication';
 import { supabase } from './supabase';
 
 export async function signInWithApple() {
-  const credential = await AppleAuthentication.signInAsync({
+  const credential = await signInAsync({
     requestedScopes: [
-      AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
-      AppleAuthentication.AppleAuthenticationScope.EMAIL,
+      AppleAuthenticationScope.FULL_NAME,
+      AppleAuthenticationScope.EMAIL,
     ],
   });
 

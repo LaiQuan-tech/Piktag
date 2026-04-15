@@ -26,7 +26,7 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { requestForegroundPermissionsAsync, getCurrentPositionAsync, Accuracy } from 'expo-location';
 import { useTranslation } from 'react-i18next';
-import * as Localization from 'expo-localization';
+import { getLocales } from 'expo-localization';
 import { supabase } from '../lib/supabase';
 import { getCache, setCache } from '../lib/dataCache';
 import { COLORS } from '../constants/theme';
@@ -274,7 +274,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
     }
 
     // Use device system language (not app setting)
-    const deviceLocale = Localization.getLocales()?.[0]?.languageCode || 'zh';
+    const deviceLocale = getLocales()?.[0]?.languageCode || 'zh';
     const userLang = deviceLocale;
 
     // STRATEGY: prefer tags that are popular among NEARBY users. If we can

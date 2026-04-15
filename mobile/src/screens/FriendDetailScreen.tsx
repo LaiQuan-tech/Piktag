@@ -49,7 +49,7 @@ import { useTranslation } from 'react-i18next';
 import { COLORS } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
 import { LinearGradient } from 'expo-linear-gradient';
-import * as ScreenCapture from 'expo-screen-capture';
+import { preventScreenCaptureAsync, allowScreenCaptureAsync } from 'expo-screen-capture';
 import PlatformIcon from '../components/PlatformIcon';
 import InitialsAvatar from '../components/InitialsAvatar';
 import HiddenTagEditor from '../components/HiddenTagEditor';
@@ -152,8 +152,8 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
 
   // Prevent screenshots on this page (protects hidden tags)
   useEffect(() => {
-    ScreenCapture.preventScreenCaptureAsync();
-    return () => { ScreenCapture.allowScreenCaptureAsync(); };
+    preventScreenCaptureAsync();
+    return () => { allowScreenCaptureAsync(); };
   }, []);
 
   const [loading, setLoading] = useState(true);

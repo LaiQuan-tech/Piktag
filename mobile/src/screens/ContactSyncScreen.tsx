@@ -13,7 +13,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import * as Contacts from 'expo-contacts';
+import { requestPermissionsAsync, getContactsAsync, Fields, SortTypes } from 'expo-contacts';
 import {
   ArrowLeft,
   Users,
@@ -55,20 +55,20 @@ export default function ContactSyncScreen({ navigation }: ContactSyncScreenProps
 
   const loadContacts = useCallback(async () => {
     try {
-      const { status } = await Contacts.requestPermissionsAsync();
+      const { status } = await requestPermissionsAsync();
       if (status !== 'granted') {
         setPermissionDenied(true);
         setLoading(false);
         return;
       }
 
-      const { data } = await Contacts.getContactsAsync({
+      const { data } = await getContactsAsync({
         fields: [
-          Contacts.Fields.Name,
-          Contacts.Fields.PhoneNumbers,
-          Contacts.Fields.Emails,
+          Fields.Name,
+          Fields.PhoneNumbers,
+          Fields.Emails,
         ],
-        sort: Contacts.SortTypes.FirstName,
+        sort: SortTypes.FirstName,
       });
 
       if (data && data.length > 0) {

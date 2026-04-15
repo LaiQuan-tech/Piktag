@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import QRCode from 'react-native-qrcode-svg';
 import { X, Copy, Share2 } from 'lucide-react-native';
-import * as Clipboard from 'expo-clipboard';
+import { setStringAsync } from 'expo-clipboard';
 import { useTranslation } from 'react-i18next';
 import { COLORS } from '../constants/theme';
 
@@ -33,7 +33,7 @@ export default function QrCodeModal({
   const profileUrl = `${APP_BASE_URL}/${username}`;
 
   const handleCopyLink = async () => {
-    await Clipboard.setStringAsync(profileUrl);
+    await setStringAsync(profileUrl);
   };
 
   const handleShare = async () => {

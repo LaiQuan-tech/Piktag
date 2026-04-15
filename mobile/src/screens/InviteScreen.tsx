@@ -13,7 +13,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import * as Clipboard from 'expo-clipboard';
+import { setStringAsync } from 'expo-clipboard';
 import {
   ArrowLeft,
   Gift,
@@ -178,7 +178,7 @@ export default function InviteScreen({ navigation }: InviteScreenProps) {
 
   const handleCopyCode = async (code: string) => {
     try {
-      await Clipboard.setStringAsync(code);
+      await setStringAsync(code);
       Alert.alert(t('invite.alertCopiedTitle'), t('invite.alertCopiedMessage', { code }));
     } catch (err) {
       console.warn('[Invite] copy failed:', err);

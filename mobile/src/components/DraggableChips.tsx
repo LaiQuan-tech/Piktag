@@ -9,7 +9,7 @@ import Animated, {
   withSequence,
   runOnJS,
 } from 'react-native-reanimated';
-import * as Haptics from 'expo-haptics';
+import { impactAsync, ImpactFeedbackStyle } from 'expo-haptics';
 import { X, Pin } from 'lucide-react-native';
 import { COLORS } from '../constants/theme';
 
@@ -157,7 +157,7 @@ function DraggableChip({
     });
 
   const doDoubleTap = useCallback(() => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    impactAsync(ImpactFeedbackStyle.Medium);
     onDoubleTap?.();
   }, [onDoubleTap]);
 

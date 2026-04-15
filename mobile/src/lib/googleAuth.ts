@@ -1,9 +1,9 @@
-import * as WebBrowser from 'expo-web-browser';
-import * as Linking from 'expo-linking';
+import { maybeCompleteAuthSession, openAuthSessionAsync } from 'expo-web-browser';
+import { createURL } from 'expo-linking';
 import { supabase } from './supabase';
 
 // Ensures auth session completes when the browser redirects back to the app
-WebBrowser.maybeCompleteAuthSession();
+maybeCompleteAuthSession();
 
 /**
  * Sign in with Google using the Supabase-recommended OAuth PKCE flow.
@@ -16,7 +16,7 @@ WebBrowser.maybeCompleteAuthSession();
 export async function signInWithGoogle() {
   // Deep link the browser will redirect back to when auth completes.
   // Must match one of the "Redirect URLs" configured in Supabase Auth settings.
-  const redirectTo = Linking.createURL('auth/callback');
+  const redirectTo = createURL('auth/callback');
 
   // Ask Supabase to build the provider-specific authorize URL (but don't redirect yet).
   const { data, error } = await supabase.auth.signInWithOAuth({
@@ -32,7 +32,7 @@ export async function signInWithGoogle() {
 
   // Open the authorize URL in a secure in-app browser session.
   // This returns when the provider redirects to `redirectTo`.
-  const result = await WebBrowser.openAuthSessionAsync(data.url, redirectTo);
+  const result = await openAuthSessionAsync(data.url, redirectTo);
 
   if (result.type === 'cancel' || result.type === 'dismiss') {
     return null; // user cancelled
