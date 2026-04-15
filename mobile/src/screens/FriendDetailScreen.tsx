@@ -2,7 +2,6 @@ import React, { useState, useCallback, useReducer, useMemo, useEffect, useRef } 
 import {
   View,
   Text,
-  Image,
   ScrollView,
   TouchableOpacity,
   StyleSheet,
@@ -15,6 +14,7 @@ import {
   Platform,
   KeyboardAvoidingView,
 } from 'react-native';
+import { Image } from 'expo-image';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import {
@@ -180,7 +180,6 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
   const [mutualTagNames, setMutualTagNames] = useState<{ id: string; name: string }[]>([]);
   const [mutualTagModalVisible, setMutualTagModalVisible] = useState(false);
   const [mutualFriendProfiles, setMutualFriendProfiles] = useState<any[]>([]);
-  const [mutualFriendsModalVisible, setMutualFriendsModalVisible] = useState(false);
 
   // Hidden tags state (private tags only I can see).
   // Add/remove logic lives in <HiddenTagEditor>; this component only owns the
@@ -744,7 +743,7 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
           {/* Avatar + Name/Username */}
           <View style={styles.profileRow}>
             {avatarUrl ? (
-              <Image source={{ uri: avatarUrl }} style={styles.avatar} />
+              <Image source={{ uri: avatarUrl }} style={styles.avatar} cachePolicy="memory-disk" />
             ) : (
               <InitialsAvatar name={displayName} size={56} style={styles.avatar} />
             )}
@@ -814,12 +813,10 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
               </Text>
             )}
             <Text style={styles.statDot}>·</Text>
-            <TouchableOpacity onPress={() => mutualFriends > 0 && setMutualFriendsModalVisible(true)} activeOpacity={0.7}>
-              <Text style={styles.statText}>
-                <Text style={styles.statNumber}>{mutualFriends}</Text>
-                <Text style={styles.statLabel}>{t('friendDetail.mutualFriendsLabel')}</Text>
-              </Text>
-            </TouchableOpacity>
+            <Text style={styles.statText}>
+              <Text style={styles.statNumber}>{mutualFriends}</Text>
+              <Text style={styles.statLabel}>{t('friendDetail.mutualFriendsLabel')}</Text>
+            </Text>
             <Text style={styles.statDot}>·</Text>
             <Text style={styles.statText}>
               <Text style={styles.statNumber}>{followerCount}</Text>
@@ -873,6 +870,48 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
             )}
           </View>
         </View>
+
+        {/* ===== NEW SECTION: Mutual Friends — FB / IG profile style horizontal avatars ===== */}
+        {mutualFriendProfiles.length > 0 && (
+          <View style={styles.mutualFriendsSection}>
+            <Text style={styles.mutualFriendsSectionTitle}>
+              {t('friendDetail.mutualFriendsSectionTitle')}
+              <Text style={styles.mutualFriendsSectionCount}>  ·  {mutualFriends}</Text>
+            </Text>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.mutualFriendsScrollContent}
+            >
+              {mutualFriendProfiles.map((p) => {
+                const displayName = p.full_name || p.username || '?';
+                return (
+                  <TouchableOpacity
+                    key={p.id}
+                    style={styles.mutualFriendTile}
+                    activeOpacity={0.7}
+                    onPress={() => navigation.navigate('UserDetail', { userId: p.id })}
+                  >
+                    {p.avatar_url ? (
+                      <Image
+                        source={{ uri: p.avatar_url }}
+                        style={styles.mutualFriendAvatar}
+                        cachePolicy="memory-disk"
+                      />
+                    ) : (
+                      <View style={[styles.mutualFriendAvatar, styles.mutualFriendAvatarFallback]}>
+                        <Text style={styles.mutualFriendAvatarFallbackText}>{displayName[0]}</Text>
+                      </View>
+                    )}
+                    <Text style={styles.mutualFriendName} numberOfLines={1}>
+                      {displayName}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+          </View>
+        )}
 
         {/* ===== SECTION 2: Social Links — IG Highlights style circles ===== */}
         {biolinks.length > 0 && (
@@ -964,49 +1003,6 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
                   }}
                 >
                   <Text style={styles.mutualModalTagText}>#{tag.name}</Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          </View>
-        </TouchableOpacity>
-      </Modal>
-
-      {/* ====== Mutual Friends Modal ====== */}
-      <Modal
-        visible={mutualFriendsModalVisible}
-        animationType="fade"
-        transparent
-        onRequestClose={() => setMutualFriendsModalVisible(false)}
-      >
-        <TouchableOpacity
-          style={styles.mutualModalOverlay}
-          activeOpacity={1}
-          onPress={() => setMutualFriendsModalVisible(false)}
-        >
-          <View style={styles.mutualModalContainer}>
-            <Text style={styles.mutualModalTitle}>{t('friendDetail.mutualFriendsModalTitle') || '共同好友'}</Text>
-            <View style={{ gap: 12, marginTop: 8 }}>
-              {mutualFriendProfiles.map((p) => (
-                <TouchableOpacity
-                  key={p.id}
-                  style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}
-                  activeOpacity={0.7}
-                  onPress={() => {
-                    setMutualFriendsModalVisible(false);
-                    navigation.navigate('UserDetail', { userId: p.id });
-                  }}
-                >
-                  {p.avatar_url ? (
-                    <Image source={{ uri: p.avatar_url }} style={{ width: 40, height: 40, borderRadius: 20 }} />
-                  ) : (
-                    <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: COLORS.gray200, alignItems: 'center', justifyContent: 'center' }}>
-                      <Text style={{ fontSize: 16, color: COLORS.gray500 }}>{(p.full_name || p.username || '?')[0]}</Text>
-                    </View>
-                  )}
-                  <View>
-                    <Text style={{ fontSize: 15, fontWeight: '600', color: COLORS.gray900 }}>{p.full_name || p.username || '?'}</Text>
-                    {p.username && <Text style={{ fontSize: 13, color: COLORS.gray500 }}>@{p.username}</Text>}
-                  </View>
                 </TouchableOpacity>
               ))}
             </View>
@@ -1570,6 +1566,57 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: COLORS.gray700,
     textAlign: 'center',
+  },
+
+  // Mutual Friends Section (FB/IG style horizontal avatars)
+  mutualFriendsSection: {
+    paddingTop: 12,
+    paddingBottom: 16,
+    paddingHorizontal: 20,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.gray100,
+  },
+  mutualFriendsSectionTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: COLORS.gray900,
+    marginBottom: 12,
+  },
+  mutualFriendsSectionCount: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: COLORS.gray500,
+  },
+  mutualFriendsScrollContent: {
+    gap: 14,
+    paddingRight: 4,
+  },
+  mutualFriendTile: {
+    alignItems: 'center',
+    width: 64,
+  },
+  mutualFriendAvatar: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    marginBottom: 6,
+  },
+  mutualFriendAvatarFallback: {
+    backgroundColor: COLORS.gray200,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  mutualFriendAvatarFallbackText: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: COLORS.gray600,
+  },
+  mutualFriendName: {
+    fontSize: 11,
+    fontWeight: '500',
+    color: COLORS.gray700,
+    textAlign: 'center',
+    maxWidth: 64,
   },
 
   // Link Bio (Linktree style)

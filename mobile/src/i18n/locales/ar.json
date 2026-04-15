@@ -266,7 +266,7 @@
     "reminderSetPrompt": "Tap to set",
     "reminderClear": "Clear",
     "biolinksTitle": "Social Links",
-    "mutualFriendsModalTitle": "الأصدقاء المشتركون"
+    "mutualFriendsSectionTitle": "الأصدقاء المشتركون"
   },
   "userDetail": {
     "headerNotFound": "Not Found",

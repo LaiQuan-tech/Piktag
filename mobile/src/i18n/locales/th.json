@@ -329,7 +329,7 @@
     "hiddenTagsTitle": "แท็กซ่อน (เฉพาะคุณเห็น)",
     "hiddenTagPlaceholder": "เพิ่มแท็กซ่อน เช่น อดีตเพื่อนร่วมงาน",
     "mutualTagsModalTitle": "แท็กร่วมกัน",
-    "mutualFriendsModalTitle": "เพื่อนร่วมกัน"
+    "mutualFriendsSectionTitle": "เพื่อนร่วมกัน"
   },
   "userDetail": {
     "headerNotFound": "ไม่พบ",

@@ -404,7 +404,7 @@
     "hiddenTagsTitle": "Hidden Tags (only you can see)",
     "hiddenTagPlaceholder": "Add hidden tag, e.g. ex-colleague",
     "mutualTagsModalTitle": "Mutual Tags",
-    "mutualFriendsModalTitle": "Mutual Friends"
+    "mutualFriendsSectionTitle": "Mutual Friends"
   },
   "userDetail": {
     "headerNotFound": "Not Found",

@@ -329,7 +329,7 @@
     "hiddenTagsTitle": "숨겨진 태그 (나만 볼 수 있음)",
     "hiddenTagPlaceholder": "숨겨진 태그 추가, 예: 전 동료",
     "mutualTagsModalTitle": "공통 태그",
-    "mutualFriendsModalTitle": "공통 친구"
+    "mutualFriendsSectionTitle": "공통 친구"
   },
   "userDetail": {
     "headerNotFound": "찾을 수 없음",

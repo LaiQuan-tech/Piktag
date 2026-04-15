@@ -269,7 +269,7 @@
     "reminderSetPrompt": "Tap to set",
     "reminderClear": "Clear",
     "biolinksTitle": "Social Links",
-    "mutualFriendsModalTitle": "共通の友達"
+    "mutualFriendsSectionTitle": "共通の友達"
   },
   "userDetail": {
     "headerNotFound": "Not Found",

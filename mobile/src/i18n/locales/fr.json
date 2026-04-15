@@ -266,7 +266,7 @@
     "reminderSetPrompt": "Tap to set",
     "reminderClear": "Clear",
     "biolinksTitle": "Social Links",
-    "mutualFriendsModalTitle": "Amis en Commun"
+    "mutualFriendsSectionTitle": "Amis en Commun"
   },
   "userDetail": {
     "headerNotFound": "Not Found",
