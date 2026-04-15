@@ -4,7 +4,6 @@ import {
   Text,
   FlatList,
   ScrollView,
-  Image,
   TouchableOpacity,
   StyleSheet,
   StatusBar,
@@ -14,6 +13,7 @@ import {
   Alert,
   Dimensions,
 } from 'react-native';
+import { Image } from 'expo-image';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import {
@@ -110,7 +110,7 @@ const ConnectionItem = React.memo(({ item, isSelected, selectMode, onPress, onLo
         </View>
       )}
       {avatarUrl ? (
-        <Image source={{ uri: avatarUrl }} style={styles.avatar} />
+        <Image source={{ uri: avatarUrl }} style={styles.avatar} cachePolicy="memory-disk" />
       ) : (
         <InitialsAvatar name={displayName} size={56} style={styles.avatarInitials} />
       )}
@@ -643,7 +643,7 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
                 >
                   <View style={styles.storyAvatarInner}>
                     {s.avatarUrl ? (
-                      <Image source={{ uri: s.avatarUrl }} style={styles.storyAvatar} />
+                      <Image source={{ uri: s.avatarUrl }} style={styles.storyAvatar} cachePolicy="memory-disk" />
                     ) : (
                       <InitialsAvatar name={s.name} size={52} />
                     )}

@@ -8,12 +8,12 @@ import {
   StyleSheet,
   StatusBar,
   ActivityIndicator,
-  Image,
   ListRenderItemInfo,
   Alert,
   ScrollView,
   Pressable,
 } from 'react-native';
+import { Image } from 'expo-image';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   Search,
@@ -1189,7 +1189,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
                     onPress={() => handleProfilePress(u)}
                   >
                     {u.avatar_url ? (
-                      <Image source={{ uri: u.avatar_url }} style={{ width: 56, height: 56, borderRadius: 28, borderWidth: 2, borderColor: COLORS.piktag300 }} />
+                      <Image source={{ uri: u.avatar_url }} style={{ width: 56, height: 56, borderRadius: 28, borderWidth: 2, borderColor: COLORS.piktag300 }} cachePolicy="memory-disk" />
                     ) : (
                       <View style={{ width: 56, height: 56, borderRadius: 28, backgroundColor: COLORS.gray200, alignItems: 'center', justifyContent: 'center' }}>
                         <User size={24} color={COLORS.gray400} />

@@ -2,7 +2,6 @@ import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import {
   View,
   Text,
-  Image,
   ScrollView,
   FlatList,
   TouchableOpacity,
@@ -12,6 +11,7 @@ import {
   RefreshControl,
   Animated,
 } from 'react-native';
+import { Image } from 'expo-image';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
@@ -298,7 +298,7 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
               <TouchableOpacity onPress={() => setStatusModalVisible(true)} activeOpacity={0.8}>
                 <View style={[styles.avatarWrapper, currentStatus ? styles.avatarRing : null]}>
                   {hasAvatar ? (
-                    <Image source={avatarSource!} style={styles.avatar} />
+                    <Image source={avatarSource!} style={styles.avatar} cachePolicy="memory-disk" />
                   ) : (
                     <InitialsAvatar name={profile?.full_name || profile?.username || ''} size={56} style={styles.avatar} />
                   )}
