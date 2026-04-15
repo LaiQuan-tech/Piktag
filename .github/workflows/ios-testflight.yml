@@ -28,6 +28,25 @@ jobs:
         working-directory: mobile
         run: npm ci
 
+      - name: Set iOS build number
+        working-directory: mobile
+        env:
+          RUN_NUMBER: ${{ github.run_number }}
+        run: |
+          # Use GitHub Actions run_number as the iOS CFBundleVersion.
+          # This guarantees every CI build gets a unique, monotonically
+          # increasing build number — Apple TestFlight rejects duplicates.
+          # Offset by +1 so we never collide with any pre-existing build=1.
+          BUILD_NUMBER=$((RUN_NUMBER + 1))
+          node -e "
+            const fs = require('fs');
+            const app = JSON.parse(fs.readFileSync('app.json', 'utf8'));
+            app.expo.ios = app.expo.ios || {};
+            app.expo.ios.buildNumber = String($BUILD_NUMBER);
+            fs.writeFileSync('app.json', JSON.stringify(app, null, 2) + '\n');
+          "
+          echo "✅ iOS buildNumber set to $BUILD_NUMBER (run_number=$RUN_NUMBER)"
+
       - name: Generate native iOS project
         working-directory: mobile
         run: npx expo prebuild --platform ios --clean
