@@ -434,6 +434,8 @@
   "tagDetail": {
     "unknownTag": "Unknown Tag",
     "usageCount": "{{count}} uses",
+    "tabExplore": "खोजें",
+    "tabConnections": "दोस्त",
     "emptyTitle": "No Connections Yet",
     "emptyText": "No connections are using this tag"
   },
