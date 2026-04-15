@@ -297,37 +297,49 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
           .limit(500);
         if (nearbyProfiles && nearbyProfiles.length > 0) {
           const nearbyIds = nearbyProfiles.map((p: any) => p.id);
-          const { data: nearbyConns } = await supabase
-            .from('piktag_connections').select('id').in('user_id', nearbyIds).limit(2000);
-          if (nearbyConns && nearbyConns.length > 0) {
-            const { data: tagData } = await supabase
-              .from('piktag_connection_tags')
-              .select('tag:piktag_tags!tag_id(id, name, semantic_type, usage_count)')
-              .in('connection_id', nearbyConns.map((c: any) => c.id))
-              .limit(5000);
-            if (tagData && tagData.length > 0) {
-              const tagMap: Record<string, { tag: any; count: number }> = {};
-              for (const ct of tagData) {
-                const tItem = (ct as any).tag;
-                if (tItem && !tagMap[tItem.id]) tagMap[tItem.id] = { tag: tItem, count: 0 };
-                if (tItem) tagMap[tItem.id].count++;
-              }
-              const nearbySorted = Object.values(tagMap)
-                .sort((a, b) => b.count - a.count)
-                .slice(0, 50)
-                .map((item) => ({ ...item.tag, usage_count: item.count }));
-              // Only commit if we got a meaningful number — otherwise the
-              // trickle would feel weirder than the global default.
-              if (nearbySorted.length >= 5) {
-                setCache(CACHE_KEY_POPULAR_TAGS, nearbySorted);
-                setTags(nearbySorted);
-                const cats = [...new Set(nearbySorted.map((t: any) => t.semantic_type).filter(Boolean))] as string[];
-                setTagCategories(cats);
-                setTrendingTagIds(new Set()); // trending only meaningful in global view
-                setLoading(false);
-                setInitialLoading(false);
-                return;
-              }
+          // Query SELF-DECLARED public tags of nearby users directly. This
+          // replaces the previous 3-hop path that went through piktag_connections
+          // → piktag_connection_tags, which had two problems:
+          //   1. Semantic: it was counting "tags these nearby users put on
+          //      THEIR friends", not "tags these nearby users claim for
+          //      themselves" — weird composition for a discovery feature.
+          //   2. Privacy: piktag_connection_tags stores private hidden tags
+          //      side-by-side with public pick tags; the old query had no
+          //      is_private filter, so if RLS ever loosened it could leak
+          //      other users' hidden tags into the nearby popular set.
+          //
+          // The new query aligns with loadRecommendations + the trending
+          // detection below — all three now consume piktag_user_tags with
+          // is_private=false, so discovery is consistently about self-declared
+          // public identity markers.
+          const { data: tagData } = await supabase
+            .from('piktag_user_tags')
+            .select('tag:piktag_tags!tag_id(id, name, semantic_type, usage_count)')
+            .in('user_id', nearbyIds)
+            .eq('is_private', false)
+            .limit(5000);
+          if (tagData && tagData.length > 0) {
+            const tagMap: Record<string, { tag: any; count: number }> = {};
+            for (const ut of tagData) {
+              const tItem = (ut as any).tag;
+              if (tItem && !tagMap[tItem.id]) tagMap[tItem.id] = { tag: tItem, count: 0 };
+              if (tItem) tagMap[tItem.id].count++;
+            }
+            const nearbySorted = Object.values(tagMap)
+              .sort((a, b) => b.count - a.count)
+              .slice(0, 50)
+              .map((item) => ({ ...item.tag, usage_count: item.count }));
+            // Only commit if we got a meaningful number — otherwise the
+            // trickle would feel weirder than the global default.
+            if (nearbySorted.length >= 5) {
+              setCache(CACHE_KEY_POPULAR_TAGS, nearbySorted);
+              setTags(nearbySorted);
+              const cats = [...new Set(nearbySorted.map((t: any) => t.semantic_type).filter(Boolean))] as string[];
+              setTagCategories(cats);
+              setTrendingTagIds(new Set()); // trending only meaningful in global view
+              setLoading(false);
+              setInitialLoading(false);
+              return;
             }
           }
         }
