@@ -29,7 +29,12 @@ import type { Tag, UserTag } from '../types';
 const MAX_TAGS = 10;
 const MAX_TAG_LENGTH = 30;
 const MAX_PINNED = 1;
-const GEMINI_API_KEY = process.env.EXPO_PUBLIC_GEMINI_API_KEY || 'AIzaSyAxoSZOyzXYNPPQqRXh2ifLGgjTVOd7QA4';
+// Google Gemini API key loaded from env (mobile/.env locally, EAS
+// secrets in production). No hardcoded fallback — if the env var is
+// missing, the AI suggestion feature will return an error instead of
+// burning credits on the wrong project's key. MUST be bundle-id
+// restricted in the GCP Console to ag.pikt.app.
+const GEMINI_API_KEY = (process.env.EXPO_PUBLIC_GEMINI_API_KEY ?? '') as string;
 
 
 type ManageTagsScreenProps = { navigation: NativeStackNavigationProp<any> };

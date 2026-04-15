@@ -13,6 +13,24 @@ jobs:
     runs-on: macos-15
     timeout-minutes: 60
 
+    # EXPO_PUBLIC_* vars are substituted into the JS bundle by Metro at
+    # bundle time and read by supabase.ts / googlePlaces.ts / ManageTagsScreen
+    # at runtime. They MUST be present in the environment of both `npx expo
+    # prebuild` and the xcodebuild archive step (which invokes Metro via the
+    # React Native "Bundle React Native code and images" Xcode script phase).
+    # Setting them at job level is the simplest way to propagate to every step.
+    #
+    # Required GitHub Actions secrets (add in repo Settings → Secrets → Actions):
+    #   - EXPO_PUBLIC_SUPABASE_URL
+    #   - EXPO_PUBLIC_SUPABASE_ANON_KEY
+    #   - EXPO_PUBLIC_GEMINI_API_KEY
+    #   - EXPO_PUBLIC_GOOGLE_PLACES_API_KEY
+    env:
+      EXPO_PUBLIC_SUPABASE_URL: ${{ secrets.EXPO_PUBLIC_SUPABASE_URL }}
+      EXPO_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.EXPO_PUBLIC_SUPABASE_ANON_KEY }}
+      EXPO_PUBLIC_GEMINI_API_KEY: ${{ secrets.EXPO_PUBLIC_GEMINI_API_KEY }}
+      EXPO_PUBLIC_GOOGLE_PLACES_API_KEY: ${{ secrets.EXPO_PUBLIC_GOOGLE_PLACES_API_KEY }}
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -27,6 +45,30 @@ jobs:
       - name: Install dependencies
         working-directory: mobile
         run: npm ci
+
+      - name: Write .env from job env (belt & suspenders)
+        working-directory: mobile
+        run: |
+          # Some Expo CLI tools read from mobile/.env in addition to
+          # process.env. Write the file explicitly so both paths work,
+          # regardless of whether Metro picks up from process.env or .env.
+          cat > .env <<EOF
+          EXPO_PUBLIC_SUPABASE_URL=${EXPO_PUBLIC_SUPABASE_URL}
+          EXPO_PUBLIC_SUPABASE_ANON_KEY=${EXPO_PUBLIC_SUPABASE_ANON_KEY}
+          EXPO_PUBLIC_GEMINI_API_KEY=${EXPO_PUBLIC_GEMINI_API_KEY}
+          EXPO_PUBLIC_GOOGLE_PLACES_API_KEY=${EXPO_PUBLIC_GOOGLE_PLACES_API_KEY}
+          EOF
+          # Fail loudly if any required secret is missing. Better to abort
+          # now than produce a crashing release build.
+          if [ -z "$EXPO_PUBLIC_SUPABASE_URL" ] || [ -z "$EXPO_PUBLIC_SUPABASE_ANON_KEY" ]; then
+            echo "❌ Missing EXPO_PUBLIC_SUPABASE_* secrets — add them in GitHub Settings → Secrets → Actions"
+            exit 1
+          fi
+          if [ -z "$EXPO_PUBLIC_GEMINI_API_KEY" ] || [ -z "$EXPO_PUBLIC_GOOGLE_PLACES_API_KEY" ]; then
+            echo "❌ Missing EXPO_PUBLIC_GEMINI_API_KEY or EXPO_PUBLIC_GOOGLE_PLACES_API_KEY — add them in GitHub Settings → Secrets → Actions"
+            exit 1
+          fi
+          echo "✅ mobile/.env written from secrets"
 
       - name: Set iOS build number
         working-directory: mobile

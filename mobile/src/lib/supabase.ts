@@ -1,8 +1,20 @@
 import { createClient } from '@supabase/supabase-js';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-export const supabaseUrl = 'https://kbwfdskulxnhjckdvghj.supabase.co';
-export const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtid2Zkc2t1bHhuaGpja2R2Z2hqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEzOTgwNTAsImV4cCI6MjA4Njk3NDA1MH0.q1wxMahfity_5An5I_PPSoxglJeKHXX6ohYeGvsaIC8';
+// Supabase project credentials loaded from env (mobile/.env locally,
+// EAS secrets in production). The anon key is technically public — it's
+// the key the RN app ships with, protected by Supabase RLS — but we
+// still load via env so it can be rotated without a code change, and
+// so the value doesn't live in git history.
+export const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL as string;
+export const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY as string;
+
+if (!supabaseUrl || !supabaseAnonKey) {
+  throw new Error(
+    '[supabase] Missing EXPO_PUBLIC_SUPABASE_URL or EXPO_PUBLIC_SUPABASE_ANON_KEY. ' +
+      'Copy mobile/.env.example to mobile/.env and fill in real values.',
+  );
+}
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {

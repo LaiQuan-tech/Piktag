@@ -22,14 +22,12 @@ import {
   X,
   Sparkles,
 } from 'lucide-react-native';
-import { supabase } from '../../lib/supabase';
+import { supabase, supabaseUrl } from '../../lib/supabase';
 import { COLORS, SPACING, BORDER_RADIUS } from '../../constants/theme';
 
 type OnboardingScreenProps = {
   navigation: any;
 };
-
-const SUPABASE_URL = 'https://kbwfdskulxnhjckdvghj.supabase.co';
 
 type SocialLinkKey = 'facebook' | 'instagram' | 'linkedin';
 
@@ -58,7 +56,7 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
     }
     setAiLoading(true);
     try {
-      const resp = await fetch(`${SUPABASE_URL}/functions/v1/suggest-tags`, {
+      const resp = await fetch(`${supabaseUrl}/functions/v1/suggest-tags`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ bio: bioText }),

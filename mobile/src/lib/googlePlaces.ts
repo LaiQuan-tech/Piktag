@@ -1,6 +1,11 @@
 import { logApiUsage } from './apiUsage';
 
-export const GOOGLE_PLACES_API_KEY = process.env.EXPO_PUBLIC_GOOGLE_PLACES_API_KEY || 'AIzaSyA7EfF5bYvUSGeNE0T8DAiLR53SpZTTzlY';
+// Google Places API key loaded from env (mobile/.env locally, EAS
+// secrets in production). No hardcoded fallback — a missing key is
+// better than shipping a real one in the bundle. The key MUST be
+// bundle-id restricted in the GCP Console so even if someone pulls
+// it out of the app bundle they can't use it outside Piktag.
+export const GOOGLE_PLACES_API_KEY = (process.env.EXPO_PUBLIC_GOOGLE_PLACES_API_KEY ?? '') as string;
 
 export type PlaceResult = {
   name: string;
