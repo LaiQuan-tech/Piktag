@@ -144,6 +144,8 @@ jobs:
 
       - name: Build iOS Archive
         working-directory: mobile/ios
+        env:
+          SENTRY_DISABLE_AUTO_UPLOAD: 'true'
         run: |
           set +e
           set -o pipefail
