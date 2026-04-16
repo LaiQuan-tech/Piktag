@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "941100861819",
+    "project_id": "piktag-4cf0c",
+    "storage_bucket": "piktag-4cf0c.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:941100861819:android:ae360d4eac7416618e15de",
+        "android_client_info": {
+          "package_name": "ag.pikt.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAyDzSjfg1VcpHINidXJBWYpwQbiLSzpow"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
