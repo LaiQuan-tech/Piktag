@@ -45,8 +45,8 @@ function getQuickDates(): { label: string; date: Date }[] {
   const today = new Date();
   const tomorrow = new Date(today); tomorrow.setDate(today.getDate() + 1);
   return [
-    { label: '今天', date: today },
-    { label: '明天', date: tomorrow },
+    { label: formatDate(today), date: today },
+    { label: formatDate(tomorrow), date: tomorrow },
   ];
 }
 
@@ -385,18 +385,26 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
     <>
       {/* Header */}
       <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
-        <View style={styles.headerSideBtn} />
-        <Text style={styles.headerTitle}>PikTag</Text>
-        <TouchableOpacity
-          onPress={async () => {
-            await loadPresets();
-            setShowPresetsModal(true);
-          }}
-          activeOpacity={0.6}
-          style={styles.headerSideBtn}
-        >
-          <Star size={24} color={COLORS.accent400} />
-        </TouchableOpacity>
+        <Text style={styles.headerTitle}>{t('addTag.headerTitle') || '活動標籤'}</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16, marginLeft: 'auto' }}>
+          <TouchableOpacity
+            onPress={() => navigation.navigate('CameraScan')}
+            activeOpacity={0.6}
+            style={styles.headerSideBtn}
+          >
+            <Camera size={24} color={COLORS.gray700} />
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={async () => {
+              await loadPresets();
+              setShowPresetsModal(true);
+            }}
+            activeOpacity={0.6}
+            style={styles.headerSideBtn}
+          >
+            <Star size={24} color={COLORS.accent400} />
+          </TouchableOpacity>
+        </View>
       </View>
 
       <ScrollView
@@ -436,9 +444,6 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
               </Text>
             </TouchableOpacity>
           </View>
-
-          {/* Selected date display */}
-          <Text style={styles.selectedDateText}>{eventDate}</Text>
 
           {/* Simple month calendar (when expanded) */}
           {showDatePicker && (
@@ -526,10 +531,6 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
             </View>
           )}
 
-          {/* Selected location display */}
-          {eventLocation ? (
-            <Text style={styles.selectedDateText}>{eventLocation}</Text>
-          ) : null}
         </View>
 
         {/* Location Picker Modal */}
