@@ -51,6 +51,7 @@
     },
     "plugins": [
       "./plugins/withNonFatalRCTFatalHandler.js",
+      "@sentry/react-native/expo",
       [
         "expo-build-properties",
         {
