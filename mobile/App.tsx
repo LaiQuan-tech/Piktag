@@ -1,11 +1,3 @@
-import * as Sentry from '@sentry/react-native';
-
-Sentry.init({
-  dsn: 'https://a6f25db2278dc71a2ea41314adc226c0@o4511225670402048.ingest.us.sentry.io/4511227846066176',
-  tracesSampleRate: 0.2,
-  enabled: !__DEV__,
-});
-
 import React from 'react';
 import { View, Platform, StyleSheet } from 'react-native';
 import * as Sentry from '@sentry/react-native';
