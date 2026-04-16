@@ -347,6 +347,13 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
       await supabase.rpc('increment_scan_count', { session_id: paramSid });
 
       if (conn) setConnectionId(conn.id);
+
+      // Auto-follow the host after QR add-friend
+      await supabase.from('piktag_follows').upsert(
+        { follower_id: authUser.id, following_id: resolvedUserId },
+        { onConflict: 'follower_id,following_id', ignoreDuplicates: true }
+      ).catch(() => {});
+
       Alert.alert(t('scanResult.alertSuccessTitle'), t('scanResult.alertSuccessMessage', { name: profile?.full_name || '' }));
     } catch (err) {
       console.error('Error adding friend from QR:', err);
@@ -678,7 +685,23 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
           </View>
 
           {/* Action buttons */}
-          <View style={styles.actionButtonsRow}>
+          {paramSid && !connectionId ? (
+            <View style={styles.actionButtonsRow}>
+              <TouchableOpacity
+                style={styles.qrAddFriendBtn}
+                onPress={handleAddFriendFromQr}
+                disabled={addFriendLoading}
+                activeOpacity={0.8}
+              >
+                {addFriendLoading ? (
+                  <ActivityIndicator size="small" color={COLORS.white} />
+                ) : (
+                  <Text style={styles.qrAddFriendText}>{t('scanResult.addFriend') || '加好友'}</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <View style={styles.actionButtonsRow}>
             {isFollowing ? (
               <TouchableOpacity
                 style={[styles.followButton, styles.followButtonFollowing]}
@@ -730,6 +753,7 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
               <UserPlus size={20} color={showSimilar ? COLORS.piktag500 : COLORS.gray500} />
             </TouchableOpacity>
           </View>
+          )}
         </View>
 
         {/* Similar Users — IG style "Suggested for you" */}

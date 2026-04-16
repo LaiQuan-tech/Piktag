@@ -313,6 +313,8 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
             event_location: eventLocation,
             event_tags: eventTags,
             qr_code_data: '', // placeholder
+            is_active: true,
+            expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
           })
           .select('*')
           .single();
