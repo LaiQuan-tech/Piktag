@@ -1,3 +1,11 @@
+import * as Sentry from '@sentry/react-native';
+
+Sentry.init({
+  dsn: '', // TODO: Add Sentry DSN from sentry.io project settings
+  tracesSampleRate: 0.2,
+  enabled: !__DEV__,
+});
+
 import React from 'react';
 import { View, Platform, StyleSheet } from 'react-native';
 import * as Sentry from '@sentry/react-native';
@@ -114,7 +122,4 @@ const webStyles = StyleSheet.create({
   },
 });
 
-// Sentry.wrap() catches unhandled JS errors at the root level and
-// reports them before the app crashes. It also injects performance
-// tracing into the component tree.
 export default Sentry.wrap(App);

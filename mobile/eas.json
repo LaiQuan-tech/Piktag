@@ -28,6 +28,7 @@
         "autoIncrement": true
       },
       "android": {
+        "buildType": "app-bundle",
         "autoIncrement": true
       }
     }
@@ -38,6 +39,10 @@
         "appleId": "armand7951@gmail.com",
         "ascAppId": "6761379641",
         "appleTeamId": "3NU6HAGX6Z"
+      },
+      "android": {
+        "serviceAccountKeyPath": "./google-play-service-account.json",
+        "track": "internal"
       }
     }
   }
