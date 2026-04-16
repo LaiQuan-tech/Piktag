@@ -17,6 +17,7 @@ import { COLORS } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
 import { useTranslation } from 'react-i18next';
 import { registerForPushNotifications } from '../lib/pushNotifications';
+import { posthog } from '../lib/analytics';
 
 // Auth Screens — eager (needed before session resolves)
 import LoginScreen from '../screens/auth/LoginScreen';
@@ -333,6 +334,10 @@ export default function AppNavigator() {
     supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
       setSession(currentSession);
       if (currentSession?.user) {
+        // Identify user in PostHog so all events are linked to this account.
+        posthog.identify(currentSession.user.id, {
+          email: currentSession.user.email,
+        });
         checkOnboardingStatus(currentSession.user.id, currentSession.user.created_at);
         // Defer push notification registration until after the first frame
         // has been painted and the main screen's mount work has settled.

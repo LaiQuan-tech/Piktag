@@ -907,7 +907,7 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
                     <TouchableOpacity
                       key={st}
                       style={[styles.filterTagChip, filterTag === st && styles.filterTagChipActive]}
-                      onPress={() => { setFilterTag(st); setFilterModalVisible(false); }}
+                      onPress={() => { setFilterTag(st); setFilterModalVisible(false); require('../lib/analytics').trackTagFilterApplied(st); }}
                       activeOpacity={0.7}
                     >
                       <Text style={[styles.filterTagChipText, filterTag === st && styles.filterTagChipTextActive]}>

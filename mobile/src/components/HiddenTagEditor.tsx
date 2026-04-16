@@ -156,6 +156,8 @@ export default function HiddenTagEditor({ connectionId, userId, hiddenTags, onTa
       });
       // Await parent refetch so the next user action sees fresh state.
       await onTagsChanged();
+      // Analytics: track hidden tag addition
+      require('../lib/analytics').trackHiddenTagAdded('text');
       // Also refresh frequent list so the tag we just added bubbles up next time
       loadFrequentTags();
     } catch (err) {

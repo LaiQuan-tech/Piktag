@@ -51,6 +51,7 @@ export default function RedeemInviteScreen({ navigation, route }: Props) {
       const row = Array.isArray(data) ? data[0] : data;
       if (row?.success) {
         setSuccess(true);
+        require('../lib/analytics').trackInviteRedeemed(code.trim());
         Alert.alert(
           t('redeemInvite.successTitle') || 'Invite redeemed',
           t('redeemInvite.successMessage') || 'You can now connect with the person who invited you!',

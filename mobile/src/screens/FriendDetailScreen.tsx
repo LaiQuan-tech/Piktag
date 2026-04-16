@@ -150,6 +150,11 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
   const { user } = useAuth();
   const { connectionId, friendId } = route.params || {};
 
+  // Analytics: track friend detail page view
+  useEffect(() => {
+    require('../lib/analytics').trackFriendDetailViewed();
+  }, []);
+
   // Prevent screenshots on this page (protects hidden tags)
   useEffect(() => {
     preventScreenCaptureAsync();

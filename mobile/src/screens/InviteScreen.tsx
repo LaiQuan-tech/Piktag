@@ -190,6 +190,7 @@ export default function InviteScreen({ navigation }: InviteScreenProps) {
     try {
       const universalLink = `https://pikt.ag/i/${code}`;
       const deepLink = `piktag://invite/${code}`;
+      require('../lib/analytics').trackInviteShared();
       await Share.share({
         message: t('invite.shareMessage', {
           code,
