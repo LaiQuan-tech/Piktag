@@ -1280,17 +1280,17 @@ const styles = StyleSheet.create({
     marginTop: 14,
   },
   tagChip: {
-    backgroundColor: COLORS.gray50,
-    borderRadius: 16,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderWidth: 1,
-    borderColor: COLORS.gray200,
+    backgroundColor: COLORS.gray100,
+    borderRadius: 9999,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderWidth: 1.5,
+    borderColor: 'transparent',
   },
   tagChipText: {
     fontSize: 14,
     fontWeight: '500',
-    color: COLORS.gray800,
+    color: COLORS.gray600,
   },
 
   sectionTitle: {

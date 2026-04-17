@@ -558,9 +558,9 @@ const styles = StyleSheet.create({
     borderColor: COLORS.piktag500,
   },
   chipUnselected: {
-    backgroundColor: COLORS.white,
-    borderWidth: 1,
-    borderColor: COLORS.gray200,
+    backgroundColor: COLORS.gray100,
+    borderWidth: 1.5,
+    borderColor: 'transparent',
   },
   chipText: {
     fontSize: 14,
@@ -570,7 +570,7 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
   chipTextUnselected: {
-    color: COLORS.gray700,
+    color: COLORS.gray600,
   },
   ctaContainer: {
     paddingHorizontal: 20,
