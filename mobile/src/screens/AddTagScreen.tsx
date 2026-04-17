@@ -219,19 +219,33 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
     setSavingPreset(true);
     setShowPresetNameModal(false);
     try {
-      const { error } = await supabase.from('piktag_tag_presets').insert({
-        user_id: user.id,
-        name: presetNameInput.trim(),
-        location: eventLocation,
-        tags: eventTags,
-      });
-      if (error) {
+      // Return the inserted row via .select().single() instead of firing a
+      // separate loadPresets() afterward. This was the bug: the old flow
+      // inserted, then re-fetched, which sometimes returned a stale or empty
+      // list (race / PostgREST caching / RLS SELECT timing). Using returning
+      // data means the row is guaranteed in state the instant INSERT acks.
+      const { data, error } = await supabase
+        .from('piktag_tag_presets')
+        .insert({
+          user_id: user.id,
+          name: presetNameInput.trim(),
+          location: eventLocation,
+          tags: eventTags,
+        })
+        .select('*')
+        .single();
+
+      if (error || !data) {
+        console.warn('[AddTag] savePreset error:', error?.message, error?.code);
         Alert.alert(t('common.error'), t('addTag.alertPresetSaveError'));
       } else {
+        // Optimistically prepend to local state so the star-modal reflects
+        // the new preset immediately on next open.
+        setPresets((prev) => [data as TagPreset, ...prev]);
         Alert.alert(t('addTag.alertPresetSavedTitle'), t('addTag.alertPresetSavedMessage', { name: presetNameInput.trim() }));
-        loadPresets();
       }
-    } catch {
+    } catch (err) {
+      console.warn('[AddTag] savePreset threw:', err);
       Alert.alert(t('common.error'), t('addTag.alertPresetSaveError'));
     } finally {
       setSavingPreset(false);
