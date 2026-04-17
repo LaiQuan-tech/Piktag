@@ -163,7 +163,15 @@ function renderProfilePage(profile, biolinks, tags, sid, locale) {
   <meta name="twitter:description" content="${escapeHtml(ogDescription)}">
   <meta name="twitter:image" content="${escapeHtml(avatarUrl)}">
   <script type="application/ld+json">
-  {"@context":"https://schema.org","@type":"Person","name":"${escapeHtml(name)}","url":"${pageUrl}","image":"${escapeHtml(avatarUrl)}","description":"${escapeHtml(ogDescription)}","sameAs":[${biolinks.map(l => `"${escapeHtml(l.url)}"`).join(',')}]}
+  ${JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "Person",
+    name: name,
+    url: pageUrl,
+    image: avatarUrl,
+    description: ogDescription,
+    sameAs: biolinks.map(l => l.url).filter(Boolean),
+  }).replace(/</g, '\\u003c')}
   </script>
   <link rel="icon" href="/favicon.ico">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
