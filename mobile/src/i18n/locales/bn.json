@@ -256,7 +256,8 @@
     "reminderSetPrompt": "Tap to set",
     "reminderClear": "Clear",
     "biolinksTitle": "Social Links",
-    "mutualFriendsSectionTitle": "পারস্পরিক বন্ধু"
+    "mutualFriendsSectionTitle": "পারস্পরিক বন্ধু",
+    "shareIntroMessage": "{{name}} এর সাথে পরিচয় করিয়ে দিই — প্রোফাইল: {{url}}"
   },
   "userDetail": {
     "headerNotFound": "Not Found",

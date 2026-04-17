@@ -1155,14 +1155,14 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
                 setMoreMenuVisible(false);
                 const profileUrl = `https://pikt.ag/${username}`;
                 const name = displayName || username;
+                const message = t('friendDetail.shareIntroMessage', { name, url: profileUrl });
                 try {
                   await Share.share({
-                    message: Platform.OS === 'ios' ? `${name} (@${username}) on PikTag` : `${name} (@${username}) on PikTag\n${profileUrl}`,
+                    message: Platform.OS === 'ios' ? message : `${message}\n${profileUrl}`,
                     url: Platform.OS === 'ios' ? profileUrl : undefined,
                   });
                 } catch (err) {
                   console.warn('[FriendDetail] Share failed:', err);
-                  // User-cancelled share also throws; only alert on real errors.
                   if (err instanceof Error && !/(dismiss|cancel)/i.test(err.message)) {
                     Alert.alert(t('common.error'), t('common.unknownError'));
                   }

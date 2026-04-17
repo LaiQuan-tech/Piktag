@@ -406,7 +406,8 @@
     "hiddenTagsTitle": "Hidden Tags (only you can see)",
     "hiddenTagPlaceholder": "Add hidden tag, e.g. ex-colleague",
     "mutualTagsModalTitle": "Mutual Tags",
-    "mutualFriendsSectionTitle": "Mutual Friends"
+    "mutualFriendsSectionTitle": "Mutual Friends",
+    "shareIntroMessage": "Let me introduce {{name}} to you — here's their profile: {{url}}"
   },
   "userDetail": {
     "headerNotFound": "Not Found",

@@ -319,7 +319,8 @@
     "hiddenTagsTitle": "Tag Tersembunyi (hanya kamu yang bisa lihat)",
     "hiddenTagPlaceholder": "Tambah tag tersembunyi, mis. mantan rekan kerja",
     "mutualTagsModalTitle": "Tag yang Sama",
-    "mutualFriendsSectionTitle": "Teman Bersama"
+    "mutualFriendsSectionTitle": "Teman Bersama",
+    "shareIntroMessage": "Kenalkan, ini {{name}} — profilnya: {{url}}"
   },
   "userDetail": {
     "headerNotFound": "Tidak Ditemukan",

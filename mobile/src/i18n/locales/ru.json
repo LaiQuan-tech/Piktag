@@ -256,7 +256,8 @@
     "reminderSetPrompt": "Tap to set",
     "reminderClear": "Clear",
     "biolinksTitle": "Social Links",
-    "mutualFriendsSectionTitle": "Общие друзья"
+    "mutualFriendsSectionTitle": "Общие друзья",
+    "shareIntroMessage": "Знакомьтесь, это {{name}} — вот его профиль: {{url}}"
   },
   "userDetail": {
     "headerNotFound": "Not Found",
