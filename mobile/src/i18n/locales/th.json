@@ -192,7 +192,12 @@
     "presetNamePrompt": "กรอกชื่อสำหรับเทมเพลตนี้",
     "popularTagsSoftTitle": "แท็กความสนใจ",
     "popularTagsHardTitle": "แท็กอาชีพ",
-    "longPressToDelete": "กดค้างเพื่อลบเทมเพลต"
+    "longPressToDelete": "กดค้างเพื่อลบเทมเพลต",
+    "shareFile": "แชร์",
+    "copyLink": "คัดลอกลิงก์",
+    "editQr": "แก้ไข QR",
+    "alertLinkCopiedTitle": "คัดลอกแล้ว",
+    "alertLinkCopiedMessage": "คัดลอกลิงก์ไปยังคลิปบอร์ดแล้ว"
   },
   "profile": {
     "nameNotSet": "ยังไม่ได้ตั้งชื่อ",

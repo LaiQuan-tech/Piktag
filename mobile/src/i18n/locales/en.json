@@ -256,7 +256,12 @@
     "presetNamePrompt": "Enter a name for this preset",
     "popularTagsSoftTitle": "Interest Tags",
     "popularTagsHardTitle": "Profession Tags",
-    "longPressToDelete": "Long press to delete a preset"
+    "longPressToDelete": "Long press to delete a preset",
+    "shareFile": "Share",
+    "copyLink": "Copy link",
+    "editQr": "Edit QR",
+    "alertLinkCopiedTitle": "Copied",
+    "alertLinkCopiedMessage": "Link copied to clipboard"
   },
   "profile": {
     "nameNotSet": "Name not set",

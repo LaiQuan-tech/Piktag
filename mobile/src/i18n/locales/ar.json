@@ -159,7 +159,12 @@
     "noPresets": "No templates yet",
     "applyPreset": "Apply",
     "shareMessage": "PikTag Social Event\nDate: {{eventDate}}\nLocation: {{eventLocation}}\nTags: {{tags}}\n\nScan QR Code to connect!",
-    "defaultDisplayName": "User"
+    "defaultDisplayName": "User",
+    "shareFile": "مشاركة",
+    "copyLink": "نسخ الرابط",
+    "editQr": "تعديل QR",
+    "alertLinkCopiedTitle": "تم النسخ",
+    "alertLinkCopiedMessage": "تم نسخ الرابط إلى الحافظة"
   },
   "profile": {
     "nameNotSet": "Name not set",
