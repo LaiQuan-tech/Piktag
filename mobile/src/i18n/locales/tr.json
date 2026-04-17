@@ -322,7 +322,8 @@
     "hiddenTagsTitle": "Gizli Etiketler (yalnızca siz görebilirsin)",
     "hiddenTagPlaceholder": "Gizli etiket ekleyin, ör. eski iş arkadaşı",
     "mutualTagsModalTitle": "Ortak Etiketler",
-    "mutualFriendsSectionTitle": "Ortak Arkadaşlar"
+    "mutualFriendsSectionTitle": "Ortak Arkadaşlar",
+    "shareIntroMessage": "Sana {{name}}'ı tanıştırayım — profili: {{url}}"
   },
   "userDetail": {
     "headerNotFound": "Bulunamadı",

@@ -256,7 +256,8 @@
     "reminderSetPrompt": "Tap to set",
     "reminderClear": "Clear",
     "biolinksTitle": "Social Links",
-    "mutualFriendsSectionTitle": "सामान्य मित्र"
+    "mutualFriendsSectionTitle": "सामान्य मित्र",
+    "shareIntroMessage": "{{name}} से मिलिए — उनकी प्रोफाइल: {{url}}"
   },
   "userDetail": {
     "headerNotFound": "Not Found",

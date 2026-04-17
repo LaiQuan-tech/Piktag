@@ -256,7 +256,8 @@
     "reminderSetPrompt": "Tap to set",
     "reminderClear": "Clear",
     "biolinksTitle": "Social Links",
-    "mutualFriendsSectionTitle": "Amigos em Comum"
+    "mutualFriendsSectionTitle": "Amigos em Comum",
+    "shareIntroMessage": "Deixa eu te apresentar {{name}} — aqui está o perfil: {{url}}"
   },
   "userDetail": {
     "headerNotFound": "Not Found",

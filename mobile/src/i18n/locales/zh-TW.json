@@ -409,7 +409,8 @@
     "hiddenTagsTitle": "隱藏標籤（只有你看得到）",
     "hiddenTagPlaceholder": "新增隱藏標籤，如：前同事",
     "mutualTagsModalTitle": "共同標籤",
-    "mutualFriendsSectionTitle": "共同朋友"
+    "mutualFriendsSectionTitle": "共同朋友",
+    "shareIntroMessage": "我介紹 {{name}} 給你，這是他的資訊：{{url}}"
   },
   "userDetail": {
     "headerNotFound": "Not Found",

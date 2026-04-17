@@ -259,7 +259,8 @@
     "reminderSetPrompt": "Tap to set",
     "reminderClear": "Clear",
     "biolinksTitle": "Social Links",
-    "mutualFriendsSectionTitle": "共同朋友"
+    "mutualFriendsSectionTitle": "共同朋友",
+    "shareIntroMessage": "我介绍 {{name}} 给你，这是他的资讯：{{url}}"
   },
   "userDetail": {
     "headerNotFound": "Not Found",

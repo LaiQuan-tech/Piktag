@@ -259,7 +259,8 @@
     "reminderSetPrompt": "Tap to set",
     "reminderClear": "Clear",
     "biolinksTitle": "Social Links",
-    "mutualFriendsSectionTitle": "共通の友達"
+    "mutualFriendsSectionTitle": "共通の友達",
+    "shareIntroMessage": "{{name}}さんを紹介します。プロフィール：{{url}}"
   },
   "userDetail": {
     "headerNotFound": "Not Found",
