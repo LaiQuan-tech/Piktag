@@ -331,7 +331,10 @@
     "alertNotOnPikTagMessage": "{{name}} is not on PikTag yet, invite them to join!",
     "alertBatchImportTitle": "Batch Import",
     "alertBatchImportMessage": "Are you sure you want to import all {{count}} contacts?",
-    "alertBatchImportConfirm": "Import"
+    "alertBatchImportConfirm": "Import",
+    "batchProgress": "处理中 {{current}}/{{total}}",
+    "alertBatchDoneTitle": "导入完成",
+    "alertBatchDoneMessage": "已加入 {{matched}} 位朋友。其中 {{notOnApp}} 位尚未使用 PikTag。"
   },
   "invite": {
     "headerTitle": "Invite Friends",

@@ -52,6 +52,7 @@ export default function ContactSyncScreen({ navigation }: ContactSyncScreenProps
   const [permissionDenied, setPermissionDenied] = useState(false);
   const [importingIds, setImportingIds] = useState<Set<string>>(new Set());
   const [importedIds, setImportedIds] = useState<Set<string>>(new Set());
+  const [batchProgress, setBatchProgress] = useState<{ current: number; total: number; matched: number } | null>(null);
 
   const loadContacts = useCallback(async () => {
     try {
@@ -107,13 +108,11 @@ export default function ContactSyncScreen({ navigation }: ContactSyncScreenProps
     } catch { /* cancelled */ }
   };
 
-  const handleImportContact = async (contact: PhoneContact) => {
-    if (!user) return;
-
-    setImportingIds((prev) => new Set(prev).add(contact.id));
-
+  // Silent import: only creates a connection if contact matches a PikTag user.
+  // Returns true if matched+connected, false if not found. Never opens share sheet.
+  const importContactSilently = async (contact: PhoneContact): Promise<boolean> => {
+    if (!user) return false;
     try {
-      // Check if a profile with matching phone or email exists
       let matchedUserId: string | null = null;
 
       if (contact.phone) {
@@ -127,7 +126,6 @@ export default function ContactSyncScreen({ navigation }: ContactSyncScreenProps
       }
 
       if (!matchedUserId && contact.email) {
-        // Check auth users by email via profile lookup
         const { data: emailMatch } = await supabase
           .from('piktag_profiles')
           .select('id')
@@ -137,7 +135,6 @@ export default function ContactSyncScreen({ navigation }: ContactSyncScreenProps
       }
 
       if (matchedUserId && matchedUserId !== user.id) {
-        // Create a connection to the matched user
         const { error } = await supabase
           .from('piktag_connections')
           .upsert(
@@ -149,19 +146,27 @@ export default function ContactSyncScreen({ navigation }: ContactSyncScreenProps
             },
             { onConflict: 'user_id,connected_user_id' }
           );
-
-        if (error) {
-          console.error('Error importing contact:', error);
-          Alert.alert(t('common.error'), t('contactSync.alertImportError'));
-        } else {
+        if (!error) {
           setImportedIds((prev) => new Set(prev).add(contact.id));
+          return true;
         }
-      } else {
-        // No match found — offer invite
+      }
+      return false;
+    } catch {
+      return false;
+    }
+  };
+
+  // Individual '+' button: silent import, but if no match found fall back to
+  // invite sheet so the user can share PikTag with that contact.
+  const handleImportContact = async (contact: PhoneContact) => {
+    if (!user) return;
+    setImportingIds((prev) => new Set(prev).add(contact.id));
+    try {
+      const matched = await importContactSilently(contact);
+      if (!matched) {
         handleInvite(contact);
       }
-    } catch (err) {
-      console.error('Import error:', err);
     } finally {
       setImportingIds((prev) => {
         const next = new Set(prev);
@@ -171,21 +176,36 @@ export default function ContactSyncScreen({ navigation }: ContactSyncScreenProps
     }
   };
 
+  // '全部匯入': silent batch. Never opens share sheet during processing.
+  // Shows inline progress, summary alert at end.
   const handleImportAll = async () => {
-    if (contacts.length === 0) return;
+    if (contacts.length === 0 || batchProgress) return;
+    const pending = contacts.filter((c) => !importedIds.has(c.id));
+    if (pending.length === 0) return;
+
     Alert.alert(
       t('contactSync.alertBatchImportTitle'),
-      t('contactSync.alertBatchImportMessage', { count: contacts.length }),
+      t('contactSync.alertBatchImportMessage', { count: pending.length }),
       [
         { text: t('common.cancel'), style: 'cancel' },
         {
           text: t('contactSync.alertBatchImportConfirm'),
           onPress: async () => {
-            for (const c of contacts) {
-              if (!importedIds.has(c.id)) {
-                await handleImportContact(c);
-              }
+            setBatchProgress({ current: 0, total: pending.length, matched: 0 });
+            let matched = 0;
+            for (let i = 0; i < pending.length; i++) {
+              const ok = await importContactSilently(pending[i]);
+              if (ok) matched++;
+              setBatchProgress({ current: i + 1, total: pending.length, matched });
             }
+            setBatchProgress(null);
+            Alert.alert(
+              t('contactSync.alertBatchDoneTitle') || '匯入完成',
+              t('contactSync.alertBatchDoneMessage', {
+                matched,
+                notOnApp: pending.length - matched,
+              }) || `已加入 ${matched} 位朋友。其中 ${pending.length - matched} 位尚未使用 PikTag。`,
+            );
           },
         },
       ]
@@ -283,24 +303,32 @@ export default function ContactSyncScreen({ navigation }: ContactSyncScreenProps
         </View>
       ) : (
         <>
-          {/* Import All button */}
+          {/* Import All button / progress */}
           <View style={styles.importAllBar}>
             <Text style={styles.contactCountText}>
-              {t('contactSync.contactCount', { count: contacts.length })}
+              {batchProgress
+                ? t('contactSync.batchProgress', {
+                    current: batchProgress.current,
+                    total: batchProgress.total,
+                  }) || `處理中 ${batchProgress.current}/${batchProgress.total}`
+                : t('contactSync.contactCount', { count: contacts.length })}
             </Text>
-            <TouchableOpacity
-              onPress={handleImportAll}
-              activeOpacity={0.7}
-            >
-              <LinearGradient
-                colors={['#ff5757', '#c44dff', '#8c52ff']}
-                start={{ x: 0, y: 0.5 }}
-                end={{ x: 1, y: 0.5 }}
-                style={styles.importAllBtn}
-              >
-                <Text style={styles.importAllBtnText}>{t('contactSync.importAll')}</Text>
-              </LinearGradient>
-            </TouchableOpacity>
+            {batchProgress ? (
+              <View style={styles.importAllBtn}>
+                <ActivityIndicator size="small" color={COLORS.piktag500} />
+              </View>
+            ) : (
+              <TouchableOpacity onPress={handleImportAll} activeOpacity={0.7}>
+                <LinearGradient
+                  colors={['#ff5757', '#c44dff', '#8c52ff']}
+                  start={{ x: 0, y: 0.5 }}
+                  end={{ x: 1, y: 0.5 }}
+                  style={styles.importAllBtn}
+                >
+                  <Text style={styles.importAllBtnText}>{t('contactSync.importAll')}</Text>
+                </LinearGradient>
+              </TouchableOpacity>
+            )}
           </View>
 
           <FlatList

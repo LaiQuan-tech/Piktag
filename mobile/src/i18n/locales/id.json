@@ -405,7 +405,10 @@
     "alertNotOnPikTagMessage": "{{name}} belum ada di PikTag, ajak mereka bergabung!",
     "alertBatchImportTitle": "Impor Massal",
     "alertBatchImportMessage": "Apakah kamu yakin ingin mengimpor semua {{count}} kontak?",
-    "alertBatchImportConfirm": "Impor"
+    "alertBatchImportConfirm": "Impor",
+    "batchProgress": "Memproses {{current}}/{{total}}",
+    "alertBatchDoneTitle": "Impor selesai",
+    "alertBatchDoneMessage": "{{matched}} teman ditambahkan. {{notOnApp}} kontak belum menggunakan PikTag."
   },
   "invite": {
     "headerTitle": "Undang Teman",
