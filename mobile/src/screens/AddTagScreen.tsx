@@ -113,30 +113,40 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
   const [loadingPresets, setLoadingPresets] = useState(false);
   const [deletingPresetId, setDeletingPresetId] = useState<string | null>(null);
 
-  // ─── Load presets ───
+  const PRESETS_KEY = 'piktag_user_presets';
+
+  // ─── Load presets (local-first, Supabase sync) ───
   const loadPresets = useCallback(async () => {
-    if (!user?.id) {
-      console.warn('[AddTag] loadPresets: no user.id, skipping');
-      return;
-    }
+    if (!user?.id) return;
     setLoadingPresets(true);
     try {
-      const { data, error } = await supabase
+      // 1. Load from AsyncStorage first (instant, always works)
+      const stored = await AsyncStorage.getItem(PRESETS_KEY);
+      const localPresets: TagPreset[] = stored ? JSON.parse(stored) : [];
+      if (localPresets.length > 0) {
+        setPresets(localPresets);
+      }
+
+      // 2. Try Supabase in background — if it returns data, merge & update
+      const { data } = await supabase
         .from('piktag_tag_presets')
         .select('*')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
-      if (error) {
-        console.warn('[AddTag] loadPresets error:', error.message, error.code);
-        setPresets([]);
-      } else {
-        console.log('[AddTag] loadPresets:', data?.length ?? 0, 'presets for user', user.id);
-        setPresets((data as TagPreset[]) ?? []);
+      if (data && data.length > 0) {
+        // Merge: Supabase is source of truth when available
+        const merged = data as TagPreset[];
+        // Also include any local-only presets (saved while offline / DB was down)
+        const dbIds = new Set(merged.map(p => p.id));
+        for (const lp of localPresets) {
+          if (!dbIds.has(lp.id)) merged.push(lp);
+        }
+        setPresets(merged);
+        await AsyncStorage.setItem(PRESETS_KEY, JSON.stringify(merged));
       }
     } catch (err) {
-      console.warn('[AddTag] loadPresets threw:', err);
-      setPresets([]);
+      console.warn('[AddTag] loadPresets:', err);
     } finally {
       setLoadingPresets(false);
     }
@@ -247,39 +257,49 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
     if (!presetNameInput.trim() || !user) return;
     setSavingPreset(true);
     setShowPresetNameModal(false);
+
+    const now = new Date().toISOString();
+    // Build a local preset object — always persisted to AsyncStorage even
+    // if Supabase is unreachable or RLS blocks the write.
+    const localPreset: TagPreset = {
+      id: `local_${Date.now()}`,
+      user_id: user.id,
+      name: presetNameInput.trim(),
+      location: eventLocation || '',
+      tags: eventTags.length > 0 ? eventTags : [],
+      created_at: now,
+      last_used_at: now,
+    };
+
     try {
-      // Return the inserted row via .select().single() instead of firing a
-      // separate loadPresets() afterward. This was the bug: the old flow
-      // inserted, then re-fetched, which sometimes returned a stale or empty
-      // list (race / PostgREST caching / RLS SELECT timing). Using returning
-      // data means the row is guaranteed in state the instant INSERT acks.
-      const { data, error } = await supabase
+      // Try Supabase — if it works, use the DB-generated row (real UUID, etc.)
+      const { data } = await supabase
         .from('piktag_tag_presets')
         .insert({
           user_id: user.id,
-          name: presetNameInput.trim(),
-          location: eventLocation || '',
-          tags: eventTags.length > 0 ? eventTags : [],
-          created_at: new Date().toISOString(),
+          name: localPreset.name,
+          location: localPreset.location,
+          tags: localPreset.tags,
+          created_at: now,
         })
         .select('*')
         .single();
 
-      if (error || !data) {
-        console.warn('[AddTag] savePreset error:', error?.message, error?.code, error?.details);
-        Alert.alert(t('common.error'), error?.message || t('addTag.alertPresetSaveError'));
-      } else {
-        // Optimistically prepend to local state so the star-modal reflects
-        // the new preset immediately on next open.
-        setPresets((prev) => [data as TagPreset, ...prev]);
-        Alert.alert(t('addTag.alertPresetSavedTitle'), t('addTag.alertPresetSavedMessage', { name: presetNameInput.trim() }));
+      if (data) {
+        localPreset.id = data.id; // replace local id with real DB id
       }
-    } catch (err) {
-      console.warn('[AddTag] savePreset threw:', err);
-      Alert.alert(t('common.error'), t('addTag.alertPresetSaveError'));
-    } finally {
-      setSavingPreset(false);
+    } catch {
+      // Supabase failed — we still save locally below
     }
+
+    // Always persist to local state + AsyncStorage
+    setPresets((prev) => {
+      const updated = [localPreset, ...prev];
+      AsyncStorage.setItem(PRESETS_KEY, JSON.stringify(updated));
+      return updated;
+    });
+    Alert.alert(t('addTag.alertPresetSavedTitle'), t('addTag.alertPresetSavedMessage', { name: localPreset.name }));
+    setSavingPreset(false);
   };
 
   // ─── Apply preset ───
@@ -308,17 +328,21 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
     if (!user?.id) return;
     setDeletingPresetId(id);
     try {
-      const { error } = await supabase
-        .from('piktag_tag_presets')
-        .delete()
-        .eq('id', id)
-        .eq('user_id', user.id);
-
-      if (error) {
-        Alert.alert(t('common.error'), t('addTag.alertPresetDeleteError'));
-      } else {
-        setPresets((prev) => prev.filter((p) => p.id !== id));
+      // Try DB delete (may fail if local-only preset or DB issue)
+      if (!id.startsWith('local_')) {
+        await supabase
+          .from('piktag_tag_presets')
+          .delete()
+          .eq('id', id)
+          .eq('user_id', user.id);
       }
+
+      // Always remove from local state + AsyncStorage
+      setPresets((prev) => {
+        const updated = prev.filter((p) => p.id !== id);
+        AsyncStorage.setItem(PRESETS_KEY, JSON.stringify(updated));
+        return updated;
+      });
     } catch {
       Alert.alert(t('common.error'), t('addTag.alertPresetDeleteError'));
     } finally {
