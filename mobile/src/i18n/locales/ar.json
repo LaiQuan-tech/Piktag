@@ -428,7 +428,8 @@
     "alertTagExists": "Tag already exists",
     "alertTagExistsMessage": "This tag is already in your list.",
     "alertAddError": "Can't add tag, try again in a bit.",
-    "alertRemoveError": "Can't remove tag, try again in a bit."
+    "alertRemoveError": "Can't remove tag, try again in a bit.",
+    "aiErrorGeneric": "اقتراحات الذكاء الاصطناعي غير متاحة مؤقتًا، يُرجى المحاولة لاحقًا"
   },
   "tagDetail": {
     "unknownTag": "Unknown Tag",

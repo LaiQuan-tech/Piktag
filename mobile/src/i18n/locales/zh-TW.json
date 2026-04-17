@@ -643,14 +643,15 @@
     "pinTag": "置頂標籤",
     "unpinTag": "取消置頂",
     "publicTagsTitle": "公開標籤",
-    "publicTagsSubtitle": "管理你的標籤和技能",
+    "publicTagsSubtitle": "別讓別人定義你，你就是你的標籤。",
     "tagCount": "已新增 ({{count}}/{{max}}):",
     "dragSort": "排序",
     "longPressToReorder": "長按拖曳可排序",
     "nativeHint": "長按拖曳排序 · 雙擊置頂",
     "dragSelectTarget": "點選要交換位置的標籤",
     "tagLimitTitle": "標籤上限",
-    "tagLimitMessage": "最多只能新增 {{max}} 個標籤"
+    "tagLimitMessage": "最多只能新增 {{max}} 個標籤",
+    "aiErrorGeneric": "AI 推薦暫時無法使用，稍後再試"
   },
   "activityReview": {
     "noNewFriends": "沒有需要整理的新朋友",

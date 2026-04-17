@@ -431,7 +431,8 @@
     "alertTagExists": "Tag already exists",
     "alertTagExistsMessage": "This tag is already in your list.",
     "alertAddError": "Can't add tag, try again in a bit.",
-    "alertRemoveError": "Can't remove tag, try again in a bit."
+    "alertRemoveError": "Can't remove tag, try again in a bit.",
+    "aiErrorGeneric": "AI のおすすめは一時的に利用できません。後でもう一度お試しください"
   },
   "tagDetail": {
     "unknownTag": "Unknown Tag",

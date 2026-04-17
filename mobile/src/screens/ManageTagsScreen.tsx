@@ -209,20 +209,22 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
 
       if (parsedSuggestions && parsedSuggestions.length > 0) {
         setAiSuggestions(parsedSuggestions);
-        // Cache for 24 hours
         AsyncStorage.setItem(cacheKey, JSON.stringify({ suggestions: parsedSuggestions, timestamp: Date.now() }));
       } else {
-        const suffix = rawResponseSnippet ? ' ｜ raw: ' + rawResponseSnippet : '';
-        const joined = errors.length ? errors.join(' ｜ ') : '所有模型都失敗了';
-        setAiError(joined + suffix);
+        // Never leak raw HTTP / API error bodies into the UI — they read like
+        // garbage to users and can expose leaked-key messages publicly.
+        // Log the diagnostic detail to the console for developers.
+        const detail = errors.join(' | ') + (rawResponseSnippet ? ' | raw: ' + rawResponseSnippet : '');
+        console.warn('[ManageTagsScreen] AI suggestions failed:', detail);
+        setAiError(t('manageTags.aiErrorGeneric') || 'AI 推薦暫時無法使用，稍後再試');
       }
     } catch (err: any) {
       console.warn('[ManageTagsScreen] loadAiSuggestions:', err);
-      setAiError(err?.message || String(err));
+      setAiError(t('manageTags.aiErrorGeneric') || 'AI 推薦暫時無法使用，稍後再試');
     } finally {
       setAiLoading(false);
     }
-  }, [user]);
+  }, [user, t]);
 
   useEffect(() => {
     if (!user) return;
