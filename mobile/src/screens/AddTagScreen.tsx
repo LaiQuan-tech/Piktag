@@ -492,7 +492,7 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>{t('addTag.dateLabel')}</Text>
 
-          {/* Quick date buttons — order: [選日期, 昨天, 今天] */}
+          {/* Quick date buttons — order: [選日期, 今天, 明天] + custom selected date */}
           <View style={styles.quickDateRow}>
             <TouchableOpacity
               style={[styles.quickDateBtn, showDatePicker && styles.quickDateBtnActive]}
@@ -516,6 +516,19 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
                 </TouchableOpacity>
               );
             })}
+            {/* Custom selected date (only shown when user picked a date from calendar
+                that isn't today or tomorrow). Tap to deselect. */}
+            {eventDate && !getQuickDates().some(qd => formatDate(qd.date) === eventDate) && (
+              <TouchableOpacity
+                style={[styles.quickDateBtn, styles.quickDateBtnActive]}
+                onPress={() => setEventDate('')}
+                activeOpacity={0.7}
+              >
+                <Text style={[styles.quickDateText, styles.quickDateTextActive]}>
+                  #{formatDateDisplay(selectedDateObj)}
+                </Text>
+              </TouchableOpacity>
+            )}
           </View>
 
           {/* Simple month calendar (when expanded) */}
@@ -554,10 +567,12 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
                         return (
                           <TouchableOpacity
                             key={day}
-                            style={[styles.calendarDayCell, isSelected && styles.calendarDayCellSelected]}
-                            onPress={() => { setEventDate(dateStr); setShowDatePicker(false); }}
+                            style={styles.calendarDayCell}
+                            onPress={() => { setEventDate(dateStr); setSelectedDateObj(new Date(year, month, day)); setShowDatePicker(false); }}
                           >
-                            <Text style={[styles.calendarDayText, isToday && styles.calendarDayToday, isSelected && styles.calendarDayTextSelected]}>{day}</Text>
+                            <View style={[styles.calendarDayInner, isSelected && styles.calendarDayInnerSelected]}>
+                              <Text style={[styles.calendarDayText, isToday && styles.calendarDayToday, isSelected && styles.calendarDayTextSelected]}>{day}</Text>
+                            </View>
                           </TouchableOpacity>
                         );
                       })}
@@ -1150,9 +1165,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  calendarDayCellSelected: {
+  calendarDayInner: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  calendarDayInnerSelected: {
     backgroundColor: COLORS.piktag500,
-    borderRadius: 20,
   },
   calendarDayText: {
     fontSize: 14,
