@@ -225,7 +225,7 @@
     "allCategories": "全部"
   },
   "addTag": {
-    "headerTitle": "# 準備社交",
+    "headerTitle": "活動標籤",
     "alertTagExists": "標籤已存在",
     "alertTagExistsMessage": "此標籤已在列表中。",
     "alertEnterPresetName": "請輸入模板名稱",
