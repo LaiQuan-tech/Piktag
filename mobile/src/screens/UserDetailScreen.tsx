@@ -52,7 +52,10 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
   const { user: authUser } = useAuth();
   const paramUserId = route.params?.userId;
   const paramUsername = route.params?.username;
-  const paramSid = route.params?.sid; // Session ID from QR code scan
+  const paramSid = route.params?.sid;
+  const paramTags = route.params?.tags; // Fallback tags encoded in QR URL
+  const paramDate = route.params?.date;
+  const paramLoc = route.params?.loc;
 
   const [resolvedUserId, setResolvedUserId] = useState<string | null>(paramUserId || null);
   const [loading, setLoading] = useState(true);
@@ -299,15 +302,32 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
     if (connectionId) { Alert.alert(t('scanResult.alreadyConnectedTitle')); return; }
     setAddFriendLoading(true);
     try {
-      // Fetch session to get event_tags
-      const { data: session } = await supabase
-        .from('piktag_scan_sessions')
-        .select('event_tags, event_date, event_location')
-        .eq('id', paramSid)
-        .single();
+      // Fetch session to get event_tags; fall back to URL params if DB miss
+      let eventTags: string[] = [];
+      let eventDate = '';
+      let eventLocation = '';
 
-      const eventTags: string[] = session?.event_tags || [];
-      const note = [session?.event_date, session?.event_location].filter(Boolean).join(' · ');
+      if (paramSid && !paramSid.startsWith('local_')) {
+        const { data: session } = await supabase
+          .from('piktag_scan_sessions')
+          .select('event_tags, event_date, event_location')
+          .eq('id', paramSid)
+          .single();
+        if (session) {
+          eventTags = session.event_tags || [];
+          eventDate = session.event_date || '';
+          eventLocation = session.event_location || '';
+        }
+      }
+
+      // Fallback: use tags/date/loc encoded directly in the QR URL
+      if (eventTags.length === 0 && paramTags) {
+        eventTags = paramTags.split(',').map((t: string) => t.trim()).filter(Boolean);
+      }
+      if (!eventDate && paramDate) eventDate = paramDate;
+      if (!eventLocation && paramLoc) eventLocation = paramLoc;
+
+      const note = [eventDate, eventLocation].filter(Boolean).join(' · ');
 
       // Create connection (scanner → host)
       const { data: conn } = await supabase
@@ -360,7 +380,7 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
       Alert.alert(t('common.error'), t('scanResult.alertAddFriendError'));
     }
     setAddFriendLoading(false);
-  }, [authUser, resolvedUserId, paramSid, connectionId, profile, t]);
+  }, [authUser, resolvedUserId, paramSid, paramTags, paramDate, paramLoc, connectionId, profile, t]);
 
   // --- Pick Tag functions ---
   const fetchFriendPublicTags = useCallback(async (): Promise<{ id: string; name: string }[]> => {

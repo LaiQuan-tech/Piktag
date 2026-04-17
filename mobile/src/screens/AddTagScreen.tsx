@@ -397,9 +397,15 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
         // DB table may not exist yet — continue with local session ID
       }
 
-      // 3. Build QR URL — standard URL that any camera can scan
+      // 3. Build QR URL — encode event info as URL params so tags transfer
+      //    even if the scan session DB insert failed
       const username = (profileData as PiktagProfile | null)?.username || user.id;
-      const qrUrl = `https://pikt.ag/${username}?sid=${sessionId}`;
+      const params = new URLSearchParams();
+      params.set('sid', sessionId);
+      if (eventTags.length > 0) params.set('tags', eventTags.join(','));
+      if (eventDate) params.set('date', eventDate);
+      if (eventLocation) params.set('loc', eventLocation);
+      const qrUrl = `https://pikt.ag/${username}?${params.toString()}`;
 
       // 4. Update session in DB if it was created
       if (sessionData) {
