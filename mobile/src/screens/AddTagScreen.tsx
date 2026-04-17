@@ -90,6 +90,8 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
   const [popularTags, setPopularTags] = useState<string[]>(FALLBACK_POPULAR_TAGS);
   const [eventTags, setEventTags] = useState<string[]>([]);
   const eventTagSet = useMemo(() => new Set(eventTags), [eventTags]);
+  const popularTagSet = useMemo(() => new Set(popularTags), [popularTags]);
+  const manualTags = useMemo(() => eventTags.filter(t => !popularTagSet.has(t)), [eventTags, popularTagSet]);
   const [tagInput, setTagInput] = useState('');
 
   // Save preset
@@ -632,9 +634,9 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
             </TouchableOpacity>
           </View>
 
-          {eventTags.length > 0 && (
+          {manualTags.length > 0 && (
             <View style={styles.chipsContainer}>
-              {eventTags.map((tag) => (
+              {manualTags.map((tag) => (
                 <View key={tag} style={styles.tagChip}>
                   <Text style={styles.tagChipText}>{tag}</Text>
                   <TouchableOpacity
