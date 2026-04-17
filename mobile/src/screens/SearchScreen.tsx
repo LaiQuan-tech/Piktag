@@ -195,7 +195,6 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
-  const [searchTab, setSearchTab] = useState<'popular' | 'history'>('popular');
   const [tagCategories, setTagCategories] = useState<string[]>([]);
   const [selectedTagCategory, setSelectedTagCategory] = useState<string | null>(null);
   const [trendingTagIds, setTrendingTagIds] = useState<Set<string>>(new Set());
@@ -943,33 +942,23 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
       } else {
         items.push({ type: 'profilesEmpty' });
       }
+    } else if (isFocused && recentSearches.length > 0) {
+      // IG-style: recent searches only appear when the user taps the input.
+      // Unfocused (default) state just shows popular tags + recommendations.
+      items.push({ type: 'sectionLabel', label: '', showClear: true });
+      recentSearches.forEach((query, index) => {
+        items.push({ type: 'recentItem', query, index });
+      });
     } else {
-      // No query — show tab content. Note: 熱門標籤 now means
-      // "popular tags from nearby users (with global fallback)" — see
-      // loadPopularTags. The previously-separate 附近標籤 tab was merged
-      // into this one so the user sees a single relevant list.
-      switch (searchTab) {
-        case 'popular':
-          if (recommendedUsers.length > 0) {
-            items.push({ type: 'recommendedUsers' });
-          }
-          if (tags.length > 0) {
-            items.push({ type: 'tagsGrid' });
-          } else {
-            items.push({ type: 'tagsEmpty' });
-          }
-          break;
-
-        case 'history':
-          if (recentSearches.length > 0) {
-            items.push({ type: 'sectionLabel', label: '', showClear: true });
-            recentSearches.forEach((query, index) => {
-              items.push({ type: 'recentItem', query, index });
-            });
-          } else {
-            items.push({ type: 'recentEmpty' });
-          }
-          break;
+      // Default unfocused view — popular tags (nearby users + global fallback)
+      // plus recommended users.
+      if (recommendedUsers.length > 0) {
+        items.push({ type: 'recommendedUsers' });
+      }
+      if (tags.length > 0) {
+        items.push({ type: 'tagsGrid' });
+      } else {
+        items.push({ type: 'tagsEmpty' });
       }
     }
 
@@ -985,7 +974,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
     showTags,
     tags,
     tagUsers,
-    searchTab,
+    isFocused,
     intersectionMode,
     intersectionProfiles,
     recommendedUsers,
@@ -1314,37 +1303,6 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
         </Pressable>
       </View>
 
-      {/* Tab bar: 熱門標籤 | 搜尋紀錄
-          (附近標籤 was merged into 熱門標籤 — see loadPopularTags) */}
-      <View style={styles.tabBar}>
-        <TouchableOpacity
-          style={[styles.tabItem, searchTab === 'popular' && styles.tabItemActive]}
-          onPress={() => setSearchTab('popular')}
-          activeOpacity={0.7}
-          accessibilityLabel="熱門標籤"
-          accessibilityRole="tab"
-          accessibilityState={{ selected: searchTab === 'popular' }}
-        >
-          <Hash size={16} color={searchTab === 'popular' ? COLORS.piktag600 : COLORS.gray400} />
-          <Text style={[styles.tabItemText, searchTab === 'popular' && styles.tabItemTextActive]}>
-            {t('search.popularTagsLabel') || '熱門標籤'}
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.tabItem, searchTab === 'history' && styles.tabItemActive]}
-          onPress={() => setSearchTab('history')}
-          activeOpacity={0.7}
-          accessibilityLabel="搜尋紀錄"
-          accessibilityRole="tab"
-          accessibilityState={{ selected: searchTab === 'history' }}
-        >
-          <Clock size={16} color={searchTab === 'history' ? COLORS.piktag600 : COLORS.gray400} />
-          <Text style={[styles.tabItemText, searchTab === 'history' && styles.tabItemTextActive]}>
-            {t('search.recentSearchesLabel') || '搜尋紀錄'}
-          </Text>
-        </TouchableOpacity>
-      </View>
-
       <FlatList
         data={listData}
         keyExtractor={keyExtractor}
@@ -1498,34 +1456,6 @@ const styles = StyleSheet.create({
     color: COLORS.gray900,
     lineHeight: 32,
     marginBottom: 16,
-  },
-  tabBar: {
-    flexDirection: 'row',
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.gray100,
-    paddingHorizontal: 16,
-  },
-  tabItem: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 4,
-    paddingVertical: 10,
-    borderBottomWidth: 2,
-    borderBottomColor: 'transparent',
-  },
-  tabItemActive: {
-    borderBottomColor: COLORS.piktag500,
-  },
-  tabItemText: {
-    fontSize: 13,
-    fontWeight: '500',
-    color: COLORS.gray400,
-  },
-  tabItemTextActive: {
-    color: COLORS.piktag600,
-    fontWeight: '700',
   },
   searchContainer: {
     flexDirection: 'row',
