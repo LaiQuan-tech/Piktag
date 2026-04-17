@@ -193,9 +193,34 @@ export default function HiddenTagEditor({ connectionId, userId, hiddenTags, onTa
   }, []);
 
   const filteredFrequent = useMemo(
-    () => frequentTags.filter((ft) => !currentNames.has(ft.name)),
-    [frequentTags, currentNames],
+    () => frequentTags,
+    [frequentTags],
   );
+
+  // All names that appear as preset chips (date / location / frequent)
+  const presetChipNames = useMemo(() => {
+    const names = new Set<string>();
+    dateChips.forEach(c => names.add(c.value));
+    recentLocations.forEach(l => names.add(l));
+    frequentTags.forEach(t => names.add(t.name));
+    return names;
+  }, [dateChips, recentLocations, frequentTags]);
+
+  // 已加入: only manually typed tags (not visible in any chip row above)
+  const manualHiddenTags = useMemo(
+    () => hiddenTags.filter(ht => !presetChipNames.has(ht.name)),
+    [hiddenTags, presetChipNames],
+  );
+
+  // Toggle: tap selected chip → remove; tap unselected → add
+  const toggleHiddenTag = async (name: string) => {
+    const existing = hiddenTags.find(h => h.name === name);
+    if (existing) {
+      await removeHiddenTag(existing.id);
+    } else {
+      await applyHiddenTag(name);
+    }
+  };
 
   return (
     <View>
@@ -203,16 +228,16 @@ export default function HiddenTagEditor({ connectionId, userId, hiddenTags, onTa
       <Text style={styles.sectionTitle}>{t('addTag.dateLabel') || '日期'}</Text>
       <View style={styles.chipRow}>
         {dateChips.map((chip) => {
-          const alreadyAdded = currentNames.has(chip.value);
+          const isSelected = currentNames.has(chip.value);
           return (
             <TouchableOpacity
               key={chip.label}
-              style={[styles.pickChip, alreadyAdded && styles.pickChipDisabled]}
-              onPress={() => !alreadyAdded && applyHiddenTag(chip.value)}
-              disabled={alreadyAdded || busy}
+              style={[styles.pickChip, isSelected && styles.pickChipSelected]}
+              onPress={() => toggleHiddenTag(chip.value)}
+              disabled={busy}
               activeOpacity={0.7}
             >
-              <Text style={[styles.pickChipText, alreadyAdded && styles.pickChipTextDisabled]}>
+              <Text style={[styles.pickChipText, isSelected && styles.pickChipTextSelected]}>
                 {chip.label}
               </Text>
             </TouchableOpacity>
@@ -232,16 +257,16 @@ export default function HiddenTagEditor({ connectionId, userId, hiddenTags, onTa
           <Text style={styles.pickChipText}>{t('addTag.selectLocation') || '選地點'}</Text>
         </TouchableOpacity>
         {recentLocations.map((loc) => {
-          const alreadyAdded = currentNames.has(loc);
+          const isSelected = currentNames.has(loc);
           return (
             <TouchableOpacity
               key={loc}
-              style={[styles.pickChip, alreadyAdded && styles.pickChipDisabled]}
-              onPress={() => !alreadyAdded && applyHiddenTag(loc)}
-              disabled={alreadyAdded || busy}
+              style={[styles.pickChip, isSelected && styles.pickChipSelected]}
+              onPress={() => toggleHiddenTag(loc)}
+              disabled={busy}
               activeOpacity={0.7}
             >
-              <Text style={[styles.pickChipText, alreadyAdded && styles.pickChipTextDisabled]}>
+              <Text style={[styles.pickChipText, isSelected && styles.pickChipTextSelected]}>
                 #{loc}
               </Text>
             </TouchableOpacity>
@@ -254,27 +279,32 @@ export default function HiddenTagEditor({ connectionId, userId, hiddenTags, onTa
         <>
           <Text style={styles.sectionTitle}>{t('hiddenTagEditor.frequentTitle')}</Text>
           <View style={styles.chipRow}>
-            {filteredFrequent.map((tag) => (
-              <TouchableOpacity
-                key={tag.id}
-                style={styles.pickChip}
-                onPress={() => applyHiddenTag(tag.name)}
-                disabled={busy}
-                activeOpacity={0.7}
-              >
-                <Text style={styles.pickChipText}>#{tag.name}</Text>
-              </TouchableOpacity>
-            ))}
+            {filteredFrequent.map((tag) => {
+              const isSelected = currentNames.has(tag.name);
+              return (
+                <TouchableOpacity
+                  key={tag.id}
+                  style={[styles.pickChip, isSelected && styles.pickChipSelected]}
+                  onPress={() => toggleHiddenTag(tag.name)}
+                  disabled={busy}
+                  activeOpacity={0.7}
+                >
+                  <Text style={[styles.pickChipText, isSelected && styles.pickChipTextSelected]}>
+                    #{tag.name}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
           </View>
         </>
       )}
 
-      {/* ── 已加入 ── */}
-      {hiddenTags.length > 0 && (
+      {/* ── 已加入 (manual-only, not duplicating chips above) ── */}
+      {manualHiddenTags.length > 0 && (
         <>
           <Text style={styles.sectionTitle}>{t('hiddenTagEditor.addedTitle')}</Text>
           <View style={styles.chipRow}>
-            {hiddenTags.map((ht) => (
+            {manualHiddenTags.map((ht) => (
               <View key={ht.id} style={styles.addedChip}>
                 <Text style={styles.addedChipText}>#{ht.name}</Text>
                 <TouchableOpacity
@@ -350,6 +380,10 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: 'transparent',
   },
+  pickChipSelected: {
+    backgroundColor: COLORS.piktag50,
+    borderColor: COLORS.piktag500,
+  },
   pickChipDisabled: {
     backgroundColor: COLORS.gray100,
     borderColor: COLORS.gray200,
@@ -359,6 +393,10 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: COLORS.gray600,
     fontWeight: '500',
+  },
+  pickChipTextSelected: {
+    color: COLORS.piktag600,
+    fontWeight: '700',
   },
   pickChipTextDisabled: {
     color: COLORS.gray400,
