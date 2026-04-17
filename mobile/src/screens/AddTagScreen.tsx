@@ -15,7 +15,7 @@ import {
   Platform,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { X, Star, ArrowLeft, Share2, Trash2, MapPin, Navigation, Camera, ScanLine } from 'lucide-react-native';
+import { X, Star, ArrowLeft, Share2, Trash2, Camera, ScanLine } from 'lucide-react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import QRCode from 'react-native-qrcode-svg';
 import { useTranslation } from 'react-i18next';
@@ -572,8 +572,7 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
               onPress={() => setShowLocationPicker(true)}
               activeOpacity={0.7}
             >
-              <Navigation size={14} color={COLORS.gray600} />
-              <Text style={styles.quickDateText}>{t('addTag.selectLocation') || '選擇地點'}</Text>
+              <Text style={styles.quickDateText}>{t('addTag.selectLocation') || '選地點'}</Text>
             </TouchableOpacity>
             {recentLocations.slice(0, 2).map((loc) => (
                 <TouchableOpacity
@@ -582,9 +581,8 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
                   onPress={() => setEventLocation(loc)}
                   activeOpacity={0.7}
                 >
-                  <MapPin size={12} color={eventLocation === loc ? COLORS.piktag600 : COLORS.gray400} />
                   <Text style={[styles.quickDateText, eventLocation === loc && styles.quickDateTextActive]} numberOfLines={1}>
-                    {loc}
+                    #{loc}
                   </Text>
                   <TouchableOpacity
                     onPress={() => handleRemoveRecentLocation(loc)}
