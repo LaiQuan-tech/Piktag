@@ -206,6 +206,14 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
     });
   };
 
+  const handleRemoveRecentLocation = (name: string) => {
+    setRecentLocations(prev => {
+      const next = prev.filter(l => l !== name);
+      AsyncStorage.setItem('piktag_recent_locations', JSON.stringify(next));
+      return next;
+    });
+  };
+
   const handleLocationSelected = (placeName: string, _address: string) => {
     setEventLocation(placeName);
     saveToRecent(placeName);
@@ -561,6 +569,15 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
                   <Text style={[styles.quickDateText, eventLocation === loc && styles.quickDateTextActive]} numberOfLines={1}>
                     {loc}
                   </Text>
+                  <TouchableOpacity
+                    onPress={() => handleRemoveRecentLocation(loc)}
+                    hitSlop={{ top: 8, bottom: 8, left: 6, right: 8 }}
+                    activeOpacity={0.6}
+                    accessibilityLabel="刪除"
+                    accessibilityRole="button"
+                  >
+                    <X size={12} color={eventLocation === loc ? COLORS.piktag600 : COLORS.gray400} />
+                  </TouchableOpacity>
                 </TouchableOpacity>
               ))}
             </View>
