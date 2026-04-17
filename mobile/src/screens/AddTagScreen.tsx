@@ -541,7 +541,7 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>{t('addTag.locationLabel')}</Text>
 
-          {/* Select location button — opens map modal */}
+          {/* Select location button + recent location chips (same row) */}
           <View style={styles.quickDateRow}>
             <TouchableOpacity
               style={styles.quickDateBtn}
@@ -551,12 +551,7 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
               <Navigation size={14} color={COLORS.gray600} />
               <Text style={styles.quickDateText}>{t('addTag.selectLocation') || '選擇地點'}</Text>
             </TouchableOpacity>
-          </View>
-
-          {/* Recent locations */}
-          {recentLocations.length > 0 && (
-            <View style={styles.quickDateRow}>
-              {recentLocations.slice(0, 2).map((loc) => (
+            {recentLocations.slice(0, 2).map((loc) => (
                 <TouchableOpacity
                   key={loc}
                   style={[styles.quickDateBtn, eventLocation === loc && styles.quickDateBtnActive]}
@@ -578,8 +573,7 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
                   </TouchableOpacity>
                 </TouchableOpacity>
               ))}
-            </View>
-          )}
+          </View>
 
         </View>
 
