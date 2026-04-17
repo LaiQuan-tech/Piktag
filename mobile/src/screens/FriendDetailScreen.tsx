@@ -787,11 +787,11 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
               {tags.map((tag) => (
                 <TouchableOpacity
                   key={tag.tagId}
-                  style={[styles.tagChip, (tag.isPicked || tag.isHidden) && styles.tagChipPicked]}
+                  style={styles.tagChip}
                   activeOpacity={0.6}
                   onPress={() => navigation.navigate('TagDetail', { tagId: tag.tagId, tagName: tag.name, initialTab: 'explore' })}
                 >
-                  <Text style={[styles.tagChipText, (tag.isPicked || tag.isHidden) && styles.tagChipTextPicked]}>
+                  <Text style={styles.tagChipText}>
                     #{tag.name}
                   </Text>
                 </TouchableOpacity>
