@@ -12,11 +12,6 @@
     "noResults": "找不到相關地點"
   },
   "friendsMap": {
-    "title": "好友地圖",
-    "friendCount_one": "{{count}} 位朋友",
-    "friendCount_other": "{{count}} 位朋友",
-    "noSharedLocations": "尚無朋友分享位置",
-    "loadFailed": "地圖載入失敗",
     "staleHint": "只顯示最近 24 小時內有更新位置的朋友"
   },
   "hiddenTagEditor": {
@@ -145,17 +140,9 @@
     "followUp3d": "認識 3 天了，打個招呼",
     "followUp7d": "已經一週了，聊聊近況",
     "followUp30d": "認識一個月了，保持聯繫",
-    "sortNewest": "從新到舊",
-    "sortOldest": "從舊到新",
-    "sortAlpha": "依字母排序",
-    "sortUpdated": "最近更新",
-    "sortNearby": "依目前地點排列",
     "reminderBirthday": "生日",
     "birthdayNotifTitle": "{{name}} 今天生日",
     "birthdayNotifBody": "別忘了祝 {{name}} 生日快樂",
-    "alertLocationPermTitle": "位置權限",
-    "alertLocationPermMessage": "需要位置權限才能依地點排列",
-    "alertLocationError": "抓不到你的位置",
     "emptyText": "還沒有人脈，去搜尋認識新朋友吧！",
     "onThisDayTitle": "歷史上的今天",
     "yearsAgoMet": "{{yearsAgo}} 年前的今天認識",
@@ -167,7 +154,6 @@
     "headerDate": "{{year}}年{{month}}月{{day}}日",
     "headerSubtitle": "#台北市大安區",
     "batchTagButton": "批次加標籤 ({{count}})",
-    "sortModalTitle": "排序方式",
     "batchTagModalTitle": "為 {{count}} 位好友加標籤",
     "batchTagPlaceholder": "輸入標籤名稱（例如：尾牙）",
     "batchTagProcessing": "處理中...",
@@ -186,9 +172,6 @@
     "noTagsToFilter": "目前沒有可篩選的標籤",
     "newBadge": "新",
     "unreviewedLabel": "位待整理"
-  },
-  "friendsMap": {
-    "staleHint": "只顯示最近 24 小時內有更新位置的朋友"
   },
   "search": {
     "clearAll": "清除全部",

@@ -12,12 +12,7 @@
     "noResults": "No matching places"
   },
   "friendsMap": {
-    "title": "Friends map",
-    "friendCount_one": "{{count}} friend",
-    "friendCount_other": "{{count}} friends",
-    "noSharedLocations": "No one is sharing their location",
-    "loadFailed": "Failed to load map",
-    "staleHint": "Only friends who updated their location in the last 24 hours are shown"
+    "staleHint": "Only showing friends whose location was updated in the last 24 hours"
   },
   "hiddenTagEditor": {
     "timeTitle": "When you met",
@@ -145,17 +140,9 @@
     "followUp3d": "Met 3 days ago, say hi",
     "followUp7d": "It's been a week, catch up",
     "followUp30d": "One month since you met, stay in touch",
-    "sortNewest": "Newest first",
-    "sortOldest": "Oldest first",
-    "sortAlpha": "Alphabetical",
-    "sortUpdated": "Recently updated",
-    "sortNearby": "Sort by location",
     "reminderBirthday": "Birthday",
     "birthdayNotifTitle": "{{name}}'s birthday today",
     "birthdayNotifBody": "Don't forget to wish {{name}} a happy birthday",
-    "alertLocationPermTitle": "Location Permission",
-    "alertLocationPermMessage": "Location permission is required to sort by location",
-    "alertLocationError": "Can't get current location",
     "emptyText": "No connections yet, search to meet new people!",
     "onThisDayTitle": "On This Day",
     "yearsAgoMet": "Met {{yearsAgo}} years ago today",
@@ -167,7 +154,6 @@
     "headerDate": "{{month}}/{{day}}/{{year}}",
     "headerSubtitle": "#Da'an District, Taipei",
     "batchTagButton": "Batch tag ({{count}})",
-    "sortModalTitle": "Sort by",
     "batchTagModalTitle": "Add tag for {{count}} friends",
     "batchTagPlaceholder": "Enter tag name (e.g., Party)",
     "batchTagProcessing": "Processing...",
@@ -186,9 +172,6 @@
     "noTagsToFilter": "No tags available to filter",
     "newBadge": "New",
     "unreviewedLabel": "to review"
-  },
-  "friendsMap": {
-    "staleHint": "Only showing friends whose location was updated in the last 24 hours"
   },
   "search": {
     "clearAll": "Clear all",

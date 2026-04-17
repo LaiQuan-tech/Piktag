@@ -19,10 +19,8 @@ import { Image } from 'expo-image';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import {
-  Settings2,
   MapPin,
   CheckCircle2,
-  Check,
   X,
   Tag,
   CheckSquare,
@@ -45,7 +43,6 @@ import { supabase } from '../lib/supabase';
 import { getCache, setCache, CACHE_KEYS } from '../lib/dataCache';
 import { ConnectionsScreenSkeleton } from '../components/SkeletonLoader';
 import { useAuth } from '../hooks/useAuth';
-import { requestForegroundPermissionsAsync, getCurrentPositionAsync, Accuracy } from 'expo-location';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import FriendsMapModal, { type FriendLocation } from '../components/FriendsMapModal';
 import type { Connection, ConnectionTag } from '../types';
@@ -61,21 +58,6 @@ type FriendStatus = {
   avatarUrl: string | null;
   statusText: string;
 };
-
-type SortOption = 'newest' | 'oldest' | 'alpha' | 'updated' | 'nearby';
-
-function haversineDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
-  const R = 6371;
-  const dLat = ((lat2 - lat1) * Math.PI) / 180;
-  const dLon = ((lon2 - lon1) * Math.PI) / 180;
-  const a =
-    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos((lat1 * Math.PI) / 180) *
-      Math.cos((lat2 * Math.PI) / 180) *
-      Math.sin(dLon / 2) *
-      Math.sin(dLon / 2);
-  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-}
 
 // --- Memoized list item component ---
 type ConnectionItemProps = {
@@ -154,20 +136,10 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
   const { colors, isDark } = useTheme();
   const { user } = useAuth();
 
-  const SORT_OPTIONS = useMemo(() => [
-    { key: 'newest' as SortOption, label: t('connections.sortNewest') },
-    { key: 'oldest' as SortOption, label: t('connections.sortOldest') },
-    { key: 'alpha' as SortOption, label: t('connections.sortAlpha') },
-    { key: 'updated' as SortOption, label: t('connections.sortUpdated') },
-    { key: 'nearby' as SortOption, label: t('connections.sortNearby') },
-  ], [t]);
-
   const lastFetchRef = React.useRef<number>(0);
 
   const [connections, setConnections] = useState<ConnectionWithTags[]>([]);
   const [loading, setLoading] = useState(true);
-  const [sortBy, setSortBy] = useState<SortOption>('newest');
-  const [sortModalVisible, setSortModalVisible] = useState(false);
 
   // Friend statuses (IG-style stories bar)
   const [friendStatuses, setFriendStatuses] = useState<FriendStatus[]>([]);
@@ -188,8 +160,6 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
   const [batchTagInput, setBatchTagInput] = useState('');
   const [batchTagLoading, setBatchTagLoading] = useState(false);
 
-  // Location state
-  const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null);
   const [mapVisible, setMapVisible] = useState(false);
 
   // FlatList performance: fixed item height for getItemLayout
@@ -388,64 +358,16 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
     }, [fetchConnections])
   );
 
-  // --- Optimized: useMemo for sorted connections ---
+  // Always newest-first; tag filter applied on top.
   const sortedConnections = useMemo(() => {
-    const sorted = [...connections];
-    switch (sortBy) {
-      case 'newest':
-        sorted.sort(
-          (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-        );
-        break;
-      case 'oldest':
-        sorted.sort(
-          (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
-        );
-        break;
-      case 'alpha':
-        sorted.sort((a, b) => {
-          const nameA = (
-            a.nickname || a.connected_user?.full_name || a.connected_user?.username || ''
-          ).toLowerCase();
-          const nameB = (
-            b.nickname || b.connected_user?.full_name || b.connected_user?.username || ''
-          ).toLowerCase();
-          return nameA.localeCompare(nameB, 'zh-Hant');
-        });
-        break;
-      case 'updated':
-        sorted.sort(
-          (a, b) =>
-            new Date(b.created_at).getTime() -
-            new Date(a.created_at).getTime()
-        );
-        break;
-      case 'nearby':
-        if (userLocation) {
-          sorted.sort((a, b) => {
-            const aLat = a.connected_user?.latitude;
-            const aLng = a.connected_user?.longitude;
-            const bLat = b.connected_user?.latitude;
-            const bLng = b.connected_user?.longitude;
-            const aDist =
-              aLat != null && aLng != null
-                ? haversineDistance(userLocation.latitude, userLocation.longitude, aLat, aLng)
-                : Infinity;
-            const bDist =
-              bLat != null && bLng != null
-                ? haversineDistance(userLocation.latitude, userLocation.longitude, bLat, bLng)
-                : Infinity;
-            return aDist - bDist;
-          });
-        }
-        break;
-    }
-    // Apply tag filter
+    const sorted = [...connections].sort(
+      (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    );
     if (filterTag) {
       return sorted.filter((c) => c.tags.includes(filterTag));
     }
     return sorted;
-  }, [connections, sortBy, userLocation, filterTag]);
+  }, [connections, filterTag]);
 
   // All unique semantic types from connections (for filter)
   const allConnectionTags = useMemo(() => {
@@ -545,37 +467,6 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
     } finally {
       setBatchTagLoading(false);
     }
-  };
-
-  const handleSortSelect = async (option: SortOption) => {
-    if (option === 'nearby' && !userLocation) {
-      try {
-        const { status } = await requestForegroundPermissionsAsync();
-        if (status === 'granted') {
-          const loc = await getCurrentPositionAsync({ accuracy: Accuracy.Balanced });
-          setUserLocation({ latitude: loc.coords.latitude, longitude: loc.coords.longitude });
-          if (user) {
-            supabase
-              .from('piktag_profiles')
-              .update({
-                latitude: loc.coords.latitude,
-                longitude: loc.coords.longitude,
-                location_updated_at: new Date().toISOString(),
-              })
-              .eq('id', user.id)
-              .then(() => {});
-          }
-        } else {
-          Alert.alert(t('connections.alertLocationPermTitle'), t('connections.alertLocationPermMessage'));
-          return;
-        }
-      } catch {
-        Alert.alert(t('common.error'), t('connections.alertLocationError'));
-        return;
-      }
-    }
-    setSortBy(option);
-    setSortModalVisible(false);
   };
 
   // --- Optimized: useCallback renderItem with memoized ConnectionItem ---
@@ -755,15 +646,6 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
             <TouchableOpacity
               style={styles.headerIconBtn}
               activeOpacity={0.6}
-              onPress={() => setSortModalVisible(true)}
-              accessibilityLabel="排序"
-              accessibilityRole="button"
-            >
-              <Settings2 size={24} color={COLORS.gray600} />
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.headerIconBtn}
-              activeOpacity={0.6}
               onPress={() => setMapVisible(true)}
               accessibilityLabel="地圖檢視"
               accessibilityRole="button"
@@ -774,24 +656,17 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
         </View>
       )}
 
-      {/* Sort / Filter indicators */}
-      {!selectMode && (sortBy !== 'newest' || filterTag) && (
+      {/* Filter indicator (tag filter only) */}
+      {!selectMode && filterTag && (
         <View style={styles.sortIndicator}>
-          {sortBy !== 'newest' && (
-            <Text style={styles.sortIndicatorText}>
-              {SORT_OPTIONS.find((o) => o.key === sortBy)?.label}
-            </Text>
-          )}
-          {filterTag && (
-            <TouchableOpacity
-              style={styles.filterIndicatorChip}
-              onPress={() => setFilterTag(null)}
-              activeOpacity={0.7}
-            >
-              <Text style={styles.filterIndicatorText}>{filterTag}</Text>
-              <X size={14} color={COLORS.piktag600} />
-            </TouchableOpacity>
-          )}
+          <TouchableOpacity
+            style={styles.filterIndicatorChip}
+            onPress={() => setFilterTag(null)}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.filterIndicatorText}>{filterTag}</Text>
+            <X size={14} color={COLORS.piktag600} />
+          </TouchableOpacity>
         </View>
       )}
 
@@ -834,43 +709,6 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
         </View>
       )}
 
-      {/* Sort Modal */}
-      <Modal
-        visible={sortModalVisible}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setSortModalVisible(false)}
-      >
-        <TouchableOpacity
-          style={styles.modalOverlay}
-          activeOpacity={1}
-          onPress={() => setSortModalVisible(false)}
-        >
-          <View style={styles.sortModal}>
-            <Text style={styles.sortModalTitle}>{t('connections.sortModalTitle')}</Text>
-            {SORT_OPTIONS.map((option) => (
-              <TouchableOpacity
-                key={option.key}
-                style={styles.sortOption}
-                activeOpacity={0.7}
-                onPress={() => handleSortSelect(option.key)}
-              >
-                <Text
-                  style={[
-                    styles.sortOptionText,
-                    sortBy === option.key && styles.sortOptionTextActive,
-                  ]}
-                >
-                  {option.label}
-                </Text>
-                {sortBy === option.key && (
-                  <Check size={20} color={COLORS.piktag600} />
-                )}
-              </TouchableOpacity>
-            ))}
-          </View>
-        </TouchableOpacity>
-      </Modal>
 
       {/* Tag Filter Modal */}
       <Modal
@@ -1100,11 +938,6 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.piktag50,
     borderBottomWidth: 1,
     borderBottomColor: COLORS.piktag100,
-  },
-  sortIndicatorText: {
-    fontSize: 13,
-    color: COLORS.piktag600,
-    fontWeight: '600',
   },
   loadingContainer: {
     flex: 1,
@@ -1338,41 +1171,17 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: COLORS.white,
   },
-  // Sort Modal
+  // Shared modal overlay (used by batch-tag modal)
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.4)',
     justifyContent: 'flex-end',
-  },
-  sortModal: {
-    backgroundColor: COLORS.white,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    paddingHorizontal: 20,
-    paddingTop: 24,
-    paddingBottom: 40,
   },
   sortModalTitle: {
     fontSize: 18,
     fontWeight: '700',
     color: COLORS.gray900,
     marginBottom: 16,
-  },
-  sortOption: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: 14,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.gray100,
-  },
-  sortOptionText: {
-    fontSize: 16,
-    color: COLORS.gray700,
-  },
-  sortOptionTextActive: {
-    color: COLORS.piktag600,
-    fontWeight: '600',
   },
   // Batch Tag Modal
   batchTagModal: {
