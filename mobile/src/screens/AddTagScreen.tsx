@@ -66,8 +66,8 @@ function getQuickDates(): { label: string; date: Date }[] {
   const today = new Date();
   const tomorrow = new Date(today); tomorrow.setDate(today.getDate() + 1);
   return [
-    { label: formatDateDisplay(today), date: today },
-    { label: formatDateDisplay(tomorrow), date: tomorrow },
+    { label: `#${formatDateDisplay(today)}`, date: today },
+    { label: `#${formatDateDisplay(tomorrow)}`, date: tomorrow },
   ];
 }
 
