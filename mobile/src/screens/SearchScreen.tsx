@@ -1264,18 +1264,29 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
     [isFocused],
   );
 
+  // Manual focus fallback: on some devices (e.g. iPhone XR) the native
+  // hit-testing on the TextInput occasionally misses. Wrapping the whole
+  // pill in a Pressable that forwards tap → textInput.focus() makes the
+  // search box bulletproof regardless of which sub-view the touch lands on.
+  const searchInputRef = useRef<TextInput>(null);
+  const focusSearchInput = useCallback(() => {
+    searchInputRef.current?.focus();
+  }, []);
+
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={topEdges}>
       <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={colors.white} />
       <View style={styles.header}>
         <Text style={[styles.headerTitle, { color: colors.text }]}>{t('search.headerTitle') || '搜尋'}</Text>
-        <View style={searchContainerStyle}>
+        <Pressable style={searchContainerStyle} onPress={focusSearchInput}>
           <Search
             size={20}
             color={COLORS.gray400}
             style={styles.searchIcon}
+            pointerEvents="none"
           />
           <TextInput
+            ref={searchInputRef}
             style={styles.searchInput}
             placeholder={t('search.searchPlaceholder')}
             placeholderTextColor={COLORS.gray400}
@@ -1300,7 +1311,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
               <X size={16} color={COLORS.gray400} />
             </TouchableOpacity>
           )}
-        </View>
+        </Pressable>
       </View>
 
       {/* Tab bar: 熱門標籤 | 搜尋紀錄
