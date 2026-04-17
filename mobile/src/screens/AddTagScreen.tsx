@@ -25,6 +25,7 @@ import { useAuth } from '../hooks/useAuth';
 import { COLORS } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
 import { LinearGradient } from 'expo-linear-gradient';
+import { getLocales } from 'expo-localization';
 import type { TagPreset, ScanSession, PiktagProfile } from '../types';
 
 // ─── Fallback Popular Tags (used if DB fetch fails) ───
@@ -34,6 +35,9 @@ type AddTagScreenProps = {
   navigation: any;
 };
 
+// Canonical storage format (YYYY/MM/DD). This value is what we push to the
+// DB's `event_date` column and what we compare against in state, so it MUST
+// stay locale-independent. Display formatting is separate — see below.
 function formatDate(date: Date): string {
   const y = date.getFullYear();
   const m = String(date.getMonth() + 1).padStart(2, '0');
@@ -41,12 +45,29 @@ function formatDate(date: Date): string {
   return `${y}/${m}/${d}`;
 }
 
+// Locale-aware display format for the quick-date buttons. Reads device
+// locale from expo-localization so each user sees their regional ordering
+// (US: 04/17/2026, UK: 17/04/2026, TW/JP: 2026/04/17, etc.).
+function formatDateDisplay(date: Date): string {
+  const locale = getLocales()?.[0]?.languageTag || 'zh-TW';
+  try {
+    return date.toLocaleDateString(locale, {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    });
+  } catch {
+    // Fallback if the runtime's Intl can't handle the tag (older Hermes).
+    return formatDate(date);
+  }
+}
+
 function getQuickDates(): { label: string; date: Date }[] {
   const today = new Date();
-  const yesterday = new Date(today); yesterday.setDate(today.getDate() - 1);
+  const tomorrow = new Date(today); tomorrow.setDate(today.getDate() + 1);
   return [
-    { label: formatDate(yesterday), date: yesterday },
-    { label: formatDate(today), date: today },
+    { label: formatDateDisplay(today), date: today },
+    { label: formatDateDisplay(tomorrow), date: tomorrow },
   ];
 }
 
