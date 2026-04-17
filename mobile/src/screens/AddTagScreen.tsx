@@ -200,7 +200,7 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
 
   const saveToRecent = (name: string) => {
     setRecentLocations(prev => {
-      const next = [name, ...prev.filter(l => l !== name)].slice(0, 5);
+      const next = [name, ...prev.filter(l => l !== name)].slice(0, 2);
       AsyncStorage.setItem('piktag_recent_locations', JSON.stringify(next));
       return next;
     });
@@ -550,7 +550,7 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
           {/* Recent locations */}
           {recentLocations.length > 0 && (
             <View style={styles.quickDateRow}>
-              {recentLocations.slice(0, 3).map((loc) => (
+              {recentLocations.slice(0, 2).map((loc) => (
                 <TouchableOpacity
                   key={loc}
                   style={[styles.quickDateBtn, eventLocation === loc && styles.quickDateBtnActive]}
