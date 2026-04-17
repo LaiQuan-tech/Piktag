@@ -123,32 +123,32 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
       // 1. Load from AsyncStorage first (instant, always works)
       const stored = await AsyncStorage.getItem(PRESETS_KEY);
       const localPresets: TagPreset[] = stored ? JSON.parse(stored) : [];
-      if (localPresets.length > 0) {
-        setPresets(localPresets);
-      }
+      setPresets(localPresets);
+      // Local data ready → unblock the UI immediately
+      setLoadingPresets(false);
 
       // 2. Try Supabase in background — if it returns data, merge & update
-      const { data } = await supabase
-        .from('piktag_tag_presets')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
+      try {
+        const { data } = await supabase
+          .from('piktag_tag_presets')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false });
 
-      if (data && data.length > 0) {
-        // Merge: Supabase is source of truth when available
-        const merged = data as TagPreset[];
-        // Also include any local-only presets (saved while offline / DB was down)
-        const dbIds = new Set(merged.map(p => p.id));
-        for (const lp of localPresets) {
-          if (!dbIds.has(lp.id)) merged.push(lp);
+        if (data && data.length > 0) {
+          const merged = data as TagPreset[];
+          const dbIds = new Set(merged.map(p => p.id));
+          for (const lp of localPresets) {
+            if (!dbIds.has(lp.id)) merged.push(lp);
+          }
+          setPresets(merged);
+          await AsyncStorage.setItem(PRESETS_KEY, JSON.stringify(merged));
         }
-        setPresets(merged);
-        await AsyncStorage.setItem(PRESETS_KEY, JSON.stringify(merged));
+      } catch {
+        // Supabase sync failed — local data is already displayed, no action needed
       }
     } catch (err) {
       console.warn('[AddTag] loadPresets:', err);
-    } finally {
-      setLoadingPresets(false);
     }
   }, [user]);
 
