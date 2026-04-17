@@ -15,7 +15,7 @@ import {
   Platform,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { X, Star, ArrowLeft, Share2, Trash2, MapPin, Navigation, Camera } from 'lucide-react-native';
+import { X, Star, ArrowLeft, Share2, Trash2, MapPin, Navigation, Camera, ScanLine } from 'lucide-react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import QRCode from 'react-native-qrcode-svg';
 import { useTranslation } from 'react-i18next';
@@ -392,7 +392,7 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
             activeOpacity={0.6}
             style={styles.headerSideBtn}
           >
-            <Camera size={24} color={COLORS.gray700} />
+            <ScanLine size={24} color={COLORS.gray700} />
           </TouchableOpacity>
           <TouchableOpacity
             onPress={async () => {
@@ -688,22 +688,6 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
           {eventLocation ? ` · ${eventLocation}` : ''}
         </Text>
 
-        {/* Tags */}
-        {eventTags.length > 0 && (
-          <View style={styles.qrTagsContainer}>
-            {eventTags.map((tag) => (
-              <View key={tag} style={styles.tagChip}>
-                <Text style={styles.tagChipText}>{tag}</Text>
-              </View>
-            ))}
-          </View>
-        )}
-
-        {/* Scan count */}
-        <Text style={styles.qrScanCount}>
-          {t('addTag.scanCount', { count: scanSession?.scan_count ?? 0 })}
-        </Text>
-
         {/* Action buttons */}
         <View style={styles.qrActionButtons}>
           <TouchableOpacity
@@ -868,22 +852,6 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
           <View style={styles.eventQrWrapper}>
             <QRCode value={qrValue} size={280} backgroundColor="#FFFFFF" />
           </View>
-
-          {/* Scan count */}
-          <Text style={styles.eventScanCount}>
-            {scanSession?.scan_count ?? 0} {t('addTag.eventScanned') || '人已掃描'}
-          </Text>
-
-          {/* Tags */}
-          {eventTags.length > 0 && (
-            <View style={styles.eventTagsRow}>
-              {eventTags.slice(0, 5).map((tag) => (
-                <View key={tag} style={styles.eventTagChip}>
-                  <Text style={styles.eventTagText}>{tag}</Text>
-                </View>
-              ))}
-            </View>
-          )}
 
           <Text style={styles.eventHint}>{t('addTag.eventHint') || '讓朋友掃描加你為好友'}</Text>
         </View>
@@ -1273,31 +1241,6 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     marginBottom: 20,
   },
-  eventScanCount: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: COLORS.piktag500,
-    marginBottom: 16,
-  },
-  eventTagsRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-    justifyContent: 'center',
-    paddingHorizontal: 40,
-    marginBottom: 16,
-  },
-  eventTagChip: {
-    paddingVertical: 4,
-    paddingHorizontal: 12,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.3)',
-  },
-  eventTagText: {
-    fontSize: 14,
-    color: 'rgba(255,255,255,0.7)',
-  },
   eventHint: {
     fontSize: 14,
     color: 'rgba(255,255,255,0.4)',
@@ -1372,21 +1315,6 @@ const styles = StyleSheet.create({
     color: COLORS.gray700,
     marginBottom: 16,
   },
-  qrTagsContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 10,
-    paddingHorizontal: 20,
-    justifyContent: 'center',
-    marginBottom: 20,
-  },
-  qrScanCount: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: COLORS.gray900,
-    marginBottom: 24,
-  },
-
   // ── Modal ──
   modalOverlay: {
     flex: 1,

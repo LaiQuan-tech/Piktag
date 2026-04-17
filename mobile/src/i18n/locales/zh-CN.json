@@ -166,7 +166,6 @@
     "generateQrButton": "Generate QR Code",
     "backToEdit": "Back to Edit",
     "qrBrandTitle": "PikTag",
-    "scanCount": "Scanned {{count}} times",
     "editTagSettings": "Edit tag settings",
     "presetsModalTitle": "Templates",
     "noPresets": "No templates yet",
