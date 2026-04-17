@@ -405,7 +405,10 @@
     "alertNotOnPikTagMessage": "{{name}}님은 아직 PikTag에 가입하지 않았습니다. 초대해 보세요!",
     "alertBatchImportTitle": "일괄 가져오기",
     "alertBatchImportMessage": "연락처 {{count}}개를 모두 가져오시겠습니까?",
-    "alertBatchImportConfirm": "가져오기"
+    "alertBatchImportConfirm": "가져오기",
+    "batchProgress": "처리 중 {{current}}/{{total}}",
+    "alertBatchDoneTitle": "가져오기 완료",
+    "alertBatchDoneMessage": "{{matched}}명의 친구를 추가했습니다. {{notOnApp}}명은 아직 PikTag을 사용하지 않습니다."
   },
   "invite": {
     "headerTitle": "친구 초대",

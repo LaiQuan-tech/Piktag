@@ -525,7 +525,10 @@
     "alertBatchImportTitle": "批次匯入",
     "alertBatchImportMessage": "確定要匯入全部 {{count}} 位通訊錄聯絡人嗎？",
     "alertBatchImportConfirm": "匯入",
-    "inviteMessage": "{{name}}，我在用 PikTag，一起來交換標籤吧！下載：https://pikt.ag"
+    "inviteMessage": "{{name}}，我在用 PikTag，一起來交換標籤吧！下載：https://pikt.ag",
+    "batchProgress": "處理中 {{current}}/{{total}}",
+    "alertBatchDoneTitle": "匯入完成",
+    "alertBatchDoneMessage": "已加入 {{matched}} 位朋友。其中 {{notOnApp}} 位尚未使用 PikTag。"
   },
   "invite": {
     "headerTitle": "邀請好友",

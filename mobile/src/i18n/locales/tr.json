@@ -408,7 +408,10 @@
     "alertNotOnPikTagMessage": "{{name}} henüz PikTag'de değil, katılması için davet edin!",
     "alertBatchImportTitle": "Toplu İçe Aktarma",
     "alertBatchImportMessage": "{{count}} kişinin tümünü içe aktarmak istediğinden emin misin?",
-    "alertBatchImportConfirm": "İçe Aktar"
+    "alertBatchImportConfirm": "İçe Aktar",
+    "batchProgress": "İşleniyor {{current}}/{{total}}",
+    "alertBatchDoneTitle": "İçe aktarma tamamlandı",
+    "alertBatchDoneMessage": "{{matched}} arkadaş eklendi. {{notOnApp}} kişi henüz PikTag kullanmıyor."
   },
   "invite": {
     "headerTitle": "Arkadaş Davet Et",
