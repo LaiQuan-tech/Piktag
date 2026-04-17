@@ -110,27 +110,35 @@ export default function ContactSyncScreen({ navigation }: ContactSyncScreenProps
 
   // Silent import: only creates a connection if contact matches a PikTag user.
   // Returns true if matched+connected, false if not found. Never opens share sheet.
+  //
+  // Uses .maybeSingle() instead of .single() so "no rows" returns null cleanly.
+  // Real errors (RLS denied, network) are logged so they're not masked as
+  // "not found" — a silent failure used to make the feature look broken even
+  // when the real issue was a DB permission.
   const importContactSilently = async (contact: PhoneContact): Promise<boolean> => {
     if (!user) return false;
     try {
       let matchedUserId: string | null = null;
 
       if (contact.phone) {
-        const normalizedPhone = contact.phone.replace(/[\s\-\(\)]/g, '');
-        const { data: phoneMatch } = await supabase
+        const normalizedPhone = contact.phone.replace(/[\s\-()]/g, '');
+        const { data: phoneMatch, error: phoneErr } = await supabase
           .from('piktag_profiles')
           .select('id')
           .eq('phone', normalizedPhone)
-          .single();
+          .maybeSingle();
+        if (phoneErr) console.warn('[ContactSync] phone lookup error:', phoneErr.message);
         if (phoneMatch) matchedUserId = phoneMatch.id;
       }
 
-      if (!matchedUserId && contact.email) {
-        const { data: emailMatch } = await supabase
+      if (!matchedUserId && contact.email && contact.email.includes('@')) {
+        const prefix = contact.email.split('@')[0];
+        const { data: emailMatch, error: emailErr } = await supabase
           .from('piktag_profiles')
           .select('id')
-          .ilike('username', contact.email.split('@')[0])
-          .single();
+          .ilike('username', prefix)
+          .maybeSingle();
+        if (emailErr) console.warn('[ContactSync] email lookup error:', emailErr.message);
         if (emailMatch) matchedUserId = emailMatch.id;
       }
 
@@ -146,13 +154,16 @@ export default function ContactSyncScreen({ navigation }: ContactSyncScreenProps
             },
             { onConflict: 'user_id,connected_user_id' }
           );
-        if (!error) {
-          setImportedIds((prev) => new Set(prev).add(contact.id));
-          return true;
+        if (error) {
+          console.warn('[ContactSync] upsert error:', error.message, error.code);
+          return false;
         }
+        setImportedIds((prev) => new Set(prev).add(contact.id));
+        return true;
       }
       return false;
-    } catch {
+    } catch (err) {
+      console.warn('[ContactSync] importContactSilently threw:', err);
       return false;
     }
   };
