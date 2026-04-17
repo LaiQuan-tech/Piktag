@@ -2,6 +2,7 @@
   "rewrites": [
     { "source": "/privacy", "destination": "/public/privacy.html" },
     { "source": "/terms", "destination": "/public/terms.html" },
+    { "source": "/delete-account", "destination": "/public/delete-account.html" },
     { "source": "/download", "destination": "/download.html" },
     { "source": "/scan", "destination": "/scan.html" },
     { "source": "/tag/:tagname", "destination": "/api/tag/:tagname" },
