@@ -258,15 +258,16 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
         .insert({
           user_id: user.id,
           name: presetNameInput.trim(),
-          location: eventLocation,
-          tags: eventTags,
+          location: eventLocation || '',
+          tags: eventTags.length > 0 ? eventTags : [],
+          created_at: new Date().toISOString(),
         })
         .select('*')
         .single();
 
       if (error || !data) {
-        console.warn('[AddTag] savePreset error:', error?.message, error?.code);
-        Alert.alert(t('common.error'), t('addTag.alertPresetSaveError'));
+        console.warn('[AddTag] savePreset error:', error?.message, error?.code, error?.details);
+        Alert.alert(t('common.error'), error?.message || t('addTag.alertPresetSaveError'));
       } else {
         // Optimistically prepend to local state so the star-modal reflects
         // the new preset immediately on next open.
@@ -1534,7 +1535,7 @@ const styles = StyleSheet.create({
   presetNameModalConfirmText: {
     fontSize: 15,
     fontWeight: '700',
-    color: COLORS.gray900,
+    color: COLORS.white,
   },
   presetHintText: {
     fontSize: 13,

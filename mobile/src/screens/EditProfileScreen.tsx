@@ -1658,7 +1658,7 @@ const styles = StyleSheet.create({
     color: COLORS.gray700,
   },
   tag_popularTagChipTextAdded: {
-    color: COLORS.gray900,
+    color: COLORS.white,
   },
   addLinkBtn: {
     flexDirection: 'row',
