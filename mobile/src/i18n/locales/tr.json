@@ -189,7 +189,6 @@
     "generateQrButton": "QR Code Oluştur",
     "backToEdit": "Düzenlemeye Dön",
     "qrBrandTitle": "PikTag",
-    "scanCount": "{{count}} kez tarandı",
     "editTagSettings": "Etiket ayarlarını düzenle",
     "softTagsTitle": "🧠 Yumuşak Etiketler",
     "zodiacSubtitle": "Burç",

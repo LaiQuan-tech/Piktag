@@ -186,7 +186,6 @@
     "generateQrButton": "QR Code 생성",
     "backToEdit": "수정으로 돌아가기",
     "qrBrandTitle": "PikTag",
-    "scanCount": "{{count}}회 스캔됨",
     "editTagSettings": "태그 설정 편집",
     "softTagsTitle": "🧠 소프트 태그",
     "zodiacSubtitle": "별자리",
