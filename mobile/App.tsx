@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Platform, StyleSheet } from 'react-native';
 import * as Sentry from '@sentry/react-native';
 import { StatusBar as ExpoStatusBar } from 'expo-status-bar';
@@ -8,6 +8,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import './src/i18n'; // Initialize i18n
 import AppNavigator from './src/navigation/AppNavigator';
 import { ThemeProvider } from './src/context/ThemeContext';
+import SplashOverlay from './src/components/SplashOverlay';
 
 // Initialize Sentry for production crash & error monitoring.
 // The DSN is intentionally hardcoded — it's a write-only ingest URL
@@ -69,6 +70,9 @@ const linking = {
 
 function App() {
   const isWeb = Platform.OS === 'web';
+  // IG-style 'from PikTag' launch moment, shown briefly on native after
+  // the native splash hides. Skipped on web — web has its own landing.
+  const [splashVisible, setSplashVisible] = useState(!isWeb);
 
   const content = (
     <ThemeProvider>
@@ -77,6 +81,7 @@ function App() {
           <NavigationContainer linking={linking}>
             <ExpoStatusBar style="dark" />
             <AppNavigator />
+            {splashVisible && <SplashOverlay onHidden={() => setSplashVisible(false)} />}
           </NavigationContainer>
         </SafeAreaProvider>
       </GestureHandlerRootView>
