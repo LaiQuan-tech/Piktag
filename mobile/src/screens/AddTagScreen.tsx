@@ -438,10 +438,7 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
             <ScanLine size={24} color={COLORS.gray700} />
           </TouchableOpacity>
           <TouchableOpacity
-            onPress={async () => {
-              await loadPresets();
-              setShowPresetsModal(true);
-            }}
+            onPress={() => setShowPresetsModal(true)}
             activeOpacity={0.6}
             style={styles.headerSideBtn}
           >
