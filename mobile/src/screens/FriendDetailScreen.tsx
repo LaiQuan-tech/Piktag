@@ -1101,7 +1101,6 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
                       <Text style={[styles.pickModalTagText, isSelected && styles.pickModalTagTextSelected]}>
                         #{tag.name}
                       </Text>
-                      {isSelected && <Text style={styles.pickModalCheck}>✓</Text>}
                     </TouchableOpacity>
                   );
                 })}
