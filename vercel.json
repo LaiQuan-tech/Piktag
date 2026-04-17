@@ -3,6 +3,8 @@
   "buildCommand": "echo 'Using pre-built dist'",
   "framework": null,
   "routes": [
+    { "src": "/delete-account", "dest": "/delete-account.html" },
+    { "src": "/delete-account/", "dest": "/delete-account.html" },
     { "handle": "filesystem" },
     { "src": "/(.*)", "dest": "/index.html" }
   ]
