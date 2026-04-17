@@ -49,7 +49,6 @@ import { useTranslation } from 'react-i18next';
 import { COLORS } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
 import { LinearGradient } from 'expo-linear-gradient';
-import { preventScreenCaptureAsync, allowScreenCaptureAsync } from 'expo-screen-capture';
 import PlatformIcon from '../components/PlatformIcon';
 import InitialsAvatar from '../components/InitialsAvatar';
 import HiddenTagEditor from '../components/HiddenTagEditor';
@@ -153,12 +152,6 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
   // Analytics: track friend detail page view
   useEffect(() => {
     require('../lib/analytics').trackFriendDetailViewed();
-  }, []);
-
-  // Prevent screenshots on this page (protects hidden tags)
-  useEffect(() => {
-    preventScreenCaptureAsync();
-    return () => { allowScreenCaptureAsync(); };
   }, []);
 
   const [loading, setLoading] = useState(true);
@@ -794,11 +787,11 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
               {tags.map((tag) => (
                 <TouchableOpacity
                   key={tag.tagId}
-                  style={[styles.tagChip, tag.isPicked && styles.tagChipPicked, tag.isHidden && styles.hiddenTagChip]}
+                  style={[styles.tagChip, (tag.isPicked || tag.isHidden) && styles.tagChipPicked]}
                   activeOpacity={0.6}
                   onPress={() => navigation.navigate('TagDetail', { tagId: tag.tagId, tagName: tag.name, initialTab: 'explore' })}
                 >
-                  <Text style={[styles.tagChipText, tag.isPicked && styles.tagChipTextPicked, tag.isHidden && styles.hiddenTagChipText]}>
+                  <Text style={[styles.tagChipText, (tag.isPicked || tag.isHidden) && styles.tagChipTextPicked]}>
                     #{tag.name}
                   </Text>
                 </TouchableOpacity>
@@ -1377,7 +1370,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.piktag500,
   },
   followButtonFollowing: {
-    backgroundColor: COLORS.piktag50,
+    backgroundColor: COLORS.white,
     borderWidth: 1.5,
     borderColor: COLORS.piktag500,
   },
@@ -1389,7 +1382,7 @@ const styles = StyleSheet.create({
   followButtonTextFollowing: {
     fontSize: 15,
     fontWeight: '600',
-    color: COLORS.piktag600,
+    color: COLORS.gray900,
   },
   tagButton: {
     flex: 1,
