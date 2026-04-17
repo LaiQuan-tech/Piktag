@@ -1155,11 +1155,19 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
                 setMoreMenuVisible(false);
                 const profileUrl = `https://pikt.ag/${username}`;
                 const name = displayName || username;
+                // The i18n template already contains {{url}}, so the message
+                // string has the URL baked in — no need to append separately.
                 const message = t('friendDetail.shareIntroMessage', { name, url: profileUrl });
                 try {
                   await Share.share({
-                    message: Platform.OS === 'ios' ? message : `${message}\n${profileUrl}`,
+                    message,
+                    // iOS: providing `url` separately lets apps like iMessage
+                    // render a rich link preview card. On Android the field
+                    // is ignored, the URL in `message` is what gets shared.
                     url: Platform.OS === 'ios' ? profileUrl : undefined,
+                    // Android: some apps (Gmail, etc.) use `title` as the
+                    // subject when sharing.
+                    title: Platform.OS === 'android' ? `${name} @ PikTag` : undefined,
                   });
                 } catch (err) {
                   console.warn('[FriendDetail] Share failed:', err);
