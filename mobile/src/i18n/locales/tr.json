@@ -518,7 +518,8 @@
     "conceptMatchTitle": "Kavram eşleşti",
     "conceptMatchMessage": "\"{{input}}\" kavramı \"{{concept}}\" ile eşleştirildi",
     "suggestionsTitle": "Bunlardan birini mi demek istediniz?",
-    "createNewAnyway": "Bunların hiçbiri değil, yeni etiket oluştur"
+    "createNewAnyway": "Bunların hiçbiri değil, yeni etiket oluştur",
+    "aiErrorGeneric": "AI önerileri geçici olarak kullanılamıyor, lütfen daha sonra tekrar deneyin"
   },
   "tagDetail": {
     "unknownTag": "Bilinmeyen Etiket",

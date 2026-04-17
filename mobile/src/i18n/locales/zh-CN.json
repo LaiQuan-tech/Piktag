@@ -431,7 +431,8 @@
     "alertTagExists": "Tag already exists",
     "alertTagExistsMessage": "This tag is already in your list.",
     "alertAddError": "Can't add tag, try again in a bit.",
-    "alertRemoveError": "Can't remove tag, try again in a bit."
+    "alertRemoveError": "Can't remove tag, try again in a bit.",
+    "aiErrorGeneric": "AI 推荐暂时无法使用，请稍后再试"
   },
   "tagDetail": {
     "unknownTag": "Unknown Tag",

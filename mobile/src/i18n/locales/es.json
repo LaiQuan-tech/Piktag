@@ -428,7 +428,8 @@
     "alertTagExists": "Tag already exists",
     "alertTagExistsMessage": "This tag is already in your list.",
     "alertAddError": "Can't add tag, try again in a bit.",
-    "alertRemoveError": "Can't remove tag, try again in a bit."
+    "alertRemoveError": "Can't remove tag, try again in a bit.",
+    "aiErrorGeneric": "Las sugerencias de IA no están disponibles temporalmente, inténtalo más tarde"
   },
   "tagDetail": {
     "unknownTag": "Unknown Tag",

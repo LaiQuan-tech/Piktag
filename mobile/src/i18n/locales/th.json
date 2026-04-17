@@ -531,7 +531,8 @@
     "conceptMatchTitle": "จับคู่แนวคิดแล้ว",
     "conceptMatchMessage": "\"{{input}}\" ถูกจับคู่กับ \"{{concept}}\"",
     "suggestionsTitle": "คุณหมายถึงอันใดอันหนึ่งเหล่านี้หรือไม่?",
-    "createNewAnyway": "ไม่ใช่สิ่งเหล่านี้ สร้างแท็กใหม่"
+    "createNewAnyway": "ไม่ใช่สิ่งเหล่านี้ สร้างแท็กใหม่",
+    "aiErrorGeneric": "คำแนะนำ AI ไม่พร้อมใช้งานชั่วคราว โปรดลองอีกครั้งในภายหลัง"
   },
   "tagDetail": {
     "unknownTag": "แท็กที่ไม่รู้จัก",

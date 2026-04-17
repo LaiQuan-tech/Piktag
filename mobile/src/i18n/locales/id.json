@@ -531,7 +531,8 @@
     "conceptMatchTitle": "Konsep cocok",
     "conceptMatchMessage": "\"{{input}}\" telah dipetakan ke \"{{concept}}\"",
     "suggestionsTitle": "Apakah yang kamu maksud salah satu dari ini?",
-    "createNewAnyway": "Bukan salah satu ini, buat tag baru"
+    "createNewAnyway": "Bukan salah satu ini, buat tag baru",
+    "aiErrorGeneric": "Saran AI sementara tidak tersedia, coba lagi nanti"
   },
   "tagDetail": {
     "unknownTag": "Tag Tidak Dikenal",
