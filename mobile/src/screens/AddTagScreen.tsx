@@ -43,10 +43,10 @@ function formatDate(date: Date): string {
 
 function getQuickDates(): { label: string; date: Date }[] {
   const today = new Date();
-  const tomorrow = new Date(today); tomorrow.setDate(today.getDate() + 1);
+  const yesterday = new Date(today); yesterday.setDate(today.getDate() - 1);
   return [
+    { label: formatDate(yesterday), date: yesterday },
     { label: formatDate(today), date: today },
-    { label: formatDate(tomorrow), date: tomorrow },
   ];
 }
 
@@ -419,8 +419,17 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>{t('addTag.dateLabel')}</Text>
 
-          {/* Quick date buttons */}
+          {/* Quick date buttons — order: [選日期, 昨天, 今天] */}
           <View style={styles.quickDateRow}>
+            <TouchableOpacity
+              style={[styles.quickDateBtn, showDatePicker && styles.quickDateBtnActive]}
+              onPress={() => setShowDatePicker(!showDatePicker)}
+              activeOpacity={0.7}
+            >
+              <Text style={[styles.quickDateText, showDatePicker && styles.quickDateTextActive]}>
+                {t('addTag.pickDate') || '選日期'}
+              </Text>
+            </TouchableOpacity>
             {getQuickDates().map((qd) => {
               const isSelected = eventDate === formatDate(qd.date);
               return (
@@ -434,15 +443,6 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
                 </TouchableOpacity>
               );
             })}
-            <TouchableOpacity
-              style={[styles.quickDateBtn, showDatePicker && styles.quickDateBtnActive]}
-              onPress={() => setShowDatePicker(!showDatePicker)}
-              activeOpacity={0.7}
-            >
-              <Text style={[styles.quickDateText, showDatePicker && styles.quickDateTextActive]}>
-                {t('addTag.pickDate') || '選日期'}
-              </Text>
-            </TouchableOpacity>
           </View>
 
           {/* Simple month calendar (when expanded) */}
