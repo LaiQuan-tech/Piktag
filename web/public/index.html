@@ -40,7 +40,7 @@
     .hero::before{content:'';position:absolute;top:-120px;right:-120px;width:360px;height:360px;border-radius:50%;background:rgba(255,87,87,.22);filter:blur(60px);pointer-events:none}
     .hero::after{content:'';position:absolute;bottom:-160px;left:-120px;width:420px;height:420px;border-radius:50%;background:rgba(255,255,255,.18);filter:blur(80px);pointer-events:none}
     .hero-inner{position:relative;max-width:780px;margin:0 auto}
-    .hero-logo{width:64px;height:64px;border-radius:18px;margin:0 auto 22px;box-shadow:0 8px 32px rgba(0,0,0,.18);opacity:0;animation:scaleIn .6s ease forwards}
+    .hero-logo{width:48px;height:48px;border-radius:14px;margin:0 auto 22px;background:#fff;padding:6px;box-shadow:0 4px 16px rgba(0,0,0,.12);opacity:0;animation:scaleIn .6s ease forwards}
     .wordmark{font-family:'Poppins',sans-serif;font-size:44px;font-weight:800;letter-spacing:-1.2px;margin-bottom:14px;opacity:0;animation:fadeUp .6s ease .1s forwards}
     .tagline{font-size:28px;font-weight:700;letter-spacing:-.5px;margin-bottom:14px;line-height:1.3;opacity:0;animation:fadeUp .6s ease .2s forwards}
     .subline{font-size:17px;font-weight:400;color:rgba(255,255,255,.88);max-width:540px;margin:0 auto 36px;line-height:1.65;opacity:0;animation:fadeUp .6s ease .3s forwards}
@@ -119,7 +119,7 @@
     }
     @media (max-width:480px){
       .hero{padding:56px 20px 72px}
-      .hero-logo{width:56px;height:56px}
+      .hero-logo{width:42px;height:42px;padding:5px}
       .wordmark{font-size:38px}
       .tagline{font-size:24px}
       .subline{font-size:15px;margin-bottom:28px}
@@ -150,7 +150,7 @@
   <!-- HERO -->
   <header class="hero">
     <div class="hero-inner">
-      <img class="hero-logo" src="/logo.png" alt="PikTag 標誌" width="64" height="64">
+      <img class="hero-logo" src="/logo.png" alt="PikTag 標誌" width="48" height="48">
       <h1 class="wordmark">PikTag</h1>
       <p class="tagline">用標籤記住每個人</p>
       <p class="subline">掃 QR code 交換社群資料，用 # 標籤整理人脈，再也不會忘記任何一張臉。一款專為現代社交生活設計的 CRM App。</p>
