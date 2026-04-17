@@ -259,7 +259,12 @@
     "presetNamePrompt": "請輸入模板名稱",
     "popularTagsSoftTitle": "興趣標籤",
     "popularTagsHardTitle": "職業標籤",
-    "longPressToDelete": "長按可刪除模板"
+    "longPressToDelete": "長按可刪除模板",
+    "shareFile": "分享檔案",
+    "copyLink": "複製連結",
+    "editQr": "編輯 QR",
+    "alertLinkCopiedTitle": "已複製",
+    "alertLinkCopiedMessage": "連結已複製到剪貼簿"
   },
   "profile": {
     "nameNotSet": "未設定姓名",

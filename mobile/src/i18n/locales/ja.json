@@ -162,7 +162,12 @@
     "noPresets": "No templates yet",
     "applyPreset": "Apply",
     "shareMessage": "PikTag Social Event\nDate: {{eventDate}}\nLocation: {{eventLocation}}\nTags: {{tags}}\n\nScan QR Code to connect!",
-    "defaultDisplayName": "User"
+    "defaultDisplayName": "User",
+    "shareFile": "共有",
+    "copyLink": "リンクをコピー",
+    "editQr": "QR 編集",
+    "alertLinkCopiedTitle": "コピー完了",
+    "alertLinkCopiedMessage": "リンクをクリップボードにコピーしました"
   },
   "profile": {
     "nameNotSet": "Name not set",

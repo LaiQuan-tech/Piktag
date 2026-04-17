@@ -159,7 +159,12 @@
     "noPresets": "No templates yet",
     "applyPreset": "Apply",
     "shareMessage": "PikTag Social Event\nDate: {{eventDate}}\nLocation: {{eventLocation}}\nTags: {{tags}}\n\nScan QR Code to connect!",
-    "defaultDisplayName": "User"
+    "defaultDisplayName": "User",
+    "shareFile": "Поделиться",
+    "copyLink": "Скопировать ссылку",
+    "editQr": "Изменить QR",
+    "alertLinkCopiedTitle": "Скопировано",
+    "alertLinkCopiedMessage": "Ссылка скопирована в буфер обмена"
   },
   "profile": {
     "nameNotSet": "Name not set",

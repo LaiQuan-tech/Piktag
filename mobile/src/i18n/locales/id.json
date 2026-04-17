@@ -192,7 +192,12 @@
     "presetNamePrompt": "Masukkan nama untuk preset ini",
     "popularTagsSoftTitle": "Tag Minat",
     "popularTagsHardTitle": "Tag Profesi",
-    "longPressToDelete": "Tekan lama untuk menghapus preset"
+    "longPressToDelete": "Tekan lama untuk menghapus preset",
+    "shareFile": "Bagikan",
+    "copyLink": "Salin tautan",
+    "editQr": "Edit QR",
+    "alertLinkCopiedTitle": "Tersalin",
+    "alertLinkCopiedMessage": "Tautan disalin ke clipboard"
   },
   "profile": {
     "nameNotSet": "Nama belum diatur",

@@ -159,7 +159,12 @@
     "noPresets": "No templates yet",
     "applyPreset": "Apply",
     "shareMessage": "PikTag Social Event\nDate: {{eventDate}}\nLocation: {{eventLocation}}\nTags: {{tags}}\n\nScan QR Code to connect!",
-    "defaultDisplayName": "User"
+    "defaultDisplayName": "User",
+    "shareFile": "शेयर",
+    "copyLink": "लिंक कॉपी करें",
+    "editQr": "QR संपादित करें",
+    "alertLinkCopiedTitle": "कॉपी हो गया",
+    "alertLinkCopiedMessage": "लिंक क्लिपबोर्ड पर कॉपी हो गया"
   },
   "profile": {
     "nameNotSet": "Name not set",

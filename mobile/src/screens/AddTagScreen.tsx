@@ -15,7 +15,7 @@ import {
   Platform,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { X, Star, ArrowLeft, Share2, Trash2, Camera, ScanLine } from 'lucide-react-native';
+import { X, Star, Share2, Trash2, ScanLine, Link2, Pencil } from 'lucide-react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import QRCode from 'react-native-qrcode-svg';
 import { useTranslation } from 'react-i18next';
@@ -26,6 +26,7 @@ import { COLORS } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
 import { LinearGradient } from 'expo-linear-gradient';
 import { getLocales } from 'expo-localization';
+import { setStringAsync as setClipboardStringAsync } from 'expo-clipboard';
 import type { TagPreset, ScanSession, PiktagProfile } from '../types';
 
 // ─── Fallback Popular Tags (used if DB fetch fails) ───
@@ -106,6 +107,7 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
 
   // QR / session state
   const [qrValue, setQrValue] = useState('');
+  const [qrUsername, setQrUsername] = useState('');
   const [scanSession, setScanSession] = useState<ScanSession | null>(null);
   const [generating, setGenerating] = useState(false);
 
@@ -400,6 +402,7 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
       // 3. Build QR URL — encode event info as URL params so tags transfer
       //    even if the scan session DB insert failed
       const username = (profileData as PiktagProfile | null)?.username || user.id;
+      setQrUsername(username);
       const params = new URLSearchParams();
       params.set('sid', sessionId);
       if (eventTags.length > 0) params.set('tags', eventTags.join(','));
@@ -450,9 +453,21 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
     try {
       await Share.share({
         message: t('addTag.shareMessage', { eventDate, eventLocation, tags: eventTags.join(', ') }),
+        url: Platform.OS === 'ios' ? qrValue : undefined,
       });
     } catch {
       // user cancelled
+    }
+  };
+
+  // ─── Copy QR link ───
+  const handleCopyLink = async () => {
+    if (!qrValue) return;
+    try {
+      await setClipboardStringAsync(qrValue);
+      Alert.alert(t('addTag.alertLinkCopiedTitle') || '已複製', t('addTag.alertLinkCopiedMessage') || '連結已複製到剪貼簿');
+    } catch {
+      // no-op
     }
   };
 
@@ -736,78 +751,62 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
     </>
   );
 
-  // ─── Render QR Mode ───
+  // ─── Render QR Mode (IG-style gradient + white card + 3 bottom buttons) ───
   const renderQrMode = () => (
-    <>
-      {/* Header */}
-      <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
-        <TouchableOpacity
-          onPress={() => setMode('setup')}
-          activeOpacity={0.6}
-          style={styles.headerBackBtn}
-        >
-          <ArrowLeft size={20} color={COLORS.gray900} />
-          <Text style={styles.headerBackText}>{t('addTag.backToEdit')}</Text>
+    <LinearGradient
+      colors={['#ff5757', '#c44dff', '#8c52ff']}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
+      style={styles.qrGradient}
+    >
+      <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
+      {/* Top bar: close (left) + scan / save-preset (right) */}
+      <View style={[styles.qrTopBar, { paddingTop: insets.top + 12 }]}>
+        <TouchableOpacity onPress={() => setMode('setup')} activeOpacity={0.6} style={styles.qrTopBtn}>
+          <X size={26} color="#fff" />
         </TouchableOpacity>
-        <TouchableOpacity
-          onPress={handleShare}
-          activeOpacity={0.6}
-          style={styles.headerSideBtn}
-        >
-          <Share2 size={22} color={COLORS.gray900} />
-        </TouchableOpacity>
+        <View style={styles.qrTopRightRow}>
+          <TouchableOpacity
+            onPress={() => navigation.navigate('CameraScan')}
+            activeOpacity={0.6}
+            style={styles.qrTopBtn}
+          >
+            <ScanLine size={24} color="#fff" />
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={handleSavePreset}
+            activeOpacity={0.6}
+            style={styles.qrTopBtn}
+          >
+            <Star size={24} color="#fff" />
+          </TouchableOpacity>
+        </View>
       </View>
 
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.qrScrollContent}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Branded title */}
-        <Text style={styles.qrBrandTitle}>{t('addTag.qrBrandTitle')}</Text>
-
-        {/* QR Code */}
-        <View style={styles.qrWrapper}>
-          <QRCode value={qrValue} size={200} backgroundColor={colors.white} />
+      {/* Center white card with QR code + username */}
+      <View style={styles.qrCardWrap}>
+        <View style={styles.qrWhiteCard}>
+          <QRCode value={qrValue} size={220} backgroundColor="#fff" />
+          <Text style={styles.qrCardUsername}>@{qrUsername}</Text>
         </View>
+      </View>
 
-        {/* Event info */}
-        <Text style={styles.qrEventInfo}>
-          {eventDate}
-          {eventLocation ? ` · ${eventLocation}` : ''}
-        </Text>
-
-        {/* Action buttons */}
-        <View style={styles.qrActionButtons}>
-          <TouchableOpacity
-            style={styles.eventModeBtn}
-            onPress={() => setMode('event')}
-            activeOpacity={0.8}
-          >
-            <Text style={styles.eventModeBtnText}>{t('addTag.eventModeBtn') || '活動模式'}</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.outlineButton}
-            onPress={() => setMode('setup')}
-            activeOpacity={0.7}
-          >
-            <Text style={styles.outlineButtonText}>
-              {t('addTag.editTagSettings')}
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.cameraScanBtn}
-            onPress={() => navigation.navigate('CameraScan')}
-            activeOpacity={0.7}
-          >
-            <Camera size={20} color={COLORS.piktag600} />
-            <Text style={styles.cameraScanBtnText}>{t('addTag.scanQrCode') || '掃描 QR Code'}</Text>
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
-    </>
+      {/* Bottom 3 action buttons (share / copy / edit) */}
+      <View style={[styles.qrBottomRow, { paddingBottom: insets.bottom + 20 }]}>
+        <TouchableOpacity style={styles.qrBottomBtn} onPress={handleShare} activeOpacity={0.7}>
+          <Share2 size={22} color={COLORS.gray900} />
+          <Text style={styles.qrBottomBtnText}>{t('addTag.shareFile') || '分享檔案'}</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.qrBottomBtn} onPress={handleCopyLink} activeOpacity={0.7}>
+          <Link2 size={22} color={COLORS.gray900} />
+          <Text style={styles.qrBottomBtnText}>{t('addTag.copyLink') || '複製連結'}</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.qrBottomBtn} onPress={() => setMode('setup')} activeOpacity={0.7}>
+          <Pencil size={22} color={COLORS.gray900} />
+          <Text style={styles.qrBottomBtnText}>{t('addTag.editQr') || '編輯QRcode'}</Text>
+        </TouchableOpacity>
+      </View>
+    </LinearGradient>
   );
 
   // ─── Presets Modal ───
@@ -1388,7 +1387,71 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
 
-  // ── QR Mode ──
+  // ── QR Mode (IG-style) ──
+  qrGradient: {
+    flex: 1,
+  },
+  qrTopBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingBottom: 8,
+  },
+  qrTopBtn: {
+    padding: 8,
+  },
+  qrTopRightRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  qrCardWrap: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 32,
+  },
+  qrWhiteCard: {
+    backgroundColor: '#fff',
+    borderRadius: 24,
+    paddingHorizontal: 28,
+    paddingTop: 28,
+    paddingBottom: 20,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.15,
+    shadowRadius: 24,
+    elevation: 10,
+  },
+  qrCardUsername: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#c44dff',
+    marginTop: 16,
+    letterSpacing: 0.5,
+  },
+  qrBottomRow: {
+    flexDirection: 'row',
+    paddingHorizontal: 16,
+    paddingTop: 8,
+    gap: 10,
+  },
+  qrBottomBtn: {
+    flex: 1,
+    backgroundColor: '#fff',
+    borderRadius: 14,
+    paddingVertical: 16,
+    alignItems: 'center',
+    gap: 8,
+  },
+  qrBottomBtnText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: COLORS.gray900,
+  },
+  // ── Legacy QR mode styles (kept because other modes may reference) ──
   qrBrandTitle: {
     fontSize: 28,
     fontWeight: '800',

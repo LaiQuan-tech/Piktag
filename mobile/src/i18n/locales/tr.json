@@ -195,7 +195,12 @@
     "presetNamePrompt": "Bu şablon için bir ad gir",
     "popularTagsSoftTitle": "İlgi Alanı Etiketleri",
     "popularTagsHardTitle": "Meslek Etiketleri",
-    "longPressToDelete": "Şablonu silmek için uzun basın"
+    "longPressToDelete": "Şablonu silmek için uzun basın",
+    "shareFile": "Paylaş",
+    "copyLink": "Bağlantıyı kopyala",
+    "editQr": "QR düzenle",
+    "alertLinkCopiedTitle": "Kopyalandı",
+    "alertLinkCopiedMessage": "Bağlantı panoya kopyalandı"
   },
   "profile": {
     "nameNotSet": "Ad belirtilmemiş",

@@ -192,7 +192,12 @@
     "presetNamePrompt": "이 프리셋의 이름을 입력하세요",
     "popularTagsSoftTitle": "관심사 태그",
     "popularTagsHardTitle": "직업 태그",
-    "longPressToDelete": "길게 눌러 프리셋 삭제"
+    "longPressToDelete": "길게 눌러 프리셋 삭제",
+    "shareFile": "공유",
+    "copyLink": "링크 복사",
+    "editQr": "QR 편집",
+    "alertLinkCopiedTitle": "복사됨",
+    "alertLinkCopiedMessage": "링크가 클립보드에 복사되었습니다"
   },
   "profile": {
     "nameNotSet": "이름 미설정",

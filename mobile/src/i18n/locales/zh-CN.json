@@ -162,7 +162,12 @@
     "noPresets": "No templates yet",
     "applyPreset": "Apply",
     "shareMessage": "PikTag Social Event\nDate: {{eventDate}}\nLocation: {{eventLocation}}\nTags: {{tags}}\n\nScan QR Code to connect!",
-    "defaultDisplayName": "User"
+    "defaultDisplayName": "User",
+    "shareFile": "分享档案",
+    "copyLink": "复制链接",
+    "editQr": "编辑 QR",
+    "alertLinkCopiedTitle": "已复制",
+    "alertLinkCopiedMessage": "链接已复制到剪贴板"
   },
   "profile": {
     "nameNotSet": "Name not set",
