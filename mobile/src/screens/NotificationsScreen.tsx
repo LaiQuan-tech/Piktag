@@ -70,13 +70,13 @@ function formatTimeAgo(dateString: string, t: (key: string, options?: any) => st
 // --- Memoized notification item component ---
 type NotificationItemProps = {
   item: Notification;
-  onMarkAsRead: (id: string) => void;
+  onPress: (item: Notification) => void;
   t: (key: string, options?: any) => string;
 };
 
 const NotificationItem = React.memo(function NotificationItem({
   item,
-  onMarkAsRead,
+  onPress,
   t,
 }: NotificationItemProps) {
   const avatarUrl = item.data?.avatar_url || null;
@@ -84,8 +84,8 @@ const NotificationItem = React.memo(function NotificationItem({
   const body = item.body || '';
 
   const handlePress = useCallback(() => {
-    onMarkAsRead(item.id);
-  }, [onMarkAsRead, item.id]);
+    onPress(item);
+  }, [onPress, item]);
 
   return (
     <TouchableOpacity
@@ -299,12 +299,26 @@ export default function NotificationsScreen({ navigation }: NotificationsScreenP
     [notifications]
   );
 
+  // Tap a notification → mark as read + navigate to the actor's profile.
+  // The server-side trigger stores username / actor_user_id in data, so we
+  // pass whichever we have to UserDetailScreen's route params.
+  const handleNotificationPress = useCallback(
+    (item: Notification) => {
+      handleMarkAsRead(item.id);
+      const userId = item.data?.actor_user_id || item.data?.user_id;
+      const username = item.data?.username;
+      if (!navigation || (!userId && !username)) return;
+      navigation.navigate('UserDetail', { userId, username });
+    },
+    [handleMarkAsRead, navigation]
+  );
+
   // useCallback for renderItem
   const renderNotificationItem = useCallback(
     ({ item }: { item: Notification }) => (
-      <NotificationItem item={item} onMarkAsRead={handleMarkAsRead} t={t} />
+      <NotificationItem item={item} onPress={handleNotificationPress} t={t} />
     ),
-    [handleMarkAsRead, t]
+    [handleNotificationPress, t]
   );
 
   // useCallback for keyExtractor
