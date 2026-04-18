@@ -172,6 +172,7 @@
   "profile": {
     "nameNotSet": "Name not set",
     "usernameNotSet": "Username not set",
+    "pageTitle": "Профиль",
     "noBio": "No bio yet",
     "noTags": "No tags yet",
     "tagFallback": "Tag",

@@ -311,7 +311,7 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
 
       {/* Header */}
       <View style={styles.header}>
-        <Text style={[styles.headerTitle, { color: colors.text }]}>{displayUsername}</Text>
+        <Text style={[styles.headerTitle, { color: colors.text }]}>{t('profile.pageTitle')}</Text>
         <View style={styles.headerRight}>
           <TouchableOpacity style={styles.headerIconBtn} activeOpacity={0.6} onPress={handleNavigateInvite} accessibilityLabel={t('settings.inviteFriends') || '邀請好友'} accessibilityRole="button">
             <Gift size={24} color={COLORS.piktag600} />

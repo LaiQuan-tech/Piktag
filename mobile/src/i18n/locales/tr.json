@@ -208,6 +208,7 @@
   "profile": {
     "nameNotSet": "Ad belirtilmemiş",
     "usernameNotSet": "Kullanıcı adı belirtilmemiş",
+    "pageTitle": "Profil",
     "noBio": "Henüz biyografi yok",
     "noTags": "Henüz etiket yok",
     "tagFallback": "Etiket",

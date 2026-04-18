@@ -272,6 +272,7 @@
   "profile": {
     "nameNotSet": "未設定姓名",
     "usernameNotSet": "未設定用戶名稱",
+    "pageTitle": "個人",
     "noBio": "尚無個人簡介",
     "noTags": "尚無標籤",
     "tagFallback": "標籤",

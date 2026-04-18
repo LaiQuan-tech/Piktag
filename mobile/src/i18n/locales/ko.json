@@ -205,6 +205,7 @@
   "profile": {
     "nameNotSet": "이름 미설정",
     "usernameNotSet": "사용자 이름 미설정",
+    "pageTitle": "프로필",
     "noBio": "아직 소개글이 없어요",
     "noTags": "아직 태그가 없어요",
     "tagFallback": "태그",

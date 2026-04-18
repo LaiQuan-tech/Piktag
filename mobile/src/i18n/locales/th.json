@@ -205,6 +205,7 @@
   "profile": {
     "nameNotSet": "ยังไม่ได้ตั้งชื่อ",
     "usernameNotSet": "ยังไม่ได้ตั้งชื่อผู้ใช้",
+    "pageTitle": "โปรไฟล์",
     "noBio": "ยังไม่มีประวัติย่อ",
     "noTags": "ยังไม่มีแท็ก",
     "tagFallback": "แท็ก",

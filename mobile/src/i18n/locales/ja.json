@@ -175,6 +175,7 @@
   "profile": {
     "nameNotSet": "Name not set",
     "usernameNotSet": "Username not set",
+    "pageTitle": "プロフィール",
     "noBio": "No bio yet",
     "noTags": "No tags yet",
     "tagFallback": "Tag",
