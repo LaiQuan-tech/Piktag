@@ -29,12 +29,6 @@ import type { Tag, UserTag } from '../types';
 const MAX_TAGS = 10;
 const MAX_TAG_LENGTH = 30;
 const MAX_PINNED = 1;
-// Google Gemini API key loaded from env (mobile/.env locally, EAS
-// secrets in production). No hardcoded fallback — if the env var is
-// missing, the AI suggestion feature will return an error instead of
-// burning credits on the wrong project's key. MUST be bundle-id
-// restricted in the GCP Console to ag.pikt.app.
-const GEMINI_API_KEY = (process.env.EXPO_PUBLIC_GEMINI_API_KEY ?? '') as string;
 
 
 type ManageTagsScreenProps = { navigation: NativeStackNavigationProp<any> };
@@ -78,18 +72,15 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
 
   const loadAiSuggestions = useCallback(async () => {
     if (!user) { setAiError('no user'); return; }
-    if (!GEMINI_API_KEY) { setAiError('missing API key'); return; }
     setAiError(null);
     try {
       setAiLoading(true);
 
-      // Check cache first (avoid repeated API calls)
       const cacheKey = `piktag_ai_tags_${user.id}`;
       const cached = await AsyncStorage.getItem(cacheKey);
       if (cached) {
         try {
           const { suggestions, timestamp } = JSON.parse(cached);
-          // Cache valid for 24 hours
           if (Date.now() - timestamp < 24 * 60 * 60 * 1000 && suggestions?.length > 0) {
             setAiSuggestions(suggestions);
             return;
@@ -107,12 +98,10 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
         return;
       }
 
-      // Build context from bio, name, location, or existing tags
       const bioText = profile?.bio || '';
       const nameText = profile?.full_name || '';
       const locationText = profile?.location || '';
 
-      // Also get user's existing tags for context
       const { data: existingTags } = await supabase
         .from('piktag_user_tags')
         .select('tag:piktag_tags!tag_id(name)')
@@ -133,91 +122,28 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
         context.match(/[\uac00-\ud7af]/) ? '한국어' :
         context.match(/[\u0e00-\u0e7f]/) ? 'ภาษาไทย' : 'the same language as the content';
 
-      const prompt = `Based on this person's profile, suggest 5-8 short hashtag keywords (without #). Keywords MUST be in ${userLang}. Only use English for internationally recognized terms (e.g. PM, IoT, AI). Return ONLY a JSON array of strings, nothing else.\n\nBio: ${bioText}\nName: ${nameText}\nLocation: ${locationText}\nExisting tags: ${tagNames}`;
+      logApiUsage('gemini_generate', { via: 'edge-fn' });
+      const { data, error } = await supabase.functions.invoke<{
+        suggestions?: string[];
+        error?: string;
+        detail?: string;
+      }>('suggest-tags', {
+        body: { bio: bioText, name: nameText, location: locationText, existingTags: tagNames, lang: userLang },
+      });
 
-      // Try newer model first, fall back to older ones. Gemini has
-      // deprecated some model names over time and silently moved users.
-      // gemini-1.5-flash was removed from v1beta in late 2025 — do not re-add.
-      const models = ['gemini-2.5-flash', 'gemini-2.5-flash-lite', 'gemini-2.0-flash'];
-      const errors: string[] = [];
-      let parsedSuggestions: string[] | null = null;
-      let rawResponseSnippet = '';
-
-      for (const model of models) {
-        try {
-          logApiUsage('gemini_generate', { model });
-          const response = await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`,
-            {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                contents: [{ parts: [{ text: prompt }] }],
-              }),
-            }
-          );
-
-          if (!response.ok) {
-            const body = await response.text().catch(() => '');
-            const msg = `${model}: HTTP ${response.status} ${body.slice(0, 120)}`;
-            errors.push(msg);
-            console.warn('[AI Tags]', msg);
-            continue;
-          }
-
-          const result = await response.json();
-          const text: string = result?.candidates?.[0]?.content?.parts?.[0]?.text || '';
-          rawResponseSnippet = text.slice(0, 200);
-
-          if (!text) {
-            errors.push(`${model}: empty response body`);
-            continue;
-          }
-
-          // Robust JSON extraction:
-          //   1. Strip optional markdown code fences (```json … ``` or ``` … ```)
-          //   2. Find the first JSON array in the remaining text
-          //   3. Parse and validate it is a non-empty string array
-          let jsonText = text.trim();
-          const fenceMatch = jsonText.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
-          if (fenceMatch) jsonText = fenceMatch[1].trim();
-          const arrayMatch = jsonText.match(/\[[\s\S]*\]/);
-          if (arrayMatch) jsonText = arrayMatch[0];
-
-          try {
-            const parsed = JSON.parse(jsonText);
-            if (Array.isArray(parsed) && parsed.length > 0) {
-              const stringTags = parsed
-                .filter((s: unknown): s is string => typeof s === 'string' && s.trim().length > 0)
-                .map((s) => s.replace(/^#/, '').trim())
-                .slice(0, 8);
-              if (stringTags.length > 0) {
-                parsedSuggestions = stringTags;
-                break;
-              }
-              errors.push(`${model}: array had no string items`);
-            } else {
-              errors.push(`${model}: parsed value is not an array`);
-            }
-          } catch (e: any) {
-            errors.push(`${model}: JSON parse failed (${e?.message ?? 'unknown'})`);
-          }
-        } catch (e: any) {
-          errors.push(`${model}: fetch threw (${e?.message ?? 'unknown'})`);
-        }
-      }
-
-      if (parsedSuggestions && parsedSuggestions.length > 0) {
-        setAiSuggestions(parsedSuggestions);
-        AsyncStorage.setItem(cacheKey, JSON.stringify({ suggestions: parsedSuggestions, timestamp: Date.now() }));
-      } else {
-        // Never leak raw HTTP / API error bodies into the UI — they read like
-        // garbage to users and can expose leaked-key messages publicly.
-        // Log the diagnostic detail to the console for developers.
-        const detail = errors.join(' | ') + (rawResponseSnippet ? ' | raw: ' + rawResponseSnippet : '');
-        console.warn('[ManageTagsScreen] AI suggestions failed:', detail);
+      if (error) {
+        console.warn('[ManageTagsScreen] Edge Function error:', error.message);
         setAiError(t('manageTags.aiErrorGeneric') || 'AI 推薦暫時無法使用，稍後再試');
+        return;
       }
+      if (!data || !Array.isArray(data.suggestions) || data.suggestions.length === 0) {
+        console.warn('[ManageTagsScreen] AI suggestions empty:', data?.error, data?.detail);
+        setAiError(t('manageTags.aiErrorGeneric') || 'AI 推薦暫時無法使用，稍後再試');
+        return;
+      }
+
+      setAiSuggestions(data.suggestions);
+      AsyncStorage.setItem(cacheKey, JSON.stringify({ suggestions: data.suggestions, timestamp: Date.now() }));
     } catch (err: any) {
       console.warn('[ManageTagsScreen] loadAiSuggestions:', err);
       setAiError(t('manageTags.aiErrorGeneric') || 'AI 推薦暫時無法使用，稍後再試');
