@@ -132,21 +132,24 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
       });
 
       if (error) {
-        console.warn('[ManageTagsScreen] Edge Function error:', error.message);
-        setAiError(t('manageTags.aiErrorGeneric') || 'AI 推薦暫時無法使用，稍後再試');
+        // TEMP DEBUG: surface the actual error so we can see it in production
+        // (console.warn is stripped by transform-remove-console). Remove once
+        // root cause is confirmed.
+        const detail = (error as any)?.message || JSON.stringify(error);
+        setAiError(`DEBUG: invoke error — ${detail}`.slice(0, 300));
         return;
       }
       if (!data || !Array.isArray(data.suggestions) || data.suggestions.length === 0) {
-        console.warn('[ManageTagsScreen] AI suggestions empty:', data?.error, data?.detail);
-        setAiError(t('manageTags.aiErrorGeneric') || 'AI 推薦暫時無法使用，稍後再試');
+        const detail = data?.error ? ` (${data.error})` : '';
+        setAiError(`DEBUG: empty suggestions${detail}`.slice(0, 300));
         return;
       }
 
       setAiSuggestions(data.suggestions);
       AsyncStorage.setItem(cacheKey, JSON.stringify({ suggestions: data.suggestions, timestamp: Date.now() }));
     } catch (err: any) {
-      console.warn('[ManageTagsScreen] loadAiSuggestions:', err);
-      setAiError(t('manageTags.aiErrorGeneric') || 'AI 推薦暫時無法使用，稍後再試');
+      const detail = err?.message || String(err);
+      setAiError(`DEBUG: thrown — ${detail}`.slice(0, 300));
     } finally {
       setAiLoading(false);
     }
