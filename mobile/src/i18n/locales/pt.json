@@ -469,7 +469,11 @@
     "permissionMessage": "PikTag precisa de acesso à câmera para escanear códigos QR e se conectar com amigos."
   },
   "friendsMap": {
-    "staleHint": "Mostrando apenas amigos cuja localização foi atualizada nas últimas 24 horas"
+    "title": "Mapa de amigos",
+    "friendCount": "{{count}} amigos no mapa",
+    "noSharedLocations": "Nenhum amigo compartilhando localização ainda",
+    "staleHint": "Mostrando apenas amigos cuja localização foi atualizada nas últimas 24 horas",
+    "loadFailed": "Falha ao carregar o mapa, tente novamente"
   },
   "privacyPolicy": {
     "headerTitle": "Política de Privacidade",

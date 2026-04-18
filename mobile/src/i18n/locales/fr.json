@@ -469,7 +469,11 @@
     "permissionMessage": "PikTag a besoin d'accéder à la caméra pour scanner les codes QR et se connecter avec des amis."
   },
   "friendsMap": {
-    "staleHint": "Affichage des amis dont la position a été mise à jour au cours des 24 dernières heures"
+    "title": "Carte des amis",
+    "friendCount": "{{count}} amis sur la carte",
+    "noSharedLocations": "Aucun ami ne partage sa position pour le moment",
+    "staleHint": "Affichage des amis dont la position a été mise à jour au cours des 24 dernières heures",
+    "loadFailed": "Échec du chargement de la carte, veuillez réessayer"
   },
   "privacyPolicy": {
     "headerTitle": "Politique de confidentialité",

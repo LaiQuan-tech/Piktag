@@ -127,7 +127,11 @@
     "unreviewedLabel": "incelenecek"
   },
   "friendsMap": {
-    "staleHint": "Yalnızca son 24 saat içinde konumu güncellenen arkadaşlar gösteriliyor"
+    "title": "Arkadaş Haritası",
+    "friendCount": "Haritada {{count}} arkadaş",
+    "noSharedLocations": "Henüz konum paylaşan arkadaş yok",
+    "staleHint": "Yalnızca son 24 saat içinde konumu güncellenen arkadaşlar gösteriliyor",
+    "loadFailed": "Harita yüklenemedi, lütfen tekrar deneyin"
   },
   "search": {
     "headerTitle": "Ara",

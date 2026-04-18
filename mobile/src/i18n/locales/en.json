@@ -12,7 +12,11 @@
     "noResults": "No matching places"
   },
   "friendsMap": {
-    "staleHint": "Only showing friends whose location was updated in the last 24 hours"
+    "title": "Friends Map",
+    "friendCount": "{{count}} friends on the map",
+    "noSharedLocations": "No friends sharing location yet",
+    "staleHint": "Only showing friends whose location was updated in the last 24 hours",
+    "loadFailed": "Failed to load map, please try again"
   },
   "hiddenTagEditor": {
     "timeTitle": "When you met",

@@ -90,7 +90,11 @@
     }
   },
   "friendsMap": {
-    "staleHint": "只显示最近 24 小时内有更新位置的朋友"
+    "title": "好友地图",
+    "friendCount": "{{count}} 位好友出现在地图上",
+    "noSharedLocations": "目前还没有好友分享位置",
+    "staleHint": "仅显示近 24 小时内更新位置的好友",
+    "loadFailed": "地图加载失败，请稍后再试"
   },
   "connections": {
     "reminderBirthday": "Birthday",

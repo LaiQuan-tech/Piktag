@@ -90,7 +90,11 @@
     }
   },
   "friendsMap": {
-    "staleHint": "過去24時間以内に位置情報を更新した友達のみ表示"
+    "title": "友達マップ",
+    "friendCount": "マップに友達 {{count}} 人",
+    "noSharedLocations": "まだ位置情報を共有している友達がいません",
+    "staleHint": "過去24時間以内に位置情報を更新した友達のみ表示",
+    "loadFailed": "マップの読み込みに失敗しました"
   },
   "connections": {
     "reminderBirthday": "Birthday",

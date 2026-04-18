@@ -578,7 +578,11 @@
     "permissionMessage": "PikTag memerlukan akses kamera untuk memindai kode QR dan terhubung dengan teman."
   },
   "friendsMap": {
-    "staleHint": "Hanya menampilkan teman yang lokasinya diperbarui dalam 24 jam terakhir"
+    "title": "Peta Teman",
+    "friendCount": "{{count}} teman di peta",
+    "noSharedLocations": "Belum ada teman yang berbagi lokasi",
+    "staleHint": "Hanya menampilkan teman yang lokasinya diperbarui dalam 24 jam terakhir",
+    "loadFailed": "Gagal memuat peta, silakan coba lagi"
   },
   "privacyPolicy": {
     "headerTitle": "Kebijakan Privasi",
