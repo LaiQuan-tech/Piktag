@@ -37,7 +37,7 @@ const PLATFORM_LABELS_STATIC: Record<string, string> = {
   instagram: 'Instagram',
   facebook: 'Facebook',
   linkedin: 'LinkedIn',
-  line: 'Line',
+  line: '官方Line@',
 };
 
 // Fixed prefix shown as grey label; user only types the account/path part
@@ -47,7 +47,7 @@ const PLATFORM_PREFIXES: Record<string, string> = {
   instagram: 'https://instagram.com/',
   facebook: 'https://facebook.com/',
   linkedin: 'https://linkedin.com/in/',
-  line: 'https://line.me/ti/p/~',
+  line: 'https://line.me/R/ti/p/@',
   website: 'https://',
   custom: '',
 };
