@@ -23,12 +23,12 @@ jobs:
     # Required GitHub Actions secrets (add in repo Settings → Secrets → Actions):
     #   - EXPO_PUBLIC_SUPABASE_URL
     #   - EXPO_PUBLIC_SUPABASE_ANON_KEY
-    #   - EXPO_PUBLIC_GEMINI_API_KEY
     #   - EXPO_PUBLIC_GOOGLE_PLACES_API_KEY
+    # (Gemini API key now lives ONLY as a Supabase Edge Function secret —
+    #  it never ships to the client bundle.)
     env:
       EXPO_PUBLIC_SUPABASE_URL: ${{ secrets.EXPO_PUBLIC_SUPABASE_URL }}
       EXPO_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.EXPO_PUBLIC_SUPABASE_ANON_KEY }}
-      EXPO_PUBLIC_GEMINI_API_KEY: ${{ secrets.EXPO_PUBLIC_GEMINI_API_KEY }}
       EXPO_PUBLIC_GOOGLE_PLACES_API_KEY: ${{ secrets.EXPO_PUBLIC_GOOGLE_PLACES_API_KEY }}
       SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
       SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
@@ -58,7 +58,6 @@ jobs:
           cat > .env <<EOF
           EXPO_PUBLIC_SUPABASE_URL=${EXPO_PUBLIC_SUPABASE_URL}
           EXPO_PUBLIC_SUPABASE_ANON_KEY=${EXPO_PUBLIC_SUPABASE_ANON_KEY}
-          EXPO_PUBLIC_GEMINI_API_KEY=${EXPO_PUBLIC_GEMINI_API_KEY}
           EXPO_PUBLIC_GOOGLE_PLACES_API_KEY=${EXPO_PUBLIC_GOOGLE_PLACES_API_KEY}
           EOF
           # Fail loudly if any required secret is missing. Better to abort
@@ -67,8 +66,8 @@ jobs:
             echo "❌ Missing EXPO_PUBLIC_SUPABASE_* secrets — add them in GitHub Settings → Secrets → Actions"
             exit 1
           fi
-          if [ -z "$EXPO_PUBLIC_GEMINI_API_KEY" ] || [ -z "$EXPO_PUBLIC_GOOGLE_PLACES_API_KEY" ]; then
-            echo "❌ Missing EXPO_PUBLIC_GEMINI_API_KEY or EXPO_PUBLIC_GOOGLE_PLACES_API_KEY — add them in GitHub Settings → Secrets → Actions"
+          if [ -z "$EXPO_PUBLIC_GOOGLE_PLACES_API_KEY" ]; then
+            echo "❌ Missing EXPO_PUBLIC_GOOGLE_PLACES_API_KEY — add it in GitHub Settings → Secrets → Actions"
             exit 1
           fi
           echo "✅ mobile/.env written from secrets"
