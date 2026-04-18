@@ -132,35 +132,21 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
       });
 
       if (error) {
-        // TEMP DEBUG: surface the actual HTTP status + response body.
-        // supabase-js wraps non-2xx responses in a FunctionsHttpError whose
-        // `context` is the raw Response — we must read it to see what
-        // the function actually returned (a 403 from Gemini, a 500 from
-        // our own handler, etc.).
-        let detail = (error as any)?.message || 'unknown';
-        try {
-          const ctx = (error as any)?.context;
-          if (ctx && typeof ctx.status === 'number') {
-            const bodyText = await ctx.text?.().catch(() => '');
-            detail = `HTTP ${ctx.status} — ${String(bodyText).slice(0, 200)}`;
-          }
-        } catch (e: any) {
-          detail += ` / ctx-read-failed: ${e?.message ?? e}`;
-        }
-        setAiError(`DEBUG: ${detail}`.slice(0, 300));
+        console.warn('[ManageTagsScreen] Edge Function error:', error.message);
+        setAiError(t('manageTags.aiErrorGeneric') || 'AI 推薦暫時無法使用，稍後再試');
         return;
       }
       if (!data || !Array.isArray(data.suggestions) || data.suggestions.length === 0) {
-        const detail = data?.error ? ` (${data.error})` : '';
-        setAiError(`DEBUG: empty suggestions${detail}`.slice(0, 300));
+        console.warn('[ManageTagsScreen] AI suggestions empty:', data?.error, data?.detail);
+        setAiError(t('manageTags.aiErrorGeneric') || 'AI 推薦暫時無法使用，稍後再試');
         return;
       }
 
       setAiSuggestions(data.suggestions);
       AsyncStorage.setItem(cacheKey, JSON.stringify({ suggestions: data.suggestions, timestamp: Date.now() }));
     } catch (err: any) {
-      const detail = err?.message || String(err);
-      setAiError(`DEBUG: thrown — ${detail}`.slice(0, 300));
+      console.warn('[ManageTagsScreen] loadAiSuggestions:', err);
+      setAiError(t('manageTags.aiErrorGeneric') || 'AI 推薦暫時無法使用，稍後再試');
     } finally {
       setAiLoading(false);
     }
