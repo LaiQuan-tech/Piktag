@@ -841,12 +841,14 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
     performSearch(searchQuery);
   }, [performSearch, searchQuery]);
 
-  // Empty-state escape hatch: wipe the query and re-focus the input so the
-  // user lands back on the default view (popular tags + recommendations)
-  // without having to long-press backspace.
+  // Empty-state escape hatch: wipe the query AND dismiss the keyboard so
+  // the user lands back on the unfocused default view (popular tags +
+  // recommendations) — which is what the search tab looks like on first
+  // entry. Focusing again would instead show recent searches, which is
+  // the opposite of what "start over" should feel like.
   const handleClearAndRetry = useCallback(() => {
     setSearchQuery('');
-    searchInputRef.current?.focus();
+    searchInputRef.current?.blur();
   }, []);
 
   // ── Computed display flags (memoized) ──
