@@ -42,6 +42,25 @@ jobs:
         working-directory: mobile
         run: npm ci
 
+      - name: Set Android versionCode
+        working-directory: mobile
+        env:
+          RUN_NUMBER: ${{ github.run_number }}
+        run: |
+          # Google Play rejects duplicate versionCodes. Use GitHub Actions
+          # run_number (+1 offset so we never collide with pre-existing
+          # build=1) as the Android versionCode. Matches the iOS buildNumber
+          # strategy for consistency across platforms.
+          VERSION_CODE=$((RUN_NUMBER + 1))
+          node -e "
+            const fs = require('fs');
+            const app = JSON.parse(fs.readFileSync('app.json', 'utf8'));
+            app.expo.android = app.expo.android || {};
+            app.expo.android.versionCode = $VERSION_CODE;
+            fs.writeFileSync('app.json', JSON.stringify(app, null, 2) + '\n');
+          "
+          echo "✅ Android versionCode set to $VERSION_CODE (run_number=$RUN_NUMBER)"
+
       - name: Generate native Android project
         working-directory: mobile
         run: npx expo prebuild --platform android --clean
