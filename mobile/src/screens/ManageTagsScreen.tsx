@@ -132,11 +132,22 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
       });
 
       if (error) {
-        // TEMP DEBUG: surface the actual error so we can see it in production
-        // (console.warn is stripped by transform-remove-console). Remove once
-        // root cause is confirmed.
-        const detail = (error as any)?.message || JSON.stringify(error);
-        setAiError(`DEBUG: invoke error — ${detail}`.slice(0, 300));
+        // TEMP DEBUG: surface the actual HTTP status + response body.
+        // supabase-js wraps non-2xx responses in a FunctionsHttpError whose
+        // `context` is the raw Response — we must read it to see what
+        // the function actually returned (a 403 from Gemini, a 500 from
+        // our own handler, etc.).
+        let detail = (error as any)?.message || 'unknown';
+        try {
+          const ctx = (error as any)?.context;
+          if (ctx && typeof ctx.status === 'number') {
+            const bodyText = await ctx.text?.().catch(() => '');
+            detail = `HTTP ${ctx.status} — ${String(bodyText).slice(0, 200)}`;
+          }
+        } catch (e: any) {
+          detail += ` / ctx-read-failed: ${e?.message ?? e}`;
+        }
+        setAiError(`DEBUG: ${detail}`.slice(0, 300));
         return;
       }
       if (!data || !Array.isArray(data.suggestions) || data.suggestions.length === 0) {

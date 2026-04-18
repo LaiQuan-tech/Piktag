@@ -122,6 +122,9 @@
     "noRecentSearches": "No recent searches",
     "profilesSectionLabel": "Members",
     "noProfilesFound": "No matching members found",
+    "noProfilesFoundTitle": "\"{{query}}\" के लिए कोई सदस्य नहीं मिला",
+    "tryTagSearchHint": "#टैग या कोई अन्य कीवर्ड खोजें",
+    "clearAndRetry": "साफ़ करें और पुनः प्रयास करें",
     "tagsSectionLabel": "Tags",
     "noTagsFound": "No matching tags found",
     "tagCountSuffix": "members"

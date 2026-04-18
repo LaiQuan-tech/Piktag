@@ -125,6 +125,9 @@
     "noRecentSearches": "No recent searches",
     "profilesSectionLabel": "Members",
     "noProfilesFound": "No matching members found",
+    "noProfilesFoundTitle": "找不到「{{query}}」相关会员",
+    "tryTagSearchHint": "试试搜索 #标签 或换个关键词",
+    "clearAndRetry": "清除重新搜索",
     "tagsSectionLabel": "Tags",
     "noTagsFound": "No matching tags found",
     "tagCountSuffix": "members"

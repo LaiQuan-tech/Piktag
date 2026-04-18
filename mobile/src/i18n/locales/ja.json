@@ -125,6 +125,9 @@
     "noRecentSearches": "No recent searches",
     "profilesSectionLabel": "Members",
     "noProfilesFound": "No matching members found",
+    "noProfilesFoundTitle": "「{{query}}」に一致するメンバーが見つかりません",
+    "tryTagSearchHint": "#タグで検索するか、別のキーワードを試してみてください",
+    "clearAndRetry": "クリアしてもう一度",
     "tagsSectionLabel": "Tags",
     "noTagsFound": "No matching tags found",
     "tagCountSuffix": "members"

@@ -841,6 +841,14 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
     performSearch(searchQuery);
   }, [performSearch, searchQuery]);
 
+  // Empty-state escape hatch: wipe the query and re-focus the input so the
+  // user lands back on the default view (popular tags + recommendations)
+  // without having to long-press backspace.
+  const handleClearAndRetry = useCallback(() => {
+    setSearchQuery('');
+    searchInputRef.current?.focus();
+  }, []);
+
   // ── Computed display flags (memoized) ──
 
   const trimmedQuery = useMemo(() => searchQuery.trim(), [searchQuery]);
@@ -1092,9 +1100,27 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
 
         case 'profilesEmpty':
           return (
-            <Text style={styles.emptyText}>
-              {t('search.noProfilesFound')}
-            </Text>
+            <View style={styles.emptyStateContainer}>
+              <Text
+                style={styles.emptyStateTitle}
+                numberOfLines={2}
+                ellipsizeMode="tail"
+              >
+                {t('search.noProfilesFoundTitle', { query: trimmedQuery })}
+              </Text>
+              <Text style={styles.emptyStateHint}>
+                {t('search.tryTagSearchHint')}
+              </Text>
+              <TouchableOpacity
+                style={styles.clearRetryButton}
+                onPress={handleClearAndRetry}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.clearRetryButtonText}>
+                  {t('search.clearAndRetry')}
+                </Text>
+              </TouchableOpacity>
+            </View>
           );
 
         case 'profileItem':
@@ -1244,6 +1270,8 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
       tagUsers,
       navigation,
       t,
+      trimmedQuery,
+      handleClearAndRetry,
     ],
   );
 
@@ -1557,6 +1585,37 @@ const styles = StyleSheet.create({
     color: COLORS.gray400,
     textAlign: 'center',
     paddingVertical: 24,
+  },
+  // Empty-state (profilesEmpty) — used when a query yields no users.
+  emptyStateContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 48,
+    paddingHorizontal: 32,
+  },
+  emptyStateTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: COLORS.gray700,
+    textAlign: 'center',
+  },
+  emptyStateHint: {
+    fontSize: 13,
+    color: COLORS.gray500,
+    textAlign: 'center',
+    marginTop: 8,
+  },
+  clearRetryButton: {
+    marginTop: 20,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 20,
+    backgroundColor: COLORS.gray100,
+  },
+  clearRetryButtonText: {
+    fontSize: 14,
+    color: COLORS.gray700,
+    fontWeight: '500',
   },
   sectionLabelRow: {
     flexDirection: 'row',

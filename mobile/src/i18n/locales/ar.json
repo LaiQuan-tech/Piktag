@@ -122,6 +122,9 @@
     "noRecentSearches": "No recent searches",
     "profilesSectionLabel": "Members",
     "noProfilesFound": "No matching members found",
+    "noProfilesFoundTitle": "لم يتم العثور على أعضاء لـ \"{{query}}\"",
+    "tryTagSearchHint": "جرّب البحث عن #هاشتاغ أو كلمة أخرى",
+    "clearAndRetry": "مسح وحاول مرة أخرى",
     "tagsSectionLabel": "Tags",
     "noTagsFound": "No matching tags found",
     "tagCountSuffix": "members"

@@ -122,6 +122,9 @@
     "noRecentSearches": "No recent searches",
     "profilesSectionLabel": "Members",
     "noProfilesFound": "No matching members found",
+    "noProfilesFoundTitle": "Участники по запросу «{{query}}» не найдены",
+    "tryTagSearchHint": "Попробуйте #теги или другое ключевое слово",
+    "clearAndRetry": "Очистить и повторить",
     "tagsSectionLabel": "Tags",
     "noTagsFound": "No matching tags found",
     "tagCountSuffix": "members"
