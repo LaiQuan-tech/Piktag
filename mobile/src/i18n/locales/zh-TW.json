@@ -203,6 +203,8 @@
     "noProfilesFoundTitle": "找不到「{{query}}」相關會員",
     "tryTagSearchHint": "試試搜尋 #標籤 或換個關鍵字",
     "clearAndRetry": "清除重新搜尋",
+    "resetButton": "重設",
+    "deleteRecentItem": "刪除這筆紀錄",
     "tagsSectionLabel": "標籤",
     "noTagsFound": "找不到相關標籤",
     "tagCountSuffix": "位擁有",

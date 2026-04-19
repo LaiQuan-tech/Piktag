@@ -125,6 +125,8 @@
     "noProfilesFoundTitle": "Участники по запросу «{{query}}» не найдены",
     "tryTagSearchHint": "Попробуйте #теги или другое ключевое слово",
     "clearAndRetry": "Очистить и повторить",
+    "resetButton": "Сброс",
+    "deleteRecentItem": "Удалить этот запрос",
     "tagsSectionLabel": "Tags",
     "noTagsFound": "No matching tags found",
     "tagCountSuffix": "members"

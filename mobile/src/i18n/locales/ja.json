@@ -132,6 +132,8 @@
     "noProfilesFoundTitle": "「{{query}}」に一致するメンバーが見つかりません",
     "tryTagSearchHint": "#タグで検索するか、別のキーワードを試してみてください",
     "clearAndRetry": "クリアしてもう一度",
+    "resetButton": "リセット",
+    "deleteRecentItem": "この検索履歴を削除",
     "tagsSectionLabel": "Tags",
     "noTagsFound": "No matching tags found",
     "tagCountSuffix": "members"

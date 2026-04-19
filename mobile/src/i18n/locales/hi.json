@@ -125,6 +125,8 @@
     "noProfilesFoundTitle": "\"{{query}}\" के लिए कोई सदस्य नहीं मिला",
     "tryTagSearchHint": "#टैग या कोई अन्य कीवर्ड खोजें",
     "clearAndRetry": "साफ़ करें और पुनः प्रयास करें",
+    "resetButton": "रीसेट",
+    "deleteRecentItem": "इस खोज को हटाएं",
     "tagsSectionLabel": "Tags",
     "noTagsFound": "No matching tags found",
     "tagCountSuffix": "members"

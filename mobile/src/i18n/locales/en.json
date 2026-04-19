@@ -200,6 +200,8 @@
     "noProfilesFoundTitle": "No members matched \"{{query}}\"",
     "tryTagSearchHint": "Try searching #tags or a different keyword",
     "clearAndRetry": "Clear and try again",
+    "resetButton": "Reset",
+    "deleteRecentItem": "Delete this recent search",
     "tagsSectionLabel": "Tags",
     "noTagsFound": "No matching tags found",
     "tagCountSuffix": "members",

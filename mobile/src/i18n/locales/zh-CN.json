@@ -132,6 +132,8 @@
     "noProfilesFoundTitle": "找不到「{{query}}」相关会员",
     "tryTagSearchHint": "试试搜索 #标签 或换个关键词",
     "clearAndRetry": "清除重新搜索",
+    "resetButton": "重置",
+    "deleteRecentItem": "删除这条记录",
     "tagsSectionLabel": "Tags",
     "noTagsFound": "No matching tags found",
     "tagCountSuffix": "members"

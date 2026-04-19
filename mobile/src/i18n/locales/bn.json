@@ -125,6 +125,8 @@
     "noProfilesFoundTitle": "\"{{query}}\" এর জন্য কোনো সদস্য পাওয়া যায়নি",
     "tryTagSearchHint": "#ট্যাগ বা অন্য কীওয়ার্ড অনুসন্ধান করুন",
     "clearAndRetry": "মুছুন এবং আবার চেষ্টা করুন",
+    "resetButton": "রিসেট",
+    "deleteRecentItem": "এই অনুসন্ধান মুছুন",
     "tagsSectionLabel": "Tags",
     "noTagsFound": "No matching tags found",
     "tagCountSuffix": "members"

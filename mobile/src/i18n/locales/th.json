@@ -141,6 +141,8 @@
     "noProfilesFoundTitle": "ไม่พบสมาชิกที่ตรงกับ \"{{query}}\"",
     "tryTagSearchHint": "ลองค้นหาด้วย #แฮชแท็ก หรือคำอื่น",
     "clearAndRetry": "ล้างและลองใหม่",
+    "resetButton": "รีเซ็ต",
+    "deleteRecentItem": "ลบการค้นหานี้",
     "tagsSectionLabel": "แท็ก",
     "noTagsFound": "ไม่พบแท็กที่ตรงกัน",
     "tagCountSuffix": "สมาชิก",

@@ -141,6 +141,8 @@
     "noProfilesFoundTitle": "Tidak ada anggota yang cocok dengan \"{{query}}\"",
     "tryTagSearchHint": "Coba cari #tag atau kata kunci lain",
     "clearAndRetry": "Hapus dan coba lagi",
+    "resetButton": "Atur ulang",
+    "deleteRecentItem": "Hapus pencarian ini",
     "tagsSectionLabel": "Tag",
     "noTagsFound": "Tidak ada tag yang cocok",
     "tagCountSuffix": "anggota",

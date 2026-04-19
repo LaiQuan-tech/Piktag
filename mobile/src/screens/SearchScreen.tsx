@@ -142,22 +142,40 @@ const TagCard = React.memo(function TagCard({ tag, isSelected, onPress, onLongPr
 type RecentSearchItemProps = {
   query: string;
   onPress: (query: string) => void;
+  onDelete: (query: string) => void;
+  deleteLabel: string;
 };
 
-const RecentSearchItem = React.memo(function RecentSearchItem({ query, onPress }: RecentSearchItemProps) {
+const RecentSearchItem = React.memo(function RecentSearchItem({ query, onPress, onDelete, deleteLabel }: RecentSearchItemProps) {
   const handlePress = useCallback(() => {
     onPress(query);
   }, [onPress, query]);
 
+  const handleDeletePress = useCallback(() => {
+    onDelete(query);
+  }, [onDelete, query]);
+
   return (
-    <TouchableOpacity
-      style={styles.recentSearchItem}
-      onPress={handlePress}
-      activeOpacity={0.7}
-    >
-      <Clock size={16} color={COLORS.gray400} />
-      <Text style={styles.recentSearchText}>{query}</Text>
-    </TouchableOpacity>
+    <View style={styles.recentSearchItem}>
+      <TouchableOpacity
+        style={styles.recentSearchItemLeft}
+        onPress={handlePress}
+        activeOpacity={0.7}
+      >
+        <Clock size={16} color={COLORS.gray400} />
+        <Text style={styles.recentSearchText} numberOfLines={1}>{query}</Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        onPress={handleDeletePress}
+        style={styles.recentSearchDeleteBtn}
+        activeOpacity={0.6}
+        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+        accessibilityLabel={deleteLabel}
+        accessibilityRole="button"
+      >
+        <X size={14} color={COLORS.gray400} />
+      </TouchableOpacity>
+    </View>
   );
 });
 
@@ -841,15 +859,30 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
     performSearch(searchQuery);
   }, [performSearch, searchQuery]);
 
-  // Empty-state escape hatch: wipe the query AND dismiss the keyboard so
-  // the user lands back on the unfocused default view (popular tags +
-  // recommendations) — which is what the search tab looks like on first
-  // entry. Focusing again would instead show recent searches, which is
-  // the opposite of what "start over" should feel like.
-  const handleClearAndRetry = useCallback(() => {
+  // Universal "back to default view" — used by the header Reset button,
+  // the empty-state button, and the search-input X button. Wipes every
+  // piece of transient state EXCEPT recent searches (users want their
+  // history preserved so they can re-run past queries).
+  const handleResetToDefault = useCallback(() => {
     setSearchQuery('');
+    setSelectedTagIds([]);
+    setSelectedTagCategory(null);
+    setIntersectionMode(false);
+    setIntersectionProfiles([]);
     searchInputRef.current?.blur();
   }, []);
+
+  // Remove a single entry from recent searches (per-item × icon).
+  // The "clear all history" button stays intact.
+  const handleDeleteRecentAt = useCallback(async (query: string) => {
+    const updated = recentSearches.filter((q) => q !== query);
+    setRecentSearches(updated);
+    try {
+      await AsyncStorage.setItem(RECENT_SEARCHES_KEY, JSON.stringify(updated));
+    } catch {
+      // best-effort — UI already updated
+    }
+  }, [recentSearches]);
 
   // ── Computed display flags (memoized) ──
 
@@ -1090,6 +1123,8 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
             <RecentSearchItem
               query={item.query}
               onPress={handleRecentSearchTap}
+              onDelete={handleDeleteRecentAt}
+              deleteLabel={t('search.deleteRecentItem') || '刪除這筆紀錄'}
             />
           );
 
@@ -1115,7 +1150,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
               </Text>
               <TouchableOpacity
                 style={styles.clearRetryButton}
-                onPress={handleClearAndRetry}
+                onPress={handleResetToDefault}
                 activeOpacity={0.7}
               >
                 <Text style={styles.clearRetryButtonText}>
@@ -1273,7 +1308,8 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
       navigation,
       t,
       trimmedQuery,
-      handleClearAndRetry,
+      handleResetToDefault,
+      handleDeleteRecentAt,
     ],
   );
 
@@ -1296,7 +1332,19 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={topEdges}>
       <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={colors.white} />
       <View style={styles.header}>
-        <Text style={[styles.headerTitle, { color: colors.text }]}>{t('search.headerTitle') || '搜尋'}</Text>
+        <View style={styles.headerTitleRow}>
+          <Text style={[styles.headerTitle, { color: colors.text }]}>{t('search.headerTitle') || '搜尋'}</Text>
+          <TouchableOpacity
+            onPress={handleResetToDefault}
+            style={styles.headerResetBtn}
+            activeOpacity={0.6}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            accessibilityLabel={t('search.resetButton') || '重設'}
+            accessibilityRole="button"
+          >
+            <Text style={styles.headerResetText}>{t('search.resetButton') || '重設'}</Text>
+          </TouchableOpacity>
+        </View>
         <Pressable style={searchContainerStyle} onPress={focusSearchInput}>
           <Search
             size={20}
@@ -1320,7 +1368,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
           />
           {searchQuery.length > 0 && (
             <TouchableOpacity
-              onPress={() => handleSearchChange('')}
+              onPress={handleResetToDefault}
               style={styles.searchClearBtn}
               activeOpacity={0.6}
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
@@ -1480,12 +1528,26 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: COLORS.gray100,
   },
+  headerTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 16,
+  },
   headerTitle: {
     fontSize: 24,
     fontWeight: '700',
     color: COLORS.gray900,
     lineHeight: 32,
-    marginBottom: 16,
+  },
+  headerResetBtn: {
+    paddingVertical: 6,
+    paddingHorizontal: 8,
+  },
+  headerResetText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: COLORS.piktag500,
   },
   searchContainer: {
     flexDirection: 'row',
@@ -1688,14 +1750,26 @@ const styles = StyleSheet.create({
   recentSearchItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 12,
+    paddingVertical: 4,
     borderBottomWidth: 1,
     borderBottomColor: COLORS.gray100,
+  },
+  recentSearchItemLeft: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 8,
     gap: 10,
   },
   recentSearchText: {
+    flex: 1,
     fontSize: 15,
     color: COLORS.gray700,
+  },
+  recentSearchDeleteBtn: {
+    paddingVertical: 8,
+    paddingLeft: 12,
+    paddingRight: 4,
   },
   clearHistoryBtn: {
     alignSelf: 'flex-end',

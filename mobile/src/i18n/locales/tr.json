@@ -148,6 +148,8 @@
     "noProfilesFoundTitle": "\"{{query}}\" ile eşleşen üye bulunamadı",
     "tryTagSearchHint": "#etiket aramayı deneyin veya farklı bir kelime kullanın",
     "clearAndRetry": "Temizle ve tekrar dene",
+    "resetButton": "Sıfırla",
+    "deleteRecentItem": "Bu aramayı sil",
     "tagsSectionLabel": "Etiketler",
     "noTagsFound": "Eşleşen etiket bulunamadı",
     "tagCountSuffix": "üye",

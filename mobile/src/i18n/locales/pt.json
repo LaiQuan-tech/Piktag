@@ -125,6 +125,8 @@
     "noProfilesFoundTitle": "Nenhum membro encontrado para \"{{query}}\"",
     "tryTagSearchHint": "Tente buscar #tags ou outra palavra-chave",
     "clearAndRetry": "Limpar e tentar novamente",
+    "resetButton": "Redefinir",
+    "deleteRecentItem": "Excluir esta busca",
     "tagsSectionLabel": "Tags",
     "noTagsFound": "No matching tags found",
     "tagCountSuffix": "members"
