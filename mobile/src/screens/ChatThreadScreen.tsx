@@ -1,10 +1,4 @@
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -33,8 +27,8 @@ import { useChatThread } from '../hooks/useChatThread';
 import { supabase } from '../lib/supabase';
 import type { ThreadMessage } from '../types/chat';
 
-// Local param shape: keeps this screen decoupled from the global RootStack
-// until the app wires chat routes up.
+// Local param shape: keeps this screen decoupled from the global root
+// stack until the app wires chat routes up.
 type ChatThreadParamList = {
   ChatThread: {
     conversationId: string;
@@ -57,11 +51,6 @@ type OtherProfile = {
   avatar_url: string | null;
 };
 
-// The list is inverted (newest at visual bottom). After mapping, item[0]
-// is the newest and item[n-1] is the oldest. A "day separator" appears
-// ABOVE (chronologically before) the first message of a new day, which
-// in the inverted array means when the next item (one step toward the
-// oldest) is on a different local day, or is absent (end of list).
 function sameLocalDay(a: Date, b: Date): boolean {
   return (
     a.getFullYear() === b.getFullYear() &&
@@ -73,7 +62,9 @@ function sameLocalDay(a: Date, b: Date): boolean {
 function formatDaySeparator(iso: string): string {
   const d = new Date(iso);
   const now = new Date();
-  if (sameLocalDay(d, now)) return d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+  if (sameLocalDay(d, now)) {
+    return d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+  }
   const yesterday = new Date(now);
   yesterday.setDate(now.getDate() - 1);
   if (sameLocalDay(d, yesterday)) return 'Yesterday';
@@ -102,13 +93,9 @@ export default function ChatThreadScreen({ navigation, route }: Props): JSX.Elem
   } = useChatThread(conversationId);
 
   const [otherProfile, setOtherProfile] = useState<OtherProfile | null>(null);
-
-  // Track the last messages.length we called markRead for so we don't
-  // spam the RPC on every re-render that doesn't actually add a row.
   const lastMarkedLenRef = useRef<number>(-1);
 
-  // Fetch the freshest profile info once so the header isn't stuck with
-  // stale route params (e.g. if the other user renamed themselves).
+  // Fetch freshest profile so the header isn't stuck with stale params.
   useEffect(() => {
     let cancelled = false;
     if (!otherUserId) return;
@@ -120,11 +107,9 @@ export default function ChatThreadScreen({ navigation, route }: Props): JSX.Elem
           .eq('id', otherUserId)
           .single();
         if (cancelled) return;
-        if (!selErr && data) {
-          setOtherProfile(data as OtherProfile);
-        }
+        if (!selErr && data) setOtherProfile(data as OtherProfile);
       } catch {
-        // Non-fatal — header falls back to the route params below.
+        // Non-fatal; header falls back to route params.
       }
     })();
     return () => {
@@ -132,8 +117,7 @@ export default function ChatThreadScreen({ navigation, route }: Props): JSX.Elem
     };
   }, [otherUserId]);
 
-  // Mark the conversation read on mount and whenever a new message is
-  // appended to the thread (messages.length grew).
+  // Mark read on mount and whenever a new row is appended.
   useEffect(() => {
     if (loading) return;
     if (messages.length === lastMarkedLenRef.current) return;
@@ -160,32 +144,24 @@ export default function ChatThreadScreen({ navigation, route }: Props): JSX.Elem
     () => displayName || otherUserId,
     [displayName, otherUserId],
   );
-
   const avatarUrl = otherProfile?.avatar_url ?? initialAvatarUrl ?? null;
 
-  // Bubble-grouping: in the inverted array, item at index i is visually
-  // ABOVE item at index i-1 (which is newer) and visually BELOW item at
-  // index i+1 (which is older). The avatar should sit on the FIRST
-  // bubble of a sender's group — chronologically the oldest bubble in a
-  // run. In inverted display that means: show the avatar when the NEXT
-  // item (i+1, older) is absent or has a different sender.
+  // In the inverted array, index i is visually above (chronologically
+  // earlier than) index i-1 and below (later than) index i+1. The
+  // avatar sits on the first bubble of a sender's group — the oldest
+  // bubble in a run — which in inverted display is the one whose older
+  // neighbor (i+1) is absent or from a different sender. Day separators
+  // visually precede the first message of a new day; in the inverted
+  // array we render them alongside the oldest-of-day bubble.
   const renderItem = useCallback(
     ({ item, index }: ListRenderItemInfo<ThreadMessage>) => {
       if (!user) return null;
       const isMine = item.sender_id === user.id;
-
-      const olderNeighbor = messages[index + 1];
-      const showAvatar =
-        !isMine && (!olderNeighbor || olderNeighbor.sender_id !== item.sender_id);
-
-      // Day separator: appears chronologically BEFORE the first message
-      // of a new day. In inverted array, that's when the older neighbor
-      // doesn't exist (this is the oldest loaded message) or is on a
-      // different day.
+      const older = messages[index + 1];
+      const showAvatar = !isMine && (!older || older.sender_id !== item.sender_id);
       const currDate = new Date(item.created_at);
       const showDaySeparator =
-        !olderNeighbor ||
-        !sameLocalDay(currDate, new Date(olderNeighbor.created_at));
+        !older || !sameLocalDay(currDate, new Date(older.created_at));
 
       const bubble = (
         <MessageBubble
@@ -204,10 +180,8 @@ export default function ChatThreadScreen({ navigation, route }: Props): JSX.Elem
 
       if (!showDaySeparator) return bubble;
 
-      // In an inverted list, the day separator needs to visually appear
-      // ABOVE the group of messages for that day. Rendering order is
-      // bottom-up in inverted mode, so we render the bubble FIRST (it
-      // ends up visually below) and the separator AFTER (visually above).
+      // Inverted render order: bubble first (visually below), separator
+      // after (visually above the day's messages).
       return (
         <View>
           {bubble}
@@ -222,13 +196,7 @@ export default function ChatThreadScreen({ navigation, route }: Props): JSX.Elem
     [messages, user, avatarName, avatarUrl, retry],
   );
 
-  const keyExtractor = useCallback((item: ThreadMessage) => {
-    // Optimistic rows start with id "optimistic-<nonce>". Once the
-    // realtime echo arrives the row is swapped in-place so the id
-    // becomes the server uuid — FlatList sees an identity change and
-    // remounts the bubble, which is fine.
-    return item.id;
-  }, []);
+  const keyExtractor = useCallback((item: ThreadMessage) => item.id, []);
 
   const handleEndReached = useCallback(() => {
     if (loading || loadingMore) return;
@@ -242,24 +210,16 @@ export default function ChatThreadScreen({ navigation, route }: Props): JSX.Elem
     [sendMessage],
   );
 
-  // A conversation is "blocked" if the error string from the hook hints
-  // at a block. This is a heuristic — RLS surfaces this via policy name,
-  // so we do substring matching rather than structured errors.
-  const isBlocked = useMemo(() => {
-    if (!error) return false;
-    return /block/i.test(error);
-  }, [error]);
+  // Heuristic "blocked" detection — RLS surfaces blocks via policy names.
+  const isBlocked = useMemo(
+    () => (error ? /block/i.test(error) : false),
+    [error],
+  );
 
-  const listHeader = useMemo(() => {
-    // FlatList's "header" renders at the BOTTOM of an inverted list,
-    // which is where a sending spinner would normally live.
-    return null;
-  }, []);
-
+  // In an inverted list, the "footer" renders at the TOP — visually
+  // above the oldest loaded message — which is the right slot for the
+  // "loading older" spinner.
   const listFooter = useMemo(() => {
-    // FlatList's "footer" renders at the TOP of an inverted list, i.e.
-    // visually ABOVE the oldest message — this is where the "loading
-    // older messages" spinner belongs.
     if (!loadingMore) return null;
     return (
       <View style={styles.loadingMoreWrap}>
@@ -299,7 +259,6 @@ export default function ChatThreadScreen({ navigation, route }: Props): JSX.Elem
           </Text>
         </Pressable>
 
-        {/* Placeholder right-side slot so the title stays centered. */}
         <View style={styles.headerIconBtn} />
       </View>
 
@@ -316,7 +275,6 @@ export default function ChatThreadScreen({ navigation, route }: Props): JSX.Elem
           inverted={messages.length > 0}
           onEndReached={handleEndReached}
           onEndReachedThreshold={0.3}
-          ListHeaderComponent={listHeader}
           ListFooterComponent={listFooter}
           ListEmptyComponent={loading ? null : emptyState}
           contentContainerStyle={
@@ -339,13 +297,8 @@ export default function ChatThreadScreen({ navigation, route }: Props): JSX.Elem
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.white,
-  },
-  flex: {
-    flex: 1,
-  },
+  container: { flex: 1, backgroundColor: COLORS.white },
+  flex: { flex: 1 },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -374,9 +327,7 @@ const styles = StyleSheet.create({
     color: COLORS.gray900,
     flexShrink: 1,
   },
-  listContent: {
-    paddingVertical: 12,
-  },
+  listContent: { paddingVertical: 12 },
   listContentEmpty: {
     flexGrow: 1,
     justifyContent: 'center',
@@ -387,22 +338,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: 24,
   },
-  emptyText: {
-    fontSize: 15,
-    color: COLORS.gray500,
-    textAlign: 'center',
-  },
-  loadingMoreWrap: {
-    paddingVertical: 12,
-    alignItems: 'center',
-  },
-  daySeparator: {
-    alignItems: 'center',
-    paddingVertical: 8,
-  },
-  daySeparatorText: {
-    fontSize: 12,
-    color: COLORS.gray400,
-    fontWeight: '500',
-  },
+  emptyText: { fontSize: 15, color: COLORS.gray500, textAlign: 'center' },
+  loadingMoreWrap: { paddingVertical: 12, alignItems: 'center' },
+  daySeparator: { alignItems: 'center', paddingVertical: 8 },
+  daySeparatorText: { fontSize: 12, color: COLORS.gray400, fontWeight: '500' },
 });
