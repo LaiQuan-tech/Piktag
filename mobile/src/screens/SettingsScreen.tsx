@@ -233,8 +233,25 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
                 return;
               }
 
-              await supabase.auth.signOut();
-              Alert.alert(t('settings.alertAccountDeletedTitle'), t('settings.alertAccountDeletedMessage'));
+              // Show confirmation, then sign out on OK. Ordering matters:
+              // if we signOut first, AppNavigator's onAuthStateChange
+              // listener swaps the stack to AuthNavigator mid-way through
+              // the alert lifecycle, which looks janky. By gating signOut
+              // behind the OK callback, the user sees a clean
+              // acknowledgement → then a single transition to Login.
+              Alert.alert(
+                t('settings.alertAccountDeletedTitle'),
+                t('settings.alertAccountDeletedMessage'),
+                [{
+                  text: t('common.confirm') || 'OK',
+                  onPress: async () => {
+                    await supabase.auth.signOut();
+                    // onAuthStateChange → AppNavigator → AuthNavigator
+                    // (no manual navigation.reset needed)
+                  },
+                }],
+                { cancelable: false },
+              );
             } catch (err: any) {
               Alert.alert(t('common.error'), err.message || t('settings.alertDeleteError'));
             }
