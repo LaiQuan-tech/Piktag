@@ -207,27 +207,30 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
           onPress: async () => {
             if (!user) return;
             try {
-              // Call edge function to delete user account properly (auth + data)
               const { data: { session } } = await supabase.auth.getSession();
               const token = session?.access_token;
+              if (!token) {
+                Alert.alert(t('common.error'), t('settings.alertDeleteError'));
+                return;
+              }
 
-              if (token) {
-                try {
-                  await fetch(`${supabaseUrl}/functions/v1/delete-user`, {
-                    method: 'POST',
-                    headers: {
-                      'Content-Type': 'application/json',
-                      'Authorization': `Bearer ${token}`,
-                    },
-                    body: JSON.stringify({ user_id: user.id }),
-                  });
-                } catch {
-                  // Fallback: at least delete profile data
-                  await supabase.from('piktag_profiles').delete().eq('id', user.id);
-                }
-              } else {
-                // No session token, delete profile only
-                await supabase.from('piktag_profiles').delete().eq('id', user.id);
+              // The Edge Function uses the service-role key to actually
+              // delete auth.users + cascade all piktag_* rows. If we let
+              // this fail silently, Apple sign-in would resurrect the
+              // account with all the old data attached.
+              const res = await fetch(`${supabaseUrl}/functions/v1/delete-user`, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${token}`,
+                },
+                body: JSON.stringify({ user_id: user.id }),
+              });
+              if (!res.ok) {
+                const detail = await res.text().catch(() => '');
+                Alert.alert(t('common.error'), (t('settings.alertDeleteError') || '刪除失敗') + ` (${res.status})`);
+                console.warn('[DeleteAccount] edge function failed:', res.status, detail);
+                return;
               }
 
               await supabase.auth.signOut();
