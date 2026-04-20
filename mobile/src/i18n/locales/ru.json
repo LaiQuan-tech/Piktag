@@ -418,7 +418,7 @@
     "confirmButton": "Confirm Add Friend",
     "alreadyConnectedTitle": "Уже подключено",
     "alreadyConnectedMessage": "Вы уже друзья.",
-    "addFriend": "Добавить друга"
+    "addFriend": "Подписаться"
   },
   "manageTags": {
     "headerTitle": "Manage Tags",

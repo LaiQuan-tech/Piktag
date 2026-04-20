@@ -623,7 +623,7 @@
     "relationClient": "Client",
     "alreadyConnectedTitle": "Already Connected",
     "alreadyConnectedMessage": "You are already friends.",
-    "addFriend": "Add Friend"
+    "addFriend": "Follow"
   },
   "manageTags": {
     "headerTitle": "Manage Tags",
