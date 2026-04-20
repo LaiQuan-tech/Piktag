@@ -110,4 +110,4 @@ jobs:
           packageName: ag.pikt.app
           releaseFiles: mobile/android/app/build/outputs/bundle/release/*.aab
           track: internal
-          status: draft
+          status: completed
