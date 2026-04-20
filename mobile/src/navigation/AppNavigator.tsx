@@ -23,7 +23,6 @@ import { posthog } from '../lib/analytics';
 import LoginScreen from '../screens/auth/LoginScreen';
 import RegisterScreen from '../screens/auth/RegisterScreen';
 import OnboardingScreen from '../screens/auth/OnboardingScreen';
-import PhoneAuthScreen from '../screens/auth/PhoneAuthScreen';
 
 // Tab-level screens — eager (loaded on first render of MainTabs)
 import ConnectionsScreen from '../screens/ConnectionsScreen';
@@ -59,7 +58,6 @@ function AuthNavigator() {
     <AuthStack.Navigator screenOptions={{ headerShown: false }}>
       <AuthStack.Screen name="Login" component={LoginScreen} />
       <AuthStack.Screen name="Register" component={RegisterScreen} />
-      <AuthStack.Screen name="PhoneAuth" component={PhoneAuthScreen} />
     </AuthStack.Navigator>
   );
 }

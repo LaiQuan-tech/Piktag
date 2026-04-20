@@ -70,20 +70,7 @@
       "alertResetSentMessage": "A password reset link has been sent to your email",
       "orDivider": "or",
       "continueWithApple": "Sign in with Apple",
-      "continueWithGoogle": "Sign in with Google",
-      "continueWithPhone": "Sign in with Phone"
-    },
-    "phoneAuth": {
-      "title": "Phone Sign In",
-      "description": "We will send a verification code to your phone",
-      "phonePlaceholder": "912345678",
-      "sendOtp": "Send Code",
-      "invalidPhone": "Please enter a valid phone number",
-      "otpTitle": "Enter Verification Code",
-      "otpDescription": "Code sent to {{phone}}",
-      "invalidOtp": "Please enter the 6-digit code",
-      "verify": "Verify",
-      "resend": "Resend Code"
+      "continueWithGoogle": "Sign in with Google"
     },
     "register": {
       "alertEmptyFields": "Fill in all fields",

@@ -12,7 +12,7 @@ import {
   ScrollView,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { Hash, Eye, EyeOff, Phone } from 'lucide-react-native';
+import { Hash, Eye, EyeOff } from 'lucide-react-native';
 import { supabase } from '../../lib/supabase';
 import { signInWithApple } from '../../lib/appleAuth';
 import { signInWithGoogle } from '../../lib/googleAuth';
@@ -224,15 +224,6 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
             )}
           </TouchableOpacity>
 
-          <TouchableOpacity
-            style={[styles.socialBtn, { borderColor: colors.border, backgroundColor: colors.card }]}
-            onPress={() => navigation.navigate('PhoneAuth')}
-            disabled={!!socialLoading}
-            activeOpacity={0.8}
-          >
-            <Phone size={20} color={colors.textSecondary} />
-            <Text style={[styles.socialBtnText, { color: colors.text }]}>{t('auth.login.continueWithPhone') || '手機號碼登入'}</Text>
-          </TouchableOpacity>
         </View>
 
         {/* Register Link */}

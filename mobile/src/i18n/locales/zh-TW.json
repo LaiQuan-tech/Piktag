@@ -70,20 +70,7 @@
       "alertResetSentMessage": "重設密碼連結已寄到你的信箱，去收信看看",
       "orDivider": "或",
       "continueWithApple": "Apple 登入",
-      "continueWithGoogle": "Google 登入",
-      "continueWithPhone": "用手機號碼登入"
-    },
-    "phoneAuth": {
-      "title": "手機號碼登入",
-      "description": "我們會發送驗證碼到你的手機",
-      "phonePlaceholder": "912345678",
-      "sendOtp": "發送驗證碼",
-      "invalidPhone": "請輸入有效的手機號碼",
-      "otpTitle": "輸入驗證碼",
-      "otpDescription": "驗證碼已發送至 {{phone}}",
-      "invalidOtp": "請輸入 6 位驗證碼",
-      "verify": "驗證",
-      "resend": "重新發送驗證碼"
+      "continueWithGoogle": "Google 登入"
     },
     "register": {
       "alertEmptyFields": "請填寫所有欄位",

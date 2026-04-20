@@ -12,7 +12,7 @@ import {
   ScrollView,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { Hash, Eye, EyeOff, Phone } from 'lucide-react-native';
+import { Hash, Eye, EyeOff } from 'lucide-react-native';
 import { supabase } from '../../lib/supabase';
 import { signInWithApple } from '../../lib/appleAuth';
 import { signInWithGoogle } from '../../lib/googleAuth';
@@ -223,10 +223,6 @@ export default function RegisterScreen({ navigation }: RegisterScreenProps) {
               <Text style={styles.googleIcon}>G</Text>
               <Text style={styles.socialBtnText}>{t('auth.login.continueWithGoogle') || 'Google 登入'}</Text>
             </>}
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.socialBtn} onPress={() => navigation.navigate('PhoneAuth')} disabled={!!socialLoading} activeOpacity={0.8}>
-            <Phone size={20} color={COLORS.gray700} />
-            <Text style={styles.socialBtnText}>{t('auth.login.continueWithPhone') || '手機號碼登入'}</Text>
           </TouchableOpacity>
         </View>
 
