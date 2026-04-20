@@ -134,3 +134,43 @@ Configure these in the Vercel project settings. Fallbacks exist in [web/api/_con
   - Web logo: [web/logo.png](web/logo.png), [web/logo-icon.png](web/logo-icon.png)
 
 Full palette and type scale: [mobile/src/constants/theme.ts](mobile/src/constants/theme.ts).
+
+---
+
+## 管理後台 (Admin Panel)
+
+位於 `admin.pikt.ag`（或本機 `http://localhost:3000`）。
+
+### 用途
+- 查看全部用戶資料、profile、連接、標籤、biolinks、points
+- 停用 / 啟用 / 刪除帳號
+- 處理舉報、一鍵封鎖被檢舉人
+- 每日 signup / active users / QR 掃描量等內部指標
+- 操作審計紀錄（admin_audit_log 表）
+
+### 環境變數
+- `NEXT_PUBLIC_SUPABASE_URL` — 公開
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY` — 公開
+- `SUPABASE_SERVICE_ROLE_KEY` — **server-only**
+- `ADMIN_EMAILS` — 逗號分隔的管理員 email 白名單
+
+見 `.env.local.example`。
+
+### 本機啟動
+```bash
+cp .env.local.example .env.local  # 填入 service-role key + admin emails
+npm install
+npm run dev                        # http://localhost:3000 → redirect to /login
+```
+
+### 部署
+Vercel `piktag-app` 專案 → root `.` → build `next build` → 綁 `admin.pikt.ag`。Env vars 從 Vercel dashboard 設定。Deployment Protection 啟用 "Vercel Authentication" 作為第二層。
+
+### 資料庫 migration
+```bash
+cd mobile && supabase db push
+```
+會套用 `mobile/supabase/migrations/20260420_admin_audit_log.sql`。
+
+### 資料流
+Browser → Next.js Server Components + Route Handlers（`/api/admin/*`）→ service-role Supabase client → DB。`SUPABASE_SERVICE_ROLE_KEY` 永不出現於 client。

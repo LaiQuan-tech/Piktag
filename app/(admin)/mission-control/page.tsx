@@ -1,18 +1,17 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { supabase } from '@/lib/supabase';
-import { 
-  LayoutDashboard, 
-  GitBranch, 
-  Users, 
-  Plus, 
-  CheckCircle2, 
-  Circle, 
-  Clock, 
+import { useEffect, useMemo, useState } from 'react';
+import { createSupabaseBrowserClient } from '@/lib/supabase-browser';
+import {
+  LayoutDashboard,
+  Users,
+  Plus,
+  CheckCircle2,
+  Circle,
+  Clock,
   ShieldAlert,
   ChevronRight,
-  Github
+  Github,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -36,11 +35,27 @@ type Version = {
 };
 
 export default function PiktagDashboard() {
+  const supabase = useMemo(() => createSupabaseBrowserClient(), []);
   const [features, setFeatures] = useState<Feature[]>([]);
   const [versions, setVersions] = useState<Version[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    async function fetchData() {
+      const { data: featureData } = await supabase
+        .from('features')
+        .select('*')
+        .order('created_at', { ascending: false });
+      const { data: versionData } = await supabase
+        .from('versions')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (featureData) setFeatures(featureData as Feature[]);
+      if (versionData) setVersions(versionData as Version[]);
+      setLoading(false);
+    }
+
     fetchData();
 
     // Subscribe to Realtime changes
@@ -53,58 +68,31 @@ export default function PiktagDashboard() {
     return () => {
       supabase.removeChannel(featureChannel);
     };
-  }, []);
-
-  async function fetchData() {
-    const { data: featureData } = await supabase.from('features').select('*').order('created_at', { ascending: false });
-    const { data: versionData } = await supabase.from('versions').select('*').order('created_at', { ascending: false });
-    
-    if (featureData) setFeatures(featureData);
-    if (versionData) setVersions(versionData);
-    setLoading(false);
-  }
+  }, [supabase]);
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'Live': return <CheckCircle2 className="w-5 h-5 text-emerald-500" />;
-      case 'In Progress': return <Clock className="w-5 h-5 text-amber-500" />;
-      case 'Review': return <ShieldAlert className="w-5 h-5 text-blue-500" />;
-      default: return <Circle className="w-5 h-5 text-zinc-400" />;
+      case 'Live':
+        return <CheckCircle2 className="w-5 h-5 text-emerald-500" />;
+      case 'In Progress':
+        return <Clock className="w-5 h-5 text-amber-500" />;
+      case 'Review':
+        return <ShieldAlert className="w-5 h-5 text-blue-500" />;
+      default:
+        return <Circle className="w-5 h-5 text-zinc-400" />;
     }
   };
 
   return (
-    <div className="min-h-screen bg-[#050505] text-zinc-200 font-sans selection:bg-brand/30">
-      {/* Sidebar Overlay (Glassmorphism inspired) */}
-      <div className="fixed top-0 left-0 w-64 h-full border-r border-white/5 bg-white/[0.02] backdrop-blur-xl hidden lg:block">
-        <div className="p-8">
-          <div className="flex items-center gap-3 mb-12">
-            <div className="w-8 h-8 bg-brand rounded-lg flex items-center justify-center font-bold text-white shadow-lg shadow-brand/20">P</div>
-            <h1 className="text-xl font-bold tracking-tight text-white">Piktag</h1>
-          </div>
-          <nav className="space-y-2">
-            <button className="flex items-center gap-3 w-full p-3 rounded-xl bg-white/5 text-white transition-all">
-              <LayoutDashboard className="w-5 h-5" />
-              <span>Mission Control</span>
-            </button>
-            <button className="flex items-center gap-3 w-full p-3 rounded-xl hover:bg-white/5 text-zinc-400 hover:text-white transition-all">
-              <GitBranch className="w-5 h-5" />
-              <span>Version Sentinel</span>
-            </button>
-            <button className="flex items-center gap-3 w-full p-3 rounded-xl hover:bg-white/5 text-zinc-400 hover:text-white transition-all">
-              <Users className="w-5 h-5" />
-              <span>Team Sync</span>
-            </button>
-          </nav>
-        </div>
-      </div>
-
+    <div className="min-h-screen bg-[#050505] text-zinc-200 font-sans selection:bg-brand/30 -m-8">
       {/* Main Content */}
-      <main className="lg:pl-64 min-h-screen">
+      <main className="min-h-screen">
         <header className="sticky top-0 z-30 h-20 border-b border-white/5 bg-[#050505]/80 backdrop-blur-md px-8 flex items-center justify-between">
-          <h2 className="text-lg font-medium text-white">Commander's Dashboard</h2>
+          <h2 className="text-lg font-medium text-white">Commander&apos;s Dashboard</h2>
           <div className="flex items-center gap-4">
-            <div className="text-sm text-zinc-500 hidden sm:block">Last Sync: Just now</div>
+            <div className="text-sm text-zinc-500 hidden sm:block">
+              {loading ? 'Syncing…' : 'Last Sync: Just now'}
+            </div>
             <button className="px-4 py-2 bg-brand hover:bg-brand-dark text-white rounded-lg text-sm font-medium transition-all flex items-center gap-2 shadow-lg shadow-brand/20">
               <Plus className="w-4 h-4" />
               New Feature
@@ -120,7 +108,7 @@ export default function PiktagDashboard() {
               { label: 'Deployed Builds', value: versions.length, icon: Github, color: 'text-emerald-400' },
               { label: 'Collaborators', value: '2', icon: Users, color: 'text-amber-400' },
             ].map((stat, i) => (
-              <motion.div 
+              <motion.div
                 key={i}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -154,7 +142,7 @@ export default function PiktagDashboard() {
                   </div>
                 ) : (
                   features.map((feature, i) => (
-                    <motion.div 
+                    <motion.div
                       key={feature.id}
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
@@ -168,11 +156,15 @@ export default function PiktagDashboard() {
                         <div>
                           <div className="flex items-center gap-3 mb-1">
                             <h4 className="font-medium text-white">{feature.name}</h4>
-                            <span className={`text-[10px] px-2 py-0.5 rounded-full border ${
-                              feature.priority === 'High' ? 'border-rose-500/50 text-rose-400 bg-rose-500/10' :
-                              feature.priority === 'Medium' ? 'border-amber-500/50 text-amber-400 bg-amber-500/10' :
-                              'border-zinc-500/50 text-zinc-400 bg-zinc-500/10'
-                            }`}>
+                            <span
+                              className={`text-[10px] px-2 py-0.5 rounded-full border ${
+                                feature.priority === 'High'
+                                  ? 'border-rose-500/50 text-rose-400 bg-rose-500/10'
+                                  : feature.priority === 'Medium'
+                                  ? 'border-amber-500/50 text-amber-400 bg-amber-500/10'
+                                  : 'border-zinc-500/50 text-zinc-400 bg-zinc-500/10'
+                              }`}
+                            >
                               {feature.priority}
                             </span>
                           </div>
@@ -200,12 +192,12 @@ export default function PiktagDashboard() {
                 Version Sentinel
                 <span className="text-xs font-normal text-zinc-600 bg-white/5 px-2 py-0.5 rounded-full">{versions.length}</span>
               </h3>
-              
+
               <div className="relative pl-6 space-y-8 before:absolute before:left-[11px] before:top-2 before:bottom-2 before:w-[1px] before:bg-white/10">
                 {versions.length === 0 ? (
                   <div className="py-10 text-zinc-600 text-sm">Waiting for first commit...</div>
                 ) : (
-                  versions.map((version, i) => (
+                  versions.map((version) => (
                     <div key={version.id} className="relative group">
                       <div className="absolute -left-[20px] top-1 w-2.5 h-2.5 rounded-full bg-zinc-800 border-2 border-zinc-600 group-hover:border-brand group-hover:scale-125 transition-all" />
                       <div className="text-xs text-zinc-500 mb-2 font-mono">{new Date(version.created_at).toLocaleDateString()}</div>

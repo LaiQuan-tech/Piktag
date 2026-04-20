@@ -1,5 +1,11 @@
 // delete-user edge function
 //
+// Deploy: cd mobile && supabase functions deploy delete-user
+// Required secrets:
+//   SUPABASE_SERVICE_ROLE_KEY (auto-provided)
+//   ADMIN_EMAILS_RAW — comma-separated lowercase admin emails
+//     Set with: supabase secrets set ADMIN_EMAILS_RAW="armand7951@gmail.com,other@gmail.com"
+//
 // Why this exists:
 // When a user taps "delete account" in the app, we MUST fully remove their
 // row from auth.users in addition to wiping their app data. If we only
@@ -11,7 +17,13 @@
 //
 // This function runs with the service role key so it can both call
 // auth.admin.deleteUser and bypass RLS on the piktag_* tables. We still
-// verify the caller's JWT first and only allow self-deletion.
+// verify the caller's JWT first.
+//
+// Two code paths:
+//   1. Self-delete (mobile app): caller.id must equal body.user_id.
+//   2. Admin-initiated (admin panel): body.admin_action === true AND the
+//      caller's auth email is present in ADMIN_EMAILS_RAW. In this case
+//      the target user_id may be any user.
 
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
@@ -23,6 +35,7 @@ const corsHeaders = {
 
 type DeleteBody = {
   user_id?: string;
+  admin_action?: boolean;
 };
 
 type TableCleanup = {
@@ -60,6 +73,13 @@ function jsonResponse(status: number, body: unknown): Response {
     status,
     headers: { ...corsHeaders, 'Content-Type': 'application/json' },
   });
+}
+
+function parseAdminEmails(raw: string | undefined): string[] {
+  return (raw ?? '')
+    .split(',')
+    .map((s) => s.trim().toLowerCase())
+    .filter(Boolean);
 }
 
 serve(async (req) => {
@@ -103,6 +123,8 @@ serve(async (req) => {
       return jsonResponse(400, { error: 'Bad Request', detail: 'Missing user_id' });
     }
 
+    const adminAction = body.admin_action === true;
+
     // Verify the caller's JWT via a user-scoped client.
     const userClient = createClient(supabaseUrl, anonKey, {
       global: { headers: { Authorization: authHeader } },
@@ -116,12 +138,28 @@ serve(async (req) => {
       });
     }
 
-    const authenticatedUserId = userData.user.id;
-    if (authenticatedUserId !== requestedUserId) {
-      return jsonResponse(403, {
-        error: 'Forbidden',
-        detail: 'Can only delete own account',
-      });
+    const caller = userData.user;
+    const callerId = caller.id;
+    const callerEmail = (caller.email ?? '').toLowerCase();
+
+    if (adminAction) {
+      // Admin-initiated delete: caller must be on the allowlist.
+      const adminEmails = parseAdminEmails(Deno.env.get('ADMIN_EMAILS_RAW'));
+      if (!callerEmail || !adminEmails.includes(callerEmail)) {
+        return jsonResponse(403, {
+          error: 'Forbidden',
+          detail: 'Not an admin',
+        });
+      }
+      // Admin may target any user_id (including their own, though that's odd).
+    } else {
+      // Self-delete: caller must equal target.
+      if (callerId !== requestedUserId) {
+        return jsonResponse(403, {
+          error: 'Forbidden',
+          detail: 'Can only delete own account',
+        });
+      }
     }
 
     // Service-role client: bypasses RLS and can call auth.admin.*.
@@ -129,7 +167,7 @@ serve(async (req) => {
       auth: { autoRefreshToken: false, persistSession: false },
     });
 
-    const userId = authenticatedUserId;
+    const userId = requestedUserId;
     const warnings: string[] = [];
 
     for (const { table, column } of CLEANUPS) {
@@ -154,7 +192,23 @@ serve(async (req) => {
       });
     }
 
-    return jsonResponse(200, { ok: true, warnings });
+    // Audit log for admin-initiated deletions. Best-effort: a logging
+    // failure must not undo the successful delete above.
+    if (adminAction) {
+      const { error: auditError } = await adminClient.from('admin_audit_log').insert({
+        admin_email: callerEmail,
+        action: 'delete_user',
+        target_type: 'user',
+        target_id: userId,
+        metadata: { via: 'edge-function' },
+      });
+      if (auditError) {
+        console.warn('delete-user admin_audit_log insert failed:', auditError.message);
+        warnings.push(`admin_audit_log: ${auditError.message}`);
+      }
+    }
+
+    return jsonResponse(200, { success: true, ok: true, warnings });
   } catch (err) {
     console.error('delete-user edge function error:', err);
     const message = err instanceof Error ? err.message : String(err);
