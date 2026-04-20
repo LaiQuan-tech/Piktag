@@ -1012,17 +1012,22 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
     // match happen in performSearch), but the presentation is a single
     // list so the UI stays thin.
     if (trimmedQuery !== '') {
+      // Tags section — always show when search found matching tags.
+      if (tags.length > 0) {
+        items.push({ type: 'tagsHeader' });
+        items.push({ type: 'tagsGrid' });
+      }
+
+      // Profiles section — merge direct matches + tag-matched users.
       const seenIds = new Set<string>();
       const mergedProfiles: PiktagProfile[] = [];
 
-      // 1) Direct name/username matches first — higher signal.
       for (const p of profiles) {
         if (p?.id && !seenIds.has(p.id)) {
           seenIds.add(p.id);
           mergedProfiles.push(p);
         }
       }
-      // 2) Users matched via their public tags, deduplicated across tag groups.
       for (const tu of tagUsers) {
         for (const u of tu.users) {
           if (u?.id && !seenIds.has(u.id)) {
@@ -1033,10 +1038,11 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
       }
 
       if (mergedProfiles.length > 0) {
+        items.push({ type: 'profilesHeader' });
         for (const profile of mergedProfiles) {
           items.push({ type: 'profileItem', profile });
         }
-      } else {
+      } else if (tags.length === 0) {
         items.push({ type: 'profilesEmpty' });
       }
     } else if (isFocused && recentSearches.length > 0) {
