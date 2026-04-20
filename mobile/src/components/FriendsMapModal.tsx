@@ -202,7 +202,7 @@ function buildMapHtml(
 
         const map = new Map(document.getElementById('map'), {
           center: CENTER,
-          zoom: 11,
+          zoom: 15,
           mapId: 'piktag_friends_map',
           disableDefaultUI: true,
           zoomControl: true,
@@ -243,10 +243,16 @@ function buildMapHtml(
         });
 
         // If there is more than one point, auto-fit the bounds so
-        // every avatar is visible, with a small padding.
+        // every avatar is visible, with a small padding. Cap the
+        // resulting zoom so the map never shows more than ~500m
+        // across — a far-away friend will still be on the map but
+        // the default view stays tightly focused around the user.
         const totalPoints = FRIENDS.length + (SELF ? 1 : 0);
         if (totalPoints > 1) {
           map.fitBounds(bounds, { top: 80, right: 60, bottom: 80, left: 60 });
+          google.maps.event.addListenerOnce(map, 'idle', function () {
+            if (map.getZoom() < 15) map.setZoom(15);
+          });
         }
       } catch (e) {
         document.getElementById('fallback').style.display = 'flex';
