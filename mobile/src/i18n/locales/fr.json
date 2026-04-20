@@ -581,5 +581,23 @@
     "error_already_redeemed": "Cette invitation a déjà été utilisée",
     "error_expired": "Cette invitation a expiré",
     "error_cannot_redeem_own": "Vous ne pouvez pas utiliser votre propre invitation"
+  },
+  "chat": {
+    "inbox": "Messages",
+    "compose": "Nouveau message",
+    "tabs": {
+      "primary": "Principal",
+      "requests": "Demandes",
+      "general": "Général"
+    },
+    "emptyInbox": "Aucun message",
+    "composePlaceholder": "Rechercher des utilisateurs…",
+    "messagePlaceholder": "Écrire un message…",
+    "send": "Envoyer",
+    "cannotMessageSelf": "Impossible de vous envoyer un message",
+    "userBlocked": "Impossible d'envoyer à cet utilisateur",
+    "deliveryFailed": "Échec · Appuyer pour réessayer",
+    "unreadBadge": "{{count}} non lus",
+    "messagesSent": "{{name}} vous a envoyé un message"
   }
 }

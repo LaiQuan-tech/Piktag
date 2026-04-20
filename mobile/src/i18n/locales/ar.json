@@ -581,5 +581,23 @@
     "error_already_redeemed": "تم استخدام هذه الدعوة بالفعل",
     "error_expired": "انتهت صلاحية هذه الدعوة",
     "error_cannot_redeem_own": "لا يمكنك استخدام دعوتك الخاصة"
+  },
+  "chat": {
+    "inbox": "رسائل",
+    "compose": "رسالة جديدة",
+    "tabs": {
+      "primary": "الرئيسية",
+      "requests": "الطلبات",
+      "general": "عام"
+    },
+    "emptyInbox": "لا توجد رسائل",
+    "composePlaceholder": "بحث عن مستخدمين…",
+    "messagePlaceholder": "اكتب رسالة…",
+    "send": "إرسال",
+    "cannotMessageSelf": "لا يمكنك مراسلة نفسك",
+    "userBlocked": "لا يمكن إرسال رسالة لهذا المستخدم",
+    "deliveryFailed": "فشل الإرسال · اضغط لإعادة المحاولة",
+    "unreadBadge": "{{count}} غير مقروءة",
+    "messagesSent": "{{name}} أرسل لك رسالة"
   }
 }

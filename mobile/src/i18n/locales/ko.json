@@ -675,5 +675,23 @@
     "emptyHistory": "아직 P 코인 활동 없음",
     "plusOne": "+1 P 코인",
     "pointsUnit": "P 코인"
+  },
+  "chat": {
+    "inbox": "메시지",
+    "compose": "새 메시지",
+    "tabs": {
+      "primary": "주요",
+      "requests": "요청",
+      "general": "일반"
+    },
+    "emptyInbox": "메시지가 없어요",
+    "composePlaceholder": "사용자 검색…",
+    "messagePlaceholder": "메시지 입력…",
+    "send": "보내기",
+    "cannotMessageSelf": "자신에게 보낼 수 없어요",
+    "userBlocked": "이 사용자에게 보낼 수 없어요",
+    "deliveryFailed": "전송 실패 · 눌러서 재시도",
+    "unreadBadge": "읽지 않음 {{count}}",
+    "messagesSent": "{{name}}님이 메시지를 보냈어요"
   }
 }

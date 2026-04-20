@@ -22,6 +22,7 @@ import {
   Clock,
   TrendingUp,
   X,
+  MessageCircle,
 } from 'lucide-react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { requestForegroundPermissionsAsync, getCurrentPositionAsync, Accuracy } from 'expo-location';
@@ -32,6 +33,7 @@ import { getCache, setCache } from '../lib/dataCache';
 import { COLORS } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../hooks/useAuth';
+import { useChatUnread } from '../hooks/useChatUnread';
 import type { Tag, PiktagProfile } from '../types';
 
 const RECENT_SEARCHES_KEY = 'piktag_recent_searches';
@@ -202,6 +204,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
   const { t } = useTranslation();
   const { colors, isDark } = useTheme();
   const { user } = useAuth();
+  const { total: chatUnread } = useChatUnread();
   const [isFocused, setIsFocused] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState<CategoryKey | null>(null);
@@ -1395,14 +1398,17 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
         <View style={styles.headerTitleRow}>
           <Text style={[styles.headerTitle, { color: colors.text }]}>{t('search.headerTitle') || '搜尋'}</Text>
           <TouchableOpacity
-            onPress={handleResetToDefault}
-            style={styles.headerResetBtn}
-            activeOpacity={0.6}
-            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-            accessibilityLabel={t('search.resetButton') || '重設'}
-            accessibilityRole="button"
+            onPress={() => navigation.navigate('ChatList')}
+            style={styles.headerChatBtn}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            accessibilityLabel={t('chat.inbox')}
           >
-            <Text style={styles.headerResetText}>{t('search.resetButton') || '重設'}</Text>
+            <MessageCircle size={24} color={COLORS.gray900} strokeWidth={2} />
+            {chatUnread > 0 ? (
+              <View style={styles.headerChatBadge}>
+                <Text style={styles.headerChatBadgeText}>{chatUnread > 99 ? '99+' : String(chatUnread)}</Text>
+              </View>
+            ) : null}
           </TouchableOpacity>
         </View>
         <Pressable style={searchContainerStyle} onPress={focusSearchInput}>
@@ -1600,14 +1606,26 @@ const styles = StyleSheet.create({
     color: COLORS.gray900,
     lineHeight: 32,
   },
-  headerResetBtn: {
-    paddingVertical: 6,
-    paddingHorizontal: 8,
+  headerChatBtn: {
+    padding: 6,
+    position: 'relative',
   },
-  headerResetText: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: COLORS.piktag500,
+  headerChatBadge: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    minWidth: 16,
+    height: 16,
+    borderRadius: 8,
+    paddingHorizontal: 4,
+    backgroundColor: COLORS.red500,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  headerChatBadgeText: {
+    color: '#fff',
+    fontSize: 10,
+    fontWeight: '700',
   },
   searchContainer: {
     flexDirection: 'row',

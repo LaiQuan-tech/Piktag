@@ -65,6 +65,9 @@ const CLEANUPS: TableCleanup[] = [
   { table: 'piktag_biolinks', column: 'user_id' },
   { table: 'piktag_api_usage_log', column: 'user_id' },
   { table: 'piktag_points_ledger', column: 'user_id' },
+  { table: 'piktag_messages', column: 'sender_id' },
+  { table: 'piktag_conversations', column: 'participant_a' },
+  { table: 'piktag_conversations', column: 'participant_b' },
   { table: 'piktag_profiles', column: 'id' },
 ];
 

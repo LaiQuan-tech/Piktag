@@ -674,5 +674,23 @@
     "error_already_redeemed": "Bu davet zaten kullanılmış",
     "error_expired": "Bu davetin süresi dolmuş",
     "error_cannot_redeem_own": "Kendi davetinizi kullanamazsınız"
+  },
+  "chat": {
+    "inbox": "Mesajlar",
+    "compose": "Yeni mesaj",
+    "tabs": {
+      "primary": "Birincil",
+      "requests": "İstekler",
+      "general": "Genel"
+    },
+    "emptyInbox": "Henüz mesaj yok",
+    "composePlaceholder": "Kullanıcı ara…",
+    "messagePlaceholder": "Mesaj yaz…",
+    "send": "Gönder",
+    "cannotMessageSelf": "Kendine mesaj gönderemezsin",
+    "userBlocked": "Bu kullanıcıya mesaj gönderilemez",
+    "deliveryFailed": "Gönderilemedi · Yeniden denemek için dokun",
+    "unreadBadge": "{{count}} okunmamış",
+    "messagesSent": "{{name}} sana mesaj gönderdi"
   }
 }

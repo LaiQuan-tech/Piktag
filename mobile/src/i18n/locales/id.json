@@ -674,5 +674,23 @@
     "emptyHistory": "Belum ada aktivitas Koin P",
     "plusOne": "+1 P",
     "pointsUnit": "P"
+  },
+  "chat": {
+    "inbox": "Pesan",
+    "compose": "Pesan baru",
+    "tabs": {
+      "primary": "Utama",
+      "requests": "Permintaan",
+      "general": "Umum"
+    },
+    "emptyInbox": "Belum ada pesan",
+    "composePlaceholder": "Cari pengguna…",
+    "messagePlaceholder": "Ketik pesan…",
+    "send": "Kirim",
+    "cannotMessageSelf": "Tidak bisa kirim pesan ke diri sendiri",
+    "userBlocked": "Tidak bisa kirim pesan ke pengguna ini",
+    "deliveryFailed": "Gagal kirim · Ketuk untuk coba lagi",
+    "unreadBadge": "{{count}} belum dibaca",
+    "messagesSent": "{{name}} mengirim pesan"
   }
 }

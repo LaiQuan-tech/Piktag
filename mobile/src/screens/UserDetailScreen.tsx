@@ -28,6 +28,7 @@ import {
   X,
   AlertTriangle,
   UserPlus,
+  MessageCircle,
 } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { COLORS } from '../constants/theme';
@@ -76,6 +77,7 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
   const [followerCount, setFollowerCount] = useState(0);
   const [isFollowing, setIsFollowing] = useState(false);
   const [followLoading, setFollowLoading] = useState(false);
+  const [messageLoading, setMessageLoading] = useState(false);
   const [unfollowModalVisible, setUnfollowModalVisible] = useState(false);
   const [mutualTagModalVisible, setMutualTagModalVisible] = useState(false);
   const [isCloseFriend, setIsCloseFriend] = useState(false);
@@ -537,6 +539,39 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
     }
   };
 
+  const handleOpenChat = async () => {
+    if (!authUser || !resolvedUserId || messageLoading) return;
+    setMessageLoading(true);
+    try {
+      const { data, error } = await supabase.rpc('get_or_create_conversation', {
+        other_user_id: resolvedUserId,
+      });
+      if (error) {
+        const code = (error as any)?.code ?? '';
+        const msg = (error.message ?? '').toLowerCase();
+        if (code === 'blocked' || msg.includes('blocked')) {
+          Alert.alert(t('chat.userBlocked'));
+        } else if (code === 'invalid_participants' || msg.includes('invalid_participants')) {
+          Alert.alert(t('chat.cannotMessageSelf'));
+        } else {
+          Alert.alert(error.message ?? 'Error');
+        }
+        return;
+      }
+      const conversationId = typeof data === 'string' ? data : (data as any)?.id ?? (data as any)?.conversation_id ?? data;
+      navigation.navigate('ChatThread', {
+        conversationId,
+        otherUserId: resolvedUserId,
+        otherDisplayName: profile?.full_name ?? profile?.username ?? '',
+        otherAvatarUrl: profile?.avatar_url,
+      });
+    } catch (err) {
+      console.warn('handleOpenChat error:', err);
+    } finally {
+      setMessageLoading(false);
+    }
+  };
+
   const handleToggleFollow = async () => {
     if (!authUser || !resolvedUserId || followLoading) return;
 
@@ -812,6 +847,21 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
                     </Text>
                   )}
                 </LinearGradient>
+              </TouchableOpacity>
+            )}
+            {authUser && resolvedUserId && authUser.id !== resolvedUserId && (
+              <TouchableOpacity
+                style={styles.messageButton}
+                onPress={handleOpenChat}
+                activeOpacity={0.8}
+                disabled={messageLoading}
+                accessibilityLabel={t('chat.inbox')}
+              >
+                {messageLoading ? (
+                  <ActivityIndicator size="small" color={COLORS.piktag600} />
+                ) : (
+                  <MessageCircle size={18} color={COLORS.piktag600} strokeWidth={2} />
+                )}
               </TouchableOpacity>
             )}
             {isFollowing && (
@@ -1350,6 +1400,16 @@ const styles = StyleSheet.create({
   },
   followButtonTextFollowing: {
     color: COLORS.piktag600,
+  },
+  messageButton: {
+    width: 44,
+    borderRadius: 12,
+    paddingVertical: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: COLORS.piktag50,
+    borderWidth: 2,
+    borderColor: COLORS.piktag500,
   },
   // Tags — flat inline clickable (matching ProfileScreen)
   tagsWrap: {

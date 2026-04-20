@@ -674,5 +674,23 @@
     "emptyHistory": "ยังไม่มีกิจกรรม P Coin",
     "plusOne": "+1 P",
     "pointsUnit": "P"
+  },
+  "chat": {
+    "inbox": "ข้อความ",
+    "compose": "ข้อความใหม่",
+    "tabs": {
+      "primary": "หลัก",
+      "requests": "คำขอ",
+      "general": "ทั่วไป"
+    },
+    "emptyInbox": "ยังไม่มีข้อความ",
+    "composePlaceholder": "ค้นหาผู้ใช้…",
+    "messagePlaceholder": "พิมพ์ข้อความ…",
+    "send": "ส่ง",
+    "cannotMessageSelf": "ส่งข้อความหาตัวเองไม่ได้",
+    "userBlocked": "ส่งข้อความให้ผู้ใช้นี้ไม่ได้",
+    "deliveryFailed": "ส่งไม่สำเร็จ · แตะเพื่อลองใหม่",
+    "unreadBadge": "ยังไม่อ่าน {{count}}",
+    "messagesSent": "{{name}} ส่งข้อความถึงคุณ"
   }
 }

@@ -581,5 +581,23 @@
     "error_already_redeemed": "这个邀请码已经被使用过了",
     "error_expired": "邀请码已过期",
     "error_cannot_redeem_own": "不能兑换自己的邀请码"
+  },
+  "chat": {
+    "inbox": "消息",
+    "compose": "新消息",
+    "tabs": {
+      "primary": "主要",
+      "requests": "陌生消息",
+      "general": "一般"
+    },
+    "emptyInbox": "暂无消息",
+    "composePlaceholder": "搜索用户…",
+    "messagePlaceholder": "输入消息…",
+    "send": "发送",
+    "cannotMessageSelf": "不能给自己发消息",
+    "userBlocked": "无法给此用户发消息",
+    "deliveryFailed": "发送失败 · 轻点重试",
+    "unreadBadge": "{{count}} 条未读",
+    "messagesSent": "{{name}} 发来一条消息"
   }
 }

@@ -581,5 +581,23 @@
     "error_already_redeemed": "यह आमंत्रण पहले ही उपयोग किया जा चुका है",
     "error_expired": "यह आमंत्रण समाप्त हो गया है",
     "error_cannot_redeem_own": "आप अपने स्वयं के आमंत्रण का उपयोग नहीं कर सकते"
+  },
+  "chat": {
+    "inbox": "संदेश",
+    "compose": "नया संदेश",
+    "tabs": {
+      "primary": "मुख्य",
+      "requests": "अनुरोध",
+      "general": "सामान्य"
+    },
+    "emptyInbox": "कोई संदेश नहीं",
+    "composePlaceholder": "उपयोगकर्ता खोजें…",
+    "messagePlaceholder": "संदेश लिखें…",
+    "send": "भेजें",
+    "cannotMessageSelf": "आप खुद को संदेश नहीं भेज सकते",
+    "userBlocked": "इस उपयोगकर्ता को संदेश नहीं भेजा जा सकता",
+    "deliveryFailed": "भेजने में विफल · पुनः प्रयास करें",
+    "unreadBadge": "{{count}} अपठित",
+    "messagesSent": "{{name}} ने आपको संदेश भेजा"
   }
 }

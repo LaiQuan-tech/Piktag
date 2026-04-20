@@ -581,5 +581,23 @@
     "error_already_redeemed": "Este convite já foi resgatado",
     "error_expired": "Este convite expirou",
     "error_cannot_redeem_own": "Você não pode resgatar seu próprio convite"
+  },
+  "chat": {
+    "inbox": "Mensagens",
+    "compose": "Nova mensagem",
+    "tabs": {
+      "primary": "Principal",
+      "requests": "Solicitações",
+      "general": "Geral"
+    },
+    "emptyInbox": "Sem mensagens ainda",
+    "composePlaceholder": "Pesquisar usuários…",
+    "messagePlaceholder": "Digite uma mensagem…",
+    "send": "Enviar",
+    "cannotMessageSelf": "Você não pode enviar mensagem a si mesmo",
+    "userBlocked": "Não é possível enviar mensagem a este usuário",
+    "deliveryFailed": "Falha ao enviar · Toque para tentar novamente",
+    "unreadBadge": "{{count}} não lidas",
+    "messagesSent": "{{name}} enviou uma mensagem"
   }
 }

@@ -800,5 +800,23 @@
     "emptyHistory": "No P Coin activity yet",
     "plusOne": "+1 P",
     "pointsUnit": "P"
+  },
+  "chat": {
+    "inbox": "Messages",
+    "compose": "New message",
+    "tabs": {
+      "primary": "Primary",
+      "requests": "Requests",
+      "general": "General"
+    },
+    "emptyInbox": "No messages yet",
+    "composePlaceholder": "Search users…",
+    "messagePlaceholder": "Type a message…",
+    "send": "Send",
+    "cannotMessageSelf": "You can't message yourself",
+    "userBlocked": "Can't send message to this user",
+    "deliveryFailed": "Failed to send · Tap to retry",
+    "unreadBadge": "{{count}} unread",
+    "messagesSent": "{{name}} sent you a message"
   }
 }

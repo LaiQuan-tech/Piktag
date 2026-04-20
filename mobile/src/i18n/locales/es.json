@@ -581,5 +581,23 @@
     "error_already_redeemed": "Esta invitación ya ha sido canjeada",
     "error_expired": "Esta invitación ha caducado",
     "error_cannot_redeem_own": "No puedes canjear tu propia invitación"
+  },
+  "chat": {
+    "inbox": "Mensajes",
+    "compose": "Nuevo mensaje",
+    "tabs": {
+      "primary": "Principal",
+      "requests": "Solicitudes",
+      "general": "General"
+    },
+    "emptyInbox": "Aún no hay mensajes",
+    "composePlaceholder": "Buscar usuarios…",
+    "messagePlaceholder": "Escribe un mensaje…",
+    "send": "Enviar",
+    "cannotMessageSelf": "No puedes enviarte mensajes",
+    "userBlocked": "No puedes enviar mensaje a este usuario",
+    "deliveryFailed": "Error al enviar · Tocar para reintentar",
+    "unreadBadge": "{{count}} sin leer",
+    "messagesSent": "{{name}} te ha enviado un mensaje"
   }
 }

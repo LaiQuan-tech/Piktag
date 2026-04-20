@@ -581,5 +581,23 @@
     "error_already_redeemed": "この招待コードはすでに使用されています",
     "error_expired": "この招待コードは期限切れです",
     "error_cannot_redeem_own": "自分の招待コードは引き換えできません"
+  },
+  "chat": {
+    "inbox": "メッセージ",
+    "compose": "新規メッセージ",
+    "tabs": {
+      "primary": "主要",
+      "requests": "リクエスト",
+      "general": "一般"
+    },
+    "emptyInbox": "メッセージはまだありません",
+    "composePlaceholder": "ユーザー検索…",
+    "messagePlaceholder": "メッセージを入力…",
+    "send": "送信",
+    "cannotMessageSelf": "自分にメッセージを送れません",
+    "userBlocked": "このユーザーにメッセージを送れません",
+    "deliveryFailed": "送信失敗 · タップで再試行",
+    "unreadBadge": "未読 {{count}} 件",
+    "messagesSent": "{{name}}さんからメッセージ"
   }
 }

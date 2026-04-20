@@ -581,5 +581,23 @@
     "emptyHistory": "এখনও কোন P কয়েন কার্যকলাপ নেই",
     "plusOne": "+1 P",
     "pointsUnit": "P"
+  },
+  "chat": {
+    "inbox": "বার্তা",
+    "compose": "নতুন বার্তা",
+    "tabs": {
+      "primary": "প্রধান",
+      "requests": "অনুরোধ",
+      "general": "সাধারণ"
+    },
+    "emptyInbox": "কোনো বার্তা নেই",
+    "composePlaceholder": "ব্যবহারকারী খুঁজুন…",
+    "messagePlaceholder": "বার্তা লিখুন…",
+    "send": "পাঠান",
+    "cannotMessageSelf": "নিজেকে বার্তা পাঠাতে পারবেন না",
+    "userBlocked": "এই ব্যবহারকারীকে বার্তা পাঠানো যাবে না",
+    "deliveryFailed": "পাঠানো ব্যর্থ · পুনরায় চেষ্টা করুন",
+    "unreadBadge": "{{count}} অপঠিত",
+    "messagesSent": "{{name}} আপনাকে একটি বার্তা পাঠিয়েছে"
   }
 }

@@ -581,5 +581,23 @@
     "error_already_redeemed": "Это приглашение уже использовано",
     "error_expired": "Срок действия этого приглашения истёк",
     "error_cannot_redeem_own": "Вы не можете использовать собственное приглашение"
+  },
+  "chat": {
+    "inbox": "Сообщения",
+    "compose": "Новое сообщение",
+    "tabs": {
+      "primary": "Основные",
+      "requests": "Запросы",
+      "general": "Общие"
+    },
+    "emptyInbox": "Сообщений пока нет",
+    "composePlaceholder": "Поиск пользователей…",
+    "messagePlaceholder": "Введите сообщение…",
+    "send": "Отправить",
+    "cannotMessageSelf": "Нельзя писать себе",
+    "userBlocked": "Нельзя отправить сообщение этому пользователю",
+    "deliveryFailed": "Ошибка отправки · Нажмите, чтобы повторить",
+    "unreadBadge": "Непрочитанных: {{count}}",
+    "messagesSent": "{{name}} отправил вам сообщение"
   }
 }

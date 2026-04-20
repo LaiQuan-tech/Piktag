@@ -807,5 +807,23 @@
     "error_already_redeemed": "這個邀請碼已經被使用過了",
     "error_expired": "邀請碼已過期",
     "error_cannot_redeem_own": "不能兌換自己的邀請碼"
+  },
+  "chat": {
+    "inbox": "訊息",
+    "compose": "新訊息",
+    "tabs": {
+      "primary": "主要",
+      "requests": "陌生訊息",
+      "general": "一般"
+    },
+    "emptyInbox": "尚無訊息",
+    "composePlaceholder": "搜尋用戶…",
+    "messagePlaceholder": "輸入訊息…",
+    "send": "傳送",
+    "cannotMessageSelf": "無法傳訊息給自己",
+    "userBlocked": "無法傳送訊息給此用戶",
+    "deliveryFailed": "傳送失敗 · 輕點重試",
+    "unreadBadge": "{{count}} 則未讀",
+    "messagesSent": "{{name}} 傳了一則訊息"
   }
 }

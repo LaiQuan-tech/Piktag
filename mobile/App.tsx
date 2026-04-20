@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Platform, StyleSheet } from 'react-native';
 import * as Sentry from '@sentry/react-native';
+import * as Notifications from 'expo-notifications';
 import { StatusBar as ExpoStatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { NavigationContainer } from '@react-navigation/native';
+import { NavigationContainer, useNavigationContainerRef } from '@react-navigation/native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import './src/i18n'; // Initialize i18n
 import AppNavigator from './src/navigation/AppNavigator';
@@ -73,12 +74,36 @@ function App() {
   // IG-style 'from PikTag' launch moment, shown briefly on native after
   // the native splash hides. Skipped on web — web has its own landing.
   const [splashVisible, setSplashVisible] = useState(!isWeb);
+  const navigationRef = useNavigationContainerRef();
+
+  useEffect(() => {
+    if (isWeb) return;
+    const handleResponse = (response: Notifications.NotificationResponse) => {
+      const data = response.notification.request.content.data as { type?: string; conversationId?: string };
+      if (data?.type === 'chat' && data?.conversationId) {
+        // Navigate into the specific thread. Go via SearchTab > ChatThread.
+        navigationRef.current?.navigate('Main' as never, {
+          screen: 'SearchTab',
+          params: { screen: 'ChatThread', params: { conversationId: data.conversationId } },
+        } as never);
+      }
+    };
+
+    const sub = Notifications.addNotificationResponseReceivedListener(handleResponse);
+
+    // Cold start: check if the app was opened FROM a notification
+    Notifications.getLastNotificationResponseAsync().then((response) => {
+      if (response) handleResponse(response);
+    });
+
+    return () => { sub.remove(); };
+  }, [navigationRef, isWeb]);
 
   const content = (
     <ThemeProvider>
       <GestureHandlerRootView style={{ flex: 1 }}>
         <SafeAreaProvider>
-          <NavigationContainer linking={linking}>
+          <NavigationContainer ref={navigationRef} linking={linking}>
             <ExpoStatusBar style="dark" />
             <AppNavigator />
             {splashVisible && <SplashOverlay onHidden={() => setSplashVisible(false)} />}

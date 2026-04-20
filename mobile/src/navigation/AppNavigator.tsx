@@ -18,6 +18,7 @@ import { useTheme } from '../context/ThemeContext';
 import { useTranslation } from 'react-i18next';
 import { registerForPushNotifications } from '../lib/pushNotifications';
 import { posthog } from '../lib/analytics';
+import { ChatUnreadProvider, useChatUnread } from '../hooks/useChatUnread';
 
 // Auth Screens — eager (needed before session resolves)
 import LoginScreen from '../screens/auth/LoginScreen';
@@ -74,6 +75,19 @@ function SearchStackNavigator() {
   return (
     <SearchStack.Navigator screenOptions={{ headerShown: false }}>
       <SearchStack.Screen name="SearchMain" component={SearchScreen} />
+      <SearchStack.Screen
+        name="ChatList"
+        getComponent={() => require('../screens/ChatListScreen').default}
+      />
+      <SearchStack.Screen
+        name="ChatThread"
+        getComponent={() => require('../screens/ChatThreadScreen').default}
+      />
+      <SearchStack.Screen
+        name="ChatCompose"
+        getComponent={() => require('../screens/ChatComposeScreen').default}
+        options={{ presentation: 'modal' }}
+      />
     </SearchStack.Navigator>
   );
 }
@@ -105,6 +119,7 @@ function ProfileStackNavigator() {
 function MainTabs() {
   const { colors, isDark } = useTheme();
   const { t } = useTranslation();
+  const { total: chatUnread } = useChatUnread();
   return (
     <Tab.Navigator
       detachInactiveScreens={true}
@@ -142,6 +157,7 @@ function MainTabs() {
         component={SearchStackNavigator}
         options={{
           tabBarAccessibilityLabel: t('tabs.search'),
+          tabBarBadge: chatUnread > 0 ? chatUnread : undefined,
           tabBarIcon: ({ color, focused }) => (
             <Search
               size={24}
@@ -202,82 +218,84 @@ const RootStack = createNativeStackNavigator();
 
 function MainNavigator({ needsOnboarding }: { needsOnboarding: boolean }) {
   return (
-    <RootStack.Navigator screenOptions={{ headerShown: false }}>
-      {needsOnboarding ? (
-        <RootStack.Screen name="Onboarding" component={OnboardingScreen} />
-      ) : null}
-      <RootStack.Screen name="Main" component={MainTabs} />
+    <ChatUnreadProvider>
+      <RootStack.Navigator screenOptions={{ headerShown: false }}>
+        {needsOnboarding ? (
+          <RootStack.Screen name="Onboarding" component={OnboardingScreen} />
+        ) : null}
+        <RootStack.Screen name="Main" component={MainTabs} />
 
-      {/* Task/detail screens — no tab bar */}
-      {/* Eager: primary drill-downs hit on every session */}
-      <RootStack.Screen name="FriendDetail" component={FriendDetailScreen} />
-      <RootStack.Screen name="UserDetail" component={UserDetailScreen} />
-      <RootStack.Screen name="TagDetail" component={TagDetailScreen} />
+        {/* Task/detail screens — no tab bar */}
+        {/* Eager: primary drill-downs hit on every session */}
+        <RootStack.Screen name="FriendDetail" component={FriendDetailScreen} />
+        <RootStack.Screen name="UserDetail" component={UserDetailScreen} />
+        <RootStack.Screen name="TagDetail" component={TagDetailScreen} />
 
-      {/* Lazy: secondary screens loaded on first navigation */}
-      <RootStack.Screen
-        name="EditProfile"
-        getComponent={() => require('../screens/EditProfileScreen').default}
-      />
-      <RootStack.Screen
-        name="ManageTags"
-        getComponent={() => require('../screens/ManageTagsScreen').default}
-      />
-      <RootStack.Screen
-        name="Settings"
-        getComponent={() => require('../screens/SettingsScreen').default}
-      />
-      <RootStack.Screen
-        name="ContactSync"
-        getComponent={() => require('../screens/ContactSyncScreen').default}
-      />
-      <RootStack.Screen
-        name="Invite"
-        getComponent={() => require('../screens/InviteScreen').default}
-      />
-      <RootStack.Screen
-        name="LocationContacts"
-        getComponent={() => require('../screens/LocationContactsScreen').default}
-      />
-      <RootStack.Screen
-        name="SocialStats"
-        getComponent={() => require('../screens/SocialStatsScreen').default}
-      />
-      <RootStack.Screen
-        name="CameraScan"
-        getComponent={() => require('../screens/CameraScanScreen').default}
-      />
-      <RootStack.Screen
-        name="PrivacyPolicy"
-        getComponent={() => require('../screens/legal/PrivacyPolicyScreen').default}
-      />
-      <RootStack.Screen
-        name="TermsOfService"
-        getComponent={() => require('../screens/legal/TermsOfServiceScreen').default}
-      />
-      <RootStack.Screen
-        name="PointsHistory"
-        getComponent={() => require('../screens/PointsHistoryScreen').default}
-      />
-      <RootStack.Screen
-        name="RedeemInvite"
-        getComponent={() => require('../screens/RedeemInviteScreen').default}
-      />
+        {/* Lazy: secondary screens loaded on first navigation */}
+        <RootStack.Screen
+          name="EditProfile"
+          getComponent={() => require('../screens/EditProfileScreen').default}
+        />
+        <RootStack.Screen
+          name="ManageTags"
+          getComponent={() => require('../screens/ManageTagsScreen').default}
+        />
+        <RootStack.Screen
+          name="Settings"
+          getComponent={() => require('../screens/SettingsScreen').default}
+        />
+        <RootStack.Screen
+          name="ContactSync"
+          getComponent={() => require('../screens/ContactSyncScreen').default}
+        />
+        <RootStack.Screen
+          name="Invite"
+          getComponent={() => require('../screens/InviteScreen').default}
+        />
+        <RootStack.Screen
+          name="LocationContacts"
+          getComponent={() => require('../screens/LocationContactsScreen').default}
+        />
+        <RootStack.Screen
+          name="SocialStats"
+          getComponent={() => require('../screens/SocialStatsScreen').default}
+        />
+        <RootStack.Screen
+          name="CameraScan"
+          getComponent={() => require('../screens/CameraScanScreen').default}
+        />
+        <RootStack.Screen
+          name="PrivacyPolicy"
+          getComponent={() => require('../screens/legal/PrivacyPolicyScreen').default}
+        />
+        <RootStack.Screen
+          name="TermsOfService"
+          getComponent={() => require('../screens/legal/TermsOfServiceScreen').default}
+        />
+        <RootStack.Screen
+          name="PointsHistory"
+          getComponent={() => require('../screens/PointsHistoryScreen').default}
+        />
+        <RootStack.Screen
+          name="RedeemInvite"
+          getComponent={() => require('../screens/RedeemInviteScreen').default}
+        />
 
-      {/* Modal screens */}
-      {/* Eager: QR scan result is part of the primary scan flow */}
-      <RootStack.Screen
-        name="ScanResult"
-        component={ScanResultScreen}
-        options={{ presentation: 'modal' }}
-      />
-      {/* Lazy: one-time review flow */}
-      <RootStack.Screen
-        name="ActivityReview"
-        getComponent={() => require('../screens/ActivityReviewScreen').default}
-        options={{ presentation: 'modal' }}
-      />
-    </RootStack.Navigator>
+        {/* Modal screens */}
+        {/* Eager: QR scan result is part of the primary scan flow */}
+        <RootStack.Screen
+          name="ScanResult"
+          component={ScanResultScreen}
+          options={{ presentation: 'modal' }}
+        />
+        {/* Lazy: one-time review flow */}
+        <RootStack.Screen
+          name="ActivityReview"
+          getComponent={() => require('../screens/ActivityReviewScreen').default}
+          options={{ presentation: 'modal' }}
+        />
+      </RootStack.Navigator>
+    </ChatUnreadProvider>
   );
 }
 
