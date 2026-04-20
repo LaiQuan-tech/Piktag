@@ -622,7 +622,8 @@
     "relationPartner": "Partner",
     "relationClient": "Client",
     "alreadyConnectedTitle": "Already Connected",
-    "alreadyConnectedMessage": "You are already friends."
+    "alreadyConnectedMessage": "You are already friends.",
+    "addFriend": "Add Friend"
   },
   "manageTags": {
     "headerTitle": "Manage Tags",

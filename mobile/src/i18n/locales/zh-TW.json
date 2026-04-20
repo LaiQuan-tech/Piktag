@@ -611,7 +611,8 @@
     "relationPartner": "合夥人",
     "relationClient": "客戶",
     "alreadyConnectedTitle": "已連結",
-    "alreadyConnectedMessage": "你們已經是朋友了"
+    "alreadyConnectedMessage": "你們已經是朋友了",
+    "addFriend": "加好友"
   },
   "manageTags": {
     "headerTitle": "標籤管理",

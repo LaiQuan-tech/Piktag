@@ -516,7 +516,8 @@
     "relationPartner": "Mitra",
     "relationClient": "Klien",
     "alreadyConnectedTitle": "Sudah Terhubung",
-    "alreadyConnectedMessage": "Kalian sudah berteman."
+    "alreadyConnectedMessage": "Kalian sudah berteman.",
+    "addFriend": "Tambah Teman"
   },
   "manageTags": {
     "headerTitle": "Kelola Tag",

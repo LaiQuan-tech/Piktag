@@ -516,7 +516,8 @@
     "relationPartner": "파트너",
     "relationClient": "고객",
     "alreadyConnectedTitle": "이미 연결됨",
-    "alreadyConnectedMessage": "이미 친구입니다"
+    "alreadyConnectedMessage": "이미 친구입니다",
+    "addFriend": "친구 추가"
   },
   "manageTags": {
     "headerTitle": "태그 관리",

@@ -516,7 +516,8 @@
     "relationPartner": "คู่ค้า",
     "relationClient": "ลูกค้า",
     "alreadyConnectedTitle": "เชื่อมต่อแล้ว",
-    "alreadyConnectedMessage": "คุณเป็นเพื่อนกันแล้ว"
+    "alreadyConnectedMessage": "คุณเป็นเพื่อนกันแล้ว",
+    "addFriend": "เพิ่มเพื่อน"
   },
   "manageTags": {
     "headerTitle": "จัดการแท็ก",

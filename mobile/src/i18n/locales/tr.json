@@ -507,7 +507,8 @@
     "relationPartner": "İş Ortağı",
     "relationClient": "Müşteri",
     "alreadyConnectedTitle": "Zaten Bağlı",
-    "alreadyConnectedMessage": "Zaten arkadaşsınız."
+    "alreadyConnectedMessage": "Zaten arkadaşsınız.",
+    "addFriend": "Arkadaş Ekle"
   },
   "manageTags": {
     "headerTitle": "Etiketleri Yönet",

@@ -417,7 +417,8 @@
     "selectAll": "Select All",
     "confirmButton": "Confirm Add Friend",
     "alreadyConnectedTitle": "पहले से जुड़ा हुआ",
-    "alreadyConnectedMessage": "आप पहले से ही दोस्त हैं।"
+    "alreadyConnectedMessage": "आप पहले से ही दोस्त हैं।",
+    "addFriend": "दोस्त जोड़ें"
   },
   "manageTags": {
     "headerTitle": "Manage Tags",

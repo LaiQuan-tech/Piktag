@@ -417,7 +417,8 @@
     "selectAll": "Select All",
     "confirmButton": "Confirm Add Friend",
     "alreadyConnectedTitle": "متصل بالفعل",
-    "alreadyConnectedMessage": "أنتما أصدقاء بالفعل."
+    "alreadyConnectedMessage": "أنتما أصدقاء بالفعل.",
+    "addFriend": "إضافة صديق"
   },
   "manageTags": {
     "headerTitle": "Manage Tags",

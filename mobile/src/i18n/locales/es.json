@@ -417,7 +417,8 @@
     "selectAll": "Select All",
     "confirmButton": "Confirm Add Friend",
     "alreadyConnectedTitle": "Ya Conectado",
-    "alreadyConnectedMessage": "Ya son amigos."
+    "alreadyConnectedMessage": "Ya son amigos.",
+    "addFriend": "Agregar amigo"
   },
   "manageTags": {
     "headerTitle": "Manage Tags",

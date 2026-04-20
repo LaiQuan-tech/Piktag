@@ -433,7 +433,8 @@
     "selectAll": "Select All",
     "confirmButton": "Confirm Add Friend",
     "alreadyConnectedTitle": "ইতিমধ্যে সংযুক্ত",
-    "alreadyConnectedMessage": "আপনারা ইতিমধ্যে বন্ধু।"
+    "alreadyConnectedMessage": "আপনারা ইতিমধ্যে বন্ধু।",
+    "addFriend": "বন্ধু যোগ করুন"
   },
   "manageTags": {
     "headerTitle": "Manage Tags",

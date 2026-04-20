@@ -424,7 +424,8 @@
     "selectAll": "Select All",
     "confirmButton": "Confirm Add Friend",
     "alreadyConnectedTitle": "既に接続済み",
-    "alreadyConnectedMessage": "あなたたちは既に友達です"
+    "alreadyConnectedMessage": "あなたたちは既に友達です",
+    "addFriend": "友達を追加"
   },
   "manageTags": {
     "headerTitle": "Manage Tags",

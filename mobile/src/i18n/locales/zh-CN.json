@@ -424,7 +424,8 @@
     "selectAll": "Select All",
     "confirmButton": "Confirm Add Friend",
     "alreadyConnectedTitle": "已连接",
-    "alreadyConnectedMessage": "你们已经是朋友了"
+    "alreadyConnectedMessage": "你们已经是朋友了",
+    "addFriend": "加好友"
   },
   "manageTags": {
     "headerTitle": "Manage Tags",

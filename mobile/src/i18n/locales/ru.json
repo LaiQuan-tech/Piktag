@@ -417,7 +417,8 @@
     "selectAll": "Select All",
     "confirmButton": "Confirm Add Friend",
     "alreadyConnectedTitle": "Уже подключено",
-    "alreadyConnectedMessage": "Вы уже друзья."
+    "alreadyConnectedMessage": "Вы уже друзья.",
+    "addFriend": "Добавить друга"
   },
   "manageTags": {
     "headerTitle": "Manage Tags",
