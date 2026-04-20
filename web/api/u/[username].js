@@ -23,6 +23,9 @@ module.exports = async function handler(req, res) {
   const { username, sid } = req.query;
   const usernameStr = Array.isArray(username) ? username[0] : username;
   const sidStr = Array.isArray(sid) ? sid[0] : (sid || '');
+  const tagsStr = Array.isArray(req.query.tags) ? req.query.tags[0] : (req.query.tags || '');
+  const dateStr = Array.isArray(req.query.date) ? req.query.date[0] : (req.query.date || '');
+  const locStr = Array.isArray(req.query.loc) ? req.query.loc[0] : (req.query.loc || '');
   const locale = detectLocale(req);
 
   if (!usernameStr) {
@@ -96,7 +99,7 @@ module.exports = async function handler(req, res) {
       } catch { /* ignore — table may not exist yet */ }
     }
 
-    const html = renderProfilePage(profile, biolinks || [], tags, sidStr, locale);
+    const html = renderProfilePage(profile, biolinks || [], tags, sidStr, locale, { tags: tagsStr, date: dateStr, location: locStr });
 
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
     res.setHeader('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=3600');
@@ -108,7 +111,7 @@ module.exports = async function handler(req, res) {
   }
 };
 
-function renderProfilePage(profile, biolinks, tags, sid, locale) {
+function renderProfilePage(profile, biolinks, tags, sid, locale, eventInfo) {
   const name = escapeHtml(profile.full_name || profile.username || '#piktag User');
   const username = escapeHtml(profile.username || '');
   const headline = profile.headline ? escapeHtml(profile.headline) : '';
@@ -123,6 +126,17 @@ function renderProfilePage(profile, biolinks, tags, sid, locale) {
 
   const verifiedBadge = isVerified
     ? '<svg viewBox="0 0 24 24" width="18" height="18" style="margin-left:4px;vertical-align:middle"><circle cx="12" cy="12" r="10" fill="#aa00ff"/><path d="M9 12l2 2 4-4" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+    : '';
+
+  const eventTagsList = (eventInfo?.tags || '').split(',').map(t => t.trim()).filter(Boolean);
+  const hasEventInfo = eventTagsList.length > 0 || eventInfo?.date || eventInfo?.location;
+  const eventCardHtml = hasEventInfo
+    ? `<div class="event-card">
+        <div class="event-card-title">🎪 活動資訊</div>
+        ${eventInfo.date ? `<div class="event-card-line">📅 ${escapeHtml(eventInfo.date)}</div>` : ''}
+        ${eventInfo.location ? `<div class="event-card-line">📍 ${escapeHtml(eventInfo.location)}</div>` : ''}
+        ${eventTagsList.length > 0 ? `<div class="event-card-tags">${eventTagsList.map(t => `<span class="event-card-tag">#${escapeHtml(t.replace(/^#/, ''))}</span>`).join('')}</div>` : ''}
+      </div>`
     : '';
 
   const tagsHtml = tags.length > 0
@@ -198,6 +212,11 @@ function renderProfilePage(profile, biolinks, tags, sid, locale) {
     .username{font-size:15px;color:${BRAND_DARK};font-weight:600;margin-bottom:14px;opacity:0;animation:fadeUp .5s ease .25s forwards}
     .headline{font-size:14px;font-weight:600;color:${BRAND_ACCENT};text-align:center;margin-bottom:10px;opacity:0;animation:fadeUp .5s ease .28s forwards}
     .bio{font-size:15px;color:#555;text-align:center;line-height:1.7;margin-bottom:18px;max-width:360px;opacity:0;animation:fadeUp .5s ease .3s forwards}
+    .event-card{background:rgba(255,255,255,.85);backdrop-filter:blur(8px);border:1px solid #E9D5FF;border-radius:16px;padding:14px 18px;margin-bottom:18px;width:100%;max-width:360px;opacity:0;animation:fadeUp .5s ease .32s forwards}
+    .event-card-title{font-size:13px;font-weight:700;color:#7C3AED;margin-bottom:8px}
+    .event-card-line{font-size:13px;color:#4B5563;font-weight:500;margin-bottom:4px}
+    .event-card-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+    .event-card-tag{background:#F3E8FF;border:1px solid #C4B5FD;color:#7C3AED;font-size:12px;font-weight:600;padding:3px 10px;border-radius:12px}
 
     /* Follow button */
     .follow-btn{background:${BRAND_GRADIENT};color:#fff;font-weight:700;border-radius:28px;padding:13px 52px;font-size:16px;border:none;cursor:pointer;margin-bottom:20px;box-shadow:0 4px 16px rgba(170,0,255,.3);transition:all .2s;opacity:0;animation:fadeUp .5s ease .35s forwards}
@@ -254,6 +273,7 @@ function renderProfilePage(profile, biolinks, tags, sid, locale) {
     <div class="username">@${username}</div>
     ${headline ? `<div class="headline">${headline}</div>` : ''}
     ${bio ? `<div class="bio">${bio}</div>` : ''}
+    ${eventCardHtml}
     <button class="follow-btn" onclick="handleFollow()">${locale.follow}</button>
     ${tagsHtml}
     ${biolinksHtml ? `<div class="biolinks">${biolinksHtml}</div>` : ''}

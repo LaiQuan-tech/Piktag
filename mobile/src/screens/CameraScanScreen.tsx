@@ -69,13 +69,19 @@ export default function CameraScanScreen({ navigation }: CameraScanScreenProps) 
   }, []);
 
   /** Try to parse new URL format: https://pikt.ag/{username}?sid={sessionId} */
-  const parseUrlFormat = useCallback((rawValue: string): { username: string; sid?: string } | null => {
+  const parseUrlFormat = useCallback((rawValue: string): { username: string; sid?: string; tags?: string; date?: string; loc?: string } | null => {
     try {
       const url = new URL(rawValue);
       if (url.hostname === 'pikt.ag' || url.hostname === 'www.pikt.ag') {
         const path = url.pathname.replace(/^\//, '');
         if (path && path !== 's') {
-          return { username: path, sid: url.searchParams.get('sid') || undefined };
+          return {
+            username: path,
+            sid: url.searchParams.get('sid') || undefined,
+            tags: url.searchParams.get('tags') || undefined,
+            date: url.searchParams.get('date') || undefined,
+            loc: url.searchParams.get('loc') || undefined,
+          };
         }
       }
     } catch { /* not a URL */ }
@@ -99,6 +105,9 @@ export default function CameraScanScreen({ navigation }: CameraScanScreenProps) 
         navigation.navigate('UserDetail', {
           username: urlResult.username,
           sid: urlResult.sid,
+          tags: urlResult.tags,
+          date: urlResult.date,
+          loc: urlResult.loc,
         });
         scanTimeoutRef.current = setTimeout(() => setScanned(false), 3000);
         return;

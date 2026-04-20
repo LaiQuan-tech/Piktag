@@ -788,6 +788,19 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
         <View style={styles.qrWhiteCard}>
           <QRCode value={qrValue} size={220} backgroundColor="#fff" />
           <Text style={styles.qrCardUsername}>@{qrUsername}</Text>
+          {(eventDate || eventLocation || eventTags.length > 0) && (
+            <View style={styles.qrEventInfo}>
+              {eventDate ? (
+                <Text style={styles.qrEventInfoLine}>📅 {eventDate}</Text>
+              ) : null}
+              {eventLocation ? (
+                <Text style={styles.qrEventInfoLine}>📍 {eventLocation}</Text>
+              ) : null}
+              {eventTags.length > 0 ? (
+                <Text style={styles.qrEventInfoLine}>🏷 {eventTags.map(t => '#' + t.replace(/^#/, '')).join('  ')}</Text>
+              ) : null}
+            </View>
+          )}
         </View>
       </View>
 
@@ -939,6 +952,19 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
           {/* Large QR Code */}
           <View style={styles.eventQrWrapper}>
             <QRCode value={qrValue} size={280} backgroundColor="#FFFFFF" />
+            {(eventDate || eventLocation || eventTags.length > 0) && (
+              <View style={styles.qrEventInfo}>
+                {eventDate ? (
+                  <Text style={styles.qrEventInfoLine}>📅 {eventDate}</Text>
+                ) : null}
+                {eventLocation ? (
+                  <Text style={styles.qrEventInfoLine}>📍 {eventLocation}</Text>
+                ) : null}
+                {eventTags.length > 0 ? (
+                  <Text style={styles.qrEventInfoLine}>🏷 {eventTags.map(t => '#' + t.replace(/^#/, '')).join('  ')}</Text>
+                ) : null}
+              </View>
+            )}
           </View>
 
           <Text style={styles.eventHint}>{t('addTag.eventHint') || '讓朋友掃描加你為好友'}</Text>
@@ -1431,6 +1457,21 @@ const styles = StyleSheet.create({
     color: '#c44dff',
     marginTop: 16,
     letterSpacing: 0.5,
+  },
+  qrEventInfo: {
+    marginTop: 12,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#F3F4F6',
+    alignItems: 'center',
+    gap: 4,
+    width: '100%',
+  },
+  qrEventInfoLine: {
+    fontSize: 13,
+    color: '#4B5563',
+    fontWeight: '500',
+    textAlign: 'center',
   },
   qrBottomRow: {
     flexDirection: 'row',

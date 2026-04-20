@@ -91,6 +91,9 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
   const [pickedTagIds, setPickedTagIds] = useState<Set<string>>(new Set());
   const [connectionId, setConnectionId] = useState<string | null>(null);
 
+  // Event info for QR-scan flow (shown above the "追蹤" button before adding friend).
+  const [eventInfo, setEventInfo] = useState<{ tags: string[]; date: string; location: string } | null>(null);
+
   // Hidden tags state (private tags only I can see).
   // Add/remove logic lives in <HiddenTagEditor>.
   const [hiddenTags, setHiddenTags] = useState<{ id: string; tagId: string; name: string }[]>([]);
@@ -453,6 +456,40 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
     prevPickModalVisible.current = pickTagModalVisible;
   }, [pickTagModalVisible, fetchData]);
 
+  // Fetch session info for display (QR-scan flow) so the event card can render
+  // before the user presses "追蹤". handleAddFriendFromQr does its own fetch as
+  // a fallback at press-time.
+  useEffect(() => {
+    if (!paramSid || paramSid.startsWith('local_')) {
+      // Fall back to URL params if present
+      const tagsFromUrl = paramTags ? paramTags.split(',').map((t: string) => t.trim()).filter(Boolean) : [];
+      if (tagsFromUrl.length > 0 || paramDate || paramLoc) {
+        setEventInfo({ tags: tagsFromUrl, date: paramDate || '', location: paramLoc || '' });
+      }
+      return;
+    }
+    (async () => {
+      const { data } = await supabase
+        .from('piktag_scan_sessions')
+        .select('event_tags, event_date, event_location')
+        .eq('id', paramSid)
+        .single();
+      if (data) {
+        setEventInfo({
+          tags: data.event_tags || [],
+          date: data.event_date || '',
+          location: data.event_location || '',
+        });
+      } else {
+        // Fall back to URL params
+        const tagsFromUrl = paramTags ? paramTags.split(',').map((t: string) => t.trim()).filter(Boolean) : [];
+        if (tagsFromUrl.length > 0 || paramDate || paramLoc) {
+          setEventInfo({ tags: tagsFromUrl, date: paramDate || '', location: paramLoc || '' });
+        }
+      }
+    })();
+  }, [paramSid, paramTags, paramDate, paramLoc]);
+
   // --- Hidden tags (private) ---
   const fetchHiddenTags = useCallback(async () => {
     if (!connectionId) return;
@@ -706,20 +743,42 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
 
           {/* Action buttons */}
           {paramSid && !connectionId ? (
-            <View style={styles.actionButtonsRow}>
-              <TouchableOpacity
-                style={styles.qrAddFriendBtn}
-                onPress={handleAddFriendFromQr}
-                disabled={addFriendLoading}
-                activeOpacity={0.8}
-              >
-                {addFriendLoading ? (
-                  <ActivityIndicator size="small" color={COLORS.white} />
-                ) : (
-                  <Text style={styles.qrAddFriendText}>{t('scanResult.addFriend') || '加好友'}</Text>
-                )}
-              </TouchableOpacity>
-            </View>
+            <>
+              {eventInfo && (eventInfo.tags.length > 0 || eventInfo.date || eventInfo.location) && (
+                <View style={styles.eventCard}>
+                  <Text style={styles.eventCardTitle}>🎪 {t('userDetail.eventCardTitle') || '活動資訊'}</Text>
+                  {eventInfo.date ? (
+                    <Text style={styles.eventCardLine}>📅 {eventInfo.date}</Text>
+                  ) : null}
+                  {eventInfo.location ? (
+                    <Text style={styles.eventCardLine}>📍 {eventInfo.location}</Text>
+                  ) : null}
+                  {eventInfo.tags.length > 0 ? (
+                    <View style={styles.eventCardTagsRow}>
+                      {eventInfo.tags.map((tag) => (
+                        <View key={tag} style={styles.eventCardTag}>
+                          <Text style={styles.eventCardTagText}>#{tag.replace(/^#/, '')}</Text>
+                        </View>
+                      ))}
+                    </View>
+                  ) : null}
+                </View>
+              )}
+              <View style={styles.actionButtonsRow}>
+                <TouchableOpacity
+                  style={styles.qrAddFriendBtn}
+                  onPress={handleAddFriendFromQr}
+                  disabled={addFriendLoading}
+                  activeOpacity={0.8}
+                >
+                  {addFriendLoading ? (
+                    <ActivityIndicator size="small" color={COLORS.white} />
+                  ) : (
+                    <Text style={styles.qrAddFriendText}>{t('scanResult.addFriend') || '加好友'}</Text>
+                  )}
+                </TouchableOpacity>
+              </View>
+            </>
           ) : (
             <View style={styles.actionButtonsRow}>
             {isFollowing ? (
@@ -1731,5 +1790,46 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '700',
     color: COLORS.white,
+  },
+  eventCard: {
+    marginHorizontal: 20,
+    marginTop: 12,
+    marginBottom: 8,
+    padding: 14,
+    borderRadius: 14,
+    backgroundColor: '#FAF5FF',
+    borderWidth: 1,
+    borderColor: '#E9D5FF',
+    gap: 6,
+  },
+  eventCardTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#7C3AED',
+    marginBottom: 2,
+  },
+  eventCardLine: {
+    fontSize: 13,
+    color: '#4B5563',
+    fontWeight: '500',
+  },
+  eventCardTagsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+    marginTop: 4,
+  },
+  eventCardTag: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+    backgroundColor: '#F3E8FF',
+    borderWidth: 1,
+    borderColor: '#C4B5FD',
+  },
+  eventCardTagText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#7C3AED',
   },
 });
