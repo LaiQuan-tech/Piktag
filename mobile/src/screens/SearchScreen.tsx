@@ -234,6 +234,18 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
   recentSearchesRef.current = recentSearches;
   const isMountedRef = useRef(true);
 
+  // LRU cache of recent search results so a user who types a query,
+  // deletes back, and retypes the same thing doesn't re-hit the DB.
+  // Capped at 20 entries — on overflow we evict the oldest insert.
+  type SearchCacheEntry = { tags: any[]; profiles: any[]; tagUsers: { tag: Tag; users: any[] }[] };
+  const searchCacheRef = useRef<Map<string, SearchCacheEntry>>(new Map());
+  const SEARCH_CACHE_MAX = 20;
+
+  // Sequence counter so a slow in-flight search can't overwrite the
+  // results of a newer one. Cheaper than AbortController and doesn't
+  // require threading a signal through every Supabase query.
+  const searchSeqRef = useRef(0);
+
   useEffect(() => {
     isMountedRef.current = true;
     return () => {
@@ -580,9 +592,26 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
         return;
       }
 
+      // Cache hit: skip the DB round-trips entirely. Move to
+      // most-recently-used position by delete+set.
+      const cacheKey = query.trim().toLowerCase();
+      const cache = searchCacheRef.current;
+      const cached = cache.get(cacheKey);
+      if (cached) {
+        cache.delete(cacheKey);
+        cache.set(cacheKey, cached);
+        setActiveCategory(null);
+        setTags(cached.tags);
+        setProfiles(cached.profiles);
+        setTagUsers(cached.tagUsers);
+        saveRecentSearch(query.trim());
+        return;
+      }
+
       // Use first keyword for main search (profiles + aliases)
       const mainKeyword = keywords[0];
 
+      const seq = ++searchSeqRef.current;
       setLoading(true);
       setActiveCategory(null);
 
@@ -646,6 +675,10 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
           }
         }
 
+        // Bail if a newer search has started — don't clobber its UI state.
+        if (seq !== searchSeqRef.current) return;
+
+        let finalTagUsers: { tag: Tag; users: any[] }[] = [];
         if (mergedTags.length > 0) {
           setTags(mergedTags);
 
@@ -689,6 +722,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
               }
             }
             setTagUsers(tagUserResults);
+            finalTagUsers = tagUserResults;
           } else {
             setTagUsers([]);
           }
@@ -697,20 +731,30 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
           setTagUsers([]);
         }
 
-        if (!profilesResult.error && profilesResult.data) {
-          setProfiles(profilesResult.data);
-        } else {
-          setProfiles([]);
+        const finalProfiles = !profilesResult.error && profilesResult.data ? profilesResult.data : [];
+        setProfiles(finalProfiles);
+
+        // Cache this result set so typing-then-retyping is free.
+        const entry: SearchCacheEntry = {
+          tags: mergedTags,
+          profiles: finalProfiles,
+          tagUsers: finalTagUsers,
+        };
+        cache.set(cacheKey, entry);
+        if (cache.size > SEARCH_CACHE_MAX) {
+          const oldest = cache.keys().next().value;
+          if (oldest !== undefined) cache.delete(oldest);
         }
 
         // Save to recent searches
         saveRecentSearch(query.trim());
       } catch (err) {
+        if (seq !== searchSeqRef.current) return;
         console.warn('[SearchScreen] search query failed:', err);
         setTags([]);
         setProfiles([]);
       } finally {
-        setLoading(false);
+        if (seq === searchSeqRef.current) setLoading(false);
       }
     },
     [loadPopularTags, saveRecentSearch],
@@ -736,9 +780,19 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
         clearTimeout(debounceTimer.current);
       }
 
+      // Skip the DB round-trip on 0/1 character queries — they match
+      // far too much and are almost never what the user actually wants.
+      // When they clear the box entirely, restore the default browse view.
+      const trimmed = text.trim();
+      if (trimmed.length === 0) {
+        performSearch('');
+        return;
+      }
+      if (trimmed.length < 2) return;
+
       debounceTimer.current = setTimeout(() => {
         performSearch(text);
-      }, 300);
+      }, 500);
     },
     [performSearch],
   );
