@@ -108,12 +108,18 @@ jobs:
           # Feed the Play Console release with the latest commit subject
           # so every build has human-readable "What's new" text. Google
           # caps each locale at 500 chars — trim to be safe.
+          #
+          # r0adkll/upload-google-play parses the filename as
+          # `whatsnew-<locale>` with NO extension — the entire suffix
+          # after `whatsnew-` is treated as the locale code. Including
+          # `.txt` would make it try to register a locale called
+          # `en-US.txt`, which crashes with "Unrecognized language code".
           mkdir -p whatsnew
           COMMIT_SUBJECT=$(git log -1 --pretty=%s | head -c 490)
-          printf '%s\n' "$COMMIT_SUBJECT" > whatsnew/whatsnew-en-US.txt
-          printf '%s\n' "$COMMIT_SUBJECT" > whatsnew/whatsnew-zh-TW.txt
+          printf '%s\n' "$COMMIT_SUBJECT" > whatsnew/whatsnew-en-US
+          printf '%s\n' "$COMMIT_SUBJECT" > whatsnew/whatsnew-zh-TW
           echo "✅ Release notes written:"
-          cat whatsnew/whatsnew-en-US.txt
+          cat whatsnew/whatsnew-en-US
 
       - name: Upload to Google Play (Internal Track)
         if: github.ref == 'refs/heads/main'
