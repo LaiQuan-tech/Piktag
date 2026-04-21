@@ -509,6 +509,17 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
     }
   }, [connectionId]);
 
+  // Keep hiddenTags in sync whenever the connection changes — we show
+  // the HiddenTagEditor inline on the profile, so the list needs to be
+  // loaded without waiting for the user to open the Pick Tag modal.
+  useEffect(() => {
+    if (connectionId) {
+      fetchHiddenTags();
+    } else {
+      setHiddenTags([]);
+    }
+  }, [connectionId, fetchHiddenTags]);
+
   const handleConfirmUnfollow = async () => {
     if (!authUser || !resolvedUserId) return;
     setUnfollowModalVisible(false);
@@ -876,6 +887,23 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
             </TouchableOpacity>
           </View>
         </View>
+
+        {/* Hidden tags editor — inline so users don't have to dig into
+            the Pick Tag modal to see the auto-filled event tags from
+            a QR scan. Only shows once a connection exists. */}
+        {connectionId && authUser && (
+          <View style={styles.inlineHiddenTagSection}>
+            <Text style={styles.inlineHiddenTagTitle}>
+              {t('friendDetail.hiddenTagsTitle') || '隱藏標籤'}
+            </Text>
+            <HiddenTagEditor
+              connectionId={connectionId}
+              userId={authUser.id}
+              hiddenTags={hiddenTags}
+              onTagsChanged={fetchHiddenTags}
+            />
+          </View>
+        )}
 
         {/* Similar Users — IG style "Suggested for you" */}
         {showSimilar && similarUsers.length > 0 && (
@@ -1569,6 +1597,20 @@ const styles = StyleSheet.create({
     borderColor: COLORS.gray200,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  inlineHiddenTagSection: {
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 8,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.gray100,
+    marginTop: 12,
+  },
+  inlineHiddenTagTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: COLORS.gray500,
+    marginBottom: 10,
   },
   similarTitle: {
     fontSize: 15,
