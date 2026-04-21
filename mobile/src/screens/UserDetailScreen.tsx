@@ -337,13 +337,13 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
       // Create connection (scanner → host)
       const { data: conn } = await supabase
         .from('piktag_connections')
-        .insert({ user_id: authUser.id, connected_user_id: resolvedUserId, met_at: new Date().toISOString(), met_location: session?.event_location || '', note, scan_session_id: paramSid || null })
+        .insert({ user_id: authUser.id, connected_user_id: resolvedUserId, met_at: new Date().toISOString(), met_location: eventLocation, note, scan_session_id: paramSid || null })
         .select('id').single();
 
       // Create reverse connection (host → scanner)
       const { data: reverseConn } = await supabase
         .from('piktag_connections')
-        .upsert({ user_id: resolvedUserId, connected_user_id: authUser.id, met_at: new Date().toISOString(), met_location: session?.event_location || '', note },
+        .upsert({ user_id: resolvedUserId, connected_user_id: authUser.id, met_at: new Date().toISOString(), met_location: eventLocation, note },
           { onConflict: 'user_id,connected_user_id' })
         .select('id').single();
 
@@ -575,6 +575,15 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
   const handleToggleFollow = async () => {
     if (!authUser || !resolvedUserId || followLoading) return;
 
+    // QR flow: follow + connection + event tags in one shot
+    if (paramSid && !connectionId && !isFollowing) {
+      setFollowLoading(true);
+      await handleAddFriendFromQr();
+      setIsFollowing(true);
+      setFollowLoading(false);
+      return;
+    }
+
     setFollowLoading(true);
     try {
       if (isFollowing) {
@@ -776,46 +785,30 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
             </Text>
           </View>
 
-          {/* Action buttons */}
-          {paramSid && !connectionId ? (
-            <>
-              {eventInfo && (eventInfo.tags.length > 0 || eventInfo.date || eventInfo.location) && (
-                <View style={styles.eventCard}>
-                  <Text style={styles.eventCardTitle}>🎪 {t('userDetail.eventCardTitle') || '活動資訊'}</Text>
-                  {eventInfo.date ? (
-                    <Text style={styles.eventCardLine}>📅 {eventInfo.date}</Text>
-                  ) : null}
-                  {eventInfo.location ? (
-                    <Text style={styles.eventCardLine}>📍 {eventInfo.location}</Text>
-                  ) : null}
-                  {eventInfo.tags.length > 0 ? (
-                    <View style={styles.eventCardTagsRow}>
-                      {eventInfo.tags.map((tag) => (
-                        <View key={tag} style={styles.eventCardTag}>
-                          <Text style={styles.eventCardTagText}>#{tag.replace(/^#/, '')}</Text>
-                        </View>
-                      ))}
+          {/* Event info card (QR scan context) */}
+          {paramSid && eventInfo && (eventInfo.tags.length > 0 || eventInfo.date || eventInfo.location) && (
+            <View style={styles.eventCard}>
+              <Text style={styles.eventCardTitle}>🎪 {t('userDetail.eventCardTitle') || '活動資訊'}</Text>
+              {eventInfo.date ? (
+                <Text style={styles.eventCardLine}>📅 {eventInfo.date}</Text>
+              ) : null}
+              {eventInfo.location ? (
+                <Text style={styles.eventCardLine}>📍 {eventInfo.location}</Text>
+              ) : null}
+              {eventInfo.tags.length > 0 ? (
+                <View style={styles.eventCardTagsRow}>
+                  {eventInfo.tags.map((tag) => (
+                    <View key={tag} style={styles.eventCardTag}>
+                      <Text style={styles.eventCardTagText}>#{tag.replace(/^#/, '')}</Text>
                     </View>
-                  ) : null}
+                  ))}
                 </View>
-              )}
-              <View style={styles.actionButtonsRow}>
-                <TouchableOpacity
-                  style={styles.qrAddFriendBtn}
-                  onPress={handleAddFriendFromQr}
-                  disabled={addFriendLoading}
-                  activeOpacity={0.8}
-                >
-                  {addFriendLoading ? (
-                    <ActivityIndicator size="small" color={COLORS.white} />
-                  ) : (
-                    <Text style={styles.qrAddFriendText}>{t('scanResult.addFriend') || '加好友'}</Text>
-                  )}
-                </TouchableOpacity>
-              </View>
-            </>
-          ) : (
-            <View style={styles.actionButtonsRow}>
+              ) : null}
+            </View>
+          )}
+
+          {/* Action buttons — always full row */}
+          <View style={styles.actionButtonsRow}>
             {isFollowing ? (
               <TouchableOpacity
                 style={[styles.followButton, styles.followButtonFollowing]}
@@ -882,7 +875,6 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
               <UserPlus size={20} color={showSimilar ? COLORS.piktag500 : COLORS.gray500} />
             </TouchableOpacity>
           </View>
-          )}
         </View>
 
         {/* Similar Users — IG style "Suggested for you" */}
