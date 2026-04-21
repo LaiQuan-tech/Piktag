@@ -1,0 +1,25 @@
+# Supabase project config. Used by `supabase functions deploy` and similar
+# CLI flows. Most settings are defaults; we only override per-function options.
+
+project_id = "piktag"
+
+# ---------------------------------------------------------------------------
+# Edge Functions
+# ---------------------------------------------------------------------------
+
+[functions.send-chat-push]
+# The DB trigger `trg_msg_push` calls this function over pg_net with the
+# Supabase project's service-role key (in the new sb_secret_* format).
+# Supabase's platform-level JWT verifier rejects sb_secret_* values with
+# "Invalid JWT" because they are opaque, not JWTs. The function does its
+# own auth check (compare against Deno.env.get('SUPABASE_SERVICE_ROLE_KEY'))
+# so we disable the platform-level verification here.
+verify_jwt = false
+
+[functions.delete-user]
+# Needs user JWT to self-delete, but also accepts service-role+admin_action
+# branch. Keep JWT verification enabled; auth gate is inside the function.
+verify_jwt = true
+
+[functions.suggest-tags]
+verify_jwt = true
