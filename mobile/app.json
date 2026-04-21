@@ -2,6 +2,7 @@
   "expo": {
     "name": "PikTag",
     "slug": "piktag",
+    "owner": "piktag",
     "scheme": "piktag",
     "version": "1.0.0",
     "runtimeVersion": {
