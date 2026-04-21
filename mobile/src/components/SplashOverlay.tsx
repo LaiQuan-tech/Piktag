@@ -35,7 +35,7 @@ export default function SplashOverlay({ onHidden }: Props) {
       style={[styles.container, { opacity }]}
       pointerEvents="none"
     >
-      <View style={styles.centerWrap}>
+      <View style={styles.logoWrap}>
         <Image
           source={require('../../assets/splash-icon.png')}
           style={styles.logo}
@@ -54,12 +54,15 @@ const styles = StyleSheet.create({
   container: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: '#ffffff',
-    justifyContent: 'center',
-    alignItems: 'center',
     zIndex: 9999,
   },
-  centerWrap: {
-    flex: 1,
+  // Absolute-fill layer so the logo sits at exact screen center — matches
+  // where the native Expo splash renders it. The old flex layout put the
+  // logo inside a `flex: 1` view above the bottomWrap, which shifted it
+  // up by ~42px and caused a visible "jump" when the native splash
+  // handed off to this overlay.
+  logoWrap: {
+    ...StyleSheet.absoluteFillObject,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -67,9 +70,13 @@ const styles = StyleSheet.create({
     width: 84,
     height: 84,
   },
+  // Bottom branding floats over the logoWrap instead of displacing it.
   bottomWrap: {
+    position: 'absolute',
+    bottom: Platform.OS === 'ios' ? 48 : 36,
+    left: 0,
+    right: 0,
     alignItems: 'center',
-    paddingBottom: Platform.OS === 'ios' ? 48 : 36,
   },
   fromLabel: {
     fontSize: 13,
