@@ -102,6 +102,19 @@ jobs:
           name: android-aab
           path: mobile/android/app/build/outputs/bundle/release/*.aab
 
+      - name: Generate release notes
+        working-directory: mobile
+        run: |
+          # Feed the Play Console release with the latest commit subject
+          # so every build has human-readable "What's new" text. Google
+          # caps each locale at 500 chars — trim to be safe.
+          mkdir -p whatsnew
+          COMMIT_SUBJECT=$(git log -1 --pretty=%s | head -c 490)
+          printf '%s\n' "$COMMIT_SUBJECT" > whatsnew/whatsnew-en-US.txt
+          printf '%s\n' "$COMMIT_SUBJECT" > whatsnew/whatsnew-zh-TW.txt
+          echo "✅ Release notes written:"
+          cat whatsnew/whatsnew-en-US.txt
+
       - name: Upload to Google Play (Internal Track)
         if: github.ref == 'refs/heads/main'
         uses: r0adkll/upload-google-play@v1
@@ -110,4 +123,12 @@ jobs:
           packageName: ag.pikt.app
           releaseFiles: mobile/android/app/build/outputs/bundle/release/*.aab
           track: internal
-          status: completed
+          # `draft` — AAB uploads and appears in Play Console as a draft
+          # release. A human must click "Review release → Start rollout"
+          # once. After the app's FIRST live rollout on any track, we can
+          # flip this back to `completed` for fully automatic publishing.
+          # `completed` fails with "Precondition check failed" on apps
+          # that haven't had a human-approved first rollout.
+          status: draft
+          releaseName: "1.0.0 (build ${{ github.run_number }})"
+          whatsNewDirectory: mobile/whatsnew
