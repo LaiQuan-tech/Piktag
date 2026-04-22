@@ -60,6 +60,11 @@ jobs:
             fs.writeFileSync('app.json', JSON.stringify(app, null, 2) + '\n');
           "
           echo "✅ Android versionCode set to $VERSION_CODE (run_number=$RUN_NUMBER)"
+          # Export for later steps — Play Console releaseName must match
+          # the real versionCode baked into the AAB, otherwise humans see
+          # "build 87" in Play Console while devices upgrade to 88 and get
+          # confused when auditing which build is actually live.
+          echo "VERSION_CODE=$VERSION_CODE" >> "$GITHUB_ENV"
 
       - name: Generate native Android project
         working-directory: mobile
@@ -136,5 +141,5 @@ jobs:
           # `completed` fails with "Precondition check failed" on apps
           # that haven't had a human-approved first rollout.
           status: draft
-          releaseName: "1.0.0 (build ${{ github.run_number }})"
+          releaseName: "1.0.0 (build ${{ env.VERSION_CODE }})"
           whatsNewDirectory: mobile/whatsnew
