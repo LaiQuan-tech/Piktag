@@ -1315,9 +1315,16 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 8,
-    marginBottom: 4,
-    maxHeight: 76,
-    overflow: 'hidden',
+    // Bumped from 4→10 so the chip row has breathing room from the
+    // stats row below. Previously the tight 4px combined with a
+    // maxHeight:76 cap caused a third tag row to render under the
+    // stats row, visually overlapping "0共同標籤 · 0共同朋友 · N追蹤者"
+    // with the clipped tag pill.
+    marginBottom: 10,
+    // maxHeight + overflow removed: chip rows now grow to fit all
+    // tags. Scan-driven auto-tags (event tag + date + location) plus
+    // any manual picks can easily exceed 2 rows; we'd rather push the
+    // stats/action buttons down than silently hide data.
   },
   tagChip: {
     backgroundColor: COLORS.gray100,
