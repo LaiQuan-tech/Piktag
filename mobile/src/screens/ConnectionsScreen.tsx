@@ -181,10 +181,14 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
     }
 
     try {
-      // --- Wave 1: 4 independent queries in parallel ---
-      // connections, follows, close-friend count, unreviewed count have no dependencies
-      // on each other — fire them all at once to maximize network concurrency.
-      const [connRes, followsRes, closeFriendRes, unreviewedRes] = await Promise.allSettled([
+      // --- Wave 1: 3 independent queries in parallel ---
+      // connections + follows + close-friend count fire together. The
+      // "待整理" (unreviewed) count used to be its own extra query, but
+      // now that the home list is filtered to followed users (see
+      // displayedConnections below), the count has to match the list —
+      // so we derive it from the filtered result client-side instead
+      // of running a fourth server count that can't see follow state.
+      const [connRes, followsRes, closeFriendRes] = await Promise.allSettled([
         supabase
           .from('piktag_connections')
           .select(`
@@ -204,19 +208,11 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
           .from('piktag_close_friends')
           .select('*', { count: 'exact', head: true })
           .eq('user_id', user.id),
-        supabase
-          .from('piktag_connections')
-          .select('*', { count: 'exact', head: true })
-          .eq('user_id', user.id)
-          .eq('is_reviewed', false),
       ]);
 
       // Apply count results (non-critical — failure shouldn't block connections)
       setCloseFriendCount(
         closeFriendRes.status === 'fulfilled' ? (closeFriendRes.value.count ?? 0) : 0
-      );
-      setUnreviewedCount(
-        unreviewedRes.status === 'fulfilled' ? (unreviewedRes.value.count ?? 0) : 0
       );
 
       // Critical: connections must succeed
@@ -237,16 +233,37 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
       }
       if (connectionsData.length === 0) return;
 
-      // Extract follow set (used below to scope the status query)
+      // Extract follow set (used below to scope the status query AND,
+      // critically, to filter which connections are actually displayed)
       const followingIds = new Set<string>(
         followsRes.status === 'fulfilled' && followsRes.value.data
           ? (followsRes.value.data as any[]).map((f: any) => f.following_id)
           : []
       );
 
-      const connUserIds = connectionsData.map((c: any) => c.connected_user_id);
-      const connectionIds = connectionsData.map((c: any) => c.id);
-      const followedConnUserIds = connUserIds.filter((id: string) => followingIds.has(id));
+      // Home list shows connections the viewer is actively following.
+      // Why: a connection ("we met at this event") persists forever —
+      // it carries hidden tags, met_at, note, birthday — but the home
+      // feed is supposed to be the viewer's *current* social circle.
+      // Unfollowing someone used to leave their row on the home list
+      // because ConnectionsScreen only queried piktag_connections and
+      // ignored piktag_follows; now we intersect. The connection row
+      // stays in the DB untouched, so re-following restores the full
+      // history (tags, note, etc.) rather than starting from scratch.
+      const displayedConnections = (connectionsData as any[]).filter(
+        (c) => followingIds.has(c.connected_user_id),
+      );
+
+      // Derive the "待整理" badge from the filtered list so the number
+      // shown in the header ("1 位待整理") always matches what's
+      // actually visible in the list below it.
+      setUnreviewedCount(
+        displayedConnections.filter((c: any) => c.is_reviewed === false).length,
+      );
+
+      const connUserIds = displayedConnections.map((c: any) => c.connected_user_id);
+      const connectionIds = displayedConnections.map((c: any) => c.id);
+      const followedConnUserIds = connUserIds;
 
       // --- Wave 2: MY tags on these connections + statuses in parallel ---
       // The "tags" row underneath each friend's name in the list (and the
@@ -289,7 +306,7 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
         }
       }
 
-      const merged: ConnectionWithTags[] = connectionsData.map((conn: any) => ({
+      const merged: ConnectionWithTags[] = displayedConnections.map((conn: any) => ({
         ...conn,
         tags: tagMap.get(conn.id) || [],
         semanticTypes: [],
@@ -307,7 +324,7 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
         for (const s of statusData) {
           if (seenUsers.has(s.user_id)) continue;
           seenUsers.add(s.user_id);
-          const conn = connectionsData.find((c: any) => c.connected_user_id === s.user_id);
+          const conn = displayedConnections.find((c: any) => c.connected_user_id === s.user_id);
           const profile = conn?.connected_user as any;
           if (profile) {
             statuses.push({
