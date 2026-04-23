@@ -5,14 +5,13 @@ import {
   Modal,
   TouchableOpacity,
   StyleSheet,
-  Share,
-  Platform,
 } from 'react-native';
 import QRCode from 'react-native-qrcode-svg';
 import { X, Copy, Share2 } from 'lucide-react-native';
 import { setStringAsync } from 'expo-clipboard';
 import { useTranslation } from 'react-i18next';
 import { COLORS } from '../constants/theme';
+import { APP_BASE_URL, shareProfile } from '../lib/shareProfile';
 
 type QrCodeModalProps = {
   visible: boolean;
@@ -20,8 +19,6 @@ type QrCodeModalProps = {
   username: string;
   fullName: string;
 };
-
-const APP_BASE_URL = 'https://pikt.ag';
 
 export default function QrCodeModal({
   visible,
@@ -37,14 +34,16 @@ export default function QrCodeModal({
   };
 
   const handleShare = async () => {
-    try {
-      await Share.share({
-        message: `${fullName} (@${username}) on PikTag\n${profileUrl}`,
-        url: Platform.OS === 'ios' ? profileUrl : undefined,
-      });
-    } catch (_err) {
-      // User cancelled or share failed
-    }
+    // Delegates to the shared helper so copy/URL/platform-handling
+    // logic lives in one place. Fixes the prior "URL appears twice on
+    // iOS" bug — the helper intentionally omits the separate `url`
+    // field that was causing iMessage to render both an inline URL
+    // and a preview card for the same link.
+    await shareProfile({
+      name: `${fullName} (@${username})`,
+      username,
+      t,
+    });
   };
 
   return (

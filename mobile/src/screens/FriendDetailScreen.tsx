@@ -10,10 +10,10 @@ import {
   ActivityIndicator,
   Alert,
   Modal,
-  Share,
   Platform,
   KeyboardAvoidingView,
 } from 'react-native';
+import { shareProfile } from '../lib/shareProfile';
 import { Image } from 'expo-image';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
@@ -1215,28 +1215,17 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
               style={styles.moreItem}
               onPress={async () => {
                 setMoreMenuVisible(false);
-                const profileUrl = `https://pikt.ag/${username}`;
-                const name = displayName || username;
-                // The i18n template already contains {{url}}, so the message
-                // string has the URL baked in — no need to append separately.
-                const message = t('friendDetail.shareIntroMessage', { name, url: profileUrl });
-                try {
-                  await Share.share({
-                    message,
-                    // iOS: providing `url` separately lets apps like iMessage
-                    // render a rich link preview card. On Android the field
-                    // is ignored, the URL in `message` is what gets shared.
-                    url: Platform.OS === 'ios' ? profileUrl : undefined,
-                    // Android: some apps (Gmail, etc.) use `title` as the
-                    // subject when sharing.
-                    title: Platform.OS === 'android' ? `${name} @ PikTag` : undefined,
-                  });
-                } catch (err) {
-                  console.warn('[FriendDetail] Share failed:', err);
-                  if (err instanceof Error && !/(dismiss|cancel)/i.test(err.message)) {
-                    Alert.alert(t('common.error'), t('common.unknownError'));
-                  }
-                }
+                // Delegates to the shared helper so friend-intro shares
+                // and own-profile shares use the same brand pitch +
+                // download CTA template. Also avoids the iOS duplicate-
+                // URL bug (rich-card preview + inline URL rendered
+                // both) — the helper intentionally keeps the URL
+                // inside the message body only.
+                await shareProfile({
+                  name: displayName || username,
+                  username,
+                  t,
+                });
               }}
             >
               <Share2 size={20} color={COLORS.gray600} />

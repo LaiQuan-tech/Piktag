@@ -11,7 +11,6 @@ import {
   ActivityIndicator,
   Alert,
   Modal,
-  Share,
   Platform,
   KeyboardAvoidingView,
 } from 'react-native';
@@ -40,6 +39,7 @@ import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
 import type { PiktagProfile, Biolink } from '../types';
 import { getViewerRelation, filterBiolinksByVisibility } from '../lib/biolinkVisibility';
+import { shareProfile } from '../lib/shareProfile';
 
 type UserDetailScreenProps = {
   navigation: any;
@@ -1381,15 +1381,16 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
               style={styles.moreItem}
               onPress={async () => {
                 setMoreMenuVisible(false);
-                const profileUrl = `https://pikt.ag/${username}`;
-                try {
-                  await Share.share({
-                    message: Platform.OS === 'ios'
-                      ? `${displayName} (@${username}) on PikTag`
-                      : `${displayName} (@${username}) on PikTag\n${profileUrl}`,
-                    url: Platform.OS === 'ios' ? profileUrl : undefined,
-                  });
-                } catch {}
+                // Delegates to the shared helper so the brand-pitch +
+                // download CTA copy stays identical across QrCodeModal,
+                // UserDetailScreen and FriendDetailScreen. Helper also
+                // handles the iOS duplicate-URL gotcha (see
+                // lib/shareProfile.ts for why we don't pass `url`).
+                await shareProfile({
+                  name: `${displayName} (@${username})`,
+                  username,
+                  t,
+                });
               }}
             >
               <Share2 size={20} color={COLORS.gray600} />

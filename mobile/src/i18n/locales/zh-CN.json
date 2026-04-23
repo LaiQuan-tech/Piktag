@@ -613,5 +613,8 @@
     "deliveryFailed": "发送失败 · 轻点重试",
     "unreadBadge": "{{count}} 条未读",
     "messagesSent": "{{name}} 发来一条消息"
+  },
+  "share": {
+    "profileInviteMessage": "{{name}} 在 PikTag ✨\n{{url}}\n\nPikTag — 用标签记住每段缘分，\n扫 QR 自动记下相遇时间地点。\n\n还没下载？👉 https://pikt.ag"
   }
 }

@@ -832,5 +832,8 @@
     "deliveryFailed": "Failed to send · Tap to retry",
     "unreadBadge": "{{count}} unread",
     "messagesSent": "{{name}} sent you a message"
+  },
+  "share": {
+    "profileInviteMessage": "{{name}} on PikTag ✨\n{{url}}\n\nPikTag — tag every friend you meet,\nscan QR to auto-capture when & where.\n\nGet PikTag → https://pikt.ag"
   }
 }
