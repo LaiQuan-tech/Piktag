@@ -301,91 +301,280 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
     }, [fetchData])
   );
 
+  // --- QR event data helpers ---
+  //
+  // Extracted out of handleAddFriendFromQr so the same resolve/attach
+  // logic can also be used by the "already-connected user scans a new
+  // event QR" backfill effect further down. The previous version lived
+  // inline inside handleAddFriendFromQr, which is why pre-existing
+  // connections never picked up event tags (the enclosing function
+  // early-returned before reaching the tag loop).
+
+  // Resolve event tags, date and location from either the scan_sessions
+  // table (preferred, richer) or from the QR URL params (fallback when
+  // the session is local-only or the DB row has been pruned).
+  const resolveEventData = useCallback(async (): Promise<{
+    eventTags: string[];
+    eventDate: string;
+    eventLocation: string;
+  }> => {
+    let eventTags: string[] = [];
+    let eventDate = '';
+    let eventLocation = '';
+
+    if (paramSid && !paramSid.startsWith('local_')) {
+      const { data: session } = await supabase
+        .from('piktag_scan_sessions')
+        .select('event_tags, event_date, event_location')
+        .eq('id', paramSid)
+        .maybeSingle();
+      if (session) {
+        eventTags = session.event_tags || [];
+        eventDate = session.event_date || '';
+        eventLocation = session.event_location || '';
+      }
+    }
+
+    // Fallback — URL-encoded tags/date/loc (used when sid is local_ or
+    // when scan_sessions lookup miss)
+    if (eventTags.length === 0 && paramTags) {
+      eventTags = paramTags
+        .split(',')
+        .map((s: string) => s.trim())
+        .filter(Boolean);
+    }
+    if (!eventDate && paramDate) eventDate = paramDate;
+    if (!eventLocation && paramLoc) eventLocation = paramLoc;
+
+    return { eventTags, eventDate, eventLocation };
+  }, [paramSid, paramTags, paramDate, paramLoc]);
+
+  // Resolve a list of tag names into their piktag_tags.id values,
+  // creating missing ones. Leading `#` is stripped to match AddTagScreen
+  // and HiddenTagEditor conventions.
+  const ensureTagIdsByName = useCallback(
+    async (names: string[]): Promise<string[]> => {
+      const ids: string[] = [];
+      for (const rawName of names) {
+        const clean = (rawName.startsWith('#') ? rawName.slice(1) : rawName).trim();
+        if (!clean) continue;
+        const { data: existing } = await supabase
+          .from('piktag_tags')
+          .select('id')
+          .eq('name', clean)
+          .maybeSingle();
+        if (existing?.id) {
+          ids.push(existing.id);
+          continue;
+        }
+        const { data: created } = await supabase
+          .from('piktag_tags')
+          .insert({ name: clean })
+          .select('id')
+          .single();
+        if (created?.id) ids.push(created.id);
+      }
+      return ids;
+    },
+    [],
+  );
+
+  // Attach tag IDs to the given connection(s) as private tags.
+  // Idempotent — the UNIQUE (connection_id, tag_id) constraint combined
+  // with ignoreDuplicates:true means calling this multiple times is a
+  // no-op after the first success.
+  const attachTagsToConnections = useCallback(
+    async (connIds: Array<string | null | undefined>, tagIds: string[]) => {
+      if (tagIds.length === 0) return;
+      for (const cid of connIds) {
+        if (!cid) continue;
+        await supabase.from('piktag_connection_tags').upsert(
+          tagIds.map((tid) => ({
+            connection_id: cid,
+            tag_id: tid,
+            is_private: true,
+          })),
+          { onConflict: 'connection_id,tag_id', ignoreDuplicates: true },
+        );
+      }
+    },
+    [],
+  );
+
   // --- QR Code add friend (when sid param is present) ---
+  //
+  // Handles the "press 追蹤 after a QR scan" path: creates (or resolves
+  // existing) scanner→host + host→scanner connections, then attaches
+  // event_tags + the date + the location as hidden tags on both sides.
+  //
+  // We intentionally do NOT early-return when connectionId already
+  // exists (the pre-existing behavior). If the user scanned a new event
+  // QR for someone they already know, we still want this event's
+  // context tagged onto the existing connection. The upsert calls below
+  // make this safe to run against an existing row without clobbering
+  // the original met_at/note metadata.
   const handleAddFriendFromQr = useCallback(async () => {
     if (!authUser || !resolvedUserId || !paramSid) return;
-    if (connectionId) { Alert.alert(t('scanResult.alreadyConnectedTitle')); return; }
     setAddFriendLoading(true);
     try {
-      // Fetch session to get event_tags; fall back to URL params if DB miss
-      let eventTags: string[] = [];
-      let eventDate = '';
-      let eventLocation = '';
-
-      if (paramSid && !paramSid.startsWith('local_')) {
-        const { data: session } = await supabase
-          .from('piktag_scan_sessions')
-          .select('event_tags, event_date, event_location')
-          .eq('id', paramSid)
-          .single();
-        if (session) {
-          eventTags = session.event_tags || [];
-          eventDate = session.event_date || '';
-          eventLocation = session.event_location || '';
-        }
-      }
-
-      // Fallback: use tags/date/loc encoded directly in the QR URL
-      if (eventTags.length === 0 && paramTags) {
-        eventTags = paramTags.split(',').map((t: string) => t.trim()).filter(Boolean);
-      }
-      if (!eventDate && paramDate) eventDate = paramDate;
-      if (!eventLocation && paramLoc) eventLocation = paramLoc;
-
+      const { eventTags, eventDate, eventLocation } = await resolveEventData();
       const note = [eventDate, eventLocation].filter(Boolean).join(' · ');
 
-      // Create connection (scanner → host)
-      const { data: conn } = await supabase
+      // Scanner → host. Only set the connection metadata on first insert
+      // — subsequent QR scans for the same user shouldn't rewrite the
+      // original met_at / note, so we check-first then insert.
+      const { data: existingForward } = await supabase
         .from('piktag_connections')
-        .insert({ user_id: authUser.id, connected_user_id: resolvedUserId, met_at: new Date().toISOString(), met_location: eventLocation, note, scan_session_id: paramSid || null })
-        .select('id').single();
+        .select('id')
+        .eq('user_id', authUser.id)
+        .eq('connected_user_id', resolvedUserId)
+        .maybeSingle();
 
-      // Create reverse connection (host → scanner)
-      const { data: reverseConn } = await supabase
-        .from('piktag_connections')
-        .upsert({ user_id: resolvedUserId, connected_user_id: authUser.id, met_at: new Date().toISOString(), met_location: eventLocation, note },
-          { onConflict: 'user_id,connected_user_id' })
-        .select('id').single();
-
-      // Save event_tags as private connection tags (both sides)
-      if (eventTags.length > 0) {
-        const tagIds: string[] = [];
-        for (const tagName of eventTags) {
-          const raw = tagName.startsWith('#') ? tagName.slice(1) : tagName;
-          let { data: tag } = await supabase.from('piktag_tags').select('id').eq('name', raw).maybeSingle();
-          if (!tag) { const { data: nt } = await supabase.from('piktag_tags').insert({ name: raw }).select('id').single(); tag = nt; }
-          if (tag) tagIds.push(tag.id);
-        }
-        if (conn && tagIds.length > 0) {
-          await supabase.from('piktag_connection_tags').insert(
-            tagIds.map(tid => ({ connection_id: conn.id, tag_id: tid, is_private: true }))
-          );
-        }
-        if (reverseConn && tagIds.length > 0) {
-          await supabase.from('piktag_connection_tags').insert(
-            tagIds.map(tid => ({ connection_id: reverseConn.id, tag_id: tid, is_private: true }))
-          );
-        }
+      let forwardConnId: string | null = existingForward?.id ?? null;
+      if (!forwardConnId) {
+        const { data: inserted } = await supabase
+          .from('piktag_connections')
+          .insert({
+            user_id: authUser.id,
+            connected_user_id: resolvedUserId,
+            met_at: new Date().toISOString(),
+            met_location: eventLocation,
+            note,
+            scan_session_id: paramSid || null,
+          })
+          .select('id')
+          .single();
+        forwardConnId = inserted?.id ?? null;
       }
 
-      // Increment scan count
+      // Host → scanner (reverse). Same no-clobber pattern.
+      const { data: existingReverse } = await supabase
+        .from('piktag_connections')
+        .select('id')
+        .eq('user_id', resolvedUserId)
+        .eq('connected_user_id', authUser.id)
+        .maybeSingle();
+
+      let reverseConnId: string | null = existingReverse?.id ?? null;
+      if (!reverseConnId) {
+        const { data: insertedReverse } = await supabase
+          .from('piktag_connections')
+          .insert({
+            user_id: resolvedUserId,
+            connected_user_id: authUser.id,
+            met_at: new Date().toISOString(),
+            met_location: eventLocation,
+            note,
+          })
+          .select('id')
+          .single();
+        reverseConnId = insertedReverse?.id ?? null;
+      }
+
+      // Build the full private-tag set: event tags + date + location.
+      // The old base64 ScanResult flow added these three; the URL flow
+      // used to only add event_tags which is why dates and locations
+      // never showed up as hidden tags when scanning event QR codes.
+      const tagNames: string[] = [...eventTags];
+      if (eventDate.trim()) tagNames.push(eventDate.trim());
+      if (eventLocation.trim()) tagNames.push(eventLocation.trim());
+
+      if (tagNames.length > 0) {
+        const tagIds = await ensureTagIdsByName(tagNames);
+        await attachTagsToConnections([forwardConnId, reverseConnId], tagIds);
+      }
+
+      // Increment scan count (server-side RPC, best-effort)
       await supabase.rpc('increment_scan_count', { session_id: paramSid });
 
-      if (conn) setConnectionId(conn.id);
+      if (forwardConnId) setConnectionId(forwardConnId);
 
       // Auto-follow the host after QR add-friend
-      await supabase.from('piktag_follows').upsert(
-        { follower_id: authUser.id, following_id: resolvedUserId },
-        { onConflict: 'follower_id,following_id', ignoreDuplicates: true }
-      ).catch(() => {});
+      await supabase
+        .from('piktag_follows')
+        .upsert(
+          { follower_id: authUser.id, following_id: resolvedUserId },
+          { onConflict: 'follower_id,following_id', ignoreDuplicates: true },
+        )
+        .catch(() => {});
 
-      Alert.alert(t('scanResult.alertSuccessTitle'), t('scanResult.alertSuccessMessage', { name: profile?.full_name || '' }));
+      Alert.alert(
+        t('scanResult.alertSuccessTitle'),
+        t('scanResult.alertSuccessMessage', { name: profile?.full_name || '' }),
+      );
     } catch (err) {
       console.error('Error adding friend from QR:', err);
       Alert.alert(t('common.error'), t('scanResult.alertAddFriendError'));
     }
     setAddFriendLoading(false);
-  }, [authUser, resolvedUserId, paramSid, paramTags, paramDate, paramLoc, connectionId, profile, t]);
+  }, [
+    authUser,
+    resolvedUserId,
+    paramSid,
+    profile,
+    t,
+    resolveEventData,
+    ensureTagIdsByName,
+    attachTagsToConnections,
+  ]);
+
+  // Track which (paramSid, connectionId) pairs we've already backfilled
+  // so the auto-backfill effect below never runs twice for the same
+  // scan → connection combo, even across re-renders.
+  const backfilledRef = useRef<Set<string>>(new Set());
+
+  // Auto-backfill event tags when a user arrives at this screen via a
+  // new event QR scan but ALREADY had a prior connection with the host.
+  //
+  // Prior behavior: handleToggleFollow gated the QR-tag-attach path on
+  // `!connectionId && !isFollowing`, so a re-scan or scan-of-existing-
+  // friend never applied the event's tags. This effect fills that gap
+  // without requiring any button press — as soon as we know the
+  // connection exists and we have a scan session, we silently attach
+  // the event's tags, date, and location to both sides of the
+  // connection. Idempotent thanks to the UPSERT-ignoreDuplicates in
+  // attachTagsToConnections.
+  useEffect(() => {
+    if (!authUser || !resolvedUserId || !paramSid || !connectionId) return;
+    const dedupeKey = `${paramSid}:${connectionId}`;
+    if (backfilledRef.current.has(dedupeKey)) return;
+    backfilledRef.current.add(dedupeKey);
+
+    void (async () => {
+      try {
+        const { eventTags, eventDate, eventLocation } = await resolveEventData();
+        const tagNames: string[] = [...eventTags];
+        if (eventDate.trim()) tagNames.push(eventDate.trim());
+        if (eventLocation.trim()) tagNames.push(eventLocation.trim());
+        if (tagNames.length === 0) return;
+
+        const tagIds = await ensureTagIdsByName(tagNames);
+
+        // Find the reverse connection id (host → scanner) so both sides
+        // of the friendship pick up the event context.
+        const { data: reverse } = await supabase
+          .from('piktag_connections')
+          .select('id')
+          .eq('user_id', resolvedUserId)
+          .eq('connected_user_id', authUser.id)
+          .maybeSingle();
+
+        await attachTagsToConnections([connectionId, reverse?.id ?? null], tagIds);
+      } catch (err) {
+        // Silent — this is a best-effort enrichment. The user can still
+        // add the tags manually from HiddenTagEditor if it fails.
+        console.warn('QR event-tag backfill failed:', err);
+      }
+    })();
+  }, [
+    authUser,
+    resolvedUserId,
+    paramSid,
+    connectionId,
+    resolveEventData,
+    ensureTagIdsByName,
+    attachTagsToConnections,
+  ]);
 
   // --- Pick Tag functions ---
   const fetchFriendPublicTags = useCallback(async (): Promise<{ id: string; name: string }[]> => {
