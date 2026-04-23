@@ -1054,21 +1054,6 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
                 </LinearGradient>
               </TouchableOpacity>
             )}
-            {authUser && resolvedUserId && authUser.id !== resolvedUserId && (
-              <TouchableOpacity
-                style={styles.messageButton}
-                onPress={handleOpenChat}
-                activeOpacity={0.8}
-                disabled={messageLoading}
-                accessibilityLabel={t('chat.inbox')}
-              >
-                {messageLoading ? (
-                  <ActivityIndicator size="small" color={COLORS.piktag600} />
-                ) : (
-                  <MessageCircle size={18} color={COLORS.piktag600} strokeWidth={2} />
-                )}
-              </TouchableOpacity>
-            )}
             {isFollowing && (
               <TouchableOpacity
                 style={styles.tagButton}
@@ -1086,6 +1071,26 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
             >
               <UserPlus size={20} color={showSimilar ? COLORS.piktag500 : COLORS.gray500} />
             </TouchableOpacity>
+            {/* Message icon — pinned to the absolute right edge of the
+                action row so it lives in the slot users expect "quick
+                send a DM" to occupy (mirrors IG / Threads / most
+                social profiles, and matches FriendDetailScreen's
+                button order). */}
+            {authUser && resolvedUserId && authUser.id !== resolvedUserId && (
+              <TouchableOpacity
+                style={styles.messageButton}
+                onPress={handleOpenChat}
+                activeOpacity={0.8}
+                disabled={messageLoading}
+                accessibilityLabel={t('chat.inbox')}
+              >
+                {messageLoading ? (
+                  <ActivityIndicator size="small" color={COLORS.piktag600} />
+                ) : (
+                  <MessageCircle size={18} color={COLORS.piktag600} strokeWidth={2} />
+                )}
+              </TouchableOpacity>
+            )}
           </View>
         </View>
 

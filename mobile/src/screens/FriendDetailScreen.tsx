@@ -924,10 +924,21 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
                 </LinearGradient>
               </TouchableOpacity>
             )}
-            {/* Message icon — always available so you can DM a friend
-                without first opening the chat inbox. Disabled state
-                while the get_or_create_conversation RPC is in flight
-                so spam-tapping doesn't stack requests. */}
+            {isFollowing && (
+              <TouchableOpacity
+                style={styles.tagButton}
+                activeOpacity={0.7}
+                onPress={openPickTagModal}
+              >
+                <Text style={styles.tagButtonText}>{t('friendDetail.tagAction')}</Text>
+              </TouchableOpacity>
+            )}
+            {/* Message icon — intentionally rendered LAST so it sits on
+                the absolute right edge of the action row, the slot
+                users expect "quick send a DM" to live in (mirrors IG /
+                Threads / most social profiles). Disabled state while
+                the get_or_create_conversation RPC is in flight so
+                spam-tapping doesn't stack requests. */}
             <TouchableOpacity
               style={styles.messageButton}
               onPress={handleOpenChat}
@@ -941,15 +952,6 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
                 <MessageCircle size={18} color={COLORS.piktag600} strokeWidth={2} />
               )}
             </TouchableOpacity>
-            {isFollowing && (
-              <TouchableOpacity
-                style={styles.tagButton}
-                activeOpacity={0.7}
-                onPress={openPickTagModal}
-              >
-                <Text style={styles.tagButtonText}>{t('friendDetail.tagAction')}</Text>
-              </TouchableOpacity>
-            )}
           </View>
         </View>
 
