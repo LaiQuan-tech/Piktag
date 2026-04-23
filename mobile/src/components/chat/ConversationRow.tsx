@@ -1,5 +1,6 @@
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { MoreHorizontal } from 'lucide-react-native';
 import { COLORS } from '../../constants/theme';
 import type { InboxConversation } from '../../types/chat';
 import InitialsAvatar from '../InitialsAvatar';
@@ -7,6 +8,13 @@ import InitialsAvatar from '../InitialsAvatar';
 type Props = {
   conversation: InboxConversation;
   onPress: (conv: InboxConversation) => void;
+  /**
+   * Fired when the user taps the ⋯ icon on the right edge of the row.
+   * Parent owns the bottom-sheet / move flow. When undefined the icon
+   * is hidden so this component stays usable in contexts where the
+   * "move conversation" affordance doesn't apply.
+   */
+  onMorePress?: (conv: InboxConversation) => void;
 };
 
 // Format an ISO timestamp into a short, human-friendly relative label.
@@ -31,7 +39,7 @@ function formatRelativeTime(ts: string | null): string {
   return `${y}/${m}/${day}`;
 }
 
-const ConversationRow = React.memo(({ conversation, onPress }: Props) => {
+const ConversationRow = React.memo(({ conversation, onPress, onMorePress }: Props) => {
   const { unread } = conversation;
   const displayName =
     conversation.other_full_name ||
@@ -40,72 +48,119 @@ const ConversationRow = React.memo(({ conversation, onPress }: Props) => {
   const preview = conversation.last_message_preview || '—';
 
   return (
-    <Pressable
-      onPress={() => onPress(conversation)}
-      style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
-    >
-      <View
-        style={[
-          styles.avatarWrap,
-          { borderColor: unread ? COLORS.piktag500 : 'transparent' },
-        ]}
+    // Outer wrapper is a plain View so the ⋯ Pressable can be a sibling
+    // to the row's main Pressable. Nesting them would cause any ⋯ tap
+    // to bubble up and also fire onPress(conversation) — opening the
+    // chat thread unintentionally.
+    <View style={styles.rowContainer}>
+      <Pressable
+        onPress={() => onPress(conversation)}
+        style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
       >
-        <InitialsAvatar
-          name={avatarSeed}
-          size={56}
-          avatarUrl={conversation.other_avatar_url}
-        />
-      </View>
-
-      <View style={styles.middle}>
-        <Text
-          numberOfLines={1}
+        <View
           style={[
-            styles.name,
-            // IG uses semibold (not full bold) for unread names; matches
-            // their visual weight while still reading as "emphasized".
-            { fontWeight: unread ? '600' : '500' },
+            styles.avatarWrap,
+            { borderColor: unread ? COLORS.piktag500 : 'transparent' },
           ]}
         >
-          {displayName}
-        </Text>
-        <Text
-          numberOfLines={1}
-          style={[
-            styles.preview,
-            {
-              color: unread ? COLORS.gray700 : COLORS.gray400,
-              fontWeight: unread ? '600' : '400',
-            },
-          ]}
-        >
-          {preview}
-        </Text>
-      </View>
+          <InitialsAvatar
+            name={avatarSeed}
+            size={56}
+            avatarUrl={conversation.other_avatar_url}
+          />
+        </View>
 
-      <View style={styles.right}>
-        <Text style={styles.timestamp}>
-          {formatRelativeTime(conversation.last_message_at)}
-        </Text>
-        {unread ? <View style={styles.unreadDot} /> : null}
-      </View>
-    </Pressable>
+        <View style={styles.middle}>
+          <Text
+            numberOfLines={1}
+            style={[
+              styles.name,
+              // IG uses semibold (not full bold) for unread names; matches
+              // their visual weight while still reading as "emphasized".
+              { fontWeight: unread ? '600' : '500' },
+            ]}
+          >
+            {displayName}
+          </Text>
+          <Text
+            numberOfLines={1}
+            style={[
+              styles.preview,
+              {
+                color: unread ? COLORS.gray700 : COLORS.gray400,
+                fontWeight: unread ? '600' : '400',
+              },
+            ]}
+          >
+            {preview}
+          </Text>
+        </View>
+
+        <View style={styles.right}>
+          <Text style={styles.timestamp}>
+            {formatRelativeTime(conversation.last_message_at)}
+          </Text>
+          {unread ? <View style={styles.unreadDot} /> : null}
+        </View>
+      </Pressable>
+
+      {/* ⋯ menu — sibling to the row Pressable, so it captures its own
+          taps without bubbling. Absolute positioning against the parent
+          keeps it glued to the right edge without rearranging the
+          flex layout of the row. */}
+      {onMorePress ? (
+        <Pressable
+          onPress={() => onMorePress(conversation)}
+          hitSlop={10}
+          style={({ pressed }) => [
+            styles.moreBtn,
+            pressed && styles.moreBtnPressed,
+          ]}
+          accessibilityRole="button"
+          accessibilityLabel="More"
+        >
+          <MoreHorizontal size={18} color={COLORS.gray400} />
+        </Pressable>
+      ) : null}
+    </View>
   );
 });
 
 ConversationRow.displayName = 'ConversationRow';
 
 const styles = StyleSheet.create({
+  rowContainer: {
+    // Lets the ⋯ Pressable be absolutely positioned at the right edge
+    // without nesting it inside the row's onPress target.
+    position: 'relative',
+  },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
     // Slightly tighter than before (12→10) to match IG inbox density.
     paddingVertical: 10,
-    paddingHorizontal: 16,
+    // Right inset 44 (paddingHorizontal was 16) reserves space for the
+    // absolute-positioned ⋯ button so the timestamp/preview never get
+    // clipped underneath it.
+    paddingLeft: 16,
+    paddingRight: 44,
     backgroundColor: COLORS.white,
   },
   rowPressed: {
     backgroundColor: COLORS.gray100,
+  },
+  moreBtn: {
+    position: 'absolute',
+    right: 8,
+    top: 0,
+    bottom: 0,
+    width: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+    opacity: 0.6,
+  },
+  moreBtnPressed: {
+    opacity: 1,
   },
   avatarWrap: {
     // Gradient-ring stand-in: solid brand border when unread, transparent otherwise.

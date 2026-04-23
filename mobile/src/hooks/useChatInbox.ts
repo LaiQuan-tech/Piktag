@@ -3,7 +3,7 @@ import { AppState, type AppStateStatus } from 'react-native';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
 import { useAuth } from './useAuth';
-import type { InboxConversation } from '../types/chat';
+import type { InboxConversation, InboxTab } from '../types/chat';
 
 type FetchInboxRow = {
   id: string;
@@ -18,6 +18,7 @@ type FetchInboxRow = {
   initiated_by: string;
   is_connection: boolean;
   i_have_replied: boolean;
+  folder_override: InboxTab | null;
 };
 
 type UseChatInboxReturn = {
@@ -73,6 +74,7 @@ export function useChatInbox(): UseChatInboxReturn {
         initiated_by: r.initiated_by,
         is_connection: r.is_connection,
         i_have_replied: r.i_have_replied,
+        folder_override: r.folder_override ?? null,
         unread:
           r.last_message_at !== null &&
           r.last_message_sender_id !== userId &&

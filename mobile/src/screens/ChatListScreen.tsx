@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
+  Alert,
   FlatList,
   Pressable,
   RefreshControl,
@@ -18,6 +19,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import ChatFriendsRow, { type FriendRowItem } from '../components/chat/ChatFriendsRow';
 import ChatSearchBar from '../components/chat/ChatSearchBar';
 import ChatTabs from '../components/chat/ChatTabs';
+import ConversationActionSheet from '../components/chat/ConversationActionSheet';
 import ConversationRow from '../components/chat/ConversationRow';
 import EmptyInbox from '../components/chat/EmptyInbox';
 import StatusModal from '../components/StatusModal';
@@ -47,6 +49,10 @@ type Props = {
 };
 
 function bucket(c: InboxConversation, meId: string): InboxTab {
+  // Manual override wins over computed default. Set via the ⋯ menu →
+  // "Move to …" → set_conversation_folder RPC. When NULL (the common
+  // case, no user intervention yet), fall through to the derived rule.
+  if (c.folder_override) return c.folder_override;
   if (c.is_connection) return 'primary';
   if (c.initiated_by !== meId && !c.i_have_replied) return 'requests';
   return 'general';
@@ -74,6 +80,20 @@ export default function ChatListScreen({ navigation }: Props): JSX.Element {
   // card of the ChatFriendsRow. The modal owns its own save flow and
   // returns the new text via onStatusUpdated.
   const [statusModalVisible, setStatusModalVisible] = useState(false);
+
+  // --- Move conversation between folders (⋯ menu) state ---
+  //
+  // `moveSheetFor` is the conversation the user just tapped the ⋯ icon
+  // on; `null` = sheet closed. We keep a local optimistic map
+  // (conv id → folder_override) so a just-moved row appears in the
+  // destination tab the moment the sheet closes, even before the RPC
+  // round-trips and the realtime UPDATE refires fetch_inbox.
+  const [moveSheetFor, setMoveSheetFor] = useState<InboxConversation | null>(
+    null,
+  );
+  const [optimisticFolders, setOptimisticFolders] = useState<
+    Record<string, InboxTab | null>
+  >({});
 
   // Pull the viewer's own username for the header. Not in the auth
   // object, so one extra query on mount. Cached implicitly for the
@@ -105,6 +125,19 @@ export default function ChatListScreen({ navigation }: Props): JSX.Element {
     };
   }, [user]);
 
+  // Merge the server-side folder_override with any in-flight
+  // optimistic override (a move the user just triggered but the RPC
+  // hasn't acked yet). The optimistic map is cleared when fetchInbox
+  // returns a fresh payload that already has the new override set, so
+  // this merge layer is naturally self-pruning.
+  const conversationsWithOverride = useMemo<InboxConversation[]>(() => {
+    return conversations.map((c) => {
+      const override = optimisticFolders[c.id];
+      if (override === undefined) return c;
+      return { ...c, folder_override: override };
+    });
+  }, [conversations, optimisticFolders]);
+
   // Apply the search filter first so every downstream view (bucket
   // counts, tab lists, empty-state detection) agrees on the same
   // trimmed dataset. Case-insensitive substring match across username,
@@ -112,14 +145,14 @@ export default function ChatListScreen({ navigation }: Props): JSX.Element {
   // remember about a chat.
   const filteredConversations = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
-    if (!q) return conversations;
-    return conversations.filter((c) => {
+    if (!q) return conversationsWithOverride;
+    return conversationsWithOverride.filter((c) => {
       const u = c.other_username?.toLowerCase() ?? '';
       const n = c.other_full_name?.toLowerCase() ?? '';
       const p = c.last_message_preview?.toLowerCase() ?? '';
       return u.includes(q) || n.includes(q) || p.includes(q);
     });
-  }, [conversations, searchQuery]);
+  }, [conversationsWithOverride, searchQuery]);
 
   const buckets = useMemo(() => {
     const primary: InboxConversation[] = [];
@@ -172,6 +205,70 @@ export default function ChatListScreen({ navigation }: Props): JSX.Element {
     [navigation],
   );
 
+  // Opens the bottom-sheet move menu for this conversation. No side
+  // effects beyond UI — the actual move happens when the user picks
+  // a destination inside the sheet.
+  const handleMorePress = useCallback((c: InboxConversation) => {
+    setMoveSheetFor(c);
+  }, []);
+
+  // Executes the move: optimistically flips the local folder_override
+  // so the row visually jumps to the destination tab immediately, then
+  // fires the RPC. On RPC failure we revert the optimistic state and
+  // show an alert so the user isn't left staring at a row that "moved"
+  // but really didn't.
+  const handleMove = useCallback(
+    async (target: InboxTab) => {
+      const conv = moveSheetFor;
+      if (!conv) return;
+      setMoveSheetFor(null);
+
+      // 1. Optimistic local update.
+      setOptimisticFolders((prev) => ({ ...prev, [conv.id]: target }));
+
+      // 2. Persist to DB.
+      const { error } = await supabase.rpc('set_conversation_folder', {
+        p_conv_id: conv.id,
+        p_folder: target,
+      });
+
+      if (error) {
+        // 3a. Revert optimistic state on failure so the UI reflects
+        //     reality. Realtime will eventually refresh anyway but we
+        //     don't want the user to see a false success.
+        setOptimisticFolders((prev) => {
+          const next = { ...prev };
+          delete next[conv.id];
+          return next;
+        });
+        Alert.alert(t('chat.moveFailed'));
+      }
+      // 3b. On success we intentionally leave the optimistic entry in
+      //     place — it'll be superseded (or reconciled identical) the
+      //     next time fetchInbox returns a payload where the server
+      //     already reports folder_override === target. See the effect
+      //     below that prunes matched optimistic entries.
+    },
+    [moveSheetFor, t],
+  );
+
+  // Prune any optimistic folder override whose server-side value now
+  // matches. Without this, the local map would grow forever.
+  useEffect(() => {
+    setOptimisticFolders((prev) => {
+      if (Object.keys(prev).length === 0) return prev;
+      let changed = false;
+      const next = { ...prev };
+      for (const c of conversations) {
+        if (c.id in next && next[c.id] === c.folder_override) {
+          delete next[c.id];
+          changed = true;
+        }
+      }
+      return changed ? next : prev;
+    });
+  }, [conversations]);
+
   const handleBack = useCallback(() => {
     if (navigation.canGoBack()) navigation.goBack();
   }, [navigation]);
@@ -192,9 +289,13 @@ export default function ChatListScreen({ navigation }: Props): JSX.Element {
 
   const renderItem = useCallback(
     ({ item }: ListRenderItemInfo<InboxConversation>) => (
-      <ConversationRow conversation={item} onPress={handleRowPress} />
+      <ConversationRow
+        conversation={item}
+        onPress={handleRowPress}
+        onMorePress={handleMorePress}
+      />
     ),
-    [handleRowPress],
+    [handleRowPress, handleMorePress],
   );
 
   const keyExtractor = useCallback((item: InboxConversation) => item.id, []);
@@ -397,6 +498,21 @@ export default function ChatListScreen({ navigation }: Props): JSX.Element {
         // feedback after tapping Save.
         onStatusUpdated={(text) => setLocalMyNote(text)}
       />
+
+      {/* Bottom-sheet menu opened by tapping the ⋯ icon on a
+          conversation row. Options shown depend on which bucket the
+          conversation is currently in — see ConversationActionSheet
+          for the rule table. */}
+      {moveSheetFor ? (
+        <ConversationActionSheet
+          visible={true}
+          currentBucket={
+            user?.id ? bucket(moveSheetFor, user.id) : 'general'
+          }
+          onMove={handleMove}
+          onClose={() => setMoveSheetFor(null)}
+        />
+      ) : null}
     </SafeAreaView>
   );
 }

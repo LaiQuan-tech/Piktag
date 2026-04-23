@@ -34,6 +34,11 @@ export type InboxConversation = {
   is_connection: boolean;
   i_have_replied: boolean;
   unread: boolean;
+  // Per-viewer manual folder pin. NULL → fall back to the computed
+  // bucket (is_connection → primary, unreplied incoming → requests,
+  // else general). Set via the set_conversation_folder RPC when the
+  // user taps the ⋯ menu on a row and picks "Move to …".
+  folder_override: InboxTab | null;
 };
 
 export type Message = {

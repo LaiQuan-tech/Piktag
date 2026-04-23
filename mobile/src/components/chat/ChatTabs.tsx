@@ -36,7 +36,10 @@ const ChatTabs = React.memo(({ active, onChange, counts }: Props) => {
             onPress={() => onChange(tab)}
             style={[
               styles.tab,
-              { backgroundColor: isActive ? COLORS.gray900 : 'transparent' },
+              // Active bg switched from gray900 → piktag500 so the tab
+              // indicator matches the rest of the app's accent color
+              // (purple). White label stays readable on both.
+              { backgroundColor: isActive ? COLORS.piktag500 : 'transparent' },
             ]}
           >
             <View style={styles.tabInner}>
