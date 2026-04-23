@@ -44,6 +44,7 @@ import {
   MoreHorizontal,
   X,
   AlertTriangle,
+  MessageCircle,
 } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { COLORS } from '../constants/theme';
@@ -161,6 +162,11 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
   // Follow state
   const [isFollowing, setIsFollowing] = useState(false);
   const [followLoading, setFollowLoading] = useState(false);
+  // Message-button state — parallels UserDetailScreen.handleOpenChat.
+  // The button sits between "追蹤中" and "標籤" so users can jump
+  // straight into a 1:1 thread with this friend without bouncing
+  // through the chat inbox first.
+  const [messageLoading, setMessageLoading] = useState(false);
 
   // Unfollow confirm modal
   const [unfollowModalVisible, setUnfollowModalVisible] = useState(false);
@@ -591,6 +597,53 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
     setIsFollowing(false);
   };
 
+  // Resolves (or creates) a 1:1 conversation with this friend and
+  // navigates to ChatThread. Mirrors the version in UserDetailScreen —
+  // uses the Main → SearchTab → ChatThread nested navigation form
+  // because FriendDetail, like UserDetail, lives in RootStack while
+  // ChatThread is registered inside the SearchTab's SearchStack.
+  const handleOpenChat = async () => {
+    if (!user || !friendId || messageLoading) return;
+    setMessageLoading(true);
+    try {
+      const { data, error } = await supabase.rpc('get_or_create_conversation', {
+        other_user_id: friendId,
+      });
+      if (error) {
+        const code = (error as any)?.code ?? '';
+        const msg = (error.message ?? '').toLowerCase();
+        if (code === 'blocked' || msg.includes('blocked')) {
+          Alert.alert(t('chat.userBlocked'));
+        } else if (code === 'invalid_participants' || msg.includes('invalid_participants')) {
+          Alert.alert(t('chat.cannotMessageSelf'));
+        } else {
+          Alert.alert(error.message ?? 'Error');
+        }
+        return;
+      }
+      const conversationId =
+        typeof data === 'string'
+          ? data
+          : (data as any)?.id ?? (data as any)?.conversation_id ?? data;
+      (navigation as any).navigate('Main', {
+        screen: 'SearchTab',
+        params: {
+          screen: 'ChatThread',
+          params: {
+            conversationId,
+            otherUserId: friendId,
+            otherDisplayName: profile?.full_name ?? profile?.username ?? '',
+            otherAvatarUrl: profile?.avatar_url,
+          },
+        },
+      });
+    } catch (err) {
+      console.warn('handleOpenChat error:', err);
+    } finally {
+      setMessageLoading(false);
+    }
+  };
+
   const handleOpenLink = async (url: string, biolinkId: string) => {
     // Track click
     if (user) {
@@ -871,6 +924,23 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
                 </LinearGradient>
               </TouchableOpacity>
             )}
+            {/* Message icon — always available so you can DM a friend
+                without first opening the chat inbox. Disabled state
+                while the get_or_create_conversation RPC is in flight
+                so spam-tapping doesn't stack requests. */}
+            <TouchableOpacity
+              style={styles.messageButton}
+              onPress={handleOpenChat}
+              activeOpacity={0.8}
+              disabled={messageLoading}
+              accessibilityLabel={t('chat.inbox')}
+            >
+              {messageLoading ? (
+                <ActivityIndicator size="small" color={COLORS.piktag600} />
+              ) : (
+                <MessageCircle size={18} color={COLORS.piktag600} strokeWidth={2} />
+              )}
+            </TouchableOpacity>
             {isFollowing && (
               <TouchableOpacity
                 style={styles.tagButton}
@@ -1389,6 +1459,19 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '600',
     color: COLORS.gray900,
+  },
+  // Square icon button that sits between "追蹤中" and "標籤". Matches
+  // UserDetailScreen.messageButton visually so the two screens feel
+  // like the same surface when the user hops between them.
+  messageButton: {
+    width: 44,
+    borderRadius: 12,
+    paddingVertical: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: COLORS.piktag50,
+    borderWidth: 2,
+    borderColor: COLORS.piktag500,
   },
   tagButton: {
     flex: 1,

@@ -759,11 +759,23 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
         return;
       }
       const conversationId = typeof data === 'string' ? data : (data as any)?.id ?? (data as any)?.conversation_id ?? data;
-      navigation.navigate('ChatThread', {
-        conversationId,
-        otherUserId: resolvedUserId,
-        otherDisplayName: profile?.full_name ?? profile?.username ?? '',
-        otherAvatarUrl: profile?.avatar_url,
+      // UserDetail lives in RootStack, but ChatThread lives inside the
+      // SearchTab's nested SearchStack. A bare navigate('ChatThread')
+      // silently fails because the current stack has no screen by that
+      // name — this is why tapping the message icon appeared to do
+      // nothing. Use the Main → SearchTab → ChatThread nested form so
+      // the navigator can walk down into the correct stack.
+      (navigation as any).navigate('Main', {
+        screen: 'SearchTab',
+        params: {
+          screen: 'ChatThread',
+          params: {
+            conversationId,
+            otherUserId: resolvedUserId,
+            otherDisplayName: profile?.full_name ?? profile?.username ?? '',
+            otherAvatarUrl: profile?.avatar_url,
+          },
+        },
       });
     } catch (err) {
       console.warn('handleOpenChat error:', err);
