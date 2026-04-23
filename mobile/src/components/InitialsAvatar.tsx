@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import React, { useState } from 'react';
+import { Image, StyleSheet, Text, View } from 'react-native';
 
 // 8 pleasant muted/pastel colors that complement the PikTag aesthetic
 const COLOR_PALETTE = [
@@ -36,14 +36,28 @@ function getInitials(name: string): string {
 type Props = {
   name: string;
   size: number;
+  /**
+   * Optional avatar image URL. When provided, the image is shown and the
+   * initials color block is used as the loading/error placeholder so the
+   * UI never flashes empty. If the image fails to load, we fall back to
+   * initials automatically (matches IG behavior for broken avatars).
+   */
+  avatarUrl?: string | null;
   style?: object;
 };
 
-const InitialsAvatar = React.memo(({ name, size, style }: Props) => {
+const InitialsAvatar = React.memo(({ name, size, avatarUrl, style }: Props) => {
   const backgroundColor = getColorFromName(name);
   const initials = getInitials(name);
   const fontSize = Math.round(size * 0.38);
   const borderRadius = size / 2;
+
+  // Track image load failure per-instance so we gracefully fall back to
+  // initials without flickering. useState (not useMemo) because the flag
+  // must persist across re-renders once set.
+  const [imageFailed, setImageFailed] = useState(false);
+
+  const showImage = !!avatarUrl && !imageFailed;
 
   return (
     <View
@@ -53,10 +67,23 @@ const InitialsAvatar = React.memo(({ name, size, style }: Props) => {
         style,
       ]}
     >
-      <Text style={[styles.text, { fontSize }]}>{initials}</Text>
+      {showImage ? (
+        <Image
+          source={{ uri: avatarUrl as string }}
+          style={{ width: size, height: size, borderRadius }}
+          onError={() => setImageFailed(true)}
+          // `cover` so portraits don't stretch; border-radius clips to circle.
+          resizeMode="cover"
+          accessibilityIgnoresInvertColors
+        />
+      ) : (
+        <Text style={[styles.text, { fontSize }]}>{initials}</Text>
+      )}
     </View>
   );
 });
+
+InitialsAvatar.displayName = 'InitialsAvatar';
 
 const styles = StyleSheet.create({
   container: {

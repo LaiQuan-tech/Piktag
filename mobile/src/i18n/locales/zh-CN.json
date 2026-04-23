@@ -591,6 +591,13 @@
       "general": "一般"
     },
     "emptyInbox": "暂无消息",
+    "searchPlaceholder": "搜索",
+    "emptyHeading": "还没有聊天",
+    "emptySubtitle": "去找人加好友，开启第一段对话",
+    "emptyCta": "探索用户",
+    "emptyRequestsHeading": "没有陌生消息",
+    "emptyGeneralHeading": "没有其他消息",
+    "emptySearchHeading": "找不到「{{query}}」",
     "composePlaceholder": "搜索用户…",
     "messagePlaceholder": "输入消息…",
     "send": "发送",

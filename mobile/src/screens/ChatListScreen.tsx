@@ -15,8 +15,10 @@ import { ArrowLeft, SquarePen } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
+import ChatSearchBar from '../components/chat/ChatSearchBar';
 import ChatTabs from '../components/chat/ChatTabs';
 import ConversationRow from '../components/chat/ConversationRow';
+import EmptyInbox from '../components/chat/EmptyInbox';
 import { COLORS } from '../constants/theme';
 import { useAuth } from '../hooks/useAuth';
 import { useChatInbox } from '../hooks/useChatInbox';
@@ -60,6 +62,10 @@ export default function ChatListScreen({ navigation }: Props): JSX.Element {
   const [activeTab, setActiveTab] = useState<InboxTab>('primary');
   const [refreshing, setRefreshing] = useState<boolean>(false);
   const [headerProfile, setHeaderProfile] = useState<HeaderProfile | null>(null);
+  // Local-only inbox filter. Intentionally operates on the already-loaded
+  // `conversations` array — we never hit the network, so typing stays
+  // instant even on large inboxes.
+  const [searchQuery, setSearchQuery] = useState<string>('');
 
   // Pull the viewer's own username for the header. Not in the auth
   // object, so one extra query on mount. Cached implicitly for the
@@ -90,20 +96,36 @@ export default function ChatListScreen({ navigation }: Props): JSX.Element {
     };
   }, [user]);
 
+  // Apply the search filter first so every downstream view (bucket
+  // counts, tab lists, empty-state detection) agrees on the same
+  // trimmed dataset. Case-insensitive substring match across username,
+  // full_name and last message preview — what a user is most likely to
+  // remember about a chat.
+  const filteredConversations = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return conversations;
+    return conversations.filter((c) => {
+      const u = c.other_username?.toLowerCase() ?? '';
+      const n = c.other_full_name?.toLowerCase() ?? '';
+      const p = c.last_message_preview?.toLowerCase() ?? '';
+      return u.includes(q) || n.includes(q) || p.includes(q);
+    });
+  }, [conversations, searchQuery]);
+
   const buckets = useMemo(() => {
     const primary: InboxConversation[] = [];
     const requests: InboxConversation[] = [];
     const general: InboxConversation[] = [];
     const meId = user?.id;
     if (!meId) return { primary, requests, general };
-    for (const c of conversations) {
+    for (const c of filteredConversations) {
       const b = bucket(c, meId);
       if (b === 'primary') primary.push(c);
       else if (b === 'requests') requests.push(c);
       else general.push(c);
     }
     return { primary, requests, general };
-  }, [conversations, user?.id]);
+  }, [filteredConversations, user?.id]);
 
   const counts = useMemo(
     () => ({
@@ -149,6 +171,16 @@ export default function ChatListScreen({ navigation }: Props): JSX.Element {
     navigation.navigate('ChatCompose');
   }, [navigation]);
 
+  // Empty-state CTA: pop back to the SearchMain (discover) screen so the
+  // user can find someone to chat with. We only wire this up when the
+  // inbox is empty as a whole (not for empty requests/general/search
+  // subsets) — see the `emptyState` useMemo below.
+  const handleGoDiscover = useCallback(() => {
+    if (navigation.canGoBack()) {
+      navigation.goBack();
+    }
+  }, [navigation]);
+
   const renderItem = useCallback(
     ({ item }: ListRenderItemInfo<InboxConversation>) => (
       <ConversationRow conversation={item} onPress={handleRowPress} />
@@ -175,14 +207,32 @@ export default function ChatListScreen({ navigation }: Props): JSX.Element {
     [refreshing, handleRefresh],
   );
 
-  const emptyState = useMemo(
-    () => (
-      <View style={styles.emptyContainer}>
-        <Text style={styles.emptyText}>{t('chat.emptyInbox')}</Text>
-      </View>
-    ),
-    [t],
-  );
+  // Decide which empty-state copy + CTA to show based on whether this
+  // is a search miss, an empty non-primary bucket (no CTA — user can't
+  // conjure message requests), or a brand-new empty inbox (CTA to go
+  // find people).
+  const emptyState = useMemo(() => {
+    const trimmedQuery = searchQuery.trim();
+    if (trimmedQuery.length > 0) {
+      return (
+        <EmptyInbox
+          heading={t('chat.emptySearchHeading', { query: trimmedQuery })}
+          showCta={false}
+        />
+      );
+    }
+    if (activeTab === 'requests') {
+      return (
+        <EmptyInbox heading={t('chat.emptyRequestsHeading')} showCta={false} />
+      );
+    }
+    if (activeTab === 'general') {
+      return (
+        <EmptyInbox heading={t('chat.emptyGeneralHeading')} showCta={false} />
+      );
+    }
+    return <EmptyInbox showCta onCtaPress={handleGoDiscover} />;
+  }, [activeTab, handleGoDiscover, searchQuery, t]);
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -215,6 +265,8 @@ export default function ChatListScreen({ navigation }: Props): JSX.Element {
           <SquarePen size={22} color={COLORS.gray900} />
         </TouchableOpacity>
       </View>
+
+      <ChatSearchBar value={searchQuery} onChangeText={setSearchQuery} />
 
       <ChatTabs active={activeTab} onChange={setActiveTab} counts={counts} />
 
@@ -272,16 +324,5 @@ const styles = StyleSheet.create({
   listContentEmpty: {
     flexGrow: 1,
     justifyContent: 'center',
-  },
-  emptyContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 64,
-    paddingHorizontal: 24,
-  },
-  emptyText: {
-    fontSize: 15,
-    color: COLORS.gray500,
-    textAlign: 'center',
   },
 });

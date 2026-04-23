@@ -810,6 +810,13 @@
       "general": "General"
     },
     "emptyInbox": "No messages yet",
+    "searchPlaceholder": "Search",
+    "emptyHeading": "No messages yet",
+    "emptySubtitle": "Find people to start your first conversation",
+    "emptyCta": "Discover people",
+    "emptyRequestsHeading": "No message requests",
+    "emptyGeneralHeading": "No other messages",
+    "emptySearchHeading": "No results for \"{{query}}\"",
     "composePlaceholder": "Search users…",
     "messagePlaceholder": "Type a message…",
     "send": "Send",

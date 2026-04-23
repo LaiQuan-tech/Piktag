@@ -50,7 +50,11 @@ const ConversationRow = React.memo(({ conversation, onPress }: Props) => {
           { borderColor: unread ? COLORS.piktag500 : 'transparent' },
         ]}
       >
-        <InitialsAvatar name={avatarSeed} size={52} />
+        <InitialsAvatar
+          name={avatarSeed}
+          size={56}
+          avatarUrl={conversation.other_avatar_url}
+        />
       </View>
 
       <View style={styles.middle}>
@@ -58,7 +62,9 @@ const ConversationRow = React.memo(({ conversation, onPress }: Props) => {
           numberOfLines={1}
           style={[
             styles.name,
-            { fontWeight: unread ? '700' : '500' },
+            // IG uses semibold (not full bold) for unread names; matches
+            // their visual weight while still reading as "emphasized".
+            { fontWeight: unread ? '600' : '500' },
           ]}
         >
           {displayName}
@@ -93,7 +99,8 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 12,
+    // Slightly tighter than before (12→10) to match IG inbox density.
+    paddingVertical: 10,
     paddingHorizontal: 16,
     backgroundColor: COLORS.white,
   },
@@ -102,9 +109,11 @@ const styles = StyleSheet.create({
   },
   avatarWrap: {
     // Gradient-ring stand-in: solid brand border when unread, transparent otherwise.
+    // 2px padding (vs prior 1px) gives the ring more breathing room and
+    // makes it readable against photo avatars.
     borderWidth: 2,
-    borderRadius: 30,
-    padding: 1,
+    borderRadius: 32,
+    padding: 2,
   },
   middle: {
     flex: 1,
@@ -115,7 +124,7 @@ const styles = StyleSheet.create({
     color: COLORS.gray900,
   },
   preview: {
-    fontSize: 14,
+    fontSize: 13.5,
     marginTop: 2,
   },
   right: {
@@ -132,7 +141,9 @@ const styles = StyleSheet.create({
     height: 8,
     borderRadius: 4,
     backgroundColor: COLORS.piktag500,
-    marginTop: 6,
+    // Align vertically with the timestamp baseline instead of floating
+    // below it — asymmetric spacing felt off-balance in the old layout.
+    marginTop: 4,
   },
 });
 

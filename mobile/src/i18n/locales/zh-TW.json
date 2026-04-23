@@ -817,6 +817,13 @@
       "general": "一般"
     },
     "emptyInbox": "尚無訊息",
+    "searchPlaceholder": "搜尋",
+    "emptyHeading": "還沒有聊天",
+    "emptySubtitle": "去找人加好友，開始第一段對話",
+    "emptyCta": "探索用戶",
+    "emptyRequestsHeading": "沒有陌生訊息",
+    "emptyGeneralHeading": "沒有其他訊息",
+    "emptySearchHeading": "找不到「{{query}}」",
     "composePlaceholder": "搜尋用戶…",
     "messagePlaceholder": "輸入訊息…",
     "send": "傳送",
