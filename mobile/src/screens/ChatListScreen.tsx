@@ -15,12 +15,15 @@ import { ArrowLeft, SquarePen } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
+import ChatFriendsRow, { type FriendRowItem } from '../components/chat/ChatFriendsRow';
 import ChatSearchBar from '../components/chat/ChatSearchBar';
 import ChatTabs from '../components/chat/ChatTabs';
 import ConversationRow from '../components/chat/ConversationRow';
 import EmptyInbox from '../components/chat/EmptyInbox';
+import StatusModal from '../components/StatusModal';
 import { COLORS } from '../constants/theme';
 import { useAuth } from '../hooks/useAuth';
+import { useChatFriendStatuses } from '../hooks/useChatFriendStatuses';
 import { useChatInbox } from '../hooks/useChatInbox';
 import { supabase } from '../lib/supabase';
 import type { InboxConversation, InboxTab } from '../types/chat';
@@ -52,6 +55,7 @@ function bucket(c: InboxConversation, meId: string): InboxTab {
 type HeaderProfile = {
   username: string | null;
   full_name: string | null;
+  avatar_url: string | null;
 };
 
 export default function ChatListScreen({ navigation }: Props): JSX.Element {
@@ -66,6 +70,10 @@ export default function ChatListScreen({ navigation }: Props): JSX.Element {
   // `conversations` array — we never hit the network, so typing stays
   // instant even on large inboxes.
   const [searchQuery, setSearchQuery] = useState<string>('');
+  // Controls the IG-style "add your note" modal opened from the first
+  // card of the ChatFriendsRow. The modal owns its own save flow and
+  // returns the new text via onStatusUpdated.
+  const [statusModalVisible, setStatusModalVisible] = useState(false);
 
   // Pull the viewer's own username for the header. Not in the auth
   // object, so one extra query on mount. Cached implicitly for the
@@ -77,7 +85,7 @@ export default function ChatListScreen({ navigation }: Props): JSX.Element {
       try {
         const { data, error } = await supabase
           .from('piktag_profiles')
-          .select('username, full_name')
+          .select('username, full_name, avatar_url')
           .eq('id', user.id)
           .single();
         if (cancelled) return;
@@ -85,6 +93,7 @@ export default function ChatListScreen({ navigation }: Props): JSX.Element {
           setHeaderProfile({
             username: (data as HeaderProfile).username ?? null,
             full_name: (data as HeaderProfile).full_name ?? null,
+            avatar_url: (data as HeaderProfile).avatar_url ?? null,
           });
         }
       } catch {
@@ -196,6 +205,90 @@ export default function ChatListScreen({ navigation }: Props): JSX.Element {
     return t('chat.inbox');
   }, [headerProfile, t]);
 
+  // --- IG-style friends row (NOTES) ---
+  //
+  // Top-of-inbox horizontal row of people you've chatted with, each
+  // with their 24h piktag_user_status as a bubble above the avatar.
+  // The first card is always "you" — tapping it opens StatusModal so
+  // the viewer can post / edit their own note.
+  //
+  // Source of friends: conversations list (people you've actually
+  // chatted with). This keeps the row contextually relevant to the
+  // chat screen without adding a follows-join network call.
+
+  // Deduplicate: a user can in theory show up in both requests and
+  // general sections, but for the row we want one card per human.
+  const friendsRowList = useMemo<FriendRowItem[]>(() => {
+    const seen = new Set<string>();
+    const out: FriendRowItem[] = [];
+    for (const c of conversations) {
+      if (seen.has(c.other_user_id)) continue;
+      seen.add(c.other_user_id);
+      out.push({
+        userId: c.other_user_id,
+        name: c.other_full_name || c.other_username || '?',
+        avatarUrl: c.other_avatar_url ?? null,
+        noteText: null, // filled in by useChatFriendStatuses below
+      });
+      // Cap at 20 — past that scrolling gets unwieldy and the point of
+      // the row (quick access to frequent people) stops holding.
+      if (out.length >= 20) break;
+    }
+    return out;
+  }, [conversations]);
+
+  const friendUserIds = useMemo(
+    () => friendsRowList.map((f) => f.userId),
+    [friendsRowList],
+  );
+
+  const { myNote, otherNotes } = useChatFriendStatuses(
+    user?.id ?? null,
+    friendUserIds,
+  );
+
+  // Merge the fetched notes into the friend row items. Kept separate
+  // from friendsRowList so the row doesn't re-flow every time
+  // otherNotes updates — only the bubble text changes, not item order.
+  const friendsWithNotes = useMemo<FriendRowItem[]>(
+    () =>
+      friendsRowList.map((f) => ({
+        ...f,
+        noteText: otherNotes.get(f.userId) ?? null,
+      })),
+    [friendsRowList, otherNotes],
+  );
+
+  const handlePressMyNote = useCallback(() => {
+    setStatusModalVisible(true);
+  }, []);
+
+  const handlePressFriendNote = useCallback(
+    async (userId: string) => {
+      // Reuse the existing chat-open flow: resolve or create a 1:1
+      // conversation with this user, then navigate into the thread.
+      // Matches what happens when you tap a ConversationRow below.
+      const conv = conversations.find((c) => c.other_user_id === userId);
+      if (conv) {
+        navigation.navigate('ChatThread', {
+          conversationId: conv.id,
+          otherUserId: conv.other_user_id,
+          otherDisplayName: conv.other_full_name ?? conv.other_username ?? '',
+          otherAvatarUrl: conv.other_avatar_url,
+        });
+      }
+    },
+    [conversations, navigation],
+  );
+
+  // Local "my note" override so the bubble updates instantly when the
+  // viewer saves from StatusModal, instead of waiting for the hook to
+  // re-query. Null means "fall back to whatever the hook says."
+  const [localMyNote, setLocalMyNote] = useState<string | null | undefined>(
+    undefined,
+  );
+  const displayedMyNote = localMyNote === undefined ? myNote : localMyNote;
+
   const refreshControl = useMemo(
     () => (
       <RefreshControl
@@ -268,6 +361,15 @@ export default function ChatListScreen({ navigation }: Props): JSX.Element {
 
       <ChatSearchBar value={searchQuery} onChangeText={setSearchQuery} />
 
+      <ChatFriendsRow
+        myName={headerProfile?.full_name || headerProfile?.username || '?'}
+        myAvatarUrl={headerProfile?.avatar_url ?? null}
+        myNoteText={displayedMyNote ?? null}
+        onPressMyNote={handlePressMyNote}
+        friends={friendsWithNotes}
+        onPressFriend={handlePressFriendNote}
+      />
+
       <ChatTabs active={activeTab} onChange={setActiveTab} counts={counts} />
 
       <FlatList
@@ -283,6 +385,17 @@ export default function ChatListScreen({ navigation }: Props): JSX.Element {
         maxToRenderPerBatch={12}
         windowSize={7}
         removeClippedSubviews
+      />
+
+      <StatusModal
+        visible={statusModalVisible}
+        initialText={displayedMyNote ?? null}
+        onClose={() => setStatusModalVisible(false)}
+        // Echo the saved text into local state so the bubble on the
+        // viewer's own card updates immediately — useChatFriendStatuses
+        // will re-fetch in the background but the user expects instant
+        // feedback after tapping Save.
+        onStatusUpdated={(text) => setLocalMyNote(text)}
       />
     </SafeAreaView>
   );

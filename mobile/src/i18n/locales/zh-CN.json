@@ -593,6 +593,8 @@
     },
     "emptyInbox": "暂无消息",
     "searchPlaceholder": "搜索",
+    "yourNote": "分享一则便签…",
+    "yourNoteLabel": "你的便签",
     "emptyHeading": "还没有聊天",
     "emptySubtitle": "去找人加好友，开启第一段对话",
     "emptyCta": "探索用户",

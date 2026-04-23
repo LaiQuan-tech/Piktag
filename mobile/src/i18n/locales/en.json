@@ -812,6 +812,8 @@
     },
     "emptyInbox": "No messages yet",
     "searchPlaceholder": "Search",
+    "yourNote": "Share a note…",
+    "yourNoteLabel": "Your note",
     "emptyHeading": "No messages yet",
     "emptySubtitle": "Find people to start your first conversation",
     "emptyCta": "Discover people",
