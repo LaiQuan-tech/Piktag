@@ -5,6 +5,10 @@ import type { User, Session } from '@supabase/supabase-js';
 // screen mount doesn't re-fetch the session (and subscribe its own
 // onAuthStateChange listener). The returned shape matches the prior
 // hook — existing call sites don't need to change.
+//
+// The onboarding flag (piktag_onboarding_completed_v1) is cleared
+// inside AuthContext.signOut() so that a different user logging in
+// on the same device still goes through onboarding as they should.
 
 type UseAuthReturn = {
   user: User | null;

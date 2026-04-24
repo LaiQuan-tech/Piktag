@@ -15,6 +15,7 @@ import { Session } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
 import { COLORS } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
+import { useAppReady } from '../context/AppReadyContext';
 import { useTranslation } from 'react-i18next';
 import { registerForPushNotifications } from '../lib/pushNotifications';
 import { posthog } from '../lib/analytics';
@@ -314,96 +315,191 @@ function parseSidFromUrl(url: string | null): { username?: string; sid?: string 
 }
 
 const PENDING_DEEP_LINK_KEY = 'piktag_pending_deep_link';
+const ONBOARDING_COMPLETED_KEY = 'piktag_onboarding_completed_v1';
+
+// Decision for whether to include the Onboarding screen in the root
+// stack. `pending` = auth/onboarding check hasn't resolved yet (hold
+// the spinner). `required` = include Onboarding as the initial route.
+// `skip` = go straight to Main.
+type OnboardingDecision = 'pending' | 'required' | 'skip';
 
 export default function AppNavigator() {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
-  const [needsOnboarding, setNeedsOnboarding] = useState(false);
-  const navigationRef = useRef<any>(null);
+  const [onboardingDecision, setOnboardingDecision] = useState<OnboardingDecision>('pending');
+  // Pending deep link holds the parsed payload from cold start until a
+  // consumer (post-register flow) clears it. Stored in a ref so capture
+  // and consume don't race through render cycles.
+  const pendingDeepLinkRef = useRef<{ username?: string; sid?: string } | null>(null);
+  // Cold-start URL is only fetched once per app launch — guard against
+  // StrictMode double-invocation and any accidental remount.
+  const coldStartHandledRef = useRef(false);
+  const { markReady } = useAppReady();
 
-  // Capture deep links — only on native (web handles routing differently)
+  // Deep link capture. Runs once on mount: grabs the cold-start URL,
+  // subscribes to runtime URL events, and cleans up via the
+  // EventSubscription.remove() API (RN 0.72+). The listener is
+  // registered exactly once.
   useEffect(() => {
     if (Platform.OS === 'web') return;
 
-    let sub: any;
+    let sub: { remove: () => void } | undefined;
+    let cancelled = false;
+
     (async () => {
       try {
         const Linking = await import('expo-linking');
-        const captureDeepLink = (url: string | null) => {
+
+        const captureDeepLink = (url: string | null, persist: boolean) => {
           const parsed = parseSidFromUrl(url);
-          if (parsed?.sid) {
-            AsyncStorage.setItem(PENDING_DEEP_LINK_KEY, JSON.stringify(parsed));
+          if (!parsed?.sid) return;
+          // In-memory first so the auth-resolution path can consume
+          // without touching AsyncStorage (fast path).
+          pendingDeepLinkRef.current = parsed;
+          if (persist) {
+            // Persist as a safety net: if the app is killed between
+            // cold-start capture and register completion, we still get
+            // a chance to resolve the pending connection next launch.
+            AsyncStorage.setItem(PENDING_DEEP_LINK_KEY, JSON.stringify(parsed)).catch(() => {});
           }
         };
 
-        const initialUrl = await Linking.getInitialURL();
-        captureDeepLink(initialUrl);
+        if (!coldStartHandledRef.current) {
+          coldStartHandledRef.current = true;
+          const initialUrl = await Linking.getInitialURL();
+          if (!cancelled) captureDeepLink(initialUrl, true);
+        }
 
-        sub = Linking.addEventListener('url', (event: any) => captureDeepLink(event.url));
-      } catch {}
+        if (cancelled) return;
+        sub = Linking.addEventListener('url', (event: { url: string }) =>
+          captureDeepLink(event.url, true),
+        );
+      } catch (err) {
+        if (__DEV__) console.warn('[DeepLink] capture error:', err);
+      }
     })();
-    return () => { if (sub) sub.remove(); };
+
+    return () => {
+      cancelled = true;
+      // EventSubscription.remove() — the modern RN 0.72+ API. The
+      // deprecated Linking.removeEventListener was removed in RN 0.72.
+      if (sub && typeof sub.remove === 'function') sub.remove();
+    };
   }, []);
 
   useEffect(() => {
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
-      setSession(currentSession);
-      if (currentSession?.user) {
-        // Identify user in PostHog so all events are linked to this account.
-        posthog.identify(currentSession.user.id, {
-          email: currentSession.user.email,
-        });
-        checkOnboardingStatus(currentSession.user.id, currentSession.user.created_at);
-        // Defer push notification registration until after the first frame
-        // has been painted and the main screen's mount work has settled.
-        // This frees up the JS thread during the critical boot-to-interactive
-        // window (~1-2s). Permissions dialog + token fetch + DB write were
-        // previously competing with the ConnectionsScreen first-mount queries.
-        const userId = currentSession.user.id;
-        InteractionManager.runAfterInteractions(() => {
-          registerForPushNotifications(userId).catch(() => {});
-        });
-      } else {
-        setLoading(false);
-      }
-    });
+    let isMounted = true;
 
-    // Listen for auth state changes
+    const finalize = () => {
+      if (!isMounted) return;
+      setLoading(false);
+      // Signal splash that auth/onboarding decision has landed.
+      markReady('auth');
+    };
+
+    // Hydrate persisted onboarding flag BEFORE anything else so we can
+    // decide the initial route synchronously once auth lands. This
+    // prevents the flash of Main-then-Onboarding that happens when the
+    // onboarding check races the navigator mount.
+    const hydrate = async () => {
+      let persistedCompleted = false;
+      try {
+        const raw = await AsyncStorage.getItem(ONBOARDING_COMPLETED_KEY);
+        persistedCompleted = raw === 'true';
+      } catch {}
+
+      const { data: { session: currentSession } } = await supabase.auth.getSession();
+      if (!isMounted) return;
+      setSession(currentSession);
+
+      if (!currentSession?.user) {
+        // No session = auth stack. No onboarding check needed.
+        setOnboardingDecision('skip');
+        finalize();
+        return;
+      }
+
+      // Identify user in PostHog so all events are linked to this account.
+      posthog.identify(currentSession.user.id, {
+        email: currentSession.user.email,
+      });
+
+      if (persistedCompleted) {
+        // Persisted flag is the source of truth — bio check only runs
+        // when nothing is stored (first launch post-upgrade / reinstall).
+        setOnboardingDecision('skip');
+      } else {
+        await decideOnboarding(currentSession.user.id, currentSession.user.created_at);
+      }
+
+      // Defer push notification registration until after the first
+      // frame paints — frees the JS thread during the critical
+      // boot-to-interactive window.
+      const userId = currentSession.user.id;
+      InteractionManager.runAfterInteractions(() => {
+        registerForPushNotifications(userId).catch(() => {});
+      });
+
+      finalize();
+    };
+
+    hydrate();
+
+    // Listen for auth state changes (sign-in, sign-out, token refresh).
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, newSession) => {
+      async (_event, newSession) => {
+        if (!isMounted) return;
         setSession(newSession);
         if (newSession?.user) {
-          checkOnboardingStatus(newSession.user.id, newSession.user.created_at);
-          // Resolve pending connections for newly registered users
+          let persistedCompleted = false;
+          try {
+            persistedCompleted = (await AsyncStorage.getItem(ONBOARDING_COMPLETED_KEY)) === 'true';
+          } catch {}
+          if (persistedCompleted) {
+            setOnboardingDecision('skip');
+          } else {
+            await decideOnboarding(newSession.user.id, newSession.user.created_at);
+          }
+          // Resolve pending connections for newly registered users.
           resolvePendingDeepLink(newSession.user.id, newSession.user.created_at);
         } else {
-          setNeedsOnboarding(false);
-          setLoading(false);
+          setOnboardingDecision('skip');
         }
+        // Auth-state changes after initial load should never re-open
+        // the splash; just keep `loading` false.
+        setLoading(false);
       }
     );
 
     return () => {
+      isMounted = false;
       subscription.unsubscribe();
     };
+    // markReady identity is stable from AppReadyContext; we intentionally
+    // run this effect exactly once per mount.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const checkOnboardingStatus = async (userId: string, userCreatedAt: string) => {
+  const decideOnboarding = async (userId: string, userCreatedAt: string) => {
     try {
-      // Check if user account was created within the last 5 minutes
+      // Only truly new accounts (< 5min old) are onboarding candidates.
+      // Older accounts without a persisted flag are considered already
+      // onboarded — forcing them through the flow again would be worse
+      // UX than letting them through.
       const createdAt = new Date(userCreatedAt);
-      const now = new Date();
-      const diffMs = now.getTime() - createdAt.getTime();
-      const isNewUser = diffMs < 5 * 60 * 1000; // 5 minutes
+      const diffMs = Date.now() - createdAt.getTime();
+      const isNewUser = diffMs < 5 * 60 * 1000;
 
       if (!isNewUser) {
-        setNeedsOnboarding(false);
-        setLoading(false);
+        setOnboardingDecision('skip');
+        // Backfill the flag so we don't re-check on every launch.
+        AsyncStorage.setItem(ONBOARDING_COMPLETED_KEY, 'true').catch(() => {});
         return;
       }
 
-      // Check if bio is filled in (onboarding complete indicator)
+      // For new users, check if bio is filled in (legacy indicator of
+      // onboarding completion). Keeps backwards compatibility with
+      // existing users who onboarded before the persisted flag shipped.
       const { data, error } = await supabase
         .from('piktag_profiles')
         .select('bio')
@@ -412,39 +508,51 @@ export default function AppNavigator() {
 
       if (error) {
         console.warn('Error checking onboarding status:', error.message);
-        setNeedsOnboarding(false);
+        // Fail open — don't trap the user behind onboarding if the DB
+        // call fails.
+        setOnboardingDecision('skip');
+        return;
+      }
+
+      const bioEmpty = !data?.bio || data.bio.trim() === '';
+      if (bioEmpty) {
+        setOnboardingDecision('required');
       } else {
-        const bioEmpty = !data?.bio || data.bio.trim() === '';
-        setNeedsOnboarding(bioEmpty);
+        setOnboardingDecision('skip');
+        AsyncStorage.setItem(ONBOARDING_COMPLETED_KEY, 'true').catch(() => {});
       }
     } catch (err) {
       console.warn('Onboarding check error:', err);
-      setNeedsOnboarding(false);
-    } finally {
-      setLoading(false);
+      setOnboardingDecision('skip');
     }
   };
 
-  // Resolve pending deep link connections after registration
+  // Resolve pending deep link connections after registration. Prefers
+  // the in-memory ref (fast path) but falls back to AsyncStorage so a
+  // cold-start capture survives an app kill before registration
+  // completes.
   const resolvePendingDeepLink = async (userId: string, userCreatedAt: string) => {
     try {
-      // Only for new users (registered within 5 minutes)
+      // Only for new users (registered within 5 minutes).
       const diffMs = Date.now() - new Date(userCreatedAt).getTime();
       if (diffMs > 5 * 60 * 1000) return;
 
-      const stored = await AsyncStorage.getItem(PENDING_DEEP_LINK_KEY);
-      if (!stored) return;
+      let pending = pendingDeepLinkRef.current;
+      if (!pending) {
+        const stored = await AsyncStorage.getItem(PENDING_DEEP_LINK_KEY);
+        if (stored) pending = JSON.parse(stored) as { username?: string; sid?: string };
+      }
 
-      const { sid } = JSON.parse(stored) as { username?: string; sid?: string };
-      if (!sid) return;
+      if (!pending?.sid) return;
 
-      // Clear stored deep link immediately to prevent double processing
-      await AsyncStorage.removeItem(PENDING_DEEP_LINK_KEY);
+      // Clear BOTH ref and persisted key immediately to prevent double
+      // processing (second auth-state change, hot reload, etc).
+      pendingDeepLinkRef.current = null;
+      await AsyncStorage.removeItem(PENDING_DEEP_LINK_KEY).catch(() => {});
 
-      // Call the DB function to resolve pending connection
-      const { data, error } = await supabase.rpc('resolve_pending_connections', {
+      const { error } = await supabase.rpc('resolve_pending_connections', {
         p_new_user_id: userId,
-        p_scan_session_id: sid,
+        p_scan_session_id: pending.sid,
       });
 
       if (error) {
@@ -455,7 +563,7 @@ export default function AppNavigator() {
     }
   };
 
-  if (loading) {
+  if (loading || onboardingDecision === 'pending') {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color={COLORS.piktag500} />
@@ -464,7 +572,7 @@ export default function AppNavigator() {
   }
 
   return session ? (
-    <MainNavigator needsOnboarding={needsOnboarding} />
+    <MainNavigator needsOnboarding={onboardingDecision === 'required'} />
   ) : (
     <AuthNavigator />
   );

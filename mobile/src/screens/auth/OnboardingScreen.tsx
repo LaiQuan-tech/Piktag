@@ -12,6 +12,7 @@ import {
   Platform,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   ChevronLeft,
   ChevronRight,
@@ -24,6 +25,12 @@ import {
 } from 'lucide-react-native';
 import { supabase, supabaseUrl } from '../../lib/supabase';
 import { COLORS, SPACING, BORDER_RADIUS } from '../../constants/theme';
+
+// Must match the key used in AppNavigator. Persisting this flag is the
+// source of truth for "has this user completed onboarding?" — it
+// survives clock skew, bio edits, and the 5-minute "is new user"
+// heuristic the navigator previously relied on exclusively.
+const ONBOARDING_COMPLETED_KEY = 'piktag_onboarding_completed_v1';
 
 type OnboardingScreenProps = {
   navigation: any;
@@ -160,6 +167,18 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
             });
           }
         }
+      }
+
+      // Persist the onboarding-complete flag BEFORE resetting navigation.
+      // AppNavigator reads this on subsequent launches to decide the
+      // initial route. If we only relied on `bio` emptiness, a user who
+      // completes onboarding but whose bio insert silently failed would
+      // be trapped in the flow forever.
+      try {
+        await AsyncStorage.setItem(ONBOARDING_COMPLETED_KEY, 'true');
+      } catch (err) {
+        // Non-fatal — the legacy bio check still kicks in as a fallback.
+        console.warn('[Onboarding] failed to persist completion flag:', err);
       }
 
       // Navigate to main app (replace the navigation stack)

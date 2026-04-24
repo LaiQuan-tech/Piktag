@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Platform, StyleSheet } from 'react-native';
+import { View, Platform, StyleSheet, InteractionManager } from 'react-native';
 import * as Sentry from '@sentry/react-native';
 import * as Notifications from 'expo-notifications';
 import { StatusBar as ExpoStatusBar } from 'expo-status-bar';
@@ -10,20 +10,18 @@ import './src/i18n'; // Initialize i18n
 import AppNavigator from './src/navigation/AppNavigator';
 import { ThemeProvider } from './src/context/ThemeContext';
 import { AuthProvider } from './src/context/AuthContext';
+import { AppReadyProvider, useAppReady } from './src/context/AppReadyContext';
 import SplashOverlay from './src/components/SplashOverlay';
 
-// Initialize Sentry for production crash & error monitoring.
-// The DSN is intentionally hardcoded — it's a write-only ingest URL
-// (no read access to your data), and it MUST be available even when env
-// vars are misconfigured (chicken-and-egg: if env breaks, you want
-// Sentry to tell you about it).
-Sentry.init({
-  dsn: 'https://a6f25db2278dc71a2ea41314adc226c0@o4511225670402048.ingest.us.sentry.io/4511227846066176',
-  // Only send errors in production. Dev builds still log to console.
-  enabled: !__DEV__,
-  // Sample 20% of transactions for performance monitoring (keep cost low).
-  tracesSampleRate: 0.2,
-});
+// Sentry DSN is a write-only ingest URL — safe to hardcode and critical
+// to have available even when env vars are misconfigured (if env breaks,
+// we want Sentry to tell us about it).
+// Initialization itself is deferred to `InteractionManager.runAfterInteractions`
+// in `AppInner` below — running it synchronously at module-eval time
+// added ~200ms to cold start (native crash handlers + transport queue
+// + session tracking setup).
+const SENTRY_DSN =
+  'https://a6f25db2278dc71a2ea41314adc226c0@o4511225670402048.ingest.us.sentry.io/4511227846066176';
 
 // expo-linking can crash on web — use safe prefix
 let prefix = '';
@@ -70,12 +68,47 @@ const linking = {
   },
 };
 
-function App() {
+// Readiness gates that must all clear before the splash overlay fades:
+//   - "auth": AppNavigator has resolved the session + onboarding check.
+// If we later add other blocking bootstraps (feature flags, i18n fetch,
+// etc), add their names here and call `markReady("<gate>")` from the
+// owning module.
+const READY_GATES = ['auth'] as const;
+
+function AppInner() {
   const isWeb = Platform.OS === 'web';
-  // IG-style 'from PikTag' launch moment, shown briefly on native after
-  // the native splash hides. Skipped on web — web has its own landing.
+  // IG-style 'from PikTag' launch moment, shown on native after the
+  // native Expo splash hides and until the app signals readiness (or
+  // the overlay's safety-net timer fires). Skipped on web — web has
+  // its own landing experience.
   const [splashVisible, setSplashVisible] = useState(!isWeb);
   const navigationRef = useNavigationContainerRef();
+  const { isReady } = useAppReady();
+
+  // Defer Sentry initialization until after the first frame paints.
+  // The module-level init previously ran synchronously and blocked JS
+  // during the critical boot-to-interactive window.
+  useEffect(() => {
+    const handle = InteractionManager.runAfterInteractions(() => {
+      try {
+        Sentry.init({
+          dsn: SENTRY_DSN,
+          // Only send errors in production. Dev builds still log to console.
+          enabled: !__DEV__,
+          // Sample 20% of transactions for performance monitoring.
+          tracesSampleRate: 0.2,
+        });
+      } catch (err) {
+        // Never let Sentry initialization itself crash the app.
+        if (__DEV__) console.warn('[Sentry] deferred init failed:', err);
+      }
+    });
+    return () => {
+      if (handle && typeof (handle as any).cancel === 'function') {
+        (handle as any).cancel();
+      }
+    };
+  }, []);
 
   useEffect(() => {
     if (isWeb) return;
@@ -108,7 +141,12 @@ function App() {
             <NavigationContainer ref={navigationRef} linking={linking}>
               <ExpoStatusBar style="dark" />
               <AppNavigator />
-              {splashVisible && <SplashOverlay onHidden={() => setSplashVisible(false)} />}
+              {splashVisible && (
+                <SplashOverlay
+                  ready={isReady}
+                  onHidden={() => setSplashVisible(false)}
+                />
+              )}
             </NavigationContainer>
           </SafeAreaProvider>
         </GestureHandlerRootView>
@@ -127,6 +165,14 @@ function App() {
   }
 
   return content;
+}
+
+function App() {
+  return (
+    <AppReadyProvider gates={READY_GATES}>
+      <AppInner />
+    </AppReadyProvider>
+  );
 }
 
 const webStyles = StyleSheet.create({

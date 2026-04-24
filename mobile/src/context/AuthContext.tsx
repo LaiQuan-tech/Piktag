@@ -1,8 +1,14 @@
 import React, { createContext, useContext, useEffect, useMemo, useRef, useState, useCallback } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from '../lib/supabase';
 import { setCache, getCache, invalidateCache, CACHE_KEYS } from '../lib/dataCache';
 import type { User, Session } from '@supabase/supabase-js';
 import type { PiktagProfile } from '../types';
+
+// Must match the key in AppNavigator/OnboardingScreen. On sign-out we
+// wipe it so a different user logging in on the same device still goes
+// through onboarding as they should.
+const ONBOARDING_COMPLETED_KEY = 'piktag_onboarding_completed_v1';
 
 // AuthContext hydrates the current auth user + the `piktag_profiles`
 // row exactly once, and exposes them to the whole tree. This replaces
@@ -114,6 +120,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const signOut = useCallback(async () => {
+    // Clear onboarding flag first so a different user logging in on
+    // this device still goes through onboarding. Non-fatal on failure —
+    // worst case the next user skips onboarding once.
+    try {
+      await AsyncStorage.removeItem(ONBOARDING_COMPLETED_KEY);
+    } catch {}
     await supabase.auth.signOut();
     invalidateCache(CACHE_KEYS.PROFILE);
     invalidateCache(CACHE_KEYS.CONNECTIONS);

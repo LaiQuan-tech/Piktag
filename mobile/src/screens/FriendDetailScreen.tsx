@@ -1258,7 +1258,7 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
                 await supabase.from('piktag_blocks')
                   .upsert({ blocker_id: user.id, blocked_id: friendId }, { onConflict: 'blocker_id,blocked_id' });
                 Alert.alert(t('friendDetail.blockedTitle') || '已封鎖', t('friendDetail.blockedMessage') || '你將不再看到此用戶');
-                navigation.goBack();
+                if (navigation.canGoBack()) navigation.goBack(); else navigation.navigate('Main', { screen: 'HomeTab' });
               }}
             >
               <X size={20} color="#EF4444" />

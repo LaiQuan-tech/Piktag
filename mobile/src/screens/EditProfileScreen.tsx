@@ -710,14 +710,25 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
         return;
       }
 
-      // 5. Increment usage_count via RPC, fallback to direct update
-      await supabase
-        .from('piktag_tags')
-        .update({ usage_count: 1 })
-        .eq('id', tagId);
-
-      try { await supabase.rpc('increment_tag_usage', { tag_id: tagId }); } catch(err) {
-        console.warn("[EditProfileScreen] increment_tag_usage fallback:", err);
+      // 5. Increment usage_count via RPC. Previously this code ran a
+      //    `update({ usage_count: 1 })` *before* the RPC, which reset
+      //    the counter to 1 on every add (so every tag looked like
+      //    it was fresh even when thousands of users shared it). The
+      //    RPC is authoritative; the fallback below reads-then-writes
+      //    but still increments rather than resetting.
+      try {
+        await supabase.rpc('increment_tag_usage', { tag_id: tagId });
+      } catch (err) {
+        console.warn('[EditProfileScreen] increment_tag_usage fallback:', err);
+        try {
+          const { data: tagData } = await supabase
+            .from('piktag_tags')
+            .select('usage_count')
+            .eq('id', tagId)
+            .single();
+          const next = (tagData?.usage_count ?? 0) + 1;
+          await supabase.from('piktag_tags').update({ usage_count: next }).eq('id', tagId);
+        } catch {}
       }
 
       // Reload tags
