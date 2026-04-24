@@ -16,15 +16,23 @@ import {
   Linking,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ArrowLeft, Plus, Pencil, Trash2, X, Hash, EyeOff, Eye, Camera, GripVertical } from 'lucide-react-native';
+import { ArrowLeft, Plus, Pencil, Trash2, X, Hash, EyeOff, Eye, Camera, GripVertical, ChevronDown } from 'lucide-react-native';
 import DraggableFlatList, { RenderItemParams, ScaleDecorator } from 'react-native-draggable-flatlist';
 import { requestMediaLibraryPermissionsAsync, launchImageLibraryAsync } from 'expo-image-picker';
 import { useTranslation } from 'react-i18next';
+import i18n from '../i18n';
 import { COLORS } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
 import { LinearGradient } from 'expo-linear-gradient';
 import PlatformIcon from '../components/PlatformIcon';
+import CountryCodePicker from '../components/CountryCodePicker';
 import { supabase, supabaseUrl, supabaseAnonKey } from '../lib/supabase';
+import {
+  type Country,
+  buildTelUrl,
+  getDefaultCountry,
+  splitTelUrl,
+} from '../lib/countryCodes';
 import { useAuth } from '../hooks/useAuth';
 import type { Biolink, Tag, UserTag } from '../types';
 
@@ -210,6 +218,26 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
   const [selectedPlatform, setSelectedPlatform] = useState<string | null>(null);
   const [newLinkAccount, setNewLinkAccount] = useState('');
   const [newLinkLabel, setNewLinkLabel] = useState('');
+
+  // Phone-specific state. The new-link form's `newLinkAccount` holds
+  // the generic account/path string for every other platform; for
+  // `phone` we keep a dedicated (country, national-number) pair so the
+  // user can pick a dial code without encoding it into one text field.
+  // These are also used by the edit-link modal when the biolink being
+  // edited has `platform === 'phone'`, so a single source of truth.
+  const [phoneCountry, setPhoneCountry] = useState<Country>(() =>
+    getDefaultCountry(i18n.language),
+  );
+  const [phoneNational, setPhoneNational] = useState<string>('');
+  const [countryPickerOpen, setCountryPickerOpen] = useState(false);
+
+  // Reset the phone-specific fields back to the locale default. Called
+  // when the user cancels a form, successfully saves, or switches the
+  // selected platform away from phone.
+  const resetPhoneFields = useCallback(() => {
+    setPhoneCountry(getDefaultCountry(i18n.language));
+    setPhoneNational('');
+  }, []);
 
   // Tags state
   const [userTags, setUserTags] = useState<(UserTag & { tag?: Tag })[]>([]);
@@ -428,6 +456,7 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
   const openAddBiolinkModal = () => {
     setEditingBiolink(null);
     setBiolinkForm({ platform: '', url: '', label: '' });
+    resetPhoneFields();
     setBiolinkModalVisible(true);
   };
 
@@ -440,6 +469,18 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
       display_mode: biolink.display_mode || 'card',
       visibility: biolink.visibility || 'public',
     });
+    // Pre-fill the phone-specific fields when editing a phone biolink so
+    // the picker + national-number input reflect what's on file. Legacy
+    // bare numbers (e.g. `tel:0916581787` with no `+` prefix) don't
+    // resolve to a country — fall back to the locale default so users
+    // still see a sensible country chip instead of an empty box.
+    if (biolink.platform === 'phone') {
+      const { country, national } = splitTelUrl(biolink.url);
+      setPhoneCountry(country ?? getDefaultCountry(i18n.language));
+      setPhoneNational(national);
+    } else {
+      resetPhoneFields();
+    }
     setBiolinkModalVisible(true);
   };
 
@@ -447,6 +488,7 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
     setBiolinkModalVisible(false);
     setEditingBiolink(null);
     setBiolinkForm({ platform: '', url: '', label: '', display_mode: 'card', visibility: 'public' });
+    resetPhoneFields();
   };
 
   const handleOpenLink = (url: string) => {
@@ -464,12 +506,20 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
 
   const handleSaveBiolink = async () => {
     if (!userId) return;
-    if (!biolinkForm.platform.trim() || !biolinkForm.url.trim()) {
+    // For phone entries the canonical URL is synthesised from (country,
+    // national) rather than pulled from `biolinkForm.url` so the modal
+    // can stay fully phone-aware. Every other platform keeps the legacy
+    // direct URL input.
+    const isPhone = biolinkForm.platform.trim() === 'phone';
+    const effectiveUrl = isPhone
+      ? buildTelUrl(phoneCountry, phoneNational)
+      : biolinkForm.url.trim();
+    if (!biolinkForm.platform.trim() || !effectiveUrl) {
       Alert.alert(t('editProfile.alertHintTitle'), t('editProfile.alertFillRequired'));
       return;
     }
 
-    const iconUrl = getIconUrl(biolinkForm.url.trim());
+    const iconUrl = getIconUrl(effectiveUrl);
 
     setSavingBiolink(true);
     try {
@@ -478,7 +528,7 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
           .from('piktag_biolinks')
           .update({
             platform: biolinkForm.platform.trim(),
-            url: biolinkForm.url.trim(),
+            url: effectiveUrl,
             label: biolinkForm.label.trim() || null,
             icon_url: iconUrl,
             display_mode: biolinkForm.display_mode,
@@ -497,7 +547,7 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
           .insert({
             user_id: userId,
             platform: biolinkForm.platform.trim(),
-            url: biolinkForm.url.trim(),
+            url: effectiveUrl,
             label: biolinkForm.label.trim() || null,
             icon_url: iconUrl,
             display_mode: biolinkForm.display_mode,
@@ -1081,6 +1131,10 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
                         setShowPlatformPicker(false);
                         setNewLinkAccount('');
                         setNewLinkLabel(key === 'custom' ? '' : label);
+                        // Reset the phone-specific state every time the
+                        // platform is (re-)selected so the country chip
+                        // defaults to the current locale on each entry.
+                        if (key === 'phone') resetPhoneFields();
                       }}
                     >
                       <PlatformIcon platform={key} size={28} />
@@ -1110,35 +1164,76 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
                     onChangeText={setNewLinkLabel}
                   />
                 )}
-                {/* Prefix + account input row */}
-                <View style={styles.prefixInputRow}>
-                  {PLATFORM_PREFIXES[selectedPlatform] ? (
-                    <Text style={styles.prefixText} numberOfLines={1}>
-                      {PLATFORM_PREFIXES[selectedPlatform]}
-                    </Text>
-                  ) : null}
-                  <TextInput
-                    style={styles.accountInput}
-                    placeholder={PLATFORM_PLACEHOLDER_KEYS[selectedPlatform]?.startsWith('editProfile.') ? t(PLATFORM_PLACEHOLDER_KEYS[selectedPlatform]) : (PLATFORM_PLACEHOLDER_KEYS[selectedPlatform] || '')}
-                    value={newLinkAccount}
-                    onChangeText={setNewLinkAccount}
-                    autoCapitalize="none"
-                    keyboardType="url"
-                    autoFocus
-                  />
-                </View>
+                {/* Phone gets its own (country dial code + national
+                    number) row. Every other platform keeps the legacy
+                    prefix + account input flow. */}
+                {selectedPlatform === 'phone' ? (
+                  <View style={styles.phoneRow}>
+                    <TouchableOpacity
+                      style={styles.countryChip}
+                      onPress={() => setCountryPickerOpen(true)}
+                      activeOpacity={0.7}
+                    >
+                      <Text style={styles.countryFlag}>{phoneCountry.flag}</Text>
+                      <Text style={styles.countryDial}>{phoneCountry.dial}</Text>
+                      <ChevronDown size={14} color={COLORS.gray500} />
+                    </TouchableOpacity>
+                    <TextInput
+                      style={styles.phoneInput}
+                      value={phoneNational}
+                      onChangeText={(v) => setPhoneNational(v.replace(/\D/g, ''))}
+                      placeholder={t('editProfile.phonePlaceholder')}
+                      placeholderTextColor={COLORS.gray400}
+                      keyboardType="phone-pad"
+                      maxLength={15}
+                      autoFocus
+                    />
+                  </View>
+                ) : (
+                  <View style={styles.prefixInputRow}>
+                    {PLATFORM_PREFIXES[selectedPlatform] ? (
+                      <Text style={styles.prefixText} numberOfLines={1}>
+                        {PLATFORM_PREFIXES[selectedPlatform]}
+                      </Text>
+                    ) : null}
+                    <TextInput
+                      style={styles.accountInput}
+                      placeholder={PLATFORM_PLACEHOLDER_KEYS[selectedPlatform]?.startsWith('editProfile.') ? t(PLATFORM_PLACEHOLDER_KEYS[selectedPlatform]) : (PLATFORM_PLACEHOLDER_KEYS[selectedPlatform] || '')}
+                      value={newLinkAccount}
+                      onChangeText={setNewLinkAccount}
+                      autoCapitalize="none"
+                      keyboardType="url"
+                      autoFocus
+                    />
+                  </View>
+                )}
                 <View style={styles.newLinkActions}>
-                  <TouchableOpacity onPress={() => { setSelectedPlatform(null); setNewLinkAccount(''); setNewLinkLabel(''); }} style={styles.cancelBtn}>
+                  <TouchableOpacity
+                    onPress={() => {
+                      setSelectedPlatform(null);
+                      setNewLinkAccount('');
+                      setNewLinkLabel('');
+                      resetPhoneFields();
+                    }}
+                    style={styles.cancelBtn}
+                  >
                     <Text style={styles.cancelText}>{t('common.cancel')}</Text>
                   </TouchableOpacity>
                   <TouchableOpacity
                     style={styles.saveBtn}
                     onPress={async () => {
-                      if (!newLinkAccount.trim() || !userId) return;
-                      const prefix = PLATFORM_PREFIXES[selectedPlatform] ?? '';
-                      const fullUrl = selectedPlatform === 'custom'
-                        ? newLinkAccount.trim()
-                        : `${prefix}${newLinkAccount.trim()}`;
+                      if (!userId || !selectedPlatform) return;
+                      let fullUrl: string;
+                      if (selectedPlatform === 'phone') {
+                        fullUrl = buildTelUrl(phoneCountry, phoneNational);
+                      } else {
+                        if (!newLinkAccount.trim()) return;
+                        const prefix = PLATFORM_PREFIXES[selectedPlatform] ?? '';
+                        fullUrl = selectedPlatform === 'custom'
+                          ? newLinkAccount.trim()
+                          : `${prefix}${newLinkAccount.trim()}`;
+                      }
+                      if (!fullUrl) return;
                       const label = selectedPlatform === 'custom' ? newLinkLabel : (PLATFORM_LABELS_STATIC[selectedPlatform] || t(`editProfile.${selectedPlatform === 'website' ? 'personalWebsite' : 'customLink'}`));
                       const { data, error } = await supabase.from('piktag_biolinks').insert({
                         user_id: userId,
@@ -1153,6 +1248,7 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
                         setSelectedPlatform(null);
                         setNewLinkAccount('');
                         setNewLinkLabel('');
+                        resetPhoneFields();
                       }
                     }}
                   >
@@ -1220,18 +1316,51 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
               </View>
 
               <View style={styles.fieldGroup}>
-                <Text style={styles.fieldLabel}>{t('editProfile.urlLabel')}</Text>
-                <TextInput
-                  style={styles.fieldInput}
-                  value={biolinkForm.url}
-                  onChangeText={(v) =>
-                    setBiolinkForm((prev) => ({ ...prev, url: v }))
-                  }
-                  placeholder={t('editProfile.urlPlaceholder')}
-                  placeholderTextColor={COLORS.gray400}
-                  autoCapitalize="none"
-                  keyboardType="url"
-                />
+                <Text style={styles.fieldLabel}>
+                  {biolinkForm.platform.trim() === 'phone'
+                    ? t('editProfile.phoneLabel')
+                    : t('editProfile.urlLabel')}
+                </Text>
+                {biolinkForm.platform.trim() === 'phone' ? (
+                  // Phone gets the country-code chip + national-number
+                  // input. The actual `tel:` URL is synthesised at save
+                  // time from (phoneCountry, phoneNational); we don't
+                  // also write it to biolinkForm.url because doing so
+                  // would double the state and re-introduce the
+                  // possibility of drift.
+                  <View style={styles.phoneRow}>
+                    <TouchableOpacity
+                      style={styles.countryChip}
+                      onPress={() => setCountryPickerOpen(true)}
+                      activeOpacity={0.7}
+                    >
+                      <Text style={styles.countryFlag}>{phoneCountry.flag}</Text>
+                      <Text style={styles.countryDial}>{phoneCountry.dial}</Text>
+                      <ChevronDown size={14} color={COLORS.gray500} />
+                    </TouchableOpacity>
+                    <TextInput
+                      style={styles.phoneInput}
+                      value={phoneNational}
+                      onChangeText={(v) => setPhoneNational(v.replace(/\D/g, ''))}
+                      placeholder={t('editProfile.phonePlaceholder')}
+                      placeholderTextColor={COLORS.gray400}
+                      keyboardType="phone-pad"
+                      maxLength={15}
+                    />
+                  </View>
+                ) : (
+                  <TextInput
+                    style={styles.fieldInput}
+                    value={biolinkForm.url}
+                    onChangeText={(v) =>
+                      setBiolinkForm((prev) => ({ ...prev, url: v }))
+                    }
+                    placeholder={t('editProfile.urlPlaceholder')}
+                    placeholderTextColor={COLORS.gray400}
+                    autoCapitalize="none"
+                    keyboardType="url"
+                  />
+                )}
               </View>
 
               <View style={styles.fieldGroup}>
@@ -1325,6 +1454,15 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
           </View>
         </View>
       </Modal>
+
+      {/* Country-code picker — rendered at the root so it overlays
+          every other modal and the inline link form alike. */}
+      <CountryCodePicker
+        visible={countryPickerOpen}
+        onClose={() => setCountryPickerOpen(false)}
+        onSelect={(c) => setPhoneCountry(c)}
+        selectedIso={phoneCountry.iso}
+      />
     </View>
   );
 }
@@ -1798,6 +1936,42 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: COLORS.gray900,
     padding: 0,
+  },
+  // Phone-specific row: [🇹🇼 +886 ▾] [ national number ... ]
+  phoneRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  countryChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 10,
+    borderWidth: 1,
+    borderColor: COLORS.gray200 ?? '#E5E7EB',
+    borderRadius: 8,
+    backgroundColor: COLORS.white,
+  },
+  countryFlag: {
+    fontSize: 18,
+  },
+  countryDial: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: COLORS.gray900,
+  },
+  phoneInput: {
+    flex: 1,
+    fontSize: 14,
+    color: COLORS.gray900,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderWidth: 1,
+    borderColor: COLORS.gray200 ?? '#E5E7EB',
+    borderRadius: 8,
+    backgroundColor: COLORS.white,
   },
   newLinkForm: {
     backgroundColor: '#F9FAFB',
