@@ -3,22 +3,42 @@ import { View, Text, Image, StyleSheet, Animated, Platform } from 'react-native'
 
 /**
  * IG-style launch overlay: small logo centered, 'from PikTag' at bottom.
- * Rendered on top of the app for ~700ms after mount, then fades out.
+ * Rendered on top of the app until the app reports `ready` (auth resolved +
+ * first-screen data hydrated) or the safety-net max wait elapses.
  *
  * This complements the native Expo splash screen (which can only show a
  * static image). The native splash hides automatically when React mounts —
  * this component picks up from there to give the 'from PikTag' branding
- * moment before the real UI becomes visible.
+ * moment while we wait for auth/data to come in.
+ *
+ * Previously this used a hard 700ms `setTimeout` that ignored real
+ * readiness, which on slow networks either flashed the UI too early (data
+ * still loading) or taxed the user unnecessarily (data already ready).
+ * Now it fades out as soon as `ready` flips to `true`, with a 3s
+ * safety-net ceiling so a stuck auth/data fetch can never wedge the
+ * splash.
  */
 type Props = {
+  /** When true, the overlay begins fading out (respects MIN_DISPLAY_MS). */
+  ready?: boolean;
+  /** Safety-net max time to hold the splash (ms). Default 3000. */
+  maxWaitMs?: number;
   onHidden?: () => void;
 };
 
-export default function SplashOverlay({ onHidden }: Props) {
+// Minimum display window so the brand moment still registers even if
+// everything is instantly ready (warm-start, cached session, etc).
+const MIN_DISPLAY_MS = 400;
+
+export default function SplashOverlay({ ready = false, maxWaitMs = 3000, onHidden }: Props) {
   const opacity = useRef(new Animated.Value(1)).current;
+  const fadedRef = useRef(false);
+  const mountedAtRef = useRef(Date.now());
 
   useEffect(() => {
-    const timer = setTimeout(() => {
+    const fadeOut = () => {
+      if (fadedRef.current) return;
+      fadedRef.current = true;
       Animated.timing(opacity, {
         toValue: 0,
         duration: 300,
@@ -26,9 +46,25 @@ export default function SplashOverlay({ onHidden }: Props) {
       }).start(({ finished }) => {
         if (finished) onHidden?.();
       });
-    }, 700);
-    return () => clearTimeout(timer);
-  }, [opacity, onHidden]);
+    };
+
+    // Safety-net: never hold the splash longer than maxWaitMs, even if
+    // `ready` never flips (broken auth, offline, etc). This runs
+    // independently of the ready-driven timer below.
+    const safetyTimer = setTimeout(fadeOut, maxWaitMs);
+
+    let readyTimer: ReturnType<typeof setTimeout> | undefined;
+    if (ready) {
+      const elapsed = Date.now() - mountedAtRef.current;
+      const remaining = Math.max(0, MIN_DISPLAY_MS - elapsed);
+      readyTimer = setTimeout(fadeOut, remaining);
+    }
+
+    return () => {
+      clearTimeout(safetyTimer);
+      if (readyTimer) clearTimeout(readyTimer);
+    };
+  }, [ready, maxWaitMs, opacity, onHidden]);
 
   return (
     <Animated.View
