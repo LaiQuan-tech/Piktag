@@ -66,15 +66,19 @@ export default function LocationContactsScreen({ navigation }: LocationContactsS
       const loc = await getCurrentPositionAsync({ accuracy: Accuracy.Balanced });
       const { latitude, longitude } = loc.coords;
 
-      // Reverse geocode for location name
+      // Reverse geocode for location name. Resolve the display name into a
+      // local variable so later filtering doesn't race setLocationName's
+      // state update (stale-closure bug).
       let geoAddr: LocationGeocodedAddress | null = null;
+      let resolvedLocationName = t('locationContacts.defaultLocation');
       try {
         const results = await reverseGeocodeAsync({ latitude, longitude });
         if (results && results.length > 0) {
           geoAddr = results[0];
-          setLocationName(
-            [geoAddr.city, geoAddr.district || geoAddr.subregion].filter(Boolean).join(' ') || t('locationContacts.defaultLocation')
-          );
+          resolvedLocationName =
+            [geoAddr.city, geoAddr.district || geoAddr.subregion].filter(Boolean).join(' ') ||
+            t('locationContacts.defaultLocation');
+          setLocationName(resolvedLocationName);
         }
       } catch (e) {
         console.warn('Reverse geocode failed:', e);
@@ -115,12 +119,15 @@ export default function LocationContactsScreen({ navigation }: LocationContactsS
 
         setContacts(nearbyProfiles);
 
-        // 2. People whose met_location contains the current location name
+        // 2. People whose met_location contains the current location name.
+        // Use the locally-resolved name (not the state value, which is still
+        // the previous render's value here).
+        const resolvedLower = resolvedLocationName.toLowerCase();
         const metHere = data.filter((c: any) => {
           if (!c.met_location) return false;
           const locLower = c.met_location.toLowerCase();
           return (
-            locLower.includes(locationName.toLowerCase()) ||
+            locLower.includes(resolvedLower) ||
             (geoAddr && (
               locLower.includes(geoAddr.city?.toLowerCase() || '') ||
               locLower.includes(geoAddr.district?.toLowerCase() || '')
