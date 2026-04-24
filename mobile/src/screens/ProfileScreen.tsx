@@ -29,6 +29,7 @@ import { useTheme } from '../context/ThemeContext';
 import { useFocusEffect } from '@react-navigation/native';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
+import { useAuthProfile } from '../context/AuthContext';
 import { getCache, setCache, CACHE_KEYS } from '../lib/dataCache';
 import QrCodeModal from '../components/QrCodeModal';
 import InitialsAvatar from '../components/InitialsAvatar';
@@ -94,9 +95,14 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
   const { t } = useTranslation();
   const { colors, isDark } = useTheme();
   const { user } = useAuth();
+  // Read the (already hydrated) profile from AuthContext so we don't
+  // re-fetch piktag_profiles on every mount. The local `profile`
+  // state mirrors the cached one and is only updated by the
+  // on-focus refresh below.
+  const { profile: ctxProfile, refreshProfile } = useAuthProfile();
   const userId = user?.id;
 
-  const [profile, setProfile] = useState<PiktagProfile | null>(null);
+  const [profile, setProfile] = useState<PiktagProfile | null>(ctxProfile);
   const [userTags, setUserTags] = useState<UserTag[]>([]);
   const [biolinks, setBiolinks] = useState<Biolink[]>([]);
   const [followerCount, setFollowerCount] = useState<number>(0);
@@ -111,15 +117,20 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
 
   // --- Data fetching ---
 
+  // Sync local state with the AuthContext profile.
+  // `refreshProfile` is the canonical "go fetch the fresh row" call;
+  // `fetchProfile` keeps its old name for back-compat with the
+  // `fetchAllData` call site below.
+  useEffect(() => {
+    if (ctxProfile) setProfile(ctxProfile);
+  }, [ctxProfile]);
+
   const fetchProfile = useCallback(async () => {
     if (!userId) return;
-    const { data, error } = await supabase
-      .from('piktag_profiles')
-      .select('*')
-      .eq('id', userId)
-      .single();
-    if (!error && data) setProfile(data as PiktagProfile);
-  }, [userId]);
+    // Delegate to AuthContext — one place to coalesce concurrent
+    // callers + update the cross-screen cache.
+    await refreshProfile();
+  }, [userId, refreshProfile]);
 
   const fetchUserTags = useCallback(async () => {
     if (!userId) return;
@@ -152,6 +163,8 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
 
   const fetchStatus = useCallback(async () => {
     if (!userId) return;
+    // `.maybeSingle()` — a user who hasn't set a status has zero rows
+    // here. `.single()` would throw "PGRST116" and spam Sentry.
     const { data } = await supabase
       .from('piktag_user_status')
       .select('text')
@@ -159,7 +172,7 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
       .gt('expires_at', new Date().toISOString())
       .order('created_at', { ascending: false })
       .limit(1)
-      .single();
+      .maybeSingle();
     setCurrentStatus(data?.text ?? null);
   }, [userId]);
 

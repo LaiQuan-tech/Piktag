@@ -195,8 +195,18 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
   const [editingReminder, setEditingReminder] = useState<ReminderField | null>(null);
   const [reminderInput, setReminderInput] = useState('');
 
+  // Cancels the inflight fetchData when the screen blurs / the
+  // friendId changes, so a slow network on a prior screen doesn't
+  // write state for the wrong friend.
+  const abortRef = useRef<AbortController | null>(null);
+
   const fetchData = useCallback(async () => {
     if (!user || !friendId) return;
+
+    if (abortRef.current) abortRef.current.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
+    const { signal } = controller;
 
     try {
       setLoading(true);
@@ -210,10 +220,14 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
         myConnectionsResult,
         friendConnectionsResult,
       ] = await Promise.all([
+        // `.maybeSingle()` — an invalid/expired connectionId shouldn't
+        // throw, it should just fall through to "no connection found".
         connectionId
-          ? supabase.from('piktag_connections').select('*').eq('id', connectionId).single()
+          ? supabase.from('piktag_connections').select('*').eq('id', connectionId).maybeSingle()
           : Promise.resolve({ data: null, error: null }),
-        supabase.from('piktag_profiles').select('*').eq('id', friendId).single(),
+        // Profile can be missing if the user was deleted; the 404
+        // render-path below expects a null, not a throw.
+        supabase.from('piktag_profiles').select('*').eq('id', friendId).maybeSingle(),
         supabase
           .from('piktag_biolinks')
           .select('*')
@@ -253,7 +267,7 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
       // Fetch friend's follower count + check if following
       const [followerResult, followingResult] = await Promise.all([
         supabase.from('piktag_follows').select('id', { count: 'exact', head: true }).eq('following_id', friendId),
-        supabase.from('piktag_follows').select('id').eq('follower_id', user!.id).eq('following_id', friendId).single(),
+        supabase.from('piktag_follows').select('id').eq('follower_id', user!.id).eq('following_id', friendId).maybeSingle(),
       ]);
       const fFollowerCount = followerResult.count;
       setIsFollowing(!!followingResult.data);
@@ -296,7 +310,7 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
             .from('piktag_scan_sessions')
             .select('event_tags')
             .eq('id', connData.scan_session_id)
-            .single()
+            .maybeSingle()
           ).then(({ data }) => {
             if (data?.event_tags)
               dispatchFriendData({ type: 'SET_SCAN_EVENT_TAGS', scanEventTags: data.event_tags });
@@ -421,15 +435,18 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
 
       if (phase2.length > 0) await Promise.all(phase2);
     } catch (err) {
-      console.error('Error fetching friend data:', err);
+      if (!signal.aborted) console.error('Error fetching friend data:', err);
     } finally {
-      setLoading(false);
+      if (!signal.aborted) setLoading(false);
     }
   }, [user, connectionId, friendId]);
 
   useFocusEffect(
     useCallback(() => {
       fetchData();
+      return () => {
+        abortRef.current?.abort();
+      };
     }, [fetchData])
   );
 

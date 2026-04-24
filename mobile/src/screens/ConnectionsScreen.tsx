@@ -441,11 +441,15 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
     setBatchTagLoading(true);
     try {
       let tagId: string;
+      // `.maybeSingle()` — a new tag name that nobody has used before
+      // is a normal case here, not an error. `.single()` was throwing
+      // and falling through to the "create tag" branch by accident;
+      // the explicit null check is cleaner.
       const { data: existingTag } = await supabase
         .from('piktag_tags')
         .select('id')
         .eq('name', tagName)
-        .single();
+        .maybeSingle();
 
       if (existingTag) {
         tagId = existingTag.id;
