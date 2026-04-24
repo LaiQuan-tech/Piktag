@@ -100,17 +100,32 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
   // Add/remove logic lives in <HiddenTagEditor>.
   const [hiddenTags, setHiddenTags] = useState<{ id: string; tagId: string; name: string }[]>([]);
 
+  // Tracks the inflight fetchData pass so that navigating away (or the
+  // target userId changing under us) cancels the stale work before its
+  // setState calls land. Prior behavior: a slow network on a prior
+  // screen would keep writing into state after we'd moved on.
+  const abortRef = useRef<AbortController | null>(null);
+
   const fetchData = useCallback(async () => {
     if (!authUser) return;
 
-    // Resolve userId: either passed directly or looked up from username
+    // Cancel any previous inflight pass.
+    if (abortRef.current) abortRef.current.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
+    const { signal } = controller;
+
+    // Resolve userId: either passed directly or looked up from username.
+    // `.maybeSingle()` — a missing username shouldn't throw, it should
+    // render the "user not found" state.
     let userId = resolvedUserId;
     if (!userId && paramUsername) {
       const { data: lookupData } = await supabase
         .from('piktag_profiles')
         .select('id')
         .eq('username', paramUsername)
-        .single();
+        .maybeSingle();
+      if (signal.aborted) return;
       if (lookupData) {
         userId = lookupData.id;
         setResolvedUserId(userId);
@@ -124,180 +139,108 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
     try {
       setLoading(true);
 
-      // Fetch user profile
-      const { data: profileData } = await supabase
-        .from('piktag_profiles')
-        .select('*')
-        .eq('id', userId)
-        .single();
-      if (profileData) setProfile(profileData);
+      // --- Wave 1: one consolidated RPC instead of 13+ round-trips ---
+      //
+      // get_user_detail packs profile + biolinks + their-tags + my-tag-ids +
+      // follower-count + follow-state + connection-id + close-friend-flag +
+      // mutual-friend-count + mutual-tag-ids + pick-counts into a single
+      // JSON payload. This is what powers the initial paint; the
+      // similar-users strip below is fetched separately because it's
+      // collapsible / beneath the fold.
+      const { data: detail, error: detailErr } = await supabase.rpc('get_user_detail', {
+        target_user_id: userId,
+        viewer_id: authUser.id,
+      });
+      if (signal.aborted) return;
 
-      // Check follow status
-      const { data: followData } = await supabase
-        .from('piktag_follows')
-        .select('id')
-        .eq('follower_id', authUser.id)
-        .eq('following_id', userId)
-        .maybeSingle();
-      setIsFollowing(!!followData);
+      if (detailErr || !detail) {
+        // Fall through — profile load failure will render the 404 state.
+        console.warn('[UserDetail] get_user_detail failed:', detailErr);
+      }
 
-      // Fetch user's tags + my tags for mutual check + pick count for sorting
-      const [userTagsResult, myTagsResult] = await Promise.all([
-        supabase.from('piktag_user_tags').select('*, tag:piktag_tags!tag_id(*)').eq('user_id', userId).eq('is_private', false),
-        supabase.from('piktag_user_tags').select('tag_id').eq('user_id', authUser.id).eq('is_private', false),
-      ]);
+      const d = (detail as any) || {};
+      if (d.profile) setProfile(d.profile);
 
-      if (userTagsResult.data && userTagsResult.data.length > 0) {
-        const myTagIds = new Set((myTagsResult.data || []).map((t: any) => t.tag_id));
+      // Biolinks: filter by viewer relation, same as prior direct query.
+      if (Array.isArray(d.biolinks)) {
+        const relation = await getViewerRelation(authUser.id, userId);
+        if (signal.aborted) return;
+        setBiolinks(filterBiolinksByVisibility(d.biolinks, relation));
+      }
 
-        // Get pick counts — how many connections tagged this user with each tag
-        const { data: allConnsToUser } = await supabase.from('piktag_connections').select('id').eq('connected_user_id', userId);
-        const connIds = (allConnsToUser || []).map((c: any) => c.id);
-        const pickCountMap = new Map<string, number>();
-        if (connIds.length > 0) {
-          const { data: allPicks } = await supabase.from('piktag_connection_tags').select('tag_id').in('connection_id', connIds).eq('is_private', false);
-          (allPicks || []).forEach((p: any) => pickCountMap.set(p.tag_id, (pickCountMap.get(p.tag_id) || 0) + 1));
-        }
-
-        // Sort: isPinned → pickCount → mutual → position (no isPicked for strangers)
-        const sorted = userTagsResult.data
+      // Their tags: sort client-side using pick_counts + my_tag_ids
+      // returned by the RPC (no extra round-trip for pick counts).
+      const myTagIds = new Set<string>(Array.isArray(d.my_tag_ids) ? d.my_tag_ids : []);
+      const pickCounts: Record<string, number> = d.pick_counts || {};
+      if (Array.isArray(d.their_tags)) {
+        const sorted = d.their_tags
           .filter((ut: any) => ut.tag?.name)
+          .slice()
           .sort((a: any, b: any) => {
             const aPinned = a.is_pinned ? 1 : 0;
             const bPinned = b.is_pinned ? 1 : 0;
             if (aPinned !== bPinned) return bPinned - aPinned;
-            const aPick = pickCountMap.get(a.tag_id) || 0;
-            const bPick = pickCountMap.get(b.tag_id) || 0;
+            const aPick = Number(pickCounts[a.tag_id] || 0);
+            const bPick = Number(pickCounts[b.tag_id] || 0);
             if (aPick !== bPick) return bPick - aPick;
             const aIsMutual = myTagIds.has(a.tag_id) ? 1 : 0;
             const bIsMutual = myTagIds.has(b.tag_id) ? 1 : 0;
             if (aIsMutual !== bIsMutual) return bIsMutual - aIsMutual;
             return (a.position || 0) - (b.position || 0);
           });
-
         setTags(sorted.map((ut: any) => `#${ut.tag.name}`));
+
+        // Mutual-tag list with names for the clickable modal.
+        const mutualList = sorted
+          .filter((ut: any) => myTagIds.has(ut.tag_id))
+          .map((ut: any) => ({ id: ut.tag.id || ut.tag_id, name: ut.tag.name }));
+        setMutualTags(mutualList.length);
+        setMutualTagList(mutualList);
       }
 
-      // Fetch biolinks
-      const { data: biolinksData } = await supabase
-        .from('piktag_biolinks')
-        .select('*')
-        .eq('user_id', userId)
-        .eq('is_active', true)
-        .order('position', { ascending: true });
-      if (biolinksData) {
-        // Filter biolinks by viewer's relationship
-        const relation = await getViewerRelation(authUser?.id, userId);
-        setBiolinks(filterBiolinksByVisibility(biolinksData, relation));
-      }
+      setFollowerCount(Number(d.follower_count || 0));
+      setIsFollowing(!!d.is_following);
+      setConnectionId(d.connection_id ?? null);
+      setIsCloseFriend(!!d.is_close_friend);
+      setMutualFriends(Number(d.mutual_friends || 0));
 
-      // Calculate mutual friends
-      const { data: myConnections } = await supabase
-        .from('piktag_connections')
-        .select('connected_user_id')
-        .eq('user_id', authUser.id);
+      // --- Wave 2: similar-users bundle (RPC) ---
+      // Fires in parallel with no client-side dependency on wave 1's
+      // completion, but we await it so the section populates before we
+      // flip loading=false (keeps the UI from flashing an empty row).
+      const { data: similar, error: similarErr } = await supabase.rpc('get_similar_users', {
+        target_user_id: userId,
+        viewer_id: authUser.id,
+        max_results: 6,
+      });
+      if (signal.aborted) return;
 
-      const { data: theirConnections } = await supabase
-        .from('piktag_connections')
-        .select('connected_user_id')
-        .eq('user_id', userId);
-
-      if (myConnections && theirConnections) {
-        const myFriendIds = new Set(myConnections.map((c: any) => c.connected_user_id));
-        const mutual = theirConnections.filter((c: any) => myFriendIds.has(c.connected_user_id));
-        setMutualFriends(mutual.length);
-      }
-
-      // Calculate mutual tags (with names for clickable display)
-      const { data: myUserTags } = await supabase
-        .from('piktag_user_tags')
-        .select('tag_id, piktag_tags!inner(id, name)')
-        .eq('user_id', authUser.id);
-
-      const { data: theirUserTags } = await supabase
-        .from('piktag_user_tags')
-        .select('tag_id')
-        .eq('user_id', userId)
-        .eq('is_private', false);
-
-      if (myUserTags && theirUserTags) {
-        const myTagIds = new Set(myUserTags.map((t: any) => t.tag_id));
-        const myTagMap = new Map(myUserTags.map((t: any) => [t.tag_id, { id: (t.piktag_tags as any)?.id, name: (t.piktag_tags as any)?.name }]));
-        const mutualIds = theirUserTags.filter((t: any) => myTagIds.has(t.tag_id));
-        setMutualTags(mutualIds.length);
-        setMutualTagList(mutualIds.map((t: any) => myTagMap.get(t.tag_id)).filter(Boolean) as { id: string; name: string }[]);
-      }
-
-      // Fetch follower count + check existing connection
-      const [followerResult, connResult] = await Promise.all([
-        supabase.from('piktag_follows').select('id', { count: 'exact', head: true }).eq('following_id', userId),
-        supabase.from('piktag_connections').select('id').eq('user_id', authUser.id).eq('connected_user_id', userId).single(),
-      ]);
-      setFollowerCount(followerResult.count ?? 0);
-      if (connResult.data) setConnectionId(connResult.data.id);
-
-      // Check close friend
-      const { data: cfData } = await supabase
-        .from('piktag_close_friends')
-        .select('id')
-        .eq('user_id', authUser.id)
-        .eq('close_friend_id', userId)
-        .maybeSingle();
-      setIsCloseFriend(!!cfData);
-
-      // Fetch similar users (share same tags, exclude self + this user)
-      if (theirUserTags && theirUserTags.length > 0) {
-        const theirTagIds = theirUserTags.map((t: any) => t.tag_id);
-        const { data: sharedTagUsers } = await supabase
-          .from('piktag_user_tags')
-          .select('user_id')
-          .in('tag_id', theirTagIds)
-          .eq('is_private', false);
-        if (sharedTagUsers) {
-          const userIds = [...new Set(sharedTagUsers.map((u: any) => u.user_id))]
-            .filter(id => id !== userId && id !== authUser.id)
-            .slice(0, 10);
-          if (userIds.length > 0) {
-            const { data: profiles } = await supabase
-              .from('piktag_profiles')
-              .select('id, username, full_name, avatar_url, is_verified')
-              .in('id', userIds)
-              .eq('is_public', true)
-              .limit(6);
-            if (profiles) {
-              setSimilarUsers(profiles);
-              // Fetch mutual friends for each similar user
-              const myConns = await supabase.from('piktag_connections').select('connected_user_id').eq('user_id', authUser.id);
-              if (myConns.data) {
-                const myFriendIds = new Set(myConns.data.map((c: any) => c.connected_user_id));
-                const mutualMap = new Map<string, any[]>();
-                for (const p of profiles) {
-                  const { data: theirConns } = await supabase
-                    .from('piktag_connections')
-                    .select('connected_user_id, connected_user:piktag_profiles!connected_user_id(id, avatar_url, full_name)')
-                    .eq('user_id', p.id)
-                    .limit(50);
-                  if (theirConns) {
-                    const mutuals = theirConns.filter((c: any) => myFriendIds.has(c.connected_user_id)).map((c: any) => c.connected_user).slice(0, 3);
-                    if (mutuals.length > 0) mutualMap.set(p.id, mutuals);
-                  }
-                }
-                setSimilarMutualFriends(mutualMap);
-              }
-            }
-          }
+      if (!similarErr && similar) {
+        const s = similar as any;
+        const users: PiktagProfile[] = Array.isArray(s.users) ? s.users : [];
+        setSimilarUsers(users);
+        const mutualsObj = (s.mutuals || {}) as Record<string, any[]>;
+        const mutualMap = new Map<string, any[]>();
+        for (const uid of Object.keys(mutualsObj)) {
+          mutualMap.set(uid, mutualsObj[uid] || []);
         }
+        setSimilarMutualFriends(mutualMap);
       }
     } catch (err) {
-      console.error('Error fetching user data:', err);
+      if (!signal.aborted) console.error('Error fetching user data:', err);
     } finally {
-      setLoading(false);
+      if (!signal.aborted) setLoading(false);
     }
   }, [authUser, resolvedUserId, paramUsername]);
 
   useFocusEffect(
     useCallback(() => {
       fetchData();
+      return () => {
+        // When the screen blurs (or unmounts), cancel any inflight RPC
+        // so its setState calls don't fire against a stale target.
+        abortRef.current?.abort();
+      };
     }, [fetchData])
   );
 
@@ -664,7 +607,7 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
         .from('piktag_scan_sessions')
         .select('event_tags, event_date, event_location')
         .eq('id', paramSid)
-        .single();
+        .maybeSingle();
       if (data) {
         setEventInfo({
           tags: data.event_tags || [],
