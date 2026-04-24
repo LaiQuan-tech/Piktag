@@ -28,3 +28,7 @@ credentials.json
 npm-debug.*
 yarn-debug.*
 yarn-error.*
+
+# ad-hoc test/QA reports at the repo root (keep curated ones under docs/)
+/test-report*.md
+/test-report*.txt
