@@ -9,6 +9,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import './src/i18n'; // Initialize i18n
 import AppNavigator from './src/navigation/AppNavigator';
 import { ThemeProvider } from './src/context/ThemeContext';
+import { AuthProvider } from './src/context/AuthContext';
 import SplashOverlay from './src/components/SplashOverlay';
 
 // Initialize Sentry for production crash & error monitoring.
@@ -101,15 +102,17 @@ function App() {
 
   const content = (
     <ThemeProvider>
-      <GestureHandlerRootView style={{ flex: 1 }}>
-        <SafeAreaProvider>
-          <NavigationContainer ref={navigationRef} linking={linking}>
-            <ExpoStatusBar style="dark" />
-            <AppNavigator />
-            {splashVisible && <SplashOverlay onHidden={() => setSplashVisible(false)} />}
-          </NavigationContainer>
-        </SafeAreaProvider>
-      </GestureHandlerRootView>
+      <AuthProvider>
+        <GestureHandlerRootView style={{ flex: 1 }}>
+          <SafeAreaProvider>
+            <NavigationContainer ref={navigationRef} linking={linking}>
+              <ExpoStatusBar style="dark" />
+              <AppNavigator />
+              {splashVisible && <SplashOverlay onHidden={() => setSplashVisible(false)} />}
+            </NavigationContainer>
+          </SafeAreaProvider>
+        </GestureHandlerRootView>
+      </AuthProvider>
     </ThemeProvider>
   );
 

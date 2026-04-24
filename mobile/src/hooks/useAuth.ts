@@ -1,6 +1,10 @@
-import { useState, useEffect } from 'react';
-import { supabase } from '../lib/supabase';
+import { useAuthContext } from '../context/AuthContext';
 import type { User, Session } from '@supabase/supabase-js';
+
+// Back-compat: `useAuth()` now reads from AuthContext so that each
+// screen mount doesn't re-fetch the session (and subscribe its own
+// onAuthStateChange listener). The returned shape matches the prior
+// hook — existing call sites don't need to change.
 
 type UseAuthReturn = {
   user: User | null;
@@ -10,35 +14,6 @@ type UseAuthReturn = {
 };
 
 export function useAuth(): UseAuthReturn {
-  const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    // Get the initial session
-    supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
-      setSession(currentSession);
-      setUser(currentSession?.user ?? null);
-      setLoading(false);
-    });
-
-    // Listen for auth state changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, newSession) => {
-        setSession(newSession);
-        setUser(newSession?.user ?? null);
-        setLoading(false);
-      }
-    );
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, []);
-
-  const signOut = async () => {
-    await supabase.auth.signOut();
-  };
-
+  const { user, session, loading, signOut } = useAuthContext();
   return { user, session, loading, signOut };
 }
