@@ -1,6 +1,12 @@
 import { useState, useEffect } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from '../lib/supabase';
 import type { User, Session } from '@supabase/supabase-js';
+
+// Must match the key in AppNavigator/OnboardingScreen. On sign-out we
+// wipe it so a different user logging in on the same device still goes
+// through onboarding as they should.
+const ONBOARDING_COMPLETED_KEY = 'piktag_onboarding_completed_v1';
 
 type UseAuthReturn = {
   user: User | null;
@@ -37,6 +43,13 @@ export function useAuth(): UseAuthReturn {
   }, []);
 
   const signOut = async () => {
+    // Clear onboarding flag first so the next sign-in on this device
+    // re-evaluates onboarding against the new user's account state.
+    try {
+      await AsyncStorage.removeItem(ONBOARDING_COMPLETED_KEY);
+    } catch {
+      // Non-fatal — worst case the next user skips onboarding once.
+    }
     await supabase.auth.signOut();
   };
 
