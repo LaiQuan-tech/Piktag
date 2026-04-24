@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import {
   View,
   Text,
@@ -521,17 +521,65 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
     }
   };
 
-  const handleDragEnd = async ({ data }: { data: Biolink[] }) => {
-    setBiolinks(data);
-    // Update positions in DB
+  // --- Biolink reorder: serialize + coalesce to kill the race ---
+  //
+  // Prior behavior: every drag-end fired N UPDATE statements in
+  // Promise.all. Rapid re-orders stacked concurrent writes and the
+  // last-to-land was not guaranteed to be the user's actual final
+  // order — we saw rows flicker back to a stale position when the
+  // server returned out-of-order. The races also tripped the API
+  // rate-limit on "spam users".
+  //
+  // New behavior: only one save runs at a time. The `pendingOrderRef`
+  // always holds the latest order the user wants; while a save is
+  // inflight, new reorders update that ref only. When the save
+  // completes, we check if the ref has drifted and kick off one more
+  // save. This guarantees the final on-server order matches the last
+  // drag-end, with at most 1 inflight write per ~RTT.
+  //
+  // A `saving` flag drives the small "儲存中" indicator in the UI
+  // (existing `saving` state is used — a dedicated flag would
+  // also be fine).
+  const pendingOrderRef = useRef<Biolink[] | null>(null);
+  const savingOrderRef = useRef<boolean>(false);
+  const [reorderSaving, setReorderSaving] = useState(false);
+
+  const runReorderSave = useCallback(async () => {
+    if (savingOrderRef.current) return;
+    savingOrderRef.current = true;
+    setReorderSaving(true);
     try {
-      await Promise.all(
-        data.map((link, i) =>
-          supabase.from('piktag_biolinks').update({ position: i }).eq('id', link.id)
-        )
-      );
-    } catch {}
-  };
+      // Drain pending orders in a single-flight loop so the final
+      // server state reflects the *latest* user-visible order.
+      while (pendingOrderRef.current) {
+        const snapshot = pendingOrderRef.current;
+        pendingOrderRef.current = null;
+        try {
+          await Promise.all(
+            snapshot.map((link, i) =>
+              supabase.from('piktag_biolinks').update({ position: i }).eq('id', link.id)
+            )
+          );
+        } catch (err) {
+          console.warn('[biolink-reorder] save failed:', err);
+          // If it fails, break out — don't infinite-loop on a dead
+          // network. The next drag-end will retry.
+          break;
+        }
+      }
+    } finally {
+      savingOrderRef.current = false;
+      setReorderSaving(false);
+    }
+  }, []);
+
+  const handleDragEnd = useCallback(({ data }: { data: Biolink[] }) => {
+    // Optimistic UI update — instant.
+    setBiolinks(data);
+    // Stash the latest order and wake the saver.
+    pendingOrderRef.current = data;
+    void runReorderSave();
+  }, [runReorderSave]);
 
   const handleDeleteBiolink = (biolink: Biolink) => {
     Alert.alert(
@@ -595,35 +643,51 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
 
     setAddingTag(true);
     try {
-      // 1. Check if tag exists
+      // 1. Check if tag exists. maybeSingle() avoids the PGRST116 "no rows"
+      // false-positive error that .single() produces on brand-new tags.
       let tagId: string;
       const { data: existingTag, error: findError } = await supabase
         .from('piktag_tags')
         .select('id')
         .eq('name', rawName)
-        .single();
+        .maybeSingle();
 
       if (findError) {
         console.warn('[EditProfileScreen] handleAddTag findError:', findError.message);
       }
 
-      if (existingTag && !findError) {
+      if (existingTag) {
         tagId = existingTag.id;
       } else {
-        // 2. Create new tag
+        // 2. Create new tag. Another client may have inserted the same name
+        // between our select and insert — the unique index turns that into
+        // a 23505 error, so re-select in that case instead of surfacing it.
         const { data: newTag, error: createError } = await supabase
           .from('piktag_tags')
           .insert({ name: rawName })
           .select('id')
           .single();
 
-        if (createError || !newTag) {
+        if (newTag) {
+          tagId = newTag.id;
+        } else if (createError && (createError as any).code === '23505') {
+          const { data: raced } = await supabase
+            .from('piktag_tags')
+            .select('id')
+            .eq('name', rawName)
+            .maybeSingle();
+          if (!raced) {
+            Alert.alert(t('common.error'), t('manageTags.alertAddError'));
+            setAddingTag(false);
+            return;
+          }
+          tagId = raced.id;
+        } else {
           console.warn('[EditProfileScreen] handleAddTag createError:', createError?.message);
           Alert.alert(t('common.error'), t('manageTags.alertAddError'));
           setAddingTag(false);
           return;
         }
-        tagId = newTag.id;
       }
 
       // 3. Calculate next position
@@ -930,7 +994,12 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
 
           {/* Biolinks Section */}
           <View style={styles.biolinksSection}>
-            <Text style={styles.sectionTitle}>{t('editProfile.socialLinksTitle')}</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+              <Text style={styles.sectionTitle}>{t('editProfile.socialLinksTitle')}</Text>
+              {reorderSaving && (
+                <ActivityIndicator size="small" color={COLORS.piktag500} />
+              )}
+            </View>
             {biolinks.length === 0 && (
               <Text style={styles.emptyText}>{t('editProfile.noSocialLinks')}</Text>
             )}

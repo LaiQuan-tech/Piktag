@@ -135,15 +135,24 @@ export default function ScanResultScreen({ navigation, route }: ScanResultScreen
 
     setSubmitting(true);
     try {
-      // Helper: find or create tag by name
+      // Helper: find or create tag by name. The insert races with other
+      // clients, so a unique-constraint violation just means someone else
+      // won — look the row back up instead of surfacing the error.
       const findOrCreateTag = async (tagName: string): Promise<string | null> => {
         const rawName = tagName.startsWith('#') ? tagName.slice(1) : tagName;
         const { data: existing } = await supabase
           .from('piktag_tags').select('id').eq('name', rawName).maybeSingle();
         if (existing) return existing.id;
-        const { data: created } = await supabase
+        const { data: created, error: createErr } = await supabase
           .from('piktag_tags').insert({ name: rawName }).select('id').single();
-        return created?.id || null;
+        if (created) return created.id;
+        // 23505 = unique_violation: another request created it first.
+        if (createErr && (createErr as any).code === '23505') {
+          const { data: raced } = await supabase
+            .from('piktag_tags').select('id').eq('name', rawName).maybeSingle();
+          return raced?.id || null;
+        }
+        return null;
       };
 
       // Resolve public tags (from my selected tags)
@@ -252,17 +261,28 @@ export default function ScanResultScreen({ navigation, route }: ScanResultScreen
           .from('piktag_tags')
           .select('id')
           .eq('name', relationTagName)
-          .single();
+          .maybeSingle();
 
         if (existingRelTag) {
           relationTagId = existingRelTag.id;
         } else {
-          const { data: newRelTag } = await supabase
+          const { data: newRelTag, error: relErr } = await supabase
             .from('piktag_tags')
             .insert({ name: relationTagName, semantic_type: 'relation' })
             .select('id')
             .single();
-          relationTagId = newRelTag?.id || null;
+          if (newRelTag) {
+            relationTagId = newRelTag.id;
+          } else if (relErr && (relErr as any).code === '23505') {
+            const { data: raced } = await supabase
+              .from('piktag_tags')
+              .select('id')
+              .eq('name', relationTagName)
+              .maybeSingle();
+            relationTagId = raced?.id || null;
+          } else {
+            relationTagId = null;
+          }
         }
 
         if (relationTagId) {

@@ -188,9 +188,18 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
     let { data: tag } = await supabase
       .from('piktag_tags').select('id').eq('name', name).maybeSingle();
     if (!tag) {
-      const { data: newTag } = await supabase
+      // Guard against the select-then-insert race: if another client just
+      // created this tag, the insert hits the unique index (Postgres error
+      // 23505). Re-select to grab the winner's id.
+      const { data: newTag, error: insertErr } = await supabase
         .from('piktag_tags').insert({ name }).select('id').single();
-      tag = newTag;
+      if (newTag) {
+        tag = newTag;
+      } else if (insertErr && (insertErr as any).code === '23505') {
+        const { data: raced } = await supabase
+          .from('piktag_tags').select('id').eq('name', name).maybeSingle();
+        tag = raced ?? null;
+      }
     }
     return tag?.id ?? null;
   }, []);

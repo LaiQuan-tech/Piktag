@@ -127,13 +127,28 @@ export default function HiddenTagEditor({ connectionId, userId, hiddenTags, onTa
       if (existing) {
         tagId = existing.id;
       } else {
-        const { data: newTag } = await supabase
+        // Race-safe insert: concurrent clients can both take the `!existing`
+        // branch. The unique index on piktag_tags.name will reject the
+        // loser with Postgres error 23505; look up the winning row instead
+        // of giving up silently.
+        const { data: newTag, error: insertErr } = await supabase
           .from('piktag_tags')
           .insert({ name })
           .select('id')
           .single();
-        if (!newTag) return;
-        tagId = newTag.id;
+        if (newTag) {
+          tagId = newTag.id;
+        } else if (insertErr && (insertErr as any).code === '23505') {
+          const { data: raced } = await supabase
+            .from('piktag_tags')
+            .select('id')
+            .eq('name', name)
+            .maybeSingle();
+          if (!raced) return;
+          tagId = raced.id;
+        } else {
+          return;
+        }
       }
       await supabase.from('piktag_connection_tags').insert({
         connection_id: connectionId,

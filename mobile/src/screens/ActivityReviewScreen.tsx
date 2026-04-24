@@ -207,8 +207,18 @@ export default function ActivityReviewScreen({ navigation, route }: Props) {
     (async () => {
       let { data: tag } = await supabase.from('piktag_tags').select('id').eq('name', rawTag).maybeSingle();
       if (!tag) {
-        const { data: newTag } = await supabase.from('piktag_tags').insert({ name: rawTag }).select('id').single();
-        tag = newTag;
+        // Race-safe insert: if another client created the same tag between
+        // our select and insert, recover via the unique-violation path
+        // instead of silently dropping this activity review.
+        const { data: newTag, error: insertErr } = await supabase
+          .from('piktag_tags').insert({ name: rawTag }).select('id').single();
+        if (newTag) {
+          tag = newTag;
+        } else if (insertErr && (insertErr as any).code === '23505') {
+          const { data: raced } = await supabase
+            .from('piktag_tags').select('id').eq('name', rawTag).maybeSingle();
+          tag = raced ?? null;
+        }
       }
       if (tag) {
         await supabase.from('piktag_connection_tags').insert({
