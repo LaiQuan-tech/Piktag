@@ -855,7 +855,7 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
         <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
           <TouchableOpacity
             style={styles.headerBackBtn}
-            onPress={() => navigation.canGoBack() ? navigation.canGoBack() ? navigation.goBack() : navigation.navigate("Connections") : navigation.navigate('Connections')}
+            onPress={() => navigation.canGoBack() ? navigation.goBack() : navigation.navigate('Connections')}
             activeOpacity={0.6}
           >
             <ArrowLeft size={24} color={COLORS.gray900} />
@@ -877,7 +877,7 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
         <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
           <TouchableOpacity
             style={styles.headerBackBtn}
-            onPress={() => navigation.canGoBack() ? navigation.canGoBack() ? navigation.goBack() : navigation.navigate("Connections") : navigation.navigate('Connections')}
+            onPress={() => navigation.canGoBack() ? navigation.goBack() : navigation.navigate('Connections')}
             activeOpacity={0.6}
           >
             <ArrowLeft size={24} color={COLORS.gray900} />
@@ -1409,7 +1409,7 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
                 await supabase.from('piktag_blocks')
                   .upsert({ blocker_id: authUser.id, blocked_id: resolvedUserId }, { onConflict: 'blocker_id,blocked_id' });
                 Alert.alert(t('userDetail.blockedTitle') || '已封鎖', t('userDetail.blockedMessage') || '你將不再看到此用戶');
-                navigation.goBack();
+                if (navigation.canGoBack()) navigation.goBack(); else navigation.navigate('Main', { screen: 'HomeTab' });
               }}
             >
               <X size={20} color="#EF4444" />

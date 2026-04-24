@@ -55,7 +55,13 @@ export default function RedeemInviteScreen({ navigation, route }: Props) {
         Alert.alert(
           t('redeemInvite.successTitle') || 'Invite redeemed',
           t('redeemInvite.successMessage') || 'You can now connect with the person who invited you!',
-          [{ text: t('common.ok') || 'OK', onPress: () => navigation.goBack() }],
+          [{ text: t('common.ok') || 'OK', onPress: () => {
+            // Deep-linked entry (invite/:code) has no back stack, so
+            // fall through to the home tab instead of crashing on
+            // native-stack's "nothing to go back to" invariant.
+            if (navigation.canGoBack()) navigation.goBack();
+            else navigation.navigate('Main', { screen: 'HomeTab' });
+          } }],
         );
       } else {
         const reason = row?.message || 'unknown';
@@ -92,7 +98,13 @@ export default function RedeemInviteScreen({ navigation, route }: Props) {
     >
       <StatusBar barStyle="dark-content" />
       <View style={[styles.header, { paddingTop: insets.top + 8, borderBottomColor: colors.border }]}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+        <TouchableOpacity
+          onPress={() => {
+            if (navigation.canGoBack()) navigation.goBack();
+            else navigation.navigate('Main', { screen: 'HomeTab' });
+          }}
+          style={styles.backBtn}
+        >
           <ArrowLeft size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={[styles.headerTitle, { color: colors.text }]}>
