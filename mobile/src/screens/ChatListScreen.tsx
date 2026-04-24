@@ -48,6 +48,11 @@ type Props = {
   navigation: NativeStackNavigationProp<ChatListParamList, 'ChatList'>;
 };
 
+// Keep in sync with ConversationRow's fixed layout — see the getItemLayout
+// callback below for the derivation. Defined at module scope so the
+// callback closure stays stable across renders.
+const CONVERSATION_ROW_HEIGHT = 84;
+
 function bucket(c: InboxConversation, meId: string): InboxTab {
   // Manual override wins over computed default. Set via the ⋯ menu →
   // "Move to …" → set_conversation_folder RPC. When NULL (the common
@@ -300,6 +305,19 @@ export default function ChatListScreen({ navigation }: Props): JSX.Element {
 
   const keyExtractor = useCallback((item: InboxConversation) => item.id, []);
 
+  // Fixed row height: 10+10 paddingVertical + 56 avatar + 2*2 borderWidth
+  // + 2*2 padding on avatarWrap = 84. Hard-coding this lets FlatList
+  // skip the onLayout measurement pass for each row, which was the main
+  // contributor to the avatar flicker users saw while typing in search.
+  const getItemLayout = useCallback(
+    (_: ArrayLike<InboxConversation> | null | undefined, index: number) => ({
+      length: CONVERSATION_ROW_HEIGHT,
+      offset: CONVERSATION_ROW_HEIGHT * index,
+      index,
+    }),
+    [],
+  );
+
   const headerTitle = useMemo(() => {
     if (headerProfile?.username) return `@${headerProfile.username}`;
     if (headerProfile?.full_name) return headerProfile.full_name;
@@ -477,6 +495,7 @@ export default function ChatListScreen({ navigation }: Props): JSX.Element {
         data={visibleList}
         renderItem={renderItem}
         keyExtractor={keyExtractor}
+        getItemLayout={getItemLayout}
         refreshControl={refreshControl}
         contentContainerStyle={
           visibleList.length === 0 ? styles.listContentEmpty : styles.listContent

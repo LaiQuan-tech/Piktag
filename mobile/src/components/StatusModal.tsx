@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
+  Alert,
   View,
   Text,
   Modal,
@@ -57,17 +58,31 @@ export default function StatusModal({
 
   const handleSave = async () => {
     if (!user?.id || saving) return;
+    // Snapshot pre-save text so we can revert on failure without the
+    // modal looking like it accepted the change.
+    const previousText = initialText ?? '';
+    const nextText = text.trim();
     setSaving(true);
     try {
       const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
-      await supabase
+      const { error } = await supabase
         .from('piktag_user_status')
         .upsert(
-          { user_id: user.id, text: text.trim(), expires_at: expiresAt },
+          { user_id: user.id, text: nextText, expires_at: expiresAt },
           { onConflict: 'user_id' },
         );
-      onStatusUpdated(text.trim() || null);
+      if (error) throw error;
+      onStatusUpdated(nextText || null);
       onClose();
+    } catch (e) {
+      // Revert the in-modal text so the user sees what's actually
+      // persisted, not the draft they just failed to save. Surface via
+      // Alert (matches the project's existing error-feedback pattern in
+      // ChatListScreen). We deliberately leave the modal open so the
+      // user can retry without reopening.
+      setText(previousText);
+      const message = e instanceof Error ? e.message : '儲存失敗，請重試';
+      Alert.alert('儲存失敗', message);
     } finally {
       setSaving(false);
     }
@@ -75,14 +90,20 @@ export default function StatusModal({
 
   const handleClear = async () => {
     if (!user?.id || saving) return;
+    const previousText = initialText ?? '';
     setSaving(true);
     try {
-      await supabase
+      const { error } = await supabase
         .from('piktag_user_status')
         .delete()
         .eq('user_id', user.id);
+      if (error) throw error;
       onStatusUpdated(null);
       onClose();
+    } catch (e) {
+      setText(previousText);
+      const message = e instanceof Error ? e.message : '清除失敗，請重試';
+      Alert.alert('清除失敗', message);
     } finally {
       setSaving(false);
     }

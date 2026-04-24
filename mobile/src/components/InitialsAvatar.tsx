@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Image, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
+import { Image } from 'expo-image';
 
 // 8 pleasant muted/pastel colors that complement the PikTag aesthetic
 const COLOR_PALETTE = [
@@ -73,7 +74,13 @@ const InitialsAvatar = React.memo(({ name, size, avatarUrl, style }: Props) => {
           style={{ width: size, height: size, borderRadius }}
           onError={() => setImageFailed(true)}
           // `cover` so portraits don't stretch; border-radius clips to circle.
-          resizeMode="cover"
+          contentFit="cover"
+          // Memory + disk cache eliminates the reload flicker when the
+          // same avatar reappears across rows / screen refocuses.
+          cachePolicy="memory-disk"
+          // Small cross-fade masks the brief placeholder-to-image swap
+          // on first load; prior (RN core Image) flashed the color block.
+          transition={120}
           accessibilityIgnoresInvertColors
         />
       ) : (

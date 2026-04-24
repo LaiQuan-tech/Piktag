@@ -39,6 +39,11 @@ export function useChatInbox(): UseChatInboxReturn {
   // Guards against a stale fetch completing after unmount or after the
   // auth user changes (e.g. rapid sign-out/sign-in).
   const requestIdRef = useRef<number>(0);
+  // Coalesce bursts of realtime updates into a single refetch. When
+  // multiple conversations update in the same tick (e.g. a backfill or
+  // a mark-all-read sweep) we'd otherwise fire fetch_inbox once per
+  // event. 250ms is imperceptible to users but collapses storms.
+  const refreshTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const userId = user?.id ?? null;
 
@@ -102,15 +107,29 @@ export function useChatInbox(): UseChatInboxReturn {
     }
   }, [userId]);
 
+  // Debounced refresh. Every realtime event routes through here so the
+  // inbox can't fire more than one fetch_inbox per 250ms window, no
+  // matter how chatty the server is.
+  const scheduleRefresh = useCallback((): void => {
+    if (refreshTimerRef.current) return;
+    refreshTimerRef.current = setTimeout(() => {
+      refreshTimerRef.current = null;
+      if (isMountedRef.current) void fetchInbox();
+    }, 250);
+  }, [fetchInbox]);
+
   const subscribe = useCallback((): void => {
     if (!userId) return;
     if (channelRef.current) return;
 
-    // Filter: either side of the conversation matches me. Supabase's
-    // postgres_changes filter doesn't support OR, so we listen to ALL
-    // UPDATEs on piktag_conversations and rely on RLS + a full refresh
-    // for correctness. A full refresh is cheap here — the inbox is
-    // small and fetch_inbox is indexed.
+    // One channel per screen. We bind UPDATE on piktag_conversations
+    // only — the server's message-insert trigger bumps last_message_at
+    // on the conversation row, so listening to piktag_messages INSERT
+    // here would double-fire for every new message without adding new
+    // information. Supabase's postgres_changes filter doesn't support
+    // OR, so we listen broadly and rely on RLS + the narrow fetch_inbox
+    // RPC for correctness. All events funnel through scheduleRefresh so
+    // bursts collapse to one fetch per 250ms window.
     const channel = supabase
       .channel(`chat-inbox-${userId}`)
       .on(
@@ -120,16 +139,18 @@ export function useChatInbox(): UseChatInboxReturn {
           schema: 'public',
           table: 'piktag_conversations',
         },
-        () => {
-          fetchInbox();
-        },
+        scheduleRefresh,
       )
       .subscribe();
 
     channelRef.current = channel;
-  }, [userId, fetchInbox]);
+  }, [userId, scheduleRefresh]);
 
   const unsubscribe = useCallback((): void => {
+    if (refreshTimerRef.current) {
+      clearTimeout(refreshTimerRef.current);
+      refreshTimerRef.current = null;
+    }
     if (channelRef.current) {
       supabase.removeChannel(channelRef.current);
       channelRef.current = null;
