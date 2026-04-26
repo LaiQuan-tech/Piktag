@@ -12,7 +12,11 @@
     "noResults": "找不到相關地點"
   },
   "friendsMap": {
-    "staleHint": "只顯示最近 24 小時內有更新位置的朋友"
+    "title": "好友地圖",
+    "friendCount": "{{count}} 位好友出現在地圖上",
+    "noSharedLocations": "目前還沒有好友分享位置",
+    "staleHint": "僅顯示近 24 小時內更新位置的好友",
+    "loadFailed": "地圖載入失敗，請稍後再試"
   },
   "hiddenTagEditor": {
     "timeTitle": "認識時間",
@@ -66,20 +70,7 @@
       "alertResetSentMessage": "重設密碼連結已寄到你的信箱，去收信看看",
       "orDivider": "或",
       "continueWithApple": "Apple 登入",
-      "continueWithGoogle": "Google 登入",
-      "continueWithPhone": "用手機號碼登入"
-    },
-    "phoneAuth": {
-      "title": "手機號碼登入",
-      "description": "我們會發送驗證碼到你的手機",
-      "phonePlaceholder": "912345678",
-      "sendOtp": "發送驗證碼",
-      "invalidPhone": "請輸入有效的手機號碼",
-      "otpTitle": "輸入驗證碼",
-      "otpDescription": "驗證碼已發送至 {{phone}}",
-      "invalidOtp": "請輸入 6 位驗證碼",
-      "verify": "驗證",
-      "resend": "重新發送驗證碼"
+      "continueWithGoogle": "Google 登入"
     },
     "register": {
       "alertEmptyFields": "請填寫所有欄位",
@@ -196,6 +187,11 @@
     "noRecentSearches": "還沒有搜尋紀錄",
     "profilesSectionLabel": "會員",
     "noProfilesFound": "找不到相關會員",
+    "noProfilesFoundTitle": "找不到「{{query}}」相關會員",
+    "tryTagSearchHint": "試試搜尋 #標籤 或換個關鍵字",
+    "clearAndRetry": "清除重新搜尋",
+    "resetButton": "重設",
+    "deleteRecentItem": "刪除這筆紀錄",
     "tagsSectionLabel": "標籤",
     "noTagsFound": "找不到相關標籤",
     "tagCountSuffix": "位擁有",
@@ -269,6 +265,7 @@
   "profile": {
     "nameNotSet": "未設定姓名",
     "usernameNotSet": "未設定用戶名稱",
+    "pageTitle": "個人",
     "noBio": "尚無個人簡介",
     "noTags": "尚無標籤",
     "tagFallback": "標籤",
@@ -343,7 +340,7 @@
     "modalButtonAdd": "新增",
     "accountName": "帳號名稱",
     "yourWebsite": "你的網站網址",
-    "lineId": "Line ID",
+    "lineId": "官方Line@ 帳號",
     "personalWebsite": "個人網站",
     "customLink": "自訂連結",
     "selectPlatform": "選擇平台",
@@ -614,7 +611,8 @@
     "relationPartner": "合夥人",
     "relationClient": "客戶",
     "alreadyConnectedTitle": "已連結",
-    "alreadyConnectedMessage": "你們已經是朋友了"
+    "alreadyConnectedMessage": "你們已經是朋友了",
+    "addFriend": "追蹤"
   },
   "manageTags": {
     "headerTitle": "標籤管理",
@@ -809,5 +807,23 @@
     "error_already_redeemed": "這個邀請碼已經被使用過了",
     "error_expired": "邀請碼已過期",
     "error_cannot_redeem_own": "不能兌換自己的邀請碼"
+  },
+  "chat": {
+    "inbox": "訊息",
+    "compose": "新訊息",
+    "tabs": {
+      "primary": "主要",
+      "requests": "陌生訊息",
+      "general": "一般"
+    },
+    "emptyInbox": "尚無訊息",
+    "composePlaceholder": "搜尋用戶…",
+    "messagePlaceholder": "輸入訊息…",
+    "send": "傳送",
+    "cannotMessageSelf": "無法傳訊息給自己",
+    "userBlocked": "無法傳送訊息給此用戶",
+    "deliveryFailed": "傳送失敗 · 輕點重試",
+    "unreadBadge": "{{count}} 則未讀",
+    "messagesSent": "{{name}} 傳了一則訊息"
   }
 }
