@@ -46,7 +46,7 @@
     "processing": "處理中...",
     "retry": "重試",
     "success": "成功",
-    "unknown": "Unknown",
+    "unknown": "未知",
     "unnamed": "未命名",
     "brandName": "PikTag",
     "brandSlogan": "用標籤記住每個人",
@@ -417,7 +417,7 @@
     "shareIntroMessage": "我介紹 {{name}} 給你，這是他的資訊：{{url}}"
   },
   "userDetail": {
-    "headerNotFound": "Not Found",
+    "headerNotFound": "找不到",
     "userNotFound": "找不到此用戶",
     "mutualFriendsPrefix": "共同朋友 ",
     "mutualFriendsSuffix": " 位",
