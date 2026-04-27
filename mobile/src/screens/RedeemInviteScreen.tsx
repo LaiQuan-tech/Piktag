@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View, Text, StyleSheet, StatusBar, TouchableOpacity, TextInput,
   ActivityIndicator, Alert, KeyboardAvoidingView, Platform,
@@ -83,13 +83,10 @@ export default function RedeemInviteScreen({ navigation, route }: Props) {
     }
   }, [code, user, t, navigation]);
 
-  useEffect(() => {
-    // Auto-redeem when coming from deep link with code pre-filled
-    if (initialCode && user && !loading && !success) {
-      handleRedeem(initialCode);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialCode, user]);
+  // Security (M10): Do NOT auto-redeem from deep links. A malicious link
+  // could otherwise trick a user into redeeming/connecting without
+  // intent. The code is pre-populated above (initialCode -> useState),
+  // and the user must explicitly tap the Redeem button to proceed.
 
   return (
     <KeyboardAvoidingView

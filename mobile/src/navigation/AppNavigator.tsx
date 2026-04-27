@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { ActivityIndicator, View, StyleSheet, Platform, InteractionManager } from 'react-native';
+import { ActivityIndicator, Alert, View, StyleSheet, Platform, InteractionManager } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -554,6 +554,25 @@ export default function AppNavigator() {
       // processing (second auth-state change, hot reload, etc).
       pendingDeepLinkRef.current = null;
       await AsyncStorage.removeItem(PENDING_DEEP_LINK_KEY).catch(() => {});
+
+      // Security (M10): require explicit user confirmation before
+      // accepting a deep-link-supplied scan session. A malicious link
+      // could otherwise auto-attach the new user to an unintended
+      // connection at registration time.
+      const confirmed: boolean = await new Promise((resolve) => {
+        Alert.alert(
+          'Confirm connection',
+          pending?.username
+            ? `Connect with @${pending.username} from your invite link?`
+            : 'Accept the connection from your invite link?',
+          [
+            { text: 'Cancel', style: 'cancel', onPress: () => resolve(false) },
+            { text: 'Confirm', onPress: () => resolve(true) },
+          ],
+          { cancelable: true, onDismiss: () => resolve(false) },
+        );
+      });
+      if (!confirmed) return;
 
       const { error } = await supabase.rpc('resolve_pending_connections', {
         p_new_user_id: userId,
