@@ -45,6 +45,29 @@ jobs:
           cache: npm
           cache-dependency-path: mobile/package-lock.json
 
+      # Apple ITMS-90725: starting 2026-04-28 every iOS submission must be
+      # built with Xcode 26 / iOS 26 SDK. The macos-15 runner image ships
+      # multiple Xcode versions side-by-side; pin the active one explicitly
+      # so the build doesn't silently fall back to whatever xcode-select
+      # points at by default.
+      - name: Select Xcode 26
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+
+      - name: Verify Xcode + SDK version
+        run: |
+          xcodebuild -version
+          xcrun --sdk iphoneos --show-sdk-version
+          # Hard fail if the runner doesn't actually have Xcode 26 — better
+          # to abort now than upload another rejected build.
+          XCODE_MAJOR=$(xcodebuild -version | head -1 | awk '{print $2}' | cut -d. -f1)
+          if [ "$XCODE_MAJOR" -lt 26 ]; then
+            echo "❌ Xcode $XCODE_MAJOR.x is below 26 — App Store will reject this build (ITMS-90725)"
+            echo "   Fix: bump runs-on to a newer macOS runner image, or set xcode-version explicitly"
+            exit 1
+          fi
+
       - name: Install dependencies
         working-directory: mobile
         run: npm ci
