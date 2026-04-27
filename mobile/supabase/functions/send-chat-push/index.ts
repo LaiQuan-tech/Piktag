@@ -48,6 +48,15 @@ type ProfileRow = {
   username: string | null;
 };
 
+function timingSafeEqual(a: string, b: string): boolean {
+  const ae = new TextEncoder().encode(a);
+  const be = new TextEncoder().encode(b);
+  if (ae.length !== be.length) return false;
+  let diff = 0;
+  for (let i = 0; i < ae.length; i++) diff |= ae[i] ^ be[i];
+  return diff === 0;
+}
+
 function jsonResponse(status: number, body: unknown): Response {
   return new Response(JSON.stringify(body), {
     status,
@@ -81,7 +90,7 @@ serve(async (req) => {
     // produce this, so it's a reasonable shared secret.
     const authHeader = req.headers.get('Authorization') ?? req.headers.get('authorization');
     const expected = `Bearer ${serviceRoleKey}`;
-    if (!authHeader || authHeader !== expected) {
+    if (!authHeader || !timingSafeEqual(authHeader, expected)) {
       return jsonResponse(401, { ok: false, error: 'Unauthorized' });
     }
 
