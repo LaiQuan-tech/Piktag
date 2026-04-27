@@ -20,6 +20,7 @@ import { useTranslation } from 'react-i18next';
 import { changeLanguageSafe } from '../i18n';
 import { COLORS } from '../constants/theme';
 import { supabase, supabaseUrl, supabaseAnonKey } from '../lib/supabase';
+import { setAnalyticsOptIn } from '../lib/analytics';
 import { useAuth } from '../hooks/useAuth';
 import { useTheme } from '../context/ThemeContext';
 import type { PiktagProfile } from '../types';
@@ -69,6 +70,7 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
   const [currentLanguage, setCurrentLanguage] = useState('zh-TW');
   const [loadingProfile, setLoadingProfile] = useState(true);
   const [languageModalVisible, setLanguageModalVisible] = useState(false);
+  const [analyticsOptIn, setAnalyticsOptInState] = useState(true);
 
   // Load profile and stored preferences on mount
   useEffect(() => {
@@ -93,9 +95,10 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
           }
         }
 
-        const [storedNotifications, storedDarkMode] = await Promise.all([
+        const [storedNotifications, storedDarkMode, storedAnalytics] = await Promise.all([
           AsyncStorage.getItem('piktag_notifications_enabled'),
           AsyncStorage.getItem('piktag_dark_mode'),
+          AsyncStorage.getItem('analytics_opt_in'),
         ]);
 
         if (storedNotifications !== null) {
@@ -104,6 +107,8 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
         if (storedDarkMode !== null) {
           setDarkModeEnabled(storedDarkMode === 'true');
         }
+        // Default = opted in. Only an explicit 'false' counts as opt-out.
+        setAnalyticsOptInState(storedAnalytics !== 'false');
       } catch (err) {
         console.warn('Failed to load settings:', err);
       } finally {
@@ -410,6 +415,9 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
           </View>
         ))}
 
+        {/* UGC report SLA commitment (Apple Guideline 1.2) */}
+        <Text style={styles.helperText}>{t('report.slaCommitment')}</Text>
+
         {/* Logout Button */}
         <TouchableOpacity
           style={styles.logoutButton}
@@ -614,6 +622,13 @@ const styles = StyleSheet.create({
   languageValue: {
     fontSize: 14,
     color: COLORS.gray500,
+  },
+  helperText: {
+    fontSize: 12,
+    color: COLORS.gray500,
+    textAlign: 'center',
+    paddingHorizontal: 24,
+    marginTop: 16,
   },
 
   // Language Modal

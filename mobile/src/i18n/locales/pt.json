@@ -1,4 +1,7 @@
 {
+  "app": {
+    "offline": "Você está offline. Alguns recursos podem estar limitados."
+  },
   "tabs": {
     "home": "Início",
     "search": "Buscar",
@@ -912,5 +915,8 @@
     "title": "Algo deu errado",
     "message": "O aplicativo encontrou um erro inesperado. Tente novamente.",
     "retry": "Tentar novamente"
+  },
+  "report": {
+    "slaCommitment": "Analisamos denúncias em até 24 horas"
   }
 }

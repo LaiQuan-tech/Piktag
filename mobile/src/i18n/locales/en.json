@@ -1,4 +1,7 @@
 {
+  "app": {
+    "offline": "You're offline. Some features may be limited."
+  },
   "tabs": {
     "home": "Home",
     "search": "Search",
@@ -569,7 +572,7 @@
     "metAtSuffix": "",
     "nearbySection": "Nearby connections ({{count}})",
     "metHereSection": "Met here ({{count}})",
-    "emptyText": "No connections found nearby"
+    "emptyText": "No one nearby. Try adjusting your search range or head to Explore to meet new people"
   },
   "dashboard": {
     "headerTitle": "Personal Dashboard",
@@ -583,7 +586,7 @@
     "totalLinkClicks": "Link Clicks",
     "totalQrScans": "Total QR Scans",
     "growthCurveTitle": "Connection Growth",
-    "growthCurveEmpty": "No friend data yet",
+    "growthCurveEmpty": "No friend data yet. Add tags or invite friends to get started",
     "presetScansTitle": "Scans per Template",
     "presetScansEmpty": "No template scan records",
     "scanCountSuffix": "scans",
@@ -607,7 +610,7 @@
     "timeYesterday": "Yesterday",
     "timeDaysAgo": "{{count}}d ago",
     "timeWeeksAgo": "{{count}}w ago",
-    "emptyState": "No notifications"
+    "emptyState": "No notifications. Set reminders or follow your friends' activity"
   },
   "scanResult": {
     "headerTitle": "Add Friend",
@@ -802,7 +805,7 @@
     "reasonInviteAccepted": "Friend accepted invite",
     "reasonAdminGrant": "System reward",
     "reasonRedeemed": "Redeemed",
-    "emptyHistory": "No P Coin activity yet",
+    "emptyHistory": "No P Coins yet? Invite friends to start earning",
     "plusOne": "+1 P",
     "pointsUnit": "P"
   },
@@ -912,5 +915,8 @@
     "title": "Something went wrong",
     "message": "The app hit an unexpected error. Please try again.",
     "retry": "Try again"
+  },
+  "report": {
+    "slaCommitment": "We review reports within 24 hours"
   }
 }

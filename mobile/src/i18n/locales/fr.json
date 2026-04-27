@@ -1,4 +1,7 @@
 {
+  "app": {
+    "offline": "Vous êtes hors ligne. Certaines fonctionnalités peuvent être limitées."
+  },
   "tabs": {
     "home": "Accueil",
     "search": "Rechercher",
@@ -912,5 +915,8 @@
     "title": "Une erreur est survenue",
     "message": "L'application a rencontré une erreur inattendue. Veuillez réessayer.",
     "retry": "Réessayer"
+  },
+  "report": {
+    "slaCommitment": "Nous examinons les signalements sous 24 heures"
   }
 }

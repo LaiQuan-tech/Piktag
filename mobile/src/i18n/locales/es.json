@@ -1,4 +1,7 @@
 {
+  "app": {
+    "offline": "Estás sin conexión. Algunas funciones pueden estar limitadas."
+  },
   "tabs": {
     "home": "Inicio",
     "search": "Buscar",
@@ -912,5 +915,8 @@
     "title": "Algo salió mal",
     "message": "La aplicación encontró un error inesperado. Inténtalo de nuevo.",
     "retry": "Reintentar"
+  },
+  "report": {
+    "slaCommitment": "Revisamos los reportes en 24 horas"
   }
 }

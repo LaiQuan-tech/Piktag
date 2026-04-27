@@ -1,4 +1,7 @@
 {
+  "app": {
+    "offline": "Çevrimdışısınız. Bazı özellikler kısıtlı olabilir."
+  },
   "tabs": {
     "home": "Ana Sayfa",
     "search": "Ara",
@@ -912,5 +915,8 @@
     "title": "Bir şeyler ters gitti",
     "message": "Uygulama beklenmeyen bir hatayla karşılaştı. Lütfen tekrar deneyin.",
     "retry": "Tekrar dene"
+  },
+  "report": {
+    "slaCommitment": "Bildirimleri 24 saat içinde inceleriz"
   }
 }

@@ -1,4 +1,7 @@
 {
+  "app": {
+    "offline": "Anda sedang offline. Beberapa fitur mungkin dibatasi."
+  },
   "tabs": {
     "home": "Beranda",
     "search": "Cari",
@@ -912,5 +915,8 @@
     "title": "Terjadi kesalahan",
     "message": "Aplikasi mengalami kesalahan tak terduga. Silakan coba lagi.",
     "retry": "Coba lagi"
+  },
+  "report": {
+    "slaCommitment": "Kami meninjau laporan dalam 24 jam"
   }
 }

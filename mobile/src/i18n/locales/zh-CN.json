@@ -1,4 +1,7 @@
 {
+  "app": {
+    "offline": "你目前处于离线模式，部分功能可能受限"
+  },
   "tabs": {
     "home": "首页",
     "search": "搜索",
@@ -583,7 +586,7 @@
     "totalLinkClicks": "链接点击次数",
     "totalQrScans": "QR 扫码总次数",
     "growthCurveTitle": "人脉成长曲线",
-    "growthCurveEmpty": "尚无好友资料",
+    "growthCurveEmpty": "还没有朋友数据？新增标签或邀请好友来开始",
     "presetScansTitle": "各模板扫码次数",
     "presetScansEmpty": "尚无模板扫码纪录",
     "scanCountSuffix": "次",
@@ -607,7 +610,7 @@
     "timeYesterday": "昨天",
     "timeDaysAgo": "{{count}} 天前",
     "timeWeeksAgo": "{{count}} 周前",
-    "emptyState": "目前没有通知"
+    "emptyState": "目前没有通知。设置提醒或关注朋友动态吧"
   },
   "scanResult": {
     "headerTitle": "加为好友",
@@ -802,7 +805,7 @@
     "reasonInviteAccepted": "朋友接受邀请",
     "reasonAdminGrant": "系统奖励",
     "reasonRedeemed": "已抵扣",
-    "emptyHistory": "尚无 P币记录",
+    "emptyHistory": "还没有 P 币？邀请朋友加入就能开始累积",
     "plusOne": "+1 P币",
     "pointsUnit": "P币"
   },
@@ -912,5 +915,8 @@
     "title": "出错了",
     "message": "应用遇到了意外错误，请再试一次。",
     "retry": "重试"
+  },
+  "report": {
+    "slaCommitment": "我们会在 24 小时内审查您的举报"
   }
 }

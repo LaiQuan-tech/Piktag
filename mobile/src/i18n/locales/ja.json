@@ -1,4 +1,7 @@
 {
+  "app": {
+    "offline": "オフラインです。一部の機能が制限される場合があります。"
+  },
   "tabs": {
     "home": "ホーム",
     "search": "検索",
@@ -569,7 +572,7 @@
     "metAtSuffix": "",
     "nearbySection": "近くの友達 ({{count}})",
     "metHereSection": "ここで出会った ({{count}})",
-    "emptyText": "近くにつながりが見つかりません"
+    "emptyText": "近くに誰もいません。検索範囲を調整するか、「探索」で新しい友達を見つけましょう"
   },
   "dashboard": {
     "headerTitle": "個人ダッシュボード",
@@ -583,7 +586,7 @@
     "totalLinkClicks": "リンククリック数",
     "totalQrScans": "QRスキャン総数",
     "growthCurveTitle": "つながりの成長",
-    "growthCurveEmpty": "友達のデータがまだありません",
+    "growthCurveEmpty": "友達のデータがまだありません。タグを追加したり、友達を招待して始めましょう",
     "presetScansTitle": "テンプレート別スキャン数",
     "presetScansEmpty": "テンプレートのスキャン記録がありません",
     "scanCountSuffix": "回",
@@ -607,7 +610,7 @@
     "timeYesterday": "昨日",
     "timeDaysAgo": "{{count}}日前",
     "timeWeeksAgo": "{{count}}週間前",
-    "emptyState": "通知はありません"
+    "emptyState": "通知はありません。リマインダーを設定したり、友達の活動をフォローしてみましょう"
   },
   "scanResult": {
     "headerTitle": "友達追加",
@@ -802,7 +805,7 @@
     "reasonInviteAccepted": "友達が招待を受諾",
     "reasonAdminGrant": "システム報酬",
     "reasonRedeemed": "使用済み",
-    "emptyHistory": "Pコインの活動履歴がありません",
+    "emptyHistory": "Pコインがまだありません。友達を招待して貯め始めましょう",
     "plusOne": "+1 P",
     "pointsUnit": "P"
   },
@@ -912,5 +915,8 @@
     "title": "問題が発生しました",
     "message": "アプリで予期しないエラーが発生しました。もう一度お試しください。",
     "retry": "再試行"
+  },
+  "report": {
+    "slaCommitment": "ご報告は24時間以内に確認します"
   }
 }
