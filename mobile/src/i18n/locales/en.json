@@ -907,5 +907,10 @@
     "aiSuggestions": "AI suggestions",
     "yourTags": "Your tags",
     "noTagsHint": "Add tags first under Profile → Manage Tags"
+  },
+  "errorBoundary": {
+    "title": "Something went wrong",
+    "message": "The app hit an unexpected error. Please try again.",
+    "retry": "Try again"
   }
 }

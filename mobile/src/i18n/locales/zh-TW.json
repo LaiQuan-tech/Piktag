@@ -914,5 +914,10 @@
     "aiSuggestions": "AI 建議",
     "yourTags": "你的標籤",
     "noTagsHint": "請先到「我的」→「管理標籤」加入標籤"
+  },
+  "errorBoundary": {
+    "title": "發生錯誤",
+    "message": "應用程式遇到非預期的錯誤，請再試一次。",
+    "retry": "重試"
   }
 }

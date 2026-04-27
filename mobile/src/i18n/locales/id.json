@@ -907,5 +907,10 @@
     "aiSuggestions": "Saran AI",
     "yourTags": "Tag Anda",
     "noTagsHint": "Tambahkan tag terlebih dahulu di Profil → Kelola Tag"
+  },
+  "errorBoundary": {
+    "title": "Terjadi kesalahan",
+    "message": "Aplikasi mengalami kesalahan tak terduga. Silakan coba lagi.",
+    "retry": "Coba lagi"
   }
 }

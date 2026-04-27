@@ -907,5 +907,10 @@
     "aiSuggestions": "Sugestões de IA",
     "yourTags": "Seus tags",
     "noTagsHint": "Adicione tags primeiro em Perfil → Gerenciar tags"
+  },
+  "errorBoundary": {
+    "title": "Algo deu errado",
+    "message": "O aplicativo encontrou um erro inesperado. Tente novamente.",
+    "retry": "Tentar novamente"
   }
 }

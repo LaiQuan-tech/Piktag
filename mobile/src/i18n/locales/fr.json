@@ -907,5 +907,10 @@
     "aiSuggestions": "Suggestions IA",
     "yourTags": "Vos tags",
     "noTagsHint": "Ajoutez d'abord des tags dans Profil → Gérer les tags"
+  },
+  "errorBoundary": {
+    "title": "Une erreur est survenue",
+    "message": "L'application a rencontré une erreur inattendue. Veuillez réessayer.",
+    "retry": "Réessayer"
   }
 }

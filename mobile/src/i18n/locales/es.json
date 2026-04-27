@@ -907,5 +907,10 @@
     "aiSuggestions": "Sugerencias de IA",
     "yourTags": "Tus etiquetas",
     "noTagsHint": "Primero añade etiquetas en Perfil → Gestionar etiquetas"
+  },
+  "errorBoundary": {
+    "title": "Algo salió mal",
+    "message": "La aplicación encontró un error inesperado. Inténtalo de nuevo.",
+    "retry": "Reintentar"
   }
 }

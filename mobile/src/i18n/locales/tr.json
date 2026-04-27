@@ -907,5 +907,10 @@
     "aiSuggestions": "Yapay zeka önerileri",
     "yourTags": "Etiketleriniz",
     "noTagsHint": "Önce Profil → Etiketleri Yönet bölümünden etiket ekleyin"
+  },
+  "errorBoundary": {
+    "title": "Bir şeyler ters gitti",
+    "message": "Uygulama beklenmeyen bir hatayla karşılaştı. Lütfen tekrar deneyin.",
+    "retry": "Tekrar dene"
   }
 }

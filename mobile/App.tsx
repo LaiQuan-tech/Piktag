@@ -12,6 +12,20 @@ import { ThemeProvider } from './src/context/ThemeContext';
 import { AuthProvider } from './src/context/AuthContext';
 import { AppReadyProvider, useAppReady } from './src/context/AppReadyContext';
 import SplashOverlay from './src/components/SplashOverlay';
+import ErrorBoundary from './src/components/ErrorBoundary';
+
+// Ensure foreground notifications display the system banner, play sound,
+// and update the badge. Without this, notifications arriving while the
+// app is open are silently dropped on iOS.
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowBanner: true,
+    shouldPlaySound: true,
+    shouldSetBadge: true,
+    // Kept for backward compat with older expo-notifications versions.
+    shouldShowAlert: true,
+  } as any),
+});
 
 // Sentry DSN is a write-only ingest URL — safe to hardcode and critical
 // to have available even when env vars are misconfigured (if env breaks,
@@ -125,12 +139,23 @@ function AppInner() {
 
     const sub = Notifications.addNotificationResponseReceivedListener(handleResponse);
 
+    // Foreground listener — keeps the default OS banner. We don't act on
+    // the payload here (response listener handles taps); the listener's
+    // mere presence works with `setNotificationHandler` above to surface
+    // the banner while the app is open.
+    const foregroundSub = Notifications.addNotificationReceivedListener((_notification) => {
+      // intentional no-op: handler config drives the banner display.
+    });
+
     // Cold start: check if the app was opened FROM a notification
     Notifications.getLastNotificationResponseAsync().then((response) => {
       if (response) handleResponse(response);
     });
 
-    return () => { sub.remove(); };
+    return () => {
+      sub.remove();
+      foregroundSub.remove();
+    };
   }, [navigationRef, isWeb]);
 
   const content = (
@@ -138,16 +163,18 @@ function AppInner() {
       <AuthProvider>
         <GestureHandlerRootView style={{ flex: 1 }}>
           <SafeAreaProvider>
-            <NavigationContainer ref={navigationRef} linking={linking}>
-              <ExpoStatusBar style="dark" />
-              <AppNavigator />
-              {splashVisible && (
-                <SplashOverlay
-                  ready={isReady}
-                  onHidden={() => setSplashVisible(false)}
-                />
-              )}
-            </NavigationContainer>
+            <ErrorBoundary>
+              <NavigationContainer ref={navigationRef} linking={linking}>
+                <ExpoStatusBar style="dark" />
+                <AppNavigator />
+                {splashVisible && (
+                  <SplashOverlay
+                    ready={isReady}
+                    onHidden={() => setSplashVisible(false)}
+                  />
+                )}
+              </NavigationContainer>
+            </ErrorBoundary>
           </SafeAreaProvider>
         </GestureHandlerRootView>
       </AuthProvider>

@@ -907,5 +907,10 @@
     "aiSuggestions": "AI 추천",
     "yourTags": "내 태그",
     "noTagsHint": "프로필 → 태그 관리에서 먼저 태그를 추가해 주세요"
+  },
+  "errorBoundary": {
+    "title": "문제가 발생했습니다",
+    "message": "앱에서 예기치 않은 오류가 발생했습니다. 다시 시도해 주세요.",
+    "retry": "다시 시도"
   }
 }

@@ -567,9 +567,59 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
     }
   }, [user]);
 
+  // Fast path: one RPC returns popular tags, recommended users, and
+  // category roll-up in a single round-trip. Falls back to the legacy
+  // parallel loaders if the function is missing or errors. See
+  // supabase/migrations/20260428p_search_init_rpc.sql.
+  const loadInitialViaRpc = useCallback(async (): Promise<boolean> => {
+    try {
+      const { data, error } = await supabase.rpc('search_screen_init');
+      if (error || !data || typeof data !== 'object') return false;
+      const payload = data as {
+        popular_tags?: any[];
+        recommended_users?: any[];
+        recent_categories?: any[];
+      };
+      const popular = Array.isArray(payload.popular_tags) ? payload.popular_tags : [];
+      const recs = Array.isArray(payload.recommended_users) ? payload.recommended_users : [];
+      if (popular.length === 0 && recs.length === 0) return false;
+
+      if (popular.length > 0) {
+        setCache(CACHE_KEY_POPULAR_TAGS, popular as Tag[]);
+        setTags(popular as Tag[]);
+        const cats = [
+          ...new Set(popular.map((t: any) => t.semantic_type).filter(Boolean)),
+        ] as string[];
+        setTagCategories(cats);
+      }
+      if (recs.length > 0) {
+        setRecommendedUsers(recs as PiktagProfile[]);
+      }
+      setLoading(false);
+      setInitialLoading(false);
+      return true;
+    } catch (err) {
+      console.warn('[SearchScreen] search_screen_init RPC failed, falling back:', err);
+      return false;
+    }
+  }, []);
+
   useEffect(() => {
-    Promise.all([loadPopularTags(), loadRecentSearches(), loadRecommendations()]);
-  }, [loadPopularTags, loadRecentSearches, loadRecommendations]);
+    let cancelled = false;
+    (async () => {
+      // Always load recent searches (local-only, cheap).
+      loadRecentSearches();
+      const ok = await loadInitialViaRpc();
+      if (cancelled) return;
+      if (!ok) {
+        // Legacy fallback: original parallel loaders.
+        Promise.all([loadPopularTags(), loadRecommendations()]);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [loadInitialViaRpc, loadPopularTags, loadRecentSearches, loadRecommendations]);
 
   // ── Event handlers (all useCallback) ──
 
