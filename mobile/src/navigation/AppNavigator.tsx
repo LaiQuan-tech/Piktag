@@ -265,6 +265,10 @@ function MainNavigator({ needsOnboarding }: { needsOnboarding: boolean }) {
         name="RedeemInvite"
         getComponent={() => require('../screens/RedeemInviteScreen').default}
       />
+      <RootStack.Screen
+        name="ChatInbox"
+        getComponent={() => require('../screens/ChatInboxScreen').default}
+      />
 
       {/* Modal screens */}
       {/* Eager: QR scan result is part of the primary scan flow */}
