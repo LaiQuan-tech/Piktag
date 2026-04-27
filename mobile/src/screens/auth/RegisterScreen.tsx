@@ -16,6 +16,7 @@ import { Hash, Eye, EyeOff } from 'lucide-react-native';
 import { supabase } from '../../lib/supabase';
 import { signInWithApple } from '../../lib/appleAuth';
 import { signInWithGoogle } from '../../lib/googleAuth';
+import { trackSignupComplete } from '../../lib/analytics';
 import { COLORS, SPACING, BORDER_RADIUS } from '../../constants/theme';
 
 type RegisterScreenProps = {
