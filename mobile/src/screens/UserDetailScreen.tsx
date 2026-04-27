@@ -1215,7 +1215,7 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
             <View style={styles.pickModalHeader}>
               <Text style={styles.pickModalTitle}>{t('userDetail.pickTagTitle')}</Text>
               <TouchableOpacity onPress={() => setPickTagModalVisible(false)} activeOpacity={0.6}>
-                <Text style={styles.pickModalCloseText}>{t('common.close')}</Text>
+                <Text style={styles.pickModalSaveText}>{t('common.save')}</Text>
               </TouchableOpacity>
             </View>
             <ScrollView
@@ -1243,7 +1243,6 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
                       <Text style={[styles.pickModalTagText, isSelected && styles.pickModalTagTextSelected]}>
                         #{tag.name}
                       </Text>
-                      {isSelected && <Text style={styles.pickModalCheck}>✓</Text>}
                     </TouchableOpacity>
                   );
                 })}
@@ -1914,6 +1913,11 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: COLORS.gray500,
   },
+  pickModalSaveText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: COLORS.piktag500,
+  },
   pickModalSubtitle: {
     fontSize: 14,
     color: COLORS.gray500,
@@ -1955,11 +1959,6 @@ const styles = StyleSheet.create({
   pickModalTagTextSelected: {
     color: COLORS.piktag600,
     fontWeight: '700',
-  },
-  pickModalCheck: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: COLORS.piktag600,
   },
   pickModalDivider: {
     height: 1,
