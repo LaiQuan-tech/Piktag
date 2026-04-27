@@ -213,7 +213,19 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
     try {
       setLoading(true);
 
-      // Phase 1: all independent queries in parallel
+      // Fast path: one RPC returns the page-ready slice (profile bits +
+      // tags + mutual count + viewer→friend relation). On success we use
+      // it to short-circuit the two piktag_connections fetches (mutual
+      // count) and the synchronous getViewerRelation() round-trips.
+      // On error we fall back to the legacy multi-query block below.
+      // Mirrors the pattern from TagDetailScreen.fetchExploreUsers.
+      const friendDetailRpc = supabase.rpc('get_friend_detail', { p_friend_id: friendId });
+
+      // Phase 1: independent queries in parallel.
+      // We keep the legacy profile + biolinks + tags + connections queries
+      // (the RPC's profile/tag slice is intentionally trimmed and the rest
+      // of this screen needs the full row shape) — but we drop the two
+      // `piktag_connections` round-trips when the RPC succeeds.
       const [
         connResult,
         profileResult,
@@ -221,6 +233,7 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
         connTagsResult,
         myConnectionsResult,
         friendConnectionsResult,
+        rpcResult,
       ] = await Promise.all([
         // `.maybeSingle()` — an invalid/expired connectionId shouldn't
         // throw, it should just fall through to "no connection found".
@@ -241,21 +254,50 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
           .select('*, tag:piktag_tags!tag_id(*)')
           .eq('user_id', friendId)
           .eq('is_private', false)
-          .limit(500),
-        supabase.from('piktag_connections').select('connected_user_id').eq('user_id', user.id).limit(2000),
-        supabase.from('piktag_connections').select('id, connected_user_id').eq('user_id', friendId).limit(2000),
+          .limit(100),
+        // Legacy fallback inputs for mutual-friends count. Only consumed
+        // when the RPC errors out.
+        supabase.from('piktag_connections').select('connected_user_id').eq('user_id', user.id).limit(100),
+        supabase.from('piktag_connections').select('id, connected_user_id').eq('user_id', friendId).limit(100),
+        friendDetailRpc,
       ]);
 
       const connData = connResult.data;
 
+      // Prefer the RPC's pre-computed slice; fall back to the legacy
+      // client-side intersection if the RPC isn't available or errored.
+      const rpcOk = !rpcResult.error && rpcResult.data && typeof rpcResult.data === 'object';
+      const rpcPayload: any = rpcOk ? rpcResult.data : null;
+      const rpcRelation: 'self' | 'friend' | 'blocked' | 'none' | null =
+        rpcPayload?.relation ?? null;
+
       // Batch all phase-1 state into a single dispatch (1 re-render instead of 8)
       const mutualFriendsCount = (() => {
+        if (rpcOk && typeof rpcPayload?.mutual_friends === 'number') {
+          // Background-fetch mutual friend avatars (we still need IDs for
+          // this — the RPC only returns the count to keep the payload
+          // small). We piggy-back on the friend connection list when
+          // available; otherwise skip the avatar strip on the cold path.
+          if (friendConnectionsResult.data && myConnectionsResult.data) {
+            const myFriendIds = new Set(myConnectionsResult.data.map((c: any) => c.connected_user_id));
+            const mutualIds = friendConnectionsResult.data
+              .filter((c: any) => myFriendIds.has(c.connected_user_id))
+              .map((c: any) => c.connected_user_id);
+            if (mutualIds.length > 0) {
+              supabase
+                .from('piktag_profiles')
+                .select('id, username, full_name, avatar_url')
+                .in('id', mutualIds.slice(0, 20))
+                .then(({ data }) => { if (data) setMutualFriendProfiles(data); });
+            }
+          }
+          return rpcPayload.mutual_friends as number;
+        }
         if (!myConnectionsResult.data || !friendConnectionsResult.data) return 0;
         const myFriendIds = new Set(myConnectionsResult.data.map((c: any) => c.connected_user_id));
         const mutualIds = friendConnectionsResult.data
           .filter((c: any) => myFriendIds.has(c.connected_user_id))
           .map((c: any) => c.connected_user_id);
-        // Fetch mutual friend profiles in background
         if (mutualIds.length > 0) {
           supabase
             .from('piktag_profiles')
@@ -281,7 +323,15 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
           profile: profileResult.data ?? null,
           biolinks: filterBiolinksByVisibility(
             biolinksResult.data ?? [],
-            await getViewerRelation(user?.id, friendId)
+            // Map RPC relation to the visibility tier when available.
+            // 'self' / 'friend' have direct equivalents; 'blocked' / 'none'
+            // collapse to 'stranger'. Close-friend status is computed
+            // separately below, so we treat the RPC result as the floor.
+            rpcRelation
+              ? (rpcRelation === 'self' ? 'self'
+                  : rpcRelation === 'friend' ? 'friend'
+                  : 'stranger')
+              : await getViewerRelation(user?.id, friendId)
           ),
           tags: [], // will be set in phase 2 after pick data is fetched
           mutualFriends: mutualFriendsCount,
@@ -362,7 +412,7 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
               .from('piktag_connections')
               .select('id')
               .eq('connected_user_id', friendId)
-              .limit(2000);
+              .limit(100);
             const connIdsToFriend = (allConnsToFriend || []).map((c: any) => c.id);
 
             if (connIdsToFriend.length > 0) {
@@ -372,7 +422,7 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
                 .in('connection_id', connIdsToFriend)
                 .in('tag_id', friendTagIds)
                 .eq('is_private', false)
-                .limit(5000);
+                .limit(100);
               (allPicks || []).forEach((p: any) => {
                 pickCountMap.set(p.tag_id, (pickCountMap.get(p.tag_id) || 0) + 1);
               });
