@@ -226,6 +226,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
 
   // Smart recommendations
   const [recommendedUsers, setRecommendedUsers] = useState<PiktagProfile[]>([]);
+  const [errorToast, setErrorToast] = useState<string | null>(null);
 
 
   // Refs for stable closures
@@ -760,6 +761,8 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
         console.warn('[SearchScreen] search query failed:', err);
         setTags([]);
         setProfiles([]);
+        setErrorToast(t('common.unknownError'));
+        setTimeout(() => setErrorToast(null), 2500);
       } finally {
         if (seq === searchSeqRef.current) setLoading(false);
       }
@@ -1570,6 +1573,11 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
           </TouchableOpacity>
         </View>
       )}
+      {errorToast && (
+        <View style={styles.toast}>
+          <Text style={styles.toastText}>{errorToast}</Text>
+        </View>
+      )}
     </SafeAreaView>
   );
 }
@@ -2039,5 +2047,20 @@ const styles = StyleSheet.create({
   },
   categoryChipTextActive: {
     color: COLORS.piktag600,
+  },
+  toast: {
+    position: 'absolute',
+    left: 16,
+    right: 16,
+    bottom: 32,
+    backgroundColor: COLORS.gray900,
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+  },
+  toastText: {
+    color: COLORS.white,
+    fontSize: 14,
+    textAlign: 'center',
   },
 });
