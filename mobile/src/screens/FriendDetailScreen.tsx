@@ -620,10 +620,9 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
   };
 
   // Resolves (or creates) a 1:1 conversation with this friend and
-  // navigates to ChatThread. Mirrors the version in UserDetailScreen —
-  // uses the Main → SearchTab → ChatThread nested navigation form
-  // because FriendDetail, like UserDetail, lives in RootStack while
-  // ChatThread is registered inside the SearchTab's SearchStack.
+  // navigates to ChatThread. ChatThread lives in RootStack so a plain
+  // push preserves history (FriendDetail → ChatThread → back returns
+  // to FriendDetail).
   const handleOpenChat = async () => {
     if (!user || !friendId || messageLoading) return;
     setMessageLoading(true);
@@ -647,17 +646,11 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
         typeof data === 'string'
           ? data
           : (data as any)?.id ?? (data as any)?.conversation_id ?? data;
-      (navigation as any).navigate('Main', {
-        screen: 'SearchTab',
-        params: {
-          screen: 'ChatThread',
-          params: {
-            conversationId,
-            otherUserId: friendId,
-            otherDisplayName: profile?.full_name ?? profile?.username ?? '',
-            otherAvatarUrl: profile?.avatar_url,
-          },
-        },
+      (navigation as any).navigate('ChatThread', {
+        conversationId,
+        otherUserId: friendId,
+        otherDisplayName: profile?.full_name ?? profile?.username ?? '',
+        otherAvatarUrl: profile?.avatar_url,
       });
     } catch (err) {
       console.warn('handleOpenChat error:', err);

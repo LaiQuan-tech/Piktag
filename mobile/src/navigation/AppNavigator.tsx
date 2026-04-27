@@ -80,15 +80,6 @@ function SearchStackNavigator() {
         name="ChatList"
         getComponent={() => require('../screens/ChatListScreen').default}
       />
-      <SearchStack.Screen
-        name="ChatThread"
-        getComponent={() => require('../screens/ChatThreadScreen').default}
-      />
-      <SearchStack.Screen
-        name="ChatCompose"
-        getComponent={() => require('../screens/ChatComposeScreen').default}
-        options={{ presentation: 'modal' }}
-      />
     </SearchStack.Navigator>
   );
 }
@@ -231,6 +222,20 @@ function MainNavigator({ needsOnboarding }: { needsOnboarding: boolean }) {
         <RootStack.Screen name="FriendDetail" component={FriendDetailScreen} />
         <RootStack.Screen name="UserDetail" component={UserDetailScreen} />
         <RootStack.Screen name="TagDetail" component={TagDetailScreen} />
+
+        {/* Chat thread + compose live in RootStack so back-navigation
+            returns to the screen the user came from (e.g. TagDetail →
+            UserDetail → ChatThread → back goes to UserDetail) instead
+            of popping inside the SearchTab to its root. */}
+        <RootStack.Screen
+          name="ChatThread"
+          getComponent={() => require('../screens/ChatThreadScreen').default}
+        />
+        <RootStack.Screen
+          name="ChatCompose"
+          getComponent={() => require('../screens/ChatComposeScreen').default}
+          options={{ presentation: 'modal' }}
+        />
 
         {/* Lazy: secondary screens loaded on first navigation */}
         <RootStack.Screen
