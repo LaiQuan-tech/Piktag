@@ -140,29 +140,66 @@ function AskCreateModal({ visible, onClose, existingAsk, onCreated }: AskCreateM
 
   const [body, setBody] = useState('');
   const [selectedTagIds, setSelectedTagIds] = useState<Set<string>>(new Set());
-  const [myTags, setMyTags] = useState<{ id: string; name: string }[]>([]);
+  const [suggestedTags, setSuggestedTags] = useState<{ id: string; name: string }[]>([]);
+  const [aiLoading, setAiLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const suggestTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     if (visible) {
       setBody(existingAsk?.body || '');
+      setSuggestedTags([]);
+      setSelectedTagIds(new Set());
+      setAiLoading(false);
       Animated.spring(slideAnim, { toValue: 0, useNativeDriver: true, bounciness: 0, speed: 14 }).start();
-      if (user) {
-        supabase
-          .from('piktag_user_tags')
-          .select('tag_id, piktag_tags!tag_id(id, name)')
-          .eq('user_id', user.id)
-          .eq('is_private', false)
-          .then(({ data }) => {
-            if (data) {
-              setMyTags(data.map((d: any) => ({ id: d.piktag_tags?.id, name: d.piktag_tags?.name })).filter((t: any) => t.id && t.name));
-            }
-          });
-      }
     } else {
       Animated.timing(slideAnim, { toValue: SCREEN_HEIGHT, duration: 250, useNativeDriver: true }).start();
     }
-  }, [visible, existingAsk, user]);
+    return () => { if (suggestTimer.current) clearTimeout(suggestTimer.current); };
+  }, [visible, existingAsk]);
+
+  // AI auto-suggest tags from global tag pool when user stops typing
+  const suggestTagsForBody = useCallback(async (text: string) => {
+    const trimmed = text.trim();
+    if (trimmed.length < 5) {
+      setSuggestedTags([]);
+      return;
+    }
+    setAiLoading(true);
+    try {
+      const { data } = await supabase.functions.invoke('suggest-tags', {
+        body: JSON.stringify({ bio: trimmed, lang: 'the same language as the content' }),
+      });
+      const names: string[] = data?.suggestions || [];
+      if (names.length === 0) { setAiLoading(false); return; }
+
+      // Resolve tag names to IDs from piktag_tags
+      const { data: tagRows } = await supabase
+        .from('piktag_tags')
+        .select('id, name')
+        .in('name', names);
+
+      if (tagRows && tagRows.length > 0) {
+        setSuggestedTags(tagRows);
+        setSelectedTagIds(new Set(tagRows.map((t: any) => t.id)));
+      } else {
+        setSuggestedTags([]);
+      }
+    } catch (err) {
+      console.warn('AI tag suggest failed:', err);
+    } finally {
+      setAiLoading(false);
+    }
+  }, []);
+
+  // Debounce: trigger AI suggest 800ms after user stops typing (min 5 chars)
+  const handleBodyChange = useCallback((text: string) => {
+    setBody(text.slice(0, MAX_BODY));
+    if (suggestTimer.current) clearTimeout(suggestTimer.current);
+    if (text.trim().length >= 5) {
+      suggestTimer.current = setTimeout(() => suggestTagsForBody(text), 800);
+    }
+  }, [suggestTagsForBody]);
 
   const toggleTag = useCallback((tagId: string) => {
     setSelectedTagIds(prev => {
@@ -176,7 +213,6 @@ function AskCreateModal({ visible, onClose, existingAsk, onCreated }: AskCreateM
     if (!user || !body.trim() || selectedTagIds.size === 0) return;
     setSaving(true);
     try {
-      // If editing existing ask, deactivate it first
       if (existingAsk) {
         await supabase.from('piktag_asks').update({ is_active: false }).eq('id', existingAsk.id);
       }
@@ -190,12 +226,11 @@ function AskCreateModal({ visible, onClose, existingAsk, onCreated }: AskCreateM
 
       if (error || !askData) throw error || new Error('Insert failed');
 
-      // Insert ask tags
       const tagRows = [...selectedTagIds].map(tag_id => ({ ask_id: askData.id, tag_id }));
       await supabase.from('piktag_ask_tags').insert(tagRows);
 
       // AI title generation (async, non-blocking)
-      const tagNames = myTags.filter(t => selectedTagIds.has(t.id)).map(t => t.name);
+      const tagNames = suggestedTags.filter(t => selectedTagIds.has(t.id)).map(t => t.name);
       supabase.functions.invoke('generate-ask-title', {
         body: JSON.stringify({ body: body.trim(), tags: tagNames }),
       }).then(({ data }) => {
@@ -211,7 +246,7 @@ function AskCreateModal({ visible, onClose, existingAsk, onCreated }: AskCreateM
     } finally {
       setSaving(false);
     }
-  }, [user, body, selectedTagIds, existingAsk, myTags, onCreated, onClose]);
+  }, [user, body, selectedTagIds, existingAsk, suggestedTags, onCreated, onClose]);
 
   const handleDelete = useCallback(async () => {
     if (!existingAsk) return;
@@ -238,7 +273,7 @@ function AskCreateModal({ visible, onClose, existingAsk, onCreated }: AskCreateM
           <TextInput
             style={modalStyles.input}
             value={body}
-            onChangeText={(v) => setBody(v.slice(0, MAX_BODY))}
+            onChangeText={handleBodyChange}
             placeholder={t('ask.bodyPlaceholder')}
             placeholderTextColor={COLORS.gray400}
             multiline
@@ -247,22 +282,31 @@ function AskCreateModal({ visible, onClose, existingAsk, onCreated }: AskCreateM
           />
           <Text style={modalStyles.charCount}>{body.length}/{MAX_BODY}</Text>
 
-          {/* Tag selector */}
+          {/* AI-suggested tags */}
           <Text style={modalStyles.sectionTitle}>{t('ask.selectTags')}</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={modalStyles.tagScroll}>
-            {myTags.map((tag) => (
-              <TouchableOpacity
-                key={tag.id}
-                style={[modalStyles.tagChip, selectedTagIds.has(tag.id) && modalStyles.tagChipSelected]}
-                onPress={() => toggleTag(tag.id)}
-                activeOpacity={0.7}
-              >
-                <Text style={[modalStyles.tagChipText, selectedTagIds.has(tag.id) && modalStyles.tagChipTextSelected]}>
-                  #{tag.name}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
+          {aiLoading ? (
+            <View style={modalStyles.aiLoadingRow}>
+              <ActivityIndicator size="small" color={COLORS.piktag500} />
+              <Text style={modalStyles.aiLoadingText}>{t('ask.generating')}</Text>
+            </View>
+          ) : suggestedTags.length > 0 ? (
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={modalStyles.tagScroll}>
+              {suggestedTags.map((tag) => (
+                <TouchableOpacity
+                  key={tag.id}
+                  style={[modalStyles.tagChip, selectedTagIds.has(tag.id) && modalStyles.tagChipSelected]}
+                  onPress={() => toggleTag(tag.id)}
+                  activeOpacity={0.7}
+                >
+                  <Text style={[modalStyles.tagChipText, selectedTagIds.has(tag.id) && modalStyles.tagChipTextSelected]}>
+                    #{tag.name}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          ) : body.trim().length >= 5 ? (
+            <Text style={modalStyles.aiHint}>{t('ask.minOneTag')}</Text>
+          ) : null}
 
           {/* Actions */}
           <View style={modalStyles.actions}>
@@ -388,6 +432,9 @@ const modalStyles = StyleSheet.create({
   charCount: { fontSize: 12, color: COLORS.gray400, textAlign: 'right', marginTop: 4, marginBottom: 12 },
   sectionTitle: { fontSize: 14, fontWeight: '600', color: COLORS.gray700, marginBottom: 8 },
   tagScroll: { marginBottom: 16, flexGrow: 0 },
+  aiLoadingRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 16 },
+  aiLoadingText: { fontSize: 13, color: COLORS.gray500 },
+  aiHint: { fontSize: 13, color: COLORS.gray400, marginBottom: 16 },
   tagChip: {
     backgroundColor: COLORS.gray100, borderRadius: 20,
     paddingHorizontal: 14, paddingVertical: 8, marginRight: 8,
