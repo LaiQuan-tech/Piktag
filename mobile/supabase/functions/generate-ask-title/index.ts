@@ -65,9 +65,9 @@ serve(async (req) => {
       return jsonResponse(400, { error: 'Body must be valid JSON' });
     }
 
-    const askBody = (body.body ?? '').trim();
-    const tags = body.tags ?? [];
-    const lang = (body.lang ?? 'the same language as the content').trim();
+    const askBody = (body.body ?? '').trim().slice(0, 200);
+    const tags = (body.tags ?? []).slice(0, 10).map((t: string) => String(t).slice(0, 50));
+    const lang = (body.lang ?? 'the same language as the content').trim().slice(0, 50);
 
     if (!askBody) {
       return jsonResponse(400, {

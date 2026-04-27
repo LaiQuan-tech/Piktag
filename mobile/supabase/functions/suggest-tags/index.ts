@@ -69,11 +69,12 @@ serve(async (req) => {
       return jsonResponse(400, { error: 'Body must be valid JSON' });
     }
 
-    const bio = (body.bio ?? '').trim();
-    const name = (body.name ?? '').trim();
-    const location = (body.location ?? '').trim();
-    const existingTags = (body.existingTags ?? '').trim();
-    const lang = (body.lang ?? 'the same language as the content').trim();
+    const MAX_INPUT = 500;
+    const bio = (body.bio ?? '').trim().slice(0, MAX_INPUT);
+    const name = (body.name ?? '').trim().slice(0, MAX_INPUT);
+    const location = (body.location ?? '').trim().slice(0, MAX_INPUT);
+    const existingTags = (body.existingTags ?? '').trim().slice(0, MAX_INPUT);
+    const lang = (body.lang ?? 'the same language as the content').trim().slice(0, 50);
 
     if (!bio && !name && !location && !existingTags) {
       return jsonResponse(400, {
