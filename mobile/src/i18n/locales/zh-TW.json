@@ -512,7 +512,10 @@
     "deactivateMessage": "停用後你的個人頁將隱藏，其他人找不到你。你可以隨時重新登入恢復。",
     "deactivateConfirm": "停用",
     "deleteAccountButton": "刪除帳號",
-    "alertDeleteAccountNote": "此操作無法復原，你的帳號和所有資料將被永久刪除"
+    "alertDeleteAccountNote": "此操作無法復原，你的帳號和所有資料將被永久刪除",
+    "analyticsOptIn": "分析數據",
+    "analyticsOptInDescription": "幫助我們改善 App",
+    "attRationale": "PikTag 使用基本分析數據改善體驗，從不跨 App 追蹤您。"
   },
   "contactSync": {
     "headerTitle": "通訊錄同步",

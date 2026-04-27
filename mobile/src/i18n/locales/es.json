@@ -509,7 +509,10 @@
     "deactivateMessage": "Tu perfil quedará oculto. Puedes reactivarlo iniciando sesión de nuevo.",
     "deactivateConfirm": "Desactivar",
     "deleteAccountButton": "Eliminar cuenta",
-    "alertDeleteAccountNote": "Esta acción no se puede deshacer. Tu cuenta y todos los datos serán eliminados permanentemente"
+    "alertDeleteAccountNote": "Esta acción no se puede deshacer. Tu cuenta y todos los datos serán eliminados permanentemente",
+    "analyticsOptIn": "Enviar análisis de uso",
+    "analyticsOptInDescription": "Ayúdanos a mejorar la app",
+    "attRationale": "PikTag usa análisis básicos para mejorar tu experiencia. Nunca te rastreamos en otras apps."
   },
   "contactSync": {
     "headerTitle": "Sincronizar contactos",
@@ -572,7 +575,7 @@
     "metAtSuffix": "",
     "nearbySection": "Conexiones cercanas ({{count}})",
     "metHereSection": "Conocidos aquí ({{count}})",
-    "emptyText": "No se encontraron conexiones cerca"
+    "emptyText": "No hay nadie cerca. Ajusta el rango de búsqueda o ve a Explorar para conocer gente"
   },
   "dashboard": {
     "headerTitle": "Panel personal",
@@ -586,7 +589,7 @@
     "totalLinkClicks": "Clics en enlaces",
     "totalQrScans": "Escaneos QR totales",
     "growthCurveTitle": "Crecimiento de conexiones",
-    "growthCurveEmpty": "Aún no hay datos de amigos",
+    "growthCurveEmpty": "Aún sin datos de amigos. Añade etiquetas o invita amigos para empezar",
     "presetScansTitle": "Escaneos por plantilla",
     "presetScansEmpty": "No hay registros de escaneo de plantillas",
     "scanCountSuffix": "escaneos",
@@ -610,7 +613,7 @@
     "timeYesterday": "Ayer",
     "timeDaysAgo": "hace {{count}}d",
     "timeWeeksAgo": "hace {{count}}sem",
-    "emptyState": "Sin notificaciones"
+    "emptyState": "Sin notificaciones. Configura recordatorios o sigue la actividad de tus amigos"
   },
   "scanResult": {
     "headerTitle": "Añadir amigo",
@@ -805,7 +808,7 @@
     "reasonInviteAccepted": "Un amigo aceptó la invitación",
     "reasonAdminGrant": "Recompensa del sistema",
     "reasonRedeemed": "Canjeado",
-    "emptyHistory": "Aún sin actividad de monedas P",
+    "emptyHistory": "¿Sin monedas P? Invita a amigos para empezar a acumular",
     "plusOne": "+1 P",
     "pointsUnit": "P"
   },

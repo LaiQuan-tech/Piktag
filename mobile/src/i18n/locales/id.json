@@ -509,7 +509,10 @@
     "deactivateMessage": "Profil Anda akan disembunyikan. Anda dapat mengaktifkan kembali dengan masuk lagi.",
     "deactivateConfirm": "Nonaktifkan",
     "deleteAccountButton": "Hapus Akun",
-    "alertDeleteAccountNote": "Tindakan ini nggak bisa dibatalkan. Akun dan semua data kamu akan dihapus secara permanen"
+    "alertDeleteAccountNote": "Tindakan ini nggak bisa dibatalkan. Akun dan semua data kamu akan dihapus secara permanen",
+    "analyticsOptIn": "Kirim analitik penggunaan",
+    "analyticsOptInDescription": "Bantu kami meningkatkan aplikasi",
+    "attRationale": "PikTag menggunakan analitik dasar untuk meningkatkan pengalaman Anda. Kami tidak pernah melacak Anda di aplikasi lain."
   },
   "contactSync": {
     "headerTitle": "Sinkronisasi Kontak",
@@ -572,7 +575,7 @@
     "metAtSuffix": "",
     "nearbySection": "Koneksi terdekat ({{count}})",
     "metHereSection": "Bertemu di sini ({{count}})",
-    "emptyText": "Tidak ada koneksi ditemukan di sekitar"
+    "emptyText": "Tidak ada orang di sekitar. Coba sesuaikan jangkauan pencarian atau buka Jelajah untuk bertemu teman baru"
   },
   "dashboard": {
     "headerTitle": "Dasbor Pribadi",
@@ -586,7 +589,7 @@
     "totalLinkClicks": "Klik Tautan",
     "totalQrScans": "Total Pindai QR",
     "growthCurveTitle": "Pertumbuhan Koneksi",
-    "growthCurveEmpty": "Belum ada data teman",
+    "growthCurveEmpty": "Belum ada data teman. Tambahkan tag atau undang teman untuk memulai",
     "presetScansTitle": "Pindai per Template",
     "presetScansEmpty": "Belum ada catatan pindai template",
     "scanCountSuffix": "pindai",
@@ -610,7 +613,7 @@
     "timeYesterday": "Kemarin",
     "timeDaysAgo": "{{count}} hari lalu",
     "timeWeeksAgo": "{{count}} minggu lalu",
-    "emptyState": "Tidak ada notifikasi"
+    "emptyState": "Tidak ada notifikasi. Atur pengingat atau ikuti aktivitas temanmu"
   },
   "scanResult": {
     "headerTitle": "Tambah Teman",
@@ -805,7 +808,7 @@
     "reasonInviteAccepted": "Teman menerima undangan",
     "reasonAdminGrant": "Hadiah sistem",
     "reasonRedeemed": "Ditukarkan",
-    "emptyHistory": "Belum ada aktivitas Koin P",
+    "emptyHistory": "Belum ada P Coin? Undang teman untuk mulai mengumpulkan",
     "plusOne": "+1 P",
     "pointsUnit": "P"
   },

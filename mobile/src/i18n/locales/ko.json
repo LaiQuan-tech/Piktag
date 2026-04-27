@@ -509,7 +509,10 @@
     "deactivateMessage": "프로필이 숨겨집니다. 다시 로그인하면 재활성화됩니다.",
     "deactivateConfirm": "비활성화",
     "deleteAccountButton": "계정 삭제",
-    "alertDeleteAccountNote": "이 작업은 되돌릴 수 없습니다. 계정과 모든 데이터가 영구적으로 삭제됩니다"
+    "alertDeleteAccountNote": "이 작업은 되돌릴 수 없습니다. 계정과 모든 데이터가 영구적으로 삭제됩니다",
+    "analyticsOptIn": "사용 분석 전송",
+    "analyticsOptInDescription": "앱 개선에 도움 주기",
+    "attRationale": "PikTag은 환경 개선을 위해 기본 분석만 사용하며, 다른 앱에서 사용자를 추적하지 않습니다."
   },
   "contactSync": {
     "headerTitle": "연락처 동기화",
@@ -572,7 +575,7 @@
     "metAtSuffix": "에서 만남",
     "nearbySection": "근처 인맥 ({{count}})",
     "metHereSection": "여기서 만난 사람 ({{count}})",
-    "emptyText": "근처에서 인맥을 찾을 수 없습니다"
+    "emptyText": "근처에 아무도 없어요. 검색 범위를 조정하거나 '탐색'에서 새 친구를 찾아보세요"
   },
   "dashboard": {
     "headerTitle": "개인 대시보드",
@@ -586,7 +589,7 @@
     "totalLinkClicks": "링크 클릭 수",
     "totalQrScans": "총 QR 스캔 수",
     "growthCurveTitle": "인맥 성장",
-    "growthCurveEmpty": "친구 데이터가 없습니다",
+    "growthCurveEmpty": "친구 데이터가 없어요. 태그를 추가하거나 친구를 초대해 시작하세요",
     "presetScansTitle": "템플릿별 스캔 수",
     "presetScansEmpty": "템플릿 스캔 기록이 없습니다",
     "scanCountSuffix": "회",
@@ -610,7 +613,7 @@
     "timeYesterday": "어제",
     "timeDaysAgo": "{{count}}일 전",
     "timeWeeksAgo": "{{count}}주 전",
-    "emptyState": "알림이 없습니다"
+    "emptyState": "알림이 없습니다. 알림을 설정하거나 친구 활동을 팔로우해보세요"
   },
   "scanResult": {
     "headerTitle": "친구 추가",

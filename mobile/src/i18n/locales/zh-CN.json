@@ -509,7 +509,10 @@
     "deactivateMessage": "停用后你的个人页将隐藏，其他人找不到你。你可以随时重新登录恢复。",
     "deactivateConfirm": "停用",
     "deleteAccountButton": "删除账号",
-    "alertDeleteAccountNote": "此操作无法复原，你的账号和所有资料将被永久删除"
+    "alertDeleteAccountNote": "此操作无法复原，你的账号和所有资料将被永久删除",
+    "analyticsOptIn": "分析数据",
+    "analyticsOptInDescription": "帮助我们改进 App",
+    "attRationale": "PikTag 使用基本分析数据改善体验，从不跨 App 追踪您。"
   },
   "contactSync": {
     "headerTitle": "通讯录同步",

@@ -509,7 +509,10 @@
     "deactivateMessage": "Профиль будет скрыт. Чтобы вернуться, просто войди снова.",
     "deactivateConfirm": "Деактивировать",
     "deleteAccountButton": "Удалить аккаунт",
-    "alertDeleteAccountNote": "Это действие нельзя отменить. Аккаунт и все данные будут удалены навсегда"
+    "alertDeleteAccountNote": "Это действие нельзя отменить. Аккаунт и все данные будут удалены навсегда",
+    "analyticsOptIn": "Отправлять аналитику использования",
+    "analyticsOptInDescription": "Помогите нам улучшить приложение",
+    "attRationale": "PikTag использует базовую аналитику для улучшения опыта. Мы никогда не отслеживаем вас в других приложениях."
   },
   "contactSync": {
     "headerTitle": "Синхронизация контактов",
@@ -572,7 +575,7 @@
     "metAtSuffix": "",
     "nearbySection": "Рядом ({{count}})",
     "metHereSection": "Знакомство здесь ({{count}})",
-    "emptyText": "Поблизости никого не нашлось"
+    "emptyText": "Никого рядом. Измените радиус поиска или загляните в «Обзор», чтобы найти новых друзей"
   },
   "dashboard": {
     "headerTitle": "Личная статистика",
@@ -586,7 +589,7 @@
     "totalLinkClicks": "Клики по ссылкам",
     "totalQrScans": "Всего сканирований QR",
     "growthCurveTitle": "Рост связей",
-    "growthCurveEmpty": "Данных по друзьям пока нет",
+    "growthCurveEmpty": "Пока нет данных о друзьях. Добавь теги или пригласи друзей, чтобы начать",
     "presetScansTitle": "Сканирования по шаблонам",
     "presetScansEmpty": "Записей о сканировании шаблонов нет",
     "scanCountSuffix": "сканирований",
@@ -610,7 +613,7 @@
     "timeYesterday": "Вчера",
     "timeDaysAgo": "{{count}} д назад",
     "timeWeeksAgo": "{{count}} нед назад",
-    "emptyState": "Уведомлений нет"
+    "emptyState": "Уведомлений нет. Настрой напоминания или следи за активностью друзей"
   },
   "scanResult": {
     "headerTitle": "Добавить друга",
@@ -805,7 +808,7 @@
     "reasonInviteAccepted": "Друг принял приглашение",
     "reasonAdminGrant": "Награда от системы",
     "reasonRedeemed": "Использовано",
-    "emptyHistory": "Пока нет операций с P-монетами",
+    "emptyHistory": "Пока нет P-монет? Пригласите друзей, чтобы начать копить",
     "plusOne": "+1 P",
     "pointsUnit": "P"
   },

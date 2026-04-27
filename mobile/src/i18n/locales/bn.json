@@ -509,7 +509,10 @@
     "deactivateMessage": "আপনার প্রোফাইল লুকিয়ে যাবে। আবার লগ ইন করে পুনরায় সক্রিয় করতে পারবেন।",
     "deactivateConfirm": "নিষ্ক্রিয় করুন",
     "deleteAccountButton": "অ্যাকাউন্ট মুছুন",
-    "alertDeleteAccountNote": "এই কাজ ফিরিয়ে আনা যাবে না। আপনার অ্যাকাউন্ট ও সব ডেটা স্থায়ীভাবে মুছে যাবে"
+    "alertDeleteAccountNote": "এই কাজ ফিরিয়ে আনা যাবে না। আপনার অ্যাকাউন্ট ও সব ডেটা স্থায়ীভাবে মুছে যাবে",
+    "analyticsOptIn": "ব্যবহার বিশ্লেষণ পাঠান",
+    "analyticsOptInDescription": "অ্যাপ উন্নত করতে আমাদের সাহায্য করুন",
+    "attRationale": "PikTag আপনার অভিজ্ঞতা উন্নত করতে মৌলিক বিশ্লেষণ ব্যবহার করে। আমরা কখনই অন্যান্য অ্যাপ জুড়ে আপনাকে ট্র্যাক করি না।"
   },
   "contactSync": {
     "headerTitle": "কন্টাক্ট সিঙ্ক",
@@ -572,7 +575,7 @@
     "metAtSuffix": "-এ",
     "nearbySection": "কাছাকাছি কানেকশন ({{count}})",
     "metHereSection": "এখানে দেখা হয়েছিল ({{count}})",
-    "emptyText": "কাছাকাছি কোনো কানেকশন পাওয়া যায়নি"
+    "emptyText": "কাছাকাছি কেউ নেই। সার্চ রেঞ্জ পরিবর্তন করুন বা নতুন বন্ধু খুঁজতে 'এক্সপ্লোর'-এ যান"
   },
   "dashboard": {
     "headerTitle": "ব্যক্তিগত ড্যাশবোর্ড",
@@ -586,7 +589,7 @@
     "totalLinkClicks": "লিংক ক্লিক",
     "totalQrScans": "মোট QR স্ক্যান",
     "growthCurveTitle": "কানেকশন বৃদ্ধি",
-    "growthCurveEmpty": "এখনও কোনো বন্ধু ডেটা নেই",
+    "growthCurveEmpty": "এখনও কোনো বন্ধুর ডেটা নেই। ট্যাগ যোগ করুন বা বন্ধুদের আমন্ত্রণ জানিয়ে শুরু করুন",
     "presetScansTitle": "টেমপ্লেট অনুযায়ী স্ক্যান",
     "presetScansEmpty": "টেমপ্লেট স্ক্যানের কোনো রেকর্ড নেই",
     "scanCountSuffix": "স্ক্যান",
@@ -610,7 +613,7 @@
     "timeYesterday": "গতকাল",
     "timeDaysAgo": "{{count}} দি আগে",
     "timeWeeksAgo": "{{count}} সপ্তাহ আগে",
-    "emptyState": "কোনো নোটিফিকেশন নেই"
+    "emptyState": "কোনো নোটিফিকেশন নেই। রিমাইন্ডার সেট করুন বা বন্ধুদের কার্যকলাপ ফলো করুন"
   },
   "scanResult": {
     "headerTitle": "বন্ধু যোগ করুন",
@@ -805,7 +808,7 @@
     "reasonInviteAccepted": "বন্ধু আমন্ত্রণ গ্রহণ করেছে",
     "reasonAdminGrant": "সিস্টেম পুরস্কার",
     "reasonRedeemed": "রিডিম করা হয়েছে",
-    "emptyHistory": "এখনও কোনো P কয়েন কার্যকলাপ নেই",
+    "emptyHistory": "এখনও কোনো P কয়েন নেই? বন্ধুদের আমন্ত্রণ জানিয়ে জমাতে শুরু করুন",
     "plusOne": "+1 P",
     "pointsUnit": "P"
   },

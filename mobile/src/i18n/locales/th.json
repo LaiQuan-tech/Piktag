@@ -509,7 +509,10 @@
     "deactivateMessage": "โปรไฟล์ของคุณจะถูกซ่อน คุณสามารถเปิดใช้งานอีกครั้งโดยลงชื่อเข้าใช้",
     "deactivateConfirm": "ปิด",
     "deleteAccountButton": "ลบบัญชี",
-    "alertDeleteAccountNote": "การกระทำนี้ไม่ได้ย้อนกลับได้ บัญชีและข้อมูลทั้งหมดจะถูกลบอย่างถาวร"
+    "alertDeleteAccountNote": "การกระทำนี้ไม่ได้ย้อนกลับได้ บัญชีและข้อมูลทั้งหมดจะถูกลบอย่างถาวร",
+    "analyticsOptIn": "ส่งข้อมูลวิเคราะห์การใช้งาน",
+    "analyticsOptInDescription": "ช่วยเราปรับปรุงแอป",
+    "attRationale": "PikTag ใช้ข้อมูลวิเคราะห์พื้นฐานเพื่อปรับปรุงประสบการณ์ของคุณ เราไม่เคยติดตามคุณข้ามแอปอื่น"
   },
   "contactSync": {
     "headerTitle": "ซิงค์รายชื่อ",
@@ -572,7 +575,7 @@
     "metAtSuffix": "",
     "nearbySection": "คนรู้จักใกล้เคียง ({{count}})",
     "metHereSection": "พบกันที่นี่ ({{count}})",
-    "emptyText": "ไม่พบคนรู้จักใกล้เคียง"
+    "emptyText": "ไม่มีคนอยู่ใกล้ ๆ ลองปรับช่วงการค้นหาหรือไปที่ 'สำรวจ' เพื่อหาเพื่อนใหม่"
   },
   "dashboard": {
     "headerTitle": "แดชบอร์ดส่วนตัว",
@@ -586,7 +589,7 @@
     "totalLinkClicks": "คลิกลิงก์",
     "totalQrScans": "สแกน QR ทั้งหมด",
     "growthCurveTitle": "การเติบโตของคนรู้จัก",
-    "growthCurveEmpty": "ยังไม่มีข้อมูลเพื่อน",
+    "growthCurveEmpty": "ยังไม่มีข้อมูลเพื่อน เพิ่มแท็กหรือชวนเพื่อนเพื่อเริ่มต้น",
     "presetScansTitle": "จำนวนสแกนต่อเทมเพลต",
     "presetScansEmpty": "ยังไม่มีบันทึกการสแกนเทมเพลต",
     "scanCountSuffix": "ครั้ง",
@@ -610,7 +613,7 @@
     "timeYesterday": "เมื่อวาน",
     "timeDaysAgo": "{{count}} วันที่แล้ว",
     "timeWeeksAgo": "{{count}} สัปดาห์ที่แล้ว",
-    "emptyState": "ไม่มีการแจ้งเตือน"
+    "emptyState": "ไม่มีการแจ้งเตือน ตั้งการแจ้งเตือนหรือติดตามกิจกรรมของเพื่อน"
   },
   "scanResult": {
     "headerTitle": "เพิ่มเพื่อน",
@@ -805,7 +808,7 @@
     "reasonInviteAccepted": "เพื่อนยอมรับคำเชิญ",
     "reasonAdminGrant": "รางวัลจากระบบ",
     "reasonRedeemed": "ใช้แล้ว",
-    "emptyHistory": "ยังไม่มีกิจกรรม P Coin",
+    "emptyHistory": "ยังไม่มี P Coin? ชวนเพื่อนมาร่วมเพื่อเริ่มสะสม",
     "plusOne": "+1 P",
     "pointsUnit": "P"
   },

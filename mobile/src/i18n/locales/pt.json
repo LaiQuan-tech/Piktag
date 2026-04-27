@@ -509,7 +509,10 @@
     "deactivateMessage": "Seu perfil ficará oculto. Você pode reativar fazendo login novamente.",
     "deactivateConfirm": "Desativar",
     "deleteAccountButton": "Excluir conta",
-    "alertDeleteAccountNote": "Esta ação não pode ser desfeita. Sua conta e todos os dados serão excluídos permanentemente"
+    "alertDeleteAccountNote": "Esta ação não pode ser desfeita. Sua conta e todos os dados serão excluídos permanentemente",
+    "analyticsOptIn": "Enviar análises de uso",
+    "analyticsOptInDescription": "Ajude-nos a melhorar o app",
+    "attRationale": "O PikTag usa análises básicas para melhorar sua experiência. Nunca rastreamos você em outros apps."
   },
   "contactSync": {
     "headerTitle": "Sincronizar contatos",
@@ -572,7 +575,7 @@
     "metAtSuffix": "",
     "nearbySection": "Conexões próximas ({{count}})",
     "metHereSection": "Conhecidos aqui ({{count}})",
-    "emptyText": "Nenhuma conexão encontrada por perto"
+    "emptyText": "Ninguém por perto. Ajuste o raio de busca ou vá em Explorar para conhecer pessoas"
   },
   "dashboard": {
     "headerTitle": "Painel pessoal",
@@ -586,7 +589,7 @@
     "totalLinkClicks": "Cliques em links",
     "totalQrScans": "Total de escaneamentos QR",
     "growthCurveTitle": "Crescimento de conexões",
-    "growthCurveEmpty": "Ainda sem dados de amigos",
+    "growthCurveEmpty": "Sem dados de amigos ainda. Adicione tags ou convide amigos para começar",
     "presetScansTitle": "Escaneamentos por modelo",
     "presetScansEmpty": "Sem registros de escaneamento de modelos",
     "scanCountSuffix": "escaneamentos",
@@ -610,7 +613,7 @@
     "timeYesterday": "Ontem",
     "timeDaysAgo": "há {{count}}d",
     "timeWeeksAgo": "há {{count}}sem",
-    "emptyState": "Sem notificações"
+    "emptyState": "Sem notificações. Configure lembretes ou acompanhe seus amigos"
   },
   "scanResult": {
     "headerTitle": "Adicionar amigo",
@@ -805,7 +808,7 @@
     "reasonInviteAccepted": "Amigo aceitou o convite",
     "reasonAdminGrant": "Recompensa do sistema",
     "reasonRedeemed": "Resgatado",
-    "emptyHistory": "Ainda sem atividade de moedas P",
+    "emptyHistory": "Sem moedas P ainda? Convide amigos para começar a acumular",
     "plusOne": "+1 P",
     "pointsUnit": "P"
   },

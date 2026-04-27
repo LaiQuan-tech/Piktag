@@ -509,7 +509,10 @@
     "deactivateMessage": "Profiliniz gizlenecek. Tekrar giriş yaparak yeniden etkinleştirebilirsiniz.",
     "deactivateConfirm": "Devre Dışı Bırak",
     "deleteAccountButton": "Hesabı Sil",
-    "alertDeleteAccountNote": "Bu işlem geri alınamaz. Hesabın ve tüm verilerin kalıcı olarak silinecektir"
+    "alertDeleteAccountNote": "Bu işlem geri alınamaz. Hesabın ve tüm verilerin kalıcı olarak silinecektir",
+    "analyticsOptIn": "Kullanım analitiğini gönder",
+    "analyticsOptInDescription": "Uygulamayı geliştirmemize yardım edin",
+    "attRationale": "PikTag deneyiminizi iyileştirmek için temel analizler kullanır. Sizi asla başka uygulamalarda takip etmiyoruz."
   },
   "contactSync": {
     "headerTitle": "Kişi Senkronizasyonu",
@@ -572,7 +575,7 @@
     "metAtSuffix": "",
     "nearbySection": "Yakındaki bağlantılar ({{count}})",
     "metHereSection": "Burada tanışılanlar ({{count}})",
-    "emptyText": "Yakında bağlantı bulunamadı"
+    "emptyText": "Yakında kimse yok. Arama alanını ayarla veya yeni insanlarla tanışmak için Keşfet'e git"
   },
   "dashboard": {
     "headerTitle": "Kişisel Pano",
@@ -586,7 +589,7 @@
     "totalLinkClicks": "Bağlantı Tıklamaları",
     "totalQrScans": "Toplam QR Tarama",
     "growthCurveTitle": "Bağlantı Büyümesi",
-    "growthCurveEmpty": "Henüz arkadaş verisi yok",
+    "growthCurveEmpty": "Henüz arkadaş verisi yok. Etiket ekle veya arkadaşlarını davet et",
     "presetScansTitle": "Şablon Başına Tarama",
     "presetScansEmpty": "Şablon tarama kaydı yok",
     "scanCountSuffix": "tarama",
@@ -610,7 +613,7 @@
     "timeYesterday": "Dün",
     "timeDaysAgo": "{{count}}g önce",
     "timeWeeksAgo": "{{count}}hf önce",
-    "emptyState": "Bildirim yok"
+    "emptyState": "Bildirim yok. Hatırlatıcı ayarla ya da arkadaşlarının etkinliğini takip et"
   },
   "scanResult": {
     "headerTitle": "Arkadaş Ekle",
@@ -805,7 +808,7 @@
     "reasonInviteAccepted": "Arkadaş daveti kabul etti",
     "reasonAdminGrant": "Sistem ödülü",
     "reasonRedeemed": "Kullanıldı",
-    "emptyHistory": "Henüz P Jetonu etkinliği yok",
+    "emptyHistory": "Henüz P Jetonu yok mu? Arkadaşlarını davet et, kazanmaya başla",
     "plusOne": "+1 P",
     "pointsUnit": "P"
   },

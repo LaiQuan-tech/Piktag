@@ -509,7 +509,10 @@
     "deactivateMessage": "Your profile will be hidden. You can reactivate by logging in again.",
     "deactivateConfirm": "Deactivate",
     "deleteAccountButton": "Delete Account",
-    "alertDeleteAccountNote": "This action cannot be undone. Your account and all data will be permanently deleted"
+    "alertDeleteAccountNote": "This action cannot be undone. Your account and all data will be permanently deleted",
+    "analyticsOptIn": "Send usage analytics",
+    "analyticsOptInDescription": "Help us improve the app",
+    "attRationale": "PikTag uses basic analytics to improve your experience. We never track you across other apps."
   },
   "contactSync": {
     "headerTitle": "Contact Sync",

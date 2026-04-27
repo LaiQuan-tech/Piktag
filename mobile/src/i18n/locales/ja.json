@@ -509,7 +509,10 @@
     "deactivateMessage": "プロフィールが非表示になります。再度ログインすると有効になります。",
     "deactivateConfirm": "停止する",
     "deleteAccountButton": "アカウントを削除",
-    "alertDeleteAccountNote": "この操作は元に戻せません。アカウントとすべてのデータが永久に削除されます"
+    "alertDeleteAccountNote": "この操作は元に戻せません。アカウントとすべてのデータが永久に削除されます",
+    "analyticsOptIn": "利用状況の分析を送信",
+    "analyticsOptInDescription": "アプリの改善にご協力ください",
+    "attRationale": "PikTag は体験向上のため基本的な分析データを使用し、他アプリ間で追跡することはありません。"
   },
   "contactSync": {
     "headerTitle": "連絡先を同期",

@@ -509,7 +509,10 @@
     "deactivateMessage": "Votre profil sera masqué. Vous pouvez le réactiver en vous reconnectant.",
     "deactivateConfirm": "Désactiver",
     "deleteAccountButton": "Supprimer le compte",
-    "alertDeleteAccountNote": "Cette action est irréversible. Votre compte et toutes les données seront définitivement supprimés"
+    "alertDeleteAccountNote": "Cette action est irréversible. Votre compte et toutes les données seront définitivement supprimés",
+    "analyticsOptIn": "Envoyer les données d'usage",
+    "analyticsOptInDescription": "Aidez-nous à améliorer l'application",
+    "attRationale": "PikTag utilise des analyses de base pour améliorer votre expérience. Nous ne vous suivons jamais dans d'autres applications."
   },
   "contactSync": {
     "headerTitle": "Synchroniser les contacts",
@@ -572,7 +575,7 @@
     "metAtSuffix": "",
     "nearbySection": "Connexions à proximité ({{count}})",
     "metHereSection": "Rencontrés ici ({{count}})",
-    "emptyText": "Aucune connexion à proximité"
+    "emptyText": "Personne à proximité. Ajustez la zone de recherche ou allez dans Explorer pour rencontrer du monde"
   },
   "dashboard": {
     "headerTitle": "Tableau de bord personnel",
@@ -586,7 +589,7 @@
     "totalLinkClicks": "Clics sur liens",
     "totalQrScans": "Total des scans QR",
     "growthCurveTitle": "Croissance des connexions",
-    "growthCurveEmpty": "Pas encore de données",
+    "growthCurveEmpty": "Pas encore de données d'amis. Ajoutez des tags ou invitez des amis pour commencer",
     "presetScansTitle": "Scans par modèle",
     "presetScansEmpty": "Aucun enregistrement de scan de modèle",
     "scanCountSuffix": "scans",
@@ -610,7 +613,7 @@
     "timeYesterday": "Hier",
     "timeDaysAgo": "il y a {{count}}j",
     "timeWeeksAgo": "il y a {{count}}sem",
-    "emptyState": "Aucune notification"
+    "emptyState": "Aucune notification. Configurez des rappels ou suivez l'activité de vos amis"
   },
   "scanResult": {
     "headerTitle": "Ajouter un ami",
@@ -805,7 +808,7 @@
     "reasonInviteAccepted": "Un ami a accepté l'invitation",
     "reasonAdminGrant": "Récompense système",
     "reasonRedeemed": "Échangé",
-    "emptyHistory": "Pas encore d'activité de pièces P",
+    "emptyHistory": "Pas encore de P Coins ? Invitez des amis pour commencer à en gagner",
     "plusOne": "+1 P",
     "pointsUnit": "P"
   },

@@ -509,7 +509,10 @@
     "deactivateMessage": "आपकी प्रोफ़ाइल छुप जाएगी। आप दोबारा लॉग इन करके इसे फिर से सक्रिय कर सकते हैं।",
     "deactivateConfirm": "निष्क्रिय करें",
     "deleteAccountButton": "अकाउंट हटाएँ",
-    "alertDeleteAccountNote": "यह कार्रवाई पूर्ववत नहीं हो सकती। आपका अकाउंट और सारा डेटा हमेशा के लिए मिट जाएगा"
+    "alertDeleteAccountNote": "यह कार्रवाई पूर्ववत नहीं हो सकती। आपका अकाउंट और सारा डेटा हमेशा के लिए मिट जाएगा",
+    "analyticsOptIn": "उपयोग एनालिटिक्स भेजें",
+    "analyticsOptInDescription": "ऐप को बेहतर बनाने में मदद करें",
+    "attRationale": "PikTag अनुभव को बेहतर बनाने के लिए बुनियादी एनालिटिक्स का उपयोग करता है। हम आपको अन्य ऐप्स में कभी ट्रैक नहीं करते।"
   },
   "contactSync": {
     "headerTitle": "कॉन्टैक्ट सिंक",
@@ -572,7 +575,7 @@
     "metAtSuffix": " पर",
     "nearbySection": "आस-पास के कनेक्शन ({{count}})",
     "metHereSection": "यहाँ मिले ({{count}})",
-    "emptyText": "आस-पास कोई कनेक्शन नहीं मिला"
+    "emptyText": "आसपास कोई नहीं। सर्च रेंज बदलें या नए दोस्त खोजने के लिए 'एक्सप्लोर' पर जाएँ"
   },
   "dashboard": {
     "headerTitle": "व्यक्तिगत डैशबोर्ड",
@@ -586,7 +589,7 @@
     "totalLinkClicks": "लिंक क्लिक",
     "totalQrScans": "कुल QR स्कैन",
     "growthCurveTitle": "कनेक्शन वृद्धि",
-    "growthCurveEmpty": "अभी कोई दोस्त डेटा नहीं",
+    "growthCurveEmpty": "अभी कोई दोस्त डेटा नहीं। टैग जोड़ें या दोस्तों को आमंत्रित करके शुरू करें",
     "presetScansTitle": "टेम्पलेट के अनुसार स्कैन",
     "presetScansEmpty": "टेम्पलेट स्कैन का कोई रिकॉर्ड नहीं",
     "scanCountSuffix": "स्कैन",
@@ -610,7 +613,7 @@
     "timeYesterday": "कल",
     "timeDaysAgo": "{{count}} दि पहले",
     "timeWeeksAgo": "{{count}} हफ़्ते पहले",
-    "emptyState": "कोई सूचना नहीं"
+    "emptyState": "कोई सूचना नहीं। रिमाइंडर सेट करें या दोस्तों की गतिविधि फ़ॉलो करें"
   },
   "scanResult": {
     "headerTitle": "दोस्त जोड़ें",
@@ -805,7 +808,7 @@
     "reasonInviteAccepted": "दोस्त ने आमंत्रण स्वीकार किया",
     "reasonAdminGrant": "सिस्टम इनाम",
     "reasonRedeemed": "रिडीम हुआ",
-    "emptyHistory": "अभी कोई P सिक्का गतिविधि नहीं",
+    "emptyHistory": "अभी तक कोई P सिक्का नहीं? दोस्तों को आमंत्रित करें और कमाना शुरू करें",
     "plusOne": "+1 P",
     "pointsUnit": "P"
   },
