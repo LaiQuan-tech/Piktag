@@ -419,10 +419,13 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
             }
           }
 
-          // 5b. Sort: isPinned → pickCount (high→low) → position
+          // 5b. Sort: hidden last → isPinned → isPicked → pickCount → isMutual → position
           friendTags.sort((a, b) => {
+            if (a.isHidden !== b.isHidden) return a.isHidden ? 1 : -1;
             if (a.isPinned !== b.isPinned) return a.isPinned ? -1 : 1;
+            if (a.isPicked !== b.isPicked) return a.isPicked ? -1 : 1;
             if (a.pickCount !== b.pickCount) return b.pickCount - a.pickCount;
+            if (a.isMutual !== b.isMutual) return a.isMutual ? -1 : 1;
             return a.position - b.position;
           });
 

@@ -182,6 +182,9 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
             const aPinned = a.is_pinned ? 1 : 0;
             const bPinned = b.is_pinned ? 1 : 0;
             if (aPinned !== bPinned) return bPinned - aPinned;
+            const aPicked = pickedTagIds.has(a.tag_id) ? 1 : 0;
+            const bPicked = pickedTagIds.has(b.tag_id) ? 1 : 0;
+            if (aPicked !== bPicked) return bPicked - aPicked;
             const aPick = Number(pickCounts[a.tag_id] || 0);
             const bPick = Number(pickCounts[b.tag_id] || 0);
             if (aPick !== bPick) return bPick - aPick;
