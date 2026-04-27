@@ -23,10 +23,13 @@ const HIERARCHY_BATCH = 20;
 async function generateEmbedding(text: string, apiKey: string): Promise<number[] | null> {
   try {
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-001:embedContent?key=${apiKey}`,
+      'https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-001:embedContent',
       {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'x-goog-api-key': apiKey,
+        },
         body: JSON.stringify({
           model: 'models/gemini-embedding-001',
           content: { parts: [{ text }] },
@@ -34,7 +37,11 @@ async function generateEmbedding(text: string, apiKey: string): Promise<number[]
       }
     );
 
-    if (!response.ok) return null;
+    if (!response.ok) {
+      const bodyText = await response.text().catch(() => '');
+      console.error('auto-link-concepts embedding upstream error: HTTP', response.status, bodyText.slice(0, 500));
+      return null;
+    }
 
     const result = await response.json();
     return result.embedding?.values || null;
@@ -59,10 +66,13 @@ Respond ONLY in JSON array format, no markdown:
 [{"tag":"媽祖","parent":"民間信仰","semantic_type":"interest"},{"tag":"工程師","parent":null,"semantic_type":"career"}]`;
 
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+      'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent',
       {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'x-goog-api-key': apiKey,
+        },
         body: JSON.stringify({
           contents: [{ parts: [{ text: prompt }] }],
           generationConfig: { temperature: 0.1, maxOutputTokens: 2048 },
@@ -70,7 +80,11 @@ Respond ONLY in JSON array format, no markdown:
       }
     );
 
-    if (!response.ok) return [];
+    if (!response.ok) {
+      const bodyText = await response.text().catch(() => '');
+      console.error('auto-link-concepts hierarchy upstream error: HTTP', response.status, bodyText.slice(0, 500));
+      return [];
+    }
 
     const result = await response.json();
     const text = result.candidates?.[0]?.content?.parts?.[0]?.text || '';
