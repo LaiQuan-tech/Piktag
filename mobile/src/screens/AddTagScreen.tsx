@@ -507,7 +507,7 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>{t('addTag.dateLabel')}</Text>
 
-          {/* Quick date buttons — order: [選日期, 今天, 明天] + custom selected date */}
+          {/* Date selector — just [選日期] button + selected date chip */}
           <View style={styles.quickDateRow}>
             <TouchableOpacity
               style={[styles.quickDateBtn, showDatePicker && styles.quickDateBtnActive]}
@@ -515,25 +515,10 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
               activeOpacity={0.7}
             >
               <Text style={[styles.quickDateText, showDatePicker && styles.quickDateTextActive]}>
-                {t('addTag.pickDate') || '選日期'}
+                {t('addTag.pickDate')}
               </Text>
             </TouchableOpacity>
-            {getQuickDates().map((qd) => {
-              const isSelected = eventDate === formatDate(qd.date);
-              return (
-                <TouchableOpacity
-                  key={qd.label}
-                  style={[styles.quickDateBtn, isSelected && styles.quickDateBtnActive]}
-                  onPress={() => { if (isSelected) { setEventDate(''); } else { setEventDate(formatDate(qd.date)); setSelectedDateObj(qd.date); } setShowDatePicker(false); }}
-                  activeOpacity={0.7}
-                >
-                  <Text style={[styles.quickDateText, isSelected && styles.quickDateTextActive]}>{qd.label}</Text>
-                </TouchableOpacity>
-              );
-            })}
-            {/* Custom selected date (only shown when user picked a date from calendar
-                that isn't today or tomorrow). Tap to deselect. */}
-            {eventDate && !getQuickDates().some(qd => formatDate(qd.date) === eventDate) && (
+            {eventDate && (
               <TouchableOpacity
                 style={[styles.quickDateBtn, styles.quickDateBtnActive]}
                 onPress={() => setEventDate('')}
