@@ -42,15 +42,6 @@ type Invite = {
 
 const APP_URL = 'https://pikt.ag';
 
-function generateCode(): string {
-  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-  let code = '';
-  for (let i = 0; i < 6; i++) {
-    code += chars[Math.floor(Math.random() * chars.length)];
-  }
-  return `PIK-${code}`;
-}
-
 export default function InviteScreen({ navigation }: InviteScreenProps) {
   const { t } = useTranslation();
   const { colors, isDark } = useTheme();
@@ -117,54 +108,35 @@ export default function InviteScreen({ navigation }: InviteScreenProps) {
 
     setGenerating(true);
     try {
-      const code = generateCode();
+      // Server-side: generates unguessable code + atomically decrements quota.
+      const { data: rows, error: rpcErr } = await supabase.rpc('generate_invite_code');
 
-      // Insert invite
-      const { data: invite, error: inviteErr } = await supabase
-        .from('piktag_invites')
-        .insert({
-          inviter_id: user.id,
-          invite_code: code,
-        })
-        .select()
-        .single();
-
-      if (inviteErr) {
-        console.error('Error creating invite:', inviteErr);
-        Alert.alert(t('common.error'), t('invite.alertGenerateError'));
-        return;
-      }
-
-      // Deduct quota
-      const { error: quotaErr } = await supabase
-        .from('piktag_profiles')
-        .update({ invite_quota: quota - 1 })
-        .eq('id', user.id);
-
-      if (quotaErr) {
-        console.error('Error updating quota:', quotaErr);
-        // Rollback the invite row we just created
-        if (invite?.id) {
-          const { error: rollbackErr } = await supabase
-            .from('piktag_invites')
-            .delete()
-            .eq('id', invite.id);
-          if (rollbackErr) {
-            console.error('Error rolling back invite:', rollbackErr);
-          }
-        }
+      if (rpcErr) {
+        console.error('Error generating invite:', rpcErr);
         Alert.alert(
           t('common.error'),
-          quotaErr.message || t('invite.alertGenerateError')
+          rpcErr.message || t('invite.alertGenerateError')
         );
         return;
       }
 
-      // Only update local state after server update succeeded
-      setQuota((q) => Math.max(0, q - 1));
-      if (invite) {
-        setInvites((prev) => [invite, ...prev]);
+      const invite = Array.isArray(rows) ? rows[0] : rows;
+      if (!invite) {
+        Alert.alert(t('common.error'), t('invite.alertGenerateError'));
+        return;
       }
+
+      setQuota((q) => Math.max(0, q - 1));
+      setInvites((prev) => [
+        {
+          id: invite.id,
+          invite_code: invite.invite_code,
+          used_by: null,
+          used_at: null,
+          created_at: invite.created_at,
+        },
+        ...prev,
+      ]);
     } catch (err: any) {
       console.error('Generate invite error:', err);
       Alert.alert(
