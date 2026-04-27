@@ -892,5 +892,22 @@
     "ZA": "南非",
     "EG": "埃及",
     "NG": "奈及利亞"
+  },
+  "ask": {
+    "createTitle": "你需要什麼？",
+    "bodyPlaceholder": "描述你在找什麼…",
+    "selectTags": "選擇相關標籤",
+    "expiry": "到期時間",
+    "postAsk": "發送 Ask",
+    "yourAsk": "我的 Ask",
+    "newAsk": "發 Ask",
+    "deleteAsk": "刪除 Ask",
+    "deleteAskConfirm": "確定要刪除這則 Ask？",
+    "noAsksYet": "目前沒有朋友的 Ask",
+    "friendOfFriend": "朋友的朋友",
+    "timeLeft": "剩 {{hours}}h",
+    "expired": "已過期",
+    "generating": "產生標題中…",
+    "minOneTag": "至少選一個標籤"
   }
 }

@@ -885,5 +885,22 @@
     "ZA": "南アフリカ",
     "EG": "エジプト",
     "NG": "ナイジェリア"
+  },
+  "ask": {
+    "createTitle": "何が必要ですか？",
+    "bodyPlaceholder": "探しているものを書いてください…",
+    "selectTags": "関連タグを選択",
+    "expiry": "有効期限",
+    "postAsk": "Ask を投稿",
+    "yourAsk": "自分の Ask",
+    "newAsk": "Ask 作成",
+    "deleteAsk": "Ask を削除",
+    "deleteAskConfirm": "この Ask を削除しますか？",
+    "noAsksYet": "まだ友達の Ask はありません",
+    "friendOfFriend": "友達の友達",
+    "timeLeft": "残り {{hours}}h",
+    "expired": "期限切れ",
+    "generating": "タイトル生成中…",
+    "minOneTag": "タグを1つ以上選択してください"
   }
 }

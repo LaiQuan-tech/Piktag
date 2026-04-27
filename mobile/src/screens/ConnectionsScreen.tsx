@@ -43,8 +43,10 @@ import { supabase } from '../lib/supabase';
 import { getCache, setCache, CACHE_KEYS } from '../lib/dataCache';
 import { ConnectionsScreenSkeleton } from '../components/SkeletonLoader';
 import { useAuth } from '../hooks/useAuth';
+import { useAskFeed } from '../hooks/useAskFeed';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import FriendsMapModal, { type FriendLocation } from '../components/FriendsMapModal';
+import AskStoryRow from '../components/ask/AskStoryRow';
 import type { Connection, ConnectionTag } from '../types';
 
 type ConnectionWithTags = Connection & {
@@ -135,6 +137,7 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
   const { t } = useTranslation();
   const { colors, isDark } = useTheme();
   const { user } = useAuth();
+  const { asks: askFeedItems, myAsk: myActiveAsk, refresh: refreshAsks } = useAskFeed();
 
   const lastFetchRef = React.useRef<number>(0);
 
@@ -535,63 +538,37 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
   // --- Optimized: stable keyExtractor ---
   const keyExtractor = useCallback((item: ConnectionWithTags) => item.id, []);
 
+  // Fetch my own profile for Ask story row
+  const [myProfile, setMyProfile] = useState<{ full_name: string | null; avatar_url: string | null }>({ full_name: null, avatar_url: null });
+  useEffect(() => {
+    if (!user) return;
+    supabase.from('piktag_profiles').select('full_name, avatar_url').eq('id', user.id).single()
+      .then(({ data }) => { if (data) setMyProfile(data); });
+  }, [user]);
+
+  const handleAskPressUser = useCallback((userId: string) => {
+    const conn = connections.find(c => c.connected_user_id === userId);
+    if (conn) {
+      navigation.navigate('FriendDetail', { connectionId: conn.id, friendId: userId });
+    } else {
+      navigation.navigate('UserDetail', { userId });
+    }
+  }, [connections, navigation]);
+
   // --- Optimized: stable ListHeaderComponent via useMemo ---
   const listHeader = useMemo(() => {
-    const renderStoriesBar = () => {
-      const unreadStatuses = friendStatuses.filter(s => !viewedStatusIds.has(s.userId));
-      if (unreadStatuses.length === 0 || selectMode) return null;
-      return (
-        <View style={styles.storiesContainer}>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.storiesScroll}>
-            {unreadStatuses.map((s) => (
-              <TouchableOpacity
-                key={s.userId}
-                style={styles.storyItem}
-                activeOpacity={0.7}
-                onPress={() => {
-                  // Mark as viewed
-                  setViewedStatusIds(prev => {
-                    const next = new Set(prev);
-                    next.add(s.userId);
-                    AsyncStorage.setItem('piktag_viewed_statuses', JSON.stringify([...next]));
-                    return next;
-                  });
-                  const conn = connections.find(c => c.connected_user_id === s.userId);
-                  if (conn) navigation.navigate('FriendDetail', { connectionId: conn.id, friendId: s.userId });
-                }}
-              >
-                <LinearGradient
-                  colors={['#ff5757', '#c44dff', '#8c52ff']}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                  style={styles.storyAvatarRing}
-                >
-                  <View style={styles.storyAvatarInner}>
-                    {s.avatarUrl ? (
-                      <Image source={{ uri: s.avatarUrl }} style={styles.storyAvatar} cachePolicy="memory-disk" />
-                    ) : (
-                      <InitialsAvatar name={s.name} size={52} />
-                    )}
-                  </View>
-                </LinearGradient>
-                <Text style={styles.storyName} numberOfLines={1}>{s.name}</Text>
-                <Text style={styles.storyText} numberOfLines={1}>{s.statusText}</Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-        </View>
-      );
-    };
-
+    if (selectMode) return null;
     return (
-      <>
-        {/* IG-style stories bar */}
-        {renderStoriesBar()}
-
-        {/* Review banner removed — replaced by inline "X 位待整理 →" in header */}
-      </>
+      <AskStoryRow
+        asks={askFeedItems}
+        myAsk={myActiveAsk}
+        myAvatarUrl={myProfile.avatar_url}
+        myName={myProfile.full_name || '?'}
+        onRefresh={refreshAsks}
+        onPressUser={handleAskPressUser}
+      />
     );
-  }, [connections, friendStatuses, viewedStatusIds, selectMode, t, navigation]);
+  }, [askFeedItems, myActiveAsk, myProfile, selectMode, refreshAsks, handleAskPressUser]);
 
   // --- Optimized: stable contentContainerStyle ---
   const contentContainerStyle = useMemo(() => [

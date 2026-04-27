@@ -885,5 +885,22 @@
     "ZA": "แอฟริกาใต้",
     "EG": "อียิปต์",
     "NG": "ไนจีเรีย"
+  },
+  "ask": {
+    "createTitle": "What do you need?",
+    "bodyPlaceholder": "Describe what you're looking for…",
+    "selectTags": "Select relevant tags",
+    "expiry": "Expires in",
+    "postAsk": "Post Ask",
+    "yourAsk": "Your Ask",
+    "newAsk": "New Ask",
+    "deleteAsk": "Delete Ask",
+    "deleteAskConfirm": "Are you sure you want to delete this ask?",
+    "noAsksYet": "No asks from your network yet",
+    "friendOfFriend": "Friend of friend",
+    "timeLeft": "{{hours}}h left",
+    "expired": "Expired",
+    "generating": "Generating title…",
+    "minOneTag": "Select at least one tag"
   }
 }
