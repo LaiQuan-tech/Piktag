@@ -27,7 +27,9 @@
         "NSLocationWhenInUseUsageDescription": "PikTag uses your location to find nearby places",
         "NSUserTrackingUsageDescription": "PikTag uses analytics to improve the app experience and never tracks you across other apps or websites."
       },
-      "associatedDomains": ["applinks:pikt.ag"]
+      "associatedDomains": [
+        "applinks:pikt.ag"
+      ]
     },
     "android": {
       "package": "ag.pikt.app",
@@ -56,10 +58,16 @@
       "intentFilters": [
         {
           "action": "VIEW",
-          "category": ["BROWSABLE", "DEFAULT"],
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ],
           "autoVerify": true,
           "data": [
-            { "scheme": "https", "host": "pikt.ag" }
+            {
+              "scheme": "https",
+              "host": "pikt.ag"
+            }
           ]
         }
       ]
@@ -110,7 +118,8 @@
           "contactsPermission": "PikTag uses your contacts to help you find friends."
         }
       ],
-      "expo-web-browser"
+      "expo-web-browser",
+      "expo-tracking-transparency"
     ],
     "updates": {
       "enabled": true,
