@@ -990,7 +990,7 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
             </View>
           )}
 
-          {/* Action buttons — always full row */}
+          {/* Action buttons — IG style: [Follow] [Message] [Tag] [Suggest] */}
           <View style={styles.actionButtonsRow}>
             {isFollowing ? (
               <TouchableOpacity
@@ -1025,43 +1025,36 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
                 </LinearGradient>
               </TouchableOpacity>
             )}
-            {isFollowing && (
-              <TouchableOpacity
-                style={styles.tagButton}
-                activeOpacity={0.7}
-                onPress={openPickTagModal}
-              >
-                <Text style={styles.tagButtonText}>{t('userDetail.tagAction')}</Text>
-              </TouchableOpacity>
-            )}
-            {/* Similar users trigger button */}
-            <TouchableOpacity
-              style={styles.suggestBtn}
-              activeOpacity={0.7}
-              onPress={() => setShowSimilar(!showSimilar)}
-            >
-              <UserPlus size={20} color={showSimilar ? COLORS.piktag500 : COLORS.gray500} />
-            </TouchableOpacity>
-            {/* Message icon — pinned to the absolute right edge of the
-                action row so it lives in the slot users expect "quick
-                send a DM" to occupy (mirrors IG / Threads / most
-                social profiles, and matches FriendDetailScreen's
-                button order). */}
             {authUser && resolvedUserId && authUser.id !== resolvedUserId && (
               <TouchableOpacity
                 style={styles.messageButton}
                 onPress={handleOpenChat}
                 activeOpacity={0.8}
                 disabled={messageLoading}
-                accessibilityLabel={t('chat.inbox')}
               >
                 {messageLoading ? (
-                  <ActivityIndicator size="small" color={COLORS.piktag600} />
+                  <ActivityIndicator size="small" color={COLORS.gray700} />
                 ) : (
-                  <MessageCircle size={18} color={COLORS.piktag600} strokeWidth={2} />
+                  <Text style={styles.messageButtonText}>{t('userDetail.sendMessage')}</Text>
                 )}
               </TouchableOpacity>
             )}
+            {isFollowing && (
+              <TouchableOpacity
+                style={styles.iconButton}
+                activeOpacity={0.7}
+                onPress={openPickTagModal}
+              >
+                <Hash size={18} color={COLORS.gray700} strokeWidth={2.5} />
+              </TouchableOpacity>
+            )}
+            <TouchableOpacity
+              style={[styles.iconButton, showSimilar && styles.iconButtonActive]}
+              activeOpacity={0.7}
+              onPress={() => setShowSimilar(!showSimilar)}
+            >
+              <UserPlus size={18} color={showSimilar ? COLORS.piktag500 : COLORS.gray700} />
+            </TouchableOpacity>
           </View>
         </View>
 
@@ -1604,14 +1597,28 @@ const styles = StyleSheet.create({
     color: COLORS.piktag600,
   },
   messageButton: {
-    width: 44,
+    flex: 1,
     borderRadius: 12,
     paddingVertical: 12,
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: COLORS.gray100,
+  },
+  messageButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: COLORS.gray900,
+  },
+  iconButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: COLORS.gray100,
+  },
+  iconButtonActive: {
     backgroundColor: COLORS.piktag50,
-    borderWidth: 2,
-    borderColor: COLORS.piktag500,
   },
   // Tags — flat inline clickable (matching ProfileScreen)
   tagsWrap: {

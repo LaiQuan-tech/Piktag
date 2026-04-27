@@ -45,6 +45,7 @@ import {
   X,
   AlertTriangle,
   MessageCircle,
+  Hash,
 } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { COLORS } from '../constants/theme';
@@ -912,7 +913,7 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
             </Text>
           </View>
 
-          {/* Action buttons — Follow logic */}
+          {/* Action buttons — IG style: [Follow] [Message] [Tag] */}
           <View style={styles.actionButtonsRow}>
             {isFollowing ? (
               <TouchableOpacity
@@ -947,34 +948,27 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
                 </LinearGradient>
               </TouchableOpacity>
             )}
-            {isFollowing && (
-              <TouchableOpacity
-                style={styles.tagButton}
-                activeOpacity={0.7}
-                onPress={openPickTagModal}
-              >
-                <Text style={styles.tagButtonText}>{t('friendDetail.tagAction')}</Text>
-              </TouchableOpacity>
-            )}
-            {/* Message icon — intentionally rendered LAST so it sits on
-                the absolute right edge of the action row, the slot
-                users expect "quick send a DM" to live in (mirrors IG /
-                Threads / most social profiles). Disabled state while
-                the get_or_create_conversation RPC is in flight so
-                spam-tapping doesn't stack requests. */}
             <TouchableOpacity
               style={styles.messageButton}
               onPress={handleOpenChat}
               activeOpacity={0.8}
               disabled={messageLoading}
-              accessibilityLabel={t('chat.inbox')}
             >
               {messageLoading ? (
-                <ActivityIndicator size="small" color={COLORS.piktag600} />
+                <ActivityIndicator size="small" color={COLORS.gray700} />
               ) : (
-                <MessageCircle size={18} color={COLORS.piktag600} strokeWidth={2} />
+                <Text style={styles.messageButtonText}>{t('friendDetail.sendMessage')}</Text>
               )}
             </TouchableOpacity>
+            {isFollowing && (
+              <TouchableOpacity
+                style={styles.iconButton}
+                activeOpacity={0.7}
+                onPress={openPickTagModal}
+              >
+                <Hash size={18} color={COLORS.gray700} strokeWidth={2.5} />
+              </TouchableOpacity>
+            )}
           </View>
         </View>
 
@@ -1478,22 +1472,25 @@ const styles = StyleSheet.create({
   // UserDetailScreen.messageButton visually so the two screens feel
   // like the same surface when the user hops between them.
   messageButton: {
-    width: 44,
-    borderRadius: 12,
-    paddingVertical: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: COLORS.piktag50,
-    borderWidth: 2,
-    borderColor: COLORS.piktag500,
-  },
-  tagButton: {
     flex: 1,
-    backgroundColor: COLORS.piktag500,
     borderRadius: 12,
     paddingVertical: 12,
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: COLORS.gray100,
+  },
+  messageButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: COLORS.gray900,
+  },
+  iconButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: COLORS.gray100,
   },
   // More menu
   moreOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-end' },
