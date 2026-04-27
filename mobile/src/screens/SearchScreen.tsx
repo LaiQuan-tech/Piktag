@@ -947,6 +947,9 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
     setSelectedTagCategory(null);
     setIntersectionMode(false);
     setIntersectionProfiles([]);
+    setIntersectionFriends([]);
+    setIntersectionExplore([]);
+    setIntersectionSelectedTags([]);
     searchInputRef.current?.blur();
   }, []);
 
@@ -1459,6 +1462,11 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
       trimmedQuery,
       handleResetToDefault,
       handleDeleteRecentAt,
+      intersectionTab,
+      intersectionFriends,
+      intersectionExplore,
+      intersectionSelectedTags,
+      handleSearchByTags,
     ],
   );
 
@@ -1667,6 +1675,52 @@ const styles = StyleSheet.create({
     color: COLORS.gray400,
     paddingHorizontal: 16,
     paddingTop: 6,
+  },
+  selectedChipsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginBottom: 16,
+  },
+  selectedChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.piktag500,
+    borderRadius: 20,
+    paddingLeft: 12,
+    paddingRight: 8,
+    paddingVertical: 6,
+    gap: 6,
+  },
+  selectedChipText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: COLORS.white,
+  },
+  intersectionTabRow: {
+    flexDirection: 'row',
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.gray200,
+    marginBottom: 8,
+  },
+  intersectionTabBtn: {
+    flex: 1,
+    alignItems: 'center',
+    paddingVertical: 10,
+    borderBottomWidth: 2,
+    borderBottomColor: 'transparent',
+  },
+  intersectionTabBtnActive: {
+    borderBottomColor: COLORS.piktag500,
+  },
+  intersectionTabText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: COLORS.gray500,
+  },
+  intersectionTabTextActive: {
+    fontWeight: '600',
+    color: COLORS.piktag600,
   },
   // Main styles
   container: {
