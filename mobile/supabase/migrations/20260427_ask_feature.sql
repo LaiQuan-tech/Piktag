@@ -226,6 +226,17 @@ BEGIN
     WHERE ut.user_id = me
   ),
 
+  -- Expand viewer's tags to include concept siblings (semantic matching).
+  -- If tag A has concept_id = X, all tags with concept_id = X are equivalent.
+  my_tags_expanded AS (
+    SELECT DISTINCT tag_id FROM my_tags
+    UNION
+    SELECT DISTINCT sibling.id AS tag_id
+    FROM my_tags mt
+    JOIN public.piktag_tags orig ON orig.id = mt.tag_id AND orig.concept_id IS NOT NULL
+    JOIN public.piktag_tags sibling ON sibling.concept_id = orig.concept_id
+  ),
+
   -- 1st-degree friends (direct connections).
   friends_1 AS (
     SELECT DISTINCT c.connected_user_id AS uid
@@ -283,12 +294,23 @@ BEGIN
       AND a.author_id <> me
       AND a.author_id NOT IN (SELECT uid FROM blocked)
       AND a.id NOT IN (SELECT ask_id FROM dismissed)
-      -- Tag overlap: at least one ask-tag matches one of the viewer's tags.
+      -- Tag overlap: at least one ask-tag matches the viewer's tags
+      -- (expanded via concept_id for semantic matching, e.g. 攝影 = Photography = 摄影).
       AND EXISTS (
         SELECT 1
         FROM public.piktag_ask_tags at2
-        JOIN my_tags mt ON mt.tag_id = at2.tag_id
         WHERE at2.ask_id = a.id
+          AND (
+            at2.tag_id IN (SELECT tag_id FROM my_tags_expanded)
+            OR EXISTS (
+              SELECT 1
+              FROM public.piktag_tags ask_tag
+              JOIN public.piktag_tags viewer_tag ON viewer_tag.concept_id = ask_tag.concept_id
+                AND ask_tag.concept_id IS NOT NULL
+              JOIN my_tags mt2 ON mt2.tag_id = viewer_tag.id
+              WHERE ask_tag.id = at2.tag_id
+            )
+          )
       )
     ORDER BY a.created_at DESC
     LIMIT p_limit
