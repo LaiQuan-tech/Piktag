@@ -154,7 +154,6 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
       const [detailResp, relation] = await Promise.all([
         supabase.rpc('get_user_detail', {
           target_user_id: userId,
-          viewer_id: authUser.id,
         }),
         getViewerRelation(authUser.id, userId),
       ]);
@@ -241,7 +240,6 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
       // flip loading=false (keeps the UI from flashing an empty row).
       const { data: similar, error: similarErr } = await supabase.rpc('get_similar_users', {
         target_user_id: userId,
-        viewer_id: authUser.id,
         max_results: 6,
       });
       if (signal.aborted) return;
