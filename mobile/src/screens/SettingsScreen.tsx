@@ -349,6 +349,8 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
             style={styles.headerBackBtn}
             onPress={() => navigation.canGoBack() ? navigation.goBack() : navigation.navigate("Connections")}
             activeOpacity={0.6}
+            accessibilityRole="button"
+            accessibilityLabel={t('common.back')}
           >
             <ArrowLeft size={24} color={COLORS.gray900} />
           </TouchableOpacity>
@@ -372,6 +374,8 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
           style={styles.headerBackBtn}
           onPress={() => navigation.canGoBack() ? navigation.goBack() : navigation.navigate("Connections")}
           activeOpacity={0.6}
+          accessibilityRole="button"
+          accessibilityLabel={t('common.back')}
         >
           <ArrowLeft size={24} color={COLORS.gray900} />
         </TouchableOpacity>
@@ -440,8 +444,8 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
                   text: t('settings.deactivateConfirm') || '停用',
                   style: 'destructive',
                   onPress: async () => {
-                    if (!userId) return;
-                    await supabase.from('piktag_profiles').update({ is_public: false }).eq('id', userId);
+                    if (!user?.id) return;
+                    await supabase.from('piktag_profiles').update({ is_public: false }).eq('id', user.id);
                     await supabase.auth.signOut();
                   },
                 },
@@ -526,7 +530,7 @@ const styles = StyleSheet.create({
     borderBottomColor: COLORS.gray100,
   },
   headerBackBtn: {
-    padding: 4,
+    padding: 12,
   },
   headerTitle: {
     flex: 1,
