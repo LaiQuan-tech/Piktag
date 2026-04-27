@@ -64,7 +64,7 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
   const loadPopularTags = useCallback(async () => {
     const { data, error } = await supabase
       .from('piktag_tags')
-      .select('*')
+      .select('id, name, usage_count, semantic_type')
       .order('usage_count', { ascending: false })
       .limit(12);
     if (!error && data) setPopularTags(data);
@@ -88,11 +88,23 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
         } catch {}
       }
 
-      const { data: profile, error: profileError } = await supabase
-        .from('piktag_profiles')
-        .select('bio, full_name, location')
-        .eq('id', user.id)
-        .single();
+      // Run profile + existing-tags fetches in parallel — both feed the
+      // AI prompt and are independent.
+      const [profileResp, existingTagsResp] = await Promise.all([
+        supabase
+          .from('piktag_profiles')
+          .select('bio, full_name, location')
+          .eq('id', user.id)
+          .single(),
+        supabase
+          .from('piktag_user_tags')
+          .select('tag:piktag_tags!tag_id(name)')
+          .eq('user_id', user.id)
+          .eq('is_private', false)
+          .limit(10),
+      ]);
+      const profile = profileResp.data;
+      const profileError = profileResp.error;
       if (profileError) {
         setAiError('無法載入個人資料：' + profileError.message);
         return;
@@ -102,12 +114,7 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
       const nameText = profile?.full_name || '';
       const locationText = profile?.location || '';
 
-      const { data: existingTags } = await supabase
-        .from('piktag_user_tags')
-        .select('tag:piktag_tags!tag_id(name)')
-        .eq('user_id', user.id)
-        .eq('is_private', false)
-        .limit(10);
+      const existingTags = existingTagsResp.data;
       const tagNames = (existingTags || []).map((et: any) => et.tag?.name).filter(Boolean).join(', ');
 
       const context = [bioText, nameText, locationText, tagNames].filter(Boolean).join('\n');

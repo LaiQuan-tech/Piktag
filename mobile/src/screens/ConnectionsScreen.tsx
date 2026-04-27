@@ -284,7 +284,7 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
           .from('piktag_connection_tags')
           .select('connection_id, is_private, tag:piktag_tags!tag_id(name)')
           .in('connection_id', connectionIds)
-          .limit(5000),
+          .limit(200),
         followedConnUserIds.length > 0
           ? supabase
               .from('piktag_user_status')
@@ -331,13 +331,19 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
       const statusData =
         statusRes.status === 'fulfilled' && statusRes.value.data ? statusRes.value.data : null;
       if (statusData && statusData.length > 0) {
+        // Build a userId → connection map ONCE — the previous .find() in
+        // the loop was O(n²) and got noticeable on 200+ connection lists.
+        const connByUserId = new Map<string, any>();
+        for (const c of displayedConnections as any[]) {
+          if (c?.connected_user_id) connByUserId.set(c.connected_user_id, c);
+        }
         // Deduplicate: one status per user (latest)
         const seenUsers = new Set<string>();
         const statuses: FriendStatus[] = [];
         for (const s of statusData) {
           if (seenUsers.has(s.user_id)) continue;
           seenUsers.add(s.user_id);
-          const conn = displayedConnections.find((c: any) => c.connected_user_id === s.user_id);
+          const conn = connByUserId.get(s.user_id);
           const profile = conn?.connected_user as any;
           if (profile) {
             statuses.push({

@@ -135,7 +135,7 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
       try {
         const { data } = await supabase
           .from('piktag_tag_presets')
-          .select('*')
+          .select('id, user_id, name, location, tags, created_at')
           .eq('user_id', user.id)
           .order('created_at', { ascending: false });
 
@@ -286,7 +286,7 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
           tags: localPreset.tags,
           created_at: now,
         })
-        .select('*')
+        .select('id')
         .single();
 
       if (data) {
@@ -388,7 +388,7 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
             is_active: true,
             expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
           })
-          .select('*')
+          .select('id, event_name, event_location, event_tags, expires_at, is_active')
           .single();
 
         if (!error && data) {

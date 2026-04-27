@@ -26,7 +26,7 @@ export default function PointsHistoryScreen({ navigation }: Props) {
     try {
       const [balanceRes, entriesRes] = await Promise.all([
         supabase.from('piktag_profiles').select('p_points').eq('id', user.id).single(),
-        supabase.from('piktag_points_ledger').select('*').eq('user_id', user.id).order('created_at', { ascending: false }).limit(100),
+        supabase.from('piktag_points_ledger').select('*').eq('user_id', user.id).order('created_at', { ascending: false }).limit(50),
       ]);
       setBalance(balanceRes.data?.p_points ?? 0);
       setEntries((entriesRes.data as PointsLedgerEntry[]) ?? []);

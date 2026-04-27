@@ -393,6 +393,12 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
     }
   }, []);
 
+  // Track when this screen first mounted so the focus-listener below
+  // can skip a redundant tags refetch on the very first focus event
+  // (the initial load already did it).
+  const mountedAtRef = useRef<number>(Date.now());
+  const initialLoadDoneRef = useRef<boolean>(false);
+
   useEffect(() => {
     let isMounted = true;
     const load = async () => {
@@ -403,7 +409,10 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
         fetchUserTags(),
         fetchPopularTags(),
       ]);
-      if (isMounted) setLoading(false);
+      if (isMounted) {
+        setLoading(false);
+        initialLoadDoneRef.current = true;
+      }
     };
     load();
     return () => {
@@ -411,9 +420,13 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
     };
   }, [fetchProfile, fetchBiolinks, fetchUserTags, fetchPopularTags]);
 
-  // Refresh tags when returning from ManageTagsScreen
+  // Refresh tags when returning from ManageTagsScreen — but skip if the
+  // initial load just ran (within 60 s of mount), which would otherwise
+  // double-fetch and cost an extra round-trip on every cold open.
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
+      const youngMount = Date.now() - mountedAtRef.current < 60_000;
+      if (initialLoadDoneRef.current && youngMount) return;
       fetchUserTags();
     });
     return unsubscribe;

@@ -149,10 +149,17 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
       // JSON payload. This is what powers the initial paint; the
       // similar-users strip below is fetched separately because it's
       // collapsible / beneath the fold.
-      const { data: detail, error: detailErr } = await supabase.rpc('get_user_detail', {
-        target_user_id: userId,
-        viewer_id: authUser.id,
-      });
+      // Run the main RPC and the viewer-relation fetch in parallel —
+      // they're independent and both gate the initial paint.
+      const [detailResp, relation] = await Promise.all([
+        supabase.rpc('get_user_detail', {
+          target_user_id: userId,
+          viewer_id: authUser.id,
+        }),
+        getViewerRelation(authUser.id, userId),
+      ]);
+      const detail = detailResp.data;
+      const detailErr = detailResp.error;
       if (signal.aborted) return;
 
       if (detailErr || !detail) {
@@ -165,8 +172,6 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
 
       // Biolinks: filter by viewer relation, same as prior direct query.
       if (Array.isArray(d.biolinks)) {
-        const relation = await getViewerRelation(authUser.id, userId);
-        if (signal.aborted) return;
         setBiolinks(filterBiolinksByVisibility(d.biolinks, relation));
       }
 
