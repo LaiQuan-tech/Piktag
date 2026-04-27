@@ -6,6 +6,7 @@ import { supabase } from '../lib/supabase';
 import { useAuth } from './useAuth';
 import type { Message, MessageStatus, ThreadMessage } from '../types/chat';
 import { dequeue, enqueue, peek, type QueuedSend } from '../lib/chatSendQueue';
+import { useNetInfo } from './useNetInfo';
 
 const PAGE_SIZE = 50;
 
@@ -52,6 +53,9 @@ export function useChatThread(conversationId: string): UseChatThreadReturn {
   const [loading, setLoading] = useState<boolean>(true);
   const [loadingMore, setLoadingMore] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+
+  const { isConnected } = useNetInfo();
+  const wasConnectedRef = useRef<boolean>(isConnected);
 
   const isMountedRef = useRef<boolean>(true);
   const channelRef = useRef<RealtimeChannel | null>(null);
@@ -371,9 +375,16 @@ export function useChatThread(conversationId: string): UseChatThreadReturn {
     };
   }, [subscribe, unsubscribe, fetchLatest]);
 
-  // Queued sends are flushed on mount (below) and via manual retry on
-  // failed bubbles. Auto-flush on reconnect would require
-  // @react-native-community/netinfo which isn't in this project yet.
+  // Auto-flush queued sends when network connectivity transitions from
+  // offline to online. Manual retry on failed bubbles still works as a
+  // fallback if the user tapped retry while offline.
+  useEffect(() => {
+    const wasConnected = wasConnectedRef.current;
+    wasConnectedRef.current = isConnected;
+    if (!wasConnected && isConnected) {
+      void flushQueue();
+    }
+  }, [isConnected, flushQueue]);
 
   return {
     messages,

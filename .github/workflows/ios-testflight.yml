@@ -30,6 +30,7 @@ jobs:
       EXPO_PUBLIC_SUPABASE_URL: ${{ secrets.EXPO_PUBLIC_SUPABASE_URL }}
       EXPO_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.EXPO_PUBLIC_SUPABASE_ANON_KEY }}
       EXPO_PUBLIC_GOOGLE_PLACES_API_KEY: ${{ secrets.EXPO_PUBLIC_GOOGLE_PLACES_API_KEY }}
+      EXPO_PUBLIC_SENTRY_DSN: ${{ secrets.EXPO_PUBLIC_SENTRY_DSN }}
       SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
       SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
       SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
@@ -82,6 +83,7 @@ jobs:
           EXPO_PUBLIC_SUPABASE_URL=${EXPO_PUBLIC_SUPABASE_URL}
           EXPO_PUBLIC_SUPABASE_ANON_KEY=${EXPO_PUBLIC_SUPABASE_ANON_KEY}
           EXPO_PUBLIC_GOOGLE_PLACES_API_KEY=${EXPO_PUBLIC_GOOGLE_PLACES_API_KEY}
+          EXPO_PUBLIC_SENTRY_DSN=${EXPO_PUBLIC_SENTRY_DSN}
           EOF
           # Fail loudly if any required secret is missing. Better to abort
           # now than produce a crashing release build.
@@ -255,6 +257,28 @@ jobs:
             -allowProvisioningUpdates
 
           echo "✅ Upload to App Store Connect / TestFlight completed successfully"
+
+      - name: Upload JS sourcemaps to Sentry
+        # Belt-and-suspenders. The Sentry Xcode build phase already
+        # uploads sourcemaps when SENTRY_AUTH_TOKEN is set, but it can
+        # silently no-op (e.g. SENTRY_DISABLE_AUTO_UPLOAD=true). This
+        # explicit step guarantees a sourcemap exists for every release
+        # so production stack traces in Sentry stay symbolicated.
+        if: ${{ env.SENTRY_AUTH_TOKEN != '' }}
+        working-directory: mobile
+        env:
+          RUN_NUMBER: ${{ github.run_number }}
+        run: |
+          BUILD_NUMBER=$((RUN_NUMBER + 1))
+          VERSION=$(node -e "console.log(require('./app.json').expo.version)")
+          RELEASE="ag.pikt.app@${VERSION}+${BUILD_NUMBER}"
+          mkdir -p dist
+          npx expo export --platform ios --output-dir dist || echo "⚠️ expo export failed — sourcemap upload may be partial"
+          npx @sentry/cli sourcemaps upload \
+            --org "$SENTRY_ORG" \
+            --project "$SENTRY_PROJECT" \
+            --release "$RELEASE" \
+            ./dist || echo "⚠️ sourcemap upload failed — non-fatal"
 
       - name: Cleanup keychain
         if: always()

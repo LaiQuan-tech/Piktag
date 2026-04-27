@@ -17,6 +17,7 @@ jobs:
       EXPO_PUBLIC_SUPABASE_URL: ${{ secrets.EXPO_PUBLIC_SUPABASE_URL }}
       EXPO_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.EXPO_PUBLIC_SUPABASE_ANON_KEY }}
       EXPO_PUBLIC_GOOGLE_PLACES_API_KEY: ${{ secrets.EXPO_PUBLIC_GOOGLE_PLACES_API_KEY }}
+      EXPO_PUBLIC_SENTRY_DSN: ${{ secrets.EXPO_PUBLIC_SENTRY_DSN }}
       SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
       SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
       SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
@@ -106,6 +107,24 @@ jobs:
         with:
           name: android-aab
           path: mobile/android/app/build/outputs/bundle/release/*.aab
+
+      - name: Upload JS sourcemaps to Sentry
+        # Explicit sourcemap upload — Gradle's Sentry hook can be
+        # disabled (SENTRY_DISABLE_AUTO_UPLOAD) by the build retry path
+        # above, leaving releases without symbolication. Run sentry-cli
+        # directly so every release has a sourcemap regardless.
+        if: ${{ env.SENTRY_AUTH_TOKEN != '' }}
+        working-directory: mobile
+        run: |
+          VERSION=$(node -e "console.log(require('./app.json').expo.version)")
+          RELEASE="ag.pikt.app@${VERSION}+${VERSION_CODE}"
+          mkdir -p dist
+          npx expo export --platform android --output-dir dist || echo "⚠️ expo export failed — sourcemap upload may be partial"
+          npx @sentry/cli sourcemaps upload \
+            --org "$SENTRY_ORG" \
+            --project "$SENTRY_PROJECT" \
+            --release "$RELEASE" \
+            ./dist || echo "⚠️ sourcemap upload failed — non-fatal"
 
       - name: Generate release notes
         working-directory: mobile

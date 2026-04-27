@@ -14,6 +14,7 @@ import { AuthProvider } from './src/context/AuthContext';
 import { AppReadyProvider, useAppReady } from './src/context/AppReadyContext';
 import SplashOverlay from './src/components/SplashOverlay';
 import ErrorBoundary from './src/components/ErrorBoundary';
+import OfflineBanner from './src/components/OfflineBanner';
 
 // Ensure foreground notifications display the system banner, play sound,
 // and update the badge. Without this, notifications arriving while the
@@ -28,15 +29,23 @@ Notifications.setNotificationHandler({
   } as any),
 });
 
-// Sentry DSN is a write-only ingest URL — safe to hardcode and critical
-// to have available even when env vars are misconfigured (if env breaks,
-// we want Sentry to tell us about it).
+// Sentry DSN comes from EXPO_PUBLIC_SENTRY_DSN, substituted into the JS
+// bundle by Metro at bundle time. Keeps the DSN out of source control —
+// although the DSN is a write-only ingest URL, we'd still rather not
+// publish it. CI workflows pass it via job-level env from a GitHub
+// secret of the same name.
 // Initialization itself is deferred to `InteractionManager.runAfterInteractions`
 // in `AppInner` below — running it synchronously at module-eval time
 // added ~200ms to cold start (native crash handlers + transport queue
 // + session tracking setup).
-const SENTRY_DSN =
-  'https://a6f25db2278dc71a2ea41314adc226c0@o4511225670402048.ingest.us.sentry.io/4511227846066176';
+const SENTRY_DSN = process.env.EXPO_PUBLIC_SENTRY_DSN;
+const APP_VERSION = (appJson as any)?.expo?.version ?? '0.0.0';
+const IOS_BUILD = (appJson as any)?.expo?.ios?.buildNumber ?? '';
+const ANDROID_BUILD = (appJson as any)?.expo?.android?.versionCode ?? '';
+const BUILD_ID = Platform.OS === 'ios' ? String(IOS_BUILD) : String(ANDROID_BUILD);
+const SENTRY_RELEASE = BUILD_ID
+  ? `ag.pikt.app@${APP_VERSION}+${BUILD_ID}`
+  : `ag.pikt.app@${APP_VERSION}`;
 
 // expo-linking can crash on web — use safe prefix
 let prefix = '';
@@ -109,9 +118,27 @@ function AppInner() {
         Sentry.init({
           dsn: SENTRY_DSN,
           // Only send errors in production. Dev builds still log to console.
-          enabled: !__DEV__,
+          // Also gate on DSN presence so missing-secret CI builds don't
+          // try to ship events to nowhere.
+          enabled: !__DEV__ && !!SENTRY_DSN,
+          environment: __DEV__ ? 'development' : 'production',
+          release: SENTRY_RELEASE,
           // Sample 20% of transactions for performance monitoring.
           tracesSampleRate: 0.2,
+          // Strip auth secrets from XHR breadcrumbs before they leave
+          // the device. Supabase attaches `Authorization` (user JWT) and
+          // `apikey` (anon key) on every request — neither belongs in
+          // an error report.
+          beforeBreadcrumb(breadcrumb) {
+            if (breadcrumb.category === 'xhr' && breadcrumb.data?.headers) {
+              const h = { ...breadcrumb.data.headers };
+              if (h.authorization) h.authorization = '[Filtered]';
+              if (h.Authorization) h.Authorization = '[Filtered]';
+              if (h.apikey) h.apikey = '[Filtered]';
+              breadcrumb.data.headers = h;
+            }
+            return breadcrumb;
+          },
         });
       } catch (err) {
         // Never let Sentry initialization itself crash the app.
@@ -167,6 +194,7 @@ function AppInner() {
             <ErrorBoundary>
               <NavigationContainer ref={navigationRef} linking={linking}>
                 <ExpoStatusBar style="dark" />
+                <OfflineBanner />
                 <AppNavigator />
                 {splashVisible && (
                   <SplashOverlay
