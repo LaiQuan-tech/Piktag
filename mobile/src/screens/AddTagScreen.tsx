@@ -1121,7 +1121,7 @@ const styles = StyleSheet.create({
     gap: 4,
     paddingVertical: 8,
     paddingHorizontal: 14,
-    borderRadius: 10,
+    borderRadius: 9999,
     borderWidth: 1.5,
     borderColor: COLORS.piktag200,
     backgroundColor: COLORS.white,
