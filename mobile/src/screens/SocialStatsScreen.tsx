@@ -470,6 +470,8 @@ export default function SocialStatsScreen({ navigation }: SocialStatsScreenProps
           style={styles.backBtn}
           onPress={() => navigation.canGoBack() ? navigation.goBack() : navigation.navigate("Connections")}
           activeOpacity={0.6}
+          accessibilityRole="button"
+          accessibilityLabel={t('common.back')}
         >
           <ArrowLeft size={24} color={COLORS.gray900} />
         </TouchableOpacity>
@@ -699,7 +701,7 @@ const styles = StyleSheet.create({
     borderBottomColor: COLORS.gray100,
   },
   backBtn: {
-    padding: 4,
+    padding: 12,
   },
   headerTitle: {
     flex: 1,

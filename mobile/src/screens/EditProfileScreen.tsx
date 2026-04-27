@@ -951,6 +951,8 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
             style={styles.headerBackBtn}
             onPress={() => navigation.canGoBack() ? navigation.goBack() : navigation.navigate("Connections")}
             activeOpacity={0.6}
+            accessibilityRole="button"
+            accessibilityLabel={t('common.back')}
           >
             <ArrowLeft size={24} color={COLORS.gray900} />
           </TouchableOpacity>
@@ -1537,7 +1539,7 @@ const styles = StyleSheet.create({
     borderBottomColor: COLORS.gray100,
   },
   headerBackBtn: {
-    padding: 4,
+    padding: 12,
   },
   headerTitle: {
     fontSize: 18,

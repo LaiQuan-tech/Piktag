@@ -62,7 +62,7 @@ export default function PointsHistoryScreen({ navigation }: Props) {
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <StatusBar barStyle="dark-content" />
       <View style={[styles.header, { paddingTop: insets.top + 8, borderBottomColor: colors.border }]}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn} accessibilityRole="button" accessibilityLabel={t('common.back')}>
           <ArrowLeft size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={[styles.headerTitle, { color: colors.text }]}>{t('points.historyTitle')}</Text>
@@ -91,7 +91,7 @@ export default function PointsHistoryScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingBottom: 14, borderBottomWidth: 1 },
-  backBtn: { padding: 4 },
+  backBtn: { padding: 12 },
   headerTitle: { flex: 1, fontSize: 18, fontWeight: '700', textAlign: 'center', marginHorizontal: 12 },
   balanceCard: { margin: 16, padding: 20, borderRadius: 16, borderWidth: 1, alignItems: 'center' },
   balanceLabel: { fontSize: 14, marginBottom: 6 },

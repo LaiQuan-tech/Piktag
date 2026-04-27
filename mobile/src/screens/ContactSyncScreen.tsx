@@ -266,6 +266,8 @@ export default function ContactSyncScreen({ navigation }: ContactSyncScreenProps
             style={styles.importBtn}
             onPress={() => handleImportContact(item)}
             activeOpacity={0.7}
+            accessibilityRole="button"
+            accessibilityLabel={t('contactSync.importBtn')}
           >
             <UserPlus size={18} color={COLORS.piktag600} />
           </TouchableOpacity>
@@ -284,6 +286,8 @@ export default function ContactSyncScreen({ navigation }: ContactSyncScreenProps
           style={styles.backBtn}
           onPress={() => navigation.canGoBack() ? navigation.goBack() : navigation.navigate("Connections")}
           activeOpacity={0.6}
+          accessibilityRole="button"
+          accessibilityLabel={t('common.back')}
         >
           <ArrowLeft size={24} color={COLORS.gray900} />
         </TouchableOpacity>
@@ -370,7 +374,7 @@ const styles = StyleSheet.create({
     borderBottomColor: COLORS.gray100,
   },
   backBtn: {
-    padding: 4,
+    padding: 12,
   },
   headerTitle: {
     flex: 1,
@@ -484,7 +488,7 @@ const styles = StyleSheet.create({
     color: COLORS.gray500,
   },
   importBtn: {
-    padding: 8,
+    padding: 12,
     borderWidth: 1,
     borderColor: COLORS.piktag200,
     borderRadius: 8,
