@@ -471,7 +471,7 @@ const styles = StyleSheet.create({
   tagChipPicked: { backgroundColor: COLORS.piktag50, borderColor: COLORS.piktag500 },
   tagChipText: { fontSize: 14, fontWeight: '500', color: COLORS.gray600 },
   tagChipTextPicked: { color: COLORS.piktag600, fontWeight: '700' },
-  hiddenTagChip: { backgroundColor: COLORS.gray50, borderRadius: 12, paddingVertical: 4, paddingHorizontal: 10, borderWidth: 1, borderColor: COLORS.gray200, borderStyle: 'dashed' as any },
+  hiddenTagChip: { backgroundColor: COLORS.gray50, borderRadius: 9999, paddingVertical: 4, paddingHorizontal: 10, borderWidth: 1, borderColor: COLORS.gray200, borderStyle: 'dashed' as any },
   hiddenTagChipText: { fontSize: 12, color: COLORS.gray400, fontStyle: 'italic' as any },
   // Input
   inputBar: { paddingHorizontal: 16, paddingTop: 8, borderTopWidth: 1, borderTopColor: COLORS.gray100 },

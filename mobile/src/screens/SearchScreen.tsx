@@ -1823,7 +1823,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: COLORS.gray100,
-    borderRadius: 20,
+    borderRadius: 9999,
     paddingVertical: 10,
     paddingHorizontal: 14,
     gap: 6,
