@@ -70,6 +70,7 @@
     "plugins": [
       "@sentry/react-native",
       "./plugins/withNonFatalRCTFatalHandler.js",
+      "./plugins/withPrivacyManifest.js",
       "@sentry/react-native/expo",
       [
         "expo-build-properties",
@@ -92,7 +93,13 @@
           "backgroundColor": "#ffffff"
         }
       ],
-      "expo-notifications",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/notification-icon.png",
+          "color": "#aa00ff"
+        }
+      ],
       "expo-localization",
       "expo-camera",
       "expo-image-picker",
