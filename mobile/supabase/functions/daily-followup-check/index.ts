@@ -26,6 +26,18 @@ serve(async (req) => {
     return new Response('ok', { headers: corsHeaders });
   }
 
+  // Auth gate: require CRON_SECRET via Authorization: Bearer header
+  const expected = Deno.env.get('CRON_SECRET');
+  const provided = req.headers.get('authorization')?.replace(/^Bearer\s+/i, '');
+  if (!expected || !provided) return new Response('Forbidden', { status: 403 });
+  // constant-time compare to avoid timing attack
+  const a = new TextEncoder().encode(expected);
+  const b = new TextEncoder().encode(provided);
+  if (a.length !== b.length) return new Response('Forbidden', { status: 403 });
+  let diff = 0;
+  for (let i = 0; i < a.length; i++) diff |= a[i] ^ b[i];
+  if (diff !== 0) return new Response('Forbidden', { status: 403 });
+
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;

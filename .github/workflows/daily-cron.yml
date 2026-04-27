@@ -15,7 +15,7 @@ jobs:
         run: |
           curl -s -X POST \
             "https://kbwfdskulxnhjckdvghj.supabase.co/functions/v1/daily-followup-check" \
-            -H "Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
             -H "Content-Type: application/json"
 
   auto-link-concepts:
@@ -26,5 +26,5 @@ jobs:
         run: |
           curl -s -X POST \
             "https://kbwfdskulxnhjckdvghj.supabase.co/functions/v1/auto-link-concepts" \
-            -H "Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
             -H "Content-Type: application/json"
