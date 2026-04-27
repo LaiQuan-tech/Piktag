@@ -52,6 +52,7 @@ import { useTheme } from '../context/ThemeContext';
 import { LinearGradient } from 'expo-linear-gradient';
 import PlatformIcon from '../components/PlatformIcon';
 import InitialsAvatar from '../components/InitialsAvatar';
+import OverlappingAvatars from '../components/OverlappingAvatars';
 import HiddenTagEditor from '../components/HiddenTagEditor';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
