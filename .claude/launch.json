@@ -6,6 +6,12 @@
       "runtimeExecutable": "/bin/bash",
       "runtimeArgs": ["/Users/cataholic/.gemini/File/PikTag-mobile/.claude/start-dev.sh"],
       "port": 3000
+    },
+    {
+      "name": "web-static",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["-y", "serve", "-l", "4321", "/Users/cataholic/.gemini/File/PikTag-mobile/web"],
+      "port": 4321
     }
   ]
 }
