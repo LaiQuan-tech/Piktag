@@ -147,7 +147,9 @@ function renderProfilePage(profile, biolinks, tags, sid, locale, eventInfo) {
     ? biolinks
         .map((link) => {
           const label = escapeHtml(link.label || link.platform || 'Link');
-          const url = escapeHtml(link.url || '#');
+          const rawUrl = link.url || '#';
+          const safeUrl = (/^https?:\/\//i.test(rawUrl) || /^mailto:/i.test(rawUrl)) ? rawUrl : '#';
+          const url = escapeHtml(safeUrl);
           const icon = getIconSvg(link.platform || 'website');
           return `<a href="${url}" class="biolink" target="_blank" rel="noopener noreferrer">${icon}<span>${label}</span><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6M15 3h6v6M10 14L21 3"/></svg></a>`;
         })
@@ -161,7 +163,7 @@ function renderProfilePage(profile, biolinks, tags, sid, locale, eventInfo) {
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>${pageTitle}</title>
   <meta name="description" content="${escapeHtml(ogDescription)}">
-  <meta name="keywords" content="${tags.join(', ')}, #piktag, ${escapeHtml(name)}, networking">
+  <meta name="keywords" content="${escapeHtml(tags.map(t => t.name || t).join(', '))}, #piktag, ${escapeHtml(name)}, networking">
   <meta name="author" content="${escapeHtml(name)}">
   <meta name="robots" content="index, follow">
   <link rel="canonical" href="${pageUrl}">
@@ -184,7 +186,7 @@ function renderProfilePage(profile, biolinks, tags, sid, locale, eventInfo) {
     url: pageUrl,
     image: avatarUrl,
     description: ogDescription,
-    sameAs: biolinks.map(l => l.url).filter(Boolean),
+    sameAs: biolinks.map(l => l.url).filter(u => u && (/^https?:\/\//i.test(u) || /^mailto:/i.test(u))),
   }).replace(/</g, '\\u003c')}
   </script>
   <link rel="icon" href="/favicon.ico">
