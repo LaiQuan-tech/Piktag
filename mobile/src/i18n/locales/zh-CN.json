@@ -572,7 +572,7 @@
     "metAtSuffix": " 认识",
     "nearbySection": "附近的人脉（{{count}}）",
     "metHereSection": "在此地点认识的人（{{count}}）",
-    "emptyText": "附近没有找到认识的人"
+    "emptyText": "找不到附近的人，试试调整搜索范围或到「探索」寻找新朋友"
   },
   "dashboard": {
     "headerTitle": "个人仪表板",

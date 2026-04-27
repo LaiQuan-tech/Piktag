@@ -221,7 +221,7 @@
     "alertDeletePresetMessage": "確定要刪除「{{name}}」嗎？",
     "dateLabel": "日期標籤",
     "datePlaceholder": "YYYY/MM/DD",
-    "dateDisplayFallback": "點擊設定日期",
+    "dateDisplayFallback": "選擇日期",
     "locationLabel": "地點標籤",
     "locationPlaceholder": "輸入活動地點...",
     "currentLocation": "目前位置",
@@ -358,7 +358,7 @@
     "reminderAnniversary": "紀念日",
     "reminderContractExpiry": "合約到期",
     "alertOpenLinkError": "打不開這個連結",
-    "alertInvalidDate": "日期格式不對喔，要用 MM-DD",
+    "alertInvalidDate": "日期格式有誤，請使用 MM-DD 格式",
     "alertSaveReminderError": "提醒日期存不了",
     "alertNoteAddError": "錯誤",
     "alertNoteAddErrorMessage": "便利貼加不了",
@@ -497,7 +497,7 @@
     "redeemInvite": "兌換邀請碼",
     "locationContacts": "在這地點你認識誰",
     "socialStats": "洞察報告",
-    "privacySettings": "公開帳號",
+    "privacySettings": "帳號隱私設定",
     "notificationSettings": "通知設定",
     "groupGeneral": "一般",
     "language": "語言",
@@ -559,7 +559,7 @@
     "metAtSuffix": " 認識",
     "nearbySection": "附近的人脈（{{count}}）",
     "metHereSection": "在此地點認識的人（{{count}}）",
-    "emptyText": "附近沒有找到認識的人"
+    "emptyText": "找不到附近的人，試試調整搜尋範圍或到「探索」尋找新朋友"
   },
   "dashboard": {
     "headerTitle": "個人儀表板",
@@ -573,7 +573,7 @@
     "totalLinkClicks": "連結點擊次數",
     "totalQrScans": "QR 掃碼總次數",
     "growthCurveTitle": "人脈成長曲線",
-    "growthCurveEmpty": "尚無好友資料",
+    "growthCurveEmpty": "還沒有朋友資料？新增標籤或邀請好友來開始",
     "presetScansTitle": "各模板掃碼次數",
     "presetScansEmpty": "尚無模板掃碼紀錄",
     "scanCountSuffix": "次",
@@ -599,7 +599,7 @@
     "timeYesterday": "昨天",
     "timeDaysAgo": "{{count}} 天前",
     "timeWeeksAgo": "{{count}} 週前",
-    "emptyState": "目前沒有通知"
+    "emptyState": "目前沒有通知。設定提醒或關注朋友動態吧"
   },
   "scanResult": {
     "headerTitle": "加為好友",
@@ -796,7 +796,7 @@
     "reasonInviteAccepted": "朋友接受邀請",
     "reasonAdminGrant": "系統獎勵",
     "reasonRedeemed": "已抵扣",
-    "emptyHistory": "尚無 P幣紀錄",
+    "emptyHistory": "還沒有 P 幣？邀請朋友加入就能開始累積",
     "plusOne": "+1 P幣",
     "pointsUnit": "P幣"
   },
