@@ -976,10 +976,10 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
             <View style={styles.eventCard}>
               <Text style={styles.eventCardTitle}>🎪 {t('userDetail.eventCardTitle') || '活動資訊'}</Text>
               {eventInfo.date ? (
-                <Text style={styles.eventCardLine}>📅 {eventInfo.date}</Text>
+                <Text style={styles.eventCardLine}>{eventInfo.date}</Text>
               ) : null}
               {eventInfo.location ? (
-                <Text style={styles.eventCardLine}>📍 {eventInfo.location}</Text>
+                <Text style={styles.eventCardLine}>{eventInfo.location}</Text>
               ) : null}
               {eventInfo.tags.length > 0 ? (
                 <View style={styles.eventCardTagsRow}>

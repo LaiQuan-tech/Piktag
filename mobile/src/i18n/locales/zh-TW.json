@@ -241,11 +241,11 @@
     "editTagSettings": "修改標籤設定",
     "eventModeBtn": "活動模式",
     "eventHint": "讓朋友掃描加你為好友",
-    "softTagsTitle": "🧠 軟性標籤",
+    "softTagsTitle": "軟性標籤",
     "zodiacSubtitle": "星座",
     "interestsSubtitle": "興趣",
     "mbtiSubtitle": "MBTI",
-    "hardTagsTitle": "💼 硬性標籤",
+    "hardTagsTitle": "硬性標籤",
     "careerSubtitle": "職業 / 產業",
     "presetsModalTitle": "常用模板",
     "noPresets": "尚無常用模板",
@@ -843,7 +843,7 @@
     "messagesSent": "{{name}} 傳了一則訊息"
   },
   "share": {
-    "profileInviteMessage": "{{name}} 在 PikTag ✨\n{{url}}\n\nPikTag — 用標籤記住每段緣分，\n掃 QR 自動記下相遇時間地點。\n\n還沒下載？👉 https://pikt.ag"
+    "profileInviteMessage": "{{name}} 在 PikTag\n{{url}}\n\nPikTag — 用標籤記住每段緣分，\n掃 QR 自動記下相遇時間地點。\n\n還沒下載？https://pikt.ag"
   },
   "country": {
     "TW": "台灣",

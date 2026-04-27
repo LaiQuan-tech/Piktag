@@ -238,11 +238,11 @@
     "editTagSettings": "修改标签设置",
     "eventModeBtn": "活动模式",
     "eventHint": "让朋友扫描加你为好友",
-    "softTagsTitle": "🧠 软性标签",
+    "softTagsTitle": "软性标签",
     "zodiacSubtitle": "星座",
     "interestsSubtitle": "兴趣",
     "mbtiSubtitle": "MBTI",
-    "hardTagsTitle": "💼 硬性标签",
+    "hardTagsTitle": "硬性标签",
     "careerSubtitle": "职业 / 产业",
     "presetsModalTitle": "常用模板",
     "noPresets": "尚无常用模板",
@@ -836,7 +836,7 @@
     "messagesSent": "{{name}} 发来一条消息"
   },
   "share": {
-    "profileInviteMessage": "{{name}} 在 PikTag ✨\n{{url}}\n\nPikTag — 用标签记住每段缘分，\n扫 QR 自动记下相遇时间地点。\n\n还没下载？👉 https://pikt.ag"
+    "profileInviteMessage": "{{name}} 在 PikTag\n{{url}}\n\nPikTag — 用标签记住每段缘分，\n扫 QR 自动记下相遇时间地点。\n\n还没下载？https://pikt.ag"
   },
   "country": {
     "TW": "台湾",

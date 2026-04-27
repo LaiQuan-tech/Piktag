@@ -238,11 +238,11 @@
     "editTagSettings": "टैग सेटिंग्स बदलें",
     "eventModeBtn": "इवेंट मोड",
     "eventHint": "दोस्तों को स्कैन करके जुड़ने दें",
-    "softTagsTitle": "🧠 सॉफ़्ट टैग",
+    "softTagsTitle": "सॉफ़्ट टैग",
     "zodiacSubtitle": "राशि",
     "interestsSubtitle": "रुचियाँ",
     "mbtiSubtitle": "MBTI",
-    "hardTagsTitle": "💼 हार्ड टैग",
+    "hardTagsTitle": "हार्ड टैग",
     "careerSubtitle": "करियर / उद्योग",
     "presetsModalTitle": "टेम्पलेट",
     "noPresets": "अभी कोई टेम्पलेट नहीं",
@@ -836,7 +836,7 @@
     "messagesSent": "{{name}} ने आपको संदेश भेजा"
   },
   "share": {
-    "profileInviteMessage": "{{name}} PikTag पर ✨\n{{url}}\n\nPikTag — हर दोस्त को जो आप मिलें टैग करें,\nQR स्कैन करें और कब और कहाँ अपने आप कैप्चर हो जाए।\n\nPikTag पाएँ → https://pikt.ag"
+    "profileInviteMessage": "{{name}} PikTag पर\n{{url}}\n\nPikTag — हर दोस्त को जो आप मिलें टैग करें,\nQR स्कैन करें और कब और कहाँ अपने आप कैप्चर हो जाए।\n\nPikTag पाएँ → https://pikt.ag"
   },
   "country": {
     "TW": "ताइवान",

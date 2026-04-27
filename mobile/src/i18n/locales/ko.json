@@ -238,11 +238,11 @@
     "editTagSettings": "태그 설정 편집",
     "eventModeBtn": "이벤트 모드",
     "eventHint": "친구가 스캔하여 연결할 수 있게 해요",
-    "softTagsTitle": "🧠 소프트 태그",
+    "softTagsTitle": "소프트 태그",
     "zodiacSubtitle": "별자리",
     "interestsSubtitle": "관심사",
     "mbtiSubtitle": "MBTI",
-    "hardTagsTitle": "💼 하드 태그",
+    "hardTagsTitle": "하드 태그",
     "careerSubtitle": "직업 / 산업",
     "presetsModalTitle": "템플릿",
     "noPresets": "템플릿이 없습니다",
@@ -836,7 +836,7 @@
     "messagesSent": "{{name}}님이 메시지를 보냈습니다"
   },
   "share": {
-    "profileInviteMessage": "{{name}} (PikTag) ✨\n{{url}}\n\nPikTag — 만나는 친구마다 태그를 붙이고\nQR 스캔으로 언제·어디서 만났는지 자동 기록.\n\nPikTag 받기 → https://pikt.ag"
+    "profileInviteMessage": "{{name}} (PikTag)\n{{url}}\n\nPikTag — 만나는 친구마다 태그를 붙이고\nQR 스캔으로 언제·어디서 만났는지 자동 기록.\n\nPikTag 받기 → https://pikt.ag"
   },
   "country": {
     "TW": "대만",

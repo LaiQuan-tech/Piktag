@@ -238,11 +238,11 @@
     "editTagSettings": "Edit tag settings",
     "eventModeBtn": "Event Mode",
     "eventHint": "Let friends scan to connect",
-    "softTagsTitle": "🧠 Soft Tags",
+    "softTagsTitle": "Soft Tags",
     "zodiacSubtitle": "Zodiac",
     "interestsSubtitle": "Interests",
     "mbtiSubtitle": "MBTI",
-    "hardTagsTitle": "💼 Hard Tags",
+    "hardTagsTitle": "Hard Tags",
     "careerSubtitle": "Career / Industry",
     "presetsModalTitle": "Templates",
     "noPresets": "No templates yet",
@@ -836,7 +836,7 @@
     "messagesSent": "{{name}} sent you a message"
   },
   "share": {
-    "profileInviteMessage": "{{name}} on PikTag ✨\n{{url}}\n\nPikTag — tag every friend you meet,\nscan QR to auto-capture when & where.\n\nGet PikTag → https://pikt.ag"
+    "profileInviteMessage": "{{name}} on PikTag\n{{url}}\n\nPikTag — tag every friend you meet,\nscan QR to auto-capture when & where.\n\nGet PikTag → https://pikt.ag"
   },
   "country": {
     "TW": "Taiwan",

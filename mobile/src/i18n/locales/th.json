@@ -238,11 +238,11 @@
     "editTagSettings": "แก้ไขการตั้งค่าแท็ก",
     "eventModeBtn": "โหมดอีเวนต์",
     "eventHint": "ให้เพื่อนสแกนเพื่อเชื่อมต่อ",
-    "softTagsTitle": "🧠 แท็กอ่อน",
+    "softTagsTitle": "แท็กอ่อน",
     "zodiacSubtitle": "ราศี",
     "interestsSubtitle": "ความสนใจ",
     "mbtiSubtitle": "MBTI",
-    "hardTagsTitle": "💼 แท็กแข็ง",
+    "hardTagsTitle": "แท็กแข็ง",
     "careerSubtitle": "อาชีพ / อุตสาหกรรม",
     "presetsModalTitle": "เทมเพลต",
     "noPresets": "ยังไม่มีเทมเพลต",
@@ -836,7 +836,7 @@
     "messagesSent": "{{name}} ส่งข้อความถึงคุณ"
   },
   "share": {
-    "profileInviteMessage": "{{name}} บน PikTag ✨\n{{url}}\n\nPikTag — แท็กเพื่อนทุกคนที่คุณพบ\nสแกน QR เพื่อบันทึกเวลาและสถานที่อัตโนมัติ\n\nรับ PikTag → https://pikt.ag"
+    "profileInviteMessage": "{{name}} บน PikTag\n{{url}}\n\nPikTag — แท็กเพื่อนทุกคนที่คุณพบ\nสแกน QR เพื่อบันทึกเวลาและสถานที่อัตโนมัติ\n\nรับ PikTag → https://pikt.ag"
   },
   "country": {
     "TW": "ไต้หวัน",

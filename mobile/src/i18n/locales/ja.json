@@ -238,11 +238,11 @@
     "editTagSettings": "タグ設定を編集",
     "eventModeBtn": "イベントモード",
     "eventHint": "友達にスキャンしてもらってつながろう",
-    "softTagsTitle": "🧠 ソフトタグ",
+    "softTagsTitle": "ソフトタグ",
     "zodiacSubtitle": "星座",
     "interestsSubtitle": "興味",
     "mbtiSubtitle": "MBTI",
-    "hardTagsTitle": "💼 ハードタグ",
+    "hardTagsTitle": "ハードタグ",
     "careerSubtitle": "職業 / 業界",
     "presetsModalTitle": "テンプレート",
     "noPresets": "テンプレートはまだありません",
@@ -836,7 +836,7 @@
     "messagesSent": "{{name}}からメッセージが届きました"
   },
   "share": {
-    "profileInviteMessage": "{{name}} (PikTag) ✨\n{{url}}\n\nPikTag — 出会った友達一人ひとりにタグを付け、\nQRをスキャンするだけでいつ・どこで会ったかを自動で記録。\n\nPikTagを入手 → https://pikt.ag"
+    "profileInviteMessage": "{{name}} (PikTag)\n{{url}}\n\nPikTag — 出会った友達一人ひとりにタグを付け、\nQRをスキャンするだけでいつ・どこで会ったかを自動で記録。\n\nPikTagを入手 → https://pikt.ag"
   },
   "country": {
     "TW": "台湾",

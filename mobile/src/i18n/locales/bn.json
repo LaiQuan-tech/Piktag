@@ -238,11 +238,11 @@
     "editTagSettings": "ট্যাগ সেটিংস এডিট করুন",
     "eventModeBtn": "ইভেন্ট মোড",
     "eventHint": "বন্ধুদের স্ক্যান করে যুক্ত হতে দিন",
-    "softTagsTitle": "🧠 সফট ট্যাগ",
+    "softTagsTitle": "সফট ট্যাগ",
     "zodiacSubtitle": "রাশি",
     "interestsSubtitle": "আগ্রহ",
     "mbtiSubtitle": "MBTI",
-    "hardTagsTitle": "💼 হার্ড ট্যাগ",
+    "hardTagsTitle": "হার্ড ট্যাগ",
     "careerSubtitle": "ক্যারিয়ার / শিল্প",
     "presetsModalTitle": "টেমপ্লেট",
     "noPresets": "এখনও কোনো টেমপ্লেট নেই",
@@ -836,7 +836,7 @@
     "messagesSent": "{{name}} আপনাকে একটি মেসেজ পাঠিয়েছে"
   },
   "share": {
-    "profileInviteMessage": "{{name}} PikTag-এ ✨\n{{url}}\n\nPikTag — আপনি যাকে দেখা পান তাকে ট্যাগ করুন,\nQR স্ক্যান করুন কখন ও কোথায় তা স্বয়ংক্রিয়ভাবে ক্যাপচার করতে।\n\nPikTag পান → https://pikt.ag"
+    "profileInviteMessage": "{{name}} PikTag-এ\n{{url}}\n\nPikTag — আপনি যাকে দেখা পান তাকে ট্যাগ করুন,\nQR স্ক্যান করুন কখন ও কোথায় তা স্বয়ংক্রিয়ভাবে ক্যাপচার করতে।\n\nPikTag পান → https://pikt.ag"
   },
   "country": {
     "TW": "তাইওয়ান",

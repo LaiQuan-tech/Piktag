@@ -238,11 +238,11 @@
     "editTagSettings": "Edit pengaturan tag",
     "eventModeBtn": "Mode Acara",
     "eventHint": "Biarkan teman memindai untuk terhubung",
-    "softTagsTitle": "🧠 Soft Tag",
+    "softTagsTitle": "Soft Tag",
     "zodiacSubtitle": "Zodiak",
     "interestsSubtitle": "Minat",
     "mbtiSubtitle": "MBTI",
-    "hardTagsTitle": "💼 Hard Tag",
+    "hardTagsTitle": "Hard Tag",
     "careerSubtitle": "Karier / Industri",
     "presetsModalTitle": "Template",
     "noPresets": "Belum ada template",
@@ -836,7 +836,7 @@
     "messagesSent": "{{name}} mengirim pesan"
   },
   "share": {
-    "profileInviteMessage": "{{name}} di PikTag ✨\n{{url}}\n\nPikTag — tandai setiap teman yang Anda temui,\npindai QR untuk otomatis mencatat kapan & di mana.\n\nDapatkan PikTag → https://pikt.ag"
+    "profileInviteMessage": "{{name}} di PikTag\n{{url}}\n\nPikTag — tandai setiap teman yang Anda temui,\npindai QR untuk otomatis mencatat kapan & di mana.\n\nDapatkan PikTag → https://pikt.ag"
   },
   "country": {
     "TW": "Taiwan",

@@ -238,11 +238,11 @@
     "editTagSettings": "Изменить настройки тегов",
     "eventModeBtn": "Режим события",
     "eventHint": "Друзья смогут отсканировать и подключиться",
-    "softTagsTitle": "🧠 Личные теги",
+    "softTagsTitle": "Личные теги",
     "zodiacSubtitle": "Знак зодиака",
     "interestsSubtitle": "Интересы",
     "mbtiSubtitle": "MBTI",
-    "hardTagsTitle": "💼 Профессиональные теги",
+    "hardTagsTitle": "Профессиональные теги",
     "careerSubtitle": "Профессия / сфера",
     "presetsModalTitle": "Шаблоны",
     "noPresets": "Шаблонов пока нет",
@@ -836,7 +836,7 @@
     "messagesSent": "{{name}} написал тебе"
   },
   "share": {
-    "profileInviteMessage": "{{name}} в PikTag ✨\n{{url}}\n\nPikTag — отмечай тегами каждого, кого встречаешь,\nсканируй QR, чтобы автоматически сохранить когда и где.\n\nСкачай PikTag → https://pikt.ag"
+    "profileInviteMessage": "{{name}} в PikTag\n{{url}}\n\nPikTag — отмечай тегами каждого, кого встречаешь,\nсканируй QR, чтобы автоматически сохранить когда и где.\n\nСкачай PikTag → https://pikt.ag"
   },
   "country": {
     "TW": "Тайвань",

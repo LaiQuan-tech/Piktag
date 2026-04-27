@@ -238,11 +238,11 @@
     "editTagSettings": "Etiket ayarlarını düzenle",
     "eventModeBtn": "Etkinlik Modu",
     "eventHint": "Bağlanmak için arkadaşlarına taratman yeterli",
-    "softTagsTitle": "🧠 Yumuşak Etiketler",
+    "softTagsTitle": "Yumuşak Etiketler",
     "zodiacSubtitle": "Burç",
     "interestsSubtitle": "İlgi Alanları",
     "mbtiSubtitle": "MBTI",
-    "hardTagsTitle": "💼 Profesyonel Etiketler",
+    "hardTagsTitle": "Profesyonel Etiketler",
     "careerSubtitle": "Kariyer / Sektör",
     "presetsModalTitle": "Şablonlar",
     "noPresets": "Henüz şablon yok",
@@ -836,7 +836,7 @@
     "messagesSent": "{{name}} sana mesaj gönderdi"
   },
   "share": {
-    "profileInviteMessage": "PikTag'de {{name}} ✨\n{{url}}\n\nPikTag — tanıştığınız her arkadaşı etiketleyin,\nQR tarayarak ne zaman ve nerede tanıştığınızı otomatik kaydedin.\n\nPikTag'i indir → https://pikt.ag"
+    "profileInviteMessage": "PikTag'de {{name}}\n{{url}}\n\nPikTag — tanıştığınız her arkadaşı etiketleyin,\nQR tarayarak ne zaman ve nerede tanıştığınızı otomatik kaydedin.\n\nPikTag'i indir → https://pikt.ag"
   },
   "country": {
     "TW": "Tayvan",

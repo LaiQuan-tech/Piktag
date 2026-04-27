@@ -238,11 +238,11 @@
     "editTagSettings": "Modifier les paramètres du tag",
     "eventModeBtn": "Mode événement",
     "eventHint": "Laissez les amis scanner pour se connecter",
-    "softTagsTitle": "🧠 Tags souples",
+    "softTagsTitle": "Tags souples",
     "zodiacSubtitle": "Zodiaque",
     "interestsSubtitle": "Centres d'intérêt",
     "mbtiSubtitle": "MBTI",
-    "hardTagsTitle": "💼 Tags professionnels",
+    "hardTagsTitle": "Tags professionnels",
     "careerSubtitle": "Carrière / Industrie",
     "presetsModalTitle": "Modèles",
     "noPresets": "Aucun modèle",
@@ -836,7 +836,7 @@
     "messagesSent": "{{name}} vous a envoyé un message"
   },
   "share": {
-    "profileInviteMessage": "{{name}} sur PikTag ✨\n{{url}}\n\nPikTag — taguez chaque ami que vous rencontrez,\nscannez un QR pour enregistrer quand et où.\n\nObtenez PikTag → https://pikt.ag"
+    "profileInviteMessage": "{{name}} sur PikTag\n{{url}}\n\nPikTag — taguez chaque ami que vous rencontrez,\nscannez un QR pour enregistrer quand et où.\n\nObtenez PikTag → https://pikt.ag"
   },
   "country": {
     "TW": "Taïwan",

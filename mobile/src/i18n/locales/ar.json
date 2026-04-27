@@ -238,11 +238,11 @@
     "editTagSettings": "تعديل إعدادات الوسم",
     "eventModeBtn": "وضع الفعالية",
     "eventHint": "دع الأصدقاء يمسحون الرمز للتواصل",
-    "softTagsTitle": "🧠 الوسوم اللينة",
+    "softTagsTitle": "الوسوم اللينة",
     "zodiacSubtitle": "البرج",
     "interestsSubtitle": "الاهتمامات",
     "mbtiSubtitle": "MBTI",
-    "hardTagsTitle": "💼 الوسوم المهنية",
+    "hardTagsTitle": "الوسوم المهنية",
     "careerSubtitle": "المهنة / المجال",
     "presetsModalTitle": "القوالب",
     "noPresets": "لا توجد قوالب بعد",
@@ -836,7 +836,7 @@
     "messagesSent": "{{name}} أرسل لك رسالة"
   },
   "share": {
-    "profileInviteMessage": "{{name}} على PikTag ✨\n{{url}}\n\nPikTag — وسم كل صديق تقابله،\nامسح QR لتسجيل وقت ومكان اللقاء تلقائيًا.\n\nاحصل على PikTag → https://pikt.ag"
+    "profileInviteMessage": "{{name}} على PikTag\n{{url}}\n\nPikTag — وسم كل صديق تقابله،\nامسح QR لتسجيل وقت ومكان اللقاء تلقائيًا.\n\nاحصل على PikTag → https://pikt.ag"
   },
   "country": {
     "TW": "تايوان",
