@@ -767,18 +767,27 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
       //    RPC is authoritative; the fallback below reads-then-writes
       //    but still increments rather than resetting.
       try {
-        await supabase.rpc('increment_tag_usage', { tag_id: tagId });
+        const { error: batchErr } = await supabase.rpc('batch_tag_increment', {
+          p_tag_ids: [tagId],
+          p_delta: 1,
+        });
+        if (batchErr) throw batchErr;
       } catch (err) {
-        console.warn('[EditProfileScreen] increment_tag_usage fallback:', err);
+        console.warn('[EditProfileScreen] batch_tag_increment fallback:', err);
         try {
-          const { data: tagData } = await supabase
-            .from('piktag_tags')
-            .select('usage_count')
-            .eq('id', tagId)
-            .single();
-          const next = (tagData?.usage_count ?? 0) + 1;
-          await supabase.from('piktag_tags').update({ usage_count: next }).eq('id', tagId);
-        } catch {}
+          // Legacy fallback: single-tag RPC, then read-then-write.
+          await supabase.rpc('increment_tag_usage', { tag_id: tagId });
+        } catch {
+          try {
+            const { data: tagData } = await supabase
+              .from('piktag_tags')
+              .select('usage_count')
+              .eq('id', tagId)
+              .single();
+            const next = (tagData?.usage_count ?? 0) + 1;
+            await supabase.from('piktag_tags').update({ usage_count: next }).eq('id', tagId);
+          } catch {}
+        }
       }
 
       // Reload tags
@@ -867,13 +876,21 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
           return;
         }
 
-        // Increment usage_count
+        // Increment usage_count via batch RPC (single-element array).
         try {
-          await supabase.rpc('increment_tag_usage', { tag_id: tag.id });
+          const { error: batchErr } = await supabase.rpc('batch_tag_increment', {
+            p_tag_ids: [tag.id],
+            p_delta: 1,
+          });
+          if (batchErr) throw batchErr;
         } catch {
           try {
-            await supabase.from('piktag_tags').update({ usage_count: (tag.usage_count || 0) + 1 }).eq('id', tag.id);
-          } catch {}
+            await supabase.rpc('increment_tag_usage', { tag_id: tag.id });
+          } catch {
+            try {
+              await supabase.from('piktag_tags').update({ usage_count: (tag.usage_count || 0) + 1 }).eq('id', tag.id);
+            } catch {}
+          }
         }
 
         await Promise.all([fetchUserTags(), fetchPopularTags()]);

@@ -86,13 +86,26 @@ export default function ActivityReviewScreen({ navigation, route }: Props) {
 
         const { data } = await query.limit(50);
         if (data) {
-          // Fetch existing tags for each connection
           const connIds = data.map((c: any) => c.id);
-          const { data: tagData } = await supabase
-            .from('piktag_connection_tags')
-            .select('connection_id, tag:piktag_tags!tag_id(name)')
-            .in('connection_id', connIds)
-            .eq('is_private', true);
+          const userIds = data.map((c: any) => c.connected_user_id);
+
+          // Run hidden-tags + public-tags fetches in parallel — both
+          // depend on `data` but are independent of each other, so the
+          // previous sequential await chain wasted ~1 RTT every render.
+          const [tagDataResult, publicTagDataResult] = await Promise.all([
+            supabase
+              .from('piktag_connection_tags')
+              .select('connection_id, tag:piktag_tags!tag_id(name)')
+              .in('connection_id', connIds)
+              .eq('is_private', true),
+            supabase
+              .from('piktag_user_tags')
+              .select('user_id, tag:piktag_tags!tag_id(name)')
+              .in('user_id', userIds)
+              .eq('is_private', false),
+          ]);
+          const tagData = tagDataResult.data;
+          const publicTagData = publicTagDataResult.data;
 
           // Hidden tags per connection
           const hiddenTagMap = new Map<string, string[]>();
@@ -105,14 +118,6 @@ export default function ActivityReviewScreen({ navigation, route }: Props) {
               hiddenTagMap.set(ct.connection_id, arr);
             }
           }
-
-          // Fetch public tags for each connected user
-          const userIds = data.map((c: any) => c.connected_user_id);
-          const { data: publicTagData } = await supabase
-            .from('piktag_user_tags')
-            .select('user_id, tag:piktag_tags!tag_id(name)')
-            .in('user_id', userIds)
-            .eq('is_private', false);
 
           const publicTagMap = new Map<string, string[]>();
           if (publicTagData) {
