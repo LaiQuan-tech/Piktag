@@ -165,10 +165,42 @@ export default function TagDetailScreen({ navigation, route }: TagDetailScreenPr
     try {
       setExploreLoading(true);
 
-      // Get all sibling tag_ids (same concept)
+      // Fast path: a single SQL RPC does the sibling expansion, candidate
+      // dedupe, mutual-tag count and ordering server-side, returning a
+      // page-ready slice. ~5x fewer round-trips and ~10x less wire data
+      // than the legacy 5-step pipeline below.
+      const { data: rpcData, error: rpcError } = await supabase.rpc(
+        'explore_users_for_tag',
+        { p_tag_id: tagId, p_limit: 100 },
+      );
+
+      if (!rpcError && Array.isArray(rpcData)) {
+        const rows = rpcData as Array<{
+          id: string;
+          username: string;
+          full_name: string | null;
+          avatar_url: string | null;
+          is_verified: boolean;
+          mutual_tag_count: number;
+          total_count: number;
+        }>;
+        const result: ExploreUser[] = rows.map((r) => ({
+          id: r.id,
+          username: r.username,
+          full_name: r.full_name,
+          avatar_url: r.avatar_url,
+          is_verified: r.is_verified,
+          mutual_tag_count: r.mutual_tag_count ?? 0,
+        }));
+        setExploreUsers(result);
+        setTotalUserCount(rows[0]?.total_count != null ? Number(rows[0].total_count) : result.length);
+        return;
+      }
+
+      // Fallback (RPC missing or errored): legacy multi-query pipeline.
+      // Keeps the screen working until the migration is applied.
       const allTagIds = await getSiblingTagIds(tagId);
 
-      // 1. Get all public user_ids who have this tag OR same concept (non-private)
       const { data: userTagsData, error: utError } = await supabase
         .from('piktag_user_tags')
         .select('user_id')
@@ -182,42 +214,37 @@ export default function TagDetailScreen({ navigation, route }: TagDetailScreenPr
         return;
       }
 
-      // Exclude self + deduplicate
-      const otherUserIds = [...new Set(
-        userTagsData
-          .map((ut: any) => ut.user_id)
-          .filter((uid: string) => uid !== user.id)
-      )];
+      const otherUserIds = [
+        ...new Set(
+          userTagsData
+            .map((ut: any) => ut.user_id)
+            .filter((uid: string) => uid !== user.id),
+        ),
+      ];
 
       setTotalUserCount(otherUserIds.length);
-
       if (otherUserIds.length === 0) {
         setExploreUsers([]);
         return;
       }
 
-      // 2. Fetch profiles (only public)
       const { data: profilesData, error: pError } = await supabase
         .from('piktag_profiles')
         .select('id, username, full_name, avatar_url, is_verified')
         .in('id', otherUserIds)
         .eq('is_public', true);
-
       if (pError || !profilesData) {
         setExploreUsers([]);
         return;
       }
 
-      // 3. Get current user's tag_ids for mutual count
       const { data: myTags } = await supabase
         .from('piktag_user_tags')
         .select('tag_id')
         .eq('user_id', user.id)
         .limit(500);
-
       const myTagIds = new Set((myTags || []).map((t: any) => t.tag_id));
 
-      // 4. For each explore user, count mutual tags
       const userIds = profilesData.map((p: any) => p.id);
       const { data: theirTags } = await supabase
         .from('piktag_user_tags')
@@ -233,7 +260,6 @@ export default function TagDetailScreen({ navigation, route }: TagDetailScreenPr
         }
       });
 
-      // 5. Build explore user list, sorted by mutual tag count desc
       const result: ExploreUser[] = profilesData.map((p: any) => ({
         id: p.id,
         username: p.username,
@@ -242,7 +268,6 @@ export default function TagDetailScreen({ navigation, route }: TagDetailScreenPr
         is_verified: p.is_verified,
         mutual_tag_count: mutualCountMap.get(p.id) || 0,
       }));
-
       result.sort((a, b) => b.mutual_tag_count - a.mutual_tag_count);
       setExploreUsers(result);
     } catch (err) {
