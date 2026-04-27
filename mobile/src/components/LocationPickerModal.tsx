@@ -239,7 +239,7 @@ export default function LocationPickerModal({
               style={styles.searchInput}
               value={searchText}
               onChangeText={handleSearchChange}
-              placeholder="搜尋或直接輸入地點名稱"
+              placeholder={t('locationPicker.searchPlaceholder')}
               placeholderTextColor={COLORS.gray400}
               returnKeyType="done"
               onSubmitEditing={() => {

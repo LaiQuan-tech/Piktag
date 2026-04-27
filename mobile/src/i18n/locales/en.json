@@ -9,7 +9,8 @@
   "locationPicker": {
     "title": "Pick a location",
     "noNearbyPlaces": "No nearby places found. Type a name in the search box and press Done.",
-    "noResults": "No matching places"
+    "noResults": "No matching places",
+    "searchPlaceholder": "Search or type a place name"
   },
   "friendsMap": {
     "title": "Friends Map",
@@ -53,7 +54,8 @@
     "noTags": "No tags yet",
     "email": "Email",
     "phone": "Phone",
-    "comingSoonTitle": "Coming Soon"
+    "comingSoonTitle": "Coming Soon",
+    "ok": "OK"
   },
   "auth": {
     "login": {
@@ -70,7 +72,8 @@
       "alertResetSentMessage": "A password reset link has been sent to your email",
       "orDivider": "or",
       "continueWithApple": "Sign in with Apple",
-      "continueWithGoogle": "Sign in with Google"
+      "continueWithGoogle": "Sign in with Google",
+      "continueWithPhone": "Sign in with Phone"
     },
     "register": {
       "alertEmptyFields": "Fill in all fields",
@@ -122,6 +125,18 @@
       "instagramLabel": "Instagram",
       "linkedinLabel": "LinkedIn",
       "birthdayLabel": "Birthday"
+    },
+    "phoneAuth": {
+      "title": "Phone Sign In",
+      "description": "We will send a verification code to your phone",
+      "phonePlaceholder": "912345678",
+      "sendOtp": "Send Code",
+      "otpTitle": "Enter Code",
+      "otpDescription": "Verification code sent to {{phone}}",
+      "verify": "Verify",
+      "resend": "Resend Code",
+      "invalidPhone": "Please enter a valid phone number",
+      "invalidOtp": "Please enter a 6-digit code"
     }
   },
   "connections": {
@@ -198,7 +213,10 @@
     "tagUsersTitle": "People using this tag",
     "viewAllTagUsers": "View all {{count}}",
     "categoryUncategorized": "Other",
-    "allCategories": "All"
+    "allCategories": "All",
+    "recommendedTitle": "People you may want to know",
+    "tagsSelected": "tags selected",
+    "searchBtn": "Search"
   },
   "addTag": {
     "headerTitle": "# Get Social",
@@ -590,7 +608,9 @@
     "activeLocationsEmpty": "No active locations this month",
     "topBiolinksTitle": "Most Popular Links",
     "topBiolinksEmpty": "No link click records",
-    "clickCount": "{{count}} clicks"
+    "clickCount": "{{count}} clicks",
+    "networkCompositionTitle": "Network Composition",
+    "networkCompositionEmpty": "No category data yet"
   },
   "notifications": {
     "headerTitle": "Notifications",
@@ -670,7 +690,8 @@
     "hiddenTagPlaceholder": "Add hidden tag...",
     "swipeHint": "← Swipe left to skip · Right for next →",
     "skip": "Skip",
-    "next": "Next"
+    "next": "Next",
+    "done": "Done"
   },
   "tagDetail": {
     "unknownTag": "Unknown Tag",
@@ -682,7 +703,8 @@
     "mutualTags": "{{count}} mutual tags",
     "exploreEmptyTitle": "No users found",
     "exploreEmptyText": "No public users have used this tag yet",
-    "viewAll": "View All"
+    "viewAll": "View All",
+    "relatedTags": "Related Tags"
   },
   "semanticType": {
     "identity": "Identity",
@@ -818,5 +840,11 @@
     "deliveryFailed": "Failed to send · Tap to retry",
     "unreadBadge": "{{count}} unread",
     "messagesSent": "{{name}} sent you a message"
+  },
+  "statusModal": {
+    "title": "Share Status",
+    "placeholder": "What's on your mind…",
+    "clearStatus": "Clear Status",
+    "save": "Save"
   }
 }

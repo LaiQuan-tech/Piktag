@@ -9,7 +9,8 @@
   "locationPicker": {
     "title": "장소 선택",
     "noNearbyPlaces": "근처 장소를 찾을 수 없어요. 검색창에 이름을 입력하고 완료를 누르세요.",
-    "noResults": "관련 장소를 찾을 수 없어요"
+    "noResults": "관련 장소를 찾을 수 없어요",
+    "searchPlaceholder": "장소 검색 또는 직접 입력"
   },
   "friendsMap": {
     "title": "친구 지도",
@@ -53,7 +54,8 @@
     "noTags": "아직 태그가 없어요",
     "email": "이메일",
     "phone": "전화번호",
-    "comingSoonTitle": "곧 출시 예정"
+    "comingSoonTitle": "곧 출시 예정",
+    "ok": "확인"
   },
   "auth": {
     "login": {
@@ -70,7 +72,8 @@
       "alertResetSentMessage": "비밀번호 재설정 링크가 이메일로 전송됐어요",
       "orDivider": "또는",
       "continueWithApple": "Apple로 로그인",
-      "continueWithGoogle": "Google로 로그인"
+      "continueWithGoogle": "Google로 로그인",
+      "continueWithPhone": "전화번호로 로그인"
     },
     "register": {
       "alertEmptyFields": "모든 항목을 입력해 주세요",
@@ -122,6 +125,18 @@
       "instagramLabel": "Instagram",
       "linkedinLabel": "LinkedIn",
       "birthdayLabel": "생일"
+    },
+    "phoneAuth": {
+      "title": "전화번호로 로그인",
+      "description": "인증 코드를 보내드릴게요",
+      "phonePlaceholder": "01012345678",
+      "sendOtp": "코드 보내기",
+      "otpTitle": "코드 입력",
+      "otpDescription": "{{phone}}으로 인증 코드를 보냈어요",
+      "verify": "인증",
+      "resend": "코드 재전송",
+      "invalidPhone": "유효한 전화번호를 입력해 주세요",
+      "invalidOtp": "6자리 코드를 입력해 주세요"
     }
   },
   "connections": {
@@ -825,5 +840,11 @@
     "deliveryFailed": "전송 실패 · 눌러서 재시도",
     "unreadBadge": "읽지 않음 {{count}}",
     "messagesSent": "{{name}}님이 메시지를 보냈어요"
+  },
+  "statusModal": {
+    "title": "상태 공유",
+    "placeholder": "지금 기분을 적어보세요…",
+    "clearStatus": "상태 삭제",
+    "save": "저장"
   }
 }

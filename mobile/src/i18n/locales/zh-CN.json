@@ -9,7 +9,8 @@
   "locationPicker": {
     "title": "选择地点",
     "noNearbyPlaces": "找不到附近地点，在搜寻框直接输入地点名称后按完成即可。",
-    "noResults": "找不到相关地点"
+    "noResults": "找不到相关地点",
+    "searchPlaceholder": "搜索或直接输入地点名称"
   },
   "friendsMap": {
     "title": "好友地图",
@@ -53,7 +54,8 @@
     "noTags": "尚无标签",
     "email": "E-mail",
     "phone": "电话",
-    "comingSoonTitle": "即将推出"
+    "comingSoonTitle": "即将推出",
+    "ok": "确定"
   },
   "auth": {
     "login": {
@@ -70,7 +72,8 @@
       "alertResetSentMessage": "重设密码连结已寄到你的信箱，去收信看看",
       "orDivider": "或",
       "continueWithApple": "Apple 登入",
-      "continueWithGoogle": "Google 登入"
+      "continueWithGoogle": "Google 登入",
+      "continueWithPhone": "手机号码登录"
     },
     "register": {
       "alertEmptyFields": "请填写所有欄位",
@@ -122,6 +125,18 @@
       "instagramLabel": "Instagram",
       "linkedinLabel": "LinkedIn",
       "birthdayLabel": "生日"
+    },
+    "phoneAuth": {
+      "title": "手机号码登录",
+      "description": "我们会发送验证码到你的手机",
+      "phonePlaceholder": "912345678",
+      "sendOtp": "发送验证码",
+      "otpTitle": "输入验证码",
+      "otpDescription": "验证码已发送至 {{phone}}",
+      "verify": "验证",
+      "resend": "重新发送验证码",
+      "invalidPhone": "请输入有效的手机号码",
+      "invalidOtp": "请输入 6 位验证码"
     }
   },
   "connections": {
@@ -825,5 +840,11 @@
     "deliveryFailed": "传送失败 · 輕点重试",
     "unreadBadge": "{{count}} 则未读",
     "messagesSent": "{{name}} 传了一则讯息"
+  },
+  "statusModal": {
+    "title": "分享近况",
+    "placeholder": "写下你现在的心情…",
+    "clearStatus": "清除状态",
+    "save": "保存"
   }
 }

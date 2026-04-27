@@ -9,7 +9,8 @@
   "locationPicker": {
     "title": "Pick a location",
     "noNearbyPlaces": "No nearby places found. Type a name in the search box and press Done.",
-    "noResults": "No matching places"
+    "noResults": "No matching places",
+    "searchPlaceholder": "Search or type a place name"
   },
   "friendsMap": {
     "title": "Carte des amis",
@@ -53,7 +54,8 @@
     "noTags": "No tags yet",
     "email": "Email",
     "phone": "Phone",
-    "comingSoonTitle": "Coming Soon"
+    "comingSoonTitle": "Coming Soon",
+    "ok": "OK"
   },
   "auth": {
     "login": {
@@ -70,7 +72,8 @@
       "alertResetSentMessage": "A password reset link has been sent to your email",
       "orDivider": "or",
       "continueWithApple": "Sign in with Apple",
-      "continueWithGoogle": "Sign in with Google"
+      "continueWithGoogle": "Sign in with Google",
+      "continueWithPhone": "Sign in with Phone"
     },
     "register": {
       "alertEmptyFields": "Fill in all fields",
@@ -122,6 +125,18 @@
       "instagramLabel": "Instagram",
       "linkedinLabel": "LinkedIn",
       "birthdayLabel": "Anniversaire"
+    },
+    "phoneAuth": {
+      "title": "Phone Sign In",
+      "description": "We will send a verification code to your phone",
+      "phonePlaceholder": "912345678",
+      "sendOtp": "Send Code",
+      "otpTitle": "Enter Code",
+      "otpDescription": "Verification code sent to {{phone}}",
+      "verify": "Verify",
+      "resend": "Resend Code",
+      "invalidPhone": "Please enter a valid phone number",
+      "invalidOtp": "Please enter a 6-digit code"
     }
   },
   "connections": {
@@ -825,5 +840,11 @@
     "deliveryFailed": "Échec · Appuyer pour réessayer",
     "unreadBadge": "{{count}} non lus",
     "messagesSent": "{{name}} vous a envoyé un message"
+  },
+  "statusModal": {
+    "title": "Share Status",
+    "placeholder": "What's on your mind…",
+    "clearStatus": "Clear Status",
+    "save": "Save"
   }
 }

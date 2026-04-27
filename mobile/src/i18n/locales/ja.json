@@ -9,7 +9,8 @@
   "locationPicker": {
     "title": "場所を選ぶ",
     "noNearbyPlaces": "近くの場所が見つかりません。検索ボックスに名前を入力して完了を押してください。",
-    "noResults": "該当する場所が見つかりません"
+    "noResults": "該当する場所が見つかりません",
+    "searchPlaceholder": "場所を検索または入力"
   },
   "friendsMap": {
     "title": "友達マップ",
@@ -53,7 +54,8 @@
     "noTags": "No tags yet",
     "email": "Email",
     "phone": "Phone",
-    "comingSoonTitle": "Coming Soon"
+    "comingSoonTitle": "Coming Soon",
+    "ok": "OK"
   },
   "auth": {
     "login": {
@@ -70,7 +72,8 @@
       "alertResetSentMessage": "パスワードリセットリンクをメールに送信しました",
       "orDivider": "または",
       "continueWithApple": "Appleでサインイン",
-      "continueWithGoogle": "Googleでサインイン"
+      "continueWithGoogle": "Googleでサインイン",
+      "continueWithPhone": "電話番号でサインイン"
     },
     "register": {
       "alertEmptyFields": "Fill in all fields",
@@ -122,6 +125,18 @@
       "instagramLabel": "Instagram",
       "linkedinLabel": "LinkedIn",
       "birthdayLabel": "誕生日"
+    },
+    "phoneAuth": {
+      "title": "電話番号でサインイン",
+      "description": "認証コードをお送りします",
+      "phonePlaceholder": "09012345678",
+      "sendOtp": "コードを送信",
+      "otpTitle": "コードを入力",
+      "otpDescription": "{{phone}} に認証コードを送信しました",
+      "verify": "認証",
+      "resend": "コードを再送信",
+      "invalidPhone": "有効な電話番号を入力してください",
+      "invalidOtp": "6桁のコードを入力してください"
     }
   },
   "connections": {
@@ -825,5 +840,11 @@
     "deliveryFailed": "送信失敗 · タップで再試行",
     "unreadBadge": "未読 {{count}} 件",
     "messagesSent": "{{name}}さんからメッセージ"
+  },
+  "statusModal": {
+    "title": "ステータスを共有",
+    "placeholder": "今の気分を書いてみよう…",
+    "clearStatus": "ステータスをクリア",
+    "save": "保存"
   }
 }

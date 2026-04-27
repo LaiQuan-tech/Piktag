@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { COLORS } from '../constants/theme';
 import { supabase } from '../lib/supabase';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../hooks/useAuth';
 
 const MAX_CHARS = 100;
@@ -31,6 +32,7 @@ export default function StatusModal({
   initialText,
   onStatusUpdated,
 }: StatusModalProps) {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const [text, setText] = useState(initialText ?? '');
   const [saving, setSaving] = useState(false);
@@ -106,13 +108,13 @@ export default function StatusModal({
           {/* Handle bar */}
           <View style={styles.handleBar} />
 
-          <Text style={styles.title}>{'分享近況'}</Text>
+          <Text style={styles.title}>{t('statusModal.title')}</Text>
 
           <TextInput
             style={styles.input}
             value={text}
             onChangeText={(val) => setText(val.slice(0, MAX_CHARS))}
-            placeholder={'寫下你現在的心情…'}
+            placeholder={t('statusModal.placeholder')}
             placeholderTextColor={COLORS.gray400}
             multiline
             maxLength={MAX_CHARS}
@@ -131,7 +133,7 @@ export default function StatusModal({
                 activeOpacity={0.7}
                 disabled={saving}
               >
-                <Text style={styles.clearButtonText}>{'清除狀態'}</Text>
+                <Text style={styles.clearButtonText}>{t('statusModal.clearStatus')}</Text>
               </TouchableOpacity>
             ) : null}
             <TouchableOpacity
@@ -140,7 +142,7 @@ export default function StatusModal({
               activeOpacity={0.7}
               disabled={saving}
             >
-              <Text style={styles.saveButtonText}>{'儲存'}</Text>
+              <Text style={styles.saveButtonText}>{t('statusModal.save')}</Text>
             </TouchableOpacity>
           </View>
         </Animated.View>
