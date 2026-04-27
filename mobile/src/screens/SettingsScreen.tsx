@@ -218,13 +218,17 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
               // delete auth.users + cascade all piktag_* rows. If we let
               // this fail silently, Apple sign-in would resurrect the
               // account with all the old data attached.
+              // Identity is derived server-side from the JWT (auth.getUser).
+              // We deliberately do NOT send user_id — the function ignores
+              // it on the self-delete branch, and shipping it would only
+              // invite a client tampering with someone else's id.
               const res = await fetch(`${supabaseUrl}/functions/v1/delete-user`, {
                 method: 'POST',
                 headers: {
                   'Content-Type': 'application/json',
                   'Authorization': `Bearer ${token}`,
                 },
-                body: JSON.stringify({ user_id: user.id }),
+                body: JSON.stringify({}),
               });
               if (!res.ok) {
                 const detail = await res.text().catch(() => '');
