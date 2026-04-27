@@ -920,6 +920,16 @@
     "retry": "Try again"
   },
   "report": {
-    "slaCommitment": "We review reports within 24 hours"
+    "reportMessage": "Report message",
+    "reportAsk": "Report Ask",
+    "reportNotification": "Report this notification",
+    "hideFromUser": "Hide from this user",
+    "confirmTitle": "Report",
+    "confirmDescription": "Please choose a reason. Our team will review within 24 hours.",
+    "success": "Thanks — our team will review.",
+    "reasonSpam": "Spam",
+    "reasonHarassment": "Harassment or bullying",
+    "reasonInappropriate": "Inappropriate or offensive",
+    "reasonOther": "Other"
   }
 }

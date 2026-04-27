@@ -12,6 +12,8 @@ import {
   Platform,
   Dimensions,
   ActivityIndicator,
+  ActionSheetIOS,
+  Alert,
 } from 'react-native';
 import { Image } from 'expo-image';
 import { Plus, X } from 'lucide-react-native';
@@ -42,7 +44,98 @@ function hoursLeft(expiresAt: string): number {
 
 export default function AskStoryRow({ asks, myAsk, myAvatarUrl, myName, onRefresh, onPressUser }: AskStoryRowProps) {
   const { t } = useTranslation();
+  const { user } = useAuth();
   const [createVisible, setCreateVisible] = useState(false);
+  const [hiddenAuthorIds, setHiddenAuthorIds] = useState<Set<string>>(new Set());
+
+  // Apple Guideline 1.2: long-press an Ask circle to report objectionable
+  // content or hide the author from the rail.
+  const submitAskReport = useCallback(
+    async (ask: AskFeedItem, reason: string) => {
+      if (!user) return;
+      try {
+        await supabase.from('piktag_reports').insert({
+          reporter_id: user.id,
+          reported_id: ask.author_id,
+          reason,
+          context: { kind: 'ask', ask_id: ask.ask_id },
+        } as any);
+        Alert.alert(
+          t('report.success') || 'Reported',
+          t('report.confirmDescription') || 'Thanks — our team will review.',
+        );
+      } catch (err) {
+        console.warn('report ask failed:', err);
+      }
+    },
+    [user, t],
+  );
+
+  const promptAskReportReason = useCallback(
+    (ask: AskFeedItem) => {
+      const reasons: Array<{ key: string; label: string }> = [
+        { key: 'spam', label: t('report.reasonSpam') || 'Spam' },
+        { key: 'harassment', label: t('report.reasonHarassment') || 'Harassment' },
+        { key: 'inappropriate', label: t('report.reasonInappropriate') || 'Inappropriate' },
+        { key: 'other', label: t('report.reasonOther') || 'Other' },
+      ];
+      const cancelLabel = t('common.cancel') || 'Cancel';
+      if (Platform.OS === 'ios') {
+        ActionSheetIOS.showActionSheetWithOptions(
+          {
+            title: t('report.confirmTitle') || 'Report',
+            options: [...reasons.map((r) => r.label), cancelLabel],
+            cancelButtonIndex: reasons.length,
+          },
+          (idx) => {
+            if (idx >= 0 && idx < reasons.length) void submitAskReport(ask, reasons[idx].key);
+          },
+        );
+      } else {
+        Alert.alert(t('report.confirmTitle') || 'Report', t('report.confirmDescription') || '', [
+          ...reasons.map((r) => ({ text: r.label, onPress: () => void submitAskReport(ask, r.key) })),
+          { text: cancelLabel, style: 'cancel' as const },
+        ]);
+      }
+    },
+    [submitAskReport, t],
+  );
+
+  const handleAskLongPress = useCallback(
+    (ask: AskFeedItem) => {
+      const reportLabel = t('report.reportAsk') || 'Report Ask';
+      const hideLabel = t('report.hideFromUser') || 'Hide from this user';
+      const cancelLabel = t('common.cancel') || 'Cancel';
+      const onHide = () =>
+        setHiddenAuthorIds((prev) => {
+          const next = new Set(prev);
+          next.add(ask.author_id);
+          return next;
+        });
+      if (Platform.OS === 'ios') {
+        ActionSheetIOS.showActionSheetWithOptions(
+          {
+            options: [reportLabel, hideLabel, cancelLabel],
+            destructiveButtonIndex: 0,
+            cancelButtonIndex: 2,
+          },
+          (idx) => {
+            if (idx === 0) promptAskReportReason(ask);
+            else if (idx === 1) onHide();
+          },
+        );
+      } else {
+        Alert.alert('', '', [
+          { text: reportLabel, onPress: () => promptAskReportReason(ask) },
+          { text: hideLabel, onPress: onHide },
+          { text: cancelLabel, style: 'cancel' },
+        ]);
+      }
+    },
+    [promptAskReportReason, t],
+  );
+
+  const visibleAsks = asks.filter((a) => !hiddenAuthorIds.has(a.author_id));
 
   return (
     <>
@@ -80,7 +173,7 @@ export default function AskStoryRow({ asks, myAsk, myAvatarUrl, myName, onRefres
           </TouchableOpacity>
 
           {/* Friend Asks */}
-          {asks.map((ask) => {
+          {visibleAsks.map((ask) => {
             const name = ask.author_full_name || ask.author_username || '?';
             const h = hoursLeft(ask.expires_at);
             return (
@@ -89,6 +182,8 @@ export default function AskStoryRow({ asks, myAsk, myAvatarUrl, myName, onRefres
                 style={styles.storyItem}
                 activeOpacity={0.7}
                 onPress={() => onPressUser(ask.author_id)}
+                onLongPress={() => handleAskLongPress(ask)}
+                delayLongPress={350}
               >
                 <LinearGradient
                   colors={ask.degree === 1 ? ['#ff5757', '#c44dff', '#8c52ff'] : ['#60a5fa', '#818cf8']}

@@ -927,6 +927,16 @@
     "retry": "重試"
   },
   "report": {
-    "slaCommitment": "我們會在 24 小時內審查您的檢舉"
+    "reportMessage": "檢舉此訊息",
+    "reportAsk": "檢舉此 Ask",
+    "reportNotification": "檢舉此通知",
+    "hideFromUser": "不再顯示此用戶",
+    "confirmTitle": "檢舉",
+    "confirmDescription": "請選擇原因，我們會在 24 小時內審核。",
+    "success": "感謝你的回報，我們會盡快處理",
+    "reasonSpam": "垃圾訊息",
+    "reasonHarassment": "騷擾或霸凌",
+    "reasonInappropriate": "不當內容",
+    "reasonOther": "其他"
   }
 }

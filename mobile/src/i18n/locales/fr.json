@@ -920,6 +920,16 @@
     "retry": "Réessayer"
   },
   "report": {
-    "slaCommitment": "Nous examinons les signalements sous 24 heures"
+    "reportMessage": "Signaler le message",
+    "reportAsk": "Signaler cet Ask",
+    "reportNotification": "Signaler cette notification",
+    "hideFromUser": "Masquer cet utilisateur",
+    "confirmTitle": "Signaler",
+    "confirmDescription": "Choisissez un motif. Examen sous 24 h.",
+    "success": "Merci — nous allons examiner.",
+    "reasonSpam": "Spam",
+    "reasonHarassment": "Harcèlement",
+    "reasonInappropriate": "Contenu inapproprié",
+    "reasonOther": "Autre"
   }
 }

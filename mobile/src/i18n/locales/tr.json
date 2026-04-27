@@ -920,6 +920,16 @@
     "retry": "Tekrar dene"
   },
   "report": {
-    "slaCommitment": "Bildirimleri 24 saat içinde inceleriz"
+    "reportMessage": "Mesajı bildir",
+    "reportAsk": "Ask'ı bildir",
+    "reportNotification": "Bu bildirimi bildir",
+    "hideFromUser": "Bu kullanıcıyı gizle",
+    "confirmTitle": "Bildir",
+    "confirmDescription": "Bir neden seçin. 24 saat içinde inceleyeceğiz.",
+    "success": "Teşekkürler — inceleyeceğiz.",
+    "reasonSpam": "Spam",
+    "reasonHarassment": "Taciz",
+    "reasonInappropriate": "Uygunsuz içerik",
+    "reasonOther": "Diğer"
   }
 }

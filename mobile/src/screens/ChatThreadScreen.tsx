@@ -1,6 +1,8 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
+  ActionSheetIOS,
   ActivityIndicator,
+  Alert,
   FlatList,
   KeyboardAvoidingView,
   Platform,
@@ -133,6 +135,113 @@ export default function ChatThreadScreen({ navigation, route }: Props): JSX.Elem
     navigation.navigate('UserDetail', { userId: otherUserId });
   }, [navigation, otherUserId]);
 
+  // Apple Guideline 1.2: long-press a bubble to report or block.
+  const submitReport = useCallback(
+    async (messageId: string, reason: string) => {
+      if (!user) return;
+      try {
+        await supabase.from('piktag_reports').insert({
+          reporter_id: user.id,
+          reported_id: otherUserId,
+          reason,
+          context: { kind: 'chat_message', message_id: messageId, conversation_id: conversationId },
+        } as any);
+        Alert.alert(
+          t('report.success') || 'Reported',
+          t('report.confirmDescription') || 'Thanks — our team will review.',
+        );
+      } catch (err) {
+        console.warn('report message failed:', err);
+      }
+    },
+    [user, otherUserId, conversationId, t],
+  );
+
+  const blockOtherUser = useCallback(async () => {
+    if (!user) return;
+    try {
+      await supabase
+        .from('piktag_blocks')
+        .upsert(
+          { blocker_id: user.id, blocked_id: otherUserId },
+          { onConflict: 'blocker_id,blocked_id' },
+        );
+      Alert.alert(
+        t('userDetail.blockedTitle') || 'Blocked',
+        t('userDetail.blockedMessage') || 'You will no longer see this user.',
+      );
+      if (navigation.canGoBack()) navigation.goBack();
+    } catch (err) {
+      console.warn('block user failed:', err);
+    }
+  }, [user, otherUserId, navigation, t]);
+
+  const promptReportReason = useCallback(
+    (messageId: string) => {
+      const reasons: Array<{ key: string; label: string }> = [
+        { key: 'spam', label: t('report.reasonSpam') || 'Spam' },
+        { key: 'harassment', label: t('report.reasonHarassment') || 'Harassment' },
+        { key: 'inappropriate', label: t('report.reasonInappropriate') || 'Inappropriate' },
+        { key: 'other', label: t('report.reasonOther') || 'Other' },
+      ];
+      const cancelLabel = t('common.cancel') || 'Cancel';
+      if (Platform.OS === 'ios') {
+        ActionSheetIOS.showActionSheetWithOptions(
+          {
+            title: t('report.confirmTitle') || 'Report',
+            options: [...reasons.map((r) => r.label), cancelLabel],
+            cancelButtonIndex: reasons.length,
+          },
+          (idx) => {
+            if (idx >= 0 && idx < reasons.length) void submitReport(messageId, reasons[idx].key);
+          },
+        );
+      } else {
+        Alert.alert(
+          t('report.confirmTitle') || 'Report',
+          t('report.confirmDescription') || '',
+          [
+            ...reasons.map((r) => ({
+              text: r.label,
+              onPress: () => void submitReport(messageId, r.key),
+            })),
+            { text: cancelLabel, style: 'cancel' as const },
+          ],
+        );
+      }
+    },
+    [submitReport, t],
+  );
+
+  const handleBubbleLongPress = useCallback(
+    (message: ThreadMessage) => {
+      if (!user || message.sender_id === user.id) return;
+      const reportLabel = t('report.reportMessage') || 'Report message';
+      const blockLabel = t('userDetail.blockUser') || 'Block user';
+      const cancelLabel = t('common.cancel') || 'Cancel';
+      if (Platform.OS === 'ios') {
+        ActionSheetIOS.showActionSheetWithOptions(
+          {
+            options: [reportLabel, blockLabel, cancelLabel],
+            destructiveButtonIndex: 1,
+            cancelButtonIndex: 2,
+          },
+          (idx) => {
+            if (idx === 0) promptReportReason(message.id);
+            else if (idx === 1) void blockOtherUser();
+          },
+        );
+      } else {
+        Alert.alert('', '', [
+          { text: reportLabel, onPress: () => promptReportReason(message.id) },
+          { text: blockLabel, style: 'destructive', onPress: () => void blockOtherUser() },
+          { text: cancelLabel, style: 'cancel' },
+        ]);
+      }
+    },
+    [user, promptReportReason, blockOtherUser, t],
+  );
+
   const displayName = useMemo(() => {
     if (otherProfile?.full_name) return otherProfile.full_name;
     if (otherProfile?.username) return `@${otherProfile.username}`;
@@ -164,18 +273,26 @@ export default function ChatThreadScreen({ navigation, route }: Props): JSX.Elem
         !older || !sameLocalDay(currDate, new Date(older.created_at));
 
       const bubble = (
-        <MessageBubble
-          message={item}
-          isMine={isMine}
-          showAvatar={showAvatar}
-          avatarName={avatarName}
-          avatarUrl={avatarUrl}
-          onRetry={
-            isMine && item.status === 'failed' && item.client_nonce
-              ? () => void retry(item.client_nonce as string)
-              : undefined
+        <Pressable
+          onLongPress={() => handleBubbleLongPress(item)}
+          delayLongPress={350}
+          accessibilityHint={
+            !isMine ? t('report.reportMessage') || 'Long press to report' : undefined
           }
-        />
+        >
+          <MessageBubble
+            message={item}
+            isMine={isMine}
+            showAvatar={showAvatar}
+            avatarName={avatarName}
+            avatarUrl={avatarUrl}
+            onRetry={
+              isMine && item.status === 'failed' && item.client_nonce
+                ? () => void retry(item.client_nonce as string)
+                : undefined
+            }
+          />
+        </Pressable>
       );
 
       if (!showDaySeparator) return bubble;
@@ -193,7 +310,7 @@ export default function ChatThreadScreen({ navigation, route }: Props): JSX.Elem
         </View>
       );
     },
-    [messages, user, avatarName, avatarUrl, retry],
+    [messages, user, avatarName, avatarUrl, retry, handleBubbleLongPress, t],
   );
 
   const keyExtractor = useCallback((item: ThreadMessage) => item.id, []);

@@ -920,6 +920,16 @@
     "retry": "إعادة المحاولة"
   },
   "report": {
-    "slaCommitment": "نراجع البلاغات خلال 24 ساعة"
+    "reportMessage": "الإبلاغ عن الرسالة",
+    "reportAsk": "الإبلاغ عن Ask",
+    "reportNotification": "الإبلاغ عن هذا الإشعار",
+    "hideFromUser": "إخفاء هذا المستخدم",
+    "confirmTitle": "إبلاغ",
+    "confirmDescription": "اختر سببًا. سنراجع خلال 24 ساعة.",
+    "success": "شكرًا — سنقوم بالمراجعة.",
+    "reasonSpam": "بريد مزعج",
+    "reasonHarassment": "تحرّش",
+    "reasonInappropriate": "محتوى غير لائق",
+    "reasonOther": "آخر"
   }
 }

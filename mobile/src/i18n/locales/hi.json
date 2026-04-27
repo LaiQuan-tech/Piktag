@@ -920,6 +920,16 @@
     "retry": "पुनः प्रयास करें"
   },
   "report": {
-    "slaCommitment": "हम 24 घंटे के भीतर रिपोर्ट की समीक्षा करते हैं"
+    "reportMessage": "संदेश की रिपोर्ट करें",
+    "reportAsk": "Ask की रिपोर्ट करें",
+    "reportNotification": "इस सूचना की रिपोर्ट करें",
+    "hideFromUser": "इस उपयोगकर्ता को छुपाएँ",
+    "confirmTitle": "रिपोर्ट",
+    "confirmDescription": "कारण चुनें। हम 24 घंटे में समीक्षा करेंगे।",
+    "success": "धन्यवाद — हम समीक्षा करेंगे।",
+    "reasonSpam": "स्पैम",
+    "reasonHarassment": "उत्पीड़न",
+    "reasonInappropriate": "अनुचित सामग्री",
+    "reasonOther": "अन्य"
   }
 }

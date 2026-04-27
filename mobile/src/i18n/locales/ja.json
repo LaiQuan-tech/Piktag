@@ -920,6 +920,16 @@
     "retry": "再試行"
   },
   "report": {
-    "slaCommitment": "ご報告は24時間以内に確認します"
+    "reportMessage": "このメッセージを報告",
+    "reportAsk": "この Ask を報告",
+    "reportNotification": "この通知を報告",
+    "hideFromUser": "このユーザーを非表示",
+    "confirmTitle": "報告",
+    "confirmDescription": "理由を選んでください。24時間以内に確認します。",
+    "success": "ご報告ありがとうございます",
+    "reasonSpam": "スパム",
+    "reasonHarassment": "嫌がらせ・いじめ",
+    "reasonInappropriate": "不適切なコンテンツ",
+    "reasonOther": "その他"
   }
 }

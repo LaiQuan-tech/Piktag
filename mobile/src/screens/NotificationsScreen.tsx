@@ -9,6 +9,9 @@ import {
   StatusBar,
   ActivityIndicator,
   RefreshControl,
+  ActionSheetIOS,
+  Alert,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
@@ -71,12 +74,14 @@ function formatTimeAgo(dateString: string, t: (key: string, options?: any) => st
 type NotificationItemProps = {
   item: Notification;
   onPress: (item: Notification) => void;
+  onLongPress: (item: Notification) => void;
   t: (key: string, options?: any) => string;
 };
 
 const NotificationItem = React.memo(function NotificationItem({
   item,
   onPress,
+  onLongPress,
   t,
 }: NotificationItemProps) {
   const avatarUrl = item.data?.avatar_url || null;
@@ -87,6 +92,10 @@ const NotificationItem = React.memo(function NotificationItem({
     onPress(item);
   }, [onPress, item]);
 
+  const handleLongPress = useCallback(() => {
+    onLongPress(item);
+  }, [onLongPress, item]);
+
   return (
     <TouchableOpacity
       style={[
@@ -95,6 +104,8 @@ const NotificationItem = React.memo(function NotificationItem({
       ]}
       activeOpacity={0.7}
       onPress={handlePress}
+      onLongPress={handleLongPress}
+      delayLongPress={350}
     >
       {avatarUrl ? (
         <Image source={{ uri: avatarUrl }} style={styles.avatar} />
@@ -288,6 +299,85 @@ export default function NotificationsScreen({ navigation }: NotificationsScreenP
     }
   }, [user, notifications, fetchNotifications]);
 
+  // Apple Guideline 1.2: long-press a notification to report the actor
+  // or the notification itself.
+  const submitNotifReport = useCallback(
+    async (notif: Notification, reason: string) => {
+      if (!user) return;
+      const reportedId = notif.data?.actor_user_id || notif.data?.user_id || null;
+      try {
+        await supabase.from('piktag_reports').insert({
+          reporter_id: user.id,
+          reported_id: reportedId,
+          reason,
+          context: { kind: 'notification', notification_id: notif.id, type: notif.type },
+        } as any);
+        Alert.alert(
+          t('report.success') || 'Reported',
+          t('report.confirmDescription') || 'Thanks — our team will review.',
+        );
+      } catch (err) {
+        console.warn('report notification failed:', err);
+      }
+    },
+    [user, t],
+  );
+
+  const promptNotifReportReason = useCallback(
+    (notif: Notification) => {
+      const reasons: Array<{ key: string; label: string }> = [
+        { key: 'spam', label: t('report.reasonSpam') || 'Spam' },
+        { key: 'harassment', label: t('report.reasonHarassment') || 'Harassment' },
+        { key: 'inappropriate', label: t('report.reasonInappropriate') || 'Inappropriate' },
+        { key: 'other', label: t('report.reasonOther') || 'Other' },
+      ];
+      const cancelLabel = t('common.cancel') || 'Cancel';
+      if (Platform.OS === 'ios') {
+        ActionSheetIOS.showActionSheetWithOptions(
+          {
+            title: t('report.confirmTitle') || 'Report',
+            options: [...reasons.map((r) => r.label), cancelLabel],
+            cancelButtonIndex: reasons.length,
+          },
+          (idx) => {
+            if (idx >= 0 && idx < reasons.length) void submitNotifReport(notif, reasons[idx].key);
+          },
+        );
+      } else {
+        Alert.alert(t('report.confirmTitle') || 'Report', t('report.confirmDescription') || '', [
+          ...reasons.map((r) => ({ text: r.label, onPress: () => void submitNotifReport(notif, r.key) })),
+          { text: cancelLabel, style: 'cancel' as const },
+        ]);
+      }
+    },
+    [submitNotifReport, t],
+  );
+
+  const handleNotificationLongPress = useCallback(
+    (notif: Notification) => {
+      const reportLabel = t('report.reportNotification') || 'Report this notification';
+      const cancelLabel = t('common.cancel') || 'Cancel';
+      if (Platform.OS === 'ios') {
+        ActionSheetIOS.showActionSheetWithOptions(
+          {
+            options: [reportLabel, cancelLabel],
+            destructiveButtonIndex: 0,
+            cancelButtonIndex: 1,
+          },
+          (idx) => {
+            if (idx === 0) promptNotifReportReason(notif);
+          },
+        );
+      } else {
+        Alert.alert('', '', [
+          { text: reportLabel, onPress: () => promptNotifReportReason(notif) },
+          { text: cancelLabel, style: 'cancel' },
+        ]);
+      }
+    },
+    [promptNotifReportReason, t],
+  );
+
   // useMemo for computed values
   const filteredNotifications = useMemo(
     () => filterNotifications(notifications, activeTab),
@@ -330,9 +420,14 @@ export default function NotificationsScreen({ navigation }: NotificationsScreenP
   // useCallback for renderItem
   const renderNotificationItem = useCallback(
     ({ item }: { item: Notification }) => (
-      <NotificationItem item={item} onPress={handleNotificationPress} t={t} />
+      <NotificationItem
+        item={item}
+        onPress={handleNotificationPress}
+        onLongPress={handleNotificationLongPress}
+        t={t}
+      />
     ),
-    [handleNotificationPress, t]
+    [handleNotificationPress, handleNotificationLongPress, t]
   );
 
   // useCallback for keyExtractor

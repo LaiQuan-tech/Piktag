@@ -920,6 +920,16 @@
     "retry": "Tentar novamente"
   },
   "report": {
-    "slaCommitment": "Analisamos denúncias em até 24 horas"
+    "reportMessage": "Denunciar mensagem",
+    "reportAsk": "Denunciar Ask",
+    "reportNotification": "Denunciar esta notificação",
+    "hideFromUser": "Ocultar este utilizador",
+    "confirmTitle": "Denunciar",
+    "confirmDescription": "Escolha um motivo. Análise em 24h.",
+    "success": "Obrigado — vamos analisar.",
+    "reasonSpam": "Spam",
+    "reasonHarassment": "Assédio",
+    "reasonInappropriate": "Conteúdo inadequado",
+    "reasonOther": "Outro"
   }
 }

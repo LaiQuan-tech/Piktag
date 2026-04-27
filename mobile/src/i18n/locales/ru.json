@@ -920,6 +920,16 @@
     "retry": "Повторить"
   },
   "report": {
-    "slaCommitment": "Мы рассматриваем жалобы в течение 24 часов"
+    "reportMessage": "Пожаловаться на сообщение",
+    "reportAsk": "Пожаловаться на Ask",
+    "reportNotification": "Пожаловаться на уведомление",
+    "hideFromUser": "Скрыть этого пользователя",
+    "confirmTitle": "Жалоба",
+    "confirmDescription": "Выберите причину. Рассмотрим в течение 24 часов.",
+    "success": "Спасибо — мы рассмотрим.",
+    "reasonSpam": "Спам",
+    "reasonHarassment": "Оскорбления",
+    "reasonInappropriate": "Неприемлемый контент",
+    "reasonOther": "Другое"
   }
 }

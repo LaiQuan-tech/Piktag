@@ -920,6 +920,16 @@
     "retry": "Coba lagi"
   },
   "report": {
-    "slaCommitment": "Kami meninjau laporan dalam 24 jam"
+    "reportMessage": "Laporkan pesan",
+    "reportAsk": "Laporkan Ask",
+    "reportNotification": "Laporkan notifikasi ini",
+    "hideFromUser": "Sembunyikan pengguna ini",
+    "confirmTitle": "Laporkan",
+    "confirmDescription": "Pilih alasan. Ditinjau dalam 24 jam.",
+    "success": "Terima kasih — akan kami tinjau.",
+    "reasonSpam": "Spam",
+    "reasonHarassment": "Pelecehan",
+    "reasonInappropriate": "Konten tidak pantas",
+    "reasonOther": "Lainnya"
   }
 }

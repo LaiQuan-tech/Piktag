@@ -920,6 +920,16 @@
     "retry": "다시 시도"
   },
   "report": {
-    "slaCommitment": "신고는 24시간 이내에 검토합니다"
+    "reportMessage": "메시지 신고",
+    "reportAsk": "Ask 신고",
+    "reportNotification": "알림 신고",
+    "hideFromUser": "이 사용자 숨기기",
+    "confirmTitle": "신고",
+    "confirmDescription": "사유를 선택해 주세요. 24시간 이내에 검토합니다.",
+    "success": "신고가 접수되었습니다",
+    "reasonSpam": "스팸",
+    "reasonHarassment": "괴롭힘",
+    "reasonInappropriate": "부적절한 콘텐츠",
+    "reasonOther": "기타"
   }
 }

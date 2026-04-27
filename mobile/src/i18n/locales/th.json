@@ -920,6 +920,16 @@
     "retry": "ลองอีกครั้ง"
   },
   "report": {
-    "slaCommitment": "เราตรวจสอบรายงานภายใน 24 ชั่วโมง"
+    "reportMessage": "รายงานข้อความ",
+    "reportAsk": "รายงาน Ask",
+    "reportNotification": "รายงานการแจ้งเตือนนี้",
+    "hideFromUser": "ซ่อนผู้ใช้นี้",
+    "confirmTitle": "รายงาน",
+    "confirmDescription": "เลือกเหตุผล เราจะตรวจสอบภายใน 24 ชม.",
+    "success": "ขอบคุณ — เราจะตรวจสอบ",
+    "reasonSpam": "สแปม",
+    "reasonHarassment": "การล่วงละเมิด",
+    "reasonInappropriate": "เนื้อหาไม่เหมาะสม",
+    "reasonOther": "อื่น ๆ"
   }
 }

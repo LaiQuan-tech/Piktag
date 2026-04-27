@@ -920,6 +920,16 @@
     "retry": "重试"
   },
   "report": {
-    "slaCommitment": "我们会在 24 小时内审查您的举报"
+    "reportMessage": "举报此消息",
+    "reportAsk": "举报此 Ask",
+    "reportNotification": "举报此通知",
+    "hideFromUser": "不再显示此用户",
+    "confirmTitle": "举报",
+    "confirmDescription": "请选择原因，我们会在 24 小时内审核。",
+    "success": "感谢反馈，我们会尽快处理",
+    "reasonSpam": "垃圾信息",
+    "reasonHarassment": "骚扰或霸凌",
+    "reasonInappropriate": "不当内容",
+    "reasonOther": "其他"
   }
 }
