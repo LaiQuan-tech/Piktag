@@ -282,7 +282,7 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
       const [myTagsRes, statusRes] = await Promise.allSettled([
         supabase
           .from('piktag_connection_tags')
-          .select('connection_id, tag:piktag_tags!tag_id(name)')
+          .select('connection_id, is_private, tag:piktag_tags!tag_id(name)')
           .in('connection_id', connectionIds)
           .limit(5000),
         followedConnUserIds.length > 0
@@ -296,16 +296,26 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
       ]);
 
       // Build tag map from my-tags-on-connections result.
-      // Keyed by connection_id now (not user_id), since the same friend may
-      // appear in my connections list more than once in edge cases.
+      // Sort: hidden (private) tags first — these are the most identifying
+      // personal notes (e.g. #前同事, #某場活動認識), then public picked tags.
       const tagMap = new Map<string, string[]>();
       if (myTagsRes.status === 'fulfilled' && myTagsRes.value.data) {
+        const grouped = new Map<string, { name: string; isPrivate: boolean }[]>();
         for (const ct of myTagsRes.value.data as any[]) {
           const name = ct.tag?.name;
           if (!name) continue;
-          const arr = tagMap.get(ct.connection_id) || [];
-          if (!arr.includes(`#${name}`)) arr.push(`#${name}`);
-          tagMap.set(ct.connection_id, arr);
+          const arr = grouped.get(ct.connection_id) || [];
+          if (!arr.some(t => t.name === name)) {
+            arr.push({ name, isPrivate: ct.is_private || false });
+          }
+          grouped.set(ct.connection_id, arr);
+        }
+        for (const [connId, tags] of grouped) {
+          tags.sort((a, b) => {
+            if (a.isPrivate !== b.isPrivate) return a.isPrivate ? -1 : 1;
+            return 0;
+          });
+          tagMap.set(connId, tags.map(t => `#${t.name}`));
         }
       }
 
