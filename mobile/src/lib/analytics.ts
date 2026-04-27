@@ -1,3 +1,4 @@
+import { Platform } from 'react-native';
 import PostHog from 'posthog-react-native';
 
 // PostHog product analytics — tracks the core events that map to
@@ -39,3 +40,63 @@ export const trackInviteShared = () =>
 /** User redeemed an invite code. */
 export const trackInviteRedeemed = (code: string) =>
   posthog.capture('invite_redeemed', { code });
+
+/** User completed signup via the chosen auth method. */
+export const trackSignupComplete = (props: { method: 'apple' | 'google' | 'email' }) =>
+  posthog?.capture('signup_complete', props);
+
+/** User completed login via the chosen auth method. */
+export const trackLoginComplete = (props: { method: 'apple' | 'google' | 'email' }) =>
+  posthog?.capture('login_complete', props);
+
+/** User scanned a QR code. */
+export const trackQrScanned = (props: { type: 'invite' | 'profile' | 'unknown' }) =>
+  posthog?.capture('qr_scanned', props);
+
+/** User successfully added a friend connection. */
+export const trackFriendAdded = (props: { source: 'qr' | 'search' | 'contact' | 'invite' }) =>
+  posthog?.capture('friend_added', props);
+
+/** User sent a chat message. */
+export const trackMessageSent = () => posthog?.capture('message_sent');
+
+/** User posted an Ask. */
+export const trackAskPosted = () => posthog?.capture('ask_posted');
+
+// ── Privacy / opt-out controls ──
+//
+// Toggles PostHog capture on or off. Persisted by SettingsScreen via
+// AsyncStorage; this helper just flips the runtime state so events
+// stop being sent immediately when the user opts out.
+export const setAnalyticsOptIn = (optedIn: boolean): void => {
+  if (optedIn) {
+    posthog.optIn();
+  } else {
+    posthog.optOut();
+  }
+};
+
+// Lazily initializes PostHog after first sign-in. On iOS, also requests
+// App Tracking Transparency permission. If the user denies tracking,
+// PostHog is opted out so no events are captured. No-ops on Android
+// (no ATT) and on web. Safe to call multiple times.
+let analyticsInitialized = false;
+export const initAnalytics = async (): Promise<void> => {
+  if (analyticsInitialized) return;
+  analyticsInitialized = true;
+
+  try {
+    if (Platform.OS === 'ios') {
+      const mod = await import('expo-tracking-transparency');
+      const { status } = await mod.requestTrackingPermissionsAsync();
+      if (status !== 'granted') {
+        posthog.optOut();
+        return;
+      }
+    }
+    posthog.optIn();
+  } catch {
+    // expo-tracking-transparency might not be linked on first install.
+    // Fail open and let the user toggle in Settings.
+  }
+};
