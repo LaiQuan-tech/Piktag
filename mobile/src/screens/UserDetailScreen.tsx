@@ -34,6 +34,7 @@ import { COLORS } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
 import { LinearGradient } from 'expo-linear-gradient';
 import PlatformIcon from '../components/PlatformIcon';
+import OverlappingAvatars from '../components/OverlappingAvatars';
 import HiddenTagEditor from '../components/HiddenTagEditor';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
@@ -72,6 +73,7 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
     [biolinks]
   );
   const [mutualFriends, setMutualFriends] = useState(0);
+  const [mutualFriendProfiles, setMutualFriendProfiles] = useState<any[]>([]);
   const [mutualTags, setMutualTags] = useState(0);
   const [mutualTagList, setMutualTagList] = useState<{ id: string; name: string }[]>([]);
   const [followerCount, setFollowerCount] = useState(0);
@@ -203,6 +205,27 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
       setConnectionId(d.connection_id ?? null);
       setIsCloseFriend(!!d.is_close_friend);
       setMutualFriends(Number(d.mutual_friends || 0));
+
+      // Fetch mutual friend profiles for overlapping avatars display
+      if (Number(d.mutual_friends || 0) > 0) {
+        Promise.all([
+          supabase.from('piktag_connections').select('connected_user_id').eq('user_id', authUser.id),
+          supabase.from('piktag_connections').select('connected_user_id').eq('user_id', userId),
+        ]).then(([myConns, theirConns]) => {
+          if (signal.aborted) return;
+          if (myConns.data && theirConns.data) {
+            const myFriendIds = new Set(myConns.data.map((c: any) => c.connected_user_id));
+            const mutualIds = theirConns.data
+              .filter((c: any) => myFriendIds.has(c.connected_user_id))
+              .map((c: any) => c.connected_user_id);
+            if (mutualIds.length > 0) {
+              supabase.from('piktag_profiles').select('id, username, full_name, avatar_url')
+                .in('id', mutualIds.slice(0, 20))
+                .then(({ data }) => { if (data && !signal.aborted) setMutualFriendProfiles(data); });
+            }
+          }
+        });
+      }
 
       // --- Wave 2: similar-users bundle (RPC) ---
       // Fires in parallel with no client-side dependency on wave 1's
@@ -931,9 +954,14 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
               </Text>
             )}
             <Text style={styles.statDot}>·</Text>
-            <Text style={styles.statText}>
-              <Text style={styles.statNumber}>{mutualFriends}</Text>{t('userDetail.statMutualFriends')}
-            </Text>
+            <View style={styles.mutualAvatarsStat}>
+              {mutualFriendProfiles.length > 0 && (
+                <OverlappingAvatars users={mutualFriendProfiles} total={mutualFriends} size={22} max={3} />
+              )}
+              <Text style={[styles.statText, mutualFriendProfiles.length > 0 && { marginLeft: 6 }]}>
+                <Text style={styles.statNumber}>{mutualFriends}</Text>{t('userDetail.statMutualFriends')}
+              </Text>
+            </View>
             <Text style={styles.statDot}>·</Text>
             <Text style={styles.statText}>
               <Text style={styles.statNumber}>{followerCount}</Text>{t('userDetail.statFollowers')}
@@ -1513,6 +1541,10 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: COLORS.gray900,
     marginRight: 2,
+  },
+  mutualAvatarsStat: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   mutualTagsRow: {
     flexDirection: 'row',

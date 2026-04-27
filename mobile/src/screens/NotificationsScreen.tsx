@@ -303,14 +303,28 @@ export default function NotificationsScreen({ navigation }: NotificationsScreenP
   // The server-side trigger stores username / actor_user_id in data, so we
   // pass whichever we have to UserDetailScreen's route params.
   const handleNotificationPress = useCallback(
-    (item: Notification) => {
+    async (item: Notification) => {
       handleMarkAsRead(item.id);
       const userId = item.data?.actor_user_id || item.data?.user_id;
       const username = item.data?.username;
       if (!navigation || (!userId && !username)) return;
+      if (userId && user) {
+        try {
+          const { data: conn } = await supabase
+            .from('piktag_connections')
+            .select('id')
+            .eq('user_id', user.id)
+            .eq('connected_user_id', userId)
+            .maybeSingle();
+          if (conn) {
+            navigation.navigate('FriendDetail', { friendId: userId, connectionId: conn.id });
+            return;
+          }
+        } catch {}
+      }
       navigation.navigate('UserDetail', { userId, username });
     },
-    [handleMarkAsRead, navigation]
+    [handleMarkAsRead, navigation, user]
   );
 
   // useCallback for renderItem
