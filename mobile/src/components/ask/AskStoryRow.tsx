@@ -14,7 +14,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { Image } from 'expo-image';
-import { Plus, X, Clock } from 'lucide-react-native';
+import { Plus, X } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTranslation } from 'react-i18next';
 import InitialsAvatar from '../InitialsAvatar';
@@ -133,8 +133,6 @@ type AskCreateModalProps = {
   onCreated: () => void;
 };
 
-type ExpiryOption = { label: string; hours: number };
-
 function AskCreateModal({ visible, onClose, existingAsk, onCreated }: AskCreateModalProps) {
   const { t } = useTranslation();
   const { user } = useAuth();
@@ -143,20 +141,11 @@ function AskCreateModal({ visible, onClose, existingAsk, onCreated }: AskCreateM
   const [body, setBody] = useState('');
   const [selectedTagIds, setSelectedTagIds] = useState<Set<string>>(new Set());
   const [myTags, setMyTags] = useState<{ id: string; name: string }[]>([]);
-  const [expiryHours, setExpiryHours] = useState(24);
   const [saving, setSaving] = useState(false);
-
-  const expiryOptions: ExpiryOption[] = useMemo(() => [
-    { label: '24h', hours: 24 },
-    { label: '48h', hours: 48 },
-    { label: '72h', hours: 72 },
-    { label: '1w', hours: 168 },
-  ], []);
 
   useEffect(() => {
     if (visible) {
       setBody(existingAsk?.body || '');
-      setExpiryHours(24);
       Animated.spring(slideAnim, { toValue: 0, useNativeDriver: true, bounciness: 0, speed: 14 }).start();
       if (user) {
         supabase
@@ -192,7 +181,7 @@ function AskCreateModal({ visible, onClose, existingAsk, onCreated }: AskCreateM
         await supabase.from('piktag_asks').update({ is_active: false }).eq('id', existingAsk.id);
       }
 
-      const expiresAt = new Date(Date.now() + expiryHours * 3600000).toISOString();
+      const expiresAt = new Date(Date.now() + 24 * 3600000).toISOString();
       const { data: askData, error } = await supabase
         .from('piktag_asks')
         .insert({ author_id: user.id, body: body.trim(), expires_at: expiresAt })
@@ -222,7 +211,7 @@ function AskCreateModal({ visible, onClose, existingAsk, onCreated }: AskCreateM
     } finally {
       setSaving(false);
     }
-  }, [user, body, selectedTagIds, expiryHours, existingAsk, myTags, onCreated, onClose]);
+  }, [user, body, selectedTagIds, existingAsk, myTags, onCreated, onClose]);
 
   const handleDelete = useCallback(async () => {
     if (!existingAsk) return;
@@ -274,24 +263,6 @@ function AskCreateModal({ visible, onClose, existingAsk, onCreated }: AskCreateM
               </TouchableOpacity>
             ))}
           </ScrollView>
-
-          {/* Expiry selector */}
-          <View style={modalStyles.expiryRow}>
-            <Clock size={14} color={COLORS.gray500} />
-            <Text style={modalStyles.expiryLabel}>{t('ask.expiry')}</Text>
-            {expiryOptions.map((opt) => (
-              <TouchableOpacity
-                key={opt.hours}
-                style={[modalStyles.expiryBtn, expiryHours === opt.hours && modalStyles.expiryBtnActive]}
-                onPress={() => setExpiryHours(opt.hours)}
-                activeOpacity={0.7}
-              >
-                <Text style={[modalStyles.expiryBtnText, expiryHours === opt.hours && modalStyles.expiryBtnTextActive]}>
-                  {opt.label}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
 
           {/* Actions */}
           <View style={modalStyles.actions}>
@@ -424,17 +395,6 @@ const modalStyles = StyleSheet.create({
   tagChipSelected: { backgroundColor: COLORS.piktag500 },
   tagChipText: { fontSize: 13, fontWeight: '500', color: COLORS.gray700 },
   tagChipTextSelected: { color: '#fff' },
-  expiryRow: {
-    flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 20,
-  },
-  expiryLabel: { fontSize: 13, color: COLORS.gray500, marginRight: 4 },
-  expiryBtn: {
-    paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16,
-    backgroundColor: COLORS.gray100,
-  },
-  expiryBtnActive: { backgroundColor: COLORS.piktag500 },
-  expiryBtnText: { fontSize: 13, fontWeight: '500', color: COLORS.gray700 },
-  expiryBtnTextActive: { color: '#fff' },
   actions: { flexDirection: 'row', gap: 12 },
   deleteBtn: {
     flex: 1, borderRadius: 12, paddingVertical: 14,
