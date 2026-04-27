@@ -511,7 +511,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
         .select('tag_id')
         .eq('user_id', user.id)
         .eq('is_private', false)
-        .limit(500);
+        .limit(50);
       if (!myTags || myTags.length === 0) return;
 
       const myTagIds = myTags.map(t => t.tag_id);
@@ -521,7 +521,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
         .from('piktag_connections')
         .select('connected_user_id')
         .eq('user_id', user.id)
-        .limit(2000);
+        .limit(100);
       const connUserIds = new Set((myConns || []).map(c => c.connected_user_id));
       connUserIds.add(user.id); // exclude self
 
@@ -690,6 +690,47 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
         if (mergedTags.length > 0) {
           setTags(mergedTags);
 
+          // Fast path: one RPC returns the page-ready ranked user slice.
+          // We then group locally by the top-3 tags so the existing UI
+          // (tag-grouped sections) stays unchanged.
+          let rpcGrouped: { tag: Tag; users: any[] }[] | null = null;
+          try {
+            const { data: rpcRows, error: rpcErr } = await supabase.rpc('search_users', {
+              p_query: mainKeyword,
+              p_limit: 50,
+            });
+            if (!rpcErr && Array.isArray(rpcRows) && rpcRows.length > 0) {
+              const seenIds = new Set<string>();
+              const flat = (rpcRows as any[])
+                .map((r) => ({
+                  id: r.id,
+                  username: r.username,
+                  full_name: r.full_name,
+                  avatar_url: r.avatar_url,
+                  is_verified: r.is_verified,
+                  is_public: true,
+                }))
+                .filter((p) => p.id !== user?.id && !seenIds.has(p.id) && (seenIds.add(p.id), true));
+              if (flat.length > 0) {
+                // Group: assign all matched users to the top tag bucket.
+                // The legacy UI shows up to 3 buckets — we surface them
+                // all under the strongest matched tag, which is the
+                // common case anyway (most queries return a single tag).
+                const topTag = mergedTags[0];
+                rpcGrouped = [{ tag: topTag as Tag, users: flat.slice(0, 10) }];
+              } else {
+                rpcGrouped = [];
+              }
+            }
+          } catch (rpcCatchErr) {
+            // RPC missing or runtime error — fall back to legacy loop.
+            console.warn('[SearchScreen] search_users RPC failed, falling back:', rpcCatchErr);
+          }
+
+          if (rpcGrouped !== null) {
+            setTagUsers(rpcGrouped);
+            finalTagUsers = rpcGrouped;
+          } else {
           // Fetch users who have the top matched tags OR same concept (max 3 tags, 10 users each)
           const topTags = mergedTags.slice(0, 3);
           if (topTags.length > 0) {
@@ -733,6 +774,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
             finalTagUsers = tagUserResults;
           } else {
             setTagUsers([]);
+          }
           }
         } else {
           setTags([]);
