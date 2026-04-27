@@ -343,7 +343,9 @@
     "selectPlatform": "เลือกแพลตฟอร์ม",
     "linkName": "ชื่อลิงก์",
     "selectCountry": "เลือกประเทศ",
-    "searchCountry": "ค้นหาประเทศหรือรหัส"
+    "searchCountry": "ค้นหาประเทศหรือรหัส",
+    "invalidImageType": "ไม่รองรับประเภทรูปภาพนี้ กรุณาใช้ JPEG, PNG หรือ WebP",
+    "imageTooLarge": "รูปภาพมีขนาดใหญ่เกินไป ขนาดสูงสุด 2MB"
   },
   "friendDetail": {
     "reminderBirthday": "วันเกิด",

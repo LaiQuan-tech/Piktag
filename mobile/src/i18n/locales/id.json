@@ -343,7 +343,9 @@
     "selectPlatform": "Pilih Platform",
     "linkName": "Nama Tautan",
     "selectCountry": "Pilih negara",
-    "searchCountry": "Cari negara atau kode"
+    "searchCountry": "Cari negara atau kode",
+    "invalidImageType": "Jenis gambar tidak didukung. Gunakan JPEG, PNG, atau WebP.",
+    "imageTooLarge": "Gambar terlalu besar. Ukuran maksimum 2MB."
   },
   "friendDetail": {
     "reminderBirthday": "Ulang Tahun",

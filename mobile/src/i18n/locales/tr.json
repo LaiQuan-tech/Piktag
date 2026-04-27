@@ -343,7 +343,9 @@
     "selectPlatform": "Platform Seçin",
     "linkName": "Bağlantı Adı",
     "selectCountry": "Ülke seç",
-    "searchCountry": "Ülke veya kod ara"
+    "searchCountry": "Ülke veya kod ara",
+    "invalidImageType": "Desteklenmeyen görüntü türü. Lütfen JPEG, PNG veya WebP kullanın.",
+    "imageTooLarge": "Görüntü çok büyük. Maksimum boyut 2 MB."
   },
   "friendDetail": {
     "reminderBirthday": "Doğum Günü",

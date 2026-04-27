@@ -343,7 +343,9 @@
     "selectPlatform": "プラットフォームを選択",
     "linkName": "リンク名",
     "selectCountry": "国を選択",
-    "searchCountry": "国またはコードを検索"
+    "searchCountry": "国またはコードを検索",
+    "invalidImageType": "サポートされていない画像形式です。JPEG、PNG、または WebP を使用してください。",
+    "imageTooLarge": "画像が大きすぎます。最大サイズは 2MB です。"
   },
   "friendDetail": {
     "reminderBirthday": "誕生日",

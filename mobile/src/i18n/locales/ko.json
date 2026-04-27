@@ -343,7 +343,9 @@
     "selectPlatform": "플랫폼 선택",
     "linkName": "링크 이름",
     "selectCountry": "국가 선택",
-    "searchCountry": "국가 또는 코드 검색"
+    "searchCountry": "국가 또는 코드 검색",
+    "invalidImageType": "지원되지 않는 이미지 형식입니다. JPEG, PNG 또는 WebP를 사용하세요.",
+    "imageTooLarge": "이미지가 너무 큽니다. 최대 크기는 2MB입니다."
   },
   "friendDetail": {
     "reminderBirthday": "생일",

@@ -343,7 +343,9 @@
     "selectPlatform": "اختر منصة",
     "linkName": "اسم الرابط",
     "selectCountry": "اختر دولة",
-    "searchCountry": "ابحث عن دولة أو رمز"
+    "searchCountry": "ابحث عن دولة أو رمز",
+    "invalidImageType": "نوع الصورة غير مدعوم. يرجى استخدام JPEG أو PNG أو WebP.",
+    "imageTooLarge": "حجم الصورة كبير جدًا. الحد الأقصى 2 ميجابايت."
   },
   "friendDetail": {
     "reminderBirthday": "عيد الميلاد",

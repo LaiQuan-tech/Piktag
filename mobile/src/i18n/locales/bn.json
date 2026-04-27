@@ -343,7 +343,9 @@
     "selectPlatform": "প্ল্যাটফর্ম বাছুন",
     "linkName": "লিংকের নাম",
     "selectCountry": "দেশ বাছুন",
-    "searchCountry": "দেশ অথবা কোড খুঁজুন"
+    "searchCountry": "দেশ অথবা কোড খুঁজুন",
+    "invalidImageType": "অসমর্থিত ছবির ধরন। অনুগ্রহ করে JPEG, PNG বা WebP ব্যবহার করুন।",
+    "imageTooLarge": "ছবি খুব বড়। সর্বাধিক আকার 2MB।"
   },
   "friendDetail": {
     "reminderBirthday": "জন্মদিন",

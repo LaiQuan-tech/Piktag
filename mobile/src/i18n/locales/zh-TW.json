@@ -346,7 +346,9 @@
     "selectPlatform": "選擇平台",
     "linkName": "連結名稱",
     "selectCountry": "選擇國家",
-    "searchCountry": "搜尋國家或國碼"
+    "searchCountry": "搜尋國家或國碼",
+    "invalidImageType": "不支援的圖片格式，請使用 JPEG、PNG 或 WebP。",
+    "imageTooLarge": "圖片過大，最大支援 2MB。"
   },
   "friendDetail": {
     "reminderBirthday": "生日",

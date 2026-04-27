@@ -343,7 +343,9 @@
     "selectPlatform": "Sélectionner la plateforme",
     "linkName": "Nom du lien",
     "selectCountry": "Sélectionner un pays",
-    "searchCountry": "Rechercher un pays ou un code"
+    "searchCountry": "Rechercher un pays ou un code",
+    "invalidImageType": "Type d'image non pris en charge. Utilisez JPEG, PNG ou WebP.",
+    "imageTooLarge": "L'image est trop volumineuse. Taille maximale : 2 Mo."
   },
   "friendDetail": {
     "reminderBirthday": "Anniversaire",

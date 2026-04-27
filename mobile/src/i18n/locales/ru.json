@@ -343,7 +343,9 @@
     "selectPlatform": "Выбери платформу",
     "linkName": "Название ссылки",
     "selectCountry": "Выбери страну",
-    "searchCountry": "Найди страну или код"
+    "searchCountry": "Найди страну или код",
+    "invalidImageType": "Неподдерживаемый тип изображения. Используйте JPEG, PNG или WebP.",
+    "imageTooLarge": "Изображение слишком большое. Максимальный размер — 2 МБ."
   },
   "friendDetail": {
     "reminderBirthday": "День рождения",

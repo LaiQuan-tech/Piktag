@@ -289,7 +289,28 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
     if (result.canceled || !result.assets[0]) return;
 
     const asset = result.assets[0];
-    const ext = asset.uri.split('.').pop()?.toLowerCase() || 'jpg';
+
+    // Defense-in-depth: client-side MIME + size validation
+    // (storage bucket policy enforces this server-side as well)
+    const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+    const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB
+
+    if (!asset.mimeType || !ALLOWED_MIME_TYPES.includes(asset.mimeType)) {
+      Alert.alert(t('common.error'), t('editProfile.invalidImageType'));
+      return;
+    }
+
+    if (typeof asset.fileSize === 'number' && asset.fileSize > MAX_FILE_SIZE) {
+      Alert.alert(t('common.error'), t('editProfile.imageTooLarge'));
+      return;
+    }
+
+    const extFromMime: Record<string, string> = {
+      'image/jpeg': 'jpg',
+      'image/png': 'png',
+      'image/webp': 'webp',
+    };
+    const ext = extFromMime[asset.mimeType];
     const filePath = `${userId}/avatar.${ext}`;
 
     try {
@@ -299,7 +320,7 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
       const accessToken = sessionData?.session?.access_token;
       if (!accessToken) throw new Error('未登入');
 
-      const mimeType = ext === 'jpg' ? 'image/jpeg' : `image/${ext}`;
+      const mimeType = asset.mimeType;
       const formData = new FormData();
       formData.append('file', {
         uri: asset.uri,

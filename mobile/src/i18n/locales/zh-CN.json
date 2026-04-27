@@ -343,7 +343,9 @@
     "selectPlatform": "选择平台",
     "linkName": "链接名称",
     "selectCountry": "选择国家",
-    "searchCountry": "搜索国家或国码"
+    "searchCountry": "搜索国家或国码",
+    "invalidImageType": "不支持的图片格式，请使用 JPEG、PNG 或 WebP。",
+    "imageTooLarge": "图片过大，最大支持 2MB。"
   },
   "friendDetail": {
     "reminderBirthday": "生日",

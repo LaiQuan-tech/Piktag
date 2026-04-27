@@ -343,7 +343,9 @@
     "selectPlatform": "प्लेटफ़ॉर्म चुनें",
     "linkName": "लिंक का नाम",
     "selectCountry": "देश चुनें",
-    "searchCountry": "देश या कोड खोजें"
+    "searchCountry": "देश या कोड खोजें",
+    "invalidImageType": "असमर्थित छवि प्रकार। कृपया JPEG, PNG या WebP का उपयोग करें।",
+    "imageTooLarge": "छवि बहुत बड़ी है। अधिकतम आकार 2MB है।"
   },
   "friendDetail": {
     "reminderBirthday": "जन्मदिन",
