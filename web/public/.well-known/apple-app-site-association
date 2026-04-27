@@ -1,0 +1,15 @@
+{
+  "applinks": {
+    "details": [
+      {
+        "appIDs": ["3NU6HAGX6Z.ag.pikt.app"],
+        "components": [
+          { "/": "/i/*", "comment": "Invite codes" },
+          { "/": "/u/*", "comment": "User profiles" },
+          { "/": "/tag/*", "comment": "Tag pages" },
+          { "/": "/*", "comment": "All other paths route to the app" }
+        ]
+      }
+    ]
+  }
+}
