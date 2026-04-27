@@ -212,6 +212,10 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
   const skipNextSearch = useRef(false);
   const [intersectionMode, setIntersectionMode] = useState(false);
   const [intersectionProfiles, setIntersectionProfiles] = useState<PiktagProfile[]>([]);
+  const [intersectionFriends, setIntersectionFriends] = useState<PiktagProfile[]>([]);
+  const [intersectionExplore, setIntersectionExplore] = useState<PiktagProfile[]>([]);
+  const [intersectionTab, setIntersectionTab] = useState<'friends' | 'explore'>('friends');
+  const [intersectionSelectedTags, setIntersectionSelectedTags] = useState<Tag[]>([]);
   const recentSearchesRef = useRef(recentSearches);
   recentSearchesRef.current = recentSearches;
   const isMountedRef = useRef(true);
@@ -770,6 +774,9 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
     // Multiple tags: do intersection search
     setIntersectionMode(true);
     setIntersectionProfiles([]);
+    setIntersectionFriends([]);
+    setIntersectionExplore([]);
+    setIntersectionSelectedTags(selected);
     setSearchQuery(selected.map(t => t.name).join(' + '));
     skipNextSearch.current = true;
     if (debounceTimer.current) clearTimeout(debounceTimer.current);
@@ -777,7 +784,6 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
     try {
       const userIdSets: Set<string>[] = [];
       for (const tagId of selectedTagIds) {
-        // Expand tag to include all sibling tags (same concept = same meaning)
         let allTagIds = [tagId];
         try {
           const { data: tagData } = await supabase
@@ -793,7 +799,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
             if (siblings) allTagIds = siblings.map((s: any) => s.id);
           }
         } catch (err) {
-          console.warn('[SearchScreen] sibling tag lookup failed, falling back to single tag:', err);
+          console.warn('[SearchScreen] sibling tag lookup failed:', err);
         }
 
         const { data } = await supabase
@@ -809,14 +815,28 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
         intersection = new Set([...intersection].filter(id => userIdSets[i].has(id)));
       }
 
-      const userIds = [...intersection].slice(0, 30);
+      const userIds = [...intersection].slice(0, 50);
 
       if (userIds.length > 0) {
-        const { data: profileData } = await supabase
-          .from('piktag_profiles')
-          .select('id, username, full_name, avatar_url, is_verified')
-          .in('id', userIds);
-        setIntersectionProfiles((profileData || []) as PiktagProfile[]);
+        const [profileResult, myConnsResult] = await Promise.all([
+          supabase.from('piktag_profiles')
+            .select('id, username, full_name, avatar_url, is_verified')
+            .in('id', userIds),
+          supabase.from('piktag_connections')
+            .select('connected_user_id')
+            .eq('user_id', user!.id),
+        ]);
+
+        const allProfiles = (profileResult.data || []) as PiktagProfile[];
+        const friendIds = new Set((myConnsResult.data || []).map((c: any) => c.connected_user_id));
+
+        const friends = allProfiles.filter(p => friendIds.has(p.id));
+        const explore = allProfiles.filter(p => !friendIds.has(p.id) && p.id !== user?.id);
+
+        setIntersectionProfiles(allProfiles);
+        setIntersectionFriends(friends);
+        setIntersectionExplore(explore);
+        setIntersectionTab(friends.length > 0 ? 'friends' : 'explore');
       }
     } catch (err) {
       console.warn('Intersection search error:', err);
@@ -825,7 +845,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
 
     setLoading(false);
     setSelectedTagIds([]);
-  }, [selectedTagIds, selectedTagIdSet, tags, navigation]);
+  }, [selectedTagIds, selectedTagIdSet, tags, navigation, user]);
 
 
   const handleProfilePress = useCallback(
@@ -885,7 +905,8 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
     | { type: 'tagsHeader' }
     | { type: 'tagsEmpty' }
     | { type: 'tagsGrid' }
-    | { type: 'recommendedUsers' };
+    | { type: 'recommendedUsers' }
+    | { type: 'intersectionTabs' };
 
   const listData = useMemo<ListItem[]>(() => {
     const items: ListItem[] = [];
@@ -896,10 +917,12 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
       return items;
     }
 
-    // Intersection mode — only show matching profiles
+    // Intersection mode — tabbed Friends / Explore results
     if (intersectionMode) {
-      if (intersectionProfiles.length > 0) {
-        intersectionProfiles.forEach((profile) => {
+      items.push({ type: 'intersectionTabs' as any });
+      const activeList = intersectionTab === 'friends' ? intersectionFriends : intersectionExplore;
+      if (activeList.length > 0) {
+        activeList.forEach((profile) => {
           items.push({ type: 'profileItem', profile });
         });
       } else {
@@ -977,6 +1000,9 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
     isFocused,
     intersectionMode,
     intersectionProfiles,
+    intersectionFriends,
+    intersectionExplore,
+    intersectionTab,
     recommendedUsers,
   ]);
 
@@ -1008,6 +1034,8 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
         return 'clearHistoryBtn';
       case 'recommendedUsers':
         return 'recommendedUsers';
+      case 'intersectionTabs':
+        return 'intersectionTabs';
       default:
         return `item-${index}`;
     }
@@ -1020,6 +1048,64 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
           return (
             <View style={styles.loadingContainer}>
               <ActivityIndicator size="large" color={COLORS.piktag500} />
+            </View>
+          );
+
+        case 'intersectionTabs':
+          return (
+            <View>
+              {/* Google-style selected tag chips */}
+              {intersectionSelectedTags.length > 0 && (
+                <View style={styles.selectedChipsRow}>
+                  {intersectionSelectedTags.map((tag) => (
+                    <View key={tag.id} style={styles.selectedChip}>
+                      <Text style={styles.selectedChipText}>#{tag.name}</Text>
+                      <TouchableOpacity
+                        onPress={() => {
+                          const remaining = intersectionSelectedTags.filter(t => t.id !== tag.id);
+                          setIntersectionSelectedTags(remaining);
+                          if (remaining.length <= 1) {
+                            setIntersectionMode(false);
+                            setSearchQuery('');
+                            if (remaining.length === 1) {
+                              navigation.navigate('TagDetail', { tagId: remaining[0].id, tagName: remaining[0].name });
+                            }
+                            return;
+                          }
+                          // Re-filter results
+                          // For simplicity, just re-run with remaining tags
+                          setSelectedTagIds(remaining.map(t => t.id));
+                          setTimeout(() => handleSearchByTags(), 100);
+                        }}
+                        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                      >
+                        <X size={14} color={COLORS.white} />
+                      </TouchableOpacity>
+                    </View>
+                  ))}
+                </View>
+              )}
+              {/* Friends / Explore tabs */}
+              <View style={styles.intersectionTabRow}>
+                <TouchableOpacity
+                  style={[styles.intersectionTabBtn, intersectionTab === 'friends' && styles.intersectionTabBtnActive]}
+                  onPress={() => setIntersectionTab('friends')}
+                  activeOpacity={0.7}
+                >
+                  <Text style={[styles.intersectionTabText, intersectionTab === 'friends' && styles.intersectionTabTextActive]}>
+                    {t('tagDetail.tabConnections')} ({intersectionFriends.length})
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.intersectionTabBtn, intersectionTab === 'explore' && styles.intersectionTabBtnActive]}
+                  onPress={() => setIntersectionTab('explore')}
+                  activeOpacity={0.7}
+                >
+                  <Text style={[styles.intersectionTabText, intersectionTab === 'explore' && styles.intersectionTabTextActive]}>
+                    {t('tagDetail.tabExplore')} ({intersectionExplore.length})
+                  </Text>
+                </TouchableOpacity>
+              </View>
             </View>
           );
 
@@ -1244,6 +1330,11 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
       tagUsers,
       navigation,
       t,
+      intersectionTab,
+      intersectionFriends,
+      intersectionExplore,
+      intersectionSelectedTags,
+      handleSearchByTags,
     ],
   );
 
@@ -1437,6 +1528,52 @@ const styles = StyleSheet.create({
     color: COLORS.gray400,
     paddingHorizontal: 16,
     paddingTop: 6,
+  },
+  selectedChipsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginBottom: 16,
+  },
+  selectedChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.piktag500,
+    borderRadius: 20,
+    paddingLeft: 12,
+    paddingRight: 8,
+    paddingVertical: 6,
+    gap: 6,
+  },
+  selectedChipText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: COLORS.white,
+  },
+  intersectionTabRow: {
+    flexDirection: 'row',
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.gray200,
+    marginBottom: 8,
+  },
+  intersectionTabBtn: {
+    flex: 1,
+    alignItems: 'center',
+    paddingVertical: 10,
+    borderBottomWidth: 2,
+    borderBottomColor: 'transparent',
+  },
+  intersectionTabBtnActive: {
+    borderBottomColor: COLORS.piktag500,
+  },
+  intersectionTabText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: COLORS.gray500,
+  },
+  intersectionTabTextActive: {
+    fontWeight: '600',
+    color: COLORS.piktag600,
   },
   // Main styles
   container: {
