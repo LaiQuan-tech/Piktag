@@ -776,10 +776,10 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
           {(eventDate || eventLocation || eventTags.length > 0) && (
             <View style={styles.qrEventInfo}>
               {eventDate ? (
-                <Text style={styles.qrEventInfoLine}>{eventDate}</Text>
+                <Text style={styles.qrEventInfoLine}>#{eventDate}</Text>
               ) : null}
               {eventLocation ? (
-                <Text style={styles.qrEventInfoLine}>{eventLocation}</Text>
+                <Text style={styles.qrEventInfoLine}>#{eventLocation}</Text>
               ) : null}
               {eventTags.length > 0 ? (
                 <Text style={styles.qrEventInfoLine}>{eventTags.map(t => '#' + t.replace(/^#/, '')).join('  ')}</Text>
@@ -940,10 +940,10 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
             {(eventDate || eventLocation || eventTags.length > 0) && (
               <View style={styles.qrEventInfo}>
                 {eventDate ? (
-                  <Text style={styles.qrEventInfoLine}>{eventDate}</Text>
+                  <Text style={styles.qrEventInfoLine}>#{eventDate}</Text>
                 ) : null}
                 {eventLocation ? (
-                  <Text style={styles.qrEventInfoLine}>{eventLocation}</Text>
+                  <Text style={styles.qrEventInfoLine}>#{eventLocation}</Text>
                 ) : null}
                 {eventTags.length > 0 ? (
                   <Text style={styles.qrEventInfoLine}>{eventTags.map(t => '#' + t.replace(/^#/, '')).join('  ')}</Text>
