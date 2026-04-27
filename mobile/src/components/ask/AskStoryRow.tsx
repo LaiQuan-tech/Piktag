@@ -141,9 +141,26 @@ function AskCreateModal({ visible, onClose, existingAsk, onCreated }: AskCreateM
   const [body, setBody] = useState('');
   const [selectedTagIds, setSelectedTagIds] = useState<Set<string>>(new Set());
   const [suggestedTags, setSuggestedTags] = useState<{ id: string; name: string }[]>([]);
+  const [myTags, setMyTags] = useState<{ id: string; name: string }[]>([]);
   const [aiLoading, setAiLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const suggestTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Load user's own tags so they always have something to pick even if AI fails
+  const loadMyTags = useCallback(async () => {
+    if (!user) return;
+    const { data } = await supabase
+      .from('piktag_user_tags')
+      .select('tag:piktag_tags!tag_id(id, name)')
+      .eq('user_id', user.id)
+      .order('position');
+    if (data) {
+      const tags = (data as any[])
+        .map((row) => row.tag)
+        .filter((t): t is { id: string; name: string } => !!t?.id);
+      setMyTags(tags);
+    }
+  }, [user]);
 
   useEffect(() => {
     if (visible) {
@@ -151,12 +168,13 @@ function AskCreateModal({ visible, onClose, existingAsk, onCreated }: AskCreateM
       setSuggestedTags([]);
       setSelectedTagIds(new Set());
       setAiLoading(false);
+      loadMyTags();
       Animated.spring(slideAnim, { toValue: 0, useNativeDriver: true, bounciness: 0, speed: 14 }).start();
     } else {
       Animated.timing(slideAnim, { toValue: SCREEN_HEIGHT, duration: 250, useNativeDriver: true }).start();
     }
     return () => { if (suggestTimer.current) clearTimeout(suggestTimer.current); };
-  }, [visible, existingAsk]);
+  }, [visible, existingAsk, loadMyTags]);
 
   // AI auto-suggest tags from global tag pool when user stops typing
   const suggestTagsForBody = useCallback(async (text: string) => {
@@ -282,29 +300,61 @@ function AskCreateModal({ visible, onClose, existingAsk, onCreated }: AskCreateM
           />
           <Text style={modalStyles.charCount}>{body.length}/{MAX_BODY}</Text>
 
-          {/* AI-suggested tags */}
-          <Text style={modalStyles.sectionTitle}>{t('ask.selectTags')}</Text>
-          {aiLoading ? (
-            <View style={modalStyles.aiLoadingRow}>
-              <ActivityIndicator size="small" color={COLORS.piktag500} />
-              <Text style={modalStyles.aiLoadingText}>{t('ask.generating')}</Text>
-            </View>
-          ) : suggestedTags.length > 0 ? (
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={modalStyles.tagScroll}>
-              {suggestedTags.map((tag) => (
-                <TouchableOpacity
-                  key={tag.id}
-                  style={[modalStyles.tagChip, selectedTagIds.has(tag.id) && modalStyles.tagChipSelected]}
-                  onPress={() => toggleTag(tag.id)}
-                  activeOpacity={0.7}
-                >
-                  <Text style={[modalStyles.tagChipText, selectedTagIds.has(tag.id) && modalStyles.tagChipTextSelected]}>
-                    #{tag.name}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-          ) : body.trim().length >= 5 ? (
+          {/* AI-suggested tags (de-duplicated against user's own tags) */}
+          {aiLoading || suggestedTags.length > 0 ? (
+            <>
+              <Text style={modalStyles.sectionTitle}>{t('ask.aiSuggestions')}</Text>
+              {aiLoading ? (
+                <View style={modalStyles.aiLoadingRow}>
+                  <ActivityIndicator size="small" color={COLORS.piktag500} />
+                  <Text style={modalStyles.aiLoadingText}>{t('ask.generating')}</Text>
+                </View>
+              ) : (
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={modalStyles.tagScroll}>
+                  {suggestedTags.map((tag) => (
+                    <TouchableOpacity
+                      key={`ai-${tag.id}`}
+                      style={[modalStyles.tagChip, selectedTagIds.has(tag.id) && modalStyles.tagChipSelected]}
+                      onPress={() => toggleTag(tag.id)}
+                      activeOpacity={0.7}
+                    >
+                      <Text style={[modalStyles.tagChipText, selectedTagIds.has(tag.id) && modalStyles.tagChipTextSelected]}>
+                        #{tag.name}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              )}
+            </>
+          ) : null}
+
+          {/* User's own tags — always offered as a fallback */}
+          {myTags.length > 0 ? (
+            <>
+              <Text style={modalStyles.sectionTitle}>{t('ask.yourTags')}</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={modalStyles.tagScroll}>
+                {myTags
+                  .filter((t) => !suggestedTags.find((s) => s.id === t.id))
+                  .map((tag) => (
+                    <TouchableOpacity
+                      key={`mine-${tag.id}`}
+                      style={[modalStyles.tagChip, selectedTagIds.has(tag.id) && modalStyles.tagChipSelected]}
+                      onPress={() => toggleTag(tag.id)}
+                      activeOpacity={0.7}
+                    >
+                      <Text style={[modalStyles.tagChipText, selectedTagIds.has(tag.id) && modalStyles.tagChipTextSelected]}>
+                        #{tag.name}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+              </ScrollView>
+            </>
+          ) : suggestedTags.length === 0 && !aiLoading && body.trim().length >= 5 ? (
+            <Text style={modalStyles.aiHint}>{t('ask.noTagsHint')}</Text>
+          ) : null}
+
+          {/* Selection counter / hint */}
+          {selectedTagIds.size === 0 && (suggestedTags.length > 0 || myTags.length > 0) ? (
             <Text style={modalStyles.aiHint}>{t('ask.minOneTag')}</Text>
           ) : null}
 

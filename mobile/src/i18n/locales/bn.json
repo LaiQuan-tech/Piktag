@@ -901,6 +901,9 @@
     "timeLeft": "{{hours}}h left",
     "expired": "Expired",
     "generating": "Generating title…",
-    "minOneTag": "Select at least one tag"
+    "minOneTag": "Select at least one tag",
+    "aiSuggestions": "AI পরামর্শ",
+    "yourTags": "আপনার ট্যাগ",
+    "noTagsHint": "প্রথমে প্রোফাইল → ট্যাগ পরিচালনায় ট্যাগ যোগ করুন"
   }
 }

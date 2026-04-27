@@ -901,6 +901,9 @@
     "timeLeft": "{{hours}}h left",
     "expired": "Expired",
     "generating": "Generating title…",
-    "minOneTag": "Select at least one tag"
+    "minOneTag": "Select at least one tag",
+    "aiSuggestions": "Sugestões de IA",
+    "yourTags": "Seus tags",
+    "noTagsHint": "Adicione tags primeiro em Perfil → Gerenciar tags"
   }
 }

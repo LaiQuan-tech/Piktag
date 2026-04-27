@@ -901,6 +901,9 @@
     "timeLeft": "{{hours}}시간 남음",
     "expired": "만료됨",
     "generating": "제목 생성 중…",
-    "minOneTag": "태그를 1개 이상 선택하세요"
+    "minOneTag": "태그를 1개 이상 선택하세요",
+    "aiSuggestions": "AI 추천",
+    "yourTags": "내 태그",
+    "noTagsHint": "프로필 → 태그 관리에서 먼저 태그를 추가해 주세요"
   }
 }

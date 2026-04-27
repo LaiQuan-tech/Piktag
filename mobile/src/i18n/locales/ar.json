@@ -901,6 +901,9 @@
     "timeLeft": "{{hours}}h left",
     "expired": "Expired",
     "generating": "Generating title…",
-    "minOneTag": "Select at least one tag"
+    "minOneTag": "Select at least one tag",
+    "aiSuggestions": "اقتراحات الذكاء الاصطناعي",
+    "yourTags": "وسومك",
+    "noTagsHint": "أضف الوسوم أولاً من الملف الشخصي ← إدارة الوسوم"
   }
 }

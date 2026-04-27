@@ -901,6 +901,9 @@
     "timeLeft": "{{hours}}h left",
     "expired": "Expired",
     "generating": "Generating title…",
-    "minOneTag": "Select at least one tag"
+    "minOneTag": "Select at least one tag",
+    "aiSuggestions": "คำแนะนำจาก AI",
+    "yourTags": "แท็กของคุณ",
+    "noTagsHint": "เพิ่มแท็กก่อนที่โปรไฟล์ → จัดการแท็ก"
   }
 }

@@ -908,6 +908,9 @@
     "timeLeft": "剩 {{hours}}h",
     "expired": "已過期",
     "generating": "產生標題中…",
-    "minOneTag": "至少選一個標籤"
+    "minOneTag": "至少選一個標籤",
+    "aiSuggestions": "AI 建議",
+    "yourTags": "你的標籤",
+    "noTagsHint": "請先到「我的」→「管理標籤」加入標籤"
   }
 }

@@ -901,6 +901,9 @@
     "timeLeft": "{{hours}}h left",
     "expired": "Expired",
     "generating": "Generating title…",
-    "minOneTag": "Select at least one tag"
+    "minOneTag": "Select at least one tag",
+    "aiSuggestions": "Yapay zeka önerileri",
+    "yourTags": "Etiketleriniz",
+    "noTagsHint": "Önce Profil → Etiketleri Yönet bölümünden etiket ekleyin"
   }
 }

@@ -901,6 +901,9 @@
     "timeLeft": "{{hours}}h left",
     "expired": "Expired",
     "generating": "Generating title…",
-    "minOneTag": "Select at least one tag"
+    "minOneTag": "Select at least one tag",
+    "aiSuggestions": "Подсказки ИИ",
+    "yourTags": "Твои теги",
+    "noTagsHint": "Сначала добавь теги в Профиль → Управление тегами"
   }
 }
