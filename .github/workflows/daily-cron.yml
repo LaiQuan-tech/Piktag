@@ -6,6 +6,10 @@ on:
     - cron: '0 19 * * *'  # 每天 UTC 19:00 (台灣 03:00) — 語意標籤歸類
   workflow_dispatch:       # 手動觸發
 
+# CRON_SECRET must be set in:
+# - GitHub Actions repo secrets
+# - Supabase Edge Function secrets (supabase secrets set CRON_SECRET=<value>)
+
 jobs:
   followup-check:
     runs-on: ubuntu-latest
@@ -13,7 +17,7 @@ jobs:
     steps:
       - name: Trigger daily-followup-check
         run: |
-          curl -s -X POST \
+          curl --fail-with-body --silent --show-error -X POST \
             "https://kbwfdskulxnhjckdvghj.supabase.co/functions/v1/daily-followup-check" \
             -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
             -H "Content-Type: application/json"
@@ -24,7 +28,7 @@ jobs:
     steps:
       - name: Trigger auto-link-concepts
         run: |
-          curl -s -X POST \
+          curl --fail-with-body --silent --show-error -X POST \
             "https://kbwfdskulxnhjckdvghj.supabase.co/functions/v1/auto-link-concepts" \
             -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
             -H "Content-Type: application/json"
