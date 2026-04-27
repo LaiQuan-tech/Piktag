@@ -707,7 +707,7 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
                   activeOpacity={0.7}
                 >
                   <Text style={[styles.popularChipText, isSelected && styles.popularChipTextSelected]}>
-                    {tag}{isSelected ? ' ✓' : ''}
+                    {tag}
                   </Text>
                 </TouchableOpacity>
               );
