@@ -10,7 +10,6 @@ import {
   Alert,
   KeyboardAvoidingView,
   Platform,
-  ActivityIndicator,
   Modal,
   Linking,
 } from 'react-native';
@@ -34,6 +33,8 @@ import {
   splitTelUrl,
 } from '../lib/countryCodes';
 import { useAuth } from '../hooks/useAuth';
+import PageLoader from '../components/loaders/PageLoader';
+import BrandSpinner from '../components/loaders/BrandSpinner';
 import type { Biolink, Tag, UserTag } from '../types';
 
 // Platform labels that need i18n are resolved inside the component
@@ -127,7 +128,7 @@ const MyTagChip = React.memo(function MyTagChip({
         disabled={isRemoving}
       >
         {isRemoving ? (
-          <ActivityIndicator size={14} color={COLORS.piktag600} />
+          <BrandSpinner size={16} />
         ) : (
           <X size={14} color={COLORS.piktag600} />
         )}
@@ -959,9 +960,7 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
           <Text style={styles.headerTitle}>{t('editProfile.headerTitle')}</Text>
           <View style={{ width: 40 }} />
         </View>
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={COLORS.piktag500} />
-        </View>
+        <PageLoader />
       </View>
     );
   }
@@ -990,7 +989,7 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
           accessibilityRole="button"
         >
           {saving ? (
-            <ActivityIndicator size="small" color={COLORS.piktag600} />
+            <BrandSpinner size={20} />
           ) : (
             <Text style={styles.headerSaveText}>{t('editProfile.headerSave')}</Text>
           )}
@@ -1021,7 +1020,7 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
               />
               {uploadingAvatar ? (
                 <View style={styles.avatarUploadOverlay} pointerEvents="none">
-                  <ActivityIndicator size="small" color={COLORS.white} />
+                  <BrandSpinner size={24} />
                 </View>
               ) : null}
             </View>
@@ -1111,7 +1110,7 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
               <Text style={styles.sectionTitle}>{t('editProfile.socialLinksTitle')}</Text>
               {reorderSaving && (
-                <ActivityIndicator size="small" color={COLORS.piktag500} />
+                <BrandSpinner size={16} />
               )}
             </View>
             {biolinks.length === 0 && (
@@ -1326,7 +1325,7 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
                 style={[styles.saveButton, saving && styles.saveButtonDisabled]}
               >
                 {saving ? (
-                  <ActivityIndicator size="small" color="#FFFFFF" />
+                  <BrandSpinner size={20} />
                 ) : (
                   <Text style={styles.saveButtonText}>{t('editProfile.saveChanges')}</Text>
                 )}
@@ -1497,7 +1496,7 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
               disabled={savingBiolink}
             >
               {savingBiolink ? (
-                <ActivityIndicator size="small" color={COLORS.gray900} />
+                <BrandSpinner size={20} />
               ) : (
                 <Text style={styles.modalSaveBtnText}>
                   {editingBiolink ? t('editProfile.modalButtonUpdate') : t('editProfile.modalButtonAdd')}

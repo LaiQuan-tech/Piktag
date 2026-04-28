@@ -8,7 +8,6 @@ import {
   StyleSheet,
   StatusBar,
   Alert,
-  ActivityIndicator,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
@@ -18,6 +17,8 @@ import { useTheme } from '../context/ThemeContext';
 import { LinearGradient } from 'expo-linear-gradient';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
+import PageLoader from '../components/loaders/PageLoader';
+import BrandSpinner from '../components/loaders/BrandSpinner';
 import type { PiktagProfile } from '../types';
 
 type ScanResultParams = {
@@ -338,9 +339,7 @@ export default function ScanResultScreen({ navigation, route }: ScanResultScreen
             <X size={24} color={COLORS.gray900} />
           </TouchableOpacity>
         </View>
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={COLORS.piktag500} />
-        </View>
+        <PageLoader heading="加入朋友中…" />
       </View>
     );
   }
@@ -469,7 +468,7 @@ export default function ScanResultScreen({ navigation, route }: ScanResultScreen
             style={[styles.ctaButton, submitting && styles.ctaButtonDisabled]}
           >
             {submitting ? (
-              <ActivityIndicator size={20} color="#FFFFFF" />
+              <BrandSpinner size={20} />
             ) : (
               <Text style={styles.ctaButtonText}>{t('scanResult.confirmButton')}</Text>
             )}

@@ -8,7 +8,6 @@ import {
   StyleSheet,
   StatusBar,
   Alert,
-  ActivityIndicator,
   Modal,
   Share,
   KeyboardAvoidingView,
@@ -27,6 +26,8 @@ import { useTheme } from '../context/ThemeContext';
 import { LinearGradient } from 'expo-linear-gradient';
 import { getLocales } from 'expo-localization';
 import { setStringAsync as setClipboardStringAsync } from 'expo-clipboard';
+import PageLoader from '../components/loaders/PageLoader';
+import BrandSpinner from '../components/loaders/BrandSpinner';
 import type { TagPreset, ScanSession, PiktagProfile } from '../types';
 
 // ─── Fallback Popular Tags (used if DB fetch fails) ───
@@ -709,7 +710,7 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
             disabled={savingPreset}
           >
             {savingPreset
-              ? <ActivityIndicator size={16} color={COLORS.piktag500} />
+              ? <BrandSpinner size={20} />
               : <Text style={styles.outlineButtonText}>{t('addTag.saveAsPreset')}</Text>
             }
           </TouchableOpacity>
@@ -725,7 +726,7 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
               style={[styles.primaryButton, generating && { opacity: 0.5 }]}
             >
               {generating ? (
-                <ActivityIndicator size={18} color="#fff" />
+                <BrandSpinner size={20} />
               ) : (
                 <Text style={styles.primaryButtonText}>{t('addTag.generateQrButton')}</Text>
               )}
@@ -836,9 +837,7 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
           )}
 
           {loadingPresets ? (
-            <View style={styles.loadingContainer}>
-              <ActivityIndicator size="large" color={COLORS.piktag500} />
-            </View>
+            <PageLoader />
           ) : presets.length === 0 ? (
             <View style={styles.emptyContainer}>
               <Text style={styles.emptyText}>{t('addTag.noPresets')}</Text>
@@ -892,7 +891,7 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
                   </View>
                   <View style={styles.presetItemActions}>
                     {deletingPresetId === preset.id ? (
-                      <ActivityIndicator size={16} color={COLORS.gray400} />
+                      <BrandSpinner size={16} />
                     ) : (
                       <TouchableOpacity
                         style={styles.presetApplyBtn}

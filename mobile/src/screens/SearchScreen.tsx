@@ -7,7 +7,6 @@ import {
   TouchableOpacity,
   StyleSheet,
   StatusBar,
-  ActivityIndicator,
   ListRenderItemInfo,
   Alert,
   ScrollView,
@@ -33,6 +32,7 @@ import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../hooks/useAuth';
 import { useNetInfoReconnect } from '../hooks/useNetInfoReconnect';
 import ErrorState from '../components/ErrorState';
+import LogoLoader from '../components/loaders/LogoLoader';
 import type { Tag, PiktagProfile } from '../types';
 
 const RECENT_SEARCHES_KEY = 'piktag_recent_searches';
@@ -1379,7 +1379,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
         case 'loading':
           return (
             <View style={styles.loadingContainer}>
-              <ActivityIndicator size="large" color={COLORS.piktag500} />
+              <LogoLoader size={64} />
             </View>
           );
 
