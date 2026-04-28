@@ -518,12 +518,11 @@ function AskCreateModal({ visible, onClose, existingAsk, onCreated }: AskCreateM
 
   const handleSubmit = useCallback(async () => {
     if (!user || !body.trim() || selectedNames.size === 0) return;
+    // The modal switches to view-mode when existingAsk is set, so this
+    // path is unreachable in that case — no need for a soft-delete of
+    // the previous ask here.
     setSaving(true);
     try {
-      if (existingAsk) {
-        await supabase.from('piktag_asks').update({ is_active: false }).eq('id', existingAsk.id);
-      }
-
       // Resolve every selected name to a tag id, creating missing rows on the
       // fly. This is where AI-suggested-but-new and user-typed-custom names
       // get persisted into the global tag pool.
@@ -566,9 +565,8 @@ function AskCreateModal({ visible, onClose, existingAsk, onCreated }: AskCreateM
 
   const handleDelete = useCallback(async () => {
     if (!existingAsk) return;
-    // Confirmation — delete is one-way (soft-delete via is_active=false; the
-    // row can technically be revived via direct SQL but the user has no UI for
-    // that, so treat this as terminal).
+    // Confirm before deleting — a tap on this CTA is the only way to
+    // tear down an ask, and it's irreversible from the UI.
     Alert.alert(
       t('ask.deleteAsk') || 'Delete this ask?',
       t('ask.deleteAskConfirm') || 'Are you sure you want to delete this ask?',
@@ -580,31 +578,28 @@ function AskCreateModal({ visible, onClose, existingAsk, onCreated }: AskCreateM
           onPress: async () => {
             setSaving(true);
             try {
-              // Chain `.select()` so we get back the updated row — without it
-              // postgrest may return null data and we can't tell if RLS denied
-              // the update or it actually succeeded. `.maybeSingle()` because
-              // we expect 0 or 1 row.
-              const { data, error } = await supabase
+              // Hard DELETE rather than soft `is_active=false` UPDATE.
+              //   * piktag_ask_tags / piktag_ask_dismissals both reference
+              //     ask_id ON DELETE CASCADE, so the join rows clean up
+              //     automatically.
+              //   * The asks_delete RLS policy is just USING(author_id =
+              //     auth.uid()) — no WITH CHECK clause to worry about,
+              //     unlike the UPDATE policy which was rejecting our
+              //     soft-delete with "new row violates row-level security
+              //     policy" depending on auth context.
+              //   * Once a user deletes their ask there's no surface that
+              //     resurrects it, so audit-trail value of soft-delete
+              //     was zero.
+              const { error } = await supabase
                 .from('piktag_asks')
-                .update({ is_active: false })
-                .eq('id', existingAsk.id)
-                .select('id')
-                .maybeSingle();
+                .delete()
+                .eq('id', existingAsk.id);
               if (error) {
                 Alert.alert(
                   t('common.error') || 'Error',
                   error.message || (t('ask.deleteFailed') || 'Could not delete ask. Try again.'),
                 );
                 return;
-              }
-              if (!data) {
-                // RLS denied or row already gone. Close the modal — the feed
-                // will refresh and the user will see the ask is no longer there
-                // either way.
-                Alert.alert(
-                  t('ask.deleteFailed') || 'Could not delete ask',
-                  t('ask.deleteFailedHint') || 'The ask may have already been removed. Refreshing.',
-                );
               }
               onCreated();
               onClose();

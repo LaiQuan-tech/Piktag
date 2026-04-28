@@ -811,7 +811,6 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
     } else {
       if (field === 'birthday') setBirthday(dateStr);
       if (field === 'anniversary') setAnniversary(dateStr);
-      if (field === 'contract_expiry') setContractExpiry(dateStr);
     }
     setEditingReminder(null);
     setReminderInput('');
@@ -828,7 +827,6 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
     if (!error) {
       if (field === 'birthday') setBirthday('');
       if (field === 'anniversary') setAnniversary('');
-      if (field === 'contract_expiry') setContractExpiry('');
     }
   };
 
@@ -857,7 +855,6 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
       daysSinceMet,
       hasBirthday: !!birthday,
       hasAnniversary: false,
-      hasContractExpiry: false,
       isCloseFriend,
       hiddenTagCount: hiddenTags.length,
       pickedTagCount: tags.filter(t => t.isPicked).length,

@@ -89,7 +89,6 @@ export type Connection = {
   met_location: string | null;
   birthday: string | null;
   anniversary: string | null;
-  contract_expiry: string | null;
   scan_session_id: string | null;
   created_at: string;
   updated_at?: string;

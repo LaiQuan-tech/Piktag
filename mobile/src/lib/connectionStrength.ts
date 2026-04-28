@@ -8,7 +8,6 @@ type StrengthInput = {
   daysSinceMet: number;      // how long you've known them
   hasBirthday: boolean;      // set birthday reminder
   hasAnniversary: boolean;   // set anniversary
-  hasContractExpiry: boolean; // set contract expiry
   isCloseFriend: boolean;    // marked as close friend
   hiddenTagCount: number;    // private tags you added
   pickedTagCount: number;    // tags you picked for them
@@ -23,10 +22,9 @@ export function calculateStrength(input: StrengthInput): number {
   // Days since met — longer = stronger (max 15 pts, caps at 365 days)
   score += Math.min(Math.floor(input.daysSinceMet / 24), 15);
 
-  // CRM engagement (max 15 pts)
+  // CRM engagement (max 10 pts)
   if (input.hasBirthday) score += 5;
   if (input.hasAnniversary) score += 5;
-  if (input.hasContractExpiry) score += 5;
 
   // Close friend (20 pts)
   if (input.isCloseFriend) score += 20;

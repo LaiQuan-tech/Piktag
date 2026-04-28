@@ -691,15 +691,6 @@
           "title": "Anniversary",
           "body": "{{years}} years ago today, you met {{username}}"
         }
-      },
-      "contract_expiry": {
-        "title": "",
-        "body": "your contract with {{username}} expires in {{days_until}} days",
-        "bodyToday": "your contract with {{username}} expires today",
-        "push": {
-          "title": "Contract reminder",
-          "body": "your contract with {{username}} expires in {{days_until}} days"
-        }
       }
     }
   },

@@ -47,7 +47,7 @@ function filterNotifications(
       );
     case 'reminders':
       return notifications.filter(
-        (n) => n.type === 'biolink_click' || n.type === 'reminder' || n.type === 'birthday' || n.type === 'anniversary' || n.type === 'contract_expiry'
+        (n) => n.type === 'biolink_click' || n.type === 'reminder' || n.type === 'birthday' || n.type === 'anniversary'
       );
     default:
       return notifications;

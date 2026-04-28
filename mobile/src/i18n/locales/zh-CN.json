@@ -691,15 +691,6 @@
           "title": "纪念日",
           "body": "{{years}} 年前的今天，你认识了 {{username}}"
         }
-      },
-      "contract_expiry": {
-        "title": "",
-        "body": "你与 {{username}} 的合约还有 {{days_until}} 天到期",
-        "bodyToday": "你与 {{username}} 的合约今天到期",
-        "push": {
-          "title": "合约提醒",
-          "body": "你与 {{username}} 的合约还有 {{days_until}} 天到期"
-        }
       }
     }
   },
