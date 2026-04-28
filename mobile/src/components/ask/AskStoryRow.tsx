@@ -8,6 +8,7 @@ import {
   Modal,
   TextInput,
   Animated,
+  Easing,
   KeyboardAvoidingView,
   Platform,
   Dimensions,
@@ -40,6 +41,66 @@ type AskStoryRowProps = {
 
 function hoursLeft(expiresAt: string): number {
   return Math.max(0, Math.round((new Date(expiresAt).getTime() - Date.now()) / 3600000));
+}
+
+// ── Rotating gradient avatar ring ─────────────────────────────────────
+//
+// Mirrors the web profile page's `gradientFlow` effect (see
+// landing/api/u/[username].js — 4-stop gradient sliding background-position
+// over 6s). React Native has no `background-position` so we get the same
+// "color flowing around the ring" feel by rotating the gradient itself
+// on a continuous 6-second loop while the avatar inside stays still.
+//
+// The first and last colors should match so there's no visible seam as
+// the rotation passes a full revolution.
+type RotatingGradientRingProps = {
+  colors: readonly [string, string, ...string[]];
+  children: React.ReactNode;
+};
+
+function RotatingGradientRing({ colors, children }: RotatingGradientRingProps) {
+  const rotation = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    const anim = Animated.loop(
+      Animated.timing(rotation, {
+        toValue: 1,
+        duration: 6000, // matches web's gradientFlow 6s
+        easing: Easing.linear,
+        useNativeDriver: true,
+      }),
+    );
+    anim.start();
+    return () => anim.stop();
+  }, [rotation]);
+
+  const spin = rotation.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['0deg', '360deg'],
+  });
+
+  return (
+    <View style={styles.ring}>
+      {/* Rotating gradient layer sits behind the inner avatar circle.
+          overflow: hidden + the parent's borderRadius clips the rotating
+          rectangle to a perfect circle on Android (iOS does it natively). */}
+      <Animated.View
+        style={[
+          StyleSheet.absoluteFillObject,
+          styles.ringRotator,
+          { transform: [{ rotate: spin }] },
+        ]}
+      >
+        <LinearGradient
+          colors={colors}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={StyleSheet.absoluteFillObject}
+        />
+      </Animated.View>
+      <View style={styles.ringInner}>{children}</View>
+    </View>
+  );
 }
 
 export default function AskStoryRow({ asks, myAsk, myAvatarUrl, myName, onRefresh, onPressUser }: AskStoryRowProps) {
@@ -144,15 +205,13 @@ export default function AskStoryRow({ asks, myAsk, myAvatarUrl, myName, onRefres
           {/* My Ask card */}
           <TouchableOpacity style={styles.storyItem} activeOpacity={0.7} onPress={() => setCreateVisible(true)}>
             {myAsk ? (
-              <LinearGradient colors={['#c44dff', '#8c52ff', '#5e2ce6']} style={styles.ring}>
-                <View style={styles.ringInner}>
-                  {myAvatarUrl ? (
-                    <Image source={{ uri: myAvatarUrl }} style={styles.avatar} cachePolicy="memory-disk" />
-                  ) : (
-                    <InitialsAvatar name={myName} size={52} />
-                  )}
-                </View>
-              </LinearGradient>
+              <RotatingGradientRing colors={['#c44dff', '#8c52ff', '#5e2ce6', '#c44dff']}>
+                {myAvatarUrl ? (
+                  <Image source={{ uri: myAvatarUrl }} style={styles.avatar} cachePolicy="memory-disk" />
+                ) : (
+                  <InitialsAvatar name={myName} size={52} />
+                )}
+              </RotatingGradientRing>
             ) : (
               <View style={[styles.ring, styles.ringCreate]}>
                 <View style={styles.ringInner}>
@@ -185,20 +244,19 @@ export default function AskStoryRow({ asks, myAsk, myAvatarUrl, myName, onRefres
                 onLongPress={() => handleAskLongPress(ask)}
                 delayLongPress={350}
               >
-                <LinearGradient
-                  colors={ask.degree === 1 ? ['#ff5757', '#c44dff', '#8c52ff'] : ['#60a5fa', '#818cf8']}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                  style={styles.ring}
+                <RotatingGradientRing
+                  colors={
+                    ask.degree === 1
+                      ? ['#ff5757', '#c44dff', '#8c52ff', '#ff5757']
+                      : ['#60a5fa', '#818cf8', '#60a5fa']
+                  }
                 >
-                  <View style={styles.ringInner}>
-                    {ask.author_avatar_url ? (
-                      <Image source={{ uri: ask.author_avatar_url }} style={styles.avatar} cachePolicy="memory-disk" />
-                    ) : (
-                      <InitialsAvatar name={name} size={52} />
-                    )}
-                  </View>
-                </LinearGradient>
+                  {ask.author_avatar_url ? (
+                    <Image source={{ uri: ask.author_avatar_url }} style={styles.avatar} cachePolicy="memory-disk" />
+                  ) : (
+                    <InitialsAvatar name={name} size={52} />
+                  )}
+                </RotatingGradientRing>
                 <Text style={styles.storyName} numberOfLines={1}>{name}</Text>
                 <Text style={styles.storyLabel} numberOfLines={1}>
                   {ask.title || ask.body.slice(0, 20)}
@@ -682,6 +740,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     padding: 3,
+    // Clip the rotating gradient square's corners to the circle on
+    // Android — iOS already does this automatically when borderRadius
+    // is set, but Android needs the explicit overflow.
+    overflow: 'hidden',
+  },
+  // Inner rotating layer. Inherits the ring's border-radius via
+  // absoluteFill + the parent's overflow:hidden so the rotation looks
+  // perfectly circular.
+  ringRotator: {
+    borderRadius: 32,
   },
   ringCreate: {
     borderWidth: 2,
