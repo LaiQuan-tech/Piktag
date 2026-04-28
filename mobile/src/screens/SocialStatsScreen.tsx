@@ -742,7 +742,7 @@ const styles = StyleSheet.create({
     color: COLORS.gray600,
   },
   timeRangeTextActive: {
-    color: COLORS.gray900,
+    color: COLORS.white,
   },
 
   // ── Stats Grid ──
