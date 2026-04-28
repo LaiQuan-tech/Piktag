@@ -302,13 +302,16 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
         <View style={styles.profileSection}>
           {/* Avatar + Name/Username */}
           <View style={styles.profileRow}>
-            {/* Plus-badge ring taps straight into EditProfile — the
-                legacy status-note flow is gone. RingedAvatar handles the
-                avatar / initials fallback internally. */}
+            {/* No badge here on purpose. Across PikTag the "+" badge on
+                an avatar means "create new ask" (see AskStoryRow), so
+                showing one on Profile that opens EditProfile created a
+                semantic conflict with the rest of the app. The explicit
+                "編輯個人檔案" button below is the canonical edit entry;
+                the avatar stays tappable as a soft secondary path. */}
             <RingedAvatar
               size={68}
               ringStyle="gradient"
-              badge="plus"
+              badge={null}
               name={profile?.full_name || profile?.username || ''}
               avatarUrl={profile?.avatar_url}
               onPress={handleNavigateEditProfile}
