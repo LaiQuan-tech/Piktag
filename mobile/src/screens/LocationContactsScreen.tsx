@@ -7,9 +7,9 @@ import {
   TouchableOpacity,
   StyleSheet,
   StatusBar,
-  ActivityIndicator,
   Alert,
 } from 'react-native';
+import PageLoader from '../components/loaders/PageLoader';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { ArrowLeft, MapPin, Navigation } from 'lucide-react-native';
@@ -208,9 +208,7 @@ export default function LocationContactsScreen({ navigation }: LocationContactsS
       </View>
 
       {loading ? (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={COLORS.piktag500} />
-        </View>
+        <PageLoader />
       ) : (
         <FlatList
           data={[...contacts]}

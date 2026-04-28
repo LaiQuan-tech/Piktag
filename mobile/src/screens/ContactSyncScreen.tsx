@@ -6,11 +6,12 @@ import {
   TouchableOpacity,
   StyleSheet,
   StatusBar,
-  ActivityIndicator,
   Alert,
   Platform,
   Share,
 } from 'react-native';
+import PageLoader from '../components/loaders/PageLoader';
+import BrandSpinner from '../components/loaders/BrandSpinner';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { requestPermissionsAsync, getContactsAsync, Fields, SortTypes } from 'expo-contacts';
@@ -260,7 +261,7 @@ export default function ContactSyncScreen({ navigation }: ContactSyncScreenProps
             <Check size={16} color={COLORS.piktag600} />
           </View>
         ) : isImporting ? (
-          <ActivityIndicator size="small" color={COLORS.piktag500} />
+          <BrandSpinner size={20} />
         ) : (
           <TouchableOpacity
             style={styles.importBtn}
@@ -296,10 +297,7 @@ export default function ContactSyncScreen({ navigation }: ContactSyncScreenProps
       </View>
 
       {loading ? (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={COLORS.piktag500} />
-          <Text style={styles.loadingText}>{t('contactSync.loadingText')}</Text>
-        </View>
+        <PageLoader heading={t('contactSync.loadingText')} />
       ) : permissionDenied ? (
         <View style={styles.emptyContainer}>
           <Users size={48} color={COLORS.gray200} />
@@ -330,7 +328,7 @@ export default function ContactSyncScreen({ navigation }: ContactSyncScreenProps
             </Text>
             {batchProgress ? (
               <View style={styles.importAllBtn}>
-                <ActivityIndicator size="small" color={COLORS.piktag500} />
+                <BrandSpinner size={20} />
               </View>
             ) : (
               <TouchableOpacity onPress={handleImportAll} activeOpacity={0.7}>

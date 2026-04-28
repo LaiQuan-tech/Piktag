@@ -6,11 +6,12 @@ import {
   FlatList,
   StyleSheet,
   StatusBar,
-  ActivityIndicator,
   Alert,
   Share,
   Platform,
 } from 'react-native';
+import PageLoader from '../components/loaders/PageLoader';
+import BrandSpinner from '../components/loaders/BrandSpinner';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { setStringAsync } from 'expo-clipboard';
@@ -237,9 +238,7 @@ export default function InviteScreen({ navigation }: InviteScreenProps) {
       </View>
 
       {loading ? (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={COLORS.piktag500} />
-        </View>
+        <PageLoader />
       ) : (
         <>
           {/* Quota Card */}
@@ -274,7 +273,7 @@ export default function InviteScreen({ navigation }: InviteScreenProps) {
               activeOpacity={0.8}
             >
               {generating ? (
-                <ActivityIndicator size="small" color={COLORS.gray900} />
+                <BrandSpinner size={20} />
               ) : (
                 <>
                   <UserPlus size={18} color={COLORS.gray900} />

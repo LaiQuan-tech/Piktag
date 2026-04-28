@@ -7,11 +7,12 @@ import {
   StyleSheet,
   StatusBar,
   Alert,
-  ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
 } from 'react-native';
+import PageLoader from '../components/loaders/PageLoader';
+import BrandSpinner from '../components/loaders/BrandSpinner';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { X, Hash, Pin, Sparkles, ArrowLeftRight, AlertTriangle } from 'lucide-react-native';
@@ -366,9 +367,7 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
       </View>
 
       {loading ? (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={COLORS.piktag500} />
-        </View>
+        <PageLoader />
       ) : (
         <View style={styles.flex1}>
           <ScrollView
@@ -475,7 +474,7 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
                   <Sparkles size={16} color={COLORS.piktag600} />
                   <Text style={styles.aiTitle}>{t('manageTags.aiSuggestionsTitle')}</Text>
                 </View>
-                <ActivityIndicator size="small" color={COLORS.piktag500} style={{ marginTop: 8 }} />
+                <BrandSpinner size={16} style={{ marginTop: 8 }} />
               </View>
             )}
             {!aiLoading && aiError && filteredAiSuggestions.length === 0 && myTags.length < MAX_TAGS && (
@@ -542,7 +541,7 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
                   style={[styles.addBtn, (!tagInput.trim() || addingTag || myTags.length >= MAX_TAGS) && styles.addBtnDisabled]}
                   onPress={handleAddTag}
                 >
-                  {addingTag ? <ActivityIndicator size={14} color={COLORS.white} /> : <Text style={styles.addBtnText}>{t('manageTags.addButton')}</Text>}
+                  {addingTag ? <BrandSpinner size={20} /> : <Text style={styles.addBtnText}>{t('manageTags.addButton')}</Text>}
                 </Pressable>
               </View>
             </View>

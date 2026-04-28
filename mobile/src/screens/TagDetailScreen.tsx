@@ -7,8 +7,8 @@ import {
   TouchableOpacity,
   StyleSheet,
   StatusBar,
-  ActivityIndicator,
 } from 'react-native';
+import PageLoader from '../components/loaders/PageLoader';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeft, Hash, CheckCircle2, Users, UserPlus } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
@@ -511,9 +511,7 @@ export default function TagDetailScreen({ navigation, route }: TagDetailScreenPr
 
       {/* Content */}
       {currentLoading ? (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={COLORS.piktag500} />
-        </View>
+        <PageLoader />
       ) : isConnectionsTab ? (
         <FlatList
           data={connections}

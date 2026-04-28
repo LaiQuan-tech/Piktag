@@ -6,11 +6,11 @@ import {
   TouchableOpacity,
   StyleSheet,
   Alert,
-  ActivityIndicator,
   ScrollView,
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
+import BrandSpinner from '../../components/loaders/BrandSpinner';
 import { useTranslation } from 'react-i18next';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
@@ -257,7 +257,7 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
       <View style={styles.tagSectionHeader}>
         <Sparkles size={18} color={COLORS.piktag600} />
         <Text style={styles.tagSectionTitle}>{t('auth.onboarding.aiTagSectionTitle')}</Text>
-        {aiLoading && <ActivityIndicator size="small" color={COLORS.piktag500} style={{ marginLeft: 8 }} />}
+        {aiLoading && <BrandSpinner size={16} style={{ marginLeft: 8 }} />}
       </View>
       <Text style={styles.tagSectionDescription}>
         {t('auth.onboarding.aiTagSectionDescription')}
@@ -427,7 +427,7 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
           activeOpacity={0.8}
         >
           {loading ? (
-            <ActivityIndicator color={COLORS.white} size="small" />
+            <BrandSpinner size={20} />
           ) : step === totalSteps - 1 ? (
             <Text style={styles.nextButtonText}>{t('auth.onboarding.enterPikTag')}</Text>
           ) : (

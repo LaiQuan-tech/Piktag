@@ -5,10 +5,10 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
-  ActivityIndicator,
   Keyboard,
   Alert,
 } from 'react-native';
+import BrandSpinner from './loaders/BrandSpinner';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTranslation } from 'react-i18next';
 import { getLocales } from 'expo-localization';
@@ -355,7 +355,7 @@ export default function HiddenTagEditor({ connectionId, userId, hiddenTags, onTa
           activeOpacity={0.7}
         >
           {busy ? (
-            <ActivityIndicator size="small" color={COLORS.white} />
+            <BrandSpinner size={20} />
           ) : (
             <Text style={styles.addBtnText}>{t('common.add')}</Text>
           )}

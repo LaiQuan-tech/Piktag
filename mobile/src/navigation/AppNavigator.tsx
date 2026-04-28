@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { ActivityIndicator, Alert, View, StyleSheet, Platform, InteractionManager } from 'react-native';
+import { Alert, View, StyleSheet, Platform, InteractionManager } from 'react-native';
+import PageLoader from '../components/loaders/PageLoader';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -590,7 +591,7 @@ export default function AppNavigator() {
   if (loading || onboardingDecision === 'pending') {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={COLORS.piktag500} />
+        <PageLoader />
       </View>
     );
   }

@@ -6,11 +6,11 @@ import {
   TouchableOpacity,
   StyleSheet,
   Alert,
-  ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
 } from 'react-native';
+import BrandSpinner from '../../components/loaders/BrandSpinner';
 import { useTranslation } from 'react-i18next';
 import { Hash, Eye, EyeOff } from 'lucide-react-native';
 import { supabase } from '../../lib/supabase';
@@ -158,7 +158,7 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
             activeOpacity={0.7}
           >
             {resetLoading ? (
-              <ActivityIndicator size="small" color={colors.piktag500} />
+              <BrandSpinner size={16} />
             ) : (
               <Text style={[styles.forgotPasswordText, { color: colors.piktag600 }]}>
                 {t('auth.login.forgotPassword')}
@@ -174,7 +174,7 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
             accessibilityRole="button"
           >
             {loading ? (
-              <ActivityIndicator color="#FFFFFF" />
+              <BrandSpinner size={20} />
             ) : (
               <Text style={styles.loginButtonText}>{t('auth.login.loginButton')}</Text>
             )}
@@ -198,7 +198,7 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
               activeOpacity={0.8}
             >
               {socialLoading === 'apple' ? (
-                <ActivityIndicator color={colors.text} />
+                <BrandSpinner size={20} />
               ) : (
                 <>
                   <Text style={[styles.appleIcon, { color: colors.text }]}>{'\uF8FF'}</Text>
@@ -215,7 +215,7 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
             activeOpacity={0.8}
           >
             {socialLoading === 'google' ? (
-              <ActivityIndicator color={colors.text} />
+              <BrandSpinner size={20} />
             ) : (
               <>
                 <Text style={styles.googleIcon}>G</Text>

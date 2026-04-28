@@ -11,10 +11,10 @@ import {
   KeyboardAvoidingView,
   Platform,
   Dimensions,
-  ActivityIndicator,
   ActionSheetIOS,
   Alert,
 } from 'react-native';
+import BrandSpinner from '../loaders/BrandSpinner';
 import { Image } from 'expo-image';
 import { Plus, X } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -459,7 +459,7 @@ function AskCreateModal({ visible, onClose, existingAsk, onCreated }: AskCreateM
               <Text style={modalStyles.sectionTitle}>{t('ask.aiSuggestions')}</Text>
               {aiLoading && aiNames.length === 0 ? (
                 <View style={modalStyles.aiLoadingRow}>
-                  <ActivityIndicator size="small" color={COLORS.piktag500} />
+                  <BrandSpinner size={16} />
                   <Text style={modalStyles.aiLoadingText}>{t('ask.generating')}</Text>
                 </View>
               ) : (
@@ -524,7 +524,7 @@ function AskCreateModal({ visible, onClose, existingAsk, onCreated }: AskCreateM
               activeOpacity={0.8}
             >
               {saving ? (
-                <ActivityIndicator size="small" color="#fff" />
+                <BrandSpinner size={20} />
               ) : (
                 <Text style={modalStyles.submitBtnText}>{t('ask.postAsk')}</Text>
               )}

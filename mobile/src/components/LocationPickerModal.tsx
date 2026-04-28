@@ -7,10 +7,10 @@ import {
   StyleSheet,
   Modal,
   FlatList,
-  ActivityIndicator,
   Keyboard,
   Platform,
 } from 'react-native';
+import BrandSpinner from './loaders/BrandSpinner';
 import { X, Search, MapPin, Navigation } from 'lucide-react-native';
 import { requestForegroundPermissionsAsync, getCurrentPositionAsync, reverseGeocodeAsync, Accuracy } from 'expo-location';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -210,7 +210,7 @@ export default function LocationPickerModal({
             disabled={locating}
           >
             {locating ? (
-              <ActivityIndicator size={18} color={COLORS.gray700} />
+              <BrandSpinner size={20} />
             ) : (
               <Navigation size={20} color={COLORS.gray700} />
             )}
@@ -278,7 +278,7 @@ export default function LocationPickerModal({
         {/* Places list */}
         {isLoading ? (
           <View style={styles.loadingContainer}>
-            <ActivityIndicator size="small" color={COLORS.piktag500} />
+            <BrandSpinner size={24} />
           </View>
         ) : (
           <FlatList

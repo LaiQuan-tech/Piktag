@@ -8,11 +8,11 @@ import {
   StatusBar,
   Alert,
   Switch,
-  ActivityIndicator,
   Modal,
   FlatList,
   Platform,
 } from 'react-native';
+import PageLoader from '../components/loaders/PageLoader';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ArrowLeft, ChevronRight, Check, X } from 'lucide-react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -357,9 +357,7 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
           <Text style={styles.headerTitle}>{t('settings.headerTitle')}</Text>
           <View style={styles.headerSpacer} />
         </View>
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={COLORS.piktag500} />
-        </View>
+        <PageLoader />
       </View>
     );
   }

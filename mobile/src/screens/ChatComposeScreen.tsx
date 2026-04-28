@@ -1,8 +1,10 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
-  ActivityIndicator, FlatList, Pressable, StatusBar, StyleSheet,
+  FlatList, Pressable, StatusBar, StyleSheet,
   Text, TextInput, TouchableOpacity, View, type ListRenderItemInfo,
 } from 'react-native';
+import PageLoader from '../components/loaders/PageLoader';
+import BrandSpinner from '../components/loaders/BrandSpinner';
 import { Image } from 'expo-image';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeft, Search } from 'lucide-react-native';
@@ -263,7 +265,7 @@ export default function ChatComposeScreen({ navigation, route }: Props): JSX.Ele
             placeholder={t('chat.composePlaceholder')} placeholderTextColor={COLORS.gray400}
             autoCapitalize="none" autoCorrect={false} returnKeyType="search"
           />
-          {searching ? <ActivityIndicator size="small" color={COLORS.gray400} /> : null}
+          {searching ? <BrandSpinner size={20} /> : null}
         </View>
       </View>
 
@@ -279,7 +281,7 @@ export default function ChatComposeScreen({ navigation, route }: Props): JSX.Ele
 
       {creating ? (
         <View style={styles.creatingOverlay} pointerEvents="none">
-          <ActivityIndicator size="large" color={COLORS.piktag500} />
+          <PageLoader />
         </View>
       ) : null}
 
