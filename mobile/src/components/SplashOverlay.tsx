@@ -205,9 +205,16 @@ export default function SplashOverlay({
             transform: [{ scale: logoScale }],
           }}
         >
+          {/* The PNG ships in its raw brand colors so the native splash
+              (white background, in app.json) renders it correctly. Once
+              the JS overlay takes over the gradient backdrop swallows
+              those tones, so we tint the rendered image white here for
+              contrast — only affects this React component, the native
+              splash asset is untouched. */}
           <Image
             source={require('../../assets/splash-icon.png')}
             contentFit="contain"
+            tintColor="#ffffff"
             style={splashStyles.logo}
           />
         </Animated.View>
