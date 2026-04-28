@@ -819,16 +819,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     padding: 3,
-    // Clip the rotating gradient square's corners to the circle on
-    // Android — iOS already does this automatically when borderRadius
-    // is set, but Android needs the explicit overflow.
-    overflow: 'hidden',
+    // No overflow:hidden here — the plusBadge for the create state
+    // sits at absolute bottom/right past the ring edge and would be
+    // clipped. The rotating gradient does its own circular clip on
+    // ringRotator below, so we don't need it at this level.
   },
-  // Inner rotating layer. Inherits the ring's border-radius via
-  // absoluteFill + the parent's overflow:hidden so the rotation looks
-  // perfectly circular.
+  // Inner rotating layer. Has its own overflow:hidden so the rotating
+  // rectangle's corners are clipped to the circle on Android (iOS
+  // handles it natively when borderRadius is set).
   ringRotator: {
     borderRadius: 32,
+    overflow: 'hidden',
   },
   ringCreate: {
     borderWidth: 2,
