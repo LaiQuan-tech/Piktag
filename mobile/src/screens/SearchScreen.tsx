@@ -239,6 +239,18 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
   const [intersectionExplore, setIntersectionExplore] = useState<PiktagProfile[]>([]);
   const [intersectionTab, setIntersectionTab] = useState<'friends' | 'explore'>('friends');
   const [intersectionSelectedTags, setIntersectionSelectedTags] = useState<Tag[]>([]);
+
+  // Cached set of viewer's friend ids so every search result split is
+  // a constant-time lookup. Fetched once on mount; stays valid for the
+  // session (a freshly-added connection won't show up as "friend" until
+  // next mount, but searches happen often enough that the trade-off
+  // beats re-querying piktag_connections on every keystroke).
+  const [myFriendIds, setMyFriendIds] = useState<Set<string>>(new Set());
+
+  // Default tab for text-query search results. Mirrors intersectionTab's
+  // semantics but lives separately because the two modes' result sets
+  // and UI containers are different.
+  const [searchTab, setSearchTab] = useState<'friends' | 'explore'>('friends');
   const recentSearchesRef = useRef(recentSearches);
   recentSearchesRef.current = recentSearches;
   const isMountedRef = useRef(true);
@@ -261,6 +273,25 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
       isMountedRef.current = false;
     };
   }, []);
+
+  // One-time fetch of viewer's friend ids. Used to split every search
+  // result set into "friends" / "explore" buckets in O(1) per row.
+  useEffect(() => {
+    if (!user) return;
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase
+        .from('piktag_connections')
+        .select('connected_user_id')
+        .eq('user_id', user.id);
+      if (cancelled) return;
+      const ids = new Set<string>((data ?? []).map((c: any) => c.connected_user_id));
+      setMyFriendIds(ids);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [user]);
 
   // ── Data loaders (all wrapped in useCallback) ──
 
@@ -1151,7 +1182,46 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
     | { type: 'tagsGrid' }
     | { type: 'recommendedUsers' }
     | { type: 'bootstrapError' }
-    | { type: 'intersectionTabs' };
+    | { type: 'intersectionTabs' }
+    | { type: 'searchTabs'; friendsCount: number; exploreCount: number };
+
+  // Merge profile-match + tag-match results into one deduplicated list,
+  // then split by friend status. Mirrors the friends/explore split that
+  // intersection mode already does, just on a different result source.
+  const { searchFriends, searchExplore } = useMemo(() => {
+    const seenIds = new Set<string>();
+    const merged: PiktagProfile[] = [];
+    for (const p of profiles) {
+      if (p?.id && !seenIds.has(p.id)) {
+        seenIds.add(p.id);
+        merged.push(p);
+      }
+    }
+    for (const tu of tagUsers) {
+      for (const u of tu.users) {
+        if (u?.id && !seenIds.has(u.id)) {
+          seenIds.add(u.id);
+          merged.push(u as PiktagProfile);
+        }
+      }
+    }
+    const friends: PiktagProfile[] = [];
+    const explore: PiktagProfile[] = [];
+    for (const p of merged) {
+      if (myFriendIds.has(p.id)) friends.push(p);
+      else explore.push(p);
+    }
+    return { searchFriends: friends, searchExplore: explore };
+  }, [profiles, tagUsers, myFriendIds]);
+
+  // Whenever a fresh search produces results, default the tab to
+  // "friends" if any matched, else "explore". Mirrors the intersection
+  // tab default at the call site of handleSearchByTags.
+  useEffect(() => {
+    if (trimmedQuery === '') return;
+    if (searchFriends.length + searchExplore.length === 0) return;
+    setSearchTab(searchFriends.length > 0 ? 'friends' : 'explore');
+  }, [trimmedQuery, searchFriends.length, searchExplore.length]);
 
   const listData = useMemo<ListItem[]>(() => {
     const items: ListItem[] = [];
@@ -1190,12 +1260,10 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
       return items;
     }
 
-    // If user is typing, show a single flat, deduplicated list of
-    // matching users — no tag pill row, no "#tag 查看全部" grouped
-    // sections, no separate profile-vs-tag-match buckets. Algorithm
-    // can still be complex (profile match + tag match + concept synonym
-    // match happen in performSearch), but the presentation is a single
-    // list so the UI stays thin.
+    // Text-query mode. Results are grouped under a Friends / Explore tab
+    // pair, mirroring intersection mode — friends-first when present so
+    // the user sees their network before strangers. Falls through to the
+    // explore tab when there are no friend matches.
     if (trimmedQuery !== '') {
       // Tags section — always show when search found matching tags.
       if (tags.length > 0) {
@@ -1203,29 +1271,20 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
         items.push({ type: 'tagsGrid' });
       }
 
-      // Profiles section — merge direct matches + tag-matched users.
-      const seenIds = new Set<string>();
-      const mergedProfiles: PiktagProfile[] = [];
-
-      for (const p of profiles) {
-        if (p?.id && !seenIds.has(p.id)) {
-          seenIds.add(p.id);
-          mergedProfiles.push(p);
-        }
-      }
-      for (const tu of tagUsers) {
-        for (const u of tu.users) {
-          if (u?.id && !seenIds.has(u.id)) {
-            seenIds.add(u.id);
-            mergedProfiles.push(u as PiktagProfile);
+      const totalCount = searchFriends.length + searchExplore.length;
+      if (totalCount > 0) {
+        items.push({
+          type: 'searchTabs',
+          friendsCount: searchFriends.length,
+          exploreCount: searchExplore.length,
+        });
+        const activeList = searchTab === 'friends' ? searchFriends : searchExplore;
+        if (activeList.length > 0) {
+          for (const profile of activeList) {
+            items.push({ type: 'profileItem', profile });
           }
-        }
-      }
-
-      if (mergedProfiles.length > 0) {
-        items.push({ type: 'profilesHeader' });
-        for (const profile of mergedProfiles) {
-          items.push({ type: 'profileItem', profile });
+        } else {
+          items.push({ type: 'profilesEmpty' });
         }
       } else if (tags.length === 0) {
         items.push({ type: 'profilesEmpty' });
@@ -1268,6 +1327,9 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
     intersectionFriends,
     intersectionExplore,
     intersectionTab,
+    searchFriends,
+    searchExplore,
+    searchTab,
     recommendedUsers,
     bootstrapFailed,
   ]);
@@ -1302,6 +1364,8 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
         return 'recommendedUsers';
       case 'intersectionTabs':
         return 'intersectionTabs';
+      case 'searchTabs':
+        return 'searchTabs';
       case 'bootstrapError':
         return 'bootstrapError';
       default:
@@ -1378,6 +1442,33 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
                   </Text>
                 </TouchableOpacity>
               </View>
+            </View>
+          );
+
+        case 'searchTabs':
+          // Same Friends / Explore tab strip as intersection mode but
+          // bound to text-query state, with counts coming from the
+          // pre-split useMemo above.
+          return (
+            <View style={styles.intersectionTabRow}>
+              <TouchableOpacity
+                style={[styles.intersectionTabBtn, searchTab === 'friends' && styles.intersectionTabBtnActive]}
+                onPress={() => setSearchTab('friends')}
+                activeOpacity={0.7}
+              >
+                <Text style={[styles.intersectionTabText, searchTab === 'friends' && styles.intersectionTabTextActive]}>
+                  {t('tagDetail.tabConnections')} ({item.friendsCount})
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.intersectionTabBtn, searchTab === 'explore' && styles.intersectionTabBtnActive]}
+                onPress={() => setSearchTab('explore')}
+                activeOpacity={0.7}
+              >
+                <Text style={[styles.intersectionTabText, searchTab === 'explore' && styles.intersectionTabTextActive]}>
+                  {t('tagDetail.tabExplore')} ({item.exploreCount})
+                </Text>
+              </TouchableOpacity>
             </View>
           );
 
@@ -1628,6 +1719,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
       intersectionFriends,
       intersectionExplore,
       intersectionSelectedTags,
+      searchTab,
       handleSearchByTags,
       runBootstrap,
     ],
