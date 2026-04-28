@@ -6,11 +6,10 @@ import {
   Text,
   View,
 } from 'react-native';
-import { Plus } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 
 import { COLORS } from '../../constants/theme';
-import InitialsAvatar from '../InitialsAvatar';
+import RingedAvatar from '../RingedAvatar';
 
 export type FriendRowItem = {
   userId: string;
@@ -76,15 +75,16 @@ const ChatFriendsRow = React.memo(
           accessibilityLabel={myLabel}
         >
           <Bubble text={myNoteText ?? myLabel} />
-          <View style={styles.avatarWrap}>
-            <InitialsAvatar name={myName} size={56} avatarUrl={myAvatarUrl} />
-            {/* + badge overlaid on the bottom-right so the affordance
-                reads as "add / edit your note" regardless of whether
-                the viewer has one posted already. */}
-            <View style={styles.plusBadge}>
-              <Plus size={12} color={COLORS.white} strokeWidth={3} />
-            </View>
-          </View>
+          {/* + badge is supplied by RingedAvatar's `badge` prop so the
+              affordance reads as "add / edit your note" regardless of
+              whether the viewer has one posted already. */}
+          <RingedAvatar
+            name={myName}
+            avatarUrl={myAvatarUrl}
+            size={64}
+            ringStyle="gradient"
+            badge="plus"
+          />
           <Text numberOfLines={1} style={styles.label}>
             {t('chat.yourNoteLabel')}
           </Text>
@@ -100,13 +100,12 @@ const ChatFriendsRow = React.memo(
             accessibilityLabel={f.name}
           >
             {f.noteText ? <Bubble text={f.noteText} /> : <BubbleSpacer />}
-            <View style={styles.avatarWrap}>
-              <InitialsAvatar
-                name={f.name}
-                size={56}
-                avatarUrl={f.avatarUrl}
-              />
-            </View>
+            <RingedAvatar
+              name={f.name}
+              avatarUrl={f.avatarUrl}
+              size={64}
+              ringStyle="gradient"
+            />
             <Text numberOfLines={1} style={styles.label}>
               {f.name}
             </Text>
@@ -185,24 +184,6 @@ const styles = StyleSheet.create({
     lineHeight: 14,
     color: COLORS.gray700,
     textAlign: 'center',
-  },
-  avatarWrap: {
-    width: 56,
-    height: 56,
-    position: 'relative',
-  },
-  plusBadge: {
-    position: 'absolute',
-    right: -2,
-    bottom: -2,
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    backgroundColor: COLORS.piktag500,
-    borderWidth: 2,
-    borderColor: COLORS.white,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   label: {
     marginTop: 6,

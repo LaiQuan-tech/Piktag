@@ -22,7 +22,7 @@ import type { RouteProp } from '@react-navigation/native';
 
 import Composer from '../components/chat/Composer';
 import MessageBubble from '../components/chat/MessageBubble';
-import InitialsAvatar from '../components/InitialsAvatar';
+import RingedAvatar from '../components/RingedAvatar';
 import ErrorState from '../components/ErrorState';
 import { COLORS } from '../constants/theme';
 import { useAuth } from '../hooks/useAuth';
@@ -396,7 +396,12 @@ export default function ChatThreadScreen({ navigation, route }: Props): JSX.Elem
         </TouchableOpacity>
 
         <Pressable style={styles.headerCenter} onPress={handleHeaderPress}>
-          <InitialsAvatar name={avatarName} size={32} />
+          <RingedAvatar
+            name={avatarName}
+            avatarUrl={avatarUrl}
+            size={36}
+            ringStyle="subtle"
+          />
           <Text style={styles.headerTitle} numberOfLines={1}>
             {displayName}
           </Text>

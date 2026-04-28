@@ -3,7 +3,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { MoreHorizontal } from 'lucide-react-native';
 import { COLORS } from '../../constants/theme';
 import type { InboxConversation } from '../../types/chat';
-import InitialsAvatar from '../InitialsAvatar';
+import RingedAvatar from '../RingedAvatar';
 
 type Props = {
   conversation: InboxConversation;
@@ -57,18 +57,13 @@ const ConversationRow = React.memo(({ conversation, onPress, onMorePress }: Prop
         onPress={() => onPress(conversation)}
         style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
       >
-        <View
-          style={[
-            styles.avatarWrap,
-            { borderColor: unread ? COLORS.piktag500 : 'transparent' },
-          ]}
-        >
-          <InitialsAvatar
-            name={avatarSeed}
-            size={56}
-            avatarUrl={conversation.other_avatar_url}
-          />
-        </View>
+        <RingedAvatar
+          name={avatarSeed}
+          size={60}
+          avatarUrl={conversation.other_avatar_url}
+          ringStyle={unread ? 'gradient' : 'subtle'}
+          accessibilityLabel={displayName}
+        />
 
         <View style={styles.middle}>
           <Text
@@ -161,14 +156,6 @@ const styles = StyleSheet.create({
   },
   moreBtnPressed: {
     opacity: 1,
-  },
-  avatarWrap: {
-    // Gradient-ring stand-in: solid brand border when unread, transparent otherwise.
-    // 2px padding (vs prior 1px) gives the ring more breathing room and
-    // makes it readable against photo avatars.
-    borderWidth: 2,
-    borderRadius: 32,
-    padding: 2,
   },
   middle: {
     flex: 1,
