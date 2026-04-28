@@ -1022,7 +1022,8 @@
     "reasonSpam": "垃圾訊息",
     "reasonHarassment": "騷擾或霸凌",
     "reasonInappropriate": "不當內容",
-    "reasonOther": "其他"
+    "reasonOther": "其他",
+    "slaCommitment": "我們會在 24 小時內審核不當內容檢舉，並視情況採取行動，包含移除內容或封鎖使用者。"
   },
   "splash": {
     "tagline": "用標籤記住每段緣分"

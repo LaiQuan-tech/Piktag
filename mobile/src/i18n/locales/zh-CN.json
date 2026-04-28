@@ -1015,7 +1015,8 @@
     "reasonSpam": "垃圾信息",
     "reasonHarassment": "骚扰或霸凌",
     "reasonInappropriate": "不当内容",
-    "reasonOther": "其他"
+    "reasonOther": "其他",
+    "slaCommitment": "我们会在 24 小时内审核不当内容举报，并视情况采取行动，包含移除内容或封锁用户。"
   },
   "splash": {
     "tagline": "用标签记住每段缘分"

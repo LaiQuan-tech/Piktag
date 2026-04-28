@@ -1015,7 +1015,8 @@
     "reasonSpam": "Spam",
     "reasonHarassment": "Harassment or bullying",
     "reasonInappropriate": "Inappropriate or offensive",
-    "reasonOther": "Other"
+    "reasonOther": "Other",
+    "slaCommitment": "We review reports of objectionable content within 24 hours and take action — including removing content or blocking users — when warranted."
   },
   "splash": {
     "tagline": "Tag every friend you meet"
