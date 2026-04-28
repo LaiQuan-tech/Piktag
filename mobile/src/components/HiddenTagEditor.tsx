@@ -12,7 +12,7 @@ import BrandSpinner from './loaders/BrandSpinner';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTranslation } from 'react-i18next';
 import { getLocales } from 'expo-localization';
-import { X } from 'lucide-react-native';
+import { Plus } from 'lucide-react-native';
 import { supabase } from '../lib/supabase';
 import { COLORS } from '../constants/theme';
 import LocationPickerModal from './LocationPickerModal';
@@ -289,8 +289,15 @@ export default function HiddenTagEditor({ connectionId, userId, hiddenTags, onTa
         })}
       </View>
 
-      {/* ── 常用標籤 ── */}
-      {filteredFrequent.length > 0 && (
+      {/* ── 常用標籤 ──
+          Merges the preset frequent tags with whatever the user added
+          via the text input that doesn't match a date / location /
+          frequent preset. Both render as the same toggleable chip
+          (selected = purple background, unselected = grey), so the
+          user has one mental model: "tap a chip to flip it on/off".
+          The previous separate "已加入" row with × buttons was a
+          different pattern for the same action and felt redundant. */}
+      {(filteredFrequent.length > 0 || manualHiddenTags.length > 0) && (
         <>
           <Text style={styles.sectionTitle}>{t('hiddenTagEditor.frequentTitle')}</Text>
           <View style={styles.chipRow}>
@@ -310,34 +317,27 @@ export default function HiddenTagEditor({ connectionId, userId, hiddenTags, onTa
                 </TouchableOpacity>
               );
             })}
-          </View>
-        </>
-      )}
-
-      {/* ── 已加入 (manual-only, not duplicating chips above) ── */}
-      {manualHiddenTags.length > 0 && (
-        <>
-          <Text style={styles.sectionTitle}>{t('hiddenTagEditor.addedTitle')}</Text>
-          <View style={styles.chipRow}>
             {manualHiddenTags.map((ht) => (
-              <View key={ht.id} style={styles.addedChip}>
-                <Text style={styles.addedChipText}>#{ht.name}</Text>
-                <TouchableOpacity
-                  onPress={() => removeHiddenTag(ht.id)}
-                  disabled={busy}
-                  activeOpacity={0.6}
-                  style={styles.addedChipRemove}
-                  hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
-                >
-                  <X size={12} color={COLORS.piktag600} />
-                </TouchableOpacity>
-              </View>
+              <TouchableOpacity
+                key={ht.id}
+                style={[styles.pickChip, styles.pickChipSelected]}
+                onPress={() => removeHiddenTag(ht.id)}
+                disabled={busy}
+                activeOpacity={0.7}
+              >
+                <Text style={[styles.pickChipText, styles.pickChipTextSelected]}>
+                  #{ht.name}
+                </Text>
+              </TouchableOpacity>
             ))}
           </View>
         </>
       )}
 
-      {/* ── 自訂輸入 ── */}
+      {/* ── 自訂輸入 ──
+          The "add" CTA is a + circular button matching AskCreateModal's
+          custom-tag input. Same shape across the app for the same
+          action ("type a tag, tap + to add"). */}
       <View style={styles.inputRow}>
         <TextInput
           style={styles.input}
@@ -349,15 +349,17 @@ export default function HiddenTagEditor({ connectionId, userId, hiddenTags, onTa
           onSubmitEditing={handleTextSubmit}
         />
         <TouchableOpacity
-          style={[styles.addBtn, (!textValue.trim() || busy) && { opacity: 0.5 }]}
+          style={[styles.addBtn, (!textValue.trim() || busy) && styles.addBtnDisabled]}
           onPress={handleTextSubmit}
           disabled={!textValue.trim() || busy}
           activeOpacity={0.7}
+          accessibilityRole="button"
+          accessibilityLabel={t('common.add') || '新增'}
         >
           {busy ? (
             <BrandSpinner size={20} />
           ) : (
-            <Text style={styles.addBtnText}>{t('common.add')}</Text>
+            <Plus size={18} color="#fff" strokeWidth={2.5} />
           )}
         </TouchableOpacity>
       </View>
@@ -416,24 +418,6 @@ const styles = StyleSheet.create({
   pickChipTextDisabled: {
     color: COLORS.gray400,
   },
-  addedChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingLeft: 14,
-    paddingRight: 10,
-    paddingVertical: 8,
-    borderRadius: 9999,
-    backgroundColor: COLORS.piktag50,
-  },
-  addedChipText: {
-    fontSize: 14,
-    color: COLORS.piktag600,
-    fontWeight: '500',
-  },
-  addedChipRemove: {
-    padding: 2,
-  },
   inputRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -451,17 +435,17 @@ const styles = StyleSheet.create({
     color: COLORS.gray900,
     backgroundColor: COLORS.white,
   },
+  // Round + button — same shape as AskCreateModal's customAddBtn so
+  // "type a tag, tap + to add" looks the same wherever it appears.
   addBtn: {
-    paddingHorizontal: 16,
+    width: 40,
     height: 40,
-    borderRadius: 10,
+    borderRadius: 20,
     backgroundColor: COLORS.piktag500,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  addBtnText: {
-    color: COLORS.white,
-    fontSize: 14,
-    fontWeight: '600',
+  addBtnDisabled: {
+    opacity: 0.4,
   },
 });
