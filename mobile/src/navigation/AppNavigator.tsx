@@ -77,10 +77,6 @@ function SearchStackNavigator() {
   return (
     <SearchStack.Navigator screenOptions={{ headerShown: false }}>
       <SearchStack.Screen name="SearchMain" component={SearchScreen} />
-      <SearchStack.Screen
-        name="ChatList"
-        getComponent={() => require('../screens/ChatListScreen').default}
-      />
     </SearchStack.Navigator>
   );
 }
@@ -224,10 +220,18 @@ function MainNavigator({ needsOnboarding }: { needsOnboarding: boolean }) {
         <RootStack.Screen name="UserDetail" component={UserDetailScreen} />
         <RootStack.Screen name="TagDetail" component={TagDetailScreen} />
 
-        {/* Chat thread + compose live in RootStack so back-navigation
+        {/* Chat list + thread + compose all live in RootStack so back-navigation
             returns to the screen the user came from (e.g. TagDetail →
             UserDetail → ChatThread → back goes to UserDetail) instead
-            of popping inside the SearchTab to its root. */}
+            of popping inside the SearchTab to its root. ChatList must
+            sit outside the tab stacks too — otherwise tapping the
+            SearchTab button after a chat session lands on ChatList
+            instead of SearchMain because the inner stack remembers
+            its last screen. */}
+        <RootStack.Screen
+          name="ChatList"
+          getComponent={() => require('../screens/ChatListScreen').default}
+        />
         <RootStack.Screen
           name="ChatThread"
           getComponent={() => require('../screens/ChatThreadScreen').default}

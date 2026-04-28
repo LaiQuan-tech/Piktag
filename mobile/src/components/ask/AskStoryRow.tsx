@@ -144,7 +144,7 @@ export default function AskStoryRow({ asks, myAsk, myAvatarUrl, myName, onRefres
           {/* My Ask card */}
           <TouchableOpacity style={styles.storyItem} activeOpacity={0.7} onPress={() => setCreateVisible(true)}>
             {myAsk ? (
-              <LinearGradient colors={['#22c55e', '#16a34a']} style={styles.ring}>
+              <LinearGradient colors={['#c44dff', '#8c52ff', '#5e2ce6']} style={styles.ring}>
                 <View style={styles.ringInner}>
                   {myAvatarUrl ? (
                     <Image source={{ uri: myAvatarUrl }} style={styles.avatar} cachePolicy="memory-disk" />

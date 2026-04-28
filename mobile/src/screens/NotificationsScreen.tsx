@@ -521,12 +521,7 @@ export default function NotificationsScreen({ navigation }: NotificationsScreenP
       <View style={styles.header}>
         <Text style={[styles.headerTitle, { color: colors.text }]}>{t('notifications.headerTitle')}</Text>
         <TouchableOpacity
-          onPress={() =>
-            navigation?.navigate('Main', {
-              screen: 'SearchTab',
-              params: { screen: 'ChatList' },
-            })
-          }
+          onPress={() => (navigation as any)?.navigate('ChatList')}
           style={styles.headerChatBtn}
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           accessibilityRole="button"

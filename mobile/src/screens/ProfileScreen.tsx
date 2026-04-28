@@ -303,13 +303,13 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
         <View style={styles.profileSection}>
           {/* Avatar + Name/Username */}
           <View style={styles.profileRow}>
-            {/* Pencil-badge ring taps straight into EditProfile — the
+            {/* Plus-badge ring taps straight into EditProfile — the
                 legacy status-note flow is gone. RingedAvatar handles the
                 avatar / initials fallback internally. */}
             <RingedAvatar
               size={68}
               ringStyle="gradient"
-              badge="pencil"
+              badge="plus"
               name={profile?.full_name || profile?.username || ''}
               avatarUrl={profile?.avatar_url}
               onPress={handleNavigateEditProfile}
