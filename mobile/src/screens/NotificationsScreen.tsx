@@ -719,12 +719,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingTop: 120,
+    paddingHorizontal: 40,
   },
   emptyStateText: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '600',
     color: COLORS.gray500,
     marginTop: SPACING.lg,
+    textAlign: 'center',
+    lineHeight: 22,
   },
   loadingContainer: {
     flex: 1,
