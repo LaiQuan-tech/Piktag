@@ -304,8 +304,202 @@ export const ConnectionsScreenSkeleton = React.memo(function ConnectionsScreenSk
 });
 
 // ---------------------------------------------------------------------------
+// ChatListSkeleton
+// ---------------------------------------------------------------------------
+
+export const ChatListSkeleton = React.memo(function ChatListSkeleton() {
+  return (
+    <View style={skeletonChatListStyles.container}>
+      {Array.from({ length: 6 }).map((_, index) => (
+        <View key={index} style={skeletonChatListStyles.row}>
+          {/* Avatar */}
+          <SkeletonBox width={56} height={56} borderRadius={28} />
+          {/* Middle text block */}
+          <View style={skeletonChatListStyles.textBlock}>
+            <SkeletonBox width="50%" height={16} borderRadius={6} />
+            <SkeletonBox
+              width="70%"
+              height={13}
+              borderRadius={6}
+              style={skeletonChatListStyles.previewBox}
+            />
+          </View>
+          {/* Right timestamp */}
+          <SkeletonBox width={40} height={12} borderRadius={6} />
+        </View>
+      ))}
+    </View>
+  );
+});
+
+// ---------------------------------------------------------------------------
+// UserDetailSkeleton
+// ---------------------------------------------------------------------------
+
+export const UserDetailSkeleton = React.memo(function UserDetailSkeleton() {
+  return (
+    <View style={skeletonUserDetailStyles.container}>
+      {/* Hero avatar */}
+      <View style={skeletonUserDetailStyles.avatarWrap}>
+        <SkeletonBox width={96} height={96} borderRadius={48} />
+      </View>
+
+      {/* Name */}
+      <SkeletonBox
+        width="60%"
+        height={22}
+        borderRadius={6}
+        style={skeletonUserDetailStyles.nameBox}
+      />
+
+      {/* @username */}
+      <SkeletonBox
+        width="40%"
+        height={14}
+        borderRadius={6}
+        style={skeletonUserDetailStyles.usernameBox}
+      />
+
+      {/* Headline */}
+      <SkeletonBox
+        width="80%"
+        height={14}
+        borderRadius={6}
+        style={skeletonUserDetailStyles.headlineBox}
+      />
+
+      {/* Stats row */}
+      <View style={skeletonUserDetailStyles.statsRow}>
+        <SkeletonBox width={60} height={40} borderRadius={6} />
+        <SkeletonBox width={60} height={40} borderRadius={6} />
+        <SkeletonBox width={60} height={40} borderRadius={6} />
+      </View>
+
+      {/* Tag pills row */}
+      <View style={skeletonUserDetailStyles.tagsRow}>
+        <SkeletonBox width={80} height={28} borderRadius={14} />
+        <SkeletonBox width={80} height={28} borderRadius={14} />
+        <SkeletonBox width={80} height={28} borderRadius={14} />
+        <SkeletonBox width={80} height={28} borderRadius={14} />
+      </View>
+    </View>
+  );
+});
+
+// ---------------------------------------------------------------------------
+// NotificationsSkeleton
+// ---------------------------------------------------------------------------
+
+export const NotificationsSkeleton = React.memo(function NotificationsSkeleton() {
+  return (
+    <View style={skeletonNotificationsStyles.container}>
+      {Array.from({ length: 5 }).map((_, index) => (
+        <View key={index} style={skeletonNotificationsStyles.row}>
+          {/* Sender avatar */}
+          <SkeletonBox width={44} height={44} borderRadius={22} />
+          {/* Text block */}
+          <View style={skeletonNotificationsStyles.textBlock}>
+            <SkeletonBox width="70%" height={14} borderRadius={6} />
+            <SkeletonBox
+              width="50%"
+              height={12}
+              borderRadius={6}
+              style={skeletonNotificationsStyles.secondLineBox}
+            />
+          </View>
+          {/* Right timestamp */}
+          <SkeletonBox width={60} height={12} borderRadius={6} />
+        </View>
+      ))}
+    </View>
+  );
+});
+
+// ---------------------------------------------------------------------------
 // Styles
 // ---------------------------------------------------------------------------
+
+const skeletonChatListStyles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#ffffff',
+    paddingHorizontal: 16,
+    paddingTop: 8,
+  },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 10,
+  },
+  textBlock: {
+    flex: 1,
+    marginLeft: 12,
+    marginRight: 12,
+  },
+  previewBox: {
+    marginTop: 6,
+  },
+});
+
+const skeletonUserDetailStyles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#ffffff',
+    paddingHorizontal: 20,
+    paddingTop: 24,
+    alignItems: 'center',
+  },
+  avatarWrap: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 12,
+  },
+  nameBox: {
+    alignSelf: 'center',
+  },
+  usernameBox: {
+    alignSelf: 'center',
+    marginTop: 4,
+  },
+  headlineBox: {
+    alignSelf: 'center',
+    marginTop: 16,
+  },
+  statsRow: {
+    flexDirection: 'row',
+    gap: 16,
+    marginTop: 24,
+  },
+  tagsRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 24,
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+  },
+});
+
+const skeletonNotificationsStyles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#ffffff',
+    paddingHorizontal: 16,
+    paddingTop: 8,
+  },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+  },
+  textBlock: {
+    flex: 1,
+    marginLeft: 8,
+    marginRight: 8,
+  },
+  secondLineBox: {
+    marginTop: 6,
+  },
+});
 
 const skeletonConnectionsStyles = StyleSheet.create({
   container: {
