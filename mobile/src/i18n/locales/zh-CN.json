@@ -986,6 +986,8 @@
     "newAsk": "发 Ask",
     "deleteAsk": "删除 Ask",
     "deleteAskConfirm": "确定要删除这则 Ask？",
+    "deleteFailed": "无法删除 Ask",
+    "deleteFailedHint": "这则 Ask 可能已被移除，画面正在刷新。",
     "noAsksYet": "目前没有朋友的 Ask",
     "friendOfFriend": "朋友的朋友",
     "timeLeft": "剩 {{hours}}h",

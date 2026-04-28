@@ -986,6 +986,8 @@
     "newAsk": "New Ask",
     "deleteAsk": "Delete Ask",
     "deleteAskConfirm": "Are you sure you want to delete this ask?",
+    "deleteFailed": "Could not delete ask",
+    "deleteFailedHint": "The ask may have already been removed. Refreshing.",
     "noAsksYet": "No asks from your network yet",
     "friendOfFriend": "Friend of friend",
     "timeLeft": "{{hours}}h left",

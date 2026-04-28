@@ -418,15 +418,61 @@ function AskCreateModal({ visible, onClose, existingAsk, onCreated }: AskCreateM
 
   const handleDelete = useCallback(async () => {
     if (!existingAsk) return;
-    setSaving(true);
-    try {
-      await supabase.from('piktag_asks').update({ is_active: false }).eq('id', existingAsk.id);
-      onCreated();
-      onClose();
-    } finally {
-      setSaving(false);
-    }
-  }, [existingAsk, onCreated, onClose]);
+    // Confirmation — delete is one-way (soft-delete via is_active=false; the
+    // row can technically be revived via direct SQL but the user has no UI for
+    // that, so treat this as terminal).
+    Alert.alert(
+      t('ask.deleteAsk') || 'Delete this ask?',
+      t('ask.deleteAskConfirm') || 'Are you sure you want to delete this ask?',
+      [
+        { text: t('common.cancel') || 'Cancel', style: 'cancel' },
+        {
+          text: t('common.delete') || 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            setSaving(true);
+            try {
+              // Chain `.select()` so we get back the updated row — without it
+              // postgrest may return null data and we can't tell if RLS denied
+              // the update or it actually succeeded. `.maybeSingle()` because
+              // we expect 0 or 1 row.
+              const { data, error } = await supabase
+                .from('piktag_asks')
+                .update({ is_active: false })
+                .eq('id', existingAsk.id)
+                .select('id')
+                .maybeSingle();
+              if (error) {
+                Alert.alert(
+                  t('common.error') || 'Error',
+                  error.message || (t('ask.deleteFailed') || 'Could not delete ask. Try again.'),
+                );
+                return;
+              }
+              if (!data) {
+                // RLS denied or row already gone. Close the modal — the feed
+                // will refresh and the user will see the ask is no longer there
+                // either way.
+                Alert.alert(
+                  t('ask.deleteFailed') || 'Could not delete ask',
+                  t('ask.deleteFailedHint') || 'The ask may have already been removed. Refreshing.',
+                );
+              }
+              onCreated();
+              onClose();
+            } catch (err) {
+              Alert.alert(
+                t('common.error') || 'Error',
+                err instanceof Error ? err.message : String(err),
+              );
+            } finally {
+              setSaving(false);
+            }
+          },
+        },
+      ],
+    );
+  }, [existingAsk, onCreated, onClose, t]);
 
   return (
     <Modal visible={visible} transparent animationType="none" onRequestClose={onClose}>

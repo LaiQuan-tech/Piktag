@@ -993,6 +993,8 @@
     "newAsk": "發 Ask",
     "deleteAsk": "刪除 Ask",
     "deleteAskConfirm": "確定要刪除這則 Ask？",
+    "deleteFailed": "無法刪除 Ask",
+    "deleteFailedHint": "這則 Ask 可能已被移除，畫面正在重新整理。",
     "noAsksYet": "目前沒有朋友的 Ask",
     "friendOfFriend": "朋友的朋友",
     "timeLeft": "剩 {{hours}}h",
