@@ -406,12 +406,55 @@ export default function NotificationsScreen({ navigation }: NotificationsScreenP
   // Tap a notification → mark as read + navigate to the actor's profile.
   // The server-side trigger stores username / actor_user_id in data, so we
   // pass whichever we have to UserDetailScreen's route params.
+  // Tap routing notes:
+  //   * Different notification types attach the relevant user under different
+  //     keys (`actor_user_id`, `connected_user_id`, `clicker_user_id`, …).
+  //     We probe the common ones in priority order so reminders, birthdays,
+  //     biolink clicks, and recommendations all land somewhere instead of
+  //     silently no-opping after mark-as-read.
+  //   * `tag_trending` (and any other tag-centric type) carries `tag_id` /
+  //     `tag_name` and should open TagDetail, not a profile.
+  //   * If the only id we can find is the viewer's own id (some notifications
+  //     stuff `data.user_id = me`), we don't navigate — the destination would
+  //     be the user's own profile, which is reachable from the tab bar
+  //     anyway and feels broken from a notification.
   const handleNotificationPress = useCallback(
     async (item: Notification) => {
       handleMarkAsRead(item.id);
-      const userId = item.data?.actor_user_id || item.data?.user_id;
-      const username = item.data?.username;
-      if (!navigation || (!userId && !username)) return;
+      if (!navigation) return;
+
+      const data = (item.data ?? {}) as Record<string, any>;
+
+      // 1. Tag-centric notifications → TagDetail.
+      const tagId: string | undefined = data.tag_id;
+      const tagName: string | undefined = data.tag_name;
+      if (item.type === 'tag_trending' && (tagId || tagName)) {
+        navigation.navigate('TagDetail', { tagId, tagName });
+        return;
+      }
+
+      // 2. User-centric: probe every key servers might use, drop self-id so
+      // we don't navigate to the viewer's own profile. The viewer's id ALSO
+      // lives on the row as `notification.user_id` (recipient), but that's
+      // never a useful navigation target so we skip it implicitly.
+      const userIdCandidates: (string | undefined)[] = [
+        data.actor_user_id,
+        data.connected_user_id,
+        data.friend_user_id,
+        data.recommended_user_id,
+        data.clicker_user_id,
+        data.user_id,
+      ];
+      const userId = userIdCandidates.find(
+        (id): id is string => typeof id === 'string' && id.length > 0 && id !== user?.id,
+      );
+      const username: string | undefined = data.username;
+
+      if (!userId && !username) return;
+
+      // 3. Friend or stranger? Friend lookup short-circuits to FriendDetail
+      // when the viewer has a connection row for this user. Errors fall
+      // through to the stranger path so we still navigate somewhere.
       if (userId && user) {
         try {
           const { data: conn } = await supabase
@@ -426,6 +469,7 @@ export default function NotificationsScreen({ navigation }: NotificationsScreenP
           }
         } catch {}
       }
+
       navigation.navigate('UserDetail', { userId, username });
     },
     [handleMarkAsRead, navigation, user]
