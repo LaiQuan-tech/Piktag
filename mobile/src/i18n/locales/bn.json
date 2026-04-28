@@ -165,7 +165,11 @@
     "clearFilter": "ফিল্টার সাফ করুন",
     "noTagsToFilter": "ফিল্টার করার মতো কোনো ট্যাগ নেই",
     "newBadge": "নতুন",
-    "unreviewedLabel": "রিভিউ বাকি"
+    "unreviewedLabel": "রিভিউ বাকি",
+    "sortLabel": "সাজান",
+    "sortByRecent": "সম্প্রতি যুক্ত",
+    "sortByAlphabet": "বর্ণানুক্রমিক (A→Z)",
+    "sortByInteraction": "সাম্প্রতিক যোগাযোগ"
   },
   "search": {
     "clearAll": "সব সাফ করুন",
@@ -201,7 +205,8 @@
     "tagUsersTitle": "যারা এই ট্যাগ ব্যবহার করছেন",
     "viewAllTagUsers": "সব {{count}} দেখুন",
     "categoryUncategorized": "অন্যান্য",
-    "allCategories": "সব"
+    "allCategories": "সব",
+    "openMap": "মানচিত্র খুলুন"
   },
   "addTag": {
     "headerTitle": "# সোশ্যাল হোন",

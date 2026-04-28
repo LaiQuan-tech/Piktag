@@ -165,7 +165,11 @@
     "clearFilter": "필터 지우기",
     "noTagsToFilter": "필터링할 태그가 없습니다",
     "newBadge": "신규",
-    "unreviewedLabel": "미확인"
+    "unreviewedLabel": "미확인",
+    "sortLabel": "정렬",
+    "sortByRecent": "최근 추가순",
+    "sortByAlphabet": "가나다순 (A→Z)",
+    "sortByInteraction": "최근 활동순"
   },
   "search": {
     "clearAll": "모두 지우기",
@@ -201,7 +205,8 @@
     "tagUsersTitle": "이 태그를 사용하는 사람",
     "viewAllTagUsers": "{{count}}명 모두 보기",
     "categoryUncategorized": "기타",
-    "allCategories": "전체"
+    "allCategories": "전체",
+    "openMap": "지도 보기"
   },
   "addTag": {
     "headerTitle": "# 친해지기",

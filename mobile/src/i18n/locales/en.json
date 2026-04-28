@@ -173,7 +173,11 @@
     "clearFilter": "Clear Filter",
     "noTagsToFilter": "No tags available to filter",
     "newBadge": "New",
-    "unreviewedLabel": "to review"
+    "unreviewedLabel": "to review",
+    "sortLabel": "Sort",
+    "sortByRecent": "Recently added",
+    "sortByAlphabet": "Alphabetical (A→Z)",
+    "sortByInteraction": "Recent interaction"
   },
   "search": {
     "clearAll": "Clear all",
@@ -209,7 +213,8 @@
     "tagUsersTitle": "People using this tag",
     "viewAllTagUsers": "View all {{count}}",
     "categoryUncategorized": "Other",
-    "allCategories": "All"
+    "allCategories": "All",
+    "openMap": "Open map"
   },
   "addTag": {
     "headerTitle": "# Get Social",

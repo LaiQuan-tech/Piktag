@@ -17,7 +17,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import {
-  MapPin,
+  ArrowDownAZ,
   CheckCircle2,
   X,
   Tag,
@@ -45,7 +45,6 @@ import { useAuth } from '../hooks/useAuth';
 import { useAskFeed } from '../hooks/useAskFeed';
 import { useNetInfoReconnect } from '../hooks/useNetInfoReconnect';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import FriendsMapModal, { type FriendLocation } from '../components/FriendsMapModal';
 import AskStoryRow from '../components/ask/AskStoryRow';
 import type { Connection, ConnectionTag } from '../types';
 
@@ -160,7 +159,12 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
   const [batchTagInput, setBatchTagInput] = useState('');
   const [batchTagLoading, setBatchTagLoading] = useState(false);
 
-  const [mapVisible, setMapVisible] = useState(false);
+  // Sort options. 'recent' = newest connection first (default), 'alphabet'
+  // = nickname/full_name A→Z, 'interaction' = piktag_connections.updated_at
+  // newest first as a proxy for "you touched this connection lately".
+  type SortMode = 'recent' | 'alphabet' | 'interaction';
+  const [sortMode, setSortMode] = useState<SortMode>('recent');
+  const [sortModalVisible, setSortModalVisible] = useState(false);
 
   // FlatList performance: fixed item height for getItemLayout
   // connectionItem: paddingVertical 16*2=32 + borderBottomWidth 1 = 33 overhead
@@ -353,16 +357,33 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
     }
   }, [loadError, fetchConnections]));
 
-  // Always newest-first; tag filter applied on top.
+  // Sort by user-chosen mode, then apply tag filter on top.
+  // 'recent'      → created_at desc (newest connection first)
+  // 'alphabet'    → display name A→Z, locale-aware (zh stroke / en alpha)
+  // 'interaction' → updated_at desc, fall back to created_at when missing
   const sortedConnections = useMemo(() => {
-    const sorted = [...connections].sort(
-      (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-    );
+    const displayName = (c: ConnectionWithTags) =>
+      c.nickname || c.connected_user?.full_name || c.connected_user?.username || '';
+    const recencyTs = (c: ConnectionWithTags) => {
+      const v = (c as any).updated_at || c.created_at;
+      const ts = new Date(v).getTime();
+      return Number.isFinite(ts) ? ts : 0;
+    };
+
+    const sorted = [...connections];
+    if (sortMode === 'alphabet') {
+      sorted.sort((a, b) => displayName(a).localeCompare(displayName(b), undefined, { sensitivity: 'base' }));
+    } else if (sortMode === 'interaction') {
+      sorted.sort((a, b) => recencyTs(b) - recencyTs(a));
+    } else {
+      sorted.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    }
+
     if (filterTag) {
       return sorted.filter((c) => c.tags.includes(filterTag));
     }
     return sorted;
-  }, [connections, filterTag]);
+  }, [connections, filterTag, sortMode]);
 
   // All unique semantic types from connections (for filter)
   const allConnectionTags = useMemo(() => {
@@ -633,11 +654,14 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
             <TouchableOpacity
               style={styles.headerIconBtn}
               activeOpacity={0.6}
-              onPress={() => setMapVisible(true)}
-              accessibilityLabel="地圖檢視"
+              onPress={() => setSortModalVisible(true)}
+              accessibilityLabel={t('connections.sortLabel') || '排序'}
               accessibilityRole="button"
             >
-              <MapPin size={24} color={COLORS.gray600} />
+              <ArrowDownAZ
+                size={24}
+                color={sortMode !== 'recent' ? COLORS.piktag600 : COLORS.gray600}
+              />
             </TouchableOpacity>
           </View>
         </View>
@@ -747,6 +771,59 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
         </View>
       </Modal>
 
+      {/* Sort Modal — same shell as the filter modal so the two feel
+          like sibling tools. Three options only: time, alphabet,
+          interaction. */}
+      <Modal
+        visible={sortModalVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setSortModalVisible(false)}
+      >
+        <View style={styles.filterModalOverlay}>
+          <View style={styles.filterModalContainer}>
+            <View style={styles.filterModalHeader}>
+              <Text style={styles.filterModalTitle}>{t('connections.sortLabel') || '排序'}</Text>
+              <TouchableOpacity onPress={() => setSortModalVisible(false)} activeOpacity={0.6}>
+                <X size={24} color={COLORS.gray900} />
+              </TouchableOpacity>
+            </View>
+            {(
+              [
+                { key: 'recent', label: t('connections.sortByRecent') || '最近加為好友' },
+                { key: 'alphabet', label: t('connections.sortByAlphabet') || '字母 A→Z' },
+                { key: 'interaction', label: t('connections.sortByInteraction') || '最近互動' },
+              ] as { key: SortMode; label: string }[]
+            ).map((opt) => (
+              <TouchableOpacity
+                key={opt.key}
+                style={[
+                  styles.sortOptionRow,
+                  sortMode === opt.key && styles.sortOptionRowActive,
+                ]}
+                onPress={() => {
+                  setSortMode(opt.key);
+                  setSortModalVisible(false);
+                }}
+                activeOpacity={0.7}
+              >
+                <Text
+                  style={[
+                    styles.sortOptionText,
+                    sortMode === opt.key && styles.sortOptionTextActive,
+                  ]}
+                >
+                  {opt.label}
+                </Text>
+                {sortMode === opt.key && (
+                  <CheckCircle2 size={18} color={COLORS.piktag500} />
+                )}
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+      </Modal>
+
       {/* Batch Tag Modal */}
       <Modal
         visible={batchTagModalVisible}
@@ -795,31 +872,6 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
           </TouchableOpacity>
         </KeyboardAvoidingView>
       </Modal>
-      {/* Friends Map Modal */}
-      <FriendsMapModal
-        visible={mapVisible}
-        onClose={() => setMapVisible(false)}
-        friends={connections
-          .filter(c => {
-            const p = c.connected_user as any;
-            return p?.latitude && p?.longitude && p?.share_location !== false;
-          })
-          .map(c => {
-            const p = c.connected_user as any;
-            return {
-              id: c.connected_user_id,
-              connectionId: c.id,
-              name: c.nickname || p?.full_name || p?.username || '?',
-              avatarUrl: p?.avatar_url || null,
-              latitude: p.latitude,
-              longitude: p.longitude,
-            };
-          })}
-        onFriendPress={(connectionId, friendId) => {
-          setMapVisible(false);
-          navigation.navigate('FriendDetail', { connectionId, friendId });
-        }}
-      />
     </SafeAreaView>
   );
 }
@@ -1386,6 +1438,28 @@ const styles = StyleSheet.create({
     color: COLORS.gray700,
   },
   filterTagChipTextActive: {
+    color: COLORS.piktag600,
+    fontWeight: '700',
+  },
+  sortOptionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 14,
+    paddingHorizontal: 4,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.gray100,
+  },
+  sortOptionRowActive: {
+    // No background change — the trailing checkmark is enough signal
+    // and matches the filter modal's quiet selection style.
+  },
+  sortOptionText: {
+    fontSize: 15,
+    fontWeight: '500',
+    color: COLORS.gray800,
+  },
+  sortOptionTextActive: {
     color: COLORS.piktag600,
     fontWeight: '700',
   },

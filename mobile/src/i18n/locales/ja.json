@@ -165,7 +165,11 @@
     "clearFilter": "フィルタをクリア",
     "noTagsToFilter": "絞り込めるタグがありません",
     "newBadge": "新着",
-    "unreviewedLabel": "未確認"
+    "unreviewedLabel": "未確認",
+    "sortLabel": "並べ替え",
+    "sortByRecent": "追加が新しい順",
+    "sortByAlphabet": "あいうえお順",
+    "sortByInteraction": "最近のやりとり"
   },
   "search": {
     "clearAll": "すべてクリア",
@@ -201,7 +205,8 @@
     "tagUsersTitle": "このタグを使っている人",
     "viewAllTagUsers": "{{count}}人すべて見る",
     "categoryUncategorized": "その他",
-    "allCategories": "すべて"
+    "allCategories": "すべて",
+    "openMap": "地図を開く"
   },
   "addTag": {
     "headerTitle": "# つながろう",

@@ -165,7 +165,11 @@
     "clearFilter": "फ़िल्टर हटाएँ",
     "noTagsToFilter": "फ़िल्टर के लिए कोई टैग नहीं",
     "newBadge": "नया",
-    "unreviewedLabel": "समीक्षा बाकी"
+    "unreviewedLabel": "समीक्षा बाकी",
+    "sortLabel": "क्रमबद्ध",
+    "sortByRecent": "हाल में जोड़े गए",
+    "sortByAlphabet": "वर्णक्रम (A→Z)",
+    "sortByInteraction": "हाल का संवाद"
   },
   "search": {
     "clearAll": "सब साफ़ करें",
@@ -201,7 +205,8 @@
     "tagUsersTitle": "इस टैग का इस्तेमाल करने वाले",
     "viewAllTagUsers": "सभी {{count}} देखें",
     "categoryUncategorized": "अन्य",
-    "allCategories": "सब"
+    "allCategories": "सब",
+    "openMap": "मानचित्र खोलें"
   },
   "addTag": {
     "headerTitle": "# सोशल बनें",

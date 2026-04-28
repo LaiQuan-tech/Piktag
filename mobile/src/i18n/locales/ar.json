@@ -165,7 +165,11 @@
     "clearFilter": "مسح التصفية",
     "noTagsToFilter": "لا توجد وسوم متاحة للتصفية",
     "newBadge": "جديد",
-    "unreviewedLabel": "قيد المراجعة"
+    "unreviewedLabel": "قيد المراجعة",
+    "sortLabel": "ترتيب",
+    "sortByRecent": "المضافون مؤخراً",
+    "sortByAlphabet": "أبجدي (أ→ي)",
+    "sortByInteraction": "التفاعل الأخير"
   },
   "search": {
     "clearAll": "مسح الكل",
@@ -201,7 +205,8 @@
     "tagUsersTitle": "أشخاص يستخدمون هذا الوسم",
     "viewAllTagUsers": "عرض كل {{count}}",
     "categoryUncategorized": "أخرى",
-    "allCategories": "الكل"
+    "allCategories": "الكل",
+    "openMap": "فتح الخريطة"
   },
   "addTag": {
     "headerTitle": "# تواصل اجتماعي",

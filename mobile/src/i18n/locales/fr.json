@@ -165,7 +165,11 @@
     "clearFilter": "Effacer le filtre",
     "noTagsToFilter": "Aucun tag à filtrer",
     "newBadge": "Nouveau",
-    "unreviewedLabel": "à examiner"
+    "unreviewedLabel": "à examiner",
+    "sortLabel": "Trier",
+    "sortByRecent": "Récemment ajoutés",
+    "sortByAlphabet": "Alphabétique (A→Z)",
+    "sortByInteraction": "Interaction récente"
   },
   "search": {
     "clearAll": "Tout effacer",
@@ -201,7 +205,8 @@
     "tagUsersTitle": "Personnes utilisant ce tag",
     "viewAllTagUsers": "Voir les {{count}}",
     "categoryUncategorized": "Autres",
-    "allCategories": "Tout"
+    "allCategories": "Tout",
+    "openMap": "Ouvrir la carte"
   },
   "addTag": {
     "headerTitle": "# Connectons-nous",

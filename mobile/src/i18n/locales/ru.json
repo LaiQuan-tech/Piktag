@@ -165,7 +165,11 @@
     "clearFilter": "Сбросить фильтр",
     "noTagsToFilter": "Нет тегов для фильтра",
     "newBadge": "Новый",
-    "unreviewedLabel": "к просмотру"
+    "unreviewedLabel": "к просмотру",
+    "sortLabel": "Сортировка",
+    "sortByRecent": "Недавно добавленные",
+    "sortByAlphabet": "По алфавиту (A→Z)",
+    "sortByInteraction": "Недавнее взаимодействие"
   },
   "search": {
     "clearAll": "Очистить всё",
@@ -201,7 +205,8 @@
     "tagUsersTitle": "Кто использует этот тег",
     "viewAllTagUsers": "Показать все {{count}}",
     "categoryUncategorized": "Другое",
-    "allCategories": "Все"
+    "allCategories": "Все",
+    "openMap": "Открыть карту"
   },
   "addTag": {
     "headerTitle": "# Знакомься",

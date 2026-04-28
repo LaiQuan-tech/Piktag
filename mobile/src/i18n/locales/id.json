@@ -165,7 +165,11 @@
     "clearFilter": "Hapus Filter",
     "noTagsToFilter": "Tidak ada tag untuk difilter",
     "newBadge": "Baru",
-    "unreviewedLabel": "untuk ditinjau"
+    "unreviewedLabel": "untuk ditinjau",
+    "sortLabel": "Urutkan",
+    "sortByRecent": "Baru ditambahkan",
+    "sortByAlphabet": "Alfabet (A→Z)",
+    "sortByInteraction": "Interaksi terbaru"
   },
   "search": {
     "clearAll": "Hapus semua",
@@ -201,7 +205,8 @@
     "tagUsersTitle": "Orang yang menggunakan tag ini",
     "viewAllTagUsers": "Lihat semua {{count}}",
     "categoryUncategorized": "Lainnya",
-    "allCategories": "Semua"
+    "allCategories": "Semua",
+    "openMap": "Buka peta"
   },
   "addTag": {
     "headerTitle": "# Bersosialisasi",

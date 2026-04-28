@@ -19,8 +19,10 @@ import {
   Clock,
   TrendingUp,
   X,
+  MapPin,
 } from 'lucide-react-native';
 import RingedAvatar from '../components/RingedAvatar';
+import FriendsMapModal, { type FriendLocation } from '../components/FriendsMapModal';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { requestForegroundPermissionsAsync, getCurrentPositionAsync, Accuracy } from 'expo-location';
 import { useTranslation } from 'react-i18next';
@@ -251,6 +253,44 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
   // semantics but lives separately because the two modes' result sets
   // and UI containers are different.
   const [searchTab, setSearchTab] = useState<'friends' | 'explore'>('friends');
+
+  // Friends-on-map. Lives on the search screen because the map is now a
+  // discovery affordance — same modal we used to host on Connections,
+  // just relocated. Phase A keeps the data scope at 1st-degree only;
+  // Phase B will expand to friends-of-friends with privacy opt-in.
+  const [mapVisible, setMapVisible] = useState(false);
+  const [mapFriends, setMapFriends] = useState<FriendLocation[]>([]);
+  useEffect(() => {
+    if (!user) return;
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase
+        .from('piktag_connections')
+        .select(
+          'id, connected_user_id, nickname, connected_user:piktag_profiles!connected_user_id(id, full_name, username, avatar_url, latitude, longitude, share_location)',
+        )
+        .eq('user_id', user.id);
+      if (cancelled || !data) return;
+      const friends: FriendLocation[] = [];
+      for (const row of data as any[]) {
+        const p = row.connected_user;
+        if (!p?.latitude || !p?.longitude) continue;
+        if (p.share_location === false) continue;
+        friends.push({
+          id: row.connected_user_id,
+          connectionId: row.id,
+          name: row.nickname || p.full_name || p.username || '?',
+          avatarUrl: p.avatar_url || null,
+          latitude: p.latitude,
+          longitude: p.longitude,
+        });
+      }
+      setMapFriends(friends);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [user]);
   const recentSearchesRef = useRef(recentSearches);
   recentSearchesRef.current = recentSearches;
   const isMountedRef = useRef(true);
@@ -1746,6 +1786,16 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
       <View style={styles.header}>
         <View style={styles.headerTitleRow}>
           <Text style={[styles.headerTitle, { color: colors.text }]}>{t('search.headerTitle') || '搜尋'}</Text>
+          <TouchableOpacity
+            style={styles.headerMapBtn}
+            activeOpacity={0.6}
+            onPress={() => setMapVisible(true)}
+            accessibilityLabel={t('search.openMap') || '地圖檢視'}
+            accessibilityRole="button"
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          >
+            <MapPin size={22} color={colors.text} />
+          </TouchableOpacity>
         </View>
         <Pressable style={searchContainerStyle} onPress={focusSearchInput}>
           <Search
@@ -1817,6 +1867,16 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
           <Text style={styles.toastText}>{errorToast}</Text>
         </View>
       )}
+
+      <FriendsMapModal
+        visible={mapVisible}
+        onClose={() => setMapVisible(false)}
+        friends={mapFriends}
+        onFriendPress={(connectionId, friendId) => {
+          setMapVisible(false);
+          navigation.navigate('FriendDetail', { connectionId, friendId });
+        }}
+      />
     </SafeAreaView>
   );
 }
@@ -1992,6 +2052,16 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: COLORS.gray900,
     lineHeight: 32,
+  },
+  // Map button sits next to the title — quick entry to "where are
+  // people I might know geographically". Sized 44dp to hit the
+  // recommended tap target while the icon stays at 22dp visually.
+  headerMapBtn: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   searchContainer: {
     flexDirection: 'row',

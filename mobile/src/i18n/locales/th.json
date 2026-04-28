@@ -165,7 +165,11 @@
     "clearFilter": "ล้างตัวกรอง",
     "noTagsToFilter": "ไม่มีแท็กให้กรอง",
     "newBadge": "ใหม่",
-    "unreviewedLabel": "รอการตรวจสอบ"
+    "unreviewedLabel": "รอการตรวจสอบ",
+    "sortLabel": "เรียงลำดับ",
+    "sortByRecent": "เพิ่มล่าสุด",
+    "sortByAlphabet": "ตัวอักษร (A→Z)",
+    "sortByInteraction": "การโต้ตอบล่าสุด"
   },
   "search": {
     "clearAll": "ล้างทั้งหมด",
@@ -201,7 +205,8 @@
     "tagUsersTitle": "คนที่ใช้แท็กนี้",
     "viewAllTagUsers": "ดูทั้งหมด {{count}} คน",
     "categoryUncategorized": "อื่น ๆ",
-    "allCategories": "ทั้งหมด"
+    "allCategories": "ทั้งหมด",
+    "openMap": "เปิดแผนที่"
   },
   "addTag": {
     "headerTitle": "# เข้าสังคม",

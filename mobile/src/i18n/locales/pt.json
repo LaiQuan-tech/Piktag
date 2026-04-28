@@ -165,7 +165,11 @@
     "clearFilter": "Limpar filtro",
     "noTagsToFilter": "Sem tags para filtrar",
     "newBadge": "Novo",
-    "unreviewedLabel": "a revisar"
+    "unreviewedLabel": "a revisar",
+    "sortLabel": "Ordenar",
+    "sortByRecent": "Adicionados recentemente",
+    "sortByAlphabet": "Alfabético (A→Z)",
+    "sortByInteraction": "Interação recente"
   },
   "search": {
     "clearAll": "Limpar tudo",
@@ -201,7 +205,8 @@
     "tagUsersTitle": "Pessoas usando esta tag",
     "viewAllTagUsers": "Ver todos os {{count}}",
     "categoryUncategorized": "Outros",
-    "allCategories": "Tudo"
+    "allCategories": "Tudo",
+    "openMap": "Abrir mapa"
   },
   "addTag": {
     "headerTitle": "# Conecte-se",

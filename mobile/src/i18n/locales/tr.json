@@ -165,7 +165,11 @@
     "clearFilter": "Filtreyi Temizle",
     "noTagsToFilter": "Filtrelenecek etiket yok",
     "newBadge": "Yeni",
-    "unreviewedLabel": "incelenecek"
+    "unreviewedLabel": "incelenecek",
+    "sortLabel": "Sırala",
+    "sortByRecent": "Son eklenenler",
+    "sortByAlphabet": "Alfabetik (A→Z)",
+    "sortByInteraction": "Son etkileşim"
   },
   "search": {
     "clearAll": "Hepsini temizle",
@@ -201,7 +205,8 @@
     "tagUsersTitle": "Bu etiketi kullanan kişiler",
     "viewAllTagUsers": "Tümünü gör ({{count}})",
     "categoryUncategorized": "Diğer",
-    "allCategories": "Tümü"
+    "allCategories": "Tümü",
+    "openMap": "Haritayı aç"
   },
   "addTag": {
     "headerTitle": "# Sosyalleş",

@@ -173,7 +173,11 @@
     "clearFilter": "清除筛选",
     "noTagsToFilter": "目前没有可筛选的标签",
     "newBadge": "新",
-    "unreviewedLabel": "位待整理"
+    "unreviewedLabel": "位待整理",
+    "sortLabel": "排序",
+    "sortByRecent": "最近加为好友",
+    "sortByAlphabet": "字母 A→Z",
+    "sortByInteraction": "最近互动"
   },
   "search": {
     "clearAll": "清除全部",
@@ -209,7 +213,8 @@
     "tagUsersTitle": "使用此标签的用户",
     "viewAllTagUsers": "查看全部 {{count}} 位",
     "categoryUncategorized": "其他",
-    "allCategories": "全部"
+    "allCategories": "全部",
+    "openMap": "地图视图"
   },
   "addTag": {
     "headerTitle": "活动标签",
