@@ -1,4 +1,5 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   View,
   Text,
@@ -109,6 +110,62 @@ export default function AskStoryRow({ asks, myAsk, myAvatarUrl, myName, onRefres
   const [createVisible, setCreateVisible] = useState(false);
   const [hiddenAuthorIds, setHiddenAuthorIds] = useState<Set<string>>(new Set());
 
+  // IG-style "viewed" tracking. Tapping an ask marks it viewed; viewed
+  // asks lose their gradient ring and sort to the end of the row, so
+  // unviewed ones (the urgent / unaddressed) stay in front. Persisted
+  // locally per device so it survives app restarts.
+  const VIEWED_ASKS_KEY = 'piktag_viewed_ask_ids';
+  const [viewedAskIds, setViewedAskIds] = useState<Set<string>>(new Set());
+
+  // Load viewed IDs once on mount and prune any that no longer
+  // correspond to an active ask in the current feed (asks expire after
+  // 24h, so the set would otherwise grow forever). The prune happens on
+  // every feed change too, see effect below.
+  useEffect(() => {
+    AsyncStorage.getItem(VIEWED_ASKS_KEY)
+      .then((raw) => {
+        if (!raw) return;
+        try {
+          const arr = JSON.parse(raw);
+          if (Array.isArray(arr)) setViewedAskIds(new Set(arr));
+        } catch {
+          // corrupt cache — drop it silently
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  // Garbage-collect viewed IDs against the current feed. Keeps storage
+  // bounded and prevents a stale viewed-state lingering if a server
+  // recreates an ask with a new id.
+  useEffect(() => {
+    if (viewedAskIds.size === 0) return;
+    const currentIds = new Set(asks.map((a) => a.ask_id));
+    let dropped = false;
+    const next = new Set<string>();
+    for (const id of viewedAskIds) {
+      if (currentIds.has(id)) next.add(id);
+      else dropped = true;
+    }
+    if (dropped) {
+      setViewedAskIds(next);
+      AsyncStorage.setItem(VIEWED_ASKS_KEY, JSON.stringify([...next])).catch(() => {});
+    }
+    // We intentionally only re-prune when the feed changes (not when
+    // viewedAskIds changes), so omit viewedAskIds from the dep array.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [asks]);
+
+  const markAskViewed = useCallback((askId: string) => {
+    setViewedAskIds((prev) => {
+      if (prev.has(askId)) return prev;
+      const next = new Set(prev);
+      next.add(askId);
+      AsyncStorage.setItem(VIEWED_ASKS_KEY, JSON.stringify([...next])).catch(() => {});
+      return next;
+    });
+  }, []);
+
   // Apple Guideline 1.2: long-press an Ask circle to report objectionable
   // content or hide the author from the rail.
   const submitAskReport = useCallback(
@@ -196,7 +253,20 @@ export default function AskStoryRow({ asks, myAsk, myAvatarUrl, myName, onRefres
     [promptAskReportReason, t],
   );
 
-  const visibleAsks = asks.filter((a) => !hiddenAuthorIds.has(a.author_id));
+  // Hide reported authors, then sort unviewed → viewed. Within each
+  // group the original feed order is preserved (server already orders
+  // by recency / mutual signal), so unviewed asks stay at the front
+  // ranked by the same logic as before — viewed simply slip to the back.
+  const visibleAsks = useMemo(() => {
+    const filtered = asks.filter((a) => !hiddenAuthorIds.has(a.author_id));
+    const unviewed: AskFeedItem[] = [];
+    const viewed: AskFeedItem[] = [];
+    for (const a of filtered) {
+      if (viewedAskIds.has(a.ask_id)) viewed.push(a);
+      else unviewed.push(a);
+    }
+    return [...unviewed, ...viewed];
+  }, [asks, hiddenAuthorIds, viewedAskIds]);
 
   return (
     <>
@@ -235,30 +305,44 @@ export default function AskStoryRow({ asks, myAsk, myAvatarUrl, myName, onRefres
           {visibleAsks.map((ask) => {
             const name = ask.author_full_name || ask.author_username || '?';
             const h = hoursLeft(ask.expires_at);
+            const viewed = viewedAskIds.has(ask.ask_id);
+            const avatar = ask.author_avatar_url ? (
+              <Image source={{ uri: ask.author_avatar_url }} style={styles.avatar} cachePolicy="memory-disk" />
+            ) : (
+              <InitialsAvatar name={name} size={52} />
+            );
             return (
               <TouchableOpacity
                 key={ask.ask_id}
                 style={styles.storyItem}
                 activeOpacity={0.7}
-                onPress={() => onPressUser(ask.author_id)}
+                onPress={() => {
+                  markAskViewed(ask.ask_id);
+                  onPressUser(ask.author_id);
+                }}
                 onLongPress={() => handleAskLongPress(ask)}
                 delayLongPress={350}
               >
-                <RotatingGradientRing
-                  colors={
-                    ask.degree === 1
-                      ? ['#ff5757', '#c44dff', '#8c52ff', '#ff5757']
-                      : ['#60a5fa', '#818cf8', '#60a5fa']
-                  }
-                >
-                  {ask.author_avatar_url ? (
-                    <Image source={{ uri: ask.author_avatar_url }} style={styles.avatar} cachePolicy="memory-disk" />
-                  ) : (
-                    <InitialsAvatar name={name} size={52} />
-                  )}
-                </RotatingGradientRing>
-                <Text style={styles.storyName} numberOfLines={1}>{name}</Text>
-                <Text style={styles.storyLabel} numberOfLines={1}>
+                {viewed ? (
+                  // IG "viewed" treatment — thin grey border, no gradient,
+                  // no rotation. Stays in the row (sorted to the back) so
+                  // the viewer can revisit if they need to.
+                  <View style={[styles.ring, styles.ringViewed]}>
+                    <View style={styles.ringInner}>{avatar}</View>
+                  </View>
+                ) : (
+                  <RotatingGradientRing
+                    colors={
+                      ask.degree === 1
+                        ? ['#ff5757', '#c44dff', '#8c52ff', '#ff5757']
+                        : ['#60a5fa', '#818cf8', '#60a5fa']
+                    }
+                  >
+                    {avatar}
+                  </RotatingGradientRing>
+                )}
+                <Text style={[styles.storyName, viewed && styles.storyNameViewed]} numberOfLines={1}>{name}</Text>
+                <Text style={[styles.storyLabel, viewed && styles.storyLabelViewed]} numberOfLines={1}>
                   {ask.title || ask.body.slice(0, 20)}
                 </Text>
               </TouchableOpacity>
@@ -757,6 +841,13 @@ const styles = StyleSheet.create({
     borderStyle: 'dashed',
     backgroundColor: COLORS.gray50,
   },
+  // Viewed (IG-style) ring — thin grey outline, no gradient, no spin.
+  // The ringInner still sits centered with the same 3px gap, mirroring
+  // the active ring's geometry so the avatar doesn't shift on tap.
+  ringViewed: {
+    borderWidth: 1.5,
+    borderColor: COLORS.gray300,
+  },
   ringInner: {
     width: 56,
     height: 56,
@@ -792,12 +883,19 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     width: 72,
   },
+  storyNameViewed: {
+    fontWeight: '500',
+    color: COLORS.gray500,
+  },
   storyLabel: {
     fontSize: 10,
     color: COLORS.gray500,
     textAlign: 'center',
     width: 72,
     marginTop: 1,
+  },
+  storyLabelViewed: {
+    color: COLORS.gray400,
   },
 });
 
