@@ -51,15 +51,15 @@ BEGIN
       c.user_id                                               AS recipient_id,
       c.connected_user_id                                     AS connected_user_id,
       c.nickname                                              AS nickname,
-      COALESCE(c.birthday, p.birthday)                        AS effective_birthday,
+      COALESCE(c.birthday, CASE WHEN p.birthday ~ '^\d{4}-\d{2}-\d{2}$' THEN p.birthday::date ELSE NULL END)                        AS effective_birthday,
       p.username                                              AS profile_username,
       p.full_name                                             AS profile_full_name,
       p.avatar_url                                            AS avatar_url
     FROM piktag_connections c
     LEFT JOIN piktag_profiles p ON p.id = c.connected_user_id
-    WHERE COALESCE(c.birthday, p.birthday) IS NOT NULL
-      AND EXTRACT(MONTH FROM COALESCE(c.birthday, p.birthday)) = EXTRACT(MONTH FROM (now() AT TIME ZONE 'UTC')::date)
-      AND EXTRACT(DAY   FROM COALESCE(c.birthday, p.birthday)) = EXTRACT(DAY   FROM (now() AT TIME ZONE 'UTC')::date)
+    WHERE COALESCE(c.birthday, CASE WHEN p.birthday ~ '^\d{4}-\d{2}-\d{2}$' THEN p.birthday::date ELSE NULL END) IS NOT NULL
+      AND EXTRACT(MONTH FROM COALESCE(c.birthday, CASE WHEN p.birthday ~ '^\d{4}-\d{2}-\d{2}$' THEN p.birthday::date ELSE NULL END)) = EXTRACT(MONTH FROM (now() AT TIME ZONE 'UTC')::date)
+      AND EXTRACT(DAY   FROM COALESCE(c.birthday, CASE WHEN p.birthday ~ '^\d{4}-\d{2}-\d{2}$' THEN p.birthday::date ELSE NULL END)) = EXTRACT(DAY   FROM (now() AT TIME ZONE 'UTC')::date)
   LOOP
     -- Dedup: same recipient + same connected_user_id within 300d.
     IF EXISTS (
