@@ -1,10 +1,10 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
 
-  "buildCommand": "cd landing && npm ci && npm run build",
-  "outputDirectory": "landing/dist",
+  "buildCommand": "npm ci && npm run build",
+  "outputDirectory": "dist",
 
-  "ignoreCommand": "bash -c 'git diff --quiet HEAD^ HEAD -- landing/ api/ vercel.json'",
+  "ignoreCommand": "bash -c 'git diff --quiet HEAD^ HEAD -- landing/'",
 
   "rewrites": [
     { "source": "/i/:code",         "destination": "/api/i/:code" },
