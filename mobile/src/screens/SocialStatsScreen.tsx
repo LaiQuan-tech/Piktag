@@ -507,29 +507,29 @@ export default function SocialStatsScreen({ navigation }: SocialStatsScreenProps
           {/* ── Overview Cards (2x2) ── */}
           <View style={styles.statsGrid}>
             <StatCard
-              icon={<Users size={20} color="#3b82f6" />}
+              icon={<Users size={20} color={COLORS.piktag600} />}
               label={t('dashboard.totalFriends')}
               value={data.totalFriends}
-              bgColor="#eff6ff"
+              bgColor={COLORS.piktag50}
             />
             <StatCard
-              icon={<TrendingUp size={20} color="#22c55e" />}
+              icon={<TrendingUp size={20} color={COLORS.piktag500} />}
               label={newFriendsLabel}
               value={newFriendsValue}
               subValue={t('dashboard.newFriendsSub', { count: newFriendsValue })}
-              bgColor="#f0fdf4"
+              bgColor={COLORS.piktag50}
             />
             <StatCard
-              icon={<Link2 size={20} color="#ec4899" />}
+              icon={<Link2 size={20} color={COLORS.piktag400} />}
               label={t('dashboard.totalLinkClicks')}
               value={data.totalBiolinkClicks}
-              bgColor="#fdf2f8"
+              bgColor={COLORS.piktag50}
             />
             <StatCard
-              icon={<QrCode size={20} color="#f97316" />}
+              icon={<QrCode size={20} color={COLORS.piktag300} />}
               label={t('dashboard.totalQrScans')}
               value={data.totalQrScans}
-              bgColor="#fff7ed"
+              bgColor={COLORS.piktag50}
             />
           </View>
 
@@ -550,7 +550,7 @@ export default function SocialStatsScreen({ navigation }: SocialStatsScreenProps
               renderBarRow(
                 data.presetScans.map((p) => ({ label: p.name, value: p.totalScans })),
                 data.presetScans[0]?.totalScans || 1,
-                COLORS.orange500,
+                COLORS.piktag500,
                 false,
               )
             ) : (
@@ -573,9 +573,9 @@ export default function SocialStatsScreen({ navigation }: SocialStatsScreenProps
                         {
                           flex: item.percentage,
                           backgroundColor: [
-                            COLORS.piktag400, COLORS.blue500, COLORS.orange500,
-                            COLORS.pink500, COLORS.green500, COLORS.purple500,
-                            COLORS.red500, '#6366f1',
+                            COLORS.piktag200, COLORS.piktag300, COLORS.piktag400,
+                            COLORS.piktag500, COLORS.piktag600, COLORS.accent400,
+                            COLORS.accent500, COLORS.accent600,
                           ][i % 8],
                         },
                       ]}
@@ -591,9 +591,9 @@ export default function SocialStatsScreen({ navigation }: SocialStatsScreenProps
                           styles.compositionLegendDot,
                           {
                             backgroundColor: [
-                              COLORS.piktag400, COLORS.blue500, COLORS.orange500,
-                              COLORS.pink500, COLORS.green500, COLORS.purple500,
-                              COLORS.red500, '#6366f1',
+                              COLORS.piktag200, COLORS.piktag300, COLORS.piktag400,
+                              COLORS.piktag500, COLORS.piktag600, COLORS.accent400,
+                              COLORS.accent500, COLORS.accent600,
                             ][i % 8],
                           },
                         ]}
@@ -631,7 +631,7 @@ export default function SocialStatsScreen({ navigation }: SocialStatsScreenProps
               renderBarRow(
                 data.topLocations.map((loc) => ({ label: loc.location, value: loc.count })),
                 data.topLocations[0]?.count || 1,
-                COLORS.blue500,
+                COLORS.piktag300,
               )
             ) : (
               <EmptyState text={t('dashboard.topLocationsEmpty')} />
@@ -910,14 +910,14 @@ const styles = StyleSheet.create({
     width: 24,
     height: 24,
     borderRadius: 12,
-    backgroundColor: '#fdf2f8',
+    backgroundColor: COLORS.piktag50,
     alignItems: 'center',
     justifyContent: 'center',
   },
   biolinkRankText: {
     fontSize: 12,
     fontWeight: '700',
-    color: '#ec4899',
+    color: COLORS.piktag600,
   },
   biolinkInfo: {
     flex: 1,
