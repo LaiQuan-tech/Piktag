@@ -624,7 +624,78 @@
     "timeYesterday": "Yesterday",
     "timeDaysAgo": "{{count}}d ago",
     "timeWeeksAgo": "{{count}}w ago",
-    "emptyState": "No notifications. Set reminders or follow your friends' activity"
+    "emptyState": "No notifications. Set reminders or follow your friends' activity",
+    "types": {
+      "follow": {
+        "title": "",
+        "body": "started following you",
+        "push": {
+          "title": "{{username}}",
+          "body": "started following you"
+        }
+      },
+      "friend": {
+        "title": "",
+        "body": "you are now friends",
+        "push": {
+          "title": "{{username}}",
+          "body": "you are now friends"
+        }
+      },
+      "tag_added": {
+        "title": "",
+        "body": "tagged you as #{{tag_name}}",
+        "push": {
+          "title": "{{username}}",
+          "body": "tagged you as #{{tag_name}}"
+        }
+      },
+      "recommendation": {
+        "title": "",
+        "body": "you might know {{username}} — {{count}} mutual tags",
+        "push": {
+          "title": "Suggested for you",
+          "body": "you might know {{username}} — {{count}} mutual tags"
+        }
+      },
+      "tag_trending": {
+        "title": "",
+        "body": "your tag #{{tag_name}} is trending today",
+        "push": {
+          "title": "Trending",
+          "body": "your tag #{{tag_name}} is trending today"
+        }
+      },
+      "biolink_click": {
+        "title": "",
+        "body": "clicked your {{platform}} link"
+      },
+      "birthday": {
+        "title": "",
+        "body": "it's {{username}}'s birthday today",
+        "push": {
+          "title": "Birthday reminder",
+          "body": "it's {{username}}'s birthday today"
+        }
+      },
+      "anniversary": {
+        "title": "",
+        "body": "{{years}} years ago today, you met {{username}}",
+        "push": {
+          "title": "Anniversary",
+          "body": "{{years}} years ago today, you met {{username}}"
+        }
+      },
+      "contract_expiry": {
+        "title": "",
+        "body": "your contract with {{username}} expires in {{days_until}} days",
+        "bodyToday": "your contract with {{username}} expires today",
+        "push": {
+          "title": "Contract reminder",
+          "body": "your contract with {{username}} expires in {{days_until}} days"
+        }
+      }
+    }
   },
   "scanResult": {
     "headerTitle": "Add Friend",

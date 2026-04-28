@@ -613,7 +613,78 @@
     "timeYesterday": "昨天",
     "timeDaysAgo": "{{count}} 天前",
     "timeWeeksAgo": "{{count}} 週前",
-    "emptyState": "目前沒有通知。設定提醒或關注朋友動態吧"
+    "emptyState": "目前沒有通知。設定提醒或關注朋友動態吧",
+    "types": {
+      "follow": {
+        "title": "",
+        "body": "開始追蹤你",
+        "push": {
+          "title": "{{username}}",
+          "body": "開始追蹤你"
+        }
+      },
+      "friend": {
+        "title": "",
+        "body": "你們成為朋友了",
+        "push": {
+          "title": "{{username}}",
+          "body": "你們成為朋友了"
+        }
+      },
+      "tag_added": {
+        "title": "",
+        "body": "把你標記為 #{{tag_name}}",
+        "push": {
+          "title": "{{username}}",
+          "body": "把你標記為 #{{tag_name}}"
+        }
+      },
+      "recommendation": {
+        "title": "",
+        "body": "你可能認識 {{username}} — {{count}} 個共同標籤",
+        "push": {
+          "title": "為你推薦",
+          "body": "你可能認識 {{username}} — {{count}} 個共同標籤"
+        }
+      },
+      "tag_trending": {
+        "title": "",
+        "body": "你的標籤 #{{tag_name}} 今天爆紅了",
+        "push": {
+          "title": "熱門標籤",
+          "body": "你的標籤 #{{tag_name}} 今天爆紅了"
+        }
+      },
+      "biolink_click": {
+        "title": "",
+        "body": "點擊了你的 {{platform}} 連結"
+      },
+      "birthday": {
+        "title": "",
+        "body": "今天是 {{username}} 的生日",
+        "push": {
+          "title": "生日提醒",
+          "body": "今天是 {{username}} 的生日"
+        }
+      },
+      "anniversary": {
+        "title": "",
+        "body": "{{years}} 年前的今天，你認識了 {{username}}",
+        "push": {
+          "title": "紀念日",
+          "body": "{{years}} 年前的今天，你認識了 {{username}}"
+        }
+      },
+      "contract_expiry": {
+        "title": "",
+        "body": "你與 {{username}} 的合約還有 {{days_until}} 天到期",
+        "bodyToday": "你與 {{username}} 的合約今天到期",
+        "push": {
+          "title": "合約提醒",
+          "body": "你與 {{username}} 的合約還有 {{days_until}} 天到期"
+        }
+      }
+    }
   },
   "scanResult": {
     "headerTitle": "加為好友",
