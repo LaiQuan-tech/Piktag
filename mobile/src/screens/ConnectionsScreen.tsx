@@ -7,7 +7,6 @@ import {
   TouchableOpacity,
   StyleSheet,
   StatusBar,
-  ActivityIndicator,
   Modal,
   TextInput,
   Alert,

@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActionSheetIOS,
-  ActivityIndicator,
   Alert,
   FlatList,
   KeyboardAvoidingView,
@@ -24,6 +23,7 @@ import Composer from '../components/chat/Composer';
 import MessageBubble from '../components/chat/MessageBubble';
 import RingedAvatar from '../components/RingedAvatar';
 import ErrorState from '../components/ErrorState';
+import BrandSpinner from '../components/loaders/BrandSpinner';
 import { COLORS } from '../constants/theme';
 import { useAuth } from '../hooks/useAuth';
 import { useChatThread } from '../hooks/useChatThread';
@@ -354,7 +354,7 @@ export default function ChatThreadScreen({ navigation, route }: Props): JSX.Elem
     if (!loadingMore) return null;
     return (
       <View style={styles.loadingMoreWrap}>
-        <ActivityIndicator size="small" color={COLORS.gray400} />
+        <BrandSpinner size={20} />
       </View>
     );
   }, [loadingMore]);

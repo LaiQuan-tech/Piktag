@@ -22,6 +22,7 @@ import ConversationActionSheet from '../components/chat/ConversationActionSheet'
 import ConversationRow from '../components/chat/ConversationRow';
 import EmptyInbox from '../components/chat/EmptyInbox';
 import ErrorState from '../components/ErrorState';
+import PageLoader from '../components/loaders/PageLoader';
 import { COLORS } from '../constants/theme';
 import { useAuth } from '../hooks/useAuth';
 import { useChatInbox } from '../hooks/useChatInbox';
@@ -406,21 +407,25 @@ export default function ChatListScreen({ navigation }: Props): JSX.Element {
 
       <ChatTabs active={activeTab} onChange={setActiveTab} counts={counts} />
 
-      <FlatList
-        data={visibleList}
-        renderItem={renderItem}
-        keyExtractor={keyExtractor}
-        getItemLayout={getItemLayout}
-        refreshControl={refreshControl}
-        contentContainerStyle={
-          visibleList.length === 0 ? styles.listContentEmpty : styles.listContent
-        }
-        ListEmptyComponent={!loading ? emptyState : null}
-        initialNumToRender={12}
-        maxToRenderPerBatch={12}
-        windowSize={7}
-        removeClippedSubviews
-      />
+      {loading && conversations.length === 0 ? (
+        <PageLoader />
+      ) : (
+        <FlatList
+          data={visibleList}
+          renderItem={renderItem}
+          keyExtractor={keyExtractor}
+          getItemLayout={getItemLayout}
+          refreshControl={refreshControl}
+          contentContainerStyle={
+            visibleList.length === 0 ? styles.listContentEmpty : styles.listContent
+          }
+          ListEmptyComponent={!loading ? emptyState : null}
+          initialNumToRender={12}
+          maxToRenderPerBatch={12}
+          windowSize={7}
+          removeClippedSubviews
+        />
+      )}
 
       {/* Bottom-sheet menu opened by tapping the ⋯ icon on a
           conversation row. Options shown depend on which bucket the

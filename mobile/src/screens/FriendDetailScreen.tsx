@@ -7,7 +7,6 @@ import {
   StyleSheet,
   StatusBar,
   Linking,
-  ActivityIndicator,
   Alert,
   Modal,
   Platform,
@@ -57,6 +56,8 @@ import RingedAvatar from '../components/RingedAvatar';
 import OverlappingAvatars from '../components/OverlappingAvatars';
 import HiddenTagEditor from '../components/HiddenTagEditor';
 import ErrorState from '../components/ErrorState';
+import PageLoader from '../components/loaders/PageLoader';
+import BrandSpinner from '../components/loaders/BrandSpinner';
 import { useNetInfoReconnect } from '../hooks/useNetInfoReconnect';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
@@ -880,9 +881,7 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
           <Text style={styles.headerName} numberOfLines={1}>...</Text>
           <View style={styles.headerSpacer} />
         </View>
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={COLORS.piktag500} />
-        </View>
+        <PageLoader />
       </View>
     );
   }
@@ -1048,7 +1047,7 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
                 disabled={followLoading}
               >
                 {followLoading ? (
-                  <ActivityIndicator size="small" color={COLORS.piktag600} />
+                  <BrandSpinner size={20} />
                 ) : (
                   <Text style={styles.followButtonTextFollowing}>
                     {t('friendDetail.following')}
@@ -1064,7 +1063,7 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
                   style={[styles.followButton, { borderRadius: 12 }]}
                 >
                   {followLoading ? (
-                    <ActivityIndicator size="small" color="#fff" />
+                    <BrandSpinner size={20} />
                   ) : (
                     <Text style={styles.followButtonTextDefault}>
                       {t('friendDetail.follow')}
@@ -1080,7 +1079,7 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
               disabled={messageLoading}
             >
               {messageLoading ? (
-                <ActivityIndicator size="small" color={COLORS.gray700} />
+                <BrandSpinner size={20} />
               ) : (
                 <Text style={styles.messageButtonText}>{t('friendDetail.sendMessage')}</Text>
               )}

@@ -8,7 +8,6 @@ import {
   StyleSheet,
   StatusBar,
   Linking,
-  ActivityIndicator,
   Alert,
   Modal,
   Platform,
@@ -38,6 +37,8 @@ import OverlappingAvatars from '../components/OverlappingAvatars';
 import RingedAvatar from '../components/RingedAvatar';
 import HiddenTagEditor from '../components/HiddenTagEditor';
 import ErrorState from '../components/ErrorState';
+import PageLoader from '../components/loaders/PageLoader';
+import BrandSpinner from '../components/loaders/BrandSpinner';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
 import { useNetInfoReconnect } from '../hooks/useNetInfoReconnect';
@@ -860,9 +861,7 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
           <Text style={styles.headerUsername}>...</Text>
           <View style={styles.headerSpacer} />
         </View>
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={COLORS.piktag500} />
-        </View>
+        <PageLoader />
       </View>
     );
   }
@@ -1045,7 +1044,7 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
                 disabled={followLoading}
               >
                 {followLoading ? (
-                  <ActivityIndicator size="small" color={COLORS.piktag600} />
+                  <BrandSpinner size={20} />
                 ) : (
                   <Text style={styles.followButtonTextFollowing}>
                     {t('userDetail.following')}
@@ -1061,7 +1060,7 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
                   style={[styles.followButton, { borderRadius: 14 }]}
                 >
                   {followLoading ? (
-                    <ActivityIndicator size="small" color="#fff" />
+                    <BrandSpinner size={20} />
                   ) : (
                     <Text style={styles.followButtonTextDefault}>
                       {t('userDetail.follow')}
@@ -1078,7 +1077,7 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
                 disabled={messageLoading}
               >
                 {messageLoading ? (
-                  <ActivityIndicator size="small" color={COLORS.gray700} />
+                  <BrandSpinner size={20} />
                 ) : (
                   <Text style={styles.messageButtonText}>{t('userDetail.sendMessage')}</Text>
                 )}
