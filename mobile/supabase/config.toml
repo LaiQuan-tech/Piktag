@@ -23,3 +23,22 @@ verify_jwt = true
 
 [functions.suggest-tags]
 verify_jwt = true
+
+[functions.notification-recommendation]
+# pg_cron HTTP-POSTs this function with the service-role key as bearer
+# (in sb_secret_* format), which the platform JWT verifier rejects. The
+# function does its own auth check (CRON_SECRET or service_role_key)
+# so we disable platform verification here. Same pattern as send-chat-push.
+verify_jwt = false
+
+[functions.notification-tag-trending]
+verify_jwt = false
+
+[functions.notification-birthday]
+verify_jwt = false
+
+[functions.notification-anniversary]
+verify_jwt = false
+
+[functions.notification-contract-expiry]
+verify_jwt = false

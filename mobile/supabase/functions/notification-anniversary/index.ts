@@ -52,10 +52,19 @@ serve(async (req) => {
     return new Response('ok', { headers: corsHeaders });
   }
 
-  // 1. Auth gate — Authorization: Bearer <CRON_SECRET>, constant-time compare.
-  const expected = Deno.env.get('CRON_SECRET') ?? '';
+  // 1. Auth gate — accept either Authorization: Bearer <CRON_SECRET> (pg_cron)
+  //    or Authorization: Bearer <SUPABASE_SERVICE_ROLE_KEY> (vault-decrypted,
+  //    used by in-database SQL helpers). Constant-time compare for both.
+  const expectedCron = Deno.env.get('CRON_SECRET') ?? '';
+  const expectedServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
   const provided = (req.headers.get('authorization') ?? '').replace(/^Bearer\s+/i, '');
-  if (!expected || !provided || !timingSafeEqual(expected, provided)) {
+  const valid =
+    !!provided &&
+    (
+      (expectedCron.length > 0 && timingSafeEqual(provided, expectedCron)) ||
+      (expectedServiceKey.length > 0 && timingSafeEqual(provided, expectedServiceKey))
+    );
+  if (!valid) {
     return new Response('Forbidden', { status: 403 });
   }
 
