@@ -1,6 +1,8 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
 
+  "//": "Single root config for the pikt.ag landing + share-link API. Vercel builds Vite from landing/ (Root Directory in dashboard), serves landing/dist as static, treats landing/api/* as serverless functions.",
+
   "buildCommand": "npm ci && npm run build",
   "outputDirectory": "dist",
 
