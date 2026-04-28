@@ -294,6 +294,12 @@ function AskCreateModal({ visible, onClose, existingAsk, onCreated }: AskCreateM
   // to DB ids here — that happens on submit. This means a brand-new name the
   // AI invents (e.g. "App行銷北美") shows up as a chip and gets created in
   // piktag_tags only if the user keeps it selected and submits.
+  // AI cap: 3 suggestions max. The Edge Function may return up to 8 but
+  // showing more than 3 chips fights the user's ability to choose — every
+  // extra option adds friction without adding signal. Top 3 keeps the
+  // surface scannable.
+  const AI_SUGGESTION_CAP = 3;
+
   const suggestTagsForBody = useCallback(async (text: string) => {
     const trimmed = text.trim();
     if (trimmed.length < 5) {
@@ -312,7 +318,7 @@ function AskCreateModal({ visible, onClose, existingAsk, onCreated }: AskCreateM
             .map((n) => normalizeTagName(n))
             .filter((n): n is string => !!n),
         ),
-      );
+      ).slice(0, AI_SUGGESTION_CAP);
       setAiNames(normalized);
       // Default-select all AI suggestions, preserving any custom selections.
       setSelectedNames((prev) => {
@@ -481,35 +487,110 @@ function AskCreateModal({ visible, onClose, existingAsk, onCreated }: AskCreateM
         <Animated.View style={[modalStyles.sheet, { transform: [{ translateY: slideAnim }] }]}>
           <View style={modalStyles.handleBar} />
 
-          <Text style={modalStyles.title}>{t('ask.createTitle')}</Text>
-
-          {/* Body input */}
-          <TextInput
-            style={modalStyles.input}
-            value={body}
-            onChangeText={handleBodyChange}
-            placeholder={t('ask.bodyPlaceholder')}
-            placeholderTextColor={COLORS.gray400}
-            multiline
-            maxLength={MAX_BODY}
-            autoFocus
-          />
-          <Text style={modalStyles.charCount}>{body.length}/{MAX_BODY}</Text>
-
-          {/* AI-suggested tags + user-added custom tags. AI suggestions stay
-              in their own state slot so a re-fire (user keeps typing) doesn't
-              wipe custom-added names. Both sets render into the same chip
-              strip — the user doesn't need to know which came from where. */}
-          {aiLoading || aiNames.length > 0 || customNames.length > 0 ? (
+          {existingAsk ? (
+            // ── View + delete mode ──
+            // The user already has an active ask. Asks are immutable on
+            // purpose — to "edit", they delete and re-create. So this
+            // surface is read-only: show what their ask currently is,
+            // expose the delete CTA, nothing else. Two-step flow >
+            // ambiguous "delete + post" double-button row.
             <>
-              <Text style={modalStyles.sectionTitle}>{t('ask.aiSuggestions')}</Text>
-              {aiLoading && aiNames.length === 0 ? (
-                <View style={modalStyles.aiLoadingRow}>
-                  <BrandSpinner size={16} />
-                  <Text style={modalStyles.aiLoadingText}>{t('ask.generating')}</Text>
-                </View>
-              ) : (
-                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={modalStyles.tagScroll}>
+              <Text style={modalStyles.title}>{t('ask.yourAskTitle') || '你目前的 Ask'}</Text>
+
+              <View style={modalStyles.viewBodyWrap}>
+                <Text style={modalStyles.viewBody}>
+                  {existingAsk.title || existingAsk.body}
+                </Text>
+              </View>
+
+              {existingAsk.tag_names.length > 0 ? (
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  style={modalStyles.tagScroll}
+                >
+                  {existingAsk.tag_names.map((name) => (
+                    <View
+                      key={`view-${name}`}
+                      style={[modalStyles.tagChip, modalStyles.tagChipSelected]}
+                    >
+                      <Text style={[modalStyles.tagChipText, modalStyles.tagChipTextSelected]}>
+                        #{name}
+                      </Text>
+                    </View>
+                  ))}
+                </ScrollView>
+              ) : null}
+
+              <Text style={modalStyles.viewMeta}>
+                {t('ask.timeLeft', { hours: hoursLeft(existingAsk.expires_at) })}
+              </Text>
+
+              <TouchableOpacity
+                style={modalStyles.deleteBtnFull}
+                onPress={handleDelete}
+                disabled={saving}
+                activeOpacity={0.8}
+              >
+                {saving ? (
+                  <BrandSpinner size={20} />
+                ) : (
+                  <Text style={modalStyles.deleteBtnFullText}>{t('ask.deleteAsk')}</Text>
+                )}
+              </TouchableOpacity>
+            </>
+          ) : (
+            // ── Create mode ──
+            <>
+              <Text style={modalStyles.title}>{t('ask.createTitle')}</Text>
+
+              {/* Body input */}
+              <TextInput
+                style={modalStyles.input}
+                value={body}
+                onChangeText={handleBodyChange}
+                placeholder={t('ask.bodyPlaceholder')}
+                placeholderTextColor={COLORS.gray400}
+                multiline
+                maxLength={MAX_BODY}
+                autoFocus
+              />
+              <Text style={modalStyles.charCount}>{body.length}/{MAX_BODY}</Text>
+
+              {/* Manual AI trigger. The auto-debounce still fires 800ms after
+                  the user stops typing, but in practice the trigger felt
+                  invisible — users would type continuously and never see
+                  suggestions. An explicit button makes the cause-and-effect
+                  obvious and lets them re-roll if the first batch missed. */}
+              <TouchableOpacity
+                style={[
+                  modalStyles.aiTriggerBtn,
+                  (body.trim().length < 5 || aiLoading) && modalStyles.aiTriggerBtnDisabled,
+                ]}
+                onPress={() => suggestTagsForBody(body)}
+                disabled={body.trim().length < 5 || aiLoading}
+                activeOpacity={0.7}
+              >
+                {aiLoading ? (
+                  <>
+                    <BrandSpinner size={16} />
+                    <Text style={modalStyles.aiTriggerText}>{t('ask.generating')}</Text>
+                  </>
+                ) : (
+                  <Text style={modalStyles.aiTriggerText}>
+                    ✨ {t('ask.generateAiTags') || 'AI 生成標籤'}
+                  </Text>
+                )}
+              </TouchableOpacity>
+
+              {/* AI + custom tag chips. Same scroll strip; the user doesn't
+                  need to know which name came from where. */}
+              {aiNames.length > 0 || customNames.length > 0 ? (
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  style={modalStyles.tagScroll}
+                >
                   {[...aiNames, ...customNames].map((name) => (
                     <TouchableOpacity
                       key={`tag-${name}`}
@@ -523,59 +604,55 @@ function AskCreateModal({ visible, onClose, existingAsk, onCreated }: AskCreateM
                     </TouchableOpacity>
                   ))}
                 </ScrollView>
-              )}
-            </>
-          ) : null}
+              ) : null}
 
-          {/* Custom tag input — always present so the user can override or
-              augment AI suggestions. Submit on Enter or via the + button. */}
-          <View style={modalStyles.customRow}>
-            <TextInput
-              style={modalStyles.customInput}
-              value={customInput}
-              onChangeText={setCustomInput}
-              placeholder={t('ask.customTagPlaceholder')}
-              placeholderTextColor={COLORS.gray400}
-              maxLength={MAX_TAG_LEN}
-              returnKeyType="done"
-              onSubmitEditing={addCustomTag}
-              blurOnSubmit={false}
-            />
-            <TouchableOpacity
-              style={[modalStyles.customAddBtn, !customInput.trim() && modalStyles.customAddBtnDisabled]}
-              onPress={addCustomTag}
-              disabled={!customInput.trim()}
-              activeOpacity={0.7}
-            >
-              <Plus size={18} color="#fff" strokeWidth={2.5} />
-            </TouchableOpacity>
-          </View>
+              {/* Custom tag input */}
+              <View style={modalStyles.customRow}>
+                <TextInput
+                  style={modalStyles.customInput}
+                  value={customInput}
+                  onChangeText={setCustomInput}
+                  placeholder={t('ask.customTagPlaceholder')}
+                  placeholderTextColor={COLORS.gray400}
+                  maxLength={MAX_TAG_LEN}
+                  returnKeyType="done"
+                  onSubmitEditing={addCustomTag}
+                  blurOnSubmit={false}
+                />
+                <TouchableOpacity
+                  style={[modalStyles.customAddBtn, !customInput.trim() && modalStyles.customAddBtnDisabled]}
+                  onPress={addCustomTag}
+                  disabled={!customInput.trim()}
+                  activeOpacity={0.7}
+                >
+                  <Plus size={18} color="#fff" strokeWidth={2.5} />
+                </TouchableOpacity>
+              </View>
 
-          {/* Selection counter / hint */}
-          {selectedNames.size === 0 ? (
-            <Text style={modalStyles.aiHint}>{t('ask.minOneTag')}</Text>
-          ) : null}
+              {/* Selection counter / hint */}
+              {selectedNames.size === 0 ? (
+                <Text style={modalStyles.aiHint}>{t('ask.minOneTag')}</Text>
+              ) : null}
 
-          {/* Actions */}
-          <View style={modalStyles.actions}>
-            {existingAsk && (
-              <TouchableOpacity style={modalStyles.deleteBtn} onPress={handleDelete} disabled={saving}>
-                <Text style={modalStyles.deleteBtnText}>{t('ask.deleteAsk')}</Text>
+              {/* Single submit button — delete now belongs to view mode
+                  above and never appears alongside post. */}
+              <TouchableOpacity
+                style={[
+                  modalStyles.submitBtnFull,
+                  (!body.trim() || selectedNames.size === 0) && modalStyles.submitBtnDisabled,
+                ]}
+                onPress={handleSubmit}
+                disabled={saving || !body.trim() || selectedNames.size === 0}
+                activeOpacity={0.8}
+              >
+                {saving ? (
+                  <BrandSpinner size={20} />
+                ) : (
+                  <Text style={modalStyles.submitBtnText}>{t('ask.postAsk')}</Text>
+                )}
               </TouchableOpacity>
-            )}
-            <TouchableOpacity
-              style={[modalStyles.submitBtn, (!body.trim() || selectedNames.size === 0) && modalStyles.submitBtnDisabled]}
-              onPress={handleSubmit}
-              disabled={saving || !body.trim() || selectedNames.size === 0}
-              activeOpacity={0.8}
-            >
-              {saving ? (
-                <BrandSpinner size={20} />
-              ) : (
-                <Text style={modalStyles.submitBtnText}>{t('ask.postAsk')}</Text>
-              )}
-            </TouchableOpacity>
-          </View>
+            </>
+          )}
         </Animated.View>
       </KeyboardAvoidingView>
     </Modal>
@@ -705,16 +782,65 @@ const modalStyles = StyleSheet.create({
     backgroundColor: COLORS.piktag500,
   },
   customAddBtnDisabled: { opacity: 0.4 },
-  actions: { flexDirection: 'row', gap: 12 },
-  deleteBtn: {
-    flex: 1, borderRadius: 12, paddingVertical: 14,
-    alignItems: 'center', borderWidth: 2, borderColor: COLORS.gray200,
+  // Manual AI trigger — soft pill above the chip strip. Inline-row so the
+  // spinner sits next to the label when loading.
+  aiTriggerBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    backgroundColor: COLORS.piktag50,
+    borderRadius: 20,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    alignSelf: 'flex-start',
+    marginBottom: 12,
   },
-  deleteBtnText: { fontSize: 15, fontWeight: '700', color: COLORS.gray700 },
-  submitBtn: {
-    flex: 2, borderRadius: 12, paddingVertical: 14,
-    alignItems: 'center', backgroundColor: COLORS.piktag500,
+  aiTriggerBtnDisabled: { opacity: 0.5 },
+  aiTriggerText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: COLORS.piktag600,
+  },
+  // View-mode (existing ask) styles
+  viewBodyWrap: {
+    backgroundColor: COLORS.gray50,
+    borderRadius: 12,
+    padding: 14,
+    marginBottom: 12,
+  },
+  viewBody: {
+    fontSize: 15,
+    color: COLORS.gray900,
+    lineHeight: 22,
+  },
+  viewMeta: {
+    fontSize: 12,
+    color: COLORS.gray500,
+    marginBottom: 16,
+  },
+  // Full-width single-button variants — used when the modal is in either
+  // pure create (post only) or pure view (delete only) mode.
+  submitBtnFull: {
+    width: '100%',
+    borderRadius: 12,
+    paddingVertical: 14,
+    alignItems: 'center',
+    backgroundColor: COLORS.piktag500,
   },
   submitBtnDisabled: { opacity: 0.5 },
   submitBtnText: { fontSize: 15, fontWeight: '700', color: '#fff' },
+  deleteBtnFull: {
+    width: '100%',
+    borderRadius: 12,
+    paddingVertical: 14,
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: COLORS.gray200,
+  },
+  deleteBtnFullText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: COLORS.gray700,
+  },
 });

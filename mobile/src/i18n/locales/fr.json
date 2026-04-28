@@ -921,7 +921,9 @@
     "aiSuggestions": "Suggestions IA",
     "customTagPlaceholder": "Ajouter une étiquette",
     "cardLabel": "À la recherche",
-    "askingNow": "Demande en cours"
+    "askingNow": "Demande en cours",
+    "yourAskTitle": "Votre Ask actuel",
+    "generateAiTags": "Générer des tags IA"
   },
   "errorBoundary": {
     "title": "Une erreur est survenue",

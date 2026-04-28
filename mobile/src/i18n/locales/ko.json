@@ -921,7 +921,9 @@
     "aiSuggestions": "AI 추천",
     "customTagPlaceholder": "커스텀 태그 추가",
     "cardLabel": "도움 요청",
-    "askingNow": "지금 요청 중"
+    "askingNow": "지금 요청 중",
+    "yourAskTitle": "현재 Ask",
+    "generateAiTags": "AI 태그 생성"
   },
   "errorBoundary": {
     "title": "문제가 발생했습니다",

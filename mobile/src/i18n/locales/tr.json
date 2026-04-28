@@ -921,7 +921,9 @@
     "aiSuggestions": "Yapay zeka önerileri",
     "customTagPlaceholder": "Özel etiket ekle",
     "cardLabel": "Aranıyor",
-    "askingNow": "Şu an arıyor"
+    "askingNow": "Şu an arıyor",
+    "yourAskTitle": "Aktif Ask’in",
+    "generateAiTags": "Yapay zeka etiketi üret"
   },
   "errorBoundary": {
     "title": "Bir şeyler ters gitti",

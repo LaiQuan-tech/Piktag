@@ -921,7 +921,9 @@
     "aiSuggestions": "คำแนะนำจาก AI",
     "customTagPlaceholder": "เพิ่มแท็กของคุณ",
     "cardLabel": "กำลังหา",
-    "askingNow": "กำลังขอความช่วยเหลือ"
+    "askingNow": "กำลังขอความช่วยเหลือ",
+    "yourAskTitle": "Ask ของคุณ",
+    "generateAiTags": "สร้างแท็กด้วย AI"
   },
   "errorBoundary": {
     "title": "เกิดข้อผิดพลาด",

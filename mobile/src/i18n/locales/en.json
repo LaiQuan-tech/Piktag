@@ -1004,7 +1004,9 @@
     "aiSuggestions": "AI suggestions",
     "customTagPlaceholder": "Add custom tag",
     "cardLabel": "Looking for",
-    "askingNow": "Currently asking"
+    "askingNow": "Currently asking",
+    "yourAskTitle": "Your active Ask",
+    "generateAiTags": "Generate AI tags"
   },
   "errorBoundary": {
     "title": "Something went wrong",

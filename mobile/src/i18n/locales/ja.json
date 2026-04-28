@@ -921,7 +921,9 @@
     "aiSuggestions": "AI 提案",
     "customTagPlaceholder": "カスタムタグを追加",
     "cardLabel": "助けて",
-    "askingNow": "現在募集中"
+    "askingNow": "現在募集中",
+    "yourAskTitle": "現在のAsk",
+    "generateAiTags": "AIでタグ生成"
   },
   "errorBoundary": {
     "title": "問題が発生しました",

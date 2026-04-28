@@ -921,7 +921,9 @@
     "aiSuggestions": "Saran AI",
     "customTagPlaceholder": "Tambah tag kustom",
     "cardLabel": "Mencari",
-    "askingNow": "Sedang mencari"
+    "askingNow": "Sedang mencari",
+    "yourAskTitle": "Ask aktif kamu",
+    "generateAiTags": "Buat tag AI"
   },
   "errorBoundary": {
     "title": "Terjadi kesalahan",

@@ -921,7 +921,9 @@
     "aiSuggestions": "اقتراحات الذكاء الاصطناعي",
     "customTagPlaceholder": "أضف وسماً مخصصاً",
     "cardLabel": "يبحث عن",
-    "askingNow": "يطلبون الآن"
+    "askingNow": "يطلبون الآن",
+    "yourAskTitle": "Ask النشط",
+    "generateAiTags": "توليد وسوم بالذكاء"
   },
   "errorBoundary": {
     "title": "حدث خطأ ما",

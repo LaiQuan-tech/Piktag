@@ -921,7 +921,9 @@
     "aiSuggestions": "AI পরামর্শ",
     "customTagPlaceholder": "কাস্টম ট্যাগ যোগ করুন",
     "cardLabel": "সাহায্য চাইছি",
-    "askingNow": "এখন চাইছেন"
+    "askingNow": "এখন চাইছেন",
+    "yourAskTitle": "আপনার বর্তমান Ask",
+    "generateAiTags": "AI ট্যাগ তৈরি করুন"
   },
   "errorBoundary": {
     "title": "কিছু ভুল হয়েছে",

@@ -921,7 +921,9 @@
     "aiSuggestions": "Подсказки ИИ",
     "customTagPlaceholder": "Добавить тег",
     "cardLabel": "Ищу",
-    "askingNow": "Просят сейчас"
+    "askingNow": "Просят сейчас",
+    "yourAskTitle": "Ваш активный Ask",
+    "generateAiTags": "Сгенерировать ИИ-теги"
   },
   "errorBoundary": {
     "title": "Что-то пошло не так",

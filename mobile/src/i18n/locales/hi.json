@@ -921,7 +921,9 @@
     "aiSuggestions": "AI सुझाव",
     "customTagPlaceholder": "कस्टम टैग जोड़ें",
     "cardLabel": "मदद चाहिए",
-    "askingNow": "अभी पूछ रहे हैं"
+    "askingNow": "अभी पूछ रहे हैं",
+    "yourAskTitle": "आपका वर्तमान Ask",
+    "generateAiTags": "AI टैग बनाएं"
   },
   "errorBoundary": {
     "title": "कुछ गड़बड़ हो गई",

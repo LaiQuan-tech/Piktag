@@ -921,7 +921,9 @@
     "aiSuggestions": "Sugestões de IA",
     "customTagPlaceholder": "Adicionar tag personalizada",
     "cardLabel": "Pedindo ajuda",
-    "askingNow": "Pedindo agora"
+    "askingNow": "Pedindo agora",
+    "yourAskTitle": "Seu Ask atual",
+    "generateAiTags": "Gerar tags com IA"
   },
   "errorBoundary": {
     "title": "Algo deu errado",

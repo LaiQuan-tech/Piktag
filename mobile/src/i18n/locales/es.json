@@ -921,7 +921,9 @@
     "aiSuggestions": "Sugerencias de IA",
     "customTagPlaceholder": "Añadir etiqueta personalizada",
     "cardLabel": "Buscando",
-    "askingNow": "Solicitando ahora"
+    "askingNow": "Solicitando ahora",
+    "yourAskTitle": "Tu Ask actual",
+    "generateAiTags": "Generar etiquetas IA"
   },
   "errorBoundary": {
     "title": "Algo salió mal",
