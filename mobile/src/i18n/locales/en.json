@@ -280,7 +280,6 @@
     "editProfile": "Edit Profile",
     "manageTags": "Manage My Tags",
     "noContactMethods": "No contact methods",
-    "statusTooltip": "Tap to set status",
     "contactInfoTitle": "Contact",
     "phoneLabel": "Phone",
     "emailLabel": "Email",
@@ -917,7 +916,9 @@
     "generating": "Generating title…",
     "minOneTag": "Select at least one tag",
     "aiSuggestions": "AI suggestions",
-    "customTagPlaceholder": "Add custom tag"
+    "customTagPlaceholder": "Add custom tag",
+    "cardLabel": "Looking for",
+    "askingNow": "Currently asking"
   },
   "errorBoundary": {
     "title": "Something went wrong",

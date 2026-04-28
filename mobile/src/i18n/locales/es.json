@@ -274,7 +274,6 @@
     "editProfile": "Editar perfil",
     "manageTags": "Gestionar mis etiquetas",
     "noContactMethods": "Sin métodos de contacto",
-    "statusTooltip": "Toca para fijar tu estado",
     "contactInfoTitle": "Contacto",
     "phoneLabel": "Teléfono",
     "emailLabel": "Correo",
@@ -911,7 +910,9 @@
     "generating": "Generating title…",
     "minOneTag": "Select at least one tag",
     "aiSuggestions": "Sugerencias de IA",
-    "customTagPlaceholder": "Añadir etiqueta personalizada"
+    "customTagPlaceholder": "Añadir etiqueta personalizada",
+    "cardLabel": "Buscando",
+    "askingNow": "Solicitando ahora"
   },
   "errorBoundary": {
     "title": "Algo salió mal",

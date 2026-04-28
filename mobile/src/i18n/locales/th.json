@@ -274,7 +274,6 @@
     "editProfile": "แก้ไขโปรไฟล์",
     "manageTags": "จัดการแท็กของฉัน",
     "noContactMethods": "ไม่มีช่องทางติดต่อ",
-    "statusTooltip": "แตะเพื่อตั้งสถานะ",
     "contactInfoTitle": "ติดต่อ",
     "phoneLabel": "โทรศัพท์",
     "emailLabel": "อีเมล",
@@ -911,7 +910,9 @@
     "generating": "Generating title…",
     "minOneTag": "Select at least one tag",
     "aiSuggestions": "คำแนะนำจาก AI",
-    "customTagPlaceholder": "เพิ่มแท็กของคุณ"
+    "customTagPlaceholder": "เพิ่มแท็กของคุณ",
+    "cardLabel": "กำลังหา",
+    "askingNow": "กำลังขอความช่วยเหลือ"
   },
   "errorBoundary": {
     "title": "เกิดข้อผิดพลาด",

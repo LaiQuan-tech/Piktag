@@ -274,7 +274,6 @@
     "editProfile": "Edit Profil",
     "manageTags": "Kelola Tag Saya",
     "noContactMethods": "Tidak ada metode kontak",
-    "statusTooltip": "Ketuk untuk mengatur status",
     "contactInfoTitle": "Kontak",
     "phoneLabel": "Telepon",
     "emailLabel": "Email",
@@ -911,7 +910,9 @@
     "generating": "Generating title…",
     "minOneTag": "Select at least one tag",
     "aiSuggestions": "Saran AI",
-    "customTagPlaceholder": "Tambah tag kustom"
+    "customTagPlaceholder": "Tambah tag kustom",
+    "cardLabel": "Mencari",
+    "askingNow": "Sedang mencari"
   },
   "errorBoundary": {
     "title": "Terjadi kesalahan",

@@ -274,7 +274,6 @@
     "editProfile": "प्रोफ़ाइल संपादित करें",
     "manageTags": "मेरे टैग प्रबंधित करें",
     "noContactMethods": "संपर्क का कोई तरीक़ा नहीं",
-    "statusTooltip": "स्थिति सेट करने के लिए टैप करें",
     "contactInfoTitle": "संपर्क",
     "phoneLabel": "फ़ोन",
     "emailLabel": "ईमेल",
@@ -911,7 +910,9 @@
     "generating": "Generating title…",
     "minOneTag": "Select at least one tag",
     "aiSuggestions": "AI सुझाव",
-    "customTagPlaceholder": "कस्टम टैग जोड़ें"
+    "customTagPlaceholder": "कस्टम टैग जोड़ें",
+    "cardLabel": "मदद चाहिए",
+    "askingNow": "अभी पूछ रहे हैं"
   },
   "errorBoundary": {
     "title": "कुछ गड़बड़ हो गई",

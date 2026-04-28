@@ -274,7 +274,6 @@
     "editProfile": "Modifier le profil",
     "manageTags": "Gérer mes tags",
     "noContactMethods": "Aucune méthode de contact",
-    "statusTooltip": "Touchez pour définir le statut",
     "contactInfoTitle": "Contact",
     "phoneLabel": "Téléphone",
     "emailLabel": "E-mail",
@@ -911,7 +910,9 @@
     "generating": "Generating title…",
     "minOneTag": "Select at least one tag",
     "aiSuggestions": "Suggestions IA",
-    "customTagPlaceholder": "Ajouter une étiquette"
+    "customTagPlaceholder": "Ajouter une étiquette",
+    "cardLabel": "À la recherche",
+    "askingNow": "Demande en cours"
   },
   "errorBoundary": {
     "title": "Une erreur est survenue",

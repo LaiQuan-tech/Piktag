@@ -283,7 +283,6 @@
     "editProfile": "編輯資訊",
     "manageTags": "管理我的標籤",
     "noContactMethods": "尚無聯繫方式",
-    "statusTooltip": "點我寫便利貼",
     "contactInfoTitle": "聯絡方式",
     "phoneLabel": "電話",
     "emailLabel": "Email",
@@ -924,7 +923,9 @@
     "generating": "產生標題中…",
     "minOneTag": "至少選一個標籤",
     "aiSuggestions": "AI 建議",
-    "customTagPlaceholder": "輸入自定義標籤"
+    "customTagPlaceholder": "輸入自定義標籤",
+    "cardLabel": "求助中",
+    "askingNow": "正在求助"
   },
   "errorBoundary": {
     "title": "發生錯誤",

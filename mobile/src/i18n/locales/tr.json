@@ -274,7 +274,6 @@
     "editProfile": "Profili Düzenle",
     "manageTags": "Etiketlerimi Yönet",
     "noContactMethods": "İletişim yöntemi yok",
-    "statusTooltip": "Durum ayarlamak için dokunun",
     "contactInfoTitle": "İletişim",
     "phoneLabel": "Telefon",
     "emailLabel": "E-posta",
@@ -911,7 +910,9 @@
     "generating": "Generating title…",
     "minOneTag": "Select at least one tag",
     "aiSuggestions": "Yapay zeka önerileri",
-    "customTagPlaceholder": "Özel etiket ekle"
+    "customTagPlaceholder": "Özel etiket ekle",
+    "cardLabel": "Aranıyor",
+    "askingNow": "Şu an arıyor"
   },
   "errorBoundary": {
     "title": "Bir şeyler ters gitti",

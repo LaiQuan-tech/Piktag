@@ -274,7 +274,6 @@
     "editProfile": "プロフィールを編集",
     "manageTags": "タグを管理",
     "noContactMethods": "連絡方法がありません",
-    "statusTooltip": "タップしてステータスを設定",
     "contactInfoTitle": "連絡先",
     "phoneLabel": "電話",
     "emailLabel": "メール",
@@ -911,7 +910,9 @@
     "generating": "タイトル生成中…",
     "minOneTag": "タグを1つ以上選択してください",
     "aiSuggestions": "AI 提案",
-    "customTagPlaceholder": "カスタムタグを追加"
+    "customTagPlaceholder": "カスタムタグを追加",
+    "cardLabel": "助けて",
+    "askingNow": "現在募集中"
   },
   "errorBoundary": {
     "title": "問題が発生しました",

@@ -15,6 +15,7 @@ import { useTranslation } from 'react-i18next';
 import { COLORS } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
 import RingedAvatar from '../components/RingedAvatar';
+import AskListByTag from '../components/ask/AskListByTag';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
 
@@ -404,6 +405,21 @@ export default function TagDetailScreen({ navigation, route }: TagDetailScreenPr
   const currentLoading = isConnectionsTab ? loading : exploreLoading;
   const currentData = isConnectionsTab ? connections : exploreUsers;
 
+  // Active asks tagged with this tag — surfaces "who is currently
+  // asking about #X" above the user list. Auto-hides when there are
+  // none. Same render on both tabs so the discovery moment doesn't
+  // disappear when the user toggles 追蹤 / 探索.
+  const handleAskAuthorPress = useCallback(
+    (userId: string) => {
+      navigation.navigate('UserDetail', { userId });
+    },
+    [navigation],
+  );
+  const asksHeader = useMemo(
+    () => (tagId ? <AskListByTag tagId={tagId} onPressAsk={handleAskAuthorPress} /> : null),
+    [tagId, handleAskAuthorPress],
+  );
+
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
       <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={colors.white} />
@@ -503,6 +519,7 @@ export default function TagDetailScreen({ navigation, route }: TagDetailScreenPr
           data={connections}
           renderItem={renderConnectionItem}
           keyExtractor={connectionKeyExtractor}
+          ListHeaderComponent={asksHeader}
           contentContainerStyle={[
             styles.listContent,
             connections.length === 0 && styles.listContentEmpty,
@@ -524,6 +541,7 @@ export default function TagDetailScreen({ navigation, route }: TagDetailScreenPr
           data={exploreUsers}
           renderItem={renderExploreItem}
           keyExtractor={exploreKeyExtractor}
+          ListHeaderComponent={asksHeader}
           contentContainerStyle={[
             styles.listContent,
             exploreUsers.length === 0 && styles.listContentEmpty,

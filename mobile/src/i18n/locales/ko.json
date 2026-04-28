@@ -274,7 +274,6 @@
     "editProfile": "프로필 편집",
     "manageTags": "내 태그 관리",
     "noContactMethods": "연락 수단이 없습니다",
-    "statusTooltip": "탭하여 상태 설정",
     "contactInfoTitle": "연락처",
     "phoneLabel": "전화",
     "emailLabel": "이메일",
@@ -911,7 +910,9 @@
     "generating": "제목 생성 중…",
     "minOneTag": "태그를 1개 이상 선택하세요",
     "aiSuggestions": "AI 추천",
-    "customTagPlaceholder": "커스텀 태그 추가"
+    "customTagPlaceholder": "커스텀 태그 추가",
+    "cardLabel": "도움 요청",
+    "askingNow": "지금 요청 중"
   },
   "errorBoundary": {
     "title": "문제가 발생했습니다",

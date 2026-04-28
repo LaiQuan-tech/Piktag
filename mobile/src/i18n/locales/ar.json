@@ -274,7 +274,6 @@
     "editProfile": "تعديل الملف الشخصي",
     "manageTags": "إدارة وسومي",
     "noContactMethods": "لا توجد وسائل تواصل",
-    "statusTooltip": "اضغط لتعيين الحالة",
     "contactInfoTitle": "التواصل",
     "phoneLabel": "الهاتف",
     "emailLabel": "البريد الإلكتروني",
@@ -911,7 +910,9 @@
     "generating": "Generating title…",
     "minOneTag": "Select at least one tag",
     "aiSuggestions": "اقتراحات الذكاء الاصطناعي",
-    "customTagPlaceholder": "أضف وسماً مخصصاً"
+    "customTagPlaceholder": "أضف وسماً مخصصاً",
+    "cardLabel": "يبحث عن",
+    "askingNow": "يطلبون الآن"
   },
   "errorBoundary": {
     "title": "حدث خطأ ما",

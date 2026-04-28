@@ -9,9 +9,7 @@ import {
   StatusBar,
   Linking,
   RefreshControl,
-  Animated,
 } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   Settings,
@@ -32,7 +30,7 @@ import { getCache, setCache, CACHE_KEYS } from '../lib/dataCache';
 import QrCodeModal from '../components/QrCodeModal';
 import RingedAvatar from '../components/RingedAvatar';
 import { ProfileScreenSkeleton } from '../components/SkeletonLoader';
-import StatusModal from '../components/StatusModal';
+import UserAskCard from '../components/ask/UserAskCard';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { PiktagProfile, UserTag, Biolink } from '../types';
 
@@ -108,10 +106,6 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [qrVisible, setQrVisible] = useState(false);
-  const [currentStatus, setCurrentStatus] = useState<string | null>(null);
-  const [statusModalVisible, setStatusModalVisible] = useState(false);
-  const [showTooltip, setShowTooltip] = useState(false);
-  const tooltipOpacity = useRef(new Animated.Value(0)).current;
 
   // --- Data fetching ---
 
@@ -159,21 +153,6 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
     if (!error && data) setBiolinks(data as Biolink[]);
   }, [userId]);
 
-  const fetchStatus = useCallback(async () => {
-    if (!userId) return;
-    // `.maybeSingle()` — a user who hasn't set a status has zero rows
-    // here. `.single()` would throw "PGRST116" and spam Sentry.
-    const { data } = await supabase
-      .from('piktag_user_status')
-      .select('text')
-      .eq('user_id', userId)
-      .gt('expires_at', new Date().toISOString())
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .maybeSingle();
-    setCurrentStatus(data?.text ?? null);
-  }, [userId]);
-
   const fetchFollowerCount = useCallback(async () => {
     if (!userId) return;
     const { count, error } = await supabase
@@ -193,12 +172,12 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
   }, [userId]);
 
   const fetchAllData = useCallback(async () => {
-    await Promise.all([fetchProfile(), fetchUserTags(), fetchBiolinks(), fetchFollowerCount(), fetchFriendCount(), fetchStatus()]);
-  }, [fetchProfile, fetchUserTags, fetchBiolinks, fetchFollowerCount, fetchFriendCount, fetchStatus]);
+    await Promise.all([fetchProfile(), fetchUserTags(), fetchBiolinks(), fetchFollowerCount(), fetchFriendCount()]);
+  }, [fetchProfile, fetchUserTags, fetchBiolinks, fetchFollowerCount, fetchFriendCount]);
 
-  // Persist the six state slices to the in-memory dataCache so that
+  // Persist the five state slices to the in-memory dataCache so that
   // re-entering ProfileScreen within the TTL window paints instantly
-  // instead of waiting for 6 queries. The effect is gated on state
+  // instead of waiting for 5 queries. The effect is gated on state
   // actually being present to avoid caching an intermediate blank.
   useEffect(() => {
     if (!userId) return;
@@ -209,9 +188,8 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
       biolinks,
       followerCount,
       friendCount,
-      currentStatus,
     });
-  }, [userId, profile, userTags, biolinks, followerCount, friendCount, currentStatus]);
+  }, [userId, profile, userTags, biolinks, followerCount, friendCount]);
 
   useEffect(() => {
     let isMounted = true;
@@ -224,7 +202,6 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
         biolinks: Biolink[];
         followerCount: number;
         friendCount: number;
-        currentStatus: string | null;
       }>(CACHE_KEYS.PROFILE);
 
       if (cached) {
@@ -233,7 +210,6 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
         setBiolinks(cached.biolinks);
         setFollowerCount(cached.followerCount);
         setFriendCount(cached.friendCount);
-        setCurrentStatus(cached.currentStatus);
         setLoading(false);
       } else {
         setLoading(true);
@@ -245,21 +221,6 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
     load();
     return () => { isMounted = false; };
   }, [fetchAllData]);
-
-  // Tooltip
-  useEffect(() => {
-    AsyncStorage.getItem('status_tooltip_seen').then((seen) => {
-      if (!seen) {
-        setShowTooltip(true);
-        Animated.timing(tooltipOpacity, { toValue: 1, duration: 300, useNativeDriver: true }).start();
-        const timer = setTimeout(() => {
-          Animated.timing(tooltipOpacity, { toValue: 0, duration: 400, useNativeDriver: true }).start(() => setShowTooltip(false));
-          AsyncStorage.setItem('status_tooltip_seen', '1');
-        }, 3000);
-        return () => clearTimeout(timer);
-      }
-    });
-  }, [tooltipOpacity]);
 
   // Refetch on focus
   const lastFocusFetchRef = useRef(0);
@@ -342,23 +303,18 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
         <View style={styles.profileSection}>
           {/* Avatar + Name/Username */}
           <View style={styles.profileRow}>
-            <View>
-              <RingedAvatar
-                size={68}
-                ringStyle="gradient"
-                badge="pencil"
-                name={profile?.full_name || profile?.username || ''}
-                avatarUrl={profile?.avatar_url}
-                onPress={handleNavigateEditProfile}
-                accessibilityLabel="編輯個人檔案"
-              />
-              {showTooltip && (
-                <Animated.View style={[styles.tooltip, { opacity: tooltipOpacity }]}>
-                  <Text style={styles.tooltipText}>{t('profile.statusTooltip')}</Text>
-                  <View style={styles.tooltipArrow} />
-                </Animated.View>
-              )}
-            </View>
+            {/* Pencil-badge ring taps straight into EditProfile — the
+                legacy status-note flow is gone. RingedAvatar handles the
+                avatar / initials fallback internally. */}
+            <RingedAvatar
+              size={68}
+              ringStyle="gradient"
+              badge="pencil"
+              name={profile?.full_name || profile?.username || ''}
+              avatarUrl={profile?.avatar_url}
+              onPress={handleNavigateEditProfile}
+              accessibilityLabel="編輯個人檔案"
+            />
             <View style={styles.nameSection}>
               <View style={styles.nameRow}>
                 <Text style={styles.displayName}>{headerTitle}</Text>
@@ -432,6 +388,11 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
           </View>
         </View>
 
+        {/* Active Ask card — auto-hides when the user has none. Placed
+            after the profile header so it sits in the same column rhythm
+            as Section 2/3 below. */}
+        <UserAskCard userId={userId} />
+
         {/* ============ SECTION 2: Icon 並排區 (display_mode = 'icon') ============ */}
         {activeBiolinks.filter(bl => bl.display_mode === 'icon' || bl.display_mode === 'both').length > 0 && (
           <View style={styles.iconRow}>
@@ -479,13 +440,6 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
           </View>
         )}
       </ScrollView>
-
-      <StatusModal
-        visible={statusModalVisible}
-        onClose={() => setStatusModalVisible(false)}
-        initialText={currentStatus}
-        onStatusUpdated={(text) => setCurrentStatus(text)}
-      />
     </SafeAreaView>
   );
 }
@@ -554,38 +508,6 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '700',
     color: COLORS.gray900,
-  },
-  tooltip: {
-    position: 'absolute',
-    bottom: -38,
-    left: '50%',
-    transform: [{ translateX: -52 }],
-    backgroundColor: COLORS.gray900,
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    width: 104,
-    alignItems: 'center',
-    zIndex: 10,
-  },
-  tooltipText: {
-    color: COLORS.white,
-    fontSize: 11,
-    fontWeight: '500',
-  },
-  tooltipArrow: {
-    position: 'absolute',
-    top: -5,
-    left: '50%',
-    transform: [{ translateX: -5 }],
-    width: 0,
-    height: 0,
-    borderLeftWidth: 5,
-    borderRightWidth: 5,
-    borderBottomWidth: 5,
-    borderLeftColor: 'transparent',
-    borderRightColor: 'transparent',
-    borderBottomColor: COLORS.gray900,
   },
   usernameRow: {
     flexDirection: 'row',

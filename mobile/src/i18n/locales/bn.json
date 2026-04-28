@@ -274,7 +274,6 @@
     "editProfile": "প্রোফাইল এডিট করুন",
     "manageTags": "আমার ট্যাগ পরিচালনা",
     "noContactMethods": "যোগাযোগের কোনো উপায় নেই",
-    "statusTooltip": "স্ট্যাটাস সেট করতে ট্যাপ করুন",
     "contactInfoTitle": "যোগাযোগ",
     "phoneLabel": "ফোন",
     "emailLabel": "ইমেইল",
@@ -911,7 +910,9 @@
     "generating": "Generating title…",
     "minOneTag": "Select at least one tag",
     "aiSuggestions": "AI পরামর্শ",
-    "customTagPlaceholder": "কাস্টম ট্যাগ যোগ করুন"
+    "customTagPlaceholder": "কাস্টম ট্যাগ যোগ করুন",
+    "cardLabel": "সাহায্য চাইছি",
+    "askingNow": "এখন চাইছেন"
   },
   "errorBoundary": {
     "title": "কিছু ভুল হয়েছে",

@@ -274,7 +274,6 @@
     "editProfile": "Редактировать профиль",
     "manageTags": "Управление тегами",
     "noContactMethods": "Нет способов связи",
-    "statusTooltip": "Нажми, чтобы установить статус",
     "contactInfoTitle": "Контакты",
     "phoneLabel": "Телефон",
     "emailLabel": "Email",
@@ -911,7 +910,9 @@
     "generating": "Generating title…",
     "minOneTag": "Select at least one tag",
     "aiSuggestions": "Подсказки ИИ",
-    "customTagPlaceholder": "Добавить тег"
+    "customTagPlaceholder": "Добавить тег",
+    "cardLabel": "Ищу",
+    "askingNow": "Просят сейчас"
   },
   "errorBoundary": {
     "title": "Что-то пошло не так",

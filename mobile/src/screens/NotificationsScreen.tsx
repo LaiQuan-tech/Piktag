@@ -20,6 +20,8 @@ import { useTheme } from '../context/ThemeContext';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
 import { useChatUnread } from '../hooks/useChatUnread';
+import { useAskFeed } from '../hooks/useAskFeed';
+import AskStoryRow from '../components/ask/AskStoryRow';
 import { getCache, setCache, CACHE_KEYS } from '../lib/dataCache';
 import type { Notification } from '../types';
 import { SkeletonBox } from '../components/SkeletonLoader';
@@ -182,6 +184,36 @@ export default function NotificationsScreen({ navigation }: NotificationsScreenP
   const { colors, isDark } = useTheme();
   const { user } = useAuth();
   const { total: chatUnread } = useChatUnread();
+  const { asks: askFeedItems, myAsk: myActiveAsk, refresh: refreshAsks } = useAskFeed();
+
+  // Lightweight self-profile fetch for the AskStoryRow's first card.
+  // Mirrors the pattern in ConnectionsScreen — same shape, same query.
+  const [myProfile, setMyProfile] = useState<{ full_name: string | null; avatar_url: string | null }>({
+    full_name: null,
+    avatar_url: null,
+  });
+  useEffect(() => {
+    if (!user) return;
+    supabase
+      .from('piktag_profiles')
+      .select('full_name, avatar_url')
+      .eq('id', user.id)
+      .single()
+      .then(({ data }) => {
+        if (data) setMyProfile(data);
+      });
+  }, [user]);
+
+  // UserDetail / FriendDetail live at the root stack, so a flat navigate()
+  // from this tab pops the tab stack and lands on the detail screen.
+  // We don't have the connection list here to disambiguate friend vs
+  // stranger, so always go to UserDetail — it already handles both cases.
+  const handleAskPressUser = useCallback(
+    (userId: string) => {
+      navigation?.navigate('UserDetail', { userId });
+    },
+    [navigation],
+  );
 
   const TAB_LABELS: Record<NotificationTab, string> = useMemo(
     () => ({
@@ -465,6 +497,19 @@ export default function NotificationsScreen({ navigation }: NotificationsScreenP
           ) : null}
         </TouchableOpacity>
       </View>
+
+      {/* Ask Feed — same component used on the Connections (Home) screen.
+          Sits above the tab switcher so it stays visible regardless of
+          which notification tab the user is on. Tapping an avatar opens
+          the author's UserDetail screen. */}
+      <AskStoryRow
+        asks={askFeedItems}
+        myAsk={myActiveAsk}
+        myAvatarUrl={myProfile.avatar_url}
+        myName={myProfile.full_name || '?'}
+        onRefresh={refreshAsks}
+        onPressUser={handleAskPressUser}
+      />
 
       {/* Tab Switcher */}
       <View style={styles.tabContainer}>

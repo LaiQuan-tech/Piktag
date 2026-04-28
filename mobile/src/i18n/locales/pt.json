@@ -274,7 +274,6 @@
     "editProfile": "Editar perfil",
     "manageTags": "Gerenciar minhas tags",
     "noContactMethods": "Sem métodos de contato",
-    "statusTooltip": "Toque para definir status",
     "contactInfoTitle": "Contato",
     "phoneLabel": "Telefone",
     "emailLabel": "E-mail",
@@ -911,7 +910,9 @@
     "generating": "Generating title…",
     "minOneTag": "Select at least one tag",
     "aiSuggestions": "Sugestões de IA",
-    "customTagPlaceholder": "Adicionar tag personalizada"
+    "customTagPlaceholder": "Adicionar tag personalizada",
+    "cardLabel": "Pedindo ajuda",
+    "askingNow": "Pedindo agora"
   },
   "errorBoundary": {
     "title": "Algo deu errado",

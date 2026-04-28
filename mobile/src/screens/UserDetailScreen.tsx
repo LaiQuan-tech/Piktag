@@ -41,6 +41,7 @@ import ErrorState from '../components/ErrorState';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
 import { useNetInfoReconnect } from '../hooks/useNetInfoReconnect';
+import UserAskCard from '../components/ask/UserAskCard';
 import type { PiktagProfile, Biolink } from '../types';
 import { getViewerRelation, filterBiolinksByVisibility } from '../lib/biolinkVisibility';
 import { shareProfile } from '../lib/shareProfile';
@@ -1101,6 +1102,10 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
             </TouchableOpacity>
           </View>
         </View>
+
+        {/* Their active Ask, if any. Auto-hides when the user has no
+            active ask — purely additive. */}
+        <UserAskCard userId={resolvedUserId} />
 
         {/* Hidden tags editor — inline so users don't have to dig into
             the Pick Tag modal to see the auto-filled event tags from

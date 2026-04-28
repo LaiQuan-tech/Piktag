@@ -280,7 +280,6 @@
     "editProfile": "编辑信息",
     "manageTags": "管理我的标签",
     "noContactMethods": "尚无联系方式",
-    "statusTooltip": "点我写便利贴",
     "contactInfoTitle": "联系方式",
     "phoneLabel": "电话",
     "emailLabel": "Email",
@@ -917,7 +916,9 @@
     "generating": "生成标题中…",
     "minOneTag": "至少选一个标签",
     "aiSuggestions": "AI 建议",
-    "customTagPlaceholder": "输入自定义标签"
+    "customTagPlaceholder": "输入自定义标签",
+    "cardLabel": "求助中",
+    "askingNow": "正在求助"
   },
   "errorBoundary": {
     "title": "出错了",
