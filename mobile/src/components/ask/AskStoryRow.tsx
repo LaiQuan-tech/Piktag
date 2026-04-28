@@ -400,7 +400,7 @@ async function findOrCreateTagByName(name: string): Promise<string | null> {
   return (tag as any)?.id ?? null;
 }
 
-function AskCreateModal({ visible, onClose, existingAsk, onCreated }: AskCreateModalProps) {
+export function AskCreateModal({ visible, onClose, existingAsk, onCreated }: AskCreateModalProps) {
   const { t } = useTranslation();
   const { user } = useAuth();
   const slideAnim = useRef(new Animated.Value(SCREEN_HEIGHT)).current;

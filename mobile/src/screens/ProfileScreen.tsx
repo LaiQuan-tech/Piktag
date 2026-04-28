@@ -29,6 +29,8 @@ import { useAuthProfile } from '../context/AuthContext';
 import { getCache, setCache, CACHE_KEYS } from '../lib/dataCache';
 import QrCodeModal from '../components/QrCodeModal';
 import RingedAvatar from '../components/RingedAvatar';
+import { AskCreateModal } from '../components/ask/AskStoryRow';
+import { useAskFeed } from '../hooks/useAskFeed';
 import { ProfileScreenSkeleton } from '../components/SkeletonLoader';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { PiktagProfile, UserTag, Biolink } from '../types';
@@ -105,6 +107,15 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [qrVisible, setQrVisible] = useState(false);
+
+  // Ask creation entry — the avatar's "+" badge launches the same
+  // AskCreateModal used by AskStoryRow on the Connections tab. Reuses
+  // the existing useAskFeed hook so we share state with whichever
+  // other tab last opened the modal (the modal's existingAsk prop
+  // automatically flips to view/delete mode when there's an active
+  // ask, matching AskStoryRow's behaviour).
+  const { myAsk, refresh: refreshAskFeed } = useAskFeed();
+  const [askModalVisible, setAskModalVisible] = useState(false);
 
   // --- Data fetching ---
 
@@ -302,20 +313,20 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
         <View style={styles.profileSection}>
           {/* Avatar + Name/Username */}
           <View style={styles.profileRow}>
-            {/* No badge here on purpose. Across PikTag the "+" badge on
-                an avatar means "create new ask" (see AskStoryRow), so
-                showing one on Profile that opens EditProfile created a
-                semantic conflict with the rest of the app. The explicit
-                "編輯個人檔案" button below is the canonical edit entry;
-                the avatar stays tappable as a soft secondary path. */}
+            {/* "+" on an avatar is reserved for "create new ask" across
+                the app — same affordance as AskStoryRow's my-Ask card.
+                Tapping here opens AskCreateModal; if the viewer already
+                has an active ask the modal switches to view/delete mode
+                automatically. EditProfile is reachable via the "編輯
+                個人檔案" button below the stats row. */}
             <RingedAvatar
               size={68}
               ringStyle="gradient"
-              badge={null}
+              badge="plus"
               name={profile?.full_name || profile?.username || ''}
               avatarUrl={profile?.avatar_url}
-              onPress={handleNavigateEditProfile}
-              accessibilityLabel="編輯個人檔案"
+              onPress={() => setAskModalVisible(true)}
+              accessibilityLabel={t('ask.newAsk') || '新增 Ask'}
             />
             <View style={styles.nameSection}>
               <View style={styles.nameRow}>
@@ -437,6 +448,13 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
           </View>
         )}
       </ScrollView>
+
+      <AskCreateModal
+        visible={askModalVisible}
+        onClose={() => setAskModalVisible(false)}
+        existingAsk={myAsk}
+        onCreated={refreshAskFeed}
+      />
     </SafeAreaView>
   );
 }
