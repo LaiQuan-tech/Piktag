@@ -15,7 +15,6 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
-import { Image } from 'expo-image';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import {
@@ -38,7 +37,7 @@ import { useTranslation } from 'react-i18next';
 import { COLORS } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
 import { LinearGradient } from 'expo-linear-gradient';
-import InitialsAvatar from '../components/InitialsAvatar';
+import RingedAvatar from '../components/RingedAvatar';
 import { supabase } from '../lib/supabase';
 import { getCache, setCache, CACHE_KEYS } from '../lib/dataCache';
 import { ConnectionsScreenSkeleton } from '../components/SkeletonLoader';
@@ -97,11 +96,12 @@ const ConnectionItem = React.memo(({ item, isSelected, selectMode, onPress, onLo
           )}
         </View>
       )}
-      {avatarUrl ? (
-        <Image source={{ uri: avatarUrl }} style={styles.avatar} cachePolicy="memory-disk" />
-      ) : (
-        <InitialsAvatar name={displayName} size={56} style={styles.avatarInitials} />
-      )}
+      <RingedAvatar
+        size={59}
+        ringStyle="subtle"
+        name={displayName}
+        avatarUrl={avatarUrl}
+      />
       <View style={styles.textSection}>
         <View style={styles.nameRow}>
           <Text style={styles.name} numberOfLines={1}>{displayName}</Text>
@@ -1052,18 +1052,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginRight: 12,
     paddingTop: 16,
-  },
-  avatar: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    borderWidth: 1,
-    borderColor: COLORS.gray100,
-    backgroundColor: COLORS.gray100,
-  },
-  avatarInitials: {
-    borderWidth: 1,
-    borderColor: COLORS.gray100,
   },
   textSection: {
     flex: 1,

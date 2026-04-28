@@ -35,6 +35,7 @@ import { useTheme } from '../context/ThemeContext';
 import { LinearGradient } from 'expo-linear-gradient';
 import PlatformIcon from '../components/PlatformIcon';
 import OverlappingAvatars from '../components/OverlappingAvatars';
+import RingedAvatar from '../components/RingedAvatar';
 import HiddenTagEditor from '../components/HiddenTagEditor';
 import ErrorState from '../components/ErrorState';
 import { supabase } from '../lib/supabase';
@@ -900,7 +901,6 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
   const displayName = profile.full_name || profile.username || 'Unknown';
   const username = profile.username || '';
   const verified = profile.is_verified || false;
-  const avatarUri = profile.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=f3f4f6&color=6b7280`;
   const headline = profile.headline || '';
   const bio = profile.bio || '';
 
@@ -935,7 +935,12 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
         {/* Profile Info */}
         <View style={styles.profileSection}>
           <View style={styles.profileRow}>
-            <Image source={{ uri: avatarUri }} style={styles.avatar} />
+            <RingedAvatar
+              size={68}
+              ringStyle="gradient"
+              name={displayName}
+              avatarUrl={profile.avatar_url}
+            />
             <View style={styles.nameSection}>
               <View style={styles.nameRow}>
                 <Text style={styles.name}>{displayName}</Text>
@@ -1497,12 +1502,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 14,
     marginBottom: 10,
-  },
-  avatar: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: COLORS.gray100,
   },
   nameSection: {
     flex: 1,

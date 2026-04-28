@@ -53,6 +53,7 @@ import { useTheme } from '../context/ThemeContext';
 import { LinearGradient } from 'expo-linear-gradient';
 import PlatformIcon from '../components/PlatformIcon';
 import InitialsAvatar from '../components/InitialsAvatar';
+import RingedAvatar from '../components/RingedAvatar';
 import OverlappingAvatars from '../components/OverlappingAvatars';
 import HiddenTagEditor from '../components/HiddenTagEditor';
 import ErrorState from '../components/ErrorState';
@@ -914,11 +915,12 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
         <View style={styles.profileSection}>
           {/* Avatar + Name/Username */}
           <View style={styles.profileRow}>
-            {avatarUrl ? (
-              <Image source={{ uri: avatarUrl }} style={styles.avatar} cachePolicy="memory-disk" />
-            ) : (
-              <InitialsAvatar name={displayName} size={56} style={styles.avatar} />
-            )}
+            <RingedAvatar
+              size={68}
+              ringStyle="gradient"
+              name={displayName}
+              avatarUrl={avatarUrl}
+            />
             <View style={styles.nameSection}>
               <View style={styles.nameRow}>
                 <Text style={styles.fullName}>{displayName}</Text>
@@ -1430,12 +1432,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 14,
     marginBottom: 10,
-  },
-  avatar: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: COLORS.gray100,
   },
   nameRow: {
     flexDirection: 'row',

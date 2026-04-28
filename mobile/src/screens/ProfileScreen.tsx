@@ -11,14 +11,12 @@ import {
   RefreshControl,
   Animated,
 } from 'react-native';
-import { Image } from 'expo-image';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   Settings,
   Gift,
   CheckCircle2,
-  Pencil,
   ExternalLink,
   MessageCircle,
 } from 'lucide-react-native';
@@ -32,7 +30,7 @@ import { useAuth } from '../hooks/useAuth';
 import { useAuthProfile } from '../context/AuthContext';
 import { getCache, setCache, CACHE_KEYS } from '../lib/dataCache';
 import QrCodeModal from '../components/QrCodeModal';
-import InitialsAvatar from '../components/InitialsAvatar';
+import RingedAvatar from '../components/RingedAvatar';
 import { ProfileScreenSkeleton } from '../components/SkeletonLoader';
 import StatusModal from '../components/StatusModal';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -288,9 +286,6 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
 
   const activeBiolinks = useMemo(() => biolinks.filter((bl) => bl.is_active), [biolinks]);
 
-  const hasAvatar = !!profile?.avatar_url;
-  const avatarSource = useMemo(() => profile?.avatar_url ? { uri: profile.avatar_url } : null, [profile?.avatar_url]);
-
   const headerTitle = useMemo(() => profile?.full_name || t('profile.nameNotSet'), [profile?.full_name, t]);
   const displayUsername = useMemo(() => profile?.username || t('profile.usernameNotSet'), [profile?.username, t]);
   const displayBio = useMemo(() => profile?.bio || t('profile.noBio'), [profile?.bio, t]);
@@ -348,18 +343,15 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
           {/* Avatar + Name/Username */}
           <View style={styles.profileRow}>
             <View>
-              <TouchableOpacity onPress={() => setStatusModalVisible(true)} activeOpacity={0.8}>
-                <View style={[styles.avatarWrapper, currentStatus ? styles.avatarRing : null]}>
-                  {hasAvatar ? (
-                    <Image source={avatarSource!} style={styles.avatar} cachePolicy="memory-disk" />
-                  ) : (
-                    <InitialsAvatar name={profile?.full_name || profile?.username || ''} size={56} style={styles.avatar} />
-                  )}
-                </View>
-                <View style={styles.pencilBadge}>
-                  <Pencil size={9} color={COLORS.white} />
-                </View>
-              </TouchableOpacity>
+              <RingedAvatar
+                size={68}
+                ringStyle="gradient"
+                badge="pencil"
+                name={profile?.full_name || profile?.username || ''}
+                avatarUrl={profile?.avatar_url}
+                onPress={handleNavigateEditProfile}
+                accessibilityLabel="編輯個人檔案"
+              />
               {showTooltip && (
                 <Animated.View style={[styles.tooltip, { opacity: tooltipOpacity }]}>
                   <Text style={styles.tooltipText}>{t('profile.statusTooltip')}</Text>
@@ -550,20 +542,6 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     gap: 14,
   },
-  avatarWrapper: {
-    borderRadius: 50,
-    padding: 2,
-  },
-  avatarRing: {
-    borderWidth: 3,
-    borderColor: COLORS.piktag500,
-  },
-  avatar: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: COLORS.gray100,
-  },
   nameSection: {
     flex: 1,
     gap: 2,
@@ -576,19 +554,6 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '700',
     color: COLORS.gray900,
-  },
-  pencilBadge: {
-    position: 'absolute',
-    bottom: -1,
-    right: -1,
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    backgroundColor: COLORS.piktag500,
-    borderWidth: 2,
-    borderColor: COLORS.white,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   tooltip: {
     position: 'absolute',

@@ -5,7 +5,6 @@ import {
   TextInput,
   ScrollView,
   TouchableOpacity,
-  Image,
   StyleSheet,
   StatusBar,
   Alert,
@@ -16,7 +15,8 @@ import {
   Linking,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ArrowLeft, Plus, Pencil, Trash2, X, Hash, EyeOff, Eye, Camera, GripVertical, ChevronDown } from 'lucide-react-native';
+import { ArrowLeft, Plus, Pencil, Trash2, X, Hash, EyeOff, Eye, GripVertical, ChevronDown } from 'lucide-react-native';
+import RingedAvatar from '../components/RingedAvatar';
 import DraggableFlatList, { RenderItemParams, ScaleDecorator } from 'react-native-draggable-flatlist';
 import { requestMediaLibraryPermissionsAsync, launchImageLibraryAsync } from 'expo-image-picker';
 import { useTranslation } from 'react-i18next';
@@ -1009,22 +1009,22 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
         >
           {/* Avatar Section */}
           <View style={styles.avatarSection}>
-            <TouchableOpacity onPress={handleChangeAvatar} activeOpacity={0.8} disabled={uploadingAvatar} accessibilityLabel="更換大頭貼" accessibilityRole="button">
-              <Image
-                source={
-                  avatarUrl
-                    ? { uri: avatarUrl }
-                    : { uri: 'https://picsum.photos/seed/profile/200/200' }
-                }
-                style={styles.avatar}
+            <View style={styles.avatarStack}>
+              <RingedAvatar
+                size={108}
+                ringStyle="gradient"
+                badge="pencil"
+                name={form.full_name || form.username || ''}
+                avatarUrl={avatarUrl}
+                onPress={uploadingAvatar ? undefined : handleChangeAvatar}
+                accessibilityLabel="更換大頭貼"
               />
-              <View style={styles.cameraBadge}>
-                {uploadingAvatar
-                  ? <ActivityIndicator size="small" color={COLORS.white} />
-                  : <Camera size={16} color={COLORS.white} />
-                }
-              </View>
-            </TouchableOpacity>
+              {uploadingAvatar ? (
+                <View style={styles.avatarUploadOverlay} pointerEvents="none">
+                  <ActivityIndicator size="small" color={COLORS.white} />
+                </View>
+              ) : null}
+            </View>
           </View>
 
           {/* Form Fields */}
@@ -1567,31 +1567,18 @@ const styles = StyleSheet.create({
     paddingTop: 28,
     paddingBottom: 8,
   },
-  avatar: {
-    width: 96,
-    height: 96,
-    borderRadius: 48,
-    borderWidth: 2,
-    borderColor: COLORS.gray100,
-    backgroundColor: COLORS.gray100,
-  },
-  cameraBadge: {
-    position: 'absolute',
-    bottom: 0,
-    right: 0,
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: COLORS.piktag500,
+  avatarStack: {
+    width: 108,
+    height: 108,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 2,
-    borderColor: COLORS.white,
   },
-  changeAvatarText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: COLORS.piktag600,
+  avatarUploadOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(0,0,0,0.35)',
+    borderRadius: 54,
   },
   formSection: {
     paddingHorizontal: 20,

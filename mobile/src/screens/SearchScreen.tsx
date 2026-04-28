@@ -13,16 +13,15 @@ import {
   ScrollView,
   Pressable,
 } from 'react-native';
-import { Image } from 'expo-image';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   Search,
   Hash,
-  User,
   Clock,
   TrendingUp,
   X,
 } from 'lucide-react-native';
+import RingedAvatar from '../components/RingedAvatar';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { requestForegroundPermissionsAsync, getCurrentPositionAsync, Accuracy } from 'expo-location';
 import { useTranslation } from 'react-i18next';
@@ -62,16 +61,12 @@ const ProfileCard = React.memo(function ProfileCard({ profile, onPress, t }: Pro
       onPress={handlePress}
       activeOpacity={0.7}
     >
-      {profile.avatar_url ? (
-        <Image
-          source={{ uri: profile.avatar_url }}
-          style={styles.profileAvatar}
-        />
-      ) : (
-        <View style={styles.profileAvatarPlaceholder}>
-          <User size={20} color={COLORS.gray400} />
-        </View>
-      )}
+      <RingedAvatar
+        size={51}
+        ringStyle="subtle"
+        name={profile.full_name || profile.username || ''}
+        avatarUrl={profile.avatar_url}
+      />
       <View style={styles.profileInfo}>
         <View style={styles.profileNameRow}>
           <Text style={styles.profileName} numberOfLines={1}>
@@ -1589,13 +1584,12 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
                     activeOpacity={0.7}
                     onPress={() => handleProfilePress(u)}
                   >
-                    {u.avatar_url ? (
-                      <Image source={{ uri: u.avatar_url }} style={{ width: 56, height: 56, borderRadius: 28, borderWidth: 2, borderColor: COLORS.piktag300 }} cachePolicy="memory-disk" />
-                    ) : (
-                      <View style={{ width: 56, height: 56, borderRadius: 28, backgroundColor: COLORS.gray200, alignItems: 'center', justifyContent: 'center' }}>
-                        <User size={24} color={COLORS.gray400} />
-                      </View>
-                    )}
+                    <RingedAvatar
+                      size={68}
+                      ringStyle="gradient"
+                      name={u.full_name || u.username || ''}
+                      avatarUrl={u.avatar_url}
+                    />
                     <Text style={{ fontSize: 12, fontWeight: '500', color: COLORS.gray700, marginTop: 4, textAlign: 'center' }} numberOfLines={1}>
                       {u.full_name || u.username || ''}
                     </Text>
@@ -2072,20 +2066,6 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderBottomWidth: 1,
     borderBottomColor: COLORS.gray100,
-  },
-  profileAvatar: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: COLORS.gray100,
-  },
-  profileAvatarPlaceholder: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: COLORS.gray100,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   profileInfo: {
     flex: 1,

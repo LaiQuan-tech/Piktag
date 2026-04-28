@@ -3,7 +3,6 @@ import {
   View,
   Text,
   FlatList,
-  Image,
   TouchableOpacity,
   StyleSheet,
   StatusBar,
@@ -24,6 +23,7 @@ import { useChatUnread } from '../hooks/useChatUnread';
 import { getCache, setCache, CACHE_KEYS } from '../lib/dataCache';
 import type { Notification } from '../types';
 import { SkeletonBox } from '../components/SkeletonLoader';
+import RingedAvatar from '../components/RingedAvatar';
 
 const NOTIFICATION_ITEM_HEIGHT = 76;
 
@@ -109,7 +109,13 @@ const NotificationItem = React.memo(function NotificationItem({
       delayLongPress={350}
     >
       {avatarUrl ? (
-        <Image source={{ uri: avatarUrl }} style={styles.avatar} />
+        <RingedAvatar
+          size={47}
+          ringStyle="subtle"
+          name={username}
+          avatarUrl={avatarUrl}
+          style={styles.avatarSpacing}
+        />
       ) : (
         <View style={[styles.avatar, styles.avatarPlaceholder]}>
           <Bell size={20} color={COLORS.gray400} />
@@ -596,6 +602,9 @@ const styles = StyleSheet.create({
   avatarPlaceholder: {
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  avatarSpacing: {
+    marginRight: 12,
   },
   notificationContent: {
     flex: 1,

@@ -4,7 +4,6 @@ import {
   Text,
   FlatList,
   ScrollView,
-  Image,
   TouchableOpacity,
   StyleSheet,
   StatusBar,
@@ -15,7 +14,7 @@ import { ArrowLeft, Hash, CheckCircle2, Users, UserPlus } from 'lucide-react-nat
 import { useTranslation } from 'react-i18next';
 import { COLORS } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
-import InitialsAvatar from '../components/InitialsAvatar';
+import RingedAvatar from '../components/RingedAvatar';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
 
@@ -332,11 +331,12 @@ export default function TagDetailScreen({ navigation, route }: TagDetailScreenPr
           friendId: item.connected_user_id,
         })}
       >
-        {profile?.avatar_url ? (
-          <Image source={{ uri: profile.avatar_url }} style={styles.avatar} />
-        ) : (
-          <InitialsAvatar name={displayName} size={48} style={styles.avatar} />
-        )}
+        <RingedAvatar
+          size={51}
+          ringStyle="subtle"
+          name={displayName}
+          avatarUrl={profile?.avatar_url}
+        />
         <View style={styles.textSection}>
           <View style={styles.nameRow}>
             <Text style={styles.name} numberOfLines={1}>{displayName}</Text>
@@ -363,11 +363,12 @@ export default function TagDetailScreen({ navigation, route }: TagDetailScreenPr
         activeOpacity={0.7}
         onPress={() => navigation.navigate('UserDetail', { userId: item.id })}
       >
-        {item.avatar_url ? (
-          <Image source={{ uri: item.avatar_url }} style={styles.avatar} />
-        ) : (
-          <InitialsAvatar name={displayName} size={48} style={styles.avatar} />
-        )}
+        <RingedAvatar
+          size={51}
+          ringStyle="subtle"
+          name={displayName}
+          avatarUrl={item.avatar_url}
+        />
         <View style={styles.textSection}>
           <View style={styles.nameRow}>
             <Text style={styles.name} numberOfLines={1}>{displayName}</Text>
@@ -682,14 +683,6 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     borderBottomWidth: 1,
     borderBottomColor: COLORS.gray100,
-  },
-  avatar: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    borderWidth: 1,
-    borderColor: COLORS.gray100,
-    backgroundColor: COLORS.gray100,
   },
   textSection: {
     flex: 1,
