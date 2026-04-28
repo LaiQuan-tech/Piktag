@@ -911,8 +911,7 @@
     "generating": "Generating title…",
     "minOneTag": "Select at least one tag",
     "aiSuggestions": "اقتراحات الذكاء الاصطناعي",
-    "yourTags": "وسومك",
-    "noTagsHint": "أضف الوسوم أولاً من الملف الشخصي ← إدارة الوسوم"
+    "customTagPlaceholder": "أضف وسماً مخصصاً"
   },
   "errorBoundary": {
     "title": "حدث خطأ ما",

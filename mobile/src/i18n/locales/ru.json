@@ -911,8 +911,7 @@
     "generating": "Generating title…",
     "minOneTag": "Select at least one tag",
     "aiSuggestions": "Подсказки ИИ",
-    "yourTags": "Твои теги",
-    "noTagsHint": "Сначала добавь теги в Профиль → Управление тегами"
+    "customTagPlaceholder": "Добавить тег"
   },
   "errorBoundary": {
     "title": "Что-то пошло не так",

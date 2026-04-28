@@ -917,8 +917,7 @@
     "generating": "Generating title…",
     "minOneTag": "Select at least one tag",
     "aiSuggestions": "AI suggestions",
-    "yourTags": "Your tags",
-    "noTagsHint": "Add tags first under Profile → Manage Tags"
+    "customTagPlaceholder": "Add custom tag"
   },
   "errorBoundary": {
     "title": "Something went wrong",

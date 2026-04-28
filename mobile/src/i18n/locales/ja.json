@@ -911,8 +911,7 @@
     "generating": "タイトル生成中…",
     "minOneTag": "タグを1つ以上選択してください",
     "aiSuggestions": "AI 提案",
-    "yourTags": "あなたのタグ",
-    "noTagsHint": "先にプロフィール→タグ管理でタグを追加してください"
+    "customTagPlaceholder": "カスタムタグを追加"
   },
   "errorBoundary": {
     "title": "問題が発生しました",

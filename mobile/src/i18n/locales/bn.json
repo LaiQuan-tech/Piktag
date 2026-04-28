@@ -911,8 +911,7 @@
     "generating": "Generating title…",
     "minOneTag": "Select at least one tag",
     "aiSuggestions": "AI পরামর্শ",
-    "yourTags": "আপনার ট্যাগ",
-    "noTagsHint": "প্রথমে প্রোফাইল → ট্যাগ পরিচালনায় ট্যাগ যোগ করুন"
+    "customTagPlaceholder": "কাস্টম ট্যাগ যোগ করুন"
   },
   "errorBoundary": {
     "title": "কিছু ভুল হয়েছে",

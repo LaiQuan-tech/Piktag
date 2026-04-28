@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -228,54 +228,76 @@ type AskCreateModalProps = {
   onCreated: () => void;
 };
 
+// Normalize a free-form tag input: strip leading #, trim, drop spaces, cap length.
+// Returns null for inputs that should be rejected (empty, too long after trim).
+const MAX_TAG_LEN = 30;
+function normalizeTagName(raw: string): string | null {
+  const cleaned = raw.replace(/^#+/, '').trim();
+  if (!cleaned) return null;
+  if (cleaned.length > MAX_TAG_LEN) return null;
+  return cleaned;
+}
+
+// Find-or-create a tag in piktag_tags by name. Mirrors the pattern used in
+// ManageTagsScreen.findOrCreateTag — handles the select-then-insert race
+// where two clients create the same tag concurrently (Postgres 23505).
+async function findOrCreateTagByName(name: string): Promise<string | null> {
+  let { data: tag } = await supabase
+    .from('piktag_tags').select('id').eq('name', name).maybeSingle();
+  if (!tag) {
+    const { data: newTag, error: insertErr } = await supabase
+      .from('piktag_tags').insert({ name }).select('id').single();
+    if (newTag) {
+      tag = newTag;
+    } else if (insertErr && (insertErr as any).code === '23505') {
+      const { data: raced } = await supabase
+        .from('piktag_tags').select('id').eq('name', name).maybeSingle();
+      tag = raced ?? null;
+    }
+  }
+  return (tag as any)?.id ?? null;
+}
+
 function AskCreateModal({ visible, onClose, existingAsk, onCreated }: AskCreateModalProps) {
   const { t } = useTranslation();
   const { user } = useAuth();
   const slideAnim = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
 
   const [body, setBody] = useState('');
-  const [selectedTagIds, setSelectedTagIds] = useState<Set<string>>(new Set());
-  const [suggestedTags, setSuggestedTags] = useState<{ id: string; name: string }[]>([]);
-  const [myTags, setMyTags] = useState<{ id: string; name: string }[]>([]);
+  // Source of truth is the tag NAME, not its DB id — AI may suggest new names
+  // that don't exist in piktag_tags yet, and users can also add custom names.
+  // We only resolve to ids on submit (via findOrCreateTagByName).
+  const [aiNames, setAiNames] = useState<string[]>([]);
+  const [customNames, setCustomNames] = useState<string[]>([]);
+  const [selectedNames, setSelectedNames] = useState<Set<string>>(new Set());
+  const [customInput, setCustomInput] = useState('');
   const [aiLoading, setAiLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const suggestTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Load user's own tags so they always have something to pick even if AI fails
-  const loadMyTags = useCallback(async () => {
-    if (!user) return;
-    const { data } = await supabase
-      .from('piktag_user_tags')
-      .select('tag:piktag_tags!tag_id(id, name)')
-      .eq('user_id', user.id)
-      .order('position');
-    if (data) {
-      const tags = (data as any[])
-        .map((row) => row.tag)
-        .filter((t): t is { id: string; name: string } => !!t?.id);
-      setMyTags(tags);
-    }
-  }, [user]);
-
   useEffect(() => {
     if (visible) {
       setBody(existingAsk?.body || '');
-      setSuggestedTags([]);
-      setSelectedTagIds(new Set());
+      setAiNames([]);
+      setCustomNames([]);
+      setSelectedNames(new Set());
+      setCustomInput('');
       setAiLoading(false);
-      loadMyTags();
       Animated.spring(slideAnim, { toValue: 0, useNativeDriver: true, bounciness: 0, speed: 14 }).start();
     } else {
       Animated.timing(slideAnim, { toValue: SCREEN_HEIGHT, duration: 250, useNativeDriver: true }).start();
     }
     return () => { if (suggestTimer.current) clearTimeout(suggestTimer.current); };
-  }, [visible, existingAsk, loadMyTags]);
+  }, [visible, existingAsk, slideAnim]);
 
-  // AI auto-suggest tags from global tag pool when user stops typing
+  // AI auto-suggest tag names when user stops typing. Names are NOT resolved
+  // to DB ids here — that happens on submit. This means a brand-new name the
+  // AI invents (e.g. "App行銷北美") shows up as a chip and gets created in
+  // piktag_tags only if the user keeps it selected and submits.
   const suggestTagsForBody = useCallback(async (text: string) => {
     const trimmed = text.trim();
     if (trimmed.length < 5) {
-      setSuggestedTags([]);
+      setAiNames([]);
       return;
     }
     setAiLoading(true);
@@ -283,21 +305,21 @@ function AskCreateModal({ visible, onClose, existingAsk, onCreated }: AskCreateM
       const { data } = await supabase.functions.invoke('suggest-tags', {
         body: JSON.stringify({ bio: trimmed, lang: 'the same language as the content' }),
       });
-      const names: string[] = data?.suggestions || [];
-      if (names.length === 0) { setAiLoading(false); return; }
-
-      // Resolve tag names to IDs from piktag_tags
-      const { data: tagRows } = await supabase
-        .from('piktag_tags')
-        .select('id, name')
-        .in('name', names);
-
-      if (tagRows && tagRows.length > 0) {
-        setSuggestedTags(tagRows);
-        setSelectedTagIds(new Set(tagRows.map((t: any) => t.id)));
-      } else {
-        setSuggestedTags([]);
-      }
+      const raw: string[] = data?.suggestions || [];
+      const normalized = Array.from(
+        new Set(
+          raw
+            .map((n) => normalizeTagName(n))
+            .filter((n): n is string => !!n),
+        ),
+      );
+      setAiNames(normalized);
+      // Default-select all AI suggestions, preserving any custom selections.
+      setSelectedNames((prev) => {
+        const next = new Set(prev);
+        for (const name of normalized) next.add(name);
+        return next;
+      });
     } catch (err) {
       console.warn('AI tag suggest failed:', err);
     } finally {
@@ -311,23 +333,57 @@ function AskCreateModal({ visible, onClose, existingAsk, onCreated }: AskCreateM
     if (suggestTimer.current) clearTimeout(suggestTimer.current);
     if (text.trim().length >= 5) {
       suggestTimer.current = setTimeout(() => suggestTagsForBody(text), 800);
+    } else {
+      setAiNames([]);
     }
   }, [suggestTagsForBody]);
 
-  const toggleTag = useCallback((tagId: string) => {
-    setSelectedTagIds(prev => {
+  const toggleTag = useCallback((name: string) => {
+    setSelectedNames(prev => {
       const next = new Set(prev);
-      if (next.has(tagId)) next.delete(tagId); else next.add(tagId);
+      if (next.has(name)) next.delete(name); else next.add(name);
       return next;
     });
   }, []);
 
+  // Add a custom tag from the input field. Auto-selects it. De-dupes against
+  // both AI and other custom names so the same chip doesn't appear twice.
+  const addCustomTag = useCallback(() => {
+    const name = normalizeTagName(customInput);
+    if (!name) {
+      setCustomInput('');
+      return;
+    }
+    const exists =
+      aiNames.includes(name) ||
+      customNames.includes(name);
+    if (!exists) {
+      setCustomNames((prev) => [...prev, name]);
+    }
+    setSelectedNames((prev) => {
+      const next = new Set(prev);
+      next.add(name);
+      return next;
+    });
+    setCustomInput('');
+  }, [customInput, aiNames, customNames]);
+
   const handleSubmit = useCallback(async () => {
-    if (!user || !body.trim() || selectedTagIds.size === 0) return;
+    if (!user || !body.trim() || selectedNames.size === 0) return;
     setSaving(true);
     try {
       if (existingAsk) {
         await supabase.from('piktag_asks').update({ is_active: false }).eq('id', existingAsk.id);
+      }
+
+      // Resolve every selected name to a tag id, creating missing rows on the
+      // fly. This is where AI-suggested-but-new and user-typed-custom names
+      // get persisted into the global tag pool.
+      const namesToResolve = [...selectedNames];
+      const ids = await Promise.all(namesToResolve.map((n) => findOrCreateTagByName(n)));
+      const validTagIds = ids.filter((id): id is string => !!id);
+      if (validTagIds.length === 0) {
+        throw new Error('No tag could be resolved');
       }
 
       const expiresAt = new Date(Date.now() + 24 * 3600000).toISOString();
@@ -339,13 +395,12 @@ function AskCreateModal({ visible, onClose, existingAsk, onCreated }: AskCreateM
 
       if (error || !askData) throw error || new Error('Insert failed');
 
-      const tagRows = [...selectedTagIds].map(tag_id => ({ ask_id: askData.id, tag_id }));
+      const tagRows = validTagIds.map((tag_id) => ({ ask_id: askData.id, tag_id }));
       await supabase.from('piktag_ask_tags').insert(tagRows);
 
       // AI title generation (async, non-blocking)
-      const tagNames = suggestedTags.filter(t => selectedTagIds.has(t.id)).map(t => t.name);
       supabase.functions.invoke('generate-ask-title', {
-        body: JSON.stringify({ body: body.trim(), tags: tagNames }),
+        body: JSON.stringify({ body: body.trim(), tags: namesToResolve }),
       }).then(({ data }) => {
         if (data?.title) {
           supabase.from('piktag_asks').update({ title: data.title }).eq('id', askData.id);
@@ -359,7 +414,7 @@ function AskCreateModal({ visible, onClose, existingAsk, onCreated }: AskCreateM
     } finally {
       setSaving(false);
     }
-  }, [user, body, selectedTagIds, existingAsk, suggestedTags, onCreated, onClose]);
+  }, [user, body, selectedNames, existingAsk, onCreated, onClose]);
 
   const handleDelete = useCallback(async () => {
     if (!existingAsk) return;
@@ -395,26 +450,29 @@ function AskCreateModal({ visible, onClose, existingAsk, onCreated }: AskCreateM
           />
           <Text style={modalStyles.charCount}>{body.length}/{MAX_BODY}</Text>
 
-          {/* AI-suggested tags (de-duplicated against user's own tags) */}
-          {aiLoading || suggestedTags.length > 0 ? (
+          {/* AI-suggested tags + user-added custom tags. AI suggestions stay
+              in their own state slot so a re-fire (user keeps typing) doesn't
+              wipe custom-added names. Both sets render into the same chip
+              strip — the user doesn't need to know which came from where. */}
+          {aiLoading || aiNames.length > 0 || customNames.length > 0 ? (
             <>
               <Text style={modalStyles.sectionTitle}>{t('ask.aiSuggestions')}</Text>
-              {aiLoading ? (
+              {aiLoading && aiNames.length === 0 ? (
                 <View style={modalStyles.aiLoadingRow}>
                   <ActivityIndicator size="small" color={COLORS.piktag500} />
                   <Text style={modalStyles.aiLoadingText}>{t('ask.generating')}</Text>
                 </View>
               ) : (
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} style={modalStyles.tagScroll}>
-                  {suggestedTags.map((tag) => (
+                  {[...aiNames, ...customNames].map((name) => (
                     <TouchableOpacity
-                      key={`ai-${tag.id}`}
-                      style={[modalStyles.tagChip, selectedTagIds.has(tag.id) && modalStyles.tagChipSelected]}
-                      onPress={() => toggleTag(tag.id)}
+                      key={`tag-${name}`}
+                      style={[modalStyles.tagChip, selectedNames.has(name) && modalStyles.tagChipSelected]}
+                      onPress={() => toggleTag(name)}
                       activeOpacity={0.7}
                     >
-                      <Text style={[modalStyles.tagChipText, selectedTagIds.has(tag.id) && modalStyles.tagChipTextSelected]}>
-                        #{tag.name}
+                      <Text style={[modalStyles.tagChipText, selectedNames.has(name) && modalStyles.tagChipTextSelected]}>
+                        #{name}
                       </Text>
                     </TouchableOpacity>
                   ))}
@@ -423,33 +481,32 @@ function AskCreateModal({ visible, onClose, existingAsk, onCreated }: AskCreateM
             </>
           ) : null}
 
-          {/* User's own tags — always offered as a fallback */}
-          {myTags.length > 0 ? (
-            <>
-              <Text style={modalStyles.sectionTitle}>{t('ask.yourTags')}</Text>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={modalStyles.tagScroll}>
-                {myTags
-                  .filter((t) => !suggestedTags.find((s) => s.id === t.id))
-                  .map((tag) => (
-                    <TouchableOpacity
-                      key={`mine-${tag.id}`}
-                      style={[modalStyles.tagChip, selectedTagIds.has(tag.id) && modalStyles.tagChipSelected]}
-                      onPress={() => toggleTag(tag.id)}
-                      activeOpacity={0.7}
-                    >
-                      <Text style={[modalStyles.tagChipText, selectedTagIds.has(tag.id) && modalStyles.tagChipTextSelected]}>
-                        #{tag.name}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-              </ScrollView>
-            </>
-          ) : suggestedTags.length === 0 && !aiLoading && body.trim().length >= 5 ? (
-            <Text style={modalStyles.aiHint}>{t('ask.noTagsHint')}</Text>
-          ) : null}
+          {/* Custom tag input — always present so the user can override or
+              augment AI suggestions. Submit on Enter or via the + button. */}
+          <View style={modalStyles.customRow}>
+            <TextInput
+              style={modalStyles.customInput}
+              value={customInput}
+              onChangeText={setCustomInput}
+              placeholder={t('ask.customTagPlaceholder')}
+              placeholderTextColor={COLORS.gray400}
+              maxLength={MAX_TAG_LEN}
+              returnKeyType="done"
+              onSubmitEditing={addCustomTag}
+              blurOnSubmit={false}
+            />
+            <TouchableOpacity
+              style={[modalStyles.customAddBtn, !customInput.trim() && modalStyles.customAddBtnDisabled]}
+              onPress={addCustomTag}
+              disabled={!customInput.trim()}
+              activeOpacity={0.7}
+            >
+              <Plus size={18} color="#fff" strokeWidth={2.5} />
+            </TouchableOpacity>
+          </View>
 
           {/* Selection counter / hint */}
-          {selectedTagIds.size === 0 && (suggestedTags.length > 0 || myTags.length > 0) ? (
+          {selectedNames.size === 0 ? (
             <Text style={modalStyles.aiHint}>{t('ask.minOneTag')}</Text>
           ) : null}
 
@@ -461,9 +518,9 @@ function AskCreateModal({ visible, onClose, existingAsk, onCreated }: AskCreateM
               </TouchableOpacity>
             )}
             <TouchableOpacity
-              style={[modalStyles.submitBtn, (!body.trim() || selectedTagIds.size === 0) && modalStyles.submitBtnDisabled]}
+              style={[modalStyles.submitBtn, (!body.trim() || selectedNames.size === 0) && modalStyles.submitBtnDisabled]}
               onPress={handleSubmit}
-              disabled={saving || !body.trim() || selectedTagIds.size === 0}
+              disabled={saving || !body.trim() || selectedNames.size === 0}
               activeOpacity={0.8}
             >
               {saving ? (
@@ -587,6 +644,21 @@ const modalStyles = StyleSheet.create({
   tagChipSelected: { backgroundColor: COLORS.piktag500 },
   tagChipText: { fontSize: 13, fontWeight: '500', color: COLORS.gray700 },
   tagChipTextSelected: { color: '#fff' },
+  customRow: {
+    flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 16,
+  },
+  customInput: {
+    flex: 1,
+    borderWidth: 1.5, borderColor: COLORS.gray200, borderRadius: 12,
+    paddingHorizontal: 14, paddingVertical: 10,
+    fontSize: 14, color: COLORS.gray900,
+  },
+  customAddBtn: {
+    width: 40, height: 40, borderRadius: 20,
+    alignItems: 'center', justifyContent: 'center',
+    backgroundColor: COLORS.piktag500,
+  },
+  customAddBtnDisabled: { opacity: 0.4 },
   actions: { flexDirection: 'row', gap: 12 },
   deleteBtn: {
     flex: 1, borderRadius: 12, paddingVertical: 14,

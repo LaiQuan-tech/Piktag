@@ -911,8 +911,7 @@
     "generating": "Generating title…",
     "minOneTag": "Select at least one tag",
     "aiSuggestions": "Sugerencias de IA",
-    "yourTags": "Tus etiquetas",
-    "noTagsHint": "Primero añade etiquetas en Perfil → Gestionar etiquetas"
+    "customTagPlaceholder": "Añadir etiqueta personalizada"
   },
   "errorBoundary": {
     "title": "Algo salió mal",

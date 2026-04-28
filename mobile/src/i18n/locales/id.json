@@ -911,8 +911,7 @@
     "generating": "Generating title…",
     "minOneTag": "Select at least one tag",
     "aiSuggestions": "Saran AI",
-    "yourTags": "Tag Anda",
-    "noTagsHint": "Tambahkan tag terlebih dahulu di Profil → Kelola Tag"
+    "customTagPlaceholder": "Tambah tag kustom"
   },
   "errorBoundary": {
     "title": "Terjadi kesalahan",

@@ -917,8 +917,7 @@
     "generating": "生成标题中…",
     "minOneTag": "至少选一个标签",
     "aiSuggestions": "AI 建议",
-    "yourTags": "你的标签",
-    "noTagsHint": "请先到「我的」→「管理标签」添加标签"
+    "customTagPlaceholder": "输入自定义标签"
   },
   "errorBoundary": {
     "title": "出错了",

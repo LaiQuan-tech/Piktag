@@ -911,8 +911,7 @@
     "generating": "Generating title…",
     "minOneTag": "Select at least one tag",
     "aiSuggestions": "คำแนะนำจาก AI",
-    "yourTags": "แท็กของคุณ",
-    "noTagsHint": "เพิ่มแท็กก่อนที่โปรไฟล์ → จัดการแท็ก"
+    "customTagPlaceholder": "เพิ่มแท็กของคุณ"
   },
   "errorBoundary": {
     "title": "เกิดข้อผิดพลาด",

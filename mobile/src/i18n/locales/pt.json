@@ -911,8 +911,7 @@
     "generating": "Generating title…",
     "minOneTag": "Select at least one tag",
     "aiSuggestions": "Sugestões de IA",
-    "yourTags": "Seus tags",
-    "noTagsHint": "Adicione tags primeiro em Perfil → Gerenciar tags"
+    "customTagPlaceholder": "Adicionar tag personalizada"
   },
   "errorBoundary": {
     "title": "Algo deu errado",

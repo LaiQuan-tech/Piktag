@@ -911,8 +911,7 @@
     "generating": "Generating title…",
     "minOneTag": "Select at least one tag",
     "aiSuggestions": "Yapay zeka önerileri",
-    "yourTags": "Etiketleriniz",
-    "noTagsHint": "Önce Profil → Etiketleri Yönet bölümünden etiket ekleyin"
+    "customTagPlaceholder": "Özel etiket ekle"
   },
   "errorBoundary": {
     "title": "Bir şeyler ters gitti",
