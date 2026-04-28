@@ -14,10 +14,15 @@ import { useTranslation } from 'react-i18next';
 import { X } from 'lucide-react-native';
 import { COLORS } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
+import ScanSuccessStinger from '../components/stingers/ScanSuccessStinger';
 
 type CameraScanScreenProps = {
   navigation: any;
 };
+
+type PendingScanNav =
+  | { route: 'UserDetail'; params: Record<string, unknown> }
+  | { route: 'ScanResult'; params: Record<string, unknown> };
 
 type PiktagQrPayload = {
   type: string;
@@ -39,6 +44,9 @@ export default function CameraScanScreen({ navigation }: CameraScanScreenProps) 
   const insets = useSafeAreaInsets();
   const [permission, requestPermission] = useCameraPermissions();
   const [scanned, setScanned] = useState(false);
+  const [stingerVisible, setStingerVisible] = useState(false);
+  const [pendingNav, setPendingNav] = useState<PendingScanNav | null>(null);
+  const [stingerFriendName, setStingerFriendName] = useState<string | undefined>(undefined);
   const scanTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -102,29 +110,42 @@ export default function CameraScanScreen({ navigation }: CameraScanScreenProps) 
       // Try new URL format first: https://pikt.ag/{username}?sid=xxx
       const urlResult = parseUrlFormat(result.data);
       if (urlResult) {
-        navigation.navigate('UserDetail', {
-          username: urlResult.username,
-          sid: urlResult.sid,
-          tags: urlResult.tags,
-          date: urlResult.date,
-          loc: urlResult.loc,
+        // The URL format only carries a username — friendName is unknown
+        // until the ScanResult/UserDetail RPC resolves server-side, so
+        // we let the stinger render without a chip.
+        setStingerFriendName(undefined);
+        setPendingNav({
+          route: 'UserDetail',
+          params: {
+            username: urlResult.username,
+            sid: urlResult.sid,
+            tags: urlResult.tags,
+            date: urlResult.date,
+            loc: urlResult.loc,
+          },
         });
-        scanTimeoutRef.current = setTimeout(() => setScanned(false), 3000);
+        setStingerVisible(true);
         return;
       }
 
       // Try old base64 payload format (backward compat)
       const payload = decodeQrValue(result.data);
       if (payload) {
-        navigation.navigate('ScanResult', {
-          sessionId: payload.sid,
-          hostUserId: payload.uid,
-          hostName: payload.name,
-          eventDate: payload.date,
-          eventLocation: payload.loc,
-          hostTags: payload.tags || [],
+        // Old payload embeds the host name directly, so we can show
+        // the chip immediately for a more personal feel.
+        setStingerFriendName(payload.name || undefined);
+        setPendingNav({
+          route: 'ScanResult',
+          params: {
+            sessionId: payload.sid,
+            hostUserId: payload.uid,
+            hostName: payload.name,
+            eventDate: payload.date,
+            eventLocation: payload.loc,
+            hostTags: payload.tags || [],
+          },
         });
-        scanTimeoutRef.current = setTimeout(() => setScanned(false), 3000);
+        setStingerVisible(true);
         return;
       }
 
@@ -201,7 +222,11 @@ export default function CameraScanScreen({ navigation }: CameraScanScreenProps) 
         barcodeScannerSettings={{
           barcodeTypes: ['qr'],
         }}
-        onBarcodeScanned={handleBarcodeScanned}
+        // Detach the barcode handler entirely while the stinger is on
+        // screen so the underlying camera can't fire a second decode for
+        // the same QR (or a different one held up to the lens) during
+        // the ~1s celebration window.
+        onBarcodeScanned={stingerVisible ? undefined : handleBarcodeScanned}
       />
 
       {/* Overlay */}
@@ -254,6 +279,30 @@ export default function CameraScanScreen({ navigation }: CameraScanScreenProps) 
           </Text>
         </View>
       </View>
+
+      {/* Hero stinger plays on successful decode, then completes the
+          deferred navigation. Mounted at the screen root (outside the
+          camera overlay) so its full-screen Modal can layer cleanly
+          over the live camera feed. */}
+      <ScanSuccessStinger
+        visible={stingerVisible}
+        friendName={stingerFriendName}
+        onComplete={() => {
+          setStingerVisible(false);
+          const next = pendingNav;
+          setPendingNav(null);
+          setStingerFriendName(undefined);
+          if (next) {
+            // Use replace so the user can't swipe back into the camera
+            // mid-stinger and end up with a stale scan in history.
+            navigation.replace(next.route, next.params);
+          } else {
+            // Decode succeeded but navigation params were dropped (rare,
+            // e.g. mid-completion remount) — re-arm the scanner.
+            setScanned(false);
+          }
+        }}
+      />
     </View>
   );
 }

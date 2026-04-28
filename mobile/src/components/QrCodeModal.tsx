@@ -12,6 +12,7 @@ import { setStringAsync } from 'expo-clipboard';
 import { useTranslation } from 'react-i18next';
 import { COLORS } from '../constants/theme';
 import { APP_BASE_URL, shareProfile } from '../lib/shareProfile';
+import QrModalStinger from './stingers/QrModalStinger';
 
 type QrCodeModalProps = {
   visible: boolean;
@@ -53,50 +54,56 @@ export default function QrCodeModal({
       animationType="fade"
       onRequestClose={onClose}
     >
-      <View style={styles.overlay}>
-        <View style={styles.container}>
-          <TouchableOpacity
-            style={styles.closeBtn}
-            onPress={onClose}
-            activeOpacity={0.7}
-          >
-            <X size={24} color={COLORS.gray600} />
-          </TouchableOpacity>
-
-          <Text style={styles.title}>{fullName}</Text>
-          <Text style={styles.subtitle}>@{username}</Text>
-
-          <View style={styles.qrWrapper}>
-            <QRCode
-              value={profileUrl}
-              size={200}
-              backgroundColor={COLORS.white}
-              color={COLORS.gray900}
-            />
-          </View>
-
-          <Text style={styles.urlText}>{profileUrl}</Text>
-
-          <View style={styles.actionsRow}>
+      {/* Stinger wraps the sheet content for the branded logo bloom
+          on open. It must live INSIDE the Modal (so it animates with
+          each open) and must wrap the full backdrop so the scale/fade
+          applies to the sheet, not just inner contents. */}
+      <QrModalStinger visible={visible}>
+        <View style={styles.overlay}>
+          <View style={styles.container}>
             <TouchableOpacity
-              style={styles.actionBtn}
-              onPress={handleCopyLink}
+              style={styles.closeBtn}
+              onPress={onClose}
               activeOpacity={0.7}
             >
-              <Copy size={20} color={COLORS.gray900} />
-              <Text style={styles.actionBtnText}>{t('profile.copyLink')}</Text>
+              <X size={24} color={COLORS.gray600} />
             </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.actionBtn, styles.shareBtn]}
-              onPress={handleShare}
-              activeOpacity={0.7}
-            >
-              <Share2 size={20} color={COLORS.gray900} />
-              <Text style={styles.actionBtnText}>{t('profile.share')}</Text>
-            </TouchableOpacity>
+
+            <Text style={styles.title}>{fullName}</Text>
+            <Text style={styles.subtitle}>@{username}</Text>
+
+            <View style={styles.qrWrapper}>
+              <QRCode
+                value={profileUrl}
+                size={200}
+                backgroundColor={COLORS.white}
+                color={COLORS.gray900}
+              />
+            </View>
+
+            <Text style={styles.urlText}>{profileUrl}</Text>
+
+            <View style={styles.actionsRow}>
+              <TouchableOpacity
+                style={styles.actionBtn}
+                onPress={handleCopyLink}
+                activeOpacity={0.7}
+              >
+                <Copy size={20} color={COLORS.gray900} />
+                <Text style={styles.actionBtnText}>{t('profile.copyLink')}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.actionBtn, styles.shareBtn]}
+                onPress={handleShare}
+                activeOpacity={0.7}
+              >
+                <Share2 size={20} color={COLORS.gray900} />
+                <Text style={styles.actionBtnText}>{t('profile.share')}</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
-      </View>
+      </QrModalStinger>
     </Modal>
   );
 }

@@ -25,6 +25,7 @@ import {
 } from 'lucide-react-native';
 import { supabase, supabaseUrl } from '../../lib/supabase';
 import { COLORS, SPACING, BORDER_RADIUS } from '../../constants/theme';
+import OnboardingCompleteBurst from '../../components/stingers/OnboardingCompleteBurst';
 
 // Must match the key used in AppNavigator. Persisting this flag is the
 // source of truth for "has this user completed onboarding?" — it
@@ -54,6 +55,8 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
   const [editingSocial, setEditingSocial] = useState<SocialLinkKey | null>(null);
   const [birthday, setBirthday] = useState('');
   const [loading, setLoading] = useState(false);
+  const [burstVisible, setBurstVisible] = useState(false);
+  const [burstUserName, setBurstUserName] = useState<string | undefined>(undefined);
   const aiDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const fetchAiTags = useCallback(async (bioText: string) => {
@@ -181,11 +184,30 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
         console.warn('[Onboarding] failed to persist completion flag:', err);
       }
 
-      // Navigate to main app (replace the navigation stack)
-      navigation.reset({
-        index: 0,
-        routes: [{ name: 'Main' }],
-      });
+      // Pull the freshest profile name for the burst chip. Best-effort —
+      // a network hiccup just means the chip falls back to the email
+      // local-part (and ultimately the stinger handles undefined fine).
+      let displayName: string | undefined;
+      try {
+        const { data: profileRow } = await supabase
+          .from('piktag_profiles')
+          .select('full_name, username')
+          .eq('id', user.id)
+          .single();
+        displayName =
+          profileRow?.full_name?.trim() ||
+          profileRow?.username?.trim() ||
+          user.email?.split('@')[0] ||
+          undefined;
+      } catch {
+        displayName = user.email?.split('@')[0] || undefined;
+      }
+
+      // Defer the navigation.reset to the stinger's onComplete so the
+      // burst animation gets to play uninterrupted before the tab stack
+      // mounts and steals focus.
+      setBurstUserName(displayName);
+      setBurstVisible(true);
     } catch (err: any) {
       Alert.alert(t('common.error'), err.message || t('common.unknownError'));
     } finally {
@@ -438,6 +460,22 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
           )}
         </TouchableOpacity>
       </View>
+
+      {/* Hero burst plays after the user taps "Start using PikTag" and
+          drives the actual reset to the Main tab stack on completion.
+          Mounted at the screen root so its full-screen Modal layers
+          above both the ScrollView content and the navigation bar. */}
+      <OnboardingCompleteBurst
+        visible={burstVisible}
+        userName={burstUserName}
+        onComplete={() => {
+          setBurstVisible(false);
+          navigation.reset({
+            index: 0,
+            routes: [{ name: 'Main' }],
+          });
+        }}
+      />
     </KeyboardAvoidingView>
   );
 }
