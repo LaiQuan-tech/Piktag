@@ -869,8 +869,10 @@
     "section9Body": "PikTag Inc. 對因使用本服務所引起的間接、附帶或衍生性損害不負任何責任。",
     "section10Title": "10. 適用法律",
     "section10Body": "本條款適用中華民國（台灣）法律。",
-    "section11Title": "11. 聯絡方式",
-    "section11Body": "PikTag Inc.\n電子郵件：support@pikt.ag"
+    "section11Title": "11. 內容審核與檢舉",
+    "section11Body": "我們會在 24 小時內審核不當內容檢舉。若檢舉成立，我們有權依本條款移除內容、暫停帳號或封鎖使用者。點擊任何使用者、訊息或貼文上的 ⋯ 選單即可提出檢舉。",
+    "section12Title": "12. 聯絡方式",
+    "section12Body": "PikTag Inc.\n電子郵件：support@pikt.ag"
   },
   "points": {
     "balance": "P幣餘額",
@@ -1022,8 +1024,7 @@
     "reasonSpam": "垃圾訊息",
     "reasonHarassment": "騷擾或霸凌",
     "reasonInappropriate": "不當內容",
-    "reasonOther": "其他",
-    "slaCommitment": "我們會在 24 小時內審核不當內容檢舉，並視情況採取行動，包含移除內容或封鎖使用者。"
+    "reasonOther": "其他"
   },
   "splash": {
     "tagline": "用標籤記住每段緣分"

@@ -417,8 +417,10 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
           </View>
         ))}
 
-        {/* UGC report SLA commitment (Apple Guideline 1.2) */}
-        <Text style={styles.helperText}>{t('report.slaCommitment')}</Text>
+        {/* UGC report SLA commitment now lives inside Terms of Service
+            (termsOfService.section11). Apple Guideline 1.2 only requires
+            the commitment to be present in-app, not on a specific screen,
+            so consolidating it into Terms keeps the Settings page clean. */}
 
         {/* Logout Button */}
         <TouchableOpacity

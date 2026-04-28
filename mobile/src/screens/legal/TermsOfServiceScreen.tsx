@@ -67,6 +67,9 @@ export default function TermsOfServiceScreen({ navigation }: Props) {
         <Text style={styles.h2}>{t('termsOfService.section11Title')}</Text>
         <Text style={styles.p}>{t('termsOfService.section11Body')}</Text>
 
+        <Text style={styles.h2}>{t('termsOfService.section12Title')}</Text>
+        <Text style={styles.p}>{t('termsOfService.section12Body')}</Text>
+
         <View style={{ height: 40 }} />
       </ScrollView>
     </View>

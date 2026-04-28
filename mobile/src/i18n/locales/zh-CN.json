@@ -878,8 +878,10 @@
     "section9Body": "PikTag Inc. 对因使用本服务所引起的间接、附带或衍生性损害不承担任何责任。",
     "section10Title": "10. 适用法律",
     "section10Body": "本条款适用中华民国（台湾）法律。",
-    "section11Title": "11. 联系方式",
-    "section11Body": "PikTag Inc.\n电子邮件：support@pikt.ag"
+    "section11Title": "11. 内容审核与举报",
+    "section11Body": "我们会在 24 小时内审核不当内容举报。若举报成立，我们有权依本条款移除内容、暂停账号或封锁用户。点击任何用户、消息或贴文上的 ⋯ 菜单即可提出举报。",
+    "section12Title": "12. 联系方式",
+    "section12Body": "PikTag Inc.\n电子邮件：support@pikt.ag"
   },
   "points": {
     "balance": "P币余额",
@@ -1015,8 +1017,7 @@
     "reasonSpam": "垃圾信息",
     "reasonHarassment": "骚扰或霸凌",
     "reasonInappropriate": "不当内容",
-    "reasonOther": "其他",
-    "slaCommitment": "我们会在 24 小时内审核不当内容举报，并视情况采取行动，包含移除内容或封锁用户。"
+    "reasonOther": "其他"
   },
   "splash": {
     "tagline": "用标签记住每段缘分"
