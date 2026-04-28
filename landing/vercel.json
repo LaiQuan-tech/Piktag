@@ -4,7 +4,7 @@
   "buildCommand": "npm ci && npm run build",
   "outputDirectory": "dist",
 
-  "ignoreCommand": "bash -c 'git diff --quiet HEAD^ HEAD -- landing/'",
+  "ignoreCommand": "bash -c 'git diff --quiet HEAD^ HEAD -- .'",
 
   "rewrites": [
     { "source": "/i/:code",         "destination": "/api/i/:code" },
