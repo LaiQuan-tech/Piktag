@@ -130,10 +130,12 @@
       "facebookLabel": "Facebook",
       "instagramLabel": "Instagram",
       "linkedinLabel": "LinkedIn",
-      "birthdayLabel": "生日"
+      "birthdayLabel": "生日",
+      "welcomeName": "欢迎，{{name}}"
     }
   },
   "connections": {
+    "addedFriend": "+ {{name}}",
     "friendsLabel": "位朋友",
     "closeFriendsLabel": "位挚友",
     "followUpTitle": "该跟进了",
