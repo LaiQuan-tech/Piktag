@@ -1,4 +1,33 @@
-// Shared configuration for all web API routes
+// Shared configuration for all web API routes (Vercel serverless functions
+// under /api/u, /api/i, /api/tag — server-rendered share pages).
+//
+// ─────────────────────────────────────────────────────────────────────────
+// SECURITY NOTE — hardcoded Supabase fallbacks below
+// ─────────────────────────────────────────────────────────────────────────
+// The values after `||` are FALLBACKS, kept temporarily for deploy
+// stability. Production should set these in the Vercel project's
+// Environment Variables instead:
+//
+//   Vercel Dashboard → Project → Settings → Environment Variables
+//     SUPABASE_URL       = https://<project-ref>.supabase.co
+//     SUPABASE_ANON_KEY  = <anon-key>
+//
+// Once the env vars are confirmed working in production (see
+// docs/SHARE_API_DEPLOY.md for verification steps), the fallbacks
+// can be removed in a follow-up change.
+//
+// Why this matters:
+//   - Rotating the key currently requires a code change + deploy,
+//     not just an env var swap.
+//   - The project ref `kbwfdskulxnhjckdvghj` is enshrined in code.
+//   - The anon key is RLS-gated, so leak blast radius is limited —
+//     but if you suspect compromise (e.g. it was pasted somewhere
+//     public), rotate it via Supabase Dashboard → Settings → API.
+//
+// DO NOT add a service_role key here under any circumstance — that key
+// bypasses RLS and would be a critical leak. Server-only secrets belong
+// in Vercel env vars only, never in source.
+// ─────────────────────────────────────────────────────────────────────────
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://kbwfdskulxnhjckdvghj.supabase.co';
 const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY ||
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtid2Zkc2t1bHhuaGpja2R2Z2hqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEzOTgwNTAsImV4cCI6MjA4Njk3NDA1MH0.q1wxMahfity_5An5I_PPSoxglJeKHXX6ohYeGvsaIC8';
