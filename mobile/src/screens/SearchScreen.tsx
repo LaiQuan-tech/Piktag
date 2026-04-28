@@ -1663,7 +1663,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
 
         case 'recommendedUsers':
           return (
-            <View style={{ paddingHorizontal: 16, paddingBottom: 16 }}>
+            <View style={{ paddingBottom: 16 }}>
               <Text style={{ fontSize: 16, fontWeight: '700', color: COLORS.gray900, marginBottom: 10 }}>
                 {t('search.recommendedTitle') || '你可能想認識'}
               </Text>
