@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   View, Text, Image, TextInput, Pressable, StyleSheet, StatusBar,
-  ActivityIndicator, Dimensions, Alert, KeyboardAvoidingView, Platform,
+  Dimensions, Alert, KeyboardAvoidingView, Platform,
 } from 'react-native';
+import PageLoader from '../components/loaders/PageLoader';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
@@ -290,7 +291,7 @@ export default function ActivityReviewScreen({ navigation, route }: Props) {
     return (
       <View style={[styles.container, { paddingTop: insets.top }]}>
         <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
-        <ActivityIndicator size="large" color={COLORS.piktag500} style={{ flex: 1 }} />
+        <PageLoader />
       </View>
     );
   }

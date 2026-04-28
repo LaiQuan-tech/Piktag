@@ -6,11 +6,11 @@ import {
   TouchableOpacity,
   StyleSheet,
   Alert,
-  ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
 } from 'react-native';
+import BrandSpinner from '../../components/loaders/BrandSpinner';
 import { useTranslation } from 'react-i18next';
 import { Hash, Eye, EyeOff } from 'lucide-react-native';
 import { supabase } from '../../lib/supabase';
@@ -187,7 +187,7 @@ export default function RegisterScreen({ navigation }: RegisterScreenProps) {
             accessibilityRole="button"
           >
             {loading ? (
-              <ActivityIndicator color={COLORS.white} />
+              <BrandSpinner size={20} />
             ) : (
               <Text style={styles.registerButtonText}>{t('auth.register.registerButton')}</Text>
             )}
@@ -209,7 +209,7 @@ export default function RegisterScreen({ navigation }: RegisterScreenProps) {
               try { await signInWithApple(); } catch (err: any) { if (err.code !== 'ERR_CANCELED') Alert.alert(t('common.error'), err.message); }
               setSocialLoading(null);
             }} disabled={!!socialLoading} activeOpacity={0.8}>
-              {socialLoading === 'apple' ? <ActivityIndicator color={COLORS.gray900} /> : <>
+              {socialLoading === 'apple' ? <BrandSpinner size={20} /> : <>
                 <Text style={styles.appleIcon}>{'\uF8FF'}</Text>
                 <Text style={styles.socialBtnText}>{t('auth.login.continueWithApple') || 'Apple 登入'}</Text>
               </>}
@@ -220,7 +220,7 @@ export default function RegisterScreen({ navigation }: RegisterScreenProps) {
             try { await signInWithGoogle(); } catch (err: any) { Alert.alert(t('common.error'), err.message); }
             setSocialLoading(null);
           }} disabled={!!socialLoading} activeOpacity={0.8}>
-            {socialLoading === 'google' ? <ActivityIndicator color={COLORS.gray900} /> : <>
+            {socialLoading === 'google' ? <BrandSpinner size={20} /> : <>
               <Text style={styles.googleIcon}>G</Text>
               <Text style={styles.socialBtnText}>{t('auth.login.continueWithGoogle') || 'Google 登入'}</Text>
             </>}

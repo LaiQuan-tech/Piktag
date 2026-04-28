@@ -1,8 +1,9 @@
 import React, { useState, useCallback } from 'react';
 import {
   View, Text, StyleSheet, StatusBar, TouchableOpacity, TextInput,
-  ActivityIndicator, Alert, KeyboardAvoidingView, Platform,
+  Alert, KeyboardAvoidingView, Platform,
 } from 'react-native';
+import BrandSpinner from '../components/loaders/BrandSpinner';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ArrowLeft, Gift, Check } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
@@ -145,7 +146,7 @@ export default function RedeemInviteScreen({ navigation, route }: Props) {
           activeOpacity={0.8}
         >
           {loading ? (
-            <ActivityIndicator color="#fff" />
+            <BrandSpinner size={20} />
           ) : success ? (
             <Check size={20} color="#fff" />
           ) : (

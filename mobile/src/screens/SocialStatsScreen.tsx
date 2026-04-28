@@ -6,9 +6,9 @@ import {
   TouchableOpacity,
   StyleSheet,
   StatusBar,
-  ActivityIndicator,
   Dimensions,
 } from 'react-native';
+import PageLoader from '../components/loaders/PageLoader';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import {
@@ -480,9 +480,7 @@ export default function SocialStatsScreen({ navigation }: SocialStatsScreenProps
       </View>
 
       {loading ? (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={COLORS.piktag500} />
-        </View>
+        <PageLoader />
       ) : (
         <ScrollView
           contentContainerStyle={styles.scrollContent}

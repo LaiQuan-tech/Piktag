@@ -5,9 +5,9 @@ import {
   TouchableOpacity,
   StyleSheet,
   Modal,
-  ActivityIndicator,
   Platform,
 } from 'react-native';
+import PageLoader from './loaders/PageLoader';
 import { X } from 'lucide-react-native';
 import { requestForegroundPermissionsAsync, getCurrentPositionAsync, Accuracy } from 'expo-location';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -436,7 +436,7 @@ export default function FriendsMapModal({
         <View style={styles.mapContainer}>
           {locating && !userCoords && friendsWithLocation.length === 0 ? (
             <View style={styles.loadingContainer}>
-              <ActivityIndicator size="large" color={COLORS.piktag500} />
+              <PageLoader />
             </View>
           ) : isWeb ? (
             // @ts-ignore — iframe is a DOM element, not an RN component

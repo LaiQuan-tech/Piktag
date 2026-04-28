@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { View, Text, StyleSheet, StatusBar, TouchableOpacity, FlatList, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, StatusBar, TouchableOpacity, FlatList } from 'react-native';
+import BrandSpinner from '../components/loaders/BrandSpinner';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ArrowLeft } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
@@ -76,7 +77,7 @@ export default function PointsHistoryScreen({ navigation }: Props) {
       </View>
 
       {loading ? (
-        <View style={styles.loadingWrap}><ActivityIndicator /></View>
+        <View style={styles.loadingWrap}><BrandSpinner size={24} /></View>
       ) : entries.length === 0 ? (
         <View style={styles.emptyWrap}>
           <Text style={[styles.emptyText, { color: colors.textSecondary }]}>{t('points.emptyHistory')}</Text>
