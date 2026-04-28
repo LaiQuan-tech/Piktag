@@ -1,6 +1,8 @@
 {
   "app": {
-    "offline": "你目前处于离线模式，部分功能可能受限"
+    "offline": "当前离线",
+    "offlineHint": "部分功能需要网络",
+    "backOnline": "已重新连接"
   },
   "tabs": {
     "home": "首页",
@@ -56,7 +58,11 @@
     "noTags": "尚无标签",
     "email": "E-mail",
     "phone": "电话",
-    "comingSoonTitle": "即将推出"
+    "comingSoonTitle": "即将推出",
+    "loadFailed": "加载失败",
+    "checkConnection": "请检查网络连接后重试",
+    "willAutoRetry": "重新连接后会自动加载",
+    "userNotFound": "找不到这个用户"
   },
   "auth": {
     "login": {

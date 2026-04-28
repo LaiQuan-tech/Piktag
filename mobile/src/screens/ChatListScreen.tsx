@@ -22,11 +22,13 @@ import ChatTabs from '../components/chat/ChatTabs';
 import ConversationActionSheet from '../components/chat/ConversationActionSheet';
 import ConversationRow from '../components/chat/ConversationRow';
 import EmptyInbox from '../components/chat/EmptyInbox';
+import ErrorState from '../components/ErrorState';
 import StatusModal from '../components/StatusModal';
 import { COLORS } from '../constants/theme';
 import { useAuth } from '../hooks/useAuth';
 import { useChatFriendStatuses } from '../hooks/useChatFriendStatuses';
 import { useChatInbox } from '../hooks/useChatInbox';
+import { useNetInfoReconnect } from '../hooks/useNetInfoReconnect';
 import { supabase } from '../lib/supabase';
 import type { InboxConversation, InboxTab } from '../types/chat';
 
@@ -72,7 +74,7 @@ type HeaderProfile = {
 export default function ChatListScreen({ navigation }: Props): JSX.Element {
   const { t } = useTranslation();
   const { user } = useAuth();
-  const { conversations, loading, refresh } = useChatInbox();
+  const { conversations, loading, error: inboxError, refresh } = useChatInbox();
 
   const [activeTab, setActiveTab] = useState<InboxTab>('primary');
   const [refreshing, setRefreshing] = useState<boolean>(false);
@@ -419,11 +421,24 @@ export default function ChatListScreen({ navigation }: Props): JSX.Element {
     [refreshing, handleRefresh],
   );
 
+  // When the inbox fetch errors AND we have nothing cached to show,
+  // surface a retry CTA. With cached conversations we keep showing the
+  // list — refresh-on-pull handles user-initiated retry, and the
+  // OfflineBanner already covers the "you're offline" awareness.
+  useNetInfoReconnect(useCallback(() => {
+    if (inboxError) {
+      void refresh();
+    }
+  }, [inboxError, refresh]));
+
   // Decide which empty-state copy + CTA to show based on whether this
   // is a search miss, an empty non-primary bucket (no CTA — user can't
-  // conjure message requests), or a brand-new empty inbox (CTA to go
-  // find people).
+  // conjure message requests), a brand-new empty inbox, or an actual
+  // load failure (network-level, distinguished via `inboxError`).
   const emptyState = useMemo(() => {
+    if (inboxError) {
+      return <ErrorState onRetry={() => void refresh()} />;
+    }
     const trimmedQuery = searchQuery.trim();
     if (trimmedQuery.length > 0) {
       return (
@@ -444,7 +459,7 @@ export default function ChatListScreen({ navigation }: Props): JSX.Element {
       );
     }
     return <EmptyInbox showCta onCtaPress={handleGoDiscover} />;
-  }, [activeTab, handleGoDiscover, searchQuery, t]);
+  }, [activeTab, handleGoDiscover, inboxError, refresh, searchQuery, t]);
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>

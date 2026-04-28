@@ -36,8 +36,10 @@ import { LinearGradient } from 'expo-linear-gradient';
 import PlatformIcon from '../components/PlatformIcon';
 import OverlappingAvatars from '../components/OverlappingAvatars';
 import HiddenTagEditor from '../components/HiddenTagEditor';
+import ErrorState from '../components/ErrorState';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
+import { useNetInfoReconnect } from '../hooks/useNetInfoReconnect';
 import type { PiktagProfile, Biolink } from '../types';
 import { getViewerRelation, filterBiolinksByVisibility } from '../lib/biolinkVisibility';
 import { shareProfile } from '../lib/shareProfile';
@@ -61,6 +63,11 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
 
   const [resolvedUserId, setResolvedUserId] = useState<string | null>(paramUserId || null);
   const [loading, setLoading] = useState(true);
+  // `loadError` separates "fetch threw" from "user genuinely doesn't
+  // exist". Without this both paths landed on the same `!profile`
+  // branch which always rendered "user not found" — misleading when
+  // the real cause was a dropped network call.
+  const [loadError, setLoadError] = useState<boolean>(false);
   const [profile, setProfile] = useState<PiktagProfile | null>(null);
   const [tags, setTags] = useState<string[]>([]);
   const [biolinks, setBiolinks] = useState<Biolink[]>([]);
@@ -122,16 +129,25 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
     // render the "user not found" state.
     let userId = resolvedUserId;
     if (!userId && paramUsername) {
-      const { data: lookupData } = await supabase
+      const { data: lookupData, error: lookupErr } = await supabase
         .from('piktag_profiles')
         .select('id')
         .eq('username', paramUsername)
         .maybeSingle();
       if (signal.aborted) return;
+      // Distinguish "lookup itself errored" (network / supabase
+      // failure) from "lookup completed and found nothing" (genuine
+      // 404). Only the first should flip the retry-able error state.
+      if (lookupErr) {
+        setLoadError(true);
+        setLoading(false);
+        return;
+      }
       if (lookupData) {
         userId = lookupData.id;
         setResolvedUserId(userId);
       } else {
+        setLoadError(false);
         setLoading(false);
         return;
       }
@@ -140,6 +156,7 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
 
     try {
       setLoading(true);
+      setLoadError(false);
 
       // --- Wave 1: one consolidated RPC instead of 13+ round-trips ---
       //
@@ -162,8 +179,11 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
       if (signal.aborted) return;
 
       if (detailErr || !detail) {
-        // Fall through — profile load failure will render the 404 state.
+        // RPC actually errored — flag this as a retryable load failure
+        // so the screen renders <ErrorState> with a retry button rather
+        // than the misleading "user not found" empty state.
         console.warn('[UserDetail] get_user_detail failed:', detailErr);
+        if (detailErr) setLoadError(true);
       }
 
       const d = (detail as any) || {};
@@ -256,11 +276,23 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
         setSimilarMutualFriends(mutualMap);
       }
     } catch (err) {
-      if (!signal.aborted) console.error('Error fetching user data:', err);
+      if (!signal.aborted) {
+        console.error('Error fetching user data:', err);
+        setLoadError(true);
+      }
     } finally {
       if (!signal.aborted) setLoading(false);
     }
   }, [authUser, resolvedUserId, paramUsername]);
+
+  // Auto-retry when connectivity comes back, but only if the previous
+  // attempt failed. Hands the trigger over to fetchData; it does its
+  // own loading-state gating.
+  useNetInfoReconnect(useCallback(() => {
+    if (loadError) {
+      fetchData();
+    }
+  }, [loadError, fetchData]));
 
   useFocusEffect(
     useCallback(() => {
@@ -834,6 +866,10 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
   }
 
   if (!profile) {
+    // Two distinct empty cases: (1) the fetch errored and we should
+    // offer retry + reassure the user that we'll auto-retry on
+    // reconnect; (2) the lookup completed and the user genuinely
+    // doesn't exist — keep the existing "not found" copy.
     return (
       <View style={[styles.container, { backgroundColor: colors.background }]}>
         <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={colors.white} />
@@ -845,12 +881,18 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
           >
             <ArrowLeft size={24} color={COLORS.gray900} />
           </TouchableOpacity>
-          <Text style={styles.headerUsername}>{t('userDetail.headerNotFound')}</Text>
+          <Text style={styles.headerUsername}>
+            {loadError ? '' : t('userDetail.headerNotFound')}
+          </Text>
           <View style={styles.headerSpacer} />
         </View>
-        <View style={styles.loadingContainer}>
-          <Text style={styles.emptyText}>{t('userDetail.userNotFound')}</Text>
-        </View>
+        {loadError ? (
+          <ErrorState onRetry={fetchData} />
+        ) : (
+          <View style={styles.loadingContainer}>
+            <Text style={styles.emptyText}>{t('userDetail.userNotFound')}</Text>
+          </View>
+        )}
       </View>
     );
   }

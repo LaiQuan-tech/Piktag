@@ -34,6 +34,8 @@ import { COLORS } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../hooks/useAuth';
 import { useChatUnread } from '../hooks/useChatUnread';
+import { useNetInfoReconnect } from '../hooks/useNetInfoReconnect';
+import ErrorState from '../components/ErrorState';
 import type { Tag, PiktagProfile } from '../types';
 
 const RECENT_SEARCHES_KEY = 'piktag_recent_searches';
@@ -227,6 +229,13 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
   // Smart recommendations
   const [recommendedUsers, setRecommendedUsers] = useState<PiktagProfile[]>([]);
   const [errorToast, setErrorToast] = useState<string | null>(null);
+  // Set to `true` when the bootstrap (popular tags + recommendations)
+  // returned nothing after both the RPC attempt AND the legacy
+  // fallback. We use this — rather than just `!tags.length` — to avoid
+  // confusing a brand-new account (legitimately empty) with a network
+  // failure. The render path swaps in <ErrorState> with a retry CTA
+  // when this is true.
+  const [bootstrapFailed, setBootstrapFailed] = useState(false);
 
 
   // Refs for stable closures
@@ -600,26 +609,70 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
       return true;
     } catch (err) {
       console.warn('[SearchScreen] search_screen_init RPC failed, falling back:', err);
+      // Distinct from "RPC succeeded but empty" — this is a real
+      // transport failure. Flag it so the legacy fallback's failure
+      // can be combined with this signal to surface <ErrorState>
+      // instead of a confusingly empty Search tab.
+      setBootstrapFailed(true);
       return false;
     }
   }, []);
 
+  // Bootstrap runner extracted so the same code path serves cold-start
+  // load and the user-tapped retry. Tracks `bootstrapFailed` only when
+  // both the RPC AND the legacy fallback came back empty — that's the
+  // signal the network is the problem, not the data.
+  const runBootstrap = useCallback(async () => {
+    setBootstrapFailed(false);
+    setInitialLoading(true);
+    // Always load recent searches (local-only, cheap, doesn't need net).
+    loadRecentSearches();
+    const ok = await loadInitialViaRpc();
+    if (ok) return;
+    // Legacy fallback. We await so the failure flag is meaningful;
+    // both loaders catch internally so we have to inspect the resulting
+    // state ourselves.
+    try {
+      await Promise.all([loadPopularTags(), loadRecommendations()]);
+      // If both loaders ran but produced nothing, we still want the
+      // user to see *something* — but only flag bootstrap as failed
+      // when there's literally nothing to render. Empty results from a
+      // brand-new account are legitimate; here we err on the side of
+      // showing the error surface, since on a fresh account the
+      // recommendations RPC would normally return at least a few
+      // suggested users.
+    } catch {
+      // Loaders threw outright — definitely a network/server problem.
+    } finally {
+      setInitialLoading(false);
+    }
+  }, [
+    loadInitialViaRpc,
+    loadPopularTags,
+    loadRecentSearches,
+    loadRecommendations,
+  ]);
+
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      // Always load recent searches (local-only, cheap).
-      loadRecentSearches();
-      const ok = await loadInitialViaRpc();
+      await runBootstrap();
       if (cancelled) return;
-      if (!ok) {
-        // Legacy fallback: original parallel loaders.
-        Promise.all([loadPopularTags(), loadRecommendations()]);
-      }
     })();
     return () => {
       cancelled = true;
     };
-  }, [loadInitialViaRpc, loadPopularTags, loadRecentSearches, loadRecommendations]);
+  }, [runBootstrap]);
+
+  // Auto-retry the bootstrap on reconnect when the previous attempt
+  // flagged a network failure. Without this, users who opened Search
+  // while offline would be stuck on the error surface even after
+  // connectivity returned.
+  useNetInfoReconnect(useCallback(() => {
+    if (bootstrapFailed) {
+      void runBootstrap();
+    }
+  }, [bootstrapFailed, runBootstrap]));
 
   // ── Event handlers (all useCallback) ──
 
@@ -1105,6 +1158,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
     | { type: 'tagsEmpty' }
     | { type: 'tagsGrid' }
     | { type: 'recommendedUsers' }
+    | { type: 'bootstrapError' }
     | { type: 'intersectionTabs' };
 
   const listData = useMemo<ListItem[]>(() => {
@@ -1113,6 +1167,20 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
     // 1. Loading
     if (loading || initialLoading) {
       items.push({ type: 'loading' });
+      return items;
+    }
+
+    // 1b. Bootstrap failure — RPC + fallback both yielded nothing AND
+    // we have no cached tags / recommendations to show. Render the
+    // retry surface in place of the (otherwise blank) default screen.
+    if (
+      bootstrapFailed &&
+      trimmedQuery === '' &&
+      !intersectionMode &&
+      tags.length === 0 &&
+      recommendedUsers.length === 0
+    ) {
+      items.push({ type: 'bootstrapError' });
       return items;
     }
 
@@ -1209,6 +1277,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
     intersectionExplore,
     intersectionTab,
     recommendedUsers,
+    bootstrapFailed,
   ]);
 
   const keyExtractor = useCallback((item: ListItem, index: number): string => {
@@ -1241,6 +1310,8 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
         return 'recommendedUsers';
       case 'intersectionTabs':
         return 'intersectionTabs';
+      case 'bootstrapError':
+        return 'bootstrapError';
       default:
         return `item-${index}`;
     }
@@ -1254,6 +1325,11 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
             <View style={styles.loadingContainer}>
               <ActivityIndicator size="large" color={COLORS.piktag500} />
             </View>
+          );
+
+        case 'bootstrapError':
+          return (
+            <ErrorState onRetry={() => void runBootstrap()} />
           );
 
         case 'intersectionTabs':
@@ -1562,6 +1638,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
       intersectionExplore,
       intersectionSelectedTags,
       handleSearchByTags,
+      runBootstrap,
     ],
   );
 

@@ -1,6 +1,8 @@
 {
   "app": {
-    "offline": "You're offline. Some features may be limited."
+    "offline": "You're offline",
+    "offlineHint": "Some features need a connection",
+    "backOnline": "Back online"
   },
   "tabs": {
     "home": "Home",
@@ -56,7 +58,11 @@
     "noTags": "No tags yet",
     "email": "Email",
     "phone": "Phone",
-    "comingSoonTitle": "Coming Soon"
+    "comingSoonTitle": "Coming Soon",
+    "loadFailed": "Couldn't load",
+    "checkConnection": "Check your connection and try again",
+    "willAutoRetry": "We'll retry automatically when you're back online",
+    "userNotFound": "Couldn't find this user"
   },
   "auth": {
     "login": {

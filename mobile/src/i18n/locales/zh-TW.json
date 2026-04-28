@@ -1,6 +1,8 @@
 {
   "app": {
-    "offline": "你目前處於離線模式，部分功能可能受限"
+    "offline": "目前離線",
+    "offlineHint": "部分功能需要網路才能使用",
+    "backOnline": "已重新連線"
   },
   "tabs": {
     "home": "首頁",
@@ -56,7 +58,11 @@
     "noTags": "尚無標籤",
     "email": "E-mail",
     "phone": "電話",
-    "comingSoonTitle": "即將推出"
+    "comingSoonTitle": "即將推出",
+    "loadFailed": "載入失敗",
+    "checkConnection": "請檢查網路連線後重試",
+    "willAutoRetry": "重新連線後會自動載入",
+    "userNotFound": "找不到這個用戶"
   },
   "auth": {
     "login": {

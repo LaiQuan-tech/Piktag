@@ -55,6 +55,8 @@ import PlatformIcon from '../components/PlatformIcon';
 import InitialsAvatar from '../components/InitialsAvatar';
 import OverlappingAvatars from '../components/OverlappingAvatars';
 import HiddenTagEditor from '../components/HiddenTagEditor';
+import ErrorState from '../components/ErrorState';
+import { useNetInfoReconnect } from '../hooks/useNetInfoReconnect';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
 import type { Connection, PiktagProfile, Biolink } from '../types';
@@ -158,6 +160,9 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
   }, []);
 
   const [loading, setLoading] = useState(true);
+  // True when the initial fetch threw — drives the <ErrorState> render
+  // path. Cleared on every fresh attempt; auto-retried on reconnect.
+  const [loadError, setLoadError] = useState(false);
   const [friendData, dispatchFriendData] = useReducer(friendDataReducer, initialFriendData);
   const { connection, profile, tags, biolinks, mutualFriends, mutualTags, followerCount, scanEventTags } = friendData;
 
@@ -212,6 +217,7 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
 
     try {
       setLoading(true);
+      setLoadError(false);
 
       // Fast path: one RPC returns the page-ready slice (profile bits +
       // tags + mutual count + viewer→friend relation). On success we use
@@ -490,7 +496,10 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
 
       if (phase2.length > 0) await Promise.all(phase2);
     } catch (err) {
-      if (!signal.aborted) console.error('Error fetching friend data:', err);
+      if (!signal.aborted) {
+        console.error('Error fetching friend data:', err);
+        setLoadError(true);
+      }
     } finally {
       if (!signal.aborted) setLoading(false);
     }
@@ -504,6 +513,15 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
       };
     }, [fetchData])
   );
+
+  // Auto-refetch when the network comes back, but only when the prior
+  // pass actually errored so we don't wastefully refetch already-loaded
+  // friends.
+  useNetInfoReconnect(useCallback(() => {
+    if (loadError) {
+      fetchData();
+    }
+  }, [loadError, fetchData]));
 
   // --- Note CRUD ---
   // Fetch friend's public tags for the pick modal — returns tags array
@@ -829,6 +847,30 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={COLORS.piktag500} />
         </View>
+      </View>
+    );
+  }
+
+  // Initial fetch threw and we don't have a profile to render. Surface
+  // a retry CTA instead of letting the screen render with empty avatar
+  // / placeholder name — that previously looked like the friend was
+  // somehow malformed when really the network just dropped.
+  if (loadError && !profile) {
+    return (
+      <View style={[styles.container, { backgroundColor: colors.background }]}>
+        <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={colors.white} />
+        <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
+          <TouchableOpacity
+            style={styles.backBtn}
+            onPress={() => navigation.canGoBack() ? navigation.goBack() : navigation.navigate('Connections')}
+            activeOpacity={0.6}
+          >
+            <ArrowLeft size={24} color={COLORS.gray900} />
+          </TouchableOpacity>
+          <Text style={styles.headerName} numberOfLines={1}> </Text>
+          <View style={styles.headerSpacer} />
+        </View>
+        <ErrorState onRetry={fetchData} />
       </View>
     );
   }

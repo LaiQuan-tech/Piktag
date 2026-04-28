@@ -23,9 +23,11 @@ import type { RouteProp } from '@react-navigation/native';
 import Composer from '../components/chat/Composer';
 import MessageBubble from '../components/chat/MessageBubble';
 import InitialsAvatar from '../components/InitialsAvatar';
+import ErrorState from '../components/ErrorState';
 import { COLORS } from '../constants/theme';
 import { useAuth } from '../hooks/useAuth';
 import { useChatThread } from '../hooks/useChatThread';
+import { useNetInfoReconnect } from '../hooks/useNetInfoReconnect';
 import { supabase } from '../lib/supabase';
 import type { ThreadMessage } from '../types/chat';
 
@@ -90,6 +92,7 @@ export default function ChatThreadScreen({ navigation, route }: Props): JSX.Elem
     loadMore,
     sendMessage,
     retry,
+    reload,
     markRead,
     error,
   } = useChatThread(conversationId);
@@ -333,6 +336,17 @@ export default function ChatThreadScreen({ navigation, route }: Props): JSX.Elem
     [error],
   );
 
+  // Auto-retry the page fetch when the network comes back if we
+  // previously errored and don't already have messages cached. Realtime
+  // re-subscription handles the happy case (we recovered with messages
+  // already painted); this branch covers the cold-start-while-offline
+  // failure mode.
+  useNetInfoReconnect(useCallback(() => {
+    if (error && !isBlocked && messages.length === 0) {
+      void reload();
+    }
+  }, [error, isBlocked, messages.length, reload]));
+
   // In an inverted list, the "footer" renders at the TOP — visually
   // above the oldest loaded message — which is the right slot for the
   // "loading older" spinner.
@@ -346,12 +360,24 @@ export default function ChatThreadScreen({ navigation, route }: Props): JSX.Elem
   }, [loadingMore]);
 
   const emptyState = useMemo(
-    () => (
-      <View style={styles.emptyWrap}>
-        <Text style={styles.emptyText}>{t('chat.emptyInbox')}</Text>
-      </View>
-    ),
-    [t],
+    () => {
+      // A non-block error with no messages = fetch failed cold. Surface
+      // the retry CTA. Block errors are handled separately via the
+      // composer being disabled (see Composer's `disabled` prop above).
+      if (error && !isBlocked) {
+        return (
+          <View style={styles.emptyWrap}>
+            <ErrorState onRetry={() => void reload()} />
+          </View>
+        );
+      }
+      return (
+        <View style={styles.emptyWrap}>
+          <Text style={styles.emptyText}>{t('chat.emptyInbox')}</Text>
+        </View>
+      );
+    },
+    [error, isBlocked, reload, t],
   );
 
   return (

@@ -17,6 +17,13 @@ type UseChatThreadReturn = {
   loadMore: () => Promise<void>;
   sendMessage: (body: string) => Promise<void>;
   retry: (nonce: string) => Promise<void>;
+  /**
+   * Re-runs the initial page fetch. Used by `<ErrorState>` retry CTAs
+   * and by callers that want to force a refresh after recovering from
+   * a transient failure. Realtime + reconnect-flush already cover the
+   * happy paths, so this is mainly for the explicit-retry UX.
+   */
+  reload: () => Promise<void>;
   markRead: () => Promise<void>;
   error: string | null;
 };
@@ -386,6 +393,17 @@ export function useChatThread(conversationId: string): UseChatThreadReturn {
     }
   }, [isConnected, flushQueue]);
 
+  // Explicit-retry surface used by the screen-level <ErrorState>.
+  // We clear the in-place error and bounce the loading flag back on
+  // before delegating to fetchLatest so the FlatList swaps from the
+  // error empty-state to a spinner immediately, rather than appearing
+  // frozen between tap and response.
+  const reload = useCallback(async () => {
+    setError(null);
+    setLoading(true);
+    await fetchLatest();
+  }, [fetchLatest]);
+
   return {
     messages,
     loading,
@@ -393,6 +411,7 @@ export function useChatThread(conversationId: string): UseChatThreadReturn {
     loadMore,
     sendMessage,
     retry,
+    reload,
     markRead,
     error,
   };

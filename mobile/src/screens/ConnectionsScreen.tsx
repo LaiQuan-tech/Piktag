@@ -42,8 +42,10 @@ import InitialsAvatar from '../components/InitialsAvatar';
 import { supabase } from '../lib/supabase';
 import { getCache, setCache, CACHE_KEYS } from '../lib/dataCache';
 import { ConnectionsScreenSkeleton } from '../components/SkeletonLoader';
+import ErrorState from '../components/ErrorState';
 import { useAuth } from '../hooks/useAuth';
 import { useAskFeed } from '../hooks/useAskFeed';
+import { useNetInfoReconnect } from '../hooks/useNetInfoReconnect';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import FriendsMapModal, { type FriendLocation } from '../components/FriendsMapModal';
 import AskStoryRow from '../components/ask/AskStoryRow';
@@ -143,6 +145,12 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
 
   const [connections, setConnections] = useState<ConnectionWithTags[]>([]);
   const [loading, setLoading] = useState(true);
+  // Tracks whether the most recent fetch threw without leaving us
+  // anything cached to render. The empty-state branch reads this so a
+  // network failure shows a retry CTA instead of the new-user
+  // onboarding empty state (which previously made offline failures
+  // look like the user had no connections at all).
+  const [loadError, setLoadError] = useState(false);
 
   // Friend statuses (IG-style stories bar)
   const [friendStatuses, setFriendStatuses] = useState<FriendStatus[]>([]);
@@ -362,7 +370,11 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
       console.error('Unexpected error fetching connections:', err);
       if (!cached) {
         setConnections([]);
+        setLoadError(true);
       }
+      // If we DID have cache, leave the list as-is and skip the error
+      // surface — the user still sees something meaningful, and the
+      // pull-to-refresh + reconnect retry will pick up the next attempt.
     }
   }, [user, t]);
 
@@ -383,6 +395,10 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
         const now = Date.now();
         if (now - lastFetchRef.current < 30000 && lastFetchRef.current > 0) return;
         setLoading(true);
+        // Clear stale error before attempting again so the empty-state
+        // doesn't briefly render the previous failure surface while
+        // the new request is in flight.
+        setLoadError(false);
         try {
           await fetchConnections();
         } finally {
@@ -393,6 +409,17 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
       loadAll();
     }, [fetchConnections])
   );
+
+  // Auto-refetch when the network comes back if we previously errored.
+  // Bypass the 30s cooldown — a manual reconnect signal is a strong
+  // hint that the user wants their data right now.
+  useNetInfoReconnect(useCallback(() => {
+    if (loadError) {
+      lastFetchRef.current = 0;
+      setLoadError(false);
+      void fetchConnections();
+    }
+  }, [loadError, fetchConnections]));
 
   // Always newest-first; tag filter applied on top.
   const sortedConnections = useMemo(() => {
@@ -522,6 +549,20 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
 
   const renderEmpty = useCallback(() => {
     if (loading) return null;
+    // Network failure path. Has to come BEFORE the onboarding empty
+    // state — otherwise users with a dropped connection see a bunch of
+    // CTAs ("scan a QR / sync contacts") that won't actually work.
+    if (loadError) {
+      return (
+        <ErrorState
+          onRetry={() => {
+            setLoadError(false);
+            lastFetchRef.current = 0;
+            void fetchConnections();
+          }}
+        />
+      );
+    }
     return (
       <View style={styles.emptyContainer}>
         <QrCode size={64} color={COLORS.gray200} style={{ marginBottom: 16 }} />
@@ -549,7 +590,7 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
         </TouchableOpacity>
       </View>
     );
-  }, [loading, t, navigation]);
+  }, [loading, loadError, fetchConnections, t, navigation]);
 
   // --- Optimized: stable keyExtractor ---
   const keyExtractor = useCallback((item: ConnectionWithTags) => item.id, []);
