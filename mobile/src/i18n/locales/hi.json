@@ -91,7 +91,8 @@
       "loginLink": "लॉग इन करें",
       "confirmPasswordPlaceholder": "पासवर्ड की पुष्टि करें",
       "alertPasswordMismatch": "पासवर्ड मेल नहीं खाते",
-      "passwordHint": "पासवर्ड कम से कम 6 अक्षरों का होना चाहिए"
+      "passwordHint": "पासवर्ड कम से कम 6 अक्षरों का होना चाहिए",
+      "birthdayLabel": "जन्मदिन (वैकल्पिक)"
     },
     "onboarding": {
       "defaultTags": [

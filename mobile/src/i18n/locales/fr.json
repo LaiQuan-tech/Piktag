@@ -91,7 +91,8 @@
       "loginLink": "Se connecter",
       "confirmPasswordPlaceholder": "Confirmer le mot de passe",
       "alertPasswordMismatch": "Les mots de passe ne correspondent pas",
-      "passwordHint": "Le mot de passe doit contenir au moins 6 caractères"
+      "passwordHint": "Le mot de passe doit contenir au moins 6 caractères",
+      "birthdayLabel": "Anniversaire (facultatif)"
     },
     "onboarding": {
       "defaultTags": [

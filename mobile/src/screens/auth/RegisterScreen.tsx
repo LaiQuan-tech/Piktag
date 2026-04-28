@@ -28,12 +28,18 @@ export default function RegisterScreen({ navigation }: RegisterScreenProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  // Birthday is the core of PikTag's CRM — the daily-birthday-check
+  // edge function uses it to surface "X 今天生日" reminders. Optional
+  // here (user can fill in later via Onboarding / EditProfile) but
+  // collecting at sign-up gives us the highest yield.
+  const [birthday, setBirthday] = useState('');
   const [socialLoading, setSocialLoading] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const passwordRef = useRef<TextInput>(null);
   const confirmPasswordRef = useRef<TextInput>(null);
+  const birthdayRef = useRef<TextInput>(null);
 
   const handleRegister = async () => {
     if (!email.trim() || !password.trim()) {
@@ -65,6 +71,22 @@ export default function RegisterScreen({ navigation }: RegisterScreenProps) {
           Alert.alert(t('auth.register.alertRegisterFailedTitle'), error.message);
         }
         return;
+      }
+
+      // Persist birthday on the profile if the viewer entered one.
+      // Schema is `MM/DD` (matches Onboarding + the daily-birthday-check
+      // server query). Falls through silently on RLS / network error
+      // since the field is optional and Onboarding can collect it later.
+      const trimmedBirthday = birthday.trim();
+      const userId = data.user?.id;
+      if (trimmedBirthday && userId) {
+        await supabase
+          .from('piktag_profiles')
+          .update({ birthday: trimmedBirthday })
+          .eq('id', userId)
+          .then(({ error: bdayErr }) => {
+            if (bdayErr) console.warn('Save birthday failed:', bdayErr.message);
+          });
       }
 
       if (data.session) {
@@ -157,8 +179,8 @@ export default function RegisterScreen({ navigation }: RegisterScreenProps) {
                 value={confirmPassword}
                 onChangeText={setConfirmPassword}
                 secureTextEntry={!showConfirmPassword}
-                returnKeyType="done"
-                onSubmitEditing={handleRegister}
+                returnKeyType="next"
+                onSubmitEditing={() => birthdayRef.current?.focus()}
               />
               <TouchableOpacity
                 style={styles.eyeButton}
@@ -177,6 +199,27 @@ export default function RegisterScreen({ navigation }: RegisterScreenProps) {
                 {t('auth.register.alertPasswordMismatch')}
               </Text>
             )}
+          </View>
+
+          {/* Birthday — optional but encouraged. Format MM/DD matches the
+              Onboarding screen's input + the daily-birthday-check edge
+              function's exact-string match query. */}
+          <View style={styles.birthdayRow}>
+            <Text style={styles.birthdayLabel}>
+              {t('auth.register.birthdayLabel') || '生日（選填）'}
+            </Text>
+            <TextInput
+              ref={birthdayRef}
+              style={styles.birthdayInput}
+              placeholder="MM/DD"
+              placeholderTextColor={COLORS.gray400}
+              value={birthday}
+              onChangeText={setBirthday}
+              keyboardType="numbers-and-punctuation"
+              maxLength={5}
+              returnKeyType="done"
+              onSubmitEditing={handleRegister}
+            />
           </View>
 
           <TouchableOpacity
@@ -314,6 +357,28 @@ const styles = StyleSheet.create({
     color: '#EF4444',
     marginTop: 6,
     marginLeft: SPACING.xl,
+  },
+  // Birthday row — labeled inline with the input so users see the field
+  // is optional. Visual matches the password row height for consistency.
+  birthdayRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.gray50,
+    borderRadius: BORDER_RADIUS.xl,
+    paddingHorizontal: SPACING.xl,
+    paddingVertical: 14,
+    gap: 12,
+  },
+  birthdayLabel: {
+    fontSize: 15,
+    color: COLORS.gray700,
+    fontWeight: '500',
+  },
+  birthdayInput: {
+    flex: 1,
+    fontSize: 15,
+    color: '#000000',
+    padding: 0,
   },
   registerButton: {
     backgroundColor: COLORS.piktag500,

@@ -91,7 +91,8 @@
       "loginLink": "Войти",
       "confirmPasswordPlaceholder": "Подтверди пароль",
       "alertPasswordMismatch": "Пароли не совпадают",
-      "passwordHint": "Пароль должен содержать минимум 6 символов"
+      "passwordHint": "Пароль должен содержать минимум 6 символов",
+      "birthdayLabel": "День рождения (по желанию)"
     },
     "onboarding": {
       "defaultTags": [

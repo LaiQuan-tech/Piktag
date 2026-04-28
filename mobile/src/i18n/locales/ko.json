@@ -91,7 +91,8 @@
       "loginLink": "로그인",
       "confirmPasswordPlaceholder": "비밀번호 확인",
       "alertPasswordMismatch": "비밀번호가 일치하지 않습니다",
-      "passwordHint": "비밀번호는 6자 이상이어야 합니다"
+      "passwordHint": "비밀번호는 6자 이상이어야 합니다",
+      "birthdayLabel": "생일 (선택)"
     },
     "onboarding": {
       "defaultTags": [

@@ -91,7 +91,8 @@
       "loginLink": "লগ ইন",
       "confirmPasswordPlaceholder": "পাসওয়ার্ড নিশ্চিত করুন",
       "alertPasswordMismatch": "পাসওয়ার্ড মিলছে না",
-      "passwordHint": "পাসওয়ার্ড কমপক্ষে 6 অক্ষরের হতে হবে"
+      "passwordHint": "পাসওয়ার্ড কমপক্ষে 6 অক্ষরের হতে হবে",
+      "birthdayLabel": "জন্মদিন (ঐচ্ছিক)"
     },
     "onboarding": {
       "defaultTags": [

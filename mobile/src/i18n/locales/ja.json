@@ -91,7 +91,8 @@
       "loginLink": "ログイン",
       "confirmPasswordPlaceholder": "パスワードを確認",
       "alertPasswordMismatch": "パスワードが一致しません",
-      "passwordHint": "パスワードは6文字以上にしてください"
+      "passwordHint": "パスワードは6文字以上にしてください",
+      "birthdayLabel": "誕生日（任意）"
     },
     "onboarding": {
       "defaultTags": [

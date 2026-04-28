@@ -91,7 +91,8 @@
       "loginLink": "Giriş Yap",
       "confirmPasswordPlaceholder": "Şifreyi Onayla",
       "alertPasswordMismatch": "Şifreler eşleşmiyor",
-      "passwordHint": "Şifre en az 6 karakter olmalıdır"
+      "passwordHint": "Şifre en az 6 karakter olmalıdır",
+      "birthdayLabel": "Doğum günü (isteğe bağlı)"
     },
     "onboarding": {
       "defaultTags": [

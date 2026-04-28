@@ -91,7 +91,8 @@
       "loginLink": "Iniciar sesión",
       "confirmPasswordPlaceholder": "Confirmar contraseña",
       "alertPasswordMismatch": "Las contraseñas no coinciden",
-      "passwordHint": "La contraseña debe tener al menos 6 caracteres"
+      "passwordHint": "La contraseña debe tener al menos 6 caracteres",
+      "birthdayLabel": "Cumpleaños (opcional)"
     },
     "onboarding": {
       "defaultTags": [

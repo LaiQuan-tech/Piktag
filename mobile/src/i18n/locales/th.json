@@ -91,7 +91,8 @@
       "loginLink": "เข้าสู่ระบบ",
       "confirmPasswordPlaceholder": "ยืนยันรหัสผ่าน",
       "alertPasswordMismatch": "รหัสผ่านไม่ตรงกัน",
-      "passwordHint": "รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร"
+      "passwordHint": "รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร",
+      "birthdayLabel": "วันเกิด (ถ้ามี)"
     },
     "onboarding": {
       "defaultTags": [

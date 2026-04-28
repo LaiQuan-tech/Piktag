@@ -91,7 +91,8 @@
       "loginLink": "تسجيل الدخول",
       "confirmPasswordPlaceholder": "تأكيد كلمة المرور",
       "alertPasswordMismatch": "كلمتا المرور غير متطابقتين",
-      "passwordHint": "يجب أن تتكون كلمة المرور من 6 أحرف على الأقل"
+      "passwordHint": "يجب أن تتكون كلمة المرور من 6 أحرف على الأقل",
+      "birthdayLabel": "تاريخ الميلاد (اختياري)"
     },
     "onboarding": {
       "defaultTags": [

@@ -97,7 +97,8 @@
       "loginLink": "Log In",
       "confirmPasswordPlaceholder": "Confirm Password",
       "alertPasswordMismatch": "Passwords do not match",
-      "passwordHint": "Password must be at least 6 characters"
+      "passwordHint": "Password must be at least 6 characters",
+      "birthdayLabel": "Birthday (optional)"
     },
     "onboarding": {
       "defaultTags": [

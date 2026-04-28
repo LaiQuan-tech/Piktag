@@ -97,7 +97,8 @@
       "loginLink": "登录",
       "confirmPasswordPlaceholder": "确认密码",
       "alertPasswordMismatch": "两次密码输入不一致",
-      "passwordHint": "密码至少需要 6 个字符"
+      "passwordHint": "密码至少需要 6 个字符",
+      "birthdayLabel": "生日（选填）"
     },
     "onboarding": {
       "defaultTags": [
