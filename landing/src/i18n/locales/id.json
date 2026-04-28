@@ -1,0 +1,272 @@
+{
+  "nav": {
+    "features": "Fitur Utama",
+    "crm": "CRM Cerdas",
+    "upcoming": "Segera Hadir",
+    "comingSoon": "Segera Hadir"
+  },
+  "hero": {
+    "badge": "iOS & Android Segera Hadir",
+    "title1": "Jangan biarkan orang lain",
+    "title2": "mendefinisikan dirimu",
+    "description": "Berhenti ditandai orang lain. Mulailah menandai dirimu sendiri.\nPikTag membantumu mengingat semua orang — dan diingat dengan cara yang tepat.",
+    "appStore": "App Store",
+    "googlePlay": "Google Play",
+    "comingSoonOn": "Coming Soon on"
+  },
+  "features": {
+    "sectionTitle": "Fitur Dasar, Sangat Powerful",
+    "sectionDesc": "Menggantikan buku kontak tradisional, PikTag berpusat pada tag semantik, dikombinasikan dengan Link Bio, QR Code, dan tingkat privasi, menjadikan pengelolaan jaringan lebih presisi dan intuitif.",
+    "tag": {
+      "title": "Sistem Enam Tag Semantik",
+      "description": "Mendukung enam klasifikasi semantik: identitas, keahlian, minat, sosial, meta tag, dan hubungan, untuk memberi label presisi pada jaringan Anda. Dapat diurutkan dengan seret, dan tag pribadi dapat disembunyikan."
+    },
+    "linkBio": {
+      "title": "Link Bio & QR Code",
+      "description": "Buat halaman Link Bio pribadi Anda, tampilkan foto profil, bio, dan tag. Mendukung QR Code URL standar, pindai untuk menambahkan teman."
+    },
+    "search": {
+      "title": "Pencarian & Jelajahi",
+      "description": "Cari tag atau akun melalui kata kunci, jelajahi koneksi dengan tag yang sama, temukan komunitas profesional dan lingkaran minat Anda."
+    },
+    "biolinks": {
+      "title": "Tautan Sosial & Tingkat Privasi",
+      "description": "Catat tautan media sosial seperti IG, LinkedIn, dan atur empat tingkat privasi (publik/teman/teman dekat/hanya saya), kontrol dengan presisi siapa yang dapat melihat."
+    },
+    "contactSync": {
+      "title": "Sinkronisasi Kontak",
+      "description": "Impor kontak telepon dengan satu ketukan, temukan teman yang sudah menggunakan PikTag dengan cepat, dan bangun jaringan Anda dengan mudah."
+    },
+    "languages": {
+      "title": "Dukungan 15 Bahasa",
+      "description": "Antarmuka internasional bawaan dengan 15 bahasa, di mana pun Anda berada, kelola jaringan Anda dalam bahasa yang Anda kuasai."
+    }
+  },
+  "tags": {
+    "sectionTitle": "Tag Jaringan Paling Aktif",
+    "sectionDesc": "Bergabunglah dengan ribuan pengguna, jelajahi dan terhubung dengan koneksi yang memiliki tag yang sama. Temukan komunitas profesional dan lingkaran minat Anda.",
+    "users": "Jumlah Pengguna",
+    "thisWeek": "Minggu Ini",
+    "explore": "Jelajahi Tag",
+    "viewAll": "Lihat Semua Tag",
+    "engineer": "#Insinyur",
+    "designer": "#Desainer",
+    "entrepreneur": "#Pengusaha",
+    "investor": "#Investor",
+    "ntuAlumni": "#Alumni NTU"
+  },
+  "crm": {
+    "badge": "Phase 2",
+    "sectionTitle": "CRM Cerdas & Fitur Keterlibatan",
+    "sectionDesc": "Bukan sekadar menyimpan kontak, PikTag secara proaktif membantu Anda memelihara hubungan. Melalui pengingat ulang tahun, statistik sosial, dan notifikasi cerdas, terhubung dengan orang yang tepat di waktu yang tepat.",
+    "birthday": {
+      "title": "Pengingat CRM Ulang Tahun",
+      "description": "Atur tanggal penting seperti ulang tahun untuk teman, notifikasi push otomatis dikirim pada hari tersebut, tidak pernah melewatkan momen penting."
+    },
+    "friends": {
+      "title": "Manajemen Interaksi Teman",
+      "description": "Lihat profil detail dan tag teman, mendukung manajemen blokir/buka blokir, kendalikan batas lingkaran sosial Anda."
+    },
+    "stats": {
+      "title": "Laporan Statistik Sosial",
+      "description": "Dasbor data sosial pribadi: total jaringan, jumlah tag yang digunakan, Top 5 tag paling sering digunakan, kuantifikasi pengaruh sosial Anda."
+    },
+    "notifications": {
+      "title": "Pusat Notifikasi Cerdas",
+      "description": "Kelola semua notifikasi secara terpadu: undangan teman, pengingat ulang tahun, aktivitas tag, pesan penting terlihat jelas."
+    },
+    "notificationCenter": "Pusat Notifikasi",
+    "filterAll": "Semua",
+    "filterFriends": "Teman",
+    "filterReminders": "Pengingat",
+    "notification1": "Hari ini ulang tahun Wang Da Ming dari #Alumni NTU!",
+    "notification1Time": "Baru saja • Pengingat CRM Ulang Tahun",
+    "notification2": "Xiao Hua telah menerima undangan pertemanan Anda!",
+    "notification2Time": "2 jam yang lalu • Aktivitas Teman",
+    "notification3": "Jaringan Anda telah berkembang menjadi 150 orang!",
+    "notification3Time": "Kemarin • Statistik Sosial"
+  },
+  "advanced": {
+    "badge": "Phase 3",
+    "sectionTitle": "Segera Hadir",
+    "sectionDesc": "Menggabungkan lokasi geografis dan rekomendasi cerdas, menemukan koneksi potensial untuk Anda, dan terus mengembangkan jaringan sosial Anda.",
+    "nearby": {
+      "title": "Jelajahi Pengguna Terdekat",
+      "description": "Berdasarkan lokasi GPS, jelajahi pengguna PikTag dan tag populer di sekitar Anda, temukan tren sosial lokal dan koneksi potensial."
+    },
+    "onThisDay": {
+      "title": "Hari Ini dalam Sejarah",
+      "description": "Secara otomatis meninjau 'siapa yang Anda kenal pada hari ini N tahun yang lalu', membangkitkan memori jaringan, menjaga setiap hubungan tetap segar."
+    },
+    "recommend": {
+      "title": "Algoritma Rekomendasi Cerdas",
+      "description": "Berdasarkan tag, catatan interaksi, dan lingkaran jaringan Anda, merekomendasikan orang yang mungkin ingin Anda kenal secara cerdas, memperluas peta sosial Anda."
+    }
+  },
+  "cta": {
+    "title": "Siap untuk meningkatkan jaringan Anda?",
+    "description": "PikTag akan segera hadir di platform iOS dan Android."
+  },
+  "footer": {
+    "rights": "All rights reserved.",
+    "privacy": "Kebijakan Privasi",
+    "terms": "Ketentuan Layanan",
+    "contact": "Hubungi Kami"
+  },
+  "app": {
+    "search": "Cari"
+  },
+  "privacy": {
+    "title": "Kebijakan Privasi",
+    "lastUpdated": "Terakhir diperbarui: 2 April 2026",
+    "intro": "Selamat datang di PikTag. Kami sangat menghargai privasi Anda. Kebijakan Privasi ini menjelaskan bagaimana kami mengumpulkan, menggunakan, menyimpan, dan melindungi data pribadi yang Anda berikan saat menggunakan aplikasi seluler PikTag dan layanan terkait. Dengan menggunakan layanan ini, Anda menyetujui praktik pemrosesan data yang dijelaskan dalam kebijakan ini.",
+    "section1Title": "1. Pengumpulan Data",
+    "section1Intro": "Untuk menyediakan dan meningkatkan layanan kami, kami dapat mengumpulkan jenis data berikut:",
+    "section1Items": [
+      "Data Pribadi: Informasi yang Anda berikan saat mendaftar atau mengedit profil, termasuk nama, alamat email, foto profil, bio pribadi, dll.",
+      "Tag Semantik: Enam kategori tag semantik yang Anda buat atau gunakan (identitas, keahlian, minat, sosial, meta tag, hubungan), termasuk nama tag, klasifikasi, dan preferensi pengurutan.",
+      "Tautan Sosial: Tautan akun media sosial yang Anda masukkan sendiri (seperti Instagram, LinkedIn, Facebook, dll.), serta tingkat privasi yang Anda atur (publik, teman, teman dekat, hanya saya).",
+      "Data Kontak: Saat Anda memilih untuk menyinkronkan kontak, kami akan mengakses kontak telepon Anda untuk mencocokkan pengguna yang terdaftar di PikTag. Kami tidak menyimpan informasi kontak pengguna yang tidak terdaftar.",
+      "Informasi Lokasi: Saat Anda menggunakan fitur 'Jelajahi Pengguna Terdekat', kami akan mengumpulkan data lokasi GPS Anda. Data ini hanya dikumpulkan saat Anda secara aktif mengaktifkan fitur tersebut, dan Anda dapat menonaktifkannya kapan saja.",
+      "Data Perilaku Penggunaan: Termasuk frekuensi penggunaan aplikasi, catatan interaksi fitur, kueri pencarian, dan informasi perangkat (model perangkat, versi sistem operasi, pengaturan bahasa, dll.)."
+    ],
+    "section2Title": "2. Cara Penggunaan Data",
+    "section2Intro": "Data yang kami kumpulkan akan digunakan untuk tujuan berikut:",
+    "section2Items": [
+      "Menyediakan, memelihara, dan meningkatkan fitur inti dan pengalaman layanan PikTag.",
+      "Membuat dan menampilkan halaman Link Bio pribadi Anda dan kartu nama QR Code.",
+      "Menjalankan pencarian tag, jelajah pengguna, dan algoritma rekomendasi cerdas.",
+      "Mengirim pengingat CRM ulang tahun, notifikasi undangan teman, dan push notifikasi terkait lainnya.",
+      "Menghasilkan laporan statistik sosial (total jaringan, statistik penggunaan tag, dll.).",
+      "Mendeteksi, mencegah, dan menangani masalah keamanan, penipuan, atau masalah teknis.",
+      "Mematuhi persyaratan hukum dan peraturan yang berlaku."
+    ],
+    "section3Title": "3. Penyimpanan & Keamanan Data",
+    "section3Intro": "Data Anda disimpan pada infrastruktur cloud yang disediakan oleh Supabase, yang menggunakan langkah-langkah keamanan standar industri, termasuk:",
+    "section3Items": [
+      "Enkripsi Transport Layer Security (TLS) untuk semua transmisi data.",
+      "Penyimpanan terenkripsi tingkat database (encryption at rest).",
+      "Row Level Security (RLS) memastikan pengguna hanya dapat mengakses data mereka sendiri.",
+      "Audit keamanan berkala dan perbaikan kerentanan."
+    ],
+    "section3Note": "Meskipun kami mengambil langkah-langkah keamanan yang wajar, tidak ada transmisi internet atau metode penyimpanan elektronik yang dapat menjamin keamanan 100%. Kami akan terus berupaya melindungi data pribadi Anda.",
+    "section4Title": "4. Layanan Pihak Ketiga",
+    "section4Intro": "PikTag mengintegrasikan layanan pihak ketiga berikut, yang masing-masing memiliki kebijakan privasi tersendiri:",
+    "section4Apple": "Apple Sign-In: Digunakan untuk login akun dan autentikasi identitas pada perangkat iOS. Apple dapat memberikan nama dan alamat email Anda (atau alamat relay pribadi Apple). Untuk detail, silakan lihat",
+    "section4AppleLink": "Kebijakan Privasi Apple",
+    "section4Google": "Google Sign-In: Digunakan untuk login akun dan autentikasi identitas pada perangkat Android dan Web. Google dapat memberikan nama, alamat email, dan foto profil Anda. Untuk detail, silakan lihat",
+    "section4GoogleLink": "Kebijakan Privasi Google",
+    "section4Supabase": "Supabase: Digunakan untuk layanan database, autentikasi, dan penyimpanan file. Untuk detail, silakan lihat",
+    "section4SupabaseLink": "Kebijakan Privasi Supabase",
+    "section5Title": "5. Cookie & Pelacakan",
+    "section5Intro": "PikTag sebagai aplikasi seluler tidak secara langsung menggunakan cookie browser. Namun kami mungkin menggunakan teknologi berikut untuk meningkatkan layanan:",
+    "section5Items": [
+      "Pengenal perangkat digunakan untuk layanan notifikasi push.",
+      "Alat analitik mengumpulkan data perilaku penggunaan anonim untuk meningkatkan pengalaman produk.",
+      "Penyimpanan lokal (Local Storage) digunakan untuk menyimpan cache pengaturan dan preferensi aplikasi."
+    ],
+    "section5Note": "Anda dapat mengelola izin notifikasi dan preferensi berbagi data melalui pengaturan perangkat.",
+    "section6Title": "6. Hak Pengguna",
+    "section6Intro": "Berdasarkan undang-undang perlindungan data yang berlaku, Anda memiliki hak-hak berikut:",
+    "section6Items": [
+      "Hak Akses: Anda dapat melihat data pribadi, tag, tautan sosial, dan daftar teman Anda kapan saja di dalam aplikasi.",
+      "Hak Koreksi: Anda dapat mengedit atau memperbarui profil pribadi, tag, tautan sosial, dan pengaturan privasi Anda kapan saja.",
+      "Hak Penghapusan: Anda dapat menghapus tag atau tautan sosial individual, atau mengajukan penghapusan akun sepenuhnya melalui 'Pengaturan Akun'. Setelah akun dihapus, semua data pribadi, tag, hubungan pertemanan, dan data terkait Anda akan dihapus secara permanen, dan tindakan ini tidak dapat dibatalkan.",
+      "Hak Portabilitas Data: Anda dapat mengajukan untuk mengekspor salinan data pribadi Anda.",
+      "Hak Penarikan Persetujuan: Anda dapat menarik persetujuan untuk pemrosesan data tertentu kapan saja (seperti akses kontak, informasi lokasi, dll.), tetapi ini dapat mempengaruhi penggunaan beberapa fitur."
+    ],
+    "section6Note": "Untuk menggunakan hak-hak di atas, silakan hubungi kami melalui informasi kontak di bawah.",
+    "section7Title": "7. Privasi Anak",
+    "section7Content": "Layanan PikTag ditujukan untuk pengguna berusia 13 tahun ke atas (atau usia minimum yang ditentukan oleh yurisdiksi Anda). Kami tidak secara sengaja mengumpulkan data pribadi anak di bawah 13 tahun. Jika kami menemukan bahwa kami telah mengumpulkan data dari anak di bawah 13 tahun, kami akan segera menghapus data tersebut. Jika Anda yakin kami mungkin memiliki data anak di bawah umur, silakan segera hubungi kami.",
+    "section8Title": "8. Pembaruan Kebijakan Privasi",
+    "section8Content": "Kami dapat memperbarui Kebijakan Privasi ini dari waktu ke waktu untuk mencerminkan perubahan layanan atau persyaratan hukum. Saat diperbarui, kami akan memberitahu Anda tentang perubahan penting melalui notifikasi dalam aplikasi atau email, dan memperbarui 'Terakhir Diperbarui' di bagian atas halaman ini. Kami menyarankan Anda untuk meninjau kebijakan ini secara berkala untuk memahami bagaimana kami melindungi informasi Anda.",
+    "section9Title": "9. Informasi Kontak",
+    "section9Intro": "Jika Anda memiliki pertanyaan, komentar, atau permintaan mengenai Kebijakan Privasi ini, silakan hubungi kami melalui cara berikut:",
+    "contactAppName": "Nama Aplikasi: PikTag",
+    "contactEmail": "Email: ",
+    "contactWebsite": "Situs Web: "
+  },
+  "terms": {
+    "title": "Ketentuan Layanan",
+    "lastUpdated": "Terakhir diperbarui: 2 April 2026",
+    "section1Title": "1. Deskripsi Layanan",
+    "section1Content": "PikTag (selanjutnya disebut 'Layanan') adalah aplikasi CRM sosial seluler yang dikembangkan dan dioperasikan oleh tim PikTag. Layanan ini menyediakan manajemen tag semantik, pertukaran kartu nama QR Code, halaman Link Bio pribadi, manajemen tautan sosial, sinkronisasi kontak, pengingat CRM cerdas, dan fitur lainnya, yang bertujuan membantu pengguna mengelola dan memelihara hubungan jaringan secara efektif.",
+    "section2Title": "2. Pendaftaran Akun & Keamanan",
+    "section2Items": [
+      "Anda harus berusia minimal 13 tahun (atau usia minimum yang ditentukan oleh yurisdiksi Anda) untuk menggunakan Layanan ini.",
+      "Anda dapat mendaftar akun melalui Apple Sign-In atau Google Sign-In.",
+      "Anda bertanggung jawab untuk menjaga keamanan akun Anda dan tidak boleh memberikan akun Anda kepada orang lain untuk digunakan.",
+      "Jika Anda menemukan penggunaan akun yang tidak sah, segera beritahu kami."
+    ],
+    "section3Title": "3. Aturan Penggunaan",
+    "section3Intro": "Saat menggunakan Layanan ini, Anda setuju untuk tidak melakukan perilaku berikut:",
+    "section3Items": [
+      "Menyamar sebagai identitas orang lain atau memberikan data pribadi palsu.",
+      "Melecehkan, mengancam, memfitnah, atau mendiskriminasi pengguna lain.",
+      "Menyebarkan pesan spam, iklan, atau promosi komersial yang tidak sah.",
+      "Menggunakan Layanan ini untuk aktivitas ilegal atau tidak sah.",
+      "Mencoba meretas, merekayasa balik, atau mengganggu operasi normal Layanan ini.",
+      "Mengumpulkan atau menambang data pribadi pengguna lain secara massal dan otomatis."
+    ],
+    "section4Title": "4. Hak Kekayaan Intelektual",
+    "section4Items": [
+      "Desain, kode, grafis, logo, dan konten lainnya dari aplikasi PikTag dilindungi oleh hukum kekayaan intelektual.",
+      "Nama 'PikTag' dan logo terkait adalah merek dagang dari Layanan ini dan tidak boleh digunakan tanpa izin.",
+      "Pengguna mempertahankan kepemilikan konten pribadi yang diunggah ke platform (seperti tag, bio, dll.)."
+    ],
+    "section5Title": "5. Konten Pengguna",
+    "section5Items": [
+      "Konten yang Anda buat di PikTag (termasuk tag semantik, bio pribadi, tautan sosial, dll.) adalah milik pribadi Anda.",
+      "Anda memberikan PikTag hak untuk menggunakan, menampilkan, dan memproses konten Anda sejauh yang diperlukan untuk menyediakan layanan.",
+      "Anda bertanggung jawab untuk memastikan konten yang Anda publikasikan tidak melanggar hak pihak ketiga.",
+      "PikTag berhak menghapus konten yang melanggar ketentuan ini atau ketentuan hukum."
+    ],
+    "section6Title": "6. Perlindungan Privasi",
+    "section6Content": "Privasi Anda sangat penting bagi kami. Silakan lihat",
+    "section6Link": "Kebijakan Privasi",
+    "section6Content2": " kami untuk memahami bagaimana kami mengumpulkan, menggunakan, dan melindungi data pribadi Anda.",
+    "section7Title": "7. Gangguan Layanan & Penafian",
+    "section7Items": [
+      "PikTag dapat mengalami gangguan layanan sementara karena pemeliharaan, pembaruan, atau keadaan kahar.",
+      "Kami tidak menjamin layanan akan bebas dari gangguan atau kesalahan.",
+      "Sejauh yang diizinkan oleh hukum, PikTag tidak bertanggung jawab atas kerugian apa pun yang timbul dari penggunaan atau ketidakmampuan menggunakan Layanan ini."
+    ],
+    "section8Title": "8. Perubahan Ketentuan Layanan",
+    "section8Content": "Kami berhak mengubah Ketentuan Layanan ini kapan saja. Ketentuan yang diubah akan dipublikasikan di halaman ini, dan dengan terus menggunakan Layanan ini berarti Anda menerima ketentuan yang diubah. Untuk perubahan signifikan, kami akan memberitahu melalui notifikasi dalam aplikasi atau email.",
+    "section9Title": "9. Penghentian Layanan",
+    "section9Items": [
+      "Anda dapat menghapus akun Anda kapan saja melalui pengaturan aplikasi.",
+      "PikTag berhak menangguhkan atau menghentikan akun Anda karena pelanggaran ketentuan ini.",
+      "Setelah akun dihentikan, data pribadi Anda akan ditangani sesuai dengan Kebijakan Privasi."
+    ],
+    "section10Title": "10. Hukum yang Berlaku",
+    "section10Content": "Ketentuan Layanan ini diatur oleh hukum Republik Tiongkok (Taiwan). Untuk sengketa apa pun yang timbul dari ketentuan ini, kedua belah pihak setuju bahwa Pengadilan Distrik Taipei, Taiwan akan menjadi pengadilan yurisdiksi tingkat pertama.",
+    "section11Title": "11. Informasi Kontak",
+    "section11Intro": "Jika Anda memiliki pertanyaan mengenai Ketentuan Layanan ini, silakan hubungi kami melalui cara berikut:",
+    "contactEmail": "Email: ",
+    "contactWebsite": "Situs Web: "
+  },
+  "contact": {
+    "title": "Hubungi Kami",
+    "description": "Terima kasih atas minat Anda pada PikTag! Jika Anda memiliki pertanyaan, saran, atau proposal kerja sama, silakan hubungi kami melalui cara berikut, dan kami akan membalas sesegera mungkin.",
+    "emailTitle": "Email",
+    "emailAddress": "support@pikt.ag",
+    "emailDesc": "Kami akan membalas email Anda dalam 1-2 hari kerja.",
+    "faqTitle": "Pertanyaan yang Sering Diajukan",
+    "faq1Question": "Apa itu PikTag?",
+    "faq1Answer": "PikTag adalah aplikasi CRM sosial seluler yang membantu Anda mengelola jaringan melalui tag semantik, QR Code, dan tautan sosial. Baik untuk pertukaran bisnis maupun interaksi sosial sehari-hari, Anda dapat dengan mudah mengingat setiap kontak.",
+    "faq2Question": "Apa saja jenis tag semantik?",
+    "faq2Answer": "PikTag mendukung enam klasifikasi tag semantik: identitas, keahlian, minat, sosial, meta tag, dan hubungan. Setiap klasifikasi membantu Anda mengenal dan mengingat setiap orang dari dimensi yang berbeda.",
+    "faq3Question": "Bagaimana cara bertukar kartu nama dengan QR Code?",
+    "faq3Answer": "Setiap pengguna memiliki QR Code eksklusif, pihak lain dapat memindai kode untuk melihat halaman Link Bio pribadi Anda dan mengirim undangan pertemanan. Mendukung semua pemindai QR Code standar.",
+    "faq4Question": "Apakah PikTag gratis?",
+    "faq4Answer": "PikTag menawarkan paket dasar gratis, termasuk fitur inti manajemen kontak dan tag. Fitur lanjutan seperti impor massal, analisis data, dll. termasuk dalam paket berbayar, silakan lihat halaman paket kami untuk detail.",
+    "socialTitle": "Ikuti Kami",
+    "socialFacebook": "Facebook",
+    "socialInstagram": "Instagram",
+    "socialLine": "Akun Resmi LINE"
+  },
+  "langSwitcher": {
+    "label": "Bahasa"
+  }
+}

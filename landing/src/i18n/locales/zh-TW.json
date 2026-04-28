@@ -1,0 +1,272 @@
+{
+  "nav": {
+    "features": "核心功能",
+    "crm": "智慧 CRM",
+    "upcoming": "即將推出",
+    "comingSoon": "即將推出"
+  },
+  "hero": {
+    "badge": "iOS & Android 即將上線",
+    "title1": "別讓別人定義你",
+    "title2": "你就是你的標籤",
+    "description": "與其被別人貼標籤，不如主動定義自己。\nPikTag 讓你記住每個人，也讓你被對的方式記住。",
+    "appStore": "App Store",
+    "googlePlay": "Google Play",
+    "comingSoonOn": "Coming Soon on"
+  },
+  "features": {
+    "sectionTitle": "基礎功能，強大無比",
+    "sectionDesc": "取代傳統通訊錄，PikTag 以語意標籤為核心，結合 Link Bio、QR Code 與隱私分級，讓人脈管理變得精準又直覺。",
+    "tag": {
+      "title": "六大語意標籤系統",
+      "description": "支援身份、技能、興趣、社交、元標籤、關係六種語意分類，為人脈加上精準標籤。可拖曳排序、隱藏私人標籤。"
+    },
+    "linkBio": {
+      "title": "Link Bio & QR Code",
+      "description": "打造你的個人 Link Bio 頁面，展示頭像、簡介與標籤。支援標準 URL QR Code，掃碼即可加好友。"
+    },
+    "search": {
+      "title": "搜尋與探索",
+      "description": "透過關鍵字搜尋標籤或帳號，探索擁有相同標籤的人脈，發現你的專業社群與興趣圈。"
+    },
+    "biolinks": {
+      "title": "社群連結 & 隱私分級",
+      "description": "記錄 IG、LinkedIn 等社群連結，並設定四級隱私（公開／好友／摯友／僅自己），精準控制誰能看到。"
+    },
+    "contactSync": {
+      "title": "通訊錄同步",
+      "description": "一鍵匯入手機通訊錄，快速找到已在使用 PikTag 的朋友，輕鬆建立你的人脈網絡。"
+    },
+    "languages": {
+      "title": "15 國語言支援",
+      "description": "內建 15 種語言的國際化介面，無論你在哪裡，都能用熟悉的語言管理人脈。"
+    }
+  },
+  "tags": {
+    "sectionTitle": "最活躍的人脈標籤",
+    "sectionDesc": "加入數千名用戶，探索並連接擁有相同標籤的人脈。發掘你的專業社群與興趣圈。",
+    "users": "使用人數",
+    "thisWeek": "本週",
+    "explore": "探索標籤",
+    "viewAll": "查看全部標籤",
+    "engineer": "#工程師",
+    "designer": "#設計師",
+    "entrepreneur": "#創業家",
+    "investor": "#投資人",
+    "ntuAlumni": "#台大校友"
+  },
+  "crm": {
+    "badge": "Phase 2",
+    "sectionTitle": "智慧 CRM 與黏性功能",
+    "sectionDesc": "不只是儲存聯絡人，PikTag 主動幫你維繫關係。透過生日提醒、社交統計與智慧通知，讓你在對的時間，與對的人產生連結。",
+    "birthday": {
+      "title": "生日 CRM 提醒",
+      "description": "為好友設定生日等重要日期，到期當天自動推送通知提醒，不再遺漏每一個重要時刻。"
+    },
+    "friends": {
+      "title": "好友互動管理",
+      "description": "查看好友詳細檔案與標籤，支援封鎖／解封管理，掌控你的社交圈邊界。"
+    },
+    "stats": {
+      "title": "社交統計報表",
+      "description": "個人社交數據儀表板：總人脈數、使用標籤數、最常用標籤 Top 5，量化你的社交影響力。"
+    },
+    "notifications": {
+      "title": "智慧通知中心",
+      "description": "統一管理所有通知：好友邀請、生日提醒、標籤動態，重要消息一目瞭然。"
+    },
+    "notificationCenter": "通知中心",
+    "filterAll": "全部",
+    "filterFriends": "好友",
+    "filterReminders": "提醒",
+    "notification1": "今天是 #台大校友 王大明的生日！",
+    "notification1Time": "剛剛 • 生日 CRM 提醒",
+    "notification2": "小花已接受你的好友邀請！",
+    "notification2Time": "2 小時前 • 好友動態",
+    "notification3": "你的人脈網絡已成長至 150 人！",
+    "notification3Time": "昨天 • 社交統計"
+  },
+  "advanced": {
+    "badge": "Phase 3",
+    "sectionTitle": "即將推出",
+    "sectionDesc": "結合地理位置與智慧推薦，為你發掘潛在人脈，讓社交網絡持續成長。",
+    "nearby": {
+      "title": "附近用戶探索",
+      "description": "根據 GPS 定位，探索你周圍的 PikTag 用戶與熱門標籤，發現在地社交趨勢與潛在人脈。"
+    },
+    "onThisDay": {
+      "title": "歷史上的今天",
+      "description": "自動回顧「N 年前的今天你認識了誰」，喚起人脈記憶，讓每段關係歷久彌新。"
+    },
+    "recommend": {
+      "title": "智慧推薦演算法",
+      "description": "根據你的標籤、互動紀錄與人脈圈，智慧推薦你可能想認識的人，拓展社交版圖。"
+    }
+  },
+  "cta": {
+    "title": "準備好升級你的人脈網絡了嗎？",
+    "description": "PikTag 即將登陸 iOS 與 Android 平台。"
+  },
+  "footer": {
+    "rights": "All rights reserved.",
+    "privacy": "隱私權政策",
+    "terms": "服務條款",
+    "contact": "聯絡我們"
+  },
+  "app": {
+    "search": "搜尋"
+  },
+  "privacy": {
+    "title": "隱私權政策",
+    "lastUpdated": "最後更新日期：2026 年 4 月 2 日",
+    "intro": "歡迎使用 PikTag。我們非常重視您的隱私權。本隱私權政策說明我們如何收集、使用、儲存及保護您在使用 PikTag 行動應用程式及相關服務時所提供的個人資料。使用本服務即表示您同意本政策所述之資料處理方式。",
+    "section1Title": "一、資料收集",
+    "section1Intro": "為了提供及改善我們的服務，我們可能收集以下類型的資料：",
+    "section1Items": [
+      "個人資料：您在註冊或編輯個人檔案時提供的資訊，包括姓名、電子郵件地址、頭像照片、個人簡介等。",
+      "語意標籤：您建立或使用的六大類語意標籤（身份、技能、興趣、社交、元標籤、關係），包括標籤名稱、分類及排序偏好。",
+      "社群連結：您自行輸入的社群媒體帳號連結（如 Instagram、LinkedIn、Facebook 等），以及您設定的隱私分級（公開、好友、摯友、僅自己）。",
+      "通訊錄資料：當您選擇同步通訊錄時，我們會存取您的手機通訊錄以配對已註冊 PikTag 的用戶。我們不會儲存未註冊用戶的聯絡資訊。",
+      "位置資訊：當您使用「附近用戶探索」功能時，我們會收集您的 GPS 位置資料。此資料僅在您主動啟用該功能時收集，您可隨時關閉。",
+      "使用行為資料：包括 App 使用頻率、功能互動紀錄、搜尋查詢及裝置資訊（裝置型號、作業系統版本、語言設定等）。"
+    ],
+    "section2Title": "二、資料使用方式",
+    "section2Intro": "我們收集的資料將用於以下目的：",
+    "section2Items": [
+      "提供、維護及改善 PikTag 的核心功能與服務體驗。",
+      "建立並展示您的 Link Bio 個人頁面及 QR Code 名片。",
+      "執行標籤搜尋、用戶探索及智慧推薦演算法。",
+      "發送生日 CRM 提醒、好友邀請通知及其他相關推播。",
+      "產生社交統計報表（總人脈數、標籤使用統計等）。",
+      "偵測、防止及處理安全問題、欺詐或技術問題。",
+      "遵守適用法律法規之要求。"
+    ],
+    "section3Title": "三、資料儲存與安全",
+    "section3Intro": "您的資料儲存於 Supabase 提供的雲端基礎設施上，該服務採用業界標準的安全措施，包括：",
+    "section3Items": [
+      "傳輸層安全性（TLS）加密所有資料傳輸。",
+      "資料庫層級的加密儲存（encryption at rest）。",
+      "Row Level Security（RLS）確保用戶僅能存取自己的資料。",
+      "定期安全稽核與漏洞修補。"
+    ],
+    "section3Note": "儘管我們採取合理的安全措施，但沒有任何網路傳輸或電子儲存方式能夠保證 100% 安全。我們將持續努力保護您的個人資料。",
+    "section4Title": "四、第三方服務",
+    "section4Intro": "PikTag 整合以下第三方服務，這些服務各有其獨立的隱私權政策：",
+    "section4Apple": "Apple Sign-In：用於 iOS 裝置的帳號登入與身份驗證。Apple 可能會提供您的姓名及電子郵件地址（或 Apple 私人轉寄地址）。詳情請參閱",
+    "section4AppleLink": "Apple 隱私權政策",
+    "section4Google": "Google Sign-In：用於 Android 裝置及 Web 端的帳號登入與身份驗證。Google 可能會提供您的姓名、電子郵件地址及頭像照片。詳情請參閱",
+    "section4GoogleLink": "Google 隱私權政策",
+    "section4Supabase": "Supabase：用於資料庫、身份驗證及檔案儲存服務。詳情請參閱",
+    "section4SupabaseLink": "Supabase 隱私權政策",
+    "section5Title": "五、Cookie 與追蹤",
+    "section5Intro": "PikTag 作為行動應用程式，不直接使用瀏覽器 Cookie。但我們可能使用以下技術來改善服務：",
+    "section5Items": [
+      "裝置識別碼用於推播通知服務。",
+      "分析工具收集匿名的使用行為數據，以改善產品體驗。",
+      "本地儲存（Local Storage）用於快取應用程式設定及偏好。"
+    ],
+    "section5Note": "您可以透過裝置設定管理通知權限及資料共享偏好。",
+    "section6Title": "六、用戶權利",
+    "section6Intro": "依據適用的資料保護法律，您享有以下權利：",
+    "section6Items": [
+      "存取權：您可以隨時在 App 內查看您的個人資料、標籤、社群連結及好友列表。",
+      "修改權：您可以隨時編輯或更新您的個人檔案、標籤、社群連結及隱私設定。",
+      "刪除權：您可以刪除個別標籤、社群連結，或透過「帳號設定」申請完全刪除帳號。帳號刪除後，您的所有個人資料、標籤、好友關係及相關數據將被永久移除，此操作無法復原。",
+      "資料可攜權：您可以申請匯出您的個人資料副本。",
+      "撤回同意權：您可以隨時撤回對特定資料處理的同意（如通訊錄存取、位置資訊等），但這可能影響部分功能的使用。"
+    ],
+    "section6Note": "如需行使上述權利，請透過下方聯絡方式與我們聯繫。",
+    "section7Title": "七、兒童隱私",
+    "section7Content": "PikTag 的服務對象為年滿 13 歲（或您所在司法管轄區規定之最低年齡）以上的用戶。我們不會故意收集 13 歲以下兒童的個人資料。若我們發現已收集到未滿 13 歲兒童的資料，將會立即刪除該資料。若您認為我們可能持有未成年人的資料，請立即與我們聯繫。",
+    "section8Title": "八、隱私權政策更新",
+    "section8Content": "我們可能會不定期更新本隱私權政策，以反映服務變更或法律要求。更新時，我們將透過 App 內通知或電子郵件告知您重大變更，並更新本頁面頂部的「最後更新日期」。建議您定期查閱本政策，以了解我們如何保護您的資訊。",
+    "section9Title": "九、聯絡方式",
+    "section9Intro": "如您對本隱私權政策有任何疑問、意見或要求，請透過以下方式與我們聯繫：",
+    "contactAppName": "應用程式名稱：PikTag",
+    "contactEmail": "電子郵件：",
+    "contactWebsite": "網站："
+  },
+  "terms": {
+    "title": "服務條款",
+    "lastUpdated": "最後更新日期：2026 年 4 月 2 日",
+    "section1Title": "一、服務說明",
+    "section1Content": "PikTag（以下簡稱「本服務」）是由 PikTag 團隊開發與營運的行動社交 CRM 應用程式。本服務提供語意標籤管理、QR Code 名片交換、Link Bio 個人頁面、社群連結管理、通訊錄同步、智慧 CRM 提醒等功能，旨在協助用戶有效管理與維繫人脈關係。",
+    "section2Title": "二、帳號註冊與安全",
+    "section2Items": [
+      "您必須年滿 13 歲（或您所在司法管轄區規定之最低年齡）方可使用本服務。",
+      "您可透過 Apple Sign-In 或 Google Sign-In 註冊帳號。",
+      "您有責任維護帳號的安全性，不得將帳號提供給他人使用。",
+      "若發現帳號有未經授權的使用情形，請立即通知我們。"
+    ],
+    "section3Title": "三、使用規範",
+    "section3Intro": "使用本服務時，您同意不從事以下行為：",
+    "section3Items": [
+      "冒用他人身份或提供虛假的個人資料。",
+      "騷擾、威脅、誹謗或歧視其他用戶。",
+      "傳播垃圾訊息、廣告或未經授權的商業推廣。",
+      "利用本服務進行任何違法或未經授權的活動。",
+      "嘗試破解、反向工程或干擾本服務的正常運作。",
+      "大量自動化抓取或收集其他用戶的個人資料。"
+    ],
+    "section4Title": "四、智慧財產權",
+    "section4Items": [
+      "PikTag 應用程式的設計、程式碼、圖形、標誌及其他內容均受智慧財產權法律保護。",
+      "「PikTag」名稱及相關標誌為本服務之商標，未經授權不得使用。",
+      "用戶保留其上傳至平台之個人內容（如標籤、簡介等）的所有權。"
+    ],
+    "section5Title": "五、用戶內容",
+    "section5Items": [
+      "您在 PikTag 上建立的內容（包括語意標籤、個人簡介、社群連結等）屬於您個人所有。",
+      "您授予 PikTag 在提供服務所必要的範圍內使用、展示及處理您的內容的權利。",
+      "您有責任確保您發布的內容不侵犯第三方的權利。",
+      "PikTag 保留移除違反本條款或法律規定之內容的權利。"
+    ],
+    "section6Title": "六、隱私保護",
+    "section6Content": "您的隱私對我們非常重要。請參閱我們的",
+    "section6Link": "隱私權政策",
+    "section6Content2": "，以了解我們如何收集、使用及保護您的個人資料。",
+    "section7Title": "七、服務中斷與免責",
+    "section7Items": [
+      "PikTag 可能因維護、更新或不可抗力等因素暫時中斷服務。",
+      "我們不保證服務不會發生中斷或錯誤。",
+      "在法律允許的最大範圍內，PikTag 不對因使用或無法使用本服務而導致的任何損失承擔責任。"
+    ],
+    "section8Title": "八、服務條款修改",
+    "section8Content": "我們保留隨時修改本服務條款的權利。修改後的條款將在本頁面公布，繼續使用本服務即表示您接受修改後的條款。如有重大變更，我們將透過 App 內通知或電子郵件方式告知。",
+    "section9Title": "九、終止服務",
+    "section9Items": [
+      "您可以隨時透過應用程式設定刪除帳號。",
+      "PikTag 保留因違反本條款而暫停或終止您帳號的權利。",
+      "帳號終止後，您的個人資料將依照隱私權政策處理。"
+    ],
+    "section10Title": "十、準據法",
+    "section10Content": "本服務條款受中華民國（臺灣）法律管轄。任何因本條款引起的爭議，雙方同意以臺灣臺北地方法院為第一審管轄法院。",
+    "section11Title": "十一、聯絡方式",
+    "section11Intro": "如您對本服務條款有任何疑問，請透過以下方式與我們聯繫：",
+    "contactEmail": "電子郵件：",
+    "contactWebsite": "網站："
+  },
+  "contact": {
+    "title": "聯絡我們",
+    "description": "感謝您對 PikTag 的關注！如果您有任何問題、建議或合作提案，歡迎透過以下方式與我們聯繫，我們會盡快回覆您。",
+    "emailTitle": "電子郵件",
+    "emailAddress": "support@pikt.ag",
+    "emailDesc": "我們會在 1-2 個工作天內回覆您的來信。",
+    "faqTitle": "常見問題",
+    "faq1Question": "PikTag 是什麼？",
+    "faq1Answer": "PikTag 是一款行動社交 CRM 應用程式，幫助您透過語意標籤、QR Code 和社群連結來管理人脈。無論是商務交流還是日常社交，都能輕鬆記住每一位聯絡人。",
+    "faq2Question": "語意標籤有哪些類型？",
+    "faq2Answer": "PikTag 支援六大語意標籤分類：身份、技能、興趣、社交、元標籤、關係。每種分類幫助你從不同維度認識和記住每一個人。",
+    "faq3Question": "如何用 QR Code 交換名片？",
+    "faq3Answer": "每位用戶都有專屬的 QR Code，對方掃碼即可查看你的 Link Bio 個人頁面並發送好友邀請。支援所有標準 QR Code 掃描器。",
+    "faq4Question": "PikTag 是免費的嗎？",
+    "faq4Answer": "PikTag 提供免費基本方案，包含核心的聯絡人管理與標籤功能。進階功能如批量匯入、數據分析等則包含在付費方案中，詳情請參閱我們的方案頁面。",
+    "socialTitle": "關注我們",
+    "socialFacebook": "Facebook",
+    "socialInstagram": "Instagram",
+    "socialLine": "LINE 官方帳號"
+  },
+  "langSwitcher": {
+    "label": "語言"
+  }
+}
