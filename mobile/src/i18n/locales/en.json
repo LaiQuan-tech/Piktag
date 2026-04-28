@@ -941,5 +941,8 @@
     "reasonHarassment": "Harassment or bullying",
     "reasonInappropriate": "Inappropriate or offensive",
     "reasonOther": "Other"
+  },
+  "splash": {
+    "tagline": "Tag every friend you meet"
   }
 }

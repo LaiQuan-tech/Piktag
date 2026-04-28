@@ -1,45 +1,147 @@
-import React, { useEffect, useRef } from 'react';
-import { View, Text, Image, StyleSheet, Animated, Platform } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import {
+  Animated,
+  StyleSheet,
+  View,
+} from 'react-native';
+import { Image } from 'expo-image';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useTranslation } from 'react-i18next';
+import { useReducedMotion } from 'react-native-reanimated';
+
+import BrandSpinner from './loaders/BrandSpinner';
+import {
+  runReducedMotionEntry,
+  runSplashEntryChoreography,
+} from './splashChoreography';
+import { splashStyles } from './splashStyles';
 
 /**
- * IG-style launch overlay: small logo centered, 'from PikTag' at bottom.
- * Rendered on top of the app until the app reports `ready` (auth resolved +
- * first-screen data hydrated) or the safety-net max wait elapses.
+ * v2 launch overlay. Replaces the static white-bg + small-logo splash
+ * with a full-bleed brand gradient and a choreographed entry sequence:
  *
- * This complements the native Expo splash screen (which can only show a
- * static image). The native splash hides automatically when React mounts —
- * this component picks up from there to give the 'from PikTag' branding
- * moment while we wait for auth/data to come in.
+ *   0–350ms     White overlay fades out, exposing the gradient.
+ *   200–550ms   Logo enters: spring scale 0.7→1.0, opacity 0→1.
+ *   400–1000ms  Radial bloom pulse behind the logo (one-shot).
+ *   500–900ms   "PikTag" wordmark slides up + fades in.
+ *   850–1150ms  Tagline (i18n: splash.tagline) fades in.
+ *   ~1200ms+    If still not ready, surface a small spinner so the user
+ *               knows we're still working (vs frozen).
  *
- * Previously this used a hard 700ms `setTimeout` that ignored real
- * readiness, which on slow networks either flashed the UI too early (data
- * still loading) or taxed the user unnecessarily (data already ready).
- * Now it fades out as soon as `ready` flips to `true`, with a 3s
- * safety-net ceiling so a stuck auth/data fetch can never wedge the
- * splash.
+ * The same `ready / onHidden` API is preserved exactly so App.tsx and
+ * any other mount points need no changes — only visuals are swapped.
+ *
+ * Constants:
+ *   MIN_DISPLAY_MS — keep the brand moment on screen at least this long
+ *                    even on warm starts where data is instantly ready.
+ *   MAX_HOLD_MS    — safety net; if `ready` never fires (broken auth,
+ *                    offline socket, etc), force-hide the overlay so the
+ *                    app is never wedged behind a splash.
+ *
+ * Reduced-motion path: solid gradient + static logo + static text + a
+ * 200ms fade-in / 300ms fade-out. No bloom, no slide, no pulse.
  */
+
 type Props = {
   /** When true, the overlay begins fading out (respects MIN_DISPLAY_MS). */
   ready?: boolean;
-  /** Safety-net max time to hold the splash (ms). Default 3000. */
+  /** Safety-net max time to hold the splash (ms). Default MAX_HOLD_MS. */
   maxWaitMs?: number;
   onHidden?: () => void;
 };
 
-// Minimum display window so the brand moment still registers even if
-// everything is instantly ready (warm-start, cached session, etc).
 const MIN_DISPLAY_MS = 400;
+const MAX_HOLD_MS = 3000;
+// When we're still holding past this, swap in a small spinner under the
+// tagline so the user understands the app is loading, not frozen.
+const STILL_LOADING_THRESHOLD_MS = 1200;
 
-export default function SplashOverlay({ ready = false, maxWaitMs = 3000, onHidden }: Props) {
-  const opacity = useRef(new Animated.Value(1)).current;
+const GRADIENT_COLORS: readonly [string, string, string] = [
+  '#ff5757',
+  '#c44dff',
+  '#8c52ff',
+];
+
+export default function SplashOverlay({
+  ready = false,
+  maxWaitMs = MAX_HOLD_MS,
+  onHidden,
+}: Props) {
+  const reduced = useReducedMotion();
+  const { t } = useTranslation();
+
+  // ── Master fade ────────────────────────────────────────────────────
+  const containerOpacity = useRef(new Animated.Value(reduced ? 0 : 1)).current;
+  // White → gradient curtain. Starts opaque, fades to transparent so the
+  // gradient underneath shows through.
+  const whiteCurtain = useRef(new Animated.Value(reduced ? 0 : 1)).current;
+
+  // ── Logo ───────────────────────────────────────────────────────────
+  const logoScale = useRef(new Animated.Value(reduced ? 1 : 0.7)).current;
+  const logoOpacity = useRef(new Animated.Value(reduced ? 1 : 0)).current;
+
+  // ── Bloom (one-shot radial pulse behind logo) ──────────────────────
+  const bloomScale = useRef(new Animated.Value(1)).current;
+  const bloomOpacity = useRef(new Animated.Value(0)).current;
+
+  // ── Wordmark + tagline ─────────────────────────────────────────────
+  const wordmarkY = useRef(new Animated.Value(reduced ? 0 : 10)).current;
+  const wordmarkOpacity = useRef(new Animated.Value(reduced ? 1 : 0)).current;
+  const taglineOpacity = useRef(new Animated.Value(reduced ? 1 : 0)).current;
+
+  const [showStillLoading, setShowStillLoading] = useState(false);
   const fadedRef = useRef(false);
   const mountedAtRef = useRef(Date.now());
 
+  // ── Entry choreography ─────────────────────────────────────────────
+  // Kicked once on mount; never re-runs. The actual timeline lives in
+  // ./splashChoreography so this file stays focused on rendering and
+  // the lifecycle wiring (mount fade, ready-driven exit, safety net).
+  useEffect(() => {
+    if (reduced) {
+      runReducedMotionEntry(containerOpacity);
+      return;
+    }
+    runSplashEntryChoreography({
+      whiteCurtain,
+      logoScale,
+      logoOpacity,
+      bloomScale,
+      bloomOpacity,
+      wordmarkY,
+      wordmarkOpacity,
+      taglineOpacity,
+    });
+  }, [
+    reduced,
+    containerOpacity,
+    whiteCurtain,
+    logoScale,
+    logoOpacity,
+    bloomScale,
+    bloomOpacity,
+    wordmarkY,
+    wordmarkOpacity,
+    taglineOpacity,
+  ]);
+
+  // ── "Still loading" hint timer ─────────────────────────────────────
+  // Fires once — after the choreography settles, if we're still holding
+  // we drop in a small spinner so the user sees motion. Cleared if the
+  // component unmounts or fades out first.
+  useEffect(() => {
+    const id = setTimeout(() => {
+      setShowStillLoading(true);
+    }, STILL_LOADING_THRESHOLD_MS);
+    return () => clearTimeout(id);
+  }, []);
+
+  // ── Exit (ready-driven + safety net) ───────────────────────────────
   useEffect(() => {
     const fadeOut = () => {
       if (fadedRef.current) return;
       fadedRef.current = true;
-      Animated.timing(opacity, {
+      Animated.timing(containerOpacity, {
         toValue: 0,
         duration: 300,
         useNativeDriver: true,
@@ -48,9 +150,8 @@ export default function SplashOverlay({ ready = false, maxWaitMs = 3000, onHidde
       });
     };
 
-    // Safety-net: never hold the splash longer than maxWaitMs, even if
-    // `ready` never flips (broken auth, offline, etc). This runs
-    // independently of the ready-driven timer below.
+    // Safety-net: never hold the splash longer than maxWaitMs. Runs
+    // independently of `ready` so a stuck auth flow can't wedge us.
     const safetyTimer = setTimeout(fadeOut, maxWaitMs);
 
     let readyTimer: ReturnType<typeof setTimeout> | undefined;
@@ -64,64 +165,77 @@ export default function SplashOverlay({ ready = false, maxWaitMs = 3000, onHidde
       clearTimeout(safetyTimer);
       if (readyTimer) clearTimeout(readyTimer);
     };
-  }, [ready, maxWaitMs, opacity, onHidden]);
+  }, [ready, maxWaitMs, containerOpacity, onHidden]);
 
   return (
     <Animated.View
-      style={[styles.container, { opacity }]}
+      style={[splashStyles.container, { opacity: containerOpacity }]}
       pointerEvents="none"
     >
-      <View style={styles.logoWrap}>
-        <Image
-          source={require('../../assets/splash-icon.png')}
-          style={styles.logo}
-          resizeMode="contain"
+      <LinearGradient
+        colors={GRADIENT_COLORS}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={StyleSheet.absoluteFill}
+      />
+
+      {/* White curtain — sits over the gradient and fades out to reveal it. */}
+      <Animated.View
+        pointerEvents="none"
+        style={[splashStyles.whiteCurtain, { opacity: whiteCurtain }]}
+      />
+
+      <View style={splashStyles.center}>
+        {/* Bloom pulse rendered behind the logo. Sized 1.5x logo, scales
+            outward while fading. */}
+        <Animated.View
+          pointerEvents="none"
+          style={[
+            splashStyles.bloom,
+            {
+              opacity: bloomOpacity,
+              transform: [{ scale: bloomScale }],
+            },
+          ]}
         />
-      </View>
-      <View style={styles.bottomWrap}>
-        <Text style={styles.fromLabel}>from</Text>
-        <Text style={styles.brandLabel}>PikTag</Text>
+
+        <Animated.View
+          style={{
+            opacity: logoOpacity,
+            transform: [{ scale: logoScale }],
+          }}
+        >
+          <Image
+            source={require('../../assets/splash-icon.png')}
+            contentFit="contain"
+            style={splashStyles.logo}
+          />
+        </Animated.View>
+
+        <Animated.Text
+          style={[
+            splashStyles.wordmark,
+            {
+              opacity: wordmarkOpacity,
+              transform: [{ translateY: wordmarkY }],
+            },
+          ]}
+        >
+          PikTag
+        </Animated.Text>
+
+        <Animated.Text
+          style={[splashStyles.tagline, { opacity: taglineOpacity }]}
+        >
+          {t('splash.tagline', { defaultValue: '用標籤記住每段緣分' })}
+        </Animated.Text>
+
+        {showStillLoading ? (
+          <View style={splashStyles.stillLoading}>
+            <BrandSpinner size={24} />
+          </View>
+        ) : null}
       </View>
     </Animated.View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: '#ffffff',
-    zIndex: 9999,
-  },
-  // Absolute-fill layer so the logo sits at exact screen center — matches
-  // where the native Expo splash renders it. The old flex layout put the
-  // logo inside a `flex: 1` view above the bottomWrap, which shifted it
-  // up by ~42px and caused a visible "jump" when the native splash
-  // handed off to this overlay.
-  logoWrap: {
-    ...StyleSheet.absoluteFillObject,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  logo: {
-    width: 84,
-    height: 84,
-  },
-  // Bottom branding floats over the logoWrap instead of displacing it.
-  bottomWrap: {
-    position: 'absolute',
-    bottom: Platform.OS === 'ios' ? 48 : 36,
-    left: 0,
-    right: 0,
-    alignItems: 'center',
-  },
-  fromLabel: {
-    fontSize: 13,
-    color: '#8e8e93',
-    marginBottom: 4,
-  },
-  brandLabel: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#1a1a1a',
-  },
-});

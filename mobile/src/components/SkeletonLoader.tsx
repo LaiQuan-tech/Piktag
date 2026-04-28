@@ -1,12 +1,16 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Animated,
+  Easing,
+  LayoutChangeEvent,
   StyleSheet,
   View,
   ViewStyle,
   DimensionValue,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useReducedMotion } from 'react-native-reanimated';
 import { COLORS } from '../constants/theme';
 
 // ---------------------------------------------------------------------------
@@ -20,6 +24,15 @@ type SkeletonBoxProps = {
   style?: ViewStyle;
 };
 
+// Default sweep width when the layout pass hasn't reported real width
+// yet (e.g. before first onLayout). Per spec: "doesn't have to be
+// perfect" — this is just a visual fallback. The shimmer itself is a
+// fixed-width band sliding across whatever the box ends up sized to.
+const DEFAULT_SHIMMER_WIDTH = 300;
+// Shimmer band is roughly 60% of the box width — wide enough to feel
+// like a sweep, narrow enough to leave dead space on each end.
+const SHIMMER_BAND_RATIO = 0.6;
+
 export const SkeletonBox = React.memo(function SkeletonBox({
   width,
   height,
@@ -27,6 +40,14 @@ export const SkeletonBox = React.memo(function SkeletonBox({
   style,
 }: SkeletonBoxProps) {
   const opacity = useRef(new Animated.Value(0.3)).current;
+  const shimmerX = useRef(new Animated.Value(0)).current;
+  const reducedMotion = useReducedMotion();
+  // Measured width drives the shimmer translate range. Falls back to
+  // the default until layout fires — first frame might miss the sweep
+  // but that's invisible in practice.
+  const [measuredWidth, setMeasuredWidth] = useState<number>(
+    typeof width === 'number' ? width : DEFAULT_SHIMMER_WIDTH,
+  );
 
   useEffect(() => {
     // NOTE: Previously used Animated.loop(Animated.sequence([...])) with
@@ -69,8 +90,49 @@ export const SkeletonBox = React.memo(function SkeletonBox({
     };
   }, [opacity]);
 
+  // Shimmer sweep — runs in parallel with the pulse. Same callback-chain
+  // pattern as the pulse to dodge the RN Animated.loop unmount bug.
+  useEffect(() => {
+    if (reducedMotion) return;
+    let mounted = true;
+
+    const sweep = () => {
+      if (!mounted) return;
+      shimmerX.setValue(0);
+      Animated.timing(shimmerX, {
+        toValue: 1,
+        duration: 1800,
+        easing: Easing.linear,
+        useNativeDriver: true,
+      }).start(({ finished }) => {
+        if (mounted && finished) sweep();
+      });
+    };
+
+    sweep();
+
+    return () => {
+      mounted = false;
+      shimmerX.stopAnimation();
+    };
+  }, [reducedMotion, shimmerX]);
+
+  const handleLayout = (event: LayoutChangeEvent) => {
+    const w = event.nativeEvent.layout.width;
+    if (w > 0 && w !== measuredWidth) setMeasuredWidth(w);
+  };
+
+  const bandWidth = Math.max(40, measuredWidth * SHIMMER_BAND_RATIO);
+  // Slide the band from fully off-screen left to fully off-screen right
+  // so the gradient enters and exits cleanly past the rounded corners.
+  const translateX = shimmerX.interpolate({
+    inputRange: [0, 1],
+    outputRange: [-bandWidth, measuredWidth + bandWidth],
+  });
+
   return (
     <Animated.View
+      onLayout={handleLayout}
       style={[
         {
           width,
@@ -78,10 +140,36 @@ export const SkeletonBox = React.memo(function SkeletonBox({
           borderRadius,
           backgroundColor: COLORS.gray200,
           opacity,
+          overflow: 'hidden',
         },
         style,
       ]}
-    />
+    >
+      {!reducedMotion ? (
+        <Animated.View
+          pointerEvents="none"
+          style={[
+            StyleSheet.absoluteFill,
+            {
+              transform: [{ translateX }],
+            },
+          ]}
+        >
+          <LinearGradient
+            // Brand-tinted shimmer using piktag100 (#e6b3ff) at low
+            // opacity; transparent on each side gives the soft edge.
+            colors={[
+              'rgba(230, 179, 255, 0)',
+              'rgba(230, 179, 255, 0.3)',
+              'rgba(230, 179, 255, 0)',
+            ]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={{ width: bandWidth, height: '100%' }}
+          />
+        </Animated.View>
+      ) : null}
+    </Animated.View>
   );
 });
 
