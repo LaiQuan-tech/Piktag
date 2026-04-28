@@ -432,7 +432,16 @@ export default function NotificationsScreen({ navigation }: NotificationsScreenP
         return;
       }
 
-      // 2. User-centric: probe every key servers might use, drop self-id so
+      // 2. Biolink-click → SocialStats (your own analytics).
+      // Per-clicker drilldown felt voyeuristic ("I see you clicked my IG");
+      // the useful signal is aggregate — which links got clicks, when, by
+      // how many people. SocialStats is where that lives.
+      if (item.type === 'biolink_click') {
+        navigation.navigate('SocialStats');
+        return;
+      }
+
+      // 3. User-centric: probe every key servers might use, drop self-id so
       // we don't navigate to the viewer's own profile. The viewer's id ALSO
       // lives on the row as `notification.user_id` (recipient), but that's
       // never a useful navigation target so we skip it implicitly.
@@ -444,16 +453,39 @@ export default function NotificationsScreen({ navigation }: NotificationsScreenP
         data.clicker_user_id,
         data.user_id,
       ];
-      const userId = userIdCandidates.find(
+      let userId = userIdCandidates.find(
         (id): id is string => typeof id === 'string' && id.length > 0 && id !== user?.id,
       );
       const username: string | undefined = data.username;
+      let connectionId: string | undefined = data.connection_id;
+
+      // Legacy fallback: older notifications (birthday / anniversary from the
+      // pre-2026-04 functions) sometimes carried `connection_id` but no
+      // direct user id. Resolve through piktag_connections so taps still land
+      // on a useful screen instead of dead-ending after mark-as-read.
+      if (!userId && connectionId && user) {
+        try {
+          const { data: conn } = await supabase
+            .from('piktag_connections')
+            .select('connected_user_id')
+            .eq('id', connectionId)
+            .eq('user_id', user.id)
+            .maybeSingle();
+          if ((conn as any)?.connected_user_id) {
+            userId = (conn as any).connected_user_id as string;
+          }
+        } catch {}
+      }
 
       if (!userId && !username) return;
 
-      // 3. Friend or stranger? Friend lookup short-circuits to FriendDetail
-      // when the viewer has a connection row for this user. Errors fall
-      // through to the stranger path so we still navigate somewhere.
+      // 4. Friend or stranger? If `connection_id` was already on the
+      // notification, use it directly — saves a round-trip to look it
+      // up. Otherwise query piktag_connections to decide.
+      if (userId && connectionId) {
+        navigation.navigate('FriendDetail', { friendId: userId, connectionId });
+        return;
+      }
       if (userId && user) {
         try {
           const { data: conn } = await supabase
@@ -463,7 +495,7 @@ export default function NotificationsScreen({ navigation }: NotificationsScreenP
             .eq('connected_user_id', userId)
             .maybeSingle();
           if (conn) {
-            navigation.navigate('FriendDetail', { friendId: userId, connectionId: conn.id });
+            navigation.navigate('FriendDetail', { friendId: userId, connectionId: (conn as any).id });
             return;
           }
         } catch {}
