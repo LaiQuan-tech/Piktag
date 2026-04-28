@@ -1,0 +1,272 @@
+{
+  "nav": {
+    "features": "Funciones",
+    "crm": "CRM Inteligente",
+    "upcoming": "Próximamente",
+    "comingSoon": "Próximamente"
+  },
+  "hero": {
+    "badge": "iOS y Android próximamente",
+    "title1": "No dejes que otros",
+    "title2": "te definan",
+    "description": "Deja que te etiqueten. Empieza a etiquetarte tú.\nPikTag te ayuda a recordar a todos — y a ser recordado de la manera correcta.",
+    "appStore": "App Store",
+    "googlePlay": "Google Play",
+    "comingSoonOn": "Próximamente en"
+  },
+  "features": {
+    "sectionTitle": "Funciones Principales, Increíblemente Poderosas",
+    "sectionDesc": "Reemplazando las listas de contactos tradicionales, PikTag se basa en etiquetas semánticas, combinadas con Link Bio, código QR y niveles de privacidad, haciendo que la gestión de contactos sea precisa e intuitiva.",
+    "tag": {
+      "title": "Seis Tipos de Etiquetas Semánticas",
+      "description": "Compatible con seis categorías semánticas: Identidad, Habilidades, Intereses, Social, Meta Etiquetas y Relaciones, añadiendo etiquetas precisas a tus conexiones. Arrastra para reordenar y ocultar etiquetas privadas."
+    },
+    "linkBio": {
+      "title": "Link Bio y Código QR",
+      "description": "Crea tu página personal de Link Bio con tu avatar, biografía y etiquetas. Compatible con códigos QR de URL estándar — escanea para agregar amigos al instante."
+    },
+    "search": {
+      "title": "Búsqueda y Exploración",
+      "description": "Busca etiquetas o cuentas por palabras clave, explora personas que comparten las mismas etiquetas y descubre tus comunidades profesionales y grupos de interés."
+    },
+    "biolinks": {
+      "title": "Enlaces Sociales y Niveles de Privacidad",
+      "description": "Guarda enlaces de redes sociales como IG, LinkedIn y establece cuatro niveles de privacidad (Público / Amigos / Amigos Cercanos / Solo Yo) para controlar con precisión quién puede verlos."
+    },
+    "contactSync": {
+      "title": "Sincronización de Contactos",
+      "description": "Importa tus contactos del teléfono con un solo toque, encuentra rápidamente amigos que ya usan PikTag y construye tu red fácilmente."
+    },
+    "languages": {
+      "title": "Soporte para 15 Idiomas",
+      "description": "Interfaz internacionalizada integrada en 15 idiomas — gestiona tus conexiones en el idioma con el que te sientas más cómodo, donde sea que estés."
+    }
+  },
+  "tags": {
+    "sectionTitle": "Etiquetas de Conexión Más Activas",
+    "sectionDesc": "Únete a miles de usuarios para explorar y conectar con personas que comparten las mismas etiquetas. Descubre tus comunidades profesionales y grupos de interés.",
+    "users": "Usuarios",
+    "thisWeek": "Esta Semana",
+    "explore": "Explorar Etiquetas",
+    "viewAll": "Ver Todas las Etiquetas",
+    "engineer": "#Ingeniero",
+    "designer": "#Diseñador",
+    "entrepreneur": "#Emprendedor",
+    "investor": "#Inversor",
+    "ntuAlumni": "#NTU Alumni"
+  },
+  "crm": {
+    "badge": "Fase 2",
+    "sectionTitle": "CRM Inteligente y Funciones de Interacción",
+    "sectionDesc": "Más que solo almacenar contactos — PikTag te ayuda de forma proactiva a mantener tus relaciones. Con recordatorios de cumpleaños, estadísticas sociales y notificaciones inteligentes, conectarás con las personas adecuadas en el momento justo.",
+    "birthday": {
+      "title": "Recordatorios CRM de Cumpleaños",
+      "description": "Establece fechas importantes como los cumpleaños de tus amigos y recibe notificaciones push automáticas el día indicado — nunca te pierdas un momento importante."
+    },
+    "friends": {
+      "title": "Gestión de Interacciones con Amigos",
+      "description": "Consulta perfiles detallados y etiquetas de amigos, con gestión de bloqueo/desbloqueo para controlar los límites de tu círculo social."
+    },
+    "stats": {
+      "title": "Panel de Estadísticas Sociales",
+      "description": "Panel de datos sociales personales: total de conexiones, etiquetas usadas, las 5 etiquetas más utilizadas — cuantifica tu influencia social."
+    },
+    "notifications": {
+      "title": "Centro de Notificaciones Inteligente",
+      "description": "Gestiona todas las notificaciones en un solo lugar: solicitudes de amistad, recordatorios de cumpleaños, actualizaciones de etiquetas — los mensajes importantes de un vistazo."
+    },
+    "notificationCenter": "Centro de Notificaciones",
+    "filterAll": "Todo",
+    "filterFriends": "Amigos",
+    "filterReminders": "Recordatorios",
+    "notification1": "¡Hoy es el cumpleaños de #NTU Alumni David Wang!",
+    "notification1Time": "Ahora mismo • Recordatorio CRM de Cumpleaños",
+    "notification2": "¡Xiao Hua ha aceptado tu solicitud de amistad!",
+    "notification2Time": "Hace 2 horas • Actividad de Amigos",
+    "notification3": "¡Tu red ha crecido a 150 personas!",
+    "notification3Time": "Ayer • Estadísticas Sociales"
+  },
+  "advanced": {
+    "badge": "Fase 3",
+    "sectionTitle": "Próximamente",
+    "sectionDesc": "Combinando geolocalización y recomendaciones inteligentes para ayudarte a descubrir conexiones potenciales y mantener tu red social en crecimiento.",
+    "nearby": {
+      "title": "Descubrimiento de Usuarios Cercanos",
+      "description": "Explora usuarios de PikTag y etiquetas populares a tu alrededor basándote en tu ubicación GPS — descubre tendencias sociales locales y conexiones potenciales."
+    },
+    "onThisDay": {
+      "title": "En Este Día",
+      "description": "Recuerda automáticamente a quién conociste en este día hace N años — reaviva los recuerdos de conexiones y mantén cada relación fresca."
+    },
+    "recommend": {
+      "title": "Algoritmo de Recomendación Inteligente",
+      "description": "Basándose en tus etiquetas, historial de interacciones y red de contactos, te recomienda de forma inteligente personas que podrías querer conocer — amplía tus horizontes sociales."
+    }
+  },
+  "cta": {
+    "title": "¿Listo para Llevar tu Red al Siguiente Nivel?",
+    "description": "PikTag llegará pronto a iOS y Android."
+  },
+  "footer": {
+    "rights": "Todos los derechos reservados.",
+    "privacy": "Política de Privacidad",
+    "terms": "Términos de Servicio",
+    "contact": "Contáctanos"
+  },
+  "app": {
+    "search": "Buscar"
+  },
+  "privacy": {
+    "title": "Política de Privacidad",
+    "lastUpdated": "Última actualización: 2 de abril de 2026",
+    "intro": "Bienvenido a PikTag. Nos tomamos tu privacidad muy en serio. Esta Política de Privacidad explica cómo recopilamos, usamos, almacenamos y protegemos tus datos personales cuando utilizas la aplicación móvil PikTag y los servicios relacionados. Al usar este servicio, aceptas las prácticas de tratamiento de datos descritas en esta política.",
+    "section1Title": "1. Recopilación de Datos",
+    "section1Intro": "Para proporcionar y mejorar nuestros servicios, podemos recopilar los siguientes tipos de datos:",
+    "section1Items": [
+      "Datos Personales: Información que proporcionas al registrarte o editar tu perfil, incluyendo nombre, dirección de correo electrónico, foto de perfil, biografía personal, etc.",
+      "Etiquetas Semánticas: Los seis tipos de etiquetas semánticas que creas o usas (Identidad, Habilidades, Intereses, Social, Meta Etiquetas, Relaciones), incluyendo nombres de etiquetas, categorías y preferencias de ordenación.",
+      "Enlaces Sociales: Los enlaces de cuentas de redes sociales que ingresas (como Instagram, LinkedIn, Facebook, etc.) y los niveles de privacidad que estableces (Público, Amigos, Amigos Cercanos, Solo Yo).",
+      "Datos de Contacto: Cuando decides sincronizar tus contactos, accedemos a los contactos de tu teléfono para identificar usuarios registrados de PikTag. No almacenamos información de contacto de usuarios no registrados.",
+      "Datos de Ubicación: Cuando usas la función 'Descubrimiento de Usuarios Cercanos', recopilamos tus datos de ubicación GPS. Estos datos solo se recopilan cuando activas esta función de forma voluntaria y puedes desactivarla en cualquier momento.",
+      "Datos de Uso: Incluyendo frecuencia de uso de la aplicación, registros de interacción con funciones, consultas de búsqueda e información del dispositivo (modelo del dispositivo, versión del SO, configuración de idioma, etc.)."
+    ],
+    "section2Title": "2. Cómo Usamos tus Datos",
+    "section2Intro": "Los datos que recopilamos se utilizan para los siguientes fines:",
+    "section2Items": [
+      "Para proporcionar, mantener y mejorar las funciones principales y la experiencia de servicio de PikTag.",
+      "Para crear y mostrar tu página personal de Link Bio y tu tarjeta de visita con código QR.",
+      "Para realizar búsquedas de etiquetas, descubrimiento de usuarios y algoritmos de recomendación inteligente.",
+      "Para enviar recordatorios de CRM de cumpleaños, notificaciones de solicitudes de amistad y otras notificaciones push relevantes.",
+      "Para generar informes de estadísticas sociales (total de conexiones, estadísticas de uso de etiquetas, etc.).",
+      "Para detectar, prevenir y abordar problemas de seguridad, fraudes o problemas técnicos.",
+      "Para cumplir con las leyes y regulaciones aplicables."
+    ],
+    "section3Title": "3. Almacenamiento y Seguridad de Datos",
+    "section3Intro": "Tus datos se almacenan en la infraestructura en la nube proporcionada por Supabase, que emplea medidas de seguridad estándar del sector, incluyendo:",
+    "section3Items": [
+      "Cifrado de Seguridad de la Capa de Transporte (TLS) para toda la transmisión de datos.",
+      "Cifrado en reposo a nivel de base de datos.",
+      "Seguridad a Nivel de Fila (RLS) que garantiza que los usuarios solo puedan acceder a sus propios datos.",
+      "Auditorías de seguridad periódicas y aplicación de parches de vulnerabilidades."
+    ],
+    "section3Note": "Aunque adoptamos medidas de seguridad razonables, ningún método de transmisión por internet o almacenamiento electrónico puede garantizar una seguridad del 100%. Continuaremos esforzándonos por proteger tus datos personales.",
+    "section4Title": "4. Servicios de Terceros",
+    "section4Intro": "PikTag integra los siguientes servicios de terceros, cada uno con sus propias políticas de privacidad:",
+    "section4Apple": "Inicio de sesión con Apple: Utilizado para el inicio de sesión y la autenticación de cuentas en dispositivos iOS. Apple puede proporcionarnos tu nombre y dirección de correo electrónico (o dirección de retransmisión privada de Apple). Para más detalles, consulta la",
+    "section4AppleLink": "Política de Privacidad de Apple",
+    "section4Google": "Inicio de sesión con Google: Utilizado para el inicio de sesión y la autenticación de cuentas en dispositivos Android y web. Google puede proporcionarnos tu nombre, dirección de correo electrónico y foto de perfil. Para más detalles, consulta la",
+    "section4GoogleLink": "Política de Privacidad de Google",
+    "section4Supabase": "Supabase: Utilizado para servicios de base de datos, autenticación y almacenamiento de archivos. Para más detalles, consulta la",
+    "section4SupabaseLink": "Política de Privacidad de Supabase",
+    "section5Title": "5. Cookies y Seguimiento",
+    "section5Intro": "Como aplicación móvil, PikTag no utiliza directamente cookies de navegador. Sin embargo, podemos usar las siguientes tecnologías para mejorar nuestros servicios:",
+    "section5Items": [
+      "Identificadores de dispositivo para servicios de notificaciones push.",
+      "Herramientas de análisis para recopilar datos de uso anónimos y mejorar la experiencia del producto.",
+      "Almacenamiento Local para guardar en caché la configuración y las preferencias de la aplicación."
+    ],
+    "section5Note": "Puedes gestionar los permisos de notificaciones y las preferencias de uso compartido de datos a través de la configuración de tu dispositivo.",
+    "section6Title": "6. Derechos del Usuario",
+    "section6Intro": "De conformidad con las leyes de protección de datos aplicables, tienes los siguientes derechos:",
+    "section6Items": [
+      "Derecho de Acceso: Puedes consultar tus datos personales, etiquetas, enlaces sociales y lista de amigos dentro de la aplicación en cualquier momento.",
+      "Derecho de Rectificación: Puedes editar o actualizar tu perfil, etiquetas, enlaces sociales y configuración de privacidad en cualquier momento.",
+      "Derecho de Supresión: Puedes eliminar etiquetas individuales, enlaces sociales o solicitar la eliminación completa de tu cuenta a través de 'Configuración de la Cuenta'. Una vez eliminada tu cuenta, todos tus datos personales, etiquetas, relaciones de amistad y datos relacionados se eliminarán de forma permanente. Esta acción no se puede deshacer.",
+      "Derecho a la Portabilidad de los Datos: Puedes solicitar la exportación de una copia de tus datos personales.",
+      "Derecho a Retirar el Consentimiento: Puedes retirar el consentimiento para el tratamiento de datos específicos en cualquier momento (como acceso a contactos, datos de ubicación, etc.), aunque esto puede afectar el uso de ciertas funciones."
+    ],
+    "section6Note": "Para ejercer los derechos anteriores, contáctanos utilizando la información de contacto que figura a continuación.",
+    "section7Title": "7. Privacidad de los Menores",
+    "section7Content": "PikTag está destinado a usuarios de 13 años o más (o la edad mínima requerida por tu jurisdicción). No recopilamos conscientemente datos personales de menores de 13 años. Si descubrimos que hemos recopilado datos de un menor de 13 años, los eliminaremos de inmediato. Si crees que podríamos tener datos pertenecientes a un menor, contáctanos de inmediato.",
+    "section8Title": "8. Actualizaciones de la Política de Privacidad",
+    "section8Content": "Podemos actualizar esta Política de Privacidad periódicamente para reflejar cambios en el servicio o requisitos legales. Cuando se realicen actualizaciones, te notificaremos los cambios significativos a través de notificaciones en la aplicación o por correo electrónico, y actualizaremos la fecha de 'Última actualización' en la parte superior de esta página. Te recomendamos revisar esta política periódicamente para mantenerte informado sobre cómo protegemos tu información.",
+    "section9Title": "9. Contáctanos",
+    "section9Intro": "Si tienes alguna pregunta, comentario o solicitud relacionada con esta Política de Privacidad, contáctanos a través de los siguientes medios:",
+    "contactAppName": "Nombre de la aplicación: PikTag",
+    "contactEmail": "Correo electrónico: ",
+    "contactWebsite": "Sitio web: "
+  },
+  "terms": {
+    "title": "Términos de Servicio",
+    "lastUpdated": "Última actualización: 2 de abril de 2026",
+    "section1Title": "1. Descripción del Servicio",
+    "section1Content": "PikTag (en adelante denominado 'el Servicio') es una aplicación móvil de CRM social desarrollada y operada por el equipo de PikTag. El Servicio ofrece gestión de etiquetas semánticas, intercambio de tarjetas de visita con código QR, páginas personales de Link Bio, gestión de enlaces sociales, sincronización de contactos, recordatorios de CRM inteligente y otras funciones diseñadas para ayudar a los usuarios a gestionar y mantener sus conexiones de forma eficaz.",
+    "section2Title": "2. Registro de Cuenta y Seguridad",
+    "section2Items": [
+      "Debes tener al menos 13 años (o la edad mínima requerida por tu jurisdicción) para usar este Servicio.",
+      "Puedes registrar una cuenta mediante el inicio de sesión con Apple o con Google.",
+      "Eres responsable de mantener la seguridad de tu cuenta y no debes compartirla con otras personas.",
+      "Si detectas algún uso no autorizado de tu cuenta, notifícanos de inmediato."
+    ],
+    "section3Title": "3. Directrices de Uso",
+    "section3Intro": "Al usar este Servicio, aceptas no realizar ninguna de las siguientes acciones:",
+    "section3Items": [
+      "Suplantar la identidad de otras personas o proporcionar información personal falsa.",
+      "Acosar, amenazar, difamar o discriminar a otros usuarios.",
+      "Distribuir spam, publicidad o promociones comerciales no autorizadas.",
+      "Usar el Servicio para actividades ilegales o no autorizadas.",
+      "Intentar hackear, realizar ingeniería inversa o interferir con el funcionamiento normal del Servicio.",
+      "Extraer o recopilar de forma automatizada y masiva datos personales de otros usuarios."
+    ],
+    "section4Title": "4. Propiedad Intelectual",
+    "section4Items": [
+      "El diseño, el código, los gráficos, los logotipos y otros contenidos de la aplicación PikTag están protegidos por las leyes de propiedad intelectual.",
+      "El nombre 'PikTag' y los logotipos relacionados son marcas registradas del Servicio y no pueden utilizarse sin autorización.",
+      "Los usuarios conservan la propiedad de todo el contenido personal que suban a la plataforma (como etiquetas, biografías, etc.)."
+    ],
+    "section5Title": "5. Contenido del Usuario",
+    "section5Items": [
+      "El contenido que creas en PikTag (incluyendo etiquetas semánticas, biografías personales, enlaces sociales, etc.) te pertenece a ti.",
+      "Otorgas a PikTag el derecho de usar, mostrar y procesar tu contenido en la medida necesaria para prestar el Servicio.",
+      "Eres responsable de garantizar que el contenido que publicas no infrinja los derechos de terceros.",
+      "PikTag se reserva el derecho de eliminar contenido que infrinja estos Términos o las leyes aplicables."
+    ],
+    "section6Title": "6. Protección de la Privacidad",
+    "section6Content": "Tu privacidad es muy importante para nosotros. Consulta nuestra",
+    "section6Link": "Política de Privacidad",
+    "section6Content2": " para conocer cómo recopilamos, usamos y protegemos tus datos personales.",
+    "section7Title": "7. Interrupción del Servicio y Limitación de Responsabilidad",
+    "section7Items": [
+      "PikTag puede interrumpir temporalmente el Servicio por motivos de mantenimiento, actualizaciones o causas de fuerza mayor.",
+      "No garantizamos que el Servicio sea ininterrumpido ni libre de errores.",
+      "En la máxima medida permitida por la ley, PikTag no será responsable de ninguna pérdida derivada del uso o la imposibilidad de usar el Servicio."
+    ],
+    "section8Title": "8. Modificaciones de los Términos de Servicio",
+    "section8Content": "Nos reservamos el derecho de modificar estos Términos de Servicio en cualquier momento. Los términos modificados se publicarán en esta página y el uso continuado del Servicio implica la aceptación de los términos modificados. Para cambios significativos, te notificaremos a través de notificaciones en la aplicación o por correo electrónico.",
+    "section9Title": "9. Rescisión del Servicio",
+    "section9Items": [
+      "Puedes eliminar tu cuenta en cualquier momento a través de la configuración de la aplicación.",
+      "PikTag se reserva el derecho de suspender o cancelar tu cuenta por incumplimiento de estos Términos.",
+      "Tras la cancelación de la cuenta, tus datos personales se gestionarán de acuerdo con la Política de Privacidad."
+    ],
+    "section10Title": "10. Legislación Aplicable",
+    "section10Content": "Estos Términos de Servicio se rigen por las leyes de la República de China (Taiwán). Para cualquier disputa derivada de estos Términos, ambas partes acuerdan someterse a la jurisdicción del Tribunal de Distrito de Taipei en Taiwán como tribunal de primera instancia.",
+    "section11Title": "11. Contáctanos",
+    "section11Intro": "Si tienes alguna pregunta sobre estos Términos de Servicio, contáctanos a través de los siguientes medios:",
+    "contactEmail": "Correo electrónico: ",
+    "contactWebsite": "Sitio web: "
+  },
+  "contact": {
+    "title": "Contáctanos",
+    "description": "¡Gracias por tu interés en PikTag! Si tienes alguna pregunta, sugerencia o propuesta de colaboración, no dudes en ponerte en contacto con nosotros a través de los siguientes canales. Te responderemos lo antes posible.",
+    "emailTitle": "Correo Electrónico",
+    "emailAddress": "support@pikt.ag",
+    "emailDesc": "Responderemos a tu consulta en un plazo de 1-2 días hábiles.",
+    "faqTitle": "Preguntas Frecuentes",
+    "faq1Question": "¿Qué es PikTag?",
+    "faq1Answer": "PikTag es una aplicación móvil de CRM social que te ayuda a gestionar conexiones mediante etiquetas semánticas, código QR y enlaces sociales. Ya sea para networking profesional o para la vida cotidiana, podrás recordar fácilmente cada contacto.",
+    "faq2Question": "¿Qué tipos de etiquetas semánticas existen?",
+    "faq2Answer": "PikTag admite seis categorías de etiquetas semánticas: Identidad, Habilidades, Intereses, Social, Meta Etiquetas y Relaciones. Cada categoría te ayuda a reconocer y recordar a las personas desde diferentes dimensiones.",
+    "faq3Question": "¿Cómo intercambio tarjetas de visita con el código QR?",
+    "faq3Answer": "Cada usuario tiene un código QR único. Otros pueden escanearlo para ver tu página personal de Link Bio y enviar una solicitud de amistad. Compatible con todos los lectores de código QR estándar.",
+    "faq4Question": "¿PikTag es gratuito?",
+    "faq4Answer": "PikTag ofrece un plan básico gratuito que incluye las funciones principales de gestión de contactos y etiquetado. Las funciones avanzadas, como la importación masiva y el análisis de datos, están incluidas en los planes de pago. Consulta nuestra página de precios para más detalles.",
+    "socialTitle": "Síguenos",
+    "socialFacebook": "Facebook",
+    "socialInstagram": "Instagram",
+    "socialLine": "Cuenta Oficial de LINE"
+  },
+  "langSwitcher": {
+    "label": "Idioma"
+  }
+}
