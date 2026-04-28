@@ -415,7 +415,9 @@
     "hiddenTagPlaceholder": "छुपा टैग जोड़ें, जैसे: पूर्व सहकर्मी",
     "mutualTagsModalTitle": "साझा टैग",
     "mutualFriendsSectionTitle": "साझा दोस्त",
-    "shareIntroMessage": "आपको {{name}} से मिलवाता हूँ — यह उनकी प्रोफ़ाइल है: {{url}}"
+    "shareIntroMessage": "आपको {{name}} से मिलवाता हूँ — यह उनकी प्रोफ़ाइल है: {{url}}",
+    "tag": "टैग",
+    "recommendMembers": "अनुशंसित सदस्य"
   },
   "userDetail": {
     "headerNotFound": "नहीं मिला",
@@ -459,7 +461,9 @@
     "pickTagSubtitle": "{{name}} को सबसे अच्छे से दर्शाने वाले टैग चुनें",
     "pickTagEmpty": "इस यूज़र के अभी कोई सार्वजनिक टैग नहीं हैं",
     "pickTagSave": "सहेजें ({{count}})",
-    "hiddenTagPlaceholder": "छुपा टैग जोड़ें..."
+    "hiddenTagPlaceholder": "छुपा टैग जोड़ें...",
+    "tag": "टैग",
+    "recommendMembers": "अनुशंसित सदस्य"
   },
   "settings": {
     "headerTitle": "सेटिंग्स",

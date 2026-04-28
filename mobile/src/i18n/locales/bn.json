@@ -415,7 +415,9 @@
     "hiddenTagPlaceholder": "লুকানো ট্যাগ যোগ করুন, যেমন: পুরোনো সহকর্মী",
     "mutualTagsModalTitle": "শেয়ার করা ট্যাগ",
     "mutualFriendsSectionTitle": "শেয়ার করা বন্ধু",
-    "shareIntroMessage": "আপনাকে {{name}}-এর সাথে পরিচয় করিয়ে দিচ্ছি — এই তার প্রোফাইল: {{url}}"
+    "shareIntroMessage": "আপনাকে {{name}}-এর সাথে পরিচয় করিয়ে দিচ্ছি — এই তার প্রোফাইল: {{url}}",
+    "tag": "ট্যাগ",
+    "recommendMembers": "প্রস্তাবিত সদস্য"
   },
   "userDetail": {
     "headerNotFound": "পাওয়া যায়নি",
@@ -459,7 +461,9 @@
     "pickTagSubtitle": "{{name}}-কে সবচেয়ে ভালো বোঝায় এমন ট্যাগ বাছুন",
     "pickTagEmpty": "এই ইউজারের এখনও কোনো পাবলিক ট্যাগ নেই",
     "pickTagSave": "সংরক্ষণ ({{count}})",
-    "hiddenTagPlaceholder": "লুকানো ট্যাগ যোগ করুন..."
+    "hiddenTagPlaceholder": "লুকানো ট্যাগ যোগ করুন...",
+    "tag": "ট্যাগ",
+    "recommendMembers": "প্রস্তাবিত সদস্য"
   },
   "settings": {
     "headerTitle": "সেটিংস",

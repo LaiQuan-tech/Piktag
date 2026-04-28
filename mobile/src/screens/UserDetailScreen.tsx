@@ -1086,17 +1086,21 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
             )}
             {isFollowing && (
               <TouchableOpacity
-                style={styles.iconButton}
+                style={styles.tagButton}
                 activeOpacity={0.7}
                 onPress={openPickTagModal}
+                accessibilityRole="button"
+                accessibilityLabel={t('userDetail.tag') || '標籤'}
               >
-                <Hash size={18} color={COLORS.gray700} strokeWidth={2.5} />
+                <Text style={styles.tagButtonText}>{t('userDetail.tag') || '標籤'}</Text>
               </TouchableOpacity>
             )}
             <TouchableOpacity
               style={[styles.iconButton, showSimilar && styles.iconButtonActive]}
               activeOpacity={0.7}
               onPress={() => setShowSimilar(!showSimilar)}
+              accessibilityRole="button"
+              accessibilityLabel={t('userDetail.recommendMembers') || '推薦會員'}
             >
               <UserPlus size={18} color={showSimilar ? COLORS.piktag500 : COLORS.gray700} />
             </TouchableOpacity>
@@ -1662,6 +1666,22 @@ const styles = StyleSheet.create({
   iconButtonActive: {
     backgroundColor: COLORS.piktag50,
   },
+  // Wider variant for the "標籤" button — same gray pill as the
+  // message button but compact, since it shares a row with two
+  // larger flex:1 buttons (Follow + Message) plus an icon.
+  tagButton: {
+    paddingHorizontal: 14,
+    height: 44,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: COLORS.gray100,
+  },
+  tagButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: COLORS.gray900,
+  },
   // Tags — flat inline clickable (matching ProfileScreen)
   tagsWrap: {
     flexDirection: 'row',
@@ -1765,16 +1785,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 10,
     marginBottom: 4,
-  },
-  tagButton: {
-    flex: 1,
-    backgroundColor: COLORS.white,
-    borderWidth: 1.5,
-    borderColor: COLORS.gray200,
-    borderRadius: 12,
-    paddingVertical: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   headerMoreBtn: { padding: 4 },
   // More menu (bottom sheet style)
@@ -1915,11 +1925,6 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '700',
     color: '#FFFFFF',
-  },
-  tagButtonText: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: COLORS.gray700,
   },
 
   // Pick Tag Modal

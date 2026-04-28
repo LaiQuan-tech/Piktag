@@ -415,7 +415,9 @@
     "hiddenTagPlaceholder": "เพิ่มแท็กซ่อน เช่น อดีตเพื่อนร่วมงาน",
     "mutualTagsModalTitle": "แท็กร่วมกัน",
     "mutualFriendsSectionTitle": "เพื่อนร่วมกัน",
-    "shareIntroMessage": "ขอแนะนำ {{name}} — โปรไฟล์: {{url}}"
+    "shareIntroMessage": "ขอแนะนำ {{name}} — โปรไฟล์: {{url}}",
+    "tag": "แท็ก",
+    "recommendMembers": "สมาชิกแนะนำ"
   },
   "userDetail": {
     "headerNotFound": "ไม่พบ",
@@ -459,7 +461,9 @@
     "pickTagSubtitle": "เลือกแท็กที่เหมาะกับ {{name}} มากที่สุด",
     "pickTagEmpty": "ผู้ใช้คนนี้ยังไม่มีแท็กสาธารณะ",
     "pickTagSave": "บันทึก ({{count}})",
-    "hiddenTagPlaceholder": "เพิ่มแท็กที่ซ่อน..."
+    "hiddenTagPlaceholder": "เพิ่มแท็กที่ซ่อน...",
+    "tag": "แท็ก",
+    "recommendMembers": "สมาชิกแนะนำ"
   },
   "settings": {
     "headerTitle": "ตั้งค่า",

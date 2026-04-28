@@ -45,7 +45,7 @@ import {
   X,
   AlertTriangle,
   MessageCircle,
-  Hash,
+  UserPlus,
 } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { COLORS } from '../constants/theme';
@@ -193,6 +193,12 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
   const [mutualTagNames, setMutualTagNames] = useState<{ id: string; name: string }[]>([]);
   const [mutualTagModalVisible, setMutualTagModalVisible] = useState(false);
   const [mutualFriendProfiles, setMutualFriendProfiles] = useState<any[]>([]);
+
+  // "Recommended members" — same data shape and render as on UserDetailScreen.
+  // Toggled by the UserPlus icon button next to the 標籤 button.
+  const [similarUsers, setSimilarUsers] = useState<PiktagProfile[]>([]);
+  const [similarMutualFriends, setSimilarMutualFriends] = useState<Map<string, any[]>>(new Map());
+  const [showSimilar, setShowSimilar] = useState(false);
 
   // Hidden tags state (private tags only I can see).
   // Add/remove logic lives in <HiddenTagEditor>; this component only owns the
@@ -630,6 +636,34 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
     prevPickModalVisible.current = pickTagModalVisible;
   }, [pickTagModalVisible, fetchData]);
 
+  // Fetch the "recommended members" list once per friendId. Mirrors
+  // UserDetailScreen's get_similar_users RPC call — same shape, same
+  // section UI. Lazy-fired regardless of showSimilar state so toggling
+  // the button is instant; the RPC is cheap server-side.
+  useEffect(() => {
+    if (!friendId) return;
+    let cancelled = false;
+    (async () => {
+      const { data, error } = await supabase.rpc('get_similar_users', {
+        target_user_id: friendId,
+        max_results: 6,
+      });
+      if (cancelled || error || !data) return;
+      const s = data as any;
+      const users: PiktagProfile[] = Array.isArray(s.users) ? s.users : [];
+      setSimilarUsers(users);
+      const mutualsObj = (s.mutuals || {}) as Record<string, any[]>;
+      const map = new Map<string, any[]>();
+      for (const uid of Object.keys(mutualsObj)) {
+        map.set(uid, mutualsObj[uid] || []);
+      }
+      setSimilarMutualFriends(map);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [friendId]);
+
   const handleReport = async (reason: string) => {
     if (!user || !friendId) return;
     await supabase.from('piktag_reports').insert({ reporter_id: user.id, reported_id: friendId, reason });
@@ -1053,15 +1087,102 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
             </TouchableOpacity>
             {isFollowing && (
               <TouchableOpacity
-                style={styles.iconButton}
+                style={styles.tagButton}
                 activeOpacity={0.7}
                 onPress={openPickTagModal}
+                accessibilityRole="button"
+                accessibilityLabel={t('friendDetail.tag') || '標籤'}
               >
-                <Hash size={18} color={COLORS.gray700} strokeWidth={2.5} />
+                <Text style={styles.tagButtonText}>{t('friendDetail.tag') || '標籤'}</Text>
               </TouchableOpacity>
             )}
+            <TouchableOpacity
+              style={[styles.iconButton, showSimilar && styles.iconButtonActive]}
+              activeOpacity={0.7}
+              onPress={() => setShowSimilar(!showSimilar)}
+              accessibilityRole="button"
+              accessibilityLabel={t('friendDetail.recommendMembers') || '推薦會員'}
+            >
+              <UserPlus size={18} color={showSimilar ? COLORS.piktag500 : COLORS.gray700} />
+            </TouchableOpacity>
           </View>
         </View>
+
+        {/* Recommended members — toggled by the UserPlus icon. Same
+            shape as UserDetailScreen's similar-users section so the two
+            screens feel like the same surface. */}
+        {showSimilar && similarUsers.length > 0 && (
+          <View style={styles.similarSection}>
+            <View style={styles.similarHeader}>
+              <Text style={styles.similarTitle}>{t('friendDetail.recommendMembers') || '推薦會員'}</Text>
+              <TouchableOpacity onPress={() => setShowSimilar(false)} activeOpacity={0.6}>
+                <X size={18} color={COLORS.gray400} />
+              </TouchableOpacity>
+            </View>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.similarScroll}>
+              {similarUsers.map((u) => {
+                const mutuals = similarMutualFriends.get(u.id) || [];
+                return (
+                  <View key={u.id} style={styles.similarCard}>
+                    <TouchableOpacity
+                      activeOpacity={0.7}
+                      onPress={() => navigation.push('UserDetail', { userId: u.id })}
+                    >
+                      {u.avatar_url ? (
+                        <Image source={{ uri: u.avatar_url }} style={styles.similarAvatar} />
+                      ) : (
+                        <View style={[styles.similarAvatar, styles.similarAvatarFallback]}>
+                          <Text style={styles.similarAvatarInitial}>
+                            {(u.full_name || u.username || '?').charAt(0).toUpperCase()}
+                          </Text>
+                        </View>
+                      )}
+                      <Text style={styles.similarName} numberOfLines={1}>{u.full_name || u.username}</Text>
+                    </TouchableOpacity>
+                    {mutuals.length > 0 && (
+                      <View style={styles.mutualAvatarsRow}>
+                        {mutuals.map((m: any, i: number) => (
+                          <Image
+                            key={m.id}
+                            source={{ uri: m.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(m.full_name || '?')}&size=40` }}
+                            style={[styles.mutualMiniAvatar, { marginLeft: i > 0 ? -8 : 0, zIndex: 3 - i }]}
+                          />
+                        ))}
+                        <Text style={styles.mutualCountText}>
+                          {t('friendDetail.statMutualFriends', { count: mutuals.length }) || `${mutuals.length} 共同好友`}
+                        </Text>
+                      </View>
+                    )}
+                    <TouchableOpacity
+                      style={styles.similarFollowBtn}
+                      activeOpacity={0.8}
+                      onPress={async () => {
+                        try {
+                          await supabase
+                            .from('piktag_follows')
+                            .insert({ follower_id: user?.id, following_id: u.id });
+                          setSimilarUsers((prev) => prev.filter((s) => s.id !== u.id));
+                        } catch (err) {
+                          console.warn('[FriendDetail] follow similar user failed:', err);
+                          Alert.alert(t('common.error'), t('common.unknownError'));
+                        }
+                      }}
+                    >
+                      <LinearGradient
+                        colors={['#ff5757', '#c44dff', '#8c52ff']}
+                        start={{ x: 0, y: 0.5 }}
+                        end={{ x: 1, y: 0.5 }}
+                        style={styles.similarFollowGradient}
+                      >
+                        <Text style={styles.similarFollowText}>{t('friendDetail.follow') || '追蹤'}</Text>
+                      </LinearGradient>
+                    </TouchableOpacity>
+                  </View>
+                );
+              })}
+            </ScrollView>
+          </View>
+        )}
 
         {/* Their active Ask, if any. Auto-hides when none. */}
         <UserAskCard userId={friendId} />
@@ -1580,6 +1701,114 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: COLORS.gray100,
   },
+  iconButtonActive: {
+    backgroundColor: COLORS.piktag50,
+  },
+  // Wider variant for the "標籤" button — same gray pill as the
+  // message button but compact, since it shares a row with two
+  // larger flex:1 buttons (Follow + Message) plus an icon.
+  tagButton: {
+    paddingHorizontal: 14,
+    height: 44,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: COLORS.gray100,
+  },
+  tagButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: COLORS.gray900,
+  },
+  // Recommended-members section. Cloned from UserDetailScreen so the
+  // two screens share visual vocabulary — same card width, same
+  // mutual-avatars row, same follow CTA.
+  similarSection: {
+    paddingTop: 16,
+    paddingBottom: 8,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.gray100,
+  },
+  similarHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    marginBottom: 12,
+  },
+  similarTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: COLORS.gray900,
+  },
+  similarScroll: {
+    paddingHorizontal: 16,
+    gap: 14,
+  },
+  similarCard: {
+    width: 150,
+    backgroundColor: COLORS.white,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: COLORS.gray200,
+    paddingVertical: 16,
+    paddingHorizontal: 12,
+    alignItems: 'center',
+    gap: 6,
+  },
+  similarAvatar: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: COLORS.gray100,
+  },
+  similarAvatarFallback: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  similarAvatarInitial: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: COLORS.gray500,
+  },
+  similarName: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: COLORS.gray900,
+    textAlign: 'center',
+  },
+  mutualAvatarsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginTop: 2,
+  },
+  mutualMiniAvatar: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    borderWidth: 1.5,
+    borderColor: COLORS.white,
+  },
+  mutualCountText: {
+    fontSize: 11,
+    color: COLORS.gray500,
+    marginLeft: 2,
+  },
+  similarFollowBtn: {
+    width: '100%',
+    marginTop: 8,
+  },
+  similarFollowGradient: {
+    borderRadius: 10,
+    paddingVertical: 8,
+    alignItems: 'center',
+  },
+  similarFollowText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
   // More menu
   moreOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-end' },
   moreSheet: { backgroundColor: COLORS.white, borderTopLeftRadius: 20, borderTopRightRadius: 20, paddingTop: 16, paddingHorizontal: 20 },
@@ -1587,11 +1816,6 @@ const styles = StyleSheet.create({
   moreItemText: { fontSize: 16, fontWeight: '500', color: COLORS.gray900 },
   moreCancelBtn: { alignItems: 'center', paddingVertical: 16, marginTop: 4 },
   moreCancelText: { fontSize: 16, fontWeight: '600', color: COLORS.piktag600 },
-  tagButtonText: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#FFFFFF',
-  },
   actionsRow: {
     flexDirection: 'row',
     paddingHorizontal: 20,

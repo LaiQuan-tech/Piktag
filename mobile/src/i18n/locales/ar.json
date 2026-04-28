@@ -415,7 +415,9 @@
     "hiddenTagPlaceholder": "أضف وسمًا مخفيًا، مثلاً: زميل سابق",
     "mutualTagsModalTitle": "وسوم مشتركة",
     "mutualFriendsSectionTitle": "الأصدقاء المشتركون",
-    "shareIntroMessage": "أعرّفك على {{name}} — هذا ملفه الشخصي: {{url}}"
+    "shareIntroMessage": "أعرّفك على {{name}} — هذا ملفه الشخصي: {{url}}",
+    "tag": "وسم",
+    "recommendMembers": "أعضاء موصى بهم"
   },
   "userDetail": {
     "headerNotFound": "غير موجود",
@@ -459,7 +461,9 @@
     "pickTagSubtitle": "اختر الوسوم التي تمثل {{name}}",
     "pickTagEmpty": "لا توجد وسوم عامة لهذا المستخدم بعد",
     "pickTagSave": "حفظ ({{count}})",
-    "hiddenTagPlaceholder": "أضف وسمًا مخفيًا..."
+    "hiddenTagPlaceholder": "أضف وسمًا مخفيًا...",
+    "tag": "وسم",
+    "recommendMembers": "أعضاء موصى بهم"
   },
   "settings": {
     "headerTitle": "الإعدادات",

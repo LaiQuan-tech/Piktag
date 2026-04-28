@@ -421,7 +421,9 @@
     "hiddenTagPlaceholder": "Add hidden tag, e.g. ex-colleague",
     "mutualTagsModalTitle": "Mutual Tags",
     "mutualFriendsSectionTitle": "Mutual Friends",
-    "shareIntroMessage": "Let me introduce {{name}} to you — here's their profile: {{url}}"
+    "shareIntroMessage": "Let me introduce {{name}} to you — here's their profile: {{url}}",
+    "tag": "Tag",
+    "recommendMembers": "Recommended members"
   },
   "userDetail": {
     "headerNotFound": "Not Found",
@@ -465,7 +467,9 @@
     "pickTagSubtitle": "Choose tags that best represent {{name}}",
     "pickTagEmpty": "This user has no public tags yet",
     "pickTagSave": "Save ({{count}})",
-    "hiddenTagPlaceholder": "Add hidden tag..."
+    "hiddenTagPlaceholder": "Add hidden tag...",
+    "tag": "Tag",
+    "recommendMembers": "Recommended members"
   },
   "settings": {
     "headerTitle": "Settings",

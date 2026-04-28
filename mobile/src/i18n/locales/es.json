@@ -415,7 +415,9 @@
     "hiddenTagPlaceholder": "Añadir etiqueta oculta, ej. ex-colega",
     "mutualTagsModalTitle": "Etiquetas en común",
     "mutualFriendsSectionTitle": "Amigos en común",
-    "shareIntroMessage": "Te presento a {{name}} — su perfil: {{url}}"
+    "shareIntroMessage": "Te presento a {{name}} — su perfil: {{url}}",
+    "tag": "Etiqueta",
+    "recommendMembers": "Miembros recomendados"
   },
   "userDetail": {
     "headerNotFound": "No encontrado",
@@ -459,7 +461,9 @@
     "pickTagSubtitle": "Elige las etiquetas que mejor representen a {{name}}",
     "pickTagEmpty": "Este usuario aún no tiene etiquetas públicas",
     "pickTagSave": "Guardar ({{count}})",
-    "hiddenTagPlaceholder": "Añadir etiqueta oculta..."
+    "hiddenTagPlaceholder": "Añadir etiqueta oculta...",
+    "tag": "Etiqueta",
+    "recommendMembers": "Miembros recomendados"
   },
   "settings": {
     "headerTitle": "Ajustes",

@@ -421,7 +421,9 @@
     "hiddenTagPlaceholder": "添加隐藏标签，如：前同事",
     "mutualTagsModalTitle": "共同标签",
     "mutualFriendsSectionTitle": "共同朋友",
-    "shareIntroMessage": "我介绍 {{name}} 给你，这是他的资讯：{{url}}"
+    "shareIntroMessage": "我介绍 {{name}} 给你，这是他的资讯：{{url}}",
+    "tag": "标签",
+    "recommendMembers": "推荐会员"
   },
   "userDetail": {
     "headerNotFound": "未找到",
@@ -465,7 +467,9 @@
     "pickTagSubtitle": "选择最能代表 {{name}} 的标签，方便你之后找到",
     "pickTagEmpty": "这位用户还没有设置公开标签",
     "pickTagSave": "保存 ({{count}})",
-    "hiddenTagPlaceholder": "添加隐藏标签..."
+    "hiddenTagPlaceholder": "添加隐藏标签...",
+    "tag": "标签",
+    "recommendMembers": "推荐会员"
   },
   "settings": {
     "headerTitle": "设置",

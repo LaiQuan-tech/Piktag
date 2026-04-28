@@ -415,7 +415,9 @@
     "hiddenTagPlaceholder": "Gizli etiket ekleyin, ör. eski iş arkadaşı",
     "mutualTagsModalTitle": "Ortak Etiketler",
     "mutualFriendsSectionTitle": "Ortak Arkadaşlar",
-    "shareIntroMessage": "Sana {{name}}'ı tanıştırayım — profili: {{url}}"
+    "shareIntroMessage": "Sana {{name}}'ı tanıştırayım — profili: {{url}}",
+    "tag": "Etiket",
+    "recommendMembers": "Önerilen üyeler"
   },
   "userDetail": {
     "headerNotFound": "Bulunamadı",
@@ -459,7 +461,9 @@
     "pickTagSubtitle": "{{name}} kişisini en iyi temsil eden etiketleri seçin",
     "pickTagEmpty": "Bu kullanıcının henüz herkese açık etiketi yok",
     "pickTagSave": "Kaydet ({{count}})",
-    "hiddenTagPlaceholder": "Gizli etiket ekle..."
+    "hiddenTagPlaceholder": "Gizli etiket ekle...",
+    "tag": "Etiket",
+    "recommendMembers": "Önerilen üyeler"
   },
   "settings": {
     "headerTitle": "Ayarlar",

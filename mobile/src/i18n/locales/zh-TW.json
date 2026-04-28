@@ -424,7 +424,9 @@
     "hiddenTagPlaceholder": "新增隱藏標籤，如：前同事",
     "mutualTagsModalTitle": "共同標籤",
     "mutualFriendsSectionTitle": "共同朋友",
-    "shareIntroMessage": "我介紹 {{name}} 給你，這是他的資訊：{{url}}"
+    "shareIntroMessage": "我介紹 {{name}} 給你，這是他的資訊：{{url}}",
+    "tag": "標籤",
+    "recommendMembers": "推薦會員"
   },
   "userDetail": {
     "headerNotFound": "找不到",
@@ -468,7 +470,9 @@
     "pickTagSubtitle": "選擇最能代表 {{name}} 的標籤，方便你之後找到",
     "pickTagEmpty": "這位用戶還沒有設定公開標籤",
     "pickTagSave": "儲存 ({{count}})",
-    "hiddenTagPlaceholder": "新增隱藏標籤..."
+    "hiddenTagPlaceholder": "新增隱藏標籤...",
+    "tag": "標籤",
+    "recommendMembers": "推薦會員"
   },
   "settings": {
     "headerTitle": "設定",

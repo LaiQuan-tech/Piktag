@@ -415,7 +415,9 @@
     "hiddenTagPlaceholder": "Tambah tag tersembunyi, mis. mantan rekan kerja",
     "mutualTagsModalTitle": "Tag yang Sama",
     "mutualFriendsSectionTitle": "Teman Bersama",
-    "shareIntroMessage": "Kenalkan, ini {{name}} — profilnya: {{url}}"
+    "shareIntroMessage": "Kenalkan, ini {{name}} — profilnya: {{url}}",
+    "tag": "Tag",
+    "recommendMembers": "Anggota direkomendasikan"
   },
   "userDetail": {
     "headerNotFound": "Tidak Ditemukan",
@@ -459,7 +461,9 @@
     "pickTagSubtitle": "Pilih tag yang paling mewakili {{name}}",
     "pickTagEmpty": "Pengguna ini belum memiliki tag publik",
     "pickTagSave": "Simpan ({{count}})",
-    "hiddenTagPlaceholder": "Tambahkan tag tersembunyi..."
+    "hiddenTagPlaceholder": "Tambahkan tag tersembunyi...",
+    "tag": "Tag",
+    "recommendMembers": "Anggota direkomendasikan"
   },
   "settings": {
     "headerTitle": "Pengaturan",

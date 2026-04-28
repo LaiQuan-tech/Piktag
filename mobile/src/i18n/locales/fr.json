@@ -415,7 +415,9 @@
     "hiddenTagPlaceholder": "Ajouter un tag caché, ex. ex-collègue",
     "mutualTagsModalTitle": "Tags en commun",
     "mutualFriendsSectionTitle": "Amis en commun",
-    "shareIntroMessage": "Je vous présente {{name}} — son profil : {{url}}"
+    "shareIntroMessage": "Je vous présente {{name}} — son profil : {{url}}",
+    "tag": "Étiquette",
+    "recommendMembers": "Membres recommandés"
   },
   "userDetail": {
     "headerNotFound": "Introuvable",
@@ -459,7 +461,9 @@
     "pickTagSubtitle": "Choisissez les tags qui représentent le mieux {{name}}",
     "pickTagEmpty": "Cet utilisateur n'a pas encore de tags publics",
     "pickTagSave": "Enregistrer ({{count}})",
-    "hiddenTagPlaceholder": "Ajouter un tag caché..."
+    "hiddenTagPlaceholder": "Ajouter un tag caché...",
+    "tag": "Étiquette",
+    "recommendMembers": "Membres recommandés"
   },
   "settings": {
     "headerTitle": "Réglages",

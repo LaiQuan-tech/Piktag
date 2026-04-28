@@ -415,7 +415,9 @@
     "hiddenTagPlaceholder": "非公開タグを追加（例：元同僚）",
     "mutualTagsModalTitle": "共通のタグ",
     "mutualFriendsSectionTitle": "共通の友達",
-    "shareIntroMessage": "{{name}}を紹介します — プロフィール：{{url}}"
+    "shareIntroMessage": "{{name}}を紹介します — プロフィール：{{url}}",
+    "tag": "タグ",
+    "recommendMembers": "おすすめのメンバー"
   },
   "userDetail": {
     "headerNotFound": "見つかりません",
@@ -459,7 +461,9 @@
     "pickTagSubtitle": "{{name}}を最もよく表すタグを選んでください",
     "pickTagEmpty": "このユーザーはまだ公開タグがありません",
     "pickTagSave": "保存 ({{count}})",
-    "hiddenTagPlaceholder": "非公開タグを追加..."
+    "hiddenTagPlaceholder": "非公開タグを追加...",
+    "tag": "タグ",
+    "recommendMembers": "おすすめのメンバー"
   },
   "settings": {
     "headerTitle": "設定",

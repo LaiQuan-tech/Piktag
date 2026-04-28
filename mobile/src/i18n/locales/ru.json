@@ -415,7 +415,9 @@
     "hiddenTagPlaceholder": "Добавь скрытый тег, например «бывший коллега»",
     "mutualTagsModalTitle": "Общие теги",
     "mutualFriendsSectionTitle": "Общие друзья",
-    "shareIntroMessage": "Знакомься — это {{name}}, вот его профиль: {{url}}"
+    "shareIntroMessage": "Знакомься — это {{name}}, вот его профиль: {{url}}",
+    "tag": "Метка",
+    "recommendMembers": "Рекомендованные"
   },
   "userDetail": {
     "headerNotFound": "Не найдено",
@@ -459,7 +461,9 @@
     "pickTagSubtitle": "Выбери теги, которые лучше описывают {{name}}",
     "pickTagEmpty": "У этого пользователя пока нет публичных тегов",
     "pickTagSave": "Сохранить ({{count}})",
-    "hiddenTagPlaceholder": "Добавь скрытый тег..."
+    "hiddenTagPlaceholder": "Добавь скрытый тег...",
+    "tag": "Метка",
+    "recommendMembers": "Рекомендованные"
   },
   "settings": {
     "headerTitle": "Настройки",
