@@ -1002,7 +1002,20 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
           )}
 
           {/* Stats — subtle one line */}
+          {/* Stats row order: mutual friends first (carries the visual
+              overlapping-avatars cue, so it earns the lead spot), then
+              mutual tags, then followers. Same order on UserDetail. */}
           <View style={styles.statsLineRow}>
+            <View style={styles.mutualAvatarsStat}>
+              {mutualFriendProfiles.length > 0 && (
+                <OverlappingAvatars users={mutualFriendProfiles} total={mutualFriends} size={24} max={3} />
+              )}
+              <Text style={[styles.statText, mutualFriendProfiles.length > 0 && { marginLeft: 6 }]}>
+                <Text style={styles.statNumber}>{mutualFriends}</Text>
+                <Text style={styles.statLabel}>{t('friendDetail.mutualFriendsLabel')}</Text>
+              </Text>
+            </View>
+            <Text style={styles.statDot}>·</Text>
             {mutualTags > 0 ? (
               <TouchableOpacity onPress={() => setMutualTagModalVisible(true)} activeOpacity={0.6}>
                 <Text style={styles.statTextClickable}>
@@ -1016,16 +1029,6 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
                 <Text style={styles.statLabel}>{t('friendDetail.mutualTagsLabel')}</Text>
               </Text>
             )}
-            <Text style={styles.statDot}>·</Text>
-            <View style={styles.mutualAvatarsStat}>
-              {mutualFriendProfiles.length > 0 && (
-                <OverlappingAvatars users={mutualFriendProfiles} total={mutualFriends} size={22} max={3} />
-              )}
-              <Text style={[styles.statText, mutualFriendProfiles.length > 0 && { marginLeft: 6 }]}>
-                <Text style={styles.statNumber}>{mutualFriends}</Text>
-                <Text style={styles.statLabel}>{t('friendDetail.mutualFriendsLabel')}</Text>
-              </Text>
-            </View>
             <Text style={styles.statDot}>·</Text>
             <Text style={styles.statText}>
               <Text style={styles.statNumber}>{followerCount}</Text>
