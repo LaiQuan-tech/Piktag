@@ -22,7 +22,6 @@ import {
   Clock,
   TrendingUp,
   X,
-  MessageCircle,
 } from 'lucide-react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { requestForegroundPermissionsAsync, getCurrentPositionAsync, Accuracy } from 'expo-location';
@@ -33,7 +32,6 @@ import { getCache, setCache } from '../lib/dataCache';
 import { COLORS } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../hooks/useAuth';
-import { useChatUnread } from '../hooks/useChatUnread';
 import { useNetInfoReconnect } from '../hooks/useNetInfoReconnect';
 import ErrorState from '../components/ErrorState';
 import type { Tag, PiktagProfile } from '../types';
@@ -206,7 +204,6 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
   const { t } = useTranslation();
   const { colors, isDark } = useTheme();
   const { user } = useAuth();
-  const { total: chatUnread } = useChatUnread();
   const [isFocused, setIsFocused] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState<CategoryKey | null>(null);
@@ -1663,19 +1660,6 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
       <View style={styles.header}>
         <View style={styles.headerTitleRow}>
           <Text style={[styles.headerTitle, { color: colors.text }]}>{t('search.headerTitle') || '搜尋'}</Text>
-          <TouchableOpacity
-            onPress={() => navigation.navigate('ChatList')}
-            style={styles.headerChatBtn}
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-            accessibilityLabel={t('chat.inbox')}
-          >
-            <MessageCircle size={24} color={COLORS.gray900} strokeWidth={2} />
-            {chatUnread > 0 ? (
-              <View style={styles.headerChatBadge}>
-                <Text style={styles.headerChatBadgeText}>{chatUnread > 99 ? '99+' : String(chatUnread)}</Text>
-              </View>
-            ) : null}
-          </TouchableOpacity>
         </View>
         <Pressable style={searchContainerStyle} onPress={focusSearchInput}>
           <Search
@@ -1922,27 +1906,6 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: COLORS.gray900,
     lineHeight: 32,
-  },
-  headerChatBtn: {
-    padding: 6,
-    position: 'relative',
-  },
-  headerChatBadge: {
-    position: 'absolute',
-    top: 0,
-    right: 0,
-    minWidth: 16,
-    height: 16,
-    borderRadius: 8,
-    paddingHorizontal: 4,
-    backgroundColor: COLORS.red500,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  headerChatBadgeText: {
-    color: '#fff',
-    fontSize: 10,
-    fontWeight: '700',
   },
   searchContainer: {
     flexDirection: 'row',

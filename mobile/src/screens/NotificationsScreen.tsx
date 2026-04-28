@@ -15,11 +15,12 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import { Bell, CheckCheck } from 'lucide-react-native';
+import { Bell, MessageCircle } from 'lucide-react-native';
 import { COLORS, SPACING } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
+import { useChatUnread } from '../hooks/useChatUnread';
 import { getCache, setCache, CACHE_KEYS } from '../lib/dataCache';
 import type { Notification } from '../types';
 import { SkeletonBox } from '../components/SkeletonLoader';
@@ -174,6 +175,7 @@ export default function NotificationsScreen({ navigation }: NotificationsScreenP
   const { t } = useTranslation();
   const { colors, isDark } = useTheme();
   const { user } = useAuth();
+  const { total: chatUnread } = useChatUnread();
 
   const TAB_LABELS: Record<NotificationTab, string> = useMemo(
     () => ({
@@ -278,27 +280,6 @@ export default function NotificationsScreen({ navigation }: NotificationsScreenP
     }
   }, [fetchNotifications]);
 
-  const handleMarkAllAsRead = useCallback(async () => {
-    if (!user) return;
-
-    const unreadIds = notifications.filter((n) => !n.is_read).map((n) => n.id);
-    if (unreadIds.length === 0) return;
-
-    // Optimistic update
-    setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
-
-    const { error } = await supabase
-      .from('piktag_notifications')
-      .update({ is_read: true })
-      .eq('user_id', user.id)
-      .eq('is_read', false);
-
-    if (error) {
-      console.warn('Failed to mark all as read:', error.message);
-      fetchNotifications();
-    }
-  }, [user, notifications, fetchNotifications]);
-
   // Apple Guideline 1.2: long-press a notification to report the actor
   // or the notification itself.
   const submitNotifReport = useCallback(
@@ -384,11 +365,6 @@ export default function NotificationsScreen({ navigation }: NotificationsScreenP
     [notifications, activeTab]
   );
 
-  const hasUnread = useMemo(
-    () => notifications.some((n) => !n.is_read),
-    [notifications]
-  );
-
   // Tap a notification → mark as read + navigate to the actor's profile.
   // The server-side trigger stores username / actor_user_id in data, so we
   // pass whichever we have to UserDetailScreen's route params.
@@ -463,15 +439,25 @@ export default function NotificationsScreen({ navigation }: NotificationsScreenP
       {/* Header */}
       <View style={styles.header}>
         <Text style={[styles.headerTitle, { color: colors.text }]}>{t('notifications.headerTitle')}</Text>
-        {hasUnread && (
-          <TouchableOpacity
-            style={styles.markAllButton}
-            onPress={handleMarkAllAsRead}
-            activeOpacity={0.6}
-          >
-            <CheckCheck size={20} color={COLORS.piktag500} />
-          </TouchableOpacity>
-        )}
+        <TouchableOpacity
+          onPress={() =>
+            navigation?.navigate('Main', {
+              screen: 'SearchTab',
+              params: { screen: 'ChatList' },
+            })
+          }
+          style={styles.headerChatBtn}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          accessibilityRole="button"
+          accessibilityLabel={t('chat.inbox')}
+        >
+          <MessageCircle size={24} color={COLORS.gray900} strokeWidth={2} />
+          {chatUnread > 0 ? (
+            <View style={styles.headerChatBadge}>
+              <Text style={styles.headerChatBadgeText}>{chatUnread > 99 ? '99+' : String(chatUnread)}</Text>
+            </View>
+          ) : null}
+        </TouchableOpacity>
       </View>
 
       {/* Tab Switcher */}
@@ -538,8 +524,26 @@ const styles = StyleSheet.create({
     color: COLORS.gray900,
     lineHeight: 32,
   },
-  markAllButton: {
-    padding: 8,
+  headerChatBtn: {
+    padding: 6,
+    position: 'relative',
+  },
+  headerChatBadge: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    minWidth: 16,
+    height: 16,
+    borderRadius: 8,
+    paddingHorizontal: 4,
+    backgroundColor: COLORS.red500,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  headerChatBadgeText: {
+    color: '#fff',
+    fontSize: 10,
+    fontWeight: '700',
   },
   tabContainer: {
     flexDirection: 'row',
