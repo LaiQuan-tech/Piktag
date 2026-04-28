@@ -77,7 +77,7 @@ function buildMapHtml(
     box-shadow: 0 4px 12px rgba(0,0,0,0.25);
     border: 3px solid #8B5CF6;
   }
-  .avatar-wrap.self { border-color: #10B981; }
+  .avatar-wrap.self { border-color: #8c52ff; }
   .avatar-img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; display: block; }
   .avatar-initials {
     width: 100%; height: 100%; border-radius: 50%;
