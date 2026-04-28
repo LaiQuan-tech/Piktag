@@ -30,7 +30,6 @@ import { getCache, setCache, CACHE_KEYS } from '../lib/dataCache';
 import QrCodeModal from '../components/QrCodeModal';
 import RingedAvatar from '../components/RingedAvatar';
 import { ProfileScreenSkeleton } from '../components/SkeletonLoader';
-import UserAskCard from '../components/ask/UserAskCard';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { PiktagProfile, UserTag, Biolink } from '../types';
 
@@ -387,11 +386,6 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
             </TouchableOpacity>
           </View>
         </View>
-
-        {/* Active Ask card — auto-hides when the user has none. Placed
-            after the profile header so it sits in the same column rhythm
-            as Section 2/3 below. */}
-        <UserAskCard userId={userId} />
 
         {/* ============ SECTION 2: Icon 並排區 (display_mode = 'icon') ============ */}
         {activeBiolinks.filter(bl => bl.display_mode === 'icon' || bl.display_mode === 'both').length > 0 && (

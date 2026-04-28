@@ -64,7 +64,6 @@ import { useAuth } from '../hooks/useAuth';
 import type { Connection, PiktagProfile, Biolink } from '../types';
 import { getViewerRelation, filterBiolinksByVisibility } from '../lib/biolinkVisibility';
 import { calculateStrength, getStrengthLabel } from '../lib/connectionStrength';
-import UserAskCard from '../components/ask/UserAskCard';
 
 type ReminderField = 'birthday';
 const REMINDER_LABEL_KEYS: Record<ReminderField, string> = {
@@ -1182,9 +1181,6 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
             </ScrollView>
           </View>
         )}
-
-        {/* Their active Ask, if any. Auto-hides when none. */}
-        <UserAskCard userId={friendId} />
 
         {/* ===== NEW SECTION: Mutual Friends — FB / IG profile style horizontal avatars ===== */}
         {mutualFriendProfiles.length > 0 && (
