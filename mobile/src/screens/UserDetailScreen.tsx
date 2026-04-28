@@ -1619,7 +1619,7 @@ const styles = StyleSheet.create({
   followButton: {
     flex: 1,
     borderRadius: 12,
-    paddingVertical: 12,
+    height: 44,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -1644,7 +1644,7 @@ const styles = StyleSheet.create({
   messageButton: {
     flex: 1,
     borderRadius: 12,
-    paddingVertical: 12,
+    height: 44,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: COLORS.gray100,
