@@ -1,4 +1,3 @@
-import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { languages } from './i18n';
 import { motion } from 'motion/react';
@@ -164,12 +163,12 @@ export default function App() {
           </div>
           <div className="flex flex-wrap gap-5 justify-center items-center">
             <span>&copy; {new Date().getFullYear()} PikTag</span>
-            <Link to="/privacy" className="hover:text-white transition-colors">
+            <a href="/privacy" className="hover:text-white transition-colors">
               {t('footer.privacy')}
-            </Link>
-            <Link to="/terms" className="hover:text-white transition-colors">
+            </a>
+            <a href="/terms" className="hover:text-white transition-colors">
               {t('footer.terms')}
-            </Link>
+            </a>
           </div>
         </div>
       </footer>
