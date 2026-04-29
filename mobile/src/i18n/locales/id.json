@@ -182,10 +182,11 @@
     "promptHints": [
       "Butuh teman yang bisa fotografi",
       "Cari orang yang bisa bahasa Jepang",
-      "Desainer di dekat sini",
+      "Desainer di {{city}}",
       "Ada yang di startup?",
       "Cari web developer"
     ],
+    "promptHintCityFallback": "Desainer di dekat sini",
     "categorySectionLabel": "Telusuri berdasarkan kategori",
     "categoryPopular": "Tag Populer",
     "categoryNearby": "Anggota Terdekat",

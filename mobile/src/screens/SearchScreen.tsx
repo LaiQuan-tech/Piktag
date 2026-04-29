@@ -32,6 +32,7 @@ import { getCache, setCache } from '../lib/dataCache';
 import { COLORS } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../hooks/useAuth';
+import { useAuthProfile } from '../context/AuthContext';
 import { useNetInfoReconnect } from '../hooks/useNetInfoReconnect';
 import ErrorState from '../components/ErrorState';
 import LogoLoader from '../components/loaders/LogoLoader';
@@ -201,29 +202,84 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
   const { t } = useTranslation();
   const { colors, isDark } = useTheme();
   const { user } = useAuth();
+  // `profile.location` is the free-text location the user set on their
+  // own profile (e.g. "台北", "Taipei", "Brooklyn, NY"). Used to
+  // localize the {{city}} interpolation in the rotating placeholder
+  // prompts. We don't reverse-geocode lat/lng here on purpose — the
+  // self-declared text is what the user thinks of as "their place",
+  // which is what the prompt should mirror.
+  const { profile: authProfile } = useAuthProfile();
+  const userCity = useMemo(() => {
+    const raw = authProfile?.location?.trim();
+    return raw && raw.length > 0 ? raw : null;
+  }, [authProfile?.location]);
   const [isFocused, setIsFocused] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState<CategoryKey | null>(null);
 
   // Rotating prompt-style placeholder. Cycles through `search.promptHints`
   // (a per-locale array, e.g. "我需要懂攝影的朋友" / "在台北附近的設計師")
-  // every PROMPT_ROTATION_MS so the search box reads as "tell me what you
-  // need" instead of "type a name". Trains users to start with intent
-  // ("I need someone who…") rather than identity ("find this person") —
-  // which is the discovery affordance that distinguishes PikTag from a
-  // contacts app and is invisible without this nudge.
+  // so the search box reads as "tell me what you need" instead of "type
+  // a name". Trains users to start with intent ("I need someone who…")
+  // rather than identity ("find this person") — the discovery
+  // affordance that distinguishes PikTag from a contacts app and is
+  // invisible without this nudge.
+  //
+  // Rotation timing is calibrated PER PROMPT, not a global constant.
+  // CJK scripts (zh/ja/ko) pack ~3-4 characters per second of comfortable
+  // reading; Latin scripts (en/es/fr/pt/ru) read at ~5-7 char/s; complex
+  // scripts (ar/bn/hi/th) sit in between but are often non-native to
+  // the reader and benefit from extra dwell time.
+  //
+  // A flat 3.5s burned bored CJK users while clipping mid-sentence on
+  // 35-char Spanish/Bengali prompts. Length-based scheduling balances
+  // both ends:
+  //
+  //   floor 3500ms — snappy for short CJK ("認識誰在做新創？" / 8 chars
+  //   would otherwise sit on screen for 5+ seconds)
+  //   + 130ms/char — kicks in around 27 chars, scales up to ~5s for
+  //   the longest English/French/Bengali prompts. ≈ 460 chars/min,
+  //   matches comfortable non-native reading speed without overshooting
+  //   CJK fluency.
+  //
+  // Verified across all 15 locales: every current prompt lands between
+  // 3500–5100ms, with native CJK at the snappy end and unfamiliar scripts
+  // at the longer end. The constants sit at component scope so adding
+  // new prompts later doesn't require re-tuning.
+  const PROMPT_ROTATION_MIN_MS = 3500;
+  const PROMPT_ROTATION_MS_PER_CHAR = 130;
   const [promptIdx, setPromptIdx] = useState(0);
   const promptHints = useMemo(() => {
     const raw = t('search.promptHints', { returnObjects: true });
-    return Array.isArray(raw) && raw.length > 0 ? (raw as string[]) : null;
-  }, [t]);
+    if (!Array.isArray(raw) || raw.length === 0) return null;
+    const cityFallback = t('search.promptHintCityFallback');
+    // The city-bearing prompt uses {{city}} interpolation. When the user
+    // has a profile.location set, swap their city in. When they don't,
+    // replace the whole entry with a locale-specific fallback (e.g.
+    // "在我附近的設計師" instead of an awkward "在 {{city}} 附近的設計師"
+    // with the placeholder visible). This keeps the prompt array length
+    // stable across users with/without location set.
+    return (raw as string[]).map((h) => {
+      if (!h.includes('{{city}}')) return h;
+      if (userCity) return h.replace('{{city}}', userCity);
+      return cityFallback;
+    });
+  }, [t, userCity]);
   useEffect(() => {
     if (!promptHints) return;
-    const id = setInterval(() => {
+    const current = promptHints[promptIdx] ?? '';
+    const delay = Math.max(
+      PROMPT_ROTATION_MIN_MS,
+      Math.ceil(current.length * PROMPT_ROTATION_MS_PER_CHAR),
+    );
+    const id = setTimeout(() => {
       setPromptIdx((i) => (i + 1) % promptHints.length);
-    }, 3500);
-    return () => clearInterval(id);
-  }, [promptHints]);
+    }, delay);
+    return () => clearTimeout(id);
+    // Effect re-runs after each rotation because promptIdx is a dep —
+    // setTimeout (not setInterval) is intentional so each prompt's
+    // dwell time can be re-computed from its own length.
+  }, [promptHints, promptIdx]);
   // While the user has typed something, the placeholder isn't visible
   // anyway — we still rotate the index so when they clear and look
   // back, they land on a fresh prompt instead of the same stale one.

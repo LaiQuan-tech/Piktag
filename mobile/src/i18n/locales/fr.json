@@ -182,10 +182,11 @@
     "promptHints": [
       "Je cherche un ami photographe",
       "Quelqu'un qui parle japonais",
-      "Designers près de chez moi",
+      "Designers près de {{city}}",
       "Quelqu'un dans une startup ?",
       "Je cherche un développeur web"
     ],
+    "promptHintCityFallback": "Designers près de chez moi",
     "categorySectionLabel": "Parcourir par catégorie",
     "categoryPopular": "Tags populaires",
     "categoryNearby": "Membres à proximité",

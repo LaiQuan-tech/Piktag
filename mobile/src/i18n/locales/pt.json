@@ -182,10 +182,11 @@
     "promptHints": [
       "Preciso de um amigo fotógrafo",
       "Procurando alguém que fale japonês",
-      "Designers por perto",
+      "Designers em {{city}}",
       "Alguém em startups?",
       "Procurando um dev web"
     ],
+    "promptHintCityFallback": "Designers por perto",
     "categorySectionLabel": "Navegar por categoria",
     "categoryPopular": "Tags populares",
     "categoryNearby": "Membros próximos",

@@ -182,10 +182,11 @@
     "promptHints": [
       "사진 잘 찍는 친구가 필요해",
       "일본어 하는 사람 찾고 있어",
-      "근처에 디자이너 있어?",
+      "{{city}} 근처 디자이너 있어?",
       "스타트업 하는 사람 있어?",
       "웹 개발자 찾고 있어"
     ],
+    "promptHintCityFallback": "근처에 디자이너 있어?",
     "categorySectionLabel": "카테고리로 둘러보기",
     "categoryPopular": "인기 태그",
     "categoryNearby": "근처 멤버",

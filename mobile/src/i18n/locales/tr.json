@@ -182,10 +182,11 @@
     "promptHints": [
       "Fotoğrafçı bir arkadaş arıyorum",
       "Japonca konuşan biri lazım",
-      "Yakındaki tasarımcılar",
+      "{{city}}'daki tasarımcılar",
       "Startup'ta tanıdık var mı?",
       "Web geliştirici arıyorum"
     ],
+    "promptHintCityFallback": "Yakındaki tasarımcılar",
     "categorySectionLabel": "Kategoriye göre göz at",
     "categoryPopular": "Popüler Etiketler",
     "categoryNearby": "Yakındaki Üyeler",

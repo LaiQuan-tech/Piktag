@@ -190,10 +190,11 @@
     "promptHints": [
       "我需要懂摄影的朋友",
       "想找会讲日文的人",
-      "在台北附近的设计师",
+      "在{{city}}附近的设计师",
       "认识谁在做新创？",
       "找会做网页的朋友"
     ],
+    "promptHintCityFallback": "在我附近的设计师",
     "categorySectionLabel": "依分类搜索",
     "categoryPopular": "热门标签",
     "categoryNearby": "附近会员",

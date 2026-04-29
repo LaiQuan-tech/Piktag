@@ -182,10 +182,11 @@
     "promptHints": [
       "写真が撮れる友達がほしい",
       "日本語ができる人を探してる",
-      "近くのデザイナーは？",
+      "{{city}}近くのデザイナーは？",
       "スタートアップの人いる？",
       "Web開発できる人を探してる"
     ],
+    "promptHintCityFallback": "近くのデザイナーは？",
     "categorySectionLabel": "カテゴリで探す",
     "categoryPopular": "人気のタグ",
     "categoryNearby": "近くのメンバー",

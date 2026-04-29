@@ -193,10 +193,11 @@
     "promptHints": [
       "我需要懂攝影的朋友",
       "想找會講日文的人",
-      "在台北附近的設計師",
+      "在{{city}}附近的設計師",
       "認識誰在做新創？",
       "找會做網頁的朋友"
     ],
+    "promptHintCityFallback": "在我附近的設計師",
     "categorySectionLabel": "依分類搜尋",
     "categoryPopular": "熱門標籤",
     "categoryNearby": "附近會員",

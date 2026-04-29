@@ -182,10 +182,11 @@
     "promptHints": [
       "Necesito un amigo fotógrafo",
       "Busco a alguien que hable japonés",
-      "Diseñadores cerca de mí",
+      "Diseñadores cerca de {{city}}",
       "¿Conoces a alguien en startups?",
       "Busco un desarrollador web"
     ],
+    "promptHintCityFallback": "Diseñadores cerca de mí",
     "categorySectionLabel": "Explorar por categoría",
     "categoryPopular": "Etiquetas populares",
     "categoryNearby": "Miembros cercanos",

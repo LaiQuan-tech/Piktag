@@ -190,10 +190,11 @@
     "promptHints": [
       "Need a friend who shoots photos",
       "Looking for someone who speaks Japanese",
-      "Designers near me",
+      "Designers near {{city}}",
       "Anyone in startups?",
       "Looking for a web developer"
     ],
+    "promptHintCityFallback": "Designers near me",
     "categorySectionLabel": "Browse by category",
     "categoryPopular": "Popular Tags",
     "categoryNearby": "Nearby Members",
