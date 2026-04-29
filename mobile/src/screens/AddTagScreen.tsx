@@ -14,7 +14,7 @@ import {
   Platform,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { X, Star, Share2, Trash2, ScanLine, Link2, Pencil } from 'lucide-react-native';
+import { X, Star, Share2, Trash2, ScanLine, Link2, Pencil, Plus } from 'lucide-react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import QRCode from 'react-native-qrcode-svg';
 import { useTranslation } from 'react-i18next';
@@ -652,12 +652,21 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
                 onSubmitEditing={handleAddTag}
               />
             </View>
+            {/* Plus-icon submit — replaces the prior "新增" / "Add" text
+                button. The "+" affordance is what AskStoryRow's create-ask
+                badge and RingedAvatar's Plus badge already use, so this
+                row now reads as the same "create new" action across the
+                app instead of the QR-setup screen looking visually
+                different from everywhere else. Round button, fixed 44×44
+                tap target so it lines up with the input height. */}
             <TouchableOpacity
               style={styles.addTagBtn}
               onPress={handleAddTag}
               activeOpacity={0.8}
+              accessibilityRole="button"
+              accessibilityLabel={t('common.add')}
             >
-              <Text style={styles.addTagBtnText}>{t('common.add')}</Text>
+              <Plus size={22} color="#FFFFFF" strokeWidth={2.5} />
             </TouchableOpacity>
           </View>
 
@@ -1208,18 +1217,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 10,
   },
+  // Square 44×44 icon button — matches the textInput height so the row
+  // reads as a single horizontal control. Width-fixed (not paddingX) so
+  // it doesn't grow when the icon size changes; previously the textual
+  // "新增" version sized itself to the label which made the row jiggle
+  // when locales swapped to longer translations like "Aggiungi" / "추가".
   addTagBtn: {
     backgroundColor: COLORS.piktag500,
     borderRadius: 14,
-    paddingVertical: 12,
-    paddingHorizontal: 18,
+    width: 44,
+    height: 44,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  addTagBtnText: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#FFFFFF',
   },
 
   // ── Chips ──
