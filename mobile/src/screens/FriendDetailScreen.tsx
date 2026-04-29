@@ -820,8 +820,12 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
     if (error) {
       Alert.alert(t('common.error'), t('friendDetail.alertSaveReminderError'));
     } else {
+      // ReminderField is currently `'birthday'` only — anniversary
+      // support was removed when we trimmed CRM scope to just birthday +
+      // date-tag-anniversaries. The branch is kept this shape (rather
+      // than removed entirely) so re-adding another reminder type
+      // means changing the union, not the control flow.
       if (field === 'birthday') setBirthday(dateStr);
-      if (field === 'anniversary') setAnniversary(dateStr);
     }
     setEditingReminder(null);
     setReminderInput('');
@@ -837,7 +841,6 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
 
     if (!error) {
       if (field === 'birthday') setBirthday('');
-      if (field === 'anniversary') setAnniversary('');
     }
   };
 

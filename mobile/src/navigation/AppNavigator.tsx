@@ -294,9 +294,14 @@ function MainNavigator({ needsOnboarding }: { needsOnboarding: boolean }) {
 
         {/* Modal screens */}
         {/* Eager: QR scan result is part of the primary scan flow */}
+        {/* `as any` on the component prop: ScanResultScreen uses a local
+            Props type rather than React Navigation's typed param-list.
+            Strictly typing it would require lifting RootStackParamList
+            into the screen file itself — a larger refactor than this
+            error-cleanup scope warrants. */}
         <RootStack.Screen
           name="ScanResult"
-          component={ScanResultScreen}
+          component={ScanResultScreen as any}
           options={{ presentation: 'modal' }}
         />
         {/* Lazy: one-time review flow */}
@@ -430,8 +435,11 @@ export default function AppNavigator() {
       }
 
       // Identify user in PostHog so all events are linked to this account.
+      // Coalesce email to '' so the property is always a string —
+      // PostHog's `identify` properties accept strings/numbers/bools but
+      // not `undefined`, and Supabase's session.user.email is optional.
       posthog.identify(currentSession.user.id, {
-        email: currentSession.user.email,
+        email: currentSession.user.email ?? '',
       });
 
       if (persistedCompleted) {

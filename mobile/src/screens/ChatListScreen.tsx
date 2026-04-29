@@ -69,7 +69,7 @@ type HeaderProfile = {
   avatar_url: string | null;
 };
 
-export default function ChatListScreen({ navigation }: Props): JSX.Element {
+export default function ChatListScreen({ navigation }: Props) {
   const { t } = useTranslation();
   const { user } = useAuth();
   const { conversations, loading, error: inboxError, refresh } = useChatInbox();

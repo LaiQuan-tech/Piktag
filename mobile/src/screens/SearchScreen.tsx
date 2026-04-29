@@ -478,7 +478,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
         }).slice(0, 50);
 
         setCache(CACHE_KEY_POPULAR_TAGS, sorted);
-        setTags(sorted);
+        setTags(sorted as Tag[]);
         const cats = [...new Set(sorted.map((t: any) => t.semantic_type).filter(Boolean))] as string[];
         setTagCategories(cats);
 
@@ -547,10 +547,15 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
         .limit(50);
 
       if (!error && data && isMountedRef.current) {
+        // Cast once at the Supabase boundary — the `.select(...)`
+        // result type is structurally narrower than PiktagProfile but
+        // every selected column is on the full type. After this the
+        // sort/filter chain types correctly without per-callsite casts.
+        const profiles = data as PiktagProfile[];
         if (location) {
           const { lat: userLat, lng: userLng } = location;
           // Sort by distance
-          const sorted = data.sort((a: PiktagProfile, b: PiktagProfile) => {
+          const sorted = profiles.sort((a, b) => {
             const distA = Math.sqrt(
               Math.pow((a.latitude || 0) - userLat, 2) + Math.pow((a.longitude || 0) - userLng, 2)
             );
@@ -559,9 +564,9 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
             );
             return distA - distB;
           });
-          setProfiles(sorted.filter((p: PiktagProfile) => p.id !== user?.id).slice(0, 20));
+          setProfiles(sorted.filter((p) => p.id !== user?.id).slice(0, 20));
         } else {
-          setProfiles(data.filter((p: PiktagProfile) => p.id !== user?.id).slice(0, 20));
+          setProfiles(profiles.filter((p) => p.id !== user?.id).slice(0, 20));
         }
       }
     } catch (err) {
@@ -947,7 +952,9 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
           setTagUsers([]);
         }
 
-        const finalProfiles = !profilesResult.error && profilesResult.data ? profilesResult.data : [];
+        const finalProfiles = (!profilesResult.error && profilesResult.data
+          ? (profilesResult.data as PiktagProfile[])
+          : []);
         setProfiles(finalProfiles);
 
         // Cache this result set so typing-then-retyping is free.

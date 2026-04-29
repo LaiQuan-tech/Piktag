@@ -374,7 +374,12 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
 
       // 2. Try to create a scan session in DB (graceful fallback if table doesn't exist)
       let sessionId = `local_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
-      let sessionData: ScanSession | null = null;
+      // Only the row's `id` is consumed downstream (see the
+      // `.eq('id', sessionData.id)` lookup further down). Typing this
+      // narrowly avoids the historical mismatch where the `.select(...)`
+      // projection diverged from the full `ScanSession` shape and TS
+      // complained about missing fields we never actually used.
+      let sessionData: { id: string } | null = null;
 
       try {
         const { data, error } = await supabase
@@ -389,12 +394,12 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
             is_active: true,
             expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
           })
-          .select('id, event_name, event_location, event_tags, expires_at, is_active')
+          .select('id')
           .single();
 
         if (!error && data) {
           sessionId = data.id;
-          sessionData = data;
+          sessionData = { id: data.id };
         }
       } catch {
         // DB table may not exist yet — continue with local session ID
@@ -1492,12 +1497,11 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.white,
     marginBottom: 24,
   },
-  qrEventInfo: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: COLORS.gray700,
-    marginBottom: 16,
-  },
+  // (Duplicate `qrEventInfo` block removed — was a stale text-style
+  // leftover from an earlier refactor when qrEventInfo was a single
+  // <Text>. The actual container style above L1445 was being silently
+  // shadowed by JS's "last key wins" rule, breaking the flex/center
+  // layout of the QR-card event-info row.)
   // ── Modal ──
   modalOverlay: {
     flex: 1,

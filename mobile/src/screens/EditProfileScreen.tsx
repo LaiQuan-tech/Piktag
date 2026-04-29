@@ -490,7 +490,10 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
 
   const openAddBiolinkModal = () => {
     setEditingBiolink(null);
-    setBiolinkForm({ platform: '', url: '', label: '' });
+    // BiolinkFormData requires display_mode + visibility — without them
+    // TS rejects the partial. Match the defaults of the initial state
+    // declared at the top of this component (card / public).
+    setBiolinkForm({ platform: '', url: '', label: '', display_mode: 'card', visibility: 'public' });
     resetPhoneFields();
     setBiolinkModalVisible(true);
   };

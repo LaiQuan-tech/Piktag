@@ -134,10 +134,13 @@ export default function SocialStatsScreen({ navigation }: SocialStatsScreenProps
               .select('tag:piktag_tags!tag_id(name, semantic_type)')
               .in('connection_id', connectionIdList)
           : Promise.resolve({ data: [] }),
-        // 5. Scan sessions
+        // 5. Scan sessions — include event_location/event_date so the
+        // "if no preset-linked sessions" fallback (further down) can
+        // group by location/date as a label. Selecting a narrower
+        // projection silently broke the fallback's typing.
         supabase
           .from('piktag_scan_sessions')
-          .select('preset_id, scan_count')
+          .select('preset_id, scan_count, event_location, event_date')
           .eq('host_user_id', user.id),
         // 6. Presets
         supabase

@@ -65,15 +65,20 @@ export default function RedeemInviteScreen({ navigation, route }: Props) {
           } }],
         );
       } else {
-        const reason = row?.message || 'unknown';
+        const reason: string = row?.message || 'unknown';
         const msgKey = `redeemInvite.error_${reason}`;
-        const fallback = {
+        // Index signature so unknown `reason` values don't trip TS'
+        // implicit-any-on-keyed-access rule. Returns undefined for
+        // codes we haven't translated yet — the `||` falls through
+        // to the generic English message below.
+        const fallbacks: Record<string, string> = {
           invite_not_found: 'Invite code not found',
           already_redeemed: 'This invite has already been redeemed',
           expired: 'This invite has expired',
           cannot_redeem_own: 'You cannot redeem your own invite',
           not_authenticated: 'Please sign in first',
-        }[reason] || 'Failed to redeem invite';
+        };
+        const fallback = fallbacks[reason] || 'Failed to redeem invite';
         Alert.alert(t('common.error'), t(msgKey) || fallback);
       }
     } catch (err: any) {

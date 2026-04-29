@@ -75,7 +75,7 @@ function formatDaySeparator(iso: string): string {
   return d.toLocaleDateString();
 }
 
-export default function ChatThreadScreen({ navigation, route }: Props): JSX.Element {
+export default function ChatThreadScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
   const { user } = useAuth();
   const {

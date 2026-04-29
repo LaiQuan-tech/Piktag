@@ -90,7 +90,7 @@ const SearchRow = React.memo(function SearchRow({ item, onPress }: SearchRowProp
   );
 });
 
-export default function ChatComposeScreen({ navigation, route }: Props): JSX.Element {
+export default function ChatComposeScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
   const { user } = useAuth();
   const prefilledUserId = route.params?.prefilledUserId ?? null;

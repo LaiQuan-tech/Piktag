@@ -159,10 +159,16 @@ function AppInner() {
       const data = response.notification.request.content.data as { type?: string; conversationId?: string };
       if (data?.type === 'chat' && data?.conversationId) {
         // Navigate into the specific thread. Go via SearchTab > ChatThread.
-        navigationRef.current?.navigate('Main' as never, {
+        // `as any` on the navigate call: NavigationContainerRef's
+        // `navigate` overloads against the param-list generic, and
+        // we don't have a typed param-list at this entry point.
+        // Strictly typing this would require threading RootStack +
+        // tab params through the App-level container — out of scope
+        // for the error-cleanup pass.
+        (navigationRef.current as any)?.navigate('Main', {
           screen: 'SearchTab',
           params: { screen: 'ChatThread', params: { conversationId: data.conversationId } },
-        } as never);
+        });
       }
     };
 

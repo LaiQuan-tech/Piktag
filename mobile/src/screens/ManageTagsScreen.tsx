@@ -68,7 +68,13 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
       .select('id, name, usage_count, semantic_type')
       .order('usage_count', { ascending: false })
       .limit(12);
-    if (!error && data) setPopularTags(data);
+    // Cast at the Supabase boundary — `.select(...)` narrows to a
+    // structural type (`{ id: any; name: any; ... }[]`) that doesn't
+    // extend `Tag` even though the runtime shape matches. The cast
+    // here is the canonical "trust the SQL projection" pattern;
+    // promoting to `Tag[]` is safe because every column in the select
+    // is also on Tag.
+    if (!error && data) setPopularTags(data as Tag[]);
   }, []);
 
   const loadAiSuggestions = useCallback(async () => {

@@ -495,14 +495,25 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
 
       if (forwardConnId) setConnectionId(forwardConnId);
 
-      // Auto-follow the host after QR add-friend
-      await supabase
-        .from('piktag_follows')
-        .upsert(
-          { follower_id: authUser.id, following_id: resolvedUserId },
-          { onConflict: 'follower_id,following_id', ignoreDuplicates: true },
-        )
-        .catch(() => {});
+      // Auto-follow the host after QR add-friend.
+      //
+      // Previously chained `.catch(() => {})` directly off the upsert —
+      // PostgrestBuilder is only PromiseLike (has .then, no native .catch),
+      // so that swallow was a type error and didn't actually catch
+      // anything; rejections still bubbled to the outer try/catch and
+      // would surface the QR-add error message even when the upsert was
+      // the only thing that failed. Wrap in its own try/catch so the
+      // success alert is decoupled from auto-follow's best-effort outcome.
+      try {
+        await supabase
+          .from('piktag_follows')
+          .upsert(
+            { follower_id: authUser.id, following_id: resolvedUserId },
+            { onConflict: 'follower_id,following_id', ignoreDuplicates: true },
+          );
+      } catch (followErr) {
+        console.warn('[UserDetail] auto-follow on QR scan failed:', followErr);
+      }
 
       Alert.alert(
         t('scanResult.alertSuccessTitle'),
@@ -604,6 +615,30 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
     if (data) setPickedTagIds(new Set(data.map((ct: any) => ct.tag_id)));
   }, [connectionId]);
 
+  // Hidden (private) tag fetcher — declared here, ahead of openPickTagModal,
+  // because openPickTagModal references it both inside the callback body
+  // AND in the useCallback dep array. The dep array is evaluated eagerly
+  // at render time; if fetchHiddenTags were declared later in the body
+  // (as it was originally) the const binding would still be in TDZ at that
+  // point and reading it would throw `ReferenceError: Cannot access
+  // 'fetchHiddenTags' before initialization` on every render. Function
+  // hoisting doesn't apply to `const` arrow declarations.
+  const fetchHiddenTags = useCallback(async () => {
+    if (!connectionId) return;
+    const { data } = await supabase
+      .from('piktag_connection_tags')
+      .select('id, tag_id, piktag_tags!inner(name)')
+      .eq('connection_id', connectionId)
+      .eq('is_private', true);
+    if (data) {
+      setHiddenTags(data.map((ct: any) => ({
+        id: ct.id,
+        tagId: ct.tag_id,
+        name: ct.piktag_tags?.name || '',
+      })));
+    }
+  }, [connectionId]);
+
   const openPickTagModal = useCallback(async () => {
     await Promise.all([fetchFriendPublicTags(), connectionId ? loadPickedTags() : Promise.resolve(), connectionId ? fetchHiddenTags() : Promise.resolve()]);
     setPickTagModalVisible(true);
@@ -686,23 +721,6 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
       }
     })();
   }, [paramSid, paramTags, paramDate, paramLoc]);
-
-  // --- Hidden tags (private) ---
-  const fetchHiddenTags = useCallback(async () => {
-    if (!connectionId) return;
-    const { data } = await supabase
-      .from('piktag_connection_tags')
-      .select('id, tag_id, piktag_tags!inner(name)')
-      .eq('connection_id', connectionId)
-      .eq('is_private', true);
-    if (data) {
-      setHiddenTags(data.map((ct: any) => ({
-        id: ct.id,
-        tagId: ct.tag_id,
-        name: ct.piktag_tags?.name || '',
-      })));
-    }
-  }, [connectionId]);
 
   // Keep hiddenTags in sync whenever the connection changes — we show
   // the HiddenTagEditor inline on the profile, so the list needs to be
@@ -1172,7 +1190,12 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
                       activeOpacity={0.8}
                       onPress={async () => {
                         try {
-                          await supabase.from('piktag_follows').insert({ follower_id: user?.id, following_id: u.id });
+                          // The auth user is destructured as `authUser` at the
+                          // top of this component (we already use `user` as a
+                          // generic loop variable elsewhere). Using `user` here
+                          // resolved to undefined → follower_id was null →
+                          // RLS rejected the insert silently.
+                          await supabase.from('piktag_follows').insert({ follower_id: authUser?.id, following_id: u.id });
                           setSimilarUsers(prev => prev.filter(s => s.id !== u.id));
                         } catch (err) {
                           console.warn('[UserDetail] follow similar user failed:', err);

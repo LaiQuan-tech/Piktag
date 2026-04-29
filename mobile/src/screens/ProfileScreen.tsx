@@ -39,54 +39,15 @@ type ProfileScreenProps = {
   navigation: NativeStackNavigationProp<any>;
 };
 
-// --- Memoized Social Circle Item (IG Highlights style) ---
-const SocialCircle = React.memo(function SocialCircle({
-  biolink,
-  onPress,
-}: {
-  biolink: Biolink;
-  onPress: (url: string) => void;
-}) {
-  return (
-    <TouchableOpacity
-      style={styles.socialCircleItem}
-      activeOpacity={0.7}
-      onPress={() => onPress(biolink.url)}
-    >
-      <View style={styles.socialCircleRing}>
-        <View style={styles.socialCircleInner}>
-          <PlatformIcon platform={biolink.platform} size={28} iconUrl={biolink.icon_url} />
-        </View>
-      </View>
-      <Text style={styles.socialCircleLabel} numberOfLines={1}>
-        {biolink.label || biolink.platform}
-      </Text>
-    </TouchableOpacity>
-  );
-});
-
-// --- Memoized Linktree-style Link Card ---
-const LinkCard = React.memo(function LinkCard({
-  biolink,
-  onPress,
-}: {
-  biolink: Biolink;
-  onPress: (url: string) => void;
-}) {
-  return (
-    <TouchableOpacity
-      style={styles.linkCard}
-      activeOpacity={0.7}
-      onPress={() => onPress(biolink.url)}
-    >
-      <PlatformIcon platform={biolink.platform} size={22} iconUrl={biolink.icon_url} />
-      <Text style={styles.linkCardText} numberOfLines={1}>
-        {biolink.label || biolink.platform}
-      </Text>
-      <ExternalLink size={16} color={COLORS.gray400} />
-    </TouchableOpacity>
-  );
-});
+// (Removed: `SocialCircle` (IG-Highlights-style) and `LinkCard`
+// (Linktree-style) memoized components — both were defined here but
+// never rendered anywhere in this file, leftover from an earlier
+// biolinks-UI prototype. Their style references (`socialCircleItem`,
+// `socialCircleRing`, `socialCircleInner`, `socialCircleLabel`,
+// `linkCard`, `linkCardText`) were never added to the StyleSheet
+// either, so the components would have rendered un-styled if anyone
+// had wired them up. Delete-and-restore-from-git is cheaper than
+// keeping dead wiring around.)
 
 export default function ProfileScreen({ navigation }: ProfileScreenProps) {
   const { t } = useTranslation();

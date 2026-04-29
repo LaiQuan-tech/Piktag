@@ -46,7 +46,7 @@ export default function ConversationActionSheet({
   currentBucket,
   onMove,
   onClose,
-}: Props): JSX.Element {
+}: Props) {
   const { t } = useTranslation();
   const slideAnim = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
 
