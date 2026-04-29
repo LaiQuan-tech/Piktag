@@ -65,6 +65,12 @@ import type { Connection, PiktagProfile, Biolink } from '../types';
 import { getViewerRelation, filterBiolinksByVisibility } from '../lib/biolinkVisibility';
 import { calculateStrength, getStrengthLabel } from '../lib/connectionStrength';
 
+// How many scan-event tags to show before the "show all" toggle kicks in.
+// Picked so a typical 2-3 event meeting still shows everything inline,
+// but a power-user who's met-via-QR a dozen times doesn't push the rest
+// of the profile off-screen.
+const EVENT_TAGS_COLLAPSED_COUNT = 5;
+
 type ReminderField = 'birthday';
 const REMINDER_LABEL_KEYS: Record<ReminderField, string> = {
   birthday: 'friendDetail.reminderBirthday',
@@ -193,6 +199,12 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
   const [mutualTagNames, setMutualTagNames] = useState<{ id: string; name: string }[]>([]);
   const [mutualTagModalVisible, setMutualTagModalVisible] = useState(false);
   const [mutualFriendProfiles, setMutualFriendProfiles] = useState<any[]>([]);
+
+  // Event-tag collapse: scan-driven event tags have no upper bound (every
+  // shared QR scan adds 1-3 chips), so we cap the collapsed view at 5 and
+  // let the user expand inline. User-tags themselves stay fully visible —
+  // they cap at MAX_TAGS=10 elsewhere, well within comfortable density.
+  const [showAllEventTags, setShowAllEventTags] = useState(false);
 
   // "Recommended members" — same data shape and render as on UserDetailScreen.
   // Toggled by the UserPlus icon button next to the 標籤 button.
@@ -973,31 +985,71 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
           {/* Bio (max 3 lines) */}
           {profile?.bio ? <Text style={styles.bio} numberOfLines={3}>{profile.bio}</Text> : null}
 
-          {/* Tags — user tags + event tags combined */}
-          {(tags.length > 0 || scanEventTags.length > 0) && (
+          {/* Section 1: User tags — friend's self-applied + my picked tags.
+              Mutual tags get a purple-highlighted chip so the social signal
+              ("we share this") is visible at a glance, not hidden behind the
+              stats-row "N 共同標籤" text. `isMutual` is computed during the
+              tag-fetch phase (see fetchFriend → friendTags map). */}
+          {tags.length > 0 && (
             <View style={styles.tagsWrap}>
               {tags.map((tag) => (
                 <TouchableOpacity
                   key={tag.tagId}
-                  style={styles.tagChip}
+                  style={[styles.tagChip, tag.isMutual && styles.tagChipMutual]}
                   activeOpacity={0.6}
                   onPress={() => navigation.navigate('TagDetail', { tagId: tag.tagId, tagName: tag.name, initialTab: 'explore' })}
                 >
-                  <Text style={styles.tagChipText}>
+                  <Text style={[styles.tagChipText, tag.isMutual && styles.tagChipTextMutual]}>
                     #{tag.name}
                   </Text>
                 </TouchableOpacity>
               ))}
-              {scanEventTags.map((etag, i) => (
-                <TouchableOpacity
-                  key={`event-${i}`}
-                  style={styles.tagChip}
-                  activeOpacity={0.6}
-                  onPress={() => navigation.navigate('TagDetail', { tagName: etag, initialTab: 'explore' })}
-                >
-                  <Text style={styles.tagChipText}>#{etag}</Text>
-                </TouchableOpacity>
-              ))}
+            </View>
+          )}
+
+          {/* Section 2: Scan-event tags — pulled from the QR scan_session
+              that introduced us. These are episodic ("we met at X event"),
+              not identity, so we visually demote them: smaller chips, lighter
+              background, MapPin icon prefix on the section header. Collapsed
+              past EVENT_TAGS_COLLAPSED_COUNT so a heavy meet-via-QR history
+              doesn't blow out the profile header. */}
+          {scanEventTags.length > 0 && (
+            <View style={styles.eventTagsSection}>
+              <View style={styles.eventTagsTitleRow}>
+                <MapPin size={11} color={COLORS.gray500} strokeWidth={2.2} />
+                <Text style={styles.eventTagsTitle}>
+                  {t('friendDetail.eventTagsSection')}
+                </Text>
+              </View>
+              <View style={styles.eventTagsWrap}>
+                {(showAllEventTags
+                  ? scanEventTags
+                  : scanEventTags.slice(0, EVENT_TAGS_COLLAPSED_COUNT)
+                ).map((etag, i) => (
+                  <TouchableOpacity
+                    key={`event-${i}`}
+                    style={styles.eventTagChip}
+                    activeOpacity={0.6}
+                    onPress={() => navigation.navigate('TagDetail', { tagName: etag, initialTab: 'explore' })}
+                  >
+                    <Text style={styles.eventTagChipText}>#{etag}</Text>
+                  </TouchableOpacity>
+                ))}
+                {scanEventTags.length > EVENT_TAGS_COLLAPSED_COUNT && (
+                  <TouchableOpacity
+                    onPress={() => setShowAllEventTags((s) => !s)}
+                    activeOpacity={0.6}
+                    style={styles.eventTagsExpander}
+                    accessibilityRole="button"
+                  >
+                    <Text style={styles.eventTagsExpanderText}>
+                      {showAllEventTags
+                        ? t('friendDetail.eventTagsCollapse')
+                        : t('friendDetail.eventTagsExpand', { count: scanEventTags.length })}
+                    </Text>
+                  </TouchableOpacity>
+                )}
+              </View>
             </View>
           )}
 
@@ -1616,7 +1668,10 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: 'transparent',
   },
-  tagChipPicked: {
+  // Applied when FriendTag.isMutual === true. Brand purple frame + tinted
+  // background lifts shared tags above the gray crowd — the single most
+  // important "why you should remember each other" signal on the profile.
+  tagChipMutual: {
     backgroundColor: COLORS.piktag50,
     borderColor: COLORS.piktag500,
   },
@@ -1625,9 +1680,64 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: COLORS.gray600,
   },
-  tagChipTextPicked: {
+  tagChipTextMutual: {
     color: COLORS.piktag600,
     fontWeight: '700',
+  },
+
+  // Event-tag section: visually demoted vs. user tags so the eye lands
+  // on identity tags first. Smaller chip (12/6 vs 14/8), lighter ink, and
+  // a sectioned header with MapPin icon to mark "this is event context,
+  // not who they are."
+  eventTagsSection: {
+    marginBottom: 14,
+  },
+  eventTagsTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginBottom: 8,
+  },
+  eventTagsTitle: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: COLORS.gray500,
+    letterSpacing: 0.4,
+    textTransform: 'uppercase',
+  },
+  eventTagsWrap: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+  },
+  eventTagChip: {
+    backgroundColor: COLORS.gray50,
+    borderRadius: 9999,
+    paddingVertical: 5,
+    paddingHorizontal: 11,
+    borderWidth: 1,
+    borderColor: COLORS.gray100,
+  },
+  eventTagChipText: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: COLORS.gray500,
+  },
+  // "Show all N · Show less" toggle — dashed border distinguishes it
+  // from real tag chips so it doesn't look like a navigable destination.
+  eventTagsExpander: {
+    paddingVertical: 5,
+    paddingHorizontal: 11,
+    borderRadius: 9999,
+    borderWidth: 1,
+    borderColor: COLORS.piktag200,
+    borderStyle: 'dashed',
+    backgroundColor: 'transparent',
+  },
+  eventTagsExpanderText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: COLORS.piktag500,
   },
   nameSection: {
     flex: 1,
