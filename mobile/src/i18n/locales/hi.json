@@ -179,6 +179,13 @@
     "intersectionResultCount": "{{count}} लोग मिले",
     "headerTitle": "खोज",
     "searchPlaceholder": "टैग, यूज़रनेम वगैरह",
+    "promptHints": [
+      "मुझे एक फोटोग्राफर दोस्त चाहिए",
+      "जापानी बोलने वाला कोई",
+      "पास में कोई डिज़ाइनर?",
+      "स्टार्टअप में कोई?",
+      "वेब डेवलपर ढूंढ रहा हूँ"
+    ],
     "categorySectionLabel": "श्रेणी से ब्राउज़ करें",
     "categoryPopular": "लोकप्रिय टैग",
     "categoryNearby": "आस-पास के सदस्य",
@@ -275,6 +282,7 @@
     "noBio": "अभी कोई बायो नहीं",
     "noTags": "अभी कोई टैग नहीं",
     "tagFallback": "टैग",
+    "askPromptHint": "+ दबाएं Ask करने के लिए · «चाहिए…»",
     "friendCountSuffix": "दोस्त",
     "shareProfile": "प्रोफ़ाइल शेयर करें",
     "editProfile": "प्रोफ़ाइल संपादित करें",

@@ -297,6 +297,17 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
                 )} */}
               </View>
               <Text style={styles.usernameText}>@{displayUsername}</Text>
+              {/* "Tap + to ask · I need…" hint — surfaces the reverse-
+                  lookup affordance that distinguishes PikTag from a
+                  contacts app. Only shown when the user has no active
+                  ask; once they post one, the surrounding UI (Profile
+                  ask card / connections AskFeed) takes over speaking
+                  for the same affordance, so the hint becomes noise. */}
+              {!myAsk && (
+                <Text style={styles.askPromptHint} numberOfLines={1}>
+                  {t('profile.askPromptHint')}
+                </Text>
+              )}
             </View>
           </View>
 
@@ -493,6 +504,16 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '500',
     color: COLORS.gray500,
+  },
+  // Faint italic caption that hints at the reverse-lookup affordance
+  // sitting on the avatar's `+` badge. Faded enough to read as
+  // "suggestion" rather than "label" — once the user has an active
+  // ask the hint is hidden so it doesn't compete with the real status.
+  askPromptHint: {
+    fontSize: 12,
+    color: COLORS.gray400,
+    marginTop: 3,
+    fontStyle: 'italic',
   },
   statsLine: {
     fontSize: 14,

@@ -179,6 +179,13 @@
     "intersectionResultCount": "{{count}} জন পাওয়া গেছে",
     "headerTitle": "খুঁজুন",
     "searchPlaceholder": "ট্যাগ, ইউজারনেম ইত্যাদি",
+    "promptHints": [
+      "একজন ফটোগ্রাফার বন্ধু দরকার",
+      "জাপানি ভাষা জানা কাউকে খুঁজছি",
+      "কাছাকাছি কোনো ডিজাইনার?",
+      "স্টার্টআপে কেউ আছে?",
+      "ওয়েব ডেভেলপার খুঁজছি"
+    ],
     "categorySectionLabel": "ক্যাটেগরি অনুযায়ী ব্রাউজ করুন",
     "categoryPopular": "জনপ্রিয় ট্যাগ",
     "categoryNearby": "কাছাকাছি সদস্য",
@@ -275,6 +282,7 @@
     "noBio": "এখনও কোনো বায়ো নেই",
     "noTags": "এখনও কোনো ট্যাগ নেই",
     "tagFallback": "ট্যাগ",
+    "askPromptHint": "+ চাপুন Ask পোস্ট করতে · «প্রয়োজন…»",
     "friendCountSuffix": "বন্ধু",
     "shareProfile": "প্রোফাইল শেয়ার করুন",
     "editProfile": "প্রোফাইল এডিট করুন",

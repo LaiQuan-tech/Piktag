@@ -179,6 +179,13 @@
     "intersectionResultCount": "พบ {{count}} คน",
     "headerTitle": "ค้นหา",
     "searchPlaceholder": "แท็ก, ชื่อผู้ใช้ ฯลฯ",
+    "promptHints": [
+      "อยากได้เพื่อนที่ถ่ายรูปเก่ง",
+      "หาคนพูดญี่ปุ่นได้",
+      "นักออกแบบใกล้ๆ",
+      "มีใครทำสตาร์ทอัพไหม?",
+      "หา web developer"
+    ],
     "categorySectionLabel": "เรียกดูตามหมวดหมู่",
     "categoryPopular": "แท็กยอดนิยม",
     "categoryNearby": "สมาชิกใกล้เคียง",
@@ -275,6 +282,7 @@
     "noBio": "ยังไม่มีประวัติย่อ",
     "noTags": "ยังไม่มีแท็ก",
     "tagFallback": "แท็ก",
+    "askPromptHint": "แตะ + เพื่อโพสต์ Ask · \"ฉันต้องการ…\"",
     "friendCountSuffix": "เพื่อน",
     "shareProfile": "แชร์โปรไฟล์",
     "editProfile": "แก้ไขโปรไฟล์",

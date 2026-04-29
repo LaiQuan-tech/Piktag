@@ -179,6 +179,13 @@
     "intersectionResultCount": "Найдено {{count}} людей",
     "headerTitle": "Поиск",
     "searchPlaceholder": "Теги, имена пользователей и т.д.",
+    "promptHints": [
+      "Нужен друг-фотограф",
+      "Ищу кого-то со знанием японского",
+      "Дизайнеры поблизости",
+      "Есть кто-то из стартапов?",
+      "Ищу веб-разработчика"
+    ],
     "categorySectionLabel": "По категориям",
     "categoryPopular": "Популярные теги",
     "categoryNearby": "Рядом",
@@ -275,6 +282,7 @@
     "noBio": "Описания пока нет",
     "noTags": "Тегов пока нет",
     "tagFallback": "Тег",
+    "askPromptHint": "Нажми + для Ask · «Мне нужен…»",
     "friendCountSuffix": "друзей",
     "shareProfile": "Поделиться профилем",
     "editProfile": "Редактировать профиль",

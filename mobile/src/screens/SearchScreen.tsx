@@ -205,6 +205,32 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState<CategoryKey | null>(null);
 
+  // Rotating prompt-style placeholder. Cycles through `search.promptHints`
+  // (a per-locale array, e.g. "我需要懂攝影的朋友" / "在台北附近的設計師")
+  // every PROMPT_ROTATION_MS so the search box reads as "tell me what you
+  // need" instead of "type a name". Trains users to start with intent
+  // ("I need someone who…") rather than identity ("find this person") —
+  // which is the discovery affordance that distinguishes PikTag from a
+  // contacts app and is invisible without this nudge.
+  const [promptIdx, setPromptIdx] = useState(0);
+  const promptHints = useMemo(() => {
+    const raw = t('search.promptHints', { returnObjects: true });
+    return Array.isArray(raw) && raw.length > 0 ? (raw as string[]) : null;
+  }, [t]);
+  useEffect(() => {
+    if (!promptHints) return;
+    const id = setInterval(() => {
+      setPromptIdx((i) => (i + 1) % promptHints.length);
+    }, 3500);
+    return () => clearInterval(id);
+  }, [promptHints]);
+  // While the user has typed something, the placeholder isn't visible
+  // anyway — we still rotate the index so when they clear and look
+  // back, they land on a fresh prompt instead of the same stale one.
+  const placeholder = promptHints
+    ? promptHints[promptIdx]
+    : t('search.searchPlaceholder');
+
   // Data states
   const [tags, setTags] = useState<Tag[]>([]);
   const [profiles, setProfiles] = useState<PiktagProfile[]>([]);
@@ -1814,7 +1840,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
           <TextInput
             ref={searchInputRef}
             style={styles.searchInput}
-            placeholder={t('search.searchPlaceholder')}
+            placeholder={placeholder}
             placeholderTextColor={COLORS.gray400}
             value={searchQuery}
             onChangeText={handleSearchChange}

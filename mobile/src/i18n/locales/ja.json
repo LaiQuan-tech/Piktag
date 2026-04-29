@@ -179,6 +179,13 @@
     "intersectionResultCount": "{{count}}人見つかりました",
     "headerTitle": "検索",
     "searchPlaceholder": "タグ、ユーザー名など",
+    "promptHints": [
+      "写真が撮れる友達がほしい",
+      "日本語ができる人を探してる",
+      "近くのデザイナーは？",
+      "スタートアップの人いる？",
+      "Web開発できる人を探してる"
+    ],
     "categorySectionLabel": "カテゴリで探す",
     "categoryPopular": "人気のタグ",
     "categoryNearby": "近くのメンバー",
@@ -275,6 +282,7 @@
     "noBio": "自己紹介がまだありません",
     "noTags": "タグがまだありません",
     "tagFallback": "タグ",
+    "askPromptHint": "+ で Ask を投稿 · 「〜が欲しい」",
     "friendCountSuffix": "友達",
     "shareProfile": "プロフィールをシェア",
     "editProfile": "プロフィールを編集",

@@ -179,6 +179,13 @@
     "intersectionResultCount": "{{count}}명을 찾았습니다",
     "headerTitle": "검색",
     "searchPlaceholder": "태그, 사용자명 등",
+    "promptHints": [
+      "사진 잘 찍는 친구가 필요해",
+      "일본어 하는 사람 찾고 있어",
+      "근처에 디자이너 있어?",
+      "스타트업 하는 사람 있어?",
+      "웹 개발자 찾고 있어"
+    ],
     "categorySectionLabel": "카테고리로 둘러보기",
     "categoryPopular": "인기 태그",
     "categoryNearby": "근처 멤버",
@@ -275,6 +282,7 @@
     "noBio": "자기소개가 없습니다",
     "noTags": "태그가 없습니다",
     "tagFallback": "태그",
+    "askPromptHint": "+ 눌러 Ask 작성 · 「~필요해」",
     "friendCountSuffix": "친구",
     "shareProfile": "프로필 공유",
     "editProfile": "프로필 편집",

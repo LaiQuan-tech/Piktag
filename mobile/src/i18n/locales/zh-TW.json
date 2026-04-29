@@ -190,6 +190,13 @@
     "intersectionResultCount": "找到 {{count}} 位",
     "headerTitle": "搜尋",
     "searchPlaceholder": "標籤、會員帳號等",
+    "promptHints": [
+      "我需要懂攝影的朋友",
+      "想找會講日文的人",
+      "在台北附近的設計師",
+      "認識誰在做新創？",
+      "找會做網頁的朋友"
+    ],
     "categorySectionLabel": "依分類搜尋",
     "categoryPopular": "熱門標籤",
     "categoryNearby": "附近會員",
@@ -286,6 +293,7 @@
     "noBio": "尚無個人簡介",
     "noTags": "尚無標籤",
     "tagFallback": "標籤",
+    "askPromptHint": "點 + 發 Ask · 我需要…",
     "friendCountSuffix": "位朋友",
     "shareProfile": "分享檔案",
     "editProfile": "編輯資訊",

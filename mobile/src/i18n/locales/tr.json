@@ -179,6 +179,13 @@
     "intersectionResultCount": "{{count}} kişi bulundu",
     "headerTitle": "Ara",
     "searchPlaceholder": "Etiketler, kullanıcı adları vb.",
+    "promptHints": [
+      "Fotoğrafçı bir arkadaş arıyorum",
+      "Japonca konuşan biri lazım",
+      "Yakındaki tasarımcılar",
+      "Startup'ta tanıdık var mı?",
+      "Web geliştirici arıyorum"
+    ],
     "categorySectionLabel": "Kategoriye göre göz at",
     "categoryPopular": "Popüler Etiketler",
     "categoryNearby": "Yakındaki Üyeler",
@@ -275,6 +282,7 @@
     "noBio": "Henüz biyografi yok",
     "noTags": "Henüz etiket yok",
     "tagFallback": "Etiket",
+    "askPromptHint": "+ ile Ask paylaş · \"Lazım…\"",
     "friendCountSuffix": "arkadaş",
     "shareProfile": "Profili Paylaş",
     "editProfile": "Profili Düzenle",

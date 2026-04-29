@@ -187,6 +187,13 @@
     "intersectionResultCount": "找到 {{count}} 位",
     "headerTitle": "搜索",
     "searchPlaceholder": "标签、会员账号等",
+    "promptHints": [
+      "我需要懂摄影的朋友",
+      "想找会讲日文的人",
+      "在台北附近的设计师",
+      "认识谁在做新创？",
+      "找会做网页的朋友"
+    ],
     "categorySectionLabel": "依分类搜索",
     "categoryPopular": "热门标签",
     "categoryNearby": "附近会员",
@@ -283,6 +290,7 @@
     "noBio": "尚无个人简介",
     "noTags": "尚无标签",
     "tagFallback": "标签",
+    "askPromptHint": "点 + 发 Ask · 我需要…",
     "friendCountSuffix": "位朋友",
     "shareProfile": "分享文件",
     "editProfile": "编辑信息",

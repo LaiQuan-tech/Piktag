@@ -179,6 +179,13 @@
     "intersectionResultCount": "{{count}} personnes trouvées",
     "headerTitle": "Rechercher",
     "searchPlaceholder": "Tags, noms d'utilisateur, etc.",
+    "promptHints": [
+      "Je cherche un ami photographe",
+      "Quelqu'un qui parle japonais",
+      "Designers près de chez moi",
+      "Quelqu'un dans une startup ?",
+      "Je cherche un développeur web"
+    ],
     "categorySectionLabel": "Parcourir par catégorie",
     "categoryPopular": "Tags populaires",
     "categoryNearby": "Membres à proximité",
@@ -275,6 +282,7 @@
     "noBio": "Pas encore de bio",
     "noTags": "Pas encore de tags",
     "tagFallback": "Tag",
+    "askPromptHint": "Touchez + pour un Ask · « J'ai besoin… »",
     "friendCountSuffix": "amis",
     "shareProfile": "Partager le profil",
     "editProfile": "Modifier le profil",

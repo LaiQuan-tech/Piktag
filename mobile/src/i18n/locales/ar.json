@@ -179,6 +179,13 @@
     "intersectionResultCount": "تم العثور على {{count}} شخصًا",
     "headerTitle": "بحث",
     "searchPlaceholder": "وسوم، أسماء مستخدمين، إلخ.",
+    "promptHints": [
+      "أحتاج صديقًا مصورًا",
+      "أبحث عن شخص يتحدث اليابانية",
+      "مصممون بالقرب مني",
+      "هل تعرف أحدًا في الشركات الناشئة؟",
+      "أبحث عن مطور ويب"
+    ],
     "categorySectionLabel": "تصفح حسب الفئة",
     "categoryPopular": "الوسوم الشائعة",
     "categoryNearby": "أعضاء قريبون",
@@ -275,6 +282,7 @@
     "noBio": "لا توجد نبذة بعد",
     "noTags": "لا توجد وسوم بعد",
     "tagFallback": "وسم",
+    "askPromptHint": "اضغط + لنشر Ask · «أحتاج…»",
     "friendCountSuffix": "أصدقاء",
     "shareProfile": "مشاركة الملف الشخصي",
     "editProfile": "تعديل الملف الشخصي",

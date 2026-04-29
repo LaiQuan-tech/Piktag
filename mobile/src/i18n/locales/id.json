@@ -179,6 +179,13 @@
     "intersectionResultCount": "Ditemukan {{count}} orang",
     "headerTitle": "Cari",
     "searchPlaceholder": "Tag, nama pengguna, dll.",
+    "promptHints": [
+      "Butuh teman yang bisa fotografi",
+      "Cari orang yang bisa bahasa Jepang",
+      "Desainer di dekat sini",
+      "Ada yang di startup?",
+      "Cari web developer"
+    ],
     "categorySectionLabel": "Telusuri berdasarkan kategori",
     "categoryPopular": "Tag Populer",
     "categoryNearby": "Anggota Terdekat",
@@ -275,6 +282,7 @@
     "noBio": "Belum ada bio",
     "noTags": "Belum ada tag",
     "tagFallback": "Tag",
+    "askPromptHint": "Tap + untuk Ask · \"Saya butuh…\"",
     "friendCountSuffix": "teman",
     "shareProfile": "Bagikan Profil",
     "editProfile": "Edit Profil",

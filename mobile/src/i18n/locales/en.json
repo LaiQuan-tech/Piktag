@@ -187,6 +187,13 @@
     "intersectionResultCount": "Found {{count}} people",
     "headerTitle": "Search",
     "searchPlaceholder": "Tags, usernames, etc.",
+    "promptHints": [
+      "Need a friend who shoots photos",
+      "Looking for someone who speaks Japanese",
+      "Designers near me",
+      "Anyone in startups?",
+      "Looking for a web developer"
+    ],
     "categorySectionLabel": "Browse by category",
     "categoryPopular": "Popular Tags",
     "categoryNearby": "Nearby Members",
@@ -283,6 +290,7 @@
     "noBio": "No bio yet",
     "noTags": "No tags yet",
     "tagFallback": "Tag",
+    "askPromptHint": "Tap + to post an Ask · \"I need…\"",
     "friendCountSuffix": "friends",
     "shareProfile": "Share Profile",
     "editProfile": "Edit Profile",
