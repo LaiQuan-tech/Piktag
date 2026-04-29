@@ -18,6 +18,8 @@
 
     { "source": "/contact",         "destination": "/index.html" },
 
+    { "source": "/favicon.ico",     "destination": "/logo.png" },
+
     { "source": "/:username",       "destination": "/api/u/:username" }
   ],
 

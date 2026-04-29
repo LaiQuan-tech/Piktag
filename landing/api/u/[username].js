@@ -33,6 +33,21 @@ module.exports = async function handler(req, res) {
     return res.status(404).send(notFoundPage(locale));
   }
 
+  // Reject anything that doesn't look like a valid PikTag username BEFORE
+  // we fire analytics. The catch-all rewrite `/:username` in vercel.json
+  // routes every otherwise-unhandled path here — including browsers'
+  // implicit /favicon.ico, /robots.txt, /sitemap.xml requests, plus any
+  // crawler probe. Without this guard those generated bogus
+  // share_link_viewed events that polluted PostHog funnels.
+  //
+  // Username rule: alphanumeric + underscore, 2-30 chars. Tightened in
+  // step with the mobile app's signup validator.
+  const VALID_USERNAME = /^[a-zA-Z0-9_]{2,30}$/;
+  if (!VALID_USERNAME.test(usernameStr)) {
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    return res.status(404).send(notFoundPage(locale));
+  }
+
   // Fire-and-forget analytics — never awaited, never throws.
   trackShareLinkViewed(req, 'user', usernameStr);
 
