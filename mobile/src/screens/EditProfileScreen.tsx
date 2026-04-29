@@ -1311,8 +1311,27 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
             )}
           </View>
 
-          {/* Save lives in the header (top-right). Bottom save button
-              removed — duplicate CTA was redundant. */}
+          {/* Save Button */}
+          <View style={styles.saveSection}>
+            <TouchableOpacity
+              onPress={handleSave}
+              activeOpacity={0.8}
+              disabled={saving}
+            >
+              <LinearGradient
+                colors={['#ff5757', '#c44dff', '#8c52ff']}
+                start={{ x: 0, y: 0.5 }}
+                end={{ x: 1, y: 0.5 }}
+                style={[styles.saveButton, saving && styles.saveButtonDisabled]}
+              >
+                {saving ? (
+                  <BrandSpinner size={20} />
+                ) : (
+                  <Text style={styles.saveButtonText}>{t('editProfile.saveChanges')}</Text>
+                )}
+              </LinearGradient>
+            </TouchableOpacity>
+          </View>
         </ScrollView>
       </KeyboardAvoidingView>
 
@@ -1659,10 +1678,23 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: COLORS.piktag600,
   },
-  // Used by the biolink-edit modal's save button (the screen's main
-  // save lives in the header, no longer has a bottom button).
+  saveSection: {
+    paddingHorizontal: 20,
+    paddingTop: 32,
+  },
+  saveButton: {
+    backgroundColor: COLORS.piktag500,
+    borderRadius: 14,
+    paddingVertical: 16,
+    alignItems: 'center',
+  },
   saveButtonDisabled: {
     opacity: 0.7,
+  },
+  saveButtonText: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: '#FFFFFF',
   },
   // Modal styles
   modalOverlay: {
