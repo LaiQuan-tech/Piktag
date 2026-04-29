@@ -9,6 +9,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import './src/i18n'; // Initialize i18n
 import appJson from './app.json';
 import AppNavigator from './src/navigation/AppNavigator';
+import { trackScreen } from './src/lib/analytics';
 import { ThemeProvider } from './src/context/ThemeContext';
 import { AuthProvider } from './src/context/AuthContext';
 import { AppReadyProvider, useAppReady } from './src/context/AppReadyContext';
@@ -192,7 +193,30 @@ function AppInner() {
         <GestureHandlerRootView style={{ flex: 1 }}>
           <SafeAreaProvider>
             <ErrorBoundary>
-              <NavigationContainer ref={navigationRef} linking={linking}>
+              <NavigationContainer
+                ref={navigationRef}
+                linking={linking}
+                onReady={() => {
+                  // Capture the very first route once the navigator
+                  // mounts — `onStateChange` only fires on transitions,
+                  // so without this we'd miss the landing screen of
+                  // every session.
+                  const route = navigationRef.getCurrentRoute();
+                  if (route?.name) {
+                    trackScreen(route.name, route.params as Record<string, unknown> | undefined);
+                  }
+                }}
+                onStateChange={() => {
+                  // Fires on every navigation state mutation (push, pop,
+                  // tab switch, modal present). `getCurrentRoute()`
+                  // resolves the deepest active leaf, which is what we
+                  // want for screen-level analytics.
+                  const route = navigationRef.getCurrentRoute();
+                  if (route?.name) {
+                    trackScreen(route.name, route.params as Record<string, unknown> | undefined);
+                  }
+                }}
+              >
                 <ExpoStatusBar style="dark" />
                 <OfflineBanner />
                 <AppNavigator />

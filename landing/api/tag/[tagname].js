@@ -1,4 +1,4 @@
-const { SUPABASE_URL, SUPABASE_ANON_KEY, BRAND_COLOR, BRAND_ACCENT, BRAND_DARK, BRAND_BG, BRAND_GRADIENT, escapeHtml } = require('../_config');
+const { SUPABASE_URL, SUPABASE_ANON_KEY, BRAND_COLOR, BRAND_ACCENT, BRAND_DARK, BRAND_BG, BRAND_GRADIENT, escapeHtml, trackShareLinkViewed, buildAnalyticsSnippet } = require('../_config');
 
 module.exports = async function handler(req, res) {
   const { tagname } = req.query;
@@ -10,6 +10,9 @@ module.exports = async function handler(req, res) {
   }
 
   const cleanTag = tagStr.replace(/^#/, '');
+
+  // Fire-and-forget analytics — never awaited, never throws.
+  trackShareLinkViewed(req, 'tag', cleanTag);
 
   try {
     // 1. Find tag
@@ -36,7 +39,7 @@ module.exports = async function handler(req, res) {
 
     if (userIds.length === 0) {
       res.setHeader('Content-Type', 'text/html; charset=utf-8');
-      return res.status(200).send(renderPage(cleanTag, tag.usage_count || 0, []));
+      return res.status(200).send(renderPage(cleanTag, tag.usage_count || 0, [], buildAnalyticsSnippet('tag', cleanTag)));
     }
 
     // 3. Fetch profiles
@@ -77,7 +80,7 @@ module.exports = async function handler(req, res) {
       [members[i], members[j]] = [members[j], members[i]];
     }
 
-    const html = renderPage(cleanTag, tag.usage_count || members.length, members);
+    const html = renderPage(cleanTag, tag.usage_count || members.length, members, buildAnalyticsSnippet('tag', cleanTag));
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
     res.setHeader('Cache-Control', 's-maxage=300, stale-while-revalidate=600');
     return res.status(200).send(html);
@@ -88,7 +91,7 @@ module.exports = async function handler(req, res) {
   }
 };
 
-function renderPage(tagName, usageCount, members) {
+function renderPage(tagName, usageCount, members, analyticsSnippet) {
   const title = `#${escapeHtml(tagName)} — 在 #piktag 上的人`;
   const description = `${usageCount} 人使用 #${escapeHtml(tagName)} 標籤。在 #piktag 認識志同道合的人。`;
   const url = `https://pikt.ag/tag/${encodeURIComponent(tagName)}`;
@@ -135,6 +138,7 @@ function renderPage(tagName, usageCount, members) {
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Poppins:wght@700;800&display=swap" rel="stylesheet">
+  ${analyticsSnippet || ''}
   <style>
     *{margin:0;padding:0;box-sizing:border-box}
     body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:linear-gradient(160deg,#faf5ff 0%,#fff5f5 50%,#f5f0ff 100%);color:#1a1a1a;min-height:100vh}

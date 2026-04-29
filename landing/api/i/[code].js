@@ -1,4 +1,4 @@
-const { BRAND_COLOR, BRAND_ACCENT, BRAND_DARK, BRAND_BG, BRAND_GRADIENT, escapeHtml, detectLocale } = require('../_config');
+const { BRAND_COLOR, BRAND_ACCENT, BRAND_DARK, BRAND_BG, BRAND_GRADIENT, escapeHtml, detectLocale, trackShareLinkViewed, buildAnalyticsSnippet } = require('../_config');
 
 module.exports = async function handler(req, res) {
   const { code } = req.query;
@@ -10,6 +10,10 @@ module.exports = async function handler(req, res) {
   const isIos = /iphone|ipad|ipod/.test(ua);
   const isAndroid = /android/.test(ua);
   const isMobile = isIos || isAndroid;
+
+  // Fire-and-forget analytics — never awaited, never throws.
+  trackShareLinkViewed(req, 'invite', (codeStr || '').toUpperCase());
+  const analyticsSnippet = buildAnalyticsSnippet('invite', (codeStr || '').toUpperCase());
 
   res.setHeader('Content-Type', 'text/html; charset=utf-8');
   res.setHeader('Cache-Control', 'public, max-age=0, s-maxage=60');
@@ -25,6 +29,7 @@ module.exports = async function handler(req, res) {
   <meta property="og:description" content="Tap to redeem this PikTag invite code">
   <meta property="og:type" content="website">
   <link rel="icon" href="/favicon.ico">
+  ${analyticsSnippet}
   <style>
     *{margin:0;padding:0;box-sizing:border-box}
     body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:linear-gradient(160deg,#faf5ff 0%,#fff5f5 50%,#f5f0ff 100%);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}

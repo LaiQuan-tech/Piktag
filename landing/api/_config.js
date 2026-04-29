@@ -1,3 +1,5 @@
+const crypto = require('crypto');
+
 // Shared configuration for all web API routes (Vercel serverless functions
 // under /api/u, /api/i, /api/tag — server-rendered share pages).
 //
@@ -235,6 +237,125 @@ function detectLocale(req) {
   }
 }
 
+// ─────────────────────────────────────────────────────────
+// Analytics — share-link visit tracking
+// ─────────────────────────────────────────────────────────
+// PostHog public project key (write-only, safe to ship in source).
+const POSTHOG_KEY = 'phc_CagxzXtHwJ6xXYQ2pdDGmmbh5kRiyQ7ikjFjJnSrr7Hr';
+const POSTHOG_HOST = 'https://us.i.posthog.com';
+
+function getClientIp(req) {
+  const fwd = req.headers['x-forwarded-for'];
+  if (fwd) return String(fwd).split(',')[0].trim();
+  return req.headers['x-real-ip'] || req.socket?.remoteAddress || '';
+}
+
+// Try to extract PostHog's anonymous distinct_id from the request cookies.
+// PostHog sets cookies named like `ph_<project_key>_posthog` whose value is
+// JSON-encoded and contains a `distinct_id` field.
+function readPosthogDistinctId(req) {
+  try {
+    const cookieHeader = req.headers.cookie || '';
+    if (!cookieHeader) return null;
+    const cookies = cookieHeader.split(';');
+    for (const raw of cookies) {
+      const eq = raw.indexOf('=');
+      if (eq < 0) continue;
+      const name = raw.slice(0, eq).trim();
+      if (!/^ph_.*_posthog$/.test(name)) continue;
+      const value = decodeURIComponent(raw.slice(eq + 1).trim());
+      const parsed = JSON.parse(value);
+      if (parsed && typeof parsed.distinct_id === 'string' && parsed.distinct_id) {
+        return parsed.distinct_id;
+      }
+    }
+  } catch { /* fall through */ }
+  return null;
+}
+
+function deriveDistinctId(req) {
+  const cookieId = readPosthogDistinctId(req);
+  if (cookieId) return cookieId;
+  const ip = getClientIp(req);
+  const ua = req.headers['user-agent'] || '';
+  const hash = crypto.createHash('sha256').update(`${ip}|${ua}`).digest('hex').slice(0, 16);
+  return `srv_${hash}`;
+}
+
+// Fire-and-forget server-side capture. Never throws, never awaited by callers.
+function trackShareLinkViewed(req, shareType, shareIdentifier) {
+  try {
+    const ip = getClientIp(req);
+    const ua = req.headers['user-agent'] || '';
+    const referrer = req.headers['referer'] || req.headers['referrer'] || '';
+    const host = req.headers['host'] || 'pikt.ag';
+    const proto = (req.headers['x-forwarded-proto'] || 'https').toString().split(',')[0];
+    const url = `${proto}://${host}${req.url || ''}`;
+    const distinctId = deriveDistinctId(req);
+
+    const body = JSON.stringify({
+      api_key: POSTHOG_KEY,
+      event: 'share_link_viewed',
+      distinct_id: distinctId,
+      properties: {
+        $current_url: url,
+        share_type: shareType,
+        share_identifier: shareIdentifier,
+        $ip: ip,
+        $user_agent: ua,
+        referrer,
+      },
+      timestamp: new Date().toISOString(),
+    });
+
+    // Don't await — fire and forget. Swallow rejection so analytics
+    // failures never bubble up and never block the share-page response.
+    void fetch(`${POSTHOG_HOST}/capture/`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body,
+    }).catch(() => {});
+  } catch { /* never break the share page on analytics errors */ }
+}
+
+// Build a snippet of <head>-injectable script tags for client-side trackers.
+// All three trackers no-op when their env var / key isn't configured.
+// The PostHog snippet uses the shared public key. GA4 + Meta Pixel are
+// gated on env vars at build/deploy time (server-side serverless reads them
+// at request time from process.env).
+function buildAnalyticsSnippet(shareType, shareIdentifier) {
+  const gaId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || process.env.GA_MEASUREMENT_ID || '';
+  const metaPixelId = process.env.META_PIXEL_ID || '';
+  const safeType = String(shareType).replace(/[^a-z_]/gi, '');
+  const safeId = String(shareIdentifier || '').replace(/[^A-Za-z0-9_\-\.]/g, '');
+
+  const ph = `
+<script>
+!function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.async=!0,p.src=s.api_host+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="capture identify alias people.set people.set_once set_config register register_once unregister opt_out_capturing has_opted_out_capturing opt_in_capturing reset isFeatureEnabled onFeatureFlags getFeatureFlag getFeatureFlagPayload reloadFeatureFlags group updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures getActiveMatchingSurveys getSurveys getNextSurveyStep onSessionId".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
+posthog.init('${POSTHOG_KEY}',{api_host:'${POSTHOG_HOST}',person_profiles:'identified_only'});
+try{posthog.capture('share_link_viewed',{share_type:'${safeType}',share_identifier:'${safeId}'});}catch(e){}
+</script>`;
+
+  const ga = gaId ? `
+<script async src="https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(gaId)}"></script>
+<script>
+window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}
+gtag('js',new Date());
+gtag('config','${gaId}');
+gtag('event','share_link_viewed',{share_type:'${safeType}',share_identifier:'${safeId}'});
+</script>` : '';
+
+  const meta = metaPixelId ? `
+<script>
+!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');
+fbq('init','${metaPixelId}');
+fbq('track','PageView');
+fbq('trackCustom','share_link_viewed',{share_type:'${safeType}',share_identifier:'${safeId}'});
+</script>` : '';
+
+  return ph + ga + meta;
+}
+
 module.exports = {
   SUPABASE_URL,
   SUPABASE_ANON_KEY,
@@ -246,4 +367,6 @@ module.exports = {
   escapeHtml,
   TRANSLATIONS,
   detectLocale,
+  trackShareLinkViewed,
+  buildAnalyticsSnippet,
 };

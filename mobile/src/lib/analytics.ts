@@ -63,6 +63,26 @@ export const trackMessageSent = () => posthog?.capture('message_sent');
 /** User posted an Ask. */
 export const trackAskPosted = () => posthog?.capture('ask_posted');
 
+/**
+ * Screen-view auto-capture. Called from the NavigationContainer state
+ * listener in App.tsx so we get one event per route change. Wrapped in
+ * try/catch because PostHog can throw if not yet initialized, and we
+ * never want analytics to crash navigation. Respects opt-out
+ * automatically — posthog.screen() honors the same flag as capture().
+ */
+export const trackScreen = (name: string, params?: Record<string, unknown>) => {
+  try {
+    // PostHog's screen() expects PostHogEventProperties (a JsonType
+    // map). Route params come from React Navigation typed as
+    // `object | undefined` — at runtime they're JSON-serializable
+    // (route params must be to support state persistence/deep links),
+    // so the cast is safe.
+    posthog.screen(name, params as Record<string, never> | undefined);
+  } catch {
+    // Swallow — analytics must never break navigation.
+  }
+};
+
 // ── Privacy / opt-out controls ──
 //
 // Toggles PostHog capture on or off. Persisted by SettingsScreen via
