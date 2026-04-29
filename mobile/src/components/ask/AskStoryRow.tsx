@@ -18,7 +18,7 @@ import {
 } from 'react-native';
 import BrandSpinner from '../loaders/BrandSpinner';
 import { Image } from 'expo-image';
-import { Plus, X } from 'lucide-react-native';
+import { Plus, X, ChevronRight } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTranslation } from 'react-i18next';
 import InitialsAvatar from '../InitialsAvatar';
@@ -57,9 +57,15 @@ function hoursLeft(expiresAt: string): number {
 type RotatingGradientRingProps = {
   colors: readonly [string, string, ...string[]];
   children: React.ReactNode;
+  // Outer ring diameter. Inner white circle shrinks proportionally so
+  // the visible gradient stripe stays roughly the same width regardless
+  // of size. Defaults to the original 64/56 numbers.
+  size?: number;
 };
 
-function RotatingGradientRing({ colors, children }: RotatingGradientRingProps) {
+const RING_PADDING = 3;
+
+function RotatingGradientRing({ colors, children, size = 64 }: RotatingGradientRingProps) {
   const rotation = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -80,15 +86,28 @@ function RotatingGradientRing({ colors, children }: RotatingGradientRingProps) {
     outputRange: ['0deg', '360deg'],
   });
 
+  const innerSize = size - RING_PADDING * 2;
+  const outerStyle = {
+    width: size,
+    height: size,
+    borderRadius: size / 2,
+    padding: RING_PADDING,
+  };
+  const innerStyle = {
+    width: innerSize,
+    height: innerSize,
+    borderRadius: innerSize / 2,
+  };
+
   return (
-    <View style={styles.ring}>
+    <View style={[styles.ring, outerStyle]}>
       {/* Rotating gradient layer sits behind the inner avatar circle.
           overflow: hidden + the parent's borderRadius clips the rotating
           rectangle to a perfect circle on Android (iOS does it natively). */}
       <Animated.View
         style={[
           StyleSheet.absoluteFillObject,
-          styles.ringRotator,
+          { borderRadius: size / 2, overflow: 'hidden' },
           { transform: [{ rotate: spin }] },
         ]}
       >
@@ -99,7 +118,7 @@ function RotatingGradientRing({ colors, children }: RotatingGradientRingProps) {
           style={StyleSheet.absoluteFillObject}
         />
       </Animated.View>
-      <View style={styles.ringInner}>{children}</View>
+      <View style={[styles.ringInner, innerStyle]}>{children}</View>
     </View>
   );
 }
@@ -273,53 +292,76 @@ export default function AskStoryRow({ asks, myAsk, myAvatarUrl, myName, onRefres
       <View style={styles.container}>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.scroll}>
           {/* My Ask card */}
-          <TouchableOpacity style={styles.storyItem} activeOpacity={0.7} onPress={() => setCreateVisible(true)}>
-            {/* My-side bubble. Shows the active ask's body when one
-                exists; otherwise an empty muted bubble as a hint that
-                this card is the same shape as the friend cards. The
-                "+" badge on the avatar still does the heavy lifting
-                for the create affordance. */}
-            {myAsk ? (
-              <View style={styles.bubble}>
-                <Text style={styles.bubbleText} numberOfLines={2}>
-                  {myAsk.title || myAsk.body}
+          {/* My-Ask card.  Always-leftmost.  Two states:
+              - Has active ask → same shape as friend cards (body + tags
+                + time-left), with rotating gradient ring; tap opens the
+                view/delete modal.
+              - No active ask → dashed border card with "+ 新增 Ask" CTA;
+                tap opens the create modal. */}
+          <TouchableOpacity
+            style={[styles.askCard, !myAsk && styles.askCardEmpty]}
+            activeOpacity={0.85}
+            onPress={() => setCreateVisible(true)}
+          >
+            <View style={styles.askCardHeader}>
+              {myAsk ? (
+                <RotatingGradientRing
+                  colors={['#c44dff', '#8c52ff', '#5e2ce6', '#c44dff']}
+                  size={44}
+                >
+                  {myAvatarUrl ? (
+                    <Image source={{ uri: myAvatarUrl }} style={styles.askCardAvatar} cachePolicy="memory-disk" />
+                  ) : (
+                    <InitialsAvatar name={myName} size={36} />
+                  )}
+                </RotatingGradientRing>
+              ) : (
+                <View style={styles.askCardEmptyRing}>
+                  {myAvatarUrl ? (
+                    <Image source={{ uri: myAvatarUrl }} style={styles.askCardAvatar} cachePolicy="memory-disk" />
+                  ) : (
+                    <InitialsAvatar name={myName} size={36} />
+                  )}
+                  <View style={styles.askCardPlusBadge}>
+                    <Plus size={10} color="#fff" strokeWidth={3} />
+                  </View>
+                </View>
+              )}
+              <View style={styles.askCardNameStack}>
+                <Text style={styles.askCardName} numberOfLines={1}>
+                  {myAsk ? t('ask.yourAsk') : t('ask.newAsk')}
                 </Text>
-                <View style={styles.bubbleTail} />
               </View>
-            ) : (
-              <View style={[styles.bubble, styles.bubbleEmpty]}>
-                <Text style={[styles.bubbleText, styles.bubbleTextEmpty]} numberOfLines={1}>
-                  {t('ask.bubblePromptMine') || '+ 新增 Ask'}
-                </Text>
-                <View style={[styles.bubbleTail, styles.bubbleTailEmpty]} />
-              </View>
-            )}
+            </View>
 
             {myAsk ? (
-              <RotatingGradientRing colors={['#c44dff', '#8c52ff', '#5e2ce6', '#c44dff']}>
-                {myAvatarUrl ? (
-                  <Image source={{ uri: myAvatarUrl }} style={styles.avatar} cachePolicy="memory-disk" />
-                ) : (
-                  <InitialsAvatar name={myName} size={52} />
-                )}
-              </RotatingGradientRing>
+              <Text style={styles.askCardBody} numberOfLines={3}>
+                {myAsk.title || myAsk.body}
+              </Text>
             ) : (
-              <View style={[styles.ring, styles.ringCreate]}>
-                <View style={styles.ringInner}>
-                  {myAvatarUrl ? (
-                    <Image source={{ uri: myAvatarUrl }} style={styles.avatar} cachePolicy="memory-disk" />
-                  ) : (
-                    <InitialsAvatar name={myName} size={52} />
-                  )}
-                </View>
-                <View style={styles.plusBadge}>
-                  <Plus size={12} color="#fff" strokeWidth={3} />
-                </View>
+              <Text style={[styles.askCardBody, styles.askCardBodyEmpty]} numberOfLines={3}>
+                {t('ask.bubblePromptMine') || '+ 新增 Ask'}
+              </Text>
+            )}
+
+            {myAsk && myAsk.tag_names.length > 0 ? (
+              <View style={styles.askCardTagsRow}>
+                {myAsk.tag_names.slice(0, 4).map((tn) => (
+                  <View key={tn} style={styles.askCardTagChip}>
+                    <Text style={styles.askCardTagText} numberOfLines={1}>#{tn}</Text>
+                  </View>
+                ))}
+              </View>
+            ) : null}
+
+            {myAsk && (
+              <View style={styles.askCardFooter}>
+                <Text style={styles.askCardTime}>
+                  {t('ask.timeLeft', { hours: hoursLeft(myAsk.expires_at) })}
+                </Text>
+                <ChevronRight size={14} color={COLORS.gray400} />
               </View>
             )}
-            <Text style={styles.storyName} numberOfLines={1}>
-              {myAsk ? t('ask.yourAsk') : t('ask.newAsk')}
-            </Text>
           </TouchableOpacity>
 
           {/* Friend Asks */}
@@ -328,16 +370,15 @@ export default function AskStoryRow({ asks, myAsk, myAvatarUrl, myName, onRefres
             const h = hoursLeft(ask.expires_at);
             const viewed = viewedAskIds.has(ask.ask_id);
             const avatar = ask.author_avatar_url ? (
-              <Image source={{ uri: ask.author_avatar_url }} style={styles.avatar} cachePolicy="memory-disk" />
+              <Image source={{ uri: ask.author_avatar_url }} style={styles.askCardAvatar} cachePolicy="memory-disk" />
             ) : (
-              <InitialsAvatar name={name} size={52} />
+              <InitialsAvatar name={name} size={36} />
             );
-            const bubbleText = ask.title || ask.body;
             return (
               <TouchableOpacity
                 key={ask.ask_id}
-                style={styles.storyItem}
-                activeOpacity={0.7}
+                style={[styles.askCard, viewed && styles.askCardViewed]}
+                activeOpacity={0.85}
                 onPress={() => {
                   markAskViewed(ask.ask_id);
                   onPressUser(ask.author_id);
@@ -345,39 +386,55 @@ export default function AskStoryRow({ asks, myAsk, myAvatarUrl, myName, onRefres
                 onLongPress={() => handleAskLongPress(ask)}
                 delayLongPress={350}
               >
-                {/* IG-Notes-style bubble above the avatar with the ask
-                    body. The ring underneath still carries the recency
-                    cue (gradient = unviewed, grey = viewed); the bubble
-                    carries the *content*. */}
-                <View style={[styles.bubble, viewed && styles.bubbleViewed]}>
-                  <Text
-                    style={[styles.bubbleText, viewed && styles.bubbleTextViewed]}
-                    numberOfLines={2}
-                  >
-                    {bubbleText}
-                  </Text>
-                  <View style={[styles.bubbleTail, viewed && styles.bubbleTailViewed]} />
+                <View style={styles.askCardHeader}>
+                  {viewed ? (
+                    <View style={styles.askCardViewedRing}>{avatar}</View>
+                  ) : (
+                    <RotatingGradientRing
+                      size={44}
+                      colors={
+                        ask.degree === 1
+                          ? ['#ff5757', '#c44dff', '#8c52ff', '#ff5757']
+                          : ['#60a5fa', '#818cf8', '#60a5fa']
+                      }
+                    >
+                      {avatar}
+                    </RotatingGradientRing>
+                  )}
+                  <View style={styles.askCardNameStack}>
+                    <Text style={[styles.askCardName, viewed && styles.askCardNameViewed]} numberOfLines={1}>
+                      {name}
+                    </Text>
+                    {ask.author_username ? (
+                      <Text style={styles.askCardHandle} numberOfLines={1}>
+                        @{ask.author_username}
+                      </Text>
+                    ) : null}
+                  </View>
                 </View>
 
-                {viewed ? (
-                  // IG "viewed" treatment — thin grey border, no gradient,
-                  // no rotation. Stays in the row (sorted to the back) so
-                  // the viewer can revisit if they need to.
-                  <View style={[styles.ring, styles.ringViewed]}>
-                    <View style={styles.ringInner}>{avatar}</View>
+                <Text style={[styles.askCardBody, viewed && styles.askCardBodyViewed]} numberOfLines={3}>
+                  {ask.title || ask.body}
+                </Text>
+
+                {ask.ask_tag_names.length > 0 ? (
+                  <View style={styles.askCardTagsRow}>
+                    {ask.ask_tag_names.slice(0, 4).map((tn) => (
+                      <View key={tn} style={[styles.askCardTagChip, viewed && styles.askCardTagChipViewed]}>
+                        <Text style={[styles.askCardTagText, viewed && styles.askCardTagTextViewed]} numberOfLines={1}>
+                          #{tn}
+                        </Text>
+                      </View>
+                    ))}
                   </View>
-                ) : (
-                  <RotatingGradientRing
-                    colors={
-                      ask.degree === 1
-                        ? ['#ff5757', '#c44dff', '#8c52ff', '#ff5757']
-                        : ['#60a5fa', '#818cf8', '#60a5fa']
-                    }
-                  >
-                    {avatar}
-                  </RotatingGradientRing>
-                )}
-                <Text style={[styles.storyName, viewed && styles.storyNameViewed]} numberOfLines={1}>{name}</Text>
+                ) : null}
+
+                <View style={styles.askCardFooter}>
+                  <Text style={[styles.askCardTime, viewed && styles.askCardTimeViewed]}>
+                    {t('ask.timeLeft', { hours: h })}
+                  </Text>
+                  <ChevronRight size={14} color={viewed ? COLORS.gray300 : COLORS.gray400} />
+                </View>
               </TouchableOpacity>
             );
           })}
@@ -841,157 +898,165 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     gap: 14,
   },
-  storyItem: {
+  // ── RotatingGradientRing geometry ──
+  // ring + ringInner are referenced by the RotatingGradientRing
+  // component and overridden inline when a custom size is passed.
+  ring: {
     alignItems: 'center',
-    width: 100, // wider than the avatar's 64dp so the IG-style bubble
-                // above has room without overlapping neighbours
+    justifyContent: 'center',
   },
-  // IG Notes-style bubble that floats above the avatar. White card
-  // with a downward-pointing tail. The visible-area + the tail are
-  // separate Views so we can give them slightly different colours
-  // (the tail re-uses the bubble bg) and the tail sits a few pixels
-  // outside the bubble so the join looks seamless.
-  bubble: {
-    maxWidth: 110,
-    minWidth: 64,
+  ringInner: {
     backgroundColor: COLORS.white,
-    borderRadius: 14,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    marginBottom: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
+  },
+
+  // ── AskCard ── (Spotify/Apple Music style horizontal card)
+  // Replaces the IG-Notes story-item layout. Each card holds the
+  // friend's avatar + name, the ask body (up to 3 lines), tag chips,
+  // and a footer with time-left + a chevron. Wide enough (240dp) for
+  // the body to breathe; tall enough (~150dp) that the row scans
+  // similarly to Spotify's "Made for you" cards.
+  askCard: {
+    width: 240,
+    backgroundColor: COLORS.white,
+    borderRadius: 16,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
     borderWidth: 1,
     borderColor: COLORS.gray100,
     shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 2 },
     elevation: 1,
+    gap: 10,
   },
-  bubbleViewed: {
-    backgroundColor: COLORS.gray50,
-    borderColor: COLORS.gray100,
-    shadowOpacity: 0,
-    elevation: 0,
-  },
-  bubbleEmpty: {
+  askCardEmpty: {
     backgroundColor: COLORS.gray50,
     borderStyle: 'dashed',
     borderColor: COLORS.gray300,
     shadowOpacity: 0,
     elevation: 0,
   },
-  bubbleText: {
-    fontSize: 11,
-    color: COLORS.gray800,
-    lineHeight: 14,
-    textAlign: 'center',
+  askCardViewed: {
+    backgroundColor: COLORS.gray50,
+    shadowOpacity: 0,
+    elevation: 0,
   },
-  bubbleTextViewed: {
-    color: COLORS.gray500,
-  },
-  bubbleTextEmpty: {
-    color: COLORS.gray400,
-  },
-  // Down-pointing tail. Uses the CSS triangle trick: a 0×0 box with
-  // top border filled and left/right transparent.
-  bubbleTail: {
-    position: 'absolute',
-    bottom: -5,
-    alignSelf: 'center',
-    width: 0,
-    height: 0,
-    borderLeftWidth: 5,
-    borderRightWidth: 5,
-    borderTopWidth: 5,
-    borderLeftColor: 'transparent',
-    borderRightColor: 'transparent',
-    borderTopColor: COLORS.white,
-  },
-  bubbleTailViewed: {
-    borderTopColor: COLORS.gray50,
-  },
-  bubbleTailEmpty: {
-    borderTopColor: COLORS.gray50,
-  },
-  ring: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
+  askCardHeader: {
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    padding: 3,
-    // No overflow:hidden here — the plusBadge for the create state
-    // sits at absolute bottom/right past the ring edge and would be
-    // clipped. The rotating gradient does its own circular clip on
-    // ringRotator below, so we don't need it at this level.
+    gap: 10,
   },
-  // Inner rotating layer. Has its own overflow:hidden so the rotating
-  // rectangle's corners are clipped to the circle on Android (iOS
-  // handles it natively when borderRadius is set).
-  ringRotator: {
-    borderRadius: 32,
-    overflow: 'hidden',
+  askCardAvatar: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
   },
-  ringCreate: {
+  // Empty-state ring on the my-Ask card — dashed grey circle echoing
+  // the old ringCreate look, sized to match the 44dp gradient ring.
+  askCardEmptyRing: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     borderWidth: 2,
     borderColor: COLORS.gray300,
     borderStyle: 'dashed',
     backgroundColor: COLORS.gray50,
-  },
-  // Viewed (IG-style) ring — thin grey outline, no gradient, no spin.
-  // The ringInner still sits centered with the same 3px gap, mirroring
-  // the active ring's geometry so the avatar doesn't shift on tap.
-  ringViewed: {
-    borderWidth: 1.5,
-    borderColor: COLORS.gray300,
-  },
-  ringInner: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: '#fff',
     alignItems: 'center',
     justifyContent: 'center',
-    overflow: 'hidden',
   },
-  avatar: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
-  },
-  plusBadge: {
+  askCardPlusBadge: {
     position: 'absolute',
-    bottom: 0,
-    right: 0,
-    width: 20,
-    height: 20,
-    borderRadius: 10,
+    bottom: -2,
+    right: -2,
+    width: 18,
+    height: 18,
+    borderRadius: 9,
     backgroundColor: COLORS.piktag500,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 2,
-    borderColor: '#fff',
+    borderColor: COLORS.white,
   },
-  storyName: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: COLORS.gray800,
-    marginTop: 4,
-    textAlign: 'center',
-    width: 72,
+  // Viewed-state ring on a friend card — same 44dp footprint as the
+  // gradient ring so the layout doesn't jump when an ask flips from
+  // unviewed → viewed.
+  askCardViewedRing: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    borderWidth: 1.5,
+    borderColor: COLORS.gray300,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  storyNameViewed: {
-    fontWeight: '500',
+  askCardNameStack: {
+    flex: 1,
+    minWidth: 0,
+  },
+  askCardName: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: COLORS.gray900,
+  },
+  askCardNameViewed: {
+    color: COLORS.gray600,
+  },
+  askCardHandle: {
+    fontSize: 12,
     color: COLORS.gray500,
-  },
-  storyLabel: {
-    fontSize: 10,
-    color: COLORS.gray500,
-    textAlign: 'center',
-    width: 72,
     marginTop: 1,
   },
-  storyLabelViewed: {
+  askCardBody: {
+    fontSize: 14,
+    color: COLORS.gray800,
+    lineHeight: 19,
+  },
+  askCardBodyViewed: {
+    color: COLORS.gray500,
+  },
+  askCardBodyEmpty: {
+    color: COLORS.gray500,
+    fontStyle: 'italic',
+  },
+  askCardTagsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+  },
+  askCardTagChip: {
+    backgroundColor: COLORS.piktag50,
+    borderRadius: 12,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    maxWidth: 100,
+  },
+  askCardTagChipViewed: {
+    backgroundColor: COLORS.gray100,
+  },
+  askCardTagText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: COLORS.piktag600,
+  },
+  askCardTagTextViewed: {
+    color: COLORS.gray500,
+  },
+  askCardFooter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 'auto',
+  },
+  askCardTime: {
+    fontSize: 12,
+    color: COLORS.gray500,
+    fontWeight: '500',
+  },
+  askCardTimeViewed: {
     color: COLORS.gray400,
   },
 });
