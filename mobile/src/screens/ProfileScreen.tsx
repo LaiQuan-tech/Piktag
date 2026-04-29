@@ -199,7 +199,14 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
     useCallback(() => {
       // Always refetch on focus to catch edits from EditProfile
       fetchAllData();
-    }, [fetchAllData]),
+      // Also refetch ask feed — each useAskFeed() call has independent
+      // state, so when the user deletes their ask from a different
+      // screen (ConnectionsScreen's AskStoryRow, or the AskCreateModal
+      // there), this screen's myAsk pointer would otherwise stay stale
+      // until the realtime DELETE event lands. Belt-and-suspenders
+      // alongside the realtime listener in the hook itself.
+      refreshAskFeed();
+    }, [fetchAllData, refreshAskFeed]),
   );
 
   const onRefresh = useCallback(async () => {
