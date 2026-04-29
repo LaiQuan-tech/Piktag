@@ -109,74 +109,93 @@ export default function ContactSyncScreen({ navigation }: ContactSyncScreenProps
     } catch { /* cancelled */ }
   };
 
-  // Silent import: only creates a connection if contact matches a PikTag user.
-  // Returns true if matched+connected, false if not found. Never opens share sheet.
+  // Server-side matching via the match_contacts_against_profiles RPC.
   //
-  // Uses .maybeSingle() instead of .single() so "no rows" returns null cleanly.
-  // Real errors (RLS denied, network) are logged so they're not masked as
-  // "not found" — a silent failure used to make the feature look broken even
-  // when the real issue was a DB permission.
-  const importContactSilently = async (contact: PhoneContact): Promise<boolean> => {
+  // Replaces the old client-side strategy that did:
+  //   * .eq('phone', stripped_input) — broken because stored phone is
+  //     E.164 ("+886...") while iOS contacts are local format ("0...")
+  //   * username ILIKE email_prefix — false-positive prone substitute
+  //     for a real email lookup
+  //
+  // The RPC normalizes phone to last-9-digits on both sides, exact-matches
+  // email against auth.users.email (only reachable via SECURITY DEFINER),
+  // and skips self / users who have blocked the viewer.
+  //
+  // Returns a Map keyed by the contact's id (NOT the input array index)
+  // so callers can look up matches without juggling indices.
+  const matchAgainstProfiles = useCallback(
+    async (
+      list: PhoneContact[],
+    ): Promise<Map<string, { user_id: string; match_type: 'phone' | 'email' }>> => {
+      const out = new Map<string, { user_id: string; match_type: 'phone' | 'email' }>();
+      if (list.length === 0) return out;
+      const phones = list.map((c) => c.phone ?? '');
+      const emails = list.map((c) => c.email ?? '');
+      const { data, error } = await supabase.rpc('match_contacts_against_profiles', {
+        p_phones: phones,
+        p_emails: emails,
+      });
+      if (error) {
+        console.warn('[ContactSync] RPC error:', error.message);
+        return out;
+      }
+      const rows = (data ?? []) as Array<{
+        input_index: number;
+        matched_user_id: string;
+        match_type: 'phone' | 'email';
+      }>;
+      // RPC orders phone matches before email matches, so first-write-wins
+      // gives phone priority when both happen to match the same contact.
+      for (const row of rows) {
+        const c = list[row.input_index];
+        if (!c) continue;
+        if (out.has(c.id)) continue;
+        out.set(c.id, { user_id: row.matched_user_id, match_type: row.match_type });
+      }
+      return out;
+    },
+    [],
+  );
+
+  // Upsert a single piktag_connections row for a matched contact.
+  // Returns true on success.
+  const upsertConnection = async (
+    contact: PhoneContact,
+    matchedUserId: string,
+  ): Promise<boolean> => {
     if (!user) return false;
-    try {
-      let matchedUserId: string | null = null;
-
-      if (contact.phone) {
-        const normalizedPhone = contact.phone.replace(/[\s\-()]/g, '');
-        const { data: phoneMatch, error: phoneErr } = await supabase
-          .from('piktag_profiles')
-          .select('id')
-          .eq('phone', normalizedPhone)
-          .maybeSingle();
-        if (phoneErr) console.warn('[ContactSync] phone lookup error:', phoneErr.message);
-        if (phoneMatch) matchedUserId = phoneMatch.id;
-      }
-
-      if (!matchedUserId && contact.email && contact.email.includes('@')) {
-        const prefix = contact.email.split('@')[0];
-        const { data: emailMatch, error: emailErr } = await supabase
-          .from('piktag_profiles')
-          .select('id')
-          .ilike('username', prefix)
-          .maybeSingle();
-        if (emailErr) console.warn('[ContactSync] email lookup error:', emailErr.message);
-        if (emailMatch) matchedUserId = emailMatch.id;
-      }
-
-      if (matchedUserId && matchedUserId !== user.id) {
-        const { error } = await supabase
-          .from('piktag_connections')
-          .upsert(
-            {
-              user_id: user.id,
-              connected_user_id: matchedUserId,
-              nickname: contact.name,
-              note: contact.phone ? `電話: ${contact.phone}` : '',
-            },
-            { onConflict: 'user_id,connected_user_id' }
-          );
-        if (error) {
-          console.warn('[ContactSync] upsert error:', error.message, error.code);
-          return false;
-        }
-        setImportedIds((prev) => new Set(prev).add(contact.id));
-        return true;
-      }
-      return false;
-    } catch (err) {
-      console.warn('[ContactSync] importContactSilently threw:', err);
+    const { error } = await supabase.from('piktag_connections').upsert(
+      {
+        user_id: user.id,
+        connected_user_id: matchedUserId,
+        nickname: contact.name,
+        note: contact.phone ? `電話: ${contact.phone}` : '',
+      },
+      { onConflict: 'user_id,connected_user_id' },
+    );
+    if (error) {
+      console.warn('[ContactSync] upsert error:', error.message, error.code);
       return false;
     }
+    return true;
   };
 
-  // Individual '+' button: silent import, but if no match found fall back to
-  // invite sheet so the user can share PikTag with that contact.
+  // Individual '+' button: server match → if matched, upsert; if not, fall
+  // back to invite sheet so the user can share PikTag with that contact.
   const handleImportContact = async (contact: PhoneContact) => {
     if (!user) return;
     setImportingIds((prev) => new Set(prev).add(contact.id));
     try {
-      const matched = await importContactSilently(contact);
-      if (!matched) {
+      const matches = await matchAgainstProfiles([contact]);
+      const m = matches.get(contact.id);
+      if (m) {
+        const ok = await upsertConnection(contact, m.user_id);
+        if (ok) {
+          setImportedIds((prev) => new Set(prev).add(contact.id));
+        } else {
+          handleInvite(contact);
+        }
+      } else {
         handleInvite(contact);
       }
     } finally {
@@ -188,10 +207,11 @@ export default function ContactSyncScreen({ navigation }: ContactSyncScreenProps
     }
   };
 
-  // '全部匯入': silent batch. Never opens share sheet during processing.
-  // Shows inline progress, summary alert at end.
+  // '全部匯入': single-RPC server match for the whole pending set, then
+  // upserts in parallel for everyone matched. Never opens share sheet
+  // during processing. Inline progress + summary alert at end.
   const handleImportAll = async () => {
-    if (contacts.length === 0 || batchProgress) return;
+    if (!user || contacts.length === 0 || batchProgress) return;
     const pending = contacts.filter((c) => !importedIds.has(c.id));
     if (pending.length === 0) return;
 
@@ -204,23 +224,51 @@ export default function ContactSyncScreen({ navigation }: ContactSyncScreenProps
           text: t('contactSync.alertBatchImportConfirm'),
           onPress: async () => {
             setBatchProgress({ current: 0, total: pending.length, matched: 0 });
+
+            // 1. Match all contacts against the server in one round-trip.
+            const matches = await matchAgainstProfiles(pending);
+
+            // 2. Upsert connections for matched contacts. Run in parallel
+            //    in chunks of 10 so we don't pummel the API; tracks matched
+            //    count for the progress UI.
+            const newImported = new Set(importedIds);
             let matched = 0;
-            for (let i = 0; i < pending.length; i++) {
-              const ok = await importContactSilently(pending[i]);
-              if (ok) matched++;
-              setBatchProgress({ current: i + 1, total: pending.length, matched });
+            const CHUNK = 10;
+            const matchedContacts = pending.filter((c) => matches.has(c.id));
+            for (let i = 0; i < matchedContacts.length; i += CHUNK) {
+              const slice = matchedContacts.slice(i, i + CHUNK);
+              const results = await Promise.all(
+                slice.map((c) => upsertConnection(c, matches.get(c.id)!.user_id)),
+              );
+              for (let k = 0; k < slice.length; k++) {
+                if (results[k]) {
+                  matched++;
+                  newImported.add(slice[k].id);
+                }
+              }
+              setBatchProgress({
+                current: Math.min(i + slice.length, matchedContacts.length),
+                total: pending.length,
+                matched,
+              });
             }
+            // Bump progress to 100% (covers the unmatched bulk too).
+            setBatchProgress({ current: pending.length, total: pending.length, matched });
+
+            setImportedIds(newImported);
             setBatchProgress(null);
+
+            const inviteable = pending.length - matched;
             Alert.alert(
               t('contactSync.alertBatchDoneTitle') || '匯入完成',
               t('contactSync.alertBatchDoneMessage', {
                 matched,
-                notOnApp: pending.length - matched,
-              }) || `已加入 ${matched} 位朋友。其中 ${pending.length - matched} 位尚未使用 PikTag。`,
+                notOnApp: inviteable,
+              }) || `已加入 ${matched} 位 PikTag 朋友。剩下 ${inviteable} 位可邀請使用 PikTag。`,
             );
           },
         },
-      ]
+      ],
     );
   };
 
