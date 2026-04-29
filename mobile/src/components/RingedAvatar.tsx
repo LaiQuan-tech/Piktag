@@ -1,5 +1,7 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import {
+  Animated,
+  Easing,
   Pressable,
   StyleProp,
   StyleSheet,
@@ -44,11 +46,18 @@ export type RingedAvatarProps = {
   style?: StyleProp<ViewStyle>;
 };
 
-const DEFAULT_GRADIENT: readonly [string, string, string] = [
+// 4-stop loop (first === last) so the rotating ring has no visible seam
+// where the gradient ends meet on every revolution.
+const DEFAULT_GRADIENT: readonly [string, string, string, string] = [
   '#ff5757',
   '#c44dff',
   '#8c52ff',
+  '#ff5757',
 ];
+
+// 6 seconds per revolution — matches AskStoryRow's RotatingGradientRing
+// and the web profile's gradientFlow keyframe duration.
+const ROTATION_DURATION_MS = 6000;
 
 /**
  * Shared avatar surface that wraps `InitialsAvatar` with the brand gradient ring established by
@@ -74,6 +83,28 @@ function RingedAvatarImpl({
   const badgeDimension = isSmall ? 16 : 20;
   const badgeIconSize = isSmall ? 10 : 12;
 
+  // Continuous 0→1 loop on the native driver so the gradient ring spins
+  // without burning JS-thread frames. Only meaningful when the gradient
+  // variant is rendered, but we always start it (cheap on the native
+  // driver) and just never reference `spin` for non-gradient styles.
+  const rotation = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    const anim = Animated.loop(
+      Animated.timing(rotation, {
+        toValue: 1,
+        duration: ROTATION_DURATION_MS,
+        easing: Easing.linear,
+        useNativeDriver: true,
+      }),
+    );
+    anim.start();
+    return () => anim.stop();
+  }, [rotation]);
+  const spin = rotation.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['0deg', '360deg'],
+  });
+
   // Container matches the outer ring diameter so the absolute-positioned badge anchors correctly.
   const containerSizeStyle: ViewStyle = {
     width: size,
@@ -90,19 +121,37 @@ function RingedAvatarImpl({
   let inner: React.ReactNode;
 
   if (ringStyle === 'gradient') {
-    // 3px gradient padding → white inner ring → image. Mirrors AskStoryRow exactly.
+    // Layered structure so the gradient can spin while the avatar stays still:
+    //   outer wrapper (size×size, circular) — anchors the badge + clipping
+    //     └─ Animated.View (absoluteFill, rotating) — holds LinearGradient
+    //     └─ white inner ring (centered, 3px gap) — holds the avatar image
+    // Mirrors the RotatingGradientRing in AskStoryRow exactly.
     const innerSize = size - 6;
     const imageSize = size - 12;
     inner = (
-      <LinearGradient
-        colors={ringColors}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
+      <View
         style={[
           styles.gradientRing,
           containerSizeStyle,
         ]}
       >
+        <Animated.View
+          style={[
+            StyleSheet.absoluteFillObject,
+            {
+              borderRadius: size / 2,
+              overflow: 'hidden',
+              transform: [{ rotate: spin }],
+            },
+          ]}
+        >
+          <LinearGradient
+            colors={ringColors}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={StyleSheet.absoluteFillObject}
+          />
+        </Animated.View>
         <View
           style={[
             styles.whiteRing,
@@ -119,7 +168,7 @@ function RingedAvatarImpl({
             avatarUrl={avatarUrl}
           />
         </View>
-      </LinearGradient>
+      </View>
     );
   } else if (ringStyle === 'subtle') {
     // Single 1.5px border. Image gets size - 3 so the border doesn't crop the avatar.
