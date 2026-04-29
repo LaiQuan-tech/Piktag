@@ -15,7 +15,7 @@ import PageLoader from '../components/loaders/PageLoader';
 import BrandSpinner from '../components/loaders/BrandSpinner';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import { X, Hash, Pin, Sparkles, ArrowLeftRight, AlertTriangle } from 'lucide-react-native';
+import { X, Hash, Pin, Sparkles, ArrowLeftRight, AlertTriangle, Plus } from 'lucide-react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from '../lib/supabase';
 import { logApiUsage } from '../lib/apiUsage';
@@ -543,11 +543,19 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
                   maxLength={MAX_TAG_LENGTH}
                 />
                 <Text style={styles.charCount}>{tagInput.length}/{MAX_TAG_LENGTH}</Text>
+                {/* Plus-icon submit — same affordance as AddTagScreen's
+                    custom-tag input and AskStoryRow's create-ask badge.
+                    Replaces the prior "新增" / "Add" text label so the
+                    button width is locale-independent — long
+                    translations ("Aggiungi", "Tambah", "Hinzufügen")
+                    no longer push the input row out of shape. */}
                 <Pressable
                   style={[styles.addBtn, (!tagInput.trim() || addingTag || myTags.length >= MAX_TAGS) && styles.addBtnDisabled]}
                   onPress={handleAddTag}
+                  accessibilityRole="button"
+                  accessibilityLabel={t('manageTags.addButton')}
                 >
-                  {addingTag ? <BrandSpinner size={20} /> : <Text style={styles.addBtnText}>{t('manageTags.addButton')}</Text>}
+                  {addingTag ? <BrandSpinner size={20} /> : <Plus size={20} color="#FFFFFF" strokeWidth={2.5} />}
                 </Pressable>
               </View>
             </View>
@@ -637,7 +645,17 @@ const styles = StyleSheet.create({
   },
   textInput: { flex: 1, fontSize: 16, color: COLORS.gray900, padding: 0 },
   charCount: { fontSize: 12, color: COLORS.gray400 },
-  addBtn: { backgroundColor: COLORS.piktag500, borderRadius: 20, paddingVertical: 8, paddingHorizontal: 16 },
+  // Round 40×40 submit button — sits inside the 48px-tall inputRow
+  // (which has paddingRight: 4), so 40 + 4 + 4 spacing fills the right
+  // side cleanly. Fixed dimensions so the input bar stops resizing
+  // between locales and the spinner / Plus icon swap stays in place.
+  addBtn: {
+    backgroundColor: COLORS.piktag500,
+    borderRadius: 20,
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   addBtnDisabled: { opacity: 0.4 },
-  addBtnText: { fontSize: 14, fontWeight: '700', color: '#FFFFFF' },
 });
