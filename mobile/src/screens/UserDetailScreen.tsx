@@ -1127,8 +1127,19 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
 
         {/* Hidden tags editor — inline so users don't have to dig into
             the Pick Tag modal to see the auto-filled event tags from
-            a QR scan. Only shows once a connection exists. */}
-        {connectionId && authUser && (
+            a QR scan.
+
+            Gate intentionally checks BOTH isFollowing AND connectionId,
+            mirroring the [標籤] button gate above (L1105). connectionId
+            alone is not enough: PikTag soft-keeps piktag_connections
+            rows when a follow is removed (so re-following restores
+            tags + history rather than starting from scratch), and a QR
+            scan can also create a connection without a follow. Either
+            path leaves connectionId set on a profile the viewer is no
+            longer (or never was) following — and the inline editor was
+            leaking onto those stranger profiles, exposing private
+            hidden-tag UI to a non-relationship. */}
+        {isFollowing && connectionId && authUser && (
           <View style={styles.inlineHiddenTagSection}>
             <Text style={styles.inlineHiddenTagTitle}>
               {t('friendDetail.hiddenTagsTitle') || '隱藏標籤'}
