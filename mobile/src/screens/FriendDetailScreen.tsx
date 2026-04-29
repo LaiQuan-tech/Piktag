@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useReducer, useMemo, useEffect, useRef } from 'react';
+import React, { useState, useCallback, useReducer, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -63,7 +63,6 @@ import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
 import type { Connection, PiktagProfile, Biolink } from '../types';
 import { getViewerRelation, filterBiolinksByVisibility } from '../lib/biolinkVisibility';
-import { calculateStrength, getStrengthLabel } from '../lib/connectionStrength';
 
 // How many scan-event tags to show before the "show all" toggle kicks in.
 // Picked so a typical 2-3 event meeting still shows everything inline,
@@ -858,21 +857,12 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
     }
   };
 
-  // Connection strength (must be before any early return)
-  const metDate = connection?.met_at || '';
-  const strengthScore = useMemo(() => {
-    const daysSinceMet = metDate ? Math.floor((Date.now() - new Date(metDate).getTime()) / 86400000) : 0;
-    return calculateStrength({
-      mutualTagCount: mutualTags,
-      daysSinceMet,
-      hasBirthday: !!birthday,
-      hasAnniversary: false,
-      isCloseFriend,
-      hiddenTagCount: hiddenTags.length,
-      pickedTagCount: tags.filter(t => t.isPicked).length,
-    });
-  }, [metDate, mutualTags, birthday, isCloseFriend, hiddenTags, tags]);
-  const strengthInfo = getStrengthLabel(strengthScore);
+  // Connection strength tier badge ("新朋友/初識/認識/熟識/密友") was removed
+  // from the username row — too much noise in the profile header for a
+  // signal that ranks a relationship the user already opened on purpose.
+  // The underlying calculateStrength helper in lib/connectionStrength.ts
+  // is left in place in case a future surface (filter, sort, dashboard)
+  // wants to reuse the score without resurrecting the badge UI.
 
   if (loading) {
     return (
@@ -972,9 +962,6 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
               </View>
               <View style={styles.usernameRow}>
                 <Text style={styles.usernameText}>@{username}</Text>
-                <View style={[styles.strengthBadge, { backgroundColor: strengthInfo.color + '18' }]}>
-                  <Text style={[styles.strengthText, { color: strengthInfo.color }]}>{strengthInfo.label}</Text>
-                </View>
               </View>
             </View>
           </View>
@@ -1622,15 +1609,6 @@ const styles = StyleSheet.create({
   usernameText: {
     fontSize: 14,
     color: COLORS.gray500,
-  },
-  strengthBadge: {
-    paddingVertical: 2,
-    paddingHorizontal: 8,
-    borderRadius: 8,
-  },
-  strengthText: {
-    fontSize: 11,
-    fontWeight: '700',
   },
   headline: {
     fontSize: 14,

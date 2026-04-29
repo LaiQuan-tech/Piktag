@@ -53,6 +53,24 @@ type ConnectionWithTags = Connection & {
   semanticTypes: string[]; // unique semantic types from all tags
 };
 
+// "new" badge auto-expires after this many days. Without expiry the badge
+// stays forever on every connection the user never opened ActivityReview
+// for, which produces visual noise that doesn't actually map to a real
+// "new" relationship anymore. 7 days matches the rough "if you haven't
+// processed them this week, you probably won't" behavioral pattern.
+//
+// Important: both the badge render AND the unreviewedCount banner count
+// share this filter, so the header number always matches what the list
+// visually shows.
+const NEW_BADGE_MAX_DAYS = 7;
+const NEW_BADGE_MAX_MS = NEW_BADGE_MAX_DAYS * 86_400_000;
+const isWithinNewWindow = (createdAt?: string | null): boolean => {
+  if (!createdAt) return false;
+  const ts = new Date(createdAt).getTime();
+  if (Number.isNaN(ts)) return false;
+  return Date.now() - ts < NEW_BADGE_MAX_MS;
+};
+
 // --- Memoized list item component ---
 type ConnectionItemProps = {
   item: ConnectionWithTags;
@@ -96,7 +114,7 @@ const ConnectionItem = React.memo(({ item, isSelected, selectMode, onPress, onLo
       <View style={styles.textSection}>
         <View style={styles.nameRow}>
           <Text style={styles.name} numberOfLines={1}>{displayName}</Text>
-          {item.is_reviewed === false && (
+          {item.is_reviewed === false && isWithinNewWindow(item.created_at) && (
             <Text style={styles.newBadgeText}>new</Text>
           )}
         </View>
@@ -261,8 +279,18 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
       // Derive the "待整理" badge from the filtered list so the number
       // shown in the header ("1 位待整理") always matches what's
       // actually visible in the list below it.
+      //
+      // Same isWithinNewWindow gate as the per-row "new" pill — keeps the
+      // header count and the visible badges in lock-step. A connection
+      // older than NEW_BADGE_MAX_DAYS that's still unreviewed silently
+      // ages out: the row stops showing "new" and stops counting toward
+      // the banner. ActivityReview can still surface it (it queries
+      // is_reviewed=false directly with no age filter) for the user who
+      // wants to clean up old leftovers.
       setUnreviewedCount(
-        displayedConnections.filter((c: any) => c.is_reviewed === false).length,
+        displayedConnections.filter(
+          (c: any) => c.is_reviewed === false && isWithinNewWindow(c.created_at),
+        ).length,
       );
 
       const connectionIds = displayedConnections.map((c: any) => c.id);
