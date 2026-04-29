@@ -924,7 +924,8 @@
     "cardLabel": "সাহায্য চাইছি",
     "askingNow": "এখন চাইছেন",
     "yourAskTitle": "আপনার বর্তমান Ask",
-    "generateAiTags": "AI ট্যাগ তৈরি করুন"
+    "generateAiTags": "AI ট্যাগ তৈরি করুন",
+    "bubblePromptMine": "+ নতুন Ask"
   },
   "errorBoundary": {
     "title": "কিছু ভুল হয়েছে",

@@ -924,7 +924,8 @@
     "cardLabel": "กำลังหา",
     "askingNow": "กำลังขอความช่วยเหลือ",
     "yourAskTitle": "Ask ของคุณ",
-    "generateAiTags": "สร้างแท็กด้วย AI"
+    "generateAiTags": "สร้างแท็กด้วย AI",
+    "bubblePromptMine": "+ Ask ใหม่"
   },
   "errorBoundary": {
     "title": "เกิดข้อผิดพลาด",

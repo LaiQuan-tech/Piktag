@@ -924,7 +924,8 @@
     "cardLabel": "助けて",
     "askingNow": "現在募集中",
     "yourAskTitle": "現在のAsk",
-    "generateAiTags": "AIでタグ生成"
+    "generateAiTags": "AIでタグ生成",
+    "bubblePromptMine": "+ Ask 追加"
   },
   "errorBoundary": {
     "title": "問題が発生しました",

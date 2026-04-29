@@ -998,7 +998,8 @@
     "cardLabel": "求助中",
     "askingNow": "正在求助",
     "yourAskTitle": "你目前的 Ask",
-    "generateAiTags": "AI 生成标签"
+    "generateAiTags": "AI 生成标签",
+    "bubblePromptMine": "+ 新增 Ask"
   },
   "errorBoundary": {
     "title": "出错了",

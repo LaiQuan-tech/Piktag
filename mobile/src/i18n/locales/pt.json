@@ -924,7 +924,8 @@
     "cardLabel": "Pedindo ajuda",
     "askingNow": "Pedindo agora",
     "yourAskTitle": "Seu Ask atual",
-    "generateAiTags": "Gerar tags com IA"
+    "generateAiTags": "Gerar tags com IA",
+    "bubblePromptMine": "+ Novo Ask"
   },
   "errorBoundary": {
     "title": "Algo deu errado",

@@ -924,7 +924,8 @@
     "cardLabel": "Mencari",
     "askingNow": "Sedang mencari",
     "yourAskTitle": "Ask aktif kamu",
-    "generateAiTags": "Buat tag AI"
+    "generateAiTags": "Buat tag AI",
+    "bubblePromptMine": "+ Ask baru"
   },
   "errorBoundary": {
     "title": "Terjadi kesalahan",

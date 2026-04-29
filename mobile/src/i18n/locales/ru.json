@@ -924,7 +924,8 @@
     "cardLabel": "Ищу",
     "askingNow": "Просят сейчас",
     "yourAskTitle": "Ваш активный Ask",
-    "generateAiTags": "Сгенерировать ИИ-теги"
+    "generateAiTags": "Сгенерировать ИИ-теги",
+    "bubblePromptMine": "+ Новый Ask"
   },
   "errorBoundary": {
     "title": "Что-то пошло не так",

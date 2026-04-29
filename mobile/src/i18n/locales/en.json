@@ -998,7 +998,8 @@
     "cardLabel": "Looking for",
     "askingNow": "Currently asking",
     "yourAskTitle": "Your active Ask",
-    "generateAiTags": "Generate AI tags"
+    "generateAiTags": "Generate AI tags",
+    "bubblePromptMine": "+ New Ask"
   },
   "errorBoundary": {
     "title": "Something went wrong",

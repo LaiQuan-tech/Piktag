@@ -924,7 +924,8 @@
     "cardLabel": "मदद चाहिए",
     "askingNow": "अभी पूछ रहे हैं",
     "yourAskTitle": "आपका वर्तमान Ask",
-    "generateAiTags": "AI टैग बनाएं"
+    "generateAiTags": "AI टैग बनाएं",
+    "bubblePromptMine": "+ नया Ask"
   },
   "errorBoundary": {
     "title": "कुछ गड़बड़ हो गई",

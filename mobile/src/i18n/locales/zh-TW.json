@@ -1005,7 +1005,8 @@
     "cardLabel": "求助中",
     "askingNow": "正在求助",
     "yourAskTitle": "你目前的 Ask",
-    "generateAiTags": "AI 生成標籤"
+    "generateAiTags": "AI 生成標籤",
+    "bubblePromptMine": "+ 新增 Ask"
   },
   "errorBoundary": {
     "title": "發生錯誤",

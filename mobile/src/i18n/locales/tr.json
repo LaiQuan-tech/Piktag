@@ -924,7 +924,8 @@
     "cardLabel": "Aranıyor",
     "askingNow": "Şu an arıyor",
     "yourAskTitle": "Aktif Ask’in",
-    "generateAiTags": "Yapay zeka etiketi üret"
+    "generateAiTags": "Yapay zeka etiketi üret",
+    "bubblePromptMine": "+ Yeni Ask"
   },
   "errorBoundary": {
     "title": "Bir şeyler ters gitti",

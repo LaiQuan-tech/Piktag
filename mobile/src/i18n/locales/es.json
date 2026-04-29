@@ -924,7 +924,8 @@
     "cardLabel": "Buscando",
     "askingNow": "Solicitando ahora",
     "yourAskTitle": "Tu Ask actual",
-    "generateAiTags": "Generar etiquetas IA"
+    "generateAiTags": "Generar etiquetas IA",
+    "bubblePromptMine": "+ Nuevo Ask"
   },
   "errorBoundary": {
     "title": "Algo salió mal",

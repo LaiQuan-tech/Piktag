@@ -924,7 +924,8 @@
     "cardLabel": "도움 요청",
     "askingNow": "지금 요청 중",
     "yourAskTitle": "현재 Ask",
-    "generateAiTags": "AI 태그 생성"
+    "generateAiTags": "AI 태그 생성",
+    "bubblePromptMine": "+ Ask 추가"
   },
   "errorBoundary": {
     "title": "문제가 발생했습니다",

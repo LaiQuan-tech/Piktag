@@ -924,7 +924,8 @@
     "cardLabel": "يبحث عن",
     "askingNow": "يطلبون الآن",
     "yourAskTitle": "Ask النشط",
-    "generateAiTags": "توليد وسوم بالذكاء"
+    "generateAiTags": "توليد وسوم بالذكاء",
+    "bubblePromptMine": "+ Ask جديد"
   },
   "errorBoundary": {
     "title": "حدث خطأ ما",

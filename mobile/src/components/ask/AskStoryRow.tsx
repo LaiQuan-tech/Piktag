@@ -274,6 +274,27 @@ export default function AskStoryRow({ asks, myAsk, myAvatarUrl, myName, onRefres
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.scroll}>
           {/* My Ask card */}
           <TouchableOpacity style={styles.storyItem} activeOpacity={0.7} onPress={() => setCreateVisible(true)}>
+            {/* My-side bubble. Shows the active ask's body when one
+                exists; otherwise an empty muted bubble as a hint that
+                this card is the same shape as the friend cards. The
+                "+" badge on the avatar still does the heavy lifting
+                for the create affordance. */}
+            {myAsk ? (
+              <View style={styles.bubble}>
+                <Text style={styles.bubbleText} numberOfLines={2}>
+                  {myAsk.title || myAsk.body}
+                </Text>
+                <View style={styles.bubbleTail} />
+              </View>
+            ) : (
+              <View style={[styles.bubble, styles.bubbleEmpty]}>
+                <Text style={[styles.bubbleText, styles.bubbleTextEmpty]} numberOfLines={1}>
+                  {t('ask.bubblePromptMine') || '+ 新增 Ask'}
+                </Text>
+                <View style={[styles.bubbleTail, styles.bubbleTailEmpty]} />
+              </View>
+            )}
+
             {myAsk ? (
               <RotatingGradientRing colors={['#c44dff', '#8c52ff', '#5e2ce6', '#c44dff']}>
                 {myAvatarUrl ? (
@@ -311,6 +332,7 @@ export default function AskStoryRow({ asks, myAsk, myAvatarUrl, myName, onRefres
             ) : (
               <InitialsAvatar name={name} size={52} />
             );
+            const bubbleText = ask.title || ask.body;
             return (
               <TouchableOpacity
                 key={ask.ask_id}
@@ -323,6 +345,20 @@ export default function AskStoryRow({ asks, myAsk, myAvatarUrl, myName, onRefres
                 onLongPress={() => handleAskLongPress(ask)}
                 delayLongPress={350}
               >
+                {/* IG-Notes-style bubble above the avatar with the ask
+                    body. The ring underneath still carries the recency
+                    cue (gradient = unviewed, grey = viewed); the bubble
+                    carries the *content*. */}
+                <View style={[styles.bubble, viewed && styles.bubbleViewed]}>
+                  <Text
+                    style={[styles.bubbleText, viewed && styles.bubbleTextViewed]}
+                    numberOfLines={2}
+                  >
+                    {bubbleText}
+                  </Text>
+                  <View style={[styles.bubbleTail, viewed && styles.bubbleTailViewed]} />
+                </View>
+
                 {viewed ? (
                   // IG "viewed" treatment — thin grey border, no gradient,
                   // no rotation. Stays in the row (sorted to the back) so
@@ -342,9 +378,6 @@ export default function AskStoryRow({ asks, myAsk, myAvatarUrl, myName, onRefres
                   </RotatingGradientRing>
                 )}
                 <Text style={[styles.storyName, viewed && styles.storyNameViewed]} numberOfLines={1}>{name}</Text>
-                <Text style={[styles.storyLabel, viewed && styles.storyLabelViewed]} numberOfLines={1}>
-                  {ask.title || ask.body.slice(0, 20)}
-                </Text>
               </TouchableOpacity>
             );
           })}
@@ -810,7 +843,75 @@ const styles = StyleSheet.create({
   },
   storyItem: {
     alignItems: 'center',
-    width: 72,
+    width: 100, // wider than the avatar's 64dp so the IG-style bubble
+                // above has room without overlapping neighbours
+  },
+  // IG Notes-style bubble that floats above the avatar. White card
+  // with a downward-pointing tail. The visible-area + the tail are
+  // separate Views so we can give them slightly different colours
+  // (the tail re-uses the bubble bg) and the tail sits a few pixels
+  // outside the bubble so the join looks seamless.
+  bubble: {
+    maxWidth: 110,
+    minWidth: 64,
+    backgroundColor: COLORS.white,
+    borderRadius: 14,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: COLORS.gray100,
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 1 },
+    elevation: 1,
+  },
+  bubbleViewed: {
+    backgroundColor: COLORS.gray50,
+    borderColor: COLORS.gray100,
+    shadowOpacity: 0,
+    elevation: 0,
+  },
+  bubbleEmpty: {
+    backgroundColor: COLORS.gray50,
+    borderStyle: 'dashed',
+    borderColor: COLORS.gray300,
+    shadowOpacity: 0,
+    elevation: 0,
+  },
+  bubbleText: {
+    fontSize: 11,
+    color: COLORS.gray800,
+    lineHeight: 14,
+    textAlign: 'center',
+  },
+  bubbleTextViewed: {
+    color: COLORS.gray500,
+  },
+  bubbleTextEmpty: {
+    color: COLORS.gray400,
+  },
+  // Down-pointing tail. Uses the CSS triangle trick: a 0×0 box with
+  // top border filled and left/right transparent.
+  bubbleTail: {
+    position: 'absolute',
+    bottom: -5,
+    alignSelf: 'center',
+    width: 0,
+    height: 0,
+    borderLeftWidth: 5,
+    borderRightWidth: 5,
+    borderTopWidth: 5,
+    borderLeftColor: 'transparent',
+    borderRightColor: 'transparent',
+    borderTopColor: COLORS.white,
+  },
+  bubbleTailViewed: {
+    borderTopColor: COLORS.gray50,
+  },
+  bubbleTailEmpty: {
+    borderTopColor: COLORS.gray50,
   },
   ring: {
     width: 64,
