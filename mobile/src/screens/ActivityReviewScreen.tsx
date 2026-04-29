@@ -10,7 +10,7 @@ import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
   useSharedValue, useAnimatedStyle, withSpring, withTiming, runOnJS,
 } from 'react-native-reanimated';
-import { X, Check, Tag, MapPin, Calendar } from 'lucide-react-native';
+import { X, Check, Tag, MapPin, Calendar, Plus } from 'lucide-react-native';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
 import { COLORS } from '../constants/theme';
@@ -432,8 +432,19 @@ export default function ActivityReviewScreen({ navigation, route }: Props) {
             returnKeyType="done"
             onSubmitEditing={handleAddTag}
           />
-          <Pressable style={styles.addBtn} onPress={handleAddTag}>
-            <Text style={styles.addBtnText}>{t('common.add') || '新增'}</Text>
+          {/* Plus-icon submit — same affordance as AddTagScreen,
+              ManageTagsScreen, AskStoryRow, RingedAvatar. Replaces the
+              prior "新增" / "Add" text label so the input row width
+              stays stable across all 15 locales (long forms like
+              "Aggiungi" / "Hinzufügen" used to push the input out
+              of shape on this 44px-tall pill). */}
+          <Pressable
+            style={styles.addBtn}
+            onPress={handleAddTag}
+            accessibilityRole="button"
+            accessibilityLabel={t('common.add') || '新增'}
+          >
+            <Plus size={18} color="#FFFFFF" strokeWidth={2.5} />
           </Pressable>
         </View>
         <View style={styles.actionRow}>
@@ -483,8 +494,17 @@ const styles = StyleSheet.create({
   inputBar: { paddingHorizontal: 16, paddingTop: 8, borderTopWidth: 1, borderTopColor: COLORS.gray100 },
   inputRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.gray100, borderRadius: 20, paddingLeft: 14, paddingRight: 4, height: 44, gap: 8 },
   textInput: { flex: 1, fontSize: 15, color: COLORS.gray900, padding: 0 },
-  addBtn: { backgroundColor: COLORS.piktag500, borderRadius: 16, paddingVertical: 6, paddingHorizontal: 14 },
-  addBtnText: { fontSize: 14, fontWeight: '700', color: '#FFFFFF' },
+  // Round 36×36 submit button — sits inside the 44px-tall inputRow
+  // (paddingRight: 4 leaves 4px each side). Fixed dimensions so the
+  // input bar stops resizing between locales.
+  addBtn: {
+    backgroundColor: COLORS.piktag500,
+    borderRadius: 18,
+    width: 36,
+    height: 36,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   actionRow: { flexDirection: 'row', gap: 12, marginTop: 10 },
   skipActionBtn: { flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, paddingVertical: 12, borderRadius: 14, borderWidth: 1.5, borderColor: COLORS.piktag500, backgroundColor: COLORS.piktag50 },
   skipActionText: { fontSize: 15, fontWeight: '600', color: COLORS.piktag600 },
