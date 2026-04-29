@@ -36,6 +36,20 @@ jobs:
             -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
             -H "Content-Type: application/json"
 
+  # Lightweight CRM: hidden tags whose name is a YYYY/MM/DD date fire
+  # an anniversary notification on the matching day every year. Same
+  # 09:00 TW morning slot.
+  date-tag-anniversaries:
+    runs-on: ubuntu-latest
+    if: github.event.schedule == '0 1 * * *' || github.event_name == 'workflow_dispatch'
+    steps:
+      - name: Trigger daily-date-tag-anniversaries
+        run: |
+          curl --fail-with-body --silent --show-error -X POST \
+            "https://kbwfdskulxnhjckdvghj.supabase.co/functions/v1/daily-date-tag-anniversaries" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            -H "Content-Type: application/json"
+
   auto-link-concepts:
     runs-on: ubuntu-latest
     if: github.event.schedule == '0 19 * * *' || github.event_name == 'workflow_dispatch'
