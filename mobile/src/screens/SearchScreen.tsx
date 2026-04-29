@@ -24,7 +24,7 @@ import {
 import RingedAvatar from '../components/RingedAvatar';
 import FriendsMapModal, { type FriendLocation } from '../components/FriendsMapModal';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { requestForegroundPermissionsAsync, getCurrentPositionAsync, Accuracy } from 'expo-location';
+import { requestForegroundPermissionsAsync, getCurrentPositionAsync, Accuracy, reverseGeocodeAsync } from 'expo-location';
 import { useTranslation } from 'react-i18next';
 import { getLocales } from 'expo-localization';
 import { supabase } from '../lib/supabase';
@@ -202,17 +202,54 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
   const { t } = useTranslation();
   const { colors, isDark } = useTheme();
   const { user } = useAuth();
-  // `profile.location` is the free-text location the user set on their
-  // own profile (e.g. "台北", "Taipei", "Brooklyn, NY"). Used to
-  // localize the {{city}} interpolation in the rotating placeholder
-  // prompts. We don't reverse-geocode lat/lng here on purpose — the
-  // self-declared text is what the user thinks of as "their place",
-  // which is what the prompt should mirror.
+  // GPS-derived city for {{city}} interpolation in the rotating
+  // placeholder prompts. We previously read `profile.location` (a
+  // free-text field) but that turned out to be empty for ~all users,
+  // so the city prompt always fell back to "我附近". Now we reverse-
+  // geocode the user's last shared GPS coords (`profile.latitude`/
+  // `profile.longitude` — written every time they tap "Nearby" with
+  // location permission). Reverse geocode runs on-device on iOS and
+  // through Play Services on Android, so it's fast and offline-safe.
+  // Caching: the lat/lng-keyed ref means we only call once per
+  // location change, even though the effect re-evaluates on every
+  // render.
   const { profile: authProfile } = useAuthProfile();
-  const userCity = useMemo(() => {
-    const raw = authProfile?.location?.trim();
-    return raw && raw.length > 0 ? raw : null;
-  }, [authProfile?.location]);
+  const [userCity, setUserCity] = useState<string | null>(null);
+  const lastGeocodedKeyRef = useRef<string | null>(null);
+  useEffect(() => {
+    const lat = authProfile?.latitude;
+    const lng = authProfile?.longitude;
+    if (lat == null || lng == null) {
+      setUserCity(null);
+      lastGeocodedKeyRef.current = null;
+      return;
+    }
+    // Round to 2 decimals (~1 km granularity) so micro-position
+    // drift while sitting still doesn't re-fire the geocode.
+    const key = `${lat.toFixed(2)},${lng.toFixed(2)}`;
+    if (key === lastGeocodedKeyRef.current) return;
+    lastGeocodedKeyRef.current = key;
+    let cancelled = false;
+    (async () => {
+      try {
+        const results = await reverseGeocodeAsync({ latitude: lat, longitude: lng });
+        const r = results[0];
+        // Order: city > subregion > region. iOS often returns city
+        // for urban areas but only subregion for rural; Android can
+        // return region (e.g. "Taipei City"). All three render fine
+        // in the prompt template across all 15 locales.
+        const cityName = r?.city || r?.subregion || r?.region || null;
+        if (!cancelled) setUserCity(cityName);
+      } catch {
+        // Silent — null falls through to the locale's cityFallback
+        // ("在我附近的設計師" / "Designers near me" / etc.)
+        if (!cancelled) setUserCity(null);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [authProfile?.latitude, authProfile?.longitude]);
   const [isFocused, setIsFocused] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState<CategoryKey | null>(null);
