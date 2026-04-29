@@ -157,6 +157,57 @@ export default function ContactSyncScreen({ navigation }: ContactSyncScreenProps
     [],
   );
 
+  // After contacts load, hydrate `importedIds` from the server so contacts
+  // who are ALREADY a piktag_connections row don't keep showing up as
+  // "available to import" forever. Without this, deleting + reinstalling
+  // the app (or just navigating away) wipes the local Set and the screen
+  // re-prompts the user to import people they previously imported — even
+  // people they later unfollowed/disconnected from.
+  //
+  // Runs the match RPC + an existing-connections query in parallel and
+  // intersects: a contact is "already imported" iff its matched user id
+  // is in the viewer's piktag_connections. Errors degrade gracefully —
+  // the Set stays empty and the user sees the old behaviour, no crash.
+  useEffect(() => {
+    if (!user || contacts.length === 0) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const [matches, connectionsRes] = await Promise.all([
+          matchAgainstProfiles(contacts),
+          supabase
+            .from('piktag_connections')
+            .select('connected_user_id')
+            .eq('user_id', user.id),
+        ]);
+        if (cancelled) return;
+
+        const existing = new Set<string>(
+          ((connectionsRes.data ?? []) as Array<{ connected_user_id: string }>).map(
+            (r) => r.connected_user_id,
+          ),
+        );
+        const alreadyImported = new Set<string>();
+        for (const c of contacts) {
+          const m = matches.get(c.id);
+          if (m && existing.has(m.user_id)) alreadyImported.add(c.id);
+        }
+        if (alreadyImported.size > 0) {
+          setImportedIds((prev) => {
+            const next = new Set(prev);
+            for (const id of alreadyImported) next.add(id);
+            return next;
+          });
+        }
+      } catch (err) {
+        console.warn('[ContactSync] hydrate importedIds failed:', err);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [user, contacts, matchAgainstProfiles]);
+
   // Upsert a single piktag_connections row for a matched contact.
   // Returns true on success.
   const upsertConnection = async (
