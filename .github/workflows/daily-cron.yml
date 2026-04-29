@@ -11,20 +11,9 @@ on:
 # - Supabase Edge Function secrets (supabase secrets set CRON_SECRET=<value>)
 
 jobs:
-  followup-check:
-    runs-on: ubuntu-latest
-    if: github.event.schedule == '0 1 * * *' || github.event_name == 'workflow_dispatch'
-    steps:
-      - name: Trigger daily-followup-check
-        run: |
-          curl --fail-with-body --silent --show-error -X POST \
-            "https://kbwfdskulxnhjckdvghj.supabase.co/functions/v1/daily-followup-check" \
-            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
-            -H "Content-Type: application/json"
-
-  # Birthday is the core of PikTag's CRM. Same 09:00 TW slot as
-  # follow-up since both are "morning prompt" reminders the user is
-  # most likely to act on right after they wake up.
+  # Birthday is the core of PikTag's CRM. Daily 09:00 TW morning prompt
+  # — the time the user is most likely to act on a reminder right after
+  # they wake up.
   birthday-check:
     runs-on: ubuntu-latest
     if: github.event.schedule == '0 1 * * *' || github.event_name == 'workflow_dispatch'

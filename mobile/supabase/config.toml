@@ -40,5 +40,20 @@ verify_jwt = false
 [functions.notification-anniversary]
 verify_jwt = false
 
-[functions.notification-contract-expiry]
+# ---------------------------------------------------------------------------
+# Daily cron functions invoked by GitHub Actions (.github/workflows/daily-cron.yml)
+# over HTTPS with CRON_SECRET as the Bearer token. CRON_SECRET is opaque
+# (not a JWT), so the platform-level verifier rejects it with 401
+# INVALID_JWT_FORMAT before our function code runs. Each of these does its
+# own constant-time CRON_SECRET check inside the request handler, so we
+# disable platform verification here.
+# ---------------------------------------------------------------------------
+
+[functions.daily-birthday-check]
+verify_jwt = false
+
+[functions.daily-date-tag-anniversaries]
+verify_jwt = false
+
+[functions.auto-link-concepts]
 verify_jwt = false
