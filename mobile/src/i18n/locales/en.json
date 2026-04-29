@@ -101,6 +101,16 @@
       "birthdayLabel": "Birthday (optional)"
     },
     "onboarding": {
+      "welcome": {
+        "identityTitle": "Define yourself with tags",
+        "identityDesc": "Pick 10 tags that capture who you are — this is your PikTag identity",
+        "activateTitle": "Bring old connections back to life",
+        "activateDesc": "Birthdays, meet-anniversaries, and shared memories find their way back to you",
+        "discoverTitle": "Search by need, not by name",
+        "discoverDesc": "\"Need a friend who shoots photos\" · \"Designers near me\"",
+        "next": "Next",
+        "getStarted": "Get Started"
+      },
       "defaultTags": [
         "#Startup",
         "#Design",

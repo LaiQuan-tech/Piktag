@@ -95,6 +95,16 @@
       "birthdayLabel": "تاريخ الميلاد (اختياري)"
     },
     "onboarding": {
+      "welcome": {
+        "identityTitle": "عرّف نفسك بالوسوم",
+        "identityDesc": "اختر 10 وسوم تعبّر عنك — هذه هويتك في PikTag",
+        "activateTitle": "أحيِ معارفك القدامى",
+        "activateDesc": "أعياد الميلاد، ذكرى التعارف، والذكريات المشتركة تأتي إليك",
+        "discoverTitle": "ابحث بالحاجة، لا بالاسم",
+        "discoverDesc": "«أحتاج صديقًا مصورًا» · «مصممون بالقرب مني»",
+        "next": "التالي",
+        "getStarted": "ابدأ"
+      },
       "defaultTags": [
         "#ريادة_أعمال",
         "#تصميم",

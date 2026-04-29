@@ -101,6 +101,16 @@
       "birthdayLabel": "生日（选填）"
     },
     "onboarding": {
+      "welcome": {
+        "identityTitle": "用标签告诉大家你是谁",
+        "identityDesc": "选 10 个最能代表你的标签——这就是你在 PikTag 的身份",
+        "activateTitle": "让老朋友活起来",
+        "activateDesc": "生日提醒、认识周年、共同回忆都会主动找上你",
+        "discoverTitle": "用「需求」找人，不是用「名字」",
+        "discoverDesc": "「我需要懂摄影的朋友」「在台北附近的设计师」",
+        "next": "下一步",
+        "getStarted": "开始使用"
+      },
       "defaultTags": [
         "#Startup",
         "#Design",

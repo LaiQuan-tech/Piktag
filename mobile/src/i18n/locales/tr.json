@@ -95,6 +95,16 @@
       "birthdayLabel": "Doğum günü (isteğe bağlı)"
     },
     "onboarding": {
+      "welcome": {
+        "identityTitle": "Kendini etiketlerle tanımla",
+        "identityDesc": "Seni anlatan 10 etiket seç — PikTag'deki kimliğin bu",
+        "activateTitle": "Eski bağlantılarını tekrar canlandır",
+        "activateDesc": "Doğum günleri, tanışma yıldönümleri ve paylaşılan anılar sana geri döner",
+        "discoverTitle": "İsimle değil, ihtiyaçla ara",
+        "discoverDesc": "\"Fotoğrafçı bir arkadaş arıyorum\" · \"Yakındaki tasarımcılar\"",
+        "next": "Sonraki",
+        "getStarted": "Başla"
+      },
       "defaultTags": [
         "#Girişimcilik",
         "#Tasarım",

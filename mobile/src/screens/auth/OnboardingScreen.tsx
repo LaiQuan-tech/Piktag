@@ -26,6 +26,7 @@ import {
 import { supabase, supabaseUrl } from '../../lib/supabase';
 import { COLORS, SPACING, BORDER_RADIUS } from '../../constants/theme';
 import OnboardingCompleteBurst from '../../components/stingers/OnboardingCompleteBurst';
+import WelcomeSlides from '../../components/onboarding/WelcomeSlides';
 
 // Must match the key used in AppNavigator. Persisting this flag is the
 // source of truth for "has this user completed onboarding?" — it
@@ -42,6 +43,14 @@ type SocialLinkKey = 'facebook' | 'instagram' | 'linkedin';
 export default function OnboardingScreen({ navigation }: OnboardingScreenProps) {
   const { t } = useTranslation();
   const DEFAULT_TAGS = t('auth.onboarding.defaultTags', { returnObjects: true }) as string[];
+  // Concept-teaching welcome slides shown before any data collection.
+  // Once the user finishes the 3 slides we drop into the existing
+  // bio/tags/social flow. We don't persist a separate "saw welcome"
+  // flag — completing the slides is cheap and harmless to re-show on a
+  // mid-onboarding kill (the only path that would re-trigger them),
+  // and adding another AsyncStorage key would just be more state to
+  // forget to invalidate later.
+  const [welcomeDone, setWelcomeDone] = useState(false);
   const [step, setStep] = useState(0);
   const [bio, setBio] = useState('');
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
@@ -413,6 +422,14 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
         return null;
     }
   };
+
+  // Gate: show the 3-slide concept carousel before the data-collection
+  // flow. Returning early avoids loading the rest of the form mount
+  // (TextInputs / FlatList suggestions) until the user actually needs
+  // them — keeps first-paint snappier on cold start.
+  if (!welcomeDone) {
+    return <WelcomeSlides onComplete={() => setWelcomeDone(true)} />;
+  }
 
   return (
     <KeyboardAvoidingView

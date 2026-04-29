@@ -95,6 +95,16 @@
       "birthdayLabel": "Tanggal lahir (opsional)"
     },
     "onboarding": {
+      "welcome": {
+        "identityTitle": "Definisikan diri dengan tag",
+        "identityDesc": "Pilih 10 tag yang merepresentasikanmu — inilah identitasmu di PikTag",
+        "activateTitle": "Hidupkan kembali koneksi lama",
+        "activateDesc": "Ulang tahun, hari pertemuan, dan kenangan bersama akan datang menemuimu",
+        "discoverTitle": "Cari berdasarkan kebutuhan, bukan nama",
+        "discoverDesc": "\"Butuh teman yang bisa fotografi\" · \"Desainer di dekat sini\"",
+        "next": "Selanjutnya",
+        "getStarted": "Mulai"
+      },
       "defaultTags": [
         "#Startup",
         "#Desain",

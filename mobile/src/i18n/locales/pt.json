@@ -95,6 +95,16 @@
       "birthdayLabel": "Aniversário (opcional)"
     },
     "onboarding": {
+      "welcome": {
+        "identityTitle": "Defina-se com tags",
+        "identityDesc": "Escolha 10 tags que te representam — essa é sua identidade no PikTag",
+        "activateTitle": "Reative seus contatos antigos",
+        "activateDesc": "Aniversários, datas de encontro e memórias compartilhadas voltam até você",
+        "discoverTitle": "Busque por necessidade, não por nome",
+        "discoverDesc": "\"Preciso de um amigo fotógrafo\" · \"Designers por perto\"",
+        "next": "Próximo",
+        "getStarted": "Começar"
+      },
       "defaultTags": [
         "#Startup",
         "#Design",

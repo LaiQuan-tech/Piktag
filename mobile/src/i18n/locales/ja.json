@@ -95,6 +95,16 @@
       "birthdayLabel": "誕生日（任意）"
     },
     "onboarding": {
+      "welcome": {
+        "identityTitle": "タグで自分を表現しよう",
+        "identityDesc": "あなたを表すタグを10個まで選択——これがPikTagでのあなたの身分です",
+        "activateTitle": "古い人脈をもう一度",
+        "activateDesc": "誕生日、出会った記念日、共有した思い出があなたに届きます",
+        "discoverTitle": "名前ではなく、必要で人を探す",
+        "discoverDesc": "「写真が撮れる友達がほしい」「近くのデザイナーは？」",
+        "next": "次へ",
+        "getStarted": "はじめる"
+      },
       "defaultTags": [
         "#スタートアップ",
         "#デザイン",
