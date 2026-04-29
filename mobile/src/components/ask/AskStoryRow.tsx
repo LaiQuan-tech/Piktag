@@ -1087,8 +1087,12 @@ const modalStyles = StyleSheet.create({
     paddingHorizontal: 14, paddingVertical: 10,
     fontSize: 14, color: COLORS.gray900,
   },
+  // Square-rounded 40×40 — borderRadius 12 matches the unified Plus
+  // submit-button shape (AddTagScreen / ManageTagsScreen /
+  // ActivityReviewScreen / HiddenTagEditor). Square-rounded reads as
+  // a button; circle reads as a status pip.
   customAddBtn: {
-    width: 40, height: 40, borderRadius: 20,
+    width: 40, height: 40, borderRadius: 12,
     alignItems: 'center', justifyContent: 'center',
     backgroundColor: COLORS.piktag500,
   },

@@ -435,12 +435,14 @@ const styles = StyleSheet.create({
     color: COLORS.gray900,
     backgroundColor: COLORS.white,
   },
-  // Round + button — same shape as AskCreateModal's customAddBtn so
-  // "type a tag, tap + to add" looks the same wherever it appears.
+  // Square-rounded 40×40 + button — borderRadius 12 matches the
+  // unified shape used across AddTagScreen / ManageTagsScreen /
+  // ActivityReviewScreen / AskCreateModal. The square-rounded form
+  // reads more clearly as a tap target than a full circle.
   addBtn: {
     width: 40,
     height: 40,
-    borderRadius: 20,
+    borderRadius: 12,
     backgroundColor: COLORS.piktag500,
     alignItems: 'center',
     justifyContent: 'center',

@@ -494,12 +494,14 @@ const styles = StyleSheet.create({
   inputBar: { paddingHorizontal: 16, paddingTop: 8, borderTopWidth: 1, borderTopColor: COLORS.gray100 },
   inputRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.gray100, borderRadius: 20, paddingLeft: 14, paddingRight: 4, height: 44, gap: 8 },
   textInput: { flex: 1, fontSize: 15, color: COLORS.gray900, padding: 0 },
-  // Round 36×36 submit button — sits inside the 44px-tall inputRow
-  // (paddingRight: 4 leaves 4px each side). Fixed dimensions so the
-  // input bar stops resizing between locales.
+  // Square-rounded 36×36 submit button — borderRadius 10 (not 18=full
+  // circle) matches AddTagScreen's reference + button. Square-rounded
+  // shape reads more clearly as "tap to submit" than a circle. Sits
+  // inside the 44px-tall inputRow (paddingRight: 4 leaves 4px each
+  // side).
   addBtn: {
     backgroundColor: COLORS.piktag500,
-    borderRadius: 18,
+    borderRadius: 10,
     width: 36,
     height: 36,
     justifyContent: 'center',

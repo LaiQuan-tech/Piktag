@@ -645,13 +645,14 @@ const styles = StyleSheet.create({
   },
   textInput: { flex: 1, fontSize: 16, color: COLORS.gray900, padding: 0 },
   charCount: { fontSize: 12, color: COLORS.gray400 },
-  // Round 40×40 submit button — sits inside the 48px-tall inputRow
-  // (which has paddingRight: 4), so 40 + 4 + 4 spacing fills the right
-  // side cleanly. Fixed dimensions so the input bar stops resizing
-  // between locales and the spinner / Plus icon swap stays in place.
+  // Square-rounded 40×40 submit button — borderRadius 12 (not 20=full
+  // circle) matches AddTagScreen's reference custom-tag + button. The
+  // square-rounded shape reads more clearly as "tap to submit" than a
+  // circle, which can register as a status pip. Sits inside the
+  // 48px-tall inputRow (paddingRight: 4 leaves 4px each side).
   addBtn: {
     backgroundColor: COLORS.piktag500,
-    borderRadius: 20,
+    borderRadius: 12,
     width: 40,
     height: 40,
     justifyContent: 'center',
