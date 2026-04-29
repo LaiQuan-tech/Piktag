@@ -18,7 +18,7 @@ import {
 } from 'react-native';
 import BrandSpinner from '../loaders/BrandSpinner';
 import { Image } from 'expo-image';
-import { Plus, X, ChevronRight } from 'lucide-react-native';
+import { Plus, X } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTranslation } from 'react-i18next';
 import InitialsAvatar from '../InitialsAvatar';
@@ -354,20 +354,18 @@ export default function AskStoryRow({ asks, myAsk, myAvatarUrl, myName, onRefres
               </View>
             ) : null}
 
-            {myAsk && (
-              <View style={styles.askCardFooter}>
-                <Text style={styles.askCardTime}>
-                  {t('ask.timeLeft', { hours: hoursLeft(myAsk.expires_at) })}
-                </Text>
-                <ChevronRight size={14} color={COLORS.gray400} />
-              </View>
-            )}
+            {/* 24h countdown footer removed from the card itself —
+                Asks are short-lived enough that timing is implicit
+                ("if it's here, it's still active"), and the visual
+                weight of "剩 13h" + chevron crowded the card body.
+                The countdown remains visible in the AskCreateModal's
+                view-mode meta line, where the user is actually
+                deciding whether to delete or wait it out. */}
           </TouchableOpacity>
 
           {/* Friend Asks */}
           {visibleAsks.map((ask) => {
             const name = ask.author_full_name || ask.author_username || '?';
-            const h = hoursLeft(ask.expires_at);
             const viewed = viewedAskIds.has(ask.ask_id);
             const avatar = ask.author_avatar_url ? (
               <Image source={{ uri: ask.author_avatar_url }} style={styles.askCardAvatar} cachePolicy="memory-disk" />
@@ -429,12 +427,8 @@ export default function AskStoryRow({ asks, myAsk, myAvatarUrl, myName, onRefres
                   </View>
                 ) : null}
 
-                <View style={styles.askCardFooter}>
-                  <Text style={[styles.askCardTime, viewed && styles.askCardTimeViewed]}>
-                    {t('ask.timeLeft', { hours: h })}
-                  </Text>
-                  <ChevronRight size={14} color={viewed ? COLORS.gray300 : COLORS.gray400} />
-                </View>
+                {/* Countdown + chevron footer removed — see comment on
+                    the my-card branch above. */}
               </TouchableOpacity>
             );
           })}
@@ -1045,20 +1039,9 @@ const styles = StyleSheet.create({
   askCardTagTextViewed: {
     color: COLORS.gray500,
   },
-  askCardFooter: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginTop: 'auto',
-  },
-  askCardTime: {
-    fontSize: 12,
-    color: COLORS.gray500,
-    fontWeight: '500',
-  },
-  askCardTimeViewed: {
-    color: COLORS.gray400,
-  },
+  // (askCardFooter / askCardTime / askCardTimeViewed removed alongside
+  // the 24h countdown — body + tag chips now anchor the card bottom
+  // via card flex layout, no explicit footer needed.)
 });
 
 const modalStyles = StyleSheet.create({
