@@ -41,7 +41,13 @@ function filterNotifications(
   switch (tab) {
     case 'social':
       return notifications.filter(
-        (n) => n.type === 'follow' || n.type === 'friend' || n.type === 'tag_added' || n.type === 'recommendation' || n.type === 'tag_trending'
+        (n) =>
+          n.type === 'follow' ||
+          n.type === 'friend' ||
+          n.type === 'tag_added' ||
+          n.type === 'recommendation' ||
+          n.type === 'tag_trending' ||
+          n.type === 'ask_posted'
       );
     case 'reminders':
       return notifications.filter(
