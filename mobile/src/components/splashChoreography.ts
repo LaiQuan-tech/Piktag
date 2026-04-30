@@ -8,16 +8,23 @@ import { Animated, Easing } from 'react-native';
  *
  * Timing summary:
  *   0–350ms     curtain    white → transparent (reveals gradient)
- *   200–550ms   logo       scale 0.7→1 (spring) + opacity 0→1
+ *                          + raw logo image fades to white-tinted via
+ *                          interpolate(curtain) inside SplashOverlay,
+ *                          so the logo color shifts from native splash
+ *                          colors to the gradient-readable white in
+ *                          lockstep with the backdrop.
  *   400–1000ms  bloom      opacity 0→0.4→0, scale 1→1.5 (one-shot)
  *   500–900ms   wordmark   translateY 10→0 + opacity 0→1
  *   850–1150ms  tagline    opacity 0→1
+ *
+ * Logo entry (scale 0.7→1, opacity 0→1) was REMOVED. Native splash
+ * shows the logo at full size and full opacity; the JS overlay must
+ * match that frame-for-frame to avoid the visual blink-out users were
+ * reporting at hand-off. Logo is now full-size and visible from frame 1.
  */
 
 export type SplashAnims = {
   whiteCurtain: Animated.Value;
-  logoScale: Animated.Value;
-  logoOpacity: Animated.Value;
   bloomScale: Animated.Value;
   bloomOpacity: Animated.Value;
   wordmarkY: Animated.Value;
@@ -27,31 +34,16 @@ export type SplashAnims = {
 
 export function runSplashEntryChoreography(a: SplashAnims): void {
   // Curtain reveal — out-quad keeps it from flashing too sharply on
-  // slow renders that miss the first frame.
+  // slow renders that miss the first frame. The logo's white-tint
+  // crossfade is driven off this same Animated.Value via interpolate
+  // in SplashOverlay, so the color shift lands exactly when the
+  // gradient becomes visible.
   Animated.timing(a.whiteCurtain, {
     toValue: 0,
     duration: 350,
     easing: Easing.out(Easing.quad),
     useNativeDriver: true,
   }).start();
-
-  // Logo entry — spring matches the spec (damping 10, stiffness 120).
-  Animated.parallel([
-    Animated.spring(a.logoScale, {
-      toValue: 1,
-      damping: 10,
-      stiffness: 120,
-      delay: 200,
-      useNativeDriver: true,
-    }),
-    Animated.timing(a.logoOpacity, {
-      toValue: 1,
-      duration: 350,
-      delay: 200,
-      easing: Easing.out(Easing.cubic),
-      useNativeDriver: true,
-    }),
-  ]).start();
 
   // Bloom pulse — quick fade-in (100ms) so it feels reactive to the
   // logo landing, then a slower fade-out (200ms) so it dissolves rather

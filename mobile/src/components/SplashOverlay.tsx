@@ -17,29 +17,41 @@ import {
 import { splashStyles } from './splashStyles';
 
 /**
- * v2 launch overlay. Replaces the static white-bg + small-logo splash
- * with a full-bleed brand gradient and a choreographed entry sequence:
+ * v3 launch overlay — frame-for-frame seamless hand-off from native splash.
  *
- *   0–350ms     White overlay fades out, exposing the gradient.
- *   200–550ms   Logo enters: spring scale 0.7→1.0, opacity 0→1.
- *   400–1000ms  Radial bloom pulse behind the logo (one-shot).
- *   500–900ms   "PikTag" wordmark slides up + fades in.
- *   850–1150ms  Tagline (i18n: splash.tagline) fades in.
- *   ~1200ms+    If still not ready, surface a small spinner so the user
- *               knows we're still working (vs frozen).
+ * Previous v2 had two visible glitches at the native→JS hand-off:
  *
- * The same `ready / onHidden` API is preserved exactly so App.tsx and
- * any other mount points need no changes — only visuals are swapped.
+ *   1. Logo POSITION jumped because v2 centered (logo + wordmark + tagline)
+ *      as one flex column, pulling the logo upward off true screen center.
+ *      Native splash centers the logo absolutely, so the position shift
+ *      was visible as a "jump down then back up".
  *
- * Constants:
- *   MIN_DISPLAY_MS — keep the brand moment on screen at least this long
- *                    even on warm starts where data is instantly ready.
- *   MAX_HOLD_MS    — safety net; if `ready` never fires (broken auth,
- *                    offline socket, etc), force-hide the overlay so the
- *                    app is never wedged behind a splash.
+ *   2. Logo VISIBILITY blinked because the v2 entry choreography started
+ *      logo at scale 0.7 / opacity 0 and animated it in over 200–550ms.
+ *      The first JS frame therefore showed an invisible logo over the
+ *      white curtain — a brief blank-white moment before the spring.
+ *
+ * v3 fixes both by making the JS overlay's first frame IDENTICAL to the
+ * native splash's last frame:
+ *
+ *   * Logo absolutely positioned at exact screen center (matches native)
+ *   * Logo opacity 1 + scale 1 from frame 0 (no spring entry)
+ *   * Two stacked Image instances: raw colors (matches native asset)
+ *     and white-tinted (readable on the gradient). White-tint opacity
+ *     is interpolated off `whiteCurtain` so the color crossfades in
+ *     LOCKSTEP with the curtain dissolve — the user never sees a
+ *     mid-transition mismatched logo color.
+ *
+ * Choreographed motion that REMAINS:
+ *   0–350ms     White curtain → transparent (gradient revealed)
+ *                + logo color crossfades raw → white via interpolate
+ *   400–1000ms  Bloom pulse (one-shot, behind logo)
+ *   500–900ms   Wordmark slides up + fades in
+ *   850–1150ms  Tagline fades in
+ *   ~1200ms+    "Still loading" spinner if `ready` hasn't fired
  *
  * Reduced-motion path: solid gradient + static logo + static text + a
- * 200ms fade-in / 300ms fade-out. No bloom, no slide, no pulse.
+ * 200ms fade-in / 300ms fade-out. No bloom, no slide, no curtain.
  */
 
 type Props = {
@@ -72,13 +84,10 @@ export default function SplashOverlay({
 
   // ── Master fade ────────────────────────────────────────────────────
   const containerOpacity = useRef(new Animated.Value(reduced ? 0 : 1)).current;
-  // White → gradient curtain. Starts opaque, fades to transparent so the
-  // gradient underneath shows through.
+  // White → gradient curtain. Starts opaque so the first frame visually
+  // matches the native splash's white background; fades to transparent
+  // as the choreography runs.
   const whiteCurtain = useRef(new Animated.Value(reduced ? 0 : 1)).current;
-
-  // ── Logo ───────────────────────────────────────────────────────────
-  const logoScale = useRef(new Animated.Value(reduced ? 1 : 0.7)).current;
-  const logoOpacity = useRef(new Animated.Value(reduced ? 1 : 0)).current;
 
   // ── Bloom (one-shot radial pulse behind logo) ──────────────────────
   const bloomScale = useRef(new Animated.Value(1)).current;
@@ -89,14 +98,21 @@ export default function SplashOverlay({
   const wordmarkOpacity = useRef(new Animated.Value(reduced ? 1 : 0)).current;
   const taglineOpacity = useRef(new Animated.Value(reduced ? 1 : 0)).current;
 
+  // White-tinted logo opacity is derived from `whiteCurtain` rather than
+  // animated independently — that guarantees the color crossfade lands
+  // exactly when the gradient becomes visible (curtain at 0 → tint at 1).
+  // Reduced motion path skips the curtain entirely, so the white-tinted
+  // logo is fully visible from frame 1.
+  const whiteTintOpacity = whiteCurtain.interpolate({
+    inputRange: [0, 1],
+    outputRange: [1, 0],
+  });
+
   const [showStillLoading, setShowStillLoading] = useState(false);
   const fadedRef = useRef(false);
   const mountedAtRef = useRef(Date.now());
 
   // ── Entry choreography ─────────────────────────────────────────────
-  // Kicked once on mount; never re-runs. The actual timeline lives in
-  // ./splashChoreography so this file stays focused on rendering and
-  // the lifecycle wiring (mount fade, ready-driven exit, safety net).
   useEffect(() => {
     if (reduced) {
       runReducedMotionEntry(containerOpacity);
@@ -104,8 +120,6 @@ export default function SplashOverlay({
     }
     runSplashEntryChoreography({
       whiteCurtain,
-      logoScale,
-      logoOpacity,
       bloomScale,
       bloomOpacity,
       wordmarkY,
@@ -116,8 +130,6 @@ export default function SplashOverlay({
     reduced,
     containerOpacity,
     whiteCurtain,
-    logoScale,
-    logoOpacity,
     bloomScale,
     bloomOpacity,
     wordmarkY,
@@ -126,9 +138,6 @@ export default function SplashOverlay({
   ]);
 
   // ── "Still loading" hint timer ─────────────────────────────────────
-  // Fires once — after the choreography settles, if we're still holding
-  // we drop in a small spinner so the user sees motion. Cleared if the
-  // component unmounts or fades out first.
   useEffect(() => {
     const id = setTimeout(() => {
       setShowStillLoading(true);
@@ -150,8 +159,6 @@ export default function SplashOverlay({
       });
     };
 
-    // Safety-net: never hold the splash longer than maxWaitMs. Runs
-    // independently of `ready` so a stuck auth flow can't wedge us.
     const safetyTimer = setTimeout(fadeOut, maxWaitMs);
 
     let readyTimer: ReturnType<typeof setTimeout> | undefined;
@@ -179,46 +186,52 @@ export default function SplashOverlay({
         style={StyleSheet.absoluteFill}
       />
 
-      {/* White curtain — sits over the gradient and fades out to reveal it. */}
+      {/* White curtain — sits over the gradient and fades out to reveal
+          it. Anchors the first JS frame visually to the native splash. */}
       <Animated.View
         pointerEvents="none"
         style={[splashStyles.whiteCurtain, { opacity: whiteCurtain }]}
       />
 
-      <View style={splashStyles.center}>
-        {/* Bloom pulse rendered behind the logo. Sized 1.5x logo, scales
-            outward while fading. */}
-        <Animated.View
-          pointerEvents="none"
-          style={[
-            splashStyles.bloom,
-            {
-              opacity: bloomOpacity,
-              transform: [{ scale: bloomScale }],
-            },
-          ]}
-        />
+      {/* Bloom pulse rendered behind the logo. Centered on screen so it
+          sits exactly under the logo regardless of the text below. */}
+      <Animated.View
+        pointerEvents="none"
+        style={[
+          splashStyles.bloom,
+          {
+            opacity: bloomOpacity,
+            transform: [{ scale: bloomScale }],
+          },
+        ]}
+      />
 
+      {/* Logo at exact screen center. Two stacked Images crossfade
+          between native-splash-matching raw colors and gradient-readable
+          white tint as the curtain dissolves. */}
+      <View style={splashStyles.logoCenter} pointerEvents="none">
+        <Image
+          source={require('../../assets/splash-icon.png')}
+          contentFit="contain"
+          style={splashStyles.logoImage}
+        />
         <Animated.View
-          style={{
-            opacity: logoOpacity,
-            transform: [{ scale: logoScale }],
-          }}
+          style={[StyleSheet.absoluteFill, { opacity: whiteTintOpacity }]}
         >
-          {/* The PNG ships in its raw brand colors so the native splash
-              (white background, in app.json) renders it correctly. Once
-              the JS overlay takes over the gradient backdrop swallows
-              those tones, so we tint the rendered image white here for
-              contrast — only affects this React component, the native
-              splash asset is untouched. */}
           <Image
             source={require('../../assets/splash-icon.png')}
             contentFit="contain"
             tintColor="#ffffff"
-            style={splashStyles.logo}
+            style={splashStyles.logoImage}
           />
         </Animated.View>
+      </View>
 
+      {/* Text column anchored below the logo so it doesn't pull the
+          logo off screen-center. Both lines are JS-only additions
+          (native splash has no text), so fading them in from 0 is fine
+          — there's no native counterpart to mismatch with. */}
+      <View style={splashStyles.textBelow} pointerEvents="none">
         <Animated.Text
           style={[
             splashStyles.wordmark,
@@ -236,13 +249,13 @@ export default function SplashOverlay({
         >
           {t('splash.tagline', { defaultValue: '用標籤記住每段緣分' })}
         </Animated.Text>
-
-        {showStillLoading ? (
-          <View style={splashStyles.stillLoading}>
-            <BrandSpinner size={24} />
-          </View>
-        ) : null}
       </View>
+
+      {showStillLoading ? (
+        <View style={splashStyles.stillLoading}>
+          <BrandSpinner size={24} />
+        </View>
+      ) : null}
     </Animated.View>
   );
 }
