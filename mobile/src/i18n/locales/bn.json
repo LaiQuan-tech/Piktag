@@ -440,6 +440,7 @@
     "unfollowMessage": "আপনি কি {{name}}-কে আনফলো করতে নিশ্চিত?",
     "unfollowConfirm": "আনফলো",
     "hiddenTagsTitle": "লুকানো ট্যাগ (শুধু আপনি দেখতে পান)",
+    "eventTagsTitle": "ইভেন্ট ট্যাগ",
     "hiddenTagPlaceholder": "লুকানো ট্যাগ যোগ করুন, যেমন: পুরোনো সহকর্মী",
     "mutualTagsModalTitle": "শেয়ার করা ট্যাগ",
     "mutualFriendsSectionTitle": "শেয়ার করা বন্ধু",

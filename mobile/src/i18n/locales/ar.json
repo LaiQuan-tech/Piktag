@@ -440,6 +440,7 @@
     "unfollowMessage": "هل أنت متأكد من إلغاء متابعة {{name}}؟",
     "unfollowConfirm": "إلغاء المتابعة",
     "hiddenTagsTitle": "وسوم مخفية (مرئية لك فقط)",
+    "eventTagsTitle": "علامات الفعالية",
     "hiddenTagPlaceholder": "أضف وسمًا مخفيًا، مثلاً: زميل سابق",
     "mutualTagsModalTitle": "وسوم مشتركة",
     "mutualFriendsSectionTitle": "الأصدقاء المشتركون",

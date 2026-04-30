@@ -440,6 +440,7 @@
     "unfollowMessage": "{{name}} kişisinin takibini bırakmak istediğinden emin misin?",
     "unfollowConfirm": "Takibi Bırak",
     "hiddenTagsTitle": "Gizli Etiketler (yalnızca siz görebilirsin)",
+    "eventTagsTitle": "Etkinlik etiketleri",
     "hiddenTagPlaceholder": "Gizli etiket ekleyin, ör. eski iş arkadaşı",
     "mutualTagsModalTitle": "Ortak Etiketler",
     "mutualFriendsSectionTitle": "Ortak Arkadaşlar",

@@ -440,6 +440,7 @@
     "unfollowMessage": "Tem certeza que deseja deixar de seguir {{name}}?",
     "unfollowConfirm": "Deixar de seguir",
     "hiddenTagsTitle": "Tags ocultas (só você vê)",
+    "eventTagsTitle": "Marcadores de evento",
     "hiddenTagPlaceholder": "Adicionar tag oculta, ex.: ex-colega",
     "mutualTagsModalTitle": "Tags em comum",
     "mutualFriendsSectionTitle": "Amigos em comum",

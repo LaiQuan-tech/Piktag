@@ -440,6 +440,7 @@
     "unfollowMessage": "คุณแน่ใจหรือไม่ว่าต้องการเลิกติดตาม {{name}}?",
     "unfollowConfirm": "เลิกติดตาม",
     "hiddenTagsTitle": "แท็กซ่อน (เฉพาะคุณเห็น)",
+    "eventTagsTitle": "แท็กกิจกรรม",
     "hiddenTagPlaceholder": "เพิ่มแท็กซ่อน เช่น อดีตเพื่อนร่วมงาน",
     "mutualTagsModalTitle": "แท็กร่วมกัน",
     "mutualFriendsSectionTitle": "เพื่อนร่วมกัน",

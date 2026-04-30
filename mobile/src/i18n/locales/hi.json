@@ -440,6 +440,7 @@
     "unfollowMessage": "क्या आप पक्का {{name}} को अनफ़ॉलो करना चाहते हैं?",
     "unfollowConfirm": "अनफ़ॉलो",
     "hiddenTagsTitle": "छुपे टैग (केवल आप देख सकते हैं)",
+    "eventTagsTitle": "इवेंट टैग",
     "hiddenTagPlaceholder": "छुपा टैग जोड़ें, जैसे: पूर्व सहकर्मी",
     "mutualTagsModalTitle": "साझा टैग",
     "mutualFriendsSectionTitle": "साझा दोस्त",

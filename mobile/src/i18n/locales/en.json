@@ -448,6 +448,7 @@
     "unfollowMessage": "Are you sure you want to unfollow {{name}}?",
     "unfollowConfirm": "Unfollow",
     "hiddenTagsTitle": "Hidden Tags (only you can see)",
+    "eventTagsTitle": "Event tags",
     "hiddenTagPlaceholder": "Add hidden tag, e.g. ex-colleague",
     "mutualTagsModalTitle": "Mutual Tags",
     "mutualFriendsSectionTitle": "Mutual Friends",

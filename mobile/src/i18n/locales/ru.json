@@ -440,6 +440,7 @@
     "unfollowMessage": "Точно отписаться от {{name}}?",
     "unfollowConfirm": "Отписаться",
     "hiddenTagsTitle": "Скрытые теги (видны только тебе)",
+    "eventTagsTitle": "Теги события",
     "hiddenTagPlaceholder": "Добавь скрытый тег, например «бывший коллега»",
     "mutualTagsModalTitle": "Общие теги",
     "mutualFriendsSectionTitle": "Общие друзья",

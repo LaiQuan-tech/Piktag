@@ -120,6 +120,13 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
   // Add/remove logic lives in <HiddenTagEditor>.
   const [hiddenTags, setHiddenTags] = useState<{ id: string; tagId: string; name: string }[]>([]);
 
+  // Event tags — viewer's QR-scan-derived tags, sourced from the
+  // get_viewer_event_tags RPC. Rendered as a dedicated 活動標籤 chip
+  // row above the 隱藏標籤 editor; tapping a chip toggles it as a
+  // hidden tag on the current connection (same write path as
+  // HiddenTagEditor's frequent-tag chips).
+  const [eventTags, setEventTags] = useState<{ id: string; name: string }[]>([]);
+
   // Tracks the inflight fetchData pass so that navigating away (or the
   // target userId changing under us) cancels the stale work before its
   // setState calls land. Prior behavior: a slow network on a prior
@@ -144,6 +151,7 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
     setIsFollowing(false);
     setConnectionId(null);
     setHiddenTags([]);
+    setEventTags([]);
     setIsCloseFriend(false);
     setMutualTags(0);
     setMutualTagList([]);
@@ -291,16 +299,22 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
         });
       }
 
-      // --- Wave 2: similar-users bundle (RPC) ---
+      // --- Wave 2: similar-users bundle (RPC) + viewer event tags ---
       // Fires in parallel with no client-side dependency on wave 1's
       // completion, but we await it so the section populates before we
       // flip loading=false (keeps the UI from flashing an empty row).
-      const { data: similar, error: similarErr } = await supabase.rpc('get_similar_users', {
-        target_user_id: userId,
-        max_results: 6,
-      });
+      // get_viewer_event_tags is independent of the target user — it's
+      // viewer-scoped — so it goes in the same parallel batch.
+      const [similarResp, eventTagsResp] = await Promise.all([
+        supabase.rpc('get_similar_users', {
+          target_user_id: userId,
+          max_results: 6,
+        }),
+        supabase.rpc('get_viewer_event_tags', { p_user: authUser.id }),
+      ]);
       if (signal.aborted) return;
 
+      const { data: similar, error: similarErr } = similarResp;
       if (!similarErr && similar) {
         const s = similar as any;
         const users: PiktagProfile[] = Array.isArray(s.users) ? s.users : [];
@@ -312,6 +326,9 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
         }
         setSimilarMutualFriends(mutualMap);
       }
+
+      const eventTagRows = (eventTagsResp.data ?? []) as Array<{ id: string; name: string; uses: number }>;
+      setEventTags(eventTagRows.map((r) => ({ id: r.id, name: r.name })));
     } catch (err) {
       if (!signal.aborted) {
         console.error('Error fetching user data:', err);
@@ -673,6 +690,63 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
       })));
     }
   }, [connectionId]);
+
+  // Toggle a hidden (private) tag by name on the current connection.
+  // Drives the 活動標籤 chip row below — tap to add as a hidden tag,
+  // tap again to remove. Mirrors the same insert/select-on-conflict
+  // dance HiddenTagEditor.applyHiddenTag uses, so behavior is
+  // consistent regardless of which surface the user toggles from.
+  const toggleHiddenTagByName = useCallback(async (rawName: string, knownTagId?: string) => {
+    if (!connectionId) return;
+    const name = rawName.trim().replace(/^#/, '');
+    if (!name) return;
+    const existing = hiddenTags.find(h => h.name === name);
+    try {
+      if (existing) {
+        await supabase.from('piktag_connection_tags').delete().eq('id', existing.id);
+      } else {
+        let tagId = knownTagId;
+        if (!tagId) {
+          const { data: row } = await supabase
+            .from('piktag_tags')
+            .select('id')
+            .eq('name', name)
+            .maybeSingle();
+          if (row?.id) {
+            tagId = row.id;
+          } else {
+            const { data: created, error: insertErr } = await supabase
+              .from('piktag_tags')
+              .insert({ name })
+              .select('id')
+              .single();
+            if (created?.id) {
+              tagId = created.id;
+            } else if (insertErr && (insertErr as any).code === '23505') {
+              // Race-safe: another client beat us to creating the row.
+              const { data: raced } = await supabase
+                .from('piktag_tags')
+                .select('id')
+                .eq('name', name)
+                .maybeSingle();
+              if (!raced?.id) return;
+              tagId = raced.id;
+            } else {
+              return;
+            }
+          }
+        }
+        await supabase.from('piktag_connection_tags').insert({
+          connection_id: connectionId,
+          tag_id: tagId,
+          is_private: true,
+        });
+      }
+      await fetchHiddenTags();
+    } catch (err) {
+      console.warn('[UserDetail] toggleHiddenTagByName failed:', err);
+    }
+  }, [connectionId, hiddenTags, fetchHiddenTags]);
 
   const openPickTagModal = useCallback(async () => {
     await Promise.all([fetchFriendPublicTags(), connectionId ? loadPickedTags() : Promise.resolve(), connectionId ? fetchHiddenTags() : Promise.resolve()]);
@@ -1165,6 +1239,36 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
           </View>
         </View>
 
+        {/* Event tags — viewer's QR-scan-derived tags, surfaced as a
+            one-tap shortcut for marking a friend with the same event
+            context. Same gating as the inline HiddenTagEditor below:
+            isFollowing + connectionId + authUser must all be present so
+            the chips never appear on non-relationship profiles. */}
+        {eventTags.length > 0 && isFollowing && connectionId && authUser && (
+          <View style={styles.inlineHiddenTagSection}>
+            <Text style={styles.inlineHiddenTagTitle}>
+              {t('friendDetail.eventTagsTitle') || '活動標籤'}
+            </Text>
+            <View style={styles.eventTagsChipRow}>
+              {eventTags.map((et) => {
+                const selected = hiddenTags.some(h => h.name === et.name);
+                return (
+                  <TouchableOpacity
+                    key={et.id}
+                    onPress={() => toggleHiddenTagByName(et.name, et.id)}
+                    style={[styles.pickModalTag, selected && styles.pickModalTagSelected]}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={[styles.pickModalTagText, selected && styles.pickModalTagTextSelected]}>
+                      #{et.name}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          </View>
+        )}
+
         {/* Hidden tags editor — inline so users don't have to dig into
             the Pick Tag modal to see the auto-filled event tags from
             a QR scan.
@@ -1370,6 +1474,36 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
             )}
             {/* Divider */}
             <View style={styles.pickModalDivider} />
+
+            {/* Event tags — viewer's QR-scan-derived event vocabulary,
+                surfaced inside the picker so users can apply the same
+                event context they collected from past scans without
+                having to retype names. Mirrors the inline section above
+                the inline HiddenTagEditor at L1247. */}
+            {eventTags.length > 0 && connectionId && authUser && (
+              <>
+                <Text style={styles.pickModalSectionTitle}>
+                  {t('friendDetail.eventTagsTitle') || '活動標籤'}
+                </Text>
+                <View style={styles.eventTagsChipRow}>
+                  {eventTags.map((et) => {
+                    const selected = hiddenTags.some(h => h.name === et.name);
+                    return (
+                      <TouchableOpacity
+                        key={et.id}
+                        onPress={() => toggleHiddenTagByName(et.name, et.id)}
+                        style={[styles.pickModalTag, selected && styles.pickModalTagSelected]}
+                        activeOpacity={0.7}
+                      >
+                        <Text style={[styles.pickModalTagText, selected && styles.pickModalTagTextSelected]}>
+                          #{et.name}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              </>
+            )}
 
             {/* Hidden tags section — tap-based editor */}
             <Text style={styles.pickModalSectionTitle}>{t('friendDetail.hiddenTagsTitle') || '隱藏標籤'}</Text>
@@ -1922,6 +2056,11 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: COLORS.gray500,
     marginBottom: 10,
+  },
+  eventTagsChipRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
   },
   similarTitle: {
     fontSize: 15,

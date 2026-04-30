@@ -448,6 +448,7 @@
     "unfollowMessage": "确定要取消追踪 {{name}} 吗？",
     "unfollowConfirm": "取消追踪",
     "hiddenTagsTitle": "隐藏标签（只有你看得到）",
+    "eventTagsTitle": "活动标签",
     "hiddenTagPlaceholder": "添加隐藏标签，如：前同事",
     "mutualTagsModalTitle": "共同标签",
     "mutualFriendsSectionTitle": "共同朋友",

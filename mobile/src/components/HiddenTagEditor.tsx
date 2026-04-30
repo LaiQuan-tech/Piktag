@@ -85,8 +85,15 @@ export default function HiddenTagEditor({ connectionId, userId, hiddenTags, onTa
       if (existing) existing.count++;
       else counts.set(tag.id, { id: tag.id, name: tag.name, count: 1 });
     }
+    // Pull the viewer's QR-scan-derived "event tags" so we can dedupe
+    // them out of the 常用標籤 list — they get their own dedicated
+    // 活動標籤 section in UserDetailScreen, and showing the same name
+    // in both rows feels noisy / makes the user wonder whether they're
+    // actually the same thing.
+    const { data: eventTagRows } = await supabase.rpc('get_viewer_event_tags', { p_user: userId });
+    const eventNames = new Set((eventTagRows ?? []).map((r: any) => r.name));
     const sorted = [...counts.values()]
-      .filter((t) => !DATE_LIKE_RE.test(t.name))
+      .filter((t) => !DATE_LIKE_RE.test(t.name) && !eventNames.has(t.name))
       .sort((a, b) => b.count - a.count)
       .slice(0, MAX_FREQUENT);
     setFrequentTags(sorted.map(({ id, name }) => ({ id, name })));

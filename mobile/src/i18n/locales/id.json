@@ -440,6 +440,7 @@
     "unfollowMessage": "Apakah kamu yakin ingin berhenti mengikuti {{name}}?",
     "unfollowConfirm": "Berhenti Mengikuti",
     "hiddenTagsTitle": "Tag Tersembunyi (hanya kamu yang bisa lihat)",
+    "eventTagsTitle": "Tag acara",
     "hiddenTagPlaceholder": "Tambah tag tersembunyi, mis. mantan rekan kerja",
     "mutualTagsModalTitle": "Tag yang Sama",
     "mutualFriendsSectionTitle": "Teman Bersama",
