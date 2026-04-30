@@ -2375,25 +2375,31 @@ const styles = StyleSheet.create({
   },
 
   // Pick Tag Modal
+  // Pick-tag picker is now a full-screen takeover, not a bottom-sheet.
+  // The previous bottom-sheet (rgba 0.4 backdrop + 88% max-height) caused
+  // a real bug report: when the picker's content didn't fill 88% of the
+  // screen, the dimmed FriendDetail showed through above AND below the
+  // sheet, so users perceived the picker as "inline content stuck in the
+  // middle of the friend page". Switching to opaque full-screen kills
+  // the perception ambiguity — it's clearly a separate surface now.
   pickModalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.4)',
-    justifyContent: 'flex-end',
+    backgroundColor: COLORS.white,
   },
   pickModalContainer: {
-    backgroundColor: COLORS.white,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    paddingTop: 20,
+    flex: 1,
+    paddingTop: Platform.OS === 'ios' ? 56 : 32,
     paddingHorizontal: 20,
-    paddingBottom: 40,
-    maxHeight: '88%',
+    paddingBottom: 24,
   },
   pickModalHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 6,
+    marginBottom: 12,
+    paddingBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.gray100,
   },
   pickModalTitle: {
     fontSize: 20,

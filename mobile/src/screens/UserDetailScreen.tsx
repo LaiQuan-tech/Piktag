@@ -2158,26 +2158,28 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
 
-  // Pick Tag Modal
+  // Pick Tag Modal — full-screen takeover (was bottom-sheet). See
+  // FriendDetailScreen for the rationale: the bottom-sheet's translucent
+  // backdrop made users perceive the picker as inline content embedded
+  // in the host page rather than a separate surface.
   pickModalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.4)',
-    justifyContent: 'flex-end',
+    backgroundColor: COLORS.white,
   },
   pickModalContainer: {
-    backgroundColor: COLORS.white,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    paddingTop: 20,
+    flex: 1,
+    paddingTop: Platform.OS === 'ios' ? 56 : 32,
     paddingHorizontal: 20,
-    paddingBottom: 40,
-    maxHeight: '88%',
+    paddingBottom: 24,
   },
   pickModalHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 6,
+    marginBottom: 12,
+    paddingBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.gray100,
   },
   pickModalTitle: {
     fontSize: 20,
