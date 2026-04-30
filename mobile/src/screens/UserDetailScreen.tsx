@@ -117,6 +117,32 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
   // screen would keep writing into state after we'd moved on.
   const abortRef = useRef<AbortController | null>(null);
 
+  // Reset profile-scoped state synchronously when the target user
+  // changes. React Navigation reuses this screen's component instance
+  // when push'ing UserDetail → UserDetail with different params, so
+  // without this clear the previous user's isFollowing / connectionId /
+  // hiddenTags persist into the new render until fetchData completes
+  // its network round-trip. The visible symptom: the inline
+  // HiddenTagEditor (gated on `isFollowing && connectionId`) flashes
+  // private hidden-tag chips from a friend onto a stranger's profile
+  // for ~200-500ms — exactly the bug reported on @bohan.vc.
+  //
+  // useEffect (not useLayoutEffect) is sufficient because the data
+  // race is against an async fetch, not against another synchronous
+  // render. The cleared values are committed before fetchData's
+  // setState calls land.
+  useEffect(() => {
+    setIsFollowing(false);
+    setConnectionId(null);
+    setHiddenTags([]);
+    setIsCloseFriend(false);
+    setMutualTags(0);
+    setMutualTagList([]);
+    setMutualFriends(0);
+    setMutualFriendProfiles([]);
+    setFollowerCount(0);
+  }, [resolvedUserId, paramUsername]);
+
   const fetchData = useCallback(async () => {
     if (!authUser) return;
 
