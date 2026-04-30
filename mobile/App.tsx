@@ -16,6 +16,8 @@ import { AppReadyProvider, useAppReady } from './src/context/AppReadyContext';
 import SplashOverlay from './src/components/SplashOverlay';
 import ErrorBoundary from './src/components/ErrorBoundary';
 import OfflineBanner from './src/components/OfflineBanner';
+import { supabase } from './src/lib/supabase';
+import { routeFromNotification } from './src/lib/notificationRouter';
 
 // Ensure foreground notifications display the system banner, play sound,
 // and update the badge. Without this, notifications arriving while the
@@ -155,20 +157,36 @@ function AppInner() {
 
   useEffect(() => {
     if (isWeb) return;
-    const handleResponse = (response: Notifications.NotificationResponse) => {
-      const data = response.notification.request.content.data as { type?: string; conversationId?: string };
-      if (data?.type === 'chat' && data?.conversationId) {
-        // Navigate into the specific thread. Go via SearchTab > ChatThread.
-        // `as any` on the navigate call: NavigationContainerRef's
-        // `navigate` overloads against the param-list generic, and
-        // we don't have a typed param-list at this entry point.
-        // Strictly typing this would require threading RootStack +
-        // tab params through the App-level container — out of scope
-        // for the error-cleanup pass.
-        (navigationRef.current as any)?.navigate('Main', {
+    const handleResponse = async (response: Notifications.NotificationResponse) => {
+      const data = (response.notification.request.content.data ?? {}) as Record<string, any>;
+      const type: string | undefined = data?.type;
+      const nav = navigationRef.current as any;
+      if (!nav) return;
+
+      // chat type stays special-cased: it nests via SearchTab → ChatThread
+      // so the back button returns to the previous chat-list state instead
+      // of bouncing between RootStack siblings.
+      if (type === 'chat' && data?.conversationId) {
+        nav.navigate('Main', {
           screen: 'SearchTab',
           params: { screen: 'ChatThread', params: { conversationId: data.conversationId } },
         });
+        return;
+      }
+
+      // All other types (follow / tag_added / tag_trending / biolink_click /
+      // ask_posted / birthday / anniversary / friend / recommendation / …)
+      // share the same routing logic with the in-app NotificationsScreen
+      // tap handler. Without this branch a `follow` push opened the app
+      // and silently went nowhere — the bug surfaced as "stranger followed
+      // me, notification appeared, tapping does nothing".
+      if (!type) return;
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        await routeFromNotification(nav, { type, data }, session?.user?.id ?? null);
+      } catch {
+        /* navigation is best-effort here; failure means we stay on the
+           current screen, same as before the routing was wired in */
       }
     };
 

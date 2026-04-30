@@ -17,6 +17,7 @@ import { Bell, MessageCircle } from 'lucide-react-native';
 import { COLORS, SPACING } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
 import { supabase } from '../lib/supabase';
+import { routeFromNotification } from '../lib/notificationRouter';
 import { useAuth } from '../hooks/useAuth';
 import { useChatUnread } from '../hooks/useChatUnread';
 import { getCache, setCache, CACHE_KEYS } from '../lib/dataCache';
@@ -376,106 +377,14 @@ export default function NotificationsScreen({ navigation }: NotificationsScreenP
     [notifications, activeTab]
   );
 
-  // Tap a notification → mark as read + navigate to the actor's profile.
-  // The server-side trigger stores username / actor_user_id in data, so we
-  // pass whichever we have to UserDetailScreen's route params.
-  // Tap routing notes:
-  //   * Different notification types attach the relevant user under different
-  //     keys (`actor_user_id`, `connected_user_id`, `clicker_user_id`, …).
-  //     We probe the common ones in priority order so reminders, birthdays,
-  //     biolink clicks, and recommendations all land somewhere instead of
-  //     silently no-opping after mark-as-read.
-  //   * `tag_trending` (and any other tag-centric type) carries `tag_id` /
-  //     `tag_name` and should open TagDetail, not a profile.
-  //   * If the only id we can find is the viewer's own id (some notifications
-  //     stuff `data.user_id = me`), we don't navigate — the destination would
-  //     be the user's own profile, which is reachable from the tab bar
-  //     anyway and feels broken from a notification.
+  // Tap a notification → mark as read + delegate routing to the shared
+  // notificationRouter helper. The same helper runs from App.tsx for
+  // OS-level push taps, so behaviour stays in lockstep.
   const handleNotificationPress = useCallback(
     async (item: Notification) => {
       handleMarkAsRead(item.id);
       if (!navigation) return;
-
-      const data = (item.data ?? {}) as Record<string, any>;
-
-      // 1. Tag-centric notifications → TagDetail.
-      const tagId: string | undefined = data.tag_id;
-      const tagName: string | undefined = data.tag_name;
-      if (item.type === 'tag_trending' && (tagId || tagName)) {
-        navigation.navigate('TagDetail', { tagId, tagName });
-        return;
-      }
-
-      // 2. Biolink-click → SocialStats (your own analytics).
-      // Per-clicker drilldown felt voyeuristic ("I see you clicked my IG");
-      // the useful signal is aggregate — which links got clicks, when, by
-      // how many people. SocialStats is where that lives.
-      if (item.type === 'biolink_click') {
-        navigation.navigate('SocialStats');
-        return;
-      }
-
-      // 3. User-centric: probe every key servers might use, drop self-id so
-      // we don't navigate to the viewer's own profile. The viewer's id ALSO
-      // lives on the row as `notification.user_id` (recipient), but that's
-      // never a useful navigation target so we skip it implicitly.
-      const userIdCandidates: (string | undefined)[] = [
-        data.actor_user_id,
-        data.connected_user_id,
-        data.friend_user_id,
-        data.recommended_user_id,
-        data.clicker_user_id,
-        data.user_id,
-      ];
-      let userId = userIdCandidates.find(
-        (id): id is string => typeof id === 'string' && id.length > 0 && id !== user?.id,
-      );
-      const username: string | undefined = data.username;
-      let connectionId: string | undefined = data.connection_id;
-
-      // Legacy fallback: older notifications (birthday / anniversary from the
-      // pre-2026-04 functions) sometimes carried `connection_id` but no
-      // direct user id. Resolve through piktag_connections so taps still land
-      // on a useful screen instead of dead-ending after mark-as-read.
-      if (!userId && connectionId && user) {
-        try {
-          const { data: conn } = await supabase
-            .from('piktag_connections')
-            .select('connected_user_id')
-            .eq('id', connectionId)
-            .eq('user_id', user.id)
-            .maybeSingle();
-          if ((conn as any)?.connected_user_id) {
-            userId = (conn as any).connected_user_id as string;
-          }
-        } catch {}
-      }
-
-      if (!userId && !username) return;
-
-      // 4. Friend or stranger? If `connection_id` was already on the
-      // notification, use it directly — saves a round-trip to look it
-      // up. Otherwise query piktag_connections to decide.
-      if (userId && connectionId) {
-        navigation.navigate('FriendDetail', { friendId: userId, connectionId });
-        return;
-      }
-      if (userId && user) {
-        try {
-          const { data: conn } = await supabase
-            .from('piktag_connections')
-            .select('id')
-            .eq('user_id', user.id)
-            .eq('connected_user_id', userId)
-            .maybeSingle();
-          if (conn) {
-            navigation.navigate('FriendDetail', { friendId: userId, connectionId: (conn as any).id });
-            return;
-          }
-        } catch {}
-      }
-
-      navigation.navigate('UserDetail', { userId, username });
+      await routeFromNotification(navigation, item, user?.id);
     },
     [handleMarkAsRead, navigation, user]
   );
