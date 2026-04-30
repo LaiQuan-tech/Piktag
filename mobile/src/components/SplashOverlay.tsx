@@ -6,7 +6,6 @@ import {
 } from 'react-native';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useTranslation } from 'react-i18next';
 import { useReducedMotion } from 'react-native-reanimated';
 
 import BrandSpinner from './loaders/BrandSpinner';
@@ -80,7 +79,6 @@ export default function SplashOverlay({
   onHidden,
 }: Props) {
   const reduced = useReducedMotion();
-  const { t } = useTranslation();
 
   // ── Master fade ────────────────────────────────────────────────────
   const containerOpacity = useRef(new Animated.Value(reduced ? 0 : 1)).current;
@@ -244,10 +242,15 @@ export default function SplashOverlay({
           PikTag
         </Animated.Text>
 
+        {/* Brand slogan — locked to English in every locale. NOT
+            wrapped in t() on purpose: this is the brand voice (think
+            Nike's "Just Do It"), localizing it would dilute the
+            global identity. Translators reading this file: please
+            don't wire up an i18n key here. */}
         <Animated.Text
           style={[splashStyles.tagline, { opacity: taglineOpacity }]}
         >
-          {t('splash.tagline', { defaultValue: '用標籤記住每段緣分' })}
+          Pick. Tag. Connect.
         </Animated.Text>
       </View>
 
