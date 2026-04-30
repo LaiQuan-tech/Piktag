@@ -70,7 +70,15 @@ module.exports = async function handler(req, res) {
 
     const profile = profiles[0];
 
-    const [biolinksRes, userTagsRes] = await Promise.all([
+    // Active-Ask check is added to the parallel fetch chain so the
+    // gradient avatar ring stays consistent with the mobile app: the
+    // ring is the visual signal for "this person has an active Ask
+    // right now". Empty result → subtle ring, non-empty → gradient.
+    // `is_active=eq.true&expires_at=gt.now` covers both flags Postgres
+    // uses to mark a live ask. `limit=1` because we only need to know
+    // existence, not which one.
+    const nowIso = new Date().toISOString();
+    const [biolinksRes, userTagsRes, activeAsksRes] = await Promise.all([
       fetch(
         `${SUPABASE_URL}/rest/v1/piktag_biolinks?user_id=eq.${profile.id}&is_active=eq.true&select=platform,url,label,position&order=position.asc`,
         {
@@ -89,10 +97,21 @@ module.exports = async function handler(req, res) {
           },
         }
       ),
+      fetch(
+        `${SUPABASE_URL}/rest/v1/piktag_asks?author_id=eq.${profile.id}&is_active=eq.true&expires_at=gt.${encodeURIComponent(nowIso)}&select=id&limit=1`,
+        {
+          headers: {
+            apikey: SUPABASE_ANON_KEY,
+            Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+          },
+        }
+      ),
     ]);
 
     const biolinks = await biolinksRes.json();
     const userTags = await userTagsRes.json();
+    const activeAsks = await activeAsksRes.json();
+    const hasActiveAsk = Array.isArray(activeAsks) && activeAsks.length > 0;
 
     const tags = (userTags || [])
       .map((ut) => ut.piktag_tags?.name)
@@ -118,7 +137,7 @@ module.exports = async function handler(req, res) {
     }
 
     const analyticsSnippet = buildAnalyticsSnippet('user', usernameStr);
-    const html = renderProfilePage(profile, biolinks || [], tags, sidStr, locale, { tags: tagsStr, date: dateStr, location: locStr }, analyticsSnippet);
+    const html = renderProfilePage(profile, biolinks || [], tags, sidStr, locale, { tags: tagsStr, date: dateStr, location: locStr }, analyticsSnippet, hasActiveAsk);
 
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
     res.setHeader('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=3600');
@@ -130,7 +149,7 @@ module.exports = async function handler(req, res) {
   }
 };
 
-function renderProfilePage(profile, biolinks, tags, sid, locale, eventInfo, analyticsSnippet) {
+function renderProfilePage(profile, biolinks, tags, sid, locale, eventInfo, analyticsSnippet, hasActiveAsk) {
   const name = escapeHtml(profile.full_name || profile.username || '#piktag User');
   const username = escapeHtml(profile.username || '');
   const headline = profile.headline ? escapeHtml(profile.headline) : '';
@@ -223,9 +242,13 @@ function renderProfilePage(profile, biolinks, tags, sid, locale, eventInfo, anal
     .logo img{width:36px;height:36px}
     .logo-text{font-family:'Poppins',sans-serif;font-size:28px;font-weight:800;color:${BRAND_COLOR};letter-spacing:-0.5px}
 
-    /* Avatar with gradient ring */
+    /* Avatar — gradient ring iff this user has an active Ask, subtle
+       gray ring otherwise. Same conditional rule as the mobile app's
+       RingedAvatar so the brand-purple gradient means the same thing
+       on every surface ("this person is asking for something now"). */
     .avatar-wrapper{position:relative;margin-bottom:18px;opacity:0;animation:scaleIn .5s ease .1s forwards}
     .avatar-ring{width:108px;height:108px;border-radius:54px;padding:3px;background:linear-gradient(90deg,#ff5757,#c44dff,#8c52ff,#ff5757);background-size:300% 300%;animation:gradientFlow 6s ease infinite}
+    .avatar-ring-subtle{width:108px;height:108px;border-radius:54px;padding:3px;background:#e5e7eb}
     .avatar{width:102px;height:102px;border-radius:51px;object-fit:cover;border:3px solid #fff}
 
     /* Name & username */
@@ -284,7 +307,7 @@ function renderProfilePage(profile, biolinks, tags, sid, locale, eventInfo, anal
       <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="${BRAND_COLOR}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
     </button>
     <div class="avatar-wrapper">
-      <div class="avatar-ring">
+      <div class="${hasActiveAsk ? 'avatar-ring' : 'avatar-ring-subtle'}">
         <img class="avatar" src="${escapeHtml(avatarUrl)}" alt="${name}" onerror="this.src='https://ui-avatars.com/api/?name=U&background=f3f4f6&color=6b7280&size=200'">
       </div>
     </div>
