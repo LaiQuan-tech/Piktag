@@ -964,6 +964,7 @@
     "askingNow": "กำลังขอความช่วยเหลือ",
     "yourAskTitle": "Ask ของคุณ",
     "generateAiTags": "สร้างแท็กด้วย AI",
+    "aiNoSuggestions": "AI ไม่พบแท็กที่เหมาะสม ลองใหม่หรือพิมพ์เอง",
     "regenerateAiTags": "สร้างใหม่",
     "bubblePromptMine": "+ Ask ใหม่"
   },

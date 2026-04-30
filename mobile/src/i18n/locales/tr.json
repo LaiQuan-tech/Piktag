@@ -964,6 +964,7 @@
     "askingNow": "Şu an arıyor",
     "yourAskTitle": "Aktif Ask’in",
     "generateAiTags": "Yapay zeka etiketi üret",
+    "aiNoSuggestions": "Yapay zeka uygun etiket bulamadı. Tekrar dene ya da kendin yaz.",
     "regenerateAiTags": "Yeniden oluştur",
     "bubblePromptMine": "+ Yeni Ask"
   },

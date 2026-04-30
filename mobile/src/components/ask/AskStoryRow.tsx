@@ -11,6 +11,7 @@ import {
   Animated,
   Easing,
   KeyboardAvoidingView,
+  Keyboard,
   Platform,
   Dimensions,
   ActionSheetIOS,
@@ -498,6 +499,11 @@ export function AskCreateModal({ visible, onClose, existingAsk, onCreated }: Ask
   const [selectedNames, setSelectedNames] = useState<Set<string>>(new Set());
   const [customInput, setCustomInput] = useState('');
   const [aiLoading, setAiLoading] = useState(false);
+  // Did the most recent AI invocation come back with zero usable
+  // suggestions? Used to render a visible "no suggestions, retry or
+  // type your own" hint instead of the previous silent-empty state
+  // (which felt like the button was broken — "AI 有時出現，有時不出現").
+  const [aiTriedAndEmpty, setAiTriedAndEmpty] = useState(false);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -508,6 +514,7 @@ export function AskCreateModal({ visible, onClose, existingAsk, onCreated }: Ask
       setSelectedNames(new Set());
       setCustomInput('');
       setAiLoading(false);
+      setAiTriedAndEmpty(false);
       Animated.spring(slideAnim, { toValue: 0, useNativeDriver: true, bounciness: 0, speed: 14 }).start();
     } else {
       Animated.timing(slideAnim, { toValue: SCREEN_HEIGHT, duration: 250, useNativeDriver: true }).start();
@@ -528,13 +535,16 @@ export function AskCreateModal({ visible, onClose, existingAsk, onCreated }: Ask
     const trimmed = text.trim();
     if (trimmed.length < 5) {
       setAiNames([]);
+      setAiTriedAndEmpty(false);
       return;
     }
     setAiLoading(true);
+    setAiTriedAndEmpty(false);
     try {
-      const { data } = await supabase.functions.invoke('suggest-tags', {
+      const { data, error } = await supabase.functions.invoke('suggest-tags', {
         body: JSON.stringify({ bio: trimmed, lang: 'the same language as the content' }),
       });
+      if (error) throw error;
       const raw: string[] = data?.suggestions || [];
       const normalized = Array.from(
         new Set(
@@ -544,14 +554,33 @@ export function AskCreateModal({ visible, onClose, existingAsk, onCreated }: Ask
         ),
       ).slice(0, AI_SUGGESTION_CAP);
       setAiNames(normalized);
-      // Default-select all AI suggestions, preserving any custom selections.
-      setSelectedNames((prev) => {
-        const next = new Set(prev);
-        for (const name of normalized) next.add(name);
-        return next;
-      });
+      // Empty-result feedback. The edge function can succeed (200) but
+      // return no suggestions — short prompts, ambiguous content, or
+      // an LLM hiccup. Without this flag the UI just silently stayed
+      // empty after the spinner cleared, which made users describe the
+      // feature as "有時出現有時不出現，跟賭博一樣". Setting the flag
+      // lets the render layer show an explicit "no suggestions, try
+      // again or type your own" hint.
+      if (normalized.length === 0) {
+        setAiTriedAndEmpty(true);
+      } else {
+        // Default-select all AI suggestions, preserving any custom
+        // selections.
+        setSelectedNames((prev) => {
+          const next = new Set(prev);
+          for (const name of normalized) next.add(name);
+          return next;
+        });
+      }
     } catch (err) {
+      // Network / edge-function failure also surfaces as the
+      // empty-state hint. We don't differentiate "failed" from "empty"
+      // because the user-facing recovery is identical: tap retry or
+      // type their own tag. Treating them the same keeps the UI
+      // simpler and avoids leaking server-side error noise.
       console.warn('AI tag suggest failed:', err);
+      setAiNames([]);
+      setAiTriedAndEmpty(true);
     } finally {
       setAiLoading(false);
     }
@@ -566,6 +595,10 @@ export function AskCreateModal({ visible, onClose, existingAsk, onCreated }: Ask
   // the auto-fire was burning OpenAI tokens on half-formed prompts.
   const handleBodyChange = useCallback((text: string) => {
     setBody(text.slice(0, MAX_BODY));
+    // Typing invalidates the previous "AI returned nothing" state —
+    // the user is changing the prompt, so the next AI tap should
+    // present as a clean attempt, not as still-empty.
+    setAiTriedAndEmpty(false);
   }, []);
 
   const toggleTag = useCallback((name: string) => {
@@ -764,7 +797,19 @@ export function AskCreateModal({ visible, onClose, existingAsk, onCreated }: Ask
             </>
           ) : (
             // ── Create mode ──
-            <>
+            //
+            // Wrapped in a ScrollView with keyboardShouldPersistTaps so
+            // the FIRST tap on the submit button below fires onPress
+            // even while the body TextInput holds keyboard focus.
+            // Without this, iOS multi-line TextInput plus
+            // KeyboardAvoidingView swallows the first tap to dismiss
+            // the keyboard, requiring a second tap to actually submit
+            // — the "按二次才會成功" complaint.
+            <ScrollView
+              keyboardShouldPersistTaps="handled"
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={{ flexGrow: 1 }}
+            >
               <Text style={modalStyles.title}>{t('ask.createTitle')}</Text>
 
               {/* Body input */}
@@ -832,6 +877,17 @@ export function AskCreateModal({ visible, onClose, existingAsk, onCreated }: Ask
                 </ScrollView>
               ) : null}
 
+              {/* AI returned no usable suggestions (or the edge function
+                  failed). Surface a soft hint so the user knows the tap
+                  registered — vs. the previous behavior where the
+                  spinner just disappeared with nothing visible
+                  changing, which read as "the feature is broken". */}
+              {aiTriedAndEmpty && customNames.length === 0 ? (
+                <Text style={modalStyles.aiNoResultHint}>
+                  {t('ask.aiNoSuggestions') || 'AI 沒有想到合適的標籤，再試一次或自己輸入'}
+                </Text>
+              ) : null}
+
               {/* Custom tag input */}
               <View style={modalStyles.customRow}>
                 <TextInput
@@ -867,7 +923,16 @@ export function AskCreateModal({ visible, onClose, existingAsk, onCreated }: Ask
                   modalStyles.submitBtnFull,
                   (!body.trim() || selectedNames.size === 0) && modalStyles.submitBtnDisabled,
                 ]}
-                onPress={handleSubmit}
+                onPress={() => {
+                  // Explicitly dismiss the keyboard so the spinner +
+                  // network round-trip aren't visually obscured. The
+                  // ScrollView wrapper above handles the tap-routing
+                  // (keyboardShouldPersistTaps='handled'), so the first
+                  // tap reaches us reliably; this just cleans up the
+                  // visual after.
+                  Keyboard.dismiss();
+                  handleSubmit();
+                }}
                 disabled={saving || !body.trim() || selectedNames.size === 0}
                 activeOpacity={0.8}
               >
@@ -877,7 +942,7 @@ export function AskCreateModal({ visible, onClose, existingAsk, onCreated }: Ask
                   <Text style={modalStyles.submitBtnText}>{t('ask.postAsk')}</Text>
                 )}
               </TouchableOpacity>
-            </>
+            </ScrollView>
           )}
         </Animated.View>
       </KeyboardAvoidingView>
@@ -1076,6 +1141,17 @@ const modalStyles = StyleSheet.create({
   aiLoadingRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 16 },
   aiLoadingText: { fontSize: 13, color: COLORS.gray500 },
   aiHint: { fontSize: 13, color: COLORS.gray400, marginBottom: 16 },
+  // Soft-grey hint shown immediately after an AI invocation that
+  // returned zero suggestions (or failed). Same visual register as
+  // aiHint so users read it as "FYI, here's what happened" rather
+  // than "ERROR".
+  aiNoResultHint: {
+    fontSize: 13,
+    color: COLORS.gray500,
+    marginTop: 4,
+    marginBottom: 16,
+    fontStyle: 'italic',
+  },
   tagChip: {
     backgroundColor: COLORS.gray100, borderRadius: 20,
     paddingHorizontal: 14, paddingVertical: 8, marginRight: 8,

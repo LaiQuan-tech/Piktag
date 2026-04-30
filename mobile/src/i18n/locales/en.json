@@ -1038,6 +1038,7 @@
     "askingNow": "Currently asking",
     "yourAskTitle": "Your active Ask",
     "generateAiTags": "Generate AI tags",
+    "aiNoSuggestions": "AI couldn't find a good fit. Try again or type your own.",
     "regenerateAiTags": "Regenerate",
     "bubblePromptMine": "+ New Ask"
   },

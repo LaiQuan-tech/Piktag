@@ -964,6 +964,7 @@
     "askingNow": "এখন চাইছেন",
     "yourAskTitle": "আপনার বর্তমান Ask",
     "generateAiTags": "AI ট্যাগ তৈরি করুন",
+    "aiNoSuggestions": "AI উপযুক্ত ট্যাগ খুঁজে পেল না। আবার চেষ্টা করুন বা নিজে লিখুন।",
     "regenerateAiTags": "পুনরায় তৈরি",
     "bubblePromptMine": "+ নতুন Ask"
   },

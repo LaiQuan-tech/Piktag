@@ -964,6 +964,7 @@
     "askingNow": "지금 요청 중",
     "yourAskTitle": "현재 Ask",
     "generateAiTags": "AI 태그 생성",
+    "aiNoSuggestions": "AI가 적절한 태그를 찾지 못했어요. 다시 시도하거나 직접 입력하세요.",
     "regenerateAiTags": "재생성",
     "bubblePromptMine": "+ Ask 추가"
   },

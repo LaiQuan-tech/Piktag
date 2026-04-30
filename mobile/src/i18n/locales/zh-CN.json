@@ -1038,6 +1038,7 @@
     "askingNow": "正在求助",
     "yourAskTitle": "你目前的 Ask",
     "generateAiTags": "AI 生成标签",
+    "aiNoSuggestions": "AI 没有想到合适的标签，再试一次或自己输入",
     "regenerateAiTags": "重新生成",
     "bubblePromptMine": "+ 新增 Ask"
   },

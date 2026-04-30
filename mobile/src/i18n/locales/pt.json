@@ -964,6 +964,7 @@
     "askingNow": "Pedindo agora",
     "yourAskTitle": "Seu Ask atual",
     "generateAiTags": "Gerar tags com IA",
+    "aiNoSuggestions": "A IA não encontrou tags adequadas. Tente novamente ou digite a sua.",
     "regenerateAiTags": "Regenerar",
     "bubblePromptMine": "+ Novo Ask"
   },

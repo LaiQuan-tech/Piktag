@@ -964,6 +964,7 @@
     "askingNow": "يطلبون الآن",
     "yourAskTitle": "Ask النشط",
     "generateAiTags": "توليد وسوم بالذكاء",
+    "aiNoSuggestions": "لم يجد الذكاء الاصطناعي وسومًا مناسبة. حاول مجددًا أو اكتب وسمك بنفسك.",
     "regenerateAiTags": "إعادة التوليد",
     "bubblePromptMine": "+ Ask جديد"
   },
