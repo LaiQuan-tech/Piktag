@@ -41,6 +41,7 @@ import PageLoader from '../components/loaders/PageLoader';
 import BrandSpinner from '../components/loaders/BrandSpinner';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
+import { useAskFeed } from '../hooks/useAskFeed';
 import { useNetInfoReconnect } from '../hooks/useNetInfoReconnect';
 import type { PiktagProfile, Biolink } from '../types';
 import { getViewerRelation, filterBiolinksByVisibility } from '../lib/biolinkVisibility';
@@ -56,6 +57,14 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
   const { colors, isDark } = useTheme();
   const insets = useSafeAreaInsets();
   const { user: authUser } = useAuth();
+  // Same conditional-gradient logic as FriendDetailScreen / ProfileScreen.
+  // useAskFeed only contains asks from 1st/2nd-degree connections, so
+  // strangers (who aren't in the feed) will always render with the
+  // subtle ring here — that's correct: their Ask wouldn't be visible
+  // to this viewer anyway because the fan-out doesn't reach them.
+  // Once they connect (follow / QR scan), the friend's Ask shows up in
+  // the feed on the next refresh and the gradient appears.
+  const { asks: askFeedAsks } = useAskFeed();
   const paramUserId = route.params?.userId;
   const paramUsername = route.params?.username;
   const paramSid = route.params?.sid;
@@ -980,7 +989,12 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
           <View style={styles.profileRow}>
             <RingedAvatar
               size={68}
-              ringStyle="gradient"
+              ringStyle={
+                resolvedUserId &&
+                askFeedAsks.some((a) => a.author_id === resolvedUserId)
+                  ? 'gradient'
+                  : 'subtle'
+              }
               name={displayName}
               avatarUrl={profile.avatar_url}
             />

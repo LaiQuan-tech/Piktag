@@ -61,6 +61,7 @@ import BrandSpinner from '../components/loaders/BrandSpinner';
 import { useNetInfoReconnect } from '../hooks/useNetInfoReconnect';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
+import { useAskFeed } from '../hooks/useAskFeed';
 import type { Connection, PiktagProfile, Biolink } from '../types';
 import { getViewerRelation, filterBiolinksByVisibility } from '../lib/biolinkVisibility';
 
@@ -159,6 +160,14 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
   const { colors, isDark } = useTheme();
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
+  // Friend's avatar gradient ring is the visual signal for "this person
+  // has an active Ask right now". useAskFeed already pulls asks from
+  // 1st/2nd-degree connections (which a friend is by definition), so we
+  // can derive this for free without a per-screen extra fetch. Subtle
+  // ring otherwise — same conditional rule as own ProfileScreen, kept
+  // consistent so the same brand-purple gradient means the same thing
+  // wherever it appears.
+  const { asks: askFeedAsks } = useAskFeed();
   const { connectionId, friendId } = route.params || {};
 
   // Analytics: track friend detail page view
@@ -950,9 +959,18 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
         <View style={styles.profileSection}>
           {/* Avatar + Name/Username */}
           <View style={styles.profileRow}>
+            {/* Gradient ring iff this friend has an active Ask in the
+                fetch_ask_feed result. Subtle when not, so the gradient
+                stops being a permanent decoration that everyone has —
+                matches the rule we just applied to ProfileScreen and
+                EditProfileScreen. */}
             <RingedAvatar
               size={68}
-              ringStyle="gradient"
+              ringStyle={
+                askFeedAsks.some((a) => a.author_id === friendId)
+                  ? 'gradient'
+                  : 'subtle'
+              }
               name={displayName}
               avatarUrl={avatarUrl}
             />
