@@ -24,7 +24,7 @@
   "hiddenTagEditor": {
     "timeTitle": "متى التقيتما",
     "locationTitle": "أين التقيتما",
-    "frequentTitle": "الأكثر استخدامًا",
+    "suggestedTitle": "مقترحة",
     "addedTitle": "تمت الإضافة",
     "today": "اليوم",
     "yesterday": "أمس",

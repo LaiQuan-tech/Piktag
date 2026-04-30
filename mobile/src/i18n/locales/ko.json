@@ -24,7 +24,7 @@
   "hiddenTagEditor": {
     "timeTitle": "만난 시기",
     "locationTitle": "만난 장소",
-    "frequentTitle": "자주 사용",
+    "suggestedTitle": "추천 태그",
     "addedTitle": "추가됨",
     "today": "오늘",
     "yesterday": "어제",

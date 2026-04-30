@@ -24,7 +24,7 @@
   "hiddenTagEditor": {
     "timeTitle": "Когда вы познакомились",
     "locationTitle": "Где вы познакомились",
-    "frequentTitle": "Часто используемые",
+    "suggestedTitle": "Рекомендуемые",
     "addedTitle": "Добавлено",
     "today": "Сегодня",
     "yesterday": "Вчера",

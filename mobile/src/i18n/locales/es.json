@@ -24,7 +24,7 @@
   "hiddenTagEditor": {
     "timeTitle": "Cuándo se conocieron",
     "locationTitle": "Dónde se conocieron",
-    "frequentTitle": "Usados frecuentemente",
+    "suggestedTitle": "Sugeridos",
     "addedTitle": "Añadidos",
     "today": "Hoy",
     "yesterday": "Ayer",

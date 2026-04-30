@@ -58,42 +58,70 @@ export default function HiddenTagEditor({ connectionId, userId, hiddenTags, onTa
 
   const currentNames = useMemo(() => new Set(hiddenTags.map((h) => h.name)), [hiddenTags]);
 
+  // Build the "Suggested" (推薦標籤) pool from TWO sources:
+  //   1. Tags the viewer has previously applied to other connections
+  //      (frequency-counted from piktag_connection_tags where is_private)
+  //   2. Tags the viewer has set up as event-tags via the QR-scan flow
+  //      (resolved by the get_viewer_event_tags RPC)
+  //
+  // We previously DEDUPED #2 OUT of #1, on the theory that event tags
+  // had their own separate section. In practice the merged pool reads
+  // better as "推薦標籤" / "Suggested" because:
+  //   * The user just set those event tags up minutes/hours ago — they
+  //     are the most relevant suggestions for any new connection.
+  //   * After merging, "frequently used" no longer captures the
+  //     semantic. "Suggested" / 推薦 covers both branches naturally.
+  //
+  // Date-like names (YYYY/MM/DD) are still excluded — they belong in
+  // the dedicated 日期標籤 row above and would feel out of place here.
   const loadFrequentTags = useCallback(async () => {
     if (!userId) return;
+    const counts = new Map<string, { id: string; name: string; count: number }>();
+
     const { data: conns, error: connsErr } = await supabase
       .from('piktag_connections')
       .select('id')
       .eq('user_id', userId);
-    if (connsErr || !conns || conns.length === 0) {
-      setFrequentTags([]);
-      return;
+    if (!connsErr && conns && conns.length > 0) {
+      const connIds = conns.map((c: any) => c.id);
+      const { data: tagRows, error: tagsErr } = await supabase
+        .from('piktag_connection_tags')
+        .select('tag_id, piktag_tags!inner(id, name)')
+        .eq('is_private', true)
+        .in('connection_id', connIds);
+      if (!tagsErr && tagRows) {
+        for (const row of tagRows as any[]) {
+          const tag = row.piktag_tags;
+          if (!tag?.id || !tag?.name) continue;
+          const existing = counts.get(tag.id);
+          if (existing) existing.count++;
+          else counts.set(tag.id, { id: tag.id, name: tag.name, count: 1 });
+        }
+      }
     }
-    const connIds = conns.map((c: any) => c.id);
 
-    const { data: tagRows, error: tagsErr } = await supabase
-      .from('piktag_connection_tags')
-      .select('tag_id, piktag_tags!inner(id, name)')
-      .eq('is_private', true)
-      .in('connection_id', connIds);
-    if (tagsErr || !tagRows) return;
-
-    const counts = new Map<string, { id: string; name: string; count: number }>();
-    for (const row of tagRows as any[]) {
-      const tag = row.piktag_tags;
-      if (!tag?.id || !tag?.name) continue;
-      const existing = counts.get(tag.id);
-      if (existing) existing.count++;
-      else counts.set(tag.id, { id: tag.id, name: tag.name, count: 1 });
-    }
-    // Pull the viewer's QR-scan-derived "event tags" so we can dedupe
-    // them out of the 常用標籤 list — they get their own dedicated
-    // 活動標籤 section in UserDetailScreen, and showing the same name
-    // in both rows feels noisy / makes the user wonder whether they're
-    // actually the same thing.
+    // Merge in event tags. Each event tag gets a count bonus large
+    // enough to surface ahead of casually-used connection tags but
+    // not so large that an old event tag drowns out a tag the user
+    // has applied to dozens of friends.
+    //
+    // Field shape: get_viewer_event_tags returns (id uuid, name text,
+    // uses bigint) per supabase/migrations/20260501130000_*. We key
+    // on `id` (the tag id), NOT `tag_id`.
     const { data: eventTagRows } = await supabase.rpc('get_viewer_event_tags', { p_user: userId });
-    const eventNames = new Set((eventTagRows ?? []).map((r: any) => r.name));
+    const EVENT_TAG_BONUS = 5;
+    for (const row of (eventTagRows ?? []) as any[]) {
+      if (!row?.id || !row?.name) continue;
+      const existing = counts.get(row.id);
+      if (existing) {
+        existing.count += EVENT_TAG_BONUS;
+      } else {
+        counts.set(row.id, { id: row.id, name: row.name, count: EVENT_TAG_BONUS });
+      }
+    }
+
     const sorted = [...counts.values()]
-      .filter((t) => !DATE_LIKE_RE.test(t.name) && !eventNames.has(t.name))
+      .filter((t) => !DATE_LIKE_RE.test(t.name))
       .sort((a, b) => b.count - a.count)
       .slice(0, MAX_FREQUENT);
     setFrequentTags(sorted.map(({ id, name }) => ({ id, name })));
@@ -306,7 +334,7 @@ export default function HiddenTagEditor({ connectionId, userId, hiddenTags, onTa
           different pattern for the same action and felt redundant. */}
       {(filteredFrequent.length > 0 || manualHiddenTags.length > 0) && (
         <>
-          <Text style={styles.sectionTitle}>{t('hiddenTagEditor.frequentTitle')}</Text>
+          <Text style={styles.sectionTitle}>{t('hiddenTagEditor.suggestedTitle')}</Text>
           <View style={styles.chipRow}>
             {filteredFrequent.map((tag) => {
               const isSelected = currentNames.has(tag.name);

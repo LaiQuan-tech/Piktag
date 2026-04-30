@@ -24,7 +24,7 @@
   "hiddenTagEditor": {
     "timeTitle": "आप कब मिले",
     "locationTitle": "आप कहाँ मिले",
-    "frequentTitle": "अक्सर इस्तेमाल",
+    "suggestedTitle": "सुझाए गए",
     "addedTitle": "जोड़ा गया",
     "today": "आज",
     "yesterday": "कल",

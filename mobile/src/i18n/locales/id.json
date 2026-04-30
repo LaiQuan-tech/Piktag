@@ -24,7 +24,7 @@
   "hiddenTagEditor": {
     "timeTitle": "Kapan bertemu",
     "locationTitle": "Di mana bertemu",
-    "frequentTitle": "Sering digunakan",
+    "suggestedTitle": "Disarankan",
     "addedTitle": "Ditambahkan",
     "today": "Hari ini",
     "yesterday": "Kemarin",

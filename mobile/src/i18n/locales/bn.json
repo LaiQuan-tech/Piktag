@@ -24,7 +24,7 @@
   "hiddenTagEditor": {
     "timeTitle": "কখন দেখা হয়েছিল",
     "locationTitle": "কোথায় দেখা হয়েছিল",
-    "frequentTitle": "প্রায়ই ব্যবহৃত",
+    "suggestedTitle": "প্রস্তাবিত",
     "addedTitle": "যোগ করা হয়েছে",
     "today": "আজ",
     "yesterday": "গতকাল",

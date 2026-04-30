@@ -24,7 +24,7 @@
   "hiddenTagEditor": {
     "timeTitle": "Ne zaman tanıştınız",
     "locationTitle": "Nerede tanıştınız",
-    "frequentTitle": "Sık kullanılanlar",
+    "suggestedTitle": "Önerilenler",
     "addedTitle": "Eklenenler",
     "today": "Bugün",
     "yesterday": "Dün",

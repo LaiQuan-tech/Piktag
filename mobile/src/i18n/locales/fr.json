@@ -24,7 +24,7 @@
   "hiddenTagEditor": {
     "timeTitle": "Quand vous vous êtes rencontrés",
     "locationTitle": "Où vous vous êtes rencontrés",
-    "frequentTitle": "Fréquemment utilisés",
+    "suggestedTitle": "Suggérés",
     "addedTitle": "Ajoutés",
     "today": "Aujourd'hui",
     "yesterday": "Hier",

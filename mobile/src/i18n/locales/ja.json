@@ -24,7 +24,7 @@
   "hiddenTagEditor": {
     "timeTitle": "出会った時期",
     "locationTitle": "出会った場所",
-    "frequentTitle": "よく使う",
+    "suggestedTitle": "おすすめ",
     "addedTitle": "追加済み",
     "today": "今日",
     "yesterday": "昨日",

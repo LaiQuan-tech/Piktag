@@ -26,7 +26,7 @@
   "hiddenTagEditor": {
     "timeTitle": "認識時間",
     "locationTitle": "認識地點",
-    "frequentTitle": "常用標籤",
+    "suggestedTitle": "推薦標籤",
     "addedTitle": "已加入",
     "today": "今天",
     "yesterday": "昨天",
