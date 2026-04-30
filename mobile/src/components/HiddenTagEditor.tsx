@@ -58,54 +58,92 @@ export default function HiddenTagEditor({ connectionId, userId, hiddenTags, onTa
 
   const currentNames = useMemo(() => new Set(hiddenTags.map((h) => h.name)), [hiddenTags]);
 
+  // Build the "推薦標籤" / "Suggested" pool from two intentional sources:
+  //
+  //   (a) 常用標籤 — frequency count of every private tag the viewer has
+  //       applied across all their connections (piktag_connection_tags
+  //       where is_private). Past event-tags from earlier QR sessions
+  //       naturally fall into this bucket because resolve_pending_connections
+  //       writes them as private connection-tags — they ARE "frequently
+  //       used" by definition.
+  //
+  //   (b) 這次QR的活動標籤 — the event_tags array on THIS connection's
+  //       scan_session (if it came from a QR scan). These should already
+  //       overlap with (a) once resolve_pending_connections has run, but
+  //       we explicitly merge them in to:
+  //         * cover the resolve-race window where the connection_tags
+  //           rows haven't been inserted yet when the picker opens
+  //         * give the just-set event tags a +1 count bump so they
+  //           surface to the front of the row alongside genuinely-
+  //           frequent tags
+  //
+  // Date-like names (YYYY/MM/DD) are still excluded — they have a
+  // dedicated 日期標籤 row above. No other tag-name dedupe runs.
   const loadFrequentTags = useCallback(async () => {
     if (!userId) return;
+    const counts = new Map<string, { id: string; name: string; count: number }>();
+
+    // (a) Frequency from existing private connection tags
     const { data: conns, error: connsErr } = await supabase
       .from('piktag_connections')
       .select('id')
       .eq('user_id', userId);
-    if (connsErr || !conns || conns.length === 0) {
-      setFrequentTags([]);
-      return;
+    if (!connsErr && conns && conns.length > 0) {
+      const connIds = conns.map((c: any) => c.id);
+      const { data: tagRows, error: tagsErr } = await supabase
+        .from('piktag_connection_tags')
+        .select('tag_id, piktag_tags!inner(id, name)')
+        .eq('is_private', true)
+        .in('connection_id', connIds);
+      if (!tagsErr && tagRows) {
+        for (const row of tagRows as any[]) {
+          const tag = row.piktag_tags;
+          if (!tag?.id || !tag?.name) continue;
+          const existing = counts.get(tag.id);
+          if (existing) existing.count++;
+          else counts.set(tag.id, { id: tag.id, name: tag.name, count: 1 });
+        }
+      }
     }
-    const connIds = conns.map((c: any) => c.id);
 
-    const { data: tagRows, error: tagsErr } = await supabase
-      .from('piktag_connection_tags')
-      .select('tag_id, piktag_tags!inner(id, name)')
-      .eq('is_private', true)
-      .in('connection_id', connIds);
-    if (tagsErr || !tagRows) return;
-
-    const counts = new Map<string, { id: string; name: string; count: number }>();
-    for (const row of tagRows as any[]) {
-      const tag = row.piktag_tags;
-      if (!tag?.id || !tag?.name) continue;
-      const existing = counts.get(tag.id);
-      if (existing) existing.count++;
-      else counts.set(tag.id, { id: tag.id, name: tag.name, count: 1 });
+    // (b) THIS connection's scan-session event tags. Two-step lookup:
+    //     connection.scan_session_id → scan_session.event_tags[] (names)
+    //     → piktag_tags.id by name
+    if (connectionId) {
+      const { data: thisConn } = await supabase
+        .from('piktag_connections')
+        .select('scan_session_id')
+        .eq('id', connectionId)
+        .maybeSingle();
+      const sid = (thisConn as any)?.scan_session_id;
+      if (sid) {
+        const { data: sess } = await supabase
+          .from('piktag_scan_sessions')
+          .select('event_tags')
+          .eq('id', sid)
+          .maybeSingle();
+        const eventTagNames: string[] = (sess as any)?.event_tags ?? [];
+        if (eventTagNames.length > 0) {
+          const { data: tags } = await supabase
+            .from('piktag_tags')
+            .select('id, name')
+            .in('name', eventTagNames);
+          for (const tag of ((tags ?? []) as any[])) {
+            if (!tag?.id || !tag?.name) continue;
+            const existing = counts.get(tag.id);
+            if (existing) existing.count++;
+            else counts.set(tag.id, { id: tag.id, name: tag.name, count: 1 });
+          }
+        }
+      }
     }
-    // Pull the viewer's QR-scan-derived event tags so we can dedupe
-    // them out of the suggestion list — they get their own dedicated
-    // 活動標籤 section in UserDetailScreen and showing the same name
-    // in both rows feels noisy.
-    //
-    // NOTE: this dedupe sometimes misses (e.g. when get_viewer_event_tags
-    // returns empty for race-y reasons or when an event tag's name
-    // matches a manually-added tag), so event tags occasionally surface
-    // in this row. We've accepted this leak rather than tightening the
-    // RPC: the section is named "推薦標籤" / "Suggested" precisely to
-    // be permissive about what shows up here. Don't add explicit
-    // merging of event tags into the pool — that turns the leak into
-    // an intentional behavior we'd then have to maintain.
-    const { data: eventTagRows } = await supabase.rpc('get_viewer_event_tags', { p_user: userId });
-    const eventNames = new Set((eventTagRows ?? []).map((r: any) => r.name));
+
     const sorted = [...counts.values()]
-      .filter((t) => !DATE_LIKE_RE.test(t.name) && !eventNames.has(t.name))
+      .filter((t) => !DATE_LIKE_RE.test(t.name))
       .sort((a, b) => b.count - a.count)
       .slice(0, MAX_FREQUENT);
     setFrequentTags(sorted.map(({ id, name }) => ({ id, name })));
-  }, [userId]);
+  }, [userId, connectionId]);
 
   const loadRecentLocations = useCallback(async () => {
     try {
