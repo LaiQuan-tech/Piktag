@@ -847,6 +847,18 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
     setUnfollowModalVisible(false);
     await supabase.from('piktag_follows').delete().eq('follower_id', authUser.id).eq('following_id', resolvedUserId);
     setIsFollowing(false);
+    // Close-friend status was implicitly tied to following — once you
+    // unfollow, the close-friend row is semantically stale ("X is my
+    // close friend but I don't follow them"). Clear both DB row + UI
+    // state so the badge / list elsewhere reflects reality.
+    if (isCloseFriend) {
+      await supabase
+        .from('piktag_close_friends')
+        .delete()
+        .eq('user_id', authUser.id)
+        .eq('close_friend_id', resolvedUserId);
+      setIsCloseFriend(false);
+    }
   };
 
   const reportUser = async (reason: string) => {
@@ -1626,8 +1638,19 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
               onPress={async () => {
                 setMoreMenuVisible(false);
                 if (!authUser || !resolvedUserId) return;
-                await supabase.from('piktag_blocks')
-                  .upsert({ blocker_id: authUser.id, blocked_id: resolvedUserId }, { onConflict: 'blocker_id,blocked_id' });
+                // block_user RPC does the full cascade atomically:
+                // upsert block + delete bilateral follows + delete
+                // bilateral close-friend rows + delete blocker's prior
+                // notifications produced by the blocked user. The
+                // previous direct piktag_blocks upsert left follows /
+                // close-friends / notifications stale, so the blocked
+                // user kept appearing in feeds and notification list.
+                const { error } = await supabase.rpc('block_user', { p_blocked_id: resolvedUserId });
+                if (error) {
+                  console.warn('[UserDetail] block_user RPC failed:', error);
+                  Alert.alert(t('common.error'), t('common.unknownError'));
+                  return;
+                }
                 Alert.alert(t('userDetail.blockedTitle') || '已封鎖', t('userDetail.blockedMessage') || '你將不再看到此用戶');
                 if (navigation.canGoBack()) navigation.goBack(); else navigation.navigate('Main', { screen: 'HomeTab' });
               }}

@@ -741,6 +741,18 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
     setUnfollowModalVisible(false);
     await supabase.from('piktag_follows').delete().eq('follower_id', user.id).eq('following_id', friendId);
     setIsFollowing(false);
+    // Close-friend status was implicitly tied to following — once you
+    // unfollow, the close-friend row is semantically stale ("X is my
+    // close friend but I don't follow them"). Clear both DB row + UI
+    // state so the badge / list elsewhere reflects reality.
+    if (isCloseFriend) {
+      await supabase
+        .from('piktag_close_friends')
+        .delete()
+        .eq('user_id', user.id)
+        .eq('close_friend_id', friendId);
+      setIsCloseFriend(false);
+    }
   };
 
   // Resolves (or creates) a 1:1 conversation with this friend and
@@ -1525,8 +1537,16 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
               onPress={async () => {
                 setMoreMenuVisible(false);
                 if (!user || !friendId) return;
-                await supabase.from('piktag_blocks')
-                  .upsert({ blocker_id: user.id, blocked_id: friendId }, { onConflict: 'blocker_id,blocked_id' });
+                // block_user RPC does the full cascade atomically:
+                // upsert block + delete bilateral follows + delete
+                // bilateral close-friend rows + delete blocker's prior
+                // notifications produced by the blocked user.
+                const { error } = await supabase.rpc('block_user', { p_blocked_id: friendId });
+                if (error) {
+                  console.warn('[FriendDetail] block_user RPC failed:', error);
+                  Alert.alert(t('common.error'), t('common.unknownError'));
+                  return;
+                }
                 Alert.alert(t('friendDetail.blockedTitle') || '已封鎖', t('friendDetail.blockedMessage') || '你將不再看到此用戶');
                 if (navigation.canGoBack()) navigation.goBack(); else navigation.navigate('Main', { screen: 'HomeTab' });
               }}
