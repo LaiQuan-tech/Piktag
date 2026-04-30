@@ -356,6 +356,17 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
     useCallback(() => {
       const loadAll = async () => {
         if (!user) return;
+        // Always refresh the Ask feed on focus — independent of the
+        // 30s connection-list cooldown. Reported case: A and B are
+        // friends, A posts an Ask, B receives the push notification,
+        // but B doesn't see the Ask in the rail because B's app is
+        // foregrounded mid-session and the realtime INSERT event
+        // didn't reach this client (e.g. websocket asleep, race with
+        // the push payload). The notification trigger and the feed
+        // RPC look at the same connections rows, so if B got the
+        // notification B *should* see the Ask. A focus refetch
+        // guarantees that without changing the RPC contract.
+        refreshAsks();
         const now = Date.now();
         if (now - lastFetchRef.current < 30000 && lastFetchRef.current > 0) return;
         setLoading(true);
@@ -371,7 +382,7 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
         }
       };
       loadAll();
-    }, [fetchConnections])
+    }, [fetchConnections, refreshAsks])
   );
 
   // Auto-refetch when the network comes back if we previously errored.

@@ -25,6 +25,15 @@ export function useAskFeed() {
 
       if (!isMounted.current) return;
 
+      // Surface server-side RPC errors. fetch_ask_feed silently
+      // returning an error (e.g. function definition drift,
+      // permission revoke, RLS misconfig) used to land as an empty
+      // feed because we only branched on `data` truthiness — the
+      // user saw "no asks" with no signal that anything went wrong.
+      if (feedResult.error) {
+        console.warn('useAskFeed fetch_ask_feed error:', feedResult.error);
+      }
+
       if (feedResult.data) {
         setAsks(Array.isArray(feedResult.data) ? feedResult.data : []);
       }
@@ -88,6 +97,25 @@ export function useAskFeed() {
         table: 'piktag_asks',
       }, () => {
         fetchFeed();
+      })
+      // Defensive cross-trigger: piktag_notifications inserts of type
+      // ask_posted are fanned out by the notify_ask_posted DB trigger
+      // to exactly the users who should also see the ask in their
+      // feed (same piktag_connections lookup). If the piktag_asks
+      // INSERT realtime event misses this client (websocket race,
+      // backgrounded socket, RLS quirk on initial fan-out), the
+      // notification INSERT lands later via a different filter path
+      // (RLS allows reading own notifications) and gives us a second
+      // chance to refetch. Reported scenario: B got the push but the
+      // ask wasn't on the rail — this listener guarantees parity.
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'piktag_notifications',
+        filter: `user_id=eq.${user.id}`,
+      }, (payload) => {
+        const t = (payload as any)?.new?.type;
+        if (t === 'ask_posted') fetchFeed();
       })
       .subscribe();
 
