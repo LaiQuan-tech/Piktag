@@ -661,7 +661,17 @@
     "timeYesterday": "เมื่อวาน",
     "timeDaysAgo": "{{count}} วันที่แล้ว",
     "timeWeeksAgo": "{{count}} สัปดาห์ที่แล้ว",
-    "emptyState": "ไม่มีการแจ้งเตือน ตั้งการแจ้งเตือนหรือติดตามกิจกรรมของเพื่อน"
+    "emptyState": "ไม่มีการแจ้งเตือน ตั้งการแจ้งเตือนหรือติดตามกิจกรรมของเพื่อน",
+    "types": {
+      "ask_posted": {
+        "title": "",
+        "body": "โพสต์ Ask · {{ask_body}}",
+        "push": {
+          "title": "{{username}}",
+          "body": "โพสต์ Ask · {{ask_body}}"
+        }
+      }
+    }
   },
   "scanResult": {
     "headerTitle": "เพิ่มเพื่อน",

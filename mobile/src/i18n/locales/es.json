@@ -661,7 +661,17 @@
     "timeYesterday": "Ayer",
     "timeDaysAgo": "hace {{count}}d",
     "timeWeeksAgo": "hace {{count}}sem",
-    "emptyState": "Sin notificaciones. Configura recordatorios o sigue la actividad de tus amigos"
+    "emptyState": "Sin notificaciones. Configura recordatorios o sigue la actividad de tus amigos",
+    "types": {
+      "ask_posted": {
+        "title": "",
+        "body": "publicó un Ask · {{ask_body}}",
+        "push": {
+          "title": "{{username}}",
+          "body": "publicó un Ask · {{ask_body}}"
+        }
+      }
+    }
   },
   "scanResult": {
     "headerTitle": "Añadir amigo",

@@ -730,6 +730,14 @@
           "title": "Anniversary",
           "body": "{{years}} years ago today, you met {{username}}"
         }
+      },
+      "ask_posted": {
+        "title": "",
+        "body": "posted an Ask · {{ask_body}}",
+        "push": {
+          "title": "{{username}}",
+          "body": "posted an Ask · {{ask_body}}"
+        }
       }
     }
   },

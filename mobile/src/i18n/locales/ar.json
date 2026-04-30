@@ -661,7 +661,17 @@
     "timeYesterday": "أمس",
     "timeDaysAgo": "قبل {{count}} ي",
     "timeWeeksAgo": "قبل {{count}} أ",
-    "emptyState": "لا توجد إشعارات. عيّن تذكيرات أو تابع نشاط أصدقائك"
+    "emptyState": "لا توجد إشعارات. عيّن تذكيرات أو تابع نشاط أصدقائك",
+    "types": {
+      "ask_posted": {
+        "title": "",
+        "body": "نشر طلباً · {{ask_body}}",
+        "push": {
+          "title": "{{username}}",
+          "body": "نشر طلباً · {{ask_body}}"
+        }
+      }
+    }
   },
   "scanResult": {
     "headerTitle": "إضافة صديق",

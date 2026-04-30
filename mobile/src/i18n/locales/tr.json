@@ -661,7 +661,17 @@
     "timeYesterday": "Dün",
     "timeDaysAgo": "{{count}}g önce",
     "timeWeeksAgo": "{{count}}hf önce",
-    "emptyState": "Bildirim yok. Hatırlatıcı ayarla ya da arkadaşlarının etkinliğini takip et"
+    "emptyState": "Bildirim yok. Hatırlatıcı ayarla ya da arkadaşlarının etkinliğini takip et",
+    "types": {
+      "ask_posted": {
+        "title": "",
+        "body": "bir Ask yayınladı · {{ask_body}}",
+        "push": {
+          "title": "{{username}}",
+          "body": "bir Ask yayınladı · {{ask_body}}"
+        }
+      }
+    }
   },
   "scanResult": {
     "headerTitle": "Arkadaş Ekle",

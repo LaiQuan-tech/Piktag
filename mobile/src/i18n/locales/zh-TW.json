@@ -719,6 +719,14 @@
           "title": "紀念日",
           "body": "{{years}} 年前的今天，你認識了 {{username}}"
         }
+      },
+      "ask_posted": {
+        "title": "",
+        "body": "發了 Ask · {{ask_body}}",
+        "push": {
+          "title": "{{username}}",
+          "body": "發了 Ask · {{ask_body}}"
+        }
       }
     }
   },

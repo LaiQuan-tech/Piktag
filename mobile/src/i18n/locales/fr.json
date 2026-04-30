@@ -661,7 +661,17 @@
     "timeYesterday": "Hier",
     "timeDaysAgo": "il y a {{count}}j",
     "timeWeeksAgo": "il y a {{count}}sem",
-    "emptyState": "Aucune notification. Configurez des rappels ou suivez l'activité de vos amis"
+    "emptyState": "Aucune notification. Configurez des rappels ou suivez l'activité de vos amis",
+    "types": {
+      "ask_posted": {
+        "title": "",
+        "body": "a posté un Ask · {{ask_body}}",
+        "push": {
+          "title": "{{username}}",
+          "body": "a posté un Ask · {{ask_body}}"
+        }
+      }
+    }
   },
   "scanResult": {
     "headerTitle": "Ajouter un ami",

@@ -59,6 +59,76 @@ function filterNotifications(
   }
 }
 
+// Render notification username + body from `type` and `data` instead of
+// trusting the DB-stored body. The triggers were written at different
+// times with hardcoded language strings (`notify_friend` → English,
+// `notify_follow` → English, `notify_ask_posted` → Chinese, …) which
+// surfaces as a mixed-language feed once the user's app locale doesn't
+// match whatever the trigger author chose. Localizing client-side via
+// the `notifications.types.{type}` keys gives every row the user's
+// current locale, regardless of what was persisted at insert time.
+//
+// For unknown types or missing keys we fall back to the DB body so
+// future trigger types (or legacy rows we haven't categorised) still
+// render something readable instead of a raw i18n key.
+function getNotificationDisplay(
+  item: Notification,
+  t: (key: string, options?: any) => string
+): { username: string; body: string } {
+  const data = (item.data || {}) as Record<string, any>;
+  const dataUsername =
+    (typeof data.username === 'string' && data.username) || '';
+
+  const type = item.type;
+
+  // `ask_body` may be longer than 60 chars in the data payload. The DB
+  // truncates for the stored body but data.ask_body is the full string,
+  // so trim it client-side to keep the row to one line.
+  const truncatedAskBody = (() => {
+    const raw = (typeof data.ask_body === 'string' && data.ask_body) || '';
+    return raw.length <= 60 ? raw : raw.slice(0, 59) + '…';
+  })();
+
+  // {{count}} for recommendation rows means "mutual tag count", which
+  // the trigger persists as `mutual_tag_count`. Coerce both keys so the
+  // {{count}} placeholder doesn't render as 0 for legacy data shapes.
+  const countParam =
+    typeof data.count === 'number'
+      ? data.count
+      : typeof data.mutual_tag_count === 'number'
+        ? data.mutual_tag_count
+        : 0;
+
+  const i18nKey = `notifications.types.${type}.body`;
+  const i18nBody = t(i18nKey, {
+    username: dataUsername,
+    tag_name: data.tag_name ?? '',
+    count: countParam,
+    platform: data.platform ?? '',
+    years: data.years ?? 0,
+    ask_body: truncatedAskBody,
+    defaultValue: '',
+  });
+  const i18nFound =
+    !!i18nBody && !i18nBody.startsWith('notifications.types.');
+
+  // Modern notifications: data.username is populated by all current
+  // triggers (notify_follow / notify_friend / notify_tag_added /
+  // notify_ask_posted / …). When we have both a localized body string
+  // and a real username in data, render in the user's locale.
+  if (i18nFound && dataUsername) {
+    return { username: dataUsername, body: i18nBody };
+  }
+
+  // Legacy notifications: pre-trigger rows often baked the actor name
+  // into the body itself (e.g. body='Armand 開始追蹤你', title='新的追蹤者'),
+  // and data.username was either absent or empty. Discarding the body
+  // and only showing data.username (or worse, falling back to the
+  // 'system label' title) loses the actor's name. Render the raw DB
+  // body verbatim and skip the username prefix so we don't double-up.
+  return { username: '', body: item.body || '' };
+}
+
 function formatTimeAgo(dateString: string, t: (key: string, options?: any) => string): string {
   const now = new Date();
   const date = new Date(dateString);
@@ -92,8 +162,7 @@ const NotificationItem = React.memo(function NotificationItem({
   t,
 }: NotificationItemProps) {
   const avatarUrl = item.data?.avatar_url || null;
-  const username = item.data?.username || item.title || '';
-  const body = item.body || '';
+  const { username, body } = getNotificationDisplay(item, t);
 
   const handlePress = useCallback(() => {
     onPress(item);

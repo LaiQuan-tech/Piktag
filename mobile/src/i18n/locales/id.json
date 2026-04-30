@@ -661,7 +661,17 @@
     "timeYesterday": "Kemarin",
     "timeDaysAgo": "{{count}} hari lalu",
     "timeWeeksAgo": "{{count}} minggu lalu",
-    "emptyState": "Tidak ada notifikasi. Atur pengingat atau ikuti aktivitas temanmu"
+    "emptyState": "Tidak ada notifikasi. Atur pengingat atau ikuti aktivitas temanmu",
+    "types": {
+      "ask_posted": {
+        "title": "",
+        "body": "memposting Ask · {{ask_body}}",
+        "push": {
+          "title": "{{username}}",
+          "body": "memposting Ask · {{ask_body}}"
+        }
+      }
+    }
   },
   "scanResult": {
     "headerTitle": "Tambah Teman",
