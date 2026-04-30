@@ -2017,20 +2017,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  inlineHiddenTagSection: {
-    paddingHorizontal: 20,
-    paddingTop: 20,
-    paddingBottom: 8,
-    borderTopWidth: 1,
-    borderTopColor: COLORS.gray100,
-    marginTop: 12,
-  },
-  inlineHiddenTagTitle: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: COLORS.gray500,
-    marginBottom: 10,
-  },
   eventTagsChipRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
