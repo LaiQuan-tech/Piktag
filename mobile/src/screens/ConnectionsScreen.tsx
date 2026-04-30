@@ -564,7 +564,7 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
         </TouchableOpacity>
         <TouchableOpacity
           style={[styles.emptyButton, { backgroundColor: COLORS.piktag50, borderWidth: 1.5, borderColor: COLORS.piktag500, marginTop: 10 }]}
-          onPress={() => navigation.navigate('ProfileTab', { screen: 'ContactSync' })}
+          onPress={() => navigation.navigate('ContactSync')}
           activeOpacity={0.8}
         >
           <Text style={[styles.emptyButtonText, { color: COLORS.piktag600 }]}>{t('connections.syncContactsButton') || '同步通訊錄找朋友'}</Text>

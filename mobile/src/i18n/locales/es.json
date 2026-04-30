@@ -564,7 +564,21 @@
     "inviteMessage": "¡Hola {{name}}! Estoy usando PikTag para intercambiar etiquetas. Únete: https://pikt.ag",
     "batchProgress": "Procesando {{current}}/{{total}}",
     "alertBatchDoneTitle": "Importación completa",
-    "alertBatchDoneMessage": "Se añadieron {{matched}} amigos. {{notOnApp}} contactos aún no están en PikTag."
+    "alertBatchDoneMessage": "Se añadieron {{matched}} amigos. {{notOnApp}} contactos aún no están en PikTag.",
+    "sectionOnPiktag": "En PikTag · {{count}}",
+    "sectionNotOnPiktag": "No en PikTag · {{count}}",
+    "summaryHeading": "{{onCount}} en PikTag · {{offCount}} para invitar",
+    "followAllCta": "Seguir a todos los amigos de PikTag ({{count}})",
+    "followBtn": "Seguir",
+    "inviteBtn": "Invitar",
+    "fromContact": "Contacto: {{name}}",
+    "classifyingText": "Comparando…",
+    "alertFollowAllTitle": "Seguir a todos",
+    "alertFollowAllMessage": "¿Añadir a tus conexiones a los {{count}} amigos de PikTag?",
+    "alertFollowAllConfirm": "Añadir",
+    "alertFollowAllDoneTitle": "Listo",
+    "alertFollowAllDoneMessage": "Se añadieron {{count}} amigos de PikTag 🎉",
+    "allConnected": "Todos los contactos de PikTag ya están conectados"
   },
   "invite": {
     "headerTitle": "Invitar amigos",

@@ -564,7 +564,21 @@
     "inviteMessage": "สวัสดี {{name}} ฉันใช้ PikTag แลกแท็กอยู่! มาร่วมกัน: https://pikt.ag",
     "batchProgress": "กำลังประมวลผล {{current}}/{{total}}",
     "alertBatchDoneTitle": "นำเข้าเสร็จสิ้น",
-    "alertBatchDoneMessage": "เพิ่มเพื่อน {{matched}} คน ผู้ติดต่อ {{notOnApp}} คนยังไม่ได้ใช้ PikTag"
+    "alertBatchDoneMessage": "เพิ่มเพื่อน {{matched}} คน ผู้ติดต่อ {{notOnApp}} คนยังไม่ได้ใช้ PikTag",
+    "sectionOnPiktag": "อยู่บน PikTag · {{count}}",
+    "sectionNotOnPiktag": "ยังไม่ใช้ PikTag · {{count}}",
+    "summaryHeading": "{{onCount}} คนบน PikTag · เชิญได้ {{offCount}} คน",
+    "followAllCta": "ติดตามเพื่อน PikTag ทั้งหมด ({{count}})",
+    "followBtn": "ติดตาม",
+    "inviteBtn": "เชิญ",
+    "fromContact": "รายชื่อ: {{name}}",
+    "classifyingText": "กำลังเทียบ…",
+    "alertFollowAllTitle": "ติดตามทั้งหมด",
+    "alertFollowAllMessage": "เพิ่มเพื่อน PikTag ทั้ง {{count}} คนเข้าคอนเนคชันของคุณ?",
+    "alertFollowAllConfirm": "เพิ่ม",
+    "alertFollowAllDoneTitle": "เสร็จสิ้น",
+    "alertFollowAllDoneMessage": "เพิ่มเพื่อน PikTag {{count}} คนแล้ว 🎉",
+    "allConnected": "เพื่อน PikTag ในรายชื่อถูกเพิ่มหมดแล้ว"
   },
   "invite": {
     "headerTitle": "เชิญเพื่อน",

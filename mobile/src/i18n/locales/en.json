@@ -572,7 +572,21 @@
     "inviteMessage": "Hey {{name}}, I'm using PikTag to exchange tags! Join me: https://pikt.ag",
     "batchProgress": "Processing {{current}}/{{total}}",
     "alertBatchDoneTitle": "Import complete",
-    "alertBatchDoneMessage": "Added {{matched}} friends. {{notOnApp}} contacts are not on PikTag yet."
+    "alertBatchDoneMessage": "Added {{matched}} friends. {{notOnApp}} contacts are not on PikTag yet.",
+    "sectionOnPiktag": "On PikTag · {{count}}",
+    "sectionNotOnPiktag": "Not on PikTag · {{count}}",
+    "summaryHeading": "{{onCount}} on PikTag · {{offCount}} to invite",
+    "followAllCta": "Follow all PikTag friends ({{count}})",
+    "followBtn": "Follow",
+    "inviteBtn": "Invite",
+    "fromContact": "Contact: {{name}}",
+    "classifyingText": "Matching…",
+    "alertFollowAllTitle": "Follow all",
+    "alertFollowAllMessage": "Add all {{count}} PikTag friends to your connections?",
+    "alertFollowAllConfirm": "Add",
+    "alertFollowAllDoneTitle": "Done",
+    "alertFollowAllDoneMessage": "Added {{count}} PikTag friends 🎉",
+    "allConnected": "All PikTag contacts are already connected"
   },
   "invite": {
     "headerTitle": "Invite Friends",

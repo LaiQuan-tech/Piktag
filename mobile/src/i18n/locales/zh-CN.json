@@ -572,7 +572,21 @@
     "inviteMessage": "{{name}}，我在用 PikTag，一起来交换标签吧！下载：https://pikt.ag",
     "batchProgress": "处理中 {{current}}/{{total}}",
     "alertBatchDoneTitle": "导入完成",
-    "alertBatchDoneMessage": "已加入 {{matched}} 位朋友。其中 {{notOnApp}} 位尚未使用 PikTag。"
+    "alertBatchDoneMessage": "已加入 {{matched}} 位朋友。其中 {{notOnApp}} 位尚未使用 PikTag。",
+    "sectionOnPiktag": "已在 PikTag · {{count}} 位",
+    "sectionNotOnPiktag": "尚未加入 · {{count}} 位",
+    "summaryHeading": "{{onCount}} 位已在 PikTag · {{offCount}} 位可邀请",
+    "followAllCta": "全部关注 PikTag 朋友 ({{count}})",
+    "followBtn": "关注",
+    "inviteBtn": "邀请",
+    "fromContact": "通讯录：{{name}}",
+    "classifyingText": "对比中…",
+    "alertFollowAllTitle": "全部关注",
+    "alertFollowAllMessage": "要把 {{count}} 位 PikTag 朋友加入吗？",
+    "alertFollowAllConfirm": "加入",
+    "alertFollowAllDoneTitle": "完成",
+    "alertFollowAllDoneMessage": "已加入 {{count}} 位 PikTag 朋友 🎉",
+    "allConnected": "通讯录里的 PikTag 朋友都已加入"
   },
   "invite": {
     "headerTitle": "邀请好友",

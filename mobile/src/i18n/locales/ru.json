@@ -564,7 +564,21 @@
     "inviteMessage": "Привет, {{name}}! Я в PikTag — обмениваемся тегами. Присоединяйся: https://pikt.ag",
     "batchProgress": "Обрабатываем {{current}}/{{total}}",
     "alertBatchDoneTitle": "Импорт завершён",
-    "alertBatchDoneMessage": "Добавлено {{matched}} друзей. {{notOnApp}} контактов ещё не в PikTag."
+    "alertBatchDoneMessage": "Добавлено {{matched}} друзей. {{notOnApp}} контактов ещё не в PikTag.",
+    "sectionOnPiktag": "В PikTag · {{count}}",
+    "sectionNotOnPiktag": "Не в PikTag · {{count}}",
+    "summaryHeading": "{{onCount}} в PikTag · {{offCount}} можно пригласить",
+    "followAllCta": "Подписаться на всех друзей PikTag ({{count}})",
+    "followBtn": "Подписаться",
+    "inviteBtn": "Пригласить",
+    "fromContact": "Контакт: {{name}}",
+    "classifyingText": "Сопоставляем…",
+    "alertFollowAllTitle": "Подписаться на всех",
+    "alertFollowAllMessage": "Добавить всех {{count}} друзей PikTag в свои связи?",
+    "alertFollowAllConfirm": "Добавить",
+    "alertFollowAllDoneTitle": "Готово",
+    "alertFollowAllDoneMessage": "Добавлено {{count}} друзей PikTag 🎉",
+    "allConnected": "Все контакты PikTag уже добавлены"
   },
   "invite": {
     "headerTitle": "Пригласить друзей",

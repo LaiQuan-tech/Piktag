@@ -564,7 +564,21 @@
     "inviteMessage": "Hai {{name}}, saya pakai PikTag untuk bertukar tag! Gabung yuk: https://pikt.ag",
     "batchProgress": "Memproses {{current}}/{{total}}",
     "alertBatchDoneTitle": "Impor selesai",
-    "alertBatchDoneMessage": "{{matched}} teman ditambahkan. {{notOnApp}} kontak belum menggunakan PikTag."
+    "alertBatchDoneMessage": "{{matched}} teman ditambahkan. {{notOnApp}} kontak belum menggunakan PikTag.",
+    "sectionOnPiktag": "Di PikTag · {{count}}",
+    "sectionNotOnPiktag": "Belum di PikTag · {{count}}",
+    "summaryHeading": "{{onCount}} di PikTag · {{offCount}} untuk diundang",
+    "followAllCta": "Ikuti semua teman PikTag ({{count}})",
+    "followBtn": "Ikuti",
+    "inviteBtn": "Undang",
+    "fromContact": "Kontak: {{name}}",
+    "classifyingText": "Mencocokkan…",
+    "alertFollowAllTitle": "Ikuti semua",
+    "alertFollowAllMessage": "Tambahkan semua {{count}} teman PikTag ke koneksimu?",
+    "alertFollowAllConfirm": "Tambah",
+    "alertFollowAllDoneTitle": "Selesai",
+    "alertFollowAllDoneMessage": "{{count}} teman PikTag ditambahkan 🎉",
+    "allConnected": "Semua kontak PikTag sudah terhubung"
   },
   "invite": {
     "headerTitle": "Undang Teman",

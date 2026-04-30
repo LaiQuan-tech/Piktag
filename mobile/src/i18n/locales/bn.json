@@ -564,7 +564,21 @@
     "inviteMessage": "হাই {{name}}, আমি PikTag-এ ট্যাগ বিনিময় করছি! যোগ দিন: https://pikt.ag",
     "batchProgress": "প্রসেস হচ্ছে {{current}}/{{total}}",
     "alertBatchDoneTitle": "ইম্পোর্ট সম্পন্ন",
-    "alertBatchDoneMessage": "{{matched}} জন বন্ধু যোগ হয়েছে। {{notOnApp}} টি কন্টাক্ট এখনও PikTag-এ নেই।"
+    "alertBatchDoneMessage": "{{matched}} জন বন্ধু যোগ হয়েছে। {{notOnApp}} টি কন্টাক্ট এখনও PikTag-এ নেই।",
+    "sectionOnPiktag": "PikTag-এ আছে · {{count}}",
+    "sectionNotOnPiktag": "PikTag-এ নেই · {{count}}",
+    "summaryHeading": "{{onCount}} জন PikTag-এ · {{offCount}} জনকে আমন্ত্রণ করুন",
+    "followAllCta": "সব PikTag বন্ধুকে অনুসরণ ({{count}})",
+    "followBtn": "অনুসরণ",
+    "inviteBtn": "আমন্ত্রণ",
+    "fromContact": "কন্টাক্ট: {{name}}",
+    "classifyingText": "মিলিয়ে দেখা হচ্ছে…",
+    "alertFollowAllTitle": "সবাইকে অনুসরণ",
+    "alertFollowAllMessage": "{{count}} জন PikTag বন্ধুকে আপনার কানেকশনে যোগ করবেন?",
+    "alertFollowAllConfirm": "যোগ করুন",
+    "alertFollowAllDoneTitle": "সম্পন্ন",
+    "alertFollowAllDoneMessage": "{{count}} জন PikTag বন্ধু যোগ হয়েছে 🎉",
+    "allConnected": "PikTag-এর সব কন্টাক্ট ইতিমধ্যেই যুক্ত আছে"
   },
   "invite": {
     "headerTitle": "বন্ধুদের আমন্ত্রণ",

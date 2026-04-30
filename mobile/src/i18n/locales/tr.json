@@ -564,7 +564,21 @@
     "inviteMessage": "Selam {{name}}, etiket alışverişi için PikTag kullanıyorum! Sen de gel: https://pikt.ag",
     "batchProgress": "İşleniyor {{current}}/{{total}}",
     "alertBatchDoneTitle": "İçe aktarma tamamlandı",
-    "alertBatchDoneMessage": "{{matched}} arkadaş eklendi. {{notOnApp}} kişi henüz PikTag kullanmıyor."
+    "alertBatchDoneMessage": "{{matched}} arkadaş eklendi. {{notOnApp}} kişi henüz PikTag kullanmıyor.",
+    "sectionOnPiktag": "PikTag'de · {{count}}",
+    "sectionNotOnPiktag": "PikTag'de değil · {{count}}",
+    "summaryHeading": "{{onCount}} PikTag'de · {{offCount}} davet edilebilir",
+    "followAllCta": "Tüm PikTag arkadaşlarını takip et ({{count}})",
+    "followBtn": "Takip Et",
+    "inviteBtn": "Davet Et",
+    "fromContact": "Kişi: {{name}}",
+    "classifyingText": "Eşleştiriliyor…",
+    "alertFollowAllTitle": "Tümünü takip et",
+    "alertFollowAllMessage": "{{count}} PikTag arkadaşını bağlantılarına eklensin mi?",
+    "alertFollowAllConfirm": "Ekle",
+    "alertFollowAllDoneTitle": "Tamamlandı",
+    "alertFollowAllDoneMessage": "{{count}} PikTag arkadaşı eklendi 🎉",
+    "allConnected": "Tüm PikTag kişileri zaten bağlı"
   },
   "invite": {
     "headerTitle": "Arkadaş Davet Et",

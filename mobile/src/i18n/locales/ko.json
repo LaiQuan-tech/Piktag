@@ -564,7 +564,21 @@
     "inviteMessage": "안녕 {{name}}, PikTag로 태그 교환 중이야! 함께해: https://pikt.ag",
     "batchProgress": "{{current}}/{{total}} 처리 중",
     "alertBatchDoneTitle": "가져오기 완료",
-    "alertBatchDoneMessage": "{{matched}}명의 친구를 추가했습니다. {{notOnApp}}명은 아직 PikTag에 없습니다."
+    "alertBatchDoneMessage": "{{matched}}명의 친구를 추가했습니다. {{notOnApp}}명은 아직 PikTag에 없습니다.",
+    "sectionOnPiktag": "PikTag 사용 중 · {{count}}명",
+    "sectionNotOnPiktag": "미가입 · {{count}}명",
+    "summaryHeading": "{{onCount}}명 PikTag 사용 중 · {{offCount}}명 초대 가능",
+    "followAllCta": "PikTag 친구 모두 팔로우 ({{count}})",
+    "followBtn": "팔로우",
+    "inviteBtn": "초대",
+    "fromContact": "연락처: {{name}}",
+    "classifyingText": "매칭 중…",
+    "alertFollowAllTitle": "모두 팔로우",
+    "alertFollowAllMessage": "{{count}}명의 PikTag 친구를 모두 추가하시겠습니까?",
+    "alertFollowAllConfirm": "추가",
+    "alertFollowAllDoneTitle": "완료",
+    "alertFollowAllDoneMessage": "{{count}}명의 PikTag 친구를 추가했습니다 🎉",
+    "allConnected": "연락처의 모든 PikTag 친구가 이미 추가되었습니다"
   },
   "invite": {
     "headerTitle": "친구 초대",

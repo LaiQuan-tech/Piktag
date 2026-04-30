@@ -564,7 +564,21 @@
     "inviteMessage": "مرحبًا {{name}}، أستخدم PikTag لتبادل الوسوم! انضم إليّ: https://pikt.ag",
     "batchProgress": "جارٍ المعالجة {{current}}/{{total}}",
     "alertBatchDoneTitle": "اكتمل الاستيراد",
-    "alertBatchDoneMessage": "تمت إضافة {{matched}} صديقًا. {{notOnApp}} جهة اتصال لا تستخدم PikTag بعد."
+    "alertBatchDoneMessage": "تمت إضافة {{matched}} صديقًا. {{notOnApp}} جهة اتصال لا تستخدم PikTag بعد.",
+    "sectionOnPiktag": "على PikTag · {{count}}",
+    "sectionNotOnPiktag": "ليس على PikTag · {{count}}",
+    "summaryHeading": "{{onCount}} على PikTag · {{offCount}} للدعوة",
+    "followAllCta": "متابعة جميع أصدقاء PikTag ({{count}})",
+    "followBtn": "متابعة",
+    "inviteBtn": "دعوة",
+    "fromContact": "جهة اتصال: {{name}}",
+    "classifyingText": "جارٍ المطابقة…",
+    "alertFollowAllTitle": "متابعة الكل",
+    "alertFollowAllMessage": "هل تريد إضافة كل أصدقاء PikTag الـ {{count}} إلى اتصالاتك؟",
+    "alertFollowAllConfirm": "إضافة",
+    "alertFollowAllDoneTitle": "تم",
+    "alertFollowAllDoneMessage": "تمت إضافة {{count}} من أصدقاء PikTag 🎉",
+    "allConnected": "تم بالفعل إضافة جميع جهات اتصال PikTag"
   },
   "invite": {
     "headerTitle": "دعوة الأصدقاء",
