@@ -29,6 +29,23 @@ type Props = {
 const RECENT_LOCATIONS_KEY = 'piktag_recent_locations';
 const MAX_FREQUENT = 12;
 
+// Sliding window for the "frequency" half of the suggested-tag pool.
+// We only count tags applied to the user's MOST RECENT N connections —
+// older connections age out, so the row tracks the user's CURRENT
+// tagging habit instead of an ever-growing lifetime aggregate.
+//
+// Picked 10 after considering:
+//   * 3-5: too volatile — a single one-off tag dominates the row
+//   * 20+: drifts back into "lifetime" semantics, defeats the purpose
+//   * 10: typical user has ~20-40 tag instances across last 10
+//     connections, which gives a clear count gradient for the
+//     12-chip cap; covers a single conference's worth of contacts
+//     for power users and ~1-2 weeks for daily networkers.
+//
+// Tune by changing this single constant — the rest of the pipeline
+// is window-agnostic.
+const RECENT_CONNECTIONS_WINDOW = 10;
+
 const DATE_LIKE_RE = /^\d{4}/;
 
 function formatDateDisplay(d: Date): string {
@@ -83,13 +100,20 @@ export default function HiddenTagEditor({ connectionId, userId, hiddenTags, onTa
     if (!userId) return;
     const counts = new Map<string, { id: string; name: string; count: number }>();
 
-    // (a) Frequency from existing private connection tags
-    const { data: conns, error: connsErr } = await supabase
+    // (a) Frequency from the user's MOST RECENT N connections only.
+    // The .order().limit() bounds the sliding window — see
+    // RECENT_CONNECTIONS_WINDOW comment for why N=10. Without this
+    // cap, "Suggested" eventually becomes a lifetime aggregate of
+    // every tag the user has ever applied, which loses the
+    // "recent / current" feel that makes the row useful.
+    const { data: recentConns, error: connsErr } = await supabase
       .from('piktag_connections')
       .select('id')
-      .eq('user_id', userId);
-    if (!connsErr && conns && conns.length > 0) {
-      const connIds = conns.map((c: any) => c.id);
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+      .limit(RECENT_CONNECTIONS_WINDOW);
+    if (!connsErr && recentConns && recentConns.length > 0) {
+      const connIds = recentConns.map((c: any) => c.id);
       const { data: tagRows, error: tagsErr } = await supabase
         .from('piktag_connection_tags')
         .select('tag_id, piktag_tags!inner(id, name)')
