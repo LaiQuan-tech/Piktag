@@ -1296,49 +1296,61 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
           </View>
         )}
 
-        {/* ===== SECTION 2: Social Links — IG Highlights style circles ===== */}
-        {biolinks.length > 0 && (
+        {/* ===== Biolinks — matches ProfileScreen layout exactly =====
+            Two intentional differences from the previous impl:
+              1. No section title ("社群連結"). Universal logos communicate
+                 "social links" on their own.
+              2. Icon row no longer shows a text label under each circle
+                 (was rendering "facebook" / phone-number under FB / phone
+                 icons). The brand glyphs already say what they are.
+              3. Both rows now filter by display_mode so a biolink the
+                 user marked as 'icon-only' doesn't also show as a card
+                 (and vice versa) — same rule ProfileScreen uses. Before
+                 this filter, every biolink rendered TWICE.
+        */}
+        {biolinks.filter((bl) => bl.display_mode === 'icon' || bl.display_mode === 'both').length > 0 && (
           <View style={styles.socialSection}>
-            <Text style={styles.sectionTitle}>{t('friendDetail.biolinksTitle')}</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.socialScrollContent}>
-              {biolinks.map((link) => (
-                <TouchableOpacity
-                  key={link.id}
-                  style={styles.socialCircleItem}
-                  onPress={() => handleOpenLink(link.url, link.id)}
-                  activeOpacity={0.7}
-                >
-                  <View style={styles.socialCircleRing}>
-                    <View style={styles.socialCircleInner}>
-                      <PlatformIcon platform={link.platform} size={28} />
+              {biolinks
+                .filter((bl) => bl.display_mode === 'icon' || bl.display_mode === 'both')
+                .map((link) => (
+                  <TouchableOpacity
+                    key={link.id}
+                    style={styles.socialCircleItem}
+                    onPress={() => handleOpenLink(link.url, link.id)}
+                    activeOpacity={0.7}
+                    accessibilityLabel={link.label || link.platform}
+                    accessibilityRole="link"
+                  >
+                    <View style={styles.socialCircleRing}>
+                      <View style={styles.socialCircleInner}>
+                        <PlatformIcon platform={link.platform} size={28} />
+                      </View>
                     </View>
-                  </View>
-                  <Text style={styles.socialCircleLabel} numberOfLines={1}>
-                    {link.label || link.platform}
-                  </Text>
-                </TouchableOpacity>
-              ))}
+                  </TouchableOpacity>
+                ))}
             </ScrollView>
           </View>
         )}
 
-        {/* ===== SECTION 3: Link Bio — Linktree style cards ===== */}
-        {biolinks.length > 0 && (
+        {biolinks.filter((bl) => bl.display_mode === 'card' || bl.display_mode === 'both').length > 0 && (
           <View style={styles.linkBioSection}>
-            {biolinks.map((link) => (
-              <TouchableOpacity
-                key={link.id}
-                style={styles.linkCard}
-                onPress={() => handleOpenLink(link.url, link.id)}
-                activeOpacity={0.7}
-              >
-                <PlatformIcon platform={link.platform} size={22} />
-                <Text style={styles.linkCardText} numberOfLines={1}>
-                  {link.label || link.platform}
-                </Text>
-                <ExternalLink size={16} color={COLORS.gray400} />
-              </TouchableOpacity>
-            ))}
+            {biolinks
+              .filter((bl) => bl.display_mode === 'card' || bl.display_mode === 'both')
+              .map((link) => (
+                <TouchableOpacity
+                  key={link.id}
+                  style={styles.linkCard}
+                  onPress={() => handleOpenLink(link.url, link.id)}
+                  activeOpacity={0.7}
+                >
+                  <PlatformIcon platform={link.platform} size={22} />
+                  <Text style={styles.linkCardText} numberOfLines={1}>
+                    {link.label || link.platform}
+                  </Text>
+                  <ExternalLink size={16} color={COLORS.gray400} />
+                </TouchableOpacity>
+              ))}
           </View>
         )}
 

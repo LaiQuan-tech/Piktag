@@ -157,9 +157,32 @@ function AppInner() {
 
   useEffect(() => {
     if (isWeb) return;
+
+    // NavigationContainerRef.isReady() returns true once the underlying
+    // navigator has mounted and registered its first route. On COLD
+    // START, the push response listener can fire BEFORE that — the OS
+    // delivers the response while React is still bootstrapping, so
+    // navigationRef.current?.navigate() either no-ops or throws "The
+    // 'navigation' object hasn't been initialized yet". That's the
+    // "sometimes works, sometimes doesn't" follow-push bug. Poll until
+    // ready (max ~5s) before dispatching.
+    const waitForNavReady = async (maxMs = 5000): Promise<boolean> => {
+      const start = Date.now();
+      while (Date.now() - start < maxMs) {
+        if (navigationRef.current?.isReady?.()) return true;
+        await new Promise((r) => setTimeout(r, 50));
+      }
+      return navigationRef.current?.isReady?.() ?? false;
+    };
+
     const handleResponse = async (response: Notifications.NotificationResponse) => {
       const data = (response.notification.request.content.data ?? {}) as Record<string, any>;
       const type: string | undefined = data?.type;
+      // Cold-start path: the push tap happens before the navigator
+      // mounts. Block until isReady() so the navigate call below has a
+      // working ref.
+      const ready = await waitForNavReady();
+      if (!ready) return;
       const nav = navigationRef.current as any;
       if (!nav) return;
 

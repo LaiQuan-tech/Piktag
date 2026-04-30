@@ -1386,10 +1386,12 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
           </View>
         )}
 
-        {/* Social Links — IG Highlights style circles */}
+        {/* Biolinks — matches ProfileScreen layout exactly. Section
+            titles removed (universal logos speak for themselves) and
+            the per-icon text label dropped (FB / phone glyph carries
+            the meaning). See FriendDetailScreen for the same rationale. */}
         {iconBiolinks.length > 0 && (
           <View style={styles.socialSection}>
-            <Text style={styles.sectionTitle}>{t('userDetail.socialLinksTitle')}</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.socialScrollContent}>
               {iconBiolinks.map((link) => (
                 <TouchableOpacity
@@ -1397,25 +1399,22 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
                   style={styles.socialCircleItem}
                   onPress={() => handleOpenLink(link.url)}
                   activeOpacity={0.7}
+                  accessibilityLabel={link.label || link.platform}
+                  accessibilityRole="link"
                 >
                   <View style={styles.socialCircleRing}>
                     <View style={styles.socialCircleInner}>
                       <PlatformIcon platform={link.platform} size={28} />
                     </View>
                   </View>
-                  <Text style={styles.socialCircleLabel} numberOfLines={1}>
-                    {link.label || link.platform}
-                  </Text>
                 </TouchableOpacity>
               ))}
             </ScrollView>
           </View>
         )}
 
-        {/* Link Bio — Linktree style cards */}
         {cardBiolinks.length > 0 && (
           <View style={styles.linkBioSection}>
-            <Text style={styles.sectionTitle}>{t('userDetail.linkBioTitle')}</Text>
             {cardBiolinks.map((link) => (
               <TouchableOpacity
                 key={link.id}
