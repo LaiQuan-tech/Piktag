@@ -33,6 +33,7 @@ import {
   splitTelUrl,
 } from '../lib/countryCodes';
 import { useAuth } from '../hooks/useAuth';
+import { useAskFeed } from '../hooks/useAskFeed';
 import PageLoader from '../components/loaders/PageLoader';
 import BrandSpinner from '../components/loaders/BrandSpinner';
 import type { Biolink, Tag, UserTag } from '../types';
@@ -188,6 +189,12 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
   const { colors, isDark } = useTheme();
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
+  // myAsk drives the avatar's gradient ring on this screen too — same
+  // semantic as ProfileScreen: the gradient ring signals "I have an
+  // active Ask", subtle when not. Without this, every user editing
+  // their profile would see a permanent gradient and the visual signal
+  // means nothing.
+  const { myAsk } = useAskFeed();
   const userId = user?.id;
 
   const [form, setForm] = useState<FormData>({
@@ -1014,7 +1021,7 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
             <View style={styles.avatarStack}>
               <RingedAvatar
                 size={108}
-                ringStyle="gradient"
+                ringStyle={myAsk ? 'gradient' : 'subtle'}
                 badge="pencil"
                 name={form.full_name || form.username || ''}
                 avatarUrl={avatarUrl}

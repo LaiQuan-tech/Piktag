@@ -287,9 +287,16 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
                 has an active ask the modal switches to view/delete mode
                 automatically. EditProfile is reachable via the "編輯
                 個人檔案" button below the stats row. */}
+            {/* Ring style is the visual signal for "I have an active Ask".
+                When myAsk is null we drop to the subtle 1.5px border so
+                the gradient stops being visual noise that everyone has
+                all the time. The "+" badge stays in both states (it's
+                the affordance for creating an Ask, independent of the
+                current Ask state) — onPress branches to view/delete or
+                create inside AskCreateModal. */}
             <RingedAvatar
               size={68}
-              ringStyle="gradient"
+              ringStyle={myAsk ? 'gradient' : 'subtle'}
               badge="plus"
               name={profile?.full_name || profile?.username || ''}
               avatarUrl={profile?.avatar_url}
