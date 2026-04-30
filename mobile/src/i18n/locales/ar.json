@@ -961,6 +961,7 @@
     "askingNow": "يطلبون الآن",
     "yourAskTitle": "Ask النشط",
     "generateAiTags": "توليد وسوم بالذكاء",
+    "regenerateAiTags": "إعادة التوليد",
     "bubblePromptMine": "+ Ask جديد"
   },
   "errorBoundary": {

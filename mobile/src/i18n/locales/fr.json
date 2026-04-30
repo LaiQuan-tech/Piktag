@@ -961,6 +961,7 @@
     "askingNow": "Demande en cours",
     "yourAskTitle": "Votre Ask actuel",
     "generateAiTags": "Générer des tags IA",
+    "regenerateAiTags": "Régénérer",
     "bubblePromptMine": "+ Nouveau Ask"
   },
   "errorBoundary": {

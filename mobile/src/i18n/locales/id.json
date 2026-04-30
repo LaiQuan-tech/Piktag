@@ -961,6 +961,7 @@
     "askingNow": "Sedang mencari",
     "yourAskTitle": "Ask aktif kamu",
     "generateAiTags": "Buat tag AI",
+    "regenerateAiTags": "Buat ulang",
     "bubblePromptMine": "+ Ask baru"
   },
   "errorBoundary": {

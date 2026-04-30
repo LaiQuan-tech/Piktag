@@ -961,6 +961,7 @@
     "askingNow": "এখন চাইছেন",
     "yourAskTitle": "আপনার বর্তমান Ask",
     "generateAiTags": "AI ট্যাগ তৈরি করুন",
+    "regenerateAiTags": "পুনরায় তৈরি",
     "bubblePromptMine": "+ নতুন Ask"
   },
   "errorBoundary": {

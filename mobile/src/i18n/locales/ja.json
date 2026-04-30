@@ -961,6 +961,7 @@
     "askingNow": "現在募集中",
     "yourAskTitle": "現在のAsk",
     "generateAiTags": "AIでタグ生成",
+    "regenerateAiTags": "再生成",
     "bubblePromptMine": "+ Ask 追加"
   },
   "errorBoundary": {

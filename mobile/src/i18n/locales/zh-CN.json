@@ -1035,6 +1035,7 @@
     "askingNow": "正在求助",
     "yourAskTitle": "你目前的 Ask",
     "generateAiTags": "AI 生成标签",
+    "regenerateAiTags": "重新生成",
     "bubblePromptMine": "+ 新增 Ask"
   },
   "errorBoundary": {

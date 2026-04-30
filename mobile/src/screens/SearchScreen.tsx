@@ -352,7 +352,6 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
 
 
   // Refs for stable closures
-  const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const skipNextSearch = useRef(false);
   const [intersectionMode, setIntersectionMode] = useState(false);
   const [intersectionProfiles, setIntersectionProfiles] = useState<PiktagProfile[]>([]);
@@ -1104,49 +1103,46 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
     [loadPopularTags, saveRecentSearch],
   );
 
+  // Submit-only search: typing alone never hits the server. The user
+  // commits to a query by pressing the keyboard's "Search" key (handled
+  // by handleSubmitEditing below), which gives us bounded, predictable
+  // server load — a long query at 5 chars/sec used to fan out 5 RPCs +
+  // 5 ilike scans per pause; now it's exactly one round-trip per intent.
+  //
+  // While the user is mid-edit, we KEEP the previous result set on
+  // screen (option B from the design discussion) — clearing on every
+  // keystroke would flicker, and showing a "press Search" placeholder
+  // while there's clearly content the user might still want fights
+  // their mental model.
+  //
+  // The one exception: text fully cleared → restore the default browse
+  // (popular tags). That's not "a search", it's "no query intent", and
+  // matching the X-button behaviour on backspace-to-empty avoids the
+  // weird state of an empty input box still showing yesterday's results.
   const handleSearchChange = useCallback(
     (text: string) => {
       setSearchQuery(text);
 
-      // Skip if triggered by handleSearchByTags
+      // Skip if triggered by handleSearchByTags (programmatic write).
       if (skipNextSearch.current) {
         skipNextSearch.current = false;
         return;
       }
 
-      // Exit intersection mode when user types
+      // Exit intersection mode when the user starts editing the text
+      // box — staying in intersection mode would render a stale chip
+      // bar above a query that no longer matches.
       if (intersectionMode) {
         setIntersectionMode(false);
         setIntersectionProfiles([]);
       }
 
-      if (debounceTimer.current) {
-        clearTimeout(debounceTimer.current);
-      }
-
-      // Skip the DB round-trip on 0/1 character queries — they match
-      // far too much and are almost never what the user actually wants.
-      // When they clear the box entirely, restore the default browse view.
-      const trimmed = text.trim();
-      if (trimmed.length === 0) {
+      if (text.trim().length === 0) {
         performSearch('');
-        return;
       }
-      if (trimmed.length < 2) return;
-
-      debounceTimer.current = setTimeout(() => {
-        performSearch(text);
-      }, 500);
     },
-    [performSearch],
+    [performSearch, intersectionMode],
   );
-
-  // Cleanup debounce timer on unmount
-  useEffect(() => {
-    return () => {
-      if (debounceTimer.current) clearTimeout(debounceTimer.current);
-    };
-  }, []);
 
   const handleRecentSearchTap = useCallback(
     (query: string) => {
@@ -1191,7 +1187,6 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
     setIntersectionSelectedTags(selected);
     setSearchQuery(selected.map(t => t.name).join(' + '));
     skipNextSearch.current = true;
-    if (debounceTimer.current) clearTimeout(debounceTimer.current);
 
     try {
       const userIdSets: Set<string>[] = [];
@@ -1271,6 +1266,11 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
   const handleFocus = useCallback(() => setIsFocused(true), []);
   const handleBlur = useCallback(() => setIsFocused(false), []);
   const handleSubmitEditing = useCallback(() => {
+    const q = searchQuery.trim();
+    // Empty submit is a no-op — handleSearchChange already restored
+    // the popular-tags browse view when the box was cleared, so
+    // there's nothing further to do.
+    if (q.length === 0) return;
     performSearch(searchQuery);
   }, [performSearch, searchQuery]);
 

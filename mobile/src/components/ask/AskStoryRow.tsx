@@ -499,7 +499,6 @@ export function AskCreateModal({ visible, onClose, existingAsk, onCreated }: Ask
   const [customInput, setCustomInput] = useState('');
   const [aiLoading, setAiLoading] = useState(false);
   const [saving, setSaving] = useState(false);
-  const suggestTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     if (visible) {
@@ -513,7 +512,6 @@ export function AskCreateModal({ visible, onClose, existingAsk, onCreated }: Ask
     } else {
       Animated.timing(slideAnim, { toValue: SCREEN_HEIGHT, duration: 250, useNativeDriver: true }).start();
     }
-    return () => { if (suggestTimer.current) clearTimeout(suggestTimer.current); };
   }, [visible, existingAsk, slideAnim]);
 
   // AI auto-suggest tag names when user stops typing. Names are NOT resolved
@@ -559,16 +557,16 @@ export function AskCreateModal({ visible, onClose, existingAsk, onCreated }: Ask
     }
   }, []);
 
-  // Debounce: trigger AI suggest 800ms after user stops typing (min 5 chars)
+  // Submit-only AI: typing alone never hits the suggest-tags edge
+  // function. The user explicitly fires inference via the "✨ AI 生成
+  // 標籤" button below the body input — same pattern as the search bar
+  // (one server hit per intent, not per keystroke). This used to debounce
+  // 800ms after typing stopped; in practice the trigger felt invisible
+  // (users would type continuously and never see the call land), and
+  // the auto-fire was burning OpenAI tokens on half-formed prompts.
   const handleBodyChange = useCallback((text: string) => {
     setBody(text.slice(0, MAX_BODY));
-    if (suggestTimer.current) clearTimeout(suggestTimer.current);
-    if (text.trim().length >= 5) {
-      suggestTimer.current = setTimeout(() => suggestTagsForBody(text), 800);
-    } else {
-      setAiNames([]);
-    }
-  }, [suggestTagsForBody]);
+  }, []);
 
   const toggleTag = useCallback((name: string) => {
     setSelectedNames(prev => {
@@ -778,11 +776,12 @@ export function AskCreateModal({ visible, onClose, existingAsk, onCreated }: Ask
               />
               <Text style={modalStyles.charCount}>{body.length}/{MAX_BODY}</Text>
 
-              {/* Manual AI trigger. The auto-debounce still fires 800ms after
-                  the user stops typing, but in practice the trigger felt
-                  invisible — users would type continuously and never see
-                  suggestions. An explicit button makes the cause-and-effect
-                  obvious and lets them re-roll if the first batch missed. */}
+              {/* Manual AI trigger — the only path that fires suggest-tags.
+                  Auto-debounce was removed because typing-driven inference
+                  was both invisible (users never saw it land) and wasteful
+                  (re-fired on every pause through a half-written prompt).
+                  Button label flips to "重新生成" once we already have
+                  suggestions so users know they can re-roll. */}
               <TouchableOpacity
                 style={[
                   modalStyles.aiTriggerBtn,
@@ -799,7 +798,9 @@ export function AskCreateModal({ visible, onClose, existingAsk, onCreated }: Ask
                   </>
                 ) : (
                   <Text style={modalStyles.aiTriggerText}>
-                    ✨ {t('ask.generateAiTags') || 'AI 生成標籤'}
+                    ✨ {aiNames.length > 0
+                      ? (t('ask.regenerateAiTags') || '重新生成')
+                      : (t('ask.generateAiTags') || 'AI 生成標籤')}
                   </Text>
                 )}
               </TouchableOpacity>

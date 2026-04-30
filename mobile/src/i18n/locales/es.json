@@ -961,6 +961,7 @@
     "askingNow": "Solicitando ahora",
     "yourAskTitle": "Tu Ask actual",
     "generateAiTags": "Generar etiquetas IA",
+    "regenerateAiTags": "Regenerar",
     "bubblePromptMine": "+ Nuevo Ask"
   },
   "errorBoundary": {

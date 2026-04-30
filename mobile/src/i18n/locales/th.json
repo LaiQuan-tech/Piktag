@@ -961,6 +961,7 @@
     "askingNow": "กำลังขอความช่วยเหลือ",
     "yourAskTitle": "Ask ของคุณ",
     "generateAiTags": "สร้างแท็กด้วย AI",
+    "regenerateAiTags": "สร้างใหม่",
     "bubblePromptMine": "+ Ask ใหม่"
   },
   "errorBoundary": {

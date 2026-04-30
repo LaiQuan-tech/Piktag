@@ -961,6 +961,7 @@
     "askingNow": "Просят сейчас",
     "yourAskTitle": "Ваш активный Ask",
     "generateAiTags": "Сгенерировать ИИ-теги",
+    "regenerateAiTags": "Перегенерировать",
     "bubblePromptMine": "+ Новый Ask"
   },
   "errorBoundary": {
