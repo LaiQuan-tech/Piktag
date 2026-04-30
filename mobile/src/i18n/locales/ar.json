@@ -180,7 +180,9 @@
     "sortLabel": "ترتيب",
     "sortByRecent": "المضافون مؤخراً",
     "sortByAlphabet": "أبجدي (أ→ي)",
-    "sortByInteraction": "التفاعل الأخير"
+    "sortByAlphabetDesc": "أبجدي (ي→أ)",
+    "sortByInteraction": "التفاعل الأخير",
+    "sortByBirthday": "أعياد الميلاد القادمة"
   },
   "search": {
     "clearAll": "مسح الكل",

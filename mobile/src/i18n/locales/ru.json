@@ -180,7 +180,9 @@
     "sortLabel": "Сортировка",
     "sortByRecent": "Недавно добавленные",
     "sortByAlphabet": "По алфавиту (A→Z)",
-    "sortByInteraction": "Недавнее взаимодействие"
+    "sortByAlphabetDesc": "По алфавиту (Z→A)",
+    "sortByInteraction": "Недавнее взаимодействие",
+    "sortByBirthday": "Скоро день рождения"
   },
   "search": {
     "clearAll": "Очистить всё",

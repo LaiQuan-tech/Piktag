@@ -180,7 +180,7 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
   // Sort options. 'recent' = newest connection first (default), 'alphabet'
   // = nickname/full_name A→Z, 'interaction' = piktag_connections.updated_at
   // newest first as a proxy for "you touched this connection lately".
-  type SortMode = 'recent' | 'alphabet' | 'interaction';
+  type SortMode = 'recent' | 'alphabet' | 'alphabet_desc' | 'interaction' | 'birthday';
   const [sortMode, setSortMode] = useState<SortMode>('recent');
   const [sortModalVisible, setSortModalVisible] = useState(false);
 
@@ -398,11 +398,42 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
       return Number.isFinite(ts) ? ts : 0;
     };
 
+    // Days until the connection's next birthday (today = 0). Returns
+    // Number.MAX_SAFE_INTEGER for connections without a birthday so
+    // they sort to the bottom of the list. Birthdays are stored as
+    // YYYY-MM-DD or MM-DD; both work because we only use month + day.
+    const daysUntilBirthday = (c: ConnectionWithTags) => {
+      const raw = (c as any).birthday;
+      if (!raw) return Number.MAX_SAFE_INTEGER;
+      const parts = String(raw).split('T')[0].split('-');
+      // Accept "YYYY-MM-DD" (3 parts) or "MM-DD" (2 parts).
+      const month = parts.length === 3
+        ? parseInt(parts[1], 10) - 1
+        : parts.length === 2 ? parseInt(parts[0], 10) - 1 : NaN;
+      const day = parts.length === 3
+        ? parseInt(parts[2], 10)
+        : parts.length === 2 ? parseInt(parts[1], 10) : NaN;
+      if (Number.isNaN(month) || Number.isNaN(day)) return Number.MAX_SAFE_INTEGER;
+
+      const now = new Date();
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      let next = new Date(now.getFullYear(), month, day);
+      // If the birthday already passed THIS year, target next year.
+      if (next.getTime() < today.getTime()) {
+        next = new Date(now.getFullYear() + 1, month, day);
+      }
+      return Math.floor((next.getTime() - today.getTime()) / 86_400_000);
+    };
+
     const sorted = [...connections];
     if (sortMode === 'alphabet') {
       sorted.sort((a, b) => displayName(a).localeCompare(displayName(b), undefined, { sensitivity: 'base' }));
+    } else if (sortMode === 'alphabet_desc') {
+      sorted.sort((a, b) => displayName(b).localeCompare(displayName(a), undefined, { sensitivity: 'base' }));
     } else if (sortMode === 'interaction') {
       sorted.sort((a, b) => recencyTs(b) - recencyTs(a));
+    } else if (sortMode === 'birthday') {
+      sorted.sort((a, b) => daysUntilBirthday(a) - daysUntilBirthday(b));
     } else {
       sorted.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
     }
@@ -819,8 +850,10 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
             {(
               [
                 { key: 'recent', label: t('connections.sortByRecent') || '最近加為好友' },
-                { key: 'alphabet', label: t('connections.sortByAlphabet') || '字母 A→Z' },
                 { key: 'interaction', label: t('connections.sortByInteraction') || '最近互動' },
+                { key: 'birthday', label: t('connections.sortByBirthday') || '最近生日' },
+                { key: 'alphabet', label: t('connections.sortByAlphabet') || '字母 A→Z' },
+                { key: 'alphabet_desc', label: t('connections.sortByAlphabetDesc') || '字母 Z→A' },
               ] as { key: SortMode; label: string }[]
             ).map((opt) => (
               <TouchableOpacity

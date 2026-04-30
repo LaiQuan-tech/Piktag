@@ -180,7 +180,9 @@
     "sortLabel": "정렬",
     "sortByRecent": "최근 추가순",
     "sortByAlphabet": "가나다순 (A→Z)",
-    "sortByInteraction": "최근 활동순"
+    "sortByAlphabetDesc": "가나다순 (Z→A)",
+    "sortByInteraction": "최근 활동순",
+    "sortByBirthday": "생일 임박순"
   },
   "search": {
     "clearAll": "모두 지우기",

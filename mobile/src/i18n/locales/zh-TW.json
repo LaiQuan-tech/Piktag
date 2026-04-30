@@ -188,7 +188,9 @@
     "sortLabel": "排序",
     "sortByRecent": "最近加為好友",
     "sortByAlphabet": "字母 A→Z",
-    "sortByInteraction": "最近互動"
+    "sortByAlphabetDesc": "字母 Z→A",
+    "sortByInteraction": "最近互動",
+    "sortByBirthday": "最近生日"
   },
   "search": {
     "clearAll": "清除全部",

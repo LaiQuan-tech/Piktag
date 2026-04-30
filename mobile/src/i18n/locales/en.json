@@ -188,7 +188,9 @@
     "sortLabel": "Sort",
     "sortByRecent": "Recently added",
     "sortByAlphabet": "Alphabetical (A→Z)",
-    "sortByInteraction": "Recent interaction"
+    "sortByAlphabetDesc": "Alphabetical (Z→A)",
+    "sortByInteraction": "Recent interaction",
+    "sortByBirthday": "Upcoming birthday"
   },
   "search": {
     "clearAll": "Clear all",

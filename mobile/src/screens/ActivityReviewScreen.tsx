@@ -65,16 +65,38 @@ export default function ActivityReviewScreen({ navigation, route }: Props) {
     if (!user) return;
     (async () => {
       try {
+        // Match the banner-count filter on ConnectionsScreen exactly:
+        // only show connections that are still WITHIN the 7-day "new"
+        // window. Without this, ConnectionsScreen could say "0 待整理"
+        // (because the count filters by recency) but the list here
+        // still rendered every old unreviewed connection ever, so
+        // tapping in showed a list that didn't match the banner.
+        // Aging out happens silently — connections older than 7 days
+        // never reach this list, so users stop being nagged about
+        // ancient leftovers they were never going to process.
+        const REVIEW_WINDOW_MS = 7 * 86_400_000;
+        const cutoffIso = new Date(Date.now() - REVIEW_WINDOW_MS).toISOString();
+
         let query = supabase
           .from('piktag_connections')
           .select('id, connected_user_id, nickname, met_at, met_location, connected_user:piktag_profiles!connected_user_id(id, username, full_name, avatar_url, bio, is_verified)')
           .eq('user_id', user.id)
           .eq('is_reviewed', false)
+          .gte('created_at', cutoffIso)
           .order('created_at', { ascending: false });
 
         if (sessionId) {
-          query = query.eq('scan_session_id', sessionId);
-          // Also fetch session info
+          // Session-scoped review: keep showing every connection from
+          // this scan session regardless of age — a session is a
+          // bounded "did we tag everyone we met at X?" task, not a
+          // recency feed.
+          query = supabase
+            .from('piktag_connections')
+            .select('id, connected_user_id, nickname, met_at, met_location, connected_user:piktag_profiles!connected_user_id(id, username, full_name, avatar_url, bio, is_verified)')
+            .eq('user_id', user.id)
+            .eq('is_reviewed', false)
+            .eq('scan_session_id', sessionId)
+            .order('created_at', { ascending: false });
           const { data: session } = await supabase
             .from('piktag_scan_sessions')
             .select('event_date, event_location')
@@ -82,8 +104,6 @@ export default function ActivityReviewScreen({ navigation, route }: Props) {
             .single();
           if (session) setSessionInfo({ date: session.event_date, location: session.event_location });
         }
-        // Otherwise: show ALL unreviewed connections regardless of age
-        // (fixes bug where count on main screen would not match detail list)
 
         const { data } = await query.limit(50);
         if (data) {

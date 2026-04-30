@@ -180,7 +180,9 @@
     "sortLabel": "並べ替え",
     "sortByRecent": "追加が新しい順",
     "sortByAlphabet": "あいうえお順",
-    "sortByInteraction": "最近のやりとり"
+    "sortByAlphabetDesc": "あいうえお順（逆）",
+    "sortByInteraction": "最近のやりとり",
+    "sortByBirthday": "誕生日が近い順"
   },
   "search": {
     "clearAll": "すべてクリア",

@@ -180,7 +180,9 @@
     "sortLabel": "क्रमबद्ध",
     "sortByRecent": "हाल में जोड़े गए",
     "sortByAlphabet": "वर्णक्रम (A→Z)",
-    "sortByInteraction": "हाल का संवाद"
+    "sortByAlphabetDesc": "वर्णक्रम (Z→A)",
+    "sortByInteraction": "हाल का संवाद",
+    "sortByBirthday": "आने वाले जन्मदिन"
   },
   "search": {
     "clearAll": "सब साफ़ करें",

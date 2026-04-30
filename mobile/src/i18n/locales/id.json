@@ -180,7 +180,9 @@
     "sortLabel": "Urutkan",
     "sortByRecent": "Baru ditambahkan",
     "sortByAlphabet": "Alfabet (A→Z)",
-    "sortByInteraction": "Interaksi terbaru"
+    "sortByAlphabetDesc": "Alfabet (Z→A)",
+    "sortByInteraction": "Interaksi terbaru",
+    "sortByBirthday": "Ulang tahun mendatang"
   },
   "search": {
     "clearAll": "Hapus semua",

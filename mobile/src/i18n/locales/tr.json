@@ -180,7 +180,9 @@
     "sortLabel": "Sırala",
     "sortByRecent": "Son eklenenler",
     "sortByAlphabet": "Alfabetik (A→Z)",
-    "sortByInteraction": "Son etkileşim"
+    "sortByAlphabetDesc": "Alfabetik (Z→A)",
+    "sortByInteraction": "Son etkileşim",
+    "sortByBirthday": "Yaklaşan doğum günleri"
   },
   "search": {
     "clearAll": "Hepsini temizle",

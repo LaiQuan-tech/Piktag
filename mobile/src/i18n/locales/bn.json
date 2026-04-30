@@ -180,7 +180,9 @@
     "sortLabel": "সাজান",
     "sortByRecent": "সম্প্রতি যুক্ত",
     "sortByAlphabet": "বর্ণানুক্রমিক (A→Z)",
-    "sortByInteraction": "সাম্প্রতিক যোগাযোগ"
+    "sortByAlphabetDesc": "বর্ণানুক্রমিক (Z→A)",
+    "sortByInteraction": "সাম্প্রতিক যোগাযোগ",
+    "sortByBirthday": "আসন্ন জন্মদিন"
   },
   "search": {
     "clearAll": "সব সাফ করুন",

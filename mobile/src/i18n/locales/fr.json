@@ -180,7 +180,9 @@
     "sortLabel": "Trier",
     "sortByRecent": "Récemment ajoutés",
     "sortByAlphabet": "Alphabétique (A→Z)",
-    "sortByInteraction": "Interaction récente"
+    "sortByAlphabetDesc": "Alphabétique (Z→A)",
+    "sortByInteraction": "Interaction récente",
+    "sortByBirthday": "Anniversaire à venir"
   },
   "search": {
     "clearAll": "Tout effacer",

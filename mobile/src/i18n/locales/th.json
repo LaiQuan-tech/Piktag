@@ -180,7 +180,9 @@
     "sortLabel": "เรียงลำดับ",
     "sortByRecent": "เพิ่มล่าสุด",
     "sortByAlphabet": "ตัวอักษร (A→Z)",
-    "sortByInteraction": "การโต้ตอบล่าสุด"
+    "sortByAlphabetDesc": "ตัวอักษร (Z→A)",
+    "sortByInteraction": "การโต้ตอบล่าสุด",
+    "sortByBirthday": "วันเกิดที่ใกล้จะถึง"
   },
   "search": {
     "clearAll": "ล้างทั้งหมด",
