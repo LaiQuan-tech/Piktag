@@ -1251,63 +1251,16 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
           </View>
         </View>
 
-        {/* Event tags — viewer's QR-scan-derived tags, surfaced as a
-            one-tap shortcut for marking a friend with the same event
-            context. Same gating as the inline HiddenTagEditor below:
-            isFollowing + connectionId + authUser must all be present so
-            the chips never appear on non-relationship profiles. */}
-        {eventTags.length > 0 && isFollowing && connectionId && authUser && (
-          <View style={styles.inlineHiddenTagSection}>
-            <Text style={styles.inlineHiddenTagTitle}>
-              {t('friendDetail.eventTagsTitle') || '活動標籤'}
-            </Text>
-            <View style={styles.eventTagsChipRow}>
-              {eventTags.map((et) => {
-                const selected = hiddenTags.some(h => h.name === et.name);
-                return (
-                  <TouchableOpacity
-                    key={et.id}
-                    onPress={() => toggleHiddenTagByName(et.name, et.id)}
-                    style={[styles.pickModalTag, selected && styles.pickModalTagSelected]}
-                    activeOpacity={0.7}
-                  >
-                    <Text style={[styles.pickModalTagText, selected && styles.pickModalTagTextSelected]}>
-                      #{et.name}
-                    </Text>
-                  </TouchableOpacity>
-                );
-              })}
-            </View>
-          </View>
-        )}
-
-        {/* Hidden tags editor — inline so users don't have to dig into
-            the Pick Tag modal to see the auto-filled event tags from
-            a QR scan.
-
-            Gate intentionally checks BOTH isFollowing AND connectionId,
-            mirroring the [標籤] button gate above (L1105). connectionId
-            alone is not enough: PikTag soft-keeps piktag_connections
-            rows when a follow is removed (so re-following restores
-            tags + history rather than starting from scratch), and a QR
-            scan can also create a connection without a follow. Either
-            path leaves connectionId set on a profile the viewer is no
-            longer (or never was) following — and the inline editor was
-            leaking onto those stranger profiles, exposing private
-            hidden-tag UI to a non-relationship. */}
-        {isFollowing && connectionId && authUser && (
-          <View style={styles.inlineHiddenTagSection}>
-            <Text style={styles.inlineHiddenTagTitle}>
-              {t('friendDetail.hiddenTagsTitle') || '隱藏標籤'}
-            </Text>
-            <HiddenTagEditor
-              connectionId={connectionId}
-              userId={authUser.id}
-              hiddenTags={hiddenTags}
-              onTagsChanged={fetchHiddenTags}
-            />
-          </View>
-        )}
+        {/* Inline hidden-tag UI removed — both the event-tag shortcut
+            row and the full HiddenTagEditor used to render here gated
+            on isFollowing && connectionId. Reported: search for a
+            user you follow and their profile body shows the entire
+            tag-editing surface stuffed into the middle of the page,
+            including private "隱藏標籤（只有你看得到）" sections. The
+            editor is still available, but only via the explicit
+            「選擇標籤」 button, which opens the pickModal below
+            (HiddenTagEditor instance there is the single source of
+            truth now). Profile reads cleanly; tag editing is opt-in. */}
 
         {/* Similar Users — IG style "Suggested for you" */}
         {showSimilar && similarUsers.length > 0 && (
@@ -1489,8 +1442,7 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
             {/* Event tags — viewer's QR-scan-derived event vocabulary,
                 surfaced inside the picker so users can apply the same
                 event context they collected from past scans without
-                having to retype names. Mirrors the inline section above
-                the inline HiddenTagEditor at L1247. */}
+                having to retype names. */}
             {eventTags.length > 0 && connectionId && authUser && (
               <>
                 <Text style={styles.pickModalSectionTitle}>
