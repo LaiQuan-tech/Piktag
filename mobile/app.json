@@ -36,8 +36,9 @@
       "googleServicesFile": "./google-services.json",
       "targetSdkVersion": 35,
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "foregroundImage": "./assets/adaptive-icon-foreground.png",
+        "backgroundImage": "./assets/adaptive-icon-background.png",
+        "backgroundColor": "#c44dff"
       },
       "config": {
         "googleMaps": {
