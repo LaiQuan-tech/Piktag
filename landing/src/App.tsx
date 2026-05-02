@@ -7,9 +7,21 @@ export default function App() {
   const { t, i18n } = useTranslation();
 
   return (
-    <div className="min-h-screen bg-[#0a0612] font-sans text-white selection:bg-accent-purple/40 selection:text-white overflow-x-hidden">
-      {/* Aurora background blobs */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+    <div className="relative min-h-screen bg-gradient-to-b from-[#0a0612] via-[#15082a] to-[#1a0a2e] font-sans text-white selection:bg-accent-purple/40 selection:text-white overflow-x-hidden">
+      {/* Aurora background blobs.
+          Switched from `absolute` → `fixed` so the blobs stay locked to
+          the viewport while the page scrolls. Previously the aurora layer
+          rendered at `absolute inset-0` against an unpositioned wrapper,
+          which resolves to the initial containing block (viewport-sized)
+          — once content pushed the wrapper past 100vh, the aurora ended
+          at the first screenful and the rest of the page just showed the
+          dark base color, hence the reported "下半部變黑色". With `fixed`,
+          the aurora always occupies the visible viewport regardless of
+          scroll, and the wrapper base is a real top-to-bottom gradient
+          (was a flat `#0a0612`), so content past the fold still sits on
+          a continuous brand-toned background instead of dropping into a
+          black void. */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <motion.div
           animate={{
             x: [0, 80, -40, 0],
@@ -39,10 +51,12 @@ export default function App() {
         />
       </div>
 
-      {/* Grid overlay */}
+      {/* Grid overlay — also `fixed` so the dot pattern stays continuous
+          with the aurora through scroll, instead of cutting off at 100vh
+          like the old `absolute` placement did. */}
       <div
         aria-hidden
-        className="absolute inset-0 pointer-events-none opacity-[0.07]"
+        className="fixed inset-0 pointer-events-none opacity-[0.07]"
         style={{
           backgroundImage:
             'radial-gradient(circle, rgba(255,255,255,1) 1px, transparent 1px)',
