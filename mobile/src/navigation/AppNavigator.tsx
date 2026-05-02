@@ -26,6 +26,7 @@ import { ChatUnreadProvider, useChatUnread } from '../hooks/useChatUnread';
 import LoginScreen from '../screens/auth/LoginScreen';
 import RegisterScreen from '../screens/auth/RegisterScreen';
 import OnboardingScreen from '../screens/auth/OnboardingScreen';
+import TabTooltipOverlay, { TAB_TOOLTIPS_SEEN_KEY } from '../components/onboarding/TabTooltipOverlay';
 
 // Tab-level screens — eager (loaded on first render of MainTabs)
 import ConnectionsScreen from '../screens/ConnectionsScreen';
@@ -110,6 +111,7 @@ function MainTabs() {
   const { t } = useTranslation();
   const { total: chatUnread } = useChatUnread();
   return (
+    <View style={{ flex: 1 }}>
     <Tab.Navigator
       detachInactiveScreens={true}
       screenOptions={{
@@ -199,6 +201,14 @@ function MainTabs() {
         }}
       />
     </Tab.Navigator>
+    {/* First-launch tooltip tour. Self-contained — reads its own
+        AsyncStorage flag (TAB_TOOLTIPS_SEEN_KEY) and renders nothing
+        for users who already saw it. Backfill for pre-existing users
+        happens in decideOnboarding() below: when an old account is
+        detected (already onboarded before this feature shipped), we
+        write the seen flag so the overlay never appears for them. */}
+    <TabTooltipOverlay />
+    </View>
   );
 }
 
@@ -510,8 +520,19 @@ export default function AppNavigator() {
 
       if (!isNewUser) {
         setOnboardingDecision('skip');
-        // Backfill the flag so we don't re-check on every launch.
+        // Backfill flags so we don't re-check on every launch AND so old
+        // users (who already finished onboarding before the tab tooltip
+        // tour shipped) never see it. Only write the tooltip flag if it
+        // hasn't been touched, to avoid stomping on a fresh-but-completed
+        // tour from the same device.
         AsyncStorage.setItem(ONBOARDING_COMPLETED_KEY, 'true').catch(() => {});
+        AsyncStorage.getItem(TAB_TOOLTIPS_SEEN_KEY)
+          .then((existing) => {
+            if (existing == null) {
+              AsyncStorage.setItem(TAB_TOOLTIPS_SEEN_KEY, 'true').catch(() => {});
+            }
+          })
+          .catch(() => {});
         return;
       }
 
@@ -536,8 +557,18 @@ export default function AppNavigator() {
       if (bioEmpty) {
         setOnboardingDecision('required');
       } else {
+        // Legacy completion path: bio filled but persisted flag never
+        // set. Treat as already onboarded → also suppress tooltip tour
+        // (these users predate the feature).
         setOnboardingDecision('skip');
         AsyncStorage.setItem(ONBOARDING_COMPLETED_KEY, 'true').catch(() => {});
+        AsyncStorage.getItem(TAB_TOOLTIPS_SEEN_KEY)
+          .then((existing) => {
+            if (existing == null) {
+              AsyncStorage.setItem(TAB_TOOLTIPS_SEEN_KEY, 'true').catch(() => {});
+            }
+          })
+          .catch(() => {});
       }
     } catch (err) {
       console.warn('Onboarding check error:', err);

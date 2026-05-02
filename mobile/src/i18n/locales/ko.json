@@ -129,6 +129,27 @@
       "contactResultText": "{{matched}}명의 친구를 찾았습니다",
       "step3Title": "준비 완료! 시작하세요",
       "step3Description": "계정이 준비되었습니다. 지금 PikTag를 사용하세요",
+      "quickStart": {
+        "title": "PikTag 시작하기",
+        "subtitle": "이 4가지로 빠르게 익숙해지세요",
+        "card1": {
+          "title": "친구 추가",
+          "body": "QR 코드 스캔, 연락처 동기화, 또는 사용자명으로 검색"
+        },
+        "card2": {
+          "title": "친구에게 태그 달기",
+          "body": "\"커피 애호가\", \"PM\", \"고객\" 등 — 나중에 태그로 찾기"
+        },
+        "card3": {
+          "title": "태그로 사람 찾기",
+          "body": "검색 탭에 태그를 입력해 같은 관심사를 가진 사람을 찾아보세요"
+        },
+        "card4": {
+          "title": "Ask 올리기",
+          "body": "한 문장이면, 네트워크 전체가 도와줍니다"
+        },
+        "cta": "PikTag 사용하기"
+      },
       "backButton": "뒤로",
       "enterPikTag": "PikTag 시작하기",
       "nextButton": "다음",
@@ -995,5 +1016,13 @@
     "reasonHarassment": "괴롭힘",
     "reasonInappropriate": "부적절한 콘텐츠",
     "reasonOther": "기타"
+  },
+  "tabTooltips": {
+    "home": "친구",
+    "search": "찾기 / 채팅",
+    "addTag": "스캔 / 만들기",
+    "notifications": "알림",
+    "profile": "내 프로필",
+    "dismissHint": "아무 곳이나 탭하여 닫기"
   }
 }

@@ -135,6 +135,27 @@
       "contactResultText": "已找到 {{matched}} 位朋友",
       "step3Title": "完成！開始探索",
       "step3Description": "你的帳號已設定完成，現在可以開始使用 PikTag 了",
+      "quickStart": {
+        "title": "開始使用 PikTag",
+        "subtitle": "這 4 件事讓你最快上手",
+        "card1": {
+          "title": "加朋友",
+          "body": "用 QR 掃描、同步通訊錄，或搜 username 找朋友"
+        },
+        "card2": {
+          "title": "幫朋友加標籤",
+          "body": "例如「咖啡控」「北美業務」「客戶」，之後用標籤找人"
+        },
+        "card3": {
+          "title": "用標籤找人",
+          "body": "在搜尋頁輸入標籤名稱，看誰跟你有相同興趣"
+        },
+        "card4": {
+          "title": "發 Ask 求助",
+          "body": "一句話，全網絡來幫你"
+        },
+        "cta": "開始使用 PikTag"
+      },
       "backButton": "上一步",
       "enterPikTag": "開始使用 PikTag",
       "nextButton": "下一步",
@@ -1074,5 +1095,13 @@
     "reasonHarassment": "騷擾或霸凌",
     "reasonInappropriate": "不當內容",
     "reasonOther": "其他"
+  },
+  "tabTooltips": {
+    "home": "朋友列表",
+    "search": "找人 / 訊息",
+    "addTag": "掃 QR / 建立活動",
+    "notifications": "通知",
+    "profile": "你的個人頁",
+    "dismissHint": "點任意處關閉"
   }
 }

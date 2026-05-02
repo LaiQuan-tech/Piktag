@@ -27,6 +27,7 @@ import { supabase, supabaseUrl } from '../../lib/supabase';
 import { COLORS, SPACING, BORDER_RADIUS } from '../../constants/theme';
 import OnboardingCompleteBurst from '../../components/stingers/OnboardingCompleteBurst';
 import WelcomeSlides from '../../components/onboarding/WelcomeSlides';
+import QuickStartTour from '../../components/onboarding/QuickStartTour';
 
 // Must match the key used in AppNavigator. Persisting this flag is the
 // source of truth for "has this user completed onboarding?" — it
@@ -398,17 +399,14 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
     </View>
   );
 
-  const renderStep3 = () => (
-    <View style={styles.stepContentCenter}>
-      <View style={styles.successIconContainer}>
-        <CheckCircle size={72} color={COLORS.piktag500} />
-      </View>
-      <Text style={styles.successTitle}>{t('auth.onboarding.step3Title')}</Text>
-      <Text style={styles.successDescription}>
-        {t('auth.onboarding.step3Description')}
-      </Text>
-    </View>
-  );
+  // Step 3 used to be a vanity "you're all set" card with a checkmark. We
+  // swapped it for the QuickStartTour — same step in the flow, same CTA
+  // ("開始使用 PikTag" → handleComplete → burst), but the screen now teaches
+  // the four day-one actions (加朋友 / 加標籤 / 找人 / 發 Ask) instead of
+  // just celebrating. The celebration still fires via the existing burst
+  // overlay when the user taps the bottom button, so we don't lose that
+  // moment — we just put it after a screen of useful info.
+  const renderStep3 = () => <QuickStartTour />;
 
   const renderCurrentStep = () => {
     switch (step) {

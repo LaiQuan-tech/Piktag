@@ -135,6 +135,27 @@
       "contactResultText": "Found {{matched}} friends",
       "step3Title": "All set! Start exploring",
       "step3Description": "Your account is ready, start using PikTag now",
+      "quickStart": {
+        "title": "Get started with PikTag",
+        "subtitle": "Four things that get you up to speed fast",
+        "card1": {
+          "title": "Add friends",
+          "body": "Scan a QR code, sync contacts, or search by username"
+        },
+        "card2": {
+          "title": "Tag your friends",
+          "body": "Like \"coffee lover\", \"product manager\", \"client\" — then find them by tag"
+        },
+        "card3": {
+          "title": "Find people by tag",
+          "body": "Type a tag in the search tab to see who shares your interest"
+        },
+        "card4": {
+          "title": "Post an Ask",
+          "body": "One sentence, your whole network helps"
+        },
+        "cta": "Start using PikTag"
+      },
       "backButton": "Back",
       "enterPikTag": "Start using PikTag",
       "nextButton": "Next",
@@ -1067,5 +1088,13 @@
     "reasonHarassment": "Harassment or bullying",
     "reasonInappropriate": "Inappropriate or offensive",
     "reasonOther": "Other"
+  },
+  "tabTooltips": {
+    "home": "Friends",
+    "search": "Find / Chat",
+    "addTag": "Scan / Create",
+    "notifications": "Notifications",
+    "profile": "Your profile",
+    "dismissHint": "Tap anywhere to dismiss"
   }
 }

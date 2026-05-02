@@ -129,6 +129,27 @@
       "contactResultText": "Ditemukan {{matched}} teman",
       "step3Title": "Siap! Mulai jelajahi",
       "step3Description": "Akun kamu sudah siap, mulai gunakan PikTag sekarang",
+      "quickStart": {
+        "title": "Mulai dengan PikTag",
+        "subtitle": "Empat hal yang bikin kamu cepat akrab",
+        "card1": {
+          "title": "Tambahkan teman",
+          "body": "Scan QR, sinkronkan kontak, atau cari lewat username"
+        },
+        "card2": {
+          "title": "Beri tag temanmu",
+          "body": "Seperti \"pencinta kopi\", \"product manager\", \"klien\" — lalu cari mereka lewat tag"
+        },
+        "card3": {
+          "title": "Cari orang lewat tag",
+          "body": "Ketik tag di tab pencarian untuk lihat siapa yang punya minat sama"
+        },
+        "card4": {
+          "title": "Posting Ask",
+          "body": "Satu kalimat, seluruh jaringanmu membantu"
+        },
+        "cta": "Mulai pakai PikTag"
+      },
       "backButton": "Kembali",
       "enterPikTag": "Masuk ke PikTag",
       "nextButton": "Lanjut",
@@ -995,5 +1016,13 @@
     "reasonHarassment": "Pelecehan",
     "reasonInappropriate": "Konten tidak pantas",
     "reasonOther": "Lainnya"
+  },
+  "tabTooltips": {
+    "home": "Teman",
+    "search": "Cari / Chat",
+    "addTag": "Scan / Buat",
+    "notifications": "Notif",
+    "profile": "Profilmu",
+    "dismissHint": "Tap untuk tutup"
   }
 }

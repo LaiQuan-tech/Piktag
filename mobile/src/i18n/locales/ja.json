@@ -129,6 +129,27 @@
       "contactResultText": "{{matched}}人の友達が見つかりました",
       "step3Title": "準備完了！始めましょう",
       "step3Description": "アカウントの準備ができました。さあPikTagを使い始めましょう",
+      "quickStart": {
+        "title": "PikTagを始めよう",
+        "subtitle": "この4つをやれば、すぐ使いこなせる",
+        "card1": {
+          "title": "友達を追加",
+          "body": "QRコードをスキャン、連絡先を同期、またはユーザー名で検索"
+        },
+        "card2": {
+          "title": "友達にタグを付ける",
+          "body": "「コーヒー好き」「PM」「クライアント」など。あとからタグで探せる"
+        },
+        "card3": {
+          "title": "タグで人を探す",
+          "body": "検索タブでタグを入力して、同じ興味の人を見つけよう"
+        },
+        "card4": {
+          "title": "Askを投稿",
+          "body": "一文で、ネットワーク全体が助けてくれる"
+        },
+        "cta": "PikTagを始める"
+      },
       "backButton": "戻る",
       "enterPikTag": "PikTagを始める",
       "nextButton": "次へ",
@@ -995,5 +1016,13 @@
     "reasonHarassment": "嫌がらせ・いじめ",
     "reasonInappropriate": "不適切なコンテンツ",
     "reasonOther": "その他"
+  },
+  "tabTooltips": {
+    "home": "友達",
+    "search": "検索 / チャット",
+    "addTag": "スキャン / 作成",
+    "notifications": "通知",
+    "profile": "プロフィール",
+    "dismissHint": "どこでもタップで閉じる"
   }
 }

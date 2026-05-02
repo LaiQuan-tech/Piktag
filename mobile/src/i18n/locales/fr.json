@@ -129,6 +129,27 @@
       "contactResultText": "{{matched}} amis trouvés",
       "step3Title": "C'est parti ! Commencez à explorer",
       "step3Description": "Votre compte est prêt, commencez à utiliser PikTag",
+      "quickStart": {
+        "title": "Démarrez avec PikTag",
+        "subtitle": "Quatre choses pour être opérationnel rapidement",
+        "card1": {
+          "title": "Ajouter des amis",
+          "body": "Scannez un QR code, synchronisez vos contacts ou cherchez par nom d'utilisateur"
+        },
+        "card2": {
+          "title": "Étiquetez vos amis",
+          "body": "Comme « amateur de café », « product manager », « client » — puis retrouvez-les par étiquette"
+        },
+        "card3": {
+          "title": "Trouvez des gens par étiquette",
+          "body": "Tapez une étiquette dans la recherche pour voir qui partage votre centre d'intérêt"
+        },
+        "card4": {
+          "title": "Publiez un Ask",
+          "body": "Une phrase, et tout votre réseau vous aide"
+        },
+        "cta": "Commencer avec PikTag"
+      },
       "backButton": "Retour",
       "enterPikTag": "Commencer à utiliser PikTag",
       "nextButton": "Suivant",
@@ -995,5 +1016,13 @@
     "reasonHarassment": "Harcèlement",
     "reasonInappropriate": "Contenu inapproprié",
     "reasonOther": "Autre"
+  },
+  "tabTooltips": {
+    "home": "Amis",
+    "search": "Chercher / Chat",
+    "addTag": "Scan / Créer",
+    "notifications": "Notifs",
+    "profile": "Ton profil",
+    "dismissHint": "Touchez pour fermer"
   }
 }

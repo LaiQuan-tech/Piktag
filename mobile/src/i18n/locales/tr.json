@@ -129,6 +129,27 @@
       "contactResultText": "{{matched}} arkadaş bulundu",
       "step3Title": "Hazırsınız! Keşfetmeye başlayın",
       "step3Description": "Hesabın hazır, PikTag'i kullanmaya başla",
+      "quickStart": {
+        "title": "PikTag'e başla",
+        "subtitle": "Hızlıca alışmanı sağlayacak dört şey",
+        "card1": {
+          "title": "Arkadaş ekle",
+          "body": "QR kodu tara, kişileri senkronize et ya da kullanıcı adıyla ara"
+        },
+        "card2": {
+          "title": "Arkadaşlarını etiketle",
+          "body": "\"Kahve sever\", \"product manager\", \"müşteri\" gibi — sonra etiketle bul"
+        },
+        "card3": {
+          "title": "Etikete göre kişi bul",
+          "body": "Arama sekmesine bir etiket yaz, ilgini paylaşan kişileri gör"
+        },
+        "card4": {
+          "title": "Ask paylaş",
+          "body": "Tek cümle, tüm ağın yardım eder"
+        },
+        "cta": "PikTag'i kullanmaya başla"
+      },
       "backButton": "Geri",
       "enterPikTag": "PikTag'e Gir",
       "nextButton": "İleri",
@@ -995,5 +1016,13 @@
     "reasonHarassment": "Taciz",
     "reasonInappropriate": "Uygunsuz içerik",
     "reasonOther": "Diğer"
+  },
+  "tabTooltips": {
+    "home": "Arkadaşlar",
+    "search": "Bul / Sohbet",
+    "addTag": "Tara / Oluştur",
+    "notifications": "Bildirim",
+    "profile": "Profilin",
+    "dismissHint": "Kapatmak için dokun"
   }
 }
