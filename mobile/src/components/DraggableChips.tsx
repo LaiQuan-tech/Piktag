@@ -218,29 +218,35 @@ const styles = StyleSheet.create({
     gap: 8,
     paddingHorizontal: 20,
   },
+  // "Selected" tag chip — these are the user's currently-added public
+  // tags. Matches the FriendDetail pickModalTagSelected pattern so the
+  // visual contract for "this is one of mine" is the same everywhere
+  // in the app: piktag50 fill + 1.5dp piktag500 border + bold piktag600
+  // text. (Was previously gray100 / no border / gray900, which read as
+  // unselected — wrong signal for a list of items the user OWNS.)
   chip: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 5,
-    backgroundColor: COLORS.gray100,
+    backgroundColor: COLORS.piktag50,
     borderRadius: 20,
     paddingVertical: 8,
     paddingLeft: 14,
     paddingRight: 6,
-    borderWidth: 2,
-    borderColor: 'transparent',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 6,
+    borderWidth: 1.5,
+    borderColor: COLORS.piktag500,
   },
+  // Pinned variant — already "selected" base + a yellow tint to mark
+  // "pinned to top". Override fill + border so the pin signal wins
+  // visually (yellow > purple).
   chipPinned: {
     backgroundColor: '#FFFBEB',
     borderColor: COLORS.piktag400,
   },
   chipText: {
     fontSize: 14,
-    fontWeight: '500',
-    color: COLORS.gray900,
+    fontWeight: '700',
+    color: COLORS.piktag600,
   },
   chipTextPinned: {
     fontWeight: '700',

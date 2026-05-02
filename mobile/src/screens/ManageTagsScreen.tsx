@@ -375,7 +375,20 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
       {loading ? (
         <PageLoader />
       ) : (
-        <View style={styles.flex1}>
+        // KAV moved OUT to wrap both the ScrollView and the bottom input
+        // bar. Previous structure wrapped only the bar with KAV, which
+        // (with behavior='padding') just made the bar's own KAV taller
+        // — the bar itself stayed glued to the bottom of the parent
+        // flex layout and slid off-screen under the keyboard. With KAV
+        // around the entire screen body, padding eats from the
+        // ScrollView's space and the bar floats up cleanly above the
+        // keyboard. keyboardVerticalOffset accounts for the absolute
+        // header (~56dp) so the bar lands just above the keyboard.
+        <KeyboardAvoidingView
+          style={styles.flex1}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 56 : 0}
+        >
           <ScrollView
             style={styles.flex1}
             contentContainerStyle={styles.scrollContent}
@@ -468,7 +481,7 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
                 <View style={styles.chipsWrap}>
                   {filteredAiSuggestions.map((s) => (
                     <Pressable key={s} style={styles.aiChip} onPress={() => handleAddAiTag(s)}>
-                      <Text style={styles.aiChipText}>+ #{s}</Text>
+                      <Text style={styles.aiChipText}>#{s}</Text>
                     </Pressable>
                   ))}
                 </View>
@@ -515,7 +528,7 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
                     const dn = tag.name.startsWith('#') ? tag.name : `#${tag.name}`;
                     return (
                       <Pressable key={tag.id} style={styles.popularChip} onPress={() => handleAddPopularTag(tag)}>
-                        <Text style={styles.popularChipText}>+ {dn}</Text>
+                        <Text style={styles.popularChipText}>{dn}</Text>
                       </Pressable>
                     );
                   })}
@@ -526,49 +539,43 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
             <View style={{ height: 20 }} />
           </ScrollView>
 
-          {/* Fixed bottom input */}
-          {/* behavior='height' on Android (was `undefined`) so the input
-              bar reliably lifts above the soft keyboard. The previous
-              undefined fell through to system pan, which kept missing
-              the bottom-anchored bar on devices that disable pan in
-              activity-level config (some Samsung / MIUI variants).
-              'height' shrinks the KAV by the keyboard size — the bar
-              floats up cleanly without a ScrollView fight since the
-              KAV here only wraps the input row, not the form list. */}
-          <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-            <View style={[styles.inputBar, { paddingBottom: insets.bottom + 8 }]}>
-              <View style={styles.inputRow}>
-                <Hash size={18} color={COLORS.gray400} />
-                <TextInput
-                  style={styles.textInput}
-                  placeholder={t('manageTags.tagInputPlaceholder')}
-                  placeholderTextColor={COLORS.gray400}
-                  value={tagInput}
-                  onChangeText={(v) => v.length <= MAX_TAG_LENGTH && setTagInput(v)}
-                  returnKeyType="done"
-                  onSubmitEditing={handleAddTag}
-                  editable={!addingTag}
-                  maxLength={MAX_TAG_LENGTH}
-                />
-                <Text style={styles.charCount}>{tagInput.length}/{MAX_TAG_LENGTH}</Text>
-                {/* Plus-icon submit — same affordance as AddTagScreen's
-                    custom-tag input and AskStoryRow's create-ask badge.
-                    Replaces the prior "新增" / "Add" text label so the
-                    button width is locale-independent — long
-                    translations ("Aggiungi", "Tambah", "Hinzufügen")
-                    no longer push the input row out of shape. */}
-                <Pressable
-                  style={[styles.addBtn, (!tagInput.trim() || addingTag || myTags.length >= MAX_TAGS) && styles.addBtnDisabled]}
-                  onPress={handleAddTag}
-                  accessibilityRole="button"
-                  accessibilityLabel={t('manageTags.addButton')}
-                >
-                  {addingTag ? <BrandSpinner size={20} /> : <Plus size={20} color="#FFFFFF" strokeWidth={2.5} />}
-                </Pressable>
-              </View>
+          {/* Fixed bottom input — now a sibling of ScrollView under the
+              outer KAV. The KAV's padding (iOS) / height (Android)
+              behavior pushes BOTH children up together, so the bar
+              floats just above the keyboard while the ScrollView
+              shrinks above. */}
+          <View style={[styles.inputBar, { paddingBottom: insets.bottom + 8 }]}>
+            <View style={styles.inputRow}>
+              <Hash size={18} color={COLORS.gray400} />
+              <TextInput
+                style={styles.textInput}
+                placeholder={t('manageTags.tagInputPlaceholder')}
+                placeholderTextColor={COLORS.gray400}
+                value={tagInput}
+                onChangeText={(v) => v.length <= MAX_TAG_LENGTH && setTagInput(v)}
+                returnKeyType="done"
+                onSubmitEditing={handleAddTag}
+                editable={!addingTag}
+                maxLength={MAX_TAG_LENGTH}
+              />
+              <Text style={styles.charCount}>{tagInput.length}/{MAX_TAG_LENGTH}</Text>
+              {/* Plus-icon submit — same affordance as AddTagScreen's
+                  custom-tag input and AskStoryRow's create-ask badge.
+                  Replaces the prior "新增" / "Add" text label so the
+                  button width is locale-independent — long
+                  translations ("Aggiungi", "Tambah", "Hinzufügen")
+                  no longer push the input row out of shape. */}
+              <Pressable
+                style={[styles.addBtn, (!tagInput.trim() || addingTag || myTags.length >= MAX_TAGS) && styles.addBtnDisabled]}
+                onPress={handleAddTag}
+                accessibilityRole="button"
+                accessibilityLabel={t('manageTags.addButton')}
+              >
+                {addingTag ? <BrandSpinner size={20} /> : <Plus size={20} color="#FFFFFF" strokeWidth={2.5} />}
+              </Pressable>
             </View>
-          </KeyboardAvoidingView>
-        </View>
+          </View>
+        </KeyboardAvoidingView>
       )}
     </View>
   );
@@ -598,17 +605,22 @@ const styles = StyleSheet.create({
   tagCountText: { fontSize: 13, color: COLORS.gray500 },
   sortHint: { fontSize: 12, color: COLORS.gray400, paddingHorizontal: 20, marginBottom: 6 },
 
-  // Web chips
+  // Web chips — already-added tags. Match the FriendDetail
+  // pickModalTagSelected pattern for visual parity with the friend
+  // tag picker: piktag50 fill + 1.5dp piktag500 border + bold
+  // piktag600 text. (The `chipSelected` row below is a transient
+  // "you've tapped this and we're waiting for the swap target" web-
+  // only state — gets a slightly heavier border but the same fill.)
   chipsWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, paddingHorizontal: 20 },
   chip: {
     flexDirection: 'row', alignItems: 'center', gap: 5,
-    backgroundColor: COLORS.gray100, borderRadius: 20,
+    backgroundColor: COLORS.piktag50, borderRadius: 20,
     paddingVertical: 8, paddingLeft: 14, paddingRight: 6,
-    borderWidth: 2, borderColor: 'transparent',
+    borderWidth: 1.5, borderColor: COLORS.piktag500,
   },
   chipPinned: { backgroundColor: '#FFFBEB', borderColor: COLORS.piktag400 },
-  chipSelected: { borderColor: COLORS.piktag500, backgroundColor: COLORS.piktag50 },
-  chipText: { fontSize: 14, fontWeight: '500', color: COLORS.gray900 },
+  chipSelected: { borderColor: COLORS.piktag600, borderWidth: 2 },
+  chipText: { fontSize: 14, fontWeight: '700', color: COLORS.piktag600 },
   chipTextPinned: { fontWeight: '700', color: COLORS.piktag600 },
   chipX: { padding: 4 },
   emptyText: { fontSize: 14, color: COLORS.gray400, paddingHorizontal: 20, paddingVertical: 8 },
@@ -626,11 +638,17 @@ const styles = StyleSheet.create({
   aiSection: { paddingHorizontal: 20, paddingTop: 24 },
   aiHeader: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 10 },
   aiTitle: { fontSize: 15, fontWeight: '600', color: COLORS.piktag600 },
+  // AI suggestion chip — UNSELECTED state. Mirrors FriendDetail
+  // pickModalTag (gray100 fill, transparent border slot reserved at
+  // 1.5dp so dimensions don't jump on press, gray700 text). On tap
+  // the chip is added to "我的標籤" above where it picks up the
+  // selected (purple) treatment — same gray-→-purple visual story
+  // as the friend tag picker.
   aiChip: {
     paddingVertical: 8, paddingHorizontal: 14, borderRadius: 20,
-    backgroundColor: COLORS.piktag50, borderWidth: 1, borderColor: COLORS.piktag500,
+    backgroundColor: COLORS.gray100, borderWidth: 1.5, borderColor: 'transparent',
   },
-  aiChipText: { fontSize: 14, fontWeight: '500', color: COLORS.piktag600 },
+  aiChipText: { fontSize: 14, fontWeight: '500', color: COLORS.gray700 },
   aiErrorText: { fontSize: 12, color: COLORS.gray500, marginTop: 4, lineHeight: 16 },
   aiRetryBtn: {
     marginTop: 10, alignSelf: 'flex-start',
@@ -639,11 +657,15 @@ const styles = StyleSheet.create({
   },
   aiRetryText: { fontSize: 13, fontWeight: '600', color: COLORS.piktag600 },
 
-  // Popular
+  // Popular — same UNSELECTED treatment as aiChip. Both are "tap to
+  // add" surfaces, both should read identically at rest.
   popularSection: { paddingHorizontal: 20, paddingTop: 24 },
   popularTitle: { fontSize: 15, fontWeight: '700', color: COLORS.gray900, marginBottom: 10 },
-  popularChip: { borderWidth: 1, borderColor: COLORS.piktag500, borderRadius: 20, paddingVertical: 8, paddingHorizontal: 14, backgroundColor: COLORS.piktag50 },
-  popularChipText: { fontSize: 14, fontWeight: '500', color: COLORS.piktag600 },
+  popularChip: {
+    borderWidth: 1.5, borderColor: 'transparent', borderRadius: 20,
+    paddingVertical: 8, paddingHorizontal: 14, backgroundColor: COLORS.gray100,
+  },
+  popularChipText: { fontSize: 14, fontWeight: '500', color: COLORS.gray700 },
 
   // Bottom input
   inputBar: { borderTopWidth: 1, borderTopColor: COLORS.gray100, paddingHorizontal: 16, paddingTop: 8 },
