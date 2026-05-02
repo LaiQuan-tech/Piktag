@@ -1062,7 +1062,7 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
             </View>
 
             <View style={styles.fieldGroup}>
-              <Text style={styles.fieldLabel}>{t('editProfile.headlineLabel') || '職稱 / 身份'}</Text>
+              <Text style={styles.fieldLabel}>{t('editProfile.headlineLabel') || '職稱'}</Text>
               <TextInput
                 style={styles.fieldInput}
                 value={form.headline}
@@ -1107,11 +1107,17 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
               </View>
             )}
             <TouchableOpacity
-              style={styles.tag_manageButton}
               onPress={() => navigation.navigate('ManageTags')}
               activeOpacity={0.7}
             >
-              <Text style={styles.tag_manageButtonText}>{t('manageTags.headerTitle')}</Text>
+              <LinearGradient
+                colors={['#ff5757', '#c44dff', '#8c52ff']}
+                start={{ x: 0, y: 0.5 }}
+                end={{ x: 1, y: 0.5 }}
+                style={styles.tag_manageButton}
+              >
+                <Text style={styles.tag_manageButtonText}>{t('manageTags.headerTitle')}</Text>
+              </LinearGradient>
             </TouchableOpacity>
           </View>
 
@@ -1322,26 +1328,6 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
           </View>
 
           {/* Save Button */}
-          <View style={styles.saveSection}>
-            <TouchableOpacity
-              onPress={handleSave}
-              activeOpacity={0.8}
-              disabled={saving}
-            >
-              <LinearGradient
-                colors={['#ff5757', '#c44dff', '#8c52ff']}
-                start={{ x: 0, y: 0.5 }}
-                end={{ x: 1, y: 0.5 }}
-                style={[styles.saveButton, saving && styles.saveButtonDisabled]}
-              >
-                {saving ? (
-                  <BrandSpinner size={20} />
-                ) : (
-                  <Text style={styles.saveButtonText}>{t('editProfile.saveChanges')}</Text>
-                )}
-              </LinearGradient>
-            </TouchableOpacity>
-          </View>
         </ScrollView>
       </KeyboardAvoidingView>
 
@@ -1688,10 +1674,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: COLORS.piktag600,
   },
-  saveSection: {
-    paddingHorizontal: 20,
-    paddingTop: 32,
-  },
   saveButton: {
     backgroundColor: COLORS.piktag500,
     borderRadius: 14,
@@ -1826,7 +1808,6 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
   },
   tag_manageButton: {
-    backgroundColor: COLORS.piktag500,
     borderRadius: 14,
     paddingVertical: 12,
     alignItems: 'center',
