@@ -425,10 +425,25 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
         ? parseInt(parts[2], 10)
         : parts.length === 2 ? parseInt(parts[1], 10) : NaN;
       if (Number.isNaN(month) || Number.isNaN(day)) return Number.MAX_SAFE_INTEGER;
+      // Range guard: invalid months / days (e.g. "02-30", "13-15", legacy
+      // garbage) silently roll over via Date's auto-correct (Feb 30 →
+      // Mar 2), which produces the wrong sort order. Reject anything
+      // outside the calendar so malformed rows fall to the bottom
+      // instead of pretending to have a real birthday.
+      if (month < 0 || month > 11 || day < 1 || day > 31) {
+        return Number.MAX_SAFE_INTEGER;
+      }
 
       const now = new Date();
       const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
       let next = new Date(now.getFullYear(), month, day);
+      // Date constructor accepts month=2 day=30 and silently emits
+      // Mar 2 — verify the round-trip kept the inputs intact, otherwise
+      // treat as invalid (e.g. someone whose birthday was stored as
+      // 02-30 from a buggy date picker).
+      if (next.getMonth() !== month || next.getDate() !== day) {
+        return Number.MAX_SAFE_INTEGER;
+      }
       // If the birthday already passed THIS year, target next year.
       if (next.getTime() < today.getTime()) {
         next = new Date(now.getFullYear() + 1, month, day);

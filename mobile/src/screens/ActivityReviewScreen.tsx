@@ -229,27 +229,61 @@ export default function ActivityReviewScreen({ navigation, route }: Props) {
     setTotalTagsAdded(prev => prev + 1);
     setTagInput('');
 
-    // DB sync in background
+    // DB sync in background. If anything fails we revert the optimistic
+    // chip so the user isn't left with a "ghost tag" that looks applied
+    // but never reached the server. Previously this branch swallowed
+    // errors silently — the chip stayed on the card after a failed
+    // insert, the connection_tags row was missing, and the next time
+    // ActivityReview fetched it the tag would just disappear.
+    const revertOptimistic = () => {
+      setAddedTags(prev => {
+        const next = new Map(prev);
+        const arr = next.get(conn.id) || [];
+        const i = arr.lastIndexOf(rawTag);
+        if (i < 0) return prev;
+        const trimmed = arr.slice();
+        trimmed.splice(i, 1);
+        next.set(conn.id, trimmed);
+        return next;
+      });
+      setTotalTagsAdded(prev => Math.max(0, prev - 1));
+    };
+
     (async () => {
-      let { data: tag } = await supabase.from('piktag_tags').select('id').eq('name', rawTag).maybeSingle();
-      if (!tag) {
-        // Race-safe insert: if another client created the same tag between
-        // our select and insert, recover via the unique-violation path
-        // instead of silently dropping this activity review.
-        const { data: newTag, error: insertErr } = await supabase
-          .from('piktag_tags').insert({ name: rawTag }).select('id').single();
-        if (newTag) {
-          tag = newTag;
-        } else if (insertErr && (insertErr as any).code === '23505') {
-          const { data: raced } = await supabase
-            .from('piktag_tags').select('id').eq('name', rawTag).maybeSingle();
-          tag = raced ?? null;
+      try {
+        let { data: tag } = await supabase.from('piktag_tags').select('id').eq('name', rawTag).maybeSingle();
+        if (!tag) {
+          // Race-safe insert: if another client created the same tag between
+          // our select and insert, recover via the unique-violation path
+          // instead of silently dropping this activity review.
+          const { data: newTag, error: insertErr } = await supabase
+            .from('piktag_tags').insert({ name: rawTag }).select('id').single();
+          if (newTag) {
+            tag = newTag;
+          } else if (insertErr && (insertErr as any).code === '23505') {
+            const { data: raced } = await supabase
+              .from('piktag_tags').select('id').eq('name', rawTag).maybeSingle();
+            tag = raced ?? null;
+          } else if (insertErr) {
+            console.warn('[ActivityReview] tag insert failed:', insertErr.message);
+            revertOptimistic();
+            return;
+          }
         }
-      }
-      if (tag) {
-        await supabase.from('piktag_connection_tags').insert({
-          connection_id: conn.id, tag_id: tag.id, is_private: true,
-        });
+        if (!tag) {
+          revertOptimistic();
+          return;
+        }
+        const { error: connTagErr } = await supabase
+          .from('piktag_connection_tags')
+          .insert({ connection_id: conn.id, tag_id: tag.id, is_private: true });
+        if (connTagErr) {
+          console.warn('[ActivityReview] connection_tags insert failed:', connTagErr.message);
+          revertOptimistic();
+        }
+      } catch (err) {
+        console.warn('[ActivityReview] add tag threw:', err);
+        revertOptimistic();
       }
     })();
   }, [tagInput, currentIndex, connections]);
