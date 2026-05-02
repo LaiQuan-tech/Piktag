@@ -30,7 +30,17 @@ import { useAuth } from '../../hooks/useAuth';
 import type { AskFeedItem, MyActiveAsk } from '../../types/ask';
 
 const SCREEN_HEIGHT = Dimensions.get('window').height;
+const SCREEN_WIDTH = Dimensions.get('window').width;
 const MAX_BODY = 150;
+
+// Apple Music "Recently played"-style carousel sizing. Each slide takes
+// ~78% of the screen width so the next slide always peeks ~20% on the
+// right edge — that peek IS the scroll affordance, no chevron / dots
+// needed. The leading my-Ask card uses the same width so the snap
+// rhythm is consistent. Snap interval = slide + gap.
+const ROW_GAP = 12;
+const SLIDE_WIDTH = Math.round(SCREEN_WIDTH * 0.78);
+const SNAP_INTERVAL = SLIDE_WIDTH + ROW_GAP;
 
 type AskStoryRowProps = {
   asks: AskFeedItem[];
@@ -288,10 +298,46 @@ export default function AskStoryRow({ asks, myAsk, myAvatarUrl, myName, onRefres
     return [...unviewed, ...viewed];
   }, [asks, hiddenAuthorIds, viewedAskIds]);
 
+  // Group friend asks into pairs for the 2-stacked-rows-per-slide layout.
+  // Each pair fills one Apple-Music-style slide. Last pair may be a
+  // single-element array when the count is odd; the slide still
+  // reserves the second row's vertical space so adjacent slides line
+  // up vertically and the carousel doesn't jiggle on snap.
+  const askPairs = useMemo(() => {
+    const pairs: AskFeedItem[][] = [];
+    for (let i = 0; i < visibleAsks.length; i += 2) {
+      pairs.push(visibleAsks.slice(i, i + 2));
+    }
+    return pairs;
+  }, [visibleAsks]);
+
+  // Hide the whole feed when there's nothing to show — neither the
+  // viewer's own active ask nor any friend asks. Avoids a lonely
+  // "+ 新增 Ask" CTA hanging on a friends page that has no social
+  // signal to surround it. The CTA is still reachable from
+  // ProfileScreen and the bubble prompt elsewhere.
+  if (!myAsk && visibleAsks.length === 0) {
+    return (
+      <AskCreateModal
+        visible={createVisible}
+        onClose={() => setCreateVisible(false)}
+        existingAsk={myAsk}
+        onCreated={onRefresh}
+      />
+    );
+  }
+
   return (
     <>
       <View style={styles.container}>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.scroll}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.scroll}
+          snapToInterval={SNAP_INTERVAL}
+          decelerationRate="fast"
+          snapToAlignment="start"
+        >
           {/* My Ask card */}
           {/* My-Ask card.  Always-leftmost.  Two states:
               - Has active ask → same shape as friend cards (body + tags
@@ -364,75 +410,93 @@ export default function AskStoryRow({ asks, myAsk, myAvatarUrl, myName, onRefres
                 deciding whether to delete or wait it out. */}
           </TouchableOpacity>
 
-          {/* Friend Asks */}
-          {visibleAsks.map((ask) => {
-            const name = ask.author_full_name || ask.author_username || '?';
-            const viewed = viewedAskIds.has(ask.ask_id);
-            const avatar = ask.author_avatar_url ? (
-              <Image source={{ uri: ask.author_avatar_url }} style={styles.askCardAvatar} cachePolicy="memory-disk" />
-            ) : (
-              <InitialsAvatar name={name} size={36} />
-            );
-            return (
-              <TouchableOpacity
-                key={ask.ask_id}
-                style={[styles.askCard, viewed && styles.askCardViewed]}
-                activeOpacity={0.85}
-                onPress={() => {
-                  markAskViewed(ask.ask_id);
-                  onPressUser(ask.author_id);
-                }}
-                onLongPress={() => handleAskLongPress(ask)}
-                delayLongPress={350}
-              >
-                <View style={styles.askCardHeader}>
-                  {viewed ? (
-                    <View style={styles.askCardViewedRing}>{avatar}</View>
-                  ) : (
-                    <RotatingGradientRing
-                      size={44}
-                      colors={
-                        ask.degree === 1
-                          ? ['#ff5757', '#c44dff', '#8c52ff', '#ff5757']
-                          : ['#60a5fa', '#818cf8', '#60a5fa']
-                      }
-                    >
-                      {avatar}
-                    </RotatingGradientRing>
-                  )}
-                  <View style={styles.askCardNameStack}>
-                    <Text style={[styles.askCardName, viewed && styles.askCardNameViewed]} numberOfLines={1}>
-                      {name}
-                    </Text>
-                    {ask.author_username ? (
-                      <Text style={styles.askCardHandle} numberOfLines={1}>
-                        @{ask.author_username}
+          {/* Friend Asks — paired into 2-row stacked slides, Apple
+              Music "Recently played"-style. Each slide takes 78% of
+              the viewport width so the next slide always peeks ~20%
+              on the right. The peek IS the scroll affordance — no
+              chevron / dots needed. Tap a row to land on the author's
+              detail page; long-press to surface report / hide. */}
+          {askPairs.map((pair, pairIdx) => (
+            <View key={`pair-${pairIdx}`} style={styles.askPairSlide}>
+              {pair.map((ask) => {
+                const name = ask.author_full_name || ask.author_username || '?';
+                const viewed = viewedAskIds.has(ask.ask_id);
+                const avatar = ask.author_avatar_url ? (
+                  <Image source={{ uri: ask.author_avatar_url }} style={styles.askRowAvatar} cachePolicy="memory-disk" />
+                ) : (
+                  <InitialsAvatar name={name} size={36} />
+                );
+                return (
+                  <TouchableOpacity
+                    key={ask.ask_id}
+                    style={[styles.askRow, viewed && styles.askRowViewed]}
+                    activeOpacity={0.85}
+                    onPress={() => {
+                      markAskViewed(ask.ask_id);
+                      onPressUser(ask.author_id);
+                    }}
+                    onLongPress={() => handleAskLongPress(ask)}
+                    delayLongPress={350}
+                  >
+                    {/* LEFT: ringed circular avatar (same gradient
+                        rules as before — degree-1 = piktag, degree-2 =
+                        blue, viewed = subtle ring). 44dp footprint
+                        keeps the ring visible without dominating the
+                        row. */}
+                    {viewed ? (
+                      <View style={styles.askRowViewedRing}>{avatar}</View>
+                    ) : (
+                      <RotatingGradientRing
+                        size={44}
+                        colors={
+                          ask.degree === 1
+                            ? ['#ff5757', '#c44dff', '#8c52ff', '#ff5757']
+                            : ['#60a5fa', '#818cf8', '#60a5fa']
+                        }
+                      >
+                        {avatar}
+                      </RotatingGradientRing>
+                    )}
+
+                    {/* RIGHT: name (single line bold) + body (2 lines)
+                        + tag chips (max 2 + overflow indicator). flex:1
+                        so it claims all remaining width within the
+                        slide; min-width:0 so long usernames truncate
+                        instead of pushing the avatar. */}
+                    <View style={styles.askRowText}>
+                      <Text style={[styles.askRowName, viewed && styles.askCardNameViewed]} numberOfLines={1}>
+                        {name}
                       </Text>
-                    ) : null}
-                  </View>
-                </View>
-
-                <Text style={[styles.askCardBody, viewed && styles.askCardBodyViewed]} numberOfLines={3}>
-                  {ask.title || ask.body}
-                </Text>
-
-                {ask.ask_tag_names.length > 0 ? (
-                  <View style={styles.askCardTagsRow}>
-                    {ask.ask_tag_names.slice(0, 4).map((tn) => (
-                      <View key={tn} style={[styles.askCardTagChip, viewed && styles.askCardTagChipViewed]}>
-                        <Text style={[styles.askCardTagText, viewed && styles.askCardTagTextViewed]} numberOfLines={1}>
-                          #{tn}
-                        </Text>
-                      </View>
-                    ))}
-                  </View>
-                ) : null}
-
-                {/* Countdown + chevron footer removed — see comment on
-                    the my-card branch above. */}
-              </TouchableOpacity>
-            );
-          })}
+                      <Text style={[styles.askRowBody, viewed && styles.askCardBodyViewed]} numberOfLines={2}>
+                        {ask.title || ask.body}
+                      </Text>
+                      {ask.ask_tag_names.length > 0 ? (
+                        <View style={styles.askRowTagsLine}>
+                          {ask.ask_tag_names.slice(0, 2).map((tn) => (
+                            <View key={tn} style={[styles.askCardTagChip, viewed && styles.askCardTagChipViewed]}>
+                              <Text style={[styles.askCardTagText, viewed && styles.askCardTagTextViewed]} numberOfLines={1}>
+                                #{tn}
+                              </Text>
+                            </View>
+                          ))}
+                          {ask.ask_tag_names.length > 2 ? (
+                            <Text style={styles.askRowTagOverflow}>
+                              +{ask.ask_tag_names.length - 2}
+                            </Text>
+                          ) : null}
+                        </View>
+                      ) : null}
+                    </View>
+                  </TouchableOpacity>
+                );
+              })}
+              {/* Reserve the second row's vertical space when the pair
+                  is odd-tail (last pair has only 1 ask). Keeps slides
+                  visually aligned across the carousel — no jiggle on
+                  snap. */}
+              {pair.length === 1 ? <View style={styles.askRowPlaceholder} /> : null}
+            </View>
+          ))}
         </ScrollView>
       </View>
 
@@ -959,8 +1023,10 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
   },
   scroll: {
-    paddingHorizontal: 12,
-    gap: 14,
+    // Inter-slide gap matches ROW_GAP, used by SNAP_INTERVAL above —
+    // keep them in sync so snap rhythm matches the visible spacing.
+    paddingHorizontal: 16,
+    gap: ROW_GAP,
   },
   // ── RotatingGradientRing geometry ──
   // ring + ringInner are referenced by the RotatingGradientRing
@@ -976,14 +1042,13 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
 
-  // ── AskCard ── (Spotify/Apple Music style horizontal card)
-  // Replaces the IG-Notes story-item layout. Each card holds the
-  // friend's avatar + name, the ask body (up to 3 lines), tag chips,
-  // and a footer with time-left + a chevron. Wide enough (240dp) for
-  // the body to breathe; tall enough (~150dp) that the row scans
-  // similarly to Spotify's "Made for you" cards.
+  // ── AskCard ── (Apple Music "Recently played"-style carousel)
+  // Leading my-Ask card uses SLIDE_WIDTH so it snaps to the same
+  // rhythm as the friend-asks pair slides that follow. Width is
+  // ~78% of the screen so the next slide always peeks ~20% on the
+  // right — that peek IS the scroll affordance, no chevron / dots.
   askCard: {
-    width: 240,
+    width: SLIDE_WIDTH,
     backgroundColor: COLORS.white,
     borderRadius: 16,
     paddingHorizontal: 14,
@@ -996,6 +1061,86 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     elevation: 1,
     gap: 10,
+  },
+  // Pair slide — 2 stacked rows per Apple Music card. Same width as
+  // the my-Ask leading card so the snap interval is uniform across
+  // the carousel. gap separates the two rows visually without a
+  // hairline divider; the rounded corners + border define the
+  // "slide" boundary, similar to Music's Recently Played item.
+  askPairSlide: {
+    width: SLIDE_WIDTH,
+    backgroundColor: COLORS.white,
+    borderRadius: 16,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderWidth: 1,
+    borderColor: COLORS.gray100,
+    shadowColor: '#000',
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 1,
+    gap: 8,
+  },
+  // Row inside a pair slide — flex-row, avatar on the left, text
+  // stack on the right. minHeight reserves vertical space so an
+  // odd-tail single-row pair doesn't collapse to a half-height
+  // slide (which would jiggle the carousel on snap).
+  askRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 10,
+    paddingVertical: 4,
+    minHeight: 76,
+  },
+  askRowViewed: {
+    opacity: 0.65,
+  },
+  askRowAvatar: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+  },
+  askRowViewedRing: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    borderWidth: 1.5,
+    borderColor: COLORS.gray300,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  askRowText: {
+    flex: 1,
+    minWidth: 0,
+    gap: 2,
+  },
+  askRowName: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: COLORS.gray900,
+  },
+  askRowBody: {
+    fontSize: 13,
+    lineHeight: 17,
+    color: COLORS.gray700,
+  },
+  askRowTagsLine: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+    gap: 4,
+    marginTop: 2,
+  },
+  askRowTagOverflow: {
+    fontSize: 11,
+    color: COLORS.gray500,
+    fontWeight: '500',
+    marginLeft: 2,
+  },
+  askRowPlaceholder: {
+    minHeight: 76,
+    paddingVertical: 4,
   },
   askCardEmpty: {
     backgroundColor: COLORS.gray50,
