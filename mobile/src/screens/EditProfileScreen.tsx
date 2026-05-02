@@ -5,6 +5,7 @@ import {
   TextInput,
   ScrollView,
   TouchableOpacity,
+  Pressable,
   StyleSheet,
   StatusBar,
   Alert,
@@ -14,7 +15,8 @@ import {
   Linking,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ArrowLeft, Plus, Pencil, Trash2, X, Hash, EyeOff, Eye, GripVertical, ChevronDown } from 'lucide-react-native';
+import { ArrowLeft, Plus, Pencil, Trash2, X, Hash, EyeOff, Eye, GripVertical, ChevronDown, Sparkles } from 'lucide-react-native';
+import { logApiUsage } from '../lib/apiUsage';
 import RingedAvatar from '../components/RingedAvatar';
 import DraggableFlatList, { RenderItemParams, ScaleDecorator } from 'react-native-draggable-flatlist';
 import { requestMediaLibraryPermissionsAsync, launchImageLibraryAsync } from 'expo-image-picker';
@@ -256,6 +258,16 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
   const [isTagPrivate, setIsTagPrivate] = useState(false);
   const [tagsLoading, setTagsLoading] = useState(false);
 
+  // Inline AI tag suggestions — mirrors AskStoryRow's pattern: manual
+  // ✨ button trigger (no auto-debounce / no auto-fire on screen mount)
+  // so the user knows when an API call is happening and we don't burn
+  // tokens on half-typed bio drafts. Replaces the "type bio here →
+  // navigate to ManageTagsScreen → wait for auto-load" two-page flow
+  // with a single inline action on the same screen.
+  const [aiSuggestions, setAiSuggestions] = useState<string[]>([]);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiTriedAndEmpty, setAiTriedAndEmpty] = useState(false);
+
   const fetchProfile = useCallback(async () => {
     if (!userId) return;
     const { data, error } = await supabase
@@ -463,6 +475,13 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
 
   const updateField = (field: keyof FormData, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }));
+    // Bio / name / headline edits invalidate the previous "AI returned
+    // nothing" hint — the user is changing the prompt, so the next ✨
+    // tap should present as a fresh attempt, not as still-empty.
+    // Mirrors AskStoryRow.handleBodyChange's aiTriedAndEmpty reset.
+    if (field === 'bio' || field === 'full_name' || field === 'headline') {
+      setAiTriedAndEmpty(false);
+    }
   };
 
   const handleSave = async () => {
@@ -722,17 +741,29 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
     [],
   );
 
-  const handleAddTag = useCallback(async () => {
+  const handleAddTag = useCallback(async (overrideName?: string) => {
     if (!userId) return;
-    const trimmed = tagInput.trim();
-    if (!trimmed) return;
+    // Two callers: the (legacy) tagInput field path passes nothing and
+    // we pull from state; the AI-suggestion chip path passes the chip
+    // name directly. Without overrideName we'd have to setTagInput()
+    // and wait a render before firing — which races against fast taps
+    // and blanks the inputat the wrong time.
+    const source = (overrideName ?? tagInput).trim();
+    if (!source) return;
 
     // Normalize: remove leading # for DB storage, keep for display comparison
-    const rawName = trimmed.startsWith('#') ? trimmed.slice(1) : trimmed;
+    const rawName = source.startsWith('#') ? source.slice(1) : source;
     const displayName = `#${rawName}`;
 
     if (userTagNames.includes(displayName)) {
-      Alert.alert(t('manageTags.alertTagExists'), t('manageTags.alertTagExistsMessage'));
+      // For AI chip path, silently ignore re-tap on an already-added
+      // chip (the chip will simply disappear from suggestions on the
+      // next render via the de-dupe filter). Only the manual tagInput
+      // path warrants the modal alert — the user explicitly typed it
+      // and expects feedback when something stops them.
+      if (overrideName === undefined) {
+        Alert.alert(t('manageTags.alertTagExists'), t('manageTags.alertTagExistsMessage'));
+      }
       return;
     }
 
@@ -846,6 +877,91 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
       setAddingTag(false);
     }
   }, [userId, tagInput, userTagNames, userTags.length, isTagPrivate, t, fetchUserTags, fetchPopularTags]);
+
+  // Inline AI tag generation. Mirrors AskStoryRow.suggestTagsForBody —
+  // manual ✨ button trigger, surfaces empty-result state explicitly so
+  // the user knows the request landed and the LLM just had nothing to
+  // say. Builds context from (bio + full_name + headline + existing
+  // tag names) — same shape as ManageTagsScreen used to send. Edge
+  // function caps inputs at 500 chars and runs Gemini server-side.
+  const loadAiSuggestions = useCallback(async () => {
+    const bioText = (form.bio || '').trim();
+    if (bioText.length < 5) {
+      // Button is disabled in this state, but guard defensively in
+      // case a stale closure fires.
+      return;
+    }
+    setAiLoading(true);
+    setAiTriedAndEmpty(false);
+    try {
+      const nameText = (form.full_name || '').trim();
+      const headlineText = (form.headline || '').trim();
+      const tagNames = userTagNames
+        .map((n) => n.replace(/^#/, ''))
+        .filter(Boolean)
+        .join(', ');
+
+      const context = [bioText, nameText, headlineText].filter(Boolean).join('\n');
+      const userLang = context.match(/[一-鿿]/) ? '繁體中文' :
+        context.match(/[぀-ヿ]/) ? '日本語' :
+        context.match(/[가-힯]/) ? '한국어' :
+        context.match(/[฀-๿]/) ? 'ภาษาไทย' : 'the same language as the content';
+
+      logApiUsage('gemini_generate', { via: 'edge-fn' });
+      const { data, error } = await supabase.functions.invoke<{
+        suggestions?: string[];
+      }>('suggest-tags', {
+        body: { bio: bioText, name: nameText, location: headlineText, existingTags: tagNames, lang: userLang },
+      });
+
+      if (error) {
+        console.warn('[EditProfileScreen] loadAiSuggestions edge fn error:', error.message);
+        setAiSuggestions([]);
+        setAiTriedAndEmpty(true);
+        return;
+      }
+      const raw = Array.isArray(data?.suggestions) ? data!.suggestions : [];
+      const normalized = Array.from(
+        new Set(
+          raw
+            .map((n) => (typeof n === 'string' ? n.replace(/^#/, '').trim() : ''))
+            .filter((n) => !!n)
+        )
+      );
+      // Drop any name the user already has — the chips below are
+      // "tap to add", so showing already-added suggestions creates
+      // dead UI that does nothing on tap.
+      const filtered = normalized.filter(
+        (n) => !userTagNames.includes(`#${n}`)
+      );
+      setAiSuggestions(filtered);
+      if (filtered.length === 0) {
+        setAiTriedAndEmpty(true);
+      }
+    } catch (err) {
+      console.warn('[EditProfileScreen] loadAiSuggestions exception:', err);
+      setAiSuggestions([]);
+      setAiTriedAndEmpty(true);
+    } finally {
+      setAiLoading(false);
+    }
+  }, [form.bio, form.full_name, form.headline, userTagNames]);
+
+  const handleAddAiSuggestion = useCallback(
+    async (name: string) => {
+      // Optimistic remove from suggestions so the chip disappears
+      // immediately on tap. handleAddTag does its own dedupe + RLS
+      // checks; on failure the next render will rebuild suggestions
+      // via fetchUserTags but the chip we tapped won't bounce back
+      // (we're not trying that hard — the user can re-trigger AI).
+      setAiSuggestions((prev) => prev.filter((s) => s !== name));
+      await handleAddTag(name);
+    },
+    // handleAddTag depends on tagInput, but the override path doesn't
+    // touch it; deps still need the function reference to stay
+    // aligned with React's exhaustive-deps rule.
+    [handleAddTag],
+  );
 
   const handleRemoveTag = useCallback(
     async (userTag: UserTag & { tag?: Tag }) => {
@@ -1106,6 +1222,74 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
                 ))}
               </View>
             )}
+
+            {/* Inline AI tag generation — replaces the previous two-page
+                flow ("save bio here → navigate to ManageTagsScreen → wait
+                for auto-load → pick"). Same pattern as AskStoryRow's
+                ✨ button: manual trigger, disabled until bio is at least
+                5 chars, swappable label between "AI 生成" and "重新生成"
+                so re-rolls are explicit. Tapping a suggestion chip pipes
+                straight into handleAddTag — the chip moves up into the
+                user's tag list above on the next render. */}
+            {form.bio.trim().length > 0 && userTags.length < 10 && (
+              <View style={styles.ai_inlineSection}>
+                <TouchableOpacity
+                  style={[
+                    styles.ai_triggerBtn,
+                    (form.bio.trim().length < 5 || aiLoading || addingTag) && styles.ai_triggerBtnDisabled,
+                  ]}
+                  onPress={loadAiSuggestions}
+                  disabled={form.bio.trim().length < 5 || aiLoading || addingTag}
+                  activeOpacity={0.7}
+                  accessibilityRole="button"
+                  accessibilityLabel={t('ask.generateAiTags') || 'AI 生成標籤'}
+                >
+                  {aiLoading ? (
+                    <>
+                      <BrandSpinner size={16} />
+                      <Text style={styles.ai_triggerText}>
+                        {t('manageTags.aiSuggestionsTitle') || 'AI 為你推薦'}…
+                      </Text>
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles size={16} color={COLORS.piktag600} />
+                      <Text style={styles.ai_triggerText}>
+                        {aiSuggestions.length > 0
+                          ? (t('ask.regenerateAiTags') || '重新生成')
+                          : (t('ask.generateAiTags') || 'AI 從簡介生成標籤')}
+                      </Text>
+                    </>
+                  )}
+                </TouchableOpacity>
+
+                {aiSuggestions.length > 0 && (
+                  <View style={styles.ai_chipsWrap}>
+                    {aiSuggestions.map((s) => (
+                      <Pressable
+                        key={`ai-${s}`}
+                        style={({ pressed }) => [
+                          styles.ai_chip,
+                          pressed && styles.ai_chipPressed,
+                        ]}
+                        onPress={() => handleAddAiSuggestion(s)}
+                        accessibilityRole="button"
+                        accessibilityLabel={`${t('common.add') || '新增'} #${s}`}
+                      >
+                        <Text style={styles.ai_chipText}>+ #{s}</Text>
+                      </Pressable>
+                    ))}
+                  </View>
+                )}
+
+                {aiTriedAndEmpty && aiSuggestions.length === 0 && !aiLoading && (
+                  <Text style={styles.ai_emptyHint}>
+                    {t('ask.aiNoSuggestions') || 'AI 沒有想到合適的標籤，再試一次或自己輸入'}
+                  </Text>
+                )}
+              </View>
+            )}
+
             <TouchableOpacity
               onPress={() => navigation.navigate('ManageTags')}
               activeOpacity={0.7}
@@ -1827,6 +2011,63 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '700',
     color: '#FFFFFF',
+  },
+  // Inline AI tag suggestion styles. Visually distinct from the
+  // gradient "管理全部標籤" CTA below — the AI button is a soft
+  // outlined affordance so it doesn't fight the primary action for
+  // attention. Suggestion chips reuse piktag50/piktag600 to keep
+  // visual continuity with the user's tag chips above.
+  ai_inlineSection: {
+    marginTop: 12,
+    gap: 10,
+  },
+  ai_triggerBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: COLORS.piktag200,
+    backgroundColor: COLORS.piktag50,
+    alignSelf: 'flex-start',
+  },
+  ai_triggerBtnDisabled: {
+    opacity: 0.5,
+  },
+  ai_triggerText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: COLORS.piktag600,
+  },
+  ai_chipsWrap: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  ai_chip: {
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 9999,
+    borderWidth: 1,
+    borderColor: COLORS.piktag300,
+    backgroundColor: COLORS.white,
+  },
+  ai_chipPressed: {
+    backgroundColor: COLORS.piktag50,
+  },
+  ai_chipText: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: COLORS.piktag600,
+  },
+  ai_emptyHint: {
+    fontSize: 12,
+    color: COLORS.gray500,
+    fontStyle: 'italic',
+    paddingHorizontal: 4,
   },
   tag_myTagChip: {
     flexDirection: 'row',
