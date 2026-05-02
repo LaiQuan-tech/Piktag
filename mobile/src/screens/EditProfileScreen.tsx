@@ -1276,7 +1276,14 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
                         accessibilityRole="button"
                         accessibilityLabel={`${t('common.add') || '新增'} #${s}`}
                       >
-                        <Text style={styles.ai_chipText}>+ #{s}</Text>
+                        {/* No "+" prefix — visual parity with friend
+                            pickModal tags. The "tap to add" affordance
+                            is communicated by the gray "unselected"
+                            look, identical to FriendDetail's
+                            pickModalTag. Once added, the chip moves
+                            up into "我的標籤" above where it picks up
+                            the purple "selected" treatment. */}
+                        <Text style={styles.ai_chipText}>#{s}</Text>
                       </Pressable>
                     ))}
                   </View>
@@ -1985,15 +1992,23 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     gap: 10,
   },
+  // "Selected" state — already in the user's tag list. Matches the
+  // FriendDetail pickModalTagSelected treatment so the "this is one
+  // of mine" signal looks the same everywhere in the app: light
+  // purple fill + 1.5dp purple border + bold purple text.
   tag_previewChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
     backgroundColor: COLORS.piktag50,
     borderRadius: 9999,
-    paddingVertical: 6,
-    paddingHorizontal: 12,
+    borderWidth: 1.5,
+    borderColor: COLORS.piktag500,
+    paddingVertical: 8,
+    paddingHorizontal: 14,
   },
   tag_previewChipText: {
-    fontSize: 13,
-    fontWeight: '500',
+    fontSize: 14,
+    fontWeight: '700',
     color: COLORS.piktag600,
   },
   tag_moreText: {
@@ -2047,21 +2062,32 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     gap: 8,
   },
+  // "Unselected" state — AI suggestion not yet added. Mirrors the
+  // FriendDetail pickModalTag (gray100 fill, transparent border that
+  // gets replaced when selected, gray-700 text @ medium weight).
+  // Same shape and weight as the selected chip above so the only
+  // visual delta on tap is color — that's the design contract the
+  // friend pickModal already uses, now applied here for consistency.
   ai_chip: {
-    paddingVertical: 6,
-    paddingHorizontal: 12,
+    paddingVertical: 8,
+    paddingHorizontal: 14,
     borderRadius: 9999,
-    borderWidth: 1,
-    borderColor: COLORS.piktag300,
-    backgroundColor: COLORS.white,
+    borderWidth: 1.5,
+    borderColor: 'transparent',
+    backgroundColor: COLORS.gray100,
   },
   ai_chipPressed: {
+    // Brief press flash — gives haptic-like feedback on tap before
+    // the chip removes itself from the suggestion list. Same color
+    // family as the selected state so the transition reads as
+    // "going from gray to purple" not as a foreign hover color.
     backgroundColor: COLORS.piktag50,
+    borderColor: COLORS.piktag500,
   },
   ai_chipText: {
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: '500',
-    color: COLORS.piktag600,
+    color: COLORS.gray700,
   },
   ai_emptyHint: {
     fontSize: 12,
