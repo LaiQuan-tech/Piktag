@@ -527,7 +527,15 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
           </ScrollView>
 
           {/* Fixed bottom input */}
-          <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+          {/* behavior='height' on Android (was `undefined`) so the input
+              bar reliably lifts above the soft keyboard. The previous
+              undefined fell through to system pan, which kept missing
+              the bottom-anchored bar on devices that disable pan in
+              activity-level config (some Samsung / MIUI variants).
+              'height' shrinks the KAV by the keyboard size — the bar
+              floats up cleanly without a ScrollView fight since the
+              KAV here only wraps the input row, not the form list. */}
+          <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
             <View style={[styles.inputBar, { paddingBottom: insets.bottom + 8 }]}>
               <View style={styles.inputRow}>
                 <Hash size={18} color={COLORS.gray400} />

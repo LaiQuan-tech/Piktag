@@ -1338,6 +1338,15 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
         transparent
         onRequestClose={closeBiolinkModal}
       >
+        {/* KAV wraps the bottom-sheet so the four TextInputs (platform,
+            url/phone, display name) float above the keyboard instead
+            of being buried beneath it. Without this wrapper, tapping
+            the URL field in the middle of the sheet brought up the
+            keyboard and left the focused input hidden behind it. */}
+        <KeyboardAvoidingView
+          style={{ flex: 1 }}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        >
         <View style={styles.modalOverlay}>
           <View style={[styles.modalContent, { paddingBottom: insets.bottom + 20 }]}>
             <View style={styles.modalHeader}>
@@ -1501,6 +1510,7 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
             </TouchableOpacity>
           </View>
         </View>
+        </KeyboardAvoidingView>
       </Modal>
 
       {/* Country-code picker — rendered at the root so it overlays
