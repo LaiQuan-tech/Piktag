@@ -1419,8 +1419,8 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
             {showPlatformPicker && !selectedPlatform && (
               <View style={styles.platformPicker}>
                 <Text style={styles.pickerTitle}>{t('editProfile.selectPlatform')}</Text>
-                {PRESET_PLATFORM_KEYS.map((key) => {
-                  const label = PLATFORM_LABELS_STATIC[key] || t(`editProfile.${key === 'website' ? 'personalWebsite' : 'customLink'}`);
+                {(QUICK_PICK_KEYS as readonly string[]).map((key) => {
+                  const label = getPlatformLabel(key, t);
                   return (
                     <TouchableOpacity
                       key={key}
@@ -1441,6 +1441,25 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
                     </TouchableOpacity>
                   );
                 })}
+                {/* "更多平台" entry — opens the search modal so the user
+                    can pick from the remaining ~42 platforms not in the
+                    quick-pick 8. Without this, users on the legacy
+                    inline-add flow had no path to TikTok / Threads /
+                    GitHub / etc. */}
+                <TouchableOpacity
+                  style={styles.platformOption}
+                  onPress={() => {
+                    setPlatformSearchTarget('legacy');
+                    setPlatformSearchVisible(true);
+                  }}
+                >
+                  <View style={styles.platformOptionMoreIcon}>
+                    <Plus size={18} color={COLORS.piktag500} />
+                  </View>
+                  <Text style={[styles.platformOptionText, { color: COLORS.piktag600, fontWeight: '600' }]}>
+                    {t('editProfile.browseAllPlatforms') || 'Browse all platforms'}
+                  </Text>
+                </TouchableOpacity>
                 <TouchableOpacity onPress={() => setShowPlatformPicker(false)}>
                   <Text style={styles.cancelText}>{t('common.cancel')}</Text>
                 </TouchableOpacity>
@@ -2437,6 +2456,17 @@ const styles = StyleSheet.create({
     gap: 12,
     paddingVertical: 10,
     paddingHorizontal: 4,
+  },
+  // "更多平台" row icon — square gray placeholder so a Plus icon
+  // sits in the same horizontal slot as the platform brand glyphs
+  // above it, keeping the row left-edge aligned across the list.
+  platformOptionMoreIcon: {
+    width: 28,
+    height: 28,
+    borderRadius: 6,
+    backgroundColor: COLORS.piktag50,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   platformOptionText: {
     fontSize: 15,
