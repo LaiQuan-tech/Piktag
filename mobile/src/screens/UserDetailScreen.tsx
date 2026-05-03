@@ -1844,21 +1844,22 @@ const styles = StyleSheet.create({
   iconButtonActive: {
     backgroundColor: COLORS.piktag50,
   },
-  // Wider variant for the "標籤" button — same gray pill as the
-  // message button but compact, since it shares a row with two
-  // larger flex:1 buttons (Follow + Message) plus an icon.
+  // 「標籤」 is promoted to the primary action on UserDetail too — same
+  // visual rule as FriendDetail: solid piktag500 fill + white text,
+  // outranking the gray Follow / Message buttons that share the row.
+  // Tagging is the CRM moment; the others are utility.
   tagButton: {
-    paddingHorizontal: 14,
+    paddingHorizontal: 16,
     height: 44,
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: COLORS.gray100,
+    backgroundColor: COLORS.piktag500,
   },
   tagButtonText: {
     fontSize: 14,
-    fontWeight: '600',
-    color: COLORS.gray900,
+    fontWeight: '700',
+    color: COLORS.white,
   },
   // Tags — flat inline clickable (matching ProfileScreen)
   tagsWrap: {

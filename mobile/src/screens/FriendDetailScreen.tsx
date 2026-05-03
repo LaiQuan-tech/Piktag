@@ -1840,21 +1840,23 @@ const styles = StyleSheet.create({
   iconButtonActive: {
     backgroundColor: COLORS.piktag50,
   },
-  // Wider variant for the "標籤" button — same gray pill as the
-  // message button but compact, since it shares a row with two
-  // larger flex:1 buttons (Follow + Message) plus an icon.
+  // 「標籤」 is the action this whole screen exists for — tagging the
+  // friend is what makes PikTag a CRM, not just a contact list.
+  // Promoted to the primary action: solid piktag500 fill + white text,
+  // visually outranking the gray Follow / Message / icon buttons in
+  // the same row so the user's eye lands here first.
   tagButton: {
-    paddingHorizontal: 14,
+    paddingHorizontal: 16,
     height: 44,
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: COLORS.gray100,
+    backgroundColor: COLORS.piktag500,
   },
   tagButtonText: {
     fontSize: 14,
-    fontWeight: '600',
-    color: COLORS.gray900,
+    fontWeight: '700',
+    color: COLORS.white,
   },
   // Recommended-members section. Cloned from UserDetailScreen so the
   // two screens share visual vocabulary — same card width, same
