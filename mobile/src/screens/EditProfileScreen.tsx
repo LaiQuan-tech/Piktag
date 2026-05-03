@@ -586,6 +586,17 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
     });
     resetPhoneFields();
     setAutoDetectedPlatform(null);
+    // Defensive teardown — close any sub-modals that the user may
+    // have left open while inside the biolink form. Reported case:
+    // user taps "More…" (sets platformSearchVisible=true), the
+    // search modal can't render because iOS won't stack native
+    // modals — the search modal's invisible backdrop ends up
+    // intercepting every tap on the EditProfile screen after the
+    // biolink modal dismisses, looking like the page froze.
+    // Closing them here when the parent dismisses guarantees no
+    // orphan overlays survive.
+    setPlatformSearchVisible(false);
+    setCountryPickerOpen(false);
   };
 
   const handleOpenLink = (url: string) => {
@@ -1597,8 +1608,23 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
           style={{ flex: 1 }}
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         >
-        <View style={styles.modalOverlay}>
-          <View style={[styles.modalContent, { paddingBottom: insets.bottom + 20 }]}>
+        {/* Backdrop is now tappable — taps outside the bottom sheet
+            dismiss the modal. Previously it was a plain View, which
+            meant if the X button ever became unreachable (offscreen
+            from a leftover keyboard avoid, etc.) the user had no
+            way to recover and the page felt frozen. The inner
+            modalContent uses TouchableWithoutFeedback to swallow taps
+            so taps INSIDE the sheet don't bubble up and dismiss. */}
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={closeBiolinkModal}
+        >
+          <TouchableOpacity
+            activeOpacity={1}
+            style={[styles.modalContent, { paddingBottom: insets.bottom + 20 }]}
+            onPress={() => {}}
+          >
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>
                 {editingBiolink ? t('editProfile.modalTitleEdit') : t('editProfile.modalTitleAdd')}
@@ -1915,8 +1941,8 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
                 </Text>
               )}
             </TouchableOpacity>
-          </View>
-        </View>
+          </TouchableOpacity>
+        </TouchableOpacity>
         </KeyboardAvoidingView>
       </Modal>
 
