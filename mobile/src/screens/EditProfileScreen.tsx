@@ -75,6 +75,38 @@ const PLATFORM_PLACEHOLDER_KEYS: Record<string, string> = {
   custom: 'https://...',
 };
 
+// Map a saved platform string + URL back to a preset key (for editing existing biolinks)
+const detectPlatformKey = (platform: string, url: string): string => {
+  const lower = (platform || '').toLowerCase().trim();
+  if (PRESET_PLATFORM_KEYS.includes(lower)) return lower;
+  if (url.startsWith('mailto:')) return 'email';
+  if (url.startsWith('tel:')) return 'phone';
+  if (url.includes('instagram.com/')) return 'instagram';
+  if (url.includes('facebook.com/')) return 'facebook';
+  if (url.includes('linkedin.com/')) return 'linkedin';
+  if (url.includes('line.me/')) return 'line';
+  if (/^https?:\/\//.test(url)) return 'website';
+  return 'custom';
+};
+
+// Remove the platform's fixed prefix from a URL (used to populate the account input)
+const stripPlatformPrefix = (url: string, key: string): string => {
+  const prefix = PLATFORM_PREFIXES[key] || '';
+  if (prefix && url.startsWith(prefix)) return url.slice(prefix.length);
+  return url;
+};
+
+// Compose the full URL from a platform key + account/path the user typed.
+// Phone is intentionally not handled here — the modal builds the tel: URL
+// from (phoneCountry, phoneNational) via buildTelUrl().
+const buildPlatformUrl = (key: string, account: string): string => {
+  const trimmed = account.trim();
+  if (key === 'custom') return trimmed;
+  const prefix = PLATFORM_PREFIXES[key] || '';
+  if (!prefix || trimmed.startsWith(prefix)) return trimmed;
+  return `${prefix}${trimmed}`;
+};
+
 type EditProfileScreenProps = {
   navigation: any;
 };
@@ -87,8 +119,9 @@ type FormData = {
 };
 
 type BiolinkFormData = {
-  platform: string;
-  url: string;
+  platform: string;             // preset key: 'email', 'instagram', 'phone', 'custom', ...
+  account: string;              // account/path part (or full URL when platform === 'custom').
+                                // For 'phone', this field is unused — phoneCountry / phoneNational are the source of truth.
   label: string;
   display_mode: 'icon' | 'card' | 'both';
   visibility: 'public' | 'friends' | 'close_friends' | 'private';
@@ -215,8 +248,8 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
   const [biolinkModalVisible, setBiolinkModalVisible] = useState(false);
   const [editingBiolink, setEditingBiolink] = useState<Biolink | null>(null);
   const [biolinkForm, setBiolinkForm] = useState<BiolinkFormData>({
-    platform: '',
-    url: '',
+    platform: 'email',
+    account: '',
     label: '',
     display_mode: 'card',
     visibility: 'public',
@@ -516,19 +549,25 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
 
   const openAddBiolinkModal = () => {
     setEditingBiolink(null);
-    // BiolinkFormData requires display_mode + visibility — without them
-    // TS rejects the partial. Match the defaults of the initial state
-    // declared at the top of this component (card / public).
-    setBiolinkForm({ platform: '', url: '', label: '', display_mode: 'card', visibility: 'public' });
+    setBiolinkForm({
+      platform: 'email',
+      account: '',
+      label: '',
+      display_mode: 'card',
+      visibility: 'public',
+    });
     resetPhoneFields();
     setBiolinkModalVisible(true);
   };
 
   const openEditBiolinkModal = (biolink: Biolink) => {
+    const platformKey = detectPlatformKey(biolink.platform, biolink.url);
+    // For phone, the editable value lives in phoneCountry/phoneNational; account stays empty.
+    const account = platformKey === 'phone' ? '' : stripPlatformPrefix(biolink.url, platformKey);
     setEditingBiolink(biolink);
     setBiolinkForm({
-      platform: biolink.platform,
-      url: biolink.url,
+      platform: platformKey,
+      account,
       label: biolink.label || '',
       display_mode: biolink.display_mode || 'card',
       visibility: biolink.visibility || 'public',
@@ -538,7 +577,7 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
     // bare numbers (e.g. `tel:0916581787` with no `+` prefix) don't
     // resolve to a country — fall back to the locale default so users
     // still see a sensible country chip instead of an empty box.
-    if (biolink.platform === 'phone') {
+    if (platformKey === 'phone') {
       const { country, national } = splitTelUrl(biolink.url);
       setPhoneCountry(country ?? getDefaultCountry(i18n.language));
       setPhoneNational(national);
@@ -551,7 +590,13 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
   const closeBiolinkModal = () => {
     setBiolinkModalVisible(false);
     setEditingBiolink(null);
-    setBiolinkForm({ platform: '', url: '', label: '', display_mode: 'card', visibility: 'public' });
+    setBiolinkForm({
+      platform: 'email',
+      account: '',
+      label: '',
+      display_mode: 'card',
+      visibility: 'public',
+    });
     resetPhoneFields();
   };
 
@@ -571,19 +616,26 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
   const handleSaveBiolink = async () => {
     if (!userId) return;
     // For phone entries the canonical URL is synthesised from (country,
-    // national) rather than pulled from `biolinkForm.url` so the modal
-    // can stay fully phone-aware. Every other platform keeps the legacy
-    // direct URL input.
-    const isPhone = biolinkForm.platform.trim() === 'phone';
+    // national); every other platform composes prefix + account.
+    const platformKey = biolinkForm.platform.trim();
+    const isPhone = platformKey === 'phone';
     const effectiveUrl = isPhone
       ? buildTelUrl(phoneCountry, phoneNational)
-      : biolinkForm.url.trim();
-    if (!biolinkForm.platform.trim() || !effectiveUrl) {
+      : buildPlatformUrl(platformKey, biolinkForm.account);
+    if (!platformKey || !effectiveUrl) {
       Alert.alert(t('editProfile.alertHintTitle'), t('editProfile.alertFillRequired'));
       return;
     }
 
     const iconUrl = getIconUrl(effectiveUrl);
+    // Default the display label to the platform's pretty name when the user
+    // didn't type one — keeps the list view from showing the lowercase key.
+    const fallbackLabel =
+      PLATFORM_LABELS_STATIC[platformKey] ||
+      (platformKey === 'website'
+        ? t('editProfile.personalWebsite')
+        : t('editProfile.customLink'));
+    const effectiveLabel = biolinkForm.label.trim() || fallbackLabel;
 
     setSavingBiolink(true);
     try {
@@ -591,9 +643,9 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
         const { error } = await supabase
           .from('piktag_biolinks')
           .update({
-            platform: biolinkForm.platform.trim(),
+            platform: platformKey,
             url: effectiveUrl,
-            label: biolinkForm.label.trim() || null,
+            label: effectiveLabel,
             icon_url: iconUrl,
             display_mode: biolinkForm.display_mode,
             visibility: biolinkForm.visibility,
@@ -610,9 +662,9 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
           .from('piktag_biolinks')
           .insert({
             user_id: userId,
-            platform: biolinkForm.platform.trim(),
+            platform: platformKey,
             url: effectiveUrl,
-            label: biolinkForm.label.trim() || null,
+            label: effectiveLabel,
             icon_url: iconUrl,
             display_mode: biolinkForm.display_mode,
             visibility: biolinkForm.visibility,
@@ -1552,30 +1604,48 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
             <View style={styles.modalBody}>
               <View style={styles.fieldGroup}>
                 <Text style={styles.fieldLabel}>{t('editProfile.platformLabel')}</Text>
-                <TextInput
-                  style={styles.fieldInput}
-                  value={biolinkForm.platform}
-                  onChangeText={(v) =>
-                    setBiolinkForm((prev) => ({ ...prev, platform: v }))
-                  }
-                  placeholder={t('editProfile.platformPlaceholder')}
-                  placeholderTextColor={COLORS.gray400}
-                />
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={styles.platformChipRow}
+                >
+                  {PRESET_PLATFORM_KEYS.map((key) => {
+                    const active = biolinkForm.platform === key;
+                    const label =
+                      PLATFORM_LABELS_STATIC[key] ||
+                      t(key === 'website' ? 'editProfile.personalWebsite' : 'editProfile.customLink');
+                    return (
+                      <TouchableOpacity
+                        key={key}
+                        style={[styles.platformChip, active && styles.platformChipActive]}
+                        onPress={() => setBiolinkForm((prev) => ({ ...prev, platform: key }))}
+                        activeOpacity={0.7}
+                      >
+                        <PlatformIcon platform={key} size={18} />
+                        <Text
+                          style={[
+                            styles.platformChipText,
+                            active && styles.platformChipTextActive,
+                          ]}
+                        >
+                          {label}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </ScrollView>
               </View>
 
               <View style={styles.fieldGroup}>
                 <Text style={styles.fieldLabel}>
-                  {biolinkForm.platform.trim() === 'phone'
+                  {biolinkForm.platform === 'phone'
                     ? t('editProfile.phoneLabel')
                     : t('editProfile.urlLabel')}
                 </Text>
-                {biolinkForm.platform.trim() === 'phone' ? (
+                {biolinkForm.platform === 'phone' ? (
                   // Phone gets the country-code chip + national-number
                   // input. The actual `tel:` URL is synthesised at save
-                  // time from (phoneCountry, phoneNational); we don't
-                  // also write it to biolinkForm.url because doing so
-                  // would double the state and re-introduce the
-                  // possibility of drift.
+                  // time from (phoneCountry, phoneNational).
                   <View style={styles.phoneRow}>
                     <TouchableOpacity
                       style={styles.countryChip}
@@ -1596,18 +1666,37 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
                       maxLength={15}
                     />
                   </View>
-                ) : (
+                ) : biolinkForm.platform === 'custom' ? (
                   <TextInput
                     style={styles.fieldInput}
-                    value={biolinkForm.url}
-                    onChangeText={(v) =>
-                      setBiolinkForm((prev) => ({ ...prev, url: v }))
-                    }
+                    value={biolinkForm.account}
+                    onChangeText={(v) => setBiolinkForm((prev) => ({ ...prev, account: v }))}
                     placeholder={t('editProfile.urlPlaceholder')}
                     placeholderTextColor={COLORS.gray400}
                     autoCapitalize="none"
                     keyboardType="url"
                   />
+                ) : (
+                  <View style={styles.prefixInputRow}>
+                    {PLATFORM_PREFIXES[biolinkForm.platform] ? (
+                      <Text style={styles.prefixText} numberOfLines={1}>
+                        {PLATFORM_PREFIXES[biolinkForm.platform]}
+                      </Text>
+                    ) : null}
+                    <TextInput
+                      style={styles.accountInput}
+                      value={biolinkForm.account}
+                      onChangeText={(v) => setBiolinkForm((prev) => ({ ...prev, account: v }))}
+                      placeholder={
+                        PLATFORM_PLACEHOLDER_KEYS[biolinkForm.platform]?.startsWith('editProfile.')
+                          ? t(PLATFORM_PLACEHOLDER_KEYS[biolinkForm.platform])
+                          : PLATFORM_PLACEHOLDER_KEYS[biolinkForm.platform] || ''
+                      }
+                      placeholderTextColor={COLORS.gray400}
+                      autoCapitalize="none"
+                      keyboardType="url"
+                    />
+                  </View>
                 )}
               </View>
 
@@ -1619,7 +1708,14 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
                   onChangeText={(v) =>
                     setBiolinkForm((prev) => ({ ...prev, label: v }))
                   }
-                  placeholder={t('editProfile.displayNamePlaceholder')}
+                  placeholder={
+                    PLATFORM_LABELS_STATIC[biolinkForm.platform] ||
+                    t(
+                      biolinkForm.platform === 'website'
+                        ? 'editProfile.personalWebsite'
+                        : 'editProfile.customLink'
+                    )
+                  }
                   placeholderTextColor={COLORS.gray400}
                 />
               </View>
@@ -2221,6 +2317,35 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: COLORS.gray900,
     fontWeight: '500',
+  },
+  platformChipRow: {
+    flexDirection: 'row',
+    gap: 8,
+    paddingVertical: 4,
+    paddingRight: 4,
+  },
+  platformChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 20,
+    borderWidth: 1.5,
+    borderColor: COLORS.gray200,
+    backgroundColor: COLORS.white,
+  },
+  platformChipActive: {
+    borderColor: COLORS.piktag500,
+    backgroundColor: COLORS.piktag50,
+  },
+  platformChipText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: COLORS.gray500,
+  },
+  platformChipTextActive: {
+    color: COLORS.piktag600,
   },
   prefixInputRow: {
     flexDirection: 'row',
