@@ -712,11 +712,13 @@ export function AskCreateModal({ visible, onClose, existingAsk, onCreated }: Ask
         throw new Error('No tag could be resolved');
       }
 
-      // 7 days. Original 24h was too aggressive — friends who weren't
-      // online the same day never saw the post. 7 days matches the
-      // "weekly check-in" cadence of the typical user without making
-      // the feed feel stale.
-      const expiresAt = new Date(Date.now() + 7 * 24 * 3600000).toISOString();
+      // 24 hours — IG Stories cadence. Daily refresh creates urgency
+      // ("post by tonight or it's gone tomorrow") and keeps the feed
+      // tied to the day's mood. Reverted from the 7-day window we
+      // tried briefly; 7d made the rail feel like a dusty bulletin
+      // board with weeks-old posts hanging around. 24h matches what
+      // most daily-active social apps converged on for a reason.
+      const expiresAt = new Date(Date.now() + 24 * 3600000).toISOString();
       const { data: askData, error } = await supabase
         .from('piktag_asks')
         .insert({ author_id: user.id, body: body.trim(), expires_at: expiresAt })
