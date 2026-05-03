@@ -84,10 +84,23 @@ export default function PlatformSearchModal({ visible, onClose, onSelect }: Prop
     <Modal
       visible={visible}
       animationType="slide"
-      presentationStyle="pageSheet"
+      // transparent + no presentationStyle so this modal layers ON TOP
+      // of any already-presented Modal (the biolink edit sheet). iOS
+      // disallows stacking native presentationStyle modals — the
+      // second one renders behind / never animates in. By going
+      // transparent we sidestep the stacking restriction and our own
+      // styled container provides the sheet look.
+      transparent
       onRequestClose={onClose}
     >
-      <View style={[styles.container, { paddingTop: insets.top + 8 }]}>
+      {/* Backdrop dim — also catches taps to dismiss when the user
+          taps outside the sheet. */}
+      <TouchableOpacity
+        style={styles.backdrop}
+        activeOpacity={1}
+        onPress={onClose}
+      />
+      <View style={[styles.container, { paddingTop: 16 }]}>
         {/* Header */}
         <View style={styles.header}>
           <Text style={styles.title}>
@@ -159,9 +172,27 @@ export default function PlatformSearchModal({ visible, onClose, onSelect }: Prop
 }
 
 const styles = StyleSheet.create({
+  // Full-screen dim catches taps to dismiss outside the sheet.
+  backdrop: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+  },
+  // Sheet style — top corners rounded, slides in from bottom,
+  // ~85% of viewport height so the user can still see a sliver of
+  // whatever modal it's overlaying (visual context).
   container: {
-    flex: 1,
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: '85%',
     backgroundColor: COLORS.white,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
   },
   header: {
     flexDirection: 'row',
