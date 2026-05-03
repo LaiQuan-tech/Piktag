@@ -395,7 +395,30 @@
     "selectCountry": "Выбери страну",
     "searchCountry": "Найди страну или код",
     "invalidImageType": "Неподдерживаемый тип изображения. Используйте JPEG, PNG или WebP.",
-    "imageTooLarge": "Изображение слишком большое. Максимальный размер — 2 МБ."
+    "imageTooLarge": "Изображение слишком большое. Максимальный размер — 2 МБ.",
+    "browseAllPlatformsCta": "Ещё…",
+    "browseAllPlatforms": "Все платформы",
+    "platformSearchPlaceholder": "Поиск платформ…",
+    "platformSearchEmpty": "Ничего не найдено",
+    "detectedAs": "Распознано как {{platform}}",
+    "platform": {
+      "phone": "Телефон",
+      "email": "Email",
+      "website": "Сайт",
+      "blog": "Блог",
+      "portfolio": "Портфолио",
+      "custom": "Своя ссылка"
+    },
+    "platformCategory": {
+      "communication": "Связь",
+      "social": "Соцсети",
+      "video": "Видео",
+      "music": "Музыка",
+      "professional": "Карьера",
+      "writing": "Тексты",
+      "business": "Бизнес",
+      "generic": "Общие"
+    }
   },
   "friendDetail": {
     "reminderBirthday": "День рождения",

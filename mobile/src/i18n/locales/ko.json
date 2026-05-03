@@ -395,7 +395,30 @@
     "selectCountry": "국가 선택",
     "searchCountry": "국가 또는 코드 검색",
     "invalidImageType": "지원되지 않는 이미지 형식입니다. JPEG, PNG 또는 WebP를 사용하세요.",
-    "imageTooLarge": "이미지가 너무 큽니다. 최대 크기는 2MB입니다."
+    "imageTooLarge": "이미지가 너무 큽니다. 최대 크기는 2MB입니다.",
+    "browseAllPlatformsCta": "더 보기…",
+    "browseAllPlatforms": "모든 플랫폼 둘러보기",
+    "platformSearchPlaceholder": "플랫폼 검색…",
+    "platformSearchEmpty": "검색 결과가 없습니다",
+    "detectedAs": "{{platform}}(으)로 감지됨",
+    "platform": {
+      "phone": "전화",
+      "email": "이메일",
+      "website": "웹사이트",
+      "blog": "블로그",
+      "portfolio": "포트폴리오",
+      "custom": "사용자 지정 링크"
+    },
+    "platformCategory": {
+      "communication": "메시징",
+      "social": "소셜",
+      "video": "동영상",
+      "music": "음악",
+      "professional": "전문",
+      "writing": "글쓰기",
+      "business": "비즈니스",
+      "generic": "일반"
+    }
   },
   "friendDetail": {
     "reminderBirthday": "생일",

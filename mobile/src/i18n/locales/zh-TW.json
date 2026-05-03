@@ -406,7 +406,30 @@
     "selectCountry": "選擇國家",
     "searchCountry": "搜尋國家或國碼",
     "invalidImageType": "不支援的圖片格式，請使用 JPEG、PNG 或 WebP。",
-    "imageTooLarge": "圖片過大，最大支援 2MB。"
+    "imageTooLarge": "圖片過大，最大支援 2MB。",
+    "browseAllPlatformsCta": "更多…",
+    "browseAllPlatforms": "瀏覽所有平台",
+    "platformSearchPlaceholder": "搜尋平台…",
+    "platformSearchEmpty": "找不到符合的平台",
+    "detectedAs": "偵測為 {{platform}}",
+    "platform": {
+      "phone": "電話",
+      "email": "Email",
+      "website": "個人網站",
+      "blog": "部落格",
+      "portfolio": "作品集",
+      "custom": "自訂連結"
+    },
+    "platformCategory": {
+      "communication": "通訊",
+      "social": "社群",
+      "video": "影音",
+      "music": "音樂",
+      "professional": "職涯",
+      "writing": "寫作出版",
+      "business": "商務金流",
+      "generic": "通用"
+    }
   },
   "friendDetail": {
     "reminderBirthday": "生日",

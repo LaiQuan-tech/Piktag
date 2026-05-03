@@ -4,6 +4,8 @@ import Svg, { Path, Rect, Circle } from 'react-native-svg';
 import {
   Globe, Link, Phone, Mail, MessageSquare, Send, Music, Video,
   Twitch, Github, Twitter, Youtube, ShoppingBag, Podcast,
+  Camera, Hash, Calendar, DollarSign, Heart, Coffee, BookOpen,
+  Briefcase, Palette, AtSign, MessageCircle,
 } from 'lucide-react-native';
 
 // Unified monochrome icon color
@@ -16,26 +18,76 @@ type Props = {
   iconUrl?: string | null; // Favicon URL from DB
 };
 
-// Extended platform → lucide icon mapping for common services
+// Extended platform → lucide icon mapping for the 50-platform
+// catalog. Brand glyphs aren't in lucide, so we substitute the
+// closest semantic icon (e.g. all chat services → MessageCircle,
+// all music → Music) — UI distinguishes them by the platform LABEL
+// next to the icon, not by icon-alone. The dedicated SVG branches
+// below (instagram / facebook / linkedin / line) cover the marquee
+// brands where a recognizable glyph matters most.
 const LUCIDE_MAP: Record<string, any> = {
+  // Social / micro-blogging
   twitter: Twitter,
   x: Twitter,
-  youtube: Youtube,
-  github: Github,
-  twitch: Twitch,
-  telegram: Send,
-  whatsapp: MessageSquare,
-  wechat: MessageSquare,
-  discord: MessageSquare,
-  signal: MessageSquare,
+  threads: AtSign,
+  bluesky: AtSign,
+  mastodon: AtSign,
+  reddit: MessageSquare,
+  pinterest: Hash,
+  snapchat: Camera,
   tiktok: Music,
-  spotify: Music,
-  threads: MessageSquare,
-  medium: Globe,
-  substack: Globe,
-  shopee: ShoppingBag,
-  podcast: Podcast,
+
+  // Video
+  youtube: Youtube,
+  twitch: Twitch,
   vimeo: Video,
+  bilibili: Video,
+  podcast: Podcast,
+
+  // Music
+  spotify: Music,
+  'apple-music': Music,
+  soundcloud: Music,
+  bandcamp: Music,
+  'youtube-music': Music,
+
+  // Chat
+  telegram: Send,
+  whatsapp: MessageCircle,
+  wechat: MessageCircle,
+  kakaotalk: MessageCircle,
+  signal: MessageCircle,
+  messenger: MessageCircle,
+  discord: MessageCircle,
+
+  // Professional
+  github: Github,
+  gitlab: Github,
+  behance: Palette,
+  dribbble: Palette,
+  medium: BookOpen,
+
+  // Writing
+  substack: BookOpen,
+  notion: BookOpen,
+  mirror: BookOpen,
+  hashnode: BookOpen,
+
+  // Business / money
+  calendly: Calendar,
+  cal: Calendar,
+  paypal: DollarSign,
+  stripe: DollarSign,
+  patreon: Heart,
+  kofi: Coffee,
+  buymeacoffee: Coffee,
+
+  // Generic web
+  blog: BookOpen,
+  portfolio: Briefcase,
+
+  // Shopping / misc legacy
+  shopee: ShoppingBag,
 };
 
 export default function PlatformIcon({ platform, size = 24, color = ICON_COLOR, iconUrl }: Props) {

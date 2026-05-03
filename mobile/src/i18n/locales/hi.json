@@ -395,7 +395,30 @@
     "selectCountry": "देश चुनें",
     "searchCountry": "देश या कोड खोजें",
     "invalidImageType": "असमर्थित छवि प्रकार। कृपया JPEG, PNG या WebP का उपयोग करें।",
-    "imageTooLarge": "छवि बहुत बड़ी है। अधिकतम आकार 2MB है।"
+    "imageTooLarge": "छवि बहुत बड़ी है। अधिकतम आकार 2MB है।",
+    "browseAllPlatformsCta": "और देखें…",
+    "browseAllPlatforms": "सभी प्लेटफ़ॉर्म देखें",
+    "platformSearchPlaceholder": "प्लेटफ़ॉर्म खोजें…",
+    "platformSearchEmpty": "कोई परिणाम नहीं",
+    "detectedAs": "{{platform}} के रूप में पहचाना गया",
+    "platform": {
+      "phone": "फ़ोन",
+      "email": "ईमेल",
+      "website": "वेबसाइट",
+      "blog": "ब्लॉग",
+      "portfolio": "पोर्टफ़ोलियो",
+      "custom": "कस्टम लिंक"
+    },
+    "platformCategory": {
+      "communication": "संचार",
+      "social": "सामाजिक",
+      "video": "वीडियो",
+      "music": "संगीत",
+      "professional": "पेशेवर",
+      "writing": "लेखन",
+      "business": "व्यापार",
+      "generic": "सामान्य"
+    }
   },
   "friendDetail": {
     "reminderBirthday": "जन्मदिन",

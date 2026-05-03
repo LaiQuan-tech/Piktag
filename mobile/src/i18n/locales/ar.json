@@ -395,7 +395,30 @@
     "selectCountry": "اختر دولة",
     "searchCountry": "ابحث عن دولة أو رمز",
     "invalidImageType": "نوع الصورة غير مدعوم. يرجى استخدام JPEG أو PNG أو WebP.",
-    "imageTooLarge": "حجم الصورة كبير جدًا. الحد الأقصى 2 ميجابايت."
+    "imageTooLarge": "حجم الصورة كبير جدًا. الحد الأقصى 2 ميجابايت.",
+    "browseAllPlatformsCta": "المزيد…",
+    "browseAllPlatforms": "تصفح كل المنصات",
+    "platformSearchPlaceholder": "ابحث عن منصة…",
+    "platformSearchEmpty": "لا توجد نتائج",
+    "detectedAs": "تم اكتشافه كـ {{platform}}",
+    "platform": {
+      "phone": "هاتف",
+      "email": "بريد إلكتروني",
+      "website": "موقع",
+      "blog": "مدوّنة",
+      "portfolio": "ملف أعمال",
+      "custom": "رابط مخصص"
+    },
+    "platformCategory": {
+      "communication": "اتصال",
+      "social": "اجتماعي",
+      "video": "فيديو",
+      "music": "موسيقى",
+      "professional": "مهني",
+      "writing": "كتابة",
+      "business": "أعمال",
+      "generic": "عام"
+    }
   },
   "friendDetail": {
     "reminderBirthday": "عيد الميلاد",

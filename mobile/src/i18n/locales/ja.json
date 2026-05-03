@@ -395,7 +395,30 @@
     "selectCountry": "国を選択",
     "searchCountry": "国またはコードを検索",
     "invalidImageType": "サポートされていない画像形式です。JPEG、PNG、または WebP を使用してください。",
-    "imageTooLarge": "画像が大きすぎます。最大サイズは 2MB です。"
+    "imageTooLarge": "画像が大きすぎます。最大サイズは 2MB です。",
+    "browseAllPlatformsCta": "もっと見る…",
+    "browseAllPlatforms": "すべてのプラットフォーム",
+    "platformSearchPlaceholder": "プラットフォームを検索…",
+    "platformSearchEmpty": "該当するプラットフォームがありません",
+    "detectedAs": "{{platform}}として検出",
+    "platform": {
+      "phone": "電話",
+      "email": "Email",
+      "website": "ウェブサイト",
+      "blog": "ブログ",
+      "portfolio": "ポートフォリオ",
+      "custom": "カスタムリンク"
+    },
+    "platformCategory": {
+      "communication": "コミュニケーション",
+      "social": "ソーシャル",
+      "video": "動画",
+      "music": "音楽",
+      "professional": "プロフェッショナル",
+      "writing": "ライティング",
+      "business": "ビジネス",
+      "generic": "一般"
+    }
   },
   "friendDetail": {
     "reminderBirthday": "誕生日",

@@ -395,7 +395,30 @@
     "selectCountry": "Selecionar país",
     "searchCountry": "Buscar país ou código",
     "invalidImageType": "Tipo de imagem não suportado. Use JPEG, PNG ou WebP.",
-    "imageTooLarge": "A imagem é muito grande. Tamanho máximo: 2 MB."
+    "imageTooLarge": "A imagem é muito grande. Tamanho máximo: 2 MB.",
+    "browseAllPlatformsCta": "Mais…",
+    "browseAllPlatforms": "Ver todas as plataformas",
+    "platformSearchPlaceholder": "Buscar plataformas…",
+    "platformSearchEmpty": "Sem correspondências",
+    "detectedAs": "Detectado como {{platform}}",
+    "platform": {
+      "phone": "Telefone",
+      "email": "Email",
+      "website": "Site",
+      "blog": "Blog",
+      "portfolio": "Portfólio",
+      "custom": "Link personalizado"
+    },
+    "platformCategory": {
+      "communication": "Comunicação",
+      "social": "Social",
+      "video": "Vídeo",
+      "music": "Música",
+      "professional": "Profissional",
+      "writing": "Escrita",
+      "business": "Negócios",
+      "generic": "Geral"
+    }
   },
   "friendDetail": {
     "reminderBirthday": "Aniversário",

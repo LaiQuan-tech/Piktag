@@ -395,7 +395,30 @@
     "selectCountry": "দেশ বাছুন",
     "searchCountry": "দেশ অথবা কোড খুঁজুন",
     "invalidImageType": "অসমর্থিত ছবির ধরন। অনুগ্রহ করে JPEG, PNG বা WebP ব্যবহার করুন।",
-    "imageTooLarge": "ছবি খুব বড়। সর্বাধিক আকার 2MB।"
+    "imageTooLarge": "ছবি খুব বড়। সর্বাধিক আকার 2MB।",
+    "browseAllPlatformsCta": "আরও…",
+    "browseAllPlatforms": "সব প্ল্যাটফর্ম দেখুন",
+    "platformSearchPlaceholder": "প্ল্যাটফর্ম খুঁজুন…",
+    "platformSearchEmpty": "কোনো ফলাফল নেই",
+    "detectedAs": "{{platform}} হিসাবে শনাক্ত",
+    "platform": {
+      "phone": "ফোন",
+      "email": "ইমেল",
+      "website": "ওয়েবসাইট",
+      "blog": "ব্লগ",
+      "portfolio": "পোর্টফোলিও",
+      "custom": "কাস্টম লিঙ্ক"
+    },
+    "platformCategory": {
+      "communication": "যোগাযোগ",
+      "social": "সামাজিক",
+      "video": "ভিডিও",
+      "music": "সঙ্গীত",
+      "professional": "পেশাদার",
+      "writing": "লেখা",
+      "business": "ব্যবসা",
+      "generic": "সাধারণ"
+    }
   },
   "friendDetail": {
     "reminderBirthday": "জন্মদিন",

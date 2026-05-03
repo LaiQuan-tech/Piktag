@@ -403,7 +403,30 @@
     "selectCountry": "Select country",
     "searchCountry": "Search country or code",
     "invalidImageType": "Unsupported image type. Please use JPEG, PNG, or WebP.",
-    "imageTooLarge": "Image is too large. Maximum size is 2MB."
+    "imageTooLarge": "Image is too large. Maximum size is 2MB.",
+    "browseAllPlatformsCta": "More…",
+    "browseAllPlatforms": "Browse all platforms",
+    "platformSearchPlaceholder": "Search platforms…",
+    "platformSearchEmpty": "No platforms match your search",
+    "detectedAs": "Detected as {{platform}}",
+    "platform": {
+      "phone": "Phone",
+      "email": "Email",
+      "website": "Website",
+      "blog": "Blog",
+      "portfolio": "Portfolio",
+      "custom": "Custom link"
+    },
+    "platformCategory": {
+      "communication": "Communication",
+      "social": "Social",
+      "video": "Video",
+      "music": "Music",
+      "professional": "Professional",
+      "writing": "Writing",
+      "business": "Business",
+      "generic": "General"
+    }
   },
   "friendDetail": {
     "reminderBirthday": "Birthday",

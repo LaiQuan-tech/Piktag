@@ -395,7 +395,30 @@
     "selectCountry": "Pilih negara",
     "searchCountry": "Cari negara atau kode",
     "invalidImageType": "Jenis gambar tidak didukung. Gunakan JPEG, PNG, atau WebP.",
-    "imageTooLarge": "Gambar terlalu besar. Ukuran maksimum 2MB."
+    "imageTooLarge": "Gambar terlalu besar. Ukuran maksimum 2MB.",
+    "browseAllPlatformsCta": "Lainnya…",
+    "browseAllPlatforms": "Telusuri semua platform",
+    "platformSearchPlaceholder": "Cari platform…",
+    "platformSearchEmpty": "Tidak ada hasil",
+    "detectedAs": "Terdeteksi sebagai {{platform}}",
+    "platform": {
+      "phone": "Telepon",
+      "email": "Email",
+      "website": "Situs web",
+      "blog": "Blog",
+      "portfolio": "Portofolio",
+      "custom": "Tautan kustom"
+    },
+    "platformCategory": {
+      "communication": "Komunikasi",
+      "social": "Sosial",
+      "video": "Video",
+      "music": "Musik",
+      "professional": "Profesional",
+      "writing": "Tulisan",
+      "business": "Bisnis",
+      "generic": "Umum"
+    }
   },
   "friendDetail": {
     "reminderBirthday": "Ulang Tahun",

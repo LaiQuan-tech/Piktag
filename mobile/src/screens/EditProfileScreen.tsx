@@ -15,7 +15,7 @@ import {
   Linking,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ArrowLeft, Plus, Pencil, Trash2, X, Hash, EyeOff, Eye, GripVertical, ChevronDown, Sparkles } from 'lucide-react-native';
+import { ArrowLeft, Plus, Pencil, Trash2, X, Hash, EyeOff, Eye, GripVertical, ChevronDown, Sparkles, CheckCircle2 } from 'lucide-react-native';
 import { logApiUsage } from '../lib/apiUsage';
 import RingedAvatar from '../components/RingedAvatar';
 import DraggableFlatList, { RenderItemParams, ScaleDecorator } from 'react-native-draggable-flatlist';
@@ -38,74 +38,46 @@ import { useAuth } from '../hooks/useAuth';
 import { useAskFeed } from '../hooks/useAskFeed';
 import PageLoader from '../components/loaders/PageLoader';
 import BrandSpinner from '../components/loaders/BrandSpinner';
+import PlatformSearchModal from '../components/PlatformSearchModal';
 import type { Biolink, Tag, UserTag } from '../types';
+import {
+  PLATFORM_MAP,
+  QUICK_PICK_KEYS,
+  detectPlatformFromUrl,
+  stripPlatformPrefix as platformStripPrefix,
+  buildPlatformUrl as platformBuildUrl,
+  getPlatformLabel,
+} from '../lib/platforms';
 
-// Platform labels that need i18n are resolved inside the component
-const PRESET_PLATFORM_KEYS = ['phone', 'email', 'instagram', 'facebook', 'linkedin', 'line', 'website', 'custom'];
-
-const PLATFORM_LABELS_STATIC: Record<string, string> = {
-  phone: 'Phone',
-  email: 'Email',
-  instagram: 'Instagram',
-  facebook: 'Facebook',
-  linkedin: 'LinkedIn',
-  line: '官方Line@',
-};
-
-// Fixed prefix shown as grey label; user only types the account/path part
-const PLATFORM_PREFIXES: Record<string, string> = {
-  phone: 'tel:',
-  email: 'mailto:',
-  instagram: 'https://instagram.com/',
-  facebook: 'https://facebook.com/',
-  linkedin: 'https://linkedin.com/in/',
-  line: 'https://line.me/R/ti/p/@',
-  website: 'https://',
-  custom: '',
-};
-
-const PLATFORM_PLACEHOLDER_KEYS: Record<string, string> = {
-  phone: 'editProfile.phonePlaceholder',
-  email: 'editProfile.emailPlaceholder',
-  instagram: 'editProfile.accountName',
-  facebook: 'editProfile.accountName',
-  linkedin: 'editProfile.accountName',
-  line: 'editProfile.lineId',
-  website: 'editProfile.yourWebsite',
-  custom: 'https://...',
-};
-
-// Map a saved platform string + URL back to a preset key (for editing existing biolinks)
+// Map a saved (platform, url) pair back to a preset key. Tries the
+// stored platform string first, then falls back to URL-based
+// detection (handles legacy 'custom' rows that actually came from
+// known services). Returns 'custom' when nothing matches so the
+// form always lands on a valid key.
 const detectPlatformKey = (platform: string, url: string): string => {
   const lower = (platform || '').toLowerCase().trim();
-  if (PRESET_PLATFORM_KEYS.includes(lower)) return lower;
-  if (url.startsWith('mailto:')) return 'email';
-  if (url.startsWith('tel:')) return 'phone';
-  if (url.includes('instagram.com/')) return 'instagram';
-  if (url.includes('facebook.com/')) return 'facebook';
-  if (url.includes('linkedin.com/')) return 'linkedin';
-  if (url.includes('line.me/')) return 'line';
-  if (/^https?:\/\//.test(url)) return 'website';
-  return 'custom';
+  if (PLATFORM_MAP[lower]) return lower;
+  return detectPlatformFromUrl(url) || 'custom';
 };
 
-// Remove the platform's fixed prefix from a URL (used to populate the account input)
-const stripPlatformPrefix = (url: string, key: string): string => {
-  const prefix = PLATFORM_PREFIXES[key] || '';
-  if (prefix && url.startsWith(prefix)) return url.slice(prefix.length);
-  return url;
-};
-
-// Compose the full URL from a platform key + account/path the user typed.
-// Phone is intentionally not handled here — the modal builds the tel: URL
-// from (phoneCountry, phoneNational) via buildTelUrl().
-const buildPlatformUrl = (key: string, account: string): string => {
-  const trimmed = account.trim();
-  if (key === 'custom') return trimmed;
-  const prefix = PLATFORM_PREFIXES[key] || '';
-  if (!prefix || trimmed.startsWith(prefix)) return trimmed;
-  return `${prefix}${trimmed}`;
-};
+// Bridge constants — shape of the OLD local tables, populated from
+// the new platforms.ts catalog. Kept so the existing render paths
+// (legacy add-link form + edit modal) keep working without a flag-
+// day rewrite. UI was already reading these as Record<string, …>;
+// PLATFORM_MAP gives us the same keys + the extra long-tail entries
+// for free.
+const PLATFORM_LABELS_STATIC: Record<string, string> = Object.fromEntries(
+  Object.entries(PLATFORM_MAP).map(([k, p]) => [k, p.label]),
+);
+const PLATFORM_PREFIXES: Record<string, string> = Object.fromEntries(
+  Object.entries(PLATFORM_MAP).map(([k, p]) => [k, p.prefix]),
+);
+const PLATFORM_PLACEHOLDER_KEYS: Record<string, string> = Object.fromEntries(
+  Object.entries(PLATFORM_MAP).map(([k, p]) => [k, p.placeholder]),
+);
+const PRESET_PLATFORM_KEYS = QUICK_PICK_KEYS as readonly string[];
+const stripPlatformPrefix = platformStripPrefix;
+const buildPlatformUrl = platformBuildUrl;
 
 type EditProfileScreenProps = {
   navigation: any;
@@ -247,6 +219,20 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
   // Biolink modal state
   const [biolinkModalVisible, setBiolinkModalVisible] = useState(false);
   const [editingBiolink, setEditingBiolink] = useState<Biolink | null>(null);
+  // Browse-all-platforms search modal. Surfaces the long tail of 50
+  // platforms that don't fit on the 8-chip quick-pick row.
+  const [platformSearchVisible, setPlatformSearchVisible] = useState(false);
+  // Tracks where the next platform pick should land — either the
+  // legacy inline-add form (`legacy`) or the edit modal's biolinkForm
+  // (`modal`). Set when opening the search modal, read when the
+  // modal calls back with a platform key.
+  const [platformSearchTarget, setPlatformSearchTarget] = useState<'legacy' | 'modal'>('modal');
+  // Auto-detect feedback in the URL field. When the user types or
+  // pastes a URL we run detectPlatformFromUrl and show a "✓ Detected
+  // as Instagram" hint below the input. Auto-applied to
+  // biolinkForm.platform but the user can override by tapping a
+  // different chip / picking from the search modal.
+  const [autoDetectedPlatform, setAutoDetectedPlatform] = useState<string | null>(null);
   const [biolinkForm, setBiolinkForm] = useState<BiolinkFormData>({
     platform: 'email',
     account: '',
@@ -557,6 +543,7 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
       visibility: 'public',
     });
     resetPhoneFields();
+    setAutoDetectedPlatform(null);
     setBiolinkModalVisible(true);
   };
 
@@ -598,6 +585,7 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
       visibility: 'public',
     });
     resetPhoneFields();
+    setAutoDetectedPlatform(null);
   };
 
   const handleOpenLink = (url: string) => {
@@ -1602,18 +1590,23 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
             </View>
 
             <View style={styles.modalBody}>
+              {/* Platform picker — 8 quick-pick chips + "browse all"
+                  for the long tail. Replaced the horizontal-scroll
+                  chip rail of every preset, which forced users to
+                  swipe through 50 chips to find anything past the
+                  popular ones. Selected chip uses the same
+                  piktag50/piktag500 selected treatment as the rest
+                  of the app's chip pickers (FriendDetail pickModal,
+                  ManageTags). The currently-selected platform shows
+                  as a quick-pick chip even when it's not in the
+                  default 8 — picked-from-search non-quick-pick
+                  platforms surface as a "current" pill so the user
+                  can still see what's selected at a glance. */}
               <View style={styles.fieldGroup}>
                 <Text style={styles.fieldLabel}>{t('editProfile.platformLabel')}</Text>
-                <ScrollView
-                  horizontal
-                  showsHorizontalScrollIndicator={false}
-                  contentContainerStyle={styles.platformChipRow}
-                >
-                  {PRESET_PLATFORM_KEYS.map((key) => {
+                <View style={styles.platformQuickRow}>
+                  {(QUICK_PICK_KEYS as readonly string[]).map((key) => {
                     const active = biolinkForm.platform === key;
-                    const label =
-                      PLATFORM_LABELS_STATIC[key] ||
-                      t(key === 'website' ? 'editProfile.personalWebsite' : 'editProfile.customLink');
                     return (
                       <TouchableOpacity
                         key={key}
@@ -1628,12 +1621,37 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
                             active && styles.platformChipTextActive,
                           ]}
                         >
-                          {label}
+                          {getPlatformLabel(key, t)}
                         </Text>
                       </TouchableOpacity>
                     );
                   })}
-                </ScrollView>
+                  {/* If the active platform isn't in the quick-pick
+                      8 (user picked from "browse all"), surface it
+                      as an additional always-visible chip so they
+                      see what they currently have selected. */}
+                  {biolinkForm.platform &&
+                    !(QUICK_PICK_KEYS as readonly string[]).includes(biolinkForm.platform) && (
+                      <View style={[styles.platformChip, styles.platformChipActive]}>
+                        <PlatformIcon platform={biolinkForm.platform} size={18} />
+                        <Text style={[styles.platformChipText, styles.platformChipTextActive]}>
+                          {getPlatformLabel(biolinkForm.platform, t)}
+                        </Text>
+                      </View>
+                    )}
+                  <TouchableOpacity
+                    style={styles.browseAllChip}
+                    onPress={() => {
+                      setPlatformSearchTarget('modal');
+                      setPlatformSearchVisible(true);
+                    }}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={styles.browseAllChipText}>
+                      {t('editProfile.browseAllPlatformsCta') || 'More…'}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
               </View>
 
               <View style={styles.fieldGroup}>
@@ -1667,36 +1685,119 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
                     />
                   </View>
                 ) : biolinkForm.platform === 'custom' ? (
-                  <TextInput
-                    style={styles.fieldInput}
-                    value={biolinkForm.account}
-                    onChangeText={(v) => setBiolinkForm((prev) => ({ ...prev, account: v }))}
-                    placeholder={t('editProfile.urlPlaceholder')}
-                    placeholderTextColor={COLORS.gray400}
-                    autoCapitalize="none"
-                    keyboardType="url"
-                  />
-                ) : (
-                  <View style={styles.prefixInputRow}>
-                    {PLATFORM_PREFIXES[biolinkForm.platform] ? (
-                      <Text style={styles.prefixText} numberOfLines={1}>
-                        {PLATFORM_PREFIXES[biolinkForm.platform]}
-                      </Text>
-                    ) : null}
+                  <>
                     <TextInput
-                      style={styles.accountInput}
+                      style={styles.fieldInput}
                       value={biolinkForm.account}
-                      onChangeText={(v) => setBiolinkForm((prev) => ({ ...prev, account: v }))}
-                      placeholder={
-                        PLATFORM_PLACEHOLDER_KEYS[biolinkForm.platform]?.startsWith('editProfile.')
-                          ? t(PLATFORM_PLACEHOLDER_KEYS[biolinkForm.platform])
-                          : PLATFORM_PLACEHOLDER_KEYS[biolinkForm.platform] || ''
-                      }
+                      onChangeText={(v) => {
+                        setBiolinkForm((prev) => ({ ...prev, account: v }));
+                        // Auto-detect: if the user pasted a URL that
+                        // matches a known platform, hint at it. We
+                        // DON'T auto-switch the platform here (user
+                        // is on `custom` deliberately), just surface
+                        // the option below the input as a tap-to-
+                        // apply chip.
+                        const detected = detectPlatformFromUrl(v);
+                        setAutoDetectedPlatform(
+                          detected && detected !== 'custom' ? detected : null,
+                        );
+                      }}
+                      placeholder={t('editProfile.urlPlaceholder')}
                       placeholderTextColor={COLORS.gray400}
                       autoCapitalize="none"
                       keyboardType="url"
                     />
-                  </View>
+                    {autoDetectedPlatform ? (
+                      <TouchableOpacity
+                        style={styles.detectHint}
+                        onPress={() => {
+                          // Switching to the detected platform — strip
+                          // the prefix from the URL so the
+                          // bare-account input shows just the handle.
+                          const stripped = platformStripPrefix(
+                            biolinkForm.account,
+                            autoDetectedPlatform,
+                          );
+                          setBiolinkForm((prev) => ({
+                            ...prev,
+                            platform: autoDetectedPlatform,
+                            account: stripped,
+                          }));
+                          setAutoDetectedPlatform(null);
+                        }}
+                        activeOpacity={0.7}
+                      >
+                        <CheckCircle2 size={14} color={COLORS.piktag500} />
+                        <Text style={styles.detectHintText}>
+                          {t('editProfile.detectedAs', {
+                            platform: getPlatformLabel(autoDetectedPlatform, t),
+                            defaultValue: `Detected as ${getPlatformLabel(autoDetectedPlatform, t)}`,
+                          })}
+                        </Text>
+                      </TouchableOpacity>
+                    ) : null}
+                  </>
+                ) : (
+                  <>
+                    <View style={styles.prefixInputRow}>
+                      {PLATFORM_PREFIXES[biolinkForm.platform] ? (
+                        <Text style={styles.prefixText} numberOfLines={1}>
+                          {PLATFORM_PREFIXES[biolinkForm.platform]}
+                        </Text>
+                      ) : null}
+                      <TextInput
+                        style={styles.accountInput}
+                        value={biolinkForm.account}
+                        onChangeText={(v) => {
+                          setBiolinkForm((prev) => ({ ...prev, account: v }));
+                          // If the user pasted a FULL URL belonging
+                          // to a different platform than the current
+                          // chip, surface that as a tap-to-switch
+                          // hint. Same UX as the custom branch.
+                          const detected = detectPlatformFromUrl(v);
+                          setAutoDetectedPlatform(
+                            detected && detected !== biolinkForm.platform && detected !== 'custom'
+                              ? detected
+                              : null,
+                          );
+                        }}
+                        placeholder={
+                          PLATFORM_PLACEHOLDER_KEYS[biolinkForm.platform]?.startsWith('editProfile.')
+                            ? t(PLATFORM_PLACEHOLDER_KEYS[biolinkForm.platform])
+                            : PLATFORM_PLACEHOLDER_KEYS[biolinkForm.platform] || ''
+                        }
+                        placeholderTextColor={COLORS.gray400}
+                        autoCapitalize="none"
+                        keyboardType="url"
+                      />
+                    </View>
+                    {autoDetectedPlatform ? (
+                      <TouchableOpacity
+                        style={styles.detectHint}
+                        onPress={() => {
+                          const stripped = platformStripPrefix(
+                            biolinkForm.account,
+                            autoDetectedPlatform,
+                          );
+                          setBiolinkForm((prev) => ({
+                            ...prev,
+                            platform: autoDetectedPlatform,
+                            account: stripped,
+                          }));
+                          setAutoDetectedPlatform(null);
+                        }}
+                        activeOpacity={0.7}
+                      >
+                        <CheckCircle2 size={14} color={COLORS.piktag500} />
+                        <Text style={styles.detectHintText}>
+                          {t('editProfile.detectedAs', {
+                            platform: getPlatformLabel(autoDetectedPlatform, t),
+                            defaultValue: `Detected as ${getPlatformLabel(autoDetectedPlatform, t)}`,
+                          })}
+                        </Text>
+                      </TouchableOpacity>
+                    ) : null}
+                  </>
                 )}
               </View>
 
@@ -1807,6 +1908,30 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
         onClose={() => setCountryPickerOpen(false)}
         onSelect={(c) => setPhoneCountry(c)}
         selectedIso={phoneCountry.iso}
+      />
+
+      {/* Browse-all-platforms search modal. Same root-level mount so
+          it can overlay either the inline-add form or the bottom-
+          sheet edit modal — whichever path opened it. The target
+          state ('legacy' | 'modal') routes the picked key back to
+          the right form. */}
+      <PlatformSearchModal
+        visible={platformSearchVisible}
+        onClose={() => setPlatformSearchVisible(false)}
+        onSelect={(key) => {
+          if (platformSearchTarget === 'modal') {
+            // Picking from search inside the edit modal — set the
+            // platform and clear any auto-detect hint that was
+            // pointing at the OLD platform.
+            setBiolinkForm((prev) => ({ ...prev, platform: key }));
+            setAutoDetectedPlatform(null);
+          } else {
+            // Legacy inline-add path — set the selected platform
+            // and bring the user into the account form.
+            setSelectedPlatform(key);
+            setShowPlatformPicker(false);
+          }
+        }}
       />
     </View>
   );
@@ -2323,6 +2448,53 @@ const styles = StyleSheet.create({
     gap: 8,
     paddingVertical: 4,
     paddingRight: 4,
+  },
+  // 8 quick-pick chips wrapping to multiple rows + a "More…" chip
+  // anchored to the end. Wrap (vs scroll) keeps everything visible
+  // at once on a typical phone width — no horizontal swiping needed
+  // for the common case. Long tail goes through PlatformSearchModal.
+  platformQuickRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    paddingVertical: 4,
+  },
+  // "More…" / Browse-all chip — visually subdued (no border, gray
+  // text) so it doesn't compete with the real platform chips, but
+  // still tappable and clearly an action.
+  browseAllChip: {
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 20,
+    borderWidth: 1.5,
+    borderColor: COLORS.gray200,
+    backgroundColor: COLORS.gray100,
+  },
+  browseAllChipText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: COLORS.gray700,
+  },
+  // Auto-detect "Detected as X" hint below the URL field. Sits
+  // inside the same fieldGroup so it visually anchors to the input
+  // it describes. Tap = apply the detected platform + strip prefix.
+  detectHint: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: 6,
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRadius: 8,
+    backgroundColor: COLORS.piktag50,
+    borderWidth: 1,
+    borderColor: COLORS.piktag200,
+    alignSelf: 'flex-start',
+  },
+  detectHintText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: COLORS.piktag600,
   },
   platformChip: {
     flexDirection: 'row',

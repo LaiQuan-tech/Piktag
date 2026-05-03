@@ -403,7 +403,30 @@
     "selectCountry": "选择国家",
     "searchCountry": "搜索国家或国码",
     "invalidImageType": "不支持的图片格式，请使用 JPEG、PNG 或 WebP。",
-    "imageTooLarge": "图片过大，最大支持 2MB。"
+    "imageTooLarge": "图片过大，最大支持 2MB。",
+    "browseAllPlatformsCta": "更多…",
+    "browseAllPlatforms": "浏览所有平台",
+    "platformSearchPlaceholder": "搜索平台…",
+    "platformSearchEmpty": "找不到符合的平台",
+    "detectedAs": "检测为 {{platform}}",
+    "platform": {
+      "phone": "电话",
+      "email": "Email",
+      "website": "个人网站",
+      "blog": "博客",
+      "portfolio": "作品集",
+      "custom": "自定义链接"
+    },
+    "platformCategory": {
+      "communication": "通讯",
+      "social": "社交",
+      "video": "视频",
+      "music": "音乐",
+      "professional": "职业",
+      "writing": "写作出版",
+      "business": "商业支付",
+      "generic": "通用"
+    }
   },
   "friendDetail": {
     "reminderBirthday": "生日",

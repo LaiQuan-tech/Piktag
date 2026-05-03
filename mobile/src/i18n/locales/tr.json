@@ -395,7 +395,30 @@
     "selectCountry": "Ülke seç",
     "searchCountry": "Ülke veya kod ara",
     "invalidImageType": "Desteklenmeyen görüntü türü. Lütfen JPEG, PNG veya WebP kullanın.",
-    "imageTooLarge": "Görüntü çok büyük. Maksimum boyut 2 MB."
+    "imageTooLarge": "Görüntü çok büyük. Maksimum boyut 2 MB.",
+    "browseAllPlatformsCta": "Daha…",
+    "browseAllPlatforms": "Tüm platformlara göz at",
+    "platformSearchPlaceholder": "Platform ara…",
+    "platformSearchEmpty": "Sonuç bulunamadı",
+    "detectedAs": "{{platform}} olarak algılandı",
+    "platform": {
+      "phone": "Telefon",
+      "email": "E-posta",
+      "website": "Web sitesi",
+      "blog": "Blog",
+      "portfolio": "Portföy",
+      "custom": "Özel bağlantı"
+    },
+    "platformCategory": {
+      "communication": "İletişim",
+      "social": "Sosyal",
+      "video": "Video",
+      "music": "Müzik",
+      "professional": "Profesyonel",
+      "writing": "Yazı",
+      "business": "İş",
+      "generic": "Genel"
+    }
   },
   "friendDetail": {
     "reminderBirthday": "Doğum Günü",

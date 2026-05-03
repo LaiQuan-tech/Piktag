@@ -395,7 +395,30 @@
     "selectCountry": "เลือกประเทศ",
     "searchCountry": "ค้นหาประเทศหรือรหัส",
     "invalidImageType": "ไม่รองรับประเภทรูปภาพนี้ กรุณาใช้ JPEG, PNG หรือ WebP",
-    "imageTooLarge": "รูปภาพมีขนาดใหญ่เกินไป ขนาดสูงสุด 2MB"
+    "imageTooLarge": "รูปภาพมีขนาดใหญ่เกินไป ขนาดสูงสุด 2MB",
+    "browseAllPlatformsCta": "เพิ่มเติม…",
+    "browseAllPlatforms": "ดูแพลตฟอร์มทั้งหมด",
+    "platformSearchPlaceholder": "ค้นหาแพลตฟอร์ม…",
+    "platformSearchEmpty": "ไม่พบผลลัพธ์",
+    "detectedAs": "ตรวจพบเป็น {{platform}}",
+    "platform": {
+      "phone": "โทรศัพท์",
+      "email": "อีเมล",
+      "website": "เว็บไซต์",
+      "blog": "บล็อก",
+      "portfolio": "พอร์ตโฟลิโอ",
+      "custom": "ลิงก์กำหนดเอง"
+    },
+    "platformCategory": {
+      "communication": "การสื่อสาร",
+      "social": "โซเชียล",
+      "video": "วิดีโอ",
+      "music": "เพลง",
+      "professional": "อาชีพ",
+      "writing": "งานเขียน",
+      "business": "ธุรกิจ",
+      "generic": "ทั่วไป"
+    }
   },
   "friendDetail": {
     "reminderBirthday": "วันเกิด",
