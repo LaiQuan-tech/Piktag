@@ -15,7 +15,7 @@ import {
   Linking,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ArrowLeft, Plus, Pencil, Trash2, X, Hash, EyeOff, Eye, GripVertical, ChevronDown, Sparkles, CheckCircle2, RefreshCw } from 'lucide-react-native';
+import { ArrowLeft, Plus, Pencil, Trash2, X, Hash, EyeOff, Eye, GripVertical, ChevronDown, Sparkles, CheckCircle2, RefreshCw, Pin, AlertTriangle, ArrowLeftRight, ChevronUp } from 'lucide-react-native';
 import { logApiUsage } from '../lib/apiUsage';
 import RingedAvatar from '../components/RingedAvatar';
 import DraggableFlatList, { RenderItemParams, ScaleDecorator } from 'react-native-draggable-flatlist';
@@ -48,6 +48,18 @@ import {
   buildPlatformUrl as platformBuildUrl,
   getPlatformLabel,
 } from '../lib/platforms';
+
+// Tag-management constants — moved here so EditProfileScreen owns
+// the full tag editing surface (add / remove / drag / pin / cap).
+// Mirrors what ManageTagsScreen used; both pages should produce the
+// same constraints.
+const MAX_TAGS = 10;
+const MAX_TAG_LENGTH = 30;
+const MAX_PINNED = 1;
+
+// DraggableChips uses react-native-reanimated which crashes on web.
+// Same conditional require pattern as ManageTagsScreen used.
+const DraggableChips = Platform.OS !== 'web' ? require('../components/DraggableChips').default : null;
 
 // Map a saved (platform, url) pair back to a preset key. Tries the
 // stored platform string first, then falls back to URL-based
@@ -276,6 +288,13 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
   const [removingTagId, setRemovingTagId] = useState<string | null>(null);
   const [isTagPrivate, setIsTagPrivate] = useState(false);
   const [tagsLoading, setTagsLoading] = useState(false);
+  // Drag / pin state — ported from ManageTagsScreen so this screen
+  // is now the single home for tag editing.
+  const [isDragging, setIsDragging] = useState(false);
+  const [selectedTagId, setSelectedTagId] = useState<string | null>(null); // web tap-to-swap
+  // Collapse-by-default for the popular-tags section so it doesn't
+  // bloat the page; expand only when the user wants to browse.
+  const [showPopularTags, setShowPopularTags] = useState(false);
 
   // Inline AI tag suggestions — mirrors AskStoryRow's pattern: manual
   // ✨ button trigger (no auto-debounce / no auto-fire on screen mount)
@@ -1181,6 +1200,151 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
     setIsTagPrivate((prev) => !prev);
   }, []);
 
+  // ── Tag management (ported from ManageTagsScreen) ──────────────────
+  // EditProfile is now the single home for tag editing — chips here
+  // support drag-to-reorder, double-tap-to-pin, and tap-the-X to
+  // remove, in addition to the existing add-via-input + AI suggestions
+  // + popular-tags flows. Mirrors ManageTagsScreen handler shape so
+  // DraggableChips wiring works identically.
+
+  const pinnedCount = useMemo(
+    () => userTags.filter((t) => (t as any).is_pinned).length,
+    [userTags],
+  );
+
+  // Convert userTags → DraggableChips items shape.
+  const chipItems = useMemo(
+    () =>
+      userTags.map((ut) => {
+        const name = ut.tag?.name ?? '';
+        return {
+          id: ut.id,
+          label: name.startsWith('#') ? name : `#${name}`,
+          isPinned: (ut as any).is_pinned || false,
+        };
+      }),
+    [userTags],
+  );
+
+  // Toggle pin on a tag. Pinned tags float to the front; one tap to
+  // pin floats it, second tap unpins (keeps current position).
+  // Optimistic UI update + fire-and-forget DB sync.
+  const handleTogglePin = useCallback(
+    async (userTag: UserTag & { tag?: Tag }) => {
+      if (!userId) return;
+      const isPinned = (userTag as any).is_pinned || false;
+      // Cap reached and the user is trying to pin a different tag —
+      // silently ignore (button is also visually subdued in this
+      // state via the chipPinned guard inside DraggableChips).
+      if (!isPinned && pinnedCount >= MAX_PINNED) return;
+      const newPinned = !isPinned;
+
+      let newOrder: typeof userTags = [];
+      setUserTags((prev) => {
+        const updated = prev.map((t) =>
+          t.id === userTag.id ? ({ ...t, is_pinned: newPinned } as any) : t,
+        );
+        if (newPinned) {
+          const tag = updated.find((t) => t.id === userTag.id)!;
+          const rest = updated.filter((t) => t.id !== userTag.id);
+          newOrder = [tag, ...rest];
+        } else {
+          newOrder = updated;
+        }
+        return newOrder;
+      });
+
+      // Persist: pin flag + new positions. Errors fall through to a
+      // refetch so the UI matches DB state on next focus.
+      try {
+        await supabase
+          .from('piktag_user_tags')
+          .update({ is_pinned: newPinned })
+          .eq('id', userTag.id);
+        await Promise.all(
+          newOrder.map((t, i) =>
+            supabase.from('piktag_user_tags').update({ position: i }).eq('id', t.id),
+          ),
+        );
+      } catch {
+        await fetchUserTags();
+      }
+    },
+    [userId, pinnedCount, fetchUserTags],
+  );
+
+  // Drag-to-reorder finished — persist new positions.
+  const handleChipReorder = useCallback(
+    async (newItems: { id: string; label: string; isPinned?: boolean }[]) => {
+      const idOrder = newItems.map((i) => i.id);
+      const reordered = idOrder
+        .map((id) => userTags.find((t) => t.id === id))
+        .filter(Boolean) as typeof userTags;
+      setUserTags(reordered);
+      try {
+        await Promise.all(
+          reordered.map((tag, i) =>
+            supabase.from('piktag_user_tags').update({ position: i }).eq('id', tag.id),
+          ),
+        );
+      } catch {
+        await fetchUserTags();
+      }
+    },
+    [userTags, fetchUserTags],
+  );
+
+  const handleChipDoubleTap = useCallback(
+    (chipItem: { id: string }) => {
+      const ut = userTags.find((t) => t.id === chipItem.id);
+      if (ut) handleTogglePin(ut);
+    },
+    [userTags, handleTogglePin],
+  );
+
+  const handleChipRemove = useCallback(
+    (chipItem: { id: string }) => {
+      const ut = userTags.find((t) => t.id === chipItem.id);
+      if (ut) handleRemoveTag(ut);
+    },
+    [userTags, handleRemoveTag],
+  );
+
+  // Web tap-to-swap (no native drag handler on web). Two-tap pattern:
+  // first tap selects, second tap on a different chip swaps positions.
+  const handleTagTap = useCallback(
+    async (tappedTag: UserTag & { tag?: Tag }) => {
+      if (!selectedTagId) {
+        setSelectedTagId(tappedTag.id);
+        return;
+      }
+      if (selectedTagId === tappedTag.id) {
+        setSelectedTagId(null);
+        return;
+      }
+      const fromIdx = userTags.findIndex((t) => t.id === selectedTagId);
+      const toIdx = userTags.findIndex((t) => t.id === tappedTag.id);
+      if (fromIdx === -1 || toIdx === -1) {
+        setSelectedTagId(null);
+        return;
+      }
+      const updated = [...userTags];
+      [updated[fromIdx], updated[toIdx]] = [updated[toIdx], updated[fromIdx]];
+      setUserTags(updated);
+      setSelectedTagId(null);
+      try {
+        await Promise.all(
+          updated.map((tag, i) =>
+            supabase.from('piktag_user_tags').update({ position: i }).eq('id', tag.id),
+          ),
+        );
+      } catch {
+        await fetchUserTags();
+      }
+    },
+    [selectedTagId, userTags, fetchUserTags],
+  );
+
   if (loading) {
     return (
       <View style={[styles.container, { backgroundColor: colors.background }]}>
@@ -1318,20 +1482,158 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
 
           </View>
 
-          {/* Tags Section — navigate to ManageTagsScreen */}
+          {/* Tags Section — full editing surface, no longer routes
+              to a separate ManageTagsScreen. Reported case: deleting
+              tags in 標籤管理 then returning here didn't sync until
+              Save was tapped (the focus listener swallowed the
+              refetch on quick round-trips, since fixed in 9e1c59b).
+              The deeper issue: splitting "edit profile" and "manage
+              tags" across two pages forced the user to context-switch
+              between bio editing and tag editing, which feels like
+              two unrelated features. Merged them. */}
           <View style={styles.tag_divider} />
 
           <View style={styles.tag_section}>
-            <Text style={styles.sectionTitle}>{t('manageTags.myTagsTitle')}</Text>
-            {userTags.length > 0 && (
-              <View style={styles.tag_chipsContainer}>
-                {userTags.map((userTag) => (
-                  <View key={userTag.id} style={styles.tag_previewChip}>
-                    <Text style={styles.tag_previewChipText}>
-                      {getTagDisplayName(userTag)}
-                    </Text>
+            <View style={styles.tag_sectionHeader}>
+              <Text style={styles.sectionTitle}>{t('manageTags.myTagsTitle')}</Text>
+              <View style={styles.tag_countRow}>
+                <View style={styles.tag_countItem}>
+                  <Text
+                    style={[
+                      styles.tag_countText,
+                      userTags.length >= MAX_TAGS && styles.tag_countTextLimit,
+                    ]}
+                  >
+                    {t('manageTags.tagCount', { count: userTags.length, max: MAX_TAGS })}
+                  </Text>
+                  {userTags.length >= MAX_TAGS && (
+                    <AlertTriangle size={13} color={COLORS.red500} />
+                  )}
+                </View>
+                {userTags.length > 0 && (
+                  <View style={styles.tag_countItem}>
+                    <Pin size={11} color={COLORS.gray400} />
+                    <Text style={styles.tag_countText}>{pinnedCount}/{MAX_PINNED}</Text>
                   </View>
-                ))}
+                )}
+              </View>
+            </View>
+
+            {/* Hint text — only shown for native (DraggableChips
+                supports the gestures). Web tap-to-swap has its own
+                inline hint when a chip is selected. */}
+            {userTags.length > 1 && Platform.OS !== 'web' && (
+              <Text style={styles.tag_sortHint}>
+                {t('manageTags.nativeHint') || '長按拖曳排序 · 雙擊置頂'}
+              </Text>
+            )}
+
+            {/* My tags — native: draggable chips / web: tap-to-swap */}
+            {userTags.length > 0 ? (
+              Platform.OS !== 'web' && DraggableChips ? (
+                <DraggableChips
+                  items={chipItems}
+                  onReorder={handleChipReorder}
+                  onRemove={handleChipRemove}
+                  onDoubleTap={handleChipDoubleTap}
+                  onDragStateChange={setIsDragging}
+                />
+              ) : (
+                <>
+                  {selectedTagId && (
+                    <View style={styles.tag_swapHintBar}>
+                      <ArrowLeftRight size={14} color={COLORS.piktag600} />
+                      <Text style={styles.tag_swapHintText}>
+                        {t('manageTags.dragSelectTarget') || '點選要交換位置的標籤'}
+                      </Text>
+                      <Pressable onPress={() => setSelectedTagId(null)}>
+                        <Text style={styles.tag_swapCancel}>
+                          {t('common.cancel') || '取消'}
+                        </Text>
+                      </Pressable>
+                    </View>
+                  )}
+                  <View style={styles.tag_chipsContainer}>
+                    {userTags.map((ut) => {
+                      const isPinned = (ut as any).is_pinned;
+                      const isSelected = ut.id === selectedTagId;
+                      const dn = getTagDisplayName(ut);
+                      return (
+                        <Pressable
+                          key={ut.id}
+                          style={[
+                            styles.tag_webChip,
+                            isPinned && styles.tag_webChipPinned,
+                            isSelected && styles.tag_webChipSelected,
+                          ]}
+                          onPress={() => handleTagTap(ut)}
+                          onLongPress={() => handleTogglePin(ut)}
+                        >
+                          {isPinned && (
+                            <Pin size={11} color={COLORS.piktag600} fill={COLORS.piktag600} />
+                          )}
+                          <Text
+                            style={[
+                              styles.tag_webChipText,
+                              isPinned && styles.tag_webChipTextPinned,
+                            ]}
+                          >
+                            {dn}
+                          </Text>
+                          <Pressable
+                            onPress={() => handleRemoveTag(ut)}
+                            style={styles.tag_webChipX}
+                          >
+                            <X size={14} color={COLORS.gray400} />
+                          </Pressable>
+                        </Pressable>
+                      );
+                    })}
+                  </View>
+                </>
+              )
+            ) : (
+              <Text style={styles.tag_emptyText}>
+                {t('manageTags.noTagsYet') || '還沒有標籤'}
+              </Text>
+            )}
+
+            {/* Inline add — was the bottom-anchored input on
+                ManageTagsScreen, now part of this section so users
+                stay on a single page. # icon prefix + textinput +
+                circular plus button. */}
+            {userTags.length < MAX_TAGS && (
+              <View style={styles.tag_addRow}>
+                <Hash size={18} color={COLORS.gray400} />
+                <TextInput
+                  style={styles.tag_addInput}
+                  placeholder={t('manageTags.tagInputPlaceholder') || '+ 新增標籤'}
+                  placeholderTextColor={COLORS.gray400}
+                  value={tagInput}
+                  onChangeText={(v) => v.length <= MAX_TAG_LENGTH && setTagInput(v)}
+                  returnKeyType="done"
+                  onSubmitEditing={() => handleAddTag()}
+                  editable={!addingTag}
+                  maxLength={MAX_TAG_LENGTH}
+                />
+                <Text style={styles.tag_charCount}>
+                  {tagInput.length}/{MAX_TAG_LENGTH}
+                </Text>
+                <Pressable
+                  style={[
+                    styles.tag_addBtn,
+                    (!tagInput.trim() || addingTag) && styles.tag_addBtnDisabled,
+                  ]}
+                  onPress={() => handleAddTag()}
+                  accessibilityRole="button"
+                  accessibilityLabel={t('manageTags.addButton') || '新增'}
+                >
+                  {addingTag ? (
+                    <BrandSpinner size={20} />
+                  ) : (
+                    <Plus size={20} color="#FFFFFF" strokeWidth={2.5} />
+                  )}
+                </Pressable>
               </View>
             )}
 
@@ -1432,19 +1734,50 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
               </View>
             )}
 
-            <TouchableOpacity
-              onPress={() => navigation.navigate('ManageTags')}
-              activeOpacity={0.7}
-            >
-              <LinearGradient
-                colors={['#ff5757', '#c44dff', '#8c52ff']}
-                start={{ x: 0, y: 0.5 }}
-                end={{ x: 1, y: 0.5 }}
-                style={styles.tag_manageButton}
-              >
-                <Text style={styles.tag_manageButtonText}>{t('manageTags.headerTitle')}</Text>
-              </LinearGradient>
-            </TouchableOpacity>
+            {/* Popular tags — collapsible. Default collapsed so the
+                section doesn't bloat the page; users who want to
+                browse tap to expand. Replaces the gradient
+                「管理全部標籤」CTA that used to navigate to a
+                separate ManageTagsScreen. */}
+            {userTags.length < MAX_TAGS && popularTags.length > 0 && (
+              <View style={styles.tag_popularSection}>
+                <Pressable
+                  style={styles.tag_popularToggle}
+                  onPress={() => setShowPopularTags((v) => !v)}
+                  accessibilityRole="button"
+                >
+                  <Text style={styles.tag_popularToggleText}>
+                    {t('manageTags.popularTagsTitle') || '熱門標籤'}
+                  </Text>
+                  {showPopularTags ? (
+                    <ChevronUp size={16} color={COLORS.gray500} />
+                  ) : (
+                    <ChevronDown size={16} color={COLORS.gray500} />
+                  )}
+                </Pressable>
+                {showPopularTags && (
+                  <View style={styles.tag_popularChipsWrap}>
+                    {popularTags
+                      .filter((tag) => {
+                        const dn = tag.name.startsWith('#') ? tag.name : `#${tag.name}`;
+                        return !userTagNames.includes(dn);
+                      })
+                      .map((tag) => {
+                        const dn = tag.name.startsWith('#') ? tag.name : `#${tag.name}`;
+                        return (
+                          <Pressable
+                            key={tag.id}
+                            style={styles.tag_popularChip}
+                            onPress={() => handleAddPopularTag(tag)}
+                          >
+                            <Text style={styles.tag_popularChipText}>{dn}</Text>
+                          </Pressable>
+                        );
+                      })}
+                  </View>
+                )}
+              </View>
+            )}
           </View>
 
           {/* Biolinks Section */}
@@ -2407,6 +2740,179 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '700',
     color: '#FFFFFF',
+  },
+  // ── Merged-from-ManageTags styles ─────────────────────────────────
+  // Section header row: title on the left, count surfaces (N/10 +
+  // pin K/1) on the right. Replaces the read-only single-text
+  // header that EditProfile used before merging in the full tag
+  // editor.
+  tag_sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+  },
+  tag_countRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  tag_countItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  tag_countText: {
+    fontSize: 13,
+    color: COLORS.gray500,
+  },
+  tag_countTextLimit: {
+    color: COLORS.red500,
+    fontWeight: '600',
+  },
+  tag_sortHint: {
+    fontSize: 12,
+    color: COLORS.gray400,
+    marginBottom: 8,
+  },
+  // Web tap-to-swap helper bar (no native drag handler on web).
+  tag_swapHintBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    backgroundColor: COLORS.piktag50,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: COLORS.piktag500,
+  },
+  tag_swapHintText: {
+    flex: 1,
+    fontSize: 13,
+    color: COLORS.piktag600,
+  },
+  tag_swapCancel: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: COLORS.gray500,
+  },
+  // Web chip — full editing affordance (X to remove + tap-to-swap).
+  // Native uses DraggableChips component instead; this is the web
+  // fallback. Same selected-purple visual contract as the rest of
+  // the app's chip pickers.
+  tag_webChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    backgroundColor: COLORS.piktag50,
+    borderRadius: 20,
+    paddingVertical: 8,
+    paddingLeft: 14,
+    paddingRight: 6,
+    borderWidth: 1.5,
+    borderColor: COLORS.piktag500,
+  },
+  tag_webChipPinned: {
+    backgroundColor: '#FFFBEB',
+    borderColor: COLORS.piktag400,
+  },
+  tag_webChipSelected: {
+    borderColor: COLORS.piktag600,
+    borderWidth: 2,
+  },
+  tag_webChipText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: COLORS.piktag600,
+  },
+  tag_webChipTextPinned: {
+    fontWeight: '700',
+    color: COLORS.piktag600,
+  },
+  tag_webChipX: {
+    padding: 4,
+  },
+  tag_emptyText: {
+    fontSize: 14,
+    color: COLORS.gray400,
+    paddingVertical: 8,
+  },
+  // Inline add row — no longer bottom-anchored. Lives directly
+  // below the chip list in the Tags section. Same Hash + input +
+  // plus-button pattern ManageTagsScreen used.
+  tag_addRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginTop: 12,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderWidth: 1,
+    borderColor: COLORS.gray200,
+    borderRadius: 12,
+    backgroundColor: COLORS.white,
+  },
+  tag_addInput: {
+    flex: 1,
+    fontSize: 15,
+    color: COLORS.gray900,
+    paddingVertical: Platform.OS === 'ios' ? 8 : 4,
+  },
+  tag_charCount: {
+    fontSize: 11,
+    color: COLORS.gray400,
+    minWidth: 32,
+    textAlign: 'right',
+  },
+  tag_addBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: COLORS.piktag500,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  tag_addBtnDisabled: {
+    backgroundColor: COLORS.gray300,
+  },
+  // Collapsible "popular tags" group. Default collapsed so the
+  // section doesn't bloat the page; users tap the toggle to browse.
+  tag_popularSection: {
+    marginTop: 16,
+  },
+  tag_popularToggle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 8,
+  },
+  tag_popularToggleText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: COLORS.gray700,
+  },
+  tag_popularChipsWrap: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginTop: 6,
+  },
+  // Popular tag chip — gray "tap to add" treatment, identical to
+  // the AI suggestion chips below.
+  tag_popularChip: {
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    borderRadius: 9999,
+    borderWidth: 1.5,
+    borderColor: 'transparent',
+    backgroundColor: COLORS.gray100,
+  },
+  tag_popularChipText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: COLORS.gray700,
   },
   // Inline AI tag suggestion styles.
   //
