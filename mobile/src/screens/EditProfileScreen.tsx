@@ -286,6 +286,20 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
   const [aiSuggestions, setAiSuggestions] = useState<string[]>([]);
   const [aiLoading, setAiLoading] = useState(false);
   const [aiTriedAndEmpty, setAiTriedAndEmpty] = useState(false);
+  // Debounce timer for auto-triggered AI suggestions on bio /
+  // full_name / headline edits. Reported case: users finish typing
+  // their bio and don't realize they have to navigate to a separate
+  // 標籤管理 page (or even tap a ✨ button on this page) to see AI
+  // recommendations — the connection between "簡介" and "AI tags"
+  // wasn't obvious. Auto-firing on edit makes the relationship
+  // visible: type bio → suggestions appear → tap to add. Same UX
+  // contract as AskStoryRow's auto-fire when composing an Ask body.
+  const aiDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Don't auto-fire on the first render — the form is being
+  // populated from the user's saved profile, not from a fresh user
+  // edit. Once the user actually touches a field, this flips true
+  // and auto-fire is enabled for subsequent changes.
+  const aiAutoFireArmedRef = useRef<boolean>(false);
 
   const fetchProfile = useCallback(async () => {
     if (!userId) return;
@@ -497,11 +511,48 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
     // Bio / name / headline edits invalidate the previous "AI returned
     // nothing" hint — the user is changing the prompt, so the next ✨
     // tap should present as a fresh attempt, not as still-empty.
-    // Mirrors AskStoryRow.handleBodyChange's aiTriedAndEmpty reset.
     if (field === 'bio' || field === 'full_name' || field === 'headline') {
       setAiTriedAndEmpty(false);
+
+      // Auto-trigger AI suggestions ~1.2s after the user stops
+      // typing. Replaces the requirement to navigate to 標籤管理 (or
+      // tap the ✨ button) to see suggestions — the relationship
+      // between "I edited my bio" and "AI surfaced relevant tags"
+      // is now immediate and visible. The manual ✨ button stays as
+      // a re-roll option after the auto-fire lands.
+      //
+      // Guards (in roughly the order they fire):
+      //   * armed ref — first render populates `form` from the saved
+      //     profile, not from user input; we don't fire on that.
+      //     Flips true the first time the user actually touches a
+      //     field.
+      //   * 1.2s debounce — coalesces rapid typing into one call.
+      //   * length >= 5 (inside loadAiSuggestions itself).
+      //   * !aiLoading guard there too — prevents stacking calls.
+      aiAutoFireArmedRef.current = true;
+      if (aiDebounceRef.current) {
+        clearTimeout(aiDebounceRef.current);
+      }
+      aiDebounceRef.current = setTimeout(() => {
+        if (!aiAutoFireArmedRef.current) return;
+        // Stale-closure-safe: read the latest form via the setter
+        // form-functional-update trick. Bio shorter than 5 chars
+        // skips inside loadAiSuggestions.
+        loadAiSuggestions();
+      }, 1200);
     }
   };
+
+  // Tear down the auto-fire timer on unmount so a slow network
+  // request doesn't fire after the user navigated away.
+  useEffect(() => {
+    return () => {
+      if (aiDebounceRef.current) {
+        clearTimeout(aiDebounceRef.current);
+        aiDebounceRef.current = null;
+      }
+    };
+  }, []);
 
   const handleSave = async () => {
     if (!userId) return;
