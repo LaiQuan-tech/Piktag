@@ -278,12 +278,35 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
       title: t('settings.groupAccount'),
       items: [
         { label: t('settings.changePassword') || '修改密碼', onPress: () => {
+          // Detect whether this user has an email-flavoured identity at
+          // all. Apple / Google Sign-In accounts that have NEVER set a
+          // Supabase password show up here without an 'email' identity
+          // (only 'apple' / 'google'). For them, this flow won't
+          // "change" anything — it'll ADD a first-time password and
+          // turn the account into a dual-mode login. The copy adjusts
+          // to set that expectation up front.
+          const identities = (user as any)?.identities;
+          const hasEmailIdentity = Array.isArray(identities)
+            ? identities.some((i: any) => i?.provider === 'email')
+            : true; // unknown shape → fall back to the original copy
+
+          const title = hasEmailIdentity
+            ? (t('settings.changePasswordTitle') || '修改密碼')
+            : (t('settings.addPasswordTitle') || '新增密碼');
+          const message = hasEmailIdentity
+            ? (t('settings.changePasswordMessage') || '我們會發送密碼重設信到你的 Email')
+            : (t('settings.addPasswordMessage') ||
+                '你目前用 Apple/Google 登入，沒有 PikTag 密碼。送出後會寄一封信到你的 Email，幫你新增一組密碼，之後也能用 Email + 密碼登入（Apple/Google 登入仍然有效）');
+          const cta = hasEmailIdentity
+            ? (t('settings.sendResetEmail') || '發送')
+            : (t('settings.sendAddPasswordEmail') || '發送設定信');
+
           Alert.alert(
-            t('settings.changePasswordTitle') || '修改密碼',
-            t('settings.changePasswordMessage') || '我們會發送密碼重設信到你的 Email',
+            title,
+            message,
             [
               { text: t('common.cancel'), style: 'cancel' },
-              { text: t('settings.sendResetEmail') || '發送', onPress: async () => {
+              { text: cta, onPress: async () => {
                 const { error } = await supabase.auth.resetPasswordForEmail(user?.email || '', {
                   redirectTo: 'https://pikt.ag/reset-password',
                 });
