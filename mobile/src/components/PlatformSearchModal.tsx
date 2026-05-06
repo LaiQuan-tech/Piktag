@@ -12,7 +12,6 @@
 
 import React, { useMemo, useState, useEffect } from 'react';
 import {
-  Modal,
   View,
   Text,
   TextInput,
@@ -80,19 +79,20 @@ export default function PlatformSearchModal({ visible, onClose, onSelect }: Prop
     })).filter((s) => s.data.length > 0);
   }, [query, t]);
 
+  // Conditional render — no <Modal> wrapper at all.
+  // Why: when this component lives inside another <Modal> (the
+  // biolink edit sheet), an inner <Modal> on iOS hits the native
+  // presentationController stacking limit and silently fails to
+  // animate in. Even with `transparent` it doesn't reliably show.
+  // Solution: render an absolute-positioned overlay directly. The
+  // parent <Modal> already establishes the native modal context;
+  // this overlay just sits on top of the parent's content within
+  // that same context. Works on both iOS and Android, no stacking
+  // gymnastics.
+  if (!visible) return null;
+
   return (
-    <Modal
-      visible={visible}
-      animationType="slide"
-      // transparent + no presentationStyle so this modal layers ON TOP
-      // of any already-presented Modal (the biolink edit sheet). iOS
-      // disallows stacking native presentationStyle modals — the
-      // second one renders behind / never animates in. By going
-      // transparent we sidestep the stacking restriction and our own
-      // styled container provides the sheet look.
-      transparent
-      onRequestClose={onClose}
-    >
+    <View style={StyleSheet.absoluteFill}>
       {/* Backdrop dim — also catches taps to dismiss when the user
           taps outside the sheet. */}
       <TouchableOpacity
@@ -167,7 +167,7 @@ export default function PlatformSearchModal({ visible, onClose, onSelect }: Prop
           }
         />
       </View>
-    </Modal>
+    </View>
   );
 }
 

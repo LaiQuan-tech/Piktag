@@ -1962,6 +1962,29 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
           </TouchableOpacity>
         </TouchableOpacity>
         </KeyboardAvoidingView>
+
+        {/* PlatformSearchModal mounted INSIDE this Modal's view tree.
+            Why: rendering a second native <Modal> as a sibling of the
+            root <Modal> on iOS hits a known stacking limit — the
+            second presentation controller silently fails when the
+            first is already on screen. The user's reported bug
+            ("更多 按了沒反應") was exactly this. PlatformSearchModal
+            no longer wraps in its own <Modal>, just an absolute-
+            positioned overlay; mounting it here makes it part of the
+            biolink-edit Modal's view hierarchy so it layers cleanly
+            on top via z-stacking, no native presentation involved.
+            Gated on platformSearchTarget so the legacy inline-add
+            path uses the root-level instance below instead. */}
+        {platformSearchTarget === 'modal' && (
+          <PlatformSearchModal
+            visible={platformSearchVisible}
+            onClose={() => setPlatformSearchVisible(false)}
+            onSelect={(key) => {
+              setBiolinkForm((prev) => ({ ...prev, platform: key }));
+              setAutoDetectedPlatform(null);
+            }}
+          />
+        )}
       </Modal>
 
       {/* Country-code picker — rendered at the root so it overlays
@@ -1973,29 +1996,22 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
         selectedIso={phoneCountry.iso}
       />
 
-      {/* Browse-all-platforms search modal. Same root-level mount so
-          it can overlay either the inline-add form or the bottom-
-          sheet edit modal — whichever path opened it. The target
-          state ('legacy' | 'modal') routes the picked key back to
-          the right form. */}
-      <PlatformSearchModal
-        visible={platformSearchVisible}
-        onClose={() => setPlatformSearchVisible(false)}
-        onSelect={(key) => {
-          if (platformSearchTarget === 'modal') {
-            // Picking from search inside the edit modal — set the
-            // platform and clear any auto-detect hint that was
-            // pointing at the OLD platform.
-            setBiolinkForm((prev) => ({ ...prev, platform: key }));
-            setAutoDetectedPlatform(null);
-          } else {
-            // Legacy inline-add path — set the selected platform
-            // and bring the user into the account form.
+      {/* Browse-all search for the LEGACY inline-add path only — the
+          biolink-edit-modal path uses the dedicated instance mounted
+          INSIDE that Modal's view tree (above) so iOS doesn't choke
+          on stacking two native modals. When the user is on the
+          legacy add form there's no parent Modal in the way and
+          mounting at root works fine. */}
+      {platformSearchTarget === 'legacy' && (
+        <PlatformSearchModal
+          visible={platformSearchVisible}
+          onClose={() => setPlatformSearchVisible(false)}
+          onSelect={(key) => {
             setSelectedPlatform(key);
             setShowPlatformPicker(false);
-          }
-        }}
-      />
+          }}
+        />
+      )}
     </View>
   );
 }
