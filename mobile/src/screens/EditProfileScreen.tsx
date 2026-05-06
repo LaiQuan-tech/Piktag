@@ -1399,7 +1399,12 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
                         {link.label || link.platform}
                       </Text>
                       <Text style={styles.biolinkUrl} numberOfLines={1}>
-                        {link.url}
+                        {/* Strip the platform's URL scheme prefix
+                            (`tel:`, `mailto:`, `https://`, etc.) for
+                            display only — the stored value keeps the
+                            scheme so taps on the public profile still
+                            dial / open the mail client. */}
+                        {platformStripPrefix(link.url, detectPlatformFromUrl(link.url) ?? link.platform)}
                       </Text>
                     </View>
                     <View style={styles.biolinkActions}>
