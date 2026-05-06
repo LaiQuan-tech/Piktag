@@ -627,14 +627,17 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
     }
 
     const iconUrl = getIconUrl(effectiveUrl);
-    // Default the display label to the platform's pretty name when the user
-    // didn't type one — keeps the list view from showing the lowercase key.
-    const fallbackLabel =
+    // The display name field was removed from the modal — always
+    // derive the label from the platform on save. Previous behaviour
+    // ("user-typed label OR fallback") let stale labels survive a
+    // platform switch, producing the reported "Instagram URL with
+    // title LINE" bug. Now the label is fully a function of the
+    // platform key, computed at save time.
+    const effectiveLabel =
       PLATFORM_LABELS_STATIC[platformKey] ||
       (platformKey === 'website'
         ? t('editProfile.personalWebsite')
         : t('editProfile.customLink'));
-    const effectiveLabel = biolinkForm.label.trim() || fallbackLabel;
 
     setSavingBiolink(true);
     try {
@@ -1563,7 +1566,21 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
                           : `${prefix}${newLinkAccount.trim()}`;
                       }
                       if (!fullUrl) return;
-                      const label = selectedPlatform === 'custom' ? newLinkLabel : (PLATFORM_LABELS_STATIC[selectedPlatform] || t(`editProfile.${selectedPlatform === 'website' ? 'personalWebsite' : 'customLink'}`));
+                      // Custom can still have a user-typed label (the
+                      // legacy form's only text input for naming) —
+                      // the open-text URL has no platform brand name
+                      // to derive from. Everything else: derive from
+                      // platform, ignore any state. Mirrors the edit
+                      // modal's "no display name field, derive on
+                      // save" rule so both flows produce consistent
+                      // labels.
+                      const platformDerivedLabel =
+                        PLATFORM_LABELS_STATIC[selectedPlatform] ||
+                        t(`editProfile.${selectedPlatform === 'website' ? 'personalWebsite' : 'customLink'}`);
+                      const label =
+                        selectedPlatform === 'custom'
+                          ? (newLinkLabel.trim() || platformDerivedLabel)
+                          : platformDerivedLabel;
                       const { data, error } = await supabase.from('piktag_biolinks').insert({
                         user_id: userId,
                         platform: selectedPlatform,
@@ -1846,25 +1863,21 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
                 )}
               </View>
 
-              <View style={styles.fieldGroup}>
-                <Text style={styles.fieldLabel}>{t('editProfile.displayNameLabel')}</Text>
-                <TextInput
-                  style={styles.fieldInput}
-                  value={biolinkForm.label}
-                  onChangeText={(v) =>
-                    setBiolinkForm((prev) => ({ ...prev, label: v }))
-                  }
-                  placeholder={
-                    PLATFORM_LABELS_STATIC[biolinkForm.platform] ||
-                    t(
-                      biolinkForm.platform === 'website'
-                        ? 'editProfile.personalWebsite'
-                        : 'editProfile.customLink'
-                    )
-                  }
-                  placeholderTextColor={COLORS.gray400}
-                />
-              </View>
+              {/* 顯示名稱 field removed.
+                  Reported case: user added a LINE biolink (label
+                  defaulted to "LINE"), then edited that row, switched
+                  the platform chip to Instagram — but the label field
+                  stayed "LINE" because we never re-synced it. The
+                  list view then showed an Instagram URL with the title
+                  "LINE", which was the visible bug.
+                  Fix: stop letting users edit the display label
+                  altogether. The label is now derived from the
+                  platform on save (see handleSaveBiolink → fallback
+                  always wins because biolinkForm.label is unset). The
+                  field had ~zero legitimate use cases — IG / X / LinkedIn
+                  /etc all want the platform name as the title; the rare
+                  "two IG accounts, label them differently" case can be
+                  handled by the URL itself differentiating the cards. */}
               {/* Display Mode Toggle */}
               <View style={styles.fieldGroup}>
                 <Text style={styles.fieldLabel}>{t('editProfile.displayModeLabel') || '顯示方式'}</Text>
