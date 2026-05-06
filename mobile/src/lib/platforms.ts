@@ -141,7 +141,15 @@ export const QUICK_PICK_KEYS = [
   'website',
 ] as const;
 
+// Generic ('個人網站 / 部落格 / 作品集 / 自訂連結') leads the search-
+// modal section list because they cover ~60% of "I just want to add
+// my homepage" cases — burying them under 6 brand categories made
+// users scroll past everything to reach the most common option.
+// Communication ranks second since contact methods (Phone, Email,
+// LINE, WhatsApp) are the second-most-direct social signal, then the
+// brand categories follow.
 export const CATEGORIES: PlatformCategory[] = [
+  'generic',
   'communication',
   'social',
   'video',
@@ -149,7 +157,6 @@ export const CATEGORIES: PlatformCategory[] = [
   'professional',
   'writing',
   'business',
-  'generic',
 ];
 
 /**
