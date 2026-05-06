@@ -27,14 +27,20 @@ const SUPABASE_ANON_KEY = (import.meta.env.VITE_SUPABASE_ANON_KEY as string | un
 
 export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
   auth: {
-    // Recovery links land at /reset-password with `?…` query OR a
-    // `#access_token=…&type=recovery` hash, depending on Supabase's
-    // flow. Letting supabase-js parse the URL automatically converts
-    // either into a real session that updateUser() can act on.
+    // Implicit flow (the supabase-js v2 default). MUST NOT be 'pkce'
+    // here: PKCE requires a `code_verifier` that supabase-js stores in
+    // browser localStorage at the moment the auth flow is initiated —
+    // and password resets are initiated on the mobile app, not on this
+    // web page. Setting flowType: 'pkce' caused supabase-js to ignore
+    // the implicit-flow `#access_token=…` hash that the recovery email
+    // actually delivers, and instead look for a `?code=` it could
+    // exchange. The exchange always failed because the verifier lived
+    // on the user's phone, not their browser. Default (implicit) is
+    // correct here — the recovery email's hash carries everything
+    // needed to set a session and call updateUser({ password }).
     detectSessionInUrl: true,
     persistSession: true,
     autoRefreshToken: true,
-    flowType: 'pkce',
   },
 });
 
