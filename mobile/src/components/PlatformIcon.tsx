@@ -7,6 +7,7 @@ import {
   Camera, Hash, Calendar, DollarSign, Heart, Coffee, BookOpen,
   Briefcase, Palette, AtSign, MessageCircle,
 } from 'lucide-react-native';
+import { BRAND_PATHS } from './brandPaths';
 
 // Unified monochrome icon color
 const ICON_COLOR = '#374151'; // gray700
@@ -92,6 +93,21 @@ const LUCIDE_MAP: Record<string, any> = {
 
 export default function PlatformIcon({ platform, size = 24, color = ICON_COLOR, iconUrl }: Props) {
   const key = platform?.toLowerCase();
+
+  // ── Brand SVG path (from simple-icons, CC0-licensed) ──
+  // 42 platforms covered via auto-extracted path data; the brand
+  // glyphs render in monochrome with our gray700 fill so they sit
+  // visually with the rest of the UI rather than blasting brand
+  // colors. Checked BEFORE the legacy custom-svg branches below so
+  // the simple-icons authoritative shapes win when both exist.
+  const brandPath = key ? BRAND_PATHS[key] : undefined;
+  if (brandPath) {
+    return (
+      <Svg width={size} height={size} viewBox="0 0 24 24" fill={color}>
+        <Path d={brandPath} />
+      </Svg>
+    );
+  }
 
   // ── SVG custom icons (major platforms) ──
 
