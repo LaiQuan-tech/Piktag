@@ -3,46 +3,25 @@
 
 // ── Light palette ──────────────────────────────────────────────────────
 const LIGHT = {
-  // Brand — anchored on:
-  //   piktag500 = #8D5D9E (法國丁香 / French Lilac) — PRIMARY CTAs,
-  //               white text passes WCAG AA (~5:1 contrast).
-  //   piktag300 = #A47CB2 (非洲紫羅蘭 / African Violet) — SECONDARY
-  //               accent for chip borders, hover states, gradient
-  //               midpoints. White text fails AA on this one (~3.5:1)
-  //               so don't use as a primary fill.
-  // The rest of the scale is hue-locked around 285-287° with
-  // lightness ramping from very pale (50) to near-black (900). Per
-  // spec the brand pivots from neon violet (#aa00ff) to a mauve /
-  // boutique tone — sophisticated, less "tech-bro", aligns with the
-  // Vibe & Tribe positioning.
-  piktag50: '#F4EBF7',
-  piktag100: '#E0CCE8',
-  piktag200: '#C9A7D6',
-  piktag300: '#A47CB2',
-  piktag400: '#966BAA',
-  piktag500: '#8D5D9E',
-  piktag600: '#6E4577',
+  // Brand (Purple — #aa00ff base)
+  piktag50: '#f5e6ff',
+  piktag100: '#e6b3ff',
+  piktag200: '#d580ff',
+  piktag300: '#c44dff',
+  piktag400: '#bf00ff',
+  piktag500: '#aa00ff',
+  piktag600: '#8800cc',
 
-  // Accent — deeper-mauve variant for components that need a
-  // secondary "different from primary, still on-brand" pop. Same
-  // hue family as piktag, shifted darker so it doesn't compete
-  // visually with the primary. Five existing call sites (Stars on
-  // AddTag, TrendingUp on Search, etc.) just want "another brand
-  // color that isn't gray".
-  accent50: '#F4EBF7',
-  accent100: '#DDC3E5',
-  accent200: '#C8A0D7',
-  accent300: '#B27FC4',
-  accent400: '#9D5EAE',
-  accent500: '#6E4577',
-  accent600: '#271828',
+  // Accent (deep purple for contrast on white)
+  accent50: '#f0e6ff',
+  accent100: '#d9b3ff',
+  accent200: '#c280ff',
+  accent300: '#aa4dff',
+  accent400: '#8c52ff',
+  accent500: '#7a3de8',
+  accent600: '#360066',
 
-  // Brand gradient colors (linear 90deg: #ff5757 → #8c52ff).
-  // INTENTIONALLY UNCHANGED per spec — gradients touch ~30 components
-  // (avatar rings, hero CTAs, splash, app icon) and the user wants
-  // the migration scoped to the flat brand colors only this round.
-  // Will be revisited as a follow-up if the new mauve primary makes
-  // the existing pink→purple→indigo gradient feel disconnected.
+  // Brand gradient colors (linear 90deg: #ff5757 → #8c52ff)
   gradientStart: '#ff5757',
   gradientMid: '#c44dff',
   gradientEnd: '#8c52ff',
@@ -84,28 +63,23 @@ const LIGHT = {
 // ── Dark palette (IG-inspired pure black) ────────────────────────────
 // Pure black background, dark gray cards, white text, brand color accents
 const DARK: typeof LIGHT = {
-  // Brand — inverted scale for dark bg. The "primary" CTA color
-  // (piktag500 in dark mode) needs to be LIGHTER than its light-mode
-  // counterpart so it pops against a black surface — we use the
-  // light-mode piktag300 (#A47CB2) as the dark-mode primary, and
-  // the light-mode piktag500 (#8D5D9E) becomes a mid-tone here.
-  piktag50: '#1F1428',
-  piktag100: '#2D1B3D',
-  piktag200: '#4F2E55',
-  piktag300: '#6E4577',
-  piktag400: '#8D5D9E',
-  piktag500: '#A47CB2',
-  piktag600: '#C9A7D6',
+  // Brand — bright purple for dark backgrounds
+  piktag50: '#1a0033',
+  piktag100: '#2d0059',
+  piktag200: '#4a0099',
+  piktag300: '#bf00ff',
+  piktag400: '#cc33ff',
+  piktag500: '#d966ff',
+  piktag600: '#e699ff',
 
-  // Accent — also inverted; brighter mauve for "secondary pop" on
-  // dark bg.
-  accent50: '#1F1428',
-  accent100: '#2D1B3D',
-  accent200: '#4F2E55',
-  accent300: '#6E4577',
-  accent400: '#966AAA',
-  accent500: '#C9A7D6',
-  accent600: '#F4EBF7',
+  // Accent (purple) — for dark mode
+  accent50: '#1a0033',
+  accent100: '#2d0059',
+  accent200: '#4a0099',
+  accent300: '#8c52ff',
+  accent400: '#a77fff',
+  accent500: '#c2a6ff',
+  accent600: '#e6d9ff',
 
   // Brand gradient colors (same — pops more on dark)
   gradientStart: '#ff5757',

@@ -3,25 +3,16 @@
 
 @theme {
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
-  /* Brand mauve scale — synced with mobile/src/constants/theme.ts.
-     500 = 法國丁香 #8D5D9E (PRIMARY), 300 = 非洲紫羅蘭 #A47CB2
-     (secondary accent). Hue-locked around 285-287° with descending
-     lightness. Replaced the previous neon-violet ramp (#aa00ff
-     base) for a more sophisticated boutique tone, aligning with the
-     Vibe & Tribe brand positioning. */
-  --color-brand-50: #F4EBF7;
-  --color-brand-100: #E0CCE8;
-  --color-brand-200: #C9A7D6;
-  --color-brand-300: #A47CB2;
-  --color-brand-400: #966BAA;
-  --color-brand-500: #8D5D9E;
-  --color-brand-600: #6E4577;
-  --color-brand-700: #553459;
-  --color-brand-800: #3D2540;
-  --color-brand-900: #271828;
-  /* Hero gradient endpoints stay unchanged per spec — see comment in
-     mobile theme.ts. The pink → indigo gradient is used by the hero
-     headline + CTA glow and isn't part of this brand-color migration. */
+  --color-brand-50: #f5e6ff;
+  --color-brand-100: #e6b3ff;
+  --color-brand-200: #d580ff;
+  --color-brand-300: #c44dff;
+  --color-brand-400: #b726ff;
+  --color-brand-500: #aa00ff;
+  --color-brand-600: #8c00d4;
+  --color-brand-700: #6e00a8;
+  --color-brand-800: #50007d;
+  --color-brand-900: #360066;
   --color-accent-red: #ff5757;
   --color-accent-purple: #8c52ff;
 }
