@@ -15,7 +15,7 @@ import {
   Linking,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ArrowLeft, Plus, Pencil, Trash2, X, Hash, EyeOff, Eye, GripVertical, ChevronDown, Sparkles, CheckCircle2 } from 'lucide-react-native';
+import { ArrowLeft, Plus, Pencil, Trash2, X, Hash, EyeOff, Eye, GripVertical, ChevronDown, Sparkles, CheckCircle2, RefreshCw } from 'lucide-react-native';
 import { logApiUsage } from '../lib/apiUsage';
 import RingedAvatar from '../components/RingedAvatar';
 import DraggableFlatList, { RenderItemParams, ScaleDecorator } from 'react-native-draggable-flatlist';
@@ -467,11 +467,11 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
     }
   }, []);
 
-  // Track when this screen first mounted so the focus-listener below
-  // can skip a redundant tags refetch on the very first focus event
-  // (the initial load already did it).
-  const mountedAtRef = useRef<number>(Date.now());
-  const initialLoadDoneRef = useRef<boolean>(false);
+  // The focus-listener below skips ONE focus event — the one that
+  // fires right after this screen first mounts (which the initial
+  // load useEffect already covers). Every subsequent focus (e.g.
+  // returning from ManageTagsScreen) does refetch.
+  const focusSkippedOnceRef = useRef<boolean>(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -485,7 +485,6 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
       ]);
       if (isMounted) {
         setLoading(false);
-        initialLoadDoneRef.current = true;
       }
     };
     load();
@@ -494,13 +493,21 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
     };
   }, [fetchProfile, fetchBiolinks, fetchUserTags, fetchPopularTags]);
 
-  // Refresh tags when returning from ManageTagsScreen — but skip if the
-  // initial load just ran (within 60 s of mount), which would otherwise
-  // double-fetch and cost an extra round-trip on every cold open.
+  // Refresh tags whenever the screen regains focus — i.e. on every
+  // return from ManageTagsScreen. Reported case: user deletes all
+  // tags in 標籤管理, taps back, EditProfile still shows the old
+  // tags until they tap Save. The previous "skip if mounted within
+  // 60s" guard accidentally swallowed this refetch when the round
+  // trip happened quickly. New rule: skip only the FIRST focus
+  // event (which fires right after mount and would duplicate the
+  // initial load useEffect above), then every subsequent focus
+  // refetches.
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
-      const youngMount = Date.now() - mountedAtRef.current < 60_000;
-      if (initialLoadDoneRef.current && youngMount) return;
+      if (!focusSkippedOnceRef.current) {
+        focusSkippedOnceRef.current = true;
+        return;
+      }
       fetchUserTags();
     });
     return unsubscribe;
@@ -1336,37 +1343,67 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
                 so re-rolls are explicit. Tapping a suggestion chip pipes
                 straight into handleAddTag — the chip moves up into the
                 user's tag list above on the next render. */}
+            {/* AI tag suggestion section. Auto-fires 1.2s after the
+                user pauses typing in bio / name / headline (see
+                updateField). Layout pattern was rebuilt because the
+                previous "soft chip with sparkles + label" trigger
+                button didn't read as tappable — users assumed it was
+                a passive label.
+
+                Now a clean section-header row:
+                  Left:  ✨ AI 為你推薦   (label)
+                  Right: ↻               (refresh icon button)
+                Below: chip list of suggestions (tap to add).
+
+                The ↻ icon is the universal "regenerate" affordance
+                (ChatGPT, Midjourney, every modern AI surface) so
+                users immediately recognize it as a re-roll. Hidden
+                while loading (spinner replaces the icon) and during
+                the initial-render-before-first-auto-fire state.
+
+                Section is rendered when bio is non-empty so the user
+                sees the AI surface light up shortly after they
+                finish typing — making the bio↔AI relationship
+                visible. Hidden when tags reach the 10 cap. */}
             {form.bio.trim().length > 0 && userTags.length < 10 && (
               <View style={styles.ai_inlineSection}>
-                <TouchableOpacity
-                  style={[
-                    styles.ai_triggerBtn,
-                    (form.bio.trim().length < 5 || aiLoading || addingTag) && styles.ai_triggerBtnDisabled,
-                  ]}
-                  onPress={loadAiSuggestions}
-                  disabled={form.bio.trim().length < 5 || aiLoading || addingTag}
-                  activeOpacity={0.7}
-                  accessibilityRole="button"
-                  accessibilityLabel={t('ask.generateAiTags') || 'AI 生成標籤'}
-                >
-                  {aiLoading ? (
-                    <>
-                      <BrandSpinner size={16} />
-                      <Text style={styles.ai_triggerText}>
-                        {t('manageTags.aiSuggestionsTitle') || 'AI 為你推薦'}…
+                {(aiLoading || aiSuggestions.length > 0 || aiTriedAndEmpty) && (
+                  <View style={styles.ai_headerRow}>
+                    <View style={styles.ai_headerLeft}>
+                      {aiLoading ? (
+                        <BrandSpinner size={16} />
+                      ) : (
+                        <Sparkles size={14} color={COLORS.piktag600} />
+                      )}
+                      <Text style={styles.ai_headerTitle}>
+                        {aiLoading
+                          ? `${t('manageTags.aiSuggestionsTitle') || 'AI 為你推薦'}…`
+                          : (t('manageTags.aiSuggestionsTitle') || 'AI 為你推薦')}
                       </Text>
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles size={16} color={COLORS.piktag600} />
-                      <Text style={styles.ai_triggerText}>
-                        {aiSuggestions.length > 0
-                          ? (t('ask.regenerateAiTags') || '重新生成')
-                          : (t('ask.generateAiTags') || 'AI 從簡介生成標籤')}
-                      </Text>
-                    </>
-                  )}
-                </TouchableOpacity>
+                    </View>
+                    {/* Refresh icon button — clearly tappable shape
+                        (circular, bordered) at the right end. Hidden
+                        during load (spinner is in the title slot
+                        instead) and disabled when bio is too short
+                        for a meaningful prompt. */}
+                    {!aiLoading && (
+                      <TouchableOpacity
+                        style={[
+                          styles.ai_refreshBtn,
+                          (form.bio.trim().length < 5 || addingTag) && styles.ai_refreshBtnDisabled,
+                        ]}
+                        onPress={loadAiSuggestions}
+                        disabled={form.bio.trim().length < 5 || addingTag}
+                        activeOpacity={0.7}
+                        hitSlop={8}
+                        accessibilityRole="button"
+                        accessibilityLabel={t('ask.regenerateAiTags') || '重新生成'}
+                      >
+                        <RefreshCw size={14} color={COLORS.piktag600} strokeWidth={2.2} />
+                      </TouchableOpacity>
+                    )}
+                  </View>
+                )}
 
                 {aiSuggestions.length > 0 && (
                   <View style={styles.ai_chipsWrap}>
@@ -1381,13 +1418,6 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
                         accessibilityRole="button"
                         accessibilityLabel={`${t('common.add') || '新增'} #${s}`}
                       >
-                        {/* No "+" prefix — visual parity with friend
-                            pickModal tags. The "tap to add" affordance
-                            is communicated by the gray "unselected"
-                            look, identical to FriendDetail's
-                            pickModalTag. Once added, the chip moves
-                            up into "我的標籤" above where it picks up
-                            the purple "selected" treatment. */}
                         <Text style={styles.ai_chipText}>#{s}</Text>
                       </Pressable>
                     ))}
@@ -2378,35 +2408,49 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#FFFFFF',
   },
-  // Inline AI tag suggestion styles. Visually distinct from the
-  // gradient "管理全部標籤" CTA below — the AI button is a soft
-  // outlined affordance so it doesn't fight the primary action for
-  // attention. Suggestion chips reuse piktag50/piktag600 to keep
-  // visual continuity with the user's tag chips above.
+  // Inline AI tag suggestion styles.
+  //
+  // Section header layout pattern: ✨ + label on the left, refresh
+  // (↻) icon button on the right. Replaces the old "soft chip with
+  // sparkles + label" trigger button that users were reading as a
+  // passive label rather than a tappable CTA. The icon-button-on-
+  // the-right is the universal "regenerate" affordance (ChatGPT,
+  // Midjourney, etc.) so it reads as obviously interactive.
   ai_inlineSection: {
     marginTop: 12,
     gap: 10,
   },
-  ai_triggerBtn: {
+  ai_headerRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 2,
+  },
+  ai_headerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 6,
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: COLORS.piktag200,
-    backgroundColor: COLORS.piktag50,
-    alignSelf: 'flex-start',
   },
-  ai_triggerBtnDisabled: {
-    opacity: 0.5,
-  },
-  ai_triggerText: {
+  ai_headerTitle: {
     fontSize: 14,
     fontWeight: '600',
     color: COLORS.piktag600,
+  },
+  // 32x32 circular icon button with a clear border + light fill —
+  // unambiguously tappable. Disabled state drops opacity so users
+  // see the "I can't tap this yet" cue.
+  ai_refreshBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: COLORS.piktag50,
+    borderWidth: 1,
+    borderColor: COLORS.piktag200,
+  },
+  ai_refreshBtnDisabled: {
+    opacity: 0.4,
   },
   ai_chipsWrap: {
     flexDirection: 'row',
