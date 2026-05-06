@@ -284,7 +284,9 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
             [
               { text: t('common.cancel'), style: 'cancel' },
               { text: t('settings.sendResetEmail') || '發送', onPress: async () => {
-                const { error } = await supabase.auth.resetPasswordForEmail(user?.email || '');
+                const { error } = await supabase.auth.resetPasswordForEmail(user?.email || '', {
+                  redirectTo: 'https://pikt.ag/reset-password',
+                });
                 if (!error) Alert.alert(t('settings.resetEmailSent') || '已發送', t('settings.resetEmailSentMessage') || '請查看你的信箱');
               }},
             ]

@@ -65,7 +65,15 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
 
     setResetLoading(true);
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email.trim());
+      // Send the recovery link to our hosted /reset-password page.
+      // Omitting redirectTo falls back to the Supabase project's "Site
+      // URL" — which previously pointed at an unrouted subdomain and
+      // gave users a Vercel 404 when they clicked the email link.
+      // Passing it explicitly here makes the destination independent of
+      // the dashboard config.
+      const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+        redirectTo: 'https://pikt.ag/reset-password',
+      });
       if (error) {
         Alert.alert(t('common.error'), error.message);
       } else {

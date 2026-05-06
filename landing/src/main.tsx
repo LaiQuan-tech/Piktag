@@ -3,6 +3,7 @@ import {createRoot} from 'react-dom/client';
 import {BrowserRouter, Routes, Route, useLocation} from 'react-router-dom';
 import App from './App.tsx';
 import Contact from './pages/Contact.tsx';
+import ResetPassword from './pages/ResetPassword.tsx';
 import {initAnalytics, trackPageView} from './lib/analytics';
 import './i18n';
 import './index.css';
@@ -32,6 +33,7 @@ createRoot(document.getElementById('root')!).render(
       <Routes>
         <Route path="/" element={<App />} />
         <Route path="/contact" element={<Contact />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
       </Routes>
     </BrowserRouter>
   </StrictMode>,
