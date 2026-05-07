@@ -418,15 +418,15 @@ export default function ContactSyncScreen({ navigation }: ContactSyncScreenProps
 
     closeTagPicker();
 
-    // Build invite message with tags in quotes, mirroring
-    // LocalContactsScreen.handleInvite for consistency.
-    const tagsLabel = tags.length > 0 ? `「${tags.join('、')}」` : '';
+    // CRITICAL: never put the tag names into the share message.
+    // Tags entered here promote to is_private=true (hidden tags) on
+    // the server — owner-only forever. Users may type sensitive
+    // private notes ("前女友", "欠錢", "黑名單"); leaking those via
+    // SMS to the tagged person would kill app trust. Generic invite
+    // copy only.
     const message =
-      t('contactSync.tagInviteMessage', {
-        name: target.name,
-        tags: tagsLabel,
-      }) ||
-      `嗨！我在 PikTag 上幫你貼了 ${tagsLabel} 標籤 — 註冊後我們的標籤會自動同步：\nhttps://pikt.ag/download`;
+      t('contactSync.tagInviteMessage', { name: target.name }) ||
+      `嗨！我在用 PikTag — 一起來交換標籤吧：\nhttps://pikt.ag/download`;
     try {
       await Share.share({ message });
     } catch {
@@ -655,12 +655,12 @@ export default function ContactSyncScreen({ navigation }: ContactSyncScreenProps
             activeOpacity={0.85}
             accessibilityRole="button"
             accessibilityLabel={
-              t('contactSync.tagInviteBtn') || '貼標籤並邀請'
+              t('contactSync.tagInviteBtn') || '記下並邀請'
             }
           >
             <Hash size={14} color="#FFFFFF" />
             <Text style={styles.actionBtnTagInviteText}>
-              {t('contactSync.tagInviteBtn') || '貼標籤+邀請'}
+              {t('contactSync.tagInviteBtn') || '記下並邀請'}
             </Text>
           </TouchableOpacity>
         )}
@@ -828,7 +828,7 @@ export default function ContactSyncScreen({ navigation }: ContactSyncScreenProps
               <View style={styles.tagModalHeader}>
                 <View style={{ flex: 1 }}>
                   <Text style={styles.tagModalTitle}>
-                    {t('contactSync.tagModalTitle') || '貼上標籤'}
+                    {t('contactSync.tagModalTitle') || '🔒 私人標籤'}
                   </Text>
                   <Text style={styles.tagModalSubtitle} numberOfLines={1}>
                     {tagTarget?.name || ''}
@@ -853,7 +853,7 @@ export default function ContactSyncScreen({ navigation }: ContactSyncScreenProps
                   {t('contactSync.tagModalHint', {
                     max: MAX_TAGS_PER_CONTACT,
                   }) ||
-                    `挑幾個標籤描述他（最多 ${MAX_TAGS_PER_CONTACT} 個）— 等他註冊 PikTag，這些標籤會自動出現在你們的好友頁。`}
+                    `🔒 只有你看得到的私人標籤（最多 ${MAX_TAGS_PER_CONTACT} 個）— 對方註冊 PikTag 後，這些標籤會出現在你的好友頁的「隱藏標籤」區，永遠不會被對方或其他人看到。`}
                 </Text>
 
                 {/* Picked tags strip */}
@@ -960,7 +960,7 @@ export default function ContactSyncScreen({ navigation }: ContactSyncScreenProps
                   activeOpacity={0.85}
                   accessibilityRole="button"
                   accessibilityLabel={
-                    t('contactSync.tagModalSubmit') || '加入名單並邀請'
+                    t('contactSync.tagModalSubmit') || '存私人標籤並邀請'
                   }
                 >
                   {savingTag ? (
@@ -969,7 +969,7 @@ export default function ContactSyncScreen({ navigation }: ContactSyncScreenProps
                     <>
                       <Send size={14} color="#FFFFFF" />
                       <Text style={styles.tagModalSubmitText}>
-                        {t('contactSync.tagModalSubmit') || '加入名單並邀請'}
+                        {t('contactSync.tagModalSubmit') || '存私人標籤並邀請'}
                       </Text>
                     </>
                   )}

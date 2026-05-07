@@ -193,16 +193,19 @@ export default function LocalContactsScreen({ navigation }: LocalContactsScreenP
     );
   }, [editing, remove, t, closeModal]);
 
-  // Compose an invite share message that includes any tags we've
-  // applied. The recipient registers with the same phone/email →
-  // promote_local_contacts trigger fires server-side → tags transfer
-  // automatically. The text just primes the recipient to expect it.
+  // Compose an invite share message. CRITICAL: tags are NEVER included
+  // in the share text — the user might have written sensitive private
+  // notes ("前女友", "欠錢", "黑名單") that promote into hidden_tags
+  // (is_private=true) and stay owner-only on the server. If we
+  // interpolated those into the SMS body the user could accidentally
+  // send their private CRM notes to the contact and the trust contract
+  // is dead. The DB-side promotion still works — when the recipient
+  // signs up the trigger silently transfers tags as hidden tags. The
+  // share message is just a generic invite.
   const handleInvite = useCallback(
     async (contact: LocalContact) => {
-      const tagsLabel = contact.tags.length > 0 ? `「${contact.tags.join('、')}」` : '';
       const message = t('localContacts.inviteMessage', {
-        tags: tagsLabel,
-        defaultValue: `嗨！我在 PikTag 上幫你貼了 ${tagsLabel} 標籤 — 註冊後我們的標籤會自動同步：\nhttps://pikt.ag/download`,
+        defaultValue: `嗨！我在用 PikTag — 一起來交換標籤吧：\nhttps://pikt.ag/download`,
       });
       try {
         await Share.share({ message });
@@ -288,7 +291,7 @@ export default function LocalContactsScreen({ navigation }: LocalContactsScreenP
           </Text>
           <Text style={styles.emptyDesc}>
             {t('localContacts.emptyDesc') ||
-              '幫通訊錄裡的人貼上標籤，就算他們還沒註冊 PikTag — 等他們加入時，標籤會自動同步過去。'}
+              '🔒 幫通訊錄裡的人貼上私人標籤（只有你看得到）— 等他們註冊 PikTag，標籤會自動轉成你好友頁裡的隱藏標籤，對方永遠不會看到。'}
           </Text>
           <TouchableOpacity style={styles.emptyPrimaryBtn} onPress={openAdd} activeOpacity={0.85}>
             <Plus size={18} color={COLORS.white} />
@@ -381,14 +384,25 @@ export default function LocalContactsScreen({ navigation }: LocalContactsScreenP
                 />
                 <Text style={styles.fieldHint}>
                   {t('localContacts.identityHint') ||
-                    '電話或 Email 至少填一個 — 對方註冊 PikTag 時會用這個自動配對，把標籤同步過去。'}
+                    '電話或 Email 至少填一個 — 對方註冊 PikTag 時會用這個自動配對，把你的私人標籤搬進好友頁的隱藏區。'}
                 </Text>
               </View>
 
-              {/* Tags */}
+              {/* Tags — privacy contract: ALL tags entered here are
+                  PRIVATE. They live in piktag_local_contacts.tags and on
+                  server-side promotion they become piktag_connection_tags
+                  with is_private=true (hidden tags), only ever visible to
+                  the owner. They are NEVER included in the invite share
+                  message. Users may write sensitive private notes here
+                  ("前女友", "欠錢", "黑名單") and need the strongest
+                  possible visual contract that nobody else will see them. */}
               <View style={styles.field}>
                 <Text style={styles.fieldLabel}>
                   {t('localContacts.fieldTags') || '標籤'} ({formTags.length}/{MAX_TAGS_PER_CONTACT})
+                </Text>
+                <Text style={styles.fieldHint}>
+                  {t('localContacts.tagsPrivacyHint') ||
+                    '🔒 只有你看得到的私人標籤 — 對方註冊 PikTag 後會出現在你好友頁的「隱藏標籤」區，永遠不會給對方或其他人看到。'}
                 </Text>
                 {formTags.length > 0 && (
                   <View style={styles.tagsRow}>
