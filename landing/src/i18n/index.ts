@@ -9,6 +9,7 @@ import ko from './locales/ko.json';
 import zhCN from './locales/zh-CN.json';
 import es from './locales/es.json';
 import fr from './locales/fr.json';
+import de from './locales/de.json';
 import pt from './locales/pt.json';
 import ar from './locales/ar.json';
 import bn from './locales/bn.json';
@@ -26,6 +27,7 @@ export const languages = [
   { code: 'zh-CN', label: '简体中文' },
   { code: 'es', label: 'Español' },
   { code: 'fr', label: 'Français' },
+  { code: 'de', label: 'Deutsch' },
   { code: 'pt', label: 'Português' },
   { code: 'ar', label: 'العربية' },
   { code: 'bn', label: 'বাংলা' },
@@ -48,6 +50,7 @@ i18n
       'zh-CN': { translation: zhCN },
       es: { translation: es },
       fr: { translation: fr },
+      de: { translation: de },
       pt: { translation: pt },
       ar: { translation: ar },
       bn: { translation: bn },

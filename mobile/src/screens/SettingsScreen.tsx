@@ -41,18 +41,26 @@ type SettingsGroup = {
   items: SettingsItem[];
 };
 
+// Mirrors SUPPORTED_LANGS in src/i18n/index.ts. If you add a new
+// locale there you also need to add the picker label here so users
+// can actually choose it from Settings → Language.
 const LANGUAGE_OPTIONS: { key: string; label: string }[] = [
   { key: 'zh-TW', label: '繁體中文' },
   { key: 'en', label: 'English' },
   { key: 'zh-CN', label: '简体中文' },
   { key: 'ja', label: '日本語' },
+  { key: 'ko', label: '한국어' },
   { key: 'es', label: 'Español' },
   { key: 'fr', label: 'Français' },
+  { key: 'de', label: 'Deutsch' },
+  { key: 'pt', label: 'Português' },
   { key: 'ar', label: 'العربية' },
   { key: 'hi', label: 'हिन्दी' },
   { key: 'bn', label: 'বাংলা' },
-  { key: 'pt', label: 'Português' },
+  { key: 'id', label: 'Bahasa Indonesia' },
   { key: 'ru', label: 'Русский' },
+  { key: 'th', label: 'ไทย' },
+  { key: 'tr', label: 'Türkçe' },
 ];
 
 const APP_VERSION = '1.0.0';

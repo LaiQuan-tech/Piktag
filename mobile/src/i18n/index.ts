@@ -17,7 +17,7 @@ const eagerResources = {
 
 // All supported locale codes (must match filenames in ./locales/)
 const SUPPORTED_LANGS: ReadonlyArray<string> = [
-  'zh-TW', 'en', 'zh-CN', 'ja', 'es', 'fr', 'ar',
+  'zh-TW', 'en', 'zh-CN', 'ja', 'es', 'fr', 'de', 'ar',
   'hi', 'bn', 'pt', 'ru', 'ko', 'id', 'th', 'tr',
 ];
 
@@ -59,6 +59,7 @@ export async function loadLocale(lang: string): Promise<void> {
       case 'ja':    translation = (await import('./locales/ja.json')).default; break;
       case 'es':    translation = (await import('./locales/es.json')).default; break;
       case 'fr':    translation = (await import('./locales/fr.json')).default; break;
+      case 'de':    translation = (await import('./locales/de.json')).default; break;
       case 'ar':    translation = (await import('./locales/ar.json')).default; break;
       case 'hi':    translation = (await import('./locales/hi.json')).default; break;
       case 'bn':    translation = (await import('./locales/bn.json')).default; break;
