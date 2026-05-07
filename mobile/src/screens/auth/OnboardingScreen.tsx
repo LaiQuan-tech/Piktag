@@ -485,9 +485,21 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
         userName={burstUserName}
         onComplete={() => {
           setBurstVisible(false);
+          // After onboarding finishes, drop the user on EditProfile
+          // (with `fromOnboarding: true`) instead of straight into
+          // Main / Connections. Reason: cold-start users land on an
+          // empty Connections feed and the app feels broken; routing
+          // them to their own profile editor first lets them finish
+          // their bio / biolinks / tags so they have a complete,
+          // shareable PikTag page on day 1 — Linktree-style. Reset
+          // index = 1 so the back gesture pops to Main, not the
+          // onboarding screen they just finished.
           navigation.reset({
-            index: 0,
-            routes: [{ name: 'Main' }],
+            index: 1,
+            routes: [
+              { name: 'Main' },
+              { name: 'EditProfile', params: { fromOnboarding: true } },
+            ],
           });
         }}
       />

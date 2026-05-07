@@ -93,6 +93,7 @@ const buildPlatformUrl = platformBuildUrl;
 
 type EditProfileScreenProps = {
   navigation: any;
+  route?: { params?: { fromOnboarding?: boolean } };
 };
 
 type FormData = {
@@ -203,7 +204,8 @@ const PopularTagChip = React.memo(function PopularTagChip({
 
 // ── Main screen ──────────────────────────────────────────────────────────────
 
-export default function EditProfileScreen({ navigation }: EditProfileScreenProps) {
+export default function EditProfileScreen({ navigation, route }: EditProfileScreenProps) {
+  const fromOnboarding = !!route?.params?.fromOnboarding;
   const { t } = useTranslation();
   const { colors, isDark } = useTheme();
   const insets = useSafeAreaInsets();
@@ -1408,6 +1410,87 @@ export default function EditProfileScreen({ navigation }: EditProfileScreenProps
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
+          {/* Profile completion meter — sits above the avatar so it's
+              the first thing the user sees. Drives the cold-start
+              "complete your PikTag, then share it" loop: 4 checks
+              (avatar / bio / ≥3 tags / ≥1 biolink). When all 4 land,
+              the meter swaps for a prominent QR-share CTA so the
+              user has a clear next step ("publish my PikTag"). When
+              the user arrived via the onboarding burst (route param
+              fromOnboarding=true), an extra welcome banner sits on
+              top so the screen reads as a continuation of onboarding,
+              not "you got dropped in a settings page". */}
+          {(() => {
+            const checks = [
+              { done: !!avatarUrl, label: t('editProfile.completionAvatar') || '上傳大頭照' },
+              { done: form.bio.trim().length >= 10, label: t('editProfile.completionBio') || '寫一段簡介（≥10 字）' },
+              { done: userTags.length >= 3, label: t('editProfile.completionTags') || '加 3 個以上標籤' },
+              { done: biolinks.length >= 1, label: t('editProfile.completionBiolink') || '加 1 個社群連結' },
+            ];
+            const doneCount = checks.filter((c) => c.done).length;
+            const percent = Math.round((doneCount / checks.length) * 100);
+            const isComplete = percent === 100;
+
+            return (
+              <View style={styles.completionCard}>
+                {fromOnboarding && (
+                  <Text style={styles.completionWelcome}>
+                    {t('editProfile.welcomeFromOnboarding') ||
+                      '歡迎到 PikTag！完成你的個人頁，下一步就可以分享給朋友'}
+                  </Text>
+                )}
+                {!isComplete && (
+                  <>
+                    <View style={styles.completionHeader}>
+                      <Text style={styles.completionTitle}>
+                        {t('editProfile.completionTitle') || '個人頁完成度'}
+                      </Text>
+                      <Text style={styles.completionPercent}>{percent}%</Text>
+                    </View>
+                    <View style={styles.progressBarBg}>
+                      <View
+                        style={[styles.progressBarFill, { width: `${percent}%` as any }]}
+                      />
+                    </View>
+                    <View style={styles.completionChecklist}>
+                      {checks.map((item, i) => (
+                        <View key={i} style={styles.checklistRow}>
+                          {item.done ? (
+                            <CheckCircle2 size={14} color={COLORS.piktag500} />
+                          ) : (
+                            <View style={styles.checklistEmptyCircle} />
+                          )}
+                          <Text
+                            style={[
+                              styles.checklistText,
+                              item.done && styles.checklistTextDone,
+                            ]}
+                          >
+                            {item.label}
+                          </Text>
+                        </View>
+                      ))}
+                    </View>
+                  </>
+                )}
+                {isComplete && (
+                  <TouchableOpacity
+                    style={styles.completionShareCta}
+                    onPress={() =>
+                      navigation.navigate('AddTagTab', { screen: 'AddTag' })
+                    }
+                    activeOpacity={0.8}
+                  >
+                    <CheckCircle2 size={18} color={COLORS.white} />
+                    <Text style={styles.completionShareCtaText}>
+                      {t('editProfile.shareNow') || '個人頁完成 — 分享你的 PikTag QR'}
+                    </Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+            );
+          })()}
+
           {/* Avatar Section */}
           <View style={styles.avatarSection}>
             <View style={styles.avatarStack}>
@@ -2466,6 +2549,93 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingBottom: 100,
+  },
+  // ── Profile completion meter ─────────────────────────────────────
+  // Sits at the top of EditProfile, drives the cold-start "complete
+  // your PikTag, then share it" loop. Disappears at 100% to surface
+  // a QR-share CTA in its place.
+  completionCard: {
+    marginHorizontal: 16,
+    marginTop: 12,
+    marginBottom: 4,
+    padding: 14,
+    borderRadius: 14,
+    backgroundColor: COLORS.piktag50,
+    borderWidth: 1,
+    borderColor: COLORS.piktag200,
+  },
+  completionWelcome: {
+    fontSize: 13,
+    color: COLORS.piktag600,
+    fontWeight: '600',
+    marginBottom: 10,
+    lineHeight: 18,
+  },
+  completionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  completionTitle: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: COLORS.gray700,
+  },
+  completionPercent: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: COLORS.piktag600,
+  },
+  progressBarBg: {
+    height: 6,
+    backgroundColor: COLORS.gray200,
+    borderRadius: 3,
+    overflow: 'hidden',
+  },
+  progressBarFill: {
+    height: 6,
+    backgroundColor: COLORS.piktag500,
+    borderRadius: 3,
+  },
+  completionChecklist: {
+    marginTop: 10,
+    gap: 4,
+  },
+  checklistRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  checklistEmptyCircle: {
+    width: 14,
+    height: 14,
+    borderRadius: 7,
+    borderWidth: 1.5,
+    borderColor: COLORS.gray300,
+    backgroundColor: 'transparent',
+  },
+  checklistText: {
+    fontSize: 13,
+    color: COLORS.gray600,
+  },
+  checklistTextDone: {
+    color: COLORS.gray500,
+    textDecorationLine: 'line-through',
+  },
+  completionShareCta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 12,
+    borderRadius: 10,
+    backgroundColor: COLORS.piktag500,
+  },
+  completionShareCtaText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: COLORS.white,
   },
   loadingContainer: {
     flex: 1,
