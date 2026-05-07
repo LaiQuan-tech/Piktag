@@ -15,6 +15,8 @@ import { useTranslation } from 'react-i18next';
 import { COLORS } from '../constants/theme';
 import { GOOGLE_PLACES_API_KEY } from '../lib/googlePlaces';
 import { logApiUsage } from '../lib/apiUsage';
+import { useAuth } from '../hooks/useAuth';
+import { supabase } from '../lib/supabase';
 
 const isWeb = Platform.OS === 'web';
 
@@ -56,11 +58,19 @@ function buildMapHtml(
   apiKey: string,
   friends: FriendLocation[],
   center: { lat: number; lng: number },
-  self: { lat: number; lng: number } | null,
+  self: {
+    lat: number;
+    lng: number;
+    avatarUrl?: string | null;
+    name?: string | null;
+    username?: string | null;
+  } | null,
+  selfLabel: string,
 ): string {
   const friendsJson = JSON.stringify(friends);
   const centerJson = JSON.stringify(center);
   const selfJson = JSON.stringify(self);
+  const selfLabelJson = JSON.stringify(selfLabel);
   return `<!DOCTYPE html>
 <html>
 <head>
@@ -108,6 +118,7 @@ function buildMapHtml(
     const FRIENDS = ${friendsJson};
     const CENTER = ${centerJson};
     const SELF = ${selfJson};
+    const SELF_LABEL = ${selfLabelJson};
 
     function postToHost(data) {
       try {
@@ -188,7 +199,14 @@ function buildMapHtml(
 
       const label = document.createElement('div');
       label.className = 'avatar-label';
-      label.textContent = isSelf ? '你' : (item.name || '');
+      // Self-marker label = "你" (locale-aware via SELF_LABEL passed
+      // in from the React side). Friend label = their display name.
+      // The avatar circle's content is now driven by item.avatarUrl /
+      // item.name independently — so SELF can show the user's real
+      // photo (or the first char of their full_name) in the circle
+      // and the literal "你" below, instead of "你" appearing both
+      // places like the original behaviour.
+      label.textContent = isSelf ? SELF_LABEL : (item.name || '');
 
       root.appendChild(wrap);
       root.appendChild(label);
@@ -215,8 +233,17 @@ function buildMapHtml(
           new AdvancedMarkerElement({
             map,
             position: { lat: SELF.lat, lng: SELF.lng },
-            content: buildMarkerContent({ name: '你', avatarUrl: null }, true),
-            title: '你',
+            // Pass the user's real avatar + name to the marker so the
+            // circle shows the user's photo (or first char of their
+            // full_name as a fallback initial). The label below renders
+            // SELF_LABEL ("你" / "You" / locale-equivalent) — different
+            // from what's in the circle, so the user no longer sees
+            // "你" duplicated above and below the avatar.
+            content: buildMarkerContent({
+              name: SELF.name || '',
+              avatarUrl: SELF.avatarUrl || null,
+            }, true),
+            title: SELF_LABEL,
             zIndex: 1000,
           });
         }
@@ -279,11 +306,47 @@ export default function FriendsMapModal({
   onFriendPress,
 }: FriendsMapModalProps) {
   const { t } = useTranslation();
+  const { user } = useAuth();
   const insets = useSafeAreaInsets();
   const [userCoords, setUserCoords] = useState<{ lat: number; lng: number } | null>(null);
+  // Profile state for the SELF marker. Fetched once when the modal
+  // opens so the user's own pin shows their real avatar in the
+  // circle and the locale-aware "你" label below — instead of the
+  // previous behaviour where both the circle initials AND the label
+  // both rendered "你" (because we were passing `{ name: '你',
+  // avatarUrl: null }` and the initials fallback was "你" too).
+  const [selfProfile, setSelfProfile] = useState<
+    { avatarUrl: string | null; name: string | null; username: string | null } | null
+  >(null);
   const [locating, setLocating] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
+
+  // One-shot profile fetch when the modal becomes visible. Skipped on
+  // re-opens to avoid hammering piktag_profiles for unchanged data.
+  useEffect(() => {
+    if (!visible || !user || selfProfile) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const { data } = await supabase
+          .from('piktag_profiles')
+          .select('avatar_url, full_name, username')
+          .eq('id', user.id)
+          .maybeSingle();
+        if (cancelled || !data) return;
+        setSelfProfile({
+          avatarUrl: data.avatar_url ?? null,
+          name: data.full_name ?? data.username ?? null,
+          username: data.username ?? null,
+        });
+      } catch {
+        // Silent fail — the marker just falls back to a name-less
+        // avatar circle, label still shows "你".
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [visible, user, selfProfile]);
 
   const friendsWithLocation = useMemo(
     () =>
@@ -394,9 +457,31 @@ export default function FriendsMapModal({
     return { lat: 25.033, lng: 121.5654 };
   }, [userCoords, friendsWithLocation]);
 
+  // Combine the geo coords with the freshly fetched profile fields
+  // so the SELF marker can render with a real avatar + initial. We
+  // gate on userCoords because the lat/lng is the only required
+  // piece — profile fields are best-effort decoration.
+  const selfMarker = useMemo(
+    () =>
+      userCoords
+        ? {
+            lat: userCoords.lat,
+            lng: userCoords.lng,
+            avatarUrl: selfProfile?.avatarUrl ?? null,
+            name: selfProfile?.name ?? selfProfile?.username ?? null,
+            username: selfProfile?.username ?? null,
+          }
+        : null,
+    [userCoords, selfProfile],
+  );
+
+  // Locale-aware label below the SELF avatar — "你" / "You" / etc.
+  // Falls back to "你" if the i18n key is missing in any locale.
+  const selfLabel = t('common.you', { defaultValue: '你' }) as string;
+
   const html = useMemo(
-    () => buildMapHtml(GOOGLE_PLACES_API_KEY, friendsWithLocation, center, userCoords),
-    [friendsWithLocation, center, userCoords],
+    () => buildMapHtml(GOOGLE_PLACES_API_KEY, friendsWithLocation, center, selfMarker, selfLabel),
+    [friendsWithLocation, center, selfMarker, selfLabel],
   );
 
   return (
