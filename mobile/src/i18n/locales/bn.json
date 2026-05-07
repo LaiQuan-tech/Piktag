@@ -418,7 +418,8 @@
       "writing": "লেখা",
       "business": "ব্যবসা",
       "generic": "সাধারণ"
-    }
+    },
+    "shareNow": "প্রোফাইল সম্পূর্ণ — তোমার PikTag QR শেয়ার করো"
   },
   "friendDetail": {
     "reminderBirthday": "জন্মদিন",
@@ -773,7 +774,8 @@
     "dragSelectTarget": "অদলবদল করতে ট্যাগে ট্যাপ করুন",
     "tagLimitTitle": "ট্যাগ সীমা",
     "tagLimitMessage": "আপনি সর্বোচ্চ {{max}} টি ট্যাগ যোগ করতে পারেন",
-    "aiErrorGeneric": "AI সাজেশন সাময়িকভাবে অনুপলব্ধ, পরে আবার চেষ্টা করুন"
+    "aiErrorGeneric": "AI সাজেশন সাময়িকভাবে অনুপলব্ধ, পরে আবার চেষ্টা করুন",
+    "nativeHintNoPin": "লং প্রেস করে টেনে সাজাও"
   },
   "activityReview": {
     "noNewFriends": "রিভিউ করার মতো কোনো নতুন বন্ধু নেই",

@@ -418,7 +418,8 @@
       "writing": "ライティング",
       "business": "ビジネス",
       "generic": "一般"
-    }
+    },
+    "shareNow": "プロフィール完成 — PikTag QR をシェア"
   },
   "friendDetail": {
     "reminderBirthday": "誕生日",
@@ -773,7 +774,8 @@
     "dragSelectTarget": "入れ替えるタグをタップ",
     "tagLimitTitle": "タグの上限",
     "tagLimitMessage": "最大{{max}}個のタグを追加できます",
-    "aiErrorGeneric": "AIの提案は一時的に利用できません。後ほどお試しください"
+    "aiErrorGeneric": "AIの提案は一時的に利用できません。後ほどお試しください",
+    "nativeHintNoPin": "長押しでドラッグして並び替え"
   },
   "activityReview": {
     "noNewFriends": "確認する新しい友達がいません",

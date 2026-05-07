@@ -418,7 +418,8 @@
       "writing": "Тексты",
       "business": "Бизнес",
       "generic": "Общие"
-    }
+    },
+    "shareNow": "Профиль готов — поделись своим QR PikTag"
   },
   "friendDetail": {
     "reminderBirthday": "День рождения",
@@ -773,7 +774,8 @@
     "dragSelectTarget": "Нажми тег, чтобы поменять местами",
     "tagLimitTitle": "Лимит тегов",
     "tagLimitMessage": "Можно добавить максимум {{max}} тегов",
-    "aiErrorGeneric": "Подсказки ИИ временно недоступны, попробуй позже"
+    "aiErrorGeneric": "Подсказки ИИ временно недоступны, попробуй позже",
+    "nativeHintNoPin": "Удерживай и тяни, чтобы переставить"
   },
   "activityReview": {
     "noNewFriends": "Новых друзей для просмотра нет",

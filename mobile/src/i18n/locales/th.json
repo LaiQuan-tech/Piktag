@@ -418,7 +418,8 @@
       "writing": "งานเขียน",
       "business": "ธุรกิจ",
       "generic": "ทั่วไป"
-    }
+    },
+    "shareNow": "โปรไฟล์เสร็จสมบูรณ์ — แชร์ PikTag QR ของคุณ"
   },
   "friendDetail": {
     "reminderBirthday": "วันเกิด",
@@ -773,7 +774,8 @@
     "dragSelectTarget": "แตะแท็กเพื่อสลับ",
     "tagLimitTitle": "ขีดจำกัดแท็ก",
     "tagLimitMessage": "คุณสามารถเพิ่มได้สูงสุด {{max}} แท็ก",
-    "aiErrorGeneric": "คำแนะนำ AI ไม่พร้อมใช้งานชั่วคราว โปรดลองอีกครั้งในภายหลัง"
+    "aiErrorGeneric": "คำแนะนำ AI ไม่พร้อมใช้งานชั่วคราว โปรดลองอีกครั้งในภายหลัง",
+    "nativeHintNoPin": "กดค้างแล้วลากเพื่อจัดเรียง"
   },
   "activityReview": {
     "noNewFriends": "ไม่มีเพื่อนใหม่ให้ตรวจสอบ",

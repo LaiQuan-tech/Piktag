@@ -418,7 +418,8 @@
       "writing": "كتابة",
       "business": "أعمال",
       "generic": "عام"
-    }
+    },
+    "shareNow": "الملف الشخصي مكتمل — شارك رمز PikTag QR"
   },
   "friendDetail": {
     "reminderBirthday": "عيد الميلاد",
@@ -773,7 +774,8 @@
     "dragSelectTarget": "انقر على الوسم للتبديل",
     "tagLimitTitle": "حد الوسوم",
     "tagLimitMessage": "يمكنك إضافة {{max}} وسمًا كحد أقصى",
-    "aiErrorGeneric": "اقتراحات الذكاء الاصطناعي غير متاحة مؤقتًا، يُرجى المحاولة لاحقًا"
+    "aiErrorGeneric": "اقتراحات الذكاء الاصطناعي غير متاحة مؤقتًا، يُرجى المحاولة لاحقًا",
+    "nativeHintNoPin": "اضغط مطولاً واسحب لإعادة الترتيب"
   },
   "activityReview": {
     "noNewFriends": "لا يوجد أصدقاء جدد للمراجعة",

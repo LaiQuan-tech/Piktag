@@ -429,7 +429,8 @@
       "writing": "寫作出版",
       "business": "商務金流",
       "generic": "通用"
-    }
+    },
+    "shareNow": "個人頁完成 — 分享你的 PikTag QR"
   },
   "friendDetail": {
     "reminderBirthday": "生日",
@@ -830,7 +831,8 @@
     "dragSelectTarget": "點選要交換位置的標籤",
     "tagLimitTitle": "標籤上限",
     "tagLimitMessage": "最多只能新增 {{max}} 個標籤",
-    "aiErrorGeneric": "AI 推薦暫時無法使用，稍後再試"
+    "aiErrorGeneric": "AI 推薦暫時無法使用，稍後再試",
+    "nativeHintNoPin": "長按拖曳排序"
   },
   "activityReview": {
     "noNewFriends": "沒有需要整理的新朋友",

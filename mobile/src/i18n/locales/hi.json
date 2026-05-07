@@ -418,7 +418,8 @@
       "writing": "लेखन",
       "business": "व्यापार",
       "generic": "सामान्य"
-    }
+    },
+    "shareNow": "प्रोफाइल पूर्ण — अपना PikTag QR शेयर करें"
   },
   "friendDetail": {
     "reminderBirthday": "जन्मदिन",
@@ -773,7 +774,8 @@
     "dragSelectTarget": "बदलने के लिए टैग पर टैप करें",
     "tagLimitTitle": "टैग सीमा",
     "tagLimitMessage": "आप अधिकतम {{max}} टैग जोड़ सकते हैं",
-    "aiErrorGeneric": "AI सुझाव अस्थायी रूप से उपलब्ध नहीं हैं, बाद में कोशिश करें"
+    "aiErrorGeneric": "AI सुझाव अस्थायी रूप से उपलब्ध नहीं हैं, बाद में कोशिश करें",
+    "nativeHintNoPin": "दबाकर खींचकर क्रम बदलें"
   },
   "activityReview": {
     "noNewFriends": "समीक्षा के लिए कोई नया दोस्त नहीं",

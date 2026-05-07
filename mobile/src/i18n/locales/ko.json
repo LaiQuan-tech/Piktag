@@ -418,7 +418,8 @@
       "writing": "글쓰기",
       "business": "비즈니스",
       "generic": "일반"
-    }
+    },
+    "shareNow": "프로필 완성 — PikTag QR 공유하기"
   },
   "friendDetail": {
     "reminderBirthday": "생일",
@@ -773,7 +774,8 @@
     "dragSelectTarget": "교체할 태그를 탭하세요",
     "tagLimitTitle": "태그 한도",
     "tagLimitMessage": "최대 {{max}}개의 태그를 추가할 수 있습니다",
-    "aiErrorGeneric": "AI 추천을 일시적으로 사용할 수 없습니다. 나중에 다시 시도하세요"
+    "aiErrorGeneric": "AI 추천을 일시적으로 사용할 수 없습니다. 나중에 다시 시도하세요",
+    "nativeHintNoPin": "길게 눌러 드래그해 정렬하기"
   },
   "activityReview": {
     "noNewFriends": "검토할 새 친구가 없습니다",

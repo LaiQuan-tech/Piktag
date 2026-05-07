@@ -426,7 +426,8 @@
       "writing": "Writing",
       "business": "Business",
       "generic": "General"
-    }
+    },
+    "shareNow": "Profile complete — share your PikTag QR"
   },
   "friendDetail": {
     "reminderBirthday": "Birthday",
@@ -841,7 +842,8 @@
     "dragSelectTarget": "Tap the tag to swap with",
     "tagLimitTitle": "Tag limit",
     "tagLimitMessage": "You can add up to {{max}} tags",
-    "aiErrorGeneric": "AI suggestions are temporarily unavailable, please try again later"
+    "aiErrorGeneric": "AI suggestions are temporarily unavailable, please try again later",
+    "nativeHintNoPin": "Long press to drag and reorder"
   },
   "activityReview": {
     "noNewFriends": "No new friends to review",

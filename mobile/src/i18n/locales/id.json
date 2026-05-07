@@ -418,7 +418,8 @@
       "writing": "Tulisan",
       "business": "Bisnis",
       "generic": "Umum"
-    }
+    },
+    "shareNow": "Profil lengkap — bagikan QR PikTag-mu"
   },
   "friendDetail": {
     "reminderBirthday": "Ulang Tahun",
@@ -773,7 +774,8 @@
     "dragSelectTarget": "Ketuk tag untuk ditukar",
     "tagLimitTitle": "Batas tag",
     "tagLimitMessage": "Anda dapat menambahkan hingga {{max}} tag",
-    "aiErrorGeneric": "Saran AI sementara tidak tersedia, coba lagi nanti"
+    "aiErrorGeneric": "Saran AI sementara tidak tersedia, coba lagi nanti",
+    "nativeHintNoPin": "Tekan lama lalu seret untuk mengurutkan"
   },
   "activityReview": {
     "noNewFriends": "Tidak ada teman baru untuk ditinjau",

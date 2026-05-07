@@ -418,7 +418,8 @@
       "writing": "Écriture",
       "business": "Business",
       "generic": "Général"
-    }
+    },
+    "shareNow": "Profil terminé — partage ton QR PikTag"
   },
   "friendDetail": {
     "reminderBirthday": "Anniversaire",
@@ -773,7 +774,8 @@
     "dragSelectTarget": "Touchez le tag à échanger",
     "tagLimitTitle": "Limite de tags",
     "tagLimitMessage": "Vous pouvez ajouter jusqu'à {{max}} tags",
-    "aiErrorGeneric": "Suggestions IA temporairement indisponibles, réessayez plus tard"
+    "aiErrorGeneric": "Suggestions IA temporairement indisponibles, réessayez plus tard",
+    "nativeHintNoPin": "Maintiens et glisse pour réorganiser"
   },
   "activityReview": {
     "noNewFriends": "Aucun nouvel ami à examiner",

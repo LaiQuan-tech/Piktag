@@ -1430,7 +1430,7 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
                   >
                     <CheckCircle2 size={18} color={COLORS.white} />
                     <Text style={styles.completionShareCtaText}>
-                      {t('editProfile.shareNow') || '個人頁完成 — 分享你的 PikTag QR'}
+                      {t('editProfile.shareNow', { defaultValue: '個人頁完成 — 分享你的 PikTag QR' })}
                     </Text>
                   </TouchableOpacity>
                 )}
@@ -1552,7 +1552,7 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
                 pulled out as a future paid feature. */}
             {userTags.length > 1 && Platform.OS !== 'web' && (
               <Text style={styles.tag_sortHint}>
-                {t('manageTags.nativeHintNoPin') || '長按拖曳排序'}
+                {t('manageTags.nativeHintNoPin', { defaultValue: '長按拖曳排序' })}
               </Text>
             )}
 

@@ -418,7 +418,8 @@
       "writing": "Yazı",
       "business": "İş",
       "generic": "Genel"
-    }
+    },
+    "shareNow": "Profil tamam — PikTag QR'unu paylaş"
   },
   "friendDetail": {
     "reminderBirthday": "Doğum Günü",
@@ -773,7 +774,8 @@
     "dragSelectTarget": "Değiştirmek için etikete dokunun",
     "tagLimitTitle": "Etiket limiti",
     "tagLimitMessage": "En fazla {{max}} etiket ekleyebilirsiniz",
-    "aiErrorGeneric": "AI önerileri geçici olarak kullanılamıyor, lütfen daha sonra tekrar deneyin"
+    "aiErrorGeneric": "AI önerileri geçici olarak kullanılamıyor, lütfen daha sonra tekrar deneyin",
+    "nativeHintNoPin": "Sürüklemek için basılı tut"
   },
   "activityReview": {
     "noNewFriends": "İncelenecek yeni arkadaş yok",

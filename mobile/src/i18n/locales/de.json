@@ -426,7 +426,8 @@
       "writing": "Schreiben",
       "business": "Business",
       "generic": "Allgemein"
-    }
+    },
+    "shareNow": "Profil fertig — teil deinen PikTag-QR"
   },
   "friendDetail": {
     "reminderBirthday": "Geburtstag",
@@ -841,7 +842,8 @@
     "dragSelectTarget": "Tippe das Tag an, mit dem getauscht werden soll",
     "tagLimitTitle": "Tag-Limit",
     "tagLimitMessage": "Du kannst bis zu {{max}} Tags hinzufügen",
-    "aiErrorGeneric": "KI-Vorschläge sind vorübergehend nicht verfügbar, bitte versuche es später erneut"
+    "aiErrorGeneric": "KI-Vorschläge sind vorübergehend nicht verfügbar, bitte versuche es später erneut",
+    "nativeHintNoPin": "Lang drücken zum Ziehen und Sortieren"
   },
   "activityReview": {
     "noNewFriends": "Keine neuen Freunde zum Durchsehen",

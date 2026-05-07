@@ -418,7 +418,8 @@
       "writing": "Escritura",
       "business": "Negocio",
       "generic": "General"
-    }
+    },
+    "shareNow": "Perfil listo — comparte tu QR de PikTag"
   },
   "friendDetail": {
     "reminderBirthday": "Cumpleaños",
@@ -773,7 +774,8 @@
     "dragSelectTarget": "Toca la etiqueta para intercambiar",
     "tagLimitTitle": "Límite de etiquetas",
     "tagLimitMessage": "Puedes añadir hasta {{max}} etiquetas",
-    "aiErrorGeneric": "Las sugerencias de IA no están disponibles temporalmente, inténtalo más tarde"
+    "aiErrorGeneric": "Las sugerencias de IA no están disponibles temporalmente, inténtalo más tarde",
+    "nativeHintNoPin": "Mantén presionado para arrastrar y reordenar"
   },
   "activityReview": {
     "noNewFriends": "No hay amigos nuevos para revisar",

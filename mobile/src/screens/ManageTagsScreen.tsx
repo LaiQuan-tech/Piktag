@@ -380,7 +380,7 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
 
             {/* Hint — pin gesture removed with the feature. */}
             {myTags.length > 1 && Platform.OS !== 'web' && (
-              <Text style={styles.sortHint}>{t('manageTags.nativeHintNoPin') || '長按拖曳排序'}</Text>
+              <Text style={styles.sortHint}>{t('manageTags.nativeHintNoPin', { defaultValue: '長按拖曳排序' })}</Text>
             )}
 
             {/* My tags — native: draggable chips / web: tap-to-swap */}
