@@ -14,16 +14,22 @@ import { COLORS } from '../../constants/theme';
 
 /**
  * Brand-coloured rotating spinner used at micro-scale (in-button, toolbar,
- * inline status). The arc is a 90° wedge of the PikTag gradient
- * (`#ff5757 → #c44dff → #8c52ff`) sweeping a full revolution every 1.2s
- * with a small `piktag500` dot in the centre to anchor the eye.
+ * inline status). The arc is a 270° wedge of the PikTag gradient
+ * (`#ff5757 → #c44dff → #8c52ff`) sweeping a full revolution every 1s.
+ *
+ * Why 270° + no centre dot: earlier iteration used a 90° arc with a
+ * `piktag500` centre dot. At size 16 the short gradient arc was visually
+ * invisible — only the dot read, so the spinner looked like a static "•"
+ * and users couldn't tell anything was loading. Switching to a 3/4 ring
+ * with no anchoring dot makes it unmistakably a loading indicator at any
+ * size, matching the universal pattern (Material, iOS, ChatGPT, etc.).
  *
  * For larger / page-level loading use `<LogoLoader />` instead — this is
  * the small sibling.
  *
  * Respects `useReducedMotion()`: when reduced motion is enabled the
- * component renders a static centre dot (no rotating ring) so we still
- * occupy the same footprint without animating.
+ * component renders a static (non-rotating) brand-purple ring so we
+ * still communicate "in progress" visually without animating.
  */
 
 export type BrandSpinnerSize = 16 | 20 | 24 | 32;
@@ -35,23 +41,14 @@ export type BrandSpinnerProps = {
 };
 
 // The stroke needs to scale with size so the arc reads at every step.
-// Tuned by eye against a real device — 16/20 want a 2px stroke, 24 a
-// 2.5px feel (rounded to 3 since SVG strokes look thin when antialiased
-// over small radii) and 32 wants 3.5px.
+// Bumped from the previous (90°-arc) tuning because the new 270° arc
+// asks more of the stroke at small sizes. Tested on iPhone — 16px now
+// reads clearly as a 3/4 ring rather than a fuzzy line.
 function strokeForSize(size: BrandSpinnerSize): number {
-  if (size <= 16) return 2;
-  if (size <= 20) return 2;
-  if (size <= 24) return 2.5;
-  return 3;
-}
-
-// Centre dot diameter — small enough to feel like a focal anchor, never
-// fighting with the arc. Caller-visible via `dotSize / 2` calc below.
-function dotForSize(size: BrandSpinnerSize): number {
-  if (size <= 16) return 3;
-  if (size <= 20) return 3;
-  if (size <= 24) return 4;
-  return 5;
+  if (size <= 16) return 2.5;
+  if (size <= 20) return 2.5;
+  if (size <= 24) return 3;
+  return 3.5;
 }
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
@@ -60,21 +57,23 @@ function BrandSpinnerImpl({ size = 24, style }: BrandSpinnerProps) {
   const reduced = useReducedMotion();
   const rotation = useSharedValue(0);
   const stroke = strokeForSize(size);
-  const dotSize = dotForSize(size);
 
   // Inset by half the stroke width so the arc never bleeds out of the
   // SVG viewport — otherwise stroke is clipped on rotation frames.
   const radius = (size - stroke) / 2;
   const circumference = 2 * Math.PI * radius;
-  // 90° arc = 1/4 of the full circumference; the remaining 3/4 is gap.
-  const arcLength = circumference / 4;
+  // 270° arc = 3/4 of circumference (visible "ring with one gap"); the
+  // remaining 1/4 is the open gap that gives the spinning shape its
+  // "loading" reading. This is the universal indeterminate-progress
+  // ratio (Material, iOS UIActivityIndicator, etc.).
+  const arcLength = circumference * 0.75;
   const dashOffset = circumference - arcLength;
 
   React.useEffect(() => {
     if (reduced) return;
     rotation.value = 0;
     rotation.value = withRepeat(
-      withTiming(360, { duration: 1200, easing: Easing.linear }),
+      withTiming(360, { duration: 1000, easing: Easing.linear }),
       -1,
       false,
     );
@@ -89,17 +88,24 @@ function BrandSpinnerImpl({ size = 24, style }: BrandSpinnerProps) {
     [size],
   );
 
-  // Reduced-motion fallback: render only the central dot (matches the
-  // visual footprint without spinning).
+  // Reduced-motion fallback: render the same 3/4 ring statically (no
+  // rotation), so accessibility users still see a "loading shape"
+  // instead of a featureless dot.
   if (reduced) {
     return (
       <View style={[styles.center, containerStyle, style]}>
-        <View
-          style={[
-            styles.dot,
-            { width: dotSize, height: dotSize, borderRadius: dotSize / 2 },
-          ]}
-        />
+        <Svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+          <Circle
+            cx={size / 2}
+            cy={size / 2}
+            r={radius}
+            stroke={COLORS.piktag500}
+            strokeWidth={stroke}
+            strokeLinecap="round"
+            strokeDasharray={`${arcLength} ${dashOffset}`}
+            fill="transparent"
+          />
+        </Svg>
       </View>
     );
   }
@@ -127,17 +133,6 @@ function BrandSpinnerImpl({ size = 24, style }: BrandSpinnerProps) {
           />
         </Svg>
       </Animated.View>
-      <View
-        style={[
-          styles.dot,
-          {
-            width: dotSize,
-            height: dotSize,
-            borderRadius: dotSize / 2,
-            position: 'absolute',
-          },
-        ]}
-      />
     </View>
   );
 }
@@ -156,8 +151,5 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  dot: {
-    backgroundColor: COLORS.piktag500,
   },
 });
