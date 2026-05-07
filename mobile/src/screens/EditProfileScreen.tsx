@@ -15,7 +15,7 @@ import {
   Linking,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ArrowLeft, Plus, Pencil, Trash2, X, Hash, EyeOff, Eye, GripVertical, ChevronDown, Sparkles, CheckCircle2, RefreshCw, Pin, AlertTriangle, ArrowLeftRight, ChevronUp } from 'lucide-react-native';
+import { ArrowLeft, Plus, Pencil, Trash2, X, Hash, EyeOff, Eye, GripVertical, ChevronDown, Sparkles, CheckCircle2, RefreshCw, AlertTriangle, ArrowLeftRight, ChevronUp } from 'lucide-react-native';
 import { logApiUsage } from '../lib/apiUsage';
 import RingedAvatar from '../components/RingedAvatar';
 import DraggableFlatList, { RenderItemParams, ScaleDecorator } from 'react-native-draggable-flatlist';
@@ -50,12 +50,15 @@ import {
 } from '../lib/platforms';
 
 // Tag-management constants — moved here so EditProfileScreen owns
-// the full tag editing surface (add / remove / drag / pin / cap).
+// the full tag editing surface (add / remove / drag / cap).
 // Mirrors what ManageTagsScreen used; both pages should produce the
-// same constraints.
+// same constraints. NOTE: tag pinning ("標籤置頂") was removed from
+// this screen — it's reserved as a future paid feature. The
+// `is_pinned` column on piktag_user_tags is kept intact in the
+// schema and existing rows still sort by it on detail screens, but
+// no UI here lets users toggle it.
 const MAX_TAGS = 10;
 const MAX_TAG_LENGTH = 30;
-const MAX_PINNED = 1;
 
 // DraggableChips uses react-native-reanimated which crashes on web.
 // Same conditional require pattern as ManageTagsScreen used.
@@ -1204,15 +1207,15 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
 
   // ── Tag management (ported from ManageTagsScreen) ──────────────────
   // EditProfile is now the single home for tag editing — chips here
-  // support drag-to-reorder, double-tap-to-pin, and tap-the-X to
-  // remove, in addition to the existing add-via-input + AI suggestions
-  // + popular-tags flows. Mirrors ManageTagsScreen handler shape so
-  // DraggableChips wiring works identically.
-
-  const pinnedCount = useMemo(
-    () => userTags.filter((t) => (t as any).is_pinned).length,
-    [userTags],
-  );
+  // support drag-to-reorder and tap-the-X to remove, in addition to
+  // the existing add-via-input + AI suggestions + popular-tags flows.
+  // Mirrors ManageTagsScreen handler shape so DraggableChips wiring
+  // works identically.
+  //
+  // Tag pinning was removed — kept as a future paid feature. The
+  // is_pinned column still exists in piktag_user_tags and existing
+  // rows still sort first on detail screens, but no UI here lets you
+  // toggle it.
 
   // Convert userTags → DraggableChips items shape.
   const chipItems = useMemo(
@@ -1222,57 +1225,9 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
         return {
           id: ut.id,
           label: name.startsWith('#') ? name : `#${name}`,
-          isPinned: (ut as any).is_pinned || false,
         };
       }),
     [userTags],
-  );
-
-  // Toggle pin on a tag. Pinned tags float to the front; one tap to
-  // pin floats it, second tap unpins (keeps current position).
-  // Optimistic UI update + fire-and-forget DB sync.
-  const handleTogglePin = useCallback(
-    async (userTag: UserTag & { tag?: Tag }) => {
-      if (!userId) return;
-      const isPinned = (userTag as any).is_pinned || false;
-      // Cap reached and the user is trying to pin a different tag —
-      // silently ignore (button is also visually subdued in this
-      // state via the chipPinned guard inside DraggableChips).
-      if (!isPinned && pinnedCount >= MAX_PINNED) return;
-      const newPinned = !isPinned;
-
-      let newOrder: typeof userTags = [];
-      setUserTags((prev) => {
-        const updated = prev.map((t) =>
-          t.id === userTag.id ? ({ ...t, is_pinned: newPinned } as any) : t,
-        );
-        if (newPinned) {
-          const tag = updated.find((t) => t.id === userTag.id)!;
-          const rest = updated.filter((t) => t.id !== userTag.id);
-          newOrder = [tag, ...rest];
-        } else {
-          newOrder = updated;
-        }
-        return newOrder;
-      });
-
-      // Persist: pin flag + new positions. Errors fall through to a
-      // refetch so the UI matches DB state on next focus.
-      try {
-        await supabase
-          .from('piktag_user_tags')
-          .update({ is_pinned: newPinned })
-          .eq('id', userTag.id);
-        await Promise.all(
-          newOrder.map((t, i) =>
-            supabase.from('piktag_user_tags').update({ position: i }).eq('id', t.id),
-          ),
-        );
-      } catch {
-        await fetchUserTags();
-      }
-    },
-    [userId, pinnedCount, fetchUserTags],
   );
 
   // Drag-to-reorder finished — persist new positions.
@@ -1294,14 +1249,6 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
       }
     },
     [userTags, fetchUserTags],
-  );
-
-  const handleChipDoubleTap = useCallback(
-    (chipItem: { id: string }) => {
-      const ut = userTags.find((t) => t.id === chipItem.id);
-      if (ut) handleTogglePin(ut);
-    },
-    [userTags, handleTogglePin],
   );
 
   const handleChipRemove = useCallback(
@@ -1593,21 +1540,19 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
                     <AlertTriangle size={13} color={COLORS.red500} />
                   )}
                 </View>
-                {userTags.length > 0 && (
-                  <View style={styles.tag_countItem}>
-                    <Pin size={11} color={COLORS.gray400} />
-                    <Text style={styles.tag_countText}>{pinnedCount}/{MAX_PINNED}</Text>
-                  </View>
-                )}
+                {/* Pinned count badge removed — pinning is a future
+                    paid feature. */}
               </View>
             </View>
 
             {/* Hint text — only shown for native (DraggableChips
-                supports the gestures). Web tap-to-swap has its own
-                inline hint when a chip is selected. */}
+                supports the gesture). Web tap-to-swap has its own
+                inline hint when a chip is selected. Note: the
+                "雙擊置頂" pinning hint was removed when pinning was
+                pulled out as a future paid feature. */}
             {userTags.length > 1 && Platform.OS !== 'web' && (
               <Text style={styles.tag_sortHint}>
-                {t('manageTags.nativeHint') || '長按拖曳排序 · 雙擊置頂'}
+                {t('manageTags.nativeHintNoPin') || '長按拖曳排序'}
               </Text>
             )}
 
@@ -1618,7 +1563,6 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
                   items={chipItems}
                   onReorder={handleChipReorder}
                   onRemove={handleChipRemove}
-                  onDoubleTap={handleChipDoubleTap}
                   onDragStateChange={setIsDragging}
                 />
               ) : (
@@ -1638,7 +1582,6 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
                   )}
                   <View style={styles.tag_chipsContainer}>
                     {userTags.map((ut) => {
-                      const isPinned = (ut as any).is_pinned;
                       const isSelected = ut.id === selectedTagId;
                       const dn = getTagDisplayName(ut);
                       return (
@@ -1646,21 +1589,11 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
                           key={ut.id}
                           style={[
                             styles.tag_webChip,
-                            isPinned && styles.tag_webChipPinned,
                             isSelected && styles.tag_webChipSelected,
                           ]}
                           onPress={() => handleTagTap(ut)}
-                          onLongPress={() => handleTogglePin(ut)}
                         >
-                          {isPinned && (
-                            <Pin size={11} color={COLORS.piktag600} fill={COLORS.piktag600} />
-                          )}
-                          <Text
-                            style={[
-                              styles.tag_webChipText,
-                              isPinned && styles.tag_webChipTextPinned,
-                            ]}
-                          >
+                          <Text style={styles.tag_webChipText}>
                             {dn}
                           </Text>
                           <Pressable
@@ -2984,20 +2917,12 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: COLORS.piktag500,
   },
-  tag_webChipPinned: {
-    backgroundColor: '#FFFBEB',
-    borderColor: COLORS.piktag400,
-  },
   tag_webChipSelected: {
     borderColor: COLORS.piktag600,
     borderWidth: 2,
   },
   tag_webChipText: {
     fontSize: 14,
-    fontWeight: '700',
-    color: COLORS.piktag600,
-  },
-  tag_webChipTextPinned: {
     fontWeight: '700',
     color: COLORS.piktag600,
   },

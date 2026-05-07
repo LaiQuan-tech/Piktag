@@ -15,7 +15,7 @@ import PageLoader from '../components/loaders/PageLoader';
 import BrandSpinner from '../components/loaders/BrandSpinner';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import { X, Hash, Pin, Sparkles, ArrowLeftRight, AlertTriangle, Plus } from 'lucide-react-native';
+import { X, Hash, Sparkles, ArrowLeftRight, AlertTriangle, Plus } from 'lucide-react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from '../lib/supabase';
 import { logApiUsage } from '../lib/apiUsage';
@@ -29,7 +29,9 @@ import type { Tag, UserTag } from '../types';
 
 const MAX_TAGS = 10;
 const MAX_TAG_LENGTH = 30;
-const MAX_PINNED = 1;
+// Tag pinning ("標籤置頂") removed — reserved as a future paid
+// feature. is_pinned column on piktag_user_tags stays in the schema
+// for forward compatibility.
 
 
 type ManageTagsScreenProps = { navigation: NativeStackNavigationProp<any> };
@@ -194,8 +196,6 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
     [aiSuggestions, myTagNames],
   );
 
-  const pinnedCount = useMemo(() => myTags.filter((t) => (t as any).is_pinned).length, [myTags]);
-
   // ── Helpers ──────────────────────────────────────────────────────────
 
   const findOrCreateTag = useCallback(async (name: string): Promise<string | null> => {
@@ -276,35 +276,6 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
     await loadMyTags();
   }, [user, myTagNames, myTags.length, findOrCreateTag, linkTagToUser, loadMyTags]);
 
-  const handleTogglePin = useCallback(async (userTag: UserTag & { tag?: Tag }) => {
-    if (!user) return;
-    const isPinned = (userTag as any).is_pinned || false;
-    if (!isPinned && pinnedCount >= MAX_PINNED) return;
-    const newPinned = !isPinned;
-    // Optimistic: toggle pin + move to front (pin) or keep position (unpin)
-    let newOrder: typeof myTags;
-    setMyTags(prev => {
-      const updated = prev.map(t => t.id === userTag.id ? { ...t, is_pinned: newPinned } as any : t);
-      if (newPinned) {
-        const tag = updated.find(t => t.id === userTag.id)!;
-        const rest = updated.filter(t => t.id !== userTag.id);
-        newOrder = [tag, ...rest];
-      } else {
-        newOrder = updated;
-      }
-      return newOrder;
-    });
-    // DB: update pin flag + positions (fire and forget)
-    supabase.from('piktag_user_tags').update({ is_pinned: newPinned }).eq('id', userTag.id).then(() => {
-      const order = newPinned
-        ? [userTag, ...myTags.filter(t => t.id !== userTag.id)]
-        : myTags;
-      Promise.all(order.map((tag, i) =>
-        supabase.from('piktag_user_tags').update({ position: i }).eq('id', tag.id)
-      ));
-    });
-  }, [user, pinnedCount, myTags]);
-
   /** Chip reorder — save positions to DB */
   const handleChipReorder = useCallback(async (newItems: { id: string; label: string; isPinned?: boolean }[]) => {
     // Map back to myTags order
@@ -318,12 +289,6 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
     } catch { await loadMyTags(); }
   }, [myTags, loadMyTags]);
 
-  /** Chip double-tap → toggle pin */
-  const handleChipDoubleTap = useCallback((chipItem: { id: string }) => {
-    const ut = myTags.find(t => t.id === chipItem.id);
-    if (ut) handleTogglePin(ut);
-  }, [myTags, handleTogglePin]);
-
   /** Chip remove */
   const handleChipRemove = useCallback((chipItem: { id: string }) => {
     const ut = myTags.find(t => t.id === chipItem.id);
@@ -334,7 +299,6 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
   const chipItems = useMemo(() => myTags.map(ut => ({
     id: ut.id,
     label: (ut.tag?.name ?? '').startsWith('#') ? ut.tag!.name : `#${ut.tag?.name ?? ''}`,
-    isPinned: (ut as any).is_pinned || false,
   })), [myTags]);
 
   /** Web: tap-to-swap */
@@ -410,17 +374,13 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
                 </Text>
                 {myTags.length >= MAX_TAGS && <AlertTriangle size={13} color="#EF4444" />}
               </View>
-              {myTags.length > 0 && (
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
-                  <Pin size={12} color={COLORS.gray400} />
-                  <Text style={styles.tagCountText}>{pinnedCount}/{MAX_PINNED}</Text>
-                </View>
-              )}
+              {/* Pin count badge removed — pinning is reserved for a
+                  future paid feature. */}
             </View>
 
-            {/* Hint */}
+            {/* Hint — pin gesture removed with the feature. */}
             {myTags.length > 1 && Platform.OS !== 'web' && (
-              <Text style={styles.sortHint}>{t('manageTags.nativeHint') || '長按拖曳排序 · 雙擊置頂'}</Text>
+              <Text style={styles.sortHint}>{t('manageTags.nativeHintNoPin') || '長按拖曳排序'}</Text>
             )}
 
             {/* My tags — native: draggable chips / web: tap-to-swap */}
@@ -429,7 +389,6 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
                 items={chipItems}
                 onReorder={handleChipReorder}
                 onRemove={handleChipRemove}
-                onDoubleTap={handleChipDoubleTap}
                 onDragStateChange={setIsDragging}
               />
             ) : (
@@ -445,19 +404,16 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
                 )}
                 <View style={styles.chipsWrap}>
                   {myTags.map((ut) => {
-                    const isPinned = (ut as any).is_pinned;
                     const isSelected = ut.id === selectedTagId;
                     const name = ut.tag?.name ?? '';
                     const dn = name.startsWith('#') ? name : `#${name}`;
                     return (
                       <Pressable
                         key={ut.id}
-                        style={[styles.chip, isPinned && styles.chipPinned, isSelected && styles.chipSelected]}
+                        style={[styles.chip, isSelected && styles.chipSelected]}
                         onPress={() => handleTagTap(ut)}
-                        onLongPress={() => handleTogglePin(ut)}
                       >
-                        {isPinned && <Pin size={11} color={COLORS.piktag600} fill={COLORS.piktag600} />}
-                        <Text style={[styles.chipText, isPinned && styles.chipTextPinned]}>{dn}</Text>
+                        <Text style={styles.chipText}>{dn}</Text>
                         <Pressable onPress={() => handleRemoveTag(ut)} style={styles.chipX}>
                           <X size={14} color={COLORS.gray400} />
                         </Pressable>
@@ -618,10 +574,8 @@ const styles = StyleSheet.create({
     paddingVertical: 8, paddingLeft: 14, paddingRight: 6,
     borderWidth: 1.5, borderColor: COLORS.piktag500,
   },
-  chipPinned: { backgroundColor: '#FFFBEB', borderColor: COLORS.piktag400 },
   chipSelected: { borderColor: COLORS.piktag600, borderWidth: 2 },
   chipText: { fontSize: 14, fontWeight: '700', color: COLORS.piktag600 },
-  chipTextPinned: { fontWeight: '700', color: COLORS.piktag600 },
   chipX: { padding: 4 },
   emptyText: { fontSize: 14, color: COLORS.gray400, paddingHorizontal: 20, paddingVertical: 8 },
 
