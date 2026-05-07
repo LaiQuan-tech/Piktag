@@ -635,9 +635,9 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
             {
               key: 'contacts',
               icon: Users,
-              title: t('connections.coldStartActionContacts') || '同步通訊錄',
-              desc: t('connections.coldStartActionContactsDesc') || '幫聯絡人貼標籤、找出已在 PikTag 的朋友',
-              onPress: () => navigation.navigate('ContactSync'),
+              title: t('connections.coldStartActionContacts') || '幫聯絡人貼標籤',
+              desc: t('connections.coldStartActionContactsDesc') || '就算對方還沒註冊 PikTag — 等他加入，標籤會自動同步',
+              onPress: () => navigation.navigate('LocalContacts'),
             },
             {
               key: 'qr',

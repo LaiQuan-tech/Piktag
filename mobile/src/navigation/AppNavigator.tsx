@@ -270,6 +270,10 @@ function MainNavigator({ needsOnboarding }: { needsOnboarding: boolean }) {
           getComponent={() => require('../screens/ContactSyncScreen').default}
         />
         <RootStack.Screen
+          name="LocalContacts"
+          getComponent={() => require('../screens/LocalContactsScreen').default}
+        />
+        <RootStack.Screen
           name="Invite"
           getComponent={() => require('../screens/InviteScreen').default}
         />
