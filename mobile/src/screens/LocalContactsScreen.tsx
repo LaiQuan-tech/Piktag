@@ -43,6 +43,7 @@ import {
   Trash2,
   UserPlus,
   Hash,
+  Lock,
 } from 'lucide-react-native';
 import { COLORS } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
@@ -289,10 +290,13 @@ export default function LocalContactsScreen({ navigation }: LocalContactsScreenP
           <Text style={styles.emptyTitle}>
             {t('localContacts.emptyTitle') || '還沒有標籤聯絡人'}
           </Text>
-          <Text style={styles.emptyDesc}>
-            {t('localContacts.emptyDesc') ||
-              '🔒 幫通訊錄裡的人貼上私人標籤（只有你看得到）— 等他們註冊 PikTag，標籤會自動轉成你好友頁裡的隱藏標籤，對方永遠不會看到。'}
-          </Text>
+          <View style={styles.emptyDescRow}>
+            <Lock size={14} color={COLORS.gray500} />
+            <Text style={styles.emptyDesc}>
+              {t('localContacts.emptyDesc') ||
+                '幫通訊錄裡的人貼上私人標籤（只有你看得到）— 等他們註冊 PikTag，標籤會自動轉成你好友頁裡的隱藏標籤，對方永遠不會看到。'}
+            </Text>
+          </View>
           <TouchableOpacity style={styles.emptyPrimaryBtn} onPress={openAdd} activeOpacity={0.85}>
             <Plus size={18} color={COLORS.white} />
             <Text style={styles.emptyPrimaryBtnText}>
@@ -400,10 +404,13 @@ export default function LocalContactsScreen({ navigation }: LocalContactsScreenP
                 <Text style={styles.fieldLabel}>
                   {t('localContacts.fieldTags') || '標籤'} ({formTags.length}/{MAX_TAGS_PER_CONTACT})
                 </Text>
-                <Text style={styles.fieldHint}>
-                  {t('localContacts.tagsPrivacyHint') ||
-                    '🔒 只有你看得到的私人標籤 — 對方註冊 PikTag 後會出現在你好友頁的「隱藏標籤」區，永遠不會給對方或其他人看到。'}
-                </Text>
+                <View style={styles.privacyHintRow}>
+                  <Lock size={12} color={COLORS.gray500} />
+                  <Text style={styles.privacyHintText}>
+                    {t('localContacts.tagsPrivacyHint') ||
+                      '只有你看得到的私人標籤 — 對方註冊 PikTag 後會出現在你好友頁的「隱藏標籤」區，永遠不會給對方或其他人看到。'}
+                  </Text>
+                </View>
                 {formTags.length > 0 && (
                   <View style={styles.tagsRow}>
                     {formTags.map((tag) => (
@@ -531,10 +538,18 @@ const styles = StyleSheet.create({
     color: COLORS.gray900,
     marginTop: 12,
   },
+  emptyDescRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'center',
+    gap: 6,
+    paddingHorizontal: 8,
+  },
   emptyDesc: {
+    flex: 1,
     fontSize: 13,
     color: COLORS.gray500,
-    textAlign: 'center',
+    textAlign: 'left',
     lineHeight: 19,
   },
   emptyPrimaryBtn: {
@@ -663,6 +678,18 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: COLORS.gray500,
     marginTop: 4,
+    lineHeight: 16,
+  },
+  privacyHintRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 4,
+    marginTop: 6,
+  },
+  privacyHintText: {
+    flex: 1,
+    fontSize: 11,
+    color: COLORS.gray500,
     lineHeight: 16,
   },
   fieldInput: {

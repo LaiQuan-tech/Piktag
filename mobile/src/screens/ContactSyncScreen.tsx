@@ -32,6 +32,7 @@ import {
   Hash,
   X,
   Plus,
+  Lock,
 } from 'lucide-react-native';
 import { COLORS } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
@@ -827,9 +828,12 @@ export default function ContactSyncScreen({ navigation }: ContactSyncScreenProps
             >
               <View style={styles.tagModalHeader}>
                 <View style={{ flex: 1 }}>
-                  <Text style={styles.tagModalTitle}>
-                    {t('contactSync.tagModalTitle') || '🔒 私人標籤'}
-                  </Text>
+                  <View style={styles.tagModalTitleRow}>
+                    <Lock size={16} color={COLORS.gray700} />
+                    <Text style={styles.tagModalTitle}>
+                      {t('contactSync.tagModalTitle') || '私人標籤'}
+                    </Text>
+                  </View>
                   <Text style={styles.tagModalSubtitle} numberOfLines={1}>
                     {tagTarget?.name || ''}
                   </Text>
@@ -849,12 +853,15 @@ export default function ContactSyncScreen({ navigation }: ContactSyncScreenProps
                 keyboardShouldPersistTaps="handled"
                 showsVerticalScrollIndicator={false}
               >
-                <Text style={styles.tagModalHint}>
-                  {t('contactSync.tagModalHint', {
-                    max: MAX_TAGS_PER_CONTACT,
-                  }) ||
-                    `🔒 只有你看得到的私人標籤（最多 ${MAX_TAGS_PER_CONTACT} 個）— 對方註冊 PikTag 後，這些標籤會出現在你的好友頁的「隱藏標籤」區，永遠不會被對方或其他人看到。`}
-                </Text>
+                <View style={styles.tagModalHintRow}>
+                  <Lock size={12} color={COLORS.gray600} />
+                  <Text style={styles.tagModalHint}>
+                    {t('contactSync.tagModalHint', {
+                      max: MAX_TAGS_PER_CONTACT,
+                    }) ||
+                      `只有你看得到的私人標籤（最多 ${MAX_TAGS_PER_CONTACT} 個）— 對方註冊 PikTag 後，這些標籤會出現在你的好友頁的「隱藏標籤」區，永遠不會被對方或其他人看到。`}
+                  </Text>
+                </View>
 
                 {/* Picked tags strip */}
                 {pickedTags.length > 0 ? (
@@ -1260,6 +1267,11 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: COLORS.gray100,
   },
+  tagModalTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
   tagModalTitle: {
     fontSize: 17,
     fontWeight: '700',
@@ -1282,11 +1294,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 16,
   },
+  tagModalHintRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 6,
+    marginBottom: 14,
+  },
   tagModalHint: {
+    flex: 1,
     fontSize: 13,
     color: COLORS.gray600,
     lineHeight: 18,
-    marginBottom: 14,
   },
   pickedRow: {
     flexDirection: 'row',
