@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import {
   View,
   Text,
@@ -60,7 +60,16 @@ export default function TagDetailScreen({ navigation, route }: TagDetailScreenPr
   const initialTab = route.params?.initialTab as TabKey | undefined;
 
   const [resolvedTagId, setResolvedTagId] = useState<string | null>(paramTagId || null);
-  const [activeTab, setActiveTab] = useState<TabKey>(initialTab || 'explore');
+  // Default tab is "connections" (friends-first) — matches how people
+  // actually look at a tag: "who that I know uses this?". After the
+  // initial fetch lands, if the viewer has zero friends with this tag
+  // we silently flip to 'explore' so the screen isn't useless. Caller
+  // can pin a starting tab via route.params.initialTab to override.
+  const [activeTab, setActiveTab] = useState<TabKey>(initialTab || 'connections');
+  // Tracks whether the user (or initialTab override) has already locked
+  // a tab choice. Prevents the auto-default effect from yanking the
+  // tab out from under them on a slow connections re-fetch.
+  const userPickedTabRef = useRef<boolean>(!!initialTab);
   const [connections, setConnections] = useState<ConnectionWithProfile[]>([]);
   const [exploreUsers, setExploreUsers] = useState<ExploreUser[]>([]);
   const [loading, setLoading] = useState(true);
@@ -316,6 +325,19 @@ export default function TagDetailScreen({ navigation, route }: TagDetailScreenPr
     fetchTagMeta();
   }, [fetchTagConnections, fetchExploreUsers, fetchTagMeta]);
 
+  // Friends-first auto-default: once the connections fetch completes,
+  // if the viewer has nobody tagged here AND they haven't manually
+  // picked a tab yet, slip over to 'explore' so they aren't staring
+  // at "no friends use this tag". If they DO have friends, we stay on
+  // 'connections' (the social-priority view).
+  useEffect(() => {
+    if (loading) return;
+    if (userPickedTabRef.current) return;
+    if (connections.length === 0 && activeTab === 'connections') {
+      setActiveTab('explore');
+    }
+  }, [loading, connections.length, activeTab]);
+
   // --- Connection item renderer ---
   const renderConnectionItem = useCallback(({ item }: { item: ConnectionWithProfile }) => {
     const profile = item.connected_user;
@@ -479,7 +501,10 @@ export default function TagDetailScreen({ navigation, route }: TagDetailScreenPr
       <View style={styles.tabBar}>
         <TouchableOpacity
           style={[styles.tab, activeTab === 'connections' && styles.tabActive]}
-          onPress={() => setActiveTab('connections')}
+          onPress={() => {
+            userPickedTabRef.current = true;
+            setActiveTab('connections');
+          }}
           activeOpacity={0.7}
         >
           <Hash size={16} color={activeTab === 'connections' ? COLORS.piktag600 : COLORS.gray500} />
@@ -494,7 +519,10 @@ export default function TagDetailScreen({ navigation, route }: TagDetailScreenPr
         </TouchableOpacity>
         <TouchableOpacity
           style={[styles.tab, activeTab === 'explore' && styles.tabActive]}
-          onPress={() => setActiveTab('explore')}
+          onPress={() => {
+            userPickedTabRef.current = true;
+            setActiveTab('explore');
+          }}
           activeOpacity={0.7}
         >
           <Users size={16} color={activeTab === 'explore' ? COLORS.piktag600 : COLORS.gray500} />
