@@ -13,6 +13,7 @@ import {
   Dimensions,
   KeyboardAvoidingView,
   Platform,
+  Pressable,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
@@ -31,6 +32,12 @@ import {
   Clock,
   QrCode,
   Hash,
+  ChevronRight,
+  User,
+  Users,
+  Share2,
+  Send,
+  Circle,
 } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { COLORS } from '../constants/theme';
@@ -601,31 +608,73 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
         />
       );
     }
+    // Cold-start onboarding action list — 4 sequential steps to
+    // give first-batch users (no one in their network yet) a clear
+    // path from "PikTag is empty" to "I have a usable personal CRM
+    // + shareable profile". Replaces the old single-CTA "scan a QR"
+    // empty state which dead-ended for users whose friends weren't
+    // on PikTag yet.
     return (
-      <View style={styles.emptyContainer}>
-        <QrCode size={64} color={COLORS.gray200} style={{ marginBottom: 16 }} />
-        <Text style={styles.emptyTitle}>{t('connections.emptyGuideTitle')}</Text>
-        <Text style={styles.emptyText}>{t('connections.emptyGuideMessage')}</Text>
-        <TouchableOpacity
-          onPress={() => navigation.navigate('AddTagTab', { screen: 'CameraScan' })}
-          activeOpacity={0.8}
-        >
-          <LinearGradient
-            colors={['#ff5757', '#c44dff', '#8c52ff']}
-            start={{ x: 0, y: 0.5 }}
-            end={{ x: 1, y: 0.5 }}
-            style={styles.emptyButton}
-          >
-            <Text style={styles.emptyButtonText}>{t('connections.emptyGuideButton')}</Text>
-          </LinearGradient>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.emptyButton, { backgroundColor: COLORS.piktag50, borderWidth: 1.5, borderColor: COLORS.piktag500, marginTop: 10 }]}
-          onPress={() => navigation.navigate('ContactSync')}
-          activeOpacity={0.8}
-        >
-          <Text style={[styles.emptyButtonText, { color: COLORS.piktag600 }]}>{t('connections.syncContactsButton') || '同步通訊錄找朋友'}</Text>
-        </TouchableOpacity>
+      <View style={styles.emptyOnboardingContainer}>
+        <Text style={styles.emptyOnboardingTitle}>
+          {t('connections.coldStartTitle') || '還沒有朋友？'}
+        </Text>
+        <Text style={styles.emptyOnboardingSubtitle}>
+          {t('connections.coldStartSubtitle') || '從這 4 步開始建立你的 PikTag'}
+        </Text>
+
+        <View style={styles.emptyActionList}>
+          {[
+            {
+              key: 'profile',
+              icon: User,
+              title: t('connections.coldStartActionProfile') || '完成個人資料',
+              desc: t('connections.coldStartActionProfileDesc') || '名字、簡介、標籤、社群連結',
+              onPress: () => navigation.navigate('ProfileTab', { screen: 'EditProfile' }),
+            },
+            {
+              key: 'contacts',
+              icon: Users,
+              title: t('connections.coldStartActionContacts') || '同步通訊錄',
+              desc: t('connections.coldStartActionContactsDesc') || '幫聯絡人貼標籤、找出已在 PikTag 的朋友',
+              onPress: () => navigation.navigate('ContactSync'),
+            },
+            {
+              key: 'qr',
+              icon: QrCode,
+              title: t('connections.coldStartActionQr') || '分享你的 QR Code',
+              desc: t('connections.coldStartActionQrDesc') || '讓朋友掃一下就追蹤你',
+              onPress: () => navigation.navigate('AddTagTab', { screen: 'AddTag' }),
+            },
+            {
+              key: 'invite',
+              icon: Send,
+              title: t('connections.coldStartActionInvite') || '邀請朋友',
+              desc: t('connections.coldStartActionInviteDesc') || '用 PikTag 邀請連結把朋友拉進來',
+              onPress: () => navigation.navigate('Invite'),
+            },
+          ].map((action) => (
+            <Pressable
+              key={action.key}
+              style={({ pressed }) => [
+                styles.emptyActionCard,
+                pressed && styles.emptyActionCardPressed,
+              ]}
+              onPress={action.onPress}
+            >
+              <View style={styles.emptyActionIconWrap}>
+                <action.icon size={20} color={COLORS.piktag500} />
+              </View>
+              <View style={styles.emptyActionTextWrap}>
+                <Text style={styles.emptyActionTitle}>{action.title}</Text>
+                <Text style={styles.emptyActionDesc} numberOfLines={2}>
+                  {action.desc}
+                </Text>
+              </View>
+              <ChevronRight size={18} color={COLORS.gray400} />
+            </Pressable>
+          ))}
+        </View>
       </View>
     );
   }, [loading, loadError, fetchConnections, t, navigation]);
@@ -1106,6 +1155,65 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '700',
     color: '#FFFFFF',
+  },
+  // Cold-start onboarding action-list empty state. Replaces the
+  // single-CTA "scan a QR" empty state for users with 0 friends.
+  emptyOnboardingContainer: {
+    paddingHorizontal: 20,
+    paddingTop: 24,
+    paddingBottom: 40,
+  },
+  emptyOnboardingTitle: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: COLORS.gray900,
+    marginBottom: 6,
+  },
+  emptyOnboardingSubtitle: {
+    fontSize: 14,
+    color: COLORS.gray500,
+    marginBottom: 20,
+  },
+  emptyActionList: {
+    gap: 10,
+  },
+  emptyActionCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+    paddingVertical: 16,
+    paddingHorizontal: 14,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: COLORS.gray200,
+    backgroundColor: COLORS.white,
+  },
+  emptyActionCardPressed: {
+    backgroundColor: COLORS.gray50,
+    borderColor: COLORS.piktag200,
+  },
+  emptyActionIconWrap: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: COLORS.piktag50,
+  },
+  emptyActionTextWrap: {
+    flex: 1,
+    minWidth: 0,
+    gap: 2,
+  },
+  emptyActionTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: COLORS.gray900,
+  },
+  emptyActionDesc: {
+    fontSize: 13,
+    color: COLORS.gray500,
+    lineHeight: 18,
   },
   connectionItem: {
     flexDirection: 'row',
