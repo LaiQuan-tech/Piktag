@@ -1108,66 +1108,58 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
             </Text>
           </View>
 
-          {/* Action buttons — IG style: [Follow] [Message] [Tag] */}
+          {/* Action buttons.
+              Visual hierarchy on this screen: 「標籤」 is the ONE
+              primary CTA (piktag500 + white text). Everything else
+              (Follow / Following / Message / +icon) shares the same
+              gray secondary treatment so they're visually flat
+              relative to each other and the user's eye lands on
+              標籤 — the action this whole screen exists for.
+              Reverted from the previous LinearGradient on Follow
+              and the piktag-toned Following pill, both of which
+              were competing with 標籤 for primary attention. */}
           <View style={styles.actionButtonsRow}>
-            {isFollowing ? (
-              <TouchableOpacity
-                style={[styles.followButton, styles.followButtonFollowing]}
-                onPress={handleToggleFollow}
-                activeOpacity={0.8}
-                disabled={followLoading}
-              >
-                {followLoading ? (
-                  <BrandSpinner size={20} />
-                ) : (
-                  <Text style={styles.followButtonTextFollowing}>
-                    {t('friendDetail.following')}
-                  </Text>
-                )}
-              </TouchableOpacity>
-            ) : (
-              <TouchableOpacity onPress={handleToggleFollow} activeOpacity={0.8} disabled={followLoading} style={{ flex: 1 }}>
-                <LinearGradient
-                  colors={['#ff5757', '#c44dff', '#8c52ff']}
-                  start={{ x: 0, y: 0.5 }}
-                  end={{ x: 1, y: 0.5 }}
-                  style={[styles.followButton, { borderRadius: 12 }]}
-                >
-                  {followLoading ? (
-                    <BrandSpinner size={20} />
-                  ) : (
-                    <Text style={styles.followButtonTextDefault}>
-                      {t('friendDetail.follow')}
-                    </Text>
-                  )}
-                </LinearGradient>
-              </TouchableOpacity>
-            )}
             <TouchableOpacity
-              style={styles.messageButton}
+              style={styles.secondaryBtn}
+              onPress={handleToggleFollow}
+              activeOpacity={0.7}
+              disabled={followLoading}
+            >
+              {followLoading ? (
+                <BrandSpinner size={20} />
+              ) : (
+                <Text style={styles.secondaryBtnText}>
+                  {isFollowing
+                    ? t('friendDetail.following')
+                    : t('friendDetail.follow')}
+                </Text>
+              )}
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.secondaryBtn}
               onPress={handleOpenChat}
-              activeOpacity={0.8}
+              activeOpacity={0.7}
               disabled={messageLoading}
             >
               {messageLoading ? (
                 <BrandSpinner size={20} />
               ) : (
-                <Text style={styles.messageButtonText}>{t('friendDetail.sendMessage')}</Text>
+                <Text style={styles.secondaryBtnText}>{t('friendDetail.sendMessage')}</Text>
               )}
             </TouchableOpacity>
             {isFollowing && (
               <TouchableOpacity
-                style={styles.tagButton}
+                style={styles.primaryBtn}
                 activeOpacity={0.7}
                 onPress={openPickTagModal}
                 accessibilityRole="button"
                 accessibilityLabel={t('friendDetail.tag') || '標籤'}
               >
-                <Text style={styles.tagButtonText}>{t('friendDetail.tag') || '標籤'}</Text>
+                <Text style={styles.primaryBtnText}>{t('friendDetail.tag') || '標籤'}</Text>
               </TouchableOpacity>
             )}
             <TouchableOpacity
-              style={[styles.iconButton, showSimilar && styles.iconButtonActive]}
+              style={[styles.iconSecondaryBtn, showSimilar && styles.iconSecondaryBtnActive]}
               activeOpacity={0.7}
               onPress={() => setShowSimilar(!showSimilar)}
               accessibilityRole="button"
@@ -1788,64 +1780,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 10,
   },
-  followButton: {
-    flex: 1,
-    borderRadius: 12,
-    height: 44,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  followButtonDefault: {
-    backgroundColor: COLORS.piktag500,
-  },
-  followButtonFollowing: {
-    backgroundColor: COLORS.white,
-    borderWidth: 1.5,
-    borderColor: COLORS.piktag500,
-  },
-  followButtonTextDefault: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#FFFFFF',
-  },
-  followButtonTextFollowing: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: COLORS.gray900,
-  },
-  // Square icon button that sits between "追蹤中" and "標籤". Matches
-  // UserDetailScreen.messageButton visually so the two screens feel
-  // like the same surface when the user hops between them.
-  messageButton: {
-    flex: 1,
-    borderRadius: 12,
-    height: 44,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: COLORS.gray100,
-  },
-  messageButtonText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: COLORS.gray900,
-  },
-  iconButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: COLORS.gray100,
-  },
-  iconButtonActive: {
-    backgroundColor: COLORS.piktag50,
-  },
-  // 「標籤」 is the action this whole screen exists for — tagging the
-  // friend is what makes PikTag a CRM, not just a contact list.
-  // Promoted to the primary action: solid piktag500 fill + white text,
-  // visually outranking the gray Follow / Message / icon buttons in
-  // the same row so the user's eye lands here first.
-  tagButton: {
+  // ── Unified action-button design system ─────────────────────────
+  // Two states across both detail screens (Friend / User):
+  //   primaryBtn    — piktag500 fill, white text (ONE per screen)
+  //   secondaryBtn  — gray100 fill, gray900 text (everything else)
+  //   iconSecondaryBtn — square version of secondary (44x44)
+  // Same height / radius / padding so they line up cleanly in a row
+  // and the only visual delta is "this is the action you should
+  // notice" vs. "this is also available".
+  primaryBtn: {
     paddingHorizontal: 16,
     height: 44,
     borderRadius: 12,
@@ -1853,10 +1796,34 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: COLORS.piktag500,
   },
-  tagButtonText: {
+  primaryBtnText: {
     fontSize: 14,
     fontWeight: '700',
     color: COLORS.white,
+  },
+  secondaryBtn: {
+    flex: 1,
+    height: 44,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: COLORS.gray100,
+  },
+  secondaryBtnText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: COLORS.gray900,
+  },
+  iconSecondaryBtn: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: COLORS.gray100,
+  },
+  iconSecondaryBtnActive: {
+    backgroundColor: COLORS.piktag50,
   },
   // Recommended-members section. Cloned from UserDetailScreen so the
   // two screens share visual vocabulary — same card width, same

@@ -1179,11 +1179,36 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
             </View>
           )}
 
-          {/* Action buttons — IG style: [Follow] [Message] [Tag] [Suggest] */}
+          {/* Action buttons.
+              Visual hierarchy on this screen: 「追蹤」 (when the
+              viewer isn't already following) is the ONE primary
+              CTA — getting the user onto your social graph is the
+              moment that matters here. Once they're following the
+              button collapses to a secondary "追蹤中" pill, since
+              the unfollow path is just a maintenance action.
+              Everything else (Message / Tag / +icon) sits on
+              secondary gray. Reverted from the previous LinearGradient
+              follow button + primary tag button, both of which
+              competed with each other for primary attention. */}
           <View style={styles.actionButtonsRow}>
             {isFollowing ? (
               <TouchableOpacity
-                style={[styles.followButton, styles.followButtonFollowing]}
+                style={styles.secondaryBtn}
+                onPress={handleToggleFollow}
+                activeOpacity={0.7}
+                disabled={followLoading}
+              >
+                {followLoading ? (
+                  <BrandSpinner size={20} />
+                ) : (
+                  <Text style={styles.secondaryBtnText}>
+                    {t('userDetail.following')}
+                  </Text>
+                )}
+              </TouchableOpacity>
+            ) : (
+              <TouchableOpacity
+                style={styles.primaryFollowBtn}
                 onPress={handleToggleFollow}
                 activeOpacity={0.8}
                 disabled={followLoading}
@@ -1191,56 +1216,39 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
                 {followLoading ? (
                   <BrandSpinner size={20} />
                 ) : (
-                  <Text style={styles.followButtonTextFollowing}>
-                    {t('userDetail.following')}
+                  <Text style={styles.primaryBtnText}>
+                    {t('userDetail.follow')}
                   </Text>
                 )}
-              </TouchableOpacity>
-            ) : (
-              <TouchableOpacity onPress={handleToggleFollow} activeOpacity={0.8} disabled={followLoading} style={{ flex: 1 }}>
-                <LinearGradient
-                  colors={['#ff5757', '#c44dff', '#8c52ff']}
-                  start={{ x: 0, y: 0.5 }}
-                  end={{ x: 1, y: 0.5 }}
-                  style={[styles.followButton, { borderRadius: 14 }]}
-                >
-                  {followLoading ? (
-                    <BrandSpinner size={20} />
-                  ) : (
-                    <Text style={styles.followButtonTextDefault}>
-                      {t('userDetail.follow')}
-                    </Text>
-                  )}
-                </LinearGradient>
               </TouchableOpacity>
             )}
             {authUser && resolvedUserId && authUser.id !== resolvedUserId && (
               <TouchableOpacity
-                style={styles.messageButton}
+                style={styles.secondaryBtn}
                 onPress={handleOpenChat}
-                activeOpacity={0.8}
+                activeOpacity={0.7}
                 disabled={messageLoading}
               >
                 {messageLoading ? (
                   <BrandSpinner size={20} />
                 ) : (
-                  <Text style={styles.messageButtonText}>{t('userDetail.sendMessage')}</Text>
+                  <Text style={styles.secondaryBtnText}>{t('userDetail.sendMessage')}</Text>
                 )}
               </TouchableOpacity>
             )}
             {isFollowing && (
               <TouchableOpacity
-                style={styles.tagButton}
+                style={styles.secondaryBtnFixed}
                 activeOpacity={0.7}
                 onPress={openPickTagModal}
                 accessibilityRole="button"
                 accessibilityLabel={t('userDetail.tag') || '標籤'}
               >
-                <Text style={styles.tagButtonText}>{t('userDetail.tag') || '標籤'}</Text>
+                <Text style={styles.secondaryBtnText}>{t('userDetail.tag') || '標籤'}</Text>
               </TouchableOpacity>
             )}
             <TouchableOpacity
-              style={[styles.iconButton, showSimilar && styles.iconButtonActive]}
+              style={[styles.iconSecondaryBtn, showSimilar && styles.iconSecondaryBtnActive]}
               activeOpacity={0.7}
               onPress={() => setShowSimilar(!showSimilar)}
               accessibilityRole="button"
@@ -1795,45 +1803,53 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: COLORS.white,
   },
-  followButton: {
+  // ── Unified action-button design system ─────────────────────────
+  // Mirrors FriendDetailScreen — same primary/secondary contract,
+  // different "which slot is primary":
+  //   FriendDetail → 標籤 is primary (already-friend, tagging is the
+  //                  CRM moment).
+  //   UserDetail   → 追蹤 (when not following) is primary; once
+  //                  following, the button collapses to a secondary
+  //                  pill since unfollow is a maintenance action.
+  // Two flex variants since UserDetail's row has 3-4 stretch buttons:
+  // primaryFollowBtn / secondaryBtn use flex:1; secondaryBtnFixed
+  // is the compact paddingHorizontal version used by the standalone
+  // Tag button slot.
+  primaryFollowBtn: {
     flex: 1,
-    borderRadius: 12,
     height: 44,
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  followButtonDefault: {
     backgroundColor: COLORS.piktag500,
   },
-  followButtonFollowing: {
-    backgroundColor: COLORS.piktag50,
-    borderWidth: 2,
-    borderColor: COLORS.piktag500,
-  },
-  followButtonText: {
-    fontSize: 16,
+  primaryBtnText: {
+    fontSize: 14,
     fontWeight: '700',
+    color: COLORS.white,
   },
-  followButtonTextDefault: {
-    color: '#FFFFFF',
-  },
-  followButtonTextFollowing: {
-    color: COLORS.piktag600,
-  },
-  messageButton: {
+  secondaryBtn: {
     flex: 1,
-    borderRadius: 12,
     height: 44,
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: COLORS.gray100,
   },
-  messageButtonText: {
+  secondaryBtnFixed: {
+    paddingHorizontal: 16,
+    height: 44,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: COLORS.gray100,
+  },
+  secondaryBtnText: {
     fontSize: 14,
     fontWeight: '600',
     color: COLORS.gray900,
   },
-  iconButton: {
+  iconSecondaryBtn: {
     width: 44,
     height: 44,
     borderRadius: 12,
@@ -1841,25 +1857,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: COLORS.gray100,
   },
-  iconButtonActive: {
+  iconSecondaryBtnActive: {
     backgroundColor: COLORS.piktag50,
-  },
-  // 「標籤」 is promoted to the primary action on UserDetail too — same
-  // visual rule as FriendDetail: solid piktag500 fill + white text,
-  // outranking the gray Follow / Message buttons that share the row.
-  // Tagging is the CRM moment; the others are utility.
-  tagButton: {
-    paddingHorizontal: 16,
-    height: 44,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: COLORS.piktag500,
-  },
-  tagButtonText: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: COLORS.white,
   },
   // Tags — flat inline clickable (matching ProfileScreen)
   tagsWrap: {
