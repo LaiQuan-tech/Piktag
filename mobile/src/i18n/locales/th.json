@@ -419,7 +419,12 @@
       "business": "ธุรกิจ",
       "generic": "ทั่วไป"
     },
-    "shareNow": "โปรไฟล์เสร็จสมบูรณ์ — แชร์ PikTag QR ของคุณ"
+    "completionInline": "ยังขาด: {{items}}",
+    "missingAvatar": "รูปโปรไฟล์",
+    "missingBio": "ไบโอ",
+    "missingTags": "3 แท็ก",
+    "missingBiolink": "ลิงก์โซเชียล",
+    "welcomeShort": "ยินดีต้อนรับสู่ PikTag"
   },
   "friendDetail": {
     "reminderBirthday": "วันเกิด",

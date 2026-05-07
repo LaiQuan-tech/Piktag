@@ -1357,82 +1357,46 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
-          {/* Profile completion meter — sits above the avatar so it's
-              the first thing the user sees. Drives the cold-start
-              "complete your PikTag, then share it" loop: 4 checks
-              (avatar / bio / ≥3 tags / ≥1 biolink). When all 4 land,
-              the meter swaps for a prominent QR-share CTA so the
-              user has a clear next step ("publish my PikTag"). When
-              the user arrived via the onboarding burst (route param
-              fromOnboarding=true), an extra welcome banner sits on
-              top so the screen reads as a continuation of onboarding,
-              not "you got dropped in a settings page". */}
+          {/* Profile completion nudge — earlier iteration was a heavy
+              card with a progress bar, 4-row checklist, and a big
+              purple share-now CTA at 100%. User feedback: the card
+              looms over the avatar and feels oppressive ("看了會很
+              討厭，有壓迫感"). Replaced with a single soft gray line
+              listing what's still missing — same information density,
+              fraction of the visual weight, no demand on the user.
+              At 100% the line silently disappears (no replacement
+              CTA, no celebratory banner, just empty space). */}
           {(() => {
-            const checks = [
-              { done: !!avatarUrl, label: t('editProfile.completionAvatar') || '上傳大頭照' },
-              { done: form.bio.trim().length >= 10, label: t('editProfile.completionBio') || '寫一段簡介（≥10 字）' },
-              { done: userTags.length >= 3, label: t('editProfile.completionTags') || '加 3 個以上標籤' },
-              { done: biolinks.length >= 1, label: t('editProfile.completionBiolink') || '加 1 個社群連結' },
-            ];
-            const doneCount = checks.filter((c) => c.done).length;
-            const percent = Math.round((doneCount / checks.length) * 100);
-            const isComplete = percent === 100;
-
+            const missing: string[] = [];
+            if (!avatarUrl) {
+              missing.push(t('editProfile.missingAvatar', { defaultValue: '大頭照' }));
+            }
+            if (form.bio.trim().length < 10) {
+              missing.push(t('editProfile.missingBio', { defaultValue: '簡介' }));
+            }
+            if (userTags.length < 3) {
+              missing.push(t('editProfile.missingTags', { defaultValue: '3 個標籤' }));
+            }
+            if (biolinks.length < 1) {
+              missing.push(t('editProfile.missingBiolink', { defaultValue: '社群連結' }));
+            }
+            const showWelcome = fromOnboarding;
+            const showMissing = missing.length > 0;
+            if (!showWelcome && !showMissing) return null;
             return (
-              <View style={styles.completionCard}>
-                {fromOnboarding && (
-                  <Text style={styles.completionWelcome}>
-                    {t('editProfile.welcomeFromOnboarding') ||
-                      '歡迎到 PikTag！完成你的個人頁，下一步就可以分享給朋友'}
+              <View style={styles.completionInlineRow}>
+                {showWelcome && (
+                  <Text style={styles.completionWelcomeInline}>
+                    {t('editProfile.welcomeShort', { defaultValue: '歡迎到 PikTag' })}
                   </Text>
                 )}
-                {!isComplete && (
-                  <>
-                    <View style={styles.completionHeader}>
-                      <Text style={styles.completionTitle}>
-                        {t('editProfile.completionTitle') || '個人頁完成度'}
-                      </Text>
-                      <Text style={styles.completionPercent}>{percent}%</Text>
-                    </View>
-                    <View style={styles.progressBarBg}>
-                      <View
-                        style={[styles.progressBarFill, { width: `${percent}%` as any }]}
-                      />
-                    </View>
-                    <View style={styles.completionChecklist}>
-                      {checks.map((item, i) => (
-                        <View key={i} style={styles.checklistRow}>
-                          {item.done ? (
-                            <CheckCircle2 size={14} color={COLORS.piktag500} />
-                          ) : (
-                            <View style={styles.checklistEmptyCircle} />
-                          )}
-                          <Text
-                            style={[
-                              styles.checklistText,
-                              item.done && styles.checklistTextDone,
-                            ]}
-                          >
-                            {item.label}
-                          </Text>
-                        </View>
-                      ))}
-                    </View>
-                  </>
-                )}
-                {isComplete && (
-                  <TouchableOpacity
-                    style={styles.completionShareCta}
-                    onPress={() =>
-                      navigation.navigate('AddTagTab', { screen: 'AddTag' })
-                    }
-                    activeOpacity={0.8}
-                  >
-                    <CheckCircle2 size={18} color={COLORS.white} />
-                    <Text style={styles.completionShareCtaText}>
-                      {t('editProfile.shareNow', { defaultValue: '個人頁完成 — 分享你的 PikTag QR' })}
-                    </Text>
-                  </TouchableOpacity>
+                {showMissing && (
+                  <Text style={styles.completionInlineText}>
+                    {t('editProfile.completionInline', {
+                      items: missing.join('、'),
+                      defaultValue: '還差：{{items}}',
+                    })}
+                  </Text>
                 )}
               </View>
             );
@@ -2483,92 +2447,29 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingBottom: 100,
   },
-  // ── Profile completion meter ─────────────────────────────────────
-  // Sits at the top of EditProfile, drives the cold-start "complete
-  // your PikTag, then share it" loop. Disappears at 100% to surface
-  // a QR-share CTA in its place.
-  completionCard: {
-    marginHorizontal: 16,
-    marginTop: 12,
-    marginBottom: 4,
-    padding: 14,
-    borderRadius: 14,
-    backgroundColor: COLORS.piktag50,
-    borderWidth: 1,
-    borderColor: COLORS.piktag200,
-  },
-  completionWelcome: {
-    fontSize: 13,
-    color: COLORS.piktag600,
-    fontWeight: '600',
-    marginBottom: 10,
-    lineHeight: 18,
-  },
-  completionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+  // ── Profile completion nudge ─────────────────────────────────────
+  // Single soft line above the avatar that lists what's still missing
+  // ("還差: 大頭照、簡介"). No card, no border, no progress bar — the
+  // earlier card design felt oppressive sitting above the avatar.
+  // Just enough text to remind, never enough to demand.
+  completionInlineRow: {
+    paddingHorizontal: 24,
+    paddingTop: 18,
+    paddingBottom: 4,
     alignItems: 'center',
-    marginBottom: 8,
-  },
-  completionTitle: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: COLORS.gray700,
-  },
-  completionPercent: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: COLORS.piktag600,
-  },
-  progressBarBg: {
-    height: 6,
-    backgroundColor: COLORS.gray200,
-    borderRadius: 3,
-    overflow: 'hidden',
-  },
-  progressBarFill: {
-    height: 6,
-    backgroundColor: COLORS.piktag500,
-    borderRadius: 3,
-  },
-  completionChecklist: {
-    marginTop: 10,
     gap: 4,
   },
-  checklistRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  checklistEmptyCircle: {
-    width: 14,
-    height: 14,
-    borderRadius: 7,
-    borderWidth: 1.5,
-    borderColor: COLORS.gray300,
-    backgroundColor: 'transparent',
-  },
-  checklistText: {
-    fontSize: 13,
-    color: COLORS.gray600,
-  },
-  checklistTextDone: {
-    color: COLORS.gray500,
-    textDecorationLine: 'line-through',
-  },
-  completionShareCta: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    paddingVertical: 12,
-    borderRadius: 10,
-    backgroundColor: COLORS.piktag500,
-  },
-  completionShareCtaText: {
+  completionWelcomeInline: {
     fontSize: 14,
-    fontWeight: '700',
-    color: COLORS.white,
+    fontWeight: '600',
+    color: COLORS.gray700,
+    textAlign: 'center',
+  },
+  completionInlineText: {
+    fontSize: 12,
+    color: COLORS.gray500,
+    textAlign: 'center',
+    lineHeight: 16,
   },
   loadingContainer: {
     flex: 1,

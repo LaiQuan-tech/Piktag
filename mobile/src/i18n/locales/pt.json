@@ -419,7 +419,12 @@
       "business": "Negócios",
       "generic": "Geral"
     },
-    "shareNow": "Perfil pronto — compartilhe seu QR PikTag"
+    "completionInline": "Faltam: {{items}}",
+    "missingAvatar": "Foto",
+    "missingBio": "Bio",
+    "missingTags": "3 tags",
+    "missingBiolink": "Link social",
+    "welcomeShort": "Bem-vindo ao PikTag"
   },
   "friendDetail": {
     "reminderBirthday": "Aniversário",

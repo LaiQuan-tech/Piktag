@@ -419,7 +419,12 @@
       "business": "أعمال",
       "generic": "عام"
     },
-    "shareNow": "الملف الشخصي مكتمل — شارك رمز PikTag QR"
+    "completionInline": "ينقص: {{items}}",
+    "missingAvatar": "الصورة الشخصية",
+    "missingBio": "نبذة",
+    "missingTags": "3 وسوم",
+    "missingBiolink": "رابط اجتماعي",
+    "welcomeShort": "مرحبًا بك في PikTag"
   },
   "friendDetail": {
     "reminderBirthday": "عيد الميلاد",

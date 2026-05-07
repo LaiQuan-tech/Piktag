@@ -419,7 +419,12 @@
       "business": "व्यापार",
       "generic": "सामान्य"
     },
-    "shareNow": "प्रोफाइल पूर्ण — अपना PikTag QR शेयर करें"
+    "completionInline": "बाकी: {{items}}",
+    "missingAvatar": "फोटो",
+    "missingBio": "बायो",
+    "missingTags": "3 टैग",
+    "missingBiolink": "सोशल लिंक",
+    "welcomeShort": "PikTag में आपका स्वागत है"
   },
   "friendDetail": {
     "reminderBirthday": "जन्मदिन",

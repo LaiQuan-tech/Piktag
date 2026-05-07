@@ -419,7 +419,12 @@
       "business": "Бизнес",
       "generic": "Общие"
     },
-    "shareNow": "Профиль готов — поделись своим QR PikTag"
+    "completionInline": "Не хватает: {{items}}",
+    "missingAvatar": "Аватар",
+    "missingBio": "Био",
+    "missingTags": "3 тега",
+    "missingBiolink": "Соцсеть",
+    "welcomeShort": "Добро пожаловать в PikTag"
   },
   "friendDetail": {
     "reminderBirthday": "День рождения",

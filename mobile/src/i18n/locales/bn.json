@@ -419,7 +419,12 @@
       "business": "ব্যবসা",
       "generic": "সাধারণ"
     },
-    "shareNow": "প্রোফাইল সম্পূর্ণ — তোমার PikTag QR শেয়ার করো"
+    "completionInline": "আরো প্রয়োজন: {{items}}",
+    "missingAvatar": "প্রোফাইল ছবি",
+    "missingBio": "পরিচিতি",
+    "missingTags": "3টি ট্যাগ",
+    "missingBiolink": "সোশ্যাল লিংক",
+    "welcomeShort": "PikTag-এ স্বাগতম"
   },
   "friendDetail": {
     "reminderBirthday": "জন্মদিন",

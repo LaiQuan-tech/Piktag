@@ -419,7 +419,12 @@
       "business": "Bisnis",
       "generic": "Umum"
     },
-    "shareNow": "Profil lengkap — bagikan QR PikTag-mu"
+    "completionInline": "Belum lengkap: {{items}}",
+    "missingAvatar": "Foto profil",
+    "missingBio": "Bio",
+    "missingTags": "3 tag",
+    "missingBiolink": "Tautan sosial",
+    "welcomeShort": "Selamat datang di PikTag"
   },
   "friendDetail": {
     "reminderBirthday": "Ulang Tahun",

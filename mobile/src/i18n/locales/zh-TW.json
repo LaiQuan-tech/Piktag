@@ -430,7 +430,12 @@
       "business": "商務金流",
       "generic": "通用"
     },
-    "shareNow": "個人頁完成 — 分享你的 PikTag QR"
+    "completionInline": "還差：{{items}}",
+    "missingAvatar": "大頭照",
+    "missingBio": "簡介",
+    "missingTags": "3 個標籤",
+    "missingBiolink": "社群連結",
+    "welcomeShort": "歡迎到 PikTag"
   },
   "friendDetail": {
     "reminderBirthday": "生日",

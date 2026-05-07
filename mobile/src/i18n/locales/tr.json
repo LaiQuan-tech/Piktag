@@ -419,7 +419,12 @@
       "business": "İş",
       "generic": "Genel"
     },
-    "shareNow": "Profil tamam — PikTag QR'unu paylaş"
+    "completionInline": "Eksik: {{items}}",
+    "missingAvatar": "Avatar",
+    "missingBio": "Bio",
+    "missingTags": "3 etiket",
+    "missingBiolink": "Sosyal bağlantı",
+    "welcomeShort": "PikTag'a hoş geldin"
   },
   "friendDetail": {
     "reminderBirthday": "Doğum Günü",

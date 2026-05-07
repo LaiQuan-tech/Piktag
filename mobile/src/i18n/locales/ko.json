@@ -419,7 +419,12 @@
       "business": "비즈니스",
       "generic": "일반"
     },
-    "shareNow": "프로필 완성 — PikTag QR 공유하기"
+    "completionInline": "남은 항목: {{items}}",
+    "missingAvatar": "프로필 사진",
+    "missingBio": "자기소개",
+    "missingTags": "태그 3개",
+    "missingBiolink": "SNS 링크",
+    "welcomeShort": "PikTag에 오신 걸 환영해요"
   },
   "friendDetail": {
     "reminderBirthday": "생일",

@@ -427,7 +427,12 @@
       "business": "商业支付",
       "generic": "通用"
     },
-    "shareNow": "个人页完成 — 分享你的 PikTag QR"
+    "completionInline": "还差：{{items}}",
+    "missingAvatar": "头像",
+    "missingBio": "简介",
+    "missingTags": "3 个标签",
+    "missingBiolink": "社群链接",
+    "welcomeShort": "欢迎来到 PikTag"
   },
   "friendDetail": {
     "reminderBirthday": "生日",

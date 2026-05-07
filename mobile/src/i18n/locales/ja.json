@@ -419,7 +419,12 @@
       "business": "ビジネス",
       "generic": "一般"
     },
-    "shareNow": "プロフィール完成 — PikTag QR をシェア"
+    "completionInline": "あと: {{items}}",
+    "missingAvatar": "アイコン",
+    "missingBio": "自己紹介",
+    "missingTags": "3つのタグ",
+    "missingBiolink": "SNSリンク",
+    "welcomeShort": "PikTag へようこそ"
   },
   "friendDetail": {
     "reminderBirthday": "誕生日",
