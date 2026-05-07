@@ -4,11 +4,16 @@ import {
   Text,
   SectionList,
   TouchableOpacity,
+  Pressable,
   StyleSheet,
   StatusBar,
   Alert,
   Platform,
   Share,
+  Modal,
+  TextInput,
+  KeyboardAvoidingView,
+  ScrollView,
 } from 'react-native';
 import { Image } from 'expo-image';
 import PageLoader from '../components/loaders/PageLoader';
@@ -24,12 +29,22 @@ import {
   Phone,
   Mail,
   Send,
+  Hash,
+  X,
+  Plus,
 } from 'lucide-react-native';
 import { COLORS } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
 import { LinearGradient } from 'expo-linear-gradient';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
+import {
+  useLocalContacts,
+  normalizePhone,
+} from '../hooks/useLocalContacts';
+import type { Tag } from '../types';
+
+const MAX_TAGS_PER_CONTACT = 8;
 
 type ContactSyncScreenProps = {
   navigation: any;
@@ -81,6 +96,62 @@ export default function ContactSyncScreen({ navigation }: ContactSyncScreenProps
   const [batchProgress, setBatchProgress] = useState<
     { current: number; total: number } | null
   >(null);
+
+  // Phase 4: tag + invite for non-PikTag contacts. We piggy-back on
+  // useLocalContacts so a PhoneContact tagged here becomes a row in
+  // piktag_local_contacts, and the AFTER INSERT trigger on profiles
+  // will auto-promote it to a real connection once the invitee signs up.
+  const { contacts: localContacts, add: addLocalContact } = useLocalContacts();
+
+  // Tag-picker modal state. `tagTarget` is the PhoneContact the user
+  // is tagging right now; null means modal is closed.
+  const [tagTarget, setTagTarget] = useState<PhoneContact | null>(null);
+  const [pickedTags, setPickedTags] = useState<string[]>([]);
+  const [customTagInput, setCustomTagInput] = useState('');
+  const [savingTag, setSavingTag] = useState(false);
+
+  // Popular tags — same source EditProfile + LocalContacts use, so the
+  // chip suggestions feel consistent.
+  const [popularTags, setPopularTags] = useState<Tag[]>([]);
+  useEffect(() => {
+    (async () => {
+      const { data } = await supabase
+        .from('piktag_tags')
+        .select('id, name, usage_count, semantic_type')
+        .order('usage_count', { ascending: false })
+        .limit(15);
+      if (data) setPopularTags(data as Tag[]);
+    })();
+  }, []);
+
+  // Build a Set<string> of "phone-or-email keys" for non-PikTag contacts
+  // that already exist as local_contacts. Used to render the "已加入名單"
+  // badge instead of the "標籤+邀請" CTA so the user doesn't double-add.
+  // Key precedence mirrors normalizePhone / lower(email) to match what
+  // useLocalContacts.add() actually wrote, and falls back to the lowercase
+  // name (matching the DB UNIQUE constraint shape).
+  const taggedKeys = useMemo<Set<string>>(() => {
+    const keys = new Set<string>();
+    for (const lc of localContacts) {
+      if (lc.phone_normalized) keys.add(`p:${lc.phone_normalized}`);
+      if (lc.email_lower) keys.add(`e:${lc.email_lower}`);
+      if (lc.name) keys.add(`n:${lc.name.trim().toLowerCase()}`);
+    }
+    return keys;
+  }, [localContacts]);
+
+  const isContactTagged = useCallback(
+    (c: PhoneContact): boolean => {
+      const phoneKey = c.phone ? `p:${normalizePhone(c.phone) ?? ''}` : null;
+      const emailKey = c.email ? `e:${c.email.trim().toLowerCase()}` : null;
+      const nameKey = c.name ? `n:${c.name.trim().toLowerCase()}` : null;
+      if (phoneKey && taggedKeys.has(phoneKey)) return true;
+      if (emailKey && taggedKeys.has(emailKey)) return true;
+      if (nameKey && taggedKeys.has(nameKey)) return true;
+      return false;
+    },
+    [taggedKeys],
+  );
 
   // ---------------------------------------------------------------------
   // Load device contacts (after permission). Independent of server state.
@@ -280,6 +351,89 @@ export default function ContactSyncScreen({ navigation }: ContactSyncScreenProps
     }
   };
 
+  // Phase 4: open the tag-picker modal pre-filled. If the user already
+  // tagged this contact in a previous session, surface a toast-style
+  // alert instead of re-opening (the row's "已加入名單" badge handles
+  // the visible state).
+  const openTagPicker = useCallback((contact: PhoneContact) => {
+    setTagTarget(contact);
+    setPickedTags([]);
+    setCustomTagInput('');
+  }, []);
+
+  const closeTagPicker = useCallback(() => {
+    setTagTarget(null);
+    setPickedTags([]);
+    setCustomTagInput('');
+    setSavingTag(false);
+  }, []);
+
+  const togglePickedTag = useCallback((name: string) => {
+    setPickedTags((prev) => {
+      if (prev.includes(name)) return prev.filter((n) => n !== name);
+      if (prev.length >= MAX_TAGS_PER_CONTACT) return prev;
+      return [...prev, name];
+    });
+  }, []);
+
+  const addCustomTag = useCallback(() => {
+    const raw = customTagInput.trim();
+    if (!raw) return;
+    setPickedTags((prev) => {
+      if (prev.includes(raw)) return prev;
+      if (prev.length >= MAX_TAGS_PER_CONTACT) return prev;
+      return [...prev, raw];
+    });
+    setCustomTagInput('');
+  }, [customTagInput]);
+
+  // Submit handler: write a piktag_local_contacts row with the picked
+  // tags, then immediately open the system Share sheet with a tagged
+  // invite message. Both steps are independent — if the share is
+  // cancelled, the local_contact row still persists (good — user can
+  // re-share from LocalContactsScreen later).
+  const handleSubmitTagAndInvite = useCallback(async () => {
+    if (!tagTarget || pickedTags.length === 0) return;
+    setSavingTag(true);
+    const target = tagTarget;
+    const tags = [...pickedTags];
+
+    const created = await addLocalContact({
+      name: target.name,
+      phone: target.phone,
+      email: target.email,
+      tags,
+    });
+
+    setSavingTag(false);
+
+    if (!created) {
+      Alert.alert(
+        t('contactSync.tagInviteFailedTitle') || '加入名單失敗',
+        t('contactSync.tagInviteFailedMessage') ||
+          '請稍後再試，或在「聯絡人名單」中手動新增。',
+      );
+      return;
+    }
+
+    closeTagPicker();
+
+    // Build invite message with tags in quotes, mirroring
+    // LocalContactsScreen.handleInvite for consistency.
+    const tagsLabel = tags.length > 0 ? `「${tags.join('、')}」` : '';
+    const message =
+      t('contactSync.tagInviteMessage', {
+        name: target.name,
+        tags: tagsLabel,
+      }) ||
+      `嗨！我在 PikTag 上幫你貼了 ${tagsLabel} 標籤 — 註冊後我們的標籤會自動同步：\nhttps://pikt.ag/download`;
+    try {
+      await Share.share({ message });
+    } catch {
+      /* cancelled — local_contact row is already saved */
+    }
+  }, [tagTarget, pickedTags, addLocalContact, closeTagPicker, t]);
+
   const upsertConnection = async (
     contact: PhoneContact,
     matchedUserId: string,
@@ -462,6 +616,7 @@ export default function ContactSyncScreen({ navigation }: ContactSyncScreenProps
   };
 
   const renderNotOnPiktagRow = (item: PhoneContact) => {
+    const alreadyTagged = isContactTagged(item);
     return (
       <View style={styles.contactItem}>
         {renderInitialsAvatar(item.name)}
@@ -486,18 +641,29 @@ export default function ContactSyncScreen({ navigation }: ContactSyncScreenProps
             ) : null}
           </View>
         </View>
-        <TouchableOpacity
-          style={styles.actionBtnInvite}
-          onPress={() => handleInvite(item)}
-          activeOpacity={0.7}
-          accessibilityRole="button"
-          accessibilityLabel={t('contactSync.inviteBtn') || '邀請'}
-        >
-          <Send size={14} color={COLORS.piktag600} />
-          <Text style={styles.actionBtnText}>
-            {t('contactSync.inviteBtn') || '邀請'}
-          </Text>
-        </TouchableOpacity>
+        {alreadyTagged ? (
+          <View style={styles.taggedBadge}>
+            <Check size={14} color={COLORS.piktag600} />
+            <Text style={styles.taggedBadgeText}>
+              {t('contactSync.taggedBadge') || '已加入名單'}
+            </Text>
+          </View>
+        ) : (
+          <TouchableOpacity
+            style={styles.actionBtnTagInvite}
+            onPress={() => openTagPicker(item)}
+            activeOpacity={0.85}
+            accessibilityRole="button"
+            accessibilityLabel={
+              t('contactSync.tagInviteBtn') || '貼標籤並邀請'
+            }
+          >
+            <Hash size={14} color="#FFFFFF" />
+            <Text style={styles.actionBtnTagInviteText}>
+              {t('contactSync.tagInviteBtn') || '貼標籤+邀請'}
+            </Text>
+          </TouchableOpacity>
+        )}
       </View>
     );
   };
@@ -642,6 +808,177 @@ export default function ContactSyncScreen({ navigation }: ContactSyncScreenProps
       </View>
 
       {body}
+
+      {/* ----------------------------------------------------------------
+          Phase 4: tag-picker modal for non-PikTag contacts.
+          Submit creates a piktag_local_contacts row (tags pre-attached)
+          and immediately opens the system Share sheet.
+          ---------------------------------------------------------------- */}
+      <Modal
+        visible={tagTarget !== null}
+        transparent
+        animationType="fade"
+        onRequestClose={closeTagPicker}
+      >
+        <Pressable style={styles.tagModalBackdrop} onPress={closeTagPicker}>
+          <Pressable style={styles.tagModalCard} onPress={(e) => e.stopPropagation()}>
+            <KeyboardAvoidingView
+              behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+            >
+              <View style={styles.tagModalHeader}>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.tagModalTitle}>
+                    {t('contactSync.tagModalTitle') || '貼上標籤'}
+                  </Text>
+                  <Text style={styles.tagModalSubtitle} numberOfLines={1}>
+                    {tagTarget?.name || ''}
+                  </Text>
+                </View>
+                <TouchableOpacity
+                  style={styles.tagModalCloseBtn}
+                  onPress={closeTagPicker}
+                  accessibilityRole="button"
+                  accessibilityLabel={t('common.cancel')}
+                >
+                  <X size={20} color={COLORS.gray600} />
+                </TouchableOpacity>
+              </View>
+
+              <ScrollView
+                style={styles.tagModalBody}
+                keyboardShouldPersistTaps="handled"
+                showsVerticalScrollIndicator={false}
+              >
+                <Text style={styles.tagModalHint}>
+                  {t('contactSync.tagModalHint', {
+                    max: MAX_TAGS_PER_CONTACT,
+                  }) ||
+                    `挑幾個標籤描述他（最多 ${MAX_TAGS_PER_CONTACT} 個）— 等他註冊 PikTag，這些標籤會自動出現在你們的好友頁。`}
+                </Text>
+
+                {/* Picked tags strip */}
+                {pickedTags.length > 0 ? (
+                  <View style={styles.pickedRow}>
+                    {pickedTags.map((tag) => (
+                      <Pressable
+                        key={`picked-${tag}`}
+                        style={styles.pickedChip}
+                        onPress={() => togglePickedTag(tag)}
+                        accessibilityRole="button"
+                        accessibilityLabel={`移除 ${tag}`}
+                      >
+                        <Text style={styles.pickedChipText}>{tag}</Text>
+                        <X size={12} color="#FFFFFF" />
+                      </Pressable>
+                    ))}
+                  </View>
+                ) : null}
+
+                {/* Custom tag input */}
+                <View style={styles.customTagRow}>
+                  <TextInput
+                    style={styles.customTagInput}
+                    value={customTagInput}
+                    onChangeText={setCustomTagInput}
+                    placeholder={t('contactSync.tagModalCustomPlaceholder') || '自訂標籤'}
+                    placeholderTextColor={COLORS.gray400}
+                    onSubmitEditing={addCustomTag}
+                    returnKeyType="done"
+                    maxLength={20}
+                  />
+                  <TouchableOpacity
+                    style={[
+                      styles.customTagAddBtn,
+                      !customTagInput.trim() && styles.customTagAddBtnDisabled,
+                    ]}
+                    onPress={addCustomTag}
+                    disabled={!customTagInput.trim()}
+                    accessibilityRole="button"
+                    accessibilityLabel={t('contactSync.tagModalAddCustom') || '新增'}
+                  >
+                    <Plus size={18} color={customTagInput.trim() ? '#FFFFFF' : COLORS.gray400} />
+                  </TouchableOpacity>
+                </View>
+
+                {/* Popular tags chip grid */}
+                {popularTags.length > 0 ? (
+                  <View style={styles.popularSection}>
+                    <Text style={styles.popularLabel}>
+                      {t('contactSync.tagModalPopular') || '熱門標籤'}
+                    </Text>
+                    <View style={styles.popularGrid}>
+                      {popularTags.map((tag) => {
+                        const selected = pickedTags.includes(tag.name);
+                        return (
+                          <Pressable
+                            key={tag.id}
+                            style={[
+                              styles.popularChip,
+                              selected && styles.popularChipSelected,
+                            ]}
+                            onPress={() => togglePickedTag(tag.name)}
+                            accessibilityRole="button"
+                            accessibilityLabel={tag.name}
+                          >
+                            <Text
+                              style={[
+                                styles.popularChipText,
+                                selected && styles.popularChipTextSelected,
+                              ]}
+                            >
+                              {tag.name}
+                            </Text>
+                          </Pressable>
+                        );
+                      })}
+                    </View>
+                  </View>
+                ) : null}
+              </ScrollView>
+
+              {/* Footer: cancel + submit */}
+              <View style={styles.tagModalFooter}>
+                <TouchableOpacity
+                  style={styles.tagModalCancelBtn}
+                  onPress={closeTagPicker}
+                  disabled={savingTag}
+                  accessibilityRole="button"
+                  accessibilityLabel={t('common.cancel')}
+                >
+                  <Text style={styles.tagModalCancelText}>
+                    {t('common.cancel') || '取消'}
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[
+                    styles.tagModalSubmitBtn,
+                    (pickedTags.length === 0 || savingTag) &&
+                      styles.tagModalSubmitBtnDisabled,
+                  ]}
+                  onPress={handleSubmitTagAndInvite}
+                  disabled={pickedTags.length === 0 || savingTag}
+                  activeOpacity={0.85}
+                  accessibilityRole="button"
+                  accessibilityLabel={
+                    t('contactSync.tagModalSubmit') || '加入名單並邀請'
+                  }
+                >
+                  {savingTag ? (
+                    <BrandSpinner size={16} />
+                  ) : (
+                    <>
+                      <Send size={14} color="#FFFFFF" />
+                      <Text style={styles.tagModalSubmitText}>
+                        {t('contactSync.tagModalSubmit') || '加入名單並邀請'}
+                      </Text>
+                    </>
+                  )}
+                </TouchableOpacity>
+              </View>
+            </KeyboardAvoidingView>
+          </Pressable>
+        </Pressable>
+      </Modal>
     </View>
   );
 }
@@ -866,5 +1203,213 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.piktag50,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+
+  // Phase 4 — non-PikTag row primary CTA (filled purple, not the
+  // gray-bordered invite chip from before).
+  actionBtnTagInvite: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+    backgroundColor: COLORS.piktag600,
+  },
+  actionBtnTagInviteText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+  taggedBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 8,
+    backgroundColor: COLORS.piktag50,
+    borderWidth: 1,
+    borderColor: COLORS.piktag200,
+  },
+  taggedBadgeText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: COLORS.piktag600,
+  },
+
+  // Phase 4 — tag picker modal
+  tagModalBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.45)',
+    justifyContent: 'flex-end',
+  },
+  tagModalCard: {
+    backgroundColor: COLORS.white,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingTop: 16,
+    paddingBottom: Platform.OS === 'ios' ? 28 : 16,
+    maxHeight: '85%',
+  },
+  tagModalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.gray100,
+  },
+  tagModalTitle: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: COLORS.gray900,
+  },
+  tagModalSubtitle: {
+    fontSize: 13,
+    color: COLORS.gray500,
+    marginTop: 2,
+  },
+  tagModalCloseBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: COLORS.gray100,
+  },
+  tagModalBody: {
+    paddingHorizontal: 20,
+    paddingTop: 16,
+  },
+  tagModalHint: {
+    fontSize: 13,
+    color: COLORS.gray600,
+    lineHeight: 18,
+    marginBottom: 14,
+  },
+  pickedRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginBottom: 14,
+  },
+  pickedChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 16,
+    backgroundColor: COLORS.piktag600,
+  },
+  pickedChipText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#FFFFFF',
+  },
+  customTagRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 16,
+  },
+  customTagInput: {
+    flex: 1,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: COLORS.gray200,
+    backgroundColor: COLORS.white,
+    fontSize: 14,
+    color: COLORS.gray900,
+  },
+  customTagAddBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: COLORS.piktag600,
+  },
+  customTagAddBtnDisabled: {
+    backgroundColor: COLORS.gray100,
+  },
+  popularSection: {
+    marginBottom: 8,
+  },
+  popularLabel: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: COLORS.gray600,
+    letterSpacing: 0.4,
+    marginBottom: 8,
+    textTransform: 'uppercase',
+  },
+  popularGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  popularChip: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: COLORS.gray200,
+    backgroundColor: COLORS.white,
+  },
+  popularChipSelected: {
+    borderColor: COLORS.piktag600,
+    backgroundColor: COLORS.piktag50,
+  },
+  popularChipText: {
+    fontSize: 13,
+    color: COLORS.gray700,
+    fontWeight: '500',
+  },
+  popularChipTextSelected: {
+    color: COLORS.piktag600,
+    fontWeight: '700',
+  },
+  tagModalFooter: {
+    flexDirection: 'row',
+    gap: 10,
+    paddingHorizontal: 20,
+    paddingTop: 14,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.gray100,
+  },
+  tagModalCancelBtn: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: COLORS.gray100,
+  },
+  tagModalCancelText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: COLORS.gray700,
+  },
+  tagModalSubmitBtn: {
+    flex: 2,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: 12,
+    borderRadius: 10,
+    backgroundColor: COLORS.piktag600,
+  },
+  tagModalSubmitBtnDisabled: {
+    opacity: 0.5,
+  },
+  tagModalSubmitText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#FFFFFF',
   },
 });
