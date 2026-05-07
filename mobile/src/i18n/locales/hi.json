@@ -419,7 +419,7 @@
       "business": "व्यापार",
       "generic": "सामान्य"
     },
-    "completionInline": "बाकी: {{items}}",
+    "completionInline": "तुम्हारे लोग तुम्हें जल्दी ढूंढें — जोड़ो {{items}}",
     "missingAvatar": "फोटो",
     "missingBio": "बायो",
     "missingTags": "3 टैग",

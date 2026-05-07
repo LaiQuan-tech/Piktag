@@ -427,7 +427,7 @@
       "business": "Business",
       "generic": "General"
     },
-    "completionInline": "Missing: {{items}}",
+    "completionInline": "Help your tribe find you — add {{items}}",
     "missingAvatar": "Avatar",
     "missingBio": "Bio",
     "missingTags": "3 tags",

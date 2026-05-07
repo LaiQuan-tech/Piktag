@@ -427,7 +427,7 @@
       "business": "商业支付",
       "generic": "通用"
     },
-    "completionInline": "还差：{{items}}",
+    "completionInline": "让对的人秒找到你 — 还差 {{items}}",
     "missingAvatar": "头像",
     "missingBio": "简介",
     "missingTags": "3 个标签",

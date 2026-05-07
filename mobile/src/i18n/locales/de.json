@@ -427,7 +427,7 @@
       "business": "Business",
       "generic": "Allgemein"
     },
-    "completionInline": "Es fehlen noch: {{items}}",
+    "completionInline": "Damit deine Crew dich schneller findet — fehlt noch {{items}}",
     "missingAvatar": "Avatar",
     "missingBio": "Bio",
     "missingTags": "3 Tags",

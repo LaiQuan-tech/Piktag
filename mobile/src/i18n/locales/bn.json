@@ -419,7 +419,7 @@
       "business": "ব্যবসা",
       "generic": "সাধারণ"
     },
-    "completionInline": "আরো প্রয়োজন: {{items}}",
+    "completionInline": "তোমার লোকেরা যাতে তোমাকে খুঁজে পায় — যোগ করো {{items}}",
     "missingAvatar": "প্রোফাইল ছবি",
     "missingBio": "পরিচিতি",
     "missingTags": "3টি ট্যাগ",

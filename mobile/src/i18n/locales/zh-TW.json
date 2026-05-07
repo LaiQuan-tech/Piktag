@@ -430,7 +430,7 @@
       "business": "商務金流",
       "generic": "通用"
     },
-    "completionInline": "還差：{{items}}",
+    "completionInline": "讓對的人秒找到你 — 差 {{items}}",
     "missingAvatar": "大頭照",
     "missingBio": "簡介",
     "missingTags": "3 個標籤",

@@ -419,7 +419,7 @@
       "business": "أعمال",
       "generic": "عام"
     },
-    "completionInline": "ينقص: {{items}}",
+    "completionInline": "ليجدك جماعتك بسرعة — أضف {{items}}",
     "missingAvatar": "الصورة الشخصية",
     "missingBio": "نبذة",
     "missingTags": "3 وسوم",

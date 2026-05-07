@@ -419,7 +419,7 @@
       "business": "비즈니스",
       "generic": "일반"
     },
-    "completionInline": "남은 항목: {{items}}",
+    "completionInline": "너의 사람들이 빨리 찾아오게 — {{items}} 채워봐",
     "missingAvatar": "프로필 사진",
     "missingBio": "자기소개",
     "missingTags": "태그 3개",

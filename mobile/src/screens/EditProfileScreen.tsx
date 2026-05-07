@@ -1391,12 +1391,15 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
                   </Text>
                 )}
                 {showMissing && (
-                  <Text style={styles.completionInlineText}>
-                    {t('editProfile.completionInline', {
-                      items: missing.join('、'),
-                      defaultValue: '還差：{{items}}',
-                    })}
-                  </Text>
+                  <View style={styles.completionInlineMissingRow}>
+                    <Sparkles size={12} color={COLORS.piktag500} />
+                    <Text style={styles.completionInlineText}>
+                      {t('editProfile.completionInline', {
+                        items: missing.join('、'),
+                        defaultValue: '讓對的人秒找到你 — 差 {{items}}',
+                      })}
+                    </Text>
+                  </View>
                 )}
               </View>
             );
@@ -2465,11 +2468,21 @@ const styles = StyleSheet.create({
     color: COLORS.gray700,
     textAlign: 'center',
   },
+  completionInlineMissingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 5,
+    paddingHorizontal: 8,
+    flexWrap: 'wrap',
+  },
   completionInlineText: {
     fontSize: 12,
-    color: COLORS.gray500,
+    color: COLORS.gray600,
     textAlign: 'center',
-    lineHeight: 16,
+    lineHeight: 17,
+    fontWeight: '500',
+    flexShrink: 1,
   },
   loadingContainer: {
     flex: 1,

@@ -419,7 +419,7 @@
       "business": "Business",
       "generic": "Général"
     },
-    "completionInline": "Il manque : {{items}}",
+    "completionInline": "Pour que ta tribu te trouve — ajoute {{items}}",
     "missingAvatar": "Photo",
     "missingBio": "Bio",
     "missingTags": "3 tags",

@@ -419,7 +419,7 @@
       "business": "İş",
       "generic": "Genel"
     },
-    "completionInline": "Eksik: {{items}}",
+    "completionInline": "Crew'ün seni hızlıca bulsun — şunlar eksik: {{items}}",
     "missingAvatar": "Avatar",
     "missingBio": "Bio",
     "missingTags": "3 etiket",

@@ -419,7 +419,7 @@
       "business": "ビジネス",
       "generic": "一般"
     },
-    "completionInline": "あと: {{items}}",
+    "completionInline": "仲間にすぐ見つけてもらおう — あと {{items}}",
     "missingAvatar": "アイコン",
     "missingBio": "自己紹介",
     "missingTags": "3つのタグ",

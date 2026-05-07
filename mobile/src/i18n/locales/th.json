@@ -419,7 +419,7 @@
       "business": "ธุรกิจ",
       "generic": "ทั่วไป"
     },
-    "completionInline": "ยังขาด: {{items}}",
+    "completionInline": "ให้คนของคุณเจอคุณเร็ว — เพิ่ม {{items}}",
     "missingAvatar": "รูปโปรไฟล์",
     "missingBio": "ไบโอ",
     "missingTags": "3 แท็ก",
