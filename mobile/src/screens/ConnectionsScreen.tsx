@@ -1251,8 +1251,12 @@ const styles = StyleSheet.create({
   },
   newBadgeText: {
     fontSize: 10,
-    fontWeight: '600',
-    color: COLORS.piktag600,
+    fontWeight: '700',
+    // accentPop = high-saturation magenta. The "new" pill is exactly
+    // the kind of "currently-highlighted moment" the accent is reserved
+    // for — a temporary visual flag that should jump the eye on a row
+    // amid otherwise-stable primary purple UI.
+    color: COLORS.accentPop,
     letterSpacing: 0.3,
     marginLeft: 2,
   },

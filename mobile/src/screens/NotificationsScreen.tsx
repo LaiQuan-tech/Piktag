@@ -681,7 +681,10 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: COLORS.accent500,
+    // accentPop — the unread dot is a primary "notification dot"
+    // surface, exactly the case the design system reserves the
+    // high-saturation accent for.
+    backgroundColor: COLORS.accentPop,
     marginLeft: 8,
     alignSelf: 'center',
   },

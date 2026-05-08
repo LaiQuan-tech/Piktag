@@ -127,6 +127,13 @@ function MainTabs() {
         },
         tabBarActiveTintColor: isDark ? '#ffffff' : COLORS.piktag500,
         tabBarInactiveTintColor: isDark ? '#8e8e8e' : COLORS.gray400,
+        // Unread chat count badge — accentPop on purpose (high-saturation
+        // pop reserved for moments that should jump the eye, per the
+        // theme's accent vs primary system).
+        tabBarBadgeStyle: {
+          backgroundColor: COLORS.accentPop,
+          color: '#FFFFFF',
+        },
       }}
     >
       <Tab.Screen

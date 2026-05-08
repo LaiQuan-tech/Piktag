@@ -2,6 +2,21 @@
 // Bold typography · 8-12px radius · Dark mode ready
 
 // ── Light palette ──────────────────────────────────────────────────────
+//
+// Two-purple semantic system:
+//
+//   * piktag500 (#8c52ff)  — PRIMARY. The stable base. Used for solid
+//     buttons, tag chip backgrounds/borders, menu items, focus rings,
+//     wordmark fills, AND as the gradient terminus. International,
+//     calm, the "voice" of the product.
+//
+//   * accentPop (#aa00ff)  — ACCENT. The high-saturation pop. Used
+//     ONLY for moments that should jump the eye: notification dots,
+//     unread badges, live-Ask heartbeat indicators, success burst
+//     animations, "currently active" tag highlights. Never the base
+//     UI color — appearance should feel like punctuation, not body
+//     text. If everything's accentPop, nothing is.
+//
 const LIGHT = {
   // Brand (Purple — #8c52ff base)
   piktag50: '#f5e6ff',
@@ -11,6 +26,10 @@ const LIGHT = {
   piktag400: '#bf00ff',
   piktag500: '#8c52ff',
   piktag600: '#8800cc',
+
+  // Accent — high-pop variant for notification dots / live indicators /
+  // success bursts / current-highlight states. See header comment.
+  accentPop: '#aa00ff',
 
   // Accent (deep purple for contrast on white)
   accent50: '#f0e6ff',
@@ -71,6 +90,11 @@ const DARK: typeof LIGHT = {
   piktag400: '#cc33ff',
   piktag500: '#d966ff',
   piktag600: '#e699ff',
+
+  // Accent — same #aa00ff in dark mode. Pure neon already pops on
+  // black backgrounds; lifting the value further (e.g. to #ff80ff)
+  // would lose the brand voice.
+  accentPop: '#aa00ff',
 
   // Accent (purple) — for dark mode
   accent50: '#1a0033',

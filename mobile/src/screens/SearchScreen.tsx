@@ -130,7 +130,12 @@ const TagCard = React.memo(function TagCard({ tag, isSelected, onPress, onLongPr
       </View>
       <View style={styles.tagCountRow}>
         {isTrending && (
-          <TrendingUp size={12} color={isSelected ? COLORS.white : COLORS.accent500} />
+          // accentPop on trending icon — only appears on tags that are
+          // genuinely growing right now, exactly the "currently-active
+          // high-pop highlight" the design system reserves the accent
+          // for. Most tags don't render this, so the magenta jump
+          // feels like a deliberate signal, not noise.
+          <TrendingUp size={12} color={isSelected ? COLORS.white : COLORS.accentPop} />
         )}
         <Text style={[styles.tagCount, isSelected && styles.tagCountHighlighted]}>
           {tag.usage_count}{countSuffix}
