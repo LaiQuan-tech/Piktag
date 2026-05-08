@@ -237,10 +237,12 @@ function renderProfilePage(profile, biolinks, tags, sid, locale, eventInfo, anal
     body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:linear-gradient(160deg,#faf5ff 0%,#fff5f5 50%,#f5f0ff 100%);color:#1a1a1a;min-height:100vh;display:flex;flex-direction:column;align-items:center}
     .container{max-width:480px;width:100%;padding:32px 20px 140px;display:flex;flex-direction:column;align-items:center;position:relative}
 
-    /* Logo */
-    .logo{display:flex;align-items:center;gap:6px;margin-bottom:28px;opacity:0;animation:fadeDown .5s ease forwards}
-    .logo img{width:36px;height:36px}
-    .logo-text{font-family:'Poppins',sans-serif;font-size:28px;font-weight:800;color:${BRAND_COLOR};letter-spacing:-0.5px}
+    /* Logo — pinned top-left corner, mirrors the share-btn at top-right
+       so the visual frame reads "PikTag wordmark | profile content |
+       share". Tappable, deep-links back to pikt.ag root. */
+    .logo{position:absolute;top:20px;left:20px;display:flex;align-items:center;gap:8px;text-decoration:none;opacity:0;animation:fadeDown .5s ease forwards;z-index:10}
+    .logo img{width:32px;height:32px;border-radius:8px}
+    .logo-text{font-family:'Poppins',sans-serif;font-size:18px;font-weight:800;color:${BRAND_COLOR};letter-spacing:-0.3px}
 
     /* Avatar — gradient ring iff this user has an active Ask, subtle
        gray ring otherwise. Same conditional rule as the mobile app's
@@ -303,6 +305,10 @@ function renderProfilePage(profile, biolinks, tags, sid, locale, eventInfo, anal
 </head>
 <body>
   <div class="container">
+    <a class="logo" href="https://pikt.ag" aria-label="PikTag">
+      <img src="/logo.png" alt="">
+      <span class="logo-text">PikTag</span>
+    </a>
     <button class="share-btn" onclick="handleShare()" aria-label="${locale.shareAria}">
       <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="${BRAND_COLOR}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
     </button>

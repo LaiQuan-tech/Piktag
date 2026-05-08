@@ -4,10 +4,14 @@
       {
         "appIDs": ["3NU6HAGX6Z.ag.pikt.app"],
         "components": [
-          { "/": "/i/*", "comment": "Invite codes" },
-          { "/": "/u/*", "comment": "User profiles" },
-          { "/": "/tag/*", "comment": "Tag pages" },
-          { "/": "/*", "comment": "All other paths route to the app" }
+          { "/": "/", "exclude": true, "comment": "Root: marketing landing — stay in Safari" },
+          { "/": "/privacy*", "exclude": true, "comment": "Privacy policy" },
+          { "/": "/terms*", "exclude": true, "comment": "Terms of Service" },
+          { "/": "/contact*", "exclude": true, "comment": "Contact page" },
+          { "/": "/reset-password*", "exclude": true, "comment": "Supabase password recovery — MUST stay in Safari" },
+          { "/": "/download*", "exclude": true, "comment": "Download CTA / app store routing" },
+          { "/": "/delete-account*", "exclude": true, "comment": "Delete-account form" },
+          { "/": "/*", "comment": "Everything else (/i/code, /u/foo, /tag/bar, /username) opens the app for installed users" }
         ]
       }
     ]
