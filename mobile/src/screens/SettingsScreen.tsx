@@ -44,23 +44,29 @@ type SettingsGroup = {
 // Mirrors SUPPORTED_LANGS in src/i18n/index.ts. If you add a new
 // locale there you also need to add the picker label here so users
 // can actually choose it from Settings → Language.
+//
+// Ordered by total speakers (L1+L2, Ethnologue 2023) descending so
+// the most users find their language at or near the top — same
+// ordering as landing/src/i18n/index.ts. Locale auto-detection still
+// pre-selects on first launch; this ordering only matters when the
+// user opens the picker manually.
 const LANGUAGE_OPTIONS: { key: string; label: string }[] = [
-  { key: 'zh-TW', label: '繁體中文' },
-  { key: 'en', label: 'English' },
-  { key: 'zh-CN', label: '简体中文' },
-  { key: 'ja', label: '日本語' },
-  { key: 'ko', label: '한국어' },
-  { key: 'es', label: 'Español' },
-  { key: 'fr', label: 'Français' },
-  { key: 'de', label: 'Deutsch' },
-  { key: 'pt', label: 'Português' },
-  { key: 'ar', label: 'العربية' },
-  { key: 'hi', label: 'हिन्दी' },
-  { key: 'bn', label: 'বাংলা' },
-  { key: 'id', label: 'Bahasa Indonesia' },
-  { key: 'ru', label: 'Русский' },
-  { key: 'th', label: 'ไทย' },
-  { key: 'tr', label: 'Türkçe' },
+  { key: 'en', label: 'English' },                   // ~1.5B
+  { key: 'zh-CN', label: '简体中文' },                // ~1.1B
+  { key: 'hi', label: 'हिन्दी' },                     // ~602M
+  { key: 'es', label: 'Español' },                   // ~548M
+  { key: 'fr', label: 'Français' },                  // ~274M
+  { key: 'ar', label: 'العربية' },                   // ~274M
+  { key: 'bn', label: 'বাংলা' },                     // ~272M
+  { key: 'ru', label: 'Русский' },                   // ~258M
+  { key: 'pt', label: 'Português' },                 // ~257M
+  { key: 'id', label: 'Bahasa Indonesia' },          // ~199M
+  { key: 'de', label: 'Deutsch' },                   // ~135M
+  { key: 'ja', label: '日本語' },                     // ~125M
+  { key: 'tr', label: 'Türkçe' },                    // ~88M
+  { key: 'ko', label: '한국어' },                     // ~81M
+  { key: 'th', label: 'ไทย' },                       // ~70M
+  { key: 'zh-TW', label: '繁體中文' },                // ~30M
 ];
 
 const APP_VERSION = '1.0.0';

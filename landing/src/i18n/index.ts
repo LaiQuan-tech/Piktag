@@ -19,23 +19,31 @@ import ru from './locales/ru.json';
 import th from './locales/th.json';
 import tr from './locales/tr.json';
 
+// Ordered by total speakers (L1 + L2, Ethnologue 2023) descending so
+// the most users find their language at or near the top of the
+// switcher. The previous order was Taiwan-first by founder bias —
+// flipped here because the goal is "let most people find their
+// language fast", not "showcase the founder's locale". Locale
+// detection (browser/system) still pre-selects the user's language
+// regardless of list order; this ordering only matters for the
+// dropdown UX.
 export const languages = [
-  { code: 'zh-TW', label: '繁體中文' },
-  { code: 'en', label: 'English' },
-  { code: 'ja', label: '日本語' },
-  { code: 'ko', label: '한국어' },
-  { code: 'zh-CN', label: '简体中文' },
-  { code: 'es', label: 'Español' },
-  { code: 'fr', label: 'Français' },
-  { code: 'de', label: 'Deutsch' },
-  { code: 'pt', label: 'Português' },
-  { code: 'ar', label: 'العربية' },
-  { code: 'bn', label: 'বাংলা' },
-  { code: 'hi', label: 'हिन्दी' },
-  { code: 'id', label: 'Bahasa Indonesia' },
-  { code: 'ru', label: 'Русский' },
-  { code: 'th', label: 'ไทย' },
-  { code: 'tr', label: 'Türkçe' },
+  { code: 'en', label: 'English' },                  // ~1.5B
+  { code: 'zh-CN', label: '简体中文' },               // ~1.1B
+  { code: 'hi', label: 'हिन्दी' },                    // ~602M
+  { code: 'es', label: 'Español' },                  // ~548M
+  { code: 'fr', label: 'Français' },                 // ~274M
+  { code: 'ar', label: 'العربية' },                  // ~274M
+  { code: 'bn', label: 'বাংলা' },                    // ~272M
+  { code: 'ru', label: 'Русский' },                  // ~258M
+  { code: 'pt', label: 'Português' },                // ~257M
+  { code: 'id', label: 'Bahasa Indonesia' },         // ~199M
+  { code: 'de', label: 'Deutsch' },                  // ~135M
+  { code: 'ja', label: '日本語' },                    // ~125M
+  { code: 'tr', label: 'Türkçe' },                   // ~88M
+  { code: 'ko', label: '한국어' },                    // ~81M
+  { code: 'th', label: 'ไทย' },                      // ~70M
+  { code: 'zh-TW', label: '繁體中文' },               // ~30M
 ];
 
 i18n
