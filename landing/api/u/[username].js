@@ -238,11 +238,13 @@ function renderProfilePage(profile, biolinks, tags, sid, locale, eventInfo, anal
     .container{max-width:480px;width:100%;padding:32px 20px 140px;display:flex;flex-direction:column;align-items:center;position:relative}
 
     /* Logo — pinned top-left corner, mirrors the share-btn at top-right
-       so the visual frame reads "PikTag wordmark | profile content |
-       share". Tappable, deep-links back to pikt.ag root. */
-    .logo{position:absolute;top:20px;left:20px;display:flex;align-items:center;gap:8px;text-decoration:none;opacity:0;animation:fadeDown .5s ease forwards;z-index:10}
-    .logo img{width:32px;height:32px;border-radius:8px}
-    .logo-text{font-family:'Poppins',sans-serif;font-size:18px;font-weight:800;color:${BRAND_COLOR};letter-spacing:-0.3px}
+       so the visual frame is symmetric (logo | content | share).
+       Icon-only, no wordmark — keeps the area above the avatar
+       uncluttered (a public profile page shouldn't drown the owner's
+       face in branding). 40×40 to match the share-btn's tap area.
+       Tappable, deep-links back to pikt.ag root. */
+    .logo{position:absolute;top:20px;left:20px;width:40px;height:40px;display:flex;align-items:center;justify-content:center;text-decoration:none;opacity:0;animation:fadeDown .5s ease forwards;z-index:10}
+    .logo img{width:40px;height:40px;border-radius:10px;display:block}
 
     /* Avatar — gradient ring iff this user has an active Ask, subtle
        gray ring otherwise. Same conditional rule as the mobile app's
@@ -306,8 +308,7 @@ function renderProfilePage(profile, biolinks, tags, sid, locale, eventInfo, anal
 <body>
   <div class="container">
     <a class="logo" href="https://pikt.ag" aria-label="PikTag">
-      <img src="/logo.png" alt="">
-      <span class="logo-text">PikTag</span>
+      <img src="/logo.png" alt="PikTag">
     </a>
     <button class="share-btn" onclick="handleShare()" aria-label="${locale.shareAria}">
       <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="${BRAND_COLOR}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
