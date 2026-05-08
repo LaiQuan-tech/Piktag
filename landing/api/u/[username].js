@@ -237,14 +237,17 @@ function renderProfilePage(profile, biolinks, tags, sid, locale, eventInfo, anal
     body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:linear-gradient(160deg,#faf5ff 0%,#fff5f5 50%,#f5f0ff 100%);color:#1a1a1a;min-height:100vh;display:flex;flex-direction:column;align-items:center}
     .container{max-width:480px;width:100%;padding:32px 20px 140px;display:flex;flex-direction:column;align-items:center;position:relative}
 
-    /* Logo — pinned top-left corner, mirrors the share-btn at top-right
-       so the visual frame is symmetric (logo | content | share).
-       Icon-only, no wordmark — keeps the area above the avatar
-       uncluttered (a public profile page shouldn't drown the owner's
-       face in branding). 40×40 to match the share-btn's tap area.
-       Tappable, deep-links back to pikt.ag root. */
+    /* Logo — pinned top-left, mirrors the share-btn at top-right.
+       Visual-weight balanced with share-btn: that one is a 40×40
+       circle with a soft white-ish backdrop and a slim stroke icon
+       inside — overall "soft and small" presence. A solid 40×40
+       gradient logo at the same outer size would visually dominate
+       the share button. So: keep the 40×40 invisible tap area
+       (same finger target as share-btn), but the visible logo is
+       only 28×28 — roughly the same perceived weight as share-btn's
+       18px stroke + light background. */
     .logo{position:absolute;top:20px;left:20px;width:40px;height:40px;display:flex;align-items:center;justify-content:center;text-decoration:none;opacity:0;animation:fadeDown .5s ease forwards;z-index:10}
-    .logo img{width:40px;height:40px;border-radius:10px;display:block}
+    .logo img{width:28px;height:28px;border-radius:7px;display:block}
 
     /* Avatar — gradient ring iff this user has an active Ask, subtle
        gray ring otherwise. Same conditional rule as the mobile app's
