@@ -426,7 +426,7 @@ export default function HiddenTagEditor({ connectionId, userId, hiddenTags, onTa
           onSubmitEditing={handleTextSubmit}
         />
         <TouchableOpacity
-          style={[styles.addBtn, (!textValue.trim() || busy) && styles.addBtnDisabled]}
+          style={styles.addBtn}
           onPress={handleTextSubmit}
           disabled={!textValue.trim() || busy}
           activeOpacity={0.7}
@@ -524,7 +524,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  addBtnDisabled: {
-    opacity: 0.4,
-  },
+  // addBtnDisabled removed — see EditProfileScreen.tag_addBtn comment
+  // for the rationale. Disabled prop blocks the tap; visual stays full
+  // brand purple so the same + button reads identically across the app.
 });

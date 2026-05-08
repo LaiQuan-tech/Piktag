@@ -522,8 +522,9 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
                   translations ("Aggiungi", "Tambah", "Hinzufügen")
                   no longer push the input row out of shape. */}
               <Pressable
-                style={[styles.addBtn, (!tagInput.trim() || addingTag || myTags.length >= MAX_TAGS) && styles.addBtnDisabled]}
+                style={styles.addBtn}
                 onPress={handleAddTag}
+                disabled={!tagInput.trim() || addingTag || myTags.length >= MAX_TAGS}
                 accessibilityRole="button"
                 accessibilityLabel={t('manageTags.addButton')}
               >
@@ -642,5 +643,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  addBtnDisabled: { opacity: 0.4 },
+  // addBtnDisabled removed — button stays full piktag500 even when
+  // input is empty / cap hit. The `disabled` prop on the Pressable
+  // continues to block taps. Matches EditProfileScreen.tag_addBtn and
+  // HiddenTagEditor.addBtn so the + reads the same across the app.
 });

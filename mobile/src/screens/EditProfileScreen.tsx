@@ -1611,11 +1611,9 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
                   </Text>
                 </View>
                 <Pressable
-                  style={[
-                    styles.tag_addBtn,
-                    (!tagInput.trim() || addingTag) && styles.tag_addBtnDisabled,
-                  ]}
+                  style={styles.tag_addBtn}
                   onPress={() => handleAddTag()}
+                  disabled={!tagInput.trim() || addingTag}
                   accessibilityRole="button"
                   accessibilityLabel={t('manageTags.addButton') || '新增'}
                 >
@@ -2901,9 +2899,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  tag_addBtnDisabled: {
-    opacity: 0.4,
-  },
+  // tag_addBtnDisabled removed — keeping the button full piktag500
+  // even when the input is empty. The `disabled` prop on the
+  // Pressable still blocks the tap; we just don't visually gray
+  // it out, so the action button reads identically across the app
+  // (Instagram-style: post/send/+ buttons stay full color all the
+  // time, the user knows it's tappable once they type).
   // Collapsible "popular tags" group. Default collapsed so the
   // section doesn't bloat the page; users tap the toggle to browse.
   tag_popularSection: {
