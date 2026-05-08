@@ -304,6 +304,18 @@ export default function InviteScreen({ navigation }: InviteScreenProps) {
             <Text style={styles.listHeaderText}>
               {t('invite.inviteRecordHeader')} ({invites.length})
             </Text>
+            {/* At-a-glance success counter so the inviter doesn't have
+                to scan every row to learn how many of their invites were
+                actually redeemed. Updates optimistically because the
+                local `invites` state is the source of truth here. */}
+            {invites.some((i) => !!i.used_by) && (
+              <Text style={styles.listHeaderAccepted}>
+                {t('invite.acceptedSummary', {
+                  defaultValue: '✅ {{count}} 人已加入',
+                  count: invites.filter((i) => !!i.used_by).length,
+                })}
+              </Text>
+            )}
           </View>
 
           <FlatList
@@ -437,11 +449,19 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderBottomWidth: 1,
     borderBottomColor: COLORS.gray100,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
   listHeaderText: {
     fontSize: 14,
     fontWeight: '600',
     color: COLORS.gray500,
+  },
+  listHeaderAccepted: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: COLORS.piktag600,
   },
   listContent: {
     paddingBottom: 100,

@@ -653,6 +653,7 @@
     "quotaHint": "1 invite restores every 24 hours",
     "generateButton": "Generate & Share Invite",
     "inviteRecordHeader": "Invite History",
+    "acceptedSummary": "✅ {{count}} joined",
     "usedBadge": "Used",
     "noInvites": "No invite history"
   },
@@ -788,6 +789,10 @@
           "title": "{{username}}",
           "body": "posted an Ask · {{ask_body}}"
         }
+      },
+      "invite_accepted": {
+        "title": "Your invite was accepted 🎉",
+        "body": "joined PikTag — you earned 1 P coin"
       }
     }
   },

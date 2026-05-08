@@ -656,6 +656,7 @@
     "quotaHint": "每 24 小時恢復 1 個名額",
     "generateButton": "產生並分享邀請碼",
     "inviteRecordHeader": "邀請紀錄",
+    "acceptedSummary": "✅ {{count}} 人已加入",
     "usedBadge": "已使用",
     "noInvites": "尚無邀請紀錄"
   },
@@ -777,6 +778,10 @@
           "title": "{{username}}",
           "body": "發了 Ask · {{ask_body}}"
         }
+      },
+      "invite_accepted": {
+        "title": "你的邀請被接受了 🎉",
+        "body": "加入了 PikTag — 你獲得 1 P 幣"
       }
     }
   },

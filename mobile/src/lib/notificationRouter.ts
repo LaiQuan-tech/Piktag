@@ -75,6 +75,7 @@ export async function routeFromNotification(
     data.friend_user_id,
     data.recommended_user_id,
     data.clicker_user_id,
+    data.redeemer_id,
     data.user_id,
   ];
   let userId = userIdCandidates.find(

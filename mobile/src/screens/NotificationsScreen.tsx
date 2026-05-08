@@ -48,7 +48,8 @@ function filterNotifications(
           n.type === 'tag_added' ||
           n.type === 'recommendation' ||
           n.type === 'tag_trending' ||
-          n.type === 'ask_posted'
+          n.type === 'ask_posted' ||
+          n.type === 'invite_accepted'
       );
     case 'reminders':
       return notifications.filter(
