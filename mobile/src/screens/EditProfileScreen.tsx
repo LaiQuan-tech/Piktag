@@ -1587,21 +1587,29 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
                 circular plus button. */}
             {userTags.length < MAX_TAGS && (
               <View style={styles.tag_addRow}>
-                <Hash size={18} color={COLORS.gray400} />
-                <TextInput
-                  style={styles.tag_addInput}
-                  placeholder={t('manageTags.tagInputPlaceholder') || '+ 新增標籤'}
-                  placeholderTextColor={COLORS.gray400}
-                  value={tagInput}
-                  onChangeText={(v) => v.length <= MAX_TAG_LENGTH && setTagInput(v)}
-                  returnKeyType="done"
-                  onSubmitEditing={() => handleAddTag()}
-                  editable={!addingTag}
-                  maxLength={MAX_TAG_LENGTH}
-                />
-                <Text style={styles.tag_charCount}>
-                  {tagInput.length}/{MAX_TAG_LENGTH}
-                </Text>
+                {/* Bordered input pill with the Hash prefix + char counter
+                    inside, exactly like before — but the + button is now
+                    a separate sibling outside the pill, matching the
+                    AddTagScreen / ManageTagsScreen / HiddenTagEditor /
+                    AskCreateModal pattern. Same 40×40 / borderRadius 12
+                    square-rounded shape across the whole app. */}
+                <View style={styles.tag_addInputPill}>
+                  <Hash size={18} color={COLORS.gray400} />
+                  <TextInput
+                    style={styles.tag_addInput}
+                    placeholder={t('manageTags.tagInputPlaceholder') || '+ 新增標籤'}
+                    placeholderTextColor={COLORS.gray400}
+                    value={tagInput}
+                    onChangeText={(v) => v.length <= MAX_TAG_LENGTH && setTagInput(v)}
+                    returnKeyType="done"
+                    onSubmitEditing={() => handleAddTag()}
+                    editable={!addingTag}
+                    maxLength={MAX_TAG_LENGTH}
+                  />
+                  <Text style={styles.tag_charCount}>
+                    {tagInput.length}/{MAX_TAG_LENGTH}
+                  </Text>
+                </View>
                 <Pressable
                   style={[
                     styles.tag_addBtn,
@@ -2848,26 +2856,36 @@ const styles = StyleSheet.create({
     color: COLORS.gray400,
     paddingVertical: 8,
   },
-  // Inline add row — no longer bottom-anchored. Lives directly
-  // below the chip list in the Tags section. Same Hash + input +
-  // plus-button pattern ManageTagsScreen used.
+  // Inline add row — bordered input pill + separate + button. The
+  // pill holds the Hash prefix, text input, and char counter; the
+  // 40×40 square-rounded button is a sibling at the right with a
+  // gap. Mirrors HiddenTagEditor / AddTagScreen / ManageTagsScreen /
+  // ActivityReviewScreen / AskCreateModal so the same "type a tag,
+  // tap +" affordance reads identically across every entry point.
   tag_addRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
     marginTop: 12,
+  },
+  tag_addInputPill: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
     paddingVertical: 6,
     paddingHorizontal: 12,
     borderWidth: 1,
     borderColor: COLORS.gray200,
     borderRadius: 12,
     backgroundColor: COLORS.white,
+    minHeight: 40,
   },
   tag_addInput: {
     flex: 1,
     fontSize: 15,
     color: COLORS.gray900,
-    paddingVertical: Platform.OS === 'ios' ? 8 : 4,
+    paddingVertical: Platform.OS === 'ios' ? 6 : 2,
   },
   tag_charCount: {
     fontSize: 11,
@@ -2876,15 +2894,15 @@ const styles = StyleSheet.create({
     textAlign: 'right',
   },
   tag_addBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 40,
+    height: 40,
+    borderRadius: 12,
     backgroundColor: COLORS.piktag500,
     alignItems: 'center',
     justifyContent: 'center',
   },
   tag_addBtnDisabled: {
-    backgroundColor: COLORS.gray300,
+    opacity: 0.4,
   },
   // Collapsible "popular tags" group. Default collapsed so the
   // section doesn't bloat the page; users tap the toggle to browse.
