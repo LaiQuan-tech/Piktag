@@ -48,11 +48,11 @@ function StatCard({
   value: number;
   alert?: boolean;
 }) {
-  const valueColor = alert && value > 0 ? 'text-red-600' : 'text-[#aa00ff]';
+  const valueColor = alert && value > 0 ? 'text-red-600' : 'text-[#8c52ff]';
   const iconWrap =
     alert && value > 0
       ? 'bg-red-50 text-red-600'
-      : 'bg-[#faf5ff] text-[#aa00ff]';
+      : 'bg-[#faf5ff] text-[#8c52ff]';
   return (
     <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-100">
       <div className="flex items-center gap-3 mb-4">
@@ -106,7 +106,7 @@ function TopTagsList({ tags }: { tags: AdminAnalytics['top_tags'] }) {
             </div>
             <div className="h-2 w-full rounded-full bg-slate-100 overflow-hidden">
               <div
-                className="h-full rounded-full bg-[#aa00ff]"
+                className="h-full rounded-full bg-[#8c52ff]"
                 style={{ width: `${pct}%` }}
               />
             </div>
@@ -238,7 +238,7 @@ export default function AnalyticsPage() {
             <p className="text-xs text-slate-500 mt-0.5">App 商店安裝與下載分析</p>
           </div>
           <div className="px-6 py-12 flex flex-col items-center justify-center text-center">
-            <div className="w-12 h-12 rounded-xl bg-[#faf5ff] text-[#aa00ff] flex items-center justify-center mb-4">
+            <div className="w-12 h-12 rounded-xl bg-[#faf5ff] text-[#8c52ff] flex items-center justify-center mb-4">
               <QrCode className="w-6 h-6" />
             </div>
             <p className="text-sm text-slate-600 max-w-sm">

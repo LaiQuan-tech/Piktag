@@ -98,7 +98,7 @@ function renderPage(tagName, usageCount, members, analyticsSnippet) {
 
   const memberCards = members.map(m => {
     const verifiedSvg = m.verified
-      ? '<svg viewBox="0 0 24 24" width="14" height="14" style="margin-left:3px;vertical-align:middle;flex-shrink:0"><circle cx="12" cy="12" r="10" fill="#aa00ff"/><path d="M9 12l2 2 4-4" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+      ? '<svg viewBox="0 0 24 24" width="14" height="14" style="margin-left:3px;vertical-align:middle;flex-shrink:0"><circle cx="12" cy="12" r="10" fill="#8c52ff"/><path d="M9 12l2 2 4-4" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>'
       : '';
     const tagsHtml = m.tags
       .map(t => `<span class="mtag">#${escapeHtml(t)}</span>`)

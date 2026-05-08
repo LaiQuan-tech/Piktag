@@ -44,12 +44,12 @@ function StatCard({
   return (
     <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-100">
       <div className="flex items-center gap-3 mb-4">
-        <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-[#faf5ff] text-[#aa00ff]">
+        <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-[#faf5ff] text-[#8c52ff]">
           <Icon className="w-5 h-5" />
         </div>
         <span className="text-sm text-slate-600 font-medium">{label}</span>
       </div>
-      <div className="text-4xl font-bold text-[#aa00ff]">
+      <div className="text-4xl font-bold text-[#8c52ff]">
         {value.toLocaleString('zh-TW')}
       </div>
     </div>
@@ -132,7 +132,7 @@ export default async function AdminTagsPage() {
                       <span className="font-medium text-slate-900">{tag.name}</span>
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap">
-                      <span className="inline-flex items-center rounded-full bg-[#faf5ff] px-2.5 py-0.5 text-xs font-semibold text-[#aa00ff]">
+                      <span className="inline-flex items-center rounded-full bg-[#faf5ff] px-2.5 py-0.5 text-xs font-semibold text-[#8c52ff]">
                         {(tag.usage_count ?? 0).toLocaleString('zh-TW')}
                       </span>
                     </td>

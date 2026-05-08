@@ -46,7 +46,7 @@ function LoginForm() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-gradient-to-br from-[#aa00ff] via-[#8c52ff] to-[#6a11cb] px-4 py-12">
+    <main className="flex min-h-screen items-center justify-center bg-gradient-to-br from-[#8c52ff] via-[#8c52ff] to-[#6a11cb] px-4 py-12">
       <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-2xl">
         <div className="mb-6 flex flex-col items-center">
           <img
@@ -75,7 +75,7 @@ function LoginForm() {
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 outline-none focus:border-[#aa00ff] focus:ring-2 focus:ring-[#aa00ff]/30"
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 outline-none focus:border-[#8c52ff] focus:ring-2 focus:ring-[#8c52ff]/30"
             />
           </div>
 
@@ -96,14 +96,14 @@ function LoginForm() {
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 outline-none focus:border-[#aa00ff] focus:ring-2 focus:ring-[#aa00ff]/30"
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 outline-none focus:border-[#8c52ff] focus:ring-2 focus:ring-[#8c52ff]/30"
             />
           </div>
 
           <button
             type="submit"
             disabled={isSubmitting}
-            className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#aa00ff] px-4 py-2.5 font-medium text-white transition hover:bg-[#8c52ff] disabled:cursor-not-allowed disabled:opacity-60"
+            className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#8c52ff] px-4 py-2.5 font-medium text-white transition hover:bg-[#8c52ff] disabled:cursor-not-allowed disabled:opacity-60"
           >
             <LogIn className="h-4 w-4" aria-hidden="true" />
             {isSubmitting ? '登入中…' : '登入'}

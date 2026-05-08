@@ -17,7 +17,7 @@ export default function StatCard({
 }: StatCardProps) {
   const iconWrapClass = alert
     ? 'bg-red-50 text-red-600'
-    : 'bg-[#faf5ff] text-[#aa00ff]';
+    : 'bg-[#faf5ff] text-[#8c52ff]';
   const valueClass = alert ? 'text-red-600' : 'text-[#360066]';
   const trendClass = trend?.positive ? 'text-emerald-600' : 'text-red-600';
 

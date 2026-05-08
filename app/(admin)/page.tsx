@@ -48,10 +48,10 @@ function StatCard({
   trend?: string;
   alert?: boolean;
 }) {
-  const valueColor = alert && value > 0 ? 'text-red-600' : 'text-[#aa00ff]';
+  const valueColor = alert && value > 0 ? 'text-red-600' : 'text-[#8c52ff]';
   const iconWrap = alert && value > 0
     ? 'bg-red-50 text-red-600'
-    : 'bg-[#faf5ff] text-[#aa00ff]';
+    : 'bg-[#faf5ff] text-[#8c52ff]';
   return (
     <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-100">
       <div className="flex items-center gap-3 mb-4">
@@ -190,7 +190,7 @@ export default async function AdminDashboardPage() {
                           className="w-9 h-9 rounded-full object-cover bg-slate-100"
                         />
                       ) : (
-                        <div className="w-9 h-9 rounded-full bg-[#faf5ff] text-[#aa00ff] flex items-center justify-center text-sm font-semibold">
+                        <div className="w-9 h-9 rounded-full bg-[#faf5ff] text-[#8c52ff] flex items-center justify-center text-sm font-semibold">
                           {initial}
                         </div>
                       )}

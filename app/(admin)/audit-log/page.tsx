@@ -83,7 +83,7 @@ function TargetCell({ entry }: { entry: AdminAuditLogEntry }) {
         <span className="text-slate-500">user</span>{' '}
         <Link
           href={`/users/${entry.target_id}`}
-          className="text-[#aa00ff] hover:underline font-mono"
+          className="text-[#8c52ff] hover:underline font-mono"
           title={entry.target_id}
         >
           {idLabel}
@@ -122,7 +122,7 @@ function MetadataCell({
     <button
       type="button"
       onClick={onToggle}
-      className="text-left font-mono text-xs text-slate-700 hover:text-[#aa00ff] break-all"
+      className="text-left font-mono text-xs text-slate-700 hover:text-[#8c52ff] break-all"
       title={expanded ? '點擊收合' : '點擊展開'}
     >
       {display}
@@ -247,7 +247,7 @@ export default function AdminAuditLogPage() {
             id="audit-admin-filter"
             value={adminEmailFilter}
             onChange={(e) => setAdminEmailFilter(e.target.value)}
-            className="min-w-[220px] rounded-md border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#aa00ff]/40"
+            className="min-w-[220px] rounded-md border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#8c52ff]/40"
           >
             <option value="">全部</option>
             {adminEmails.map((email) => (
@@ -266,7 +266,7 @@ export default function AdminAuditLogPage() {
             id="audit-action-filter"
             value={actionFilter}
             onChange={(e) => setActionFilter(e.target.value)}
-            className="min-w-[200px] rounded-md border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#aa00ff]/40"
+            className="min-w-[200px] rounded-md border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#8c52ff]/40"
           >
             <option value="">全部</option>
             {ACTION_OPTIONS.map((a) => (

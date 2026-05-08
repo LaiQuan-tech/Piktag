@@ -37,8 +37,8 @@ function ChartTooltip({ active, payload, label }: TooltipProps<number, string>) 
   const count = typeof raw === 'number' ? raw : Number(raw ?? 0);
   return (
     <div
-      className="rounded-lg border border-[#aa00ff] bg-white px-3 py-2 shadow-sm"
-      style={{ borderColor: '#aa00ff' }}
+      className="rounded-lg border border-[#8c52ff] bg-white px-3 py-2 shadow-sm"
+      style={{ borderColor: '#8c52ff' }}
     >
       <p className="text-xs text-slate-700">
         {formatLong(String(label ?? ''))} · 新用戶 {count.toLocaleString('zh-TW')} 人
@@ -75,14 +75,14 @@ export default function SignupsChart({ data }: SignupsChartProps) {
             tickLine={false}
             width={40}
           />
-          <Tooltip content={<ChartTooltip />} cursor={{ stroke: '#aa00ff', strokeOpacity: 0.2 }} />
+          <Tooltip content={<ChartTooltip />} cursor={{ stroke: '#8c52ff', strokeOpacity: 0.2 }} />
           <Line
             type="monotone"
             dataKey="count"
-            stroke="#aa00ff"
+            stroke="#8c52ff"
             strokeWidth={2}
             dot={false}
-            activeDot={{ r: 5, fill: '#aa00ff', stroke: '#ffffff', strokeWidth: 2 }}
+            activeDot={{ r: 5, fill: '#8c52ff', stroke: '#ffffff', strokeWidth: 2 }}
           />
         </LineChart>
       </ResponsiveContainer>

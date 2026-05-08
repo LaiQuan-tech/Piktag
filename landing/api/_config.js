@@ -34,23 +34,16 @@ const SUPABASE_URL = process.env.SUPABASE_URL || 'https://kbwfdskulxnhjckdvghj.s
 const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY ||
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtid2Zkc2t1bHhuaGpja2R2Z2hqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEzOTgwNTAsImV4cCI6MjA4Njk3NDA1MH0.q1wxMahfity_5An5I_PPSoxglJeKHXX6ohYeGvsaIC8';
 
-const BRAND_COLOR = '#aa00ff';
+const BRAND_COLOR = '#8c52ff';
 const BRAND_ACCENT = '#8c52ff';
 const BRAND_DARK = '#360066';
 const BRAND_BG = '#faf5ff';
-// Two-purple brand system, deliberate:
-//   * BRAND_COLOR (#aa00ff = piktag500) — solid surfaces (icon fills,
-//     monochrome buttons in the app, brand wordmark text)
-//   * Gradient terminus (#8c52ff) — gradient ramps (logo PNG, follow
-//     button, download banner, mobile RingedAvatar, scan stingers)
-// The logo PNG itself was authored as #ff5757 → #8c52ff (verified by
-// decoding the raw pixels at the right edge of the # mark — the
-// rightmost opaque pixel sits at ~#9752ed, ie #8c52ff with edge
-// antialiasing). Aligning BRAND_GRADIENT to the logo keeps the web
-// surface internally consistent: the follow button's terminus matches
-// the logo sitting in the same screen. Trying to force #aa00ff onto
-// the gradient would make it disagree with the logo — a worse
-// in-page inconsistency than the cross-surface app↔web mismatch.
+// Single brand purple #8c52ff used everywhere — solid surfaces AND
+// the gradient terminus. Aligns with the logo PNG (#ff5757 → #8c52ff,
+// verified by decoding pixel data) so logo, follow button, and any
+// other gradient ramp end on the exact same purple. Trial run swapped
+// from the previous dual-purple scheme (#aa00ff for solids, #8c52ff
+// for gradient end) — see commit history if reverting.
 const BRAND_GRADIENT = 'linear-gradient(90deg, #ff5757 0%, #8c52ff 100%)';
 
 function escapeHtml(str) {

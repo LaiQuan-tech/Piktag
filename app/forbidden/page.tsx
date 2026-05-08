@@ -19,10 +19,10 @@ export default function ForbiddenPage() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-gradient-to-br from-[#aa00ff] via-[#8c52ff] to-[#6a11cb] px-4 py-12">
+    <main className="flex min-h-screen items-center justify-center bg-gradient-to-br from-[#8c52ff] via-[#8c52ff] to-[#6a11cb] px-4 py-12">
       <div className="w-full max-w-md rounded-2xl bg-white p-8 text-center shadow-2xl">
-        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[#aa00ff]/10">
-          <ShieldAlert className="h-8 w-8 text-[#aa00ff]" aria-hidden="true" />
+        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[#8c52ff]/10">
+          <ShieldAlert className="h-8 w-8 text-[#8c52ff]" aria-hidden="true" />
         </div>
 
         <h1 className="text-3xl font-bold text-gray-900">403 Forbidden</h1>
@@ -34,7 +34,7 @@ export default function ForbiddenPage() {
         <button
           type="button"
           onClick={handleBackToLogin}
-          className="mt-6 inline-flex w-full items-center justify-center rounded-lg bg-[#aa00ff] px-4 py-2.5 font-medium text-white transition hover:bg-[#8c52ff]"
+          className="mt-6 inline-flex w-full items-center justify-center rounded-lg bg-[#8c52ff] px-4 py-2.5 font-medium text-white transition hover:bg-[#8c52ff]"
         >
           回登入頁
         </button>

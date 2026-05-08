@@ -121,7 +121,7 @@ export default function UsersPage() {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="搜尋 username 或 email"
-          className="w-full px-4 py-2.5 border border-slate-300 rounded-md bg-white text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#aa00ff] focus:border-transparent"
+          className="w-full px-4 py-2.5 border border-slate-300 rounded-md bg-white text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#8c52ff] focus:border-transparent"
         />
       </div>
 
@@ -143,7 +143,7 @@ export default function UsersPage() {
               className={
                 'px-3.5 py-1.5 rounded-full text-sm font-medium border transition-colors ' +
                 (active
-                  ? 'bg-[#aa00ff] border-[#aa00ff] text-white'
+                  ? 'bg-[#8c52ff] border-[#8c52ff] text-white'
                   : 'bg-white border-slate-300 text-slate-700 hover:bg-slate-50')
               }
             >
@@ -240,7 +240,7 @@ export default function UsersPage() {
                   <td className="px-4 py-3 text-right">
                     <Link
                       href={`/users/${u.id}`}
-                      className="text-[#aa00ff] hover:underline font-medium"
+                      className="text-[#8c52ff] hover:underline font-medium"
                     >
                       查看
                     </Link>

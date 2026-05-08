@@ -233,7 +233,7 @@ export default function AdminReportsPage() {
               onClick={() => setActiveTab(tab.key)}
               className={`relative -mb-px px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
                 active
-                  ? 'border-[#aa00ff] text-[#aa00ff]'
+                  ? 'border-[#8c52ff] text-[#8c52ff]'
                   : 'border-transparent text-slate-600 hover:text-slate-900'
               }`}
             >
@@ -241,7 +241,7 @@ export default function AdminReportsPage() {
               {count !== null ? (
                 <span
                   className={`ml-2 inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold ${
-                    active ? 'bg-[#faf5ff] text-[#aa00ff]' : 'bg-slate-100 text-slate-600'
+                    active ? 'bg-[#faf5ff] text-[#8c52ff]' : 'bg-slate-100 text-slate-600'
                   }`}
                 >
                   {count}
@@ -277,7 +277,7 @@ export default function AdminReportsPage() {
                       <td className="px-4 py-3 whitespace-nowrap">
                         <Link
                           href={`/users/${r.reporter_id}`}
-                          className="text-[#aa00ff] hover:underline font-medium"
+                          className="text-[#8c52ff] hover:underline font-medium"
                         >
                           {reporterLabel}
                         </Link>
@@ -285,7 +285,7 @@ export default function AdminReportsPage() {
                       <td className="px-4 py-3 whitespace-nowrap">
                         <Link
                           href={`/users/${r.reported_id}`}
-                          className="text-[#aa00ff] hover:underline font-medium"
+                          className="text-[#8c52ff] hover:underline font-medium"
                         >
                           {reportedLabel}
                         </Link>
