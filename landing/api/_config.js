@@ -38,7 +38,15 @@ const BRAND_COLOR = '#aa00ff';
 const BRAND_ACCENT = '#8c52ff';
 const BRAND_DARK = '#360066';
 const BRAND_BG = '#faf5ff';
-const BRAND_GRADIENT = 'linear-gradient(90deg, #ff5757 0%, #8c52ff 100%)';
+// Gradient terminus aligned to BRAND_COLOR (#aa00ff = piktag500) so
+// the follow button and bottom banner end on the SAME purple as the
+// app's solid primary buttons. Earlier was #8c52ff (a softer
+// indigo-purple) — visually it was a smoother gradient ramp on its
+// own, but cross-surface (web → app or app → web) the brand purple
+// shifted between contexts and users noticed the inconsistency.
+// BRAND_ACCENT stays #8c52ff for headline body text where a softer
+// non-vivid purple reads better.
+const BRAND_GRADIENT = 'linear-gradient(90deg, #ff5757 0%, #aa00ff 100%)';
 
 function escapeHtml(str) {
   if (!str) return '';
