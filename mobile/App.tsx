@@ -97,10 +97,14 @@ const linking = {
   // but the in-app screen path is `invite/:code`. Rewrite the inbound URL
   // so React Navigation can route it without us needing to register two
   // separate screens for the same destination.
+  //
+  // Match captures only the bare code segment so trailing path noise
+  // (e.g. `/i/EA9007/extra`) and query strings/hash fragments survive
+  // intact — without the explicit groups, React Navigation would
+  // otherwise treat `EA9007/extra` as the param value.
   getStateFromPath: (path: string, options: any) => {
-    const rewritten = /^\/?i\/[^/]+/.test(path)
-      ? path.replace(/^\/?i\//, '/invite/')
-      : path;
+    const m = path.match(/^\/?i\/([^/?#]+)(.*)$/);
+    const rewritten = m ? `/invite/${m[1]}${m[2]}` : path;
     return defaultGetStateFromPath(rewritten, options);
   },
 };

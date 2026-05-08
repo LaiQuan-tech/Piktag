@@ -163,7 +163,12 @@
       "instagramLabel": "Instagram",
       "linkedinLabel": "LinkedIn",
       "birthdayLabel": "生日",
-      "welcomeName": "歡迎，{{name}}"
+      "welcomeName": "歡迎，{{name}}",
+      "phoneSectionTitle": "📱 手機號碼（選填）",
+      "phoneSectionHint": "讓朋友的通訊錄能找到你 — 永遠不會公開，也不會用來打給你。",
+      "phonePlaceholder": "0912345678",
+      "phoneInvalidTitle": "電話格式無效",
+      "phoneInvalidMessage": "無法辨識「{{value}}」，已略過。可稍後到個人資料補上。"
     }
   },
   "connections": {
@@ -211,7 +216,9 @@
     "sortByAlphabet": "字母 A→Z",
     "sortByAlphabetDesc": "字母 Z→A",
     "sortByInteraction": "最近互動",
-    "sortByBirthday": "最近生日"
+    "sortByBirthday": "最近生日",
+    "phonePromptTitle": "📱 加上手機號碼，讓朋友找到你",
+    "phonePromptBody": "朋友通訊錄同步時會自動加你為好友。只有 PikTag 用得到，永遠不會公開。"
   },
   "search": {
     "clearAll": "清除全部",
@@ -642,7 +649,8 @@
     "alertFollowAllConfirm": "加入",
     "alertFollowAllDoneTitle": "完成",
     "alertFollowAllDoneMessage": "已加入 {{count}} 位 PikTag 朋友 🎉",
-    "allConnected": "通訊錄裡的 PikTag 朋友都已加入"
+    "allConnected": "通訊錄裡的 PikTag 朋友都已加入",
+    "tagModalHint": "只有你看得到的私人標籤（最多 {{max}} 個）— 對方註冊 PikTag 後，這些標籤會出現在你的好友頁的「隱藏標籤」區，永遠不會被對方或其他人看到。"
   },
   "invite": {
     "headerTitle": "邀請好友",

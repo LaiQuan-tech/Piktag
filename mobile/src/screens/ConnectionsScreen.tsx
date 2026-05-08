@@ -53,6 +53,7 @@ import { useAskFeed } from '../hooks/useAskFeed';
 import { useNetInfoReconnect } from '../hooks/useNetInfoReconnect';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { consumePendingInviteCode } from '../lib/pendingInvite';
+import { shouldShowPhonePrompt, dismissPhonePrompt } from '../lib/phonePrompt';
 import AskStoryRow from '../components/ask/AskStoryRow';
 import type { Connection, ConnectionTag } from '../types';
 
@@ -593,6 +594,29 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
     />
   ), [selectedIds, selectMode, handleConnectionPress, handleConnectionLongPress]);
 
+  // Phone-prompt banner state. Async check (AsyncStorage + Supabase)
+  // so we render the cold-start view first, then upgrade once known.
+  // Declared before renderEmpty since the callback's deps reference it.
+  const [showPhonePrompt, setShowPhonePrompt] = useState(false);
+  useEffect(() => {
+    if (!user?.id) return;
+    let cancelled = false;
+    shouldShowPhonePrompt(user.id)
+      .then((show) => {
+        if (!cancelled) setShowPhonePrompt(show);
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [user?.id]);
+  const handlePhonePromptPress = useCallback(() => {
+    setShowPhonePrompt(false);
+    navigation.navigate('ProfileTab', { screen: 'EditProfile', params: { focusPhone: true } });
+  }, [navigation]);
+  const handlePhonePromptDismiss = useCallback(() => {
+    setShowPhonePrompt(false);
+    dismissPhonePrompt();
+  }, []);
+
   const renderEmpty = useCallback(() => {
     if (loading) return null;
     // Network failure path. Has to come BEFORE the onboarding empty
@@ -695,6 +719,10 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
   // captured before the user was authenticated, the code lives in
   // pendingInvite. Now that we're on the home tab with a session, push
   // the redeem screen exactly once with the code prefilled.
+  //
+  // Dep is `user?.id` (not `user`) so silent token refreshes — which
+  // mint a fresh user object reference every ~hour — don't re-fire
+  // this effect with a no-op extra render.
   useEffect(() => {
     if (!user) return;
     let cancelled = false;
@@ -709,7 +737,7 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
       }
     })();
     return () => { cancelled = true; };
-  }, [user, navigation]);
+  }, [user?.id, navigation]);
 
   const handleAskPressUser = useCallback((userId: string) => {
     const conn = connections.find(c => c.connected_user_id === userId);
@@ -724,16 +752,45 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
   const listHeader = useMemo(() => {
     if (selectMode) return null;
     return (
-      <AskStoryRow
-        asks={askFeedItems}
-        myAsk={myActiveAsk}
-        myAvatarUrl={myProfile.avatar_url}
-        myName={myProfile.full_name || '?'}
-        onRefresh={refreshAsks}
-        onPressUser={handleAskPressUser}
-      />
+      <>
+        {/* Phone-discovery nudge for users registered via Apple/Google
+            who never supplied a phone. Without it, contact-sync from
+            their friends won't match them — they're invisible. Lives
+            in the list header (not just the cold-start empty state)
+            so active users with friends but no phone still see it. */}
+        {showPhonePrompt && (
+          <Pressable
+            style={styles.phonePromptCard}
+            onPress={handlePhonePromptPress}
+          >
+            <View style={{ flex: 1 }}>
+              <Text style={styles.phonePromptTitle}>
+                {t('connections.phonePromptTitle', { defaultValue: '📱 加上手機號碼，讓朋友找到你' })}
+              </Text>
+              <Text style={styles.phonePromptBody}>
+                {t('connections.phonePromptBody', { defaultValue: '朋友通訊錄同步時會自動加你為好友。只有 PikTag 用得到，永遠不會公開。' })}
+              </Text>
+            </View>
+            <Pressable
+              hitSlop={12}
+              onPress={handlePhonePromptDismiss}
+              style={styles.phonePromptDismiss}
+            >
+              <X size={16} color={COLORS.gray500} />
+            </Pressable>
+          </Pressable>
+        )}
+        <AskStoryRow
+          asks={askFeedItems}
+          myAsk={myActiveAsk}
+          myAvatarUrl={myProfile.avatar_url}
+          myName={myProfile.full_name || '?'}
+          onRefresh={refreshAsks}
+          onPressUser={handleAskPressUser}
+        />
+      </>
     );
-  }, [askFeedItems, myActiveAsk, myProfile, selectMode, refreshAsks, handleAskPressUser]);
+  }, [askFeedItems, myActiveAsk, myProfile, selectMode, refreshAsks, handleAskPressUser, showPhonePrompt, handlePhonePromptPress, handlePhonePromptDismiss, t]);
 
   // --- Optimized: stable contentContainerStyle ---
   const contentContainerStyle = useMemo(() => [
@@ -1183,6 +1240,31 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 24,
     paddingBottom: 40,
+  },
+  phonePromptCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.piktag50,
+    borderColor: COLORS.piktag500,
+    borderWidth: 1,
+    borderRadius: 12,
+    padding: 14,
+    marginBottom: 20,
+  },
+  phonePromptTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: COLORS.piktag600,
+    marginBottom: 4,
+  },
+  phonePromptBody: {
+    fontSize: 12,
+    lineHeight: 17,
+    color: COLORS.gray700,
+  },
+  phonePromptDismiss: {
+    paddingLeft: 8,
+    alignSelf: 'flex-start',
   },
   emptyOnboardingTitle: {
     fontSize: 22,

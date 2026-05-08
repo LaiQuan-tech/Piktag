@@ -14,6 +14,8 @@
 -- Notification routes the inviter to the redeemer's profile when tapped
 -- (data.redeemer_id is consumed by NotificationsScreen).
 
+CREATE EXTENSION IF NOT EXISTS pg_net;
+
 CREATE OR REPLACE FUNCTION public.notify_invite_accepted()
 RETURNS trigger
 LANGUAGE plpgsql
@@ -64,26 +66,34 @@ BEGIN
   v_title := '你的邀請被接受了 🎉';
   v_body  := COALESCE(NULLIF(v_redeemer_name, ''), '有人') || ' 加入了 PikTag — 你獲得 1 P 幣';
 
-  -- 1. In-app notification row.
-  INSERT INTO public.piktag_notifications (
-    user_id, type, title, body, data, is_read, created_at
-  )
-  VALUES (
-    v_recipient,
-    'invite_accepted',
-    v_title,
-    v_body,
-    jsonb_build_object(
-      'invite_id',    NEW.id,
-      'invite_code',  NEW.invite_code,
-      'redeemer_id',  v_redeemer,
-      'username',     v_redeemer_uname,
-      'avatar_url',   v_redeemer_avatar,
-      'points_awarded', 1
-    ),
-    false,
-    now()
-  );
+  -- 1. In-app notification row. Wrapped in its own exception block —
+  -- the trigger fires inside redeem_invite_code's transaction, and an
+  -- unhandled exception here would roll back the redemption itself.
+  -- The notification is best-effort; failing to write it must not
+  -- undo the user's successful redeem.
+  BEGIN
+    INSERT INTO public.piktag_notifications (
+      user_id, type, title, body, data, is_read, created_at
+    )
+    VALUES (
+      v_recipient,
+      'invite_accepted',
+      v_title,
+      v_body,
+      jsonb_build_object(
+        'invite_id',    NEW.id,
+        'invite_code',  NEW.invite_code,
+        'redeemer_id',  v_redeemer,
+        'username',     v_redeemer_uname,
+        'avatar_url',   v_redeemer_avatar,
+        'points_awarded', 1
+      ),
+      false,
+      now()
+    );
+  EXCEPTION WHEN OTHERS THEN
+    RAISE WARNING 'notify_invite_accepted in-app insert failed: %', SQLERRM;
+  END;
 
   -- 2. Expo push (best-effort). Same shape as notify_follow — keep the
   -- HTTP call inside a sub-block so a network blip never breaks redeem.

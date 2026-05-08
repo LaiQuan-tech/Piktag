@@ -336,6 +336,24 @@ function MainNavigator({ needsOnboarding }: { needsOnboarding: boolean }) {
   );
 }
 
+// Parse a PikTag invite code from a deep link URL.
+// Supports both `pikt.ag/i/{code}` (universal) and `piktag://invite/{code}`
+// (custom scheme). Used by the cold-start handoff so the invite code
+// survives the auth flow even when RedeemInviteScreen can't mount yet
+// (logged-out users don't have MainNavigator's RootStack available).
+function parseInviteCodeFromUrl(url: string | null): string | null {
+  if (!url) return null;
+  try {
+    const normalized = url.replace('piktag://', 'https://piktag.app/');
+    const parsed = new URL(normalized);
+    // Match /i/{code} (web) or /invite/{code} (deep-link scheme).
+    const m = parsed.pathname.match(/^\/(?:i|invite)\/([A-Za-z0-9_-]+)/);
+    return m ? m[1].toUpperCase() : null;
+  } catch {
+    return null;
+  }
+}
+
 // Parse sid from a piktag deep link URL
 function parseSidFromUrl(url: string | null): { username?: string; sid?: string } | null {
   if (!url) return null;
@@ -363,6 +381,13 @@ export default function AppNavigator() {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [onboardingDecision, setOnboardingDecision] = useState<OnboardingDecision>('pending');
+  // Mirror the latest session into a ref so the deep-link capture
+  // closure (registered once on mount) can read fresh auth state
+  // without re-subscribing every time `session` changes.
+  const sessionRef = useRef<Session | null>(null);
+  useEffect(() => {
+    sessionRef.current = session;
+  }, [session]);
   // Pending deep link holds the parsed payload from cold start until a
   // consumer (post-register flow) clears it. Stored in a ref so capture
   // and consume don't race through render cycles.
@@ -387,6 +412,26 @@ export default function AppNavigator() {
         const Linking = await import('expo-linking');
 
         const captureDeepLink = (url: string | null, persist: boolean) => {
+          // Invite-code path: needs to survive the auth flow so the
+          // banner on Login/Register can find it AND ConnectionsScreen
+          // can resume the redeem after onboarding lands. Captured here
+          // (not in RedeemInviteScreen) because that screen lives in
+          // MainNavigator and never mounts for logged-out cold-start.
+          //
+          // Skip the stash when a session is already present — the
+          // linking config will route the URL straight to RedeemInvite,
+          // and persisting a copy here only creates a race with
+          // RedeemInviteScreen's mount-time clear. Logged-in users get
+          // direct navigation; only logged-out users need the handoff.
+          const inviteCode = parseInviteCodeFromUrl(url);
+          if (inviteCode && !sessionRef.current) {
+            // Lazy-import to avoid pulling AsyncStorage twice through
+            // different module paths.
+            // eslint-disable-next-line @typescript-eslint/no-var-requires
+            const { setPendingInviteCode } = require('../lib/pendingInvite');
+            setPendingInviteCode(inviteCode);
+          }
+
           const parsed = parseSidFromUrl(url);
           if (!parsed?.sid) return;
           // In-memory first so the auth-resolution path can consume

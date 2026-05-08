@@ -163,7 +163,12 @@
       "instagramLabel": "Instagram",
       "linkedinLabel": "LinkedIn",
       "birthdayLabel": "Birthday",
-      "welcomeName": "Welcome, {{name}}"
+      "welcomeName": "Welcome, {{name}}",
+      "phoneSectionTitle": "📱 Phone number (optional)",
+      "phoneSectionHint": "So friends can find you via contact sync — never made public, never used to call you.",
+      "phonePlaceholder": "+1 555 123 4567",
+      "phoneInvalidTitle": "Phone format not recognized",
+      "phoneInvalidMessage": "Couldn't parse \"{{value}}\" — skipping. You can add it later from your profile."
     }
   },
   "connections": {
@@ -211,7 +216,9 @@
     "sortByAlphabet": "Alphabetical (A→Z)",
     "sortByAlphabetDesc": "Alphabetical (Z→A)",
     "sortByInteraction": "Recent interaction",
-    "sortByBirthday": "Upcoming birthday"
+    "sortByBirthday": "Upcoming birthday",
+    "phonePromptTitle": "📱 Add your phone so friends can find you",
+    "phonePromptBody": "Friends syncing their contacts will be auto-connected. Used only by PikTag, never made public."
   },
   "search": {
     "clearAll": "Clear all",
@@ -639,7 +646,8 @@
     "alertFollowAllConfirm": "Add",
     "alertFollowAllDoneTitle": "Done",
     "alertFollowAllDoneMessage": "Added {{count}} PikTag friends 🎉",
-    "allConnected": "All PikTag contacts are already connected"
+    "allConnected": "All PikTag contacts are already connected",
+    "tagModalHint": "Private tags only you can see (up to {{max}}) — when this person joins PikTag, these tags will appear in your friend's profile under \"hidden tags\", invisible to them and everyone else."
   },
   "invite": {
     "headerTitle": "Invite Friends",

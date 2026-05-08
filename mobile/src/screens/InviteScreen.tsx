@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
 import {
   View,
   Text,
@@ -96,9 +97,16 @@ export default function InviteScreen({ navigation }: InviteScreenProps) {
     }
   }, [user]);
 
-  useEffect(() => {
-    if (user) fetchData();
-  }, [user]);
+  // Fetch on every focus — covers initial mount AND background→return.
+  // Without this, the "已使用" badge + "✅ N 人已加入" summary would
+  // show stale state for inviters returning to the screen after a
+  // friend redeems. useFocusEffect runs on first focus too, so a
+  // separate mount useEffect would just double-fetch on entry.
+  useFocusEffect(
+    useCallback(() => {
+      if (user) fetchData();
+    }, [user, fetchData]),
+  );
 
   const handleGenerateInvite = async () => {
     if (!user) return;

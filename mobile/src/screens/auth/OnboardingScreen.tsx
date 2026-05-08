@@ -24,6 +24,7 @@ import {
   Sparkles,
 } from 'lucide-react-native';
 import { supabase, supabaseUrl } from '../../lib/supabase';
+import { normalizePhone } from '../../hooks/useLocalContacts';
 import { COLORS, SPACING, BORDER_RADIUS } from '../../constants/theme';
 import OnboardingCompleteBurst from '../../components/stingers/OnboardingCompleteBurst';
 import WelcomeSlides from '../../components/onboarding/WelcomeSlides';
@@ -63,6 +64,12 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
     linkedin: '',
   });
   const [editingSocial, setEditingSocial] = useState<SocialLinkKey | null>(null);
+  // Phone is collected separately from the social-platform map so we
+  // can normalize to E.164 + persist as a biolink with platform='phone'.
+  // Without this, Apple/Google sign-in users have NULL on every phone
+  // surface (auth.users.phone, piktag_profiles.phone, biolinks) — which
+  // makes them invisible to friends running contact-sync.
+  const [phoneInput, setPhoneInput] = useState('');
   const [birthday, setBirthday] = useState('');
   const [loading, setLoading] = useState(false);
   const [burstVisible, setBurstVisible] = useState(false);
@@ -126,7 +133,15 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
       }
 
       // Insert social links as biolinks
-      const linksToInsert = (Object.entries(socialLinks) as [SocialLinkKey, string][])
+      type BiolinkInsert = {
+        user_id: string;
+        platform: string;
+        url: string;
+        label: string;
+        position: number;
+        is_active: boolean;
+      };
+      const linksToInsert: BiolinkInsert[] = (Object.entries(socialLinks) as [SocialLinkKey, string][])
         .filter(([, url]) => url.trim() !== '')
         .map(([platform, url], index) => ({
           user_id: user.id,
@@ -136,6 +151,39 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
           position: index,
           is_active: true,
         }));
+
+      // Phone biolink — separate insertion so we can E.164-normalize.
+      // The contact-sync RPC matches against piktag_biolinks where
+      // platform='phone'; storing it here makes the user discoverable.
+      //
+      // normalizePhone falls back to returning the input verbatim for
+      // anything it can't recognize (e.g. 'abc'), so we re-validate
+      // strictly here to keep junk like `tel:abc` out of the table.
+      const phoneTrimmed = phoneInput.trim();
+      const e164 = normalizePhone(phoneTrimmed);
+      const isValidE164 = !!e164 && /^\+\d{8,15}$/.test(e164);
+      if (isValidE164 && e164) {
+        linksToInsert.push({
+          user_id: user.id,
+          platform: 'phone',
+          url: 'tel:' + e164,
+          label: 'Phone',
+          position: linksToInsert.length,
+          is_active: true,
+        });
+      } else if (phoneTrimmed.length > 0) {
+        // User typed something but it didn't normalize cleanly. Tell
+        // them rather than silently dropping the field — they'll think
+        // their phone was saved otherwise. Non-blocking: we still
+        // proceed with the rest of onboarding.
+        Alert.alert(
+          t('auth.onboarding.phoneInvalidTitle', { defaultValue: '電話格式無效' }),
+          t('auth.onboarding.phoneInvalidMessage', {
+            defaultValue: '無法辨識「{{value}}」，已略過。可稍後到個人資料補上。',
+            value: phoneTrimmed,
+          }),
+        );
+      }
 
       if (linksToInsert.length > 0) {
         const { error: linksError } = await supabase
@@ -344,6 +392,29 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
         {t('auth.onboarding.step2Description')}
       </Text>
 
+      {/* Phone — for contact-sync discoverability. Optional but strongly
+          encouraged; without it, friends doing contact-sync won't match
+          the user against their address book. */}
+      <View style={styles.phoneSection}>
+        <Text style={styles.phoneSectionTitle}>
+          {t('auth.onboarding.phoneSectionTitle', { defaultValue: '📱 手機號碼（選填）' })}
+        </Text>
+        <Text style={styles.phoneSectionHint}>
+          {t('auth.onboarding.phoneSectionHint', { defaultValue: '讓朋友的通訊錄能找到你 — 永遠不會公開，也不會用來打給你。' })}
+        </Text>
+        <TextInput
+          style={styles.phoneInput}
+          placeholder={t('auth.onboarding.phonePlaceholder', { defaultValue: '0912345678' })}
+          placeholderTextColor={COLORS.gray400}
+          value={phoneInput}
+          onChangeText={setPhoneInput}
+          keyboardType="phone-pad"
+          autoCapitalize="none"
+          autoCorrect={false}
+          maxLength={20}
+        />
+      </View>
+
       <View style={styles.socialLinksContainer}>
         {socialPlatforms.map(({ key, label, icon }) => (
           <View key={key} style={styles.socialLinkItem}>
@@ -483,7 +554,7 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
       <OnboardingCompleteBurst
         visible={burstVisible}
         userName={burstUserName}
-        onComplete={() => {
+        onComplete={async () => {
           setBurstVisible(false);
           // After onboarding finishes, drop the user on EditProfile
           // (with `fromOnboarding: true`) instead of straight into
@@ -494,13 +565,27 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
           // shareable PikTag page on day 1 — Linktree-style. Reset
           // index = 1 so the back gesture pops to Main, not the
           // onboarding screen they just finished.
-          navigation.reset({
-            index: 1,
-            routes: [
-              { name: 'Main' },
-              { name: 'EditProfile', params: { fromOnboarding: true } },
-            ],
-          });
+          //
+          // Pending invite handoff: if the user reached signup via a
+          // /i/{code} link, stack RedeemInvite on top of EditProfile so
+          // they tap Redeem → instantly connected → back to EditProfile
+          // to finish their card. Without this, the consume effect in
+          // ConnectionsScreen never fires (Connections doesn't mount
+          // while EditProfile is on top), and the invite stalls until
+          // the user manually navigates to Home.
+          let pendingCode: string | null = null;
+          try {
+            const { consumePendingInviteCode } = await import('../../lib/pendingInvite');
+            pendingCode = await consumePendingInviteCode();
+          } catch {}
+          const routes: any[] = [
+            { name: 'Main' },
+            { name: 'EditProfile', params: { fromOnboarding: true } },
+          ];
+          if (pendingCode) {
+            routes.push({ name: 'RedeemInvite', params: { code: pendingCode } });
+          }
+          navigation.reset({ index: routes.length - 1, routes });
         }}
       />
     </KeyboardAvoidingView>
@@ -633,6 +718,34 @@ const styles = StyleSheet.create({
   },
   tagButtonTextActive: {
     color: COLORS.piktag600,
+  },
+  phoneSection: {
+    marginBottom: SPACING.xl,
+    paddingBottom: SPACING.lg,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.gray100,
+  },
+  phoneSectionTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: COLORS.gray900,
+    marginBottom: 4,
+  },
+  phoneSectionHint: {
+    fontSize: 12,
+    lineHeight: 17,
+    color: COLORS.gray600,
+    marginBottom: 12,
+  },
+  phoneInput: {
+    backgroundColor: COLORS.gray50,
+    borderColor: COLORS.gray200,
+    borderWidth: 1,
+    borderRadius: BORDER_RADIUS.lg,
+    paddingHorizontal: SPACING.lg,
+    paddingVertical: 14,
+    fontSize: 16,
+    color: COLORS.gray900,
   },
   socialLinksContainer: {
     gap: SPACING.md,

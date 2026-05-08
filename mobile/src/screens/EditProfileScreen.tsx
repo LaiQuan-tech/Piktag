@@ -96,7 +96,7 @@ const buildPlatformUrl = platformBuildUrl;
 
 type EditProfileScreenProps = {
   navigation: any;
-  route?: { params?: { fromOnboarding?: boolean } };
+  route?: { params?: { fromOnboarding?: boolean; focusPhone?: boolean } };
 };
 
 type FormData = {
@@ -209,6 +209,7 @@ const PopularTagChip = React.memo(function PopularTagChip({
 
 export default function EditProfileScreen({ navigation, route }: EditProfileScreenProps) {
   const fromOnboarding = !!route?.params?.fromOnboarding;
+  const focusPhone = !!route?.params?.focusPhone;
   const { t } = useTranslation();
   const { colors, isDark } = useTheme();
   const insets = useSafeAreaInsets();
@@ -615,10 +616,10 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
 
   // --- Biolink CRUD ---
 
-  const openAddBiolinkModal = () => {
+  const openAddBiolinkModal = (initialPlatform: string = 'email') => {
     setEditingBiolink(null);
     setBiolinkForm({
-      platform: 'email',
+      platform: initialPlatform,
       account: '',
       label: '',
       display_mode: 'card',
@@ -628,6 +629,25 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
     setAutoDetectedPlatform(null);
     setBiolinkModalVisible(true);
   };
+
+  // When ConnectionsScreen's phone-prompt banner deep-links here with
+  // `focusPhone: true`, jump directly to the add-biolink modal already
+  // pre-selected to phone — saves the user from having to discover the
+  // "+" button + scroll the platform picker down to phone.
+  // Run-once: depending on `focusPhone` would re-fire on every render if
+  // we kept it in the deps; the boolean is stable across this screen's
+  // lifetime so a single mount-effect is correct.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    if (!focusPhone) return;
+    const timer = setTimeout(() => {
+      openAddBiolinkModal('phone');
+      // Clear the param so navigating back here later (without the
+      // banner intent) doesn't re-open the modal.
+      navigation.setParams?.({ focusPhone: undefined } as any);
+    }, 350);
+    return () => clearTimeout(timer);
+  }, []);
 
   const openEditBiolinkModal = (biolink: Biolink) => {
     const platformKey = detectPlatformKey(biolink.platform, biolink.url);

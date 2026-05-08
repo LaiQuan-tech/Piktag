@@ -30,6 +30,17 @@ export default function RedeemInviteScreen({ navigation, route }: Props) {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
 
+  // Logged-in entry: clear any previously-stashed pending code so
+  // ConnectionsScreen's resume-on-mount effect doesn't push us here a
+  // second time later. Universal-link auto-routing AND AppNavigator's
+  // captureDeepLink both fire on the same tap; this screen owning the
+  // clear means whichever path won the race, the handoff terminates.
+  useEffect(() => {
+    if (user?.id) {
+      clearPendingInviteCode();
+    }
+  }, [user?.id]);
+
   // If a deep link delivered a code but the user isn't signed in yet,
   // persist the code and bounce them through the auth flow. After they
   // finish onboarding and land on the home tab, ConnectionsScreen will

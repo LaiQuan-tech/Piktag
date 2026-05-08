@@ -439,6 +439,20 @@ export default function ContactSyncScreen({ navigation }: ContactSyncScreenProps
     matchedUserId: string,
   ): Promise<boolean> => {
     if (!user) return false;
+    // Route through followUser so BOTH piktag_follows and
+    // piktag_connections get written. ConnectionsScreen renders
+    // `connections ∩ follows`; without the follow row, contact-sync
+    // imports were invisible on the home tab even though the connection
+    // row existed. The dedicated helper centralises the contract.
+    const { followUser } = await import('../lib/followUser');
+    const { error: followErr } = await followUser(user.id, matchedUserId);
+    if (followErr) {
+      console.warn('[ContactSync] followUser error:', followErr.message);
+      // Don't bail yet — the connection may have been created and we
+      // still want to attach nickname/note. Fall through to the upsert.
+    }
+    // Update nickname + note on the connection row (followUser doesn't
+    // know about contact-name metadata; only contact-sync does).
     const { error } = await supabase.from('piktag_connections').upsert(
       {
         user_id: user.id,
@@ -856,8 +870,8 @@ export default function ContactSyncScreen({ navigation }: ContactSyncScreenProps
                   <Text style={styles.tagModalHint}>
                     {t('contactSync.tagModalHint', {
                       max: MAX_TAGS_PER_CONTACT,
-                    }) ||
-                      `只有你看得到的私人標籤（最多 ${MAX_TAGS_PER_CONTACT} 個）— 對方註冊 PikTag 後，這些標籤會出現在你的好友頁的「隱藏標籤」區，永遠不會被對方或其他人看到。`}
+                      defaultValue: `只有你看得到的私人標籤（最多 {{max}} 個）— 對方註冊 PikTag 後，這些標籤會出現在你的好友頁的「隱藏標籤」區，永遠不會被對方或其他人看到。`,
+                    })}
                   </Text>
                 </View>
 
