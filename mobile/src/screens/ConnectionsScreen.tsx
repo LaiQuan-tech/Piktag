@@ -617,10 +617,10 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
     return (
       <View style={styles.emptyOnboardingContainer}>
         <Text style={styles.emptyOnboardingTitle}>
-          {t('connections.coldStartTitle') || '還沒有朋友？'}
+          {t('connections.coldStartTitle', { defaultValue: '還沒有朋友？' })}
         </Text>
         <Text style={styles.emptyOnboardingSubtitle}>
-          {t('connections.coldStartSubtitle') || '從這 4 步開始建立你的 PikTag'}
+          {t('connections.coldStartSubtitle', { defaultValue: '從這 4 步開始建立你的 PikTag' })}
         </Text>
 
         <View style={styles.emptyActionList}>
@@ -628,29 +628,29 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
             {
               key: 'profile',
               icon: User,
-              title: t('connections.coldStartActionProfile') || '完成個人資料',
-              desc: t('connections.coldStartActionProfileDesc') || '名字、簡介、標籤、社群連結',
+              title: t('connections.coldStartActionProfile', { defaultValue: '完成個人資料' }),
+              desc: t('connections.coldStartActionProfileDesc', { defaultValue: '名字、簡介、標籤、社群連結' }),
               onPress: () => navigation.navigate('ProfileTab', { screen: 'EditProfile' }),
             },
             {
               key: 'contacts',
               icon: Users,
-              title: t('connections.coldStartActionContacts') || '幫聯絡人貼標籤',
-              desc: t('connections.coldStartActionContactsDesc') || '就算對方還沒註冊 PikTag — 等他加入，標籤會自動同步',
+              title: t('connections.coldStartActionContacts', { defaultValue: '幫聯絡人貼標籤' }),
+              desc: t('connections.coldStartActionContactsDesc', { defaultValue: '就算對方還沒註冊 PikTag — 等他加入，標籤會自動同步' }),
               onPress: () => navigation.navigate('LocalContacts'),
             },
             {
               key: 'qr',
               icon: QrCode,
-              title: t('connections.coldStartActionQr') || '分享你的 QR Code',
-              desc: t('connections.coldStartActionQrDesc') || '讓朋友掃一下就追蹤你',
+              title: t('connections.coldStartActionQr', { defaultValue: '分享你的 QR Code' }),
+              desc: t('connections.coldStartActionQrDesc', { defaultValue: '讓朋友掃一下就追蹤你' }),
               onPress: () => navigation.navigate('AddTagTab', { screen: 'AddTag' }),
             },
             {
               key: 'invite',
               icon: Send,
-              title: t('connections.coldStartActionInvite') || '邀請朋友',
-              desc: t('connections.coldStartActionInviteDesc') || '用 PikTag 邀請連結把朋友拉進來',
+              title: t('connections.coldStartActionInvite', { defaultValue: '邀請朋友' }),
+              desc: t('connections.coldStartActionInviteDesc', { defaultValue: '用 PikTag 邀請連結把朋友拉進來' }),
               onPress: () => navigation.navigate('Invite'),
             },
           ].map((action) => (
@@ -756,9 +756,9 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
             <Text style={[styles.headerTitle, { color: colors.text }]}>PikTag</Text>
             <View style={styles.headerSubtitleRow}>
               <Text style={styles.headerSubtitle}>
-                <Text style={styles.headerCount}>{sortedConnections.length}</Text>{' '}{t('connections.friendsLabel') || 'friends'}
+                <Text style={styles.headerCount}>{sortedConnections.length}</Text>{' '}{t('connections.friendsLabel', { defaultValue: 'friends' })}
                 {closeFriendCount > 0 && (
-                  <Text>{'  ·  '}<Text style={styles.headerCount}>{closeFriendCount}</Text>{' '}{t('connections.closeFriendsLabel') || '摯友'}</Text>
+                  <Text>{'  ·  '}<Text style={styles.headerCount}>{closeFriendCount}</Text>{' '}{t('connections.closeFriendsLabel', { defaultValue: '摯友' })}</Text>
                 )}
               </Text>
               {unreviewedCount > 0 && (
@@ -769,7 +769,7 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
                   accessibilityRole="link"
                 >
                   <Text style={styles.unreviewedLink}>
-                    {'  ·  '}{unreviewedCount} {t('connections.unreviewedLabel') || '位待整理'} →
+                    {'  ·  '}{unreviewedCount} {t('connections.unreviewedLabel', { defaultValue: '位待整理' })} →
                   </Text>
                 </TouchableOpacity>
               )}
@@ -789,7 +789,7 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
               style={styles.headerIconBtn}
               activeOpacity={0.6}
               onPress={() => setSortModalVisible(true)}
-              accessibilityLabel={t('connections.sortLabel') || '排序'}
+              accessibilityLabel={t('connections.sortLabel', { defaultValue: '排序' })}
               accessibilityRole="button"
             >
               <ArrowDownAZ
@@ -917,18 +917,18 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
         <View style={styles.filterModalOverlay}>
           <View style={styles.filterModalContainer}>
             <View style={styles.filterModalHeader}>
-              <Text style={styles.filterModalTitle}>{t('connections.sortLabel') || '排序'}</Text>
+              <Text style={styles.filterModalTitle}>{t('connections.sortLabel', { defaultValue: '排序' })}</Text>
               <TouchableOpacity onPress={() => setSortModalVisible(false)} activeOpacity={0.6}>
                 <X size={24} color={COLORS.gray900} />
               </TouchableOpacity>
             </View>
             {(
               [
-                { key: 'recent', label: t('connections.sortByRecent') || '最近加為好友' },
-                { key: 'interaction', label: t('connections.sortByInteraction') || '最近互動' },
-                { key: 'birthday', label: t('connections.sortByBirthday') || '最近生日' },
-                { key: 'alphabet', label: t('connections.sortByAlphabet') || '字母 A→Z' },
-                { key: 'alphabet_desc', label: t('connections.sortByAlphabetDesc') || '字母 Z→A' },
+                { key: 'recent', label: t('connections.sortByRecent', { defaultValue: '最近加為好友' }) },
+                { key: 'interaction', label: t('connections.sortByInteraction', { defaultValue: '最近互動' }) },
+                { key: 'birthday', label: t('connections.sortByBirthday', { defaultValue: '最近生日' }) },
+                { key: 'alphabet', label: t('connections.sortByAlphabet', { defaultValue: '字母 A→Z' }) },
+                { key: 'alphabet_desc', label: t('connections.sortByAlphabetDesc', { defaultValue: '字母 Z→A' }) },
               ] as { key: SortMode; label: string }[]
             ).map((opt) => (
               <TouchableOpacity

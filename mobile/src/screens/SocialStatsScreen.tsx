@@ -561,7 +561,7 @@ export default function SocialStatsScreen({ navigation }: SocialStatsScreenProps
 
           {/* ── Network Composition (Semantic Breakdown) ── */}
           <View style={styles.sectionContainer}>
-            <SectionTitle title={t('dashboard.networkCompositionTitle') || '人脈組成'} />
+            <SectionTitle title={t('dashboard.networkCompositionTitle', { defaultValue: '人脈組成' })} />
             {data.semanticBreakdown.length > 0 ? (
               <View>
                 {/* Simple horizontal bar breakdown */}
@@ -607,7 +607,7 @@ export default function SocialStatsScreen({ navigation }: SocialStatsScreenProps
                 </View>
               </View>
             ) : (
-              <EmptyState text={t('dashboard.networkCompositionEmpty') || '尚無分類資料'} />
+              <EmptyState text={t('dashboard.networkCompositionEmpty', { defaultValue: '尚無分類資料' })} />
             )}
           </View>
 

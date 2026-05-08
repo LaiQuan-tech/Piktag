@@ -34,14 +34,14 @@ export default function RedeemInviteScreen({ navigation, route }: Props) {
     if (!input) {
       Alert.alert(
         t('common.error'),
-        t('redeemInvite.errorEmpty') || 'Please enter an invite code',
+        t('redeemInvite.errorEmpty', { defaultValue: 'Please enter an invite code' }),
       );
       return;
     }
     if (!user?.id) {
       Alert.alert(
         t('common.error'),
-        t('redeemInvite.errorNotAuthenticated') || 'Please sign in first',
+        t('redeemInvite.errorNotAuthenticated', { defaultValue: 'Please sign in first' }),
       );
       return;
     }
@@ -54,9 +54,9 @@ export default function RedeemInviteScreen({ navigation, route }: Props) {
         setSuccess(true);
         require('../lib/analytics').trackInviteRedeemed(code.trim());
         Alert.alert(
-          t('redeemInvite.successTitle') || 'Invite redeemed',
-          t('redeemInvite.successMessage') || 'You can now connect with the person who invited you!',
-          [{ text: t('common.ok') || 'OK', onPress: () => {
+          t('redeemInvite.successTitle', { defaultValue: 'Invite redeemed' }),
+          t('redeemInvite.successMessage', { defaultValue: 'You can now connect with the person who invited you!' }),
+          [{ text: t('common.ok', { defaultValue: 'OK' }), onPress: () => {
             // Deep-linked entry (invite/:code) has no back stack, so
             // fall through to the home tab instead of crashing on
             // native-stack's "nothing to go back to" invariant.
@@ -83,7 +83,7 @@ export default function RedeemInviteScreen({ navigation, route }: Props) {
       }
     } catch (err: any) {
       console.warn('[RedeemInvite] error:', err);
-      Alert.alert(t('common.error'), err?.message || t('redeemInvite.errorGeneric') || 'Failed to redeem invite');
+      Alert.alert(t('common.error'), err?.message || t('redeemInvite.errorGeneric', { defaultValue: 'Failed to redeem invite' }));
     } finally {
       setLoading(false);
     }
@@ -111,7 +111,7 @@ export default function RedeemInviteScreen({ navigation, route }: Props) {
           <ArrowLeft size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={[styles.headerTitle, { color: colors.text }]}>
-          {t('redeemInvite.headerTitle') || 'Redeem Invite'}
+          {t('redeemInvite.headerTitle', { defaultValue: 'Redeem Invite' })}
         </Text>
         <View style={{ width: 32 }} />
       </View>
@@ -122,15 +122,15 @@ export default function RedeemInviteScreen({ navigation, route }: Props) {
         </View>
 
         <Text style={[styles.title, { color: colors.text }]}>
-          {t('redeemInvite.title') || 'Got an invite code?'}
+          {t('redeemInvite.title', { defaultValue: 'Got an invite code?' })}
         </Text>
         <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-          {t('redeemInvite.subtitle') || 'Enter the code below to connect with the person who invited you.'}
+          {t('redeemInvite.subtitle', { defaultValue: 'Enter the code below to connect with the person who invited you.' })}
         </Text>
 
         <TextInput
           style={[styles.input, { backgroundColor: colors.card, borderColor: colors.border, color: colors.text }]}
-          placeholder={t('redeemInvite.placeholder') || 'PIK-XXXXXX'}
+          placeholder={t('redeemInvite.placeholder', { defaultValue: 'PIK-XXXXXX' })}
           placeholderTextColor={colors.textTertiary}
           value={code}
           onChangeText={(v) => setCode(v.toUpperCase())}
@@ -156,7 +156,7 @@ export default function RedeemInviteScreen({ navigation, route }: Props) {
             <Check size={20} color="#fff" />
           ) : (
             <Text style={styles.buttonText}>
-              {t('redeemInvite.button') || 'Redeem'}
+              {t('redeemInvite.button', { defaultValue: 'Redeem' })}
             </Text>
           )}
         </TouchableOpacity>

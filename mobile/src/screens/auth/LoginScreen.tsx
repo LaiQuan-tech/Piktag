@@ -192,7 +192,7 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
         {/* Divider */}
         <View style={styles.dividerRow}>
           <View style={[styles.dividerLine, { backgroundColor: colors.border }]} />
-          <Text style={[styles.dividerText, { color: colors.textTertiary }]}>{t('auth.login.orDivider') || '或'}</Text>
+          <Text style={[styles.dividerText, { color: colors.textTertiary }]}>{t('auth.login.orDivider', { defaultValue: '或' })}</Text>
           <View style={[styles.dividerLine, { backgroundColor: colors.border }]} />
         </View>
 
@@ -210,7 +210,7 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
               ) : (
                 <>
                   <Text style={[styles.appleIcon, { color: colors.text }]}>{'\uF8FF'}</Text>
-                  <Text style={[styles.socialBtnText, { color: colors.text }]}>{t('auth.login.continueWithApple') || 'Apple 登入'}</Text>
+                  <Text style={[styles.socialBtnText, { color: colors.text }]}>{t('auth.login.continueWithApple', { defaultValue: 'Apple 登入' })}</Text>
                 </>
               )}
             </TouchableOpacity>
@@ -227,7 +227,7 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
             ) : (
               <>
                 <Text style={styles.googleIcon}>G</Text>
-                <Text style={[styles.socialBtnText, { color: colors.text }]}>{t('auth.login.continueWithGoogle') || 'Google 登入'}</Text>
+                <Text style={[styles.socialBtnText, { color: colors.text }]}>{t('auth.login.continueWithGoogle', { defaultValue: 'Google 登入' })}</Text>
               </>
             )}
           </TouchableOpacity>

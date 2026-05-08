@@ -846,7 +846,12 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
   const handleConfirmUnfollow = async () => {
     if (!authUser || !resolvedUserId) return;
     setUnfollowModalVisible(false);
-    await supabase.from('piktag_follows').delete().eq('follower_id', authUser.id).eq('following_id', resolvedUserId);
+    const { error } = await supabase.from('piktag_follows').delete().eq('follower_id', authUser.id).eq('following_id', resolvedUserId);
+    if (error) {
+      console.warn('unfollow failed:', error);
+      Alert.alert(t('common.error'), t('common.unknownError'));
+      return;
+    }
     setIsFollowing(false);
     // Close-friend status was implicitly tied to following — once you
     // unfollow, the close-friend row is semantically stale ("X is my
@@ -864,12 +869,17 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
 
   const reportUser = async (reason: string) => {
     if (!authUser || !resolvedUserId) return;
-    await supabase.from('piktag_reports').insert({
+    const { error } = await supabase.from('piktag_reports').insert({
       reporter_id: authUser.id,
       reported_id: resolvedUserId,
       reason,
     });
-    Alert.alert(t('userDetail.reportedTitle') || '已檢舉', t('userDetail.reportedMessage') || '感謝你的回報，我們會盡快處理');
+    if (error) {
+      console.warn('report insert failed:', error);
+      Alert.alert(t('common.error'), t('common.unknownError'));
+      return;
+    }
+    Alert.alert(t('userDetail.reportedTitle', { defaultValue: '已檢舉' }), t('userDetail.reportedMessage', { defaultValue: '感謝你的回報，我們會盡快處理' }));
   };
 
   const handleToggleCloseFriend = async () => {
@@ -1171,7 +1181,7 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
           {/* Event info card (QR scan context) */}
           {paramSid && eventInfo && (eventInfo.tags.length > 0 || eventInfo.date || eventInfo.location) && (
             <View style={styles.eventCard}>
-              <Text style={styles.eventCardTitle}>{t('userDetail.eventCardTitle') || '活動資訊'}</Text>
+              <Text style={styles.eventCardTitle}>{t('userDetail.eventCardTitle', { defaultValue: '活動資訊' })}</Text>
               {eventInfo.date ? (
                 <Text style={styles.eventCardLine}>#{eventInfo.date}</Text>
               ) : null}
@@ -1253,9 +1263,9 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
                 activeOpacity={0.7}
                 onPress={openPickTagModal}
                 accessibilityRole="button"
-                accessibilityLabel={t('userDetail.tag') || '標籤'}
+                accessibilityLabel={t('userDetail.tag', { defaultValue: '標籤' })}
               >
-                <Text style={styles.secondaryBtnText}>{t('userDetail.tag') || '標籤'}</Text>
+                <Text style={styles.secondaryBtnText}>{t('userDetail.tag', { defaultValue: '標籤' })}</Text>
               </TouchableOpacity>
             )}
             <TouchableOpacity
@@ -1263,7 +1273,7 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
               activeOpacity={0.7}
               onPress={() => setShowSimilar(!showSimilar)}
               accessibilityRole="button"
-              accessibilityLabel={t('userDetail.recommendMembers') || '推薦會員'}
+              accessibilityLabel={t('userDetail.recommendMembers', { defaultValue: '推薦會員' })}
             >
               <UserPlus size={18} color={showSimilar ? COLORS.piktag500 : COLORS.gray700} />
             </TouchableOpacity>
@@ -1285,7 +1295,7 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
         {showSimilar && similarUsers.length > 0 && (
           <View style={styles.similarSection}>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, marginBottom: 12 }}>
-              <Text style={styles.similarTitle}>{t('userDetail.similarUsersTitle') || '為你推薦'}</Text>
+              <Text style={styles.similarTitle}>{t('userDetail.similarUsersTitle', { defaultValue: '為你推薦' })}</Text>
               <TouchableOpacity onPress={() => setShowSimilar(false)} activeOpacity={0.6}>
                 <X size={18} color={COLORS.gray400} />
               </TouchableOpacity>
@@ -1349,7 +1359,7 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
                         end={{ x: 1, y: 0.5 }}
                         style={styles.similarFollowGradient}
                       >
-                        <Text style={styles.similarFollowText}>{t('userDetail.follow') || '追蹤'}</Text>
+                        <Text style={styles.similarFollowText}>{t('userDetail.follow', { defaultValue: '追蹤' })}</Text>
                       </LinearGradient>
                     </TouchableOpacity>
                   </View>
@@ -1466,7 +1476,7 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
             {eventTags.length > 0 && connectionId && authUser && (
               <>
                 <Text style={styles.pickModalSectionTitle}>
-                  {t('friendDetail.eventTagsTitle') || '活動標籤'}
+                  {t('friendDetail.eventTagsTitle', { defaultValue: '活動標籤' })}
                 </Text>
                 <View style={styles.eventTagsChipRow}>
                   {eventTags.map((et) => {
@@ -1489,7 +1499,7 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
             )}
 
             {/* Hidden tags section — tap-based editor */}
-            <Text style={styles.pickModalSectionTitle}>{t('friendDetail.hiddenTagsTitle') || '隱藏標籤'}</Text>
+            <Text style={styles.pickModalSectionTitle}>{t('friendDetail.hiddenTagsTitle', { defaultValue: '隱藏標籤' })}</Text>
             {connectionId && authUser && (
               <HiddenTagEditor
                 connectionId={connectionId}
@@ -1582,7 +1592,7 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
             >
               <Heart size={20} color={isCloseFriend ? COLORS.piktag600 : COLORS.gray600} fill={isCloseFriend ? COLORS.piktag600 : 'transparent'} />
               <Text style={[styles.moreItemText, isCloseFriend && { color: COLORS.piktag600 }]}>
-                {isCloseFriend ? (t('userDetail.closeFriendRemove') || '已設為摯友') : (t('userDetail.closeFriendAdd') || '設為摯友')}
+                {isCloseFriend ? (t('userDetail.closeFriendRemove', { defaultValue: '已設為摯友' })) : (t('userDetail.closeFriendAdd', { defaultValue: '設為摯友' }))}
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
@@ -1602,7 +1612,7 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
               }}
             >
               <Share2 size={20} color={COLORS.gray600} />
-              <Text style={styles.moreItemText}>{t('userDetail.shareProfile') || '分享'}</Text>
+              <Text style={styles.moreItemText}>{t('userDetail.shareProfile', { defaultValue: '分享' })}</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.moreItem}
@@ -1622,34 +1632,34 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
                   Alert.alert(t('common.error'), t('common.unknownError'));
                   return;
                 }
-                Alert.alert(t('userDetail.blockedTitle') || '已封鎖', t('userDetail.blockedMessage') || '你將不再看到此用戶');
+                Alert.alert(t('userDetail.blockedTitle', { defaultValue: '已封鎖' }), t('userDetail.blockedMessage', { defaultValue: '你將不再看到此用戶' }));
                 if (navigation.canGoBack()) navigation.goBack(); else navigation.navigate('Main', { screen: 'HomeTab' });
               }}
             >
               <X size={20} color="#EF4444" />
-              <Text style={[styles.moreItemText, { color: '#EF4444' }]}>{t('userDetail.blockUser') || '封鎖'}</Text>
+              <Text style={[styles.moreItemText, { color: '#EF4444' }]}>{t('userDetail.blockUser', { defaultValue: '封鎖' })}</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.moreItem}
               onPress={() => {
                 setMoreMenuVisible(false);
                 Alert.alert(
-                  t('userDetail.reportTitle') || '檢舉用戶',
-                  t('userDetail.reportMessage') || '請選擇檢舉原因',
+                  t('userDetail.reportTitle', { defaultValue: '檢舉用戶' }),
+                  t('userDetail.reportMessage', { defaultValue: '請選擇檢舉原因' }),
                   [
-                    { text: t('userDetail.reportSpam') || '垃圾訊息', onPress: () => reportUser('spam') },
-                    { text: t('userDetail.reportHarassment') || '騷擾', onPress: () => reportUser('harassment') },
-                    { text: t('userDetail.reportFake') || '假帳號', onPress: () => reportUser('fake_account') },
-                    { text: t('common.cancel') || '取消', style: 'cancel' },
+                    { text: t('userDetail.reportSpam', { defaultValue: '垃圾訊息' }), onPress: () => reportUser('spam') },
+                    { text: t('userDetail.reportHarassment', { defaultValue: '騷擾' }), onPress: () => reportUser('harassment') },
+                    { text: t('userDetail.reportFake', { defaultValue: '假帳號' }), onPress: () => reportUser('fake_account') },
+                    { text: t('common.cancel', { defaultValue: '取消' }), style: 'cancel' },
                   ]
                 );
               }}
             >
               <AlertTriangle size={20} color={COLORS.gray600} />
-              <Text style={styles.moreItemText}>{t('userDetail.reportUser') || '檢舉'}</Text>
+              <Text style={styles.moreItemText}>{t('userDetail.reportUser', { defaultValue: '檢舉' })}</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.moreCancelBtn} onPress={() => setMoreMenuVisible(false)}>
-              <Text style={styles.moreCancelText}>{t('common.cancel') || '取消'}</Text>
+              <Text style={styles.moreCancelText}>{t('common.cancel', { defaultValue: '取消' })}</Text>
             </TouchableOpacity>
           </View>
         </TouchableOpacity>

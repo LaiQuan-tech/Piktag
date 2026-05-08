@@ -104,7 +104,7 @@ export default function PlatformSearchModal({ visible, onClose, onSelect }: Prop
         {/* Header */}
         <View style={styles.header}>
           <Text style={styles.title}>
-            {t('editProfile.browseAllPlatforms') || 'Browse all platforms'}
+            {t('editProfile.browseAllPlatforms', { defaultValue: 'Browse all platforms' })}
           </Text>
           <TouchableOpacity onPress={onClose} hitSlop={8} style={styles.closeBtn}>
             <X size={24} color={COLORS.gray700} />
@@ -118,7 +118,7 @@ export default function PlatformSearchModal({ visible, onClose, onSelect }: Prop
             style={styles.searchInput}
             value={query}
             onChangeText={setQuery}
-            placeholder={t('editProfile.platformSearchPlaceholder') || 'Search platforms…'}
+            placeholder={t('editProfile.platformSearchPlaceholder', { defaultValue: 'Search platforms…' })}
             placeholderTextColor={COLORS.gray400}
             autoCapitalize="none"
             autoCorrect={false}
@@ -161,7 +161,7 @@ export default function PlatformSearchModal({ visible, onClose, onSelect }: Prop
           ListEmptyComponent={
             <View style={styles.emptyWrap}>
               <Text style={styles.emptyText}>
-                {t('editProfile.platformSearchEmpty') || 'No platforms match your search'}
+                {t('editProfile.platformSearchEmpty', { defaultValue: 'No platforms match your search' })}
               </Text>
             </View>
           }

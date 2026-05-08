@@ -698,8 +698,13 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
 
   const handleReport = async (reason: string) => {
     if (!user || !friendId) return;
-    await supabase.from('piktag_reports').insert({ reporter_id: user.id, reported_id: friendId, reason });
-    Alert.alert(t('friendDetail.reportedTitle') || '已檢舉', t('friendDetail.reportedMessage') || '感謝你的回報，我們會盡快處理');
+    const { error } = await supabase.from('piktag_reports').insert({ reporter_id: user.id, reported_id: friendId, reason });
+    if (error) {
+      console.warn('report insert failed:', error);
+      Alert.alert(t('common.error'), t('common.unknownError'));
+      return;
+    }
+    Alert.alert(t('friendDetail.reportedTitle', { defaultValue: '已檢舉' }), t('friendDetail.reportedMessage', { defaultValue: '感謝你的回報，我們會盡快處理' }));
   };
 
   const handleToggleCloseFriend = async () => {
@@ -787,7 +792,12 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
   const handleConfirmUnfollow = async () => {
     if (!user || !friendId) return;
     setUnfollowModalVisible(false);
-    await supabase.from('piktag_follows').delete().eq('follower_id', user.id).eq('following_id', friendId);
+    const { error } = await supabase.from('piktag_follows').delete().eq('follower_id', user.id).eq('following_id', friendId);
+    if (error) {
+      console.warn('unfollow failed:', error);
+      Alert.alert(t('common.error'), t('common.unknownError'));
+      return;
+    }
     setIsFollowing(false);
     // Close-friend status was implicitly tied to following — once you
     // unfollow, the close-friend row is semantically stale ("X is my
@@ -1201,9 +1211,9 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
                 activeOpacity={0.7}
                 onPress={openPickTagModal}
                 accessibilityRole="button"
-                accessibilityLabel={t('friendDetail.tag') || '標籤'}
+                accessibilityLabel={t('friendDetail.tag', { defaultValue: '標籤' })}
               >
-                <Text style={styles.primaryBtnText}>{t('friendDetail.tag') || '標籤'}</Text>
+                <Text style={styles.primaryBtnText}>{t('friendDetail.tag', { defaultValue: '標籤' })}</Text>
               </TouchableOpacity>
             )}
             <TouchableOpacity
@@ -1211,7 +1221,7 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
               activeOpacity={0.7}
               onPress={() => setShowSimilar(!showSimilar)}
               accessibilityRole="button"
-              accessibilityLabel={t('friendDetail.recommendMembers') || '推薦會員'}
+              accessibilityLabel={t('friendDetail.recommendMembers', { defaultValue: '推薦會員' })}
             >
               <UserPlus size={18} color={showSimilar ? COLORS.piktag500 : COLORS.gray700} />
             </TouchableOpacity>
@@ -1224,7 +1234,7 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
         {showSimilar && similarUsers.length > 0 && (
           <View style={styles.similarSection}>
             <View style={styles.similarHeader}>
-              <Text style={styles.similarTitle}>{t('friendDetail.recommendMembers') || '推薦會員'}</Text>
+              <Text style={styles.similarTitle}>{t('friendDetail.recommendMembers', { defaultValue: '推薦會員' })}</Text>
               <TouchableOpacity onPress={() => setShowSimilar(false)} activeOpacity={0.6}>
                 <X size={18} color={COLORS.gray400} />
               </TouchableOpacity>
@@ -1283,7 +1293,7 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
                         end={{ x: 1, y: 0.5 }}
                         style={styles.similarFollowGradient}
                       >
-                        <Text style={styles.similarFollowText}>{t('friendDetail.follow') || '追蹤'}</Text>
+                        <Text style={styles.similarFollowText}>{t('friendDetail.follow', { defaultValue: '追蹤' })}</Text>
                       </LinearGradient>
                     </TouchableOpacity>
                   </View>
@@ -1560,7 +1570,7 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
             >
               <Heart size={20} color={isCloseFriend ? COLORS.piktag600 : COLORS.gray600} fill={isCloseFriend ? COLORS.piktag600 : 'transparent'} />
               <Text style={[styles.moreItemText, isCloseFriend && { color: COLORS.piktag600 }]}>
-                {isCloseFriend ? (t('friendDetail.closeFriendRemove') || '已設為摯友') : (t('friendDetail.closeFriendAdd') || '設為摯友')}
+                {isCloseFriend ? (t('friendDetail.closeFriendRemove', { defaultValue: '已設為摯友' })) : (t('friendDetail.closeFriendAdd', { defaultValue: '設為摯友' }))}
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
@@ -1581,7 +1591,7 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
               }}
             >
               <Share2 size={20} color={COLORS.gray600} />
-              <Text style={styles.moreItemText}>{t('friendDetail.shareProfile') || '分享'}</Text>
+              <Text style={styles.moreItemText}>{t('friendDetail.shareProfile', { defaultValue: '分享' })}</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.moreItem}
@@ -1598,34 +1608,34 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
                   Alert.alert(t('common.error'), t('common.unknownError'));
                   return;
                 }
-                Alert.alert(t('friendDetail.blockedTitle') || '已封鎖', t('friendDetail.blockedMessage') || '你將不再看到此用戶');
+                Alert.alert(t('friendDetail.blockedTitle', { defaultValue: '已封鎖' }), t('friendDetail.blockedMessage', { defaultValue: '你將不再看到此用戶' }));
                 if (navigation.canGoBack()) navigation.goBack(); else navigation.navigate('Main', { screen: 'HomeTab' });
               }}
             >
               <X size={20} color="#EF4444" />
-              <Text style={[styles.moreItemText, { color: '#EF4444' }]}>{t('friendDetail.blockUser') || '封鎖'}</Text>
+              <Text style={[styles.moreItemText, { color: '#EF4444' }]}>{t('friendDetail.blockUser', { defaultValue: '封鎖' })}</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.moreItem}
               onPress={() => {
                 setMoreMenuVisible(false);
                 Alert.alert(
-                  t('friendDetail.reportTitle') || '檢舉用戶',
-                  t('friendDetail.reportMessage') || '請選擇檢舉原因',
+                  t('friendDetail.reportTitle', { defaultValue: '檢舉用戶' }),
+                  t('friendDetail.reportMessage', { defaultValue: '請選擇檢舉原因' }),
                   [
-                    { text: t('friendDetail.reportSpam') || '垃圾訊息', onPress: () => handleReport('spam') },
-                    { text: t('friendDetail.reportHarassment') || '騷擾', onPress: () => handleReport('harassment') },
-                    { text: t('friendDetail.reportFake') || '假帳號', onPress: () => handleReport('fake_account') },
-                    { text: t('common.cancel') || '取消', style: 'cancel' },
+                    { text: t('friendDetail.reportSpam', { defaultValue: '垃圾訊息' }), onPress: () => handleReport('spam') },
+                    { text: t('friendDetail.reportHarassment', { defaultValue: '騷擾' }), onPress: () => handleReport('harassment') },
+                    { text: t('friendDetail.reportFake', { defaultValue: '假帳號' }), onPress: () => handleReport('fake_account') },
+                    { text: t('common.cancel', { defaultValue: '取消' }), style: 'cancel' },
                   ]
                 );
               }}
             >
               <AlertTriangle size={20} color={COLORS.gray600} />
-              <Text style={styles.moreItemText}>{t('friendDetail.reportUser') || '檢舉'}</Text>
+              <Text style={styles.moreItemText}>{t('friendDetail.reportUser', { defaultValue: '檢舉' })}</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.moreCancelBtn} onPress={() => setMoreMenuVisible(false)}>
-              <Text style={styles.moreCancelText}>{t('common.cancel') || '取消'}</Text>
+              <Text style={styles.moreCancelText}>{t('common.cancel', { defaultValue: '取消' })}</Text>
             </TouchableOpacity>
           </View>
         </TouchableOpacity>

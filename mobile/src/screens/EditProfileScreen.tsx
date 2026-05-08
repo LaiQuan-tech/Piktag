@@ -1451,12 +1451,12 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
             </View>
 
             <View style={styles.fieldGroup}>
-              <Text style={styles.fieldLabel}>{t('editProfile.headlineLabel') || '職稱'}</Text>
+              <Text style={styles.fieldLabel}>{t('editProfile.headlineLabel', { defaultValue: '職稱' })}</Text>
               <TextInput
                 style={styles.fieldInput}
                 value={form.headline}
                 onChangeText={(v) => updateField('headline', v)}
-                placeholder={t('editProfile.headlinePlaceholder') || '例：PM @ Google、自由接案設計師'}
+                placeholder={t('editProfile.headlinePlaceholder', { defaultValue: '例：PM @ Google、自由接案設計師' })}
                 placeholderTextColor={COLORS.gray400}
                 maxLength={50}
               />
@@ -1538,11 +1538,11 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
                     <View style={styles.tag_swapHintBar}>
                       <ArrowLeftRight size={14} color={COLORS.piktag600} />
                       <Text style={styles.tag_swapHintText}>
-                        {t('manageTags.dragSelectTarget') || '點選要交換位置的標籤'}
+                        {t('manageTags.dragSelectTarget', { defaultValue: '點選要交換位置的標籤' })}
                       </Text>
                       <Pressable onPress={() => setSelectedTagId(null)}>
                         <Text style={styles.tag_swapCancel}>
-                          {t('common.cancel') || '取消'}
+                          {t('common.cancel', { defaultValue: '取消' })}
                         </Text>
                       </Pressable>
                     </View>
@@ -1577,7 +1577,7 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
               )
             ) : (
               <Text style={styles.tag_emptyText}>
-                {t('manageTags.noTagsYet') || '還沒有標籤'}
+                {t('manageTags.noTagsYet', { defaultValue: '還沒有標籤' })}
               </Text>
             )}
 
@@ -1597,7 +1597,7 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
                   <Hash size={18} color={COLORS.gray400} />
                   <TextInput
                     style={styles.tag_addInput}
-                    placeholder={t('manageTags.tagInputPlaceholder') || '+ 新增標籤'}
+                    placeholder={t('manageTags.tagInputPlaceholder', { defaultValue: '+ 新增標籤' })}
                     placeholderTextColor={COLORS.gray400}
                     value={tagInput}
                     onChangeText={(v) => v.length <= MAX_TAG_LENGTH && setTagInput(v)}
@@ -1615,7 +1615,7 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
                   onPress={() => handleAddTag()}
                   disabled={!tagInput.trim() || addingTag}
                   accessibilityRole="button"
-                  accessibilityLabel={t('manageTags.addButton') || '新增'}
+                  accessibilityLabel={t('manageTags.addButton', { defaultValue: '新增' })}
                 >
                   {addingTag ? (
                     <BrandSpinner size={20} />
@@ -1668,8 +1668,8 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
                       )}
                       <Text style={styles.ai_headerTitle}>
                         {aiLoading
-                          ? `${t('manageTags.aiSuggestionsTitle') || 'AI 為你推薦'}…`
-                          : (t('manageTags.aiSuggestionsTitle') || 'AI 為你推薦')}
+                          ? `${t('manageTags.aiSuggestionsTitle', { defaultValue: 'AI 為你推薦' })}…`
+                          : (t('manageTags.aiSuggestionsTitle', { defaultValue: 'AI 為你推薦' }))}
                       </Text>
                     </View>
                     {/* Refresh icon button — clearly tappable shape
@@ -1688,7 +1688,7 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
                         activeOpacity={0.7}
                         hitSlop={8}
                         accessibilityRole="button"
-                        accessibilityLabel={t('ask.regenerateAiTags') || '重新生成'}
+                        accessibilityLabel={t('ask.regenerateAiTags', { defaultValue: '重新生成' })}
                       >
                         <RefreshCw size={14} color={COLORS.piktag600} strokeWidth={2.2} />
                       </TouchableOpacity>
@@ -1707,7 +1707,7 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
                         ]}
                         onPress={() => handleAddAiSuggestion(s)}
                         accessibilityRole="button"
-                        accessibilityLabel={`${t('common.add') || '新增'} #${s}`}
+                        accessibilityLabel={`${t('common.add', { defaultValue: '新增' })} #${s}`}
                       >
                         <Text style={styles.ai_chipText}>#{s}</Text>
                       </Pressable>
@@ -1717,7 +1717,7 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
 
                 {aiTriedAndEmpty && aiSuggestions.length === 0 && !aiLoading && (
                   <Text style={styles.ai_emptyHint}>
-                    {t('ask.aiNoSuggestions') || 'AI 沒有想到合適的標籤，再試一次或自己輸入'}
+                    {t('ask.aiNoSuggestions', { defaultValue: 'AI 沒有想到合適的標籤，再試一次或自己輸入' })}
                   </Text>
                 )}
               </View>
@@ -1736,7 +1736,7 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
                   accessibilityRole="button"
                 >
                   <Text style={styles.tag_popularToggleText}>
-                    {t('manageTags.popularTagsTitle') || '熱門標籤'}
+                    {t('manageTags.popularTagsTitle', { defaultValue: '熱門標籤' })}
                   </Text>
                   {showPopularTags ? (
                     <ChevronUp size={16} color={COLORS.gray500} />
@@ -1879,7 +1879,7 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
                     <Plus size={18} color={COLORS.piktag500} />
                   </View>
                   <Text style={[styles.platformOptionText, { color: COLORS.piktag600, fontWeight: '600' }]}>
-                    {t('editProfile.browseAllPlatforms') || 'Browse all platforms'}
+                    {t('editProfile.browseAllPlatforms', { defaultValue: 'Browse all platforms' })}
                   </Text>
                 </TouchableOpacity>
                 <TouchableOpacity onPress={() => setShowPlatformPicker(false)}>
@@ -2006,7 +2006,7 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
                       }
                     }}
                   >
-                    <Text style={styles.saveBtnText}>{t('common.add') || '新增'}</Text>
+                    <Text style={styles.saveBtnText}>{t('common.add', { defaultValue: '新增' })}</Text>
                   </TouchableOpacity>
                 </View>
               </View>
@@ -2118,7 +2118,7 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
                     activeOpacity={0.7}
                   >
                     <Text style={styles.browseAllChipText}>
-                      {t('editProfile.browseAllPlatformsCta') || 'More…'}
+                      {t('editProfile.browseAllPlatformsCta', { defaultValue: 'More…' })}
                     </Text>
                   </TouchableOpacity>
                 </View>
@@ -2288,7 +2288,7 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
                   handled by the URL itself differentiating the cards. */}
               {/* Display Mode Toggle */}
               <View style={styles.fieldGroup}>
-                <Text style={styles.fieldLabel}>{t('editProfile.displayModeLabel') || '顯示方式'}</Text>
+                <Text style={styles.fieldLabel}>{t('editProfile.displayModeLabel', { defaultValue: '顯示方式' })}</Text>
                 <View style={styles.displayModeRow}>
                   <TouchableOpacity
                     style={[styles.displayModeBtn, biolinkForm.display_mode === 'icon' && styles.displayModeBtnActive]}
@@ -2296,7 +2296,7 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
                     activeOpacity={0.7}
                   >
                     <Text style={[styles.displayModeBtnText, biolinkForm.display_mode === 'icon' && styles.displayModeBtnTextActive]}>
-                      {t('editProfile.displayModeIcon') || '圖示並排'}
+                      {t('editProfile.displayModeIcon', { defaultValue: '圖示並排' })}
                     </Text>
                   </TouchableOpacity>
                   <TouchableOpacity
@@ -2305,7 +2305,7 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
                     activeOpacity={0.7}
                   >
                     <Text style={[styles.displayModeBtnText, biolinkForm.display_mode === 'card' && styles.displayModeBtnTextActive]}>
-                      {t('editProfile.displayModeCard') || '清單卡片'}
+                      {t('editProfile.displayModeCard', { defaultValue: '清單卡片' })}
                     </Text>
                   </TouchableOpacity>
                   <TouchableOpacity
@@ -2314,7 +2314,7 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
                     activeOpacity={0.7}
                   >
                     <Text style={[styles.displayModeBtnText, biolinkForm.display_mode === 'both' && styles.displayModeBtnTextActive]}>
-                      {t('editProfile.displayModeBoth') || '全部顯示'}
+                      {t('editProfile.displayModeBoth', { defaultValue: '全部顯示' })}
                     </Text>
                   </TouchableOpacity>
                 </View>
@@ -2322,13 +2322,13 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
 
               {/* Visibility Picker */}
               <View style={styles.fieldGroup}>
-                <Text style={styles.fieldLabel}>{t('editProfile.visibilityLabel') || '誰能看到'}</Text>
+                <Text style={styles.fieldLabel}>{t('editProfile.visibilityLabel', { defaultValue: '誰能看到' })}</Text>
                 <View style={styles.visibilityRow}>
                   {([
-                    { key: 'public', label: t('editProfile.visibilityPublic') || '公開' },
-                    { key: 'friends', label: t('editProfile.visibilityFriends') || '朋友' },
-                    { key: 'close_friends', label: t('editProfile.visibilityCloseFriends') || '摯友' },
-                    { key: 'private', label: t('editProfile.visibilityPrivate') || '自己' },
+                    { key: 'public', label: t('editProfile.visibilityPublic', { defaultValue: '公開' }) },
+                    { key: 'friends', label: t('editProfile.visibilityFriends', { defaultValue: '朋友' }) },
+                    { key: 'close_friends', label: t('editProfile.visibilityCloseFriends', { defaultValue: '摯友' }) },
+                    { key: 'private', label: t('editProfile.visibilityPrivate', { defaultValue: '自己' }) },
                   ] as const).map((opt) => (
                     <TouchableOpacity
                       key={opt.key}

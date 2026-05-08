@@ -206,7 +206,7 @@ export default function RegisterScreen({ navigation }: RegisterScreenProps) {
               function's exact-string match query. */}
           <View style={styles.birthdayRow}>
             <Text style={styles.birthdayLabel}>
-              {t('auth.register.birthdayLabel') || '生日（選填）'}
+              {t('auth.register.birthdayLabel', { defaultValue: '生日（選填）' })}
             </Text>
             <TextInput
               ref={birthdayRef}
@@ -240,7 +240,7 @@ export default function RegisterScreen({ navigation }: RegisterScreenProps) {
         {/* Divider */}
         <View style={styles.dividerRow}>
           <View style={styles.dividerLine} />
-          <Text style={styles.dividerText}>{t('auth.login.orDivider') || '或'}</Text>
+          <Text style={styles.dividerText}>{t('auth.login.orDivider', { defaultValue: '或' })}</Text>
           <View style={styles.dividerLine} />
         </View>
 
@@ -254,7 +254,7 @@ export default function RegisterScreen({ navigation }: RegisterScreenProps) {
             }} disabled={!!socialLoading} activeOpacity={0.8}>
               {socialLoading === 'apple' ? <BrandSpinner size={20} /> : <>
                 <Text style={styles.appleIcon}>{'\uF8FF'}</Text>
-                <Text style={styles.socialBtnText}>{t('auth.login.continueWithApple') || 'Apple 登入'}</Text>
+                <Text style={styles.socialBtnText}>{t('auth.login.continueWithApple', { defaultValue: 'Apple 登入' })}</Text>
               </>}
             </TouchableOpacity>
           )}
@@ -265,7 +265,7 @@ export default function RegisterScreen({ navigation }: RegisterScreenProps) {
           }} disabled={!!socialLoading} activeOpacity={0.8}>
             {socialLoading === 'google' ? <BrandSpinner size={20} /> : <>
               <Text style={styles.googleIcon}>G</Text>
-              <Text style={styles.socialBtnText}>{t('auth.login.continueWithGoogle') || 'Google 登入'}</Text>
+              <Text style={styles.socialBtnText}>{t('auth.login.continueWithGoogle', { defaultValue: 'Google 登入' })}</Text>
             </>}
           </TouchableOpacity>
         </View>

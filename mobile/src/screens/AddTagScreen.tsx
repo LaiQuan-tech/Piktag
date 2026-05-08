@@ -471,7 +471,7 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
     if (!qrValue) return;
     try {
       await setClipboardStringAsync(qrValue);
-      Alert.alert(t('addTag.alertLinkCopiedTitle') || '已複製', t('addTag.alertLinkCopiedMessage') || '連結已複製到剪貼簿');
+      Alert.alert(t('addTag.alertLinkCopiedTitle', { defaultValue: '已複製' }), t('addTag.alertLinkCopiedMessage', { defaultValue: '連結已複製到剪貼簿' }));
     } catch {
       // no-op
     }
@@ -482,7 +482,7 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
     <>
       {/* Header */}
       <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
-        <Text style={styles.headerTitle}>{t('addTag.headerTitle') || '活動標籤'}</Text>
+        <Text style={styles.headerTitle}>{t('addTag.headerTitle', { defaultValue: '活動標籤' })}</Text>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16, marginLeft: 'auto' }}>
           <TouchableOpacity
             onPress={() => navigation.navigate('CameraScan')}
@@ -601,7 +601,7 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
               onPress={() => setShowLocationPicker(true)}
               activeOpacity={0.7}
             >
-              <Text style={styles.quickDateText}>{t('addTag.selectLocation') || '選地點'}</Text>
+              <Text style={styles.quickDateText}>{t('addTag.selectLocation', { defaultValue: '選地點' })}</Text>
             </TouchableOpacity>
             {recentLocations.slice(0, 2).map((loc) => (
                 <TouchableOpacity
@@ -639,7 +639,7 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
         {/* 自訂標籤 Section */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>{t('addTag.customTagsLabel')}</Text>
-          <Text style={styles.hiddenTagHint}>{t('addTag.hiddenTagHint') || '這些標籤僅自己可見，幫助你記住在哪認識'}</Text>
+          <Text style={styles.hiddenTagHint}>{t('addTag.hiddenTagHint', { defaultValue: '這些標籤僅自己可見，幫助你記住在哪認識' })}</Text>
           <View style={styles.tagInputRow}>
             <View style={[styles.inputRow, { flex: 1 }]}>
               <TextInput
@@ -808,15 +808,15 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
       <View style={[styles.qrBottomRow, { paddingBottom: insets.bottom + 20 }]}>
         <TouchableOpacity style={styles.qrBottomBtn} onPress={handleShare} activeOpacity={0.7}>
           <Share2 size={22} color={COLORS.gray900} />
-          <Text style={styles.qrBottomBtnText}>{t('addTag.shareFile') || '分享檔案'}</Text>
+          <Text style={styles.qrBottomBtnText}>{t('addTag.shareFile', { defaultValue: '分享檔案' })}</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.qrBottomBtn} onPress={handleCopyLink} activeOpacity={0.7}>
           <Link2 size={22} color={COLORS.gray900} />
-          <Text style={styles.qrBottomBtnText}>{t('addTag.copyLink') || '複製連結'}</Text>
+          <Text style={styles.qrBottomBtnText}>{t('addTag.copyLink', { defaultValue: '複製連結' })}</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.qrBottomBtn} onPress={() => setMode('setup')} activeOpacity={0.7}>
           <Pencil size={22} color={COLORS.gray900} />
-          <Text style={styles.qrBottomBtnText}>{t('addTag.editQr') || '編輯QRcode'}</Text>
+          <Text style={styles.qrBottomBtnText}>{t('addTag.editQr', { defaultValue: '編輯QRcode' })}</Text>
         </TouchableOpacity>
       </View>
     </LinearGradient>
@@ -965,7 +965,7 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
             )}
           </View>
 
-          <Text style={styles.eventHint}>{t('addTag.eventHint') || '讓朋友掃描加你為好友'}</Text>
+          <Text style={styles.eventHint}>{t('addTag.eventHint', { defaultValue: '讓朋友掃描加你為好友' })}</Text>
         </View>
       )}
       {showPresetsModal && renderPresetsModal()}

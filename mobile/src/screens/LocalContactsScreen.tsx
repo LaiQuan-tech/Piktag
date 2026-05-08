@@ -139,8 +139,8 @@ export default function LocalContactsScreen({ navigation }: LocalContactsScreenP
   const handleSave = useCallback(async () => {
     if (!formName.trim()) {
       Alert.alert(
-        t('localContacts.alertNameRequired') || '需要名字',
-        t('localContacts.alertNameRequiredMsg') || '至少要為這位聯絡人取個名字',
+        t('localContacts.alertNameRequired', { defaultValue: '需要名字' }),
+        t('localContacts.alertNameRequiredMsg', { defaultValue: '至少要為這位聯絡人取個名字' }),
       );
       return;
     }
@@ -154,7 +154,7 @@ export default function LocalContactsScreen({ navigation }: LocalContactsScreenP
           tags: formTags,
         });
         if (!ok) {
-          Alert.alert(t('common.error'), t('localContacts.alertSaveFailed') || '存檔失敗，請再試一次');
+          Alert.alert(t('common.error'), t('localContacts.alertSaveFailed', { defaultValue: '存檔失敗，請再試一次' }));
           return;
         }
       } else {
@@ -165,7 +165,7 @@ export default function LocalContactsScreen({ navigation }: LocalContactsScreenP
           tags: formTags,
         });
         if (!created) {
-          Alert.alert(t('common.error'), t('localContacts.alertSaveFailed') || '存檔失敗，請再試一次');
+          Alert.alert(t('common.error'), t('localContacts.alertSaveFailed', { defaultValue: '存檔失敗，請再試一次' }));
           return;
         }
       }
@@ -178,12 +178,12 @@ export default function LocalContactsScreen({ navigation }: LocalContactsScreenP
   const handleDelete = useCallback(async () => {
     if (!editing) return;
     Alert.alert(
-      t('localContacts.alertDeleteTitle') || '刪除聯絡人？',
-      t('localContacts.alertDeleteMsg') || '這位聯絡人連同你貼的標籤都會從你的清單移除。',
+      t('localContacts.alertDeleteTitle', { defaultValue: '刪除聯絡人？' }),
+      t('localContacts.alertDeleteMsg', { defaultValue: '這位聯絡人連同你貼的標籤都會從你的清單移除。' }),
       [
-        { text: t('common.cancel') || '取消', style: 'cancel' },
+        { text: t('common.cancel', { defaultValue: '取消' }), style: 'cancel' },
         {
-          text: t('common.delete') || '刪除',
+          text: t('common.delete', { defaultValue: '刪除' }),
           style: 'destructive',
           onPress: async () => {
             const ok = await remove(editing.id);
@@ -243,7 +243,7 @@ export default function LocalContactsScreen({ navigation }: LocalContactsScreenP
             </View>
           ) : (
             <Text style={styles.rowSubtle}>
-              {item.phone_normalized || item.email_lower || t('localContacts.noTagsYet') || '還沒貼標籤'}
+              {item.phone_normalized || item.email_lower || t('localContacts.noTagsYet', { defaultValue: '還沒貼標籤' })}
             </Text>
           )}
         </View>
@@ -277,7 +277,7 @@ export default function LocalContactsScreen({ navigation }: LocalContactsScreenP
           <ArrowLeft size={22} color={COLORS.gray900} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>
-          {t('localContacts.title') || '標籤聯絡人'}
+          {t('localContacts.title', { defaultValue: '標籤聯絡人' })}
         </Text>
         <TouchableOpacity onPress={openAdd} hitSlop={8} style={styles.headerBtn}>
           <Plus size={22} color={COLORS.piktag600} />
@@ -288,19 +288,18 @@ export default function LocalContactsScreen({ navigation }: LocalContactsScreenP
         <View style={styles.emptyWrap}>
           <UserPlus size={56} color={COLORS.gray300} />
           <Text style={styles.emptyTitle}>
-            {t('localContacts.emptyTitle') || '還沒有標籤聯絡人'}
+            {t('localContacts.emptyTitle', { defaultValue: '還沒有標籤聯絡人' })}
           </Text>
           <View style={styles.emptyDescRow}>
             <Lock size={14} color={COLORS.gray500} />
             <Text style={styles.emptyDesc}>
-              {t('localContacts.emptyDesc') ||
-                '幫通訊錄裡的人貼上私人標籤（只有你看得到）— 等他們註冊 PikTag，標籤會自動轉成你好友頁裡的隱藏標籤，對方永遠不會看到。'}
+              {t('localContacts.emptyDesc', { defaultValue: '幫通訊錄裡的人貼上私人標籤（只有你看得到）— 等他們註冊 PikTag，標籤會自動轉成你好友頁裡的隱藏標籤，對方永遠不會看到。' })}
             </Text>
           </View>
           <TouchableOpacity style={styles.emptyPrimaryBtn} onPress={openAdd} activeOpacity={0.85}>
             <Plus size={18} color={COLORS.white} />
             <Text style={styles.emptyPrimaryBtnText}>
-              {t('localContacts.addManually') || '手動新增聯絡人'}
+              {t('localContacts.addManually', { defaultValue: '手動新增聯絡人' })}
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
@@ -309,7 +308,7 @@ export default function LocalContactsScreen({ navigation }: LocalContactsScreenP
             activeOpacity={0.7}
           >
             <Text style={styles.emptySecondaryBtnText}>
-              {t('localContacts.importFromContacts') || '從通訊錄匯入'}
+              {t('localContacts.importFromContacts', { defaultValue: '從通訊錄匯入' })}
             </Text>
           </TouchableOpacity>
         </View>
@@ -336,8 +335,8 @@ export default function LocalContactsScreen({ navigation }: LocalContactsScreenP
               <View style={styles.modalHeader}>
                 <Text style={styles.modalTitle}>
                   {editing
-                    ? t('localContacts.editTitle') || '編輯聯絡人'
-                    : t('localContacts.addTitle') || '新增聯絡人'}
+                    ? t('localContacts.editTitle', { defaultValue: '編輯聯絡人' })
+                    : t('localContacts.addTitle', { defaultValue: '新增聯絡人' })}
                 </Text>
                 <TouchableOpacity onPress={closeModal} hitSlop={8}>
                   <X size={22} color={COLORS.gray700} />
@@ -346,20 +345,20 @@ export default function LocalContactsScreen({ navigation }: LocalContactsScreenP
 
               <View style={styles.field}>
                 <Text style={styles.fieldLabel}>
-                  {t('localContacts.fieldName') || '名字'} *
+                  {t('localContacts.fieldName', { defaultValue: '名字' })} *
                 </Text>
                 <TextInput
                   style={styles.fieldInput}
                   value={formName}
                   onChangeText={setFormName}
-                  placeholder={t('localContacts.fieldNamePlaceholder') || '李小明'}
+                  placeholder={t('localContacts.fieldNamePlaceholder', { defaultValue: '李小明' })}
                   placeholderTextColor={COLORS.gray400}
                 />
               </View>
 
               <View style={styles.field}>
                 <Text style={styles.fieldLabel}>
-                  {t('localContacts.fieldPhone') || '電話'}
+                  {t('localContacts.fieldPhone', { defaultValue: '電話' })}
                 </Text>
                 <TextInput
                   style={styles.fieldInput}
@@ -374,7 +373,7 @@ export default function LocalContactsScreen({ navigation }: LocalContactsScreenP
 
               <View style={styles.field}>
                 <Text style={styles.fieldLabel}>
-                  {t('localContacts.fieldEmail') || 'Email'}
+                  {t('localContacts.fieldEmail', { defaultValue: 'Email' })}
                 </Text>
                 <TextInput
                   style={styles.fieldInput}
@@ -387,8 +386,7 @@ export default function LocalContactsScreen({ navigation }: LocalContactsScreenP
                   autoCorrect={false}
                 />
                 <Text style={styles.fieldHint}>
-                  {t('localContacts.identityHint') ||
-                    '電話或 Email 至少填一個 — 對方註冊 PikTag 時會用這個自動配對，把你的私人標籤搬進好友頁的隱藏區。'}
+                  {t('localContacts.identityHint', { defaultValue: '電話或 Email 至少填一個 — 對方註冊 PikTag 時會用這個自動配對，把你的私人標籤搬進好友頁的隱藏區。' })}
                 </Text>
               </View>
 
@@ -402,13 +400,12 @@ export default function LocalContactsScreen({ navigation }: LocalContactsScreenP
                   possible visual contract that nobody else will see them. */}
               <View style={styles.field}>
                 <Text style={styles.fieldLabel}>
-                  {t('localContacts.fieldTags') || '標籤'} ({formTags.length}/{MAX_TAGS_PER_CONTACT})
+                  {t('localContacts.fieldTags', { defaultValue: '標籤' })} ({formTags.length}/{MAX_TAGS_PER_CONTACT})
                 </Text>
                 <View style={styles.privacyHintRow}>
                   <Lock size={12} color={COLORS.gray500} />
                   <Text style={styles.privacyHintText}>
-                    {t('localContacts.tagsPrivacyHint') ||
-                      '只有你看得到的私人標籤 — 對方註冊 PikTag 後會出現在你好友頁的「隱藏標籤」區，永遠不會給對方或其他人看到。'}
+                    {t('localContacts.tagsPrivacyHint', { defaultValue: '只有你看得到的私人標籤 — 對方註冊 PikTag 後會出現在你好友頁的「隱藏標籤」區，永遠不會給對方或其他人看到。' })}
                   </Text>
                 </View>
                 {formTags.length > 0 && (
@@ -431,7 +428,7 @@ export default function LocalContactsScreen({ navigation }: LocalContactsScreenP
                     style={styles.tagInput}
                     value={tagInput}
                     onChangeText={setTagInput}
-                    placeholder={t('localContacts.tagInputPlaceholder') || '輸入新標籤'}
+                    placeholder={t('localContacts.tagInputPlaceholder', { defaultValue: '輸入新標籤' })}
                     placeholderTextColor={COLORS.gray400}
                     onSubmitEditing={addCustomTag}
                     returnKeyType="done"
@@ -447,7 +444,7 @@ export default function LocalContactsScreen({ navigation }: LocalContactsScreenP
                 {popularTags.length > 0 && (
                   <View style={styles.popularWrap}>
                     <Text style={styles.popularLabel}>
-                      {t('localContacts.popularTagsLabel') || '熱門標籤（點擊加入）'}
+                      {t('localContacts.popularTagsLabel', { defaultValue: '熱門標籤（點擊加入）' })}
                     </Text>
                     <View style={styles.tagsRow}>
                       {popularTags
@@ -491,8 +488,8 @@ export default function LocalContactsScreen({ navigation }: LocalContactsScreenP
                   ) : (
                     <Text style={styles.saveBtnText}>
                       {editing
-                        ? t('common.save') || '儲存'
-                        : t('common.add') || '新增'}
+                        ? t('common.save', { defaultValue: '儲存' })
+                        : t('common.add', { defaultValue: '新增' })}
                     </Text>
                   )}
                 </TouchableOpacity>

@@ -410,9 +410,8 @@ export default function ContactSyncScreen({ navigation }: ContactSyncScreenProps
 
     if (!created) {
       Alert.alert(
-        t('contactSync.tagInviteFailedTitle') || '加入名單失敗',
-        t('contactSync.tagInviteFailedMessage') ||
-          '請稍後再試，或在「聯絡人名單」中手動新增。',
+        t('contactSync.tagInviteFailedTitle', { defaultValue: '加入名單失敗' }),
+        t('contactSync.tagInviteFailedMessage', { defaultValue: '請稍後再試，或在「聯絡人名單」中手動新增。' }),
       );
       return;
     }
@@ -489,13 +488,13 @@ export default function ContactSyncScreen({ navigation }: ContactSyncScreenProps
     if (targets.length === 0) return;
 
     Alert.alert(
-      t('contactSync.alertFollowAllTitle') || '全部追蹤',
+      t('contactSync.alertFollowAllTitle', { defaultValue: '全部追蹤' }),
       t('contactSync.alertFollowAllMessage', { count: targets.length }) ||
         `要把 ${targets.length} 位 PikTag 朋友加入嗎？`,
       [
         { text: t('common.cancel'), style: 'cancel' },
         {
-          text: t('contactSync.alertFollowAllConfirm') || '加入',
+          text: t('contactSync.alertFollowAllConfirm', { defaultValue: '加入' }),
           onPress: async () => {
             setBatchProgress({ current: 0, total: targets.length });
             const newImported = new Set(importedIds);
@@ -521,7 +520,7 @@ export default function ContactSyncScreen({ navigation }: ContactSyncScreenProps
             setBatchProgress(null);
 
             Alert.alert(
-              t('contactSync.alertFollowAllDoneTitle') || '完成',
+              t('contactSync.alertFollowAllDoneTitle', { defaultValue: '完成' }),
               t('contactSync.alertFollowAllDoneMessage', { count: added }) ||
                 `已加入 ${added} 位 PikTag 朋友 🎉`,
             );
@@ -604,11 +603,11 @@ export default function ContactSyncScreen({ navigation }: ContactSyncScreenProps
             onPress={() => handleFollowOne(item)}
             activeOpacity={0.7}
             accessibilityRole="button"
-            accessibilityLabel={t('contactSync.followBtn') || '追蹤'}
+            accessibilityLabel={t('contactSync.followBtn', { defaultValue: '追蹤' })}
           >
             <UserPlus size={16} color={COLORS.piktag600} />
             <Text style={styles.actionBtnText}>
-              {t('contactSync.followBtn') || '追蹤'}
+              {t('contactSync.followBtn', { defaultValue: '追蹤' })}
             </Text>
           </TouchableOpacity>
         )}
@@ -646,7 +645,7 @@ export default function ContactSyncScreen({ navigation }: ContactSyncScreenProps
           <View style={styles.taggedBadge}>
             <Check size={14} color={COLORS.piktag600} />
             <Text style={styles.taggedBadgeText}>
-              {t('contactSync.taggedBadge') || '已加入名單'}
+              {t('contactSync.taggedBadge', { defaultValue: '已加入名單' })}
             </Text>
           </View>
         ) : (
@@ -656,12 +655,12 @@ export default function ContactSyncScreen({ navigation }: ContactSyncScreenProps
             activeOpacity={0.85}
             accessibilityRole="button"
             accessibilityLabel={
-              t('contactSync.tagInviteBtn') || '記下並邀請'
+              t('contactSync.tagInviteBtn', { defaultValue: '記下並邀請' })
             }
           >
             <Hash size={14} color="#FFFFFF" />
             <Text style={styles.actionBtnTagInviteText}>
-              {t('contactSync.tagInviteBtn') || '記下並邀請'}
+              {t('contactSync.tagInviteBtn', { defaultValue: '記下並邀請' })}
             </Text>
           </TouchableOpacity>
         )}
@@ -681,7 +680,7 @@ export default function ContactSyncScreen({ navigation }: ContactSyncScreenProps
         heading={
           loadingContacts
             ? t('contactSync.loadingText')
-            : t('contactSync.classifyingText') || '對比中…'
+            : t('contactSync.classifyingText', { defaultValue: '對比中…' })
         }
       />
     );
@@ -761,8 +760,7 @@ export default function ContactSyncScreen({ navigation }: ContactSyncScreenProps
                 <Text
                   style={[styles.summaryCtaText, styles.summaryCtaDoneText]}
                 >
-                  {t('contactSync.allConnected') ||
-                    '通訊錄裡的 PikTag 朋友都已加入'}
+                  {t('contactSync.allConnected', { defaultValue: '通訊錄裡的 PikTag 朋友都已加入' })}
                 </Text>
               </View>
             ) : null}
@@ -831,7 +829,7 @@ export default function ContactSyncScreen({ navigation }: ContactSyncScreenProps
                   <View style={styles.tagModalTitleRow}>
                     <Lock size={16} color={COLORS.gray700} />
                     <Text style={styles.tagModalTitle}>
-                      {t('contactSync.tagModalTitle') || '私人標籤'}
+                      {t('contactSync.tagModalTitle', { defaultValue: '私人標籤' })}
                     </Text>
                   </View>
                   <Text style={styles.tagModalSubtitle} numberOfLines={1}>
@@ -887,7 +885,7 @@ export default function ContactSyncScreen({ navigation }: ContactSyncScreenProps
                     style={styles.customTagInput}
                     value={customTagInput}
                     onChangeText={setCustomTagInput}
-                    placeholder={t('contactSync.tagModalCustomPlaceholder') || '自訂標籤'}
+                    placeholder={t('contactSync.tagModalCustomPlaceholder', { defaultValue: '自訂標籤' })}
                     placeholderTextColor={COLORS.gray400}
                     onSubmitEditing={addCustomTag}
                     returnKeyType="done"
@@ -901,7 +899,7 @@ export default function ContactSyncScreen({ navigation }: ContactSyncScreenProps
                     onPress={addCustomTag}
                     disabled={!customTagInput.trim()}
                     accessibilityRole="button"
-                    accessibilityLabel={t('contactSync.tagModalAddCustom') || '新增'}
+                    accessibilityLabel={t('contactSync.tagModalAddCustom', { defaultValue: '新增' })}
                   >
                     <Plus size={18} color={customTagInput.trim() ? '#FFFFFF' : COLORS.gray400} />
                   </TouchableOpacity>
@@ -911,7 +909,7 @@ export default function ContactSyncScreen({ navigation }: ContactSyncScreenProps
                 {popularTags.length > 0 ? (
                   <View style={styles.popularSection}>
                     <Text style={styles.popularLabel}>
-                      {t('contactSync.tagModalPopular') || '熱門標籤'}
+                      {t('contactSync.tagModalPopular', { defaultValue: '熱門標籤' })}
                     </Text>
                     <View style={styles.popularGrid}>
                       {popularTags.map((tag) => {
@@ -953,7 +951,7 @@ export default function ContactSyncScreen({ navigation }: ContactSyncScreenProps
                   accessibilityLabel={t('common.cancel')}
                 >
                   <Text style={styles.tagModalCancelText}>
-                    {t('common.cancel') || '取消'}
+                    {t('common.cancel', { defaultValue: '取消' })}
                   </Text>
                 </TouchableOpacity>
                 <TouchableOpacity
@@ -967,7 +965,7 @@ export default function ContactSyncScreen({ navigation }: ContactSyncScreenProps
                   activeOpacity={0.85}
                   accessibilityRole="button"
                   accessibilityLabel={
-                    t('contactSync.tagModalSubmit') || '存私人標籤並邀請'
+                    t('contactSync.tagModalSubmit', { defaultValue: '存私人標籤並邀請' })
                   }
                 >
                   {savingTag ? (
@@ -976,7 +974,7 @@ export default function ContactSyncScreen({ navigation }: ContactSyncScreenProps
                     <>
                       <Send size={14} color="#FFFFFF" />
                       <Text style={styles.tagModalSubmitText}>
-                        {t('contactSync.tagModalSubmit') || '存私人標籤並邀請'}
+                        {t('contactSync.tagModalSubmit', { defaultValue: '存私人標籤並邀請' })}
                       </Text>
                     </>
                   )}

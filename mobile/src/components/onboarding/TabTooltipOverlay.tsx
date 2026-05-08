@@ -133,7 +133,7 @@ export default function TabTooltipOverlay() {
             tappable. No CTA button: tap anywhere works. */}
         <View style={[styles.hintWrap, { top: insets.top + 24 }]} pointerEvents="none">
           <Text style={styles.hintText}>
-            {t('tabTooltips.dismissHint') || '點任意處關閉'}
+            {t('tabTooltips.dismissHint', { defaultValue: '點任意處關閉' })}
           </Text>
         </View>
       </Pressable>

@@ -200,7 +200,7 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
 
   const handleLogout = async () => {
     if (Platform.OS === 'web') {
-      const ok = window.confirm(t('settings.alertLogoutMessage') || '確定要登出嗎？');
+      const ok = window.confirm(t('settings.alertLogoutMessage', { defaultValue: '確定要登出嗎？' }));
       if (ok) await doLogout();
     } else {
       Alert.alert(t('settings.alertLogoutTitle'), t('settings.alertLogoutMessage'), [
@@ -251,7 +251,7 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
               });
               if (!res.ok) {
                 const detail = await res.text().catch(() => '');
-                Alert.alert(t('common.error'), (t('settings.alertDeleteError') || '刪除失敗') + ` (${res.status})`);
+                Alert.alert(t('common.error'), (t('settings.alertDeleteError', { defaultValue: '刪除失敗' })) + ` (${res.status})`);
                 console.warn('[DeleteAccount] edge function failed:', res.status, detail);
                 return;
               }
@@ -266,7 +266,7 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
                 t('settings.alertAccountDeletedTitle'),
                 t('settings.alertAccountDeletedMessage'),
                 [{
-                  text: t('common.confirm') || 'OK',
+                  text: t('common.confirm', { defaultValue: 'OK' }),
                   onPress: async () => {
                     await supabase.auth.signOut();
                     // onAuthStateChange → AppNavigator → AuthNavigator
@@ -291,7 +291,7 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
     {
       title: t('settings.groupAccount'),
       items: [
-        { label: t('settings.changePassword') || '修改密碼', onPress: () => {
+        { label: t('settings.changePassword', { defaultValue: '修改密碼' }), onPress: () => {
           // Detect whether this user has an email-flavoured identity at
           // all. Apple / Google Sign-In accounts that have NEVER set a
           // Supabase password show up here without an 'email' identity
@@ -305,15 +305,14 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
             : true; // unknown shape → fall back to the original copy
 
           const title = hasEmailIdentity
-            ? (t('settings.changePasswordTitle') || '修改密碼')
-            : (t('settings.addPasswordTitle') || '新增密碼');
+            ? (t('settings.changePasswordTitle', { defaultValue: '修改密碼' }))
+            : (t('settings.addPasswordTitle', { defaultValue: '新增密碼' }));
           const message = hasEmailIdentity
-            ? (t('settings.changePasswordMessage') || '我們會發送密碼重設信到你的 Email')
-            : (t('settings.addPasswordMessage') ||
-                '你目前用 Apple/Google 登入，沒有 PikTag 密碼。送出後會寄一封信到你的 Email，幫你新增一組密碼，之後也能用 Email + 密碼登入（Apple/Google 登入仍然有效）');
+            ? (t('settings.changePasswordMessage', { defaultValue: '我們會發送密碼重設信到你的 Email' }))
+            : (t('settings.addPasswordMessage', { defaultValue: '你目前用 Apple/Google 登入，沒有 PikTag 密碼。送出後會寄一封信到你的 Email，幫你新增一組密碼，之後也能用 Email + 密碼登入（Apple/Google 登入仍然有效）' }));
           const cta = hasEmailIdentity
-            ? (t('settings.sendResetEmail') || '發送')
-            : (t('settings.sendAddPasswordEmail') || '發送設定信');
+            ? (t('settings.sendResetEmail', { defaultValue: '發送' }))
+            : (t('settings.sendAddPasswordEmail', { defaultValue: '發送設定信' }));
 
           Alert.alert(
             title,
@@ -324,14 +323,14 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
                 const { error } = await supabase.auth.resetPasswordForEmail(user?.email || '', {
                   redirectTo: 'https://pikt.ag/reset-password',
                 });
-                if (!error) Alert.alert(t('settings.resetEmailSent') || '已發送', t('settings.resetEmailSentMessage') || '請查看你的信箱');
+                if (!error) Alert.alert(t('settings.resetEmailSent', { defaultValue: '已發送' }), t('settings.resetEmailSentMessage', { defaultValue: '請查看你的信箱' }));
               }},
             ]
           );
         }},
         { label: t('settings.contactSync'), onPress: () => navigation.navigate('ContactSync') },
         { label: t('settings.inviteFriends'), onPress: () => navigation.navigate('Invite'), textColor: COLORS.piktag600 },
-        { label: t('settings.redeemInvite') || '兌換邀請碼', onPress: () => navigation.navigate('RedeemInvite') },
+        { label: t('settings.redeemInvite', { defaultValue: '兌換邀請碼' }), onPress: () => navigation.navigate('RedeemInvite') },
         { label: t('settings.socialStats'), onPress: () => navigation.navigate('SocialStats') },
         {
           label: t('settings.notificationSettings'),
@@ -346,7 +345,7 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
           ),
         },
         {
-          label: t('settings.shareLocation') || '分享所在地點',
+          label: t('settings.shareLocation', { defaultValue: '分享所在地點' }),
           onPress: handleShareLocationToggle,
           rightElement: (
             <Switch
@@ -373,8 +372,8 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
           ),
         },
         { label: t('settings.aboutPiktag'), onPress: handleAbout },
-        { label: t('settings.privacyPolicy') || '隱私權政策', onPress: () => navigation.navigate('PrivacyPolicy') },
-        { label: t('settings.termsOfService') || '服務條款', onPress: () => navigation.navigate('TermsOfService') },
+        { label: t('settings.privacyPolicy', { defaultValue: '隱私權政策' }), onPress: () => navigation.navigate('PrivacyPolicy') },
+        { label: t('settings.termsOfService', { defaultValue: '服務條款' }), onPress: () => navigation.navigate('TermsOfService') },
       ],
     },
   ];
@@ -475,12 +474,12 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
           style={styles.deactivateButton}
           onPress={() => {
             Alert.alert(
-              t('settings.deactivateTitle') || '停用帳號',
-              t('settings.deactivateMessage') || '停用後你的個人頁將隱藏，其他人找不到你。你可以隨時重新登入恢復。',
+              t('settings.deactivateTitle', { defaultValue: '停用帳號' }),
+              t('settings.deactivateMessage', { defaultValue: '停用後你的個人頁將隱藏，其他人找不到你。你可以隨時重新登入恢復。' }),
               [
                 { text: t('common.cancel'), style: 'cancel' },
                 {
-                  text: t('settings.deactivateConfirm') || '停用',
+                  text: t('settings.deactivateConfirm', { defaultValue: '停用' }),
                   style: 'destructive',
                   onPress: async () => {
                     if (!user?.id) return;
@@ -493,7 +492,7 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
           }}
           activeOpacity={0.7}
         >
-          <Text style={styles.deactivateText}>{t('settings.deactivateButton') || '停用帳號'}</Text>
+          <Text style={styles.deactivateText}>{t('settings.deactivateButton', { defaultValue: '停用帳號' })}</Text>
         </TouchableOpacity>
 
         {/* Delete Account Button */}

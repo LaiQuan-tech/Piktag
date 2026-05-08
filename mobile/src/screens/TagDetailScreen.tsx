@@ -489,7 +489,7 @@ export default function TagDetailScreen({ navigation, route }: TagDetailScreenPr
       {/* Related Tags */}
       {relatedTags.length > 0 && (
         <View style={styles.relatedContainer}>
-          <Text style={styles.relatedTitle}>{t('tagDetail.relatedTags') || '相關標籤'}</Text>
+          <Text style={styles.relatedTitle}>{t('tagDetail.relatedTags', { defaultValue: '相關標籤' })}</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingHorizontal: 16 }}>
             {relatedTags.map((rt) => (
               <TouchableOpacity

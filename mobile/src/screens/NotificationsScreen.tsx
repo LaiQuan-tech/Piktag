@@ -260,8 +260,8 @@ export default function NotificationsScreen({ navigation }: NotificationsScreenP
 
   const TAB_LABELS: Record<NotificationTab, string> = useMemo(
     () => ({
-      social: t('notifications.tabSocial') || '社交',
-      reminders: t('notifications.tabReminders') || '提醒',
+      social: t('notifications.tabSocial', { defaultValue: '社交' }),
+      reminders: t('notifications.tabReminders', { defaultValue: '提醒' }),
     }),
     [t]
   );
@@ -375,8 +375,8 @@ export default function NotificationsScreen({ navigation }: NotificationsScreenP
           context: { kind: 'notification', notification_id: notif.id, type: notif.type },
         } as any);
         Alert.alert(
-          t('report.success') || 'Reported',
-          t('report.confirmDescription') || 'Thanks — our team will review.',
+          t('report.success', { defaultValue: 'Reported' }),
+          t('report.confirmDescription', { defaultValue: 'Thanks — our team will review.' }),
         );
       } catch (err) {
         console.warn('report notification failed:', err);
@@ -388,16 +388,16 @@ export default function NotificationsScreen({ navigation }: NotificationsScreenP
   const promptNotifReportReason = useCallback(
     (notif: Notification) => {
       const reasons: Array<{ key: string; label: string }> = [
-        { key: 'spam', label: t('report.reasonSpam') || 'Spam' },
-        { key: 'harassment', label: t('report.reasonHarassment') || 'Harassment' },
-        { key: 'inappropriate', label: t('report.reasonInappropriate') || 'Inappropriate' },
-        { key: 'other', label: t('report.reasonOther') || 'Other' },
+        { key: 'spam', label: t('report.reasonSpam', { defaultValue: 'Spam' }) },
+        { key: 'harassment', label: t('report.reasonHarassment', { defaultValue: 'Harassment' }) },
+        { key: 'inappropriate', label: t('report.reasonInappropriate', { defaultValue: 'Inappropriate' }) },
+        { key: 'other', label: t('report.reasonOther', { defaultValue: 'Other' }) },
       ];
-      const cancelLabel = t('common.cancel') || 'Cancel';
+      const cancelLabel = t('common.cancel', { defaultValue: 'Cancel' });
       if (Platform.OS === 'ios') {
         ActionSheetIOS.showActionSheetWithOptions(
           {
-            title: t('report.confirmTitle') || 'Report',
+            title: t('report.confirmTitle', { defaultValue: 'Report' }),
             options: [...reasons.map((r) => r.label), cancelLabel],
             cancelButtonIndex: reasons.length,
           },
@@ -406,7 +406,7 @@ export default function NotificationsScreen({ navigation }: NotificationsScreenP
           },
         );
       } else {
-        Alert.alert(t('report.confirmTitle') || 'Report', t('report.confirmDescription') || '', [
+        Alert.alert(t('report.confirmTitle', { defaultValue: 'Report' }), t('report.confirmDescription', { defaultValue: '' }), [
           ...reasons.map((r) => ({ text: r.label, onPress: () => void submitNotifReport(notif, r.key) })),
           { text: cancelLabel, style: 'cancel' as const },
         ]);
@@ -417,8 +417,8 @@ export default function NotificationsScreen({ navigation }: NotificationsScreenP
 
   const handleNotificationLongPress = useCallback(
     (notif: Notification) => {
-      const reportLabel = t('report.reportNotification') || 'Report this notification';
-      const cancelLabel = t('common.cancel') || 'Cancel';
+      const reportLabel = t('report.reportNotification', { defaultValue: 'Report this notification' });
+      const cancelLabel = t('common.cancel', { defaultValue: 'Cancel' });
       if (Platform.OS === 'ios') {
         ActionSheetIOS.showActionSheetWithOptions(
           {

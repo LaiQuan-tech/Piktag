@@ -149,12 +149,12 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
 
       if (error) {
         console.warn('[ManageTagsScreen] Edge Function error:', error.message);
-        setAiError(t('manageTags.aiErrorGeneric') || 'AI 推薦暫時無法使用，稍後再試');
+        setAiError(t('manageTags.aiErrorGeneric', { defaultValue: 'AI 推薦暫時無法使用，稍後再試' }));
         return;
       }
       if (!data || !Array.isArray(data.suggestions) || data.suggestions.length === 0) {
         console.warn('[ManageTagsScreen] AI suggestions empty:', data?.error, data?.detail);
-        setAiError(t('manageTags.aiErrorGeneric') || 'AI 推薦暫時無法使用，稍後再試');
+        setAiError(t('manageTags.aiErrorGeneric', { defaultValue: 'AI 推薦暫時無法使用，稍後再試' }));
         return;
       }
 
@@ -162,7 +162,7 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
       AsyncStorage.setItem(cacheKey, JSON.stringify({ suggestions: data.suggestions, timestamp: Date.now() }));
     } catch (err: any) {
       console.warn('[ManageTagsScreen] loadAiSuggestions:', err);
-      setAiError(t('manageTags.aiErrorGeneric') || 'AI 推薦暫時無法使用，稍後再試');
+      setAiError(t('manageTags.aiErrorGeneric', { defaultValue: 'AI 推薦暫時無法使用，稍後再試' }));
     } finally {
       setAiLoading(false);
     }
@@ -332,7 +332,7 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
       <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
         <Text style={styles.headerTitle}>{t('manageTags.headerTitle')}</Text>
         <Pressable style={styles.doneBtn} onPress={handleGoBack}>
-          <Text style={styles.doneBtnText}>{t('common.done') || '完成'}</Text>
+          <Text style={styles.doneBtnText}>{t('common.done', { defaultValue: '完成' })}</Text>
         </Pressable>
       </View>
 
@@ -396,9 +396,9 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
                 {selectedTagId && (
                   <View style={styles.swapHintBar}>
                     <ArrowLeftRight size={14} color={COLORS.piktag600} />
-                    <Text style={styles.swapHintText}>{t('manageTags.dragSelectTarget') || '點選要交換位置的標籤'}</Text>
+                    <Text style={styles.swapHintText}>{t('manageTags.dragSelectTarget', { defaultValue: '點選要交換位置的標籤' })}</Text>
                     <Pressable onPress={() => setSelectedTagId(null)}>
-                      <Text style={styles.swapCancel}>{t('common.cancel') || '取消'}</Text>
+                      <Text style={styles.swapCancel}>{t('common.cancel', { defaultValue: '取消' })}</Text>
                     </Pressable>
                   </View>
                 )}

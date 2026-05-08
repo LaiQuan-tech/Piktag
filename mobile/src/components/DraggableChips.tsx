@@ -10,20 +10,26 @@ import Animated, {
   runOnJS,
 } from 'react-native-reanimated';
 import { impactAsync, ImpactFeedbackStyle } from 'expo-haptics';
-import { X, Pin } from 'lucide-react-native';
+import { X } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { COLORS } from '../constants/theme';
 
 type ChipItem = {
   id: string;
   label: string;
-  isPinned?: boolean;
+  // isPinned was removed when tag pinning was pulled out as a future
+  // paid feature (commit e11a9d6). Kept the field name out of the
+  // type so callers can't accidentally re-introduce a pin flag here.
 };
 
 type DraggableChipsProps = {
   items: ChipItem[];
   onReorder: (newItems: ChipItem[]) => void;
   onRemove: (item: ChipItem) => void;
+  // onDoubleTap was the pin-toggle gesture in the original design.
+  // Kept on the type but unused by all current callers since the
+  // pin feature was pulled. Will be re-wired when pinning ships
+  // as a paid tier.
   onDoubleTap?: (item: ChipItem) => void;
   onDragStateChange?: (isDragging: boolean) => void;
 };
@@ -193,16 +199,9 @@ function DraggableChip({
     <GestureDetector gesture={composed}>
       <Animated.View
         onLayout={onLayout}
-        style={[
-          styles.chip,
-          item.isPinned && styles.chipPinned,
-          animatedStyle,
-        ]}
+        style={[styles.chip, animatedStyle]}
       >
-        {item.isPinned && <Pin size={11} color={COLORS.piktag600} fill={COLORS.piktag600} />}
-        <Text style={[styles.chipText, item.isPinned && styles.chipTextPinned]}>
-          {item.label}
-        </Text>
+        <Text style={styles.chipText}>{item.label}</Text>
         <Pressable onPress={onRemove} style={styles.chipX} hitSlop={8}>
           <X size={14} color={COLORS.gray400} />
         </Pressable>
@@ -236,19 +235,10 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: COLORS.piktag500,
   },
-  // Pinned variant — already "selected" base + a yellow tint to mark
-  // "pinned to top". Override fill + border so the pin signal wins
-  // visually (yellow > purple).
-  chipPinned: {
-    backgroundColor: '#FFFBEB',
-    borderColor: COLORS.piktag400,
-  },
+  // chipPinned / chipTextPinned styles removed with the pin feature
+  // (commit e11a9d6). Will be reintroduced as paid-tier styling.
   chipText: {
     fontSize: 14,
-    fontWeight: '700',
-    color: COLORS.piktag600,
-  },
-  chipTextPinned: {
     fontWeight: '700',
     color: COLORS.piktag600,
   },

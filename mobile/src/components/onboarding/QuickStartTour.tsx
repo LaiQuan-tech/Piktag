@@ -46,43 +46,39 @@ export default function QuickStartTour() {
   return (
     <View style={styles.container}>
       <Text style={styles.heading}>
-        {t('auth.onboarding.quickStart.title') || '開始使用 PikTag'}
+        {t('auth.onboarding.quickStart.title', { defaultValue: '開始使用 PikTag' })}
       </Text>
       <Text style={styles.subheading}>
-        {t('auth.onboarding.quickStart.subtitle') || '這 4 件事讓你最快上手'}
+        {t('auth.onboarding.quickStart.subtitle', { defaultValue: '這 4 件事讓你最快上手' })}
       </Text>
 
       <View style={styles.cardList}>
         <Card
           Icon={Users}
-          title={t('auth.onboarding.quickStart.card1.title') || '加朋友'}
+          title={t('auth.onboarding.quickStart.card1.title', { defaultValue: '加朋友' })}
           body={
-            t('auth.onboarding.quickStart.card1.body') ||
-            '用 QR 掃描、同步通訊錄，或搜 username 找朋友'
+            t('auth.onboarding.quickStart.card1.body', { defaultValue: '用 QR 掃描、同步通訊錄，或搜 username 找朋友' })
           }
         />
         <Card
           Icon={Tag}
-          title={t('auth.onboarding.quickStart.card2.title') || '幫朋友加標籤'}
+          title={t('auth.onboarding.quickStart.card2.title', { defaultValue: '幫朋友加標籤' })}
           body={
-            t('auth.onboarding.quickStart.card2.body') ||
-            '例如「咖啡控」「北美業務」「客戶」，之後用標籤找人'
+            t('auth.onboarding.quickStart.card2.body', { defaultValue: '例如「咖啡控」「北美業務」「客戶」，之後用標籤找人' })
           }
         />
         <Card
           Icon={Search}
-          title={t('auth.onboarding.quickStart.card3.title') || '用標籤找人'}
+          title={t('auth.onboarding.quickStart.card3.title', { defaultValue: '用標籤找人' })}
           body={
-            t('auth.onboarding.quickStart.card3.body') ||
-            '在搜尋頁輸入標籤名稱，看誰跟你有相同興趣'
+            t('auth.onboarding.quickStart.card3.body', { defaultValue: '在搜尋頁輸入標籤名稱，看誰跟你有相同興趣' })
           }
         />
         <Card
           Icon={MessageCircle}
-          title={t('auth.onboarding.quickStart.card4.title') || '發 Ask 求助'}
+          title={t('auth.onboarding.quickStart.card4.title', { defaultValue: '發 Ask 求助' })}
           body={
-            t('auth.onboarding.quickStart.card4.body') ||
-            '一句話，全網絡來幫你'
+            t('auth.onboarding.quickStart.card4.body', { defaultValue: '一句話，全網絡來幫你' })
           }
         />
       </View>

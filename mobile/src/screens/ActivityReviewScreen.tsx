@@ -355,7 +355,7 @@ export default function ActivityReviewScreen({ navigation, route }: Props) {
       <View style={[styles.container, { paddingTop: insets.top }]}>
         <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
         <View style={styles.emptyContainer}>
-          <Text style={styles.emptyTitle}>{t('activityReview.noNewFriends') || '沒有需要整理的新朋友'}</Text>
+          <Text style={styles.emptyTitle}>{t('activityReview.noNewFriends', { defaultValue: '沒有需要整理的新朋友' })}</Text>
           <Pressable onPress={() => navigation.goBack()}>
             <LinearGradient
               colors={['#ff5757', '#c44dff', '#8c52ff']}
@@ -363,7 +363,7 @@ export default function ActivityReviewScreen({ navigation, route }: Props) {
               end={{ x: 1, y: 0.5 }}
               style={styles.doneBtn}
             >
-              <Text style={styles.doneBtnText}>{t('common.done') || '完成'}</Text>
+              <Text style={styles.doneBtnText}>{t('common.done', { defaultValue: '完成' })}</Text>
             </LinearGradient>
           </Pressable>
         </View>
@@ -378,7 +378,7 @@ export default function ActivityReviewScreen({ navigation, route }: Props) {
         <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
         <View style={styles.summaryContainer}>
           <Check size={64} color={COLORS.piktag500} />
-          <Text style={styles.summaryTitle}>{t('activityReview.summaryTitle') || '整理完成'}</Text>
+          <Text style={styles.summaryTitle}>{t('activityReview.summaryTitle', { defaultValue: '整理完成' })}</Text>
           <Text style={styles.summaryText}>
             {t('activityReview.summaryText', { people: connections.length, tags: totalTagsAdded }) ||
               `已整理 ${connections.length} 位朋友，加了 ${totalTagsAdded} 個標籤`}
@@ -390,7 +390,7 @@ export default function ActivityReviewScreen({ navigation, route }: Props) {
               end={{ x: 1, y: 0.5 }}
               style={styles.doneBtn}
             >
-              <Text style={styles.doneBtnText}>{t('common.done') || '完成'}</Text>
+              <Text style={styles.doneBtnText}>{t('common.done', { defaultValue: '完成' })}</Text>
             </LinearGradient>
           </Pressable>
         </View>
@@ -428,7 +428,7 @@ export default function ActivityReviewScreen({ navigation, route }: Props) {
           <Text style={styles.headerCount}>{currentIndex + 1} / {connections.length}</Text>
         </View>
         <Pressable onPress={() => goNext(true)} style={styles.skipBtn}>
-          <Text style={styles.skipText}>{t('activityReview.done') || '完成'}</Text>
+          <Text style={styles.skipText}>{t('activityReview.done', { defaultValue: '完成' })}</Text>
         </Pressable>
       </View>
 
@@ -479,7 +479,7 @@ export default function ActivityReviewScreen({ navigation, route }: Props) {
           <Tag size={18} color={COLORS.gray400} />
           <TextInput
             style={styles.textInput}
-            placeholder={t('activityReview.hiddenTagPlaceholder') || '加隱藏標籤...'}
+            placeholder={t('activityReview.hiddenTagPlaceholder', { defaultValue: '加隱藏標籤...' })}
             placeholderTextColor={COLORS.gray400}
             value={tagInput}
             onChangeText={setTagInput}
@@ -496,7 +496,7 @@ export default function ActivityReviewScreen({ navigation, route }: Props) {
             style={styles.addBtn}
             onPress={handleAddTag}
             accessibilityRole="button"
-            accessibilityLabel={t('common.add') || '新增'}
+            accessibilityLabel={t('common.add', { defaultValue: '新增' })}
           >
             <Plus size={18} color="#FFFFFF" strokeWidth={2.5} />
           </Pressable>
@@ -504,7 +504,7 @@ export default function ActivityReviewScreen({ navigation, route }: Props) {
         <View style={styles.actionRow}>
           <Pressable style={styles.nextActionBtn} onPress={() => swipeAway('right')}>
             <Check size={20} color={COLORS.white} />
-            <Text style={styles.nextActionText}>{t('activityReview.done') || '完成'}</Text>
+            <Text style={styles.nextActionText}>{t('activityReview.done', { defaultValue: '完成' })}</Text>
           </Pressable>
         </View>
       </View>

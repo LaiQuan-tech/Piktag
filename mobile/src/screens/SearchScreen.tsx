@@ -343,6 +343,20 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
   // Smart recommendations
   const [recommendedUsers, setRecommendedUsers] = useState<PiktagProfile[]>([]);
   const [errorToast, setErrorToast] = useState<string | null>(null);
+  // Tracks the auto-dismiss timer for the error toast so we can
+  // clear it on unmount — otherwise navigating away within the
+  // 2.5s dismiss window leaves a setState fire-and-forget that
+  // hits an unmounted component.
+  const errorToastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(
+    () => () => {
+      if (errorToastTimerRef.current) {
+        clearTimeout(errorToastTimerRef.current);
+        errorToastTimerRef.current = null;
+      }
+    },
+    [],
+  );
   // Set to `true` when the bootstrap (popular tags + recommendations)
   // returned nothing after both the RPC attempt AND the legacy
   // fallback. We use this — rather than just `!tags.length` — to avoid
@@ -1105,7 +1119,8 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
         setTags([]);
         setProfiles([]);
         setErrorToast(t('common.unknownError'));
-        setTimeout(() => setErrorToast(null), 2500);
+        if (errorToastTimerRef.current) clearTimeout(errorToastTimerRef.current);
+        errorToastTimerRef.current = setTimeout(() => setErrorToast(null), 2500);
       } finally {
         if (seq === searchSeqRef.current) setLoading(false);
       }
@@ -1687,7 +1702,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
                   }}
                   activeOpacity={0.7}
                 >
-                  <Text style={styles.sectionLabelClear}>{t('search.clearHistory') || '清除'}</Text>
+                  <Text style={styles.sectionLabelClear}>{t('search.clearHistory', { defaultValue: '清除' })}</Text>
                 </TouchableOpacity>
               )}
             </View>
@@ -1706,7 +1721,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
               query={item.query}
               onPress={handleRecentSearchTap}
               onDelete={handleDeleteRecentAt}
-              deleteLabel={t('search.deleteRecentItem') || '刪除這筆紀錄'}
+              deleteLabel={t('search.deleteRecentItem', { defaultValue: '刪除這筆紀錄' })}
             />
           );
 
@@ -1841,7 +1856,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
           return (
             <View style={{ paddingBottom: 16 }}>
               <Text style={{ fontSize: 16, fontWeight: '700', color: COLORS.gray900, marginBottom: 10 }}>
-                {t('search.recommendedTitle') || '你可能想認識'}
+                {t('search.recommendedTitle', { defaultValue: '你可能想認識' })}
               </Text>
               <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 14 }}>
                 {recommendedUsers.map((u) => (
@@ -1921,12 +1936,12 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
       <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={colors.white} />
       <View style={styles.header}>
         <View style={styles.headerTitleRow}>
-          <Text style={[styles.headerTitle, { color: colors.text }]}>{t('search.headerTitle') || '搜尋'}</Text>
+          <Text style={[styles.headerTitle, { color: colors.text }]}>{t('search.headerTitle', { defaultValue: '搜尋' })}</Text>
           <TouchableOpacity
             style={styles.headerMapBtn}
             activeOpacity={0.6}
             onPress={() => setMapVisible(true)}
-            accessibilityLabel={t('search.openMap') || '地圖檢視'}
+            accessibilityLabel={t('search.openMap', { defaultValue: '地圖檢視' })}
             accessibilityRole="button"
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           >
@@ -1987,14 +2002,14 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
       {selectedTagIds.length > 0 && (
         <View style={styles.floatingSearchBar}>
           <Text style={styles.floatingSearchText}>
-            {selectedTagIds.length} {t('search.tagsSelected') || '個標籤已選'}
+            {selectedTagIds.length} {t('search.tagsSelected', { defaultValue: '個標籤已選' })}
           </Text>
           <TouchableOpacity style={styles.floatingClearBtn} onPress={() => setSelectedTagIds([])} activeOpacity={0.7}>
-            <Text style={styles.floatingClearText}>{t('search.clearAll') || '清除'}</Text>
+            <Text style={styles.floatingClearText}>{t('search.clearAll', { defaultValue: '清除' })}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.floatingSearchBtn} onPress={handleSearchByTags} activeOpacity={0.8}>
             <Search size={16} color={COLORS.white} />
-            <Text style={styles.floatingSearchBtnText}>{t('search.searchBtn') || '搜尋'}</Text>
+            <Text style={styles.floatingSearchBtnText}>{t('search.searchBtn', { defaultValue: '搜尋' })}</Text>
           </TouchableOpacity>
         </View>
       )}

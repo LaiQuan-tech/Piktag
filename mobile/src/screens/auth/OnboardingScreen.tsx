@@ -274,7 +274,7 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
 
       {/* Birthday */}
       <View style={styles.birthdayRow}>
-        <Text style={styles.birthdayLabel}>{t('auth.onboarding.birthdayLabel') || '生日'}</Text>
+        <Text style={styles.birthdayLabel}>{t('auth.onboarding.birthdayLabel', { defaultValue: '生日' })}</Text>
         <TextInput
           style={styles.birthdayInput}
           placeholder="MM/DD"

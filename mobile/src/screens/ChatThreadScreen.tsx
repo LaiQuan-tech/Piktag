@@ -150,8 +150,8 @@ export default function ChatThreadScreen({ navigation, route }: Props) {
           context: { kind: 'chat_message', message_id: messageId, conversation_id: conversationId },
         } as any);
         Alert.alert(
-          t('report.success') || 'Reported',
-          t('report.confirmDescription') || 'Thanks — our team will review.',
+          t('report.success', { defaultValue: 'Reported' }),
+          t('report.confirmDescription', { defaultValue: 'Thanks — our team will review.' }),
         );
       } catch (err) {
         console.warn('report message failed:', err);
@@ -180,8 +180,8 @@ export default function ChatThreadScreen({ navigation, route }: Props) {
       return;
     }
     Alert.alert(
-      t('userDetail.blockedTitle') || 'Blocked',
-      t('userDetail.blockedMessage') || 'You will no longer see this user.',
+      t('userDetail.blockedTitle', { defaultValue: 'Blocked' }),
+      t('userDetail.blockedMessage', { defaultValue: 'You will no longer see this user.' }),
     );
     if (navigation.canGoBack()) navigation.goBack();
   }, [user, otherUserId, navigation, t]);
@@ -189,16 +189,16 @@ export default function ChatThreadScreen({ navigation, route }: Props) {
   const promptReportReason = useCallback(
     (messageId: string) => {
       const reasons: Array<{ key: string; label: string }> = [
-        { key: 'spam', label: t('report.reasonSpam') || 'Spam' },
-        { key: 'harassment', label: t('report.reasonHarassment') || 'Harassment' },
-        { key: 'inappropriate', label: t('report.reasonInappropriate') || 'Inappropriate' },
-        { key: 'other', label: t('report.reasonOther') || 'Other' },
+        { key: 'spam', label: t('report.reasonSpam', { defaultValue: 'Spam' }) },
+        { key: 'harassment', label: t('report.reasonHarassment', { defaultValue: 'Harassment' }) },
+        { key: 'inappropriate', label: t('report.reasonInappropriate', { defaultValue: 'Inappropriate' }) },
+        { key: 'other', label: t('report.reasonOther', { defaultValue: 'Other' }) },
       ];
-      const cancelLabel = t('common.cancel') || 'Cancel';
+      const cancelLabel = t('common.cancel', { defaultValue: 'Cancel' });
       if (Platform.OS === 'ios') {
         ActionSheetIOS.showActionSheetWithOptions(
           {
-            title: t('report.confirmTitle') || 'Report',
+            title: t('report.confirmTitle', { defaultValue: 'Report' }),
             options: [...reasons.map((r) => r.label), cancelLabel],
             cancelButtonIndex: reasons.length,
           },
@@ -208,8 +208,8 @@ export default function ChatThreadScreen({ navigation, route }: Props) {
         );
       } else {
         Alert.alert(
-          t('report.confirmTitle') || 'Report',
-          t('report.confirmDescription') || '',
+          t('report.confirmTitle', { defaultValue: 'Report' }),
+          t('report.confirmDescription', { defaultValue: '' }),
           [
             ...reasons.map((r) => ({
               text: r.label,
@@ -226,9 +226,9 @@ export default function ChatThreadScreen({ navigation, route }: Props) {
   const handleBubbleLongPress = useCallback(
     (message: ThreadMessage) => {
       if (!user || message.sender_id === user.id) return;
-      const reportLabel = t('report.reportMessage') || 'Report message';
-      const blockLabel = t('userDetail.blockUser') || 'Block user';
-      const cancelLabel = t('common.cancel') || 'Cancel';
+      const reportLabel = t('report.reportMessage', { defaultValue: 'Report message' });
+      const blockLabel = t('userDetail.blockUser', { defaultValue: 'Block user' });
+      const cancelLabel = t('common.cancel', { defaultValue: 'Cancel' });
       if (Platform.OS === 'ios') {
         ActionSheetIOS.showActionSheetWithOptions(
           {
@@ -287,7 +287,7 @@ export default function ChatThreadScreen({ navigation, route }: Props) {
           onLongPress={() => handleBubbleLongPress(item)}
           delayLongPress={350}
           accessibilityHint={
-            !isMine ? t('report.reportMessage') || 'Long press to report' : undefined
+            !isMine ? t('report.reportMessage', { defaultValue: 'Long press to report' }) : undefined
           }
         >
           <MessageBubble

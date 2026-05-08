@@ -209,8 +209,8 @@ export default function AskStoryRow({ asks, myAsk, myAvatarUrl, myName, onRefres
           context: { kind: 'ask', ask_id: ask.ask_id },
         } as any);
         Alert.alert(
-          t('report.success') || 'Reported',
-          t('report.confirmDescription') || 'Thanks — our team will review.',
+          t('report.success', { defaultValue: 'Reported' }),
+          t('report.confirmDescription', { defaultValue: 'Thanks — our team will review.' }),
         );
       } catch (err) {
         console.warn('report ask failed:', err);
@@ -222,16 +222,16 @@ export default function AskStoryRow({ asks, myAsk, myAvatarUrl, myName, onRefres
   const promptAskReportReason = useCallback(
     (ask: AskFeedItem) => {
       const reasons: Array<{ key: string; label: string }> = [
-        { key: 'spam', label: t('report.reasonSpam') || 'Spam' },
-        { key: 'harassment', label: t('report.reasonHarassment') || 'Harassment' },
-        { key: 'inappropriate', label: t('report.reasonInappropriate') || 'Inappropriate' },
-        { key: 'other', label: t('report.reasonOther') || 'Other' },
+        { key: 'spam', label: t('report.reasonSpam', { defaultValue: 'Spam' }) },
+        { key: 'harassment', label: t('report.reasonHarassment', { defaultValue: 'Harassment' }) },
+        { key: 'inappropriate', label: t('report.reasonInappropriate', { defaultValue: 'Inappropriate' }) },
+        { key: 'other', label: t('report.reasonOther', { defaultValue: 'Other' }) },
       ];
-      const cancelLabel = t('common.cancel') || 'Cancel';
+      const cancelLabel = t('common.cancel', { defaultValue: 'Cancel' });
       if (Platform.OS === 'ios') {
         ActionSheetIOS.showActionSheetWithOptions(
           {
-            title: t('report.confirmTitle') || 'Report',
+            title: t('report.confirmTitle', { defaultValue: 'Report' }),
             options: [...reasons.map((r) => r.label), cancelLabel],
             cancelButtonIndex: reasons.length,
           },
@@ -240,7 +240,7 @@ export default function AskStoryRow({ asks, myAsk, myAvatarUrl, myName, onRefres
           },
         );
       } else {
-        Alert.alert(t('report.confirmTitle') || 'Report', t('report.confirmDescription') || '', [
+        Alert.alert(t('report.confirmTitle', { defaultValue: 'Report' }), t('report.confirmDescription', { defaultValue: '' }), [
           ...reasons.map((r) => ({ text: r.label, onPress: () => void submitAskReport(ask, r.key) })),
           { text: cancelLabel, style: 'cancel' as const },
         ]);
@@ -251,9 +251,9 @@ export default function AskStoryRow({ asks, myAsk, myAvatarUrl, myName, onRefres
 
   const handleAskLongPress = useCallback(
     (ask: AskFeedItem) => {
-      const reportLabel = t('report.reportAsk') || 'Report Ask';
-      const hideLabel = t('report.hideFromUser') || 'Hide from this user';
-      const cancelLabel = t('common.cancel') || 'Cancel';
+      const reportLabel = t('report.reportAsk', { defaultValue: 'Report Ask' });
+      const hideLabel = t('report.hideFromUser', { defaultValue: 'Hide from this user' });
+      const cancelLabel = t('common.cancel', { defaultValue: 'Cancel' });
       const onHide = () =>
         setHiddenAuthorIds((prev) => {
           const next = new Set(prev);
@@ -387,7 +387,7 @@ export default function AskStoryRow({ asks, myAsk, myAvatarUrl, myName, onRefres
               </Text>
             ) : (
               <Text style={[styles.askCardBody, styles.askCardBodyEmpty]} numberOfLines={3}>
-                {t('ask.bubblePromptMine') || '+ 新增 Ask'}
+                {t('ask.bubblePromptMine', { defaultValue: '+ 新增 Ask' })}
               </Text>
             )}
 
@@ -753,12 +753,12 @@ export function AskCreateModal({ visible, onClose, existingAsk, onCreated }: Ask
     // Confirm before deleting — a tap on this CTA is the only way to
     // tear down an ask, and it's irreversible from the UI.
     Alert.alert(
-      t('ask.deleteAsk') || 'Delete this ask?',
-      t('ask.deleteAskConfirm') || 'Are you sure you want to delete this ask?',
+      t('ask.deleteAsk', { defaultValue: 'Delete this ask?' }),
+      t('ask.deleteAskConfirm', { defaultValue: 'Are you sure you want to delete this ask?' }),
       [
-        { text: t('common.cancel') || 'Cancel', style: 'cancel' },
+        { text: t('common.cancel', { defaultValue: 'Cancel' }), style: 'cancel' },
         {
-          text: t('common.delete') || 'Delete',
+          text: t('common.delete', { defaultValue: 'Delete' }),
           style: 'destructive',
           onPress: async () => {
             setSaving(true);
@@ -781,8 +781,8 @@ export function AskCreateModal({ visible, onClose, existingAsk, onCreated }: Ask
                 .eq('id', existingAsk.id);
               if (error) {
                 Alert.alert(
-                  t('common.error') || 'Error',
-                  error.message || (t('ask.deleteFailed') || 'Could not delete ask. Try again.'),
+                  t('common.error', { defaultValue: 'Error' }),
+                  error.message || (t('ask.deleteFailed', { defaultValue: 'Could not delete ask. Try again.' })),
                 );
                 return;
               }
@@ -790,7 +790,7 @@ export function AskCreateModal({ visible, onClose, existingAsk, onCreated }: Ask
               onClose();
             } catch (err) {
               Alert.alert(
-                t('common.error') || 'Error',
+                t('common.error', { defaultValue: 'Error' }),
                 err instanceof Error ? err.message : String(err),
               );
             } finally {
@@ -817,7 +817,7 @@ export function AskCreateModal({ visible, onClose, existingAsk, onCreated }: Ask
             // expose the delete CTA, nothing else. Two-step flow >
             // ambiguous "delete + post" double-button row.
             <>
-              <Text style={modalStyles.title}>{t('ask.yourAskTitle') || '你目前的 Ask'}</Text>
+              <Text style={modalStyles.title}>{t('ask.yourAskTitle', { defaultValue: '你目前的 Ask' })}</Text>
 
               <View style={modalStyles.viewBodyWrap}>
                 <Text style={modalStyles.viewBody}>
@@ -914,8 +914,8 @@ export function AskCreateModal({ visible, onClose, existingAsk, onCreated }: Ask
                 ) : (
                   <Text style={modalStyles.aiTriggerText}>
                     ✨ {aiNames.length > 0
-                      ? (t('ask.regenerateAiTags') || '重新生成')
-                      : (t('ask.generateAiTags') || 'AI 生成標籤')}
+                      ? (t('ask.regenerateAiTags', { defaultValue: '重新生成' }))
+                      : (t('ask.generateAiTags', { defaultValue: 'AI 生成標籤' }))}
                   </Text>
                 )}
               </TouchableOpacity>
@@ -950,7 +950,7 @@ export function AskCreateModal({ visible, onClose, existingAsk, onCreated }: Ask
                   changing, which read as "the feature is broken". */}
               {aiTriedAndEmpty && customNames.length === 0 ? (
                 <Text style={modalStyles.aiNoResultHint}>
-                  {t('ask.aiNoSuggestions') || 'AI 沒有想到合適的標籤，再試一次或自己輸入'}
+                  {t('ask.aiNoSuggestions', { defaultValue: 'AI 沒有想到合適的標籤，再試一次或自己輸入' })}
                 </Text>
               ) : null}
 

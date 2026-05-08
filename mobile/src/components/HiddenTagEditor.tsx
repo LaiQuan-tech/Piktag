@@ -317,7 +317,7 @@ export default function HiddenTagEditor({ connectionId, userId, hiddenTags, onTa
   return (
     <View>
       {/* ── 日期 ── */}
-      <Text style={styles.sectionTitle}>{t('addTag.dateLabel') || '日期'}</Text>
+      <Text style={styles.sectionTitle}>{t('addTag.dateLabel', { defaultValue: '日期' })}</Text>
       <View style={styles.chipRow}>
         {dateChips.map((chip) => {
           const isSelected = currentNames.has(chip.value);
@@ -338,7 +338,7 @@ export default function HiddenTagEditor({ connectionId, userId, hiddenTags, onTa
       </View>
 
       {/* ── 地點 ── */}
-      <Text style={styles.sectionTitle}>{t('addTag.locationLabel') || '地點'}</Text>
+      <Text style={styles.sectionTitle}>{t('addTag.locationLabel', { defaultValue: '地點' })}</Text>
       <View style={styles.chipRow}>
         <TouchableOpacity
           style={styles.pickChip}
@@ -346,7 +346,7 @@ export default function HiddenTagEditor({ connectionId, userId, hiddenTags, onTa
           disabled={busy}
           activeOpacity={0.7}
         >
-          <Text style={styles.pickChipText}>{t('addTag.selectLocation') || '選地點'}</Text>
+          <Text style={styles.pickChipText}>{t('addTag.selectLocation', { defaultValue: '選地點' })}</Text>
         </TouchableOpacity>
         {recentLocations.map((loc) => {
           const isSelected = currentNames.has(loc);
@@ -431,7 +431,7 @@ export default function HiddenTagEditor({ connectionId, userId, hiddenTags, onTa
           disabled={!textValue.trim() || busy}
           activeOpacity={0.7}
           accessibilityRole="button"
-          accessibilityLabel={t('common.add') || '新增'}
+          accessibilityLabel={t('common.add', { defaultValue: '新增' })}
         >
           {busy ? (
             <BrandSpinner size={20} />
