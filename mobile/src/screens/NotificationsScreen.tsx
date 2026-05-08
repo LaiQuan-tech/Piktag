@@ -108,6 +108,7 @@ function getNotificationDisplay(
     platform: data.platform ?? '',
     years: data.years ?? 0,
     ask_body: truncatedAskBody,
+    points: typeof data.points_awarded === 'number' ? data.points_awarded : 1,
     defaultValue: '',
   });
   const i18nFound =

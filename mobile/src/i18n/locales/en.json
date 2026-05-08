@@ -800,7 +800,7 @@
       },
       "invite_accepted": {
         "title": "Your invite was accepted 🎉",
-        "body": "joined PikTag — you earned 1 P coin"
+        "body": "joined PikTag — you earned {{points}} P coins"
       }
     }
   },

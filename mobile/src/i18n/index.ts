@@ -99,7 +99,10 @@ const initialLang = getSupportedLanguage(deviceLanguage);
 i18n.use(initReactI18next).init({
   resources: eagerResources,
   lng: initialLang,
-  fallbackLng: 'zh-TW',
+  fallbackLng: {
+    'zh-CN': ['zh-TW', 'en'],
+    default: ['en'],
+  },
   interpolation: {
     escapeValue: false,
   },
