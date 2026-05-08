@@ -52,6 +52,7 @@ import { useAuth } from '../hooks/useAuth';
 import { useAskFeed } from '../hooks/useAskFeed';
 import { useNetInfoReconnect } from '../hooks/useNetInfoReconnect';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { consumePendingInviteCode } from '../lib/pendingInvite';
 import AskStoryRow from '../components/ask/AskStoryRow';
 import type { Connection, ConnectionTag } from '../types';
 
@@ -689,6 +690,26 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
     supabase.from('piktag_profiles').select('full_name, avatar_url').eq('id', user.id).single()
       .then(({ data }) => { if (data) setMyProfile(data); });
   }, [user]);
+
+  // Auto-resume invite redemption: if a deep link from `/i/{code}` was
+  // captured before the user was authenticated, the code lives in
+  // pendingInvite. Now that we're on the home tab with a session, push
+  // the redeem screen exactly once with the code prefilled.
+  useEffect(() => {
+    if (!user) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const code = await consumePendingInviteCode();
+        if (!cancelled && code) {
+          navigation.navigate('RedeemInvite', { code });
+        }
+      } catch {
+        // Best-effort handoff — never block the home tab on this.
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [user, navigation]);
 
   const handleAskPressUser = useCallback((userId: string) => {
     const conn = connections.find(c => c.connected_user_id === userId);

@@ -4,7 +4,7 @@ import * as Sentry from '@sentry/react-native';
 import * as Notifications from 'expo-notifications';
 import { StatusBar as ExpoStatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { NavigationContainer, useNavigationContainerRef } from '@react-navigation/native';
+import { NavigationContainer, useNavigationContainerRef, getStateFromPath as defaultGetStateFromPath } from '@react-navigation/native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import './src/i18n'; // Initialize i18n
 import appJson from './app.json';
@@ -92,6 +92,16 @@ const linking = {
       },
       ScanResult: 'scan-result',
     },
+  },
+  // The public-facing invite URL is `pikt.ag/i/{code}` (short, shareable),
+  // but the in-app screen path is `invite/:code`. Rewrite the inbound URL
+  // so React Navigation can route it without us needing to register two
+  // separate screens for the same destination.
+  getStateFromPath: (path: string, options: any) => {
+    const rewritten = /^\/?i\/[^/]+/.test(path)
+      ? path.replace(/^\/?i\//, '/invite/')
+      : path;
+    return defaultGetStateFromPath(rewritten, options);
   },
 };
 

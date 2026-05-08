@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import {
   View, Text, StyleSheet, StatusBar, TouchableOpacity, TextInput,
   Alert, KeyboardAvoidingView, Platform,
@@ -12,6 +12,7 @@ import { useAuth } from '../hooks/useAuth';
 import { useTheme } from '../context/ThemeContext';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RouteProp } from '@react-navigation/native';
+import { setPendingInviteCode, clearPendingInviteCode } from '../lib/pendingInvite';
 
 type Props = {
   navigation: NativeStackNavigationProp<any>;
@@ -28,6 +29,36 @@ export default function RedeemInviteScreen({ navigation, route }: Props) {
   const [code, setCode] = useState(initialCode?.toUpperCase() ?? '');
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+
+  // If a deep link delivered a code but the user isn't signed in yet,
+  // persist the code and bounce them through the auth flow. After they
+  // finish onboarding and land on the home tab, ConnectionsScreen will
+  // resume the redeem flow with the saved code.
+  useEffect(() => {
+    if (!initialCode || user?.id) return;
+    setPendingInviteCode(initialCode);
+    Alert.alert(
+      t('redeemInvite.signInRequiredTitle', { defaultValue: '請先登入' }),
+      t('redeemInvite.signInRequiredMessage', {
+        defaultValue: '登入或註冊後會自動完成邀請兌換。',
+      }),
+      [
+        {
+          text: t('common.ok', { defaultValue: 'OK' }),
+          onPress: () => {
+            // We don't directly own the auth stack from here; the auth
+            // navigator mounts whenever there's no session, so just pop
+            // this screen — AppNavigator will swap to AuthNavigator.
+            if (navigation.canGoBack()) navigation.goBack();
+          },
+        },
+      ],
+      { cancelable: false },
+    );
+    // We only act on cold-start arrival; subsequent edits to `code` shouldn't
+    // re-trigger the alert.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleRedeem = useCallback(async (rawCode?: string) => {
     const input = (rawCode ?? code).trim().toUpperCase();
@@ -53,6 +84,8 @@ export default function RedeemInviteScreen({ navigation, route }: Props) {
       if (row?.success) {
         setSuccess(true);
         require('../lib/analytics').trackInviteRedeemed(code.trim());
+        // Clear the persisted handoff so we don't re-prompt next launch.
+        clearPendingInviteCode();
         Alert.alert(
           t('redeemInvite.successTitle', { defaultValue: 'Invite redeemed' }),
           t('redeemInvite.successMessage', { defaultValue: 'You can now connect with the person who invited you!' }),

@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -18,6 +18,7 @@ import { signInWithApple } from '../../lib/appleAuth';
 import { signInWithGoogle } from '../../lib/googleAuth';
 import { SPACING, BORDER_RADIUS, TYPOGRAPHY } from '../../constants/theme';
 import { useTheme } from '../../context/ThemeContext';
+import { peekPendingInviteCode } from '../../lib/pendingInvite';
 
 type LoginScreenProps = {
   navigation: any;
@@ -32,7 +33,21 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
   const [showPassword, setShowPassword] = useState(false);
   const [resetLoading, setResetLoading] = useState(false);
   const [socialLoading, setSocialLoading] = useState<string | null>(null);
+  const [pendingInvite, setPendingInvite] = useState<string | null>(null);
   const passwordRef = useRef<TextInput>(null);
+
+  // Surface a small banner if the user arrived here from a /i/{code} link.
+  // Tells them their invite is queued and will redeem automatically once
+  // they complete sign-in.
+  useEffect(() => {
+    let cancelled = false;
+    peekPendingInviteCode()
+      .then((code) => {
+        if (!cancelled && code) setPendingInvite(code);
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, []);
 
   const handleLogin = async () => {
     if (!email.trim() || !password.trim()) {
@@ -117,6 +132,21 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
           <Text style={[styles.logoText, { color: colors.piktag500 }]}>{t('common.brandName')}</Text>
           <Text style={[styles.subtitle, { color: colors.textSecondary }]}>{t('common.brandSlogan')}</Text>
         </View>
+
+        {/* Pending-invite banner: shown when user arrived via /i/{code} */}
+        {pendingInvite && (
+          <View style={[styles.inviteBanner, { backgroundColor: colors.piktag50, borderColor: colors.piktag500 }]}>
+            <Text style={[styles.inviteBannerTitle, { color: colors.piktag600 }]}>
+              {t('auth.login.invitePendingTitle', { defaultValue: '🎁 你被邀請加入 PikTag' })}
+            </Text>
+            <Text style={[styles.inviteBannerBody, { color: colors.text }]}>
+              {t('auth.login.invitePendingBody', {
+                defaultValue: '登入或註冊後會自動完成邀請兌換。',
+                code: pendingInvite,
+              })}
+            </Text>
+          </View>
+        )}
 
         {/* Form */}
         <View style={styles.formContainer}>
@@ -256,6 +286,14 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   scrollContent: { flexGrow: 1, justifyContent: 'center', paddingHorizontal: SPACING.xxl },
   logoContainer: { alignItems: 'center', marginBottom: 48 },
+  inviteBanner: {
+    borderWidth: 1,
+    borderRadius: 12,
+    padding: 14,
+    marginBottom: 24,
+  },
+  inviteBannerTitle: { fontSize: 14, fontWeight: '700', marginBottom: 4 },
+  inviteBannerBody: { fontSize: 13, lineHeight: 18 },
   logoRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: SPACING.sm },
   logoText: { ...TYPOGRAPHY.display, fontSize: 44 },
   subtitle: { ...TYPOGRAPHY.body, marginTop: SPACING.sm },
