@@ -13,6 +13,7 @@ import {
   Pressable,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useFocusEffect } from '@react-navigation/native';
 import {
   Search,
   Hash,
@@ -432,24 +433,33 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
     };
   }, []);
 
-  // One-time fetch of viewer's friend ids. Used to split every search
-  // result set into "friends" / "explore" buckets in O(1) per row.
-  useEffect(() => {
+  // Fetch the viewer's friend ids. Used to split every search result
+  // set into "friends" / "explore" buckets in O(1) per row. Fired on
+  // mount AND on every screen focus so a freshly-followed user from
+  // the UserDetail / FriendDetail subscreens immediately moves from
+  // the explore bucket to the friends bucket on this user's next
+  // search. Without the focus refetch, the cache stayed stale until
+  // a full app reload — users reported "I followed them but search
+  // still says they're not my friend".
+  const fetchMyFriendIds = useCallback(async () => {
     if (!user) return;
-    let cancelled = false;
-    (async () => {
-      const { data } = await supabase
-        .from('piktag_connections')
-        .select('connected_user_id')
-        .eq('user_id', user.id);
-      if (cancelled) return;
-      const ids = new Set<string>((data ?? []).map((c: any) => c.connected_user_id));
-      setMyFriendIds(ids);
-    })();
-    return () => {
-      cancelled = true;
-    };
+    const { data } = await supabase
+      .from('piktag_connections')
+      .select('connected_user_id')
+      .eq('user_id', user.id);
+    const ids = new Set<string>((data ?? []).map((c: any) => c.connected_user_id));
+    setMyFriendIds(ids);
   }, [user]);
+
+  useEffect(() => {
+    fetchMyFriendIds();
+  }, [fetchMyFriendIds]);
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchMyFriendIds();
+    }, [fetchMyFriendIds]),
+  );
 
   // ── Data loaders (all wrapped in useCallback) ──
 

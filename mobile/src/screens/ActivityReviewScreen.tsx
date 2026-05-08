@@ -549,15 +549,16 @@ const styles = StyleSheet.create({
   inputRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.gray100, borderRadius: 20, paddingLeft: 14, paddingRight: 4, height: 44, gap: 8 },
   textInput: { flex: 1, fontSize: 15, color: COLORS.gray900, padding: 0 },
   // Square-rounded 36×36 submit button — borderRadius 10 (not 18=full
-  // circle) matches AddTagScreen's reference + button. Square-rounded
-  // shape reads more clearly as "tap to submit" than a circle. Sits
-  // inside the 44px-tall inputRow (paddingRight: 4 leaves 4px each
-  // side).
+  // 40×40 borderRadius 12 — the unified tag-add button shape used
+  // across EditProfile / ManageTags / HiddenTagEditor / AskCreate.
+  // Earlier was 36×36 borderRadius 10 (subtly off from the rest);
+  // bumped to match so the same affordance reads identically wherever
+  // it appears.
   addBtn: {
     backgroundColor: COLORS.piktag500,
-    borderRadius: 10,
-    width: 36,
-    height: 36,
+    borderRadius: 12,
+    width: 40,
+    height: 40,
     justifyContent: 'center',
     alignItems: 'center',
   },

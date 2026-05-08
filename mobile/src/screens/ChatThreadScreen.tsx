@@ -162,21 +162,28 @@ export default function ChatThreadScreen({ navigation, route }: Props) {
 
   const blockOtherUser = useCallback(async () => {
     if (!user) return;
-    try {
-      await supabase
-        .from('piktag_blocks')
-        .upsert(
-          { blocker_id: user.id, blocked_id: otherUserId },
-          { onConflict: 'blocker_id,blocked_id' },
-        );
-      Alert.alert(
-        t('userDetail.blockedTitle') || 'Blocked',
-        t('userDetail.blockedMessage') || 'You will no longer see this user.',
-      );
-      if (navigation.canGoBack()) navigation.goBack();
-    } catch (err) {
-      console.warn('block user failed:', err);
+    // Route through block_user RPC so the cascade matches what
+    // FriendDetail / UserDetail use:
+    //   * upsert piktag_blocks
+    //   * delete bilateral piktag_follows
+    //   * delete bilateral piktag_close_friends
+    //   * delete the blocker's prior notifications produced by
+    //     the blocked user
+    // The earlier direct upsert into piktag_blocks left all those
+    // tables intact, so the blocked party still saw the user in
+    // feeds / could still appear as a close friend, defeating the
+    // privacy contract of "block".
+    const { error } = await supabase.rpc('block_user', { p_blocked_id: otherUserId });
+    if (error) {
+      console.warn('block user failed:', error);
+      Alert.alert(t('common.error'), t('common.unknownError'));
+      return;
     }
+    Alert.alert(
+      t('userDetail.blockedTitle') || 'Blocked',
+      t('userDetail.blockedMessage') || 'You will no longer see this user.',
+    );
+    if (navigation.canGoBack()) navigation.goBack();
   }, [user, otherUserId, navigation, t]);
 
   const promptReportReason = useCallback(

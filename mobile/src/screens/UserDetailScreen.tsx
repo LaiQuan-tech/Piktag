@@ -875,12 +875,36 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
   const handleToggleCloseFriend = async () => {
     if (!authUser || !resolvedUserId) return;
     if (isCloseFriend) {
-      await supabase.from('piktag_close_friends').delete()
+      const { error } = await supabase.from('piktag_close_friends').delete()
         .eq('user_id', authUser.id).eq('close_friend_id', resolvedUserId);
+      if (error) {
+        console.warn('close_friends delete failed:', error);
+        return;
+      }
       setIsCloseFriend(false);
     } else {
-      await supabase.from('piktag_close_friends')
+      // Ensure follow + connection exist first — otherwise the
+      // close_friend row sits alone and the user vanishes from
+      // ConnectionsScreen (which filters `connections ∩ follows`).
+      // followUser() is idempotent. Same guard as FriendDetail.
+      if (!isFollowing) {
+        const { connectionId: connId, error: followErr } = await followUser(
+          authUser.id,
+          resolvedUserId,
+        );
+        if (followErr) {
+          console.warn('close-friend pre-follow failed:', followErr);
+          return;
+        }
+        setIsFollowing(true);
+        if (connId && connId !== connectionId) setConnectionId(connId);
+      }
+      const { error } = await supabase.from('piktag_close_friends')
         .upsert({ user_id: authUser.id, close_friend_id: resolvedUserId }, { onConflict: 'user_id,close_friend_id' });
+      if (error) {
+        console.warn('close_friends upsert failed:', error);
+        return;
+      }
       setIsCloseFriend(true);
     }
   };

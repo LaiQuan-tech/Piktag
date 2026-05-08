@@ -169,7 +169,18 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
   // consistent so the same brand-purple gradient means the same thing
   // wherever it appears.
   const { asks: askFeedAsks } = useAskFeed();
-  const { connectionId, friendId } = route.params || {};
+  const { connectionId: routeConnectionId, friendId } = route.params || {};
+  // connectionId is state-backed because handleToggleFollow may newly
+  // create a connection (via lib/followUser.ts) and we need to thread
+  // the fresh id into pickTag / hidden-tag flows that key off it. The
+  // route param is just the initial seed.
+  const [connectionId, setConnectionId] = useState<string | undefined>(routeConnectionId);
+  useEffect(() => {
+    if (routeConnectionId && routeConnectionId !== connectionId) {
+      setConnectionId(routeConnectionId);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [routeConnectionId]);
 
   // Analytics: track friend detail page view
   useEffect(() => {
@@ -694,12 +705,34 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
   const handleToggleCloseFriend = async () => {
     if (!user || !friendId) return;
     if (isCloseFriend) {
-      await supabase.from('piktag_close_friends').delete()
+      const { error } = await supabase.from('piktag_close_friends').delete()
         .eq('user_id', user.id).eq('close_friend_id', friendId);
+      if (error) {
+        console.warn('close_friends delete failed:', error);
+        return;
+      }
       setIsCloseFriend(false);
     } else {
-      await supabase.from('piktag_close_friends')
+      // Make sure the underlying follow + connection exist before
+      // marking someone a close friend. Otherwise the close_friends
+      // row sits alone and the person disappears from the home
+      // Connections list (filtered by `connections ∩ follows`).
+      // followUser() is idempotent so this is safe even when the
+      // viewer is already following.
+      if (!isFollowing) {
+        const { error: followErr } = await followUser(user.id, friendId);
+        if (followErr) {
+          console.warn('close-friend pre-follow failed:', followErr);
+          return;
+        }
+        setIsFollowing(true);
+      }
+      const { error } = await supabase.from('piktag_close_friends')
         .upsert({ user_id: user.id, close_friend_id: friendId }, { onConflict: 'user_id,close_friend_id' });
+      if (error) {
+        console.warn('close_friends upsert failed:', error);
+        return;
+      }
       setIsCloseFriend(true);
     }
   };
@@ -717,12 +750,18 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
         // get the row they need — without the connection row the followed
         // person disappears from ConnectionsScreen and from Search's
         // "friends" tab. See lib/followUser.ts for the contract.
-        const { error } = await followUser(user.id, friendId);
+        const { connectionId: connId, error } = await followUser(user.id, friendId);
         if (error) {
           console.warn('Follow failed:', error);
           return;
         }
         setIsFollowing(true);
+        // Thread the (possibly freshly created) connection id back into
+        // state so the pickTag modal opening below can attach
+        // hidden-tag / picked-public-tag rows against the right FK.
+        if (connId && connId !== connectionId) {
+          setConnectionId(connId);
+        }
 
         // After follow success → show Pick Tag modal only if friend has public tags
         const ftags = await fetchFriendPublicTags();

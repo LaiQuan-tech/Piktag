@@ -12,6 +12,7 @@ import PageLoader from '../components/loaders/PageLoader';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeft, Hash, CheckCircle2, Users, UserPlus } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
+import { useFocusEffect } from '@react-navigation/native';
 import { COLORS } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
 import RingedAvatar from '../components/RingedAvatar';
@@ -324,6 +325,17 @@ export default function TagDetailScreen({ navigation, route }: TagDetailScreenPr
     fetchExploreUsers();
     fetchTagMeta();
   }, [fetchTagConnections, fetchExploreUsers, fetchTagMeta]);
+
+  // Refetch connections list on screen focus so a freshly-followed
+  // user (via UserDetail subscreen) appears immediately when the
+  // viewer comes back to the tag page. Without this, the user
+  // followed someone but the "好友" tab still says they're not a
+  // friend until full app reload.
+  useFocusEffect(
+    useCallback(() => {
+      fetchTagConnections();
+    }, [fetchTagConnections]),
+  );
 
   // Friends-first auto-default: once the connections fetch completes,
   // if the viewer has nobody tagged here AND they haven't manually
