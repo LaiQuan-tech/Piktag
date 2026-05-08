@@ -203,7 +203,17 @@
     "sortByAlphabet": "বর্ণানুক্রমিক (A→Z)",
     "sortByAlphabetDesc": "বর্ণানুক্রমিক (Z→A)",
     "sortByInteraction": "সাম্প্রতিক যোগাযোগ",
-    "sortByBirthday": "আসন্ন জন্মদিন"
+    "sortByBirthday": "আসন্ন জন্মদিন",
+    "addContact": "কন্টাক্ট যোগ করো",
+    "addContactTitle": "একজনকে যোগ করো",
+    "addSearchTitle": "PikTag ইউজার খোঁজো",
+    "addSearchDesc": "নাম, ইউজারনেম বা ট্যাগ দিয়ে",
+    "addContactSyncTitle": "কন্টাক্ট সিঙ্ক করো",
+    "addContactSyncDesc": "PikTag-এ থাকা বন্ধুদের খুঁজে নাও",
+    "addManualTitle": "আপাতত কারো নাম রেখে দাও",
+    "addManualDesc": "যে এখনো PikTag-এ নেই, তার জন্য জায়গা রাখো — সাইন আপ করলেই কানেক্ট হবে",
+    "addInviteTitle": "বন্ধুদের PikTag-এ ইনভাইট করো",
+    "addInviteDesc": "ইনভাইট লিংক শেয়ার করো — সাইন আপ করলেই বন্ধু হবে"
   },
   "search": {
     "clearAll": "সব সাফ করুন",

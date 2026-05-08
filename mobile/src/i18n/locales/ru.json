@@ -203,7 +203,17 @@
     "sortByAlphabet": "По алфавиту (A→Z)",
     "sortByAlphabetDesc": "По алфавиту (Z→A)",
     "sortByInteraction": "Недавнее взаимодействие",
-    "sortByBirthday": "Скоро день рождения"
+    "sortByBirthday": "Скоро день рождения",
+    "addContact": "Добавить контакт",
+    "addContactTitle": "Добавить контакт",
+    "addSearchTitle": "Найти пользователей PikTag",
+    "addSearchDesc": "По имени, нику или тегу",
+    "addContactSyncTitle": "Синхронизировать контакты",
+    "addContactSyncDesc": "Найди друзей, которые уже здесь",
+    "addManualTitle": "Сохранить человека на потом",
+    "addManualDesc": "Зарезервируй место — соединит автоматически, когда зарегистрируется",
+    "addInviteTitle": "Пригласи друзей в PikTag",
+    "addInviteDesc": "Поделись ссылкой — друг по умолчанию"
   },
   "search": {
     "clearAll": "Очистить всё",

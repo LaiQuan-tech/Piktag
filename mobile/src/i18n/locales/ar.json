@@ -203,7 +203,17 @@
     "sortByAlphabet": "أبجدي (أ→ي)",
     "sortByAlphabetDesc": "أبجدي (ي→أ)",
     "sortByInteraction": "التفاعل الأخير",
-    "sortByBirthday": "أعياد الميلاد القادمة"
+    "sortByBirthday": "أعياد الميلاد القادمة",
+    "addContact": "إضافة جهة اتصال",
+    "addContactTitle": "إضافة جهة اتصال",
+    "addSearchTitle": "البحث عن مستخدمي PikTag",
+    "addSearchDesc": "بالاسم أو اسم المستخدم أو الوسم",
+    "addContactSyncTitle": "مزامنة جهات الاتصال",
+    "addContactSyncDesc": "ابحث عن الأصدقاء الموجودين على PikTag",
+    "addManualTitle": "احفظ شخصًا للوقت اللاحق",
+    "addManualDesc": "احجز مكانًا لشخص لم يسجل بعد — سيتصل تلقائيًا عند انضمامه",
+    "addInviteTitle": "ادعُ أصدقاء إلى PikTag",
+    "addInviteDesc": "شارك رابط دعوة — سيصبح صديقًا تلقائيًا"
   },
   "search": {
     "clearAll": "مسح الكل",

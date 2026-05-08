@@ -203,7 +203,17 @@
     "sortByAlphabet": "あいうえお順",
     "sortByAlphabetDesc": "あいうえお順（逆）",
     "sortByInteraction": "最近のやりとり",
-    "sortByBirthday": "誕生日が近い順"
+    "sortByBirthday": "誕生日が近い順",
+    "addContact": "連絡先を追加",
+    "addContactTitle": "連絡先を追加",
+    "addSearchTitle": "PikTag ユーザーを検索",
+    "addSearchDesc": "名前・ユーザー名・タグで探す",
+    "addContactSyncTitle": "連絡先を同期",
+    "addContactSyncDesc": "既に PikTag にいる友達を見つける",
+    "addManualTitle": "誰かを記録しておく",
+    "addManualDesc": "まだ PikTag にいない人の場所を確保 — 登録すると自動で繋がる",
+    "addInviteTitle": "友達を PikTag に招待",
+    "addInviteDesc": "招待リンクをシェア — 登録すると自動的に友達に"
   },
   "search": {
     "clearAll": "すべてクリア",

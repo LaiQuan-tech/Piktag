@@ -203,7 +203,17 @@
     "sortByAlphabet": "वर्णक्रम (A→Z)",
     "sortByAlphabetDesc": "वर्णक्रम (Z→A)",
     "sortByInteraction": "हाल का संवाद",
-    "sortByBirthday": "आने वाले जन्मदिन"
+    "sortByBirthday": "आने वाले जन्मदिन",
+    "addContact": "संपर्क जोड़ें",
+    "addContactTitle": "एक संपर्क जोड़ें",
+    "addSearchTitle": "PikTag यूज़र खोजें",
+    "addSearchDesc": "नाम, यूज़रनेम या टैग से",
+    "addContactSyncTitle": "अपने कॉन्टैक्ट सिंक करें",
+    "addContactSyncDesc": "PikTag पर पहले से मौजूद दोस्तों को खोजें",
+    "addManualTitle": "किसी को बाद के लिए नोट करें",
+    "addManualDesc": "जो अभी PikTag पर नहीं हैं उनके लिए जगह रखें — साइन अप करने पर अपने आप कनेक्ट",
+    "addInviteTitle": "दोस्तों को PikTag पर बुलाएं",
+    "addInviteDesc": "इन्वाइट लिंक शेयर करें — साइन अप करते ही दोस्त"
   },
   "search": {
     "clearAll": "सब साफ़ करें",

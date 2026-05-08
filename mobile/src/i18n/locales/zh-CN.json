@@ -211,7 +211,17 @@
     "sortByAlphabet": "字母 A→Z",
     "sortByAlphabetDesc": "字母 Z→A",
     "sortByInteraction": "最近互动",
-    "sortByBirthday": "最近生日"
+    "sortByBirthday": "最近生日",
+    "addContact": "新增联系人",
+    "addContactTitle": "新增联系人",
+    "addSearchTitle": "搜索 PikTag 用户",
+    "addSearchDesc": "用名字、用户名或标签找人",
+    "addContactSyncTitle": "同步通讯录找朋友",
+    "addContactSyncDesc": "找出已在 PikTag 的朋友",
+    "addManualTitle": "先记下这个人",
+    "addManualDesc": "为还没加入的朋友占位，等他注册后自动连上",
+    "addInviteTitle": "邀请朋友加入 PikTag",
+    "addInviteDesc": "分享邀请链接，他注册后直接成为好友"
   },
   "search": {
     "clearAll": "清除全部",

@@ -218,7 +218,17 @@
     "sortByInteraction": "Recent interaction",
     "sortByBirthday": "Upcoming birthday",
     "phonePromptTitle": "📱 Add your phone so friends can find you",
-    "phonePromptBody": "Friends syncing their contacts will be auto-connected. Used only by PikTag, never made public."
+    "phonePromptBody": "Friends syncing their contacts will be auto-connected. Used only by PikTag, never made public.",
+    "addContact": "Add contact",
+    "addContactTitle": "Add a contact",
+    "addSearchTitle": "Search PikTag users",
+    "addSearchDesc": "By name, username, or tag",
+    "addContactSyncTitle": "Sync your contacts",
+    "addContactSyncDesc": "Find friends already on PikTag",
+    "addManualTitle": "Save someone for later",
+    "addManualDesc": "Hold a spot for someone not on PikTag yet — auto-connects when they sign up",
+    "addInviteTitle": "Invite friends to PikTag",
+    "addInviteDesc": "Share an invite link — auto-connects when they join"
   },
   "search": {
     "clearAll": "Clear all",

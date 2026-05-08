@@ -218,7 +218,17 @@
     "sortByInteraction": "最近互動",
     "sortByBirthday": "最近生日",
     "phonePromptTitle": "📱 加上手機號碼，讓朋友找到你",
-    "phonePromptBody": "朋友通訊錄同步時會自動加你為好友。只有 PikTag 用得到，永遠不會公開。"
+    "phonePromptBody": "朋友通訊錄同步時會自動加你為好友。只有 PikTag 用得到，永遠不會公開。",
+    "addContact": "新增聯絡人",
+    "addContactTitle": "新增聯絡人",
+    "addSearchTitle": "搜尋 PikTag 使用者",
+    "addSearchDesc": "用名字、用戶名或標籤找人",
+    "addContactSyncTitle": "同步通訊錄找朋友",
+    "addContactSyncDesc": "找出已在 PikTag 的朋友",
+    "addManualTitle": "先記下這個人",
+    "addManualDesc": "為還沒加入的朋友佔位，等他註冊後自動連上",
+    "addInviteTitle": "邀請朋友加入 PikTag",
+    "addInviteDesc": "分享邀請連結，他註冊後直接成為好友"
   },
   "search": {
     "clearAll": "清除全部",

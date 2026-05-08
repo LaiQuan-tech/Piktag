@@ -203,7 +203,17 @@
     "sortByAlphabet": "Alfabético (A→Z)",
     "sortByAlphabetDesc": "Alfabético (Z→A)",
     "sortByInteraction": "Interação recente",
-    "sortByBirthday": "Aniversários próximos"
+    "sortByBirthday": "Aniversários próximos",
+    "addContact": "Adicionar contato",
+    "addContactTitle": "Adicionar um contato",
+    "addSearchTitle": "Buscar usuários PikTag",
+    "addSearchDesc": "Por nome, usuário ou tag",
+    "addContactSyncTitle": "Sincroniza teus contatos",
+    "addContactSyncDesc": "Acha quem já está no PikTag",
+    "addManualTitle": "Guarda alguém pra depois",
+    "addManualDesc": "Reserva um lugar pra quem ainda não tá — conecta automático ao entrar",
+    "addInviteTitle": "Convida amigos pro PikTag",
+    "addInviteDesc": "Compartilha um link — vira amigo automático"
   },
   "search": {
     "clearAll": "Limpar tudo",

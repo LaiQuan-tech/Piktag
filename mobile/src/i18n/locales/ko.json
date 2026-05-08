@@ -203,7 +203,17 @@
     "sortByAlphabet": "가나다순 (A→Z)",
     "sortByAlphabetDesc": "가나다순 (Z→A)",
     "sortByInteraction": "최근 활동순",
-    "sortByBirthday": "생일 임박순"
+    "sortByBirthday": "생일 임박순",
+    "addContact": "연락처 추가",
+    "addContactTitle": "연락처 추가하기",
+    "addSearchTitle": "PikTag 유저 검색",
+    "addSearchDesc": "이름, 아이디, 태그로 찾기",
+    "addContactSyncTitle": "주소록 동기화",
+    "addContactSyncDesc": "이미 PikTag에 있는 친구 찾기",
+    "addManualTitle": "먼저 적어두기",
+    "addManualDesc": "아직 PikTag에 없는 친구 자리 만들기 — 가입하면 자동 연결",
+    "addInviteTitle": "PikTag에 친구 초대",
+    "addInviteDesc": "초대 링크 공유 — 가입하면 자동으로 친구"
   },
   "search": {
     "clearAll": "모두 지우기",

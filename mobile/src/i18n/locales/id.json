@@ -203,7 +203,17 @@
     "sortByAlphabet": "Alfabet (A→Z)",
     "sortByAlphabetDesc": "Alfabet (Z→A)",
     "sortByInteraction": "Interaksi terbaru",
-    "sortByBirthday": "Ulang tahun mendatang"
+    "sortByBirthday": "Ulang tahun mendatang",
+    "addContact": "Tambah kontak",
+    "addContactTitle": "Tambah kontak",
+    "addSearchTitle": "Cari pengguna PikTag",
+    "addSearchDesc": "Lewat nama, username, atau tag",
+    "addContactSyncTitle": "Sinkron kontakmu",
+    "addContactSyncDesc": "Temuin teman yang udah di PikTag",
+    "addManualTitle": "Catat dulu orang ini",
+    "addManualDesc": "Sediain slot buat yang belum di PikTag — auto-connect saat dia gabung",
+    "addInviteTitle": "Ajak teman ke PikTag",
+    "addInviteDesc": "Share link undangan — auto jadi teman pas dia gabung"
   },
   "search": {
     "clearAll": "Hapus semua",

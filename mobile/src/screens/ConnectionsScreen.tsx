@@ -38,6 +38,8 @@ import {
   Share2,
   Send,
   Circle,
+  Plus,
+  Search,
 } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { COLORS } from '../constants/theme';
@@ -178,6 +180,13 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
   // Tag filter state
   const [filterTag, setFilterTag] = useState<string | null>(null);
   const [filterModalVisible, setFilterModalVisible] = useState(false);
+
+  // "+" add-contact action sheet — surfaces the four ways to grow
+  // your connections (search, contact-sync, manual local-contact,
+  // invite). Used to be discoverable only on the empty state's
+  // 4-action card; once the list filled up the entry points
+  // disappeared. This menu restores them at any list size.
+  const [addMenuVisible, setAddMenuVisible] = useState(false);
 
   // Batch selection state
   const [selectMode, setSelectMode] = useState(false);
@@ -854,6 +863,20 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
             </View>
           </View>
           <View style={styles.headerRight}>
+            {/* "+" — opens the add-contact action sheet (search /
+                contact-sync / manual local-contact / invite). Sits
+                first in the header right cluster because it's the
+                most growth-oriented affordance; tag filter and sort
+                are list-shaping tools that follow. */}
+            <TouchableOpacity
+              style={styles.headerIconBtn}
+              activeOpacity={0.6}
+              onPress={() => setAddMenuVisible(true)}
+              accessibilityLabel={t('connections.addContact', { defaultValue: '新增聯絡人' })}
+              accessibilityRole="button"
+            >
+              <Plus size={24} color={COLORS.gray600} />
+            </TouchableOpacity>
             <TouchableOpacity
               style={styles.headerIconBtn}
               activeOpacity={0.6}
@@ -932,6 +955,121 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
         </View>
       )}
 
+
+      {/* Add-contact action sheet — surfaces all four ways to grow
+          your connections in one menu. Order is intentional: search
+          first (find existing PikTag users) → contact sync (find
+          friends already on PikTag) → manual local-contact (placeholder
+          for someone not yet registered) → invite (recruit). The
+          ordering implicitly teaches users the social-CRM hierarchy:
+          existing users > unregistered placeholders > pure marketing. */}
+      <Modal
+        visible={addMenuVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setAddMenuVisible(false)}
+      >
+        <TouchableOpacity
+          style={styles.addMenuOverlay}
+          activeOpacity={1}
+          onPress={() => setAddMenuVisible(false)}
+        >
+          <View style={styles.addMenuSheet}>
+            <View style={styles.addMenuHandle} />
+            <Text style={styles.addMenuTitle}>
+              {t('connections.addContactTitle', { defaultValue: '新增聯絡人' })}
+            </Text>
+
+            <TouchableOpacity
+              style={styles.addMenuRow}
+              activeOpacity={0.6}
+              onPress={() => {
+                setAddMenuVisible(false);
+                navigation.navigate('SearchTab');
+              }}
+            >
+              <View style={[styles.addMenuIconWrap, { backgroundColor: COLORS.piktag50 }]}>
+                <Search size={20} color={COLORS.piktag600} />
+              </View>
+              <View style={styles.addMenuTextWrap}>
+                <Text style={styles.addMenuRowTitle}>
+                  {t('connections.addSearchTitle', { defaultValue: '搜尋 PikTag 使用者' })}
+                </Text>
+                <Text style={styles.addMenuRowDesc}>
+                  {t('connections.addSearchDesc', { defaultValue: '用名字、用戶名或標籤找人' })}
+                </Text>
+              </View>
+              <ChevronRight size={18} color={COLORS.gray400} />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.addMenuRow}
+              activeOpacity={0.6}
+              onPress={() => {
+                setAddMenuVisible(false);
+                navigation.navigate('ContactSync');
+              }}
+            >
+              <View style={[styles.addMenuIconWrap, { backgroundColor: COLORS.piktag50 }]}>
+                <Users size={20} color={COLORS.piktag600} />
+              </View>
+              <View style={styles.addMenuTextWrap}>
+                <Text style={styles.addMenuRowTitle}>
+                  {t('connections.addContactSyncTitle', { defaultValue: '同步通訊錄找朋友' })}
+                </Text>
+                <Text style={styles.addMenuRowDesc}>
+                  {t('connections.addContactSyncDesc', { defaultValue: '找出已在 PikTag 的朋友' })}
+                </Text>
+              </View>
+              <ChevronRight size={18} color={COLORS.gray400} />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.addMenuRow}
+              activeOpacity={0.6}
+              onPress={() => {
+                setAddMenuVisible(false);
+                navigation.navigate('LocalContacts');
+              }}
+            >
+              <View style={[styles.addMenuIconWrap, { backgroundColor: COLORS.piktag50 }]}>
+                <UserPlus size={20} color={COLORS.piktag600} />
+              </View>
+              <View style={styles.addMenuTextWrap}>
+                <Text style={styles.addMenuRowTitle}>
+                  {t('connections.addManualTitle', { defaultValue: '先記下這個人' })}
+                </Text>
+                <Text style={styles.addMenuRowDesc}>
+                  {t('connections.addManualDesc', { defaultValue: '為還沒加入的朋友佔位，等他註冊後自動連上' })}
+                </Text>
+              </View>
+              <ChevronRight size={18} color={COLORS.gray400} />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.addMenuRow}
+              activeOpacity={0.6}
+              onPress={() => {
+                setAddMenuVisible(false);
+                navigation.navigate('Invite');
+              }}
+            >
+              <View style={[styles.addMenuIconWrap, { backgroundColor: COLORS.piktag50 }]}>
+                <Send size={20} color={COLORS.piktag600} />
+              </View>
+              <View style={styles.addMenuTextWrap}>
+                <Text style={styles.addMenuRowTitle}>
+                  {t('connections.addInviteTitle', { defaultValue: '邀請朋友加入 PikTag' })}
+                </Text>
+                <Text style={styles.addMenuRowDesc}>
+                  {t('connections.addInviteDesc', { defaultValue: '分享邀請連結，他註冊後直接成為好友' })}
+                </Text>
+              </View>
+              <ChevronRight size={18} color={COLORS.gray400} />
+            </TouchableOpacity>
+          </View>
+        </TouchableOpacity>
+      </Modal>
 
       {/* Tag Filter Modal */}
       <Modal
@@ -1665,6 +1803,70 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '600',
     color: COLORS.piktag600,
+  },
+
+  // ─── Add-contact action sheet ────────────────────────────────
+  addMenuOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.45)',
+    justifyContent: 'flex-end',
+  },
+  addMenuSheet: {
+    backgroundColor: COLORS.white,
+    borderTopLeftRadius: 22,
+    borderTopRightRadius: 22,
+    paddingTop: 8,
+    paddingHorizontal: 16,
+    // Generous bottom padding so the last row clears iPhone home
+    // indicator on devices with safe area; SafeAreaView at the
+    // screen root already sets the per-device offset, this is
+    // additional buffer below the menu rows.
+    paddingBottom: Platform.OS === 'ios' ? 36 : 20,
+  },
+  addMenuHandle: {
+    alignSelf: 'center',
+    width: 40,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: COLORS.gray200,
+    marginBottom: 12,
+  },
+  addMenuTitle: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: COLORS.gray900,
+    marginBottom: 12,
+    paddingHorizontal: 4,
+  },
+  addMenuRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 14,
+    paddingHorizontal: 4,
+    gap: 12,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.gray100,
+  },
+  addMenuIconWrap: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  addMenuTextWrap: {
+    flex: 1,
+  },
+  addMenuRowTitle: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: COLORS.gray900,
+    marginBottom: 2,
+  },
+  addMenuRowDesc: {
+    fontSize: 12,
+    color: COLORS.gray500,
+    lineHeight: 16,
   },
 
   // Filter Modal

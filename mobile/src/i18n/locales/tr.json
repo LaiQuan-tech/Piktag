@@ -203,7 +203,17 @@
     "sortByAlphabet": "Alfabetik (A→Z)",
     "sortByAlphabetDesc": "Alfabetik (Z→A)",
     "sortByInteraction": "Son etkileşim",
-    "sortByBirthday": "Yaklaşan doğum günleri"
+    "sortByBirthday": "Yaklaşan doğum günleri",
+    "addContact": "Kişi ekle",
+    "addContactTitle": "Bir kişi ekle",
+    "addSearchTitle": "PikTag kullanıcıları ara",
+    "addSearchDesc": "İsim, kullanıcı adı veya etikete göre",
+    "addContactSyncTitle": "Rehberini eşitle",
+    "addContactSyncDesc": "PikTag'a kayıtlı arkadaşlarını bul",
+    "addManualTitle": "Birini sonra için kaydet",
+    "addManualDesc": "Henüz PikTag'da olmayan biri için yer ayır — kayıt olunca otomatik bağlanır",
+    "addInviteTitle": "Arkadaşlarını PikTag'a davet et",
+    "addInviteDesc": "Davet bağlantısı paylaş — kayıt olunca otomatik arkadaş"
   },
   "search": {
     "clearAll": "Hepsini temizle",
