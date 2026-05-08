@@ -38,15 +38,20 @@ const BRAND_COLOR = '#aa00ff';
 const BRAND_ACCENT = '#8c52ff';
 const BRAND_DARK = '#360066';
 const BRAND_BG = '#faf5ff';
-// Gradient terminus aligned to BRAND_COLOR (#aa00ff = piktag500) so
-// the follow button and bottom banner end on the SAME purple as the
-// app's solid primary buttons. Earlier was #8c52ff (a softer
-// indigo-purple) — visually it was a smoother gradient ramp on its
-// own, but cross-surface (web → app or app → web) the brand purple
-// shifted between contexts and users noticed the inconsistency.
-// BRAND_ACCENT stays #8c52ff for headline body text where a softer
-// non-vivid purple reads better.
-const BRAND_GRADIENT = 'linear-gradient(90deg, #ff5757 0%, #aa00ff 100%)';
+// Two-purple brand system, deliberate:
+//   * BRAND_COLOR (#aa00ff = piktag500) — solid surfaces (icon fills,
+//     monochrome buttons in the app, brand wordmark text)
+//   * Gradient terminus (#8c52ff) — gradient ramps (logo PNG, follow
+//     button, download banner, mobile RingedAvatar, scan stingers)
+// The logo PNG itself was authored as #ff5757 → #8c52ff (verified by
+// decoding the raw pixels at the right edge of the # mark — the
+// rightmost opaque pixel sits at ~#9752ed, ie #8c52ff with edge
+// antialiasing). Aligning BRAND_GRADIENT to the logo keeps the web
+// surface internally consistent: the follow button's terminus matches
+// the logo sitting in the same screen. Trying to force #aa00ff onto
+// the gradient would make it disagree with the logo — a worse
+// in-page inconsistency than the cross-surface app↔web mismatch.
+const BRAND_GRADIENT = 'linear-gradient(90deg, #ff5757 0%, #8c52ff 100%)';
 
 function escapeHtml(str) {
   if (!str) return '';
