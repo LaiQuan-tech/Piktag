@@ -654,7 +654,7 @@
     "shareMessage": "我在用 PikTag 管理人脈，快來加入！使用邀請碼 {{code}} 註冊：{{url}}",
     "quotaTitle": "剩餘邀請名額",
     "quotaHint": "每 24 小時恢復 1 個名額",
-    "generateButton": "產生邀請碼",
+    "generateButton": "產生並分享邀請碼",
     "inviteRecordHeader": "邀請紀錄",
     "usedBadge": "已使用",
     "noInvites": "尚無邀請紀錄"

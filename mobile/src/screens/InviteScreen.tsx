@@ -138,6 +138,11 @@ export default function InviteScreen({ navigation }: InviteScreenProps) {
         },
         ...prev,
       ]);
+
+      // Auto-open native share sheet so user doesn't have to hunt for the
+      // share icon in the history list. Dismissal is silently swallowed
+      // inside handleShareInvite — code is preserved in history regardless.
+      handleShareInvite(invite.invite_code);
     } catch (err: any) {
       console.error('Generate invite error:', err);
       Alert.alert(

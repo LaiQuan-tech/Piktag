@@ -651,7 +651,7 @@
     "shareMessage": "I'm using PikTag to manage my network. Join me! Use invite code {{code}} to sign up: {{url}}",
     "quotaTitle": "Remaining Invites",
     "quotaHint": "1 invite restores every 24 hours",
-    "generateButton": "Generate Invite Code",
+    "generateButton": "Generate & Share Invite",
     "inviteRecordHeader": "Invite History",
     "usedBadge": "Used",
     "noInvites": "No invite history"
