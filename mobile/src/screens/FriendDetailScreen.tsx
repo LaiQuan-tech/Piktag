@@ -13,6 +13,7 @@ import {
   KeyboardAvoidingView,
 } from 'react-native';
 import { shareProfile } from '../lib/shareProfile';
+import { followUser } from '../lib/followUser';
 import { Image } from 'expo-image';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
@@ -712,7 +713,15 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
         setUnfollowModalVisible(true);
         return;
       } else {
-        await supabase.from('piktag_follows').insert({ follower_id: user.id, following_id: friendId });
+        // followUser() ensures both piktag_follows AND piktag_connections
+        // get the row they need — without the connection row the followed
+        // person disappears from ConnectionsScreen and from Search's
+        // "friends" tab. See lib/followUser.ts for the contract.
+        const { error } = await followUser(user.id, friendId);
+        if (error) {
+          console.warn('Follow failed:', error);
+          return;
+        }
         setIsFollowing(true);
 
         // After follow success → show Pick Tag modal only if friend has public tags
@@ -1219,15 +1228,14 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
                       style={styles.similarFollowBtn}
                       activeOpacity={0.8}
                       onPress={async () => {
-                        try {
-                          await supabase
-                            .from('piktag_follows')
-                            .insert({ follower_id: user?.id, following_id: u.id });
-                          setSimilarUsers((prev) => prev.filter((s) => s.id !== u.id));
-                        } catch (err) {
-                          console.warn('[FriendDetail] follow similar user failed:', err);
+                        if (!user?.id) return;
+                        const { error } = await followUser(user.id, u.id);
+                        if (error) {
+                          console.warn('[FriendDetail] follow similar user failed:', error);
                           Alert.alert(t('common.error'), t('common.unknownError'));
+                          return;
                         }
+                        setSimilarUsers((prev) => prev.filter((s) => s.id !== u.id));
                       }}
                     >
                       <LinearGradient

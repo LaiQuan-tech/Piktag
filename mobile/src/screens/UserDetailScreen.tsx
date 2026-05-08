@@ -46,6 +46,7 @@ import { useNetInfoReconnect } from '../hooks/useNetInfoReconnect';
 import type { PiktagProfile, Biolink } from '../types';
 import { getViewerRelation, filterBiolinksByVisibility } from '../lib/biolinkVisibility';
 import { shareProfile } from '../lib/shareProfile';
+import { followUser } from '../lib/followUser';
 
 type UserDetailScreenProps = {
   navigation: any;
@@ -939,32 +940,18 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
         setUnfollowModalVisible(true);
         return;
       } else {
-        // Follow
-        const { error } = await supabase
-          .from('piktag_follows')
-          .insert({
-            follower_id: authUser.id,
-            following_id: resolvedUserId,
-          });
-
+        // Shared helper handles both piktag_follows AND piktag_connections
+        // atomically — see lib/followUser.ts. Returns the connection id
+        // (existing or freshly created) so we can stash it for the
+        // pickTag modal that fires below.
+        const { connectionId: connId, error } = await followUser(authUser.id, resolvedUserId);
         if (error) {
           console.error('Error following:', error);
           return;
         }
         setIsFollowing(true);
-
-        // Create connection if not exists
-        let connId = connectionId;
-        if (!connId) {
-          const { data: newConn } = await supabase
-            .from('piktag_connections')
-            .insert({ user_id: authUser.id, connected_user_id: resolvedUserId, met_at: new Date().toISOString() })
-            .select('id')
-            .single();
-          if (newConn) {
-            connId = newConn.id;
-            setConnectionId(connId);
-          }
+        if (connId && connId !== connectionId) {
+          setConnectionId(connId);
         }
 
         // Show Pick Tag modal if friend has public tags
@@ -1317,18 +1304,19 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
                       style={styles.similarFollowBtn}
                       activeOpacity={0.8}
                       onPress={async () => {
-                        try {
-                          // The auth user is destructured as `authUser` at the
-                          // top of this component (we already use `user` as a
-                          // generic loop variable elsewhere). Using `user` here
-                          // resolved to undefined → follower_id was null →
-                          // RLS rejected the insert silently.
-                          await supabase.from('piktag_follows').insert({ follower_id: authUser?.id, following_id: u.id });
-                          setSimilarUsers(prev => prev.filter(s => s.id !== u.id));
-                        } catch (err) {
-                          console.warn('[UserDetail] follow similar user failed:', err);
+                        // The auth user is destructured as `authUser` at the
+                        // top of this component (we already use `user` as a
+                        // generic loop variable elsewhere). Using `user` here
+                        // resolved to undefined → follower_id was null →
+                        // RLS rejected the insert silently.
+                        if (!authUser?.id) return;
+                        const { error } = await followUser(authUser.id, u.id);
+                        if (error) {
+                          console.warn('[UserDetail] follow similar user failed:', error);
                           Alert.alert(t('common.error'), t('common.unknownError'));
+                          return;
                         }
+                        setSimilarUsers(prev => prev.filter(s => s.id !== u.id));
                       }}
                     >
                       <LinearGradient
