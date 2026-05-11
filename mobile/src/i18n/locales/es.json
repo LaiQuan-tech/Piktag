@@ -1064,5 +1064,23 @@
     "notifications": "Avisos",
     "profile": "Tu perfil",
     "dismissHint": "Toca para cerrar"
+  },
+  "qrGroup": {
+    "headerTitle": "Grupos QR",
+    "detailHeader": "Grupo QR",
+    "create": "Crear grupo",
+    "createFirst": "Crea tu primer grupo QR",
+    "emptyTitle": "Sin grupos QR aún",
+    "emptyDesc": "Cada QR es un grupo — los amigos escanean para unirse, y puedes volver cuando quieras a ver, etiquetar o re-compartir.",
+    "untitled": "Grupo sin título",
+    "untitledFallback": "Grupo · {{date}}",
+    "namePlaceholder": "Nombra este grupo",
+    "tagsTitle": "Etiquetas del grupo",
+    "tagsEmpty": "Sin etiquetas",
+    "tagInputPlaceholder": "Nueva etiqueta",
+    "noTagsYet": "Sin etiquetas",
+    "membersTitle": "Miembros ({{count}})",
+    "memberCount": "{{count}} amigos",
+    "membersEmpty": "Nadie ha escaneado aún — compártelo"
   }
 }

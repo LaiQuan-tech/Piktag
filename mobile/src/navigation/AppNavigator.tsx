@@ -32,6 +32,10 @@ import TabTooltipOverlay, { TAB_TOOLTIPS_SEEN_KEY } from '../components/onboardi
 import ConnectionsScreen from '../screens/ConnectionsScreen';
 import SearchScreen from '../screens/SearchScreen';
 import AddTagScreen from '../screens/AddTagScreen';
+// Task 2 (QR groups): AddTagTab now lands on QrGroupListScreen
+// instead of AddTagScreen directly. AddTagScreen becomes the
+// "create new group" form, pushed onto the stack from the list.
+import QrGroupListScreen from '../screens/QrGroupListScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import NotificationsScreen from '../screens/NotificationsScreen';
 
@@ -85,7 +89,17 @@ function SearchStackNavigator() {
 function AddTagStackNavigator() {
   return (
     <AddTagStack.Navigator screenOptions={{ headerShown: false }}>
-      <AddTagStack.Screen name="AddTagMain" component={AddTagScreen} />
+      {/* Default landing: persistent QR group list (task 2). Tapping
+          "+" navigates to AddTagCreate (the legacy AddTagScreen
+          repurposed as a creation form); tapping a row navigates to
+          QrGroupDetail. AddTagMain kept as a back-compat alias so
+          any older deep-links still resolve. */}
+      <AddTagStack.Screen name="AddTagMain" component={QrGroupListScreen} />
+      <AddTagStack.Screen name="AddTagCreate" component={AddTagScreen} />
+      <AddTagStack.Screen
+        name="QrGroupDetail"
+        getComponent={() => require('../screens/QrGroupDetailScreen').default}
+      />
     </AddTagStack.Navigator>
   );
 }

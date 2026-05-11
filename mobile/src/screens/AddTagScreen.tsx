@@ -392,7 +392,10 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
             event_tags: eventTags,
             qr_code_data: '', // placeholder
             is_active: true,
-            expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+            // Task 2: QRs are persistent groups now. Don't set
+            // expires_at — leaving it NULL means the row never
+            // expires and can be re-shared any time.
+            expires_at: null,
           })
           .select('id')
           .single();
@@ -491,13 +494,10 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
           >
             <ScanLine size={24} color={COLORS.gray700} />
           </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => setShowPresetsModal(true)}
-            activeOpacity={0.6}
-            style={styles.headerSideBtn}
-          >
-            <Star size={24} color={COLORS.accent400} />
-          </TouchableOpacity>
+          {/* Preset star button removed for task 2 — QR codes are
+              now persistent groups themselves (visible from the
+              AddTagTab landing page), making the "常用模板" feature
+              redundant. */}
         </View>
       </View>
 
@@ -715,20 +715,8 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
           </View>
         </View>
 
-        {/* 儲存為常用模板 */}
-        <View style={styles.section}>
-          <TouchableOpacity
-            style={styles.outlineButton}
-            onPress={handleSavePreset}
-            activeOpacity={0.7}
-            disabled={savingPreset}
-          >
-            {savingPreset
-              ? <BrandSpinner size={20} />
-              : <Text style={styles.outlineButtonText}>{t('addTag.saveAsPreset')}</Text>
-            }
-          </TouchableOpacity>
-        </View>
+        {/* 儲存為常用模板 — section removed for task 2 — every QR
+            is already a persistent group; templates are redundant. */}
 
         {/* 產生 QR Code CTA */}
         <View style={styles.section}>
@@ -773,13 +761,9 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
           >
             <ScanLine size={24} color="#fff" />
           </TouchableOpacity>
-          <TouchableOpacity
-            onPress={handleSavePreset}
-            activeOpacity={0.6}
-            style={styles.qrTopBtn}
-          >
-            <Star size={24} color="#fff" />
-          </TouchableOpacity>
+          {/* QR-mode top-right star button removed — task 2 made
+              QRs into persistent groups themselves, so saving them
+              as "templates" is redundant. */}
         </View>
       </View>
 
@@ -968,58 +952,12 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
           <Text style={styles.eventHint}>{t('addTag.eventHint', { defaultValue: '讓朋友掃描加你為好友' })}</Text>
         </View>
       )}
-      {showPresetsModal && renderPresetsModal()}
-
-
-      {/* Preset Name Input Modal (cross-platform replacement for Alert.prompt) */}
-      <Modal
-        visible={showPresetNameModal}
-        animationType="fade"
-        transparent
-        onRequestClose={() => setShowPresetNameModal(false)}
-      >
-        {/* KAV wraps the centered dialog so when the autoFocus'd TextInput
-            brings up the keyboard, the whole dialog floats up above it
-            instead of being partially covered. */}
-        <KeyboardAvoidingView
-          style={{ flex: 1 }}
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        >
-          <View style={styles.presetNameModalOverlay}>
-            <View style={styles.presetNameModalContainer}>
-              <Text style={styles.presetNameModalTitle}>{t('addTag.saveAsPreset')}</Text>
-              <Text style={styles.presetNameModalSubtitle}>{t('addTag.presetNamePrompt')}</Text>
-              <TextInput
-                style={styles.presetNameModalInput}
-                value={presetNameInput}
-                onChangeText={setPresetNameInput}
-                placeholder={t('addTag.presetNamePlaceholder')}
-                placeholderTextColor={COLORS.gray400}
-                autoFocus
-                returnKeyType="done"
-                onSubmitEditing={handleConfirmSavePreset}
-              />
-              <View style={styles.presetNameModalButtons}>
-                <TouchableOpacity
-                  style={styles.presetNameModalCancelBtn}
-                  onPress={() => setShowPresetNameModal(false)}
-                  activeOpacity={0.7}
-                >
-                  <Text style={styles.presetNameModalCancelText}>{t('common.cancel')}</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.presetNameModalConfirmBtn, !presetNameInput.trim() && styles.buttonDisabled]}
-                  onPress={handleConfirmSavePreset}
-                  activeOpacity={0.8}
-                  disabled={!presetNameInput.trim()}
-                >
-                  <Text style={styles.presetNameModalConfirmText}>{t('common.confirm')}</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          </View>
-        </KeyboardAvoidingView>
-      </Modal>
+      {/* Preset modals removed for task 2. The state hooks
+          (showPresetsModal, showPresetNameModal, presets, ...)
+          and handlers (handleSavePreset, handleConfirmSavePreset,
+          loadPresets, etc.) are left as dead code in this file
+          for now to keep the diff focused on UI surfaces — a
+          follow-up cleanup commit can rip them out. */}
     </View>
   );
 }

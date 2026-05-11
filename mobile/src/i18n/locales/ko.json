@@ -1064,5 +1064,23 @@
     "notifications": "알림",
     "profile": "내 프로필",
     "dismissHint": "아무 곳이나 탭하여 닫기"
+  },
+  "qrGroup": {
+    "headerTitle": "QR 그룹",
+    "detailHeader": "QR 그룹",
+    "create": "그룹 만들기",
+    "createFirst": "첫 번째 QR 그룹 만들기",
+    "emptyTitle": "아직 QR 그룹이 없어요",
+    "emptyDesc": "각 QR이 하나의 그룹 — 친구가 스캔하면 자동 추가되고, 언제든 명단 확인·태그 편집·다시 공유 가능.",
+    "untitled": "이름 없는 그룹",
+    "untitledFallback": "그룹 · {{date}}",
+    "namePlaceholder": "그룹 이름 짓기",
+    "tagsTitle": "그룹 태그",
+    "tagsEmpty": "태그 없음",
+    "tagInputPlaceholder": "새 태그",
+    "noTagsYet": "태그 없음",
+    "membersTitle": "멤버 ({{count}})",
+    "memberCount": "친구 {{count}}명",
+    "membersEmpty": "아직 아무도 스캔하지 않았어요 — 친구에게 공유해 보세요"
   }
 }

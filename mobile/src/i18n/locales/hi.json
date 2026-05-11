@@ -1064,5 +1064,23 @@
     "notifications": "सूचनाएँ",
     "profile": "आपकी प्रोफ़ाइल",
     "dismissHint": "बंद करने के लिए टैप करें"
+  },
+  "qrGroup": {
+    "headerTitle": "QR ग्रुप",
+    "detailHeader": "QR ग्रुप",
+    "create": "ग्रुप बनाएं",
+    "createFirst": "पहला QR ग्रुप बनाएं",
+    "emptyTitle": "अभी कोई QR ग्रुप नहीं",
+    "emptyDesc": "हर QR अपना ग्रुप है — दोस्त स्कैन करके जुड़ें, और कभी भी आकर लिस्ट देखें, टैग एडिट करें या फिर से शेयर करें।",
+    "untitled": "बिना नाम का ग्रुप",
+    "untitledFallback": "ग्रुप · {{date}}",
+    "namePlaceholder": "ग्रुप का नाम रखें",
+    "tagsTitle": "ग्रुप टैग",
+    "tagsEmpty": "कोई टैग नहीं",
+    "tagInputPlaceholder": "नया टैग",
+    "noTagsYet": "कोई टैग नहीं",
+    "membersTitle": "सदस्य ({{count}})",
+    "memberCount": "{{count}} दोस्त",
+    "membersEmpty": "अभी किसी ने स्कैन नहीं किया — दोस्तों के साथ शेयर करें"
   }
 }

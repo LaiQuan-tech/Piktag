@@ -1064,5 +1064,23 @@
     "notifications": "বিজ্ঞপ্তি",
     "profile": "আপনার প্রোফাইল",
     "dismissHint": "যেকোনো জায়গায় ট্যাপ"
+  },
+  "qrGroup": {
+    "headerTitle": "QR গ্রুপ",
+    "detailHeader": "QR গ্রুপ",
+    "create": "গ্রুপ তৈরি করো",
+    "createFirst": "প্রথম QR গ্রুপ তৈরি করো",
+    "emptyTitle": "এখনো QR গ্রুপ নেই",
+    "emptyDesc": "প্রতিটি QR একটা গ্রুপ — বন্ধুরা স্ক্যান করলেই যোগ হয়। যেকোনো সময় ফিরে এসে লিস্ট দেখো, ট্যাগ এডিট করো, আবার শেয়ার করো।",
+    "untitled": "নামহীন গ্রুপ",
+    "untitledFallback": "গ্রুপ · {{date}}",
+    "namePlaceholder": "গ্রুপের নাম দাও",
+    "tagsTitle": "গ্রুপ ট্যাগ",
+    "tagsEmpty": "কোনো ট্যাগ নেই",
+    "tagInputPlaceholder": "নতুন ট্যাগ",
+    "noTagsYet": "কোনো ট্যাগ নেই",
+    "membersTitle": "সদস্য ({{count}})",
+    "memberCount": "{{count}} জন বন্ধু",
+    "membersEmpty": "এখনো কেউ স্ক্যান করেনি — বন্ধুদের সাথে শেয়ার করো"
   }
 }

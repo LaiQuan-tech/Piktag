@@ -1136,5 +1136,23 @@
     "notifications": "Mitteilungen",
     "profile": "Dein Profil",
     "dismissHint": "Tippe irgendwo, um zu schließen"
+  },
+  "qrGroup": {
+    "headerTitle": "QR-Gruppen",
+    "detailHeader": "QR-Gruppe",
+    "create": "Gruppe erstellen",
+    "createFirst": "Erste QR-Gruppe erstellen",
+    "emptyTitle": "Noch keine QR-Gruppen",
+    "emptyDesc": "Jeder QR ist eine eigene Gruppe — Freunde scannen, du kannst jederzeit zurück und die Liste sehen, Tags bearbeiten oder neu teilen.",
+    "untitled": "Unbenannte Gruppe",
+    "untitledFallback": "Gruppe · {{date}}",
+    "namePlaceholder": "Gruppe benennen",
+    "tagsTitle": "Gruppen-Tags",
+    "tagsEmpty": "Keine Tags",
+    "tagInputPlaceholder": "Neuer Tag",
+    "noTagsYet": "Keine Tags",
+    "membersTitle": "Mitglieder ({{count}})",
+    "memberCount": "{{count}} Freunde",
+    "membersEmpty": "Noch niemand hat gescannt — teile es mit Freunden"
   }
 }

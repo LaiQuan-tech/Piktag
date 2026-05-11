@@ -1064,5 +1064,23 @@
     "notifications": "Уведомл.",
     "profile": "Твой профиль",
     "dismissHint": "Нажми, чтобы закрыть"
+  },
+  "qrGroup": {
+    "headerTitle": "QR-группы",
+    "detailHeader": "QR-группа",
+    "create": "Создать группу",
+    "createFirst": "Создай первую QR-группу",
+    "emptyTitle": "Пока нет QR-групп",
+    "emptyDesc": "Каждый QR — отдельная группа: друзья сканируют, чтобы присоединиться, а ты в любой момент можешь вернуться, посмотреть состав, отредактировать теги или поделиться снова.",
+    "untitled": "Без названия",
+    "untitledFallback": "Группа · {{date}}",
+    "namePlaceholder": "Дай группе имя",
+    "tagsTitle": "Теги группы",
+    "tagsEmpty": "Нет тегов",
+    "tagInputPlaceholder": "Новый тег",
+    "noTagsYet": "Нет тегов",
+    "membersTitle": "Участники ({{count}})",
+    "memberCount": "{{count}} друзей",
+    "membersEmpty": "Никто пока не отсканировал — поделись с друзьями"
   }
 }

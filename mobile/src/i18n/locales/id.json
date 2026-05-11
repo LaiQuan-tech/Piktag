@@ -1064,5 +1064,23 @@
     "notifications": "Notif",
     "profile": "Profilmu",
     "dismissHint": "Tap untuk tutup"
+  },
+  "qrGroup": {
+    "headerTitle": "Grup QR",
+    "detailHeader": "Grup QR",
+    "create": "Buat grup",
+    "createFirst": "Buat grup QR pertamamu",
+    "emptyTitle": "Belum ada grup QR",
+    "emptyDesc": "Setiap QR adalah grupnya sendiri — teman scan buat gabung, kamu bisa balik kapan saja buat lihat list, edit tag, atau share ulang.",
+    "untitled": "Grup tanpa nama",
+    "untitledFallback": "Grup · {{date}}",
+    "namePlaceholder": "Beri nama grup ini",
+    "tagsTitle": "Tag grup",
+    "tagsEmpty": "Belum ada tag",
+    "tagInputPlaceholder": "Tag baru",
+    "noTagsYet": "Belum ada tag",
+    "membersTitle": "Anggota ({{count}})",
+    "memberCount": "{{count}} teman",
+    "membersEmpty": "Belum ada yang scan — share ke teman dulu"
   }
 }

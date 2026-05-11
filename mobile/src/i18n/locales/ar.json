@@ -1064,5 +1064,23 @@
     "notifications": "الإشعارات",
     "profile": "ملفك",
     "dismissHint": "انقر للإغلاق"
+  },
+  "qrGroup": {
+    "headerTitle": "مجموعات QR",
+    "detailHeader": "مجموعة QR",
+    "create": "إنشاء مجموعة",
+    "createFirst": "أنشئ أول مجموعة QR",
+    "emptyTitle": "لا توجد مجموعات QR بعد",
+    "emptyDesc": "كل رمز QR هو مجموعة بحد ذاتها — يمسحه الأصدقاء للانضمام، ويمكنك العودة في أي وقت للعرض والوسم وإعادة المشاركة.",
+    "untitled": "مجموعة بدون عنوان",
+    "untitledFallback": "مجموعة · {{date}}",
+    "namePlaceholder": "سمِّ هذه المجموعة",
+    "tagsTitle": "وسوم المجموعة",
+    "tagsEmpty": "لا توجد وسوم",
+    "tagInputPlaceholder": "وسم جديد",
+    "noTagsYet": "لا توجد وسوم",
+    "membersTitle": "الأعضاء ({{count}})",
+    "memberCount": "{{count}} أصدقاء",
+    "membersEmpty": "لم يقم أحد بمسحه بعد — شاركه مع الأصدقاء"
   }
 }

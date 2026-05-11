@@ -1064,5 +1064,23 @@
     "notifications": "Bildirim",
     "profile": "Profilin",
     "dismissHint": "Kapatmak için dokun"
+  },
+  "qrGroup": {
+    "headerTitle": "QR grupları",
+    "detailHeader": "QR grubu",
+    "create": "Grup oluştur",
+    "createFirst": "İlk QR grubunu oluştur",
+    "emptyTitle": "Henüz QR grubu yok",
+    "emptyDesc": "Her QR kendi grubudur — arkadaşlar tarayarak katılır, sen istediğin zaman gelip listeyi gör, etiketleri düzenle, yeniden paylaş.",
+    "untitled": "Adsız grup",
+    "untitledFallback": "Grup · {{date}}",
+    "namePlaceholder": "Bu gruba ad ver",
+    "tagsTitle": "Grup etiketleri",
+    "tagsEmpty": "Etiket yok",
+    "tagInputPlaceholder": "Yeni etiket",
+    "noTagsYet": "Etiket yok",
+    "membersTitle": "Üyeler ({{count}})",
+    "memberCount": "{{count}} arkadaş",
+    "membersEmpty": "Henüz kimse taramadı — arkadaşlarınla paylaş"
   }
 }

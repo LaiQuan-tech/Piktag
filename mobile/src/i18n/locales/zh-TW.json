@@ -1156,5 +1156,23 @@
     "notifications": "通知",
     "profile": "你的個人頁",
     "dismissHint": "點任意處關閉"
+  },
+  "qrGroup": {
+    "headerTitle": "QR 群組",
+    "detailHeader": "QR 群組",
+    "create": "建立新群組",
+    "createFirst": "建立第一個 QR 群組",
+    "emptyTitle": "還沒有 QR 群組",
+    "emptyDesc": "每個 QR 是一個群組，朋友掃一下就加進來 — 之後隨時可以回來看名單、加標籤、重新分享。",
+    "untitled": "未命名群組",
+    "untitledFallback": "群組 · {{date}}",
+    "namePlaceholder": "為這個群組取個名字",
+    "tagsTitle": "群組標籤",
+    "tagsEmpty": "尚無標籤",
+    "tagInputPlaceholder": "輸入新標籤",
+    "noTagsYet": "尚無標籤",
+    "membersTitle": "成員（{{count}}）",
+    "memberCount": "{{count}} 位好友",
+    "membersEmpty": "還沒有人掃這個 QR — 分享給朋友吧"
   }
 }

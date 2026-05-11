@@ -1064,5 +1064,23 @@
     "notifications": "แจ้งเตือน",
     "profile": "โปรไฟล์",
     "dismissHint": "แตะที่ใดก็ได้เพื่อปิด"
+  },
+  "qrGroup": {
+    "headerTitle": "กลุ่ม QR",
+    "detailHeader": "กลุ่ม QR",
+    "create": "สร้างกลุ่ม",
+    "createFirst": "สร้างกลุ่ม QR แรกของคุณ",
+    "emptyTitle": "ยังไม่มีกลุ่ม QR",
+    "emptyDesc": "แต่ละ QR เป็นกลุ่มของตัวเอง — เพื่อนสแกนแล้วเข้าร่วม คุณกลับมาดู แก้แท็ก หรือแชร์ใหม่ได้ตลอด.",
+    "untitled": "กลุ่มไม่มีชื่อ",
+    "untitledFallback": "กลุ่ม · {{date}}",
+    "namePlaceholder": "ตั้งชื่อกลุ่มนี้",
+    "tagsTitle": "แท็กของกลุ่ม",
+    "tagsEmpty": "ยังไม่มีแท็ก",
+    "tagInputPlaceholder": "แท็กใหม่",
+    "noTagsYet": "ยังไม่มีแท็ก",
+    "membersTitle": "สมาชิก ({{count}})",
+    "memberCount": "เพื่อน {{count}} คน",
+    "membersEmpty": "ยังไม่มีใครสแกน — แชร์ให้เพื่อนสิ"
   }
 }
