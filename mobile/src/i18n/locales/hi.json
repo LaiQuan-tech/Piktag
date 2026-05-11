@@ -210,10 +210,10 @@
     "addSearchDesc": "नाम, यूज़रनेम या टैग से",
     "addContactSyncTitle": "अपने कॉन्टैक्ट सिंक करें",
     "addContactSyncDesc": "PikTag पर पहले से मौजूद दोस्तों को खोजें",
-    "addManualTitle": "किसी को बाद के लिए नोट करें",
-    "addManualDesc": "जो अभी PikTag पर नहीं हैं उनके लिए जगह रखें — साइन अप करने पर अपने आप कनेक्ट",
     "addInviteTitle": "दोस्तों को PikTag पर बुलाएं",
-    "addInviteDesc": "इन्वाइट लिंक शेयर करें — साइन अप करते ही दोस्त"
+    "addInviteDesc": "इन्वाइट लिंक शेयर करें — साइन अप करते ही दोस्त",
+    "coldStartActionContacts": "अपने कॉन्टैक्ट से दोस्त खोजें",
+    "coldStartActionContactsDesc": "PikTag पर मौजूद दोस्तों को खोजें — बाकी को टैग + इन्वाइट"
   },
   "search": {
     "clearAll": "सब साफ़ करें",

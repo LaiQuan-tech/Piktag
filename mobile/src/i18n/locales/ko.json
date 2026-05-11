@@ -210,10 +210,10 @@
     "addSearchDesc": "이름, 아이디, 태그로 찾기",
     "addContactSyncTitle": "주소록 동기화",
     "addContactSyncDesc": "이미 PikTag에 있는 친구 찾기",
-    "addManualTitle": "먼저 적어두기",
-    "addManualDesc": "아직 PikTag에 없는 친구 자리 만들기 — 가입하면 자동 연결",
     "addInviteTitle": "PikTag에 친구 초대",
-    "addInviteDesc": "초대 링크 공유 — 가입하면 자동으로 친구"
+    "addInviteDesc": "초대 링크 공유 — 가입하면 자동으로 친구",
+    "coldStartActionContacts": "연락처에서 친구 찾기",
+    "coldStartActionContactsDesc": "PikTag에 있는 친구를 찾고, 없는 친구는 태그+초대"
   },
   "search": {
     "clearAll": "모두 지우기",

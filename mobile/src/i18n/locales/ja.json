@@ -210,10 +210,10 @@
     "addSearchDesc": "名前・ユーザー名・タグで探す",
     "addContactSyncTitle": "連絡先を同期",
     "addContactSyncDesc": "既に PikTag にいる友達を見つける",
-    "addManualTitle": "誰かを記録しておく",
-    "addManualDesc": "まだ PikTag にいない人の場所を確保 — 登録すると自動で繋がる",
     "addInviteTitle": "友達を PikTag に招待",
-    "addInviteDesc": "招待リンクをシェア — 登録すると自動的に友達に"
+    "addInviteDesc": "招待リンクをシェア — 登録すると自動的に友達に",
+    "coldStartActionContacts": "連絡先から友達を見つける",
+    "coldStartActionContactsDesc": "PikTag にいる友達を見つけて、まだの人にはタグ付き招待を"
   },
   "search": {
     "clearAll": "すべてクリア",

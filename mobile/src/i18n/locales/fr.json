@@ -210,10 +210,10 @@
     "addSearchDesc": "Par nom, pseudo ou tag",
     "addContactSyncTitle": "Synchronise tes contacts",
     "addContactSyncDesc": "Retrouve tes amis déjà sur PikTag",
-    "addManualTitle": "Note quelqu'un pour plus tard",
-    "addManualDesc": "Garde une place pour quelqu'un pas encore inscrit — connexion automatique",
     "addInviteTitle": "Invite des amis sur PikTag",
-    "addInviteDesc": "Partage un lien — devenez amis automatiquement"
+    "addInviteDesc": "Partage un lien — devenez amis automatiquement",
+    "coldStartActionContacts": "Trouve des amis dans tes contacts",
+    "coldStartActionContactsDesc": "Trouve ceux qui sont déjà là — tag et invite les autres"
   },
   "search": {
     "clearAll": "Tout effacer",

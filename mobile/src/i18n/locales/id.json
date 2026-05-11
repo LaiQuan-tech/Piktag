@@ -210,10 +210,10 @@
     "addSearchDesc": "Lewat nama, username, atau tag",
     "addContactSyncTitle": "Sinkron kontakmu",
     "addContactSyncDesc": "Temuin teman yang udah di PikTag",
-    "addManualTitle": "Catat dulu orang ini",
-    "addManualDesc": "Sediain slot buat yang belum di PikTag — auto-connect saat dia gabung",
     "addInviteTitle": "Ajak teman ke PikTag",
-    "addInviteDesc": "Share link undangan — auto jadi teman pas dia gabung"
+    "addInviteDesc": "Share link undangan — auto jadi teman pas dia gabung",
+    "coldStartActionContacts": "Cari teman dari kontakmu",
+    "coldStartActionContactsDesc": "Temuin yang udah di PikTag — tag + invite yang belum"
   },
   "search": {
     "clearAll": "Hapus semua",

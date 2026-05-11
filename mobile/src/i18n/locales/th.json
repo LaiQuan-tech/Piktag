@@ -210,10 +210,10 @@
     "addSearchDesc": "ค้นหาด้วยชื่อ ยูสเซอร์ หรือแท็ก",
     "addContactSyncTitle": "ซิงค์รายชื่อ",
     "addContactSyncDesc": "หาเพื่อนที่อยู่ใน PikTag แล้ว",
-    "addManualTitle": "จดคนนี้ไว้ก่อน",
-    "addManualDesc": "จองที่ให้คนที่ยังไม่ได้ใช้ PikTag — เชื่อมต่ออัตโนมัติเมื่อเขาเข้าร่วม",
     "addInviteTitle": "ชวนเพื่อนมา PikTag",
-    "addInviteDesc": "แชร์ลิงก์เชิญ — เป็นเพื่อนกันอัตโนมัติเมื่อเข้าร่วม"
+    "addInviteDesc": "แชร์ลิงก์เชิญ — เป็นเพื่อนกันอัตโนมัติเมื่อเข้าร่วม",
+    "coldStartActionContacts": "หาเพื่อนจากรายชื่อ",
+    "coldStartActionContactsDesc": "หาคนที่อยู่ใน PikTag แล้ว — แท็กและเชิญที่เหลือ"
   },
   "search": {
     "clearAll": "ล้างทั้งหมด",

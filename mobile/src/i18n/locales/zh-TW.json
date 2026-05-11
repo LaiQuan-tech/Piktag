@@ -225,10 +225,10 @@
     "addSearchDesc": "用名字、用戶名或標籤找人",
     "addContactSyncTitle": "同步通訊錄找朋友",
     "addContactSyncDesc": "找出已在 PikTag 的朋友",
-    "addManualTitle": "先記下這個人",
-    "addManualDesc": "為還沒加入的朋友佔位，等他註冊後自動連上",
     "addInviteTitle": "邀請朋友加入 PikTag",
-    "addInviteDesc": "分享邀請連結，他註冊後直接成為好友"
+    "addInviteDesc": "分享邀請連結，他註冊後直接成為好友",
+    "coldStartActionContacts": "從通訊錄找朋友",
+    "coldStartActionContactsDesc": "找出已在 PikTag 的朋友，沒在的也能標籤+邀請"
   },
   "search": {
     "clearAll": "清除全部",

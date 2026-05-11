@@ -210,10 +210,10 @@
     "addSearchDesc": "بالاسم أو اسم المستخدم أو الوسم",
     "addContactSyncTitle": "مزامنة جهات الاتصال",
     "addContactSyncDesc": "ابحث عن الأصدقاء الموجودين على PikTag",
-    "addManualTitle": "احفظ شخصًا للوقت اللاحق",
-    "addManualDesc": "احجز مكانًا لشخص لم يسجل بعد — سيتصل تلقائيًا عند انضمامه",
     "addInviteTitle": "ادعُ أصدقاء إلى PikTag",
-    "addInviteDesc": "شارك رابط دعوة — سيصبح صديقًا تلقائيًا"
+    "addInviteDesc": "شارك رابط دعوة — سيصبح صديقًا تلقائيًا",
+    "coldStartActionContacts": "ابحث عن أصدقاء من جهات اتصالك",
+    "coldStartActionContactsDesc": "ابحث عن الموجودين، ووسم وأدعُ من ليسوا منهم"
   },
   "search": {
     "clearAll": "مسح الكل",

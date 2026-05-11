@@ -218,10 +218,10 @@
     "addSearchDesc": "Per Name, User-Name oder Tag",
     "addContactSyncTitle": "Kontakte synchronisieren",
     "addContactSyncDesc": "Find Freunde, die schon auf PikTag sind",
-    "addManualTitle": "Jemanden für später notieren",
-    "addManualDesc": "Platz halten für jemanden, der noch nicht dabei ist — verbindet sich automatisch",
     "addInviteTitle": "Freunde zu PikTag einladen",
-    "addInviteDesc": "Einladungslink teilen — automatisch verbunden"
+    "addInviteDesc": "Einladungslink teilen — automatisch verbunden",
+    "coldStartActionContacts": "Freunde aus deinen Kontakten finden",
+    "coldStartActionContactsDesc": "Find Freunde, die schon dabei sind — die anderen taggen + einladen"
   },
   "search": {
     "clearAll": "Alle löschen",

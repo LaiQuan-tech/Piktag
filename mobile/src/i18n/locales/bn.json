@@ -210,10 +210,10 @@
     "addSearchDesc": "নাম, ইউজারনেম বা ট্যাগ দিয়ে",
     "addContactSyncTitle": "কন্টাক্ট সিঙ্ক করো",
     "addContactSyncDesc": "PikTag-এ থাকা বন্ধুদের খুঁজে নাও",
-    "addManualTitle": "আপাতত কারো নাম রেখে দাও",
-    "addManualDesc": "যে এখনো PikTag-এ নেই, তার জন্য জায়গা রাখো — সাইন আপ করলেই কানেক্ট হবে",
     "addInviteTitle": "বন্ধুদের PikTag-এ ইনভাইট করো",
-    "addInviteDesc": "ইনভাইট লিংক শেয়ার করো — সাইন আপ করলেই বন্ধু হবে"
+    "addInviteDesc": "ইনভাইট লিংক শেয়ার করো — সাইন আপ করলেই বন্ধু হবে",
+    "coldStartActionContacts": "কন্টাক্ট থেকে বন্ধু খোঁজো",
+    "coldStartActionContactsDesc": "যারা PikTag-এ আছে তাদের খোঁজো, বাকিদের ট্যাগ + ইনভাইট"
   },
   "search": {
     "clearAll": "সব সাফ করুন",

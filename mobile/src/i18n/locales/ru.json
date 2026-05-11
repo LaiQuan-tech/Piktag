@@ -210,10 +210,10 @@
     "addSearchDesc": "По имени, нику или тегу",
     "addContactSyncTitle": "Синхронизировать контакты",
     "addContactSyncDesc": "Найди друзей, которые уже здесь",
-    "addManualTitle": "Сохранить человека на потом",
-    "addManualDesc": "Зарезервируй место — соединит автоматически, когда зарегистрируется",
     "addInviteTitle": "Пригласи друзей в PikTag",
-    "addInviteDesc": "Поделись ссылкой — друг по умолчанию"
+    "addInviteDesc": "Поделись ссылкой — друг по умолчанию",
+    "coldStartActionContacts": "Найди друзей из контактов",
+    "coldStartActionContactsDesc": "Найди тех, кто уже здесь — отметь и пригласи остальных"
   },
   "search": {
     "clearAll": "Очистить всё",

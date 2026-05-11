@@ -225,10 +225,10 @@
     "addSearchDesc": "By name, username, or tag",
     "addContactSyncTitle": "Sync your contacts",
     "addContactSyncDesc": "Find friends already on PikTag",
-    "addManualTitle": "Save someone for later",
-    "addManualDesc": "Hold a spot for someone not on PikTag yet — auto-connects when they sign up",
     "addInviteTitle": "Invite friends to PikTag",
-    "addInviteDesc": "Share an invite link — auto-connects when they join"
+    "addInviteDesc": "Share an invite link — auto-connects when they join",
+    "coldStartActionContacts": "Find friends from your contacts",
+    "coldStartActionContactsDesc": "Find friends already on PikTag — tag and invite the ones who aren't"
   },
   "search": {
     "clearAll": "Clear all",

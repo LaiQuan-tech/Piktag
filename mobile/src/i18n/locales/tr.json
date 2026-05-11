@@ -210,10 +210,10 @@
     "addSearchDesc": "İsim, kullanıcı adı veya etikete göre",
     "addContactSyncTitle": "Rehberini eşitle",
     "addContactSyncDesc": "PikTag'a kayıtlı arkadaşlarını bul",
-    "addManualTitle": "Birini sonra için kaydet",
-    "addManualDesc": "Henüz PikTag'da olmayan biri için yer ayır — kayıt olunca otomatik bağlanır",
     "addInviteTitle": "Arkadaşlarını PikTag'a davet et",
-    "addInviteDesc": "Davet bağlantısı paylaş — kayıt olunca otomatik arkadaş"
+    "addInviteDesc": "Davet bağlantısı paylaş — kayıt olunca otomatik arkadaş",
+    "coldStartActionContacts": "Rehberinden arkadaş bul",
+    "coldStartActionContactsDesc": "PikTag'da olanları bul — olmayanları etiketle+davet et"
   },
   "search": {
     "clearAll": "Hepsini temizle",

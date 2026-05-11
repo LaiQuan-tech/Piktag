@@ -667,11 +667,19 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
               onPress: () => navigation.navigate('ProfileTab', { screen: 'EditProfile' }),
             },
             {
+              // Switched destination from the (removed) LocalContacts
+              // manual-add screen to ContactSync. Both addressed the
+              // same cold-start moment ("how do I get my first
+              // friend?") but ContactSync is the social path:
+              // resolve existing phone-book contacts against PikTag
+              // accounts, follow the ones that match, optionally
+              // tag-and-invite the ones that don't. Manual data
+              // entry was the CRM path and was pulled.
               key: 'contacts',
               icon: Users,
-              title: t('connections.coldStartActionContacts', { defaultValue: '幫聯絡人貼標籤' }),
-              desc: t('connections.coldStartActionContactsDesc', { defaultValue: '就算對方還沒註冊 PikTag — 等他加入，標籤會自動同步' }),
-              onPress: () => navigation.navigate('LocalContacts'),
+              title: t('connections.coldStartActionContacts', { defaultValue: '從通訊錄找朋友' }),
+              desc: t('connections.coldStartActionContactsDesc', { defaultValue: '找出已在 PikTag 的朋友，沒在的也能標籤+邀請' }),
+              onPress: () => navigation.navigate('ContactSync'),
             },
             {
               key: 'qr',
@@ -956,13 +964,15 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
       )}
 
 
-      {/* Add-contact action sheet — surfaces all four ways to grow
-          your connections in one menu. Order is intentional: search
-          first (find existing PikTag users) → contact sync (find
-          friends already on PikTag) → manual local-contact (placeholder
-          for someone not yet registered) → invite (recruit). The
-          ordering implicitly teaches users the social-CRM hierarchy:
-          existing users > unregistered placeholders > pure marketing. */}
+      {/* Add-contact action sheet — three social-only paths to grow
+          your connections. The earlier 4th row ("先記下這個人" → manual
+          LocalContacts entry) was removed because PikTag is a social
+          tool, not a CRM — typing a person's name + phone + email
+          into a form from scratch is a CRM action that doesn't fit
+          the brand. Tagging EXISTING data (phone contacts, scans,
+          invites) is the social model and stays. Order: search first
+          (find existing PikTag users) → contact sync (already-on-
+          PikTag matches) → invite (recruit). */}
       <Modal
         visible={addMenuVisible}
         transparent
@@ -1019,28 +1029,6 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
                 </Text>
                 <Text style={styles.addMenuRowDesc}>
                   {t('connections.addContactSyncDesc', { defaultValue: '找出已在 PikTag 的朋友' })}
-                </Text>
-              </View>
-              <ChevronRight size={18} color={COLORS.gray400} />
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.addMenuRow}
-              activeOpacity={0.6}
-              onPress={() => {
-                setAddMenuVisible(false);
-                navigation.navigate('LocalContacts');
-              }}
-            >
-              <View style={[styles.addMenuIconWrap, { backgroundColor: COLORS.piktag50 }]}>
-                <UserPlus size={20} color={COLORS.piktag600} />
-              </View>
-              <View style={styles.addMenuTextWrap}>
-                <Text style={styles.addMenuRowTitle}>
-                  {t('connections.addManualTitle', { defaultValue: '先記下這個人' })}
-                </Text>
-                <Text style={styles.addMenuRowDesc}>
-                  {t('connections.addManualDesc', { defaultValue: '為還沒加入的朋友佔位，等他註冊後自動連上' })}
                 </Text>
               </View>
               <ChevronRight size={18} color={COLORS.gray400} />
