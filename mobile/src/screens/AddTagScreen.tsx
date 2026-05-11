@@ -211,8 +211,15 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
           const cached = JSON.parse(val);
           if (cached.url && !qrValue) {
             setQrValue(cached.url);
-            if (cached.date) setEventDate(cached.date);
-            if (cached.location) setEventLocation(cached.location);
+            // NOTE: deliberately NOT restoring cached.date /
+            // cached.location anymore. They're remnants from the
+            // legacy date/location-picker flow — under the new
+            // AI-driven UI the user doesn't see those pickers, so
+            // restoring values from a previous session leaks ghost
+            // tags onto the current QR's display (user reported
+            // "I didn't pick those, why are they here?").
+            // event_tags are kept because the user DID explicitly
+            // tap chips to add them — that's their intent.
             if (cached.tags) setEventTags(cached.tags);
           }
         } catch {}
@@ -684,7 +691,12 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
       // 5. Set state — build a local ScanSession object for display
       setQrValue(qrUrl);
       // Cache QR code for offline use
-      AsyncStorage.setItem('piktag_last_qr', JSON.stringify({ url: qrUrl, date: eventDate, location: eventLocation, tags: eventTags }));
+      // Cache for offline display — only the URL + user-picked tags.
+      // Deliberately NOT caching date/location anymore: they're
+      // implicit DB-side context (used by AI grounding) but the
+      // user never sees a "set date/location" UI, so persisting
+      // them would silently leak ghost tags into the next QR.
+      AsyncStorage.setItem('piktag_last_qr', JSON.stringify({ url: qrUrl, tags: eventTags }));
       setScanSession({
         id: sessionId,
         host_user_id: user.id,
@@ -975,17 +987,17 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
         <View style={styles.qrWhiteCard}>
           <QRCode value={qrValue} size={220} backgroundColor="#fff" />
           <Text style={styles.qrCardUsername}>@{qrUsername}</Text>
-          {(eventDate || eventLocation || eventTags.length > 0) && (
+          {/* QR display tags: only what the user explicitly added
+              via AI-suggestion taps or manual input. event_date /
+              event_location are still populated in the DB row (used
+              by popular_tags_near_location for future AI grounding)
+              but NOT rendered here as separate hashtag lines — the
+              user shouldn't see "ghost" tags they didn't pick. */}
+          {eventTags.length > 0 && (
             <View style={styles.qrEventInfo}>
-              {eventDate ? (
-                <Text style={styles.qrEventInfoLine}>#{eventDate}</Text>
-              ) : null}
-              {eventLocation ? (
-                <Text style={styles.qrEventInfoLine}>#{eventLocation}</Text>
-              ) : null}
-              {eventTags.length > 0 ? (
-                <Text style={styles.qrEventInfoLine}>{eventTags.map(t => '#' + t.replace(/^#/, '')).join('  ')}</Text>
-              ) : null}
+              <Text style={styles.qrEventInfoLine}>
+                {eventTags.map(t => '#' + t.replace(/^#/, '')).join('  ')}
+              </Text>
             </View>
           )}
         </View>
@@ -1129,7 +1141,11 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
             <X size={28} color="#FFFFFF" />
           </TouchableOpacity>
 
-          {/* Event info */}
+          {/* Event info — fallback chain stays as-is. eventLocation /
+              eventDate are still kept on the DB row for AI grounding;
+              under the new flow they'll usually be auto-set from GPS
+              and today, but only show as the LIVE-MODE title here
+              (not as user-visible hashtag lines on the QR card). */}
           <Text style={styles.eventTitle}>
             {eventLocation || eventDate || 'PikTag'}
           </Text>
@@ -1137,17 +1153,11 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
           {/* Large QR Code */}
           <View style={styles.eventQrWrapper}>
             <QRCode value={qrValue} size={280} backgroundColor="#FFFFFF" />
-            {(eventDate || eventLocation || eventTags.length > 0) && (
+            {eventTags.length > 0 && (
               <View style={styles.qrEventInfo}>
-                {eventDate ? (
-                  <Text style={styles.qrEventInfoLine}>#{eventDate}</Text>
-                ) : null}
-                {eventLocation ? (
-                  <Text style={styles.qrEventInfoLine}>#{eventLocation}</Text>
-                ) : null}
-                {eventTags.length > 0 ? (
-                  <Text style={styles.qrEventInfoLine}>{eventTags.map(t => '#' + t.replace(/^#/, '')).join('  ')}</Text>
-                ) : null}
+                <Text style={styles.qrEventInfoLine}>
+                  {eventTags.map(t => '#' + t.replace(/^#/, '')).join('  ')}
+                </Text>
               </View>
             )}
           </View>
