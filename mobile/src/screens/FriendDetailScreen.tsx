@@ -1717,7 +1717,10 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: COLORS.piktag600,
     marginBottom: 4,
-    paddingHorizontal: 20,
+    // No paddingHorizontal here — the parent profileSection already
+    // owns the 20px horizontal padding. Stacking a second 20px on
+    // headline indented it past the bio/tags column, breaking the
+    // left-edge alignment with ProfileScreen's matching headline.
   },
   bio: {
     fontSize: 14,
