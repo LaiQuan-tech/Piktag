@@ -14,7 +14,7 @@ import {
   Platform,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { X, Star, Share2, Trash2, ScanLine, Link2, Pencil, Plus } from 'lucide-react-native';
+import { X, Star, Share2, Trash2, ScanLine, Link2, Pencil, Plus, Sparkles, RefreshCw } from 'lucide-react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import QRCode from 'react-native-qrcode-svg';
 import { useTranslation } from 'react-i18next';
@@ -25,6 +25,13 @@ import { COLORS } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
 import { LinearGradient } from 'expo-linear-gradient';
 import { getLocales } from 'expo-localization';
+import {
+  requestForegroundPermissionsAsync,
+  getCurrentPositionAsync,
+  Accuracy,
+  reverseGeocodeAsync,
+} from 'expo-location';
+import { logApiUsage } from '../lib/apiUsage';
 import { setStringAsync as setClipboardStringAsync } from 'expo-clipboard';
 import PageLoader from '../components/loaders/PageLoader';
 import BrandSpinner from '../components/loaders/BrandSpinner';
@@ -111,6 +118,28 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
   const [qrUsername, setQrUsername] = useState('');
   const [scanSession, setScanSession] = useState<ScanSession | null>(null);
   const [generating, setGenerating] = useState(false);
+
+  // Task 3 — AI-driven tag suggestions for QR groups.
+  //
+  // Replaces the old date/location pickers with a single freeform
+  // context input + ambient signals (GPS, time, viewer identity).
+  // The user types "週末聚餐" and AI returns 6-10 tag chips that
+  // make sense for the situation. Tap chips to add to eventTags.
+  //
+  // State:
+  //   contextDescription  user's freeform "what is this QR for"
+  //   aiLocation          reverse-geocoded place name (e.g. "Taipei")
+  //   aiSuggestions       AI-returned tag names (without #)
+  //   aiLoading           single-flight flag
+  //   aiContext           cached "what we last sent to AI", used to
+  //                       avoid re-firing for the same prompt
+  const [contextDescription, setContextDescription] = useState('');
+  const [aiLocation, setAiLocation] = useState<string>('');
+  const [aiSuggestions, setAiSuggestions] = useState<string[]>([]);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiContext, setAiContext] = useState('');
+  const [viewerBio, setViewerBio] = useState('');
+  const [viewerTagNames, setViewerTagNames] = useState<string[]>([]);
 
   // Presets modal
   const [showPresetsModal, setShowPresetsModal] = useState(false);
@@ -245,6 +274,161 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
     setEventTags((prev) => [...prev, trimmed]);
     setTagInput('');
   };
+
+  // ─── AI tag suggestions (task 3) ──────────────────────────────
+  //
+  // On mount: load viewer's identity (bio + public tags) and try to
+  // reverse-geocode current GPS to a place name. Both feed AI as
+  // ambient context so the suggestions reflect WHO is making this
+  // QR + WHERE they are.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      if (!user) return;
+      try {
+        const { data: profile } = await supabase
+          .from('piktag_profiles')
+          .select('bio, headline, full_name')
+          .eq('id', user.id)
+          .maybeSingle();
+        if (!cancelled && profile) {
+          setViewerBio(
+            [profile.bio, profile.headline, profile.full_name]
+              .filter(Boolean)
+              .join(' · '),
+          );
+        }
+        const { data: ut } = await supabase
+          .from('piktag_user_tags')
+          .select('piktag_tags(name)')
+          .eq('user_id', user.id)
+          .eq('is_private', false)
+          .limit(10);
+        if (!cancelled && Array.isArray(ut)) {
+          const names = ut
+            .map((row: any) => row?.piktag_tags?.name)
+            .filter(Boolean) as string[];
+          setViewerTagNames(names);
+        }
+      } catch (err) {
+        console.warn('[AddTag] viewer identity fetch failed:', err);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [user]);
+
+  useEffect(() => {
+    // GPS → reverse-geocode → first place name. Fire once on
+    // mount; if the user denies permission we silently fall back to
+    // no-location context (AI still works on bio + description).
+    let cancelled = false;
+    (async () => {
+      try {
+        const { status } = await requestForegroundPermissionsAsync();
+        if (status !== 'granted') return;
+        const pos = await getCurrentPositionAsync({ accuracy: Accuracy.Balanced });
+        const places = await reverseGeocodeAsync({
+          latitude: pos.coords.latitude,
+          longitude: pos.coords.longitude,
+        });
+        if (cancelled) return;
+        const first = places[0];
+        if (first) {
+          const label =
+            first.name ||
+            first.district ||
+            first.subregion ||
+            first.city ||
+            first.region ||
+            '';
+          if (label) setAiLocation(label);
+        }
+      } catch {
+        /* GPS failures are non-fatal — AI just gets less context */
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const loadAiSuggestions = useCallback(async () => {
+    if (!user) return;
+    // Build context blob. We pass:
+    //   bio       = viewer's identity (bio + headline + name) +
+    //               their existing public tags — so AI knows "who's
+    //               creating this QR"
+    //   name      = the freeform context description (what's the
+    //               situation) + current time hint (今天是週六晚上)
+    //   location  = reverse-geocoded place name
+    //   existingTags = tags already selected on this QR (so AI
+    //               doesn't repeat them)
+    //   lang      = device script auto-detect (matches EditProfile)
+    const desc = contextDescription.trim();
+    const tagsBlob = viewerTagNames.join(', ');
+    const identity = [viewerBio, tagsBlob].filter(Boolean).join(' · ');
+    if (!identity && !desc && !aiLocation) return;
+    const now = new Date();
+    const timeHint = `${now.toLocaleDateString()} ${now.getHours()}:${String(now.getMinutes()).padStart(2, '0')}`;
+    const contextKey = `${identity}|${desc}|${aiLocation}|${eventTags.join(',')}`;
+    if (contextKey === aiContext && aiSuggestions.length > 0) return;
+    setAiContext(contextKey);
+    setAiLoading(true);
+    try {
+      const userLang = (desc + identity).match(/[一-鿿]/) ? '繁體中文' :
+        (desc + identity).match(/[぀-ヿ]/) ? '日本語' :
+        (desc + identity).match(/[가-힯]/) ? '한국어' :
+        (desc + identity).match(/[฀-๿]/) ? 'ภาษาไทย' : 'the same language as the content';
+      logApiUsage('gemini_generate', { via: 'edge-fn:qr-group' });
+      const { data, error } = await supabase.functions.invoke<{
+        suggestions?: string[];
+      }>('suggest-tags', {
+        body: {
+          bio: identity,
+          name: desc ? `${desc} (時間: ${timeHint})` : `時間: ${timeHint}`,
+          location: aiLocation,
+          existingTags: eventTags.join(', '),
+          lang: userLang,
+        },
+      });
+      if (error) {
+        console.warn('[AddTag] AI suggest-tags error:', error.message);
+        setAiSuggestions([]);
+        return;
+      }
+      const raw = Array.isArray(data?.suggestions) ? data!.suggestions : [];
+      const cleaned = Array.from(
+        new Set(
+          raw
+            .map((n) => (typeof n === 'string' ? n.replace(/^#/, '').trim() : ''))
+            .filter(Boolean)
+            .filter((n) => !eventTags.includes(n)),
+        ),
+      ).slice(0, 10);
+      setAiSuggestions(cleaned);
+    } catch (err) {
+      console.warn('[AddTag] AI suggest-tags exception:', err);
+      setAiSuggestions([]);
+    } finally {
+      setAiLoading(false);
+    }
+  }, [user, contextDescription, aiLocation, viewerBio, viewerTagNames, eventTags, aiContext, aiSuggestions.length]);
+
+  // Auto-fire AI suggestions when context settles. Debounced so
+  // typing in the description input doesn't hammer the edge fn.
+  useEffect(() => {
+    const id = setTimeout(() => {
+      // Only fire when we have AT LEAST one signal (description OR
+      // GPS OR viewer identity). The function itself dedupes via
+      // aiContext so this won't loop.
+      if (viewerBio || contextDescription.trim() || aiLocation) {
+        loadAiSuggestions();
+      }
+    }, 900);
+    return () => clearTimeout(id);
+  }, [contextDescription, aiLocation, viewerBio, viewerTagNames.length, loadAiSuggestions]);
 
   // ─── Remove tag ───
   const handleRemoveTag = (tag: string) => {
@@ -509,132 +693,85 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
         keyboardDismissMode="on-drag"
         automaticallyAdjustKeyboardInsets={Platform.OS === 'ios'}
       >
-        {/* 日期 Section */}
+        {/* Context description — single optional line that
+            describes the situation in natural language. AI uses it
+            as the strongest signal when generating suggestions.
+            "公司週年活動", "週末聚餐", "客戶 demo" 之類。 */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>{t('addTag.dateLabel')}</Text>
+          <Text style={styles.sectionTitle}>
+            {t('addTag.contextLabel', { defaultValue: '這個 QR 是給什麼場合？' })}
+          </Text>
+          <Text style={styles.hiddenTagHint}>
+            {t('addTag.contextHint', { defaultValue: '一句話描述就好。AI 會看你說的話、現在的時間、你在哪，推薦合適的標籤。' })}
+          </Text>
+          <View style={[styles.inputRow, { marginTop: 4 }]}>
+            <TextInput
+              style={styles.textInput}
+              value={contextDescription}
+              onChangeText={setContextDescription}
+              placeholder={t('addTag.contextPlaceholder', { defaultValue: '例如：週末聚餐、客戶 demo、新書發表會' })}
+              placeholderTextColor={COLORS.gray400}
+              returnKeyType="done"
+              maxLength={60}
+            />
+          </View>
+        </View>
 
-          {/* Date selector — just [選日期] button + selected date chip */}
-          <View style={styles.quickDateRow}>
-            <TouchableOpacity
-              style={[styles.quickDateBtn, showDatePicker && styles.quickDateBtnActive]}
-              onPress={() => setShowDatePicker(!showDatePicker)}
-              activeOpacity={0.7}
-            >
-              <Text style={[styles.quickDateText, showDatePicker && styles.quickDateTextActive]}>
-                {t('addTag.pickDate')}
+        {/* AI 推薦標籤 Section — auto-fires after GPS resolves +
+            after the context description settles (debounced). Each
+            chip taps onto eventTags and disappears from the
+            suggestion strip. Refresh icon re-rolls. */}
+        <View style={styles.section}>
+          <View style={styles.aiHeaderRow}>
+            <View style={styles.aiHeaderLeft}>
+              {aiLoading ? (
+                <BrandSpinner size={16} />
+              ) : (
+                <Sparkles size={14} color={COLORS.piktag600} />
+              )}
+              <Text style={styles.aiHeaderTitle}>
+                {aiLoading
+                  ? `${t('addTag.aiSuggestionsTitle', { defaultValue: 'AI 為你推薦' })}…`
+                  : t('addTag.aiSuggestionsTitle', { defaultValue: 'AI 為你推薦' })}
               </Text>
-            </TouchableOpacity>
-            {eventDate && (
+            </View>
+            {!aiLoading && (
               <TouchableOpacity
-                style={[styles.quickDateBtn, styles.quickDateBtnActive]}
-                onPress={() => setEventDate('')}
+                onPress={loadAiSuggestions}
                 activeOpacity={0.7}
+                hitSlop={8}
+                style={styles.aiRefreshBtn}
+                accessibilityRole="button"
+                accessibilityLabel={t('addTag.aiRegenerate', { defaultValue: '重新推薦' })}
               >
-                <Text style={[styles.quickDateText, styles.quickDateTextActive]}>
-                  #{formatDateDisplay(selectedDateObj)}
-                </Text>
+                <RefreshCw size={14} color={COLORS.piktag600} />
               </TouchableOpacity>
             )}
           </View>
-
-          {/* Simple month calendar (when expanded) */}
-          {showDatePicker && (
-            <View style={styles.calendarGrid}>
-              {(() => {
-                const year = selectedDateObj.getFullYear();
-                const month = selectedDateObj.getMonth();
-                const firstDay = new Date(year, month, 1).getDay();
-                const daysInMonth = new Date(year, month + 1, 0).getDate();
-                const days: (number | null)[] = Array(firstDay).fill(null);
-                for (let i = 1; i <= daysInMonth; i++) days.push(i);
-
-                return (
-                  <>
-                    <View style={styles.calendarHeader}>
-                      <TouchableOpacity onPress={() => { const d = new Date(selectedDateObj); d.setMonth(d.getMonth() - 1); setSelectedDateObj(d); }}>
-                        <Text style={styles.calendarNav}>{'<'}</Text>
-                      </TouchableOpacity>
-                      <Text style={styles.calendarMonthText}>{year}/{String(month + 1).padStart(2, '0')}</Text>
-                      <TouchableOpacity onPress={() => { const d = new Date(selectedDateObj); d.setMonth(d.getMonth() + 1); setSelectedDateObj(d); }}>
-                        <Text style={styles.calendarNav}>{'>'}</Text>
-                      </TouchableOpacity>
-                    </View>
-                    <View style={styles.calendarWeekRow}>
-                      {['日', '一', '二', '三', '四', '五', '六'].map(d => (
-                        <Text key={d} style={styles.calendarWeekDay}>{d}</Text>
-                      ))}
-                    </View>
-                    <View style={styles.calendarDaysGrid}>
-                      {days.map((day, i) => {
-                        if (!day) return <View key={`empty-${i}`} style={styles.calendarDayCell} />;
-                        const dateStr = formatDate(new Date(year, month, day));
-                        const isToday = dateStr === formatDate(new Date());
-                        const isSelected = dateStr === eventDate;
-                        return (
-                          <TouchableOpacity
-                            key={day}
-                            style={styles.calendarDayCell}
-                            onPress={() => { setEventDate(dateStr); setSelectedDateObj(new Date(year, month, day)); setShowDatePicker(false); }}
-                          >
-                            <View style={[styles.calendarDayInner, isSelected && styles.calendarDayInnerSelected]}>
-                              <Text style={[styles.calendarDayText, isToday && styles.calendarDayToday, isSelected && styles.calendarDayTextSelected]}>{day}</Text>
-                            </View>
-                          </TouchableOpacity>
-                        );
-                      })}
-                    </View>
-                  </>
-                );
-              })()}
-            </View>
-          )}
-        </View>
-
-        {/* 地點 Section */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>{t('addTag.locationLabel')}</Text>
-
-          {/* Select location button + recent location chips (same row) */}
-          <View style={styles.quickDateRow}>
-            <TouchableOpacity
-              style={styles.quickDateBtn}
-              onPress={() => setShowLocationPicker(true)}
-              activeOpacity={0.7}
-            >
-              <Text style={styles.quickDateText}>{t('addTag.selectLocation', { defaultValue: '選地點' })}</Text>
-            </TouchableOpacity>
-            {recentLocations.slice(0, 2).map((loc) => (
+          {aiSuggestions.length > 0 ? (
+            <View style={styles.popularChipsContainer}>
+              {aiSuggestions.map((s) => (
                 <TouchableOpacity
-                  key={loc}
-                  style={[styles.quickDateBtn, eventLocation === loc && styles.quickDateBtnActive]}
-                  onPress={() => setEventLocation(loc)}
+                  key={s}
+                  style={styles.popularChip}
+                  onPress={() => {
+                    setEventTags((prev) => (prev.includes(s) ? prev : [...prev, s]));
+                    setAiSuggestions((prev) => prev.filter((x) => x !== s));
+                  }}
                   activeOpacity={0.7}
                 >
-                  <Text style={[styles.quickDateText, eventLocation === loc && styles.quickDateTextActive]} numberOfLines={1}>
-                    #{loc}
-                  </Text>
-                  <TouchableOpacity
-                    onPress={() => handleRemoveRecentLocation(loc)}
-                    hitSlop={{ top: 8, bottom: 8, left: 6, right: 8 }}
-                    activeOpacity={0.6}
-                    accessibilityLabel="刪除"
-                    accessibilityRole="button"
-                  >
-                    <X size={12} color={eventLocation === loc ? COLORS.piktag600 : COLORS.gray400} />
-                  </TouchableOpacity>
+                  <Text style={styles.popularChipText}>#{s}</Text>
                 </TouchableOpacity>
               ))}
-          </View>
-
+            </View>
+          ) : aiLoading ? null : (
+            <Text style={styles.hiddenTagHint}>
+              {aiContext.length > 0
+                ? t('addTag.aiSuggestionsEmpty', { defaultValue: 'AI 想不到合適的標籤 — 再試一次或自己加。' })
+                : t('addTag.aiSuggestionsHint', { defaultValue: '輸入一句場合描述 — AI 會根據你的話 + 位置 + 你的身份標籤推薦。' })}
+            </Text>
+          )}
         </View>
-
-        {/* Location Picker Modal */}
-        <LocationPickerModal
-          visible={showLocationPicker}
-          onClose={() => setShowLocationPicker(false)}
-          onSelect={handleLocationSelected}
-          initialLocation={eventLocation}
-        />
 
         {/* 自訂標籤 Section */}
         <View style={styles.section}>
@@ -1193,6 +1330,34 @@ const styles = StyleSheet.create({
   },
   chipRemoveBtn: {
     padding: 2,
+  },
+
+  // ── AI suggestions header (task 3) ──
+  aiHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 10,
+  },
+  aiHeaderLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  aiHeaderTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: COLORS.piktag600,
+  },
+  aiRefreshBtn: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: COLORS.piktag200,
+    backgroundColor: COLORS.white,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 
   // ── Popular tags ──
