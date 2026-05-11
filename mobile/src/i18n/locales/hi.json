@@ -640,6 +640,7 @@
     "followAllCta": "सभी PikTag दोस्तों को फ़ॉलो करें ({{count}})",
     "followBtn": "फ़ॉलो",
     "inviteBtn": "आमंत्रित",
+    "tagInviteBtn": "टैग करें और बुलाएँ",
     "fromContact": "कॉन्टैक्ट: {{name}}",
     "classifyingText": "मिलान हो रहा है…",
     "alertFollowAllTitle": "सभी को फ़ॉलो करें",

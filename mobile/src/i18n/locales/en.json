@@ -655,6 +655,7 @@
     "followAllCta": "Follow all PikTag friends ({{count}})",
     "followBtn": "Follow",
     "inviteBtn": "Invite",
+    "tagInviteBtn": "Tag & invite",
     "fromContact": "Contact: {{name}}",
     "classifyingText": "Matching…",
     "alertFollowAllTitle": "Follow all",

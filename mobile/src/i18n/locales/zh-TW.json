@@ -658,6 +658,7 @@
     "followAllCta": "全部追蹤 PikTag 朋友 ({{count}})",
     "followBtn": "追蹤",
     "inviteBtn": "邀請",
+    "tagInviteBtn": "貼標籤並邀請",
     "fromContact": "通訊錄：{{name}}",
     "classifyingText": "對比中…",
     "alertFollowAllTitle": "全部追蹤",

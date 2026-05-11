@@ -640,6 +640,7 @@
     "followAllCta": "Подписаться на всех друзей PikTag ({{count}})",
     "followBtn": "Подписаться",
     "inviteBtn": "Пригласить",
+    "tagInviteBtn": "Отметить и пригласить",
     "fromContact": "Контакт: {{name}}",
     "classifyingText": "Сопоставляем…",
     "alertFollowAllTitle": "Подписаться на всех",

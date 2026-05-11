@@ -640,6 +640,7 @@
     "followAllCta": "PikTag 친구 모두 팔로우 ({{count}})",
     "followBtn": "팔로우",
     "inviteBtn": "초대",
+    "tagInviteBtn": "태그 후 초대",
     "fromContact": "연락처: {{name}}",
     "classifyingText": "매칭 중…",
     "alertFollowAllTitle": "모두 팔로우",

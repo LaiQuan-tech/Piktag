@@ -640,6 +640,7 @@
     "followAllCta": "PikTagの友達をすべてフォロー ({{count}})",
     "followBtn": "フォロー",
     "inviteBtn": "招待",
+    "tagInviteBtn": "タグを付けて招待",
     "fromContact": "連絡先：{{name}}",
     "classifyingText": "照合中…",
     "alertFollowAllTitle": "すべてフォロー",

@@ -640,6 +640,7 @@
     "followAllCta": "متابعة جميع أصدقاء PikTag ({{count}})",
     "followBtn": "متابعة",
     "inviteBtn": "دعوة",
+    "tagInviteBtn": "إضافة وسم ودعوة",
     "fromContact": "جهة اتصال: {{name}}",
     "classifyingText": "جارٍ المطابقة…",
     "alertFollowAllTitle": "متابعة الكل",

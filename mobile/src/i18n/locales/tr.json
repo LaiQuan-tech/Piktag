@@ -640,6 +640,7 @@
     "followAllCta": "Tüm PikTag arkadaşlarını takip et ({{count}})",
     "followBtn": "Takip Et",
     "inviteBtn": "Davet Et",
+    "tagInviteBtn": "Etiketle ve davet et",
     "fromContact": "Kişi: {{name}}",
     "classifyingText": "Eşleştiriliyor…",
     "alertFollowAllTitle": "Tümünü takip et",

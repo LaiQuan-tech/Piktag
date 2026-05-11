@@ -669,12 +669,12 @@ export default function ContactSyncScreen({ navigation }: ContactSyncScreenProps
             activeOpacity={0.85}
             accessibilityRole="button"
             accessibilityLabel={
-              t('contactSync.tagInviteBtn', { defaultValue: '記下並邀請' })
+              t('contactSync.tagInviteBtn', { defaultValue: '貼標籤並邀請' })
             }
           >
             <Hash size={14} color="#FFFFFF" />
             <Text style={styles.actionBtnTagInviteText}>
-              {t('contactSync.tagInviteBtn', { defaultValue: '記下並邀請' })}
+              {t('contactSync.tagInviteBtn', { defaultValue: '貼標籤並邀請' })}
             </Text>
           </TouchableOpacity>
         )}

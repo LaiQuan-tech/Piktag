@@ -640,6 +640,7 @@
     "followAllCta": "সব PikTag বন্ধুকে অনুসরণ ({{count}})",
     "followBtn": "অনুসরণ",
     "inviteBtn": "আমন্ত্রণ",
+    "tagInviteBtn": "ট্যাগ ও আমন্ত্রণ",
     "fromContact": "কন্টাক্ট: {{name}}",
     "classifyingText": "মিলিয়ে দেখা হচ্ছে…",
     "alertFollowAllTitle": "সবাইকে অনুসরণ",

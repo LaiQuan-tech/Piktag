@@ -648,6 +648,7 @@
     "followAllCta": "Allen PikTag-Freunden folgen ({{count}})",
     "followBtn": "Folgen",
     "inviteBtn": "Einladen",
+    "tagInviteBtn": "Markieren & einladen",
     "fromContact": "Kontakt: {{name}}",
     "classifyingText": "Abgleich…",
     "alertFollowAllTitle": "Allen folgen",

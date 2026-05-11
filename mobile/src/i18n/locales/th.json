@@ -640,6 +640,7 @@
     "followAllCta": "ติดตามเพื่อน PikTag ทั้งหมด ({{count}})",
     "followBtn": "ติดตาม",
     "inviteBtn": "เชิญ",
+    "tagInviteBtn": "ติดแท็กและเชิญ",
     "fromContact": "รายชื่อ: {{name}}",
     "classifyingText": "กำลังเทียบ…",
     "alertFollowAllTitle": "ติดตามทั้งหมด",
