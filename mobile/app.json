@@ -29,7 +29,8 @@
       },
       "associatedDomains": [
         "applinks:pikt.ag"
-      ]
+      ],
+      "buildNumber": "2"
     },
     "android": {
       "package": "ag.pikt.app",
