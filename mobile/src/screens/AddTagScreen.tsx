@@ -134,7 +134,17 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
   //   aiContext           cached "what we last sent to AI", used to
   //                       avoid re-firing for the same prompt
   const [contextDescription, setContextDescription] = useState('');
+  // aiLocation     = primary place name ("Las Vegas Convention Center")
+  // aiLocationDetail = multi-level joined ("Las Vegas Convention Center,
+  //                    Las Vegas, Nevada, USA") so AI can suggest the
+  //                    city + state + country individually if useful.
+  // popularNearby  = top tags other PikTag hosts have used at this
+  //                  location in the last 90 days — AI grounding so
+  //                  the CES scenario surfaces #CES2026 etc rather
+  //                  than the LLM hallucinating.
   const [aiLocation, setAiLocation] = useState<string>('');
+  const [aiLocationDetail, setAiLocationDetail] = useState<string>('');
+  const [popularNearby, setPopularNearby] = useState<string[]>([]);
   const [aiSuggestions, setAiSuggestions] = useState<string[]>([]);
   const [aiLoading, setAiLoading] = useState(false);
   const [aiContext, setAiContext] = useState('');
@@ -320,9 +330,16 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
   }, [user]);
 
   useEffect(() => {
-    // GPS → reverse-geocode → first place name. Fire once on
-    // mount; if the user denies permission we silently fall back to
-    // no-location context (AI still works on bio + description).
+    // GPS → reverse-geocode → primary place + multi-level joined
+    // string. Fire once on mount; if the user denies permission we
+    // silently fall back to no-location context (AI still works on
+    // bio + description).
+    //
+    // Then with the primary place, fetch popular_tags_near_location
+    // — what other PikTag hosts have used as event_tags in this
+    // area in the last 90 days. These get passed to the AI as
+    // grounding so suggestions stay anchored in real usage instead
+    // of being made up.
     let cancelled = false;
     (async () => {
       try {
@@ -335,15 +352,56 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
         });
         if (cancelled) return;
         const first = places[0];
-        if (first) {
-          const label =
-            first.name ||
-            first.district ||
-            first.subregion ||
-            first.city ||
-            first.region ||
-            '';
-          if (label) setAiLocation(label);
+        if (!first) return;
+
+        const primary =
+          first.name ||
+          first.district ||
+          first.subregion ||
+          first.city ||
+          first.region ||
+          '';
+
+        // Multi-level: build a deduped, ordered list of levels.
+        // Closest-to-user first, then broadening. Drop duplicates
+        // because reverseGeocode often returns the same string
+        // across multiple fields (e.g. name === city for landmarks).
+        const levels = Array.from(
+          new Set(
+            [
+              first.name,
+              first.district,
+              first.subregion,
+              first.city,
+              first.region,
+              first.country,
+            ].filter((s): s is string => !!s && s.trim().length > 0),
+          ),
+        );
+        const detail = levels.join(', ');
+
+        if (primary) setAiLocation(primary);
+        if (detail) setAiLocationDetail(detail);
+
+        // popular_tags_near_location uses lenient ILIKE matching
+        // against scan_sessions.event_location — won't blow up on
+        // unfamiliar areas (returns empty array if no matches).
+        if (primary) {
+          try {
+            const { data: popData } = await supabase.rpc(
+              'popular_tags_near_location',
+              { p_location: primary, p_limit: 10 },
+            );
+            if (cancelled) return;
+            const popNames = Array.isArray(popData)
+              ? (popData as Array<{ name: string }>)
+                  .map((r) => r.name)
+                  .filter(Boolean)
+              : [];
+            setPopularNearby(popNames);
+          } catch {
+            /* RPC missing or RLS — non-fatal */
+          }
         }
       } catch {
         /* GPS failures are non-fatal — AI just gets less context */
@@ -370,9 +428,14 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
     const tagsBlob = viewerTagNames.join(', ');
     const identity = [viewerBio, tagsBlob].filter(Boolean).join(' · ');
     if (!identity && !desc && !aiLocation) return;
+    // Date only (per user spec — drop hour/minute). Used so AI can
+    // surface season / year / event-of-the-week tags like #Jan2026.
     const now = new Date();
-    const timeHint = `${now.toLocaleDateString()} ${now.getHours()}:${String(now.getMinutes()).padStart(2, '0')}`;
-    const contextKey = `${identity}|${desc}|${aiLocation}|${eventTags.join(',')}`;
+    const yyyy = now.getFullYear();
+    const mm = String(now.getMonth() + 1).padStart(2, '0');
+    const dd = String(now.getDate()).padStart(2, '0');
+    const dateOnly = `${yyyy}-${mm}-${dd}`;
+    const contextKey = `${identity}|${desc}|${aiLocationDetail || aiLocation}|${eventTags.join(',')}|${popularNearby.join(',')}|${dateOnly}`;
     if (contextKey === aiContext && aiSuggestions.length > 0) return;
     setAiContext(contextKey);
     setAiLoading(true);
@@ -387,8 +450,11 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
       }>('suggest-tags', {
         body: {
           bio: identity,
-          name: desc ? `${desc} (時間: ${timeHint})` : `時間: ${timeHint}`,
+          name: desc,
           location: aiLocation,
+          locationDetail: aiLocationDetail,
+          date: dateOnly,
+          popularNearby: popularNearby.join(', '),
           existingTags: eventTags.join(', '),
           lang: userLang,
         },
@@ -414,21 +480,21 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
     } finally {
       setAiLoading(false);
     }
-  }, [user, contextDescription, aiLocation, viewerBio, viewerTagNames, eventTags, aiContext, aiSuggestions.length]);
+  }, [user, contextDescription, aiLocation, aiLocationDetail, popularNearby, viewerBio, viewerTagNames, eventTags, aiContext, aiSuggestions.length]);
 
   // Auto-fire AI suggestions when context settles. Debounced so
   // typing in the description input doesn't hammer the edge fn.
+  // popularNearby is in the dep list so the suggestions refresh
+  // once the popular-tags RPC resolves (it may complete after the
+  // initial GPS / identity fetches).
   useEffect(() => {
     const id = setTimeout(() => {
-      // Only fire when we have AT LEAST one signal (description OR
-      // GPS OR viewer identity). The function itself dedupes via
-      // aiContext so this won't loop.
       if (viewerBio || contextDescription.trim() || aiLocation) {
         loadAiSuggestions();
       }
     }, 900);
     return () => clearTimeout(id);
-  }, [contextDescription, aiLocation, viewerBio, viewerTagNames.length, loadAiSuggestions]);
+  }, [contextDescription, aiLocation, aiLocationDetail, popularNearby, viewerBio, viewerTagNames.length, loadAiSuggestions]);
 
   // ─── Remove tag ───
   const handleRemoveTag = (tag: string) => {
