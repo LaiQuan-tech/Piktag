@@ -92,46 +92,59 @@ serve(async (req) => {
       });
     }
 
-    // Prompt is event-aware and grounding-aware. The two new
-    // sections that matter for the CES-style scenario:
+    // Prompt design — mixed-type suggestions for event-group QR creation.
     //
-    // 1. "If the date+place suggests a known event, include the
-    //    event's standard hashtag" — this is what gets us
-    //    #CES2026 when the user is at Las Vegas Convention Center
-    //    in January 2026.
+    // KEY CONSTRAINT (per product spec): output is a FLAT JSON array.
+    // The model is told to MIX time / location / event / identity
+    // tags but NOT to separate them in the response. UI just shows
+    // one chip strip.
     //
-    // 2. "Popular tags nearby" — pre-aggregated by the
-    //    popular_tags_near_location RPC. The LLM is instructed to
-    //    USE these (not make them up), so suggestions stay
-    //    grounded in real PikTag user behavior in this area.
-    //
-    // Output stays a FLAT JSON array per the user's UI request
-    // ("不要區分時間、地點、活動、當地熱門，都是推薦即可") — the LLM is
-    // told what KINDS of tags to mix in, but the response surface
-    // doesn't expose categories.
+    // Why this is REQUIRED-style rather than "feel free to mix":
+    // earlier softer wording made the model lean entirely on the
+    // user's identity tags (e.g. their PM / 產品經理 bio) and
+    // ignore the date+location, which defeats the whole point of
+    // this surface — the user is making a QR FOR a specific event,
+    // not republishing their profile tags.
     const promptParts: string[] = [
-      `You are suggesting hashtag tags for a PikTag user creating a QR group right now.`,
+      `You suggest hashtag tags for a PikTag user creating an event group right now.`,
       `Return ONLY a JSON array of 6-10 short hashtag strings (without the # prefix), nothing else.`,
       `Keywords MUST be written in ${lang}. Only use English for internationally recognized terms (PM, IoT, AI, CES).`,
       ``,
-      `Mix tags across these dimensions (do not separate them in the output, just include a good mix):`,
-      `  • The CURRENT date / month / year (e.g. #Jan2026, #2026Q1) — but ONLY if a date is provided.`,
-      `  • The user's CURRENT location — include the most recognizable level (city or landmark), and optionally the broader region or country if it disambiguates.`,
-      `  • If the date AND place AND context suggest a well-known event (e.g. CES in Las Vegas in January, SXSW in Austin in March, GDC in San Francisco in March, COP/Olympics/etc), include the event's standard hashtag.`,
-      `  • The user's own identity / topic interests, drawn from their bio and existing tags.`,
-      `  • Tags that are currently popular among other PikTag users in this area (see "Popular nearby" below) — prefer these over generic guesses when relevant.`,
+      `══ REQUIRED MIX (a good response includes at least one of each category, mixed into a single flat array) ══`,
       ``,
-      `Skip vague catch-alls (#fun, #good, #life). Prefer specific, scannable, copy-paste-able tags.`,
-      `If a tag is already in the user's existing tags, do NOT repeat it.`,
+      `1. AT LEAST ONE date / month / year tag IF a date is provided.`,
+      `   For "2026-05-12" output something like: 2026/05/12, May2026, 2026Q2.`,
+      `   Skip this category ONLY if no date is provided.`,
+      ``,
+      `2. AT LEAST ONE location tag IF any location signal is provided.`,
+      `   Use the most recognizable level — usually city or landmark name.`,
+      `   For "Las Vegas Convention Center, Las Vegas, Nevada, USA" output e.g. LasVegas, Nevada (don't include all 4 levels — pick the most useful 1-2).`,
+      `   For "大安區, 台北市, 臺灣" output e.g. 大安區, 台北.`,
+      ``,
+      `3. AT LEAST ONE event/situation tag derived from the user's description.`,
+      `   If description says "想像扶輪社例會活動" → output 扶輪社, 例會.`,
+      `   If description says "CES" + location Las Vegas + date in January → output CES2026.`,
+      `   If description says "週末聚餐" → output 聚餐, 週末.`,
+      ``,
+      `4. (Optional) Tags from the user's identity (bio + existing identity tags) ONLY if they're directly relevant to this event description. Skip if not relevant.`,
+      ``,
+      `5. (Strongly preferred when present) Tags from "Popular nearby" — those are real tags other PikTag users at this location have used recently. Surface them verbatim rather than inventing synonyms.`,
+      ``,
+      `══ HARD RULES ══`,
+      `• Output is a single JSON array. Do NOT group, label, or wrap in categories.`,
+      `• Tag names are short (1-3 words / kanji clusters), specific, scannable.`,
+      `• No vague catch-alls (#fun, #good, #life, #event).`,
+      `• Do NOT repeat tags already in "Existing tags on this group".`,
+      `• When you have BOTH a date AND a location signal: include AT LEAST 1 date tag AND AT LEAST 1 location tag. Non-negotiable.`,
       ``,
       `─── Context ───`,
-      `Bio / identity: ${bio || '(none)'}`,
-      `Situation / event description: ${name || '(none)'}`,
-      `Location (primary): ${location || '(none)'}`,
-      `Location (detailed, multi-level): ${locationDetail || '(same as primary)'}`,
-      `Date (today): ${date || '(unknown)'}`,
-      `Popular nearby (real recent tags from other PikTag users in this area): ${popularNearby || '(none)'}`,
-      `Existing tags on this QR (do not repeat): ${existingTags || '(none)'}`,
+      `User identity / bio: ${bio || '(none)'}`,
+      `User's description of the event: ${name || '(none)'}`,
+      `Location (primary, often a landmark): ${location || '(none)'}`,
+      `Location (detailed levels, comma-separated): ${locationDetail || location || '(none)'}`,
+      `Today's date: ${date || '(unknown)'}`,
+      `Popular nearby (real tags from other PikTag users in this area): ${popularNearby || '(none)'}`,
+      `Existing tags on this group (do NOT repeat): ${existingTags || '(none)'}`,
     ];
     const prompt = promptParts.join('\n');
 

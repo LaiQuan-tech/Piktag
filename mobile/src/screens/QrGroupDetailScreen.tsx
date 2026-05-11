@@ -75,19 +75,32 @@ export default function QrGroupDetailScreen({ navigation, route }: Props) {
     if (!user || !groupId) return;
     setLoading(true);
     try {
-      const { data: g, error: gErr } = await supabase
+      // Same migration-tolerance pattern as QrGroupListScreen: try
+      // with `name`, fall back to without if the column doesn't
+      // exist on this database yet.
+      let { data: g, error: gErr } = await supabase
         .from('piktag_scan_sessions')
         .select('id, name, event_tags, qr_code_data, created_at')
         .eq('id', groupId)
         .eq('host_user_id', user.id)
         .maybeSingle();
+      if (gErr && ((gErr as any).code === '42703' || /column .*name/i.test(gErr.message))) {
+        const fallback = await supabase
+          .from('piktag_scan_sessions')
+          .select('id, event_tags, qr_code_data, created_at')
+          .eq('id', groupId)
+          .eq('host_user_id', user.id)
+          .maybeSingle();
+        g = fallback.data ? ({ ...fallback.data, name: null } as any) : null;
+        gErr = fallback.error;
+      }
       if (gErr || !g) {
         console.warn('[QrGroupDetail] group fetch failed:', gErr);
         setGroup(null);
         return;
       }
       setGroup(g as Group);
-      setNameInput(g.name ?? '');
+      setNameInput((g as any).name ?? '');
 
       const { data: m, error: mErr } = await supabase.rpc('qr_group_members', {
         p_group_id: groupId,
@@ -118,9 +131,17 @@ export default function QrGroupDetailScreen({ navigation, route }: Props) {
       .update({ name: trimmed || null })
       .eq('id', group.id);
     if (error) {
-      console.warn('[QrGroupDetail] save name failed:', error);
-      // Reload to revert optimistic state
-      fetchGroup();
+      // 42703 = column doesn't exist (migration not applied yet).
+      // Don't bother the user with a warning popup — just keep the
+      // optimistic state as a session-local rename. Migration will
+      // catch this up next time.
+      const isMissingColumn =
+        (error as any).code === '42703' || /column .*name/i.test(error.message);
+      if (!isMissingColumn) {
+        console.warn('[QrGroupDetail] save name failed:', error);
+        // Revert optimistic state on real errors
+        fetchGroup();
+      }
     }
   }, [group, nameInput, fetchGroup]);
 
@@ -215,7 +236,7 @@ export default function QrGroupDetailScreen({ navigation, route }: Props) {
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerBackBtn}>
             <ArrowLeft size={22} color={COLORS.gray900} />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>{t('qrGroup.detailHeader', { defaultValue: 'QR 群組' })}</Text>
+          <Text style={styles.headerTitle}>{t('qrGroup.detailHeader', { defaultValue: '活動群組' })}</Text>
           <View style={{ width: 36 }} />
         </View>
         <View style={styles.loadingWrap}>
@@ -229,7 +250,7 @@ export default function QrGroupDetailScreen({ navigation, route }: Props) {
 
   const displayName =
     group.name?.trim() ||
-    t('qrGroup.untitled', { defaultValue: '未命名群組' });
+    t('qrGroup.untitled', { defaultValue: '未命名活動' });
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
@@ -240,7 +261,7 @@ export default function QrGroupDetailScreen({ navigation, route }: Props) {
           <ArrowLeft size={22} color={COLORS.gray900} />
         </TouchableOpacity>
         <Text style={styles.headerTitle} numberOfLines={1}>
-          {t('qrGroup.detailHeader', { defaultValue: 'QR 群組' })}
+          {t('qrGroup.detailHeader', { defaultValue: '活動群組' })}
         </Text>
         <TouchableOpacity onPress={handleShare} style={styles.headerBackBtn}>
           <Share2 size={20} color={COLORS.piktag600} />
@@ -259,7 +280,7 @@ export default function QrGroupDetailScreen({ navigation, route }: Props) {
               onBlur={handleSaveName}
               onSubmitEditing={handleSaveName}
               returnKeyType="done"
-              placeholder={t('qrGroup.namePlaceholder', { defaultValue: '為這個群組取個名字' })}
+              placeholder={t('qrGroup.namePlaceholder', { defaultValue: '為這個活動取個名字' })}
               placeholderTextColor={COLORS.gray400}
               maxLength={40}
             />
@@ -287,7 +308,7 @@ export default function QrGroupDetailScreen({ navigation, route }: Props) {
         {/* Tag editor. */}
         <View style={styles.tagSection}>
           <Text style={styles.sectionTitle}>
-            {t('qrGroup.tagsTitle', { defaultValue: '群組標籤' })}
+            {t('qrGroup.tagsTitle', { defaultValue: '活動標籤' })}
           </Text>
           <View style={styles.tagChipsRow}>
             {group.event_tags.map((tag) => (

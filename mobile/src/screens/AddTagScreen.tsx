@@ -735,7 +735,7 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
     <>
       {/* Header */}
       <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
-        <Text style={styles.headerTitle}>{t('addTag.headerTitle', { defaultValue: '活動標籤' })}</Text>
+        <Text style={styles.headerTitle}>{t('addTag.headerTitle', { defaultValue: '新增活動群組' })}</Text>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16, marginLeft: 'auto' }}>
           <TouchableOpacity
             onPress={() => navigation.navigate('CameraScan')}

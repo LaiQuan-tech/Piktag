@@ -61,6 +61,16 @@ export default function QrGroupListScreen({ navigation }: Props) {
 
   // Load my groups. Refetched on every focus so a new group created
   // via the AddTag flow appears here as soon as the user comes back.
+  //
+  // Migration tolerance: the `name` column was added in
+  // 20260508130000_qr_groups.sql. If the user hasn't applied that
+  // migration yet (testing without running the SQL), SELECTing
+  // `name` would 42703-error and the screen would silently show
+  // empty, masking real data. Try with `name` first; on column-
+  // missing error, retry without it. Both branches surface the
+  // user's actual sessions; the only difference is whether the
+  // display name comes from session.name (with migration) or
+  // falls back to event_location / date (without).
   const loadGroups = useCallback(async () => {
     if (!user) {
       setGroups([]);
@@ -69,19 +79,37 @@ export default function QrGroupListScreen({ navigation }: Props) {
     }
     setLoading(true);
     try {
-      const { data, error } = await supabase
+      const cols = 'id, name, event_tags, event_date, event_location, qr_code_data, created_at, is_active';
+      let { data, error } = await supabase
         .from('piktag_scan_sessions')
-        .select(
-          'id, name, event_tags, event_date, event_location, qr_code_data, created_at, is_active',
-        )
+        .select(cols)
         .eq('host_user_id', user.id)
         .order('created_at', { ascending: false });
+      // 42703 = undefined_column. Postgres error code for "column X
+      // does not exist". Means migration hasn't been applied — fall
+      // back to the same query without the optional `name` column.
+      if (error && ((error as any).code === '42703' || /column .*name/i.test(error.message))) {
+        const fallback = await supabase
+          .from('piktag_scan_sessions')
+          .select('id, event_tags, event_date, event_location, qr_code_data, created_at, is_active')
+          .eq('host_user_id', user.id)
+          .order('created_at', { ascending: false });
+        // fallback rows lack `name` — coerce to the wider shape so
+        // downstream code can read .name as null without TS error.
+        data = (fallback.data ?? null) as any;
+        error = fallback.error;
+      }
       if (error) {
         console.warn('[QrGroupList] load failed:', error);
         setGroups([]);
         return;
       }
-      const rows = (data ?? []) as Array<Omit<QrGroup, 'member_count'>>;
+      // Normalize: rows from the fallback path don't have a `name`
+      // field — coerce to null so the rest of the screen can treat
+      // both shapes identically.
+      const rows = ((data ?? []) as Array<Partial<Omit<QrGroup, 'member_count'>>>).map(
+        (r) => ({ ...r, name: (r as any).name ?? null }) as Omit<QrGroup, 'member_count'>,
+      );
       // Member counts in parallel via the SECURITY DEFINER RPC.
       // One round-trip per group sounds heavy, but the typical user
       // has <20 groups and the RPC is a fast indexed count.
@@ -177,7 +205,7 @@ export default function QrGroupListScreen({ navigation }: Props) {
           <QrCode size={36} color={COLORS.piktag500} />
         </View>
         <Text style={styles.emptyTitle}>
-          {t('qrGroup.emptyTitle', { defaultValue: '還沒有 QR 群組' })}
+          {t('qrGroup.emptyTitle', { defaultValue: '還沒有活動群組標籤' })}
         </Text>
         <Text style={styles.emptyDesc}>
           {t('qrGroup.emptyDesc', {
@@ -191,7 +219,7 @@ export default function QrGroupListScreen({ navigation }: Props) {
         >
           <Plus size={18} color="#FFFFFF" />
           <Text style={styles.emptyCtaText}>
-            {t('qrGroup.createFirst', { defaultValue: '建立第一個 QR 群組' })}
+            {t('qrGroup.createFirst', { defaultValue: '建立第一個活動群組標籤' })}
           </Text>
         </TouchableOpacity>
       </View>
@@ -205,14 +233,14 @@ export default function QrGroupListScreen({ navigation }: Props) {
 
       <View style={styles.header}>
         <Text style={styles.headerTitle}>
-          {t('qrGroup.headerTitle', { defaultValue: 'QR 群組' })}
+          {t('qrGroup.headerTitle', { defaultValue: '活動群組標籤' })}
         </Text>
         <TouchableOpacity
           style={styles.headerAddBtn}
           activeOpacity={0.7}
           onPress={handleCreateNew}
           accessibilityRole="button"
-          accessibilityLabel={t('qrGroup.create', { defaultValue: '建立新群組' })}
+          accessibilityLabel={t('qrGroup.create', { defaultValue: '建立新活動群組' })}
         >
           <Plus size={22} color={COLORS.piktag600} />
         </TouchableOpacity>
