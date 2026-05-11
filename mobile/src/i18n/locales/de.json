@@ -163,7 +163,15 @@
       "instagramLabel": "Instagram",
       "linkedinLabel": "LinkedIn",
       "birthdayLabel": "Geburtstag",
-      "welcomeName": "Willkommen, {{name}}"
+      "welcomeName": "Willkommen, {{name}}",
+      "avatarStepTitle": "Erstmal ein Foto",
+      "avatarStepDescription": "Damit Freunde dich auf einen Blick erkennen — jederzeit änderbar.",
+      "avatarPickAria": "Foto wählen",
+      "avatarTapToPick": "Auf den Kreis tippen zum Foto wählen",
+      "avatarTapToChange": "Auf das Foto tippen zum Ändern",
+      "avatarPermissionTitle": "Zugriff auf die Fotomediathek nötig",
+      "avatarPermissionMessage": "Erlaube PikTag den Zugriff in den Einstellungen",
+      "skipStep": "Überspringen"
     }
   },
   "connections": {

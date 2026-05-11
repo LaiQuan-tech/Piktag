@@ -156,7 +156,15 @@
       "facebookLabel": "Facebook",
       "instagramLabel": "Instagram",
       "linkedinLabel": "LinkedIn",
-      "birthdayLabel": "Cumpleaños"
+      "birthdayLabel": "Cumpleaños",
+      "avatarStepTitle": "Pon una foto primero",
+      "avatarStepDescription": "Para que tus amigos te reconozcan al instante — la puedes cambiar cuando quieras.",
+      "avatarPickAria": "Elegir foto",
+      "avatarTapToPick": "Toca el círculo para elegir una foto",
+      "avatarTapToChange": "Toca la foto para cambiar",
+      "avatarPermissionTitle": "Se necesita acceso a la galería",
+      "avatarPermissionMessage": "Permite el acceso a fotos en Ajustes",
+      "skipStep": "Saltar"
     }
   },
   "connections": {

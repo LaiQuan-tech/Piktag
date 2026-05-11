@@ -163,7 +163,15 @@
       "instagramLabel": "Instagram",
       "linkedinLabel": "LinkedIn",
       "birthdayLabel": "生日",
-      "welcomeName": "欢迎，{{name}}"
+      "welcomeName": "欢迎，{{name}}",
+      "avatarStepTitle": "先放一张头像吧",
+      "avatarStepDescription": "让朋友一眼认出你 — 之后也可以随时更换。",
+      "avatarPickAria": "选择头像",
+      "avatarTapToPick": "点圆圈选一张照片",
+      "avatarTapToChange": "点头像可以更换",
+      "avatarPermissionTitle": "需要相册权限",
+      "avatarPermissionMessage": "请在设置中允许 PikTag 访问相册",
+      "skipStep": "略过"
     }
   },
   "connections": {

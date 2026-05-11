@@ -156,7 +156,15 @@
       "facebookLabel": "Facebook",
       "instagramLabel": "Instagram",
       "linkedinLabel": "LinkedIn",
-      "birthdayLabel": "誕生日"
+      "birthdayLabel": "誕生日",
+      "avatarStepTitle": "まずプロフィール写真を",
+      "avatarStepDescription": "友達がすぐあなただと分かるように。あとからいつでも変えられます。",
+      "avatarPickAria": "写真を選ぶ",
+      "avatarTapToPick": "丸をタップして写真を選択",
+      "avatarTapToChange": "写真をタップで変更",
+      "avatarPermissionTitle": "写真ライブラリへのアクセスが必要",
+      "avatarPermissionMessage": "設定で PikTag の写真アクセスを許可してください",
+      "skipStep": "スキップ"
     }
   },
   "connections": {

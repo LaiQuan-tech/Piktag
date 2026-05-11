@@ -156,7 +156,15 @@
       "facebookLabel": "Facebook",
       "instagramLabel": "Instagram",
       "linkedinLabel": "LinkedIn",
-      "birthdayLabel": "วันเกิด"
+      "birthdayLabel": "วันเกิด",
+      "avatarStepTitle": "ใส่รูปก่อนเลย",
+      "avatarStepDescription": "ให้เพื่อนจำคุณได้ทันที — เปลี่ยนเมื่อไหร่ก็ได้.",
+      "avatarPickAria": "เลือกรูป",
+      "avatarTapToPick": "แตะวงกลมเพื่อเลือกรูป",
+      "avatarTapToChange": "แตะรูปเพื่อเปลี่ยน",
+      "avatarPermissionTitle": "ต้องการสิทธิ์เข้าถึงคลังภาพ",
+      "avatarPermissionMessage": "อนุญาตให้ PikTag เข้าถึงรูปในการตั้งค่า",
+      "skipStep": "ข้าม"
     }
   },
   "connections": {

@@ -156,7 +156,15 @@
       "facebookLabel": "Facebook",
       "instagramLabel": "Instagram",
       "linkedinLabel": "LinkedIn",
-      "birthdayLabel": "Ulang Tahun"
+      "birthdayLabel": "Ulang Tahun",
+      "avatarStepTitle": "Pasang foto dulu",
+      "avatarStepDescription": "Biar teman langsung kenal — bisa diganti kapan saja.",
+      "avatarPickAria": "Pilih foto",
+      "avatarTapToPick": "Tap lingkaran buat pilih foto",
+      "avatarTapToChange": "Tap foto buat ganti",
+      "avatarPermissionTitle": "Butuh akses galeri",
+      "avatarPermissionMessage": "Izinkan akses foto di Pengaturan",
+      "skipStep": "Lewati"
     }
   },
   "connections": {

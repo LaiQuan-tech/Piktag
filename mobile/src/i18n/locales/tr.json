@@ -156,7 +156,15 @@
       "facebookLabel": "Facebook",
       "instagramLabel": "Instagram",
       "linkedinLabel": "LinkedIn",
-      "birthdayLabel": "Doğum Günü"
+      "birthdayLabel": "Doğum Günü",
+      "avatarStepTitle": "Önce bir fotoğraf",
+      "avatarStepDescription": "Arkadaşların ilk bakışta tanısın diye — istediğin zaman değiştir.",
+      "avatarPickAria": "Fotoğraf seç",
+      "avatarTapToPick": "Fotoğraf seçmek için daireye dokun",
+      "avatarTapToChange": "Değiştirmek için fotoğrafa dokun",
+      "avatarPermissionTitle": "Fotoğraf galerisine erişim gerekli",
+      "avatarPermissionMessage": "Ayarlardan PikTag'ın fotoğraflara erişimine izin ver",
+      "skipStep": "Atla"
     }
   },
   "connections": {

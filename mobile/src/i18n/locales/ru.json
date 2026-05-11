@@ -156,7 +156,15 @@
       "facebookLabel": "Facebook",
       "instagramLabel": "Instagram",
       "linkedinLabel": "LinkedIn",
-      "birthdayLabel": "День рождения"
+      "birthdayLabel": "День рождения",
+      "avatarStepTitle": "Сначала фото",
+      "avatarStepDescription": "Чтобы друзья узнавали тебя сразу — можно сменить в любой момент.",
+      "avatarPickAria": "Выбрать фото",
+      "avatarTapToPick": "Нажми на круг, чтобы выбрать фото",
+      "avatarTapToChange": "Нажми на фото, чтобы сменить",
+      "avatarPermissionTitle": "Нужен доступ к фотогалерее",
+      "avatarPermissionMessage": "Разреши PikTag доступ к фото в Настройках",
+      "skipStep": "Пропустить"
     }
   },
   "connections": {

@@ -168,7 +168,15 @@
       "phoneSectionHint": "So friends can find you via contact sync — never made public, never used to call you.",
       "phonePlaceholder": "+1 555 123 4567",
       "phoneInvalidTitle": "Phone format not recognized",
-      "phoneInvalidMessage": "Couldn't parse \"{{value}}\" — skipping. You can add it later from your profile."
+      "phoneInvalidMessage": "Couldn't parse \"{{value}}\" — skipping. You can add it later from your profile.",
+      "avatarStepTitle": "Drop a photo first",
+      "avatarStepDescription": "So friends recognize you at a glance — change it any time.",
+      "avatarPickAria": "Pick photo",
+      "avatarTapToPick": "Tap the circle to pick a photo",
+      "avatarTapToChange": "Tap the photo to change",
+      "avatarPermissionTitle": "Photo library access needed",
+      "avatarPermissionMessage": "Allow PikTag to access your photos in Settings",
+      "skipStep": "Skip"
     }
   },
   "connections": {

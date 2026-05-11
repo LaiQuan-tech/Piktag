@@ -156,7 +156,15 @@
       "facebookLabel": "Facebook",
       "instagramLabel": "Instagram",
       "linkedinLabel": "LinkedIn",
-      "birthdayLabel": "تاريخ الميلاد"
+      "birthdayLabel": "تاريخ الميلاد",
+      "avatarStepTitle": "ضع صورة أولاً",
+      "avatarStepDescription": "كي يميزك أصدقاؤك بنظرة واحدة — يمكن تغييرها في أي وقت.",
+      "avatarPickAria": "اختر صورة",
+      "avatarTapToPick": "انقر على الدائرة لاختيار صورة",
+      "avatarTapToChange": "انقر على الصورة للتغيير",
+      "avatarPermissionTitle": "يلزم الوصول إلى مكتبة الصور",
+      "avatarPermissionMessage": "اسمح لـ PikTag بالوصول إلى صورك من الإعدادات",
+      "skipStep": "تخطي"
     }
   },
   "connections": {

@@ -23,7 +23,13 @@ import {
   X,
   Sparkles,
 } from 'lucide-react-native';
-import { supabase, supabaseUrl } from '../../lib/supabase';
+import { supabase, supabaseUrl, supabaseAnonKey } from '../../lib/supabase';
+import { Image } from 'expo-image';
+import {
+  requestMediaLibraryPermissionsAsync,
+  launchImageLibraryAsync,
+} from 'expo-image-picker';
+import { Camera } from 'lucide-react-native';
 import { normalizePhone } from '../../hooks/useLocalContacts';
 import { COLORS, SPACING, BORDER_RADIUS } from '../../constants/theme';
 import OnboardingCompleteBurst from '../../components/stingers/OnboardingCompleteBurst';
@@ -72,6 +78,12 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
   const [phoneInput, setPhoneInput] = useState('');
   const [birthday, setBirthday] = useState('');
   const [loading, setLoading] = useState(false);
+  // Avatar (task 4 — first-launch data setup). Uploaded immediately
+  // on pick so the user sees the preview + the profile row gets
+  // the URL right away. If they skip this step, they stay
+  // initials-only until they hit EditProfile post-onboarding.
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [burstVisible, setBurstVisible] = useState(false);
   const [burstUserName, setBurstUserName] = useState<string | undefined>(undefined);
   const aiDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -105,7 +117,101 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
     aiDebounceRef.current = setTimeout(() => fetchAiTags(text), 600);
   };
 
-  const totalSteps = 3;
+  const totalSteps = 4;
+
+  // ─── Avatar upload (task 4 onboarding step 0) ───
+  //
+  // Mirrors EditProfileScreen.handleChangeAvatar — same MIME/size
+  // validation, same Supabase Storage POST + profiles row update.
+  // Kept inline rather than extracted to a shared helper because
+  // the post-upload state (setAvatarUrl) is component-local.
+  const handlePickAvatar = useCallback(async () => {
+    try {
+      const { status } = await requestMediaLibraryPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert(
+          t('auth.onboarding.avatarPermissionTitle', { defaultValue: '需要相簿權限' }),
+          t('auth.onboarding.avatarPermissionMessage', { defaultValue: '請在設定中允許 PikTag 存取相簿' }),
+        );
+        return;
+      }
+      const result = await launchImageLibraryAsync({
+        mediaTypes: ['images'],
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.85,
+      });
+      if (result.canceled || !result.assets[0]) return;
+      const asset = result.assets[0];
+
+      // Client-side validation — server-side bucket policy enforces
+      // these too. Keep checks identical to EditProfile so any image
+      // that uploads here also uploads there.
+      const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+      const MAX_FILE_SIZE = 2 * 1024 * 1024;
+      if (!asset.mimeType || !ALLOWED_MIME_TYPES.includes(asset.mimeType)) {
+        Alert.alert(t('common.error'), t('editProfile.invalidImageType', { defaultValue: '不支援的圖片格式' }));
+        return;
+      }
+      if (typeof asset.fileSize === 'number' && asset.fileSize > MAX_FILE_SIZE) {
+        Alert.alert(t('common.error'), t('editProfile.imageTooLarge', { defaultValue: '檔案太大（上限 2MB）' }));
+        return;
+      }
+
+      setUploadingAvatar(true);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        Alert.alert(t('common.error'), t('auth.onboarding.alertUserNotFound'));
+        return;
+      }
+      const { data: sessionData } = await supabase.auth.getSession();
+      const accessToken = sessionData?.session?.access_token;
+      if (!accessToken) throw new Error('No session');
+
+      const extFromMime: Record<string, string> = {
+        'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp',
+      };
+      const ext = extFromMime[asset.mimeType];
+      const filePath = `${user.id}/avatar.${ext}`;
+
+      const formData = new FormData();
+      formData.append('file', {
+        uri: asset.uri,
+        name: `avatar.${ext}`,
+        type: asset.mimeType,
+      } as any);
+
+      const uploadRes = await fetch(
+        `${supabaseUrl}/storage/v1/object/avatars/${filePath}`,
+        {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            apikey: supabaseAnonKey,
+            'x-upsert': 'true',
+          },
+          body: formData,
+        },
+      );
+      if (!uploadRes.ok) {
+        const err = await uploadRes.json().catch(() => ({}));
+        throw new Error(err.message || 'upload failed');
+      }
+      // Cache-buster on the URL so the new image renders even when
+      // the old one is still in the avatar cache.
+      const publicUrl = `${supabaseUrl}/storage/v1/object/public/avatars/${filePath}?t=${Date.now()}`;
+      const { error: updateError } = await supabase
+        .from('piktag_profiles')
+        .update({ avatar_url: publicUrl })
+        .eq('id', user.id);
+      if (updateError) throw updateError;
+      setAvatarUrl(publicUrl);
+    } catch (err: any) {
+      Alert.alert(t('common.error'), err?.message || t('common.unknownError'));
+    } finally {
+      setUploadingAvatar(false);
+    }
+  }, [t]);
 
   const toggleTag = (tag: string) => {
     setSelectedTags((prev) =>
@@ -302,6 +408,56 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
     </View>
   );
 
+  // ─── Step 0: avatar (task 4) ───
+  // First data-collection step. Why before bio: avatar drives the
+  // strongest "real person" signal in every list/search/connection
+  // row. A user with no avatar shows as gray initials all over day 1
+  // and feels half-onboarded to anyone seeing them.
+  const renderAvatarStep = () => (
+    <View style={styles.stepContent}>
+      <Text style={styles.stepTitle}>
+        {t('auth.onboarding.avatarStepTitle', { defaultValue: '先放一張頭貼吧' })}
+      </Text>
+      <Text style={styles.stepDescription}>
+        {t('auth.onboarding.avatarStepDescription', { defaultValue: '讓朋友一眼認出你 — 之後也可以隨時更換。' })}
+      </Text>
+
+      <View style={styles.avatarPickerWrap}>
+        <TouchableOpacity
+          onPress={handlePickAvatar}
+          disabled={uploadingAvatar}
+          activeOpacity={0.8}
+          style={styles.avatarPickerCircle}
+          accessibilityRole="button"
+          accessibilityLabel={t('auth.onboarding.avatarPickAria', { defaultValue: '選擇頭貼' })}
+        >
+          {avatarUrl ? (
+            <Image
+              source={{ uri: avatarUrl }}
+              style={styles.avatarPickerImage}
+              contentFit="cover"
+              transition={150}
+            />
+          ) : (
+            <View style={styles.avatarPickerPlaceholder}>
+              <Camera size={32} color={COLORS.piktag500} />
+            </View>
+          )}
+          {uploadingAvatar ? (
+            <View style={styles.avatarPickerOverlay}>
+              <BrandSpinner size={24} />
+            </View>
+          ) : null}
+        </TouchableOpacity>
+        <Text style={styles.avatarPickerHint}>
+          {avatarUrl
+            ? t('auth.onboarding.avatarTapToChange', { defaultValue: '點頭貼可以更換' })
+            : t('auth.onboarding.avatarTapToPick', { defaultValue: '點圓圈選一張照片' })}
+        </Text>
+      </View>
+    </View>
+  );
+
   const renderStep1 = () => (
     <View style={styles.stepContent}>
       <Text style={styles.stepTitle}>{t('auth.onboarding.step1Title')}</Text>
@@ -482,11 +638,13 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
   const renderCurrentStep = () => {
     switch (step) {
       case 0:
-        return renderStep1();
+        return renderAvatarStep();  // task 4 — new avatar step
       case 1:
-        return renderStep2();
+        return renderStep1();        // bio + tags + birthday
       case 2:
-        return renderStep3();
+        return renderStep2();        // phone + social links
+      case 3:
+        return renderStep3();        // QuickStartTour
       default:
         return null;
     }
@@ -515,18 +673,37 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
 
       {/* Navigation Buttons */}
       <View style={styles.navigationBar}>
-        {step > 0 ? (
-          <TouchableOpacity
-            style={styles.backButton}
-            onPress={goBack}
-            activeOpacity={0.7}
-          >
-            <ChevronLeft size={20} color={COLORS.gray700} />
-            <Text style={styles.backButtonText}>{t('auth.onboarding.backButton')}</Text>
-          </TouchableOpacity>
-        ) : (
-          <View />
-        )}
+        <View style={styles.navLeftCluster}>
+          {step > 0 ? (
+            <TouchableOpacity
+              style={styles.backButton}
+              onPress={goBack}
+              activeOpacity={0.7}
+            >
+              <ChevronLeft size={20} color={COLORS.gray700} />
+              <Text style={styles.backButtonText}>{t('auth.onboarding.backButton')}</Text>
+            </TouchableOpacity>
+          ) : null}
+
+          {/* "Skip this step" — only on data steps (0, 1, 2). The
+              final QuickStartTour step doesn't collect data so
+              there's nothing to skip. Each data step's fields are
+              saved on the final handleComplete; skipping just
+              advances without filling state, which the save logic
+              already handles gracefully (empty bio → no bio update,
+              empty social URL → no biolink insert, etc). */}
+          {step < totalSteps - 1 && (
+            <TouchableOpacity
+              style={styles.skipButton}
+              onPress={goNext}
+              activeOpacity={0.6}
+            >
+              <Text style={styles.skipButtonText}>
+                {t('auth.onboarding.skipStep', { defaultValue: '略過' })}
+              </Text>
+            </TouchableOpacity>
+          )}
+        </View>
 
         <TouchableOpacity
           style={[styles.nextButton, loading && styles.nextButtonDisabled]}
@@ -643,6 +820,46 @@ const styles = StyleSheet.create({
     color: COLORS.gray500,
     lineHeight: 22,
     marginBottom: SPACING.xxl,
+  },
+  // ── Avatar picker (task 4 onboarding step 0) ──
+  avatarPickerWrap: {
+    alignItems: 'center',
+    paddingVertical: SPACING.xl,
+    gap: 14,
+  },
+  avatarPickerCircle: {
+    width: 140,
+    height: 140,
+    borderRadius: 70,
+    backgroundColor: COLORS.piktag50,
+    borderWidth: 2,
+    borderColor: COLORS.piktag200,
+    borderStyle: 'dashed',
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
+  },
+  avatarPickerImage: {
+    width: 140,
+    height: 140,
+    borderRadius: 70,
+  },
+  avatarPickerPlaceholder: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '100%',
+    height: '100%',
+  },
+  avatarPickerOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.35)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  avatarPickerHint: {
+    fontSize: 13,
+    color: COLORS.gray500,
+    textAlign: 'center',
   },
   bioInput: {
     borderWidth: 1,
@@ -847,12 +1064,31 @@ const styles = StyleSheet.create({
     borderTopColor: COLORS.gray100,
     backgroundColor: COLORS.white,
   },
+  // Left cluster wraps the back button + skip link so they sit
+  // together on the left while the primary Next CTA stays right.
+  navLeftCluster: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
   backButton: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
     paddingVertical: SPACING.sm,
     paddingHorizontal: SPACING.md,
+  },
+  // Skip = subtle text link, deliberately less prominent than the
+  // primary Next CTA so first-time users still default to the
+  // intended flow but power users / re-installers can dash through.
+  skipButton: {
+    paddingVertical: SPACING.sm,
+    paddingHorizontal: SPACING.md,
+  },
+  skipButtonText: {
+    fontSize: 14,
+    color: COLORS.gray500,
+    fontWeight: '500',
+    textDecorationLine: 'underline',
   },
   backButtonText: {
     fontSize: 16,

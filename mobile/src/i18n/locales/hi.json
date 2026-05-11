@@ -156,7 +156,15 @@
       "facebookLabel": "Facebook",
       "instagramLabel": "Instagram",
       "linkedinLabel": "LinkedIn",
-      "birthdayLabel": "जन्मदिन"
+      "birthdayLabel": "जन्मदिन",
+      "avatarStepTitle": "पहले एक फोटो डालें",
+      "avatarStepDescription": "दोस्त एक नज़र में पहचान लें — कभी भी बदल सकते हैं।",
+      "avatarPickAria": "फोटो चुनें",
+      "avatarTapToPick": "सर्कल पर टैप करके फोटो चुनें",
+      "avatarTapToChange": "फोटो टैप करके बदलें",
+      "avatarPermissionTitle": "फोटो लाइब्रेरी ऐक्सेस चाहिए",
+      "avatarPermissionMessage": "सेटिंग्स में PikTag को फोटो ऐक्सेस की अनुमति दें",
+      "skipStep": "छोड़ें"
     }
   },
   "connections": {

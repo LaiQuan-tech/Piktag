@@ -168,7 +168,15 @@
       "phoneSectionHint": "讓朋友的通訊錄能找到你 — 永遠不會公開，也不會用來打給你。",
       "phonePlaceholder": "0912345678",
       "phoneInvalidTitle": "電話格式無效",
-      "phoneInvalidMessage": "無法辨識「{{value}}」，已略過。可稍後到個人資料補上。"
+      "phoneInvalidMessage": "無法辨識「{{value}}」，已略過。可稍後到個人資料補上。",
+      "avatarStepTitle": "先放一張頭貼吧",
+      "avatarStepDescription": "讓朋友一眼認出你 — 之後也可以隨時更換。",
+      "avatarPickAria": "選擇頭貼",
+      "avatarTapToPick": "點圓圈選一張照片",
+      "avatarTapToChange": "點頭貼可以更換",
+      "avatarPermissionTitle": "需要相簿權限",
+      "avatarPermissionMessage": "請在設定中允許 PikTag 存取相簿",
+      "skipStep": "略過"
     }
   },
   "connections": {

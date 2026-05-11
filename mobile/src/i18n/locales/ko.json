@@ -156,7 +156,15 @@
       "facebookLabel": "Facebook",
       "instagramLabel": "Instagram",
       "linkedinLabel": "LinkedIn",
-      "birthdayLabel": "생일"
+      "birthdayLabel": "생일",
+      "avatarStepTitle": "먼저 프로필 사진을",
+      "avatarStepDescription": "친구가 한눈에 알아볼 수 있게 — 언제든 바꿀 수 있어요.",
+      "avatarPickAria": "사진 선택",
+      "avatarTapToPick": "동그라미를 눌러 사진 선택",
+      "avatarTapToChange": "사진을 눌러 변경",
+      "avatarPermissionTitle": "사진 라이브러리 접근이 필요해요",
+      "avatarPermissionMessage": "설정에서 PikTag의 사진 접근을 허용해주세요",
+      "skipStep": "건너뛰기"
     }
   },
   "connections": {
