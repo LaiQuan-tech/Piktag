@@ -660,9 +660,30 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
         if (!error && data) {
           sessionId = data.id;
           sessionData = { id: data.id };
+        } else if (error) {
+          // Surface the failure instead of silently dropping it on the
+          // floor. Old behaviour: insert fails → fall back to a local
+          // sessionId → user sees a "successfully generated" QR but
+          // the row is NEVER written to the DB, so the QR group list
+          // stays empty and the user can't diagnose why.
+          //
+          // We don't block the UX (QR can still be displayed for
+          // immediate share), but a console.warn + Alert tells the
+          // user this QR won't appear in their event-group list and
+          // surfaces the actual Postgres error code so we can debug
+          // RLS / NOT-NULL / missing-column failures.
+          console.warn('[AddTag] scan_session insert failed:', error);
+          Alert.alert(
+            t('addTag.saveWarnTitle', { defaultValue: 'QR 已產生，但無法儲存到群組' }),
+            t('addTag.saveWarnMsg', {
+              code: (error as any).code || '?',
+              message: error.message,
+              defaultValue: `這個 QR 可以馬上分享，但不會出現在「活動群組標籤」清單中。\n\n錯誤代碼：${(error as any).code || '?'}\n${error.message}`,
+            }),
+          );
         }
-      } catch {
-        // DB table may not exist yet — continue with local session ID
+      } catch (err) {
+        console.warn('[AddTag] scan_session insert threw:', err);
       }
 
       // 3. Build QR URL — encode event info as URL params so tags transfer
