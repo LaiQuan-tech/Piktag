@@ -86,7 +86,7 @@ module.exports = async function handler(req, res) {
     // uses to mark a live ask. `limit=1` because we only need to know
     // existence, not which one.
     const nowIso = new Date().toISOString();
-    const [biolinksRes, userTagsRes, activeAsksRes] = await Promise.all([
+    const [biolinksRes, userTagsRes, activeAsksRes, tribeSizeRes] = await Promise.all([
       fetch(
         `${SUPABASE_URL}/rest/v1/piktag_biolinks?user_id=eq.${profile.id}&is_active=eq.true&select=platform,url,label,position&order=position.asc`,
         {
@@ -114,12 +114,39 @@ module.exports = async function handler(req, res) {
           },
         }
       ),
+      // Tribe size — single integer, transitive descendant count
+      // via the get_tribe_size RPC. Same anon key as everything
+      // else here. The RPC has no auth guard for reads (public),
+      // so this works for visitors who aren't logged in.
+      fetch(
+        `${SUPABASE_URL}/rest/v1/rpc/get_tribe_size`,
+        {
+          method: 'POST',
+          headers: {
+            apikey: SUPABASE_ANON_KEY,
+            Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ p_user_id: profile.id }),
+        }
+      ),
     ]);
 
     const biolinks = await biolinksRes.json();
     const userTags = await userTagsRes.json();
     const activeAsks = await activeAsksRes.json();
     const hasActiveAsk = Array.isArray(activeAsks) && activeAsks.length > 0;
+
+    // get_tribe_size is a scalar SQL function, so PostgREST returns
+    // the bare number as the response body. Defensive: a missing
+    // RPC (PGRST202) or any non-number falls to 0.
+    let tribeSize = 0;
+    try {
+      const tribeBody = await tribeSizeRes.json();
+      if (typeof tribeBody === 'number') tribeSize = tribeBody;
+    } catch {
+      tribeSize = 0;
+    }
 
     const tags = (userTags || [])
       .map((ut) => ut.piktag_tags?.name)
@@ -145,7 +172,7 @@ module.exports = async function handler(req, res) {
     }
 
     const analyticsSnippet = buildAnalyticsSnippet('user', usernameStr);
-    const html = renderProfilePage(profile, biolinks || [], tags, sidStr, locale, { tags: tagsStr, date: dateStr, location: locStr }, analyticsSnippet, hasActiveAsk);
+    const html = renderProfilePage(profile, biolinks || [], tags, sidStr, locale, { tags: tagsStr, date: dateStr, location: locStr }, analyticsSnippet, hasActiveAsk, tribeSize);
 
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
     res.setHeader('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=3600');
@@ -157,7 +184,7 @@ module.exports = async function handler(req, res) {
   }
 };
 
-function renderProfilePage(profile, biolinks, tags, sid, locale, eventInfo, analyticsSnippet, hasActiveAsk) {
+function renderProfilePage(profile, biolinks, tags, sid, locale, eventInfo, analyticsSnippet, hasActiveAsk, tribeSize = 0) {
   const name = escapeHtml(profile.full_name || profile.username || '#piktag User');
   const username = escapeHtml(profile.username || '');
   const headline = profile.headline ? escapeHtml(profile.headline) : '';
@@ -265,7 +292,10 @@ function renderProfilePage(profile, biolinks, tags, sid, locale, eventInfo, anal
     /* Name & username */
     .name-row{display:flex;align-items:center;gap:4px;margin-bottom:4px;opacity:0;animation:fadeUp .5s ease .2s forwards}
     .name{font-size:26px;font-weight:800;letter-spacing:-0.5px}
-    .username{font-size:15px;color:${BRAND_DARK};font-weight:600;margin-bottom:14px;opacity:0;animation:fadeUp .5s ease .25s forwards}
+    .username{font-size:15px;color:${BRAND_DARK};font-weight:600;margin-bottom:8px;opacity:0;animation:fadeUp .5s ease .25s forwards}
+    /* Tribe stat — small pill below username, replaces the old gift
+       icon's reward symbology with a public, glanceable count. */
+    .tribe-stat{display:inline-block;font-size:12px;font-weight:700;color:${BRAND_ACCENT};background:rgba(140,82,255,.08);padding:3px 10px;border-radius:12px;margin-bottom:10px;opacity:0;animation:fadeUp .5s ease .27s forwards;letter-spacing:.2px}
     .headline{font-size:14px;font-weight:600;color:${BRAND_ACCENT};text-align:center;margin-bottom:10px;opacity:0;animation:fadeUp .5s ease .28s forwards}
     .bio{font-size:15px;color:#555;text-align:center;line-height:1.7;margin-bottom:18px;max-width:360px;opacity:0;animation:fadeUp .5s ease .3s forwards}
     /* event-card styles removed — see comment in renderProfilePage */
@@ -326,6 +356,7 @@ function renderProfilePage(profile, biolinks, tags, sid, locale, eventInfo, anal
       ${verifiedBadge}
     </div>
     <div class="username">@${username}</div>
+    ${tribeSize > 0 ? `<div class="tribe-stat" title="Tribe size">🌀 Tribe ${tribeSize}</div>` : ''}
     ${headline ? `<div class="headline">${headline}</div>` : ''}
     ${bio ? `<div class="bio">${bio}</div>` : ''}
     <button class="follow-btn" onclick="handleFollow()">${locale.follow}</button>

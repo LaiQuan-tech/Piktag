@@ -318,6 +318,13 @@ function MainNavigator({ needsOnboarding }: { needsOnboarding: boolean }) {
           name="PointsHistory"
           getComponent={() => require('../screens/PointsHistoryScreen').default}
         />
+        {/* Tribe constellation — private anonymous lineage view,
+            replaces the old points-based motivator. Reached from
+            the Tribe stat in ProfileScreen. */}
+        <RootStack.Screen
+          name="TribeConstellation"
+          getComponent={() => require('../screens/TribeConstellationScreen').default}
+        />
         <RootStack.Screen
           name="RedeemInvite"
           getComponent={() => require('../screens/RedeemInviteScreen').default}

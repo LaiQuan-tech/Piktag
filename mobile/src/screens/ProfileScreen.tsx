@@ -13,7 +13,6 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   Settings,
-  Gift,
   CheckCircle2,
   ExternalLink,
   MessageCircle,
@@ -65,6 +64,11 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
   const [biolinks, setBiolinks] = useState<Biolink[]>([]);
   const [followerCount, setFollowerCount] = useState<number>(0);
   const [friendCount, setFriendCount] = useState<number>(0);
+  // Tribe = transitive count of people you invited to PikTag,
+  // either via the redeem_invite_code path or by them scanning
+  // a Vibe QR before signup. Backed by the get_tribe_size RPC
+  // which does a recursive CTE; cached client-side until refresh.
+  const [tribeSize, setTribeSize] = useState<number>(0);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [qrVisible, setQrVisible] = useState(false);
@@ -142,9 +146,30 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
     if (!error && count !== null) setFriendCount(count);
   }, [userId]);
 
+  // Tribe size via RPC (recursive CTE over piktag_profiles.invited_by_user_id).
+  // PGRST202 = function not deployed yet (migration tolerance): treat as 0.
+  const fetchTribeSize = useCallback(async () => {
+    if (!userId) return;
+    try {
+      const { data, error } = await supabase.rpc('get_tribe_size', { p_user_id: userId });
+      if (error) {
+        const isMissing =
+          (error as any).code === 'PGRST202' ||
+          /could not find the function|does not exist/i.test(error.message);
+        if (!isMissing) console.warn('[Profile] tribe size fetch failed:', error);
+        setTribeSize(0);
+      } else if (typeof data === 'number') {
+        setTribeSize(data);
+      }
+    } catch (err) {
+      console.warn('[Profile] tribe size threw:', err);
+      setTribeSize(0);
+    }
+  }, [userId]);
+
   const fetchAllData = useCallback(async () => {
-    await Promise.all([fetchProfile(), fetchUserTags(), fetchBiolinks(), fetchFollowerCount(), fetchFriendCount()]);
-  }, [fetchProfile, fetchUserTags, fetchBiolinks, fetchFollowerCount, fetchFriendCount]);
+    await Promise.all([fetchProfile(), fetchUserTags(), fetchBiolinks(), fetchFollowerCount(), fetchFriendCount(), fetchTribeSize()]);
+  }, [fetchProfile, fetchUserTags, fetchBiolinks, fetchFollowerCount, fetchFriendCount, fetchTribeSize]);
 
   // Persist the five state slices to the in-memory dataCache so that
   // re-entering ProfileScreen within the TTL window paints instantly
@@ -242,8 +267,8 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
   const handleOpenQr = useCallback(() => setQrVisible(true), []);
   const handleCloseQr = useCallback(() => setQrVisible(false), []);
   const handleNavigateSettings = useCallback(() => navigation.navigate('Settings'), [navigation]);
-  const handleNavigateInvite = useCallback(() => navigation.navigate('Invite'), [navigation]);
   const handleNavigateEditProfile = useCallback(() => navigation.navigate('EditProfile'), [navigation]);
+  const handleNavigateTribe = useCallback(() => navigation.navigate('TribeConstellation'), [navigation]);
 
   const qrUsername = useMemo(() => profile?.username || '', [profile?.username]);
   const qrFullName = useMemo(() => profile?.full_name || '', [profile?.full_name]);
@@ -256,13 +281,16 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={TOP_EDGES}>
       <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={colors.white} />
 
-      {/* Header */}
+      {/* Header
+          Gift icon was removed — the old "earn points, redeem for
+          future paid features" loop was the rare top-right surface
+          that nobody actually used. Invite mechanism still exists
+          (Settings → 邀請好友, ContactSync per-row invite button),
+          and the new motivator lives further down on this page as
+          the Tribe size number — see comment below. */}
       <View style={styles.header}>
         <Text style={[styles.headerTitle, { color: colors.text }]}>{t('profile.pageTitle')}</Text>
         <View style={styles.headerRight}>
-          <TouchableOpacity style={styles.headerIconBtn} activeOpacity={0.6} onPress={handleNavigateInvite} accessibilityLabel={t('settings.inviteFriends', { defaultValue: '邀請好友' })} accessibilityRole="button">
-            <Gift size={24} color={COLORS.piktag600} />
-          </TouchableOpacity>
           <TouchableOpacity style={styles.headerIconBtn} activeOpacity={0.6} onPress={handleNavigateSettings} accessibilityLabel="設定" accessibilityRole="button">
             <Settings size={24} color={COLORS.gray900} />
           </TouchableOpacity>
@@ -353,26 +381,32 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
             )}
           </View>
 
-          {/* Stats — one line above buttons */}
-          <Text style={styles.statsLine}>
-            <Text style={styles.statNumber}>{userTags.length}</Text>
-            <Text style={styles.statLabel}>{t('profile.statTags')}</Text>
-            <Text style={styles.statDot}> · </Text>
-            <Text style={styles.statNumber}>{friendCount}</Text>
-            <Text style={styles.statLabel}>{t('profile.statFriends')}</Text>
-            <Text style={styles.statDot}> · </Text>
-            <Text style={styles.statNumber}>{formattedFollowerCount}</Text>
-            <Text style={styles.statLabel}>{t('profile.statFollowers')}</Text>
-          </Text>
-
-          {/* P Points */}
+          {/* Stats — one line above buttons. Tribe size joins
+              tags / friends / followers as the fourth public stat
+              — same visual weight, same row. Tappable: opens the
+              private anonymous Tribe constellation view.
+              "Tribe" replaces the old p_points system. The
+              motivation flips from "earn points → redeem for
+              vague future features" to "visible status number
+              that grows as your invites compound." */}
           <TouchableOpacity
-            onPress={() => navigation.navigate('PointsHistory')}
             activeOpacity={0.7}
-            style={styles.pPointsRow}
+            onPress={handleNavigateTribe}
+            accessibilityLabel={t('profile.statTribeA11y', { defaultValue: '查看 Tribe 星圖' })}
+            accessibilityRole="button"
           >
-            <Text style={styles.pPointsText}>
-              {profile?.p_points ?? 0} {t('points.pointsUnit')}
+            <Text style={styles.statsLine}>
+              <Text style={styles.statNumber}>{userTags.length}</Text>
+              <Text style={styles.statLabel}>{t('profile.statTags')}</Text>
+              <Text style={styles.statDot}> · </Text>
+              <Text style={styles.statNumber}>{friendCount}</Text>
+              <Text style={styles.statLabel}>{t('profile.statFriends')}</Text>
+              <Text style={styles.statDot}> · </Text>
+              <Text style={styles.statNumber}>{formattedFollowerCount}</Text>
+              <Text style={styles.statLabel}>{t('profile.statFollowers')}</Text>
+              <Text style={styles.statDot}> · </Text>
+              <Text style={styles.statNumber}>{tribeSize}</Text>
+              <Text style={styles.statLabel}>{t('profile.statTribe', { defaultValue: 'Tribe' })}</Text>
             </Text>
           </TouchableOpacity>
 
@@ -533,15 +567,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: COLORS.gray500,
     marginBottom: 14,
-  },
-  pPointsRow: {
-    alignSelf: 'flex-start',
-    marginBottom: 14,
-  },
-  pPointsText: {
-    color: COLORS.piktag600,
-    fontSize: 14,
-    fontWeight: '600',
   },
   statNumber: {
     fontWeight: '700',

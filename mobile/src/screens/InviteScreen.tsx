@@ -296,16 +296,11 @@ export default function InviteScreen({ navigation }: InviteScreenProps) {
             </TouchableOpacity>
           </View>
 
-          {/* P Points Card */}
-          <TouchableOpacity
-            onPress={() => navigation.navigate('PointsHistory')}
-            style={styles.pointsCard}
-            activeOpacity={0.8}
-          >
-            <Text style={styles.pointsLabel}>{t('points.balance')}</Text>
-            <Text style={styles.pointsValue}>{pPoints} {t('points.pointsUnit')}</Text>
-            <Text style={styles.pointsHint}>{t('points.redeemHint')}</Text>
-          </TouchableOpacity>
+          {/* P-points card removed — invites no longer earn points.
+              The new motivator is Tribe size, shown on the profile
+              screen, and the visualization is the Tribe constellation.
+              Keeping this screen as the entry for code generation +
+              sharing, just without the dead reward UI. */}
 
           {/* Invites List */}
           <View style={styles.listHeader}>
