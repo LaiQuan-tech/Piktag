@@ -814,7 +814,7 @@
       },
       "invite_accepted": {
         "title": "你的邀請被接受了",
-        "body": "加入了 PikTag — 你獲得 {{points}} P 幣"
+        "body": "加入了 PikTag"
       }
     }
   },

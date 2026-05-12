@@ -825,7 +825,7 @@
       },
       "invite_accepted": {
         "title": "Your invite was accepted",
-        "body": "joined PikTag — you earned {{points}} P coins"
+        "body": "joined PikTag"
       }
     }
   },

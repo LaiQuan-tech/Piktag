@@ -113,7 +113,11 @@ function getNotificationDisplay(
     platform: data.platform ?? '',
     years: data.years ?? 0,
     ask_body: truncatedAskBody,
-    points: typeof data.points_awarded === 'number' ? data.points_awarded : 1,
+    // `points` placeholder retired — invite_accepted body no longer
+    // references {{points}} after the Tribe-size pivot. Leaving the
+    // variable in if any historic notification rows still expect it
+    // in their template will just render an empty string instead of
+    // a missing-key error.
     defaultValue: '',
   });
   const i18nFound =

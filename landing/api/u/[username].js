@@ -118,6 +118,13 @@ module.exports = async function handler(req, res) {
       // via the get_tribe_size RPC. Same anon key as everything
       // else here. The RPC has no auth guard for reads (public),
       // so this works for visitors who aren't logged in.
+      //
+      // `.catch(() => null)` is critical: this RPC is the newest
+      // dependency on the page, and if it fails (5xx, network blip,
+      // not-yet-deployed migration) the bare fetch rejection would
+      // propagate out of Promise.all and crash the whole profile
+      // page back to the 500-fallback. Tribe size is decorative;
+      // never let it kill the core profile render.
       fetch(
         `${SUPABASE_URL}/rest/v1/rpc/get_tribe_size`,
         {
@@ -129,7 +136,7 @@ module.exports = async function handler(req, res) {
           },
           body: JSON.stringify({ p_user_id: profile.id }),
         }
-      ),
+      ).catch(() => null),
     ]);
 
     const biolinks = await biolinksRes.json();
@@ -138,12 +145,15 @@ module.exports = async function handler(req, res) {
     const hasActiveAsk = Array.isArray(activeAsks) && activeAsks.length > 0;
 
     // get_tribe_size is a scalar SQL function, so PostgREST returns
-    // the bare number as the response body. Defensive: a missing
-    // RPC (PGRST202) or any non-number falls to 0.
+    // the bare number as the response body. Defensive: null response
+    // (from the .catch above), a missing RPC (PGRST202), or any
+    // non-number all fall through to 0.
     let tribeSize = 0;
     try {
-      const tribeBody = await tribeSizeRes.json();
-      if (typeof tribeBody === 'number') tribeSize = tribeBody;
+      if (tribeSizeRes) {
+        const tribeBody = await tribeSizeRes.json();
+        if (typeof tribeBody === 'number') tribeSize = tribeBody;
+      }
     } catch {
       tribeSize = 0;
     }

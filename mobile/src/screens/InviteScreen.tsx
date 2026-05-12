@@ -51,7 +51,9 @@ export default function InviteScreen({ navigation }: InviteScreenProps) {
   const { user } = useAuth();
   const [quota, setQuota] = useState(0);
   const [maxQuota, setMaxQuota] = useState(5);
-  const [pPoints, setPPoints] = useState(0);
+  // pPoints state + p_points column read removed — points were
+  // retired in the Tribe-size pivot. Quota stays because it's
+  // separately useful for rate-limiting invite-code generation.
   const [invites, setInvites] = useState<Invite[]>([]);
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
@@ -67,17 +69,17 @@ export default function InviteScreen({ navigation }: InviteScreenProps) {
         console.warn('[Invite] quota recovery error:', recErr);
       }
 
-      // Fetch quota + p_points from profile
+      // Fetch quota from profile. p_points is no longer read — the
+      // points UI was removed when we pivoted to Tribe size.
       const { data: profileData } = await supabase
         .from('piktag_profiles')
-        .select('invite_quota, invite_quota_max, p_points')
+        .select('invite_quota, invite_quota_max')
         .eq('id', user.id)
         .single();
 
       if (profileData) {
         setQuota(profileData.invite_quota ?? 0);
         setMaxQuota(profileData.invite_quota_max ?? 5);
-        setPPoints(profileData.p_points ?? 0);
       }
 
       // Fetch invites
@@ -525,29 +527,5 @@ const styles = StyleSheet.create({
     color: COLORS.gray400,
     textAlign: 'center',
     paddingVertical: 40,
-  },
-  pointsCard: {
-    backgroundColor: COLORS.piktag50,
-    borderWidth: 1,
-    borderColor: COLORS.piktag100,
-    borderRadius: 16,
-    padding: 16,
-    margin: 16,
-    alignItems: 'center',
-  },
-  pointsLabel: {
-    fontSize: 13,
-    color: COLORS.gray500,
-  },
-  pointsValue: {
-    fontSize: 28,
-    fontWeight: '800',
-    color: COLORS.piktag600,
-    marginTop: 4,
-  },
-  pointsHint: {
-    fontSize: 11,
-    color: COLORS.gray400,
-    marginTop: 2,
   },
 });
