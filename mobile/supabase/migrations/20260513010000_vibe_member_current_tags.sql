@@ -52,7 +52,13 @@ AS $$
     vibe_members AS (
       SELECT c.connected_user_id AS member_id
       FROM piktag_connections c
-      WHERE c.scan_session_id = p_group_id::text
+      -- Cast both sides to text. The schema type of
+      -- piktag_connections.scan_session_id varies by deploy:
+      -- early seeds had it as `text` (to allow legacy non-UUID
+      -- prefixed ids like "local_…"), production was later
+      -- migrated to `uuid`. Casting both makes the predicate
+      -- type-agnostic so this RPC works on either schema.
+      WHERE c.scan_session_id::text = p_group_id::text
         AND c.user_id = (
           SELECT host_user_id FROM piktag_scan_sessions WHERE id = p_group_id
         )
