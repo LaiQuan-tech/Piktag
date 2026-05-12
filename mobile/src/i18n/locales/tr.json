@@ -1073,21 +1073,24 @@
     "dismissHint": "Kapatmak için dokun"
   },
   "qrGroup": {
-    "headerTitle": "Etkinlik grupları",
-    "detailHeader": "Etkinlik grubu",
-    "create": "Etkinlik grubu oluştur",
-    "createFirst": "İlk etkinlik grubunu oluştur",
-    "emptyTitle": "Henüz etkinlik grubu yok",
-    "emptyDesc": "Her etkinliğe bir grup — arkadaşlar QR'ı tarayıp katılır, istediğin zaman gel.",
-    "untitled": "Adsız etkinlik",
-    "untitledFallback": "Etkinlik · {{date}}",
-    "namePlaceholder": "Bu etkinliğe ad ver",
-    "tagsTitle": "Etkinlik etiketleri",
+    "headerTitle": "Vibes",
+    "headerSubtitle": "Kiminle, nerede, ne yaptın",
+    "detailHeader": "Vibe",
+    "create": "Yeni Vibe oluştur",
+    "createFirst": "İlk Vibe'ını oluştur",
+    "emptyTitle": "Henüz Vibe yok",
+    "emptyDesc": "Her Vibe bir an — arkadaşların QR'ı taratarak katılır, sonra istediğin zaman kimlerin orada olduğunu görebilir, etiket ekleyebilir veya tekrar buluşturabilirsin.",
+    "untitled": "İsimsiz Vibe",
+    "untitledFallback": "Vibe · {{date}}",
+    "namePlaceholder": "Bu Vibe'a isim ver",
+    "tagsTitle": "Vibe etiketleri",
     "tagsEmpty": "Etiket yok",
     "tagInputPlaceholder": "Yeni etiket",
     "noTagsYet": "Etiket yok",
     "membersTitle": "Üyeler ({{count}})",
     "memberCount": "{{count}} arkadaş",
-    "membersEmpty": "Henüz kimse taramadı — arkadaşlarınla paylaş"
+    "membersEmpty": "Henüz kimse taramadı — arkadaşlarınla paylaş",
+    "deleteTitle": "Bu Vibe silinsin mi?",
+    "deleteMessage": "\"{{name}}\" Vibes'ından silinecek. Bu QR'la seni zaten eklemiş arkadaşlar etkilenmez."
   }
 }

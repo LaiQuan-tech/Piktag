@@ -1073,21 +1073,24 @@
     "dismissHint": "Toca para cerrar"
   },
   "qrGroup": {
-    "headerTitle": "Grupos de eventos",
-    "detailHeader": "Grupo del evento",
-    "create": "Crear grupo de evento",
-    "createFirst": "Crea tu primer grupo de evento",
-    "emptyTitle": "Sin grupos de eventos aún",
-    "emptyDesc": "Un grupo por evento — los amigos escanean el QR para unirse, y puedes volver cuando quieras.",
-    "untitled": "Evento sin título",
-    "untitledFallback": "Evento · {{date}}",
-    "namePlaceholder": "Nombra este evento",
-    "tagsTitle": "Etiquetas del evento",
+    "headerTitle": "Vibes",
+    "headerSubtitle": "A quién conociste, dónde y qué hicieron",
+    "detailHeader": "Vibe",
+    "create": "Crear nuevo Vibe",
+    "createFirst": "Crea tu primer Vibe",
+    "emptyTitle": "Aún no hay Vibes",
+    "emptyDesc": "Cada Vibe es un momento — tus amigos escanean el QR para unirse, y luego puedes ver quién estaba, añadir etiquetas o juntarlos otra vez.",
+    "untitled": "Vibe sin título",
+    "untitledFallback": "Vibe · {{date}}",
+    "namePlaceholder": "Ponle nombre a este Vibe",
+    "tagsTitle": "Etiquetas del Vibe",
     "tagsEmpty": "Sin etiquetas",
     "tagInputPlaceholder": "Nueva etiqueta",
     "noTagsYet": "Sin etiquetas",
     "membersTitle": "Miembros ({{count}})",
     "memberCount": "{{count}} amigos",
-    "membersEmpty": "Nadie ha escaneado aún — compártelo"
+    "membersEmpty": "Nadie ha escaneado aún — compártelo",
+    "deleteTitle": "¿Eliminar este Vibe?",
+    "deleteMessage": "\"{{name}}\" se eliminará de tus Vibes. Los amigos que ya te añadieron con este QR no se ven afectados."
   }
 }

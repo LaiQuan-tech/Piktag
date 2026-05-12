@@ -1073,21 +1073,24 @@
     "dismissHint": "아무 곳이나 탭하여 닫기"
   },
   "qrGroup": {
-    "headerTitle": "이벤트 그룹",
-    "detailHeader": "이벤트 그룹",
-    "create": "이벤트 그룹 만들기",
-    "createFirst": "첫 이벤트 그룹 만들기",
-    "emptyTitle": "아직 이벤트 그룹이 없어요",
-    "emptyDesc": "이벤트마다 그룹 하나 — 친구가 QR 스캔하면 참여, 언제든 명단·태그·재공유 가능.",
-    "untitled": "이름 없는 이벤트",
-    "untitledFallback": "이벤트 · {{date}}",
-    "namePlaceholder": "이벤트 이름 짓기",
-    "tagsTitle": "이벤트 태그",
+    "headerTitle": "Vibes",
+    "headerSubtitle": "누구와 어디서 무엇을 했는지",
+    "detailHeader": "Vibe",
+    "create": "새 Vibe 만들기",
+    "createFirst": "첫 Vibe 만들기",
+    "emptyTitle": "아직 Vibe가 없어요",
+    "emptyDesc": "각 Vibe는 하나의 순간이에요 — 친구가 QR을 스캔해 참여하고, 나중에 누가 있었는지 확인하고 태그를 추가하거나 다시 모일 수 있어요.",
+    "untitled": "제목 없는 Vibe",
+    "untitledFallback": "Vibe · {{date}}",
+    "namePlaceholder": "이 Vibe의 이름을 지어주세요",
+    "tagsTitle": "Vibe 태그",
     "tagsEmpty": "태그 없음",
     "tagInputPlaceholder": "새 태그",
     "noTagsYet": "태그 없음",
     "membersTitle": "멤버 ({{count}})",
     "memberCount": "친구 {{count}}명",
-    "membersEmpty": "아직 아무도 스캔하지 않았어요 — 친구에게 공유해 보세요"
+    "membersEmpty": "아직 아무도 스캔하지 않았어요 — 친구에게 공유해 보세요",
+    "deleteTitle": "이 Vibe를 삭제할까요?",
+    "deleteMessage": "\"{{name}}\"이(가) Vibes에서 제거됩니다. 이미 이 QR로 친구가 된 분들에게는 영향이 없어요."
   }
 }

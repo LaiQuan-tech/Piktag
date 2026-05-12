@@ -272,6 +272,14 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
       <Text style={styles.welcomeSubtitle}>
         {t('auth.onboarding.welcomeSubtitle', { defaultValue: '貼上標籤，下次見面就知道是誰' })}
       </Text>
+      {/* Brand tagline — small, English, uppercase-letterspaced.
+          Sits under the functional copy so it reads as a signature,
+          not a competing headline. Drives the same idea ("tag now,
+          keep the people later") in 6 words that the longer
+          Chinese above explains. */}
+      <Text style={styles.brandTagline}>
+        {t('auth.onboarding.brandTagline', { defaultValue: 'Tag the Vibe, Keep the Tribe' })}
+      </Text>
       <View style={{ flex: 1 }} />
       <TouchableOpacity
         style={styles.primaryButton}
@@ -363,7 +371,7 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
           ) : (
             <>
               <Text style={styles.primaryButtonText}>
-                {t('auth.onboarding.profileCta', { defaultValue: '建立我的第一個活動' })}
+                {t('auth.onboarding.profileCta', { defaultValue: '建立我的第一個 Vibe' })}
               </Text>
               <ChevronRight size={20} color="#FFFFFF" />
             </>
@@ -482,6 +490,15 @@ const styles = StyleSheet.create({
     lineHeight: 24,
     marginTop: 16,
     paddingHorizontal: 16,
+  },
+  brandTagline: {
+    fontSize: 11,
+    color: COLORS.piktag500,
+    textAlign: 'center',
+    marginTop: 28,
+    letterSpacing: 1.4,
+    textTransform: 'uppercase',
+    fontWeight: '600',
   },
 
   // ── Profile screen ──

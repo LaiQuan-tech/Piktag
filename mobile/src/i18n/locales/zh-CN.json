@@ -1145,21 +1145,24 @@
     "dismissHint": "点任意处关闭"
   },
   "qrGroup": {
-    "headerTitle": "活动群组标签",
-    "detailHeader": "活动群组",
-    "create": "创建新活动群组",
-    "createFirst": "创建第一个活动群组标签",
-    "emptyTitle": "还没有活动群组标签",
-    "emptyDesc": "每个活动就一个群组标签，朋友扫 QR 就加进来 — 之后随时可以回来看名单、加标签、重新分享。",
-    "untitled": "未命名活动",
-    "untitledFallback": "活动 · {{date}}",
-    "namePlaceholder": "为这个活动取个名字",
-    "tagsTitle": "活动标签",
+    "headerTitle": "Vibes",
+    "headerSubtitle": "你跟谁在哪里，做了什么",
+    "detailHeader": "Vibe",
+    "create": "创建新 Vibe",
+    "createFirst": "创建第一个 Vibe",
+    "emptyTitle": "还没有 Vibe",
+    "emptyDesc": "每个 Vibe 就是一个活动瞬间 — 朋友扫 QR 一起加进来，之后随时回头看是谁、加标签、再约一次。",
+    "untitled": "未命名 Vibe",
+    "untitledFallback": "Vibe · {{date}}",
+    "namePlaceholder": "帮这个 Vibe 取个名字",
+    "tagsTitle": "Vibe 标签",
     "tagsEmpty": "尚无标签",
     "tagInputPlaceholder": "输入新标签",
     "noTagsYet": "尚无标签",
     "membersTitle": "成员（{{count}}）",
     "memberCount": "{{count}} 位好友",
-    "membersEmpty": "还没有人扫这个 QR — 分享给朋友吧"
+    "membersEmpty": "还没有人扫这个 QR — 分享给朋友吧",
+    "deleteTitle": "删除这个 Vibe？",
+    "deleteMessage": "「{{name}}」会从你的 Vibes 中移除。已经通过这个 QR 加你为好友的人不会受影响。"
   }
 }

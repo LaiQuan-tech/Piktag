@@ -700,7 +700,7 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
           // RLS / NOT-NULL / missing-column failures.
           console.warn('[AddTag] scan_session insert failed:', error);
           Alert.alert(
-            t('addTag.saveWarnTitle', { defaultValue: 'QR 已產生，但無法儲存到群組' }),
+            t('addTag.saveWarnTitle', { defaultValue: 'QR 已產生，但無法儲存到 Vibe' }),
             t('addTag.saveWarnMsg', {
               code: (error as any).code || '?',
               message: error.message,
@@ -810,7 +810,7 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
     <>
       {/* Header */}
       <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
-        <Text style={styles.headerTitle}>{t('addTag.headerTitle', { defaultValue: '新增活動群組' })}</Text>
+        <Text style={styles.headerTitle}>{t('addTag.headerTitle', { defaultValue: '建立 Vibe' })}</Text>
         {/* Scan icon previously lived here — moved to the parent
             QrGroupListScreen header (the # tab's landing page) where
             "scan someone else's QR" is a peer action to "create my
@@ -1262,10 +1262,10 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
             </View>
 
             <Text style={styles.celebTitle}>
-              {t('addTag.firstQrCelebrationTitle', { defaultValue: '你的第一個活動標籤建好了！' })}
+              {t('addTag.firstQrCelebrationTitle', { defaultValue: '你的第一個 Vibe 建好了！' })}
             </Text>
             <Text style={styles.celebSubtitle}>
-              {t('addTag.firstQrCelebrationSubtitle', { defaultValue: '分享給朋友 —— 他們掃 QR 就能加入這個群組，也會看到 PikTag 是什麼。' })}
+              {t('addTag.firstQrCelebrationSubtitle', { defaultValue: '分享給朋友 —— 他們掃 QR 就能加入這個 Vibe，也會看到 PikTag 是什麼。' })}
             </Text>
 
             <TouchableOpacity

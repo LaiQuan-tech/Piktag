@@ -1073,21 +1073,24 @@
     "dismissHint": "Tap untuk tutup"
   },
   "qrGroup": {
-    "headerTitle": "Grup acara",
-    "detailHeader": "Grup acara",
-    "create": "Buat grup acara",
-    "createFirst": "Buat grup acara pertamamu",
-    "emptyTitle": "Belum ada grup acara",
-    "emptyDesc": "Satu grup per acara — teman scan QR buat gabung, balik kapan saja.",
-    "untitled": "Acara tanpa nama",
-    "untitledFallback": "Acara · {{date}}",
-    "namePlaceholder": "Beri nama acara ini",
-    "tagsTitle": "Tag acara",
+    "headerTitle": "Vibes",
+    "headerSubtitle": "Siapa, di mana, dan kalian ngapain",
+    "detailHeader": "Vibe",
+    "create": "Bikin Vibe baru",
+    "createFirst": "Bikin Vibe pertamamu",
+    "emptyTitle": "Belum ada Vibe",
+    "emptyDesc": "Setiap Vibe adalah satu momen — teman scan QR untuk gabung, dan nanti kamu bisa lihat siapa aja, tambah tag, atau ngumpul lagi.",
+    "untitled": "Vibe tanpa nama",
+    "untitledFallback": "Vibe · {{date}}",
+    "namePlaceholder": "Kasih nama Vibe ini",
+    "tagsTitle": "Tag Vibe",
     "tagsEmpty": "Belum ada tag",
     "tagInputPlaceholder": "Tag baru",
     "noTagsYet": "Belum ada tag",
     "membersTitle": "Anggota ({{count}})",
     "memberCount": "{{count}} teman",
-    "membersEmpty": "Belum ada yang scan — share ke teman dulu"
+    "membersEmpty": "Belum ada yang scan — share ke teman dulu",
+    "deleteTitle": "Hapus Vibe ini?",
+    "deleteMessage": "\"{{name}}\" akan dihapus dari Vibes-mu. Teman yang sudah menambahkanmu lewat QR ini tidak terpengaruh."
   }
 }

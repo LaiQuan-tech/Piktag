@@ -1073,21 +1073,24 @@
     "dismissHint": "انقر للإغلاق"
   },
   "qrGroup": {
-    "headerTitle": "مجموعات الفعاليات",
-    "detailHeader": "مجموعة الفعالية",
-    "create": "إنشاء مجموعة فعالية",
-    "createFirst": "أنشئ أول مجموعة فعالية",
-    "emptyTitle": "لا توجد مجموعات بعد",
-    "emptyDesc": "مجموعة لكل فعالية — الأصدقاء يمسحون رمز QR للانضمام، يمكنك العودة في أي وقت.",
-    "untitled": "فعالية بدون عنوان",
-    "untitledFallback": "فعالية · {{date}}",
-    "namePlaceholder": "سمِّ هذه الفعالية",
-    "tagsTitle": "وسوم الفعالية",
+    "headerTitle": "Vibes",
+    "headerSubtitle": "مع من، أين، ما الذي فعلتموه",
+    "detailHeader": "Vibe",
+    "create": "إنشاء Vibe جديد",
+    "createFirst": "أنشئ أول Vibe",
+    "emptyTitle": "لا توجد Vibes بعد",
+    "emptyDesc": "كل Vibe هو لحظة — يمسح أصدقاؤك رمز QR للانضمام، ويمكنك لاحقًا رؤية من كان هناك، إضافة وسوم، أو جمعهم مرة أخرى.",
+    "untitled": "Vibe بدون عنوان",
+    "untitledFallback": "Vibe · {{date}}",
+    "namePlaceholder": "سمّ هذا Vibe",
+    "tagsTitle": "وسوم Vibe",
     "tagsEmpty": "لا توجد وسوم",
     "tagInputPlaceholder": "وسم جديد",
     "noTagsYet": "لا توجد وسوم",
     "membersTitle": "الأعضاء ({{count}})",
     "memberCount": "{{count}} أصدقاء",
-    "membersEmpty": "لم يقم أحد بمسحه بعد — شاركه مع الأصدقاء"
+    "membersEmpty": "لم يقم أحد بمسحه بعد — شاركه مع الأصدقاء",
+    "deleteTitle": "حذف هذا Vibe؟",
+    "deleteMessage": "سيُزال \"{{name}}\" من Vibes الخاص بك. الأصدقاء الذين أضافوك بالفعل عبر هذا QR لن يتأثروا."
   }
 }

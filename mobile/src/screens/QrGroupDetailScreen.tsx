@@ -236,7 +236,7 @@ export default function QrGroupDetailScreen({ navigation, route }: Props) {
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerBackBtn}>
             <ArrowLeft size={22} color={COLORS.gray900} />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>{t('qrGroup.detailHeader', { defaultValue: '活動群組' })}</Text>
+          <Text style={styles.headerTitle}>{t('qrGroup.detailHeader', { defaultValue: 'Vibe' })}</Text>
           <View style={{ width: 36 }} />
         </View>
         <View style={styles.loadingWrap}>
@@ -250,7 +250,7 @@ export default function QrGroupDetailScreen({ navigation, route }: Props) {
 
   const displayName =
     group.name?.trim() ||
-    t('qrGroup.untitled', { defaultValue: '未命名活動' });
+    t('qrGroup.untitled', { defaultValue: '未命名 Vibe' });
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
@@ -261,7 +261,7 @@ export default function QrGroupDetailScreen({ navigation, route }: Props) {
           <ArrowLeft size={22} color={COLORS.gray900} />
         </TouchableOpacity>
         <Text style={styles.headerTitle} numberOfLines={1}>
-          {t('qrGroup.detailHeader', { defaultValue: '活動群組' })}
+          {t('qrGroup.detailHeader', { defaultValue: 'Vibe' })}
         </Text>
         <TouchableOpacity onPress={handleShare} style={styles.headerBackBtn}>
           <Share2 size={20} color={COLORS.piktag600} />
@@ -280,7 +280,7 @@ export default function QrGroupDetailScreen({ navigation, route }: Props) {
               onBlur={handleSaveName}
               onSubmitEditing={handleSaveName}
               returnKeyType="done"
-              placeholder={t('qrGroup.namePlaceholder', { defaultValue: '為這個活動取個名字' })}
+              placeholder={t('qrGroup.namePlaceholder', { defaultValue: '幫這個 Vibe 取個名字' })}
               placeholderTextColor={COLORS.gray400}
               maxLength={40}
             />
@@ -308,7 +308,7 @@ export default function QrGroupDetailScreen({ navigation, route }: Props) {
         {/* Tag editor. */}
         <View style={styles.tagSection}>
           <Text style={styles.sectionTitle}>
-            {t('qrGroup.tagsTitle', { defaultValue: '活動標籤' })}
+            {t('qrGroup.tagsTitle', { defaultValue: 'Vibe 標籤' })}
           </Text>
           <View style={styles.tagChipsRow}>
             {group.event_tags.map((tag) => (

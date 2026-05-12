@@ -1073,21 +1073,24 @@
     "dismissHint": "Нажми, чтобы закрыть"
   },
   "qrGroup": {
-    "headerTitle": "Группы событий",
-    "detailHeader": "Группа события",
-    "create": "Создать группу события",
-    "createFirst": "Создай первую группу",
-    "emptyTitle": "Пока нет групп",
-    "emptyDesc": "Группа на каждое событие — друзья сканируют QR, заходи в любой момент.",
-    "untitled": "Без названия",
-    "untitledFallback": "Событие · {{date}}",
-    "namePlaceholder": "Дай событию имя",
-    "tagsTitle": "Теги события",
+    "headerTitle": "Vibes",
+    "headerSubtitle": "С кем ты был, где и что вы делали",
+    "detailHeader": "Vibe",
+    "create": "Создать новый Vibe",
+    "createFirst": "Создай свой первый Vibe",
+    "emptyTitle": "Vibes пока нет",
+    "emptyDesc": "Каждый Vibe — это момент. Друзья сканируют QR, чтобы присоединиться, а потом ты можешь вспомнить, кто там был, добавить теги или собрать всех снова.",
+    "untitled": "Vibe без названия",
+    "untitledFallback": "Vibe · {{date}}",
+    "namePlaceholder": "Назови этот Vibe",
+    "tagsTitle": "Теги Vibe",
     "tagsEmpty": "Нет тегов",
     "tagInputPlaceholder": "Новый тег",
     "noTagsYet": "Нет тегов",
     "membersTitle": "Участники ({{count}})",
     "memberCount": "{{count}} друзей",
-    "membersEmpty": "Никто пока не отсканировал — поделись с друзьями"
+    "membersEmpty": "Никто пока не отсканировал — поделись с друзьями",
+    "deleteTitle": "Удалить этот Vibe?",
+    "deleteMessage": "«{{name}}» будет удалён из твоих Vibes. На друзей, которые уже добавили тебя через этот QR, это не повлияет."
   }
 }

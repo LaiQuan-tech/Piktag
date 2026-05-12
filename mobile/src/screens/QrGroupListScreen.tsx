@@ -172,12 +172,12 @@ export default function QrGroupListScreen({ navigation }: Props) {
       const displayName =
         g.name?.trim() ||
         g.event_location ||
-        t('qrGroup.untitled', { defaultValue: '未命名活動' });
+        t('qrGroup.untitled', { defaultValue: '未命名 Vibe' });
       Alert.alert(
-        t('qrGroup.deleteTitle', { defaultValue: '刪除活動群組？' }),
+        t('qrGroup.deleteTitle', { defaultValue: '刪除這個 Vibe？' }),
         t('qrGroup.deleteMessage', {
           name: displayName,
-          defaultValue: `「${displayName}」會從你的清單中移除。已經透過這個 QR 加你為好友的人不會受影響。`,
+          defaultValue: `「${displayName}」會從你的 Vibes 中移除。已經透過這個 QR 加你為好友的人不會受影響。`,
         }),
         [
           { text: t('common.cancel', { defaultValue: '取消' }), style: 'cancel' },
@@ -241,7 +241,7 @@ export default function QrGroupListScreen({ navigation }: Props) {
         (item.event_location ? `${item.event_location}` : null) ||
         t('qrGroup.untitledFallback', {
           date: new Date(item.created_at).toLocaleDateString(),
-          defaultValue: `Group · ${new Date(item.created_at).toLocaleDateString()}`,
+          defaultValue: `Vibe · ${new Date(item.created_at).toLocaleDateString()}`,
         });
       const tagPreview = item.event_tags.slice(0, 3);
       return (
@@ -327,11 +327,11 @@ export default function QrGroupListScreen({ navigation }: Props) {
           <QrCode size={36} color={COLORS.piktag500} />
         </View>
         <Text style={styles.emptyTitle}>
-          {t('qrGroup.emptyTitle', { defaultValue: '還沒有活動群組標籤' })}
+          {t('qrGroup.emptyTitle', { defaultValue: '還沒有 Vibe' })}
         </Text>
         <Text style={styles.emptyDesc}>
           {t('qrGroup.emptyDesc', {
-            defaultValue: '每個活動就一個群組標籤，朋友掃 QR 就加進來 — 之後隨時可以回來看名單、加標籤、重新分享。',
+            defaultValue: '每個 Vibe 就是一個活動瞬間 — 朋友掃 QR 一起加進來，之後隨時回頭看是誰、加標籤、再揪一次。',
           })}
         </Text>
         <TouchableOpacity
@@ -341,7 +341,7 @@ export default function QrGroupListScreen({ navigation }: Props) {
         >
           <Plus size={18} color="#FFFFFF" />
           <Text style={styles.emptyCtaText}>
-            {t('qrGroup.createFirst', { defaultValue: '建立第一個活動群組標籤' })}
+            {t('qrGroup.createFirst', { defaultValue: '建立第一個 Vibe' })}
           </Text>
         </TouchableOpacity>
 
@@ -370,9 +370,18 @@ export default function QrGroupListScreen({ navigation }: Props) {
         <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor={colors.white} />
 
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>
-            {t('qrGroup.headerTitle', { defaultValue: '活動群組標籤' })}
-          </Text>
+          <View style={styles.headerTitleWrap}>
+            <Text style={styles.headerTitle}>
+              {t('qrGroup.headerTitle', { defaultValue: 'Vibes' })}
+            </Text>
+            {/* Chinese subtitle explains what "Vibe" means without
+                requiring the user to know the English word. Plain
+                three-clause sentence: who / where / what — each
+                dimension a Vibe captures. */}
+            <Text style={styles.headerSubtitle}>
+              {t('qrGroup.headerSubtitle', { defaultValue: '你跟誰在哪裡，做了什麼' })}
+            </Text>
+          </View>
           <View style={styles.headerActions}>
             {/* Scan someone else's QR. Sibling action to "+ create my QR" —
                 both are equally important entry points, so they live
@@ -383,6 +392,7 @@ export default function QrGroupListScreen({ navigation }: Props) {
               onPress={handleOpenScanner}
               accessibilityRole="button"
               accessibilityLabel={t('qrGroup.scan', { defaultValue: '掃描 QR 加好友' })}
+
             >
               <ScanLine size={22} color={COLORS.piktag600} />
             </TouchableOpacity>
@@ -391,7 +401,7 @@ export default function QrGroupListScreen({ navigation }: Props) {
               activeOpacity={0.7}
               onPress={handleCreateNew}
               accessibilityRole="button"
-              accessibilityLabel={t('qrGroup.create', { defaultValue: '建立新活動群組' })}
+              accessibilityLabel={t('qrGroup.create', { defaultValue: '建立新 Vibe' })}
             >
               <Plus size={22} color={COLORS.piktag600} />
             </TouchableOpacity>
@@ -432,10 +442,22 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: COLORS.gray100,
   },
+  // Left-side title block — "Vibes" big, Chinese explainer
+  // underneath in a smaller gray weight. The two-line stack lets
+  // English-unaware users learn the term WITHOUT making "Vibes"
+  // itself any less prominent.
+  headerTitleWrap: {
+    flexShrink: 1,
+  },
   headerTitle: {
     fontSize: 22,
     fontWeight: '800',
     color: COLORS.gray900,
+  },
+  headerSubtitle: {
+    fontSize: 12,
+    color: COLORS.gray500,
+    marginTop: 2,
   },
   // Right-side cluster — scan + create live side-by-side as peer
   // entry points.
