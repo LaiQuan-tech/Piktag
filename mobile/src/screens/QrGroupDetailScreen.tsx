@@ -28,7 +28,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
-import { ArrowLeft, Share2, Plus, X, Hash, Edit3, Sparkles } from 'lucide-react-native';
+import { ArrowLeft, Share2, Plus, X, Hash, Edit3, Sparkles, Megaphone } from 'lucide-react-native';
 // react-native-qrcode-svg is the same lib AddTagScreen uses. Import
 // inline so the bundle only pulls it on this screen too.
 import QRCode from 'react-native-qrcode-svg';
@@ -238,6 +238,51 @@ export default function QrGroupDetailScreen({ navigation, route }: Props) {
       /* user cancelled */
     }
   }, [group]);
+
+  // ─── P1: Gather the Tribe ──────────────────────────────
+  // System-Share-based v1. The user picks the destination app
+  // (LINE / WhatsApp / SMS / etc.) and the recipients from there;
+  // PikTag's job is only to compose a context-rich invite text.
+  //
+  // Message text branches on filter state:
+  //   • No filter active → generic "let's gather again" with the
+  //     Vibe's name
+  //   • Filter active    → calls out the shared current vibe tag
+  //     (the whole point of P0 was surfacing this tag — P1 makes
+  //     it the rallying cry: "you're all into #健身 now, let's
+  //     do something about that")
+  //
+  // We intentionally do NOT include the per-person @-names in the
+  // message — cross-app @-mentions don't resolve, and dumping a
+  // list of names into SMS feels spammy. The recipient picks per-
+  // app via the standard contact selector after Share fires.
+  const handleGatherTribe = useCallback(async () => {
+    if (!group?.qr_code_data) return;
+    const vibeName =
+      group.name?.trim() ||
+      t('qrGroup.untitled', { defaultValue: '未命名 Vibe' });
+    const url = group.qr_code_data;
+
+    const message =
+      selectedFilterTag != null
+        ? t('qrGroup.gatherFilteredMessage', {
+            tag: selectedFilterTag,
+            vibeName,
+            url,
+            defaultValue: `嘿，要不要揪一次 #${selectedFilterTag}？\n（從「${vibeName}」這群人發起）\n\n${url}`,
+          })
+        : t('qrGroup.gatherMessage', {
+            vibeName,
+            url,
+            defaultValue: `要不要再揪一次「${vibeName}」？\n\n${url}`,
+          });
+
+    try {
+      await Share.share({ message });
+    } catch {
+      /* user cancelled */
+    }
+  }, [group, selectedFilterTag, t]);
 
   const renderMember = useCallback(
     ({ item }: { item: Member }) => {
@@ -461,7 +506,7 @@ export default function QrGroupDetailScreen({ navigation, route }: Props) {
           </View>
         )}
 
-        {/* Member list. */}
+        {/* Member list + P1 Gather button. */}
         <View style={styles.memberSection}>
           {(() => {
             // When a tag filter is active, members are scoped to
@@ -479,6 +524,37 @@ export default function QrGroupDetailScreen({ navigation, route }: Props) {
                 : members;
             return (
               <>
+                {/* ─── P1: Gather the Tribe ───────────────────
+                    Hides when there are zero (filtered) members
+                    — calling out to no one is just confusing.
+                    Label + count update based on filter state so
+                    "召喚 #健身 · 5 人" appears when a tag is
+                    selected (this is the killer flow that P0
+                    enables: P0 surfaces the shared current vibe,
+                    P1 turns it into a rally cry). */}
+                {filteredMembers.length > 0 ? (
+                  <TouchableOpacity
+                    style={styles.gatherBtn}
+                    activeOpacity={0.85}
+                    onPress={handleGatherTribe}
+                    accessibilityRole="button"
+                  >
+                    <Megaphone size={18} color="#FFFFFF" strokeWidth={2.2} />
+                    <Text style={styles.gatherBtnText}>
+                      {filterEntry != null
+                        ? t('qrGroup.gatherFilteredCta', {
+                            tag: filterEntry.tag_name,
+                            count: filteredMembers.length,
+                            defaultValue: `召喚 #${filterEntry.tag_name} · ${filteredMembers.length} 人`,
+                          })
+                        : t('qrGroup.gatherCta', {
+                            count: filteredMembers.length,
+                            defaultValue: `召喚這群人 · ${filteredMembers.length} 人`,
+                          })}
+                    </Text>
+                  </TouchableOpacity>
+                ) : null}
+
                 <View style={styles.memberHeaderRow}>
                   <Text style={styles.sectionTitle}>
                     {t('qrGroup.membersTitle', {
@@ -619,6 +695,30 @@ const styles = StyleSheet.create({
   },
 
   memberSection: { paddingHorizontal: 20, paddingTop: 18 },
+
+  // ─── P1: Gather the Tribe button ──────────────────────────
+  // Filled purple, full-width, lives right above the member list.
+  // Visually pairs with the Vibe-shift chip cluster above: P0
+  // gives "who's into what now", P1 gives "go gather them". The
+  // megaphone icon picks up the rallying-cry semantics — calmer
+  // than a send/share arrow, more directional than a heart/like.
+  gatherBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    borderRadius: 14,
+    backgroundColor: COLORS.piktag500,
+    marginBottom: 16,
+  },
+  gatherBtnText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+
   // Header row pairs the "Members (N)" title with the active
   // filter chip when a tag is selected. Filter chip is the same
   // visual style as the active Vibe-shift chip but at a smaller
