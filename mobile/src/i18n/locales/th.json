@@ -933,19 +933,6 @@
     "section11Title": "11. ติดต่อเรา",
     "section11Body": "PikTag Inc.\nอีเมล: support@pikt.ag"
   },
-  "points": {
-    "balance": "ยอด P Coin",
-    "lifetime": "P Coin สะสม",
-    "inviteReward": "รางวัลเชิญเพื่อน",
-    "redeemHint": "ใช้สำหรับบริการแบบชำระเงินในอนาคต",
-    "historyTitle": "ประวัติ P Coin",
-    "reasonInviteAccepted": "เพื่อนยอมรับคำเชิญ",
-    "reasonAdminGrant": "รางวัลจากระบบ",
-    "reasonRedeemed": "ใช้แล้ว",
-    "emptyHistory": "ยังไม่มี P Coin? ชวนเพื่อนมาร่วมเพื่อเริ่มสะสม",
-    "plusOne": "+1 P",
-    "pointsUnit": "P"
-  },
   "chat": {
     "inbox": "ข้อความ",
     "compose": "ข้อความใหม่",

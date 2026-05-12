@@ -314,10 +314,11 @@ function MainNavigator({ needsOnboarding }: { needsOnboarding: boolean }) {
           name="TermsOfService"
           getComponent={() => require('../screens/legal/TermsOfServiceScreen').default}
         />
-        <RootStack.Screen
-          name="PointsHistory"
-          getComponent={() => require('../screens/PointsHistoryScreen').default}
-        />
+        {/* PointsHistory route removed — the p_points system was
+            retired in the Tribe-size pivot. DB columns (p_points,
+            p_points_lifetime) + piktag_points_ledger table are kept
+            as legacy artifacts (no new writes, no readers) and can
+            be dropped in a separate DB-side cleanup if needed. */}
         {/* Tribe constellation — private anonymous lineage view,
             replaces the old points-based motivator. Reached from
             the Tribe stat in ProfileScreen. */}

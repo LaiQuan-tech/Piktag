@@ -933,19 +933,6 @@
     "section11Title": "11. Contact",
     "section11Body": "PikTag Inc.\nE-mail : support@pikt.ag"
   },
-  "points": {
-    "balance": "Pièces P",
-    "lifetime": "Total cumulé",
-    "inviteReward": "Récompense d'invitation",
-    "redeemHint": "Utilisez les pièces P pour des services payants à venir",
-    "historyTitle": "Historique des pièces P",
-    "reasonInviteAccepted": "Un ami a accepté l'invitation",
-    "reasonAdminGrant": "Récompense système",
-    "reasonRedeemed": "Échangé",
-    "emptyHistory": "Pas encore de P Coins ? Invitez des amis pour commencer à en gagner",
-    "plusOne": "+1 P",
-    "pointsUnit": "P"
-  },
   "chat": {
     "inbox": "Messages",
     "compose": "Nouveau message",

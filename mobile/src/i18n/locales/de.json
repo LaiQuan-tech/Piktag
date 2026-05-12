@@ -1003,19 +1003,6 @@
     "section12Title": "12. Kontakt",
     "section12Body": "PikTag Inc.\nE-Mail: support@pikt.ag"
   },
-  "points": {
-    "balance": "P-Coins",
-    "lifetime": "Insgesamt verdient",
-    "inviteReward": "Einladungs-Belohnung",
-    "redeemHint": "Nutze P-Coins für künftige kostenpflichtige Dienste",
-    "historyTitle": "P-Coin-Verlauf",
-    "reasonInviteAccepted": "Freund hat Einladung angenommen",
-    "reasonAdminGrant": "System-Belohnung",
-    "reasonRedeemed": "Eingelöst",
-    "emptyHistory": "Noch keine P-Coins? Lade Freunde ein, um zu verdienen",
-    "plusOne": "+1 P",
-    "pointsUnit": "P"
-  },
   "chat": {
     "inbox": "Nachrichten",
     "compose": "Neue Nachricht",

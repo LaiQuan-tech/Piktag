@@ -933,19 +933,6 @@
     "section11Title": "11. お問い合わせ",
     "section11Body": "PikTag Inc.\nメール: support@pikt.ag"
   },
-  "points": {
-    "balance": "Pコイン",
-    "lifetime": "累計獲得",
-    "inviteReward": "招待報酬",
-    "redeemHint": "Pコインは将来の有料サービスに使えます",
-    "historyTitle": "Pコイン履歴",
-    "reasonInviteAccepted": "友達が招待を受諾",
-    "reasonAdminGrant": "システム報酬",
-    "reasonRedeemed": "使用済み",
-    "emptyHistory": "Pコインがまだありません。友達を招待して貯め始めましょう",
-    "plusOne": "+1 P",
-    "pointsUnit": "P"
-  },
   "chat": {
     "inbox": "メッセージ",
     "compose": "新規メッセージ",

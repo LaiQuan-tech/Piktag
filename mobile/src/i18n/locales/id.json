@@ -933,19 +933,6 @@
     "section11Title": "11. Kontak",
     "section11Body": "PikTag Inc.\nEmail: support@pikt.ag"
   },
-  "points": {
-    "balance": "Saldo Koin P",
-    "lifetime": "Total Koin P",
-    "inviteReward": "Hadiah undangan",
-    "redeemHint": "Gunakan untuk layanan berbayar di masa mendatang",
-    "historyTitle": "Riwayat Koin P",
-    "reasonInviteAccepted": "Teman menerima undangan",
-    "reasonAdminGrant": "Hadiah sistem",
-    "reasonRedeemed": "Ditukarkan",
-    "emptyHistory": "Belum ada P Coin? Undang teman untuk mulai mengumpulkan",
-    "plusOne": "+1 P",
-    "pointsUnit": "P"
-  },
   "chat": {
     "inbox": "Pesan",
     "compose": "Pesan baru",

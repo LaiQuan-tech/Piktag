@@ -1007,19 +1007,6 @@
     "section12Title": "12. 聯絡方式",
     "section12Body": "PikTag Inc.\n電子郵件：support@pikt.ag"
   },
-  "points": {
-    "balance": "P幣餘額",
-    "lifetime": "累積 P幣",
-    "inviteReward": "邀請獎勵",
-    "redeemHint": "未來可抵扣付費服務",
-    "historyTitle": "P幣紀錄",
-    "reasonInviteAccepted": "朋友接受邀請",
-    "reasonAdminGrant": "系統獎勵",
-    "reasonRedeemed": "已抵扣",
-    "emptyHistory": "還沒有 P 幣？邀請朋友加入就能開始累積",
-    "plusOne": "+1 P幣",
-    "pointsUnit": "P幣"
-  },
   "redeemInvite": {
     "headerTitle": "兌換邀請碼",
     "title": "收到邀請碼了嗎？",

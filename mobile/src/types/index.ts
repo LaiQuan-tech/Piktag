@@ -27,8 +27,6 @@ export type PiktagProfile = {
   longitude: number | null;
   location_updated_at?: string | null;
   birthday: string | null;
-  p_points?: number;
-  p_points_lifetime?: number;
   created_at: string;
   updated_at: string;
 };

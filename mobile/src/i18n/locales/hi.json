@@ -933,19 +933,6 @@
     "section11Title": "11. संपर्क",
     "section11Body": "PikTag Inc.\nईमेल: support@pikt.ag"
   },
-  "points": {
-    "balance": "P सिक्के",
-    "lifetime": "कुल अर्जित",
-    "inviteReward": "आमंत्रण इनाम",
-    "redeemHint": "भविष्य की सशुल्क सेवाओं के लिए P सिक्के इस्तेमाल करें",
-    "historyTitle": "P सिक्का इतिहास",
-    "reasonInviteAccepted": "दोस्त ने आमंत्रण स्वीकार किया",
-    "reasonAdminGrant": "सिस्टम इनाम",
-    "reasonRedeemed": "रिडीम हुआ",
-    "emptyHistory": "अभी तक कोई P सिक्का नहीं? दोस्तों को आमंत्रित करें और कमाना शुरू करें",
-    "plusOne": "+1 P",
-    "pointsUnit": "P"
-  },
   "chat": {
     "inbox": "संदेश",
     "compose": "नया संदेश",

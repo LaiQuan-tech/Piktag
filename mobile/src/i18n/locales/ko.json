@@ -933,19 +933,6 @@
     "section11Title": "11. 문의",
     "section11Body": "PikTag Inc.\n이메일: support@pikt.ag"
   },
-  "points": {
-    "balance": "P 코인",
-    "lifetime": "누적 획득",
-    "inviteReward": "초대 보상",
-    "redeemHint": "P 코인은 향후 유료 서비스에 사용 가능",
-    "historyTitle": "P 코인 기록",
-    "reasonInviteAccepted": "친구가 초대 수락",
-    "reasonAdminGrant": "시스템 보상",
-    "reasonRedeemed": "사용됨",
-    "emptyHistory": "P 코인이 아직 없나요? 친구를 초대해 모으기 시작하세요",
-    "plusOne": "+1 P",
-    "pointsUnit": "P"
-  },
   "chat": {
     "inbox": "메시지",
     "compose": "새 메시지",

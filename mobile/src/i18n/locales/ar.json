@@ -933,19 +933,6 @@
     "section11Title": "11. التواصل",
     "section11Body": "PikTag Inc.\nالبريد الإلكتروني: support@pikt.ag"
   },
-  "points": {
-    "balance": "رصيد عملات P",
-    "lifetime": "إجمالي عملات P",
-    "inviteReward": "مكافأة الدعوة",
-    "redeemHint": "استخدم عملات P للخدمات المدفوعة مستقبلاً",
-    "historyTitle": "سجل عملات P",
-    "reasonInviteAccepted": "قبل صديق الدعوة",
-    "reasonAdminGrant": "مكافأة النظام",
-    "reasonRedeemed": "تم الاستبدال",
-    "emptyHistory": "لا توجد عملات P بعد؟ ادعُ أصدقاءك لتبدأ بجمعها",
-    "plusOne": "+1 P",
-    "pointsUnit": "P"
-  },
   "chat": {
     "inbox": "الرسائل",
     "compose": "رسالة جديدة",

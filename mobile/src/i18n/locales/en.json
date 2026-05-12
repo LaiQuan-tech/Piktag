@@ -1016,19 +1016,6 @@
     "section12Title": "12. Contact",
     "section12Body": "PikTag Inc.\nEmail: support@pikt.ag"
   },
-  "points": {
-    "balance": "P Coins",
-    "lifetime": "Lifetime Earned",
-    "inviteReward": "Invite Reward",
-    "redeemHint": "Use P Coins for future paid services",
-    "historyTitle": "P Coin History",
-    "reasonInviteAccepted": "Friend accepted invite",
-    "reasonAdminGrant": "System reward",
-    "reasonRedeemed": "Redeemed",
-    "emptyHistory": "No P Coins yet? Invite friends to start earning",
-    "plusOne": "+1 P",
-    "pointsUnit": "P"
-  },
   "chat": {
     "inbox": "Messages",
     "compose": "New message",

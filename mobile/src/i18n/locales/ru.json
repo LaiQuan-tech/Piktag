@@ -933,19 +933,6 @@
     "section11Title": "11. Контакты",
     "section11Body": "PikTag Inc.\nEmail: support@pikt.ag"
   },
-  "points": {
-    "balance": "P-монеты",
-    "lifetime": "Всего заработано",
-    "inviteReward": "Награда за приглашение",
-    "redeemHint": "Используй P-монеты для будущих платных услуг",
-    "historyTitle": "История P-монет",
-    "reasonInviteAccepted": "Друг принял приглашение",
-    "reasonAdminGrant": "Награда от системы",
-    "reasonRedeemed": "Использовано",
-    "emptyHistory": "Пока нет P-монет? Пригласите друзей, чтобы начать копить",
-    "plusOne": "+1 P",
-    "pointsUnit": "P"
-  },
   "chat": {
     "inbox": "Сообщения",
     "compose": "Новое сообщение",

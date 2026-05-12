@@ -933,19 +933,6 @@
     "section11Title": "11. যোগাযোগ",
     "section11Body": "PikTag Inc.\nইমেইল: support@pikt.ag"
   },
-  "points": {
-    "balance": "P কয়েন",
-    "lifetime": "মোট অর্জিত",
-    "inviteReward": "আমন্ত্রণ পুরস্কার",
-    "redeemHint": "ভবিষ্যতের পেইড সেবার জন্য P কয়েন ব্যবহার করুন",
-    "historyTitle": "P কয়েন ইতিহাস",
-    "reasonInviteAccepted": "বন্ধু আমন্ত্রণ গ্রহণ করেছে",
-    "reasonAdminGrant": "সিস্টেম পুরস্কার",
-    "reasonRedeemed": "রিডিম করা হয়েছে",
-    "emptyHistory": "এখনও কোনো P কয়েন নেই? বন্ধুদের আমন্ত্রণ জানিয়ে জমাতে শুরু করুন",
-    "plusOne": "+1 P",
-    "pointsUnit": "P"
-  },
   "chat": {
     "inbox": "মেসেজ",
     "compose": "নতুন মেসেজ",
