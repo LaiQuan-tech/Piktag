@@ -40,6 +40,7 @@ import {
   Users,
   Trash2,
   GripVertical,
+  ScanLine,
 } from 'lucide-react-native';
 import DraggableFlatList, {
   RenderItemParams,
@@ -142,6 +143,20 @@ export default function QrGroupListScreen({ navigation }: Props) {
 
   const handleCreateNew = useCallback(() => {
     navigation.navigate('AddTagCreate');
+  }, [navigation]);
+
+  // Scan-someone-else's-QR entry point. Previously buried inside the
+  // create-QR form's header — moved here because creating-my-own-QR
+  // and scanning-someone-else's-QR are sibling actions, not parent/
+  // child. Both belong on the tab's landing page so users discover
+  // them at a glance instead of having to drill into the create flow.
+  //
+  // `CameraScan` lives in the root stack (registered in AppNavigator),
+  // not the AddTag stack. React Navigation walks up parent navigators
+  // when a route name isn't found locally, so this single navigate
+  // call works.
+  const handleOpenScanner = useCallback(() => {
+    navigation.navigate('CameraScan');
   }, [navigation]);
 
   const handleOpenGroup = useCallback(
@@ -329,9 +344,24 @@ export default function QrGroupListScreen({ navigation }: Props) {
             {t('qrGroup.createFirst', { defaultValue: '建立第一個活動群組標籤' })}
           </Text>
         </TouchableOpacity>
+
+        {/* Secondary path: scan someone else's QR. First-time users
+            arriving at this empty state might equally want to add a
+            friend via someone else's QR — surface that path here so
+            it's a peer choice, not a hidden afterthought. */}
+        <TouchableOpacity
+          style={styles.emptyScanBtn}
+          activeOpacity={0.7}
+          onPress={handleOpenScanner}
+        >
+          <ScanLine size={16} color={COLORS.piktag600} />
+          <Text style={styles.emptyScanText}>
+            {t('qrGroup.emptyScanCta', { defaultValue: '或掃描朋友的 QR 加好友' })}
+          </Text>
+        </TouchableOpacity>
       </View>
     ),
-    [t, handleCreateNew],
+    [t, handleCreateNew, handleOpenScanner],
   );
 
   return (
@@ -343,15 +373,29 @@ export default function QrGroupListScreen({ navigation }: Props) {
           <Text style={styles.headerTitle}>
             {t('qrGroup.headerTitle', { defaultValue: '活動群組標籤' })}
           </Text>
-          <TouchableOpacity
-            style={styles.headerAddBtn}
-            activeOpacity={0.7}
-            onPress={handleCreateNew}
-            accessibilityRole="button"
-            accessibilityLabel={t('qrGroup.create', { defaultValue: '建立新活動群組' })}
-          >
-            <Plus size={22} color={COLORS.piktag600} />
-          </TouchableOpacity>
+          <View style={styles.headerActions}>
+            {/* Scan someone else's QR. Sibling action to "+ create my QR" —
+                both are equally important entry points, so they live
+                side-by-side at the tab's landing page. */}
+            <TouchableOpacity
+              style={styles.headerIconBtn}
+              activeOpacity={0.7}
+              onPress={handleOpenScanner}
+              accessibilityRole="button"
+              accessibilityLabel={t('qrGroup.scan', { defaultValue: '掃描 QR 加好友' })}
+            >
+              <ScanLine size={22} color={COLORS.piktag600} />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.headerIconBtn}
+              activeOpacity={0.7}
+              onPress={handleCreateNew}
+              accessibilityRole="button"
+              accessibilityLabel={t('qrGroup.create', { defaultValue: '建立新活動群組' })}
+            >
+              <Plus size={22} color={COLORS.piktag600} />
+            </TouchableOpacity>
+          </View>
         </View>
 
         {loading && groups.length === 0 ? (
@@ -393,7 +437,14 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     color: COLORS.gray900,
   },
-  headerAddBtn: {
+  // Right-side cluster — scan + create live side-by-side as peer
+  // entry points.
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  headerIconBtn: {
     width: 36,
     height: 36,
     borderRadius: 18,
@@ -471,4 +522,17 @@ const styles = StyleSheet.create({
     marginTop: 12,
   },
   emptyCtaText: { fontSize: 15, fontWeight: '700', color: '#FFFFFF' },
+  // Secondary "or scan a friend's QR" link beneath the primary CTA.
+  // Visually lighter than the filled purple button — text + thin
+  // border, so it reads as an alternate option, not a competing
+  // primary action.
+  emptyScanBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    marginTop: 4,
+  },
+  emptyScanText: { fontSize: 13, color: COLORS.piktag600, fontWeight: '600' },
 });

@@ -769,19 +769,12 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
       {/* Header */}
       <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
         <Text style={styles.headerTitle}>{t('addTag.headerTitle', { defaultValue: '新增活動群組' })}</Text>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16, marginLeft: 'auto' }}>
-          <TouchableOpacity
-            onPress={() => navigation.navigate('CameraScan')}
-            activeOpacity={0.6}
-            style={styles.headerSideBtn}
-          >
-            <ScanLine size={24} color={COLORS.gray700} />
-          </TouchableOpacity>
-          {/* Preset star button removed for task 2 — QR codes are
-              now persistent groups themselves (visible from the
-              AddTagTab landing page), making the "常用模板" feature
-              redundant. */}
-        </View>
+        {/* Scan icon previously lived here — moved to the parent
+            QrGroupListScreen header (the # tab's landing page) where
+            "scan someone else's QR" is a peer action to "create my
+            QR", not a buried sub-feature of this create form.
+            Preset star button also removed for task 2 — QR codes
+            are now persistent groups themselves. */}
       </View>
 
       <ScrollView
