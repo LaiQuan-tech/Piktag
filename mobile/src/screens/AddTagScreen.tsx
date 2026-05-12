@@ -118,6 +118,18 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
   const [qrUsername, setQrUsername] = useState('');
   const [scanSession, setScanSession] = useState<ScanSession | null>(null);
   const [generating, setGenerating] = useState(false);
+  // First-QR celebration sheet. Shown ONCE — after the user creates
+  // their very first event-group QR — to push them toward the two
+  // highest-leverage retention loops:
+  //   (a) Share the QR → grows their friend network + invites others
+  //       to PikTag (signups land in their pending-connections list).
+  //   (b) Finish their profile (bio + tags) so friends scanning the
+  //       QR actually see WHO they are, not a blank card.
+  // Guarded by the AsyncStorage flag `piktag_first_qr_celebrated_v1`
+  // so it never fires again, even after a fresh install with the
+  // same auth session (the flag is on the device, not the server —
+  // re-install intentionally re-shows the celebration once).
+  const [showFirstQrCelebration, setShowFirstQrCelebration] = useState(false);
 
   // Task 3 — AI-driven tag suggestions for QR groups.
   //
@@ -732,6 +744,22 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
         expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
       } as ScanSession);
       setMode('qr');
+
+      // First-QR celebration trigger. Read+write the flag in one
+      // shot so two near-simultaneous creates (e.g. accidental
+      // double-tap) can't both show the sheet. The 600ms delay
+      // lets the QR + branded card render BEHIND the modal first,
+      // so users perceive "QR appeared → celebrated", not "popup
+      // before I even saw what I made".
+      try {
+        const flag = await AsyncStorage.getItem('piktag_first_qr_celebrated_v1');
+        if (!flag) {
+          await AsyncStorage.setItem('piktag_first_qr_celebrated_v1', 'true');
+          setTimeout(() => setShowFirstQrCelebration(true), 600);
+        }
+      } catch {
+        // Celebration is nice-to-have, never block the QR flow.
+      }
     } catch (err) {
       console.error('QR generation error:', err);
       Alert.alert(t('common.error'), t('addTag.alertQrError'));
@@ -1185,6 +1213,83 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
           loadPresets, etc.) are left as dead code in this file
           for now to keep the diff focused on UI surfaces — a
           follow-up cleanup commit can rip them out. */}
+
+      {/* ─── First-QR Celebration Sheet ─────────────────────
+          Fires ONCE per device after the user's very first QR
+          generation. Two CTAs cover the two retention loops we
+          care about most:
+            (a) Share → grows their friend network, pulls invitees
+                into PikTag (signup attribution).
+            (b) Complete profile → bio + tags so future scanners
+                actually see WHO this person is.
+          Both CTAs dismiss the sheet. The bare close button
+          (top-right X) lets users escape without engaging either
+          loop — better UX than a sticky modal that demands action. */}
+      <Modal
+        visible={showFirstQrCelebration}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowFirstQrCelebration(false)}
+      >
+        <View style={styles.celebOverlay}>
+          <View style={styles.celebCard}>
+            <TouchableOpacity
+              style={styles.celebClose}
+              onPress={() => setShowFirstQrCelebration(false)}
+              hitSlop={10}
+              accessibilityRole="button"
+              accessibilityLabel={t('common.close', { defaultValue: '關閉' })}
+            >
+              <X size={18} color={COLORS.gray500} />
+            </TouchableOpacity>
+
+            <View style={styles.celebIconWrap}>
+              <Sparkles size={36} color={COLORS.piktag500} strokeWidth={2.2} />
+            </View>
+
+            <Text style={styles.celebTitle}>
+              {t('addTag.firstQrCelebrationTitle', { defaultValue: '你的第一個活動標籤建好了！' })}
+            </Text>
+            <Text style={styles.celebSubtitle}>
+              {t('addTag.firstQrCelebrationSubtitle', { defaultValue: '分享給朋友 —— 他們掃 QR 就能加入這個群組，也會看到 PikTag 是什麼。' })}
+            </Text>
+
+            <TouchableOpacity
+              style={styles.celebPrimaryBtn}
+              activeOpacity={0.85}
+              onPress={async () => {
+                setShowFirstQrCelebration(false);
+                // Tiny delay so the modal animates out before the
+                // system Share sheet animates in — otherwise the
+                // two transitions stutter on iOS.
+                setTimeout(() => { handleShare(); }, 120);
+              }}
+            >
+              <Share2 size={18} color="#FFFFFF" />
+              <Text style={styles.celebPrimaryText}>
+                {t('addTag.firstQrCelebrationShare', { defaultValue: '分享給朋友' })}
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.celebSecondaryBtn}
+              activeOpacity={0.7}
+              onPress={() => {
+                setShowFirstQrCelebration(false);
+                // EditProfile lives at root-stack level; React
+                // Navigation walks up the parent navigators when
+                // a route name isn't found in the local stack.
+                navigation.navigate('EditProfile');
+              }}
+            >
+              <Pencil size={14} color={COLORS.piktag600} />
+              <Text style={styles.celebSecondaryText}>
+                {t('addTag.firstQrCelebrationCompleteProfile', { defaultValue: '加 bio + 頭像，讓朋友更認識你' })}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -1882,5 +1987,87 @@ const styles = StyleSheet.create({
     color: COLORS.gray400,
     textAlign: 'center',
     marginBottom: 12,
+  },
+
+  // ─── First-QR Celebration Sheet ─────────────────────────
+  // Modal-style centered card. Visual hierarchy:
+  //   • Filled purple primary button (Share — the bigger goal)
+  //   • Plain text-link secondary (Complete profile — softer ask)
+  //   • Small X to dismiss without engaging
+  celebOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.55)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 24,
+  },
+  celebCard: {
+    width: '100%',
+    maxWidth: 380,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    paddingTop: 36,
+    paddingBottom: 20,
+    paddingHorizontal: 24,
+    alignItems: 'center',
+  },
+  celebClose: {
+    position: 'absolute',
+    top: 12,
+    right: 12,
+    padding: 6,
+    zIndex: 10,
+  },
+  celebIconWrap: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: COLORS.piktag50,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 18,
+  },
+  celebTitle: {
+    fontSize: 20,
+    fontWeight: '800',
+    color: COLORS.gray900,
+    textAlign: 'center',
+    marginBottom: 10,
+  },
+  celebSubtitle: {
+    fontSize: 14,
+    color: COLORS.gray500,
+    textAlign: 'center',
+    lineHeight: 20,
+    marginBottom: 24,
+  },
+  celebPrimaryBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    width: '100%',
+    paddingVertical: 14,
+    borderRadius: 12,
+    backgroundColor: COLORS.piktag500,
+    marginBottom: 8,
+  },
+  celebPrimaryText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+  celebSecondaryBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: 12,
+    paddingHorizontal: 12,
+  },
+  celebSecondaryText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: COLORS.piktag600,
   },
 });
