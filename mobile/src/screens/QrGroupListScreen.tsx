@@ -268,9 +268,10 @@ export default function QrGroupListScreen({ navigation }: Props) {
               <GripVertical size={18} color={COLORS.gray400} />
             </TouchableOpacity>
 
-            <View style={styles.groupIcon}>
-              <QrCode size={22} color={COLORS.piktag600} />
-            </View>
+            {/* QR-icon avatar removed — every row in this list is
+                a QR-coded Vibe, so the icon was the same on every
+                row and carried no information. Dropping it lets
+                the name + tag preview own the row's visual weight. */}
 
             <View style={styles.groupBody}>
               <Text style={styles.groupName} numberOfLines={1}>
@@ -507,14 +508,6 @@ const styles = StyleSheet.create({
   groupGrip: {
     paddingVertical: 4,
     paddingHorizontal: 2,
-  },
-  groupIcon: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
-    backgroundColor: COLORS.piktag50,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   groupBody: { flex: 1, gap: 3 },
   groupName: { fontSize: 16, fontWeight: '700', color: COLORS.gray900 },
