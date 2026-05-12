@@ -737,6 +737,14 @@
           "title": "{{username}}",
           "body": "memposting Ask · {{ask_body}}"
         }
+      },
+      "vibe_shift": {
+        "title": "",
+        "body": "menambahkan tag baru #{{tag_name}}",
+        "push": {
+          "title": "{{username}}",
+          "body": "menambahkan tag baru #{{tag_name}}"
+        }
       }
     }
   },

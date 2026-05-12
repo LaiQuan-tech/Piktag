@@ -760,6 +760,14 @@
           "body": "把你標記為 #{{tag_name}}"
         }
       },
+      "vibe_shift": {
+        "title": "",
+        "body": "加了新標籤 #{{tag_name}}",
+        "push": {
+          "title": "{{username}}",
+          "body": "加了新標籤 #{{tag_name}}"
+        }
+      },
       "recommendation": {
         "title": "",
         "body": "你可能認識 {{username}} — {{count}} 個共同標籤",

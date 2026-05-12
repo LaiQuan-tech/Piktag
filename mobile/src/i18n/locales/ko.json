@@ -737,6 +737,14 @@
           "title": "{{username}}",
           "body": "Ask를 올렸어요 · {{ask_body}}"
         }
+      },
+      "vibe_shift": {
+        "title": "",
+        "body": "님이 새 태그 #{{tag_name}} 추가",
+        "push": {
+          "title": "{{username}}",
+          "body": "님이 새 태그 #{{tag_name}} 추가"
+        }
       }
     }
   },

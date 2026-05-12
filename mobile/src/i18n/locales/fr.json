@@ -737,6 +737,14 @@
           "title": "{{username}}",
           "body": "a posté un Ask · {{ask_body}}"
         }
+      },
+      "vibe_shift": {
+        "title": "",
+        "body": "a ajouté le tag #{{tag_name}}",
+        "push": {
+          "title": "{{username}}",
+          "body": "a ajouté le tag #{{tag_name}}"
+        }
       }
     }
   },

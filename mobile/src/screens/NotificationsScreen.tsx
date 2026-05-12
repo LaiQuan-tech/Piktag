@@ -49,7 +49,12 @@ function filterNotifications(
           n.type === 'recommendation' ||
           n.type === 'tag_trending' ||
           n.type === 'ask_posted' ||
-          n.type === 'invite_accepted'
+          n.type === 'invite_accepted' ||
+          // P3: Vibe Shift — a friend in one of your Vibes added
+          // a new tag to their profile. Belongs in the social
+          // tab alongside follow/friend/tag_added (all of which
+          // are "someone you know did a thing").
+          n.type === 'vibe_shift'
       );
     case 'reminders':
       return notifications.filter(

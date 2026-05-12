@@ -737,6 +737,14 @@
           "title": "{{username}}",
           "body": "опубликовал(а) Ask · {{ask_body}}"
         }
+      },
+      "vibe_shift": {
+        "title": "",
+        "body": "добавил(а) новый тег #{{tag_name}}",
+        "push": {
+          "title": "{{username}}",
+          "body": "добавил(а) новый тег #{{tag_name}}"
+        }
       }
     }
   },

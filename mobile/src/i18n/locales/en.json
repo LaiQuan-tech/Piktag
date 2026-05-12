@@ -771,6 +771,14 @@
           "body": "tagged you as #{{tag_name}}"
         }
       },
+      "vibe_shift": {
+        "title": "",
+        "body": "added a new tag #{{tag_name}}",
+        "push": {
+          "title": "{{username}}",
+          "body": "added a new tag #{{tag_name}}"
+        }
+      },
       "recommendation": {
         "title": "",
         "body": "you might know {{username}} — {{count}} mutual tags",

@@ -737,6 +737,14 @@
           "title": "{{username}}",
           "body": "โพสต์ Ask · {{ask_body}}"
         }
+      },
+      "vibe_shift": {
+        "title": "",
+        "body": "เพิ่มแท็กใหม่ #{{tag_name}}",
+        "push": {
+          "title": "{{username}}",
+          "body": "เพิ่มแท็กใหม่ #{{tag_name}}"
+        }
       }
     }
   },

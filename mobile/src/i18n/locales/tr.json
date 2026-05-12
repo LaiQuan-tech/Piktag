@@ -737,6 +737,14 @@
           "title": "{{username}}",
           "body": "bir Ask yayınladı · {{ask_body}}"
         }
+      },
+      "vibe_shift": {
+        "title": "",
+        "body": "#{{tag_name}} etiketini ekledi",
+        "push": {
+          "title": "{{username}}",
+          "body": "#{{tag_name}} etiketini ekledi"
+        }
       }
     }
   },

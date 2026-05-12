@@ -762,6 +762,14 @@
           "body": "hat dich als #{{tag_name}} getaggt"
         }
       },
+      "vibe_shift": {
+        "title": "",
+        "body": "hat das Tag #{{tag_name}} hinzugefügt",
+        "push": {
+          "title": "{{username}}",
+          "body": "hat das Tag #{{tag_name}} hinzugefügt"
+        }
+      },
       "recommendation": {
         "title": "",
         "body": "du kennst vielleicht {{username}} — {{count}} gemeinsame Tags",

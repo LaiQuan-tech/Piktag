@@ -79,6 +79,11 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
   const [profile, setProfile] = useState<PiktagProfile | null>(null);
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [shareLocation, setShareLocation] = useState(true);
+  // P3: Vibe Shift notifications opt-in. Default ON (the notify_vibe_shift
+  // trigger reads piktag_profiles.vibe_shift_notifications_enabled — when
+  // the column is absent on a legacy row, the trigger's COALESCE defaults
+  // to true; we mirror the same default here in the UI before fetch).
+  const [vibeShiftEnabled, setVibeShiftEnabled] = useState(true);
   const { isDark } = useTheme();
   const [darkModeEnabled, setDarkModeEnabled] = useState(isDark);
   const [currentLanguage, setCurrentLanguage] = useState('zh-TW');
@@ -100,6 +105,9 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
           if (!error && data) {
             setProfile(data);
             setShareLocation(data.share_location !== false);
+            // Only `false` counts as opt-out; missing column (migration
+            // not yet applied) and `null` both fall back to enabled.
+            setVibeShiftEnabled((data as any).vibe_shift_notifications_enabled !== false);
             const profileLang = data.language || 'zh-TW';
             setCurrentLanguage(profileLang);
             if (i18n.language !== profileLang) {
@@ -137,6 +145,29 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
     const newValue = !notificationsEnabled;
     setNotificationsEnabled(newValue);
     await AsyncStorage.setItem('piktag_notifications_enabled', String(newValue));
+  };
+
+  // P3 toggle. Optimistic flip; on DB error revert. 42703 (column
+  // doesn't exist — migration not yet applied) is silently
+  // swallowed so the toggle still feels responsive in the UI.
+  const handleVibeShiftToggle = async () => {
+    if (!user) return;
+    const newValue = !vibeShiftEnabled;
+    setVibeShiftEnabled(newValue);
+    const { error } = await supabase
+      .from('piktag_profiles')
+      .update({ vibe_shift_notifications_enabled: newValue })
+      .eq('id', user.id);
+    if (error) {
+      const isMissingColumn =
+        (error as any).code === '42703' ||
+        /column .*vibe_shift_notifications_enabled/i.test(error.message);
+      if (!isMissingColumn) {
+        console.warn('[Settings] vibe_shift toggle failed:', error);
+        // Revert optimistic state on real errors
+        setVibeShiftEnabled(!newValue);
+      }
+    }
   };
 
   const handleShareLocationToggle = async () => {
@@ -341,6 +372,24 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
               onValueChange={handleNotificationsToggle}
               trackColor={{ false: COLORS.gray200, true: COLORS.piktag300 }}
               thumbColor={notificationsEnabled ? COLORS.piktag500 : COLORS.gray400}
+            />
+          ),
+        },
+        // P3: Vibe Shift opt-out toggle. Sits right after the master
+        // notification toggle so the per-type granularity reads as
+        // a nested refinement of the same setting. Default ON — see
+        // the migration comment for the privacy reasoning.
+        {
+          label: t('settings.vibeShiftNotifications', {
+            defaultValue: '朋友貼新標籤時通知我',
+          }),
+          onPress: handleVibeShiftToggle,
+          rightElement: (
+            <Switch
+              value={vibeShiftEnabled}
+              onValueChange={handleVibeShiftToggle}
+              trackColor={{ false: COLORS.gray200, true: COLORS.piktag300 }}
+              thumbColor={vibeShiftEnabled ? COLORS.piktag500 : COLORS.gray400}
             />
           ),
         },

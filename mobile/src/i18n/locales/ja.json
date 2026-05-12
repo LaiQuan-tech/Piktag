@@ -737,6 +737,14 @@
           "title": "{{username}}",
           "body": "Askを投稿しました · {{ask_body}}"
         }
+      },
+      "vibe_shift": {
+        "title": "",
+        "body": "が新しいタグを追加 #{{tag_name}}",
+        "push": {
+          "title": "{{username}}",
+          "body": "が新しいタグを追加 #{{tag_name}}"
+        }
       }
     }
   },

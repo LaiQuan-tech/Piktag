@@ -737,6 +737,14 @@
           "title": "{{username}}",
           "body": "एक Ask पोस्ट किया · {{ask_body}}"
         }
+      },
+      "vibe_shift": {
+        "title": "",
+        "body": "ने नया टैग #{{tag_name}} जोड़ा",
+        "push": {
+          "title": "{{username}}",
+          "body": "ने नया टैग #{{tag_name}} जोड़ा"
+        }
       }
     }
   },

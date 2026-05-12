@@ -737,6 +737,14 @@
           "title": "{{username}}",
           "body": "نشر طلباً · {{ask_body}}"
         }
+      },
+      "vibe_shift": {
+        "title": "",
+        "body": "أضاف وسمًا جديدًا #{{tag_name}}",
+        "push": {
+          "title": "{{username}}",
+          "body": "أضاف وسمًا جديدًا #{{tag_name}}"
+        }
       }
     }
   },
