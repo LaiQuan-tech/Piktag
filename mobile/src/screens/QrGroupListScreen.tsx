@@ -19,18 +19,16 @@
 // not FK-linked, so they survive (good — the friend is still your
 // friend, the group entry just disappears).
 
-import React, { useState, useCallback, useMemo, useRef, useEffect } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
-  TextInput,
   StyleSheet,
   StatusBar,
   TouchableOpacity,
   ActivityIndicator,
   Alert,
   Platform,
-  FlatList,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
@@ -43,10 +41,7 @@ import {
   Trash2,
   GripVertical,
   ScanLine,
-  Search,
-  X as XIcon,
 } from 'lucide-react-native';
-import RingedAvatar from '../components/RingedAvatar';
 import DraggableFlatList, {
   RenderItemParams,
   ScaleDecorator,
@@ -70,22 +65,6 @@ type QrGroup = {
   member_count: number;
 };
 
-// P2 — one row per matched friend across all your Vibes.
-// Returned by the find_connections_by_tag RPC. vibe_id / vibe_name
-// can be null if the connection's scan_session_id no longer
-// resolves (legacy connections, deleted Vibes, etc.).
-type TagMatch = {
-  connection_id: string;
-  connected_user_id: string;
-  username: string | null;
-  full_name: string | null;
-  avatar_url: string | null;
-  met_at: string;
-  vibe_id: string | null;
-  vibe_name: string | null;
-  matched_tag: string;
-  match_score: number;
-};
 
 type Props = { navigation: any };
 
@@ -96,15 +75,6 @@ export default function QrGroupListScreen({ navigation }: Props) {
 
   const [groups, setGroups] = useState<QrGroup[]>([]);
   const [loading, setLoading] = useState(true);
-
-  // ─── P2: Cross-Vibe matching state ───────────────────────
-  // When `searchInput` is non-empty, the screen flips from
-  // showing Vibes (rows) to showing tag-matched friends across
-  // all Vibes. Empty input → back to Vibes view, no extra clicks.
-  const [searchInput, setSearchInput] = useState('');
-  const [searchResults, setSearchResults] = useState<TagMatch[]>([]);
-  const [searchLoading, setSearchLoading] = useState(false);
-  const searchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Load my groups. Refetched on every focus so a new group created
   // via the AddTag flow appears here as soon as the user comes back.
@@ -172,63 +142,6 @@ export default function QrGroupListScreen({ navigation }: Props) {
     }, [loadGroups]),
   );
 
-  // ─── P2: Debounced cross-Vibe search ─────────────────────
-  // 300ms debounce. Empties results when input is cleared so the
-  // UI flips back to Vibes view cleanly. Errors silently fall to
-  // an empty result list — better than crashing the tab over a
-  // missing RPC (migration not yet applied).
-  useEffect(() => {
-    if (searchDebounceRef.current) {
-      clearTimeout(searchDebounceRef.current);
-    }
-    const query = searchInput.trim();
-    if (!query) {
-      setSearchResults([]);
-      setSearchLoading(false);
-      return;
-    }
-    setSearchLoading(true);
-    searchDebounceRef.current = setTimeout(async () => {
-      try {
-        const { data, error } = await supabase.rpc(
-          'find_connections_by_tag',
-          { p_tag_query: query },
-        );
-        if (error) {
-          // PGRST202 = function not found (migration pending);
-          // silent fall-through so the user sees "no matches" not
-          // an angry red banner.
-          const isMissing =
-            (error as any).code === 'PGRST202' ||
-            /could not find the function|does not exist/i.test(error.message);
-          if (!isMissing) {
-            console.warn('[VibeFind] search failed:', error);
-          }
-          setSearchResults([]);
-        } else if (Array.isArray(data)) {
-          setSearchResults(data as TagMatch[]);
-        }
-      } catch (err) {
-        console.warn('[VibeFind] search threw:', err);
-        setSearchResults([]);
-      } finally {
-        setSearchLoading(false);
-      }
-    }, 300);
-    return () => {
-      if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
-    };
-  }, [searchInput]);
-
-  const handleOpenMatch = useCallback(
-    (m: TagMatch) => {
-      navigation.navigate('FriendDetail', {
-        connectionId: m.connection_id,
-        friendId: m.connected_user_id,
-      });
-    },
-    [navigation],
-  );
 
   const handleCreateNew = useCallback(() => {
     navigation.navigate('AddTagCreate');
@@ -409,46 +322,6 @@ export default function QrGroupListScreen({ navigation }: Props) {
     [handleOpenGroup, handleDelete, t],
   );
 
-  // ─── P2: Search-result row ───────────────────────────────
-  const renderMatch = useCallback(
-    ({ item }: { item: TagMatch }) => {
-      const displayName = item.full_name || item.username || '?';
-      // Subtitle = the Vibe context. Fall back to "認識的好友" if
-      // the Vibe row has been deleted or the legacy connection
-      // never had one.
-      const vibeContext = item.vibe_name
-        ? t('qrGroup.matchMetAt', {
-            vibe: item.vibe_name,
-            defaultValue: `在「${item.vibe_name}」認識`,
-          })
-        : t('qrGroup.matchMetGeneric', { defaultValue: '你的好友' });
-      return (
-        <TouchableOpacity
-          style={styles.matchRow}
-          activeOpacity={0.7}
-          onPress={() => handleOpenMatch(item)}
-        >
-          <RingedAvatar
-            size={44}
-            ringStyle="subtle"
-            name={displayName}
-            avatarUrl={item.avatar_url}
-          />
-          <View style={styles.matchBody}>
-            <Text style={styles.matchName} numberOfLines={1}>
-              {displayName}
-            </Text>
-            <Text style={styles.matchSubtitle} numberOfLines={1}>
-              #{item.matched_tag} · {vibeContext}
-            </Text>
-          </View>
-          <ChevronRight size={16} color={COLORS.gray300} />
-        </TouchableOpacity>
-      );
-    },
-    [t, handleOpenMatch],
-  );
-
   const listEmpty = useMemo(
     () => (
       <View style={styles.emptyWrap}>
@@ -523,7 +396,7 @@ export default function QrGroupListScreen({ navigation }: Props) {
               accessibilityLabel={t('qrGroup.scan', { defaultValue: '掃描 QR 加好友' })}
 
             >
-              <ScanLine size={22} color={COLORS.piktag600} />
+              <ScanLine size={24} color={COLORS.gray600} />
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.headerIconBtn}
@@ -532,75 +405,19 @@ export default function QrGroupListScreen({ navigation }: Props) {
               accessibilityRole="button"
               accessibilityLabel={t('qrGroup.create', { defaultValue: '建立新 Vibe' })}
             >
-              <Plus size={22} color={COLORS.piktag600} />
+              <Plus size={24} color={COLORS.gray600} />
             </TouchableOpacity>
           </View>
         </View>
 
-        {/* ─── P2: Cross-Vibe search bar ──────────────────────
-            Always visible above the content. When empty, body
-            renders the Vibes list as usual. When the user starts
-            typing, the body flips to "friends in your network
-            tagged #X". Clear button (X) appears once there's
-            any input. Backed by find_connections_by_tag RPC
-            with 300ms debounce — keeps RPC calls reasonable
-            even on rapid typing. */}
-        <View style={styles.searchBarWrap}>
-          <View style={styles.searchBar}>
-            <Search size={16} color={COLORS.gray400} />
-            <TextInput
-              style={styles.searchInput}
-              value={searchInput}
-              onChangeText={setSearchInput}
-              placeholder={t('qrGroup.searchPlaceholder', {
-                defaultValue: '找有 #X 標籤的朋友…',
-              })}
-              placeholderTextColor={COLORS.gray400}
-              autoCorrect={false}
-              autoCapitalize="none"
-              returnKeyType="search"
-            />
-            {searchInput.length > 0 ? (
-              <TouchableOpacity
-                onPress={() => setSearchInput('')}
-                hitSlop={8}
-                accessibilityLabel={t('common.clear', { defaultValue: '清除' })}
-              >
-                <XIcon size={16} color={COLORS.gray400} />
-              </TouchableOpacity>
-            ) : null}
-          </View>
-        </View>
-
-        {searchInput.trim().length > 0 ? (
-          // ─── P2: Search-result mode ───────────────────────
-          searchLoading ? (
-            <View style={styles.loadingWrap}>
-              <ActivityIndicator size="small" color={COLORS.piktag500} />
-            </View>
-          ) : searchResults.length === 0 ? (
-            <View style={styles.searchEmptyWrap}>
-              <Text style={styles.searchEmptyTitle}>
-                {t('qrGroup.searchNoResultsTitle', {
-                  defaultValue: '沒有匹配的朋友',
-                })}
-              </Text>
-              <Text style={styles.searchEmptyDesc}>
-                {t('qrGroup.searchNoResultsDesc', {
-                  defaultValue: '你的 Vibes 裡還沒有人貼這個標籤。試試不同關鍵字？',
-                })}
-              </Text>
-            </View>
-          ) : (
-            <FlatList
-              data={searchResults}
-              keyExtractor={(m) => m.connection_id}
-              renderItem={renderMatch}
-              contentContainerStyle={styles.listContent}
-              keyboardShouldPersistTaps="handled"
-            />
-          )
-        ) : loading && groups.length === 0 ? (
+        {/* Cross-Vibe search bar (P2) was removed after user
+            feedback — too busy for the tab's first impression.
+            The find_connections_by_tag RPC stays deployed; it'll
+            get a home elsewhere (likely the existing Search tab)
+            once we have a clearer pattern for "intent-driven
+            people search". For now this tab is purely about
+            listing + opening Vibes. */}
+        {loading && groups.length === 0 ? (
           <View style={styles.loadingWrap}>
             <ActivityIndicator size="small" color={COLORS.piktag500} />
           </View>
@@ -652,78 +469,20 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   // Right-side cluster — scan + create live side-by-side as peer
-  // entry points.
+  // entry points. Naked icons (no circular pill background) to
+  // match the convention used by Connections / Search / other
+  // tab headers — the pill was visually loud and inconsistent
+  // with the rest of the app.
   headerActions: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 16,
   },
   headerIconBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: COLORS.piktag50,
-    alignItems: 'center',
-    justifyContent: 'center',
+    padding: 4,
   },
   listContent: { paddingBottom: 100 },
   loadingWrap: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-
-  // ─── P2: search bar + result rows ─────────────────────────
-  // Bar lives in its own thin wrapper so the surrounding spacing
-  // matches the header above and the list rows below. Pill shape
-  // (rounded gray-50) reads as a search affordance without
-  // borrowing too much visual weight from the brand purple.
-  searchBarWrap: {
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    backgroundColor: COLORS.white,
-  },
-  searchBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 22,
-    backgroundColor: COLORS.gray50,
-  },
-  searchInput: {
-    flex: 1,
-    fontSize: 14,
-    color: COLORS.gray900,
-    padding: 0,
-  },
-  matchRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.gray100,
-    backgroundColor: COLORS.white,
-  },
-  matchBody: { flex: 1 },
-  matchName: { fontSize: 15, fontWeight: '700', color: COLORS.gray900 },
-  matchSubtitle: { fontSize: 12, color: COLORS.gray500, marginTop: 2 },
-  searchEmptyWrap: {
-    paddingTop: 80,
-    paddingHorizontal: 40,
-    alignItems: 'center',
-    gap: 8,
-  },
-  searchEmptyTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: COLORS.gray900,
-  },
-  searchEmptyDesc: {
-    fontSize: 13,
-    color: COLORS.gray500,
-    textAlign: 'center',
-    lineHeight: 19,
-  },
 
   groupRow: {
     flexDirection: 'row',

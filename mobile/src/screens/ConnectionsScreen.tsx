@@ -186,7 +186,6 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
   // invite). Used to be discoverable only on the empty state's
   // 4-action card; once the list filled up the entry points
   // disappeared. This menu restores them at any list size.
-  const [addMenuVisible, setAddMenuVisible] = useState(false);
 
   // Batch selection state
   const [selectMode, setSelectMode] = useState(false);
@@ -871,20 +870,13 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
             </View>
           </View>
           <View style={styles.headerRight}>
-            {/* "+" — opens the add-contact action sheet (search /
-                contact-sync / manual local-contact / invite). Sits
-                first in the header right cluster because it's the
-                most growth-oriented affordance; tag filter and sort
-                are list-shaping tools that follow. */}
-            <TouchableOpacity
-              style={styles.headerIconBtn}
-              activeOpacity={0.6}
-              onPress={() => setAddMenuVisible(true)}
-              accessibilityLabel={t('connections.addContact', { defaultValue: '新增聯絡人' })}
-              accessibilityRole="button"
-            >
-              <Plus size={24} color={COLORS.gray600} />
-            </TouchableOpacity>
+            {/* "+" add-contact action sheet was removed after user
+                feedback that the Connections page was too busy at
+                first glance. The same three entry points (search /
+                contact-sync / invite) remain reachable from
+                Settings and the empty-state CTA — they don't need
+                a third surface on this already-tag-and-sort-heavy
+                header. */}
             <TouchableOpacity
               style={styles.headerIconBtn}
               activeOpacity={0.6}
@@ -963,101 +955,6 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
         </View>
       )}
 
-
-      {/* Add-contact action sheet — three social-only paths to grow
-          your connections. The earlier 4th row ("先記下這個人" → manual
-          LocalContacts entry) was removed because PikTag is a social
-          tool, not a CRM — typing a person's name + phone + email
-          into a form from scratch is a CRM action that doesn't fit
-          the brand. Tagging EXISTING data (phone contacts, scans,
-          invites) is the social model and stays. Order: search first
-          (find existing PikTag users) → contact sync (already-on-
-          PikTag matches) → invite (recruit). */}
-      <Modal
-        visible={addMenuVisible}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setAddMenuVisible(false)}
-      >
-        <TouchableOpacity
-          style={styles.addMenuOverlay}
-          activeOpacity={1}
-          onPress={() => setAddMenuVisible(false)}
-        >
-          <View style={styles.addMenuSheet}>
-            <View style={styles.addMenuHandle} />
-            <Text style={styles.addMenuTitle}>
-              {t('connections.addContactTitle', { defaultValue: '新增聯絡人' })}
-            </Text>
-
-            <TouchableOpacity
-              style={styles.addMenuRow}
-              activeOpacity={0.6}
-              onPress={() => {
-                setAddMenuVisible(false);
-                navigation.navigate('SearchTab');
-              }}
-            >
-              <View style={[styles.addMenuIconWrap, { backgroundColor: COLORS.piktag50 }]}>
-                <Search size={20} color={COLORS.piktag600} />
-              </View>
-              <View style={styles.addMenuTextWrap}>
-                <Text style={styles.addMenuRowTitle}>
-                  {t('connections.addSearchTitle', { defaultValue: '搜尋 PikTag 使用者' })}
-                </Text>
-                <Text style={styles.addMenuRowDesc}>
-                  {t('connections.addSearchDesc', { defaultValue: '用名字、用戶名或標籤找人' })}
-                </Text>
-              </View>
-              <ChevronRight size={18} color={COLORS.gray400} />
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.addMenuRow}
-              activeOpacity={0.6}
-              onPress={() => {
-                setAddMenuVisible(false);
-                navigation.navigate('ContactSync');
-              }}
-            >
-              <View style={[styles.addMenuIconWrap, { backgroundColor: COLORS.piktag50 }]}>
-                <Users size={20} color={COLORS.piktag600} />
-              </View>
-              <View style={styles.addMenuTextWrap}>
-                <Text style={styles.addMenuRowTitle}>
-                  {t('connections.addContactSyncTitle', { defaultValue: '同步通訊錄找朋友' })}
-                </Text>
-                <Text style={styles.addMenuRowDesc}>
-                  {t('connections.addContactSyncDesc', { defaultValue: '找出已在 PikTag 的朋友' })}
-                </Text>
-              </View>
-              <ChevronRight size={18} color={COLORS.gray400} />
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.addMenuRow}
-              activeOpacity={0.6}
-              onPress={() => {
-                setAddMenuVisible(false);
-                navigation.navigate('Invite');
-              }}
-            >
-              <View style={[styles.addMenuIconWrap, { backgroundColor: COLORS.piktag50 }]}>
-                <Send size={20} color={COLORS.piktag600} />
-              </View>
-              <View style={styles.addMenuTextWrap}>
-                <Text style={styles.addMenuRowTitle}>
-                  {t('connections.addInviteTitle', { defaultValue: '邀請朋友加入 PikTag' })}
-                </Text>
-                <Text style={styles.addMenuRowDesc}>
-                  {t('connections.addInviteDesc', { defaultValue: '分享邀請連結，他註冊後直接成為好友' })}
-                </Text>
-              </View>
-              <ChevronRight size={18} color={COLORS.gray400} />
-            </TouchableOpacity>
-          </View>
-        </TouchableOpacity>
-      </Modal>
 
       {/* Tag Filter Modal */}
       <Modal

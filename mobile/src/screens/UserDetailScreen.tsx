@@ -1745,7 +1745,11 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: COLORS.piktag600,
-    textAlign: 'center',
+    // Left-aligned to match bio + tags below it. The parent
+    // profileSection already has paddingHorizontal: 20, so no
+    // extra horizontal padding is needed on this element.
+    // Previously textAlign: 'center' made the headline jump out
+    // of the left-aligned column of the rest of the profile.
     marginTop: 6,
   },
   bio: {
