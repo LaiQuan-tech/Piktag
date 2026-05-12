@@ -64,9 +64,11 @@ function RouteTracker() {
  * /reset-password).
  *
  * Title format is `PikTag · {hero.title1} {hero.title2}` — the existing
- * brand wordmark followed by the localized two-line slogan ("Define your
- * vibe. Find your tribe." in English, "定義你的風格 遇見你的同類" in
- * zh-TW, etc). Description reuses `hero.description`.
+ * brand wordmark followed by the manifesto slogan. The slogan
+ * ("Tag the Vibe, Keep the Tribe") is now intentionally English on
+ * EVERY locale to project a single global brand voice; the localized
+ * subtitle ships through `hero.description` instead. Description
+ * reuses `hero.description`.
  *
  * NOTE: this only updates the live document — search engines and social
  * crawlers see the static markup in index.html. The static fallback is
