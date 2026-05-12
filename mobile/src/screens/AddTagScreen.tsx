@@ -651,13 +651,27 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
       let sessionData: { id: string } | null = null;
 
       try {
+        // event_date is `date` in Postgres — it accepts a YYYY-MM-DD
+        // string OR null, but NOT "". The new AI-driven flow often
+        // leaves eventDate as an empty string (no explicit date
+        // picker anymore), which previously fired Postgres error
+        // 22007 ("invalid input syntax for type date") and got
+        // silently swallowed → QR appeared to "save" but the row
+        // was never written. Coerce empty → null here.
+        //
+        // event_location is `text` so "" is technically valid, but
+        // we coerce to null for consistency: empty string and "no
+        // location" are semantically the same thing in this flow.
+        const dateForDb = eventDate?.trim() ? eventDate.trim() : null;
+        const locationForDb = eventLocation?.trim() ? eventLocation.trim() : null;
+
         const { data, error } = await supabase
           .from('piktag_scan_sessions')
           .insert({
             host_user_id: user.id,
             preset_id: appliedPresetId,
-            event_date: eventDate,
-            event_location: eventLocation,
+            event_date: dateForDb,
+            event_location: locationForDb,
             event_tags: eventTags,
             qr_code_data: '', // placeholder
             is_active: true,
