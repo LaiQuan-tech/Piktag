@@ -28,7 +28,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
-import { ArrowLeft, Share2, Plus, X, Hash, Edit3 } from 'lucide-react-native';
+import { ArrowLeft, Share2, Plus, X, Hash, Edit3, Sparkles } from 'lucide-react-native';
 // react-native-qrcode-svg is the same lib AddTagScreen uses. Import
 // inline so the bundle only pulls it on this screen too.
 import QRCode from 'react-native-qrcode-svg';
@@ -56,6 +56,16 @@ type Group = {
   created_at: string;
 };
 
+// P0 "Vibe-to-Vibe reactivation" — current shared tags among
+// this Vibe's members, returned by the vibe_member_current_tags
+// RPC. `member_ids` lets the UI filter the member list to just
+// the people behind a chosen tag (tap a tag → see who).
+type CurrentVibeTag = {
+  tag_name: string;
+  member_count: number;
+  member_ids: string[];
+};
+
 type Props = { navigation: any; route: any };
 
 export default function QrGroupDetailScreen({ navigation, route }: Props) {
@@ -70,6 +80,15 @@ export default function QrGroupDetailScreen({ navigation, route }: Props) {
   const [editingName, setEditingName] = useState(false);
   const [nameInput, setNameInput] = useState('');
   const [tagInput, setTagInput] = useState('');
+  // P0 reactivation surface — current shared tags among the
+  // Vibe's members. Empty array if the RPC isn't deployed yet
+  // (migration tolerance) or if the threshold filtered everything
+  // out (1-member Vibes will have nothing).
+  const [currentTags, setCurrentTags] = useState<CurrentVibeTag[]>([]);
+  // When non-null, the member list filters down to only those
+  // members whose current tags include this one. Tapping the
+  // already-selected tag clears the filter.
+  const [selectedFilterTag, setSelectedFilterTag] = useState<string | null>(null);
 
   const fetchGroup = useCallback(async () => {
     if (!user || !groupId) return;
@@ -107,6 +126,32 @@ export default function QrGroupDetailScreen({ navigation, route }: Props) {
       });
       if (!mErr && Array.isArray(m)) {
         setMembers(m as Member[]);
+      }
+
+      // P0: fetch the "Vibe-to-Vibe" reactivation tags. Wrapped
+      // in its own try so a missing RPC (migration not yet run
+      // on this DB) just hides the section instead of breaking
+      // the page. PGRST202 = "the requested function … was not
+      // found"; treat it like 42703 — silent fall-through.
+      try {
+        const { data: tags, error: tagsErr } = await supabase.rpc(
+          'vibe_member_current_tags',
+          { p_group_id: groupId },
+        );
+        if (!tagsErr && Array.isArray(tags)) {
+          setCurrentTags(tags as CurrentVibeTag[]);
+        } else if (tagsErr) {
+          const isMissing =
+            (tagsErr as any).code === 'PGRST202' ||
+            /could not find the function|does not exist/i.test(tagsErr.message);
+          if (!isMissing) {
+            console.warn('[QrGroupDetail] currentTags fetch failed:', tagsErr);
+          }
+          setCurrentTags([]);
+        }
+      } catch (err) {
+        console.warn('[QrGroupDetail] currentTags threw:', err);
+        setCurrentTags([]);
       }
     } finally {
       setLoading(false);
@@ -350,30 +395,133 @@ export default function QrGroupDetailScreen({ navigation, route }: Props) {
           </View>
         </View>
 
-        {/* Member list. */}
-        <View style={styles.memberSection}>
-          <Text style={styles.sectionTitle}>
-            {t('qrGroup.membersTitle', {
-              count: members.length,
-              defaultValue: `成員（${members.length}）`,
-            })}
-          </Text>
-          {members.length === 0 ? (
-            <View style={styles.memberEmpty}>
-              <Text style={styles.memberEmptyText}>
-                {t('qrGroup.membersEmpty', {
-                  defaultValue: '還沒有人掃這個 QR — 分享給朋友吧',
-                })}
+        {/* ─── P0: Vibe-to-Vibe reactivation ─────────────────
+            Shows tags that ≥2 members of this Vibe have on their
+            CURRENT profile (excludes the Vibe's own identity
+            tags). Tapping a tag filters the member list below to
+            just those members. The whole section hides if there
+            are no shared current tags (e.g. a 1-member Vibe, or
+            a brand-new Vibe before members have set tags).
+
+            This is the headline difference between PikTag and a
+            generic contacts app: a static "who scanned my QR"
+            list becomes a live "what they're into now" view. */}
+        {currentTags.length > 0 && (
+          <View style={styles.vibeShiftSection}>
+            <View style={styles.vibeShiftHeader}>
+              <Sparkles size={16} color={COLORS.piktag500} strokeWidth={2.2} />
+              <Text style={styles.vibeShiftTitle}>
+                {t('qrGroup.currentVibesTitle', { defaultValue: '他們現在的 Vibe' })}
               </Text>
             </View>
-          ) : (
-            <FlatList
-              data={members}
-              keyExtractor={(m) => m.connection_id}
-              renderItem={renderMember}
-              scrollEnabled={false}
-            />
-          )}
+            <Text style={styles.vibeShiftHint}>
+              {t('qrGroup.currentVibesHint', {
+                defaultValue: '這群人現在共同的標籤 — 點一下看是誰',
+              })}
+            </Text>
+            <View style={styles.vibeShiftChipsRow}>
+              {currentTags.map((ct) => {
+                const isActive = selectedFilterTag === ct.tag_name;
+                return (
+                  <TouchableOpacity
+                    key={ct.tag_name}
+                    style={[
+                      styles.vibeShiftChip,
+                      isActive && styles.vibeShiftChipActive,
+                    ]}
+                    activeOpacity={0.7}
+                    onPress={() => {
+                      // Toggle: tap an already-selected chip to clear
+                      setSelectedFilterTag(isActive ? null : ct.tag_name);
+                    }}
+                  >
+                    <Text
+                      style={[
+                        styles.vibeShiftChipTag,
+                        isActive && styles.vibeShiftChipTagActive,
+                      ]}
+                    >
+                      #{ct.tag_name}
+                    </Text>
+                    <Text
+                      style={[
+                        styles.vibeShiftChipCount,
+                        isActive && styles.vibeShiftChipCountActive,
+                      ]}
+                    >
+                      {t('qrGroup.currentVibesCount', {
+                        count: ct.member_count,
+                        defaultValue: `${ct.member_count} 人`,
+                      })}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          </View>
+        )}
+
+        {/* Member list. */}
+        <View style={styles.memberSection}>
+          {(() => {
+            // When a tag filter is active, members are scoped to
+            // those whose user_id is in the selected tag's
+            // member_ids set. Otherwise the full list shows.
+            const filterEntry =
+              selectedFilterTag != null
+                ? currentTags.find((ct) => ct.tag_name === selectedFilterTag)
+                : null;
+            const filteredMembers =
+              filterEntry != null
+                ? members.filter((m) =>
+                    filterEntry.member_ids.includes(m.connected_user_id),
+                  )
+                : members;
+            return (
+              <>
+                <View style={styles.memberHeaderRow}>
+                  <Text style={styles.sectionTitle}>
+                    {t('qrGroup.membersTitle', {
+                      count: filteredMembers.length,
+                      defaultValue: `成員（${filteredMembers.length}）`,
+                    })}
+                  </Text>
+                  {filterEntry != null ? (
+                    <TouchableOpacity
+                      onPress={() => setSelectedFilterTag(null)}
+                      style={styles.memberFilterClearBtn}
+                      hitSlop={6}
+                    >
+                      <Text style={styles.memberFilterClearText}>
+                        #{filterEntry.tag_name}
+                      </Text>
+                      <X size={12} color={COLORS.piktag600} />
+                    </TouchableOpacity>
+                  ) : null}
+                </View>
+                {filteredMembers.length === 0 ? (
+                  <View style={styles.memberEmpty}>
+                    <Text style={styles.memberEmptyText}>
+                      {filterEntry != null
+                        ? t('qrGroup.membersFilterEmpty', {
+                            defaultValue: '這個 Vibe 中沒有貼這個標籤的人',
+                          })
+                        : t('qrGroup.membersEmpty', {
+                            defaultValue: '還沒有人掃這個 QR — 分享給朋友吧',
+                          })}
+                    </Text>
+                  </View>
+                ) : (
+                  <FlatList
+                    data={filteredMembers}
+                    keyExtractor={(m) => m.connection_id}
+                    renderItem={renderMember}
+                    scrollEnabled={false}
+                  />
+                )}
+              </>
+            );
+          })()}
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -471,6 +619,31 @@ const styles = StyleSheet.create({
   },
 
   memberSection: { paddingHorizontal: 20, paddingTop: 18 },
+  // Header row pairs the "Members (N)" title with the active
+  // filter chip when a tag is selected. Filter chip is the same
+  // visual style as the active Vibe-shift chip but at a smaller
+  // size + with an X to clear.
+  memberHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 8,
+    marginBottom: 4,
+  },
+  memberFilterClearBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 12,
+    backgroundColor: COLORS.piktag50,
+  },
+  memberFilterClearText: {
+    fontSize: 12,
+    color: COLORS.piktag600,
+    fontWeight: '700',
+  },
   memberRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -482,4 +655,69 @@ const styles = StyleSheet.create({
   memberHandle: { fontSize: 12, color: COLORS.gray500, marginTop: 1 },
   memberEmpty: { paddingVertical: 24, alignItems: 'center' },
   memberEmptyText: { fontSize: 13, color: COLORS.gray500, textAlign: 'center' },
+
+  // ─── P0 Vibe-to-Vibe reactivation ──────────────────────────
+  // Section sits between the Vibe's own tag editor and the member
+  // list, visually distinct (Sparkles icon + light purple chip
+  // backgrounds) so users register "this is a different kind of
+  // info — what they're into NOW, not what tagged the event."
+  vibeShiftSection: {
+    paddingHorizontal: 20,
+    paddingTop: 4,
+    paddingBottom: 4,
+  },
+  vibeShiftHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 4,
+  },
+  vibeShiftTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: COLORS.gray900,
+  },
+  vibeShiftHint: {
+    fontSize: 12,
+    color: COLORS.gray500,
+    marginBottom: 10,
+  },
+  vibeShiftChipsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  vibeShiftChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: 14,
+    backgroundColor: COLORS.piktag50,
+    borderWidth: 1,
+    borderColor: 'transparent',
+  },
+  // Selected state: solid purple background + inverted text. Makes
+  // it crystal clear which filter is active. Tap again to deselect.
+  vibeShiftChipActive: {
+    backgroundColor: COLORS.piktag500,
+    borderColor: COLORS.piktag500,
+  },
+  vibeShiftChipTag: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: COLORS.piktag600,
+  },
+  vibeShiftChipTagActive: {
+    color: '#FFFFFF',
+  },
+  vibeShiftChipCount: {
+    fontSize: 12,
+    color: COLORS.gray500,
+    fontWeight: '600',
+  },
+  vibeShiftChipCountActive: {
+    color: 'rgba(255,255,255,0.85)',
+  },
 });
