@@ -137,7 +137,7 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
         {pendingInvite && (
           <View style={[styles.inviteBanner, { backgroundColor: colors.piktag50, borderColor: colors.piktag500 }]}>
             <Text style={[styles.inviteBannerTitle, { color: colors.piktag600 }]}>
-              {t('auth.login.invitePendingTitle', { defaultValue: '🎁 你被邀請加入 PikTag' })}
+              {t('auth.login.invitePendingTitle', { defaultValue: '你被邀請加入 PikTag' })}
             </Text>
             <Text style={[styles.inviteBannerBody, { color: colors.text }]}>
               {t('auth.login.invitePendingBody', {

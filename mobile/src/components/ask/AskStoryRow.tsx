@@ -913,7 +913,7 @@ export function AskCreateModal({ visible, onClose, existingAsk, onCreated }: Ask
                   </>
                 ) : (
                   <Text style={modalStyles.aiTriggerText}>
-                    ✨ {aiNames.length > 0
+                    {aiNames.length > 0
                       ? (t('ask.regenerateAiTags', { defaultValue: '重新生成' }))
                       : (t('ask.generateAiTags', { defaultValue: 'AI 生成標籤' }))}
                   </Text>

@@ -71,7 +71,7 @@
       "emailPlaceholder": "Email",
       "passwordPlaceholder": "Password",
       "loginButton": "Log In",
-      "noAccountPrompt": "Don't have an account? ",
+      "noAccountPrompt": "Don't have an account?",
       "registerLink": "Sign Up",
       "forgotPassword": "Forgot password?",
       "alertEnterEmailFirst": "Please enter your email first, we will send a password reset link",
@@ -93,7 +93,7 @@
       "emailPlaceholder": "Email",
       "passwordPlaceholder": "Password",
       "registerButton": "Sign Up",
-      "hasAccountPrompt": "Already have an account? ",
+      "hasAccountPrompt": "Already have an account?",
       "loginLink": "Log In",
       "confirmPasswordPlaceholder": "Confirm Password",
       "alertPasswordMismatch": "Passwords do not match",
@@ -164,7 +164,7 @@
       "linkedinLabel": "LinkedIn",
       "birthdayLabel": "Birthday",
       "welcomeName": "Welcome, {{name}}",
-      "phoneSectionTitle": "📱 Phone number (optional)",
+      "phoneSectionTitle": "Phone number (optional)",
       "phoneSectionHint": "So friends can find you via contact sync — never made public, never used to call you.",
       "phonePlaceholder": "+1 555 123 4567",
       "phoneInvalidTitle": "Phone format not recognized",
@@ -225,7 +225,7 @@
     "sortByAlphabetDesc": "Alphabetical (Z→A)",
     "sortByInteraction": "Recent interaction",
     "sortByBirthday": "Upcoming birthday",
-    "phonePromptTitle": "📱 Add your phone so friends can find you",
+    "phonePromptTitle": "Add your phone so friends can find you",
     "phonePromptBody": "Friends syncing their contacts will be auto-connected. Used only by PikTag, never made public.",
     "addContact": "Add contact",
     "addContactTitle": "Add a contact",
@@ -534,11 +534,11 @@
   "userDetail": {
     "headerNotFound": "Not Found",
     "userNotFound": "User not found",
-    "mutualFriendsPrefix": "Mutual friends: ",
+    "mutualFriendsPrefix": "Mutual friends:",
     "mutualFriendsSuffix": "",
-    "mutualTagsPrefix": "Mutual tags: ",
+    "mutualTagsPrefix": "Mutual tags:",
     "mutualTagsSuffix": "",
-    "mutualSeparator": "  |  ",
+    "mutualSeparator": "|",
     "following": "Following",
     "follow": "Follow",
     "sendMessage": "Message",
@@ -662,7 +662,7 @@
     "alertFollowAllMessage": "Add all {{count}} PikTag friends to your connections?",
     "alertFollowAllConfirm": "Add",
     "alertFollowAllDoneTitle": "Done",
-    "alertFollowAllDoneMessage": "Added {{count}} PikTag friends 🎉",
+    "alertFollowAllDoneMessage": "Added {{count}} PikTag friends",
     "allConnected": "All PikTag contacts are already connected",
     "tagModalHint": "Private tags only you can see (up to {{max}}) — when this person joins PikTag, these tags will appear in your friend's profile under \"hidden tags\", invisible to them and everyone else."
   },
@@ -678,7 +678,7 @@
     "quotaHint": "1 invite restores every 24 hours",
     "generateButton": "Generate & Share Invite",
     "inviteRecordHeader": "Invite History",
-    "acceptedSummary": "✅ {{count}} joined",
+    "acceptedSummary": "{{count}} joined",
     "usedBadge": "Used",
     "noInvites": "No invite history"
   },
@@ -703,7 +703,7 @@
     "defaultLocation": "Current Location",
     "alertPermTitle": "Location Permission",
     "alertPermMessage": "Location permission is required for this feature",
-    "metAtPrefix": "Met at ",
+    "metAtPrefix": "Met at",
     "metAtSuffix": "",
     "nearbySection": "Nearby connections ({{count}})",
     "metHereSection": "Met here ({{count}})",
@@ -824,7 +824,7 @@
         }
       },
       "invite_accepted": {
-        "title": "Your invite was accepted 🎉",
+        "title": "Your invite was accepted",
         "body": "joined PikTag — you earned {{points}} P coins"
       }
     }

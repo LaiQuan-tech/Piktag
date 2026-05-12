@@ -356,7 +356,7 @@ function renderProfilePage(profile, biolinks, tags, sid, locale, eventInfo, anal
       ${verifiedBadge}
     </div>
     <div class="username">@${username}</div>
-    ${tribeSize > 0 ? `<div class="tribe-stat" title="Tribe size">🌀 Tribe ${tribeSize}</div>` : ''}
+    ${tribeSize > 0 ? `<div class="tribe-stat" title="Tribe size">Tribe ${tribeSize}</div>` : ''}
     ${headline ? `<div class="headline">${headline}</div>` : ''}
     ${bio ? `<div class="bio">${bio}</div>` : ''}
     <button class="follow-btn" onclick="handleFollow()">${locale.follow}</button>

@@ -781,7 +781,7 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
           >
             <View style={{ flex: 1 }}>
               <Text style={styles.phonePromptTitle}>
-                {t('connections.phonePromptTitle', { defaultValue: '📱 加上手機號碼，讓朋友找到你' })}
+                {t('connections.phonePromptTitle', { defaultValue: '加上手機號碼，讓朋友找到你' })}
               </Text>
               <Text style={styles.phonePromptBody}>
                 {t('connections.phonePromptBody', { defaultValue: '朋友通訊錄同步時會自動加你為好友。只有 PikTag 用得到，永遠不會公開。' })}

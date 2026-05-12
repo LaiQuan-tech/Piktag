@@ -140,7 +140,7 @@ serve(async (req) => {
 
     let totalCreated = 0;
     for (const hit of hits) {
-      const title = `${hit.name} 今天生日 🎂`;
+      const title = `${hit.name} 今天生日`;
       const body = '送個祝福吧';
 
       await supabase

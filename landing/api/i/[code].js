@@ -35,7 +35,6 @@ module.exports = async function handler(req, res) {
     body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:linear-gradient(160deg,#faf5ff 0%,#fff5f5 50%,#f5f0ff 100%);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
     .card{background:#fff;border-radius:24px;padding:48px 32px;max-width:420px;width:100%;text-align:center;box-shadow:0 8px 32px rgba(170,0,255,.12)}
     .logo{font-size:32px;font-weight:800;color:${BRAND_COLOR};margin-bottom:24px}
-    .gift{font-size:64px;margin-bottom:16px}
     h1{font-size:22px;color:#111;margin-bottom:8px}
     .sub{font-size:14px;color:#666;margin-bottom:24px}
     .code{display:inline-block;font-family:'SF Mono',Menlo,monospace;font-size:28px;font-weight:800;letter-spacing:4px;background:#faf5ff;color:${BRAND_DARK};padding:16px 24px;border-radius:12px;border:2px dashed ${BRAND_COLOR};margin-bottom:32px}
@@ -47,7 +46,6 @@ module.exports = async function handler(req, res) {
 <body>
   <div class="card">
     <div class="logo">PikTag</div>
-    <div class="gift">🎁</div>
     <h1>You've been invited!</h1>
     <p class="sub">Redeem this code to connect with a friend on PikTag</p>
     <div class="code">${safeCode}</div>

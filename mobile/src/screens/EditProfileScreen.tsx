@@ -1649,11 +1649,11 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
             {/* Inline AI tag generation — replaces the previous two-page
                 flow ("save bio here → navigate to ManageTagsScreen → wait
                 for auto-load → pick"). Same pattern as AskStoryRow's
-                ✨ button: manual trigger, disabled until bio is at least
-                5 chars, swappable label between "AI 生成" and "重新生成"
-                so re-rolls are explicit. Tapping a suggestion chip pipes
-                straight into handleAddTag — the chip moves up into the
-                user's tag list above on the next render. */}
+                AI-trigger button: manual trigger, disabled until bio is
+                at least 5 chars, swappable label between "AI 生成" and
+                "重新生成" so re-rolls are explicit. Tapping a suggestion
+                chip pipes straight into handleAddTag — the chip moves up
+                into the user's tag list above on the next render. */}
             {/* AI tag suggestion section. Auto-fires 1.2s after the
                 user pauses typing in bio / name / headline (see
                 updateField). Layout pattern was rebuilt because the
@@ -1662,8 +1662,8 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
                 a passive label.
 
                 Now a clean section-header row:
-                  Left:  ✨ AI 為你推薦   (label)
-                  Right: ↻               (refresh icon button)
+                  Left:  Sparkles icon + "AI 為你推薦" label
+                  Right: refresh icon button
                 Below: chip list of suggestions (tap to add).
 
                 The ↻ icon is the universal "regenerate" affordance

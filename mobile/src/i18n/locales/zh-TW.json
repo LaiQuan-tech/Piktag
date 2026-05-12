@@ -71,7 +71,7 @@
       "emailPlaceholder": "電子郵件",
       "passwordPlaceholder": "密碼",
       "loginButton": "登入",
-      "noAccountPrompt": "還沒有帳號？ ",
+      "noAccountPrompt": "還沒有帳號？",
       "registerLink": "立即註冊",
       "forgotPassword": "忘記密碼？",
       "alertEnterEmailFirst": "請先輸入電子郵件，我們會寄送重設密碼的連結",
@@ -93,7 +93,7 @@
       "emailPlaceholder": "電子郵件",
       "passwordPlaceholder": "密碼",
       "registerButton": "註冊",
-      "hasAccountPrompt": "已有帳號？ ",
+      "hasAccountPrompt": "已有帳號？",
       "loginLink": "登入",
       "confirmPasswordPlaceholder": "確認密碼",
       "alertPasswordMismatch": "兩次密碼輸入不一致",
@@ -164,7 +164,7 @@
       "linkedinLabel": "LinkedIn",
       "birthdayLabel": "生日",
       "welcomeName": "歡迎，{{name}}",
-      "phoneSectionTitle": "📱 手機號碼（選填）",
+      "phoneSectionTitle": "手機號碼（選填）",
       "phoneSectionHint": "讓朋友的通訊錄能找到你 — 永遠不會公開，也不會用來打給你。",
       "phonePlaceholder": "0912345678",
       "phoneInvalidTitle": "電話格式無效",
@@ -225,7 +225,7 @@
     "sortByAlphabetDesc": "字母 Z→A",
     "sortByInteraction": "最近互動",
     "sortByBirthday": "最近生日",
-    "phonePromptTitle": "📱 加上手機號碼，讓朋友找到你",
+    "phonePromptTitle": "加上手機號碼，讓朋友找到你",
     "phonePromptBody": "朋友通訊錄同步時會自動加你為好友。只有 PikTag 用得到，永遠不會公開。",
     "addContact": "新增聯絡人",
     "addContactTitle": "新增聯絡人",
@@ -537,11 +537,11 @@
   "userDetail": {
     "headerNotFound": "找不到",
     "userNotFound": "找不到此用戶",
-    "mutualFriendsPrefix": "共同朋友 ",
-    "mutualFriendsSuffix": " 位",
-    "mutualTagsPrefix": "共同標籤 ",
-    "mutualTagsSuffix": " 個",
-    "mutualSeparator": "  |  ",
+    "mutualFriendsPrefix": "共同朋友",
+    "mutualFriendsSuffix": "位",
+    "mutualTagsPrefix": "共同標籤",
+    "mutualTagsSuffix": "個",
+    "mutualSeparator": "|",
     "following": "追蹤中",
     "follow": "追蹤",
     "sendMessage": "傳訊息",
@@ -665,7 +665,7 @@
     "alertFollowAllMessage": "要把 {{count}} 位 PikTag 朋友加入嗎？",
     "alertFollowAllConfirm": "加入",
     "alertFollowAllDoneTitle": "完成",
-    "alertFollowAllDoneMessage": "已加入 {{count}} 位 PikTag 朋友 🎉",
+    "alertFollowAllDoneMessage": "已加入 {{count}} 位 PikTag 朋友",
     "allConnected": "通訊錄裡的 PikTag 朋友都已加入",
     "tagModalHint": "只有你看得到的私人標籤（最多 {{max}} 個）— 對方註冊 PikTag 後，這些標籤會出現在你的好友頁的「隱藏標籤」區，永遠不會被對方或其他人看到。"
   },
@@ -681,7 +681,7 @@
     "quotaHint": "每 24 小時恢復 1 個名額",
     "generateButton": "產生並分享邀請碼",
     "inviteRecordHeader": "邀請紀錄",
-    "acceptedSummary": "✅ {{count}} 人已加入",
+    "acceptedSummary": "{{count}} 人已加入",
     "usedBadge": "已使用",
     "noInvites": "尚無邀請紀錄"
   },
@@ -690,8 +690,8 @@
     "defaultLocation": "目前位置",
     "alertPermTitle": "位置權限",
     "alertPermMessage": "需要位置權限才能使用此功能",
-    "metAtPrefix": "在 ",
-    "metAtSuffix": " 認識",
+    "metAtPrefix": "在",
+    "metAtSuffix": "認識",
     "nearbySection": "附近的人脈（{{count}}）",
     "metHereSection": "在此地點認識的人（{{count}}）",
     "emptyText": "找不到附近的人，試試調整搜尋範圍或到「探索」尋找新朋友"
@@ -813,7 +813,7 @@
         }
       },
       "invite_accepted": {
-        "title": "你的邀請被接受了 🎉",
+        "title": "你的邀請被接受了",
         "body": "加入了 PikTag — 你獲得 {{points}} P 幣"
       }
     }

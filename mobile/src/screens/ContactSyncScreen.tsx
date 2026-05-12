@@ -536,7 +536,7 @@ export default function ContactSyncScreen({ navigation }: ContactSyncScreenProps
             Alert.alert(
               t('contactSync.alertFollowAllDoneTitle', { defaultValue: '完成' }),
               t('contactSync.alertFollowAllDoneMessage', { count: added }) ||
-                `已加入 ${added} 位 PikTag 朋友 🎉`,
+                `已加入 ${added} 位 PikTag 朋友`,
             );
           },
         },

@@ -132,7 +132,7 @@ export default function RegisterScreen({ navigation }: RegisterScreenProps) {
         {pendingInvite && (
           <View style={styles.inviteBanner}>
             <Text style={styles.inviteBannerTitle}>
-              {t('auth.register.invitePendingTitle', { defaultValue: '🎁 你被邀請加入 PikTag' })}
+              {t('auth.register.invitePendingTitle', { defaultValue: '你被邀請加入 PikTag' })}
             </Text>
             <Text style={styles.inviteBannerBody}>
               {t('auth.register.invitePendingBody', {

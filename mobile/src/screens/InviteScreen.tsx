@@ -314,7 +314,7 @@ export default function InviteScreen({ navigation }: InviteScreenProps) {
             {invites.some((i) => !!i.used_by) && (
               <Text style={styles.listHeaderAccepted}>
                 {t('invite.acceptedSummary', {
-                  defaultValue: '✅ {{count}} 人已加入',
+                  defaultValue: '{{count}} 人已加入',
                   count: invites.filter((i) => !!i.used_by).length,
                 })}
               </Text>
