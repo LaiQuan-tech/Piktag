@@ -10,6 +10,14 @@ const PLATFORM_ICONS = {
   github: '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>',
   website: '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>',
   line: '<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63h2.386c.346 0 .627.285.627.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63.346 0 .628.285.628.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.282.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.078 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/></svg>',
+  // Phone + email were missing — they're the two biolink platforms
+  // the mobile OnboardingScreen actually writes (alongside facebook /
+  // instagram / linkedin), so without them every "phone" link
+  // silently fell back to the website (globe) icon below. Phone:
+  // lucide-style handset. Email: lucide-style envelope.
+  phone: '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>',
+  email: '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>',
+  mail: '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>',
 };
 
 function getIconSvg(platform) {
@@ -166,16 +174,12 @@ function renderProfilePage(profile, biolinks, tags, sid, locale, eventInfo, anal
     ? '<svg viewBox="0 0 24 24" width="18" height="18" style="margin-left:4px;vertical-align:middle"><circle cx="12" cy="12" r="10" fill="#8c52ff"/><path d="M9 12l2 2 4-4" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>'
     : '';
 
-  const eventTagsList = (eventInfo?.tags || '').split(',').map(t => t.trim()).filter(Boolean);
-  const hasEventInfo = eventTagsList.length > 0 || eventInfo?.date || eventInfo?.location;
-  const eventCardHtml = hasEventInfo
-    ? `<div class="event-card">
-        <div class="event-card-title">🎪 活動資訊</div>
-        ${eventInfo.date ? `<div class="event-card-line">📅 ${escapeHtml(eventInfo.date)}</div>` : ''}
-        ${eventInfo.location ? `<div class="event-card-line">📍 ${escapeHtml(eventInfo.location)}</div>` : ''}
-        ${eventTagsList.length > 0 ? `<div class="event-card-tags">${eventTagsList.map(t => `<span class="event-card-tag">#${escapeHtml(t.replace(/^#/, ''))}</span>`).join('')}</div>` : ''}
-      </div>`
-    : '';
+  // Event-info card (🎪 活動資訊) was removed per user feedback —
+  // every tag should attach to the person, not the event. The
+  // route params (?tags=&date=&loc=) are still consumed by the
+  // mobile-side scan flow to seed the post-scan tag picker, but
+  // they no longer get their own special card on the public
+  // profile page.
 
   const tagsHtml = tags.length > 0
     ? `<div class="tags">${tags.map((t) => `<a href="/tag/${encodeURIComponent(t)}" class="tag">#${escapeHtml(t)}</a>`).join('')}</div>`
@@ -264,11 +268,7 @@ function renderProfilePage(profile, biolinks, tags, sid, locale, eventInfo, anal
     .username{font-size:15px;color:${BRAND_DARK};font-weight:600;margin-bottom:14px;opacity:0;animation:fadeUp .5s ease .25s forwards}
     .headline{font-size:14px;font-weight:600;color:${BRAND_ACCENT};text-align:center;margin-bottom:10px;opacity:0;animation:fadeUp .5s ease .28s forwards}
     .bio{font-size:15px;color:#555;text-align:center;line-height:1.7;margin-bottom:18px;max-width:360px;opacity:0;animation:fadeUp .5s ease .3s forwards}
-    .event-card{background:rgba(255,255,255,.85);backdrop-filter:blur(8px);border:1px solid #E9D5FF;border-radius:16px;padding:14px 18px;margin-bottom:18px;width:100%;max-width:360px;opacity:0;animation:fadeUp .5s ease .32s forwards}
-    .event-card-title{font-size:13px;font-weight:700;color:#7C3AED;margin-bottom:8px}
-    .event-card-line{font-size:13px;color:#4B5563;font-weight:500;margin-bottom:4px}
-    .event-card-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
-    .event-card-tag{background:#F3E8FF;border:1px solid #C4B5FD;color:#7C3AED;font-size:12px;font-weight:600;padding:3px 10px;border-radius:12px}
+    /* event-card styles removed — see comment in renderProfilePage */
 
     /* Follow button */
     .follow-btn{background:${BRAND_GRADIENT};color:#fff;font-weight:700;border-radius:28px;padding:13px 52px;font-size:16px;border:none;cursor:pointer;margin-bottom:20px;box-shadow:0 4px 16px rgba(170,0,255,.3);transition:all .2s;opacity:0;animation:fadeUp .5s ease .35s forwards}
@@ -328,7 +328,6 @@ function renderProfilePage(profile, biolinks, tags, sid, locale, eventInfo, anal
     <div class="username">@${username}</div>
     ${headline ? `<div class="headline">${headline}</div>` : ''}
     ${bio ? `<div class="bio">${bio}</div>` : ''}
-    ${eventCardHtml}
     <button class="follow-btn" onclick="handleFollow()">${locale.follow}</button>
     ${tagsHtml}
     ${biolinksHtml ? `<div class="biolinks">${biolinksHtml}</div>` : ''}
