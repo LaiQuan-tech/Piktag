@@ -684,24 +684,76 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
 
     void (async () => {
       try {
-        const { eventTags, eventDate, eventLocation } = await resolveEventData();
-        const tagNames: string[] = [...eventTags];
-        if (eventDate.trim()) tagNames.push(eventDate.trim());
-        if (eventLocation.trim()) tagNames.push(eventLocation.trim());
-        if (tagNames.length === 0) return;
-
-        const tagIds = await ensureTagIdsByName(tagNames);
-
-        // Find the reverse connection id (host → scanner) so both sides
-        // of the friendship pick up the event context.
+        // ──────────────────────────────────────────────────────
+        // Critical: backfill scan_session_id on BOTH directions.
+        //
+        // Without this, a friend who scans a host's Vibe QR
+        // never appears in the host's Vibe member list — because
+        // the member-list RPC queries
+        //   WHERE user_id = host AND scan_session_id = vibe_id
+        // against the host→scanner (reverse) row, and the row
+        // exists (they're already friends) but its
+        // scan_session_id is NULL (they were added pre-Vibe via
+        // Search/Follow, or a previous Vibe didn't backfill).
+        //
+        // handleToggleFollow's QR branch is `if (!connectionId
+        // && !isFollowing)` — it skips entirely when the friend
+        // already exists. This effect is the only path that
+        // catches the "already-friend scans a NEW Vibe" case.
+        // First Vibe wins — never overwrite an existing
+        // scan_session_id.
         const { data: reverse } = await supabase
           .from('piktag_connections')
-          .select('id')
+          .select('id, scan_session_id')
           .eq('user_id', resolvedUserId)
           .eq('connected_user_id', authUser.id)
           .maybeSingle();
 
-        await attachTagsToConnections([connectionId, reverse?.id ?? null], tagIds);
+        const reverseConnId: string | null = (reverse as any)?.id ?? null;
+        const reverseSid = (reverse as any)?.scan_session_id ?? null;
+
+        // Backfill forward (scanner → host) when missing.
+        const { data: forwardRow } = await supabase
+          .from('piktag_connections')
+          .select('scan_session_id')
+          .eq('id', connectionId)
+          .maybeSingle();
+        if (!(forwardRow as any)?.scan_session_id) {
+          await supabase
+            .from('piktag_connections')
+            .update({ scan_session_id: paramSid })
+            .eq('id', connectionId);
+        }
+
+        // Backfill reverse (host → scanner) when missing.
+        if (reverseConnId && !reverseSid) {
+          await supabase
+            .from('piktag_connections')
+            .update({ scan_session_id: paramSid })
+            .eq('id', reverseConnId);
+        }
+
+        // ──────────────────────────────────────────────────────
+        // Attach the Vibe's tags to ONLY the reverse (host's
+        // view of scanner). Same principle as handleAddFriendFromQr
+        // — Vibe tags describe the kind of person the Vibe is
+        // FOR, not the host who created it. The forward side
+        // (scanner's view of host) is left untouched; the
+        // scanner can manually pick tags via the picker if they
+        // want.
+        const { eventTags, eventDate, eventLocation } = await resolveEventData();
+        const tagNames: string[] = [...eventTags];
+        if (eventDate.trim()) tagNames.push(eventDate.trim());
+        if (eventLocation.trim()) tagNames.push(eventLocation.trim());
+
+        if (tagNames.length > 0 && reverseConnId) {
+          const tagIds = await ensureTagIdsByName(tagNames);
+          await attachTagsToConnections([reverseConnId], tagIds);
+        }
+
+        // Bump the host's scan_count so the Vibe shows the right
+        // total even when the visit was an already-friend re-scan.
+        await supabase.rpc('increment_scan_count', { session_id: paramSid });
       } catch (err) {
         // Silent — this is a best-effort enrichment. The user can still
         // add the tags manually from HiddenTagEditor if it fails.
