@@ -93,11 +93,17 @@ type ConnectionItemProps = {
   // brand-purple gradient consistently means "this person is
   // currently asking for something" across every surface.
   hasActiveAsk: boolean;
+  // Short preview of the friend's active Ask body. When set,
+  // renders as a subtle chip below the tags row — same idea as
+  // IG story captions: a glanceable hint of WHAT they're asking
+  // for, without forcing a tap-through. Caller is responsible
+  // for truncating to a reasonable length (Map-side, not here).
+  askPreview?: string | null;
   onPress: (item: ConnectionWithTags) => void;
   onLongPress: (item: ConnectionWithTags) => void;
 };
 
-const ConnectionItem = React.memo(({ item, isSelected, selectMode, hasActiveAsk, onPress, onLongPress }: ConnectionItemProps) => {
+const ConnectionItem = React.memo(({ item, isSelected, selectMode, hasActiveAsk, askPreview, onPress, onLongPress }: ConnectionItemProps) => {
   const profile = item.connected_user;
   const displayName = item.nickname || profile?.full_name || profile?.username || 'Unknown';
   const username = profile?.username || '';
@@ -152,6 +158,20 @@ const ConnectionItem = React.memo(({ item, isSelected, selectMode, hasActiveAsk,
             {item.tags.join('  ')}
           </Text>
         )}
+        {/* Ask-preview chip — only renders when the friend has a
+            current Ask. Subtle piktag50 background + piktag600
+            text matches the gradient ring on the avatar above, so
+            the eye registers them as the SAME signal: "this
+            person is asking for something right now". Caption
+            style mirrors IG story captions — glanceable hint,
+            tap the row to read the full ask on FriendDetail. */}
+        {askPreview ? (
+          <View style={styles.askPreviewChip}>
+            <Text style={styles.askPreviewText} numberOfLines={1}>
+              {askPreview}
+            </Text>
+          </View>
+        ) : null}
       </View>
     </TouchableOpacity>
   );
@@ -597,28 +617,48 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
     }
   };
 
-  // O(1) membership test for "does this friend have an active Ask?".
-  // Built once per askFeedItems update; passed into each row so the
-  // avatar's gradient ring stays in sync with the same askFeedAsks
-  // signal FriendDetailScreen uses. Without this set, the list
-  // rendered every friend with a "subtle" ring even when they had
-  // a live Ask — making the Ask invisible from the connections page.
-  const activeAskAuthorIds = useMemo(
-    () => new Set((askFeedItems || []).map((a) => a.author_id)),
-    [askFeedItems],
-  );
+  // Per-author lookup table for active Asks. Stores both the
+  // existence flag (drives the avatar gradient ring) and a
+  // truncated body preview (drives the IG-caption-style chip
+  // beneath the tags row). Built once per askFeedItems change so
+  // the per-row render stays O(1).
+  //
+  // Preview length cap: 40 visible characters. Empirically that
+  // fits roughly one line at the row's natural width without
+  // pushing the layout taller, and is long enough to convey
+  // "I'm looking for a frontend engineer" sized intents.
+  const ASK_PREVIEW_LEN = 40;
+  const askPreviewByAuthor = useMemo(() => {
+    const m = new Map<string, string>();
+    for (const a of askFeedItems || []) {
+      if (!a?.author_id || !a?.body) continue;
+      // Collapse whitespace + truncate. ellipsis ASCII to keep
+      // the renderable width tight on iOS Pinyin Mono Dot.
+      const oneLine = a.body.replace(/\s+/g, ' ').trim();
+      const preview =
+        oneLine.length > ASK_PREVIEW_LEN
+          ? oneLine.slice(0, ASK_PREVIEW_LEN).trimEnd() + '…'
+          : oneLine;
+      m.set(a.author_id, preview);
+    }
+    return m;
+  }, [askFeedItems]);
 
   // --- Optimized: useCallback renderItem with memoized ConnectionItem ---
-  const renderItem = useCallback(({ item }: { item: ConnectionWithTags }) => (
-    <ConnectionItem
-      item={item}
-      isSelected={selectedIds.has(item.id)}
-      selectMode={selectMode}
-      hasActiveAsk={activeAskAuthorIds.has(item.connected_user_id)}
-      onPress={handleConnectionPress}
-      onLongPress={handleConnectionLongPress}
-    />
-  ), [selectedIds, selectMode, activeAskAuthorIds, handleConnectionPress, handleConnectionLongPress]);
+  const renderItem = useCallback(({ item }: { item: ConnectionWithTags }) => {
+    const preview = askPreviewByAuthor.get(item.connected_user_id) ?? null;
+    return (
+      <ConnectionItem
+        item={item}
+        isSelected={selectedIds.has(item.id)}
+        selectMode={selectMode}
+        hasActiveAsk={preview != null}
+        askPreview={preview}
+        onPress={handleConnectionPress}
+        onLongPress={handleConnectionLongPress}
+      />
+    );
+  }, [selectedIds, selectMode, askPreviewByAuthor, handleConnectionPress, handleConnectionLongPress]);
 
   // Phone-prompt banner state. Async check (AsyncStorage + Supabase)
   // so we render the cold-start view first, then upgrade once known.
@@ -1428,6 +1468,25 @@ const styles = StyleSheet.create({
     color: COLORS.gray400,
     lineHeight: 18,
     marginTop: 3,
+  },
+  // Ask-preview chip (caption-style, IG-story-inspired). Sits
+  // below the tags row when the friend has a live Ask. Inline-
+  // sized: alignSelf flex-start so the chip wraps tight to the
+  // text width instead of stretching across the whole row.
+  askPreviewChip: {
+    alignSelf: 'flex-start',
+    maxWidth: '100%',
+    marginTop: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 8,
+    backgroundColor: COLORS.piktag50,
+  },
+  askPreviewText: {
+    fontSize: 12,
+    color: COLORS.piktag600,
+    fontWeight: '500',
+    lineHeight: 16,
   },
   // On This Day card
   onThisDayCard: {
