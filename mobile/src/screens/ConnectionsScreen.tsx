@@ -87,11 +87,17 @@ type ConnectionItemProps = {
   item: ConnectionWithTags;
   isSelected: boolean;
   selectMode: boolean;
+  // True iff this friend has an active Ask in the viewer's
+  // fetch_ask_feed result. Drives the avatar gradient ring —
+  // same visual convention FriendDetailScreen uses, so the same
+  // brand-purple gradient consistently means "this person is
+  // currently asking for something" across every surface.
+  hasActiveAsk: boolean;
   onPress: (item: ConnectionWithTags) => void;
   onLongPress: (item: ConnectionWithTags) => void;
 };
 
-const ConnectionItem = React.memo(({ item, isSelected, selectMode, onPress, onLongPress }: ConnectionItemProps) => {
+const ConnectionItem = React.memo(({ item, isSelected, selectMode, hasActiveAsk, onPress, onLongPress }: ConnectionItemProps) => {
   const profile = item.connected_user;
   const displayName = item.nickname || profile?.full_name || profile?.username || 'Unknown';
   const username = profile?.username || '';
@@ -118,7 +124,7 @@ const ConnectionItem = React.memo(({ item, isSelected, selectMode, onPress, onLo
       )}
       <RingedAvatar
         size={59}
-        ringStyle="subtle"
+        ringStyle={hasActiveAsk ? 'gradient' : 'subtle'}
         name={displayName}
         avatarUrl={avatarUrl}
       />
@@ -591,16 +597,28 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
     }
   };
 
+  // O(1) membership test for "does this friend have an active Ask?".
+  // Built once per askFeedItems update; passed into each row so the
+  // avatar's gradient ring stays in sync with the same askFeedAsks
+  // signal FriendDetailScreen uses. Without this set, the list
+  // rendered every friend with a "subtle" ring even when they had
+  // a live Ask — making the Ask invisible from the connections page.
+  const activeAskAuthorIds = useMemo(
+    () => new Set((askFeedItems || []).map((a) => a.author_id)),
+    [askFeedItems],
+  );
+
   // --- Optimized: useCallback renderItem with memoized ConnectionItem ---
   const renderItem = useCallback(({ item }: { item: ConnectionWithTags }) => (
     <ConnectionItem
       item={item}
       isSelected={selectedIds.has(item.id)}
       selectMode={selectMode}
+      hasActiveAsk={activeAskAuthorIds.has(item.connected_user_id)}
       onPress={handleConnectionPress}
       onLongPress={handleConnectionLongPress}
     />
-  ), [selectedIds, selectMode, handleConnectionPress, handleConnectionLongPress]);
+  ), [selectedIds, selectMode, activeAskAuthorIds, handleConnectionPress, handleConnectionLongPress]);
 
   // Phone-prompt banner state. Async check (AsyncStorage + Supabase)
   // so we render the cold-start view first, then upgrade once known.
@@ -1272,6 +1290,12 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: 12,
     padding: 14,
+    // 16px horizontal breathing room so the bordered card doesn't
+    // run flush against the screen edge — the friend rows below
+    // are edge-to-edge by design (no outline) but this banner
+    // has a visible border that needs the inset to read as a
+    // card, not a full-bleed bar.
+    marginHorizontal: 16,
     marginBottom: 20,
   },
   phonePromptTitle: {
