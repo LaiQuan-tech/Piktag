@@ -58,7 +58,16 @@ function filterNotifications(
           // Magic moment #1: a tag you just added is shared by
           // friends in your network. Social discovery, not a
           // reminder — same tab as the rest.
-          n.type === 'tag_convergence'
+          n.type === 'tag_convergence' ||
+          // Magic moment #3: Bridge Detection — a friend has a
+          // friend who matches your Ask. Social discovery,
+          // action-oriented.
+          n.type === 'ask_bridge' ||
+          // P1: weekly Ask-of-the-day prompt for dormant users.
+          // It's a system prompt, not a "someone you know did a
+          // thing" — but it slots in the social tab because
+          // posting an Ask IS the next social action.
+          n.type === 'ask_prompt'
       );
     case 'reminders':
       return notifications.filter(

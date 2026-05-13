@@ -842,6 +842,22 @@
           "title": "",
           "body": "Reach out"
         }
+      },
+      "ask_bridge": {
+        "title": "",
+        "body": "Tap to ask for an intro",
+        "push": {
+          "title": "",
+          "body": "Tap to ask for an intro"
+        }
+      },
+      "ask_prompt": {
+        "title": "",
+        "body": "One sentence, your friends might help",
+        "push": {
+          "title": "",
+          "body": "One sentence, your friends might help"
+        }
       }
     }
   },

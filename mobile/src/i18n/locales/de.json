@@ -829,6 +829,22 @@
           "title": "",
           "body": "Sag hallo"
         }
+      },
+      "ask_bridge": {
+        "title": "",
+        "body": "Bitte um eine Vorstellung",
+        "push": {
+          "title": "",
+          "body": "Bitte um eine Vorstellung"
+        }
+      },
+      "ask_prompt": {
+        "title": "",
+        "body": "Ein Satz — vielleicht hilft dir jemand",
+        "push": {
+          "title": "",
+          "body": "Ein Satz — vielleicht hilft dir jemand"
+        }
       }
     }
   },

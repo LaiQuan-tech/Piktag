@@ -761,6 +761,22 @@
           "title": "",
           "body": "Bir merhaba de"
         }
+      },
+      "ask_bridge": {
+        "title": "",
+        "body": "Tanıştırılmasını iste",
+        "push": {
+          "title": "",
+          "body": "Tanıştırılmasını iste"
+        }
+      },
+      "ask_prompt": {
+        "title": "",
+        "body": "Bir cümle, biri yardım edebilir",
+        "push": {
+          "title": "",
+          "body": "Bir cümle, biri yardım edebilir"
+        }
       }
     }
   },

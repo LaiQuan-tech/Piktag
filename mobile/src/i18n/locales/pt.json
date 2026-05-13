@@ -761,6 +761,22 @@
           "title": "",
           "body": "Mande mensagem"
         }
+      },
+      "ask_bridge": {
+        "title": "",
+        "body": "Peça uma apresentação",
+        "push": {
+          "title": "",
+          "body": "Peça uma apresentação"
+        }
+      },
+      "ask_prompt": {
+        "title": "",
+        "body": "Uma frase e um amigo pode ajudar",
+        "push": {
+          "title": "",
+          "body": "Uma frase e um amigo pode ajudar"
+        }
       }
     }
   },

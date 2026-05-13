@@ -75,6 +75,29 @@ export async function routeFromNotification(
     return;
   }
 
+  // ask_bridge — "Bob 認識 #律師 的朋友". The press should land
+  // somewhere the user can actually act: their own active Ask's
+  // detail page, where they can read the full bridge list and tap
+  // a bridge friend to message them. For v1 we don't have a
+  // dedicated Ask detail screen, so route to Connections (home)
+  // — the bridge list is in `data.bridge_names`, and the
+  // long-press handler already lets users dig in.
+  if (type === 'ask_bridge') {
+    navigation.navigate('HomeTab' as any);
+    return;
+  }
+
+  // ask_prompt — "今天想要什麼？". Tapping it should open the
+  // Ask create modal directly. The AskCreateModal lives inside
+  // AskStoryRow on the connections screen and on the profile
+  // screen; rather than coupling routing to the modal lifecycle,
+  // route to HomeTab and let the user tap the "+ Ask" circle on
+  // the rail. (A future polish: deep-link straight to the modal.)
+  if (type === 'ask_prompt') {
+    navigation.navigate('HomeTab' as any);
+    return;
+  }
+
   // 2. Biolink-click → aggregate analytics, not the clicker's profile
   // (per-clicker drilldown felt voyeuristic; SocialStats has the right
   // aggregate view: which links got clicks, when, by how many people).

@@ -761,6 +761,22 @@
           "title": "",
           "body": "Dis bonjour"
         }
+      },
+      "ask_bridge": {
+        "title": "",
+        "body": "Demande une présentation",
+        "push": {
+          "title": "",
+          "body": "Demande une présentation"
+        }
+      },
+      "ask_prompt": {
+        "title": "",
+        "body": "Une phrase, un ami pourrait t'aider",
+        "push": {
+          "title": "",
+          "body": "Une phrase, un ami pourrait t'aider"
+        }
       }
     }
   },

@@ -761,6 +761,22 @@
           "title": "",
           "body": "대화 시작"
         }
+      },
+      "ask_bridge": {
+        "title": "",
+        "body": "소개 요청해보기",
+        "push": {
+          "title": "",
+          "body": "소개 요청해보기"
+        }
+      },
+      "ask_prompt": {
+        "title": "",
+        "body": "한 문장이면 친구가 도와줄지도",
+        "push": {
+          "title": "",
+          "body": "한 문장이면 친구가 도와줄지도"
+        }
       }
     }
   },

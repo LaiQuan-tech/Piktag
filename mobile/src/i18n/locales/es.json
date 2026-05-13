@@ -761,6 +761,22 @@
           "title": "",
           "body": "Saluda"
         }
+      },
+      "ask_bridge": {
+        "title": "",
+        "body": "Pídeles que te presenten",
+        "push": {
+          "title": "",
+          "body": "Pídeles que te presenten"
+        }
+      },
+      "ask_prompt": {
+        "title": "",
+        "body": "Una frase y un amigo podría ayudarte",
+        "push": {
+          "title": "",
+          "body": "Una frase y un amigo podría ayudarte"
+        }
       }
     }
   },

@@ -761,6 +761,22 @@
           "title": "",
           "body": "Sapa mereka"
         }
+      },
+      "ask_bridge": {
+        "title": "",
+        "body": "Minta diperkenalkan",
+        "push": {
+          "title": "",
+          "body": "Minta diperkenalkan"
+        }
+      },
+      "ask_prompt": {
+        "title": "",
+        "body": "Satu kalimat, mungkin ada yang bisa bantu",
+        "push": {
+          "title": "",
+          "body": "Satu kalimat, mungkin ada yang bisa bantu"
+        }
       }
     }
   },
