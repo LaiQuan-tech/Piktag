@@ -73,6 +73,28 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
   const paramDate = route.params?.date;
   const paramLoc = route.params?.loc;
 
+  // Vibe context tags — the tags + date + location encoded on the
+  // Vibe's QR URL that brought the viewer here. Surfaced in the
+  // tag picker as a NEW opt-in section. Replaces the old auto-
+  // attach (which was wrong: silently labeling the host as
+  // matching the Vibe's topic was a bug — see the 專利師 example
+  // in commit 4148d72). With this list now visible + tappable,
+  // the scanner can deliberately pick ones that actually describe
+  // the host, instead of getting them all forced on.
+  const vibeContextTags = useMemo(() => {
+    const out: string[] = [];
+    const push = (raw: string | undefined) => {
+      const cleaned = raw?.trim().replace(/^#/, '');
+      if (cleaned && !out.includes(cleaned)) out.push(cleaned);
+    };
+    if (paramTags) {
+      paramTags.split(',').forEach((t: string) => push(t));
+    }
+    push(paramDate);
+    push(paramLoc);
+    return out;
+  }, [paramTags, paramDate, paramLoc]);
+
   const [resolvedUserId, setResolvedUserId] = useState<string | null>(paramUserId || null);
   const [loading, setLoading] = useState(true);
   // `loadError` separates "fetch threw" from "user genuinely doesn't
@@ -1475,6 +1497,46 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
             {/* Divider */}
             <View style={styles.pickModalDivider} />
 
+            {/* This Vibe's own tags — only shown when the viewer
+                arrived via a Vibe QR (paramSid + paramTags/Date/Loc
+                present). Opt-in: each chip is OFF until the user
+                taps it, then becomes a hidden tag on the host. The
+                section deliberately exists separately from the
+                "viewer's past event vocabulary" block below so that
+                "tags that just came from this specific scan" reads
+                as a distinct concept — they're suggestions, not
+                history, not auto-applied. */}
+            {paramSid && vibeContextTags.length > 0 && connectionId && authUser && (
+              <>
+                <Text style={styles.pickModalSectionTitle}>
+                  {t('userDetail.vibeContextTagsTitle', { defaultValue: '這次 Vibe 帶的標籤' })}
+                </Text>
+                <Text style={styles.pickModalSectionHint}>
+                  {t('userDetail.vibeContextTagsHint', {
+                    defaultValue: '想貼到他個人頁的點一下（只有你看得到）',
+                  })}
+                </Text>
+                <View style={styles.eventTagsChipRow}>
+                  {vibeContextTags.map((tagName) => {
+                    const selected = hiddenTags.some(h => h.name === tagName);
+                    return (
+                      <TouchableOpacity
+                        key={`vibectx-${tagName}`}
+                        onPress={() => toggleHiddenTagByName(tagName)}
+                        style={[styles.pickModalTag, selected && styles.pickModalTagSelected]}
+                        activeOpacity={0.7}
+                      >
+                        <Text style={[styles.pickModalTagText, selected && styles.pickModalTagTextSelected]}>
+                          #{tagName}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+                <View style={{ height: 14 }} />
+              </>
+            )}
+
             {/* Event tags — viewer's QR-scan-derived event vocabulary,
                 surfaced inside the picker so users can apply the same
                 event context they collected from past scans without
@@ -2217,6 +2279,15 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '700',
     color: COLORS.gray700,
+    marginBottom: 6,
+  },
+  // Small one-line explainer that sits between a section title and
+  // its chip strip. Used for the Vibe-context-tags section to make
+  // clear that tapping IS the apply action — they're not pre-
+  // selected and won't get applied silently.
+  pickModalSectionHint: {
+    fontSize: 12,
+    color: COLORS.gray500,
     marginBottom: 10,
   },
   statTextClickable: {
