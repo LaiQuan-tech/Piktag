@@ -813,6 +813,22 @@
           "title": "{{username}}",
           "body": "发了 Ask · {{ask_body}}"
         }
+      },
+      "on_this_day": {
+        "title": "",
+        "body": "回到那一天，看当时谁加入了这个 Vibe",
+        "push": {
+          "title": "",
+          "body": "回到那一天，看当时谁加入了这个 Vibe"
+        }
+      },
+      "tag_convergence": {
+        "title": "",
+        "body": "聊起来吧",
+        "push": {
+          "title": "",
+          "body": "聊起来吧"
+        }
       }
     }
   },

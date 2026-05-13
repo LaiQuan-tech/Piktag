@@ -745,6 +745,22 @@
           "title": "{{username}}",
           "body": "เพิ่มแท็กใหม่ #{{tag_name}}"
         }
+      },
+      "on_this_day": {
+        "title": "",
+        "body": "แตะเพื่อย้อนกลับไปยัง Vibe นั้น",
+        "push": {
+          "title": "",
+          "body": "แตะเพื่อย้อนกลับไปยัง Vibe นั้น"
+        }
+      },
+      "tag_convergence": {
+        "title": "",
+        "body": "ทักทายเลย",
+        "push": {
+          "title": "",
+          "body": "ทักทายเลย"
+        }
       }
     }
   },

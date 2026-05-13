@@ -745,6 +745,22 @@
           "title": "{{username}}",
           "body": "أضاف وسمًا جديدًا #{{tag_name}}"
         }
+      },
+      "on_this_day": {
+        "title": "",
+        "body": "انقر للعودة إلى ذلك اليوم",
+        "push": {
+          "title": "",
+          "body": "انقر للعودة إلى ذلك اليوم"
+        }
+      },
+      "tag_convergence": {
+        "title": "",
+        "body": "ابدأ المحادثة",
+        "push": {
+          "title": "",
+          "body": "ابدأ المحادثة"
+        }
       }
     }
   },

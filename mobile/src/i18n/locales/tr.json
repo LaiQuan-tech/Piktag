@@ -745,6 +745,22 @@
           "title": "{{username}}",
           "body": "#{{tag_name}} etiketini ekledi"
         }
+      },
+      "on_this_day": {
+        "title": "",
+        "body": "O ana geri dön",
+        "push": {
+          "title": "",
+          "body": "O ana geri dön"
+        }
+      },
+      "tag_convergence": {
+        "title": "",
+        "body": "Bir merhaba de",
+        "push": {
+          "title": "",
+          "body": "Bir merhaba de"
+        }
       }
     }
   },

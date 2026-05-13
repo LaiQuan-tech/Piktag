@@ -54,11 +54,24 @@ function filterNotifications(
           // a new tag to their profile. Belongs in the social
           // tab alongside follow/friend/tag_added (all of which
           // are "someone you know did a thing").
-          n.type === 'vibe_shift'
+          n.type === 'vibe_shift' ||
+          // Magic moment #1: a tag you just added is shared by
+          // friends in your network. Social discovery, not a
+          // reminder — same tab as the rest.
+          n.type === 'tag_convergence'
       );
     case 'reminders':
       return notifications.filter(
-        (n) => n.type === 'biolink_click' || n.type === 'reminder' || n.type === 'birthday' || n.type === 'anniversary'
+        (n) =>
+          n.type === 'biolink_click' ||
+          n.type === 'reminder' ||
+          n.type === 'birthday' ||
+          n.type === 'anniversary' ||
+          // P0 daily-return mechanic: "X 年前的今天 / X 個月前的今天"
+          // Vibe anniversary. Slots into the reminders tab next to
+          // birthday / anniversary — same kind of "time-driven
+          // memory" tone.
+          n.type === 'on_this_day'
       );
     default:
       return notifications;

@@ -57,6 +57,23 @@ export async function routeFromNotification(
     navigation.navigate('TagDetail', { tagId, tagName });
     return;
   }
+  // tag_convergence — same tag-centric routing as tag_trending.
+  // Notification body says "you tagged #X, your friends N also do" —
+  // landing on the tag detail page is where they can see which
+  // friends share this tag and DM them individually.
+  if (type === 'tag_convergence' && (tagId || tagName)) {
+    navigation.navigate('TagDetail', { tagId, tagName });
+    return;
+  }
+
+  // On This Day → open the Vibe detail page. The whole "tap to
+  // revisit who joined that day" sales pitch only works if the
+  // press actually lands on the Vibe's member list. data carries
+  // scan_session_id (added by the daily-on-this-day edge function).
+  if (type === 'on_this_day' && typeof data.scan_session_id === 'string') {
+    navigation.navigate('QrGroupDetail', { groupId: data.scan_session_id });
+    return;
+  }
 
   // 2. Biolink-click → aggregate analytics, not the clicker's profile
   // (per-clicker drilldown felt voyeuristic; SocialStats has the right

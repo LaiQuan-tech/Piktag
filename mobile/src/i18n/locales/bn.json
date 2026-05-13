@@ -745,6 +745,22 @@
           "title": "{{username}}",
           "body": "নতুন ট্যাগ যোগ করেছে #{{tag_name}}"
         }
+      },
+      "on_this_day": {
+        "title": "",
+        "body": "সেই দিনের Vibe দেখুন",
+        "push": {
+          "title": "",
+          "body": "সেই দিনের Vibe দেখুন"
+        }
+      },
+      "tag_convergence": {
+        "title": "",
+        "body": "কথা শুরু করো",
+        "push": {
+          "title": "",
+          "body": "কথা শুরু করো"
+        }
       }
     }
   },

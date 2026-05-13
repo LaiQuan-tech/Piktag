@@ -826,6 +826,22 @@
       "invite_accepted": {
         "title": "Your invite was accepted",
         "body": "joined PikTag"
+      },
+      "on_this_day": {
+        "title": "",
+        "body": "Tap to revisit who joined this Vibe",
+        "push": {
+          "title": "",
+          "body": "Tap to revisit who joined this Vibe"
+        }
+      },
+      "tag_convergence": {
+        "title": "",
+        "body": "Reach out",
+        "push": {
+          "title": "",
+          "body": "Reach out"
+        }
       }
     }
   },

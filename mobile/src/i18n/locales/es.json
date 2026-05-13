@@ -745,6 +745,22 @@
           "title": "{{username}}",
           "body": "añadió la etiqueta #{{tag_name}}"
         }
+      },
+      "on_this_day": {
+        "title": "",
+        "body": "Toca para ver quién se unió a este Vibe",
+        "push": {
+          "title": "",
+          "body": "Toca para ver quién se unió a este Vibe"
+        }
+      },
+      "tag_convergence": {
+        "title": "",
+        "body": "Saluda",
+        "push": {
+          "title": "",
+          "body": "Saluda"
+        }
       }
     }
   },

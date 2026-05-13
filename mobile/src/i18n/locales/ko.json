@@ -745,6 +745,22 @@
           "title": "{{username}}",
           "body": "님이 새 태그 #{{tag_name}} 추가"
         }
+      },
+      "on_this_day": {
+        "title": "",
+        "body": "그날의 Vibe로 돌아가기",
+        "push": {
+          "title": "",
+          "body": "그날의 Vibe로 돌아가기"
+        }
+      },
+      "tag_convergence": {
+        "title": "",
+        "body": "대화 시작",
+        "push": {
+          "title": "",
+          "body": "대화 시작"
+        }
       }
     }
   },

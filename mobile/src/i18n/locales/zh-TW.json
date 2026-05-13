@@ -815,6 +815,22 @@
       "invite_accepted": {
         "title": "你的邀請被接受了",
         "body": "加入了 PikTag"
+      },
+      "on_this_day": {
+        "title": "",
+        "body": "回到那一天，看當時誰加入了這個 Vibe",
+        "push": {
+          "title": "",
+          "body": "回到那一天，看當時誰加入了這個 Vibe"
+        }
+      },
+      "tag_convergence": {
+        "title": "",
+        "body": "聊起來吧",
+        "push": {
+          "title": "",
+          "body": "聊起來吧"
+        }
       }
     }
   },

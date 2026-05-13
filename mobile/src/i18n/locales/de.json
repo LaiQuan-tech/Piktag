@@ -813,6 +813,22 @@
           "title": "{{username}}",
           "body": "hat ein Ask gepostet · {{ask_body}}"
         }
+      },
+      "on_this_day": {
+        "title": "",
+        "body": "Tippe, um diesen Vibe zu besuchen",
+        "push": {
+          "title": "",
+          "body": "Tippe, um diesen Vibe zu besuchen"
+        }
+      },
+      "tag_convergence": {
+        "title": "",
+        "body": "Sag hallo",
+        "push": {
+          "title": "",
+          "body": "Sag hallo"
+        }
       }
     }
   },

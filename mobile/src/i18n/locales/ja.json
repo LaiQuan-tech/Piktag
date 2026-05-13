@@ -745,6 +745,22 @@
           "title": "{{username}}",
           "body": "が新しいタグを追加 #{{tag_name}}"
         }
+      },
+      "on_this_day": {
+        "title": "",
+        "body": "タップしてその日の Vibe に戻る",
+        "push": {
+          "title": "",
+          "body": "タップしてその日の Vibe に戻る"
+        }
+      },
+      "tag_convergence": {
+        "title": "",
+        "body": "話しかけてみよう",
+        "push": {
+          "title": "",
+          "body": "話しかけてみよう"
+        }
       }
     }
   },

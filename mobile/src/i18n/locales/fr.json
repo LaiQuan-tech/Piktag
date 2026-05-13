@@ -745,6 +745,22 @@
           "title": "{{username}}",
           "body": "a ajouté le tag #{{tag_name}}"
         }
+      },
+      "on_this_day": {
+        "title": "",
+        "body": "Reviens à ce moment-là",
+        "push": {
+          "title": "",
+          "body": "Reviens à ce moment-là"
+        }
+      },
+      "tag_convergence": {
+        "title": "",
+        "body": "Dis bonjour",
+        "push": {
+          "title": "",
+          "body": "Dis bonjour"
+        }
       }
     }
   },

@@ -745,6 +745,22 @@
           "title": "{{username}}",
           "body": "adicionou a tag #{{tag_name}}"
         }
+      },
+      "on_this_day": {
+        "title": "",
+        "body": "Toque para revisitar este Vibe",
+        "push": {
+          "title": "",
+          "body": "Toque para revisitar este Vibe"
+        }
+      },
+      "tag_convergence": {
+        "title": "",
+        "body": "Mande mensagem",
+        "push": {
+          "title": "",
+          "body": "Mande mensagem"
+        }
       }
     }
   },
