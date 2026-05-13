@@ -115,6 +115,26 @@ function getNotificationDisplay(
 
   const type = item.type;
 
+  // Magic-moment notifications (on_this_day, reconnect_suggest, tag_combo,
+  // tag_convergence, ask_bridge, ask_prompt) are self-directed system
+  // insights without an actor user — `data.username` is intentionally
+  // absent. The SQL enqueue_*_notifications functions store the rich
+  // pre-formatted hook in `title` ("一年前的今天", "Eva 也標了 #咖啡
+  // — 你們很久沒聊了"), which is the actual content worth showing.
+  // Route these through the title field instead of the username+body
+  // template path so the row doesn't render as a blank rectangle.
+  const MAGIC_MOMENT_TYPES = new Set([
+    'on_this_day',
+    'tag_convergence',
+    'ask_bridge',
+    'ask_prompt',
+    'reconnect_suggest',
+    'tag_combo',
+  ]);
+  if (MAGIC_MOMENT_TYPES.has(type) && item.title) {
+    return { username: '', body: item.title };
+  }
+
   // `ask_body` may be longer than 60 chars in the data payload. The DB
   // truncates for the stored body but data.ask_body is the full string,
   // so trim it client-side to keep the row to one line.
