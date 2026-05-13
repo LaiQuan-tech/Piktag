@@ -330,173 +330,119 @@ export default function AskStoryRow({ asks, myAsk, myAvatarUrl, myName, onRefres
   return (
     <>
       <View style={styles.container}>
+        {/* ── IG-Stories style circle rail ────────────────────────
+            The previous "Apple-Music two-row card carousel" took
+            ~200pt of vertical space and felt like a sub-screen on
+            top of the friends list. Replaced with a single-row
+            horizontal rail of circular avatars (each ~68dp ring
+            + name + 1-line body preview) — same pattern Gen-Z
+            recognizes from IG / Threads / TikTok story rails.
+            All the data wiring (visibility tracking, viewed
+            state, long-press report-or-hide, tap-to-open-author)
+            is unchanged; only the layout shifts. */}
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.scroll}
-          snapToInterval={SNAP_INTERVAL}
-          decelerationRate="fast"
-          snapToAlignment="start"
+          contentContainerStyle={styles.circleRail}
         >
-          {/* My Ask card */}
-          {/* My-Ask card.  Always-leftmost.  Two states:
-              - Has active ask → same shape as friend cards (body + tags
-                + time-left), with rotating gradient ring; tap opens the
-                view/delete modal.
-              - No active ask → dashed border card with "+ 新增 Ask" CTA;
-                tap opens the create modal. */}
+          {/* My Ask — always leading. Active: rotating gradient
+              ring. Inactive: dashed-purple ring + plus badge. */}
           <TouchableOpacity
-            style={[styles.askCard, !myAsk && styles.askCardEmpty]}
+            style={styles.circleSlot}
             activeOpacity={0.85}
             onPress={() => setCreateVisible(true)}
           >
-            <View style={styles.askCardHeader}>
-              {myAsk ? (
-                <RotatingGradientRing
-                  colors={['#c44dff', '#8c52ff', '#5e2ce6', '#c44dff']}
-                  size={44}
-                >
-                  {myAvatarUrl ? (
-                    <Image source={{ uri: myAvatarUrl }} style={styles.askCardAvatar} cachePolicy="memory-disk" />
-                  ) : (
-                    <InitialsAvatar name={myName} size={36} />
-                  )}
-                </RotatingGradientRing>
-              ) : (
-                <View style={styles.askCardEmptyRing}>
-                  {myAvatarUrl ? (
-                    <Image source={{ uri: myAvatarUrl }} style={styles.askCardAvatar} cachePolicy="memory-disk" />
-                  ) : (
-                    <InitialsAvatar name={myName} size={36} />
-                  )}
-                  <View style={styles.askCardPlusBadge}>
-                    <Plus size={10} color="#fff" strokeWidth={3} />
-                  </View>
-                </View>
-              )}
-              <View style={styles.askCardNameStack}>
-                <Text style={styles.askCardName} numberOfLines={1}>
-                  {myAsk ? t('ask.yourAsk') : t('ask.newAsk')}
-                </Text>
-              </View>
-            </View>
-
             {myAsk ? (
-              <Text style={styles.askCardBody} numberOfLines={3}>
+              <RotatingGradientRing
+                colors={['#c44dff', '#8c52ff', '#5e2ce6', '#c44dff']}
+                size={68}
+              >
+                {myAvatarUrl ? (
+                  <Image source={{ uri: myAvatarUrl }} style={styles.circleAvatarImg} cachePolicy="memory-disk" />
+                ) : (
+                  <InitialsAvatar name={myName} size={58} />
+                )}
+              </RotatingGradientRing>
+            ) : (
+              <View style={styles.circleEmptyRing}>
+                {myAvatarUrl ? (
+                  <Image source={{ uri: myAvatarUrl }} style={styles.circleAvatarImg} cachePolicy="memory-disk" />
+                ) : (
+                  <InitialsAvatar name={myName} size={58} />
+                )}
+                <View style={styles.circlePlusBadge}>
+                  <Plus size={12} color="#fff" strokeWidth={3} />
+                </View>
+              </View>
+            )}
+            <Text style={styles.circleName} numberOfLines={1}>
+              {myAsk
+                ? t('ask.yourAsk', { defaultValue: '你' })
+                : t('ask.newAsk', { defaultValue: '+ Ask' })}
+            </Text>
+            {myAsk ? (
+              <Text style={styles.circleBody} numberOfLines={1}>
                 {myAsk.title || myAsk.body}
               </Text>
             ) : (
-              <Text style={[styles.askCardBody, styles.askCardBodyEmpty]} numberOfLines={3}>
-                {t('ask.bubblePromptMine', { defaultValue: '+ 新增 Ask' })}
+              <Text style={[styles.circleBody, styles.circleBodyMuted]} numberOfLines={1}>
+                {t('ask.shortPrompt', { defaultValue: '想要什麼？' })}
               </Text>
             )}
-
-            {myAsk && myAsk.tag_names.length > 0 ? (
-              <View style={styles.askCardTagsRow}>
-                {myAsk.tag_names.slice(0, 4).map((tn) => (
-                  <View key={tn} style={styles.askCardTagChip}>
-                    <Text style={styles.askCardTagText} numberOfLines={1}>#{tn}</Text>
-                  </View>
-                ))}
-              </View>
-            ) : null}
-
-            {/* 24h countdown footer removed from the card itself —
-                Asks are short-lived enough that timing is implicit
-                ("if it's here, it's still active"), and the visual
-                weight of "剩 13h" + chevron crowded the card body.
-                The countdown remains visible in the AskCreateModal's
-                view-mode meta line, where the user is actually
-                deciding whether to delete or wait it out. */}
           </TouchableOpacity>
 
-          {/* Friend Asks — paired into 2-row stacked slides, Apple
-              Music "Recently played"-style. Each slide takes 78% of
-              the viewport width so the next slide always peeks ~20%
-              on the right. The peek IS the scroll affordance — no
-              chevron / dots needed. Tap a row to land on the author's
-              detail page; long-press to surface report / hide. */}
-          {askPairs.map((pair, pairIdx) => (
-            <View key={`pair-${pairIdx}`} style={styles.askPairSlide}>
-              {pair.map((ask) => {
-                const name = ask.author_full_name || ask.author_username || '?';
-                const viewed = viewedAskIds.has(ask.ask_id);
-                const avatar = ask.author_avatar_url ? (
-                  <Image source={{ uri: ask.author_avatar_url }} style={styles.askRowAvatar} cachePolicy="memory-disk" />
+          {/* Friend Asks. Each: ring color = degree (red/purple for
+              1st, blue for 2nd, gray when viewed). Same tap +
+              long-press behavior as before. */}
+          {visibleAsks.map((ask) => {
+            const name = ask.author_full_name || ask.author_username || '?';
+            const viewed = viewedAskIds.has(ask.ask_id);
+            const avatar = ask.author_avatar_url ? (
+              <Image source={{ uri: ask.author_avatar_url }} style={styles.circleAvatarImg} cachePolicy="memory-disk" />
+            ) : (
+              <InitialsAvatar name={name} size={58} />
+            );
+            return (
+              <TouchableOpacity
+                key={ask.ask_id}
+                style={styles.circleSlot}
+                activeOpacity={0.85}
+                onPress={() => {
+                  markAskViewed(ask.ask_id);
+                  onPressUser(ask.author_id);
+                }}
+                onLongPress={() => handleAskLongPress(ask)}
+                delayLongPress={350}
+              >
+                {viewed ? (
+                  <View style={styles.circleViewedRing}>{avatar}</View>
                 ) : (
-                  <InitialsAvatar name={name} size={36} />
-                );
-                return (
-                  <TouchableOpacity
-                    key={ask.ask_id}
-                    style={[styles.askRow, viewed && styles.askRowViewed]}
-                    activeOpacity={0.85}
-                    onPress={() => {
-                      markAskViewed(ask.ask_id);
-                      onPressUser(ask.author_id);
-                    }}
-                    onLongPress={() => handleAskLongPress(ask)}
-                    delayLongPress={350}
+                  <RotatingGradientRing
+                    size={68}
+                    colors={
+                      ask.degree === 1
+                        ? ['#ff5757', '#c44dff', '#8c52ff', '#ff5757']
+                        : ['#60a5fa', '#818cf8', '#60a5fa']
+                    }
                   >
-                    {/* LEFT: ringed circular avatar (same gradient
-                        rules as before — degree-1 = piktag, degree-2 =
-                        blue, viewed = subtle ring). 44dp footprint
-                        keeps the ring visible without dominating the
-                        row. */}
-                    {viewed ? (
-                      <View style={styles.askRowViewedRing}>{avatar}</View>
-                    ) : (
-                      <RotatingGradientRing
-                        size={44}
-                        colors={
-                          ask.degree === 1
-                            ? ['#ff5757', '#c44dff', '#8c52ff', '#ff5757']
-                            : ['#60a5fa', '#818cf8', '#60a5fa']
-                        }
-                      >
-                        {avatar}
-                      </RotatingGradientRing>
-                    )}
-
-                    {/* RIGHT: name (single line bold) + body (2 lines)
-                        + tag chips (max 2 + overflow indicator). flex:1
-                        so it claims all remaining width within the
-                        slide; min-width:0 so long usernames truncate
-                        instead of pushing the avatar. */}
-                    <View style={styles.askRowText}>
-                      <Text style={[styles.askRowName, viewed && styles.askCardNameViewed]} numberOfLines={1}>
-                        {name}
-                      </Text>
-                      <Text style={[styles.askRowBody, viewed && styles.askCardBodyViewed]} numberOfLines={2}>
-                        {ask.title || ask.body}
-                      </Text>
-                      {ask.ask_tag_names.length > 0 ? (
-                        <View style={styles.askRowTagsLine}>
-                          {ask.ask_tag_names.slice(0, 2).map((tn) => (
-                            <View key={tn} style={[styles.askCardTagChip, viewed && styles.askCardTagChipViewed]}>
-                              <Text style={[styles.askCardTagText, viewed && styles.askCardTagTextViewed]} numberOfLines={1}>
-                                #{tn}
-                              </Text>
-                            </View>
-                          ))}
-                          {ask.ask_tag_names.length > 2 ? (
-                            <Text style={styles.askRowTagOverflow}>
-                              +{ask.ask_tag_names.length - 2}
-                            </Text>
-                          ) : null}
-                        </View>
-                      ) : null}
-                    </View>
-                  </TouchableOpacity>
-                );
-              })}
-              {/* Reserve the second row's vertical space when the pair
-                  is odd-tail (last pair has only 1 ask). Keeps slides
-                  visually aligned across the carousel — no jiggle on
-                  snap. */}
-              {pair.length === 1 ? <View style={styles.askRowPlaceholder} /> : null}
-            </View>
-          ))}
+                    {avatar}
+                  </RotatingGradientRing>
+                )}
+                <Text
+                  style={[styles.circleName, viewed && styles.circleNameViewed]}
+                  numberOfLines={1}
+                >
+                  {name}
+                </Text>
+                <Text
+                  style={[styles.circleBody, viewed && styles.circleBodyViewed]}
+                  numberOfLines={1}
+                >
+                  {ask.title || ask.body}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
         </ScrollView>
       </View>
 
@@ -1024,6 +970,93 @@ const styles = StyleSheet.create({
     borderBottomColor: COLORS.gray200,
     paddingVertical: 12,
   },
+
+  // ── IG-Stories circle rail (current render) ────────────────
+  // Each slot is a fixed-width column: gradient-ringed avatar at
+  // the top, name below it, 1-line body preview at the bottom.
+  // Horizontal scroll, no snap (free-flow like IG stories).
+  circleRail: {
+    paddingHorizontal: 14,
+    gap: 14,
+  },
+  circleSlot: {
+    width: 76,
+    alignItems: 'center',
+  },
+  circleAvatarImg: {
+    width: 58,
+    height: 58,
+    borderRadius: 29,
+  },
+  // Dashed-purple ring used for the empty "my ask" state — telegraphs
+  // "tap to create" without competing with the rotating-gradient look
+  // used by active asks.
+  circleEmptyRing: {
+    width: 68,
+    height: 68,
+    borderRadius: 34,
+    borderWidth: 2,
+    borderStyle: 'dashed',
+    borderColor: COLORS.piktag500,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  // Solid gray ring for viewed asks — same shape as the rotating
+  // gradient slot so the row alignment doesn't jiggle when an ask
+  // transitions from unviewed → viewed.
+  circleViewedRing: {
+    width: 68,
+    height: 68,
+    borderRadius: 34,
+    borderWidth: 1.5,
+    borderColor: COLORS.gray200,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  circlePlusBadge: {
+    position: 'absolute',
+    bottom: -2,
+    right: -2,
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: COLORS.piktag500,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: '#fff',
+  },
+  circleName: {
+    marginTop: 6,
+    fontSize: 12,
+    fontWeight: '700',
+    color: COLORS.gray900,
+    maxWidth: 72,
+    textAlign: 'center',
+  },
+  circleNameViewed: {
+    color: COLORS.gray500,
+    fontWeight: '600',
+  },
+  // Body preview: smaller + lighter than name. piktag600 so it
+  // visually links to the gradient ring above.
+  circleBody: {
+    marginTop: 2,
+    fontSize: 11,
+    fontWeight: '500',
+    color: COLORS.piktag600,
+    maxWidth: 72,
+    textAlign: 'center',
+  },
+  circleBodyViewed: {
+    color: COLORS.gray400,
+    fontWeight: '400',
+  },
+  circleBodyMuted: {
+    color: COLORS.gray400,
+    fontStyle: 'italic',
+  },
+
   scroll: {
     // Inter-slide gap matches ROW_GAP, used by SNAP_INTERVAL above —
     // keep them in sync so snap rhythm matches the visible spacing.

@@ -119,6 +119,20 @@ const ConnectionItem = React.memo(({ item, isSelected, selectMode, hasActiveAsk,
       accessibilityLabel={displayName}
       accessibilityRole="button"
     >
+      {/* Buzz tint — soft brand-purple wash that fades to clear on
+          the right when this friend has a live Ask. Reads as
+          "this row is alive" without competing with the chip's
+          gradient pill or the avatar's rotating ring. pointerEvents
+          none so taps still land on the parent TouchableOpacity. */}
+      {hasActiveAsk && !isSelected ? (
+        <LinearGradient
+          colors={['rgba(140,82,255,0.07)', 'rgba(140,82,255,0)']}
+          start={{ x: 0, y: 0.5 }}
+          end={{ x: 1, y: 0.5 }}
+          style={StyleSheet.absoluteFill}
+          pointerEvents="none"
+        />
+      ) : null}
       {selectMode && (
         <View style={styles.checkboxContainer}>
           {isSelected ? (
@@ -158,19 +172,25 @@ const ConnectionItem = React.memo(({ item, isSelected, selectMode, hasActiveAsk,
             {item.tags.join('  ')}
           </Text>
         )}
-        {/* Ask-preview chip — only renders when the friend has a
-            current Ask. Subtle piktag50 background + piktag600
-            text matches the gradient ring on the avatar above, so
-            the eye registers them as the SAME signal: "this
-            person is asking for something right now". Caption
-            style mirrors IG story captions — glanceable hint,
-            tap the row to read the full ask on FriendDetail. */}
+        {/* Ask-preview chip — gradient-filled pill that visually
+            echoes the rotating gradient ring on the avatar above.
+            Z-gen "this person is buzzing right now" cue, not a
+            subtle hint. Same gradient colors as the renderQrMode /
+            Vibe hero / QR share screen — single brand-purple
+            language across every "this is alive" surface. Caption
+            style mirrors IG story captions; tap the row to read
+            the full ask on FriendDetail. */}
         {askPreview ? (
-          <View style={styles.askPreviewChip}>
+          <LinearGradient
+            colors={['#ff5757', '#c44dff', '#8c52ff']}
+            start={{ x: 0, y: 0.5 }}
+            end={{ x: 1, y: 0.5 }}
+            style={styles.askPreviewChip}
+          >
             <Text style={styles.askPreviewText} numberOfLines={1}>
               {askPreview}
             </Text>
-          </View>
+          </LinearGradient>
         ) : null}
       </View>
     </TouchableOpacity>
@@ -1469,24 +1489,32 @@ const styles = StyleSheet.create({
     lineHeight: 18,
     marginTop: 3,
   },
-  // Ask-preview chip (caption-style, IG-story-inspired). Sits
+  // Ask-preview chip — gradient-filled, white-text pill. Sits
   // below the tags row when the friend has a live Ask. Inline-
-  // sized: alignSelf flex-start so the chip wraps tight to the
-  // text width instead of stretching across the whole row.
+  // sized via alignSelf flex-start so the chip wraps tight to
+  // the text width instead of stretching. The gradient + white
+  // text deliberately uses the same red→magenta→deep-purple
+  // sweep as the QR share screen + Vibe hero gradient + the
+  // avatar's rotating ring — single brand-purple vocabulary for
+  // "this surface is alive right now". Stronger visual weight
+  // than the previous soft piktag50 pill because: the user
+  // explicitly asked for Z-gen "buzz" energy, and a friend
+  // ASK is genuinely a high-priority event worth interrupting
+  // the row's neutral rhythm for.
   askPreviewChip: {
     alignSelf: 'flex-start',
     maxWidth: '100%',
-    marginTop: 4,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 8,
-    backgroundColor: COLORS.piktag50,
+    marginTop: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 10,
   },
   askPreviewText: {
     fontSize: 12,
-    color: COLORS.piktag600,
-    fontWeight: '500',
+    color: '#FFFFFF',
+    fontWeight: '700',
     lineHeight: 16,
+    letterSpacing: 0.1,
   },
   // On This Day card
   onThisDayCard: {
