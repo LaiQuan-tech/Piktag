@@ -142,12 +142,6 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
   // Add/remove logic lives in <HiddenTagEditor>.
   const [hiddenTags, setHiddenTags] = useState<{ id: string; tagId: string; name: string }[]>([]);
 
-  // Event tags — viewer's QR-scan-derived tags, sourced from the
-  // get_viewer_event_tags RPC. Rendered as a dedicated 活動標籤 chip
-  // row above the 隱藏標籤 editor; tapping a chip toggles it as a
-  // hidden tag on the current connection (same write path as
-  // HiddenTagEditor's frequent-tag chips).
-  const [eventTags, setEventTags] = useState<{ id: string; name: string }[]>([]);
 
   // Tracks the inflight fetchData pass so that navigating away (or the
   // target userId changing under us) cancels the stale work before its
@@ -173,7 +167,6 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
     setIsFollowing(false);
     setConnectionId(null);
     setHiddenTags([]);
-    setEventTags([]);
     setIsCloseFriend(false);
     setMutualTags(0);
     setMutualTagList([]);
@@ -322,21 +315,17 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
       }
 
       // --- Wave 2: similar-users bundle (RPC) + viewer event tags ---
-      // Fires in parallel with no client-side dependency on wave 1's
-      // completion, but we await it so the section populates before we
-      // flip loading=false (keeps the UI from flashing an empty row).
-      // get_viewer_event_tags is independent of the target user — it's
-      // viewer-scoped — so it goes in the same parallel batch.
-      const [similarResp, eventTagsResp] = await Promise.all([
-        supabase.rpc('get_similar_users', {
-          target_user_id: userId,
-          max_results: 6,
-        }),
-        supabase.rpc('get_viewer_event_tags', { p_user: authUser.id }),
-      ]);
+      // get_viewer_event_tags / eventTags state were removed when the
+      // "viewer's past event vocabulary" picker section was retired —
+      // it overlapped conceptually with the new "這次 Vibe 帶的標籤"
+      // section (paramTags-driven) and risked confusing users about
+      // which list a chip came from.
+      const { data: similar, error: similarErr } = await supabase.rpc('get_similar_users', {
+        target_user_id: userId,
+        max_results: 6,
+      });
       if (signal.aborted) return;
 
-      const { data: similar, error: similarErr } = similarResp;
       if (!similarErr && similar) {
         const s = similar as any;
         const users: PiktagProfile[] = Array.isArray(s.users) ? s.users : [];
@@ -348,9 +337,6 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
         }
         setSimilarMutualFriends(mutualMap);
       }
-
-      const eventTagRows = (eventTagsResp.data ?? []) as Array<{ id: string; name: string; uses: number }>;
-      setEventTags(eventTagRows.map((r) => ({ id: r.id, name: r.name })));
     } catch (err) {
       if (!signal.aborted) {
         console.error('Error fetching user data:', err);
@@ -1589,34 +1575,12 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
               </>
             )}
 
-            {/* Event tags — viewer's QR-scan-derived event vocabulary,
-                surfaced inside the picker so users can apply the same
-                event context they collected from past scans without
-                having to retype names. */}
-            {eventTags.length > 0 && connectionId && authUser && (
-              <>
-                <Text style={styles.pickModalSectionTitle}>
-                  {t('friendDetail.eventTagsTitle', { defaultValue: '活動標籤' })}
-                </Text>
-                <View style={styles.eventTagsChipRow}>
-                  {eventTags.map((et) => {
-                    const selected = hiddenTags.some(h => h.name === et.name);
-                    return (
-                      <TouchableOpacity
-                        key={et.id}
-                        onPress={() => toggleHiddenTagByName(et.name, et.id)}
-                        style={[styles.pickModalTag, selected && styles.pickModalTagSelected]}
-                        activeOpacity={0.7}
-                      >
-                        <Text style={[styles.pickModalTagText, selected && styles.pickModalTagTextSelected]}>
-                          #{et.name}
-                        </Text>
-                      </TouchableOpacity>
-                    );
-                  })}
-                </View>
-              </>
-            )}
+            {/* Past 「活動標籤」 picker section removed — it overlapped
+                with the new 「這次 Vibe 帶的標籤」 section above and
+                risked confusing users about which list a chip came
+                from. Past event vocabulary still survives via the
+                viewer's own piktag_user_tags and can be added via
+                the manual HiddenTagEditor below. */}
 
             {/* Hidden tags section — tap-based editor */}
             <Text style={styles.pickModalSectionTitle}>{t('friendDetail.hiddenTagsTitle', { defaultValue: '隱藏標籤' })}</Text>

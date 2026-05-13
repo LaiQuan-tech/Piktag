@@ -87,7 +87,7 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
   const { user } = useAuth();
 
   // Mode: 'setup' or 'qr'
-  const [mode, setMode] = useState<'setup' | 'qr' | 'event'>('setup');
+  const [mode, setMode] = useState<'setup' | 'qr'>('setup');
 
   // Setup form state
   const [eventDate, setEventDate] = useState('');
@@ -1185,42 +1185,11 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
       <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={colors.white} />
       {mode === 'setup' && renderSetupMode()}
       {mode === 'qr' && renderQrMode()}
-      {mode === 'event' && (
-        <View style={styles.eventModeContainer}>
-          <StatusBar barStyle="light-content" backgroundColor="#000000" />
-          {/* Close button */}
-          <TouchableOpacity
-            style={[styles.eventCloseBtn, { top: insets.top + 12 }]}
-            onPress={() => setMode('qr')}
-            activeOpacity={0.7}
-          >
-            <X size={28} color="#FFFFFF" />
-          </TouchableOpacity>
-
-          {/* Event info — fallback chain stays as-is. eventLocation /
-              eventDate are still kept on the DB row for AI grounding;
-              under the new flow they'll usually be auto-set from GPS
-              and today, but only show as the LIVE-MODE title here
-              (not as user-visible hashtag lines on the QR card). */}
-          <Text style={styles.eventTitle}>
-            {eventLocation || eventDate || 'PikTag'}
-          </Text>
-
-          {/* Large QR Code */}
-          <View style={styles.eventQrWrapper}>
-            <QRCode value={qrValue} size={280} backgroundColor="#FFFFFF" />
-            {eventTags.length > 0 && (
-              <View style={styles.qrEventInfo}>
-                <Text style={styles.qrEventInfoLine}>
-                  {eventTags.map(t => '#' + t.replace(/^#/, '')).join('  ')}
-                </Text>
-              </View>
-            )}
-          </View>
-
-          <Text style={styles.eventHint}>{t('addTag.eventHint', { defaultValue: '讓朋友掃描加你為好友' })}</Text>
-        </View>
-      )}
+      {/* mode === 'event' (fullscreen black QR "live mode") was
+          removed — it duplicated mode === 'qr' visually and had
+          no callable entry point in the current UI. The
+          renderQrMode gradient screen is now the canonical
+          "show off my QR" surface. */}
       {/* Preset modals removed for task 2. The state hooks
           (showPresetsModal, showPresetNameModal, presets, ...)
           and handlers (handleSavePreset, handleConfirmSavePreset,
@@ -1643,37 +1612,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: COLORS.piktag600,
-  },
-  // Event mode fullscreen
-  eventModeContainer: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: '#000000',
-    alignItems: 'center',
-    justifyContent: 'center',
-    zIndex: 100,
-  },
-  eventCloseBtn: {
-    position: 'absolute',
-    right: 20,
-    zIndex: 101,
-    padding: 4,
-  },
-  eventTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#FFFFFF',
-    marginBottom: 24,
-    textAlign: 'center',
-  },
-  eventQrWrapper: {
-    padding: 20,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 20,
-    marginBottom: 20,
-  },
-  eventHint: {
-    fontSize: 14,
-    color: 'rgba(255,255,255,0.4)',
   },
   outlineButton: {
     borderWidth: 1.5,
