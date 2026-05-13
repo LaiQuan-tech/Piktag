@@ -33,6 +33,7 @@ import { ArrowLeft, Share2, Plus, X, Hash, Edit3, Sparkles, Megaphone } from 'lu
 // inline so the bundle only pulls it on this screen too.
 import QRCode from 'react-native-qrcode-svg';
 import { Image } from 'expo-image';
+import { LinearGradient } from 'expo-linear-gradient';
 import { COLORS } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
 import { supabase } from '../lib/supabase';
@@ -359,41 +360,75 @@ export default function QrGroupDetailScreen({ navigation, route }: Props) {
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        {/* Editable name. Tap to edit, blur or submit to save. */}
-        <View style={styles.nameSection}>
-          {editingName ? (
-            <TextInput
-              style={styles.nameInput}
-              value={nameInput}
-              onChangeText={setNameInput}
-              autoFocus
-              onBlur={handleSaveName}
-              onSubmitEditing={handleSaveName}
-              returnKeyType="done"
-              placeholder={t('qrGroup.namePlaceholder', { defaultValue: '幫這個 Vibe 取個名字' })}
-              placeholderTextColor={COLORS.gray400}
-              maxLength={40}
-            />
-          ) : (
-            <TouchableOpacity
-              style={styles.nameRow}
-              activeOpacity={0.6}
-              onPress={() => setEditingName(true)}
-            >
-              <Text style={styles.nameText}>{displayName}</Text>
-              <Edit3 size={14} color={COLORS.gray400} />
-            </TouchableOpacity>
-          )}
-        </View>
+        {/* ─── Gradient hero ────────────────────────────────────
+            Same red→purple→deep-purple gradient as the post-create
+            QR screen (AddTagScreen renderQrMode). The user pointed
+            out that this look only showed once — at QR creation —
+            and asked to reuse it here so the Vibe detail page has
+            real visual identity instead of being yet another white
+            scrolling form.
 
-        {/* QR. Big, central, scannable from any angle. */}
-        <View style={styles.qrCard}>
-          <View style={styles.qrInner}>
+            Layout mirrors the share screen:
+              • Vibe name in white, big (still tap-to-edit)
+              • White QR card with shadow
+              • Tag preview line in semi-transparent white
+            Editor controls (add/remove tags), Vibe-shift section,
+            Gather button, and member list all live BELOW the
+            gradient on plain white — gradient surfaces are great
+            for showing off, terrible for typing. */}
+        <LinearGradient
+          colors={['#ff5757', '#c44dff', '#8c52ff']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.heroGradient}
+        >
+          {/* Editable name. White text + a thin semi-transparent
+              white border under the input when editing, so the
+              edit affordance stays visible against the gradient. */}
+          <View style={styles.heroNameSection}>
+            {editingName ? (
+              <TextInput
+                style={styles.heroNameInput}
+                value={nameInput}
+                onChangeText={setNameInput}
+                autoFocus
+                onBlur={handleSaveName}
+                onSubmitEditing={handleSaveName}
+                returnKeyType="done"
+                placeholder={t('qrGroup.namePlaceholder', { defaultValue: '幫這個 Vibe 取個名字' })}
+                placeholderTextColor="rgba(255,255,255,0.5)"
+                maxLength={40}
+              />
+            ) : (
+              <TouchableOpacity
+                style={styles.heroNameRow}
+                activeOpacity={0.6}
+                onPress={() => setEditingName(true)}
+              >
+                <Text style={styles.heroNameText}>{displayName}</Text>
+                <Edit3 size={14} color="rgba(255,255,255,0.7)" />
+              </TouchableOpacity>
+            )}
+          </View>
+
+          {/* QR. Big white card against the gradient — same
+              composition as the share screen. */}
+          <View style={styles.heroQrWrap}>
             {group.qr_code_data ? (
-              <QRCode value={group.qr_code_data} size={220} color={COLORS.gray900} />
+              <QRCode value={group.qr_code_data} size={220} color={COLORS.gray900} backgroundColor="#FFFFFF" />
             ) : null}
           </View>
-        </View>
+
+          {/* Read-only tag preview line. The full add/remove
+              editor lives below the gradient; this is just the
+              "what tags is this Vibe wearing" glimpse so the
+              hero feels complete. */}
+          {group.event_tags.length > 0 ? (
+            <Text style={styles.heroTagsLine} numberOfLines={2}>
+              {group.event_tags.map((tag) => '#' + tag.replace(/^#/, '')).join('  ')}
+            </Text>
+          ) : null}
+        </LinearGradient>
 
         {/* Tag editor. */}
         <View style={styles.tagSection}>
@@ -626,32 +661,68 @@ const styles = StyleSheet.create({
   loadingText: { fontSize: 14, color: COLORS.gray500 },
   scrollContent: { paddingBottom: 60 },
 
-  nameSection: { paddingHorizontal: 20, paddingTop: 18, paddingBottom: 8 },
-  nameRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  nameText: { fontSize: 22, fontWeight: '800', color: COLORS.gray900, flexShrink: 1 },
-  nameInput: {
-    fontSize: 22,
+  // ─── Gradient hero ─────────────────────────────────────────
+  // Mirrors AddTagScreen renderQrMode's gradient — red → magenta
+  // → deep purple. Used at the top of the Vibe detail page so
+  // the QR + name + tag preview share the same visual identity
+  // as the share/create surface.
+  heroGradient: {
+    paddingTop: 24,
+    paddingBottom: 28,
+    paddingHorizontal: 20,
+    alignItems: 'center',
+  },
+  heroNameSection: {
+    width: '100%',
+    alignItems: 'center',
+    marginBottom: 22,
+  },
+  heroNameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  heroNameText: {
+    fontSize: 24,
     fontWeight: '800',
-    color: COLORS.gray900,
+    color: '#FFFFFF',
+    textAlign: 'center',
+    flexShrink: 1,
+    // Subtle shadow so the name still reads on the lighter
+    // mid-gradient zone without needing a darker scrim.
+    textShadowColor: 'rgba(0,0,0,0.18)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
+  },
+  heroNameInput: {
+    fontSize: 24,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    textAlign: 'center',
+    minWidth: 200,
     borderBottomWidth: 1.5,
-    borderBottomColor: COLORS.piktag500,
+    borderBottomColor: 'rgba(255,255,255,0.6)',
     paddingVertical: 4,
   },
-
-  qrCard: {
-    alignItems: 'center',
-    paddingVertical: 24,
-    paddingHorizontal: 20,
-  },
-  qrInner: {
+  heroQrWrap: {
     backgroundColor: '#FFFFFF',
-    padding: 20,
-    borderRadius: 18,
+    padding: 18,
+    borderRadius: 20,
     shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 8,
+    shadowOpacity: 0.18,
+    shadowOffset: { width: 0, height: 4 },
+    shadowRadius: 12,
+    elevation: 6,
   },
+  heroTagsLine: {
+    marginTop: 18,
+    fontSize: 13,
+    fontWeight: '600',
+    color: 'rgba(255,255,255,0.92)',
+    textAlign: 'center',
+    letterSpacing: 0.2,
+  },
+
 
   tagSection: { paddingHorizontal: 20, paddingTop: 16, paddingBottom: 8 },
   sectionTitle: { fontSize: 13, fontWeight: '700', color: COLORS.gray600, marginBottom: 10, textTransform: 'uppercase', letterSpacing: 0.3 },
