@@ -866,6 +866,14 @@
           "title": "",
           "body": "Tap to say hi"
         }
+      },
+      "tag_combo": {
+        "title": "",
+        "body": "Could be a great topic",
+        "push": {
+          "title": "",
+          "body": "Could be a great topic"
+        }
       }
     }
   },

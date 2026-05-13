@@ -98,6 +98,15 @@ export async function routeFromNotification(
     return;
   }
 
+  // tag_combo — weekly digest of over-represented tag pairs in
+  // the viewer's network. Route to TagDetail of the FIRST tag
+  // so the user lands somewhere they can act on the discovery.
+  // (A future polish: dedicated tag-pair drill-down screen.)
+  if (type === 'tag_combo' && Array.isArray(data.tag_names) && data.tag_names[0]) {
+    navigation.navigate('TagDetail', { tagName: data.tag_names[0] });
+    return;
+  }
+
   // reconnect_suggest — "Eva 也標了 #X #Y — 你們很久沒聊了".
   // The whole magic moment is the "wait, I forgot we had this in
   // common" jolt + the friction-free path to actually message

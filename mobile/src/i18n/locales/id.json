@@ -785,6 +785,14 @@
           "title": "",
           "body": "Sapa mereka"
         }
+      },
+      "tag_combo": {
+        "title": "",
+        "body": "Bisa jadi topik bagus",
+        "push": {
+          "title": "",
+          "body": "Bisa jadi topik bagus"
+        }
       }
     }
   },

@@ -853,6 +853,14 @@
           "title": "",
           "body": "Sag hallo"
         }
+      },
+      "tag_combo": {
+        "title": "",
+        "body": "Vielleicht ein guter Gesprächsanlass",
+        "push": {
+          "title": "",
+          "body": "Vielleicht ein guter Gesprächsanlass"
+        }
       }
     }
   },

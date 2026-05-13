@@ -70,7 +70,10 @@ function filterNotifications(
           n.type === 'ask_prompt' ||
           // Magic moment #2: "Eva 也標了 #X — 你們很久沒聊了"
           // weekly reconnect nudge. Social action prompt.
-          n.type === 'reconnect_suggest'
+          n.type === 'reconnect_suggest' ||
+          // Magic moment #4: weekly digest of over-represented
+          // tag combinations in the viewer's network.
+          n.type === 'tag_combo'
       );
     case 'reminders':
       return notifications.filter(

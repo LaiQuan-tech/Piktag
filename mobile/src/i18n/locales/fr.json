@@ -785,6 +785,14 @@
           "title": "",
           "body": "Dis bonjour"
         }
+      },
+      "tag_combo": {
+        "title": "",
+        "body": "Un bon sujet de conversation",
+        "push": {
+          "title": "",
+          "body": "Un bon sujet de conversation"
+        }
       }
     }
   },

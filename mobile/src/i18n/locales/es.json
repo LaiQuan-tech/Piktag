@@ -785,6 +785,14 @@
           "title": "",
           "body": "Saluda"
         }
+      },
+      "tag_combo": {
+        "title": "",
+        "body": "Puede ser un buen tema",
+        "push": {
+          "title": "",
+          "body": "Puede ser un buen tema"
+        }
       }
     }
   },

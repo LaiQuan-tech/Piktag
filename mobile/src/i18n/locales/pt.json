@@ -785,6 +785,14 @@
           "title": "",
           "body": "Manda um oi"
         }
+      },
+      "tag_combo": {
+        "title": "",
+        "body": "Pode ser um bom assunto",
+        "push": {
+          "title": "",
+          "body": "Pode ser um bom assunto"
+        }
       }
     }
   },
