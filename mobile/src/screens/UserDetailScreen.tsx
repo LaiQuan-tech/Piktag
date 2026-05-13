@@ -560,17 +560,37 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
           .eq('id', reverseConnId);
       }
 
-      // Build the full private-tag set: event tags + date + location.
-      // The old base64 ScanResult flow added these three; the URL flow
-      // used to only add event_tags which is why dates and locations
-      // never showed up as hidden tags when scanning event QR codes.
+      // Build the private-tag set from the Vibe context.
+      //
+      // Crucial directionality: these tags only go on the REVERSE
+      // connection (host's view of the scanner), NEVER the forward
+      // (scanner's view of the host). Reason — illustrated by the
+      // canonical example:
+      //
+      //   I create a Vibe "find a patent attorney" tagged
+      //   #專利師 #商標. The attorney scans my QR. With the old
+      //   both-sides attach, the attorney's view of MY profile
+      //   got #專利師 #商標 silently applied — labeling me as a
+      //   patent attorney even though I'm the one seeking one.
+      //   Every client of the attorney scanning future Vibes
+      //   would compound the same noise on his side.
+      //
+      // The principle that surfaced after the rename to "Vibes":
+      //   Vibe tags describe the kind of PERSON the Vibe is for,
+      //   not the host who created it. They belong on the
+      //   scanner from the host's perspective — that's it.
+      //
+      // Forward-side tagging (scanner's view of host) goes back
+      // to the standard manual path: the scanner can open the
+      // tag picker and add whatever tags they actually want to
+      // remember the host by.
       const tagNames: string[] = [...eventTags];
       if (eventDate.trim()) tagNames.push(eventDate.trim());
       if (eventLocation.trim()) tagNames.push(eventLocation.trim());
 
-      if (tagNames.length > 0) {
+      if (tagNames.length > 0 && reverseConnId) {
         const tagIds = await ensureTagIdsByName(tagNames);
-        await attachTagsToConnections([forwardConnId, reverseConnId], tagIds);
+        await attachTagsToConnections([reverseConnId], tagIds);
       }
 
       // Increment scan count (server-side RPC, best-effort)
