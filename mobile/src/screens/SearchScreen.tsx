@@ -728,6 +728,45 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
   // Load smart recommendations based on shared tags
   const loadRecommendations = useCallback(async () => {
     if (!user) return;
+
+    // Magic Moment #5: prefer the server-side tag-similar strangers
+    // RPC over the legacy client-side fan-out. The RPC:
+    //   • restricts candidates to 2nd-degree (friend-of-friend) —
+    //     skips random whole-graph strangers, preserves "you might
+    //     know" semantics
+    //   • respects the per-user discoverable_by_tag_similarity
+    //     opt-out flag
+    //   • does the tag-overlap scoring on the DB side so this
+    //     screen avoids the legacy 3-roundtrip dance
+    //
+    // If the RPC returns at least one row, we're done. If it returns
+    // empty (no 2-hop network yet, or all candidates opted out),
+    // fall through to the legacy logic below so brand-new accounts
+    // with skinny networks still see something.
+    try {
+      const { data: strangers, error: strangersErr } = await supabase.rpc(
+        'find_tag_similar_strangers',
+        { p_limit: 10 },
+      );
+      if (!strangersErr && Array.isArray(strangers) && strangers.length > 0) {
+        // RPC returns columns matching the screen's expectations,
+        // except shaped as a row union — map to PiktagProfile-ish.
+        setRecommendedUsers(
+          strangers.map((s: any) => ({
+            id: s.user_id,
+            username: s.username ?? '',
+            full_name: s.full_name ?? null,
+            avatar_url: s.avatar_url ?? null,
+            bio: null,
+            is_verified: false,
+          })) as PiktagProfile[],
+        );
+        return;
+      }
+    } catch (rpcErr) {
+      console.warn('[SearchScreen] tag-similar strangers RPC failed, falling through:', rpcErr);
+    }
+
     try {
       // Get my tag IDs
       const { data: myTags } = await supabase
