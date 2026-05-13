@@ -1287,13 +1287,13 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
             )}
             {isFollowing && (
               <TouchableOpacity
-                style={styles.secondaryBtnFixed}
-                activeOpacity={0.7}
+                style={styles.tagBtnPrimary}
+                activeOpacity={0.85}
                 onPress={openPickTagModal}
                 accessibilityRole="button"
                 accessibilityLabel={t('userDetail.tag', { defaultValue: '標籤' })}
               >
-                <Text style={styles.secondaryBtnText}>{t('userDetail.tag', { defaultValue: '標籤' })}</Text>
+                <Text style={styles.tagBtnPrimaryText}>{t('userDetail.tag', { defaultValue: '標籤' })}</Text>
               </TouchableOpacity>
             )}
             <TouchableOpacity
@@ -1942,6 +1942,24 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: COLORS.gray900,
+  },
+  // 「標籤」is the action that defines PikTag. Other action buttons
+  // (follow / message / add-friend) exist in every social app; the
+  // tag flow is the unique reason a user came here. Give it solid
+  // brand-purple so the eye lands on it first — the rest fall back
+  // to neutral secondary.
+  tagBtnPrimary: {
+    paddingHorizontal: 18,
+    height: 44,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: COLORS.piktag500,
+  },
+  tagBtnPrimaryText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#FFFFFF',
   },
   iconSecondaryBtn: {
     width: 44,
