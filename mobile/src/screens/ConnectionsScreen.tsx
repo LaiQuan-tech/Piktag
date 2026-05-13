@@ -527,11 +527,26 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
       sorted.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
     }
 
+    // Promote friends with an active Ask to the top — same idea as
+    // IG's "story rail" pushing has-story friends ahead, just on the
+    // vertical list instead of the horizontal rail. This is a STATUS
+    // override, not a sort mode: within both groups (has-ask vs not)
+    // the user's chosen sort still wins. ES2019 Array.sort is stable
+    // so the secondary pass cleanly partitions the list without
+    // disturbing the order inside each partition. When an Ask expires
+    // the friend naturally falls back into their normal slot.
+    const askAuthorSet = new Set((askFeedItems || []).map((a) => a.author_id));
+    sorted.sort((a, b) => {
+      const aHas = askAuthorSet.has(a.connected_user_id) ? 1 : 0;
+      const bHas = askAuthorSet.has(b.connected_user_id) ? 1 : 0;
+      return bHas - aHas;
+    });
+
     if (filterTag) {
       return sorted.filter((c) => c.tags.includes(filterTag));
     }
     return sorted;
-  }, [connections, filterTag, sortMode]);
+  }, [connections, filterTag, sortMode, askFeedItems]);
 
   // All unique semantic types from connections (for filter)
   const allConnectionTags = useMemo(() => {
