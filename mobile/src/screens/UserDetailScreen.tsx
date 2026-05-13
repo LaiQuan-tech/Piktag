@@ -480,15 +480,29 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
 
       // Scanner → host. Only set the connection metadata on first insert
       // — subsequent QR scans for the same user shouldn't rewrite the
-      // original met_at / note, so we check-first then insert.
+      // original met_at / note, so we check-first then insert. We DO
+      // backfill scan_session_id when it was previously NULL (see
+      // below).
       const { data: existingForward } = await supabase
         .from('piktag_connections')
-        .select('id')
+        .select('id, scan_session_id')
         .eq('user_id', authUser.id)
         .eq('connected_user_id', resolvedUserId)
         .maybeSingle();
 
-      let forwardConnId: string | null = existingForward?.id ?? null;
+      // Forward (scanner → host). Two new-build invariants below:
+      //   1. ALWAYS write scan_session_id on the insert.
+      //   2. If the row already existed without a scan_session_id
+      //      (scanner had already followed/added the host before
+      //      meeting them via this Vibe), backfill it now — first
+      //      Vibe wins, never overwrite an existing attribution.
+      // Without (2), this scenario stays broken: A and B already
+      // are friends, A creates Vibe X, B scans X → no new insert
+      // happens, the existing row has no scan_session_id, so the
+      // host's qr_group_members query never finds B in Vibe X's
+      // member list.
+      let forwardConnId: string | null = (existingForward as any)?.id ?? null;
+      const existingForwardSid = (existingForward as any)?.scan_session_id ?? null;
       if (!forwardConnId) {
         const { data: inserted } = await supabase
           .from('piktag_connections')
@@ -503,17 +517,28 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
           .select('id')
           .single();
         forwardConnId = inserted?.id ?? null;
+      } else if (!existingForwardSid && paramSid) {
+        await supabase
+          .from('piktag_connections')
+          .update({ scan_session_id: paramSid })
+          .eq('id', forwardConnId);
       }
 
-      // Host → scanner (reverse). Same no-clobber pattern.
+      // Host → scanner (reverse). Same no-clobber + backfill logic
+      // — and critically, scan_session_id MUST be set here too. The
+      // host's Vibe member list queries `user_id = host AND
+      // scan_session_id = vibe` and the host's row is the REVERSE
+      // direction, so without this the list is always empty when
+      // a host opens their Vibe.
       const { data: existingReverse } = await supabase
         .from('piktag_connections')
-        .select('id')
+        .select('id, scan_session_id')
         .eq('user_id', resolvedUserId)
         .eq('connected_user_id', authUser.id)
         .maybeSingle();
 
-      let reverseConnId: string | null = existingReverse?.id ?? null;
+      let reverseConnId: string | null = (existingReverse as any)?.id ?? null;
+      const existingReverseSid = (existingReverse as any)?.scan_session_id ?? null;
       if (!reverseConnId) {
         const { data: insertedReverse } = await supabase
           .from('piktag_connections')
@@ -523,10 +548,16 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
             met_at: new Date().toISOString(),
             met_location: eventLocation,
             note,
+            scan_session_id: paramSid || null,
           })
           .select('id')
           .single();
         reverseConnId = insertedReverse?.id ?? null;
+      } else if (!existingReverseSid && paramSid) {
+        await supabase
+          .from('piktag_connections')
+          .update({ scan_session_id: paramSid })
+          .eq('id', reverseConnId);
       }
 
       // Build the full private-tag set: event tags + date + location.
