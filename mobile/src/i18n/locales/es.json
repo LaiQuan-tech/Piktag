@@ -777,6 +777,14 @@
           "title": "",
           "body": "Una frase y un amigo podría ayudarte"
         }
+      },
+      "reconnect_suggest": {
+        "title": "",
+        "body": "Saluda",
+        "push": {
+          "title": "",
+          "body": "Saluda"
+        }
       }
     }
   },

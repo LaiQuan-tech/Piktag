@@ -67,7 +67,10 @@ function filterNotifications(
           // It's a system prompt, not a "someone you know did a
           // thing" — but it slots in the social tab because
           // posting an Ask IS the next social action.
-          n.type === 'ask_prompt'
+          n.type === 'ask_prompt' ||
+          // Magic moment #2: "Eva 也標了 #X — 你們很久沒聊了"
+          // weekly reconnect nudge. Social action prompt.
+          n.type === 'reconnect_suggest'
       );
     case 'reminders':
       return notifications.filter(

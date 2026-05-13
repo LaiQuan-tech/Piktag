@@ -845,6 +845,14 @@
           "title": "",
           "body": "Ein Satz — vielleicht hilft dir jemand"
         }
+      },
+      "reconnect_suggest": {
+        "title": "",
+        "body": "Sag hallo",
+        "push": {
+          "title": "",
+          "body": "Sag hallo"
+        }
       }
     }
   },

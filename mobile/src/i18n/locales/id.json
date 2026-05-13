@@ -777,6 +777,14 @@
           "title": "",
           "body": "Satu kalimat, mungkin ada yang bisa bantu"
         }
+      },
+      "reconnect_suggest": {
+        "title": "",
+        "body": "Sapa mereka",
+        "push": {
+          "title": "",
+          "body": "Sapa mereka"
+        }
       }
     }
   },

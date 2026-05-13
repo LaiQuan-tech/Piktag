@@ -777,6 +777,14 @@
           "title": "",
           "body": "一言で、誰かが助けてくれるかも"
         }
+      },
+      "reconnect_suggest": {
+        "title": "",
+        "body": "タップして挨拶",
+        "push": {
+          "title": "",
+          "body": "タップして挨拶"
+        }
       }
     }
   },

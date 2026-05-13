@@ -777,6 +777,14 @@
           "title": "",
           "body": "Bir cümle, biri yardım edebilir"
         }
+      },
+      "reconnect_suggest": {
+        "title": "",
+        "body": "Selam ver",
+        "push": {
+          "title": "",
+          "body": "Selam ver"
+        }
       }
     }
   },

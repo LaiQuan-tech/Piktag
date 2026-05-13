@@ -858,6 +858,14 @@
           "title": "",
           "body": "One sentence, your friends might help"
         }
+      },
+      "reconnect_suggest": {
+        "title": "",
+        "body": "Tap to say hi",
+        "push": {
+          "title": "",
+          "body": "Tap to say hi"
+        }
       }
     }
   },

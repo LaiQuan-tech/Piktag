@@ -847,6 +847,14 @@
           "title": "",
           "body": "一句話讓朋友看到——可能就有人能幫你"
         }
+      },
+      "reconnect_suggest": {
+        "title": "",
+        "body": "點開打聲招呼",
+        "push": {
+          "title": "",
+          "body": "點開打聲招呼"
+        }
       }
     }
   },

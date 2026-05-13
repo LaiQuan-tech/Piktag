@@ -777,6 +777,14 @@
           "title": "",
           "body": "Une phrase, un ami pourrait t'aider"
         }
+      },
+      "reconnect_suggest": {
+        "title": "",
+        "body": "Dis bonjour",
+        "push": {
+          "title": "",
+          "body": "Dis bonjour"
+        }
       }
     }
   },

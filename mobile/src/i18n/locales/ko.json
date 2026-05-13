@@ -777,6 +777,14 @@
           "title": "",
           "body": "한 문장이면 친구가 도와줄지도"
         }
+      },
+      "reconnect_suggest": {
+        "title": "",
+        "body": "인사하러 가기",
+        "push": {
+          "title": "",
+          "body": "인사하러 가기"
+        }
       }
     }
   },
