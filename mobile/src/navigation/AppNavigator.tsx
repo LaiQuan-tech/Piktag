@@ -3,6 +3,7 @@ import { Alert, View, StyleSheet, Platform, InteractionManager } from 'react-nat
 import PageLoader from '../components/loaders/PageLoader';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { getFocusedRouteNameFromRoute } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   Home,
@@ -20,7 +21,7 @@ import { useAppReady } from '../context/AppReadyContext';
 import { useTranslation } from 'react-i18next';
 import { registerForPushNotifications } from '../lib/pushNotifications';
 import { posthog } from '../lib/analytics';
-import { ChatUnreadProvider } from '../hooks/useChatUnread';
+import { ChatUnreadProvider, useChatUnread } from '../hooks/useChatUnread';
 
 // Auth Screens — eager (needed before session resolves)
 import LoginScreen from '../screens/auth/LoginScreen';
@@ -123,6 +124,19 @@ function ProfileStackNavigator() {
 function MainTabs() {
   const { colors, isDark } = useTheme();
   const { t } = useTranslation();
+  const { total: chatUnread } = useChatUnread();
+  // Single source of truth for the tab bar style — referenced both
+  // as the default screenOptions baseline AND inside per-tab options
+  // (AddTagTab below) where we conditionally hide it on inner screens
+  // that need full-bleed real estate (the QR display + group detail).
+  const baseTabBarStyle = {
+    backgroundColor: isDark ? '#000000' : '#FFFFFF',
+    borderTopWidth: isDark ? 0.5 : 1,
+    borderTopColor: isDark ? '#363636' : COLORS.gray100,
+    paddingBottom: 28,
+    paddingTop: 10,
+    height: 80,
+  } as const;
   return (
     <View style={{ flex: 1 }}>
     <Tab.Navigator
@@ -130,14 +144,7 @@ function MainTabs() {
       screenOptions={{
         headerShown: false,
         tabBarShowLabel: false,
-        tabBarStyle: {
-          backgroundColor: isDark ? '#000000' : '#FFFFFF',
-          borderTopWidth: isDark ? 0.5 : 1,
-          borderTopColor: isDark ? '#363636' : COLORS.gray100,
-          paddingBottom: 28,
-          paddingTop: 10,
-          height: 80,
-        },
+        tabBarStyle: baseTabBarStyle,
         tabBarActiveTintColor: isDark ? '#ffffff' : COLORS.piktag500,
         tabBarInactiveTintColor: isDark ? '#8e8e8e' : COLORS.gray400,
         // Unread chat count badge — accentPop on purpose (high-saturation
@@ -168,10 +175,10 @@ function MainTabs() {
         component={SearchStackNavigator}
         options={{
           tabBarAccessibilityLabel: t('tabs.search'),
-          // No tabBarBadge here. Chat unread count is visible on the
-          // ChatList entry point inside SearchScreen — surfacing it on
-          // the tab icon implied "the search tab has unread", which
-          // confused users (they expected it on a messages tab).
+          // No tabBarBadge here — moved to NotificationsTab below.
+          // The chat inbox is reached through the bell-tab header's
+          // ChatList button, so an unread count on the magnifying
+          // glass misdirected users to a tab unrelated to messages.
           tabBarIcon: ({ color, focused }) => (
             <Search
               size={24}
@@ -184,15 +191,32 @@ function MainTabs() {
       <Tab.Screen
         name="AddTagTab"
         component={AddTagStackNavigator}
-        options={{
-          tabBarAccessibilityLabel: t('tabs.addTag'),
-          tabBarIcon: ({ color, focused }) => (
-            <Hash
-              size={28}
-              color={color}
-              strokeWidth={focused ? 2.5 : 2}
-            />
-          ),
+        options={({ route }) => {
+          // Hide the tab bar when the user drills into the QR
+          // create form (AddTagCreate) or a saved-group detail
+          // (QrGroupDetail). The default `AddTagMain` list view
+          // still shows the tab bar so the user can navigate
+          // away. Reading the focused child route via
+          // getFocusedRouteNameFromRoute is the official RN
+          // navigation pattern for "hide parent bar on specific
+          // inner screens".
+          const childRoute =
+            getFocusedRouteNameFromRoute(route) ?? 'AddTagMain';
+          const hideBar =
+            childRoute === 'AddTagCreate' || childRoute === 'QrGroupDetail';
+          return {
+            tabBarAccessibilityLabel: t('tabs.addTag'),
+            tabBarStyle: hideBar
+              ? { display: 'none' as const }
+              : baseTabBarStyle,
+            tabBarIcon: ({ color, focused }) => (
+              <Hash
+                size={28}
+                color={color}
+                strokeWidth={focused ? 2.5 : 2}
+              />
+            ),
+          };
         }}
       />
       <Tab.Screen
@@ -200,6 +224,12 @@ function MainTabs() {
         component={NotificationStackNavigator}
         options={{
           tabBarAccessibilityLabel: t('tabs.notifications'),
+          // Chat-unread badge lives on the bell tab, not the
+          // magnifying-glass tab — the messages inbox is reached
+          // through the notifications surface (ChatList button in
+          // its header), so a badge on Search misdirects users
+          // toward a tab that has nothing to do with messages.
+          tabBarBadge: chatUnread > 0 ? chatUnread : undefined,
           tabBarIcon: ({ color, focused }) => (
             <Bell
               size={24}

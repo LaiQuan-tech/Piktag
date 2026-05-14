@@ -14,7 +14,7 @@ import {
   Platform,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { X, Star, Share2, Trash2, ScanLine, Link2, Pencil, Plus, Sparkles, RefreshCw } from 'lucide-react-native';
+import { X, Star, Share2, Trash2, ScanLine, Link2, Pencil, Plus, Sparkles, RefreshCw, ArrowLeft } from 'lucide-react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import QRCode from 'react-native-qrcode-svg';
 import { useTranslation } from 'react-i18next';
@@ -810,7 +810,23 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
     <>
       {/* Header */}
       <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
-        <Text style={styles.headerTitle}>{t('addTag.headerTitle', { defaultValue: '建立 Vibe' })}</Text>
+        {/* Back button — this screen is pushed from QrGroupListScreen,
+            so goBack() returns to the list. Previously the only way
+            to exit was tapping the # tab icon, which felt like a
+            workaround rather than navigation. */}
+        <View style={styles.headerLeftGroup}>
+          <TouchableOpacity
+            onPress={() => navigation.goBack()}
+            activeOpacity={0.6}
+            style={styles.headerSideBtn}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            accessibilityRole="button"
+            accessibilityLabel={t('common.back', { defaultValue: '返回' })}
+          >
+            <ArrowLeft size={24} color={COLORS.gray900} strokeWidth={2.2} />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>{t('addTag.headerTitle', { defaultValue: '建立 Vibe' })}</Text>
+        </View>
         {/* Scan icon previously lived here — moved to the parent
             QrGroupListScreen header (the # tab's landing page) where
             "scan someone else's QR" is a peer action to "create my
@@ -1302,6 +1318,11 @@ const styles = StyleSheet.create({
   },
   headerSideBtn: {
     padding: 4,
+  },
+  headerLeftGroup: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
   },
   headerBackBtn: {
     flexDirection: 'row',
