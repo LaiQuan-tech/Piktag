@@ -20,7 +20,7 @@ import { useAppReady } from '../context/AppReadyContext';
 import { useTranslation } from 'react-i18next';
 import { registerForPushNotifications } from '../lib/pushNotifications';
 import { posthog } from '../lib/analytics';
-import { ChatUnreadProvider, useChatUnread } from '../hooks/useChatUnread';
+import { ChatUnreadProvider } from '../hooks/useChatUnread';
 
 // Auth Screens — eager (needed before session resolves)
 import LoginScreen from '../screens/auth/LoginScreen';
@@ -123,7 +123,6 @@ function ProfileStackNavigator() {
 function MainTabs() {
   const { colors, isDark } = useTheme();
   const { t } = useTranslation();
-  const { total: chatUnread } = useChatUnread();
   return (
     <View style={{ flex: 1 }}>
     <Tab.Navigator
@@ -169,7 +168,10 @@ function MainTabs() {
         component={SearchStackNavigator}
         options={{
           tabBarAccessibilityLabel: t('tabs.search'),
-          tabBarBadge: chatUnread > 0 ? chatUnread : undefined,
+          // No tabBarBadge here. Chat unread count is visible on the
+          // ChatList entry point inside SearchScreen — surfacing it on
+          // the tab icon implied "the search tab has unread", which
+          // confused users (they expected it on a messages tab).
           tabBarIcon: ({ color, focused }) => (
             <Search
               size={24}
