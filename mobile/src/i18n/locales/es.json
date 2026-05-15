@@ -1087,7 +1087,10 @@
     "generateAiTags": "Generar etiquetas IA",
     "aiNoSuggestions": "La IA no encontró etiquetas adecuadas. Inténtalo de nuevo o escribe la tuya.",
     "regenerateAiTags": "Regenerar",
-    "bubblePromptMine": "+ Nuevo Ask"
+    "bubblePromptMine": "+ Nuevo Ask",
+    "aiSuggestionsTitle": "Sugerencias de IA",
+    "aiBodyTooShortHint": "Describe lo que quieres en una frase — la IA sugerirá etiquetas",
+    "aiTapToGenerateHint": "Toca ↻ para que la IA sugiera etiquetas"
   },
   "errorBoundary": {
     "title": "Algo salió mal",

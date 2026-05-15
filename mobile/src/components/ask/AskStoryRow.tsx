@@ -19,7 +19,7 @@ import {
 } from 'react-native';
 import BrandSpinner from '../loaders/BrandSpinner';
 import { Image } from 'expo-image';
-import { Plus, X } from 'lucide-react-native';
+import { Plus, X, Sparkles, RefreshCw } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTranslation } from 'react-i18next';
 import InitialsAvatar from '../InitialsAvatar';
@@ -837,68 +837,84 @@ export function AskCreateModal({ visible, onClose, existingAsk, onCreated }: Ask
               />
               <Text style={modalStyles.charCount}>{body.length}/{MAX_BODY}</Text>
 
-              {/* Manual AI trigger — the only path that fires suggest-tags.
-                  Auto-debounce was removed because typing-driven inference
-                  was both invisible (users never saw it land) and wasteful
-                  (re-fired on every pause through a half-written prompt).
-                  Button label flips to "重新生成" once we already have
-                  suggestions so users know they can re-roll. */}
-              <TouchableOpacity
-                style={[
-                  modalStyles.aiTriggerBtn,
-                  (body.trim().length < 5 || aiLoading) && modalStyles.aiTriggerBtnDisabled,
-                ]}
-                onPress={() => suggestTagsForBody(body)}
-                disabled={body.trim().length < 5 || aiLoading}
-                activeOpacity={0.7}
-              >
-                {aiLoading ? (
-                  <>
-                    <BrandSpinner size={16} />
-                    <Text style={modalStyles.aiTriggerText}>{t('ask.generating')}</Text>
-                  </>
+              {/* AI suggestion section — matched to the canonical
+                  pattern shared by AddTagScreen and EditProfileScreen:
+                    [Sparkles/Spinner + "AI 為你推薦"] [↻ refresh btn]
+                    chip wrap
+                    empty-state hint
+                  Manual trigger preserved (no auto-debounce on body
+                  typing) — typing-driven inference was both invisible
+                  and wasteful for a multi-revision Ask body, so the
+                  refresh button is the SOLE trigger for both first
+                  generation and subsequent re-rolls. */}
+              <View style={modalStyles.aiSection}>
+                <View style={modalStyles.aiHeaderRow}>
+                  <View style={modalStyles.aiHeaderLeft}>
+                    {aiLoading ? (
+                      <BrandSpinner size={16} />
+                    ) : (
+                      <Sparkles size={14} color={COLORS.piktag600} />
+                    )}
+                    <Text style={modalStyles.aiHeaderTitle}>
+                      {aiLoading
+                        ? `${t('ask.aiSuggestionsTitle', { defaultValue: 'AI 為你推薦' })}…`
+                        : t('ask.aiSuggestionsTitle', { defaultValue: 'AI 為你推薦' })}
+                    </Text>
+                  </View>
+                  {!aiLoading && (
+                    <TouchableOpacity
+                      style={[
+                        modalStyles.aiRefreshBtn,
+                        body.trim().length < 5 && modalStyles.aiRefreshBtnDisabled,
+                      ]}
+                      onPress={() => suggestTagsForBody(body)}
+                      disabled={body.trim().length < 5}
+                      activeOpacity={0.7}
+                      hitSlop={8}
+                      accessibilityRole="button"
+                      accessibilityLabel={
+                        aiNames.length > 0
+                          ? t('ask.regenerateAiTags', { defaultValue: '重新生成' })
+                          : t('ask.generateAiTags', { defaultValue: 'AI 生成標籤' })
+                      }
+                    >
+                      <RefreshCw size={14} color={COLORS.piktag600} strokeWidth={2.2} />
+                    </TouchableOpacity>
+                  )}
+                </View>
+
+                {/* AI + custom chips — single wrap layout. Tap toggles
+                    selection (multi-select). Unlike AddTag/EditProfile
+                    where chips disappear after add, Ask uses in-place
+                    highlight because the user is composing a set, not
+                    drawing from a pool into a separate list. */}
+                {aiNames.length > 0 || customNames.length > 0 ? (
+                  <View style={modalStyles.tagChipsWrap}>
+                    {[...aiNames, ...customNames].map((name) => (
+                      <TouchableOpacity
+                        key={`tag-${name}`}
+                        style={[modalStyles.tagChip, selectedNames.has(name) && modalStyles.tagChipSelected]}
+                        onPress={() => toggleTag(name)}
+                        activeOpacity={0.7}
+                      >
+                        <Text style={[modalStyles.tagChipText, selectedNames.has(name) && modalStyles.tagChipTextSelected]}>
+                          #{name}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                ) : aiTriedAndEmpty ? (
+                  <Text style={modalStyles.aiEmptyHint}>
+                    {t('ask.aiNoSuggestions', { defaultValue: 'AI 沒有想到合適的標籤，再試一次或自己輸入' })}
+                  </Text>
                 ) : (
-                  <Text style={modalStyles.aiTriggerText}>
-                    {aiNames.length > 0
-                      ? (t('ask.regenerateAiTags', { defaultValue: '重新生成' }))
-                      : (t('ask.generateAiTags', { defaultValue: 'AI 生成標籤' }))}
+                  <Text style={modalStyles.aiEmptyHint}>
+                    {body.trim().length < 5
+                      ? t('ask.aiBodyTooShortHint', { defaultValue: '寫一句話描述你想要什麼 — AI 會推薦合適的標籤' })
+                      : t('ask.aiTapToGenerateHint', { defaultValue: '點右上的 ↻ 讓 AI 推薦標籤' })}
                   </Text>
                 )}
-              </TouchableOpacity>
-
-              {/* AI + custom tag chips. Same scroll strip; the user doesn't
-                  need to know which name came from where. */}
-              {aiNames.length > 0 || customNames.length > 0 ? (
-                <ScrollView
-                  horizontal
-                  showsHorizontalScrollIndicator={false}
-                  style={modalStyles.tagScroll}
-                >
-                  {[...aiNames, ...customNames].map((name) => (
-                    <TouchableOpacity
-                      key={`tag-${name}`}
-                      style={[modalStyles.tagChip, selectedNames.has(name) && modalStyles.tagChipSelected]}
-                      onPress={() => toggleTag(name)}
-                      activeOpacity={0.7}
-                    >
-                      <Text style={[modalStyles.tagChipText, selectedNames.has(name) && modalStyles.tagChipTextSelected]}>
-                        #{name}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </ScrollView>
-              ) : null}
-
-              {/* AI returned no usable suggestions (or the edge function
-                  failed). Surface a soft hint so the user knows the tap
-                  registered — vs. the previous behavior where the
-                  spinner just disappeared with nothing visible
-                  changing, which read as "the feature is broken". */}
-              {aiTriedAndEmpty && customNames.length === 0 ? (
-                <Text style={modalStyles.aiNoResultHint}>
-                  {t('ask.aiNoSuggestions', { defaultValue: 'AI 沒有想到合適的標籤，再試一次或自己輸入' })}
-                </Text>
-              ) : null}
+              </View>
 
               {/* Custom tag input */}
               <View style={modalStyles.customRow}>
@@ -1317,26 +1333,70 @@ const modalStyles = StyleSheet.create({
   },
   charCount: { fontSize: 12, color: COLORS.gray400, textAlign: 'right', marginTop: 4, marginBottom: 12 },
   sectionTitle: { fontSize: 14, fontWeight: '600', color: COLORS.gray700, marginBottom: 8 },
+  // Horizontal scroll used by view-mode (existing-Ask display) to show
+  // the Ask's tag pills inline. Distinct from the create-mode wrap
+  // (tagChipsWrap) — view mode is a read-only single row, create
+  // mode is interactive multi-row.
   tagScroll: { marginBottom: 16, flexGrow: 0 },
   aiLoadingRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 16 },
   aiLoadingText: { fontSize: 13, color: COLORS.gray500 },
   aiHint: { fontSize: 13, color: COLORS.gray400, marginBottom: 16 },
-  // Soft-grey hint shown immediately after an AI invocation that
-  // returned zero suggestions (or failed). Same visual register as
-  // aiHint so users read it as "FYI, here's what happened" rather
-  // than "ERROR".
-  aiNoResultHint: {
-    fontSize: 13,
+  // ─── AI suggestion section — unified visual language with
+  //     AddTagScreen.aiHeader* / EditProfileScreen.ai_header*. Keep
+  //     these in sync if either of the other two surfaces evolves. ───
+  aiSection: { marginBottom: 16 },
+  aiHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 10,
+  },
+  aiHeaderLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  aiHeaderTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: COLORS.piktag600,
+  },
+  aiRefreshBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: COLORS.piktag200,
+    backgroundColor: COLORS.piktag50,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  aiRefreshBtnDisabled: { opacity: 0.4 },
+  aiEmptyHint: {
+    fontSize: 12,
     color: COLORS.gray500,
-    marginTop: 4,
-    marginBottom: 16,
     fontStyle: 'italic',
+    paddingHorizontal: 4,
+  },
+  // Chip wrap (replaces the prior horizontal ScrollView). Multi-select
+  // toggle pattern — selected chip flips to piktag500 fill.
+  tagChipsWrap: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
   },
   tagChip: {
-    backgroundColor: COLORS.gray100, borderRadius: 20,
-    paddingHorizontal: 14, paddingVertical: 8, marginRight: 8,
+    backgroundColor: COLORS.gray100,
+    borderRadius: 9999,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderWidth: 1.5,
+    borderColor: 'transparent',
   },
-  tagChipSelected: { backgroundColor: COLORS.piktag500 },
+  tagChipSelected: {
+    backgroundColor: COLORS.piktag500,
+    borderColor: COLORS.piktag500,
+  },
   tagChipText: { fontSize: 13, fontWeight: '500', color: COLORS.gray700 },
   tagChipTextSelected: { color: '#fff' },
   customRow: {
@@ -1358,26 +1418,10 @@ const modalStyles = StyleSheet.create({
     backgroundColor: COLORS.piktag500,
   },
   customAddBtnDisabled: { opacity: 0.4 },
-  // Manual AI trigger — soft pill above the chip strip. Inline-row so the
-  // spinner sits next to the label when loading.
-  aiTriggerBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-    backgroundColor: COLORS.piktag50,
-    borderRadius: 20,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    alignSelf: 'flex-start',
-    marginBottom: 12,
-  },
-  aiTriggerBtnDisabled: { opacity: 0.5 },
-  aiTriggerText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: COLORS.piktag600,
-  },
+  // (Old aiTriggerBtn / aiTriggerText styles removed — the manual
+  // "AI 生成標籤" pill was replaced by the canonical header-row
+  // pattern shared with AddTagScreen / EditProfileScreen. See
+  // aiSection / aiHeaderRow / aiRefreshBtn above.)
   // View-mode (existing ask) styles
   viewBodyWrap: {
     backgroundColor: COLORS.gray50,

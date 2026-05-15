@@ -1087,7 +1087,10 @@
     "generateAiTags": "AI ট্যাগ তৈরি করুন",
     "aiNoSuggestions": "AI উপযুক্ত ট্যাগ খুঁজে পেল না। আবার চেষ্টা করুন বা নিজে লিখুন।",
     "regenerateAiTags": "পুনরায় তৈরি",
-    "bubblePromptMine": "+ নতুন Ask"
+    "bubblePromptMine": "+ নতুন Ask",
+    "aiSuggestionsTitle": "AI সাজেশন",
+    "aiBodyTooShortHint": "এক বাক্যে লিখুন — AI ট্যাগ সাজেস্ট করবে",
+    "aiTapToGenerateHint": "↻ ট্যাপ করুন, AI ট্যাগ সাজেস্ট করবে"
   },
   "errorBoundary": {
     "title": "কিছু ভুল হয়েছে",

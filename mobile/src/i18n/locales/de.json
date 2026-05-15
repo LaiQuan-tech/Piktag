@@ -1159,7 +1159,10 @@
     "generateAiTags": "KI-Tags erzeugen",
     "aiNoSuggestions": "KI konnte nichts Passendes finden. Versuch es nochmal oder tippe deine eigenen ein.",
     "regenerateAiTags": "Neu erzeugen",
-    "bubblePromptMine": "+ Neues Ask"
+    "bubblePromptMine": "+ Neues Ask",
+    "aiSuggestionsTitle": "KI-Vorschläge",
+    "aiBodyTooShortHint": "Beschreibe in einem Satz, was du suchst — KI schlägt Tags vor",
+    "aiTapToGenerateHint": "Tippe auf ↻ damit die KI Tags vorschlägt"
   },
   "errorBoundary": {
     "title": "Etwas ist schiefgelaufen",

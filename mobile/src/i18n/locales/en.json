@@ -1172,7 +1172,10 @@
     "generateAiTags": "Generate AI tags",
     "aiNoSuggestions": "AI couldn't find a good fit. Try again or type your own.",
     "regenerateAiTags": "Regenerate",
-    "bubblePromptMine": "+ New Ask"
+    "bubblePromptMine": "+ New Ask",
+    "aiSuggestionsTitle": "AI suggestions",
+    "aiBodyTooShortHint": "Describe what you want in a sentence — AI will suggest tags",
+    "aiTapToGenerateHint": "Tap ↻ to let AI suggest tags"
   },
   "errorBoundary": {
     "title": "Something went wrong",

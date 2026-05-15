@@ -1087,7 +1087,10 @@
     "generateAiTags": "AI 태그 생성",
     "aiNoSuggestions": "AI가 적절한 태그를 찾지 못했어요. 다시 시도하거나 직접 입력하세요.",
     "regenerateAiTags": "재생성",
-    "bubblePromptMine": "+ Ask 추가"
+    "bubblePromptMine": "+ Ask 추가",
+    "aiSuggestionsTitle": "AI 추천",
+    "aiBodyTooShortHint": "한 문장으로 적어주세요 — AI 가 태그를 추천합니다",
+    "aiTapToGenerateHint": "↻ 를 눌러 AI 가 태그를 추천하도록 하세요"
   },
   "errorBoundary": {
     "title": "문제가 발생했습니다",

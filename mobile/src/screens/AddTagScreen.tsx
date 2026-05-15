@@ -1543,18 +1543,22 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 6,
   },
+  // Title weight/size + refresh-btn dimensions matched to
+  // EditProfileScreen's ai_headerTitle / ai_refreshBtn so all three
+  // AI-suggest surfaces (AddTag / EditProfile / AskCreateModal) read
+  // as the same component family.
   aiHeaderTitle: {
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '600',
     color: COLORS.piktag600,
   },
   aiRefreshBtn: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     borderWidth: 1,
     borderColor: COLORS.piktag200,
-    backgroundColor: COLORS.white,
+    backgroundColor: COLORS.piktag50,
     alignItems: 'center',
     justifyContent: 'center',
   },

@@ -1087,7 +1087,10 @@
     "generateAiTags": "Gerar tags com IA",
     "aiNoSuggestions": "A IA não encontrou tags adequadas. Tente novamente ou digite a sua.",
     "regenerateAiTags": "Regenerar",
-    "bubblePromptMine": "+ Novo Ask"
+    "bubblePromptMine": "+ Novo Ask",
+    "aiSuggestionsTitle": "Sugestões da IA",
+    "aiBodyTooShortHint": "Descreva o que você quer em uma frase — a IA sugerirá tags",
+    "aiTapToGenerateHint": "Toque em ↻ para a IA sugerir tags"
   },
   "errorBoundary": {
     "title": "Algo deu errado",

@@ -1087,7 +1087,10 @@
     "generateAiTags": "AIでタグ生成",
     "aiNoSuggestions": "AIから提案がありませんでした。もう一度試すか、自分で入力してください。",
     "regenerateAiTags": "再生成",
-    "bubblePromptMine": "+ Ask 追加"
+    "bubblePromptMine": "+ Ask 追加",
+    "aiSuggestionsTitle": "AI からの提案",
+    "aiBodyTooShortHint": "一言で書いてみて — AI がタグを提案します",
+    "aiTapToGenerateHint": "↻ をタップして AI にタグを提案してもらう"
   },
   "errorBoundary": {
     "title": "問題が発生しました",

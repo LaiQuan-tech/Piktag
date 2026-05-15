@@ -1087,7 +1087,10 @@
     "generateAiTags": "สร้างแท็กด้วย AI",
     "aiNoSuggestions": "AI ไม่พบแท็กที่เหมาะสม ลองใหม่หรือพิมพ์เอง",
     "regenerateAiTags": "สร้างใหม่",
-    "bubblePromptMine": "+ Ask ใหม่"
+    "bubblePromptMine": "+ Ask ใหม่",
+    "aiSuggestionsTitle": "คำแนะนำจาก AI",
+    "aiBodyTooShortHint": "เขียนสั้นๆ ว่าต้องการอะไร — AI จะแนะนำแท็กให้",
+    "aiTapToGenerateHint": "แตะ ↻ ให้ AI แนะนำแท็ก"
   },
   "errorBoundary": {
     "title": "เกิดข้อผิดพลาด",

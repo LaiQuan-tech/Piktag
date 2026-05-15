@@ -1087,7 +1087,10 @@
     "generateAiTags": "AI टैग बनाएं",
     "aiNoSuggestions": "AI को कोई उपयुक्त टैग नहीं मिला। फिर से कोशिश करें या खुद लिखें।",
     "regenerateAiTags": "पुनः उत्पन्न",
-    "bubblePromptMine": "+ नया Ask"
+    "bubblePromptMine": "+ नया Ask",
+    "aiSuggestionsTitle": "AI सुझाव",
+    "aiBodyTooShortHint": "एक वाक्य में बताएं — AI टैग सुझाएगा",
+    "aiTapToGenerateHint": "↻ पर टैप करें ताकि AI टैग सुझा सके"
   },
   "errorBoundary": {
     "title": "कुछ गड़बड़ हो गई",

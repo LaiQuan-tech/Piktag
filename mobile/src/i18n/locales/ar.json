@@ -1087,7 +1087,10 @@
     "generateAiTags": "توليد وسوم بالذكاء",
     "aiNoSuggestions": "لم يجد الذكاء الاصطناعي وسومًا مناسبة. حاول مجددًا أو اكتب وسمك بنفسك.",
     "regenerateAiTags": "إعادة التوليد",
-    "bubblePromptMine": "+ Ask جديد"
+    "bubblePromptMine": "+ Ask جديد",
+    "aiSuggestionsTitle": "اقتراحات الذكاء الاصطناعي",
+    "aiBodyTooShortHint": "صف ما تريد في جملة واحدة — سيقترح الذكاء الاصطناعي وسومًا",
+    "aiTapToGenerateHint": "انقر ↻ لاقتراح وسوم من الذكاء الاصطناعي"
   },
   "errorBoundary": {
     "title": "حدث خطأ ما",

@@ -1087,7 +1087,10 @@
     "generateAiTags": "Yapay zeka etiketi üret",
     "aiNoSuggestions": "Yapay zeka uygun etiket bulamadı. Tekrar dene ya da kendin yaz.",
     "regenerateAiTags": "Yeniden oluştur",
-    "bubblePromptMine": "+ Yeni Ask"
+    "bubblePromptMine": "+ Yeni Ask",
+    "aiSuggestionsTitle": "AI önerileri",
+    "aiBodyTooShortHint": "Ne istediğini bir cümleyle yaz — AI etiket önerir",
+    "aiTapToGenerateHint": "↻ a dokun, AI etiket önersin"
   },
   "errorBoundary": {
     "title": "Bir şeyler ters gitti",

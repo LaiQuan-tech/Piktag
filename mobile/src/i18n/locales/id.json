@@ -1087,7 +1087,10 @@
     "generateAiTags": "Buat tag AI",
     "aiNoSuggestions": "AI tidak menemukan tag yang cocok. Coba lagi atau tulis sendiri.",
     "regenerateAiTags": "Buat ulang",
-    "bubblePromptMine": "+ Ask baru"
+    "bubblePromptMine": "+ Ask baru",
+    "aiSuggestionsTitle": "Saran dari AI",
+    "aiBodyTooShortHint": "Tulis dalam satu kalimat — AI akan menyarankan tag",
+    "aiTapToGenerateHint": "Ketuk ↻ agar AI menyarankan tag"
   },
   "errorBoundary": {
     "title": "Terjadi kesalahan",

@@ -1159,7 +1159,10 @@
     "generateAiTags": "AI 生成标签",
     "aiNoSuggestions": "AI 没有想到合适的标签，再试一次或自己输入",
     "regenerateAiTags": "重新生成",
-    "bubblePromptMine": "+ 新增 Ask"
+    "bubblePromptMine": "+ 新增 Ask",
+    "aiSuggestionsTitle": "AI 为你推荐",
+    "aiBodyTooShortHint": "写一句话描述你想要什么 — AI 会推荐合适的标签",
+    "aiTapToGenerateHint": "点右上的 ↻ 让 AI 推荐标签"
   },
   "errorBoundary": {
     "title": "出错了",

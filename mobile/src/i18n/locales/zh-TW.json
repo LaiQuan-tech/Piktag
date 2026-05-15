@@ -1179,7 +1179,10 @@
     "generateAiTags": "AI 生成標籤",
     "aiNoSuggestions": "AI 沒有想到合適的標籤，再試一次或自己輸入",
     "regenerateAiTags": "重新生成",
-    "bubblePromptMine": "+ 新增 Ask"
+    "bubblePromptMine": "+ 新增 Ask",
+    "aiSuggestionsTitle": "AI 為你推薦",
+    "aiBodyTooShortHint": "寫一句話描述你想要什麼 — AI 會推薦合適的標籤",
+    "aiTapToGenerateHint": "點右上的 ↻ 讓 AI 推薦標籤"
   },
   "errorBoundary": {
     "title": "發生錯誤",

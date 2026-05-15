@@ -1087,7 +1087,10 @@
     "generateAiTags": "Сгенерировать ИИ-теги",
     "aiNoSuggestions": "ИИ не нашёл подходящих тегов. Попробуй снова или введи сам.",
     "regenerateAiTags": "Перегенерировать",
-    "bubblePromptMine": "+ Новый Ask"
+    "bubblePromptMine": "+ Новый Ask",
+    "aiSuggestionsTitle": "Подсказки ИИ",
+    "aiBodyTooShortHint": "Опишите одной фразой — ИИ предложит теги",
+    "aiTapToGenerateHint": "Нажмите ↻, чтобы ИИ предложил теги"
   },
   "errorBoundary": {
     "title": "Что-то пошло не так",
