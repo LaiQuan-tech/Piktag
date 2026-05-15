@@ -164,7 +164,20 @@
       "avatarTapToChange": "Нажми на фото, чтобы сменить",
       "avatarPermissionTitle": "Нужен доступ к фотогалерее",
       "avatarPermissionMessage": "Разреши PikTag доступ к фото в Настройках",
-      "skipStep": "Пропустить"
+      "skipStep": "Пропустить",
+      "scanCardCta": "Сканировать визитку",
+      "scanCardHint": "Есть визитка? Сфотографируйте — bio и контакты автоматически (необяз.)",
+      "cardScanFailedTitle": "Ошибка сканирования",
+      "cardScanFailedMessage": "Не удалось прочитать визитку. Повторите или введите вручную.",
+      "cardScanEmptyTitle": "Ничего не найдено",
+      "cardScanEmptyMessage": "Визитку плохо видно — сделайте чёткое фото или введите вручную.",
+      "cardConfirmTitle": "Подтвердите данные",
+      "cardConfirmSubtitle": "Проверьте и измените — применится после подтверждения",
+      "cardFieldName": "Имя",
+      "cardFieldBio": "Bio (черновик ИИ, можно править)",
+      "cardBioPlaceholder": "Одна строка о вас",
+      "cardLinksLabel": "Контакты / соцсети",
+      "cardApplyCta": "Применить"
     }
   },
   "connections": {

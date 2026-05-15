@@ -164,7 +164,20 @@
       "avatarTapToChange": "انقر على الصورة للتغيير",
       "avatarPermissionTitle": "يلزم الوصول إلى مكتبة الصور",
       "avatarPermissionMessage": "اسمح لـ PikTag بالوصول إلى صورك من الإعدادات",
-      "skipStep": "تخطي"
+      "skipStep": "تخطي",
+      "scanCardCta": "مسح بطاقة العمل",
+      "scanCardHint": "لديك بطاقة؟ صوّرها — تعبئة bio وجهات الاتصال تلقائيًا (اختياري)",
+      "cardScanFailedTitle": "فشل المسح",
+      "cardScanFailedMessage": "تعذّر قراءة البطاقة. حاول مجددًا أو املأ يدويًا.",
+      "cardScanEmptyTitle": "لم يُكتشف شيء",
+      "cardScanEmptyMessage": "البطاقة غير واضحة — استخدم صورة أوضح أو اكتب يدويًا.",
+      "cardConfirmTitle": "تأكيد بيانات البطاقة",
+      "cardConfirmSubtitle": "راجع وعدّل — لن يُطبَّق إلا بعد التأكيد",
+      "cardFieldName": "الاسم",
+      "cardFieldBio": "نبذة (مسودة ذكاء اصطناعي، قابلة للتعديل)",
+      "cardBioPlaceholder": "سطر واحد عنك",
+      "cardLinksLabel": "جهات الاتصال / التواصل",
+      "cardApplyCta": "تطبيق"
     }
   },
   "connections": {

@@ -164,7 +164,20 @@
       "avatarTapToChange": "Touche la photo pour changer",
       "avatarPermissionTitle": "Accès à la galerie nécessaire",
       "avatarPermissionMessage": "Autorise PikTag à accéder à tes photos dans Réglages",
-      "skipStep": "Passer"
+      "skipStep": "Passer",
+      "scanCardCta": "Scanner une carte",
+      "scanCardHint": "Une carte ? Photographiez-la — bio et contacts auto (option)",
+      "cardScanFailedTitle": "Échec du scan",
+      "cardScanFailedMessage": "Carte illisible. Réessayez ou saisissez à la main.",
+      "cardScanEmptyTitle": "Rien détecté",
+      "cardScanEmptyMessage": "Carte peu lisible — prenez une photo plus nette ou saisissez-la.",
+      "cardConfirmTitle": "Confirmer les infos",
+      "cardConfirmSubtitle": "Vérifiez et modifiez — rien n'est appliqué avant confirmation",
+      "cardFieldName": "Nom",
+      "cardFieldBio": "Bio (brouillon IA, modifiable)",
+      "cardBioPlaceholder": "Une ligne sur vous",
+      "cardLinksLabel": "Contacts / réseaux",
+      "cardApplyCta": "Appliquer"
     }
   },
   "connections": {

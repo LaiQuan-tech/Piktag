@@ -164,7 +164,20 @@
       "avatarTapToChange": "แตะรูปเพื่อเปลี่ยน",
       "avatarPermissionTitle": "ต้องการสิทธิ์เข้าถึงคลังภาพ",
       "avatarPermissionMessage": "อนุญาตให้ PikTag เข้าถึงรูปในการตั้งค่า",
-      "skipStep": "ข้าม"
+      "skipStep": "ข้าม",
+      "scanCardCta": "สแกนนามบัตร",
+      "scanCardHint": "มีนามบัตร? ถ่ายรูป — เติม bio และช่องทางติดต่อให้อัตโนมัติ (ไม่บังคับ)",
+      "cardScanFailedTitle": "สแกนไม่สำเร็จ",
+      "cardScanFailedMessage": "อ่านนามบัตรไม่ได้ ลองใหม่หรือกรอกเอง",
+      "cardScanEmptyTitle": "ไม่พบข้อมูล",
+      "cardScanEmptyMessage": "นามบัตรไม่ชัด — ใช้รูปที่ชัดกว่าหรือพิมพ์เอง",
+      "cardConfirmTitle": "ยืนยันข้อมูลนามบัตร",
+      "cardConfirmSubtitle": "ตรวจและแก้ได้ — จะใช้เมื่อยืนยันแล้ว",
+      "cardFieldName": "ชื่อ",
+      "cardFieldBio": "Bio (ร่างจาก AI แก้ได้)",
+      "cardBioPlaceholder": "แนะนำตัวสั้นๆ",
+      "cardLinksLabel": "ติดต่อ / โซเชียล",
+      "cardApplyCta": "ใช้"
     }
   },
   "connections": {

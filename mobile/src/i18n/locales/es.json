@@ -164,7 +164,20 @@
       "avatarTapToChange": "Toca la foto para cambiar",
       "avatarPermissionTitle": "Se necesita acceso a la galería",
       "avatarPermissionMessage": "Permite el acceso a fotos en Ajustes",
-      "skipStep": "Saltar"
+      "skipStep": "Saltar",
+      "scanCardCta": "Escanear tarjeta",
+      "scanCardHint": "¿Tienes tarjeta? Fotografíala — bio y contactos automáticos (opcional)",
+      "cardScanFailedTitle": "Error al escanear",
+      "cardScanFailedMessage": "No se pudo leer la tarjeta. Inténtalo de nuevo o rellénalo a mano.",
+      "cardScanEmptyTitle": "Nada detectado",
+      "cardScanEmptyMessage": "La tarjeta no se lee bien — usa una foto más clara o escríbelo.",
+      "cardConfirmTitle": "Confirmar datos",
+      "cardConfirmSubtitle": "Revisa y edita — no se aplica hasta confirmar",
+      "cardFieldName": "Nombre",
+      "cardFieldBio": "Bio (borrador IA, editable)",
+      "cardBioPlaceholder": "Una línea sobre ti",
+      "cardLinksLabel": "Contactos / redes",
+      "cardApplyCta": "Aplicar"
     }
   },
   "connections": {

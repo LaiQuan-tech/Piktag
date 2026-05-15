@@ -164,7 +164,20 @@
       "avatarTapToChange": "사진을 눌러 변경",
       "avatarPermissionTitle": "사진 라이브러리 접근이 필요해요",
       "avatarPermissionMessage": "설정에서 PikTag의 사진 접근을 허용해주세요",
-      "skipStep": "건너뛰기"
+      "skipStep": "건너뛰기",
+      "scanCardCta": "명함 스캔",
+      "scanCardHint": "명함이 있나요? 찍으면 bio·연락처 자동 입력 (선택)",
+      "cardScanFailedTitle": "스캔 실패",
+      "cardScanFailedMessage": "명함을 읽지 못했어요. 다시 시도하거나 직접 입력하세요.",
+      "cardScanEmptyTitle": "인식 안 됨",
+      "cardScanEmptyMessage": "명함이 잘 안 보여요 — 더 선명한 사진을 쓰거나 직접 입력하세요.",
+      "cardConfirmTitle": "명함 정보 확인",
+      "cardConfirmSubtitle": "확인·수정 가능 — 확인해야 적용됩니다",
+      "cardFieldName": "이름",
+      "cardFieldBio": "Bio (AI 초안, 수정 가능)",
+      "cardBioPlaceholder": "한 줄 자기소개",
+      "cardLinksLabel": "연락처 / 소셜",
+      "cardApplyCta": "적용"
     }
   },
   "connections": {

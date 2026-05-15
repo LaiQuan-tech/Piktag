@@ -171,7 +171,20 @@
       "avatarTapToChange": "Auf das Foto tippen zum Ändern",
       "avatarPermissionTitle": "Zugriff auf die Fotomediathek nötig",
       "avatarPermissionMessage": "Erlaube PikTag den Zugriff in den Einstellungen",
-      "skipStep": "Überspringen"
+      "skipStep": "Überspringen",
+      "scanCardCta": "Visitenkarte scannen",
+      "scanCardHint": "Karte da? Abfotografieren — Bio & Kontakte automatisch (optional)",
+      "cardScanFailedTitle": "Scan fehlgeschlagen",
+      "cardScanFailedMessage": "Karte nicht lesbar. Erneut versuchen oder manuell eingeben.",
+      "cardScanEmptyTitle": "Nichts erkannt",
+      "cardScanEmptyMessage": "Karte schwer lesbar — klareres Foto nutzen oder selbst eintippen.",
+      "cardConfirmTitle": "Kartendaten bestätigen",
+      "cardConfirmSubtitle": "Prüfen & ändern — wird erst nach Bestätigung übernommen",
+      "cardFieldName": "Name",
+      "cardFieldBio": "Bio (KI-Entwurf, editierbar)",
+      "cardBioPlaceholder": "Eine Zeile über dich",
+      "cardLinksLabel": "Kontakte / Social",
+      "cardApplyCta": "Übernehmen"
     }
   },
   "connections": {

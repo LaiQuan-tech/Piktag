@@ -176,7 +176,20 @@
       "avatarTapToChange": "Tap the photo to change",
       "avatarPermissionTitle": "Photo library access needed",
       "avatarPermissionMessage": "Allow PikTag to access your photos in Settings",
-      "skipStep": "Skip"
+      "skipStep": "Skip",
+      "scanCardCta": "Scan a business card",
+      "scanCardHint": "Have a card? Snap it — bio & contacts auto-filled (optional)",
+      "cardScanFailedTitle": "Scan failed",
+      "cardScanFailedMessage": "Couldn't read the card. Try again or fill it in manually.",
+      "cardScanEmptyTitle": "Nothing detected",
+      "cardScanEmptyMessage": "This card was hard to read — try a clearer photo, or just type it in.",
+      "cardConfirmTitle": "Confirm card details",
+      "cardConfirmSubtitle": "Check & edit — nothing is applied until you confirm",
+      "cardFieldName": "Name",
+      "cardFieldBio": "Bio (AI draft, editable)",
+      "cardBioPlaceholder": "One line about you",
+      "cardLinksLabel": "Contacts / social",
+      "cardApplyCta": "Apply"
     }
   },
   "connections": {

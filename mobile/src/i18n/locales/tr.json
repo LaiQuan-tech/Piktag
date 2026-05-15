@@ -164,7 +164,20 @@
       "avatarTapToChange": "Değiştirmek için fotoğrafa dokun",
       "avatarPermissionTitle": "Fotoğraf galerisine erişim gerekli",
       "avatarPermissionMessage": "Ayarlardan PikTag'ın fotoğraflara erişimine izin ver",
-      "skipStep": "Atla"
+      "skipStep": "Atla",
+      "scanCardCta": "Kartvizit tara",
+      "scanCardHint": "Kartın var mı? Çek — bio ve iletişim otomatik (isteğe bağlı)",
+      "cardScanFailedTitle": "Tarama başarısız",
+      "cardScanFailedMessage": "Kart okunamadı. Tekrar dene ya da elle doldur.",
+      "cardScanEmptyTitle": "Hiçbir şey bulunamadı",
+      "cardScanEmptyMessage": "Kart net değil — daha net bir fotoğraf çek ya da elle yaz.",
+      "cardConfirmTitle": "Kart bilgilerini onayla",
+      "cardConfirmSubtitle": "Kontrol et ve düzenle — onaylamadan uygulanmaz",
+      "cardFieldName": "İsim",
+      "cardFieldBio": "Bio (AI taslağı, düzenlenebilir)",
+      "cardBioPlaceholder": "Kendinle ilgili bir satır",
+      "cardLinksLabel": "İletişim / sosyal",
+      "cardApplyCta": "Uygula"
     }
   },
   "connections": {

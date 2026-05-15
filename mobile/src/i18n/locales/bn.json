@@ -164,7 +164,20 @@
       "avatarTapToChange": "ছবিতে ট্যাপ করে বদলাও",
       "avatarPermissionTitle": "ফটো লাইব্রেরি অ্যাক্সেস দরকার",
       "avatarPermissionMessage": "সেটিংসে PikTag-কে ছবি অ্যাক্সেসের অনুমতি দাও",
-      "skipStep": "এড়িয়ে যাও"
+      "skipStep": "এড়িয়ে যাও",
+      "scanCardCta": "কার্ড স্ক্যান করুন",
+      "scanCardHint": "কার্ড আছে? ছবি তুলুন — bio ও যোগাযোগ স্বয়ংক্রিয় (ঐচ্ছিক)",
+      "cardScanFailedTitle": "স্ক্যান ব্যর্থ",
+      "cardScanFailedMessage": "কার্ড পড়া যায়নি। আবার চেষ্টা করুন বা নিজে লিখুন।",
+      "cardScanEmptyTitle": "কিছু পাওয়া যায়নি",
+      "cardScanEmptyMessage": "কার্ড স্পষ্ট নয় — পরিষ্কার ছবি দিন বা টাইপ করুন।",
+      "cardConfirmTitle": "কার্ডের তথ্য নিশ্চিত করুন",
+      "cardConfirmSubtitle": "দেখে নিন ও বদলান — নিশ্চিত করলেই প্রয়োগ হবে",
+      "cardFieldName": "নাম",
+      "cardFieldBio": "Bio (AI খসড়া, সম্পাদনযোগ্য)",
+      "cardBioPlaceholder": "নিজের সম্পর্কে এক লাইন",
+      "cardLinksLabel": "যোগাযোগ / সোশ্যাল",
+      "cardApplyCta": "প্রয়োগ করুন"
     }
   },
   "connections": {

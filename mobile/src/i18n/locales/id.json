@@ -164,7 +164,20 @@
       "avatarTapToChange": "Tap foto buat ganti",
       "avatarPermissionTitle": "Butuh akses galeri",
       "avatarPermissionMessage": "Izinkan akses foto di Pengaturan",
-      "skipStep": "Lewati"
+      "skipStep": "Lewati",
+      "scanCardCta": "Pindai kartu nama",
+      "scanCardHint": "Punya kartu? Foto saja — bio & kontak otomatis (opsional)",
+      "cardScanFailedTitle": "Pindai gagal",
+      "cardScanFailedMessage": "Kartu tidak terbaca. Coba lagi atau isi manual.",
+      "cardScanEmptyTitle": "Tidak terdeteksi",
+      "cardScanEmptyMessage": "Kartu sulit dibaca — pakai foto lebih jelas atau ketik manual.",
+      "cardConfirmTitle": "Konfirmasi data kartu",
+      "cardConfirmSubtitle": "Periksa & ubah — baru diterapkan setelah konfirmasi",
+      "cardFieldName": "Nama",
+      "cardFieldBio": "Bio (draf AI, bisa diedit)",
+      "cardBioPlaceholder": "Satu baris tentang kamu",
+      "cardLinksLabel": "Kontak / sosial",
+      "cardApplyCta": "Terapkan"
     }
   },
   "connections": {

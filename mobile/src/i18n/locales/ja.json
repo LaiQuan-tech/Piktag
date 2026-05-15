@@ -164,7 +164,20 @@
       "avatarTapToChange": "写真をタップで変更",
       "avatarPermissionTitle": "写真ライブラリへのアクセスが必要",
       "avatarPermissionMessage": "設定で PikTag の写真アクセスを許可してください",
-      "skipStep": "スキップ"
+      "skipStep": "スキップ",
+      "scanCardCta": "名刺をスキャン",
+      "scanCardHint": "名刺があれば撮影 — bio と連絡先を自動入力（任意）",
+      "cardScanFailedTitle": "スキャン失敗",
+      "cardScanFailedMessage": "名刺を読み取れませんでした。もう一度試すか手動で入力してください。",
+      "cardScanEmptyTitle": "検出できません",
+      "cardScanEmptyMessage": "名刺が読みにくいようです。鮮明な写真にするか手入力してください。",
+      "cardConfirmTitle": "名刺情報の確認",
+      "cardConfirmSubtitle": "確認・編集できます — 確定するまで反映されません",
+      "cardFieldName": "名前",
+      "cardFieldBio": "Bio（AI下書き・編集可）",
+      "cardBioPlaceholder": "自己紹介を一言",
+      "cardLinksLabel": "連絡先 / SNS",
+      "cardApplyCta": "適用"
     }
   },
   "connections": {

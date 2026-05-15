@@ -35,11 +35,13 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
+  Modal,
+  Switch,
 } from 'react-native';
 import BrandSpinner from '../../components/loaders/BrandSpinner';
 import { useTranslation } from 'react-i18next';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { ChevronRight, Camera, QrCode } from 'lucide-react-native';
+import { ChevronRight, Camera, QrCode, ScanLine, X } from 'lucide-react-native';
 import { supabase, supabaseUrl, supabaseAnonKey } from '../../lib/supabase';
 import { Image } from 'expo-image';
 import {
@@ -47,6 +49,7 @@ import {
   launchImageLibraryAsync,
 } from 'expo-image-picker';
 import { COLORS, SPACING, BORDER_RADIUS } from '../../constants/theme';
+import { PLATFORM_MAP } from '../../lib/platforms';
 import OnboardingCompleteBurst from '../../components/stingers/OnboardingCompleteBurst';
 
 // Must match the key AppNavigator reads in decideOnboarding(). This
@@ -56,6 +59,62 @@ const ONBOARDING_COMPLETED_KEY = 'piktag_onboarding_completed_v1';
 
 const STEP_WELCOME = 0;
 const STEP_PROFILE = 1;
+
+// ─── Business-card scan plumbing ────────────────────────────
+// The edge function returns these fields (all nullable). bio_draft
+// is handled separately (it feeds the bio, not a biolink); the
+// rest are contact handles that map onto piktag_biolinks rows.
+type CardData = {
+  full_name: string | null;
+  job_title: string | null;
+  company: string | null;
+  bio_draft: string | null;
+  phone: string | null;
+  email: string | null;
+  website: string | null;
+  instagram: string | null;
+  facebook: string | null;
+  linkedin: string | null;
+  line: string | null;
+};
+
+// Which CardData keys are contact handles → biolink rows, and the
+// piktag_biolinks.platform key each maps to. Order = display order
+// in the confirmation sheet AND insert position order.
+const BIOLINK_FIELDS: { key: keyof CardData; platform: string }[] = [
+  { key: 'phone', platform: 'phone' },
+  { key: 'email', platform: 'email' },
+  { key: 'website', platform: 'website' },
+  { key: 'instagram', platform: 'instagram' },
+  { key: 'facebook', platform: 'facebook' },
+  { key: 'linkedin', platform: 'linkedin' },
+  { key: 'line', platform: 'line' },
+];
+
+// Turn a raw handle the card gave us into the canonical stored URL,
+// matching how EditProfile builds biolink.url (prefix + handle).
+// The card may print a full URL OR a bare handle — normalise both.
+function buildBiolinkUrl(platform: string, raw: string): string {
+  const v = raw.trim();
+  if (!v) return v;
+  // Already a full link the model passed through verbatim.
+  if (/^https?:\/\//i.test(v)) return v;
+  if (platform === 'phone') {
+    // Keep + and digits only; tel: tolerates spaces but stored
+    // form should be clean.
+    return 'tel:' + v.replace(/[^\d+]/g, '');
+  }
+  if (platform === 'email') {
+    return v.startsWith('mailto:') ? v : 'mailto:' + v;
+  }
+  if (platform === 'website') {
+    return 'https://' + v.replace(/^\/+/, '');
+  }
+  const prefix = PLATFORM_MAP[platform]?.prefix ?? '';
+  // Strip a leading @ for social handles — prefixes already end at
+  // the path root (instagram.com/, linkedin.com/in/, …).
+  return prefix + v.replace(/^@+/, '');
+}
 
 type OnboardingScreenProps = { navigation: any };
 
@@ -69,6 +128,24 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
   const [saving, setSaving] = useState(false);
   const [burstVisible, setBurstVisible] = useState(false);
   const [burstUserName, setBurstUserName] = useState<string | undefined>(undefined);
+
+  // ─── Business-card scan state ─────────────────────────────
+  // `bio` + `pendingBiolinks` are what actually get committed in
+  // handleComplete. They stay empty unless the user scans a card
+  // AND confirms the sheet — so a user who skips the scan has the
+  // exact same minimal name+avatar flow as before (no behaviour
+  // change for the skip path, which is the whole funnel premise).
+  const [bio, setBio] = useState('');
+  const [pendingBiolinks, setPendingBiolinks] = useState<
+    { platform: string; url: string; label: string | null }[]
+  >([]);
+  const [scanning, setScanning] = useState(false);
+  const [scanModalVisible, setScanModalVisible] = useState(false);
+  // Editable working copy of what the scan returned. The user can
+  // fix OCR mistakes here before anything is written.
+  const [editCard, setEditCard] = useState<CardData | null>(null);
+  // Per-biolink include toggles (default on for any detected field).
+  const [includeMap, setIncludeMap] = useState<Record<string, boolean>>({});
 
   // ─── Smart prefill ──────────────────────────────────────
   // Goal: most users tap the CTA without ever opening the keyboard.
@@ -215,6 +292,113 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
     }
   }, [t]);
 
+  // ─── Business-card scan ─────────────────────────────────
+  // Optional accelerator on the name screen. One photo →
+  // edge-function vision extract → editable confirmation sheet.
+  // Nothing is written until the user confirms the sheet; this
+  // handler only POPULATES the editable working copy.
+  const handleScanCard = useCallback(async () => {
+    try {
+      const { status } = await requestMediaLibraryPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert(
+          t('auth.onboarding.avatarPermissionTitle', { defaultValue: '需要相簿權限' }),
+          t('auth.onboarding.avatarPermissionMessage', { defaultValue: '請在設定中允許 PikTag 存取相簿' }),
+        );
+        return;
+      }
+      const result = await launchImageLibraryAsync({
+        mediaTypes: ['images'],
+        // No aspect crop — business cards are landscape; a 1:1
+        // crop would slice off half the contact info.
+        quality: 0.7,
+        base64: true,
+      });
+      if (result.canceled || !result.assets[0]) return;
+      const asset = result.assets[0];
+
+      const ALLOWED = ['image/jpeg', 'image/png', 'image/webp'];
+      const mimeType = asset.mimeType || 'image/jpeg';
+      if (!ALLOWED.includes(mimeType) || !asset.base64) {
+        Alert.alert(
+          t('common.error'),
+          t('editProfile.invalidImageType', { defaultValue: '不支援的圖片格式' }),
+        );
+        return;
+      }
+
+      setScanning(true);
+      const { data, error } = await supabase.functions.invoke(
+        'scan-business-card',
+        { body: { image: asset.base64, mimeType } },
+      );
+      if (error) {
+        console.warn('[Onboarding] scan-business-card failed:', error);
+        Alert.alert(
+          t('auth.onboarding.cardScanFailedTitle', { defaultValue: '掃描失敗' }),
+          t('auth.onboarding.cardScanFailedMessage', {
+            defaultValue: '名片沒有讀取成功，再試一次或手動填寫。',
+          }),
+        );
+        return;
+      }
+      const card = ((data as any)?.data ?? null) as CardData | null;
+      const anyField =
+        card &&
+        Object.values(card).some((v) => typeof v === 'string' && v.trim());
+      if (!card || !anyField) {
+        Alert.alert(
+          t('auth.onboarding.cardScanEmptyTitle', { defaultValue: '沒讀到資料' }),
+          t('auth.onboarding.cardScanEmptyMessage', {
+            defaultValue: '這張名片看不太清楚 — 換一張清楚的照片，或直接手動填。',
+          }),
+        );
+        return;
+      }
+      // Default-include any contact field that came back non-null.
+      const nextInclude: Record<string, boolean> = {};
+      for (const f of BIOLINK_FIELDS) {
+        const val = card[f.key];
+        nextInclude[f.key] = typeof val === 'string' && val.trim().length > 0;
+      }
+      setEditCard(card);
+      setIncludeMap(nextInclude);
+      setScanModalVisible(true);
+    } catch (err: any) {
+      Alert.alert(t('common.error'), err?.message || t('common.unknownError'));
+    } finally {
+      setScanning(false);
+    }
+  }, [t]);
+
+  // Commit the (possibly user-edited) sheet into local state.
+  // Still nothing in the DB — handleComplete does the writes.
+  const handleApplyCard = useCallback(() => {
+    if (!editCard) {
+      setScanModalVisible(false);
+      return;
+    }
+    const name = (editCard.full_name ?? '').trim();
+    if (name) setDisplayName(name);
+    const draft = (editCard.bio_draft ?? '').trim();
+    if (draft) setBio(draft);
+
+    const links: { platform: string; url: string; label: string | null }[] = [];
+    for (const f of BIOLINK_FIELDS) {
+      if (!includeMap[f.key]) continue;
+      const raw = (editCard[f.key] ?? '').toString().trim();
+      if (!raw) continue;
+      links.push({
+        platform: f.platform,
+        url: buildBiolinkUrl(f.platform, raw),
+        label: null,
+      });
+    }
+    setPendingBiolinks(links);
+    setScanModalVisible(false);
+    setEditCard(null);
+  }, [editCard, includeMap]);
+
   // ─── Save & finish ──────────────────────────────────────
   // The ONLY field this commits is `full_name`. Avatar is already
   // committed by handlePickAvatar at pick time, so we don't re-write
@@ -237,14 +421,49 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
         Alert.alert(t('common.error'), t('auth.onboarding.alertUserNotFound', { defaultValue: '找不到使用者' }));
         return;
       }
+      // Bio rides along with full_name in the same UPDATE when the
+      // user scanned a card and kept a bio_draft. Empty bio → don't
+      // send the column at all (skip-scan users keep the exact old
+      // behaviour: only full_name is touched).
+      const profilePatch: Record<string, string> = { full_name: trimmed };
+      const trimmedBio = bio.trim();
+      if (trimmedBio) profilePatch.bio = trimmedBio;
+
       const { error } = await supabase
         .from('piktag_profiles')
-        .update({ full_name: trimmed })
+        .update(profilePatch)
         .eq('id', user.id);
       if (error) {
-        console.warn('[Onboarding] full_name update failed:', error.message);
+        console.warn('[Onboarding] profile update failed:', error.message);
         // Non-fatal — we still mark onboarding done and let the user
-        // continue. They can fix the name from EditProfile.
+        // continue. They can fix name/bio from EditProfile.
+      }
+
+      // Biolinks from a confirmed card scan. Best-effort + non-fatal:
+      // a failed biolink insert must never block finishing onboarding
+      // (the user can always re-add links in EditProfile). Insert as
+      // one batch so position order is preserved.
+      if (pendingBiolinks.length > 0) {
+        try {
+          const rows = pendingBiolinks.map((b, i) => ({
+            user_id: user.id,
+            platform: b.platform,
+            url: b.url,
+            label: b.label,
+            position: i,
+            is_active: true,
+            display_mode: 'icon',
+            visibility: 'public',
+          }));
+          const { error: linkErr } = await supabase
+            .from('piktag_biolinks')
+            .insert(rows);
+          if (linkErr) {
+            console.warn('[Onboarding] biolink insert failed:', linkErr.message);
+          }
+        } catch (e) {
+          console.warn('[Onboarding] biolink insert threw:', e);
+        }
       }
       try {
         await AsyncStorage.setItem(ONBOARDING_COMPLETED_KEY, 'true');
@@ -258,7 +477,7 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
     } finally {
       setSaving(false);
     }
-  }, [displayName, t]);
+  }, [displayName, bio, pendingBiolinks, t]);
 
   // ─── Render: Step 0 (Welcome card) ──────────────────────
   const renderWelcome = () => (
@@ -357,6 +576,34 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
           }}
         />
 
+        {/* Optional accelerator. Sits BELOW the name input as a
+            secondary outlined affordance — visually subordinate to
+            the primary CTA so it reads as "or, the fast way",
+            never competing with "just type your name and go".
+            Skipping it leaves the original minimal flow untouched. */}
+        <TouchableOpacity
+          style={styles.scanCardBtn}
+          activeOpacity={0.7}
+          onPress={handleScanCard}
+          disabled={scanning}
+          accessibilityRole="button"
+          accessibilityLabel={t('auth.onboarding.scanCardCta', { defaultValue: '掃名片快速帶入' })}
+        >
+          {scanning ? (
+            <BrandSpinner size={20} />
+          ) : (
+            <>
+              <ScanLine size={18} color={COLORS.piktag500} strokeWidth={2} />
+              <Text style={styles.scanCardBtnText}>
+                {t('auth.onboarding.scanCardCta', { defaultValue: '掃名片快速帶入' })}
+              </Text>
+            </>
+          )}
+        </TouchableOpacity>
+        <Text style={styles.scanCardHint}>
+          {t('auth.onboarding.scanCardHint', { defaultValue: '有名片？拍一張，自動帶入 bio 和聯絡方式（選填）' })}
+        </Text>
+
         <View style={{ flex: 1, minHeight: 32 }} />
 
         <TouchableOpacity
@@ -448,6 +695,137 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
           navigation.reset({ index: routes.length - 1, routes });
         }}
       />
+
+      {/* ─── Business-card confirmation sheet ───────────────
+          Everything OCR'd is shown editable BEFORE it touches
+          the profile. Card OCR mangles phone digits / handles;
+          a 5-second review beats junk in the user's permanent
+          profile. Nothing here writes to the DB — "套用" only
+          lifts the values into local state; handleComplete does
+          the actual writes when the user finishes onboarding. */}
+      <Modal
+        visible={scanModalVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setScanModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalSheet}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>
+                {t('auth.onboarding.cardConfirmTitle', { defaultValue: '確認名片資料' })}
+              </Text>
+              <TouchableOpacity
+                onPress={() => setScanModalVisible(false)}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                accessibilityRole="button"
+                accessibilityLabel={t('common.close', { defaultValue: '關閉' })}
+              >
+                <X size={22} color={COLORS.gray500} />
+              </TouchableOpacity>
+            </View>
+            <Text style={styles.modalSubtitle}>
+              {t('auth.onboarding.cardConfirmSubtitle', {
+                defaultValue: '檢查一下、可以改 — 確認後才會帶入',
+              })}
+            </Text>
+
+            <ScrollView
+              style={styles.modalScroll}
+              keyboardShouldPersistTaps="handled"
+              showsVerticalScrollIndicator={false}
+            >
+              {/* Name */}
+              <Text style={styles.modalFieldLabel}>
+                {t('auth.onboarding.cardFieldName', { defaultValue: '名字' })}
+              </Text>
+              <TextInput
+                style={styles.modalInput}
+                value={editCard?.full_name ?? ''}
+                onChangeText={(v) =>
+                  setEditCard((c) => (c ? { ...c, full_name: v } : c))
+                }
+                placeholder={t('auth.onboarding.profileNamePlaceholder', { defaultValue: '你的名字' })}
+                placeholderTextColor={COLORS.gray400}
+                maxLength={40}
+              />
+
+              {/* Bio draft */}
+              <Text style={styles.modalFieldLabel}>
+                {t('auth.onboarding.cardFieldBio', { defaultValue: 'Bio（AI 起的草稿，可改）' })}
+              </Text>
+              <TextInput
+                style={[styles.modalInput, styles.modalInputMultiline]}
+                value={editCard?.bio_draft ?? ''}
+                onChangeText={(v) =>
+                  setEditCard((c) => (c ? { ...c, bio_draft: v } : c))
+                }
+                placeholder={t('auth.onboarding.cardBioPlaceholder', {
+                  defaultValue: '一句話介紹你自己',
+                })}
+                placeholderTextColor={COLORS.gray400}
+                multiline
+                maxLength={160}
+              />
+
+              {/* Detected contact links */}
+              {BIOLINK_FIELDS.some(
+                (f) => (editCard?.[f.key] ?? '').toString().trim(),
+              ) && (
+                <Text style={styles.modalSectionLabel}>
+                  {t('auth.onboarding.cardLinksLabel', { defaultValue: '聯絡方式 / 社群' })}
+                </Text>
+              )}
+              {BIOLINK_FIELDS.map((f) => {
+                const raw = (editCard?.[f.key] ?? '').toString();
+                if (!raw.trim()) return null;
+                const label = PLATFORM_MAP[f.platform]?.label ?? f.platform;
+                const on = !!includeMap[f.key];
+                return (
+                  <View key={f.key} style={styles.modalLinkRow}>
+                    <Switch
+                      value={on}
+                      onValueChange={(val) =>
+                        setIncludeMap((m) => ({ ...m, [f.key]: val }))
+                      }
+                      trackColor={{ false: COLORS.gray200, true: COLORS.piktag500 }}
+                    />
+                    <View style={styles.modalLinkBody}>
+                      <Text style={styles.modalLinkPlatform}>{label}</Text>
+                      <TextInput
+                        style={[
+                          styles.modalLinkInput,
+                          !on && styles.modalLinkInputOff,
+                        ]}
+                        value={raw}
+                        editable={on}
+                        onChangeText={(v) =>
+                          setEditCard((c) =>
+                            c ? { ...c, [f.key]: v } : c,
+                          )
+                        }
+                        autoCapitalize="none"
+                        autoCorrect={false}
+                      />
+                    </View>
+                  </View>
+                );
+              })}
+            </ScrollView>
+
+            <TouchableOpacity
+              style={styles.modalApplyBtn}
+              activeOpacity={0.85}
+              onPress={handleApplyCard}
+              accessibilityRole="button"
+            >
+              <Text style={styles.modalApplyBtnText}>
+                {t('auth.onboarding.cardApplyCta', { defaultValue: '套用' })}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </KeyboardAvoidingView>
   );
 }
@@ -572,6 +950,131 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.gray200,
   },
   primaryButtonText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+
+  // ── Scan-card affordance (secondary, subordinate to CTA) ──
+  scanCardBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: BORDER_RADIUS.md,
+    borderWidth: 1.5,
+    borderColor: COLORS.piktag500,
+    backgroundColor: COLORS.piktag50,
+    marginTop: 16,
+  },
+  scanCardBtnText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: COLORS.piktag500,
+  },
+  scanCardHint: {
+    fontSize: 12,
+    color: COLORS.gray400,
+    textAlign: 'center',
+    marginTop: 8,
+  },
+
+  // ── Card confirmation sheet ──
+  modalOverlay: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    backgroundColor: 'rgba(0,0,0,0.4)',
+  },
+  modalSheet: {
+    backgroundColor: COLORS.white,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 32,
+    maxHeight: '85%',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: COLORS.gray900,
+  },
+  modalSubtitle: {
+    fontSize: 13,
+    color: COLORS.gray500,
+    marginTop: 4,
+    marginBottom: 12,
+  },
+  modalScroll: {
+    flexGrow: 0,
+  },
+  modalFieldLabel: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: COLORS.gray700,
+    marginTop: 14,
+    marginBottom: 6,
+  },
+  modalInput: {
+    fontSize: 15,
+    color: COLORS.gray900,
+    backgroundColor: COLORS.gray50,
+    borderRadius: BORDER_RADIUS.md,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+  },
+  modalInputMultiline: {
+    minHeight: 64,
+    textAlignVertical: 'top',
+  },
+  modalSectionLabel: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: COLORS.piktag600,
+    marginTop: 20,
+    marginBottom: 4,
+  },
+  modalLinkRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginTop: 12,
+  },
+  modalLinkBody: {
+    flex: 1,
+  },
+  modalLinkPlatform: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: COLORS.gray500,
+    marginBottom: 4,
+  },
+  modalLinkInput: {
+    fontSize: 14,
+    color: COLORS.gray900,
+    backgroundColor: COLORS.gray50,
+    borderRadius: BORDER_RADIUS.sm,
+    paddingHorizontal: 12,
+    paddingVertical: 9,
+  },
+  modalLinkInputOff: {
+    opacity: 0.4,
+  },
+  modalApplyBtn: {
+    marginTop: 20,
+    paddingVertical: 15,
+    borderRadius: BORDER_RADIUS.lg,
+    backgroundColor: COLORS.piktag500,
+    alignItems: 'center',
+  },
+  modalApplyBtnText: {
     fontSize: 16,
     fontWeight: '700',
     color: '#FFFFFF',

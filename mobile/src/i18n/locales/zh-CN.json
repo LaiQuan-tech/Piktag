@@ -171,7 +171,20 @@
       "avatarTapToChange": "点头像可以更换",
       "avatarPermissionTitle": "需要相册权限",
       "avatarPermissionMessage": "请在设置中允许 PikTag 访问相册",
-      "skipStep": "略过"
+      "skipStep": "略过",
+      "scanCardCta": "扫名片快速带入",
+      "scanCardHint": "有名片？拍一张，自动带入 bio 和联系方式（选填）",
+      "cardScanFailedTitle": "扫描失败",
+      "cardScanFailedMessage": "名片没有读取成功，再试一次或手动填写。",
+      "cardScanEmptyTitle": "没读到资料",
+      "cardScanEmptyMessage": "这张名片看不太清楚 — 换一张清楚的照片，或直接手动填。",
+      "cardConfirmTitle": "确认名片资料",
+      "cardConfirmSubtitle": "检查一下、可以改 — 确认后才会带入",
+      "cardFieldName": "名字",
+      "cardFieldBio": "Bio（AI 起的草稿，可改）",
+      "cardBioPlaceholder": "一句话介绍你自己",
+      "cardLinksLabel": "联系方式 / 社群",
+      "cardApplyCta": "套用"
     }
   },
   "connections": {
