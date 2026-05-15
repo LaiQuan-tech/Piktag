@@ -1137,6 +1137,8 @@
     "memberCount": "{{count}} teman",
     "membersEmpty": "Belum ada yang scan — share ke teman dulu",
     "deleteTitle": "Hapus Vibe ini?",
-    "deleteMessage": "\"{{name}}\" akan dihapus dari Vibes-mu. Teman yang sudah menambahkanmu lewat QR ini tidak terpengaruh."
+    "deleteMessage": "\"{{name}}\" akan dihapus dari Vibes-mu. Teman yang sudah menambahkanmu lewat QR ini tidak terpengaruh.",
+    "deleteFailedTitle": "Gagal menghapus",
+    "deleteFailedMessage": "Vibe ini tidak terhapus. Coba lagi nanti. Hubungi kami jika terus terjadi."
   }
 }

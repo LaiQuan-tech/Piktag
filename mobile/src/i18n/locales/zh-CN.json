@@ -1209,6 +1209,8 @@
     "memberCount": "{{count}} 位好友",
     "membersEmpty": "还没有人扫这个 QR — 分享给朋友吧",
     "deleteTitle": "删除这个 Vibe？",
-    "deleteMessage": "「{{name}}」会从你的 Vibes 中移除。已经通过这个 QR 加你为好友的人不会受影响。"
+    "deleteMessage": "「{{name}}」会从你的 Vibes 中移除。已经通过这个 QR 加你为好友的人不会受影响。",
+    "deleteFailedTitle": "删除失败",
+    "deleteFailedMessage": "这个 Vibe 没有被删除，请稍后再试。若持续发生请联系我们。"
   }
 }

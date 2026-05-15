@@ -1222,6 +1222,8 @@
     "memberCount": "{{count}} friends",
     "membersEmpty": "No one has scanned this QR yet — share it with friends",
     "deleteTitle": "Delete this Vibe?",
-    "deleteMessage": "\"{{name}}\" will be removed from your Vibes. Friends who already added you via this QR are unaffected."
+    "deleteMessage": "\"{{name}}\" will be removed from your Vibes. Friends who already added you via this QR are unaffected.",
+    "deleteFailedTitle": "Delete failed",
+    "deleteFailedMessage": "This Vibe wasn't deleted. Please try again later. Contact us if it keeps happening."
   }
 }

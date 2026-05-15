@@ -1137,6 +1137,8 @@
     "memberCount": "친구 {{count}}명",
     "membersEmpty": "아직 아무도 스캔하지 않았어요 — 친구에게 공유해 보세요",
     "deleteTitle": "이 Vibe를 삭제할까요?",
-    "deleteMessage": "\"{{name}}\"이(가) Vibes에서 제거됩니다. 이미 이 QR로 친구가 된 분들에게는 영향이 없어요."
+    "deleteMessage": "\"{{name}}\"이(가) Vibes에서 제거됩니다. 이미 이 QR로 친구가 된 분들에게는 영향이 없어요.",
+    "deleteFailedTitle": "삭제 실패",
+    "deleteFailedMessage": "이 Vibe 가 삭제되지 않았습니다. 잠시 후 다시 시도해 주세요. 계속되면 문의해 주세요."
   }
 }

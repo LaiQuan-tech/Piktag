@@ -1137,6 +1137,8 @@
     "memberCount": "{{count}} arkadaş",
     "membersEmpty": "Henüz kimse taramadı — arkadaşlarınla paylaş",
     "deleteTitle": "Bu Vibe silinsin mi?",
-    "deleteMessage": "\"{{name}}\" Vibes'ından silinecek. Bu QR'la seni zaten eklemiş arkadaşlar etkilenmez."
+    "deleteMessage": "\"{{name}}\" Vibes'ından silinecek. Bu QR'la seni zaten eklemiş arkadaşlar etkilenmez.",
+    "deleteFailedTitle": "Silme başarısız",
+    "deleteFailedMessage": "Bu Vibe silinmedi. Daha sonra tekrar deneyin. Sürerse bizimle iletişime geçin."
   }
 }

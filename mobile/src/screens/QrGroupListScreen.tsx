@@ -189,14 +189,34 @@ export default function QrGroupListScreen({ navigation }: Props) {
             onPress: async () => {
               // Optimistic remove so the row disappears immediately.
               setGroups((prev) => prev.filter((x) => x.id !== g.id));
-              const { error } = await supabase
+              // `.select()` so we can see WHICH rows were actually
+              // deleted. Without it, an RLS-denied delete returns
+              // { error: null } and deletes 0 rows — the optimistic
+              // UI then lies (row vanishes, reappears on next load).
+              // Empty `data` => nothing deleted => surface it and
+              // revert instead of pretending it worked.
+              const { data: deleted, error } = await supabase
                 .from('piktag_scan_sessions')
                 .delete()
-                .eq('id', g.id);
-              if (error) {
-                console.warn('[QrGroupList] delete failed:', error);
-                // Revert on failure
+                .eq('id', g.id)
+                .select('id');
+              const nothingDeleted =
+                !error && (!deleted || deleted.length === 0);
+              if (error || nothingDeleted) {
+                console.warn(
+                  '[QrGroupList] delete failed:',
+                  error ?? 'RLS denied or row already gone (0 rows affected)',
+                );
+                // Revert the optimistic removal — the row is still
+                // in the DB.
                 await loadGroups();
+                Alert.alert(
+                  t('qrGroup.deleteFailedTitle', { defaultValue: '刪除失敗' }),
+                  t('qrGroup.deleteFailedMessage', {
+                    defaultValue:
+                      '這個 Vibe 沒有被刪除，請稍後再試。若持續發生請聯絡我們。',
+                  }),
+                );
               }
             },
           },

@@ -1137,6 +1137,8 @@
     "memberCount": "{{count}} amigos",
     "membersEmpty": "Ninguém escaneou ainda — compartilha com amigos",
     "deleteTitle": "Excluir este Vibe?",
-    "deleteMessage": "\"{{name}}\" será removido dos seus Vibes. Amigos que já te adicionaram por este QR não são afetados."
+    "deleteMessage": "\"{{name}}\" será removido dos seus Vibes. Amigos que já te adicionaram por este QR não são afetados.",
+    "deleteFailedTitle": "Falha ao excluir",
+    "deleteFailedMessage": "Este Vibe não foi excluído. Tente novamente mais tarde. Fale conosco se persistir."
   }
 }

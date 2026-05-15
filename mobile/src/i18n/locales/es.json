@@ -1137,6 +1137,8 @@
     "memberCount": "{{count}} amigos",
     "membersEmpty": "Nadie ha escaneado aún — compártelo",
     "deleteTitle": "¿Eliminar este Vibe?",
-    "deleteMessage": "\"{{name}}\" se eliminará de tus Vibes. Los amigos que ya te añadieron con este QR no se ven afectados."
+    "deleteMessage": "\"{{name}}\" se eliminará de tus Vibes. Los amigos que ya te añadieron con este QR no se ven afectados.",
+    "deleteFailedTitle": "Error al eliminar",
+    "deleteFailedMessage": "Este Vibe no se eliminó. Inténtalo más tarde. Si persiste, contáctanos."
   }
 }
