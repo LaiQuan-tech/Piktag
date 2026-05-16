@@ -492,7 +492,36 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
             .filter((n) => !eventTags.includes(n)),
         ),
       ).slice(0, 10);
-      setAiSuggestions(cleaned);
+
+      // Guaranteed-selectable date + location tags.
+      //
+      // The suggest-tags prompt already ASKS the model for a date
+      // tag and a location tag, but an LLM is probabilistic — for a
+      // hard product requirement ("the chip strip must ALWAYS offer
+      // at least one date tag and at least one location tag") asking
+      // nicely isn't enough. So we synthesise them deterministically
+      // here and merge them to the FRONT, then slice. This makes the
+      // guarantee independent of model compliance.
+      //
+      //   • Date: always available (computed from `now`). Format
+      //     mirrors this screen's existing quick-date chips
+      //     (getQuickDates → "#2026/05/16"), so it reads as the
+      //     same kind of tag, not a foreign format.
+      //   • Location: only when we actually have a GPS-derived
+      //     signal. We deliberately do NOT fabricate a location
+      //     when GPS is denied/unavailable — a wrong location tag
+      //     is worse than none. It auto-appears on the next
+      //     re-fire once aiLocation resolves (it's in the effect
+      //     deps), or when the user taps refresh.
+      const guaranteed: string[] = [`${yyyy}/${mm}/${dd}`];
+      const locRaw = (aiLocation || aiLocationDetail.split(',')[0] || '').trim();
+      const locTag = locRaw.replace(/\s+/g, '');
+      if (locTag) guaranteed.push(locTag);
+
+      const merged = Array.from(new Set([...guaranteed, ...cleaned]))
+        .filter((n) => !eventTags.includes(n))
+        .slice(0, 10);
+      setAiSuggestions(merged);
     } catch (err) {
       console.warn('[AddTag] AI suggest-tags exception:', err);
       setAiSuggestions([]);
