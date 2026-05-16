@@ -1132,13 +1132,13 @@
     "dismissHint": "যেকোনো জায়গায় ট্যাপ"
   },
   "qrGroup": {
-    "headerTitle": "Vibes",
-    "headerSubtitle": "কার সাথে, কোথায়, কী করেছ",
+    "headerTitle": "নতুন মানুষের সাথে পরিচয়",
+    "headerSubtitle": "Tag the Vibe, Keep the Tribe.",
     "detailHeader": "Vibe",
     "create": "নতুন Vibe তৈরি করুন",
-    "createFirst": "আপনার প্রথম Vibe তৈরি করুন",
-    "emptyTitle": "এখনো কোন Vibe নেই",
-    "emptyDesc": "প্রতিটি Vibe একটি মুহূর্ত — বন্ধুরা QR স্ক্যান করে যোগ দেয়, পরে যে কোন সময় দেখতে পারেন কে ছিল, ট্যাগ যোগ করতে পারেন, বা আবার একত্রিত হতে পারেন।",
+    "createFirst": "এখনকার জন্য QR বানান",
+    "emptyTitle": "ট্যাগ আপনার নতুন বন্ধুদের মনে রাখুক",
+    "emptyDesc": "এখন যা করছেন তার ট্যাগসহ একটি QR বানান (যেমন #লংডং #ডাইভিং)। কেউ স্ক্যান করে আপনার bio পড়ে, যুক্ত হলে দুজনের প্রোফাইলেই দেখা হওয়ার তথ্য স্বয়ং নোট হয় — আর মুখ ভুলবেন না।",
     "untitled": "নামহীন Vibe",
     "untitledFallback": "Vibe · {{date}}",
     "namePlaceholder": "এই Vibe-এর নাম দিন",
@@ -1152,6 +1152,7 @@
     "deleteTitle": "এই Vibe মুছবেন?",
     "deleteMessage": "\"{{name}}\" আপনার Vibes থেকে মুছে যাবে। যারা ইতিমধ্যে এই QR-এর মাধ্যমে যোগ হয়েছে তারা প্রভাবিত হবে না।",
     "deleteFailedTitle": "মুছে ফেলা ব্যর্থ",
-    "deleteFailedMessage": "এই Vibe মুছে ফেলা হয়নি। পরে আবার চেষ্টা করুন। চলতে থাকলে যোগাযোগ করুন।"
+    "deleteFailedMessage": "এই Vibe মুছে ফেলা হয়নি। পরে আবার চেষ্টা করুন। চলতে থাকলে যোগাযোগ করুন।",
+    "emptyScanCta": "অথবা তাদের QR স্ক্যান করে যুক্ত হন"
   }
 }

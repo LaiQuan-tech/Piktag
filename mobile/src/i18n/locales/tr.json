@@ -1132,13 +1132,13 @@
     "dismissHint": "Kapatmak için dokun"
   },
   "qrGroup": {
-    "headerTitle": "Vibes",
-    "headerSubtitle": "Kiminle, nerede, ne yaptın",
+    "headerTitle": "Yeni insanlarla tanış",
+    "headerSubtitle": "Tag the Vibe, Keep the Tribe.",
     "detailHeader": "Vibe",
     "create": "Yeni Vibe oluştur",
-    "createFirst": "İlk Vibe'ını oluştur",
-    "emptyTitle": "Henüz Vibe yok",
-    "emptyDesc": "Her Vibe bir an — arkadaşların QR'ı taratarak katılır, sonra istediğin zaman kimlerin orada olduğunu görebilir, etiket ekleyebilir veya tekrar buluşturabilirsin.",
+    "createFirst": "Şimdiki an için QR oluştur",
+    "emptyTitle": "Etiketler yeni arkadaşlarını senin için hatırlasın",
+    "emptyDesc": "Şu an yaptığın şeyle etiketli bir QR oluştur (örn. #Longdong #Dalış). Karşı taraf tarar, bio'nu okur ve bağlanınca iki profile de nerede tanıştığınız otomatik not düşülür — artık yüz unutmak yok.",
     "untitled": "İsimsiz Vibe",
     "untitledFallback": "Vibe · {{date}}",
     "namePlaceholder": "Bu Vibe'a isim ver",
@@ -1152,6 +1152,7 @@
     "deleteTitle": "Bu Vibe silinsin mi?",
     "deleteMessage": "\"{{name}}\" Vibes'ından silinecek. Bu QR'la seni zaten eklemiş arkadaşlar etkilenmez.",
     "deleteFailedTitle": "Silme başarısız",
-    "deleteFailedMessage": "Bu Vibe silinmedi. Daha sonra tekrar deneyin. Sürerse bizimle iletişime geçin."
+    "deleteFailedMessage": "Bu Vibe silinmedi. Daha sonra tekrar deneyin. Sürerse bizimle iletişime geçin.",
+    "emptyScanCta": "Ya da bağlanmak için onun QR'ını tara"
   }
 }

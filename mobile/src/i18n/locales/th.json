@@ -1132,13 +1132,13 @@
     "dismissHint": "แตะที่ใดก็ได้เพื่อปิด"
   },
   "qrGroup": {
-    "headerTitle": "Vibes",
-    "headerSubtitle": "อยู่กับใคร ที่ไหน ทำอะไร",
+    "headerTitle": "รู้จักเพื่อนใหม่",
+    "headerSubtitle": "Tag the Vibe, Keep the Tribe.",
     "detailHeader": "Vibe",
     "create": "สร้าง Vibe ใหม่",
-    "createFirst": "สร้าง Vibe แรก",
-    "emptyTitle": "ยังไม่มี Vibe",
-    "emptyDesc": "แต่ละ Vibe คือหนึ่งช่วงเวลา — เพื่อนสแกน QR เพื่อเข้าร่วม แล้วคุณสามารถกลับมาดูว่ามีใครบ้าง เพิ่มแท็ก หรือนัดกันใหม่ได้ตลอด",
+    "createFirst": "สร้าง QR สำหรับตอนนี้",
+    "emptyTitle": "ให้แท็กช่วยจำเพื่อนใหม่ให้คุณ",
+    "emptyDesc": "สร้าง QR ที่ติดแท็กสิ่งที่คุณกำลังทำตอนนี้ (เช่น #หลงต้ง #ดำน้ำ) อีกฝ่ายสแกนแล้วอ่านไบโอของคุณ พอเพิ่มกันระบบจะบันทึกการพบกันให้ทั้งสองโปรไฟล์อัตโนมัติ — ไม่ลืมหน้ากันอีกต่อไป",
     "untitled": "Vibe ไม่มีชื่อ",
     "untitledFallback": "Vibe · {{date}}",
     "namePlaceholder": "ตั้งชื่อ Vibe นี้",
@@ -1152,6 +1152,7 @@
     "deleteTitle": "ลบ Vibe นี้?",
     "deleteMessage": "\"{{name}}\" จะถูกลบออกจาก Vibes ของคุณ เพื่อนที่เพิ่มคุณผ่าน QR นี้แล้วจะไม่ได้รับผลกระทบ",
     "deleteFailedTitle": "ลบไม่สำเร็จ",
-    "deleteFailedMessage": "Vibe นี้ยังไม่ถูกลบ ลองอีกครั้งภายหลัง หากยังเป็นอยู่โปรดติดต่อเรา"
+    "deleteFailedMessage": "Vibe นี้ยังไม่ถูกลบ ลองอีกครั้งภายหลัง หากยังเป็นอยู่โปรดติดต่อเรา",
+    "emptyScanCta": "หรือสแกน QR ของอีกฝ่ายเพื่อเพิ่ม"
   }
 }

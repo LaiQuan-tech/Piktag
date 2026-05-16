@@ -1132,13 +1132,13 @@
     "dismissHint": "아무 곳이나 탭하여 닫기"
   },
   "qrGroup": {
-    "headerTitle": "Vibes",
-    "headerSubtitle": "누구와 어디서 무엇을 했는지",
+    "headerTitle": "새로운 사람 만나기",
+    "headerSubtitle": "Tag the Vibe, Keep the Tribe.",
     "detailHeader": "Vibe",
     "create": "새 Vibe 만들기",
-    "createFirst": "첫 Vibe 만들기",
-    "emptyTitle": "아직 Vibe가 없어요",
-    "emptyDesc": "각 Vibe는 하나의 순간이에요 — 친구가 QR을 스캔해 참여하고, 나중에 누가 있었는지 확인하고 태그를 추가하거나 다시 모일 수 있어요.",
+    "createFirst": "지금 활동의 QR 만들기",
+    "emptyTitle": "태그가 새 친구를 기억해 줘요",
+    "emptyDesc": "지금 하는 활동을 태그로 담은 QR을 만드세요(예: #롱동 #다이빙). 상대가 스캔해 Bio를 읽고, 서로 추가되면 양쪽 프로필에 만남이 자동 메모돼요 — 어디서 만났는지 더는 잊지 않아요.",
     "untitled": "제목 없는 Vibe",
     "untitledFallback": "Vibe · {{date}}",
     "namePlaceholder": "이 Vibe의 이름을 지어주세요",
@@ -1152,6 +1152,7 @@
     "deleteTitle": "이 Vibe를 삭제할까요?",
     "deleteMessage": "\"{{name}}\"이(가) Vibes에서 제거됩니다. 이미 이 QR로 친구가 된 분들에게는 영향이 없어요.",
     "deleteFailedTitle": "삭제 실패",
-    "deleteFailedMessage": "이 Vibe 가 삭제되지 않았습니다. 잠시 후 다시 시도해 주세요. 계속되면 문의해 주세요."
+    "deleteFailedMessage": "이 Vibe 가 삭제되지 않았습니다. 잠시 후 다시 시도해 주세요. 계속되면 문의해 주세요.",
+    "emptyScanCta": "또는 상대의 QR을 스캔해 추가"
   }
 }

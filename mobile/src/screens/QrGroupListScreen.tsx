@@ -350,11 +350,12 @@ export default function QrGroupListScreen({ navigation }: Props) {
           <QrCode size={36} color={COLORS.piktag500} />
         </View>
         <Text style={styles.emptyTitle}>
-          {t('qrGroup.emptyTitle', { defaultValue: '還沒有 Vibe' })}
+          {t('qrGroup.emptyTitle', { defaultValue: '讓標籤，替你記住新朋友' })}
         </Text>
         <Text style={styles.emptyDesc}>
           {t('qrGroup.emptyDesc', {
-            defaultValue: '每個 Vibe 就是一個活動瞬間 — 朋友掃 QR 一起加進來，之後隨時回頭看是誰、加標籤、再揪一次。',
+            defaultValue:
+              '建立一個帶當下活動標籤的 QR（例如 #龍洞 #潛水）。新朋友掃描後讀取你的 Bio，互加成功時系統會自動在彼此資料上備註這次相遇，再也不怕忘記在哪見過面。',
           })}
         </Text>
         <TouchableOpacity
@@ -364,7 +365,7 @@ export default function QrGroupListScreen({ navigation }: Props) {
         >
           <Plus size={18} color="#FFFFFF" />
           <Text style={styles.emptyCtaText}>
-            {t('qrGroup.createFirst', { defaultValue: '建立第一個 Vibe' })}
+            {t('qrGroup.createFirst', { defaultValue: '建立當下活動的 QR' })}
           </Text>
         </TouchableOpacity>
 
@@ -379,7 +380,7 @@ export default function QrGroupListScreen({ navigation }: Props) {
         >
           <ScanLine size={16} color={COLORS.piktag600} />
           <Text style={styles.emptyScanText}>
-            {t('qrGroup.emptyScanCta', { defaultValue: '或掃描朋友的 QR 加好友' })}
+            {t('qrGroup.emptyScanCta', { defaultValue: '或掃描對方的 QR 加好友' })}
           </Text>
         </TouchableOpacity>
       </View>
@@ -395,14 +396,18 @@ export default function QrGroupListScreen({ navigation }: Props) {
         <View style={styles.header}>
           <View style={styles.headerTitleWrap}>
             <Text style={styles.headerTitle}>
-              {t('qrGroup.headerTitle', { defaultValue: 'Vibes' })}
+              {t('qrGroup.headerTitle', { defaultValue: '認識新朋友' })}
             </Text>
-            {/* Chinese subtitle explains what "Vibe" means without
-                requiring the user to know the English word. Plain
-                three-clause sentence: who / where / what — each
-                dimension a Vibe captures. */}
+            {/* Title is the PURPOSE ("認識新朋友"), not the jargon
+                ("Vibes"), so a first-time user gets what this tab is
+                for at a glance. "Vibe" stays the noun for a created
+                item everywhere else (list rows, delete dialog,
+                QrGroupDetail) — screen = purpose, Vibe = artifact.
+                Subtitle is the brand tagline (same line as the
+                onboarding brandTagline) — kept English in every
+                locale as a deliberate brand signature. */}
             <Text style={styles.headerSubtitle}>
-              {t('qrGroup.headerSubtitle', { defaultValue: '你跟誰在哪裡，做了什麼' })}
+              {t('qrGroup.headerSubtitle', { defaultValue: 'Tag the Vibe, Keep the Tribe.' })}
             </Text>
           </View>
           <View style={styles.headerActions}>

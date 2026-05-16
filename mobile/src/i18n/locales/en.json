@@ -1217,13 +1217,13 @@
     "dismissHint": "Tap anywhere to dismiss"
   },
   "qrGroup": {
-    "headerTitle": "Vibes",
-    "headerSubtitle": "Who you met, where, what you did",
+    "headerTitle": "Meet new people",
+    "headerSubtitle": "Tag the Vibe, Keep the Tribe.",
     "detailHeader": "Vibe",
     "create": "Create new Vibe",
-    "createFirst": "Create your first Vibe",
-    "emptyTitle": "No Vibes yet",
-    "emptyDesc": "Each Vibe is a moment — friends scan the QR to join in, and anytime later you can come back to see who was there, add tags, or gather them again.",
+    "createFirst": "Create a QR for right now",
+    "emptyTitle": "Let tags remember new friends for you",
+    "emptyDesc": "Make a QR tagged with what you're doing now (e.g. #Longdong #Diving). New people scan it, read your bio, and once you connect both profiles get auto-noted with where you met — never forget a face again.",
     "untitled": "Untitled Vibe",
     "untitledFallback": "Vibe · {{date}}",
     "namePlaceholder": "Name this Vibe",
@@ -1237,6 +1237,7 @@
     "deleteTitle": "Delete this Vibe?",
     "deleteMessage": "\"{{name}}\" will be removed from your Vibes. Friends who already added you via this QR are unaffected.",
     "deleteFailedTitle": "Delete failed",
-    "deleteFailedMessage": "This Vibe wasn't deleted. Please try again later. Contact us if it keeps happening."
+    "deleteFailedMessage": "This Vibe wasn't deleted. Please try again later. Contact us if it keeps happening.",
+    "emptyScanCta": "Or scan their QR to connect"
   }
 }

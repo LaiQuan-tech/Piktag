@@ -1132,13 +1132,13 @@
     "dismissHint": "Tap untuk tutup"
   },
   "qrGroup": {
-    "headerTitle": "Vibes",
-    "headerSubtitle": "Siapa, di mana, dan kalian ngapain",
+    "headerTitle": "Temui orang baru",
+    "headerSubtitle": "Tag the Vibe, Keep the Tribe.",
     "detailHeader": "Vibe",
     "create": "Bikin Vibe baru",
-    "createFirst": "Bikin Vibe pertamamu",
-    "emptyTitle": "Belum ada Vibe",
-    "emptyDesc": "Setiap Vibe adalah satu momen — teman scan QR untuk gabung, dan nanti kamu bisa lihat siapa aja, tambah tag, atau ngumpul lagi.",
+    "createFirst": "Buat QR untuk sekarang",
+    "emptyTitle": "Biar tag yang mengingat teman barumu",
+    "emptyDesc": "Buat QR berisi tag aktivitasmu sekarang (mis. #Longdong #Diving). Orang memindai, baca bio-mu, dan saat terhubung kedua profil otomatis mencatat tempat kalian bertemu — tak perlu lupa wajah lagi.",
     "untitled": "Vibe tanpa nama",
     "untitledFallback": "Vibe · {{date}}",
     "namePlaceholder": "Kasih nama Vibe ini",
@@ -1152,6 +1152,7 @@
     "deleteTitle": "Hapus Vibe ini?",
     "deleteMessage": "\"{{name}}\" akan dihapus dari Vibes-mu. Teman yang sudah menambahkanmu lewat QR ini tidak terpengaruh.",
     "deleteFailedTitle": "Gagal menghapus",
-    "deleteFailedMessage": "Vibe ini tidak terhapus. Coba lagi nanti. Hubungi kami jika terus terjadi."
+    "deleteFailedMessage": "Vibe ini tidak terhapus. Coba lagi nanti. Hubungi kami jika terus terjadi.",
+    "emptyScanCta": "Atau pindai QR mereka untuk terhubung"
   }
 }

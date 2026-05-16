@@ -1132,13 +1132,13 @@
     "dismissHint": "انقر للإغلاق"
   },
   "qrGroup": {
-    "headerTitle": "Vibes",
-    "headerSubtitle": "مع من، أين، ما الذي فعلتموه",
+    "headerTitle": "قابل أشخاصًا جددًا",
+    "headerSubtitle": "Tag the Vibe, Keep the Tribe.",
     "detailHeader": "Vibe",
     "create": "إنشاء Vibe جديد",
-    "createFirst": "أنشئ أول Vibe",
-    "emptyTitle": "لا توجد Vibes بعد",
-    "emptyDesc": "كل Vibe هو لحظة — يمسح أصدقاؤك رمز QR للانضمام، ويمكنك لاحقًا رؤية من كان هناك، إضافة وسوم، أو جمعهم مرة أخرى.",
+    "createFirst": "أنشئ QR للحظة الحالية",
+    "emptyTitle": "دع الوسوم تتذكّر أصدقاءك الجدد",
+    "emptyDesc": "أنشئ رمز QR موسومًا بما تفعله الآن (مثل #لونغدونغ #غوص). يمسحه الآخر ويقرأ نبذتك، وعند التواصل يُسجَّل تلقائيًا في الملفين أين التقيتما — لن تنسى وجهًا بعد الآن.",
     "untitled": "Vibe بدون عنوان",
     "untitledFallback": "Vibe · {{date}}",
     "namePlaceholder": "سمّ هذا Vibe",
@@ -1152,6 +1152,7 @@
     "deleteTitle": "حذف هذا Vibe؟",
     "deleteMessage": "سيُزال \"{{name}}\" من Vibes الخاص بك. الأصدقاء الذين أضافوك بالفعل عبر هذا QR لن يتأثروا.",
     "deleteFailedTitle": "فشل الحذف",
-    "deleteFailedMessage": "لم يتم حذف هذا الـ Vibe. حاول لاحقًا. تواصل معنا إذا استمر ذلك."
+    "deleteFailedMessage": "لم يتم حذف هذا الـ Vibe. حاول لاحقًا. تواصل معنا إذا استمر ذلك.",
+    "emptyScanCta": "أو امسح رمز QR الخاص به للتواصل"
   }
 }

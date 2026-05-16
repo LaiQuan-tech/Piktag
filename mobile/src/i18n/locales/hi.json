@@ -1132,13 +1132,13 @@
     "dismissHint": "बंद करने के लिए टैप करें"
   },
   "qrGroup": {
-    "headerTitle": "Vibes",
-    "headerSubtitle": "किसके साथ, कहाँ, क्या किया",
+    "headerTitle": "नए लोगों से मिलें",
+    "headerSubtitle": "Tag the Vibe, Keep the Tribe.",
     "detailHeader": "Vibe",
     "create": "नया Vibe बनाएँ",
-    "createFirst": "अपना पहला Vibe बनाएँ",
-    "emptyTitle": "अभी कोई Vibe नहीं",
-    "emptyDesc": "हर Vibe एक पल है — दोस्त QR स्कैन करके जुड़ते हैं, और बाद में आप देख सकते हैं कौन था, टैग जोड़ सकते हैं, या फिर से इकट्ठा कर सकते हैं।",
+    "createFirst": "अभी के लिए QR बनाएं",
+    "emptyTitle": "टैग को नए दोस्त याद रखने दें",
+    "emptyDesc": "अभी जो कर रहे हैं उसका टैग लगा QR बनाएं (जैसे #लोंगडोंग #डाइविंग)। सामने वाला स्कैन कर आपकी bio पढ़ता है, और जुड़ते ही दोनों प्रोफाइल में मुलाक़ात अपने‑आप नोट हो जाती है — अब चेहरा नहीं भूलेंगे।",
     "untitled": "बिना नाम का Vibe",
     "untitledFallback": "Vibe · {{date}}",
     "namePlaceholder": "इस Vibe को नाम दें",
@@ -1152,6 +1152,7 @@
     "deleteTitle": "यह Vibe हटाएँ?",
     "deleteMessage": "\"{{name}}\" आपके Vibes से हटा दिया जाएगा। इस QR से जुड़े मित्र प्रभावित नहीं होंगे।",
     "deleteFailedTitle": "हटाना विफल",
-    "deleteFailedMessage": "यह Vibe हटाया नहीं गया। बाद में पुनः प्रयास करें। बना रहे तो हमसे संपर्क करें।"
+    "deleteFailedMessage": "यह Vibe हटाया नहीं गया। बाद में पुनः प्रयास करें। बना रहे तो हमसे संपर्क करें।",
+    "emptyScanCta": "या उनका QR स्कैन कर जुड़ें"
   }
 }

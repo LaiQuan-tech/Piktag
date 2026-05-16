@@ -1204,13 +1204,13 @@
     "dismissHint": "点任意处关闭"
   },
   "qrGroup": {
-    "headerTitle": "Vibes",
-    "headerSubtitle": "你跟谁在哪里，做了什么",
+    "headerTitle": "认识新朋友",
+    "headerSubtitle": "Tag the Vibe, Keep the Tribe.",
     "detailHeader": "Vibe",
     "create": "创建新 Vibe",
-    "createFirst": "创建第一个 Vibe",
-    "emptyTitle": "还没有 Vibe",
-    "emptyDesc": "每个 Vibe 就是一个活动瞬间 — 朋友扫 QR 一起加进来，之后随时回头看是谁、加标签、再约一次。",
+    "createFirst": "建立当下活动的 QR",
+    "emptyTitle": "让标签，替你记住新朋友",
+    "emptyDesc": "建立一个带当下活动标签的 QR（例如 #龙洞 #潜水）。新朋友扫描后读取你的 Bio，互加成功时系统会自动在彼此资料上备注这次相遇，再也不怕忘记在哪见过面。",
     "untitled": "未命名 Vibe",
     "untitledFallback": "Vibe · {{date}}",
     "namePlaceholder": "帮这个 Vibe 取个名字",
@@ -1224,6 +1224,7 @@
     "deleteTitle": "删除这个 Vibe？",
     "deleteMessage": "「{{name}}」会从你的 Vibes 中移除。已经通过这个 QR 加你为好友的人不会受影响。",
     "deleteFailedTitle": "删除失败",
-    "deleteFailedMessage": "这个 Vibe 没有被删除，请稍后再试。若持续发生请联系我们。"
+    "deleteFailedMessage": "这个 Vibe 没有被删除，请稍后再试。若持续发生请联系我们。",
+    "emptyScanCta": "或扫描对方的 QR 加好友"
   }
 }

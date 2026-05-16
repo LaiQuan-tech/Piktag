@@ -1204,13 +1204,13 @@
     "dismissHint": "Tippe irgendwo, um zu schließen"
   },
   "qrGroup": {
-    "headerTitle": "Vibes",
-    "headerSubtitle": "Wen du getroffen hast, wo und was ihr gemacht habt",
+    "headerTitle": "Neue Leute treffen",
+    "headerSubtitle": "Tag the Vibe, Keep the Tribe.",
     "detailHeader": "Vibe",
     "create": "Neuen Vibe erstellen",
-    "createFirst": "Erstelle deinen ersten Vibe",
-    "emptyTitle": "Noch keine Vibes",
-    "emptyDesc": "Jeder Vibe ist ein Moment — Freunde scannen den QR-Code, um beizutreten, und du kannst später sehen, wer dabei war, Tags hinzufügen oder alle wieder zusammenbringen.",
+    "createFirst": "QR für jetzt erstellen",
+    "emptyTitle": "Lass Tags neue Freunde für dich merken",
+    "emptyDesc": "Erstelle einen QR mit dem, was du gerade machst (z. B. #Longdong #Tauchen). Andere scannen, lesen deine Bio, und beim Verbinden notieren beide Profile automatisch, wo ihr euch getroffen habt — nie wieder ein Gesicht vergessen.",
     "untitled": "Unbenannter Vibe",
     "untitledFallback": "Vibe · {{date}}",
     "namePlaceholder": "Gib diesem Vibe einen Namen",
@@ -1224,6 +1224,7 @@
     "deleteTitle": "Diesen Vibe löschen?",
     "deleteMessage": "„{{name}}\" wird aus deinen Vibes entfernt. Freunde, die dich bereits über diesen QR hinzugefügt haben, sind nicht betroffen.",
     "deleteFailedTitle": "Löschen fehlgeschlagen",
-    "deleteFailedMessage": "Dieser Vibe wurde nicht gelöscht. Bitte später erneut versuchen. Kontaktiere uns, falls es bestehen bleibt."
+    "deleteFailedMessage": "Dieser Vibe wurde nicht gelöscht. Bitte später erneut versuchen. Kontaktiere uns, falls es bestehen bleibt.",
+    "emptyScanCta": "Oder scanne ihren QR zum Verbinden"
   }
 }
