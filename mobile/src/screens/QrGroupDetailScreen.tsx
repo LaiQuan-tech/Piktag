@@ -292,7 +292,7 @@ export default function QrGroupDetailScreen({ navigation, route }: Props) {
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerBackBtn}>
             <ArrowLeft size={22} color={COLORS.gray900} />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>{t('qrGroup.detailHeader', { defaultValue: 'Vibe' })}</Text>
+          <Text style={styles.headerTitle}>{t('qrGroup.detailHeader', { defaultValue: 'Tag' })}</Text>
           <View style={{ width: 36 }} />
         </View>
         <View style={styles.loadingWrap}>
@@ -306,7 +306,7 @@ export default function QrGroupDetailScreen({ navigation, route }: Props) {
 
   const displayName =
     group.name?.trim() ||
-    t('qrGroup.untitled', { defaultValue: '未命名 Vibe' });
+    t('qrGroup.untitled', { defaultValue: '未命名 Tag' });
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
@@ -317,7 +317,7 @@ export default function QrGroupDetailScreen({ navigation, route }: Props) {
           <ArrowLeft size={22} color={COLORS.gray900} />
         </TouchableOpacity>
         <Text style={styles.headerTitle} numberOfLines={1}>
-          {t('qrGroup.detailHeader', { defaultValue: 'Vibe' })}
+          {t('qrGroup.detailHeader', { defaultValue: 'Tag' })}
         </Text>
         <TouchableOpacity onPress={handleShare} style={styles.headerBackBtn}>
           <Share2 size={20} color={COLORS.piktag600} />
@@ -360,7 +360,7 @@ export default function QrGroupDetailScreen({ navigation, route }: Props) {
                 onBlur={handleSaveName}
                 onSubmitEditing={handleSaveName}
                 returnKeyType="done"
-                placeholder={t('qrGroup.namePlaceholder', { defaultValue: '幫這個 Vibe 取個名字' })}
+                placeholder={t('qrGroup.namePlaceholder', { defaultValue: '幫這個 Tag 取個名字' })}
                 placeholderTextColor="rgba(255,255,255,0.5)"
                 maxLength={40}
               />
@@ -398,7 +398,7 @@ export default function QrGroupDetailScreen({ navigation, route }: Props) {
         {/* Tag editor. */}
         <View style={styles.tagSection}>
           <Text style={styles.sectionTitle}>
-            {t('qrGroup.tagsTitle', { defaultValue: 'Vibe 標籤' })}
+            {t('qrGroup.tagsTitle', { defaultValue: 'Tag 標籤' })}
           </Text>
           <View style={styles.tagChipsRow}>
             {group.event_tags.map((tag) => (
@@ -456,7 +456,7 @@ export default function QrGroupDetailScreen({ navigation, route }: Props) {
             <View style={styles.vibeShiftHeader}>
               <Sparkles size={16} color={COLORS.piktag500} strokeWidth={2.2} />
               <Text style={styles.vibeShiftTitle}>
-                {t('qrGroup.currentVibesTitle', { defaultValue: '他們現在的 Vibe' })}
+                {t('qrGroup.currentVibesTitle', { defaultValue: '他們最近在標什麼' })}
               </Text>
             </View>
             <Text style={styles.vibeShiftHint}>
@@ -549,7 +549,7 @@ export default function QrGroupDetailScreen({ navigation, route }: Props) {
                     <Text style={styles.memberEmptyText}>
                       {filterEntry != null
                         ? t('qrGroup.membersFilterEmpty', {
-                            defaultValue: '這個 Vibe 中沒有貼這個標籤的人',
+                            defaultValue: '這個 Tag 中沒有貼這個標籤的人',
                           })
                         : t('qrGroup.membersEmpty', {
                             defaultValue: '還沒有人掃這個 QR — 分享給朋友吧',

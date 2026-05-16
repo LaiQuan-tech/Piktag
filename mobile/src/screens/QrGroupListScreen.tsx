@@ -174,12 +174,12 @@ export default function QrGroupListScreen({ navigation }: Props) {
       const displayName =
         g.name?.trim() ||
         g.event_location ||
-        t('qrGroup.untitled', { defaultValue: '未命名 Vibe' });
+        t('qrGroup.untitled', { defaultValue: '未命名 Tag' });
       Alert.alert(
-        t('qrGroup.deleteTitle', { defaultValue: '刪除這個 Vibe？' }),
+        t('qrGroup.deleteTitle', { defaultValue: '刪除這個 Tag？' }),
         t('qrGroup.deleteMessage', {
           name: displayName,
-          defaultValue: `「${displayName}」會從你的 Vibes 中移除。已經透過這個 QR 加你為好友的人不會受影響。`,
+          defaultValue: `「${displayName}」會從你的 Tags 中移除。已經透過這個 QR 加你為好友的人不會受影響。`,
         }),
         [
           { text: t('common.cancel', { defaultValue: '取消' }), style: 'cancel' },
@@ -263,7 +263,7 @@ export default function QrGroupListScreen({ navigation }: Props) {
         (item.event_location ? `${item.event_location}` : null) ||
         t('qrGroup.untitledFallback', {
           date: new Date(item.created_at).toLocaleDateString(),
-          defaultValue: `Vibe · ${new Date(item.created_at).toLocaleDateString()}`,
+          defaultValue: `Tag · ${new Date(item.created_at).toLocaleDateString()}`,
         });
       const tagPreview = item.event_tags.slice(0, 3);
       return (
@@ -387,16 +387,18 @@ export default function QrGroupListScreen({ navigation }: Props) {
             <Text style={styles.headerTitle}>
               {t('qrGroup.headerTitle', { defaultValue: '認識新朋友' })}
             </Text>
-            {/* Title is the PURPOSE ("認識新朋友"), not the jargon
-                ("Vibes"), so a first-time user gets what this tab is
-                for at a glance. "Vibe" stays the noun for a created
-                item everywhere else (list rows, delete dialog,
-                QrGroupDetail) — screen = purpose, Vibe = artifact.
-                Subtitle is the brand tagline (same line as the
-                onboarding brandTagline) — kept English in every
-                locale as a deliberate brand signature. */}
+            {/* Title is the PURPOSE ("認識新朋友"), not jargon.
+                The artifact noun was renamed "Vibe" → "Tag" (English
+                brand term in EVERY locale — ties to the app name
+                PikTag and the core "tagging" mechanic; localising it
+                to 標籤/タグ collides with the #tag chips each row
+                shows). Applied consistently across every surface
+                (list rows, delete dialog, QrGroupDetail). Subtitle
+                is now a short functional line, not the old
+                "Tag the Vibe, Keep the Tribe." tagline — that
+                referenced "Vibe", a word the UI no longer uses. */}
             <Text style={styles.headerSubtitle}>
-              {t('qrGroup.headerSubtitle', { defaultValue: 'Tag the Vibe, Keep the Tribe.' })}
+              {t('qrGroup.headerSubtitle', { defaultValue: '用 Tag 記住你在哪認識誰' })}
             </Text>
           </View>
           <View style={styles.headerActions}>
@@ -418,7 +420,7 @@ export default function QrGroupListScreen({ navigation }: Props) {
               activeOpacity={0.7}
               onPress={handleCreateNew}
               accessibilityRole="button"
-              accessibilityLabel={t('qrGroup.create', { defaultValue: '建立新 Vibe' })}
+              accessibilityLabel={t('qrGroup.create', { defaultValue: '建立新 Tag' })}
             >
               <Plus size={24} color={COLORS.gray600} />
             </TouchableOpacity>
