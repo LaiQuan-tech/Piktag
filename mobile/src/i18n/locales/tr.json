@@ -1138,7 +1138,7 @@
     "create": "Yeni Vibe oluştur",
     "createFirst": "Şimdiki an için QR oluştur",
     "emptyTitle": "Etiketler yeni arkadaşlarını senin için hatırlasın",
-    "emptyDesc": "Şu an yaptığın şeyle etiketli bir QR oluştur (örn. #Longdong #Dalış). Karşı taraf tarar, bio'nu okur ve bağlanınca iki profile de nerede tanıştığınız otomatik not düşülür — artık yüz unutmak yok.",
+    "emptyDesc": "Tarayıp bağlandığınızda buluşma iki profile de otomatik not düşülür — nerede tanıştığınızı bir daha unutmazsınız.",
     "untitled": "İsimsiz Vibe",
     "untitledFallback": "Vibe · {{date}}",
     "namePlaceholder": "Bu Vibe'a isim ver",

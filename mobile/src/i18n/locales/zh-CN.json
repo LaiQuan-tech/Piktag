@@ -1210,7 +1210,7 @@
     "create": "创建新 Vibe",
     "createFirst": "建立当下活动的 QR",
     "emptyTitle": "让标签，替你记住新朋友",
-    "emptyDesc": "建立一个带当下活动标签的 QR（例如 #龙洞 #潜水）。新朋友扫描后读取你的 Bio，互加成功时系统会自动在彼此资料上备注这次相遇，再也不怕忘记在哪见过面。",
+    "emptyDesc": "扫描互加后，系统会自动备注这次相遇，再也不怕忘记在哪见过面。",
     "untitled": "未命名 Vibe",
     "untitledFallback": "Vibe · {{date}}",
     "namePlaceholder": "帮这个 Vibe 取个名字",

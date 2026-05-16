@@ -355,7 +355,7 @@ export default function QrGroupListScreen({ navigation }: Props) {
         <Text style={styles.emptyDesc}>
           {t('qrGroup.emptyDesc', {
             defaultValue:
-              '建立一個帶當下活動標籤的 QR（例如 #龍洞 #潛水）。新朋友掃描後讀取你的 Bio，互加成功時系統會自動在彼此資料上備註這次相遇，再也不怕忘記在哪見過面。',
+              '掃描互加後，系統會自動備註這次相遇，再也不怕忘記在哪見過面。',
           })}
         </Text>
         <TouchableOpacity
@@ -368,24 +368,13 @@ export default function QrGroupListScreen({ navigation }: Props) {
             {t('qrGroup.createFirst', { defaultValue: '建立當下活動的 QR' })}
           </Text>
         </TouchableOpacity>
-
-        {/* Secondary path: scan someone else's QR. First-time users
-            arriving at this empty state might equally want to add a
-            friend via someone else's QR — surface that path here so
-            it's a peer choice, not a hidden afterthought. */}
-        <TouchableOpacity
-          style={styles.emptyScanBtn}
-          activeOpacity={0.7}
-          onPress={handleOpenScanner}
-        >
-          <ScanLine size={16} color={COLORS.piktag600} />
-          <Text style={styles.emptyScanText}>
-            {t('qrGroup.emptyScanCta', { defaultValue: '或掃描對方的 QR 加好友' })}
-          </Text>
-        </TouchableOpacity>
+        {/* Secondary "scan someone else's QR" link removed from the
+            empty state for a cleaner screen — the scan action still
+            lives in the header (ScanLine icon, top-right), so no
+            navigation path is lost, just visual noise. */}
       </View>
     ),
-    [t, handleCreateNew, handleOpenScanner],
+    [t, handleCreateNew],
   );
 
   return (
@@ -569,17 +558,6 @@ const styles = StyleSheet.create({
     marginTop: 12,
   },
   emptyCtaText: { fontSize: 15, fontWeight: '700', color: '#FFFFFF' },
-  // Secondary "or scan a friend's QR" link beneath the primary CTA.
-  // Visually lighter than the filled purple button — text + thin
-  // border, so it reads as an alternate option, not a competing
-  // primary action.
-  emptyScanBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingVertical: 8,
-    paddingHorizontal: 14,
-    marginTop: 4,
-  },
-  emptyScanText: { fontSize: 13, color: COLORS.piktag600, fontWeight: '600' },
+  // (emptyScanBtn / emptyScanText removed with the secondary
+  //  scan link — scan now lives only in the header.)
 });

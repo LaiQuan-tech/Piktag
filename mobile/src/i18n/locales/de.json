@@ -1210,7 +1210,7 @@
     "create": "Neuen Vibe erstellen",
     "createFirst": "QR für jetzt erstellen",
     "emptyTitle": "Lass Tags neue Freunde für dich merken",
-    "emptyDesc": "Erstelle einen QR mit dem, was du gerade machst (z. B. #Longdong #Tauchen). Andere scannen, lesen deine Bio, und beim Verbinden notieren beide Profile automatisch, wo ihr euch getroffen habt — nie wieder ein Gesicht vergessen.",
+    "emptyDesc": "Nach Scannen und Verbinden wird das Treffen automatisch notiert — nie wieder vergessen, wo ihr euch getroffen habt.",
     "untitled": "Unbenannter Vibe",
     "untitledFallback": "Vibe · {{date}}",
     "namePlaceholder": "Gib diesem Vibe einen Namen",

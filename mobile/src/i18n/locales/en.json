@@ -1223,7 +1223,7 @@
     "create": "Create new Vibe",
     "createFirst": "Create a QR for right now",
     "emptyTitle": "Let tags remember new friends for you",
-    "emptyDesc": "Make a QR tagged with what you're doing now (e.g. #Longdong #Diving). New people scan it, read your bio, and once you connect both profiles get auto-noted with where you met — never forget a face again.",
+    "emptyDesc": "After you scan & connect, the meeting is auto-noted on both profiles — never forget where you met again.",
     "untitled": "Untitled Vibe",
     "untitledFallback": "Vibe · {{date}}",
     "namePlaceholder": "Name this Vibe",

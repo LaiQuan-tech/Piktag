@@ -1138,7 +1138,7 @@
     "create": "새 Vibe 만들기",
     "createFirst": "지금 활동의 QR 만들기",
     "emptyTitle": "태그가 새 친구를 기억해 줘요",
-    "emptyDesc": "지금 하는 활동을 태그로 담은 QR을 만드세요(예: #롱동 #다이빙). 상대가 스캔해 Bio를 읽고, 서로 추가되면 양쪽 프로필에 만남이 자동 메모돼요 — 어디서 만났는지 더는 잊지 않아요.",
+    "emptyDesc": "스캔해 서로 추가하면 만남이 자동으로 메모돼요 — 어디서 만났는지 더는 잊지 않아요.",
     "untitled": "제목 없는 Vibe",
     "untitledFallback": "Vibe · {{date}}",
     "namePlaceholder": "이 Vibe의 이름을 지어주세요",
