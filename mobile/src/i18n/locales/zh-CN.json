@@ -468,7 +468,14 @@
     "missingBio": "简介",
     "missingTags": "3 个标签",
     "missingBiolink": "社群链接",
-    "welcomeShort": "欢迎来到 PikTag"
+    "welcomeShort": "欢迎来到 PikTag",
+    "bioPromptHints": [
+      "北京做产品设计，假日冲浪",
+      "独立接单摄影，养两只猫",
+      "后端工程师，最近在学陶艺",
+      "创业中，找联合创始人",
+      "咖啡因成瘾的市场人"
+    ]
   },
   "friendDetail": {
     "reminderBirthday": "生日",
@@ -1182,7 +1189,14 @@
     "bubblePromptMine": "+ 新增 Ask",
     "aiSuggestionsTitle": "AI 为你推荐",
     "aiBodyTooShortHint": "写一句话描述你想要什么 — AI 会推荐合适的标签",
-    "aiTapToGenerateHint": "点右上的 ↻ 让 AI 推荐标签"
+    "aiTapToGenerateHint": "点右上的 ↻ 让 AI 推荐标签",
+    "bodyPromptHints": [
+      "想找人周末一起爬山",
+      "有人会修 Wi-Fi 吗，急",
+      "想接活，有人发包吗",
+      "推荐北京平价牙医",
+      "找桌游搭子，这周约一场"
+    ]
   },
   "errorBoundary": {
     "title": "出错了",

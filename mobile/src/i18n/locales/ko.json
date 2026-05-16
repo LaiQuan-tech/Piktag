@@ -460,7 +460,14 @@
     "missingBio": "자기소개",
     "missingTags": "태그 3개",
     "missingBiolink": "SNS 링크",
-    "welcomeShort": "PikTag에 오신 걸 환영해요"
+    "welcomeShort": "PikTag에 오신 걸 환영해요",
+    "bioPromptHints": [
+      "타이베이 프로덕트 디자이너, 주말엔 서핑",
+      "프리랜스 사진작가, 고양이 둘",
+      "백엔드 엔지니어, 요즘 도예 배우는 중",
+      "창업 중, 공동창업자 찾아요",
+      "카페인 중독 마케터"
+    ]
   },
   "friendDetail": {
     "reminderBirthday": "생일",
@@ -1110,7 +1117,14 @@
     "bubblePromptMine": "+ Ask 추가",
     "aiSuggestionsTitle": "AI 추천",
     "aiBodyTooShortHint": "한 문장으로 적어주세요 — AI 가 태그를 추천합니다",
-    "aiTapToGenerateHint": "↻ 를 눌러 AI 가 태그를 추천하도록 하세요"
+    "aiTapToGenerateHint": "↻ 를 눌러 AI 가 태그를 추천하도록 하세요",
+    "bodyPromptHints": [
+      "주말에 같이 등산할 사람",
+      "와이파이 고칠 사람 급해요",
+      "외주 찾는 중, 일 주실 분?",
+      "가성비 좋은 치과 추천",
+      "이번 주 보드게임 모임 같이 할 사람"
+    ]
   },
   "errorBoundary": {
     "title": "문제가 발생했습니다",

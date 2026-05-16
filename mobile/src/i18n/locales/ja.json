@@ -460,7 +460,14 @@
     "missingBio": "自己紹介",
     "missingTags": "3つのタグ",
     "missingBiolink": "SNSリンク",
-    "welcomeShort": "PikTag へようこそ"
+    "welcomeShort": "PikTag へようこそ",
+    "bioPromptHints": [
+      "台北でプロダクトデザイン、週末はサーフィン",
+      "フリーランス写真家、猫2匹",
+      "バックエンドエンジニア、最近陶芸中",
+      "起業中、共同創業者募集",
+      "カフェイン中毒のマーケター"
+    ]
   },
   "friendDetail": {
     "reminderBirthday": "誕生日",
@@ -1110,7 +1117,14 @@
     "bubblePromptMine": "+ Ask 追加",
     "aiSuggestionsTitle": "AI からの提案",
     "aiBodyTooShortHint": "一言で書いてみて — AI がタグを提案します",
-    "aiTapToGenerateHint": "↻ をタップして AI にタグを提案してもらう"
+    "aiTapToGenerateHint": "↻ をタップして AI にタグを提案してもらう",
+    "bodyPromptHints": [
+      "週末に一緒に山登りしたい",
+      "Wi-Fi 直せる人いる？急ぎ",
+      "案件探し中、発注ある人いる？",
+      "安い歯医者を教えて",
+      "今週ボードゲーム会、誰か来る？"
+    ]
   },
   "errorBoundary": {
     "title": "問題が発生しました",

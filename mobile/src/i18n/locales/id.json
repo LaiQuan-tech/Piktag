@@ -460,7 +460,14 @@
     "missingBio": "Bio",
     "missingTags": "3 tag",
     "missingBiolink": "Tautan sosial",
-    "welcomeShort": "Selamat datang di PikTag"
+    "welcomeShort": "Selamat datang di PikTag",
+    "bioPromptHints": [
+      "Product designer di Taipei, surfing tiap akhir pekan",
+      "Fotografer freelance, dua kucing",
+      "Backend engineer, lagi belajar keramik",
+      "Lagi bikin startup, cari cofounder",
+      "Marketer bertenaga kafein"
+    ]
   },
   "friendDetail": {
     "reminderBirthday": "Ulang Tahun",
@@ -1110,7 +1117,14 @@
     "bubblePromptMine": "+ Ask baru",
     "aiSuggestionsTitle": "Saran dari AI",
     "aiBodyTooShortHint": "Tulis dalam satu kalimat — AI akan menyarankan tag",
-    "aiTapToGenerateHint": "Ketuk ↻ agar AI menyarankan tag"
+    "aiTapToGenerateHint": "Ketuk ↻ agar AI menyarankan tag",
+    "bodyPromptHints": [
+      "Ada yang mau hiking akhir pekan?",
+      "Butuh yang bisa benerin Wi-Fi, urgent",
+      "Cari kerja freelance — ada yang hiring?",
+      "Rekomendasi dokter gigi murah",
+      "Main board game minggu ini, siapa ikut?"
+    ]
   },
   "errorBoundary": {
     "title": "Terjadi kesalahan",

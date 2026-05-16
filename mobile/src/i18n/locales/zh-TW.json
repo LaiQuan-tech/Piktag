@@ -478,7 +478,14 @@
     "missingBio": "簡介",
     "missingTags": "3 個標籤",
     "missingBiolink": "社群連結",
-    "welcomeShort": "歡迎到 PikTag"
+    "welcomeShort": "歡迎到 PikTag",
+    "bioPromptHints": [
+      "台北做產品設計，假日衝浪",
+      "獨立接案攝影，養兩隻貓",
+      "後端工程師，最近在學陶藝",
+      "創業中，找共同創辦人",
+      "咖啡因成癮的行銷人"
+    ]
   },
   "friendDetail": {
     "reminderBirthday": "生日",
@@ -1202,7 +1209,14 @@
     "bubblePromptMine": "+ 新增 Ask",
     "aiSuggestionsTitle": "AI 為你推薦",
     "aiBodyTooShortHint": "寫一句話描述你想要什麼 — AI 會推薦合適的標籤",
-    "aiTapToGenerateHint": "點右上的 ↻ 讓 AI 推薦標籤"
+    "aiTapToGenerateHint": "點右上的 ↻ 讓 AI 推薦標籤",
+    "bodyPromptHints": [
+      "想找人週末一起爬山",
+      "有人會修 Wi-Fi 嗎，急",
+      "想接案，有人發包嗎",
+      "推薦台北平價牙醫",
+      "找桌遊咖，這週揪一場"
+    ]
   },
   "errorBoundary": {
     "title": "發生錯誤",

@@ -460,7 +460,14 @@
     "missingBio": "Bio",
     "missingTags": "3 tags",
     "missingBiolink": "Enlace social",
-    "welcomeShort": "Bienvenido a PikTag"
+    "welcomeShort": "Bienvenido a PikTag",
+    "bioPromptHints": [
+      "Diseñador de producto en Taipéi, surfea los findes",
+      "Fotógrafo freelance, dos gatos",
+      "Ingeniero backend, aprendiendo cerámica",
+      "Montando una startup, busco cofundador",
+      "Marketer a base de cafeína"
+    ]
   },
   "friendDetail": {
     "reminderBirthday": "Cumpleaños",
@@ -1110,7 +1117,14 @@
     "bubblePromptMine": "+ Nuevo Ask",
     "aiSuggestionsTitle": "Sugerencias de IA",
     "aiBodyTooShortHint": "Describe lo que quieres en una frase — la IA sugerirá etiquetas",
-    "aiTapToGenerateHint": "Toca ↻ para que la IA sugiera etiquetas"
+    "aiTapToGenerateHint": "Toca ↻ para que la IA sugiera etiquetas",
+    "bodyPromptHints": [
+      "¿Alguien para una caminata el finde?",
+      "Necesito quien arregle el Wi-Fi, urgente",
+      "Busco trabajo freelance, ¿alguien contrata?",
+      "Recomienden un dentista económico",
+      "Noche de juegos de mesa esta semana, ¿quién se apunta?"
+    ]
   },
   "errorBoundary": {
     "title": "Algo salió mal",

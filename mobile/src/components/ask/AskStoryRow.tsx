@@ -27,6 +27,7 @@ import OverlappingAvatars from '../OverlappingAvatars';
 import { COLORS } from '../../constants/theme';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../hooks/useAuth';
+import { useRotatingPlaceholder } from '../../hooks/useRotatingPlaceholder';
 import type { AskFeedItem, MyActiveAsk } from '../../types/ask';
 
 const SCREEN_HEIGHT = Dimensions.get('window').height;
@@ -498,6 +499,20 @@ async function findOrCreateTagByName(name: string): Promise<string | null> {
 export function AskCreateModal({ visible, onClose, existingAsk, onCreated }: AskCreateModalProps) {
   const { t } = useTranslation();
   const { user } = useAuth();
+
+  // Rotating Ask placeholder — same shared hook as Search / the
+  // create-Tag / bio inputs. Cycles social/help/opportunity
+  // example asks so the user sees the breadth of "what your
+  // network is for" before typing. Static bodyPlaceholder is the
+  // locale fallback.
+  const bodyHints = useMemo(() => {
+    const raw = t('ask.bodyPromptHints', { returnObjects: true });
+    return Array.isArray(raw) && raw.length > 0 ? (raw as string[]) : null;
+  }, [t]);
+  const bodyPlaceholder = useRotatingPlaceholder(
+    bodyHints,
+    t('ask.bodyPlaceholder'),
+  );
   const slideAnim = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
 
   const [body, setBody] = useState('');
@@ -829,7 +844,7 @@ export function AskCreateModal({ visible, onClose, existingAsk, onCreated }: Ask
                 style={modalStyles.input}
                 value={body}
                 onChangeText={handleBodyChange}
-                placeholder={t('ask.bodyPlaceholder')}
+                placeholder={bodyPlaceholder}
                 placeholderTextColor={COLORS.gray400}
                 multiline
                 maxLength={MAX_BODY}

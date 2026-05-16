@@ -460,7 +460,14 @@
     "missingBio": "Bio",
     "missingTags": "3 tags",
     "missingBiolink": "Lien social",
-    "welcomeShort": "Bienvenue sur PikTag"
+    "welcomeShort": "Bienvenue sur PikTag",
+    "bioPromptHints": [
+      "Designer produit à Taipei, surfe le week-end",
+      "Photographe freelance, deux chats",
+      "Ingénieur backend, apprend la poterie",
+      "Monte une startup, cherche un cofondateur",
+      "Marketeur sous caféine"
+    ]
   },
   "friendDetail": {
     "reminderBirthday": "Anniversaire",
@@ -1110,7 +1117,14 @@
     "bubblePromptMine": "+ Nouveau Ask",
     "aiSuggestionsTitle": "Suggestions de l'IA",
     "aiBodyTooShortHint": "Décrivez ce que vous voulez en une phrase — l'IA suggérera des tags",
-    "aiTapToGenerateHint": "Appuyez sur ↻ pour que l'IA suggère des tags"
+    "aiTapToGenerateHint": "Appuyez sur ↻ pour que l'IA suggère des tags",
+    "bodyPromptHints": [
+      "Quelqu’un pour une rando ce week-end ?",
+      "Besoin de réparer le Wi-Fi, urgent",
+      "Je cherche des missions freelance, qui recrute ?",
+      "Recommandez un dentiste pas cher",
+      "Soirée jeux de société cette semaine, qui vient ?"
+    ]
   },
   "errorBoundary": {
     "title": "Une erreur est survenue",

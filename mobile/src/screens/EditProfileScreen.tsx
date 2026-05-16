@@ -35,6 +35,7 @@ import {
   splitTelUrl,
 } from '../lib/countryCodes';
 import { useAuth } from '../hooks/useAuth';
+import { useRotatingPlaceholder } from '../hooks/useRotatingPlaceholder';
 import { useAskFeed } from '../hooks/useAskFeed';
 import PageLoader from '../components/loaders/PageLoader';
 import BrandSpinner from '../components/loaders/BrandSpinner';
@@ -212,6 +213,21 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
   const focusPhone = !!route?.params?.focusPhone;
   const { t } = useTranslation();
   const { colors, isDark } = useTheme();
+
+  // Rotating bio placeholder — same shared hook as Search / the
+  // create-Tag input. Cycles job+interest+quirk example bios so a
+  // user staring at a blank "個人簡介" sees what a tag-rich self-
+  // description looks like (the exact "I don't know what to write"
+  // gap the card-scan onboarding also targets). Falls back to the
+  // static line if a locale lacks the array.
+  const bioHints = useMemo(() => {
+    const raw = t('editProfile.bioPromptHints', { returnObjects: true });
+    return Array.isArray(raw) && raw.length > 0 ? (raw as string[]) : null;
+  }, [t]);
+  const bioPlaceholder = useRotatingPlaceholder(
+    bioHints,
+    t('editProfile.bioPlaceholder'),
+  );
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
   // myAsk drives the avatar's gradient ring on this screen too — same
@@ -1488,7 +1504,7 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
                 style={[styles.fieldInput, styles.fieldInputMultiline]}
                 value={form.bio}
                 onChangeText={(v) => updateField('bio', v)}
-                placeholder={t('editProfile.bioPlaceholder')}
+                placeholder={bioPlaceholder}
                 placeholderTextColor={COLORS.gray400}
                 multiline
                 numberOfLines={2}

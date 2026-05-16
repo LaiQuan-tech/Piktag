@@ -475,7 +475,14 @@
     "missingBio": "Bio",
     "missingTags": "3 tags",
     "missingBiolink": "Social link",
-    "welcomeShort": "Welcome to PikTag"
+    "welcomeShort": "Welcome to PikTag",
+    "bioPromptHints": [
+      "Product designer in Taipei, surfs weekends",
+      "Freelance photographer, two cats",
+      "Backend engineer, learning pottery",
+      "Building a startup, seeking a cofounder",
+      "Marketer running on caffeine"
+    ]
   },
   "friendDetail": {
     "reminderBirthday": "Birthday",
@@ -1195,7 +1202,14 @@
     "bubblePromptMine": "+ New Ask",
     "aiSuggestionsTitle": "AI suggestions",
     "aiBodyTooShortHint": "Describe what you want in a sentence — AI will suggest tags",
-    "aiTapToGenerateHint": "Tap ↻ to let AI suggest tags"
+    "aiTapToGenerateHint": "Tap ↻ to let AI suggest tags",
+    "bodyPromptHints": [
+      "Anyone up for a weekend hike?",
+      "Need someone who can fix Wi-Fi, urgent",
+      "Looking for freelance gigs — anyone hiring?",
+      "Recommend an affordable dentist",
+      "Board-game night this week, who’s in?"
+    ]
   },
   "errorBoundary": {
     "title": "Something went wrong",

@@ -460,7 +460,14 @@
     "missingBio": "Bio",
     "missingTags": "3 etiket",
     "missingBiolink": "Sosyal bağlantı",
-    "welcomeShort": "PikTag'a hoş geldin"
+    "welcomeShort": "PikTag'a hoş geldin",
+    "bioPromptHints": [
+      "Taipei’de ürün tasarımcısı, hafta sonu sörf",
+      "Serbest fotoğrafçı, iki kedi",
+      "Backend mühendisi, çömlek öğreniyor",
+      "Girişim kuruyorum, kurucu ortak arıyorum",
+      "Kafeinle çalışan pazarlamacı"
+    ]
   },
   "friendDetail": {
     "reminderBirthday": "Doğum Günü",
@@ -1110,7 +1117,14 @@
     "bubblePromptMine": "+ Yeni Ask",
     "aiSuggestionsTitle": "AI önerileri",
     "aiBodyTooShortHint": "Ne istediğini bir cümleyle yaz — AI etiket önerir",
-    "aiTapToGenerateHint": "↻ a dokun, AI etiket önersin"
+    "aiTapToGenerateHint": "↻ a dokun, AI etiket önersin",
+    "bodyPromptHints": [
+      "Hafta sonu yürüyüşe gelen var mı?",
+      "Wi-Fi tamir edecek biri lazım, acil",
+      "Freelance iş arıyorum — işe alan var mı?",
+      "Uygun fiyatlı diş hekimi önerin",
+      "Bu hafta masa oyunu gecesi, kim var?"
+    ]
   },
   "errorBoundary": {
     "title": "Bir şeyler ters gitti",

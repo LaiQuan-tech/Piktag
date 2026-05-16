@@ -460,7 +460,14 @@
     "missingBio": "ไบโอ",
     "missingTags": "3 แท็ก",
     "missingBiolink": "ลิงก์โซเชียล",
-    "welcomeShort": "ยินดีต้อนรับสู่ PikTag"
+    "welcomeShort": "ยินดีต้อนรับสู่ PikTag",
+    "bioPromptHints": [
+      "ดีไซเนอร์โปรดักต์ในไทเป เล่นเซิร์ฟวันหยุด",
+      "ช่างภาพฟรีแลนซ์ มีแมวสองตัว",
+      "วิศวกร backend กำลังหัดปั้นเซรามิก",
+      "กำลังทำสตาร์ทอัป หาผู้ร่วมก่อตั้ง",
+      "นักการตลาดที่รันด้วยคาเฟอีน"
+    ]
   },
   "friendDetail": {
     "reminderBirthday": "วันเกิด",
@@ -1110,7 +1117,14 @@
     "bubblePromptMine": "+ Ask ใหม่",
     "aiSuggestionsTitle": "คำแนะนำจาก AI",
     "aiBodyTooShortHint": "เขียนสั้นๆ ว่าต้องการอะไร — AI จะแนะนำแท็กให้",
-    "aiTapToGenerateHint": "แตะ ↻ ให้ AI แนะนำแท็ก"
+    "aiTapToGenerateHint": "แตะ ↻ ให้ AI แนะนำแท็ก",
+    "bodyPromptHints": [
+      "ใครไปเดินเขาสุดสัปดาห์นี้บ้าง",
+      "หาคนซ่อม Wi-Fi ด่วน",
+      "หางานฟรีแลนซ์ ใครจ้างบ้าง",
+      "แนะนำหมอฟันราคาเบาๆ",
+      "ก๊วนบอร์ดเกมสัปดาห์นี้ ใครมาบ้าง"
+    ]
   },
   "errorBoundary": {
     "title": "เกิดข้อผิดพลาด",

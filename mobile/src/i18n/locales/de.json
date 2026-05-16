@@ -468,7 +468,14 @@
     "missingBio": "Bio",
     "missingTags": "3 Tags",
     "missingBiolink": "Social Link",
-    "welcomeShort": "Willkommen bei PikTag"
+    "welcomeShort": "Willkommen bei PikTag",
+    "bioPromptHints": [
+      "Produktdesigner in Taipeh, surft am Wochenende",
+      "Freelance-Fotograf, zwei Katzen",
+      "Backend-Entwickler, lernt Töpfern",
+      "Baue ein Startup, suche Mitgründer",
+      "Marketer mit Koffein-Antrieb"
+    ]
   },
   "friendDetail": {
     "reminderBirthday": "Geburtstag",
@@ -1182,7 +1189,14 @@
     "bubblePromptMine": "+ Neues Ask",
     "aiSuggestionsTitle": "KI-Vorschläge",
     "aiBodyTooShortHint": "Beschreibe in einem Satz, was du suchst — KI schlägt Tags vor",
-    "aiTapToGenerateHint": "Tippe auf ↻ damit die KI Tags vorschlägt"
+    "aiTapToGenerateHint": "Tippe auf ↻ damit die KI Tags vorschlägt",
+    "bodyPromptHints": [
+      "Wer Lust auf eine Wanderung am Wochenende?",
+      "Brauche jemanden, der WLAN reparieren kann, dringend",
+      "Suche Freelance-Aufträge — wer stellt ein?",
+      "Empfehlt einen günstigen Zahnarzt",
+      "Brettspielabend diese Woche, wer ist dabei?"
+    ]
   },
   "errorBoundary": {
     "title": "Etwas ist schiefgelaufen",
