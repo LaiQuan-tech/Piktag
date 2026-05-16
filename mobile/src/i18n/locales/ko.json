@@ -282,7 +282,7 @@
     "openMap": "지도 보기"
   },
   "addTag": {
-    "headerTitle": "새 이벤트 그룹",
+    "headerTitle": "Tag 만들기",
     "alertTagExists": "이미 존재하는 태그",
     "alertTagExistsMessage": "이 태그는 이미 목록에 있습니다.",
     "alertEnterPresetName": "템플릿 이름을 입력하세요",
@@ -336,7 +336,7 @@
     "aiSuggestionsTitle": "AI 추천",
     "aiSuggestionsHint": "한 줄 적어줘 — AI가 위치와 네 태그도 같이 본대.",
     "aiSuggestionsEmpty": "AI가 못 찾았어요 — 다시 시도하거나 직접 추가하세요.",
-    "aiRegenerate": "다시 추천"
+    "aiRegenerate": "재생성"
   },
   "profile": {
     "nameNotSet": "이름 미설정",

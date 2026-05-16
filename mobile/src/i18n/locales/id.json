@@ -282,7 +282,7 @@
     "openMap": "Buka peta"
   },
   "addTag": {
-    "headerTitle": "Grup acara baru",
+    "headerTitle": "Buat Tag",
     "alertTagExists": "Tag sudah ada",
     "alertTagExistsMessage": "Tag ini sudah ada di daftar.",
     "alertEnterPresetName": "Masukkan nama template",
@@ -333,10 +333,10 @@
     "contextLabel": "QR ini buat acara apa?",
     "contextHint": "Satu kalimat aja. AI baca jam, lokasi, dan profilmu buat saranin tag yang pas.",
     "contextPlaceholder": "Misal: brunch akhir pekan, demo klien, peluncuran buku",
-    "aiSuggestionsTitle": "Saran AI",
+    "aiSuggestionsTitle": "Saran dari AI",
     "aiSuggestionsHint": "Tulis satu baris — AI pakai itu + lokasi + identity tag-mu.",
     "aiSuggestionsEmpty": "AI nggak nemu — coba lagi atau tambah sendiri.",
-    "aiRegenerate": "Saran baru"
+    "aiRegenerate": "Buat ulang"
   },
   "profile": {
     "nameNotSet": "Nama belum diatur",

@@ -282,7 +282,7 @@
     "openMap": "মানচিত্র খুলুন"
   },
   "addTag": {
-    "headerTitle": "নতুন ইভেন্ট গ্রুপ",
+    "headerTitle": "Tag তৈরি করুন",
     "alertTagExists": "ট্যাগ ইতিমধ্যে বিদ্যমান",
     "alertTagExistsMessage": "এই ট্যাগ ইতিমধ্যে তালিকায় আছে।",
     "alertEnterPresetName": "টেমপ্লেটের নাম লিখুন",
@@ -336,7 +336,7 @@
     "aiSuggestionsTitle": "AI সাজেশন",
     "aiSuggestionsHint": "একটা লাইন লেখো — AI সেটার সাথে তোমার লোকেশন আর পরিচয় ট্যাগ দেখবে।",
     "aiSuggestionsEmpty": "AI কিছু পেলো না — আবার চেষ্টা করো বা নিজে যোগ করো।",
-    "aiRegenerate": "আবার সাজেস্ট"
+    "aiRegenerate": "পুনরায় তৈরি"
   },
   "profile": {
     "nameNotSet": "নাম সেট করা নেই",

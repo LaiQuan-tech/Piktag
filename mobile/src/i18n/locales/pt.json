@@ -282,7 +282,7 @@
     "openMap": "Abrir mapa"
   },
   "addTag": {
-    "headerTitle": "Novo grupo de evento",
+    "headerTitle": "Criar um Tag",
     "alertTagExists": "A tag já existe",
     "alertTagExistsMessage": "Esta tag já está na lista.",
     "alertEnterPresetName": "Por favor insira um nome de modelo",
@@ -333,10 +333,10 @@
     "contextLabel": "Pra que é esse QR?",
     "contextHint": "Uma frase basta. A AI usa hora, lugar e teu perfil pra sugerir tags certas.",
     "contextPlaceholder": "Ex: Brunch de fim de semana, demo do cliente, lançamento de livro",
-    "aiSuggestionsTitle": "Sugestões AI",
+    "aiSuggestionsTitle": "Sugestões da IA",
     "aiSuggestionsHint": "Escreve uma linha — a AI usa isso + tua localização + teus tags de identidade.",
     "aiSuggestionsEmpty": "A AI não achou — tenta de novo ou adiciona à mão.",
-    "aiRegenerate": "Gerar de novo"
+    "aiRegenerate": "Regenerar"
   },
   "profile": {
     "nameNotSet": "Nome não definido",

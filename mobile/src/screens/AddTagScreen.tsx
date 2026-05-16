@@ -726,11 +726,11 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
           // RLS / NOT-NULL / missing-column failures.
           console.warn('[AddTag] scan_session insert failed:', error);
           Alert.alert(
-            t('addTag.saveWarnTitle', { defaultValue: 'QR 已產生，但無法儲存到 Vibe' }),
+            t('addTag.saveWarnTitle', { defaultValue: 'QR 已產生，但無法儲存到 Tag' }),
             t('addTag.saveWarnMsg', {
               code: (error as any).code || '?',
               message: error.message,
-              defaultValue: `這個 QR 可以馬上分享，但不會出現在「活動群組標籤」清單中。\n\n錯誤代碼：${(error as any).code || '?'}\n${error.message}`,
+              defaultValue: `這個 QR 可以馬上分享，但不會出現在你的 Tag 清單中。\n\n錯誤代碼：${(error as any).code || '?'}\n${error.message}`,
             }),
           );
         }
@@ -835,7 +835,7 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
           >
             <ArrowLeft size={24} color={COLORS.gray900} strokeWidth={2.2} />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>{t('addTag.headerTitle', { defaultValue: '建立 Vibe' })}</Text>
+          <Text style={styles.headerTitle}>{t('addTag.headerTitle', { defaultValue: '建立 Tag' })}</Text>
         </View>
         {/* Scan icon previously lived here — moved to the parent
             QrGroupListScreen header (the # tab's landing page) where

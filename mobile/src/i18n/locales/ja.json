@@ -282,7 +282,7 @@
     "openMap": "地図を開く"
   },
   "addTag": {
-    "headerTitle": "新しいイベントグループ",
+    "headerTitle": "Tag を作成",
     "alertTagExists": "タグが既に存在します",
     "alertTagExistsMessage": "このタグはすでにリストにあります。",
     "alertEnterPresetName": "テンプレート名を入力してください",
@@ -333,7 +333,7 @@
     "contextLabel": "この QR はどんな場面用？",
     "contextHint": "一言でOK。AI が時間・場所・あなたのプロフィールを見て最適なタグを提案します。",
     "contextPlaceholder": "例：週末ランチ、顧客デモ、新刊発表会",
-    "aiSuggestionsTitle": "AI のおすすめ",
+    "aiSuggestionsTitle": "AI からの提案",
     "aiSuggestionsHint": "場面を一言入れて — AI が場所と身分タグも見て提案します。",
     "aiSuggestionsEmpty": "AI が合うタグを思いつきませんでした — 再試行か手動追加を。",
     "aiRegenerate": "再生成"

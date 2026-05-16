@@ -282,7 +282,7 @@
     "openMap": "Haritayı aç"
   },
   "addTag": {
-    "headerTitle": "Yeni etkinlik grubu",
+    "headerTitle": "Tag oluştur",
     "alertTagExists": "Etiket zaten mevcut",
     "alertTagExistsMessage": "Bu etiket zaten listede.",
     "alertEnterPresetName": "bir şablon adı gir",
@@ -336,7 +336,7 @@
     "aiSuggestionsTitle": "AI önerileri",
     "aiSuggestionsHint": "Bir satır yaz — AI bunu + konumunu + kimlik etiketlerini kullanır.",
     "aiSuggestionsEmpty": "AI uygun bir şey bulamadı — tekrar dene veya kendin ekle.",
-    "aiRegenerate": "Yeniden öner"
+    "aiRegenerate": "Yeniden oluştur"
   },
   "profile": {
     "nameNotSet": "Ad belirtilmemiş",

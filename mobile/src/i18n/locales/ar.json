@@ -282,7 +282,7 @@
     "openMap": "فتح الخريطة"
   },
   "addTag": {
-    "headerTitle": "مجموعة فعالية جديدة",
+    "headerTitle": "إنشاء Tag",
     "alertTagExists": "الوسم موجود بالفعل",
     "alertTagExistsMessage": "هذا الوسم موجود في القائمة بالفعل.",
     "alertEnterPresetName": "يرجى إدخال اسم القالب",
@@ -336,7 +336,7 @@
     "aiSuggestionsTitle": "اقتراحات الذكاء الاصطناعي",
     "aiSuggestionsHint": "اكتب جملة — يستخدمها الذكاء الاصطناعي مع موقعك ووسوم هويتك.",
     "aiSuggestionsEmpty": "لم يجد الذكاء الاصطناعي خياراً مناسباً — جرب مرة أخرى أو أضف يدوياً.",
-    "aiRegenerate": "إعادة الاقتراح"
+    "aiRegenerate": "إعادة التوليد"
   },
   "profile": {
     "nameNotSet": "لم يتم تعيين الاسم",

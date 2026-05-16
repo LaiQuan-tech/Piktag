@@ -300,7 +300,7 @@
     "openMap": "地圖檢視"
   },
   "addTag": {
-    "headerTitle": "新增活動群組",
+    "headerTitle": "建立 Tag",
     "alertTagExists": "標籤已存在",
     "alertTagExistsMessage": "此標籤已在列表中。",
     "alertEnterPresetName": "請輸入模板名稱",
@@ -351,10 +351,10 @@
     "contextLabel": "這個 QR 是給什麼場合？",
     "contextHint": "一句話描述就好。AI 會看你說的話、現在的時間、你在哪，推薦合適的標籤。",
     "contextPlaceholder": "例如：週末聚餐、客戶 demo、新書發表會",
-    "aiSuggestionsTitle": "AI 推薦標籤",
+    "aiSuggestionsTitle": "AI 為你推薦",
     "aiSuggestionsHint": "輸入一句場合描述 — AI 會根據你的話 + 位置 + 你的身份標籤推薦。",
     "aiSuggestionsEmpty": "AI 想不到合適的標籤 — 再試一次或自己加。",
-    "aiRegenerate": "重新推薦"
+    "aiRegenerate": "重新生成"
   },
   "profile": {
     "nameNotSet": "未設定姓名",

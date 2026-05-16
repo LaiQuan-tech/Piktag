@@ -282,7 +282,7 @@
     "openMap": "เปิดแผนที่"
   },
   "addTag": {
-    "headerTitle": "กลุ่มกิจกรรมใหม่",
+    "headerTitle": "สร้าง Tag",
     "alertTagExists": "มีแท็กนี้อยู่แล้ว",
     "alertTagExistsMessage": "แท็กนี้อยู่ในรายการแล้ว",
     "alertEnterPresetName": "กรอกชื่อเทมเพลต",
@@ -333,10 +333,10 @@
     "contextLabel": "QR นี้ใช้ในโอกาสไหน?",
     "contextHint": "แค่ประโยคเดียวก็พอ AI ดูเวลา ตำแหน่ง และโปรไฟล์ของคุณเพื่อแนะนำแท็กที่เหมาะ",
     "contextPlaceholder": "เช่น บรันช์สุดสัปดาห์, เดโมลูกค้า, เปิดตัวหนังสือ",
-    "aiSuggestionsTitle": "แนะนำโดย AI",
+    "aiSuggestionsTitle": "คำแนะนำจาก AI",
     "aiSuggestionsHint": "พิมพ์หนึ่งบรรทัด — AI ใช้พร้อมกับตำแหน่งและแท็กตัวตน",
     "aiSuggestionsEmpty": "AI หาที่เหมาะไม่เจอ — ลองใหม่หรือเพิ่มเอง",
-    "aiRegenerate": "แนะนำใหม่"
+    "aiRegenerate": "สร้างใหม่"
   },
   "profile": {
     "nameNotSet": "ยังไม่ได้ตั้งชื่อ",

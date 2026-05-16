@@ -282,7 +282,7 @@
     "openMap": "Открыть карту"
   },
   "addTag": {
-    "headerTitle": "Новая группа события",
+    "headerTitle": "Создать Tag",
     "alertTagExists": "Тег уже добавлен",
     "alertTagExistsMessage": "Этот тег уже есть в списке.",
     "alertEnterPresetName": "Введи название шаблона",
@@ -333,10 +333,10 @@
     "contextLabel": "Для какого случая этот QR?",
     "contextHint": "Хватит одной фразы. AI учтёт время, локацию и твой профиль и подберёт теги.",
     "contextPlaceholder": "Напр: бранч на выходных, демо клиенту, презентация книги",
-    "aiSuggestionsTitle": "Подсказки AI",
+    "aiSuggestionsTitle": "Подсказки ИИ",
     "aiSuggestionsHint": "Напиши строку — AI учтёт её + локацию + теги-личность.",
     "aiSuggestionsEmpty": "AI ничего не нашёл — попробуй снова или добавь сам.",
-    "aiRegenerate": "Заново"
+    "aiRegenerate": "Перегенерировать"
   },
   "profile": {
     "nameNotSet": "Имя не указано",

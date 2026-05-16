@@ -290,7 +290,7 @@
     "openMap": "地图视图"
   },
   "addTag": {
-    "headerTitle": "新增活动群组",
+    "headerTitle": "建立 Tag",
     "alertTagExists": "标签已存在",
     "alertTagExistsMessage": "此标签已在列表中。",
     "alertEnterPresetName": "请输入模板名称",
@@ -341,10 +341,10 @@
     "contextLabel": "这个 QR 是给什么场合？",
     "contextHint": "一句话描述就好。AI 会看你说的话、现在的时间、你在哪，推荐合适的标签。",
     "contextPlaceholder": "例如：周末聚餐、客户 demo、新书发表会",
-    "aiSuggestionsTitle": "AI 推荐标签",
+    "aiSuggestionsTitle": "AI 为你推荐",
     "aiSuggestionsHint": "输入一句场合描述 — AI 会根据你的话 + 位置 + 你的身份标签推荐。",
     "aiSuggestionsEmpty": "AI 想不到合适的标签 — 再试一次或自己加。",
-    "aiRegenerate": "重新推荐"
+    "aiRegenerate": "重新生成"
   },
   "profile": {
     "nameNotSet": "未设置姓名",
