@@ -25,10 +25,11 @@ import {
   Alert,
   FlatList,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
-import { ArrowLeft, Share2, Plus, X, Hash, Edit3, Sparkles } from 'lucide-react-native';
+import { ArrowLeft, Share2, Plus, X, Hash, Edit3, Sparkles, ScanLine, Link2, Pencil } from 'lucide-react-native';
+import { setStringAsync as setClipboardStringAsync } from 'expo-clipboard';
 // react-native-qrcode-svg is the same lib AddTagScreen uses. Import
 // inline so the bundle only pulls it on this screen too.
 import QRCode from 'react-native-qrcode-svg';
@@ -73,7 +74,17 @@ export default function QrGroupDetailScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
   const { colors, isDark } = useTheme();
   const { user } = useAuth();
+  const insets = useSafeAreaInsets();
   const groupId = route.params?.groupId as string | undefined;
+
+  // Two views, one screen — mirrors AddTagScreen's setMode pattern.
+  // 'present' = the full-bleed gradient "show off / share my QR"
+  // card (what you land on from the Tag list — the look only ever
+  // flashed once at creation before). 'edit' = the original
+  // detail/editor (rename, tag editor, members). 編輯 QR toggles
+  // present→edit; the editor's back arrow returns to present.
+  const [mode, setMode] = useState<'present' | 'edit'>('present');
+  const [qrUsername, setQrUsername] = useState('');
 
   const [group, setGroup] = useState<Group | null>(null);
   const [members, setMembers] = useState<Member[]>([]);
@@ -121,6 +132,19 @@ export default function QrGroupDetailScreen({ navigation, route }: Props) {
       }
       setGroup(g as Group);
       setNameInput((g as any).name ?? '');
+
+      // Host's @username for the present-mode card (same derivation
+      // as AddTagScreen: profile username, fallback to the id).
+      try {
+        const { data: prof } = await supabase
+          .from('piktag_profiles')
+          .select('username')
+          .eq('id', user.id)
+          .maybeSingle();
+        setQrUsername((prof as any)?.username || user.id);
+      } catch {
+        setQrUsername(user.id);
+      }
 
       const { data: m, error: mErr } = await supabase.rpc('qr_group_members', {
         p_group_id: groupId,
@@ -240,6 +264,19 @@ export default function QrGroupDetailScreen({ navigation, route }: Props) {
     }
   }, [group]);
 
+  const handleCopyLink = useCallback(async () => {
+    if (!group?.qr_code_data) return;
+    try {
+      await setClipboardStringAsync(group.qr_code_data);
+      Alert.alert(
+        t('addTag.alertLinkCopiedTitle', { defaultValue: '已複製' }),
+        t('addTag.alertLinkCopiedMessage', { defaultValue: '連結已複製到剪貼簿' }),
+      );
+    } catch {
+      /* no-op */
+    }
+  }, [group, t]);
+
   // P1 "Gather the Tribe" button was removed per user feedback:
   // "真實人生其實這群人可能互不認識，只是都跟發 QRcode 的使用者
   // 有一面之緣，所以群發不太可能". A Vibe is a snapshot of
@@ -284,6 +321,96 @@ export default function QrGroupDetailScreen({ navigation, route }: Props) {
     [navigation],
   );
 
+  // ─── Present mode ────────────────────────────────────────
+  // Full-bleed gradient "show off / share my QR" card. Visually
+  // mirrors AddTagScreen.renderQrMode so the look the user loved
+  // (and that previously only flashed once at creation) is now
+  // the persistent landing when you tap a Tag from the list.
+  const renderPresent = () => {
+    if (!group) return null;
+    const presentName =
+      group.name?.trim() ||
+      t('qrGroup.untitled', { defaultValue: '未命名 Tag' });
+    return (
+      <LinearGradient
+        colors={['#ff5757', '#c44dff', '#8c52ff']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.presentGradient}
+      >
+        <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
+        <View style={[styles.presentTopBar, { paddingTop: insets.top + 12 }]}>
+          {/* Back to the Tag list. */}
+          <TouchableOpacity
+            onPress={() => navigation.goBack()}
+            activeOpacity={0.6}
+            style={styles.presentTopBtn}
+            accessibilityRole="button"
+            accessibilityLabel={t('common.back', { defaultValue: '返回' })}
+          >
+            <X size={26} color="#fff" />
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => navigation.navigate('CameraScan')}
+            activeOpacity={0.6}
+            style={styles.presentTopBtn}
+            accessibilityRole="button"
+            accessibilityLabel={t('qrGroup.scan', { defaultValue: '掃描 QR 加好友' })}
+          >
+            <ScanLine size={24} color="#fff" />
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.presentCardWrap}>
+          <View style={styles.presentWhiteCard}>
+            {group.qr_code_data ? (
+              <QRCode value={group.qr_code_data} size={220} backgroundColor="#fff" />
+            ) : null}
+            {qrUsername ? (
+              <Text style={styles.presentUsername}>@{qrUsername}</Text>
+            ) : null}
+            {/* Tag name shown under the handle so a named Tag reads
+                as "@me · 國中同學" — gives the card an identity
+                beyond the raw hashtags. */}
+            <Text style={styles.presentName} numberOfLines={1}>
+              {presentName}
+            </Text>
+            {group.event_tags.length > 0 ? (
+              <View style={styles.presentTagsWrap}>
+                <Text style={styles.presentTagsLine}>
+                  {group.event_tags
+                    .map((tg) => '#' + tg.replace(/^#/, ''))
+                    .join('  ')}
+                </Text>
+              </View>
+            ) : null}
+          </View>
+        </View>
+
+        <View style={[styles.presentBottomRow, { paddingBottom: insets.bottom + 20 }]}>
+          <TouchableOpacity style={styles.presentBottomBtn} onPress={handleShare} activeOpacity={0.7}>
+            <Share2 size={22} color={COLORS.gray900} />
+            <Text style={styles.presentBottomBtnText}>
+              {t('addTag.shareFile', { defaultValue: '分享檔案' })}
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.presentBottomBtn} onPress={handleCopyLink} activeOpacity={0.7}>
+            <Link2 size={22} color={COLORS.gray900} />
+            <Text style={styles.presentBottomBtnText}>
+              {t('addTag.copyLink', { defaultValue: '複製連結' })}
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.presentBottomBtn} onPress={() => setMode('edit')} activeOpacity={0.7}>
+            <Pencil size={22} color={COLORS.gray900} />
+            <Text style={styles.presentBottomBtnText}>
+              {t('addTag.editQr', { defaultValue: '編輯 QR' })}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </LinearGradient>
+    );
+  };
+
   if (loading || !group) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
@@ -304,6 +431,11 @@ export default function QrGroupDetailScreen({ navigation, route }: Props) {
     );
   }
 
+  // Default landing = the pretty present card. 編輯 QR flips to edit.
+  if (mode === 'present') {
+    return renderPresent();
+  }
+
   const displayName =
     group.name?.trim() ||
     t('qrGroup.untitled', { defaultValue: '未命名 Tag' });
@@ -313,7 +445,11 @@ export default function QrGroupDetailScreen({ navigation, route }: Props) {
       <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor={colors.white} />
 
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerBackBtn}>
+        {/* Back arrow returns to PRESENT (not the list) — the
+            flow is list → present → edit, so ← should peel one
+            layer back to the pretty card, then ← again to the
+            list. */}
+        <TouchableOpacity onPress={() => setMode('present')} style={styles.headerBackBtn}>
           <ArrowLeft size={22} color={COLORS.gray900} />
         </TouchableOpacity>
         <Text style={styles.headerTitle} numberOfLines={1}>
@@ -575,6 +711,83 @@ export default function QrGroupDetailScreen({ navigation, route }: Props) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.white },
+
+  // ── Present mode (mirrors AddTagScreen.renderQrMode) ──
+  presentGradient: { flex: 1 },
+  presentTopBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingBottom: 8,
+  },
+  presentTopBtn: { padding: 8 },
+  presentCardWrap: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 32,
+  },
+  presentWhiteCard: {
+    backgroundColor: '#fff',
+    borderRadius: 24,
+    paddingHorizontal: 28,
+    paddingTop: 28,
+    paddingBottom: 20,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.15,
+    shadowRadius: 24,
+    elevation: 10,
+  },
+  presentUsername: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#c44dff',
+    marginTop: 16,
+    letterSpacing: 0.5,
+  },
+  presentName: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: COLORS.gray700,
+    marginTop: 4,
+  },
+  presentTagsWrap: {
+    marginTop: 12,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#F3F4F6',
+    alignItems: 'center',
+    width: '100%',
+  },
+  presentTagsLine: {
+    fontSize: 13,
+    color: '#4B5563',
+    fontWeight: '500',
+    textAlign: 'center',
+  },
+  presentBottomRow: {
+    flexDirection: 'row',
+    paddingHorizontal: 16,
+    paddingTop: 8,
+    gap: 10,
+  },
+  presentBottomBtn: {
+    flex: 1,
+    backgroundColor: '#fff',
+    borderRadius: 14,
+    paddingVertical: 16,
+    alignItems: 'center',
+    gap: 8,
+  },
+  presentBottomBtnText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: COLORS.gray900,
+  },
+
   header: {
     flexDirection: 'row',
     alignItems: 'center',
