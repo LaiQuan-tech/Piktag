@@ -336,7 +336,14 @@
     "aiSuggestionsTitle": "AI 추천",
     "aiSuggestionsHint": "한 줄 적어줘 — AI가 위치와 네 태그도 같이 본대.",
     "aiSuggestionsEmpty": "AI가 못 찾았어요 — 다시 시도하거나 직접 추가하세요.",
-    "aiRegenerate": "재생성"
+    "aiRegenerate": "재생성",
+    "contextPromptHints": [
+      "다이빙 모임 모집",
+      "창업가 주말 모임",
+      "고객 데모 미팅",
+      "대학 동창회",
+      "디자인 박람회 부스 교류"
+    ]
   },
   "profile": {
     "nameNotSet": "이름 미설정",

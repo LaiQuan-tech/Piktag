@@ -351,7 +351,14 @@
     "aiSuggestionsTitle": "AI suggestions",
     "aiSuggestionsHint": "Type one line about the occasion — AI will use it + your location + your identity tags.",
     "aiSuggestionsEmpty": "AI didn't find a fit — try again or add your own.",
-    "aiRegenerate": "Regenerate"
+    "aiRegenerate": "Regenerate",
+    "contextPromptHints": [
+      "Diving trip at Longdong",
+      "Founders weekend meetup",
+      "Client demo meeting",
+      "College reunion",
+      "Networking at a design expo"
+    ]
   },
   "profile": {
     "nameNotSet": "Name not set",

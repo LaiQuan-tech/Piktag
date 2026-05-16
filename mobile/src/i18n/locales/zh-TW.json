@@ -354,7 +354,14 @@
     "aiSuggestionsTitle": "AI 為你推薦",
     "aiSuggestionsHint": "輸入一句場合描述 — AI 會根據你的話 + 位置 + 你的身份標籤推薦。",
     "aiSuggestionsEmpty": "AI 想不到合適的標籤 — 再試一次或自己加。",
-    "aiRegenerate": "重新生成"
+    "aiRegenerate": "重新生成",
+    "contextPromptHints": [
+      "龍洞潛水揪團",
+      "創業者週末聚會",
+      "客戶 demo 會議",
+      "大學同學會",
+      "設計展擺攤交流"
+    ]
   },
   "profile": {
     "nameNotSet": "未設定姓名",

@@ -336,7 +336,14 @@
     "aiSuggestionsTitle": "Sugerencias de IA",
     "aiSuggestionsHint": "Escribe una línea — la AI usa esto + tu ubicación + tus tags de identidad.",
     "aiSuggestionsEmpty": "AI no encontró buenas opciones — vuelve a intentar o agrega tú.",
-    "aiRegenerate": "Regenerar"
+    "aiRegenerate": "Regenerar",
+    "contextPromptHints": [
+      "Salida de buceo en Longdong",
+      "Quedada de fundadores",
+      "Reunión de demo con cliente",
+      "Reencuentro universitario",
+      "Networking en una feria de diseño"
+    ]
   },
   "profile": {
     "nameNotSet": "Nombre no establecido",

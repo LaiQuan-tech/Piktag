@@ -344,7 +344,14 @@
     "aiSuggestionsTitle": "AI 为你推荐",
     "aiSuggestionsHint": "输入一句场合描述 — AI 会根据你的话 + 位置 + 你的身份标签推荐。",
     "aiSuggestionsEmpty": "AI 想不到合适的标签 — 再试一次或自己加。",
-    "aiRegenerate": "重新生成"
+    "aiRegenerate": "重新生成",
+    "contextPromptHints": [
+      "龙洞潜水揪团",
+      "创业者周末聚会",
+      "客户 demo 会议",
+      "大学同学会",
+      "设计展摆摊交流"
+    ]
   },
   "profile": {
     "nameNotSet": "未设置姓名",

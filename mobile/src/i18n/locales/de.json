@@ -344,7 +344,14 @@
     "aiSuggestionsTitle": "KI-Vorschläge",
     "aiSuggestionsHint": "Schreib eine Zeile — AI nutzt das + deinen Standort + deine Identitäts-Tags.",
     "aiSuggestionsEmpty": "AI hat nichts Passendes gefunden — nochmal versuchen oder selbst hinzufügen.",
-    "aiRegenerate": "Neu erzeugen"
+    "aiRegenerate": "Neu erzeugen",
+    "contextPromptHints": [
+      "Tauchausflug in Longdong",
+      "Gründer-Wochenendtreffen",
+      "Kunden-Demo-Meeting",
+      "Uni-Wiedersehen",
+      "Networking auf einer Designmesse"
+    ]
   },
   "profile": {
     "nameNotSet": "Name nicht festgelegt",

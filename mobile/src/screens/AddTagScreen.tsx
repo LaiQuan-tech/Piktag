@@ -21,6 +21,7 @@ import { useTranslation } from 'react-i18next';
 import { supabase } from '../lib/supabase';
 import LocationPickerModal from '../components/LocationPickerModal';
 import { useAuth } from '../hooks/useAuth';
+import { useRotatingPlaceholder } from '../hooks/useRotatingPlaceholder';
 import { COLORS } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -85,6 +86,22 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
   const { colors, isDark } = useTheme();
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
+
+  // Rotating "what's this QR for?" placeholder — same calibrated
+  // hook as SearchScreen's search box, for a consistent
+  // intent-input feel across the app. Cycles occasion examples
+  // (龍洞潛水揪團 / 創業者週末聚會 …) so the user learns by
+  // example what to type. Falls back to the old static line if
+  // the hint array is missing in a locale. Hook is called at
+  // component scope (Rules of Hooks) and read inside renderSetupMode.
+  const contextHints = useMemo(() => {
+    const raw = t('addTag.contextPromptHints', { returnObjects: true });
+    return Array.isArray(raw) && raw.length > 0 ? (raw as string[]) : null;
+  }, [t]);
+  const contextPlaceholder = useRotatingPlaceholder(
+    contextHints,
+    t('addTag.contextPlaceholder', { defaultValue: '例如：週末聚餐、客戶 demo、新書發表會' }),
+  );
 
   // Mode: 'setup' or 'qr'
   const [mode, setMode] = useState<'setup' | 'qr'>('setup');
@@ -869,7 +886,7 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
               style={styles.textInput}
               value={contextDescription}
               onChangeText={setContextDescription}
-              placeholder={t('addTag.contextPlaceholder', { defaultValue: '例如：週末聚餐、客戶 demo、新書發表會' })}
+              placeholder={contextPlaceholder}
               placeholderTextColor={COLORS.gray400}
               returnKeyType="done"
               maxLength={60}

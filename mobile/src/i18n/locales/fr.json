@@ -336,7 +336,14 @@
     "aiSuggestionsTitle": "Suggestions de l'IA",
     "aiSuggestionsHint": "Écris une ligne — l'IA utilise ça + ta position + tes tags d'identité.",
     "aiSuggestionsEmpty": "L'IA n'a rien trouvé — réessaye ou ajoute manuellement.",
-    "aiRegenerate": "Régénérer"
+    "aiRegenerate": "Régénérer",
+    "contextPromptHints": [
+      "Sortie plongée à Longdong",
+      "Rencontre de fondateurs",
+      "Réunion démo client",
+      "Retrouvailles de fac",
+      "Networking à un salon de design"
+    ]
   },
   "profile": {
     "nameNotSet": "Nom non défini",
