@@ -388,17 +388,24 @@ export default function QrGroupListScreen({ navigation }: Props) {
               {t('qrGroup.headerTitle', { defaultValue: '認識新朋友' })}
             </Text>
             {/* Title is the PURPOSE ("認識新朋友"), not jargon.
-                The artifact noun was renamed "Vibe" → "Tag" (English
+                The ARTIFACT noun was renamed "Vibe" → "Tag" (English
                 brand term in EVERY locale — ties to the app name
                 PikTag and the core "tagging" mechanic; localising it
                 to 標籤/タグ collides with the #tag chips each row
-                shows). Applied consistently across every surface
-                (list rows, delete dialog, QrGroupDetail). Subtitle
-                is now a short functional line, not the old
-                "Tag the Vibe, Keep the Tribe." tagline — that
-                referenced "Vibe", a word the UI no longer uses. */}
+                shows). Applied across every surface (list rows,
+                delete dialog, QrGroupDetail).
+
+                The subtitle KEEPS the brand tagline "Tag the Vibe,
+                Keep the Tribe." — the "Vibe" there is NOT the
+                renamed artifact noun, it's the common-word sense
+                (the vibe/feel of a moment), and "Tag" is the verb.
+                It's brand poetry, same line as the onboarding
+                brandTagline, kept English in every locale as a
+                deliberate signature. The artifact rename and the
+                tagline coexist precisely because they use "Vibe"
+                in two different senses. */}
             <Text style={styles.headerSubtitle}>
-              {t('qrGroup.headerSubtitle', { defaultValue: '用 Tag 記住你在哪認識誰' })}
+              {t('qrGroup.headerSubtitle', { defaultValue: 'Tag the Vibe, Keep the Tribe.' })}
             </Text>
           </View>
           <View style={styles.headerActions}>
