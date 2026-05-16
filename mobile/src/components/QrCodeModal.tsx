@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React from 'react';
 import {
   View,
   Text,
@@ -8,6 +8,7 @@ import {
 } from 'react-native';
 import QRCode from 'react-native-qrcode-svg';
 import { X, Copy, Share2 } from 'lucide-react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { setStringAsync } from 'expo-clipboard';
 import { useTranslation } from 'react-i18next';
 import { COLORS } from '../constants/theme';
@@ -21,6 +22,14 @@ type QrCodeModalProps = {
   fullName: string;
 };
 
+// Personal-profile QR share sheet.
+//
+// Styled to match the Tag "present" card (QrGroupDetailScreen
+// renderPresent / AddTagScreen renderQrMode): same red→purple
+// gradient, white QR card, white pill actions. Every "show
+// someone my QR / share me" surface in the app now shares one
+// flashy visual language — deliberate, it's the moment the user
+// most wants to look good (Gen-Z share appeal).
 export default function QrCodeModal({
   visible,
   onClose,
@@ -36,9 +45,9 @@ export default function QrCodeModal({
 
   const handleShare = async () => {
     // Delegates to the shared helper so copy/URL/platform-handling
-    // logic lives in one place. Fixes the prior "URL appears twice on
-    // iOS" bug — the helper intentionally omits the separate `url`
-    // field that was causing iMessage to render both an inline URL
+    // logic lives in one place. Fixes the prior "URL appears twice
+    // on iOS" bug — the helper intentionally omits the separate
+    // `url` field that caused iMessage to render both an inline URL
     // and a preview card for the same link.
     await shareProfile({
       name: `${fullName} (@${username})`,
@@ -54,29 +63,34 @@ export default function QrCodeModal({
       animationType="fade"
       onRequestClose={onClose}
     >
-      {/* Stinger wraps the sheet content for the branded logo bloom
-          on open. It must live INSIDE the Modal (so it animates with
-          each open) and must wrap the full backdrop so the scale/fade
-          applies to the sheet, not just inner contents. */}
+      {/* Stinger wraps the sheet for the branded logo bloom on
+          open. Must live INSIDE the Modal and wrap the full
+          backdrop so the scale/fade applies to the sheet. */}
       <QrModalStinger visible={visible}>
         <View style={styles.overlay}>
-          <View style={styles.container}>
+          <LinearGradient
+            colors={['#ff5757', '#c44dff', '#8c52ff']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.card}
+          >
             <TouchableOpacity
               style={styles.closeBtn}
               onPress={onClose}
               activeOpacity={0.7}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             >
-              <X size={24} color={COLORS.gray600} />
+              <X size={24} color="#FFFFFF" />
             </TouchableOpacity>
 
             <Text style={styles.title}>{fullName}</Text>
             <Text style={styles.subtitle}>@{username}</Text>
 
-            <View style={styles.qrWrapper}>
+            <View style={styles.qrCard}>
               <QRCode
                 value={profileUrl}
                 size={200}
-                backgroundColor={COLORS.white}
+                backgroundColor="#FFFFFF"
                 color={COLORS.gray900}
               />
             </View>
@@ -93,7 +107,7 @@ export default function QrCodeModal({
                 <Text style={styles.actionBtnText}>{t('profile.copyLink')}</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[styles.actionBtn, styles.shareBtn]}
+                style={styles.actionBtn}
                 onPress={handleShare}
                 activeOpacity={0.7}
               >
@@ -101,7 +115,7 @@ export default function QrCodeModal({
                 <Text style={styles.actionBtnText}>{t('profile.share')}</Text>
               </TouchableOpacity>
             </View>
-          </View>
+          </LinearGradient>
         </View>
       </QrModalStinger>
     </Modal>
@@ -116,68 +130,75 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     padding: 24,
   },
-  container: {
-    backgroundColor: COLORS.white,
+  card: {
     borderRadius: 24,
-    padding: 32,
+    paddingTop: 32,
+    paddingBottom: 24,
+    paddingHorizontal: 28,
     alignItems: 'center',
     width: '100%',
     maxWidth: 360,
-    position: 'relative',
+    // Clip the gradient to the rounded corners (Android needs the
+    // explicit overflow; iOS honours borderRadius natively).
+    overflow: 'hidden',
   },
   closeBtn: {
     position: 'absolute',
-    top: 16,
-    right: 16,
+    top: 14,
+    right: 14,
     padding: 4,
     zIndex: 1,
   },
   title: {
     fontSize: 22,
-    fontWeight: '700',
-    color: COLORS.gray900,
+    fontWeight: '800',
+    color: '#FFFFFF',
     marginBottom: 4,
+    textAlign: 'center',
   },
   subtitle: {
     fontSize: 15,
-    color: COLORS.gray500,
+    color: 'rgba(255,255,255,0.85)',
     marginBottom: 24,
   },
-  qrWrapper: {
-    padding: 16,
-    backgroundColor: COLORS.white,
-    borderRadius: 16,
-    borderWidth: 2,
-    borderColor: COLORS.piktag500,
+  // White QR card floating on the gradient — same composition as
+  // the Tag present card (presentWhiteCard).
+  qrCard: {
+    backgroundColor: '#FFFFFF',
+    padding: 18,
+    borderRadius: 20,
     marginBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.15,
+    shadowRadius: 24,
+    elevation: 10,
   },
   urlText: {
     fontSize: 13,
-    color: COLORS.gray400,
+    color: 'rgba(255,255,255,0.8)',
     marginBottom: 24,
   },
   actionsRow: {
     flexDirection: 'row',
-    gap: 12,
+    gap: 10,
     width: '100%',
   },
+  // White pill actions — identical treatment to the present
+  // card's bottom buttons. A purple button would vanish on the
+  // purple gradient; white reads cleanly.
   actionBtn: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 2,
-    borderColor: COLORS.gray200,
-    borderRadius: 12,
-    paddingVertical: 14,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 14,
+    paddingVertical: 15,
     gap: 8,
   },
-  shareBtn: {
-    backgroundColor: COLORS.piktag500,
-    borderColor: COLORS.piktag500,
-  },
   actionBtnText: {
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: '700',
     color: COLORS.gray900,
   },
