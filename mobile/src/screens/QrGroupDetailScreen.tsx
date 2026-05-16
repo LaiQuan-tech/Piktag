@@ -477,15 +477,15 @@ export default function QrGroupDetailScreen({ navigation, route }: Props) {
             Gather button, and member list all live BELOW the
             gradient on plain white — gradient surfaces are great
             for showing off, terrible for typing. */}
-        <LinearGradient
-          colors={['#ff5757', '#c44dff', '#8c52ff']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={styles.heroGradient}
-        >
-          {/* Editable name. White text + a thin semi-transparent
-              white border under the input when editing, so the
-              edit affordance stays visible against the gradient. */}
+        {/* Plain (non-gradient) hero. This is the SETTINGS view —
+            the flashy red→purple gradient is now reserved for the
+            present card (the one you show new friends to scan), so
+            keeping the editor calm/utilitarian makes the present
+            surface visually distinct. Dark text on a plain white
+            background; the QR sits in a bordered card so it still
+            reads as a discrete object without the gradient behind
+            it. */}
+        <View style={styles.heroPlain}>
           <View style={styles.heroNameSection}>
             {editingName ? (
               <TextInput
@@ -497,7 +497,7 @@ export default function QrGroupDetailScreen({ navigation, route }: Props) {
                 onSubmitEditing={handleSaveName}
                 returnKeyType="done"
                 placeholder={t('qrGroup.namePlaceholder', { defaultValue: '幫這個 Tag 取個名字' })}
-                placeholderTextColor="rgba(255,255,255,0.5)"
+                placeholderTextColor={COLORS.gray400}
                 maxLength={40}
               />
             ) : (
@@ -507,29 +507,27 @@ export default function QrGroupDetailScreen({ navigation, route }: Props) {
                 onPress={() => setEditingName(true)}
               >
                 <Text style={styles.heroNameText}>{displayName}</Text>
-                <Edit3 size={14} color="rgba(255,255,255,0.7)" />
+                <Edit3 size={14} color={COLORS.gray400} />
               </TouchableOpacity>
             )}
           </View>
 
-          {/* QR. Big white card against the gradient — same
-              composition as the share screen. */}
+          {/* QR in a bordered card — defined against plain white
+              without the gradient. */}
           <View style={styles.heroQrWrap}>
             {group.qr_code_data ? (
               <QRCode value={group.qr_code_data} size={220} color={COLORS.gray900} backgroundColor="#FFFFFF" />
             ) : null}
           </View>
 
-          {/* Read-only tag preview line. The full add/remove
-              editor lives below the gradient; this is just the
-              "what tags is this Vibe wearing" glimpse so the
-              hero feels complete. */}
+          {/* Read-only tag preview. The full add/remove editor is
+              the next section; this is just the glimpse. */}
           {group.event_tags.length > 0 ? (
             <Text style={styles.heroTagsLine} numberOfLines={2}>
               {group.event_tags.map((tag) => '#' + tag.replace(/^#/, '')).join('  ')}
             </Text>
           ) : null}
-        </LinearGradient>
+        </View>
 
         {/* Tag editor. */}
         <View style={styles.tagSection}>
@@ -813,11 +811,17 @@ const styles = StyleSheet.create({
   // → deep purple. Used at the top of the Vibe detail page so
   // the QR + name + tag preview share the same visual identity
   // as the share/create surface.
-  heroGradient: {
+  // Plain settings hero (gradient removed — reserved for the
+  // present card). Thin bottom rule separates it from the tag
+  // editor below so the page reads as stacked settings sections.
+  heroPlain: {
     paddingTop: 24,
     paddingBottom: 28,
     paddingHorizontal: 20,
     alignItems: 'center',
+    backgroundColor: COLORS.white,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.gray100,
   },
   heroNameSection: {
     width: '100%',
@@ -832,40 +836,34 @@ const styles = StyleSheet.create({
   heroNameText: {
     fontSize: 24,
     fontWeight: '800',
-    color: '#FFFFFF',
+    color: COLORS.gray900,
     textAlign: 'center',
     flexShrink: 1,
-    // Subtle shadow so the name still reads on the lighter
-    // mid-gradient zone without needing a darker scrim.
-    textShadowColor: 'rgba(0,0,0,0.18)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 3,
   },
   heroNameInput: {
     fontSize: 24,
     fontWeight: '800',
-    color: '#FFFFFF',
+    color: COLORS.gray900,
     textAlign: 'center',
     minWidth: 200,
     borderBottomWidth: 1.5,
-    borderBottomColor: 'rgba(255,255,255,0.6)',
+    borderBottomColor: COLORS.gray200,
     paddingVertical: 4,
   },
+  // QR card: a light border (not a heavy float shadow) so it
+  // reads as a defined object on the plain page.
   heroQrWrap: {
     backgroundColor: '#FFFFFF',
     padding: 18,
     borderRadius: 20,
-    shadowColor: '#000',
-    shadowOpacity: 0.18,
-    shadowOffset: { width: 0, height: 4 },
-    shadowRadius: 12,
-    elevation: 6,
+    borderWidth: 1,
+    borderColor: COLORS.gray100,
   },
   heroTagsLine: {
     marginTop: 18,
     fontSize: 13,
     fontWeight: '600',
-    color: 'rgba(255,255,255,0.92)',
+    color: COLORS.gray500,
     textAlign: 'center',
     letterSpacing: 0.2,
   },
