@@ -172,7 +172,58 @@ serve(async (req) => {
     let created = 0;
 
     for (const tag of unlinkedTags) {
-      // 3. Generate embedding for this tag
+      // 3a. Alias-first resolution (deterministic, exact, free).
+      //
+      // The seed migrations (20260328_seed_multilingual_aliases +
+      // _ko_id_th_tr) populated tag_aliases with hundreds of
+      // hand-curated cross-language synonyms — e.g. Project
+      // Management ← PM / 專案管理 / 項目管理 / प्रोजेक्ट प्रबंधन /
+      // Gestión de proyectos / 프로젝트 관리 / … resolve_tag_alias
+      // is an exact, case-insensitive alias→concept_id lookup.
+      //
+      // Until now NOTHING called it: the embedding path below
+      // ignored the curated map entirely, so (a) cross-language
+      // synonyms that don't clear the 0.85 cosine bar never
+      // unified, and (b) every miss MINTED A NEW SINGLETON
+      // concept that shadows the seeded one (that's why
+      // tag_concepts is ~248 when the seed defines ~45).
+      //
+      // Snapping a known alias straight to its seeded concept
+      // fixes both, is exact rather than fuzzy, and skips an
+      // embedding API call. Embedding stays as the fallback ONLY
+      // for tags with no curated alias.
+      try {
+        const { data: aliasConceptId } = await supabase.rpc(
+          'resolve_tag_alias',
+          { input_text: tag.name },
+        );
+        if (aliasConceptId) {
+          await supabase
+            .from('piktag_tags')
+            .update({ concept_id: aliasConceptId })
+            .eq('id', tag.id);
+          // Keep the alias row self-consistent (no-op if it's
+          // already the row that resolved us here).
+          await supabase
+            .from('tag_aliases')
+            .upsert(
+              { alias: tag.name, concept_id: aliasConceptId },
+              { onConflict: 'alias' },
+            );
+          linked++;
+          console.log(
+            `Alias-linked "${tag.name}" → concept ${aliasConceptId} (exact, no embedding)`,
+          );
+          continue;
+        }
+      } catch (e) {
+        // Non-fatal: fall through to the embedding path. A flaky
+        // alias lookup must not stall concept linking.
+        console.warn(`resolve_tag_alias failed for "${tag.name}":`, e);
+      }
+
+      // 3. Generate embedding for this tag (fallback: no curated
+      //    alias matched the tag name).
       const embedding = await generateEmbedding(tag.name, geminiApiKey);
       if (!embedding) continue;
 
