@@ -4,8 +4,19 @@ on:
   workflow_dispatch:
   push:
     branches: [main]
+    # Negative patterns (evaluated in order) exclude DB-only
+    # changes from triggering an app build. Migrations apply
+    # manually via the Supabase SQL Editor and edge functions
+    # deploy via `supabase functions deploy` — neither ships in
+    # the app bundle, so a supabase/** or scripts/** commit must
+    # NOT burn a ~30min macOS build run (which also inflated the
+    # build number vs. real app changes). A MIXED commit that
+    # also touches mobile/src/** still matches `mobile/**` and
+    # builds — only pure DB/tooling commits are skipped.
     paths:
       - 'mobile/**'
+      - '!mobile/supabase/**'
+      - '!mobile/scripts/**'
       - '.github/workflows/ios-testflight.yml'
 
 jobs:
