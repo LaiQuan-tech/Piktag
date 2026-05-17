@@ -184,7 +184,8 @@
       "cardFieldBio": "Bio (KI-Entwurf, editierbar)",
       "cardBioPlaceholder": "Eine Zeile über dich",
       "cardLinksLabel": "Kontakte / Social",
-      "cardApplyCta": "Übernehmen"
+      "cardApplyCta": "Übernehmen",
+      "profileCta": "Meinen ersten Vibe erstellen"
     }
   },
   "connections": {
@@ -290,7 +291,7 @@
     "openMap": "Karte öffnen"
   },
   "addTag": {
-    "headerTitle": "Tag erstellen",
+    "headerTitle": "Vibe erstellen",
     "alertTagExists": "Tag existiert bereits",
     "alertTagExistsMessage": "Dieses Tag ist schon in der Liste.",
     "alertEnterPresetName": "Bitte gib einen Vorlagennamen ein",
@@ -346,11 +347,11 @@
     "aiSuggestionsEmpty": "AI hat nichts Passendes gefunden — nochmal versuchen oder selbst hinzufügen.",
     "aiRegenerate": "Neu erzeugen",
     "contextPromptHints": [
+      "Tauchausflug",
       "Klassentreffen",
-      "Team-Essen",
-      "Hochzeit eines Freundes",
-      "Kurs im Fitnessstudio",
-      "Camping am Wochenende"
+      "Büro-Weihnachtsfeier",
+      "Grillen am See",
+      "Hochzeit eines Freundes"
     ]
   },
   "profile": {
@@ -602,7 +603,8 @@
     "pickTagSave": "Speichern ({{count}})",
     "hiddenTagPlaceholder": "Verstecktes Tag hinzufügen...",
     "tag": "Tag",
-    "recommendMembers": "Empfohlene Mitglieder"
+    "recommendMembers": "Empfohlene Mitglieder",
+    "vibeContextTagsTitle": "Tags dieses Vibes"
   },
   "settings": {
     "headerTitle": "Einstellungen",
@@ -1234,25 +1236,25 @@
   "qrGroup": {
     "headerTitle": "Neue Leute treffen",
     "headerSubtitle": "Tag the Vibe, Keep the Tribe.",
-    "detailHeader": "Tag",
-    "create": "Neuen Tag erstellen",
-    "createFirst": "Jetzt einen Tag erstellen",
+    "detailHeader": "Vibe",
+    "create": "Neuen Vibe erstellen",
+    "createFirst": "Jetzt einen Vibe erstellen",
     "emptyTitle": "Lass Tags neue Freunde für dich merken",
     "emptyDesc": "Nach Scannen und Verbinden wird das Treffen automatisch notiert — nie wieder vergessen, wo ihr euch getroffen habt.",
-    "untitled": "Unbenannter Tag",
-    "untitledFallback": "Tag · {{date}}",
-    "namePlaceholder": "Gib diesem Tag einen Namen",
-    "tagsTitle": "Tag-Tags",
+    "untitled": "Unbenannter Vibe",
+    "untitledFallback": "Vibe · {{date}}",
+    "namePlaceholder": "Gib diesem Vibe einen Namen",
+    "tagsTitle": "Vibe-Tags",
     "tagsEmpty": "Keine Tags",
     "tagInputPlaceholder": "Neuer Tag",
     "noTagsYet": "Keine Tags",
     "membersTitle": "Mitglieder ({{count}})",
     "memberCount": "{{count}} Freunde",
     "membersEmpty": "Noch niemand hat gescannt — teile es mit Freunden",
-    "deleteTitle": "Diesen Tag löschen?",
-    "deleteMessage": "„{{name}}\" wird aus deinen Tags entfernt. Freunde, die dich bereits über diesen QR hinzugefügt haben, sind nicht betroffen.",
+    "deleteTitle": "Diesen Vibe löschen?",
+    "deleteMessage": "„{{name}}\" wird aus deinen Vibes entfernt. Freunde, die dich bereits über diesen QR hinzugefügt haben, sind nicht betroffen.",
     "deleteFailedTitle": "Löschen fehlgeschlagen",
-    "deleteFailedMessage": "Dieser Tag wurde nicht gelöscht. Bitte später erneut versuchen. Kontaktiere uns, falls es bestehen bleibt.",
+    "deleteFailedMessage": "Dieser Vibe wurde nicht gelöscht. Bitte später erneut versuchen. Kontaktiere uns, falls es bestehen bleibt.",
     "emptyScanCta": "Oder scanne ihren QR zum Verbinden"
   }
 }

@@ -177,7 +177,8 @@
       "cardFieldBio": "Bio (borrador IA, editable)",
       "cardBioPlaceholder": "Una línea sobre ti",
       "cardLinksLabel": "Contactos / redes",
-      "cardApplyCta": "Aplicar"
+      "cardApplyCta": "Aplicar",
+      "profileCta": "Crear mi primer Tag"
     }
   },
   "connections": {
@@ -338,11 +339,11 @@
     "aiSuggestionsEmpty": "AI no encontró buenas opciones — vuelve a intentar o agrega tú.",
     "aiRegenerate": "Regenerar",
     "contextPromptHints": [
+      "Viaje de buceo",
       "Reencuentro universitario",
-      "Cena de equipo",
-      "La boda de un amigo",
-      "Clase en el gimnasio",
-      "Acampada de fin de semana"
+      "Fiesta de la oficina",
+      "Asado del finde",
+      "La boda de un amigo"
     ]
   },
   "profile": {
@@ -594,7 +595,8 @@
     "pickTagSave": "Guardar ({{count}})",
     "hiddenTagPlaceholder": "Añadir etiqueta oculta...",
     "tag": "Etiqueta",
-    "recommendMembers": "Miembros recomendados"
+    "recommendMembers": "Miembros recomendados",
+    "vibeContextTagsTitle": "Etiquetas de este Tag"
   },
   "settings": {
     "headerTitle": "Ajustes",

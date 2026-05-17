@@ -177,7 +177,8 @@
       "cardFieldBio": "Bio (draf AI, bisa diedit)",
       "cardBioPlaceholder": "Satu baris tentang kamu",
       "cardLinksLabel": "Kontak / sosial",
-      "cardApplyCta": "Terapkan"
+      "cardApplyCta": "Terapkan",
+      "profileCta": "Buat Tag pertamaku"
     }
   },
   "connections": {
@@ -338,11 +339,11 @@
     "aiSuggestionsEmpty": "AI nggak nemu — coba lagi atau tambah sendiri.",
     "aiRegenerate": "Buat ulang",
     "contextPromptHints": [
+      "Trip diving",
       "Reuni kampus",
-      "Makan malam tim",
-      "Pernikahan teman",
-      "Kelas gym",
-      "Camping akhir pekan"
+      "Acara kantor",
+      "BBQ akhir pekan",
+      "Pernikahan teman"
     ]
   },
   "profile": {
@@ -594,7 +595,8 @@
     "pickTagSave": "Simpan ({{count}})",
     "hiddenTagPlaceholder": "Tambahkan tag tersembunyi...",
     "tag": "Tag",
-    "recommendMembers": "Anggota direkomendasikan"
+    "recommendMembers": "Anggota direkomendasikan",
+    "vibeContextTagsTitle": "Tag dari Tag ini"
   },
   "settings": {
     "headerTitle": "Pengaturan",

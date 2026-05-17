@@ -177,7 +177,8 @@
       "cardFieldBio": "Bio (AI 초안, 수정 가능)",
       "cardBioPlaceholder": "한 줄 자기소개",
       "cardLinksLabel": "연락처 / 소셜",
-      "cardApplyCta": "적용"
+      "cardApplyCta": "적용",
+      "profileCta": "첫 Tag 만들기"
     }
   },
   "connections": {
@@ -338,11 +339,11 @@
     "aiSuggestionsEmpty": "AI가 못 찾았어요 — 다시 시도하거나 직접 추가하세요.",
     "aiRegenerate": "재생성",
     "contextPromptHints": [
+      "주말 다이빙 모임",
       "대학 동창회",
-      "팀 회식",
-      "친구 결혼식",
-      "헬스장 그룹 수업",
-      "주말 캠핑"
+      "회식",
+      "한강 피크닉",
+      "친구 결혼식"
     ]
   },
   "profile": {
@@ -594,7 +595,8 @@
     "pickTagSave": "저장 ({{count}})",
     "hiddenTagPlaceholder": "숨김 태그 추가...",
     "tag": "태그",
-    "recommendMembers": "추천 회원"
+    "recommendMembers": "추천 회원",
+    "vibeContextTagsTitle": "이 Tag의 태그"
   },
   "settings": {
     "headerTitle": "설정",

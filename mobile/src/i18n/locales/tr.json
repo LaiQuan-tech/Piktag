@@ -177,7 +177,8 @@
       "cardFieldBio": "Bio (AI taslağı, düzenlenebilir)",
       "cardBioPlaceholder": "Kendinle ilgili bir satır",
       "cardLinksLabel": "İletişim / sosyal",
-      "cardApplyCta": "Uygula"
+      "cardApplyCta": "Uygula",
+      "profileCta": "İlk Tag’imi oluştur"
     }
   },
   "connections": {
@@ -338,11 +339,11 @@
     "aiSuggestionsEmpty": "AI uygun bir şey bulamadı — tekrar dene veya kendin ekle.",
     "aiRegenerate": "Yeniden oluştur",
     "contextPromptHints": [
+      "Dalış gezisi",
       "Üniversite buluşması",
-      "Ekip yemeği",
-      "Bir arkadaşın düğünü",
-      "Spor salonu dersi",
-      "Hafta sonu kampı"
+      "Ofis partisi",
+      "Hafta sonu mangal",
+      "Bir arkadaşın düğünü"
     ]
   },
   "profile": {
@@ -594,7 +595,8 @@
     "pickTagSave": "Kaydet ({{count}})",
     "hiddenTagPlaceholder": "Gizli etiket ekle...",
     "tag": "Etiket",
-    "recommendMembers": "Önerilen üyeler"
+    "recommendMembers": "Önerilen üyeler",
+    "vibeContextTagsTitle": "Bu Tag’in etiketleri"
   },
   "settings": {
     "headerTitle": "Ayarlar",

@@ -177,7 +177,8 @@
       "cardFieldBio": "Bio (brouillon IA, modifiable)",
       "cardBioPlaceholder": "Une ligne sur vous",
       "cardLinksLabel": "Contacts / réseaux",
-      "cardApplyCta": "Appliquer"
+      "cardApplyCta": "Appliquer",
+      "profileCta": "Créer mon premier Tag"
     }
   },
   "connections": {
@@ -338,11 +339,11 @@
     "aiSuggestionsEmpty": "L'IA n'a rien trouvé — réessaye ou ajoute manuellement.",
     "aiRegenerate": "Régénérer",
     "contextPromptHints": [
+      "Sortie plongée",
       "Retrouvailles de fac",
-      "Dîner d’équipe",
-      "Le mariage d’un ami",
-      "Cours collectif en salle",
-      "Camping le week-end"
+      "Pot de bureau",
+      "Apéro entre amis",
+      "Le mariage d’un ami"
     ]
   },
   "profile": {
@@ -594,7 +595,8 @@
     "pickTagSave": "Enregistrer ({{count}})",
     "hiddenTagPlaceholder": "Ajouter un tag caché...",
     "tag": "Étiquette",
-    "recommendMembers": "Membres recommandés"
+    "recommendMembers": "Membres recommandés",
+    "vibeContextTagsTitle": "Tags de ce Tag"
   },
   "settings": {
     "headerTitle": "Réglages",

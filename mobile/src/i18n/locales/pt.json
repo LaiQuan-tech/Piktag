@@ -177,7 +177,8 @@
       "cardFieldBio": "Bio (rascunho IA, editável)",
       "cardBioPlaceholder": "Uma linha sobre você",
       "cardLinksLabel": "Contatos / social",
-      "cardApplyCta": "Aplicar"
+      "cardApplyCta": "Aplicar",
+      "profileCta": "Criar meu primeiro Tag"
     }
   },
   "connections": {
@@ -338,11 +339,11 @@
     "aiSuggestionsEmpty": "A AI não achou — tenta de novo ou adiciona à mão.",
     "aiRegenerate": "Regenerar",
     "contextPromptHints": [
-      "Reencontro da faculdade",
-      "Jantar da equipe",
-      "Casamento de um amigo",
-      "Aula na academia",
-      "Acampamento de fim de semana"
+      "Mergulho de fim de semana",
+      "Reencontro da facul",
+      "Festa da firma",
+      "Churrasco do fim de semana",
+      "Casamento de um amigo"
     ]
   },
   "profile": {
@@ -594,7 +595,8 @@
     "pickTagSave": "Salvar ({{count}})",
     "hiddenTagPlaceholder": "Adicionar tag oculta...",
     "tag": "Tag",
-    "recommendMembers": "Membros recomendados"
+    "recommendMembers": "Membros recomendados",
+    "vibeContextTagsTitle": "Tags deste Tag"
   },
   "settings": {
     "headerTitle": "Configurações",

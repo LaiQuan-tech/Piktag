@@ -177,7 +177,8 @@
       "cardFieldBio": "Bio (черновик ИИ, можно править)",
       "cardBioPlaceholder": "Одна строка о вас",
       "cardLinksLabel": "Контакты / соцсети",
-      "cardApplyCta": "Применить"
+      "cardApplyCta": "Применить",
+      "profileCta": "Создать первый Tag"
     }
   },
   "connections": {
@@ -338,11 +339,11 @@
     "aiSuggestionsEmpty": "AI ничего не нашёл — попробуй снова или добавь сам.",
     "aiRegenerate": "Перегенерировать",
     "contextPromptHints": [
+      "Дайвинг-поездка",
       "Встреча выпускников",
-      "Ужин с командой",
-      "Свадьба друга",
-      "Групповое занятие в зале",
-      "Кемпинг на выходных"
+      "Корпоратив",
+      "Шашлыки на выходных",
+      "Свадьба друга"
     ]
   },
   "profile": {
@@ -594,7 +595,8 @@
     "pickTagSave": "Сохранить ({{count}})",
     "hiddenTagPlaceholder": "Добавь скрытый тег...",
     "tag": "Метка",
-    "recommendMembers": "Рекомендованные"
+    "recommendMembers": "Рекомендованные",
+    "vibeContextTagsTitle": "Теги этого Tag"
   },
   "settings": {
     "headerTitle": "Настройки",

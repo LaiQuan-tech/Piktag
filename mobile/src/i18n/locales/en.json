@@ -189,7 +189,8 @@
       "cardFieldBio": "Bio (AI draft, editable)",
       "cardBioPlaceholder": "One line about you",
       "cardLinksLabel": "Contacts / social",
-      "cardApplyCta": "Apply"
+      "cardApplyCta": "Apply",
+      "profileCta": "Create my first Tag"
     }
   },
   "connections": {
@@ -353,11 +354,11 @@
     "aiSuggestionsEmpty": "AI didn't find a fit — try again or add your own.",
     "aiRegenerate": "Regenerate",
     "contextPromptHints": [
+      "Weekend diving trip",
       "College reunion",
-      "Team dinner",
-      "A friend’s wedding",
-      "Gym class",
-      "Weekend camping"
+      "Office holiday party",
+      "Beach BBQ",
+      "A friend’s wedding"
     ]
   },
   "profile": {
@@ -609,7 +610,8 @@
     "pickTagSave": "Save ({{count}})",
     "hiddenTagPlaceholder": "Add hidden tag...",
     "tag": "Tag",
-    "recommendMembers": "Recommended members"
+    "recommendMembers": "Recommended members",
+    "vibeContextTagsTitle": "Tags from this Tag"
   },
   "settings": {
     "headerTitle": "Settings",

@@ -177,7 +177,8 @@
       "cardFieldBio": "Bio (ร่างจาก AI แก้ได้)",
       "cardBioPlaceholder": "แนะนำตัวสั้นๆ",
       "cardLinksLabel": "ติดต่อ / โซเชียล",
-      "cardApplyCta": "ใช้"
+      "cardApplyCta": "ใช้",
+      "profileCta": "สร้าง Tag แรกของฉัน"
     }
   },
   "connections": {
@@ -338,11 +339,11 @@
     "aiSuggestionsEmpty": "AI หาที่เหมาะไม่เจอ — ลองใหม่หรือเพิ่มเอง",
     "aiRegenerate": "สร้างใหม่",
     "contextPromptHints": [
+      "ทริปดำน้ำ",
       "งานรุ่นมหาลัย",
-      "มื้อค่ำกับทีม",
-      "งานแต่งงานเพื่อน",
-      "คลาสกลุ่มที่ยิม",
-      "แคมป์ปิ้งสุดสัปดาห์"
+      "งานเลี้ยงบริษัท",
+      "ปิ้งย่างสุดสัปดาห์",
+      "งานแต่งเพื่อน"
     ]
   },
   "profile": {
@@ -594,7 +595,8 @@
     "pickTagSave": "บันทึก ({{count}})",
     "hiddenTagPlaceholder": "เพิ่มแท็กที่ซ่อน...",
     "tag": "แท็ก",
-    "recommendMembers": "สมาชิกแนะนำ"
+    "recommendMembers": "สมาชิกแนะนำ",
+    "vibeContextTagsTitle": "แท็กของ Tag นี้"
   },
   "settings": {
     "headerTitle": "ตั้งค่า",

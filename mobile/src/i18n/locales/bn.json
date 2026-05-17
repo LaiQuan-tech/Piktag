@@ -177,7 +177,8 @@
       "cardFieldBio": "Bio (AI খসড়া, সম্পাদনযোগ্য)",
       "cardBioPlaceholder": "নিজের সম্পর্কে এক লাইন",
       "cardLinksLabel": "যোগাযোগ / সোশ্যাল",
-      "cardApplyCta": "প্রয়োগ করুন"
+      "cardApplyCta": "প্রয়োগ করুন",
+      "profileCta": "আমার প্রথম Tag বানাও"
     }
   },
   "connections": {
@@ -338,11 +339,11 @@
     "aiSuggestionsEmpty": "AI কিছু পেলো না — আবার চেষ্টা করো বা নিজে যোগ করো।",
     "aiRegenerate": "পুনরায় তৈরি",
     "contextPromptHints": [
+      "ডাইভিং ট্রিপ",
       "কলেজ রিইউনিয়ন",
-      "টিম ডিনার",
-      "বন্ধুর বিয়ে",
-      "জিম ক্লাস",
-      "উইকেন্ড ক্যাম্পিং"
+      "অফিস পার্টি",
+      "উইকেন্ড বারবিকিউ",
+      "বন্ধুর বিয়ে"
     ]
   },
   "profile": {
@@ -594,7 +595,8 @@
     "pickTagSave": "সংরক্ষণ ({{count}})",
     "hiddenTagPlaceholder": "লুকানো ট্যাগ যোগ করুন...",
     "tag": "ট্যাগ",
-    "recommendMembers": "প্রস্তাবিত সদস্য"
+    "recommendMembers": "প্রস্তাবিত সদস্য",
+    "vibeContextTagsTitle": "এই Tag-এর ট্যাগ"
   },
   "settings": {
     "headerTitle": "সেটিংস",

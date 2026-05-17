@@ -177,7 +177,8 @@
       "cardFieldBio": "نبذة (مسودة ذكاء اصطناعي، قابلة للتعديل)",
       "cardBioPlaceholder": "سطر واحد عنك",
       "cardLinksLabel": "جهات الاتصال / التواصل",
-      "cardApplyCta": "تطبيق"
+      "cardApplyCta": "تطبيق",
+      "profileCta": "أنشئ أول Tag"
     }
   },
   "connections": {
@@ -338,11 +339,11 @@
     "aiSuggestionsEmpty": "لم يجد الذكاء الاصطناعي خياراً مناسباً — جرب مرة أخرى أو أضف يدوياً.",
     "aiRegenerate": "إعادة التوليد",
     "contextPromptHints": [
+      "رحلة غوص",
       "لمّ شمل الجامعة",
-      "عشاء الفريق",
-      "زفاف صديق",
-      "حصة جماعية في النادي",
-      "تخييم نهاية الأسبوع"
+      "حفلة المكتب",
+      "شواء نهاية الأسبوع",
+      "زفاف صديق"
     ]
   },
   "profile": {
@@ -594,7 +595,8 @@
     "pickTagSave": "حفظ ({{count}})",
     "hiddenTagPlaceholder": "أضف وسمًا مخفيًا...",
     "tag": "وسم",
-    "recommendMembers": "أعضاء موصى بهم"
+    "recommendMembers": "أعضاء موصى بهم",
+    "vibeContextTagsTitle": "وسوم هذا الـ Tag"
   },
   "settings": {
     "headerTitle": "الإعدادات",

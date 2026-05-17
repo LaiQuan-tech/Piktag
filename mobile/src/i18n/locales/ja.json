@@ -177,7 +177,8 @@
       "cardFieldBio": "Bio（AI下書き・編集可）",
       "cardBioPlaceholder": "自己紹介を一言",
       "cardLinksLabel": "連絡先 / SNS",
-      "cardApplyCta": "適用"
+      "cardApplyCta": "適用",
+      "profileCta": "最初の Tag を作成"
     }
   },
   "connections": {
@@ -338,11 +339,11 @@
     "aiSuggestionsEmpty": "AI が合うタグを思いつきませんでした — 再試行か手動追加を。",
     "aiRegenerate": "再生成",
     "contextPromptHints": [
+      "ダイビングツアー",
       "大学の同窓会",
-      "チームの食事会",
-      "友人の結婚式",
-      "ジムのグループレッスン",
-      "週末キャンプ"
+      "忘年会",
+      "花見の集まり",
+      "友人の結婚式"
     ]
   },
   "profile": {
@@ -594,7 +595,8 @@
     "pickTagSave": "保存 ({{count}})",
     "hiddenTagPlaceholder": "非公開タグを追加...",
     "tag": "タグ",
-    "recommendMembers": "おすすめのメンバー"
+    "recommendMembers": "おすすめのメンバー",
+    "vibeContextTagsTitle": "この Tag のタグ"
   },
   "settings": {
     "headerTitle": "設定",

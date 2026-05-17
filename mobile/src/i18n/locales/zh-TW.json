@@ -189,7 +189,8 @@
       "cardFieldBio": "Bio（AI 起的草稿，可改）",
       "cardBioPlaceholder": "一句話介紹你自己",
       "cardLinksLabel": "聯絡方式 / 社群",
-      "cardApplyCta": "套用"
+      "cardApplyCta": "套用",
+      "profileCta": "建立我的第一個 Tag"
     }
   },
   "connections": {
@@ -356,11 +357,11 @@
     "aiSuggestionsEmpty": "AI 想不到合適的標籤 — 再試一次或自己加。",
     "aiRegenerate": "重新生成",
     "contextPromptHints": [
+      "龍洞潛水揪團",
+      "陽明山健行團",
       "大學同學會",
-      "公司團隊聚餐",
-      "朋友的婚禮",
-      "健身房團課",
-      "週末露營"
+      "公司尾牙",
+      "朋友的婚禮"
     ]
   },
   "profile": {
@@ -612,7 +613,8 @@
     "pickTagSave": "儲存 ({{count}})",
     "hiddenTagPlaceholder": "新增隱藏標籤...",
     "tag": "標籤",
-    "recommendMembers": "推薦會員"
+    "recommendMembers": "推薦會員",
+    "vibeContextTagsTitle": "這次 Tag 帶的標籤"
   },
   "settings": {
     "headerTitle": "設定",

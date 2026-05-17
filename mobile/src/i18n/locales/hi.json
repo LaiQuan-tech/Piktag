@@ -177,7 +177,8 @@
       "cardFieldBio": "Bio (AI ड्राफ़्ट, संपादन योग्य)",
       "cardBioPlaceholder": "अपने बारे में एक पंक्ति",
       "cardLinksLabel": "संपर्क / सोशल",
-      "cardApplyCta": "लागू करें"
+      "cardApplyCta": "लागू करें",
+      "profileCta": "मेरा पहला Tag बनाएँ"
     }
   },
   "connections": {
@@ -338,11 +339,11 @@
     "aiSuggestionsEmpty": "AI को कुछ नहीं मिला — फिर से कोशिश करें या खुद जोड़ें।",
     "aiRegenerate": "पुनः उत्पन्न",
     "contextPromptHints": [
+      "डाइविंग ट्रिप",
       "कॉलेज रीयूनियन",
-      "टीम डिनर",
-      "दोस्त की शादी",
-      "जिम क्लास",
-      "वीकेंड कैंपिंग"
+      "ऑफिस पार्टी",
+      "वीकेंड बारबेक्यू",
+      "दोस्त की शादी"
     ]
   },
   "profile": {
@@ -594,7 +595,8 @@
     "pickTagSave": "सहेजें ({{count}})",
     "hiddenTagPlaceholder": "छुपा टैग जोड़ें...",
     "tag": "टैग",
-    "recommendMembers": "अनुशंसित सदस्य"
+    "recommendMembers": "अनुशंसित सदस्य",
+    "vibeContextTagsTitle": "इस Tag के टैग"
   },
   "settings": {
     "headerTitle": "सेटिंग्स",
