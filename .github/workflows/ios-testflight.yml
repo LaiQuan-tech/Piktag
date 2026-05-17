@@ -1,31 +1,30 @@
 name: iOS TestFlight Build
 
 on:
+  # MANUAL ONLY. The push trigger was removed deliberately.
+  #
+  # Every run does a full archive + upload to App Store Connect,
+  # and ASC enforces a per-app DAILY upload cap. With "commit +
+  # push on every change" (~10+/day) we blew through that cap and
+  # every upload after it failed with "Upload limit reached. Please
+  # wait 1 day" — which looked like "TestFlight stuck at 574" (574
+  # was the last build that uploaded before the throttle).
+  #
+  # Decoupling fixes it at the root: push = save code (history),
+  # pressing "Run workflow" = spend one of the day's uploads on
+  # purpose. To ship a TestFlight build: GitHub → Actions → "iOS
+  # TestFlight Build" → Run workflow (defaults to main / latest).
   workflow_dispatch:
-  push:
-    branches: [main]
-    # Negative patterns (evaluated in order) exclude DB-only
-    # changes from triggering an app build. Migrations apply
-    # manually via the Supabase SQL Editor and edge functions
-    # deploy via `supabase functions deploy` — neither ships in
-    # the app bundle, so a supabase/** or scripts/** commit must
-    # NOT burn a ~30min macOS build run (which also inflated the
-    # build number vs. real app changes). A MIXED commit that
-    # also touches mobile/src/** still matches `mobile/**` and
-    # builds — only pure DB/tooling commits are skipped.
-    paths:
-      - 'mobile/**'
-      - '!mobile/supabase/**'
-      - '!mobile/scripts/**'
-      - '.github/workflows/ios-testflight.yml'
 
 jobs:
   build-and-upload:
-    # Was macos-15 — that image's latest-stable Xcode is 16.x, so the
-    # "Xcode >= 26" gate below (Apple ITMS-90725, enforced 2026-04-28)
-    # exit 1'd on EVERY run and no build reached TestFlight (stuck at
-    # 574). macos-26 ships Xcode 26 as latest-stable, clearing the gate.
-    runs-on: macos-26
+    # macos-15 is proven good: "Build iOS Archive" succeeds here and
+    # the Xcode-26 gate passes (setup-xcode resolves Xcode 26 on this
+    # image). The earlier "stuck at 574" was NOT a runner/Xcode issue
+    # — it was Apple's per-app daily UPLOAD limit (~10+ builds/day
+    # pushed; App Store Connect throttled: "Upload limit reached,
+    # wait 1 day"). Keep the known-good runner.
+    runs-on: macos-15
     timeout-minutes: 60
 
     # EXPO_PUBLIC_* vars are substituted into the JS bundle by Metro at
