@@ -462,11 +462,11 @@
     "missingBiolink": "Sosyal bağlantı",
     "welcomeShort": "PikTag'a hoş geldin",
     "bioPromptHints": [
-      "Satışçı, yarı maraton koşar",
-      "İlkokul öğretmeni, bitki tutkunu",
-      "Hemşire, hafta sonu pasta yapar",
-      "Yazılım mühendisi, Shiba besler",
-      "Üniversite öğrencisi, gitar öğreniyor"
+      "Teknolojide satış; koşmak kafa dağıtmam, bu yıl maratonu 4 saatin altına",
+      "İlkokul öğretmeni, balkonda sebze yetiştiriyorum, 20+ sukulent",
+      "Acil hemşiresi, vardiya sonrası pasta yaparım, filtre kahve öğreniyorum",
+      "Backend mühendisi, son dönem yemek ve çömlek merakı, huysuz bir Shiba’m var",
+      "Psikoloji öğrencisi, grupta gitar çalıyorum, illüstrasyon işleri alıyorum"
     ]
   },
   "friendDetail": {

@@ -462,11 +462,11 @@
     "missingBiolink": "Link social",
     "welcomeShort": "Bem-vindo ao PikTag",
     "bioPromptHints": [
-      "Vendedor, corre meias-maratonas",
-      "Professora primária, viciada em plantas",
-      "Enfermeiro, confeiteiro nos fins de semana",
-      "Engenheiro de software, tem um Shiba",
-      "Universitário, aprendendo violão"
+      "Vendedor de tecnologia; correr me alivia, quero fechar a maratona abaixo de 4h",
+      "Professora primária, horta na varanda e mais de 20 suculentas",
+      "Enfermeiro de emergência, confeito para relaxar, aprendendo café coado",
+      "Engenheiro backend, agora curtindo cozinhar e cerâmica, tenho um Shiba bravo",
+      "Estudante de psicologia, toco violão numa banda e faço ilustração"
     ]
   },
   "friendDetail": {

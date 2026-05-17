@@ -462,11 +462,11 @@
     "missingBiolink": "Lien social",
     "welcomeShort": "Bienvenue sur PikTag",
     "bioPromptHints": [
-      "Commercial, court des semi-marathons",
-      "Prof des écoles, accro aux plantes",
-      "Infirmier, pâtisse le week-end",
-      "Ingénieur logiciel, a un Shiba",
-      "Étudiant, apprend la guitare"
+      "Commercial dans la tech ; courir me vide la tête, viser sous 4h au marathon",
+      "Prof des écoles, potager sur le balcon, plus de 20 plantes grasses",
+      "Infirmier aux urgences, je pâtisse pour décompresser, café filtre en cours",
+      "Ingénieur backend, à fond cuisine et poterie, un Shiba bien caractériel",
+      "Étudiant en psycho, guitare dans un groupe, je fais aussi de l’illustration"
     ]
   },
   "friendDetail": {
