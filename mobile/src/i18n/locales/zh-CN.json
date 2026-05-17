@@ -927,7 +927,9 @@
     "relationClient": "客户",
     "alreadyConnectedTitle": "已连接",
     "alreadyConnectedMessage": "你们已经是朋友了",
-    "addFriend": "关注"
+    "addFriend": "关注",
+    "connectElsewhereTitle": "也在这些地方连上 {{name}}",
+    "connectElsewhereHint": "点一下会打开对方在该 App 的页面，由你按关注／加好友。"
   },
   "manageTags": {
     "headerTitle": "标签管理",

@@ -929,7 +929,9 @@
     "relationClient": "客戶",
     "alreadyConnectedTitle": "已連結",
     "alreadyConnectedMessage": "你們已經是朋友了",
-    "addFriend": "追蹤"
+    "addFriend": "追蹤",
+    "connectElsewhereTitle": "也在這些地方連上 {{name}}",
+    "connectElsewhereHint": "點一下會開啟對方在該 App 的頁面，由你按追蹤／加好友。"
   },
   "manageTags": {
     "headerTitle": "標籤管理",

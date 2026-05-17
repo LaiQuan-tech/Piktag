@@ -859,7 +859,9 @@
     "relationClient": "ลูกค้า",
     "alreadyConnectedTitle": "เชื่อมต่อแล้ว",
     "alreadyConnectedMessage": "คุณเป็นเพื่อนกันแล้ว",
-    "addFriend": "ติดตาม"
+    "addFriend": "ติดตาม",
+    "connectElsewhereTitle": "เชื่อมต่อกับ {{name}} ที่นี่ด้วย",
+    "connectElsewhereHint": "แตะเพื่อเปิดหน้าของเขาในแอปนั้น — คุณกดติดตาม/เพิ่มเอง"
   },
   "manageTags": {
     "headerTitle": "จัดการแท็ก",

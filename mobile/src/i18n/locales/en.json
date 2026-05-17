@@ -940,7 +940,9 @@
     "relationClient": "Client",
     "alreadyConnectedTitle": "Already Connected",
     "alreadyConnectedMessage": "You are already friends.",
-    "addFriend": "Follow"
+    "addFriend": "Follow",
+    "connectElsewhereTitle": "Also connect with {{name}} here",
+    "connectElsewhereHint": "Tap to open their page in that app — you tap follow/add."
   },
   "manageTags": {
     "headerTitle": "Manage Tags",

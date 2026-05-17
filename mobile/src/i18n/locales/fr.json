@@ -859,7 +859,9 @@
     "relationClient": "Client",
     "alreadyConnectedTitle": "Déjà connectés",
     "alreadyConnectedMessage": "Vous êtes déjà amis.",
-    "addFriend": "Suivre"
+    "addFriend": "Suivre",
+    "connectElsewhereTitle": "Connecte-toi aussi avec {{name}} ici",
+    "connectElsewhereHint": "Touche pour ouvrir sa page dans l'app — c'est toi qui suis/ajoutes."
   },
   "manageTags": {
     "headerTitle": "Gérer les tags",

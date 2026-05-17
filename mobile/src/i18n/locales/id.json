@@ -859,7 +859,9 @@
     "relationClient": "Klien",
     "alreadyConnectedTitle": "Sudah Terhubung",
     "alreadyConnectedMessage": "Kalian sudah berteman.",
-    "addFriend": "Ikuti"
+    "addFriend": "Ikuti",
+    "connectElsewhereTitle": "Terhubung dengan {{name}} di sini juga",
+    "connectElsewhereHint": "Ketuk untuk membuka halamannya di app itu — kamu yang follow/tambah."
   },
   "manageTags": {
     "headerTitle": "Kelola Tag",

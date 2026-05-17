@@ -859,7 +859,9 @@
     "relationClient": "عميل",
     "alreadyConnectedTitle": "متصلون بالفعل",
     "alreadyConnectedMessage": "أنتما أصدقاء بالفعل.",
-    "addFriend": "متابعة"
+    "addFriend": "متابعة",
+    "connectElsewhereTitle": "تواصل مع {{name}} هنا أيضًا",
+    "connectElsewhereHint": "اضغط لفتح صفحته في ذلك التطبيق — أنت من يتابع/يضيف."
   },
   "manageTags": {
     "headerTitle": "إدارة الوسوم",

@@ -945,7 +945,9 @@
     "relationClient": "کلائنٹ",
     "alreadyConnectedTitle": "پہلے سے جڑے ہوئے",
     "alreadyConnectedMessage": "آپ پہلے سے دوست ہیں۔",
-    "addFriend": "فالو کریں"
+    "addFriend": "فالو کریں",
+    "connectElsewhereTitle": "{{name}} سے یہاں بھی جڑیں",
+    "connectElsewhereHint": "ٹیپ کریں، اُن کا پیج اُس ایپ میں کھلے گا — فالو/ایڈ آپ خود کریں۔"
   },
   "manageTags": {
     "headerTitle": "ٹیگز سنبھالیں",

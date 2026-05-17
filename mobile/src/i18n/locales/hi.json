@@ -859,7 +859,9 @@
     "relationClient": "क्लाइंट",
     "alreadyConnectedTitle": "पहले से जुड़े",
     "alreadyConnectedMessage": "आप पहले से दोस्त हैं।",
-    "addFriend": "फ़ॉलो"
+    "addFriend": "फ़ॉलो",
+    "connectElsewhereTitle": "{{name}} से यहाँ भी जुड़ें",
+    "connectElsewhereHint": "टैप करें, उनका पेज उस ऐप में खुलेगा — फ़ॉलो/ऐड आप करें।"
   },
   "manageTags": {
     "headerTitle": "टैग प्रबंधित करें",

@@ -945,7 +945,9 @@
     "relationClient": "Khách hàng",
     "alreadyConnectedTitle": "Đã kết nối",
     "alreadyConnectedMessage": "Hai bạn là bạn bè rồi nhé.",
-    "addFriend": "Theo dõi"
+    "addFriend": "Theo dõi",
+    "connectElsewhereTitle": "Kết nối với {{name}} ở đây nữa",
+    "connectElsewhereHint": "Chạm để mở trang của họ trong app đó — bạn tự bấm theo dõi/kết bạn."
   },
   "manageTags": {
     "headerTitle": "Quản lý tag",

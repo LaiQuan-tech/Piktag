@@ -8,6 +8,7 @@ import {
   StyleSheet,
   StatusBar,
   Alert,
+  Linking,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
@@ -19,7 +20,9 @@ import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
 import PageLoader from '../components/loaders/PageLoader';
 import BrandSpinner from '../components/loaders/BrandSpinner';
-import type { PiktagProfile } from '../types';
+import PlatformIcon from '../components/PlatformIcon';
+import { getPlatformLabel } from '../lib/platforms';
+import type { PiktagProfile, Biolink } from '../types';
 
 type ScanResultParams = {
   sessionId: string;
@@ -52,6 +55,11 @@ export default function ScanResultScreen({ navigation, route }: ScanResultScreen
   } = route.params;
 
   const [hostProfile, setHostProfile] = useState<PiktagProfile | null>(null);
+  // Host's PUBLIC biolinks only. The scanner is, at this instant, a
+  // stranger who just scanned a Tag QR — public is exactly the set
+  // the host chose to expose to anyone. No friends/close/private
+  // ever surfaces here (privacy + App-review safe).
+  const [hostBiolinks, setHostBiolinks] = useState<Biolink[]>([]);
   const [myTags, setMyTags] = useState<string[]>([]);
   const [selectedMyTags, setSelectedMyTags] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
@@ -88,6 +96,20 @@ export default function ScanResultScreen({ navigation, route }: ScanResultScreen
       if (profileData) {
         setHostProfile(profileData);
       }
+
+      // Host's public biolinks → one-tap "also connect on LINE / IG
+      // / WhatsApp / …" deep links. The stored url is already a
+      // full openable link (prefix + handle), so Linking.openURL
+      // lands the user on that person inside the other app where
+      // they tap follow/add themselves (no platform lets a 3rd-party
+      // app do that for them — this is the honest, compliant model).
+      const { data: blData } = await supabase
+        .from('piktag_biolinks')
+        .select('*')
+        .eq('user_id', hostUserId)
+        .eq('visibility', 'public')
+        .order('position', { ascending: true });
+      if (blData) setHostBiolinks(blData as Biolink[]);
 
       // Fetch my tags
       const { data: myTagsData } = await supabase
@@ -129,6 +151,10 @@ export default function ScanResultScreen({ navigation, route }: ScanResultScreen
     } else {
       setSelectedMyTags(new Set(myTags));
     }
+  };
+
+  const openBiolink = (url: string) => {
+    if (url) Linking.openURL(url).catch(() => {});
   };
 
   const handleConfirm = async () => {
@@ -377,6 +403,43 @@ export default function ScanResultScreen({ navigation, route }: ScanResultScreen
           ) : null}
         </View>
 
+        {/* Connect elsewhere — host's PUBLIC biolinks as one-tap
+            deep links. Tapping opens that person inside the other
+            app; the user taps follow/add there (no platform allows
+            a 3rd-party app to do it for them). */}
+        {hostBiolinks.length > 0 && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>
+              {t('scanResult.connectElsewhereTitle', {
+                name: displayName,
+                defaultValue: '也在這些地方連上 {{name}}',
+              })}
+            </Text>
+            <Text style={styles.connectHint}>
+              {t('scanResult.connectElsewhereHint', {
+                defaultValue: '點一下會開啟對方在該 App 的頁面，由你按追蹤／加好友。',
+              })}
+            </Text>
+            <View style={styles.chipsContainer}>
+              {hostBiolinks.map((bl) => (
+                <TouchableOpacity
+                  key={bl.id}
+                  style={styles.socialBtn}
+                  activeOpacity={0.7}
+                  onPress={() => openBiolink(bl.url)}
+                  accessibilityRole="button"
+                  accessibilityLabel={getPlatformLabel(bl.platform, t)}
+                >
+                  <PlatformIcon platform={bl.platform} size={18} iconUrl={bl.icon_url} />
+                  <Text style={styles.socialBtnText} numberOfLines={1}>
+                    {getPlatformLabel(bl.platform, t)}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+        )}
+
         {/* My Tags Section */}
         {myTags.length > 0 && (
           <View style={styles.section}>
@@ -590,6 +653,28 @@ const styles = StyleSheet.create({
   },
   chipTextUnselected: {
     color: COLORS.gray600,
+  },
+  connectHint: {
+    fontSize: 13,
+    color: COLORS.gray500,
+    marginTop: 6,
+    marginBottom: 14,
+    lineHeight: 18,
+  },
+  socialBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 7,
+    backgroundColor: COLORS.gray100,
+    borderRadius: 9999,
+    paddingVertical: 9,
+    paddingHorizontal: 14,
+  },
+  socialBtnText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: COLORS.gray700,
+    maxWidth: 140,
   },
   ctaContainer: {
     paddingHorizontal: 20,

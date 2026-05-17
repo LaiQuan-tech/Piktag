@@ -859,7 +859,9 @@
     "relationClient": "Müşteri",
     "alreadyConnectedTitle": "Zaten Bağlı",
     "alreadyConnectedMessage": "Zaten arkadaşsınız.",
-    "addFriend": "Takip Et"
+    "addFriend": "Takip Et",
+    "connectElsewhereTitle": "{{name}} ile burada da bağlan",
+    "connectElsewhereHint": "Dokun, kişinin sayfası o uygulamada açılır — takip/ekleme sana kalmış."
   },
   "manageTags": {
     "headerTitle": "Etiketleri Yönet",

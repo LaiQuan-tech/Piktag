@@ -859,7 +859,9 @@
     "relationClient": "クライアント",
     "alreadyConnectedTitle": "既につながっています",
     "alreadyConnectedMessage": "すでに友達です。",
-    "addFriend": "フォロー"
+    "addFriend": "フォロー",
+    "connectElsewhereTitle": "{{name}} さんと他のアプリでもつながる",
+    "connectElsewhereHint": "タップすると相手のページが開きます。フォロー／追加はあなたが行います。"
   },
   "manageTags": {
     "headerTitle": "タグを管理",

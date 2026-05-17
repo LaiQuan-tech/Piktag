@@ -859,7 +859,9 @@
     "relationClient": "고객",
     "alreadyConnectedTitle": "이미 연결됨",
     "alreadyConnectedMessage": "이미 친구입니다.",
-    "addFriend": "팔로우"
+    "addFriend": "팔로우",
+    "connectElsewhereTitle": "{{name}}님과 다른 앱에서도 연결",
+    "connectElsewhereHint": "탭하면 상대방 페이지가 열려요. 팔로우/추가는 직접 눌러요."
   },
   "manageTags": {
     "headerTitle": "태그 관리",

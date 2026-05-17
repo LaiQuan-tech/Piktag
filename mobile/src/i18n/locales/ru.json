@@ -859,7 +859,9 @@
     "relationClient": "Клиент",
     "alreadyConnectedTitle": "Уже друзья",
     "alreadyConnectedMessage": "Вы уже друзья.",
-    "addFriend": "Подписаться"
+    "addFriend": "Подписаться",
+    "connectElsewhereTitle": "Свяжитесь с {{name}} и здесь",
+    "connectElsewhereHint": "Нажмите, чтобы открыть их страницу в приложении — подписку/добавление делаете вы."
   },
   "manageTags": {
     "headerTitle": "Управление тегами",
