@@ -21,7 +21,11 @@ on:
 
 jobs:
   build-and-upload:
-    runs-on: macos-15
+    # Was macos-15 — that image's latest-stable Xcode is 16.x, so the
+    # "Xcode >= 26" gate below (Apple ITMS-90725, enforced 2026-04-28)
+    # exit 1'd on EVERY run and no build reached TestFlight (stuck at
+    # 574). macos-26 ships Xcode 26 as latest-stable, clearing the gate.
+    runs-on: macos-26
     timeout-minutes: 60
 
     # EXPO_PUBLIC_* vars are substituted into the JS bundle by Metro at
