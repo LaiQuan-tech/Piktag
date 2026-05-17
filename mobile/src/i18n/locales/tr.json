@@ -1133,7 +1133,8 @@
       "Freelance iş arıyorum — işe alan var mı?",
       "Uygun fiyatlı diş hekimi önerin",
       "Bu hafta masa oyunu gecesi, kim var?"
-    ]
+    ],
+    "createSubtitle": "Bir satır yeter — AI etiketleri ekler, doğru kişiler (ya da bir arkadaşın arkadaşı) görsün."
   },
   "errorBoundary": {
     "title": "Bir şeyler ters gitti",

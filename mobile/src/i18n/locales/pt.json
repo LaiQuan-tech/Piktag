@@ -1133,7 +1133,8 @@
       "Procuro freelas — alguém contratando?",
       "Recomendem um dentista barato",
       "Noite de jogos de tabuleiro essa semana, quem vem?"
-    ]
+    ],
+    "createSubtitle": "Uma linha basta — a IA põe as tags para a pessoa certa (ou um amigo de um amigo) ver."
   },
   "errorBoundary": {
     "title": "Algo deu errado",

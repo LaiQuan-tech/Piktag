@@ -837,7 +837,19 @@ export function AskCreateModal({ visible, onClose, existingAsk, onCreated }: Ask
               showsVerticalScrollIndicator={false}
               contentContainerStyle={{ flexGrow: 1 }}
             >
-              <Text style={modalStyles.title}>{t('ask.createTitle')}</Text>
+              {/* Title + sub-line, same structure as the create-Tag
+                  screen ("這次是什麼場合？" + its explainer). The
+                  sub-line used to live under "AI 為你推薦" where it
+                  just repeated itself; here it does its real job —
+                  telling the user what to write — and carries the
+                  Ask payoff (the right people / a friend of a
+                  friend see it), not just the AI mechanic. */}
+              <Text style={[modalStyles.title, { marginBottom: 4 }]}>
+                {t('ask.createTitle')}
+              </Text>
+              <Text style={modalStyles.subtitle}>
+                {t('ask.createSubtitle', { defaultValue: '一句話就好 — AI 會配上標籤，讓對的人（或朋友的朋友）看到。' })}
+              </Text>
 
               {/* Body input */}
               <TextInput
@@ -919,16 +931,21 @@ export function AskCreateModal({ visible, onClose, existingAsk, onCreated }: Ask
                     ))}
                   </View>
                 ) : aiTriedAndEmpty ? (
+                  // AI ran and found nothing — actionable feedback.
                   <Text style={modalStyles.aiEmptyHint}>
                     {t('ask.aiNoSuggestions', { defaultValue: 'AI 沒有想到合適的標籤，再試一次或自己輸入' })}
                   </Text>
-                ) : (
+                ) : body.trim().length >= 5 ? (
+                  // Enough text written but AI not triggered yet —
+                  // tell them to tap ↻ (Ask is manual-trigger, this
+                  // is a real instruction, not redundant).
                   <Text style={modalStyles.aiEmptyHint}>
-                    {body.trim().length < 5
-                      ? t('ask.aiBodyTooShortHint', { defaultValue: '寫一句話描述你想要什麼 — AI 會推薦合適的標籤' })
-                      : t('ask.aiTapToGenerateHint', { defaultValue: '點右上的 ↻ 讓 AI 推薦標籤' })}
+                    {t('ask.aiTapToGenerateHint', { defaultValue: '點右上的 ↻ 讓 AI 推薦標籤' })}
                   </Text>
-                )}
+                ) : null
+                /* Pre-input: nothing. The explainer moved up to the
+                   title sub-line — repeating it here was the
+                   redundancy the user flagged. */}
               </View>
 
               {/* Custom tag input */}
@@ -1341,6 +1358,7 @@ const modalStyles = StyleSheet.create({
     backgroundColor: COLORS.gray200, alignSelf: 'center', marginBottom: 16,
   },
   title: { fontSize: 17, fontWeight: '700', color: COLORS.gray900, marginBottom: 16 },
+  subtitle: { fontSize: 13, color: COLORS.gray500, lineHeight: 19, marginBottom: 16 },
   input: {
     borderWidth: 1.5, borderColor: COLORS.gray200, borderRadius: 12,
     padding: 14, fontSize: 15, color: COLORS.gray900,

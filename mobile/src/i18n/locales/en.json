@@ -1218,7 +1218,8 @@
       "Looking for freelance gigs — anyone hiring?",
       "Recommend an affordable dentist",
       "Board-game night this week, who’s in?"
-    ]
+    ],
+    "createSubtitle": "Just one line — AI adds the tags so the right people (or a friend of a friend) see it."
   },
   "errorBoundary": {
     "title": "Something went wrong",

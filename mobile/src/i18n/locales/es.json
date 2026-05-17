@@ -1133,7 +1133,8 @@
       "Busco trabajo freelance, ¿alguien contrata?",
       "Recomienden un dentista económico",
       "Noche de juegos de mesa esta semana, ¿quién se apunta?"
-    ]
+    ],
+    "createSubtitle": "Con una línea basta — la IA pone las etiquetas para que lo vea la gente indicada (o un amigo de un amigo)."
   },
   "errorBoundary": {
     "title": "Algo salió mal",

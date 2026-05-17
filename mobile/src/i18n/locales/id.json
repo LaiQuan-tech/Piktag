@@ -1133,7 +1133,8 @@
       "Cari kerja freelance — ada yang hiring?",
       "Rekomendasi dokter gigi murah",
       "Main board game minggu ini, siapa ikut?"
-    ]
+    ],
+    "createSubtitle": "Satu baris cukup — AI menambah tag biar orang yang tepat (atau teman dari teman) melihatnya."
   },
   "errorBoundary": {
     "title": "Terjadi kesalahan",

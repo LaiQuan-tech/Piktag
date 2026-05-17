@@ -1205,7 +1205,8 @@
       "Suche Freelance-Aufträge — wer stellt ein?",
       "Empfehlt einen günstigen Zahnarzt",
       "Brettspielabend diese Woche, wer ist dabei?"
-    ]
+    ],
+    "createSubtitle": "Eine Zeile reicht — die KI vergibt die Tags, damit die richtigen Leute (oder ein Freund eines Freundes) es sehen."
   },
   "errorBoundary": {
     "title": "Etwas ist schiefgelaufen",

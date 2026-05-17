@@ -1133,7 +1133,8 @@
       "Je cherche des missions freelance, qui recrute ?",
       "Recommandez un dentiste pas cher",
       "Soirée jeux de société cette semaine, qui vient ?"
-    ]
+    ],
+    "createSubtitle": "Une ligne suffit — l'IA ajoute les tags pour que les bonnes personnes (ou un ami d'ami) le voient."
   },
   "errorBoundary": {
     "title": "Une erreur est survenue",
