@@ -391,7 +391,7 @@
     "usernameLabel": "Nome de usuário",
     "usernamePlaceholder": "Insira o nome de usuário",
     "headlineLabel": "Cargo / Função",
-    "headlinePlaceholder": "ex.: PM no Google, Designer freelance",
+    "headlinePlaceholder": "ex.: PM numa empresa de tech, Designer freelance",
     "bioLabel": "Bio",
     "bioPlaceholder": "Insira a bio",
     "phoneLabel": "Telefone",
@@ -469,7 +469,7 @@
       "Estudante de psicologia, toco violão numa banda e faço ilustração"
     ],
     "headlinePromptHints": [
-      "PM @ Google",
+      "PM @ uma empresa de tech",
       "Advogado @ um escritório",
       "Enfermeiro de emergência @ um hospital",
       "Designer gráfico freelance",

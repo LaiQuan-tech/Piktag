@@ -391,7 +391,7 @@
     "usernameLabel": "Nama Pengguna",
     "usernamePlaceholder": "Masukkan nama pengguna",
     "headlineLabel": "Jabatan / Peran",
-    "headlinePlaceholder": "cth: PM @ Google, Desainer freelance",
+    "headlinePlaceholder": "cth: PM @ perusahaan tech, Desainer freelance",
     "bioLabel": "Bio",
     "bioPlaceholder": "Masukkan bio",
     "phoneLabel": "Telepon",
@@ -469,7 +469,7 @@
       "Mahasiswa psikologi, main gitar di band, mulai terima job ilustrasi"
     ],
     "headlinePromptHints": [
-      "PM @ Google",
+      "PM @ perusahaan tech",
       "Pengacara @ firma hukum",
       "Perawat IGD @ pusat medis",
       "Desainer grafis freelance",

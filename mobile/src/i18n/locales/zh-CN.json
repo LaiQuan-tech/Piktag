@@ -399,7 +399,7 @@
     "usernameLabel": "用户名称",
     "usernamePlaceholder": "输入用户名称",
     "headlineLabel": "职称 / 身份",
-    "headlinePlaceholder": "例：PM @ Google、自由接案设计师",
+    "headlinePlaceholder": "例：PM @ 科技公司、自由接案设计师",
     "bioLabel": "个人简介",
     "bioPlaceholder": "输入个人简介",
     "phoneLabel": "电话",
@@ -477,7 +477,7 @@
       "大学心理系学生，玩乐队弹吉他，开始接一些插画案子"
     ],
     "headlinePromptHints": [
-      "PM @ Google",
+      "PM @ 科技公司",
       "律师 @ 律师事务所",
       "急诊护士 @ 医学中心",
       "自由接案平面设计师",

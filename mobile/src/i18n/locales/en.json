@@ -406,7 +406,7 @@
     "usernameLabel": "Username",
     "usernamePlaceholder": "Enter username",
     "headlineLabel": "Title / Role",
-    "headlinePlaceholder": "e.g. PM @ Google, Freelance Designer",
+    "headlinePlaceholder": "e.g. PM @ a tech company, Freelance Designer",
     "bioLabel": "Bio",
     "bioPlaceholder": "Enter bio",
     "phoneLabel": "Phone",
@@ -484,7 +484,7 @@
       "Psych major, play guitar in a band, started taking illustration gigs"
     ],
     "headlinePromptHints": [
-      "PM @ Google",
+      "PM @ a tech company",
       "Lawyer @ a law firm",
       "ER nurse @ a medical center",
       "Freelance graphic designer",

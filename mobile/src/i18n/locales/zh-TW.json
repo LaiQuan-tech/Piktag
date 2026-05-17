@@ -409,7 +409,7 @@
     "usernameLabel": "用戶名稱",
     "usernamePlaceholder": "輸入用戶名稱",
     "headlineLabel": "職稱",
-    "headlinePlaceholder": "例：PM @ Google、自由接案設計師",
+    "headlinePlaceholder": "例：PM @ 科技公司、自由接案設計師",
     "bioLabel": "個人簡介",
     "bioPlaceholder": "輸入個人簡介",
     "phoneLabel": "電話",
@@ -487,7 +487,7 @@
       "大學心理系學生，玩樂團彈吉他，開始接一些插畫案子"
     ],
     "headlinePromptHints": [
-      "PM @ Google",
+      "PM @ 科技公司",
       "律師 @ 法律事務所",
       "急診護理師 @ 醫學中心",
       "自由接案平面設計師",

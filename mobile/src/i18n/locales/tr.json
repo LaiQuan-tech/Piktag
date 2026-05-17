@@ -391,7 +391,7 @@
     "usernameLabel": "Kullanıcı Adı",
     "usernamePlaceholder": "Kullanıcı adını gir",
     "headlineLabel": "Unvan / Rol",
-    "headlinePlaceholder": "örn: PM @ Google, Serbest Tasarımcı",
+    "headlinePlaceholder": "örn: PM @ bir teknoloji şirketi, Serbest Tasarımcı",
     "bioLabel": "Biyografi",
     "bioPlaceholder": "Biyografini gir",
     "phoneLabel": "Telefon",
@@ -469,7 +469,7 @@
       "Psikoloji öğrencisi, grupta gitar çalıyorum, illüstrasyon işleri alıyorum"
     ],
     "headlinePromptHints": [
-      "PM @ Google",
+      "PM @ bir teknoloji şirketi",
       "Avukat @ bir hukuk bürosu",
       "Acil hemşiresi @ tıp merkezi",
       "Serbest grafik tasarımcı",

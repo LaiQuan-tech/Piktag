@@ -399,7 +399,7 @@
     "usernameLabel": "Nutzername",
     "usernamePlaceholder": "Nutzername eingeben",
     "headlineLabel": "Titel / Rolle",
-    "headlinePlaceholder": "z. B. PM @ Google, Freelance Designer",
+    "headlinePlaceholder": "z. B. PM @ einem Tech-Unternehmen, Freelance Designer",
     "bioLabel": "Bio",
     "bioPlaceholder": "Bio eingeben",
     "phoneLabel": "Telefon",
@@ -477,7 +477,7 @@
       "Psychologie-Student, Gitarre in einer Band, mache jetzt auch Illustration"
     ],
     "headlinePromptHints": [
-      "PM @ Google",
+      "PM @ einem Tech-Unternehmen",
       "Anwalt @ einer Kanzlei",
       "Notfallpfleger @ einer Klinik",
       "Freier Grafikdesigner",

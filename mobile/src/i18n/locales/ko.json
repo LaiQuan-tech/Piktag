@@ -391,7 +391,7 @@
     "usernameLabel": "사용자명",
     "usernamePlaceholder": "사용자명 입력",
     "headlineLabel": "직책 / 역할",
-    "headlinePlaceholder": "예: Google PM, 프리랜서 디자이너",
+    "headlinePlaceholder": "예: 테크 기업 PM, 프리랜서 디자이너",
     "bioLabel": "자기소개",
     "bioPlaceholder": "자기소개 입력",
     "phoneLabel": "전화",
@@ -469,7 +469,7 @@
       "심리학 전공 대학생, 밴드에서 기타. 최근 일러스트 외주도 시작했어요"
     ],
     "headlinePromptHints": [
-      "PM @ Google",
+      "PM @ 테크 기업",
       "변호사 @ 법무법인",
       "응급실 간호사 @ 의료센터",
       "프리랜스 그래픽 디자이너",

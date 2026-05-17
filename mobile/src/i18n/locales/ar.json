@@ -391,7 +391,7 @@
     "usernameLabel": "اسم المستخدم",
     "usernamePlaceholder": "أدخل اسم المستخدم",
     "headlineLabel": "المسمى الوظيفي",
-    "headlinePlaceholder": "مثال: PM @ Google، مصمم مستقل",
+    "headlinePlaceholder": "مثال: PM @ شركة تقنية، مصمم مستقل",
     "bioLabel": "النبذة التعريفية",
     "bioPlaceholder": "أدخل النبذة",
     "phoneLabel": "الهاتف",
@@ -469,7 +469,7 @@
       "طالب علم نفس، أعزف الغيتار في فرقة، وبدأت أتلقّى أعمال رسم"
     ],
     "headlinePromptHints": [
-      "PM @ Google",
+      "PM @ شركة تقنية",
       "محامٍ @ مكتب محاماة",
       "ممرّض طوارئ @ مركز طبي",
       "مصمم جرافيك مستقل",

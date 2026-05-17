@@ -391,7 +391,7 @@
     "usernameLabel": "ユーザー名",
     "usernamePlaceholder": "ユーザー名を入力",
     "headlineLabel": "肩書き / 役職",
-    "headlinePlaceholder": "例：Google PM、フリーランスデザイナー",
+    "headlinePlaceholder": "例：テック企業 PM、フリーランスデザイナー",
     "bioLabel": "自己紹介",
     "bioPlaceholder": "自己紹介を入力",
     "phoneLabel": "電話",
@@ -469,7 +469,7 @@
       "大学の心理学専攻。バンドでギター、最近イラストの仕事も受け始めた"
     ],
     "headlinePromptHints": [
-      "PM @ Google",
+      "PM @ テック企業",
       "弁護士 @ 法律事務所",
       "救急看護師 @ 医療センター",
       "フリーランスのグラフィックデザイナー",

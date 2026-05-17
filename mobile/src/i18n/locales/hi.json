@@ -391,7 +391,7 @@
     "usernameLabel": "यूज़रनेम",
     "usernamePlaceholder": "यूज़रनेम डालें",
     "headlineLabel": "पद / भूमिका",
-    "headlinePlaceholder": "जैसे: PM @ Google, फ्रीलांस डिज़ाइनर",
+    "headlinePlaceholder": "जैसे: PM @ टेक कंपनी, फ्रीलांस डिज़ाइनर",
     "bioLabel": "बायो",
     "bioPlaceholder": "बायो डालें",
     "phoneLabel": "फ़ोन",
@@ -469,7 +469,7 @@
       "मनोविज्ञान का छात्र, बैंड में गिटार, अब इलस्ट्रेशन के काम भी ले रहा"
     ],
     "headlinePromptHints": [
-      "PM @ Google",
+      "PM @ टेक कंपनी",
       "वकील @ लॉ फर्म",
       "इमरजेंसी नर्स @ मेडिकल सेंटर",
       "फ्रीलांस ग्राफिक डिज़ाइनर",

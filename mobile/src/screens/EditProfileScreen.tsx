@@ -239,7 +239,7 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
   }, [t]);
   const headlinePlaceholder = useRotatingPlaceholder(
     headlineHints,
-    t('editProfile.headlinePlaceholder', { defaultValue: '例：PM @ Google、自由接案設計師' }),
+    t('editProfile.headlinePlaceholder', { defaultValue: '例：PM @ 科技公司、自由接案設計師' }),
   );
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
