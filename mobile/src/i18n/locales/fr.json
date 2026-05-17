@@ -235,7 +235,11 @@
     "addInviteTitle": "Invite des amis sur PikTag",
     "addInviteDesc": "Partage un lien — devenez amis automatiquement",
     "coldStartActionContacts": "Trouve des amis dans tes contacts",
-    "coldStartActionContactsDesc": "Trouve ceux qui sont déjà là — tag et invite les autres"
+    "coldStartActionContactsDesc": "Trouve ceux qui sont déjà là — tag et invite les autres",
+    "notJoinedBadge": "Pas encore sur PikTag",
+    "coldStartActionManual": "Noter quelqu’un",
+    "coldStartActionManualDesc": "Pas besoin de compte — se relie à vos tags et notes à son inscription",
+    "addManualA11y": "Ajouter un contact manuellement"
   },
   "search": {
     "clearAll": "Tout effacer",
@@ -1185,5 +1189,28 @@
     "deleteFailedTitle": "Échec de la suppression",
     "deleteFailedMessage": "Ce Tag n'a pas été supprimé. Réessayez plus tard. Contactez-nous si cela persiste.",
     "emptyScanCta": "Ou scannez son QR pour connecter"
+  },
+  "localContact": {
+    "editTitle": "Modifier le contact",
+    "addTitle": "Nouveau contact",
+    "intro": "Notez la personne — pas besoin de compte PikTag pour l’instant. À son inscription, tout se relie et vos tags et notes suivent.",
+    "fieldName": "Nom",
+    "namePlaceholder": "ex. Alex de la sortie plongée",
+    "fieldPhone": "Téléphone (facultatif — relie à l’inscription)",
+    "phonePlaceholder": "+33 6 12 34 56 78",
+    "fieldEmail": "E-mail (facultatif)",
+    "emailPlaceholder": "name@example.com",
+    "fieldMetWhere": "Où vous vous êtes rencontrés (facultatif)",
+    "metWherePlaceholder": "ex. retrouvailles, sortie plongée",
+    "fieldNote": "Note (visible par vous seul)",
+    "notePlaceholder": "Une ligne pour vous en souvenir",
+    "fieldTags": "Tags (visibles par vous seul)",
+    "tagPlaceholder": "Ajouter un tag…",
+    "save": "Enregistrer",
+    "nameRequiredTitle": "Nom requis",
+    "nameRequiredMsg": "Donnez au moins un nom pour vous en souvenir plus tard.",
+    "saveError": "Échec de l’enregistrement — réessayez.",
+    "deleteTitle": "Supprimer ce contact ?",
+    "deleteMsg": "Retiré de votre liste uniquement — personne d’autre n’est affecté."
   }
 }

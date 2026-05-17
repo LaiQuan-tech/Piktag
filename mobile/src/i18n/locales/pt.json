@@ -235,7 +235,11 @@
     "addInviteTitle": "Convida amigos pro PikTag",
     "addInviteDesc": "Compartilha um link — vira amigo automático",
     "coldStartActionContacts": "Acha amigos nos teus contatos",
-    "coldStartActionContactsDesc": "Acha quem já está no PikTag — pros outros, tag + convite"
+    "coldStartActionContactsDesc": "Acha quem já está no PikTag — pros outros, tag + convite",
+    "notJoinedBadge": "Ainda não no PikTag",
+    "coldStartActionManual": "Anote alguém",
+    "coldStartActionManualDesc": "Não precisa de conta — vincula suas tags e notas quando entrar",
+    "addManualA11y": "Adicionar contato manualmente"
   },
   "search": {
     "clearAll": "Limpar tudo",
@@ -1185,5 +1189,28 @@
     "deleteFailedTitle": "Falha ao excluir",
     "deleteFailedMessage": "Este Tag não foi excluído. Tente novamente mais tarde. Fale conosco se persistir.",
     "emptyScanCta": "Ou escaneie o QR dela para conectar"
+  },
+  "localContact": {
+    "editTitle": "Editar contato",
+    "addTitle": "Novo contato",
+    "intro": "Anote a pessoa — ela ainda não precisa de conta no PikTag. Quando entrar, isto se vincula sozinho e suas tags e notas vão junto.",
+    "fieldName": "Nome",
+    "namePlaceholder": "ex. Alex do mergulho",
+    "fieldPhone": "Telefone (opcional — vincula ao entrar)",
+    "phonePlaceholder": "+55 11 91234 5678",
+    "fieldEmail": "Email (opcional)",
+    "emailPlaceholder": "name@example.com",
+    "fieldMetWhere": "Onde se conheceram (opcional)",
+    "metWherePlaceholder": "ex. reencontro, mergulho",
+    "fieldNote": "Nota (só você vê)",
+    "notePlaceholder": "Uma linha para lembrar",
+    "fieldTags": "Tags (só você vê)",
+    "tagPlaceholder": "Adicionar tag…",
+    "save": "Salvar",
+    "nameRequiredTitle": "Falta o nome",
+    "nameRequiredMsg": "Dê ao menos um nome para lembrar depois.",
+    "saveError": "Não deu para salvar — tente de novo.",
+    "deleteTitle": "Excluir este contato?",
+    "deleteMsg": "Só sai da sua lista — ninguém mais é afetado."
   }
 }

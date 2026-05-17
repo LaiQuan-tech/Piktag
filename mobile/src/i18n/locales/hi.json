@@ -235,7 +235,11 @@
     "addInviteTitle": "दोस्तों को PikTag पर बुलाएं",
     "addInviteDesc": "इन्वाइट लिंक शेयर करें — साइन अप करते ही दोस्त",
     "coldStartActionContacts": "अपने कॉन्टैक्ट से दोस्त खोजें",
-    "coldStartActionContactsDesc": "PikTag पर मौजूद दोस्तों को खोजें — बाकी को टैग + इन्वाइट"
+    "coldStartActionContactsDesc": "PikTag पर मौजूद दोस्तों को खोजें — बाकी को टैग + इन्वाइट",
+    "notJoinedBadge": "अभी PikTag पर नहीं",
+    "coldStartActionManual": "किसी को नोट करें",
+    "coldStartActionManualDesc": "अकाउंट ज़रूरी नहीं — जुड़ने पर आपके टैग व नोट अपने‑आप लिंक",
+    "addManualA11y": "मैन्युअल संपर्क जोड़ें"
   },
   "search": {
     "clearAll": "सब साफ़ करें",
@@ -1185,5 +1189,28 @@
     "deleteFailedTitle": "हटाना विफल",
     "deleteFailedMessage": "यह Tag हटाया नहीं गया। बाद में पुनः प्रयास करें। बना रहे तो हमसे संपर्क करें।",
     "emptyScanCta": "या उनका QR स्कैन कर जुड़ें"
+  },
+  "localContact": {
+    "editTitle": "संपर्क संपादित करें",
+    "addTitle": "नया संपर्क",
+    "intro": "पहले व्यक्ति को नोट करें — उन्हें अभी PikTag अकाउंट की ज़रूरत नहीं। जुड़ने पर यह अपने‑आप लिंक हो जाता है और आपके टैग व नोट साथ चले जाते हैं।",
+    "fieldName": "नाम",
+    "namePlaceholder": "जैसे: डाइविंग में मिला एलेक्स",
+    "fieldPhone": "फ़ोन (वैकल्पिक — जुड़ने पर लिंक करता है)",
+    "phonePlaceholder": "+91 98765 43210",
+    "fieldEmail": "ईमेल (वैकल्पिक)",
+    "emailPlaceholder": "name@example.com",
+    "fieldMetWhere": "कहाँ मिले (वैकल्पिक)",
+    "metWherePlaceholder": "जैसे: रीयूनियन, डाइविंग",
+    "fieldNote": "नोट (सिर्फ़ आप देख सकते हैं)",
+    "notePlaceholder": "याद रखने के लिए एक लाइन",
+    "fieldTags": "टैग (सिर्फ़ आप देख सकते हैं)",
+    "tagPlaceholder": "टैग जोड़ें…",
+    "save": "सेव",
+    "nameRequiredTitle": "नाम चाहिए",
+    "nameRequiredMsg": "बाद में याद रखने के लिए कम से कम नाम दें।",
+    "saveError": "सेव नहीं हुआ — फिर कोशिश करें।",
+    "deleteTitle": "यह संपर्क हटाएँ?",
+    "deleteMsg": "सिर्फ़ आपकी सूची से हटेगा — किसी और पर असर नहीं।"
   }
 }

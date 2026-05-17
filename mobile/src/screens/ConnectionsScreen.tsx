@@ -51,6 +51,7 @@ import { getCache, setCache, CACHE_KEYS } from '../lib/dataCache';
 import { ConnectionsScreenSkeleton } from '../components/SkeletonLoader';
 import ErrorState from '../components/ErrorState';
 import { useAuth } from '../hooks/useAuth';
+import { useLocalContacts } from '../hooks/useLocalContacts';
 import { useAskFeed } from '../hooks/useAskFeed';
 import { useNetInfoReconnect } from '../hooks/useNetInfoReconnect';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -109,6 +110,46 @@ const ConnectionItem = React.memo(({ item, isSelected, selectMode, hasActiveAsk,
   const username = profile?.username || '';
   const verified = profile?.is_verified || false;
   const avatarUrl = profile?.avatar_url || null;
+
+  // Manually-added, not-yet-on-PikTag contact. Same outer row +
+  // RingedAvatar(59) + textSection structure as a real connection
+  // so the fixed getItemLayout height still holds — just dimmed,
+  // initials-only, a "尚未加入" badge where @username would be,
+  // no ask gradient, no select checkbox. Tap → edit it.
+  const localContact = (item as any).__localContact;
+  if (localContact) {
+    return (
+      <TouchableOpacity
+        style={[styles.connectionItem, styles.connectionItemLocal]}
+        activeOpacity={0.7}
+        onPress={() => onPress(item)}
+        accessibilityLabel={displayName}
+        accessibilityRole="button"
+      >
+        <RingedAvatar size={59} ringStyle="subtle" name={displayName} avatarUrl={null} />
+        <View style={styles.textSection}>
+          <View style={styles.nameRow}>
+            <Text style={styles.name} numberOfLines={1}>{displayName}</Text>
+          </View>
+          <View style={styles.localBadge}>
+            <Text style={styles.localBadgeText}>
+              {/* i18n via t at call site isn't available in this
+                  memo'd component; use a stable literal — every
+                  locale's qrGroup work kept "Tag"/brand English,
+                  and this string is set from the screen below via
+                  the item so it stays translatable. */}
+              {(item as any).__notJoinedLabel || '尚未加入 PikTag'}
+            </Text>
+          </View>
+          {item.tags.length > 0 && (
+            <Text style={styles.tagsLine} numberOfLines={1}>
+              {item.tags.join('  ')}
+            </Text>
+          )}
+        </View>
+      </TouchableOpacity>
+    );
+  }
 
   return (
     <TouchableOpacity
@@ -205,6 +246,12 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
   const { t } = useTranslation();
   const { colors, isDark } = useTheme();
   const { user } = useAuth();
+  // Single-player CRM layer: manually-added people who aren't on
+  // PikTag yet (owner-private piktag_local_contacts). They surface
+  // in the SAME list, dimmed + a "尚未加入" badge; when they later
+  // register, the server trigger promotes them into real
+  // connections and they drop out of this (un-promoted) query.
+  const { contacts: localContacts, refresh: refreshLocalContacts } = useLocalContacts();
   const { asks: askFeedItems, myAsk: myActiveAsk, refresh: refreshAsks } = useAskFeed();
 
   const lastFetchRef = React.useRef<number>(0);
@@ -430,6 +477,11 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
         // notification B *should* see the Ask. A focus refetch
         // guarantees that without changing the RPC contract.
         refreshAsks();
+        // Refresh local contacts every focus (independent of the 30s
+        // connection cooldown) — EditLocalContactScreen holds its own
+        // useLocalContacts instance, so a create/edit/delete there
+        // won't reflect here without an explicit refetch on return.
+        refreshLocalContacts();
         const now = Date.now();
         if (now - lastFetchRef.current < 30000 && lastFetchRef.current > 0) return;
         setLoading(true);
@@ -445,7 +497,7 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
         }
       };
       loadAll();
-    }, [fetchConnections, refreshAsks])
+    }, [fetchConnections, refreshAsks, refreshLocalContacts])
   );
 
   // Auto-refetch when the network comes back if we previously errored.
@@ -548,6 +600,38 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
     return sorted;
   }, [connections, filterTag, sortMode, askFeedItems]);
 
+  // Map un-promoted local contacts into the connection row shape and
+  // append AFTER real connections (keeps the tuned real-connection
+  // sort + ask-promotion untouched; not-yet-joined people group at
+  // the end behind the badge). is_reviewed:true makes them invisible
+  // to all the 待整理 / "new" badge / select logic with zero extra
+  // guards. filterTag applies to their tags too.
+  const notJoinedLabel = t('connections.notJoinedBadge', { defaultValue: '尚未加入 PikTag' });
+  const listData = useMemo(() => {
+    const mapped = (localContacts || [])
+      .filter((lc) => !filterTag || (lc.tags || []).includes(filterTag))
+      .map((lc) => ({
+        id: 'lc:' + lc.id,
+        user_id: '',
+        connected_user_id: '',
+        nickname: lc.name,
+        note: lc.note,
+        met_at: lc.met_at,
+        met_location: lc.met_location,
+        birthday: lc.birthday,
+        anniversary: null,
+        scan_session_id: null,
+        is_reviewed: true,
+        created_at: lc.created_at,
+        connected_user: undefined,
+        tags: lc.tags ?? [],
+        semanticTypes: [],
+        __localContact: lc,
+        __notJoinedLabel: notJoinedLabel,
+      })) as any as ConnectionWithTags[];
+    return mapped.length ? [...sortedConnections, ...mapped] : sortedConnections;
+  }, [sortedConnections, localContacts, filterTag, notJoinedLabel]);
+
   // All unique semantic types from connections (for filter)
   const allConnectionTags = useMemo(() => {
     const tagCount = new Map<string, number>();
@@ -562,6 +646,13 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
 
   // --- Optimized: useCallback for handlers ---
   const handleConnectionPress = useCallback((item: ConnectionWithTags) => {
+    const lc = (item as any).__localContact;
+    if (lc) {
+      // Not-yet-on-PikTag manual contact → edit it (no FriendDetail,
+      // there's no real user). Select-mode is N/A for these.
+      navigation.navigate('EditLocalContact', { contactId: lc.id });
+      return;
+    }
     if (selectMode) {
       setSelectedIds((prev) => {
         const next = new Set(prev);
@@ -581,6 +672,9 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
   }, [selectMode, navigation]);
 
   const handleConnectionLongPress = useCallback((item: ConnectionWithTags) => {
+    // Local contacts aren't bulk-selectable (batch ops act on real
+    // connections only).
+    if ((item as any).__localContact) return;
     if (!selectMode) {
       setSelectMode(true);
       setSelectedIds(new Set([item.id]));
@@ -759,14 +853,21 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
               onPress: () => navigation.navigate('ProfileTab', { screen: 'EditProfile' }),
             },
             {
-              // Switched destination from the (removed) LocalContacts
-              // manual-add screen to ContactSync. Both addressed the
-              // same cold-start moment ("how do I get my first
-              // friend?") but ContactSync is the social path:
-              // resolve existing phone-book contacts against PikTag
-              // accounts, follow the ones that match, optionally
-              // tag-and-invite the ones that don't. Manual data
-              // entry was the CRM path and was pulled.
+              // Single-player CRM path, brought back: jot down a
+              // person yourself even with zero PikTag friends yet.
+              // When they later register, the server trigger
+              // promotes the row into a real connection (your
+              // private tags/notes ride along; they never see them).
+              key: 'manual',
+              icon: UserPlus,
+              title: t('connections.coldStartActionManual', { defaultValue: '手動記下一個人' }),
+              desc: t('connections.coldStartActionManualDesc', { defaultValue: '對方還不用是會員 — 加入後自動接上你的標籤與備註' }),
+              onPress: () => navigation.navigate('EditLocalContact'),
+            },
+            {
+              // The social path: resolve phone-book contacts against
+              // PikTag accounts, follow matches, tag-and-invite the
+              // rest.
               key: 'contacts',
               icon: Users,
               title: t('connections.coldStartActionContacts', { defaultValue: '從通訊錄找朋友' }),
@@ -970,6 +1071,19 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
                 Settings and the empty-state CTA — they don't need
                 a third surface on this already-tag-and-sort-heavy
                 header. */}
+            {/* Single persistent entry to the manual-add CRM flow
+                (one icon, not the old busy action sheet) so it's
+                reachable once the user already has friends, not
+                only from the cold-start empty state. */}
+            <TouchableOpacity
+              style={styles.headerIconBtn}
+              activeOpacity={0.6}
+              onPress={() => navigation.navigate('EditLocalContact')}
+              accessibilityLabel={t('connections.addManualA11y', { defaultValue: '手動新增聯絡人' })}
+              accessibilityRole="button"
+            >
+              <UserPlus size={24} color={COLORS.gray600} />
+            </TouchableOpacity>
             <TouchableOpacity
               style={styles.headerIconBtn}
               activeOpacity={0.6}
@@ -1013,7 +1127,7 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
         <ConnectionsScreenSkeleton />
       ) : (
         <FlatList
-          data={sortedConnections}
+          data={listData}
           renderItem={renderItem}
           keyExtractor={keyExtractor}
           contentContainerStyle={contentContainerStyle}
@@ -1450,6 +1564,24 @@ const styles = StyleSheet.create({
   },
   connectionItemSelected: {
     backgroundColor: COLORS.piktag50,
+  },
+  // Not-yet-on-PikTag manual contact: same row metrics (so the
+  // fixed getItemLayout height is unaffected), just slightly muted.
+  connectionItemLocal: {
+    opacity: 0.78,
+  },
+  localBadge: {
+    alignSelf: 'flex-start',
+    backgroundColor: COLORS.gray100,
+    borderRadius: 6,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    marginTop: 2,
+  },
+  localBadgeText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: COLORS.gray500,
   },
   checkboxContainer: {
     justifyContent: 'center',

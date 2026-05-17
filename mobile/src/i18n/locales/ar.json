@@ -235,7 +235,11 @@
     "addInviteTitle": "ادعُ أصدقاء إلى PikTag",
     "addInviteDesc": "شارك رابط دعوة — سيصبح صديقًا تلقائيًا",
     "coldStartActionContacts": "ابحث عن أصدقاء من جهات اتصالك",
-    "coldStartActionContactsDesc": "ابحث عن الموجودين، ووسم وأدعُ من ليسوا منهم"
+    "coldStartActionContactsDesc": "ابحث عن الموجودين، ووسم وأدعُ من ليسوا منهم",
+    "notJoinedBadge": "ليس على PikTag بعد",
+    "coldStartActionManual": "دوّن شخصًا",
+    "coldStartActionManualDesc": "لا يحتاج حسابًا — يرتبط بوسومك وملاحظاتك عند انضمامه",
+    "addManualA11y": "إضافة جهة اتصال يدويًا"
   },
   "search": {
     "clearAll": "مسح الكل",
@@ -1185,5 +1189,28 @@
     "deleteFailedTitle": "فشل الحذف",
     "deleteFailedMessage": "لم يتم حذف هذا الـ Tag. حاول لاحقًا. تواصل معنا إذا استمر ذلك.",
     "emptyScanCta": "أو امسح رمز QR الخاص به للتواصل"
+  },
+  "localContact": {
+    "editTitle": "تعديل جهة الاتصال",
+    "addTitle": "جهة اتصال جديدة",
+    "intro": "دوّن الشخص — لا يحتاج حساب PikTag الآن. عند انضمامه يرتبط هذا تلقائيًا وتنتقل وسومك وملاحظاتك.",
+    "fieldName": "الاسم",
+    "namePlaceholder": "مثال: أليكس من رحلة الغوص",
+    "fieldPhone": "الهاتف (اختياري — يربطه عند الانضمام)",
+    "phonePlaceholder": "+966 5x xxx xxxx",
+    "fieldEmail": "البريد (اختياري)",
+    "emailPlaceholder": "name@example.com",
+    "fieldMetWhere": "أين التقيتما (اختياري)",
+    "metWherePlaceholder": "مثال: لمّ شمل، رحلة غوص",
+    "fieldNote": "ملاحظة (تراها أنت فقط)",
+    "notePlaceholder": "سطر لتتذكّره",
+    "fieldTags": "وسوم (تراها أنت فقط)",
+    "tagPlaceholder": "أضف وسمًا…",
+    "save": "حفظ",
+    "nameRequiredTitle": "الاسم مطلوب",
+    "nameRequiredMsg": "أعطه اسمًا على الأقل لتتذكّره لاحقًا.",
+    "saveError": "تعذّر الحفظ — حاول مجددًا.",
+    "deleteTitle": "حذف جهة الاتصال؟",
+    "deleteMsg": "يُحذف من قائمتك فقط — لا يتأثر أحد آخر."
   }
 }

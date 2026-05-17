@@ -250,7 +250,11 @@
     "addInviteTitle": "邀請朋友加入 PikTag",
     "addInviteDesc": "分享邀請連結，他註冊後直接成為好友",
     "coldStartActionContacts": "從通訊錄找朋友",
-    "coldStartActionContactsDesc": "找出已在 PikTag 的朋友，沒在的也能標籤+邀請"
+    "coldStartActionContactsDesc": "找出已在 PikTag 的朋友，沒在的也能標籤+邀請",
+    "notJoinedBadge": "尚未加入 PikTag",
+    "coldStartActionManual": "手動記下一個人",
+    "coldStartActionManualDesc": "對方還不用是會員 — 加入後自動接上你的標籤與備註",
+    "addManualA11y": "手動新增聯絡人"
   },
   "search": {
     "clearAll": "清除全部",
@@ -1277,5 +1281,28 @@
     "deleteFailedTitle": "刪除失敗",
     "deleteFailedMessage": "這個 Tag 沒有被刪除，請稍後再試。若持續發生請聯絡我們。",
     "emptyScanCta": "或掃描對方的 QR 加好友"
+  },
+  "localContact": {
+    "editTitle": "編輯聯絡人",
+    "addTitle": "新增聯絡人",
+    "intro": "先把人記下來 —— 對方還不用是 PikTag 會員。等他加入，這筆會自動接上，你的標籤和備註都會跟著過去。",
+    "fieldName": "名字",
+    "namePlaceholder": "例：在龍洞潛水認識的阿哲",
+    "fieldPhone": "電話（選填，幫助對方加入後自動接上）",
+    "phonePlaceholder": "+886 912 345 678",
+    "fieldEmail": "Email（選填）",
+    "emailPlaceholder": "name@example.com",
+    "fieldMetWhere": "在哪認識（選填）",
+    "metWherePlaceholder": "例：大學同學會、龍洞潛水",
+    "fieldNote": "備註（只有你看得到）",
+    "notePlaceholder": "幫你記住這個人的一句話",
+    "fieldTags": "標籤（只有你看得到）",
+    "tagPlaceholder": "輸入標籤…",
+    "save": "儲存",
+    "nameRequiredTitle": "需要一個名字",
+    "nameRequiredMsg": "至少幫這個人取個名字，方便你之後想起來。",
+    "saveError": "存不起來，請稍後再試。",
+    "deleteTitle": "刪除這個聯絡人？",
+    "deleteMsg": "只會從你的清單移除，不影響其他人。"
   }
 }

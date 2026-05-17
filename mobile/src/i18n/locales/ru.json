@@ -235,7 +235,11 @@
     "addInviteTitle": "Пригласи друзей в PikTag",
     "addInviteDesc": "Поделись ссылкой — друг по умолчанию",
     "coldStartActionContacts": "Найди друзей из контактов",
-    "coldStartActionContactsDesc": "Найди тех, кто уже здесь — отметь и пригласи остальных"
+    "coldStartActionContactsDesc": "Найди тех, кто уже здесь — отметь и пригласи остальных",
+    "notJoinedBadge": "Ещё не в PikTag",
+    "coldStartActionManual": "Записать человека",
+    "coldStartActionManualDesc": "Аккаунт не нужен — привяжется к вашим тегам и заметкам при регистрации",
+    "addManualA11y": "Добавить контакт вручную"
   },
   "search": {
     "clearAll": "Очистить всё",
@@ -1185,5 +1189,28 @@
     "deleteFailedTitle": "Не удалось удалить",
     "deleteFailedMessage": "Этот Tag не был удалён. Повторите попытку позже. Свяжитесь с нами, если повторяется.",
     "emptyScanCta": "Или отсканируйте их QR, чтобы добавить"
+  },
+  "localContact": {
+    "editTitle": "Изменить контакт",
+    "addTitle": "Новый контакт",
+    "intro": "Запишите человека — аккаунт PikTag пока не нужен. Когда зарегистрируется, всё свяжется само, теги и заметки перейдут.",
+    "fieldName": "Имя",
+    "namePlaceholder": "напр. Алекс с дайвинга",
+    "fieldPhone": "Телефон (необяз. — привяжет при регистрации)",
+    "phonePlaceholder": "+7 912 345 67 89",
+    "fieldEmail": "Email (необяз.)",
+    "emailPlaceholder": "name@example.com",
+    "fieldMetWhere": "Где познакомились (необяз.)",
+    "metWherePlaceholder": "напр. встреча выпускников, дайвинг",
+    "fieldNote": "Заметка (видите только вы)",
+    "notePlaceholder": "Одна строка, чтобы вспомнить",
+    "fieldTags": "Теги (видите только вы)",
+    "tagPlaceholder": "Добавить тег…",
+    "save": "Сохранить",
+    "nameRequiredTitle": "Нужно имя",
+    "nameRequiredMsg": "Укажите хотя бы имя, чтобы вспомнить позже.",
+    "saveError": "Не удалось сохранить — попробуйте ещё раз.",
+    "deleteTitle": "Удалить этот контакт?",
+    "deleteMsg": "Удалится только из вашего списка — других не затронет."
   }
 }

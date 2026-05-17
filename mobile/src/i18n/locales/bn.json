@@ -235,7 +235,11 @@
     "addInviteTitle": "বন্ধুদের PikTag-এ ইনভাইট করো",
     "addInviteDesc": "ইনভাইট লিংক শেয়ার করো — সাইন আপ করলেই বন্ধু হবে",
     "coldStartActionContacts": "কন্টাক্ট থেকে বন্ধু খোঁজো",
-    "coldStartActionContactsDesc": "যারা PikTag-এ আছে তাদের খোঁজো, বাকিদের ট্যাগ + ইনভাইট"
+    "coldStartActionContactsDesc": "যারা PikTag-এ আছে তাদের খোঁজো, বাকিদের ট্যাগ + ইনভাইট",
+    "notJoinedBadge": "এখনও PikTag-এ নেই",
+    "coldStartActionManual": "কাউকে টুকে রাখুন",
+    "coldStartActionManualDesc": "অ্যাকাউন্ট লাগবে না — যোগ দিলে আপনার ট্যাগ ও নোট স্বয়ং লিঙ্ক হবে",
+    "addManualA11y": "ম্যানুয়ালি পরিচিতি যোগ করুন"
   },
   "search": {
     "clearAll": "সব সাফ করুন",
@@ -1185,5 +1189,28 @@
     "deleteFailedTitle": "মুছে ফেলা ব্যর্থ",
     "deleteFailedMessage": "এই Tag মুছে ফেলা হয়নি। পরে আবার চেষ্টা করুন। চলতে থাকলে যোগাযোগ করুন।",
     "emptyScanCta": "অথবা তাদের QR স্ক্যান করে যুক্ত হন"
+  },
+  "localContact": {
+    "editTitle": "পরিচিতি সম্পাদনা",
+    "addTitle": "নতুন পরিচিতি",
+    "intro": "আগে মানুষটিকে টুকে রাখুন — তার এখন PikTag অ্যাকাউন্ট লাগবে না। যোগ দিলে এটি স্বয়ং যুক্ত হয় এবং আপনার ট্যাগ ও নোট সঙ্গে যায়।",
+    "fieldName": "নাম",
+    "namePlaceholder": "যেমন: ডাইভিংয়ে পরিচিত অ্যালেক্স",
+    "fieldPhone": "ফোন (ঐচ্ছিক — যোগ দিলে লিঙ্ক করে)",
+    "phonePlaceholder": "+880 1xxxxxxxxx",
+    "fieldEmail": "ইমেল (ঐচ্ছিক)",
+    "emailPlaceholder": "name@example.com",
+    "fieldMetWhere": "কোথায় দেখা (ঐচ্ছিক)",
+    "metWherePlaceholder": "যেমন: রিইউনিয়ন, ডাইভিং",
+    "fieldNote": "নোট (শুধু আপনি দেখবেন)",
+    "notePlaceholder": "মনে রাখার এক লাইন",
+    "fieldTags": "ট্যাগ (শুধু আপনি দেখবেন)",
+    "tagPlaceholder": "ট্যাগ দিন…",
+    "save": "সংরক্ষণ",
+    "nameRequiredTitle": "নাম দরকার",
+    "nameRequiredMsg": "পরে মনে রাখতে অন্তত একটি নাম দিন।",
+    "saveError": "সংরক্ষণ হয়নি — আবার চেষ্টা করুন।",
+    "deleteTitle": "এই পরিচিতি মুছবেন?",
+    "deleteMsg": "শুধু আপনার তালিকা থেকে মুছবে — অন্য কেউ প্রভাবিত হবে না।"
   }
 }

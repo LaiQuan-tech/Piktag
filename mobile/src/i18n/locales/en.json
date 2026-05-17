@@ -250,7 +250,11 @@
     "addInviteTitle": "Invite friends to PikTag",
     "addInviteDesc": "Share an invite link — auto-connects when they join",
     "coldStartActionContacts": "Find friends from your contacts",
-    "coldStartActionContactsDesc": "Find friends already on PikTag — tag and invite the ones who aren't"
+    "coldStartActionContactsDesc": "Find friends already on PikTag — tag and invite the ones who aren't",
+    "notJoinedBadge": "Not on PikTag yet",
+    "coldStartActionManual": "Jot someone down",
+    "coldStartActionManualDesc": "They don't need an account — auto-links your tags & notes when they join",
+    "addManualA11y": "Add a contact manually"
   },
   "search": {
     "clearAll": "Clear all",
@@ -1270,5 +1274,28 @@
     "deleteFailedTitle": "Delete failed",
     "deleteFailedMessage": "This Tag wasn't deleted. Please try again later. Contact us if it keeps happening.",
     "emptyScanCta": "Or scan their QR to connect"
+  },
+  "localContact": {
+    "editTitle": "Edit contact",
+    "addTitle": "New contact",
+    "intro": "Jot the person down — they don't need a PikTag account yet. When they join, this links up automatically and your tags & notes carry over.",
+    "fieldName": "Name",
+    "namePlaceholder": "e.g. Alex from the diving trip",
+    "fieldPhone": "Phone (optional — auto-links them when they join)",
+    "phonePlaceholder": "+1 555 123 4567",
+    "fieldEmail": "Email (optional)",
+    "emailPlaceholder": "name@example.com",
+    "fieldMetWhere": "Where you met (optional)",
+    "metWherePlaceholder": "e.g. college reunion, diving trip",
+    "fieldNote": "Note (only you can see this)",
+    "notePlaceholder": "One line to remember them by",
+    "fieldTags": "Tags (only you can see these)",
+    "tagPlaceholder": "Add a tag…",
+    "save": "Save",
+    "nameRequiredTitle": "Name needed",
+    "nameRequiredMsg": "Give this person at least a name so you can recall them later.",
+    "saveError": "Couldn't save — please try again.",
+    "deleteTitle": "Delete this contact?",
+    "deleteMsg": "Only removed from your list — nobody else is affected."
   }
 }

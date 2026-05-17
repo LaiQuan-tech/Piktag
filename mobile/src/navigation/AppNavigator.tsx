@@ -331,6 +331,10 @@ function MainNavigator({ needsOnboarding }: { needsOnboarding: boolean }) {
           getComponent={() => require('../screens/LocationContactsScreen').default}
         />
         <RootStack.Screen
+          name="EditLocalContact"
+          getComponent={() => require('../screens/EditLocalContactScreen').default}
+        />
+        <RootStack.Screen
           name="SocialStats"
           getComponent={() => require('../screens/SocialStatsScreen').default}
         />

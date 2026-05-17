@@ -235,7 +235,11 @@
     "addInviteTitle": "友達を PikTag に招待",
     "addInviteDesc": "招待リンクをシェア — 登録すると自動的に友達に",
     "coldStartActionContacts": "連絡先から友達を見つける",
-    "coldStartActionContactsDesc": "PikTag にいる友達を見つけて、まだの人にはタグ付き招待を"
+    "coldStartActionContactsDesc": "PikTag にいる友達を見つけて、まだの人にはタグ付き招待を",
+    "notJoinedBadge": "PikTag 未参加",
+    "coldStartActionManual": "人をメモする",
+    "coldStartActionManualDesc": "相手はアカウント不要 — 参加したらタグとメモが自動でつながる",
+    "addManualA11y": "連絡先を手動で追加"
   },
   "search": {
     "clearAll": "すべてクリア",
@@ -1185,5 +1189,28 @@
     "deleteFailedTitle": "削除に失敗しました",
     "deleteFailedMessage": "この Tag は削除されませんでした。後でもう一度お試しください。続く場合はお問い合わせください。",
     "emptyScanCta": "または相手の QR をスキャンして追加"
+  },
+  "localContact": {
+    "editTitle": "連絡先を編集",
+    "addTitle": "連絡先を追加",
+    "intro": "まず人をメモ —— 相手は PikTag 未登録でOK。登録したら自動でつながり、タグとメモも引き継がれます。",
+    "fieldName": "名前",
+    "namePlaceholder": "例：ダイビングで会ったアキラ",
+    "fieldPhone": "電話（任意・参加時の自動連携に使用）",
+    "phonePlaceholder": "+81 90 1234 5678",
+    "fieldEmail": "メール（任意）",
+    "emailPlaceholder": "name@example.com",
+    "fieldMetWhere": "どこで会った（任意）",
+    "metWherePlaceholder": "例：大学の同窓会、ダイビング",
+    "fieldNote": "メモ（自分だけ閲覧可）",
+    "notePlaceholder": "この人を思い出せる一言",
+    "fieldTags": "タグ（自分だけ閲覧可）",
+    "tagPlaceholder": "タグを入力…",
+    "save": "保存",
+    "nameRequiredTitle": "名前が必要",
+    "nameRequiredMsg": "後で思い出せるよう、最低限の名前をつけてください。",
+    "saveError": "保存できませんでした。後でもう一度お試しください。",
+    "deleteTitle": "この連絡先を削除？",
+    "deleteMsg": "自分のリストから消えるだけで、他の人には影響しません。"
   }
 }

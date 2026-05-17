@@ -235,7 +235,11 @@
     "addInviteTitle": "PikTag에 친구 초대",
     "addInviteDesc": "초대 링크 공유 — 가입하면 자동으로 친구",
     "coldStartActionContacts": "연락처에서 친구 찾기",
-    "coldStartActionContactsDesc": "PikTag에 있는 친구를 찾고, 없는 친구는 태그+초대"
+    "coldStartActionContactsDesc": "PikTag에 있는 친구를 찾고, 없는 친구는 태그+초대",
+    "notJoinedBadge": "아직 PikTag 미가입",
+    "coldStartActionManual": "사람 메모하기",
+    "coldStartActionManualDesc": "상대는 가입 안 해도 됨 — 가입하면 태그·메모가 자동 연결",
+    "addManualA11y": "연락처 수동 추가"
   },
   "search": {
     "clearAll": "모두 지우기",
@@ -1185,5 +1189,28 @@
     "deleteFailedTitle": "삭제 실패",
     "deleteFailedMessage": "이 Tag 가 삭제되지 않았습니다. 잠시 후 다시 시도해 주세요. 계속되면 문의해 주세요.",
     "emptyScanCta": "또는 상대의 QR을 스캔해 추가"
+  },
+  "localContact": {
+    "editTitle": "연락처 편집",
+    "addTitle": "연락처 추가",
+    "intro": "먼저 사람을 메모하세요 —— 상대는 아직 PikTag 회원이 아니어도 돼요. 가입하면 자동으로 연결되고 태그·메모도 따라갑니다.",
+    "fieldName": "이름",
+    "namePlaceholder": "예: 다이빙에서 만난 아키라",
+    "fieldPhone": "전화 (선택 — 가입 시 자동 연결에 사용)",
+    "phonePlaceholder": "+82 10 1234 5678",
+    "fieldEmail": "이메일 (선택)",
+    "emailPlaceholder": "name@example.com",
+    "fieldMetWhere": "어디서 만났나요 (선택)",
+    "metWherePlaceholder": "예: 대학 동창회, 다이빙",
+    "fieldNote": "메모 (나만 볼 수 있음)",
+    "notePlaceholder": "이 사람을 기억할 한 줄",
+    "fieldTags": "태그 (나만 볼 수 있음)",
+    "tagPlaceholder": "태그 입력…",
+    "save": "저장",
+    "nameRequiredTitle": "이름이 필요해요",
+    "nameRequiredMsg": "나중에 기억할 수 있게 최소한 이름은 적어주세요.",
+    "saveError": "저장하지 못했어요. 잠시 후 다시 시도하세요.",
+    "deleteTitle": "이 연락처를 삭제할까요?",
+    "deleteMsg": "내 목록에서만 삭제되고 다른 사람에겐 영향 없어요."
   }
 }

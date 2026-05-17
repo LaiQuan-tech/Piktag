@@ -235,7 +235,11 @@
     "addInviteTitle": "Invita amigos a PikTag",
     "addInviteDesc": "Comparte un enlace — se conecta solo cuando se une",
     "coldStartActionContacts": "Busca amigos en tus contactos",
-    "coldStartActionContactsDesc": "Encuentra a los que ya están — etiqueta e invita a los que no"
+    "coldStartActionContactsDesc": "Encuentra a los que ya están — etiqueta e invita a los que no",
+    "notJoinedBadge": "Aún no en PikTag",
+    "coldStartActionManual": "Apunta a alguien",
+    "coldStartActionManualDesc": "No necesita cuenta — se vincula con tus etiquetas y notas al unirse",
+    "addManualA11y": "Añadir contacto manualmente"
   },
   "search": {
     "clearAll": "Limpiar todo",
@@ -1185,5 +1189,28 @@
     "deleteFailedTitle": "Error al eliminar",
     "deleteFailedMessage": "Este Tag no se eliminó. Inténtalo más tarde. Si persiste, contáctanos.",
     "emptyScanCta": "O escanea su QR para conectar"
+  },
+  "localContact": {
+    "editTitle": "Editar contacto",
+    "addTitle": "Nuevo contacto",
+    "intro": "Apunta a la persona — no necesita cuenta de PikTag todavía. Cuando se una, esto se vincula solo y tus etiquetas y notas se conservan.",
+    "fieldName": "Nombre",
+    "namePlaceholder": "ej. Alex del viaje de buceo",
+    "fieldPhone": "Teléfono (opcional — lo vincula al unirse)",
+    "phonePlaceholder": "+34 612 345 678",
+    "fieldEmail": "Email (opcional)",
+    "emailPlaceholder": "name@example.com",
+    "fieldMetWhere": "Dónde se conocieron (opcional)",
+    "metWherePlaceholder": "ej. reencuentro, viaje de buceo",
+    "fieldNote": "Nota (solo tú la ves)",
+    "notePlaceholder": "Una línea para recordarle",
+    "fieldTags": "Etiquetas (solo tú las ves)",
+    "tagPlaceholder": "Añadir etiqueta…",
+    "save": "Guardar",
+    "nameRequiredTitle": "Falta el nombre",
+    "nameRequiredMsg": "Pon al menos un nombre para poder recordarle luego.",
+    "saveError": "No se pudo guardar — inténtalo de nuevo.",
+    "deleteTitle": "¿Eliminar este contacto?",
+    "deleteMsg": "Solo se quita de tu lista — nadie más se ve afectado."
   }
 }

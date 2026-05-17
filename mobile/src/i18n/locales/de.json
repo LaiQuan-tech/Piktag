@@ -243,7 +243,11 @@
     "addInviteTitle": "Freunde zu PikTag einladen",
     "addInviteDesc": "Einladungslink teilen — automatisch verbunden",
     "coldStartActionContacts": "Freunde aus deinen Kontakten finden",
-    "coldStartActionContactsDesc": "Find Freunde, die schon dabei sind — die anderen taggen + einladen"
+    "coldStartActionContactsDesc": "Find Freunde, die schon dabei sind — die anderen taggen + einladen",
+    "notJoinedBadge": "Noch nicht auf PikTag",
+    "coldStartActionManual": "Jemanden notieren",
+    "coldStartActionManualDesc": "Kein Konto nötig — verknüpft sich bei Anmeldung mit deinen Tags & Notizen",
+    "addManualA11y": "Kontakt manuell hinzufügen"
   },
   "search": {
     "clearAll": "Alle löschen",
@@ -1257,5 +1261,28 @@
     "deleteFailedTitle": "Löschen fehlgeschlagen",
     "deleteFailedMessage": "Dieser Vibe wurde nicht gelöscht. Bitte später erneut versuchen. Kontaktiere uns, falls es bestehen bleibt.",
     "emptyScanCta": "Oder scanne ihren QR zum Verbinden"
+  },
+  "localContact": {
+    "editTitle": "Kontakt bearbeiten",
+    "addTitle": "Neuer Kontakt",
+    "intro": "Notiere die Person — sie braucht noch kein PikTag-Konto. Bei Anmeldung verknüpft sich das automatisch, deine Tags & Notizen kommen mit.",
+    "fieldName": "Name",
+    "namePlaceholder": "z. B. Alex vom Tauchausflug",
+    "fieldPhone": "Telefon (optional — verknüpft bei Anmeldung)",
+    "phonePlaceholder": "+49 151 2345678",
+    "fieldEmail": "E-Mail (optional)",
+    "emailPlaceholder": "name@example.com",
+    "fieldMetWhere": "Wo ihr euch getroffen habt (optional)",
+    "metWherePlaceholder": "z. B. Klassentreffen, Tauchausflug",
+    "fieldNote": "Notiz (nur für dich sichtbar)",
+    "notePlaceholder": "Eine Zeile zum Erinnern",
+    "fieldTags": "Tags (nur für dich sichtbar)",
+    "tagPlaceholder": "Tag hinzufügen…",
+    "save": "Speichern",
+    "nameRequiredTitle": "Name nötig",
+    "nameRequiredMsg": "Gib zumindest einen Namen, damit du dich später erinnerst.",
+    "saveError": "Konnte nicht speichern — bitte erneut versuchen.",
+    "deleteTitle": "Diesen Kontakt löschen?",
+    "deleteMsg": "Nur aus deiner Liste entfernt — niemand sonst betroffen."
   }
 }

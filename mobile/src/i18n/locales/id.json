@@ -235,7 +235,11 @@
     "addInviteTitle": "Ajak teman ke PikTag",
     "addInviteDesc": "Share link undangan — auto jadi teman pas dia gabung",
     "coldStartActionContacts": "Cari teman dari kontakmu",
-    "coldStartActionContactsDesc": "Temuin yang udah di PikTag — tag + invite yang belum"
+    "coldStartActionContactsDesc": "Temuin yang udah di PikTag — tag + invite yang belum",
+    "notJoinedBadge": "Belum di PikTag",
+    "coldStartActionManual": "Catat seseorang",
+    "coldStartActionManualDesc": "Tak perlu akun — otomatis tertaut ke tag & catatanmu saat ia gabung",
+    "addManualA11y": "Tambah kontak manual"
   },
   "search": {
     "clearAll": "Hapus semua",
@@ -1185,5 +1189,28 @@
     "deleteFailedTitle": "Gagal menghapus",
     "deleteFailedMessage": "Tag ini tidak terhapus. Coba lagi nanti. Hubungi kami jika terus terjadi.",
     "emptyScanCta": "Atau pindai QR mereka untuk terhubung"
+  },
+  "localContact": {
+    "editTitle": "Edit kontak",
+    "addTitle": "Kontak baru",
+    "intro": "Catat dulu orangnya — dia belum perlu akun PikTag. Saat ia gabung, ini tertaut otomatis dan tag & catatanmu ikut.",
+    "fieldName": "Nama",
+    "namePlaceholder": "mis. Alex dari trip diving",
+    "fieldPhone": "Telepon (opsional — menautkan saat gabung)",
+    "phonePlaceholder": "+62 812 3456 7890",
+    "fieldEmail": "Email (opsional)",
+    "emailPlaceholder": "name@example.com",
+    "fieldMetWhere": "Ketemu di mana (opsional)",
+    "metWherePlaceholder": "mis. reuni, trip diving",
+    "fieldNote": "Catatan (hanya kamu yang lihat)",
+    "notePlaceholder": "Satu baris biar ingat",
+    "fieldTags": "Tag (hanya kamu yang lihat)",
+    "tagPlaceholder": "Tambah tag…",
+    "save": "Simpan",
+    "nameRequiredTitle": "Perlu nama",
+    "nameRequiredMsg": "Beri nama minimal supaya bisa kamu ingat nanti.",
+    "saveError": "Gagal menyimpan — coba lagi.",
+    "deleteTitle": "Hapus kontak ini?",
+    "deleteMsg": "Hanya hilang dari daftarmu — tak memengaruhi orang lain."
   }
 }

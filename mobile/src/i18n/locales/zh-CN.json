@@ -243,7 +243,11 @@
     "addInviteTitle": "邀请朋友加入 PikTag",
     "addInviteDesc": "分享邀请链接，他注册后直接成为好友",
     "coldStartActionContacts": "从通讯录找朋友",
-    "coldStartActionContactsDesc": "找出已在 PikTag 的朋友，没在的也能标签+邀请"
+    "coldStartActionContactsDesc": "找出已在 PikTag 的朋友，没在的也能标签+邀请",
+    "notJoinedBadge": "尚未加入 PikTag",
+    "coldStartActionManual": "手动记下一个人",
+    "coldStartActionManualDesc": "对方还不用是会员 — 加入后自动接上你的标签与备注",
+    "addManualA11y": "手动新增联系人"
   },
   "search": {
     "clearAll": "清除全部",
@@ -1257,5 +1261,28 @@
     "deleteFailedTitle": "删除失败",
     "deleteFailedMessage": "这个 Tag 没有被删除，请稍后再试。若持续发生请联系我们。",
     "emptyScanCta": "或扫描对方的 QR 加好友"
+  },
+  "localContact": {
+    "editTitle": "编辑联系人",
+    "addTitle": "新增联系人",
+    "intro": "先把人记下来 —— 对方还不用是 PikTag 会员。等他加入，这条会自动接上，你的标签和备注都会跟着过去。",
+    "fieldName": "名字",
+    "namePlaceholder": "例：在龙洞潜水认识的阿哲",
+    "fieldPhone": "电话（选填，帮助对方加入后自动接上）",
+    "phonePlaceholder": "+886 912 345 678",
+    "fieldEmail": "Email（选填）",
+    "emailPlaceholder": "name@example.com",
+    "fieldMetWhere": "在哪认识（选填）",
+    "metWherePlaceholder": "例：大学同学会、龙洞潜水",
+    "fieldNote": "备注（只有你看得到）",
+    "notePlaceholder": "帮你记住这个人的一句话",
+    "fieldTags": "标签（只有你看得到）",
+    "tagPlaceholder": "输入标签…",
+    "save": "保存",
+    "nameRequiredTitle": "需要一个名字",
+    "nameRequiredMsg": "至少帮这个人取个名字，方便你之后想起来。",
+    "saveError": "保存失败，请稍后再试。",
+    "deleteTitle": "删除这个联系人？",
+    "deleteMsg": "只会从你的列表移除，不影响其他人。"
   }
 }

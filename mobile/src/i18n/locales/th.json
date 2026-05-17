@@ -235,7 +235,11 @@
     "addInviteTitle": "ชวนเพื่อนมา PikTag",
     "addInviteDesc": "แชร์ลิงก์เชิญ — เป็นเพื่อนกันอัตโนมัติเมื่อเข้าร่วม",
     "coldStartActionContacts": "หาเพื่อนจากรายชื่อ",
-    "coldStartActionContactsDesc": "หาคนที่อยู่ใน PikTag แล้ว — แท็กและเชิญที่เหลือ"
+    "coldStartActionContactsDesc": "หาคนที่อยู่ใน PikTag แล้ว — แท็กและเชิญที่เหลือ",
+    "notJoinedBadge": "ยังไม่ได้อยู่ PikTag",
+    "coldStartActionManual": "จดคนไว้",
+    "coldStartActionManualDesc": "อีกฝ่ายไม่ต้องมีบัญชี — เมื่อสมัครจะเชื่อมแท็กและโน้ตของคุณอัตโนมัติ",
+    "addManualA11y": "เพิ่มรายชื่อด้วยตนเอง"
   },
   "search": {
     "clearAll": "ล้างทั้งหมด",
@@ -1185,5 +1189,28 @@
     "deleteFailedTitle": "ลบไม่สำเร็จ",
     "deleteFailedMessage": "Tag นี้ยังไม่ถูกลบ ลองอีกครั้งภายหลัง หากยังเป็นอยู่โปรดติดต่อเรา",
     "emptyScanCta": "หรือสแกน QR ของอีกฝ่ายเพื่อเพิ่ม"
+  },
+  "localContact": {
+    "editTitle": "แก้ไขรายชื่อ",
+    "addTitle": "เพิ่มรายชื่อ",
+    "intro": "จดคนไว้ก่อน — อีกฝ่ายยังไม่ต้องเป็นสมาชิก PikTag เมื่อเขาสมัคร ระบบจะเชื่อมให้อัตโนมัติ แท็กและโน้ตของคุณจะตามไปด้วย",
+    "fieldName": "ชื่อ",
+    "namePlaceholder": "เช่น อเล็กซ์จากทริปดำน้ำ",
+    "fieldPhone": "โทรศัพท์ (ไม่บังคับ — ใช้เชื่อมตอนสมัคร)",
+    "phonePlaceholder": "+66 8x xxx xxxx",
+    "fieldEmail": "อีเมล (ไม่บังคับ)",
+    "emailPlaceholder": "name@example.com",
+    "fieldMetWhere": "เจอกันที่ไหน (ไม่บังคับ)",
+    "metWherePlaceholder": "เช่น งานรุ่น, ทริปดำน้ำ",
+    "fieldNote": "โน้ต (เห็นคนเดียว)",
+    "notePlaceholder": "หนึ่งบรรทัดไว้จำเขา",
+    "fieldTags": "แท็ก (เห็นคนเดียว)",
+    "tagPlaceholder": "ใส่แท็ก…",
+    "save": "บันทึก",
+    "nameRequiredTitle": "ต้องมีชื่อ",
+    "nameRequiredMsg": "ใส่ชื่ออย่างน้อยไว้ เพื่อให้คุณจำได้ทีหลัง",
+    "saveError": "บันทึกไม่ได้ — ลองอีกครั้ง",
+    "deleteTitle": "ลบรายชื่อนี้?",
+    "deleteMsg": "ลบออกจากรายการคุณเท่านั้น — ไม่กระทบคนอื่น"
   }
 }

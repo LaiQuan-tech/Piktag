@@ -235,7 +235,11 @@
     "addInviteTitle": "Arkadaşlarını PikTag'a davet et",
     "addInviteDesc": "Davet bağlantısı paylaş — kayıt olunca otomatik arkadaş",
     "coldStartActionContacts": "Rehberinden arkadaş bul",
-    "coldStartActionContactsDesc": "PikTag'da olanları bul — olmayanları etiketle+davet et"
+    "coldStartActionContactsDesc": "PikTag'da olanları bul — olmayanları etiketle+davet et",
+    "notJoinedBadge": "Henüz PikTag’te değil",
+    "coldStartActionManual": "Birini not al",
+    "coldStartActionManualDesc": "Hesabı gerekmez — katıldığında etiket ve notlarına otomatik bağlanır",
+    "addManualA11y": "Elle kişi ekle"
   },
   "search": {
     "clearAll": "Hepsini temizle",
@@ -1185,5 +1189,28 @@
     "deleteFailedTitle": "Silme başarısız",
     "deleteFailedMessage": "Bu Tag silinmedi. Daha sonra tekrar deneyin. Sürerse bizimle iletişime geçin.",
     "emptyScanCta": "Ya da bağlanmak için onun QR'ını tara"
+  },
+  "localContact": {
+    "editTitle": "Kişiyi düzenle",
+    "addTitle": "Yeni kişi",
+    "intro": "Önce kişiyi not al — PikTag hesabı şart değil. Katıldığında otomatik bağlanır, etiket ve notların onunla gelir.",
+    "fieldName": "İsim",
+    "namePlaceholder": "örn. dalıştan tanıdığın Alex",
+    "fieldPhone": "Telefon (isteğe bağlı — katılınca bağlar)",
+    "phonePlaceholder": "+90 5xx xxx xx xx",
+    "fieldEmail": "E-posta (isteğe bağlı)",
+    "emailPlaceholder": "name@example.com",
+    "fieldMetWhere": "Nerede tanıştınız (isteğe bağlı)",
+    "metWherePlaceholder": "örn. buluşma, dalış gezisi",
+    "fieldNote": "Not (yalnızca sen görürsün)",
+    "notePlaceholder": "Onu hatırlamak için tek satır",
+    "fieldTags": "Etiketler (yalnızca sen görürsün)",
+    "tagPlaceholder": "Etiket ekle…",
+    "save": "Kaydet",
+    "nameRequiredTitle": "İsim gerekli",
+    "nameRequiredMsg": "Sonra hatırlayabilmek için en azından bir isim ver.",
+    "saveError": "Kaydedilemedi — tekrar dene.",
+    "deleteTitle": "Bu kişi silinsin mi?",
+    "deleteMsg": "Yalnızca senin listenden silinir — kimseyi etkilemez."
   }
 }
