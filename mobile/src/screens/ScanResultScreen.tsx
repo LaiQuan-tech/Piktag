@@ -153,8 +153,24 @@ export default function ScanResultScreen({ navigation, route }: ScanResultScreen
     }
   };
 
-  const openBiolink = (url: string) => {
-    if (url) Linking.openURL(url).catch(() => {});
+  // Open the host's link AND record the tap as a biolink click —
+  // the SAME piktag_biolink_clicks row a profile-screen click
+  // writes. So the host "sees the reaction": it feeds their
+  // Insights (totalBiolinkClicks) and fires the existing
+  // "someone clicked your {{platform}} link" notification. The
+  // scanner is the clicker; fire-and-forget so a tracking hiccup
+  // never blocks the deep link.
+  const openBiolink = (biolinkId: string, url: string) => {
+    if (!url) return;
+    if (user) {
+      supabase
+        .from('piktag_biolink_clicks')
+        .insert({ biolink_id: biolinkId, clicker_user_id: user.id })
+        .then(({ error }) => {
+          if (error) console.warn('Biolink click tracking failed:', error.message);
+        });
+    }
+    Linking.openURL(url).catch(() => {});
   };
 
   const handleConfirm = async () => {
@@ -426,7 +442,7 @@ export default function ScanResultScreen({ navigation, route }: ScanResultScreen
                   key={bl.id}
                   style={styles.socialBtn}
                   activeOpacity={0.7}
-                  onPress={() => openBiolink(bl.url)}
+                  onPress={() => openBiolink(bl.id, bl.url)}
                   accessibilityRole="button"
                   accessibilityLabel={getPlatformLabel(bl.platform, t)}
                 >
