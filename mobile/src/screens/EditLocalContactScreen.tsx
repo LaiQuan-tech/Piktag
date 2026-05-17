@@ -31,13 +31,32 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import { ArrowLeft, Plus, X, Trash2 } from 'lucide-react-native';
+import { ArrowLeft, Plus, X, Trash2, ScanLine, Sparkles, RefreshCw } from 'lucide-react-native';
+import {
+  requestMediaLibraryPermissionsAsync,
+  launchImageLibraryAsync,
+} from 'expo-image-picker';
 import { COLORS } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
 import { useLocalContacts } from '../hooks/useLocalContacts';
+import { supabase } from '../lib/supabase';
+import { logApiUsage } from '../lib/apiUsage';
 import BrandSpinner from '../components/loaders/BrandSpinner';
 
 type Props = { navigation: any; route: any };
+
+// Subset of the scan-business-card edge function's response that's
+// relevant to a private local contact. The function returns more
+// (website/instagram/…) but a local contact has no biolinks — those
+// extra handles get folded into the free-text note instead.
+type CardData = {
+  full_name: string | null;
+  job_title: string | null;
+  company: string | null;
+  bio_draft: string | null;
+  phone: string | null;
+  email: string | null;
+};
 
 export default function EditLocalContactScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
@@ -60,12 +79,170 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
   const [tagInput, setTagInput] = useState('');
   const [saving, setSaving] = useState(false);
 
+  // Card-scan + AI-tag accelerators. Nothing here writes to the DB —
+  // the scan only PRE-FILLS the editable form (the screen itself is
+  // the confirmation surface), and AI tags only populate suggestion
+  // chips the user opts into. handleSave is still the only writer.
+  const [scanning, setScanning] = useState(false);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiSuggestions, setAiSuggestions] = useState<string[]>([]);
+  const [aiTried, setAiTried] = useState(false);
+
   const addTag = useCallback(() => {
     const raw = tagInput.trim().replace(/^#/, '');
     if (!raw) return;
     setTags((prev) => (prev.includes(raw) ? prev : [...prev, raw]));
     setTagInput('');
   }, [tagInput]);
+
+  const addSuggestedTag = useCallback((raw: string) => {
+    const v = raw.trim().replace(/^#/, '');
+    if (!v) return;
+    setTags((prev) => (prev.includes(v) ? prev : [...prev, v]));
+    setAiSuggestions((prev) => prev.filter((s) => s !== raw));
+  }, []);
+
+  // AI tag suggestions from whatever context we have (name + note +
+  // where-met). Same edge function ('suggest-tags') the profile
+  // editor uses, so the model + prompt are identical.
+  const fetchAiTags = useCallback(async () => {
+    const ctx = [name, note, metLocation].filter(Boolean).join('\n').trim();
+    if (!ctx) return;
+    setAiLoading(true);
+    setAiTried(true);
+    try {
+      const userLang = ctx.match(/[一-鿿]/) ? '繁體中文' :
+        ctx.match(/[぀-ヿ]/) ? '日本語' :
+        ctx.match(/[가-힯]/) ? '한국어' :
+        ctx.match(/[฀-๿]/) ? 'ภาษาไทย' : 'the same language as the content';
+      logApiUsage('gemini_generate', { via: 'edge-fn' });
+      const { data, error } = await supabase.functions.invoke<{
+        suggestions?: string[];
+      }>('suggest-tags', {
+        body: {
+          bio: note,
+          name: name,
+          location: metLocation,
+          existingTags: tags.join(', '),
+          lang: userLang,
+        },
+      });
+      if (error) {
+        console.warn('[LocalContact] suggest-tags failed:', error.message);
+        setAiSuggestions([]);
+        return;
+      }
+      const raw = Array.isArray(data?.suggestions) ? data!.suggestions : [];
+      const cleaned = Array.from(
+        new Set(
+          raw
+            .map((n) => (typeof n === 'string' ? n.replace(/^#/, '').trim() : ''))
+            .filter(Boolean)
+            .filter((n) => !tags.includes(n)),
+        ),
+      ).slice(0, 10);
+      setAiSuggestions(cleaned);
+    } catch (err) {
+      console.warn('[LocalContact] suggest-tags threw:', err);
+      setAiSuggestions([]);
+    } finally {
+      setAiLoading(false);
+    }
+  }, [name, note, metLocation, tags]);
+
+  // One photo → scan-business-card vision extract → pre-fill the
+  // form. Non-destructive: only fills fields the user hasn't typed
+  // into yet (so re-scanning never wipes manual edits). Job title /
+  // company / extra bio fold into the private note. After a good
+  // scan we auto-kick AI tag suggestions since there's now context.
+  const handleScanCard = useCallback(async () => {
+    try {
+      const { status } = await requestMediaLibraryPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert(
+          t('auth.onboarding.avatarPermissionTitle', { defaultValue: '需要相簿權限' }),
+          t('auth.onboarding.avatarPermissionMessage', {
+            defaultValue: '請在設定中允許 PikTag 存取相簿',
+          }),
+        );
+        return;
+      }
+      const result = await launchImageLibraryAsync({
+        mediaTypes: ['images'],
+        quality: 0.7,
+        base64: true,
+      });
+      if (result.canceled || !result.assets[0]) return;
+      const asset = result.assets[0];
+
+      const ALLOWED = ['image/jpeg', 'image/png', 'image/webp'];
+      const mimeType = asset.mimeType || 'image/jpeg';
+      if (!ALLOWED.includes(mimeType) || !asset.base64) {
+        Alert.alert(
+          t('common.error', { defaultValue: '錯誤' }),
+          t('editProfile.invalidImageType', { defaultValue: '不支援的圖片格式' }),
+        );
+        return;
+      }
+
+      setScanning(true);
+      const { data, error } = await supabase.functions.invoke(
+        'scan-business-card',
+        { body: { image: asset.base64, mimeType } },
+      );
+      if (error) {
+        console.warn('[LocalContact] scan-business-card failed:', error);
+        Alert.alert(
+          t('auth.onboarding.cardScanFailedTitle', { defaultValue: '掃描失敗' }),
+          t('auth.onboarding.cardScanFailedMessage', {
+            defaultValue: '名片沒有讀取成功，再試一次或手動填寫。',
+          }),
+        );
+        return;
+      }
+      const card = ((data as any)?.data ?? null) as CardData | null;
+      const anyField =
+        card && Object.values(card).some((v) => typeof v === 'string' && v.trim());
+      if (!card || !anyField) {
+        Alert.alert(
+          t('auth.onboarding.cardScanEmptyTitle', { defaultValue: '沒讀到資料' }),
+          t('auth.onboarding.cardScanEmptyMessage', {
+            defaultValue: '這張名片看不太清楚 — 換一張清楚的照片，或直接手動填。',
+          }),
+        );
+        return;
+      }
+
+      const cardName = (card.full_name ?? '').trim();
+      const cardPhone = (card.phone ?? '').trim();
+      const cardEmail = (card.email ?? '').trim();
+      if (cardName) setName((cur) => (cur.trim() ? cur : cardName));
+      if (cardPhone) setPhone((cur) => (cur.trim() ? cur : cardPhone));
+      if (cardEmail) setEmail((cur) => (cur.trim() ? cur : cardEmail));
+
+      // Title / company / extra bio → private note (a local contact
+      // has no headline/biolink fields, so the note is where this
+      // context lives — and it doubles as AI-tag fuel).
+      const noteBits = [
+        [card.job_title, card.company].filter((s) => s && s.trim()).join(' @ '),
+        (card.bio_draft ?? '').trim(),
+      ].filter(Boolean);
+      if (noteBits.length) {
+        const composed = noteBits.join('\n');
+        setNote((cur) => (cur.trim() ? cur : composed));
+      }
+
+      // Context exists now — surface AI tags proactively.
+      setTimeout(() => { fetchAiTags(); }, 0);
+    } catch (err: any) {
+      Alert.alert(
+        t('common.error', { defaultValue: '錯誤' }),
+        err?.message || t('common.unknownError', { defaultValue: '發生錯誤' }),
+      );
+    } finally {
+      setScanning(false);
+    }
+  }, [t, fetchAiTags]);
 
   const handleSave = useCallback(async () => {
     const trimmed = name.trim();
@@ -181,6 +358,34 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
             })}
           </Text>
 
+          {/* Card-scan accelerator — same one-photo → vision extract
+              flow as first-time profile setup. Pre-fills the form;
+              the user edits inline (this screen is the confirm). */}
+          <TouchableOpacity
+            style={styles.scanBtn}
+            onPress={handleScanCard}
+            disabled={scanning}
+            activeOpacity={0.8}
+            accessibilityRole="button"
+            accessibilityLabel={t('localContact.scanCardCta', { defaultValue: '掃描名片自動帶入' })}
+          >
+            {scanning ? (
+              <BrandSpinner size={20} />
+            ) : (
+              <>
+                <ScanLine size={18} color={COLORS.piktag600} strokeWidth={2.2} />
+                <Text style={styles.scanBtnText}>
+                  {t('localContact.scanCardCta', { defaultValue: '掃描名片自動帶入' })}
+                </Text>
+              </>
+            )}
+          </TouchableOpacity>
+          <Text style={styles.scanHint}>
+            {t('localContact.scanCardHint', {
+              defaultValue: '拍一張名片，自動帶入姓名與聯絡方式 —— 再修改或加標籤就好。',
+            })}
+          </Text>
+
           <Text style={styles.label}>
             {t('localContact.fieldName', { defaultValue: '名字' })}
           </Text>
@@ -288,6 +493,67 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
             </TouchableOpacity>
           </View>
 
+          {/* AI tag suggestions — opt-in, context = name + note +
+              where-met. Auto-kicks after a successful card scan;
+              also tappable anytime. Tapping a chip adds the tag. */}
+          {aiLoading ? (
+            <View style={styles.aiLoadingRow}>
+              <BrandSpinner size={16} />
+              <Text style={styles.aiHint}>
+                {t('localContact.aiThinking', { defaultValue: 'AI 想標籤中…' })}
+              </Text>
+            </View>
+          ) : aiSuggestions.length > 0 ? (
+            <View style={styles.aiBlock}>
+              <View style={styles.aiHeaderRow}>
+                <Text style={styles.aiTitle}>
+                  {t('localContact.aiSuggestTitle', { defaultValue: 'AI 建議（點一下加入）' })}
+                </Text>
+                <TouchableOpacity
+                  onPress={fetchAiTags}
+                  hitSlop={8}
+                  accessibilityRole="button"
+                  accessibilityLabel={t('localContact.aiRegenerate', { defaultValue: '重新產生' })}
+                >
+                  <RefreshCw size={15} color={COLORS.gray500} />
+                </TouchableOpacity>
+              </View>
+              <View style={styles.tagWrap}>
+                {aiSuggestions.map((s) => (
+                  <TouchableOpacity
+                    key={s}
+                    style={styles.aiChip}
+                    onPress={() => addSuggestedTag(s)}
+                    activeOpacity={0.7}
+                  >
+                    <Plus size={12} color={COLORS.piktag600} strokeWidth={2.5} />
+                    <Text style={styles.aiChipText}>#{s}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+          ) : (
+            <>
+              <TouchableOpacity
+                style={styles.aiBtn}
+                onPress={fetchAiTags}
+                activeOpacity={0.8}
+                accessibilityRole="button"
+                accessibilityLabel={t('localContact.aiSuggestCta', { defaultValue: 'AI 建議標籤' })}
+              >
+                <Sparkles size={16} color={COLORS.piktag600} />
+                <Text style={styles.aiBtnText}>
+                  {t('localContact.aiSuggestCta', { defaultValue: 'AI 建議標籤' })}
+                </Text>
+              </TouchableOpacity>
+              {aiTried && (
+                <Text style={styles.aiHint}>
+                  {t('localContact.aiEmpty', { defaultValue: 'AI 沒想到合適的，手動加上就好。' })}
+                </Text>
+              )}
+            </>
+          )}
+
           <TouchableOpacity
             style={[styles.saveBtn, (saving || !name.trim()) && styles.saveBtnDisabled]}
             onPress={handleSave}
@@ -355,6 +621,54 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   tagAddBtnDisabled: { opacity: 0.4 },
+  scanBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    minHeight: 48,
+    borderRadius: 12,
+    borderWidth: 1.5,
+    borderColor: COLORS.piktag500,
+    backgroundColor: COLORS.piktag50,
+    marginBottom: 8,
+  },
+  scanBtnText: { fontSize: 15, fontWeight: '700', color: COLORS.piktag600 },
+  scanHint: { fontSize: 12, color: COLORS.gray500, lineHeight: 17 },
+  aiBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    alignSelf: 'flex-start',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 9999,
+    backgroundColor: COLORS.piktag50,
+    marginTop: 12,
+  },
+  aiBtnText: { fontSize: 13, fontWeight: '600', color: COLORS.piktag600 },
+  aiLoadingRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 14 },
+  aiHint: { fontSize: 12, color: COLORS.gray500, marginTop: 8, lineHeight: 17 },
+  aiBlock: { marginTop: 14 },
+  aiHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+  },
+  aiTitle: { fontSize: 13, fontWeight: '600', color: COLORS.gray700 },
+  aiChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    backgroundColor: COLORS.piktag50,
+    borderWidth: 1,
+    borderColor: COLORS.piktag200,
+    borderRadius: 9999,
+    paddingHorizontal: 11,
+    paddingVertical: 7,
+  },
+  aiChipText: { fontSize: 13, fontWeight: '600', color: COLORS.piktag600 },
   saveBtn: {
     marginTop: 28,
     paddingVertical: 15,

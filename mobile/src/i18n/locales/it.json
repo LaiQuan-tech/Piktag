@@ -1306,7 +1306,14 @@
     "nameRequiredMsg": "Dai a questa persona almeno un nome, così te la ricordi più avanti.",
     "saveError": "Non siamo riusciti a salvare — riprova.",
     "deleteTitle": "Eliminare questo contatto?",
-    "deleteMsg": "Sparisce solo dal tuo elenco — nessun altro se ne accorge."
+    "deleteMsg": "Sparisce solo dal tuo elenco — nessun altro se ne accorge.",
+    "scanCardCta": "Scansiona biglietto",
+    "scanCardHint": "Scatta una foto al biglietto: nome e contatti si compilano da soli. Poi modifichi o aggiungi tag.",
+    "aiSuggestCta": "Tag con AI",
+    "aiThinking": "L'AI sta pensando ai tag…",
+    "aiSuggestTitle": "Suggerimenti AI (tocca per aggiungere)",
+    "aiRegenerate": "Rigenera",
+    "aiEmpty": "L'AI non ha trovato nulla — aggiungili tu."
   },
   "followers": {
     "title": "Follower",

@@ -1306,7 +1306,14 @@
     "nameRequiredMsg": "Đặt ít nhất một cái tên cho người này để sau bạn còn nhớ nhé.",
     "saveError": "Không lưu được — thử lại nhé.",
     "deleteTitle": "Xoá liên hệ này?",
-    "deleteMsg": "Chỉ gỡ khỏi danh sách của bạn — không ai khác bị ảnh hưởng."
+    "deleteMsg": "Chỉ gỡ khỏi danh sách của bạn — không ai khác bị ảnh hưởng.",
+    "scanCardCta": "Quét danh thiếp",
+    "scanCardHint": "Chụp một tấm danh thiếp — tên và liên hệ tự điền. Sửa hoặc thêm tag sau cũng được.",
+    "aiSuggestCta": "Gợi ý tag bằng AI",
+    "aiThinking": "AI đang nghĩ tag…",
+    "aiSuggestTitle": "AI gợi ý (chạm để thêm)",
+    "aiRegenerate": "Tạo lại",
+    "aiEmpty": "AI chưa nghĩ ra cái nào hợp — bạn tự thêm nhé."
   },
   "followers": {
     "title": "Người theo dõi",

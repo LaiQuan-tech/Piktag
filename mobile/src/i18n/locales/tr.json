@@ -1214,7 +1214,14 @@
     "nameRequiredMsg": "Sonra hatırlayabilmek için en azından bir isim ver.",
     "saveError": "Kaydedilemedi — tekrar dene.",
     "deleteTitle": "Bu kişi silinsin mi?",
-    "deleteMsg": "Yalnızca senin listenden silinir — kimseyi etkilemez."
+    "deleteMsg": "Yalnızca senin listenden silinir — kimseyi etkilemez.",
+    "scanCardCta": "Kartvizit tara",
+    "scanCardHint": "Bir kartvizit çek — ad ve iletişim otomatik dolar. Sonra düzenle ya da etiket ekle.",
+    "aiSuggestCta": "AI etiket önerisi",
+    "aiThinking": "AI etiket düşünüyor…",
+    "aiSuggestTitle": "AI önerileri (eklemek için dokun)",
+    "aiRegenerate": "Yeniden üret",
+    "aiEmpty": "AI uygun bir şey bulamadı — kendin ekle."
   },
   "followers": {
     "title": "Takipçiler",

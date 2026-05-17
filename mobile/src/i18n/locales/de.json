@@ -1286,7 +1286,14 @@
     "nameRequiredMsg": "Gib zumindest einen Namen, damit du dich später erinnerst.",
     "saveError": "Konnte nicht speichern — bitte erneut versuchen.",
     "deleteTitle": "Diesen Kontakt löschen?",
-    "deleteMsg": "Nur aus deiner Liste entfernt — niemand sonst betroffen."
+    "deleteMsg": "Nur aus deiner Liste entfernt — niemand sonst betroffen.",
+    "scanCardCta": "Visitenkarte scannen",
+    "scanCardHint": "Karte abfotografieren — Name & Kontakt füllen sich von selbst. Danach bearbeiten oder Tags ergänzen.",
+    "aiSuggestCta": "KI-Tag-Ideen",
+    "aiThinking": "KI denkt sich Tags aus…",
+    "aiSuggestTitle": "KI-Vorschläge (zum Hinzufügen tippen)",
+    "aiRegenerate": "Neu generieren",
+    "aiEmpty": "Die KI fand nichts Passendes — füg sie selbst hinzu."
   },
   "followers": {
     "title": "Follower",

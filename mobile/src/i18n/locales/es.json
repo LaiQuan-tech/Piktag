@@ -1214,7 +1214,14 @@
     "nameRequiredMsg": "Pon al menos un nombre para poder recordarle luego.",
     "saveError": "No se pudo guardar — inténtalo de nuevo.",
     "deleteTitle": "¿Eliminar este contacto?",
-    "deleteMsg": "Solo se quita de tu lista — nadie más se ve afectado."
+    "deleteMsg": "Solo se quita de tu lista — nadie más se ve afectado.",
+    "scanCardCta": "Escanear tarjeta",
+    "scanCardHint": "Haz una foto de la tarjeta: nombre y contacto se rellenan solos. Luego edita o añade tags.",
+    "aiSuggestCta": "Tags con IA",
+    "aiThinking": "La IA está pensando tags…",
+    "aiSuggestTitle": "Sugerencias de IA (toca para añadir)",
+    "aiRegenerate": "Regenerar",
+    "aiEmpty": "La IA no encontró nada — añádelos tú."
   },
   "followers": {
     "title": "Seguidores",

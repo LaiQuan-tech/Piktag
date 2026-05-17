@@ -1299,7 +1299,14 @@
     "nameRequiredMsg": "Give this person at least a name so you can recall them later.",
     "saveError": "Couldn't save — please try again.",
     "deleteTitle": "Delete this contact?",
-    "deleteMsg": "Only removed from your list — nobody else is affected."
+    "deleteMsg": "Only removed from your list — nobody else is affected.",
+    "scanCardCta": "Scan a business card",
+    "scanCardHint": "Snap a card — name & contacts fill in automatically. Edit or add tags after.",
+    "aiSuggestCta": "AI tag ideas",
+    "aiThinking": "AI is thinking up tags…",
+    "aiSuggestTitle": "AI picks (tap to add)",
+    "aiRegenerate": "Regenerate",
+    "aiEmpty": "AI didn't find a fit — just add your own."
   },
   "followers": {
     "title": "Followers",

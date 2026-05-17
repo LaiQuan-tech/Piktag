@@ -1214,7 +1214,14 @@
     "nameRequiredMsg": "Beri nama minimal supaya bisa kamu ingat nanti.",
     "saveError": "Gagal menyimpan — coba lagi.",
     "deleteTitle": "Hapus kontak ini?",
-    "deleteMsg": "Hanya hilang dari daftarmu — tak memengaruhi orang lain."
+    "deleteMsg": "Hanya hilang dari daftarmu — tak memengaruhi orang lain.",
+    "scanCardCta": "Pindai kartu nama",
+    "scanCardHint": "Foto kartu namanya — nama & kontak terisi otomatis. Edit atau tambah tag setelahnya.",
+    "aiSuggestCta": "Saran tag AI",
+    "aiThinking": "AI lagi mikirin tag…",
+    "aiSuggestTitle": "Saran AI (ketuk untuk tambah)",
+    "aiRegenerate": "Buat ulang",
+    "aiEmpty": "AI nggak nemu yang pas — tambah sendiri aja."
   },
   "followers": {
     "title": "Pengikut",
