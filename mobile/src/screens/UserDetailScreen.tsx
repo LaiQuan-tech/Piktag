@@ -1547,7 +1547,7 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
             {paramSid && vibeContextTags.length > 0 && connectionId && authUser && (
               <>
                 <Text style={styles.pickModalSectionTitle}>
-                  {t('userDetail.vibeContextTagsTitle', { defaultValue: '這次 Vibe 帶的標籤' })}
+                  {t('userDetail.vibeContextTagsTitle', { defaultValue: '這次 Tag 帶的標籤' })}
                 </Text>
                 <Text style={styles.pickModalSectionHint}>
                   {t('userDetail.vibeContextTagsHint', {

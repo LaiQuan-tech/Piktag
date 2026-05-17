@@ -782,10 +782,10 @@
       },
       "on_this_day": {
         "title": "",
-        "body": "उस दिन की Vibe देखें",
+        "body": "उस दिन की Tag देखें",
         "push": {
           "title": "",
-          "body": "उस दिन की Vibe देखें"
+          "body": "उस दिन की Tag देखें"
         }
       },
       "tag_convergence": {

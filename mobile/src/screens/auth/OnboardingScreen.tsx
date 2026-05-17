@@ -618,7 +618,7 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
           ) : (
             <>
               <Text style={styles.primaryButtonText}>
-                {t('auth.onboarding.profileCta', { defaultValue: '建立我的第一個 Vibe' })}
+                {t('auth.onboarding.profileCta', { defaultValue: '建立我的第一個 Tag' })}
               </Text>
               <ChevronRight size={20} color="#FFFFFF" />
             </>

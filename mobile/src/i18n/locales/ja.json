@@ -782,10 +782,10 @@
       },
       "on_this_day": {
         "title": "",
-        "body": "タップしてその日の Vibe に戻る",
+        "body": "タップしてその日の Tag に戻る",
         "push": {
           "title": "",
-          "body": "タップしてその日の Vibe に戻る"
+          "body": "タップしてその日の Tag に戻る"
         }
       },
       "tag_convergence": {

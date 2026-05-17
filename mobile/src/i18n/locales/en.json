@@ -863,10 +863,10 @@
       },
       "on_this_day": {
         "title": "",
-        "body": "Tap to revisit who joined this Vibe",
+        "body": "Tap to revisit who joined this Tag",
         "push": {
           "title": "",
-          "body": "Tap to revisit who joined this Vibe"
+          "body": "Tap to revisit who joined this Tag"
         }
       },
       "tag_convergence": {

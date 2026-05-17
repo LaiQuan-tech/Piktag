@@ -782,10 +782,10 @@
       },
       "on_this_day": {
         "title": "",
-        "body": "সেই দিনের Vibe দেখুন",
+        "body": "সেই দিনের Tag দেখুন",
         "push": {
           "title": "",
-          "body": "সেই দিনের Vibe দেখুন"
+          "body": "সেই দিনের Tag দেখুন"
         }
       },
       "tag_convergence": {

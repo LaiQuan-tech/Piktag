@@ -850,10 +850,10 @@
       },
       "on_this_day": {
         "title": "",
-        "body": "回到那一天，看当时谁加入了这个 Vibe",
+        "body": "回到那一天，看当时谁加入了这个 Tag",
         "push": {
           "title": "",
-          "body": "回到那一天，看当时谁加入了这个 Vibe"
+          "body": "回到那一天，看当时谁加入了这个 Tag"
         }
       },
       "tag_convergence": {
