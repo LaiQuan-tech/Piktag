@@ -365,7 +365,7 @@ export default function QrGroupListScreen({ navigation }: Props) {
         >
           <Plus size={18} color="#FFFFFF" />
           <Text style={styles.emptyCtaText}>
-            {t('qrGroup.createFirst', { defaultValue: '建立當下活動的 QR' })}
+            {t('qrGroup.createFirst', { defaultValue: '建立當下的 Tag' })}
           </Text>
         </TouchableOpacity>
         {/* Secondary "scan someone else's QR" link removed from the
