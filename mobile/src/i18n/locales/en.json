@@ -353,11 +353,11 @@
     "aiSuggestionsEmpty": "AI didn't find a fit — try again or add your own.",
     "aiRegenerate": "Regenerate",
     "contextPromptHints": [
-      "Diving trip at Longdong",
-      "Founders weekend meetup",
-      "Client demo meeting",
       "College reunion",
-      "Networking at a design expo"
+      "Team dinner",
+      "A friend’s wedding",
+      "Gym class",
+      "Weekend camping"
     ]
   },
   "profile": {
@@ -477,11 +477,11 @@
     "missingBiolink": "Social link",
     "welcomeShort": "Welcome to PikTag",
     "bioPromptHints": [
-      "Product designer in Taipei, surfs weekends",
-      "Freelance photographer, two cats",
-      "Backend engineer, learning pottery",
-      "Building a startup, seeking a cofounder",
-      "Marketer running on caffeine"
+      "Sales rep, runs half-marathons",
+      "Primary teacher, plant addict",
+      "Nurse, weekend baker",
+      "Software engineer, has a Shiba",
+      "Uni student, learning guitar"
     ]
   },
   "friendDetail": {

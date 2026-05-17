@@ -338,11 +338,11 @@
     "aiSuggestionsEmpty": "A AI não achou — tenta de novo ou adiciona à mão.",
     "aiRegenerate": "Regenerar",
     "contextPromptHints": [
-      "Mergulho em Longdong",
-      "Encontro de fundadores",
-      "Reunião de demo com cliente",
       "Reencontro da faculdade",
-      "Networking numa feira de design"
+      "Jantar da equipe",
+      "Casamento de um amigo",
+      "Aula na academia",
+      "Acampamento de fim de semana"
     ]
   },
   "profile": {
@@ -462,11 +462,11 @@
     "missingBiolink": "Link social",
     "welcomeShort": "Bem-vindo ao PikTag",
     "bioPromptHints": [
-      "Designer de produto em Taipei, surfa nos fins de semana",
-      "Fotógrafo freelance, dois gatos",
-      "Engenheiro backend, aprendendo cerâmica",
-      "Montando uma startup, buscando cofundador",
-      "Marketeiro movido a cafeína"
+      "Vendedor, corre meias-maratonas",
+      "Professora primária, viciada em plantas",
+      "Enfermeiro, confeiteiro nos fins de semana",
+      "Engenheiro de software, tem um Shiba",
+      "Universitário, aprendendo violão"
     ]
   },
   "friendDetail": {

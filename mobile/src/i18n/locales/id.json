@@ -338,11 +338,11 @@
     "aiSuggestionsEmpty": "AI nggak nemu — coba lagi atau tambah sendiri.",
     "aiRegenerate": "Buat ulang",
     "contextPromptHints": [
-      "Trip diving di Longdong",
-      "Kumpul founder akhir pekan",
-      "Meeting demo klien",
       "Reuni kampus",
-      "Networking di pameran desain"
+      "Makan malam tim",
+      "Pernikahan teman",
+      "Kelas gym",
+      "Camping akhir pekan"
     ]
   },
   "profile": {
@@ -462,11 +462,11 @@
     "missingBiolink": "Tautan sosial",
     "welcomeShort": "Selamat datang di PikTag",
     "bioPromptHints": [
-      "Product designer di Taipei, surfing tiap akhir pekan",
-      "Fotografer freelance, dua kucing",
-      "Backend engineer, lagi belajar keramik",
-      "Lagi bikin startup, cari cofounder",
-      "Marketer bertenaga kafein"
+      "Sales, lari half-marathon",
+      "Guru SD, hobi tanaman",
+      "Perawat, baking tiap akhir pekan",
+      "Software engineer, punya Shiba",
+      "Mahasiswa, lagi belajar gitar"
     ]
   },
   "friendDetail": {

@@ -338,11 +338,11 @@
     "aiSuggestionsEmpty": "AI uygun bir şey bulamadı — tekrar dene veya kendin ekle.",
     "aiRegenerate": "Yeniden oluştur",
     "contextPromptHints": [
-      "Longdong'da dalış gezisi",
-      "Kurucular hafta sonu buluşması",
-      "Müşteri demo toplantısı",
       "Üniversite buluşması",
-      "Tasarım fuarında networking"
+      "Ekip yemeği",
+      "Bir arkadaşın düğünü",
+      "Spor salonu dersi",
+      "Hafta sonu kampı"
     ]
   },
   "profile": {
@@ -462,11 +462,11 @@
     "missingBiolink": "Sosyal bağlantı",
     "welcomeShort": "PikTag'a hoş geldin",
     "bioPromptHints": [
-      "Taipei’de ürün tasarımcısı, hafta sonu sörf",
-      "Serbest fotoğrafçı, iki kedi",
-      "Backend mühendisi, çömlek öğreniyor",
-      "Girişim kuruyorum, kurucu ortak arıyorum",
-      "Kafeinle çalışan pazarlamacı"
+      "Satışçı, yarı maraton koşar",
+      "İlkokul öğretmeni, bitki tutkunu",
+      "Hemşire, hafta sonu pasta yapar",
+      "Yazılım mühendisi, Shiba besler",
+      "Üniversite öğrencisi, gitar öğreniyor"
     ]
   },
   "friendDetail": {
