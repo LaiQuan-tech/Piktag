@@ -18,6 +18,9 @@ import id from './locales/id.json';
 import ru from './locales/ru.json';
 import th from './locales/th.json';
 import tr from './locales/tr.json';
+import vi from './locales/vi.json';
+import ur from './locales/ur.json';
+import it from './locales/it.json';
 
 // Ordered by total speakers (L1 + L2, Ethnologue 2023) descending so
 // the most users find their language at or near the top of the
@@ -37,12 +40,15 @@ export const languages = [
   { code: 'bn', label: 'বাংলা' },                    // ~272M
   { code: 'ru', label: 'Русский' },                  // ~258M
   { code: 'pt', label: 'Português' },                // ~257M
+  { code: 'ur', label: 'اردو' },                      // ~232M
   { code: 'id', label: 'Bahasa Indonesia' },         // ~199M
   { code: 'de', label: 'Deutsch' },                  // ~135M
   { code: 'ja', label: '日本語' },                    // ~125M
   { code: 'tr', label: 'Türkçe' },                   // ~88M
+  { code: 'vi', label: 'Tiếng Việt' },               // ~86M
   { code: 'ko', label: '한국어' },                    // ~81M
   { code: 'th', label: 'ไทย' },                      // ~70M
+  { code: 'it', label: 'Italiano' },                 // ~68M
   { code: 'zh-TW', label: '繁體中文' },               // ~30M
 ];
 
@@ -67,6 +73,9 @@ i18n
       ru: { translation: ru },
       th: { translation: th },
       tr: { translation: tr },
+      vi: { translation: vi },
+      ur: { translation: ur },
+      it: { translation: it },
     },
     fallbackLng: 'zh-TW',
     interpolation: {
