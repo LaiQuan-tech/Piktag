@@ -941,13 +941,18 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
                 </TouchableOpacity>
               ))}
             </View>
-          ) : aiLoading ? null : (
+          ) : aiLoading ? null : aiContext.length > 0 ? (
+            // AI actually ran and found nothing — keep this, it's
+            // actionable feedback ("try again or add your own").
             <Text style={styles.hiddenTagHint}>
-              {aiContext.length > 0
-                ? t('addTag.aiSuggestionsEmpty', { defaultValue: 'AI 想不到合適的標籤 — 再試一次或自己加。' })
-                : t('addTag.aiSuggestionsHint', { defaultValue: '輸入一句場合描述 — AI 會根據你的話 + 位置 + 你的身份標籤推薦。' })}
+              {t('addTag.aiSuggestionsEmpty', { defaultValue: 'AI 想不到合適的標籤 — 再試一次或自己加。' })}
             </Text>
-          )}
+          ) : null
+          /* Pre-input state: render nothing. The old
+             aiSuggestionsHint repeated what the section header
+             ("這次是什麼場合？" + its sub-line) already says — pure
+             redundancy under "AI 為你推薦". The rotating
+             placeholder up top already shows what to type. */}
         </View>
 
         {/* 自訂標籤 Section */}
