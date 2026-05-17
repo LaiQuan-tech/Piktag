@@ -395,17 +395,19 @@ export default function QrGroupListScreen({ navigation }: Props) {
                 shows). Applied across every surface (list rows,
                 delete dialog, QrGroupDetail).
 
-                The subtitle KEEPS the brand tagline "Tag the Vibe,
-                Keep the Tribe." — the "Vibe" there is NOT the
-                renamed artifact noun, it's the common-word sense
-                (the vibe/feel of a moment), and "Tag" is the verb.
-                It's brand poetry, same line as the onboarding
-                brandTagline, kept English in every locale as a
-                deliberate signature. The artifact rename and the
-                tagline coexist precisely because they use "Vibe"
-                in two different senses. */}
+                The subtitle is the unified brand line "PikTag to
+                connect." — hard-coded English in EVERY locale,
+                deliberately NOT wrapped in t() (the old
+                qrGroup.headerSubtitle i18n key was removed). Same
+                doctrine as SplashOverlay: the brand name is used as
+                a VERB so it occupies mindshare ("Google it" /
+                "DM me"); localising it would dilute the global
+                identity. Same line as the splash screen and the
+                website hero subtitle — one signature across every
+                surface. Translators: please don't re-add an i18n
+                key here. */}
             <Text style={styles.headerSubtitle}>
-              {t('qrGroup.headerSubtitle', { defaultValue: 'Tag the Vibe, Keep the Tribe.' })}
+              PikTag to connect.
             </Text>
           </View>
           <View style={styles.headerActions}>
