@@ -60,12 +60,15 @@ const LANGUAGE_OPTIONS: { key: string; label: string }[] = [
   { key: 'bn', label: 'বাংলা' },                     // ~272M
   { key: 'ru', label: 'Русский' },                   // ~258M
   { key: 'pt', label: 'Português' },                 // ~257M
+  { key: 'ur', label: 'اردو' },                       // ~232M
   { key: 'id', label: 'Bahasa Indonesia' },          // ~199M
   { key: 'de', label: 'Deutsch' },                   // ~135M
   { key: 'ja', label: '日本語' },                     // ~125M
   { key: 'tr', label: 'Türkçe' },                    // ~88M
+  { key: 'vi', label: 'Tiếng Việt' },                // ~86M
   { key: 'ko', label: '한국어' },                     // ~81M
   { key: 'th', label: 'ไทย' },                       // ~70M
+  { key: 'it', label: 'Italiano' },                  // ~68M
   { key: 'zh-TW', label: '繁體中文' },                // ~30M
 ];
 

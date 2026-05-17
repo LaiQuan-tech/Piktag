@@ -19,6 +19,7 @@ const eagerResources = {
 const SUPPORTED_LANGS: ReadonlyArray<string> = [
   'zh-TW', 'en', 'zh-CN', 'ja', 'es', 'fr', 'de', 'ar',
   'hi', 'bn', 'pt', 'ru', 'ko', 'id', 'th', 'tr',
+  'vi', 'ur', 'it',
 ];
 
 // Map device language to one of our supported codes.
@@ -69,6 +70,9 @@ export async function loadLocale(lang: string): Promise<void> {
       case 'id':    translation = (await import('./locales/id.json')).default; break;
       case 'th':    translation = (await import('./locales/th.json')).default; break;
       case 'tr':    translation = (await import('./locales/tr.json')).default; break;
+      case 'vi':    translation = (await import('./locales/vi.json')).default; break;
+      case 'ur':    translation = (await import('./locales/ur.json')).default; break;
+      case 'it':    translation = (await import('./locales/it.json')).default; break;
       default:      return; // unknown — caller will fall back via i18n fallbackLng
     }
   } catch (err) {
