@@ -482,6 +482,13 @@
       "ER nurse, bake to unwind after shifts, learning pour-over coffee",
       "Backend engineer, lately into cooking and pottery, owns one fierce Shiba",
       "Psych major, play guitar in a band, started taking illustration gigs"
+    ],
+    "headlinePromptHints": [
+      "Product Manager @ a startup",
+      "Freelance graphic designer",
+      "ER nurse",
+      "Primary teacher, kids’ literacy",
+      "Backend engineer, open to gigs"
     ]
   },
   "friendDetail": {

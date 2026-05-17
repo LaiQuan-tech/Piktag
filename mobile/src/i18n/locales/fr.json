@@ -467,6 +467,13 @@
       "Infirmier aux urgences, je pâtisse pour décompresser, café filtre en cours",
       "Ingénieur backend, à fond cuisine et poterie, un Shiba bien caractériel",
       "Étudiant en psycho, guitare dans un groupe, je fais aussi de l’illustration"
+    ],
+    "headlinePromptHints": [
+      "Product Manager @ une startup",
+      "Graphiste freelance",
+      "Infirmier aux urgences",
+      "Prof des écoles, lecture jeunesse",
+      "Ingénieur backend, dispo pour des missions"
     ]
   },
   "friendDetail": {

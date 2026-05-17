@@ -467,6 +467,13 @@
       "Enfermeiro de emergência, confeito para relaxar, aprendendo café coado",
       "Engenheiro backend, agora curtindo cozinhar e cerâmica, tenho um Shiba bravo",
       "Estudante de psicologia, toco violão numa banda e faço ilustração"
+    ],
+    "headlinePromptHints": [
+      "Product Manager @ uma startup",
+      "Designer gráfico freelance",
+      "Enfermeiro de emergência",
+      "Professora primária, leitura infantil",
+      "Engenheiro backend, aberto a freelas"
     ]
   },
   "friendDetail": {

@@ -467,6 +467,13 @@
       "Acil hemşiresi, vardiya sonrası pasta yaparım, filtre kahve öğreniyorum",
       "Backend mühendisi, son dönem yemek ve çömlek merakı, huysuz bir Shiba’m var",
       "Psikoloji öğrencisi, grupta gitar çalıyorum, illüstrasyon işleri alıyorum"
+    ],
+    "headlinePromptHints": [
+      "Product Manager @ bir startup",
+      "Serbest grafik tasarımcı",
+      "Acil servis hemşiresi",
+      "İlkokul öğretmeni, çocuk okuryazarlığı",
+      "Backend mühendisi, projelere açık"
     ]
   },
   "friendDetail": {

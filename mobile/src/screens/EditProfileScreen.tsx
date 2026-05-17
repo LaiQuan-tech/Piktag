@@ -228,6 +228,19 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
     bioHints,
     t('editProfile.bioPlaceholder'),
   );
+
+  // Headline (職稱) also feeds AI tag generation (passed as
+  // `location` context to suggest-tags), so it gets the same
+  // rotating guidance. Punchy role-line examples, diverse jobs
+  // (not a tech monoculture), no specific company names.
+  const headlineHints = useMemo(() => {
+    const raw = t('editProfile.headlinePromptHints', { returnObjects: true });
+    return Array.isArray(raw) && raw.length > 0 ? (raw as string[]) : null;
+  }, [t]);
+  const headlinePlaceholder = useRotatingPlaceholder(
+    headlineHints,
+    t('editProfile.headlinePlaceholder', { defaultValue: '例：PM @ Google、自由接案設計師' }),
+  );
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
   // myAsk drives the avatar's gradient ring on this screen too — same
@@ -1492,7 +1505,7 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
                 style={styles.fieldInput}
                 value={form.headline}
                 onChangeText={(v) => updateField('headline', v)}
-                placeholder={t('editProfile.headlinePlaceholder', { defaultValue: '例：PM @ Google、自由接案設計師' })}
+                placeholder={headlinePlaceholder}
                 placeholderTextColor={COLORS.gray400}
                 maxLength={50}
               />

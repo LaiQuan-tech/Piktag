@@ -475,6 +475,13 @@
       "Notaufnahme-Pfleger, backe zum Abschalten, lerne gerade Filterkaffee",
       "Backend-Entwickler, zurzeit Kochen und Töpfern, lebe mit einem sturen Shiba",
       "Psychologie-Student, Gitarre in einer Band, mache jetzt auch Illustration"
+    ],
+    "headlinePromptHints": [
+      "Product Manager @ einem Startup",
+      "Freier Grafikdesigner",
+      "Notaufnahme-Pfleger",
+      "Grundschullehrerin, Leseförderung",
+      "Backend-Entwickler, offen für Projekte"
     ]
   },
   "friendDetail": {
