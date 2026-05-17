@@ -245,12 +245,15 @@ export default function SplashOverlay({
         {/* Brand slogan — locked to English in every locale. NOT
             wrapped in t() on purpose: this is the brand voice (think
             Nike's "Just Do It"), localizing it would dilute the
-            global identity. Translators reading this file: please
-            don't wire up an i18n key here. */}
+            global identity. The phrasing deliberately uses "PikTag"
+            as a VERB ("PikTag to connect.") — the brand name itself
+            becomes the action, so it occupies mindshare the way
+            "Google it" or "DM me" do. Translators reading this file:
+            please don't wire up an i18n key here. */}
         <Animated.Text
           style={[splashStyles.tagline, { opacity: taglineOpacity }]}
         >
-          Pick. Tag. Connect.
+          PikTag to connect.
         </Animated.Text>
       </View>
 
