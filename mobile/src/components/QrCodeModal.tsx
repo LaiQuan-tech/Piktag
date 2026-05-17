@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   StyleSheet,
 } from 'react-native';
-import QRCode from 'react-native-qrcode-svg';
 import { X, Copy, Share2 } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { setStringAsync } from 'expo-clipboard';
@@ -14,12 +13,16 @@ import { useTranslation } from 'react-i18next';
 import { COLORS } from '../constants/theme';
 import { APP_BASE_URL, shareProfile } from '../lib/shareProfile';
 import QrModalStinger from './stingers/QrModalStinger';
+import QrNameCard from './QrNameCard';
 
 type QrCodeModalProps = {
   visible: boolean;
   onClose: () => void;
   username: string;
   fullName: string;
+  /** Public identity tags (names, no #) shown inside the card —
+      mirrors how the Tag QR card shows its event tags. */
+  tags?: string[];
 };
 
 // Personal-profile QR share sheet.
@@ -35,6 +38,7 @@ export default function QrCodeModal({
   onClose,
   username,
   fullName,
+  tags,
 }: QrCodeModalProps) {
   const { t } = useTranslation();
   const profileUrl = `${APP_BASE_URL}/${username}`;
@@ -83,19 +87,14 @@ export default function QrCodeModal({
               <X size={24} color="#FFFFFF" />
             </TouchableOpacity>
 
-            <Text style={styles.title}>{fullName}</Text>
-            <Text style={styles.subtitle}>@{username}</Text>
-
-            <View style={styles.qrCard}>
-              <QRCode
-                value={profileUrl}
-                size={200}
-                backgroundColor="#FFFFFF"
-                color={COLORS.gray900}
+            <View style={styles.cardWrap}>
+              <QrNameCard
+                qrValue={profileUrl}
+                handle={username}
+                name={fullName}
+                tags={tags}
               />
             </View>
-
-            <Text style={styles.urlText}>{profileUrl}</Text>
 
             <View style={styles.actionsRow}>
               <TouchableOpacity
@@ -149,35 +148,13 @@ const styles = StyleSheet.create({
     padding: 4,
     zIndex: 1,
   },
-  title: {
-    fontSize: 22,
-    fontWeight: '800',
-    color: '#FFFFFF',
-    marginBottom: 4,
-    textAlign: 'center',
-  },
-  subtitle: {
-    fontSize: 15,
-    color: 'rgba(255,255,255,0.85)',
-    marginBottom: 24,
-  },
-  // White QR card floating on the gradient — same composition as
-  // the Tag present card (presentWhiteCard).
-  qrCard: {
-    backgroundColor: '#FFFFFF',
-    padding: 18,
-    borderRadius: 20,
-    marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.15,
-    shadowRadius: 24,
-    elevation: 10,
-  },
-  urlText: {
-    fontSize: 13,
-    color: 'rgba(255,255,255,0.8)',
-    marginBottom: 24,
+  // The shared QrNameCard now owns the name/@handle/tags/QR
+  // composition (was: title+subtitle on the gradient + a bare
+  // QR box). This wrapper just spaces it within the gradient
+  // and keeps it clear of the close button.
+  cardWrap: {
+    marginTop: 14,
+    marginBottom: 22,
   },
   actionsRow: {
     flexDirection: 'row',

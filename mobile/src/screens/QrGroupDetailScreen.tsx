@@ -40,6 +40,7 @@ import { useTheme } from '../context/ThemeContext';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
 import RingedAvatar from '../components/RingedAvatar';
+import QrNameCard from '../components/QrNameCard';
 
 type Member = {
   connection_id: string;
@@ -362,29 +363,14 @@ export default function QrGroupDetailScreen({ navigation, route }: Props) {
         </View>
 
         <View style={styles.presentCardWrap}>
-          <View style={styles.presentWhiteCard}>
-            {group.qr_code_data ? (
-              <QRCode value={group.qr_code_data} size={220} backgroundColor="#fff" />
-            ) : null}
-            {qrUsername ? (
-              <Text style={styles.presentUsername}>@{qrUsername}</Text>
-            ) : null}
-            {/* Tag name shown under the handle so a named Tag reads
-                as "@me · 國中同學" — gives the card an identity
-                beyond the raw hashtags. */}
-            <Text style={styles.presentName} numberOfLines={1}>
-              {presentName}
-            </Text>
-            {group.event_tags.length > 0 ? (
-              <View style={styles.presentTagsWrap}>
-                <Text style={styles.presentTagsLine}>
-                  {group.event_tags
-                    .map((tg) => '#' + tg.replace(/^#/, ''))
-                    .join('  ')}
-                </Text>
-              </View>
-            ) : null}
-          </View>
+          {/* Shared white name-card (also used by the profile share
+              modal) — keeps both surfaces pixel-identical. */}
+          <QrNameCard
+            qrValue={group.qr_code_data}
+            handle={qrUsername}
+            name={presentName}
+            tags={group.event_tags}
+          />
         </View>
 
         <View style={[styles.presentBottomRow, { paddingBottom: insets.bottom + 20 }]}>
@@ -726,46 +712,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: 32,
   },
-  presentWhiteCard: {
-    backgroundColor: '#fff',
-    borderRadius: 24,
-    paddingHorizontal: 28,
-    paddingTop: 28,
-    paddingBottom: 20,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.15,
-    shadowRadius: 24,
-    elevation: 10,
-  },
-  presentUsername: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#c44dff',
-    marginTop: 16,
-    letterSpacing: 0.5,
-  },
-  presentName: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: COLORS.gray700,
-    marginTop: 4,
-  },
-  presentTagsWrap: {
-    marginTop: 12,
-    paddingTop: 12,
-    borderTopWidth: 1,
-    borderTopColor: '#F3F4F6',
-    alignItems: 'center',
-    width: '100%',
-  },
-  presentTagsLine: {
-    fontSize: 13,
-    color: '#4B5563',
-    fontWeight: '500',
-    textAlign: 'center',
-  },
+  // (presentWhiteCard / presentUsername / presentName /
+  // presentTagsWrap / presentTagsLine moved into the shared
+  // QrNameCard component — single source of truth for the card.)
   presentBottomRow: {
     flexDirection: 'row',
     paddingHorizontal: 16,

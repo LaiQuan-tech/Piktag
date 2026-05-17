@@ -293,6 +293,18 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
 
   const qrUsername = useMemo(() => profile?.username || '', [profile?.username]);
   const qrFullName = useMemo(() => profile?.full_name || '', [profile?.full_name]);
+  // Public identity tags for the share card (private tags stay off
+  // a QR meant to be shown to others). Capped so the single tag
+  // line doesn't overflow the card; order follows the profile's
+  // own pinned/position sort.
+  const qrTags = useMemo(
+    () =>
+      userTags
+        .filter((ut) => !ut.is_private && !!ut.tag?.name)
+        .slice(0, 6)
+        .map((ut) => ut.tag!.name as string),
+    [userTags],
+  );
 
   // --- Render ---
 
@@ -318,7 +330,7 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
         </View>
       </View>
 
-      <QrCodeModal visible={qrVisible} onClose={handleCloseQr} username={qrUsername} fullName={qrFullName} />
+      <QrCodeModal visible={qrVisible} onClose={handleCloseQr} username={qrUsername} fullName={qrFullName} tags={qrTags} />
 
       <ScrollView
         style={styles.scrollView}
