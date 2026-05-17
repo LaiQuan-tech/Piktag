@@ -876,10 +876,10 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
             "公司週年活動", "週末聚餐", "客戶 demo" 之類。 */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>
-            {t('addTag.contextLabel', { defaultValue: '這個 QR 是給什麼場合？' })}
+            {t('addTag.contextLabel', { defaultValue: '這次是什麼場合？' })}
           </Text>
           <Text style={styles.hiddenTagHint}>
-            {t('addTag.contextHint', { defaultValue: '一句話描述就好。AI 會看你說的話、現在的時間、你在哪，推薦合適的標籤。' })}
+            {t('addTag.contextHint', { defaultValue: '一句話描述就好。AI 會根據你說的、時間和地點推薦標籤，幫你記住在這認識的人。' })}
           </Text>
           <View style={[styles.inputRow, { marginTop: 4 }]}>
             <TextInput
