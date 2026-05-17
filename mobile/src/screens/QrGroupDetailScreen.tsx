@@ -351,29 +351,15 @@ export default function QrGroupDetailScreen({ navigation, route }: Props) {
           >
             <X size={26} color="#fff" />
           </TouchableOpacity>
-          {/* Edit lives here (was a 3rd bottom button) so the bottom
-              action row stays at TWO buttons — consistent with the
-              profile share modal. Edit mode is still one tap away. */}
-          <View style={styles.presentTopRight}>
-            <TouchableOpacity
-              onPress={() => setMode('edit')}
-              activeOpacity={0.6}
-              style={styles.presentTopBtn}
-              accessibilityRole="button"
-              accessibilityLabel={t('addTag.editQr', { defaultValue: '編輯 QR' })}
-            >
-              <Pencil size={22} color="#fff" />
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => navigation.navigate('CameraScan')}
-              activeOpacity={0.6}
-              style={styles.presentTopBtn}
-              accessibilityRole="button"
-              accessibilityLabel={t('qrGroup.scan', { defaultValue: '掃描 QR 加好友' })}
-            >
-              <ScanLine size={24} color="#fff" />
-            </TouchableOpacity>
-          </View>
+          <TouchableOpacity
+            onPress={() => navigation.navigate('CameraScan')}
+            activeOpacity={0.6}
+            style={styles.presentTopBtn}
+            accessibilityRole="button"
+            accessibilityLabel={t('qrGroup.scan', { defaultValue: '掃描 QR 加好友' })}
+          >
+            <ScanLine size={24} color="#fff" />
+          </TouchableOpacity>
         </View>
 
         <View style={styles.presentCardWrap}>
@@ -398,6 +384,12 @@ export default function QrGroupDetailScreen({ navigation, route }: Props) {
             <Link2 size={22} color={COLORS.gray900} />
             <Text style={styles.presentBottomBtnText}>
               {t('addTag.copyLink', { defaultValue: '複製連結' })}
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.presentBottomBtn} onPress={() => setMode('edit')} activeOpacity={0.7}>
+            <Pencil size={22} color={COLORS.gray900} />
+            <Text style={styles.presentBottomBtnText}>
+              {t('addTag.editQr', { defaultValue: '編輯 QR' })}
             </Text>
           </TouchableOpacity>
         </View>
@@ -714,7 +706,6 @@ const styles = StyleSheet.create({
     paddingBottom: 8,
   },
   presentTopBtn: { padding: 8 },
-  presentTopRight: { flexDirection: 'row', alignItems: 'center' },
   presentCardWrap: {
     flex: 1,
     alignItems: 'center',
