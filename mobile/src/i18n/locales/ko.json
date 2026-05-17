@@ -373,7 +373,11 @@
     "statFriends": "친구",
     "statFollowers": "팔로워",
     "copyLink": "링크 복사",
-    "share": "공유"
+    "share": "공유",
+    "statTagsA11y": "내 태그 보기",
+    "statFriendsA11y": "내 친구 보기",
+    "statFollowersA11y": "내 팔로워 보기",
+    "statTribeA11y": "내 Tribe 별자리 보기"
   },
   "editProfile": {
     "headerTitle": "프로필 편집",
@@ -1211,5 +1215,10 @@
     "saveError": "저장하지 못했어요. 잠시 후 다시 시도하세요.",
     "deleteTitle": "이 연락처를 삭제할까요?",
     "deleteMsg": "내 목록에서만 삭제되고 다른 사람에겐 영향 없어요."
+  },
+  "followers": {
+    "title": "팔로워",
+    "count": "팔로워 {{count}}명",
+    "empty": "아직 팔로워가 없어요"
   }
 }

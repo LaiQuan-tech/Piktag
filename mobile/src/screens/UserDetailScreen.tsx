@@ -1250,9 +1250,24 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
               </Text>
             )}
             <Text style={styles.statDot}>·</Text>
-            <Text style={styles.statText}>
-              <Text style={styles.statNumber}>{followerCount}</Text>{t('userDetail.statFollowers')}
-            </Text>
+            <TouchableOpacity
+              activeOpacity={0.6}
+              hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
+              onPress={() =>
+                resolvedUserId &&
+                navigation.navigate('Followers', {
+                  userId: resolvedUserId,
+                  displayName:
+                    profile?.full_name || profile?.username || paramUsername || '',
+                })
+              }
+              accessibilityRole="button"
+              accessibilityLabel={t('userDetail.statFollowers')}
+            >
+              <Text style={styles.statText}>
+                <Text style={styles.statNumber}>{followerCount}</Text>{t('userDetail.statFollowers')}
+              </Text>
+            </TouchableOpacity>
           </View>
 
           {/* Event-info card (QR scan context) was removed per user

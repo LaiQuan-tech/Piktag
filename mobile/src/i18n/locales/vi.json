@@ -391,7 +391,11 @@
     "statFriends": "Bạn bè",
     "statFollowers": "Người theo dõi",
     "copyLink": "Sao chép liên kết",
-    "share": "Chia sẻ"
+    "share": "Chia sẻ",
+    "statTagsA11y": "Xem tag của tôi",
+    "statFriendsA11y": "Xem bạn bè của tôi",
+    "statFollowersA11y": "Xem người theo dõi của tôi",
+    "statTribeA11y": "Xem chòm sao Tribe của tôi"
   },
   "editProfile": {
     "headerTitle": "Sửa hồ sơ",
@@ -1303,5 +1307,10 @@
     "saveError": "Không lưu được — thử lại nhé.",
     "deleteTitle": "Xoá liên hệ này?",
     "deleteMsg": "Chỉ gỡ khỏi danh sách của bạn — không ai khác bị ảnh hưởng."
+  },
+  "followers": {
+    "title": "Người theo dõi",
+    "count": "{{count}} người theo dõi",
+    "empty": "Chưa có người theo dõi"
   }
 }

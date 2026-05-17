@@ -1160,10 +1160,20 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
               </Text>
             )}
             <Text style={styles.statDot}>·</Text>
-            <Text style={styles.statText}>
-              <Text style={styles.statNumber}>{followerCount}</Text>
-              <Text style={styles.statLabel}>{t('friendDetail.followersLabel')}</Text>
-            </Text>
+            <TouchableOpacity
+              activeOpacity={0.6}
+              hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
+              onPress={() =>
+                navigation.navigate('Followers', { userId: friendId, displayName })
+              }
+              accessibilityRole="button"
+              accessibilityLabel={t('friendDetail.followersLabel')}
+            >
+              <Text style={styles.statText}>
+                <Text style={styles.statNumber}>{followerCount}</Text>
+                <Text style={styles.statLabel}>{t('friendDetail.followersLabel')}</Text>
+              </Text>
+            </TouchableOpacity>
           </View>
 
           {/* Action buttons.

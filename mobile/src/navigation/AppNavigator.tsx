@@ -362,6 +362,13 @@ function MainNavigator({ needsOnboarding }: { needsOnboarding: boolean }) {
           name="TribeConstellation"
           getComponent={() => require('../screens/TribeConstellationScreen').default}
         />
+        {/* Followers list. Reached from the "追蹤者" stat on
+            ProfileScreen / FriendDetail / UserDetail. Params:
+            { userId, displayName? }. */}
+        <RootStack.Screen
+          name="Followers"
+          getComponent={() => require('../screens/FollowersScreen').default}
+        />
         <RootStack.Screen
           name="RedeemInvite"
           getComponent={() => require('../screens/RedeemInviteScreen').default}

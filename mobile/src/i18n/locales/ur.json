@@ -391,7 +391,11 @@
     "statFriends": "دوست",
     "statFollowers": "فالوورز",
     "copyLink": "لنک کاپی کریں",
-    "share": "شیئر کریں"
+    "share": "شیئر کریں",
+    "statTagsA11y": "میرے ٹیگز دیکھیں",
+    "statFriendsA11y": "میرے دوست دیکھیں",
+    "statFollowersA11y": "میرے فالوورز دیکھیں",
+    "statTribeA11y": "میرا Tribe ستارہ نقشہ دیکھیں"
   },
   "editProfile": {
     "headerTitle": "پروفائل میں ترمیم کریں",
@@ -1303,5 +1307,10 @@
     "saveError": "محفوظ نہیں ہوا — دوبارہ کوشش کریں۔",
     "deleteTitle": "یہ رابطہ حذف کریں؟",
     "deleteMsg": "صرف آپ کی فہرست سے ہٹے گا — کسی اور پر فرق نہیں پڑتا۔"
+  },
+  "followers": {
+    "title": "فالوورز",
+    "count": "{{count}} فالوورز",
+    "empty": "ابھی کوئی فالوور نہیں"
   }
 }

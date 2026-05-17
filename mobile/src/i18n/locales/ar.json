@@ -373,7 +373,11 @@
     "statFriends": "الأصدقاء",
     "statFollowers": "المتابعون",
     "copyLink": "نسخ الرابط",
-    "share": "مشاركة"
+    "share": "مشاركة",
+    "statTagsA11y": "عرض وسومي",
+    "statFriendsA11y": "عرض أصدقائي",
+    "statFollowersA11y": "عرض متابعيّ",
+    "statTribeA11y": "عرض كوكبة Tribe الخاصة بي"
   },
   "editProfile": {
     "headerTitle": "تعديل الملف الشخصي",
@@ -1211,5 +1215,10 @@
     "saveError": "تعذّر الحفظ — حاول مجددًا.",
     "deleteTitle": "حذف جهة الاتصال؟",
     "deleteMsg": "يُحذف من قائمتك فقط — لا يتأثر أحد آخر."
+  },
+  "followers": {
+    "title": "المتابعون",
+    "count": "{{count}} متابع",
+    "empty": "لا متابعين بعد"
   }
 }

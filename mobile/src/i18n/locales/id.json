@@ -373,7 +373,11 @@
     "statFriends": "Teman",
     "statFollowers": "Pengikut",
     "copyLink": "Salin Tautan",
-    "share": "Bagikan"
+    "share": "Bagikan",
+    "statTagsA11y": "Lihat tag saya",
+    "statFriendsA11y": "Lihat teman saya",
+    "statFollowersA11y": "Lihat pengikut saya",
+    "statTribeA11y": "Lihat konstelasi Tribe saya"
   },
   "editProfile": {
     "headerTitle": "Edit Profil",
@@ -1211,5 +1215,10 @@
     "saveError": "Gagal menyimpan — coba lagi.",
     "deleteTitle": "Hapus kontak ini?",
     "deleteMsg": "Hanya hilang dari daftarmu — tak memengaruhi orang lain."
+  },
+  "followers": {
+    "title": "Pengikut",
+    "count": "{{count}} pengikut",
+    "empty": "Belum ada pengikut"
   }
 }

@@ -38,6 +38,10 @@ type ProfileScreenProps = {
   navigation: NativeStackNavigationProp<any>;
 };
 
+// Each stat is its own (small) tap target — generous hitSlop so the
+// touch area stays comfortable even though the visible text is short.
+const STAT_HITSLOP = { top: 8, bottom: 8, left: 4, right: 4 };
+
 // (Removed: `SocialCircle` (IG-Highlights-style) and `LinkCard`
 // (Linktree-style) memoized components — both were defined here but
 // never rendered anywhere in this file, leftover from an earlier
@@ -269,6 +273,23 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
   const handleNavigateSettings = useCallback(() => navigation.navigate('Settings'), [navigation]);
   const handleNavigateEditProfile = useCallback(() => navigation.navigate('EditProfile'), [navigation]);
   const handleNavigateTribe = useCallback(() => navigation.navigate('TribeConstellation'), [navigation]);
+  // Each profile stat now drills into its OWN destination (was: the
+  // whole row dumped every tap onto the Tribe graph). Tags → tag
+  // manager, Friends → the Home/Connections list, Followers → the
+  // followers list, Tribe → the constellation.
+  const handleNavigateTags = useCallback(() => navigation.navigate('ManageTags'), [navigation]);
+  const handleNavigateFriends = useCallback(
+    () => navigation.navigate('Main', { screen: 'HomeTab' }),
+    [navigation]
+  );
+  const handleNavigateFollowers = useCallback(
+    () =>
+      navigation.navigate('Followers', {
+        userId,
+        displayName: profile?.full_name || profile?.username || '',
+      }),
+    [navigation, userId, profile?.full_name, profile?.username]
+  );
 
   const qrUsername = useMemo(() => profile?.username || '', [profile?.username]);
   const qrFullName = useMemo(() => profile?.full_name || '', [profile?.full_name]);
@@ -389,26 +410,59 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
               motivation flips from "earn points → redeem for
               vague future features" to "visible status number
               that grows as your invites compound." */}
-          <TouchableOpacity
-            activeOpacity={0.7}
-            onPress={handleNavigateTribe}
-            accessibilityLabel={t('profile.statTribeA11y', { defaultValue: '查看 Tribe 星圖' })}
-            accessibilityRole="button"
-          >
-            <Text style={styles.statsLine}>
-              <Text style={styles.statNumber}>{userTags.length}</Text>
-              <Text style={styles.statLabel}>{t('profile.statTags')}</Text>
-              <Text style={styles.statDot}> · </Text>
-              <Text style={styles.statNumber}>{friendCount}</Text>
-              <Text style={styles.statLabel}>{t('profile.statFriends')}</Text>
-              <Text style={styles.statDot}> · </Text>
-              <Text style={styles.statNumber}>{formattedFollowerCount}</Text>
-              <Text style={styles.statLabel}>{t('profile.statFollowers')}</Text>
-              <Text style={styles.statDot}> · </Text>
-              <Text style={styles.statNumber}>{tribeSize}</Text>
-              <Text style={styles.statLabel}>{t('profile.statTribe', { defaultValue: 'Tribe' })}</Text>
-            </Text>
-          </TouchableOpacity>
+          <View style={styles.statsRow}>
+            <TouchableOpacity
+              activeOpacity={0.6}
+              onPress={handleNavigateTags}
+              hitSlop={STAT_HITSLOP}
+              accessibilityRole="button"
+              accessibilityLabel={t('profile.statTagsA11y', { defaultValue: '查看我的標籤' })}
+            >
+              <Text style={styles.statText}>
+                <Text style={styles.statNumber}>{userTags.length}</Text>
+                <Text style={styles.statLabel}>{t('profile.statTags')}</Text>
+              </Text>
+            </TouchableOpacity>
+            <Text style={[styles.statText, styles.statDot]}> · </Text>
+            <TouchableOpacity
+              activeOpacity={0.6}
+              onPress={handleNavigateFriends}
+              hitSlop={STAT_HITSLOP}
+              accessibilityRole="button"
+              accessibilityLabel={t('profile.statFriendsA11y', { defaultValue: '查看我的朋友' })}
+            >
+              <Text style={styles.statText}>
+                <Text style={styles.statNumber}>{friendCount}</Text>
+                <Text style={styles.statLabel}>{t('profile.statFriends')}</Text>
+              </Text>
+            </TouchableOpacity>
+            <Text style={[styles.statText, styles.statDot]}> · </Text>
+            <TouchableOpacity
+              activeOpacity={0.6}
+              onPress={handleNavigateFollowers}
+              hitSlop={STAT_HITSLOP}
+              accessibilityRole="button"
+              accessibilityLabel={t('profile.statFollowersA11y', { defaultValue: '查看我的追蹤者' })}
+            >
+              <Text style={styles.statText}>
+                <Text style={styles.statNumber}>{formattedFollowerCount}</Text>
+                <Text style={styles.statLabel}>{t('profile.statFollowers')}</Text>
+              </Text>
+            </TouchableOpacity>
+            <Text style={[styles.statText, styles.statDot]}> · </Text>
+            <TouchableOpacity
+              activeOpacity={0.6}
+              onPress={handleNavigateTribe}
+              hitSlop={STAT_HITSLOP}
+              accessibilityRole="button"
+              accessibilityLabel={t('profile.statTribeA11y', { defaultValue: '查看 Tribe 星圖' })}
+            >
+              <Text style={styles.statText}>
+                <Text style={styles.statNumber}>{tribeSize}</Text>
+                <Text style={styles.statLabel}>{t('profile.statTribe', { defaultValue: 'Tribe' })}</Text>
+              </Text>
+            </TouchableOpacity>
+          </View>
 
           {/* Action buttons */}
           <View style={styles.actionButtonsRow}>
@@ -563,10 +617,15 @@ const styles = StyleSheet.create({
     marginTop: 3,
     fontStyle: 'italic',
   },
-  statsLine: {
+  statsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+    marginBottom: 14,
+  },
+  statText: {
     fontSize: 14,
     color: COLORS.gray500,
-    marginBottom: 14,
   },
   statNumber: {
     fontWeight: '700',

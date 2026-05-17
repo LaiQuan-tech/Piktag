@@ -388,7 +388,11 @@
     "statFriends": "Friends",
     "statFollowers": "Followers",
     "copyLink": "Copy Link",
-    "share": "Share"
+    "share": "Share",
+    "statTagsA11y": "View my tags",
+    "statFriendsA11y": "View my friends",
+    "statFollowersA11y": "View my followers",
+    "statTribeA11y": "View my Tribe constellation"
   },
   "editProfile": {
     "headerTitle": "Edit Profile",
@@ -1296,5 +1300,10 @@
     "saveError": "Couldn't save — please try again.",
     "deleteTitle": "Delete this contact?",
     "deleteMsg": "Only removed from your list — nobody else is affected."
+  },
+  "followers": {
+    "title": "Followers",
+    "count": "{{count}} followers",
+    "empty": "No followers yet"
   }
 }

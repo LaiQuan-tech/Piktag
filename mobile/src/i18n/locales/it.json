@@ -391,7 +391,11 @@
     "statFriends": "Amici",
     "statFollowers": "Follower",
     "copyLink": "Copia link",
-    "share": "Condividi"
+    "share": "Condividi",
+    "statTagsA11y": "Vedi i miei tag",
+    "statFriendsA11y": "Vedi i miei amici",
+    "statFollowersA11y": "Vedi i miei follower",
+    "statTribeA11y": "Vedi la mia costellazione Tribe"
   },
   "editProfile": {
     "headerTitle": "Modifica profilo",
@@ -1303,5 +1307,10 @@
     "saveError": "Non siamo riusciti a salvare — riprova.",
     "deleteTitle": "Eliminare questo contatto?",
     "deleteMsg": "Sparisce solo dal tuo elenco — nessun altro se ne accorge."
+  },
+  "followers": {
+    "title": "Follower",
+    "count": "{{count}} follower",
+    "empty": "Ancora nessun follower"
   }
 }

@@ -391,7 +391,11 @@
     "statFriends": "朋友",
     "statFollowers": "追蹤者",
     "copyLink": "複製連結",
-    "share": "分享"
+    "share": "分享",
+    "statTagsA11y": "查看我的標籤",
+    "statFriendsA11y": "查看我的朋友",
+    "statFollowersA11y": "查看我的追蹤者",
+    "statTribeA11y": "查看我的 Tribe 星圖"
   },
   "editProfile": {
     "headerTitle": "編輯個人資訊",
@@ -1303,5 +1307,10 @@
     "saveError": "存不起來，請稍後再試。",
     "deleteTitle": "刪除這個聯絡人？",
     "deleteMsg": "只會從你的清單移除，不影響其他人。"
+  },
+  "followers": {
+    "title": "追蹤者",
+    "count": "{{count}} 位追蹤者",
+    "empty": "還沒有人追蹤"
   }
 }

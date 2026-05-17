@@ -373,7 +373,11 @@
     "statFriends": "เพื่อน",
     "statFollowers": "ผู้ติดตาม",
     "copyLink": "คัดลอกลิงก์",
-    "share": "แชร์"
+    "share": "แชร์",
+    "statTagsA11y": "ดูแท็กของฉัน",
+    "statFriendsA11y": "ดูเพื่อนของฉัน",
+    "statFollowersA11y": "ดูผู้ติดตามของฉัน",
+    "statTribeA11y": "ดูแผนภาพ Tribe ของฉัน"
   },
   "editProfile": {
     "headerTitle": "แก้ไขโปรไฟล์",
@@ -1211,5 +1215,10 @@
     "saveError": "บันทึกไม่ได้ — ลองอีกครั้ง",
     "deleteTitle": "ลบรายชื่อนี้?",
     "deleteMsg": "ลบออกจากรายการคุณเท่านั้น — ไม่กระทบคนอื่น"
+  },
+  "followers": {
+    "title": "ผู้ติดตาม",
+    "count": "ผู้ติดตาม {{count}} คน",
+    "empty": "ยังไม่มีผู้ติดตาม"
   }
 }

@@ -373,7 +373,11 @@
     "statFriends": "Arkadaşlar",
     "statFollowers": "Takipçiler",
     "copyLink": "Bağlantıyı Kopyala",
-    "share": "Paylaş"
+    "share": "Paylaş",
+    "statTagsA11y": "Etiketlerimi gör",
+    "statFriendsA11y": "Arkadaşlarımı gör",
+    "statFollowersA11y": "Takipçilerimi gör",
+    "statTribeA11y": "Tribe takımyıldızımı gör"
   },
   "editProfile": {
     "headerTitle": "Profili Düzenle",
@@ -1211,5 +1215,10 @@
     "saveError": "Kaydedilemedi — tekrar dene.",
     "deleteTitle": "Bu kişi silinsin mi?",
     "deleteMsg": "Yalnızca senin listenden silinir — kimseyi etkilemez."
+  },
+  "followers": {
+    "title": "Takipçiler",
+    "count": "{{count}} takipçi",
+    "empty": "Henüz takipçi yok"
   }
 }

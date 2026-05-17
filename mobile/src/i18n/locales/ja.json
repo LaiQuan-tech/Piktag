@@ -373,7 +373,11 @@
     "statFriends": "友達",
     "statFollowers": "フォロワー",
     "copyLink": "リンクをコピー",
-    "share": "シェア"
+    "share": "シェア",
+    "statTagsA11y": "自分のタグを見る",
+    "statFriendsA11y": "自分の友達を見る",
+    "statFollowersA11y": "自分のフォロワーを見る",
+    "statTribeA11y": "自分の Tribe 星図を見る"
   },
   "editProfile": {
     "headerTitle": "プロフィール編集",
@@ -1211,5 +1215,10 @@
     "saveError": "保存できませんでした。後でもう一度お試しください。",
     "deleteTitle": "この連絡先を削除？",
     "deleteMsg": "自分のリストから消えるだけで、他の人には影響しません。"
+  },
+  "followers": {
+    "title": "フォロワー",
+    "count": "フォロワー{{count}}人",
+    "empty": "まだフォロワーがいません"
   }
 }

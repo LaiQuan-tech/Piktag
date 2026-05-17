@@ -373,7 +373,11 @@
     "statFriends": "दोस्त",
     "statFollowers": "फ़ॉलोअर",
     "copyLink": "लिंक कॉपी करें",
-    "share": "शेयर करें"
+    "share": "शेयर करें",
+    "statTagsA11y": "मेरे टैग देखें",
+    "statFriendsA11y": "मेरे दोस्त देखें",
+    "statFollowersA11y": "मेरे फ़ॉलोअर देखें",
+    "statTribeA11y": "मेरी Tribe नक्षत्र देखें"
   },
   "editProfile": {
     "headerTitle": "प्रोफ़ाइल संपादित करें",
@@ -1211,5 +1215,10 @@
     "saveError": "सेव नहीं हुआ — फिर कोशिश करें।",
     "deleteTitle": "यह संपर्क हटाएँ?",
     "deleteMsg": "सिर्फ़ आपकी सूची से हटेगा — किसी और पर असर नहीं।"
+  },
+  "followers": {
+    "title": "फ़ॉलोअर",
+    "count": "{{count}} फ़ॉलोअर",
+    "empty": "अभी कोई फ़ॉलोअर नहीं"
   }
 }

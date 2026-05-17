@@ -381,7 +381,11 @@
     "statFriends": "朋友",
     "statFollowers": "追踪者",
     "copyLink": "复制链接",
-    "share": "分享"
+    "share": "分享",
+    "statTagsA11y": "查看我的标签",
+    "statFriendsA11y": "查看我的朋友",
+    "statFollowersA11y": "查看我的追踪者",
+    "statTribeA11y": "查看我的 Tribe 星图"
   },
   "editProfile": {
     "headerTitle": "编辑个人信息",
@@ -1283,5 +1287,10 @@
     "saveError": "保存失败，请稍后再试。",
     "deleteTitle": "删除这个联系人？",
     "deleteMsg": "只会从你的列表移除，不影响其他人。"
+  },
+  "followers": {
+    "title": "追踪者",
+    "count": "{{count}} 位追踪者",
+    "empty": "还没有人追踪"
   }
 }
