@@ -220,7 +220,10 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
       }
       const result = await launchCameraAsync({
         mediaTypes: ['images'],
-        quality: 0.7,
+        // 0.5 (was 0.7): a full-res camera photo is multi-MB; smaller
+        // JPEG = faster upload + faster vision call, still well above
+        // what OCR needs for a business card.
+        quality: 0.5,
         base64: true,
       });
       if (result.canceled || !result.assets[0]) return;
@@ -237,10 +240,21 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
       }
 
       setScanning(true);
-      const { data, error } = await supabase.functions.invoke(
-        'scan-business-card',
-        { body: { image: asset.base64, mimeType } },
-      );
+      // supabase.functions.invoke has no timeout and RN fetch never
+      // times out: a stalled Gemini fallback chain would otherwise
+      // hang this screen forever (only Back escapes — the reported
+      // bug). Cap it so the user is never trapped; on timeout we fall
+      // into catch and surface the normal "scan failed, retry or type
+      // it" path.
+      const SCAN_TIMEOUT_MS = 30000;
+      const { data, error } = await Promise.race([
+        supabase.functions.invoke('scan-business-card', {
+          body: { image: asset.base64, mimeType },
+        }),
+        new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error('SCAN_TIMEOUT')), SCAN_TIMEOUT_MS),
+        ),
+      ]);
       if (error) {
         console.warn('[LocalContact] scan-business-card failed:', error);
         Alert.alert(
@@ -287,9 +301,16 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
       const bioDraft = (card.bio_draft ?? '').trim();
       setTimeout(() => { fetchAiTags(bioDraft || undefined); }, 0);
     } catch (err: any) {
+      const isTimeout = err?.message === 'SCAN_TIMEOUT';
       Alert.alert(
-        t('common.error', { defaultValue: '錯誤' }),
-        err?.message || t('common.unknownError', { defaultValue: '發生錯誤' }),
+        isTimeout
+          ? t('auth.onboarding.cardScanFailedTitle', { defaultValue: '掃描失敗' })
+          : t('common.error', { defaultValue: '錯誤' }),
+        isTimeout
+          ? t('auth.onboarding.cardScanFailedMessage', {
+              defaultValue: '名片沒有讀取成功，再試一次或手動填寫。',
+            })
+          : err?.message || t('common.unknownError', { defaultValue: '發生錯誤' }),
       );
     } finally {
       setScanning(false);

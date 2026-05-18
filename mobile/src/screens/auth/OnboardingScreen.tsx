@@ -329,7 +329,9 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
         mediaTypes: ['images'],
         // No aspect crop — business cards are landscape; a 1:1
         // crop would slice off half the contact info.
-        quality: 0.7,
+        // 0.5 (was 0.7): smaller JPEG = faster upload + vision call,
+        // still well above what OCR needs.
+        quality: 0.5,
         base64: true,
       });
       if (result.canceled || !result.assets[0]) return;
@@ -346,10 +348,20 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
       }
 
       setScanning(true);
-      const { data, error } = await supabase.functions.invoke(
-        'scan-business-card',
-        { body: { image: asset.base64, mimeType } },
-      );
+      // supabase.functions.invoke has no timeout and RN fetch never
+      // times out: a stalled Gemini fallback chain would otherwise
+      // hang onboarding forever (only Back escapes). Cap it so the
+      // user is never trapped; on timeout we fall into catch and
+      // surface the normal "scan failed, retry or type it" path.
+      const SCAN_TIMEOUT_MS = 30000;
+      const { data, error } = await Promise.race([
+        supabase.functions.invoke('scan-business-card', {
+          body: { image: asset.base64, mimeType },
+        }),
+        new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error('SCAN_TIMEOUT')), SCAN_TIMEOUT_MS),
+        ),
+      ]);
       if (error) {
         console.warn('[Onboarding] scan-business-card failed:', error);
         Alert.alert(
@@ -383,7 +395,17 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
       setIncludeMap(nextInclude);
       setScanModalVisible(true);
     } catch (err: any) {
-      Alert.alert(t('common.error'), err?.message || t('common.unknownError'));
+      const isTimeout = err?.message === 'SCAN_TIMEOUT';
+      Alert.alert(
+        isTimeout
+          ? t('auth.onboarding.cardScanFailedTitle', { defaultValue: '掃描失敗' })
+          : t('common.error'),
+        isTimeout
+          ? t('auth.onboarding.cardScanFailedMessage', {
+              defaultValue: '名片沒有讀取成功，再試一次或手動填寫。',
+            })
+          : err?.message || t('common.unknownError'),
+      );
     } finally {
       setScanning(false);
     }
