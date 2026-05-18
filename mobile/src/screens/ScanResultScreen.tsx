@@ -108,6 +108,10 @@ export default function ScanResultScreen({ navigation, route }: ScanResultScreen
         .select('*')
         .eq('user_id', hostUserId)
         .eq('visibility', 'public')
+        // Must also be active — a host who toggled a link OFF still
+        // has the row (public visibility) but it must not leak to a
+        // scanner. Matches ProfileScreen's activeBiolinks filter.
+        .eq('is_active', true)
         .order('position', { ascending: true });
       if (blData) setHostBiolinks(blData as Biolink[]);
 

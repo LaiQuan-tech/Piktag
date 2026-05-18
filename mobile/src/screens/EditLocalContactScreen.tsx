@@ -80,7 +80,22 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
   // note / tags), no scan-only field. birthday is a first-class
   // member field (drives reminders); it lives in the local-contact
   // model already and the promote trigger maps it 1:1.
-  const [birthday, setBirthday] = useState(existing?.birthday ?? '');
+  // Seed the editable input from storage: a year-less birthday is
+  // stored with the 2000 sentinel (matching the member reminder
+  // format); show it back as plain MM-DD, not the ugly "2000-MM-DD".
+  // A real birth year (anything ≠ 2000) is preserved as YYYY-MM-DD.
+  // Round-trips cleanly — handleSave re-normalizes MM-DD → 2000-MM-DD.
+  const birthdayForInput = (stored: string | null | undefined): string => {
+    const s = (stored ?? '').trim();
+    const m = s.match(/^2000-(\d{2})-(\d{2})$/);
+    return m ? `${m[1]}-${m[2]}` : s;
+  };
+  const [birthday, setBirthday] = useState(birthdayForInput(existing?.birthday));
+  // Autofocus the name field ONLY on the manual-entry path (empty
+  // form, user wants to type now). After a card scan we DON'T focus
+  // — the user is reviewing prefilled data and a popped keyboard
+  // would cover it; in edit mode there's existing data to read.
+  const [manualFocus, setManualFocus] = useState(false);
   const [note, setNote] = useState(existing?.note ?? '');
   const [tags, setTags] = useState<string[]>(existing?.tags ?? []);
   const [tagInput, setTagInput] = useState('');
@@ -168,6 +183,9 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
   // company / extra bio fold into the private note. After a good
   // scan we auto-kick AI tag suggestions since there's now context.
   const handleScanCard = useCallback(async () => {
+    // Scanning is a "review prefilled data" path — never autofocus
+    // the name field (would pop the keyboard over the results).
+    setManualFocus(false);
     try {
       const { status } = await requestMediaLibraryPermissionsAsync();
       if (status !== 'granted') {
@@ -457,7 +475,7 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
 
               <TouchableOpacity
                 style={styles.manualBtn}
-                onPress={() => setStep('form')}
+                onPress={() => { setManualFocus(true); setStep('form'); }}
                 activeOpacity={0.7}
                 accessibilityRole="button"
                 accessibilityLabel={t('localContact.manualEntry', { defaultValue: '手動輸入' })}
@@ -502,7 +520,7 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
             placeholder={t('localContact.namePlaceholder', { defaultValue: '例：在龍洞潛水認識的阿哲' })}
             placeholderTextColor={COLORS.gray400}
             maxLength={60}
-            autoFocus={!isEdit}
+            autoFocus={manualFocus}
           />
 
           <Text style={styles.label}>
