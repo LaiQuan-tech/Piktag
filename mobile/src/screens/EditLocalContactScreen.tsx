@@ -35,8 +35,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { ArrowLeft, Plus, X, Trash2, ScanLine, Sparkles, RefreshCw } from 'lucide-react-native';
 import {
-  requestMediaLibraryPermissionsAsync,
-  launchImageLibraryAsync,
+  requestCameraPermissionsAsync,
+  launchCameraAsync,
 } from 'expo-image-picker';
 import { COLORS } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
@@ -194,28 +194,30 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
     }
   }, [name, headline, tags]);
 
-  // One photo → scan-business-card vision extract → pre-fill the
-  // form. Non-destructive: only fills fields the user hasn't typed
-  // into yet (so re-scanning never wipes manual edits). Job title +
-  // company → the member-aligned 職稱 field; bio_draft has no field
-  // of its own so it's passed through as AI-tag context only. After
-  // a good scan we auto-kick AI tag suggestions since there's context.
+  // Open the CAMERA to photograph a physical business card (not the
+  // photo library — "掃描名片" means point-and-shoot at the real
+  // card). → scan-business-card vision extract → pre-fill the form.
+  // Non-destructive: only fills fields the user hasn't typed into yet
+  // (so re-scanning never wipes manual edits). Job title + company →
+  // the member-aligned 職稱 field; bio_draft has no field of its own
+  // so it's passed through as AI-tag context only. After a good scan
+  // we auto-kick AI tag suggestions since there's context.
   const handleScanCard = useCallback(async () => {
     // Scanning is a "review prefilled data" path — never autofocus
     // the name field (would pop the keyboard over the results).
     setManualFocus(false);
     try {
-      const { status } = await requestMediaLibraryPermissionsAsync();
+      const { status } = await requestCameraPermissionsAsync();
       if (status !== 'granted') {
         Alert.alert(
-          t('auth.onboarding.avatarPermissionTitle', { defaultValue: '需要相簿權限' }),
-          t('auth.onboarding.avatarPermissionMessage', {
-            defaultValue: '請在設定中允許 PikTag 存取相簿',
+          t('camera.title', { defaultValue: '相機存取' }),
+          t('camera.permissionMessage', {
+            defaultValue: 'PikTag 需要相機權限以拍攝名片',
           }),
         );
         return;
       }
-      const result = await launchImageLibraryAsync({
+      const result = await launchCameraAsync({
         mediaTypes: ['images'],
         quality: 0.7,
         base64: true,

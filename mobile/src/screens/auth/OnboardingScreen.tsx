@@ -47,6 +47,8 @@ import { Image } from 'expo-image';
 import {
   requestMediaLibraryPermissionsAsync,
   launchImageLibraryAsync,
+  requestCameraPermissionsAsync,
+  launchCameraAsync,
 } from 'expo-image-picker';
 import { COLORS, SPACING, BORDER_RADIUS } from '../../constants/theme';
 import { PLATFORM_MAP } from '../../lib/platforms';
@@ -308,21 +310,22 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
   }, [t]);
 
   // ─── Business-card scan ─────────────────────────────────
-  // Optional accelerator on the name screen. One photo →
-  // edge-function vision extract → editable confirmation sheet.
-  // Nothing is written until the user confirms the sheet; this
-  // handler only POPULATES the editable working copy.
+  // Optional accelerator on the name screen. Opens the CAMERA to
+  // photograph a physical card (not the library — "掃描名片" means
+  // point-and-shoot the real card) → edge-function vision extract →
+  // editable confirmation sheet. Nothing is written until the user
+  // confirms the sheet; this handler only POPULATES the working copy.
   const handleScanCard = useCallback(async () => {
     try {
-      const { status } = await requestMediaLibraryPermissionsAsync();
+      const { status } = await requestCameraPermissionsAsync();
       if (status !== 'granted') {
         Alert.alert(
-          t('auth.onboarding.avatarPermissionTitle', { defaultValue: '需要相簿權限' }),
-          t('auth.onboarding.avatarPermissionMessage', { defaultValue: '請在設定中允許 PikTag 存取相簿' }),
+          t('camera.title', { defaultValue: '相機存取' }),
+          t('camera.permissionMessage', { defaultValue: 'PikTag 需要相機權限以拍攝名片' }),
         );
         return;
       }
-      const result = await launchImageLibraryAsync({
+      const result = await launchCameraAsync({
         mediaTypes: ['images'],
         // No aspect crop — business cards are landscape; a 1:1
         // crop would slice off half the contact info.

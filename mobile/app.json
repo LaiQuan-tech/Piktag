@@ -20,7 +20,7 @@
       },
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
-        "NSCameraUsageDescription": "PikTag needs camera access to scan QR codes",
+        "NSCameraUsageDescription": "PikTag needs camera access to scan QR codes and business cards.",
         "NSPhotoLibraryUsageDescription": "PikTag needs photo library access to update your profile picture",
         "NSPhotoLibraryAddUsageDescription": "PikTag needs photo library access to update your profile picture",
         "NSContactsUsageDescription": "PikTag uses your contacts to help you find friends who are already on PikTag",
