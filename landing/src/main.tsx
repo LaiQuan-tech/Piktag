@@ -63,22 +63,33 @@ function RouteTracker() {
  * the router root so the meta updates apply across all routes (/, /contact,
  * /reset-password).
  *
- * Title format is `PikTag · {hero.title1} {hero.title2}` — the existing
- * brand wordmark followed by the manifesto slogan. The slogan
- * ("Tag the Vibe, Keep the Tribe") is now intentionally English on
- * EVERY locale to project a single global brand voice; the localized
- * subtitle ships through `hero.description` instead. Description
- * reuses `hero.description`.
+ * Title format is `PikTag — {localized slogan}`. The slogan is
+ * `hero.title1 + hero.title2`, which IS localized per locale (the
+ * keyword-bearing value prop — kept for non-brand / non-English
+ * search discoverability; the unified brand verb "PikTag to connect."
+ * lives in the visible hero subtitle via `hero.description`, so the
+ * title doesn't need to also carry it). The slogan is tightened for
+ * the title slot: trailing sentence punctuation stripped and a single
+ * uniform " — " brand separator (titles read better without a final
+ * period; one consistent separator across the site).
  *
- * NOTE: this only updates the live document — search engines and social
- * crawlers see the static markup in index.html. The static fallback is
- * kept in English so the SEO baseline matches the canonical brand voice.
- * For richer per-locale SEO, prerender or SSR would be the next step.
+ * NOTE: this only updates the live document — JS-capable crawlers see
+ * this; non-JS social crawlers (FB/LINE/Twitter cards) read the static
+ * markup in index.html, whose English baseline is kept in the SAME
+ * tightened shape. Richer per-locale SEO would need prerender/SSR.
  */
 function LocalizedDocumentMeta() {
   const {t, i18n} = useTranslation();
   useEffect(() => {
-    const title = `PikTag · ${t('hero.title1')} ${t('hero.title2')}`.trim();
+    // Tighten the two-line hero slogan into a title: join, collapse
+    // whitespace, drop trailing terminal punctuation across scripts —
+    // Latin . ! ? , · CJK 。．！？，、 · Devanagari/Bengali danda ।
+    // · Arabic/Urdu full stop ۔ (Thai has no sentence terminator).
+    const slogan = `${t('hero.title1')} ${t('hero.title2')}`
+      .replace(/\s+/gu, ' ')
+      .trim()
+      .replace(/[\s。．.!！?？,，、।۔]+$/u, '');
+    const title = `PikTag — ${slogan}`;
     const description = t('hero.description');
 
     document.title = title;
