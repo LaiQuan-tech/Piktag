@@ -687,8 +687,12 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
   }, []);
 
   const selectAll = useCallback(() => {
-    setSelectedIds(new Set(connections.map((c) => c.id)));
-  }, [connections]);
+    // Select what's actually visible — sortedConnections has the
+    // active filterTag applied (and excludes the merged non-member
+    // local contacts). Selecting the raw unfiltered `connections`
+    // meant "全選" picked 200 rows when the user saw 5 filtered.
+    setSelectedIds(new Set(sortedConnections.map((c) => c.id)));
+  }, [sortedConnections]);
 
   const handleBatchTagSubmit = async () => {
     const tagName = batchTagInput.trim().replace(/^#/, '');
