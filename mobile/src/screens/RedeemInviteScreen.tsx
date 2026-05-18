@@ -94,7 +94,10 @@ export default function RedeemInviteScreen({ navigation, route }: Props) {
       const row = Array.isArray(data) ? data[0] : data;
       if (row?.success) {
         setSuccess(true);
-        require('../lib/analytics').trackInviteRedeemed(code.trim());
+        // Use the value actually redeemed (`input`), not the `code`
+        // state — on the deep-link path rawCode is passed and `code`
+        // may be empty/stale, so analytics logged the wrong code.
+        require('../lib/analytics').trackInviteRedeemed(input);
         // Clear the persisted handoff so we don't re-prompt next launch.
         clearPendingInviteCode();
         Alert.alert(

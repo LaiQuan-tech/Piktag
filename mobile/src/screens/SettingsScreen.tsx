@@ -177,11 +177,19 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
     if (!user) return;
     const newValue = !shareLocation;
     setShareLocation(newValue);
-    // Update DB: if turning off, also clear lat/lng
-    if (newValue) {
-      await supabase.from('piktag_profiles').update({ share_location: true }).eq('id', user.id);
-    } else {
-      await supabase.from('piktag_profiles').update({ share_location: false, latitude: null, longitude: null, location_updated_at: null }).eq('id', user.id);
+    // Update DB: if turning off, also clear lat/lng. MUST verify the
+    // write — a silent failure here is a real location-privacy leak:
+    // the user sees "off" but the server keeps broadcasting their
+    // coordinates. On error, roll the toggle back and tell them.
+    const { error } = newValue
+      ? await supabase.from('piktag_profiles').update({ share_location: true }).eq('id', user.id)
+      : await supabase.from('piktag_profiles').update({ share_location: false, latitude: null, longitude: null, location_updated_at: null }).eq('id', user.id);
+    if (error) {
+      setShareLocation(!newValue); // revert optimistic flip
+      Alert.alert(
+        t('common.error', { defaultValue: '錯誤' }),
+        t('settings.alertPrivacyError', { defaultValue: '更新失敗，請稍後再試。' }),
+      );
     }
   };
 
@@ -357,7 +365,16 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
                 const { error } = await supabase.auth.resetPasswordForEmail(user?.email || '', {
                   redirectTo: 'https://pikt.ag/reset-password',
                 });
-                if (!error) Alert.alert(t('settings.resetEmailSent', { defaultValue: '已發送' }), t('settings.resetEmailSentMessage', { defaultValue: '請查看你的信箱' }));
+                if (!error) {
+                  Alert.alert(t('settings.resetEmailSent', { defaultValue: '已發送' }), t('settings.resetEmailSentMessage', { defaultValue: '請查看你的信箱' }));
+                } else {
+                  // Was silent on error — user waited forever for an
+                  // email that never sent (esp. OAuth-only users).
+                  Alert.alert(
+                    t('common.error', { defaultValue: '錯誤' }),
+                    t('auth.login.errGeneric', { defaultValue: '寄送失敗，請稍後再試。' }),
+                  );
+                }
               }},
             ]
           );
@@ -535,7 +552,20 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
                   style: 'destructive',
                   onPress: async () => {
                     if (!user?.id) return;
-                    await supabase.from('piktag_profiles').update({ is_public: false }).eq('id', user.id);
+                    // Verify the hide actually persisted BEFORE signing
+                    // out — otherwise the user is logged out believing
+                    // they're deactivated while the profile stays public.
+                    const { error } = await supabase
+                      .from('piktag_profiles')
+                      .update({ is_public: false })
+                      .eq('id', user.id);
+                    if (error) {
+                      Alert.alert(
+                        t('common.error', { defaultValue: '錯誤' }),
+                        t('settings.alertPrivacyError', { defaultValue: '更新失敗，請稍後再試。' }),
+                      );
+                      return;
+                    }
                     await supabase.auth.signOut();
                   },
                 },

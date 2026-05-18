@@ -269,7 +269,7 @@ export default function InviteScreen({ navigation }: InviteScreenProps) {
               <View
                 style={[
                   styles.quotaBarFill,
-                  { width: `${(quota / maxQuota) * 100}%` },
+                  { width: `${maxQuota > 0 ? Math.min(100, Math.max(0, (quota / maxQuota) * 100)) : 0}%` },
                 ]}
               />
             </View>

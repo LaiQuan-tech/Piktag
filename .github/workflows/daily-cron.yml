@@ -11,19 +11,15 @@ on:
 # - Supabase Edge Function secrets (supabase secrets set CRON_SECRET=<value>)
 
 jobs:
-  # Birthday is the core of PikTag's CRM. Daily 09:00 TW morning prompt
-  # — the time the user is most likely to act on a reminder right after
-  # they wake up.
-  birthday-check:
-    runs-on: ubuntu-latest
-    if: github.event.schedule == '0 1 * * *' || github.event_name == 'workflow_dispatch'
-    steps:
-      - name: Trigger daily-birthday-check
-        run: |
-          curl --fail-with-body --silent --show-error -X POST \
-            "https://kbwfdskulxnhjckdvghj.supabase.co/functions/v1/daily-birthday-check" \
-            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
-            -H "Content-Type: application/json"
+  # NOTE: the `birthday-check` job (which POSTed daily-birthday-check)
+  # was REMOVED. That edge fn matched with .eq('birthday','MM/DD'),
+  # but birthdays are stored YYYY-MM-DD (text) / a real DATE column.
+  # After the 2026-05 birthday-format unification it matched ZERO rows
+  # forever and was the contradictory twin of the authoritative path:
+  # the pg_cron fn enqueue_birthday_notifications (migration
+  # 20260428120007, daily 08:00 UTC) is now the SOLE birthday-
+  # notification implementation. Do NOT re-add an edge-fn birthday
+  # cron here — it would silently do nothing and mask monitoring.
 
   # Lightweight CRM: hidden tags whose name is a YYYY/MM/DD date fire
   # an anniversary notification on the matching day every year. Same

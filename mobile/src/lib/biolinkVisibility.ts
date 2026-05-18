@@ -64,5 +64,10 @@ export function filterBiolinksByVisibility(
   };
 
   const allowed = new Set(allowedLevels[relation]);
-  return biolinks.filter(bl => allowed.has(bl.visibility || 'public'));
+  // Fail CLOSED: a null / empty / unknown visibility defaults to the
+  // MOST restrictive tier (private = self-only), never 'public'. The
+  // old `|| 'public'` leaked any biolink with a missing/garbled
+  // visibility (legacy rows, failed column default, typo'd enum) to
+  // strangers, while the owner believed it was friends/close/private.
+  return biolinks.filter(bl => allowed.has(bl.visibility || 'private'));
 }
