@@ -39,8 +39,6 @@ import PageLoader from '../components/loaders/PageLoader';
 import BrandSpinner from '../components/loaders/BrandSpinner';
 import type { TagPreset, ScanSession, PiktagProfile } from '../types';
 
-// ─── Fallback Popular Tags (used if DB fetch fails) ───
-const FALLBACK_POPULAR_TAGS = ['#攝影', '#旅行', '#美食', '#健身', '#音樂', '#工程師'];
 
 type AddTagScreenProps = {
   navigation: any;
@@ -114,11 +112,13 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
   const [recentLocations, setRecentLocations] = useState<string[]>([]);
   const [eventLocation, setEventLocation] = useState('');
   const [showLocationPicker, setShowLocationPicker] = useState(false);
-  const [popularTags, setPopularTags] = useState<string[]>(FALLBACK_POPULAR_TAGS);
   const [eventTags, setEventTags] = useState<string[]>([]);
-  const eventTagSet = useMemo(() => new Set(eventTags), [eventTags]);
-  const popularTagSet = useMemo(() => new Set(popularTags), [popularTags]);
-  const manualTags = useMemo(() => eventTags.filter(t => !popularTagSet.has(t)), [eventTags, popularTagSet]);
+  // Every selected tag (manual input OR an AI-suggestion tap) is the
+  // user's own curation — show them all as removable chips. The old
+  // "熱門標籤 / previously-used" quick-pick row was removed: those
+  // tags belong to a PAST event/context (for a similar context the
+  // host should just reuse that QR), and the row buried the CTA.
+  const manualTags = eventTags;
   const [tagInput, setTagInput] = useState('');
 
   // Save preset
@@ -256,32 +256,6 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
         if (cancelled || !val) return;
         setRecentLocations(JSON.parse(val));
       });
-      // Fetch user's own most-used tags first, fallback to global popular
-      supabase
-        .from('piktag_user_tags')
-        .select('tag:piktag_tags!tag_id(name)')
-        .eq('user_id', user.id)
-        .eq('is_private', false)
-        .limit(6)
-        .then(({ data }) => {
-          if (cancelled) return;
-          if (data && data.length >= 3) {
-            setPopularTags(data.map((t: any) => `#${t.tag?.name}`).filter(Boolean));
-          } else {
-            // Not enough personal tags, use global popular
-            supabase
-              .from('piktag_tags')
-              .select('name, usage_count')
-              .order('usage_count', { ascending: false })
-              .limit(6)
-              .then(({ data: globalData }) => {
-                if (cancelled) return;
-                if (globalData && globalData.length > 0) {
-                  setPopularTags(globalData.map((t: any) => `#${t.name}`));
-                }
-              });
-          }
-        });
     }
     return () => { cancelled = true; };
   }, [user, loadPresets]);
@@ -1015,32 +989,10 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
           )}
         </View>
 
-        {/* 熱門標籤 Section */}
-        <View style={styles.section}>
-          <View style={styles.popularChipsContainer}>
-            {popularTags.map((tag) => {
-              const isSelected = eventTagSet.has(tag);
-              return (
-                <TouchableOpacity
-                  key={tag}
-                  style={[styles.popularChip, isSelected && styles.popularChipSelected]}
-                  onPress={() => {
-                    if (!isSelected) {
-                      setEventTags((prev) => [...prev, tag]);
-                    } else {
-                      setEventTags((prev) => prev.filter((t) => t !== tag));
-                    }
-                  }}
-                  activeOpacity={0.7}
-                >
-                  <Text style={[styles.popularChipText, isSelected && styles.popularChipTextSelected]}>
-                    {tag}
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
-        </View>
+        {/* 熱門標籤 Section removed: those were the host's tags from
+            PAST events/contexts — for a similar context they should
+            just reuse that QR — and the row pushed the 產生 QR Code
+            CTA below the fold. Less noise, CTA in reach. */}
 
         {/* 儲存為常用模板 — section removed for task 2 — every QR
             is already a persistent group; templates are redundant. */}
