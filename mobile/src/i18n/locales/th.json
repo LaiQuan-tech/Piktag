@@ -962,6 +962,7 @@
     "title": "การเข้าถึงกล้อง",
     "grantPermission": "อนุญาต",
     "instruction": "เล็งกล้องไปที่รหัส QR PikTag",
+    "cardFrameHint": "จัดทั้งนามบัตรให้อยู่ในกรอบ ให้คมชัด",
     "invalidQr": "รหัส QR ไม่ถูกต้อง",
     "invalidQrMessage": "รหัส QR นี้ไม่ใช่รหัสเชื่อมต่อ PikTag ที่ถูกต้อง",
     "permissionMessage": "PikTag ต้องการเข้าถึงกล้องเพื่อสแกนรหัส QR และเชื่อมต่อกับเพื่อน"

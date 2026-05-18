@@ -962,6 +962,7 @@
     "title": "Accès à l'appareil photo",
     "grantPermission": "Accorder la permission",
     "instruction": "Pointez votre appareil photo vers un QR Code PikTag",
+    "cardFrameHint": "Cadrez toute la carte et gardez-la nette",
     "invalidQr": "QR Code non valide",
     "invalidQrMessage": "Ce QR n'est pas un code de connexion PikTag valide.",
     "permissionMessage": "PikTag a besoin d'accéder à l'appareil photo pour scanner les QR Codes et se connecter avec des amis."

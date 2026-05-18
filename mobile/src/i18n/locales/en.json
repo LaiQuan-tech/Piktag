@@ -1043,6 +1043,7 @@
     "title": "Camera Access",
     "grantPermission": "Grant Permission",
     "instruction": "Point your camera at a PikTag QR code",
+    "cardFrameHint": "Fit the whole card in the frame and keep it sharp",
     "invalidQr": "Invalid QR Code",
     "invalidQrMessage": "This QR code is not a valid PikTag connection code.",
     "permissionMessage": "PikTag needs camera access to scan QR codes and connect with friends."

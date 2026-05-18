@@ -962,6 +962,7 @@
     "title": "Доступ к камере",
     "grantPermission": "Разрешить",
     "instruction": "Наведи камеру на QR-код PikTag",
+    "cardFrameHint": "Поместите всю визитку в рамку, чётко",
     "invalidQr": "Неверный QR-код",
     "invalidQrMessage": "Это не QR-код PikTag.",
     "permissionMessage": "PikTag нужен доступ к камере, чтобы сканировать QR-коды и подключать друзей."

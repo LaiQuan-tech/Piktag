@@ -1050,6 +1050,7 @@
     "title": "کیمرے تک رسائی",
     "grantPermission": "اجازت دیں",
     "instruction": "اپنا کیمرہ PikTag QR کوڈ کی طرف کریں",
+    "cardFrameHint": "پورا کارڈ فریم میں رکھیں اور واضح رکھیں",
     "invalidQr": "غلط QR کوڈ",
     "invalidQrMessage": "یہ QR کوڈ درست PikTag کنکشن کوڈ نہیں ہے۔",
     "permissionMessage": "PikTag کو QR کوڈز اسکین کرنے اور دوستوں سے جڑنے کے لیے کیمرے تک رسائی چاہیے۔"

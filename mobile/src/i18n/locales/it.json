@@ -1050,6 +1050,7 @@
     "title": "Accesso alla fotocamera",
     "grantPermission": "Consenti",
     "instruction": "Punta la fotocamera su un codice QR PikTag",
+    "cardFrameHint": "Inquadra tutta la card e tienila nitida",
     "invalidQr": "Codice QR non valido",
     "invalidQrMessage": "Questo QR non è un codice di connessione PikTag valido.",
     "permissionMessage": "A PikTag serve la fotocamera per scansionare i QR e connetterti con gli amici."

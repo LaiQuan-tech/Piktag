@@ -962,6 +962,7 @@
     "title": "الوصول إلى الكاميرا",
     "grantPermission": "منح الإذن",
     "instruction": "وجه الكاميرا نحو رمز QR PikTag",
+    "cardFrameHint": "ضع البطاقة كاملة داخل الإطار وبوضوح",
     "invalidQr": "رمز QR غير صالح",
     "invalidQrMessage": "رمز QR هذا ليس رمز اتصال PikTag صالحًا.",
     "permissionMessage": "يحتاج PikTag إلى الوصول إلى الكاميرا لمسح رموز QR والاتصال بالأصدقاء."

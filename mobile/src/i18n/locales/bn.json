@@ -962,6 +962,7 @@
     "title": "ক্যামেরা অ্যাক্সেস",
     "grantPermission": "অনুমতি দিন",
     "instruction": "ক্যামেরা PikTag QR কোডে রাখুন",
+    "cardFrameHint": "পুরো কার্ড ফ্রেমে রাখুন, স্পষ্ট রাখুন",
     "invalidQr": "অবৈধ QR কোড",
     "invalidQrMessage": "এই QR কোড বৈধ PikTag কানেকশন কোড নয়।",
     "permissionMessage": "QR কোড স্ক্যান করতে এবং বন্ধুদের সাথে যুক্ত হতে PikTag-এর ক্যামেরা অ্যাক্সেস দরকার।"

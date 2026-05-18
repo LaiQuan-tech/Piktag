@@ -962,6 +962,7 @@
     "title": "カメラへのアクセス",
     "grantPermission": "許可する",
     "instruction": "カメラをPikTagのQRコードに向けてください",
+    "cardFrameHint": "名刺全体を枠に合わせ、はっきり写してください",
     "invalidQr": "無効なQRコード",
     "invalidQrMessage": "このQRコードは有効なPikTag接続コードではありません。",
     "permissionMessage": "PikTagはQRコードをスキャンして友達とつながるためにカメラへのアクセスが必要です。"

@@ -962,6 +962,7 @@
     "title": "Acesso à câmera",
     "grantPermission": "Conceder permissão",
     "instruction": "Aponte a câmera para um QR Code do PikTag",
+    "cardFrameHint": "Enquadre o cartão inteiro e mantenha nítido",
     "invalidQr": "QR Code inválido",
     "invalidQrMessage": "Este QR não é um código de conexão válido do PikTag.",
     "permissionMessage": "O PikTag precisa de acesso à câmera para escanear QR Codes e conectar com amigos."

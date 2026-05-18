@@ -47,8 +47,6 @@ import { Image } from 'expo-image';
 import {
   requestMediaLibraryPermissionsAsync,
   launchImageLibraryAsync,
-  requestCameraPermissionsAsync,
-  launchCameraAsync,
 } from 'expo-image-picker';
 import { COLORS, SPACING, BORDER_RADIUS } from '../../constants/theme';
 import { PLATFORM_MAP } from '../../lib/platforms';
@@ -315,38 +313,11 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
   // point-and-shoot the real card) → edge-function vision extract →
   // editable confirmation sheet. Nothing is written until the user
   // confirms the sheet; this handler only POPULATES the working copy.
-  const handleScanCard = useCallback(async () => {
+  // Scan pipeline, fed a captured photo by CardCameraScreen via its
+  // onCaptured callback param. The framing-guide camera owns the
+  // camera + permission; this owns the timeout + confirmation sheet.
+  const runScan = useCallback(async (base64: string, mimeType: string) => {
     try {
-      const { status } = await requestCameraPermissionsAsync();
-      if (status !== 'granted') {
-        Alert.alert(
-          t('camera.title', { defaultValue: '相機存取' }),
-          t('camera.permissionMessage', { defaultValue: 'PikTag 需要相機權限以拍攝名片' }),
-        );
-        return;
-      }
-      const result = await launchCameraAsync({
-        mediaTypes: ['images'],
-        // No aspect crop — business cards are landscape; a 1:1
-        // crop would slice off half the contact info.
-        // 0.5 (was 0.7): smaller JPEG = faster upload + vision call,
-        // still well above what OCR needs.
-        quality: 0.5,
-        base64: true,
-      });
-      if (result.canceled || !result.assets[0]) return;
-      const asset = result.assets[0];
-
-      const ALLOWED = ['image/jpeg', 'image/png', 'image/webp'];
-      const mimeType = asset.mimeType || 'image/jpeg';
-      if (!ALLOWED.includes(mimeType) || !asset.base64) {
-        Alert.alert(
-          t('common.error'),
-          t('editProfile.invalidImageType', { defaultValue: '不支援的圖片格式' }),
-        );
-        return;
-      }
-
       setScanning(true);
       // supabase.functions.invoke has no timeout and RN fetch never
       // times out: a stalled Gemini fallback chain would otherwise
@@ -356,7 +327,7 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
       const SCAN_TIMEOUT_MS = 30000;
       const { data, error } = await Promise.race([
         supabase.functions.invoke('scan-business-card', {
-          body: { image: asset.base64, mimeType },
+          body: { image: base64, mimeType },
         }),
         new Promise<never>((_, reject) =>
           setTimeout(() => reject(new Error('SCAN_TIMEOUT')), SCAN_TIMEOUT_MS),
@@ -410,6 +381,11 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
       setScanning(false);
     }
   }, [t]);
+
+  // Open the custom framing-guide camera; it returns the photo here.
+  const handleScanCard = useCallback(() => {
+    navigation.navigate('CardCamera', { onCaptured: runScan });
+  }, [navigation, runScan]);
 
   // Commit the (possibly user-edited) sheet into local state.
   // Still nothing in the DB — handleComplete does the writes.

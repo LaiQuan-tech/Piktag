@@ -35,10 +35,6 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { ArrowLeft, Plus, X, Trash2, ScanLine, Sparkles, RefreshCw } from 'lucide-react-native';
-import {
-  requestCameraPermissionsAsync,
-  launchCameraAsync,
-} from 'expo-image-picker';
 import { COLORS } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
 import { useLocalContacts } from '../hooks/useLocalContacts';
@@ -203,42 +199,15 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
   // the member-aligned 職稱 field; bio_draft has no field of its own
   // so it's passed through as AI-tag context only. After a good scan
   // we auto-kick AI tag suggestions since there's context.
-  const handleScanCard = useCallback(async () => {
+  // The actual scan pipeline, fed a captured photo by CardCameraScreen
+  // (via the onCaptured callback param). Kept separate from "open the
+  // camera" so the framing-guide capture screen owns the camera/permission
+  // and this owns the timeout + prefill.
+  const runScan = useCallback(async (base64: string, mimeType: string) => {
     // Scanning is a "review prefilled data" path — never autofocus
     // the name field (would pop the keyboard over the results).
     setManualFocus(false);
     try {
-      const { status } = await requestCameraPermissionsAsync();
-      if (status !== 'granted') {
-        Alert.alert(
-          t('camera.title', { defaultValue: '相機存取' }),
-          t('camera.permissionMessage', {
-            defaultValue: 'PikTag 需要相機權限以拍攝名片',
-          }),
-        );
-        return;
-      }
-      const result = await launchCameraAsync({
-        mediaTypes: ['images'],
-        // 0.5 (was 0.7): a full-res camera photo is multi-MB; smaller
-        // JPEG = faster upload + faster vision call, still well above
-        // what OCR needs for a business card.
-        quality: 0.5,
-        base64: true,
-      });
-      if (result.canceled || !result.assets[0]) return;
-      const asset = result.assets[0];
-
-      const ALLOWED = ['image/jpeg', 'image/png', 'image/webp'];
-      const mimeType = asset.mimeType || 'image/jpeg';
-      if (!ALLOWED.includes(mimeType) || !asset.base64) {
-        Alert.alert(
-          t('common.error', { defaultValue: '錯誤' }),
-          t('editProfile.invalidImageType', { defaultValue: '不支援的圖片格式' }),
-        );
-        return;
-      }
-
       setScanning(true);
       // supabase.functions.invoke has no timeout and RN fetch never
       // times out: a stalled Gemini fallback chain would otherwise
@@ -249,7 +218,7 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
       const SCAN_TIMEOUT_MS = 30000;
       const { data, error } = await Promise.race([
         supabase.functions.invoke('scan-business-card', {
-          body: { image: asset.base64, mimeType },
+          body: { image: base64, mimeType },
         }),
         new Promise<never>((_, reject) =>
           setTimeout(() => reject(new Error('SCAN_TIMEOUT')), SCAN_TIMEOUT_MS),
@@ -316,6 +285,11 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
       setScanning(false);
     }
   }, [t, fetchAiTags]);
+
+  // Open the custom framing-guide camera; it returns the photo here.
+  const handleScanCard = useCallback(() => {
+    navigation.navigate('CardCamera', { onCaptured: runScan });
+  }, [navigation, runScan]);
 
   const handleSave = useCallback(async () => {
     const trimmed = name.trim();

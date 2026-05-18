@@ -962,6 +962,7 @@
     "title": "Kamera Erişimi",
     "grantPermission": "İzin Ver",
     "instruction": "Kameranızı bir PikTag QR koduna doğrultun",
+    "cardFrameHint": "Tüm kartı çerçeveye sığdır, net tut",
     "invalidQr": "Geçersiz QR Kodu",
     "invalidQrMessage": "Bu QR kodu geçerli bir PikTag bağlantı kodu değildir.",
     "permissionMessage": "PikTag, QR kodlarını taramak ve arkadaşlarla bağlantı kurmak için kamera erişimine ihtiyaç duyar."

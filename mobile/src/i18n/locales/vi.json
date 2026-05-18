@@ -1050,6 +1050,7 @@
     "title": "Quyền dùng camera",
     "grantPermission": "Cấp quyền",
     "instruction": "Hướng camera vào mã QR PikTag nhé",
+    "cardFrameHint": "Đưa cả tấm danh thiếp vào khung, rõ nét",
     "invalidQr": "Mã QR không hợp lệ",
     "invalidQrMessage": "Mã QR này không phải mã kết nối PikTag hợp lệ.",
     "permissionMessage": "PikTag cần dùng camera để quét mã QR và kết nối với bạn bè."

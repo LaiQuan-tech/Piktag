@@ -962,6 +962,7 @@
     "title": "Akses Kamera",
     "grantPermission": "Beri Izin",
     "instruction": "Arahkan kamera Anda ke kode QR PikTag",
+    "cardFrameHint": "Paskan seluruh kartu di bingkai, tetap tajam",
     "invalidQr": "Kode QR Tidak Valid",
     "invalidQrMessage": "Kode QR ini bukan kode koneksi PikTag yang valid.",
     "permissionMessage": "PikTag memerlukan akses kamera untuk memindai kode QR dan terhubung dengan teman."

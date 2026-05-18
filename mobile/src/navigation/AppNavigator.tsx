@@ -338,6 +338,12 @@ function MainNavigator({ needsOnboarding }: { needsOnboarding: boolean }) {
           name="CameraScan"
           getComponent={() => require('../screens/CameraScanScreen').default}
         />
+        {/* Custom business-card capture (framing guide → better OCR).
+            Returns the photo via an onCaptured callback param. */}
+        <RootStack.Screen
+          name="CardCamera"
+          getComponent={() => require('../screens/CardCameraScreen').default}
+        />
         <RootStack.Screen
           name="PrivacyPolicy"
           getComponent={() => require('../screens/legal/PrivacyPolicyScreen').default}

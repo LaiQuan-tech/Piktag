@@ -1030,6 +1030,7 @@
     "title": "相机访问",
     "grantPermission": "授予权限",
     "instruction": "将相机对准 PikTag QR 码",
+    "cardFrameHint": "把整张名片对齐框内、保持清晰",
     "invalidQr": "无效的 QR 码",
     "invalidQrMessage": "这不是有效的 PikTag 连接 QR 码",
     "permissionMessage": "PikTag 需要相机权限以扫描 QR 码并连接朋友"
