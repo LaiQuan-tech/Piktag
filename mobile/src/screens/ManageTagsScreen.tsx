@@ -19,6 +19,7 @@ import { X, Hash, Sparkles, ArrowLeftRight, AlertTriangle, Plus } from 'lucide-r
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from '../lib/supabase';
 import { logApiUsage } from '../lib/apiUsage';
+import { normalizeTagName } from '../lib/normalizeTag';
 import { useAuth } from '../hooks/useAuth';
 import { COLORS } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
@@ -242,7 +243,7 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
 
   const handleAddTag = useCallback(async () => {
     if (!user) return;
-    const rawName = tagInput.trim().replace(/^#/, '');
+    const rawName = normalizeTagName(tagInput);
     if (!rawName || myTags.length >= MAX_TAGS) return;
     if (myTagNames.includes(`#${rawName}`)) return;
     setMyTags(prev => [...prev, { id: `temp-${Date.now()}`, user_id: user.id, tag_id: '', tag: { id: '', name: rawName } } as any]);

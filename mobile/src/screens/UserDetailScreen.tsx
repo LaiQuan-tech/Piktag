@@ -258,6 +258,23 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
       // returned by the RPC (no extra round-trip for pick counts).
       const myTagIds = new Set<string>(Array.isArray(d.my_tag_ids) ? d.my_tag_ids : []);
       const pickCounts: Record<string, number> = d.pick_counts || {};
+      // Read picked tags FRESH in this same fetch. The pickedTagIds
+      // state Set is empty on first paint (loadPickedTags resolves
+      // later), which made the "picked first" sort tier wrong until
+      // a subsequent render — FriendDetail computes picks in-fetch
+      // and is correct; mirror that here.
+      let pickedNow = pickedTagIds;
+      if (connectionId) {
+        const { data: pk } = await supabase
+          .from('piktag_connection_tags')
+          .select('tag_id')
+          .eq('connection_id', connectionId)
+          .eq('is_private', false);
+        if (pk) {
+          pickedNow = new Set<string>(pk.map((ct: any) => ct.tag_id));
+          setPickedTagIds(pickedNow);
+        }
+      }
       if (Array.isArray(d.their_tags)) {
         const sorted = d.their_tags
           .filter((ut: any) => ut.tag?.name)
@@ -266,8 +283,8 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
             const aPinned = a.is_pinned ? 1 : 0;
             const bPinned = b.is_pinned ? 1 : 0;
             if (aPinned !== bPinned) return bPinned - aPinned;
-            const aPicked = pickedTagIds.has(a.tag_id) ? 1 : 0;
-            const bPicked = pickedTagIds.has(b.tag_id) ? 1 : 0;
+            const aPicked = pickedNow.has(a.tag_id) ? 1 : 0;
+            const bPicked = pickedNow.has(b.tag_id) ? 1 : 0;
             if (aPicked !== bPicked) return bPicked - aPicked;
             const aPick = Number(pickCounts[a.tag_id] || 0);
             const bPick = Number(pickCounts[b.tag_id] || 0);

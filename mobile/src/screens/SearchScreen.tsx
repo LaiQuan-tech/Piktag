@@ -1481,7 +1481,12 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
         } else {
           items.push({ type: 'profilesEmpty' });
         }
-      } else if (tags.length === 0) {
+      } else {
+        // totalCount === 0: no people matched the committed query.
+        // Previously, when tag matches existed we pushed NOTHING
+        // here, so a query that found tags but zero people read as
+        // success (no "no members matched" feedback). Always surface
+        // it — the tags grid above + this make the result honest.
         items.push({ type: 'profilesEmpty' });
       }
     } else if (isFocused && recentSearches.length > 0) {

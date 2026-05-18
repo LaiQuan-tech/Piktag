@@ -26,6 +26,7 @@ import InitialsAvatar from '../InitialsAvatar';
 import OverlappingAvatars from '../OverlappingAvatars';
 import { COLORS } from '../../constants/theme';
 import { supabase } from '../../lib/supabase';
+import { normalizeTagName as sharedNormalizeTag } from '../../lib/normalizeTag';
 import { useAuth } from '../../hooks/useAuth';
 import { useRotatingPlaceholder } from '../../hooks/useRotatingPlaceholder';
 import type { AskFeedItem, MyActiveAsk } from '../../types/ask';
@@ -470,7 +471,10 @@ type AskCreateModalProps = {
 // Returns null for inputs that should be rejected (empty, too long after trim).
 const MAX_TAG_LEN = 30;
 function normalizeTagName(raw: string): string | null {
-  const cleaned = raw.replace(/^#+/, '').trim();
+  // Structural normalization is now the shared util (one identity
+  // across AddTag / ManageTags / Ask). The null + length policy
+  // stays here — Ask rejects (rather than truncates) over-long tags.
+  const cleaned = sharedNormalizeTag(raw);
   if (!cleaned) return null;
   if (cleaned.length > MAX_TAG_LEN) return null;
   return cleaned;

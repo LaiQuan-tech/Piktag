@@ -653,12 +653,16 @@ export default function AppNavigator() {
         return;
       }
 
-      // For new users, check if bio is filled in (legacy indicator of
-      // onboarding completion). Keeps backwards compatibility with
-      // existing users who onboarded before the persisted flag shipped.
+      // For new users, the legacy completion indicator is the profile
+      // NAME — not bio. Onboarding's only guaranteed write is
+      // full_name (bio is written only when the user scanned a card),
+      // so keying detection off bio forced a fully-onboarded user
+      // back through onboarding if the persisted flag was lost within
+      // the 5-min window. full_name is the field that actually maps
+      // to "did onboarding finish".
       const { data, error } = await supabase
         .from('piktag_profiles')
-        .select('bio')
+        .select('full_name')
         .eq('id', userId)
         .single();
 
@@ -670,8 +674,8 @@ export default function AppNavigator() {
         return;
       }
 
-      const bioEmpty = !data?.bio || data.bio.trim() === '';
-      if (bioEmpty) {
+      const nameEmpty = !data?.full_name || data.full_name.trim() === '';
+      if (nameEmpty) {
         setOnboardingDecision('required');
       } else {
         // Legacy completion path: bio filled but persisted flag never

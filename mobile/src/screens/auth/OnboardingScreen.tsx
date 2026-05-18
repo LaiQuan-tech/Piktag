@@ -24,7 +24,7 @@
 // expected to live in AddTagScreen's first-QR celebration sheet
 // and ProfileScreen banners (separate commits).
 
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -128,6 +128,14 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
   const [saving, setSaving] = useState(false);
   const [burstVisible, setBurstVisible] = useState(false);
   const [burstUserName, setBurstUserName] = useState<string | undefined>(undefined);
+  // Completion navigation used to live ONLY inside the burst's
+  // onComplete callback — if that never fired (animation lib error,
+  // unmount), the user was stranded on the profile screen with the
+  // DB written + flag set but no way forward. finishedRef makes the
+  // nav idempotent; navTimerRef is a safety net that fires it
+  // anyway if onComplete is late/missing.
+  const finishedRef = useRef(false);
+  const navTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // ─── Business-card scan state ─────────────────────────────
   // `bio` + `pendingBiolinks` are what actually get committed in
@@ -399,6 +407,59 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
     setEditCard(null);
   }, [editCard, includeMap]);
 
+  // Post-completion navigation. Extracted out of the burst's
+  // onComplete so a safety timer can also call it: if the burst
+  // animation never fires onComplete, the user is no longer
+  // stranded. finishedRef makes it run exactly once.
+  const finishOnboarding = useCallback(async () => {
+    if (finishedRef.current) return;
+    finishedRef.current = true;
+    if (navTimerRef.current) {
+      clearTimeout(navTimerRef.current);
+      navTimerRef.current = null;
+    }
+    setBurstVisible(false);
+
+    // Pending invite handoff (preserved from old flow). If the user
+    // signed up via an /i/{code} link, RedeemInvite has to be the
+    // TOP route so the invite consumes before they touch anything.
+    let pendingCode: string | null = null;
+    try {
+      const { consumePendingInviteCode } = await import('../../lib/pendingInvite');
+      pendingCode = await consumePendingInviteCode();
+    } catch {}
+
+    // Drop the user on the create-first-event surface.
+    // root → Main → AddTagTab(2) → AddTagCreate(1). Back-gesture
+    // pops AddTagCreate → AddTagMain (the # tab's landing).
+    const mainState = {
+      index: 2,
+      routes: [
+        { name: 'HomeTab' },
+        { name: 'SearchTab' },
+        {
+          name: 'AddTagTab',
+          state: {
+            index: 1,
+            routes: [{ name: 'AddTagMain' }, { name: 'AddTagCreate' }],
+          },
+        },
+        { name: 'NotificationsTab' },
+        { name: 'ProfileTab' },
+      ],
+    };
+    const routes: any[] = [{ name: 'Main', state: mainState }];
+    if (pendingCode) {
+      routes.push({ name: 'RedeemInvite', params: { code: pendingCode } });
+    }
+    navigation.reset({ index: routes.length - 1, routes });
+  }, [navigation]);
+
+  // Clear the safety timer if the screen unmounts first.
+  useEffect(() => () => {
+    if (navTimerRef.current) clearTimeout(navTimerRef.current);
+  }, []);
+
   // ─── Save & finish ──────────────────────────────────────
   // The ONLY field this commits is `full_name`. Avatar is already
   // committed by handlePickAvatar at pick time, so we don't re-write
@@ -484,12 +545,16 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
       }
       setBurstUserName(trimmed);
       setBurstVisible(true);
+      // Safety net: if the burst's onComplete never fires (animation
+      // lib error / unmount), navigate anyway after the animation
+      // would have finished. finishedRef keeps it single-shot.
+      navTimerRef.current = setTimeout(() => { finishOnboarding(); }, 4000);
     } catch (err: any) {
       Alert.alert(t('common.error'), err.message || t('common.unknownError'));
     } finally {
       setSaving(false);
     }
-  }, [displayName, bio, pendingBiolinks, t]);
+  }, [displayName, bio, pendingBiolinks, t, finishOnboarding]);
 
   // ─── Render: Step 0 (Welcome card) ──────────────────────
   const renderWelcome = () => (
@@ -654,58 +719,7 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
       <OnboardingCompleteBurst
         visible={burstVisible}
         userName={burstUserName}
-        onComplete={async () => {
-          setBurstVisible(false);
-
-          // Pending invite handoff (preserved from old flow). If the
-          // user signed up via an /i/{code} link, RedeemInvite has to
-          // be the TOP route so the invite consumes correctly before
-          // they touch anything else.
-          let pendingCode: string | null = null;
-          try {
-            const { consumePendingInviteCode } = await import('../../lib/pendingInvite');
-            pendingCode = await consumePendingInviteCode();
-          } catch {}
-
-          // Drop the user directly on the create-first-event surface.
-          //
-          // Nested-state navigation: root → Main → AddTagTab → AddTagCreate
-          //
-          // Tab indexing in MainTabs (AppNavigator.tsx, ~line 153+):
-          //   0=HomeTab  1=SearchTab  2=AddTagTab  3=NotificationsTab  4=ProfileTab
-          //
-          // Stack indexing in AddTagStackNavigator:
-          //   0=AddTagMain (QrGroupListScreen)
-          //   1=AddTagCreate (AddTagScreen) ← we land here
-          //
-          // Back-gesture pops AddTagCreate → AddTagMain (the # tab's
-          // landing) which is the natural "I'm done creating, show me
-          // my groups" destination.
-          const mainState = {
-            index: 2,
-            routes: [
-              { name: 'HomeTab' },
-              { name: 'SearchTab' },
-              {
-                name: 'AddTagTab',
-                state: {
-                  index: 1,
-                  routes: [
-                    { name: 'AddTagMain' },
-                    { name: 'AddTagCreate' },
-                  ],
-                },
-              },
-              { name: 'NotificationsTab' },
-              { name: 'ProfileTab' },
-            ],
-          };
-          const routes: any[] = [{ name: 'Main', state: mainState }];
-          if (pendingCode) {
-            routes.push({ name: 'RedeemInvite', params: { code: pendingCode } });
-          }
-          navigation.reset({ index: routes.length - 1, routes });
-        }}
+        onComplete={finishOnboarding}
       />
 
       {/* ─── Business-card confirmation sheet ───────────────

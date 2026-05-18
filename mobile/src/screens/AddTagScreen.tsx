@@ -33,6 +33,7 @@ import {
   reverseGeocodeAsync,
 } from 'expo-location';
 import { logApiUsage } from '../lib/apiUsage';
+import { normalizeTagName } from '../lib/normalizeTag';
 import { setStringAsync as setClipboardStringAsync } from 'expo-clipboard';
 import PageLoader from '../components/loaders/PageLoader';
 import BrandSpinner from '../components/loaders/BrandSpinner';
@@ -308,7 +309,11 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
 
   // ─── Add tag ───
   const handleAddTag = () => {
-    const trimmed = tagInput.trim();
+    // Was `tagInput.trim()` with NO '#' strip → typing "#design"
+    // stored the literal "#design" and rendered "##design", a
+    // distinct broken tag vs the same tag added elsewhere. Use the
+    // shared normalizer so every entry point produces one identity.
+    const trimmed = normalizeTagName(tagInput);
     if (!trimmed) return;
     if (eventTags.includes(trimmed)) {
       Alert.alert(t('addTag.alertTagExists'), t('addTag.alertTagExistsMessage'));
