@@ -1232,6 +1232,7 @@
     "nameRequiredTitle": "Nom requis",
     "nameRequiredMsg": "Donnez au moins un nom pour vous en souvenir plus tard.",
     "saveError": "Échec de l’enregistrement — réessayez.",
+    "notFound": "Contact introuvable — il a peut-être rejoint PikTag ou été supprimé.",
     "deleteTitle": "Supprimer ce contact ?",
     "deleteMsg": "Retiré de votre liste uniquement — personne d’autre n’est affecté.",
     "scanCardCta": "Scanner une carte",

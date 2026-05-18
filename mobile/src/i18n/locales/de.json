@@ -1304,6 +1304,7 @@
     "nameRequiredTitle": "Name nötig",
     "nameRequiredMsg": "Gib zumindest einen Namen, damit du dich später erinnerst.",
     "saveError": "Konnte nicht speichern — bitte erneut versuchen.",
+    "notFound": "Kontakt nicht gefunden — eventuell mit PikTag verknüpft oder gelöscht.",
     "deleteTitle": "Diesen Kontakt löschen?",
     "deleteMsg": "Nur aus deiner Liste entfernt — niemand sonst betroffen.",
     "scanCardCta": "Visitenkarte scannen",

@@ -1324,6 +1324,7 @@
     "nameRequiredTitle": "需要一個名字",
     "nameRequiredMsg": "至少幫這個人取個名字，方便你之後想起來。",
     "saveError": "存不起來，請稍後再試。",
+    "notFound": "找不到這個聯絡人 —— 可能已接上 PikTag 或被刪除。",
     "deleteTitle": "刪除這個聯絡人？",
     "deleteMsg": "只會從你的清單移除，不影響其他人。",
     "scanCardCta": "掃描名片自動帶入",

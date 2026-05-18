@@ -1232,6 +1232,7 @@
     "nameRequiredTitle": "İsim gerekli",
     "nameRequiredMsg": "Sonra hatırlayabilmek için en azından bir isim ver.",
     "saveError": "Kaydedilemedi — tekrar dene.",
+    "notFound": "Kişi bulunamadı — PikTag'e bağlanmış veya silinmiş olabilir.",
     "deleteTitle": "Bu kişi silinsin mi?",
     "deleteMsg": "Yalnızca senin listenden silinir — kimseyi etkilemez.",
     "scanCardCta": "Kartvizit tara",

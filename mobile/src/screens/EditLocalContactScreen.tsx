@@ -18,7 +18,7 @@
 //   • { contactId }   → edit mode (loads from the useLocalContacts
 //                        cache; falls back gracefully if missing)
 
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -65,7 +65,7 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
   const { colors, isDark } = useTheme();
   const contactId: string | undefined = route.params?.contactId;
-  const { contacts, add, update, remove } = useLocalContacts();
+  const { contacts, add, update, remove, loading } = useLocalContacts();
 
   const existing = useMemo(
     () => (contactId ? contacts.find((c) => c.id === contactId) ?? null : null),
@@ -127,6 +127,31 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
   //   'form'   → the editable fields (after scan/manual, or edit)
   // Editing an existing contact skips straight to the form.
   const [step, setStep] = useState<'choose' | 'form'>(isEdit ? 'form' : 'choose');
+
+  // ── Edit-mode hydration ──────────────────────────────────────────
+  // useLocalContacts fetches async, and THIS screen mounts its own
+  // hook instance — so on first render `contacts` is [] and `existing`
+  // is null. The useState initializers above ran ONCE with that null,
+  // so without this the edit form stays blank forever even after the
+  // contact loads — and saving would overwrite the real row with
+  // blanks (data loss). Hydrate the fields once when `existing`
+  // resolves; the guard preserves any edits the user makes after.
+  const [hydrated, setHydrated] = useState(!contactId); // create = nothing to hydrate
+  const fetchStartedRef = useRef(false);
+  useEffect(() => {
+    if (loading) fetchStartedRef.current = true;
+  }, [loading]);
+  useEffect(() => {
+    if (contactId && existing && !hydrated) {
+      setName(existing.name ?? '');
+      setPhone(existing.phone_normalized ?? '');
+      setEmail(existing.email_lower ?? '');
+      setBirthday(birthdayForInput(existing.birthday));
+      setHeadline(existing.headline ?? existing.note ?? '');
+      setTags(existing.tags ?? []);
+      setHydrated(true);
+    }
+  }, [contactId, existing, hydrated]);
 
   const addTag = useCallback(() => {
     const raw = tagInput.trim().replace(/^#/, '');
@@ -389,6 +414,45 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
     }
     navigation.goBack();
   }, [isEdit, step, navigation]);
+
+  // Edit mode but the row hasn't hydrated yet — show a spinner (or a
+  // clear "gone" message once the fetch settled and it's still
+  // missing, e.g. promoted/deleted). This GATES the form so the user
+  // can never see — or save over — a blank edit screen.
+  if (contactId && !hydrated) {
+    const settledMissing = fetchStartedRef.current && !loading && !existing;
+    return (
+      <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
+        <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor={colors.white} />
+        <View style={styles.header}>
+          <TouchableOpacity
+            onPress={() => navigation.goBack()}
+            style={styles.headerBtn}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            accessibilityRole="button"
+            accessibilityLabel={t('common.back', { defaultValue: '返回' })}
+          >
+            <ArrowLeft size={24} color={COLORS.gray900} strokeWidth={2.2} />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle} numberOfLines={1}>
+            {t('localContact.editTitle', { defaultValue: '編輯聯絡人' })}
+          </Text>
+          <View style={styles.headerBtn} />
+        </View>
+        <View style={styles.gateCenter}>
+          {settledMissing ? (
+            <Text style={styles.gateMsg}>
+              {t('localContact.notFound', {
+                defaultValue: '找不到這個聯絡人 —— 可能已接上 PikTag 或被刪除。',
+              })}
+            </Text>
+          ) : (
+            <BrandSpinner size={32} />
+          )}
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
@@ -726,6 +790,8 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.white },
+  gateCenter: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32 },
+  gateMsg: { fontSize: 14, color: COLORS.gray500, textAlign: 'center', lineHeight: 21 },
   header: {
     flexDirection: 'row',
     alignItems: 'center',

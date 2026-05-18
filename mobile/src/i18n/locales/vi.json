@@ -1324,6 +1324,7 @@
     "nameRequiredTitle": "Cần có tên",
     "nameRequiredMsg": "Đặt ít nhất một cái tên cho người này để sau bạn còn nhớ nhé.",
     "saveError": "Không lưu được — thử lại nhé.",
+    "notFound": "Không tìm thấy liên hệ này — có thể đã kết nối PikTag hoặc bị xóa.",
     "deleteTitle": "Xoá liên hệ này?",
     "deleteMsg": "Chỉ gỡ khỏi danh sách của bạn — không ai khác bị ảnh hưởng.",
     "scanCardCta": "Quét danh thiếp",

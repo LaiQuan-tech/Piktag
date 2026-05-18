@@ -1317,6 +1317,7 @@
     "nameRequiredTitle": "Name needed",
     "nameRequiredMsg": "Give this person at least a name so you can recall them later.",
     "saveError": "Couldn't save — please try again.",
+    "notFound": "Can't find this contact — it may have linked to PikTag or been deleted.",
     "deleteTitle": "Delete this contact?",
     "deleteMsg": "Only removed from your list — nobody else is affected.",
     "scanCardCta": "Scan a business card",

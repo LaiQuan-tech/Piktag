@@ -1232,6 +1232,7 @@
     "nameRequiredTitle": "名前が必要",
     "nameRequiredMsg": "後で思い出せるよう、最低限の名前をつけてください。",
     "saveError": "保存できませんでした。後でもう一度お試しください。",
+    "notFound": "この連絡先が見つかりません —— PikTag に接続済みか削除された可能性があります。",
     "deleteTitle": "この連絡先を削除？",
     "deleteMsg": "自分のリストから消えるだけで、他の人には影響しません。",
     "scanCardCta": "名刺をスキャン",

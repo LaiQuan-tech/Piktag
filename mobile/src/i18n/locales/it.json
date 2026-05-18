@@ -1324,6 +1324,7 @@
     "nameRequiredTitle": "Serve un nome",
     "nameRequiredMsg": "Dai a questa persona almeno un nome, così te la ricordi più avanti.",
     "saveError": "Non siamo riusciti a salvare — riprova.",
+    "notFound": "Contatto non trovato — potrebbe essersi collegato a PikTag o essere stato eliminato.",
     "deleteTitle": "Eliminare questo contatto?",
     "deleteMsg": "Sparisce solo dal tuo elenco — nessun altro se ne accorge.",
     "scanCardCta": "Scansiona biglietto",

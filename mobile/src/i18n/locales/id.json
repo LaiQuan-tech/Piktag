@@ -1232,6 +1232,7 @@
     "nameRequiredTitle": "Perlu nama",
     "nameRequiredMsg": "Beri nama minimal supaya bisa kamu ingat nanti.",
     "saveError": "Gagal menyimpan — coba lagi.",
+    "notFound": "Kontak tidak ditemukan — mungkin sudah terhubung ke PikTag atau dihapus.",
     "deleteTitle": "Hapus kontak ini?",
     "deleteMsg": "Hanya hilang dari daftarmu — tak memengaruhi orang lain.",
     "scanCardCta": "Pindai kartu nama",

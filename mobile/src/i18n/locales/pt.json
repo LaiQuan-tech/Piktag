@@ -1232,6 +1232,7 @@
     "nameRequiredTitle": "Falta o nome",
     "nameRequiredMsg": "Dê ao menos um nome para lembrar depois.",
     "saveError": "Não deu para salvar — tente de novo.",
+    "notFound": "Contato não encontrado — pode ter sido vinculado ao PikTag ou excluído.",
     "deleteTitle": "Excluir este contato?",
     "deleteMsg": "Só sai da sua lista — ninguém mais é afetado.",
     "scanCardCta": "Escanear cartão",
