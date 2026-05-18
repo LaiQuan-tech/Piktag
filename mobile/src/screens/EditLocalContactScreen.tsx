@@ -3,13 +3,15 @@
 // Manual single-contact entry — the "single-player CRM" surface.
 // Before there's enough member density for matching/serendipity to
 // pay off, a lone user can still get value: jot down people you
-// meet (A is NOT a PikTag member yet), tag them, note where you
-// met. The row lives in piktag_local_contacts (owner-private, RLS
-// FOR ALL owner). When A later registers, the existing
-// AFTER-INSERT trigger on piktag_profiles promotes the row into a
-// real connection automatically (link, not merge — A never sees
-// the owner's private note/tags). So this screen only has to do
-// the create/edit/delete; the join is already solved server-side.
+// meet (A is NOT a PikTag member yet) and tag them. The fields
+// mirror the member profile (name · 職稱 · phone · email · birthday)
+// so the data fuses cleanly when A registers. The row lives in
+// piktag_local_contacts (owner-private, RLS FOR ALL owner). When A
+// later registers, the existing AFTER-INSERT trigger on
+// piktag_profiles promotes the row into a real connection
+// automatically (link, not merge — A never sees the owner's private
+// #tags). So this screen only has to do the create/edit/delete;
+// the join is already solved server-side.
 //
 // Route params:
 //   • none            → create mode
@@ -102,12 +104,14 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
   // — the user is reviewing prefilled data and a popped keyboard
   // would cover it; in edit mode there's existing data to read.
   const [manualFocus, setManualFocus] = useState(false);
-  // 職稱 (headline) — the member-aligned title/role field. Persisted
-  // in the existing `note` text column (no migration; the promote
-  // trigger then carries it as the connection's context note, which
-  // is the right home for "PM @ Google" pre-registration — far better
-  // than discarding scanned card data).
-  const [headline, setHeadline] = useState(existing?.note ?? '');
+  // 職稱 (headline) — its own structured column mirroring
+  // piktag_profiles.headline, so the local-contact format maps 1:1 to
+  // the member format on fusion. Falls back to the legacy `note`
+  // column for rows created before the headline column existed (so
+  // their text still shows for editing; nothing is lost).
+  const [headline, setHeadline] = useState(
+    existing?.headline ?? existing?.note ?? '',
+  );
   const [tags, setTags] = useState<string[]>(existing?.tags ?? []);
   const [tagInput, setTagInput] = useState('');
   const [saving, setSaving] = useState(false);
@@ -326,8 +330,7 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
           phone_normalized: phone.trim() || null,
           email_lower: email.trim().toLowerCase() || null,
           birthday: birthdayNorm,
-          // `note` column reused to store the 職稱 (headline) text.
-          note: headline.trim() || null,
+          headline: headline.trim() || null,
           tags,
         });
         if (!ok) throw new Error('update failed');
@@ -337,8 +340,7 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
           phone: phone.trim() || null,
           email: email.trim() || null,
           birthday: birthdayNorm,
-          // `note` column reused to store the 職稱 (headline) text.
-          note: headline.trim() || null,
+          headline: headline.trim() || null,
           tags,
         });
         if (!created) throw new Error('add failed');

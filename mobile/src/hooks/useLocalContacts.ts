@@ -24,6 +24,11 @@ export type LocalContact = {
   avatar_url: string | null;
   met_at: string | null;
   met_location: string | null;
+  // `headline` mirrors piktag_profiles.headline (職稱) so the
+  // local-contact format maps 1:1 to the member format on fusion.
+  // `note` is legacy free text kept only for backward-compatible
+  // reads (no longer written by the editor).
+  headline: string | null;
   note: string | null;
   birthday: string | null;
   tags: string[];
@@ -40,6 +45,7 @@ export type AddLocalContactInput = {
   avatar_url?: string | null;
   met_at?: string | null;
   met_location?: string | null;
+  headline?: string | null;
   note?: string | null;
   birthday?: string | null;
 };
@@ -115,6 +121,7 @@ export function useLocalContacts() {
             avatar_url: input.avatar_url ?? null,
             met_at: input.met_at ?? null,
             met_location: input.met_location ?? null,
+            headline: input.headline ?? null,
             note: input.note ?? null,
             birthday: input.birthday ?? null,
           })
