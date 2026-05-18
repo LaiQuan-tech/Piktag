@@ -297,6 +297,20 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
     setTagInput('');
   };
 
+  // 絕招二 increment: AI already auto-fires from GPS + time on open
+  // (no typing needed). The remaining friction was accepting them
+  // one chip at a time — this is the "連打字都不用，按一下確認"
+  // one-tap: take ALL current AI suggestions, dedupe into eventTags,
+  // clear the strip (mirrors the per-chip behaviour, ×N).
+  const addAllAiSuggestions = useCallback(() => {
+    setEventTags((prev) => {
+      const next = [...prev];
+      for (const s of aiSuggestions) if (!next.includes(s)) next.push(s);
+      return next;
+    });
+    setAiSuggestions([]);
+  }, [aiSuggestions]);
+
   // ─── AI tag suggestions (task 3) ──────────────────────────────
   //
   // On mount: load viewer's identity (bio + public tags) and try to
@@ -895,16 +909,31 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
               </Text>
             </View>
             {!aiLoading && (
-              <TouchableOpacity
-                onPress={() => loadAiSuggestions(true)}
-                activeOpacity={0.7}
-                hitSlop={8}
-                style={styles.aiRefreshBtn}
-                accessibilityRole="button"
-                accessibilityLabel={t('addTag.aiRegenerate', { defaultValue: '重新推薦' })}
-              >
-                <RefreshCw size={14} color={COLORS.piktag600} />
-              </TouchableOpacity>
+              <View style={styles.aiHeaderActions}>
+                {aiSuggestions.length > 0 && (
+                  <TouchableOpacity
+                    onPress={addAllAiSuggestions}
+                    activeOpacity={0.85}
+                    style={styles.aiAddAllBtn}
+                    accessibilityRole="button"
+                    accessibilityLabel={t('addTag.aiAddAll', { defaultValue: '全部加入' })}
+                  >
+                    <Text style={styles.aiAddAllText}>
+                      {t('addTag.aiAddAll', { defaultValue: '全部加入' })}
+                    </Text>
+                  </TouchableOpacity>
+                )}
+                <TouchableOpacity
+                  onPress={() => loadAiSuggestions(true)}
+                  activeOpacity={0.7}
+                  hitSlop={8}
+                  style={styles.aiRefreshBtn}
+                  accessibilityRole="button"
+                  accessibilityLabel={t('addTag.aiRegenerate', { defaultValue: '重新推薦' })}
+                >
+                  <RefreshCw size={14} color={COLORS.piktag600} />
+                </TouchableOpacity>
+              </View>
             )}
           </View>
           {aiSuggestions.length > 0 ? (
@@ -1471,6 +1500,22 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: COLORS.piktag600,
+  },
+  aiHeaderActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  aiAddAllBtn: {
+    paddingVertical: 7,
+    paddingHorizontal: 14,
+    borderRadius: 9999,
+    backgroundColor: COLORS.piktag500,
+  },
+  aiAddAllText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#FFFFFF',
   },
   aiRefreshBtn: {
     width: 32,

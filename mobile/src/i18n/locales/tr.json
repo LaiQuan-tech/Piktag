@@ -351,6 +351,7 @@
     "aiSuggestionsHint": "Bir satır yaz — AI bunu + konumunu + kimlik etiketlerini kullanır.",
     "aiSuggestionsEmpty": "AI uygun bir şey bulamadı — tekrar dene veya kendin ekle.",
     "aiRegenerate": "Yeniden oluştur",
+    "aiAddAll": "Tümünü ekle",
     "contextPromptHints": [
       "Dalış gezisi",
       "Üniversite buluşması",

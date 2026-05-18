@@ -351,6 +351,7 @@
     "aiSuggestionsHint": "พิมพ์หนึ่งบรรทัด — AI ใช้พร้อมกับตำแหน่งและแท็กตัวตน",
     "aiSuggestionsEmpty": "AI หาที่เหมาะไม่เจอ — ลองใหม่หรือเพิ่มเอง",
     "aiRegenerate": "สร้างใหม่",
+    "aiAddAll": "เพิ่มทั้งหมด",
     "contextPromptHints": [
       "ทริปดำน้ำ",
       "งานรุ่นมหาลัย",

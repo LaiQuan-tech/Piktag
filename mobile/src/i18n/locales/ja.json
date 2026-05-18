@@ -351,6 +351,7 @@
     "aiSuggestionsHint": "場面を一言入れて — AI が場所と身分タグも見て提案します。",
     "aiSuggestionsEmpty": "AI が合うタグを思いつきませんでした — 再試行か手動追加を。",
     "aiRegenerate": "再生成",
+    "aiAddAll": "すべて追加",
     "contextPromptHints": [
       "ダイビングツアー",
       "大学の同窓会",

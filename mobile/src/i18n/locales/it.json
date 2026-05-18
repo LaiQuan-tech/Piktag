@@ -369,6 +369,7 @@
     "aiSuggestionsHint": "Scrivi una riga sull'occasione — l'AI ci aggiunge la tua posizione e i tag della tua identità.",
     "aiSuggestionsEmpty": "L'AI non ha trovato nulla di adatto — riprova o aggiungi i tuoi.",
     "aiRegenerate": "Rigenera",
+    "aiAddAll": "Aggiungi tutti",
     "contextPromptHints": [
       "Gita di immersioni del weekend",
       "Rimpatriata dell'università",

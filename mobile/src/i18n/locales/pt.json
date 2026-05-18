@@ -351,6 +351,7 @@
     "aiSuggestionsHint": "Escreve uma linha — a AI usa isso + tua localização + teus tags de identidade.",
     "aiSuggestionsEmpty": "A AI não achou — tenta de novo ou adiciona à mão.",
     "aiRegenerate": "Regenerar",
+    "aiAddAll": "Adicionar tudo",
     "contextPromptHints": [
       "Mergulho de fim de semana",
       "Reencontro da facul",
