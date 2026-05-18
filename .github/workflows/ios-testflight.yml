@@ -1,25 +1,40 @@
 name: iOS TestFlight Build
 
 on:
-  # Daily auto-build + manual override (NO push trigger).
+  # push to main + concurrency de-dupe + daily backstop + manual.
   #
-  # Every run does a full archive + UPLOAD to App Store Connect,
-  # which enforces a per-app DAILY upload cap. The old "build on
-  # every push" (~10+/day) blew that cap → "Upload limit reached.
-  # Please wait 1 day" → looked like "TestFlight stuck at 574".
+  # History: "build on every push" once blew Apple's per-app DAILY
+  # upload cap (~10+ separate pushes in a few hours → 10+ uploads →
+  # "Upload limit reached"). The fix attempted next — schedule-only,
+  # NO push — backfired badly: GitHub's `schedule` is best-effort
+  # and silently didn't fire for a whole day, so ~18 commits of
+  # fixes never built and TestFlight went stale with NO fallback.
   #
-  # A fixed thrice-a-day schedule IS the rate limiter: structurally
-  # ≤ 3 uploads/day from cron, still far below Apple's per-app cap
-  # — so NO counting logic is needed (a hand-rolled counter would
-  # be fragile over-engineering). push no longer triggers anything
-  # (push = save code only). Trade-off: a commit reaches TestFlight
-  # at the next scheduled run (≤ ~8h), not instantly — fine for a
-  # beta cadence, and testers get 3 clean builds/day, not build spam.
+  # Correct fix = keep push (reliable, immediate) BUT add a
+  # `concurrency` group with cancel-in-progress: a rapid burst of N
+  # commits cancels the in-flight builds and only the LATEST one
+  # finishes → ~1 upload per burst, not N. That structurally solves
+  # the original cap problem without losing reliable delivery. The
+  # daily cron stays as a pure backstop (if nothing pushed in a day,
+  # still ship the latest); workflow_dispatch for on-demand.
+  push:
+    branches: [main]
+    paths:
+      - 'mobile/**'
+      - '!mobile/supabase/**'
+      - '!mobile/scripts/**'
+      - '.github/workflows/ios-testflight.yml'
   schedule:
-    - cron: '30 20 * * *'   # 每天 UTC 20:30 (台灣 04:30) — 隔夜 build，早上就有新版
-    - cron: '30 4 * * *'    # 每天 UTC 04:30 (台灣 12:30) — 午間版
-    - cron: '30 12 * * *'   # 每天 UTC 12:30 (台灣 20:30) — 晚間版
-  workflow_dispatch:          # 需要馬上出一版時手動補按（3 次 cron + 偶爾手動，仍遠低於 Apple 上限）
+    - cron: '30 20 * * *'   # daily UTC 20:30 (TW 04:30) — backstop only
+  workflow_dispatch:          # on-demand manual run
+
+# A burst of commits → cancel older in-flight builds, only the
+# newest uploads. THIS is the real rate-limiter for the Apple cap
+# (not a fragile schedule). queued/running builds for the same ref
+# stream get superseded.
+concurrency:
+  group: ios-testflight
+  cancel-in-progress: true
 
 jobs:
   build-and-upload:
