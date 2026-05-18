@@ -243,6 +243,8 @@
     "coldStartActionContacts": "หาเพื่อนจากรายชื่อ",
     "coldStartActionContactsDesc": "หาคนที่อยู่ใน PikTag แล้ว — แท็กและเชิญที่เหลือ",
     "notJoinedBadge": "ยังไม่ได้อยู่ PikTag",
+    "pendingScanTitle": "ยังไม่ได้อยู่บน PikTag",
+    "pendingScanMsg": "{{name}} สแกน QR ของคุณและฝากชื่อไว้ แต่ยังไม่ได้เข้าร่วม PikTag เมื่อเขาเข้าร่วม จะเชื่อมต่อให้อัตโนมัติ",
     "coldStartActionManual": "จดคนไว้",
     "coldStartActionManualDesc": "อีกฝ่ายไม่ต้องมีบัญชี — เมื่อสมัครจะเชื่อมแท็กและโน้ตของคุณอัตโนมัติ",
     "addManualA11y": "เพิ่มรายชื่อด้วยตนเอง"

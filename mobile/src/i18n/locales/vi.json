@@ -258,6 +258,8 @@
     "coldStartActionContacts": "Tìm bạn bè từ danh bạ",
     "coldStartActionContactsDesc": "Tìm những người đã có trên PikTag — gắn tag, còn ai chưa có thì mời vào",
     "notJoinedBadge": "Chưa có trên PikTag",
+    "pendingScanTitle": "Chưa ở trên PikTag",
+    "pendingScanMsg": "{{name}} đã quét QR của bạn và để lại tên nhưng chưa tham gia PikTag. Khi họ tham gia, hai bạn sẽ tự kết nối.",
     "coldStartActionManual": "Ghi nhanh một người",
     "coldStartActionManualDesc": "Họ chưa cần tài khoản — khi họ vào, tag và ghi chú của bạn tự gắn vào",
     "addManualA11y": "Thêm liên hệ thủ công"

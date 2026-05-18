@@ -243,6 +243,8 @@
     "coldStartActionContacts": "अपने कॉन्टैक्ट से दोस्त खोजें",
     "coldStartActionContactsDesc": "PikTag पर मौजूद दोस्तों को खोजें — बाकी को टैग + इन्वाइट",
     "notJoinedBadge": "अभी PikTag पर नहीं",
+    "pendingScanTitle": "अभी PikTag पर नहीं",
+    "pendingScanMsg": "{{name}} ने आपका QR स्कैन किया और नाम छोड़ा लेकिन अभी PikTag पर नहीं हैं। जुड़ने पर आप अपने‑आप कनेक्ट हो जाएंगे।",
     "coldStartActionManual": "किसी को नोट करें",
     "coldStartActionManualDesc": "अकाउंट ज़रूरी नहीं — जुड़ने पर आपके टैग व नोट अपने‑आप लिंक",
     "addManualA11y": "मैन्युअल संपर्क जोड़ें"

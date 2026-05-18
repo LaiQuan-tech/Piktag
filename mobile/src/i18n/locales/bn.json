@@ -243,6 +243,8 @@
     "coldStartActionContacts": "কন্টাক্ট থেকে বন্ধু খোঁজো",
     "coldStartActionContactsDesc": "যারা PikTag-এ আছে তাদের খোঁজো, বাকিদের ট্যাগ + ইনভাইট",
     "notJoinedBadge": "এখনও PikTag-এ নেই",
+    "pendingScanTitle": "এখনও PikTag-এ নেই",
+    "pendingScanMsg": "{{name}} আপনার QR স্ক্যান করে নাম রেখেছে কিন্তু এখনও PikTag-এ যোগ দেয়নি। যোগ দিলে স্বয়ংক্রিয়ভাবে সংযুক্ত হবে।",
     "coldStartActionManual": "কাউকে টুকে রাখুন",
     "coldStartActionManualDesc": "অ্যাকাউন্ট লাগবে না — যোগ দিলে আপনার ট্যাগ ও নোট স্বয়ং লিঙ্ক হবে",
     "addManualA11y": "ম্যানুয়ালি পরিচিতি যোগ করুন"

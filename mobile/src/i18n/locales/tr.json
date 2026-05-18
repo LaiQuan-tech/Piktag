@@ -243,6 +243,8 @@
     "coldStartActionContacts": "Rehberinden arkadaş bul",
     "coldStartActionContactsDesc": "PikTag'da olanları bul — olmayanları etiketle+davet et",
     "notJoinedBadge": "Henüz PikTag’te değil",
+    "pendingScanTitle": "Henüz PikTag'de değil",
+    "pendingScanMsg": "{{name}} QR'ını taradı ve ad bıraktı ama henüz PikTag'de değil. Katıldığında otomatik bağlanacaksınız.",
     "coldStartActionManual": "Birini not al",
     "coldStartActionManualDesc": "Hesabı gerekmez — katıldığında etiket ve notlarına otomatik bağlanır",
     "addManualA11y": "Elle kişi ekle"
