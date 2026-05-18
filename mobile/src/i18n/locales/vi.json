@@ -291,6 +291,7 @@
     "profilesSectionLabel": "Thành viên",
     "noProfilesFound": "Không thấy thành viên nào phù hợp",
     "noProfilesFoundTitle": "Không có ai khớp với \"{{query}}\"",
+    "askPrompt": "Không có trong mạng lưới của bạn? Đăng một Ask — bạn bè và bạn của bạn bè có thể giúp tìm.",
     "tryTagSearchHint": "Thử tìm #tag hoặc từ khoá khác xem",
     "clearAndRetry": "Xoá và thử lại",
     "resetButton": "Đặt lại",

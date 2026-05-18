@@ -291,6 +291,7 @@
     "profilesSectionLabel": "Membri",
     "noProfilesFound": "Nessun membro trovato",
     "noProfilesFoundTitle": "Nessun membro per \"{{query}}\"",
+    "askPrompt": "Non è nella tua rete? Pubblica un Ask: amici e amici di amici possono aiutarti a trovarlo.",
     "tryTagSearchHint": "Prova con #tag o un'altra parola chiave",
     "clearAndRetry": "Cancella e riprova",
     "resetButton": "Reimposta",

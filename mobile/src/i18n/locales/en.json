@@ -291,6 +291,7 @@
     "profilesSectionLabel": "Members",
     "noProfilesFound": "No matching members found",
     "noProfilesFoundTitle": "No members matched \"{{query}}\"",
+    "askPrompt": "Not in your network? Post an Ask — friends and friends-of-friends can help you find them.",
     "tryTagSearchHint": "Try searching #tags or a different keyword",
     "clearAndRetry": "Clear and try again",
     "resetButton": "Reset",

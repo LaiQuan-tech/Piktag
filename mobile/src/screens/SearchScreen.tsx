@@ -38,6 +38,8 @@ import { useNetInfoReconnect } from '../hooks/useNetInfoReconnect';
 import { useRotatingPlaceholder } from '../hooks/useRotatingPlaceholder';
 import ErrorState from '../components/ErrorState';
 import LogoLoader from '../components/loaders/LogoLoader';
+import { AskCreateModal } from '../components/ask/AskStoryRow';
+import { useAskFeed } from '../hooks/useAskFeed';
 import type { Tag, PiktagProfile } from '../types';
 
 const RECENT_SEARCHES_KEY = 'piktag_recent_searches';
@@ -358,6 +360,11 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
   // Phase B will expand to friends-of-friends with privacy opt-in.
   const [mapVisible, setMapVisible] = useState(false);
   const [mapFriends, setMapFriends] = useState<FriendLocation[]>([]);
+  // Ask conversion from a dead-end search. If the user already has an
+  // active ask, the modal opens in view mode (existingAsk); otherwise
+  // it's a create form pre-seeded with the failed query.
+  const [askVisible, setAskVisible] = useState(false);
+  const { myAsk, refresh: refreshAsk } = useAskFeed();
   useEffect(() => {
     if (!user) return;
     let cancelled = false;
@@ -1759,6 +1766,30 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
               <Text style={styles.emptyStateHint}>
                 {t('search.tryTagSearchHint')}
               </Text>
+              {/* Dead-end search → highest-intent moment to capture a
+                  demand signal. Contextual + understated (one line +
+                  one pill), only when there's a real keyword query —
+                  not a global nag. Seeds the Ask with that query. */}
+              {trimmedQuery !== '' && (
+                <>
+                  <Text style={styles.askCtaHint}>
+                    {t('search.askPrompt', {
+                      defaultValue: '人脈裡沒有？貼一個 Ask，讓朋友和二度人脈幫你找。',
+                    })}
+                  </Text>
+                  <TouchableOpacity
+                    style={styles.askCtaButton}
+                    onPress={() => setAskVisible(true)}
+                    activeOpacity={0.85}
+                    accessibilityRole="button"
+                    accessibilityLabel={t('ask.newAsk', { defaultValue: '發 Ask' })}
+                  >
+                    <Text style={styles.askCtaButtonText}>
+                      {t('ask.newAsk', { defaultValue: '發 Ask' })}
+                    </Text>
+                  </TouchableOpacity>
+                </>
+              )}
               <TouchableOpacity
                 style={styles.clearRetryButton}
                 onPress={handleResetToDefault}
@@ -2041,6 +2072,14 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
           setMapVisible(false);
           navigation.navigate('FriendDetail', { connectionId, friendId });
         }}
+      />
+
+      <AskCreateModal
+        visible={askVisible}
+        onClose={() => setAskVisible(false)}
+        existingAsk={myAsk}
+        seedBody={trimmedQuery}
+        onCreated={refreshAsk}
       />
     </SafeAreaView>
   );
@@ -2359,6 +2398,29 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: COLORS.gray700,
     fontWeight: '500',
+  },
+  // Ask conversion CTA in the no-results state. Understated: a quiet
+  // accent line + a single pill. Deliberately the only emphasized
+  // element here so it reads as the productive next step, while
+  // "clear and retry" stays the neutral grey secondary below it.
+  askCtaHint: {
+    fontSize: 13,
+    color: COLORS.piktag600,
+    textAlign: 'center',
+    marginTop: 18,
+    lineHeight: 19,
+  },
+  askCtaButton: {
+    marginTop: 12,
+    paddingVertical: 11,
+    paddingHorizontal: 24,
+    borderRadius: 22,
+    backgroundColor: COLORS.piktag500,
+  },
+  askCtaButtonText: {
+    fontSize: 14,
+    color: '#FFFFFF',
+    fontWeight: '700',
   },
   sectionLabelRow: {
     flexDirection: 'row',

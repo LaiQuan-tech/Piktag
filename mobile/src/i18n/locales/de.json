@@ -284,6 +284,7 @@
     "profilesSectionLabel": "Mitglieder",
     "noProfilesFound": "Keine passenden Mitglieder gefunden",
     "noProfilesFoundTitle": "Keine Mitglieder zu \"{{query}}\" gefunden",
+    "askPrompt": "Nicht in deinem Netzwerk? Poste ein Ask – Freunde und Freundesfreunde helfen dir, sie zu finden.",
     "tryTagSearchHint": "Versuch es mit #Tags oder einem anderen Stichwort",
     "clearAndRetry": "Löschen und erneut versuchen",
     "resetButton": "Zurücksetzen",

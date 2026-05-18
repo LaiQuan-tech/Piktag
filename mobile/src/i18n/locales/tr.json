@@ -276,6 +276,7 @@
     "profilesSectionLabel": "Üyeler",
     "noProfilesFound": "Eşleşen üye bulunamadı",
     "noProfilesFoundTitle": "\"{{query}}\" ile eşleşen üye bulunamadı",
+    "askPrompt": "Ağında yok mu? Bir Ask paylaş — arkadaşların ve arkadaşlarının arkadaşları bulmana yardımcı olabilir.",
     "tryTagSearchHint": "#etiket aramayı deneyin veya farklı bir kelime kullanın",
     "clearAndRetry": "Temizle ve tekrar dene",
     "resetButton": "Sıfırla",

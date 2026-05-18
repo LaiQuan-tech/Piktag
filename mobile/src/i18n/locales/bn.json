@@ -276,6 +276,7 @@
     "profilesSectionLabel": "সদস্য",
     "noProfilesFound": "মিলে যাওয়া কোনো সদস্য পাওয়া যায়নি",
     "noProfilesFoundTitle": "\"{{query}}\"-এর জন্য কোনো সদস্য পাওয়া যায়নি",
+    "askPrompt": "নেটওয়ার্কে নেই? একটা Ask পোস্ট করুন — বন্ধু ও বন্ধুর বন্ধুরা খুঁজে দিতে পারে।",
     "tryTagSearchHint": "#ট্যাগ অথবা অন্য কীওয়ার্ড চেষ্টা করুন",
     "clearAndRetry": "সাফ করে আবার চেষ্টা",
     "resetButton": "রিসেট",

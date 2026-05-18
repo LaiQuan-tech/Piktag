@@ -276,6 +276,7 @@
     "profilesSectionLabel": "Участники",
     "noProfilesFound": "Подходящих участников не найдено",
     "noProfilesFoundTitle": "Нет результатов по «{{query}}»",
+    "askPrompt": "Нет в вашей сети? Опубликуйте Ask — друзья и друзья друзей помогут найти.",
     "tryTagSearchHint": "Попробуй #тег или другое слово",
     "clearAndRetry": "Очистить и попробовать снова",
     "resetButton": "Сбросить",

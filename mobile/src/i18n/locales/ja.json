@@ -276,6 +276,7 @@
     "profilesSectionLabel": "メンバー",
     "noProfilesFound": "一致するメンバーが見つかりません",
     "noProfilesFoundTitle": "「{{query}}」に一致するメンバーがいません",
+    "askPrompt": "人脈にいない？Ask を投稿しよう — 友だちや友だちの友だちが見つけてくれます。",
     "tryTagSearchHint": "#タグや別のキーワードで検索してみてください",
     "clearAndRetry": "クリアして再試行",
     "resetButton": "リセット",

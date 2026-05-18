@@ -294,6 +294,7 @@
     "profilesSectionLabel": "會員",
     "noProfilesFound": "找不到相關會員",
     "noProfilesFoundTitle": "找不到「{{query}}」相關會員",
+    "askPrompt": "人脈裡沒有？貼一個 Ask，讓朋友和二度人脈幫你找。",
     "tryTagSearchHint": "試試搜尋 #標籤 或換個關鍵字",
     "clearAndRetry": "清除重新搜尋",
     "resetButton": "重設",

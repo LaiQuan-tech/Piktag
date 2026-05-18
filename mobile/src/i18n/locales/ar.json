@@ -276,6 +276,7 @@
     "profilesSectionLabel": "الأعضاء",
     "noProfilesFound": "لم يتم العثور على أعضاء مطابقين",
     "noProfilesFoundTitle": "لم يتم العثور على أعضاء لـ \"{{query}}\"",
+    "askPrompt": "لا أحد في شبكتك؟ انشر Ask — أصدقاؤك وأصدقاء أصدقائك يمكنهم المساعدة في العثور عليه.",
     "tryTagSearchHint": "جرّب البحث عن #هاشتاغ أو كلمة أخرى",
     "clearAndRetry": "مسح وحاول مرة أخرى",
     "resetButton": "إعادة تعيين",

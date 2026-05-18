@@ -276,6 +276,7 @@
     "profilesSectionLabel": "Anggota",
     "noProfilesFound": "Tidak ada anggota yang cocok",
     "noProfilesFoundTitle": "Tidak ada anggota yang cocok dengan \"{{query}}\"",
+    "askPrompt": "Tidak ada di jaringanmu? Posting Ask — teman dan teman dari teman bisa bantu menemukannya.",
     "tryTagSearchHint": "Coba cari #tag atau kata kunci lain",
     "clearAndRetry": "Hapus dan coba lagi",
     "resetButton": "Atur ulang",

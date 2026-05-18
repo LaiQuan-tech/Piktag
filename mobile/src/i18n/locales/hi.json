@@ -276,6 +276,7 @@
     "profilesSectionLabel": "सदस्य",
     "noProfilesFound": "कोई मेल खाता सदस्य नहीं मिला",
     "noProfilesFoundTitle": "\"{{query}}\" के लिए कोई सदस्य नहीं मिला",
+    "askPrompt": "आपके नेटवर्क में नहीं? एक Ask पोस्ट करें — दोस्त और दोस्तों के दोस्त ढूँढने में मदद कर सकते हैं।",
     "tryTagSearchHint": "#टैग या कोई और कीवर्ड आज़माएँ",
     "clearAndRetry": "साफ़ करके फिर कोशिश करें",
     "resetButton": "रीसेट करें",

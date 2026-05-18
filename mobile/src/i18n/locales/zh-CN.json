@@ -284,6 +284,7 @@
     "profilesSectionLabel": "会员",
     "noProfilesFound": "找不到相关会员",
     "noProfilesFoundTitle": "找不到「{{query}}」相关会员",
+    "askPrompt": "人脉里没有？贴一个 Ask，让朋友和二度人脉帮你找。",
     "tryTagSearchHint": "试试搜索 #标签 或换个关键词",
     "clearAndRetry": "清除重新搜索",
     "resetButton": "重置",

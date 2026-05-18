@@ -276,6 +276,7 @@
     "profilesSectionLabel": "멤버",
     "noProfilesFound": "일치하는 멤버를 찾을 수 없습니다",
     "noProfilesFoundTitle": "\"{{query}}\"와 일치하는 멤버 없음",
+    "askPrompt": "인맥에 없나요? Ask를 올려보세요 — 친구와 친구의 친구가 찾아줄 수 있어요.",
     "tryTagSearchHint": "#태그나 다른 키워드로 검색해 보세요",
     "clearAndRetry": "지우고 다시 시도",
     "resetButton": "재설정",

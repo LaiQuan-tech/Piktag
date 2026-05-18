@@ -276,6 +276,7 @@
     "profilesSectionLabel": "สมาชิก",
     "noProfilesFound": "ไม่พบสมาชิกที่ตรงกัน",
     "noProfilesFoundTitle": "ไม่พบสมาชิกที่ตรงกับ \"{{query}}\"",
+    "askPrompt": "ไม่มีในเครือข่าย? โพสต์ Ask สิ — เพื่อนและเพื่อนของเพื่อนช่วยหาให้ได้",
     "tryTagSearchHint": "ลองค้นหาด้วย #แฮชแท็ก หรือคำอื่น",
     "clearAndRetry": "ล้างและลองใหม่",
     "resetButton": "รีเซ็ต",

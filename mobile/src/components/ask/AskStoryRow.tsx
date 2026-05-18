@@ -460,6 +460,11 @@ type AskCreateModalProps = {
   onClose: () => void;
   existingAsk: MyActiveAsk | null;
   onCreated: () => void;
+  // Optional pre-fill for the CREATE path only (ignored when
+  // existingAsk is set → view mode). Lets callers seed the body from
+  // context — e.g. SearchScreen passes the failed query so "couldn't
+  // find them → post an Ask" arrives already half-written.
+  seedBody?: string;
 };
 
 // Normalize a free-form tag input: strip leading #, trim, drop spaces, cap length.
@@ -495,7 +500,7 @@ async function findOrCreateTagByName(name: string): Promise<string | null> {
   return (tag as any)?.id ?? null;
 }
 
-export function AskCreateModal({ visible, onClose, existingAsk, onCreated }: AskCreateModalProps) {
+export function AskCreateModal({ visible, onClose, existingAsk, onCreated, seedBody }: AskCreateModalProps) {
   const { t } = useTranslation();
   const { user } = useAuth();
 
@@ -532,7 +537,9 @@ export function AskCreateModal({ visible, onClose, existingAsk, onCreated }: Ask
 
   useEffect(() => {
     if (visible) {
-      setBody(existingAsk?.body || '');
+      // existingAsk wins (view/edit mode); else seed from caller
+      // context (e.g. a failed search query); else blank.
+      setBody(existingAsk?.body || seedBody || '');
       setAiNames([]);
       setCustomNames([]);
       setSelectedNames(new Set());
@@ -543,7 +550,7 @@ export function AskCreateModal({ visible, onClose, existingAsk, onCreated }: Ask
     } else {
       Animated.timing(slideAnim, { toValue: SCREEN_HEIGHT, duration: 250, useNativeDriver: true }).start();
     }
-  }, [visible, existingAsk, slideAnim]);
+  }, [visible, existingAsk, seedBody, slideAnim]);
 
   // AI auto-suggest tag names when user stops typing. Names are NOT resolved
   // to DB ids here — that happens on submit. This means a brand-new name the
