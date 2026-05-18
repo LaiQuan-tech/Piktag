@@ -50,6 +50,7 @@ import {
 } from 'expo-image-picker';
 import { COLORS, SPACING, BORDER_RADIUS } from '../../constants/theme';
 import { PLATFORM_MAP } from '../../lib/platforms';
+import { toBirthdayMMDD } from '../../lib/birthday';
 import OnboardingCompleteBurst from '../../components/stingers/OnboardingCompleteBurst';
 
 // Must match the key AppNavigator reads in decideOnboarding(). This
@@ -123,6 +124,12 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
 
   const [step, setStep] = useState<number>(STEP_WELCOME);
   const [displayName, setDisplayName] = useState('');
+  // Self-declared birthday — the engine for "it's X's birthday"
+  // friend notifications (core CRM). Collected here so EVERY signup
+  // path (email + Apple + Google) gets a chance to set it; OAuth
+  // users skip RegisterScreen entirely and would otherwise never
+  // have a birthday. Stored as strict MM/DD (see lib/birthday.ts).
+  const [birthday, setBirthday] = useState('');
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -475,6 +482,18 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
       );
       return;
     }
+    // Birthday is optional, but if they typed something it must be a
+    // real date — a silently-dropped/garbled birthday means the
+    // friend notification (core CRM) never fires. Normalized to the
+    // strict MM/DD the daily-birthday-check cron matches on.
+    const bday = toBirthdayMMDD(birthday);
+    if (birthday.trim() !== '' && !bday) {
+      Alert.alert(
+        t('common.error', { defaultValue: '錯誤' }),
+        t('friendDetail.alertInvalidDate', { defaultValue: '請輸入正確的日期格式（MM/DD）' }),
+      );
+      return;
+    }
     setSaving(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -489,6 +508,7 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
       const profilePatch: Record<string, string> = { full_name: trimmed };
       const trimmedBio = bio.trim();
       if (trimmedBio) profilePatch.bio = trimmedBio;
+      if (bday) profilePatch.birthday = bday;
 
       // upsert (not update().eq) so a profile row the signup trigger
       // hasn't committed yet still gets written — closes the
@@ -554,7 +574,7 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
     } finally {
       setSaving(false);
     }
-  }, [displayName, bio, pendingBiolinks, t, finishOnboarding]);
+  }, [displayName, bio, birthday, pendingBiolinks, t, finishOnboarding]);
 
   // ─── Render: Step 0 (Welcome card) ──────────────────────
   const renderWelcome = () => (
@@ -651,6 +671,23 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
           onSubmitEditing={() => {
             if (!ctaDisabled) handleComplete();
           }}
+        />
+
+        {/* Birthday — optional but the CRM core (drives the
+            "it's X's birthday" friend notification). Stored MM/DD;
+            placeholder is a universal format token (not localized,
+            matches RegisterScreen). */}
+        <TextInput
+          style={styles.nameInput}
+          value={birthday}
+          onChangeText={setBirthday}
+          placeholder={t('auth.register.birthdayLabel', { defaultValue: '生日（選填）' }) + '  MM/DD'}
+          placeholderTextColor={COLORS.gray400}
+          keyboardType="numbers-and-punctuation"
+          autoCapitalize="none"
+          autoCorrect={false}
+          maxLength={10}
+          returnKeyType="done"
         />
 
         {/* Optional accelerator. Sits BELOW the name input as a

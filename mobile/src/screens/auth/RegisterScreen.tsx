@@ -14,6 +14,7 @@ import BrandSpinner from '../../components/loaders/BrandSpinner';
 import { useTranslation } from 'react-i18next';
 import { Eye, EyeOff } from 'lucide-react-native';
 import { supabase } from '../../lib/supabase';
+import { toBirthdayMMDD } from '../../lib/birthday';
 import { signInWithApple } from '../../lib/appleAuth';
 import { signInWithGoogle } from '../../lib/googleAuth';
 import { trackSignupComplete } from '../../lib/analytics';
@@ -86,19 +87,21 @@ export default function RegisterScreen({ navigation }: RegisterScreenProps) {
       }
 
       // Persist birthday on the profile if the viewer entered one.
-      // Schema is `MM/DD` (matches Onboarding + the daily-birthday-check
-      // server query). Falls through silently on RLS / network error
-      // since the field is optional and Onboarding can collect it later.
-      const trimmedBirthday = birthday.trim();
+      // Normalize to strict MM/DD — daily-birthday-check matches with
+      // .eq('birthday','MM/DD'), so a raw "5/8" / "1990-05-08" would
+      // never fire the notification. Was storing the raw string
+      // (latent broken-CRM bug); now shared with Onboarding via
+      // lib/birthday.ts. Onboarding still collects it for OAuth users.
+      const normBirthday = toBirthdayMMDD(birthday);
       const userId = data.user?.id;
       // Only writable when we actually have a session (email-confirm
       // OFF). upsert — not update().eq — so a profile row the signup
       // trigger hasn't committed yet still gets the birthday instead
       // of a silent 0-row no-op (data loss with no feedback).
-      if (trimmedBirthday && userId && data.session) {
+      if (normBirthday && userId && data.session) {
         await supabase
           .from('piktag_profiles')
-          .upsert({ id: userId, birthday: trimmedBirthday }, { onConflict: 'id' })
+          .upsert({ id: userId, birthday: normBirthday }, { onConflict: 'id' })
           .then(({ error: bdayErr }) => {
             if (bdayErr) console.warn('Save birthday failed:', bdayErr.message);
           });
