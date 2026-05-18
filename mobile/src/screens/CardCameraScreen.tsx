@@ -31,6 +31,7 @@ import {
   Dimensions,
 } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
+import { ImageManipulator, SaveFormat } from 'expo-image-manipulator';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { X } from 'lucide-react-native';
@@ -38,7 +39,12 @@ import { COLORS } from '../constants/theme';
 
 type Props = { navigation: any; route: any };
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
+// Phase 2 crop expands the mapped guide rect by this fraction on each
+// side so small preview→sensor mapping error never slices the card.
+// Over-including a little background is harmless to OCR; clipping the
+// card is not.
+const CROP_SAFETY_FRAC = 0.07;
 
 // Business cards run ~1.5–1.75 landscape (85.6×54mm ≈ 1.586,
 // US 3.5×2in = 1.75). 1.6 is a sane middle. The frame fractions are
@@ -49,6 +55,64 @@ const FRAME_W = Math.round(SCREEN_WIDTH * FRAME_WIDTH_FRAC);
 const FRAME_H = Math.round(FRAME_W / FRAME_ASPECT);
 const CORNER_LENGTH = 26;
 const CORNER_THICKNESS = 3;
+
+// Phase 2: map the on-screen guide rect back to source-image pixels
+// and crop to it. Returns cropped base64, or null on ANY uncertainty
+// (orientation mismatch, degenerate rect, manipulate failure) so the
+// caller falls back to the full frame — a wrong crop that clips the
+// card is worse than no crop, so this fails safe.
+async function cropToGuide(
+  uri: string,
+  pw: number,
+  ph: number,
+): Promise<string | null> {
+  try {
+    const portraitScreen = SCREEN_HEIGHT >= SCREEN_WIDTH;
+    const portraitPhoto = ph >= pw;
+    // Mapping assumes the captured photo's orientation matches the
+    // (portrait) preview. If it doesn't, our cover-inverse math is
+    // invalid → bail to full frame.
+    if (portraitScreen !== portraitPhoto) return null;
+
+    // CameraView preview is "cover": photo scaled to fill the screen,
+    // center-cropped. Invert that to place the guide rect in source px.
+    const scale = Math.max(SCREEN_WIDTH / pw, SCREEN_HEIGHT / ph);
+    const marginX = (pw * scale - SCREEN_WIDTH) / 2;
+    const marginY = (ph * scale - SCREEN_HEIGHT) / 2;
+    const gx = (SCREEN_WIDTH - FRAME_W) / 2;
+    const gy = (SCREEN_HEIGHT - FRAME_H) / 2;
+
+    let originX = (gx + marginX) / scale;
+    let originY = (gy + marginY) / scale;
+    let cropW = FRAME_W / scale;
+    let cropH = FRAME_H / scale;
+
+    const mx = cropW * CROP_SAFETY_FRAC;
+    const my = cropH * CROP_SAFETY_FRAC;
+    originX -= mx;
+    originY -= my;
+    cropW += mx * 2;
+    cropH += my * 2;
+
+    originX = Math.max(0, Math.round(originX));
+    originY = Math.max(0, Math.round(originY));
+    cropW = Math.round(Math.min(cropW, pw - originX));
+    cropH = Math.round(Math.min(cropH, ph - originY));
+    if (cropW < 40 || cropH < 40) return null;
+
+    const ctx = ImageManipulator.manipulate(uri);
+    ctx.crop({ originX, originY, width: cropW, height: cropH });
+    const ref = await ctx.renderAsync();
+    const out = await ref.saveAsync({
+      base64: true,
+      compress: 0.6,
+      format: SaveFormat.JPEG,
+    });
+    return out.base64 ?? null;
+  } catch {
+    return null;
+  }
+}
 
 export default function CardCameraScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
@@ -74,11 +138,18 @@ export default function CardCameraScreen({ navigation, route }: Props) {
     try {
       const photo = await cameraRef.current.takePictureAsync({
         quality: 0.5, // small JPEG → faster upload + vision call
-        base64: true,
+        base64: true, // full-frame fallback if the crop bails
         skipProcessing: false,
       });
-      const b64 = photo?.base64;
-      if (!b64) {
+      const fullB64 = photo?.base64 ?? null;
+      // Phase 2: crop to the framing guide. Falls back to the full
+      // frame on any uncertainty so it never does worse than Phase 1.
+      let finalB64 = fullB64;
+      if (photo?.uri && photo.width && photo.height) {
+        const cropped = await cropToGuide(photo.uri, photo.width, photo.height);
+        if (cropped) finalB64 = cropped;
+      }
+      if (!finalB64) {
         Alert.alert(
           t('common.error', { defaultValue: '錯誤' }),
           t('auth.onboarding.cardScanFailedMessage', {
@@ -93,7 +164,7 @@ export default function CardCameraScreen({ navigation, route }: Props) {
       // the camera. goBack first so the caller is focused when its
       // scan spinner / alerts show.
       navigation.goBack();
-      onCaptured?.(b64, 'image/jpeg');
+      onCaptured?.(finalB64, 'image/jpeg');
     } catch (err: any) {
       Alert.alert(
         t('common.error', { defaultValue: '錯誤' }),
