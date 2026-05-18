@@ -30,6 +30,7 @@ import {
   StatusBar,
   KeyboardAvoidingView,
   Platform,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
@@ -451,7 +452,17 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
                 accessibilityLabel={t('localContact.scanCardCta', { defaultValue: '掃描名片自動帶入' })}
               >
                 {scanning ? (
-                  <BrandSpinner size={24} />
+                  // The card bg is piktag500 (purple); BrandSpinner is
+                  // the purple brand gradient → invisible here. Use a
+                  // white ActivityIndicator + an explicit label so the
+                  // user gets clear "your photo is being read" feedback
+                  // instead of a blank purple block.
+                  <View style={styles.scanCardLoading}>
+                    <ActivityIndicator color="#FFFFFF" />
+                    <Text style={styles.scanCardTitle}>
+                      {t('localContact.scanningCard', { defaultValue: '辨識名片中…' })}
+                    </Text>
+                  </View>
                 ) : (
                   <>
                     <View style={styles.scanCardIcon}>
@@ -495,7 +506,12 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
                 accessibilityLabel={t('localContact.scanCardCta', { defaultValue: '掃描名片自動帶入' })}
               >
                 {scanning ? (
-                  <BrandSpinner size={16} />
+                  <>
+                    <ActivityIndicator size="small" color={COLORS.piktag600} />
+                    <Text style={styles.scanInlineText}>
+                      {t('localContact.scanningCard', { defaultValue: '辨識名片中…' })}
+                    </Text>
+                  </>
                 ) : (
                   <>
                     <ScanLine size={16} color={COLORS.piktag600} strokeWidth={2.2} />
@@ -687,7 +703,9 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
             activeOpacity={0.85}
           >
             {saving ? (
-              <BrandSpinner size={20} />
+              // saveBtn bg is piktag500 (purple) — same reason as the
+              // scan card: a white ActivityIndicator stays visible.
+              <ActivityIndicator color="#FFFFFF" />
             ) : (
               <Text style={styles.saveBtnText}>
                 {t('localContact.save', { defaultValue: '儲存' })}
@@ -759,6 +777,7 @@ const styles = StyleSheet.create({
     minHeight: 168,
     justifyContent: 'center',
   },
+  scanCardLoading: { alignItems: 'center', gap: 12 },
   scanCardIcon: {
     width: 52,
     height: 52,

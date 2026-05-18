@@ -1319,6 +1319,7 @@
     "deleteTitle": "Delete this contact?",
     "deleteMsg": "Only removed from your list — nobody else is affected.",
     "scanCardCta": "Scan a business card",
+    "scanningCard": "Reading the card…",
     "scanCardHint": "Snap a card — name & contacts fill in automatically. Edit or add tags after.",
     "aiSuggestCta": "AI tag ideas",
     "aiThinking": "AI is thinking up tags…",

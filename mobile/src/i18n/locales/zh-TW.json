@@ -1326,6 +1326,7 @@
     "deleteTitle": "刪除這個聯絡人？",
     "deleteMsg": "只會從你的清單移除，不影響其他人。",
     "scanCardCta": "掃描名片自動帶入",
+    "scanningCard": "辨識名片中…",
     "scanCardHint": "拍一張名片，自動帶入姓名與聯絡方式 —— 再修改或加標籤就好。",
     "aiSuggestCta": "AI 建議標籤",
     "aiThinking": "AI 想標籤中…",

@@ -1326,6 +1326,7 @@
     "deleteTitle": "Eliminare questo contatto?",
     "deleteMsg": "Sparisce solo dal tuo elenco — nessun altro se ne accorge.",
     "scanCardCta": "Scansiona biglietto",
+    "scanningCard": "Lettura del biglietto…",
     "scanCardHint": "Scatta una foto al biglietto: nome e contatti si compilano da soli. Poi modifichi o aggiungi tag.",
     "aiSuggestCta": "Tag con AI",
     "aiThinking": "L'AI sta pensando ai tag…",

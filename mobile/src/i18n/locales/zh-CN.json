@@ -1306,6 +1306,7 @@
     "deleteTitle": "删除这个联系人？",
     "deleteMsg": "只会从你的列表移除，不影响其他人。",
     "scanCardCta": "扫描名片自动带入",
+    "scanningCard": "识别名片中…",
     "scanCardHint": "拍一张名片，自动带入姓名和联系方式 —— 之后再改或加标签就好。",
     "aiSuggestCta": "AI 建议标签",
     "aiThinking": "AI 想标签中…",

@@ -1234,6 +1234,7 @@
     "deleteTitle": "Bu kişi silinsin mi?",
     "deleteMsg": "Yalnızca senin listenden silinir — kimseyi etkilemez.",
     "scanCardCta": "Kartvizit tara",
+    "scanningCard": "Kart okunuyor…",
     "scanCardHint": "Bir kartvizit çek — ad ve iletişim otomatik dolar. Sonra düzenle ya da etiket ekle.",
     "aiSuggestCta": "AI etiket önerisi",
     "aiThinking": "AI etiket düşünüyor…",

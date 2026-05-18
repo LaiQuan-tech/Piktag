@@ -1234,6 +1234,7 @@
     "deleteTitle": "¿Eliminar este contacto?",
     "deleteMsg": "Solo se quita de tu lista — nadie más se ve afectado.",
     "scanCardCta": "Escanear tarjeta",
+    "scanningCard": "Leyendo la tarjeta…",
     "scanCardHint": "Haz una foto de la tarjeta: nombre y contacto se rellenan solos. Luego edita o añade tags.",
     "aiSuggestCta": "Tags con IA",
     "aiThinking": "La IA está pensando tags…",

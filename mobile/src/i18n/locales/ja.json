@@ -1234,6 +1234,7 @@
     "deleteTitle": "この連絡先を削除？",
     "deleteMsg": "自分のリストから消えるだけで、他の人には影響しません。",
     "scanCardCta": "名刺をスキャン",
+    "scanningCard": "名刺を読み取り中…",
     "scanCardHint": "名刺を撮るだけで名前と連絡先を自動入力。あとから編集やタグ追加もOK。",
     "aiSuggestCta": "AIにタグを提案",
     "aiThinking": "AIがタグを考え中…",

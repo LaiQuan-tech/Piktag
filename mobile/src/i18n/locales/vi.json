@@ -1326,6 +1326,7 @@
     "deleteTitle": "Xoá liên hệ này?",
     "deleteMsg": "Chỉ gỡ khỏi danh sách của bạn — không ai khác bị ảnh hưởng.",
     "scanCardCta": "Quét danh thiếp",
+    "scanningCard": "Đang đọc danh thiếp…",
     "scanCardHint": "Chụp một tấm danh thiếp — tên và liên hệ tự điền. Sửa hoặc thêm tag sau cũng được.",
     "aiSuggestCta": "Gợi ý tag bằng AI",
     "aiThinking": "AI đang nghĩ tag…",

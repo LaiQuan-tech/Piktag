@@ -1306,6 +1306,7 @@
     "deleteTitle": "Diesen Kontakt löschen?",
     "deleteMsg": "Nur aus deiner Liste entfernt — niemand sonst betroffen.",
     "scanCardCta": "Visitenkarte scannen",
+    "scanningCard": "Karte wird gelesen…",
     "scanCardHint": "Karte abfotografieren — Name & Kontakt füllen sich von selbst. Danach bearbeiten oder Tags ergänzen.",
     "aiSuggestCta": "KI-Tag-Ideen",
     "aiThinking": "KI denkt sich Tags aus…",
