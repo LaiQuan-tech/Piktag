@@ -1224,7 +1224,9 @@
     "aiSuggestTitle": "Suggestions IA (touche pour ajouter)",
     "aiRegenerate": "Régénérer",
     "aiEmpty": "L'IA n'a rien trouvé — ajoute les tiens.",
-    "manualEntry": "Ou saisir à la main"
+    "manualEntry": "Ou saisir à la main",
+    "fieldBirthday": "Anniversaire (facultatif)",
+    "birthdayPlaceholder": "MM-JJ ou AAAA-MM-JJ"
   },
   "followers": {
     "title": "Abonnés",

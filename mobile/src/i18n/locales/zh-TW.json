@@ -1316,7 +1316,9 @@
     "aiSuggestTitle": "AI 建議（點一下加入）",
     "aiRegenerate": "重新產生",
     "aiEmpty": "AI 沒想到合適的，手動加上就好。",
-    "manualEntry": "或手動輸入"
+    "manualEntry": "或手動輸入",
+    "fieldBirthday": "生日（選填）",
+    "birthdayPlaceholder": "MM-DD 或 YYYY-MM-DD"
   },
   "followers": {
     "title": "追蹤者",

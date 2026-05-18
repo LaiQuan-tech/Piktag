@@ -1316,7 +1316,9 @@
     "aiSuggestTitle": "Suggerimenti AI (tocca per aggiungere)",
     "aiRegenerate": "Rigenera",
     "aiEmpty": "L'AI non ha trovato nulla — aggiungili tu.",
-    "manualEntry": "Oppure inseriscilo"
+    "manualEntry": "Oppure inseriscilo",
+    "fieldBirthday": "Compleanno (facoltativo)",
+    "birthdayPlaceholder": "MM-GG o AAAA-MM-GG"
   },
   "followers": {
     "title": "Follower",

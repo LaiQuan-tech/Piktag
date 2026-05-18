@@ -1224,7 +1224,9 @@
     "aiSuggestTitle": "AI পরামর্শ (যোগ করতে ট্যাপ করুন)",
     "aiRegenerate": "আবার তৈরি করুন",
     "aiEmpty": "AI মানানসই কিছু পায়নি — নিজেই যোগ করুন।",
-    "manualEntry": "অথবা নিজে লিখুন"
+    "manualEntry": "অথবা নিজে লিখুন",
+    "fieldBirthday": "জন্মদিন (ঐচ্ছিক)",
+    "birthdayPlaceholder": "MM-DD অথবা YYYY-MM-DD"
   },
   "followers": {
     "title": "ফলোয়ার",

@@ -1224,7 +1224,9 @@
     "aiSuggestTitle": "Sugestões da IA (toque para adicionar)",
     "aiRegenerate": "Gerar de novo",
     "aiEmpty": "A IA não achou nada — adicione você mesmo.",
-    "manualEntry": "Ou digitar manualmente"
+    "manualEntry": "Ou digitar manualmente",
+    "fieldBirthday": "Aniversário (opcional)",
+    "birthdayPlaceholder": "MM-DD ou YYYY-MM-DD"
   },
   "followers": {
     "title": "Seguidores",

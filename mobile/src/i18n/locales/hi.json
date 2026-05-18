@@ -1224,7 +1224,9 @@
     "aiSuggestTitle": "AI सुझाव (जोड़ने के लिए टैप करें)",
     "aiRegenerate": "फिर से बनाएं",
     "aiEmpty": "AI को कुछ सही नहीं मिला — खुद जोड़ लें।",
-    "manualEntry": "या खुद भरें"
+    "manualEntry": "या खुद भरें",
+    "fieldBirthday": "जन्मदिन (वैकल्पिक)",
+    "birthdayPlaceholder": "MM-DD या YYYY-MM-DD"
   },
   "followers": {
     "title": "फ़ॉलोअर",

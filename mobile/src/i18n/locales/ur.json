@@ -1316,7 +1316,9 @@
     "aiSuggestTitle": "AI تجاویز (شامل کرنے کے لیے ٹیپ کریں)",
     "aiRegenerate": "دوبارہ بنائیں",
     "aiEmpty": "AI کو مناسب نہیں ملا — خود شامل کر لیں۔",
-    "manualEntry": "یا خود لکھیں"
+    "manualEntry": "یا خود لکھیں",
+    "fieldBirthday": "سالگرہ (اختیاری)",
+    "birthdayPlaceholder": "MM-DD یا YYYY-MM-DD"
   },
   "followers": {
     "title": "فالوورز",

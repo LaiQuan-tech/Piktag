@@ -1224,7 +1224,9 @@
     "aiSuggestTitle": "اقتراحات الذكاء الاصطناعي (انقر للإضافة)",
     "aiRegenerate": "إعادة التوليد",
     "aiEmpty": "لم يجد الذكاء الاصطناعي ما يناسب — أضفها بنفسك.",
-    "manualEntry": "أو أدخلها يدويًا"
+    "manualEntry": "أو أدخلها يدويًا",
+    "fieldBirthday": "تاريخ الميلاد (اختياري)",
+    "birthdayPlaceholder": "MM-DD أو YYYY-MM-DD"
   },
   "followers": {
     "title": "المتابعون",

@@ -1316,7 +1316,9 @@
     "aiSuggestTitle": "AI gợi ý (chạm để thêm)",
     "aiRegenerate": "Tạo lại",
     "aiEmpty": "AI chưa nghĩ ra cái nào hợp — bạn tự thêm nhé.",
-    "manualEntry": "Hoặc tự nhập"
+    "manualEntry": "Hoặc tự nhập",
+    "fieldBirthday": "Ngày sinh (không bắt buộc)",
+    "birthdayPlaceholder": "MM-DD hoặc YYYY-MM-DD"
   },
   "followers": {
     "title": "Người theo dõi",

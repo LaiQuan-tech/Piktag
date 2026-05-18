@@ -1296,7 +1296,9 @@
     "aiSuggestTitle": "KI-Vorschläge (zum Hinzufügen tippen)",
     "aiRegenerate": "Neu generieren",
     "aiEmpty": "Die KI fand nichts Passendes — füg sie selbst hinzu.",
-    "manualEntry": "Oder manuell eingeben"
+    "manualEntry": "Oder manuell eingeben",
+    "fieldBirthday": "Geburtstag (optional)",
+    "birthdayPlaceholder": "MM-TT oder JJJJ-MM-TT"
   },
   "followers": {
     "title": "Follower",

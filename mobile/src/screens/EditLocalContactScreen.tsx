@@ -73,7 +73,14 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
   const [name, setName] = useState(existing?.name ?? '');
   const [phone, setPhone] = useState(existing?.phone_normalized ?? '');
   const [email, setEmail] = useState(existing?.email_lower ?? '');
-  const [metLocation, setMetLocation] = useState(existing?.met_location ?? '');
+  // "Where you met" was removed: for a real member connection that
+  // value is auto-captured from the QR-scan context, never a
+  // hand-typed field — so a manual local contact must use the SAME
+  // contact format as a member (name / phone / email / birthday /
+  // note / tags), no scan-only field. birthday is a first-class
+  // member field (drives reminders); it lives in the local-contact
+  // model already and the promote trigger maps it 1:1.
+  const [birthday, setBirthday] = useState(existing?.birthday ?? '');
   const [note, setNote] = useState(existing?.note ?? '');
   const [tags, setTags] = useState<string[]>(existing?.tags ?? []);
   const [tagInput, setTagInput] = useState('');
@@ -111,7 +118,7 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
   // where-met). Same edge function ('suggest-tags') the profile
   // editor uses, so the model + prompt are identical.
   const fetchAiTags = useCallback(async () => {
-    const ctx = [name, note, metLocation].filter(Boolean).join('\n').trim();
+    const ctx = [name, note].filter(Boolean).join('\n').trim();
     if (!ctx) return;
     setAiLoading(true);
     setAiTried(true);
@@ -127,7 +134,7 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
         body: {
           bio: note,
           name: name,
-          location: metLocation,
+          location: '',
           existingTags: tags.join(', '),
           lang: userLang,
         },
@@ -153,7 +160,7 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
     } finally {
       setAiLoading(false);
     }
-  }, [name, note, metLocation, tags]);
+  }, [name, note, tags]);
 
   // One photo → scan-business-card vision extract → pre-fill the
   // form. Non-destructive: only fills fields the user hasn't typed
@@ -260,6 +267,46 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
       );
       return;
     }
+
+    // Birthday: accept the SAME formats the member-connection
+    // reminder accepts (MM-DD or YYYY-MM-DD; MM-DD → 2000-MM-DD),
+    // so a promoted local contact's birthday is byte-identical to
+    // what the reminder system expects. Empty = null.
+    let birthdayNorm: string | null = null;
+    const bRaw = birthday.trim();
+    if (bRaw) {
+      let s = bRaw;
+      if (/^\d{1,2}-\d{1,2}$/.test(s)) {
+        const [mm, dd] = s.split('-');
+        const month = mm.padStart(2, '0');
+        const day = dd.padStart(2, '0');
+        const m = parseInt(month, 10);
+        const d = parseInt(day, 10);
+        if (m < 1 || m > 12 || d < 1 || d > 31) {
+          Alert.alert(
+            t('common.error', { defaultValue: '錯誤' }),
+            t('friendDetail.alertInvalidDate', {
+              defaultValue: '請輸入正確的日期格式（MM-DD）',
+            }),
+          );
+          return;
+        }
+        s = `2000-${month}-${day}`;
+      } else if (/^\d{4}-\d{1,2}-\d{1,2}$/.test(s)) {
+        const [yy, mm, dd] = s.split('-');
+        s = `${yy}-${mm.padStart(2, '0')}-${dd.padStart(2, '0')}`;
+      } else {
+        Alert.alert(
+          t('common.error', { defaultValue: '錯誤' }),
+          t('friendDetail.alertInvalidDate', {
+            defaultValue: '請輸入正確的日期格式（MM-DD）',
+          }),
+        );
+        return;
+      }
+      birthdayNorm = s;
+    }
+
     setSaving(true);
     try {
       if (isEdit && contactId) {
@@ -270,7 +317,7 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
           // promotion trigger normalizes both sides the same way).
           phone_normalized: phone.trim() || null,
           email_lower: email.trim().toLowerCase() || null,
-          met_location: metLocation.trim() || null,
+          birthday: birthdayNorm,
           note: note.trim() || null,
           tags,
         });
@@ -280,7 +327,7 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
           name: trimmed,
           phone: phone.trim() || null,
           email: email.trim() || null,
-          met_location: metLocation.trim() || null,
+          birthday: birthdayNorm,
           note: note.trim() || null,
           tags,
         });
@@ -295,7 +342,7 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
     } finally {
       setSaving(false);
     }
-  }, [name, phone, email, metLocation, note, tags, isEdit, contactId, add, update, navigation, t]);
+  }, [name, phone, email, birthday, note, tags, isEdit, contactId, add, update, navigation, t]);
 
   const handleDelete = useCallback(() => {
     if (!contactId) return;
@@ -488,15 +535,17 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
           />
 
           <Text style={styles.label}>
-            {t('localContact.fieldMetWhere', { defaultValue: '在哪認識（選填）' })}
+            {t('localContact.fieldBirthday', { defaultValue: '生日（選填）' })}
           </Text>
           <TextInput
             style={styles.input}
-            value={metLocation}
-            onChangeText={setMetLocation}
-            placeholder={t('localContact.metWherePlaceholder', { defaultValue: '例：大學同學會、龍洞潛水' })}
+            value={birthday}
+            onChangeText={setBirthday}
+            placeholder={t('localContact.birthdayPlaceholder', { defaultValue: 'MM-DD 或 YYYY-MM-DD' })}
             placeholderTextColor={COLORS.gray400}
-            maxLength={80}
+            keyboardType="numbers-and-punctuation"
+            autoCapitalize="none"
+            maxLength={10}
           />
 
           <Text style={styles.label}>

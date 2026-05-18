@@ -1224,7 +1224,9 @@
     "aiSuggestTitle": "AI แนะนำ (แตะเพื่อเพิ่ม)",
     "aiRegenerate": "สร้างใหม่",
     "aiEmpty": "AI ยังไม่เจอที่ใช่ — เพิ่มเองได้เลย",
-    "manualEntry": "หรือกรอกเอง"
+    "manualEntry": "หรือกรอกเอง",
+    "fieldBirthday": "วันเกิด (ถ้ามี)",
+    "birthdayPlaceholder": "ดด-วว หรือ ปปปป-ดด-วว"
   },
   "followers": {
     "title": "ผู้ติดตาม",

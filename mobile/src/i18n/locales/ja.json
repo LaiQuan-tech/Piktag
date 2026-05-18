@@ -1224,7 +1224,9 @@
     "aiSuggestTitle": "AIの提案（タップで追加）",
     "aiRegenerate": "作り直す",
     "aiEmpty": "ぴったりが見つからなかった — 手動で追加してね。",
-    "manualEntry": "手入力する"
+    "manualEntry": "手入力する",
+    "fieldBirthday": "誕生日（任意）",
+    "birthdayPlaceholder": "MM-DD または YYYY-MM-DD"
   },
   "followers": {
     "title": "フォロワー",
