@@ -313,21 +313,16 @@ export default function AskStoryRow({ asks, myAsk, myAvatarUrl, myName, onRefres
     return pairs;
   }, [visibleAsks]);
 
-  // Hide the whole feed when there's nothing to show — neither the
-  // viewer's own active ask nor any friend asks. Avoids a lonely
-  // "+ 新增 Ask" CTA hanging on a friends page that has no social
-  // signal to surround it. The CTA is still reachable from
-  // ProfileScreen and the bubble prompt elsewhere.
-  if (!myAsk && visibleAsks.length === 0) {
-    return (
-      <AskCreateModal
-        visible={createVisible}
-        onClose={() => setCreateVisible(false)}
-        existingAsk={myAsk}
-        onCreated={onRefresh}
-      />
-    );
-  }
+  // Cold-start (P0): even with no signal at all — no own active ask
+  // AND no friend asks — DON'T hide the row. Seeding the first demand
+  // signal matters most precisely when the network is sparse; burying
+  // the only create entry point inside profile-edit throttles the
+  // whole serendipity engine (Ask is the demand signal that makes the
+  // network valuable). The previous early-return was a deliberate
+  // "avoid a lonely CTA" choice — reversed here on purpose. The main
+  // render below already degrades gracefully to a single, understated
+  // "+ Ask" bubble (dashed ring + "想要什麼？" prompt) when myAsk is
+  // null and visibleAsks is empty, so we just fall through to it.
 
   return (
     <>
