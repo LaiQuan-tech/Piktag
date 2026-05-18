@@ -61,6 +61,7 @@ import PageLoader from '../components/loaders/PageLoader';
 import BrandSpinner from '../components/loaders/BrandSpinner';
 import { useNetInfoReconnect } from '../hooks/useNetInfoReconnect';
 import { supabase } from '../lib/supabase';
+import { toBirthdayMMDD } from '../lib/birthday';
 import { useAuth } from '../hooks/useAuth';
 import { useAskFeed } from '../hooks/useAskFeed';
 import type { Connection, PiktagProfile, Biolink } from '../types';
@@ -887,19 +888,13 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
       return;
     }
 
-    // Validate date format (YYYY-MM-DD or MM-DD)
-    let dateStr = reminderInput.trim();
-    if (/^\d{1,2}-\d{1,2}$/.test(dateStr)) {
-      const [mm, dd] = dateStr.split('-');
-      const month = mm.padStart(2, '0');
-      const day = dd.padStart(2, '0');
-      const m = parseInt(month, 10);
-      const d = parseInt(day, 10);
-      if (m < 1 || m > 12 || d < 1 || d > 31) {
-        Alert.alert(t('common.error'), t('friendDetail.alertInvalidDate'));
-        return;
-      }
-      dateStr = `2000-${month}-${day}`;
+    // Store strict MM/DD — the ONLY format daily-birthday-check
+    // matches (was 2000-MM-DD, which never .eq()'d the cron's
+    // MM/DD → reminder silently never fired). Shared normalizer.
+    const dateStr = toBirthdayMMDD(reminderInput);
+    if (!dateStr) {
+      Alert.alert(t('common.error'), t('friendDetail.alertInvalidDate'));
+      return;
     }
 
     const { error } = await supabase
@@ -936,18 +931,15 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
 
   const formatReminderDate = (dateStr: string) => {
     if (!dateStr) return '';
-    try {
-      // Parse date string safely (avoid timezone issues with date-only strings)
-      const parts = dateStr.split('T')[0].split('-');
-      if (parts.length >= 3) {
-        const month = parseInt(parts[1], 10);
-        const day = parseInt(parts[2], 10);
-        return `${month}/${day}`;
-      }
-      return dateStr;
-    } catch {
-      return dateStr;
+    // Birthday is now stored MM/DD, but legacy rows may be
+    // 2000-MM-DD / YYYY-MM-DD / MM-DD. Normalize via the shared
+    // helper, then show as M/D. Junk falls through unchanged.
+    const mmdd = toBirthdayMMDD(dateStr);
+    if (mmdd) {
+      const [mm, dd] = mmdd.split('/');
+      return `${parseInt(mm, 10)}/${parseInt(dd, 10)}`;
     }
+    return dateStr;
   };
 
   // Connection strength tier badge ("新朋友/初識/認識/熟識/密友") was removed

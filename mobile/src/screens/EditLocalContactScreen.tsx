@@ -41,6 +41,7 @@ import { useTheme } from '../context/ThemeContext';
 import { useLocalContacts } from '../hooks/useLocalContacts';
 import { supabase } from '../lib/supabase';
 import { logApiUsage } from '../lib/apiUsage';
+import { toBirthdayMMDD } from '../lib/birthday';
 import BrandSpinner from '../components/loaders/BrandSpinner';
 
 type Props = { navigation: any; route: any };
@@ -80,16 +81,13 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
   // note / tags), no scan-only field. birthday is a first-class
   // member field (drives reminders); it lives in the local-contact
   // model already and the promote trigger maps it 1:1.
-  // Seed the editable input from storage: a year-less birthday is
-  // stored with the 2000 sentinel (matching the member reminder
-  // format); show it back as plain MM-DD, not the ugly "2000-MM-DD".
-  // A real birth year (anything ≠ 2000) is preserved as YYYY-MM-DD.
-  // Round-trips cleanly — handleSave re-normalizes MM-DD → 2000-MM-DD.
-  const birthdayForInput = (stored: string | null | undefined): string => {
-    const s = (stored ?? '').trim();
-    const m = s.match(/^2000-(\d{2})-(\d{2})$/);
-    return m ? `${m[1]}-${m[2]}` : s;
-  };
+  // Seed the editable input as MM/DD. Storage is now strict MM/DD,
+  // but tolerate legacy rows (2000-MM-DD / MM-DD / YYYY-MM-DD) via
+  // the shared normalizer so editing an old contact shows a clean
+  // value and re-saves it in the correct format. Junk falls through
+  // raw so the user can fix it.
+  const birthdayForInput = (stored: string | null | undefined): string =>
+    toBirthdayMMDD(stored) ?? (stored ?? '').trim();
   const [birthday, setBirthday] = useState(birthdayForInput(existing?.birthday));
   // Autofocus the name field ONLY on the manual-entry path (empty
   // form, user wants to type now). After a card scan we DON'T focus
@@ -286,43 +284,19 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
       return;
     }
 
-    // Birthday: accept the SAME formats the member-connection
-    // reminder accepts (MM-DD or YYYY-MM-DD; MM-DD → 2000-MM-DD),
-    // so a promoted local contact's birthday is byte-identical to
-    // what the reminder system expects. Empty = null.
-    let birthdayNorm: string | null = null;
-    const bRaw = birthday.trim();
-    if (bRaw) {
-      let s = bRaw;
-      if (/^\d{1,2}-\d{1,2}$/.test(s)) {
-        const [mm, dd] = s.split('-');
-        const month = mm.padStart(2, '0');
-        const day = dd.padStart(2, '0');
-        const m = parseInt(month, 10);
-        const d = parseInt(day, 10);
-        if (m < 1 || m > 12 || d < 1 || d > 31) {
-          Alert.alert(
-            t('common.error', { defaultValue: '錯誤' }),
-            t('friendDetail.alertInvalidDate', {
-              defaultValue: '請輸入正確的日期格式（MM-DD）',
-            }),
-          );
-          return;
-        }
-        s = `2000-${month}-${day}`;
-      } else if (/^\d{4}-\d{1,2}-\d{1,2}$/.test(s)) {
-        const [yy, mm, dd] = s.split('-');
-        s = `${yy}-${mm.padStart(2, '0')}-${dd.padStart(2, '0')}`;
-      } else {
-        Alert.alert(
-          t('common.error', { defaultValue: '錯誤' }),
-          t('friendDetail.alertInvalidDate', {
-            defaultValue: '請輸入正確的日期格式（MM-DD）',
-          }),
-        );
-        return;
-      }
-      birthdayNorm = s;
+    // Birthday → strict MM/DD (the ONLY format daily-birthday-check
+    // matches with .eq). Was 2000-MM-DD, which the cron never equals
+    // → a promoted local-contact birthday silently never notified.
+    // Shared normalizer = same format as profile + the cron.
+    const birthdayNorm = toBirthdayMMDD(birthday);
+    if (birthday.trim() !== '' && !birthdayNorm) {
+      Alert.alert(
+        t('common.error', { defaultValue: '錯誤' }),
+        t('friendDetail.alertInvalidDate', {
+          defaultValue: '請輸入正確的日期格式（MM/DD）',
+        }),
+      );
+      return;
     }
 
     setSaving(true);
