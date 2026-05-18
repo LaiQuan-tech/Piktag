@@ -1,20 +1,23 @@
 name: iOS TestFlight Build
 
 on:
-  # MANUAL ONLY. The push trigger was removed deliberately.
+  # Daily auto-build + manual override (NO push trigger).
   #
-  # Every run does a full archive + upload to App Store Connect,
-  # and ASC enforces a per-app DAILY upload cap. With "commit +
-  # push on every change" (~10+/day) we blew through that cap and
-  # every upload after it failed with "Upload limit reached. Please
-  # wait 1 day" — which looked like "TestFlight stuck at 574" (574
-  # was the last build that uploaded before the throttle).
+  # Every run does a full archive + UPLOAD to App Store Connect,
+  # which enforces a per-app DAILY upload cap. The old "build on
+  # every push" (~10+/day) blew that cap → "Upload limit reached.
+  # Please wait 1 day" → looked like "TestFlight stuck at 574".
   #
-  # Decoupling fixes it at the root: push = save code (history),
-  # pressing "Run workflow" = spend one of the day's uploads on
-  # purpose. To ship a TestFlight build: GitHub → Actions → "iOS
-  # TestFlight Build" → Run workflow (defaults to main / latest).
-  workflow_dispatch:
+  # A once-a-day schedule IS the rate limiter: structurally ≤ 1
+  # upload/day from cron, far below Apple's cap — so NO counting
+  # logic is needed (a hand-rolled counter would be over-engineering
+  # and fragile). push no longer triggers anything (push = save
+  # code only). Trade-off: a commit reaches TestFlight at the next
+  # daily run (≤ ~24h), not instantly — fine for a beta cadence,
+  # and testers get one clean build/day instead of build spam.
+  schedule:
+    - cron: '30 20 * * *'   # 每天 UTC 20:30 (台灣 04:30) — 隔夜 build，早上就有新版
+  workflow_dispatch:          # 需要馬上出一版時手動補按（1 次 cron + 偶爾手動，仍遠低於 Apple 上限）
 
 jobs:
   build-and-upload:
