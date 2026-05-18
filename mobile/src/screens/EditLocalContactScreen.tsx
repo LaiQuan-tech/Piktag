@@ -281,25 +281,81 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
       const cardName = (card.full_name ?? '').trim();
       const cardPhone = (card.phone ?? '').trim();
       const cardEmail = (card.email ?? '').trim();
-      if (cardName) setName((cur) => (cur.trim() ? cur : cardName));
-      if (cardPhone) setPhone((cur) => (cur.trim() ? cur : cardPhone));
-      if (cardEmail) setEmail((cur) => (cur.trim() ? cur : cardEmail));
-
-      // Job title + company → the member-aligned 職稱 field (same
-      // shape as a member's profile headline, e.g. "PM @ Google").
+      const bioDraft = (card.bio_draft ?? '').trim();
       const cardHeadline = [card.job_title, card.company]
         .filter((s) => s && s.trim())
         .join(' @ ')
         .trim();
-      if (cardHeadline) setHeadline((cur) => (cur.trim() ? cur : cardHeadline));
 
-      // Good scan → into the form (prefilled) for review/edit.
-      setStep('form');
-      // Context exists now — surface AI tags proactively. bio_draft
-      // has no contact field, so pass it through here as extra tag
-      // fuel rather than discarding the signal.
-      const bioDraft = (card.bio_draft ?? '').trim();
-      setTimeout(() => { fetchAiTags(bioDraft || undefined); }, 0);
+      // Default path: prefill the form for review/edit.
+      const applyPrefill = () => {
+        if (cardName) setName((cur) => (cur.trim() ? cur : cardName));
+        if (cardPhone) setPhone((cur) => (cur.trim() ? cur : cardPhone));
+        if (cardEmail) setEmail((cur) => (cur.trim() ? cur : cardEmail));
+        // Job title + company → the member-aligned 職稱 field.
+        if (cardHeadline) setHeadline((cur) => (cur.trim() ? cur : cardHeadline));
+        setStep('form');
+        // bio_draft has no contact field → AI-tag fuel only.
+        setTimeout(() => { fetchAiTags(bioDraft || undefined); }, 0);
+      };
+
+      // Is the scanned person ALREADY a PikTag member? Match the
+      // scanned phone/email against profiles via the SAME canonical
+      // RPC ContactSync uses. If so, filing a private local contact is
+      // the wrong outcome (it would never auto-link — the promote
+      // trigger only fires on NEW registration) — offer to connect to
+      // the real member instead. FAIL-OPEN: any lookup error must not
+      // block the scan; just fall through to the normal prefill.
+      let member:
+        | { matched_user_id: string; full_name: string | null; username: string | null }
+        | null = null;
+      if (cardPhone || cardEmail) {
+        try {
+          const { data: matches, error: matchErr } = await supabase.rpc(
+            'match_contacts_against_profiles',
+            {
+              p_phones: cardPhone ? [cardPhone] : [],
+              p_emails: cardEmail ? [cardEmail] : [],
+            },
+          );
+          if (!matchErr && Array.isArray(matches) && matches.length > 0) {
+            member = matches[0] as any;
+          }
+        } catch (e) {
+          console.warn('[LocalContact] member match failed:', e);
+        }
+      }
+
+      if (member?.matched_user_id) {
+        const who =
+          (member.full_name && member.full_name.trim()) ||
+          (member.username ? `@${member.username}` : cardName) ||
+          t('localContact.alreadyMemberFallbackWho', { defaultValue: '這個人' });
+        setScanning(false); // scan's done — drop the spinner before the choice
+        Alert.alert(
+          t('localContact.alreadyMemberTitle', { defaultValue: '這個人已經在 PikTag' }),
+          t('localContact.alreadyMemberMsg', {
+            name: who,
+            defaultValue:
+              `${who} 已經是 PikTag 會員 —— 直接連上更好，不用只記成聯絡人。`,
+          }),
+          [
+            {
+              text: t('localContact.alreadyMemberFile', { defaultValue: '仍記成聯絡人' }),
+              style: 'cancel',
+              onPress: applyPrefill,
+            },
+            {
+              text: t('localContact.alreadyMemberConnect', { defaultValue: '查看／加好友' }),
+              onPress: () =>
+                navigation.replace('UserDetail', { userId: member!.matched_user_id }),
+            },
+          ],
+        );
+        return;
+      }
+
+      applyPrefill();
     } catch (err: any) {
       const isTimeout = err?.message === 'SCAN_TIMEOUT';
       Alert.alert(
@@ -315,7 +371,7 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
     } finally {
       setScanning(false);
     }
-  }, [t, fetchAiTags]);
+  }, [t, fetchAiTags, navigation]);
 
   // Open the custom framing-guide camera; it returns the photo here.
   const handleScanCard = useCallback(() => {
