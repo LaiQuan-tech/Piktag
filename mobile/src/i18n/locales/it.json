@@ -98,7 +98,9 @@
       "confirmPasswordPlaceholder": "Conferma password",
       "alertPasswordMismatch": "Le password non coincidono",
       "passwordHint": "La password deve avere almeno 6 caratteri",
-      "birthdayLabel": "Compleanno (facoltativo)"
+      "birthdayLabel": "Compleanno (facoltativo)",
+      "alertVerifyEmailTitle": "Verifica la tua email",
+      "alertVerifyEmailMessage": "Ti abbiamo inviato un link di conferma. Toccalo e poi rifai il login."
     },
     "onboarding": {
       "welcome": {
@@ -190,7 +192,8 @@
       "cardBioPlaceholder": "Una riga su di te",
       "cardLinksLabel": "Contatti / social",
       "cardApplyCta": "Applica",
-      "profileCta": "Crea il mio primo Tag"
+      "profileCta": "Crea il mio primo Tag",
+      "saveFailed": "Salvataggio non riuscito — controlla la connessione e riprova."
     }
   },
   "connections": {
@@ -1236,7 +1239,8 @@
       "Consigliatemi un dentista a prezzi accessibili",
       "Serata di giochi da tavolo questa settimana, chi c'è?"
     ],
-    "createSubtitle": "Basta una riga — l'AI ci mette i tag, così la vedono le persone giuste (o un amico di un amico)."
+    "createSubtitle": "Basta una riga — l'AI ci mette i tag, così la vedono le persone giuste (o un amico di un amico).",
+    "createFailed": "Il tuo Ask non è partito — riprova."
   },
   "errorBoundary": {
     "title": "Ops, qualcosa non ha funzionato",

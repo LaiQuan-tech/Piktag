@@ -92,7 +92,9 @@
       "confirmPasswordPlaceholder": "পাসওয়ার্ড নিশ্চিত করুন",
       "alertPasswordMismatch": "পাসওয়ার্ড মিলছে না",
       "passwordHint": "পাসওয়ার্ড কমপক্ষে 6 অক্ষরের হতে হবে",
-      "birthdayLabel": "জন্মদিন (ঐচ্ছিক)"
+      "birthdayLabel": "জন্মদিন (ঐচ্ছিক)",
+      "alertVerifyEmailTitle": "আপনার ইমেল যাচাই করুন",
+      "alertVerifyEmailMessage": "আমরা আপনার ইনবক্সে একটি নিশ্চিতকরণ লিঙ্ক পাঠিয়েছি। ট্যাপ করে আবার লগইন করুন।"
     },
     "onboarding": {
       "welcome": {
@@ -178,7 +180,8 @@
       "cardBioPlaceholder": "নিজের সম্পর্কে এক লাইন",
       "cardLinksLabel": "যোগাযোগ / সোশ্যাল",
       "cardApplyCta": "প্রয়োগ করুন",
-      "profileCta": "আমার প্রথম Tag বানাও"
+      "profileCta": "আমার প্রথম Tag বানাও",
+      "saveFailed": "সেভ হয়নি — সংযোগ দেখে আবার চেষ্টা করুন।"
     }
   },
   "connections": {
@@ -1144,7 +1147,8 @@
       "সস্তা ডেন্টিস্ট সাজেস্ট করুন",
       "এই সপ্তাহে বোর্ড-গেম নাইট, কে আসছে?"
     ],
-    "createSubtitle": "এক লাইনই যথেষ্ট — AI ট্যাগ যোগ করে যাতে ঠিক মানুষ (বা বন্ধুর বন্ধু) দেখতে পায়।"
+    "createSubtitle": "এক লাইনই যথেষ্ট — AI ট্যাগ যোগ করে যাতে ঠিক মানুষ (বা বন্ধুর বন্ধু) দেখতে পায়।",
+    "createFailed": "আপনার Ask যায়নি — আবার চেষ্টা করুন।"
   },
   "errorBoundary": {
     "title": "কিছু ভুল হয়েছে",

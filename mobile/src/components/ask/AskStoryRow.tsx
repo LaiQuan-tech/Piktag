@@ -689,7 +689,14 @@ export function AskCreateModal({ visible, onClose, existingAsk, onCreated }: Ask
       if (error || !askData) throw error || new Error('Insert failed');
 
       const tagRows = validTagIds.map((tag_id) => ({ ask_id: askData.id, tag_id }));
-      await supabase.from('piktag_ask_tags').insert(tagRows);
+      const { error: tagErr } = await supabase.from('piktag_ask_tags').insert(tagRows);
+      if (tagErr) {
+        // A bodied Ask with zero tags is unreachable via the
+        // tag-keyed feeds and pollutes fetch_ask_feed forever.
+        // Roll back the orphan instead of leaving it.
+        await supabase.from('piktag_asks').delete().eq('id', askData.id);
+        throw tagErr;
+      }
 
       // AI title generation (async, non-blocking)
       supabase.functions.invoke('generate-ask-title', {
@@ -704,10 +711,18 @@ export function AskCreateModal({ visible, onClose, existingAsk, onCreated }: Ask
       onClose();
     } catch (err) {
       console.warn('Ask create failed:', err);
+      // Was silently swallowed: spinner stopped, modal stayed open
+      // with the typed body, user saw NOTHING and would re-tap
+      // (duplicate Asks). Surface it; body is preserved so they can
+      // retry. onCreated/onClose run only on the success path above.
+      Alert.alert(
+        t('common.error', { defaultValue: '錯誤' }),
+        t('ask.createFailed', { defaultValue: '貼文沒送出去，請再試一次。' }),
+      );
     } finally {
       setSaving(false);
     }
-  }, [user, body, selectedNames, existingAsk, onCreated, onClose]);
+  }, [user, body, selectedNames, existingAsk, onCreated, onClose, t]);
 
   const handleDelete = useCallback(async () => {
     if (!existingAsk) return;

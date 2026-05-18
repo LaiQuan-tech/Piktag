@@ -92,7 +92,9 @@
       "confirmPasswordPlaceholder": "パスワードを確認",
       "alertPasswordMismatch": "パスワードが一致しません",
       "passwordHint": "パスワードは6文字以上にしてください",
-      "birthdayLabel": "誕生日（任意）"
+      "birthdayLabel": "誕生日（任意）",
+      "alertVerifyEmailTitle": "メールを確認してください",
+      "alertVerifyEmailMessage": "確認メールを送りました。リンクをタップしてからログインしてね。"
     },
     "onboarding": {
       "welcome": {
@@ -178,7 +180,8 @@
       "cardBioPlaceholder": "自己紹介を一言",
       "cardLinksLabel": "連絡先 / SNS",
       "cardApplyCta": "適用",
-      "profileCta": "最初の Tag を作成"
+      "profileCta": "最初の Tag を作成",
+      "saveFailed": "保存できなかった — 接続を確認してもう一度試してね。"
     }
   },
   "connections": {
@@ -1144,7 +1147,8 @@
       "安い歯医者を教えて",
       "今週ボードゲーム会、誰か来る？"
     ],
-    "createSubtitle": "一言でOK — AIがタグを付けて、ぴったりの人（友達の友達も）に届きます。"
+    "createSubtitle": "一言でOK — AIがタグを付けて、ぴったりの人（友達の友達も）に届きます。",
+    "createFailed": "Ask を送れなかった — もう一度試してね。"
   },
   "errorBoundary": {
     "title": "問題が発生しました",

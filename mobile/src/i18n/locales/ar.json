@@ -92,7 +92,9 @@
       "confirmPasswordPlaceholder": "تأكيد كلمة المرور",
       "alertPasswordMismatch": "كلمتا المرور غير متطابقتين",
       "passwordHint": "يجب أن تتكون كلمة المرور من 6 أحرف على الأقل",
-      "birthdayLabel": "تاريخ الميلاد (اختياري)"
+      "birthdayLabel": "تاريخ الميلاد (اختياري)",
+      "alertVerifyEmailTitle": "تحقّق من بريدك",
+      "alertVerifyEmailMessage": "أرسلنا رابط تأكيد إلى بريدك. اضغط عليه ثم عُد لتسجيل الدخول."
     },
     "onboarding": {
       "welcome": {
@@ -178,7 +180,8 @@
       "cardBioPlaceholder": "سطر واحد عنك",
       "cardLinksLabel": "جهات الاتصال / التواصل",
       "cardApplyCta": "تطبيق",
-      "profileCta": "أنشئ أول Tag"
+      "profileCta": "أنشئ أول Tag",
+      "saveFailed": "تعذّر الحفظ — تحقّق من اتصالك وحاول مجددًا."
     }
   },
   "connections": {
@@ -1144,7 +1147,8 @@
       "رشّحوا طبيب أسنان بسعر معقول",
       "ليلة ألعاب طاولة هذا الأسبوع، مين جاي؟"
     ],
-    "createSubtitle": "سطر واحد يكفي — يضيف الذكاء الاصطناعي الوسوم ليراه الأشخاص المناسبون (أو صديق صديق)."
+    "createSubtitle": "سطر واحد يكفي — يضيف الذكاء الاصطناعي الوسوم ليراه الأشخاص المناسبون (أو صديق صديق).",
+    "createFailed": "لم يُرسَل طلبك — حاول مرة أخرى."
   },
   "errorBoundary": {
     "title": "حدث خطأ ما",

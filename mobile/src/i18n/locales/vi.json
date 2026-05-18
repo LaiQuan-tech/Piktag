@@ -98,7 +98,9 @@
       "confirmPasswordPlaceholder": "Nhập lại mật khẩu",
       "alertPasswordMismatch": "Hai mật khẩu chưa khớp",
       "passwordHint": "Mật khẩu cần ít nhất 6 ký tự",
-      "birthdayLabel": "Ngày sinh (không bắt buộc)"
+      "birthdayLabel": "Ngày sinh (không bắt buộc)",
+      "alertVerifyEmailTitle": "Xác minh email của bạn",
+      "alertVerifyEmailMessage": "Bọn mình đã gửi link xác nhận tới email. Bấm vào đó rồi quay lại đăng nhập nhé."
     },
     "onboarding": {
       "welcome": {
@@ -190,7 +192,8 @@
       "cardBioPlaceholder": "Một dòng về bạn",
       "cardLinksLabel": "Liên hệ / mạng xã hội",
       "cardApplyCta": "Áp dụng",
-      "profileCta": "Tạo Tag đầu tiên"
+      "profileCta": "Tạo Tag đầu tiên",
+      "saveFailed": "Chưa lưu được — kiểm tra kết nối rồi thử lại."
     }
   },
   "connections": {
@@ -1236,7 +1239,8 @@
       "Giới thiệu giúp nha sĩ giá hợp lý",
       "Tối nay chơi board game, ai tham gia không?"
     ],
-    "createSubtitle": "Chỉ một dòng — AI tự thêm tag để đúng người (hoặc bạn của bạn) nhìn thấy."
+    "createSubtitle": "Chỉ một dòng — AI tự thêm tag để đúng người (hoặc bạn của bạn) nhìn thấy.",
+    "createFailed": "Ask chưa gửi được — thử lại nhé."
   },
   "errorBoundary": {
     "title": "Có gì đó trục trặc",

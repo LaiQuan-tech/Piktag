@@ -98,7 +98,9 @@
       "confirmPasswordPlaceholder": "确认密码",
       "alertPasswordMismatch": "两次密码输入不一致",
       "passwordHint": "密码至少需要 6 个字符",
-      "birthdayLabel": "生日（选填）"
+      "birthdayLabel": "生日（选填）",
+      "alertVerifyEmailTitle": "请先验证 Email",
+      "alertVerifyEmailMessage": "我们寄了一封确认信到你的邮箱，点开信中链接后，再回来登录。"
     },
     "onboarding": {
       "welcome": {
@@ -185,7 +187,8 @@
       "cardBioPlaceholder": "一句话介绍你自己",
       "cardLinksLabel": "联系方式 / 社群",
       "cardApplyCta": "套用",
-      "profileCta": "建立我的第一个 Tag"
+      "profileCta": "建立我的第一个 Tag",
+      "saveFailed": "没存成功，检查一下网络再试一次。"
     }
   },
   "connections": {
@@ -1216,7 +1219,8 @@
       "推荐北京平价牙医",
       "找桌游搭子，这周约一场"
     ],
-    "createSubtitle": "一句话就好 — AI 会配上标签，让对的人（或朋友的朋友）看到。"
+    "createSubtitle": "一句话就好 — AI 会配上标签，让对的人（或朋友的朋友）看到。",
+    "createFailed": "帖子没送出去，请再试一次。"
   },
   "errorBoundary": {
     "title": "出错了",

@@ -92,7 +92,9 @@
       "confirmPasswordPlaceholder": "Konfirmasi Kata Sandi",
       "alertPasswordMismatch": "Kata sandi tidak cocok",
       "passwordHint": "Kata sandi harus minimal 6 karakter",
-      "birthdayLabel": "Tanggal lahir (opsional)"
+      "birthdayLabel": "Tanggal lahir (opsional)",
+      "alertVerifyEmailTitle": "Verifikasi email kamu",
+      "alertVerifyEmailMessage": "Kami kirim link konfirmasi ke email kamu. Ketuk, lalu login lagi."
     },
     "onboarding": {
       "welcome": {
@@ -178,7 +180,8 @@
       "cardBioPlaceholder": "Satu baris tentang kamu",
       "cardLinksLabel": "Kontak / sosial",
       "cardApplyCta": "Terapkan",
-      "profileCta": "Buat Tag pertamaku"
+      "profileCta": "Buat Tag pertamaku",
+      "saveFailed": "Gagal menyimpan — cek koneksi dan coba lagi."
     }
   },
   "connections": {
@@ -1144,7 +1147,8 @@
       "Rekomendasi dokter gigi murah",
       "Main board game minggu ini, siapa ikut?"
     ],
-    "createSubtitle": "Satu baris cukup — AI menambah tag biar orang yang tepat (atau teman dari teman) melihatnya."
+    "createSubtitle": "Satu baris cukup — AI menambah tag biar orang yang tepat (atau teman dari teman) melihatnya.",
+    "createFailed": "Ask kamu gagal terkirim — coba lagi."
   },
   "errorBoundary": {
     "title": "Terjadi kesalahan",

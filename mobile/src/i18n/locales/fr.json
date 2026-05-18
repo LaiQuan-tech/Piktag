@@ -92,7 +92,9 @@
       "confirmPasswordPlaceholder": "Confirmer le mot de passe",
       "alertPasswordMismatch": "Les mots de passe ne correspondent pas",
       "passwordHint": "Le mot de passe doit contenir au moins 6 caractères",
-      "birthdayLabel": "Anniversaire (facultatif)"
+      "birthdayLabel": "Anniversaire (facultatif)",
+      "alertVerifyEmailTitle": "Vérifie ton e-mail",
+      "alertVerifyEmailMessage": "On t'a envoyé un lien de confirmation. Clique dessus puis reconnecte-toi."
     },
     "onboarding": {
       "welcome": {
@@ -178,7 +180,8 @@
       "cardBioPlaceholder": "Une ligne sur vous",
       "cardLinksLabel": "Contacts / réseaux",
       "cardApplyCta": "Appliquer",
-      "profileCta": "Créer mon premier Tag"
+      "profileCta": "Créer mon premier Tag",
+      "saveFailed": "Échec de l'enregistrement — vérifie ta connexion et réessaie."
     }
   },
   "connections": {
@@ -1144,7 +1147,8 @@
       "Recommandez un dentiste pas cher",
       "Soirée jeux de société cette semaine, qui vient ?"
     ],
-    "createSubtitle": "Une ligne suffit — l'IA ajoute les tags pour que les bonnes personnes (ou un ami d'ami) le voient."
+    "createSubtitle": "Une ligne suffit — l'IA ajoute les tags pour que les bonnes personnes (ou un ami d'ami) le voient.",
+    "createFailed": "Ton Ask n'est pas passé — réessaie."
   },
   "errorBoundary": {
     "title": "Une erreur est survenue",

@@ -91,11 +91,14 @@ export default function RegisterScreen({ navigation }: RegisterScreenProps) {
       // since the field is optional and Onboarding can collect it later.
       const trimmedBirthday = birthday.trim();
       const userId = data.user?.id;
-      if (trimmedBirthday && userId) {
+      // Only writable when we actually have a session (email-confirm
+      // OFF). upsert — not update().eq — so a profile row the signup
+      // trigger hasn't committed yet still gets the birthday instead
+      // of a silent 0-row no-op (data loss with no feedback).
+      if (trimmedBirthday && userId && data.session) {
         await supabase
           .from('piktag_profiles')
-          .update({ birthday: trimmedBirthday })
-          .eq('id', userId)
+          .upsert({ id: userId, birthday: trimmedBirthday }, { onConflict: 'id' })
           .then(({ error: bdayErr }) => {
             if (bdayErr) console.warn('Save birthday failed:', bdayErr.message);
           });
@@ -103,6 +106,18 @@ export default function RegisterScreen({ navigation }: RegisterScreenProps) {
 
       if (data.session) {
         Alert.alert(t('auth.register.alertSuccessTitle'), t('auth.register.alertSuccessMessage'));
+      } else {
+        // Email confirmation is ON: signUp returns NO session and NO
+        // error. Without this branch the user taps Register and sees
+        // absolutely nothing — a silent dead end on the form. Tell
+        // them to verify, then route to Login.
+        Alert.alert(
+          t('auth.register.alertVerifyEmailTitle', { defaultValue: '請先驗證 Email' }),
+          t('auth.register.alertVerifyEmailMessage', {
+            defaultValue: '我們寄了一封確認信到你的信箱，點開信中連結後，再回來登入。',
+          }),
+        );
+        navigation.navigate('Login');
       }
     } catch (err: any) {
       Alert.alert(t('common.error'), err.message || t('common.unknownError'));

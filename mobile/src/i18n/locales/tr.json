@@ -92,7 +92,9 @@
       "confirmPasswordPlaceholder": "Şifreyi Onayla",
       "alertPasswordMismatch": "Şifreler eşleşmiyor",
       "passwordHint": "Şifre en az 6 karakter olmalıdır",
-      "birthdayLabel": "Doğum günü (isteğe bağlı)"
+      "birthdayLabel": "Doğum günü (isteğe bağlı)",
+      "alertVerifyEmailTitle": "E-postanı doğrula",
+      "alertVerifyEmailMessage": "Onay bağlantısını e-postana gönderdik. Dokun, sonra tekrar giriş yap."
     },
     "onboarding": {
       "welcome": {
@@ -178,7 +180,8 @@
       "cardBioPlaceholder": "Kendinle ilgili bir satır",
       "cardLinksLabel": "İletişim / sosyal",
       "cardApplyCta": "Uygula",
-      "profileCta": "İlk Tag’imi oluştur"
+      "profileCta": "İlk Tag’imi oluştur",
+      "saveFailed": "Kaydedilemedi — bağlantını kontrol edip tekrar dene."
     }
   },
   "connections": {
@@ -1144,7 +1147,8 @@
       "Uygun fiyatlı diş hekimi önerin",
       "Bu hafta masa oyunu gecesi, kim var?"
     ],
-    "createSubtitle": "Bir satır yeter — AI etiketleri ekler, doğru kişiler (ya da bir arkadaşın arkadaşı) görsün."
+    "createSubtitle": "Bir satır yeter — AI etiketleri ekler, doğru kişiler (ya da bir arkadaşın arkadaşı) görsün.",
+    "createFailed": "Ask gönderilemedi — tekrar dene."
   },
   "errorBoundary": {
     "title": "Bir şeyler ters gitti",

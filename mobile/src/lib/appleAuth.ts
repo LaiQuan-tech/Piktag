@@ -29,7 +29,15 @@ export async function signInWithApple() {
     nonce: rawNonce,
   });
 
-  // Save full name to profile if provided (Apple only gives it on first sign-in)
+  // Surface a failed sign-in BEFORE touching the profile — no point
+  // (and no auth) writing a profile on a failed auth, and the late
+  // throw made the error ordering confusing.
+  if (error) throw error;
+
+  // Save full name to profile if provided (Apple only gives it on
+  // first sign-in). Best-effort: if the post-signup profile-trigger
+  // race makes this a 0-row no-op, Onboarding's upsert reliably
+  // captures the name afterwards, so this is not a data-loss path.
   if (data.user && credential.fullName) {
     const fullName = [credential.fullName.givenName, credential.fullName.familyName]
       .filter(Boolean)
@@ -43,6 +51,5 @@ export async function signInWithApple() {
     }
   }
 
-  if (error) throw error;
   return data;
 }

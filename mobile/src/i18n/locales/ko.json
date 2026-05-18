@@ -92,7 +92,9 @@
       "confirmPasswordPlaceholder": "비밀번호 확인",
       "alertPasswordMismatch": "비밀번호가 일치하지 않습니다",
       "passwordHint": "비밀번호는 6자 이상이어야 합니다",
-      "birthdayLabel": "생일 (선택)"
+      "birthdayLabel": "생일 (선택)",
+      "alertVerifyEmailTitle": "이메일을 인증해 주세요",
+      "alertVerifyEmailMessage": "확인 메일을 보냈어요. 링크를 누른 뒤 다시 로그인해 주세요."
     },
     "onboarding": {
       "welcome": {
@@ -178,7 +180,8 @@
       "cardBioPlaceholder": "한 줄 자기소개",
       "cardLinksLabel": "연락처 / 소셜",
       "cardApplyCta": "적용",
-      "profileCta": "첫 Tag 만들기"
+      "profileCta": "첫 Tag 만들기",
+      "saveFailed": "저장하지 못했어요 — 연결을 확인하고 다시 시도해 주세요."
     }
   },
   "connections": {
@@ -1144,7 +1147,8 @@
       "가성비 좋은 치과 추천",
       "이번 주 보드게임 모임 같이 할 사람"
     ],
-    "createSubtitle": "한 줄이면 돼요 — AI가 태그를 붙여 딱 맞는 사람(친구의 친구도)에게 닿아요."
+    "createSubtitle": "한 줄이면 돼요 — AI가 태그를 붙여 딱 맞는 사람(친구의 친구도)에게 닿아요.",
+    "createFailed": "Ask를 올리지 못했어요 — 다시 시도해 주세요."
   },
   "errorBoundary": {
     "title": "문제가 발생했습니다",

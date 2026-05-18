@@ -98,7 +98,9 @@
       "confirmPasswordPlaceholder": "確認密碼",
       "alertPasswordMismatch": "兩次密碼輸入不一致",
       "passwordHint": "密碼至少需要 6 個字元",
-      "birthdayLabel": "生日（選填）"
+      "birthdayLabel": "生日（選填）",
+      "alertVerifyEmailTitle": "請先驗證 Email",
+      "alertVerifyEmailMessage": "我們寄了一封確認信到你的信箱，點開信中連結後，再回來登入。"
     },
     "onboarding": {
       "welcome": {
@@ -190,7 +192,8 @@
       "cardBioPlaceholder": "一句話介紹你自己",
       "cardLinksLabel": "聯絡方式 / 社群",
       "cardApplyCta": "套用",
-      "profileCta": "建立我的第一個 Tag"
+      "profileCta": "建立我的第一個 Tag",
+      "saveFailed": "沒存成功，檢查一下網路再試一次。"
     }
   },
   "connections": {
@@ -1236,7 +1239,8 @@
       "推薦台北平價牙醫",
       "找桌遊咖，這週揪一場"
     ],
-    "createSubtitle": "一句話就好 — AI 會配上標籤，讓對的人（或朋友的朋友）看到。"
+    "createSubtitle": "一句話就好 — AI 會配上標籤，讓對的人（或朋友的朋友）看到。",
+    "createFailed": "貼文沒送出去，請再試一次。"
   },
   "errorBoundary": {
     "title": "發生錯誤",

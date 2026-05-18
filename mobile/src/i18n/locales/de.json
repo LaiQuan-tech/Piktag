@@ -98,7 +98,9 @@
       "confirmPasswordPlaceholder": "Passwort bestätigen",
       "alertPasswordMismatch": "Passwörter stimmen nicht überein",
       "passwordHint": "Passwort muss mindestens 6 Zeichen haben",
-      "birthdayLabel": "Geburtstag (optional)"
+      "birthdayLabel": "Geburtstag (optional)",
+      "alertVerifyEmailTitle": "Bestätige deine E-Mail",
+      "alertVerifyEmailMessage": "Wir haben dir einen Bestätigungslink geschickt. Tippe ihn an und melde dich dann an."
     },
     "onboarding": {
       "welcome": {
@@ -185,7 +187,8 @@
       "cardBioPlaceholder": "Eine Zeile über dich",
       "cardLinksLabel": "Kontakte / Social",
       "cardApplyCta": "Übernehmen",
-      "profileCta": "Meinen ersten Vibe erstellen"
+      "profileCta": "Meinen ersten Vibe erstellen",
+      "saveFailed": "Speichern fehlgeschlagen — prüfe deine Verbindung und versuch es nochmal."
     }
   },
   "connections": {
@@ -1216,7 +1219,8 @@
       "Empfehlt einen günstigen Zahnarzt",
       "Brettspielabend diese Woche, wer ist dabei?"
     ],
-    "createSubtitle": "Eine Zeile reicht — die KI vergibt die Tags, damit die richtigen Leute (oder ein Freund eines Freundes) es sehen."
+    "createSubtitle": "Eine Zeile reicht — die KI vergibt die Tags, damit die richtigen Leute (oder ein Freund eines Freundes) es sehen.",
+    "createFailed": "Dein Ask ging nicht raus — versuch es nochmal."
   },
   "errorBoundary": {
     "title": "Etwas ist schiefgelaufen",

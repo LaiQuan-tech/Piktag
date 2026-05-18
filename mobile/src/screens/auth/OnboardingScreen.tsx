@@ -429,14 +429,26 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
       const trimmedBio = bio.trim();
       if (trimmedBio) profilePatch.bio = trimmedBio;
 
+      // upsert (not update().eq) so a profile row the signup trigger
+      // hasn't committed yet still gets written — closes the
+      // post-signup race. And the name write is now FATAL: it is the
+      // core deliverable of onboarding ("friends scanning your QR
+      // see this name"). Marking onboarding complete on a failed
+      // name write strands the user with a nameless profile AND no
+      // way back in (the completed flag + age check both say skip).
       const { error } = await supabase
         .from('piktag_profiles')
-        .update(profilePatch)
-        .eq('id', user.id);
+        .upsert({ id: user.id, ...profilePatch }, { onConflict: 'id' });
       if (error) {
-        console.warn('[Onboarding] profile update failed:', error.message);
-        // Non-fatal — we still mark onboarding done and let the user
-        // continue. They can fix name/bio from EditProfile.
+        console.warn('[Onboarding] profile upsert failed:', error.message);
+        Alert.alert(
+          t('common.error', { defaultValue: '錯誤' }),
+          t('auth.onboarding.saveFailed', {
+            defaultValue: '資料沒存成功，請檢查網路後再試一次。',
+          }),
+        );
+        setSaving(false);
+        return;
       }
 
       // Biolinks from a confirmed card scan. Best-effort + non-fatal:

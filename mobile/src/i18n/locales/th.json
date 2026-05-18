@@ -92,7 +92,9 @@
       "confirmPasswordPlaceholder": "ยืนยันรหัสผ่าน",
       "alertPasswordMismatch": "รหัสผ่านไม่ตรงกัน",
       "passwordHint": "รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร",
-      "birthdayLabel": "วันเกิด (ถ้ามี)"
+      "birthdayLabel": "วันเกิด (ถ้ามี)",
+      "alertVerifyEmailTitle": "ยืนยันอีเมลของคุณ",
+      "alertVerifyEmailMessage": "เราส่งลิงก์ยืนยันไปที่อีเมลแล้ว แตะลิงก์แล้วกลับมาเข้าสู่ระบบ"
     },
     "onboarding": {
       "welcome": {
@@ -178,7 +180,8 @@
       "cardBioPlaceholder": "แนะนำตัวสั้นๆ",
       "cardLinksLabel": "ติดต่อ / โซเชียล",
       "cardApplyCta": "ใช้",
-      "profileCta": "สร้าง Tag แรกของฉัน"
+      "profileCta": "สร้าง Tag แรกของฉัน",
+      "saveFailed": "บันทึกไม่สำเร็จ — เช็กการเชื่อมต่อแล้วลองใหม่"
     }
   },
   "connections": {
@@ -1144,7 +1147,8 @@
       "แนะนำหมอฟันราคาเบาๆ",
       "ก๊วนบอร์ดเกมสัปดาห์นี้ ใครมาบ้าง"
     ],
-    "createSubtitle": "บรรทัดเดียวก็พอ — AI จะใส่แท็กให้คนที่ใช่ (หรือเพื่อนของเพื่อน) เห็น"
+    "createSubtitle": "บรรทัดเดียวก็พอ — AI จะใส่แท็กให้คนที่ใช่ (หรือเพื่อนของเพื่อน) เห็น",
+    "createFailed": "โพสต์ Ask ไม่สำเร็จ — ลองใหม่อีกครั้ง"
   },
   "errorBoundary": {
     "title": "เกิดข้อผิดพลาด",

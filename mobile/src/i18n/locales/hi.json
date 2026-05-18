@@ -92,7 +92,9 @@
       "confirmPasswordPlaceholder": "पासवर्ड की पुष्टि करें",
       "alertPasswordMismatch": "पासवर्ड मेल नहीं खाते",
       "passwordHint": "पासवर्ड कम से कम 6 अक्षरों का होना चाहिए",
-      "birthdayLabel": "जन्मदिन (वैकल्पिक)"
+      "birthdayLabel": "जन्मदिन (वैकल्पिक)",
+      "alertVerifyEmailTitle": "अपना ईमेल वेरिफ़ाई करें",
+      "alertVerifyEmailMessage": "हमने आपके इनबॉक्स में पुष्टि लिंक भेजा है। उसे टैप करें, फिर लॉगिन करें।"
     },
     "onboarding": {
       "welcome": {
@@ -178,7 +180,8 @@
       "cardBioPlaceholder": "अपने बारे में एक पंक्ति",
       "cardLinksLabel": "संपर्क / सोशल",
       "cardApplyCta": "लागू करें",
-      "profileCta": "मेरा पहला Tag बनाएँ"
+      "profileCta": "मेरा पहला Tag बनाएँ",
+      "saveFailed": "सेव नहीं हुआ — कनेक्शन जाँचें और फिर से कोशिश करें।"
     }
   },
   "connections": {
@@ -1144,7 +1147,8 @@
       "सस्ता डेंटिस्ट सुझाएँ",
       "इस हफ्ते बोर्ड-गेम नाइट, कौन आ रहा है?"
     ],
-    "createSubtitle": "एक लाइन काफी है — AI टैग जोड़ता है ताकि सही लोग (या दोस्त का दोस्त) इसे देखें।"
+    "createSubtitle": "एक लाइन काफी है — AI टैग जोड़ता है ताकि सही लोग (या दोस्त का दोस्त) इसे देखें।",
+    "createFailed": "आपका Ask नहीं गया — फिर से कोशिश करें।"
   },
   "errorBoundary": {
     "title": "कुछ गड़बड़ हो गई",
