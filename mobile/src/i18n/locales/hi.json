@@ -702,7 +702,8 @@
     "alertFollowAllConfirm": "जोड़ें",
     "alertFollowAllDoneTitle": "हो गया",
     "alertFollowAllDoneMessage": "{{count}} PikTag दोस्त जोड़े गए",
-    "allConnected": "PikTag के सभी कॉन्टैक्ट पहले से जुड़े हैं"
+    "allConnected": "PikTag के सभी कॉन्टैक्ट पहले से जुड़े हैं",
+    "openSettings": "अनुमति देने के लिए सेटिंग्स खोलें"
   },
   "invite": {
     "headerTitle": "दोस्तों को आमंत्रित करें",
@@ -872,7 +873,8 @@
     "addFriend": "फ़ॉलो",
     "connectElsewhereTitle": "{{name}} से यहाँ भी जुड़ें",
     "connectElsewhereHint": "टैप करें, उनका पेज उस ऐप में खुलेगा — फ़ॉलो/ऐड आप करें।",
-    "selfScanMessage": "यह आपका अपना QR है — आप ख़ुद को नहीं जोड़ सकते।"
+    "selfScanMessage": "यह आपका अपना QR है — आप ख़ुद को नहीं जोड़ सकते।",
+    "addingFriend": "दोस्त जोड़ा जा रहा है…"
   },
   "manageTags": {
     "headerTitle": "टैग प्रबंधित करें",
@@ -1174,7 +1176,8 @@
     "reasonSpam": "स्पैम",
     "reasonHarassment": "उत्पीड़न",
     "reasonInappropriate": "अनुचित सामग्री",
-    "reasonOther": "अन्य"
+    "reasonOther": "अन्य",
+    "noTarget": "इस सूचना में रिपोर्ट करने के लिए कोई नहीं है।"
   },
   "tabTooltips": {
     "home": "दोस्त",

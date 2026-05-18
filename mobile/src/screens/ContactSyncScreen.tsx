@@ -14,6 +14,7 @@ import {
   TextInput,
   KeyboardAvoidingView,
   ScrollView,
+  Linking,
 } from 'react-native';
 import { Image } from 'expo-image';
 import PageLoader from '../components/loaders/PageLoader';
@@ -710,6 +711,18 @@ export default function ContactSyncScreen({ navigation }: ContactSyncScreenProps
             ? t('contactSync.permissionDeniedWeb')
             : t('contactSync.permissionDeniedNative')}
         </Text>
+        {Platform.OS !== 'web' && (
+          <TouchableOpacity
+            style={styles.openSettingsBtn}
+            onPress={() => Linking.openSettings().catch(() => {})}
+            activeOpacity={0.8}
+            accessibilityRole="button"
+          >
+            <Text style={styles.openSettingsBtnText}>
+              {t('contactSync.openSettings', { defaultValue: '前往設定開啟權限' })}
+            </Text>
+          </TouchableOpacity>
+        )}
       </View>
     );
   } else if (contacts.length === 0) {
@@ -1049,6 +1062,14 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 20,
   },
+  openSettingsBtn: {
+    marginTop: 20,
+    paddingHorizontal: 22,
+    paddingVertical: 12,
+    borderRadius: 9999,
+    backgroundColor: COLORS.piktag500,
+  },
+  openSettingsBtnText: { fontSize: 15, fontWeight: '700', color: '#FFFFFF' },
 
   // Summary card (above sections)
   summaryCard: {

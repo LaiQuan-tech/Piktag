@@ -702,7 +702,8 @@
     "alertFollowAllConfirm": "إضافة",
     "alertFollowAllDoneTitle": "تم",
     "alertFollowAllDoneMessage": "تمت إضافة {{count}} من أصدقاء PikTag",
-    "allConnected": "تم بالفعل إضافة جميع جهات اتصال PikTag"
+    "allConnected": "تم بالفعل إضافة جميع جهات اتصال PikTag",
+    "openSettings": "افتح الإعدادات للسماح بالوصول"
   },
   "invite": {
     "headerTitle": "دعوة الأصدقاء",
@@ -872,7 +873,8 @@
     "addFriend": "متابعة",
     "connectElsewhereTitle": "تواصل مع {{name}} هنا أيضًا",
     "connectElsewhereHint": "اضغط لفتح صفحته في ذلك التطبيق — أنت من يتابع/يضيف.",
-    "selfScanMessage": "هذا رمز QR الخاص بك — لا يمكنك إضافة نفسك."
+    "selfScanMessage": "هذا رمز QR الخاص بك — لا يمكنك إضافة نفسك.",
+    "addingFriend": "جارٍ إضافة الصديق…"
   },
   "manageTags": {
     "headerTitle": "إدارة الوسوم",
@@ -1174,7 +1176,8 @@
     "reasonSpam": "بريد مزعج",
     "reasonHarassment": "تحرّش",
     "reasonInappropriate": "محتوى غير لائق",
-    "reasonOther": "آخر"
+    "reasonOther": "آخر",
+    "noTarget": "هذا الإشعار لا يحتوي على من يُبلَّغ عنه."
   },
   "tabTooltips": {
     "home": "الأصدقاء",

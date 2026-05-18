@@ -702,7 +702,8 @@
     "alertFollowAllConfirm": "เพิ่ม",
     "alertFollowAllDoneTitle": "เสร็จสิ้น",
     "alertFollowAllDoneMessage": "เพิ่มเพื่อน PikTag {{count}} คนแล้ว",
-    "allConnected": "เพื่อน PikTag ในรายชื่อถูกเพิ่มหมดแล้ว"
+    "allConnected": "เพื่อน PikTag ในรายชื่อถูกเพิ่มหมดแล้ว",
+    "openSettings": "เปิดการตั้งค่าเพื่ออนุญาต"
   },
   "invite": {
     "headerTitle": "เชิญเพื่อน",
@@ -872,7 +873,8 @@
     "addFriend": "ติดตาม",
     "connectElsewhereTitle": "เชื่อมต่อกับ {{name}} ที่นี่ด้วย",
     "connectElsewhereHint": "แตะเพื่อเปิดหน้าของเขาในแอปนั้น — คุณกดติดตาม/เพิ่มเอง",
-    "selfScanMessage": "นี่คือ QR ของคุณเอง เพิ่มตัวเองไม่ได้"
+    "selfScanMessage": "นี่คือ QR ของคุณเอง เพิ่มตัวเองไม่ได้",
+    "addingFriend": "กำลังเพิ่มเพื่อน…"
   },
   "manageTags": {
     "headerTitle": "จัดการแท็ก",
@@ -1174,7 +1176,8 @@
     "reasonSpam": "สแปม",
     "reasonHarassment": "การล่วงละเมิด",
     "reasonInappropriate": "เนื้อหาไม่เหมาะสม",
-    "reasonOther": "อื่น ๆ"
+    "reasonOther": "อื่น ๆ",
+    "noTarget": "การแจ้งเตือนนี้ไม่มีเป้าหมายให้รายงาน"
   },
   "tabTooltips": {
     "home": "เพื่อน",

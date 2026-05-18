@@ -702,7 +702,8 @@
     "alertFollowAllConfirm": "추가",
     "alertFollowAllDoneTitle": "완료",
     "alertFollowAllDoneMessage": "{{count}}명의 PikTag 친구를 추가했습니다",
-    "allConnected": "연락처의 모든 PikTag 친구가 이미 추가되었습니다"
+    "allConnected": "연락처의 모든 PikTag 친구가 이미 추가되었습니다",
+    "openSettings": "설정을 열어 권한 허용"
   },
   "invite": {
     "headerTitle": "친구 초대",
@@ -872,7 +873,8 @@
     "addFriend": "팔로우",
     "connectElsewhereTitle": "{{name}}님과 다른 앱에서도 연결",
     "connectElsewhereHint": "탭하면 상대방 페이지가 열려요. 팔로우/추가는 직접 눌러요.",
-    "selfScanMessage": "내 QR이라 나를 추가할 수 없어요."
+    "selfScanMessage": "내 QR이라 나를 추가할 수 없어요.",
+    "addingFriend": "친구 추가 중…"
   },
   "manageTags": {
     "headerTitle": "태그 관리",
@@ -1174,7 +1176,8 @@
     "reasonSpam": "스팸",
     "reasonHarassment": "괴롭힘",
     "reasonInappropriate": "부적절한 콘텐츠",
-    "reasonOther": "기타"
+    "reasonOther": "기타",
+    "noTarget": "이 알림에는 신고할 대상이 없어요."
   },
   "tabTooltips": {
     "home": "친구",

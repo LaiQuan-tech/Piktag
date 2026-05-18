@@ -86,13 +86,17 @@ export default function TagDetailScreen({ navigation, route }: TagDetailScreenPr
     if (paramTagId) { setResolvedTagId(paramTagId); return; }
     if (!tagName) return;
     const resolve = async () => {
+      // .single() ERRORS (not just empties) when the name has
+      // duplicate rows (legacy mixed-case dupes) — so an existing
+      // tag failed to resolve and the screen dead-ended. limit(1)
+      // tolerates dupes (take the first) and 0 rows (empty array).
       const { data } = await supabase
         .from('piktag_tags')
         .select('id')
         .eq('name', tagName)
-        .single();
-      if (data) setResolvedTagId(data.id);
-      else setLoading(false); // tag not found
+        .limit(1);
+      if (data && data[0]) setResolvedTagId(data[0].id);
+      else setLoading(false); // tag genuinely not found
     };
     resolve();
   }, [paramTagId, tagName]);

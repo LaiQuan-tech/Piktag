@@ -702,7 +702,8 @@
     "alertFollowAllConfirm": "追加",
     "alertFollowAllDoneTitle": "完了",
     "alertFollowAllDoneMessage": "{{count}}人のPikTagの友達を追加しました",
-    "allConnected": "連絡先のPikTagの友達はすべて追加済みです"
+    "allConnected": "連絡先のPikTagの友達はすべて追加済みです",
+    "openSettings": "設定を開いて許可する"
   },
   "invite": {
     "headerTitle": "友達を招待",
@@ -872,7 +873,8 @@
     "addFriend": "フォロー",
     "connectElsewhereTitle": "{{name}} さんと他のアプリでもつながる",
     "connectElsewhereHint": "タップすると相手のページが開きます。フォロー／追加はあなたが行います。",
-    "selfScanMessage": "これは自分の QR です。自分は追加できません。"
+    "selfScanMessage": "これは自分の QR です。自分は追加できません。",
+    "addingFriend": "友達に追加中…"
   },
   "manageTags": {
     "headerTitle": "タグを管理",
@@ -1174,7 +1176,8 @@
     "reasonSpam": "スパム",
     "reasonHarassment": "嫌がらせ・いじめ",
     "reasonInappropriate": "不適切なコンテンツ",
-    "reasonOther": "その他"
+    "reasonOther": "その他",
+    "noTarget": "この通知には報告できる相手がいません。"
   },
   "tabTooltips": {
     "home": "友達",

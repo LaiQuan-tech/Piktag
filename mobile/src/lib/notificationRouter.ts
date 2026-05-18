@@ -83,7 +83,7 @@ export async function routeFromNotification(
   // — the bridge list is in `data.bridge_names`, and the
   // long-press handler already lets users dig in.
   if (type === 'ask_bridge') {
-    navigation.navigate('HomeTab' as any);
+    navigation.navigate('Main', { screen: 'HomeTab' } as any);
     return;
   }
 
@@ -94,7 +94,7 @@ export async function routeFromNotification(
   // route to HomeTab and let the user tap the "+ Ask" circle on
   // the rail. (A future polish: deep-link straight to the modal.)
   if (type === 'ask_prompt') {
-    navigation.navigate('HomeTab' as any);
+    navigation.navigate('Main', { screen: 'HomeTab' } as any);
     return;
   }
 

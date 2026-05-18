@@ -297,7 +297,7 @@ export default function ScanResultScreen({ navigation, route }: ScanResultScreen
       }
 
       // Also create reverse connection for host + attach private tags
-      const { data: reverseConn } = await supabase
+      const { data: reverseConn, error: reverseErr } = await supabase
         .from('piktag_connections')
         .upsert({
           user_id: hostUserId,
@@ -307,6 +307,12 @@ export default function ScanResultScreen({ navigation, route }: ScanResultScreen
           note: eventDate + (eventLocation ? ' · ' + eventLocation : ''),
         }, { onConflict: 'user_id,connected_user_id' })
         .select('id').single();
+      // Was swallowed → an asymmetric friendship (scanner connected,
+      // host not). Non-fatal for the scanner's flow but log it so the
+      // asymmetry is at least observable.
+      if (reverseErr) {
+        console.warn('[ScanResult] reverse connection upsert failed:', reverseErr);
+      }
 
       if (reverseConn && privateTagIds.length > 0) {
         await supabase.from('piktag_connection_tags').insert(
@@ -408,7 +414,7 @@ export default function ScanResultScreen({ navigation, route }: ScanResultScreen
             <X size={24} color={COLORS.gray900} />
           </TouchableOpacity>
         </View>
-        <PageLoader heading="加入朋友中…" />
+        <PageLoader heading={t('scanResult.addingFriend', { defaultValue: '加入朋友中…' })} />
       </View>
     );
   }

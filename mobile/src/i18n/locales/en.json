@@ -718,7 +718,8 @@
     "alertFollowAllDoneTitle": "Done",
     "alertFollowAllDoneMessage": "Added {{count}} PikTag friends",
     "allConnected": "All PikTag contacts are already connected",
-    "tagModalHint": "Private tags only you can see (up to {{max}}) — when this person joins PikTag, these tags will appear in your friend's profile under \"hidden tags\", invisible to them and everyone else."
+    "tagModalHint": "Private tags only you can see (up to {{max}}) — when this person joins PikTag, these tags will appear in your friend's profile under \"hidden tags\", invisible to them and everyone else.",
+    "openSettings": "Open Settings to allow access"
   },
   "invite": {
     "headerTitle": "Invite Friends",
@@ -953,7 +954,8 @@
     "addFriend": "Follow",
     "connectElsewhereTitle": "Also connect with {{name}} here",
     "connectElsewhereHint": "Tap to open their page in that app — you tap follow/add.",
-    "selfScanMessage": "This is your own QR — you can't add yourself."
+    "selfScanMessage": "This is your own QR — you can't add yourself.",
+    "addingFriend": "Adding friend…"
   },
   "manageTags": {
     "headerTitle": "Manage Tags",
@@ -1259,7 +1261,8 @@
     "reasonSpam": "Spam",
     "reasonHarassment": "Harassment or bullying",
     "reasonInappropriate": "Inappropriate or offensive",
-    "reasonOther": "Other"
+    "reasonOther": "Other",
+    "noTarget": "This notification has nothing to report."
   },
   "tabTooltips": {
     "home": "Friends",

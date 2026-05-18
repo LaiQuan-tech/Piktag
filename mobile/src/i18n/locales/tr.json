@@ -702,7 +702,8 @@
     "alertFollowAllConfirm": "Ekle",
     "alertFollowAllDoneTitle": "Tamamlandı",
     "alertFollowAllDoneMessage": "{{count}} PikTag arkadaşı eklendi",
-    "allConnected": "Tüm PikTag kişileri zaten bağlı"
+    "allConnected": "Tüm PikTag kişileri zaten bağlı",
+    "openSettings": "İzin vermek için Ayarlar'ı aç"
   },
   "invite": {
     "headerTitle": "Arkadaş Davet Et",
@@ -872,7 +873,8 @@
     "addFriend": "Takip Et",
     "connectElsewhereTitle": "{{name}} ile burada da bağlan",
     "connectElsewhereHint": "Dokun, kişinin sayfası o uygulamada açılır — takip/ekleme sana kalmış.",
-    "selfScanMessage": "Bu senin kendi QR'ın — kendini ekleyemezsin."
+    "selfScanMessage": "Bu senin kendi QR'ın — kendini ekleyemezsin.",
+    "addingFriend": "Arkadaş ekleniyor…"
   },
   "manageTags": {
     "headerTitle": "Etiketleri Yönet",
@@ -1174,7 +1176,8 @@
     "reasonSpam": "Spam",
     "reasonHarassment": "Taciz",
     "reasonInappropriate": "Uygunsuz içerik",
-    "reasonOther": "Diğer"
+    "reasonOther": "Diğer",
+    "noTarget": "Bu bildirimde şikayet edilecek kimse yok."
   },
   "tabTooltips": {
     "home": "Arkadaşlar",

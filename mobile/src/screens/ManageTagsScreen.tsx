@@ -257,7 +257,10 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
 
   const handleAddPopularTag = useCallback(async (tag: Tag) => {
     if (!user || myTags.length >= MAX_TAGS) return;
-    setMyTags(prev => [...prev, { id: `temp-${Date.now()}`, user_id: user.id, tag_id: tag.id, tag } as any]);
+    // Functional guard: rapid taps on multiple popular chips each
+    // captured a stale myTags.length and could push past MAX_TAGS.
+    // prev is authoritative — the optimistic list can't exceed now.
+    setMyTags(prev => (prev.length >= MAX_TAGS ? prev : [...prev, { id: `temp-${Date.now()}`, user_id: user.id, tag_id: tag.id, tag } as any]));
     try {
       await supabase.from('piktag_user_tags')
         .insert({ user_id: user.id, tag_id: tag.id, position: myTags.length });
@@ -268,7 +271,7 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
 
   const handleAddAiTag = useCallback(async (tagName: string) => {
     if (!user || myTagNames.includes(`#${tagName}`) || myTags.length >= MAX_TAGS) return;
-    setMyTags(prev => [...prev, { id: `temp-${Date.now()}`, user_id: user.id, tag_id: '', tag: { id: '', name: tagName } } as any]);
+    setMyTags(prev => (prev.length >= MAX_TAGS ? prev : [...prev, { id: `temp-${Date.now()}`, user_id: user.id, tag_id: '', tag: { id: '', name: tagName } } as any]));
     setAiSuggestions(prev => prev.filter(s => s !== tagName));
     try {
       const tagId = await findOrCreateTag(tagName);

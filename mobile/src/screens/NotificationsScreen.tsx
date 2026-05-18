@@ -426,6 +426,17 @@ export default function NotificationsScreen({ navigation }: NotificationsScreenP
     async (notif: Notification, reason: string) => {
       if (!user) return;
       const reportedId = notif.data?.actor_user_id || notif.data?.user_id || null;
+      // System / magic-moment notifications have no actor — inserting
+      // reported_id: null created junk un-actionable reports (and
+      // showed a false "Reported" success even when it failed). Bail
+      // with an explanation instead.
+      if (!reportedId) {
+        Alert.alert(
+          t('common.error', { defaultValue: '錯誤' }),
+          t('report.noTarget', { defaultValue: '這則通知沒有可檢舉的對象。' }),
+        );
+        return;
+      }
       try {
         await supabase.from('piktag_reports').insert({
           reporter_id: user.id,

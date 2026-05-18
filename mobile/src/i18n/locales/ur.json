@@ -721,7 +721,8 @@
     "alertFollowAllDoneTitle": "ہو گیا",
     "alertFollowAllDoneMessage": "{{count}} PikTag دوست شامل ہوئے",
     "allConnected": "سارے PikTag رابطے پہلے سے جڑے ہوئے ہیں",
-    "tagModalHint": "نجی ٹیگز جو صرف آپ دیکھ سکتے ہیں (زیادہ سے زیادہ {{max}}) — جب یہ شخص PikTag پر شامل ہوگا تو یہ ٹیگز آپ کے دوست کی پروفائل میں \"پوشیدہ ٹیگز\" کے تحت آئیں گے، جو ان سے اور باقی سب سے چھپے رہیں گے۔"
+    "tagModalHint": "نجی ٹیگز جو صرف آپ دیکھ سکتے ہیں (زیادہ سے زیادہ {{max}}) — جب یہ شخص PikTag پر شامل ہوگا تو یہ ٹیگز آپ کے دوست کی پروفائل میں \"پوشیدہ ٹیگز\" کے تحت آئیں گے، جو ان سے اور باقی سب سے چھپے رہیں گے۔",
+    "openSettings": "اجازت دینے کے لیے سیٹنگز کھولیں"
   },
   "invite": {
     "headerTitle": "دوستوں کو بلائیں",
@@ -958,7 +959,8 @@
     "addFriend": "فالو کریں",
     "connectElsewhereTitle": "{{name}} سے یہاں بھی جڑیں",
     "connectElsewhereHint": "ٹیپ کریں، اُن کا پیج اُس ایپ میں کھلے گا — فالو/ایڈ آپ خود کریں۔",
-    "selfScanMessage": "یہ آپ کا اپنا QR ہے — آپ خود کو شامل نہیں کر سکتے۔"
+    "selfScanMessage": "یہ آپ کا اپنا QR ہے — آپ خود کو شامل نہیں کر سکتے۔",
+    "addingFriend": "دوست شامل کیا جا رہا ہے…"
   },
   "manageTags": {
     "headerTitle": "ٹیگز سنبھالیں",
@@ -1266,7 +1268,8 @@
     "reasonSpam": "اسپام",
     "reasonHarassment": "ہراسانی یا تنگ کرنا",
     "reasonInappropriate": "نامناسب یا قابلِ اعتراض",
-    "reasonOther": "اور"
+    "reasonOther": "اور",
+    "noTarget": "اس نوٹیفکیشن میں رپورٹ کرنے کے لیے کوئی نہیں۔"
   },
   "tabTooltips": {
     "home": "دوست",

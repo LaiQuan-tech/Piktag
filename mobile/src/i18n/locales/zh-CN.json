@@ -710,7 +710,8 @@
     "alertFollowAllConfirm": "加入",
     "alertFollowAllDoneTitle": "完成",
     "alertFollowAllDoneMessage": "已加入 {{count}} 位 PikTag 朋友",
-    "allConnected": "通讯录里的 PikTag 朋友都已加入"
+    "allConnected": "通讯录里的 PikTag 朋友都已加入",
+    "openSettings": "前往设置开启权限"
   },
   "invite": {
     "headerTitle": "邀请好友",
@@ -940,7 +941,8 @@
     "addFriend": "关注",
     "connectElsewhereTitle": "也在这些地方连上 {{name}}",
     "connectElsewhereHint": "点一下会打开对方在该 App 的页面，由你按关注／加好友。",
-    "selfScanMessage": "这是你自己的 QR，没办法加自己为好友。"
+    "selfScanMessage": "这是你自己的 QR，没办法加自己为好友。",
+    "addingFriend": "加入朋友中…"
   },
   "manageTags": {
     "headerTitle": "标签管理",
@@ -1246,7 +1248,8 @@
     "reasonSpam": "垃圾信息",
     "reasonHarassment": "骚扰或霸凌",
     "reasonInappropriate": "不当内容",
-    "reasonOther": "其他"
+    "reasonOther": "其他",
+    "noTarget": "这则通知没有可举报的对象。"
   },
   "tabTooltips": {
     "home": "朋友列表",

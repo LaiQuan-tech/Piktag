@@ -721,7 +721,8 @@
     "alertFollowAllDoneTitle": "Xong",
     "alertFollowAllDoneMessage": "Đã thêm {{count}} bạn bè PikTag",
     "allConnected": "Mọi liên hệ PikTag đều đã kết nối rồi",
-    "tagModalHint": "Tag riêng tư chỉ mình bạn thấy (tối đa {{max}}) — khi người này vào PikTag, các tag này sẽ hiện ở mục \"tag ẩn\" trong hồ sơ bạn bè, họ và người khác đều không thấy."
+    "tagModalHint": "Tag riêng tư chỉ mình bạn thấy (tối đa {{max}}) — khi người này vào PikTag, các tag này sẽ hiện ở mục \"tag ẩn\" trong hồ sơ bạn bè, họ và người khác đều không thấy.",
+    "openSettings": "Mở Cài đặt để cấp quyền"
   },
   "invite": {
     "headerTitle": "Mời bạn bè",
@@ -958,7 +959,8 @@
     "addFriend": "Theo dõi",
     "connectElsewhereTitle": "Kết nối với {{name}} ở đây nữa",
     "connectElsewhereHint": "Chạm để mở trang của họ trong app đó — bạn tự bấm theo dõi/kết bạn.",
-    "selfScanMessage": "Đây là QR của chính bạn — không thể tự thêm mình."
+    "selfScanMessage": "Đây là QR của chính bạn — không thể tự thêm mình.",
+    "addingFriend": "Đang thêm bạn…"
   },
   "manageTags": {
     "headerTitle": "Quản lý tag",
@@ -1266,7 +1268,8 @@
     "reasonSpam": "Spam",
     "reasonHarassment": "Quấy rối hoặc bắt nạt",
     "reasonInappropriate": "Không phù hợp hoặc phản cảm",
-    "reasonOther": "Khác"
+    "reasonOther": "Khác",
+    "noTarget": "Thông báo này không có đối tượng để báo cáo."
   },
   "tabTooltips": {
     "home": "Bạn bè",

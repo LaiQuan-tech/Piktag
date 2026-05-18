@@ -702,7 +702,8 @@
     "alertFollowAllConfirm": "Добавить",
     "alertFollowAllDoneTitle": "Готово",
     "alertFollowAllDoneMessage": "Добавлено {{count}} друзей PikTag",
-    "allConnected": "Все контакты PikTag уже добавлены"
+    "allConnected": "Все контакты PikTag уже добавлены",
+    "openSettings": "Открыть настройки, чтобы разрешить доступ"
   },
   "invite": {
     "headerTitle": "Пригласить друзей",
@@ -872,7 +873,8 @@
     "addFriend": "Подписаться",
     "connectElsewhereTitle": "Свяжитесь с {{name}} и здесь",
     "connectElsewhereHint": "Нажмите, чтобы открыть их страницу в приложении — подписку/добавление делаете вы.",
-    "selfScanMessage": "Это ваш собственный QR — нельзя добавить себя."
+    "selfScanMessage": "Это ваш собственный QR — нельзя добавить себя.",
+    "addingFriend": "Добавляем друга…"
   },
   "manageTags": {
     "headerTitle": "Управление тегами",
@@ -1174,7 +1176,8 @@
     "reasonSpam": "Спам",
     "reasonHarassment": "Оскорбления",
     "reasonInappropriate": "Неприемлемый контент",
-    "reasonOther": "Другое"
+    "reasonOther": "Другое",
+    "noTarget": "В этом уведомлении некого пожаловаться."
   },
   "tabTooltips": {
     "home": "Друзья",

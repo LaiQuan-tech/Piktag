@@ -450,7 +450,7 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
     };
   }, []);
 
-  const loadAiSuggestions = useCallback(async () => {
+  const loadAiSuggestions = useCallback(async (force = false) => {
     if (!user) return;
     // Build context blob. We pass:
     //   bio       = viewer's identity (bio + headline + name) +
@@ -474,7 +474,10 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
     const dd = String(now.getDate()).padStart(2, '0');
     const dateOnly = `${yyyy}-${mm}-${dd}`;
     const contextKey = `${identity}|${desc}|${aiLocationDetail || aiLocation}|${eventTags.join(',')}|${popularNearby.join(',')}|${dateOnly}`;
-    if (contextKey === aiContext && aiSuggestions.length > 0) return;
+    // `force` = explicit "重新推薦" tap — bypass the unchanged-context
+    // cache guard, otherwise the button is a visible no-op (looked
+    // broken). Auto-callers pass nothing and keep the cache.
+    if (!force && contextKey === aiContext && aiSuggestions.length > 0) return;
     setAiContext(contextKey);
     setAiLoading(true);
     try {
@@ -919,7 +922,7 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
             </View>
             {!aiLoading && (
               <TouchableOpacity
-                onPress={loadAiSuggestions}
+                onPress={() => loadAiSuggestions(true)}
                 activeOpacity={0.7}
                 hitSlop={8}
                 style={styles.aiRefreshBtn}

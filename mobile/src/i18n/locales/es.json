@@ -702,7 +702,8 @@
     "alertFollowAllConfirm": "Añadir",
     "alertFollowAllDoneTitle": "Listo",
     "alertFollowAllDoneMessage": "Se añadieron {{count}} amigos de PikTag",
-    "allConnected": "Todos los contactos de PikTag ya están conectados"
+    "allConnected": "Todos los contactos de PikTag ya están conectados",
+    "openSettings": "Abrir Ajustes para dar acceso"
   },
   "invite": {
     "headerTitle": "Invitar amigos",
@@ -872,7 +873,8 @@
     "addFriend": "Seguir",
     "connectElsewhereTitle": "Conecta con {{name}} también aquí",
     "connectElsewhereHint": "Toca para abrir su página en esa app — tú pulsas seguir/añadir.",
-    "selfScanMessage": "Es tu propio QR — no puedes añadirte a ti mismo."
+    "selfScanMessage": "Es tu propio QR — no puedes añadirte a ti mismo.",
+    "addingFriend": "Añadiendo amigo…"
   },
   "manageTags": {
     "headerTitle": "Gestionar etiquetas",
@@ -1174,7 +1176,8 @@
     "reasonSpam": "Spam",
     "reasonHarassment": "Acoso",
     "reasonInappropriate": "Contenido inapropiado",
-    "reasonOther": "Otro"
+    "reasonOther": "Otro",
+    "noTarget": "Esta notificación no tiene a quién reportar."
   },
   "tabTooltips": {
     "home": "Amigos",

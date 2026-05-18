@@ -702,7 +702,8 @@
     "alertFollowAllConfirm": "Tambah",
     "alertFollowAllDoneTitle": "Selesai",
     "alertFollowAllDoneMessage": "{{count}} teman PikTag ditambahkan",
-    "allConnected": "Semua kontak PikTag sudah terhubung"
+    "allConnected": "Semua kontak PikTag sudah terhubung",
+    "openSettings": "Buka Pengaturan untuk memberi izin"
   },
   "invite": {
     "headerTitle": "Undang Teman",
@@ -872,7 +873,8 @@
     "addFriend": "Ikuti",
     "connectElsewhereTitle": "Terhubung dengan {{name}} di sini juga",
     "connectElsewhereHint": "Ketuk untuk membuka halamannya di app itu — kamu yang follow/tambah.",
-    "selfScanMessage": "Ini QR kamu sendiri — tidak bisa menambahkan diri sendiri."
+    "selfScanMessage": "Ini QR kamu sendiri — tidak bisa menambahkan diri sendiri.",
+    "addingFriend": "Menambahkan teman…"
   },
   "manageTags": {
     "headerTitle": "Kelola Tag",
@@ -1174,7 +1176,8 @@
     "reasonSpam": "Spam",
     "reasonHarassment": "Pelecehan",
     "reasonInappropriate": "Konten tidak pantas",
-    "reasonOther": "Lainnya"
+    "reasonOther": "Lainnya",
+    "noTarget": "Notifikasi ini tak punya objek untuk dilaporkan."
   },
   "tabTooltips": {
     "home": "Teman",

@@ -702,7 +702,8 @@
     "alertFollowAllConfirm": "যোগ করুন",
     "alertFollowAllDoneTitle": "সম্পন্ন",
     "alertFollowAllDoneMessage": "{{count}} জন PikTag বন্ধু যোগ হয়েছে",
-    "allConnected": "PikTag-এর সব কন্টাক্ট ইতিমধ্যেই যুক্ত আছে"
+    "allConnected": "PikTag-এর সব কন্টাক্ট ইতিমধ্যেই যুক্ত আছে",
+    "openSettings": "অনুমতি দিতে সেটিংস খুলুন"
   },
   "invite": {
     "headerTitle": "বন্ধুদের আমন্ত্রণ",
@@ -872,7 +873,8 @@
     "addFriend": "ফলো",
     "connectElsewhereTitle": "{{name}}-এর সাথে এখানেও যুক্ত হন",
     "connectElsewhereHint": "ট্যাপ করলে তাদের পেজ ওই অ্যাপে খুলবে — ফলো/অ্যাড আপনি করুন।",
-    "selfScanMessage": "এটি আপনার নিজের QR — নিজেকে যোগ করা যায় না।"
+    "selfScanMessage": "এটি আপনার নিজের QR — নিজেকে যোগ করা যায় না।",
+    "addingFriend": "বন্ধু যোগ করা হচ্ছে…"
   },
   "manageTags": {
     "headerTitle": "ট্যাগ পরিচালনা",
@@ -1174,7 +1176,8 @@
     "reasonSpam": "স্প্যাম",
     "reasonHarassment": "হয়রানি",
     "reasonInappropriate": "অনুচিত বিষয়বস্তু",
-    "reasonOther": "অন্যান্য"
+    "reasonOther": "অন্যান্য",
+    "noTarget": "এই বিজ্ঞপ্তিতে রিপোর্ট করার মতো কেউ নেই।"
   },
   "tabTooltips": {
     "home": "বন্ধুরা",

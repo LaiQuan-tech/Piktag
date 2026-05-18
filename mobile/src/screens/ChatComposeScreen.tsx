@@ -183,7 +183,13 @@ export default function ChatComposeScreen({ navigation, route }: Props) {
         .from('piktag_profiles')
         .select('id, username, full_name, avatar_url, is_public')
         .or(`username.ilike.${pattern},full_name.ilike.${pattern}`)
-        .neq('id', user.id).neq('is_public', false).limit(20);
+        // .neq('is_public', false) excluded NULL-is_public profiles
+        // (PostgREST: NULL != false → NULL → filtered out), so older
+        // accounts that never set the flag were unmessageable. Treat
+        // null as public (the app default everywhere else).
+        .neq('id', user.id)
+        .or('is_public.is.null,is_public.eq.true')
+        .limit(20);
       if (!isMountedRef.current || reqId !== requestIdRef.current) return;
       if (error) {
         console.warn('Compose search failed:', error.message);

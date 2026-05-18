@@ -721,7 +721,8 @@
     "alertFollowAllDoneTitle": "完成",
     "alertFollowAllDoneMessage": "已加入 {{count}} 位 PikTag 朋友",
     "allConnected": "通訊錄裡的 PikTag 朋友都已加入",
-    "tagModalHint": "只有你看得到的私人標籤（最多 {{max}} 個）— 對方註冊 PikTag 後，這些標籤會出現在你的好友頁的「隱藏標籤」區，永遠不會被對方或其他人看到。"
+    "tagModalHint": "只有你看得到的私人標籤（最多 {{max}} 個）— 對方註冊 PikTag 後，這些標籤會出現在你的好友頁的「隱藏標籤」區，永遠不會被對方或其他人看到。",
+    "openSettings": "前往設定開啟權限"
   },
   "invite": {
     "headerTitle": "邀請好友",
@@ -942,7 +943,8 @@
     "addFriend": "追蹤",
     "connectElsewhereTitle": "也在這些地方連上 {{name}}",
     "connectElsewhereHint": "點一下會開啟對方在該 App 的頁面，由你按追蹤／加好友。",
-    "selfScanMessage": "這是你自己的 QR，沒辦法加自己為好友。"
+    "selfScanMessage": "這是你自己的 QR，沒辦法加自己為好友。",
+    "addingFriend": "加入朋友中…"
   },
   "manageTags": {
     "headerTitle": "標籤管理",
@@ -1266,7 +1268,8 @@
     "reasonSpam": "垃圾訊息",
     "reasonHarassment": "騷擾或霸凌",
     "reasonInappropriate": "不當內容",
-    "reasonOther": "其他"
+    "reasonOther": "其他",
+    "noTarget": "這則通知沒有可檢舉的對象。"
   },
   "tabTooltips": {
     "home": "朋友列表",
