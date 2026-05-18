@@ -606,8 +606,18 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
   // guards. filterTag applies to their tags too.
   const notJoinedLabel = t('connections.notJoinedBadge', { defaultValue: '尚未加入 PikTag' });
   const listData = useMemo(() => {
+    // Local-contact tags are stored as raw names; member connection
+    // tags are "#name" (built at line ~439). Normalize local tags the
+    // SAME way so (a) the list row renders them unmistakably as TAGS —
+    // #商用不動產 etc. — not a 職稱-looking blob (tags are the whole
+    // point of this app), and (b) the tag filter, which compares
+    // against "#name", actually includes matching local contacts
+    // (it silently didn't before).
+    const hashTag = (n: string) => '#' + String(n).replace(/^#+/, '');
     const mapped = (localContacts || [])
-      .filter((lc) => !filterTag || (lc.tags || []).includes(filterTag))
+      .filter(
+        (lc) => !filterTag || (lc.tags ?? []).some((n) => hashTag(n) === filterTag),
+      )
       .map((lc) => ({
         id: 'lc:' + lc.id,
         user_id: '',
@@ -622,7 +632,7 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
         is_reviewed: true,
         created_at: lc.created_at,
         connected_user: undefined,
-        tags: lc.tags ?? [],
+        tags: (lc.tags ?? []).map(hashTag),
         semanticTypes: [],
         __localContact: lc,
         __notJoinedLabel: notJoinedLabel,
