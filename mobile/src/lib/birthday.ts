@@ -43,12 +43,21 @@ export function toBirthdayDate(raw: string | null | undefined): string | null {
     yyyy = parseInt(m[1], 10);
     mm = parseInt(m[2], 10);
     dd = parseInt(m[3], 10);
-  } else {
-    m = s.match(/^(\d{1,2})[/-](\d{1,2})$/); // M/D, MM-DD, MM/DD (year-less)
-    if (m) {
-      mm = parseInt(m[1], 10);
-      dd = parseInt(m[2], 10);
-    }
+  } else if ((m = s.match(/^(\d{1,2})[/-](\d{1,2})$/))) {
+    // M/D, MM-DD, MM/DD (year-less)
+    mm = parseInt(m[1], 10);
+    dd = parseInt(m[2], 10);
+  } else if ((m = s.match(/^(\d{4})(\d{2})(\d{2})$/))) {
+    // YYYYMMDD (no separators)
+    yyyy = parseInt(m[1], 10);
+    mm = parseInt(m[2], 10);
+    dd = parseInt(m[3], 10);
+  } else if ((m = s.match(/^(\d{2})(\d{2})$/))) {
+    // MMDD (no separator, year-less) — real users type "0713".
+    // Month-first matches the app's MM-DD guidance everywhere; an
+    // invalid mm (>12) just fails the range check below → null.
+    mm = parseInt(m[1], 10);
+    dd = parseInt(m[2], 10);
   }
 
   if (mm == null || dd == null) return null;
