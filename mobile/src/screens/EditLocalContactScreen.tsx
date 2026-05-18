@@ -24,6 +24,7 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
+  Pressable,
   StyleSheet,
   ScrollView,
   Alert,
@@ -181,7 +182,9 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
             .filter(Boolean)
             .filter((n) => !tags.includes(n)),
         ),
-      ).slice(0, 10);
+        // A local contact is a non-member quick capture — keep it
+        // light. 5 is enough to spark; 10 was clutter here.
+      ).slice(0, 5);
       setAiSuggestions(cleaned);
     } catch (err) {
       console.warn('[LocalContact] suggest-tags threw:', err);
@@ -657,15 +660,18 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
               </View>
               <View style={styles.tagWrap}>
                 {aiSuggestions.map((s) => (
-                  <TouchableOpacity
+                  <Pressable
                     key={s}
-                    style={styles.aiChip}
+                    style={({ pressed }) => [
+                      styles.aiChip,
+                      pressed && styles.aiChipPressed,
+                    ]}
                     onPress={() => addSuggestedTag(s)}
-                    activeOpacity={0.7}
+                    accessibilityRole="button"
+                    accessibilityLabel={`${t('common.add', { defaultValue: '新增' })} #${s}`}
                   >
-                    <Plus size={12} color={COLORS.piktag600} strokeWidth={2.5} />
                     <Text style={styles.aiChipText}>#{s}</Text>
-                  </TouchableOpacity>
+                  </Pressable>
                 ))}
               </View>
             </View>
@@ -837,18 +843,23 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   aiTitle: { fontSize: 13, fontWeight: '600', color: COLORS.gray700 },
+  // Mirrors EditProfileScreen's ai_chip (the canonical AI-suggestion
+  // chip): gray pill, transparent border, no "+" glyph; tapping it
+  // flashes purple then the chip removes itself. One design contract
+  // across the app — don't re-skin per screen.
   aiChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
-    backgroundColor: COLORS.piktag50,
-    borderWidth: 1,
-    borderColor: COLORS.piktag200,
+    paddingVertical: 8,
+    paddingHorizontal: 14,
     borderRadius: 9999,
-    paddingHorizontal: 11,
-    paddingVertical: 7,
+    borderWidth: 1.5,
+    borderColor: 'transparent',
+    backgroundColor: COLORS.gray100,
   },
-  aiChipText: { fontSize: 13, fontWeight: '600', color: COLORS.piktag600 },
+  aiChipPressed: {
+    backgroundColor: COLORS.piktag50,
+    borderColor: COLORS.piktag500,
+  },
+  aiChipText: { fontSize: 14, fontWeight: '500', color: COLORS.gray700 },
   saveBtn: {
     marginTop: 28,
     paddingVertical: 15,
