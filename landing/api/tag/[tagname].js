@@ -15,63 +15,37 @@ module.exports = async function handler(req, res) {
   trackShareLinkViewed(req, 'tag', cleanTag);
 
   try {
-    // 1. Find tag
-    const tagRes = await fetch(
-      `${SUPABASE_URL}/rest/v1/piktag_tags?name=eq.${encodeURIComponent(cleanTag)}&select=id,name,usage_count`,
-      { headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` } }
+    // One concept-aware RPC (mirrors the app's search_users): expands
+    // the tag to its concept-siblings (#產品經理 ≈ #ProductManager ≈
+    // #プロダクトマネージャー) and returns ONLY public profiles /
+    // public tags. Replaces the old 4 raw exact-match REST calls.
+    const rpcRes = await fetch(
+      `${SUPABASE_URL}/rest/v1/rpc/tag_page_members`,
+      {
+        method: 'POST',
+        headers: {
+          apikey: SUPABASE_ANON_KEY,
+          Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ p_tag: cleanTag, p_limit: 60 }),
+      }
     );
-    const tags = await tagRes.json();
+    const data = await rpcRes.json();
 
-    if (!tags || tags.length === 0) {
+    // Tag doesn't exist at all → 404 (same as the old empty-tags branch)
+    if (!data || !data.tag_name) {
       res.setHeader('Content-Type', 'text/html; charset=utf-8');
       return res.status(404).send(notFoundPage(`#${escapeHtml(cleanTag)}`));
     }
 
-    const tag = tags[0];
-
-    // 2. Get users with this tag (with their profiles and ALL tags)
-    const utRes = await fetch(
-      `${SUPABASE_URL}/rest/v1/piktag_user_tags?tag_id=eq.${tag.id}&select=user_id&limit=60`,
-      { headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` } }
-    );
-    const userTags = await utRes.json();
-    const userIds = (userTags || []).map(ut => ut.user_id);
-
-    if (userIds.length === 0) {
-      res.setHeader('Content-Type', 'text/html; charset=utf-8');
-      return res.status(200).send(renderPage(cleanTag, tag.usage_count || 0, [], buildAnalyticsSnippet('tag', cleanTag)));
-    }
-
-    // 3. Fetch profiles
-    const idsFilter = userIds.map(id => `"${id}"`).join(',');
-    const profilesRes = await fetch(
-      `${SUPABASE_URL}/rest/v1/piktag_profiles?id=in.(${idsFilter})&select=id,username,full_name,avatar_url,headline,is_verified`,
-      { headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` } }
-    );
-    const profiles = await profilesRes.json();
-
-    // 4. Fetch all tags for these users
-    const allUserTagsRes = await fetch(
-      `${SUPABASE_URL}/rest/v1/piktag_user_tags?user_id=in.(${idsFilter})&select=user_id,piktag_tags(name)&order=position.asc`,
-      { headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` } }
-    );
-    const allUserTags = await allUserTagsRes.json();
-
-    // Group tags by user_id
-    const tagsByUser = {};
-    (allUserTags || []).forEach(ut => {
-      if (!tagsByUser[ut.user_id]) tagsByUser[ut.user_id] = [];
-      if (ut.piktag_tags?.name) tagsByUser[ut.user_id].push(ut.piktag_tags.name);
-    });
-
-    // Build member list
-    const members = (profiles || []).map(p => ({
+    const members = (data.members || []).map(p => ({
       username: p.username,
       name: p.full_name || p.username || '',
       avatar: p.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(p.full_name || 'U')}&background=f3e8ff&color=8c52ff&size=200`,
       headline: p.headline || '',
       verified: p.is_verified || false,
-      tags: tagsByUser[p.id] || [],
+      tags: Array.isArray(p.tags) ? p.tags : [],
     }));
 
     // Shuffle for variety
@@ -80,7 +54,12 @@ module.exports = async function handler(req, res) {
       [members[i], members[j]] = [members[j], members[i]];
     }
 
-    const html = renderPage(cleanTag, tag.usage_count || members.length, members, buildAnalyticsSnippet('tag', cleanTag));
+    const html = renderPage(
+      cleanTag,
+      data.usage_count || members.length,
+      members,
+      buildAnalyticsSnippet('tag', cleanTag),
+    );
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
     res.setHeader('Cache-Control', 's-maxage=300, stale-while-revalidate=600');
     return res.status(200).send(html);
