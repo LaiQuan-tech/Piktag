@@ -1305,7 +1305,7 @@
   "localContact": {
     "editTitle": "Sửa liên hệ",
     "addTitle": "Liên hệ mới",
-    "intro": "Ghi nhanh người này lại — họ chưa cần tài khoản PikTag. Khi họ vào, mọi thứ tự liên kết, tag và ghi chú của bạn vẫn còn nguyên.",
+    "intro": "Ghi nhanh người này lại — họ chưa cần tài khoản PikTag. Khi họ vào, mọi thứ tự liên kết, tag của bạn vẫn còn nguyên.",
     "fieldName": "Tên",
     "namePlaceholder": "ví dụ: Linh ở chuyến lặn biển",
     "fieldPhone": "Điện thoại (không bắt buộc — họ vào là tự liên kết)",

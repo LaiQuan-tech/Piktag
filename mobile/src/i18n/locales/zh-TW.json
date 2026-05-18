@@ -1305,7 +1305,7 @@
   "localContact": {
     "editTitle": "編輯聯絡人",
     "addTitle": "新增聯絡人",
-    "intro": "先把人記下來 —— 對方還不用是 PikTag 會員。等他加入，這筆會自動接上，你的標籤和備註都會跟著過去。",
+    "intro": "先把人記下來 —— 對方還不用是 PikTag 會員。等他加入，這筆會自動接上，你的標籤都會跟著過去。",
     "fieldName": "名字",
     "namePlaceholder": "例：在龍洞潛水認識的阿哲",
     "fieldPhone": "電話（選填，幫助對方加入後自動接上）",

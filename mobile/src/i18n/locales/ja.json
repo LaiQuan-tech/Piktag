@@ -1213,7 +1213,7 @@
   "localContact": {
     "editTitle": "連絡先を編集",
     "addTitle": "連絡先を追加",
-    "intro": "まず人をメモ —— 相手は PikTag 未登録でOK。登録したら自動でつながり、タグとメモも引き継がれます。",
+    "intro": "まず人をメモ —— 相手は PikTag 未登録でOK。登録したら自動でつながり、タグも引き継がれます。",
     "fieldName": "名前",
     "namePlaceholder": "例：ダイビングで会ったアキラ",
     "fieldPhone": "電話（任意・参加時の自動連携に使用）",

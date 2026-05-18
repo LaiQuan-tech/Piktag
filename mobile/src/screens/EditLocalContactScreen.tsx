@@ -48,8 +48,10 @@ type Props = { navigation: any; route: any };
 
 // Subset of the scan-business-card edge function's response that's
 // relevant to a private local contact. The function returns more
-// (website/instagram/…) but a local contact has no biolinks — those
-// extra handles get folded into the free-text note instead.
+// (website/instagram/…) but a local contact has no biolinks. The
+// scanned job title / company map to the member-aligned 職稱
+// (headline) field; bio_draft has no contact field of its own so it
+// only feeds the AI tag context (not silently stored anywhere).
 type CardData = {
   full_name: string | null;
   job_title: string | null;
@@ -74,11 +76,13 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
   const [name, setName] = useState(existing?.name ?? '');
   const [phone, setPhone] = useState(existing?.phone_normalized ?? '');
   const [email, setEmail] = useState(existing?.email_lower ?? '');
-  // "Where you met" was removed: for a real member connection that
-  // value is auto-captured from the QR-scan context, never a
-  // hand-typed field — so a manual local contact must use the SAME
-  // contact format as a member (name / phone / email / birthday /
-  // note / tags), no scan-only field. birthday is a first-class
+  // The local-contact fields are aligned 1:1 with a member's profile
+  // identity fields: name / 職稱(headline) / phone / email / birthday
+  // (+ the private #tags layer, PikTag's core mechanic). There is NO
+  // freeform "備註/note" field — a member profile has no such field,
+  // so neither does a contact. The scan-only "where you met" was
+  // removed for the same reason (it's auto-captured from QR context
+  // for real connections, never hand-typed). birthday is a first-class
   // member field (drives reminders); it lives in the local-contact
   // model already and the promote trigger maps it 1:1.
   // Storage is YYYY-MM-DD (date-castable — promote copies this text
@@ -98,7 +102,12 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
   // — the user is reviewing prefilled data and a popped keyboard
   // would cover it; in edit mode there's existing data to read.
   const [manualFocus, setManualFocus] = useState(false);
-  const [note, setNote] = useState(existing?.note ?? '');
+  // 職稱 (headline) — the member-aligned title/role field. Persisted
+  // in the existing `note` text column (no migration; the promote
+  // trigger then carries it as the connection's context note, which
+  // is the right home for "PM @ Google" pre-registration — far better
+  // than discarding scanned card data).
+  const [headline, setHeadline] = useState(existing?.note ?? '');
   const [tags, setTags] = useState<string[]>(existing?.tags ?? []);
   const [tagInput, setTagInput] = useState('');
   const [saving, setSaving] = useState(false);
@@ -131,11 +140,13 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
     setAiSuggestions((prev) => prev.filter((s) => s !== raw));
   }, []);
 
-  // AI tag suggestions from whatever context we have (name + note +
-  // where-met). Same edge function ('suggest-tags') the profile
-  // editor uses, so the model + prompt are identical.
-  const fetchAiTags = useCallback(async () => {
-    const ctx = [name, note].filter(Boolean).join('\n').trim();
+  // AI tag suggestions from whatever context we have (name + 職稱,
+  // plus an optional extra blob — e.g. a scanned card's bio_draft,
+  // which has no stored field but is still useful tag fuel). Same
+  // edge function ('suggest-tags') the profile editor uses, so the
+  // model + prompt are identical.
+  const fetchAiTags = useCallback(async (extra?: string) => {
+    const ctx = [name, headline, extra].filter(Boolean).join('\n').trim();
     if (!ctx) return;
     setAiLoading(true);
     setAiTried(true);
@@ -149,7 +160,7 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
         suggestions?: string[];
       }>('suggest-tags', {
         body: {
-          bio: note,
+          bio: [headline, extra].filter(Boolean).join('\n'),
           name: name,
           location: '',
           existingTags: tags.join(', '),
@@ -177,13 +188,14 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
     } finally {
       setAiLoading(false);
     }
-  }, [name, note, tags]);
+  }, [name, headline, tags]);
 
   // One photo → scan-business-card vision extract → pre-fill the
   // form. Non-destructive: only fills fields the user hasn't typed
-  // into yet (so re-scanning never wipes manual edits). Job title /
-  // company / extra bio fold into the private note. After a good
-  // scan we auto-kick AI tag suggestions since there's now context.
+  // into yet (so re-scanning never wipes manual edits). Job title +
+  // company → the member-aligned 職稱 field; bio_draft has no field
+  // of its own so it's passed through as AI-tag context only. After
+  // a good scan we auto-kick AI tag suggestions since there's context.
   const handleScanCard = useCallback(async () => {
     // Scanning is a "review prefilled data" path — never autofocus
     // the name field (would pop the keyboard over the results).
@@ -252,22 +264,21 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
       if (cardPhone) setPhone((cur) => (cur.trim() ? cur : cardPhone));
       if (cardEmail) setEmail((cur) => (cur.trim() ? cur : cardEmail));
 
-      // Title / company / extra bio → private note (a local contact
-      // has no headline/biolink fields, so the note is where this
-      // context lives — and it doubles as AI-tag fuel).
-      const noteBits = [
-        [card.job_title, card.company].filter((s) => s && s.trim()).join(' @ '),
-        (card.bio_draft ?? '').trim(),
-      ].filter(Boolean);
-      if (noteBits.length) {
-        const composed = noteBits.join('\n');
-        setNote((cur) => (cur.trim() ? cur : composed));
-      }
+      // Job title + company → the member-aligned 職稱 field (same
+      // shape as a member's profile headline, e.g. "PM @ Google").
+      const cardHeadline = [card.job_title, card.company]
+        .filter((s) => s && s.trim())
+        .join(' @ ')
+        .trim();
+      if (cardHeadline) setHeadline((cur) => (cur.trim() ? cur : cardHeadline));
 
       // Good scan → into the form (prefilled) for review/edit.
       setStep('form');
-      // Context exists now — surface AI tags proactively.
-      setTimeout(() => { fetchAiTags(); }, 0);
+      // Context exists now — surface AI tags proactively. bio_draft
+      // has no contact field, so pass it through here as extra tag
+      // fuel rather than discarding the signal.
+      const bioDraft = (card.bio_draft ?? '').trim();
+      setTimeout(() => { fetchAiTags(bioDraft || undefined); }, 0);
     } catch (err: any) {
       Alert.alert(
         t('common.error', { defaultValue: '錯誤' }),
@@ -315,7 +326,8 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
           phone_normalized: phone.trim() || null,
           email_lower: email.trim().toLowerCase() || null,
           birthday: birthdayNorm,
-          note: note.trim() || null,
+          // `note` column reused to store the 職稱 (headline) text.
+          note: headline.trim() || null,
           tags,
         });
         if (!ok) throw new Error('update failed');
@@ -325,7 +337,8 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
           phone: phone.trim() || null,
           email: email.trim() || null,
           birthday: birthdayNorm,
-          note: note.trim() || null,
+          // `note` column reused to store the 職稱 (headline) text.
+          note: headline.trim() || null,
           tags,
         });
         if (!created) throw new Error('add failed');
@@ -339,7 +352,7 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
     } finally {
       setSaving(false);
     }
-  }, [name, phone, email, birthday, note, tags, isEdit, contactId, add, update, navigation, t]);
+  }, [name, phone, email, birthday, headline, tags, isEdit, contactId, add, update, navigation, t]);
 
   const handleDelete = useCallback(() => {
     if (!contactId) return;
@@ -418,7 +431,7 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
             <View style={styles.chooser}>
               <Text style={styles.intro}>
                 {t('localContact.intro', {
-                  defaultValue: '先把人記下來 —— 對方還不用是 PikTag 會員。等他加入，這筆會自動接上，你的標籤和備註都會跟著過去。',
+                  defaultValue: '先把人記下來 —— 對方還不用是 PikTag 會員。等他加入，這筆會自動接上，你的標籤都會跟著過去。',
                 })}
               </Text>
 
@@ -502,6 +515,23 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
             autoFocus={manualFocus}
           />
 
+          {/* 職稱 — same field (and i18n keys) as the member profile
+              editor, so a contact's data lines up 1:1 with a member's
+              once they register. Replaces the old freeform note. */}
+          <Text style={styles.label}>
+            {t('editProfile.headlineLabel', { defaultValue: '職稱' })}
+          </Text>
+          <TextInput
+            style={styles.input}
+            value={headline}
+            onChangeText={setHeadline}
+            placeholder={t('editProfile.headlinePlaceholder', {
+              defaultValue: '例：PM @ 科技公司、自由接案設計師',
+            })}
+            placeholderTextColor={COLORS.gray400}
+            maxLength={80}
+          />
+
           <Text style={styles.label}>
             {t('localContact.fieldPhone', { defaultValue: '電話（選填，幫助對方加入後自動接上）' })}
           </Text>
@@ -546,20 +576,6 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
           />
 
           <Text style={styles.label}>
-            {t('localContact.fieldNote', { defaultValue: '備註（只有你看得到）' })}
-          </Text>
-          <TextInput
-            style={[styles.input, styles.inputMultiline]}
-            value={note}
-            onChangeText={setNote}
-            placeholder={t('localContact.notePlaceholder', { defaultValue: '幫你記住這個人的一句話' })}
-            placeholderTextColor={COLORS.gray400}
-            multiline
-            maxLength={200}
-            textAlignVertical="top"
-          />
-
-          <Text style={styles.label}>
             {t('localContact.fieldTags', { defaultValue: '標籤（只有你看得到）' })}
           </Text>
           {tags.length > 0 && (
@@ -598,9 +614,10 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
             </TouchableOpacity>
           </View>
 
-          {/* AI tag suggestions — opt-in, context = name + note +
-              where-met. Auto-kicks after a successful card scan;
-              also tappable anytime. Tapping a chip adds the tag. */}
+          {/* AI tag suggestions — opt-in, context = name + 職稱 (+ a
+              scanned card's bio_draft when present). Auto-kicks after
+              a successful card scan; also tappable anytime. Tapping a
+              chip adds the tag. */}
           {aiLoading ? (
             <View style={styles.aiLoadingRow}>
               <BrandSpinner size={16} />
@@ -615,7 +632,7 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
                   {t('localContact.aiSuggestTitle', { defaultValue: 'AI 建議（點一下加入）' })}
                 </Text>
                 <TouchableOpacity
-                  onPress={fetchAiTags}
+                  onPress={() => fetchAiTags()}
                   hitSlop={8}
                   accessibilityRole="button"
                   accessibilityLabel={t('localContact.aiRegenerate', { defaultValue: '重新產生' })}
@@ -641,7 +658,7 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
             <>
               <TouchableOpacity
                 style={styles.aiBtn}
-                onPress={fetchAiTags}
+                onPress={() => fetchAiTags()}
                 activeOpacity={0.8}
                 accessibilityRole="button"
                 accessibilityLabel={t('localContact.aiSuggestCta', { defaultValue: 'AI 建議標籤' })}
@@ -706,7 +723,6 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     marginBottom: 2,
   },
-  inputMultiline: { minHeight: 64, textAlignVertical: 'top' },
   tagWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 10 },
   tagChip: {
     flexDirection: 'row',

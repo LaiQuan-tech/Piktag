@@ -1213,7 +1213,7 @@
   "localContact": {
     "editTitle": "Editar contacto",
     "addTitle": "Nuevo contacto",
-    "intro": "Apunta a la persona — no necesita cuenta de PikTag todavía. Cuando se una, esto se vincula solo y tus etiquetas y notas se conservan.",
+    "intro": "Apunta a la persona — no necesita cuenta de PikTag todavía. Cuando se una, esto se vincula solo y tus etiquetas se conservan.",
     "fieldName": "Nombre",
     "namePlaceholder": "ej. Alex del viaje de buceo",
     "fieldPhone": "Teléfono (opcional — lo vincula al unirse)",

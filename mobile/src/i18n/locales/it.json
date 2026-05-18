@@ -1305,7 +1305,7 @@
   "localContact": {
     "editTitle": "Modifica contatto",
     "addTitle": "Nuovo contatto",
-    "intro": "Segnati la persona — non le serve ancora un account PikTag. Quando si iscrive, si collega da sola e i tuoi tag e note la seguono.",
+    "intro": "Segnati la persona — non le serve ancora un account PikTag. Quando si iscrive, si collega da sola e i tuoi tag la seguono.",
     "fieldName": "Nome",
     "namePlaceholder": "es. Alex della gita di immersioni",
     "fieldPhone": "Telefono (facoltativo — lo collega da solo quando si iscrive)",

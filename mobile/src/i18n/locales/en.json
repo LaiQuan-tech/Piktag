@@ -1298,7 +1298,7 @@
   "localContact": {
     "editTitle": "Edit contact",
     "addTitle": "New contact",
-    "intro": "Jot the person down — they don't need a PikTag account yet. When they join, this links up automatically and your tags & notes carry over.",
+    "intro": "Jot the person down — they don't need a PikTag account yet. When they join, this links up automatically and your tags carry over.",
     "fieldName": "Name",
     "namePlaceholder": "e.g. Alex from the diving trip",
     "fieldPhone": "Phone (optional — auto-links them when they join)",

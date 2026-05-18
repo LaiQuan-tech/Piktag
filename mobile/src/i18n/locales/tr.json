@@ -1213,7 +1213,7 @@
   "localContact": {
     "editTitle": "Kişiyi düzenle",
     "addTitle": "Yeni kişi",
-    "intro": "Önce kişiyi not al — PikTag hesabı şart değil. Katıldığında otomatik bağlanır, etiket ve notların onunla gelir.",
+    "intro": "Önce kişiyi not al — PikTag hesabı şart değil. Katıldığında otomatik bağlanır, etiketlerin onunla gelir.",
     "fieldName": "İsim",
     "namePlaceholder": "örn. dalıştan tanıdığın Alex",
     "fieldPhone": "Telefon (isteğe bağlı — katılınca bağlar)",

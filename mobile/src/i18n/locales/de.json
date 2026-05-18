@@ -1285,7 +1285,7 @@
   "localContact": {
     "editTitle": "Kontakt bearbeiten",
     "addTitle": "Neuer Kontakt",
-    "intro": "Notiere die Person — sie braucht noch kein PikTag-Konto. Bei Anmeldung verknüpft sich das automatisch, deine Tags & Notizen kommen mit.",
+    "intro": "Notiere die Person — sie braucht noch kein PikTag-Konto. Bei Anmeldung verknüpft sich das automatisch, deine Tags kommen mit.",
     "fieldName": "Name",
     "namePlaceholder": "z. B. Alex vom Tauchausflug",
     "fieldPhone": "Telefon (optional — verknüpft bei Anmeldung)",
