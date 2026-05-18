@@ -427,14 +427,8 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
     }
     setBurstVisible(false);
 
-    // Pending invite handoff (preserved from old flow). If the user
-    // signed up via an /i/{code} link, RedeemInvite has to be the
-    // TOP route so the invite consumes before they touch anything.
-    let pendingCode: string | null = null;
-    try {
-      const { consumePendingInviteCode } = await import('../../lib/pendingInvite');
-      pendingCode = await consumePendingInviteCode();
-    } catch {}
+    // (Invite-code handoff removed — the invite/redeem gate was
+    // retired; open signup, no codes.)
 
     // Drop the user on the create-first-event surface.
     // root → Main → AddTagTab(2) → AddTagCreate(1). Back-gesture
@@ -455,11 +449,7 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
         { name: 'ProfileTab' },
       ],
     };
-    const routes: any[] = [{ name: 'Main', state: mainState }];
-    if (pendingCode) {
-      routes.push({ name: 'RedeemInvite', params: { code: pendingCode } });
-    }
-    navigation.reset({ index: routes.length - 1, routes });
+    navigation.reset({ index: 0, routes: [{ name: 'Main', state: mainState }] });
   }, [navigation]);
 
   // Clear the safety timer if the screen unmounts first.

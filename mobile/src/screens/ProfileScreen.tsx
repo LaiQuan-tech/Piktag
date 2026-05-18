@@ -317,10 +317,11 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
       {/* Header
           Gift icon was removed — the old "earn points, redeem for
           future paid features" loop was the rare top-right surface
-          that nobody actually used. Invite mechanism still exists
-          (Settings → 邀請好友, ContactSync per-row invite button),
-          and the new motivator lives further down on this page as
-          the Tribe size number — see comment below. */}
+          that nobody actually used. (The invite-code/redeem gate has
+          since been fully retired — open signup, no codes. Plain
+          "share PikTag with a contact" still exists in ContactSync.)
+          The motivator now lives further down as the Tribe size
+          number — see comment below. */}
       <View style={styles.header}>
         <Text style={[styles.headerTitle, { color: colors.text }]}>{t('profile.pageTitle')}</Text>
         <View style={styles.headerRight}>

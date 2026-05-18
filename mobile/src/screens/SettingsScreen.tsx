@@ -380,8 +380,6 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
           );
         }},
         { label: t('settings.contactSync'), onPress: () => navigation.navigate('ContactSync') },
-        { label: t('settings.inviteFriends'), onPress: () => navigation.navigate('Invite'), textColor: COLORS.piktag600 },
-        { label: t('settings.redeemInvite', { defaultValue: '兌換邀請碼' }), onPress: () => navigation.navigate('RedeemInvite') },
         { label: t('settings.socialStats'), onPress: () => navigation.navigate('SocialStats') },
         {
           label: t('settings.notificationSettings'),

@@ -36,7 +36,6 @@ import {
   User,
   Users,
   Share2,
-  Send,
   Circle,
   Plus,
   Search,
@@ -55,7 +54,6 @@ import { useLocalContacts } from '../hooks/useLocalContacts';
 import { useAskFeed } from '../hooks/useAskFeed';
 import { useNetInfoReconnect } from '../hooks/useNetInfoReconnect';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { consumePendingInviteCode } from '../lib/pendingInvite';
 import { shouldShowPhonePrompt, dismissPhonePrompt } from '../lib/phonePrompt';
 import AskStoryRow from '../components/ask/AskStoryRow';
 import type { Connection, ConnectionTag } from '../types';
@@ -885,13 +883,6 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
               desc: t('connections.coldStartActionQrDesc', { defaultValue: '讓朋友掃一下就追蹤你' }),
               onPress: () => navigation.navigate('AddTagTab', { screen: 'AddTag' }),
             },
-            {
-              key: 'invite',
-              icon: Send,
-              title: t('connections.coldStartActionInvite', { defaultValue: '邀請朋友' }),
-              desc: t('connections.coldStartActionInviteDesc', { defaultValue: '用 PikTag 邀請連結把朋友拉進來' }),
-              onPress: () => navigation.navigate('Invite'),
-            },
           ].map((action) => (
             <Pressable
               key={action.key}
@@ -929,29 +920,8 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
       .then(({ data }) => { if (data) setMyProfile(data); });
   }, [user]);
 
-  // Auto-resume invite redemption: if a deep link from `/i/{code}` was
-  // captured before the user was authenticated, the code lives in
-  // pendingInvite. Now that we're on the home tab with a session, push
-  // the redeem screen exactly once with the code prefilled.
-  //
-  // Dep is `user?.id` (not `user`) so silent token refreshes — which
-  // mint a fresh user object reference every ~hour — don't re-fire
-  // this effect with a no-op extra render.
-  useEffect(() => {
-    if (!user) return;
-    let cancelled = false;
-    (async () => {
-      try {
-        const code = await consumePendingInviteCode();
-        if (!cancelled && code) {
-          navigation.navigate('RedeemInvite', { code });
-        }
-      } catch {
-        // Best-effort handoff — never block the home tab on this.
-      }
-    })();
-    return () => { cancelled = true; };
-  }, [user?.id, navigation]);
+  // (Invite-code redeem resume removed — the invite/redeem gate was
+  // retired; open signup, no codes.)
 
   const handleAskPressUser = useCallback((userId: string) => {
     const conn = connections.find(c => c.connected_user_id === userId);

@@ -33,13 +33,8 @@ export const trackFriendDetailViewed = () =>
 export const trackTagFilterApplied = (tagName: string) =>
   posthog.capture('tag_filter_applied', { tag_name: tagName });
 
-/** User shared an invite code. */
-export const trackInviteShared = () =>
-  posthog.capture('invite_shared');
-
-/** User redeemed an invite code. */
-export const trackInviteRedeemed = (code: string) =>
-  posthog.capture('invite_redeemed', { code });
+// (trackInviteShared / trackInviteRedeemed removed — the invite-code
+// /redeem gate was retired; open signup, no codes.)
 
 /** User completed signup via the chosen auth method. */
 export const trackSignupComplete = (props: { method: 'apple' | 'google' | 'email' }) =>

@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -19,7 +19,6 @@ import { signInWithApple } from '../../lib/appleAuth';
 import { signInWithGoogle } from '../../lib/googleAuth';
 import { trackSignupComplete } from '../../lib/analytics';
 import { COLORS, SPACING, BORDER_RADIUS } from '../../constants/theme';
-import { peekPendingInviteCode } from '../../lib/pendingInvite';
 
 type RegisterScreenProps = {
   navigation: any;
@@ -36,17 +35,6 @@ export default function RegisterScreen({ navigation }: RegisterScreenProps) {
   // gives the highest yield. Stored normalized to YYYY-MM-DD.
   const [birthday, setBirthday] = useState('');
   const [socialLoading, setSocialLoading] = useState<string | null>(null);
-  const [pendingInvite, setPendingInvite] = useState<string | null>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-    peekPendingInviteCode()
-      .then((code) => {
-        if (!cancelled && code) setPendingInvite(code);
-      })
-      .catch(() => {});
-    return () => { cancelled = true; };
-  }, []);
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -147,20 +135,6 @@ export default function RegisterScreen({ navigation }: RegisterScreenProps) {
           <Text style={styles.subtitle}>{t('common.brandSlogan')}</Text>
         </View>
 
-        {/* Pending-invite banner: shown when user arrived via /i/{code} */}
-        {pendingInvite && (
-          <View style={styles.inviteBanner}>
-            <Text style={styles.inviteBannerTitle}>
-              {t('auth.register.invitePendingTitle', { defaultValue: '你被邀請加入 PikTag' })}
-            </Text>
-            <Text style={styles.inviteBannerBody}>
-              {t('auth.register.invitePendingBody', {
-                defaultValue: '註冊後會自動完成邀請兌換。',
-                code: pendingInvite,
-              })}
-            </Text>
-          </View>
-        )}
 
         {/* Form */}
         <View style={styles.formContainer}>
@@ -346,25 +320,6 @@ const styles = StyleSheet.create({
   logoContainer: {
     alignItems: 'center',
     marginBottom: 48,
-  },
-  inviteBanner: {
-    backgroundColor: COLORS.piktag50,
-    borderColor: COLORS.piktag500,
-    borderWidth: 1,
-    borderRadius: 12,
-    padding: 14,
-    marginBottom: 24,
-  },
-  inviteBannerTitle: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: COLORS.piktag600,
-    marginBottom: 4,
-  },
-  inviteBannerBody: {
-    fontSize: 13,
-    lineHeight: 18,
-    color: COLORS.gray700,
   },
   logoRow: {
     flexDirection: 'row',
