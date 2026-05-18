@@ -73,7 +73,10 @@
       "alertResetSentMessage": "Şifre sıfırlama bağlantısı e-posta adresine gönderildi",
       "orDivider": "veya",
       "continueWithApple": "Apple ile giriş yap",
-      "continueWithGoogle": "Google ile giriş yap"
+      "continueWithGoogle": "Google ile giriş yap",
+      "errInvalidCredentials": "E-posta veya şifre yanlış.",
+      "errEmailNotConfirmed": "Önce e-postanı doğrula — gönderdiğimiz bağlantıya dokun, sonra giriş yap.",
+      "errGeneric": "Giriş yapılamadı. Tekrar dene."
     },
     "register": {
       "alertEmptyFields": "Tüm alanları doldur",
@@ -560,7 +563,9 @@
     "mutualFriendsSectionTitle": "Ortak Arkadaşlar",
     "shareIntroMessage": "Sana {{name}}'ı tanıştırayım — profili: {{url}}",
     "tag": "Etiket",
-    "recommendMembers": "Önerilen üyeler"
+    "recommendMembers": "Önerilen üyeler",
+    "blockConfirmTitle": "Bu kişi engellensin mi?",
+    "blockConfirmMessage": "Birbirinizi takipten çıkarsınız ve içeriklerinizi görmezsiniz."
   },
   "userDetail": {
     "headerNotFound": "Bulunamadı",
@@ -607,7 +612,9 @@
     "hiddenTagPlaceholder": "Gizli etiket ekle...",
     "tag": "Etiket",
     "recommendMembers": "Önerilen üyeler",
-    "vibeContextTagsTitle": "Bu Tag’in etiketleri"
+    "vibeContextTagsTitle": "Bu Tag’in etiketleri",
+    "blockConfirmTitle": "Bu kişi engellensin mi?",
+    "blockConfirmMessage": "Birbirinizi takipten çıkarsınız ve içeriklerinizi görmezsiniz."
   },
   "settings": {
     "headerTitle": "Ayarlar",
@@ -864,7 +871,8 @@
     "alreadyConnectedMessage": "Zaten arkadaşsınız.",
     "addFriend": "Takip Et",
     "connectElsewhereTitle": "{{name}} ile burada da bağlan",
-    "connectElsewhereHint": "Dokun, kişinin sayfası o uygulamada açılır — takip/ekleme sana kalmış."
+    "connectElsewhereHint": "Dokun, kişinin sayfası o uygulamada açılır — takip/ekleme sana kalmış.",
+    "selfScanMessage": "Bu senin kendi QR'ın — kendini ekleyemezsin."
   },
   "manageTags": {
     "headerTitle": "Etiketleri Yönet",

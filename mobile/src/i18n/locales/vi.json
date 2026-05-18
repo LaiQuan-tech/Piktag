@@ -79,7 +79,10 @@
       "alertResetSentMessage": "Tụi mình đã gửi link đặt lại mật khẩu vào email của bạn rồi",
       "orDivider": "hoặc",
       "continueWithApple": "Đăng nhập bằng Apple",
-      "continueWithGoogle": "Đăng nhập bằng Google"
+      "continueWithGoogle": "Đăng nhập bằng Google",
+      "errInvalidCredentials": "Email hoặc mật khẩu không đúng.",
+      "errEmailNotConfirmed": "Hãy xác minh email trước — bấm vào link bọn mình gửi, rồi đăng nhập.",
+      "errGeneric": "Không đăng nhập được. Thử lại nhé."
     },
     "register": {
       "alertEmptyFields": "Điền hết các ô nhé",
@@ -578,7 +581,9 @@
     "mutualFriendsSectionTitle": "Bạn chung",
     "shareIntroMessage": "Để mình giới thiệu {{name}} cho bạn nhé — đây là hồ sơ của họ: {{url}}",
     "tag": "Gắn tag",
-    "recommendMembers": "Có thể bạn quen"
+    "recommendMembers": "Có thể bạn quen",
+    "blockConfirmTitle": "Chặn người này?",
+    "blockConfirmMessage": "Cả hai sẽ bỏ theo dõi nhau và không còn thấy nội dung của nhau."
   },
   "userDetail": {
     "headerNotFound": "Không tìm thấy",
@@ -625,7 +630,9 @@
     "hiddenTagPlaceholder": "Thêm tag ẩn...",
     "tag": "Gắn tag",
     "recommendMembers": "Có thể bạn quen",
-    "vibeContextTagsTitle": "Tag từ Tag này"
+    "vibeContextTagsTitle": "Tag từ Tag này",
+    "blockConfirmTitle": "Chặn người này?",
+    "blockConfirmMessage": "Cả hai sẽ bỏ theo dõi nhau và không còn thấy nội dung của nhau."
   },
   "settings": {
     "headerTitle": "Cài đặt",
@@ -950,7 +957,8 @@
     "alreadyConnectedMessage": "Hai bạn là bạn bè rồi nhé.",
     "addFriend": "Theo dõi",
     "connectElsewhereTitle": "Kết nối với {{name}} ở đây nữa",
-    "connectElsewhereHint": "Chạm để mở trang của họ trong app đó — bạn tự bấm theo dõi/kết bạn."
+    "connectElsewhereHint": "Chạm để mở trang của họ trong app đó — bạn tự bấm theo dõi/kết bạn.",
+    "selfScanMessage": "Đây là QR của chính bạn — không thể tự thêm mình."
   },
   "manageTags": {
     "headerTitle": "Quản lý tag",

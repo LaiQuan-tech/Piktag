@@ -696,15 +696,26 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
     };
   }, [friendId]);
 
+  // In-flight + once-per-screen guard: a fast double-tap on a
+  // reason previously inserted duplicate piktag_reports rows
+  // (no unique constraint on reporter+reported).
+  const reportingRef = useRef(false);
   const handleReport = async (reason: string) => {
     if (!user || !friendId) return;
-    const { error } = await supabase.from('piktag_reports').insert({ reporter_id: user.id, reported_id: friendId, reason });
-    if (error) {
-      console.warn('report insert failed:', error);
-      Alert.alert(t('common.error'), t('common.unknownError'));
-      return;
+    if (reportingRef.current) return;
+    reportingRef.current = true;
+    try {
+      const { error } = await supabase.from('piktag_reports').insert({ reporter_id: user.id, reported_id: friendId, reason });
+      if (error) {
+        console.warn('report insert failed:', error);
+        Alert.alert(t('common.error'), t('common.unknownError'));
+        reportingRef.current = false; // allow retry on failure
+        return;
+      }
+      Alert.alert(t('friendDetail.reportedTitle', { defaultValue: '已檢舉' }), t('friendDetail.reportedMessage', { defaultValue: '感謝你的回報，我們會盡快處理' }));
+    } catch (e) {
+      reportingRef.current = false;
     }
-    Alert.alert(t('friendDetail.reportedTitle', { defaultValue: '已檢舉' }), t('friendDetail.reportedMessage', { defaultValue: '感謝你的回報，我們會盡快處理' }));
   };
 
   const handleToggleCloseFriend = async () => {
@@ -1605,21 +1616,39 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.moreItem}
-              onPress={async () => {
+              onPress={() => {
                 setMoreMenuVisible(false);
                 if (!user || !friendId) return;
-                // block_user RPC does the full cascade atomically:
-                // upsert block + delete bilateral follows + delete
-                // bilateral close-friend rows + delete blocker's prior
-                // notifications produced by the blocked user.
-                const { error } = await supabase.rpc('block_user', { p_blocked_id: friendId });
-                if (error) {
-                  console.warn('[FriendDetail] block_user RPC failed:', error);
-                  Alert.alert(t('common.error'), t('common.unknownError'));
-                  return;
-                }
-                Alert.alert(t('friendDetail.blockedTitle', { defaultValue: '已封鎖' }), t('friendDetail.blockedMessage', { defaultValue: '你將不再看到此用戶' }));
-                if (navigation.canGoBack()) navigation.goBack(); else navigation.navigate('Main', { screen: 'HomeTab' });
+                // Block is destructive (cascades follows/close-friends/
+                // notifications) and was one-tap with no guard. Confirm
+                // before the irreversible-feeling action.
+                Alert.alert(
+                  t('friendDetail.blockConfirmTitle', { defaultValue: '封鎖這個人？' }),
+                  t('friendDetail.blockConfirmMessage', {
+                    defaultValue: '你們會互相取消追蹤，也不再看到彼此的內容。',
+                  }),
+                  [
+                    { text: t('common.cancel', { defaultValue: '取消' }), style: 'cancel' },
+                    {
+                      text: t('friendDetail.blockUser', { defaultValue: '封鎖' }),
+                      style: 'destructive',
+                      onPress: async () => {
+                        // block_user RPC does the full cascade atomically:
+                        // upsert block + delete bilateral follows + delete
+                        // bilateral close-friend rows + delete blocker's
+                        // prior notifications produced by the blocked user.
+                        const { error } = await supabase.rpc('block_user', { p_blocked_id: friendId });
+                        if (error) {
+                          console.warn('[FriendDetail] block_user RPC failed:', error);
+                          Alert.alert(t('common.error'), t('common.unknownError'));
+                          return;
+                        }
+                        Alert.alert(t('friendDetail.blockedTitle', { defaultValue: '已封鎖' }), t('friendDetail.blockedMessage', { defaultValue: '你將不再看到此用戶' }));
+                        if (navigation.canGoBack()) navigation.goBack(); else navigation.navigate('Main', { screen: 'HomeTab' });
+                      },
+                    },
+                  ],
+                );
               }}
             >
               <X size={20} color="#EF4444" />

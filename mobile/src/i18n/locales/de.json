@@ -79,7 +79,10 @@
       "alertResetSentMessage": "Ein Link zum Zurücksetzen des Passworts wurde an deine E-Mail gesendet",
       "orDivider": "oder",
       "continueWithApple": "Mit Apple anmelden",
-      "continueWithGoogle": "Mit Google anmelden"
+      "continueWithGoogle": "Mit Google anmelden",
+      "errInvalidCredentials": "E-Mail oder Passwort ist falsch.",
+      "errEmailNotConfirmed": "Bestätige zuerst deine E-Mail — tippe den gesendeten Link an, dann melde dich an.",
+      "errGeneric": "Anmeldung fehlgeschlagen. Versuch es nochmal."
     },
     "register": {
       "alertEmptyFields": "Fülle alle Felder aus",
@@ -568,7 +571,9 @@
     "mutualFriendsSectionTitle": "Gemeinsame Freunde",
     "shareIntroMessage": "Lass mich dir {{name}} vorstellen — hier ist das Profil: {{url}}",
     "tag": "Tag",
-    "recommendMembers": "Empfohlene Mitglieder"
+    "recommendMembers": "Empfohlene Mitglieder",
+    "blockConfirmTitle": "Diese Person blockieren?",
+    "blockConfirmMessage": "Ihr folgt euch nicht mehr und seht eure Inhalte nicht mehr."
   },
   "userDetail": {
     "headerNotFound": "Nicht gefunden",
@@ -615,7 +620,9 @@
     "hiddenTagPlaceholder": "Verstecktes Tag hinzufügen...",
     "tag": "Tag",
     "recommendMembers": "Empfohlene Mitglieder",
-    "vibeContextTagsTitle": "Tags dieses Vibes"
+    "vibeContextTagsTitle": "Tags dieses Vibes",
+    "blockConfirmTitle": "Diese Person blockieren?",
+    "blockConfirmMessage": "Ihr folgt euch nicht mehr und seht eure Inhalte nicht mehr."
   },
   "settings": {
     "headerTitle": "Einstellungen",
@@ -932,7 +939,8 @@
     "alreadyConnectedMessage": "Ihr seid bereits befreundet.",
     "addFriend": "Folgen",
     "connectElsewhereTitle": "Verbinde dich auch hier mit {{name}}",
-    "connectElsewhereHint": "Tippen, um die Seite in der App zu öffnen — Folgen/Hinzufügen machst du."
+    "connectElsewhereHint": "Tippen, um die Seite in der App zu öffnen — Folgen/Hinzufügen machst du.",
+    "selfScanMessage": "Das ist dein eigener QR — du kannst dich nicht selbst hinzufügen."
   },
   "manageTags": {
     "headerTitle": "Tags verwalten",

@@ -73,7 +73,10 @@
       "alertResetSentMessage": "Ссылка для сброса пароля отправлена тебе на почту",
       "orDivider": "или",
       "continueWithApple": "Войти через Apple",
-      "continueWithGoogle": "Войти через Google"
+      "continueWithGoogle": "Войти через Google",
+      "errInvalidCredentials": "Неверная почта или пароль.",
+      "errEmailNotConfirmed": "Сначала подтвердите почту — нажмите присланную ссылку, затем войдите.",
+      "errGeneric": "Не удалось войти. Попробуйте ещё раз."
     },
     "register": {
       "alertEmptyFields": "Заполни все поля",
@@ -560,7 +563,9 @@
     "mutualFriendsSectionTitle": "Общие друзья",
     "shareIntroMessage": "Знакомься — это {{name}}, вот его профиль: {{url}}",
     "tag": "Метка",
-    "recommendMembers": "Рекомендованные"
+    "recommendMembers": "Рекомендованные",
+    "blockConfirmTitle": "Заблокировать этого человека?",
+    "blockConfirmMessage": "Вы оба отпишетесь и перестанете видеть контент друг друга."
   },
   "userDetail": {
     "headerNotFound": "Не найдено",
@@ -607,7 +612,9 @@
     "hiddenTagPlaceholder": "Добавь скрытый тег...",
     "tag": "Метка",
     "recommendMembers": "Рекомендованные",
-    "vibeContextTagsTitle": "Теги этого Tag"
+    "vibeContextTagsTitle": "Теги этого Tag",
+    "blockConfirmTitle": "Заблокировать этого человека?",
+    "blockConfirmMessage": "Вы оба отпишетесь и перестанете видеть контент друг друга."
   },
   "settings": {
     "headerTitle": "Настройки",
@@ -864,7 +871,8 @@
     "alreadyConnectedMessage": "Вы уже друзья.",
     "addFriend": "Подписаться",
     "connectElsewhereTitle": "Свяжитесь с {{name}} и здесь",
-    "connectElsewhereHint": "Нажмите, чтобы открыть их страницу в приложении — подписку/добавление делаете вы."
+    "connectElsewhereHint": "Нажмите, чтобы открыть их страницу в приложении — подписку/добавление делаете вы.",
+    "selfScanMessage": "Это ваш собственный QR — нельзя добавить себя."
   },
   "manageTags": {
     "headerTitle": "Управление тегами",

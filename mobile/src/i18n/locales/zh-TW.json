@@ -79,7 +79,10 @@
       "alertResetSentMessage": "重設密碼連結已寄到你的信箱，去收信看看",
       "orDivider": "或",
       "continueWithApple": "Apple 登入",
-      "continueWithGoogle": "Google 登入"
+      "continueWithGoogle": "Google 登入",
+      "errInvalidCredentials": "帳號或密碼不正確。",
+      "errEmailNotConfirmed": "請先到信箱點開確認信完成驗證，再登入。",
+      "errGeneric": "登入失敗，請稍後再試。"
     },
     "register": {
       "alertEmptyFields": "請填寫所有欄位",
@@ -578,7 +581,9 @@
     "mutualFriendsSectionTitle": "共同朋友",
     "shareIntroMessage": "我介紹 {{name}} 給你，這是他的資訊：{{url}}",
     "tag": "標籤",
-    "recommendMembers": "推薦會員"
+    "recommendMembers": "推薦會員",
+    "blockConfirmTitle": "封鎖這個人？",
+    "blockConfirmMessage": "你們會互相取消追蹤，也不再看到彼此的內容。"
   },
   "userDetail": {
     "headerNotFound": "找不到",
@@ -625,7 +630,9 @@
     "hiddenTagPlaceholder": "新增隱藏標籤...",
     "tag": "標籤",
     "recommendMembers": "推薦會員",
-    "vibeContextTagsTitle": "這次 Tag 帶的標籤"
+    "vibeContextTagsTitle": "這次 Tag 帶的標籤",
+    "blockConfirmTitle": "封鎖這個人？",
+    "blockConfirmMessage": "你們會互相取消追蹤，也不再看到彼此的內容。"
   },
   "settings": {
     "headerTitle": "設定",
@@ -934,7 +941,8 @@
     "alreadyConnectedMessage": "你們已經是朋友了",
     "addFriend": "追蹤",
     "connectElsewhereTitle": "也在這些地方連上 {{name}}",
-    "connectElsewhereHint": "點一下會開啟對方在該 App 的頁面，由你按追蹤／加好友。"
+    "connectElsewhereHint": "點一下會開啟對方在該 App 的頁面，由你按追蹤／加好友。",
+    "selfScanMessage": "這是你自己的 QR，沒辦法加自己為好友。"
   },
   "manageTags": {
     "headerTitle": "標籤管理",

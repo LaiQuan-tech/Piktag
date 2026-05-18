@@ -79,7 +79,10 @@
       "alertResetSentMessage": "重设密码链接已寄到你的邮箱，去收信看看",
       "orDivider": "或",
       "continueWithApple": "Apple 登录",
-      "continueWithGoogle": "Google 登录"
+      "continueWithGoogle": "Google 登录",
+      "errInvalidCredentials": "账号或密码不正确。",
+      "errEmailNotConfirmed": "请先到邮箱点开确认信完成验证，再登录。",
+      "errGeneric": "登录失败，请稍后再试。"
     },
     "register": {
       "alertEmptyFields": "请填写所有字段",
@@ -568,7 +571,9 @@
     "mutualFriendsSectionTitle": "共同朋友",
     "shareIntroMessage": "我介绍 {{name}} 给你，这是他的资讯：{{url}}",
     "tag": "标签",
-    "recommendMembers": "推荐会员"
+    "recommendMembers": "推荐会员",
+    "blockConfirmTitle": "屏蔽这个人？",
+    "blockConfirmMessage": "你们会互相取消关注，也不再看到彼此的内容。"
   },
   "userDetail": {
     "headerNotFound": "未找到",
@@ -615,7 +620,9 @@
     "hiddenTagPlaceholder": "添加隐藏标签...",
     "tag": "标签",
     "recommendMembers": "推荐会员",
-    "vibeContextTagsTitle": "这次 Tag 带的标签"
+    "vibeContextTagsTitle": "这次 Tag 带的标签",
+    "blockConfirmTitle": "屏蔽这个人？",
+    "blockConfirmMessage": "你们会互相取消关注，也不再看到彼此的内容。"
   },
   "settings": {
     "headerTitle": "设置",
@@ -932,7 +939,8 @@
     "alreadyConnectedMessage": "你们已经是朋友了",
     "addFriend": "关注",
     "connectElsewhereTitle": "也在这些地方连上 {{name}}",
-    "connectElsewhereHint": "点一下会打开对方在该 App 的页面，由你按关注／加好友。"
+    "connectElsewhereHint": "点一下会打开对方在该 App 的页面，由你按关注／加好友。",
+    "selfScanMessage": "这是你自己的 QR，没办法加自己为好友。"
   },
   "manageTags": {
     "headerTitle": "标签管理",

@@ -73,7 +73,10 @@
       "alertResetSentMessage": "비밀번호 재설정 링크를 이메일로 발송했습니다",
       "orDivider": "또는",
       "continueWithApple": "Apple로 로그인",
-      "continueWithGoogle": "Google로 로그인"
+      "continueWithGoogle": "Google로 로그인",
+      "errInvalidCredentials": "이메일 또는 비밀번호가 올바르지 않아요.",
+      "errEmailNotConfirmed": "먼저 보낸 확인 메일의 링크를 누른 뒤 로그인해 주세요.",
+      "errGeneric": "로그인하지 못했어요. 다시 시도해 주세요."
     },
     "register": {
       "alertEmptyFields": "모든 항목을 입력하세요",
@@ -560,7 +563,9 @@
     "mutualFriendsSectionTitle": "함께 아는 친구",
     "shareIntroMessage": "{{name}}을(를) 소개합니다 — 프로필: {{url}}",
     "tag": "태그",
-    "recommendMembers": "추천 회원"
+    "recommendMembers": "추천 회원",
+    "blockConfirmTitle": "이 사람을 차단할까요?",
+    "blockConfirmMessage": "서로 팔로우가 해제되고 상대 콘텐츠도 안 보여요."
   },
   "userDetail": {
     "headerNotFound": "찾을 수 없음",
@@ -607,7 +612,9 @@
     "hiddenTagPlaceholder": "숨김 태그 추가...",
     "tag": "태그",
     "recommendMembers": "추천 회원",
-    "vibeContextTagsTitle": "이 Tag의 태그"
+    "vibeContextTagsTitle": "이 Tag의 태그",
+    "blockConfirmTitle": "이 사람을 차단할까요?",
+    "blockConfirmMessage": "서로 팔로우가 해제되고 상대 콘텐츠도 안 보여요."
   },
   "settings": {
     "headerTitle": "설정",
@@ -864,7 +871,8 @@
     "alreadyConnectedMessage": "이미 친구입니다.",
     "addFriend": "팔로우",
     "connectElsewhereTitle": "{{name}}님과 다른 앱에서도 연결",
-    "connectElsewhereHint": "탭하면 상대방 페이지가 열려요. 팔로우/추가는 직접 눌러요."
+    "connectElsewhereHint": "탭하면 상대방 페이지가 열려요. 팔로우/추가는 직접 눌러요.",
+    "selfScanMessage": "내 QR이라 나를 추가할 수 없어요."
   },
   "manageTags": {
     "headerTitle": "태그 관리",

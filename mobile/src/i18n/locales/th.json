@@ -73,7 +73,10 @@
       "alertResetSentMessage": "ลิงก์รีเซ็ตรหัสผ่านถูกส่งไปยังอีเมลของคุณแล้ว",
       "orDivider": "หรือ",
       "continueWithApple": "เข้าสู่ระบบด้วย Apple",
-      "continueWithGoogle": "เข้าสู่ระบบด้วย Google"
+      "continueWithGoogle": "เข้าสู่ระบบด้วย Google",
+      "errInvalidCredentials": "อีเมลหรือรหัสผ่านไม่ถูกต้อง",
+      "errEmailNotConfirmed": "ยืนยันอีเมลก่อน — แตะลิงก์ที่เราส่งให้ แล้วเข้าสู่ระบบ",
+      "errGeneric": "เข้าสู่ระบบไม่สำเร็จ ลองใหม่อีกครั้ง"
     },
     "register": {
       "alertEmptyFields": "กรอกข้อมูลให้ครบทุกช่อง",
@@ -560,7 +563,9 @@
     "mutualFriendsSectionTitle": "เพื่อนร่วมกัน",
     "shareIntroMessage": "ขอแนะนำ {{name}} — โปรไฟล์: {{url}}",
     "tag": "แท็ก",
-    "recommendMembers": "สมาชิกแนะนำ"
+    "recommendMembers": "สมาชิกแนะนำ",
+    "blockConfirmTitle": "บล็อกคนนี้?",
+    "blockConfirmMessage": "คุณทั้งคู่จะเลิกติดตามกันและไม่เห็นเนื้อหาของกันและกัน"
   },
   "userDetail": {
     "headerNotFound": "ไม่พบ",
@@ -607,7 +612,9 @@
     "hiddenTagPlaceholder": "เพิ่มแท็กที่ซ่อน...",
     "tag": "แท็ก",
     "recommendMembers": "สมาชิกแนะนำ",
-    "vibeContextTagsTitle": "แท็กของ Tag นี้"
+    "vibeContextTagsTitle": "แท็กของ Tag นี้",
+    "blockConfirmTitle": "บล็อกคนนี้?",
+    "blockConfirmMessage": "คุณทั้งคู่จะเลิกติดตามกันและไม่เห็นเนื้อหาของกันและกัน"
   },
   "settings": {
     "headerTitle": "ตั้งค่า",
@@ -864,7 +871,8 @@
     "alreadyConnectedMessage": "คุณเป็นเพื่อนกันแล้ว",
     "addFriend": "ติดตาม",
     "connectElsewhereTitle": "เชื่อมต่อกับ {{name}} ที่นี่ด้วย",
-    "connectElsewhereHint": "แตะเพื่อเปิดหน้าของเขาในแอปนั้น — คุณกดติดตาม/เพิ่มเอง"
+    "connectElsewhereHint": "แตะเพื่อเปิดหน้าของเขาในแอปนั้น — คุณกดติดตาม/เพิ่มเอง",
+    "selfScanMessage": "นี่คือ QR ของคุณเอง เพิ่มตัวเองไม่ได้"
   },
   "manageTags": {
     "headerTitle": "จัดการแท็ก",

@@ -63,10 +63,20 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
       });
 
       if (error) {
-        Alert.alert(t('auth.login.alertLoginFailedTitle'), error.message);
+        // Map raw English Supabase errors to localized, actionable
+        // copy (was dumping e.g. "Invalid login credentials" /
+        // "Email not confirmed" verbatim into an otherwise zh UI,
+        // with no next step for the unconfirmed-email case).
+        const m = error.message || '';
+        const msg = /invalid login credentials/i.test(m)
+          ? t('auth.login.errInvalidCredentials', { defaultValue: '帳號或密碼不正確。' })
+          : /email not confirmed/i.test(m)
+          ? t('auth.login.errEmailNotConfirmed', { defaultValue: '請先到信箱點開確認信完成驗證，再登入。' })
+          : t('auth.login.errGeneric', { defaultValue: '登入失敗，請稍後再試。' });
+        Alert.alert(t('auth.login.alertLoginFailedTitle'), msg);
       }
     } catch (err: any) {
-      Alert.alert(t('common.error'), err.message || t('common.unknownError'));
+      Alert.alert(t('common.error'), t('auth.login.errGeneric', { defaultValue: '登入失敗，請稍後再試。' }));
     } finally {
       setLoading(false);
     }
@@ -107,14 +117,14 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
   const handleApple = async () => {
     setSocialLoading('apple');
     try { await signInWithApple(); }
-    catch (err: any) { if (err.code !== 'ERR_CANCELED') Alert.alert(t('common.error'), err.message); }
+    catch (err: any) { if (err.code !== 'ERR_CANCELED') Alert.alert(t('common.error'), t('auth.login.errGeneric', { defaultValue: '登入失敗，請稍後再試。' })); }
     finally { setSocialLoading(null); }
   };
 
   const handleGoogle = async () => {
     setSocialLoading('google');
     try { await signInWithGoogle(); }
-    catch (err: any) { Alert.alert(t('common.error'), err.message); }
+    catch (err: any) { Alert.alert(t('common.error'), t('auth.login.errGeneric', { defaultValue: '登入失敗，請稍後再試。' })); }
     finally { setSocialLoading(null); }
   };
 

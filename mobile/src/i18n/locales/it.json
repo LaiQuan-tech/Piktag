@@ -79,7 +79,10 @@
       "alertResetSentMessage": "Ti abbiamo mandato un link per reimpostare la password",
       "orDivider": "oppure",
       "continueWithApple": "Accedi con Apple",
-      "continueWithGoogle": "Accedi con Google"
+      "continueWithGoogle": "Accedi con Google",
+      "errInvalidCredentials": "Email o password non corretti.",
+      "errEmailNotConfirmed": "Verifica prima la tua email — tocca il link inviato, poi accedi.",
+      "errGeneric": "Accesso non riuscito. Riprova."
     },
     "register": {
       "alertEmptyFields": "Compila tutti i campi",
@@ -578,7 +581,9 @@
     "mutualFriendsSectionTitle": "Amici in comune",
     "shareIntroMessage": "Ti presento {{name}} — ecco il suo profilo: {{url}}",
     "tag": "Tag",
-    "recommendMembers": "Membri consigliati"
+    "recommendMembers": "Membri consigliati",
+    "blockConfirmTitle": "Bloccare questa persona?",
+    "blockConfirmMessage": "Smetterete di seguirvi e non vedrete più i contenuti dell'altro."
   },
   "userDetail": {
     "headerNotFound": "Non trovato",
@@ -625,7 +630,9 @@
     "hiddenTagPlaceholder": "Aggiungi un tag nascosto...",
     "tag": "Tag",
     "recommendMembers": "Membri consigliati",
-    "vibeContextTagsTitle": "Tag da questo Tag"
+    "vibeContextTagsTitle": "Tag da questo Tag",
+    "blockConfirmTitle": "Bloccare questa persona?",
+    "blockConfirmMessage": "Smetterete di seguirvi e non vedrete più i contenuti dell'altro."
   },
   "settings": {
     "headerTitle": "Impostazioni",
@@ -950,7 +957,8 @@
     "alreadyConnectedMessage": "Siete già amici!",
     "addFriend": "Segui",
     "connectElsewhereTitle": "Connettiti con {{name}} anche qui",
-    "connectElsewhereHint": "Tocca per aprire la sua pagina nell'app — segui/aggiungi tu."
+    "connectElsewhereHint": "Tocca per aprire la sua pagina nell'app — segui/aggiungi tu.",
+    "selfScanMessage": "Questo è il tuo QR — non puoi aggiungere te stesso."
   },
   "manageTags": {
     "headerTitle": "Gestisci tag",

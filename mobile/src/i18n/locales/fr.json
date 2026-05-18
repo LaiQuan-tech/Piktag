@@ -73,7 +73,10 @@
       "alertResetSentMessage": "Un lien de réinitialisation a été envoyé à votre e-mail",
       "orDivider": "ou",
       "continueWithApple": "Se connecter avec Apple",
-      "continueWithGoogle": "Se connecter avec Google"
+      "continueWithGoogle": "Se connecter avec Google",
+      "errInvalidCredentials": "E-mail ou mot de passe incorrect.",
+      "errEmailNotConfirmed": "Vérifie d'abord ton e-mail — clique sur le lien envoyé, puis connecte-toi.",
+      "errGeneric": "Connexion impossible. Réessaie."
     },
     "register": {
       "alertEmptyFields": "Remplissez tous les champs",
@@ -560,7 +563,9 @@
     "mutualFriendsSectionTitle": "Amis en commun",
     "shareIntroMessage": "Je vous présente {{name}} — son profil : {{url}}",
     "tag": "Étiquette",
-    "recommendMembers": "Membres recommandés"
+    "recommendMembers": "Membres recommandés",
+    "blockConfirmTitle": "Bloquer cette personne ?",
+    "blockConfirmMessage": "Vous ne vous suivrez plus et ne verrez plus le contenu de l'autre."
   },
   "userDetail": {
     "headerNotFound": "Introuvable",
@@ -607,7 +612,9 @@
     "hiddenTagPlaceholder": "Ajouter un tag caché...",
     "tag": "Étiquette",
     "recommendMembers": "Membres recommandés",
-    "vibeContextTagsTitle": "Tags de ce Tag"
+    "vibeContextTagsTitle": "Tags de ce Tag",
+    "blockConfirmTitle": "Bloquer cette personne ?",
+    "blockConfirmMessage": "Vous ne vous suivrez plus et ne verrez plus le contenu de l'autre."
   },
   "settings": {
     "headerTitle": "Réglages",
@@ -864,7 +871,8 @@
     "alreadyConnectedMessage": "Vous êtes déjà amis.",
     "addFriend": "Suivre",
     "connectElsewhereTitle": "Connecte-toi aussi avec {{name}} ici",
-    "connectElsewhereHint": "Touche pour ouvrir sa page dans l'app — c'est toi qui suis/ajoutes."
+    "connectElsewhereHint": "Touche pour ouvrir sa page dans l'app — c'est toi qui suis/ajoutes.",
+    "selfScanMessage": "C'est ton propre QR — tu ne peux pas t'ajouter toi-même."
   },
   "manageTags": {
     "headerTitle": "Gérer les tags",

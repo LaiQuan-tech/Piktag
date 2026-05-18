@@ -79,7 +79,10 @@
       "alertResetSentMessage": "A password reset link has been sent to your email",
       "orDivider": "or",
       "continueWithApple": "Sign in with Apple",
-      "continueWithGoogle": "Sign in with Google"
+      "continueWithGoogle": "Sign in with Google",
+      "errInvalidCredentials": "Email or password is incorrect.",
+      "errEmailNotConfirmed": "Verify your email first — tap the confirmation link we sent, then log in.",
+      "errGeneric": "Couldn't sign in. Please try again."
     },
     "register": {
       "alertEmptyFields": "Fill in all fields",
@@ -575,7 +578,9 @@
     "mutualFriendsSectionTitle": "Mutual Friends",
     "shareIntroMessage": "Let me introduce {{name}} to you — here's their profile: {{url}}",
     "tag": "Tag",
-    "recommendMembers": "Recommended members"
+    "recommendMembers": "Recommended members",
+    "blockConfirmTitle": "Block this person?",
+    "blockConfirmMessage": "You'll both unfollow each other and stop seeing each other's content."
   },
   "userDetail": {
     "headerNotFound": "Not Found",
@@ -622,7 +627,9 @@
     "hiddenTagPlaceholder": "Add hidden tag...",
     "tag": "Tag",
     "recommendMembers": "Recommended members",
-    "vibeContextTagsTitle": "Tags from this Tag"
+    "vibeContextTagsTitle": "Tags from this Tag",
+    "blockConfirmTitle": "Block this person?",
+    "blockConfirmMessage": "You'll both unfollow each other and stop seeing each other's content."
   },
   "settings": {
     "headerTitle": "Settings",
@@ -945,7 +952,8 @@
     "alreadyConnectedMessage": "You are already friends.",
     "addFriend": "Follow",
     "connectElsewhereTitle": "Also connect with {{name}} here",
-    "connectElsewhereHint": "Tap to open their page in that app — you tap follow/add."
+    "connectElsewhereHint": "Tap to open their page in that app — you tap follow/add.",
+    "selfScanMessage": "This is your own QR — you can't add yourself."
   },
   "manageTags": {
     "headerTitle": "Manage Tags",

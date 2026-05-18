@@ -73,7 +73,10 @@
       "alertResetSentMessage": "パスワードリセットリンクをメールに送信しました",
       "orDivider": "または",
       "continueWithApple": "Appleでサインイン",
-      "continueWithGoogle": "Googleでサインイン"
+      "continueWithGoogle": "Googleでサインイン",
+      "errInvalidCredentials": "メールまたはパスワードが違います。",
+      "errEmailNotConfirmed": "先に確認メールのリンクをタップして認証してからログインしてね。",
+      "errGeneric": "ログインできませんでした。もう一度試してね。"
     },
     "register": {
       "alertEmptyFields": "すべての項目を入力してください",
@@ -560,7 +563,9 @@
     "mutualFriendsSectionTitle": "共通の友達",
     "shareIntroMessage": "{{name}}を紹介します — プロフィール：{{url}}",
     "tag": "タグ",
-    "recommendMembers": "おすすめのメンバー"
+    "recommendMembers": "おすすめのメンバー",
+    "blockConfirmTitle": "この人をブロック？",
+    "blockConfirmMessage": "お互いのフォローが外れ、相手の投稿も見えなくなります。"
   },
   "userDetail": {
     "headerNotFound": "見つかりません",
@@ -607,7 +612,9 @@
     "hiddenTagPlaceholder": "非公開タグを追加...",
     "tag": "タグ",
     "recommendMembers": "おすすめのメンバー",
-    "vibeContextTagsTitle": "この Tag のタグ"
+    "vibeContextTagsTitle": "この Tag のタグ",
+    "blockConfirmTitle": "この人をブロック？",
+    "blockConfirmMessage": "お互いのフォローが外れ、相手の投稿も見えなくなります。"
   },
   "settings": {
     "headerTitle": "設定",
@@ -864,7 +871,8 @@
     "alreadyConnectedMessage": "すでに友達です。",
     "addFriend": "フォロー",
     "connectElsewhereTitle": "{{name}} さんと他のアプリでもつながる",
-    "connectElsewhereHint": "タップすると相手のページが開きます。フォロー／追加はあなたが行います。"
+    "connectElsewhereHint": "タップすると相手のページが開きます。フォロー／追加はあなたが行います。",
+    "selfScanMessage": "これは自分の QR です。自分は追加できません。"
   },
   "manageTags": {
     "headerTitle": "タグを管理",

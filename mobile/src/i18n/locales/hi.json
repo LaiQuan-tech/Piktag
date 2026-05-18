@@ -73,7 +73,10 @@
       "alertResetSentMessage": "पासवर्ड रीसेट लिंक आपके ईमेल पर भेज दिया गया है",
       "orDivider": "या",
       "continueWithApple": "Apple से साइन इन करें",
-      "continueWithGoogle": "Google से साइन इन करें"
+      "continueWithGoogle": "Google से साइन इन करें",
+      "errInvalidCredentials": "ईमेल या पासवर्ड ग़लत है।",
+      "errEmailNotConfirmed": "पहले ईमेल वेरिफ़ाई करें — भेजे गए लिंक पर टैप करें, फिर लॉगिन करें।",
+      "errGeneric": "साइन इन नहीं हो सका। फिर से कोशिश करें।"
     },
     "register": {
       "alertEmptyFields": "सभी फ़ील्ड भरें",
@@ -560,7 +563,9 @@
     "mutualFriendsSectionTitle": "साझा दोस्त",
     "shareIntroMessage": "आपको {{name}} से मिलवाता हूँ — यह उनकी प्रोफ़ाइल है: {{url}}",
     "tag": "टैग",
-    "recommendMembers": "अनुशंसित सदस्य"
+    "recommendMembers": "अनुशंसित सदस्य",
+    "blockConfirmTitle": "इस व्यक्ति को ब्लॉक करें?",
+    "blockConfirmMessage": "आप दोनों एक-दूसरे को अनफ़ॉलो कर देंगे और सामग्री नहीं दिखेगी।"
   },
   "userDetail": {
     "headerNotFound": "नहीं मिला",
@@ -607,7 +612,9 @@
     "hiddenTagPlaceholder": "छुपा टैग जोड़ें...",
     "tag": "टैग",
     "recommendMembers": "अनुशंसित सदस्य",
-    "vibeContextTagsTitle": "इस Tag के टैग"
+    "vibeContextTagsTitle": "इस Tag के टैग",
+    "blockConfirmTitle": "इस व्यक्ति को ब्लॉक करें?",
+    "blockConfirmMessage": "आप दोनों एक-दूसरे को अनफ़ॉलो कर देंगे और सामग्री नहीं दिखेगी।"
   },
   "settings": {
     "headerTitle": "सेटिंग्स",
@@ -864,7 +871,8 @@
     "alreadyConnectedMessage": "आप पहले से दोस्त हैं।",
     "addFriend": "फ़ॉलो",
     "connectElsewhereTitle": "{{name}} से यहाँ भी जुड़ें",
-    "connectElsewhereHint": "टैप करें, उनका पेज उस ऐप में खुलेगा — फ़ॉलो/ऐड आप करें।"
+    "connectElsewhereHint": "टैप करें, उनका पेज उस ऐप में खुलेगा — फ़ॉलो/ऐड आप करें।",
+    "selfScanMessage": "यह आपका अपना QR है — आप ख़ुद को नहीं जोड़ सकते।"
   },
   "manageTags": {
     "headerTitle": "टैग प्रबंधित करें",

@@ -944,19 +944,29 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
     }
   };
 
+  // In-flight guard: a fast double-tap on a reason previously
+  // inserted duplicate piktag_reports rows (no unique constraint).
+  const reportingRef = useRef(false);
   const reportUser = async (reason: string) => {
     if (!authUser || !resolvedUserId) return;
-    const { error } = await supabase.from('piktag_reports').insert({
-      reporter_id: authUser.id,
-      reported_id: resolvedUserId,
-      reason,
-    });
-    if (error) {
-      console.warn('report insert failed:', error);
-      Alert.alert(t('common.error'), t('common.unknownError'));
-      return;
+    if (reportingRef.current) return;
+    reportingRef.current = true;
+    try {
+      const { error } = await supabase.from('piktag_reports').insert({
+        reporter_id: authUser.id,
+        reported_id: resolvedUserId,
+        reason,
+      });
+      if (error) {
+        console.warn('report insert failed:', error);
+        Alert.alert(t('common.error'), t('common.unknownError'));
+        reportingRef.current = false; // allow retry on failure
+        return;
+      }
+      Alert.alert(t('userDetail.reportedTitle', { defaultValue: '已檢舉' }), t('userDetail.reportedMessage', { defaultValue: '感謝你的回報，我們會盡快處理' }));
+    } catch (e) {
+      reportingRef.current = false;
     }
-    Alert.alert(t('userDetail.reportedTitle', { defaultValue: '已檢舉' }), t('userDetail.reportedMessage', { defaultValue: '感謝你的回報，我們會盡快處理' }));
   };
 
   const handleToggleCloseFriend = async () => {
@@ -1715,24 +1725,39 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.moreItem}
-              onPress={async () => {
+              onPress={() => {
                 setMoreMenuVisible(false);
                 if (!authUser || !resolvedUserId) return;
-                // block_user RPC does the full cascade atomically:
-                // upsert block + delete bilateral follows + delete
-                // bilateral close-friend rows + delete blocker's prior
-                // notifications produced by the blocked user. The
-                // previous direct piktag_blocks upsert left follows /
-                // close-friends / notifications stale, so the blocked
-                // user kept appearing in feeds and notification list.
-                const { error } = await supabase.rpc('block_user', { p_blocked_id: resolvedUserId });
-                if (error) {
-                  console.warn('[UserDetail] block_user RPC failed:', error);
-                  Alert.alert(t('common.error'), t('common.unknownError'));
-                  return;
-                }
-                Alert.alert(t('userDetail.blockedTitle', { defaultValue: '已封鎖' }), t('userDetail.blockedMessage', { defaultValue: '你將不再看到此用戶' }));
-                if (navigation.canGoBack()) navigation.goBack(); else navigation.navigate('Main', { screen: 'HomeTab' });
+                // Block is destructive (cascades follows/close-friends/
+                // notifications) and was one-tap with no guard. Confirm
+                // before the irreversible-feeling action.
+                Alert.alert(
+                  t('userDetail.blockConfirmTitle', { defaultValue: '封鎖這個人？' }),
+                  t('userDetail.blockConfirmMessage', {
+                    defaultValue: '你們會互相取消追蹤，也不再看到彼此的內容。',
+                  }),
+                  [
+                    { text: t('common.cancel', { defaultValue: '取消' }), style: 'cancel' },
+                    {
+                      text: t('userDetail.blockUser', { defaultValue: '封鎖' }),
+                      style: 'destructive',
+                      onPress: async () => {
+                        // block_user RPC does the full cascade atomically:
+                        // upsert block + delete bilateral follows + delete
+                        // bilateral close-friend rows + delete blocker's
+                        // prior notifications produced by the blocked user.
+                        const { error } = await supabase.rpc('block_user', { p_blocked_id: resolvedUserId });
+                        if (error) {
+                          console.warn('[UserDetail] block_user RPC failed:', error);
+                          Alert.alert(t('common.error'), t('common.unknownError'));
+                          return;
+                        }
+                        Alert.alert(t('userDetail.blockedTitle', { defaultValue: '已封鎖' }), t('userDetail.blockedMessage', { defaultValue: '你將不再看到此用戶' }));
+                        if (navigation.canGoBack()) navigation.goBack(); else navigation.navigate('Main', { screen: 'HomeTab' });
+                      },
+                    },
+                  ],
+                );
               }}
             >
               <X size={20} color="#EF4444" />

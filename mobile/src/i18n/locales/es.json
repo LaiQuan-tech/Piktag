@@ -73,7 +73,10 @@
       "alertResetSentMessage": "Se ha enviado un enlace de restablecimiento de contraseña a tu correo",
       "orDivider": "o",
       "continueWithApple": "Iniciar sesión con Apple",
-      "continueWithGoogle": "Iniciar sesión con Google"
+      "continueWithGoogle": "Iniciar sesión con Google",
+      "errInvalidCredentials": "Correo o contraseña incorrectos.",
+      "errEmailNotConfirmed": "Verifica tu correo primero — toca el enlace que enviamos y luego inicia sesión.",
+      "errGeneric": "No se pudo iniciar sesión. Inténtalo de nuevo."
     },
     "register": {
       "alertEmptyFields": "Completa todos los campos",
@@ -560,7 +563,9 @@
     "mutualFriendsSectionTitle": "Amigos en común",
     "shareIntroMessage": "Te presento a {{name}} — su perfil: {{url}}",
     "tag": "Etiqueta",
-    "recommendMembers": "Miembros recomendados"
+    "recommendMembers": "Miembros recomendados",
+    "blockConfirmTitle": "¿Bloquear a esta persona?",
+    "blockConfirmMessage": "Dejaréis de seguiros y de ver el contenido del otro."
   },
   "userDetail": {
     "headerNotFound": "No encontrado",
@@ -607,7 +612,9 @@
     "hiddenTagPlaceholder": "Añadir etiqueta oculta...",
     "tag": "Etiqueta",
     "recommendMembers": "Miembros recomendados",
-    "vibeContextTagsTitle": "Etiquetas de este Tag"
+    "vibeContextTagsTitle": "Etiquetas de este Tag",
+    "blockConfirmTitle": "¿Bloquear a esta persona?",
+    "blockConfirmMessage": "Dejaréis de seguiros y de ver el contenido del otro."
   },
   "settings": {
     "headerTitle": "Ajustes",
@@ -864,7 +871,8 @@
     "alreadyConnectedMessage": "Ya son amigos.",
     "addFriend": "Seguir",
     "connectElsewhereTitle": "Conecta con {{name}} también aquí",
-    "connectElsewhereHint": "Toca para abrir su página en esa app — tú pulsas seguir/añadir."
+    "connectElsewhereHint": "Toca para abrir su página en esa app — tú pulsas seguir/añadir.",
+    "selfScanMessage": "Es tu propio QR — no puedes añadirte a ti mismo."
   },
   "manageTags": {
     "headerTitle": "Gestionar etiquetas",

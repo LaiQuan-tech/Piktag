@@ -73,7 +73,10 @@
       "alertResetSentMessage": "Tautan reset kata sandi telah dikirim ke email Anda",
       "orDivider": "atau",
       "continueWithApple": "Masuk dengan Apple",
-      "continueWithGoogle": "Masuk dengan Google"
+      "continueWithGoogle": "Masuk dengan Google",
+      "errInvalidCredentials": "Email atau kata sandi salah.",
+      "errEmailNotConfirmed": "Verifikasi email dulu — ketuk tautan yang kami kirim, lalu login.",
+      "errGeneric": "Gagal masuk. Coba lagi."
     },
     "register": {
       "alertEmptyFields": "Isi semua kolom",
@@ -560,7 +563,9 @@
     "mutualFriendsSectionTitle": "Teman Bersama",
     "shareIntroMessage": "Kenalkan, ini {{name}} — profilnya: {{url}}",
     "tag": "Tag",
-    "recommendMembers": "Anggota direkomendasikan"
+    "recommendMembers": "Anggota direkomendasikan",
+    "blockConfirmTitle": "Blokir orang ini?",
+    "blockConfirmMessage": "Kalian akan saling berhenti mengikuti dan tak lagi melihat konten satu sama lain."
   },
   "userDetail": {
     "headerNotFound": "Tidak Ditemukan",
@@ -607,7 +612,9 @@
     "hiddenTagPlaceholder": "Tambahkan tag tersembunyi...",
     "tag": "Tag",
     "recommendMembers": "Anggota direkomendasikan",
-    "vibeContextTagsTitle": "Tag dari Tag ini"
+    "vibeContextTagsTitle": "Tag dari Tag ini",
+    "blockConfirmTitle": "Blokir orang ini?",
+    "blockConfirmMessage": "Kalian akan saling berhenti mengikuti dan tak lagi melihat konten satu sama lain."
   },
   "settings": {
     "headerTitle": "Pengaturan",
@@ -864,7 +871,8 @@
     "alreadyConnectedMessage": "Kalian sudah berteman.",
     "addFriend": "Ikuti",
     "connectElsewhereTitle": "Terhubung dengan {{name}} di sini juga",
-    "connectElsewhereHint": "Ketuk untuk membuka halamannya di app itu — kamu yang follow/tambah."
+    "connectElsewhereHint": "Ketuk untuk membuka halamannya di app itu — kamu yang follow/tambah.",
+    "selfScanMessage": "Ini QR kamu sendiri — tidak bisa menambahkan diri sendiri."
   },
   "manageTags": {
     "headerTitle": "Kelola Tag",

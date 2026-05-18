@@ -73,7 +73,10 @@
       "alertResetSentMessage": "পাসওয়ার্ড রিসেট লিংক আপনার ইমেইলে পাঠানো হয়েছে",
       "orDivider": "অথবা",
       "continueWithApple": "Apple দিয়ে সাইন ইন",
-      "continueWithGoogle": "Google দিয়ে সাইন ইন"
+      "continueWithGoogle": "Google দিয়ে সাইন ইন",
+      "errInvalidCredentials": "ইমেল বা পাসওয়ার্ড ভুল।",
+      "errEmailNotConfirmed": "আগে ইমেল যাচাই করুন — পাঠানো লিঙ্কে ট্যাপ করে লগইন করুন।",
+      "errGeneric": "সাইন ইন করা গেল না। আবার চেষ্টা করুন।"
     },
     "register": {
       "alertEmptyFields": "সব ফিল্ড পূরণ করুন",
@@ -560,7 +563,9 @@
     "mutualFriendsSectionTitle": "শেয়ার করা বন্ধু",
     "shareIntroMessage": "আপনাকে {{name}}-এর সাথে পরিচয় করিয়ে দিচ্ছি — এই তার প্রোফাইল: {{url}}",
     "tag": "ট্যাগ",
-    "recommendMembers": "প্রস্তাবিত সদস্য"
+    "recommendMembers": "প্রস্তাবিত সদস্য",
+    "blockConfirmTitle": "এই ব্যক্তিকে ব্লক করবেন?",
+    "blockConfirmMessage": "আপনারা একে অপরকে আনফলো করবেন ও কনটেন্ট দেখতে পাবেন না।"
   },
   "userDetail": {
     "headerNotFound": "পাওয়া যায়নি",
@@ -607,7 +612,9 @@
     "hiddenTagPlaceholder": "লুকানো ট্যাগ যোগ করুন...",
     "tag": "ট্যাগ",
     "recommendMembers": "প্রস্তাবিত সদস্য",
-    "vibeContextTagsTitle": "এই Tag-এর ট্যাগ"
+    "vibeContextTagsTitle": "এই Tag-এর ট্যাগ",
+    "blockConfirmTitle": "এই ব্যক্তিকে ব্লক করবেন?",
+    "blockConfirmMessage": "আপনারা একে অপরকে আনফলো করবেন ও কনটেন্ট দেখতে পাবেন না।"
   },
   "settings": {
     "headerTitle": "সেটিংস",
@@ -864,7 +871,8 @@
     "alreadyConnectedMessage": "আপনারা ইতিমধ্যে বন্ধু।",
     "addFriend": "ফলো",
     "connectElsewhereTitle": "{{name}}-এর সাথে এখানেও যুক্ত হন",
-    "connectElsewhereHint": "ট্যাপ করলে তাদের পেজ ওই অ্যাপে খুলবে — ফলো/অ্যাড আপনি করুন।"
+    "connectElsewhereHint": "ট্যাপ করলে তাদের পেজ ওই অ্যাপে খুলবে — ফলো/অ্যাড আপনি করুন।",
+    "selfScanMessage": "এটি আপনার নিজের QR — নিজেকে যোগ করা যায় না।"
   },
   "manageTags": {
     "headerTitle": "ট্যাগ পরিচালনা",

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -177,8 +177,23 @@ export default function ScanResultScreen({ navigation, route }: ScanResultScreen
     Linking.openURL(url).catch(() => {});
   };
 
+  // Synchronous double-tap guard: `disabled={submitting}` lags
+  // (setState is async-batched), so two fast taps previously raced
+  // past the not-atomic existing-connection check and created
+  // duplicate connections + duplicate tag rows.
+  const confirmingRef = useRef(false);
   const handleConfirm = async () => {
     if (!user) return;
+    // Can't connect to yourself (scanning your own Tag QR).
+    if (hostUserId === user.id) {
+      Alert.alert(
+        t('scanResult.alreadyConnectedTitle', { defaultValue: '無法加自己' }),
+        t('scanResult.selfScanMessage', { defaultValue: '這是你自己的 QR，沒辦法加自己為好友。' }),
+      );
+      return;
+    }
+    if (confirmingRef.current) return;
+    confirmingRef.current = true;
 
     setSubmitting(true);
     try {
@@ -352,7 +367,14 @@ export default function ScanResultScreen({ navigation, route }: ScanResultScreen
         {
           text: t('scanResult.alertSuccessConfirm'),
           onPress: () => {
-            navigation.navigate('HomeTab');
+            // Go to the person you just added (was dumping the user
+            // on HomeTab — a different tab, no trace of who they
+            // connected with). replace so back returns to the
+            // originating screen, not this now-stale result page.
+            navigation.replace('FriendDetail', {
+              friendId: hostUserId,
+              connectionId: connectionData.id,
+            });
           },
         },
       ]);
@@ -361,6 +383,7 @@ export default function ScanResultScreen({ navigation, route }: ScanResultScreen
       Alert.alert(t('common.error'), t('scanResult.alertUnexpectedError'));
     } finally {
       setSubmitting(false);
+      confirmingRef.current = false;
     }
   };
 

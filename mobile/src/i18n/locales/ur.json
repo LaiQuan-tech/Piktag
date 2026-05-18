@@ -79,7 +79,10 @@
       "alertResetSentMessage": "پاس ورڈ ری سیٹ لنک آپ کے ای میل پر بھیج دیا ہے",
       "orDivider": "یا",
       "continueWithApple": "Apple سے سائن اِن کریں",
-      "continueWithGoogle": "Google سے سائن اِن کریں"
+      "continueWithGoogle": "Google سے سائن اِن کریں",
+      "errInvalidCredentials": "ای میل یا پاس ورڈ غلط ہے۔",
+      "errEmailNotConfirmed": "پہلے ای میل تصدیق کریں — بھیجا گیا لنک ٹیپ کریں، پھر لاگ اِن کریں۔",
+      "errGeneric": "سائن اِن نہیں ہو سکا۔ دوبارہ کوشش کریں۔"
     },
     "register": {
       "alertEmptyFields": "سارے خانے بھر دیں",
@@ -578,7 +581,9 @@
     "mutualFriendsSectionTitle": "مشترکہ دوست",
     "shareIntroMessage": "آپ کی ملاقات {{name}} سے کراتا ہوں — یہ ان کی پروفائل ہے: {{url}}",
     "tag": "ٹیگ",
-    "recommendMembers": "تجویز کردہ ممبران"
+    "recommendMembers": "تجویز کردہ ممبران",
+    "blockConfirmTitle": "اس شخص کو بلاک کریں؟",
+    "blockConfirmMessage": "آپ دونوں ایک دوسرے کو اَن فالو کر دیں گے اور مواد نہیں دیکھ سکیں گے۔"
   },
   "userDetail": {
     "headerNotFound": "نہیں ملا",
@@ -625,7 +630,9 @@
     "hiddenTagPlaceholder": "پوشیدہ ٹیگ لکھیں...",
     "tag": "ٹیگ",
     "recommendMembers": "تجویز کردہ ممبران",
-    "vibeContextTagsTitle": "اس ٹیگ کے ٹیگز"
+    "vibeContextTagsTitle": "اس ٹیگ کے ٹیگز",
+    "blockConfirmTitle": "اس شخص کو بلاک کریں؟",
+    "blockConfirmMessage": "آپ دونوں ایک دوسرے کو اَن فالو کر دیں گے اور مواد نہیں دیکھ سکیں گے۔"
   },
   "settings": {
     "headerTitle": "ترتیبات",
@@ -950,7 +957,8 @@
     "alreadyConnectedMessage": "آپ پہلے سے دوست ہیں۔",
     "addFriend": "فالو کریں",
     "connectElsewhereTitle": "{{name}} سے یہاں بھی جڑیں",
-    "connectElsewhereHint": "ٹیپ کریں، اُن کا پیج اُس ایپ میں کھلے گا — فالو/ایڈ آپ خود کریں۔"
+    "connectElsewhereHint": "ٹیپ کریں، اُن کا پیج اُس ایپ میں کھلے گا — فالو/ایڈ آپ خود کریں۔",
+    "selfScanMessage": "یہ آپ کا اپنا QR ہے — آپ خود کو شامل نہیں کر سکتے۔"
   },
   "manageTags": {
     "headerTitle": "ٹیگز سنبھالیں",

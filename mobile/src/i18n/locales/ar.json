@@ -73,7 +73,10 @@
       "alertResetSentMessage": "تم إرسال رابط إعادة تعيين كلمة المرور إلى بريدك الإلكتروني",
       "orDivider": "أو",
       "continueWithApple": "تسجيل الدخول عبر Apple",
-      "continueWithGoogle": "تسجيل الدخول عبر Google"
+      "continueWithGoogle": "تسجيل الدخول عبر Google",
+      "errInvalidCredentials": "البريد أو كلمة المرور غير صحيحة.",
+      "errEmailNotConfirmed": "تحقّق من بريدك أولًا — اضغط الرابط المُرسَل ثم سجّل الدخول.",
+      "errGeneric": "تعذّر تسجيل الدخول. حاول مرة أخرى."
     },
     "register": {
       "alertEmptyFields": "يرجى ملء جميع الحقول",
@@ -560,7 +563,9 @@
     "mutualFriendsSectionTitle": "الأصدقاء المشتركون",
     "shareIntroMessage": "أعرّفك على {{name}} — هذا ملفه الشخصي: {{url}}",
     "tag": "وسم",
-    "recommendMembers": "أعضاء موصى بهم"
+    "recommendMembers": "أعضاء موصى بهم",
+    "blockConfirmTitle": "حظر هذا الشخص؟",
+    "blockConfirmMessage": "ستلغيان متابعة بعضكما ولن تريا محتوى الآخر."
   },
   "userDetail": {
     "headerNotFound": "غير موجود",
@@ -607,7 +612,9 @@
     "hiddenTagPlaceholder": "أضف وسمًا مخفيًا...",
     "tag": "وسم",
     "recommendMembers": "أعضاء موصى بهم",
-    "vibeContextTagsTitle": "وسوم هذا الـ Tag"
+    "vibeContextTagsTitle": "وسوم هذا الـ Tag",
+    "blockConfirmTitle": "حظر هذا الشخص؟",
+    "blockConfirmMessage": "ستلغيان متابعة بعضكما ولن تريا محتوى الآخر."
   },
   "settings": {
     "headerTitle": "الإعدادات",
@@ -864,7 +871,8 @@
     "alreadyConnectedMessage": "أنتما أصدقاء بالفعل.",
     "addFriend": "متابعة",
     "connectElsewhereTitle": "تواصل مع {{name}} هنا أيضًا",
-    "connectElsewhereHint": "اضغط لفتح صفحته في ذلك التطبيق — أنت من يتابع/يضيف."
+    "connectElsewhereHint": "اضغط لفتح صفحته في ذلك التطبيق — أنت من يتابع/يضيف.",
+    "selfScanMessage": "هذا رمز QR الخاص بك — لا يمكنك إضافة نفسك."
   },
   "manageTags": {
     "headerTitle": "إدارة الوسوم",
