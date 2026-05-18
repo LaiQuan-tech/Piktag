@@ -1,0 +1,57 @@
+# PikTag — Claude working memory
+
+> Auto-loaded every session. Read this first. The North Star below is the
+> lens for **every** product/UX/scope decision — when in doubt, optimize for it.
+
+## Product North Star — set by the founder (remember this)
+
+**The core of PikTag IS AI tag recommendation: in each context, recommend
+the *right* tags.** Everything else serves this.
+
+Why tags are the engine (not a feature — the whole thesis):
+- Tags let a user **reactivate dormant connections** by searching tags
+  (活化舊有人脈).
+- Tags **match new friends** — semantic-concept matching that works across
+  language/wording (媒合新朋友).
+
+Therefore the priorities, in order:
+
+1. **Optimize every friend-add opportunity to the extreme.** Every moment a
+   connection could happen — QR scan, scan-a-card, search, Ask, contact
+   import, share link — must be as frictionless and as likely-to-convert as
+   possible. Treat each as precious.
+2. **Get non-members in, and get good tag data built on them.** A non-member
+   local contact with strong tags is future serendipity fuel. The flows to
+   record them, to detect when a scanned person is *already* a member (→
+   connect, don't file a dead contact), and to convert non-members to
+   members must be excellent.
+
+**How to apply (do this, don't just nod):** when weighing any trade-off,
+prefer the option that (a) protects/strengthens AI-tag quality &
+cross-language concept matching, (b) increases a real friend-add or
+non-member-onboarding conversion, (c) reduces friction on the
+`scan → tag → connect` and `search-tag → reactivate` loops. If a request
+works *against* this, say so honestly (中肯) rather than just complying.
+
+## How the founder works (keep doing this)
+
+- **中肯 / trust-but-verify.** Give honest, balanced advice; push back with
+  reasoning when something is wrong or disproportionate. Verify claims
+  (incl. your own and agents') against the actual code/DB before asserting.
+  The founder values honest correction over compliance.
+- **Don't reinvent; match existing patterns/design.** Reuse canonical
+  components, RPCs, styles. Deviating "to be clever" is a defect here.
+- **Every change:** `tsc` clean → commit → push. i18n spans **19 locales**
+  (`mobile/src/i18n/locales/*.json`) — keep all in sync (JSON round-trip
+  into the right block; verify the key landed where intended).
+- **DB migrations** are applied **manually** via Supabase SQL Editor by the
+  founder; make them idempotent. Supabase ref `kbwfdskulxnhjckdvghj`.
+- **Repo layout:** real mobile app = `mobile/`; landing = `landing/`
+  (Vercel, `dist` gitignored, rebuilt on push; meta in
+  `landing/api/*` + `landing/public/*` + `src/main.tsx`). The top-level
+  `/src` is a STALE DUPLICATE — ignore it. Repo `LaiQuan-tech/Piktag`.
+- **iOS TestFlight** builds on push to `mobile/**` (excl. supabase/scripts);
+  `concurrency: cancel-in-progress` collapses bursts. Apple's per-app daily
+  upload cap is real → batch mobile commits; a hit is a soft 24h wait.
+
+_(Founder explicitly asked the North Star be remembered — 2026-05.)_
