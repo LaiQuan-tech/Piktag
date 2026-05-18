@@ -8,16 +8,17 @@ on:
   # every push" (~10+/day) blew that cap → "Upload limit reached.
   # Please wait 1 day" → looked like "TestFlight stuck at 574".
   #
-  # A once-a-day schedule IS the rate limiter: structurally ≤ 1
-  # upload/day from cron, far below Apple's cap — so NO counting
-  # logic is needed (a hand-rolled counter would be over-engineering
-  # and fragile). push no longer triggers anything (push = save
-  # code only). Trade-off: a commit reaches TestFlight at the next
-  # daily run (≤ ~24h), not instantly — fine for a beta cadence,
-  # and testers get one clean build/day instead of build spam.
+  # A fixed twice-a-day schedule IS the rate limiter: structurally
+  # ≤ 2 uploads/day from cron, still far below Apple's per-app cap
+  # — so NO counting logic is needed (a hand-rolled counter would
+  # be fragile over-engineering). push no longer triggers anything
+  # (push = save code only). Trade-off: a commit reaches TestFlight
+  # at the next scheduled run (≤ ~12h), not instantly — fine for a
+  # beta cadence, and testers get 2 clean builds/day, not build spam.
   schedule:
     - cron: '30 20 * * *'   # 每天 UTC 20:30 (台灣 04:30) — 隔夜 build，早上就有新版
-  workflow_dispatch:          # 需要馬上出一版時手動補按（1 次 cron + 偶爾手動，仍遠低於 Apple 上限）
+    - cron: '30 8 * * *'    # 每天 UTC 08:30 (台灣 16:30) — 累積一天工作，傍晚測試有新版
+  workflow_dispatch:          # 需要馬上出一版時手動補按（2 次 cron + 偶爾手動，仍遠低於 Apple 上限）
 
 jobs:
   build-and-upload:
