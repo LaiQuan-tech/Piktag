@@ -35,6 +35,15 @@ jobs:
             -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
             -H "Content-Type: application/json"
 
+  # BACKSTOP ONLY. The authoritative scheduler for auto-link-concepts
+  # is now Supabase pg_cron (migration 20260519010000), which runs at
+  # 18:00 UTC on the DB itself — reliable, unlike GitHub `schedule`
+  # (best-effort; it has silently skipped in this repo before, which
+  # is the whole reason for the pg_cron move). This 19:00 job stays as
+  # defense-in-depth: it covers the window before Vault is seeded, and
+  # otherwise just finds little/nothing to do (the edge function is
+  # idempotent — only concept_id IS NULL tags + concepts missing
+  # embeddings). Do NOT remove it; do NOT treat it as primary.
   auto-link-concepts:
     runs-on: ubuntu-latest
     if: github.event.schedule == '0 19 * * *' || github.event_name == 'workflow_dispatch'
