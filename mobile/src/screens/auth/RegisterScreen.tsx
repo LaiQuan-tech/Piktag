@@ -14,7 +14,7 @@ import BrandSpinner from '../../components/loaders/BrandSpinner';
 import { useTranslation } from 'react-i18next';
 import { Eye, EyeOff } from 'lucide-react-native';
 import { supabase } from '../../lib/supabase';
-import { toBirthdayMMDD } from '../../lib/birthday';
+import { toBirthdayDate } from '../../lib/birthday';
 import { signInWithApple } from '../../lib/appleAuth';
 import { signInWithGoogle } from '../../lib/googleAuth';
 import { trackSignupComplete } from '../../lib/analytics';
@@ -30,10 +30,10 @@ export default function RegisterScreen({ navigation }: RegisterScreenProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  // Birthday is the core of PikTag's CRM — the daily-birthday-check
-  // edge function uses it to surface "X 今天生日" reminders. Optional
-  // here (user can fill in later via Onboarding / EditProfile) but
-  // collecting at sign-up gives us the highest yield.
+  // Birthday is the core of PikTag's CRM — the daily pg_cron fn
+  // surfaces "X 今天生日" reminders to friends. Optional here (also
+  // collected in Onboarding / EditProfile) but capturing at sign-up
+  // gives the highest yield. Stored normalized to YYYY-MM-DD.
   const [birthday, setBirthday] = useState('');
   const [socialLoading, setSocialLoading] = useState<string | null>(null);
   const [pendingInvite, setPendingInvite] = useState<string | null>(null);
@@ -87,12 +87,13 @@ export default function RegisterScreen({ navigation }: RegisterScreenProps) {
       }
 
       // Persist birthday on the profile if the viewer entered one.
-      // Normalize to strict MM/DD — daily-birthday-check matches with
-      // .eq('birthday','MM/DD'), so a raw "5/8" / "1990-05-08" would
-      // never fire the notification. Was storing the raw string
-      // (latent broken-CRM bug); now shared with Onboarding via
-      // lib/birthday.ts. Onboarding still collects it for OAuth users.
-      const normBirthday = toBirthdayMMDD(birthday);
+      // Normalize to YYYY-MM-DD — the live pg_cron fn
+      // (enqueue_birthday_notifications) only counts a profile
+      // birthday matching ^\d{4}-\d{2}-\d{2}$ (then ::date). Was
+      // storing the raw string (latent broken-CRM bug); now shared
+      // with Onboarding via lib/birthday.ts (Onboarding also
+      // collects it so OAuth signups aren't left without one).
+      const normBirthday = toBirthdayDate(birthday);
       const userId = data.user?.id;
       // Only writable when we actually have a session (email-confirm
       // OFF). upsert — not update().eq — so a profile row the signup

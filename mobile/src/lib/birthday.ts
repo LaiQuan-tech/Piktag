@@ -1,36 +1,50 @@
 // birthday.ts
 //
-// ONE canonical normalizer for the self-declared profile birthday.
+// ONE canonical normalizer for the birthday value, across every
+// entry point (RegisterScreen, Onboarding, EditLocalContact,
+// FriendDetail).
 //
-// The daily-birthday-check edge function matches with a STRICT
-// equality: piktag_profiles.birthday = 'MM/DD' (zero-padded, slash,
-// no year — e.g. "05/08"). Anything else ("5/8", "05-08",
-// "1990-05-08", "2000-05-08") will never .eq() today's "MM/DD", so
-// the birthday notification silently never fires — and birthday
-// reminders are the core of the CRM, so a format slip = the feature
-// quietly not working.
+// AUTHORITATIVE consumer = the pg_cron DB function
+// enqueue_birthday_notifications() (migration 20260428120007),
+// which is what actually emits the "it's X's birthday" notification.
+// Its model:
+//   • piktag_connections.birthday is a real DATE column — used
+//     directly via EXTRACT(MONTH/DAY).
+//   • piktag_profiles.birthday is TEXT, but only counts when it
+//     matches ^\d{4}-\d{2}-\d{2}$ (YYYY-MM-DD), then ::date.
+//   • piktag_local_contacts.birthday is TEXT and is copied verbatim
+//     into piktag_connections.birthday (DATE) by the promote
+//     trigger — so it MUST be a date-castable string.
+// Only month/day matter (year is ignored), so a year-less birthday
+// uses the sentinel year 2000.
 //
-// RegisterScreen previously stored the raw typed string; Onboarding
-// had no birthday field at all (so OAuth users never set one). This
-// makes every entry point produce the exact format the cron needs.
+// => The single correct format is "YYYY-MM-DD" (e.g. 2000-05-08 for
+//    a year-less birthday, or 1990-05-08 if a real year is given).
+//    NOT "MM/DD" — that can't be stored in the DATE column, breaks
+//    the promote cast, and fails the profile-side regex.
 //
-// Accepts the common shapes a user (or a card/profile import) might
-// give — M/D, MM/DD, M-D, MM-DD, YYYY-MM-DD, the 2000-MM-DD sentinel
-// — and returns strict "MM/DD", or null if empty / unparseable /
-// out of range (caller decides whether to warn or skip).
-export function toBirthdayMMDD(raw: string | null | undefined): string | null {
+// (The `daily-birthday-check` edge function does .eq('birthday',
+//  'MM/DD'); against a DATE column that can never match — it is the
+//  broken/legacy path, not the source of truth.)
+//
+// Accepts the common shapes a user/import might give — M/D, MM/DD,
+// M-D, MM-DD, YYYY-MM-DD, 2000-MM-DD — and returns strict
+// "YYYY-MM-DD", or null if empty / unparseable / out of range.
+export function toBirthdayDate(raw: string | null | undefined): string | null {
   const s = (raw ?? '').trim();
   if (!s) return null;
 
+  let yyyy = 2000;
   let mm: number | null = null;
   let dd: number | null = null;
 
-  let m = s.match(/^(\d{1,2})[/-](\d{1,2})$/); // M/D, MM-DD, etc.
+  let m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/); // YYYY-MM-DD / 2000-MM-DD
   if (m) {
-    mm = parseInt(m[1], 10);
-    dd = parseInt(m[2], 10);
+    yyyy = parseInt(m[1], 10);
+    mm = parseInt(m[2], 10);
+    dd = parseInt(m[3], 10);
   } else {
-    m = s.match(/^\d{4}-(\d{1,2})-(\d{1,2})$/); // YYYY-MM-DD / 2000-MM-DD
+    m = s.match(/^(\d{1,2})[/-](\d{1,2})$/); // M/D, MM-DD, MM/DD (year-less)
     if (m) {
       mm = parseInt(m[1], 10);
       dd = parseInt(m[2], 10);
@@ -39,6 +53,7 @@ export function toBirthdayMMDD(raw: string | null | undefined): string | null {
 
   if (mm == null || dd == null) return null;
   if (mm < 1 || mm > 12 || dd < 1 || dd > 31) return null;
+  if (yyyy < 1900 || yyyy > 2100) return null;
 
-  return `${String(mm).padStart(2, '0')}/${String(dd).padStart(2, '0')}`;
+  return `${String(yyyy).padStart(4, '0')}-${String(mm).padStart(2, '0')}-${String(dd).padStart(2, '0')}`;
 }

@@ -41,7 +41,7 @@ import { useTheme } from '../context/ThemeContext';
 import { useLocalContacts } from '../hooks/useLocalContacts';
 import { supabase } from '../lib/supabase';
 import { logApiUsage } from '../lib/apiUsage';
-import { toBirthdayMMDD } from '../lib/birthday';
+import { toBirthdayDate } from '../lib/birthday';
 import BrandSpinner from '../components/loaders/BrandSpinner';
 
 type Props = { navigation: any; route: any };
@@ -81,13 +81,17 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
   // note / tags), no scan-only field. birthday is a first-class
   // member field (drives reminders); it lives in the local-contact
   // model already and the promote trigger maps it 1:1.
-  // Seed the editable input as MM/DD. Storage is now strict MM/DD,
-  // but tolerate legacy rows (2000-MM-DD / MM-DD / YYYY-MM-DD) via
-  // the shared normalizer so editing an old contact shows a clean
-  // value and re-saves it in the correct format. Junk falls through
-  // raw so the user can fix it.
-  const birthdayForInput = (stored: string | null | undefined): string =>
-    toBirthdayMMDD(stored) ?? (stored ?? '').trim();
+  // Storage is YYYY-MM-DD (date-castable — promote copies this text
+  // into piktag_connections.birthday, a DATE column). For the input
+  // we show the friendly year-less MM-DD when the year is the 2000
+  // sentinel, else the full YYYY-MM-DD. Re-saves correctly either
+  // way (toBirthdayDate re-expands). Junk falls through raw.
+  const birthdayForInput = (stored: string | null | undefined): string => {
+    const iso = toBirthdayDate(stored);
+    if (!iso) return (stored ?? '').trim();
+    const [yyyy, mm, dd] = iso.split('-');
+    return yyyy === '2000' ? `${mm}-${dd}` : iso;
+  };
   const [birthday, setBirthday] = useState(birthdayForInput(existing?.birthday));
   // Autofocus the name field ONLY on the manual-entry path (empty
   // form, user wants to type now). After a card scan we DON'T focus
@@ -284,16 +288,17 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
       return;
     }
 
-    // Birthday → strict MM/DD (the ONLY format daily-birthday-check
-    // matches with .eq). Was 2000-MM-DD, which the cron never equals
-    // → a promoted local-contact birthday silently never notified.
-    // Shared normalizer = same format as profile + the cron.
-    const birthdayNorm = toBirthdayMMDD(birthday);
+    // Birthday → YYYY-MM-DD (year-less → 2000-MM-DD). MUST be
+    // date-castable: the promote trigger copies this text straight
+    // into piktag_connections.birthday (a DATE column), and the
+    // live pg_cron fn EXTRACT()s month/day. Shared normalizer =
+    // same format as every other path.
+    const birthdayNorm = toBirthdayDate(birthday);
     if (birthday.trim() !== '' && !birthdayNorm) {
       Alert.alert(
         t('common.error', { defaultValue: '錯誤' }),
         t('friendDetail.alertInvalidDate', {
-          defaultValue: '請輸入正確的日期格式（MM/DD）',
+          defaultValue: '請輸入正確的日期格式（MM-DD）',
         }),
       );
       return;

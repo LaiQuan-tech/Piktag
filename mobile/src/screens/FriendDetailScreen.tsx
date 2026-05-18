@@ -61,7 +61,7 @@ import PageLoader from '../components/loaders/PageLoader';
 import BrandSpinner from '../components/loaders/BrandSpinner';
 import { useNetInfoReconnect } from '../hooks/useNetInfoReconnect';
 import { supabase } from '../lib/supabase';
-import { toBirthdayMMDD } from '../lib/birthday';
+import { toBirthdayDate } from '../lib/birthday';
 import { useAuth } from '../hooks/useAuth';
 import { useAskFeed } from '../hooks/useAskFeed';
 import type { Connection, PiktagProfile, Biolink } from '../types';
@@ -888,10 +888,11 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
       return;
     }
 
-    // Store strict MM/DD — the ONLY format daily-birthday-check
-    // matches (was 2000-MM-DD, which never .eq()'d the cron's
-    // MM/DD → reminder silently never fired). Shared normalizer.
-    const dateStr = toBirthdayMMDD(reminderInput);
+    // piktag_connections.birthday is a DATE column and the live
+    // pg_cron fn (enqueue_birthday_notifications) EXTRACT()s its
+    // month/day. Store a date-castable YYYY-MM-DD (year-less →
+    // 2000-MM-DD). Shared normalizer = same as every other path.
+    const dateStr = toBirthdayDate(reminderInput);
     if (!dateStr) {
       Alert.alert(t('common.error'), t('friendDetail.alertInvalidDate'));
       return;
@@ -931,12 +932,12 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
 
   const formatReminderDate = (dateStr: string) => {
     if (!dateStr) return '';
-    // Birthday is now stored MM/DD, but legacy rows may be
-    // 2000-MM-DD / YYYY-MM-DD / MM-DD. Normalize via the shared
-    // helper, then show as M/D. Junk falls through unchanged.
-    const mmdd = toBirthdayMMDD(dateStr);
-    if (mmdd) {
-      const [mm, dd] = mmdd.split('/');
+    // Birthday is stored as a date / YYYY-MM-DD (year-less →
+    // 2000-MM-DD). Normalize via the shared helper, then show the
+    // year-agnostic M/D. Junk falls through unchanged.
+    const iso = toBirthdayDate(dateStr);
+    if (iso) {
+      const [, mm, dd] = iso.split('-');
       return `${parseInt(mm, 10)}/${parseInt(dd, 10)}`;
     }
     return dateStr;

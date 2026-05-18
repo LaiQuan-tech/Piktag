@@ -50,7 +50,7 @@ import {
 } from 'expo-image-picker';
 import { COLORS, SPACING, BORDER_RADIUS } from '../../constants/theme';
 import { PLATFORM_MAP } from '../../lib/platforms';
-import { toBirthdayMMDD } from '../../lib/birthday';
+import { toBirthdayDate } from '../../lib/birthday';
 import OnboardingCompleteBurst from '../../components/stingers/OnboardingCompleteBurst';
 
 // Must match the key AppNavigator reads in decideOnboarding(). This
@@ -128,7 +128,7 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
   // friend notifications (core CRM). Collected here so EVERY signup
   // path (email + Apple + Google) gets a chance to set it; OAuth
   // users skip RegisterScreen entirely and would otherwise never
-  // have a birthday. Stored as strict MM/DD (see lib/birthday.ts).
+  // have a birthday. Stored as YYYY-MM-DD (see lib/birthday.ts).
   const [birthday, setBirthday] = useState('');
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
@@ -486,7 +486,7 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
     // real date — a silently-dropped/garbled birthday means the
     // friend notification (core CRM) never fires. Normalized to the
     // strict MM/DD the daily-birthday-check cron matches on.
-    const bday = toBirthdayMMDD(birthday);
+    const bday = toBirthdayDate(birthday);
     if (birthday.trim() !== '' && !bday) {
       Alert.alert(
         t('common.error', { defaultValue: '錯誤' }),
