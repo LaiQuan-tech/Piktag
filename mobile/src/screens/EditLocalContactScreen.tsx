@@ -182,9 +182,12 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
             .filter(Boolean)
             .filter((n) => !tags.includes(n)),
         ),
-        // A local contact is a non-member quick capture — keep it
-        // light. 5 is enough to spark; 10 was clutter here.
-      ).slice(0, 5);
+        // Non-member quick capture — keep it minimal. Capped at 3 to
+        // match Ask's AI_SUGGESTION_CAP (one number across the app's
+        // AI-suggestion surfaces). Unlike Ask these are NOT
+        // pre-selected: filing someone else is deliberate curation,
+        // so the user opts each one in by tapping.
+      ).slice(0, 3);
       setAiSuggestions(cleaned);
     } catch (err) {
       console.warn('[LocalContact] suggest-tags threw:', err);
