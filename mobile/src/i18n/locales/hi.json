@@ -1223,7 +1223,8 @@
     "aiThinking": "AI टैग सोच रहा है…",
     "aiSuggestTitle": "AI सुझाव (जोड़ने के लिए टैप करें)",
     "aiRegenerate": "फिर से बनाएं",
-    "aiEmpty": "AI को कुछ सही नहीं मिला — खुद जोड़ लें।"
+    "aiEmpty": "AI को कुछ सही नहीं मिला — खुद जोड़ लें।",
+    "manualEntry": "या खुद भरें"
   },
   "followers": {
     "title": "फ़ॉलोअर",

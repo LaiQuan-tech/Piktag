@@ -1223,7 +1223,8 @@
     "aiThinking": "AI가 태그 고민 중…",
     "aiSuggestTitle": "AI 추천 (탭하면 추가)",
     "aiRegenerate": "다시 생성",
-    "aiEmpty": "딱 맞는 게 없었어요 — 직접 추가해 주세요."
+    "aiEmpty": "딱 맞는 게 없었어요 — 직접 추가해 주세요.",
+    "manualEntry": "직접 입력"
   },
   "followers": {
     "title": "팔로워",

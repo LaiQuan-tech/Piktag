@@ -1223,7 +1223,8 @@
     "aiThinking": "AI กำลังคิดแท็ก…",
     "aiSuggestTitle": "AI แนะนำ (แตะเพื่อเพิ่ม)",
     "aiRegenerate": "สร้างใหม่",
-    "aiEmpty": "AI ยังไม่เจอที่ใช่ — เพิ่มเองได้เลย"
+    "aiEmpty": "AI ยังไม่เจอที่ใช่ — เพิ่มเองได้เลย",
+    "manualEntry": "หรือกรอกเอง"
   },
   "followers": {
     "title": "ผู้ติดตาม",

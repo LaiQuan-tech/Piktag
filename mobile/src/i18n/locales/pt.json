@@ -1223,7 +1223,8 @@
     "aiThinking": "A IA está pensando em tags…",
     "aiSuggestTitle": "Sugestões da IA (toque para adicionar)",
     "aiRegenerate": "Gerar de novo",
-    "aiEmpty": "A IA não achou nada — adicione você mesmo."
+    "aiEmpty": "A IA não achou nada — adicione você mesmo.",
+    "manualEntry": "Ou digitar manualmente"
   },
   "followers": {
     "title": "Seguidores",

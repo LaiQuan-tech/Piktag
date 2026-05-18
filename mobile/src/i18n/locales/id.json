@@ -1223,7 +1223,8 @@
     "aiThinking": "AI lagi mikirin tag…",
     "aiSuggestTitle": "Saran AI (ketuk untuk tambah)",
     "aiRegenerate": "Buat ulang",
-    "aiEmpty": "AI nggak nemu yang pas — tambah sendiri aja."
+    "aiEmpty": "AI nggak nemu yang pas — tambah sendiri aja.",
+    "manualEntry": "Atau isi manual"
   },
   "followers": {
     "title": "Pengikut",

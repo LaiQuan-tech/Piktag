@@ -1223,7 +1223,8 @@
     "aiThinking": "AIがタグを考え中…",
     "aiSuggestTitle": "AIの提案（タップで追加）",
     "aiRegenerate": "作り直す",
-    "aiEmpty": "ぴったりが見つからなかった — 手動で追加してね。"
+    "aiEmpty": "ぴったりが見つからなかった — 手動で追加してね。",
+    "manualEntry": "手入力する"
   },
   "followers": {
     "title": "フォロワー",

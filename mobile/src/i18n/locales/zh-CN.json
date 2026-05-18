@@ -1295,7 +1295,8 @@
     "aiThinking": "AI 想标签中…",
     "aiSuggestTitle": "AI 建议（点一下加入）",
     "aiRegenerate": "重新生成",
-    "aiEmpty": "AI 没想到合适的，手动加上就好。"
+    "aiEmpty": "AI 没想到合适的，手动加上就好。",
+    "manualEntry": "或手动输入"
   },
   "followers": {
     "title": "追踪者",

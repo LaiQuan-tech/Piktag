@@ -1308,7 +1308,8 @@
     "aiThinking": "AI is thinking up tags…",
     "aiSuggestTitle": "AI picks (tap to add)",
     "aiRegenerate": "Regenerate",
-    "aiEmpty": "AI didn't find a fit — just add your own."
+    "aiEmpty": "AI didn't find a fit — just add your own.",
+    "manualEntry": "Or type it in"
   },
   "followers": {
     "title": "Followers",

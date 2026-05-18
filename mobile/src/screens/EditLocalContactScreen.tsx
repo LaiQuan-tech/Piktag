@@ -87,6 +87,11 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
   const [aiLoading, setAiLoading] = useState(false);
   const [aiSuggestions, setAiSuggestions] = useState<string[]>([]);
   const [aiTried, setAiTried] = useState(false);
+  // Two-step flow so scan ≠ manual aren't crammed together:
+  //   'choose' → scan-card hero + "or type it" (create only)
+  //   'form'   → the editable fields (after scan/manual, or edit)
+  // Editing an existing contact skips straight to the form.
+  const [step, setStep] = useState<'choose' | 'form'>(isEdit ? 'form' : 'choose');
 
   const addTag = useCallback(() => {
     const raw = tagInput.trim().replace(/^#/, '');
@@ -232,6 +237,8 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
         setNote((cur) => (cur.trim() ? cur : composed));
       }
 
+      // Good scan → into the form (prefilled) for review/edit.
+      setStep('form');
       // Context exists now — surface AI tags proactively.
       setTimeout(() => { fetchAiTags(); }, 0);
     } catch (err: any) {
@@ -309,13 +316,24 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
     );
   }, [contactId, remove, navigation, t]);
 
+  // From the form (create flow) back returns to the chooser so a
+  // user who picked "type it" but wants to scan isn't trapped.
+  // From the chooser, or when editing, back leaves the screen.
+  const handleBack = useCallback(() => {
+    if (!isEdit && step === 'form') {
+      setStep('choose');
+      return;
+    }
+    navigation.goBack();
+  }, [isEdit, step, navigation]);
+
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
       <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor={colors.white} />
 
       <View style={styles.header}>
         <TouchableOpacity
-          onPress={() => navigation.goBack()}
+          onPress={handleBack}
           style={styles.headerBtn}
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           accessibilityRole="button"
@@ -352,39 +370,80 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          <Text style={styles.intro}>
-            {t('localContact.intro', {
-              defaultValue: '先把人記下來 —— 對方還不用是 PikTag 會員。等他加入，這筆會自動接上，你的標籤和備註都會跟著過去。',
-            })}
-          </Text>
+          {step === 'choose' ? (
+            <View style={styles.chooser}>
+              <Text style={styles.intro}>
+                {t('localContact.intro', {
+                  defaultValue: '先把人記下來 —— 對方還不用是 PikTag 會員。等他加入，這筆會自動接上，你的標籤和備註都會跟著過去。',
+                })}
+              </Text>
 
-          {/* Card-scan accelerator — same one-photo → vision extract
-              flow as first-time profile setup. Pre-fills the form;
-              the user edits inline (this screen is the confirm). */}
-          <TouchableOpacity
-            style={styles.scanBtn}
-            onPress={handleScanCard}
-            disabled={scanning}
-            activeOpacity={0.8}
-            accessibilityRole="button"
-            accessibilityLabel={t('localContact.scanCardCta', { defaultValue: '掃描名片自動帶入' })}
-          >
-            {scanning ? (
-              <BrandSpinner size={20} />
-            ) : (
-              <>
-                <ScanLine size={18} color={COLORS.piktag600} strokeWidth={2.2} />
-                <Text style={styles.scanBtnText}>
-                  {t('localContact.scanCardCta', { defaultValue: '掃描名片自動帶入' })}
+              {/* Scan is the hero path — the whole point is "less
+                  typing". One photo → vision extract → prefilled
+                  form for review (same model as first profile setup). */}
+              <TouchableOpacity
+                style={styles.scanCard}
+                onPress={handleScanCard}
+                disabled={scanning}
+                activeOpacity={0.85}
+                accessibilityRole="button"
+                accessibilityLabel={t('localContact.scanCardCta', { defaultValue: '掃描名片自動帶入' })}
+              >
+                {scanning ? (
+                  <BrandSpinner size={24} />
+                ) : (
+                  <>
+                    <View style={styles.scanCardIcon}>
+                      <ScanLine size={26} color="#FFFFFF" strokeWidth={2} />
+                    </View>
+                    <Text style={styles.scanCardTitle}>
+                      {t('localContact.scanCardCta', { defaultValue: '掃描名片自動帶入' })}
+                    </Text>
+                    <Text style={styles.scanCardSub}>
+                      {t('localContact.scanCardHint', {
+                        defaultValue: '拍一張名片，自動帶入姓名與聯絡方式 —— 再修改或加標籤就好。',
+                      })}
+                    </Text>
+                  </>
+                )}
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.manualBtn}
+                onPress={() => setStep('form')}
+                activeOpacity={0.7}
+                accessibilityRole="button"
+                accessibilityLabel={t('localContact.manualEntry', { defaultValue: '手動輸入' })}
+              >
+                <Text style={styles.manualBtnText}>
+                  {t('localContact.manualEntry', { defaultValue: '或手動輸入' })}
                 </Text>
-              </>
-            )}
-          </TouchableOpacity>
-          <Text style={styles.scanHint}>
-            {t('localContact.scanCardHint', {
-              defaultValue: '拍一張名片，自動帶入姓名與聯絡方式 —— 再修改或加標籤就好。',
-            })}
-          </Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <>
+              {/* Slim re-scan accelerator — scan stays reachable from
+                  the form (re-fill / scan-after-manual) without the
+                  old big block that made scan vs manual feel mixed. */}
+              <TouchableOpacity
+                style={styles.scanInline}
+                onPress={handleScanCard}
+                disabled={scanning}
+                activeOpacity={0.7}
+                accessibilityRole="button"
+                accessibilityLabel={t('localContact.scanCardCta', { defaultValue: '掃描名片自動帶入' })}
+              >
+                {scanning ? (
+                  <BrandSpinner size={16} />
+                ) : (
+                  <>
+                    <ScanLine size={16} color={COLORS.piktag600} strokeWidth={2.2} />
+                    <Text style={styles.scanInlineText}>
+                      {t('localContact.scanCardCta', { defaultValue: '掃描名片自動帶入' })}
+                    </Text>
+                  </>
+                )}
+              </TouchableOpacity>
 
           <Text style={styles.label}>
             {t('localContact.fieldName', { defaultValue: '名字' })}
@@ -568,6 +627,8 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
               </Text>
             )}
           </TouchableOpacity>
+            </>
+          )}
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -621,20 +682,59 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   tagAddBtnDisabled: { opacity: 0.4 },
-  scanBtn: {
-    flexDirection: 'row',
+  // ── Chooser step (scan = hero, manual = quiet secondary) ──
+  chooser: { paddingTop: 12 },
+  scanCard: {
+    backgroundColor: COLORS.piktag500,
+    borderRadius: 20,
+    paddingVertical: 28,
+    paddingHorizontal: 24,
+    alignItems: 'center',
+    minHeight: 168,
+    justifyContent: 'center',
+  },
+  scanCardIcon: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: 'rgba(255,255,255,0.22)',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 8,
-    minHeight: 48,
-    borderRadius: 12,
-    borderWidth: 1.5,
-    borderColor: COLORS.piktag500,
-    backgroundColor: COLORS.piktag50,
-    marginBottom: 8,
+    marginBottom: 14,
   },
-  scanBtnText: { fontSize: 15, fontWeight: '700', color: COLORS.piktag600 },
-  scanHint: { fontSize: 12, color: COLORS.gray500, lineHeight: 17 },
+  scanCardTitle: {
+    fontSize: 17,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    marginBottom: 6,
+    textAlign: 'center',
+  },
+  scanCardSub: {
+    fontSize: 13,
+    color: 'rgba(255,255,255,0.85)',
+    textAlign: 'center',
+    lineHeight: 19,
+  },
+  manualBtn: {
+    alignSelf: 'center',
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    marginTop: 18,
+  },
+  manualBtnText: { fontSize: 15, fontWeight: '600', color: COLORS.gray500 },
+  // ── Slim re-scan accelerator inside the form step ──
+  scanInline: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    gap: 6,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 9999,
+    backgroundColor: COLORS.piktag50,
+    marginBottom: 4,
+  },
+  scanInlineText: { fontSize: 13, fontWeight: '600', color: COLORS.piktag600 },
   aiBtn: {
     flexDirection: 'row',
     alignItems: 'center',

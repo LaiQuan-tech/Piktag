@@ -1315,7 +1315,8 @@
     "aiThinking": "AI đang nghĩ tag…",
     "aiSuggestTitle": "AI gợi ý (chạm để thêm)",
     "aiRegenerate": "Tạo lại",
-    "aiEmpty": "AI chưa nghĩ ra cái nào hợp — bạn tự thêm nhé."
+    "aiEmpty": "AI chưa nghĩ ra cái nào hợp — bạn tự thêm nhé.",
+    "manualEntry": "Hoặc tự nhập"
   },
   "followers": {
     "title": "Người theo dõi",

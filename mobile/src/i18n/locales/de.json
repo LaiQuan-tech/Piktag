@@ -1295,7 +1295,8 @@
     "aiThinking": "KI denkt sich Tags aus…",
     "aiSuggestTitle": "KI-Vorschläge (zum Hinzufügen tippen)",
     "aiRegenerate": "Neu generieren",
-    "aiEmpty": "Die KI fand nichts Passendes — füg sie selbst hinzu."
+    "aiEmpty": "Die KI fand nichts Passendes — füg sie selbst hinzu.",
+    "manualEntry": "Oder manuell eingeben"
   },
   "followers": {
     "title": "Follower",

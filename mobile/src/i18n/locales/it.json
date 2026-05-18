@@ -1315,7 +1315,8 @@
     "aiThinking": "L'AI sta pensando ai tag…",
     "aiSuggestTitle": "Suggerimenti AI (tocca per aggiungere)",
     "aiRegenerate": "Rigenera",
-    "aiEmpty": "L'AI non ha trovato nulla — aggiungili tu."
+    "aiEmpty": "L'AI non ha trovato nulla — aggiungili tu.",
+    "manualEntry": "Oppure inseriscilo"
   },
   "followers": {
     "title": "Follower",
