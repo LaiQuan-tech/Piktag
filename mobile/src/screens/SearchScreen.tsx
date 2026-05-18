@@ -1013,7 +1013,12 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
           let rpcGrouped: { tag: Tag; users: any[] }[] | null = null;
           try {
             const { data: rpcRows, error: rpcErr } = await supabase.rpc('search_users', {
-              p_query: mainKeyword,
+              // Pass the FULL multi-keyword query — search_users now
+              // tokenizes server-side (20260518000000 migration), so
+              // "designer taipei" matches tags for both words instead
+              // of being ignored after keywords[0]. Re-joined with a
+              // space; the RPC re-splits on whitespace.
+              p_query: keywords.join(' '),
               p_limit: 50,
             });
             if (!rpcErr && Array.isArray(rpcRows) && rpcRows.length > 0) {
