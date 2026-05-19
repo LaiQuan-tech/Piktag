@@ -661,9 +661,10 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
   const handleConnectionPress = useCallback((item: ConnectionWithTags) => {
     const lc = (item as any).__localContact;
     if (lc) {
-      // Not-yet-on-PikTag manual contact → edit it (no FriendDetail,
-      // there's no real user). Select-mode is N/A for these.
-      navigation.navigate('EditLocalContact', { contactId: lc.id });
+      // Not-yet-on-PikTag manual contact → its profile VIEW (the
+      // contact analog of FriendDetail; 編輯 there opens the form).
+      // Select-mode is N/A for these.
+      navigation.navigate('LocalContactDetail', { contactId: lc.id });
       return;
     }
     if (selectMode) {
