@@ -122,11 +122,10 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
   const [aiLoading, setAiLoading] = useState(false);
   const [aiSuggestions, setAiSuggestions] = useState<string[]>([]);
   const [aiTried, setAiTried] = useState(false);
-  // Two-step flow so scan ≠ manual aren't crammed together:
-  //   'choose' → scan-card hero + "or type it" (create only)
-  //   'form'   → the editable fields (after scan/manual, or edit)
-  // Editing an existing contact skips straight to the form.
-  const [step, setStep] = useState<'choose' | 'form'>(isEdit ? 'form' : 'choose');
+  // No chooser screen. The form is always the base; in create mode
+  // the camera auto-opens once on top of it (effect after runScan).
+  // The big purple scan banner was removed — fewer taps, less clutter.
+  const cameraAutoRef = useRef(false);
 
   // ── Edit-mode hydration ──────────────────────────────────────────
   // useLocalContacts fetches async, and THIS screen mounts its own
@@ -294,7 +293,6 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
         if (cardEmail) setEmail((cur) => (cur.trim() ? cur : cardEmail));
         // Job title + company → the member-aligned 職稱 field.
         if (cardHeadline) setHeadline((cur) => (cur.trim() ? cur : cardHeadline));
-        setStep('form');
         // bio_draft has no contact field → AI-tag fuel only.
         setTimeout(() => { fetchAiTags(bioDraft || undefined); }, 0);
       };
@@ -378,6 +376,20 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
     navigation.navigate('CardCamera', { onCaptured: runScan });
   }, [navigation, runScan]);
 
+  // Create mode: auto-open the camera ONCE, on top of the (empty)
+  // form. ref guard = strictly once → no reopen loop when the camera
+  // is dismissed (capture / "或手動輸入" / X all just drop back to
+  // the form). Edit mode never auto-opens.
+  useEffect(() => {
+    if (isEdit || cameraAutoRef.current) return;
+    cameraAutoRef.current = true;
+    navigation.navigate('CardCamera', {
+      onCaptured: runScan,
+      onManual: () => setManualFocus(true),
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isEdit]);
+
   const handleSave = useCallback(async () => {
     const trimmed = name.trim();
     if (!trimmed) {
@@ -460,16 +472,10 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
     );
   }, [contactId, remove, navigation, t]);
 
-  // From the form (create flow) back returns to the chooser so a
-  // user who picked "type it" but wants to scan isn't trapped.
-  // From the chooser, or when editing, back leaves the screen.
+  // No chooser anymore — back always leaves the screen.
   const handleBack = useCallback(() => {
-    if (!isEdit && step === 'form') {
-      setStep('choose');
-      return;
-    }
     navigation.goBack();
-  }, [isEdit, step, navigation]);
+  }, [navigation]);
 
   // Edit mode but the row hasn't hydrated yet — show a spinner (or a
   // clear "gone" message once the fetch settled and it's still
@@ -553,67 +559,7 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          {step === 'choose' ? (
-            <View style={styles.chooser}>
-              <Text style={styles.intro}>
-                {t('localContact.intro', {
-                  defaultValue: '先把人記下來 —— 對方還不用是 PikTag 會員。等他加入，這筆會自動接上，你的標籤都會跟著過去。',
-                })}
-              </Text>
-
-              {/* Scan is the hero path — the whole point is "less
-                  typing". One photo → vision extract → prefilled
-                  form for review (same model as first profile setup). */}
-              <TouchableOpacity
-                style={styles.scanCard}
-                onPress={handleScanCard}
-                disabled={scanning}
-                activeOpacity={0.85}
-                accessibilityRole="button"
-                accessibilityLabel={t('localContact.scanCardCta', { defaultValue: '掃描名片自動帶入' })}
-              >
-                {scanning ? (
-                  // The card bg is piktag500 (purple); BrandSpinner is
-                  // the purple brand gradient → invisible here. Use a
-                  // white ActivityIndicator + an explicit label so the
-                  // user gets clear "your photo is being read" feedback
-                  // instead of a blank purple block.
-                  <View style={styles.scanCardLoading}>
-                    <ActivityIndicator color="#FFFFFF" />
-                    <Text style={styles.scanCardTitle}>
-                      {t('localContact.scanningCard', { defaultValue: '辨識名片中…' })}
-                    </Text>
-                  </View>
-                ) : (
-                  <>
-                    <View style={styles.scanCardIcon}>
-                      <ScanLine size={26} color="#FFFFFF" strokeWidth={2} />
-                    </View>
-                    <Text style={styles.scanCardTitle}>
-                      {t('localContact.scanCardCta', { defaultValue: '掃描名片自動帶入' })}
-                    </Text>
-                    <Text style={styles.scanCardSub}>
-                      {t('localContact.scanCardHint', {
-                        defaultValue: '拍一張名片，自動帶入姓名與聯絡方式 —— 再修改或加標籤就好。',
-                      })}
-                    </Text>
-                  </>
-                )}
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={styles.manualBtn}
-                onPress={() => { setManualFocus(true); setStep('form'); }}
-                activeOpacity={0.7}
-                accessibilityRole="button"
-                accessibilityLabel={t('localContact.manualEntry', { defaultValue: '手動輸入' })}
-              >
-                <Text style={styles.manualBtnText}>
-                  {t('localContact.manualEntry', { defaultValue: '或手動輸入' })}
-                </Text>
-              </TouchableOpacity>
-            </View>
-          ) : (
+          {(
             <>
               {/* Slim re-scan accelerator — scan stays reachable from
                   the form (re-fill / scan-after-manual) without the
@@ -860,7 +806,6 @@ const styles = StyleSheet.create({
   headerBtn: { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
   headerTitle: { flex: 1, textAlign: 'center', fontSize: 17, fontWeight: '700', color: COLORS.gray900 },
   scroll: { padding: 20, paddingBottom: 48 },
-  intro: { fontSize: 13, color: COLORS.gray500, lineHeight: 19, marginBottom: 20 },
   label: { fontSize: 13, fontWeight: '600', color: COLORS.gray700, marginBottom: 6, marginTop: 14 },
   input: {
     fontSize: 15,
@@ -892,48 +837,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   tagAddBtnDisabled: { opacity: 0.4 },
-  // ── Chooser step (scan = hero, manual = quiet secondary) ──
-  chooser: { paddingTop: 12 },
-  scanCard: {
-    backgroundColor: COLORS.piktag500,
-    borderRadius: 20,
-    paddingVertical: 28,
-    paddingHorizontal: 24,
-    alignItems: 'center',
-    minHeight: 168,
-    justifyContent: 'center',
-  },
-  scanCardLoading: { alignItems: 'center', gap: 12 },
-  scanCardIcon: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
-    backgroundColor: 'rgba(255,255,255,0.22)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 14,
-  },
-  scanCardTitle: {
-    fontSize: 17,
-    fontWeight: '800',
-    color: '#FFFFFF',
-    marginBottom: 6,
-    textAlign: 'center',
-  },
-  scanCardSub: {
-    fontSize: 13,
-    color: 'rgba(255,255,255,0.85)',
-    textAlign: 'center',
-    lineHeight: 19,
-  },
-  manualBtn: {
-    alignSelf: 'center',
-    paddingVertical: 14,
-    paddingHorizontal: 20,
-    marginTop: 18,
-  },
-  manualBtnText: { fontSize: 15, fontWeight: '600', color: COLORS.gray500 },
-  // ── Slim re-scan accelerator inside the form step ──
+  // ── Slim re-scan accelerator inside the form ──
   scanInline: {
     flexDirection: 'row',
     alignItems: 'center',

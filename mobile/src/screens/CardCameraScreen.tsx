@@ -18,6 +18,7 @@
 //
 // Route params:
 //   • onCaptured: (base64: string, mimeType: string) => void   (required)
+//   • onManual?: () => void   — "或手動輸入": dismiss to the form
 
 import React, { useCallback, useRef, useState } from 'react';
 import {
@@ -126,10 +127,17 @@ export default function CardCameraScreen({ navigation, route }: Props) {
 
   const onCaptured: ((b64: string, mime: string) => void) | undefined =
     route.params?.onCaptured;
+  const onManual: (() => void) | undefined = route.params?.onManual;
 
   const close = useCallback(() => {
     if (navigation.canGoBack()) navigation.goBack();
   }, [navigation]);
+
+  // "或手動輸入" — bail to the form (caller focuses the name field).
+  const goManual = useCallback(() => {
+    onManual?.();
+    if (navigation.canGoBack()) navigation.goBack();
+  }, [navigation, onManual]);
 
   const handleShutter = useCallback(async () => {
     if (busyRef.current || !cameraRef.current) return;
@@ -276,6 +284,20 @@ export default function CardCameraScreen({ navigation, route }: Props) {
               <View style={styles.shutterInner} />
             )}
           </TouchableOpacity>
+          {!capturing && (
+            <TouchableOpacity
+              onPress={goManual}
+              activeOpacity={0.7}
+              hitSlop={{ top: 12, bottom: 12, left: 20, right: 20 }}
+              style={styles.manualLink}
+              accessibilityRole="button"
+              accessibilityLabel={t('localContact.manualEntry', { defaultValue: '或手動輸入' })}
+            >
+              <Text style={styles.manualLinkText}>
+                {t('localContact.manualEntry', { defaultValue: '或手動輸入' })}
+              </Text>
+            </TouchableOpacity>
+          )}
         </View>
       </View>
     </View>
@@ -394,6 +416,15 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     alignItems: 'center',
+  },
+  manualLink: { marginTop: 18, paddingVertical: 6, paddingHorizontal: 16 },
+  manualLinkText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: 'rgba(255,255,255,0.92)',
+    textShadowColor: 'rgba(0,0,0,0.5)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
   },
   shutterOuter: {
     width: 74,
