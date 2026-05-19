@@ -35,8 +35,9 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import { ArrowLeft, Plus, Trash2, ScanLine, RefreshCw } from 'lucide-react-native';
+import { ArrowLeft, Plus, Trash2, ScanLine, RefreshCw, Phone, Mail, Calendar } from 'lucide-react-native';
 import AtomIcon from '../components/AtomIcon';
+import ProfileIdentityHeader from '../components/ProfileIdentityHeader';
 import { COLORS } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
 import { useLocalContacts } from '../hooks/useLocalContacts';
@@ -600,80 +601,80 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
                 )}
               </TouchableOpacity>
 
-          <Text style={styles.label}>
-            {t('localContact.fieldName', { defaultValue: '名字' })}
-          </Text>
-          <TextInput
-            style={styles.input}
-            value={name}
-            onChangeText={setName}
-            placeholder={t('localContact.namePlaceholder', { defaultValue: '例：在龍洞潛水認識的阿哲' })}
-            placeholderTextColor={COLORS.gray400}
-            maxLength={60}
-            autoFocus={manualFocus}
-          />
-
-          {/* 職稱 — same field (and i18n keys) as the member profile
-              editor, so a contact's data lines up 1:1 with a member's
-              once they register. Replaces the old freeform note. */}
-          <Text style={styles.label}>
-            {t('editProfile.headlineLabel', { defaultValue: '職稱' })}
-          </Text>
-          <TextInput
-            style={styles.input}
-            value={headline}
-            onChangeText={setHeadline}
-            placeholder={t('editProfile.headlinePlaceholder', {
+          {/* Identity = shared ProfileIdentityHeader (one component,
+              not a per-screen copy). Editable variant: name + 職稱
+              read as a profile title/subtitle, not form boxes — the
+              screen looks like a friend profile, editing is secondary.
+              職稱 uses the SAME i18n keys as the member profile editor
+              so a contact lines up 1:1 with a member once they join. */}
+          <ProfileIdentityHeader
+            name={name}
+            onChangeName={setName}
+            namePlaceholder={t('localContact.namePlaceholder', { defaultValue: '例：在龍洞潛水認識的阿哲' })}
+            autoFocusName={manualFocus}
+            nameMaxLength={60}
+            headline={headline}
+            onChangeHeadline={setHeadline}
+            headlinePlaceholder={t('editProfile.headlinePlaceholder', {
               defaultValue: '例：PM @ 科技公司、自由接案設計師',
             })}
-            placeholderTextColor={COLORS.gray400}
-            maxLength={80}
+            headlineMaxLength={80}
           />
 
-          <Text style={styles.label}>
+          {/* Contact info as a profile-style card (icon + inline
+              editable value, hairline-divided) — mirrors FriendDetail's
+              sectioned look instead of stacked grey form boxes. The
+              "幫助對方加入後自動接上" nuance now lives in the section
+              caption below (declutters each row; same i18n keys). */}
+          <Text style={styles.sectionTitle}>
             {t('localContact.fieldPhone', { defaultValue: '電話（選填，幫助對方加入後自動接上）' })}
           </Text>
-          <TextInput
-            style={styles.input}
-            value={phone}
-            onChangeText={setPhone}
-            placeholder={t('localContact.phonePlaceholder', { defaultValue: '+886 912 345 678' })}
-            placeholderTextColor={COLORS.gray400}
-            keyboardType="phone-pad"
-            autoCapitalize="none"
-            maxLength={24}
-          />
+          <View style={styles.infoCard}>
+            <View style={styles.infoRow}>
+              <Phone size={18} color={COLORS.gray400} />
+              <TextInput
+                style={styles.infoInput}
+                value={phone}
+                onChangeText={setPhone}
+                placeholder={t('localContact.phonePlaceholder', { defaultValue: '+886 912 345 678' })}
+                placeholderTextColor={COLORS.gray400}
+                keyboardType="phone-pad"
+                autoCapitalize="none"
+                maxLength={24}
+              />
+            </View>
+            <View style={styles.infoDivider} />
+            <View style={styles.infoRow}>
+              <Mail size={18} color={COLORS.gray400} />
+              <TextInput
+                style={styles.infoInput}
+                value={email}
+                onChangeText={setEmail}
+                placeholder={t('localContact.emailPlaceholder', { defaultValue: 'name@example.com' })}
+                placeholderTextColor={COLORS.gray400}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                autoCorrect={false}
+                maxLength={120}
+              />
+            </View>
+            <View style={styles.infoDivider} />
+            <View style={styles.infoRow}>
+              <Calendar size={18} color={COLORS.gray400} />
+              <TextInput
+                style={styles.infoInput}
+                value={birthday}
+                onChangeText={setBirthday}
+                placeholder={t('localContact.birthdayPlaceholder', { defaultValue: 'MM-DD 或 YYYY-MM-DD' })}
+                placeholderTextColor={COLORS.gray400}
+                keyboardType="numbers-and-punctuation"
+                autoCapitalize="none"
+                maxLength={10}
+              />
+            </View>
+          </View>
 
-          <Text style={styles.label}>
-            {t('localContact.fieldEmail', { defaultValue: 'Email（選填）' })}
-          </Text>
-          <TextInput
-            style={styles.input}
-            value={email}
-            onChangeText={setEmail}
-            placeholder={t('localContact.emailPlaceholder', { defaultValue: 'name@example.com' })}
-            placeholderTextColor={COLORS.gray400}
-            keyboardType="email-address"
-            autoCapitalize="none"
-            autoCorrect={false}
-            maxLength={120}
-          />
-
-          <Text style={styles.label}>
-            {t('localContact.fieldBirthday', { defaultValue: '生日（選填）' })}
-          </Text>
-          <TextInput
-            style={styles.input}
-            value={birthday}
-            onChangeText={setBirthday}
-            placeholder={t('localContact.birthdayPlaceholder', { defaultValue: 'MM-DD 或 YYYY-MM-DD' })}
-            placeholderTextColor={COLORS.gray400}
-            keyboardType="numbers-and-punctuation"
-            autoCapitalize="none"
-            maxLength={10}
-          />
-
-          <Text style={styles.label}>
+          <Text style={styles.sectionTitle}>
             {t('localContact.fieldTags', { defaultValue: '標籤（只有你看得到）' })}
           </Text>
           {tags.length > 0 && (
@@ -813,7 +814,33 @@ const styles = StyleSheet.create({
   headerBtn: { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
   headerTitle: { flex: 1, textAlign: 'center', fontSize: 17, fontWeight: '700', color: COLORS.gray900 },
   scroll: { padding: 20, paddingBottom: 48 },
-  label: { fontSize: 13, fontWeight: '600', color: COLORS.gray700, marginBottom: 6, marginTop: 14 },
+  // Section caption — mirrors FriendDetailScreen.sectionTitle tokens
+  // (13/700, gray500, uppercase, +letterSpacing) so a contact's
+  // sections read like a member friend's profile, not a form.
+  sectionTitle: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: COLORS.gray500,
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
+    marginTop: 24,
+    marginBottom: 10,
+  },
+  // Contact-info card: icon + inline editable value, hairline rows.
+  infoCard: {
+    backgroundColor: COLORS.gray50,
+    borderRadius: 14,
+    paddingHorizontal: 14,
+  },
+  infoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    paddingVertical: 13,
+  },
+  infoInput: { flex: 1, fontSize: 15, color: COLORS.gray900, padding: 0 },
+  infoDivider: { height: 1, backgroundColor: COLORS.gray100 },
+  // Still used by the tag-add input row only.
   input: {
     fontSize: 15,
     color: COLORS.gray900,
