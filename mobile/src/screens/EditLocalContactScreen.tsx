@@ -379,15 +379,24 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
   }, [navigation, runScan]);
 
   // Create mode: auto-open the camera ONCE, on top of the (empty)
-  // form. ref guard = strictly once → no reopen loop when the camera
-  // is dismissed (capture / "或手動輸入" / X all just drop back to
-  // the form). Edit mode never auto-opens.
+  // form. ref guard = strictly once → no reopen loop. Dismissal:
+  //   • capture        → runScan, stay on the form
+  //   • "或手動輸入"   → form with the name field focused
+  //   • X (close)      → cancel the WHOLE add → back to 好友頁.
+  // For X we pop THIS screen too: the camera pops itself first, then
+  // onClose runs here (this screen now focused) and goBack pops the
+  // form → 好友頁. Mirrors the capture path's goBack-then-callback
+  // ordering; the ref guard stops the effect re-firing meanwhile.
+  // Edit mode never auto-opens.
   useEffect(() => {
     if (isEdit || cameraAutoRef.current) return;
     cameraAutoRef.current = true;
     navigation.navigate('CardCamera', {
       onCaptured: runScan,
       onManual: () => setManualFocus(true),
+      onClose: () => {
+        if (navigation.canGoBack()) navigation.goBack();
+      },
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isEdit]);

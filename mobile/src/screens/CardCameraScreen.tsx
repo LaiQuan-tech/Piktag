@@ -19,6 +19,9 @@
 // Route params:
 //   • onCaptured: (base64: string, mimeType: string) => void   (required)
 //   • onManual?: () => void   — "或手動輸入": dismiss to the form
+//   • onClose?: () => void    — X tapped, AFTER the camera pops
+//                               itself. Create-contact flow uses it
+//                               to also pop the form → back to 好友頁.
 
 import React, { useCallback, useRef, useState } from 'react';
 import {
@@ -128,10 +131,19 @@ export default function CardCameraScreen({ navigation, route }: Props) {
   const onCaptured: ((b64: string, mime: string) => void) | undefined =
     route.params?.onCaptured;
   const onManual: (() => void) | undefined = route.params?.onManual;
+  // Caller-supplied X/close handler. The auto-opened create-contact
+  // flow passes one that ALSO pops EditLocalContact → back to 好友頁
+  // (X = cancel the WHOLE add, not "show me the blank form"). Other
+  // entries (e.g. the on-form re-scan button) omit it → plain
+  // goBack = return to wherever the camera was opened from.
+  const onClose: (() => void) | undefined = route.params?.onClose;
 
   const close = useCallback(() => {
+    // goBack first (pop the camera) so the caller screen is focused
+    // when onClose runs — mirrors the capture path's ordering.
     if (navigation.canGoBack()) navigation.goBack();
-  }, [navigation]);
+    onClose?.();
+  }, [navigation, onClose]);
 
   // "或手動輸入" — bail to the form (caller focuses the name field).
   const goManual = useCallback(() => {
