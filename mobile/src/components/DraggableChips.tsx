@@ -27,21 +27,22 @@ type DraggableChipsProps = {
   onRemove: (item: ChipItem) => void;
   // Two interaction modes, ONE component (no per-screen chip copy):
   //
-  //  • Legacy (onArm omitted — ManageTagsScreen): each chip is the
-  //    canonical removable "#tag ×". Tap does nothing; the × removes;
-  //    long-press drags to reorder. Byte-for-byte the old behaviour,
-  //    just rendered through the shared <TagChip> now.
+  //  • 'removable' (default — ManageTagsScreen): the canonical
+  //    "#tag ×" chip. Tap does nothing; the × removes; long-press
+  //    drags to reorder. Byte-for-byte the old behaviour, just
+  //    rendered through the shared <TagChip> now.
   //
-  //  • Toggle (onArm provided — EditProfile "我的標籤"): NO ×. A tap
-  //    on an un-armed chip ARMS it (gray→purple via armedId); a tap
-  //    on the already-armed chip calls onRemove (gray→purple→gone).
-  //    Long-press still drags. This replaces the tiny ✕ footgun with
-  //    a deliberate two-step the user can't trigger by accident.
-  armedId?: string | null;
-  onArm?: (item: ChipItem) => void;
+  //  • 'toggle' (EditProfile "我的標籤"): NO ×. Every chip is ALWAYS
+  //    purple — these ARE the user's selected/owned tags, and the
+  //    colour contract is purple = selected (gray is reserved for
+  //    recommended-but-unselected suggestions elsewhere). A single
+  //    tap removes the tag; that one-tap is safe because removal is
+  //    staged (Phase 1) and fully reversible until 儲存. Long-press
+  //    still drags.
+  chipVariant?: 'removable' | 'toggle';
   // onDoubleTap was the pin-toggle gesture in the original design;
   // pinning was pulled (commit e11a9d6). The prop is gone — the tap
-  // gesture now drives the arm/remove model above.
+  // gesture now drives the remove model above.
   onDragStateChange?: (isDragging: boolean) => void;
 };
 
@@ -58,8 +59,7 @@ export default function DraggableChips({
   items,
   onReorder,
   onRemove,
-  armedId,
-  onArm,
+  chipVariant = 'removable',
   onDragStateChange,
 }: DraggableChipsProps) {
   const { t } = useTranslation();
@@ -67,7 +67,7 @@ export default function DraggableChips({
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const containerRef = useRef<View>(null);
   const containerLayout = useRef({ x: 0, y: 0 });
-  const isToggle = !!onArm;
+  const isToggle = chipVariant === 'toggle';
 
   // Measure container position
   const onContainerLayout = useCallback(() => {
@@ -111,18 +111,14 @@ export default function DraggableChips({
     onReorder(newItems);
   }, [items, onReorder]);
 
-  // Tap action — only in toggle mode. Un-armed → arm; armed → remove
-  // (with a stronger haptic to mark the destructive step).
+  // Tap action — toggle mode only: a single tap removes the tag.
+  // Safe one-tap because removal is staged (Phase 1) and reversible
+  // until Save. Medium haptic marks that something was removed.
   const handleTap = useCallback((item: ChipItem) => {
     if (!isToggle) return;
-    if (armedId === item.id) {
-      impactAsync(ImpactFeedbackStyle.Medium);
-      onRemove(item);
-    } else {
-      impactAsync(ImpactFeedbackStyle.Light);
-      onArm?.(item);
-    }
-  }, [isToggle, armedId, onArm, onRemove]);
+    impactAsync(ImpactFeedbackStyle.Medium);
+    onRemove(item);
+  }, [isToggle, onRemove]);
 
   return (
     <View ref={containerRef} onLayout={onContainerLayout} style={styles.container}>
@@ -131,7 +127,6 @@ export default function DraggableChips({
           key={item.id}
           item={item}
           isToggle={isToggle}
-          armed={armedId === item.id}
           isDragging={draggingId === item.id}
           onLayout={(e) => onChipLayout(item.id, e)}
           onDragStart={() => { setDraggingId(item.id); onDragStateChange?.(true); }}
@@ -159,7 +154,6 @@ export default function DraggableChips({
 type DraggableChipProps = {
   item: ChipItem;
   isToggle: boolean;
-  armed: boolean;
   isDragging: boolean;
   onLayout: (e: LayoutChangeEvent) => void;
   onDragStart: () => void;
@@ -170,7 +164,7 @@ type DraggableChipProps = {
 };
 
 function DraggableChip({
-  item, isToggle, armed, isDragging, onLayout, onDragStart, onDragEnd, onDragMove, onRemove, onTap,
+  item, isToggle, isDragging, onLayout, onDragStart, onDragEnd, onDragMove, onRemove, onTap,
 }: DraggableChipProps) {
   const translateX = useSharedValue(0);
   const translateY = useSharedValue(0);
@@ -197,7 +191,7 @@ function DraggableChip({
       runOnJS(onDragEnd)();
     });
 
-  // Single tap → arm/remove (toggle mode only; legacy mode leaves
+  // Single tap → remove (toggle mode only; legacy mode leaves
   // removal to the × inside the removable TagChip).
   const tapGesture = Gesture.Tap().onEnd(() => {
     if (onTap) runOnJS(onTap)();
@@ -220,7 +214,8 @@ function DraggableChip({
     <GestureDetector gesture={composed}>
       <Animated.View onLayout={onLayout} style={[styles.chipHost, animatedStyle]}>
         {isToggle ? (
-          <TagChip variant="toggle" label={item.label} selected={armed} />
+          // Always purple — these ARE the user's selected tags.
+          <TagChip variant="toggle" label={item.label} selected />
         ) : (
           <TagChip variant="removable" label={item.label} onRemove={onRemove} />
         )}

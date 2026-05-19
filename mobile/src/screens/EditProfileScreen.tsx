@@ -334,12 +334,12 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
   // Drag / pin state — ported from ManageTagsScreen so this screen
   // is now the single home for tag editing.
   const [isDragging, setIsDragging] = useState(false);
-  // Single "armed for removal" tag id. Phase 2 interaction model:
-  // tap a 我的標籤 chip → it arms (gray→purple); tap the armed chip
-  // again → it's staged-removed (Phase 1 → reversible until 儲存).
-  // Shared by native (DraggableChips) and the web fallback. Reorder
-  // is long-press-drag only now — tap no longer swaps positions.
-  const [armedTagId, setArmedTagId] = useState<string | null>(null);
+  // Colour contract (corrected): a 我的標籤 chip is ALWAYS purple
+  // because it IS selected/owned. Gray is reserved for
+  // recommended-but-unselected suggestions. Removal = a single tap
+  // on the purple chip; safe because it's staged (Phase 1) and
+  // reversible until 儲存. No "armed" intermediate, no tap-to-swap
+  // (reorder is long-press-drag only).
   // Collapse-by-default for the popular-tags section so it doesn't
   // bloat the page; expand only when the user wants to browse.
   const [showPopularTags, setShowPopularTags] = useState(false);
@@ -1590,38 +1590,32 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
               </View>
             </View>
 
-            {/* Phase 2 hint — covers BOTH gestures of the new model:
-                tap to select (gray→purple), tap again to remove;
-                long-press to drag-reorder. Native only (the web
-                fallback is a non-product path). Shown once ≥1 tag. */}
+            {/* Hint — these chips ARE the user's selected tags
+                (always purple). A single tap removes one; it's safe
+                because removal is staged (Phase 1) and reversible
+                until 儲存. Reorder = long-press drag. Native only
+                (web fallback is a non-product path). Shown ≥1 tag. */}
             {userTags.length > 0 && Platform.OS !== 'web' && (
               <Text style={styles.tag_sortHint}>
                 {t('manageTags.tagEditHint', {
-                  defaultValue: '點一下選取，再點一下移除；長按可拖曳排序',
+                  defaultValue: '點一下即可移除（儲存前都可復原）· 長按可拖曳排序',
                 })}
               </Text>
             )}
 
-            {/* My tags — Phase 2 unified model. Native: DraggableChips
-                (tap = arm/remove, long-press = drag-reorder). Web
-                fallback: the SAME gray→purple→gone via the shared
-                toggle TagChip, no swap (non-product path, kept only
-                so the screen compiles under Platform.OS === 'web'). */}
+            {/* My tags — always purple (= selected/owned). Native:
+                DraggableChips (single tap = remove, long-press =
+                drag-reorder). Web fallback: same purple toggle
+                TagChip, tap = remove (non-product path, kept only so
+                the screen compiles under Platform.OS === 'web'). */}
             {userTags.length > 0 ? (
               Platform.OS !== 'web' && DraggableChips ? (
                 <DraggableChips
                   items={chipItems}
-                  armedId={armedTagId}
-                  onArm={(item: { id: string }) => setArmedTagId(item.id)}
+                  chipVariant="toggle"
                   onReorder={handleChipReorder}
-                  onRemove={(item: { id: string }) => {
-                    handleChipRemove(item);
-                    setArmedTagId(null);
-                  }}
-                  onDragStateChange={(d: boolean) => {
-                    setIsDragging(d);
-                    if (d) setArmedTagId(null);
-                  }}
+                  onRemove={(item: { id: string }) => handleChipRemove(item)}
+                  onDragStateChange={(d: boolean) => setIsDragging(d)}
                 />
               ) : (
                 <View style={styles.tag_chipsContainer}>
@@ -1630,15 +1624,8 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
                       key={ut.id}
                       variant="toggle"
                       label={getTagDisplayName(ut)}
-                      selected={ut.id === armedTagId}
-                      onPress={() => {
-                        if (armedTagId === ut.id) {
-                          handleRemoveTag(ut);
-                          setArmedTagId(null);
-                        } else {
-                          setArmedTagId(ut.id);
-                        }
-                      }}
+                      selected
+                      onPress={() => handleRemoveTag(ut)}
                     />
                   ))}
                 </View>

@@ -917,7 +917,7 @@
     "tagLimitMessage": "Você pode adicionar até {{max}} tags",
     "aiErrorGeneric": "Sugestões da IA temporariamente indisponíveis, tente mais tarde",
     "nativeHintNoPin": "Pressione e arraste para reordenar",
-    "tagEditHint": "Toque para selecionar, toque de novo para remover · Mantenha pressionado para reordenar"
+    "tagEditHint": "Toque para remover (reversível até salvar) · Pressione e segure para reordenar"
   },
   "activityReview": {
     "noNewFriends": "Não há novos amigos para revisar",
