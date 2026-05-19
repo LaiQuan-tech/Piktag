@@ -243,8 +243,6 @@
     "coldStartActionContacts": "Найди друзей из контактов",
     "coldStartActionContactsDesc": "Найди тех, кто уже здесь — отметь и пригласи остальных",
     "notJoinedBadge": "Ещё не в PikTag",
-    "pendingScanTitle": "Ещё не в PikTag",
-    "pendingScanMsg": "{{name}} отсканировал(а) ваш QR и оставил(а) имя, но ещё не в PikTag. После регистрации вы свяжетесь автоматически.",
     "coldStartActionManual": "Записать человека",
     "coldStartActionManualDesc": "Аккаунт не нужен — привяжется к вашим тегам и заметкам при регистрации",
     "addManualA11y": "Добавить контакт вручную"

@@ -243,8 +243,6 @@
     "coldStartActionContacts": "Cari teman dari kontakmu",
     "coldStartActionContactsDesc": "Temuin yang udah di PikTag — tag + invite yang belum",
     "notJoinedBadge": "Belum di PikTag",
-    "pendingScanTitle": "Belum di PikTag",
-    "pendingScanMsg": "{{name}} memindai QR-mu dan meninggalkan nama tapi belum gabung PikTag. Saat ia gabung, kalian otomatis terhubung.",
     "coldStartActionManual": "Catat seseorang",
     "coldStartActionManualDesc": "Tak perlu akun — otomatis tertaut ke tag & catatanmu saat ia gabung",
     "addManualA11y": "Tambah kontak manual"

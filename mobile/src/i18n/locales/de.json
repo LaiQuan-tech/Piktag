@@ -251,8 +251,6 @@
     "coldStartActionContacts": "Freunde aus deinen Kontakten finden",
     "coldStartActionContactsDesc": "Find Freunde, die schon dabei sind — die anderen taggen + einladen",
     "notJoinedBadge": "Noch nicht auf PikTag",
-    "pendingScanTitle": "Noch nicht auf PikTag",
-    "pendingScanMsg": "{{name}} hat deinen QR gescannt und einen Namen hinterlassen, ist aber noch nicht auf PikTag. Bei Anmeldung werdet ihr automatisch verbunden.",
     "coldStartActionManual": "Jemanden notieren",
     "coldStartActionManualDesc": "Kein Konto nötig — verknüpft sich bei Anmeldung mit deinen Tags & Notizen",
     "addManualA11y": "Kontakt manuell hinzufügen"

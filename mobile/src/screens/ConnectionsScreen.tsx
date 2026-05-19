@@ -9,7 +9,6 @@ import {
   StatusBar,
   Modal,
   TextInput,
-  Alert,
   Dimensions,
   KeyboardAvoidingView,
   Platform,
@@ -50,7 +49,6 @@ import { ConnectionsScreenSkeleton } from '../components/SkeletonLoader';
 import ErrorState from '../components/ErrorState';
 import { useAuth } from '../hooks/useAuth';
 import { useLocalContacts } from '../hooks/useLocalContacts';
-import { usePendingScans } from '../hooks/usePendingScans';
 import { useAskFeed } from '../hooks/useAskFeed';
 import { useNetInfoReconnect } from '../hooks/useNetInfoReconnect';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -114,10 +112,11 @@ const ConnectionItem = React.memo(({ item, isSelected, selectMode, hasActiveAsk,
   // so the fixed getItemLayout height still holds — just dimmed,
   // initials-only, a "尚未加入" badge where @username would be,
   // no ask gradient, no select checkbox. Tap → edit it.
-  // Not-yet-on-PikTag: a manually-added local contact OR someone who
-  // scanned this member's QR and left their name (pending scan). Same
-  // dim row; tap behaviour is differentiated by the screen handler.
-  const notJoined = (item as any).__localContact || (item as any).__pendingScan;
+  // Not-yet-on-PikTag: a manually-added local contact. Same dim row;
+  // tap → edit it. (The web "scanned + left a name" pending-scan rail
+  // / 絕招一 was removed — it produced name-only, untaggable records
+  // that contradicted the tag-is-memory thesis.)
+  const notJoined = (item as any).__localContact;
   if (notJoined) {
     return (
       <TouchableOpacity
@@ -253,10 +252,6 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
   // register, the server trigger promotes them into real
   // connections and they drop out of this (un-promoted) query.
   const { contacts: localContacts, refresh: refreshLocalContacts } = useLocalContacts();
-  // People who scanned this member's QR + left a name on the web page
-  // but haven't joined yet (Magic Onboarding Phase 3). Same not-joined
-  // row treatment as local contacts.
-  const { scans: pendingScans, refresh: refreshPendingScans } = usePendingScans();
   const { asks: askFeedItems, myAsk: myActiveAsk, refresh: refreshAsks } = useAskFeed();
 
   const lastFetchRef = React.useRef<number>(0);
@@ -487,7 +482,6 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
         // useLocalContacts instance, so a create/edit/delete there
         // won't reflect here without an explicit refetch on return.
         refreshLocalContacts();
-        refreshPendingScans();
         const now = Date.now();
         if (now - lastFetchRef.current < 30000 && lastFetchRef.current > 0) return;
         setLoading(true);
@@ -503,7 +497,7 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
         }
       };
       loadAll();
-    }, [fetchConnections, refreshAsks, refreshLocalContacts, refreshPendingScans])
+    }, [fetchConnections, refreshAsks, refreshLocalContacts])
   );
 
   // Auto-refetch when the network comes back if we previously errored.
@@ -646,39 +640,10 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
         __notJoinedLabel: notJoinedLabel,
       })) as any as ConnectionWithTags[];
 
-    // Pending scans: people who scanned this member's QR + left a
-    // name but haven't joined. Same not-joined row; event_tags shown
-    // as #tags (consistent with local contacts). Auto-drops out once
-    // they register (get_pending_scans filters status='pending').
-    const mappedPending = (pendingScans || [])
-      .filter(
-        (ps) =>
-          !filterTag || (ps.event_tags ?? []).some((n) => hashTag(n) === filterTag),
-      )
-      .map((ps) => ({
-        id: 'ps:' + ps.id,
-        user_id: '',
-        connected_user_id: '',
-        nickname: ps.scanner_name,
-        note: null,
-        met_at: ps.created_at,
-        met_location: ps.event_location,
-        birthday: null,
-        anniversary: null,
-        scan_session_id: null,
-        is_reviewed: true,
-        created_at: ps.created_at,
-        connected_user: undefined,
-        tags: (ps.event_tags ?? []).map(hashTag),
-        semanticTypes: [],
-        __pendingScan: ps,
-        __notJoinedLabel: notJoinedLabel,
-      })) as any as ConnectionWithTags[];
-
-    return mapped.length || mappedPending.length
-      ? [...sortedConnections, ...mapped, ...mappedPending]
+    return mapped.length
+      ? [...sortedConnections, ...mapped]
       : sortedConnections;
-  }, [sortedConnections, localContacts, pendingScans, filterTag, notJoinedLabel]);
+  }, [sortedConnections, localContacts, filterTag, notJoinedLabel]);
 
   // All unique semantic types from connections (for filter)
   const allConnectionTags = useMemo(() => {
@@ -701,20 +666,6 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
       navigation.navigate('EditLocalContact', { contactId: lc.id });
       return;
     }
-    const ps = (item as any).__pendingScan;
-    if (ps) {
-      // Someone who scanned the QR + left a name but hasn't joined.
-      // Nothing to edit — just explain the auto-connect promise.
-      Alert.alert(
-        t('connections.pendingScanTitle', { defaultValue: '還沒加入 PikTag' }),
-        t('connections.pendingScanMsg', {
-          name: ps.scanner_name,
-          defaultValue:
-            `${ps.scanner_name} 掃了你的 QR 並留了名字，但還沒加入 PikTag。等他加入，會自動接上、變成你的好友。`,
-        }),
-      );
-      return;
-    }
     if (selectMode) {
       setSelectedIds((prev) => {
         const next = new Set(prev);
@@ -734,9 +685,9 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
   }, [selectMode, navigation, t]);
 
   const handleConnectionLongPress = useCallback((item: ConnectionWithTags) => {
-    // Local contacts / pending scans aren't bulk-selectable (batch
-    // ops act on real connections only).
-    if ((item as any).__localContact || (item as any).__pendingScan) return;
+    // Local contacts aren't bulk-selectable (batch ops act on real
+    // connections only).
+    if ((item as any).__localContact) return;
     if (!selectMode) {
       setSelectMode(true);
       setSelectedIds(new Set([item.id]));

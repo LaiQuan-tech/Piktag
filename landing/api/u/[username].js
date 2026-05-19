@@ -235,31 +235,13 @@ function renderProfilePage(profile, biolinks, tags, sid, locale, eventInfo, anal
         .join('')
     : '';
 
-  // ── 絕招一 / Magic Onboarding (only on a real scan: sid present) ──
-  // Surface the auto-created meeting tags + capture the scanner's
-  // name → POST to the hardened claim_pending_scan RPC. rawName is
-  // the UN-escaped host name for safe JS-string injection (set via
-  // textContent client-side, so no HTML-escaping needed there).
-  const rawName = profile.full_name || profile.username || 'PikTag User';
-  const metTags = (eventInfo && eventInfo.tags ? String(eventInfo.tags).split(',') : [])
-    .map((s) => s.trim().replace(/^#+/, ''))
-    .filter(Boolean)
-    .slice(0, 8);
-  const metTagsHtml = metTags.length
-    ? `<div class="met-tags">${metTags.map((t) => `<span class="met-tag">#${escapeHtml(t)}</span>`).join('')}</div>`
-    : '';
-  const magicCard = sid
-    ? `<div class="magic-card">
-      <div class="magic-hero">${escapeHtml(locale.metHero).replace('{name}', name)}</div>
-      ${metTagsHtml}
-      <form class="name-form" id="name-form" onsubmit="return submitName(event)">
-        <input class="name-input" id="name-input" type="text" maxlength="40"
-               placeholder="${escapeHtml(locale.namePlaceholder)}" autocomplete="name" autocapitalize="words" />
-        <button class="name-submit" type="submit">${escapeHtml(locale.nameSubmit)}</button>
-      </form>
-      <div class="magic-done" id="magic-done" hidden></div>
-    </div>`
-    : '';
+  // 絕招一 / Magic Onboarding (web anonymous name-capture) REMOVED:
+  // it produced name-only, untaggable pending records, resolved
+  // unreliably (one shared sid per QR → scanners overwrote each
+  // other), and contradicted the tag-is-memory thesis. The
+  // pre-existing anonymous host+sid pending insert above + the
+  // resolve-on-signup rail are a SEPARATE older mechanism and are
+  // intentionally left intact (revisit separately if desired).
 
   return `<!DOCTYPE html>
 <html lang="${locale.htmlLang}">
@@ -372,16 +354,6 @@ function renderProfilePage(profile, biolinks, tags, sid, locale, eventInfo, anal
     @keyframes fadeDown{from{opacity:0;transform:translateY(-12px)}to{opacity:1;transform:translateY(0)}}
     @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
     @keyframes scaleIn{from{opacity:0;transform:scale(.85)}to{opacity:1;transform:scale(1)}}
-    .magic-card{width:100%;background:#fff;border:1px solid rgba(140,82,255,.18);border-radius:18px;padding:18px 16px;margin:14px 0 4px;box-shadow:0 6px 24px rgba(140,82,255,.10)}
-    .magic-hero{font-size:14px;font-weight:700;color:#8c52ff;text-align:center;line-height:1.4;margin-bottom:10px}
-    .met-tags{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-bottom:14px}
-    .met-tag{font-size:13px;font-weight:600;color:#8c52ff;background:#f5f0ff;border-radius:9999px;padding:5px 11px}
-    .name-form{display:flex;gap:8px}
-    .name-input{flex:1;min-width:0;font-size:15px;padding:11px 14px;border:1px solid #e5e0f0;border-radius:12px;outline:none;color:#1a1a1a;background:#fafafa}
-    .name-input:focus{border-color:#8c52ff;background:#fff}
-    .name-submit{flex-shrink:0;font-size:14px;font-weight:700;color:#fff;background:linear-gradient(90deg,#ff5757,#8c52ff);border:none;border-radius:12px;padding:11px 18px;cursor:pointer}
-    .name-submit:disabled{opacity:.55;cursor:default}
-    .magic-done{text-align:center;font-size:14px;font-weight:700;color:#8c52ff;padding:8px 0 2px}
   </style>
 </head>
 <body>
@@ -405,7 +377,6 @@ function renderProfilePage(profile, biolinks, tags, sid, locale, eventInfo, anal
     ${tribeSize > 0 ? `<div class="tribe-stat" title="Tribe size">Tribe ${tribeSize}</div>` : ''}
     ${headline ? `<div class="headline">${headline}</div>` : ''}
     ${bio ? `<div class="bio">${bio}</div>` : ''}
-    ${magicCard}
     <button class="follow-btn" onclick="handleFollow()">${locale.follow}</button>
     ${tagsHtml}
     ${biolinksHtml ? `<div class="biolinks">${biolinksHtml}</div>` : ''}
@@ -441,34 +412,6 @@ function handleFollow() {
     if (document.hidden) clearTimeout(timer);
   });
   window.location = appUrl;
-}
-function submitName(e) {
-  e.preventDefault();
-  var inp = document.getElementById('name-input');
-  var v = ((inp && inp.value) || '').trim();
-  if (!v) return false;
-  var btn = document.querySelector('.name-submit');
-  if (btn) btn.disabled = true;
-  fetch(${JSON.stringify(SUPABASE_URL)} + '/rest/v1/rpc/claim_pending_scan', {
-    method: 'POST',
-    headers: {
-      'apikey': ${JSON.stringify(SUPABASE_ANON_KEY)},
-      'Authorization': 'Bearer ' + ${JSON.stringify(SUPABASE_ANON_KEY)},
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({ p_sid: ${JSON.stringify(sid || '')}, p_name: v })
-  }).then(function(r){ return r.json(); }).then(function(d){
-    var form = document.getElementById('name-form');
-    var done = document.getElementById('magic-done');
-    if (d && d.ok) {
-      if (form) form.style.display = 'none';
-      if (done) {
-        done.textContent = ${JSON.stringify(locale.nameDone)}.replace('{name}', ${JSON.stringify(rawName)});
-        done.hidden = false;
-      }
-    } else if (btn) { btn.disabled = false; }
-  }).catch(function(){ if (btn) btn.disabled = false; });
-  return false;
 }
 </script>
 </body>

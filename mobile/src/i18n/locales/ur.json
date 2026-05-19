@@ -258,8 +258,6 @@
     "coldStartActionContacts": "اپنے رابطوں میں سے دوست ڈھونڈیں",
     "coldStartActionContactsDesc": "PikTag پر موجود دوست ڈھونڈیں — جو نہیں ہیں انہیں ٹیگ کر کے بلائیں",
     "notJoinedBadge": "ابھی PikTag پر نہیں",
-    "pendingScanTitle": "ابھی PikTag پر نہیں",
-    "pendingScanMsg": "{{name}} نے آپ کا QR اسکین کیا اور نام چھوڑا لیکن ابھی PikTag پر نہیں۔ شامل ہونے پر آپ خودبخود جُڑ جائیں گے۔",
     "coldStartActionManual": "کسی کو نوٹ کر لیں",
     "coldStartActionManualDesc": "انہیں اکاؤنٹ کی ضرورت نہیں — وہ شامل ہوتے ہی آپ کے ٹیگز اور نوٹس خود جڑ جاتے ہیں",
     "addManualA11y": "رابطہ خود سے شامل کریں"

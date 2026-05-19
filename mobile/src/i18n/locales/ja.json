@@ -243,8 +243,6 @@
     "coldStartActionContacts": "連絡先から友達を見つける",
     "coldStartActionContactsDesc": "PikTag にいる友達を見つけて、まだの人にはタグ付き招待を",
     "notJoinedBadge": "PikTag 未参加",
-    "pendingScanTitle": "まだ PikTag 未参加",
-    "pendingScanMsg": "{{name}} さんがあなたの QR をスキャンして名前を残しましたが、まだ PikTag 未参加です。参加すると自動でつながります。",
     "coldStartActionManual": "人をメモする",
     "coldStartActionManualDesc": "相手はアカウント不要 — 参加したらタグとメモが自動でつながる",
     "addManualA11y": "連絡先を手動で追加"

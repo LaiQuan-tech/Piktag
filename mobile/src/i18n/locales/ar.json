@@ -243,8 +243,6 @@
     "coldStartActionContacts": "ابحث عن أصدقاء من جهات اتصالك",
     "coldStartActionContactsDesc": "ابحث عن الموجودين، ووسم وأدعُ من ليسوا منهم",
     "notJoinedBadge": "ليس على PikTag بعد",
-    "pendingScanTitle": "ليس على PikTag بعد",
-    "pendingScanMsg": "{{name}} مسح رمز QR الخاص بك وترك اسمًا لكنه لم ينضم إلى PikTag بعد. عند انضمامه ستتصلان تلقائيًا.",
     "coldStartActionManual": "دوّن شخصًا",
     "coldStartActionManualDesc": "لا يحتاج حسابًا — يرتبط بوسومك وملاحظاتك عند انضمامه",
     "addManualA11y": "إضافة جهة اتصال يدويًا"

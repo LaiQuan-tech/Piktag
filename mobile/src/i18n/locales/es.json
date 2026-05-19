@@ -243,8 +243,6 @@
     "coldStartActionContacts": "Busca amigos en tus contactos",
     "coldStartActionContactsDesc": "Encuentra a los que ya están — etiqueta e invita a los que no",
     "notJoinedBadge": "Aún no en PikTag",
-    "pendingScanTitle": "Aún no está en PikTag",
-    "pendingScanMsg": "{{name}} escaneó tu QR y dejó un nombre pero aún no está en PikTag. Cuando se una, se conectarán automáticamente.",
     "coldStartActionManual": "Apunta a alguien",
     "coldStartActionManualDesc": "No necesita cuenta — se vincula con tus etiquetas y notas al unirse",
     "addManualA11y": "Añadir contacto manualmente"

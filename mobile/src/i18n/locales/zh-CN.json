@@ -251,8 +251,6 @@
     "coldStartActionContacts": "从通讯录找朋友",
     "coldStartActionContactsDesc": "找出已在 PikTag 的朋友，没在的也能标签+邀请",
     "notJoinedBadge": "尚未加入 PikTag",
-    "pendingScanTitle": "还没加入 PikTag",
-    "pendingScanMsg": "{{name}} 扫了你的 QR 并留了名字，但还没加入 PikTag。等他加入，会自动接上、变成你的好友。",
     "coldStartActionManual": "手动记下一个人",
     "coldStartActionManualDesc": "对方还不用是会员 — 加入后自动接上你的标签与备注",
     "addManualA11y": "手动新增联系人"

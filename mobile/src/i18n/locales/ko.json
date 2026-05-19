@@ -243,8 +243,6 @@
     "coldStartActionContacts": "연락처에서 친구 찾기",
     "coldStartActionContactsDesc": "PikTag에 있는 친구를 찾고, 없는 친구는 태그+초대",
     "notJoinedBadge": "아직 PikTag 미가입",
-    "pendingScanTitle": "아직 PikTag 미가입",
-    "pendingScanMsg": "{{name}}님이 QR을 스캔하고 이름을 남겼지만 아직 PikTag에 가입하지 않았어요. 가입하면 자동으로 연결돼요.",
     "coldStartActionManual": "사람 메모하기",
     "coldStartActionManualDesc": "상대는 가입 안 해도 됨 — 가입하면 태그·메모가 자동 연결",
     "addManualA11y": "연락처 수동 추가"
