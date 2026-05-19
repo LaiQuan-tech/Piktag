@@ -35,7 +35,8 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import { ArrowLeft, Plus, Trash2, ScanLine, Sparkles, RefreshCw } from 'lucide-react-native';
+import { ArrowLeft, Plus, Trash2, ScanLine, RefreshCw } from 'lucide-react-native';
+import AtomIcon from '../components/AtomIcon';
 import { COLORS } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
 import { useLocalContacts } from '../hooks/useLocalContacts';
@@ -750,7 +751,7 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
                 accessibilityRole="button"
                 accessibilityLabel={t('localContact.aiSuggestCta', { defaultValue: 'AI 建議標籤' })}
               >
-                <Sparkles size={16} color={COLORS.piktag600} />
+                <AtomIcon size={16} color={COLORS.piktag600} />
                 <Text style={styles.aiBtnText}>
                   {t('localContact.aiSuggestCta', { defaultValue: 'AI 建議標籤' })}
                 </Text>

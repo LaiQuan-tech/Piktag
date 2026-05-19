@@ -19,7 +19,8 @@ import {
 } from 'react-native';
 import BrandSpinner from '../loaders/BrandSpinner';
 import { Image } from 'expo-image';
-import { Plus, X, Sparkles, RefreshCw } from 'lucide-react-native';
+import { Plus, X, RefreshCw } from 'lucide-react-native';
+import AtomIcon from '../AtomIcon';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTranslation } from 'react-i18next';
 import InitialsAvatar from '../InitialsAvatar';
@@ -887,7 +888,7 @@ export function AskCreateModal({ visible, onClose, existingAsk, onCreated, seedB
 
               {/* AI suggestion section — matched to the canonical
                   pattern shared by AddTagScreen and EditProfileScreen:
-                    [Sparkles/Spinner + "AI 為你推薦"] [↻ refresh btn]
+                    [Atom/Spinner + "AI 為你推薦"] [↻ refresh btn]
                     chip wrap
                     empty-state hint
                   Manual trigger preserved (no auto-debounce on body
@@ -901,7 +902,7 @@ export function AskCreateModal({ visible, onClose, existingAsk, onCreated, seedB
                     {aiLoading ? (
                       <BrandSpinner size={16} />
                     ) : (
-                      <Sparkles size={14} color={COLORS.piktag600} />
+                      <AtomIcon size={14} color={COLORS.piktag600} />
                     )}
                     <Text style={modalStyles.aiHeaderTitle}>
                       {aiLoading

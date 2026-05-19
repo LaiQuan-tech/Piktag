@@ -28,7 +28,8 @@ import {
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
-import { ArrowLeft, Share2, Plus, X, Hash, Edit3, Sparkles, ScanLine, Link2, Pencil } from 'lucide-react-native';
+import { ArrowLeft, Share2, Plus, X, Hash, Edit3, ScanLine, Link2, Pencil } from 'lucide-react-native';
+import AtomIcon from '../components/AtomIcon';
 import { setStringAsync as setClipboardStringAsync } from 'expo-clipboard';
 // react-native-qrcode-svg is the same lib AddTagScreen uses. Import
 // inline so the bundle only pulls it on this screen too.
@@ -574,7 +575,7 @@ export default function QrGroupDetailScreen({ navigation, route }: Props) {
         {currentTags.length > 0 && (
           <View style={styles.vibeShiftSection}>
             <View style={styles.vibeShiftHeader}>
-              <Sparkles size={16} color={COLORS.piktag500} strokeWidth={2.2} />
+              <AtomIcon size={16} color={COLORS.piktag500} strokeWidth={2.2} />
               <Text style={styles.vibeShiftTitle}>
                 {t('qrGroup.currentVibesTitle', { defaultValue: '他們最近在標什麼' })}
               </Text>
@@ -900,7 +901,7 @@ const styles = StyleSheet.create({
 
   // ─── P0 Vibe-to-Vibe reactivation ──────────────────────────
   // Section sits between the Vibe's own tag editor and the member
-  // list, visually distinct (Sparkles icon + light purple chip
+  // list, visually distinct (Atom icon + light purple chip
   // backgrounds) so users register "this is a different kind of
   // info — what they're into NOW, not what tagged the event."
   vibeShiftSection: {

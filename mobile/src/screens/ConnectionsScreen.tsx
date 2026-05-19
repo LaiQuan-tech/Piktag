@@ -24,7 +24,6 @@ import {
   Tag,
   CheckSquare,
   Square,
-  Sparkles,
   UserPlus,
   CalendarHeart,
   Gift,

@@ -15,7 +15,8 @@ import {
   Linking,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ArrowLeft, Plus, Pencil, Trash2, X, Hash, EyeOff, Eye, GripVertical, ChevronDown, Sparkles, CheckCircle2, RefreshCw, AlertTriangle, ChevronUp } from 'lucide-react-native';
+import { ArrowLeft, Plus, Pencil, Trash2, X, Hash, EyeOff, Eye, GripVertical, ChevronDown, CheckCircle2, RefreshCw, AlertTriangle, ChevronUp } from 'lucide-react-native';
+import AtomIcon from '../components/AtomIcon';
 import { logApiUsage } from '../lib/apiUsage';
 import RingedAvatar from '../components/RingedAvatar';
 import DraggableFlatList, { RenderItemParams, ScaleDecorator } from 'react-native-draggable-flatlist';
@@ -1470,7 +1471,7 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
                 )}
                 {showMissing && (
                   <View style={styles.completionInlineMissingRow}>
-                    <Sparkles size={12} color={COLORS.piktag500} />
+                    <AtomIcon size={12} color={COLORS.piktag500} />
                     <Text style={styles.completionInlineText}>
                       {t('editProfile.completionInline', {
                         items: missing.join('、'),
@@ -1591,7 +1592,7 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
                       {aiLoading ? (
                         <BrandSpinner size={16} />
                       ) : (
-                        <Sparkles size={14} color={COLORS.piktag600} />
+                        <AtomIcon size={14} color={COLORS.piktag600} />
                       )}
                       <Text style={styles.ai_headerTitle}>
                         {aiLoading
