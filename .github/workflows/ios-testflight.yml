@@ -70,11 +70,16 @@ jobs:
       SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
 
     steps:
+      # @v5 = Node 24 action runtime. GitHub force-migrates the
+      # Node-20 runtime on 2026-06-02 and removes it 2026-09-16;
+      # @v4 (Node 20) would break the pipeline after the cutover.
+      # API-compatible bump — node-version below is the BUILD Node
+      # (unrelated to the action's own runtime), left at 22.
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: 22
           cache: npm
