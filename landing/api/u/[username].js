@@ -235,13 +235,9 @@ function renderProfilePage(profile, biolinks, tags, sid, locale, eventInfo, anal
         .join('')
     : '';
 
-  // 絕招一 / Magic Onboarding (web anonymous name-capture) REMOVED:
-  // it produced name-only, untaggable pending records, resolved
-  // unreliably (one shared sid per QR → scanners overwrote each
-  // other), and contradicted the tag-is-memory thesis. The
-  // pre-existing anonymous host+sid pending insert above + the
-  // resolve-on-signup rail are a SEPARATE older mechanism and are
-  // intentionally left intact (revisit separately if desired).
+  // (絕招一 web name-capture removed @fc9b534 — page is back to its
+  // original design. The host+sid pending insert above is a SEPARATE
+  // pre-existing rail, kept on purpose; don't delete it as "絕招一".)
 
   return `<!DOCTYPE html>
 <html lang="${locale.htmlLang}">
