@@ -1,18 +1,17 @@
 import React, { useState, useCallback, useRef } from 'react';
-import { View, Text, Pressable, StyleSheet, LayoutChangeEvent, Platform } from 'react-native';
+import { View, Text, StyleSheet, LayoutChangeEvent } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withSpring,
   withTiming,
-  withSequence,
   runOnJS,
 } from 'react-native-reanimated';
 import { impactAsync, ImpactFeedbackStyle } from 'expo-haptics';
-import { X } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { COLORS } from '../constants/theme';
+import TagChip from './TagChip';
 
 type ChipItem = {
   id: string;
@@ -26,11 +25,23 @@ type DraggableChipsProps = {
   items: ChipItem[];
   onReorder: (newItems: ChipItem[]) => void;
   onRemove: (item: ChipItem) => void;
-  // onDoubleTap was the pin-toggle gesture in the original design.
-  // Kept on the type but unused by all current callers since the
-  // pin feature was pulled. Will be re-wired when pinning ships
-  // as a paid tier.
-  onDoubleTap?: (item: ChipItem) => void;
+  // Two interaction modes, ONE component (no per-screen chip copy):
+  //
+  //  • Legacy (onArm omitted — ManageTagsScreen): each chip is the
+  //    canonical removable "#tag ×". Tap does nothing; the × removes;
+  //    long-press drags to reorder. Byte-for-byte the old behaviour,
+  //    just rendered through the shared <TagChip> now.
+  //
+  //  • Toggle (onArm provided — EditProfile "我的標籤"): NO ×. A tap
+  //    on an un-armed chip ARMS it (gray→purple via armedId); a tap
+  //    on the already-armed chip calls onRemove (gray→purple→gone).
+  //    Long-press still drags. This replaces the tiny ✕ footgun with
+  //    a deliberate two-step the user can't trigger by accident.
+  armedId?: string | null;
+  onArm?: (item: ChipItem) => void;
+  // onDoubleTap was the pin-toggle gesture in the original design;
+  // pinning was pulled (commit e11a9d6). The prop is gone — the tap
+  // gesture now drives the arm/remove model above.
   onDragStateChange?: (isDragging: boolean) => void;
 };
 
@@ -43,12 +54,20 @@ type ChipLayout = {
 
 const SPRING_CONFIG = { damping: 20, stiffness: 300, mass: 0.8 };
 
-export default function DraggableChips({ items, onReorder, onRemove, onDoubleTap, onDragStateChange }: DraggableChipsProps) {
+export default function DraggableChips({
+  items,
+  onReorder,
+  onRemove,
+  armedId,
+  onArm,
+  onDragStateChange,
+}: DraggableChipsProps) {
   const { t } = useTranslation();
   const [layouts, setLayouts] = useState<Map<string, ChipLayout>>(new Map());
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const containerRef = useRef<View>(null);
   const containerLayout = useRef({ x: 0, y: 0 });
+  const isToggle = !!onArm;
 
   // Measure container position
   const onContainerLayout = useCallback(() => {
@@ -71,8 +90,6 @@ export default function DraggableChips({ items, onReorder, onRemove, onDoubleTap
   const findTargetId = useCallback((fingerX: number, fingerY: number, excludeId: string): string | null => {
     for (const [id, layout] of layouts) {
       if (id === excludeId) continue;
-      const centerX = layout.x + layout.width / 2;
-      const centerY = layout.y + layout.height / 2;
       // Check if finger is within chip bounds (with some tolerance)
       if (
         fingerX >= layout.x - 4 && fingerX <= layout.x + layout.width + 4 &&
@@ -94,12 +111,27 @@ export default function DraggableChips({ items, onReorder, onRemove, onDoubleTap
     onReorder(newItems);
   }, [items, onReorder]);
 
+  // Tap action — only in toggle mode. Un-armed → arm; armed → remove
+  // (with a stronger haptic to mark the destructive step).
+  const handleTap = useCallback((item: ChipItem) => {
+    if (!isToggle) return;
+    if (armedId === item.id) {
+      impactAsync(ImpactFeedbackStyle.Medium);
+      onRemove(item);
+    } else {
+      impactAsync(ImpactFeedbackStyle.Light);
+      onArm?.(item);
+    }
+  }, [isToggle, armedId, onArm, onRemove]);
+
   return (
     <View ref={containerRef} onLayout={onContainerLayout} style={styles.container}>
       {items.map((item) => (
         <DraggableChip
           key={item.id}
           item={item}
+          isToggle={isToggle}
+          armed={armedId === item.id}
           isDragging={draggingId === item.id}
           onLayout={(e) => onChipLayout(item.id, e)}
           onDragStart={() => { setDraggingId(item.id); onDragStateChange?.(true); }}
@@ -112,7 +144,7 @@ export default function DraggableChips({ items, onReorder, onRemove, onDoubleTap
             if (targetId) handleSwap(item.id, targetId);
           }}
           onRemove={() => onRemove(item)}
-          onDoubleTap={onDoubleTap ? () => onDoubleTap(item) : undefined}
+          onTap={isToggle ? () => handleTap(item) : undefined}
         />
       ))}
       {items.length === 0 && (
@@ -126,23 +158,24 @@ export default function DraggableChips({ items, onReorder, onRemove, onDoubleTap
 
 type DraggableChipProps = {
   item: ChipItem;
+  isToggle: boolean;
+  armed: boolean;
   isDragging: boolean;
   onLayout: (e: LayoutChangeEvent) => void;
   onDragStart: () => void;
   onDragEnd: () => void;
   onDragMove: (absX: number, absY: number) => void;
   onRemove: () => void;
-  onDoubleTap?: () => void;
+  onTap?: () => void;
 };
 
 function DraggableChip({
-  item, isDragging, onLayout, onDragStart, onDragEnd, onDragMove, onRemove, onDoubleTap,
+  item, isToggle, armed, isDragging, onLayout, onDragStart, onDragEnd, onDragMove, onRemove, onTap,
 }: DraggableChipProps) {
   const translateX = useSharedValue(0);
   const translateY = useSharedValue(0);
   const scale = useSharedValue(1);
   const zIndex = useSharedValue(0);
-  const lastTapTime = useRef(0);
 
   const panGesture = Gesture.Pan()
     .activateAfterLongPress(300)
@@ -164,23 +197,11 @@ function DraggableChip({
       runOnJS(onDragEnd)();
     });
 
-  const doDoubleTap = useCallback(() => {
-    impactAsync(ImpactFeedbackStyle.Medium);
-    onDoubleTap?.();
-  }, [onDoubleTap]);
-
-  const tapGesture = Gesture.Tap()
-    .onEnd(() => {
-      if (onDoubleTap) {
-        const now = Date.now();
-        if (now - lastTapTime.current < 400) {
-          runOnJS(doDoubleTap)();
-          lastTapTime.current = 0;
-        } else {
-          lastTapTime.current = now;
-        }
-      }
-    });
+  // Single tap → arm/remove (toggle mode only; legacy mode leaves
+  // removal to the × inside the removable TagChip).
+  const tapGesture = Gesture.Tap().onEnd(() => {
+    if (onTap) runOnJS(onTap)();
+  });
 
   const composed = Gesture.Race(panGesture, tapGesture);
 
@@ -197,14 +218,12 @@ function DraggableChip({
 
   return (
     <GestureDetector gesture={composed}>
-      <Animated.View
-        onLayout={onLayout}
-        style={[styles.chip, animatedStyle]}
-      >
-        <Text style={styles.chipText}>{item.label}</Text>
-        <Pressable onPress={onRemove} style={styles.chipX} hitSlop={8}>
-          <X size={14} color={COLORS.gray400} />
-        </Pressable>
+      <Animated.View onLayout={onLayout} style={[styles.chipHost, animatedStyle]}>
+        {isToggle ? (
+          <TagChip variant="toggle" label={item.label} selected={armed} />
+        ) : (
+          <TagChip variant="removable" label={item.label} onRemove={onRemove} />
+        )}
       </Animated.View>
     </GestureDetector>
   );
@@ -217,33 +236,15 @@ const styles = StyleSheet.create({
     gap: 8,
     paddingHorizontal: 20,
   },
-  // "Selected" tag chip — these are the user's currently-added public
-  // tags. Matches the FriendDetail pickModalTagSelected pattern so the
-  // visual contract for "this is one of mine" is the same everywhere
-  // in the app: piktag50 fill + 1.5dp piktag500 border + bold piktag600
-  // text. (Was previously gray100 / no border / gray900, which read as
-  // unselected — wrong signal for a list of items the user OWNS.)
-  chip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
-    backgroundColor: COLORS.piktag50,
-    borderRadius: 20,
-    paddingVertical: 8,
-    paddingLeft: 14,
-    paddingRight: 6,
-    borderWidth: 1.5,
-    borderColor: COLORS.piktag500,
-  },
-  // chipPinned / chipTextPinned styles removed with the pin feature
-  // (commit e11a9d6). Will be reintroduced as paid-tier styling.
-  chipText: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: COLORS.piktag600,
-  },
-  chipX: {
-    padding: 4,
+  // The Animated.View only hosts the drag transform + lift shadow;
+  // ALL chip visuals come from the shared <TagChip> so there is no
+  // per-screen chip styling to drift (founder design contract).
+  chipHost: {
+    alignSelf: 'flex-start',
+    borderRadius: 9999,
+    shadowColor: COLORS.gray900,
+    shadowOffset: { width: 0, height: 3 },
+    shadowRadius: 6,
   },
   emptyText: {
     fontSize: 14,

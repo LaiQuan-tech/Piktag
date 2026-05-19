@@ -1,20 +1,32 @@
 // TagChip.tsx
 //
-// THE one "added tag + ×" chip. Use this anywhere a removable user
-// tag is shown (EditLocalContact / AddTag / EditProfile "我的標籤").
-// Do NOT hand-roll a per-screen tag pill — per-screen drift (border
-// vs none, gray vs purple ×, with/without "#") is exactly the bug
+// THE one user-tag chip. Use this anywhere a user tag is shown
+// (EditLocalContact / AddTag / EditProfile "我的標籤"). Do NOT
+// hand-roll a per-screen tag pill — per-screen drift (border vs
+// none, gray vs purple ×, with/without "#") is exactly the bug
 // this component exists to prevent.
 //
 // Always renders `#<normalized>` (shared normalizeTagName strips a
 // leading # then we re-add one) so the # is identical app-wide
 // regardless of whether the caller stores names with or without it.
 //
+// Two variants — one component, never a per-screen copy:
+//   • 'removable' (default) — "#tag ×". The × deletes. Used where
+//     removal is harmless/cheap (EditLocalContact, AddTag, the
+//     EditProfile web fallback's add-list).
+//   • 'toggle' — NO ×. A plain pill whose look is driven by
+//     `selected`: gray = not selected, purple = selected. Removal
+//     is a deliberate two-step the *caller* owns (tap → purple →
+//     tap → gone). Used for EditProfile "我的標籤" where an
+//     accidental one-tap delete was a real footgun.
+//
 // Props:
 //   • label     raw tag name (with or without leading #)
-//   • onRemove  × tapped
-//   • selected? thin brand ring (e.g. EditProfile tap-to-select);
-//               border space is always reserved → no layout jump
+//   • variant?  'removable' (default) | 'toggle'
+//   • onRemove? × tapped — required in practice for 'removable',
+//               unused by 'toggle'
+//   • selected? 'removable': thin brand ring (border space is always
+//               reserved → no layout jump). 'toggle': gray↔purple.
 //   • onPress?  whole-chip tap (omit → plain View, no press)
 
 import React from 'react';
@@ -31,40 +43,52 @@ import { normalizeTagName } from '../lib/normalizeTag';
 
 type Props = {
   label: string;
-  onRemove: () => void;
+  variant?: 'removable' | 'toggle';
+  onRemove?: () => void;
   selected?: boolean;
   onPress?: () => void;
 };
 
-export default function TagChip({ label, onRemove, selected, onPress }: Props) {
+export default function TagChip({
+  label,
+  variant = 'removable',
+  onRemove,
+  selected,
+  onPress,
+}: Props) {
   const display = `#${normalizeTagName(label)}`;
+  const isToggle = variant === 'toggle';
+
+  const chipStyle = isToggle
+    ? [styles.chip, selected ? styles.chipSelected : styles.chipToggleOff]
+    : [styles.chip, selected && styles.chipSelected];
+  const textStyle =
+    isToggle && !selected ? [styles.text, styles.textToggleOff] : styles.text;
+
   const inner = (
     <>
-      <Text style={styles.text}>{display}</Text>
-      <TouchableOpacity
-        onPress={onRemove}
-        style={styles.removeBtn}
-        hitSlop={8}
-        accessibilityRole="button"
-        accessibilityLabel={`Remove ${display}`}
-      >
-        <X size={14} color={COLORS.gray400} />
-      </TouchableOpacity>
+      <Text style={textStyle}>{display}</Text>
+      {!isToggle && (
+        <TouchableOpacity
+          onPress={onRemove}
+          style={styles.removeBtn}
+          hitSlop={8}
+          accessibilityRole="button"
+          accessibilityLabel={`Remove ${display}`}
+        >
+          <X size={14} color={COLORS.gray400} />
+        </TouchableOpacity>
+      )}
     </>
   );
   if (onPress) {
     return (
-      <Pressable
-        style={[styles.chip, selected && styles.chipSelected]}
-        onPress={onPress}
-      >
+      <Pressable style={chipStyle} onPress={onPress}>
         {inner}
       </Pressable>
     );
   }
-  return (
-    <View style={[styles.chip, selected && styles.chipSelected]}>{inner}</View>
-  );
+  return <View style={chipStyle}>{inner}</View>;
 }
 
 const styles = StyleSheet.create({
@@ -81,6 +105,13 @@ const styles = StyleSheet.create({
     borderColor: 'transparent', // reserved → selected recolor, no jump
   },
   chipSelected: { borderColor: COLORS.piktag500 },
+  // 'toggle' unselected = gray. Border stays reserved (transparent)
+  // so toggling gray↔purple never shifts layout.
+  chipToggleOff: {
+    backgroundColor: COLORS.gray100,
+    borderColor: 'transparent',
+  },
   text: { fontSize: 14, fontWeight: '500', color: COLORS.piktag600 },
+  textToggleOff: { color: COLORS.gray700 },
   removeBtn: { padding: 3 },
 });

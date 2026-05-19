@@ -916,7 +916,8 @@
     "tagLimitTitle": "태그 한도",
     "tagLimitMessage": "최대 {{max}}개의 태그를 추가할 수 있습니다",
     "aiErrorGeneric": "AI 추천을 일시적으로 사용할 수 없습니다. 나중에 다시 시도하세요",
-    "nativeHintNoPin": "길게 눌러 드래그해 정렬하기"
+    "nativeHintNoPin": "길게 눌러 드래그해 정렬하기",
+    "tagEditHint": "탭하여 선택, 다시 탭하면 삭제 · 길게 눌러 끌어서 정렬"
   },
   "activityReview": {
     "noNewFriends": "검토할 새 친구가 없습니다",

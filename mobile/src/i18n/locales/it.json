@@ -1002,7 +1002,8 @@
     "tagLimitTitle": "Limite tag",
     "tagLimitMessage": "Puoi aggiungere fino a {{max}} tag",
     "aiErrorGeneric": "I suggerimenti AI non sono disponibili adesso, riprova più tardi",
-    "nativeHintNoPin": "Tieni premuto per trascinare e riordinare"
+    "nativeHintNoPin": "Tieni premuto per trascinare e riordinare",
+    "tagEditHint": "Tocca per selezionare, tocca di nuovo per rimuovere · Tieni premuto per riordinare"
   },
   "activityReview": {
     "noNewFriends": "Nessun nuovo amico da vedere",

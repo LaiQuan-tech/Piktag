@@ -916,7 +916,8 @@
     "tagLimitTitle": "Batas tag",
     "tagLimitMessage": "Anda dapat menambahkan hingga {{max}} tag",
     "aiErrorGeneric": "Saran AI sementara tidak tersedia, coba lagi nanti",
-    "nativeHintNoPin": "Tekan lama lalu seret untuk mengurutkan"
+    "nativeHintNoPin": "Tekan lama lalu seret untuk mengurutkan",
+    "tagEditHint": "Ketuk untuk memilih, ketuk lagi untuk menghapus · Tahan untuk menyeret & mengurutkan"
   },
   "activityReview": {
     "noNewFriends": "Tidak ada teman baru untuk ditinjau",

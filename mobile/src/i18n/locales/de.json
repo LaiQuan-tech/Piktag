@@ -984,7 +984,8 @@
     "tagLimitTitle": "Tag-Limit",
     "tagLimitMessage": "Du kannst bis zu {{max}} Tags hinzufügen",
     "aiErrorGeneric": "KI-Vorschläge sind vorübergehend nicht verfügbar, bitte versuche es später erneut",
-    "nativeHintNoPin": "Lang drücken zum Ziehen und Sortieren"
+    "nativeHintNoPin": "Lang drücken zum Ziehen und Sortieren",
+    "tagEditHint": "Zum Auswählen tippen, zum Entfernen erneut tippen · Lange drücken zum Sortieren"
   },
   "activityReview": {
     "noNewFriends": "Keine neuen Freunde zum Durchsehen",

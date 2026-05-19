@@ -997,7 +997,8 @@
     "tagLimitTitle": "Tag limit",
     "tagLimitMessage": "You can add up to {{max}} tags",
     "aiErrorGeneric": "AI suggestions are temporarily unavailable, please try again later",
-    "nativeHintNoPin": "Long press to drag and reorder"
+    "nativeHintNoPin": "Long press to drag and reorder",
+    "tagEditHint": "Tap to select, tap again to remove · Long-press to drag & reorder"
   },
   "activityReview": {
     "noNewFriends": "No new friends to review",

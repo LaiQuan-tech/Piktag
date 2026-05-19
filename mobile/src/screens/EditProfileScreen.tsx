@@ -15,7 +15,7 @@ import {
   Linking,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ArrowLeft, Plus, Pencil, Trash2, X, Hash, EyeOff, Eye, GripVertical, ChevronDown, Sparkles, CheckCircle2, RefreshCw, AlertTriangle, ArrowLeftRight, ChevronUp } from 'lucide-react-native';
+import { ArrowLeft, Plus, Pencil, Trash2, X, Hash, EyeOff, Eye, GripVertical, ChevronDown, Sparkles, CheckCircle2, RefreshCw, AlertTriangle, ChevronUp } from 'lucide-react-native';
 import { logApiUsage } from '../lib/apiUsage';
 import RingedAvatar from '../components/RingedAvatar';
 import DraggableFlatList, { RenderItemParams, ScaleDecorator } from 'react-native-draggable-flatlist';
@@ -334,7 +334,12 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
   // Drag / pin state — ported from ManageTagsScreen so this screen
   // is now the single home for tag editing.
   const [isDragging, setIsDragging] = useState(false);
-  const [selectedTagId, setSelectedTagId] = useState<string | null>(null); // web tap-to-swap
+  // Single "armed for removal" tag id. Phase 2 interaction model:
+  // tap a 我的標籤 chip → it arms (gray→purple); tap the armed chip
+  // again → it's staged-removed (Phase 1 → reversible until 儲存).
+  // Shared by native (DraggableChips) and the web fallback. Reorder
+  // is long-press-drag only now — tap no longer swaps positions.
+  const [armedTagId, setArmedTagId] = useState<string | null>(null);
   // Collapse-by-default for the popular-tags section so it doesn't
   // bloat the page; expand only when the user wants to browse.
   const [showPopularTags, setShowPopularTags] = useState(false);
@@ -1364,40 +1369,8 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
     [userTags, handleRemoveTag],
   );
 
-  // Web tap-to-swap (no native drag handler on web). Two-tap pattern:
-  // first tap selects, second tap on a different chip swaps positions.
-  const handleTagTap = useCallback(
-    async (tappedTag: UserTag & { tag?: Tag }) => {
-      if (!selectedTagId) {
-        setSelectedTagId(tappedTag.id);
-        return;
-      }
-      if (selectedTagId === tappedTag.id) {
-        setSelectedTagId(null);
-        return;
-      }
-      const fromIdx = userTags.findIndex((t) => t.id === selectedTagId);
-      const toIdx = userTags.findIndex((t) => t.id === tappedTag.id);
-      if (fromIdx === -1 || toIdx === -1) {
-        setSelectedTagId(null);
-        return;
-      }
-      const updated = [...userTags];
-      [updated[fromIdx], updated[toIdx]] = [updated[toIdx], updated[fromIdx]];
-      setUserTags(updated);
-      setSelectedTagId(null);
-      try {
-        await Promise.all(
-          updated.map((tag, i) =>
-            supabase.from('piktag_user_tags').update({ position: i }).eq('id', tag.id),
-          ),
-        );
-      } catch {
-        await fetchUserTags();
-      }
-    },
-    [selectedTagId, userTags, fetchUserTags],
-  );
+  // (handleTagTap / web tap-to-swap removed in Phase 2 — reorder is
+  // long-press-drag only; a tap now arms/removes via armedTagId.)
 
   if (loading) {
     return (
@@ -1617,53 +1590,58 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
               </View>
             </View>
 
-            {/* Hint text — only shown for native (DraggableChips
-                supports the gesture). Web tap-to-swap has its own
-                inline hint when a chip is selected. Note: the
-                "雙擊置頂" pinning hint was removed when pinning was
-                pulled out as a future paid feature. */}
-            {userTags.length > 1 && Platform.OS !== 'web' && (
+            {/* Phase 2 hint — covers BOTH gestures of the new model:
+                tap to select (gray→purple), tap again to remove;
+                long-press to drag-reorder. Native only (the web
+                fallback is a non-product path). Shown once ≥1 tag. */}
+            {userTags.length > 0 && Platform.OS !== 'web' && (
               <Text style={styles.tag_sortHint}>
-                {t('manageTags.nativeHintNoPin', { defaultValue: '長按拖曳排序' })}
+                {t('manageTags.tagEditHint', {
+                  defaultValue: '點一下選取，再點一下移除；長按可拖曳排序',
+                })}
               </Text>
             )}
 
-            {/* My tags — native: draggable chips / web: tap-to-swap */}
+            {/* My tags — Phase 2 unified model. Native: DraggableChips
+                (tap = arm/remove, long-press = drag-reorder). Web
+                fallback: the SAME gray→purple→gone via the shared
+                toggle TagChip, no swap (non-product path, kept only
+                so the screen compiles under Platform.OS === 'web'). */}
             {userTags.length > 0 ? (
               Platform.OS !== 'web' && DraggableChips ? (
                 <DraggableChips
                   items={chipItems}
+                  armedId={armedTagId}
+                  onArm={(item: { id: string }) => setArmedTagId(item.id)}
                   onReorder={handleChipReorder}
-                  onRemove={handleChipRemove}
-                  onDragStateChange={setIsDragging}
+                  onRemove={(item: { id: string }) => {
+                    handleChipRemove(item);
+                    setArmedTagId(null);
+                  }}
+                  onDragStateChange={(d: boolean) => {
+                    setIsDragging(d);
+                    if (d) setArmedTagId(null);
+                  }}
                 />
               ) : (
-                <>
-                  {selectedTagId && (
-                    <View style={styles.tag_swapHintBar}>
-                      <ArrowLeftRight size={14} color={COLORS.piktag600} />
-                      <Text style={styles.tag_swapHintText}>
-                        {t('manageTags.dragSelectTarget', { defaultValue: '點選要交換位置的標籤' })}
-                      </Text>
-                      <Pressable onPress={() => setSelectedTagId(null)}>
-                        <Text style={styles.tag_swapCancel}>
-                          {t('common.cancel', { defaultValue: '取消' })}
-                        </Text>
-                      </Pressable>
-                    </View>
-                  )}
-                  <View style={styles.tag_chipsContainer}>
-                    {visibleUserTags.map((ut) => (
-                      <TagChip
-                        key={ut.id}
-                        label={getTagDisplayName(ut)}
-                        selected={ut.id === selectedTagId}
-                        onPress={() => handleTagTap(ut)}
-                        onRemove={() => handleRemoveTag(ut)}
-                      />
-                    ))}
-                  </View>
-                </>
+                <View style={styles.tag_chipsContainer}>
+                  {visibleUserTags.map((ut) => (
+                    <TagChip
+                      key={ut.id}
+                      variant="toggle"
+                      label={getTagDisplayName(ut)}
+                      selected={ut.id === armedTagId}
+                      onPress={() => {
+                        if (armedTagId === ut.id) {
+                          handleRemoveTag(ut);
+                          setArmedTagId(null);
+                        } else {
+                          setArmedTagId(ut.id);
+                        }
+                      }}
+                    />
+                  ))}
+                </View>
               )
             ) : (
               <Text style={styles.tag_emptyText}>
@@ -2888,29 +2866,8 @@ const styles = StyleSheet.create({
     color: COLORS.gray400,
     marginBottom: 8,
   },
-  // Web tap-to-swap helper bar (no native drag handler on web).
-  tag_swapHintBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    marginBottom: 8,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    backgroundColor: COLORS.piktag50,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: COLORS.piktag500,
-  },
-  tag_swapHintText: {
-    flex: 1,
-    fontSize: 13,
-    color: COLORS.piktag600,
-  },
-  tag_swapCancel: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: COLORS.gray500,
-  },
+  // (tag_swapHintBar / tag_swapHintText / tag_swapCancel removed in
+  // Phase 2 — the web tap-to-swap helper bar is gone.)
   // Web chip — full editing affordance (X to remove + tap-to-swap).
   // Native uses DraggableChips component instead; this is the web
   // fallback. Same selected-purple visual contract as the rest of
