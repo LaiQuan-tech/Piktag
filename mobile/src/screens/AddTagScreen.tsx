@@ -1010,7 +1010,7 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
                     style={styles.chipRemoveBtn}
                     activeOpacity={0.6}
                   >
-                    <X size={14} color={COLORS.piktag600} />
+                    <X size={14} color={COLORS.gray400} />
                   </TouchableOpacity>
                 </View>
               ))}
@@ -1461,6 +1461,8 @@ const styles = StyleSheet.create({
     gap: 10,
     marginTop: 14,
   },
+  // Canonical "added tag + ×" chip — identical to EditLocalContact /
+  // EditProfile (filled pill, no border, muted gray ×). Keep in sync.
   tagChip: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -1468,8 +1470,10 @@ const styles = StyleSheet.create({
     borderRadius: 9999,
     paddingVertical: 8,
     paddingLeft: 14,
-    paddingRight: 10,
+    paddingRight: 8,
     gap: 6,
+    borderWidth: 1,
+    borderColor: 'transparent',
   },
   tagChipText: {
     fontSize: 14,

@@ -2874,25 +2874,29 @@ const styles = StyleSheet.create({
   // Native uses DraggableChips component instead; this is the web
   // fallback. Same selected-purple visual contract as the rest of
   // the app's chip pickers.
+  // Canonical "added tag + ×" chip — identical to EditLocalContact /
+  // AddTag (filled pill, NO border, muted gray ×). The old strong
+  // 1.5px purple border + 700 weight were this screen's drift.
+  // Selected state (tag tapped) keeps a subtle thin ring so the
+  // interaction still reads, without making every chip noisy.
   tag_webChip: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 5,
+    gap: 6,
     backgroundColor: COLORS.piktag50,
-    borderRadius: 20,
+    borderRadius: 9999,
     paddingVertical: 8,
     paddingLeft: 14,
-    paddingRight: 6,
-    borderWidth: 1.5,
-    borderColor: COLORS.piktag500,
+    paddingRight: 8,
+    borderWidth: 1,
+    borderColor: 'transparent', // reserved → selected recolor, no jump
   },
   tag_webChipSelected: {
-    borderColor: COLORS.piktag600,
-    borderWidth: 2,
+    borderColor: COLORS.piktag500,
   },
   tag_webChipText: {
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '500',
     color: COLORS.piktag600,
   },
   tag_webChipX: {

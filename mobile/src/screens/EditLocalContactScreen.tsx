@@ -674,7 +674,7 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
                     onPress={() => setTags((p) => p.filter((x) => x !== tg))}
                     hitSlop={6}
                   >
-                    <X size={12} color={COLORS.piktag600} />
+                    <X size={14} color={COLORS.gray400} />
                   </TouchableOpacity>
                 </View>
               ))}
@@ -817,16 +817,23 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
   tagWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 10 },
+  // Canonical "added tag + ×" chip — ONE design across
+  // EditLocalContact / AddTag / EditProfile (filled pill, no border,
+  // muted gray ×; the strong border + purple × were per-screen
+  // drift). Keep these three blocks identical.
   tagChip: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
     backgroundColor: COLORS.piktag50,
     borderRadius: 9999,
-    paddingHorizontal: 12,
-    paddingVertical: 7,
+    paddingVertical: 8,
+    paddingLeft: 14,
+    paddingRight: 8,
+    borderWidth: 1,
+    borderColor: 'transparent',
   },
-  tagChipText: { fontSize: 13, fontWeight: '600', color: COLORS.piktag600 },
+  tagChipText: { fontSize: 14, fontWeight: '500', color: COLORS.piktag600 },
   tagInputRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   tagAddBtn: {
     width: 44,
