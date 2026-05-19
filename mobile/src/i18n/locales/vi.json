@@ -1003,7 +1003,8 @@
     "tagLimitMessage": "Bạn thêm được tối đa {{max}} tag thôi",
     "aiErrorGeneric": "Gợi ý AI đang tạm nghỉ, thử lại sau nhé",
     "nativeHintNoPin": "Nhấn giữ rồi kéo để sắp xếp lại",
-    "tagEditHint": "Chạm để xoá (hoàn tác được trước khi lưu) · Giữ để sắp xếp"
+    "tagEditHint": "Chạm để xoá (hoàn tác được trước khi lưu) · Giữ để sắp xếp",
+    "aiFromBio": "Gợi ý từ phần giới thiệu của bạn"
   },
   "activityReview": {
     "noNewFriends": "Chưa có bạn mới nào để xem lại",

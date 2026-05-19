@@ -987,7 +987,8 @@
     "tagLimitMessage": "最多只能新增 {{max}} 個標籤",
     "aiErrorGeneric": "AI 推薦暫時無法使用，稍後再試",
     "nativeHintNoPin": "長按拖曳排序",
-    "tagEditHint": "點一下移除（未儲存可復原）· 長按拖曳排序"
+    "tagEditHint": "點一下移除（未儲存可復原）· 長按拖曳排序",
+    "aiFromBio": "根據你的個人簡介推薦"
   },
   "activityReview": {
     "noNewFriends": "沒有需要整理的新朋友",

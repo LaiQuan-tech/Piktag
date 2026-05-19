@@ -917,7 +917,8 @@
     "tagLimitMessage": "En fazla {{max}} etiket ekleyebilirsiniz",
     "aiErrorGeneric": "AI önerileri geçici olarak kullanılamıyor, lütfen daha sonra tekrar deneyin",
     "nativeHintNoPin": "Sürüklemek için basılı tut",
-    "tagEditHint": "Kaldırmak için dokun (kaydetmeden geri alınır) · Sıralamak için basılı tut"
+    "tagEditHint": "Kaldırmak için dokun (kaydetmeden geri alınır) · Sıralamak için basılı tut",
+    "aiFromBio": "Biyografinden öneriler"
   },
   "activityReview": {
     "noNewFriends": "İncelenecek yeni arkadaş yok",

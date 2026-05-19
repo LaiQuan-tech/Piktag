@@ -917,7 +917,8 @@
     "tagLimitMessage": "Puedes añadir hasta {{max}} etiquetas",
     "aiErrorGeneric": "Las sugerencias de IA no están disponibles temporalmente, inténtalo más tarde",
     "nativeHintNoPin": "Mantén presionado para arrastrar y reordenar",
-    "tagEditHint": "Toca para quitar (reversible hasta guardar) · Mantén pulsado para ordenar"
+    "tagEditHint": "Toca para quitar (reversible hasta guardar) · Mantén pulsado para ordenar",
+    "aiFromBio": "Sugerencias a partir de tu biografía"
   },
   "activityReview": {
     "noNewFriends": "No hay amigos nuevos para revisar",

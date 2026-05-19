@@ -1569,6 +1569,87 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
           <View style={styles.tag_divider} />
 
           <View style={styles.tag_section}>
+            {/* AI 為你推薦 — Phase 3 IA merge: moved directly under
+                個人簡介 so the bio → generated-tags link is
+                one-glance obvious. A tapped suggestion pipes into
+                handleAddTag and appears below in 我的標籤 as a
+                purple (owned) tag. Auto-fires shortly after the user
+                pauses typing bio / name / headline; ↻ re-rolls.
+                Hidden when bio is empty or tags hit the 10 cap. */}
+            {form.bio.trim().length > 0 && userTags.length < 10 && (
+              <View style={styles.ai_inlineSection}>
+                {/* Explicit bio→AI caption so the relationship is
+                    stated, not just implied by proximity. Always on
+                    while the section shows (also avoids an empty box
+                    before the first suggestion lands). */}
+                <Text style={styles.ai_fromBioCaption}>
+                  {t('manageTags.aiFromBio', { defaultValue: '根據你的個人簡介推薦' })}
+                </Text>
+                {(aiLoading || aiSuggestions.length > 0 || aiTriedAndEmpty) && (
+                  <View style={styles.ai_headerRow}>
+                    <View style={styles.ai_headerLeft}>
+                      {aiLoading ? (
+                        <BrandSpinner size={16} />
+                      ) : (
+                        <Sparkles size={14} color={COLORS.piktag600} />
+                      )}
+                      <Text style={styles.ai_headerTitle}>
+                        {aiLoading
+                          ? `${t('manageTags.aiSuggestionsTitle', { defaultValue: 'AI 為你推薦' })}…`
+                          : (t('manageTags.aiSuggestionsTitle', { defaultValue: 'AI 為你推薦' }))}
+                      </Text>
+                    </View>
+                    {/* Refresh icon button — clearly tappable shape
+                        (circular, bordered) at the right end. Hidden
+                        during load (spinner is in the title slot
+                        instead) and disabled when bio is too short
+                        for a meaningful prompt. */}
+                    {!aiLoading && (
+                      <TouchableOpacity
+                        style={[
+                          styles.ai_refreshBtn,
+                          (form.bio.trim().length < 5 || addingTag) && styles.ai_refreshBtnDisabled,
+                        ]}
+                        onPress={loadAiSuggestions}
+                        disabled={form.bio.trim().length < 5 || addingTag}
+                        activeOpacity={0.7}
+                        hitSlop={8}
+                        accessibilityRole="button"
+                        accessibilityLabel={t('ask.regenerateAiTags', { defaultValue: '重新生成' })}
+                      >
+                        <RefreshCw size={14} color={COLORS.piktag600} strokeWidth={2.2} />
+                      </TouchableOpacity>
+                    )}
+                  </View>
+                )}
+
+                {aiSuggestions.length > 0 && (
+                  <View style={styles.ai_chipsWrap}>
+                    {aiSuggestions.map((s) => (
+                      <Pressable
+                        key={`ai-${s}`}
+                        style={({ pressed }) => [
+                          styles.ai_chip,
+                          pressed && styles.ai_chipPressed,
+                        ]}
+                        onPress={() => handleAddAiSuggestion(s)}
+                        accessibilityRole="button"
+                        accessibilityLabel={`${t('common.add', { defaultValue: '新增' })} #${s}`}
+                      >
+                        <Text style={styles.ai_chipText}>#{s}</Text>
+                      </Pressable>
+                    ))}
+                  </View>
+                )}
+
+                {aiTriedAndEmpty && aiSuggestions.length === 0 && !aiLoading && (
+                  <Text style={styles.ai_emptyHint}>
+                    {t('ask.aiNoSuggestions', { defaultValue: 'AI 沒有想到合適的標籤，再試一次或自己輸入' })}
+                  </Text>
+                )}
+              </View>
+            )}
+
             <View style={styles.tag_sectionHeader}>
               <Text style={styles.sectionTitle}>{t('manageTags.myTagsTitle')}</Text>
               <View style={styles.tag_countRow}>
@@ -1681,102 +1762,8 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
               </View>
             )}
 
-            {/* Inline AI tag generation — replaces the previous two-page
-                flow ("save bio here → navigate to ManageTagsScreen → wait
-                for auto-load → pick"). Same pattern as AskStoryRow's
-                AI-trigger button: manual trigger, disabled until bio is
-                at least 5 chars, swappable label between "AI 生成" and
-                "重新生成" so re-rolls are explicit. Tapping a suggestion
-                chip pipes straight into handleAddTag — the chip moves up
-                into the user's tag list above on the next render. */}
-            {/* AI tag suggestion section. Auto-fires 1.2s after the
-                user pauses typing in bio / name / headline (see
-                updateField). Layout pattern was rebuilt because the
-                previous "soft chip with sparkles + label" trigger
-                button didn't read as tappable — users assumed it was
-                a passive label.
-
-                Now a clean section-header row:
-                  Left:  Sparkles icon + "AI 為你推薦" label
-                  Right: refresh icon button
-                Below: chip list of suggestions (tap to add).
-
-                The ↻ icon is the universal "regenerate" affordance
-                (ChatGPT, Midjourney, every modern AI surface) so
-                users immediately recognize it as a re-roll. Hidden
-                while loading (spinner replaces the icon) and during
-                the initial-render-before-first-auto-fire state.
-
-                Section is rendered when bio is non-empty so the user
-                sees the AI surface light up shortly after they
-                finish typing — making the bio↔AI relationship
-                visible. Hidden when tags reach the 10 cap. */}
-            {form.bio.trim().length > 0 && userTags.length < 10 && (
-              <View style={styles.ai_inlineSection}>
-                {(aiLoading || aiSuggestions.length > 0 || aiTriedAndEmpty) && (
-                  <View style={styles.ai_headerRow}>
-                    <View style={styles.ai_headerLeft}>
-                      {aiLoading ? (
-                        <BrandSpinner size={16} />
-                      ) : (
-                        <Sparkles size={14} color={COLORS.piktag600} />
-                      )}
-                      <Text style={styles.ai_headerTitle}>
-                        {aiLoading
-                          ? `${t('manageTags.aiSuggestionsTitle', { defaultValue: 'AI 為你推薦' })}…`
-                          : (t('manageTags.aiSuggestionsTitle', { defaultValue: 'AI 為你推薦' }))}
-                      </Text>
-                    </View>
-                    {/* Refresh icon button — clearly tappable shape
-                        (circular, bordered) at the right end. Hidden
-                        during load (spinner is in the title slot
-                        instead) and disabled when bio is too short
-                        for a meaningful prompt. */}
-                    {!aiLoading && (
-                      <TouchableOpacity
-                        style={[
-                          styles.ai_refreshBtn,
-                          (form.bio.trim().length < 5 || addingTag) && styles.ai_refreshBtnDisabled,
-                        ]}
-                        onPress={loadAiSuggestions}
-                        disabled={form.bio.trim().length < 5 || addingTag}
-                        activeOpacity={0.7}
-                        hitSlop={8}
-                        accessibilityRole="button"
-                        accessibilityLabel={t('ask.regenerateAiTags', { defaultValue: '重新生成' })}
-                      >
-                        <RefreshCw size={14} color={COLORS.piktag600} strokeWidth={2.2} />
-                      </TouchableOpacity>
-                    )}
-                  </View>
-                )}
-
-                {aiSuggestions.length > 0 && (
-                  <View style={styles.ai_chipsWrap}>
-                    {aiSuggestions.map((s) => (
-                      <Pressable
-                        key={`ai-${s}`}
-                        style={({ pressed }) => [
-                          styles.ai_chip,
-                          pressed && styles.ai_chipPressed,
-                        ]}
-                        onPress={() => handleAddAiSuggestion(s)}
-                        accessibilityRole="button"
-                        accessibilityLabel={`${t('common.add', { defaultValue: '新增' })} #${s}`}
-                      >
-                        <Text style={styles.ai_chipText}>#{s}</Text>
-                      </Pressable>
-                    ))}
-                  </View>
-                )}
-
-                {aiTriedAndEmpty && aiSuggestions.length === 0 && !aiLoading && (
-                  <Text style={styles.ai_emptyHint}>
-                    {t('ask.aiNoSuggestions', { defaultValue: 'AI 沒有想到合適的標籤，再試一次或自己輸入' })}
-                  </Text>
-                )}
-              </View>
-            )}
+            {/* (AI 為你推薦 block moved to the TOP of this section in
+                Phase 3 — see directly under <tag_section> above.) */}
 
             {/* Popular tags — collapsible. Default collapsed so the
                 section doesn't bloat the page; users who want to
@@ -2964,6 +2951,11 @@ const styles = StyleSheet.create({
   ai_inlineSection: {
     marginTop: 12,
     gap: 10,
+  },
+  // Phase 3: explicit "tags come from your 個人簡介" caption.
+  ai_fromBioCaption: {
+    fontSize: 12,
+    color: COLORS.gray500,
   },
   ai_headerRow: {
     flexDirection: 'row',

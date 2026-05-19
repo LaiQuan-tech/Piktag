@@ -917,7 +917,8 @@
     "tagLimitMessage": "Anda dapat menambahkan hingga {{max}} tag",
     "aiErrorGeneric": "Saran AI sementara tidak tersedia, coba lagi nanti",
     "nativeHintNoPin": "Tekan lama lalu seret untuk mengurutkan",
-    "tagEditHint": "Ketuk untuk menghapus (bisa dibatalkan sebelum disimpan) · Tahan untuk mengurutkan"
+    "tagEditHint": "Ketuk untuk menghapus (bisa dibatalkan sebelum disimpan) · Tahan untuk mengurutkan",
+    "aiFromBio": "Saran dari bio kamu"
   },
   "activityReview": {
     "noNewFriends": "Tidak ada teman baru untuk ditinjau",

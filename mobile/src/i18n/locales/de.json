@@ -985,7 +985,8 @@
     "tagLimitMessage": "Du kannst bis zu {{max}} Tags hinzufügen",
     "aiErrorGeneric": "KI-Vorschläge sind vorübergehend nicht verfügbar, bitte versuche es später erneut",
     "nativeHintNoPin": "Lang drücken zum Ziehen und Sortieren",
-    "tagEditHint": "Tippen zum Entfernen (bis Speichern widerrufbar) · Lange drücken zum Sortieren"
+    "tagEditHint": "Tippen zum Entfernen (bis Speichern widerrufbar) · Lange drücken zum Sortieren",
+    "aiFromBio": "Vorschläge aus deiner Bio"
   },
   "activityReview": {
     "noNewFriends": "Keine neuen Freunde zum Durchsehen",
