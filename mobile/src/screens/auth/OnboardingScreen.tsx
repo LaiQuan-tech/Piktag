@@ -37,6 +37,7 @@ import {
   Platform,
   Modal,
   Switch,
+  ActivityIndicator,
 } from 'react-native';
 import BrandSpinner from '../../components/loaders/BrandSpinner';
 import { useTranslation } from 'react-i18next';
@@ -695,7 +696,16 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
           accessibilityLabel={t('auth.onboarding.scanCardCta', { defaultValue: '掃名片快速帶入' })}
         >
           {scanning ? (
-            <BrandSpinner size={20} />
+            // Explicit "reading…" feedback, consistent with
+            // EditLocalContact (reuses localContact.scanningCard —
+            // already in all 19 locales). Light piktag50 button bg,
+            // so a piktag500 indicator stays visible.
+            <>
+              <ActivityIndicator size="small" color={COLORS.piktag500} />
+              <Text style={styles.scanCardBtnText}>
+                {t('localContact.scanningCard', { defaultValue: '辨識名片中…' })}
+              </Text>
+            </>
           ) : (
             <>
               <ScanLine size={18} color={COLORS.piktag500} strokeWidth={2} />
