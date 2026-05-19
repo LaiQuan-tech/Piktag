@@ -37,6 +37,7 @@ import { normalizeTagName } from '../lib/normalizeTag';
 import { setStringAsync as setClipboardStringAsync } from 'expo-clipboard';
 import PageLoader from '../components/loaders/PageLoader';
 import BrandSpinner from '../components/loaders/BrandSpinner';
+import TagChip from '../components/TagChip';
 import type { TagPreset, ScanSession, PiktagProfile } from '../types';
 
 
@@ -1003,16 +1004,11 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
           {manualTags.length > 0 && (
             <View style={styles.chipsContainer}>
               {manualTags.map((tag) => (
-                <View key={tag} style={styles.tagChip}>
-                  <Text style={styles.tagChipText}>{tag}</Text>
-                  <TouchableOpacity
-                    onPress={() => handleRemoveTag(tag)}
-                    style={styles.chipRemoveBtn}
-                    activeOpacity={0.6}
-                  >
-                    <X size={14} color={COLORS.gray400} />
-                  </TouchableOpacity>
-                </View>
+                <TagChip
+                  key={tag}
+                  label={tag}
+                  onRemove={() => handleRemoveTag(tag)}
+                />
               ))}
             </View>
           )}
@@ -1461,28 +1457,7 @@ const styles = StyleSheet.create({
     gap: 10,
     marginTop: 14,
   },
-  // Canonical "added tag + ×" chip — identical to EditLocalContact /
-  // EditProfile (filled pill, no border, muted gray ×). Keep in sync.
-  tagChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: COLORS.piktag50,
-    borderRadius: 9999,
-    paddingVertical: 8,
-    paddingLeft: 14,
-    paddingRight: 8,
-    gap: 6,
-    borderWidth: 1,
-    borderColor: 'transparent',
-  },
-  tagChipText: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: COLORS.piktag600,
-  },
-  chipRemoveBtn: {
-    padding: 2,
-  },
+  // added-tag chip → shared <TagChip/> (one design contract)
 
   // ── AI suggestions header (task 3) ──
   aiHeaderRow: {

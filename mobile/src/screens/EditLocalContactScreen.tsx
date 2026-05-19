@@ -35,7 +35,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import { ArrowLeft, Plus, X, Trash2, ScanLine, Sparkles, RefreshCw } from 'lucide-react-native';
+import { ArrowLeft, Plus, Trash2, ScanLine, Sparkles, RefreshCw } from 'lucide-react-native';
 import { COLORS } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
 import { useLocalContacts } from '../hooks/useLocalContacts';
@@ -43,6 +43,7 @@ import { supabase } from '../lib/supabase';
 import { logApiUsage } from '../lib/apiUsage';
 import { toBirthdayDate } from '../lib/birthday';
 import BrandSpinner from '../components/loaders/BrandSpinner';
+import TagChip from '../components/TagChip';
 
 type Props = { navigation: any; route: any };
 
@@ -668,15 +669,11 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
           {tags.length > 0 && (
             <View style={styles.tagWrap}>
               {tags.map((tg) => (
-                <View key={tg} style={styles.tagChip}>
-                  <Text style={styles.tagChipText}>#{tg}</Text>
-                  <TouchableOpacity
-                    onPress={() => setTags((p) => p.filter((x) => x !== tg))}
-                    hitSlop={6}
-                  >
-                    <X size={14} color={COLORS.gray400} />
-                  </TouchableOpacity>
-                </View>
+                <TagChip
+                  key={tg}
+                  label={tg}
+                  onRemove={() => setTags((p) => p.filter((x) => x !== tg))}
+                />
               ))}
             </View>
           )}
@@ -817,23 +814,7 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
   tagWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 10 },
-  // Canonical "added tag + ×" chip — ONE design across
-  // EditLocalContact / AddTag / EditProfile (filled pill, no border,
-  // muted gray ×; the strong border + purple × were per-screen
-  // drift). Keep these three blocks identical.
-  tagChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    backgroundColor: COLORS.piktag50,
-    borderRadius: 9999,
-    paddingVertical: 8,
-    paddingLeft: 14,
-    paddingRight: 8,
-    borderWidth: 1,
-    borderColor: 'transparent',
-  },
-  tagChipText: { fontSize: 14, fontWeight: '500', color: COLORS.piktag600 },
+  // added-tag chip → shared <TagChip/> (one design contract)
   tagInputRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   tagAddBtn: {
     width: 44,

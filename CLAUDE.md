@@ -41,6 +41,18 @@ works *against* this, say so honestly (中肯) rather than just complying.
   The founder values honest correction over compliance.
 - **Don't reinvent; match existing patterns/design.** Reuse canonical
   components, RPCs, styles. Deviating "to be clever" is a defect here.
+- **Shared UI = ONE shared component, never per-screen style copies.**
+  Per-screen drift (a chip/row/button slightly different on each screen)
+  is a recurring defect the founder keeps catching. If a UI element
+  exists on >1 screen, it must be a single component reused everywhere —
+  fixing it by "aligning the style values" is a stopgap, extracting the
+  component is the fix. Canonical shared elements so far:
+  `components/TagChip.tsx` (the removable "#tag ×" chip — used by
+  EditLocalContact / AddTag / EditProfile "我的標籤"); the AI-suggestion
+  chip pattern (gray pill, no "+", purple press-flash, cap 3, opt-in);
+  the "尚未加入 PikTag" not-joined row in ConnectionsScreen (local
+  contacts + pending scans). Before building any chip/row/pill, check
+  if one of these (or an existing component) already covers it.
 - **Every change:** `tsc` clean → commit → push. i18n spans **19 locales**
   (`mobile/src/i18n/locales/*.json`) — keep all in sync (JSON round-trip
   into the right block; verify the key landed where intended).
