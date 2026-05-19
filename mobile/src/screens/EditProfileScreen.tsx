@@ -321,7 +321,14 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
   const [popularTags, setPopularTags] = useState<Tag[]>([]);
   const [tagInput, setTagInput] = useState('');
   const [addingTag, setAddingTag] = useState(false);
-  const [removingTagId, setRemovingTagId] = useState<string | null>(null);
+  // Phase 1 — staged removal. Removing a tag (× / later tap) only
+  // HIDES it; the real DB delete + usage-decrement happens on 「儲存」
+  // (handleSave). A stray tap is therefore reversible — leave without
+  // saving and nothing is lost. Add / reorder stay immediate by
+  // design: they're non-destructive (an unwanted add is just removed).
+  const [pendingRemovals, setPendingRemovals] = useState<
+    (UserTag & { tag?: Tag })[]
+  >([]);
   const [isTagPrivate, setIsTagPrivate] = useState(false);
   const [tagsLoading, setTagsLoading] = useState(false);
   // Drag / pin state — ported from ManageTagsScreen so this screen
@@ -632,8 +639,19 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
         .eq('id', userId);
 
       if (error) {
+        // Profile save failed → tags stay STAGED (untouched in DB),
+        // so nothing destructive happened. User can retry.
         Alert.alert(t('common.error'), t('editProfile.alertSaveError'));
         return;
+      }
+      // Profile saved → only now commit staged tag removals. Each is
+      // best-effort and must not block the save (a failed delete just
+      // leaves the tag → it reappears next load, a safe no-loss path).
+      if (pendingRemovals.length > 0) {
+        for (const ut of pendingRemovals) {
+          await commitTagRemoval(ut);
+        }
+        setPendingRemovals([]);
       }
       Alert.alert(t('editProfile.alertSuccessTitle'), t('editProfile.alertSuccessMessage'));
       navigation.canGoBack() ? navigation.goBack() : navigation.navigate("Connections");
@@ -910,13 +928,26 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
 
   // --- Tag CRUD (immediate save, not tied to form save) ---
 
+  // Staged-removal view: everything the user SEES excludes
+  // pending-removed tags. The 3 consumers below (names / chips /
+  // render) all read this so a "removed" tag vanishes instantly
+  // while the actual delete waits for Save.
+  const pendingRemovedIds = useMemo(
+    () => new Set(pendingRemovals.map((p) => p.id)),
+    [pendingRemovals],
+  );
+  const visibleUserTags = useMemo(
+    () => userTags.filter((ut) => !pendingRemovedIds.has(ut.id)),
+    [userTags, pendingRemovedIds],
+  );
+
   const userTagNames = useMemo(
     () =>
-      userTags.map((ut) => {
+      visibleUserTags.map((ut) => {
         const name = ut.tag?.name ?? '';
         return name.startsWith('#') ? name : `#${name}`;
       }),
-    [userTags],
+    [visibleUserTags],
   );
 
   const getTagDisplayName = useCallback(
@@ -940,6 +971,19 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
     // Normalize: remove leading # for DB storage, keep for display comparison
     const rawName = source.startsWith('#') ? source.slice(1) : source;
     const displayName = `#${rawName}`;
+
+    // Re-adding a tag that's only STAGED for removal = just cancel
+    // the staged removal (un-hide the original row) — never insert a
+    // duplicate. Makes remove→re-add a clean reversible toggle.
+    const stagedMatch = pendingRemovals.find((p) => {
+      const n = p.tag?.name ?? '';
+      return (n.startsWith('#') ? n : `#${n}`) === displayName;
+    });
+    if (stagedMatch) {
+      setPendingRemovals((prev) => prev.filter((p) => p.id !== stagedMatch.id));
+      if (overrideName === undefined) setTagInput('');
+      return;
+    }
 
     if (userTagNames.includes(displayName)) {
       // For AI chip path, silently ignore re-tap on an already-added
@@ -1062,7 +1106,7 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
     } finally {
       setAddingTag(false);
     }
-  }, [userId, tagInput, userTagNames, userTags.length, isTagPrivate, t, fetchUserTags, fetchPopularTags]);
+  }, [userId, tagInput, userTagNames, userTags.length, isTagPrivate, pendingRemovals, t, fetchUserTags, fetchPopularTags]);
 
   // Inline AI tag generation. Mirrors AskStoryRow.suggestTagsForBody —
   // manual ✨ button trigger, surfaces empty-result state explicitly so
@@ -1149,59 +1193,70 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
     [handleAddTag],
   );
 
+  // STAGED: removing only hides the tag (no DB write). The real
+  // delete is deferred to Save via commitTagRemoval below, so a
+  // stray tap is fully reversible until the user explicitly saves.
   const handleRemoveTag = useCallback(
+    (userTag: UserTag & { tag?: Tag }) => {
+      setPendingRemovals((prev) =>
+        prev.some((p) => p.id === userTag.id) ? prev : [...prev, userTag],
+      );
+    },
+    [],
+  );
+
+  // The actual destructive delete + usage-decrement — byte-for-byte
+  // the old handleRemoveTag body, now run ONLY at Save time, once per
+  // staged removal. Best-effort per tag (warn, don't block the save):
+  // a failed delete leaves the tag in the DB → it simply reappears on
+  // next load, a safe non-destructive failure mode.
+  const commitTagRemoval = useCallback(
     async (userTag: UserTag & { tag?: Tag }) => {
-      if (!userId) return;
-      setRemovingTagId(userTag.id);
-
-      try {
-        // 1. Delete from piktag_user_tags
-        const { error: deleteError } = await supabase
-          .from('piktag_user_tags')
-          .delete()
-          .eq('id', userTag.id);
-
-        if (deleteError) {
-          console.warn('[EditProfileScreen] handleRemoveTag deleteError:', deleteError.message);
-          Alert.alert(t('common.error'), t('manageTags.alertRemoveError'));
-          setRemovingTagId(null);
-          return;
-        }
-
-        // 2. Decrement usage_count on piktag_tags
-        if (userTag.tag_id) {
+      const { error: deleteError } = await supabase
+        .from('piktag_user_tags')
+        .delete()
+        .eq('id', userTag.id);
+      if (deleteError) {
+        console.warn('[EditProfileScreen] commitTagRemoval deleteError:', deleteError.message);
+        return;
+      }
+      if (userTag.tag_id) {
+        try {
+          await supabase.rpc('decrement_tag_usage', { tag_id: userTag.tag_id });
+        } catch {
           try {
-            await supabase.rpc('decrement_tag_usage', { tag_id: userTag.tag_id });
-          } catch {
-            try {
-              const { data: tagData } = await supabase
+            const { data: tagData } = await supabase
+              .from('piktag_tags')
+              .select('usage_count')
+              .eq('id', userTag.tag_id)
+              .single();
+            if (tagData && tagData.usage_count > 0) {
+              await supabase
                 .from('piktag_tags')
-                .select('usage_count')
-                .eq('id', userTag.tag_id)
-                .single();
-              if (tagData && tagData.usage_count > 0) {
-                await supabase.from('piktag_tags').update({ usage_count: tagData.usage_count - 1 }).eq('id', userTag.tag_id);
-              }
-            } catch {}
-          }
+                .update({ usage_count: tagData.usage_count - 1 })
+                .eq('id', userTag.tag_id);
+            }
+          } catch {}
         }
-
-        // Reload tags
-        await Promise.all([fetchUserTags(), fetchPopularTags()]);
-      } catch (err) {
-        console.warn('[EditProfileScreen] handleRemoveTag exception:', err);
-        Alert.alert(t('common.error'), t('manageTags.alertRemoveError'));
-      } finally {
-        setRemovingTagId(null);
       }
     },
-    [userId, t, fetchUserTags, fetchPopularTags],
+    [],
   );
 
   const handleAddPopularTag = useCallback(
     async (tag: Tag) => {
       if (!userId) return;
       const displayName = tag.name.startsWith('#') ? tag.name : `#${tag.name}`;
+      // Re-adding a staged-for-removal tag → cancel the staged
+      // removal instead of inserting a duplicate (see handleAddTag).
+      const stagedMatch = pendingRemovals.find((p) => {
+        const n = p.tag?.name ?? '';
+        return (n.startsWith('#') ? n : `#${n}`) === displayName;
+      });
+      if (stagedMatch) {
+        setPendingRemovals((prev) => prev.filter((p) => p.id !== stagedMatch.id));
+        return;
+      }
       if (userTagNames.includes(displayName)) return;
 
       setAddingTag(true);
@@ -1248,7 +1303,7 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
         setAddingTag(false);
       }
     },
-    [userId, userTagNames, userTags.length, t, fetchUserTags, fetchPopularTags],
+    [userId, userTagNames, userTags.length, pendingRemovals, t, fetchUserTags, fetchPopularTags],
   );
 
   const toggleTagPrivacy = useCallback(() => {
@@ -1270,14 +1325,14 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
   // Convert userTags → DraggableChips items shape.
   const chipItems = useMemo(
     () =>
-      userTags.map((ut) => {
+      visibleUserTags.map((ut) => {
         const name = ut.tag?.name ?? '';
         return {
           id: ut.id,
           label: name.startsWith('#') ? name : `#${name}`,
         };
       }),
-    [userTags],
+    [visibleUserTags],
   );
 
   // Drag-to-reorder finished — persist new positions.
@@ -1598,7 +1653,7 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
                     </View>
                   )}
                   <View style={styles.tag_chipsContainer}>
-                    {userTags.map((ut) => (
+                    {visibleUserTags.map((ut) => (
                       <TagChip
                         key={ut.id}
                         label={getTagDisplayName(ut)}
