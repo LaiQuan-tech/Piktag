@@ -1618,19 +1618,18 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
 
                 {aiSuggestions.length > 0 && (
                   <View style={styles.ai_chipsWrap}>
+                    {/* Shared TagChip (toggle variant, selected=false
+                        = gray fill, no border, no ×). Tap adds the
+                        suggestion. Replaces the hand-rolled ai_chip
+                        (one-component rule + kills the 1.5dp border
+                        drift vs the rest of the gray chips). */}
                     {aiSuggestions.map((s) => (
-                      <Pressable
+                      <TagChip
                         key={`ai-${s}`}
-                        style={({ pressed }) => [
-                          styles.ai_chip,
-                          pressed && styles.ai_chipPressed,
-                        ]}
+                        label={s}
+                        variant="toggle"
                         onPress={() => handleAddAiSuggestion(s)}
-                        accessibilityRole="button"
-                        accessibilityLabel={`${t('common.add', { defaultValue: '新增' })} #${s}`}
-                      >
-                        <Text style={styles.ai_chipText}>#{s}</Text>
-                      </Pressable>
+                      />
                     ))}
                   </View>
                 )}
@@ -1786,18 +1785,19 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
                         const dn = tag.name.startsWith('#') ? tag.name : `#${tag.name}`;
                         return !userTagNames.includes(dn);
                       })
-                      .map((tag) => {
-                        const dn = tag.name.startsWith('#') ? tag.name : `#${tag.name}`;
-                        return (
-                          <Pressable
-                            key={tag.id}
-                            style={styles.tag_popularChip}
-                            onPress={() => handleAddPopularTag(tag)}
-                          >
-                            <Text style={styles.tag_popularChipText}>{dn}</Text>
-                          </Pressable>
-                        );
-                      })}
+                      .map((tag) => (
+                        // Shared TagChip (toggle, unselected) — same
+                        // gray pill as the AI suggestions above. The
+                        // old hand-rolled tag_popularChip had a 1.5dp
+                        // transparent border that made it sit 3dp
+                        // wider than the canonical chip — gone.
+                        <TagChip
+                          key={tag.id}
+                          label={tag.name}
+                          variant="toggle"
+                          onPress={() => handleAddPopularTag(tag)}
+                        />
+                      ))}
                   </View>
                 )}
               </View>
@@ -2811,6 +2811,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    // marginTop 24 so 「我的標籤」 doesn't kiss the AI chip wrap above
+    // (the spacing bug the founder caught — "#社群" touching the
+    // header). When AI is hidden (bio empty), the header still sits
+    // tag_section.paddingTop(8) + 24 = 32 below the bio — fine.
+    marginTop: 24,
     marginBottom: 8,
   },
   tag_countRow: {
@@ -2921,21 +2926,9 @@ const styles = StyleSheet.create({
     gap: 8,
     marginTop: 6,
   },
-  // Popular tag chip — gray "tap to add" treatment, identical to
-  // the AI suggestion chips below.
-  tag_popularChip: {
-    paddingVertical: 8,
-    paddingHorizontal: 14,
-    borderRadius: 9999,
-    borderWidth: 1.5,
-    borderColor: 'transparent',
-    backgroundColor: COLORS.gray100,
-  },
-  tag_popularChipText: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: COLORS.gray700,
-  },
+  // (tag_popularChip / tag_popularChipText removed — popular tag
+  // recommendations now render via the shared <TagChip variant=
+  // "toggle"> like every other gray "tap-to-add" chip in the app.)
   // Inline AI tag suggestion styles.
   //
   // Section header layout pattern: ✨ + label on the left, refresh
@@ -2994,27 +2987,10 @@ const styles = StyleSheet.create({
   // Same shape and weight as the selected chip above so the only
   // visual delta on tap is color — that's the design contract the
   // friend pickModal already uses, now applied here for consistency.
-  ai_chip: {
-    paddingVertical: 8,
-    paddingHorizontal: 14,
-    borderRadius: 9999,
-    borderWidth: 1.5,
-    borderColor: 'transparent',
-    backgroundColor: COLORS.gray100,
-  },
-  ai_chipPressed: {
-    // Brief press flash — gives haptic-like feedback on tap before
-    // the chip removes itself from the suggestion list. Same color
-    // family as the selected state so the transition reads as
-    // "going from gray to purple" not as a foreign hover color.
-    backgroundColor: COLORS.piktag50,
-    borderColor: COLORS.piktag500,
-  },
-  ai_chipText: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: COLORS.gray700,
-  },
+  // (ai_chip / ai_chipPressed / ai_chipText removed — AI suggestion
+  // chips now render via the shared <TagChip variant="toggle"> in a
+  // single component family with popular tags and every other gray
+  // tap-to-add pill in the app.)
   ai_emptyHint: {
     fontSize: 12,
     color: COLORS.gray500,

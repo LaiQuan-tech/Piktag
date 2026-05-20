@@ -388,14 +388,22 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
               <Text style={styles.sortHint}>{t('manageTags.nativeHintNoPin', { defaultValue: '長按拖曳排序' })}</Text>
             )}
 
-            {/* My tags — native: draggable chips / web: tap-to-swap */}
+            {/* My tags — native: draggable chips / web: tap-to-swap.
+                DraggableChips dropped its own paddingHorizontal:20 so
+                it doesn't double-indent inside already-padded parents
+                (the EditProfile alignment bug). Wrap here to preserve
+                this screen's previous indent — its other rows
+                (sortHint, chipsWrap, emptyText) all bake their own
+                paddingH:20, so we match that contract. */}
             {Platform.OS !== 'web' ? (
-              <DraggableChips
-                items={chipItems}
-                onReorder={handleChipReorder}
-                onRemove={handleChipRemove}
-                onDragStateChange={setIsDragging}
-              />
+              <View style={{ paddingHorizontal: 20 }}>
+                <DraggableChips
+                  items={chipItems}
+                  onReorder={handleChipReorder}
+                  onRemove={handleChipRemove}
+                  onDragStateChange={setIsDragging}
+                />
+              </View>
             ) : (
               <>
                 {selectedTagId && (

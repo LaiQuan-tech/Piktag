@@ -236,11 +236,16 @@ function DraggableChip({
 }
 
 const styles = StyleSheet.create({
+  // No internal paddingHorizontal — callers control the left/right
+  // gutter so this component never DOUBLE-indents when nested in
+  // an already-padded parent (the alignment bug the founder caught:
+  // EditProfile's tag_section is paddingH:20, and 20 here on top
+  // made 我的標籤 chips sit 40px from the screen edge while the
+  // sibling 熱門 chip wrap sat at 20).
   container: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 8,
-    paddingHorizontal: 20,
   },
   // The Animated.View only hosts the drag transform + lift shadow;
   // ALL chip visuals come from the shared <TagChip> so there is no

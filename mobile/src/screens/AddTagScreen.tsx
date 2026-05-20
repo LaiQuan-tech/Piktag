@@ -917,18 +917,22 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
           </View>
           {aiSuggestions.length > 0 ? (
             <View style={styles.popularChipsContainer}>
+              {/* Shared TagChip toggle (unselected = gray fill, no
+                  border, no ×). Tap = add to eventTags + drop from
+                  suggestions. Replaces hand-rolled popularChip so
+                  every gray "tap-to-add" pill in the app is one
+                  component (founder rule, kills the 1.5dp border
+                  drift). */}
               {aiSuggestions.map((s) => (
-                <TouchableOpacity
+                <TagChip
                   key={s}
-                  style={styles.popularChip}
+                  label={s}
+                  variant="toggle"
                   onPress={() => {
                     setEventTags((prev) => (prev.includes(s) ? prev : [...prev, s]));
                     setAiSuggestions((prev) => prev.filter((x) => x !== s));
                   }}
-                  activeOpacity={0.7}
-                >
-                  <Text style={styles.popularChipText}>#{s}</Text>
-                </TouchableOpacity>
+                />
               ))}
             </View>
           ) : aiLoading ? null : aiContext.length > 0 ? (
@@ -1494,27 +1498,9 @@ const styles = StyleSheet.create({
     gap: 8,
     marginBottom: 16,
   },
-  popularChip: {
-    backgroundColor: COLORS.gray100,
-    borderRadius: 9999,
-    paddingVertical: 8,
-    paddingHorizontal: 14,
-    borderWidth: 1.5,
-    borderColor: 'transparent',
-  },
-  popularChipSelected: {
-    backgroundColor: COLORS.piktag50,
-    borderColor: COLORS.piktag500,
-  },
-  popularChipText: {
-    fontSize: 13,
-    fontWeight: '500',
-    color: COLORS.gray600,
-  },
-  popularChipTextSelected: {
-    color: COLORS.piktag600,
-    fontWeight: '600',
-  },
+  // (popularChip / *Selected / *Text / *TextSelected removed — AI
+  // suggestion chips now render via the shared <TagChip variant=
+  // "toggle">; popularChipsContainer is kept as the wrap.)
 
   // ── Buttons ──
   primaryButton: {
