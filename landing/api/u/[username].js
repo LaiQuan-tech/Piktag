@@ -181,8 +181,50 @@ module.exports = async function handler(req, res) {
       } catch { /* ignore — table may not exist yet */ }
     }
 
+    // LIVE event-tag refresh: the URL's ?tags=… is a snapshot from
+    // share time; if the host later edits the QR's tags the URL on
+    // already-shared messages doesn't change. Look up the scan_session
+    // by sid via a SECURITY DEFINER RPC (anon-callable; piktag_scan_
+    // sessions is otherwise locked to host_user_id by RLS) and use
+    // its current event_tags as the source of truth. URL params stay
+    // as the fallback when sid is absent / invalid / RPC errors.
+    let liveTagsStr = tagsStr;
+    let liveDateStr = dateStr;
+    let liveLocStr = locStr;
+    const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (sidStr && UUID_RE.test(sidStr)) {
+      try {
+        const sessRes = await fetch(
+          `${SUPABASE_URL}/rest/v1/rpc/get_scan_session_public`,
+          {
+            method: 'POST',
+            headers: {
+              apikey: SUPABASE_ANON_KEY,
+              Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ p_sid: sidStr }),
+          },
+        );
+        if (sessRes.ok) {
+          const sess = await sessRes.json();
+          if (sess && typeof sess === 'object') {
+            if (Array.isArray(sess.event_tags) && sess.event_tags.length > 0) {
+              liveTagsStr = sess.event_tags.join(',');
+            }
+            if (typeof sess.event_date === 'string' && sess.event_date) {
+              liveDateStr = sess.event_date;
+            }
+            if (typeof sess.event_location === 'string' && sess.event_location) {
+              liveLocStr = sess.event_location;
+            }
+          }
+        }
+      } catch { /* fall back to URL params */ }
+    }
+
     const analyticsSnippet = buildAnalyticsSnippet('user', usernameStr);
-    const html = renderProfilePage(profile, biolinks || [], tags, sidStr, locale, { tags: tagsStr, date: dateStr, location: locStr }, analyticsSnippet, hasActiveAsk, tribeSize);
+    const html = renderProfilePage(profile, biolinks || [], tags, sidStr, locale, { tags: liveTagsStr, date: liveDateStr, location: liveLocStr }, analyticsSnippet, hasActiveAsk, tribeSize);
 
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
     res.setHeader('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=3600');
