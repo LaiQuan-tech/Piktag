@@ -35,11 +35,12 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { ArrowLeft, Plus, Trash2 } from 'lucide-react-native';
+import { requestMediaLibraryPermissionsAsync, launchImageLibraryAsync } from 'expo-image-picker';
 import ProfileIdentityHeader from '../components/ProfileIdentityHeader';
 import { COLORS } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
 import { useLocalContacts } from '../hooks/useLocalContacts';
-import { supabase } from '../lib/supabase';
+import { supabase, supabaseUrl, supabaseAnonKey } from '../lib/supabase';
 import { toBirthdayDate } from '../lib/birthday';
 import BrandSpinner from '../components/loaders/BrandSpinner';
 import TagChip from '../components/TagChip';
@@ -128,6 +129,20 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
   // The big purple scan banner was removed — fewer taps, less clutter.
   const cameraAutoRef = useRef(false);
 
+  // ── Avatar (大頭照) state + create-mode stable id ────────────────
+  // For an existing contact we use its real id as the storage
+  // filename. For NEW contacts there's no id yet, so we mint a
+  // stable per-screen-instance temp id on first render and use it
+  // as the filename; on save the public URL is written to the new
+  // row. (Abandoning the form leaves an orphan file — rare; cheap
+  // to clean later.)
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const newContactTempIdRef = useRef<string | null>(null);
+  if (!isEdit && !newContactTempIdRef.current) {
+    newContactTempIdRef.current = `tmp-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+  }
+
   // ── Edit-mode hydration ──────────────────────────────────────────
   // useLocalContacts fetches async, and THIS screen mounts its own
   // hook instance — so on first render `contacts` is [] and `existing`
@@ -149,9 +164,117 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
       setBirthday(birthdayForInput(existing.birthday));
       setHeadline(existing.headline ?? existing.note ?? '');
       setTags(existing.tags ?? []);
+      setAvatarUrl(existing.avatar_url ?? null);
       setHydrated(true);
     }
   }, [contactId, existing, hydrated]);
+
+  // Pick a photo from the library and upload to the `avatars`
+  // bucket. Mirrors EditProfile's pattern (same MIME + size limits,
+  // same x-upsert, same cache-buster query) but writes to a
+  // contact-specific filename `contact-{id}.{ext}` inside the
+  // member's own UID folder — the avatars_auth_insert RLS policy
+  // (20260428n) requires the path starts with auth.uid()/, which
+  // this satisfies. No new migration needed.
+  const pickAndUploadAvatar = useCallback(async () => {
+    const { status } = await requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert(
+        t('editProfile.needLibraryPermissionTitle', { defaultValue: '需要相簿權限' }),
+        t('editProfile.needLibraryPermissionMsg', { defaultValue: '請在設定中允許存取相簿' }),
+      );
+      return;
+    }
+
+    const result = await launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.8,
+    });
+    if (result.canceled || !result.assets[0]) return;
+    const asset = result.assets[0];
+
+    const ALLOWED = ['image/jpeg', 'image/png', 'image/webp'];
+    const MAX = 2 * 1024 * 1024;
+    if (!asset.mimeType || !ALLOWED.includes(asset.mimeType)) {
+      Alert.alert(
+        t('common.error', { defaultValue: '錯誤' }),
+        t('editProfile.invalidImageType', { defaultValue: '不支援的圖片格式' }),
+      );
+      return;
+    }
+    if (typeof asset.fileSize === 'number' && asset.fileSize > MAX) {
+      Alert.alert(
+        t('common.error', { defaultValue: '錯誤' }),
+        t('editProfile.imageTooLarge', { defaultValue: '檔案太大（最大 2MB）' }),
+      );
+      return;
+    }
+
+    const extMap: Record<string, string> = {
+      'image/jpeg': 'jpg',
+      'image/png': 'png',
+      'image/webp': 'webp',
+    };
+    const ext = extMap[asset.mimeType];
+
+    try {
+      setUploadingAvatar(true);
+      const { data: sessionData } = await supabase.auth.getSession();
+      const accessToken = sessionData?.session?.access_token;
+      const userId = sessionData?.session?.user?.id;
+      if (!accessToken || !userId) throw new Error('未登入');
+
+      const idForFile = contactId ?? newContactTempIdRef.current!;
+      const filePath = `${userId}/contact-${idForFile}.${ext}`;
+
+      const formData = new FormData();
+      formData.append('file', {
+        uri: asset.uri,
+        name: `contact-${idForFile}.${ext}`,
+        type: asset.mimeType,
+      } as any);
+
+      const uploadRes = await fetch(
+        `${supabaseUrl}/storage/v1/object/avatars/${filePath}`,
+        {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            apikey: supabaseAnonKey,
+            'x-upsert': 'true',
+          },
+          body: formData,
+        },
+      );
+      if (!uploadRes.ok) {
+        const err = await uploadRes.json().catch(() => ({}));
+        throw new Error((err as any).message || '上傳失敗');
+      }
+
+      // Cache-buster so React Native Image reloads the new file
+      // (Supabase public URLs are immutable per path; ?t=… forces
+      // a fresh fetch since the URL string differs from the prior).
+      const publicUrl = `${supabaseUrl}/storage/v1/object/public/avatars/${filePath}?t=${Date.now()}`;
+      setAvatarUrl(publicUrl);
+
+      // Persist immediately for existing contacts so the change
+      // survives even if the user abandons before tapping 儲存.
+      // For new contacts the URL is staged in state and written
+      // alongside the rest of the fields in handleSave's add().
+      if (isEdit && contactId) {
+        await update(contactId, { avatar_url: publicUrl });
+      }
+    } catch (err: any) {
+      Alert.alert(
+        t('localContact.avatarUploadFailTitle', { defaultValue: '上傳失敗' }),
+        err?.message || t('common.unknownError', { defaultValue: '請稍後再試' }),
+      );
+    } finally {
+      setUploadingAvatar(false);
+    }
+  }, [contactId, isEdit, update, t]);
 
   const addTag = useCallback(() => {
     const raw = tagInput.trim().replace(/^#/, '');
@@ -382,6 +505,7 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
           birthday: birthdayNorm,
           headline: headline.trim() || null,
           tags,
+          avatar_url: avatarUrl,
         });
         if (!created) throw new Error('add failed');
       }
@@ -520,6 +644,9 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
             namePlaceholder={t('localContact.namePlaceholder', { defaultValue: '例：在龍洞潛水認識的阿哲' })}
             autoFocusName={manualFocus}
             nameMaxLength={60}
+            avatarUrl={avatarUrl}
+            onAvatarPress={uploadingAvatar ? undefined : pickAndUploadAvatar}
+            avatarBadge="pencil"
           />
 
           {/* Edit fields — iOS-standard labeled inputs (label +

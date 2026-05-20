@@ -20,7 +20,7 @@
 
 import React from 'react';
 import { View, Text, TextInput, StyleSheet } from 'react-native';
-import RingedAvatar from './RingedAvatar';
+import RingedAvatar, { BadgeKind } from './RingedAvatar';
 import { COLORS } from '../constants/theme';
 
 type Props = {
@@ -36,6 +36,12 @@ type Props = {
   headlinePlaceholder?: string;
   headlineMaxLength?: number;
   avatarUrl?: string | null;
+  /** Tap-the-avatar handler (e.g. open image picker). When set, the
+   *  avatar becomes pressable and shows the chosen badge. */
+  onAvatarPress?: () => void;
+  /** Decoration badge in the avatar's bottom-right corner. Only
+   *  meaningful with onAvatarPress; 'pencil' = edit, 'plus' = add. */
+  avatarBadge?: BadgeKind;
 };
 
 export default function ProfileIdentityHeader({
@@ -50,6 +56,8 @@ export default function ProfileIdentityHeader({
   headlinePlaceholder,
   headlineMaxLength,
   avatarUrl,
+  onAvatarPress,
+  avatarBadge,
 }: Props) {
   const headlineShown = onChangeHeadline !== undefined || !!headline;
   return (
@@ -62,6 +70,8 @@ export default function ProfileIdentityHeader({
           ringStyle="subtle"
           name={name || '?'}
           avatarUrl={avatarUrl ?? null}
+          onPress={onAvatarPress}
+          badge={avatarBadge ?? null}
         />
         <View style={styles.nameSection}>
           {onChangeName ? (
