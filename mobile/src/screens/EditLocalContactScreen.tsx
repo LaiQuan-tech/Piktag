@@ -34,7 +34,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import { ArrowLeft, Plus, Trash2, Phone, Mail, Calendar } from 'lucide-react-native';
+import { ArrowLeft, Plus, Trash2 } from 'lucide-react-native';
 import ProfileIdentityHeader from '../components/ProfileIdentityHeader';
 import { COLORS } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
@@ -508,39 +508,50 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
                   founder: if a user wanted to scan, they'd scan; they
                   won't manually fill the form and then re-scan.) */}
 
-          {/* Identity = shared ProfileIdentityHeader (one component,
-              not a per-screen copy). Editable variant: name + 職稱
-              read as a profile title/subtitle, not form boxes — the
-              screen looks like a friend profile, editing is secondary.
-              職稱 uses the SAME i18n keys as the member profile editor
-              so a contact lines up 1:1 with a member once they join. */}
+          {/* Identity header = shared ProfileIdentityHeader (avatar +
+              name). 職稱 moved OUT into its own labeled input below
+              per founder rule: edit-form fields must look like proper
+              iOS form inputs (label above + bordered input box) so
+              users see they're editable; 職稱 styled as a profile
+              tagline read as display text, not a field. */}
           <ProfileIdentityHeader
             name={name}
             onChangeName={setName}
             namePlaceholder={t('localContact.namePlaceholder', { defaultValue: '例：在龍洞潛水認識的阿哲' })}
             autoFocusName={manualFocus}
             nameMaxLength={60}
-            headline={headline}
-            onChangeHeadline={setHeadline}
-            headlinePlaceholder={t('editProfile.headlinePlaceholder', {
-              defaultValue: '例：PM @ 科技公司、自由接案設計師',
-            })}
-            headlineMaxLength={80}
           />
 
-          {/* Contact info as a profile-style card (icon + inline
-              editable value, hairline-divided) — mirrors FriendDetail's
-              sectioned look instead of stacked grey form boxes. The
-              "幫助對方加入後自動接上" nuance now lives in the section
-              caption below (declutters each row; same i18n keys). */}
-          <Text style={styles.sectionTitle}>
-            {t('localContact.fieldPhone', { defaultValue: '電話（選填，幫助對方加入後自動接上）' })}
-          </Text>
-          <View style={styles.infoCard}>
-            <View style={styles.infoRow}>
-              <Phone size={18} color={COLORS.gray400} />
+          {/* Edit fields — iOS-standard labeled inputs (label +
+              gray-bg rounded input box). Tokens mirror EditProfile's
+              fieldGroup/fieldLabel/fieldInput so a contact's edit form
+              uses the SAME visual language as the member's. Each field
+              stands alone (no table-style combined card). The verbose
+              "幫助對方加入後自動接上" caption is dropped — it was UI
+              noise the user didn't need while editing. */}
+          <View style={styles.fieldsGroup}>
+            <View style={styles.fieldGroup}>
+              <Text style={styles.fieldLabel}>
+                {t('editProfile.headlineLabel', { defaultValue: '職稱' })}
+              </Text>
               <TextInput
-                style={styles.infoInput}
+                style={styles.fieldInput}
+                value={headline}
+                onChangeText={setHeadline}
+                placeholder={t('editProfile.headlinePlaceholder', {
+                  defaultValue: '例：PM @ 科技公司、自由接案設計師',
+                })}
+                placeholderTextColor={COLORS.gray400}
+                maxLength={80}
+              />
+            </View>
+
+            <View style={styles.fieldGroup}>
+              <Text style={styles.fieldLabel}>
+                {t('localContact.linkPhone', { defaultValue: '電話' })}
+              </Text>
+              <TextInput
+                style={styles.fieldInput}
                 value={phone}
                 onChangeText={setPhone}
                 placeholder={t('localContact.phonePlaceholder', { defaultValue: '+886 912 345 678' })}
@@ -550,11 +561,13 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
                 maxLength={24}
               />
             </View>
-            <View style={styles.infoDivider} />
-            <View style={styles.infoRow}>
-              <Mail size={18} color={COLORS.gray400} />
+
+            <View style={styles.fieldGroup}>
+              <Text style={styles.fieldLabel}>
+                {t('localContact.linkEmail', { defaultValue: 'Email' })}
+              </Text>
               <TextInput
-                style={styles.infoInput}
+                style={styles.fieldInput}
                 value={email}
                 onChangeText={setEmail}
                 placeholder={t('localContact.emailPlaceholder', { defaultValue: 'name@example.com' })}
@@ -565,11 +578,13 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
                 maxLength={120}
               />
             </View>
-            <View style={styles.infoDivider} />
-            <View style={styles.infoRow}>
-              <Calendar size={18} color={COLORS.gray400} />
+
+            <View style={styles.fieldGroup}>
+              <Text style={styles.fieldLabel}>
+                {t('friendDetail.reminderBirthday', { defaultValue: '生日' })}
+              </Text>
               <TextInput
-                style={styles.infoInput}
+                style={styles.fieldInput}
                 value={birthday}
                 onChangeText={setBirthday}
                 placeholder={t('localContact.birthdayPlaceholder', { defaultValue: 'MM-DD 或 YYYY-MM-DD' })}
@@ -673,20 +688,29 @@ const styles = StyleSheet.create({
     marginTop: 24,
     marginBottom: 10,
   },
-  // Contact-info card: icon + inline editable value, hairline rows.
-  infoCard: {
-    backgroundColor: COLORS.gray50,
-    borderRadius: 14,
-    paddingHorizontal: 14,
+  // (infoCard / infoRow / infoInput / infoDivider removed — the
+  // "Excel table" lumped layout is gone; each field is now its own
+  // labeled iOS form input below.)
+  // ── iOS-standard labeled input fields. Tokens mirror EditProfile's
+  // fieldGroup/fieldLabel/fieldInput so the contact edit form uses
+  // the SAME visual language as the member's profile editor (founder
+  // rule: don't reinvent, match the canonical editor design).
+  fieldsGroup: { gap: 16, marginTop: 16 },
+  fieldGroup: { gap: 6 },
+  fieldLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: COLORS.gray700,
+    marginLeft: 4,
   },
-  infoRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    paddingVertical: 13,
+  fieldInput: {
+    backgroundColor: COLORS.gray100,
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    fontSize: 16,
+    color: COLORS.gray900,
   },
-  infoInput: { flex: 1, fontSize: 15, color: COLORS.gray900, padding: 0 },
-  infoDivider: { height: 1, backgroundColor: COLORS.gray100 },
   // Still used by the tag-add input row only.
   input: {
     fontSize: 15,
