@@ -1252,7 +1252,9 @@
     "aiEmpty": "AI মানানসই কিছু পায়নি — নিজেই যোগ করুন।",
     "manualEntry": "অথবা নিজে লিখুন",
     "fieldBirthday": "জন্মদিন (ঐচ্ছিক)",
-    "birthdayPlaceholder": "MM-DD অথবা YYYY-MM-DD"
+    "birthdayPlaceholder": "MM-DD অথবা YYYY-MM-DD",
+    "linkPhone": "ফোন",
+    "linkEmail": "ইমেইল"
   },
   "followers": {
     "title": "ফলোয়ার",

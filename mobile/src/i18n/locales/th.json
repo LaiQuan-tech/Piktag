@@ -1252,7 +1252,9 @@
     "aiEmpty": "AI ยังไม่เจอที่ใช่ — เพิ่มเองได้เลย",
     "manualEntry": "หรือกรอกเอง",
     "fieldBirthday": "วันเกิด (ถ้ามี)",
-    "birthdayPlaceholder": "ดด-วว หรือ ปปปป-ดด-วว"
+    "birthdayPlaceholder": "ดด-วว หรือ ปปปป-ดด-วว",
+    "linkPhone": "โทรศัพท์",
+    "linkEmail": "อีเมล"
   },
   "followers": {
     "title": "ผู้ติดตาม",

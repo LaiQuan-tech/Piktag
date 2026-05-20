@@ -1344,7 +1344,9 @@
     "aiEmpty": "AI chưa nghĩ ra cái nào hợp — bạn tự thêm nhé.",
     "manualEntry": "Hoặc tự nhập",
     "fieldBirthday": "Ngày sinh (không bắt buộc)",
-    "birthdayPlaceholder": "MM-DD hoặc YYYY-MM-DD"
+    "birthdayPlaceholder": "MM-DD hoặc YYYY-MM-DD",
+    "linkPhone": "Điện thoại",
+    "linkEmail": "Email"
   },
   "followers": {
     "title": "Người theo dõi",

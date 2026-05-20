@@ -1324,7 +1324,9 @@
     "aiEmpty": "AI 没想到合适的，手动加上就好。",
     "manualEntry": "或手动输入",
     "fieldBirthday": "生日（选填）",
-    "birthdayPlaceholder": "MM-DD 或 YYYY-MM-DD"
+    "birthdayPlaceholder": "MM-DD 或 YYYY-MM-DD",
+    "linkPhone": "电话",
+    "linkEmail": "邮箱"
   },
   "followers": {
     "title": "追踪者",

@@ -1324,7 +1324,9 @@
     "aiEmpty": "Die KI fand nichts Passendes — füg sie selbst hinzu.",
     "manualEntry": "Oder manuell eingeben",
     "fieldBirthday": "Geburtstag (optional)",
-    "birthdayPlaceholder": "MM-TT oder JJJJ-MM-TT"
+    "birthdayPlaceholder": "MM-TT oder JJJJ-MM-TT",
+    "linkPhone": "Telefon",
+    "linkEmail": "E-Mail"
   },
   "followers": {
     "title": "Follower",

@@ -1344,7 +1344,9 @@
     "aiEmpty": "AI کو مناسب نہیں ملا — خود شامل کر لیں۔",
     "manualEntry": "یا خود لکھیں",
     "fieldBirthday": "سالگرہ (اختیاری)",
-    "birthdayPlaceholder": "MM-DD یا YYYY-MM-DD"
+    "birthdayPlaceholder": "MM-DD یا YYYY-MM-DD",
+    "linkPhone": "فون",
+    "linkEmail": "ای میل"
   },
   "followers": {
     "title": "فالوورز",

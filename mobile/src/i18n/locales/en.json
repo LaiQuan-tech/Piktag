@@ -1337,7 +1337,9 @@
     "aiEmpty": "AI didn't find a fit — just add your own.",
     "manualEntry": "Or type it in",
     "fieldBirthday": "Birthday (optional)",
-    "birthdayPlaceholder": "MM-DD or YYYY-MM-DD"
+    "birthdayPlaceholder": "MM-DD or YYYY-MM-DD",
+    "linkPhone": "Phone",
+    "linkEmail": "Email"
   },
   "followers": {
     "title": "Followers",

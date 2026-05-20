@@ -1252,7 +1252,9 @@
     "aiEmpty": "ぴったりが見つからなかった — 手動で追加してね。",
     "manualEntry": "手入力する",
     "fieldBirthday": "誕生日（任意）",
-    "birthdayPlaceholder": "MM-DD または YYYY-MM-DD"
+    "birthdayPlaceholder": "MM-DD または YYYY-MM-DD",
+    "linkPhone": "電話",
+    "linkEmail": "メール"
   },
   "followers": {
     "title": "フォロワー",

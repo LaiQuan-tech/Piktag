@@ -1252,7 +1252,9 @@
     "aiEmpty": "AI uygun bir şey bulamadı — kendin ekle.",
     "manualEntry": "Veya elle gir",
     "fieldBirthday": "Doğum günü (isteğe bağlı)",
-    "birthdayPlaceholder": "AA-GG veya YYYY-AA-GG"
+    "birthdayPlaceholder": "AA-GG veya YYYY-AA-GG",
+    "linkPhone": "Telefon",
+    "linkEmail": "E-posta"
   },
   "followers": {
     "title": "Takipçiler",

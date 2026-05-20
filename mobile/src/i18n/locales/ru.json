@@ -1252,7 +1252,9 @@
     "aiEmpty": "ИИ ничего не подобрал — добавьте сами.",
     "manualEntry": "Или ввести вручную",
     "fieldBirthday": "День рождения (по желанию)",
-    "birthdayPlaceholder": "ММ-ДД или ГГГГ-ММ-ДД"
+    "birthdayPlaceholder": "ММ-ДД или ГГГГ-ММ-ДД",
+    "linkPhone": "Телефон",
+    "linkEmail": "Эл. почта"
   },
   "followers": {
     "title": "Подписчики",

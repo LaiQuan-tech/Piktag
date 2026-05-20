@@ -1252,7 +1252,9 @@
     "aiEmpty": "A IA não achou nada — adicione você mesmo.",
     "manualEntry": "Ou digitar manualmente",
     "fieldBirthday": "Aniversário (opcional)",
-    "birthdayPlaceholder": "MM-DD ou YYYY-MM-DD"
+    "birthdayPlaceholder": "MM-DD ou YYYY-MM-DD",
+    "linkPhone": "Telefone",
+    "linkEmail": "E-mail"
   },
   "followers": {
     "title": "Seguidores",

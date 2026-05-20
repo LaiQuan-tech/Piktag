@@ -21,12 +21,12 @@ import {
   StatusBar,
   StyleSheet,
   Linking,
-  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
-import { ArrowLeft, Phone, Mail, Calendar } from 'lucide-react-native';
+import { ArrowLeft, Phone, Mail, Gift, ExternalLink } from 'lucide-react-native';
+import { toBirthdayDate } from '../lib/birthday';
 import { COLORS } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
 import { useLocalContacts } from '../hooks/useLocalContacts';
@@ -128,48 +128,18 @@ export default function LocalContactDetailScreen({ navigation, route }: Props) {
     );
   }
 
-  // Contact methods rendered as FriendDetail-style ringed-circle
-  // icons in a horizontal row (the contact analog of a member's
-  // social biolinks). Tappable where actionable: Phone → tel:,
-  // Email → mailto:. Birthday is display-only → tap reveals the
-  // value (icon alone won't tell you the date).
-  const contactItems: {
-    key: string;
-    icon: React.ReactNode;
-    onPress: () => void;
-    label: string;
-  }[] = [];
-  if (existing.phone_normalized) {
-    const v = existing.phone_normalized;
-    contactItems.push({
-      key: 'phone',
-      icon: <Phone size={26} color={COLORS.gray700} />,
-      onPress: () => Linking.openURL(`tel:${v}`).catch(() => {}),
-      label: v,
-    });
-  }
-  if (existing.email_lower) {
-    const v = existing.email_lower;
-    contactItems.push({
-      key: 'email',
-      icon: <Mail size={26} color={COLORS.gray700} />,
-      onPress: () => Linking.openURL(`mailto:${v}`).catch(() => {}),
-      label: v,
-    });
-  }
-  if (existing.birthday) {
-    const v = existing.birthday;
-    contactItems.push({
-      key: 'birthday',
-      icon: <Calendar size={26} color={COLORS.gray700} />,
-      onPress: () =>
-        Alert.alert(
-          t('localContact.fieldBirthday', { defaultValue: '生日' }),
-          v,
-        ),
-      label: v,
-    });
-  }
+  // Birthday → "M/D" (year-agnostic) — mirrors FriendDetail's
+  // inline formatReminderDate so the contact recordCard reads
+  // identically to a member's birthday card.
+  const birthdayDisplay = (() => {
+    if (!existing.birthday) return '';
+    const iso = toBirthdayDate(existing.birthday);
+    if (iso) {
+      const [, mm, dd] = iso.split('-');
+      return `${parseInt(mm, 10)}/${parseInt(dd, 10)}`;
+    }
+    return existing.birthday;
+  })();
 
   return (
     <SafeAreaView
@@ -213,28 +183,64 @@ export default function LocalContactDetailScreen({ navigation, route }: Props) {
           </View>
         )}
 
-        {contactItems.length > 0 && (
-          <View style={styles.socialSection}>
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.socialScrollContent}
-            >
-              {contactItems.map((c) => (
-                <TouchableOpacity
-                  key={c.key}
-                  style={styles.socialCircleItem}
-                  onPress={c.onPress}
-                  activeOpacity={0.7}
-                  accessibilityLabel={c.label}
-                  accessibilityRole="button"
-                >
-                  <View style={styles.socialCircleRing}>
-                    <View style={styles.socialCircleInner}>{c.icon}</View>
-                  </View>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
+        {/* Contact methods → FriendDetail's linkCard pattern
+            (rectangular, gray200 border, icon + label + ExternalLink
+            arrow). Tap = tel: / mailto:. Mirrors what a member friend
+            with biolinks looks like, 1:1. */}
+        {(existing.phone_normalized || existing.email_lower) && (
+          <View style={styles.linkBioSection}>
+            {existing.phone_normalized && (
+              <TouchableOpacity
+                style={styles.linkCard}
+                activeOpacity={0.7}
+                onPress={() =>
+                  Linking.openURL(`tel:${existing.phone_normalized}`).catch(
+                    () => {},
+                  )
+                }
+                accessibilityLabel={existing.phone_normalized}
+                accessibilityRole="link"
+              >
+                <Phone size={22} color={COLORS.gray900} strokeWidth={2.2} />
+                <Text style={styles.linkCardText} numberOfLines={1}>
+                  {t('localContact.linkPhone', { defaultValue: '電話' })}
+                </Text>
+                <ExternalLink size={16} color={COLORS.gray400} />
+              </TouchableOpacity>
+            )}
+            {existing.email_lower && (
+              <TouchableOpacity
+                style={styles.linkCard}
+                activeOpacity={0.7}
+                onPress={() =>
+                  Linking.openURL(`mailto:${existing.email_lower}`).catch(
+                    () => {},
+                  )
+                }
+                accessibilityLabel={existing.email_lower}
+                accessibilityRole="link"
+              >
+                <Mail size={22} color={COLORS.gray900} strokeWidth={2.2} />
+                <Text style={styles.linkCardText} numberOfLines={1}>
+                  {t('localContact.linkEmail', { defaultValue: 'Email' })}
+                </Text>
+                <ExternalLink size={16} color={COLORS.gray400} />
+              </TouchableOpacity>
+            )}
+          </View>
+        )}
+
+        {/* Birthday → FriendDetail's recordCard pattern (filled bg,
+            pink Gift icon, label + value). Static row, not tappable. */}
+        {birthdayDisplay && (
+          <View style={styles.recordCard}>
+            <View style={styles.reminderRow}>
+              <Gift size={16} color={COLORS.pink500} />
+              <Text style={styles.recordLabel}>
+                {t('friendDetail.reminderBirthday', { defaultValue: '生日' })}
+              </Text>
+              <Text style={styles.recordValue}>{birthdayDisplay}</Text>
+            </View>
           </View>
         )}
       </ScrollView>
@@ -295,43 +301,59 @@ const styles = StyleSheet.create({
     gap: 8,
     marginTop: 12,
   },
-  // ── Contact methods as a FriendDetail-style ringed-circle icon
-  // row (the contact analog of a member's social biolinks). Tokens
-  // mirror FriendDetailScreen.socialSection/Scroll/CircleItem/Ring/
-  // Inner 1:1 so the two surfaces feel like the same component
-  // family. Extraction into a shared <CircleIconRow> is a flagged
-  // follow-up (FriendDetail still hand-rolls its own copy of these
-  // styles — same as the ProfileIdentityHeader debt).
-  socialSection: {
+  // ── Contact methods → FriendDetail's linkCard pattern (the
+  // labeled rectangular card used for a member's biolinks). Tokens
+  // mirror FriendDetailScreen.linkBioSection/linkCard/linkCardText
+  // 1:1 so the two surfaces are visually indistinguishable. The
+  // earlier circle-icon version was the WRONG biolink treatment
+  // (that's the icon-only row for display_mode='icon'; the card row
+  // is what's actually visible on a real friend profile). Extraction
+  // into a shared <ContactLinkCard> is a flagged follow-up (same
+  // outstanding debt as ProfileIdentityHeader ↔ FriendDetail).
+  linkBioSection: {
     marginTop: 16,
-    paddingTop: 8,
-    paddingBottom: 16,
-    borderTopWidth: 1,
-    borderTopColor: COLORS.gray100,
+    gap: 10,
   },
-  socialScrollContent: {
-    paddingHorizontal: 4,
-    gap: 16,
-  },
-  socialCircleItem: {
+  linkCard: {
+    flexDirection: 'row',
     alignItems: 'center',
-    width: 68,
-  },
-  socialCircleRing: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    borderWidth: 2,
+    backgroundColor: COLORS.white,
+    borderWidth: 1.5,
     borderColor: COLORS.gray200,
-    alignItems: 'center',
-    justifyContent: 'center',
+    borderRadius: 16,
+    paddingVertical: 16,
+    paddingHorizontal: 18,
+    gap: 12,
   },
-  socialCircleInner: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
+  linkCardText: {
+    flex: 1,
+    fontSize: 16,
+    fontWeight: '600',
+    color: COLORS.gray900,
+  },
+  // Birthday → FriendDetail's recordCard pattern.
+  recordCard: {
     backgroundColor: COLORS.gray50,
+    borderRadius: 16,
+    padding: 16,
+    marginTop: 16,
+  },
+  reminderRow: {
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
+    gap: 10,
+    paddingVertical: 6,
+  },
+  recordLabel: {
+    fontSize: 14,
+    color: COLORS.gray500,
+    width: 70,
+  },
+  recordValue: {
+    flex: 1,
+    fontSize: 14,
+    fontWeight: '500',
+    color: COLORS.gray900,
+    lineHeight: 20,
   },
 });

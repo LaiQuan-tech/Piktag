@@ -1252,7 +1252,9 @@
     "aiEmpty": "딱 맞는 게 없었어요 — 직접 추가해 주세요.",
     "manualEntry": "직접 입력",
     "fieldBirthday": "생일 (선택)",
-    "birthdayPlaceholder": "MM-DD 또는 YYYY-MM-DD"
+    "birthdayPlaceholder": "MM-DD 또는 YYYY-MM-DD",
+    "linkPhone": "전화",
+    "linkEmail": "이메일"
   },
   "followers": {
     "title": "팔로워",

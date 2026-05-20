@@ -1344,7 +1344,9 @@
     "aiEmpty": "L'AI non ha trovato nulla — aggiungili tu.",
     "manualEntry": "Oppure inseriscilo",
     "fieldBirthday": "Compleanno (facoltativo)",
-    "birthdayPlaceholder": "MM-GG o AAAA-MM-GG"
+    "birthdayPlaceholder": "MM-GG o AAAA-MM-GG",
+    "linkPhone": "Telefono",
+    "linkEmail": "E-mail"
   },
   "followers": {
     "title": "Follower",
