@@ -218,8 +218,23 @@ function renderProfilePage(profile, biolinks, tags, sid, locale, eventInfo, anal
   // they no longer get their own special card on the public
   // profile page.
 
-  const tagsHtml = tags.length > 0
-    ? `<div class="tags">${tags.map((t) => `<a href="/tag/${encodeURIComponent(t)}" class="tag">#${escapeHtml(t)}</a>`).join('')}</div>`
+  // Profile tags + this-meeting's event tags (from ?tags=...) get
+  // rendered with the SAME gray pill — founder rule: 為了這次認識
+  // 新朋友所設定的標籤 should sit after 我的預設個人標籤, no visual
+  // differentiation. eventInfo.tags is the comma-separated value
+  // mobile passes via the QR/scan deep-link; we just normalize,
+  // dedupe (case-insensitive vs the user's own tags), and append.
+  const eventTagsExtra = (eventInfo && eventInfo.tags ? String(eventInfo.tags) : '')
+    .split(',')
+    .map((s) => s.trim().replace(/^#+/, ''))
+    .filter(Boolean);
+  const seenTags = new Set(tags.map((t) => String(t).toLowerCase()));
+  const mergedTags = [
+    ...tags,
+    ...eventTagsExtra.filter((t) => !seenTags.has(t.toLowerCase())),
+  ];
+  const tagsHtml = mergedTags.length > 0
+    ? `<div class="tags">${mergedTags.map((t) => `<a href="/tag/${encodeURIComponent(t)}" class="tag">#${escapeHtml(t)}</a>`).join('')}</div>`
     : '';
 
   const biolinksHtml = biolinks.length > 0
