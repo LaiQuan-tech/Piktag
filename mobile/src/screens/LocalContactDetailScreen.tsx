@@ -20,11 +20,13 @@ import {
   TouchableOpacity,
   StatusBar,
   StyleSheet,
+  Linking,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
-import { ArrowLeft, Phone, Mail, Calendar, MapPin } from 'lucide-react-native';
+import { ArrowLeft, Phone, Mail, Calendar } from 'lucide-react-native';
 import { COLORS } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
 import { useLocalContacts } from '../hooks/useLocalContacts';
@@ -126,27 +128,48 @@ export default function LocalContactDetailScreen({ navigation, route }: Props) {
     );
   }
 
-  const infoRows: { icon: React.ReactNode; value: string }[] = [];
-  if (existing.phone_normalized)
-    infoRows.push({
-      icon: <Phone size={18} color={COLORS.gray400} />,
-      value: existing.phone_normalized,
+  // Contact methods rendered as FriendDetail-style ringed-circle
+  // icons in a horizontal row (the contact analog of a member's
+  // social biolinks). Tappable where actionable: Phone → tel:,
+  // Email → mailto:. Birthday is display-only → tap reveals the
+  // value (icon alone won't tell you the date).
+  const contactItems: {
+    key: string;
+    icon: React.ReactNode;
+    onPress: () => void;
+    label: string;
+  }[] = [];
+  if (existing.phone_normalized) {
+    const v = existing.phone_normalized;
+    contactItems.push({
+      key: 'phone',
+      icon: <Phone size={26} color={COLORS.gray700} />,
+      onPress: () => Linking.openURL(`tel:${v}`).catch(() => {}),
+      label: v,
     });
-  if (existing.email_lower)
-    infoRows.push({
-      icon: <Mail size={18} color={COLORS.gray400} />,
-      value: existing.email_lower,
+  }
+  if (existing.email_lower) {
+    const v = existing.email_lower;
+    contactItems.push({
+      key: 'email',
+      icon: <Mail size={26} color={COLORS.gray700} />,
+      onPress: () => Linking.openURL(`mailto:${v}`).catch(() => {}),
+      label: v,
     });
-  if (existing.birthday)
-    infoRows.push({
-      icon: <Calendar size={18} color={COLORS.gray400} />,
-      value: existing.birthday,
+  }
+  if (existing.birthday) {
+    const v = existing.birthday;
+    contactItems.push({
+      key: 'birthday',
+      icon: <Calendar size={26} color={COLORS.gray700} />,
+      onPress: () =>
+        Alert.alert(
+          t('localContact.fieldBirthday', { defaultValue: '生日' }),
+          v,
+        ),
+      label: v,
     });
-  if (existing.met_location)
-    infoRows.push({
-      icon: <MapPin size={18} color={COLORS.gray400} />,
-      value: existing.met_location,
-    });
+  }
 
   return (
     <SafeAreaView
@@ -163,8 +186,11 @@ export default function LocalContactDetailScreen({ navigation, route }: Props) {
         contentContainerStyle={styles.scroll}
         showsVerticalScrollIndicator={false}
       >
-        {/* Identity — shared component, READ mode (no onChange →
-            rendered as Text). Same block a member friend gets. */}
+        {/* Order mirrors FriendDetailScreen's vertical layout, minus
+            the member-only bits (action button row, mutuals/follower
+            stats, similar-members section):
+              avatar+name → 職稱 → 標籤 → 聯絡方式 icons.
+            Identity = shared ProfileIdentityHeader in READ mode. */}
         <ProfileIdentityHeader
           name={existing.name}
           headline={existing.headline ?? undefined}
@@ -174,35 +200,39 @@ export default function LocalContactDetailScreen({ navigation, route }: Props) {
           avatarUrl={existing.avatar_url}
         />
 
-        {infoRows.length > 0 && (
-          <View style={styles.infoCard}>
-            {infoRows.map((r, i) => (
-              <View key={i}>
-                {i > 0 && <View style={styles.infoDivider} />}
-                <View style={styles.infoRow}>
-                  {r.icon}
-                  <Text style={styles.infoValue}>{r.value}</Text>
-                </View>
-              </View>
+        {existing.tags.length > 0 && (
+          <View style={styles.tagWrap}>
+            {existing.tags.map((tg) => (
+              // Shared TagChip, read-only: toggle + selected = purple
+              // pill, no ×, not pressable (no onPress).
+              <TagChip key={tg} label={tg} variant="toggle" selected />
             ))}
           </View>
         )}
 
-        {existing.tags.length > 0 && (
-          <>
-            <Text style={styles.sectionTitle}>
-              {t('localContact.fieldTags', {
-                defaultValue: '標籤（只有你看得到）',
-              })}
-            </Text>
-            <View style={styles.tagWrap}>
-              {existing.tags.map((tg) => (
-                // Shared TagChip, read-only: toggle variant + selected
-                // = purple pill, no ×, not pressable (no onPress).
-                <TagChip key={tg} label={tg} variant="toggle" selected />
+        {contactItems.length > 0 && (
+          <View style={styles.socialSection}>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.socialScrollContent}
+            >
+              {contactItems.map((c) => (
+                <TouchableOpacity
+                  key={c.key}
+                  style={styles.socialCircleItem}
+                  onPress={c.onPress}
+                  activeOpacity={0.7}
+                  accessibilityLabel={c.label}
+                  accessibilityRole="button"
+                >
+                  <View style={styles.socialCircleRing}>
+                    <View style={styles.socialCircleInner}>{c.icon}</View>
+                  </View>
+                </TouchableOpacity>
               ))}
-            </View>
-          </>
+            </ScrollView>
+          </View>
         )}
       </ScrollView>
     </SafeAreaView>
@@ -253,30 +283,52 @@ const styles = StyleSheet.create({
     lineHeight: 21,
   },
   scroll: { padding: 20, paddingBottom: 48 },
-  // Section caption — mirrors EditLocalContact / FriendDetail
-  // sectionTitle tokens (one visual language across the pair).
-  sectionTitle: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: COLORS.gray500,
-    textTransform: 'uppercase',
-    letterSpacing: 0.8,
-    marginTop: 24,
-    marginBottom: 10,
-  },
-  infoCard: {
-    backgroundColor: COLORS.gray50,
-    borderRadius: 14,
-    paddingHorizontal: 14,
+  // Tags row immediately under the identity block — same place
+  // FriendDetail puts them (after headline/bio, before everything
+  // else). No section title above; the chips speak for themselves.
+  tagWrap: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
     marginTop: 12,
   },
-  infoRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    paddingVertical: 13,
+  // ── Contact methods as a FriendDetail-style ringed-circle icon
+  // row (the contact analog of a member's social biolinks). Tokens
+  // mirror FriendDetailScreen.socialSection/Scroll/CircleItem/Ring/
+  // Inner 1:1 so the two surfaces feel like the same component
+  // family. Extraction into a shared <CircleIconRow> is a flagged
+  // follow-up (FriendDetail still hand-rolls its own copy of these
+  // styles — same as the ProfileIdentityHeader debt).
+  socialSection: {
+    marginTop: 16,
+    paddingTop: 8,
+    paddingBottom: 16,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.gray100,
   },
-  infoValue: { flex: 1, fontSize: 15, color: COLORS.gray900 },
-  infoDivider: { height: 1, backgroundColor: COLORS.gray100 },
-  tagWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  socialScrollContent: {
+    paddingHorizontal: 4,
+    gap: 16,
+  },
+  socialCircleItem: {
+    alignItems: 'center',
+    width: 68,
+  },
+  socialCircleRing: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    borderWidth: 2,
+    borderColor: COLORS.gray200,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  socialCircleInner: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: COLORS.gray50,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
 });
