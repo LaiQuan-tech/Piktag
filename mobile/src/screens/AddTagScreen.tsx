@@ -949,6 +949,26 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>{t('addTag.customTagsLabel')}</Text>
           <Text style={styles.hiddenTagHint}>{t('addTag.hiddenTagHint', { defaultValue: '這些標籤僅自己可見，幫助你記住在哪認識' })}</Text>
+
+          {/* Chip placement contract: chips ABOVE input — existing
+              items first, the input is the action prompt at the
+              bottom. UX-grounded (Gmail/Notion/GitHub/iOS native
+              all do this), keyboard-friendly (the focused input
+              stays visible while chips remain readable above), and
+              matches EditProfile / EditLocalContact / QrGroup
+              detail. Founder rule across the app. */}
+          {manualTags.length > 0 && (
+            <View style={styles.chipsContainer}>
+              {manualTags.map((tag) => (
+                <TagChip
+                  key={tag}
+                  label={tag}
+                  onRemove={() => handleRemoveTag(tag)}
+                />
+              ))}
+            </View>
+          )}
+
           <View style={styles.tagInputRow}>
             <View style={[styles.inputRow, { flex: 1 }]}>
               <TextInput
@@ -978,18 +998,6 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
               <Plus size={22} color="#FFFFFF" strokeWidth={2.5} />
             </TouchableOpacity>
           </View>
-
-          {manualTags.length > 0 && (
-            <View style={styles.chipsContainer}>
-              {manualTags.map((tag) => (
-                <TagChip
-                  key={tag}
-                  label={tag}
-                  onRemove={() => handleRemoveTag(tag)}
-                />
-              ))}
-            </View>
-          )}
         </View>
 
         {/* 熱門標籤 Section removed: those were the host's tags from
@@ -1409,10 +1417,14 @@ const styles = StyleSheet.create({
   },
 
   // ── Tag input row ──
+  // marginTop 14 = breathing room when chips sit above (the
+  // standardized layout); when there are no chips yet, the hint
+  // text above provides equivalent spacing.
   tagInputRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
+    marginTop: 14,
   },
   // Square 44×44 icon button — matches the textInput height so the row
   // reads as a single horizontal control. Width-fixed (not paddingX) so

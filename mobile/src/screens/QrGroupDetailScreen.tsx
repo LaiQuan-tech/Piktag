@@ -30,6 +30,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import { ArrowLeft, Share2, Plus, X, Hash, Edit3, ScanLine, Link2, Pencil } from 'lucide-react-native';
 import AtomIcon from '../components/AtomIcon';
+import TagChip from '../components/TagChip';
 import { setStringAsync as setClipboardStringAsync } from 'expo-clipboard';
 // react-native-qrcode-svg is the same lib AddTagScreen uses. Import
 // inline so the bundle only pulls it on this screen too.
@@ -522,13 +523,15 @@ export default function QrGroupDetailScreen({ navigation, route }: Props) {
             {t('qrGroup.tagsTitle', { defaultValue: 'Tag 標籤' })}
           </Text>
           <View style={styles.tagChipsRow}>
+            {/* Shared TagChip (no × glyph, whole pill = tap to remove,
+                fill-only purple). Founder contract: no per-screen chip
+                copies; no × anywhere. */}
             {group.event_tags.map((tag) => (
-              <View key={tag} style={styles.tagChip}>
-                <Text style={styles.tagChipText}>#{tag}</Text>
-                <TouchableOpacity onPress={() => removeTag(tag)} hitSlop={6}>
-                  <X size={12} color={COLORS.piktag600} />
-                </TouchableOpacity>
-              </View>
+              <TagChip
+                key={tag}
+                label={tag}
+                onRemove={() => removeTag(tag)}
+              />
             ))}
             {group.event_tags.length === 0 ? (
               <Text style={styles.tagEmpty}>
@@ -822,19 +825,8 @@ const styles = StyleSheet.create({
   tagSection: { paddingHorizontal: 20, paddingTop: 16, paddingBottom: 8 },
   sectionTitle: { fontSize: 13, fontWeight: '700', color: COLORS.gray600, marginBottom: 10, textTransform: 'uppercase', letterSpacing: 0.3 },
   tagChipsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 10 },
-  tagChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingVertical: 6,
-    paddingLeft: 12,
-    paddingRight: 8,
-    borderRadius: 16,
-    backgroundColor: COLORS.piktag50,
-    borderWidth: 1.5,
-    borderColor: COLORS.piktag500,
-  },
-  tagChipText: { fontSize: 13, fontWeight: '700', color: COLORS.piktag600 },
+  // (tagChip / tagChipText removed — chip rendering now via the
+  // shared <TagChip>; no per-screen chip styles allowed.)
   tagEmpty: { fontSize: 13, color: COLORS.gray400 },
   tagInputRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 4 },
   tagInputPill: {
