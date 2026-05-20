@@ -203,9 +203,12 @@ export default function LocalContactDetailScreen({ navigation, route }: Props) {
         {existing.tags.length > 0 && (
           <View style={styles.tagWrap}>
             {existing.tags.map((tg) => (
-              // Shared TagChip, read-only: toggle + selected = purple
-              // pill, no ×, not pressable (no onPress).
-              <TagChip key={tg} label={tg} variant="toggle" selected />
+              // Shared TagChip, read-only: toggle variant + NOT selected
+              // = gray pill, no ×, not pressable. Detail/view screens
+              // intentionally render ALL chips gray — purple is reserved
+              // for the screen's primary CTA (matches the friend page
+              // design contract; founder, definitive).
+              <TagChip key={tg} label={tg} variant="toggle" />
             ))}
           </View>
         )}

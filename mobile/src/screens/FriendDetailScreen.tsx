@@ -1075,22 +1075,23 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
           {tags.length > 0 && (
             <View style={styles.tagsWrap}>
               {tags.map((tag) => (
-                // Profile tags = tags this friend has → "selected/owned"
-                // per the founder's colour contract (紫色=已選, 灰色=
-                // 推薦未選). Always render with the purple styling so the
-                // whole set reads purple, not just mutuals. The OLD
-                // `tag.isMutual && styles.tagChipMutual` only lit up the
-                // mutual subset (everything else fell to the gray default
-                // — the bug the founder caught: "好友資料頁都是灰色"). The
-                // existing tagChipMutual/Text styles already carry the
-                // right purple tokens (piktag50/500/600), reuse them.
+                // Profile-tag display contract (founder, definitive):
+                // detail/view screens → ALL tag chips are GRAY, regardless
+                // of selected/mutual/picked. Purple is reserved for the
+                // ONE primary action CTA on this screen (編輯標籤). A sea
+                // of purple chips dilutes that CTA — exactly what the
+                // founder caught after the previous "都紫色" change. The
+                // tagChipMutual / Picked styles still exist for other
+                // contexts (e.g. the picker modal where selected=purple
+                // IS meaningful interaction feedback); don't apply them
+                // here.
                 <TouchableOpacity
                   key={tag.tagId}
-                  style={[styles.tagChip, styles.tagChipMutual]}
+                  style={styles.tagChip}
                   activeOpacity={0.6}
                   onPress={() => navigation.navigate('TagDetail', { tagId: tag.tagId, tagName: tag.name, initialTab: 'explore' })}
                 >
-                  <Text style={[styles.tagChipText, styles.tagChipTextMutual]}>
+                  <Text style={styles.tagChipText}>
                     #{tag.name}
                   </Text>
                 </TouchableOpacity>
