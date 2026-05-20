@@ -2333,13 +2333,14 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     gap: 10,
   },
+  // "已選=紫色" aesthetic, founder definitive: fill-only, NO border.
+  // The piktag50 tint + piktag600 text is the purple — a piktag500
+  // outline on top is what made it read as "outlined chip" instead.
   mutualModalTag: {
     backgroundColor: COLORS.piktag50,
     borderRadius: 16,
     paddingHorizontal: 14,
     paddingVertical: 8,
-    borderWidth: 1,
-    borderColor: COLORS.piktag500,
   },
   mutualModalTagText: {
     fontSize: 15,

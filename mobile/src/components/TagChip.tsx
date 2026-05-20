@@ -104,7 +104,11 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'transparent', // reserved → selected recolor, no jump
   },
-  chipSelected: { borderColor: COLORS.piktag500 },
+  // "已選=紫色" aesthetic, founder definitive: fill-only, no border.
+  // Selected state visually = chip base (piktag50 bg + piktag600 text).
+  // Kept as an empty rule so the chipStyle render logic stays intact
+  // and the prop semantics remain — the slot is just visually a no-op.
+  chipSelected: {},
   // 'toggle' unselected = gray. Border stays reserved (transparent)
   // so toggling gray↔purple never shifts layout.
   chipToggleOff: {
