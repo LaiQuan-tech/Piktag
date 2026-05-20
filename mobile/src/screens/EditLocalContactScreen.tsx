@@ -24,7 +24,6 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  Pressable,
   StyleSheet,
   ScrollView,
   Alert,
@@ -35,14 +34,12 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import { ArrowLeft, Plus, Trash2, ScanLine, RefreshCw, Phone, Mail, Calendar } from 'lucide-react-native';
-import AtomIcon from '../components/AtomIcon';
+import { ArrowLeft, Plus, Trash2, Phone, Mail, Calendar } from 'lucide-react-native';
 import ProfileIdentityHeader from '../components/ProfileIdentityHeader';
 import { COLORS } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
 import { useLocalContacts } from '../hooks/useLocalContacts';
 import { supabase } from '../lib/supabase';
-import { logApiUsage } from '../lib/apiUsage';
 import { toBirthdayDate } from '../lib/birthday';
 import BrandSpinner from '../components/loaders/BrandSpinner';
 import TagChip from '../components/TagChip';
@@ -121,10 +118,11 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
   // the scan only PRE-FILLS the editable form (the screen itself is
   // the confirmation surface), and AI tags only populate suggestion
   // chips the user opts into. handleSave is still the only writer.
-  const [scanning, setScanning] = useState(false);
-  const [aiLoading, setAiLoading] = useState(false);
-  const [aiSuggestions, setAiSuggestions] = useState<string[]>([]);
-  const [aiTried, setAiTried] = useState(false);
+  // (scanning / aiLoading / aiSuggestions / aiTried state removed —
+  // the inline "掃描名片自動帶入" accelerator and the AI 建議標籤
+  // section are gone per founder rule: re-scan on the edit form is a
+  // logic error, and AI built on manually-typed fields wastes compute
+  // while the pill button visually duplicates a tag.)
   // No chooser screen. The form is always the base; in create mode
   // the camera auto-opens once on top of it (effect after runScan).
   // The big purple scan banner was removed — fewer taps, less clutter.
@@ -162,68 +160,6 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
     setTagInput('');
   }, [tagInput]);
 
-  const addSuggestedTag = useCallback((raw: string) => {
-    const v = raw.trim().replace(/^#/, '');
-    if (!v) return;
-    setTags((prev) => (prev.includes(v) ? prev : [...prev, v]));
-    setAiSuggestions((prev) => prev.filter((s) => s !== raw));
-  }, []);
-
-  // AI tag suggestions from whatever context we have (name + 職稱,
-  // plus an optional extra blob — e.g. a scanned card's bio_draft,
-  // which has no stored field but is still useful tag fuel). Same
-  // edge function ('suggest-tags') the profile editor uses, so the
-  // model + prompt are identical.
-  const fetchAiTags = useCallback(async (extra?: string) => {
-    const ctx = [name, headline, extra].filter(Boolean).join('\n').trim();
-    if (!ctx) return;
-    setAiLoading(true);
-    setAiTried(true);
-    try {
-      const userLang = ctx.match(/[一-鿿]/) ? '繁體中文' :
-        ctx.match(/[぀-ヿ]/) ? '日本語' :
-        ctx.match(/[가-힯]/) ? '한국어' :
-        ctx.match(/[฀-๿]/) ? 'ภาษาไทย' : 'the same language as the content';
-      logApiUsage('gemini_generate', { via: 'edge-fn' });
-      const { data, error } = await supabase.functions.invoke<{
-        suggestions?: string[];
-      }>('suggest-tags', {
-        body: {
-          bio: [headline, extra].filter(Boolean).join('\n'),
-          name: name,
-          location: '',
-          existingTags: tags.join(', '),
-          lang: userLang,
-        },
-      });
-      if (error) {
-        console.warn('[LocalContact] suggest-tags failed:', error.message);
-        setAiSuggestions([]);
-        return;
-      }
-      const raw = Array.isArray(data?.suggestions) ? data!.suggestions : [];
-      const cleaned = Array.from(
-        new Set(
-          raw
-            .map((n) => (typeof n === 'string' ? n.replace(/^#/, '').trim() : ''))
-            .filter(Boolean)
-            .filter((n) => !tags.includes(n)),
-        ),
-        // Non-member quick capture — keep it minimal. Capped at 3 to
-        // match Ask's AI_SUGGESTION_CAP (one number across the app's
-        // AI-suggestion surfaces). Unlike Ask these are NOT
-        // pre-selected: filing someone else is deliberate curation,
-        // so the user opts each one in by tapping.
-      ).slice(0, 3);
-      setAiSuggestions(cleaned);
-    } catch (err) {
-      console.warn('[LocalContact] suggest-tags threw:', err);
-      setAiSuggestions([]);
-    } finally {
-      setAiLoading(false);
-    }
-  }, [name, headline, tags]);
-
   // Open the CAMERA to photograph a physical business card (not the
   // photo library — "掃描名片" means point-and-shoot at the real
   // card). → scan-business-card vision extract → pre-fill the form.
@@ -241,7 +177,6 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
     // the name field (would pop the keyboard over the results).
     setManualFocus(false);
     try {
-      setScanning(true);
       // supabase.functions.invoke has no timeout and RN fetch never
       // times out: a stalled Gemini fallback chain would otherwise
       // hang this screen forever (only Back escapes — the reported
@@ -296,8 +231,7 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
         if (cardEmail) setEmail((cur) => (cur.trim() ? cur : cardEmail));
         // Job title + company → the member-aligned 職稱 field.
         if (cardHeadline) setHeadline((cur) => (cur.trim() ? cur : cardHeadline));
-        // bio_draft has no contact field → AI-tag fuel only.
-        setTimeout(() => { fetchAiTags(bioDraft || undefined); }, 0);
+        // (bio_draft → AI-tag fuel path removed with the AI section.)
       };
 
       // Is the scanned person ALREADY a PikTag member? Match the
@@ -332,7 +266,6 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
           (member.full_name && member.full_name.trim()) ||
           (member.username ? `@${member.username}` : cardName) ||
           t('localContact.alreadyMemberFallbackWho', { defaultValue: '這個人' });
-        setScanning(false); // scan's done — drop the spinner before the choice
         Alert.alert(
           t('localContact.alreadyMemberTitle', { defaultValue: '這個人已經在 PikTag' }),
           t('localContact.alreadyMemberMsg', {
@@ -369,15 +302,13 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
             })
           : err?.message || t('common.unknownError', { defaultValue: '發生錯誤' }),
       );
-    } finally {
-      setScanning(false);
     }
-  }, [t, fetchAiTags, navigation]);
+  }, [t, navigation]);
 
-  // Open the custom framing-guide camera; it returns the photo here.
-  const handleScanCard = useCallback(() => {
-    navigation.navigate('CardCamera', { onCaptured: runScan });
-  }, [navigation, runScan]);
+  // (handleScanCard — the inline re-scan accelerator — was removed.
+  // The only entry into the scan flow is the create-mode auto-open
+  // effect below; once the form is up, the user manually edits, no
+  // mid-flow re-scan path.)
 
   // Create mode: auto-open the camera ONCE, on top of the (empty)
   // form. ref guard = strictly once → no reopen loop. Dismissal:
@@ -573,33 +504,9 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
         >
           {(
             <>
-              {/* Slim re-scan accelerator — scan stays reachable from
-                  the form (re-fill / scan-after-manual) without the
-                  old big block that made scan vs manual feel mixed. */}
-              <TouchableOpacity
-                style={styles.scanInline}
-                onPress={handleScanCard}
-                disabled={scanning}
-                activeOpacity={0.7}
-                accessibilityRole="button"
-                accessibilityLabel={t('localContact.scanCardCta', { defaultValue: '掃描名片自動帶入' })}
-              >
-                {scanning ? (
-                  <>
-                    <ActivityIndicator size="small" color={COLORS.piktag600} />
-                    <Text style={styles.scanInlineText}>
-                      {t('localContact.scanningCard', { defaultValue: '辨識名片中…' })}
-                    </Text>
-                  </>
-                ) : (
-                  <>
-                    <ScanLine size={16} color={COLORS.piktag600} strokeWidth={2.2} />
-                    <Text style={styles.scanInlineText}>
-                      {t('localContact.scanCardCta', { defaultValue: '掃描名片自動帶入' })}
-                    </Text>
-                  </>
-                )}
-              </TouchableOpacity>
+              {/* (Re-scan accelerator removed — logic error per
+                  founder: if a user wanted to scan, they'd scan; they
+                  won't manually fill the form and then re-scan.) */}
 
           {/* Identity = shared ProfileIdentityHeader (one component,
               not a per-screen copy). Editable variant: name + 職稱
@@ -709,70 +616,10 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
             </TouchableOpacity>
           </View>
 
-          {/* AI tag suggestions — opt-in, context = name + 職稱 (+ a
-              scanned card's bio_draft when present). Auto-kicks after
-              a successful card scan; also tappable anytime. Tapping a
-              chip adds the tag. */}
-          {aiLoading ? (
-            <View style={styles.aiLoadingRow}>
-              <BrandSpinner size={16} />
-              <Text style={styles.aiHint}>
-                {t('localContact.aiThinking', { defaultValue: 'AI 想標籤中…' })}
-              </Text>
-            </View>
-          ) : aiSuggestions.length > 0 ? (
-            <View style={styles.aiBlock}>
-              <View style={styles.aiHeaderRow}>
-                <Text style={styles.aiTitle}>
-                  {t('localContact.aiSuggestTitle', { defaultValue: 'AI 建議（點一下加入）' })}
-                </Text>
-                <TouchableOpacity
-                  onPress={() => fetchAiTags()}
-                  hitSlop={8}
-                  accessibilityRole="button"
-                  accessibilityLabel={t('localContact.aiRegenerate', { defaultValue: '重新產生' })}
-                >
-                  <RefreshCw size={15} color={COLORS.gray500} />
-                </TouchableOpacity>
-              </View>
-              <View style={styles.tagWrap}>
-                {aiSuggestions.map((s) => (
-                  <Pressable
-                    key={s}
-                    style={({ pressed }) => [
-                      styles.aiChip,
-                      pressed && styles.aiChipPressed,
-                    ]}
-                    onPress={() => addSuggestedTag(s)}
-                    accessibilityRole="button"
-                    accessibilityLabel={`${t('common.add', { defaultValue: '新增' })} #${s}`}
-                  >
-                    <Text style={styles.aiChipText}>#{s}</Text>
-                  </Pressable>
-                ))}
-              </View>
-            </View>
-          ) : (
-            <>
-              <TouchableOpacity
-                style={styles.aiBtn}
-                onPress={() => fetchAiTags()}
-                activeOpacity={0.8}
-                accessibilityRole="button"
-                accessibilityLabel={t('localContact.aiSuggestCta', { defaultValue: 'AI 建議標籤' })}
-              >
-                <AtomIcon size={16} color={COLORS.piktag600} />
-                <Text style={styles.aiBtnText}>
-                  {t('localContact.aiSuggestCta', { defaultValue: 'AI 建議標籤' })}
-                </Text>
-              </TouchableOpacity>
-              {aiTried && (
-                <Text style={styles.aiHint}>
-                  {t('localContact.aiEmpty', { defaultValue: 'AI 沒想到合適的，手動加上就好。' })}
-                </Text>
-              )}
-            </>
-          )}
+          {/* (AI 建議標籤 section removed — there's no scanned-card
+              fuel in the edit form, and AI based on manually-typed
+              fields just spends compute while the pill button reads
+              as a tag. Tags here are manual-only.) */}
 
           <TouchableOpacity
             style={[styles.saveBtn, (saving || !name.trim()) && styles.saveBtnDisabled]}
@@ -862,58 +709,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   tagAddBtnDisabled: { opacity: 0.4 },
-  // ── Slim re-scan accelerator inside the form ──
-  scanInline: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    alignSelf: 'flex-start',
-    gap: 6,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 9999,
-    backgroundColor: COLORS.piktag50,
-    marginBottom: 4,
-  },
-  scanInlineText: { fontSize: 13, fontWeight: '600', color: COLORS.piktag600 },
-  aiBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    alignSelf: 'flex-start',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 9999,
-    backgroundColor: COLORS.piktag50,
-    marginTop: 12,
-  },
-  aiBtnText: { fontSize: 13, fontWeight: '600', color: COLORS.piktag600 },
-  aiLoadingRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 14 },
-  aiHint: { fontSize: 12, color: COLORS.gray500, marginTop: 8, lineHeight: 17 },
-  aiBlock: { marginTop: 14 },
-  aiHeaderRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 8,
-  },
-  aiTitle: { fontSize: 13, fontWeight: '600', color: COLORS.gray700 },
-  // Mirrors EditProfileScreen's ai_chip (the canonical AI-suggestion
-  // chip): gray pill, transparent border, no "+" glyph; tapping it
-  // flashes purple then the chip removes itself. One design contract
-  // across the app — don't re-skin per screen.
-  aiChip: {
-    paddingVertical: 8,
-    paddingHorizontal: 14,
-    borderRadius: 9999,
-    borderWidth: 1.5,
-    borderColor: 'transparent',
-    backgroundColor: COLORS.gray100,
-  },
-  aiChipPressed: {
-    backgroundColor: COLORS.piktag50,
-    borderColor: COLORS.piktag500,
-  },
-  aiChipText: { fontSize: 14, fontWeight: '500', color: COLORS.gray700 },
+  // (scanInline / scanInlineText / aiBtn / aiBtnText / aiLoadingRow /
+  // aiHint / aiBlock / aiHeaderRow / aiTitle / aiChip / aiChipPressed
+  // / aiChipText styles removed with the scan-accelerator + AI
+  // section — per founder, neither belongs on the edit form.)
   saveBtn: {
     marginTop: 28,
     paddingVertical: 15,
