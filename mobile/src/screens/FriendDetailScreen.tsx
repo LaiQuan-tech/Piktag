@@ -1075,13 +1075,22 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
           {tags.length > 0 && (
             <View style={styles.tagsWrap}>
               {tags.map((tag) => (
+                // Profile tags = tags this friend has → "selected/owned"
+                // per the founder's colour contract (紫色=已選, 灰色=
+                // 推薦未選). Always render with the purple styling so the
+                // whole set reads purple, not just mutuals. The OLD
+                // `tag.isMutual && styles.tagChipMutual` only lit up the
+                // mutual subset (everything else fell to the gray default
+                // — the bug the founder caught: "好友資料頁都是灰色"). The
+                // existing tagChipMutual/Text styles already carry the
+                // right purple tokens (piktag50/500/600), reuse them.
                 <TouchableOpacity
                   key={tag.tagId}
-                  style={[styles.tagChip, tag.isMutual && styles.tagChipMutual]}
+                  style={[styles.tagChip, styles.tagChipMutual]}
                   activeOpacity={0.6}
                   onPress={() => navigation.navigate('TagDetail', { tagId: tag.tagId, tagName: tag.name, initialTab: 'explore' })}
                 >
-                  <Text style={[styles.tagChipText, tag.isMutual && styles.tagChipTextMutual]}>
+                  <Text style={[styles.tagChipText, styles.tagChipTextMutual]}>
                     #{tag.name}
                   </Text>
                 </TouchableOpacity>
