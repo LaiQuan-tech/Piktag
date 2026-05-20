@@ -111,14 +111,15 @@ export default function DraggableChips({
     onReorder(newItems);
   }, [items, onReorder]);
 
-  // Tap action — toggle mode only: a single tap removes the tag.
-  // Safe one-tap because removal is staged (Phase 1) and reversible
-  // until Save. Medium haptic marks that something was removed.
+  // Tap action — both modes: single tap removes (founder rule:
+  // every chip in the app is tap-to-remove, no × icons anywhere).
+  // In toggle/EditProfile mode the removal is staged (Phase 1) and
+  // reversible until Save; in legacy/ManageTags mode it's immediate.
+  // Medium haptic marks the destructive step.
   const handleTap = useCallback((item: ChipItem) => {
-    if (!isToggle) return;
     impactAsync(ImpactFeedbackStyle.Medium);
     onRemove(item);
-  }, [isToggle, onRemove]);
+  }, [onRemove]);
 
   return (
     <View ref={containerRef} onLayout={onContainerLayout} style={styles.container}>
@@ -139,7 +140,11 @@ export default function DraggableChips({
             if (targetId) handleSwap(item.id, targetId);
           }}
           onRemove={() => onRemove(item)}
-          onTap={isToggle ? () => handleTap(item) : undefined}
+          // Always wire tap (both modes): chip body = tap-to-remove,
+          // no × icon. GestureDetector owns the tap so a nested
+          // Pressable inside TagChip is unnecessary (and would
+          // race the Pan long-press / Tap gesture composition).
+          onTap={() => handleTap(item)}
         />
       ))}
       {items.length === 0 && (
@@ -214,10 +219,16 @@ function DraggableChip({
     <GestureDetector gesture={composed}>
       <Animated.View onLayout={onLayout} style={[styles.chipHost, animatedStyle]}>
         {isToggle ? (
-          // Always purple — these ARE the user's selected tags.
+          // Toggle (EditProfile): always purple — these ARE the
+          // user's selected tags. Static display; tap handled by
+          // the outer GestureDetector → handleTap → onRemove.
           <TagChip variant="toggle" label={item.label} selected />
         ) : (
-          <TagChip variant="removable" label={item.label} onRemove={onRemove} />
+          // Removable (ManageTagsScreen): rendered WITHOUT onRemove
+          // so the chip itself is a plain View (no nested Pressable
+          // inside the GestureDetector). The same tapGesture handles
+          // removal — keeps the gesture composition clean.
+          <TagChip variant="removable" label={item.label} />
         )}
       </Animated.View>
     </GestureDetector>
