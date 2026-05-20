@@ -299,20 +299,6 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
     setTagInput('');
   };
 
-  // 絕招二 increment: AI already auto-fires from GPS + time on open
-  // (no typing needed). The remaining friction was accepting them
-  // one chip at a time — this is the "連打字都不用，按一下確認"
-  // one-tap: take ALL current AI suggestions, dedupe into eventTags,
-  // clear the strip (mirrors the per-chip behaviour, ×N).
-  const addAllAiSuggestions = useCallback(() => {
-    setEventTags((prev) => {
-      const next = [...prev];
-      for (const s of aiSuggestions) if (!next.includes(s)) next.push(s);
-      return next;
-    });
-    setAiSuggestions([]);
-  }, [aiSuggestions]);
-
   // ─── AI tag suggestions (task 3) ──────────────────────────────
   //
   // On mount: load viewer's identity (bio + public tags) and try to
@@ -912,19 +898,10 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
             </View>
             {!aiLoading && (
               <View style={styles.aiHeaderActions}>
-                {aiSuggestions.length > 0 && (
-                  <TouchableOpacity
-                    onPress={addAllAiSuggestions}
-                    activeOpacity={0.85}
-                    style={styles.aiAddAllBtn}
-                    accessibilityRole="button"
-                    accessibilityLabel={t('addTag.aiAddAll', { defaultValue: '全部加入' })}
-                  >
-                    <Text style={styles.aiAddAllText}>
-                      {t('addTag.aiAddAll', { defaultValue: '全部加入' })}
-                    </Text>
-                  </TouchableOpacity>
-                )}
+                {/* "全部加入" button removed — founder: over-confident
+                    in AI; users pick a few, not all; the purple-fill
+                    pill clashed visually with tag chips. The per-chip
+                    tap remains the one accept path. */}
                 <TouchableOpacity
                   onPress={() => loadAiSuggestions(true)}
                   activeOpacity={0.7}
@@ -1486,17 +1463,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 8,
   },
-  aiAddAllBtn: {
-    paddingVertical: 7,
-    paddingHorizontal: 14,
-    borderRadius: 9999,
-    backgroundColor: COLORS.piktag500,
-  },
-  aiAddAllText: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: '#FFFFFF',
-  },
+  // (aiAddAllBtn / aiAddAllText removed with the "全部加入" CTA.)
   aiRefreshBtn: {
     width: 32,
     height: 32,

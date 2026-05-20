@@ -367,7 +367,6 @@
     "aiSuggestionsHint": "Viết một dòng về dịp này — AI sẽ dựa vào đó + vị trí + tag danh tính của bạn.",
     "aiSuggestionsEmpty": "AI chưa tìm được tag hợp — thử lại hoặc tự thêm nhé.",
     "aiRegenerate": "Tạo lại",
-    "aiAddAll": "Thêm tất cả",
     "contextPromptHints": [
       "Chuyến lặn biển cuối tuần",
       "Họp lớp đại học",

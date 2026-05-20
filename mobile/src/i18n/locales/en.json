@@ -364,7 +364,6 @@
     "aiSuggestionsHint": "Type one line about the occasion — AI will use it + your location + your identity tags.",
     "aiSuggestionsEmpty": "AI didn't find a fit — try again or add your own.",
     "aiRegenerate": "Regenerate",
-    "aiAddAll": "Add all",
     "contextPromptHints": [
       "Weekend diving trip",
       "College reunion",

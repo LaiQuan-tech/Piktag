@@ -349,7 +349,6 @@
     "aiSuggestionsHint": "Tulis satu baris — AI pakai itu + lokasi + identity tag-mu.",
     "aiSuggestionsEmpty": "AI nggak nemu — coba lagi atau tambah sendiri.",
     "aiRegenerate": "Buat ulang",
-    "aiAddAll": "Tambah semua",
     "contextPromptHints": [
       "Trip diving",
       "Reuni kampus",

@@ -367,7 +367,6 @@
     "aiSuggestionsHint": "輸入一句場合描述 — AI 會根據你的話 + 位置 + 你的身份標籤推薦。",
     "aiSuggestionsEmpty": "AI 想不到合適的標籤 — 再試一次或自己加。",
     "aiRegenerate": "重新生成",
-    "aiAddAll": "全部加入",
     "contextPromptHints": [
       "龍洞潛水揪團",
       "陽明山健行團",

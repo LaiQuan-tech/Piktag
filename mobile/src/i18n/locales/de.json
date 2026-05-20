@@ -357,7 +357,6 @@
     "aiSuggestionsHint": "Schreib eine Zeile — AI nutzt das + deinen Standort + deine Identitäts-Tags.",
     "aiSuggestionsEmpty": "AI hat nichts Passendes gefunden — nochmal versuchen oder selbst hinzufügen.",
     "aiRegenerate": "Neu erzeugen",
-    "aiAddAll": "Alle hinzufügen",
     "contextPromptHints": [
       "Tauchausflug",
       "Klassentreffen",

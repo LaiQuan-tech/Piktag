@@ -349,7 +349,6 @@
     "aiSuggestionsHint": "एक लाइन लिखें — AI उसके साथ आपकी लोकेशन और टैग देखेगा।",
     "aiSuggestionsEmpty": "AI को कुछ नहीं मिला — फिर से कोशिश करें या खुद जोड़ें।",
     "aiRegenerate": "पुनः उत्पन्न",
-    "aiAddAll": "सभी जोड़ें",
     "contextPromptHints": [
       "डाइविंग ट्रिप",
       "कॉलेज रीयूनियन",

@@ -349,7 +349,6 @@
     "aiSuggestionsHint": "한 줄 적어줘 — AI가 위치와 네 태그도 같이 본대.",
     "aiSuggestionsEmpty": "AI가 못 찾았어요 — 다시 시도하거나 직접 추가하세요.",
     "aiRegenerate": "재생성",
-    "aiAddAll": "모두 추가",
     "contextPromptHints": [
       "주말 다이빙 모임",
       "대학 동창회",

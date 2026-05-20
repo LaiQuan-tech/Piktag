@@ -349,7 +349,6 @@
     "aiSuggestionsHint": "Écris une ligne — l'IA utilise ça + ta position + tes tags d'identité.",
     "aiSuggestionsEmpty": "L'IA n'a rien trouvé — réessaye ou ajoute manuellement.",
     "aiRegenerate": "Régénérer",
-    "aiAddAll": "Tout ajouter",
     "contextPromptHints": [
       "Sortie plongée",
       "Retrouvailles de fac",
