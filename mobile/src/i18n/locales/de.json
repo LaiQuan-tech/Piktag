@@ -970,6 +970,7 @@
     "pinLimitMessage": "Du kannst bis zu {{max}} Tags anheften",
     "dragHint": "Lang drücken zum Anheften, Pfeile zum Sortieren",
     "aiSuggestionsTitle": "KI-Vorschläge für dich",
+    "aiFromBioTitle": "KI-Vorschläge basierend auf deiner Bio",
     "pinTag": "Tag anheften",
     "unpinTag": "Tag lösen",
     "publicTagsTitle": "Öffentliche Tags",
@@ -983,8 +984,7 @@
     "tagLimitMessage": "Du kannst bis zu {{max}} Tags hinzufügen",
     "aiErrorGeneric": "KI-Vorschläge sind vorübergehend nicht verfügbar, bitte versuche es später erneut",
     "nativeHintNoPin": "Lang drücken zum Ziehen und Sortieren",
-    "tagEditHint": "Tippen zum Entfernen (bis Speichern widerrufbar) · Lange drücken zum Sortieren",
-    "aiFromBio": "Vorschläge aus deiner Bio"
+    "tagEditHint": "Tippen zum Entfernen (bis Speichern widerrufbar) · Lange drücken zum Sortieren"
   },
   "activityReview": {
     "noNewFriends": "Keine neuen Freunde zum Durchsehen",

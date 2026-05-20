@@ -983,6 +983,7 @@
     "pinLimitMessage": "You can pin up to {{max}} tags",
     "dragHint": "Long press to pin, arrows to reorder",
     "aiSuggestionsTitle": "AI suggestions for you",
+    "aiFromBioTitle": "AI suggestions based on your bio",
     "pinTag": "Pin tag",
     "unpinTag": "Unpin tag",
     "publicTagsTitle": "Public Tags",
@@ -996,8 +997,7 @@
     "tagLimitMessage": "You can add up to {{max}} tags",
     "aiErrorGeneric": "AI suggestions are temporarily unavailable, please try again later",
     "nativeHintNoPin": "Long press to drag and reorder",
-    "tagEditHint": "Tap to remove (undoable until saved) · Long-press to reorder",
-    "aiFromBio": "Suggested from your bio"
+    "tagEditHint": "Tap to remove (undoable until saved) · Long-press to reorder"
   },
   "activityReview": {
     "noNewFriends": "No new friends to review",

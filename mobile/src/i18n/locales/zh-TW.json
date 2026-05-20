@@ -972,6 +972,7 @@
     "pinLimitMessage": "最多只能置頂 {{max}} 個標籤",
     "dragHint": "長按可置頂，上下箭頭排序",
     "aiSuggestionsTitle": "AI 為你推薦",
+    "aiFromBioTitle": "根據個人簡介，AI 為你推薦",
     "pinTag": "置頂標籤",
     "unpinTag": "取消置頂",
     "publicTagsTitle": "公開標籤",
@@ -985,8 +986,7 @@
     "tagLimitMessage": "最多只能新增 {{max}} 個標籤",
     "aiErrorGeneric": "AI 推薦暫時無法使用，稍後再試",
     "nativeHintNoPin": "長按拖曳排序",
-    "tagEditHint": "點一下移除（未儲存可復原）· 長按拖曳排序",
-    "aiFromBio": "根據你的個人簡介推薦"
+    "tagEditHint": "點一下移除（未儲存可復原）· 長按拖曳排序"
   },
   "activityReview": {
     "noNewFriends": "沒有需要整理的新朋友",

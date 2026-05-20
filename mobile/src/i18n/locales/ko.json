@@ -902,6 +902,7 @@
     "pinLimitMessage": "최대 {{max}}개의 태그를 고정할 수 있습니다",
     "dragHint": "길게 눌러 고정, 화살표로 순서 변경",
     "aiSuggestionsTitle": "AI 추천",
+    "aiFromBioTitle": "자기소개를 바탕으로 한 AI 추천",
     "pinTag": "태그 고정",
     "unpinTag": "고정 해제",
     "publicTagsTitle": "공개 태그",
@@ -915,8 +916,7 @@
     "tagLimitMessage": "최대 {{max}}개의 태그를 추가할 수 있습니다",
     "aiErrorGeneric": "AI 추천을 일시적으로 사용할 수 없습니다. 나중에 다시 시도하세요",
     "nativeHintNoPin": "길게 눌러 드래그해 정렬하기",
-    "tagEditHint": "탭하면 삭제(저장 전 되돌리기 가능) · 길게 눌러 정렬",
-    "aiFromBio": "자기소개에서 추천"
+    "tagEditHint": "탭하면 삭제(저장 전 되돌리기 가능) · 길게 눌러 정렬"
   },
   "activityReview": {
     "noNewFriends": "검토할 새 친구가 없습니다",

@@ -970,6 +970,7 @@
     "pinLimitMessage": "最多只能置顶 {{max}} 个标签",
     "dragHint": "长按可置顶，上下箭头排序",
     "aiSuggestionsTitle": "AI 为你推荐",
+    "aiFromBioTitle": "根据个人简介，AI 为你推荐",
     "pinTag": "置顶标签",
     "unpinTag": "取消置顶",
     "publicTagsTitle": "公开标签",
@@ -983,8 +984,7 @@
     "tagLimitMessage": "最多只能添加 {{max}} 个标签",
     "aiErrorGeneric": "AI 推荐暂时无法使用，请稍后再试",
     "nativeHintNoPin": "长按拖曳排序",
-    "tagEditHint": "点一下移除（未保存可恢复）· 长按拖动排序",
-    "aiFromBio": "根据你的个人简介推荐"
+    "tagEditHint": "点一下移除（未保存可恢复）· 长按拖动排序"
   },
   "activityReview": {
     "noNewFriends": "没有需要整理的新朋友",

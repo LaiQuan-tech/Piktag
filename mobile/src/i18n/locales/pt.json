@@ -902,6 +902,7 @@
     "pinLimitMessage": "Você pode fixar até {{max}} tags",
     "dragHint": "Pressione e segure para fixar, setas para reordenar",
     "aiSuggestionsTitle": "Sugestões da IA para você",
+    "aiFromBioTitle": "Sugestões de IA com base na sua bio",
     "pinTag": "Fixar tag",
     "unpinTag": "Desafixar",
     "publicTagsTitle": "Tags públicas",
@@ -915,8 +916,7 @@
     "tagLimitMessage": "Você pode adicionar até {{max}} tags",
     "aiErrorGeneric": "Sugestões da IA temporariamente indisponíveis, tente mais tarde",
     "nativeHintNoPin": "Pressione e arraste para reordenar",
-    "tagEditHint": "Toque para remover (reversível até salvar) · Pressione e segure para reordenar",
-    "aiFromBio": "Sugestões a partir da sua bio"
+    "tagEditHint": "Toque para remover (reversível até salvar) · Pressione e segure para reordenar"
   },
   "activityReview": {
     "noNewFriends": "Não há novos amigos para revisar",

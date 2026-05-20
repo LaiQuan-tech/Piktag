@@ -902,6 +902,7 @@
     "pinLimitMessage": "Vous pouvez épingler jusqu'à {{max}} tags",
     "dragHint": "Appui long pour épingler, flèches pour réordonner",
     "aiSuggestionsTitle": "Suggestions IA pour vous",
+    "aiFromBioTitle": "Suggestions IA d'après ta bio",
     "pinTag": "Épingler le tag",
     "unpinTag": "Désépingler",
     "publicTagsTitle": "Tags publics",
@@ -915,8 +916,7 @@
     "tagLimitMessage": "Vous pouvez ajouter jusqu'à {{max}} tags",
     "aiErrorGeneric": "Suggestions IA temporairement indisponibles, réessayez plus tard",
     "nativeHintNoPin": "Maintiens et glisse pour réorganiser",
-    "tagEditHint": "Touchez pour retirer (annulable avant d'enregistrer) · Appui long pour réordonner",
-    "aiFromBio": "Suggestions d'après votre bio"
+    "tagEditHint": "Touchez pour retirer (annulable avant d'enregistrer) · Appui long pour réordonner"
   },
   "activityReview": {
     "noNewFriends": "Aucun nouvel ami à examiner",

@@ -1558,34 +1558,26 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
 
           </View>
 
-          {/* Tags Section — full editing surface, no longer routes
-              to a separate ManageTagsScreen. Reported case: deleting
-              tags in 標籤管理 then returning here didn't sync until
-              Save was tapped (the focus listener swallowed the
-              refetch on quick round-trips, since fixed in 9e1c59b).
-              The deeper issue: splitting "edit profile" and "manage
-              tags" across two pages forced the user to context-switch
-              between bio editing and tag editing, which feels like
-              two unrelated features. Merged them. */}
-          <View style={styles.tag_divider} />
-
+          {/* Tags surface, continuous with 個人簡介 (no divider
+              between them — the previous tag_divider line + a
+              separate "根據你的個人簡介推薦" caption made the AI
+              block read as a disconnected second section, killing the
+              簡介→推薦 association the merge exists to create).
+              The header below states the relationship in ONE phrase.
+              Reported case: deleting tags in 標籤管理 then returning
+              here didn't sync until Save was tapped (focus listener
+              swallowed the refetch on quick round-trips; fixed in
+              9e1c59b). The deeper IA fix — merging "edit profile"
+              and "manage tags" — happened earlier. */}
           <View style={styles.tag_section}>
             {/* AI 為你推薦 — Phase 3 IA merge: moved directly under
-                個人簡介 so the bio → generated-tags link is
-                one-glance obvious. A tapped suggestion pipes into
-                handleAddTag and appears below in 我的標籤 as a
-                purple (owned) tag. Auto-fires shortly after the user
-                pauses typing bio / name / headline; ↻ re-rolls.
-                Hidden when bio is empty or tags hit the 10 cap. */}
+                個人簡介. A tapped suggestion pipes into handleAddTag
+                and appears below in 我的標籤 as a purple (owned) tag.
+                Auto-fires shortly after the user pauses typing bio /
+                name / headline; ↻ re-rolls. Hidden when bio is empty
+                or tags hit the 10 cap. */}
             {form.bio.trim().length > 0 && userTags.length < 10 && (
               <View style={styles.ai_inlineSection}>
-                {/* Explicit bio→AI caption so the relationship is
-                    stated, not just implied by proximity. Always on
-                    while the section shows (also avoids an empty box
-                    before the first suggestion lands). */}
-                <Text style={styles.ai_fromBioCaption}>
-                  {t('manageTags.aiFromBio', { defaultValue: '根據你的個人簡介推薦' })}
-                </Text>
                 {(aiLoading || aiSuggestions.length > 0 || aiTriedAndEmpty) && (
                   <View style={styles.ai_headerRow}>
                     <View style={styles.ai_headerLeft}>
@@ -1596,8 +1588,8 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
                       )}
                       <Text style={styles.ai_headerTitle}>
                         {aiLoading
-                          ? `${t('manageTags.aiSuggestionsTitle', { defaultValue: 'AI 為你推薦' })}…`
-                          : (t('manageTags.aiSuggestionsTitle', { defaultValue: 'AI 為你推薦' }))}
+                          ? `${t('manageTags.aiFromBioTitle', { defaultValue: '根據個人簡介，AI 為你推薦' })}…`
+                          : t('manageTags.aiFromBioTitle', { defaultValue: '根據個人簡介，AI 為你推薦' })}
                       </Text>
                     </View>
                     {/* Refresh icon button — clearly tappable shape
@@ -2759,7 +2751,10 @@ const styles = StyleSheet.create({
   // Tag styles (prefixed with tag_ to avoid conflicts)
   tag_section: {
     paddingHorizontal: 20,
-    paddingTop: 24,
+    // Tightened from 24 → 8 with the bio↔AI divider removed so the
+    // AI 為你推薦 block reads as a direct continuation of the bio,
+    // not a separate section.
+    paddingTop: 8,
   },
   tag_divider: {
     height: 1,
@@ -2953,11 +2948,9 @@ const styles = StyleSheet.create({
     marginTop: 12,
     gap: 10,
   },
-  // Phase 3: explicit "tags come from your 個人簡介" caption.
-  ai_fromBioCaption: {
-    fontSize: 12,
-    color: COLORS.gray500,
-  },
+  // (ai_fromBioCaption removed — the bio→AI relationship is now
+  // stated in the section header itself, "根據個人簡介，AI 為你推薦",
+  // so a separate small caption above is redundant.)
   ai_headerRow: {
     flexDirection: 'row',
     alignItems: 'center',

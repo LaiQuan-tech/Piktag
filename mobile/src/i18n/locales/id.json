@@ -902,6 +902,7 @@
     "pinLimitMessage": "Anda dapat menyematkan hingga {{max}} tag",
     "dragHint": "Tekan lama untuk menyematkan, panah untuk mengurutkan ulang",
     "aiSuggestionsTitle": "Saran AI untuk Anda",
+    "aiFromBioTitle": "Saran AI berdasarkan bio Anda",
     "pinTag": "Sematkan tag",
     "unpinTag": "Lepas sematan",
     "publicTagsTitle": "Tag Publik",
@@ -915,8 +916,7 @@
     "tagLimitMessage": "Anda dapat menambahkan hingga {{max}} tag",
     "aiErrorGeneric": "Saran AI sementara tidak tersedia, coba lagi nanti",
     "nativeHintNoPin": "Tekan lama lalu seret untuk mengurutkan",
-    "tagEditHint": "Ketuk untuk menghapus (bisa dibatalkan sebelum disimpan) · Tahan untuk mengurutkan",
-    "aiFromBio": "Saran dari bio kamu"
+    "tagEditHint": "Ketuk untuk menghapus (bisa dibatalkan sebelum disimpan) · Tahan untuk mengurutkan"
   },
   "activityReview": {
     "noNewFriends": "Tidak ada teman baru untuk ditinjau",
