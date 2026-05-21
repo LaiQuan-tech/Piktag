@@ -1363,5 +1363,8 @@
     "title": "追蹤者",
     "count": "{{count}} 位追蹤者",
     "empty": "還沒有人追蹤"
+  },
+  "cardCamera": {
+    "countdownHint": "{{count}} 秒後自動拍 · 點畫面延長"
   }
 }

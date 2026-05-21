@@ -1284,5 +1284,8 @@
     "title": "팔로워",
     "count": "팔로워 {{count}}명",
     "empty": "아직 팔로워가 없어요"
+  },
+  "cardCamera": {
+    "countdownHint": "{{count}}초 후 자동 촬영 · 탭하여 연장"
   }
 }

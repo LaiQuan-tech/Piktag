@@ -1349,5 +1349,8 @@
     "title": "追踪者",
     "count": "{{count}} 位追踪者",
     "empty": "还没有人追踪"
+  },
+  "cardCamera": {
+    "countdownHint": "{{count}} 秒后自动拍 · 点画面延长"
   }
 }

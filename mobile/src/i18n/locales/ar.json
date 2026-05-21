@@ -1284,5 +1284,8 @@
     "title": "المتابعون",
     "count": "{{count}} متابع",
     "empty": "لا متابعين بعد"
+  },
+  "cardCamera": {
+    "countdownHint": "تلقائي بعد {{count}}ث · انقر للتمديد"
   }
 }

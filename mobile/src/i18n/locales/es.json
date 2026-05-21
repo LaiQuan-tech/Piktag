@@ -1284,5 +1284,8 @@
     "title": "Seguidores",
     "count": "{{count}} seguidores",
     "empty": "Aún no tienes seguidores"
+  },
+  "cardCamera": {
+    "countdownHint": "Auto en {{count}}s · Toca para extender"
   }
 }

@@ -1363,5 +1363,8 @@
     "title": "Người theo dõi",
     "count": "{{count}} người theo dõi",
     "empty": "Chưa có người theo dõi"
+  },
+  "cardCamera": {
+    "countdownHint": "Tự động sau {{count}}s · Chạm để gia hạn"
   }
 }

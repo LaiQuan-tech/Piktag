@@ -23,11 +23,12 @@
 //                               itself. Create-contact flow uses it
 //                               to also pop the form → back to 好友頁.
 
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
   TouchableOpacity,
+  Pressable,
   StyleSheet,
   StatusBar,
   Alert,
@@ -128,6 +129,14 @@ export default function CardCameraScreen({ navigation, route }: Props) {
   // can fire two takePictureAsync before `capturing` state flushes.
   const busyRef = useRef(false);
 
+  // 3s auto-capture countdown (Option C — pragmatic, no native deps).
+  // Starts once permission lands; ticks 3→2→1→0, fires handleShutter
+  // at 0. Tapping the dimmed preview RESETs to 3 (gives the user
+  // more time to align). Manual shutter press clears the countdown
+  // and captures immediately. Cleared on close / goManual too.
+  const COUNTDOWN_START = 3;
+  const [countdown, setCountdown] = useState<number | null>(null);
+
   const onCaptured: ((b64: string, mime: string) => void) | undefined =
     route.params?.onCaptured;
   const onManual: (() => void) | undefined = route.params?.onManual;
@@ -139,6 +148,7 @@ export default function CardCameraScreen({ navigation, route }: Props) {
   const onClose: (() => void) | undefined = route.params?.onClose;
 
   const close = useCallback(() => {
+    setCountdown(null);
     // goBack first (pop the camera) so the caller screen is focused
     // when onClose runs — mirrors the capture path's ordering.
     if (navigation.canGoBack()) navigation.goBack();
@@ -147,6 +157,7 @@ export default function CardCameraScreen({ navigation, route }: Props) {
 
   // "或手動輸入" — bail to the form (caller focuses the name field).
   const goManual = useCallback(() => {
+    setCountdown(null);
     onManual?.();
     if (navigation.canGoBack()) navigation.goBack();
   }, [navigation, onManual]);
@@ -154,6 +165,7 @@ export default function CardCameraScreen({ navigation, route }: Props) {
   const handleShutter = useCallback(async () => {
     if (busyRef.current || !cameraRef.current) return;
     busyRef.current = true;
+    setCountdown(null); // manual press cancels auto-countdown
     setCapturing(true);
     try {
       const photo = await cameraRef.current.takePictureAsync({
@@ -195,6 +207,39 @@ export default function CardCameraScreen({ navigation, route }: Props) {
       setCapturing(false);
     }
   }, [navigation, onCaptured, t]);
+
+  // Auto-start the countdown once camera permission lands and we're
+  // not already mid-capture. Runs ONCE per permission-grant cycle.
+  useEffect(() => {
+    if (permission?.granted && countdown === null && !capturing && !busyRef.current) {
+      setCountdown(COUNTDOWN_START);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [permission?.granted]);
+
+  // Tick. At 0, fire the shutter. setTimeout (vs setInterval) so each
+  // tick is its own scheduled task — easier cleanup on unmount.
+  useEffect(() => {
+    if (countdown === null) return;
+    if (countdown <= 0) {
+      setCountdown(null);
+      handleShutter();
+      return;
+    }
+    const id = setTimeout(() => {
+      setCountdown((n) => (n === null ? null : n - 1));
+    }, 1000);
+    return () => clearTimeout(id);
+  }, [countdown, handleShutter]);
+
+  // Tap-anywhere-on-preview to reset the countdown back to 3. Gives
+  // the user agency: if they're not ready, one tap buys 3 more
+  // seconds. Refuses while capturing so a stray tap doesn't restart
+  // a countdown after the shutter has already fired.
+  const resetCountdown = useCallback(() => {
+    if (capturing || busyRef.current) return;
+    setCountdown(COUNTDOWN_START);
+  }, [capturing]);
 
   // Permission still resolving
   if (!permission) {
@@ -253,8 +298,14 @@ export default function CardCameraScreen({ navigation, route }: Props) {
         </View>
 
         {/* Dimmed surround with a clear card-aspect window (same
-            three-band technique as CameraScanScreen). */}
-        <View style={StyleSheet.absoluteFill}>
+            three-band technique as CameraScanScreen). Wrapped in a
+            Pressable so a tap anywhere on the dimmed area RESETS the
+            auto-capture countdown (gives the user 3 more seconds to
+            align). Shutter / close / manual link are later siblings
+            in the outer overlay → they sit on top in z-order and
+            intercept their own taps first, so this catches the
+            "blank space" taps cleanly. */}
+        <Pressable style={StyleSheet.absoluteFill} onPress={resetCountdown}>
           <View style={styles.overlayDark} />
           <View style={styles.middleRow}>
             <View style={styles.overlayDark} />
@@ -267,14 +318,20 @@ export default function CardCameraScreen({ navigation, route }: Props) {
             <View style={styles.overlayDark} />
           </View>
           <View style={styles.overlayDark} />
-        </View>
+        </Pressable>
 
-        {/* Hint */}
+        {/* Hint / countdown. During countdown: show "{n}s 後自動拍 ·
+            點畫面延長"; otherwise show the static alignment hint. */}
         <View style={styles.hintContainer} pointerEvents="none">
           <Text style={styles.hintText}>
-            {t('camera.cardFrameHint', {
-              defaultValue: '把整張名片對齊框內、保持清晰',
-            })}
+            {countdown !== null && countdown > 0
+              ? t('cardCamera.countdownHint', {
+                  count: countdown,
+                  defaultValue: '{{count}} 秒後自動拍 · 點畫面延長',
+                })
+              : t('camera.cardFrameHint', {
+                  defaultValue: '把整張名片對齊框內、保持清晰',
+                })}
           </Text>
         </View>
 

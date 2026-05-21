@@ -1284,5 +1284,8 @@
     "title": "फ़ॉलोअर",
     "count": "{{count}} फ़ॉलोअर",
     "empty": "अभी कोई फ़ॉलोअर नहीं"
+  },
+  "cardCamera": {
+    "countdownHint": "{{count}}s में स्वतः · टैप करके बढ़ाएँ"
   }
 }

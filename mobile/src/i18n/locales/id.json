@@ -1284,5 +1284,8 @@
     "title": "Pengikut",
     "count": "{{count}} pengikut",
     "empty": "Belum ada pengikut"
+  },
+  "cardCamera": {
+    "countdownHint": "Auto {{count}}d · Ketuk untuk perpanjang"
   }
 }
