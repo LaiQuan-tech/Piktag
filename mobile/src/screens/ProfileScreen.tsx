@@ -19,7 +19,7 @@ import {
 } from 'lucide-react-native';
 import PlatformIcon from '../components/PlatformIcon';
 import { useTranslation } from 'react-i18next';
-import { COLORS } from '../constants/theme';
+import { COLORS, type ColorPalette } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
 import { useFocusEffect } from '@react-navigation/native';
 import { supabase } from '../lib/supabase';
@@ -55,6 +55,7 @@ const STAT_HITSLOP = { top: 8, bottom: 8, left: 4, right: 4 };
 export default function ProfileScreen({ navigation }: ProfileScreenProps) {
   const { t } = useTranslation();
   const { colors, isDark } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const { user } = useAuth();
   // Read the (already hydrated) profile from AuthContext so we don't
   // re-fetch piktag_profiles on every mount. The local `profile`
@@ -326,7 +327,7 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
         <Text style={[styles.headerTitle, { color: colors.text }]}>{t('profile.pageTitle')}</Text>
         <View style={styles.headerRight}>
           <TouchableOpacity style={styles.headerIconBtn} activeOpacity={0.6} onPress={handleNavigateSettings} accessibilityLabel="設定" accessibilityRole="button">
-            <Settings size={24} color={COLORS.gray900} />
+            <Settings size={24} color={colors.gray900} />
           </TouchableOpacity>
         </View>
       </View>
@@ -337,7 +338,7 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.piktag500} />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.piktag500} />}
       >
         {/* ============ SECTION 1: Personal Info + Tags (Threads style) ============ */}
         <View style={styles.profileSection}>
@@ -369,7 +370,7 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
               <View style={styles.nameRow}>
                 <Text style={styles.displayName}>{headerTitle}</Text>
                 {/* {profile?.is_verified && (
-                  <CheckCircle2 size={16} color={COLORS.blue500} fill={COLORS.blue500} strokeWidth={0} style={{ marginLeft: 4 }} />
+                  <CheckCircle2 size={16} color={colors.blue500} fill={colors.blue500} strokeWidth={0} style={{ marginLeft: 4 }} />
                 )} */}
               </View>
               <Text style={styles.usernameText}>@{displayUsername}</Text>
@@ -522,7 +523,7 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
                 <Text style={styles.socialCardLabel} numberOfLines={1}>
                   {bl.label || bl.platform}
                 </Text>
-                <ExternalLink size={14} color={COLORS.gray300} />
+                <ExternalLink size={14} color={colors.gray300} />
               </TouchableOpacity>
             ))}
           </View>
@@ -530,7 +531,7 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
 
         {activeBiolinks.length === 0 && !profile?.phone && !user?.email && (
           <View style={styles.emptySection}>
-            <MessageCircle size={32} color={COLORS.gray200} />
+            <MessageCircle size={32} color={colors.gray200} />
             <Text style={styles.emptyText}>{t('profile.noContactMethods')}</Text>
           </View>
         )}
@@ -548,10 +549,11 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
 
 const TOP_EDGES = ['top'] as const;
 
-const styles = StyleSheet.create({
+function makeStyles(c: ColorPalette) {
+  return StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.white,
+    backgroundColor: c.white,
   },
 
   // Header
@@ -562,14 +564,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingBottom: 12,
     paddingTop: 8,
-    backgroundColor: COLORS.white,
+    backgroundColor: c.white,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.gray100,
+    borderBottomColor: c.gray100,
   },
   headerTitle: {
     fontSize: 22,
     fontWeight: '700',
-    color: COLORS.gray900,
+    color: c.gray900,
   },
   headerRight: {
     flexDirection: 'row',
@@ -609,7 +611,7 @@ const styles = StyleSheet.create({
   displayName: {
     fontSize: 20,
     fontWeight: '700',
-    color: COLORS.gray900,
+    color: c.gray900,
   },
   usernameRow: {
     flexDirection: 'row',
@@ -618,7 +620,7 @@ const styles = StyleSheet.create({
   usernameText: {
     fontSize: 14,
     fontWeight: '500',
-    color: COLORS.gray500,
+    color: c.gray500,
   },
   // Faint italic caption that hints at the reverse-lookup affordance
   // sitting on the avatar's `+` badge. Faded enough to read as
@@ -626,7 +628,7 @@ const styles = StyleSheet.create({
   // ask the hint is hidden so it doesn't compete with the real status.
   askPromptHint: {
     fontSize: 12,
-    color: COLORS.gray400,
+    color: c.gray400,
     marginTop: 3,
     fontStyle: 'italic',
   },
@@ -638,27 +640,27 @@ const styles = StyleSheet.create({
   },
   statText: {
     fontSize: 14,
-    color: COLORS.gray500,
+    color: c.gray500,
   },
   statNumber: {
     fontWeight: '700',
-    color: COLORS.accent500,
+    color: c.accent500,
   },
   statLabel: {
-    color: COLORS.gray500,
+    color: c.gray500,
   },
   statDot: {
-    color: COLORS.gray400,
+    color: c.gray400,
   },
   headline: {
     fontSize: 14,
     fontWeight: '600',
-    color: COLORS.piktag600,
+    color: c.piktag600,
     marginBottom: 4,
   },
   bio: {
     fontSize: 14,
-    color: COLORS.gray700,
+    color: c.gray700,
     lineHeight: 21,
     marginBottom: 14,
   },
@@ -671,7 +673,7 @@ const styles = StyleSheet.create({
     marginBottom: 18,
   },
   tagChip: {
-    backgroundColor: COLORS.gray100,
+    backgroundColor: c.gray100,
     borderRadius: 9999,
     paddingHorizontal: 14,
     paddingVertical: 8,
@@ -681,7 +683,7 @@ const styles = StyleSheet.create({
   tagChipText: {
     fontSize: 14,
     fontWeight: '500',
-    color: COLORS.gray600,
+    color: c.gray600,
   },
 
   // Action Buttons
@@ -691,7 +693,7 @@ const styles = StyleSheet.create({
   },
   shareButton: {
     flex: 1,
-    backgroundColor: COLORS.piktag500,
+    backgroundColor: c.piktag500,
     borderRadius: 12,
     paddingVertical: 12,
     alignItems: 'center',
@@ -703,9 +705,9 @@ const styles = StyleSheet.create({
   },
   editButton: {
     flex: 1,
-    backgroundColor: COLORS.white,
+    backgroundColor: c.white,
     borderWidth: 1.5,
-    borderColor: COLORS.piktag200,
+    borderColor: c.piktag200,
     borderRadius: 12,
     paddingVertical: 12,
     alignItems: 'center',
@@ -713,17 +715,17 @@ const styles = StyleSheet.create({
   editButtonText: {
     fontSize: 15,
     fontWeight: '600',
-    color: COLORS.gray700,
+    color: c.gray700,
   },
 
   // ===== Profile completeness =====
   completenessBar: {
     marginTop: 12,
     padding: 12,
-    backgroundColor: COLORS.gray50,
+    backgroundColor: c.gray50,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: COLORS.gray100,
+    borderColor: c.gray100,
   },
   completenessHeader: {
     flexDirection: 'row',
@@ -734,21 +736,21 @@ const styles = StyleSheet.create({
   completenessText: {
     fontSize: 13,
     fontWeight: '700',
-    color: COLORS.gray700,
+    color: c.gray700,
   },
   completenessMissing: {
     fontSize: 12,
-    color: COLORS.piktag600,
+    color: c.piktag600,
   },
   completenessTrack: {
     height: 4,
-    backgroundColor: COLORS.gray200,
+    backgroundColor: c.gray200,
     borderRadius: 2,
     overflow: 'hidden',
   },
   completenessFill: {
     height: 4,
-    backgroundColor: COLORS.piktag500,
+    backgroundColor: c.piktag500,
     borderRadius: 2,
   },
 
@@ -760,7 +762,7 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     paddingHorizontal: 20,
     borderTopWidth: 1,
-    borderTopColor: COLORS.gray100,
+    borderTopColor: c.gray100,
   },
   iconCircle: {
     alignItems: 'center',
@@ -770,9 +772,9 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: COLORS.gray50,
+    backgroundColor: c.gray50,
     borderWidth: 1.5,
-    borderColor: COLORS.gray200,
+    borderColor: c.gray200,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -783,7 +785,7 @@ const styles = StyleSheet.create({
     paddingTop: 8,
     paddingBottom: 16,
     borderTopWidth: 1,
-    borderTopColor: COLORS.gray100,
+    borderTopColor: c.gray100,
     gap: 8,
   },
 
@@ -791,7 +793,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 13,
     fontWeight: '700',
-    color: COLORS.gray500,
+    color: c.gray500,
     textTransform: 'uppercase',
     letterSpacing: 0.8,
     paddingHorizontal: 20,
@@ -804,7 +806,7 @@ const styles = StyleSheet.create({
     paddingTop: 8,
     paddingBottom: 16,
     borderTopWidth: 1,
-    borderTopColor: COLORS.gray100,
+    borderTopColor: c.gray100,
   },
   contactGrid: {
     flexDirection: 'row',
@@ -815,9 +817,9 @@ const styles = StyleSheet.create({
   contactCard: {
     flex: 1,
     minWidth: 140,
-    backgroundColor: COLORS.white,
+    backgroundColor: c.white,
     borderWidth: 1.5,
-    borderColor: COLORS.gray100,
+    borderColor: c.gray100,
     borderRadius: 14,
     paddingVertical: 14,
     paddingHorizontal: 14,
@@ -834,14 +836,14 @@ const styles = StyleSheet.create({
   contactLabel: {
     fontSize: 11,
     fontWeight: '600',
-    color: COLORS.gray400,
+    color: c.gray400,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
   contactValue: {
     fontSize: 14,
     fontWeight: '600',
-    color: COLORS.gray900,
+    color: c.gray900,
   },
 
   // ===== Section 3: Social Accounts =====
@@ -849,7 +851,7 @@ const styles = StyleSheet.create({
     paddingTop: 8,
     paddingBottom: 16,
     borderTopWidth: 1,
-    borderTopColor: COLORS.gray100,
+    borderTopColor: c.gray100,
   },
   socialGrid: {
     paddingHorizontal: 20,
@@ -858,9 +860,9 @@ const styles = StyleSheet.create({
   socialCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: COLORS.white,
+    backgroundColor: c.white,
     borderWidth: 1.5,
-    borderColor: COLORS.gray100,
+    borderColor: c.gray100,
     borderRadius: 14,
     paddingVertical: 14,
     paddingHorizontal: 16,
@@ -870,7 +872,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 12,
-    backgroundColor: COLORS.gray50,
+    backgroundColor: c.gray50,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -878,7 +880,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 15,
     fontWeight: '600',
-    color: COLORS.gray900,
+    color: c.gray900,
   },
 
   // ===== Empty state =====
@@ -890,7 +892,8 @@ const styles = StyleSheet.create({
 
   emptyText: {
     fontSize: 14,
-    color: COLORS.gray400,
+    color: c.gray400,
     paddingVertical: 8,
   },
-});
+  });
+}

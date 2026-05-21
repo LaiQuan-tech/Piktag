@@ -27,7 +27,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import { ArrowLeft, Phone, Mail, MapPin, Gift, ExternalLink } from 'lucide-react-native';
 import { toBirthdayDate } from '../lib/birthday';
-import { COLORS } from '../constants/theme';
+import { COLORS, type ColorPalette } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
 import { useLocalContacts } from '../hooks/useLocalContacts';
 import ProfileIdentityHeader from '../components/ProfileIdentityHeader';
@@ -39,6 +39,7 @@ type Props = { navigation: any; route: any };
 export default function LocalContactDetailScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
   const { colors, isDark } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const contactId: string | undefined = route.params?.contactId;
   const { contacts, loading, refresh } = useLocalContacts();
 
@@ -79,7 +80,7 @@ export default function LocalContactDetailScreen({ navigation, route }: Props) {
         accessibilityRole="button"
         accessibilityLabel={t('common.back', { defaultValue: '返回' })}
       >
-        <ArrowLeft size={24} color={COLORS.gray900} strokeWidth={2.2} />
+        <ArrowLeft size={24} color={colors.gray900} strokeWidth={2.2} />
       </TouchableOpacity>
       <Text style={styles.headerTitle} numberOfLines={1}>
         {existing?.name ?? t('localContact.editTitle', { defaultValue: '聯絡人' })}
@@ -203,11 +204,11 @@ export default function LocalContactDetailScreen({ navigation, route }: Props) {
                 accessibilityLabel={existing.phone_normalized}
                 accessibilityRole="link"
               >
-                <Phone size={22} color={COLORS.gray900} strokeWidth={2.2} />
+                <Phone size={22} color={colors.gray900} strokeWidth={2.2} />
                 <Text style={styles.linkCardText} numberOfLines={1}>
                   {t('localContact.linkPhone', { defaultValue: '電話' })}
                 </Text>
-                <ExternalLink size={16} color={COLORS.gray400} />
+                <ExternalLink size={16} color={colors.gray400} />
               </TouchableOpacity>
             )}
             {existing.email_lower && (
@@ -222,11 +223,11 @@ export default function LocalContactDetailScreen({ navigation, route }: Props) {
                 accessibilityLabel={existing.email_lower}
                 accessibilityRole="link"
               >
-                <Mail size={22} color={COLORS.gray900} strokeWidth={2.2} />
+                <Mail size={22} color={colors.gray900} strokeWidth={2.2} />
                 <Text style={styles.linkCardText} numberOfLines={1}>
                   {t('localContact.linkEmail', { defaultValue: 'Email' })}
                 </Text>
-                <ExternalLink size={16} color={COLORS.gray400} />
+                <ExternalLink size={16} color={colors.gray400} />
               </TouchableOpacity>
             )}
             {existing.address && (
@@ -244,11 +245,11 @@ export default function LocalContactDetailScreen({ navigation, route }: Props) {
                 accessibilityLabel={existing.address}
                 accessibilityRole="link"
               >
-                <MapPin size={22} color={COLORS.gray900} strokeWidth={2.2} />
+                <MapPin size={22} color={colors.gray900} strokeWidth={2.2} />
                 <Text style={styles.linkCardText} numberOfLines={1}>
                   {t('localContact.linkAddress', { defaultValue: '地址' })}
                 </Text>
-                <ExternalLink size={16} color={COLORS.gray400} />
+                <ExternalLink size={16} color={colors.gray400} />
               </TouchableOpacity>
             )}
           </View>
@@ -259,7 +260,7 @@ export default function LocalContactDetailScreen({ navigation, route }: Props) {
         {birthdayDisplay && (
           <View style={styles.recordCard}>
             <View style={styles.reminderRow}>
-              <Gift size={16} color={COLORS.pink500} />
+              <Gift size={16} color={colors.pink500} />
               <Text style={styles.recordLabel}>
                 {t('friendDetail.reminderBirthday', { defaultValue: '生日' })}
               </Text>
@@ -272,8 +273,9 @@ export default function LocalContactDetailScreen({ navigation, route }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.white },
+function makeStyles(c: ColorPalette) {
+  return StyleSheet.create({
+  container: { flex: 1, backgroundColor: c.white },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -281,7 +283,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.gray100,
+    borderBottomColor: c.gray100,
   },
   headerBtn: {
     width: 52,
@@ -294,7 +296,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontSize: 17,
     fontWeight: '700',
-    color: COLORS.gray900,
+    color: c.gray900,
   },
   editBtn: {
     width: 52,
@@ -302,7 +304,7 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
     justifyContent: 'center',
   },
-  editBtnText: { fontSize: 16, fontWeight: '600', color: COLORS.piktag600 },
+  editBtnText: { fontSize: 16, fontWeight: '600', color: c.piktag600 },
   gateCenter: {
     flex: 1,
     alignItems: 'center',
@@ -311,7 +313,7 @@ const styles = StyleSheet.create({
   },
   gateMsg: {
     fontSize: 14,
-    color: COLORS.gray500,
+    color: c.gray500,
     textAlign: 'center',
     lineHeight: 21,
   },
@@ -341,9 +343,9 @@ const styles = StyleSheet.create({
   linkCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: COLORS.white,
+    backgroundColor: c.white,
     borderWidth: 1.5,
-    borderColor: COLORS.gray200,
+    borderColor: c.gray200,
     borderRadius: 16,
     paddingVertical: 16,
     paddingHorizontal: 18,
@@ -353,11 +355,11 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 16,
     fontWeight: '600',
-    color: COLORS.gray900,
+    color: c.gray900,
   },
   // Birthday → FriendDetail's recordCard pattern.
   recordCard: {
-    backgroundColor: COLORS.gray50,
+    backgroundColor: c.gray50,
     borderRadius: 16,
     padding: 16,
     marginTop: 16,
@@ -370,14 +372,15 @@ const styles = StyleSheet.create({
   },
   recordLabel: {
     fontSize: 14,
-    color: COLORS.gray500,
+    color: c.gray500,
     width: 70,
   },
   recordValue: {
     flex: 1,
     fontSize: 14,
     fontWeight: '500',
-    color: COLORS.gray900,
+    color: c.gray900,
     lineHeight: 20,
   },
-});
+  });
+}

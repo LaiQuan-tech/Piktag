@@ -23,7 +23,7 @@ import DraggableFlatList, { RenderItemParams, ScaleDecorator } from 'react-nativ
 import { requestMediaLibraryPermissionsAsync, launchImageLibraryAsync } from 'expo-image-picker';
 import { useTranslation } from 'react-i18next';
 import i18n from '../i18n';
-import { COLORS } from '../constants/theme';
+import { COLORS, type ColorPalette } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
 import { LinearGradient } from 'expo-linear-gradient';
 import PlatformIcon from '../components/PlatformIcon';
@@ -133,6 +133,9 @@ const MyTagChip = React.memo(function MyTagChip({
   isRemoving,
   onRemove,
 }: MyTagChipProps) {
+  // Sub-components need their own theme hooks.
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const handlePress = useCallback(() => {
     onRemove(userTag);
   }, [onRemove, userTag]);
@@ -145,7 +148,7 @@ const MyTagChip = React.memo(function MyTagChip({
       ]}
     >
       {(userTag as any).is_private && (
-        <EyeOff size={12} color={COLORS.gray500} />
+        <EyeOff size={12} color={colors.gray500} />
       )}
       <Text style={styles.tag_myTagChipText}>{displayName}</Text>
       <TouchableOpacity
@@ -157,7 +160,7 @@ const MyTagChip = React.memo(function MyTagChip({
         {isRemoving ? (
           <BrandSpinner size={16} />
         ) : (
-          <X size={14} color={COLORS.piktag600} />
+          <X size={14} color={colors.piktag600} />
         )}
       </TouchableOpacity>
     </View>
@@ -177,6 +180,9 @@ const PopularTagChip = React.memo(function PopularTagChip({
   isDisabled,
   onPress,
 }: PopularTagChipProps) {
+  // Sub-components need their own theme hooks.
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const displayName = useMemo(
     () => (tag.name.startsWith('#') ? tag.name : `#${tag.name}`),
     [tag.name],
@@ -215,6 +221,7 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
   const focusPhone = !!route?.params?.focusPhone;
   const { t } = useTranslation();
   const { colors, isDark } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
 
   // Rotating bio placeholder — same shared hook as Search / the
   // create-Tag input. Cycles job+interest+quirk example bios so a
@@ -1388,7 +1395,7 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
             accessibilityRole="button"
             accessibilityLabel={t('common.back')}
           >
-            <ArrowLeft size={24} color={COLORS.gray900} />
+            <ArrowLeft size={24} color={colors.gray900} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>{t('editProfile.headerTitle')}</Text>
           <View style={{ width: 40 }} />
@@ -1411,7 +1418,7 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
           accessibilityLabel="返回"
           accessibilityRole="button"
         >
-          <ArrowLeft size={24} color={COLORS.gray900} />
+          <ArrowLeft size={24} color={colors.gray900} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>{t('editProfile.headerTitle')}</Text>
         <TouchableOpacity
@@ -1474,7 +1481,7 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
                 )}
                 {showMissing && (
                   <View style={styles.completionInlineMissingRow}>
-                    <AtomIcon size={12} color={COLORS.piktag500} />
+                    <AtomIcon size={12} color={colors.piktag500} />
                     <Text style={styles.completionInlineText}>
                       {t('editProfile.completionInline', {
                         items: missing.join('、'),
@@ -1516,7 +1523,7 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
                 value={form.full_name}
                 onChangeText={(v) => updateField('full_name', v)}
                 placeholder={t('editProfile.namePlaceholder')}
-                placeholderTextColor={COLORS.gray400}
+                placeholderTextColor={colors.gray400}
               />
             </View>
 
@@ -1527,7 +1534,7 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
                 value={form.username}
                 onChangeText={(v) => updateField('username', v)}
                 placeholder={t('editProfile.usernamePlaceholder')}
-                placeholderTextColor={COLORS.gray400}
+                placeholderTextColor={colors.gray400}
                 autoCapitalize="none"
               />
             </View>
@@ -1539,7 +1546,7 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
                 value={form.headline}
                 onChangeText={(v) => updateField('headline', v)}
                 placeholder={headlinePlaceholder}
-                placeholderTextColor={COLORS.gray400}
+                placeholderTextColor={colors.gray400}
                 maxLength={50}
               />
             </View>
@@ -1551,7 +1558,7 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
                 value={form.bio}
                 onChangeText={(v) => updateField('bio', v)}
                 placeholder={bioPlaceholder}
-                placeholderTextColor={COLORS.gray400}
+                placeholderTextColor={colors.gray400}
                 multiline
                 numberOfLines={2}
                 textAlignVertical="top"
@@ -1587,7 +1594,7 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
                       {aiLoading ? (
                         <BrandSpinner size={16} />
                       ) : (
-                        <AtomIcon size={14} color={COLORS.piktag600} />
+                        <AtomIcon size={14} color={colors.piktag600} />
                       )}
                       <Text style={styles.ai_headerTitle}>
                         {aiLoading
@@ -1613,7 +1620,7 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
                         accessibilityRole="button"
                         accessibilityLabel={t('ask.regenerateAiTags', { defaultValue: '重新生成' })}
                       >
-                        <RefreshCw size={14} color={COLORS.piktag600} strokeWidth={2.2} />
+                        <RefreshCw size={14} color={colors.piktag600} strokeWidth={2.2} />
                       </TouchableOpacity>
                     )}
                   </View>
@@ -1658,7 +1665,7 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
                     {t('manageTags.tagCount', { count: userTags.length, max: MAX_TAGS })}
                   </Text>
                   {userTags.length >= MAX_TAGS && (
-                    <AlertTriangle size={13} color={COLORS.red500} />
+                    <AlertTriangle size={13} color={colors.red500} />
                   )}
                 </View>
                 {/* Pinned count badge removed — pinning is a future
@@ -1725,11 +1732,11 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
                     AskCreateModal pattern. Same 40×40 / borderRadius 12
                     square-rounded shape across the whole app. */}
                 <View style={styles.tag_addInputPill}>
-                  <Hash size={18} color={COLORS.gray400} />
+                  <Hash size={18} color={colors.gray400} />
                   <TextInput
                     style={styles.tag_addInput}
                     placeholder={t('manageTags.tagInputPlaceholder', { defaultValue: '+ 新增標籤' })}
-                    placeholderTextColor={COLORS.gray400}
+                    placeholderTextColor={colors.gray400}
                     value={tagInput}
                     onChangeText={(v) => v.length <= MAX_TAG_LENGTH && setTagInput(v)}
                     returnKeyType="done"
@@ -1776,9 +1783,9 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
                     {t('manageTags.popularTagsTitle', { defaultValue: '熱門標籤' })}
                   </Text>
                   {showPopularTags ? (
-                    <ChevronUp size={16} color={COLORS.gray500} />
+                    <ChevronUp size={16} color={colors.gray500} />
                   ) : (
-                    <ChevronDown size={16} color={COLORS.gray500} />
+                    <ChevronDown size={16} color={colors.gray500} />
                   )}
                 </Pressable>
                 {showPopularTags && (
@@ -1830,10 +1837,10 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
                     onPress={() => handleOpenLink(link.url)}
                     onLongPress={drag}
                     disabled={isActive}
-                    style={[styles.biolinkItem, isActive && { backgroundColor: COLORS.gray50, borderRadius: 12 }]}
+                    style={[styles.biolinkItem, isActive && { backgroundColor: colors.gray50, borderRadius: 12 }]}
                   >
                     <TouchableOpacity onPressIn={drag} style={styles.biolinkDragHandle}>
-                      <GripVertical size={20} color={COLORS.gray400} />
+                      <GripVertical size={20} color={colors.gray400} />
                     </TouchableOpacity>
                     <View style={styles.biolinkInfo}>
                       <Text style={styles.biolinkTitle}>
@@ -1854,14 +1861,14 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
                         activeOpacity={0.6}
                         onPress={() => openEditBiolinkModal(link)}
                       >
-                        <Pencil size={18} color={COLORS.gray500} />
+                        <Pencil size={18} color={colors.gray500} />
                       </TouchableOpacity>
                       <TouchableOpacity
                         style={styles.biolinkActionBtn}
                         onPress={() => handleDeleteBiolink(link)}
                         activeOpacity={0.6}
                       >
-                        <Trash2 size={18} color={COLORS.red500} />
+                        <Trash2 size={18} color={colors.red500} />
                       </TouchableOpacity>
                     </View>
                   </TouchableOpacity>
@@ -1871,7 +1878,7 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
             {/* Platform picker flow */}
             {!showPlatformPicker && !selectedPlatform && (
               <TouchableOpacity onPress={() => setShowPlatformPicker(true)} style={styles.addLinkBtn}>
-                <Plus size={18} color={COLORS.piktag500} />
+                <Plus size={18} color={colors.piktag500} />
                 <Text style={styles.addLinkBtnText}>{t('editProfile.addLink')}</Text>
               </TouchableOpacity>
             )}
@@ -1914,9 +1921,9 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
                   }}
                 >
                   <View style={styles.platformOptionMoreIcon}>
-                    <Plus size={18} color={COLORS.piktag500} />
+                    <Plus size={18} color={colors.piktag500} />
                   </View>
-                  <Text style={[styles.platformOptionText, { color: COLORS.piktag600, fontWeight: '600' }]}>
+                  <Text style={[styles.platformOptionText, { color: colors.piktag600, fontWeight: '600' }]}>
                     {t('editProfile.browseAllPlatforms', { defaultValue: 'Browse all platforms' })}
                   </Text>
                 </TouchableOpacity>
@@ -1954,14 +1961,14 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
                     >
                       <Text style={styles.countryFlag}>{phoneCountry.flag}</Text>
                       <Text style={styles.countryDial}>{phoneCountry.dial}</Text>
-                      <ChevronDown size={14} color={COLORS.gray500} />
+                      <ChevronDown size={14} color={colors.gray500} />
                     </TouchableOpacity>
                     <TextInput
                       style={styles.phoneInput}
                       value={phoneNational}
                       onChangeText={(v) => setPhoneNational(v.replace(/\D/g, ''))}
                       placeholder={t('editProfile.phonePlaceholder')}
-                      placeholderTextColor={COLORS.gray400}
+                      placeholderTextColor={colors.gray400}
                       keyboardType="phone-pad"
                       maxLength={15}
                       autoFocus
@@ -2093,7 +2100,7 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
                 {editingBiolink ? t('editProfile.modalTitleEdit') : t('editProfile.modalTitleAdd')}
               </Text>
               <TouchableOpacity onPress={closeBiolinkModal} activeOpacity={0.6}>
-                <X size={24} color={COLORS.gray900} />
+                <X size={24} color={colors.gray900} />
               </TouchableOpacity>
             </View>
 
@@ -2180,14 +2187,14 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
                     >
                       <Text style={styles.countryFlag}>{phoneCountry.flag}</Text>
                       <Text style={styles.countryDial}>{phoneCountry.dial}</Text>
-                      <ChevronDown size={14} color={COLORS.gray500} />
+                      <ChevronDown size={14} color={colors.gray500} />
                     </TouchableOpacity>
                     <TextInput
                       style={styles.phoneInput}
                       value={phoneNational}
                       onChangeText={(v) => setPhoneNational(v.replace(/\D/g, ''))}
                       placeholder={t('editProfile.phonePlaceholder')}
-                      placeholderTextColor={COLORS.gray400}
+                      placeholderTextColor={colors.gray400}
                       keyboardType="phone-pad"
                       maxLength={15}
                     />
@@ -2211,7 +2218,7 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
                         );
                       }}
                       placeholder={t('editProfile.urlPlaceholder')}
-                      placeholderTextColor={COLORS.gray400}
+                      placeholderTextColor={colors.gray400}
                       autoCapitalize="none"
                       keyboardType="url"
                     />
@@ -2235,7 +2242,7 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
                         }}
                         activeOpacity={0.7}
                       >
-                        <CheckCircle2 size={14} color={COLORS.piktag500} />
+                        <CheckCircle2 size={14} color={colors.piktag500} />
                         <Text style={styles.detectHintText}>
                           {t('editProfile.detectedAs', {
                             platform: getPlatformLabel(autoDetectedPlatform, t),
@@ -2274,7 +2281,7 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
                             ? t(PLATFORM_PLACEHOLDER_KEYS[biolinkForm.platform])
                             : PLATFORM_PLACEHOLDER_KEYS[biolinkForm.platform] || ''
                         }
-                        placeholderTextColor={COLORS.gray400}
+                        placeholderTextColor={colors.gray400}
                         autoCapitalize="none"
                         keyboardType="url"
                       />
@@ -2296,7 +2303,7 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
                         }}
                         activeOpacity={0.7}
                       >
-                        <CheckCircle2 size={14} color={COLORS.piktag500} />
+                        <CheckCircle2 size={14} color={colors.piktag500} />
                         <Text style={styles.detectHintText}>
                           {t('editProfile.detectedAs', {
                             platform: getPlatformLabel(autoDetectedPlatform, t),
@@ -2457,10 +2464,11 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
   );
 }
 
-const styles = StyleSheet.create({
+function makeStyles(c: ColorPalette) {
+  return StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.white,
+    backgroundColor: c.white,
   },
   flex: {
     flex: 1,
@@ -2471,9 +2479,9 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 20,
     paddingBottom: 16,
-    backgroundColor: COLORS.white,
+    backgroundColor: c.white,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.gray100,
+    borderBottomColor: c.gray100,
   },
   headerBackBtn: {
     padding: 12,
@@ -2481,12 +2489,12 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: COLORS.gray900,
+    color: c.gray900,
   },
   headerSaveText: {
     fontSize: 16,
     fontWeight: '600',
-    color: COLORS.piktag600,
+    color: c.piktag600,
   },
   scrollView: {
     flex: 1,
@@ -2509,7 +2517,7 @@ const styles = StyleSheet.create({
   completionWelcomeInline: {
     fontSize: 14,
     fontWeight: '600',
-    color: COLORS.gray700,
+    color: c.gray700,
     textAlign: 'center',
   },
   completionInlineMissingRow: {
@@ -2522,7 +2530,7 @@ const styles = StyleSheet.create({
   },
   completionInlineText: {
     fontSize: 12,
-    color: COLORS.gray600,
+    color: c.gray600,
     textAlign: 'center',
     lineHeight: 17,
     fontWeight: '500',
@@ -2562,16 +2570,16 @@ const styles = StyleSheet.create({
   fieldLabel: {
     fontSize: 14,
     fontWeight: '600',
-    color: COLORS.gray700,
+    color: c.gray700,
     marginLeft: 4,
   },
   fieldInput: {
-    backgroundColor: COLORS.gray100,
+    backgroundColor: c.gray100,
     borderRadius: 16,
     paddingHorizontal: 16,
     paddingVertical: 14,
     fontSize: 16,
-    color: COLORS.gray900,
+    color: c.gray900,
   },
   fieldInputMultiline: {
     minHeight: 64,
@@ -2587,12 +2595,12 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: COLORS.gray900,
+    color: c.gray900,
     marginBottom: 14,
   },
   emptyText: {
     fontSize: 14,
-    color: COLORS.gray400,
+    color: c.gray400,
     marginBottom: 8,
   },
   biolinkDragHandle: {
@@ -2606,14 +2614,14 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingVertical: 14,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.gray100,
+    borderBottomColor: c.gray100,
   },
   biolinkIcon: {
     width: 28,
     height: 28,
     borderRadius: 6,
     marginRight: 10,
-    backgroundColor: COLORS.gray100,
+    backgroundColor: c.gray100,
   },
   biolinkInfo: {
     flex: 1,
@@ -2622,11 +2630,11 @@ const styles = StyleSheet.create({
   biolinkTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: COLORS.gray900,
+    color: c.gray900,
   },
   biolinkUrl: {
     fontSize: 13,
-    color: COLORS.gray500,
+    color: c.gray500,
     marginTop: 2,
   },
   biolinkActions: {
@@ -2648,10 +2656,10 @@ const styles = StyleSheet.create({
   addBiolinkText: {
     fontSize: 15,
     fontWeight: '600',
-    color: COLORS.piktag600,
+    color: c.piktag600,
   },
   saveButton: {
-    backgroundColor: COLORS.piktag500,
+    backgroundColor: c.piktag500,
     borderRadius: 14,
     paddingVertical: 16,
     alignItems: 'center',
@@ -2671,7 +2679,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   modalContent: {
-    backgroundColor: COLORS.white,
+    backgroundColor: c.white,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     paddingTop: 20,
@@ -2686,7 +2694,7 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: COLORS.gray900,
+    color: c.gray900,
   },
   modalBody: {
     gap: 16,
@@ -2700,20 +2708,20 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     borderRadius: 10,
     borderWidth: 1.5,
-    borderColor: COLORS.piktag200,
+    borderColor: c.piktag200,
     alignItems: 'center',
   },
   displayModeBtnActive: {
-    borderColor: COLORS.piktag500,
-    backgroundColor: COLORS.piktag50,
+    borderColor: c.piktag500,
+    backgroundColor: c.piktag50,
   },
   displayModeBtnText: {
     fontSize: 14,
     fontWeight: '600',
-    color: COLORS.gray500,
+    color: c.gray500,
   },
   displayModeBtnTextActive: {
-    color: COLORS.piktag600,
+    color: c.piktag600,
   },
   visibilityRow: {
     flexDirection: 'row',
@@ -2724,23 +2732,23 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: 8,
     borderWidth: 1.5,
-    borderColor: COLORS.piktag200,
+    borderColor: c.piktag200,
     alignItems: 'center',
   },
   visibilityBtnActive: {
-    borderColor: COLORS.piktag500,
-    backgroundColor: COLORS.piktag50,
+    borderColor: c.piktag500,
+    backgroundColor: c.piktag50,
   },
   visibilityBtnText: {
     fontSize: 12,
     fontWeight: '600',
-    color: COLORS.gray500,
+    color: c.gray500,
   },
   visibilityBtnTextActive: {
-    color: COLORS.piktag600,
+    color: c.piktag600,
   },
   modalSaveBtn: {
-    backgroundColor: COLORS.piktag500,
+    backgroundColor: c.piktag500,
     borderRadius: 14,
     paddingVertical: 16,
     alignItems: 'center',
@@ -2761,7 +2769,7 @@ const styles = StyleSheet.create({
   },
   tag_divider: {
     height: 1,
-    backgroundColor: COLORS.gray100,
+    backgroundColor: c.gray100,
     marginHorizontal: 20,
     marginTop: 24,
   },
@@ -2777,21 +2785,21 @@ const styles = StyleSheet.create({
   tag_previewChip: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: COLORS.piktag50,
+    backgroundColor: c.piktag50,
     borderRadius: 9999,
     borderWidth: 1.5,
-    borderColor: COLORS.piktag500,
+    borderColor: c.piktag500,
     paddingVertical: 8,
     paddingHorizontal: 14,
   },
   tag_previewChipText: {
     fontSize: 14,
     fontWeight: '700',
-    color: COLORS.piktag600,
+    color: c.piktag600,
   },
   tag_moreText: {
     fontSize: 13,
-    color: COLORS.gray400,
+    color: c.gray400,
     alignSelf: 'center',
   },
   tag_manageButton: {
@@ -2833,15 +2841,15 @@ const styles = StyleSheet.create({
   },
   tag_countText: {
     fontSize: 13,
-    color: COLORS.gray500,
+    color: c.gray500,
   },
   tag_countTextLimit: {
-    color: COLORS.red500,
+    color: c.red500,
     fontWeight: '600',
   },
   tag_sortHint: {
     fontSize: 12,
-    color: COLORS.gray400,
+    color: c.gray400,
     marginBottom: 8,
   },
   // (tag_swapHintBar / tag_swapHintText / tag_swapCancel removed in
@@ -2853,7 +2861,7 @@ const styles = StyleSheet.create({
   // "我的標籤" chips → shared <TagChip/> (one design contract)
   tag_emptyText: {
     fontSize: 14,
-    color: COLORS.gray400,
+    color: c.gray400,
     paddingVertical: 8,
   },
   // Inline add row — bordered input pill + separate + button. The
@@ -2876,20 +2884,20 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     paddingHorizontal: 12,
     borderWidth: 1,
-    borderColor: COLORS.gray200,
+    borderColor: c.gray200,
     borderRadius: 12,
-    backgroundColor: COLORS.white,
+    backgroundColor: c.white,
     minHeight: 40,
   },
   tag_addInput: {
     flex: 1,
     fontSize: 15,
-    color: COLORS.gray900,
+    color: c.gray900,
     paddingVertical: Platform.OS === 'ios' ? 6 : 2,
   },
   tag_charCount: {
     fontSize: 11,
-    color: COLORS.gray400,
+    color: c.gray400,
     minWidth: 32,
     textAlign: 'right',
   },
@@ -2897,7 +2905,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 12,
-    backgroundColor: COLORS.piktag500,
+    backgroundColor: c.piktag500,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -2921,7 +2929,7 @@ const styles = StyleSheet.create({
   tag_popularToggleText: {
     fontSize: 14,
     fontWeight: '600',
-    color: COLORS.gray700,
+    color: c.gray700,
   },
   tag_popularChipsWrap: {
     flexDirection: 'row',
@@ -2961,7 +2969,7 @@ const styles = StyleSheet.create({
   ai_headerTitle: {
     fontSize: 14,
     fontWeight: '600',
-    color: COLORS.piktag600,
+    color: c.piktag600,
   },
   // 32x32 circular icon button with a clear border + light fill —
   // unambiguously tappable. Disabled state drops opacity so users
@@ -2972,9 +2980,9 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: COLORS.piktag50,
+    backgroundColor: c.piktag50,
     borderWidth: 1,
-    borderColor: COLORS.piktag200,
+    borderColor: c.piktag200,
   },
   ai_refreshBtnDisabled: {
     opacity: 0.4,
@@ -2996,14 +3004,14 @@ const styles = StyleSheet.create({
   // tap-to-add pill in the app.)
   ai_emptyHint: {
     fontSize: 12,
-    color: COLORS.gray500,
+    color: c.gray500,
     fontStyle: 'italic',
     paddingHorizontal: 4,
   },
   tag_myTagChip: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: COLORS.piktag50,
+    backgroundColor: c.piktag50,
     borderRadius: 9999,
     paddingVertical: 8,
     paddingLeft: 14,
@@ -3011,15 +3019,15 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   tag_myTagChipPrivate: {
-    backgroundColor: COLORS.gray100,
+    backgroundColor: c.gray100,
     borderWidth: 1,
-    borderColor: COLORS.gray200,
+    borderColor: c.gray200,
     borderStyle: 'dashed',
   },
   tag_myTagChipText: {
     fontSize: 14,
     fontWeight: '500',
-    color: COLORS.piktag600,
+    color: c.piktag600,
   },
   tag_chipRemoveBtn: {
     padding: 2,
@@ -3027,7 +3035,7 @@ const styles = StyleSheet.create({
   tag_inputRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: COLORS.gray100,
+    backgroundColor: c.gray100,
     borderRadius: 16,
     paddingHorizontal: 16,
     height: 48,
@@ -3038,7 +3046,7 @@ const styles = StyleSheet.create({
   tag_textInput: {
     flex: 1,
     fontSize: 16,
-    color: COLORS.gray900,
+    color: c.gray900,
     padding: 0,
   },
   tag_privacyToggle: {
@@ -3050,14 +3058,14 @@ const styles = StyleSheet.create({
   },
   tag_privacyText: {
     fontSize: 14,
-    color: COLORS.gray400,
+    color: c.gray400,
   },
   tag_privacyTextActive: {
-    color: COLORS.piktag600,
+    color: c.piktag600,
     fontWeight: '500',
   },
   tag_addButton: {
-    backgroundColor: COLORS.piktag500,
+    backgroundColor: c.piktag500,
     borderRadius: 14,
     paddingVertical: 14,
     alignItems: 'center',
@@ -3073,22 +3081,22 @@ const styles = StyleSheet.create({
   },
   tag_popularTagChip: {
     borderWidth: 1,
-    borderColor: COLORS.gray200,
+    borderColor: c.gray200,
     borderRadius: 9999,
     paddingVertical: 8,
     paddingHorizontal: 16,
   },
   tag_popularTagChipAdded: {
-    backgroundColor: COLORS.piktag500,
-    borderColor: COLORS.piktag500,
+    backgroundColor: c.piktag500,
+    borderColor: c.piktag500,
   },
   tag_popularTagChipText: {
     fontSize: 14,
     fontWeight: '500',
-    color: COLORS.gray700,
+    color: c.gray700,
   },
   tag_popularTagChipTextAdded: {
-    color: COLORS.white,
+    color: c.white,
   },
   addLinkBtn: {
     flexDirection: 'row',
@@ -3098,7 +3106,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 4,
   },
   addLinkBtnText: {
-    color: COLORS.piktag500,
+    color: c.piktag500,
     fontSize: 15,
     fontWeight: '500',
   },
@@ -3111,7 +3119,7 @@ const styles = StyleSheet.create({
   pickerTitle: {
     fontSize: 13,
     fontWeight: '600',
-    color: COLORS.gray500,
+    color: c.gray500,
     marginBottom: 8,
     paddingHorizontal: 4,
   },
@@ -3129,13 +3137,13 @@ const styles = StyleSheet.create({
     width: 28,
     height: 28,
     borderRadius: 6,
-    backgroundColor: COLORS.piktag50,
+    backgroundColor: c.piktag50,
     alignItems: 'center',
     justifyContent: 'center',
   },
   platformOptionText: {
     fontSize: 15,
-    color: COLORS.gray900,
+    color: c.gray900,
     fontWeight: '500',
   },
   platformChipRow: {
@@ -3162,13 +3170,13 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: 20,
     borderWidth: 1.5,
-    borderColor: COLORS.gray200,
-    backgroundColor: COLORS.gray100,
+    borderColor: c.gray200,
+    backgroundColor: c.gray100,
   },
   browseAllChipText: {
     fontSize: 13,
     fontWeight: '600',
-    color: COLORS.gray700,
+    color: c.gray700,
   },
   // Auto-detect "Detected as X" hint below the URL field. Sits
   // inside the same fieldGroup so it visually anchors to the input
@@ -3181,15 +3189,15 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     paddingHorizontal: 10,
     borderRadius: 8,
-    backgroundColor: COLORS.piktag50,
+    backgroundColor: c.piktag50,
     borderWidth: 1,
-    borderColor: COLORS.piktag200,
+    borderColor: c.piktag200,
     alignSelf: 'flex-start',
   },
   detectHintText: {
     fontSize: 12,
     fontWeight: '600',
-    color: COLORS.piktag600,
+    color: c.piktag600,
   },
   platformChip: {
     flexDirection: 'row',
@@ -3199,27 +3207,27 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: 20,
     borderWidth: 1.5,
-    borderColor: COLORS.gray200,
-    backgroundColor: COLORS.white,
+    borderColor: c.gray200,
+    backgroundColor: c.white,
   },
   platformChipActive: {
-    borderColor: COLORS.piktag500,
-    backgroundColor: COLORS.piktag50,
+    borderColor: c.piktag500,
+    backgroundColor: c.piktag50,
   },
   platformChipText: {
     fontSize: 13,
     fontWeight: '600',
-    color: COLORS.gray500,
+    color: c.gray500,
   },
   platformChipTextActive: {
-    color: COLORS.piktag600,
+    color: c.piktag600,
   },
   prefixInputRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: COLORS.white,
+    backgroundColor: c.white,
     borderWidth: 1,
-    borderColor: COLORS.gray200 ?? '#E5E7EB',
+    borderColor: c.gray200 ?? '#E5E7EB',
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 10,
@@ -3227,13 +3235,13 @@ const styles = StyleSheet.create({
   },
   prefixText: {
     fontSize: 14,
-    color: COLORS.gray400 ?? '#9CA3AF',
+    color: c.gray400 ?? '#9CA3AF',
     flexShrink: 0,
   },
   accountInput: {
     flex: 1,
     fontSize: 14,
-    color: COLORS.gray900,
+    color: c.gray900,
     padding: 0,
   },
   // Phone-specific row: [🇹🇼 +886 ▾] [ national number ... ]
@@ -3249,9 +3257,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 10,
     borderWidth: 1,
-    borderColor: COLORS.gray200 ?? '#E5E7EB',
+    borderColor: c.gray200 ?? '#E5E7EB',
     borderRadius: 8,
-    backgroundColor: COLORS.white,
+    backgroundColor: c.white,
   },
   countryFlag: {
     fontSize: 18,
@@ -3259,18 +3267,18 @@ const styles = StyleSheet.create({
   countryDial: {
     fontSize: 14,
     fontWeight: '600',
-    color: COLORS.gray900,
+    color: c.gray900,
   },
   phoneInput: {
     flex: 1,
     fontSize: 14,
-    color: COLORS.gray900,
+    color: c.gray900,
     paddingHorizontal: 12,
     paddingVertical: 10,
     borderWidth: 1,
-    borderColor: COLORS.gray200 ?? '#E5E7EB',
+    borderColor: c.gray200 ?? '#E5E7EB',
     borderRadius: 8,
-    backgroundColor: COLORS.white,
+    backgroundColor: c.white,
   },
   newLinkForm: {
     backgroundColor: '#F9FAFB',
@@ -3289,7 +3297,7 @@ const styles = StyleSheet.create({
   newLinkPlatformName: {
     fontSize: 16,
     fontWeight: '600',
-    color: COLORS.gray900,
+    color: c.gray900,
   },
   newLinkActions: {
     flexDirection: 'row',
@@ -3302,28 +3310,29 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
   },
   cancelText: {
-    color: COLORS.piktag600,
+    color: c.piktag600,
     fontSize: 14,
     textAlign: 'center',
     paddingVertical: 8,
   },
   saveBtn: {
-    backgroundColor: COLORS.piktag500,
+    backgroundColor: c.piktag500,
     borderRadius: 8,
     paddingVertical: 8,
     paddingHorizontal: 16,
   },
   saveBtnText: {
-    color: COLORS.white,
+    color: c.white,
     fontSize: 14,
     fontWeight: '600',
   },
   input: {
-    backgroundColor: COLORS.gray100,
+    backgroundColor: c.gray100,
     borderRadius: 16,
     paddingHorizontal: 16,
     paddingVertical: 14,
     fontSize: 16,
-    color: COLORS.gray900,
+    color: c.gray900,
   },
-});
+  });
+}

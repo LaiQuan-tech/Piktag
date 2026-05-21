@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   View,
   Text,
@@ -18,7 +18,7 @@ import { ArrowLeft, ChevronRight, Check, X } from 'lucide-react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTranslation } from 'react-i18next';
 import { changeLanguageSafe } from '../i18n';
-import { COLORS } from '../constants/theme';
+import { COLORS, type ColorPalette } from '../constants/theme';
 import { supabase, supabaseUrl, supabaseAnonKey } from '../lib/supabase';
 import { setAnalyticsOptIn } from '../lib/analytics';
 import { useAuth } from '../hooks/useAuth';
@@ -87,7 +87,8 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
   // the column is absent on a legacy row, the trigger's COALESCE defaults
   // to true; we mirror the same default here in the UI before fetch).
   const [vibeShiftEnabled, setVibeShiftEnabled] = useState(true);
-  const { isDark } = useTheme();
+  const { isDark, colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const [darkModeEnabled, setDarkModeEnabled] = useState(isDark);
   const [currentLanguage, setCurrentLanguage] = useState('zh-TW');
   const [loadingProfile, setLoadingProfile] = useState(true);
@@ -388,8 +389,8 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
             <Switch
               value={notificationsEnabled}
               onValueChange={handleNotificationsToggle}
-              trackColor={{ false: COLORS.gray200, true: COLORS.piktag300 }}
-              thumbColor={notificationsEnabled ? COLORS.piktag500 : COLORS.gray400}
+              trackColor={{ false: colors.gray200, true: colors.piktag300 }}
+              thumbColor={notificationsEnabled ? colors.piktag500 : colors.gray400}
             />
           ),
         },
@@ -406,8 +407,8 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
             <Switch
               value={vibeShiftEnabled}
               onValueChange={handleVibeShiftToggle}
-              trackColor={{ false: COLORS.gray200, true: COLORS.piktag300 }}
-              thumbColor={vibeShiftEnabled ? COLORS.piktag500 : COLORS.gray400}
+              trackColor={{ false: colors.gray200, true: colors.piktag300 }}
+              thumbColor={vibeShiftEnabled ? colors.piktag500 : colors.gray400}
             />
           ),
         },
@@ -418,8 +419,8 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
             <Switch
               value={shareLocation}
               onValueChange={handleShareLocationToggle}
-              trackColor={{ false: COLORS.gray200, true: COLORS.piktag300 }}
-              thumbColor={shareLocation ? COLORS.piktag500 : COLORS.gray400}
+              trackColor={{ false: colors.gray200, true: colors.piktag300 }}
+              thumbColor={shareLocation ? colors.piktag500 : colors.gray400}
             />
           ),
         },
@@ -434,7 +435,7 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
           rightElement: (
             <View style={styles.languageRight}>
               <Text style={styles.languageValue}>{languageLabel}</Text>
-              <ChevronRight size={20} color={COLORS.gray400} />
+              <ChevronRight size={20} color={colors.gray400} />
             </View>
           ),
         },
@@ -448,7 +449,7 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
   if (loadingProfile) {
     return (
       <View style={styles.container}>
-        <StatusBar barStyle="dark-content" backgroundColor={COLORS.white} />
+        <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor={colors.white} />
         <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
           <TouchableOpacity
             style={styles.headerBackBtn}
@@ -457,7 +458,7 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
             accessibilityRole="button"
             accessibilityLabel={t('common.back')}
           >
-            <ArrowLeft size={24} color={COLORS.gray900} />
+            <ArrowLeft size={24} color={colors.gray900} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>{t('settings.headerTitle')}</Text>
           <View style={styles.headerSpacer} />
@@ -469,7 +470,7 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor={COLORS.white} />
+      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor={colors.white} />
 
       {/* Header */}
       <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
@@ -480,7 +481,7 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
           accessibilityRole="button"
           accessibilityLabel={t('common.back')}
         >
-          <ArrowLeft size={24} color={COLORS.gray900} />
+          <ArrowLeft size={24} color={colors.gray900} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>{t('settings.headerTitle')}</Text>
         <View style={styles.headerSpacer} />
@@ -514,7 +515,7 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
                     {item.label}
                   </Text>
                   {item.rightElement || (
-                    <ChevronRight size={20} color={COLORS.gray400} />
+                    <ChevronRight size={20} color={colors.gray400} />
                   )}
                 </TouchableOpacity>
               ))}
@@ -601,7 +602,7 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
                 activeOpacity={0.6}
                 style={styles.langModalCloseBtn}
               >
-                <X size={24} color={COLORS.gray900} />
+                <X size={24} color={colors.gray900} />
               </TouchableOpacity>
             </View>
             <FlatList
@@ -620,7 +621,7 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
                     {item.label}
                   </Text>
                   {currentLanguage === item.key && (
-                    <Check size={20} color={COLORS.piktag500} />
+                    <Check size={20} color={colors.piktag500} />
                   )}
                 </TouchableOpacity>
               )}
@@ -633,19 +634,20 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
   );
 }
 
-const styles = StyleSheet.create({
+function makeStyles(c: ColorPalette) {
+  return StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.white,
+    backgroundColor: c.white,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 20,
     paddingBottom: 16,
-    backgroundColor: COLORS.white,
+    backgroundColor: c.white,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.gray100,
+    borderBottomColor: c.gray100,
   },
   headerBackBtn: {
     padding: 12,
@@ -654,7 +656,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 18,
     fontWeight: '700',
-    color: COLORS.gray900,
+    color: c.gray900,
     textAlign: 'center',
   },
   headerSpacer: {
@@ -672,14 +674,14 @@ const styles = StyleSheet.create({
   groupTitle: {
     fontSize: 14,
     fontWeight: '600',
-    color: COLORS.gray500,
+    color: c.gray500,
     paddingHorizontal: 20,
     marginBottom: 8,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
   groupItems: {
-    backgroundColor: COLORS.white,
+    backgroundColor: c.white,
   },
   settingsItem: {
     flexDirection: 'row',
@@ -690,11 +692,11 @@ const styles = StyleSheet.create({
   },
   settingsItemBorder: {
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.gray100,
+    borderBottomColor: c.gray100,
   },
   settingsItemText: {
     fontSize: 16,
-    color: COLORS.gray900,
+    color: c.gray900,
     fontWeight: '500',
   },
   logoutButton: {
@@ -705,7 +707,7 @@ const styles = StyleSheet.create({
   logoutText: {
     fontSize: 16,
     fontWeight: '600',
-    color: COLORS.red500,
+    color: c.red500,
   },
   deactivateButton: {
     marginHorizontal: 20,
@@ -714,12 +716,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderRadius: 12,
     borderWidth: 1.5,
-    borderColor: COLORS.gray200,
+    borderColor: c.gray200,
   },
   deactivateText: {
     fontSize: 15,
     fontWeight: '600',
-    color: COLORS.gray500,
+    color: c.gray500,
   },
   deleteAccountButton: {
     marginTop: 12,
@@ -729,7 +731,7 @@ const styles = StyleSheet.create({
   deleteAccountText: {
     fontSize: 14,
     fontWeight: '500',
-    color: COLORS.red500,
+    color: c.red500,
   },
   loadingContainer: {
     flex: 1,
@@ -743,11 +745,11 @@ const styles = StyleSheet.create({
   },
   languageValue: {
     fontSize: 14,
-    color: COLORS.gray500,
+    color: c.gray500,
   },
   helperText: {
     fontSize: 12,
-    color: COLORS.gray500,
+    color: c.gray500,
     textAlign: 'center',
     paddingHorizontal: 24,
     marginTop: 16,
@@ -760,7 +762,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   langModalContainer: {
-    backgroundColor: COLORS.white,
+    backgroundColor: c.white,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     paddingTop: 20,
@@ -776,7 +778,7 @@ const styles = StyleSheet.create({
   langModalTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: COLORS.gray900,
+    color: c.gray900,
   },
   langModalCloseBtn: {
     padding: 4,
@@ -790,15 +792,16 @@ const styles = StyleSheet.create({
   },
   langOptionText: {
     fontSize: 16,
-    color: COLORS.gray700,
+    color: c.gray700,
     fontWeight: '500',
   },
   langOptionTextActive: {
-    color: COLORS.piktag600,
+    color: c.piktag600,
     fontWeight: '700',
   },
   langOptionSeparator: {
     height: 1,
-    backgroundColor: COLORS.gray100,
+    backgroundColor: c.gray100,
   },
-});
+  });
+}

@@ -23,7 +23,7 @@ import { supabase } from '../lib/supabase';
 import LocationPickerModal from '../components/LocationPickerModal';
 import { useAuth } from '../hooks/useAuth';
 import { useRotatingPlaceholder } from '../hooks/useRotatingPlaceholder';
-import { COLORS } from '../constants/theme';
+import { COLORS, type ColorPalette } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
 import { LinearGradient } from 'expo-linear-gradient';
 import { getLocales } from 'expo-localization';
@@ -85,6 +85,7 @@ function getQuickDates(): { label: string; date: Date }[] {
 export default function AddTagScreen({ navigation }: AddTagScreenProps) {
   const { t } = useTranslation();
   const { colors, isDark } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
 
@@ -834,7 +835,7 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
             accessibilityRole="button"
             accessibilityLabel={t('common.back', { defaultValue: '返回' })}
           >
-            <ArrowLeft size={24} color={COLORS.gray900} strokeWidth={2.2} />
+            <ArrowLeft size={24} color={colors.gray900} strokeWidth={2.2} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>{t('addTag.headerTitle', { defaultValue: '建立 Tag' })}</Text>
         </View>
@@ -871,7 +872,7 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
               value={contextDescription}
               onChangeText={setContextDescription}
               placeholder={contextPlaceholder}
-              placeholderTextColor={COLORS.gray400}
+              placeholderTextColor={colors.gray400}
               returnKeyType="done"
               maxLength={60}
             />
@@ -888,7 +889,7 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
               {aiLoading ? (
                 <BrandSpinner size={16} />
               ) : (
-                <AtomIcon size={14} color={COLORS.piktag600} />
+                <AtomIcon size={14} color={colors.piktag600} />
               )}
               <Text style={styles.aiHeaderTitle}>
                 {aiLoading
@@ -910,7 +911,7 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
                   accessibilityRole="button"
                   accessibilityLabel={t('addTag.aiRegenerate', { defaultValue: '重新推薦' })}
                 >
-                  <RefreshCw size={14} color={COLORS.piktag600} />
+                  <RefreshCw size={14} color={colors.piktag600} />
                 </TouchableOpacity>
               </View>
             )}
@@ -980,7 +981,7 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
                 value={tagInput}
                 onChangeText={setTagInput}
                 placeholder={t('addTag.tagPlaceholder')}
-                placeholderTextColor={COLORS.gray400}
+                placeholderTextColor={colors.gray400}
                 returnKeyType="done"
                 onSubmitEditing={handleAddTag}
               />
@@ -1041,7 +1042,7 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
       end={{ x: 1, y: 1 }}
       style={styles.qrGradient}
     >
-      <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
+      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor="transparent" translucent />
       {/* Top bar: close (left) + scan / save-preset (right) */}
       <View style={[styles.qrTopBar, { paddingTop: insets.top + 12 }]}>
         <TouchableOpacity onPress={() => setMode('setup')} activeOpacity={0.6} style={styles.qrTopBtn}>
@@ -1085,15 +1086,15 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
       {/* Bottom 3 action buttons (share / copy / edit) */}
       <View style={[styles.qrBottomRow, { paddingBottom: insets.bottom + 20 }]}>
         <TouchableOpacity style={styles.qrBottomBtn} onPress={handleShare} activeOpacity={0.7}>
-          <Share2 size={22} color={COLORS.gray900} />
+          <Share2 size={22} color={colors.gray900} />
           <Text style={styles.qrBottomBtnText}>{t('addTag.shareFile', { defaultValue: '分享檔案' })}</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.qrBottomBtn} onPress={handleCopyLink} activeOpacity={0.7}>
-          <Link2 size={22} color={COLORS.gray900} />
+          <Link2 size={22} color={colors.gray900} />
           <Text style={styles.qrBottomBtnText}>{t('addTag.copyLink', { defaultValue: '複製連結' })}</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.qrBottomBtn} onPress={() => setMode('setup')} activeOpacity={0.7}>
-          <Pencil size={22} color={COLORS.gray900} />
+          <Pencil size={22} color={colors.gray900} />
           <Text style={styles.qrBottomBtnText}>{t('addTag.editQr', { defaultValue: '編輯QRcode' })}</Text>
         </TouchableOpacity>
       </View>
@@ -1118,7 +1119,7 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
               activeOpacity={0.6}
               style={styles.headerSideBtn}
             >
-              <X size={24} color={COLORS.gray900} />
+              <X size={24} color={colors.gray900} />
             </TouchableOpacity>
           </View>
 
@@ -1228,10 +1229,11 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
   );
 }
 
-const styles = StyleSheet.create({
+function makeStyles(c: ColorPalette) {
+  return StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.white,
+    backgroundColor: c.white,
   },
 
   // ── Header ──
@@ -1241,14 +1243,14 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 20,
     paddingBottom: 16,
-    backgroundColor: COLORS.white,
+    backgroundColor: c.white,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.gray100,
+    borderBottomColor: c.gray100,
   },
   headerTitle: {
     fontSize: 24,
     fontWeight: '700',
-    color: COLORS.gray900,
+    color: c.gray900,
     lineHeight: 32,
   },
   headerSideBtn: {
@@ -1268,7 +1270,7 @@ const styles = StyleSheet.create({
   headerBackText: {
     fontSize: 16,
     fontWeight: '500',
-    color: COLORS.gray900,
+    color: c.gray900,
   },
 
   // ── Scroll ──
@@ -1291,12 +1293,12 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: COLORS.gray900,
+    color: c.gray900,
     marginBottom: 4,
   },
   hiddenTagHint: {
     fontSize: 12,
-    color: COLORS.gray400,
+    color: c.gray400,
     marginBottom: 12,
   },
 
@@ -1304,7 +1306,7 @@ const styles = StyleSheet.create({
   inputRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: COLORS.gray100,
+    backgroundColor: c.gray100,
     borderRadius: 16,
     paddingHorizontal: 16,
     height: 48,
@@ -1312,7 +1314,7 @@ const styles = StyleSheet.create({
   textInput: {
     flex: 1,
     fontSize: 16,
-    color: COLORS.gray900,
+    color: c.gray900,
     padding: 0,
   },
   // Quick date buttons
@@ -1330,32 +1332,32 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     borderRadius: 9999,
     borderWidth: 1.5,
-    borderColor: COLORS.piktag200,
-    backgroundColor: COLORS.white,
+    borderColor: c.piktag200,
+    backgroundColor: c.white,
   },
   quickDateBtnActive: {
-    borderColor: COLORS.piktag500,
-    backgroundColor: COLORS.piktag50,
+    borderColor: c.piktag500,
+    backgroundColor: c.piktag50,
   },
   quickDateText: {
     fontSize: 14,
     fontWeight: '500',
-    color: COLORS.gray600,
+    color: c.gray600,
   },
   quickDateTextActive: {
-    color: COLORS.piktag600,
+    color: c.piktag600,
     fontWeight: '700',
   },
   selectedDateText: {
     fontSize: 15,
     fontWeight: '600',
-    color: COLORS.gray900,
+    color: c.gray900,
     marginBottom: 4,
   },
   // Calendar
   calendarGrid: {
     marginTop: 8,
-    backgroundColor: COLORS.gray50,
+    backgroundColor: c.gray50,
     borderRadius: 12,
     padding: 12,
   },
@@ -1368,13 +1370,13 @@ const styles = StyleSheet.create({
   calendarNav: {
     fontSize: 18,
     fontWeight: '700',
-    color: COLORS.gray600,
+    color: c.gray600,
     paddingHorizontal: 12,
   },
   calendarMonthText: {
     fontSize: 15,
     fontWeight: '700',
-    color: COLORS.gray900,
+    color: c.gray900,
   },
   calendarWeekRow: {
     flexDirection: 'row',
@@ -1385,7 +1387,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontSize: 12,
     fontWeight: '600',
-    color: COLORS.gray400,
+    color: c.gray400,
   },
   calendarDaysGrid: {
     flexDirection: 'row',
@@ -1405,18 +1407,18 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   calendarDayInnerSelected: {
-    backgroundColor: COLORS.piktag500,
+    backgroundColor: c.piktag500,
   },
   calendarDayText: {
     fontSize: 14,
-    color: COLORS.gray700,
+    color: c.gray700,
   },
   calendarDayToday: {
     fontWeight: '700',
-    color: COLORS.piktag600,
+    color: c.piktag600,
   },
   calendarDayTextSelected: {
-    color: COLORS.white,
+    color: c.white,
     fontWeight: '700',
   },
 
@@ -1436,7 +1438,7 @@ const styles = StyleSheet.create({
   // "新增" version sized itself to the label which made the row jiggle
   // when locales swapped to longer translations like "Aggiungi" / "추가".
   addTagBtn: {
-    backgroundColor: COLORS.piktag500,
+    backgroundColor: c.piktag500,
     borderRadius: 14,
     width: 44,
     height: 44,
@@ -1472,7 +1474,7 @@ const styles = StyleSheet.create({
   aiHeaderTitle: {
     fontSize: 14,
     fontWeight: '600',
-    color: COLORS.piktag600,
+    color: c.piktag600,
   },
   aiHeaderActions: {
     flexDirection: 'row',
@@ -1485,8 +1487,8 @@ const styles = StyleSheet.create({
     height: 32,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: COLORS.piktag200,
-    backgroundColor: COLORS.piktag50,
+    borderColor: c.piktag200,
+    backgroundColor: c.piktag50,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -1504,7 +1506,7 @@ const styles = StyleSheet.create({
 
   // ── Buttons ──
   primaryButton: {
-    backgroundColor: COLORS.piktag500,
+    backgroundColor: c.piktag500,
     borderRadius: 14,
     paddingVertical: 14,
     alignItems: 'center',
@@ -1522,7 +1524,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   eventModeBtn: {
-    backgroundColor: COLORS.piktag500,
+    backgroundColor: c.piktag500,
     borderRadius: 14,
     paddingVertical: 16,
     alignItems: 'center',
@@ -1530,27 +1532,27 @@ const styles = StyleSheet.create({
   eventModeBtnText: {
     fontSize: 16,
     fontWeight: '700',
-    color: COLORS.white,
+    color: c.white,
   },
   cameraScanBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 10,
-    backgroundColor: COLORS.piktag50,
+    backgroundColor: c.piktag50,
     borderWidth: 1.5,
-    borderColor: COLORS.piktag500,
+    borderColor: c.piktag500,
     borderRadius: 14,
     paddingVertical: 16,
   },
   cameraScanBtnText: {
     fontSize: 16,
     fontWeight: '600',
-    color: COLORS.piktag600,
+    color: c.piktag600,
   },
   outlineButton: {
     borderWidth: 1.5,
-    borderColor: COLORS.piktag500,
+    borderColor: c.piktag500,
     borderRadius: 14,
     paddingVertical: 16,
     alignItems: 'center',
@@ -1558,7 +1560,7 @@ const styles = StyleSheet.create({
   outlineButtonText: {
     fontSize: 15,
     fontWeight: '600',
-    color: COLORS.piktag600,
+    color: c.piktag600,
   },
   buttonDisabled: {
     opacity: 0.7,
@@ -1573,7 +1575,7 @@ const styles = StyleSheet.create({
   presetCancelBtn: {
     flex: 1,
     borderWidth: 1,
-    borderColor: COLORS.piktag500,
+    borderColor: c.piktag500,
     borderRadius: 14,
     paddingVertical: 12,
     alignItems: 'center',
@@ -1581,11 +1583,11 @@ const styles = StyleSheet.create({
   presetCancelBtnText: {
     fontSize: 15,
     fontWeight: '600',
-    color: COLORS.piktag600,
+    color: c.piktag600,
   },
   presetConfirmBtn: {
     flex: 1,
-    backgroundColor: COLORS.piktag500,
+    backgroundColor: c.piktag500,
     borderRadius: 14,
     paddingVertical: 12,
     alignItems: 'center',
@@ -1673,22 +1675,22 @@ const styles = StyleSheet.create({
   qrBottomBtnText: {
     fontSize: 13,
     fontWeight: '600',
-    color: COLORS.gray900,
+    color: c.gray900,
   },
   // ── Legacy QR mode styles (kept because other modes may reference) ──
   qrBrandTitle: {
     fontSize: 28,
     fontWeight: '800',
-    color: COLORS.gray900,
+    color: c.gray900,
     marginTop: 32,
     marginBottom: 24,
   },
   qrWrapper: {
     padding: 16,
     borderWidth: 2,
-    borderColor: COLORS.piktag500,
+    borderColor: c.piktag500,
     borderRadius: 16,
-    backgroundColor: COLORS.white,
+    backgroundColor: c.white,
     marginBottom: 24,
   },
   // (Duplicate `qrEventInfo` block removed — was a stale text-style
@@ -1703,7 +1705,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   modalContainer: {
-    backgroundColor: COLORS.white,
+    backgroundColor: c.white,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     paddingHorizontal: 20,
@@ -1720,7 +1722,7 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: COLORS.gray900,
+    color: c.gray900,
   },
   modalScrollView: {
     flex: 1,
@@ -1730,7 +1732,7 @@ const styles = StyleSheet.create({
   presetItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: COLORS.gray50,
+    backgroundColor: c.gray50,
     borderRadius: 16,
     padding: 16,
     marginBottom: 12,
@@ -1742,12 +1744,12 @@ const styles = StyleSheet.create({
   presetItemName: {
     fontSize: 16,
     fontWeight: '700',
-    color: COLORS.gray900,
+    color: c.gray900,
     marginBottom: 4,
   },
   presetItemLocation: {
     fontSize: 14,
-    color: COLORS.gray500,
+    color: c.gray500,
     marginBottom: 8,
   },
   presetTagsPreview: {
@@ -1757,7 +1759,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   presetTagMini: {
-    backgroundColor: COLORS.piktag50,
+    backgroundColor: c.piktag50,
     borderRadius: 9999,
     paddingVertical: 4,
     paddingHorizontal: 10,
@@ -1765,18 +1767,18 @@ const styles = StyleSheet.create({
   presetTagMiniText: {
     fontSize: 12,
     fontWeight: '500',
-    color: COLORS.piktag600,
+    color: c.piktag600,
   },
   presetMoreText: {
     fontSize: 12,
-    color: COLORS.gray400,
+    color: c.gray400,
     fontWeight: '500',
   },
   presetItemActions: {
     justifyContent: 'center',
   },
   presetApplyBtn: {
-    backgroundColor: COLORS.piktag500,
+    backgroundColor: c.piktag500,
     borderRadius: 10,
     paddingVertical: 8,
     paddingHorizontal: 16,
@@ -1801,7 +1803,7 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 14,
-    color: COLORS.gray400,
+    color: c.gray400,
   },
 
   // ── Preset Name Modal ──
@@ -1813,7 +1815,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 40,
   },
   presetNameModalContainer: {
-    backgroundColor: COLORS.white,
+    backgroundColor: c.white,
     borderRadius: 16,
     padding: 24,
     width: '100%',
@@ -1821,23 +1823,23 @@ const styles = StyleSheet.create({
   presetNameModalTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: COLORS.gray900,
+    color: c.gray900,
     marginBottom: 4,
   },
   presetNameModalSubtitle: {
     fontSize: 14,
-    color: COLORS.gray500,
+    color: c.gray500,
     marginBottom: 16,
   },
   presetNameModalInput: {
     borderWidth: 1,
-    borderColor: COLORS.gray200,
+    borderColor: c.gray200,
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 12,
     fontSize: 16,
-    color: COLORS.gray900,
-    backgroundColor: COLORS.gray50,
+    color: c.gray900,
+    backgroundColor: c.gray50,
     marginBottom: 20,
   },
   presetNameModalButtons: {
@@ -1847,7 +1849,7 @@ const styles = StyleSheet.create({
   presetNameModalCancelBtn: {
     flex: 1,
     borderWidth: 1,
-    borderColor: COLORS.gray200,
+    borderColor: c.gray200,
     borderRadius: 12,
     paddingVertical: 12,
     alignItems: 'center',
@@ -1855,11 +1857,11 @@ const styles = StyleSheet.create({
   presetNameModalCancelText: {
     fontSize: 15,
     fontWeight: '600',
-    color: COLORS.gray500,
+    color: c.gray500,
   },
   presetNameModalConfirmBtn: {
     flex: 1,
-    backgroundColor: COLORS.piktag500,
+    backgroundColor: c.piktag500,
     borderRadius: 12,
     paddingVertical: 12,
     alignItems: 'center',
@@ -1867,13 +1869,14 @@ const styles = StyleSheet.create({
   presetNameModalConfirmText: {
     fontSize: 15,
     fontWeight: '700',
-    color: COLORS.white,
+    color: c.white,
   },
   presetHintText: {
     fontSize: 13,
-    color: COLORS.gray400,
+    color: c.gray400,
     textAlign: 'center',
     marginBottom: 12,
   },
   // (First-QR celebration sheet styles removed with the sheet.)
-});
+  });
+}

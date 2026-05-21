@@ -39,7 +39,7 @@ import {
   Search,
 } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
-import { COLORS } from '../constants/theme';
+import { COLORS, type ColorPalette } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
 import { LinearGradient } from 'expo-linear-gradient';
 import RingedAvatar from '../components/RingedAvatar';
@@ -101,6 +101,10 @@ type ConnectionItemProps = {
 };
 
 const ConnectionItem = React.memo(({ item, isSelected, selectMode, hasActiveAsk, askPreview, onPress, onLongPress }: ConnectionItemProps) => {
+  // Sub-components need their own theme hooks — parent's `styles`
+  // and `colors` are scoped inside its function and not visible here.
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const profile = item.connected_user;
   const displayName = item.nickname || profile?.full_name || profile?.username || 'Unknown';
   const username = profile?.username || '';
@@ -177,9 +181,9 @@ const ConnectionItem = React.memo(({ item, isSelected, selectMode, hasActiveAsk,
       {selectMode && (
         <View style={styles.checkboxContainer}>
           {isSelected ? (
-            <CheckSquare size={22} color={COLORS.piktag600} />
+            <CheckSquare size={22} color={colors.piktag600} />
           ) : (
-            <Square size={22} color={COLORS.gray400} />
+            <Square size={22} color={colors.gray400} />
           )}
         </View>
       )}
@@ -201,8 +205,8 @@ const ConnectionItem = React.memo(({ item, isSelected, selectMode, hasActiveAsk,
           {/* {verified && (
             <CheckCircle2
               size={16}
-              color={COLORS.blue500}
-              fill={COLORS.blue500}
+              color={colors.blue500}
+              fill={colors.blue500}
               strokeWidth={0}
               style={styles.verifiedIcon}
             />
@@ -245,6 +249,7 @@ type ConnectionsScreenProps = {
 export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps) {
   const { t } = useTranslation();
   const { colors, isDark } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const { user } = useAuth();
   // Single-player CRM layer: manually-added people who aren't on
   // PikTag yet (owner-private piktag_local_contacts). They surface
@@ -909,7 +914,7 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
               onPress={action.onPress}
             >
               <View style={styles.emptyActionIconWrap}>
-                <action.icon size={20} color={COLORS.piktag500} />
+                <action.icon size={20} color={colors.piktag500} />
               </View>
               <View style={styles.emptyActionTextWrap}>
                 <Text style={styles.emptyActionTitle}>{action.title}</Text>
@@ -917,7 +922,7 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
                   {action.desc}
                 </Text>
               </View>
-              <ChevronRight size={18} color={COLORS.gray400} />
+              <ChevronRight size={18} color={colors.gray400} />
             </Pressable>
           ))}
         </View>
@@ -976,7 +981,7 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
               onPress={handlePhonePromptDismiss}
               style={styles.phonePromptDismiss}
             >
-              <X size={16} color={COLORS.gray500} />
+              <X size={16} color={colors.gray500} />
             </Pressable>
           </Pressable>
         )}
@@ -1017,14 +1022,14 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
               activeOpacity={0.6}
               onPress={selectAll}
             >
-              <CheckSquare size={24} color={COLORS.gray600} />
+              <CheckSquare size={24} color={colors.gray600} />
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.headerIconBtn}
               activeOpacity={0.6}
               onPress={exitSelectMode}
             >
-              <X size={24} color={COLORS.gray600} />
+              <X size={24} color={colors.gray600} />
             </TouchableOpacity>
           </View>
         </View>
@@ -1072,7 +1077,7 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
               accessibilityLabel={t('connections.addManualA11y', { defaultValue: '手動新增聯絡人' })}
               accessibilityRole="button"
             >
-              <UserPlus size={24} color={COLORS.gray600} />
+              <UserPlus size={24} color={colors.gray600} />
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.headerIconBtn}
@@ -1081,7 +1086,7 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
               accessibilityLabel="篩選標籤"
               accessibilityRole="button"
             >
-              <Tag size={24} color={filterTag ? COLORS.piktag600 : COLORS.gray600} />
+              <Tag size={24} color={filterTag ? colors.piktag600 : colors.gray600} />
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.headerIconBtn}
@@ -1092,7 +1097,7 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
             >
               <ArrowDownAZ
                 size={24}
-                color={sortMode !== 'recent' ? COLORS.piktag600 : COLORS.gray600}
+                color={sortMode !== 'recent' ? colors.piktag600 : colors.gray600}
               />
             </TouchableOpacity>
           </View>
@@ -1108,7 +1113,7 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
             activeOpacity={0.7}
           >
             <Text style={styles.filterIndicatorText}>{filterTag}</Text>
-            <X size={14} color={COLORS.piktag600} />
+            <X size={14} color={colors.piktag600} />
           </TouchableOpacity>
         </View>
       )}
@@ -1144,7 +1149,7 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
             activeOpacity={0.7}
             onPress={() => setBatchTagModalVisible(true)}
           >
-            <Tag size={20} color={COLORS.white} />
+            <Tag size={20} color={colors.white} />
             <Text style={styles.batchBtnText}>
               {t('connections.batchTagButton', { count: selectedIds.size })}
             </Text>
@@ -1165,7 +1170,7 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
             <View style={styles.filterModalHeader}>
               <Text style={styles.filterModalTitle}>{t('connections.filterByTag')}</Text>
               <TouchableOpacity onPress={() => setFilterModalVisible(false)} activeOpacity={0.6}>
-                <X size={24} color={COLORS.gray900} />
+                <X size={24} color={colors.gray900} />
               </TouchableOpacity>
             </View>
             {filterTag && (
@@ -1217,7 +1222,7 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
             <View style={styles.filterModalHeader}>
               <Text style={styles.filterModalTitle}>{t('connections.sortLabel', { defaultValue: '排序' })}</Text>
               <TouchableOpacity onPress={() => setSortModalVisible(false)} activeOpacity={0.6}>
-                <X size={24} color={COLORS.gray900} />
+                <X size={24} color={colors.gray900} />
               </TouchableOpacity>
             </View>
             {(
@@ -1250,7 +1255,7 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
                   {opt.label}
                 </Text>
                 {sortMode === opt.key && (
-                  <CheckCircle2 size={18} color={COLORS.piktag500} />
+                  <CheckCircle2 size={18} color={colors.piktag500} />
                 )}
               </TouchableOpacity>
             ))}
@@ -1284,7 +1289,7 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
               <TextInput
                 style={styles.batchTagInput}
                 placeholder={t('connections.batchTagPlaceholder')}
-                placeholderTextColor={COLORS.gray400}
+                placeholderTextColor={colors.gray400}
                 value={batchTagInput}
                 onChangeText={setBatchTagInput}
                 autoFocus
@@ -1310,11 +1315,12 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
   );
 }
 
-const styles = StyleSheet.create({
+function makeStyles(c: ColorPalette) {
+  return StyleSheet.create({
   // --- Stories bar styles ---
   storiesContainer: {
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.gray200,
+    borderBottomColor: c.gray200,
     paddingVertical: 12,
   },
   storiesScroll: {
@@ -1350,14 +1356,14 @@ const styles = StyleSheet.create({
   storyName: {
     fontSize: 11,
     fontWeight: '600',
-    color: COLORS.gray800,
+    color: c.gray800,
     marginTop: 4,
     textAlign: 'center',
     width: 68,
   },
   storyText: {
     fontSize: 10,
-    color: COLORS.gray500,
+    color: c.gray500,
     textAlign: 'center',
     width: 68,
     marginTop: 1,
@@ -1365,7 +1371,7 @@ const styles = StyleSheet.create({
   // --- Main styles ---
   container: {
     flex: 1,
-    backgroundColor: COLORS.white,
+    backgroundColor: c.white,
   },
   header: {
     flexDirection: 'row',
@@ -1375,7 +1381,7 @@ const styles = StyleSheet.create({
     paddingBottom: 16,
     backgroundColor: 'rgba(255, 255, 255, 0.9)',
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.gray100,
+    borderBottomColor: c.gray100,
   },
   headerLeft: {
     flex: 1,
@@ -1383,18 +1389,18 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 24,
     fontWeight: '700',
-    color: COLORS.gray900,
+    color: c.gray900,
     lineHeight: 32,
   },
   headerSubtitle: {
     fontSize: 14,
-    color: COLORS.gray500,
+    color: c.gray500,
     marginTop: 2,
     lineHeight: 20,
   },
   headerCount: {
     fontWeight: '700',
-    color: COLORS.accent500,
+    color: c.accent500,
   },
   headerRight: {
     flexDirection: 'row',
@@ -1408,9 +1414,9 @@ const styles = StyleSheet.create({
   sortIndicator: {
     paddingHorizontal: 20,
     paddingVertical: 8,
-    backgroundColor: COLORS.piktag50,
+    backgroundColor: c.piktag50,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.piktag100,
+    borderBottomColor: c.piktag100,
   },
   loadingContainer: {
     flex: 1,
@@ -1432,19 +1438,19 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: COLORS.gray700,
+    color: c.gray700,
     textAlign: 'center',
     marginBottom: 8,
   },
   emptyText: {
     fontSize: 16,
-    color: COLORS.gray500,
+    color: c.gray500,
     textAlign: 'center',
     lineHeight: 24,
   },
   emptyButton: {
     marginTop: 20,
-    backgroundColor: COLORS.piktag500,
+    backgroundColor: c.piktag500,
     borderRadius: 14,
     paddingVertical: 14,
     paddingHorizontal: 32,
@@ -1464,8 +1470,8 @@ const styles = StyleSheet.create({
   phonePromptCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: COLORS.piktag50,
-    borderColor: COLORS.piktag500,
+    backgroundColor: c.piktag50,
+    borderColor: c.piktag500,
     borderWidth: 1,
     borderRadius: 12,
     padding: 14,
@@ -1480,13 +1486,13 @@ const styles = StyleSheet.create({
   phonePromptTitle: {
     fontSize: 14,
     fontWeight: '700',
-    color: COLORS.piktag600,
+    color: c.piktag600,
     marginBottom: 4,
   },
   phonePromptBody: {
     fontSize: 12,
     lineHeight: 17,
-    color: COLORS.gray700,
+    color: c.gray700,
   },
   phonePromptDismiss: {
     paddingLeft: 8,
@@ -1495,12 +1501,12 @@ const styles = StyleSheet.create({
   emptyOnboardingTitle: {
     fontSize: 22,
     fontWeight: '700',
-    color: COLORS.gray900,
+    color: c.gray900,
     marginBottom: 6,
   },
   emptyOnboardingSubtitle: {
     fontSize: 14,
-    color: COLORS.gray500,
+    color: c.gray500,
     marginBottom: 20,
   },
   emptyActionList: {
@@ -1514,12 +1520,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: COLORS.gray200,
-    backgroundColor: COLORS.white,
+    borderColor: c.gray200,
+    backgroundColor: c.white,
   },
   emptyActionCardPressed: {
-    backgroundColor: COLORS.gray50,
-    borderColor: COLORS.piktag200,
+    backgroundColor: c.gray50,
+    borderColor: c.piktag200,
   },
   emptyActionIconWrap: {
     width: 40,
@@ -1527,7 +1533,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: COLORS.piktag50,
+    backgroundColor: c.piktag50,
   },
   emptyActionTextWrap: {
     flex: 1,
@@ -1537,11 +1543,11 @@ const styles = StyleSheet.create({
   emptyActionTitle: {
     fontSize: 15,
     fontWeight: '700',
-    color: COLORS.gray900,
+    color: c.gray900,
   },
   emptyActionDesc: {
     fontSize: 13,
-    color: COLORS.gray500,
+    color: c.gray500,
     lineHeight: 18,
   },
   connectionItem: {
@@ -1550,10 +1556,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.gray100,
+    borderBottomColor: c.gray100,
   },
   connectionItemSelected: {
-    backgroundColor: COLORS.piktag50,
+    backgroundColor: c.piktag50,
   },
   // Not-yet-on-PikTag manual contact: same row metrics (so the
   // fixed getItemLayout height is unaffected), just slightly muted.
@@ -1562,7 +1568,7 @@ const styles = StyleSheet.create({
   },
   localBadge: {
     alignSelf: 'flex-start',
-    backgroundColor: COLORS.gray100,
+    backgroundColor: c.gray100,
     borderRadius: 6,
     paddingHorizontal: 8,
     paddingVertical: 3,
@@ -1571,7 +1577,7 @@ const styles = StyleSheet.create({
   localBadgeText: {
     fontSize: 11,
     fontWeight: '600',
-    color: COLORS.gray500,
+    color: c.gray500,
   },
   checkboxContainer: {
     justifyContent: 'center',
@@ -1592,7 +1598,7 @@ const styles = StyleSheet.create({
   name: {
     fontSize: 18,
     fontWeight: '700',
-    color: COLORS.gray900,
+    color: c.gray900,
     lineHeight: 24,
     flexShrink: 1,
   },
@@ -1603,7 +1609,7 @@ const styles = StyleSheet.create({
     // the kind of "currently-highlighted moment" the accent is reserved
     // for — a temporary visual flag that should jump the eye on a row
     // amid otherwise-stable primary purple UI.
-    color: COLORS.accentPop,
+    color: c.accentPop,
     letterSpacing: 0.3,
     marginLeft: 2,
   },
@@ -1614,7 +1620,7 @@ const styles = StyleSheet.create({
   },
   username: {
     fontSize: 14,
-    color: COLORS.gray500,
+    color: c.gray500,
     lineHeight: 20,
   },
   verifiedIcon: {
@@ -1622,7 +1628,7 @@ const styles = StyleSheet.create({
   },
   tagsLine: {
     fontSize: 13,
-    color: COLORS.gray400,
+    color: c.gray400,
     lineHeight: 18,
     marginTop: 3,
   },
@@ -1673,7 +1679,7 @@ const styles = StyleSheet.create({
   unreviewedLink: {
     fontSize: 14,
     fontWeight: '600',
-    color: COLORS.piktag600,
+    color: c.piktag600,
   },
   reminderCard: {
     margin: 16,
@@ -1687,11 +1693,11 @@ const styles = StyleSheet.create({
   // Recommendation card
   recCard: {
     margin: 16,
-    backgroundColor: COLORS.piktag50,
+    backgroundColor: c.piktag50,
     borderRadius: 16,
     padding: 14,
     borderWidth: 1,
-    borderColor: COLORS.piktag100,
+    borderColor: c.piktag100,
   },
   recHeader: {
     flexDirection: 'row',
@@ -1707,7 +1713,7 @@ const styles = StyleSheet.create({
   recHeaderText: {
     fontSize: 13,
     fontWeight: '600',
-    color: COLORS.piktag600,
+    color: c.piktag600,
   },
   recBody: {
     flexDirection: 'row',
@@ -1717,7 +1723,7 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: COLORS.gray100,
+    backgroundColor: c.gray100,
   },
   recInfo: {
     flex: 1,
@@ -1730,16 +1736,16 @@ const styles = StyleSheet.create({
   recName: {
     fontSize: 16,
     fontWeight: '700',
-    color: COLORS.gray900,
+    color: c.gray900,
   },
   recUsername: {
     fontSize: 13,
-    color: COLORS.gray500,
+    color: c.gray500,
     marginTop: 1,
   },
   recTagCount: {
     fontSize: 12,
-    color: COLORS.piktag600,
+    color: c.piktag600,
     marginTop: 2,
   },
   recAction: {
@@ -1753,15 +1759,15 @@ const styles = StyleSheet.create({
     right: 0,
     paddingHorizontal: 20,
     paddingVertical: 12,
-    backgroundColor: COLORS.white,
+    backgroundColor: c.white,
     borderTopWidth: 1,
-    borderTopColor: COLORS.gray100,
+    borderTopColor: c.gray100,
   },
   batchBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: COLORS.piktag500,
+    backgroundColor: c.piktag500,
     borderRadius: 12,
     paddingVertical: 14,
     gap: 8,
@@ -1769,7 +1775,7 @@ const styles = StyleSheet.create({
   batchBtnText: {
     fontSize: 16,
     fontWeight: '700',
-    color: COLORS.white,
+    color: c.white,
   },
   // Shared modal overlay (used by batch-tag modal)
   modalOverlay: {
@@ -1780,12 +1786,12 @@ const styles = StyleSheet.create({
   sortModalTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: COLORS.gray900,
+    color: c.gray900,
     marginBottom: 16,
   },
   // Batch Tag Modal
   batchTagModal: {
-    backgroundColor: COLORS.white,
+    backgroundColor: c.white,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     paddingHorizontal: 20,
@@ -1794,16 +1800,16 @@ const styles = StyleSheet.create({
   },
   batchTagInput: {
     borderWidth: 2,
-    borderColor: COLORS.gray200,
+    borderColor: c.gray200,
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 14,
     fontSize: 16,
-    color: COLORS.gray900,
+    color: c.gray900,
     marginBottom: 16,
   },
   batchTagSubmitBtn: {
-    backgroundColor: COLORS.piktag500,
+    backgroundColor: c.piktag500,
     borderRadius: 12,
     paddingVertical: 14,
     alignItems: 'center',
@@ -1814,7 +1820,7 @@ const styles = StyleSheet.create({
   batchTagSubmitText: {
     fontSize: 16,
     fontWeight: '700',
-    color: COLORS.gray900,
+    color: c.gray900,
   },
   // Friend statuses row
   statusSection: {
@@ -1835,7 +1841,7 @@ const styles = StyleSheet.create({
     height: 60,
     borderRadius: 30,
     borderWidth: 2.5,
-    borderColor: COLORS.piktag400,
+    borderColor: c.piktag400,
     padding: 2,
     marginBottom: 4,
   },
@@ -1872,10 +1878,10 @@ const styles = StyleSheet.create({
     marginHorizontal: 16,
     marginTop: 12,
     marginBottom: 8,
-    backgroundColor: COLORS.white,
+    backgroundColor: c.white,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: COLORS.gray100,
+    borderColor: c.gray100,
     paddingVertical: 14,
   },
   tagRecScrollContent: {
@@ -1891,20 +1897,20 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: COLORS.gray100,
+    backgroundColor: c.gray100,
     marginBottom: 4,
   },
   tagRecName: {
     fontSize: 13,
     fontWeight: '600',
-    color: COLORS.gray900,
+    color: c.gray900,
     textAlign: 'center',
   },
   tagRecBadge: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 2,
-    backgroundColor: COLORS.piktag50,
+    backgroundColor: c.piktag50,
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 8,
@@ -1912,11 +1918,11 @@ const styles = StyleSheet.create({
   tagRecBadgeText: {
     fontSize: 10,
     fontWeight: '600',
-    color: COLORS.piktag600,
+    color: c.piktag600,
   },
   tagRecTags: {
     fontSize: 10,
-    color: COLORS.gray500,
+    color: c.gray500,
     textAlign: 'center',
   },
 
@@ -1925,17 +1931,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    backgroundColor: COLORS.piktag50,
+    backgroundColor: c.piktag50,
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: COLORS.piktag300,
+    borderColor: c.piktag300,
   },
   filterIndicatorText: {
     fontSize: 13,
     fontWeight: '600',
-    color: COLORS.piktag600,
+    color: c.piktag600,
   },
 
   // ─── Add-contact action sheet ────────────────────────────────
@@ -1945,7 +1951,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   addMenuSheet: {
-    backgroundColor: COLORS.white,
+    backgroundColor: c.white,
     borderTopLeftRadius: 22,
     borderTopRightRadius: 22,
     paddingTop: 8,
@@ -1961,13 +1967,13 @@ const styles = StyleSheet.create({
     width: 40,
     height: 4,
     borderRadius: 2,
-    backgroundColor: COLORS.gray200,
+    backgroundColor: c.gray200,
     marginBottom: 12,
   },
   addMenuTitle: {
     fontSize: 17,
     fontWeight: '700',
-    color: COLORS.gray900,
+    color: c.gray900,
     marginBottom: 12,
     paddingHorizontal: 4,
   },
@@ -1978,7 +1984,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 4,
     gap: 12,
     borderTopWidth: 1,
-    borderTopColor: COLORS.gray100,
+    borderTopColor: c.gray100,
   },
   addMenuIconWrap: {
     width: 40,
@@ -1993,12 +1999,12 @@ const styles = StyleSheet.create({
   addMenuRowTitle: {
     fontSize: 15,
     fontWeight: '600',
-    color: COLORS.gray900,
+    color: c.gray900,
     marginBottom: 2,
   },
   addMenuRowDesc: {
     fontSize: 12,
-    color: COLORS.gray500,
+    color: c.gray500,
     lineHeight: 16,
   },
 
@@ -2009,7 +2015,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   filterModalContainer: {
-    backgroundColor: COLORS.white,
+    backgroundColor: c.white,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     paddingTop: 20,
@@ -2025,7 +2031,7 @@ const styles = StyleSheet.create({
   filterModalTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: COLORS.gray900,
+    color: c.gray900,
   },
   filterClearBtn: {
     alignSelf: 'flex-start',
@@ -2034,22 +2040,22 @@ const styles = StyleSheet.create({
   filterClearText: {
     fontSize: 14,
     fontWeight: '600',
-    color: COLORS.red500,
+    color: c.red500,
   },
   filterEmptyText: {
     fontSize: 14,
-    color: COLORS.gray400,
+    color: c.gray400,
     textAlign: 'center',
     paddingVertical: 24,
   },
   filterSearchInput: {
     borderWidth: 1,
-    borderColor: COLORS.gray200,
+    borderColor: c.gray200,
     borderRadius: 10,
     paddingHorizontal: 14,
     paddingVertical: 10,
     fontSize: 15,
-    color: COLORS.gray900,
+    color: c.gray900,
     marginBottom: 14,
   },
   filterTagsWrap: {
@@ -2061,21 +2067,21 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 10,
     borderRadius: 20,
-    backgroundColor: COLORS.gray100,
+    backgroundColor: c.gray100,
     borderWidth: 1.5,
     borderColor: 'transparent',
   },
   filterTagChipActive: {
-    backgroundColor: COLORS.piktag50,
-    borderColor: COLORS.piktag500,
+    backgroundColor: c.piktag50,
+    borderColor: c.piktag500,
   },
   filterTagChipText: {
     fontSize: 14,
     fontWeight: '500',
-    color: COLORS.gray700,
+    color: c.gray700,
   },
   filterTagChipTextActive: {
-    color: COLORS.piktag600,
+    color: c.piktag600,
     fontWeight: '700',
   },
   sortOptionRow: {
@@ -2085,7 +2091,7 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     paddingHorizontal: 4,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.gray100,
+    borderBottomColor: c.gray100,
   },
   sortOptionRowActive: {
     // No background change — the trailing checkmark is enough signal
@@ -2094,10 +2100,11 @@ const styles = StyleSheet.create({
   sortOptionText: {
     fontSize: 15,
     fontWeight: '500',
-    color: COLORS.gray800,
+    color: c.gray800,
   },
   sortOptionTextActive: {
-    color: COLORS.piktag600,
+    color: c.piktag600,
     fontWeight: '700',
   },
-});
+  });
+}

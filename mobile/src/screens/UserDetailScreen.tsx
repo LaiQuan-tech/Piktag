@@ -29,7 +29,7 @@ import {
   MessageCircle,
 } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
-import { COLORS } from '../constants/theme';
+import { COLORS, type ColorPalette } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
 import { LinearGradient } from 'expo-linear-gradient';
 import PlatformIcon from '../components/PlatformIcon';
@@ -56,6 +56,7 @@ type UserDetailScreenProps = {
 export default function UserDetailScreen({ navigation, route }: UserDetailScreenProps) {
   const { t } = useTranslation();
   const { colors, isDark } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const insets = useSafeAreaInsets();
   const { user: authUser } = useAuth();
   // Same conditional-gradient logic as FriendDetailScreen / ProfileScreen.
@@ -1119,7 +1120,7 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
             onPress={() => navigation.canGoBack() ? navigation.goBack() : navigation.navigate('Connections')}
             activeOpacity={0.6}
           >
-            <ArrowLeft size={24} color={COLORS.gray900} />
+            <ArrowLeft size={24} color={colors.gray900} />
           </TouchableOpacity>
           <Text style={styles.headerUsername}>...</Text>
           <View style={styles.headerSpacer} />
@@ -1143,7 +1144,7 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
             onPress={() => navigation.canGoBack() ? navigation.goBack() : navigation.navigate('Connections')}
             activeOpacity={0.6}
           >
-            <ArrowLeft size={24} color={COLORS.gray900} />
+            <ArrowLeft size={24} color={colors.gray900} />
           </TouchableOpacity>
           <Text style={styles.headerUsername}>
             {loadError ? '' : t('userDetail.headerNotFound')}
@@ -1178,7 +1179,7 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
           onPress={() => navigation.canGoBack() ? navigation.goBack() : navigation.navigate("Connections")}
           activeOpacity={0.6}
         >
-          <ArrowLeft size={24} color={COLORS.gray900} />
+          <ArrowLeft size={24} color={colors.gray900} />
         </TouchableOpacity>
         <Text style={styles.headerUsername}>@{username}</Text>
         <TouchableOpacity
@@ -1186,7 +1187,7 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
           onPress={() => setMoreMenuVisible(true)}
           activeOpacity={0.6}
         >
-          <MoreHorizontal size={24} color={COLORS.gray900} />
+          <MoreHorizontal size={24} color={colors.gray900} />
         </TouchableOpacity>
       </View>
 
@@ -1215,8 +1216,8 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
                 {/* {verified && (
                   <CheckCircle2
                     size={16}
-                    color={COLORS.blue500}
-                    fill={COLORS.blue500}
+                    color={colors.blue500}
+                    fill={colors.blue500}
                     strokeWidth={0}
                     style={styles.verifiedIcon}
                   />
@@ -1267,8 +1268,8 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
             {mutualTags > 0 ? (
               <TouchableOpacity onPress={() => setMutualTagModalVisible(true)} activeOpacity={0.6}>
                 <Text style={styles.statTextClickable}>
-                  <Text style={[styles.statNumber, { color: COLORS.piktag600 }]}>{mutualTags}</Text>
-                  <Text style={{ color: COLORS.piktag600 }}>{t('userDetail.statMutualTags')}</Text>
+                  <Text style={[styles.statNumber, { color: colors.piktag600 }]}>{mutualTags}</Text>
+                  <Text style={{ color: colors.piktag600 }}>{t('userDetail.statMutualTags')}</Text>
                 </Text>
               </TouchableOpacity>
             ) : (
@@ -1383,7 +1384,7 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
               accessibilityRole="button"
               accessibilityLabel={t('userDetail.recommendMembers', { defaultValue: '推薦會員' })}
             >
-              <UserPlus size={18} color={showSimilar ? COLORS.piktag500 : COLORS.gray700} />
+              <UserPlus size={18} color={showSimilar ? colors.piktag500 : colors.gray700} />
             </TouchableOpacity>
           </View>
         </View>
@@ -1405,7 +1406,7 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, marginBottom: 12 }}>
               <Text style={styles.similarTitle}>{t('userDetail.similarUsersTitle', { defaultValue: '為你推薦' })}</Text>
               <TouchableOpacity onPress={() => setShowSimilar(false)} activeOpacity={0.6}>
-                <X size={18} color={COLORS.gray400} />
+                <X size={18} color={colors.gray400} />
               </TouchableOpacity>
             </View>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.similarScroll}>
@@ -1517,7 +1518,7 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
                 <Text style={styles.linkCardText} numberOfLines={1}>
                   {link.label || link.platform}
                 </Text>
-                <ExternalLink size={16} color={COLORS.gray400} />
+                <ExternalLink size={16} color={colors.gray400} />
               </TouchableOpacity>
             ))}
           </View>
@@ -1716,8 +1717,8 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
                 handleToggleCloseFriend();
               }}
             >
-              <Heart size={20} color={isCloseFriend ? COLORS.piktag600 : COLORS.gray600} fill={isCloseFriend ? COLORS.piktag600 : 'transparent'} />
-              <Text style={[styles.moreItemText, isCloseFriend && { color: COLORS.piktag600 }]}>
+              <Heart size={20} color={isCloseFriend ? colors.piktag600 : colors.gray600} fill={isCloseFriend ? colors.piktag600 : 'transparent'} />
+              <Text style={[styles.moreItemText, isCloseFriend && { color: colors.piktag600 }]}>
                 {isCloseFriend ? (t('userDetail.closeFriendRemove', { defaultValue: '已設為摯友' })) : (t('userDetail.closeFriendAdd', { defaultValue: '設為摯友' }))}
               </Text>
             </TouchableOpacity>
@@ -1737,7 +1738,7 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
                 });
               }}
             >
-              <Share2 size={20} color={COLORS.gray600} />
+              <Share2 size={20} color={colors.gray600} />
               <Text style={styles.moreItemText}>{t('userDetail.shareProfile', { defaultValue: '分享' })}</Text>
             </TouchableOpacity>
             <TouchableOpacity
@@ -1796,7 +1797,7 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
                 );
               }}
             >
-              <AlertTriangle size={20} color={COLORS.gray600} />
+              <AlertTriangle size={20} color={colors.gray600} />
               <Text style={styles.moreItemText}>{t('userDetail.reportUser', { defaultValue: '檢舉' })}</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.moreCancelBtn} onPress={() => setMoreMenuVisible(false)}>
@@ -1809,19 +1810,20 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
   );
 }
 
-const styles = StyleSheet.create({
+function makeStyles(c: ColorPalette) {
+  return StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.white,
+    backgroundColor: c.white,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 20,
     paddingBottom: 16,
-    backgroundColor: COLORS.white,
+    backgroundColor: c.white,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.gray100,
+    borderBottomColor: c.gray100,
   },
   headerBackBtn: {
     padding: 4,
@@ -1830,7 +1832,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 18,
     fontWeight: '700',
-    color: COLORS.gray900,
+    color: c.gray900,
     textAlign: 'center',
   },
   headerSpacer: {
@@ -1843,7 +1845,7 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 16,
-    color: COLORS.gray500,
+    color: c.gray500,
   },
   scrollView: {
     flex: 1,
@@ -1872,7 +1874,7 @@ const styles = StyleSheet.create({
   name: {
     fontSize: 20,
     fontWeight: '700',
-    color: COLORS.gray900,
+    color: c.gray900,
   },
   verifiedIcon: {
     marginLeft: 4,
@@ -1880,12 +1882,12 @@ const styles = StyleSheet.create({
   usernameText: {
     fontSize: 14,
     fontWeight: '500',
-    color: COLORS.gray500,
+    color: c.gray500,
   },
   headline: {
     fontSize: 14,
     fontWeight: '600',
-    color: COLORS.piktag600,
+    color: c.piktag600,
     // Left-aligned to match bio + tags below it. The parent
     // profileSection already has paddingHorizontal: 20, so no
     // extra horizontal padding is needed on this element.
@@ -1895,7 +1897,7 @@ const styles = StyleSheet.create({
   },
   bio: {
     fontSize: 15,
-    color: COLORS.gray700,
+    color: c.gray700,
     lineHeight: 22,
     marginTop: 16,
   },
@@ -1912,11 +1914,11 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   tagPrimary: {
-    color: COLORS.piktag600,
+    color: c.piktag600,
     fontWeight: '500',
   },
   tagSecondary: {
-    color: COLORS.gray500,
+    color: c.gray500,
   },
   statsRow: {
     flexDirection: 'row',
@@ -1927,11 +1929,11 @@ const styles = StyleSheet.create({
   },
   statText: {
     fontSize: 14,
-    color: COLORS.gray500,
+    color: c.gray500,
   },
   statNumber: {
     fontWeight: '700',
-    color: COLORS.gray900,
+    color: c.gray900,
     marginRight: 2,
   },
   mutualAvatarsStat: {
@@ -1945,20 +1947,20 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   mutualTagChip: {
-    backgroundColor: COLORS.piktag50,
+    backgroundColor: c.piktag50,
     borderRadius: 12,
     paddingHorizontal: 10,
     paddingVertical: 5,
     borderWidth: 1,
-    borderColor: COLORS.piktag300,
+    borderColor: c.piktag300,
   },
   mutualTagChipText: {
     fontSize: 13,
     fontWeight: '600',
-    color: COLORS.piktag600,
+    color: c.piktag600,
   },
   qrAddFriendBtn: {
-    backgroundColor: COLORS.piktag500,
+    backgroundColor: c.piktag500,
     borderRadius: 12,
     paddingVertical: 14,
     alignItems: 'center',
@@ -1968,7 +1970,7 @@ const styles = StyleSheet.create({
   qrAddFriendText: {
     fontSize: 17,
     fontWeight: '700',
-    color: COLORS.white,
+    color: c.white,
   },
   // ── Unified action-button design system ─────────────────────────
   // Mirrors FriendDetailScreen — same primary/secondary contract,
@@ -1988,12 +1990,12 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: COLORS.piktag500,
+    backgroundColor: c.piktag500,
   },
   primaryBtnText: {
     fontSize: 14,
     fontWeight: '700',
-    color: COLORS.white,
+    color: c.white,
   },
   secondaryBtn: {
     flex: 1,
@@ -2001,7 +2003,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: COLORS.gray100,
+    backgroundColor: c.gray100,
   },
   secondaryBtnFixed: {
     paddingHorizontal: 16,
@@ -2009,12 +2011,12 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: COLORS.gray100,
+    backgroundColor: c.gray100,
   },
   secondaryBtnText: {
     fontSize: 14,
     fontWeight: '600',
-    color: COLORS.gray900,
+    color: c.gray900,
   },
   // 「標籤」is the action that defines PikTag. Other action buttons
   // (follow / message / add-friend) exist in every social app; the
@@ -2027,7 +2029,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: COLORS.piktag500,
+    backgroundColor: c.piktag500,
   },
   tagBtnPrimaryText: {
     fontSize: 14,
@@ -2040,10 +2042,10 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: COLORS.gray100,
+    backgroundColor: c.gray100,
   },
   iconSecondaryBtnActive: {
-    backgroundColor: COLORS.piktag50,
+    backgroundColor: c.piktag50,
   },
   // Tags — flat inline clickable (matching ProfileScreen)
   tagsWrap: {
@@ -2053,7 +2055,7 @@ const styles = StyleSheet.create({
     marginTop: 14,
   },
   tagChip: {
-    backgroundColor: COLORS.gray100,
+    backgroundColor: c.gray100,
     borderRadius: 9999,
     paddingHorizontal: 14,
     paddingVertical: 8,
@@ -2063,13 +2065,13 @@ const styles = StyleSheet.create({
   tagChipText: {
     fontSize: 14,
     fontWeight: '500',
-    color: COLORS.gray600,
+    color: c.gray600,
   },
 
   sectionTitle: {
     fontSize: 13,
     fontWeight: '700',
-    color: COLORS.gray500,
+    color: c.gray500,
     textTransform: 'uppercase',
     letterSpacing: 0.8,
     paddingHorizontal: 20,
@@ -2082,7 +2084,7 @@ const styles = StyleSheet.create({
     paddingTop: 8,
     paddingBottom: 16,
     borderTopWidth: 1,
-    borderTopColor: COLORS.gray100,
+    borderTopColor: c.gray100,
   },
   socialScrollContent: {
     paddingHorizontal: 16,
@@ -2097,7 +2099,7 @@ const styles = StyleSheet.create({
     height: 60,
     borderRadius: 30,
     borderWidth: 2,
-    borderColor: COLORS.gray200,
+    borderColor: c.gray200,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 6,
@@ -2106,14 +2108,14 @@ const styles = StyleSheet.create({
     width: 52,
     height: 52,
     borderRadius: 26,
-    backgroundColor: COLORS.gray50,
+    backgroundColor: c.gray50,
     alignItems: 'center',
     justifyContent: 'center',
   },
   socialCircleLabel: {
     fontSize: 11,
     fontWeight: '500',
-    color: COLORS.gray700,
+    color: c.gray700,
     textAlign: 'center',
   },
 
@@ -2123,15 +2125,15 @@ const styles = StyleSheet.create({
     paddingTop: 8,
     paddingBottom: 20,
     borderTopWidth: 1,
-    borderTopColor: COLORS.gray100,
+    borderTopColor: c.gray100,
     gap: 10,
   },
   linkCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: COLORS.white,
+    backgroundColor: c.white,
     borderWidth: 1.5,
-    borderColor: COLORS.gray200,
+    borderColor: c.gray200,
     borderRadius: 16,
     paddingVertical: 16,
     paddingHorizontal: 18,
@@ -2141,7 +2143,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 16,
     fontWeight: '600',
-    color: COLORS.gray900,
+    color: c.gray900,
   },
 
   actionButtonsRow: {
@@ -2157,7 +2159,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   moreSheet: {
-    backgroundColor: COLORS.white,
+    backgroundColor: c.white,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     paddingTop: 16,
@@ -2169,12 +2171,12 @@ const styles = StyleSheet.create({
     gap: 14,
     paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.gray100,
+    borderBottomColor: c.gray100,
   },
   moreItemText: {
     fontSize: 16,
     fontWeight: '500',
-    color: COLORS.gray900,
+    color: c.gray900,
   },
   moreCancelBtn: {
     alignItems: 'center',
@@ -2184,21 +2186,21 @@ const styles = StyleSheet.create({
   moreCancelText: {
     fontSize: 16,
     fontWeight: '600',
-    color: COLORS.gray500,
+    color: c.gray500,
   },
   // Similar users section
   similarSection: {
     paddingTop: 16,
     paddingBottom: 8,
     borderTopWidth: 1,
-    borderTopColor: COLORS.gray100,
+    borderTopColor: c.gray100,
   },
   suggestBtn: {
     width: 44,
     height: 44,
     borderRadius: 12,
     borderWidth: 1.5,
-    borderColor: COLORS.gray200,
+    borderColor: c.gray200,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -2210,7 +2212,7 @@ const styles = StyleSheet.create({
   similarTitle: {
     fontSize: 15,
     fontWeight: '700',
-    color: COLORS.gray900,
+    color: c.gray900,
   },
   similarScroll: {
     paddingHorizontal: 16,
@@ -2218,10 +2220,10 @@ const styles = StyleSheet.create({
   },
   similarCard: {
     width: 150,
-    backgroundColor: COLORS.white,
+    backgroundColor: c.white,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: COLORS.gray200,
+    borderColor: c.gray200,
     paddingVertical: 16,
     paddingHorizontal: 12,
     alignItems: 'center',
@@ -2231,7 +2233,7 @@ const styles = StyleSheet.create({
     width: 72,
     height: 72,
     borderRadius: 36,
-    backgroundColor: COLORS.gray100,
+    backgroundColor: c.gray100,
   },
   similarAvatarFallback: {
     alignItems: 'center',
@@ -2240,12 +2242,12 @@ const styles = StyleSheet.create({
   similarAvatarInitial: {
     fontSize: 24,
     fontWeight: '700',
-    color: COLORS.gray500,
+    color: c.gray500,
   },
   similarName: {
     fontSize: 14,
     fontWeight: '600',
-    color: COLORS.gray900,
+    color: c.gray900,
     textAlign: 'center',
   },
   mutualAvatarsRow: {
@@ -2259,11 +2261,11 @@ const styles = StyleSheet.create({
     height: 20,
     borderRadius: 10,
     borderWidth: 1.5,
-    borderColor: COLORS.white,
+    borderColor: c.white,
   },
   mutualCountText: {
     fontSize: 11,
-    color: COLORS.gray500,
+    color: c.gray500,
     marginLeft: 2,
   },
   similarFollowBtn: {
@@ -2287,7 +2289,7 @@ const styles = StyleSheet.create({
   // in the host page rather than a separate surface.
   pickModalOverlay: {
     flex: 1,
-    backgroundColor: COLORS.white,
+    backgroundColor: c.white,
   },
   pickModalContainer: {
     flex: 1,
@@ -2302,32 +2304,32 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     paddingBottom: 12,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.gray100,
+    borderBottomColor: c.gray100,
   },
   pickModalTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: COLORS.gray900,
+    color: c.gray900,
   },
   pickModalCloseText: {
     fontSize: 15,
     fontWeight: '600',
-    color: COLORS.gray500,
+    color: c.gray500,
   },
   pickModalSaveText: {
     fontSize: 15,
     fontWeight: '700',
-    color: COLORS.piktag500,
+    color: c.piktag500,
   },
   pickModalSubtitle: {
     fontSize: 14,
-    color: COLORS.gray500,
+    color: c.gray500,
     marginBottom: 20,
     lineHeight: 20,
   },
   pickModalEmpty: {
     fontSize: 14,
-    color: COLORS.gray400,
+    color: c.gray400,
     textAlign: 'center',
     paddingVertical: 30,
   },
@@ -2344,19 +2346,19 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 10,
     borderRadius: 20,
-    backgroundColor: COLORS.gray50,
+    backgroundColor: c.gray50,
     borderWidth: 1.5,
-    borderColor: COLORS.gray200,
+    borderColor: c.gray200,
   },
   // "已選=紫色" aesthetic, founder definitive: fill-only, no border.
   // 已選=piktag500 實心 + 白字 — founder 2026-05-23 contract.
   pickModalTagSelected: {
-    backgroundColor: COLORS.piktag500,
+    backgroundColor: c.piktag500,
   },
   pickModalTagText: {
     fontSize: 15,
     fontWeight: '500',
-    color: COLORS.gray700,
+    color: c.gray700,
   },
   pickModalTagTextSelected: {
     color: '#FFFFFF',
@@ -2364,13 +2366,13 @@ const styles = StyleSheet.create({
   },
   pickModalDivider: {
     height: 1,
-    backgroundColor: COLORS.gray100,
+    backgroundColor: c.gray100,
     marginVertical: 16,
   },
   pickModalSectionTitle: {
     fontSize: 14,
     fontWeight: '700',
-    color: COLORS.gray700,
+    color: c.gray700,
     marginBottom: 6,
   },
   // Small one-line explainer that sits between a section title and
@@ -2379,7 +2381,7 @@ const styles = StyleSheet.create({
   // selected and won't get applied silently.
   pickModalSectionHint: {
     fontSize: 12,
-    color: COLORS.gray500,
+    color: c.gray500,
     marginBottom: 10,
   },
   statTextClickable: {
@@ -2387,7 +2389,7 @@ const styles = StyleSheet.create({
   },
   statDot: {
     fontSize: 14,
-    color: COLORS.gray400,
+    color: c.gray400,
   },
 
   // Mutual Tags Modal
@@ -2398,7 +2400,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   mutualModalContainer: {
-    backgroundColor: COLORS.white,
+    backgroundColor: c.white,
     borderRadius: 16,
     padding: 24,
     width: 300,
@@ -2407,7 +2409,7 @@ const styles = StyleSheet.create({
   mutualModalTitle: {
     fontSize: 17,
     fontWeight: '700',
-    color: COLORS.gray900,
+    color: c.gray900,
     marginBottom: 16,
   },
   mutualModalTagsWrap: {
@@ -2417,7 +2419,7 @@ const styles = StyleSheet.create({
   },
   mutualModalTag: {
     // 已選=piktag500 實心 + 白字 — founder 2026-05-23 contract.
-    backgroundColor: COLORS.piktag500,
+    backgroundColor: c.piktag500,
     borderRadius: 16,
     paddingHorizontal: 14,
     paddingVertical: 8,
@@ -2436,7 +2438,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   unfollowModalContainer: {
-    backgroundColor: COLORS.white,
+    backgroundColor: c.white,
     borderRadius: 16,
     padding: 24,
     width: 300,
@@ -2446,12 +2448,12 @@ const styles = StyleSheet.create({
   unfollowModalTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: COLORS.gray900,
+    color: c.gray900,
     marginBottom: 8,
   },
   unfollowModalMessage: {
     fontSize: 15,
-    color: COLORS.gray500,
+    color: c.gray500,
     textAlign: 'center',
     lineHeight: 22,
     marginBottom: 24,
@@ -2464,7 +2466,7 @@ const styles = StyleSheet.create({
   unfollowModalCancelBtn: {
     flex: 1,
     borderWidth: 1.5,
-    borderColor: COLORS.gray200,
+    borderColor: c.gray200,
     borderRadius: 12,
     paddingVertical: 12,
     alignItems: 'center',
@@ -2472,7 +2474,7 @@ const styles = StyleSheet.create({
   unfollowModalCancelText: {
     fontSize: 15,
     fontWeight: '600',
-    color: COLORS.gray700,
+    color: c.gray700,
   },
   unfollowModalConfirmBtn: {
     flex: 1,
@@ -2484,6 +2486,7 @@ const styles = StyleSheet.create({
   unfollowModalConfirmText: {
     fontSize: 15,
     fontWeight: '700',
-    color: COLORS.white,
+    color: c.white,
   },
-});
+  });
+}

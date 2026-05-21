@@ -37,7 +37,7 @@ import { useTranslation } from 'react-i18next';
 import { ArrowLeft, Plus, Trash2 } from 'lucide-react-native';
 import { requestMediaLibraryPermissionsAsync, launchImageLibraryAsync } from 'expo-image-picker';
 import ProfileIdentityHeader from '../components/ProfileIdentityHeader';
-import { COLORS } from '../constants/theme';
+import { COLORS, type ColorPalette } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
 import { useLocalContacts } from '../hooks/useLocalContacts';
 import { supabase, supabaseUrl, supabaseAnonKey } from '../lib/supabase';
@@ -70,6 +70,7 @@ type CardData = {
 export default function EditLocalContactScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
   const { colors, isDark } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const contactId: string | undefined = route.params?.contactId;
   const { contacts, add, update, remove, loading } = useLocalContacts();
 
@@ -586,7 +587,7 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
             accessibilityRole="button"
             accessibilityLabel={t('common.back', { defaultValue: '返回' })}
           >
-            <ArrowLeft size={24} color={COLORS.gray900} strokeWidth={2.2} />
+            <ArrowLeft size={24} color={colors.gray900} strokeWidth={2.2} />
           </TouchableOpacity>
           <Text style={styles.headerTitle} numberOfLines={1}>
             {t('localContact.editTitle', { defaultValue: '編輯聯絡人' })}
@@ -620,7 +621,7 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
           accessibilityRole="button"
           accessibilityLabel={t('common.back', { defaultValue: '返回' })}
         >
-          <ArrowLeft size={24} color={COLORS.gray900} strokeWidth={2.2} />
+          <ArrowLeft size={24} color={colors.gray900} strokeWidth={2.2} />
         </TouchableOpacity>
         <Text style={styles.headerTitle} numberOfLines={1}>
           {isEdit
@@ -635,7 +636,7 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
             accessibilityRole="button"
             accessibilityLabel={t('common.delete', { defaultValue: '刪除' })}
           >
-            <Trash2 size={20} color={COLORS.gray500} />
+            <Trash2 size={20} color={colors.gray500} />
           </TouchableOpacity>
         ) : (
           <View style={styles.headerBtn} />
@@ -693,7 +694,7 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
                 placeholder={t('editProfile.headlinePlaceholder', {
                   defaultValue: '例：PM @ 科技公司、自由接案設計師',
                 })}
-                placeholderTextColor={COLORS.gray400}
+                placeholderTextColor={colors.gray400}
                 maxLength={80}
               />
             </View>
@@ -707,7 +708,7 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
                 value={phone}
                 onChangeText={setPhone}
                 placeholder={t('localContact.phonePlaceholder', { defaultValue: '+886 912 345 678' })}
-                placeholderTextColor={COLORS.gray400}
+                placeholderTextColor={colors.gray400}
                 keyboardType="phone-pad"
                 autoCapitalize="none"
                 maxLength={24}
@@ -723,7 +724,7 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
                 value={email}
                 onChangeText={setEmail}
                 placeholder={t('localContact.emailPlaceholder', { defaultValue: 'name@example.com' })}
-                placeholderTextColor={COLORS.gray400}
+                placeholderTextColor={colors.gray400}
                 keyboardType="email-address"
                 autoCapitalize="none"
                 autoCorrect={false}
@@ -740,7 +741,7 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
                 value={address}
                 onChangeText={setAddress}
                 placeholder={t('localContact.addressPlaceholder', { defaultValue: '例：台北市信義區市府路 1 號' })}
-                placeholderTextColor={COLORS.gray400}
+                placeholderTextColor={colors.gray400}
                 autoCapitalize="none"
                 maxLength={200}
               />
@@ -755,7 +756,7 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
                 value={birthday}
                 onChangeText={setBirthday}
                 placeholder={t('localContact.birthdayPlaceholder', { defaultValue: 'MM-DD 或 YYYY-MM-DD' })}
-                placeholderTextColor={COLORS.gray400}
+                placeholderTextColor={colors.gray400}
                 keyboardType="numbers-and-punctuation"
                 autoCapitalize="none"
                 maxLength={10}
@@ -783,7 +784,7 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
               value={tagInput}
               onChangeText={setTagInput}
               placeholder={t('localContact.tagPlaceholder', { defaultValue: '輸入標籤…' })}
-              placeholderTextColor={COLORS.gray400}
+              placeholderTextColor={colors.gray400}
               returnKeyType="done"
               onSubmitEditing={addTag}
               maxLength={20}
@@ -847,10 +848,11 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.white },
+function makeStyles(c: ColorPalette) {
+  return StyleSheet.create({
+  container: { flex: 1, backgroundColor: c.white },
   gateCenter: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32 },
-  gateMsg: { fontSize: 14, color: COLORS.gray500, textAlign: 'center', lineHeight: 21 },
+  gateMsg: { fontSize: 14, color: c.gray500, textAlign: 'center', lineHeight: 21 },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -858,10 +860,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.gray100,
+    borderBottomColor: c.gray100,
   },
   headerBtn: { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
-  headerTitle: { flex: 1, textAlign: 'center', fontSize: 17, fontWeight: '700', color: COLORS.gray900 },
+  headerTitle: { flex: 1, textAlign: 'center', fontSize: 17, fontWeight: '700', color: c.gray900 },
   scroll: { padding: 20, paddingBottom: 48 },
   // Section caption — mirrors FriendDetailScreen.sectionTitle tokens
   // (13/700, gray500, uppercase, +letterSpacing) so a contact's
@@ -869,7 +871,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 13,
     fontWeight: '700',
-    color: COLORS.gray500,
+    color: c.gray500,
     textTransform: 'uppercase',
     letterSpacing: 0.8,
     marginTop: 24,
@@ -887,22 +889,22 @@ const styles = StyleSheet.create({
   fieldLabel: {
     fontSize: 14,
     fontWeight: '600',
-    color: COLORS.gray700,
+    color: c.gray700,
     marginLeft: 4,
   },
   fieldInput: {
-    backgroundColor: COLORS.gray100,
+    backgroundColor: c.gray100,
     borderRadius: 16,
     paddingHorizontal: 16,
     paddingVertical: 14,
     fontSize: 16,
-    color: COLORS.gray900,
+    color: c.gray900,
   },
   // Still used by the tag-add input row only.
   input: {
     fontSize: 15,
-    color: COLORS.gray900,
-    backgroundColor: COLORS.gray50,
+    color: c.gray900,
+    backgroundColor: c.gray50,
     borderRadius: 12,
     paddingHorizontal: 14,
     paddingVertical: 12,
@@ -915,7 +917,7 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 12,
-    backgroundColor: COLORS.piktag500,
+    backgroundColor: c.piktag500,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -928,10 +930,10 @@ const styles = StyleSheet.create({
     marginTop: 28,
     paddingVertical: 15,
     borderRadius: 14,
-    backgroundColor: COLORS.piktag500,
+    backgroundColor: c.piktag500,
     alignItems: 'center',
   },
-  saveBtnDisabled: { backgroundColor: COLORS.gray200 },
+  saveBtnDisabled: { backgroundColor: c.gray200 },
   saveBtnText: { fontSize: 16, fontWeight: '700', color: '#FFFFFF' },
   // Scan overlay — full-screen dim layer with a centered white
   // card carrying the LogoLoader + status text. position:absolute +
@@ -952,7 +954,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 32,
   },
   scanOverlayCard: {
-    backgroundColor: COLORS.white,
+    backgroundColor: c.white,
     borderRadius: 20,
     paddingVertical: 32,
     paddingHorizontal: 36,
@@ -971,13 +973,14 @@ const styles = StyleSheet.create({
     marginTop: 20,
     fontSize: 16,
     fontWeight: '700',
-    color: COLORS.gray900,
+    color: c.gray900,
     textAlign: 'center',
   },
   scanOverlaySubtitle: {
     marginTop: 6,
     fontSize: 13,
-    color: COLORS.gray500,
+    color: c.gray500,
     textAlign: 'center',
   },
-});
+  });
+}

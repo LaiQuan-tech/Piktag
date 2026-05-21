@@ -30,7 +30,7 @@ import { useTranslation } from 'react-i18next';
 import { getLocales } from 'expo-localization';
 import { supabase } from '../lib/supabase';
 import { getCache, setCache } from '../lib/dataCache';
-import { COLORS } from '../constants/theme';
+import { COLORS, type ColorPalette } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../hooks/useAuth';
 import { useAuthProfile } from '../context/AuthContext';
@@ -58,6 +58,8 @@ type ProfileCardProps = {
 };
 
 const ProfileCard = React.memo(function ProfileCard({ profile, onPress, t }: ProfileCardProps) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const handlePress = useCallback(() => {
     onPress(profile);
   }, [onPress, profile]);
@@ -82,8 +84,8 @@ const ProfileCard = React.memo(function ProfileCard({ profile, onPress, t }: Pro
           {/* {profile.is_verified && (
             <CheckCircle2
               size={16}
-              color={COLORS.blue500}
-              fill={COLORS.blue500}
+              color={colors.blue500}
+              fill={colors.blue500}
               strokeWidth={0}
               style={verifiedBadgeStyle}
             />
@@ -113,6 +115,8 @@ type TagCardProps = {
 };
 
 const TagCard = React.memo(function TagCard({ tag, isSelected, onPress, onLongPress, countSuffix, isTrending, showSemanticType, semanticTypeLabel }: TagCardProps) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   return (
     <TouchableOpacity
       style={[styles.tagCard, isSelected && styles.tagCardHighlighted]}
@@ -121,7 +125,7 @@ const TagCard = React.memo(function TagCard({ tag, isSelected, onPress, onLongPr
       onLongPress={onLongPress ? () => onLongPress(tag) : undefined}
     >
       <View style={styles.tagCardRow}>
-        <Hash size={14} color={isSelected ? COLORS.white : COLORS.piktag500} strokeWidth={2.5} />
+        <Hash size={14} color={isSelected ? colors.white : colors.piktag500} strokeWidth={2.5} />
         <Text style={[styles.tagName, isSelected && styles.tagNameHighlighted]} numberOfLines={1}>
           {tag.name}
         </Text>
@@ -138,7 +142,7 @@ const TagCard = React.memo(function TagCard({ tag, isSelected, onPress, onLongPr
           // high-pop highlight" the design system reserves the accent
           // for. Most tags don't render this, so the magenta jump
           // feels like a deliberate signal, not noise.
-          <TrendingUp size={12} color={isSelected ? COLORS.white : COLORS.accentPop} />
+          <TrendingUp size={12} color={isSelected ? colors.white : colors.accentPop} />
         )}
         <Text style={[styles.tagCount, isSelected && styles.tagCountHighlighted]}>
           {tag.usage_count}{countSuffix}
@@ -156,6 +160,8 @@ type RecentSearchItemProps = {
 };
 
 const RecentSearchItem = React.memo(function RecentSearchItem({ query, onPress, onDelete, deleteLabel }: RecentSearchItemProps) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const handlePress = useCallback(() => {
     onPress(query);
   }, [onPress, query]);
@@ -171,7 +177,7 @@ const RecentSearchItem = React.memo(function RecentSearchItem({ query, onPress, 
         onPress={handlePress}
         activeOpacity={0.7}
       >
-        <Clock size={16} color={COLORS.gray400} />
+        <Clock size={16} color={colors.gray400} />
         <Text style={styles.recentSearchText} numberOfLines={1}>{query}</Text>
       </TouchableOpacity>
       <TouchableOpacity
@@ -182,7 +188,7 @@ const RecentSearchItem = React.memo(function RecentSearchItem({ query, onPress, 
         accessibilityLabel={deleteLabel}
         accessibilityRole="button"
       >
-        <X size={14} color={COLORS.gray400} />
+        <X size={14} color={colors.gray400} />
       </TouchableOpacity>
     </View>
   );
@@ -210,6 +216,7 @@ type SearchScreenProps = {
 export default function SearchScreen({ navigation }: SearchScreenProps) {
   const { t } = useTranslation();
   const { colors, isDark } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const { user } = useAuth();
   // GPS-derived city for {{city}} interpolation in the rotating
   // placeholder prompts. We previously read `profile.location` (a
@@ -1627,7 +1634,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
                         }}
                         hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                       >
-                        <X size={14} color={COLORS.white} />
+                        <X size={14} color={colors.white} />
                       </TouchableOpacity>
                     </View>
                   ))}
@@ -1900,7 +1907,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
         case 'recommendedUsers':
           return (
             <View style={{ paddingBottom: 16 }}>
-              <Text style={{ fontSize: 16, fontWeight: '700', color: COLORS.gray900, marginBottom: 10 }}>
+              <Text style={{ fontSize: 16, fontWeight: '700', color: colors.gray900, marginBottom: 10 }}>
                 {t('search.recommendedTitle', { defaultValue: '你可能想認識' })}
               </Text>
               <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 14 }}>
@@ -1917,7 +1924,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
                       name={u.full_name || u.username || ''}
                       avatarUrl={u.avatar_url}
                     />
-                    <Text style={{ fontSize: 12, fontWeight: '500', color: COLORS.gray700, marginTop: 4, textAlign: 'center' }} numberOfLines={1}>
+                    <Text style={{ fontSize: 12, fontWeight: '500', color: colors.gray700, marginTop: 4, textAlign: 'center' }} numberOfLines={1}>
                       {u.full_name || u.username || ''}
                     </Text>
                   </TouchableOpacity>
@@ -1996,7 +2003,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
         <Pressable style={searchContainerStyle} onPress={focusSearchInput}>
           <Search
             size={20}
-            color={COLORS.gray400}
+            color={colors.gray400}
             style={styles.searchIcon}
             pointerEvents="none"
           />
@@ -2004,7 +2011,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
             ref={searchInputRef}
             style={styles.searchInput}
             placeholder={placeholder}
-            placeholderTextColor={COLORS.gray400}
+            placeholderTextColor={colors.gray400}
             value={searchQuery}
             onChangeText={handleSearchChange}
             onFocus={handleFocus}
@@ -2023,7 +2030,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
               accessibilityLabel="清除搜尋"
               accessibilityRole="button"
             >
-              <X size={16} color={COLORS.gray400} />
+              <X size={16} color={colors.gray400} />
             </TouchableOpacity>
           )}
         </Pressable>
@@ -2053,7 +2060,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
             <Text style={styles.floatingClearText}>{t('search.clearAll', { defaultValue: '清除' })}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.floatingSearchBtn} onPress={handleSearchByTags} activeOpacity={0.8}>
-            <Search size={16} color={COLORS.white} />
+            <Search size={16} color={colors.white} />
             <Text style={styles.floatingSearchBtnText}>{t('search.searchBtn', { defaultValue: '搜尋' })}</Text>
           </TouchableOpacity>
         </View>
@@ -2088,10 +2095,11 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
 // Stable array reference for SafeAreaView edges
 const topEdges: ('top')[] = ['top'];
 
-const styles = StyleSheet.create({
+function makeStyles(c: ColorPalette) {
+  return StyleSheet.create({
   // Semantic type badge
   semanticBadge: {
-    backgroundColor: COLORS.gray100,
+    backgroundColor: c.gray100,
     borderRadius: 8,
     paddingHorizontal: 6,
     paddingVertical: 1,
@@ -2102,7 +2110,7 @@ const styles = StyleSheet.create({
   },
   semanticBadgeText: {
     fontSize: 10,
-    color: COLORS.gray500,
+    color: c.gray500,
     fontWeight: '500',
   },
   semanticBadgeTextSelected: {
@@ -2116,18 +2124,18 @@ const styles = StyleSheet.create({
     right: 0,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: COLORS.white,
+    backgroundColor: c.white,
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderTopWidth: 1,
-    borderTopColor: COLORS.gray200,
+    borderTopColor: c.gray200,
     gap: 10,
   },
   floatingSearchText: {
     flex: 1,
     fontSize: 14,
     fontWeight: '600',
-    color: COLORS.gray700,
+    color: c.gray700,
   },
   floatingClearBtn: {
     paddingHorizontal: 10,
@@ -2135,12 +2143,12 @@ const styles = StyleSheet.create({
   },
   floatingClearText: {
     fontSize: 13,
-    color: COLORS.gray500,
+    color: c.gray500,
   },
   floatingSearchBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: COLORS.piktag500,
+    backgroundColor: c.piktag500,
     borderRadius: 20,
     paddingHorizontal: 16,
     paddingVertical: 8,
@@ -2149,19 +2157,19 @@ const styles = StyleSheet.create({
   floatingSearchBtnText: {
     fontSize: 14,
     fontWeight: '600',
-    color: COLORS.white,
+    color: c.white,
   },
   // Selected tags bar (unused, kept for reference)
   selectedTagsBar: {
     paddingVertical: 10,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.gray200,
-    backgroundColor: COLORS.gray50,
+    borderBottomColor: c.gray200,
+    backgroundColor: c.gray50,
   },
   selectedTagChip: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: COLORS.piktag500,
+    backgroundColor: c.piktag500,
     borderRadius: 16,
     paddingHorizontal: 12,
     paddingVertical: 6,
@@ -2170,7 +2178,7 @@ const styles = StyleSheet.create({
   selectedTagChipText: {
     fontSize: 13,
     fontWeight: '600',
-    color: COLORS.white,
+    color: c.white,
   },
   clearAllBtn: {
     paddingHorizontal: 10,
@@ -2179,11 +2187,11 @@ const styles = StyleSheet.create({
   },
   clearAllText: {
     fontSize: 13,
-    color: COLORS.gray500,
+    color: c.gray500,
   },
   intersectionHint: {
     fontSize: 12,
-    color: COLORS.gray400,
+    color: c.gray400,
     paddingHorizontal: 16,
     paddingTop: 6,
   },
@@ -2196,7 +2204,7 @@ const styles = StyleSheet.create({
   selectedChip: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: COLORS.piktag500,
+    backgroundColor: c.piktag500,
     borderRadius: 20,
     paddingLeft: 12,
     paddingRight: 8,
@@ -2206,12 +2214,12 @@ const styles = StyleSheet.create({
   selectedChipText: {
     fontSize: 13,
     fontWeight: '600',
-    color: COLORS.white,
+    color: c.white,
   },
   intersectionTabRow: {
     flexDirection: 'row',
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.gray200,
+    borderBottomColor: c.gray200,
     marginBottom: 8,
   },
   intersectionTabBtn: {
@@ -2222,28 +2230,28 @@ const styles = StyleSheet.create({
     borderBottomColor: 'transparent',
   },
   intersectionTabBtnActive: {
-    borderBottomColor: COLORS.piktag500,
+    borderBottomColor: c.piktag500,
   },
   intersectionTabText: {
     fontSize: 14,
     fontWeight: '500',
-    color: COLORS.gray500,
+    color: c.gray500,
   },
   intersectionTabTextActive: {
     fontWeight: '600',
-    color: COLORS.piktag600,
+    color: c.piktag600,
   },
   // Main styles
   container: {
     flex: 1,
-    backgroundColor: COLORS.white,
+    backgroundColor: c.white,
   },
   header: {
     paddingHorizontal: 20,
     paddingBottom: 16,
-    backgroundColor: COLORS.white,
+    backgroundColor: c.white,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.gray100,
+    borderBottomColor: c.gray100,
   },
   headerTitleRow: {
     flexDirection: 'row',
@@ -2254,7 +2262,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 24,
     fontWeight: '700',
-    color: COLORS.gray900,
+    color: c.gray900,
     lineHeight: 32,
   },
   // Map button sits next to the title — quick entry to "where are
@@ -2270,7 +2278,7 @@ const styles = StyleSheet.create({
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: COLORS.gray100,
+    backgroundColor: c.gray100,
     borderRadius: 16,
     paddingHorizontal: 16,
     height: 48,
@@ -2278,9 +2286,9 @@ const styles = StyleSheet.create({
     borderColor: 'transparent',
   },
   searchContainerFocused: {
-    backgroundColor: COLORS.white,
-    borderColor: COLORS.piktag500,
-    shadowColor: COLORS.piktag200,
+    backgroundColor: c.white,
+    borderColor: c.piktag500,
+    shadowColor: c.piktag200,
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 1,
     shadowRadius: 4,
@@ -2296,7 +2304,7 @@ const styles = StyleSheet.create({
   searchInput: {
     flex: 1,
     fontSize: 16,
-    color: COLORS.gray900,
+    color: c.gray900,
     lineHeight: 22,
     padding: 0,
   },
@@ -2311,7 +2319,7 @@ const styles = StyleSheet.create({
   categorySectionLabel: {
     fontSize: 16,
     fontWeight: '600',
-    color: COLORS.gray700,
+    color: c.gray700,
     marginBottom: 16,
   },
   tagsGrid: {
@@ -2322,14 +2330,14 @@ const styles = StyleSheet.create({
   tagCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: COLORS.gray100,
+    backgroundColor: c.gray100,
     borderRadius: 9999,
     paddingVertical: 10,
     paddingHorizontal: 14,
     gap: 6,
   },
   tagCardHighlighted: {
-    backgroundColor: COLORS.piktag500,
+    backgroundColor: c.piktag500,
   },
   tagCardRow: {
     flexDirection: 'row',
@@ -2339,11 +2347,11 @@ const styles = StyleSheet.create({
   tagName: {
     fontSize: 14,
     fontWeight: '600',
-    color: COLORS.gray900,
+    color: c.gray900,
     lineHeight: 20,
   },
   tagNameHighlighted: {
-    color: COLORS.white,
+    color: c.white,
   },
   tagCountRow: {
     flexDirection: 'row',
@@ -2352,7 +2360,7 @@ const styles = StyleSheet.create({
   },
   tagCount: {
     fontSize: 11,
-    color: COLORS.gray400,
+    color: c.gray400,
     lineHeight: 14,
   },
   tagCountHighlighted: {
@@ -2364,7 +2372,7 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 14,
-    color: COLORS.gray400,
+    color: c.gray400,
     textAlign: 'center',
     paddingVertical: 24,
   },
@@ -2378,12 +2386,12 @@ const styles = StyleSheet.create({
   emptyStateTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: COLORS.gray700,
+    color: c.gray700,
     textAlign: 'center',
   },
   emptyStateHint: {
     fontSize: 13,
-    color: COLORS.gray500,
+    color: c.gray500,
     textAlign: 'center',
     marginTop: 8,
   },
@@ -2392,11 +2400,11 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 20,
-    backgroundColor: COLORS.gray100,
+    backgroundColor: c.gray100,
   },
   clearRetryButtonText: {
     fontSize: 14,
-    color: COLORS.gray700,
+    color: c.gray700,
     fontWeight: '500',
   },
   // Ask conversion CTA in the no-results state. Understated: a quiet
@@ -2405,7 +2413,7 @@ const styles = StyleSheet.create({
   // "clear and retry" stays the neutral grey secondary below it.
   askCtaHint: {
     fontSize: 13,
-    color: COLORS.piktag600,
+    color: c.piktag600,
     textAlign: 'center',
     marginTop: 18,
     lineHeight: 19,
@@ -2415,7 +2423,7 @@ const styles = StyleSheet.create({
     paddingVertical: 11,
     paddingHorizontal: 24,
     borderRadius: 22,
-    backgroundColor: COLORS.piktag500,
+    backgroundColor: c.piktag500,
   },
   askCtaButtonText: {
     fontSize: 14,
@@ -2432,17 +2440,17 @@ const styles = StyleSheet.create({
   sectionLabelText: {
     fontSize: 16,
     fontWeight: '700',
-    color: COLORS.gray900,
+    color: c.gray900,
   },
   sectionLabelClear: {
     fontSize: 13,
     fontWeight: '500',
-    color: COLORS.gray400,
+    color: c.gray400,
   },
   resultSectionLabel: {
     fontSize: 14,
     fontWeight: '600',
-    color: COLORS.gray500,
+    color: c.gray500,
     marginBottom: 12,
     marginTop: 4,
   },
@@ -2454,7 +2462,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.gray100,
+    borderBottomColor: c.gray100,
   },
   profileInfo: {
     flex: 1,
@@ -2467,11 +2475,11 @@ const styles = StyleSheet.create({
   profileName: {
     fontSize: 16,
     fontWeight: '600',
-    color: COLORS.gray900,
+    color: c.gray900,
   },
   profileUsername: {
     fontSize: 13,
-    color: COLORS.gray500,
+    color: c.gray500,
     marginTop: 2,
   },
   recentSearchItem: {
@@ -2479,7 +2487,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 4,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.gray100,
+    borderBottomColor: c.gray100,
   },
   recentSearchItemLeft: {
     flex: 1,
@@ -2491,7 +2499,7 @@ const styles = StyleSheet.create({
   recentSearchText: {
     flex: 1,
     fontSize: 15,
-    color: COLORS.gray700,
+    color: c.gray700,
   },
   recentSearchDeleteBtn: {
     paddingVertical: 8,
@@ -2505,7 +2513,7 @@ const styles = StyleSheet.create({
   },
   clearHistoryText: {
     fontSize: 13,
-    color: COLORS.red500,
+    color: c.red500,
     fontWeight: '500',
   },
 
@@ -2516,7 +2524,7 @@ const styles = StyleSheet.create({
   tagCategoryTitle: {
     fontSize: 15,
     fontWeight: '700',
-    color: COLORS.gray700,
+    color: c.gray700,
     paddingHorizontal: 20,
     marginBottom: 10,
     marginTop: 8,
@@ -2533,35 +2541,36 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderRadius: 20,
-    backgroundColor: COLORS.gray100,
+    backgroundColor: c.gray100,
     borderWidth: 1.5,
     borderColor: 'transparent',
   },
   categoryChipActive: {
-    backgroundColor: COLORS.piktag50,
-    borderColor: COLORS.piktag500,
+    backgroundColor: c.piktag50,
+    borderColor: c.piktag500,
   },
   categoryChipText: {
     fontSize: 13,
     fontWeight: '600',
-    color: COLORS.gray600,
+    color: c.gray600,
   },
   categoryChipTextActive: {
-    color: COLORS.piktag600,
+    color: c.piktag600,
   },
   toast: {
     position: 'absolute',
     left: 16,
     right: 16,
     bottom: 32,
-    backgroundColor: COLORS.gray900,
+    backgroundColor: c.gray900,
     borderRadius: 12,
     paddingVertical: 12,
     paddingHorizontal: 16,
   },
   toastText: {
-    color: COLORS.white,
+    color: c.white,
     fontSize: 14,
     textAlign: 'center',
   },
-});
+  });
+}
