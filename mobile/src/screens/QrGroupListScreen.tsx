@@ -47,7 +47,7 @@ import DraggableFlatList, {
   ScaleDecorator,
 } from 'react-native-draggable-flatlist';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { COLORS } from '../constants/theme';
+import { COLORS, type ColorPalette } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
@@ -71,6 +71,7 @@ type Props = { navigation: any };
 export default function QrGroupListScreen({ navigation }: Props) {
   const { t } = useTranslation();
   const { colors, isDark } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const { user } = useAuth();
 
   const [groups, setGroups] = useState<QrGroup[]>([]);
@@ -285,7 +286,7 @@ export default function QrGroupListScreen({ navigation }: Props) {
               hitSlop={8}
               style={styles.groupGrip}
             >
-              <GripVertical size={18} color={COLORS.gray400} />
+              <GripVertical size={18} color={colors.gray400} />
             </TouchableOpacity>
 
             {/* QR-icon avatar removed — every row in this list is
@@ -310,7 +311,7 @@ export default function QrGroupListScreen({ navigation }: Props) {
                 )}
               </View>
               <View style={styles.groupCountRow}>
-                <Users size={12} color={COLORS.gray500} />
+                <Users size={12} color={colors.gray500} />
                 <Text style={styles.groupCount}>
                   {t('qrGroup.memberCount', {
                     count: item.member_count,
@@ -332,10 +333,10 @@ export default function QrGroupListScreen({ navigation }: Props) {
               accessibilityLabel={t('common.delete', { defaultValue: '刪除' })}
               accessibilityRole="button"
             >
-              <Trash2 size={18} color={COLORS.gray400} />
+              <Trash2 size={18} color={colors.gray400} />
             </TouchableOpacity>
 
-            <ChevronRight size={16} color={COLORS.gray300} />
+            <ChevronRight size={16} color={colors.gray300} />
           </TouchableOpacity>
         </ScaleDecorator>
       );
@@ -347,7 +348,7 @@ export default function QrGroupListScreen({ navigation }: Props) {
     () => (
       <View style={styles.emptyWrap}>
         <View style={styles.emptyIconWrap}>
-          <QrCode size={36} color={COLORS.piktag500} />
+          <QrCode size={36} color={colors.piktag500} />
         </View>
         <Text style={styles.emptyTitle}>
           {t('qrGroup.emptyTitle', { defaultValue: '讓標籤，替你記住新朋友' })}
@@ -422,7 +423,7 @@ export default function QrGroupListScreen({ navigation }: Props) {
               accessibilityLabel={t('qrGroup.scan', { defaultValue: '掃描 QR 加好友' })}
 
             >
-              <ScanLine size={24} color={COLORS.gray600} />
+              <ScanLine size={24} color={colors.gray600} />
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.headerIconBtn}
@@ -431,7 +432,7 @@ export default function QrGroupListScreen({ navigation }: Props) {
               accessibilityRole="button"
               accessibilityLabel={t('qrGroup.create', { defaultValue: '建立新 Tag' })}
             >
-              <Plus size={24} color={COLORS.gray600} />
+              <Plus size={24} color={colors.gray600} />
             </TouchableOpacity>
           </View>
         </View>
@@ -445,7 +446,7 @@ export default function QrGroupListScreen({ navigation }: Props) {
             listing + opening Vibes. */}
         {loading && groups.length === 0 ? (
           <View style={styles.loadingWrap}>
-            <ActivityIndicator size="small" color={COLORS.piktag500} />
+            <ActivityIndicator size="small" color={colors.piktag500} />
           </View>
         ) : groups.length === 0 ? (
           listEmpty
@@ -464,8 +465,9 @@ export default function QrGroupListScreen({ navigation }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.white },
+function makeStyles(c: ColorPalette) {
+  return StyleSheet.create({
+  container: { flex: 1, backgroundColor: c.white },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -473,9 +475,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 8,
     paddingBottom: 12,
-    backgroundColor: COLORS.white,
+    backgroundColor: c.white,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.gray100,
+    borderBottomColor: c.gray100,
   },
   // Left-side title block — "Vibes" big, Chinese explainer
   // underneath in a smaller gray weight. The two-line stack lets
@@ -487,11 +489,11 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 22,
     fontWeight: '800',
-    color: COLORS.gray900,
+    color: c.gray900,
   },
   headerSubtitle: {
     fontSize: 12,
-    color: COLORS.gray500,
+    color: c.gray500,
     marginTop: 2,
   },
   // Right-side cluster — scan + create live side-by-side as peer
@@ -517,13 +519,13 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     paddingHorizontal: 12,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.gray100,
-    backgroundColor: COLORS.white,
+    borderBottomColor: c.gray100,
+    backgroundColor: c.white,
   },
   // Visual feedback while the user is mid-drag — slight shadow +
   // background so the dragged row sits above its neighbours.
   groupRowActive: {
-    backgroundColor: COLORS.piktag50,
+    backgroundColor: c.piktag50,
     shadowColor: '#000',
     shadowOpacity: 0.08,
     shadowOffset: { width: 0, height: 2 },
@@ -535,12 +537,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 2,
   },
   groupBody: { flex: 1, gap: 3 },
-  groupName: { fontSize: 16, fontWeight: '700', color: COLORS.gray900 },
+  groupName: { fontSize: 16, fontWeight: '700', color: c.gray900 },
   groupMetaRow: { flexDirection: 'row' },
-  groupTags: { fontSize: 13, color: COLORS.piktag600, fontWeight: '500' },
-  groupTagsEmpty: { fontSize: 13, color: COLORS.gray400, fontStyle: 'italic' },
+  groupTags: { fontSize: 13, color: c.piktag600, fontWeight: '500' },
+  groupTagsEmpty: { fontSize: 13, color: c.gray400, fontStyle: 'italic' },
   groupCountRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 2 },
-  groupCount: { fontSize: 12, color: COLORS.gray500 },
+  groupCount: { fontSize: 12, color: c.gray500 },
   groupDeleteBtn: {
     paddingVertical: 6,
     paddingHorizontal: 6,
@@ -551,13 +553,13 @@ const styles = StyleSheet.create({
     width: 72,
     height: 72,
     borderRadius: 36,
-    backgroundColor: COLORS.piktag50,
+    backgroundColor: c.piktag50,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 4,
   },
-  emptyTitle: { fontSize: 18, fontWeight: '700', color: COLORS.gray900 },
-  emptyDesc: { fontSize: 13, color: COLORS.gray500, textAlign: 'center', lineHeight: 19 },
+  emptyTitle: { fontSize: 18, fontWeight: '700', color: c.gray900 },
+  emptyDesc: { fontSize: 13, color: c.gray500, textAlign: 'center', lineHeight: 19 },
   emptyCta: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -565,10 +567,11 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 22,
     borderRadius: 12,
-    backgroundColor: COLORS.piktag500,
+    backgroundColor: c.piktag500,
     marginTop: 12,
   },
   emptyCtaText: { fontSize: 15, fontWeight: '700', color: '#FFFFFF' },
   // (emptyScanBtn / emptyScanText removed with the secondary
   //  scan link — scan now lives only in the header.)
-});
+  });
+}

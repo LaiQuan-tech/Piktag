@@ -13,7 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeft, Hash, CheckCircle2, Users, UserPlus } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { useFocusEffect } from '@react-navigation/native';
-import { COLORS } from '../constants/theme';
+import { COLORS, type ColorPalette } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
 import RingedAvatar from '../components/RingedAvatar';
 import AskListByTag from '../components/ask/AskListByTag';
@@ -55,6 +55,7 @@ type TabKey = 'connections' | 'explore';
 export default function TagDetailScreen({ navigation, route }: TagDetailScreenProps) {
   const { t } = useTranslation();
   const { colors, isDark } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const { user } = useAuth();
   const paramTagId = route.params?.tagId;
   const tagName = route.params?.tagName;
@@ -380,7 +381,7 @@ export default function TagDetailScreen({ navigation, route }: TagDetailScreenPr
           <View style={styles.nameRow}>
             <Text style={styles.name} numberOfLines={1}>{displayName}</Text>
             {/* {verified && (
-              <CheckCircle2 size={16} color={COLORS.blue500} fill={COLORS.blue500} strokeWidth={0} style={{ marginLeft: 4 }} />
+              <CheckCircle2 size={16} color={colors.blue500} fill={colors.blue500} strokeWidth={0} style={{ marginLeft: 4 }} />
             )} */}
           </View>
           {username ? <Text style={styles.username}>@{username}</Text> : null}
@@ -412,13 +413,13 @@ export default function TagDetailScreen({ navigation, route }: TagDetailScreenPr
           <View style={styles.nameRow}>
             <Text style={styles.name} numberOfLines={1}>{displayName}</Text>
             {/* {item.is_verified && (
-              <CheckCircle2 size={16} color={COLORS.blue500} fill={COLORS.blue500} strokeWidth={0} style={{ marginLeft: 4 }} />
+              <CheckCircle2 size={16} color={colors.blue500} fill={colors.blue500} strokeWidth={0} style={{ marginLeft: 4 }} />
             )} */}
           </View>
           {item.username ? <Text style={styles.username}>@{item.username}</Text> : null}
           {item.mutual_tag_count > 0 && (
             <View style={styles.mutualBadge}>
-              <Hash size={12} color={COLORS.piktag600} strokeWidth={2} />
+              <Hash size={12} color={colors.piktag600} strokeWidth={2} />
               <Text style={styles.mutualText}>
                 {t('tagDetail.mutualTags', { count: item.mutual_tag_count })}
               </Text>
@@ -430,7 +431,7 @@ export default function TagDetailScreen({ navigation, route }: TagDetailScreenPr
           activeOpacity={0.7}
           onPress={() => navigation.navigate('UserDetail', { userId: item.id })}
         >
-          <UserPlus size={18} color={COLORS.piktag600} />
+          <UserPlus size={18} color={colors.piktag600} />
         </TouchableOpacity>
       </TouchableOpacity>
     );
@@ -469,11 +470,11 @@ export default function TagDetailScreen({ navigation, route }: TagDetailScreenPr
           onPress={() => navigation.canGoBack() ? navigation.goBack() : navigation.navigate('Connections')}
           activeOpacity={0.7}
         >
-          <ArrowLeft size={24} color={COLORS.gray900} />
+          <ArrowLeft size={24} color={colors.gray900} />
         </TouchableOpacity>
         <View style={styles.headerCenter}>
           <View style={styles.tagBadge}>
-            <Hash size={18} color={COLORS.piktag600} strokeWidth={2.5} />
+            <Hash size={18} color={colors.piktag600} strokeWidth={2.5} />
             <Text style={styles.tagTitle}>{tagName || t('tagDetail.unknownTag')}</Text>
           </View>
           {tagSemanticType && (
@@ -523,7 +524,7 @@ export default function TagDetailScreen({ navigation, route }: TagDetailScreenPr
           }}
           activeOpacity={0.7}
         >
-          <Hash size={16} color={activeTab === 'connections' ? COLORS.piktag600 : COLORS.gray500} />
+          <Hash size={16} color={activeTab === 'connections' ? colors.piktag600 : colors.gray500} />
           <Text style={[styles.tabText, activeTab === 'connections' && styles.tabTextActive]}>
             {t('tagDetail.tabConnections')}
           </Text>
@@ -541,7 +542,7 @@ export default function TagDetailScreen({ navigation, route }: TagDetailScreenPr
           }}
           activeOpacity={0.7}
         >
-          <Users size={16} color={activeTab === 'explore' ? COLORS.piktag600 : COLORS.gray500} />
+          <Users size={16} color={activeTab === 'explore' ? colors.piktag600 : colors.gray500} />
           <Text style={[styles.tabText, activeTab === 'explore' && styles.tabTextActive]}>
             {t('tagDetail.tabExplore')}
           </Text>
@@ -569,7 +570,7 @@ export default function TagDetailScreen({ navigation, route }: TagDetailScreenPr
           showsVerticalScrollIndicator={false}
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
-              <Hash size={48} color={COLORS.gray200} strokeWidth={1.5} />
+              <Hash size={48} color={colors.gray200} strokeWidth={1.5} />
               <Text style={styles.emptyTitle}>{t('tagDetail.emptyTitle')}</Text>
               <Text style={styles.emptyText}>{t('tagDetail.emptyText')}</Text>
             </View>
@@ -591,7 +592,7 @@ export default function TagDetailScreen({ navigation, route }: TagDetailScreenPr
           showsVerticalScrollIndicator={false}
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
-              <Users size={48} color={COLORS.gray200} strokeWidth={1.5} />
+              <Users size={48} color={colors.gray200} strokeWidth={1.5} />
               <Text style={styles.emptyTitle}>{t('tagDetail.exploreEmptyTitle')}</Text>
               <Text style={styles.emptyText}>{t('tagDetail.exploreEmptyText')}</Text>
             </View>
@@ -605,10 +606,11 @@ export default function TagDetailScreen({ navigation, route }: TagDetailScreenPr
   );
 }
 
-const styles = StyleSheet.create({
+function makeStyles(c: ColorPalette) {
+  return StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.white,
+    backgroundColor: c.white,
   },
   header: {
     flexDirection: 'row',
@@ -617,7 +619,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.gray100,
+    borderBottomColor: c.gray100,
   },
   backBtn: {
     width: 40,
@@ -637,19 +639,19 @@ const styles = StyleSheet.create({
   tagTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: COLORS.gray900,
+    color: c.gray900,
   },
   tagSemanticLabel: {
     fontSize: 12,
     fontWeight: '600',
-    color: COLORS.gray500,
+    color: c.gray500,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
     marginTop: 2,
   },
   tagParent: {
     fontSize: 12,
-    color: COLORS.gray400,
+    color: c.gray400,
     marginTop: 2,
   },
 
@@ -657,19 +659,19 @@ const styles = StyleSheet.create({
   relatedContainer: {
     paddingVertical: 10,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.gray200,
+    borderBottomColor: c.gray200,
   },
   relatedTitle: {
     fontSize: 13,
     fontWeight: '600',
-    color: COLORS.gray500,
+    color: c.gray500,
     paddingHorizontal: 16,
     marginBottom: 8,
   },
   relatedChip: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: COLORS.gray100,
+    backgroundColor: c.gray100,
     borderRadius: 9999,
     paddingHorizontal: 12,
     paddingVertical: 6,
@@ -678,16 +680,16 @@ const styles = StyleSheet.create({
   relatedChipText: {
     fontSize: 13,
     fontWeight: '600',
-    color: COLORS.piktag600,
+    color: c.piktag600,
   },
   relatedChipCount: {
     fontSize: 11,
-    color: COLORS.gray400,
+    color: c.gray400,
   },
   tabBar: {
     flexDirection: 'row',
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.gray100,
+    borderBottomColor: c.gray100,
   },
   tab: {
     flex: 1,
@@ -700,18 +702,18 @@ const styles = StyleSheet.create({
     borderBottomColor: 'transparent',
   },
   tabActive: {
-    borderBottomColor: COLORS.piktag500,
+    borderBottomColor: c.piktag500,
   },
   tabText: {
     fontSize: 15,
     fontWeight: '600',
-    color: COLORS.gray500,
+    color: c.gray500,
   },
   tabTextActive: {
-    color: COLORS.piktag600,
+    color: c.piktag600,
   },
   tabBadge: {
-    backgroundColor: COLORS.gray100,
+    backgroundColor: c.gray100,
     borderRadius: 10,
     paddingHorizontal: 8,
     paddingVertical: 2,
@@ -721,7 +723,7 @@ const styles = StyleSheet.create({
   tabBadgeText: {
     fontSize: 12,
     fontWeight: '700',
-    color: COLORS.gray600,
+    color: c.gray600,
   },
 
   // List
@@ -742,7 +744,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 14,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.gray100,
+    borderBottomColor: c.gray100,
   },
   textSection: {
     flex: 1,
@@ -755,17 +757,17 @@ const styles = StyleSheet.create({
   name: {
     fontSize: 16,
     fontWeight: '600',
-    color: COLORS.gray900,
+    color: c.gray900,
     lineHeight: 22,
   },
   username: {
     fontSize: 13,
-    color: COLORS.gray500,
+    color: c.gray500,
     marginTop: 1,
   },
   metLocation: {
     fontSize: 12,
-    color: COLORS.gray400,
+    color: c.gray400,
     marginTop: 2,
   },
   mutualBadge: {
@@ -773,7 +775,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 3,
     marginTop: 4,
-    backgroundColor: COLORS.piktag50,
+    backgroundColor: c.piktag50,
     alignSelf: 'flex-start',
     paddingHorizontal: 8,
     paddingVertical: 3,
@@ -782,7 +784,7 @@ const styles = StyleSheet.create({
   mutualText: {
     fontSize: 12,
     fontWeight: '600',
-    color: COLORS.piktag600,
+    color: c.piktag600,
   },
   viewProfileBtn: {
     width: 40,
@@ -790,7 +792,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 20,
-    backgroundColor: COLORS.piktag50,
+    backgroundColor: c.piktag50,
   },
 
   // Empty
@@ -804,13 +806,14 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 17,
     fontWeight: '600',
-    color: COLORS.gray700,
+    color: c.gray700,
     marginTop: 8,
   },
   emptyText: {
     fontSize: 14,
-    color: COLORS.gray500,
+    color: c.gray500,
     textAlign: 'center',
     lineHeight: 20,
   },
-});
+  });
+}

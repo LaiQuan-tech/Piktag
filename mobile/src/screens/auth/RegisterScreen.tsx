@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useMemo } from 'react';
 import {
   View,
   Text,
@@ -18,7 +18,8 @@ import { toBirthdayDate } from '../../lib/birthday';
 import { signInWithApple } from '../../lib/appleAuth';
 import { signInWithGoogle } from '../../lib/googleAuth';
 import { trackSignupComplete } from '../../lib/analytics';
-import { COLORS, SPACING, BORDER_RADIUS } from '../../constants/theme';
+import { COLORS, SPACING, BORDER_RADIUS, type ColorPalette } from '../../constants/theme';
+import { useTheme } from '../../context/ThemeContext';
 
 type RegisterScreenProps = {
   navigation: any;
@@ -26,6 +27,8 @@ type RegisterScreenProps = {
 
 export default function RegisterScreen({ navigation }: RegisterScreenProps) {
   const { t } = useTranslation();
+  const { colors, isDark } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -141,7 +144,7 @@ export default function RegisterScreen({ navigation }: RegisterScreenProps) {
           <TextInput
             style={styles.input}
             placeholder={t('auth.register.emailPlaceholder')}
-            placeholderTextColor={COLORS.gray400}
+            placeholderTextColor={colors.gray400}
             value={email}
             onChangeText={setEmail}
             keyboardType="email-address"
@@ -160,7 +163,7 @@ export default function RegisterScreen({ navigation }: RegisterScreenProps) {
                 ref={passwordRef}
                 style={[styles.passwordInput, { color: '#000000' }]}
                 placeholder={t('auth.register.passwordPlaceholder')}
-                placeholderTextColor={COLORS.gray400}
+                placeholderTextColor={colors.gray400}
                 value={password}
                 onChangeText={setPassword}
                 secureTextEntry={!showPassword}
@@ -173,9 +176,9 @@ export default function RegisterScreen({ navigation }: RegisterScreenProps) {
                 activeOpacity={0.6}
               >
                 {showPassword ? (
-                  <EyeOff size={20} color={COLORS.gray500} />
+                  <EyeOff size={20} color={colors.gray500} />
                 ) : (
-                  <Eye size={20} color={COLORS.gray500} />
+                  <Eye size={20} color={colors.gray500} />
                 )}
               </TouchableOpacity>
             </View>
@@ -195,7 +198,7 @@ export default function RegisterScreen({ navigation }: RegisterScreenProps) {
                 ref={confirmPasswordRef}
                 style={[styles.passwordInput, { color: '#000000' }]}
                 placeholder={t('auth.register.confirmPasswordPlaceholder')}
-                placeholderTextColor={COLORS.gray400}
+                placeholderTextColor={colors.gray400}
                 value={confirmPassword}
                 onChangeText={setConfirmPassword}
                 secureTextEntry={!showConfirmPassword}
@@ -208,9 +211,9 @@ export default function RegisterScreen({ navigation }: RegisterScreenProps) {
                 activeOpacity={0.6}
               >
                 {showConfirmPassword ? (
-                  <EyeOff size={20} color={COLORS.gray500} />
+                  <EyeOff size={20} color={colors.gray500} />
                 ) : (
-                  <Eye size={20} color={COLORS.gray500} />
+                  <Eye size={20} color={colors.gray500} />
                 )}
               </TouchableOpacity>
             </View>
@@ -232,7 +235,7 @@ export default function RegisterScreen({ navigation }: RegisterScreenProps) {
               ref={birthdayRef}
               style={styles.birthdayInput}
               placeholder="MM/DD"
-              placeholderTextColor={COLORS.gray400}
+              placeholderTextColor={colors.gray400}
               value={birthday}
               onChangeText={setBirthday}
               keyboardType="numbers-and-punctuation"
@@ -307,10 +310,11 @@ export default function RegisterScreen({ navigation }: RegisterScreenProps) {
   );
 }
 
-const styles = StyleSheet.create({
+function makeStyles(c: ColorPalette) {
+  return StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.white,
+    backgroundColor: c.white,
   },
   scrollContent: {
     flexGrow: 1,
@@ -330,11 +334,11 @@ const styles = StyleSheet.create({
   logoText: {
     fontSize: 48,
     fontWeight: 'bold',
-    color: COLORS.piktag500,
+    color: c.piktag500,
   },
   subtitle: {
     fontSize: 16,
-    color: COLORS.gray500,
+    color: c.gray500,
     marginTop: SPACING.sm,
   },
   formContainer: {
@@ -342,28 +346,28 @@ const styles = StyleSheet.create({
   },
   input: {
     borderWidth: 1,
-    borderColor: COLORS.gray200,
+    borderColor: c.gray200,
     borderRadius: BORDER_RADIUS.xl,
     paddingHorizontal: SPACING.xl,
     paddingVertical: 14,
     fontSize: 16,
-    color: COLORS.gray900,
-    backgroundColor: COLORS.white,
+    color: c.gray900,
+    backgroundColor: c.white,
   },
   passwordContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: COLORS.gray200,
+    borderColor: c.gray200,
     borderRadius: BORDER_RADIUS.xl,
-    backgroundColor: COLORS.white,
+    backgroundColor: c.white,
   },
   passwordInput: {
     flex: 1,
     paddingHorizontal: SPACING.xl,
     paddingVertical: 14,
     fontSize: 16,
-    color: COLORS.gray900,
+    color: c.gray900,
   },
   eyeButton: {
     paddingHorizontal: SPACING.lg,
@@ -383,7 +387,7 @@ const styles = StyleSheet.create({
   birthdayRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: COLORS.gray50,
+    backgroundColor: c.gray50,
     borderRadius: BORDER_RADIUS.xl,
     paddingHorizontal: SPACING.xl,
     paddingVertical: 14,
@@ -391,7 +395,7 @@ const styles = StyleSheet.create({
   },
   birthdayLabel: {
     fontSize: 15,
-    color: COLORS.gray700,
+    color: c.gray700,
     fontWeight: '500',
   },
   birthdayInput: {
@@ -401,7 +405,7 @@ const styles = StyleSheet.create({
     padding: 0,
   },
   registerButton: {
-    backgroundColor: COLORS.piktag500,
+    backgroundColor: c.piktag500,
     borderRadius: BORDER_RADIUS.xl,
     paddingVertical: 16,
     alignItems: 'center',
@@ -412,21 +416,21 @@ const styles = StyleSheet.create({
     opacity: 0.7,
   },
   registerButtonText: {
-    color: COLORS.white,
+    color: c.white,
     fontSize: 17,
     fontWeight: 'bold',
   },
   dividerRow: { flexDirection: 'row', alignItems: 'center', marginTop: 28, marginBottom: 20 },
-  dividerLine: { flex: 1, height: 1, backgroundColor: COLORS.gray200 },
-  dividerText: { paddingHorizontal: 14, fontSize: 13, color: COLORS.gray400 },
+  dividerLine: { flex: 1, height: 1, backgroundColor: c.gray200 },
+  dividerText: { paddingHorizontal: 14, fontSize: 13, color: c.gray400 },
   socialContainer: { gap: 10 },
   socialBtn: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10,
-    borderWidth: 1, borderColor: COLORS.gray200, borderRadius: BORDER_RADIUS.xl,
-    paddingVertical: 14, backgroundColor: COLORS.white,
+    borderWidth: 1, borderColor: c.gray200, borderRadius: BORDER_RADIUS.xl,
+    paddingVertical: 14, backgroundColor: c.white,
   },
-  socialBtnText: { fontSize: 16, fontWeight: '600', color: COLORS.gray800 },
-  appleIcon: { fontSize: 20, color: COLORS.gray900 },
+  socialBtnText: { fontSize: 16, fontWeight: '600', color: c.gray800 },
+  appleIcon: { fontSize: 20, color: c.gray900 },
   googleIcon: { fontSize: 18, fontWeight: '700', color: '#4285F4' },
   footer: {
     alignItems: 'center',
@@ -439,10 +443,11 @@ const styles = StyleSheet.create({
   },
   footerText: {
     fontSize: 14,
-    color: COLORS.gray500,
+    color: c.gray500,
   },
   footerLink: {
-    color: COLORS.piktag600,
+    color: c.piktag600,
     fontWeight: '600',
   },
-});
+  });
+}

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   View,
   Text,
@@ -14,7 +14,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { ArrowLeft, MapPin, Navigation } from 'lucide-react-native';
 import { requestForegroundPermissionsAsync, getCurrentPositionAsync, reverseGeocodeAsync, Accuracy, type LocationGeocodedAddress } from 'expo-location';
-import { COLORS } from '../constants/theme';
+import { COLORS, type ColorPalette } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
@@ -41,6 +41,7 @@ function haversineDistance(lat1: number, lon1: number, lat2: number, lon2: numbe
 export default function LocationContactsScreen({ navigation }: LocationContactsScreenProps) {
   const { t } = useTranslation();
   const { colors, isDark } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
@@ -180,7 +181,7 @@ export default function LocationContactsScreen({ navigation }: LocationContactsS
             </Text>
           )}
         </View>
-        <Navigation size={16} color={COLORS.gray400} />
+        <Navigation size={16} color={colors.gray400} />
       </TouchableOpacity>
     );
   };
@@ -195,7 +196,7 @@ export default function LocationContactsScreen({ navigation }: LocationContactsS
           onPress={() => navigation.canGoBack() ? navigation.goBack() : navigation.navigate("Connections")}
           activeOpacity={0.6}
         >
-          <ArrowLeft size={24} color={COLORS.gray900} />
+          <ArrowLeft size={24} color={colors.gray900} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>{t('locationContacts.headerTitle')}</Text>
         <View style={{ width: 32 }} />
@@ -203,7 +204,7 @@ export default function LocationContactsScreen({ navigation }: LocationContactsS
 
       {/* Location banner */}
       <View style={styles.locationBanner}>
-        <MapPin size={16} color={COLORS.piktag600} />
+        <MapPin size={16} color={colors.piktag600} />
         <Text style={styles.locationText}>{locationName}</Text>
       </View>
 
@@ -266,7 +267,7 @@ export default function LocationContactsScreen({ navigation }: LocationContactsS
               )}
               {contacts.length === 0 && metLocationContacts.length === 0 && (
                 <View style={styles.emptyContainer}>
-                  <MapPin size={48} color={COLORS.gray200} />
+                  <MapPin size={48} color={colors.gray200} />
                   <Text style={styles.emptyText}>
                     {t('locationContacts.emptyText')}
                   </Text>
@@ -280,19 +281,20 @@ export default function LocationContactsScreen({ navigation }: LocationContactsS
   );
 }
 
-const styles = StyleSheet.create({
+function makeStyles(c: ColorPalette) {
+  return StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.white,
+    backgroundColor: c.white,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 16,
     paddingBottom: 14,
-    backgroundColor: COLORS.white,
+    backgroundColor: c.white,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.gray100,
+    borderBottomColor: c.gray100,
   },
   backBtn: {
     padding: 4,
@@ -301,7 +303,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 18,
     fontWeight: '700',
-    color: COLORS.gray900,
+    color: c.gray900,
     textAlign: 'center',
     marginHorizontal: 12,
   },
@@ -311,14 +313,14 @@ const styles = StyleSheet.create({
     gap: 8,
     paddingHorizontal: 20,
     paddingVertical: 12,
-    backgroundColor: COLORS.piktag50,
+    backgroundColor: c.piktag50,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.piktag100,
+    borderBottomColor: c.piktag100,
   },
   locationText: {
     fontSize: 14,
     fontWeight: '600',
-    color: COLORS.piktag600,
+    color: c.piktag600,
   },
   loadingContainer: {
     flex: 1,
@@ -331,7 +333,7 @@ const styles = StyleSheet.create({
   sectionLabel: {
     fontSize: 14,
     fontWeight: '600',
-    color: COLORS.gray500,
+    color: c.gray500,
     paddingHorizontal: 20,
     paddingTop: 16,
     paddingBottom: 8,
@@ -342,13 +344,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 14,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.gray100,
+    borderBottomColor: c.gray100,
   },
   avatar: {
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: COLORS.gray100,
+    backgroundColor: c.gray100,
   },
   contactInfo: {
     flex: 1,
@@ -357,16 +359,16 @@ const styles = StyleSheet.create({
   contactName: {
     fontSize: 16,
     fontWeight: '600',
-    color: COLORS.gray900,
+    color: c.gray900,
   },
   contactDistance: {
     fontSize: 13,
-    color: COLORS.piktag600,
+    color: c.piktag600,
     marginTop: 2,
   },
   contactMet: {
     fontSize: 13,
-    color: COLORS.gray500,
+    color: c.gray500,
     marginTop: 2,
   },
   emptyContainer: {
@@ -376,7 +378,8 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 16,
-    color: COLORS.gray400,
+    color: c.gray400,
     marginTop: 16,
   },
-});
+  });
+}

@@ -23,7 +23,8 @@ import ConversationRow from '../components/chat/ConversationRow';
 import EmptyInbox from '../components/chat/EmptyInbox';
 import ErrorState from '../components/ErrorState';
 import PageLoader from '../components/loaders/PageLoader';
-import { COLORS } from '../constants/theme';
+import { COLORS, type ColorPalette } from '../constants/theme';
+import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../hooks/useAuth';
 import { useChatInbox } from '../hooks/useChatInbox';
 import { useNetInfoReconnect } from '../hooks/useNetInfoReconnect';
@@ -71,6 +72,8 @@ type HeaderProfile = {
 
 export default function ChatListScreen({ navigation }: Props) {
   const { t } = useTranslation();
+  const { colors, isDark } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const { user } = useAuth();
   const { conversations, loading, error: inboxError, refresh } = useChatInbox();
 
@@ -325,7 +328,7 @@ export default function ChatListScreen({ navigation }: Props) {
       <RefreshControl
         refreshing={refreshing}
         onRefresh={handleRefresh}
-        tintColor={COLORS.piktag500}
+        tintColor={colors.piktag500}
       />
     ),
     [refreshing, handleRefresh],
@@ -373,7 +376,7 @@ export default function ChatListScreen({ navigation }: Props) {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <StatusBar barStyle="dark-content" backgroundColor={COLORS.white} />
+      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor={colors.white} />
 
       <View style={styles.header}>
         <TouchableOpacity
@@ -383,7 +386,7 @@ export default function ChatListScreen({ navigation }: Props) {
           accessibilityRole="button"
           accessibilityLabel="Back"
         >
-          <ArrowLeft size={24} color={COLORS.gray900} />
+          <ArrowLeft size={24} color={colors.gray900} />
         </TouchableOpacity>
 
         <Pressable style={styles.headerTitleWrap} onPress={handleBack}>
@@ -399,7 +402,7 @@ export default function ChatListScreen({ navigation }: Props) {
           accessibilityRole="button"
           accessibilityLabel={t('chat.compose')}
         >
-          <SquarePen size={22} color={COLORS.gray900} />
+          <SquarePen size={22} color={colors.gray900} />
         </TouchableOpacity>
       </View>
 
@@ -445,10 +448,11 @@ export default function ChatListScreen({ navigation }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+function makeStyles(c: ColorPalette) {
+  return StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.white,
+    backgroundColor: c.white,
   },
   header: {
     flexDirection: 'row',
@@ -456,7 +460,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 8,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.gray100,
+    borderBottomColor: c.gray100,
   },
   headerIconBtn: {
     padding: 8,
@@ -473,7 +477,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: COLORS.gray900,
+    color: c.gray900,
   },
   listContent: {
     paddingBottom: 40,
@@ -482,4 +486,5 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     justifyContent: 'center',
   },
-});
+  });
+}

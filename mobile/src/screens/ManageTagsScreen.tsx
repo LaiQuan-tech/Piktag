@@ -22,7 +22,7 @@ import { supabase } from '../lib/supabase';
 import { logApiUsage } from '../lib/apiUsage';
 import { normalizeTagName } from '../lib/normalizeTag';
 import { useAuth } from '../hooks/useAuth';
-import { COLORS } from '../constants/theme';
+import { COLORS, type ColorPalette } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
 // DraggableChips uses react-native-reanimated which crashes on web
 const DraggableChips = Platform.OS !== 'web' ? require('../components/DraggableChips').default : null;
@@ -41,6 +41,7 @@ type ManageTagsScreenProps = { navigation: NativeStackNavigationProp<any> };
 export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) {
   const { t } = useTranslation();
   const { colors, isDark } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
   const [tagInput, setTagInput] = useState('');
@@ -408,7 +409,7 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
               <>
                 {selectedTagId && (
                   <View style={styles.swapHintBar}>
-                    <ArrowLeftRight size={14} color={COLORS.piktag600} />
+                    <ArrowLeftRight size={14} color={colors.piktag600} />
                     <Text style={styles.swapHintText}>{t('manageTags.dragSelectTarget', { defaultValue: '點選要交換位置的標籤' })}</Text>
                     <Pressable onPress={() => setSelectedTagId(null)}>
                       <Text style={styles.swapCancel}>{t('common.cancel', { defaultValue: '取消' })}</Text>
@@ -445,7 +446,7 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
             {filteredAiSuggestions.length > 0 && myTags.length < MAX_TAGS && (
               <View style={styles.aiSection}>
                 <View style={styles.aiHeader}>
-                  <AtomIcon size={16} color={COLORS.piktag600} />
+                  <AtomIcon size={16} color={colors.piktag600} />
                   <Text style={styles.aiTitle}>{t('manageTags.aiSuggestionsTitle')}</Text>
                 </View>
                 <View style={styles.chipsWrap}>
@@ -460,7 +461,7 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
             {aiLoading && (
               <View style={styles.aiSection}>
                 <View style={styles.aiHeader}>
-                  <AtomIcon size={16} color={COLORS.piktag600} />
+                  <AtomIcon size={16} color={colors.piktag600} />
                   <Text style={styles.aiTitle}>{t('manageTags.aiSuggestionsTitle')}</Text>
                 </View>
                 <BrandSpinner size={16} style={{ marginTop: 8 }} />
@@ -469,7 +470,7 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
             {!aiLoading && aiError && filteredAiSuggestions.length === 0 && myTags.length < MAX_TAGS && (
               <View style={styles.aiSection}>
                 <View style={styles.aiHeader}>
-                  <AtomIcon size={16} color={COLORS.piktag600} />
+                  <AtomIcon size={16} color={colors.piktag600} />
                   <Text style={styles.aiTitle}>{t('manageTags.aiSuggestionsTitle')}</Text>
                 </View>
                 <Text style={styles.aiErrorText}>{aiError}</Text>
@@ -516,11 +517,11 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
               shrinks above. */}
           <View style={[styles.inputBar, { paddingBottom: insets.bottom + 8 }]}>
             <View style={styles.inputRow}>
-              <Hash size={18} color={COLORS.gray400} />
+              <Hash size={18} color={colors.gray400} />
               <TextInput
                 style={styles.textInput}
                 placeholder={t('manageTags.tagInputPlaceholder')}
-                placeholderTextColor={COLORS.gray400}
+                placeholderTextColor={colors.gray400}
                 value={tagInput}
                 onChangeText={(v) => v.length <= MAX_TAG_LENGTH && setTagInput(v)}
                 returnKeyType="done"
@@ -552,29 +553,30 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.white },
+function makeStyles(c: ColorPalette) {
+  return StyleSheet.create({
+  container: { flex: 1, backgroundColor: c.white },
   flex1: { flex: 1 },
   header: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    paddingHorizontal: 20, paddingBottom: 12, borderBottomWidth: 1, borderBottomColor: COLORS.gray100,
+    paddingHorizontal: 20, paddingBottom: 12, borderBottomWidth: 1, borderBottomColor: c.gray100,
   },
-  headerTitle: { fontSize: 22, fontWeight: '700', color: COLORS.gray900 },
-  doneBtn: { paddingVertical: 6, paddingHorizontal: 14, borderRadius: 16, backgroundColor: COLORS.piktag500 },
+  headerTitle: { fontSize: 22, fontWeight: '700', color: c.gray900 },
+  doneBtn: { paddingVertical: 6, paddingHorizontal: 14, borderRadius: 16, backgroundColor: c.piktag500 },
   doneBtnText: { fontSize: 15, fontWeight: '700', color: '#FFFFFF' },
   loadingContainer: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   scrollContent: { paddingBottom: 20 },
 
   sectionHeader: { paddingHorizontal: 20, paddingTop: 24, paddingBottom: 4 },
-  sectionTitle: { fontSize: 18, fontWeight: '700', color: COLORS.gray900 },
-  sectionSubtitle: { fontSize: 13, color: COLORS.gray500, marginTop: 2 },
+  sectionTitle: { fontSize: 18, fontWeight: '700', color: c.gray900 },
+  sectionSubtitle: { fontSize: 13, color: c.gray500, marginTop: 2 },
 
   tagCountRow: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     paddingHorizontal: 20, paddingTop: 12, paddingBottom: 10,
   },
-  tagCountText: { fontSize: 13, color: COLORS.gray500 },
-  sortHint: { fontSize: 12, color: COLORS.gray400, paddingHorizontal: 20, marginBottom: 6 },
+  tagCountText: { fontSize: 13, color: c.gray500 },
+  sortHint: { fontSize: 12, color: c.gray400, paddingHorizontal: 20, marginBottom: 6 },
 
   // Web chips — already-added tags. Match the FriendDetail
   // pickModalTagSelected pattern for visual parity with the friend
@@ -587,27 +589,27 @@ const styles = StyleSheet.create({
   // Symmetric paddingRight 14 now that × is gone (was 6 for the icon).
   chip: {
     flexDirection: 'row', alignItems: 'center', gap: 5,
-    backgroundColor: COLORS.piktag50, borderRadius: 20,
+    backgroundColor: c.piktag50, borderRadius: 20,
     paddingVertical: 8, paddingHorizontal: 14,
   },
   chipSelected: {},
-  chipText: { fontSize: 14, fontWeight: '700', color: COLORS.piktag600 },
+  chipText: { fontSize: 14, fontWeight: '700', color: c.piktag600 },
   chipX: { padding: 4 },
-  emptyText: { fontSize: 14, color: COLORS.gray400, paddingHorizontal: 20, paddingVertical: 8 },
+  emptyText: { fontSize: 14, color: c.gray400, paddingHorizontal: 20, paddingVertical: 8 },
 
   // Swap hint (web)
   swapHintBar: {
     flexDirection: 'row', alignItems: 'center', gap: 6,
     marginHorizontal: 20, marginBottom: 8, paddingVertical: 8, paddingHorizontal: 12,
-    backgroundColor: COLORS.piktag50, borderRadius: 10, borderWidth: 1, borderColor: COLORS.piktag500,
+    backgroundColor: c.piktag50, borderRadius: 10, borderWidth: 1, borderColor: c.piktag500,
   },
-  swapHintText: { flex: 1, fontSize: 13, color: COLORS.piktag600 },
-  swapCancel: { fontSize: 13, fontWeight: '600', color: COLORS.gray500 },
+  swapHintText: { flex: 1, fontSize: 13, color: c.piktag600 },
+  swapCancel: { fontSize: 13, fontWeight: '600', color: c.gray500 },
 
   // AI
   aiSection: { paddingHorizontal: 20, paddingTop: 24 },
   aiHeader: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 10 },
-  aiTitle: { fontSize: 15, fontWeight: '600', color: COLORS.piktag600 },
+  aiTitle: { fontSize: 15, fontWeight: '600', color: c.piktag600 },
   // AI suggestion chip — UNSELECTED state. Mirrors FriendDetail
   // pickModalTag (gray100 fill, transparent border slot reserved at
   // 1.5dp so dimensions don't jump on press, gray700 text). On tap
@@ -616,42 +618,42 @@ const styles = StyleSheet.create({
   // as the friend tag picker.
   aiChip: {
     paddingVertical: 8, paddingHorizontal: 14, borderRadius: 20,
-    backgroundColor: COLORS.gray100, borderWidth: 1.5, borderColor: 'transparent',
+    backgroundColor: c.gray100, borderWidth: 1.5, borderColor: 'transparent',
   },
-  aiChipText: { fontSize: 14, fontWeight: '500', color: COLORS.gray700 },
-  aiErrorText: { fontSize: 12, color: COLORS.gray500, marginTop: 4, lineHeight: 16 },
+  aiChipText: { fontSize: 14, fontWeight: '500', color: c.gray700 },
+  aiErrorText: { fontSize: 12, color: c.gray500, marginTop: 4, lineHeight: 16 },
   aiRetryBtn: {
     marginTop: 10, alignSelf: 'flex-start',
     paddingVertical: 6, paddingHorizontal: 14, borderRadius: 16,
-    backgroundColor: COLORS.piktag50, borderWidth: 1, borderColor: COLORS.piktag500,
+    backgroundColor: c.piktag50, borderWidth: 1, borderColor: c.piktag500,
   },
-  aiRetryText: { fontSize: 13, fontWeight: '600', color: COLORS.piktag600 },
+  aiRetryText: { fontSize: 13, fontWeight: '600', color: c.piktag600 },
 
   // Popular — same UNSELECTED treatment as aiChip. Both are "tap to
   // add" surfaces, both should read identically at rest.
   popularSection: { paddingHorizontal: 20, paddingTop: 24 },
-  popularTitle: { fontSize: 15, fontWeight: '700', color: COLORS.gray900, marginBottom: 10 },
+  popularTitle: { fontSize: 15, fontWeight: '700', color: c.gray900, marginBottom: 10 },
   popularChip: {
     borderWidth: 1.5, borderColor: 'transparent', borderRadius: 20,
-    paddingVertical: 8, paddingHorizontal: 14, backgroundColor: COLORS.gray100,
+    paddingVertical: 8, paddingHorizontal: 14, backgroundColor: c.gray100,
   },
-  popularChipText: { fontSize: 14, fontWeight: '500', color: COLORS.gray700 },
+  popularChipText: { fontSize: 14, fontWeight: '500', color: c.gray700 },
 
   // Bottom input
-  inputBar: { borderTopWidth: 1, borderTopColor: COLORS.gray100, paddingHorizontal: 16, paddingTop: 8 },
+  inputBar: { borderTopWidth: 1, borderTopColor: c.gray100, paddingHorizontal: 16, paddingTop: 8 },
   inputRow: {
-    flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.gray100,
+    flexDirection: 'row', alignItems: 'center', backgroundColor: c.gray100,
     borderRadius: 24, paddingLeft: 14, paddingRight: 4, height: 48, gap: 8,
   },
-  textInput: { flex: 1, fontSize: 16, color: COLORS.gray900, padding: 0 },
-  charCount: { fontSize: 12, color: COLORS.gray400 },
+  textInput: { flex: 1, fontSize: 16, color: c.gray900, padding: 0 },
+  charCount: { fontSize: 12, color: c.gray400 },
   // Square-rounded 40×40 submit button — borderRadius 12 (not 20=full
   // circle) matches AddTagScreen's reference custom-tag + button. The
   // square-rounded shape reads more clearly as "tap to submit" than a
   // circle, which can register as a status pip. Sits inside the
   // 48px-tall inputRow (paddingRight: 4 leaves 4px each side).
   addBtn: {
-    backgroundColor: COLORS.piktag500,
+    backgroundColor: c.piktag500,
     borderRadius: 12,
     width: 40,
     height: 40,
@@ -662,4 +664,5 @@ const styles = StyleSheet.create({
   // input is empty / cap hit. The `disabled` prop on the Pressable
   // continues to block taps. Matches EditProfileScreen.tag_addBtn and
   // HiddenTagEditor.addBtn so the + reads the same across the app.
-});
+  });
+}

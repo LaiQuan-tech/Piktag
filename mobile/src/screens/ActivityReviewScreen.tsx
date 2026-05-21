@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import {
   View, Text, Image, TextInput, Pressable, StyleSheet, StatusBar,
   Dimensions, Alert, KeyboardAvoidingView, Platform,
@@ -13,7 +13,7 @@ import Animated, {
 import { X, Check, Tag, MapPin, Calendar, Plus } from 'lucide-react-native';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
-import { COLORS } from '../constants/theme';
+import { COLORS, type ColorPalette } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
 import { LinearGradient } from 'expo-linear-gradient';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -42,6 +42,7 @@ type Props = {
 export default function ActivityReviewScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
   const { colors, isDark } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
   const sessionId = route.params?.sessionId;
@@ -377,7 +378,7 @@ export default function ActivityReviewScreen({ navigation, route }: Props) {
       <View style={[styles.container, { paddingTop: insets.top }]}>
         <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
         <View style={styles.summaryContainer}>
-          <Check size={64} color={COLORS.piktag500} />
+          <Check size={64} color={colors.piktag500} />
           <Text style={styles.summaryTitle}>{t('activityReview.summaryTitle', { defaultValue: '整理完成' })}</Text>
           <Text style={styles.summaryText}>
             {t('activityReview.summaryText', { people: connections.length, tags: totalTagsAdded }) ||
@@ -417,7 +418,7 @@ export default function ActivityReviewScreen({ navigation, route }: Props) {
       {/* Header */}
       <View style={styles.header}>
         <Pressable onPress={() => navigation.goBack()} style={styles.closeBtn}>
-          <X size={24} color={COLORS.gray900} />
+          <X size={24} color={colors.gray900} />
         </Pressable>
         <View style={styles.headerCenter}>
           {sessionInfo && (
@@ -476,11 +477,11 @@ export default function ActivityReviewScreen({ navigation, route }: Props) {
       {/* Tag input */}
       <View style={[styles.inputBar, { paddingBottom: insets.bottom + 8 }]}>
         <View style={styles.inputRow}>
-          <Tag size={18} color={COLORS.gray400} />
+          <Tag size={18} color={colors.gray400} />
           <TextInput
             style={styles.textInput}
             placeholder={t('activityReview.hiddenTagPlaceholder', { defaultValue: '加隱藏標籤...' })}
-            placeholderTextColor={COLORS.gray400}
+            placeholderTextColor={colors.gray400}
             value={tagInput}
             onChangeText={setTagInput}
             returnKeyType="done"
@@ -503,7 +504,7 @@ export default function ActivityReviewScreen({ navigation, route }: Props) {
         </View>
         <View style={styles.actionRow}>
           <Pressable style={styles.nextActionBtn} onPress={() => swipeAway('right')}>
-            <Check size={20} color={COLORS.white} />
+            <Check size={20} color={colors.white} />
             <Text style={styles.nextActionText}>{t('activityReview.done', { defaultValue: '完成' })}</Text>
           </Pressable>
         </View>
@@ -512,43 +513,44 @@ export default function ActivityReviewScreen({ navigation, route }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.white },
+function makeStyles(c: ColorPalette) {
+  return StyleSheet.create({
+  container: { flex: 1, backgroundColor: c.white },
   // Header
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 12 },
   closeBtn: { padding: 4 },
   headerCenter: { alignItems: 'center' },
-  headerSubtitle: { fontSize: 13, color: COLORS.gray500 },
-  headerCount: { fontSize: 15, fontWeight: '700', color: COLORS.gray900 },
+  headerSubtitle: { fontSize: 13, color: c.gray500 },
+  headerCount: { fontSize: 15, fontWeight: '700', color: c.gray900 },
   skipBtn: { padding: 4 },
-  skipText: { fontSize: 15, fontWeight: '600', color: COLORS.piktag600 },
+  skipText: { fontSize: 15, fontWeight: '600', color: c.piktag600 },
   // Card
   cardContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 20 },
   card: {
-    width: '100%', backgroundColor: COLORS.white, borderRadius: 20,
-    borderWidth: 1.5, borderColor: COLORS.gray100,
+    width: '100%', backgroundColor: c.white, borderRadius: 20,
+    borderWidth: 1.5, borderColor: c.gray100,
     padding: 24, alignItems: 'center',
     shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.08, shadowRadius: 12, elevation: 4,
   },
-  cardAvatar: { width: 100, height: 100, borderRadius: 50, backgroundColor: COLORS.gray100, marginBottom: 16 },
-  cardName: { fontSize: 22, fontWeight: '700', color: COLORS.gray900, marginBottom: 4 },
-  cardUsername: { fontSize: 15, color: COLORS.gray500, marginBottom: 8 },
-  cardBio: { fontSize: 14, color: COLORS.gray600, textAlign: 'center', lineHeight: 20, marginBottom: 12, paddingHorizontal: 10 },
+  cardAvatar: { width: 100, height: 100, borderRadius: 50, backgroundColor: c.gray100, marginBottom: 16 },
+  cardName: { fontSize: 22, fontWeight: '700', color: c.gray900, marginBottom: 4 },
+  cardUsername: { fontSize: 15, color: c.gray500, marginBottom: 8 },
+  cardBio: { fontSize: 14, color: c.gray600, textAlign: 'center', lineHeight: 20, marginBottom: 12, paddingHorizontal: 10 },
   metRow: { flexDirection: 'row', gap: 12, marginBottom: 12 },
   metItem: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  metText: { fontSize: 13, color: COLORS.gray500 },
+  metText: { fontSize: 13, color: c.gray500 },
   tagChips: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, justifyContent: 'center' },
-  tagChip: { backgroundColor: COLORS.gray100, borderRadius: 9999, paddingVertical: 8, paddingHorizontal: 14, borderWidth: 1.5, borderColor: 'transparent' },
+  tagChip: { backgroundColor: c.gray100, borderRadius: 9999, paddingVertical: 8, paddingHorizontal: 14, borderWidth: 1.5, borderColor: 'transparent' },
   // 已選=piktag500 實心 + 白字 — founder 2026-05-23 contract.
-  tagChipPicked: { backgroundColor: COLORS.piktag500 },
-  tagChipText: { fontSize: 14, fontWeight: '500', color: COLORS.gray600 },
+  tagChipPicked: { backgroundColor: c.piktag500 },
+  tagChipText: { fontSize: 14, fontWeight: '500', color: c.gray600 },
   tagChipTextPicked: { color: '#FFFFFF', fontWeight: '700' },
-  hiddenTagChip: { backgroundColor: COLORS.gray50, borderRadius: 9999, paddingVertical: 4, paddingHorizontal: 10, borderWidth: 1, borderColor: COLORS.gray200, borderStyle: 'dashed' as any },
-  hiddenTagChipText: { fontSize: 12, color: COLORS.gray400, fontStyle: 'italic' as any },
+  hiddenTagChip: { backgroundColor: c.gray50, borderRadius: 9999, paddingVertical: 4, paddingHorizontal: 10, borderWidth: 1, borderColor: c.gray200, borderStyle: 'dashed' as any },
+  hiddenTagChipText: { fontSize: 12, color: c.gray400, fontStyle: 'italic' as any },
   // Input
-  inputBar: { paddingHorizontal: 16, paddingTop: 8, borderTopWidth: 1, borderTopColor: COLORS.gray100 },
-  inputRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.gray100, borderRadius: 20, paddingLeft: 14, paddingRight: 4, height: 44, gap: 8 },
-  textInput: { flex: 1, fontSize: 15, color: COLORS.gray900, padding: 0 },
+  inputBar: { paddingHorizontal: 16, paddingTop: 8, borderTopWidth: 1, borderTopColor: c.gray100 },
+  inputRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: c.gray100, borderRadius: 20, paddingLeft: 14, paddingRight: 4, height: 44, gap: 8 },
+  textInput: { flex: 1, fontSize: 15, color: c.gray900, padding: 0 },
   // Square-rounded 36×36 submit button — borderRadius 10 (not 18=full
   // 40×40 borderRadius 12 — the unified tag-add button shape used
   // across EditProfile / ManageTags / HiddenTagEditor / AskCreate.
@@ -556,7 +558,7 @@ const styles = StyleSheet.create({
   // bumped to match so the same affordance reads identically wherever
   // it appears.
   addBtn: {
-    backgroundColor: COLORS.piktag500,
+    backgroundColor: c.piktag500,
     borderRadius: 12,
     width: 40,
     height: 40,
@@ -564,16 +566,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   actionRow: { flexDirection: 'row', gap: 12, marginTop: 10 },
-  skipActionBtn: { flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, paddingVertical: 12, borderRadius: 14, borderWidth: 1.5, borderColor: COLORS.piktag500, backgroundColor: COLORS.piktag50 },
-  skipActionText: { fontSize: 15, fontWeight: '600', color: COLORS.piktag600 },
-  nextActionBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 12, borderRadius: 14, backgroundColor: COLORS.piktag500 },
+  skipActionBtn: { flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, paddingVertical: 12, borderRadius: 14, borderWidth: 1.5, borderColor: c.piktag500, backgroundColor: c.piktag50 },
+  skipActionText: { fontSize: 15, fontWeight: '600', color: c.piktag600 },
+  nextActionBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 12, borderRadius: 14, backgroundColor: c.piktag500 },
   nextActionText: { fontSize: 15, fontWeight: '700', color: '#FFFFFF' },
   // Empty + Summary
   emptyContainer: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 16 },
-  emptyTitle: { fontSize: 18, fontWeight: '600', color: COLORS.gray500 },
+  emptyTitle: { fontSize: 18, fontWeight: '600', color: c.gray500 },
   summaryContainer: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 12 },
-  summaryTitle: { fontSize: 24, fontWeight: '700', color: COLORS.gray900 },
-  summaryText: { fontSize: 16, color: COLORS.gray600 },
-  doneBtn: { backgroundColor: COLORS.piktag500, borderRadius: 14, paddingVertical: 14, paddingHorizontal: 32, marginTop: 8 },
+  summaryTitle: { fontSize: 24, fontWeight: '700', color: c.gray900 },
+  summaryText: { fontSize: 16, color: c.gray600 },
+  doneBtn: { backgroundColor: c.piktag500, borderRadius: 14, paddingVertical: 14, paddingHorizontal: 32, marginTop: 8 },
   doneBtnText: { fontSize: 16, fontWeight: '700', color: '#FFFFFF' },
-});
+  });
+}

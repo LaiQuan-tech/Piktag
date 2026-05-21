@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import {
   View,
   Text,
@@ -13,7 +13,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { X } from 'lucide-react-native';
-import { COLORS } from '../constants/theme';
+import { COLORS, type ColorPalette } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
 import { LinearGradient } from 'expo-linear-gradient';
 import { supabase } from '../lib/supabase';
@@ -43,6 +43,7 @@ type ScanResultScreenProps = {
 export default function ScanResultScreen({ navigation, route }: ScanResultScreenProps) {
   const { t } = useTranslation();
   const { colors, isDark } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
   const {
@@ -411,7 +412,7 @@ export default function ScanResultScreen({ navigation, route }: ScanResultScreen
             onPress={() => navigation.canGoBack() ? navigation.goBack() : navigation.navigate("Connections")}
             activeOpacity={0.6}
           >
-            <X size={24} color={COLORS.gray900} />
+            <X size={24} color={colors.gray900} />
           </TouchableOpacity>
         </View>
         <PageLoader heading={t('scanResult.addingFriend', { defaultValue: '加入朋友中…' })} />
@@ -431,7 +432,7 @@ export default function ScanResultScreen({ navigation, route }: ScanResultScreen
           onPress={() => navigation.canGoBack() ? navigation.goBack() : navigation.navigate("Connections")}
           activeOpacity={0.6}
         >
-          <X size={24} color={COLORS.gray900} />
+          <X size={24} color={colors.gray900} />
         </TouchableOpacity>
       </View>
 
@@ -591,10 +592,11 @@ export default function ScanResultScreen({ navigation, route }: ScanResultScreen
   );
 }
 
-const styles = StyleSheet.create({
+function makeStyles(c: ColorPalette) {
+  return StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.white,
+    backgroundColor: c.white,
   },
   header: {
     flexDirection: 'row',
@@ -602,14 +604,14 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 20,
     paddingBottom: 16,
-    backgroundColor: COLORS.white,
+    backgroundColor: c.white,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.gray100,
+    borderBottomColor: c.gray100,
   },
   headerTitle: {
     fontSize: 24,
     fontWeight: '700',
-    color: COLORS.gray900,
+    color: c.gray900,
     lineHeight: 32,
   },
   closeBtn: {
@@ -635,19 +637,19 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: COLORS.gray100,
+    backgroundColor: c.gray100,
     borderWidth: 2,
-    borderColor: COLORS.gray100,
+    borderColor: c.gray100,
   },
   fullName: {
     fontSize: 22,
     fontWeight: '700',
-    color: COLORS.gray900,
+    color: c.gray900,
     marginTop: 14,
   },
   usernameText: {
     fontSize: 15,
-    color: COLORS.gray500,
+    color: c.gray500,
     marginTop: 4,
   },
   section: {
@@ -663,15 +665,15 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: COLORS.gray900,
+    color: c.gray900,
   },
   selectAllText: {
     fontSize: 14,
     fontWeight: '600',
-    color: COLORS.gray400,
+    color: c.gray400,
   },
   selectAllTextActive: {
-    color: COLORS.piktag600,
+    color: c.piktag600,
   },
   chipsContainer: {
     flexDirection: 'row',
@@ -684,12 +686,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   chipSelected: {
-    backgroundColor: COLORS.piktag500,
+    backgroundColor: c.piktag500,
     borderWidth: 1,
-    borderColor: COLORS.piktag500,
+    borderColor: c.piktag500,
   },
   chipUnselected: {
-    backgroundColor: COLORS.gray100,
+    backgroundColor: c.gray100,
     borderWidth: 1.5,
     borderColor: 'transparent',
   },
@@ -701,11 +703,11 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
   chipTextUnselected: {
-    color: COLORS.gray600,
+    color: c.gray600,
   },
   connectHint: {
     fontSize: 13,
-    color: COLORS.gray500,
+    color: c.gray500,
     marginTop: 6,
     marginBottom: 14,
     lineHeight: 18,
@@ -714,7 +716,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 7,
-    backgroundColor: COLORS.gray100,
+    backgroundColor: c.gray100,
     borderRadius: 9999,
     paddingVertical: 9,
     paddingHorizontal: 14,
@@ -722,18 +724,18 @@ const styles = StyleSheet.create({
   socialBtnText: {
     fontSize: 14,
     fontWeight: '600',
-    color: COLORS.gray700,
+    color: c.gray700,
     maxWidth: 140,
   },
   ctaContainer: {
     paddingHorizontal: 20,
     paddingTop: 12,
-    backgroundColor: COLORS.white,
+    backgroundColor: c.white,
     borderTopWidth: 1,
-    borderTopColor: COLORS.gray100,
+    borderTopColor: c.gray100,
   },
   ctaButton: {
-    backgroundColor: COLORS.piktag500,
+    backgroundColor: c.piktag500,
     borderRadius: 14,
     paddingVertical: 16,
     alignItems: 'center',
@@ -747,4 +749,5 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#FFFFFF',
   },
-});
+  });
+}

@@ -35,7 +35,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { ArrowLeft, Share2 } from 'lucide-react-native';
 import Svg, { Circle, Line, Defs, RadialGradient, Stop } from 'react-native-svg';
-import { COLORS } from '../constants/theme';
+import { COLORS, type ColorPalette } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
@@ -62,6 +62,7 @@ const LINE_STROKE_WIDTH = 1;
 export default function TribeConstellationScreen({ navigation }: Props) {
   const { t } = useTranslation();
   const { colors, isDark } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const { user } = useAuth();
 
   const [lineage, setLineage] = useState<LineageNode[]>([]);
@@ -214,7 +215,7 @@ export default function TribeConstellationScreen({ navigation }: Props) {
 
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerBtn} hitSlop={8}>
-          <ArrowLeft size={22} color={COLORS.gray900} />
+          <ArrowLeft size={22} color={colors.gray900} />
         </TouchableOpacity>
         <View style={styles.headerTitleWrap}>
           <Text style={styles.headerTitle}>{t('tribe.title', { defaultValue: 'Tribe' })}</Text>
@@ -226,13 +227,13 @@ export default function TribeConstellationScreen({ navigation }: Props) {
           </Text>
         </View>
         <TouchableOpacity onPress={handleShareSize} style={styles.headerBtn} hitSlop={8}>
-          <Share2 size={20} color={COLORS.gray400} />
+          <Share2 size={20} color={colors.gray400} />
         </TouchableOpacity>
       </View>
 
       <View style={styles.body}>
         {loading ? (
-          <ActivityIndicator size="small" color={COLORS.piktag500} />
+          <ActivityIndicator size="small" color={colors.piktag500} />
         ) : tribeSize === 0 ? (
           <View style={styles.emptyWrap}>
             <View style={styles.emptyDot} />
@@ -251,8 +252,8 @@ export default function TribeConstellationScreen({ navigation }: Props) {
               {/* Soft purple radial gradient for the center "you" dot.
                   Makes the root visually distinct from descendants. */}
               <RadialGradient id="centerGlow" cx="50%" cy="50%" r="50%">
-                <Stop offset="0%" stopColor={COLORS.piktag500} stopOpacity={1} />
-                <Stop offset="100%" stopColor={COLORS.piktag500} stopOpacity={0.6} />
+                <Stop offset="0%" stopColor={colors.piktag500} stopOpacity={1} />
+                <Stop offset="100%" stopColor={colors.piktag500} stopOpacity={0.6} />
               </RadialGradient>
             </Defs>
 
@@ -264,7 +265,7 @@ export default function TribeConstellationScreen({ navigation }: Props) {
                 y1={ln.y1}
                 x2={ln.x2}
                 y2={ln.y2}
-                stroke={COLORS.piktag200}
+                stroke={colors.piktag200}
                 strokeWidth={LINE_STROKE_WIDTH}
                 opacity={0.5}
               />
@@ -282,7 +283,7 @@ export default function TribeConstellationScreen({ navigation }: Props) {
                   cx={p.x}
                   cy={p.y}
                   r={p.r}
-                  fill={COLORS.piktag500}
+                  fill={colors.piktag500}
                   opacity={0.85}
                 />
               );
@@ -301,7 +302,7 @@ export default function TribeConstellationScreen({ navigation }: Props) {
               cy={centerY}
               r={CENTER_DOT_RADIUS + 2}
               fill="none"
-              stroke={COLORS.piktag500}
+              stroke={colors.piktag500}
               strokeWidth={1.5}
               opacity={0.3}
             />
@@ -332,15 +333,16 @@ function dotRadius(downstream: number, peers: { downstream_count: number }[]): n
   return BASE_DOT_RADIUS + (MAX_DOT_RADIUS - BASE_DOT_RADIUS) * Math.sqrt(t);
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.white },
+function makeStyles(c: ColorPalette) {
+  return StyleSheet.create({
+  container: { flex: 1, backgroundColor: c.white },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 12,
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.gray100,
+    borderBottomColor: c.gray100,
     gap: 8,
   },
   headerBtn: {
@@ -350,8 +352,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   headerTitleWrap: { flex: 1, alignItems: 'center' },
-  headerTitle: { fontSize: 17, fontWeight: '800', color: COLORS.gray900 },
-  headerSubtitle: { fontSize: 12, color: COLORS.gray500, marginTop: 2 },
+  headerTitle: { fontSize: 17, fontWeight: '800', color: c.gray900 },
+  headerSubtitle: { fontSize: 12, color: c.gray500, marginTop: 2 },
 
   body: {
     flex: 1,
@@ -371,23 +373,24 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: COLORS.piktag500,
+    backgroundColor: c.piktag500,
     opacity: 0.6,
     marginBottom: 12,
   },
-  emptyTitle: { fontSize: 18, fontWeight: '700', color: COLORS.gray900 },
+  emptyTitle: { fontSize: 18, fontWeight: '700', color: c.gray900 },
   emptyDesc: {
     fontSize: 13,
-    color: COLORS.gray500,
+    color: c.gray500,
     textAlign: 'center',
     lineHeight: 19,
   },
 
   footnote: {
     fontSize: 11,
-    color: COLORS.gray400,
+    color: c.gray400,
     textAlign: 'center',
     paddingHorizontal: 24,
     paddingBottom: 16,
   },
-});
+  });
+}

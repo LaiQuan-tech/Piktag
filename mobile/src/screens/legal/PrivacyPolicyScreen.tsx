@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, ScrollView, StyleSheet, StatusBar, TouchableOpacity } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ArrowLeft } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
-import { COLORS } from '../../constants/theme';
+import { COLORS, type ColorPalette } from '../../constants/theme';
+import { useTheme } from '../../context/ThemeContext';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 type Props = { navigation: NativeStackNavigationProp<any> };
@@ -11,11 +12,13 @@ type Props = { navigation: NativeStackNavigationProp<any> };
 export default function PrivacyPolicyScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets();
   const { t } = useTranslation();
+  const { colors, isDark } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor={COLORS.white} />
+      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor={colors.white} />
       <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}><ArrowLeft size={24} color={COLORS.gray900} /></TouchableOpacity>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}><ArrowLeft size={24} color={colors.gray900} /></TouchableOpacity>
         <Text style={styles.headerTitle}>{t('privacyPolicy.headerTitle')}</Text>
         <View style={{ width: 32 }} />
       </View>
@@ -70,14 +73,16 @@ export default function PrivacyPolicyScreen({ navigation }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.white },
-  header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingBottom: 14, borderBottomWidth: 1, borderBottomColor: COLORS.gray100 },
+function makeStyles(c: ColorPalette) {
+  return StyleSheet.create({
+  container: { flex: 1, backgroundColor: c.white },
+  header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingBottom: 14, borderBottomWidth: 1, borderBottomColor: c.gray100 },
   backBtn: { padding: 4 },
-  headerTitle: { flex: 1, fontSize: 18, fontWeight: '700', color: COLORS.gray900, textAlign: 'center', marginHorizontal: 12 },
+  headerTitle: { flex: 1, fontSize: 18, fontWeight: '700', color: c.gray900, textAlign: 'center', marginHorizontal: 12 },
   content: { paddingHorizontal: 20, paddingTop: 20 },
-  updated: { fontSize: 13, color: COLORS.gray400, marginBottom: 20 },
-  h2: { fontSize: 16, fontWeight: '700', color: COLORS.gray900, marginTop: 20, marginBottom: 8 },
-  p: { fontSize: 14, color: COLORS.gray700, lineHeight: 22, marginBottom: 8 },
-  li: { fontSize: 14, color: COLORS.gray700, lineHeight: 22, paddingLeft: 8, marginBottom: 4 },
-});
+  updated: { fontSize: 13, color: c.gray400, marginBottom: 20 },
+  h2: { fontSize: 16, fontWeight: '700', color: c.gray900, marginTop: 20, marginBottom: 8 },
+  p: { fontSize: 14, color: c.gray700, lineHeight: 22, marginBottom: 8 },
+  li: { fontSize: 14, color: c.gray700, lineHeight: 22, paddingLeft: 8, marginBottom: 4 },
+  });
+}

@@ -37,7 +37,7 @@ import { setStringAsync as setClipboardStringAsync } from 'expo-clipboard';
 import QRCode from 'react-native-qrcode-svg';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
-import { COLORS } from '../constants/theme';
+import { COLORS, type ColorPalette } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
@@ -76,6 +76,7 @@ type Props = { navigation: any; route: any };
 export default function QrGroupDetailScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
   const { colors, isDark } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const { user } = useAuth();
   const insets = useSafeAreaInsets();
   const groupId = route.params?.groupId as string | undefined;
@@ -341,7 +342,7 @@ export default function QrGroupDetailScreen({ navigation, route }: Props) {
         end={{ x: 1, y: 1 }}
         style={styles.presentGradient}
       >
-        <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
+        <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor="transparent" translucent />
         <View style={[styles.presentTopBar, { paddingTop: insets.top + 12 }]}>
           {/* Back to the Tag list. */}
           <TouchableOpacity
@@ -377,19 +378,19 @@ export default function QrGroupDetailScreen({ navigation, route }: Props) {
 
         <View style={[styles.presentBottomRow, { paddingBottom: insets.bottom + 20 }]}>
           <TouchableOpacity style={styles.presentBottomBtn} onPress={handleShare} activeOpacity={0.7}>
-            <Share2 size={22} color={COLORS.gray900} />
+            <Share2 size={22} color={colors.gray900} />
             <Text style={styles.presentBottomBtnText}>
               {t('addTag.shareFile', { defaultValue: '分享檔案' })}
             </Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.presentBottomBtn} onPress={handleCopyLink} activeOpacity={0.7}>
-            <Link2 size={22} color={COLORS.gray900} />
+            <Link2 size={22} color={colors.gray900} />
             <Text style={styles.presentBottomBtnText}>
               {t('addTag.copyLink', { defaultValue: '複製連結' })}
             </Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.presentBottomBtn} onPress={() => setMode('edit')} activeOpacity={0.7}>
-            <Pencil size={22} color={COLORS.gray900} />
+            <Pencil size={22} color={colors.gray900} />
             <Text style={styles.presentBottomBtnText}>
               {t('addTag.editQr', { defaultValue: '編輯 QR' })}
             </Text>
@@ -405,7 +406,7 @@ export default function QrGroupDetailScreen({ navigation, route }: Props) {
         <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor={colors.white} />
         <View style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerBackBtn}>
-            <ArrowLeft size={22} color={COLORS.gray900} />
+            <ArrowLeft size={22} color={colors.gray900} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>{t('qrGroup.detailHeader', { defaultValue: 'Tag' })}</Text>
           <View style={{ width: 36 }} />
@@ -438,13 +439,13 @@ export default function QrGroupDetailScreen({ navigation, route }: Props) {
             layer back to the pretty card, then ← again to the
             list. */}
         <TouchableOpacity onPress={() => setMode('present')} style={styles.headerBackBtn}>
-          <ArrowLeft size={22} color={COLORS.gray900} />
+          <ArrowLeft size={22} color={colors.gray900} />
         </TouchableOpacity>
         <Text style={styles.headerTitle} numberOfLines={1}>
           {t('qrGroup.detailHeader', { defaultValue: 'Tag' })}
         </Text>
         <TouchableOpacity onPress={handleShare} style={styles.headerBackBtn}>
-          <Share2 size={20} color={COLORS.piktag600} />
+          <Share2 size={20} color={colors.piktag600} />
         </TouchableOpacity>
       </View>
 
@@ -485,7 +486,7 @@ export default function QrGroupDetailScreen({ navigation, route }: Props) {
                 onSubmitEditing={handleSaveName}
                 returnKeyType="done"
                 placeholder={t('qrGroup.namePlaceholder', { defaultValue: '幫這個 Tag 取個名字' })}
-                placeholderTextColor={COLORS.gray400}
+                placeholderTextColor={colors.gray400}
                 maxLength={40}
               />
             ) : (
@@ -495,7 +496,7 @@ export default function QrGroupDetailScreen({ navigation, route }: Props) {
                 onPress={() => setEditingName(true)}
               >
                 <Text style={styles.heroNameText}>{displayName}</Text>
-                <Edit3 size={14} color={COLORS.gray400} />
+                <Edit3 size={14} color={colors.gray400} />
               </TouchableOpacity>
             )}
           </View>
@@ -504,7 +505,7 @@ export default function QrGroupDetailScreen({ navigation, route }: Props) {
               without the gradient. */}
           <View style={styles.heroQrWrap}>
             {group.qr_code_data ? (
-              <QRCode value={group.qr_code_data} size={220} color={COLORS.gray900} backgroundColor="#FFFFFF" />
+              <QRCode value={group.qr_code_data} size={220} color={colors.gray900} backgroundColor="#FFFFFF" />
             ) : null}
           </View>
 
@@ -541,11 +542,11 @@ export default function QrGroupDetailScreen({ navigation, route }: Props) {
           </View>
           <View style={styles.tagInputRow}>
             <View style={styles.tagInputPill}>
-              <Hash size={16} color={COLORS.gray400} />
+              <Hash size={16} color={colors.gray400} />
               <TextInput
                 style={styles.tagInput}
                 placeholder={t('qrGroup.tagInputPlaceholder', { defaultValue: '輸入新標籤' })}
-                placeholderTextColor={COLORS.gray400}
+                placeholderTextColor={colors.gray400}
                 value={tagInput}
                 onChangeText={setTagInput}
                 returnKeyType="done"
@@ -578,7 +579,7 @@ export default function QrGroupDetailScreen({ navigation, route }: Props) {
         {currentTags.length > 0 && (
           <View style={styles.vibeShiftSection}>
             <View style={styles.vibeShiftHeader}>
-              <AtomIcon size={16} color={COLORS.piktag500} strokeWidth={2.2} />
+              <AtomIcon size={16} color={colors.piktag500} strokeWidth={2.2} />
               <Text style={styles.vibeShiftTitle}>
                 {t('qrGroup.currentVibesTitle', { defaultValue: '他們最近在標什麼' })}
               </Text>
@@ -664,7 +665,7 @@ export default function QrGroupDetailScreen({ navigation, route }: Props) {
                       <Text style={styles.memberFilterClearText}>
                         #{filterEntry.tag_name}
                       </Text>
-                      <X size={12} color={COLORS.piktag600} />
+                      <X size={12} color={colors.piktag600} />
                     </TouchableOpacity>
                   ) : null}
                 </View>
@@ -697,8 +698,9 @@ export default function QrGroupDetailScreen({ navigation, route }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.white },
+function makeStyles(c: ColorPalette) {
+  return StyleSheet.create({
+  container: { flex: 1, backgroundColor: c.white },
 
   // ── Present mode (mirrors AddTagScreen.renderQrMode) ──
   presentGradient: { flex: 1 },
@@ -736,7 +738,7 @@ const styles = StyleSheet.create({
   presentBottomBtnText: {
     fontSize: 13,
     fontWeight: '600',
-    color: COLORS.gray900,
+    color: c.gray900,
   },
 
   header: {
@@ -745,7 +747,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.gray100,
+    borderBottomColor: c.gray100,
     gap: 12,
   },
   headerBackBtn: {
@@ -754,9 +756,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  headerTitle: { flex: 1, fontSize: 17, fontWeight: '700', color: COLORS.gray900, textAlign: 'center' },
+  headerTitle: { flex: 1, fontSize: 17, fontWeight: '700', color: c.gray900, textAlign: 'center' },
   loadingWrap: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  loadingText: { fontSize: 14, color: COLORS.gray500 },
+  loadingText: { fontSize: 14, color: c.gray500 },
   scrollContent: { paddingBottom: 60 },
 
   // ─── Gradient hero ─────────────────────────────────────────
@@ -772,9 +774,9 @@ const styles = StyleSheet.create({
     paddingBottom: 28,
     paddingHorizontal: 20,
     alignItems: 'center',
-    backgroundColor: COLORS.white,
+    backgroundColor: c.white,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.gray100,
+    borderBottomColor: c.gray100,
   },
   heroNameSection: {
     width: '100%',
@@ -789,18 +791,18 @@ const styles = StyleSheet.create({
   heroNameText: {
     fontSize: 24,
     fontWeight: '800',
-    color: COLORS.gray900,
+    color: c.gray900,
     textAlign: 'center',
     flexShrink: 1,
   },
   heroNameInput: {
     fontSize: 24,
     fontWeight: '800',
-    color: COLORS.gray900,
+    color: c.gray900,
     textAlign: 'center',
     minWidth: 200,
     borderBottomWidth: 1.5,
-    borderBottomColor: COLORS.gray200,
+    borderBottomColor: c.gray200,
     paddingVertical: 4,
   },
   // QR card: a light border (not a heavy float shadow) so it
@@ -810,24 +812,24 @@ const styles = StyleSheet.create({
     padding: 18,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: COLORS.gray100,
+    borderColor: c.gray100,
   },
   heroTagsLine: {
     marginTop: 18,
     fontSize: 13,
     fontWeight: '600',
-    color: COLORS.gray500,
+    color: c.gray500,
     textAlign: 'center',
     letterSpacing: 0.2,
   },
 
 
   tagSection: { paddingHorizontal: 20, paddingTop: 16, paddingBottom: 8 },
-  sectionTitle: { fontSize: 13, fontWeight: '700', color: COLORS.gray600, marginBottom: 10, textTransform: 'uppercase', letterSpacing: 0.3 },
+  sectionTitle: { fontSize: 13, fontWeight: '700', color: c.gray600, marginBottom: 10, textTransform: 'uppercase', letterSpacing: 0.3 },
   tagChipsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 10 },
   // (tagChip / tagChipText removed — chip rendering now via the
   // shared <TagChip>; no per-screen chip styles allowed.)
-  tagEmpty: { fontSize: 13, color: COLORS.gray400 },
+  tagEmpty: { fontSize: 13, color: c.gray400 },
   tagInputRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 4 },
   tagInputPill: {
     flex: 1,
@@ -837,17 +839,17 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     paddingHorizontal: 12,
     borderWidth: 1,
-    borderColor: COLORS.gray200,
+    borderColor: c.gray200,
     borderRadius: 12,
-    backgroundColor: COLORS.white,
+    backgroundColor: c.white,
     minHeight: 40,
   },
-  tagInput: { flex: 1, fontSize: 15, color: COLORS.gray900 },
+  tagInput: { flex: 1, fontSize: 15, color: c.gray900 },
   tagAddBtn: {
     width: 40,
     height: 40,
     borderRadius: 12,
-    backgroundColor: COLORS.piktag500,
+    backgroundColor: c.piktag500,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -872,11 +874,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 5,
     borderRadius: 12,
-    backgroundColor: COLORS.piktag50,
+    backgroundColor: c.piktag50,
   },
   memberFilterClearText: {
     fontSize: 12,
-    color: COLORS.piktag600,
+    color: c.piktag600,
     fontWeight: '700',
   },
   memberRow: {
@@ -886,10 +888,10 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
   },
   memberBody: { flex: 1 },
-  memberName: { fontSize: 15, fontWeight: '700', color: COLORS.gray900 },
-  memberHandle: { fontSize: 12, color: COLORS.gray500, marginTop: 1 },
+  memberName: { fontSize: 15, fontWeight: '700', color: c.gray900 },
+  memberHandle: { fontSize: 12, color: c.gray500, marginTop: 1 },
   memberEmpty: { paddingVertical: 24, alignItems: 'center' },
-  memberEmptyText: { fontSize: 13, color: COLORS.gray500, textAlign: 'center' },
+  memberEmptyText: { fontSize: 13, color: c.gray500, textAlign: 'center' },
 
   // ─── P0 Vibe-to-Vibe reactivation ──────────────────────────
   // Section sits between the Vibe's own tag editor and the member
@@ -910,11 +912,11 @@ const styles = StyleSheet.create({
   vibeShiftTitle: {
     fontSize: 15,
     fontWeight: '700',
-    color: COLORS.gray900,
+    color: c.gray900,
   },
   vibeShiftHint: {
     fontSize: 12,
-    color: COLORS.gray500,
+    color: c.gray500,
     marginBottom: 10,
   },
   vibeShiftChipsRow: {
@@ -929,30 +931,31 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 7,
     borderRadius: 14,
-    backgroundColor: COLORS.piktag50,
+    backgroundColor: c.piktag50,
     borderWidth: 1,
     borderColor: 'transparent',
   },
   // Selected state: solid purple background + inverted text. Makes
   // it crystal clear which filter is active. Tap again to deselect.
   vibeShiftChipActive: {
-    backgroundColor: COLORS.piktag500,
-    borderColor: COLORS.piktag500,
+    backgroundColor: c.piktag500,
+    borderColor: c.piktag500,
   },
   vibeShiftChipTag: {
     fontSize: 13,
     fontWeight: '700',
-    color: COLORS.piktag600,
+    color: c.piktag600,
   },
   vibeShiftChipTagActive: {
     color: '#FFFFFF',
   },
   vibeShiftChipCount: {
     fontSize: 12,
-    color: COLORS.gray500,
+    color: c.gray500,
     fontWeight: '600',
   },
   vibeShiftChipCountActive: {
     color: 'rgba(255,255,255,0.85)',
   },
-});
+  });
+}

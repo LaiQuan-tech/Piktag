@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef, useEffect } from 'react';
+import React, { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import {
   View,
   Text,
@@ -12,7 +12,7 @@ import { CameraView, useCameraPermissions } from 'expo-camera';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { X } from 'lucide-react-native';
-import { COLORS } from '../constants/theme';
+import { COLORS, type ColorPalette } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
 import ScanSuccessStinger from '../components/stingers/ScanSuccessStinger';
 
@@ -41,6 +41,7 @@ const SCAN_FRAME_SIZE = SCREEN_WIDTH * 0.65;
 export default function CameraScanScreen({ navigation }: CameraScanScreenProps) {
   const { t } = useTranslation();
   const { colors, isDark } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const insets = useSafeAreaInsets();
   const [permission, requestPermission] = useCameraPermissions();
   const [scanned, setScanned] = useState(false);
@@ -165,7 +166,7 @@ export default function CameraScanScreen({ navigation }: CameraScanScreenProps) 
   if (!permission) {
     return (
       <View style={styles.container}>
-        <StatusBar barStyle="light-content" backgroundColor={COLORS.black} />
+        <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor={colors.black} />
       </View>
     );
   }
@@ -174,7 +175,7 @@ export default function CameraScanScreen({ navigation }: CameraScanScreenProps) 
   if (!permission.granted) {
     return (
       <View style={styles.container}>
-        <StatusBar barStyle="light-content" backgroundColor={COLORS.black} />
+        <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor={colors.black} />
 
         {/* Close button */}
         <View style={[styles.headerOverlay, { paddingTop: insets.top + 12 }]}>
@@ -183,7 +184,7 @@ export default function CameraScanScreen({ navigation }: CameraScanScreenProps) 
             onPress={() => navigation.canGoBack() ? navigation.goBack() : navigation.navigate("Connections")}
             activeOpacity={0.6}
           >
-            <X size={24} color={COLORS.white} />
+            <X size={24} color={colors.white} />
           </TouchableOpacity>
         </View>
 
@@ -213,7 +214,7 @@ export default function CameraScanScreen({ navigation }: CameraScanScreenProps) 
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
+      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor="transparent" translucent />
 
       {/* Full-screen camera */}
       <CameraView
@@ -238,7 +239,7 @@ export default function CameraScanScreen({ navigation }: CameraScanScreenProps) 
             onPress={() => navigation.canGoBack() ? navigation.goBack() : navigation.navigate("Connections")}
             activeOpacity={0.6}
           >
-            <X size={24} color={COLORS.white} />
+            <X size={24} color={colors.white} />
           </TouchableOpacity>
         </View>
 
@@ -310,10 +311,11 @@ export default function CameraScanScreen({ navigation }: CameraScanScreenProps) 
 const CORNER_LENGTH = 24;
 const CORNER_THICKNESS = 3;
 
-const styles = StyleSheet.create({
+function makeStyles(c: ColorPalette) {
+  return StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.black,
+    backgroundColor: c.black,
   },
   headerOverlay: {
     position: 'absolute',
@@ -341,19 +343,19 @@ const styles = StyleSheet.create({
   permissionTitle: {
     fontSize: 24,
     fontWeight: '700',
-    color: COLORS.white,
+    color: c.white,
     marginBottom: 12,
     textAlign: 'center',
   },
   permissionMessage: {
     fontSize: 16,
-    color: COLORS.gray400,
+    color: c.gray400,
     textAlign: 'center',
     lineHeight: 24,
     marginBottom: 32,
   },
   permissionButton: {
-    backgroundColor: COLORS.piktag500,
+    backgroundColor: c.piktag500,
     borderRadius: 14,
     paddingVertical: 16,
     paddingHorizontal: 32,
@@ -391,8 +393,8 @@ const styles = StyleSheet.create({
     left: 0,
     borderTopWidth: CORNER_THICKNESS,
     borderLeftWidth: CORNER_THICKNESS,
-    borderTopColor: COLORS.piktag500,
-    borderLeftColor: COLORS.piktag500,
+    borderTopColor: c.piktag500,
+    borderLeftColor: c.piktag500,
     borderTopLeftRadius: 4,
   },
   cornerTopRight: {
@@ -400,8 +402,8 @@ const styles = StyleSheet.create({
     right: 0,
     borderTopWidth: CORNER_THICKNESS,
     borderRightWidth: CORNER_THICKNESS,
-    borderTopColor: COLORS.piktag500,
-    borderRightColor: COLORS.piktag500,
+    borderTopColor: c.piktag500,
+    borderRightColor: c.piktag500,
     borderTopRightRadius: 4,
   },
   cornerBottomLeft: {
@@ -409,8 +411,8 @@ const styles = StyleSheet.create({
     left: 0,
     borderBottomWidth: CORNER_THICKNESS,
     borderLeftWidth: CORNER_THICKNESS,
-    borderBottomColor: COLORS.piktag500,
-    borderLeftColor: COLORS.piktag500,
+    borderBottomColor: c.piktag500,
+    borderLeftColor: c.piktag500,
     borderBottomLeftRadius: 4,
   },
   cornerBottomRight: {
@@ -418,8 +420,8 @@ const styles = StyleSheet.create({
     right: 0,
     borderBottomWidth: CORNER_THICKNESS,
     borderRightWidth: CORNER_THICKNESS,
-    borderBottomColor: COLORS.piktag500,
-    borderRightColor: COLORS.piktag500,
+    borderBottomColor: c.piktag500,
+    borderRightColor: c.piktag500,
     borderBottomRightRadius: 4,
   },
   instructionContainer: {
@@ -434,10 +436,11 @@ const styles = StyleSheet.create({
   instructionText: {
     fontSize: 16,
     fontWeight: '600',
-    color: COLORS.white,
+    color: c.white,
     textAlign: 'center',
     textShadowColor: 'rgba(0, 0, 0, 0.6)',
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 4,
   },
-});
+  });
+}

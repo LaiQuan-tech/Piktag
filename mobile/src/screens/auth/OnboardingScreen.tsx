@@ -24,7 +24,7 @@
 // expected to live in AddTagScreen's first-QR celebration sheet
 // and ProfileScreen banners (separate commits).
 
-import React, { useState, useCallback, useEffect, useRef } from 'react';
+import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import {
   View,
   Text,
@@ -49,7 +49,8 @@ import {
   requestMediaLibraryPermissionsAsync,
   launchImageLibraryAsync,
 } from 'expo-image-picker';
-import { COLORS, SPACING, BORDER_RADIUS } from '../../constants/theme';
+import { COLORS, SPACING, BORDER_RADIUS, type ColorPalette } from '../../constants/theme';
+import { useTheme } from '../../context/ThemeContext';
 import { PLATFORM_MAP } from '../../lib/platforms';
 import { toBirthdayDate } from '../../lib/birthday';
 import OnboardingCompleteBurst from '../../components/stingers/OnboardingCompleteBurst';
@@ -122,6 +123,8 @@ type OnboardingScreenProps = { navigation: any };
 
 export default function OnboardingScreen({ navigation }: OnboardingScreenProps) {
   const { t } = useTranslation();
+  const { colors, isDark } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
 
   const [step, setStep] = useState<number>(STEP_WELCOME);
   const [displayName, setDisplayName] = useState('');
@@ -572,7 +575,7 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
   const renderWelcome = () => (
     <View style={styles.welcomeContainer}>
       <View style={styles.welcomeIconWrap}>
-        <QrCode size={64} color={COLORS.piktag500} strokeWidth={2.2} />
+        <QrCode size={64} color={colors.piktag500} strokeWidth={2.2} />
       </View>
       <Text style={styles.welcomeTitle}>
         {t('auth.onboarding.welcomeTitle', { defaultValue: '一個 QR，加完所有朋友' })}
@@ -641,7 +644,7 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
               {uploadingAvatar ? (
                 <BrandSpinner size={32} />
               ) : (
-                <Camera size={32} color={COLORS.piktag500} strokeWidth={1.8} />
+                <Camera size={32} color={colors.piktag500} strokeWidth={1.8} />
               )}
             </View>
           )}
@@ -655,7 +658,7 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
           value={displayName}
           onChangeText={setDisplayName}
           placeholder={t('auth.onboarding.profileNamePlaceholder', { defaultValue: '你的名字' })}
-          placeholderTextColor={COLORS.gray400}
+          placeholderTextColor={colors.gray400}
           maxLength={40}
           autoCapitalize="words"
           autoCorrect={false}
@@ -674,7 +677,7 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
           value={birthday}
           onChangeText={setBirthday}
           placeholder={t('auth.register.birthdayLabel', { defaultValue: '生日（選填）' }) + '  MM/DD'}
-          placeholderTextColor={COLORS.gray400}
+          placeholderTextColor={colors.gray400}
           keyboardType="numbers-and-punctuation"
           autoCapitalize="none"
           autoCorrect={false}
@@ -701,14 +704,14 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
             // already in all 19 locales). Light piktag50 button bg,
             // so a piktag500 indicator stays visible.
             <>
-              <ActivityIndicator size="small" color={COLORS.piktag500} />
+              <ActivityIndicator size="small" color={colors.piktag500} />
               <Text style={styles.scanCardBtnText}>
                 {t('localContact.scanningCard', { defaultValue: '辨識名片中…' })}
               </Text>
             </>
           ) : (
             <>
-              <ScanLine size={18} color={COLORS.piktag500} strokeWidth={2} />
+              <ScanLine size={18} color={colors.piktag500} strokeWidth={2} />
               <Text style={styles.scanCardBtnText}>
                 {t('auth.onboarding.scanCardCta', { defaultValue: '掃名片快速帶入' })}
               </Text>
@@ -785,7 +788,7 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
                 accessibilityRole="button"
                 accessibilityLabel={t('common.close', { defaultValue: '關閉' })}
               >
-                <X size={22} color={COLORS.gray500} />
+                <X size={22} color={colors.gray500} />
               </TouchableOpacity>
             </View>
             <Text style={styles.modalSubtitle}>
@@ -810,7 +813,7 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
                   setEditCard((c) => (c ? { ...c, full_name: v } : c))
                 }
                 placeholder={t('auth.onboarding.profileNamePlaceholder', { defaultValue: '你的名字' })}
-                placeholderTextColor={COLORS.gray400}
+                placeholderTextColor={colors.gray400}
                 maxLength={40}
               />
 
@@ -827,7 +830,7 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
                 placeholder={t('auth.onboarding.cardBioPlaceholder', {
                   defaultValue: '一句話介紹你自己',
                 })}
-                placeholderTextColor={COLORS.gray400}
+                placeholderTextColor={colors.gray400}
                 multiline
                 maxLength={160}
               />
@@ -852,7 +855,7 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
                       onValueChange={(val) =>
                         setIncludeMap((m) => ({ ...m, [f.key]: val }))
                       }
-                      trackColor={{ false: COLORS.gray200, true: COLORS.piktag500 }}
+                      trackColor={{ false: colors.gray200, true: colors.piktag500 }}
                     />
                     <View style={styles.modalLinkBody}>
                       <Text style={styles.modalLinkPlatform}>{label}</Text>
@@ -894,10 +897,11 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
   );
 }
 
-const styles = StyleSheet.create({
+function makeStyles(c: ColorPalette) {
+  return StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.white,
+    backgroundColor: c.white,
     paddingHorizontal: SPACING.xxl,
   },
 
@@ -912,7 +916,7 @@ const styles = StyleSheet.create({
     width: 128,
     height: 128,
     borderRadius: 64,
-    backgroundColor: COLORS.piktag50,
+    backgroundColor: c.piktag50,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 36,
@@ -920,14 +924,14 @@ const styles = StyleSheet.create({
   welcomeTitle: {
     fontSize: 28,
     fontWeight: '800',
-    color: COLORS.gray900,
+    color: c.gray900,
     textAlign: 'center',
     lineHeight: 36,
     paddingHorizontal: 16,
   },
   welcomeSubtitle: {
     fontSize: 16,
-    color: COLORS.gray500,
+    color: c.gray500,
     textAlign: 'center',
     lineHeight: 24,
     marginTop: 16,
@@ -935,7 +939,7 @@ const styles = StyleSheet.create({
   },
   brandTagline: {
     fontSize: 11,
-    color: COLORS.piktag500,
+    color: c.piktag500,
     textAlign: 'center',
     marginTop: 28,
     letterSpacing: 1.4,
@@ -952,12 +956,12 @@ const styles = StyleSheet.create({
   profileTitle: {
     fontSize: 24,
     fontWeight: '800',
-    color: COLORS.gray900,
+    color: c.gray900,
     textAlign: 'center',
   },
   profileSubtitle: {
     fontSize: 14,
-    color: COLORS.gray500,
+    color: c.gray500,
     textAlign: 'center',
     marginTop: 8,
     marginBottom: 32,
@@ -977,21 +981,21 @@ const styles = StyleSheet.create({
     borderRadius: 60,
     borderWidth: 2,
     borderStyle: 'dashed',
-    borderColor: COLORS.piktag500,
-    backgroundColor: COLORS.piktag50,
+    borderColor: c.piktag500,
+    backgroundColor: c.piktag50,
     alignItems: 'center',
     justifyContent: 'center',
   },
   avatarHint: {
     fontSize: 12,
-    color: COLORS.gray400,
+    color: c.gray400,
     textAlign: 'center',
     marginBottom: 24,
   },
   nameInput: {
     fontSize: 18,
-    color: COLORS.gray900,
-    backgroundColor: COLORS.gray50,
+    color: c.gray900,
+    backgroundColor: c.gray50,
     borderRadius: BORDER_RADIUS.md,
     paddingHorizontal: 16,
     paddingVertical: 14,
@@ -1007,11 +1011,11 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     paddingHorizontal: 24,
     borderRadius: BORDER_RADIUS.lg,
-    backgroundColor: COLORS.piktag500,
+    backgroundColor: c.piktag500,
     marginTop: 24,
   },
   primaryButtonDisabled: {
-    backgroundColor: COLORS.gray200,
+    backgroundColor: c.gray200,
   },
   primaryButtonText: {
     fontSize: 16,
@@ -1029,18 +1033,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     borderRadius: BORDER_RADIUS.md,
     borderWidth: 1.5,
-    borderColor: COLORS.piktag500,
-    backgroundColor: COLORS.piktag50,
+    borderColor: c.piktag500,
+    backgroundColor: c.piktag50,
     marginTop: 16,
   },
   scanCardBtnText: {
     fontSize: 14,
     fontWeight: '600',
-    color: COLORS.piktag500,
+    color: c.piktag500,
   },
   scanCardHint: {
     fontSize: 12,
-    color: COLORS.gray400,
+    color: c.gray400,
     textAlign: 'center',
     marginTop: 8,
   },
@@ -1052,7 +1056,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.4)',
   },
   modalSheet: {
-    backgroundColor: COLORS.white,
+    backgroundColor: c.white,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     paddingHorizontal: 20,
@@ -1068,11 +1072,11 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 18,
     fontWeight: '800',
-    color: COLORS.gray900,
+    color: c.gray900,
   },
   modalSubtitle: {
     fontSize: 13,
-    color: COLORS.gray500,
+    color: c.gray500,
     marginTop: 4,
     marginBottom: 12,
   },
@@ -1082,14 +1086,14 @@ const styles = StyleSheet.create({
   modalFieldLabel: {
     fontSize: 13,
     fontWeight: '600',
-    color: COLORS.gray700,
+    color: c.gray700,
     marginTop: 14,
     marginBottom: 6,
   },
   modalInput: {
     fontSize: 15,
-    color: COLORS.gray900,
-    backgroundColor: COLORS.gray50,
+    color: c.gray900,
+    backgroundColor: c.gray50,
     borderRadius: BORDER_RADIUS.md,
     paddingHorizontal: 14,
     paddingVertical: 12,
@@ -1101,7 +1105,7 @@ const styles = StyleSheet.create({
   modalSectionLabel: {
     fontSize: 13,
     fontWeight: '700',
-    color: COLORS.piktag600,
+    color: c.piktag600,
     marginTop: 20,
     marginBottom: 4,
   },
@@ -1117,13 +1121,13 @@ const styles = StyleSheet.create({
   modalLinkPlatform: {
     fontSize: 12,
     fontWeight: '600',
-    color: COLORS.gray500,
+    color: c.gray500,
     marginBottom: 4,
   },
   modalLinkInput: {
     fontSize: 14,
-    color: COLORS.gray900,
-    backgroundColor: COLORS.gray50,
+    color: c.gray900,
+    backgroundColor: c.gray50,
     borderRadius: BORDER_RADIUS.sm,
     paddingHorizontal: 12,
     paddingVertical: 9,
@@ -1135,7 +1139,7 @@ const styles = StyleSheet.create({
     marginTop: 20,
     paddingVertical: 15,
     borderRadius: BORDER_RADIUS.lg,
-    backgroundColor: COLORS.piktag500,
+    backgroundColor: c.piktag500,
     alignItems: 'center',
   },
   modalApplyBtnText: {
@@ -1143,4 +1147,5 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#FFFFFF',
   },
-});
+  });
+}

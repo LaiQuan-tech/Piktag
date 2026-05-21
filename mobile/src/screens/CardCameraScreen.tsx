@@ -23,7 +23,7 @@
 //                               itself. Create-contact flow uses it
 //                               to also pop the form → back to 好友頁.
 
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useRef, useState, useMemo } from 'react';
 import {
   View,
   Text,
@@ -39,7 +39,8 @@ import { ImageManipulator, SaveFormat } from 'expo-image-manipulator';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { X } from 'lucide-react-native';
-import { COLORS } from '../constants/theme';
+import { COLORS, type ColorPalette } from '../constants/theme';
+import { useTheme } from '../context/ThemeContext';
 
 type Props = { navigation: any; route: any };
 
@@ -120,6 +121,8 @@ async function cropToGuide(
 
 export default function CardCameraScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
+  const { colors, isDark } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const insets = useSafeAreaInsets();
   const [permission, requestPermission] = useCameraPermissions();
   const cameraRef = useRef<CameraView | null>(null);
@@ -200,7 +203,7 @@ export default function CardCameraScreen({ navigation, route }: Props) {
   if (!permission) {
     return (
       <View style={styles.container}>
-        <StatusBar barStyle="light-content" backgroundColor={COLORS.black} />
+        <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor={colors.black} />
       </View>
     );
   }
@@ -209,10 +212,10 @@ export default function CardCameraScreen({ navigation, route }: Props) {
   if (!permission.granted) {
     return (
       <View style={styles.container}>
-        <StatusBar barStyle="light-content" backgroundColor={COLORS.black} />
+        <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor={colors.black} />
         <View style={[styles.headerOverlay, { paddingTop: insets.top + 12 }]}>
           <TouchableOpacity style={styles.closeButton} onPress={close} activeOpacity={0.6}>
-            <X size={24} color={COLORS.white} />
+            <X size={24} color={colors.white} />
           </TouchableOpacity>
         </View>
         <View style={styles.permissionContainer}>
@@ -240,7 +243,7 @@ export default function CardCameraScreen({ navigation, route }: Props) {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
+      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor="transparent" translucent />
 
       <CameraView ref={cameraRef} style={StyleSheet.absoluteFill} facing="back" />
 
@@ -248,7 +251,7 @@ export default function CardCameraScreen({ navigation, route }: Props) {
         {/* Close */}
         <View style={[styles.headerOverlay, { paddingTop: insets.top + 12 }]}>
           <TouchableOpacity style={styles.closeButton} onPress={close} activeOpacity={0.6}>
-            <X size={24} color={COLORS.white} />
+            <X size={24} color={colors.white} />
           </TouchableOpacity>
         </View>
 
@@ -291,7 +294,7 @@ export default function CardCameraScreen({ navigation, route }: Props) {
             })}
           >
             {capturing ? (
-              <ActivityIndicator color={COLORS.piktag500} />
+              <ActivityIndicator color={colors.piktag500} />
             ) : (
               <View style={styles.shutterInner} />
             )}
@@ -316,8 +319,9 @@ export default function CardCameraScreen({ navigation, route }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.black },
+function makeStyles(c: ColorPalette) {
+  return StyleSheet.create({
+  container: { flex: 1, backgroundColor: c.black },
   headerOverlay: {
     position: 'absolute',
     top: 0,
@@ -344,19 +348,19 @@ const styles = StyleSheet.create({
   permissionTitle: {
     fontSize: 24,
     fontWeight: '700',
-    color: COLORS.white,
+    color: c.white,
     marginBottom: 12,
     textAlign: 'center',
   },
   permissionMessage: {
     fontSize: 16,
-    color: COLORS.gray400,
+    color: c.gray400,
     textAlign: 'center',
     lineHeight: 24,
     marginBottom: 32,
   },
   permissionButton: {
-    backgroundColor: COLORS.piktag500,
+    backgroundColor: c.piktag500,
     borderRadius: 14,
     paddingVertical: 16,
     paddingHorizontal: 32,
@@ -373,8 +377,8 @@ const styles = StyleSheet.create({
     left: 0,
     borderTopWidth: CORNER_THICKNESS,
     borderLeftWidth: CORNER_THICKNESS,
-    borderTopColor: COLORS.piktag500,
-    borderLeftColor: COLORS.piktag500,
+    borderTopColor: c.piktag500,
+    borderLeftColor: c.piktag500,
     borderTopLeftRadius: 4,
   },
   cornerTopRight: {
@@ -382,8 +386,8 @@ const styles = StyleSheet.create({
     right: 0,
     borderTopWidth: CORNER_THICKNESS,
     borderRightWidth: CORNER_THICKNESS,
-    borderTopColor: COLORS.piktag500,
-    borderRightColor: COLORS.piktag500,
+    borderTopColor: c.piktag500,
+    borderRightColor: c.piktag500,
     borderTopRightRadius: 4,
   },
   cornerBottomLeft: {
@@ -391,8 +395,8 @@ const styles = StyleSheet.create({
     left: 0,
     borderBottomWidth: CORNER_THICKNESS,
     borderLeftWidth: CORNER_THICKNESS,
-    borderBottomColor: COLORS.piktag500,
-    borderLeftColor: COLORS.piktag500,
+    borderBottomColor: c.piktag500,
+    borderLeftColor: c.piktag500,
     borderBottomLeftRadius: 4,
   },
   cornerBottomRight: {
@@ -400,8 +404,8 @@ const styles = StyleSheet.create({
     right: 0,
     borderBottomWidth: CORNER_THICKNESS,
     borderRightWidth: CORNER_THICKNESS,
-    borderBottomColor: COLORS.piktag500,
-    borderRightColor: COLORS.piktag500,
+    borderBottomColor: c.piktag500,
+    borderRightColor: c.piktag500,
     borderBottomRightRadius: 4,
   },
   hintContainer: {
@@ -416,7 +420,7 @@ const styles = StyleSheet.create({
   hintText: {
     fontSize: 15,
     fontWeight: '600',
-    color: COLORS.white,
+    color: c.white,
     textAlign: 'center',
     textShadowColor: 'rgba(0,0,0,0.6)',
     textShadowOffset: { width: 0, height: 1 },
@@ -454,4 +458,5 @@ const styles = StyleSheet.create({
     borderRadius: 28,
     backgroundColor: '#FFFFFF',
   },
-});
+  });
+}

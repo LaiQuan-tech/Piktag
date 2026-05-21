@@ -14,7 +14,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { Bell, MessageCircle } from 'lucide-react-native';
-import { COLORS, SPACING } from '../constants/theme';
+import { COLORS, SPACING, type ColorPalette } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
 import { supabase } from '../lib/supabase';
 import { routeFromNotification } from '../lib/notificationRouter';
@@ -220,6 +220,8 @@ const NotificationItem = React.memo(function NotificationItem({
   onLongPress,
   t,
 }: NotificationItemProps) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const avatarUrl = item.data?.avatar_url || null;
   const { username, body } = getNotificationDisplay(item, t);
 
@@ -252,7 +254,7 @@ const NotificationItem = React.memo(function NotificationItem({
         />
       ) : (
         <View style={[styles.avatar, styles.avatarPlaceholder]}>
-          <Bell size={20} color={COLORS.gray400} />
+          <Bell size={20} color={colors.gray400} />
         </View>
       )}
       <View style={styles.notificationContent}>
@@ -280,17 +282,20 @@ const EmptyState = React.memo(function EmptyState({
 }: {
   text: string;
 }) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   return (
     <View style={styles.emptyState}>
-      <Bell size={48} color={COLORS.gray200} />
+      <Bell size={48} color={colors.gray200} />
       <Text style={styles.emptyStateText}>{text}</Text>
     </View>
   );
 });
 
 const NotificationsScreenSkeleton = React.memo(function NotificationsScreenSkeleton() {
+  const { colors } = useTheme();
   return (
-    <View style={{ flex: 1, backgroundColor: COLORS.white }}>
+    <View style={{ flex: 1, backgroundColor: colors.white }}>
       {/* Tab row skeleton */}
       <View style={{ flexDirection: 'row', gap: 8, paddingHorizontal: 20, paddingVertical: 12 }}>
         {[80, 60, 50, 50].map((w, i) => (
@@ -314,6 +319,7 @@ const NotificationsScreenSkeleton = React.memo(function NotificationsScreenSkele
 export default function NotificationsScreen({ navigation }: NotificationsScreenProps) {
   const { t } = useTranslation();
   const { colors, isDark } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const { user } = useAuth();
   const { total: chatUnread } = useChatUnread();
 
@@ -557,7 +563,7 @@ export default function NotificationsScreen({ navigation }: NotificationsScreenP
       <RefreshControl
         refreshing={refreshing}
         onRefresh={handleRefresh}
-        tintColor={COLORS.piktag500}
+        tintColor={colors.piktag500}
       />
     ),
     [refreshing, handleRefresh]
@@ -581,7 +587,7 @@ export default function NotificationsScreen({ navigation }: NotificationsScreenP
           accessibilityRole="button"
           accessibilityLabel={t('chat.inbox')}
         >
-          <MessageCircle size={24} color={COLORS.gray900} strokeWidth={2} />
+          <MessageCircle size={24} color={colors.gray900} strokeWidth={2} />
           {chatUnread > 0 ? (
             <View style={styles.headerChatBadge}>
               <Text style={styles.headerChatBadgeText}>{chatUnread > 99 ? '99+' : String(chatUnread)}</Text>
@@ -634,10 +640,11 @@ export default function NotificationsScreen({ navigation }: NotificationsScreenP
   );
 }
 
-const styles = StyleSheet.create({
+function makeStyles(c: ColorPalette) {
+  return StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.white,
+    backgroundColor: c.white,
   },
   header: {
     flexDirection: 'row',
@@ -646,12 +653,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: SPACING.md,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.gray100,
+    borderBottomColor: c.gray100,
   },
   headerTitle: {
     fontSize: 24,
     fontWeight: '700',
-    color: COLORS.gray900,
+    color: c.gray900,
     lineHeight: 32,
   },
   headerChatBtn: {
@@ -666,7 +673,7 @@ const styles = StyleSheet.create({
     height: 16,
     borderRadius: 8,
     paddingHorizontal: 4,
-    backgroundColor: COLORS.red500,
+    backgroundColor: c.red500,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -679,7 +686,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     paddingHorizontal: 20,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.gray100,
+    borderBottomColor: c.gray100,
   },
   tab: {
     paddingVertical: 12,
@@ -689,15 +696,15 @@ const styles = StyleSheet.create({
     borderBottomColor: 'transparent',
   },
   tabActive: {
-    borderBottomColor: COLORS.piktag500,
+    borderBottomColor: c.piktag500,
   },
   tabText: {
     fontSize: 15,
     fontWeight: '500',
-    color: COLORS.gray400,
+    color: c.gray400,
   },
   tabTextActive: {
-    color: COLORS.piktag500,
+    color: c.piktag500,
     fontWeight: '600',
   },
   listContent: {
@@ -710,17 +717,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 14,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.gray100,
-    backgroundColor: COLORS.white,
+    borderBottomColor: c.gray100,
+    backgroundColor: c.white,
   },
   notificationItemUnread: {
-    backgroundColor: COLORS.piktag50,
+    backgroundColor: c.piktag50,
   },
   avatar: {
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: COLORS.gray100,
+    backgroundColor: c.gray100,
     marginRight: 12,
   },
   avatarPlaceholder: {
@@ -735,16 +742,16 @@ const styles = StyleSheet.create({
   },
   notificationText: {
     fontSize: 14,
-    color: COLORS.gray700,
+    color: c.gray700,
     lineHeight: 20,
   },
   notificationUsername: {
     fontWeight: '700',
-    color: COLORS.gray900,
+    color: c.gray900,
   },
   notificationTime: {
     fontSize: 12,
-    color: COLORS.gray400,
+    color: c.gray400,
     marginTop: 4,
   },
   unreadDot: {
@@ -754,7 +761,7 @@ const styles = StyleSheet.create({
     // accentPop — the unread dot is a primary "notification dot"
     // surface, exactly the case the design system reserves the
     // high-saturation accent for.
-    backgroundColor: COLORS.accentPop,
+    backgroundColor: c.accentPop,
     marginLeft: 8,
     alignSelf: 'center',
   },
@@ -768,7 +775,7 @@ const styles = StyleSheet.create({
   emptyStateText: {
     fontSize: 16,
     fontWeight: '600',
-    color: COLORS.gray500,
+    color: c.gray500,
     marginTop: SPACING.lg,
     textAlign: 'center',
     lineHeight: 22,
@@ -778,4 +785,5 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-});
+  });
+}

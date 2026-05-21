@@ -24,7 +24,8 @@ import MessageBubble from '../components/chat/MessageBubble';
 import RingedAvatar from '../components/RingedAvatar';
 import ErrorState from '../components/ErrorState';
 import BrandSpinner from '../components/loaders/BrandSpinner';
-import { COLORS } from '../constants/theme';
+import { COLORS, type ColorPalette } from '../constants/theme';
+import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../hooks/useAuth';
 import { useChatThread } from '../hooks/useChatThread';
 import { useNetInfoReconnect } from '../hooks/useNetInfoReconnect';
@@ -77,6 +78,8 @@ function formatDaySeparator(iso: string): string {
 
 export default function ChatThreadScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
+  const { colors, isDark } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const { user } = useAuth();
   const {
     conversationId,
@@ -389,7 +392,7 @@ export default function ChatThreadScreen({ navigation, route }: Props) {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <StatusBar barStyle="dark-content" backgroundColor={COLORS.white} />
+      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor={colors.white} />
 
       <View style={styles.header}>
         <TouchableOpacity
@@ -399,7 +402,7 @@ export default function ChatThreadScreen({ navigation, route }: Props) {
           accessibilityRole="button"
           accessibilityLabel="Back"
         >
-          <ArrowLeft size={24} color={COLORS.gray900} />
+          <ArrowLeft size={24} color={colors.gray900} />
         </TouchableOpacity>
 
         <Pressable style={styles.headerCenter} onPress={handleHeaderPress}>
@@ -451,8 +454,9 @@ export default function ChatThreadScreen({ navigation, route }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.white },
+function makeStyles(c: ColorPalette) {
+  return StyleSheet.create({
+  container: { flex: 1, backgroundColor: c.white },
   flex: { flex: 1 },
   header: {
     flexDirection: 'row',
@@ -460,7 +464,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 8,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.gray100,
+    borderBottomColor: c.gray100,
   },
   headerIconBtn: {
     padding: 8,
@@ -479,7 +483,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: COLORS.gray900,
+    color: c.gray900,
     flexShrink: 1,
   },
   listContent: { paddingVertical: 12 },
@@ -493,8 +497,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: 24,
   },
-  emptyText: { fontSize: 15, color: COLORS.gray500, textAlign: 'center' },
+  emptyText: { fontSize: 15, color: c.gray500, textAlign: 'center' },
   loadingMoreWrap: { paddingVertical: 12, alignItems: 'center' },
   daySeparator: { alignItems: 'center', paddingVertical: 8 },
-  daySeparatorText: { fontSize: 12, color: COLORS.gray400, fontWeight: '500' },
-});
+  daySeparatorText: { fontSize: 12, color: c.gray400, fontWeight: '500' },
+  });
+}

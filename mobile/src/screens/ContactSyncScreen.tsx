@@ -35,7 +35,7 @@ import {
   Plus,
   Lock,
 } from 'lucide-react-native';
-import { COLORS } from '../constants/theme';
+import { COLORS, type ColorPalette } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
 import { LinearGradient } from 'expo-linear-gradient';
 import { supabase } from '../lib/supabase';
@@ -78,6 +78,7 @@ type ContactSection = {
 export default function ContactSyncScreen({ navigation }: ContactSyncScreenProps) {
   const { t } = useTranslation();
   const { colors, isDark } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
 
@@ -606,7 +607,7 @@ export default function ContactSyncScreen({ navigation }: ContactSyncScreenProps
         </View>
         {isImported ? (
           <View style={styles.importedBadge}>
-            <Check size={16} color={COLORS.piktag600} />
+            <Check size={16} color={colors.piktag600} />
           </View>
         ) : isImporting ? (
           <View style={styles.actionBtn}>
@@ -620,7 +621,7 @@ export default function ContactSyncScreen({ navigation }: ContactSyncScreenProps
             accessibilityRole="button"
             accessibilityLabel={t('contactSync.followBtn', { defaultValue: '追蹤' })}
           >
-            <UserPlus size={16} color={COLORS.piktag600} />
+            <UserPlus size={16} color={colors.piktag600} />
             <Text style={styles.actionBtnText}>
               {t('contactSync.followBtn', { defaultValue: '追蹤' })}
             </Text>
@@ -642,13 +643,13 @@ export default function ContactSyncScreen({ navigation }: ContactSyncScreenProps
           <View style={styles.contactDetails}>
             {item.phone ? (
               <View style={styles.contactDetailRow}>
-                <Phone size={12} color={COLORS.gray400} />
+                <Phone size={12} color={colors.gray400} />
                 <Text style={styles.contactDetailText}>{item.phone}</Text>
               </View>
             ) : null}
             {item.email ? (
               <View style={styles.contactDetailRow}>
-                <Mail size={12} color={COLORS.gray400} />
+                <Mail size={12} color={colors.gray400} />
                 <Text style={styles.contactDetailText} numberOfLines={1}>
                   {item.email}
                 </Text>
@@ -658,7 +659,7 @@ export default function ContactSyncScreen({ navigation }: ContactSyncScreenProps
         </View>
         {alreadyTagged ? (
           <View style={styles.taggedBadge}>
-            <Check size={14} color={COLORS.piktag600} />
+            <Check size={14} color={colors.piktag600} />
             <Text style={styles.taggedBadgeText}>
               {t('contactSync.taggedBadge', { defaultValue: '已加入名單' })}
             </Text>
@@ -702,7 +703,7 @@ export default function ContactSyncScreen({ navigation }: ContactSyncScreenProps
   } else if (permissionDenied) {
     body = (
       <View style={styles.emptyContainer}>
-        <Users size={48} color={COLORS.gray200} />
+        <Users size={48} color={colors.gray200} />
         <Text style={styles.emptyTitle}>
           {t('contactSync.permissionDeniedTitle')}
         </Text>
@@ -728,7 +729,7 @@ export default function ContactSyncScreen({ navigation }: ContactSyncScreenProps
   } else if (contacts.length === 0) {
     body = (
       <View style={styles.emptyContainer}>
-        <Users size={48} color={COLORS.gray200} />
+        <Users size={48} color={colors.gray200} />
         <Text style={styles.emptyTitle}>{t('contactSync.emptyTitle')}</Text>
         <Text style={styles.emptyText}>{t('contactSync.emptyText')}</Text>
       </View>
@@ -783,7 +784,7 @@ export default function ContactSyncScreen({ navigation }: ContactSyncScreenProps
               </TouchableOpacity>
             ) : onPiktagCount > 0 ? (
               <View style={[styles.summaryCta, styles.summaryCtaDone]}>
-                <Check size={16} color={COLORS.piktag600} />
+                <Check size={16} color={colors.piktag600} />
                 <Text
                   style={[styles.summaryCtaText, styles.summaryCtaDoneText]}
                 >
@@ -827,7 +828,7 @@ export default function ContactSyncScreen({ navigation }: ContactSyncScreenProps
           accessibilityRole="button"
           accessibilityLabel={t('common.back')}
         >
-          <ArrowLeft size={24} color={COLORS.gray900} />
+          <ArrowLeft size={24} color={colors.gray900} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>{t('contactSync.headerTitle')}</Text>
         <View style={styles.headerSpacer} />
@@ -854,7 +855,7 @@ export default function ContactSyncScreen({ navigation }: ContactSyncScreenProps
               <View style={styles.tagModalHeader}>
                 <View style={{ flex: 1 }}>
                   <View style={styles.tagModalTitleRow}>
-                    <Lock size={16} color={COLORS.gray700} />
+                    <Lock size={16} color={colors.gray700} />
                     <Text style={styles.tagModalTitle}>
                       {t('contactSync.tagModalTitle', { defaultValue: '私人標籤' })}
                     </Text>
@@ -869,7 +870,7 @@ export default function ContactSyncScreen({ navigation }: ContactSyncScreenProps
                   accessibilityRole="button"
                   accessibilityLabel={t('common.cancel')}
                 >
-                  <X size={20} color={COLORS.gray600} />
+                  <X size={20} color={colors.gray600} />
                 </TouchableOpacity>
               </View>
 
@@ -879,7 +880,7 @@ export default function ContactSyncScreen({ navigation }: ContactSyncScreenProps
                 showsVerticalScrollIndicator={false}
               >
                 <View style={styles.tagModalHintRow}>
-                  <Lock size={12} color={COLORS.gray600} />
+                  <Lock size={12} color={colors.gray600} />
                   <Text style={styles.tagModalHint}>
                     {t('contactSync.tagModalHint', {
                       max: MAX_TAGS_PER_CONTACT,
@@ -914,7 +915,7 @@ export default function ContactSyncScreen({ navigation }: ContactSyncScreenProps
                     value={customTagInput}
                     onChangeText={setCustomTagInput}
                     placeholder={t('contactSync.tagModalCustomPlaceholder', { defaultValue: '自訂標籤' })}
-                    placeholderTextColor={COLORS.gray400}
+                    placeholderTextColor={colors.gray400}
                     onSubmitEditing={addCustomTag}
                     returnKeyType="done"
                     maxLength={20}
@@ -929,7 +930,7 @@ export default function ContactSyncScreen({ navigation }: ContactSyncScreenProps
                     accessibilityRole="button"
                     accessibilityLabel={t('contactSync.tagModalAddCustom', { defaultValue: '新增' })}
                   >
-                    <Plus size={18} color={customTagInput.trim() ? '#FFFFFF' : COLORS.gray400} />
+                    <Plus size={18} color={customTagInput.trim() ? '#FFFFFF' : colors.gray400} />
                   </TouchableOpacity>
                 </View>
 
@@ -1016,19 +1017,20 @@ export default function ContactSyncScreen({ navigation }: ContactSyncScreenProps
   );
 }
 
-const styles = StyleSheet.create({
+function makeStyles(c: ColorPalette) {
+  return StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.white,
+    backgroundColor: c.white,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 16,
     paddingBottom: 14,
-    backgroundColor: COLORS.white,
+    backgroundColor: c.white,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.gray100,
+    borderBottomColor: c.gray100,
   },
   backBtn: {
     padding: 12,
@@ -1037,7 +1039,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 18,
     fontWeight: '700',
-    color: COLORS.gray900,
+    color: c.gray900,
     textAlign: 'center',
     marginHorizontal: 12,
   },
@@ -1054,12 +1056,12 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: COLORS.gray700,
+    color: c.gray700,
     marginTop: 8,
   },
   emptyText: {
     fontSize: 14,
-    color: COLORS.gray500,
+    color: c.gray500,
     textAlign: 'center',
     lineHeight: 20,
   },
@@ -1068,7 +1070,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 22,
     paddingVertical: 12,
     borderRadius: 9999,
-    backgroundColor: COLORS.piktag500,
+    backgroundColor: c.piktag500,
   },
   openSettingsBtnText: { fontSize: 15, fontWeight: '700', color: '#FFFFFF' },
 
@@ -1077,12 +1079,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 16,
     paddingBottom: 12,
-    backgroundColor: COLORS.white,
+    backgroundColor: c.white,
     gap: 10,
   },
   summaryLine: {
     fontSize: 14,
-    color: COLORS.gray500,
+    color: c.gray500,
     fontWeight: '500',
   },
   summaryCta: {
@@ -1100,12 +1102,12 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
   summaryCtaDone: {
-    backgroundColor: COLORS.piktag50,
+    backgroundColor: c.piktag50,
     borderWidth: 1,
-    borderColor: COLORS.piktag200,
+    borderColor: c.piktag200,
   },
   summaryCtaDoneText: {
-    color: COLORS.piktag600,
+    color: c.piktag600,
   },
   summaryProgress: {
     flexDirection: 'row',
@@ -1117,22 +1119,22 @@ const styles = StyleSheet.create({
   summaryProgressText: {
     fontSize: 14,
     fontWeight: '600',
-    color: COLORS.gray700,
+    color: c.gray700,
   },
 
   // Section header
   sectionHeader: {
     paddingHorizontal: 20,
     paddingVertical: 8,
-    backgroundColor: COLORS.gray50 || '#F7F7F8',
+    backgroundColor: c.gray50 || '#F7F7F8',
     borderTopWidth: 1,
     borderBottomWidth: 1,
-    borderColor: COLORS.gray100,
+    borderColor: c.gray100,
   },
   sectionHeaderText: {
     fontSize: 13,
     fontWeight: '700',
-    color: COLORS.gray600,
+    color: c.gray600,
     letterSpacing: 0.2,
   },
 
@@ -1145,14 +1147,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.gray100,
-    backgroundColor: COLORS.white,
+    borderBottomColor: c.gray100,
+    backgroundColor: c.white,
   },
   contactAvatar: {
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: COLORS.gray100,
+    backgroundColor: c.gray100,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -1160,12 +1162,12 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: COLORS.gray100,
+    backgroundColor: c.gray100,
   },
   contactInitials: {
     fontSize: 16,
     fontWeight: '600',
-    color: COLORS.gray600,
+    color: c.gray600,
   },
   contactInfo: {
     flex: 1,
@@ -1179,18 +1181,18 @@ const styles = StyleSheet.create({
   contactName: {
     fontSize: 16,
     fontWeight: '600',
-    color: COLORS.gray900,
+    color: c.gray900,
     flexShrink: 1,
   },
   handle: {
     fontSize: 13,
-    color: COLORS.gray500,
+    color: c.gray500,
     flexShrink: 1,
   },
   contactSubtitle: {
     marginTop: 2,
     fontSize: 12,
-    color: COLORS.gray500,
+    color: c.gray500,
   },
   contactDetails: {
     marginTop: 2,
@@ -1203,7 +1205,7 @@ const styles = StyleSheet.create({
   },
   contactDetailText: {
     fontSize: 12,
-    color: COLORS.gray500,
+    color: c.gray500,
   },
 
   // Action buttons
@@ -1218,9 +1220,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderWidth: 1,
-    borderColor: COLORS.piktag200,
+    borderColor: c.piktag200,
     borderRadius: 8,
-    backgroundColor: COLORS.piktag50,
+    backgroundColor: c.piktag50,
   },
   actionBtnInvite: {
     flexDirection: 'row',
@@ -1229,19 +1231,19 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderWidth: 1,
-    borderColor: COLORS.piktag200,
+    borderColor: c.piktag200,
     borderRadius: 8,
   },
   actionBtnText: {
     fontSize: 13,
     fontWeight: '600',
-    color: COLORS.piktag600,
+    color: c.piktag600,
   },
   importedBadge: {
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: COLORS.piktag50,
+    backgroundColor: c.piktag50,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -1255,7 +1257,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 8,
-    backgroundColor: COLORS.piktag600,
+    backgroundColor: c.piktag600,
   },
   actionBtnTagInviteText: {
     fontSize: 13,
@@ -1269,14 +1271,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 8,
-    backgroundColor: COLORS.piktag50,
+    backgroundColor: c.piktag50,
     borderWidth: 1,
-    borderColor: COLORS.piktag200,
+    borderColor: c.piktag200,
   },
   taggedBadgeText: {
     fontSize: 12,
     fontWeight: '600',
-    color: COLORS.piktag600,
+    color: c.piktag600,
   },
 
   // Phase 4 — tag picker modal
@@ -1286,7 +1288,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   tagModalCard: {
-    backgroundColor: COLORS.white,
+    backgroundColor: c.white,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     paddingTop: 16,
@@ -1299,7 +1301,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingBottom: 12,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.gray100,
+    borderBottomColor: c.gray100,
   },
   tagModalTitleRow: {
     flexDirection: 'row',
@@ -1309,11 +1311,11 @@ const styles = StyleSheet.create({
   tagModalTitle: {
     fontSize: 17,
     fontWeight: '700',
-    color: COLORS.gray900,
+    color: c.gray900,
   },
   tagModalSubtitle: {
     fontSize: 13,
-    color: COLORS.gray500,
+    color: c.gray500,
     marginTop: 2,
   },
   tagModalCloseBtn: {
@@ -1322,7 +1324,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: COLORS.gray100,
+    backgroundColor: c.gray100,
   },
   tagModalBody: {
     paddingHorizontal: 20,
@@ -1337,7 +1339,7 @@ const styles = StyleSheet.create({
   tagModalHint: {
     flex: 1,
     fontSize: 13,
-    color: COLORS.gray600,
+    color: c.gray600,
     lineHeight: 18,
   },
   pickedRow: {
@@ -1355,7 +1357,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 16,
-    backgroundColor: COLORS.piktag500,
+    backgroundColor: c.piktag500,
   },
   pickedChipText: {
     fontSize: 13,
@@ -1374,10 +1376,10 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: COLORS.gray200,
-    backgroundColor: COLORS.white,
+    borderColor: c.gray200,
+    backgroundColor: c.white,
     fontSize: 14,
-    color: COLORS.gray900,
+    color: c.gray900,
   },
   customTagAddBtn: {
     width: 40,
@@ -1385,10 +1387,10 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: COLORS.piktag600,
+    backgroundColor: c.piktag600,
   },
   customTagAddBtnDisabled: {
-    backgroundColor: COLORS.gray100,
+    backgroundColor: c.gray100,
   },
   popularSection: {
     marginBottom: 8,
@@ -1396,7 +1398,7 @@ const styles = StyleSheet.create({
   popularLabel: {
     fontSize: 12,
     fontWeight: '700',
-    color: COLORS.gray600,
+    color: c.gray600,
     letterSpacing: 0.4,
     marginBottom: 8,
     textTransform: 'uppercase',
@@ -1412,18 +1414,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderRadius: 9999,
-    backgroundColor: COLORS.gray100,
+    backgroundColor: c.gray100,
   },
   popularChipSelected: {
-    backgroundColor: COLORS.piktag50,
+    backgroundColor: c.piktag50,
   },
   popularChipText: {
     fontSize: 13,
-    color: COLORS.gray700,
+    color: c.gray700,
     fontWeight: '500',
   },
   popularChipTextSelected: {
-    color: COLORS.piktag600,
+    color: c.piktag600,
     fontWeight: '600',
   },
   tagModalFooter: {
@@ -1432,7 +1434,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 14,
     borderTopWidth: 1,
-    borderTopColor: COLORS.gray100,
+    borderTopColor: c.gray100,
   },
   tagModalCancelBtn: {
     flex: 1,
@@ -1440,12 +1442,12 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: COLORS.gray100,
+    backgroundColor: c.gray100,
   },
   tagModalCancelText: {
     fontSize: 15,
     fontWeight: '600',
-    color: COLORS.gray700,
+    color: c.gray700,
   },
   tagModalSubmitBtn: {
     flex: 2,
@@ -1455,7 +1457,7 @@ const styles = StyleSheet.create({
     gap: 6,
     paddingVertical: 12,
     borderRadius: 10,
-    backgroundColor: COLORS.piktag600,
+    backgroundColor: c.piktag600,
   },
   tagModalSubmitBtnDisabled: {
     opacity: 0.5,
@@ -1465,4 +1467,5 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#FFFFFF',
   },
-});
+  });
+}

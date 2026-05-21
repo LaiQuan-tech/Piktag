@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   View,
   Text,
@@ -21,7 +21,7 @@ import {
   MapPin,
 } from 'lucide-react-native';
 import Svg, { Path, Circle, Line, Text as SvgText } from 'react-native-svg';
-import { COLORS } from '../constants/theme';
+import { COLORS, type ColorPalette } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
@@ -74,6 +74,7 @@ const INITIAL_DATA: DashboardData = {
 export default function SocialStatsScreen({ navigation }: SocialStatsScreenProps) {
   const { t } = useTranslation();
   const { colors, isDark } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
@@ -351,18 +352,18 @@ export default function SocialStatsScreen({ navigation }: SocialStatsScreenProps
     return (
       <Svg width={CHART_WIDTH} height={CHART_HEIGHT}>
         {/* Area fill */}
-        <Path d={areaPath} fill={COLORS.piktag100} opacity={0.5} />
+        <Path d={areaPath} fill={colors.piktag100} opacity={0.5} />
         {/* Line */}
-        <Path d={pathParts.join(' ')} fill="none" stroke={COLORS.piktag500} strokeWidth={2.5} />
+        <Path d={pathParts.join(' ')} fill="none" stroke={colors.piktag500} strokeWidth={2.5} />
         {/* Dots */}
         {dots.map((d, i) => (
-          <Circle key={i} cx={d.x} cy={d.y} r={3} fill={COLORS.piktag500} />
+          <Circle key={i} cx={d.x} cy={d.y} r={3} fill={colors.piktag500} />
         ))}
         {/* Y-axis labels */}
-        <SvgText x={padding.left - 6} y={padding.top + 4} fontSize={10} fill={COLORS.gray400} textAnchor="end">
+        <SvgText x={padding.left - 6} y={padding.top + 4} fontSize={10} fill={colors.gray400} textAnchor="end">
           {maxVal}
         </SvgText>
-        <SvgText x={padding.left - 6} y={padding.top + h + 4} fontSize={10} fill={COLORS.gray400} textAnchor="end">
+        <SvgText x={padding.left - 6} y={padding.top + h + 4} fontSize={10} fill={colors.gray400} textAnchor="end">
           {minVal}
         </SvgText>
         {/* X-axis labels */}
@@ -375,7 +376,7 @@ export default function SocialStatsScreen({ navigation }: SocialStatsScreenProps
               x={x}
               y={CHART_HEIGHT - 4}
               fontSize={9}
-              fill={COLORS.gray400}
+              fill={colors.gray400}
               textAnchor="middle"
             >
               {p.date.slice(5)} {/* MM-DD */}
@@ -388,7 +389,7 @@ export default function SocialStatsScreen({ navigation }: SocialStatsScreenProps
           y1={padding.top + h}
           x2={CHART_WIDTH - padding.right}
           y2={padding.top + h}
-          stroke={COLORS.gray200}
+          stroke={colors.gray200}
           strokeWidth={1}
         />
       </Svg>
@@ -399,7 +400,7 @@ export default function SocialStatsScreen({ navigation }: SocialStatsScreenProps
   const renderBarRow = (
     items: { label: string; value: number }[],
     maxValue: number,
-    barColor: string = COLORS.piktag400,
+    barColor: string = colors.piktag400,
     showRank: boolean = true,
   ) => (
     <>
@@ -476,7 +477,7 @@ export default function SocialStatsScreen({ navigation }: SocialStatsScreenProps
           accessibilityRole="button"
           accessibilityLabel={t('common.back')}
         >
-          <ArrowLeft size={24} color={COLORS.gray900} />
+          <ArrowLeft size={24} color={colors.gray900} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>{t('dashboard.headerTitle')}</Text>
         <View style={{ width: 32 }} />
@@ -508,29 +509,29 @@ export default function SocialStatsScreen({ navigation }: SocialStatsScreenProps
           {/* ── Overview Cards (2x2) ── */}
           <View style={styles.statsGrid}>
             <StatCard
-              icon={<Users size={20} color={COLORS.piktag600} />}
+              icon={<Users size={20} color={colors.piktag600} />}
               label={t('dashboard.totalFriends')}
               value={data.totalFriends}
-              bgColor={COLORS.piktag50}
+              bgColor={colors.piktag50}
             />
             <StatCard
-              icon={<TrendingUp size={20} color={COLORS.piktag500} />}
+              icon={<TrendingUp size={20} color={colors.piktag500} />}
               label={newFriendsLabel}
               value={newFriendsValue}
               subValue={t('dashboard.newFriendsSub', { count: newFriendsValue })}
-              bgColor={COLORS.piktag50}
+              bgColor={colors.piktag50}
             />
             <StatCard
-              icon={<Link2 size={20} color={COLORS.piktag400} />}
+              icon={<Link2 size={20} color={colors.piktag400} />}
               label={t('dashboard.totalLinkClicks')}
               value={data.totalBiolinkClicks}
-              bgColor={COLORS.piktag50}
+              bgColor={colors.piktag50}
             />
             <StatCard
-              icon={<QrCode size={20} color={COLORS.piktag300} />}
+              icon={<QrCode size={20} color={colors.piktag300} />}
               label={t('dashboard.totalQrScans')}
               value={data.totalQrScans}
-              bgColor={COLORS.piktag50}
+              bgColor={colors.piktag50}
             />
           </View>
 
@@ -551,7 +552,7 @@ export default function SocialStatsScreen({ navigation }: SocialStatsScreenProps
               renderBarRow(
                 data.presetScans.map((p) => ({ label: p.name, value: p.totalScans })),
                 data.presetScans[0]?.totalScans || 1,
-                COLORS.piktag500,
+                colors.piktag500,
                 false,
               )
             ) : (
@@ -574,9 +575,9 @@ export default function SocialStatsScreen({ navigation }: SocialStatsScreenProps
                         {
                           flex: item.percentage,
                           backgroundColor: [
-                            COLORS.piktag200, COLORS.piktag300, COLORS.piktag400,
-                            COLORS.piktag500, COLORS.piktag600, COLORS.accent400,
-                            COLORS.accent500, COLORS.accent600,
+                            colors.piktag200, colors.piktag300, colors.piktag400,
+                            colors.piktag500, colors.piktag600, colors.accent400,
+                            colors.accent500, colors.accent600,
                           ][i % 8],
                         },
                       ]}
@@ -592,9 +593,9 @@ export default function SocialStatsScreen({ navigation }: SocialStatsScreenProps
                           styles.compositionLegendDot,
                           {
                             backgroundColor: [
-                              COLORS.piktag200, COLORS.piktag300, COLORS.piktag400,
-                              COLORS.piktag500, COLORS.piktag600, COLORS.accent400,
-                              COLORS.accent500, COLORS.accent600,
+                              colors.piktag200, colors.piktag300, colors.piktag400,
+                              colors.piktag500, colors.piktag600, colors.accent400,
+                              colors.accent500, colors.accent600,
                             ][i % 8],
                           },
                         ]}
@@ -618,7 +619,7 @@ export default function SocialStatsScreen({ navigation }: SocialStatsScreenProps
               renderBarRow(
                 data.topTags.map((tag) => ({ label: `#${tag.name}`, value: tag.count })),
                 data.topTags[0]?.count || 1,
-                COLORS.piktag400,
+                colors.piktag400,
               )
             ) : (
               <EmptyState text={t('dashboard.topTagsEmpty')} />
@@ -632,7 +633,7 @@ export default function SocialStatsScreen({ navigation }: SocialStatsScreenProps
               renderBarRow(
                 data.topLocations.map((loc) => ({ label: loc.location, value: loc.count })),
                 data.topLocations[0]?.count || 1,
-                COLORS.piktag300,
+                colors.piktag300,
               )
             ) : (
               <EmptyState text={t('dashboard.topLocationsEmpty')} />
@@ -646,7 +647,7 @@ export default function SocialStatsScreen({ navigation }: SocialStatsScreenProps
               <View style={styles.chipRow}>
                 {data.activeLocationsThisMonth.map((loc) => (
                   <View key={loc.location} style={styles.locationChip}>
-                    <MapPin size={12} color={COLORS.piktag600} />
+                    <MapPin size={12} color={colors.piktag600} />
                     <Text style={styles.locationChipText}>{loc.location}</Text>
                     <Text style={styles.locationChipCount}>{loc.count}</Text>
                   </View>
@@ -687,19 +688,20 @@ export default function SocialStatsScreen({ navigation }: SocialStatsScreenProps
   );
 }
 
-const styles = StyleSheet.create({
+function makeStyles(c: ColorPalette) {
+  return StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.white,
+    backgroundColor: c.white,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 16,
     paddingBottom: 14,
-    backgroundColor: COLORS.white,
+    backgroundColor: c.white,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.gray100,
+    borderBottomColor: c.gray100,
   },
   backBtn: {
     padding: 12,
@@ -708,7 +710,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 18,
     fontWeight: '700',
-    color: COLORS.gray900,
+    color: c.gray900,
     textAlign: 'center',
     marginHorizontal: 12,
   },
@@ -732,18 +734,18 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     paddingHorizontal: 16,
     borderRadius: 20,
-    backgroundColor: COLORS.gray100,
+    backgroundColor: c.gray100,
   },
   timeRangeBtnActive: {
-    backgroundColor: COLORS.piktag500,
+    backgroundColor: c.piktag500,
   },
   timeRangeText: {
     fontSize: 14,
     fontWeight: '600',
-    color: COLORS.gray600,
+    color: c.gray600,
   },
   timeRangeTextActive: {
-    color: COLORS.white,
+    color: c.white,
   },
 
   // ── Stats Grid ──
@@ -763,16 +765,16 @@ const styles = StyleSheet.create({
   statValue: {
     fontSize: 28,
     fontWeight: '800',
-    color: COLORS.gray900,
+    color: c.gray900,
   },
   statLabel: {
     fontSize: 13,
     fontWeight: '500',
-    color: COLORS.gray600,
+    color: c.gray600,
   },
   statSubValue: {
     fontSize: 11,
-    color: COLORS.gray500,
+    color: c.gray500,
   },
 
   // ── Sections ──
@@ -806,17 +808,17 @@ const styles = StyleSheet.create({
   },
   compositionLegendText: {
     fontSize: 13,
-    color: COLORS.gray600,
+    color: c.gray600,
   },
   sectionTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: COLORS.gray900,
+    color: c.gray900,
     marginBottom: 14,
   },
   emptyText: {
     fontSize: 14,
-    color: COLORS.gray400,
+    color: c.gray400,
     textAlign: 'center',
     paddingVertical: 20,
   },
@@ -832,25 +834,25 @@ const styles = StyleSheet.create({
     width: 24,
     height: 24,
     borderRadius: 12,
-    backgroundColor: COLORS.piktag100,
+    backgroundColor: c.piktag100,
     alignItems: 'center',
     justifyContent: 'center',
   },
   barRankText: {
     fontSize: 12,
     fontWeight: '700',
-    color: COLORS.piktag600,
+    color: c.piktag600,
   },
   barLabel: {
     fontSize: 14,
     fontWeight: '600',
-    color: COLORS.gray900,
+    color: c.gray900,
     width: 80,
   },
   barTrack: {
     flex: 1,
     height: 8,
-    backgroundColor: COLORS.gray100,
+    backgroundColor: c.gray100,
     borderRadius: 4,
   },
   barFill: {
@@ -860,7 +862,7 @@ const styles = StyleSheet.create({
   barValue: {
     fontSize: 14,
     fontWeight: '600',
-    color: COLORS.gray600,
+    color: c.gray600,
     width: 30,
     textAlign: 'right',
   },
@@ -874,24 +876,24 @@ const styles = StyleSheet.create({
   locationChip: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: COLORS.gray50,
+    backgroundColor: c.gray50,
     borderRadius: 9999,
     paddingVertical: 8,
     paddingHorizontal: 14,
     gap: 6,
     borderWidth: 1,
-    borderColor: COLORS.gray200,
+    borderColor: c.gray200,
   },
   locationChipText: {
     fontSize: 13,
     fontWeight: '500',
-    color: COLORS.gray700,
+    color: c.gray700,
   },
   locationChipCount: {
     fontSize: 12,
     fontWeight: '700',
-    color: COLORS.piktag600,
-    backgroundColor: COLORS.piktag50,
+    color: c.piktag600,
+    backgroundColor: c.piktag50,
     borderRadius: 10,
     paddingHorizontal: 6,
     paddingVertical: 1,
@@ -905,20 +907,20 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     gap: 10,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.gray100,
+    borderBottomColor: c.gray100,
   },
   biolinkRank: {
     width: 24,
     height: 24,
     borderRadius: 12,
-    backgroundColor: COLORS.piktag50,
+    backgroundColor: c.piktag50,
     alignItems: 'center',
     justifyContent: 'center',
   },
   biolinkRankText: {
     fontSize: 12,
     fontWeight: '700',
-    color: COLORS.piktag600,
+    color: c.piktag600,
   },
   biolinkInfo: {
     flex: 1,
@@ -926,16 +928,17 @@ const styles = StyleSheet.create({
   biolinkPlatform: {
     fontSize: 15,
     fontWeight: '600',
-    color: COLORS.gray900,
+    color: c.gray900,
   },
   biolinkLabel: {
     fontSize: 12,
-    color: COLORS.gray500,
+    color: c.gray500,
     marginTop: 2,
   },
   biolinkClicks: {
     fontSize: 13,
     fontWeight: '600',
-    color: COLORS.gray500,
+    color: c.gray500,
   },
-});
+  });
+}

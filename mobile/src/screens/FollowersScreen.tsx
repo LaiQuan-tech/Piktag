@@ -17,7 +17,7 @@
 // resolves the viewer↔target relationship itself), so it works
 // whether the follower is a friend, a stranger, or yourself.
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -30,7 +30,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeft } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { useFocusEffect } from '@react-navigation/native';
-import { COLORS } from '../constants/theme';
+import { COLORS, type ColorPalette } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
 import { supabase } from '../lib/supabase';
 import RingedAvatar from '../components/RingedAvatar';
@@ -48,6 +48,7 @@ type FollowerProfile = {
 export default function FollowersScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
   const { colors, isDark } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const userId: string | undefined = route.params?.userId;
 
   const [followers, setFollowers] = useState<FollowerProfile[]>([]);
@@ -155,7 +156,7 @@ export default function FollowersScreen({ navigation, route }: Props) {
           accessibilityRole="button"
           accessibilityLabel={t('common.back', { defaultValue: 'Back' })}
         >
-          <ArrowLeft size={22} color={COLORS.gray900} />
+          <ArrowLeft size={22} color={colors.gray900} />
         </TouchableOpacity>
         <View style={styles.headerTitleWrap}>
           <Text style={styles.headerTitle}>
@@ -197,15 +198,16 @@ export default function FollowersScreen({ navigation, route }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.white },
+function makeStyles(c: ColorPalette) {
+  return StyleSheet.create({
+  container: { flex: 1, backgroundColor: c.white },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 12,
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.gray100,
+    borderBottomColor: c.gray100,
     gap: 8,
   },
   headerBtn: {
@@ -215,10 +217,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   headerTitleWrap: { flex: 1, alignItems: 'center' },
-  headerTitle: { fontSize: 17, fontWeight: '800', color: COLORS.gray900 },
-  headerSubtitle: { fontSize: 12, color: COLORS.gray500, marginTop: 2 },
+  headerTitle: { fontSize: 17, fontWeight: '800', color: c.gray900 },
+  headerSubtitle: { fontSize: 12, color: c.gray500, marginTop: 2 },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32 },
-  emptyText: { fontSize: 15, color: COLORS.gray500, textAlign: 'center' },
+  emptyText: { fontSize: 15, color: c.gray500, textAlign: 'center' },
   listContent: { paddingVertical: 4 },
   row: {
     flexDirection: 'row',
@@ -228,6 +230,7 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   rowText: { flex: 1 },
-  rowName: { fontSize: 15, fontWeight: '600', color: COLORS.gray900 },
-  rowUsername: { fontSize: 13, color: COLORS.gray500, marginTop: 1 },
-});
+  rowName: { fontSize: 15, fontWeight: '600', color: c.gray900 },
+  rowUsername: { fontSize: 13, color: c.gray500, marginTop: 1 },
+  });
+}
