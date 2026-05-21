@@ -474,9 +474,9 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: 'transparent',
   },
-  // "已選=紫色" aesthetic, founder definitive: fill-only, no border.
+  // 已選=piktag500 實心 + 白字 — founder 2026-05-23 contract.
   pickChipSelected: {
-    backgroundColor: COLORS.piktag50,
+    backgroundColor: COLORS.piktag500,
   },
   pickChipDisabled: {
     backgroundColor: COLORS.gray100,
@@ -489,7 +489,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   pickChipTextSelected: {
-    color: COLORS.piktag600,
+    color: '#FFFFFF',
     fontWeight: '700',
   },
   pickChipTextDisabled: {

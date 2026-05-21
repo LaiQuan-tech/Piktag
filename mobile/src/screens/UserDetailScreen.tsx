@@ -2349,8 +2349,9 @@ const styles = StyleSheet.create({
     borderColor: COLORS.gray200,
   },
   // "已選=紫色" aesthetic, founder definitive: fill-only, no border.
+  // 已選=piktag500 實心 + 白字 — founder 2026-05-23 contract.
   pickModalTagSelected: {
-    backgroundColor: COLORS.piktag50,
+    backgroundColor: COLORS.piktag500,
   },
   pickModalTagText: {
     fontSize: 15,
@@ -2358,7 +2359,7 @@ const styles = StyleSheet.create({
     color: COLORS.gray700,
   },
   pickModalTagTextSelected: {
-    color: COLORS.piktag600,
+    color: '#FFFFFF',
     fontWeight: '700',
   },
   pickModalDivider: {
@@ -2415,8 +2416,8 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   mutualModalTag: {
-    // "已選=紫色" aesthetic, founder definitive: fill-only, no border.
-    backgroundColor: COLORS.piktag50,
+    // 已選=piktag500 實心 + 白字 — founder 2026-05-23 contract.
+    backgroundColor: COLORS.piktag500,
     borderRadius: 16,
     paddingHorizontal: 14,
     paddingVertical: 8,
@@ -2424,7 +2425,7 @@ const styles = StyleSheet.create({
   mutualModalTagText: {
     fontSize: 15,
     fontWeight: '600',
-    color: COLORS.piktag600,
+    color: '#FFFFFF',
   },
 
   // Unfollow Modal

@@ -1075,23 +1075,19 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
           {tags.length > 0 && (
             <View style={styles.tagsWrap}>
               {tags.map((tag) => (
-                // Profile-tag display contract (founder, definitive):
-                // detail/view screens → ALL tag chips are GRAY, regardless
-                // of selected/mutual/picked. Purple is reserved for the
-                // ONE primary action CTA on this screen (編輯標籤). A sea
-                // of purple chips dilutes that CTA — exactly what the
-                // founder caught after the previous "都紫色" change. The
-                // tagChipMutual / Picked styles still exist for other
-                // contexts (e.g. the picker modal where selected=purple
-                // IS meaningful interaction feedback); don't apply them
-                // here.
+                // Profile-tag display contract (founder, 2026-05-23
+                // reversal): ALL chips render piktag500 + white text
+                // — these ARE the friend's selected/owned tags. The
+                // prior "view tags must be gray" rule was retired
+                // after the founder reviewed the Ask sheet's bold
+                // purple style and chose it as the canonical look.
                 <TouchableOpacity
                   key={tag.tagId}
-                  style={styles.tagChip}
+                  style={[styles.tagChip, styles.tagChipMutual]}
                   activeOpacity={0.6}
                   onPress={() => navigation.navigate('TagDetail', { tagId: tag.tagId, tagName: tag.name, initialTab: 'explore' })}
                 >
-                  <Text style={styles.tagChipText}>
+                  <Text style={[styles.tagChipText, styles.tagChipTextMutual]}>
                     #{tag.name}
                   </Text>
                 </TouchableOpacity>
@@ -1793,12 +1789,11 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: 'transparent',
   },
-  // Applied when FriendTag.isMutual === true. Brand purple frame + tinted
-  // background lifts shared tags above the gray crowd — the single most
-  // important "why you should remember each other" signal on the profile.
-  // "已選=紫色" aesthetic, founder definitive: fill-only, no border.
+  // 已選=piktag500 實心 + 白字 — founder 2026-05-23 contract update.
+  // Applied UNCONDITIONALLY on the profile-tag render below (this
+  // friend's tags ARE their selected/owned tags by definition).
   tagChipMutual: {
-    backgroundColor: COLORS.piktag50,
+    backgroundColor: COLORS.piktag500,
   },
   tagChipText: {
     fontSize: 14,
@@ -1806,7 +1801,7 @@ const styles = StyleSheet.create({
     color: COLORS.gray600,
   },
   tagChipTextMutual: {
-    color: COLORS.piktag600,
+    color: '#FFFFFF',
     fontWeight: '700',
   },
 
@@ -2517,9 +2512,9 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: 'transparent',
   },
-  // "已選=紫色" aesthetic, founder definitive: fill-only, no border.
+  // 已選=piktag500 實心 + 白字 — founder 2026-05-23 contract.
   pickModalTagSelected: {
-    backgroundColor: COLORS.piktag50,
+    backgroundColor: COLORS.piktag500,
   },
   pickModalTagText: {
     fontSize: 14,
@@ -2527,7 +2522,7 @@ const styles = StyleSheet.create({
     color: COLORS.gray600,
   },
   pickModalTagTextSelected: {
-    color: COLORS.piktag600,
+    color: '#FFFFFF',
     fontWeight: '700',
   },
   pickModalDivider: {

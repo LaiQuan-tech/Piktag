@@ -6,10 +6,15 @@
 //     tapping the chip itself. (The previous tiny × button was an
 //     accidental-trigger footgun and visually competed with the
 //     pill content.)
-//   • "已選=紫色" is FILL-ONLY (piktag50 bg + piktag600 text, no
-//     piktag500 outline). The chip body IS the purple — borders
-//     would read as "outlined chip" and clash with the same-colour
-//     primary CTAs reserved for screen-level actions.
+//   • "已選=紫色" is now SOLID PIKTAG500 + WHITE text (founder,
+//     2026-05-23 — reverses the prior "fill-only piktag50 +
+//     piktag600" contract; matches the long-standing Ask sheet
+//     style which the founder picked as the new canonical look).
+//     Every selected/owned tag in the app — edit surfaces AND
+//     view surfaces — uses this strong saturated colour. The old
+//     "view tags must be gray to not compete with the CTA" rule
+//     is retired: founder accepted the "wall of purple" trade-off
+//     for stronger visual presence of owned tags.
 //
 // Always renders `#<normalized>` (shared normalizeTagName strips a
 // leading # then we re-add one) so the # is identical app-wide
@@ -91,10 +96,17 @@ export default function TagChip({
 }
 
 const styles = StyleSheet.create({
+  // "已選=紫色 piktag500 實心 + 白字" — founder, 2026-05-23,
+  // reverses the prior "fill-only piktag50 + piktag600" contract.
+  // Every selected/owned tag chip app-wide now uses this strong
+  // saturated look (matches the Ask sheet which was always this
+  // colour). The 'toggle' variant's UN-selected state stays gray
+  // (chipToggleOff) — that's the "recommended but not selected"
+  // counterpart, no change there.
   chip: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: COLORS.piktag50,
+    backgroundColor: COLORS.piktag500,
     borderRadius: 9999,
     // Symmetric padding now that × is gone (was 14/8 with the icon
     // sitting on the right). The chip body IS the tappable region.
@@ -102,6 +114,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
   },
   chipToggleOff: { backgroundColor: COLORS.gray100 },
-  text: { fontSize: 14, fontWeight: '500', color: COLORS.piktag600 },
+  text: { fontSize: 14, fontWeight: '500', color: '#FFFFFF' },
   textToggleOff: { color: COLORS.gray700 },
 });

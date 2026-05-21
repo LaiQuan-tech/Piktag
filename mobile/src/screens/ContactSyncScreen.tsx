@@ -1348,18 +1348,19 @@ const styles = StyleSheet.create({
   },
   // Canonical "已選=紫色 fill-only" — same look as TagChip toggle
   // selected. Whole chip taps to remove (no × per founder rule).
+  // 已選=piktag500 實心 + 白字 — founder 2026-05-23 contract.
   pickedChip: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 16,
-    backgroundColor: COLORS.piktag50,
+    backgroundColor: COLORS.piktag500,
   },
   pickedChipText: {
     fontSize: 13,
     fontWeight: '600',
-    color: COLORS.piktag600,
+    color: '#FFFFFF',
   },
   customTagRow: {
     flexDirection: 'row',

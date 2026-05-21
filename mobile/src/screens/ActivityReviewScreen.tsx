@@ -539,10 +539,10 @@ const styles = StyleSheet.create({
   metText: { fontSize: 13, color: COLORS.gray500 },
   tagChips: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, justifyContent: 'center' },
   tagChip: { backgroundColor: COLORS.gray100, borderRadius: 9999, paddingVertical: 8, paddingHorizontal: 14, borderWidth: 1.5, borderColor: 'transparent' },
-  // "已選=紫色" aesthetic, founder definitive: fill-only, no border.
-  tagChipPicked: { backgroundColor: COLORS.piktag50 },
+  // 已選=piktag500 實心 + 白字 — founder 2026-05-23 contract.
+  tagChipPicked: { backgroundColor: COLORS.piktag500 },
   tagChipText: { fontSize: 14, fontWeight: '500', color: COLORS.gray600 },
-  tagChipTextPicked: { color: COLORS.piktag600, fontWeight: '700' },
+  tagChipTextPicked: { color: '#FFFFFF', fontWeight: '700' },
   hiddenTagChip: { backgroundColor: COLORS.gray50, borderRadius: 9999, paddingVertical: 4, paddingHorizontal: 10, borderWidth: 1, borderColor: COLORS.gray200, borderStyle: 'dashed' as any },
   hiddenTagChipText: { fontSize: 12, color: COLORS.gray400, fontStyle: 'italic' as any },
   // Input
