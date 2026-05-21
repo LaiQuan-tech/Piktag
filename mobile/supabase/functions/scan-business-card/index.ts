@@ -27,13 +27,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// 2.0-flash is materially faster than 2.5-flash for vision-OCR
-// extraction tasks (30-50% lower latency in our measurements) and
-// the quality is indistinguishable for structured field pulls from
-// a business card. 2.5 is overkill for "read these printed fields"
-// — it shines on reasoning. 2.5 stays in the chain as a fallback
-// in case 2.0 returns a malformed JSON or hits a transient error.
-const MODEL_FALLBACK_CHAIN = ['gemini-2.0-flash', 'gemini-2.5-flash', 'gemini-1.5-flash'] as const;
+const MODEL_FALLBACK_CHAIN = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash'] as const;
 
 // Roughly 6MB of base64 ≈ 4.5MB raw — generous for a card photo,
 // guards against someone POSTing a huge payload.
@@ -229,11 +223,7 @@ serve(async (req) => {
               // Low temperature: this is extraction, not creativity.
               // (bio_draft is the only generative field and one
               // bland sentence is exactly what we want.)
-              // maxOutputTokens 400 caps response length — a card
-              // JSON is at most ~200 tokens; capping lets the model
-              // stop early instead of meandering, saves 1-2s of
-              // server-side latency on the upstream call.
-              generationConfig: { temperature: 0.2, maxOutputTokens: 400 },
+              generationConfig: { temperature: 0.2 },
             }),
           },
         );
