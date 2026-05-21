@@ -813,6 +813,7 @@ export function AskCreateModal({ visible, onClose, existingAsk, onCreated, seedB
                   horizontal
                   showsHorizontalScrollIndicator={false}
                   style={modalStyles.tagScroll}
+                  contentContainerStyle={modalStyles.tagScrollContent}
                 >
                   {existingAsk.tag_names.map((name) => (
                     <View
@@ -1393,6 +1394,9 @@ const modalStyles = StyleSheet.create({
   // (tagChipsWrap) — view mode is a read-only single row, create
   // mode is interactive multi-row.
   tagScroll: { marginBottom: 16, flexGrow: 0 },
+  // 8dp between chips in the horizontal scroll — was missing,
+  // causing `#眼鏡 #配眼鏡` to render stuck together (founder caught).
+  tagScrollContent: { gap: 8 },
   aiLoadingRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 16 },
   aiLoadingText: { fontSize: 13, color: COLORS.gray500 },
   aiHint: { fontSize: 13, color: COLORS.gray400, marginBottom: 16 },
