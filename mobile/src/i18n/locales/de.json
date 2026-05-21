@@ -259,7 +259,9 @@
     "notJoinedBadge": "Noch nicht auf PikTag",
     "coldStartActionManual": "Jemanden notieren",
     "coldStartActionManualDesc": "Kein Konto nötig — verknüpft sich bei Anmeldung mit deinen Tags & Notizen",
-    "addManualA11y": "Kontakt manuell hinzufügen"
+    "addManualA11y": "Kontakt manuell hinzufügen",
+    "phonePromptTitle": "Telefonnummer hinzufügen, damit Freunde dich finden",
+    "phonePromptBody": "Wenn Freunde ihre Kontakte synchronisieren, werdet ihr automatisch verbunden. Nur von PikTag verwendet, niemals öffentlich."
   },
   "search": {
     "clearAll": "Alle löschen",
@@ -305,7 +307,10 @@
     "viewAllTagUsers": "Alle {{count}} ansehen",
     "categoryUncategorized": "Andere",
     "allCategories": "Alle",
-    "openMap": "Karte öffnen"
+    "openMap": "Karte öffnen",
+    "searchBtn": "Suchen",
+    "recommendedTitle": "Vielleicht möchtest du kennenlernen",
+    "tagsSelected": "Tag(s) ausgewählt"
   },
   "addTag": {
     "headerTitle": "Vibe erstellen",
@@ -1004,7 +1009,8 @@
     "hiddenTagPlaceholder": "Verstecktes Tag hinzufügen...",
     "swipeHint": "← Nach links wischen zum Überspringen · Nach rechts für nächste →",
     "skip": "Überspringen",
-    "next": "Weiter"
+    "next": "Weiter",
+    "done": "Fertig"
   },
   "tagDetail": {
     "unknownTag": "Unbekanntes Tag",

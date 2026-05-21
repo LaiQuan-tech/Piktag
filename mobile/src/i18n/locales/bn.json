@@ -1,6 +1,8 @@
 {
   "app": {
-    "offline": "আপনি অফলাইন আছেন। কিছু বৈশিষ্ট্য সীমিত হতে পারে।"
+    "offline": "আপনি অফলাইন আছেন। কিছু বৈশিষ্ট্য সীমিত হতে পারে।",
+    "backOnline": "আবার অনলাইন",
+    "offlineHint": "কিছু ফিচার ইন্টারনেট দরকার"
   },
   "tabs": {
     "home": "হোম",
@@ -62,7 +64,10 @@
     "noTags": "এখনও কোনো ট্যাগ নেই",
     "email": "ইমেইল",
     "phone": "ফোন",
-    "comingSoonTitle": "শীঘ্রই আসছে"
+    "comingSoonTitle": "শীঘ্রই আসছে",
+    "checkConnection": "সংযোগ পরীক্ষা করে আবার চেষ্টা",
+    "loadFailed": "লোড ব্যর্থ",
+    "willAutoRetry": "আবার অনলাইন হলে স্বয়ংক্রিয় চেষ্টা"
   },
   "auth": {
     "login": {
@@ -251,7 +256,10 @@
     "notJoinedBadge": "এখনও PikTag-এ নেই",
     "coldStartActionManual": "কাউকে টুকে রাখুন",
     "coldStartActionManualDesc": "অ্যাকাউন্ট লাগবে না — যোগ দিলে আপনার ট্যাগ ও নোট স্বয়ং লিঙ্ক হবে",
-    "addManualA11y": "ম্যানুয়ালি পরিচিতি যোগ করুন"
+    "addManualA11y": "ম্যানুয়ালি পরিচিতি যোগ করুন",
+    "phonePromptTitle": "ফোন যোগ করুন যাতে বন্ধুরা পায়",
+    "phonePromptBody": "বন্ধুরা কন্টাক্ট সিঙ্ক করলে স্বয়ংক্রিয় যুক্ত হবে. PikTag-এ ব্যবহৃত, প্রকাশ্য নয়.",
+    "addedFriend": "+ {{name}}"
   },
   "search": {
     "clearAll": "সব সাফ করুন",
@@ -297,7 +305,10 @@
     "viewAllTagUsers": "সব {{count}} দেখুন",
     "categoryUncategorized": "অন্যান্য",
     "allCategories": "সব",
-    "openMap": "মানচিত্র খুলুন"
+    "openMap": "মানচিত্র খুলুন",
+    "searchBtn": "খুঁজুন",
+    "recommendedTitle": "যাদের সাথে পরিচিত হতে পারেন",
+    "tagsSelected": "ট্যাগ নির্বাচিত"
   },
   "addTag": {
     "headerTitle": "Tag তৈরি করুন",
@@ -936,7 +947,8 @@
     "hiddenTagPlaceholder": "লুকানো ট্যাগ যোগ করুন...",
     "swipeHint": "← এড়াতে বাঁয়ে সোয়াইপ · পরের জন্য ডানে →",
     "skip": "এড়িয়ে যান",
-    "next": "পরবর্তী"
+    "next": "পরবর্তী",
+    "done": "সম্পন্ন"
   },
   "tagDetail": {
     "unknownTag": "অজানা ট্যাগ",
@@ -1178,7 +1190,8 @@
       "এই সপ্তাহে বোর্ড-গেম নাইট, কে আসছে?"
     ],
     "createSubtitle": "এক লাইনই যথেষ্ট — AI ট্যাগ যোগ করে যাতে ঠিক মানুষ (বা বন্ধুর বন্ধু) দেখতে পায়।",
-    "createFailed": "আপনার Ask যায়নি — আবার চেষ্টা করুন।"
+    "createFailed": "আপনার Ask যায়নি — আবার চেষ্টা করুন।",
+    "deleteFailed": "Ask মুছতে ব্যর্থ"
   },
   "errorBoundary": {
     "title": "কিছু ভুল হয়েছে",

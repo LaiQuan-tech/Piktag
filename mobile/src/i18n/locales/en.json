@@ -312,7 +312,10 @@
     "viewAllTagUsers": "View all {{count}}",
     "categoryUncategorized": "Other",
     "allCategories": "All",
-    "openMap": "Open map"
+    "openMap": "Open map",
+    "searchBtn": "Search",
+    "recommendedTitle": "You might want to meet",
+    "tagsSelected": "tag(s) selected"
   },
   "addTag": {
     "headerTitle": "Create a Tag",
@@ -1017,7 +1020,8 @@
     "hiddenTagPlaceholder": "Add hidden tag...",
     "swipeHint": "← Swipe left to skip · Right for next →",
     "skip": "Skip",
-    "next": "Next"
+    "next": "Next",
+    "done": "Done"
   },
   "tagDetail": {
     "unknownTag": "Unknown Tag",

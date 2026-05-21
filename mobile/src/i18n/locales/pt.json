@@ -1,6 +1,8 @@
 {
   "app": {
-    "offline": "Você está offline. Alguns recursos podem estar limitados."
+    "offline": "Você está offline. Alguns recursos podem estar limitados.",
+    "backOnline": "De volta online",
+    "offlineHint": "Alguns recursos precisam de conexão"
   },
   "tabs": {
     "home": "Início",
@@ -62,7 +64,10 @@
     "noTags": "Ainda sem tags",
     "email": "E-mail",
     "phone": "Telefone",
-    "comingSoonTitle": "Em breve"
+    "comingSoonTitle": "Em breve",
+    "checkConnection": "Verifique a conexão e tente novamente",
+    "loadFailed": "Falha ao carregar",
+    "willAutoRetry": "Vamos tentar automaticamente ao reconectar"
   },
   "auth": {
     "login": {
@@ -251,7 +256,10 @@
     "notJoinedBadge": "Ainda não no PikTag",
     "coldStartActionManual": "Anote alguém",
     "coldStartActionManualDesc": "Não precisa de conta — vincula suas tags e notas quando entrar",
-    "addManualA11y": "Adicionar contato manualmente"
+    "addManualA11y": "Adicionar contato manualmente",
+    "phonePromptTitle": "Adicione seu telefone para amigos te encontrarem",
+    "phonePromptBody": "Quando amigos sincronizarem contatos, vocês se conectarão automaticamente. Usado só pelo PikTag, nunca público.",
+    "addedFriend": "+ {{name}}"
   },
   "search": {
     "clearAll": "Limpar tudo",
@@ -297,7 +305,10 @@
     "viewAllTagUsers": "Ver todos os {{count}}",
     "categoryUncategorized": "Outros",
     "allCategories": "Tudo",
-    "openMap": "Abrir mapa"
+    "openMap": "Abrir mapa",
+    "searchBtn": "Pesquisar",
+    "recommendedTitle": "Você pode querer conhecer",
+    "tagsSelected": "tag(s) selecionada(s)"
   },
   "addTag": {
     "headerTitle": "Criar um Tag",
@@ -936,7 +947,8 @@
     "hiddenTagPlaceholder": "Adicionar tag oculta...",
     "swipeHint": "← Deslize à esquerda para pular · Direita para próximo →",
     "skip": "Pular",
-    "next": "Próximo"
+    "next": "Próximo",
+    "done": "Concluído"
   },
   "tagDetail": {
     "unknownTag": "Tag desconhecida",
@@ -1178,7 +1190,8 @@
       "Noite de jogos de tabuleiro essa semana, quem vem?"
     ],
     "createSubtitle": "Uma linha basta — a IA põe as tags para a pessoa certa (ou um amigo de um amigo) ver.",
-    "createFailed": "Seu Ask não foi enviado — tente de novo."
+    "createFailed": "Seu Ask não foi enviado — tente de novo.",
+    "deleteFailed": "Não foi possível apagar o ask"
   },
   "errorBoundary": {
     "title": "Algo deu errado",

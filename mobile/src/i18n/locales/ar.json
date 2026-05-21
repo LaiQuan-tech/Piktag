@@ -1,6 +1,8 @@
 {
   "app": {
-    "offline": "أنت غير متصل بالإنترنت. قد تكون بعض الميزات محدودة."
+    "offline": "أنت غير متصل بالإنترنت. قد تكون بعض الميزات محدودة.",
+    "backOnline": "عاد الاتصال",
+    "offlineHint": "بعض الميزات تتطلّب اتصالاً"
   },
   "tabs": {
     "home": "الرئيسية",
@@ -62,7 +64,10 @@
     "noTags": "لا توجد وسوم بعد",
     "email": "البريد الإلكتروني",
     "phone": "الهاتف",
-    "comingSoonTitle": "قريبًا"
+    "comingSoonTitle": "قريبًا",
+    "checkConnection": "تحقّق من الاتصال ثم حاول مجددًا",
+    "loadFailed": "فشل التحميل",
+    "willAutoRetry": "سنحاول تلقائيًا عند عودة الاتصال"
   },
   "auth": {
     "login": {
@@ -251,7 +256,10 @@
     "notJoinedBadge": "ليس على PikTag بعد",
     "coldStartActionManual": "دوّن شخصًا",
     "coldStartActionManualDesc": "لا يحتاج حسابًا — يرتبط بوسومك وملاحظاتك عند انضمامه",
-    "addManualA11y": "إضافة جهة اتصال يدويًا"
+    "addManualA11y": "إضافة جهة اتصال يدويًا",
+    "phonePromptTitle": "أضف رقمك ليجدك أصدقاؤك",
+    "phonePromptBody": "عند مزامنة جهات اتصال أصدقائك سيتصلون تلقائيًا. يستخدمه PikTag فقط، لن يُنشر.",
+    "addedFriend": "+ {{name}}"
   },
   "search": {
     "clearAll": "مسح الكل",
@@ -297,7 +305,10 @@
     "viewAllTagUsers": "عرض كل {{count}}",
     "categoryUncategorized": "أخرى",
     "allCategories": "الكل",
-    "openMap": "فتح الخريطة"
+    "openMap": "فتح الخريطة",
+    "searchBtn": "بحث",
+    "recommendedTitle": "قد ترغب في التعرّف",
+    "tagsSelected": "علامة محددة"
   },
   "addTag": {
     "headerTitle": "إنشاء Tag",
@@ -936,7 +947,8 @@
     "hiddenTagPlaceholder": "أضف وسمًا مخفيًا...",
     "swipeHint": "← اسحب لليسار للتخطي · يمين للتالي →",
     "skip": "تخطي",
-    "next": "التالي"
+    "next": "التالي",
+    "done": "تم"
   },
   "tagDetail": {
     "unknownTag": "وسم غير معروف",
@@ -1178,7 +1190,8 @@
       "ليلة ألعاب طاولة هذا الأسبوع، مين جاي؟"
     ],
     "createSubtitle": "سطر واحد يكفي — يضيف الذكاء الاصطناعي الوسوم ليراه الأشخاص المناسبون (أو صديق صديق).",
-    "createFailed": "لم يُرسَل طلبك — حاول مرة أخرى."
+    "createFailed": "لم يُرسَل طلبك — حاول مرة أخرى.",
+    "deleteFailed": "تعذّر حذف الـ ask"
   },
   "errorBoundary": {
     "title": "حدث خطأ ما",

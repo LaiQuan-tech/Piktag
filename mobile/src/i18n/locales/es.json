@@ -1,6 +1,8 @@
 {
   "app": {
-    "offline": "Estás sin conexión. Algunas funciones pueden estar limitadas."
+    "offline": "Estás sin conexión. Algunas funciones pueden estar limitadas.",
+    "backOnline": "De vuelta en línea",
+    "offlineHint": "Algunas funciones requieren conexión"
   },
   "tabs": {
     "home": "Inicio",
@@ -62,7 +64,10 @@
     "noTags": "Aún no hay etiquetas",
     "email": "Correo",
     "phone": "Teléfono",
-    "comingSoonTitle": "Próximamente"
+    "comingSoonTitle": "Próximamente",
+    "checkConnection": "Comprueba la conexión y vuelve a intentar",
+    "loadFailed": "Error al cargar",
+    "willAutoRetry": "Reintentaremos automáticamente al reconectar"
   },
   "auth": {
     "login": {
@@ -251,7 +256,10 @@
     "notJoinedBadge": "Aún no en PikTag",
     "coldStartActionManual": "Apunta a alguien",
     "coldStartActionManualDesc": "No necesita cuenta — se vincula con tus etiquetas y notas al unirse",
-    "addManualA11y": "Añadir contacto manualmente"
+    "addManualA11y": "Añadir contacto manualmente",
+    "phonePromptTitle": "Añade tu teléfono para que amigos te encuentren",
+    "phonePromptBody": "Cuando tus amigos sincronicen contactos, se conectarán automáticamente. Solo usado por PikTag, nunca público.",
+    "addedFriend": "+ {{name}}"
   },
   "search": {
     "clearAll": "Limpiar todo",
@@ -297,7 +305,10 @@
     "viewAllTagUsers": "Ver los {{count}}",
     "categoryUncategorized": "Otros",
     "allCategories": "Todas",
-    "openMap": "Abrir mapa"
+    "openMap": "Abrir mapa",
+    "searchBtn": "Buscar",
+    "recommendedTitle": "Quizá quieras conocer",
+    "tagsSelected": "etiqueta(s) seleccionada(s)"
   },
   "addTag": {
     "headerTitle": "Crear un Tag",
@@ -936,7 +947,8 @@
     "hiddenTagPlaceholder": "Añadir etiqueta oculta...",
     "swipeHint": "← Desliza a la izquierda para omitir · Derecha para siguiente →",
     "skip": "Omitir",
-    "next": "Siguiente"
+    "next": "Siguiente",
+    "done": "Hecho"
   },
   "tagDetail": {
     "unknownTag": "Etiqueta desconocida",
@@ -1178,7 +1190,8 @@
       "Noche de juegos de mesa esta semana, ¿quién se apunta?"
     ],
     "createSubtitle": "Con una línea basta — la IA pone las etiquetas para que lo vea la gente indicada (o un amigo de un amigo).",
-    "createFailed": "Tu Ask no se publicó — inténtalo de nuevo."
+    "createFailed": "Tu Ask no se publicó — inténtalo de nuevo.",
+    "deleteFailed": "No se pudo borrar el ask"
   },
   "errorBoundary": {
     "title": "Algo salió mal",

@@ -1,6 +1,8 @@
 {
   "app": {
-    "offline": "オフラインです。一部の機能が制限される場合があります。"
+    "offline": "オフラインです。一部の機能が制限される場合があります。",
+    "backOnline": "オンラインに戻りました",
+    "offlineHint": "一部の機能はネット接続が必要です"
   },
   "tabs": {
     "home": "ホーム",
@@ -62,7 +64,10 @@
     "noTags": "タグがありません",
     "email": "メール",
     "phone": "電話",
-    "comingSoonTitle": "近日公開"
+    "comingSoonTitle": "近日公開",
+    "checkConnection": "ネット接続を確認してもう一度お試しください",
+    "loadFailed": "読み込みに失敗",
+    "willAutoRetry": "接続が回復したら自動的に読み込みます"
   },
   "auth": {
     "login": {
@@ -251,7 +256,10 @@
     "notJoinedBadge": "PikTag 未参加",
     "coldStartActionManual": "人をメモする",
     "coldStartActionManualDesc": "相手はアカウント不要 — 参加したらタグとメモが自動でつながる",
-    "addManualA11y": "連絡先を手動で追加"
+    "addManualA11y": "連絡先を手動で追加",
+    "phonePromptTitle": "電話番号を追加して友達に見つけてもらおう",
+    "phonePromptBody": "友達が連絡先を同期したとき自動でつながります。PikTag 内でのみ使用、公開されません。",
+    "addedFriend": "+ {{name}}"
   },
   "search": {
     "clearAll": "すべてクリア",
@@ -297,7 +305,10 @@
     "viewAllTagUsers": "{{count}}人すべて見る",
     "categoryUncategorized": "その他",
     "allCategories": "すべて",
-    "openMap": "地図を開く"
+    "openMap": "地図を開く",
+    "searchBtn": "検索",
+    "recommendedTitle": "知り合ってみては",
+    "tagsSelected": "個のタグを選択中"
   },
   "addTag": {
     "headerTitle": "Tag を作成",
@@ -936,7 +947,8 @@
     "hiddenTagPlaceholder": "非公開タグを追加...",
     "swipeHint": "← 左にスワイプでスキップ・右で次へ →",
     "skip": "スキップ",
-    "next": "次へ"
+    "next": "次へ",
+    "done": "完了"
   },
   "tagDetail": {
     "unknownTag": "不明なタグ",
@@ -1178,7 +1190,8 @@
       "今週ボードゲーム会、誰か来る？"
     ],
     "createSubtitle": "一言でOK — AIがタグを付けて、ぴったりの人（友達の友達も）に届きます。",
-    "createFailed": "Ask を送れなかった — もう一度試してね。"
+    "createFailed": "Ask を送れなかった — もう一度試してね。",
+    "deleteFailed": "Ask を削除できませんでした"
   },
   "errorBoundary": {
     "title": "問題が発生しました",

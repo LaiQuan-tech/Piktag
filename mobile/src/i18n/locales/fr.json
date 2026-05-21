@@ -1,6 +1,8 @@
 {
   "app": {
-    "offline": "Vous êtes hors ligne. Certaines fonctionnalités peuvent être limitées."
+    "offline": "Vous êtes hors ligne. Certaines fonctionnalités peuvent être limitées.",
+    "backOnline": "Reconnecté",
+    "offlineHint": "Certaines fonctionnalités nécessitent une connexion"
   },
   "tabs": {
     "home": "Accueil",
@@ -62,7 +64,10 @@
     "noTags": "Pas encore de tags",
     "email": "E-mail",
     "phone": "Téléphone",
-    "comingSoonTitle": "Bientôt disponible"
+    "comingSoonTitle": "Bientôt disponible",
+    "checkConnection": "Vérifiez votre connexion et réessayez",
+    "loadFailed": "Échec du chargement",
+    "willAutoRetry": "Nous réessaierons automatiquement à la reconnexion"
   },
   "auth": {
     "login": {
@@ -251,7 +256,10 @@
     "notJoinedBadge": "Pas encore sur PikTag",
     "coldStartActionManual": "Noter quelqu’un",
     "coldStartActionManualDesc": "Pas besoin de compte — se relie à vos tags et notes à son inscription",
-    "addManualA11y": "Ajouter un contact manuellement"
+    "addManualA11y": "Ajouter un contact manuellement",
+    "phonePromptTitle": "Ajoutez votre téléphone pour que vos amis vous trouvent",
+    "phonePromptBody": "Vos amis seront connectés automatiquement à la synchronisation des contacts. Utilisé uniquement par PikTag, jamais public.",
+    "addedFriend": "+ {{name}}"
   },
   "search": {
     "clearAll": "Tout effacer",
@@ -297,7 +305,10 @@
     "viewAllTagUsers": "Voir les {{count}}",
     "categoryUncategorized": "Autres",
     "allCategories": "Tout",
-    "openMap": "Ouvrir la carte"
+    "openMap": "Ouvrir la carte",
+    "searchBtn": "Rechercher",
+    "recommendedTitle": "Vous voudrez peut-être rencontrer",
+    "tagsSelected": "étiquette(s) sélectionnée(s)"
   },
   "addTag": {
     "headerTitle": "Créer un Tag",
@@ -936,7 +947,8 @@
     "hiddenTagPlaceholder": "Ajouter un tag caché...",
     "swipeHint": "← Glissez à gauche pour passer · Droite pour suivant →",
     "skip": "Passer",
-    "next": "Suivant"
+    "next": "Suivant",
+    "done": "Terminé"
   },
   "tagDetail": {
     "unknownTag": "Tag inconnu",
@@ -1178,7 +1190,8 @@
       "Soirée jeux de société cette semaine, qui vient ?"
     ],
     "createSubtitle": "Une ligne suffit — l'IA ajoute les tags pour que les bonnes personnes (ou un ami d'ami) le voient.",
-    "createFailed": "Ton Ask n'est pas passé — réessaie."
+    "createFailed": "Ton Ask n'est pas passé — réessaie.",
+    "deleteFailed": "Échec de la suppression de l'ask"
   },
   "errorBoundary": {
     "title": "Une erreur est survenue",

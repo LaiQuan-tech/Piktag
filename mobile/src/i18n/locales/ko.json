@@ -1,6 +1,8 @@
 {
   "app": {
-    "offline": "오프라인 상태입니다. 일부 기능이 제한될 수 있습니다."
+    "offline": "오프라인 상태입니다. 일부 기능이 제한될 수 있습니다.",
+    "backOnline": "다시 연결됨",
+    "offlineHint": "일부 기능은 인터넷 연결이 필요해요"
   },
   "tabs": {
     "home": "홈",
@@ -62,7 +64,10 @@
     "noTags": "태그가 없습니다",
     "email": "이메일",
     "phone": "전화",
-    "comingSoonTitle": "곧 출시"
+    "comingSoonTitle": "곧 출시",
+    "checkConnection": "네트워크를 확인한 후 다시 시도하세요",
+    "loadFailed": "불러오기 실패",
+    "willAutoRetry": "다시 연결되면 자동으로 불러올게요"
   },
   "auth": {
     "login": {
@@ -251,7 +256,10 @@
     "notJoinedBadge": "아직 PikTag 미가입",
     "coldStartActionManual": "사람 메모하기",
     "coldStartActionManualDesc": "상대는 가입 안 해도 됨 — 가입하면 태그·메모가 자동 연결",
-    "addManualA11y": "연락처 수동 추가"
+    "addManualA11y": "연락처 수동 추가",
+    "phonePromptTitle": "전화번호를 추가해 친구가 찾을 수 있게",
+    "phonePromptBody": "친구가 연락처를 동기화할 때 자동으로 연결돼요. PikTag 내부에서만 쓰이며 공개되지 않습니다.",
+    "addedFriend": "+ {{name}}"
   },
   "search": {
     "clearAll": "모두 지우기",
@@ -297,7 +305,10 @@
     "viewAllTagUsers": "{{count}}명 모두 보기",
     "categoryUncategorized": "기타",
     "allCategories": "전체",
-    "openMap": "지도 보기"
+    "openMap": "지도 보기",
+    "searchBtn": "검색",
+    "recommendedTitle": "알아두면 좋은 사람",
+    "tagsSelected": "개 태그 선택됨"
   },
   "addTag": {
     "headerTitle": "Tag 만들기",
@@ -936,7 +947,8 @@
     "hiddenTagPlaceholder": "숨김 태그 추가...",
     "swipeHint": "← 왼쪽으로 스와이프하여 건너뛰기 · 오른쪽으로 다음 →",
     "skip": "건너뛰기",
-    "next": "다음"
+    "next": "다음",
+    "done": "완료"
   },
   "tagDetail": {
     "unknownTag": "알 수 없는 태그",
@@ -1178,7 +1190,8 @@
       "이번 주 보드게임 모임 같이 할 사람"
     ],
     "createSubtitle": "한 줄이면 돼요 — AI가 태그를 붙여 딱 맞는 사람(친구의 친구도)에게 닿아요.",
-    "createFailed": "Ask를 올리지 못했어요 — 다시 시도해 주세요."
+    "createFailed": "Ask를 올리지 못했어요 — 다시 시도해 주세요.",
+    "deleteFailed": "Ask 삭제 실패"
   },
   "errorBoundary": {
     "title": "문제가 발생했습니다",

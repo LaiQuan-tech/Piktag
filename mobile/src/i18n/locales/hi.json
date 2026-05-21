@@ -1,6 +1,8 @@
 {
   "app": {
-    "offline": "आप ऑफ़लाइन हैं। कुछ सुविधाएँ सीमित हो सकती हैं।"
+    "offline": "आप ऑफ़लाइन हैं। कुछ सुविधाएँ सीमित हो सकती हैं।",
+    "backOnline": "फिर ऑनलाइन",
+    "offlineHint": "कुछ सुविधाओं को इंटरनेट चाहिए"
   },
   "tabs": {
     "home": "होम",
@@ -62,7 +64,10 @@
     "noTags": "अभी कोई टैग नहीं",
     "email": "ईमेल",
     "phone": "फ़ोन",
-    "comingSoonTitle": "जल्द आ रहा है"
+    "comingSoonTitle": "जल्द आ रहा है",
+    "checkConnection": "कनेक्शन जाँचें और फिर से प्रयास",
+    "loadFailed": "लोड विफल",
+    "willAutoRetry": "फिर ऑनलाइन होने पर स्वतः पुनः प्रयास"
   },
   "auth": {
     "login": {
@@ -251,7 +256,10 @@
     "notJoinedBadge": "अभी PikTag पर नहीं",
     "coldStartActionManual": "किसी को नोट करें",
     "coldStartActionManualDesc": "अकाउंट ज़रूरी नहीं — जुड़ने पर आपके टैग व नोट अपने‑आप लिंक",
-    "addManualA11y": "मैन्युअल संपर्क जोड़ें"
+    "addManualA11y": "मैन्युअल संपर्क जोड़ें",
+    "phonePromptTitle": "फ़ोन जोड़ें ताकि दोस्त ढूँढ़ें",
+    "phonePromptBody": "जब दोस्त संपर्क सिंक करेंगे, स्वतः जुड़ेंगे. केवल PikTag, कभी सार्वजनिक नहीं.",
+    "addedFriend": "+ {{name}}"
   },
   "search": {
     "clearAll": "सब साफ़ करें",
@@ -297,7 +305,10 @@
     "viewAllTagUsers": "सभी {{count}} देखें",
     "categoryUncategorized": "अन्य",
     "allCategories": "सब",
-    "openMap": "मानचित्र खोलें"
+    "openMap": "मानचित्र खोलें",
+    "searchBtn": "खोजें",
+    "recommendedTitle": "जिनसे आप मिलना चाहें",
+    "tagsSelected": "टैग चुने"
   },
   "addTag": {
     "headerTitle": "Tag बनाएँ",
@@ -936,7 +947,8 @@
     "hiddenTagPlaceholder": "छुपा टैग जोड़ें...",
     "swipeHint": "← छोड़ने के लिए बाएँ स्वाइप करें · आगे के लिए दाएँ →",
     "skip": "छोड़ें",
-    "next": "आगे"
+    "next": "आगे",
+    "done": "हो गया"
   },
   "tagDetail": {
     "unknownTag": "अज्ञात टैग",
@@ -1178,7 +1190,8 @@
       "इस हफ्ते बोर्ड-गेम नाइट, कौन आ रहा है?"
     ],
     "createSubtitle": "एक लाइन काफी है — AI टैग जोड़ता है ताकि सही लोग (या दोस्त का दोस्त) इसे देखें।",
-    "createFailed": "आपका Ask नहीं गया — फिर से कोशिश करें।"
+    "createFailed": "आपका Ask नहीं गया — फिर से कोशिश करें।",
+    "deleteFailed": "Ask हटाना विफल"
   },
   "errorBoundary": {
     "title": "कुछ गड़बड़ हो गई",

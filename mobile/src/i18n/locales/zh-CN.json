@@ -259,7 +259,9 @@
     "notJoinedBadge": "尚未加入 PikTag",
     "coldStartActionManual": "手动记下一个人",
     "coldStartActionManualDesc": "对方还不用是会员 — 加入后自动接上你的标签与备注",
-    "addManualA11y": "手动新增联系人"
+    "addManualA11y": "手动新增联系人",
+    "phonePromptTitle": "加上手机号码，让朋友找到你",
+    "phonePromptBody": "朋友通讯录同步时会自动加你为好友。仅 PikTag 内使用，永不公开。"
   },
   "search": {
     "clearAll": "清除全部",
@@ -305,7 +307,10 @@
     "viewAllTagUsers": "查看全部 {{count}} 位",
     "categoryUncategorized": "其他",
     "allCategories": "全部",
-    "openMap": "地图视图"
+    "openMap": "地图视图",
+    "searchBtn": "搜索",
+    "recommendedTitle": "你可能想认识",
+    "tagsSelected": "个标签已选"
   },
   "addTag": {
     "headerTitle": "建立 Tag",
@@ -1004,7 +1009,8 @@
     "hiddenTagPlaceholder": "加隐藏标签...",
     "swipeHint": "滑动整理下一位 →",
     "skip": "跳过",
-    "next": "下一位"
+    "next": "下一位",
+    "done": "完成"
   },
   "tagDetail": {
     "unknownTag": "未知标签",

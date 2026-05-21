@@ -1,6 +1,8 @@
 {
   "app": {
-    "offline": "คุณออฟไลน์อยู่ ฟีเจอร์บางอย่างอาจถูกจำกัด"
+    "offline": "คุณออฟไลน์อยู่ ฟีเจอร์บางอย่างอาจถูกจำกัด",
+    "backOnline": "ออนไลน์อีกครั้ง",
+    "offlineHint": "บางฟีเจอร์ต้องใช้อินเทอร์เน็ต"
   },
   "tabs": {
     "home": "หน้าแรก",
@@ -62,7 +64,10 @@
     "noTags": "ยังไม่มีแท็ก",
     "email": "อีเมล",
     "phone": "โทรศัพท์",
-    "comingSoonTitle": "เร็ว ๆ นี้"
+    "comingSoonTitle": "เร็ว ๆ นี้",
+    "checkConnection": "ตรวจสอบการเชื่อมต่อแล้วลองอีกครั้ง",
+    "loadFailed": "โหลดล้มเหลว",
+    "willAutoRetry": "จะลองใหม่อัตโนมัติเมื่อกลับมาออนไลน์"
   },
   "auth": {
     "login": {
@@ -251,7 +256,10 @@
     "notJoinedBadge": "ยังไม่ได้อยู่ PikTag",
     "coldStartActionManual": "จดคนไว้",
     "coldStartActionManualDesc": "อีกฝ่ายไม่ต้องมีบัญชี — เมื่อสมัครจะเชื่อมแท็กและโน้ตของคุณอัตโนมัติ",
-    "addManualA11y": "เพิ่มรายชื่อด้วยตนเอง"
+    "addManualA11y": "เพิ่มรายชื่อด้วยตนเอง",
+    "phonePromptTitle": "เพิ่มเบอร์โทรเพื่อให้เพื่อนหาคุณเจอ",
+    "phonePromptBody": "เมื่อเพื่อนซิงค์รายชื่อ จะเชื่อมต่ออัตโนมัติ ใช้เฉพาะใน PikTag ไม่เปิดเผย",
+    "addedFriend": "+ {{name}}"
   },
   "search": {
     "clearAll": "ล้างทั้งหมด",
@@ -297,7 +305,10 @@
     "viewAllTagUsers": "ดูทั้งหมด {{count}} คน",
     "categoryUncategorized": "อื่น ๆ",
     "allCategories": "ทั้งหมด",
-    "openMap": "เปิดแผนที่"
+    "openMap": "เปิดแผนที่",
+    "searchBtn": "ค้นหา",
+    "recommendedTitle": "คนที่อาจอยากรู้จัก",
+    "tagsSelected": "แท็กที่เลือก"
   },
   "addTag": {
     "headerTitle": "สร้าง Tag",
@@ -936,7 +947,8 @@
     "hiddenTagPlaceholder": "เพิ่มแท็กที่ซ่อนอยู่...",
     "swipeHint": "← ปัดซ้ายเพื่อข้าม · ขวาเพื่อต่อไป →",
     "skip": "ข้าม",
-    "next": "ถัดไป"
+    "next": "ถัดไป",
+    "done": "เสร็จสิ้น"
   },
   "tagDetail": {
     "unknownTag": "แท็กที่ไม่รู้จัก",
@@ -1178,7 +1190,8 @@
       "ก๊วนบอร์ดเกมสัปดาห์นี้ ใครมาบ้าง"
     ],
     "createSubtitle": "บรรทัดเดียวก็พอ — AI จะใส่แท็กให้คนที่ใช่ (หรือเพื่อนของเพื่อน) เห็น",
-    "createFailed": "โพสต์ Ask ไม่สำเร็จ — ลองใหม่อีกครั้ง"
+    "createFailed": "โพสต์ Ask ไม่สำเร็จ — ลองใหม่อีกครั้ง",
+    "deleteFailed": "ลบ ask ไม่สำเร็จ"
   },
   "errorBoundary": {
     "title": "เกิดข้อผิดพลาด",

@@ -1,6 +1,8 @@
 {
   "app": {
-    "offline": "Çevrimdışısınız. Bazı özellikler kısıtlı olabilir."
+    "offline": "Çevrimdışısınız. Bazı özellikler kısıtlı olabilir.",
+    "backOnline": "Tekrar çevrimiçi",
+    "offlineHint": "Bazı özellikler bağlantı gerektirir"
   },
   "tabs": {
     "home": "Ana Sayfa",
@@ -62,7 +64,10 @@
     "noTags": "Henüz etiket yok",
     "email": "E-posta",
     "phone": "Telefon",
-    "comingSoonTitle": "Yakında"
+    "comingSoonTitle": "Yakında",
+    "checkConnection": "Bağlantıyı kontrol edip tekrar deneyin",
+    "loadFailed": "Yüklenemedi",
+    "willAutoRetry": "Yeniden bağlanınca otomatik tekrar deneriz"
   },
   "auth": {
     "login": {
@@ -251,7 +256,10 @@
     "notJoinedBadge": "Henüz PikTag’te değil",
     "coldStartActionManual": "Birini not al",
     "coldStartActionManualDesc": "Hesabı gerekmez — katıldığında etiket ve notlarına otomatik bağlanır",
-    "addManualA11y": "Elle kişi ekle"
+    "addManualA11y": "Elle kişi ekle",
+    "phonePromptTitle": "Telefonunu ekle, arkadaşların bulsun",
+    "phonePromptBody": "Arkadaşların kişilerini eşitlerken otomatik bağlanırsın. Sadece PikTag, asla herkese açık olmaz.",
+    "addedFriend": "+ {{name}}"
   },
   "search": {
     "clearAll": "Hepsini temizle",
@@ -297,7 +305,10 @@
     "viewAllTagUsers": "Tümünü gör ({{count}})",
     "categoryUncategorized": "Diğer",
     "allCategories": "Tümü",
-    "openMap": "Haritayı aç"
+    "openMap": "Haritayı aç",
+    "searchBtn": "Ara",
+    "recommendedTitle": "Tanışmak isteyebilirsin",
+    "tagsSelected": "etiket seçildi"
   },
   "addTag": {
     "headerTitle": "Tag oluştur",
@@ -936,7 +947,8 @@
     "hiddenTagPlaceholder": "Gizli etiket ekle...",
     "swipeHint": "← Atlamak için sola · İleri için sağa kaydırın →",
     "skip": "Atla",
-    "next": "Sonraki"
+    "next": "Sonraki",
+    "done": "Bitti"
   },
   "tagDetail": {
     "unknownTag": "Bilinmeyen Etiket",
@@ -1178,7 +1190,8 @@
       "Bu hafta masa oyunu gecesi, kim var?"
     ],
     "createSubtitle": "Bir satır yeter — AI etiketleri ekler, doğru kişiler (ya da bir arkadaşın arkadaşı) görsün.",
-    "createFailed": "Ask gönderilemedi — tekrar dene."
+    "createFailed": "Ask gönderilemedi — tekrar dene.",
+    "deleteFailed": "Ask silinemedi"
   },
   "errorBoundary": {
     "title": "Bir şeyler ters gitti",

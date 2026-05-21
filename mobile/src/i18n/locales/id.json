@@ -1,6 +1,8 @@
 {
   "app": {
-    "offline": "Anda sedang offline. Beberapa fitur mungkin dibatasi."
+    "offline": "Anda sedang offline. Beberapa fitur mungkin dibatasi.",
+    "backOnline": "Kembali online",
+    "offlineHint": "Beberapa fitur perlu koneksi"
   },
   "tabs": {
     "home": "Beranda",
@@ -62,7 +64,10 @@
     "noTags": "Belum ada tag",
     "email": "Email",
     "phone": "Telepon",
-    "comingSoonTitle": "Segera Hadir"
+    "comingSoonTitle": "Segera Hadir",
+    "checkConnection": "Periksa koneksi lalu coba lagi",
+    "loadFailed": "Gagal memuat",
+    "willAutoRetry": "Akan coba lagi otomatis saat tersambung"
   },
   "auth": {
     "login": {
@@ -251,7 +256,10 @@
     "notJoinedBadge": "Belum di PikTag",
     "coldStartActionManual": "Catat seseorang",
     "coldStartActionManualDesc": "Tak perlu akun — otomatis tertaut ke tag & catatanmu saat ia gabung",
-    "addManualA11y": "Tambah kontak manual"
+    "addManualA11y": "Tambah kontak manual",
+    "phonePromptTitle": "Tambahkan nomor agar teman bisa menemukan",
+    "phonePromptBody": "Saat teman menyinkronkan kontak, otomatis terhubung. Hanya PikTag, tidak pernah publik.",
+    "addedFriend": "+ {{name}}"
   },
   "search": {
     "clearAll": "Hapus semua",
@@ -297,7 +305,10 @@
     "viewAllTagUsers": "Lihat semua {{count}}",
     "categoryUncategorized": "Lainnya",
     "allCategories": "Semua",
-    "openMap": "Buka peta"
+    "openMap": "Buka peta",
+    "searchBtn": "Cari",
+    "recommendedTitle": "Mungkin ingin kenal",
+    "tagsSelected": "tag dipilih"
   },
   "addTag": {
     "headerTitle": "Buat Tag",
@@ -936,7 +947,8 @@
     "hiddenTagPlaceholder": "Tambahkan tag tersembunyi...",
     "swipeHint": "← Geser kiri untuk melewati · Kanan untuk berikutnya →",
     "skip": "Lewati",
-    "next": "Berikutnya"
+    "next": "Berikutnya",
+    "done": "Selesai"
   },
   "tagDetail": {
     "unknownTag": "Tag Tidak Dikenal",
@@ -1178,7 +1190,8 @@
       "Main board game minggu ini, siapa ikut?"
     ],
     "createSubtitle": "Satu baris cukup — AI menambah tag biar orang yang tepat (atau teman dari teman) melihatnya.",
-    "createFailed": "Ask kamu gagal terkirim — coba lagi."
+    "createFailed": "Ask kamu gagal terkirim — coba lagi.",
+    "deleteFailed": "Tidak bisa hapus ask"
   },
   "errorBoundary": {
     "title": "Terjadi kesalahan",
