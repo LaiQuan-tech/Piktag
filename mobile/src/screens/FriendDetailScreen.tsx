@@ -1075,19 +1075,25 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
           {tags.length > 0 && (
             <View style={styles.tagsWrap}>
               {tags.map((tag) => (
-                // Profile-tag display contract (founder, 2026-05-23
-                // reversal): ALL chips render piktag500 + white text
-                // — these ARE the friend's selected/owned tags. The
-                // prior "view tags must be gray" rule was retired
-                // after the founder reviewed the Ask sheet's bold
-                // purple style and chose it as the canonical look.
+                // Profile-tag display contract (founder, definitive —
+                // re-affirmed 2026-05-23 after a brief reversal): ALL
+                // chips on this page are GRAY, regardless of mutual /
+                // picked / selected state. The only purple element on
+                // this page is reserved for the 標籤 CTA in the action
+                // row above; a wall of purple chips dilutes that CTA.
+                // The user's own tag picks for this friend only affect
+                // the *ordering* of the displayed tags (mutual first)
+                // — they do NOT change the display set, so there's no
+                // semantic "selected" subset to highlight here anyway.
+                // Picker modal selected-state stays purple (different
+                // context: interactive selection feedback).
                 <TouchableOpacity
                   key={tag.tagId}
-                  style={[styles.tagChip, styles.tagChipMutual]}
+                  style={styles.tagChip}
                   activeOpacity={0.6}
                   onPress={() => navigation.navigate('TagDetail', { tagId: tag.tagId, tagName: tag.name, initialTab: 'explore' })}
                 >
-                  <Text style={[styles.tagChipText, styles.tagChipTextMutual]}>
+                  <Text style={styles.tagChipText}>
                     #{tag.name}
                   </Text>
                 </TouchableOpacity>
@@ -1789,20 +1795,15 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: 'transparent',
   },
-  // 已選=piktag500 實心 + 白字 — founder 2026-05-23 contract update.
-  // Applied UNCONDITIONALLY on the profile-tag render below (this
-  // friend's tags ARE their selected/owned tags by definition).
-  tagChipMutual: {
-    backgroundColor: COLORS.piktag500,
-  },
+  // Profile-tag chips are gray-only on this page — see the comment
+  // on the render JSX above for why. There used to be a `tagChipMutual`
+  // override (and briefly an unconditional purple version after the
+  // 2026-05-23 "all selected tags purple" sweep); both are removed
+  // because gray is the only state ever rendered here.
   tagChipText: {
     fontSize: 14,
     fontWeight: '500',
     color: COLORS.gray600,
-  },
-  tagChipTextMutual: {
-    color: '#FFFFFF',
-    fontWeight: '700',
   },
 
   // Event-tag section: visually demoted vs. user tags so the eye lands
