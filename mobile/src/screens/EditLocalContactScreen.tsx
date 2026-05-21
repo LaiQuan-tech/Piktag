@@ -224,7 +224,7 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
       const { data: sessionData } = await supabase.auth.getSession();
       const accessToken = sessionData?.session?.access_token;
       const userId = sessionData?.session?.user?.id;
-      if (!accessToken || !userId) throw new Error('未登入');
+      if (!accessToken || !userId) throw new Error(t('editProfile.notSignedIn'));
 
       const idForFile = contactId ?? newContactTempIdRef.current!;
       const filePath = `${userId}/contact-${idForFile}.${ext}`;

@@ -12,14 +12,20 @@
   "locationPicker": {
     "title": "Выбери место",
     "noNearbyPlaces": "Поблизости ничего не найдено. Введи название в поиск и нажми «Готово».",
-    "noResults": "Совпадений не найдено"
+    "noResults": "Совпадений не найдено",
+    "permissionDenied": "Доступ к местоположению отклонён",
+    "permissionDeniedWeb": "Доступ к местоположению отклонён. Разрешите в настройках браузера.",
+    "errorPrefix": "Ошибка местоположения: ",
+    "searchPlaceholder": "Поиск или название места",
+    "gpsOff": "Не удалось получить местоположение. Проверьте, включён ли GPS.",
+    "requestTimeout": "Время запроса местоположения истекло. Попробуйте ещё раз."
   },
   "friendsMap": {
     "title": "Карта друзей",
     "friendCount": "{{count}} друзей на карте",
     "noSharedLocations": "Пока никто из друзей не делится геолокацией",
     "staleHint": "Показываем только тех, чьё местоположение обновлялось за последние 24 часа",
-    "loadFailed": "Не удалось загрузить карту, попробуй ещё раз"
+    "loadFailed": "Не удалось загрузить карту. Проверьте подключение."
   },
   "hiddenTagEditor": {
     "timeTitle": "Когда вы познакомились",
@@ -490,7 +496,12 @@
       "Медбрат скорой @ медцентр",
       "Графический дизайнер на фрилансе",
       "Студент-психолог"
-    ]
+    ],
+    "needLibraryPermissionTitle": "Требуется доступ к фотобиблиотеке",
+    "needLibraryPermissionMsg": "Разрешите доступ в Настройках",
+    "notSignedIn": "Не выполнен вход",
+    "uploadFailTitle": "Ошибка загрузки",
+    "tryAgainLater": "Повторите попытку позже"
   },
   "friendDetail": {
     "reminderBirthday": "День рождения",
@@ -1073,7 +1084,12 @@
     "userBlocked": "Этому пользователю нельзя написать",
     "deliveryFailed": "Не отправлено · Нажми, чтобы повторить",
     "unreadBadge": "{{count}} непрочитано",
-    "messagesSent": "{{name}} написал тебе"
+    "messagesSent": "{{name}} написал тебе",
+    "timeJustNow": "Только что",
+    "timeYesterday": "Вчера",
+    "timeMinutesAgo": "{{count}} мин назад",
+    "timeHoursAgo": "{{count}} ч назад",
+    "timeDaysAgo": "{{count}} дн назад"
   },
   "share": {
     "profileInviteMessage": "{{name}} в PikTag\n{{url}}\n\nPikTag — отмечай тегами каждого, кого встречаешь,\nсканируй QR, чтобы автоматически сохранить когда и где.\n\nСкачай PikTag → https://pikt.ag"

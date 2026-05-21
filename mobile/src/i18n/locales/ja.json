@@ -12,14 +12,20 @@
   "locationPicker": {
     "title": "場所を選択",
     "noNearbyPlaces": "近くに場所が見つかりません。検索ボックスに名前を入力して完了を押してください。",
-    "noResults": "一致する場所がありません"
+    "noResults": "一致する場所がありません",
+    "permissionDenied": "位置情報の許可が拒否されました",
+    "permissionDeniedWeb": "位置情報の許可が拒否されました。ブラウザ設定で許可してください。",
+    "errorPrefix": "位置エラー：",
+    "searchPlaceholder": "検索または地名を入力",
+    "gpsOff": "位置情報を取得できません。GPS をオンにしてください。",
+    "requestTimeout": "位置情報の取得がタイムアウトしました。もう一度お試しください。"
   },
   "friendsMap": {
     "title": "友達マップ",
     "friendCount": "{{count}}人の友達がマップ上にいます",
     "noSharedLocations": "位置情報を共有している友達はまだいません",
     "staleHint": "過去24時間以内に位置情報を更新した友達のみ表示しています",
-    "loadFailed": "マップの読み込みに失敗しました。再度お試しください"
+    "loadFailed": "地図の読み込みに失敗しました。ネットワーク接続を確認してください。"
   },
   "hiddenTagEditor": {
     "timeTitle": "出会った時期",
@@ -490,7 +496,12 @@
       "救急看護師 @ 医療センター",
       "フリーランスのグラフィックデザイナー",
       "心理学専攻の学生"
-    ]
+    ],
+    "needLibraryPermissionTitle": "写真ライブラリへのアクセスが必要",
+    "needLibraryPermissionMsg": "設定でアクセスを許可してください",
+    "notSignedIn": "未ログイン",
+    "uploadFailTitle": "アップロード失敗",
+    "tryAgainLater": "後でもう一度お試しください"
   },
   "friendDetail": {
     "reminderBirthday": "誕生日",
@@ -1073,7 +1084,12 @@
     "userBlocked": "このユーザーにはメッセージを送れません",
     "deliveryFailed": "送信失敗・タップで再試行",
     "unreadBadge": "{{count}}件の未読",
-    "messagesSent": "{{name}}からメッセージが届きました"
+    "messagesSent": "{{name}}からメッセージが届きました",
+    "timeJustNow": "たった今",
+    "timeYesterday": "昨日",
+    "timeMinutesAgo": "{{count}} 分前",
+    "timeHoursAgo": "{{count}} 時間前",
+    "timeDaysAgo": "{{count}} 日前"
   },
   "share": {
     "profileInviteMessage": "{{name}} (PikTag)\n{{url}}\n\nPikTag — 出会った友達一人ひとりにタグを付け、\nQRをスキャンするだけでいつ・どこで会ったかを自動で記録。\n\nPikTagを入手 → https://pikt.ag"

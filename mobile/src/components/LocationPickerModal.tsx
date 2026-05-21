@@ -118,11 +118,11 @@ export default function LocationPickerModal({
           (err) => {
             setLocating(false);
             if (err.code === 1) {
-              setErrorMsg('位置權限被拒絕，請在瀏覽器設定中允許位置存取');
+              setErrorMsg(t('locationPicker.permissionDeniedWeb'));
             } else if (err.code === 2) {
-              setErrorMsg('無法取得位置，請確認 GPS 已開啟');
+              setErrorMsg(t('locationPicker.gpsOff'));
             } else {
-              setErrorMsg('位置請求逾時，請重試');
+              setErrorMsg(t('locationPicker.requestTimeout'));
             }
           },
           { enableHighAccuracy: true, timeout: 10000 }
@@ -134,14 +134,14 @@ export default function LocationPickerModal({
       const { status } = await requestForegroundPermissionsAsync();
       if (status !== 'granted') {
         setLocating(false);
-        setErrorMsg('位置權限被拒絕');
+        setErrorMsg(t('locationPicker.permissionDenied'));
         return;
       }
       const loc = await getCurrentPositionAsync({ accuracy: Accuracy.Balanced });
       await fetchLocationData(loc.coords.latitude, loc.coords.longitude);
     } catch (e: any) {
       setLocating(false);
-      setErrorMsg('位置錯誤: ' + (e.message || '未知錯誤'));
+      setErrorMsg(t('locationPicker.errorPrefix') + (e.message || t('common.unknownError')));
     }
   }, [fetchLocationData]);
 
@@ -239,7 +239,7 @@ export default function LocationPickerModal({
               style={styles.searchInput}
               value={searchText}
               onChangeText={handleSearchChange}
-              placeholder="搜尋或直接輸入地點名稱"
+              placeholder={t('locationPicker.searchPlaceholder')}
               placeholderTextColor={COLORS.gray400}
               returnKeyType="done"
               onSubmitEditing={() => {

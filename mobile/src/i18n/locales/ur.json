@@ -14,14 +14,20 @@
   "locationPicker": {
     "title": "جگہ چنیں",
     "noNearbyPlaces": "قریب کوئی جگہ نہیں ملی۔ سرچ باکس میں نام لکھیں اور Done دبائیں۔",
-    "noResults": "ملتی جلتی کوئی جگہ نہیں"
+    "noResults": "ملتی جلتی کوئی جگہ نہیں",
+    "permissionDenied": "مقام کی اجازت مسترد",
+    "permissionDeniedWeb": "مقام کی اجازت مسترد. براؤزر کی ترتیبات میں اجازت دیں.",
+    "errorPrefix": "مقام کی خرابی: ",
+    "searchPlaceholder": "مقام تلاش کریں یا لکھیں",
+    "gpsOff": "مقام حاصل نہیں ہوا۔ براہ کرم GPS آن کریں۔",
+    "requestTimeout": "مقام کی درخواست کا وقت ختم۔ دوبارہ کوشش کریں۔"
   },
   "friendsMap": {
     "title": "دوستوں کا نقشہ",
     "friendCount": "نقشے پر {{count}} دوست",
     "noSharedLocations": "ابھی کوئی دوست اپنی جگہ شیئر نہیں کر رہا",
     "staleHint": "صرف وہ دوست دکھا رہے ہیں جن کی جگہ پچھلے 24 گھنٹے میں اپ ڈیٹ ہوئی",
-    "loadFailed": "نقشہ نہیں کھل سکا، ذرا دوبارہ کوشش کریں"
+    "loadFailed": "نقشہ لوڈ نہیں ہوا. کنیکشن چیک کریں."
   },
   "hiddenTagEditor": {
     "timeTitle": "آپ کب ملے",
@@ -508,7 +514,12 @@
       "کسی میڈیکل سینٹر میں ER نرس",
       "فری لانس گرافک ڈیزائنر",
       "نفسیات کا طالب علم"
-    ]
+    ],
+    "needLibraryPermissionTitle": "تصاویر کی لائبریری تک رسائی درکار",
+    "needLibraryPermissionMsg": "ترتیبات میں رسائی کی اجازت دیں",
+    "notSignedIn": "لاگ ان نہیں ہیں",
+    "uploadFailTitle": "اپ لوڈ ناکام",
+    "tryAgainLater": "بعد میں دوبارہ کوشش کریں"
   },
   "friendDetail": {
     "reminderBirthday": "سالگرہ",
@@ -1163,7 +1174,12 @@
     "userBlocked": "اس صارف کو پیغام نہیں بھیجا جا سکتا",
     "deliveryFailed": "نہیں بھیجا جا سکا · دوبارہ کوشش کے لیے ٹیپ کریں",
     "unreadBadge": "{{count}} غیر پڑھے",
-    "messagesSent": "{{name}} نے آپ کو پیغام بھیجا"
+    "messagesSent": "{{name}} نے آپ کو پیغام بھیجا",
+    "timeJustNow": "ابھی",
+    "timeYesterday": "کل",
+    "timeMinutesAgo": "{{count}} منٹ پہلے",
+    "timeHoursAgo": "{{count}} گھنٹے پہلے",
+    "timeDaysAgo": "{{count}} دن پہلے"
   },
   "share": {
     "profileInviteMessage": "{{name}} PikTag پر\n{{url}}\n\nPikTag — ہر اس دوست کو ٹیگ کریں جس سے آپ ملیں،\nکب اور کہاں، خود محفوظ کرنے کے لیے QR اسکین کریں۔\n\nPikTag حاصل کریں → https://pikt.ag"

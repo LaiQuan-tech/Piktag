@@ -14,14 +14,20 @@
   "locationPicker": {
     "title": "Chọn địa điểm",
     "noNearbyPlaces": "Chưa thấy địa điểm nào gần đây. Gõ tên vào ô tìm kiếm rồi nhấn Xong nhé.",
-    "noResults": "Không có địa điểm nào khớp"
+    "noResults": "Không có địa điểm nào khớp",
+    "permissionDenied": "Quyền vị trí bị từ chối",
+    "permissionDeniedWeb": "Quyền vị trí bị từ chối. Cho phép trong cài đặt trình duyệt.",
+    "errorPrefix": "Lỗi vị trí: ",
+    "searchPlaceholder": "Tìm hoặc nhập tên địa điểm",
+    "gpsOff": "Không lấy được vị trí. Hãy bật GPS.",
+    "requestTimeout": "Yêu cầu vị trí đã quá hạn. Vui lòng thử lại."
   },
   "friendsMap": {
     "title": "Bản đồ bạn bè",
     "friendCount": "{{count}} người bạn trên bản đồ",
     "noSharedLocations": "Chưa có bạn nào chia sẻ vị trí cả",
     "staleHint": "Chỉ hiện bạn bè có vị trí cập nhật trong 24 giờ qua",
-    "loadFailed": "Không tải được bản đồ, thử lại nhé"
+    "loadFailed": "Không tải được bản đồ. Kiểm tra kết nối."
   },
   "hiddenTagEditor": {
     "timeTitle": "Lúc gặp nhau",
@@ -508,7 +514,12 @@
       "Y tá cấp cứu @ trung tâm y tế",
       "Nhà thiết kế đồ hoạ tự do",
       "Sinh viên ngành tâm lý"
-    ]
+    ],
+    "needLibraryPermissionTitle": "Cần quyền truy cập thư viện ảnh",
+    "needLibraryPermissionMsg": "Cho phép truy cập trong Cài đặt",
+    "notSignedIn": "Chưa đăng nhập",
+    "uploadFailTitle": "Tải lên thất bại",
+    "tryAgainLater": "Vui lòng thử lại sau"
   },
   "friendDetail": {
     "reminderBirthday": "Sinh nhật",
@@ -1163,7 +1174,12 @@
     "userBlocked": "Không gửi tin nhắn cho người này được",
     "deliveryFailed": "Gửi không được · Chạm để thử lại",
     "unreadBadge": "{{count}} chưa đọc",
-    "messagesSent": "{{name}} vừa nhắn tin cho bạn"
+    "messagesSent": "{{name}} vừa nhắn tin cho bạn",
+    "timeJustNow": "Vừa xong",
+    "timeYesterday": "Hôm qua",
+    "timeMinutesAgo": "{{count}} phút trước",
+    "timeHoursAgo": "{{count}} giờ trước",
+    "timeDaysAgo": "{{count}} ngày trước"
   },
   "share": {
     "profileInviteMessage": "{{name}} trên PikTag\n{{url}}\n\nPikTag — gắn tag mọi người bạn gặp,\nquét QR là tự ghi lại gặp khi nào, ở đâu.\n\nTải PikTag → https://pikt.ag"

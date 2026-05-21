@@ -396,7 +396,10 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
 
     const { status } = await requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
-      Alert.alert('需要相簿權限', '請在設定中允許存取相簿');
+      Alert.alert(
+        t('editProfile.needLibraryPermissionTitle'),
+        t('editProfile.needLibraryPermissionMsg'),
+      );
       return;
     }
 
@@ -439,7 +442,7 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
 
       const { data: sessionData } = await supabase.auth.getSession();
       const accessToken = sessionData?.session?.access_token;
-      if (!accessToken) throw new Error('未登入');
+      if (!accessToken) throw new Error(t('editProfile.notSignedIn'));
 
       const mimeType = asset.mimeType;
       const formData = new FormData();
@@ -478,7 +481,7 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
 
       setAvatarUrl(publicUrl);
     } catch (err: any) {
-      Alert.alert('上傳失敗', err.message || '請稍後再試');
+      Alert.alert(t('editProfile.uploadFailTitle'), err.message || t('editProfile.tryAgainLater'));
     } finally {
       setUploadingAvatar(false);
     }

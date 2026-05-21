@@ -14,14 +14,20 @@
   "locationPicker": {
     "title": "選擇地點",
     "noNearbyPlaces": "找不到附近地點，在搜尋框直接輸入地點名稱後按完成即可。",
-    "noResults": "找不到相關地點"
+    "noResults": "找不到相關地點",
+    "permissionDenied": "位置權限被拒絕",
+    "permissionDeniedWeb": "位置權限被拒絕，請在瀏覽器設定中允許位置存取",
+    "errorPrefix": "位置錯誤：",
+    "searchPlaceholder": "搜尋或直接輸入地點名稱",
+    "gpsOff": "無法取得位置，請確認 GPS 已開啟",
+    "requestTimeout": "位置請求逾時，請重試"
   },
   "friendsMap": {
     "title": "好友地圖",
     "friendCount": "{{count}} 位好友出現在地圖上",
     "noSharedLocations": "目前還沒有好友分享位置",
     "staleHint": "僅顯示近 24 小時內更新位置的好友",
-    "loadFailed": "地圖載入失敗，請稍後再試"
+    "loadFailed": "地圖載入失敗，請檢查網路連線"
   },
   "hiddenTagEditor": {
     "timeTitle": "認識時間",
@@ -508,7 +514,12 @@
       "急診護理師 @ 醫學中心",
       "自由接案平面設計師",
       "心理系學生"
-    ]
+    ],
+    "needLibraryPermissionTitle": "需要相簿權限",
+    "needLibraryPermissionMsg": "請在設定中允許存取相簿",
+    "notSignedIn": "未登入",
+    "uploadFailTitle": "上傳失敗",
+    "tryAgainLater": "請稍後再試"
   },
   "friendDetail": {
     "reminderBirthday": "生日",
@@ -1163,7 +1174,12 @@
     "userBlocked": "無法傳送訊息給此用戶",
     "deliveryFailed": "傳送失敗 · 輕點重試",
     "unreadBadge": "{{count}} 則未讀",
-    "messagesSent": "{{name}} 傳了一則訊息"
+    "messagesSent": "{{name}} 傳了一則訊息",
+    "timeJustNow": "剛剛",
+    "timeYesterday": "昨天",
+    "timeMinutesAgo": "{{count}} 分鐘前",
+    "timeHoursAgo": "{{count}} 小時前",
+    "timeDaysAgo": "{{count}} 天前"
   },
   "share": {
     "profileInviteMessage": "{{name}} 在 PikTag\n{{url}}\n\nPikTag — 用標籤記住每段緣分，\n掃 QR 自動記下相遇時間地點。\n\n還沒下載？https://pikt.ag"

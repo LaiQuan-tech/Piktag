@@ -12,14 +12,20 @@
   "locationPicker": {
     "title": "जगह चुनें",
     "noNearbyPlaces": "आस-पास कोई जगह नहीं मिली। सर्च बॉक्स में नाम लिखें और 'हो गया' दबाएँ।",
-    "noResults": "कोई मेल खाती जगह नहीं"
+    "noResults": "कोई मेल खाती जगह नहीं",
+    "permissionDenied": "स्थान अनुमति अस्वीकृत",
+    "permissionDeniedWeb": "स्थान अनुमति अस्वीकृत. ब्राउज़र सेटिंग्स में अनुमति दें.",
+    "errorPrefix": "स्थान त्रुटि: ",
+    "searchPlaceholder": "स्थान खोजें या लिखें",
+    "gpsOff": "स्थान नहीं मिल पाया. GPS चालू करें.",
+    "requestTimeout": "स्थान अनुरोध समय समाप्त. पुनः प्रयास."
   },
   "friendsMap": {
     "title": "दोस्तों का मैप",
     "friendCount": "मैप पर {{count}} दोस्त",
     "noSharedLocations": "अभी तक कोई दोस्त लोकेशन शेयर नहीं कर रहा",
     "staleHint": "केवल वे दोस्त दिख रहे हैं जिनकी लोकेशन पिछले 24 घंटे में अपडेट हुई है",
-    "loadFailed": "मैप लोड नहीं हो सका, फिर से कोशिश करें"
+    "loadFailed": "मानचित्र लोड नहीं हुआ. कनेक्शन जांचें."
   },
   "hiddenTagEditor": {
     "timeTitle": "आप कब मिले",
@@ -490,7 +496,12 @@
       "इमरजेंसी नर्स @ मेडिकल सेंटर",
       "फ्रीलांस ग्राफिक डिज़ाइनर",
       "मनोविज्ञान का छात्र"
-    ]
+    ],
+    "needLibraryPermissionTitle": "फ़ोटो लाइब्रेरी एक्सेस चाहिए",
+    "needLibraryPermissionMsg": "सेटिंग्स में अनुमति दें",
+    "notSignedIn": "साइन इन नहीं हैं",
+    "uploadFailTitle": "अपलोड विफल",
+    "tryAgainLater": "कुछ देर बाद पुनः प्रयास"
   },
   "friendDetail": {
     "reminderBirthday": "जन्मदिन",
@@ -1073,7 +1084,12 @@
     "userBlocked": "इस यूज़र को संदेश नहीं भेजा जा सकता",
     "deliveryFailed": "भेजने में विफल · फिर कोशिश के लिए टैप करें",
     "unreadBadge": "{{count}} अनपढ़े",
-    "messagesSent": "{{name}} ने आपको संदेश भेजा"
+    "messagesSent": "{{name}} ने आपको संदेश भेजा",
+    "timeJustNow": "अभी",
+    "timeYesterday": "कल",
+    "timeMinutesAgo": "{{count}} मिनट पहले",
+    "timeHoursAgo": "{{count}} घंटे पहले",
+    "timeDaysAgo": "{{count}} दिन पहले"
   },
   "share": {
     "profileInviteMessage": "{{name}} PikTag पर\n{{url}}\n\nPikTag — हर दोस्त को जो आप मिलें टैग करें,\nQR स्कैन करें और कब और कहाँ अपने आप कैप्चर हो जाए।\n\nPikTag पाएँ → https://pikt.ag"

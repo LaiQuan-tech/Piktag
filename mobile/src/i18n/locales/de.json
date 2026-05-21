@@ -14,14 +14,20 @@
   "locationPicker": {
     "title": "Ort wählen",
     "noNearbyPlaces": "Keine Orte in der Nähe gefunden. Gib einen Namen in das Suchfeld ein und drücke Fertig.",
-    "noResults": "Keine passenden Orte"
+    "noResults": "Keine passenden Orte",
+    "permissionDenied": "Standortzugriff verweigert",
+    "permissionDeniedWeb": "Standortzugriff verweigert. Zugriff in den Browser-Einstellungen erlauben.",
+    "errorPrefix": "Standortfehler: ",
+    "searchPlaceholder": "Suchen oder Ort eingeben",
+    "gpsOff": "Standort nicht abrufbar — GPS einschalten.",
+    "requestTimeout": "Standortabfrage abgelaufen. Bitte erneut versuchen."
   },
   "friendsMap": {
     "title": "Freunde-Karte",
     "friendCount": "{{count}} Freunde auf der Karte",
     "noSharedLocations": "Noch keine Freunde teilen ihren Standort",
     "staleHint": "Es werden nur Freunde angezeigt, deren Standort in den letzten 24 Stunden aktualisiert wurde",
-    "loadFailed": "Karte konnte nicht geladen werden, bitte erneut versuchen"
+    "loadFailed": "Karte konnte nicht geladen werden. Verbindung prüfen."
   },
   "hiddenTagEditor": {
     "timeTitle": "Wann ihr euch getroffen habt",
@@ -498,7 +504,12 @@
       "Notfallpfleger @ einer Klinik",
       "Freier Grafikdesigner",
       "Psychologie-Student"
-    ]
+    ],
+    "needLibraryPermissionTitle": "Zugriff auf Fotomediathek erforderlich",
+    "needLibraryPermissionMsg": "Zugriff in den Einstellungen erlauben",
+    "notSignedIn": "Nicht angemeldet",
+    "uploadFailTitle": "Hochladen fehlgeschlagen",
+    "tryAgainLater": "Bitte später erneut versuchen"
   },
   "friendDetail": {
     "reminderBirthday": "Geburtstag",
@@ -1143,7 +1154,12 @@
     "userBlocked": "Nachricht an diesen Nutzer kann nicht gesendet werden",
     "deliveryFailed": "Senden fehlgeschlagen · Tippen zum Wiederholen",
     "unreadBadge": "{{count}} ungelesen",
-    "messagesSent": "{{name}} hat dir eine Nachricht geschickt"
+    "messagesSent": "{{name}} hat dir eine Nachricht geschickt",
+    "timeJustNow": "Gerade eben",
+    "timeYesterday": "Gestern",
+    "timeMinutesAgo": "vor {{count}} Min.",
+    "timeHoursAgo": "vor {{count}} Std.",
+    "timeDaysAgo": "vor {{count}} Tg."
   },
   "share": {
     "profileInviteMessage": "{{name}} auf PikTag\n{{url}}\n\nPikTag — tagge jeden Freund, den du triffst,\nQR scannen erfasst automatisch wann & wo.\n\nHol dir PikTag → https://pikt.ag"

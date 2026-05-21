@@ -12,14 +12,20 @@
   "locationPicker": {
     "title": "เลือกสถานที่",
     "noNearbyPlaces": "ไม่พบสถานที่ใกล้เคียง พิมพ์ชื่อในช่องค้นหาและกดเสร็จสิ้น",
-    "noResults": "ไม่พบสถานที่ที่ตรงกัน"
+    "noResults": "ไม่พบสถานที่ที่ตรงกัน",
+    "permissionDenied": "ปฏิเสธสิทธิ์ตำแหน่ง",
+    "permissionDeniedWeb": "ปฏิเสธสิทธิ์ตำแหน่ง โปรดอนุญาตในการตั้งค่าเบราว์เซอร์",
+    "errorPrefix": "ข้อผิดพลาดของตำแหน่ง: ",
+    "searchPlaceholder": "ค้นหาหรือพิมพ์ชื่อสถานที่",
+    "gpsOff": "ไม่สามารถดึงตำแหน่ง โปรดเปิด GPS",
+    "requestTimeout": "คำขอตำแหน่งหมดเวลา โปรดลองอีกครั้ง"
   },
   "friendsMap": {
     "title": "แผนที่เพื่อน",
     "friendCount": "เพื่อน {{count}} คนบนแผนที่",
     "noSharedLocations": "ยังไม่มีเพื่อนแชร์ตำแหน่ง",
     "staleHint": "แสดงเฉพาะเพื่อนที่อัปเดตตำแหน่งภายใน 24 ชั่วโมงที่ผ่านมา",
-    "loadFailed": "โหลดแผนที่ไม่สำเร็จ โปรดลองอีกครั้ง"
+    "loadFailed": "โหลดแผนที่ไม่สำเร็จ ตรวจสอบการเชื่อมต่อ"
   },
   "hiddenTagEditor": {
     "timeTitle": "เจอเมื่อไร",
@@ -490,7 +496,12 @@
       "พยาบาลฉุกเฉิน @ ศูนย์การแพทย์",
       "กราฟิกดีไซเนอร์ฟรีแลนซ์",
       "นักศึกษาจิตวิทยา"
-    ]
+    ],
+    "needLibraryPermissionTitle": "ต้องอนุญาตเข้าถึงคลังภาพ",
+    "needLibraryPermissionMsg": "อนุญาตการเข้าถึงในตั้งค่า",
+    "notSignedIn": "ยังไม่ได้เข้าสู่ระบบ",
+    "uploadFailTitle": "อัปโหลดล้มเหลว",
+    "tryAgainLater": "โปรดลองอีกครั้ง"
   },
   "friendDetail": {
     "reminderBirthday": "วันเกิด",
@@ -1073,7 +1084,12 @@
     "userBlocked": "ส่งข้อความให้ผู้ใช้นี้ไม่ได้",
     "deliveryFailed": "ส่งไม่สำเร็จ · แตะเพื่อลองใหม่",
     "unreadBadge": "ยังไม่อ่าน {{count}}",
-    "messagesSent": "{{name}} ส่งข้อความถึงคุณ"
+    "messagesSent": "{{name}} ส่งข้อความถึงคุณ",
+    "timeJustNow": "เมื่อสักครู่",
+    "timeYesterday": "เมื่อวานนี้",
+    "timeMinutesAgo": "{{count}} นาทีที่แล้ว",
+    "timeHoursAgo": "{{count}} ชั่วโมงก่อน",
+    "timeDaysAgo": "{{count}} วันก่อน"
   },
   "share": {
     "profileInviteMessage": "{{name}} บน PikTag\n{{url}}\n\nPikTag — แท็กเพื่อนทุกคนที่คุณพบ\nสแกน QR เพื่อบันทึกเวลาและสถานที่อัตโนมัติ\n\nรับ PikTag → https://pikt.ag"

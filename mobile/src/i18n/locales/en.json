@@ -14,14 +14,20 @@
   "locationPicker": {
     "title": "Pick a location",
     "noNearbyPlaces": "No nearby places found. Type a name in the search box and press Done.",
-    "noResults": "No matching places"
+    "noResults": "No matching places",
+    "permissionDenied": "Location permission denied",
+    "permissionDeniedWeb": "Location permission denied. Allow access in browser settings.",
+    "errorPrefix": "Location error: ",
+    "searchPlaceholder": "Search or enter a place name",
+    "gpsOff": "Can't get location — please make sure GPS is on",
+    "requestTimeout": "Location request timed out — please try again"
   },
   "friendsMap": {
     "title": "Friends Map",
     "friendCount": "{{count}} friends on the map",
     "noSharedLocations": "No friends sharing location yet",
     "staleHint": "Only showing friends whose location was updated in the last 24 hours",
-    "loadFailed": "Failed to load map, please try again"
+    "loadFailed": "Map failed to load. Please check your connection."
   },
   "hiddenTagEditor": {
     "timeTitle": "When you met",
@@ -505,7 +511,12 @@
       "ER nurse @ a medical center",
       "Freelance graphic designer",
       "Psychology student"
-    ]
+    ],
+    "needLibraryPermissionTitle": "Photo library access needed",
+    "needLibraryPermissionMsg": "Allow access in Settings",
+    "notSignedIn": "Not signed in",
+    "uploadFailTitle": "Upload failed",
+    "tryAgainLater": "Please try again later"
   },
   "friendDetail": {
     "reminderBirthday": "Birthday",
@@ -1156,7 +1167,12 @@
     "userBlocked": "Can't send message to this user",
     "deliveryFailed": "Failed to send · Tap to retry",
     "unreadBadge": "{{count}} unread",
-    "messagesSent": "{{name}} sent you a message"
+    "messagesSent": "{{name}} sent you a message",
+    "timeJustNow": "Just now",
+    "timeYesterday": "Yesterday",
+    "timeMinutesAgo": "{{count}}m ago",
+    "timeHoursAgo": "{{count}}h ago",
+    "timeDaysAgo": "{{count}}d ago"
   },
   "share": {
     "profileInviteMessage": "{{name}} on PikTag\n{{url}}\n\nPikTag — tag every friend you meet,\nscan QR to auto-capture when & where.\n\nGet PikTag → https://pikt.ag"

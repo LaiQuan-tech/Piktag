@@ -12,14 +12,20 @@
   "locationPicker": {
     "title": "একটি জায়গা বেছে নিন",
     "noNearbyPlaces": "কাছাকাছি কোনো জায়গা পাওয়া যায়নি। সার্চ বক্সে নাম লিখে 'হয়েছে' চাপুন।",
-    "noResults": "মিলে যাওয়া কোনো জায়গা নেই"
+    "noResults": "মিলে যাওয়া কোনো জায়গা নেই",
+    "permissionDenied": "লোকেশন অনুমতি অস্বীকৃত",
+    "permissionDeniedWeb": "লোকেশন অনুমতি অস্বীকৃত. ব্রাউজার সেটিংসে অনুমতি দিন.",
+    "errorPrefix": "লোকেশন ত্রুটি: ",
+    "searchPlaceholder": "জায়গা খুঁজুন বা লিখুন",
+    "gpsOff": "লোকেশন পাওয়া যায়নি. GPS চালু করুন.",
+    "requestTimeout": "লোকেশন রিকোয়েস্ট টাইমআউট। আবার চেষ্টা করুন।"
   },
   "friendsMap": {
     "title": "বন্ধুদের ম্যাপ",
     "friendCount": "ম্যাপে {{count}} জন বন্ধু",
     "noSharedLocations": "এখনও কোনো বন্ধু লোকেশন শেয়ার করছে না",
     "staleHint": "শুধু সেই বন্ধুরা দেখানো হচ্ছে যাদের লোকেশন গত 24 ঘণ্টায় আপডেট হয়েছে",
-    "loadFailed": "ম্যাপ লোড করা যায়নি, আবার চেষ্টা করুন"
+    "loadFailed": "মানচিত্র লোড হয়নি. সংযোগ পরীক্ষা করুন."
   },
   "hiddenTagEditor": {
     "timeTitle": "কখন দেখা হয়েছিল",
@@ -490,7 +496,12 @@
       "ইমার্জেন্সি নার্স @ মেডিকেল সেন্টার",
       "ফ্রিল্যান্স গ্রাফিক ডিজাইনার",
       "মনোবিজ্ঞানের ছাত্র"
-    ]
+    ],
+    "needLibraryPermissionTitle": "ফটো লাইব্রেরিতে অ্যাক্সেস দরকার",
+    "needLibraryPermissionMsg": "সেটিংসে অনুমতি দিন",
+    "notSignedIn": "লগ ইন করা হয়নি",
+    "uploadFailTitle": "আপলোড ব্যর্থ",
+    "tryAgainLater": "পরে চেষ্টা করুন"
   },
   "friendDetail": {
     "reminderBirthday": "জন্মদিন",
@@ -1073,7 +1084,12 @@
     "userBlocked": "এই ইউজারকে মেসেজ পাঠানো যাবে না",
     "deliveryFailed": "পাঠানো ব্যর্থ · আবার চেষ্টা করতে ট্যাপ করুন",
     "unreadBadge": "{{count}} টি অপঠিত",
-    "messagesSent": "{{name}} আপনাকে একটি মেসেজ পাঠিয়েছে"
+    "messagesSent": "{{name}} আপনাকে একটি মেসেজ পাঠিয়েছে",
+    "timeJustNow": "এই মাত্র",
+    "timeYesterday": "গতকাল",
+    "timeMinutesAgo": "{{count}} মিনিট আগে",
+    "timeHoursAgo": "{{count}} ঘণ্টা আগে",
+    "timeDaysAgo": "{{count}} দিন আগে"
   },
   "share": {
     "profileInviteMessage": "{{name}} PikTag-এ\n{{url}}\n\nPikTag — আপনি যাকে দেখা পান তাকে ট্যাগ করুন,\nQR স্ক্যান করুন কখন ও কোথায় তা স্বয়ংক্রিয়ভাবে ক্যাপচার করতে।\n\nPikTag পান → https://pikt.ag"

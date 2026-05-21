@@ -1,5 +1,6 @@
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { MoreHorizontal } from 'lucide-react-native';
 import { COLORS } from '../../constants/theme';
 import type { InboxConversation } from '../../types/chat';
@@ -18,20 +19,21 @@ type Props = {
 };
 
 // Format an ISO timestamp into a short, human-friendly relative label.
-// Falls back to yyyy/MM/dd once the gap exceeds ~1 week.
-function formatRelativeTime(ts: string | null): string {
+// Falls back to yyyy/MM/dd once the gap exceeds ~1 week. Takes the
+// `t` translator so all labels are localized (was hardcoded zh-TW).
+function formatRelativeTime(ts: string | null, t: (k: string, opts?: any) => string): string {
   if (!ts) return '';
   const then = new Date(ts).getTime();
   if (Number.isNaN(then)) return '';
   const diffMs = Date.now() - then;
   const diffMin = Math.floor(diffMs / 60000);
-  if (diffMin < 1) return '剛剛';
-  if (diffMin < 60) return `${diffMin} 分鐘`;
+  if (diffMin < 1) return t('chat.timeJustNow');
+  if (diffMin < 60) return t('chat.timeMinutesAgo', { count: diffMin });
   const diffHr = Math.floor(diffMin / 60);
-  if (diffHr < 24) return `${diffHr} 小時`;
+  if (diffHr < 24) return t('chat.timeHoursAgo', { count: diffHr });
   const diffDay = Math.floor(diffHr / 24);
-  if (diffDay === 1) return '昨天';
-  if (diffDay < 7) return `${diffDay} 天`;
+  if (diffDay === 1) return t('chat.timeYesterday');
+  if (diffDay < 7) return t('chat.timeDaysAgo', { count: diffDay });
   const d = new Date(ts);
   const y = d.getFullYear();
   const m = String(d.getMonth() + 1).padStart(2, '0');
@@ -40,6 +42,7 @@ function formatRelativeTime(ts: string | null): string {
 }
 
 const ConversationRow = React.memo(({ conversation, onPress, onMorePress }: Props) => {
+  const { t } = useTranslation();
   const { unread } = conversation;
   const displayName =
     conversation.other_full_name ||
@@ -93,7 +96,7 @@ const ConversationRow = React.memo(({ conversation, onPress, onMorePress }: Prop
 
         <View style={styles.right}>
           <Text style={styles.timestamp}>
-            {formatRelativeTime(conversation.last_message_at)}
+            {formatRelativeTime(conversation.last_message_at, t)}
           </Text>
           {unread ? <View style={styles.unreadDot} /> : null}
         </View>

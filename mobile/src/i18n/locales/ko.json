@@ -12,14 +12,20 @@
   "locationPicker": {
     "title": "장소 선택",
     "noNearbyPlaces": "근처에 장소가 없습니다. 검색창에 이름을 입력하고 완료를 누르세요.",
-    "noResults": "일치하는 장소가 없습니다"
+    "noResults": "일치하는 장소가 없습니다",
+    "permissionDenied": "위치 권한이 거부됨",
+    "permissionDeniedWeb": "위치 권한이 거부됨. 브라우저 설정에서 허용해 주세요.",
+    "errorPrefix": "위치 오류: ",
+    "searchPlaceholder": "검색하거나 장소 이름 입력",
+    "gpsOff": "위치를 가져올 수 없습니다. GPS를 켜 주세요.",
+    "requestTimeout": "위치 요청 시간 초과. 다시 시도해 주세요."
   },
   "friendsMap": {
     "title": "친구 지도",
     "friendCount": "지도에 {{count}}명의 친구",
     "noSharedLocations": "위치를 공유하는 친구가 아직 없습니다",
     "staleHint": "최근 24시간 내에 위치를 업데이트한 친구만 표시됩니다",
-    "loadFailed": "지도 불러오기에 실패했습니다. 다시 시도해 주세요"
+    "loadFailed": "지도 불러오기 실패. 네트워크 연결을 확인하세요."
   },
   "hiddenTagEditor": {
     "timeTitle": "만난 시기",
@@ -490,7 +496,12 @@
       "응급실 간호사 @ 의료센터",
       "프리랜스 그래픽 디자이너",
       "심리학과 학생"
-    ]
+    ],
+    "needLibraryPermissionTitle": "사진 라이브러리 접근 권한 필요",
+    "needLibraryPermissionMsg": "설정에서 접근을 허용해 주세요",
+    "notSignedIn": "로그인되지 않음",
+    "uploadFailTitle": "업로드 실패",
+    "tryAgainLater": "잠시 후 다시 시도해 주세요"
   },
   "friendDetail": {
     "reminderBirthday": "생일",
@@ -1073,7 +1084,12 @@
     "userBlocked": "이 사용자에게 메시지를 보낼 수 없습니다",
     "deliveryFailed": "전송 실패 · 탭하여 재시도",
     "unreadBadge": "{{count}}개 안 읽음",
-    "messagesSent": "{{name}}님이 메시지를 보냈습니다"
+    "messagesSent": "{{name}}님이 메시지를 보냈습니다",
+    "timeJustNow": "방금",
+    "timeYesterday": "어제",
+    "timeMinutesAgo": "{{count}}분 전",
+    "timeHoursAgo": "{{count}}시간 전",
+    "timeDaysAgo": "{{count}}일 전"
   },
   "share": {
     "profileInviteMessage": "{{name}} (PikTag)\n{{url}}\n\nPikTag — 만나는 친구마다 태그를 붙이고\nQR 스캔으로 언제·어디서 만났는지 자동 기록.\n\nPikTag 받기 → https://pikt.ag"

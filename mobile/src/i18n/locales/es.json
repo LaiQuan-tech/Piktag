@@ -12,14 +12,20 @@
   "locationPicker": {
     "title": "Elegir una ubicación",
     "noNearbyPlaces": "No hay lugares cercanos. Escribe un nombre en el cuadro de búsqueda y pulsa Hecho.",
-    "noResults": "Sin lugares coincidentes"
+    "noResults": "Sin lugares coincidentes",
+    "permissionDenied": "Permiso de ubicación denegado",
+    "permissionDeniedWeb": "Permiso de ubicación denegado. Permite acceso en los ajustes del navegador.",
+    "errorPrefix": "Error de ubicación: ",
+    "searchPlaceholder": "Buscar o escribir un lugar",
+    "gpsOff": "No se puede obtener la ubicación. Comprueba que el GPS esté activado.",
+    "requestTimeout": "Tiempo de espera agotado al obtener la ubicación. Inténtalo de nuevo."
   },
   "friendsMap": {
     "title": "Mapa de amigos",
     "friendCount": "{{count}} amigos en el mapa",
     "noSharedLocations": "Aún no hay amigos compartiendo ubicación",
     "staleHint": "Solo se muestran amigos cuya ubicación se actualizó en las últimas 24 horas",
-    "loadFailed": "Error al cargar el mapa, inténtalo de nuevo"
+    "loadFailed": "Error al cargar el mapa. Comprueba tu conexión."
   },
   "hiddenTagEditor": {
     "timeTitle": "Cuándo se conocieron",
@@ -490,7 +496,12 @@
       "Enfermero de urgencias @ un hospital",
       "Diseñador gráfico freelance",
       "Estudiante de psicología"
-    ]
+    ],
+    "needLibraryPermissionTitle": "Acceso a la fototeca necesario",
+    "needLibraryPermissionMsg": "Permitir acceso en Ajustes",
+    "notSignedIn": "No has iniciado sesión",
+    "uploadFailTitle": "Carga fallida",
+    "tryAgainLater": "Inténtalo de nuevo más tarde"
   },
   "friendDetail": {
     "reminderBirthday": "Cumpleaños",
@@ -1073,7 +1084,12 @@
     "userBlocked": "No se puede enviar mensaje a este usuario",
     "deliveryFailed": "Error al enviar · Toca para reintentar",
     "unreadBadge": "{{count}} sin leer",
-    "messagesSent": "{{name}} te envió un mensaje"
+    "messagesSent": "{{name}} te envió un mensaje",
+    "timeJustNow": "Ahora mismo",
+    "timeYesterday": "Ayer",
+    "timeMinutesAgo": "hace {{count}} min",
+    "timeHoursAgo": "hace {{count}} h",
+    "timeDaysAgo": "hace {{count}} d"
   },
   "share": {
     "profileInviteMessage": "{{name}} en PikTag\n{{url}}\n\nPikTag — etiqueta a cada amigo que conoces,\nescanea el QR para registrar cuándo y dónde.\n\nObtén PikTag → https://pikt.ag"

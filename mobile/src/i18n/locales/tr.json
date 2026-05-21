@@ -12,14 +12,20 @@
   "locationPicker": {
     "title": "Konum seç",
     "noNearbyPlaces": "Yakınlarda yer bulunamadı. Arama kutusuna bir ad yazın ve Bitti'ye basın.",
-    "noResults": "Eşleşen yer yok"
+    "noResults": "Eşleşen yer yok",
+    "permissionDenied": "Konum izni reddedildi",
+    "permissionDeniedWeb": "Konum izni reddedildi. Tarayıcı ayarlarından izin verin.",
+    "errorPrefix": "Konum hatası: ",
+    "searchPlaceholder": "Yer ara veya yaz",
+    "gpsOff": "Konum alınamadı. GPS'in açık olduğundan emin olun.",
+    "requestTimeout": "Konum isteği zaman aşımına uğradı. Tekrar deneyin."
   },
   "friendsMap": {
     "title": "Arkadaş Haritası",
     "friendCount": "Haritada {{count}} arkadaş",
     "noSharedLocations": "Henüz konum paylaşan arkadaş yok",
     "staleHint": "Yalnızca son 24 saat içinde konumu güncellenen arkadaşlar gösteriliyor",
-    "loadFailed": "Harita yüklenemedi, lütfen tekrar deneyin"
+    "loadFailed": "Harita yüklenemedi. Bağlantınızı kontrol edin."
   },
   "hiddenTagEditor": {
     "timeTitle": "Ne zaman tanıştınız",
@@ -490,7 +496,12 @@
       "Acil hemşiresi @ tıp merkezi",
       "Serbest grafik tasarımcı",
       "Psikoloji öğrencisi"
-    ]
+    ],
+    "needLibraryPermissionTitle": "Fotoğraf kitaplığı erişimi gerekli",
+    "needLibraryPermissionMsg": "Ayarlar'dan erişime izin verin",
+    "notSignedIn": "Oturum açılmadı",
+    "uploadFailTitle": "Yükleme başarısız",
+    "tryAgainLater": "Daha sonra tekrar deneyin"
   },
   "friendDetail": {
     "reminderBirthday": "Doğum Günü",
@@ -1073,7 +1084,12 @@
     "userBlocked": "Bu kullanıcıya mesaj gönderilemez",
     "deliveryFailed": "Gönderilemedi · Yeniden denemek için dokun",
     "unreadBadge": "{{count}} okunmamış",
-    "messagesSent": "{{name}} sana mesaj gönderdi"
+    "messagesSent": "{{name}} sana mesaj gönderdi",
+    "timeJustNow": "Az önce",
+    "timeYesterday": "Dün",
+    "timeMinutesAgo": "{{count}} dk önce",
+    "timeHoursAgo": "{{count}} sa önce",
+    "timeDaysAgo": "{{count}} g önce"
   },
   "share": {
     "profileInviteMessage": "PikTag'de {{name}}\n{{url}}\n\nPikTag — tanıştığınız her arkadaşı etiketleyin,\nQR tarayarak ne zaman ve nerede tanıştığınızı otomatik kaydedin.\n\nPikTag'i indir → https://pikt.ag"

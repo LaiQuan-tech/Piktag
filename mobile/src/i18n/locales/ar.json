@@ -12,14 +12,20 @@
   "locationPicker": {
     "title": "اختر موقعًا",
     "noNearbyPlaces": "لا توجد أماكن قريبة. اكتب اسمًا في مربع البحث ثم اضغط تم.",
-    "noResults": "لا توجد أماكن مطابقة"
+    "noResults": "لا توجد أماكن مطابقة",
+    "permissionDenied": "تم رفض إذن الموقع",
+    "permissionDeniedWeb": "تم رفض إذن الموقع. اسمح به من إعدادات المتصفح.",
+    "errorPrefix": "خطأ في الموقع: ",
+    "searchPlaceholder": "ابحث أو اكتب اسم مكان",
+    "gpsOff": "تعذّر الحصول على الموقع. تأكد من تفعيل GPS.",
+    "requestTimeout": "انتهت مهلة طلب الموقع. حاول مرة أخرى."
   },
   "friendsMap": {
     "title": "خريطة الأصدقاء",
     "friendCount": "{{count}} من الأصدقاء على الخريطة",
     "noSharedLocations": "لا يوجد أصدقاء يشاركون موقعهم حتى الآن",
     "staleHint": "يتم عرض الأصدقاء الذين تم تحديث موقعهم خلال آخر 24 ساعة فقط",
-    "loadFailed": "فشل تحميل الخريطة، يرجى المحاولة مرة أخرى"
+    "loadFailed": "فشل تحميل الخريطة. تحقّق من الاتصال."
   },
   "hiddenTagEditor": {
     "timeTitle": "متى التقيتما",
@@ -490,7 +496,12 @@
       "ممرّض طوارئ @ مركز طبي",
       "مصمم جرافيك مستقل",
       "طالب علم نفس"
-    ]
+    ],
+    "needLibraryPermissionTitle": "مطلوب الوصول إلى مكتبة الصور",
+    "needLibraryPermissionMsg": "اسمح بالوصول من الإعدادات",
+    "notSignedIn": "لم يتم تسجيل الدخول",
+    "uploadFailTitle": "فشل التحميل",
+    "tryAgainLater": "حاول لاحقًا"
   },
   "friendDetail": {
     "reminderBirthday": "عيد الميلاد",
@@ -1073,7 +1084,12 @@
     "userBlocked": "لا يمكن إرسال رسالة لهذا المستخدم",
     "deliveryFailed": "فشل الإرسال · اضغط لإعادة المحاولة",
     "unreadBadge": "{{count}} غير مقروءة",
-    "messagesSent": "{{name}} أرسل لك رسالة"
+    "messagesSent": "{{name}} أرسل لك رسالة",
+    "timeJustNow": "الآن",
+    "timeYesterday": "أمس",
+    "timeMinutesAgo": "قبل {{count}} د",
+    "timeHoursAgo": "قبل {{count}} س",
+    "timeDaysAgo": "قبل {{count}} ي"
   },
   "share": {
     "profileInviteMessage": "{{name}} على PikTag\n{{url}}\n\nPikTag — وسم كل صديق تقابله،\nامسح QR لتسجيل وقت ومكان اللقاء تلقائيًا.\n\nاحصل على PikTag → https://pikt.ag"

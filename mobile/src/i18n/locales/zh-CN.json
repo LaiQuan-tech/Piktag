@@ -14,14 +14,20 @@
   "locationPicker": {
     "title": "选择地点",
     "noNearbyPlaces": "找不到附近地点，在搜索框直接输入地点名称后按完成即可。",
-    "noResults": "找不到相关地点"
+    "noResults": "找不到相关地点",
+    "permissionDenied": "位置权限被拒绝",
+    "permissionDeniedWeb": "位置权限被拒绝，请在浏览器设置中允许位置访问",
+    "errorPrefix": "位置错误：",
+    "searchPlaceholder": "搜索或直接输入地点名称",
+    "gpsOff": "无法获取位置，请确认 GPS 已开启",
+    "requestTimeout": "位置请求超时，请重试"
   },
   "friendsMap": {
     "title": "好友地图",
     "friendCount": "{{count}} 位好友出现在地图上",
     "noSharedLocations": "目前还没有好友分享位置",
     "staleHint": "仅显示近 24 小时内更新位置的好友",
-    "loadFailed": "地图加载失败，请稍后再试"
+    "loadFailed": "地图加载失败，请检查网络连接"
   },
   "hiddenTagEditor": {
     "timeTitle": "认识时间",
@@ -498,7 +504,12 @@
       "急诊护士 @ 医学中心",
       "自由接案平面设计师",
       "心理系学生"
-    ]
+    ],
+    "needLibraryPermissionTitle": "需要相册权限",
+    "needLibraryPermissionMsg": "请在设置中允许访问相册",
+    "notSignedIn": "未登录",
+    "uploadFailTitle": "上传失败",
+    "tryAgainLater": "请稍后再试"
   },
   "friendDetail": {
     "reminderBirthday": "生日",
@@ -1143,7 +1154,12 @@
     "userBlocked": "无法给此用户发消息",
     "deliveryFailed": "发送失败 · 轻点重试",
     "unreadBadge": "{{count}} 条未读",
-    "messagesSent": "{{name}} 发来一条消息"
+    "messagesSent": "{{name}} 发来一条消息",
+    "timeJustNow": "刚刚",
+    "timeYesterday": "昨天",
+    "timeMinutesAgo": "{{count}} 分钟前",
+    "timeHoursAgo": "{{count}} 小时前",
+    "timeDaysAgo": "{{count}} 天前"
   },
   "share": {
     "profileInviteMessage": "{{name}} 在 PikTag\n{{url}}\n\nPikTag — 用标签记住每段缘分，\n扫 QR 自动记下相遇时间地点。\n\n还没下载？https://pikt.ag"

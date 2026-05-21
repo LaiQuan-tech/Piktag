@@ -66,11 +66,16 @@ function buildMapHtml(
     username?: string | null;
   } | null,
   selfLabel: string,
+  mapLoadFailedMsg: string,
 ): string {
   const friendsJson = JSON.stringify(friends);
   const centerJson = JSON.stringify(center);
   const selfJson = JSON.stringify(self);
   const selfLabelJson = JSON.stringify(selfLabel);
+  const mapLoadFailedMsgHtml = mapLoadFailedMsg
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
   return `<!DOCTYPE html>
 <html>
 <head>
@@ -113,7 +118,7 @@ function buildMapHtml(
 </head>
 <body>
   <div id="map"></div>
-  <div id="fallback" class="fallback" style="display:none">地圖載入失敗，請檢查網路連線</div>
+  <div id="fallback" class="fallback" style="display:none">${mapLoadFailedMsgHtml}</div>
   <script>
     const FRIENDS = ${friendsJson};
     const CENTER = ${centerJson};
@@ -479,9 +484,10 @@ export default function FriendsMapModal({
   // Falls back to "你" if the i18n key is missing in any locale.
   const selfLabel = t('common.you', { defaultValue: '你' }) as string;
 
+  const mapLoadFailedMsg = t('friendsMap.loadFailed') as string;
   const html = useMemo(
-    () => buildMapHtml(GOOGLE_PLACES_API_KEY, friendsWithLocation, center, selfMarker, selfLabel),
-    [friendsWithLocation, center, selfMarker, selfLabel],
+    () => buildMapHtml(GOOGLE_PLACES_API_KEY, friendsWithLocation, center, selfMarker, selfLabel, mapLoadFailedMsg),
+    [friendsWithLocation, center, selfMarker, selfLabel, mapLoadFailedMsg],
   );
 
   return (
