@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { CloudOff, RotateCw, WifiOff } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 
-import { COLORS } from '../constants/theme';
+import { COLORS, type ColorPalette } from '../constants/theme';
+import { useTheme } from '../context/ThemeContext';
 import { useNetInfo } from '../hooks/useNetInfo';
 
 type Props = {
@@ -59,6 +60,8 @@ export default function ErrorState({
   compact = false,
 }: Props): React.ReactElement {
   const { t } = useTranslation();
+  const { colors, isDark } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const { isConnected } = useNetInfo();
 
   const Icon = isConnected ? CloudOff : WifiOff;
@@ -75,7 +78,7 @@ export default function ErrorState({
     <View style={[styles.container, compact && styles.containerCompact]}>
       <Icon
         size={compact ? 40 : 56}
-        color={COLORS.gray400}
+        color={colors.gray400}
         strokeWidth={1.5}
       />
       <Text style={[styles.heading, compact && styles.headingCompact]}>
@@ -95,7 +98,7 @@ export default function ErrorState({
           accessibilityRole="button"
           accessibilityLabel={t('common.retry')}
         >
-          <RotateCw size={16} color={COLORS.white} strokeWidth={2} />
+          <RotateCw size={16} color={colors.white} strokeWidth={2} />
           <Text style={styles.ctaLabel}>{t('common.retry')}</Text>
         </Pressable>
       ) : null}
@@ -103,7 +106,8 @@ export default function ErrorState({
   );
 }
 
-const styles = StyleSheet.create({
+function makeStyles(c: ColorPalette) {
+  return StyleSheet.create({
   container: {
     alignItems: 'center',
     justifyContent: 'center',
@@ -119,7 +123,7 @@ const styles = StyleSheet.create({
     marginTop: 14,
     fontSize: 17,
     fontWeight: '600',
-    color: COLORS.gray900,
+    color: c.gray900,
     textAlign: 'center',
   },
   headingCompact: {
@@ -129,7 +133,7 @@ const styles = StyleSheet.create({
   subtitle: {
     marginTop: 6,
     fontSize: 14,
-    color: COLORS.gray500,
+    color: c.gray500,
     textAlign: 'center',
     lineHeight: 20,
   },
@@ -138,7 +142,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    backgroundColor: COLORS.piktag500,
+    backgroundColor: c.piktag500,
     borderRadius: 22,
     paddingVertical: 10,
     paddingHorizontal: 22,
@@ -150,8 +154,9 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   ctaLabel: {
-    color: COLORS.white,
+    color: c.white,
     fontSize: 15,
     fontWeight: '600',
   },
-});
+  });
+}

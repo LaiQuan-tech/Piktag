@@ -14,7 +14,8 @@ import { useTranslation } from 'react-i18next';
 import { getLocales } from 'expo-localization';
 import { Plus } from 'lucide-react-native';
 import { supabase } from '../lib/supabase';
-import { COLORS } from '../constants/theme';
+import { COLORS, type ColorPalette } from '../constants/theme';
+import { useTheme } from '../context/ThemeContext';
 import LocationPickerModal from './LocationPickerModal';
 
 export type HiddenTag = { id: string; tagId: string; name: string };
@@ -66,6 +67,8 @@ function formatDateDisplay(d: Date): string {
 
 export default function HiddenTagEditor({ connectionId, userId, hiddenTags, onTagsChanged }: Props) {
   const { t } = useTranslation();
+  const { colors, isDark } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
 
   const [frequentTags, setFrequentTags] = useState<{ id: string; name: string }[]>([]);
   const [recentLocations, setRecentLocations] = useState<string[]>([]);
@@ -421,7 +424,7 @@ export default function HiddenTagEditor({ connectionId, userId, hiddenTags, onTa
           value={textValue}
           onChangeText={setTextValue}
           placeholder={t('hiddenTagEditor.otherPlaceholder')}
-          placeholderTextColor={COLORS.gray400}
+          placeholderTextColor={colors.gray400}
           returnKeyType="done"
           onSubmitEditing={handleTextSubmit}
         />
@@ -450,11 +453,12 @@ export default function HiddenTagEditor({ connectionId, userId, hiddenTags, onTa
   );
 }
 
-const styles = StyleSheet.create({
+function makeStyles(c: ColorPalette) {
+  return StyleSheet.create({
   sectionTitle: {
     fontSize: 13,
     fontWeight: '600',
-    color: COLORS.gray600,
+    color: c.gray600,
     marginTop: 14,
     marginBottom: 8,
   },
@@ -470,22 +474,22 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderRadius: 9999,
-    backgroundColor: COLORS.gray100,
+    backgroundColor: c.gray100,
     borderWidth: 1.5,
     borderColor: 'transparent',
   },
   // 已選=piktag500 實心 + 白字 — founder 2026-05-23 contract.
   pickChipSelected: {
-    backgroundColor: COLORS.piktag500,
+    backgroundColor: c.piktag500,
   },
   pickChipDisabled: {
-    backgroundColor: COLORS.gray100,
-    borderColor: COLORS.gray200,
+    backgroundColor: c.gray100,
+    borderColor: c.gray200,
     opacity: 0.5,
   },
   pickChipText: {
     fontSize: 14,
-    color: COLORS.gray600,
+    color: c.gray600,
     fontWeight: '500',
   },
   pickChipTextSelected: {
@@ -493,7 +497,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   pickChipTextDisabled: {
-    color: COLORS.gray400,
+    color: c.gray400,
   },
   inputRow: {
     flexDirection: 'row',
@@ -506,11 +510,11 @@ const styles = StyleSheet.create({
     height: 40,
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: COLORS.gray200,
+    borderColor: c.gray200,
     paddingHorizontal: 12,
     fontSize: 14,
-    color: COLORS.gray900,
-    backgroundColor: COLORS.white,
+    color: c.gray900,
+    backgroundColor: c.white,
   },
   // Square-rounded 40×40 + button — borderRadius 12 matches the
   // unified shape used across AddTagScreen / ManageTagsScreen /
@@ -520,11 +524,12 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 12,
-    backgroundColor: COLORS.piktag500,
+    backgroundColor: c.piktag500,
     alignItems: 'center',
     justifyContent: 'center',
   },
   // addBtnDisabled removed — see EditProfileScreen.tag_addBtn comment
   // for the rationale. Disabled prop blocks the tap; visual stays full
   // brand purple so the same + button reads identically across the app.
-});
+  });
+}

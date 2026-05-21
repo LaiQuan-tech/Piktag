@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useMemo } from 'react';
 import {
   Animated,
   Easing,
@@ -11,7 +11,8 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useReducedMotion } from 'react-native-reanimated';
-import { COLORS } from '../constants/theme';
+import { COLORS, type ColorPalette } from '../constants/theme';
+import { useTheme } from '../context/ThemeContext';
 
 // ---------------------------------------------------------------------------
 // SkeletonBox
@@ -39,6 +40,8 @@ export const SkeletonBox = React.memo(function SkeletonBox({
   borderRadius = 6,
   style,
 }: SkeletonBoxProps) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const opacity = useRef(new Animated.Value(0.3)).current;
   const shimmerX = useRef(new Animated.Value(0)).current;
   const reducedMotion = useReducedMotion();
@@ -138,7 +141,7 @@ export const SkeletonBox = React.memo(function SkeletonBox({
           width,
           height,
           borderRadius,
-          backgroundColor: COLORS.gray200,
+          backgroundColor: colors.gray200,
           opacity,
           overflow: 'hidden',
         },
@@ -180,6 +183,8 @@ export const SkeletonBox = React.memo(function SkeletonBox({
 const TOP_EDGES = ['top'] as const;
 
 export const ProfileScreenSkeleton = React.memo(function ProfileScreenSkeleton() {
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   return (
     <SafeAreaView style={styles.container} edges={TOP_EDGES}>
       {/* Header row */}
@@ -286,6 +291,8 @@ export const ProfileScreenSkeleton = React.memo(function ProfileScreenSkeleton()
 // ---------------------------------------------------------------------------
 
 export const ConnectionsScreenSkeleton = React.memo(function ConnectionsScreenSkeleton() {
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   return (
     <View style={skeletonConnectionsStyles.container}>
       {Array.from({ length: 6 }).map((_, index) => (
@@ -308,6 +315,8 @@ export const ConnectionsScreenSkeleton = React.memo(function ConnectionsScreenSk
 // ---------------------------------------------------------------------------
 
 export const ChatListSkeleton = React.memo(function ChatListSkeleton() {
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   return (
     <View style={skeletonChatListStyles.container}>
       {Array.from({ length: 6 }).map((_, index) => (
@@ -337,6 +346,8 @@ export const ChatListSkeleton = React.memo(function ChatListSkeleton() {
 // ---------------------------------------------------------------------------
 
 export const UserDetailSkeleton = React.memo(function UserDetailSkeleton() {
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   return (
     <View style={skeletonUserDetailStyles.container}>
       {/* Hero avatar */}
@@ -391,6 +402,8 @@ export const UserDetailSkeleton = React.memo(function UserDetailSkeleton() {
 // ---------------------------------------------------------------------------
 
 export const NotificationsSkeleton = React.memo(function NotificationsSkeleton() {
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   return (
     <View style={skeletonNotificationsStyles.container}>
       {Array.from({ length: 5 }).map((_, index) => (
@@ -525,10 +538,11 @@ const skeletonConnectionsStyles = StyleSheet.create({
   },
 });
 
-const styles = StyleSheet.create({
+function makeStyles(c: ColorPalette) {
+  return StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.white,
+    backgroundColor: c.white,
   },
   header: {
     flexDirection: 'row',
@@ -537,9 +551,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingBottom: 16,
     paddingTop: 12,
-    backgroundColor: COLORS.white,
+    backgroundColor: c.white,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.gray100,
+    borderBottomColor: c.gray100,
   },
   headerRight: {
     flexDirection: 'row',
@@ -577,4 +591,5 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginTop: 20,
   },
-});
+  });
+}

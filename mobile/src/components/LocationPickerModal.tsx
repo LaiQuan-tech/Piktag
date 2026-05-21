@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -15,7 +15,8 @@ import { X, Search, MapPin, Navigation } from 'lucide-react-native';
 import { requestForegroundPermissionsAsync, getCurrentPositionAsync, reverseGeocodeAsync, Accuracy } from 'expo-location';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import { COLORS } from '../constants/theme';
+import { COLORS, type ColorPalette } from '../constants/theme';
+import { useTheme } from '../context/ThemeContext';
 import { fetchNearbyPlaces, autocompletePlaces, type PlaceResult, GOOGLE_PLACES_API_KEY } from '../lib/googlePlaces';
 import { logApiUsage } from '../lib/apiUsage';
 
@@ -35,6 +36,8 @@ export default function LocationPickerModal({
   initialLocation,
 }: LocationPickerModalProps) {
   const { t } = useTranslation();
+  const { colors, isDark } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const insets = useSafeAreaInsets();
   const searchInputRef = useRef<TextInput>(null);
 
@@ -180,7 +183,7 @@ export default function LocationPickerModal({
       activeOpacity={0.6}
     >
       <View style={styles.placeIcon}>
-        <MapPin size={18} color={COLORS.gray500} />
+        <MapPin size={18} color={colors.gray500} />
       </View>
       <View style={styles.placeInfo}>
         <Text style={styles.placeName}>{item.name}</Text>
@@ -200,7 +203,7 @@ export default function LocationPickerModal({
             recenter button previously floating over the map now lives here). */}
         <View style={styles.header}>
           <TouchableOpacity onPress={onClose} style={styles.headerBtn} activeOpacity={0.6}>
-            <X size={22} color={COLORS.gray800} />
+            <X size={22} color={colors.gray800} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>{t('locationPicker.title')}</Text>
           <TouchableOpacity
@@ -212,7 +215,7 @@ export default function LocationPickerModal({
             {locating ? (
               <BrandSpinner size={20} />
             ) : (
-              <Navigation size={20} color={COLORS.gray700} />
+              <Navigation size={20} color={colors.gray700} />
             )}
           </TouchableOpacity>
         </View>
@@ -223,7 +226,7 @@ export default function LocationPickerModal({
             not a POI name and is not what users want to record as a tag. */}
         {currentAddress ? (
           <View style={styles.currentAddressRow}>
-            <MapPin size={14} color={COLORS.gray500} />
+            <MapPin size={14} color={colors.gray500} />
             <Text style={styles.currentAddressText} numberOfLines={1}>
               {currentAddress}
             </Text>
@@ -233,14 +236,14 @@ export default function LocationPickerModal({
         {/* Search bar */}
         <View style={styles.searchContainer}>
           <View style={styles.searchBar}>
-            <Search size={18} color={COLORS.gray400} />
+            <Search size={18} color={colors.gray400} />
             <TextInput
               ref={searchInputRef}
               style={styles.searchInput}
               value={searchText}
               onChangeText={handleSearchChange}
               placeholder={t('locationPicker.searchPlaceholder')}
-              placeholderTextColor={COLORS.gray400}
+              placeholderTextColor={colors.gray400}
               returnKeyType="done"
               onSubmitEditing={() => {
                 // Fallback path when Places API returns nothing (e.g. API not
@@ -260,7 +263,7 @@ export default function LocationPickerModal({
                 }}
                 activeOpacity={0.6}
               >
-                <X size={18} color={COLORS.gray400} />
+                <X size={18} color={colors.gray400} />
               </TouchableOpacity>
             )}
           </View>
@@ -301,10 +304,11 @@ export default function LocationPickerModal({
   );
 }
 
-const styles = StyleSheet.create({
+function makeStyles(c: ColorPalette) {
+  return StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.white,
+    backgroundColor: c.white,
   },
   header: {
     flexDirection: 'row',
@@ -313,7 +317,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.gray200,
+    borderBottomColor: c.gray200,
   },
   headerBtn: {
     width: 36,
@@ -324,7 +328,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 17,
     fontWeight: '600',
-    color: COLORS.gray900,
+    color: c.gray900,
   },
   currentAddressRow: {
     flexDirection: 'row',
@@ -337,18 +341,18 @@ const styles = StyleSheet.create({
   currentAddressText: {
     flex: 1,
     fontSize: 12,
-    color: COLORS.gray500,
+    color: c.gray500,
   },
   errorBanner: {
     paddingHorizontal: 16,
     paddingVertical: 10,
-    backgroundColor: COLORS.gray50,
+    backgroundColor: c.gray50,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.gray200,
+    borderBottomColor: c.gray200,
   },
   errorBannerText: {
     fontSize: 12,
-    color: COLORS.gray600,
+    color: c.gray600,
     lineHeight: 18,
   },
   searchContainer: {
@@ -358,7 +362,7 @@ const styles = StyleSheet.create({
   searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: COLORS.gray100,
+    backgroundColor: c.gray100,
     borderRadius: 10,
     paddingHorizontal: 12,
     height: 40,
@@ -367,7 +371,7 @@ const styles = StyleSheet.create({
   searchInput: {
     flex: 1,
     fontSize: 15,
-    color: COLORS.gray900,
+    color: c.gray900,
     paddingVertical: 0,
     ...(isWeb ? { outlineStyle: 'none' } as any : {}),
   },
@@ -381,13 +385,13 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     paddingHorizontal: 16,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: COLORS.gray200,
+    borderBottomColor: c.gray200,
   },
   placeIcon: {
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: COLORS.gray100,
+    backgroundColor: c.gray100,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 12,
@@ -398,12 +402,12 @@ const styles = StyleSheet.create({
   placeName: {
     fontSize: 15,
     fontWeight: '600',
-    color: COLORS.gray900,
+    color: c.gray900,
     marginBottom: 2,
   },
   placeAddress: {
     fontSize: 13,
-    color: COLORS.gray500,
+    color: c.gray500,
   },
   emptyContainer: {
     paddingVertical: 30,
@@ -411,6 +415,7 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 14,
-    color: COLORS.gray400,
+    color: c.gray400,
   },
-});
+  });
+}

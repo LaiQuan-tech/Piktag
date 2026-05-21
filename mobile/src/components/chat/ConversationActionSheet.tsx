@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useMemo } from 'react';
 import {
   Animated,
   Dimensions,
@@ -10,7 +10,8 @@ import {
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
-import { COLORS } from '../../constants/theme';
+import { COLORS, type ColorPalette } from '../../constants/theme';
+import { useTheme } from '../../context/ThemeContext';
 import type { InboxTab } from '../../types/chat';
 
 const SCREEN_HEIGHT = Dimensions.get('window').height;
@@ -48,6 +49,8 @@ export default function ConversationActionSheet({
   onClose,
 }: Props) {
   const { t } = useTranslation();
+  const { colors, isDark } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const slideAnim = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
 
   // Slide up on open, slide down on close. Mirrors StatusModal timing
@@ -146,7 +149,8 @@ export default function ConversationActionSheet({
   );
 }
 
-const styles = StyleSheet.create({
+function makeStyles(c: ColorPalette) {
+  return StyleSheet.create({
   overlay: {
     flex: 1,
     justifyContent: 'flex-end',
@@ -156,7 +160,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.35)',
   },
   sheet: {
-    backgroundColor: COLORS.white,
+    backgroundColor: c.white,
     borderTopLeftRadius: 16,
     borderTopRightRadius: 16,
     paddingBottom: 28,
@@ -167,7 +171,7 @@ const styles = StyleSheet.create({
     width: 36,
     height: 4,
     borderRadius: 2,
-    backgroundColor: COLORS.gray300,
+    backgroundColor: c.gray300,
     marginVertical: 8,
   },
   option: {
@@ -176,21 +180,22 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   optionPressed: {
-    backgroundColor: COLORS.gray100,
+    backgroundColor: c.gray100,
   },
   optionText: {
     fontSize: 16,
-    color: COLORS.gray900,
+    color: c.gray900,
     fontWeight: '500',
   },
   optionTextPrimary: {
-    color: COLORS.piktag500,
+    color: c.piktag500,
     fontWeight: '600',
   },
   separator: {
     height: StyleSheet.hairlineWidth,
-    backgroundColor: COLORS.gray100,
+    backgroundColor: c.gray100,
     marginHorizontal: 16,
     marginVertical: 4,
   },
-});
+  });
+}

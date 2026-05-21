@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { MessageCircle } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 
-import { COLORS } from '../../constants/theme';
+import { COLORS, type ColorPalette } from '../../constants/theme';
+import { useTheme } from '../../context/ThemeContext';
 
 type Props = {
   /**
@@ -28,13 +29,15 @@ type Props = {
 const EmptyInbox = React.memo(
   ({ heading, showCta = true, onCtaPress }: Props) => {
     const { t } = useTranslation();
+  const { colors, isDark } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
     const resolvedHeading = heading ?? t('chat.emptyHeading');
 
     return (
       <View style={styles.container}>
         <MessageCircle
           size={64}
-          color={COLORS.gray300}
+          color={colors.gray300}
           strokeWidth={1.5}
         />
         <Text style={styles.heading}>{resolvedHeading}</Text>
@@ -59,7 +62,8 @@ const EmptyInbox = React.memo(
 
 EmptyInbox.displayName = 'EmptyInbox';
 
-const styles = StyleSheet.create({
+function makeStyles(c: ColorPalette) {
+  return StyleSheet.create({
   container: {
     alignItems: 'center',
     justifyContent: 'center',
@@ -70,19 +74,19 @@ const styles = StyleSheet.create({
     marginTop: 16,
     fontSize: 17,
     fontWeight: '600',
-    color: COLORS.gray900,
+    color: c.gray900,
     textAlign: 'center',
   },
   subtitle: {
     marginTop: 6,
     fontSize: 14,
-    color: COLORS.gray500,
+    color: c.gray500,
     textAlign: 'center',
     lineHeight: 20,
   },
   cta: {
     marginTop: 20,
-    backgroundColor: COLORS.piktag500,
+    backgroundColor: c.piktag500,
     borderRadius: 22,
     paddingVertical: 10,
     paddingHorizontal: 22,
@@ -91,10 +95,11 @@ const styles = StyleSheet.create({
     opacity: 0.8,
   },
   ctaLabel: {
-    color: COLORS.white,
+    color: c.white,
     fontSize: 15,
     fontWeight: '600',
   },
-});
+  });
+}
 
 export default EmptyInbox;

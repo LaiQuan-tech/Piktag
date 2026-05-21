@@ -2,7 +2,8 @@ import React, { useMemo, useCallback } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { Image } from 'expo-image';
 import { useTranslation } from 'react-i18next';
-import { COLORS } from '../../constants/theme';
+import { COLORS, type ColorPalette } from '../../constants/theme';
+import { useTheme } from '../../context/ThemeContext';
 import { useAsksByTag } from '../../hooks/useAsksByTag';
 import InitialsAvatar from '../InitialsAvatar';
 
@@ -26,6 +27,8 @@ function hoursLeft(expiresAt: string): number {
  */
 export default function AskListByTag({ tagId, onPressAsk }: AskListByTagProps) {
   const { t } = useTranslation();
+  const { colors, isDark } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const asks = useAsksByTag(tagId);
 
   const handlePress = useCallback(
@@ -90,7 +93,8 @@ export default function AskListByTag({ tagId, onPressAsk }: AskListByTagProps) {
   );
 }
 
-const styles = StyleSheet.create({
+function makeStyles(c: ColorPalette) {
+  return StyleSheet.create({
   section: {
     paddingHorizontal: 16,
     paddingVertical: 8,
@@ -99,11 +103,11 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 13,
     fontWeight: '700',
-    color: COLORS.gray700,
+    color: c.gray700,
     marginBottom: 4,
   },
   card: {
-    backgroundColor: COLORS.gray50,
+    backgroundColor: c.gray50,
     borderRadius: 12,
     padding: 12,
     gap: 6,
@@ -117,7 +121,7 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: COLORS.gray200,
+    backgroundColor: c.gray200,
   },
   nameWrap: {
     flex: 1,
@@ -125,16 +129,16 @@ const styles = StyleSheet.create({
   name: {
     fontSize: 14,
     fontWeight: '600',
-    color: COLORS.gray900,
+    color: c.gray900,
   },
   time: {
     fontSize: 11,
-    color: COLORS.gray500,
+    color: c.gray500,
     marginTop: 1,
   },
   body: {
     fontSize: 14,
-    color: COLORS.gray800,
+    color: c.gray800,
     lineHeight: 20,
   },
   tagRow: {
@@ -142,16 +146,17 @@ const styles = StyleSheet.create({
     paddingTop: 4,
   },
   tagChip: {
-    backgroundColor: COLORS.white,
+    backgroundColor: c.white,
     borderRadius: 12,
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderWidth: 1,
-    borderColor: COLORS.gray200,
+    borderColor: c.gray200,
   },
   tagText: {
     fontSize: 11,
     fontWeight: '500',
-    color: COLORS.gray700,
+    color: c.gray700,
   },
-});
+  });
+}

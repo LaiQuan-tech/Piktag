@@ -15,7 +15,7 @@
 // don't want a stray tab tap to navigate away mid-tour and lose the
 // teaching moment.
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useMemo } from 'react';
 import {
   Animated,
   Dimensions,
@@ -28,7 +28,8 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import { COLORS } from '../../constants/theme';
+import { COLORS, type ColorPalette } from '../../constants/theme';
+import { useTheme } from '../../context/ThemeContext';
 
 // Bumping the version invalidates older flags if we ever redesign the
 // overlay. Keep in lockstep with the backfill key in AppNavigator.
@@ -45,6 +46,8 @@ const TAB_KEYS: TabKey[] = ['home', 'search', 'addTag', 'notifications', 'profil
 
 export default function TabTooltipOverlay() {
   const { t } = useTranslation();
+  const { colors, isDark } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const insets = useSafeAreaInsets();
   const [visible, setVisible] = useState<boolean>(false);
   const opacity = useRef(new Animated.Value(0)).current;
@@ -151,7 +154,8 @@ function fallbackLabel(key: TabKey): string {
   }
 }
 
-const styles = StyleSheet.create({
+function makeStyles(c: ColorPalette) {
+  return StyleSheet.create({
   layer: {
     backgroundColor: 'rgba(0, 0, 0, 0.55)',
     zIndex: 9999,
@@ -161,14 +165,14 @@ const styles = StyleSheet.create({
     position: 'absolute',
   },
   tooltipChip: {
-    backgroundColor: COLORS.gray900,
+    backgroundColor: c.gray900,
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 10,
     maxWidth: 140,
   },
   tooltipText: {
-    color: COLORS.white,
+    color: c.white,
     fontSize: 12,
     fontWeight: '600',
     textAlign: 'center',
@@ -182,7 +186,7 @@ const styles = StyleSheet.create({
     borderTopWidth: 7,
     borderLeftColor: 'transparent',
     borderRightColor: 'transparent',
-    borderTopColor: COLORS.gray900,
+    borderTopColor: c.gray900,
   },
   hintWrap: {
     position: 'absolute',
@@ -195,4 +199,5 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '500',
   },
-});
+  });
+}

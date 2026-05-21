@@ -25,7 +25,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useTranslation } from 'react-i18next';
 import InitialsAvatar from '../InitialsAvatar';
 import OverlappingAvatars from '../OverlappingAvatars';
-import { COLORS } from '../../constants/theme';
+import { COLORS, type ColorPalette } from '../../constants/theme';
+import { useTheme } from '../../context/ThemeContext';
 import { supabase } from '../../lib/supabase';
 import { normalizeTagName as sharedNormalizeTag } from '../../lib/normalizeTag';
 import { useAuth } from '../../hooks/useAuth';
@@ -80,6 +81,10 @@ type RotatingGradientRingProps = {
 const RING_PADDING = 3;
 
 function RotatingGradientRing({ colors, children, size = 64 }: RotatingGradientRingProps) {
+  // `colors` here is the gradient stops prop, NOT theme colors —
+  // need separate theme hook for styles access.
+  const { colors: themeColors } = useTheme();
+  const styles = useMemo(() => makeStyles(themeColors), [themeColors]);
   const rotation = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -139,6 +144,8 @@ function RotatingGradientRing({ colors, children, size = 64 }: RotatingGradientR
 
 export default function AskStoryRow({ asks, myAsk, myAvatarUrl, myName, onRefresh, onPressUser }: AskStoryRowProps) {
   const { t } = useTranslation();
+  const { colors, isDark } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const { user } = useAuth();
   const [createVisible, setCreateVisible] = useState(false);
   const [hiddenAuthorIds, setHiddenAuthorIds] = useState<Set<string>>(new Set());
@@ -503,6 +510,9 @@ async function findOrCreateTagByName(name: string): Promise<string | null> {
 
 export function AskCreateModal({ visible, onClose, existingAsk, onCreated, seedBody }: AskCreateModalProps) {
   const { t } = useTranslation();
+  const { colors, isDark } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
+  const modalStyles = useMemo(() => makeModalStyles(colors), [colors]);
   const { user } = useAuth();
 
   // Rotating Ask placeholder — same shared hook as Search / the
@@ -880,7 +890,7 @@ export function AskCreateModal({ visible, onClose, existingAsk, onCreated, seedB
                 value={body}
                 onChangeText={handleBodyChange}
                 placeholder={bodyPlaceholder}
-                placeholderTextColor={COLORS.gray400}
+                placeholderTextColor={colors.gray400}
                 multiline
                 maxLength={MAX_BODY}
                 autoFocus
@@ -903,7 +913,7 @@ export function AskCreateModal({ visible, onClose, existingAsk, onCreated, seedB
                     {aiLoading ? (
                       <BrandSpinner size={16} />
                     ) : (
-                      <AtomIcon size={14} color={COLORS.piktag600} />
+                      <AtomIcon size={14} color={colors.piktag600} />
                     )}
                     <Text style={modalStyles.aiHeaderTitle}>
                       {aiLoading
@@ -928,7 +938,7 @@ export function AskCreateModal({ visible, onClose, existingAsk, onCreated, seedB
                           : t('ask.generateAiTags', { defaultValue: 'AI 生成標籤' })
                       }
                     >
-                      <RefreshCw size={14} color={COLORS.piktag600} strokeWidth={2.2} />
+                      <RefreshCw size={14} color={colors.piktag600} strokeWidth={2.2} />
                     </TouchableOpacity>
                   )}
                 </View>
@@ -978,7 +988,7 @@ export function AskCreateModal({ visible, onClose, existingAsk, onCreated, seedB
                   value={customInput}
                   onChangeText={setCustomInput}
                   placeholder={t('ask.customTagPlaceholder')}
-                  placeholderTextColor={COLORS.gray400}
+                  placeholderTextColor={colors.gray400}
                   maxLength={MAX_TAG_LEN}
                   returnKeyType="done"
                   onSubmitEditing={addCustomTag}
@@ -1035,10 +1045,11 @@ export function AskCreateModal({ visible, onClose, existingAsk, onCreated, seedB
 
 // ── Styles ──
 
-const styles = StyleSheet.create({
+function makeStyles(c: ColorPalette) {
+  return StyleSheet.create({
   container: {
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.gray200,
+    borderBottomColor: c.gray200,
     paddingVertical: 12,
   },
 
@@ -1068,7 +1079,7 @@ const styles = StyleSheet.create({
     borderRadius: 34,
     borderWidth: 2,
     borderStyle: 'dashed',
-    borderColor: COLORS.piktag500,
+    borderColor: c.piktag500,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -1080,7 +1091,7 @@ const styles = StyleSheet.create({
     height: 68,
     borderRadius: 34,
     borderWidth: 1.5,
-    borderColor: COLORS.gray200,
+    borderColor: c.gray200,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -1091,7 +1102,7 @@ const styles = StyleSheet.create({
     width: 22,
     height: 22,
     borderRadius: 11,
-    backgroundColor: COLORS.piktag500,
+    backgroundColor: c.piktag500,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 2,
@@ -1101,12 +1112,12 @@ const styles = StyleSheet.create({
     marginTop: 6,
     fontSize: 12,
     fontWeight: '700',
-    color: COLORS.gray900,
+    color: c.gray900,
     maxWidth: 72,
     textAlign: 'center',
   },
   circleNameViewed: {
-    color: COLORS.gray500,
+    color: c.gray500,
     fontWeight: '600',
   },
   // Body preview: smaller + lighter than name. piktag600 so it
@@ -1115,16 +1126,16 @@ const styles = StyleSheet.create({
     marginTop: 2,
     fontSize: 11,
     fontWeight: '500',
-    color: COLORS.piktag600,
+    color: c.piktag600,
     maxWidth: 72,
     textAlign: 'center',
   },
   circleBodyViewed: {
-    color: COLORS.gray400,
+    color: c.gray400,
     fontWeight: '400',
   },
   circleBodyMuted: {
-    color: COLORS.gray400,
+    color: c.gray400,
     fontStyle: 'italic',
   },
 
@@ -1142,7 +1153,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   ringInner: {
-    backgroundColor: COLORS.white,
+    backgroundColor: c.white,
     alignItems: 'center',
     justifyContent: 'center',
     overflow: 'hidden',
@@ -1155,12 +1166,12 @@ const styles = StyleSheet.create({
   // right — that peek IS the scroll affordance, no chevron / dots.
   askCard: {
     width: SLIDE_WIDTH,
-    backgroundColor: COLORS.white,
+    backgroundColor: c.white,
     borderRadius: 16,
     paddingHorizontal: 14,
     paddingVertical: 12,
     borderWidth: 1,
-    borderColor: COLORS.gray100,
+    borderColor: c.gray100,
     shadowColor: '#000',
     shadowOpacity: 0.04,
     shadowRadius: 6,
@@ -1175,12 +1186,12 @@ const styles = StyleSheet.create({
   // "slide" boundary, similar to Music's Recently Played item.
   askPairSlide: {
     width: SLIDE_WIDTH,
-    backgroundColor: COLORS.white,
+    backgroundColor: c.white,
     borderRadius: 16,
     paddingHorizontal: 12,
     paddingVertical: 10,
     borderWidth: 1,
-    borderColor: COLORS.gray100,
+    borderColor: c.gray100,
     shadowColor: '#000',
     shadowOpacity: 0.04,
     shadowRadius: 6,
@@ -1212,7 +1223,7 @@ const styles = StyleSheet.create({
     height: 44,
     borderRadius: 22,
     borderWidth: 1.5,
-    borderColor: COLORS.gray300,
+    borderColor: c.gray300,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -1224,12 +1235,12 @@ const styles = StyleSheet.create({
   askRowName: {
     fontSize: 14,
     fontWeight: '700',
-    color: COLORS.gray900,
+    color: c.gray900,
   },
   askRowBody: {
     fontSize: 13,
     lineHeight: 17,
-    color: COLORS.gray700,
+    color: c.gray700,
   },
   askRowTagsLine: {
     flexDirection: 'row',
@@ -1240,7 +1251,7 @@ const styles = StyleSheet.create({
   },
   askRowTagOverflow: {
     fontSize: 11,
-    color: COLORS.gray500,
+    color: c.gray500,
     fontWeight: '500',
     marginLeft: 2,
   },
@@ -1249,14 +1260,14 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
   },
   askCardEmpty: {
-    backgroundColor: COLORS.gray50,
+    backgroundColor: c.gray50,
     borderStyle: 'dashed',
-    borderColor: COLORS.gray300,
+    borderColor: c.gray300,
     shadowOpacity: 0,
     elevation: 0,
   },
   askCardViewed: {
-    backgroundColor: COLORS.gray50,
+    backgroundColor: c.gray50,
     shadowOpacity: 0,
     elevation: 0,
   },
@@ -1277,9 +1288,9 @@ const styles = StyleSheet.create({
     height: 44,
     borderRadius: 22,
     borderWidth: 2,
-    borderColor: COLORS.gray300,
+    borderColor: c.gray300,
     borderStyle: 'dashed',
-    backgroundColor: COLORS.gray50,
+    backgroundColor: c.gray50,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -1290,11 +1301,11 @@ const styles = StyleSheet.create({
     width: 18,
     height: 18,
     borderRadius: 9,
-    backgroundColor: COLORS.piktag500,
+    backgroundColor: c.piktag500,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 2,
-    borderColor: COLORS.white,
+    borderColor: c.white,
   },
   // Viewed-state ring on a friend card — same 44dp footprint as the
   // gradient ring so the layout doesn't jump when an ask flips from
@@ -1304,7 +1315,7 @@ const styles = StyleSheet.create({
     height: 44,
     borderRadius: 22,
     borderWidth: 1.5,
-    borderColor: COLORS.gray300,
+    borderColor: c.gray300,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -1315,26 +1326,26 @@ const styles = StyleSheet.create({
   askCardName: {
     fontSize: 14,
     fontWeight: '700',
-    color: COLORS.gray900,
+    color: c.gray900,
   },
   askCardNameViewed: {
-    color: COLORS.gray600,
+    color: c.gray600,
   },
   askCardHandle: {
     fontSize: 12,
-    color: COLORS.gray500,
+    color: c.gray500,
     marginTop: 1,
   },
   askCardBody: {
     fontSize: 14,
-    color: COLORS.gray800,
+    color: c.gray800,
     lineHeight: 19,
   },
   askCardBodyViewed: {
-    color: COLORS.gray500,
+    color: c.gray500,
   },
   askCardBodyEmpty: {
-    color: COLORS.gray500,
+    color: c.gray500,
     fontStyle: 'italic',
   },
   askCardTagsRow: {
@@ -1343,33 +1354,35 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   askCardTagChip: {
-    backgroundColor: COLORS.piktag50,
+    backgroundColor: c.piktag50,
     borderRadius: 12,
     paddingHorizontal: 8,
     paddingVertical: 3,
     maxWidth: 100,
   },
   askCardTagChipViewed: {
-    backgroundColor: COLORS.gray100,
+    backgroundColor: c.gray100,
   },
   askCardTagText: {
     fontSize: 11,
     fontWeight: '600',
-    color: COLORS.piktag600,
+    color: c.piktag600,
   },
   askCardTagTextViewed: {
-    color: COLORS.gray500,
+    color: c.gray500,
   },
   // (askCardFooter / askCardTime / askCardTimeViewed removed alongside
   // the 24h countdown — body + tag chips now anchor the card bottom
   // via card flex layout, no explicit footer needed.)
-});
+  });
+}
 
-const modalStyles = StyleSheet.create({
+function makeModalStyles(c: ColorPalette) {
+  return StyleSheet.create({
   overlay: { flex: 1, justifyContent: 'flex-end' },
   backdrop: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.4)' },
   sheet: {
-    backgroundColor: COLORS.white,
+    backgroundColor: c.white,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     padding: 20,
@@ -1378,17 +1391,17 @@ const modalStyles = StyleSheet.create({
   },
   handleBar: {
     width: 40, height: 4, borderRadius: 2,
-    backgroundColor: COLORS.gray200, alignSelf: 'center', marginBottom: 16,
+    backgroundColor: c.gray200, alignSelf: 'center', marginBottom: 16,
   },
-  title: { fontSize: 17, fontWeight: '700', color: COLORS.gray900, marginBottom: 16 },
-  subtitle: { fontSize: 13, color: COLORS.gray500, lineHeight: 19, marginBottom: 16 },
+  title: { fontSize: 17, fontWeight: '700', color: c.gray900, marginBottom: 16 },
+  subtitle: { fontSize: 13, color: c.gray500, lineHeight: 19, marginBottom: 16 },
   input: {
-    borderWidth: 1.5, borderColor: COLORS.gray200, borderRadius: 12,
-    padding: 14, fontSize: 15, color: COLORS.gray900,
+    borderWidth: 1.5, borderColor: c.gray200, borderRadius: 12,
+    padding: 14, fontSize: 15, color: c.gray900,
     minHeight: 80, textAlignVertical: 'top', lineHeight: 22,
   },
-  charCount: { fontSize: 12, color: COLORS.gray400, textAlign: 'right', marginTop: 4, marginBottom: 12 },
-  sectionTitle: { fontSize: 14, fontWeight: '600', color: COLORS.gray700, marginBottom: 8 },
+  charCount: { fontSize: 12, color: c.gray400, textAlign: 'right', marginTop: 4, marginBottom: 12 },
+  sectionTitle: { fontSize: 14, fontWeight: '600', color: c.gray700, marginBottom: 8 },
   // Horizontal scroll used by view-mode (existing-Ask display) to show
   // the Ask's tag pills inline. Distinct from the create-mode wrap
   // (tagChipsWrap) — view mode is a read-only single row, create
@@ -1398,8 +1411,8 @@ const modalStyles = StyleSheet.create({
   // causing `#眼鏡 #配眼鏡` to render stuck together (founder caught).
   tagScrollContent: { gap: 8 },
   aiLoadingRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 16 },
-  aiLoadingText: { fontSize: 13, color: COLORS.gray500 },
-  aiHint: { fontSize: 13, color: COLORS.gray400, marginBottom: 16 },
+  aiLoadingText: { fontSize: 13, color: c.gray500 },
+  aiHint: { fontSize: 13, color: c.gray400, marginBottom: 16 },
   // ─── AI suggestion section — unified visual language with
   //     AddTagScreen.aiHeader* / EditProfileScreen.ai_header*. Keep
   //     these in sync if either of the other two surfaces evolves. ───
@@ -1418,22 +1431,22 @@ const modalStyles = StyleSheet.create({
   aiHeaderTitle: {
     fontSize: 14,
     fontWeight: '600',
-    color: COLORS.piktag600,
+    color: c.piktag600,
   },
   aiRefreshBtn: {
     width: 32,
     height: 32,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: COLORS.piktag200,
-    backgroundColor: COLORS.piktag50,
+    borderColor: c.piktag200,
+    backgroundColor: c.piktag50,
     alignItems: 'center',
     justifyContent: 'center',
   },
   aiRefreshBtnDisabled: { opacity: 0.4 },
   aiEmptyHint: {
     fontSize: 12,
-    color: COLORS.gray500,
+    color: c.gray500,
     fontStyle: 'italic',
     paddingHorizontal: 4,
   },
@@ -1445,7 +1458,7 @@ const modalStyles = StyleSheet.create({
     gap: 8,
   },
   tagChip: {
-    backgroundColor: COLORS.gray100,
+    backgroundColor: c.gray100,
     borderRadius: 9999,
     paddingHorizontal: 14,
     paddingVertical: 8,
@@ -1453,19 +1466,19 @@ const modalStyles = StyleSheet.create({
     borderColor: 'transparent',
   },
   tagChipSelected: {
-    backgroundColor: COLORS.piktag500,
-    borderColor: COLORS.piktag500,
+    backgroundColor: c.piktag500,
+    borderColor: c.piktag500,
   },
-  tagChipText: { fontSize: 13, fontWeight: '500', color: COLORS.gray700 },
+  tagChipText: { fontSize: 13, fontWeight: '500', color: c.gray700 },
   tagChipTextSelected: { color: '#fff' },
   customRow: {
     flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 16,
   },
   customInput: {
     flex: 1,
-    borderWidth: 1.5, borderColor: COLORS.gray200, borderRadius: 12,
+    borderWidth: 1.5, borderColor: c.gray200, borderRadius: 12,
     paddingHorizontal: 14, paddingVertical: 10,
-    fontSize: 14, color: COLORS.gray900,
+    fontSize: 14, color: c.gray900,
   },
   // Square-rounded 40×40 — borderRadius 12 matches the unified Plus
   // submit-button shape (AddTagScreen / ManageTagsScreen /
@@ -1474,7 +1487,7 @@ const modalStyles = StyleSheet.create({
   customAddBtn: {
     width: 40, height: 40, borderRadius: 12,
     alignItems: 'center', justifyContent: 'center',
-    backgroundColor: COLORS.piktag500,
+    backgroundColor: c.piktag500,
   },
   customAddBtnDisabled: { opacity: 0.4 },
   // (Old aiTriggerBtn / aiTriggerText styles removed — the manual
@@ -1483,19 +1496,19 @@ const modalStyles = StyleSheet.create({
   // aiSection / aiHeaderRow / aiRefreshBtn above.)
   // View-mode (existing ask) styles
   viewBodyWrap: {
-    backgroundColor: COLORS.gray50,
+    backgroundColor: c.gray50,
     borderRadius: 12,
     padding: 14,
     marginBottom: 12,
   },
   viewBody: {
     fontSize: 15,
-    color: COLORS.gray900,
+    color: c.gray900,
     lineHeight: 22,
   },
   viewMeta: {
     fontSize: 12,
-    color: COLORS.gray500,
+    color: c.gray500,
     marginBottom: 16,
   },
   // Full-width single-button variants — used when the modal is in either
@@ -1505,7 +1518,7 @@ const modalStyles = StyleSheet.create({
     borderRadius: 12,
     paddingVertical: 14,
     alignItems: 'center',
-    backgroundColor: COLORS.piktag500,
+    backgroundColor: c.piktag500,
   },
   submitBtnDisabled: { opacity: 0.5 },
   submitBtnText: { fontSize: 15, fontWeight: '700', color: '#fff' },
@@ -1515,11 +1528,12 @@ const modalStyles = StyleSheet.create({
     paddingVertical: 14,
     alignItems: 'center',
     borderWidth: 2,
-    borderColor: COLORS.gray200,
+    borderColor: c.gray200,
   },
   deleteBtnFullText: {
     fontSize: 15,
     fontWeight: '700',
-    color: COLORS.gray700,
+    color: c.gray700,
   },
-});
+  });
+}

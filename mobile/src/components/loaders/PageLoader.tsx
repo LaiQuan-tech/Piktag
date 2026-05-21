@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { StyleProp, StyleSheet, Text, View, ViewStyle } from 'react-native';
 
-import { COLORS } from '../../constants/theme';
+import { COLORS, type ColorPalette } from '../../constants/theme';
+import { useTheme } from '../../context/ThemeContext';
 import LogoLoader from './LogoLoader';
 
 /**
@@ -26,6 +27,8 @@ export type PageLoaderProps = {
 };
 
 function PageLoaderImpl({ heading, subtitle, style }: PageLoaderProps) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   return (
     <View style={[styles.container, style]}>
       <LogoLoader size={64} />
@@ -40,7 +43,8 @@ PageLoader.displayName = 'PageLoader';
 
 export default PageLoader;
 
-const styles = StyleSheet.create({
+function makeStyles(c: ColorPalette) {
+  return StyleSheet.create({
   container: {
     flex: 1,
     alignItems: 'center',
@@ -50,14 +54,15 @@ const styles = StyleSheet.create({
   heading: {
     fontSize: 15,
     fontWeight: '600',
-    color: COLORS.gray700,
+    color: c.gray700,
     marginTop: 20,
     textAlign: 'center',
   },
   subtitle: {
     fontSize: 13,
-    color: COLORS.gray500,
+    color: c.gray500,
     marginTop: 6,
     textAlign: 'center',
   },
-});
+  });
+}

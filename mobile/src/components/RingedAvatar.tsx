@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useMemo } from 'react';
 import {
   Animated,
   Easing,
@@ -12,7 +12,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Pencil, Plus } from 'lucide-react-native';
 
 import InitialsAvatar from './InitialsAvatar';
-import { COLORS } from '../constants/theme';
+import { COLORS, type ColorPalette } from '../constants/theme';
+import { useTheme } from '../context/ThemeContext';
 
 /**
  * Ring style applied around the avatar.
@@ -78,6 +79,8 @@ function RingedAvatarImpl({
   accessibilityLabel,
   style,
 }: RingedAvatarProps) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   // Sub-48px avatars get a smaller badge so the "+" doesn't visually overpower the photo.
   const isSmall = size < 48;
   const badgeDimension = isSmall ? 16 : 20;
@@ -203,9 +206,9 @@ function RingedAvatarImpl({
     badge === null ? null : (
       <View style={[styles.badge, badgeStyle]}>
         {badge === 'plus' ? (
-          <Plus size={badgeIconSize} color={COLORS.white} strokeWidth={3} />
+          <Plus size={badgeIconSize} color={colors.white} strokeWidth={3} />
         ) : (
-          <Pencil size={badgeIconSize} color={COLORS.white} strokeWidth={2.5} />
+          <Pencil size={badgeIconSize} color={colors.white} strokeWidth={2.5} />
         )}
       </View>
     );
@@ -247,7 +250,8 @@ RingedAvatar.displayName = 'RingedAvatar';
 export default RingedAvatar;
 
 // Styles are precomputed at module load — per-render style allocation would defeat the memo above.
-const styles = StyleSheet.create({
+function makeStyles(c: ColorPalette) {
+  return StyleSheet.create({
   wrapper: {
     alignItems: 'center',
     justifyContent: 'center',
@@ -261,7 +265,7 @@ const styles = StyleSheet.create({
     padding: 3,
   },
   whiteRing: {
-    backgroundColor: COLORS.white,
+    backgroundColor: c.white,
     alignItems: 'center',
     justifyContent: 'center',
     overflow: 'hidden',
@@ -271,17 +275,18 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     overflow: 'hidden',
     borderWidth: 1.5,
-    borderColor: COLORS.piktag100,
+    borderColor: c.piktag100,
     padding: 0,
   },
   badge: {
     position: 'absolute',
     bottom: -2,
     right: -2,
-    backgroundColor: COLORS.piktag500,
+    backgroundColor: c.piktag500,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 2,
-    borderColor: COLORS.white,
+    borderColor: c.white,
   },
-});
+  });
+}

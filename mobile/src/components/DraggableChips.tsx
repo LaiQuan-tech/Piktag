@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback, useRef, useMemo } from 'react';
 import { View, Text, StyleSheet, LayoutChangeEvent } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
@@ -10,7 +10,8 @@ import Animated, {
 } from 'react-native-reanimated';
 import { impactAsync, ImpactFeedbackStyle } from 'expo-haptics';
 import { useTranslation } from 'react-i18next';
-import { COLORS } from '../constants/theme';
+import { COLORS, type ColorPalette } from '../constants/theme';
+import { useTheme } from '../context/ThemeContext';
 import TagChip from './TagChip';
 
 type ChipItem = {
@@ -63,6 +64,8 @@ export default function DraggableChips({
   onDragStateChange,
 }: DraggableChipsProps) {
   const { t } = useTranslation();
+  const { colors, isDark } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const [layouts, setLayouts] = useState<Map<string, ChipLayout>>(new Map());
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const containerRef = useRef<View>(null);
@@ -171,6 +174,8 @@ type DraggableChipProps = {
 function DraggableChip({
   item, isToggle, isDragging, onLayout, onDragStart, onDragEnd, onDragMove, onRemove, onTap,
 }: DraggableChipProps) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const translateX = useSharedValue(0);
   const translateY = useSharedValue(0);
   const scale = useSharedValue(1);
@@ -235,7 +240,8 @@ function DraggableChip({
   );
 }
 
-const styles = StyleSheet.create({
+function makeStyles(c: ColorPalette) {
+  return StyleSheet.create({
   // No internal paddingHorizontal — callers control the left/right
   // gutter so this component never DOUBLE-indents when nested in
   // an already-padded parent (the alignment bug the founder caught:
@@ -253,13 +259,14 @@ const styles = StyleSheet.create({
   chipHost: {
     alignSelf: 'flex-start',
     borderRadius: 9999,
-    shadowColor: COLORS.gray900,
+    shadowColor: c.gray900,
     shadowOffset: { width: 0, height: 3 },
     shadowRadius: 6,
   },
   emptyText: {
     fontSize: 14,
-    color: COLORS.gray400,
+    color: c.gray400,
     paddingVertical: 8,
   },
-});
+  });
+}

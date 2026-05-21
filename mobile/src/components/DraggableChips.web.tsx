@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { X } from 'lucide-react-native';
-import { COLORS } from '../constants/theme';
+import { COLORS, type ColorPalette } from '../constants/theme';
+import { useTheme } from '../context/ThemeContext';
 
 type ChipItem = {
   id: string;
@@ -21,13 +22,15 @@ type Props = {
 
 // Web fallback: non-draggable chips (no react-native-reanimated)
 export default function DraggableChips({ items, onRemove }: Props) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   return (
     <View style={styles.wrap}>
       {items.map((item) => (
         <Pressable key={item.id} style={styles.chip}>
           <Text style={styles.chipText}>{item.label}</Text>
           <Pressable onPress={() => onRemove?.(item)} style={styles.chipX}>
-            <X size={14} color={COLORS.gray400} />
+            <X size={14} color={colors.gray400} />
           </Pressable>
         </Pressable>
       ))}
@@ -35,14 +38,16 @@ export default function DraggableChips({ items, onRemove }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+function makeStyles(c: ColorPalette) {
+  return StyleSheet.create({
   wrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, paddingHorizontal: 20 },
   chip: {
     flexDirection: 'row', alignItems: 'center', gap: 5,
-    backgroundColor: COLORS.gray100, borderRadius: 20,
+    backgroundColor: c.gray100, borderRadius: 20,
     paddingVertical: 8, paddingLeft: 14, paddingRight: 6,
     borderWidth: 2, borderColor: 'transparent',
   },
-  chipText: { fontSize: 14, fontWeight: '500', color: COLORS.gray900 },
+  chipText: { fontSize: 14, fontWeight: '500', color: c.gray900 },
   chipX: { padding: 4 },
-});
+  });
+}

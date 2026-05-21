@@ -12,7 +12,8 @@ import { X } from 'lucide-react-native';
 import { requestForegroundPermissionsAsync, getCurrentPositionAsync, Accuracy } from 'expo-location';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import { COLORS } from '../constants/theme';
+import { COLORS, type ColorPalette } from '../constants/theme';
+import { useTheme } from '../context/ThemeContext';
 import { GOOGLE_PLACES_API_KEY } from '../lib/googlePlaces';
 import { logApiUsage } from '../lib/apiUsage';
 import { useAuth } from '../hooks/useAuth';
@@ -311,6 +312,8 @@ export default function FriendsMapModal({
   onFriendPress,
 }: FriendsMapModalProps) {
   const { t } = useTranslation();
+  const { colors, isDark } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const { user } = useAuth();
   const insets = useSafeAreaInsets();
   const [userCoords, setUserCoords] = useState<{ lat: number; lng: number } | null>(null);
@@ -496,7 +499,7 @@ export default function FriendsMapModal({
         {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity onPress={onClose} style={styles.headerBtn} activeOpacity={0.6}>
-            <X size={22} color={COLORS.gray800} />
+            <X size={22} color={colors.gray800} />
           </TouchableOpacity>
           <View style={styles.headerTitleWrap}>
             <Text style={styles.headerTitle}>{t('friendsMap.title')}</Text>
@@ -545,7 +548,7 @@ export default function FriendsMapModal({
               if (!WebView) {
                 return (
                   <View style={styles.loadingContainer}>
-                    <Text style={{ color: COLORS.gray500 }}>{t('friendsMap.loadFailed')}</Text>
+                    <Text style={{ color: colors.gray500 }}>{t('friendsMap.loadFailed')}</Text>
                   </View>
                 );
               }
@@ -577,7 +580,8 @@ export default function FriendsMapModal({
   );
 }
 
-const styles = StyleSheet.create({
+function makeStyles(c: ColorPalette) {
+  return StyleSheet.create({
   container: { flex: 1, backgroundColor: '#fff' },
   header: {
     flexDirection: 'row',
@@ -586,7 +590,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 10,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.gray200,
+    borderBottomColor: c.gray200,
   },
   headerBtn: {
     width: 36,
@@ -595,8 +599,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   headerTitleWrap: { alignItems: 'center' },
-  headerTitle: { fontSize: 16, fontWeight: '700', color: COLORS.gray900 },
-  headerSubtitle: { fontSize: 11, color: COLORS.gray500, marginTop: 1 },
+  headerTitle: { fontSize: 16, fontWeight: '700', color: c.gray900 },
+  headerSubtitle: { fontSize: 11, color: c.gray500, marginTop: 1 },
   mapContainer: { flex: 1, backgroundColor: '#e5e7eb' },
   loadingContainer: {
     flex: 1,
@@ -605,7 +609,7 @@ const styles = StyleSheet.create({
   },
   staleHint: {
     fontSize: 12,
-    color: COLORS.gray500,
+    color: c.gray500,
     textAlign: 'center',
     paddingHorizontal: 20,
     marginTop: 8,
@@ -623,4 +627,5 @@ const styles = StyleSheet.create({
     lineHeight: 17,
     color: '#991B1B',
   },
-});
+  });
+}

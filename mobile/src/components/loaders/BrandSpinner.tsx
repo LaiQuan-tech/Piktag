@@ -10,7 +10,8 @@ import Animated, {
 } from 'react-native-reanimated';
 import Svg, { Circle, Defs, LinearGradient, Stop } from 'react-native-svg';
 
-import { COLORS } from '../../constants/theme';
+import { COLORS, type ColorPalette } from '../../constants/theme';
+import { useTheme } from '../../context/ThemeContext';
 
 /**
  * Brand-coloured rotating spinner used at micro-scale (in-button, toolbar,
@@ -54,6 +55,8 @@ function strokeForSize(size: BrandSpinnerSize): number {
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
 function BrandSpinnerImpl({ size = 24, style }: BrandSpinnerProps) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const reduced = useReducedMotion();
   const rotation = useSharedValue(0);
   const stroke = strokeForSize(size);
@@ -99,7 +102,7 @@ function BrandSpinnerImpl({ size = 24, style }: BrandSpinnerProps) {
             cx={size / 2}
             cy={size / 2}
             r={radius}
-            stroke={COLORS.piktag500}
+            stroke={colors.piktag500}
             strokeWidth={stroke}
             strokeLinecap="round"
             strokeDasharray={`${arcLength} ${dashOffset}`}
@@ -142,7 +145,8 @@ BrandSpinner.displayName = 'BrandSpinner';
 
 export default BrandSpinner;
 
-const styles = StyleSheet.create({
+function makeStyles(c: ColorPalette) {
+  return StyleSheet.create({
   center: {
     alignItems: 'center',
     justifyContent: 'center',
@@ -152,4 +156,5 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-});
+  });
+}

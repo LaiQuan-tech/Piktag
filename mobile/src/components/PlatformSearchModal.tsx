@@ -23,7 +23,8 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { Search, X } from 'lucide-react-native';
-import { COLORS } from '../constants/theme';
+import { COLORS, type ColorPalette } from '../constants/theme';
+import { useTheme } from '../context/ThemeContext';
 import PlatformIcon from './PlatformIcon';
 import {
   PLATFORMS,
@@ -47,6 +48,8 @@ type SectionData = {
 
 export default function PlatformSearchModal({ visible, onClose, onSelect }: Props) {
   const { t } = useTranslation();
+  const { colors, isDark } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const insets = useSafeAreaInsets();
   const [query, setQuery] = useState('');
 
@@ -107,26 +110,26 @@ export default function PlatformSearchModal({ visible, onClose, onSelect }: Prop
             {t('editProfile.browseAllPlatforms', { defaultValue: 'Browse all platforms' })}
           </Text>
           <TouchableOpacity onPress={onClose} hitSlop={8} style={styles.closeBtn}>
-            <X size={24} color={COLORS.gray700} />
+            <X size={24} color={colors.gray700} />
           </TouchableOpacity>
         </View>
 
         {/* Search bar */}
         <View style={styles.searchBar}>
-          <Search size={18} color={COLORS.gray400} />
+          <Search size={18} color={colors.gray400} />
           <TextInput
             style={styles.searchInput}
             value={query}
             onChangeText={setQuery}
             placeholder={t('editProfile.platformSearchPlaceholder', { defaultValue: 'Search platforms…' })}
-            placeholderTextColor={COLORS.gray400}
+            placeholderTextColor={colors.gray400}
             autoCapitalize="none"
             autoCorrect={false}
             returnKeyType="search"
           />
           {query.length > 0 ? (
             <TouchableOpacity onPress={() => setQuery('')} hitSlop={8}>
-              <X size={16} color={COLORS.gray400} />
+              <X size={16} color={colors.gray400} />
             </TouchableOpacity>
           ) : null}
         </View>
@@ -171,7 +174,8 @@ export default function PlatformSearchModal({ visible, onClose, onSelect }: Prop
   );
 }
 
-const styles = StyleSheet.create({
+function makeStyles(c: ColorPalette) {
+  return StyleSheet.create({
   // Full-screen dim catches taps to dismiss outside the sheet.
   backdrop: {
     position: 'absolute',
@@ -190,7 +194,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     height: '85%',
-    backgroundColor: COLORS.white,
+    backgroundColor: c.white,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
   },
@@ -204,7 +208,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 18,
     fontWeight: '700',
-    color: COLORS.gray900,
+    color: c.gray900,
   },
   closeBtn: {
     padding: 4,
@@ -218,18 +222,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: Platform.OS === 'ios' ? 10 : 6,
     borderRadius: 12,
-    backgroundColor: COLORS.gray100,
+    backgroundColor: c.gray100,
   },
   searchInput: {
     flex: 1,
     fontSize: 15,
-    color: COLORS.gray900,
+    color: c.gray900,
     paddingVertical: 0,
   },
   sectionHeader: {
     fontSize: 12,
     fontWeight: '700',
-    color: COLORS.gray500,
+    color: c.gray500,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
     paddingHorizontal: 20,
@@ -249,13 +253,13 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: COLORS.gray100,
+    backgroundColor: c.gray100,
   },
   rowLabel: {
     flex: 1,
     fontSize: 15,
     fontWeight: '500',
-    color: COLORS.gray900,
+    color: c.gray900,
   },
   emptyWrap: {
     paddingVertical: 60,
@@ -263,6 +267,7 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 14,
-    color: COLORS.gray500,
+    color: c.gray500,
   },
-});
+  });
+}

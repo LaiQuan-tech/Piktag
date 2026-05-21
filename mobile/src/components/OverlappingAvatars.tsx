@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Image } from 'expo-image';
 import InitialsAvatar from './InitialsAvatar';
-import { COLORS } from '../constants/theme';
+import { COLORS, type ColorPalette } from '../constants/theme';
+import { useTheme } from '../context/ThemeContext';
 
 type User = {
   id: string;
@@ -20,6 +21,8 @@ type Props = {
 };
 
 const OverlappingAvatars = React.memo(({ users, total, size = 28, max = 3, onPress }: Props) => {
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   if (!users.length && !total) return null;
 
   const visible = users.slice(0, max);
@@ -89,26 +92,28 @@ const OverlappingAvatars = React.memo(({ users, total, size = 28, max = 3, onPre
   return content;
 });
 
-const styles = StyleSheet.create({
+function makeStyles(c: ColorPalette) {
+  return StyleSheet.create({
   row: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   avatarWrap: {
     borderWidth: 2,
-    borderColor: COLORS.white,
-    backgroundColor: COLORS.white,
+    borderColor: c.white,
+    backgroundColor: c.white,
     overflow: 'hidden',
     alignItems: 'center',
     justifyContent: 'center',
   },
   countBubble: {
-    backgroundColor: COLORS.gray200,
+    backgroundColor: c.gray200,
   },
   countText: {
     fontWeight: '700',
-    color: COLORS.gray600,
+    color: c.gray600,
   },
-});
+  });
+}
 
 export default OverlappingAvatars;

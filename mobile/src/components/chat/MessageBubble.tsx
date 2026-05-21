@@ -1,8 +1,9 @@
 import { AlertCircle } from 'lucide-react-native';
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { COLORS } from '../../constants/theme';
+import { COLORS, type ColorPalette } from '../../constants/theme';
+import { useTheme } from '../../context/ThemeContext';
 import type { ThreadMessage } from '../../types/chat';
 import InitialsAvatar from '../InitialsAvatar';
 
@@ -20,6 +21,8 @@ const AVATAR_SIZE = 28;
 const MessageBubble = React.memo((props: Props) => {
   const { message, isMine, showAvatar, avatarName, onRetry } = props;
   const { t } = useTranslation();
+  const { colors, isDark } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
 
   const isFailed = isMine && message.status === 'failed';
   const isSending = isMine && message.status === 'sending';
@@ -33,7 +36,7 @@ const MessageBubble = React.memo((props: Props) => {
       style={[
         styles.bubble,
         {
-          backgroundColor: isMine ? COLORS.piktag500 : COLORS.gray100,
+          backgroundColor: isMine ? colors.piktag500 : colors.gray100,
         },
         bubbleCornerStyle,
       ]}
@@ -41,7 +44,7 @@ const MessageBubble = React.memo((props: Props) => {
       <Text
         style={[
           styles.bodyText,
-          { color: isMine ? COLORS.white : COLORS.gray900 },
+          { color: isMine ? colors.white : colors.gray900 },
         ]}
       >
         {message.body}
@@ -79,7 +82,7 @@ const MessageBubble = React.memo((props: Props) => {
 
         {isFailed ? (
           <Pressable onPress={onRetry} style={styles.failedRow}>
-            <AlertCircle size={14} color={COLORS.red500} />
+            <AlertCircle size={14} color={colors.red500} />
             <Text style={styles.failedText}>{t('chat.deliveryFailed')}</Text>
           </Pressable>
         ) : null}
@@ -90,7 +93,8 @@ const MessageBubble = React.memo((props: Props) => {
 
 MessageBubble.displayName = 'MessageBubble';
 
-const styles = StyleSheet.create({
+function makeStyles(c: ColorPalette) {
+  return StyleSheet.create({
   root: {
     flexDirection: 'row',
     marginVertical: 2,
@@ -118,7 +122,7 @@ const styles = StyleSheet.create({
   },
   sendingText: {
     fontSize: 11,
-    color: COLORS.gray400,
+    color: c.gray400,
     marginTop: 2,
     alignSelf: 'flex-end',
   },
@@ -130,9 +134,10 @@ const styles = StyleSheet.create({
   },
   failedText: {
     fontSize: 12,
-    color: COLORS.red500,
+    color: c.red500,
     marginLeft: 4,
   },
-});
+  });
+}
 
 export default MessageBubble;

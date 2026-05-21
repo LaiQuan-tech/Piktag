@@ -13,10 +13,11 @@
 // shells (modal vs screen) and actions (2 vs 3 buttons) separate —
 // only the card itself is shared.
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import QRCode from 'react-native-qrcode-svg';
-import { COLORS } from '../constants/theme';
+import { COLORS, type ColorPalette } from '../constants/theme';
+import { useTheme } from '../context/ThemeContext';
 
 type QrNameCardProps = {
   /** The string encoded in the QR (profile URL or Tag connect payload). */
@@ -38,6 +39,8 @@ export default function QrNameCard({
   tags,
   qrSize = 220,
 }: QrNameCardProps) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const cleanTags = (tags || [])
     .map((tg) => tg.replace(/^#/, '').trim())
     .filter(Boolean);
@@ -67,7 +70,8 @@ export default function QrNameCard({
 // Lifted verbatim from QrGroupDetailScreen's old present-card styles
 // so the "认识新朋友" card is unchanged and the profile modal now
 // matches it exactly.
-const styles = StyleSheet.create({
+function makeStyles(c: ColorPalette) {
+  return StyleSheet.create({
   card: {
     backgroundColor: '#fff',
     borderRadius: 24,
@@ -91,7 +95,7 @@ const styles = StyleSheet.create({
   name: {
     fontSize: 14,
     fontWeight: '600',
-    color: COLORS.gray700,
+    color: c.gray700,
     marginTop: 4,
   },
   tagsWrap: {
@@ -108,4 +112,5 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     textAlign: 'center',
   },
-});
+  });
+}

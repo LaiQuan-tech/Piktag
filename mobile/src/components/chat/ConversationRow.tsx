@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { MoreHorizontal } from 'lucide-react-native';
-import { COLORS } from '../../constants/theme';
+import { COLORS, type ColorPalette } from '../../constants/theme';
+import { useTheme } from '../../context/ThemeContext';
 import type { InboxConversation } from '../../types/chat';
 import RingedAvatar from '../RingedAvatar';
 
@@ -43,6 +44,8 @@ function formatRelativeTime(ts: string | null, t: (k: string, opts?: any) => str
 
 const ConversationRow = React.memo(({ conversation, onPress, onMorePress }: Props) => {
   const { t } = useTranslation();
+  const { colors, isDark } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const { unread } = conversation;
   const displayName =
     conversation.other_full_name ||
@@ -85,7 +88,7 @@ const ConversationRow = React.memo(({ conversation, onPress, onMorePress }: Prop
             style={[
               styles.preview,
               {
-                color: unread ? COLORS.gray700 : COLORS.gray400,
+                color: unread ? colors.gray700 : colors.gray400,
                 fontWeight: unread ? '600' : '400',
               },
             ]}
@@ -117,7 +120,7 @@ const ConversationRow = React.memo(({ conversation, onPress, onMorePress }: Prop
           accessibilityRole="button"
           accessibilityLabel="More"
         >
-          <MoreHorizontal size={18} color={COLORS.gray400} />
+          <MoreHorizontal size={18} color={colors.gray400} />
         </Pressable>
       ) : null}
     </View>
@@ -126,7 +129,8 @@ const ConversationRow = React.memo(({ conversation, onPress, onMorePress }: Prop
 
 ConversationRow.displayName = 'ConversationRow';
 
-const styles = StyleSheet.create({
+function makeStyles(c: ColorPalette) {
+  return StyleSheet.create({
   rowContainer: {
     // Lets the ⋯ Pressable be absolutely positioned at the right edge
     // without nesting it inside the row's onPress target.
@@ -142,10 +146,10 @@ const styles = StyleSheet.create({
     // clipped underneath it.
     paddingLeft: 16,
     paddingRight: 44,
-    backgroundColor: COLORS.white,
+    backgroundColor: c.white,
   },
   rowPressed: {
-    backgroundColor: COLORS.gray100,
+    backgroundColor: c.gray100,
   },
   moreBtn: {
     position: 'absolute',
@@ -166,7 +170,7 @@ const styles = StyleSheet.create({
   },
   name: {
     fontSize: 15,
-    color: COLORS.gray900,
+    color: c.gray900,
   },
   preview: {
     fontSize: 13.5,
@@ -179,17 +183,18 @@ const styles = StyleSheet.create({
   },
   timestamp: {
     fontSize: 12,
-    color: COLORS.gray400,
+    color: c.gray400,
   },
   unreadDot: {
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: COLORS.piktag500,
+    backgroundColor: c.piktag500,
     // Align vertically with the timestamp baseline instead of floating
     // below it — asymmetric spacing felt off-balance in the old layout.
     marginTop: 4,
   },
-});
+  });
+}
 
 export default ConversationRow;

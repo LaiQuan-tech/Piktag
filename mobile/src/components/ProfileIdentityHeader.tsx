@@ -18,10 +18,11 @@
 // there is a deliberate follow-up (that screen is 2.5k lines and a
 // read-only view — out of scope to refactor here).
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, TextInput, StyleSheet } from 'react-native';
 import RingedAvatar, { BadgeKind } from './RingedAvatar';
-import { COLORS } from '../constants/theme';
+import { COLORS, type ColorPalette } from '../constants/theme';
+import { useTheme } from '../context/ThemeContext';
 
 type Props = {
   name: string;
@@ -59,6 +60,8 @@ export default function ProfileIdentityHeader({
   onAvatarPress,
   avatarBadge,
 }: Props) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const headlineShown = onChangeHeadline !== undefined || !!headline;
   return (
     <View style={styles.root}>
@@ -80,7 +83,7 @@ export default function ProfileIdentityHeader({
               value={name}
               onChangeText={onChangeName}
               placeholder={namePlaceholder}
-              placeholderTextColor={COLORS.gray400}
+              placeholderTextColor={colors.gray400}
               autoFocus={autoFocusName}
               maxLength={nameMaxLength}
               returnKeyType="next"
@@ -105,7 +108,7 @@ export default function ProfileIdentityHeader({
             value={headline ?? ''}
             onChangeText={onChangeHeadline}
             placeholder={headlinePlaceholder}
-            placeholderTextColor={COLORS.gray400}
+            placeholderTextColor={colors.gray400}
             maxLength={headlineMaxLength}
           />
         ) : (
@@ -116,7 +119,8 @@ export default function ProfileIdentityHeader({
   );
 }
 
-const styles = StyleSheet.create({
+function makeStyles(c: ColorPalette) {
+  return StyleSheet.create({
   root: { paddingTop: 4, paddingBottom: 8 },
   row: { flexDirection: 'row', alignItems: 'center', gap: 14 },
   nameSection: { flex: 1, gap: 2 },
@@ -127,14 +131,15 @@ const styles = StyleSheet.create({
   name: {
     fontSize: 20,
     fontWeight: '700',
-    color: COLORS.gray900,
+    color: c.gray900,
     padding: 0,
   },
-  subtitle: { fontSize: 14, color: COLORS.gray500 },
+  subtitle: { fontSize: 14, color: c.gray500 },
   headline: {
     fontSize: 14,
     fontWeight: '600',
-    color: COLORS.piktag600,
+    color: c.piktag600,
     padding: 0,
   },
-});
+  });
+}

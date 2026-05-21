@@ -41,14 +41,15 @@
 //   • onPress?  whole-chip tap for 'toggle'. Ignored for
 //               'removable' (tap is bound to onRemove there).
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   Pressable,
   View,
   Text,
   StyleSheet,
 } from 'react-native';
-import { COLORS } from '../constants/theme';
+import { COLORS, type ColorPalette } from '../constants/theme';
+import { useTheme } from '../context/ThemeContext';
 import { normalizeTagName } from '../lib/normalizeTag';
 
 type Props = {
@@ -66,6 +67,8 @@ export default function TagChip({
   selected,
   onPress,
 }: Props) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const display = `#${normalizeTagName(label)}`;
   const isToggle = variant === 'toggle';
 
@@ -95,7 +98,8 @@ export default function TagChip({
   return <View style={chipStyle}>{inner}</View>;
 }
 
-const styles = StyleSheet.create({
+function makeStyles(c: ColorPalette) {
+  return StyleSheet.create({
   // "已選=紫色 piktag500 實心 + 白字" — founder, 2026-05-23,
   // reverses the prior "fill-only piktag50 + piktag600" contract.
   // Every selected/owned tag chip app-wide now uses this strong
@@ -106,14 +110,15 @@ const styles = StyleSheet.create({
   chip: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: COLORS.piktag500,
+    backgroundColor: c.piktag500,
     borderRadius: 9999,
     // Symmetric padding now that × is gone (was 14/8 with the icon
     // sitting on the right). The chip body IS the tappable region.
     paddingVertical: 8,
     paddingHorizontal: 14,
   },
-  chipToggleOff: { backgroundColor: COLORS.gray100 },
+  chipToggleOff: { backgroundColor: c.gray100 },
   text: { fontSize: 14, fontWeight: '500', color: '#FFFFFF' },
-  textToggleOff: { color: COLORS.gray700 },
-});
+  textToggleOff: { color: c.gray700 },
+  });
+}

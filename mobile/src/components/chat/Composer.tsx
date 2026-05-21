@@ -1,5 +1,5 @@
 import { Send } from 'lucide-react-native';
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   StyleSheet,
@@ -7,7 +7,8 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { COLORS } from '../../constants/theme';
+import { COLORS, type ColorPalette } from '../../constants/theme';
+import { useTheme } from '../../context/ThemeContext';
 
 type Props = {
   onSend: (text: string) => Promise<void> | void;
@@ -17,6 +18,8 @@ type Props = {
 
 const Composer = React.memo(({ onSend, disabled, disabledReason }: Props) => {
   const { t } = useTranslation();
+  const { colors, isDark } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const [value, setValue] = useState('');
   const [sending, setSending] = useState(false);
 
@@ -56,7 +59,7 @@ const Composer = React.memo(({ onSend, disabled, disabledReason }: Props) => {
         value={value}
         onChangeText={setValue}
         placeholder={placeholder}
-        placeholderTextColor={COLORS.gray400}
+        placeholderTextColor={colors.gray400}
         editable={!disabled}
         multiline
         maxLength={4000}
@@ -67,7 +70,7 @@ const Composer = React.memo(({ onSend, disabled, disabledReason }: Props) => {
         activeOpacity={0.7}
         style={[styles.sendBtn, { opacity: canSend ? 1 : 0.4 }]}
       >
-        <Send size={20} color={COLORS.white} />
+        <Send size={20} color={colors.white} />
       </TouchableOpacity>
     </View>
   );
@@ -75,35 +78,37 @@ const Composer = React.memo(({ onSend, disabled, disabledReason }: Props) => {
 
 Composer.displayName = 'Composer';
 
-const styles = StyleSheet.create({
+function makeStyles(c: ColorPalette) {
+  return StyleSheet.create({
   row: {
     flexDirection: 'row',
     alignItems: 'flex-end',
     paddingVertical: 8,
     paddingHorizontal: 12,
-    backgroundColor: COLORS.white,
+    backgroundColor: c.white,
     borderTopWidth: 1,
-    borderTopColor: COLORS.gray100,
+    borderTopColor: c.gray100,
   },
   input: {
     flex: 1,
     fontSize: 15,
     paddingVertical: 8,
     paddingHorizontal: 12,
-    backgroundColor: COLORS.gray100,
+    backgroundColor: c.gray100,
     borderRadius: 20,
     maxHeight: 120,
-    color: COLORS.gray900,
+    color: c.gray900,
   },
   sendBtn: {
     width: 36,
     height: 36,
     borderRadius: 18,
     marginLeft: 8,
-    backgroundColor: COLORS.piktag500,
+    backgroundColor: c.piktag500,
     alignItems: 'center',
     justifyContent: 'center',
   },
-});
+  });
+}
 
 export default Composer;

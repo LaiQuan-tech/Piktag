@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   View,
   Text,
@@ -10,7 +10,8 @@ import { X, Copy, Share2 } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { setStringAsync } from 'expo-clipboard';
 import { useTranslation } from 'react-i18next';
-import { COLORS } from '../constants/theme';
+import { COLORS, type ColorPalette } from '../constants/theme';
+import { useTheme } from '../context/ThemeContext';
 import { APP_BASE_URL, shareProfile } from '../lib/shareProfile';
 import QrModalStinger from './stingers/QrModalStinger';
 import QrNameCard from './QrNameCard';
@@ -41,6 +42,8 @@ export default function QrCodeModal({
   tags,
 }: QrCodeModalProps) {
   const { t } = useTranslation();
+  const { colors, isDark } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const profileUrl = `${APP_BASE_URL}/${username}`;
 
   const handleCopyLink = async () => {
@@ -102,7 +105,7 @@ export default function QrCodeModal({
                 onPress={handleCopyLink}
                 activeOpacity={0.7}
               >
-                <Copy size={20} color={COLORS.gray900} />
+                <Copy size={20} color={colors.gray900} />
                 <Text style={styles.actionBtnText}>{t('profile.copyLink')}</Text>
               </TouchableOpacity>
               <TouchableOpacity
@@ -110,7 +113,7 @@ export default function QrCodeModal({
                 onPress={handleShare}
                 activeOpacity={0.7}
               >
-                <Share2 size={20} color={COLORS.gray900} />
+                <Share2 size={20} color={colors.gray900} />
                 <Text style={styles.actionBtnText}>{t('profile.share')}</Text>
               </TouchableOpacity>
             </View>
@@ -121,7 +124,8 @@ export default function QrCodeModal({
   );
 }
 
-const styles = StyleSheet.create({
+function makeStyles(c: ColorPalette) {
+  return StyleSheet.create({
   overlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.5)',
@@ -177,6 +181,7 @@ const styles = StyleSheet.create({
   actionBtnText: {
     fontSize: 14,
     fontWeight: '700',
-    color: COLORS.gray900,
+    color: c.gray900,
   },
-});
+  });
+}

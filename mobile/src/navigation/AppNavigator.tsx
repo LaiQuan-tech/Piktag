@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useMemo } from 'react';
 import { Alert, View, StyleSheet, Platform, InteractionManager } from 'react-native';
 import PageLoader from '../components/loaders/PageLoader';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -15,7 +15,7 @@ import {
 } from 'lucide-react-native';
 import { Session } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
-import { COLORS } from '../constants/theme';
+import { COLORS, type ColorPalette } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
 import { useAppReady } from '../context/AppReadyContext';
 import { useTranslation } from 'react-i18next';
@@ -123,6 +123,7 @@ function ProfileStackNavigator() {
 
 function MainTabs() {
   const { colors, isDark } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const { t } = useTranslation();
   const { total: chatUnread } = useChatUnread();
   // Single source of truth for the tab bar style — referenced both
@@ -132,7 +133,7 @@ function MainTabs() {
   const baseTabBarStyle = {
     backgroundColor: isDark ? '#000000' : '#FFFFFF',
     borderTopWidth: isDark ? 0.5 : 1,
-    borderTopColor: isDark ? '#363636' : COLORS.gray100,
+    borderTopColor: isDark ? '#363636' : colors.gray100,
     paddingBottom: 28,
     paddingTop: 10,
     height: 80,
@@ -145,13 +146,13 @@ function MainTabs() {
         headerShown: false,
         tabBarShowLabel: false,
         tabBarStyle: baseTabBarStyle,
-        tabBarActiveTintColor: isDark ? '#ffffff' : COLORS.piktag500,
-        tabBarInactiveTintColor: isDark ? '#8e8e8e' : COLORS.gray400,
+        tabBarActiveTintColor: isDark ? '#ffffff' : colors.piktag500,
+        tabBarInactiveTintColor: isDark ? '#8e8e8e' : colors.gray400,
         // Unread chat count badge — accentPop on purpose (high-saturation
         // pop reserved for moments that should jump the eye, per the
         // theme's accent vs primary system).
         tabBarBadgeStyle: {
-          backgroundColor: COLORS.accentPop,
+          backgroundColor: colors.accentPop,
           color: '#FFFFFF',
         },
       }}
@@ -423,6 +424,8 @@ const ONBOARDING_COMPLETED_KEY = 'piktag_onboarding_completed_v1';
 type OnboardingDecision = 'pending' | 'required' | 'skip';
 
 export default function AppNavigator() {
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [onboardingDecision, setOnboardingDecision] = useState<OnboardingDecision>('pending');
@@ -734,11 +737,13 @@ export default function AppNavigator() {
   );
 }
 
-const styles = StyleSheet.create({
+function makeStyles(c: ColorPalette) {
+  return StyleSheet.create({
   loadingContainer: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: COLORS.white,
+    backgroundColor: c.white,
   },
-});
+  });
+}
