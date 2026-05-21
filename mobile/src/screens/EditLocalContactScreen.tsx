@@ -720,6 +720,21 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
 
             <View style={styles.fieldGroup}>
               <Text style={styles.fieldLabel}>
+                {t('localContact.fieldAddress', { defaultValue: '地址' })}
+              </Text>
+              <TextInput
+                style={styles.fieldInput}
+                value={address}
+                onChangeText={setAddress}
+                placeholder={t('localContact.addressPlaceholder', { defaultValue: '例：台北市信義區市府路 1 號' })}
+                placeholderTextColor={COLORS.gray400}
+                autoCapitalize="none"
+                maxLength={200}
+              />
+            </View>
+
+            <View style={styles.fieldGroup}>
+              <Text style={styles.fieldLabel}>
                 {t('friendDetail.reminderBirthday', { defaultValue: '生日' })}
               </Text>
               <TextInput
@@ -731,21 +746,6 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
                 keyboardType="numbers-and-punctuation"
                 autoCapitalize="none"
                 maxLength={10}
-              />
-            </View>
-
-            <View style={styles.fieldGroup}>
-              <Text style={styles.fieldLabel}>
-                {t('localContact.fieldAddress', { defaultValue: '地址' })}
-              </Text>
-              <TextInput
-                style={styles.fieldInput}
-                value={address}
-                onChangeText={setAddress}
-                placeholder={t('localContact.addressPlaceholder', { defaultValue: '例：台北市信義區市府路 1 號' })}
-                placeholderTextColor={COLORS.gray400}
-                autoCapitalize="none"
-                maxLength={200}
               />
             </View>
           </View>
