@@ -1278,6 +1278,8 @@
     "linkPhone": "ফোন",
     "linkEmail": "ইমেইল",
     "linkAddress": "ঠিকানা",
+    "scanningTitle": "কার্ড পড়া হচ্ছে…",
+    "scanningSubtitle": "সাধারণত ৫–১০ সেকেন্ড সময় লাগে",
     "fieldAddress": "ঠিকানা",
     "addressPlaceholder": "যেমন ধানমন্ডি, ঢাকা"
   },

@@ -1278,6 +1278,8 @@
     "linkPhone": "โทรศัพท์",
     "linkEmail": "อีเมล",
     "linkAddress": "ที่อยู่",
+    "scanningTitle": "กำลังอ่านนามบัตร…",
+    "scanningSubtitle": "ปกติใช้เวลา 5–10 วินาที",
     "fieldAddress": "ที่อยู่",
     "addressPlaceholder": "เช่น ถ. สุขุมวิท 1 กรุงเทพฯ"
   },

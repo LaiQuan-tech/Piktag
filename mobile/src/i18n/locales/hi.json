@@ -1278,6 +1278,8 @@
     "linkPhone": "फ़ोन",
     "linkEmail": "ईमेल",
     "linkAddress": "पता",
+    "scanningTitle": "कार्ड पढ़ा जा रहा है…",
+    "scanningSubtitle": "आमतौर पर 5–10 सेकंड लगते हैं",
     "fieldAddress": "पता",
     "addressPlaceholder": "उदा. कनॉट प्लेस, नई दिल्ली"
   },

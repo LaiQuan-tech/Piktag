@@ -1357,6 +1357,8 @@
     "linkPhone": "فون",
     "linkEmail": "ای میل",
     "linkAddress": "پتہ",
+    "scanningTitle": "کارڈ پڑھا جا رہا ہے…",
+    "scanningSubtitle": "عام طور پر 5–10 سیکنڈ لگتے ہیں",
     "fieldAddress": "پتہ",
     "addressPlaceholder": "مثلاً: شاہراہ فیصل، کراچی"
   },

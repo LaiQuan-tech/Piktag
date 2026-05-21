@@ -1278,6 +1278,8 @@
     "linkPhone": "전화",
     "linkEmail": "이메일",
     "linkAddress": "주소",
+    "scanningTitle": "명함 인식 중…",
+    "scanningSubtitle": "보통 5–10초 걸립니다",
     "fieldAddress": "주소",
     "addressPlaceholder": "예: 서울시 종로구 세종대로 1"
   },

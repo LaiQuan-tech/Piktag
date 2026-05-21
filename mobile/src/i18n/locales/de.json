@@ -1343,6 +1343,8 @@
     "linkPhone": "Telefon",
     "linkEmail": "E-Mail",
     "linkAddress": "Adresse",
+    "scanningTitle": "Karte wird gelesen…",
+    "scanningSubtitle": "Dauert üblicherweise 5–10 Sekunden",
     "fieldAddress": "Adresse",
     "addressPlaceholder": "z. B. Hauptstr. 1, Berlin"
   },

@@ -1278,6 +1278,8 @@
     "linkPhone": "Teléfono",
     "linkEmail": "Correo",
     "linkAddress": "Dirección",
+    "scanningTitle": "Leyendo la tarjeta…",
+    "scanningSubtitle": "Suele tardar 5–10 segundos",
     "fieldAddress": "Dirección",
     "addressPlaceholder": "ej. Calle Mayor 1, Madrid"
   },

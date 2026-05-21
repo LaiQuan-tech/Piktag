@@ -1278,6 +1278,8 @@
     "linkPhone": "Telepon",
     "linkEmail": "Email",
     "linkAddress": "Alamat",
+    "scanningTitle": "Membaca kartu…",
+    "scanningSubtitle": "Biasanya butuh 5–10 detik",
     "fieldAddress": "Alamat",
     "addressPlaceholder": "cth. Jl. Sudirman 1, Jakarta"
   },

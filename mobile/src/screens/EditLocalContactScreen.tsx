@@ -43,6 +43,7 @@ import { useLocalContacts } from '../hooks/useLocalContacts';
 import { supabase, supabaseUrl, supabaseAnonKey } from '../lib/supabase';
 import { toBirthdayDate } from '../lib/birthday';
 import BrandSpinner from '../components/loaders/BrandSpinner';
+import LogoLoader from '../components/loaders/LogoLoader';
 import TagChip from '../components/TagChip';
 
 type Props = { navigation: any; route: any };
@@ -121,6 +122,12 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
   const [tags, setTags] = useState<string[]>(existing?.tags ?? []);
   const [tagInput, setTagInput] = useState('');
   const [saving, setSaving] = useState(false);
+  // `scanning` is set true for the full duration of the
+  // scan-business-card upstream call (~7s in prod). Drives a full-
+  // screen overlay (BrandSpinner + "正在識別名片…") so the user isn't
+  // staring at an empty form while waiting — the original UX bug:
+  // form is empty until the scan returns, looks broken.
+  const [scanning, setScanning] = useState(false);
 
   // Card-scan + AI-tag accelerators. Nothing here writes to the DB —
   // the scan only PRE-FILLS the editable form (the screen itself is
@@ -307,6 +314,10 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
     // Scanning is a "review prefilled data" path — never autofocus
     // the name field (would pop the keyboard over the results).
     setManualFocus(false);
+    // Show the overlay for the FULL duration of the upstream call,
+    // even across the various early-return branches inside try{}.
+    // The finally{} block ensures it always clears, success or not.
+    setScanning(true);
     try {
       // supabase.functions.invoke has no timeout and RN fetch never
       // times out: a stalled Gemini fallback chain would otherwise
@@ -435,6 +446,8 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
             })
           : err?.message || t('common.unknownError', { defaultValue: '發生錯誤' }),
       );
+    } finally {
+      setScanning(false);
     }
   }, [t, navigation]);
 
@@ -810,6 +823,26 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
           )}
         </ScrollView>
       </KeyboardAvoidingView>
+      {/* Scan overlay — covers the form for the full ~7s
+          scan-business-card upstream call so the user isn't
+          looking at an empty form (looks broken). Renders last so
+          it sits on top of the ScrollView and the keyboard avoider.
+          position:absolute + flex:1 inside fills the SafeAreaView's
+          bounds; pointerEvents="auto" on the wrapper blocks taps on
+          the form underneath while a scan is in flight. */}
+      {scanning && (
+        <View style={styles.scanOverlay} pointerEvents="auto">
+          <View style={styles.scanOverlayCard}>
+            <LogoLoader size={64} />
+            <Text style={styles.scanOverlayTitle}>
+              {t('localContact.scanningTitle', { defaultValue: '正在識別名片…' })}
+            </Text>
+            <Text style={styles.scanOverlaySubtitle}>
+              {t('localContact.scanningSubtitle', { defaultValue: '通常需要 5–10 秒' })}
+            </Text>
+          </View>
+        </View>
+      )}
     </SafeAreaView>
   );
 }
@@ -900,4 +933,51 @@ const styles = StyleSheet.create({
   },
   saveBtnDisabled: { backgroundColor: COLORS.gray200 },
   saveBtnText: { fontSize: 16, fontWeight: '700', color: '#FFFFFF' },
+  // Scan overlay — full-screen dim layer with a centered white
+  // card carrying the LogoLoader + status text. position:absolute +
+  // edge-anchored covers the whole SafeAreaView (form + scroll +
+  // keyboard area). rgba(0,0,0,0.5) dim is dark enough that the
+  // form fades back but the user can still see what page they're
+  // on, so when the scan completes and the overlay dismisses, the
+  // form reveal feels continuous (not a jarring navigation).
+  scanOverlay: {
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 32,
+  },
+  scanOverlayCard: {
+    backgroundColor: COLORS.white,
+    borderRadius: 20,
+    paddingVertical: 32,
+    paddingHorizontal: 36,
+    alignItems: 'center',
+    minWidth: 240,
+    // Subtle elevation — the card needs to read as "lifted above
+    // the form" without competing with the LogoLoader animation
+    // for attention.
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.12,
+    shadowRadius: 16,
+    elevation: 6,
+  },
+  scanOverlayTitle: {
+    marginTop: 20,
+    fontSize: 16,
+    fontWeight: '700',
+    color: COLORS.gray900,
+    textAlign: 'center',
+  },
+  scanOverlaySubtitle: {
+    marginTop: 6,
+    fontSize: 13,
+    color: COLORS.gray500,
+    textAlign: 'center',
+  },
 });

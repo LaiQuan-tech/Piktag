@@ -1278,6 +1278,8 @@
     "linkPhone": "Telefone",
     "linkEmail": "E-mail",
     "linkAddress": "Endereço",
+    "scanningTitle": "Lendo o cartão…",
+    "scanningSubtitle": "Geralmente leva de 5 a 10 segundos",
     "fieldAddress": "Endereço",
     "addressPlaceholder": "ex. Av. Paulista 1000, São Paulo"
   },

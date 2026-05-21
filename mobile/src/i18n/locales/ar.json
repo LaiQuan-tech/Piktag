@@ -1278,6 +1278,8 @@
     "linkPhone": "الهاتف",
     "linkEmail": "البريد الإلكتروني",
     "linkAddress": "العنوان",
+    "scanningTitle": "يتم قراءة البطاقة…",
+    "scanningSubtitle": "يستغرق عادةً 5–10 ثوانٍ",
     "fieldAddress": "العنوان",
     "addressPlaceholder": "مثل: شارع الملك فهد، الرياض"
   },
