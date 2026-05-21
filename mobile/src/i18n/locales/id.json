@@ -1277,6 +1277,7 @@
     "birthdayPlaceholder": "MM-DD atau YYYY-MM-DD",
     "linkPhone": "Telepon",
     "linkEmail": "Email",
+    "linkAddress": "Alamat",
     "fieldAddress": "Alamat",
     "addressPlaceholder": "cth. Jl. Sudirman 1, Jakarta"
   },

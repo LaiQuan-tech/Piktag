@@ -1277,6 +1277,7 @@
     "birthdayPlaceholder": "MM-JJ ou AAAA-MM-JJ",
     "linkPhone": "Téléphone",
     "linkEmail": "E-mail",
+    "linkAddress": "Adresse",
     "fieldAddress": "Adresse",
     "addressPlaceholder": "ex. 12 rue de Rivoli, Paris"
   },

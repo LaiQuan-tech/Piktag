@@ -1356,6 +1356,7 @@
     "birthdayPlaceholder": "MM-DD hoặc YYYY-MM-DD",
     "linkPhone": "Điện thoại",
     "linkEmail": "Email",
+    "linkAddress": "Địa chỉ",
     "fieldAddress": "Địa chỉ",
     "addressPlaceholder": "vd. 1 Đồng Khởi, Q.1, TP.HCM"
   },

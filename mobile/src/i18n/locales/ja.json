@@ -1277,6 +1277,7 @@
     "birthdayPlaceholder": "MM-DD または YYYY-MM-DD",
     "linkPhone": "電話",
     "linkEmail": "メール",
+    "linkAddress": "住所",
     "fieldAddress": "住所",
     "addressPlaceholder": "例：東京都千代田区丸の内 1-1-1"
   },

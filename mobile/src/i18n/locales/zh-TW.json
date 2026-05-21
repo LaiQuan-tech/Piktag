@@ -1356,6 +1356,7 @@
     "birthdayPlaceholder": "MM-DD 或 YYYY-MM-DD",
     "linkPhone": "電話",
     "linkEmail": "Email",
+    "linkAddress": "地址",
     "fieldAddress": "地址",
     "addressPlaceholder": "例：台北市信義區市府路 1 號"
   },

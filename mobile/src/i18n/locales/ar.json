@@ -1277,6 +1277,7 @@
     "birthdayPlaceholder": "MM-DD أو YYYY-MM-DD",
     "linkPhone": "الهاتف",
     "linkEmail": "البريد الإلكتروني",
+    "linkAddress": "العنوان",
     "fieldAddress": "العنوان",
     "addressPlaceholder": "مثل: شارع الملك فهد، الرياض"
   },

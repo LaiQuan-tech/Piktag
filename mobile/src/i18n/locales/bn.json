@@ -1277,6 +1277,7 @@
     "birthdayPlaceholder": "MM-DD অথবা YYYY-MM-DD",
     "linkPhone": "ফোন",
     "linkEmail": "ইমেইল",
+    "linkAddress": "ঠিকানা",
     "fieldAddress": "ঠিকানা",
     "addressPlaceholder": "যেমন ধানমন্ডি, ঢাকা"
   },

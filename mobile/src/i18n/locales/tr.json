@@ -1277,6 +1277,7 @@
     "birthdayPlaceholder": "AA-GG veya YYYY-AA-GG",
     "linkPhone": "Telefon",
     "linkEmail": "E-posta",
+    "linkAddress": "Adres",
     "fieldAddress": "Adres",
     "addressPlaceholder": "ör. Bağdat Cad. 1, İstanbul"
   },

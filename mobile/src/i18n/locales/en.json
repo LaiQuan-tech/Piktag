@@ -1353,6 +1353,7 @@
     "birthdayPlaceholder": "MM-DD or YYYY-MM-DD",
     "linkPhone": "Phone",
     "linkEmail": "Email",
+    "linkAddress": "Address",
     "fieldAddress": "Address",
     "addressPlaceholder": "e.g. 1234 Market St, San Francisco"
   },

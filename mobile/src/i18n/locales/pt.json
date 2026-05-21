@@ -1277,6 +1277,7 @@
     "birthdayPlaceholder": "MM-DD ou YYYY-MM-DD",
     "linkPhone": "Telefone",
     "linkEmail": "E-mail",
+    "linkAddress": "Endereço",
     "fieldAddress": "Endereço",
     "addressPlaceholder": "ex. Av. Paulista 1000, São Paulo"
   },

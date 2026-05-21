@@ -245,8 +245,8 @@ export default function LocalContactDetailScreen({ navigation, route }: Props) {
                 accessibilityRole="link"
               >
                 <MapPin size={22} color={COLORS.gray900} strokeWidth={2.2} />
-                <Text style={styles.linkCardText} numberOfLines={2}>
-                  {existing.address}
+                <Text style={styles.linkCardText} numberOfLines={1}>
+                  {t('localContact.linkAddress', { defaultValue: '地址' })}
                 </Text>
                 <ExternalLink size={16} color={COLORS.gray400} />
               </TouchableOpacity>

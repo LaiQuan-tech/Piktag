@@ -1277,6 +1277,7 @@
     "birthdayPlaceholder": "MM-DD o YYYY-MM-DD",
     "linkPhone": "Teléfono",
     "linkEmail": "Correo",
+    "linkAddress": "Dirección",
     "fieldAddress": "Dirección",
     "addressPlaceholder": "ej. Calle Mayor 1, Madrid"
   },

@@ -1356,6 +1356,7 @@
     "birthdayPlaceholder": "MM-GG o AAAA-MM-GG",
     "linkPhone": "Telefono",
     "linkEmail": "E-mail",
+    "linkAddress": "Indirizzo",
     "fieldAddress": "Indirizzo",
     "addressPlaceholder": "es. Via Roma 1, Milano"
   },

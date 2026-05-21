@@ -1277,6 +1277,7 @@
     "birthdayPlaceholder": "ММ-ДД или ГГГГ-ММ-ДД",
     "linkPhone": "Телефон",
     "linkEmail": "Эл. почта",
+    "linkAddress": "Адрес",
     "fieldAddress": "Адрес",
     "addressPlaceholder": "напр. ул. Тверская 1, Москва"
   },

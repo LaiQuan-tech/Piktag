@@ -1342,6 +1342,7 @@
     "birthdayPlaceholder": "MM-TT oder JJJJ-MM-TT",
     "linkPhone": "Telefon",
     "linkEmail": "E-Mail",
+    "linkAddress": "Adresse",
     "fieldAddress": "Adresse",
     "addressPlaceholder": "z. B. Hauptstr. 1, Berlin"
   },
