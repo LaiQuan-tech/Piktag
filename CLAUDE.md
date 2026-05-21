@@ -65,5 +65,21 @@ works *against* this, say so honestly (中肯) rather than just complying.
 - **iOS TestFlight** builds on push to `mobile/**` (excl. supabase/scripts);
   `concurrency: cancel-in-progress` collapses bursts. Apple's per-app daily
   upload cap is real → batch mobile commits; a hit is a soft 24h wait.
+- **Dark mode is post-launch, NOT pre-launch.** Scaffolding is built
+  (`ThemeContext` + `COLORS_DARK` palette + Settings has a handler
+  wired but no UI). Founder considered shipping pre-launch
+  2026-05-23 and we tried; **the migration is bigger than it looks**
+  because many screens have file-scope `React.memo(...)` sub-components
+  that read `styles` / `colors` from file scope (e.g.
+  ConnectionsScreen's `ConnectionItem`, FriendDetail / Search /
+  EditProfile all have this pattern). A mechanical `const styles =
+  StyleSheet.create({...})` → `function makeStyles(c)` refactor breaks
+  those sub-components with `Cannot find name 'styles'`. Real fix per
+  sub-component: give it its own `useTheme()` + `useMemo(makeStyles)`,
+  which means rewriting prop types + every call site. Realistic effort
+  is **5-7 hours focused work + 2h dual-mode QA**, not 2-3 hours. Do
+  it post-launch as v1.1. Until then, **new code SHOULD still use
+  `useTheme()` + factory `makeStyles`** so we don't accumulate more
+  files to migrate later.
 
 _(Founder explicitly asked the North Star be remembered — 2026-05.)_
