@@ -1284,8 +1284,5 @@
     "title": "Takipçiler",
     "count": "{{count}} takipçi",
     "empty": "Henüz takipçi yok"
-  },
-  "cardCamera": {
-    "countdownHint": "{{count}}sn sonra otomatik · Dokun → uzat"
   }
 }

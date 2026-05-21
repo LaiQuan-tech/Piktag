@@ -1363,8 +1363,5 @@
     "title": "فالوورز",
     "count": "{{count}} فالوورز",
     "empty": "ابھی کوئی فالوور نہیں"
-  },
-  "cardCamera": {
-    "countdownHint": "{{count}}s بعد خودکار · مزید کیلئے ٹیپ"
   }
 }

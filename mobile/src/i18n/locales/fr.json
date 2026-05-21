@@ -1284,8 +1284,5 @@
     "title": "Abonnés",
     "count": "{{count}} abonnés",
     "empty": "Pas encore d'abonnés"
-  },
-  "cardCamera": {
-    "countdownHint": "Auto dans {{count}}s · Appuyez pour prolonger"
   }
 }

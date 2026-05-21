@@ -1363,8 +1363,5 @@
     "title": "Follower",
     "count": "{{count}} follower",
     "empty": "Ancora nessun follower"
-  },
-  "cardCamera": {
-    "countdownHint": "Auto tra {{count}}s · Tocca per estendere"
   }
 }

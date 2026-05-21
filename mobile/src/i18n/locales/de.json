@@ -1349,8 +1349,5 @@
     "title": "Follower",
     "count": "{{count}} Follower",
     "empty": "Noch keine Follower"
-  },
-  "cardCamera": {
-    "countdownHint": "Auto in {{count}}s · Tippen für mehr Zeit"
   }
 }
