@@ -1796,9 +1796,9 @@ const styles = StyleSheet.create({
   // Applied when FriendTag.isMutual === true. Brand purple frame + tinted
   // background lifts shared tags above the gray crowd — the single most
   // important "why you should remember each other" signal on the profile.
+  // "已選=紫色" aesthetic, founder definitive: fill-only, no border.
   tagChipMutual: {
     backgroundColor: COLORS.piktag50,
-    borderColor: COLORS.piktag500,
   },
   tagChipText: {
     fontSize: 14,
@@ -2517,9 +2517,9 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: 'transparent',
   },
+  // "已選=紫色" aesthetic, founder definitive: fill-only, no border.
   pickModalTagSelected: {
     backgroundColor: COLORS.piktag50,
-    borderColor: COLORS.piktag500,
   },
   pickModalTagText: {
     fontSize: 14,

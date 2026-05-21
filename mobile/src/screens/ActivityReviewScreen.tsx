@@ -539,7 +539,8 @@ const styles = StyleSheet.create({
   metText: { fontSize: 13, color: COLORS.gray500 },
   tagChips: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, justifyContent: 'center' },
   tagChip: { backgroundColor: COLORS.gray100, borderRadius: 9999, paddingVertical: 8, paddingHorizontal: 14, borderWidth: 1.5, borderColor: 'transparent' },
-  tagChipPicked: { backgroundColor: COLORS.piktag50, borderColor: COLORS.piktag500 },
+  // "已選=紫色" aesthetic, founder definitive: fill-only, no border.
+  tagChipPicked: { backgroundColor: COLORS.piktag50 },
   tagChipText: { fontSize: 14, fontWeight: '500', color: COLORS.gray600 },
   tagChipTextPicked: { color: COLORS.piktag600, fontWeight: '700' },
   hiddenTagChip: { backgroundColor: COLORS.gray50, borderRadius: 9999, paddingVertical: 4, paddingHorizontal: 10, borderWidth: 1, borderColor: COLORS.gray200, borderStyle: 'dashed' as any },

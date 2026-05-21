@@ -421,15 +421,16 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
                     const name = ut.tag?.name ?? '';
                     const dn = name.startsWith('#') ? name : `#${name}`;
                     return (
+                      // No × on chips, app-wide. Web fallback path
+                      // (iOS uses DraggableChips which already moved
+                      // to shared TagChip). Tap = remove via the
+                      // chip body itself.
                       <Pressable
                         key={ut.id}
                         style={[styles.chip, isSelected && styles.chipSelected]}
-                        onPress={() => handleTagTap(ut)}
+                        onPress={() => handleRemoveTag(ut)}
                       >
                         <Text style={styles.chipText}>{dn}</Text>
-                        <Pressable onPress={() => handleRemoveTag(ut)} style={styles.chipX}>
-                          <X size={14} color={COLORS.gray400} />
-                        </Pressable>
                       </Pressable>
                     );
                   })}
@@ -582,13 +583,14 @@ const styles = StyleSheet.create({
   // "you've tapped this and we're waiting for the swap target" web-
   // only state — gets a slightly heavier border but the same fill.)
   chipsWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, paddingHorizontal: 20 },
+  // "已選=紫色" aesthetic, founder definitive: fill-only, no border.
+  // Symmetric paddingRight 14 now that × is gone (was 6 for the icon).
   chip: {
     flexDirection: 'row', alignItems: 'center', gap: 5,
     backgroundColor: COLORS.piktag50, borderRadius: 20,
-    paddingVertical: 8, paddingLeft: 14, paddingRight: 6,
-    borderWidth: 1.5, borderColor: COLORS.piktag500,
+    paddingVertical: 8, paddingHorizontal: 14,
   },
-  chipSelected: { borderColor: COLORS.piktag600, borderWidth: 2 },
+  chipSelected: {},
   chipText: { fontSize: 14, fontWeight: '700', color: COLORS.piktag600 },
   chipX: { padding: 4 },
   emptyText: { fontSize: 14, color: COLORS.gray400, paddingHorizontal: 20, paddingVertical: 8 },

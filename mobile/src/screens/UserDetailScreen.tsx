@@ -2348,9 +2348,9 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: COLORS.gray200,
   },
+  // "已選=紫色" aesthetic, founder definitive: fill-only, no border.
   pickModalTagSelected: {
     backgroundColor: COLORS.piktag50,
-    borderColor: COLORS.piktag500,
   },
   pickModalTagText: {
     fontSize: 15,
@@ -2415,12 +2415,11 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   mutualModalTag: {
+    // "已選=紫色" aesthetic, founder definitive: fill-only, no border.
     backgroundColor: COLORS.piktag50,
     borderRadius: 16,
     paddingHorizontal: 14,
     paddingVertical: 8,
-    borderWidth: 1,
-    borderColor: COLORS.piktag500,
   },
   mutualModalTagText: {
     fontSize: 15,

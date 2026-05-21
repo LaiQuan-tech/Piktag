@@ -891,16 +891,17 @@ export default function ContactSyncScreen({ navigation }: ContactSyncScreenProps
                 {/* Picked tags strip */}
                 {pickedTags.length > 0 ? (
                   <View style={styles.pickedRow}>
+                    {/* No × glyph — whole chip body is the tap-to-
+                        remove target. Founder rule: 全 App 無 × 藥丸. */}
                     {pickedTags.map((tag) => (
                       <Pressable
                         key={`picked-${tag}`}
                         style={styles.pickedChip}
                         onPress={() => togglePickedTag(tag)}
                         accessibilityRole="button"
-                        accessibilityLabel={`移除 ${tag}`}
+                        accessibilityLabel={`Remove ${tag}`}
                       >
                         <Text style={styles.pickedChipText}>{tag}</Text>
-                        <X size={12} color="#FFFFFF" />
                       </Pressable>
                     ))}
                   </View>
@@ -1345,19 +1346,20 @@ const styles = StyleSheet.create({
     gap: 8,
     marginBottom: 14,
   },
+  // Canonical "已選=紫色 fill-only" — same look as TagChip toggle
+  // selected. Whole chip taps to remove (no × per founder rule).
   pickedChip: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 10,
+    paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 16,
-    backgroundColor: COLORS.piktag600,
+    backgroundColor: COLORS.piktag50,
   },
   pickedChipText: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#FFFFFF',
+    color: COLORS.piktag600,
   },
   customTagRow: {
     flexDirection: 'row',
@@ -1403,16 +1405,15 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     gap: 8,
   },
+  // Canonical TagChip-toggle look: gray100 unselected, piktag50
+  // selected, both fill-only no border. Same family across the app.
   popularChip: {
-    paddingHorizontal: 12,
+    paddingHorizontal: 14,
     paddingVertical: 8,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: COLORS.gray200,
-    backgroundColor: COLORS.white,
+    borderRadius: 9999,
+    backgroundColor: COLORS.gray100,
   },
   popularChipSelected: {
-    borderColor: COLORS.piktag600,
     backgroundColor: COLORS.piktag50,
   },
   popularChipText: {
@@ -1422,7 +1423,7 @@ const styles = StyleSheet.create({
   },
   popularChipTextSelected: {
     color: COLORS.piktag600,
-    fontWeight: '700',
+    fontWeight: '600',
   },
   tagModalFooter: {
     flexDirection: 'row',

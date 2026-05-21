@@ -474,9 +474,9 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: 'transparent',
   },
+  // "已選=紫色" aesthetic, founder definitive: fill-only, no border.
   pickChipSelected: {
     backgroundColor: COLORS.piktag50,
-    borderColor: COLORS.piktag500,
   },
   pickChipDisabled: {
     backgroundColor: COLORS.gray100,
