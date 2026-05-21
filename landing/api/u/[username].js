@@ -162,23 +162,31 @@ module.exports = async function handler(req, res) {
       .map((ut) => ut.piktag_tags?.name)
       .filter(Boolean);
 
-    // Record pending connection if sid is present (non-member scanned QR)
+    // Record pending connection if sid is present (non-member scanned QR).
+    //
+    // Was a direct REST POST to piktag_pending_connections. That broke
+    // silently after 20260428l_rls_hardening C2 locked INSERT to
+    // `authenticated AND auth.uid() = host_user_id` — anon got 403,
+    // try/catch swallowed it, and the scan→connect rail went dead in
+    // prod. Now goes through the SECURITY DEFINER RPC
+    // record_pending_connection (anon-callable, validates args
+    // server-side), keeping the table's RLS tight while restoring the
+    // wedge.
     if (sidStr) {
       try {
-        await fetch(`${SUPABASE_URL}/rest/v1/piktag_pending_connections`, {
+        await fetch(`${SUPABASE_URL}/rest/v1/rpc/record_pending_connection`, {
           method: 'POST',
           headers: {
             apikey: SUPABASE_ANON_KEY,
             Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
             'Content-Type': 'application/json',
-            Prefer: 'return=minimal',
           },
           body: JSON.stringify({
-            host_user_id: profile.id,
-            scan_session_id: sidStr,
+            p_host_user_id: profile.id,
+            p_scan_session_id: sidStr,
           }),
         });
-      } catch { /* ignore — table may not exist yet */ }
+      } catch { /* best-effort; failures here don't break the page */ }
     }
 
     // LIVE event-tag refresh: the URL's ?tags=… is a snapshot from
