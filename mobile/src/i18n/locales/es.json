@@ -1276,7 +1276,9 @@
     "fieldBirthday": "Cumpleaños (opcional)",
     "birthdayPlaceholder": "MM-DD o YYYY-MM-DD",
     "linkPhone": "Teléfono",
-    "linkEmail": "Correo"
+    "linkEmail": "Correo",
+    "fieldAddress": "Dirección",
+    "addressPlaceholder": "ej. Calle Mayor 1, Madrid"
   },
   "followers": {
     "title": "Seguidores",

@@ -1276,7 +1276,9 @@
     "fieldBirthday": "Anniversaire (facultatif)",
     "birthdayPlaceholder": "MM-JJ ou AAAA-MM-JJ",
     "linkPhone": "Téléphone",
-    "linkEmail": "E-mail"
+    "linkEmail": "E-mail",
+    "fieldAddress": "Adresse",
+    "addressPlaceholder": "ex. 12 rue de Rivoli, Paris"
   },
   "followers": {
     "title": "Abonnés",

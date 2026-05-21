@@ -60,6 +60,10 @@ type CardData = {
   bio_draft: string | null;
   phone: string | null;
   email: string | null;
+  // Edge fn started returning address on 2026-05-23. Optional in
+  // case the edge fn hasn't been redeployed yet → the prefill code
+  // is null-safe so this is forward-compatible either way.
+  address?: string | null;
 };
 
 export default function EditLocalContactScreen({ navigation, route }: Props) {
@@ -111,6 +115,9 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
   const [headline, setHeadline] = useState(
     existing?.headline ?? existing?.note ?? '',
   );
+  // 地址 — mailing/office address. Edge fn returns it from a card
+  // scan; tappable in the read view to open the system Maps app.
+  const [address, setAddress] = useState(existing?.address ?? '');
   const [tags, setTags] = useState<string[]>(existing?.tags ?? []);
   const [tagInput, setTagInput] = useState('');
   const [saving, setSaving] = useState(false);
@@ -163,6 +170,7 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
       setEmail(existing.email_lower ?? '');
       setBirthday(birthdayForInput(existing.birthday));
       setHeadline(existing.headline ?? existing.note ?? '');
+      setAddress(existing.address ?? '');
       setTags(existing.tags ?? []);
       setAvatarUrl(existing.avatar_url ?? null);
       setHydrated(true);
@@ -341,6 +349,7 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
       const cardName = (card.full_name ?? '').trim();
       const cardPhone = (card.phone ?? '').trim();
       const cardEmail = (card.email ?? '').trim();
+      const cardAddress = (card.address ?? '').trim();
       const bioDraft = (card.bio_draft ?? '').trim();
       const cardHeadline = [card.job_title, card.company]
         .filter((s) => s && s.trim())
@@ -352,6 +361,7 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
         if (cardName) setName((cur) => (cur.trim() ? cur : cardName));
         if (cardPhone) setPhone((cur) => (cur.trim() ? cur : cardPhone));
         if (cardEmail) setEmail((cur) => (cur.trim() ? cur : cardEmail));
+        if (cardAddress) setAddress((cur) => (cur.trim() ? cur : cardAddress));
         // Job title + company → the member-aligned 職稱 field.
         if (cardHeadline) setHeadline((cur) => (cur.trim() ? cur : cardHeadline));
         // (bio_draft → AI-tag fuel path removed with the AI section.)
@@ -494,6 +504,7 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
           email_lower: email.trim().toLowerCase() || null,
           birthday: birthdayNorm,
           headline: headline.trim() || null,
+          address: address.trim() || null,
           tags,
         });
         if (!ok) throw new Error('update failed');
@@ -504,6 +515,7 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
           email: email.trim() || null,
           birthday: birthdayNorm,
           headline: headline.trim() || null,
+          address: address.trim() || null,
           tags,
           avatar_url: avatarUrl,
         });
@@ -518,7 +530,7 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
     } finally {
       setSaving(false);
     }
-  }, [name, phone, email, birthday, headline, tags, isEdit, contactId, add, update, navigation, t]);
+  }, [name, phone, email, birthday, headline, address, tags, avatarUrl, isEdit, contactId, add, update, navigation, t]);
 
   const handleDelete = useCallback(() => {
     if (!contactId) return;
@@ -719,6 +731,21 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
                 keyboardType="numbers-and-punctuation"
                 autoCapitalize="none"
                 maxLength={10}
+              />
+            </View>
+
+            <View style={styles.fieldGroup}>
+              <Text style={styles.fieldLabel}>
+                {t('localContact.fieldAddress', { defaultValue: '地址' })}
+              </Text>
+              <TextInput
+                style={styles.fieldInput}
+                value={address}
+                onChangeText={setAddress}
+                placeholder={t('localContact.addressPlaceholder', { defaultValue: '例：台北市信義區市府路 1 號' })}
+                placeholderTextColor={COLORS.gray400}
+                autoCapitalize="none"
+                maxLength={200}
               />
             </View>
           </View>

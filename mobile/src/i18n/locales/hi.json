@@ -1276,7 +1276,9 @@
     "fieldBirthday": "जन्मदिन (वैकल्पिक)",
     "birthdayPlaceholder": "MM-DD या YYYY-MM-DD",
     "linkPhone": "फ़ोन",
-    "linkEmail": "ईमेल"
+    "linkEmail": "ईमेल",
+    "fieldAddress": "पता",
+    "addressPlaceholder": "उदा. कनॉट प्लेस, नई दिल्ली"
   },
   "followers": {
     "title": "फ़ॉलोअर",

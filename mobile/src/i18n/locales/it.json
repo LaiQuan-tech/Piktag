@@ -1355,7 +1355,9 @@
     "fieldBirthday": "Compleanno (facoltativo)",
     "birthdayPlaceholder": "MM-GG o AAAA-MM-GG",
     "linkPhone": "Telefono",
-    "linkEmail": "E-mail"
+    "linkEmail": "E-mail",
+    "fieldAddress": "Indirizzo",
+    "addressPlaceholder": "es. Via Roma 1, Milano"
   },
   "followers": {
     "title": "Follower",

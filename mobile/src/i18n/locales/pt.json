@@ -1276,7 +1276,9 @@
     "fieldBirthday": "Aniversário (opcional)",
     "birthdayPlaceholder": "MM-DD ou YYYY-MM-DD",
     "linkPhone": "Telefone",
-    "linkEmail": "E-mail"
+    "linkEmail": "E-mail",
+    "fieldAddress": "Endereço",
+    "addressPlaceholder": "ex. Av. Paulista 1000, São Paulo"
   },
   "followers": {
     "title": "Seguidores",

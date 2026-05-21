@@ -25,7 +25,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
-import { ArrowLeft, Phone, Mail, Gift, ExternalLink } from 'lucide-react-native';
+import { ArrowLeft, Phone, Mail, MapPin, Gift, ExternalLink } from 'lucide-react-native';
 import { toBirthdayDate } from '../lib/birthday';
 import { COLORS } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
@@ -187,7 +187,7 @@ export default function LocalContactDetailScreen({ navigation, route }: Props) {
             (rectangular, gray200 border, icon + label + ExternalLink
             arrow). Tap = tel: / mailto:. Mirrors what a member friend
             with biolinks looks like, 1:1. */}
-        {(existing.phone_normalized || existing.email_lower) && (
+        {(existing.phone_normalized || existing.email_lower || existing.address) && (
           <View style={styles.linkBioSection}>
             {existing.phone_normalized && (
               <TouchableOpacity
@@ -223,6 +223,28 @@ export default function LocalContactDetailScreen({ navigation, route }: Props) {
                 <Mail size={22} color={COLORS.gray900} strokeWidth={2.2} />
                 <Text style={styles.linkCardText} numberOfLines={1}>
                   {t('localContact.linkEmail', { defaultValue: 'Email' })}
+                </Text>
+                <ExternalLink size={16} color={COLORS.gray400} />
+              </TouchableOpacity>
+            )}
+            {existing.address && (
+              <TouchableOpacity
+                style={styles.linkCard}
+                activeOpacity={0.7}
+                onPress={() =>
+                  Linking.openURL(
+                    // Cross-platform Maps deep link — opens Apple Maps
+                    // on iOS, Google Maps app on Android, falls back to
+                    // browser web map elsewhere.
+                    `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(existing.address!)}`,
+                  ).catch(() => {})
+                }
+                accessibilityLabel={existing.address}
+                accessibilityRole="link"
+              >
+                <MapPin size={22} color={COLORS.gray900} strokeWidth={2.2} />
+                <Text style={styles.linkCardText} numberOfLines={2}>
+                  {existing.address}
                 </Text>
                 <ExternalLink size={16} color={COLORS.gray400} />
               </TouchableOpacity>

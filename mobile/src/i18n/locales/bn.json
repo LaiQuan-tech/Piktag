@@ -1276,7 +1276,9 @@
     "fieldBirthday": "জন্মদিন (ঐচ্ছিক)",
     "birthdayPlaceholder": "MM-DD অথবা YYYY-MM-DD",
     "linkPhone": "ফোন",
-    "linkEmail": "ইমেইল"
+    "linkEmail": "ইমেইল",
+    "fieldAddress": "ঠিকানা",
+    "addressPlaceholder": "যেমন ধানমন্ডি, ঢাকা"
   },
   "followers": {
     "title": "ফলোয়ার",

@@ -1276,7 +1276,9 @@
     "fieldBirthday": "تاريخ الميلاد (اختياري)",
     "birthdayPlaceholder": "MM-DD أو YYYY-MM-DD",
     "linkPhone": "الهاتف",
-    "linkEmail": "البريد الإلكتروني"
+    "linkEmail": "البريد الإلكتروني",
+    "fieldAddress": "العنوان",
+    "addressPlaceholder": "مثل: شارع الملك فهد، الرياض"
   },
   "followers": {
     "title": "المتابعون",

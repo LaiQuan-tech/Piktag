@@ -1355,7 +1355,9 @@
     "fieldBirthday": "Ngày sinh (không bắt buộc)",
     "birthdayPlaceholder": "MM-DD hoặc YYYY-MM-DD",
     "linkPhone": "Điện thoại",
-    "linkEmail": "Email"
+    "linkEmail": "Email",
+    "fieldAddress": "Địa chỉ",
+    "addressPlaceholder": "vd. 1 Đồng Khởi, Q.1, TP.HCM"
   },
   "followers": {
     "title": "Người theo dõi",

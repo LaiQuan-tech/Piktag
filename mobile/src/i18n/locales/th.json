@@ -1276,7 +1276,9 @@
     "fieldBirthday": "วันเกิด (ถ้ามี)",
     "birthdayPlaceholder": "ดด-วว หรือ ปปปป-ดด-วว",
     "linkPhone": "โทรศัพท์",
-    "linkEmail": "อีเมล"
+    "linkEmail": "อีเมล",
+    "fieldAddress": "ที่อยู่",
+    "addressPlaceholder": "เช่น ถ. สุขุมวิท 1 กรุงเทพฯ"
   },
   "followers": {
     "title": "ผู้ติดตาม",

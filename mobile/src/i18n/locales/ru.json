@@ -1276,7 +1276,9 @@
     "fieldBirthday": "День рождения (по желанию)",
     "birthdayPlaceholder": "ММ-ДД или ГГГГ-ММ-ДД",
     "linkPhone": "Телефон",
-    "linkEmail": "Эл. почта"
+    "linkEmail": "Эл. почта",
+    "fieldAddress": "Адрес",
+    "addressPlaceholder": "напр. ул. Тверская 1, Москва"
   },
   "followers": {
     "title": "Подписчики",

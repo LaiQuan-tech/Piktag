@@ -46,6 +46,10 @@ type CardData = {
   bio_draft: string | null;
   phone: string | null;
   email: string | null;
+  // Mailing/office address as printed on the card — often present
+  // on traditional cards (especially TW/JP business style). The
+  // mobile client maps this 1:1 into piktag_local_contacts.address.
+  address: string | null;
   website: string | null;
   instagram: string | null;
   facebook: string | null;
@@ -60,6 +64,7 @@ const EMPTY: CardData = {
   bio_draft: null,
   phone: null,
   email: null,
+  address: null,
   website: null,
   instagram: null,
   facebook: null,
@@ -108,6 +113,7 @@ function extractCardObject(text: string): CardData | null {
       bio_draft: pick('bio_draft'),
       phone: pick('phone'),
       email: pick('email'),
+      address: pick('address'),
       website: pick('website'),
       instagram: pick('instagram'),
       facebook: pick('facebook'),
@@ -170,6 +176,7 @@ serve(async (req) => {
       `  "bio_draft": string|null,   // see rule below`,
       `  "phone":     string|null,   // digits + country code if shown, e.g. "+886 912 345 678"`,
       `  "email":     string|null,`,
+      `  "address":   string|null,   // mailing/office address EXACTLY as printed (single line ok); null if unclear`,
       `  "website":   string|null,   // company / personal site, full domain`,
       `  "instagram": string|null,   // HANDLE only, no URL, no @`,
       `  "facebook":  string|null,   // handle or vanity path only`,

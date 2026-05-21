@@ -1276,7 +1276,9 @@
     "fieldBirthday": "Doğum günü (isteğe bağlı)",
     "birthdayPlaceholder": "AA-GG veya YYYY-AA-GG",
     "linkPhone": "Telefon",
-    "linkEmail": "E-posta"
+    "linkEmail": "E-posta",
+    "fieldAddress": "Adres",
+    "addressPlaceholder": "ör. Bağdat Cad. 1, İstanbul"
   },
   "followers": {
     "title": "Takipçiler",

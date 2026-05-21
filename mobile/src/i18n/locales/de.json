@@ -1341,7 +1341,9 @@
     "fieldBirthday": "Geburtstag (optional)",
     "birthdayPlaceholder": "MM-TT oder JJJJ-MM-TT",
     "linkPhone": "Telefon",
-    "linkEmail": "E-Mail"
+    "linkEmail": "E-Mail",
+    "fieldAddress": "Adresse",
+    "addressPlaceholder": "z. B. Hauptstr. 1, Berlin"
   },
   "followers": {
     "title": "Follower",

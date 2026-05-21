@@ -1355,7 +1355,9 @@
     "fieldBirthday": "生日（選填）",
     "birthdayPlaceholder": "MM-DD 或 YYYY-MM-DD",
     "linkPhone": "電話",
-    "linkEmail": "Email"
+    "linkEmail": "Email",
+    "fieldAddress": "地址",
+    "addressPlaceholder": "例：台北市信義區市府路 1 號"
   },
   "followers": {
     "title": "追蹤者",

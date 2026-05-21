@@ -1341,7 +1341,9 @@
     "fieldBirthday": "生日（选填）",
     "birthdayPlaceholder": "MM-DD 或 YYYY-MM-DD",
     "linkPhone": "电话",
-    "linkEmail": "邮箱"
+    "linkEmail": "邮箱",
+    "fieldAddress": "地址",
+    "addressPlaceholder": "例：北京市朝阳区建国路 88 号"
   },
   "followers": {
     "title": "追踪者",

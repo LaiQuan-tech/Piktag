@@ -1355,7 +1355,9 @@
     "fieldBirthday": "سالگرہ (اختیاری)",
     "birthdayPlaceholder": "MM-DD یا YYYY-MM-DD",
     "linkPhone": "فون",
-    "linkEmail": "ای میل"
+    "linkEmail": "ای میل",
+    "fieldAddress": "پتہ",
+    "addressPlaceholder": "مثلاً: شاہراہ فیصل، کراچی"
   },
   "followers": {
     "title": "فالوورز",

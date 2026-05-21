@@ -31,6 +31,11 @@ export type LocalContact = {
   headline: string | null;
   note: string | null;
   birthday: string | null;
+  // Mailing/office address — populated by the card-scan flow
+  // (scan-business-card edge fn extracts it alongside name/phone/
+  // email/job_title) or by manual entry. Migration:
+  // 20260523000000_local_contact_address.sql.
+  address: string | null;
   tags: string[];
   promoted_to_connection_id: string | null;
   promoted_at: string | null;
@@ -48,6 +53,7 @@ export type AddLocalContactInput = {
   headline?: string | null;
   note?: string | null;
   birthday?: string | null;
+  address?: string | null;
 };
 
 /**
@@ -124,6 +130,7 @@ export function useLocalContacts() {
             headline: input.headline ?? null,
             note: input.note ?? null,
             birthday: input.birthday ?? null,
+            address: input.address ?? null,
           })
           .select()
           .single();
