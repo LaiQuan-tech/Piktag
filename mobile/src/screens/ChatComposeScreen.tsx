@@ -248,7 +248,7 @@ export default function ChatComposeScreen({ navigation, route }: Props) {
         <Text style={styles.emptyText}>—</Text>
       </View>
     );
-  }, [searching, query]);
+  }, [searching, query, styles, colors]);
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>

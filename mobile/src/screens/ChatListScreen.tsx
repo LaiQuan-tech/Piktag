@@ -321,7 +321,7 @@ export default function ChatListScreen({ navigation }: Props) {
     if (headerProfile?.username) return `@${headerProfile.username}`;
     if (headerProfile?.full_name) return headerProfile.full_name;
     return t('chat.inbox');
-  }, [headerProfile, t]);
+  }, [headerProfile, t, styles, colors]);
 
   const refreshControl = useMemo(
     () => (

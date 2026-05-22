@@ -322,7 +322,7 @@ export default function QrGroupDetailScreen({ navigation, route }: Props) {
         </TouchableOpacity>
       );
     },
-    [navigation],
+    [navigation, styles, colors],
   );
 
   // ─── Present mode ────────────────────────────────────────

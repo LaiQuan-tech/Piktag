@@ -94,6 +94,15 @@ works *against* this, say so honestly (中肯) rather than just complying.
   need colors — pass `colors: ColorPalette` as a parameter (see
   `getBiolinkIcon` in FriendDetailScreen).
 
+  **`useCallback`/`useMemo` that builds themed JSX MUST list
+  `styles` + `colors` in its deps** — `renderItem`, `listHeader`,
+  memoized style arrays, etc. `styles` is a fresh object each theme
+  switch; a callback that omits it from deps freezes on whatever
+  theme rendered first (the symptom: black list rows on a white
+  page, or vice-versa, after the launch theme settles). Plain
+  inline `renderItem={() => …}` is safe (recreated each render);
+  the trap is only the memoized form.
+
   StatusBar: `barStyle={isDark ? 'light-content' : 'dark-content'}`.
 
   NEVER reintroduce hardcoded `COLORS.X` in styles (`COLORS` is the

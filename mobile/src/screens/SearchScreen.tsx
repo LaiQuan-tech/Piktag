@@ -1965,13 +1965,15 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
       searchTab,
       handleSearchByTags,
       runBootstrap,
+      styles,
+      colors,
     ],
   );
 
   // ── Memoized search container style ──
   const searchContainerStyle = useMemo(
     () => [styles.searchContainer, isFocused && styles.searchContainerFocused],
-    [isFocused],
+    [isFocused, styles],
   );
 
   // Manual focus fallback: on some devices (e.g. iPhone XR) the native

@@ -995,14 +995,14 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
         />
       </>
     );
-  }, [askFeedItems, myActiveAsk, myProfile, selectMode, refreshAsks, handleAskPressUser, showPhonePrompt, handlePhonePromptPress, handlePhonePromptDismiss, t]);
+  }, [askFeedItems, myActiveAsk, myProfile, selectMode, refreshAsks, handleAskPressUser, showPhonePrompt, handlePhonePromptPress, handlePhonePromptDismiss, t, styles, colors]);
 
   // --- Optimized: stable contentContainerStyle ---
   const contentContainerStyle = useMemo(() => [
     styles.listContent,
     connections.length === 0 && styles.listContentEmpty,
     selectMode && { paddingBottom: 160 },
-  ], [connections.length, selectMode]);
+  ], [connections.length, selectMode, styles]);
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>

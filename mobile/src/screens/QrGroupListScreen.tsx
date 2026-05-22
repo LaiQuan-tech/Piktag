@@ -341,7 +341,11 @@ export default function QrGroupListScreen({ navigation }: Props) {
         </ScaleDecorator>
       );
     },
-    [handleOpenGroup, handleDelete, t],
+    // `styles` + `colors` MUST be deps — renderItem builds JSX with
+    // them, and they change on theme switch. Omitting them froze the
+    // rows on whatever theme rendered first (dark rows on a light
+    // page after the launch theme settled).
+    [handleOpenGroup, handleDelete, t, styles, colors],
   );
 
   const listEmpty = useMemo(

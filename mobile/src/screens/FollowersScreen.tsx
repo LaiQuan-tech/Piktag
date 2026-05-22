@@ -135,7 +135,7 @@ export default function FollowersScreen({ navigation, route }: Props) {
         </TouchableOpacity>
       );
     },
-    [handleOpenProfile, t]
+    [handleOpenProfile, t, styles, colors]
   );
 
   return (

@@ -391,7 +391,7 @@ export default function TagDetailScreen({ navigation, route }: TagDetailScreenPr
         </View>
       </TouchableOpacity>
     );
-  }, [navigation]);
+  }, [navigation, styles, colors]);
 
   // --- Explore user item renderer ---
   const renderExploreItem = useCallback(({ item }: { item: ExploreUser }) => {
@@ -435,7 +435,7 @@ export default function TagDetailScreen({ navigation, route }: TagDetailScreenPr
         </TouchableOpacity>
       </TouchableOpacity>
     );
-  }, [navigation, t]);
+  }, [navigation, t, styles, colors]);
 
   const connectionKeyExtractor = useCallback((item: ConnectionWithProfile) => item.id, []);
   const exploreKeyExtractor = useCallback((item: ExploreUser) => item.id, []);

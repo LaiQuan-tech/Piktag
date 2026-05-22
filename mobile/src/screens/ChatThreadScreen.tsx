@@ -323,7 +323,7 @@ export default function ChatThreadScreen({ navigation, route }: Props) {
         </View>
       );
     },
-    [messages, user, avatarName, avatarUrl, retry, handleBubbleLongPress, t],
+    [messages, user, avatarName, avatarUrl, retry, handleBubbleLongPress, t, styles, colors],
   );
 
   const keyExtractor = useCallback((item: ThreadMessage) => item.id, []);
