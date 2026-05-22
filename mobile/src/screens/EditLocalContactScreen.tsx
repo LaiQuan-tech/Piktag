@@ -363,13 +363,13 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
             defaultValue: '名片沒有讀取成功，再試一次或手動填寫。',
           }),
           [
+            // Single action → back to the card camera. The camera
+            // screen already carries the "或手動輸入" escape at its
+            // foot, so the choice (re-shoot vs type it) lives there
+            // — no need to duplicate it as a second Alert button.
             {
               text: t('localContact.scanRetake', { defaultValue: '重拍' }),
               onPress: () => openCamera(false),
-            },
-            {
-              text: t('localContact.scanManualBtn', { defaultValue: '手動輸入' }),
-              style: 'cancel',
             },
           ],
         );
@@ -385,13 +385,13 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
             defaultValue: '這張名片看不太清楚 — 換一張清楚的照片，或直接手動填。',
           }),
           [
+            // Single action → back to the card camera. The camera
+            // screen already carries the "或手動輸入" escape at its
+            // foot, so the choice (re-shoot vs type it) lives there
+            // — no need to duplicate it as a second Alert button.
             {
               text: t('localContact.scanRetake', { defaultValue: '重拍' }),
               onPress: () => openCamera(false),
-            },
-            {
-              text: t('localContact.scanManualBtn', { defaultValue: '手動輸入' }),
-              style: 'cancel',
             },
           ],
         );
