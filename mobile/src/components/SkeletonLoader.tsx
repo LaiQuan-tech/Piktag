@@ -296,7 +296,7 @@ export const ConnectionsScreenSkeleton = React.memo(function ConnectionsScreenSk
   return (
     <View style={[skeletonConnectionsStyles.container, { backgroundColor: colors.background }]}>
       {Array.from({ length: 6 }).map((_, index) => (
-        <View key={index} style={[skeletonConnectionsStyles.row, { borderBottomColor: colors.gray100 }]}>
+        <View key={index} style={skeletonConnectionsStyles.row}>
           {/* Circle avatar */}
           <SkeletonBox width={56} height={56} borderRadius={28} />
           {/* Text block */}
@@ -525,8 +525,11 @@ const skeletonConnectionsStyles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 16,
     height: 107,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f3f4f6',
+    // No row separator — a skeleton is a loading placeholder; the
+    // spaced shimmer blocks already read as "rows". The old
+    // borderBottom (#f3f4f6, hardcoded) was the white separator
+    // line flashing on dark-mode launch. Removed outright so there
+    // is no line to theme-mismatch in either mode.
   },
   textBlock: {
     marginLeft: 14,
