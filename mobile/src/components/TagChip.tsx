@@ -123,9 +123,11 @@ function makeStyles(c: ColorPalette) {
     borderWidth: 1.5,
     borderColor: 'transparent',
   },
-  // Gray toggle-OFF chips need a defined edge in dark mode — the
-  // c.gray100 fill alone barely separates from a near-black page.
-  chipToggleOff: { backgroundColor: c.gray100, borderColor: c.gray200 },
+  // Gray toggle-OFF chips (AI suggestion chips + read-only tag
+  // displays) use IG-style filled gray — c.gray200 is #e5e7eb light
+  // / #363636 dark. The old c.gray100 fill sat too close to the
+  // black dark-mode page. Founder, 2026-05-23.
+  chipToggleOff: { backgroundColor: c.gray200, borderColor: c.gray200 },
   text: { fontSize: 14, fontWeight: '500', color: '#FFFFFF' },
   textToggleOff: { color: c.gray700 },
   });

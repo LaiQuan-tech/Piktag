@@ -8,9 +8,7 @@ import {
   Briefcase, Palette, AtSign, MessageCircle,
 } from 'lucide-react-native';
 import { BRAND_PATHS } from './brandPaths';
-
-// Unified monochrome icon color
-const ICON_COLOR = '#374151'; // gray700
+import { useTheme } from '../context/ThemeContext';
 
 type Props = {
   platform: string;
@@ -91,7 +89,13 @@ const LUCIDE_MAP: Record<string, any> = {
   shopee: ShoppingBag,
 };
 
-export default function PlatformIcon({ platform, size = 24, color = ICON_COLOR, iconUrl }: Props) {
+export default function PlatformIcon({ platform, size = 24, color: colorProp, iconUrl }: Props) {
+  // Icons render monochrome (incl. brand glyphs — deliberate, see
+  // the brandPath comment). The fill must theme: gray700 is #374151
+  // in light, #dbdbdb in dark — a hardcoded #374151 went invisible
+  // on the dark page. Callers can still override via the `color` prop.
+  const { colors } = useTheme();
+  const color = colorProp ?? colors.gray700;
   const key = platform?.toLowerCase();
 
   // ── Brand SVG path (from simple-icons, CC0-licensed) ──

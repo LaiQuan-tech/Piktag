@@ -343,7 +343,7 @@ function makeStyles(c: ColorPalette) {
   linkCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: c.white,
+    backgroundColor: c.gray100,
     borderWidth: 1.5,
     borderColor: c.gray200,
     borderRadius: 16,

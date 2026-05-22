@@ -2111,7 +2111,7 @@ function makeStyles(c: ColorPalette) {
     width: 52,
     height: 52,
     borderRadius: 26,
-    backgroundColor: c.gray50,
+    backgroundColor: c.gray200,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -2134,7 +2134,7 @@ function makeStyles(c: ColorPalette) {
   linkCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: c.white,
+    backgroundColor: c.gray100,
     borderWidth: 1.5,
     borderColor: c.gray200,
     borderRadius: 16,
