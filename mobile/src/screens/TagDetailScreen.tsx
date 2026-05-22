@@ -50,6 +50,21 @@ type ExploreUser = {
   mutual_tag_count: number;
 };
 
+// A not-yet-on-PikTag local contact the owner manually tagged with
+// this tag. Shows in the 追蹤/connections tab alongside member
+// connections — manual tags (connection_tags + local-contact tags)
+// are owner-private, so this list is searchable only by its owner.
+type TaggedLocalContact = {
+  __localContact: true;
+  id: string;
+  name: string;
+  avatar_url: string | null;
+};
+
+// The connections-tab list holds both: real member connections and
+// manually-tagged local contacts.
+type ConnTabItem = ConnectionWithProfile | TaggedLocalContact;
+
 type TabKey = 'connections' | 'explore';
 
 export default function TagDetailScreen({ navigation, route }: TagDetailScreenProps) {
@@ -73,10 +88,12 @@ export default function TagDetailScreen({ navigation, route }: TagDetailScreenPr
   // tab out from under them on a slow connections re-fetch.
   const userPickedTabRef = useRef<boolean>(!!initialTab);
   const [connections, setConnections] = useState<ConnectionWithProfile[]>([]);
+  // Local contacts the owner manually tagged with this tag — merged
+  // into the connections tab below member connections.
+  const [taggedContacts, setTaggedContacts] = useState<TaggedLocalContact[]>([]);
   const [exploreUsers, setExploreUsers] = useState<ExploreUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [exploreLoading, setExploreLoading] = useState(true);
-  const [usageCount, setUsageCount] = useState(0);
   const [totalUserCount, setTotalUserCount] = useState(0);
   const [tagSemanticType, setTagSemanticType] = useState<string | null>(null);
   const [parentTagName, setParentTagName] = useState<string | null>(null);
@@ -134,29 +151,59 @@ export default function TagDetailScreen({ navigation, route }: TagDetailScreenPr
       // Get all sibling tag_ids (same concept)
       const allTagIds = await getSiblingTagIds(tagId);
 
-      const { data, error } = await supabase
-        .from('piktag_connection_tags')
-        .select(`
-          connection:piktag_connections!connection_id(
-            id, connected_user_id, nickname, met_at, met_location,
-            connected_user:piktag_profiles!connected_user_id(
-              id, username, full_name, avatar_url, is_verified
+      // Sibling tag NAMES — local-contact tags are stored as plain
+      // name strings (piktag_local_contacts.tags is text[]), not FKs,
+      // so contacts are matched by name, not tag_id.
+      const { data: siblingTagRows } = await supabase
+        .from('piktag_tags')
+        .select('name')
+        .in('id', allTagIds);
+      const siblingNames = (siblingTagRows || [])
+        .map((r: any) => r.name)
+        .filter(Boolean);
+
+      const [{ data, error }, contactsResult] = await Promise.all([
+        supabase
+          .from('piktag_connection_tags')
+          .select(`
+            connection:piktag_connections!connection_id(
+              id, connected_user_id, nickname, met_at, met_location,
+              connected_user:piktag_profiles!connected_user_id(
+                id, username, full_name, avatar_url, is_verified
+              )
             )
-          )
-        `)
-        .in('tag_id', allTagIds)
-        .limit(1000);
+          `)
+          .in('tag_id', allTagIds)
+          .limit(1000),
+        // Manually-tagged local contacts. RLS scopes piktag_local_contacts
+        // to the owner, so this is private to the searching user — the
+        // founder's "manual tags are owner-only searchable" rule holds.
+        siblingNames.length > 0
+          ? supabase
+              .from('piktag_local_contacts')
+              .select('id, name, avatar_url, tags')
+              .overlaps('tags', siblingNames)
+              .limit(500)
+          : Promise.resolve({ data: [], error: null } as any),
+      ]);
+
+      const matchedContacts: TaggedLocalContact[] = (contactsResult.data || [])
+        .map((c: any) => ({
+          __localContact: true as const,
+          id: c.id,
+          name: c.name,
+          avatar_url: c.avatar_url ?? null,
+        }));
+      setTaggedContacts(matchedContacts);
 
       if (error) {
         console.error('Error fetching tag connections:', error);
         setConnections([]);
-        setUsageCount(0);
         return;
       }
 
       if (!data || data.length === 0) {
         setConnections([]);
-        setUsageCount(0);
         return;
       }
 
@@ -165,7 +212,6 @@ export default function TagDetailScreen({ navigation, route }: TagDetailScreenPr
         .filter((conn: any) => conn && conn.connected_user_id);
 
       setConnections(allConnections);
-      setUsageCount(data.length);
     } catch (err) {
       console.error('Unexpected error:', err);
       setConnections([]);
@@ -350,17 +396,49 @@ export default function TagDetailScreen({ navigation, route }: TagDetailScreenPr
   useEffect(() => {
     if (loading) return;
     if (userPickedTabRef.current) return;
-    if (connections.length === 0 && activeTab === 'connections') {
+    // Stay on 'connections' if EITHER member connections OR manually-
+    // tagged local contacts exist — both live in that tab now.
+    if (
+      connections.length === 0 &&
+      taggedContacts.length === 0 &&
+      activeTab === 'connections'
+    ) {
       setActiveTab('explore');
     }
-  }, [loading, connections.length, activeTab]);
+  }, [loading, connections.length, taggedContacts.length, activeTab]);
 
   // --- Connection item renderer ---
-  const renderConnectionItem = useCallback(({ item }: { item: ConnectionWithProfile }) => {
+  const renderConnectionItem = useCallback(({ item }: { item: ConnTabItem }) => {
+    // Manually-tagged local contact (not yet on PikTag) → its
+    // read-only detail screen, with the "尚未加入" badge.
+    if ('__localContact' in item) {
+      return (
+        <TouchableOpacity
+          style={styles.userItem}
+          activeOpacity={0.7}
+          onPress={() => navigation.navigate('LocalContactDetail', { contactId: item.id })}
+        >
+          <RingedAvatar
+            size={51}
+            ringStyle="subtle"
+            name={item.name || '?'}
+            avatarUrl={item.avatar_url}
+          />
+          <View style={styles.textSection}>
+            <View style={styles.nameRow}>
+              <Text style={styles.name} numberOfLines={1}>{item.name || '?'}</Text>
+            </View>
+            <Text style={styles.username} numberOfLines={1}>
+              {t('connections.notJoinedBadge', { defaultValue: '尚未加入 PikTag' })}
+            </Text>
+          </View>
+        </TouchableOpacity>
+      );
+    }
+
     const profile = item.connected_user;
     const displayName = item.nickname || profile?.full_name || profile?.username || 'Unknown';
     const username = profile?.username || '';
-    const verified = profile?.is_verified || false;
 
     return (
       <TouchableOpacity
@@ -380,9 +458,6 @@ export default function TagDetailScreen({ navigation, route }: TagDetailScreenPr
         <View style={styles.textSection}>
           <View style={styles.nameRow}>
             <Text style={styles.name} numberOfLines={1}>{displayName}</Text>
-            {/* {verified && (
-              <CheckCircle2 size={16} color={colors.blue500} fill={colors.blue500} strokeWidth={0} style={{ marginLeft: 4 }} />
-            )} */}
           </View>
           {username ? <Text style={styles.username}>@{username}</Text> : null}
           {item.met_location ? (
@@ -391,7 +466,7 @@ export default function TagDetailScreen({ navigation, route }: TagDetailScreenPr
         </View>
       </TouchableOpacity>
     );
-  }, [navigation, styles, colors]);
+  }, [navigation, styles, colors, t]);
 
   // --- Explore user item renderer ---
   const renderExploreItem = useCallback(({ item }: { item: ExploreUser }) => {
@@ -437,12 +512,22 @@ export default function TagDetailScreen({ navigation, route }: TagDetailScreenPr
     );
   }, [navigation, t, styles, colors]);
 
-  const connectionKeyExtractor = useCallback((item: ConnectionWithProfile) => item.id, []);
+  const connectionKeyExtractor = useCallback(
+    (item: ConnTabItem) => ('__localContact' in item ? `c_${item.id}` : item.id),
+    [],
+  );
   const exploreKeyExtractor = useCallback((item: ExploreUser) => item.id, []);
+
+  // Connections tab = member connections + manually-tagged local
+  // contacts (the founder's "manual tags must be searchable" fix).
+  const connectionsData = useMemo<ConnTabItem[]>(
+    () => [...connections, ...taggedContacts],
+    [connections, taggedContacts],
+  );
 
   const isConnectionsTab = activeTab === 'connections';
   const currentLoading = isConnectionsTab ? loading : exploreLoading;
-  const currentData = isConnectionsTab ? connections : exploreUsers;
+  const currentData = isConnectionsTab ? connectionsData : exploreUsers;
 
   // Active asks tagged with this tag — surfaces "who is currently
   // asking about #X" above the user list. Auto-hides when there are
@@ -528,9 +613,9 @@ export default function TagDetailScreen({ navigation, route }: TagDetailScreenPr
           <Text style={[styles.tabText, activeTab === 'connections' && styles.tabTextActive]}>
             {t('tagDetail.tabConnections')}
           </Text>
-          {usageCount > 0 && (
+          {connectionsData.length > 0 && (
             <View style={styles.tabBadge}>
-              <Text style={styles.tabBadgeText}>{usageCount}</Text>
+              <Text style={styles.tabBadgeText}>{connectionsData.length}</Text>
             </View>
           )}
         </TouchableOpacity>
@@ -559,13 +644,13 @@ export default function TagDetailScreen({ navigation, route }: TagDetailScreenPr
         <PageLoader />
       ) : isConnectionsTab ? (
         <FlatList
-          data={connections}
+          data={connectionsData}
           renderItem={renderConnectionItem}
           keyExtractor={connectionKeyExtractor}
           ListHeaderComponent={asksHeader}
           contentContainerStyle={[
             styles.listContent,
-            connections.length === 0 && styles.listContentEmpty,
+            connectionsData.length === 0 && styles.listContentEmpty,
           ]}
           showsVerticalScrollIndicator={false}
           ListEmptyComponent={
