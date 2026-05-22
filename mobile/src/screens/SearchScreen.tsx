@@ -103,6 +103,54 @@ const ProfileCard = React.memo(function ProfileCard({ profile, onPress, t }: Pro
 
 const verifiedBadgeStyle = { marginLeft: 4 };
 
+// A local contact (non-member) the viewer manually tagged. Shown in the
+// intersection-search Friends tab below member matches. Manual tags are
+// owner-private, so this only ever surfaces for the user who set them.
+type TaggedContact = {
+  id: string;
+  name: string;
+  avatar_url: string | null;
+};
+
+type LocalContactCardProps = {
+  contact: TaggedContact;
+  onPress: (contact: TaggedContact) => void;
+  t: (key: string, opts?: any) => string;
+};
+
+const LocalContactCard = React.memo(function LocalContactCard({ contact, onPress, t }: LocalContactCardProps) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
+  const handlePress = useCallback(() => {
+    onPress(contact);
+  }, [onPress, contact]);
+
+  return (
+    <TouchableOpacity
+      style={styles.profileCard}
+      onPress={handlePress}
+      activeOpacity={0.7}
+    >
+      <RingedAvatar
+        size={51}
+        ringStyle="subtle"
+        name={contact.name || '?'}
+        avatarUrl={contact.avatar_url}
+      />
+      <View style={styles.profileInfo}>
+        <View style={styles.profileNameRow}>
+          <Text style={styles.profileName} numberOfLines={1}>
+            {contact.name || '?'}
+          </Text>
+        </View>
+        <Text style={styles.profileUsername} numberOfLines={1}>
+          {t('connections.notJoinedBadge', { defaultValue: '尚未加入 PikTag' })}
+        </Text>
+      </View>
+    </TouchableOpacity>
+  );
+});
+
 type TagCardProps = {
   tag: Tag;
   isSelected?: boolean;
@@ -346,6 +394,9 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
   const [intersectionProfiles, setIntersectionProfiles] = useState<PiktagProfile[]>([]);
   const [intersectionFriends, setIntersectionFriends] = useState<PiktagProfile[]>([]);
   const [intersectionExplore, setIntersectionExplore] = useState<PiktagProfile[]>([]);
+  // Local contacts that match ALL selected tags (manual tags only —
+  // owner-private). Rendered in the Friends tab below member matches.
+  const [intersectionContacts, setIntersectionContacts] = useState<TaggedContact[]>([]);
   const [intersectionTab, setIntersectionTab] = useState<'friends' | 'explore'>('friends');
   const [intersectionSelectedTags, setIntersectionSelectedTags] = useState<Tag[]>([]);
 
@@ -1232,12 +1283,21 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
     setIntersectionProfiles([]);
     setIntersectionFriends([]);
     setIntersectionExplore([]);
+    setIntersectionContacts([]);
     setIntersectionSelectedTags(selected);
     setSearchQuery(selected.map(t => t.name).join(' + '));
     skipNextSearch.current = true;
 
     try {
-      const userIdSets: Set<string>[] = [];
+      // Per-tag entity sets. An "entity" is either a member (key
+      // 'u:'+userId) or a local contact (key 'c:'+contactId). A member
+      // matches a tag via a PUBLIC self-tag (piktag_user_tags) OR the
+      // viewer's own MANUAL tag on the connection (piktag_connection_tags);
+      // a contact matches via its text[] tags (piktag_local_contacts).
+      // connection_tags + local_contacts are owner-scoped by RLS, so
+      // manual tags stay private to the searching user — exactly the
+      // founder's "manual tags are owner-only searchable" rule.
+      const entitySets: Set<string>[] = [];
       for (const tagId of selectedTagIds) {
         // Expand tag to include all sibling tags (same concept = same meaning)
         let allTagIds = [tagId];
@@ -1258,26 +1318,73 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
           console.warn('[SearchScreen] sibling tag lookup failed, falling back to single tag:', err);
         }
 
-        const { data } = await supabase
-          .from('piktag_user_tags')
-          .select('user_id')
-          .in('tag_id', allTagIds)
-          .eq('is_private', false);
-        userIdSets.push(new Set((data || []).map((d: any) => d.user_id)));
+        // Sibling tag NAMES — local-contact tags are stored as plain
+        // name strings (piktag_local_contacts.tags is text[]), not FKs.
+        const { data: siblingTagRows } = await supabase
+          .from('piktag_tags')
+          .select('name')
+          .in('id', allTagIds);
+        const siblingNames = (siblingTagRows || [])
+          .map((r: any) => r.name)
+          .filter(Boolean);
+
+        const [publicResult, connTagResult, contactResult] = await Promise.all([
+          supabase
+            .from('piktag_user_tags')
+            .select('user_id')
+            .in('tag_id', allTagIds)
+            .eq('is_private', false),
+          supabase
+            .from('piktag_connection_tags')
+            .select('connection:piktag_connections!connection_id(connected_user_id)')
+            .in('tag_id', allTagIds)
+            .limit(1000),
+          siblingNames.length > 0
+            ? supabase
+                .from('piktag_local_contacts')
+                .select('id')
+                .overlaps('tags', siblingNames)
+                .limit(500)
+            : Promise.resolve({ data: [] } as any),
+        ]);
+
+        const set = new Set<string>();
+        for (const d of publicResult.data || []) {
+          set.add('u:' + (d as any).user_id);
+        }
+        for (const d of connTagResult.data || []) {
+          const cu = (d as any).connection?.connected_user_id;
+          if (cu) set.add('u:' + cu);
+        }
+        for (const d of contactResult.data || []) {
+          set.add('c:' + (d as any).id);
+        }
+        entitySets.push(set);
       }
 
-      let intersection = userIdSets[0] || new Set();
-      for (let i = 1; i < userIdSets.length; i++) {
-        intersection = new Set([...intersection].filter(id => userIdSets[i].has(id)));
+      let intersection = entitySets[0] || new Set<string>();
+      for (let i = 1; i < entitySets.length; i++) {
+        intersection = new Set([...intersection].filter(k => entitySets[i].has(k)));
       }
 
-      const userIds = [...intersection].slice(0, 50);
+      const memberIds = [...intersection]
+        .filter(k => k.startsWith('u:'))
+        .map(k => k.slice(2))
+        .slice(0, 50);
+      const contactIds = [...intersection]
+        .filter(k => k.startsWith('c:'))
+        .map(k => k.slice(2))
+        .slice(0, 50);
 
-      if (userIds.length > 0) {
+      let friends: PiktagProfile[] = [];
+      let explore: PiktagProfile[] = [];
+      let contacts: TaggedContact[] = [];
+
+      if (memberIds.length > 0) {
         const [profileResult, myConnsResult] = await Promise.all([
           supabase.from('piktag_profiles')
             .select('id, username, full_name, avatar_url, is_verified')
-            .in('id', userIds),
+            .in('id', memberIds),
           supabase.from('piktag_connections')
             .select('connected_user_id')
             .eq('user_id', user!.id),
@@ -1286,14 +1393,29 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
         const allProfiles = (profileResult.data || []) as PiktagProfile[];
         const friendIds = new Set((myConnsResult.data || []).map((c: any) => c.connected_user_id));
 
-        const friends = allProfiles.filter(p => friendIds.has(p.id));
-        const explore = allProfiles.filter(p => !friendIds.has(p.id) && p.id !== user?.id);
-
+        friends = allProfiles.filter(p => friendIds.has(p.id));
+        explore = allProfiles.filter(p => !friendIds.has(p.id) && p.id !== user?.id);
         setIntersectionProfiles(allProfiles);
-        setIntersectionFriends(friends);
-        setIntersectionExplore(explore);
-        setIntersectionTab(friends.length > 0 ? 'friends' : 'explore');
       }
+
+      if (contactIds.length > 0) {
+        const { data: contactRows } = await supabase
+          .from('piktag_local_contacts')
+          .select('id, name, avatar_url')
+          .in('id', contactIds);
+        contacts = (contactRows || []).map((c: any) => ({
+          id: c.id,
+          name: c.name,
+          avatar_url: c.avatar_url ?? null,
+        }));
+      }
+
+      setIntersectionFriends(friends);
+      setIntersectionExplore(explore);
+      setIntersectionContacts(contacts);
+      // Friends-first: contacts count toward the Friends tab, so default
+      // there whenever the viewer's own world produced ANY match.
+      setIntersectionTab((friends.length + contacts.length) > 0 ? 'friends' : 'explore');
     } catch (err) {
       console.warn('Intersection search error:', err);
       setProfiles([]);
@@ -1307,6 +1429,13 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
   const handleProfilePress = useCallback(
     (profile: PiktagProfile) => {
       navigation.navigate('UserDetail', { userId: profile.id });
+    },
+    [navigation],
+  );
+
+  const handleLocalContactPress = useCallback(
+    (contact: TaggedContact) => {
+      navigation.navigate('LocalContactDetail', { contactId: contact.id });
     },
     [navigation],
   );
@@ -1391,6 +1520,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
     | { type: 'profilesHeader' }
     | { type: 'profilesEmpty' }
     | { type: 'profileItem'; profile: PiktagProfile }
+    | { type: 'localContactItem'; contact: TaggedContact }
     | { type: 'tagsHeader' }
     | { type: 'tagsEmpty' }
     | { type: 'tagsGrid' }
@@ -1460,16 +1590,30 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
       return items;
     }
 
-    // Intersection mode — tabbed Friends / Explore results
+    // Intersection mode — tabbed Friends / Explore results. The Friends
+    // tab holds member matches AND manually-tagged local contacts (both
+    // are the viewer's own world); Explore holds non-friend members.
     if (intersectionMode) {
       items.push({ type: 'intersectionTabs' as any });
-      const activeList = intersectionTab === 'friends' ? intersectionFriends : intersectionExplore;
-      if (activeList.length > 0) {
-        activeList.forEach((profile) => {
-          items.push({ type: 'profileItem', profile });
-        });
+      if (intersectionTab === 'friends') {
+        if (intersectionFriends.length + intersectionContacts.length > 0) {
+          intersectionFriends.forEach((profile) => {
+            items.push({ type: 'profileItem', profile });
+          });
+          intersectionContacts.forEach((contact) => {
+            items.push({ type: 'localContactItem', contact });
+          });
+        } else {
+          items.push({ type: 'profilesEmpty' });
+        }
       } else {
-        items.push({ type: 'profilesEmpty' });
+        if (intersectionExplore.length > 0) {
+          intersectionExplore.forEach((profile) => {
+            items.push({ type: 'profileItem', profile });
+          });
+        } else {
+          items.push({ type: 'profilesEmpty' });
+        }
       }
       return items;
     }
@@ -1545,6 +1689,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
     intersectionProfiles,
     intersectionFriends,
     intersectionExplore,
+    intersectionContacts,
     intersectionTab,
     searchFriends,
     searchExplore,
@@ -1571,6 +1716,8 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
         return 'profilesEmpty';
       case 'profileItem':
         return `profile-${item.profile.id}`;
+      case 'localContactItem':
+        return `contact-${item.contact.id}`;
       case 'tagsHeader':
         return 'tagsHeader';
       case 'tagsEmpty':
@@ -1648,7 +1795,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
                   activeOpacity={0.7}
                 >
                   <Text style={[styles.intersectionTabText, intersectionTab === 'friends' && styles.intersectionTabTextActive]}>
-                    {t('tagDetail.tabConnections')} ({intersectionFriends.length})
+                    {t('tagDetail.tabConnections')} ({intersectionFriends.length + intersectionContacts.length})
                   </Text>
                 </TouchableOpacity>
                 <TouchableOpacity
@@ -1818,6 +1965,15 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
             />
           );
 
+        case 'localContactItem':
+          return (
+            <LocalContactCard
+              contact={item.contact}
+              onPress={handleLocalContactPress}
+              t={t}
+            />
+          );
+
         case 'tagsHeader':
           return (
             <Text style={styles.resultSectionLabel}>
@@ -1942,6 +2098,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
       handleCategoryPress,
       handleRecentSearchTap,
       handleProfilePress,
+      handleLocalContactPress,
       handleTagPress,
       handleTagLongPress,
       recommendedUsers,
@@ -1961,6 +2118,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
       intersectionTab,
       intersectionFriends,
       intersectionExplore,
+      intersectionContacts,
       intersectionSelectedTags,
       searchTab,
       handleSearchByTags,
