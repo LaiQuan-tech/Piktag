@@ -1278,28 +1278,35 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
   );
 
   const handleSearchByTags = useCallback(async () => {
-    if (selectedTagIds.length === 0) return;
-    // Resolve the FULL Tag object for every selected id. We must NOT rely
-    // on the live `tags` array: when the user picks each tag from its own
-    // text search, `tags` only holds the LAST search's matches, so the
-    // earlier-picked tags are missing from it. The old code derived the
-    // single-vs-multi branch from that incomplete list — a genuine 2-tag
-    // selection saw `selected.length === 1` and mis-routed to single-tag
-    // TagDetail, so the intersection search NEVER ran.
-    let selected = tags.filter(t => selectedTagIdSet.has(t.id));
-    if (selected.length !== selectedTagIds.length) {
+    if (selectedTagIds.length === 0 || !user) return;
+    // Resolve a full Tag object for EVERY selected id, in selection
+    // order. The live `tags` array usually misses earlier-picked tags
+    // (each may have been chosen from its own text search), so fill the
+    // gaps from piktag_tags. Build by id — a partial DB response must
+    // not silently shrink the set and mis-route a genuine 2-tag search
+    // to single-tag TagDetail.
+    const byId = new Map<string, Tag>();
+    for (const t of tags) {
+      if (selectedTagIdSet.has(t.id)) byId.set(t.id, t);
+    }
+    if (byId.size !== selectedTagIds.length) {
       const { data } = await supabase
         .from('piktag_tags')
         .select('id, name, semantic_type, usage_count, concept_id')
         .in('id', selectedTagIds);
-      if (data && data.length > 0) selected = data as Tag[];
+      for (const t of (data || []) as Tag[]) byId.set(t.id, t);
     }
+    const selected = selectedTagIds
+      .map((id) => byId.get(id))
+      .filter((t): t is Tag => !!t);
 
     if (selectedTagIds.length === 1) {
-      const only = selected[0];
-      if (only) {
-        navigation.navigate('TagDetail', { tagId: only.id, tagName: only.name });
-      }
+      // Always pass the id (always valid); name is best-effort. The old
+      // code skipped navigation entirely when the name didn't resolve.
+      navigation.navigate('TagDetail', {
+        tagId: selectedTagIds[0],
+        tagName: byId.get(selectedTagIds[0])?.name ?? '',
+      });
       setSelectedTagIds([]);
       return;
     }
@@ -1313,6 +1320,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
     setIntersectionSelectedTags(selected);
     setSearchQuery(selected.map(t => t.name).join(' + '));
     skipNextSearch.current = true;
+    setLoading(true);
 
     try {
       // Per-tag entity sets. An "entity" is either a member (key
@@ -1323,70 +1331,79 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
       // connection_tags + local_contacts are owner-scoped by RLS, so
       // manual tags stay private to the searching user — exactly the
       // founder's "manual tags are owner-only searchable" rule.
-      const entitySets: Set<string>[] = [];
-      for (const tagId of selectedTagIds) {
-        // Expand tag to include all sibling tags (same concept = same meaning)
-        let allTagIds = [tagId];
-        try {
-          const { data: tagData } = await supabase
-            .from('piktag_tags')
-            .select('concept_id')
-            .eq('id', tagId)
-            .single();
-          if (tagData?.concept_id) {
-            const { data: siblings } = await supabase
+      //
+      // Each tag's work is independent — run all tags in parallel
+      // (a sequential per-tag loop made a 3-tag search visibly slow).
+      const entitySets: Set<string>[] = await Promise.all(
+        selectedTagIds.map(async (tagId) => {
+          // Expand the tag to its concept siblings (same concept = same meaning).
+          let allTagIds = [tagId];
+          try {
+            const { data: tagData } = await supabase
               .from('piktag_tags')
-              .select('id')
-              .eq('concept_id', tagData.concept_id);
-            if (siblings) allTagIds = siblings.map((s: any) => s.id);
-          }
-        } catch (err) {
-          console.warn('[SearchScreen] sibling tag lookup failed, falling back to single tag:', err);
-        }
-
-        // Sibling tag NAMES — local-contact tags are stored as plain
-        // name strings (piktag_local_contacts.tags is text[]), not FKs.
-        const { data: siblingTagRows } = await supabase
-          .from('piktag_tags')
-          .select('name')
-          .in('id', allTagIds);
-        const siblingNames = (siblingTagRows || [])
-          .map((r: any) => r.name)
-          .filter(Boolean);
-
-        const [publicResult, connTagResult, contactResult] = await Promise.all([
-          supabase
-            .from('piktag_user_tags')
-            .select('user_id')
-            .in('tag_id', allTagIds)
-            .eq('is_private', false),
-          supabase
-            .from('piktag_connection_tags')
-            .select('connection:piktag_connections!connection_id(connected_user_id)')
-            .in('tag_id', allTagIds)
-            .limit(1000),
-          siblingNames.length > 0
-            ? supabase
-                .from('piktag_local_contacts')
+              .select('concept_id')
+              .eq('id', tagId)
+              .single();
+            if (tagData?.concept_id) {
+              const { data: siblings } = await supabase
+                .from('piktag_tags')
                 .select('id')
-                .overlaps('tags', siblingNames)
-                .limit(500)
-            : Promise.resolve({ data: [] } as any),
-        ]);
+                .eq('concept_id', tagData.concept_id);
+              // Never let an empty result collapse allTagIds to [] —
+              // .in('tag_id', []) matches nothing and would empty out
+              // the whole intersection.
+              if (siblings && siblings.length > 0) {
+                allTagIds = siblings.map((s: any) => s.id);
+              }
+            }
+          } catch (err) {
+            console.warn('[SearchScreen] sibling tag lookup failed, falling back to single tag:', err);
+          }
 
-        const set = new Set<string>();
-        for (const d of publicResult.data || []) {
-          set.add('u:' + (d as any).user_id);
-        }
-        for (const d of connTagResult.data || []) {
-          const cu = (d as any).connection?.connected_user_id;
-          if (cu) set.add('u:' + cu);
-        }
-        for (const d of contactResult.data || []) {
-          set.add('c:' + (d as any).id);
-        }
-        entitySets.push(set);
-      }
+          // Sibling tag NAMES — local-contact tags are stored as plain
+          // name strings (piktag_local_contacts.tags is text[]), not FKs.
+          const { data: siblingTagRows } = await supabase
+            .from('piktag_tags')
+            .select('name')
+            .in('id', allTagIds);
+          const siblingNames = (siblingTagRows || [])
+            .map((r: any) => r.name)
+            .filter(Boolean);
+
+          const [publicResult, connTagResult, contactResult] = await Promise.all([
+            supabase
+              .from('piktag_user_tags')
+              .select('user_id')
+              .in('tag_id', allTagIds)
+              .eq('is_private', false),
+            supabase
+              .from('piktag_connection_tags')
+              .select('connection:piktag_connections!connection_id(connected_user_id)')
+              .in('tag_id', allTagIds)
+              .limit(1000),
+            siblingNames.length > 0
+              ? supabase
+                  .from('piktag_local_contacts')
+                  .select('id')
+                  .overlaps('tags', siblingNames)
+                  .limit(500)
+              : Promise.resolve({ data: [] } as any),
+          ]);
+
+          const set = new Set<string>();
+          for (const d of publicResult.data || []) {
+            set.add('u:' + (d as any).user_id);
+          }
+          for (const d of connTagResult.data || []) {
+            const cu = (d as any).connection?.connected_user_id;
+            if (cu) set.add('u:' + cu);
+          }
+          for (const d of contactResult.data || []) {
+            set.add('c:' + (d as any).id);
+          }
+          return set;
+        }),
+      );
 
       let intersection = entitySets[0] || new Set<string>();
       for (let i = 1; i < entitySets.length; i++) {
@@ -1413,7 +1430,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
             .in('id', memberIds),
           supabase.from('piktag_connections')
             .select('connected_user_id')
-            .eq('user_id', user!.id),
+            .eq('user_id', user.id),
         ]);
 
         const allProfiles = (profileResult.data || []) as PiktagProfile[];
@@ -1575,17 +1592,25 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
         }
       }
     }
-    // Member friends matched via the searcher's own manual tags.
+    // Member friends matched via the searcher's own manual tags. These
+    // come from piktag_connection_tags — i.e. people the viewer already
+    // has a connection with — so they are friends BY DEFINITION and must
+    // bucket as friends even when the session-cached `myFriendIds` is
+    // stale (a connection added after mount isn't in that snapshot).
+    const taggedFriendIds = new Set<string>();
     for (const p of searchTaggedFriends) {
-      if (p?.id && !seenIds.has(p.id)) {
-        seenIds.add(p.id);
-        merged.push(p);
+      if (p?.id) {
+        taggedFriendIds.add(p.id);
+        if (!seenIds.has(p.id)) {
+          seenIds.add(p.id);
+          merged.push(p);
+        }
       }
     }
     const friends: PiktagProfile[] = [];
     const explore: PiktagProfile[] = [];
     for (const p of merged) {
-      if (myFriendIds.has(p.id)) friends.push(p);
+      if (myFriendIds.has(p.id) || taggedFriendIds.has(p.id)) friends.push(p);
       else explore.push(p);
     }
     return { searchFriends: friends, searchExplore: explore };
@@ -1594,9 +1619,20 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
   // Whenever a fresh search produces results, default the tab to
   // "friends" if any matched, else "explore". Mirrors the intersection
   // tab default at the call site of handleSearchByTags.
+  //
+  // Auto-set ONCE per committed query: results arrive in waves (text
+  // results, then the async manual-tag results), and without this guard
+  // the late wave re-fires this effect and yanks the tab back to
+  // "friends" even after the user has manually tapped "explore".
+  const searchTabAutoQueryRef = useRef<string>('');
   useEffect(() => {
-    if (trimmedQuery === '') return;
+    if (trimmedQuery === '') {
+      searchTabAutoQueryRef.current = '';
+      return;
+    }
+    if (searchTabAutoQueryRef.current === trimmedQuery) return;
     if (searchFriends.length + searchExplore.length + searchTaggedContacts.length === 0) return;
+    searchTabAutoQueryRef.current = trimmedQuery;
     setSearchTab(
       searchFriends.length + searchTaggedContacts.length > 0 ? 'friends' : 'explore',
     );
@@ -1609,12 +1645,24 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
   // This effect runs whenever the matched-tag set changes and pulls the
   // searcher's OWN manual-tag matches. connection_tags + local_contacts
   // are owner-scoped by RLS, so manual tags stay private to their owner.
+  // Re-runs on every keystroke (trimmedQuery is a dep) but the matched
+  // `tags` set only changes on a committed search — so guard on a tag-id
+  // signature: skip the 3-query chain when the set is unchanged.
+  const manualTagSigRef = useRef<string>('');
   useEffect(() => {
     if (trimmedQuery === '' || intersectionMode || tags.length === 0) {
       setSearchTaggedFriends([]);
       setSearchTaggedContacts([]);
+      manualTagSigRef.current = '';
       return;
     }
+    const sig = tags.map((t: any) => t.id).join(',');
+    if (sig === manualTagSigRef.current) return;
+    manualTagSigRef.current = sig;
+    // New matched-tag set — drop the previous query's tagged people
+    // immediately so they don't linger on screen during the re-fetch.
+    setSearchTaggedFriends([]);
+    setSearchTaggedContacts([]);
     let cancelled = false;
     (async () => {
       try {

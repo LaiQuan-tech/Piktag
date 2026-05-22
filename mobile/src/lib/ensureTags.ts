@@ -15,7 +15,7 @@
 // North Star ("a non-member local contact with strong tags is future
 // serendipity fuel").
 //
-// ensureTagsRegistered upserts each name into piktag_tags so the linker
+// ensureTagsRegistered registers each missing name into piktag_tags so the linker
 // picks it up on its next pass. Best-effort and safe to fire-and-forget:
 // a failed registration just means that tag isn't concept-linked YET —
 // no corruption, and a later edit re-attempts it.

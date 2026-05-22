@@ -165,8 +165,13 @@ Reply with ONLY the number of the matching concept, or 0 if none is a true synon
 
     const result = await response.json();
     const text = (result.candidates?.[0]?.content?.parts?.[0]?.text || '').trim();
-    const n = parseInt(text.match(/\d+/)?.[0] ?? '0', 10);
-    if (Number.isFinite(n) && n >= 1 && n <= candidates.length) {
+    // Require the reply to be EXACTLY a number. A loose /\d+/ match would
+    // pick a stray digit out of leaked reasoning (e.g. "Concept 3 ... so
+    // 0" → 3) and mint a FALSE synonym link. Anything not clean is
+    // treated as no-match — conservative: it just mints a new concept.
+    const m = text.match(/^(\d+)$/);
+    const n = m ? parseInt(m[1], 10) : 0;
+    if (n >= 1 && n <= candidates.length) {
       return candidates[n - 1].concept_id;
     }
     return null;
