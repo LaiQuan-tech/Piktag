@@ -745,7 +745,7 @@ function makeStyles(c: ColorPalette) {
     color: c.gray600,
   },
   timeRangeTextActive: {
-    color: c.white,
+    color: '#FFFFFF',
   },
 
   // ── Stats Grid ──

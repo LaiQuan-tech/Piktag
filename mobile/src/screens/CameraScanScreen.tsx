@@ -343,7 +343,7 @@ function makeStyles(c: ColorPalette) {
   permissionTitle: {
     fontSize: 24,
     fontWeight: '700',
-    color: c.white,
+    color: '#FFFFFF',
     marginBottom: 12,
     textAlign: 'center',
   },
@@ -436,7 +436,7 @@ function makeStyles(c: ColorPalette) {
   instructionText: {
     fontSize: 16,
     fontWeight: '600',
-    color: c.white,
+    color: '#FFFFFF',
     textAlign: 'center',
     textShadowColor: 'rgba(0, 0, 0, 0.6)',
     textShadowOffset: { width: 0, height: 1 },

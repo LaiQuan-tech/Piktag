@@ -416,7 +416,7 @@ function makeStyles(c: ColorPalette) {
     opacity: 0.7,
   },
   registerButtonText: {
-    color: c.white,
+    color: '#FFFFFF',
     fontSize: 17,
     fontWeight: 'bold',
   },

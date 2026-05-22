@@ -2157,7 +2157,7 @@ function makeStyles(c: ColorPalette) {
   floatingSearchBtnText: {
     fontSize: 14,
     fontWeight: '600',
-    color: c.white,
+    color: '#FFFFFF',
   },
   // Selected tags bar (unused, kept for reference)
   selectedTagsBar: {
@@ -2178,7 +2178,7 @@ function makeStyles(c: ColorPalette) {
   selectedTagChipText: {
     fontSize: 13,
     fontWeight: '600',
-    color: c.white,
+    color: '#FFFFFF',
   },
   clearAllBtn: {
     paddingHorizontal: 10,
@@ -2214,7 +2214,7 @@ function makeStyles(c: ColorPalette) {
   selectedChipText: {
     fontSize: 13,
     fontWeight: '600',
-    color: c.white,
+    color: '#FFFFFF',
   },
   intersectionTabRow: {
     flexDirection: 'row',
@@ -2351,7 +2351,7 @@ function makeStyles(c: ColorPalette) {
     lineHeight: 20,
   },
   tagNameHighlighted: {
-    color: c.white,
+    color: '#FFFFFF',
   },
   tagCountRow: {
     flexDirection: 'row',
@@ -2568,7 +2568,7 @@ function makeStyles(c: ColorPalette) {
     paddingHorizontal: 16,
   },
   toastText: {
-    color: c.white,
+    color: '#FFFFFF',
     fontSize: 14,
     textAlign: 'center',
   },

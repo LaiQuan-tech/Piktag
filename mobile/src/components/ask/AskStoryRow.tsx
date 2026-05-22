@@ -1496,7 +1496,14 @@ function makeModalStyles(c: ColorPalette) {
   // aiSection / aiHeaderRow / aiRefreshBtn above.)
   // View-mode (existing ask) styles
   viewBodyWrap: {
-    backgroundColor: c.gray50,
+    // In dark mode the sheet itself is c.card (#1c1c1e); a plain
+    // gray50 fill (#0a0a0a) just read as a darker hole with no
+    // defined edge. A hairline border + backgroundSecondary fill
+    // gives the field a clear boundary in BOTH modes (same pattern
+    // as the app's text inputs).
+    backgroundColor: c.backgroundSecondary,
+    borderWidth: 1,
+    borderColor: c.border,
     borderRadius: 12,
     padding: 14,
     marginBottom: 12,

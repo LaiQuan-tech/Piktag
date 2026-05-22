@@ -1970,7 +1970,7 @@ function makeStyles(c: ColorPalette) {
   qrAddFriendText: {
     fontSize: 17,
     fontWeight: '700',
-    color: c.white,
+    color: '#FFFFFF',
   },
   // ── Unified action-button design system ─────────────────────────
   // Mirrors FriendDetailScreen — same primary/secondary contract,
@@ -1995,7 +1995,7 @@ function makeStyles(c: ColorPalette) {
   primaryBtnText: {
     fontSize: 14,
     fontWeight: '700',
-    color: c.white,
+    color: '#FFFFFF',
   },
   secondaryBtn: {
     flex: 1,
@@ -2261,7 +2261,7 @@ function makeStyles(c: ColorPalette) {
     height: 20,
     borderRadius: 10,
     borderWidth: 1.5,
-    borderColor: c.white,
+    borderColor: c.background,
   },
   mutualCountText: {
     fontSize: 11,
@@ -2486,7 +2486,7 @@ function makeStyles(c: ColorPalette) {
   unfollowModalConfirmText: {
     fontSize: 15,
     fontWeight: '700',
-    color: c.white,
+    color: '#FFFFFF',
   },
   });
 }

@@ -3096,7 +3096,7 @@ function makeStyles(c: ColorPalette) {
     color: c.gray700,
   },
   tag_popularTagChipTextAdded: {
-    color: c.white,
+    color: '#FFFFFF',
   },
   addLinkBtn: {
     flexDirection: 'row',
@@ -3322,7 +3322,7 @@ function makeStyles(c: ColorPalette) {
     paddingHorizontal: 16,
   },
   saveBtnText: {
-    color: c.white,
+    color: '#FFFFFF',
     fontSize: 14,
     fontWeight: '600',
   },

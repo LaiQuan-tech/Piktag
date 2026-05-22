@@ -359,6 +359,6 @@ function makeStyles(c: ColorPalette) {
     backgroundColor: c.gray900, borderRadius: 12,
     paddingVertical: 12, paddingHorizontal: 16,
   },
-  toastText: { color: c.white, fontSize: 14, textAlign: 'center' },
+  toastText: { color: '#FFFFFF', fontSize: 14, textAlign: 'center' },
   });
 }

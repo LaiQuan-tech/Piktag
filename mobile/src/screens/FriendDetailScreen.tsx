@@ -1795,7 +1795,9 @@ function makeStyles(c: ColorPalette) {
     paddingVertical: 8,
     paddingHorizontal: 14,
     borderWidth: 1.5,
-    borderColor: 'transparent',
+    // Visible hairline so the secondary gray profile tags have a
+    // defined edge on the near-black dark-mode page.
+    borderColor: c.gray200,
   },
   // Profile-tag chips are gray-only on this page — see the comment
   // on the render JSX above for why. There used to be a `tagChipMutual`
@@ -1899,7 +1901,7 @@ function makeStyles(c: ColorPalette) {
   primaryBtnText: {
     fontSize: 14,
     fontWeight: '700',
-    color: c.white,
+    color: '#FFFFFF',
   },
   secondaryBtn: {
     flex: 1,
@@ -1993,7 +1995,7 @@ function makeStyles(c: ColorPalette) {
     height: 20,
     borderRadius: 10,
     borderWidth: 1.5,
-    borderColor: c.white,
+    borderColor: c.background,
   },
   mutualCountText: {
     fontSize: 11,
@@ -2441,7 +2443,7 @@ function makeStyles(c: ColorPalette) {
   unfollowModalConfirmText: {
     fontSize: 15,
     fontWeight: '700',
-    color: c.white,
+    color: '#FFFFFF',
   },
 
   // Pick Tag Modal

@@ -1038,7 +1038,7 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
           <View style={styles.headerLeft}>
             <Text style={[styles.headerTitle, { color: colors.text }]}>PikTag</Text>
             <View style={styles.headerSubtitleRow}>
-              <Text style={styles.headerSubtitle}>
+              <Text style={[styles.headerSubtitle, isDark && { color: '#FFFFFF' }]}>
                 <Text style={styles.headerCount}>{sortedConnections.length}</Text>{' '}{t('connections.friendsLabel', { defaultValue: 'friends' })}
                 {closeFriendCount > 0 && (
                   <Text>{'  ·  '}<Text style={styles.headerCount}>{closeFriendCount}</Text>{' '}{t('connections.closeFriendsLabel', { defaultValue: '摯友' })}</Text>
@@ -1077,7 +1077,7 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
               accessibilityLabel={t('connections.addManualA11y', { defaultValue: '手動新增聯絡人' })}
               accessibilityRole="button"
             >
-              <UserPlus size={24} color={colors.gray600} />
+              <UserPlus size={24} color={isDark ? '#FFFFFF' : colors.gray600} />
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.headerIconBtn}
@@ -1086,7 +1086,7 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
               accessibilityLabel="篩選標籤"
               accessibilityRole="button"
             >
-              <Tag size={24} color={filterTag ? colors.piktag600 : colors.gray600} />
+              <Tag size={24} color={filterTag ? colors.piktag600 : (isDark ? '#FFFFFF' : colors.gray600)} />
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.headerIconBtn}
@@ -1097,7 +1097,7 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
             >
               <ArrowDownAZ
                 size={24}
-                color={sortMode !== 'recent' ? colors.piktag600 : colors.gray600}
+                color={sortMode !== 'recent' ? colors.piktag600 : (isDark ? '#FFFFFF' : colors.gray600)}
               />
             </TouchableOpacity>
           </View>
@@ -1379,7 +1379,11 @@ function makeStyles(c: ColorPalette) {
     justifyContent: 'space-between',
     paddingHorizontal: 20,
     paddingBottom: 16,
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    // Solid theme background (was a hardcoded rgba(255,255,255,0.9)
+    // — the migration couldn't see a non-COLORS literal, so the
+    // header stayed a light band in dark mode). c.background =
+    // white in light, pure black in dark.
+    backgroundColor: c.background,
     borderBottomWidth: 1,
     borderBottomColor: c.gray100,
   },
@@ -1775,7 +1779,7 @@ function makeStyles(c: ColorPalette) {
   batchBtnText: {
     fontSize: 16,
     fontWeight: '700',
-    color: c.white,
+    color: '#FFFFFF',
   },
   // Shared modal overlay (used by batch-tag modal)
   modalOverlay: {
@@ -2069,7 +2073,11 @@ function makeStyles(c: ColorPalette) {
     borderRadius: 20,
     backgroundColor: c.gray100,
     borderWidth: 1.5,
-    borderColor: 'transparent',
+    // Visible hairline (was 'transparent' — the chip then had no
+    // defined edge against the dark filter sheet in dark mode).
+    // The 1.5px width was already reserved so the active-state
+    // border swap stays layout-shift-free.
+    borderColor: c.gray200,
   },
   filterTagChipActive: {
     backgroundColor: c.piktag50,

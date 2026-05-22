@@ -643,6 +643,7 @@ function makeStyles(c: ColorPalette) {
   inputBar: { borderTopWidth: 1, borderTopColor: c.gray100, paddingHorizontal: 16, paddingTop: 8 },
   inputRow: {
     flexDirection: 'row', alignItems: 'center', backgroundColor: c.gray100,
+    borderWidth: 1, borderColor: c.gray200,
     borderRadius: 24, paddingLeft: 14, paddingRight: 4, height: 48, gap: 8,
   },
   textInput: { flex: 1, fontSize: 16, color: c.gray900, padding: 0 },

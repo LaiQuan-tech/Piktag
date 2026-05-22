@@ -549,7 +549,7 @@ function makeStyles(c: ColorPalette) {
   hiddenTagChipText: { fontSize: 12, color: c.gray400, fontStyle: 'italic' as any },
   // Input
   inputBar: { paddingHorizontal: 16, paddingTop: 8, borderTopWidth: 1, borderTopColor: c.gray100 },
-  inputRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: c.gray100, borderRadius: 20, paddingLeft: 14, paddingRight: 4, height: 44, gap: 8 },
+  inputRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: c.gray100, borderWidth: 1, borderColor: c.gray200, borderRadius: 20, paddingLeft: 14, paddingRight: 4, height: 44, gap: 8 },
   textInput: { flex: 1, fontSize: 15, color: c.gray900, padding: 0 },
   // Square-rounded 36×36 submit button — borderRadius 10 (not 18=full
   // 40×40 borderRadius 12 — the unified tag-add button shape used

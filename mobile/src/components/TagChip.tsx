@@ -116,8 +116,16 @@ function makeStyles(c: ColorPalette) {
     // sitting on the right). The chip body IS the tappable region.
     paddingVertical: 8,
     paddingHorizontal: 14,
+    // Reserve a border on the base so the toggle-OFF (gray) variant
+    // can show a visible hairline with zero layout shift. The
+    // selected/purple state keeps it transparent (the solid fill
+    // is its own edge).
+    borderWidth: 1.5,
+    borderColor: 'transparent',
   },
-  chipToggleOff: { backgroundColor: c.gray100 },
+  // Gray toggle-OFF chips need a defined edge in dark mode — the
+  // c.gray100 fill alone barely separates from a near-black page.
+  chipToggleOff: { backgroundColor: c.gray100, borderColor: c.gray200 },
   text: { fontSize: 14, fontWeight: '500', color: '#FFFFFF' },
   textToggleOff: { color: c.gray700 },
   });

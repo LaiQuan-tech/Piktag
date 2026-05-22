@@ -678,7 +678,10 @@ function makeStyles(c: ColorPalette) {
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderWidth: 1.5,
-    borderColor: 'transparent',
+    // Visible hairline so the (secondary, gray) profile tags have a
+    // defined edge in dark mode — they sit on a near-black page and
+    // c.gray100 fill alone barely separated.
+    borderColor: c.gray200,
   },
   tagChipText: {
     fontSize: 14,
@@ -703,11 +706,16 @@ function makeStyles(c: ColorPalette) {
     fontWeight: '700',
     color: '#FFFFFF',
   },
+  // 編輯資訊 is a SECONDARY action — 分享檔案 (solid piktag500) is the
+  // one true CTA on this page (sharing your profile = a friend-add
+  // opportunity, the North Star). A purple-bordered edit button read
+  // as a co-primary and competed with it. Neutral gray outline +
+  // neutral text demotes it cleanly without removing the affordance.
   editButton: {
     flex: 1,
-    backgroundColor: c.white,
+    backgroundColor: c.background,
     borderWidth: 1.5,
-    borderColor: c.piktag200,
+    borderColor: c.border,
     borderRadius: 12,
     paddingVertical: 12,
     alignItems: 'center',
@@ -715,7 +723,7 @@ function makeStyles(c: ColorPalette) {
   editButtonText: {
     fontSize: 15,
     fontWeight: '600',
-    color: c.gray700,
+    color: c.gray600,
   },
 
   // ===== Profile completeness =====

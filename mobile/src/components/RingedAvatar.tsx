@@ -286,7 +286,7 @@ function makeStyles(c: ColorPalette) {
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 2,
-    borderColor: c.white,
+    borderColor: c.background,
   },
   });
 }

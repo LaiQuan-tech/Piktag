@@ -172,7 +172,7 @@ function makeStyles(c: ColorPalette) {
     maxWidth: 140,
   },
   tooltipText: {
-    color: c.white,
+    color: '#FFFFFF',
     fontSize: 12,
     fontWeight: '600',
     textAlign: 'center',

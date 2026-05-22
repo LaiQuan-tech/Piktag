@@ -995,7 +995,9 @@ function makeStyles(c: ColorPalette) {
   nameInput: {
     fontSize: 18,
     color: c.gray900,
-    backgroundColor: c.gray50,
+    backgroundColor: c.gray100,
+    borderWidth: 1,
+    borderColor: c.gray200,
     borderRadius: BORDER_RADIUS.md,
     paddingHorizontal: 16,
     paddingVertical: 14,
@@ -1093,7 +1095,9 @@ function makeStyles(c: ColorPalette) {
   modalInput: {
     fontSize: 15,
     color: c.gray900,
-    backgroundColor: c.gray50,
+    backgroundColor: c.gray100,
+    borderWidth: 1,
+    borderColor: c.gray200,
     borderRadius: BORDER_RADIUS.md,
     paddingHorizontal: 14,
     paddingVertical: 12,

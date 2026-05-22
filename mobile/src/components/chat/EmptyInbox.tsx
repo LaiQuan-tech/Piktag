@@ -95,7 +95,7 @@ function makeStyles(c: ColorPalette) {
     opacity: 0.8,
   },
   ctaLabel: {
-    color: c.white,
+    color: '#FFFFFF',
     fontSize: 15,
     fontWeight: '600',
   },

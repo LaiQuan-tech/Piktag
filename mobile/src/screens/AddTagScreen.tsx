@@ -1307,6 +1307,8 @@ function makeStyles(c: ColorPalette) {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: c.gray100,
+    borderWidth: 1,
+    borderColor: c.gray200,
     borderRadius: 16,
     paddingHorizontal: 16,
     height: 48,
@@ -1418,7 +1420,7 @@ function makeStyles(c: ColorPalette) {
     color: c.piktag600,
   },
   calendarDayTextSelected: {
-    color: c.white,
+    color: '#FFFFFF',
     fontWeight: '700',
   },
 
@@ -1532,7 +1534,7 @@ function makeStyles(c: ColorPalette) {
   eventModeBtnText: {
     fontSize: 16,
     fontWeight: '700',
-    color: c.white,
+    color: '#FFFFFF',
   },
   cameraScanBtn: {
     flexDirection: 'row',
@@ -1869,7 +1871,7 @@ function makeStyles(c: ColorPalette) {
   presetNameModalConfirmText: {
     fontSize: 15,
     fontWeight: '700',
-    color: c.white,
+    color: '#FFFFFF',
   },
   presetHintText: {
     fontSize: 13,
