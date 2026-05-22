@@ -17,6 +17,14 @@ const corsHeaders = {
 };
 
 const SIMILARITY_THRESHOLD = 0.85;
+// Gray-zone floor. Embeddings of the SAME concept across languages
+// (e.g. 扶輪社 ↔ Rotary Club ≈ 0.71, 工程師 ↔ Engineer) land far below
+// SIMILARITY_THRESHOLD, so a pure-embedding linker silently fails the
+// cross-language matching that is PikTag's whole serendipity thesis.
+// Candidates in [GRAY_ZONE_FLOOR, SIMILARITY_THRESHOLD) are NOT linked
+// blindly — they go to an LLM judge that decides true synonymy.
+// Below GRAY_ZONE_FLOOR we don't even ask: too far to be the same.
+const GRAY_ZONE_FLOOR = 0.70;
 const BATCH_SIZE = 50;
 const HIERARCHY_BATCH = 20;
 
@@ -94,6 +102,71 @@ Respond ONLY in JSON array format, no markdown:
     return JSON.parse(jsonMatch[0]);
   } catch {
     return [];
+  }
+}
+
+/**
+ * LLM gray-zone judge. Given a freshly-coined tag and the embedding
+ * candidates that scored in [GRAY_ZONE_FLOOR, SIMILARITY_THRESHOLD) —
+ * too far for blind linking, too close to dismiss — ask Gemini whether
+ * the tag is a TRUE synonym of any candidate concept. This is the path
+ * that recovers cross-language matches (扶輪社 ↔ Rotary Club) which
+ * embeddings alone score at only ~0.71.
+ *
+ * Returns the matched concept_id, or null if none is a true synonym.
+ */
+async function judgeConceptMatch(
+  tagName: string,
+  candidates: { concept_id: string; canonical_name: string; similarity: number }[],
+  apiKey: string,
+): Promise<string | null> {
+  try {
+    const list = candidates
+      .map((c, i) => `${i + 1}. ${c.canonical_name}`)
+      .join('\n');
+    const prompt = `A user of a social-networking app coined the tag "${tagName}".
+Below are existing semantic concepts. Decide whether "${tagName}" denotes the SAME concept as any one of them.
+
+SAME concept = a true synonym, INCLUDING cross-language synonyms:
+  e.g. "工程師" = "Engineer" = "エンジニア"; "扶輪社" = "Rotary Club"; "貓派" = "Cat person".
+NOT the same = a broader/narrower term or a merely-related term:
+  e.g. "軟體工程師" is NOT "工程師" (narrower); "攝影" is NOT "攝影師" (activity vs role).
+
+Concepts:
+${list}
+
+Reply with ONLY the number of the matching concept, or 0 if none is a true synonym.`;
+
+    const response = await fetch(
+      'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-goog-api-key': apiKey,
+        },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: { temperature: 0, maxOutputTokens: 10 },
+        }),
+      },
+    );
+
+    if (!response.ok) {
+      const bodyText = await response.text().catch(() => '');
+      console.error('judgeConceptMatch upstream error: HTTP', response.status, bodyText.slice(0, 300));
+      return null;
+    }
+
+    const result = await response.json();
+    const text = (result.candidates?.[0]?.content?.parts?.[0]?.text || '').trim();
+    const n = parseInt(text.match(/\d+/)?.[0] ?? '0', 10);
+    if (Number.isFinite(n) && n >= 1 && n <= candidates.length) {
+      return candidates[n - 1].concept_id;
+    }
+    return null;
+  } catch {
+    return null;
   }
 }
 
@@ -227,16 +300,41 @@ serve(async (req) => {
       const embedding = await generateEmbedding(tag.name, geminiApiKey);
       if (!embedding) continue;
 
-      // 4. Find similar existing concepts
-      const { data: similar } = await supabase.rpc('find_similar_concepts', {
+      // 4. Find candidate concepts down to the gray-zone floor.
+      const { data: candidates } = await supabase.rpc('find_similar_concepts', {
         query_embedding: JSON.stringify(embedding),
-        similarity_threshold: SIMILARITY_THRESHOLD,
-        max_results: 1,
+        similarity_threshold: GRAY_ZONE_FLOOR,
+        max_results: 5,
       });
 
-      if (similar && similar.length > 0) {
+      // Decide the concept match:
+      //  • top similarity ≥ 0.85 → embedding alone is enough (high
+      //    confidence — link directly).
+      //  • 0.70–0.85 gray zone → embeddings cannot bridge cross-language
+      //    synonyms (中文↔English of the SAME concept sits ~0.71), so
+      //    ask the LLM whether any candidate is genuinely the same
+      //    concept before giving up and minting a singleton.
+      //  • no candidate ≥ 0.70 → fall through and create a new concept.
+      let matchedConcept: any = null;
+      if (candidates && candidates.length > 0) {
+        if (candidates[0].similarity >= SIMILARITY_THRESHOLD) {
+          matchedConcept = candidates[0];
+        } else {
+          const judgedId = await judgeConceptMatch(tag.name, candidates, geminiApiKey);
+          if (judgedId) {
+            matchedConcept = candidates.find((c: any) => c.concept_id === judgedId) || null;
+            if (matchedConcept) {
+              console.log(
+                `LLM-confirmed "${tag.name}" ≈ concept "${matchedConcept.canonical_name}" ` +
+                `(embedding only ${Number(matchedConcept.similarity).toFixed(3)})`,
+              );
+            }
+          }
+        }
+      }
+
+      if (matchedConcept) {
         // Match found → link to existing concept
-        const matchedConcept = similar[0];
 
         // Update tag's concept_id
         await supabase
