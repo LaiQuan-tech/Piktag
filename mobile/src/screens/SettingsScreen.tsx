@@ -87,9 +87,13 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
   // the column is absent on a legacy row, the trigger's COALESCE defaults
   // to true; we mirror the same default here in the UI before fetch).
   const [vibeShiftEnabled, setVibeShiftEnabled] = useState(true);
-  const { isDark, colors } = useTheme();
+  // `isDark` is the live theme state; `setThemeMode` persists the
+  // choice (ThemeContext writes it to AsyncStorage and re-applies on
+  // launch). The dark-mode Switch is driven directly off `isDark` —
+  // no separate local state, no separate storage key, so it can
+  // never drift out of sync with the actual theme.
+  const { isDark, colors, setMode: setThemeMode } = useTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
-  const [darkModeEnabled, setDarkModeEnabled] = useState(isDark);
   const [currentLanguage, setCurrentLanguage] = useState('zh-TW');
   const [loadingProfile, setLoadingProfile] = useState(true);
   const [languageModalVisible, setLanguageModalVisible] = useState(false);
@@ -121,18 +125,17 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
           }
         }
 
-        const [storedNotifications, storedDarkMode, storedAnalytics] = await Promise.all([
+        const [storedNotifications, storedAnalytics] = await Promise.all([
           AsyncStorage.getItem('piktag_notifications_enabled'),
-          AsyncStorage.getItem('piktag_dark_mode'),
           AsyncStorage.getItem('analytics_opt_in'),
         ]);
 
         if (storedNotifications !== null) {
           setNotificationsEnabled(storedNotifications === 'true');
         }
-        if (storedDarkMode !== null) {
-          setDarkModeEnabled(storedDarkMode === 'true');
-        }
+        // Dark mode is NOT read here — ThemeContext owns its own
+        // persistence (piktag_theme_mode) and re-applies on launch.
+        // The Switch reads `isDark` straight from ThemeContext.
         // Default = opted in. Only an explicit 'false' counts as opt-out.
         setAnalyticsOptInState(storedAnalytics !== 'false');
       } catch (err) {
@@ -220,12 +223,11 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
     }
   };
 
-  const { setMode: setThemeMode } = useTheme();
-
   const handleDarkModeToggle = () => {
-    const newValue = !darkModeEnabled;
-    setDarkModeEnabled(newValue);
-    setThemeMode(newValue ? 'dark' : 'light');
+    // Flip relative to the live theme state. setThemeMode persists +
+    // re-renders every theme-aware screen; the Switch's `value` is
+    // bound to `isDark` so it follows automatically.
+    setThemeMode(isDark ? 'light' : 'dark');
   };
 
   const handleAbout = () => {
@@ -437,6 +439,20 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
               <Text style={styles.languageValue}>{languageLabel}</Text>
               <ChevronRight size={20} color={colors.gray400} />
             </View>
+          ),
+        },
+        // Dark mode toggle. The Switch is driven directly off `isDark`
+        // from ThemeContext (no local mirror state) so it can't drift.
+        {
+          label: t('settings.darkMode', { defaultValue: '深色模式' }),
+          onPress: handleDarkModeToggle,
+          rightElement: (
+            <Switch
+              value={isDark}
+              onValueChange={handleDarkModeToggle}
+              trackColor={{ false: colors.gray200, true: colors.piktag300 }}
+              thumbColor={isDark ? colors.piktag500 : colors.gray400}
+            />
           ),
         },
         { label: t('settings.aboutPiktag'), onPress: handleAbout },
