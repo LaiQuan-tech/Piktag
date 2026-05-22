@@ -378,19 +378,19 @@ export default function QrGroupDetailScreen({ navigation, route }: Props) {
 
         <View style={[styles.presentBottomRow, { paddingBottom: insets.bottom + 20 }]}>
           <TouchableOpacity style={styles.presentBottomBtn} onPress={handleShare} activeOpacity={0.7}>
-            <Share2 size={22} color={colors.gray900} />
+            <Share2 size={22} color={'#111827'} />
             <Text style={styles.presentBottomBtnText}>
               {t('addTag.shareFile', { defaultValue: '分享檔案' })}
             </Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.presentBottomBtn} onPress={handleCopyLink} activeOpacity={0.7}>
-            <Link2 size={22} color={colors.gray900} />
+            <Link2 size={22} color={'#111827'} />
             <Text style={styles.presentBottomBtnText}>
               {t('addTag.copyLink', { defaultValue: '複製連結' })}
             </Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.presentBottomBtn} onPress={() => setMode('edit')} activeOpacity={0.7}>
-            <Pencil size={22} color={colors.gray900} />
+            <Pencil size={22} color={'#111827'} />
             <Text style={styles.presentBottomBtnText}>
               {t('addTag.editQr', { defaultValue: '編輯 QR' })}
             </Text>
@@ -505,7 +505,7 @@ export default function QrGroupDetailScreen({ navigation, route }: Props) {
               without the gradient. */}
           <View style={styles.heroQrWrap}>
             {group.qr_code_data ? (
-              <QRCode value={group.qr_code_data} size={220} color={colors.gray900} backgroundColor="#FFFFFF" />
+              <QRCode value={group.qr_code_data} size={220} color={'#000000'} backgroundColor="#FFFFFF" />
             ) : null}
           </View>
 
@@ -738,7 +738,7 @@ function makeStyles(c: ColorPalette) {
   presentBottomBtnText: {
     fontSize: 13,
     fontWeight: '600',
-    color: c.gray900,
+    color: '#111827',
   },
 
   header: {

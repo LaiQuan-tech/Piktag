@@ -105,7 +105,7 @@ export default function QrCodeModal({
                 onPress={handleCopyLink}
                 activeOpacity={0.7}
               >
-                <Copy size={20} color={colors.gray900} />
+                <Copy size={20} color={'#111827'} />
                 <Text style={styles.actionBtnText}>{t('profile.copyLink')}</Text>
               </TouchableOpacity>
               <TouchableOpacity
@@ -113,7 +113,7 @@ export default function QrCodeModal({
                 onPress={handleShare}
                 activeOpacity={0.7}
               >
-                <Share2 size={20} color={colors.gray900} />
+                <Share2 size={20} color={'#111827'} />
                 <Text style={styles.actionBtnText}>{t('profile.share')}</Text>
               </TouchableOpacity>
             </View>
@@ -181,7 +181,7 @@ function makeStyles(c: ColorPalette) {
   actionBtnText: {
     fontSize: 14,
     fontWeight: '700',
-    color: c.gray900,
+    color: '#111827',
   },
   });
 }

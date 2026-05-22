@@ -95,7 +95,7 @@ function makeStyles(c: ColorPalette) {
   name: {
     fontSize: 14,
     fontWeight: '600',
-    color: c.gray700,
+    color: '#374151',
     marginTop: 4,
   },
   tagsWrap: {
