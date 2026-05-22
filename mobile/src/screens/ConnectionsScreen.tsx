@@ -1830,7 +1830,9 @@ function makeStyles(c: ColorPalette) {
   statusSection: {
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6',
+    // Was a hardcoded #F3F4F6 (gray100 light value) — stayed a light
+    // separator line on the dark friends list. c.gray100 themes it.
+    borderBottomColor: c.gray100,
   },
   statusScrollContent: {
     paddingHorizontal: 16,

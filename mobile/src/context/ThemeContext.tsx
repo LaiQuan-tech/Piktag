@@ -23,7 +23,14 @@ const STORAGE_KEY = 'piktag_theme_mode';
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const systemScheme = useColorScheme(); // 'light' | 'dark' | null
-  const [mode, setModeState] = useState<ThemeMode>('light');
+  // Initial mode = 'system' (NOT 'light'). AsyncStorage.getItem is
+  // async, so the first React render happens before the saved
+  // preference loads. Defaulting to 'system' makes that first frame
+  // follow the device colour scheme (useColorScheme is synchronous)
+  // instead of always rendering light — which caused a white flash
+  // on launch for dark-mode users. Once AsyncStorage resolves, the
+  // user's actual preference takes over.
+  const [mode, setModeState] = useState<ThemeMode>('system');
 
   // Load saved preference
   useEffect(() => {
