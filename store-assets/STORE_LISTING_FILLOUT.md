@@ -46,14 +46,24 @@ Standard ASO pattern is `BrandName — short descriptor`. Apple's name-
 stuffing crackdown only penalises spammy phrase chains; one tasteful
 descriptor is industry-standard and compliant.
 
-**Recommended (en, primary):**
-- **`PikTag — Personal CRM`** (21 / 30) ← lead. "Personal CRM" is the
-  rising US category (Clay, Dex, Folk, Cloze) and the keyword space
-  is far less saturated than "networking" or "business card scanner".
-- Alternative: `PikTag — CRM for Your People` (28) — echoes the
-  "Pick your people" brand line; keeps brand voice while still
-  surfacing "CRM".
-- Avoid: `PikTag` alone — wastes 24 chars of the highest-weight slot.
+**Locked (en, primary): `PikTag — Your Vibe, Your Tribe`** (29 / 30)
+
+Rationale — target is Gen Z in North America. The earlier "Personal
+CRM" candidates would scare them off (CRM = parents' boring sales
+software). "Your Vibe, Your Tribe" is Gen-Z-native language (vibe
+check; #yourtribe), mirrors the brand line "Pick your people", and
+fits the 30-char cap exactly. Note: "tribe" carries some appropriation
+discourse in the US — accepted trade-off for the rhythm.
+
+CRM keyword volume is NOT lost — it goes into the hidden keyword
+field (see Keywords section). Users never see "CRM"; Apple still
+ranks PikTag for personal-CRM searches.
+
+Avoided alternatives, kept here for the audit trail:
+- `PikTag — Personal CRM` (21) — best for search-volume, wrong for Gen Z
+- `PikTag — Find Your People` (24) — clean Gen Z, less rhythm
+- `PikTag — Tag Your Vibe` (22) — drops "tribe" if appropriation
+  concern grows post-launch
 
 **Recommended (zh-TW):**
 - **`PikTag・用標籤管理人脈`** (12 / 30) ← lead. Contains the two
@@ -67,18 +77,18 @@ descriptor is industry-standard and compliant.
 
 | Locale | Copy | Chars |
 |--------|------|-------|
-| en | Pick your people. Tag CRM. | 26 / 30 |
+| en | Pick your people. Tag them. | 27 / 30 |
 | zh-TW | 用標籤找人脈,不靠名字 | 11 / 30 |
 
 > Apple's subtitle appears immediately under the app name in search results
 > and the install page. Treat it as the elevator-pitch line — AND remember
-> Apple indexes the subtitle words for search ranking, so wasting 13/30
-> chars on a one-line slogan throws away free indexable space.
+> Apple indexes the subtitle words for search ranking.
 >
 > The en version keeps "Pick your people." (brand-locked) and adds
-> "Tag CRM." — the CRM keyword you can't fit in the 30-char app name
-> beyond "Personal CRM". Pair: title indexes "personal CRM"; subtitle
-> indexes "tag CRM". Both feed Apple's combinatorial keyword engine.
+> "Tag them." — short verb-action that complements "Your Vibe, Your
+> Tribe" in the title. Deliberately omits CRM/networking/business —
+> those are scary words for the Gen Z target audience; they sit in
+> the hidden keyword field instead.
 >
 > The zh-TW version trades the warmer brand line for the harder
 > keyword 人脈 + the differentiator phrasing 「不靠名字」.
@@ -182,8 +192,8 @@ Pick. Tag. Connect.
 ### en
 
 ```
-PikTag is a tag-first personal CRM.
-Search by need, not by name.
+PikTag tags your people so you can find them by what they do.
+Search by need, not by name. Pick your people.
 
 # Three core moves
 
@@ -236,6 +246,9 @@ Search by need, not by name.
 Contacts apps answer "do I have their phone number?"
 PikTag answers "who do I know that does X?"
 
+Think of it as a personal CRM that doesn't feel like work software —
+built for your tribe, not for a sales pipeline.
+
 The phone book is a 1980s tool. Tags are a 2026 tool.
 
 # Who it's for
@@ -266,21 +279,35 @@ commas (saves chars).
 ### en (PRIMARY — North America launch)
 
 ```
-business,card,scanner,contacts,relationship,reconnect,startup,founder,designer,networking,bio,link
+find,friends,meet,people,social,bio,link,hangout,nametag,match,CRM,business,card,scanner,reconnect
 ```
 
 (98 / 100 chars ✓)
 
-> Strategic notes:
-> - Dropped `CRM`, `tag`, `personal` — all in title/subtitle already
-> - Dropped `connect` — in brand slogan "Pick. Tag. Connect."
-> - Dropped `community`, `meet`, `event` — generic, low US conversion
-> - Added `business,card,scanner` — Apple combines into "business card
->   scanner" (a high-volume US search; PikTag's card-scan feature
->   maps directly)
-> - Added `relationship,reconnect` — US personal-CRM intent terms
->   (Dex/Cloze/UpHabit position around relationship management)
-> - Kept `bio,link` — Linktree-adjacent niche; PikTag has bio links
+> Strategic notes — split-audience keyword strategy:
+>
+> The title is brand-vibey ("Your Vibe, Your Tribe") to attract Gen Z;
+> the keyword field is INVISIBLE to users (Apple ranks on it but never
+> shows it), so it can carry both Gen-Z and adult-professional search
+> terms without scaring anyone off.
+>
+> **Gen Z visible-search terms** (the audience scrolling tabs that
+> auto-suggest these):
+> - `find,friends,meet,people,social` — high-volume Gen Z social
+>   discovery searches
+> - `hangout,nametag,match,link,bio` — Gen Z-native vocabulary
+>   (Instagram nametag, Linktree-adjacent bio link, vibe match)
+>
+> **Adult / professional backstop** (search-volume from the
+> personal-CRM crowd; Gen Z never sees these words):
+> - `CRM,business,card,scanner` — Apple combines into "personal CRM",
+>   "business card scanner" (high-volume adult US queries; PikTag's
+>   card-scan feature delivers on the intent)
+> - `reconnect` — US personal-CRM intent term (Dex/Cloze positioning)
+>
+> Title already carries `Vibe`, `Tribe`, `Pick`, `Tag`, `People` —
+> DON'T repeat in this field (Apple combines across slots automatically).
+> Brand slogan `Pick. Tag. Connect.` already covers `connect`.
 
 ### zh-TW (Phase-1 launch — copy ready)
 
@@ -437,7 +464,7 @@ get a fully-localized app once installed — just not a localized listing.
 
 ## Quick paste-checklist for App Store Connect
 
-- [ ] App name (en): `PikTag — Personal CRM` (or chosen variant — see App name section)
+- [ ] App name (en): `PikTag — Your Vibe, Your Tribe`
 - [ ] App name (zh-TW): `PikTag・用標籤管理人脈` (or chosen variant)
 - [ ] Subtitle: paste from "App Store Subtitle" section above
 - [ ] Promotional text: paste from "Promotional text" section above
@@ -453,7 +480,7 @@ get a fully-localized app once installed — just not a localized listing.
 
 ## Quick paste-checklist for Google Play Console
 
-- [ ] App name (en): `PikTag — Personal CRM` (or chosen variant — see App name section)
+- [ ] App name (en): `PikTag — Your Vibe, Your Tribe`
 - [ ] App name (zh-TW): `PikTag・用標籤管理人脈` (or chosen variant)
 - [ ] Short description: paste from "Short description" section above
 - [ ] Full description: paste full description for the locale
