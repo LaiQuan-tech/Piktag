@@ -1271,9 +1271,27 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
 
   const handleSearchByTags = useCallback(async () => {
     if (selectedTagIds.length === 0) return;
-    const selected = tags.filter(t => selectedTagIdSet.has(t.id));
-    if (selected.length === 1) {
-      navigation.navigate('TagDetail', { tagId: selected[0].id, tagName: selected[0].name });
+    // Resolve the FULL Tag object for every selected id. We must NOT rely
+    // on the live `tags` array: when the user picks each tag from its own
+    // text search, `tags` only holds the LAST search's matches, so the
+    // earlier-picked tags are missing from it. The old code derived the
+    // single-vs-multi branch from that incomplete list — a genuine 2-tag
+    // selection saw `selected.length === 1` and mis-routed to single-tag
+    // TagDetail, so the intersection search NEVER ran.
+    let selected = tags.filter(t => selectedTagIdSet.has(t.id));
+    if (selected.length !== selectedTagIds.length) {
+      const { data } = await supabase
+        .from('piktag_tags')
+        .select('id, name, semantic_type, usage_count, concept_id')
+        .in('id', selectedTagIds);
+      if (data && data.length > 0) selected = data as Tag[];
+    }
+
+    if (selectedTagIds.length === 1) {
+      const only = selected[0];
+      if (only) {
+        navigation.navigate('TagDetail', { tagId: only.id, tagName: only.name });
+      }
       setSelectedTagIds([]);
       return;
     }
