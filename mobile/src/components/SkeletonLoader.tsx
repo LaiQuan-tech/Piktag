@@ -296,7 +296,7 @@ export const ConnectionsScreenSkeleton = React.memo(function ConnectionsScreenSk
   return (
     <View style={[skeletonConnectionsStyles.container, { backgroundColor: colors.background }]}>
       {Array.from({ length: 6 }).map((_, index) => (
-        <View key={index} style={skeletonConnectionsStyles.row}>
+        <View key={index} style={[skeletonConnectionsStyles.row, { borderBottomColor: colors.gray100 }]}>
           {/* Circle avatar */}
           <SkeletonBox width={56} height={56} borderRadius={28} />
           {/* Text block */}
