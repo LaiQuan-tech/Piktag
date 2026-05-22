@@ -89,13 +89,22 @@ const LIGHT = {
 // ── Dark palette (IG-inspired pure black) ────────────────────────────
 // Pure black background, dark gray cards, white text, brand color accents
 const DARK: typeof LIGHT = {
-  // Brand — bright purple for dark backgrounds
+  // Brand. piktag500 is the ONE brand purple (#8c52ff) — founder
+  // picked it to read on BOTH white and black, so it does NOT shift
+  // between modes (was #d966ff; that brighter dark-only purple made
+  // CTAs look different from the light build). Every solid-purple
+  // CTA / chip uses piktag500, so this single value keeps the brand
+  // purple identical app-wide in both themes.
+  // piktag50–400 + 600 stay mode-shifted: they're functional
+  // derivatives (light-purple tint backgrounds, darker purple text)
+  // that genuinely need different values for contrast on a black
+  // page — see the note when 600 is used as text.
   piktag50: '#1a0033',
   piktag100: '#2d0059',
   piktag200: '#4a0099',
   piktag300: '#bf00ff',
   piktag400: '#cc33ff',
-  piktag500: '#d966ff',
+  piktag500: '#8c52ff',
   piktag600: '#e699ff',
 
   // Accent — same #aa00ff in dark mode. Pure neon already pops on
