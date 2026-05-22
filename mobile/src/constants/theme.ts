@@ -89,23 +89,23 @@ const LIGHT = {
 // ── Dark palette (IG-inspired pure black) ────────────────────────────
 // Pure black background, dark gray cards, white text, brand color accents
 const DARK: typeof LIGHT = {
-  // Brand. piktag500 is the ONE brand purple (#8c52ff) — founder
-  // picked it to read on BOTH white and black, so it does NOT shift
-  // between modes (was #d966ff; that brighter dark-only purple made
-  // CTAs look different from the light build). Every solid-purple
-  // CTA / chip uses piktag500, so this single value keeps the brand
-  // purple identical app-wide in both themes.
-  // piktag50–400 + 600 stay mode-shifted: they're functional
-  // derivatives (light-purple tint backgrounds, darker purple text)
-  // that genuinely need different values for contrast on a black
-  // page — see the note when 600 is used as text.
+  // Brand. piktag500 AND piktag600 are both the ONE brand purple
+  // #8c52ff — founder picked it to read on BOTH white and black, so
+  // the brand purple does NOT shift between modes (500 was #d966ff,
+  // 600 was #e699ff — dark-only brighter purples that made the build
+  // look off-brand vs. light). piktag500 = solid-purple CTA/chip
+  // fills; piktag600 = purple text (PM@piktag, @username links) —
+  // both now #8c52ff, identical app-wide in both themes.
+  // piktag50–400 stay mode-shifted: functional derivatives
+  // (light-purple tint backgrounds, ramp steps) that need different
+  // values for contrast on a black page.
   piktag50: '#1a0033',
   piktag100: '#2d0059',
   piktag200: '#4a0099',
   piktag300: '#bf00ff',
   piktag400: '#cc33ff',
   piktag500: '#8c52ff',
-  piktag600: '#e699ff',
+  piktag600: '#8c52ff',
 
   // Accent — same #aa00ff in dark mode. Pure neon already pops on
   // black backgrounds; lifting the value further (e.g. to #ff80ff)
