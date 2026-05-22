@@ -351,6 +351,14 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
   const [tags, setTags] = useState<Tag[]>([]);
   const [profiles, setProfiles] = useState<PiktagProfile[]>([]);
   const [tagUsers, setTagUsers] = useState<{ tag: Tag; users: any[] }[]>([]);
+  // People found via the SEARCHER'S OWN manual tags for the matched tag
+  // words: member friends tagged through piktag_connection_tags, and
+  // local contacts tagged through piktag_local_contacts. Text search
+  // used to query only piktag_user_tags (public member self-tags), so
+  // anyone you'd manually tagged was invisible when you typed that tag.
+  // Owner-private by RLS — only the user who set the tags sees them.
+  const [searchTaggedFriends, setSearchTaggedFriends] = useState<PiktagProfile[]>([]);
+  const [searchTaggedContacts, setSearchTaggedContacts] = useState<TaggedContact[]>([]);
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
@@ -1567,6 +1575,13 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
         }
       }
     }
+    // Member friends matched via the searcher's own manual tags.
+    for (const p of searchTaggedFriends) {
+      if (p?.id && !seenIds.has(p.id)) {
+        seenIds.add(p.id);
+        merged.push(p);
+      }
+    }
     const friends: PiktagProfile[] = [];
     const explore: PiktagProfile[] = [];
     for (const p of merged) {
@@ -1574,16 +1589,102 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
       else explore.push(p);
     }
     return { searchFriends: friends, searchExplore: explore };
-  }, [profiles, tagUsers, myFriendIds]);
+  }, [profiles, tagUsers, searchTaggedFriends, myFriendIds]);
 
   // Whenever a fresh search produces results, default the tab to
   // "friends" if any matched, else "explore". Mirrors the intersection
   // tab default at the call site of handleSearchByTags.
   useEffect(() => {
     if (trimmedQuery === '') return;
-    if (searchFriends.length + searchExplore.length === 0) return;
-    setSearchTab(searchFriends.length > 0 ? 'friends' : 'explore');
-  }, [trimmedQuery, searchFriends.length, searchExplore.length]);
+    if (searchFriends.length + searchExplore.length + searchTaggedContacts.length === 0) return;
+    setSearchTab(
+      searchFriends.length + searchTaggedContacts.length > 0 ? 'friends' : 'explore',
+    );
+  }, [trimmedQuery, searchFriends.length, searchExplore.length, searchTaggedContacts.length]);
+
+  // Manual-tag search. Text search (performSearch) only ever queried
+  // piktag_user_tags — public member self-tags — so members you'd
+  // manually tagged (piktag_connection_tags) and tagged local contacts
+  // (piktag_local_contacts) were unfindable by typing the tag word.
+  // This effect runs whenever the matched-tag set changes and pulls the
+  // searcher's OWN manual-tag matches. connection_tags + local_contacts
+  // are owner-scoped by RLS, so manual tags stay private to their owner.
+  useEffect(() => {
+    if (trimmedQuery === '' || intersectionMode || tags.length === 0) {
+      setSearchTaggedFriends([]);
+      setSearchTaggedContacts([]);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      try {
+        const baseTagIds = tags.map((t: any) => t.id).filter(Boolean);
+        if (baseTagIds.length === 0) return;
+        // Concept-sibling expansion — same meaning, different wording.
+        const conceptIds = [
+          ...new Set(tags.map((t: any) => t.concept_id).filter(Boolean)),
+        ];
+        let allTagIds = [...baseTagIds];
+        if (conceptIds.length > 0) {
+          const { data: sib } = await supabase
+            .from('piktag_tags')
+            .select('id')
+            .in('concept_id', conceptIds);
+          if (sib) allTagIds = [...new Set([...allTagIds, ...sib.map((s: any) => s.id)])];
+        }
+        // Sibling tag NAMES — local-contact tags are plain strings.
+        const { data: nameRows } = await supabase
+          .from('piktag_tags')
+          .select('name')
+          .in('id', allTagIds);
+        const allTagNames = (nameRows || [])
+          .map((r: any) => r.name)
+          .filter(Boolean);
+
+        const [ctRes, lcRes] = await Promise.all([
+          supabase
+            .from('piktag_connection_tags')
+            .select(
+              'connection:piktag_connections!connection_id(connected_user_id, connected_user:piktag_profiles!connected_user_id(id, username, full_name, avatar_url, is_verified))',
+            )
+            .in('tag_id', allTagIds)
+            .limit(500),
+          allTagNames.length > 0
+            ? supabase
+                .from('piktag_local_contacts')
+                .select('id, name, avatar_url')
+                .overlaps('tags', allTagNames)
+                .limit(200)
+            : Promise.resolve({ data: [] } as any),
+        ]);
+
+        if (cancelled) return;
+
+        const seenF = new Set<string>();
+        const taggedFriends: PiktagProfile[] = [];
+        for (const row of (ctRes.data || []) as any[]) {
+          const p = row.connection?.connected_user;
+          if (p?.id && p.id !== user?.id && !seenF.has(p.id)) {
+            seenF.add(p.id);
+            taggedFriends.push(p as PiktagProfile);
+          }
+        }
+        setSearchTaggedFriends(taggedFriends);
+        setSearchTaggedContacts(
+          ((lcRes.data || []) as any[]).map((c) => ({
+            id: c.id,
+            name: c.name,
+            avatar_url: c.avatar_url ?? null,
+          })),
+        );
+      } catch (manualErr) {
+        console.warn('[SearchScreen] manual-tag search failed:', manualErr);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [tags, trimmedQuery, intersectionMode, user]);
 
   const listData = useMemo<ListItem[]>(() => {
     const items: ListItem[] = [];
@@ -1647,20 +1748,35 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
         items.push({ type: 'tagsGrid' });
       }
 
-      const totalCount = searchFriends.length + searchExplore.length;
+      // Friends tab also holds the searcher's manually-tagged local
+      // contacts, so they count toward the friends total + tab badge.
+      const friendsCount = searchFriends.length + searchTaggedContacts.length;
+      const totalCount = friendsCount + searchExplore.length;
       if (totalCount > 0) {
         items.push({
           type: 'searchTabs',
-          friendsCount: searchFriends.length,
+          friendsCount,
           exploreCount: searchExplore.length,
         });
-        const activeList = searchTab === 'friends' ? searchFriends : searchExplore;
-        if (activeList.length > 0) {
-          for (const profile of activeList) {
-            items.push({ type: 'profileItem', profile });
+        if (searchTab === 'friends') {
+          if (friendsCount > 0) {
+            for (const profile of searchFriends) {
+              items.push({ type: 'profileItem', profile });
+            }
+            for (const contact of searchTaggedContacts) {
+              items.push({ type: 'localContactItem', contact });
+            }
+          } else {
+            items.push({ type: 'profilesEmpty' });
           }
         } else {
-          items.push({ type: 'profilesEmpty' });
+          if (searchExplore.length > 0) {
+            for (const profile of searchExplore) {
+              items.push({ type: 'profileItem', profile });
+            }
+          } else {
+            items.push({ type: 'profilesEmpty' });
+          }
         }
       } else {
         // totalCount === 0: no people matched the committed query.
@@ -1711,6 +1827,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
     intersectionTab,
     searchFriends,
     searchExplore,
+    searchTaggedContacts,
     searchTab,
     recommendedUsers,
     bootstrapFailed,
