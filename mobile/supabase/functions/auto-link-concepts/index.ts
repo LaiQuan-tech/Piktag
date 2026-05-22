@@ -74,7 +74,7 @@ Respond ONLY in JSON array format, no markdown:
 [{"tag":"媽祖","parent":"民間信仰","semantic_type":"interest"},{"tag":"工程師","parent":null,"semantic_type":"career"}]`;
 
     const response = await fetch(
-      'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent',
+      'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent',
       {
         method: 'POST',
         headers: {
@@ -83,7 +83,7 @@ Respond ONLY in JSON array format, no markdown:
         },
         body: JSON.stringify({
           contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: { temperature: 0.1, maxOutputTokens: 2048 },
+          generationConfig: { temperature: 0.1, maxOutputTokens: 4096 },
         }),
       }
     );
@@ -138,7 +138,7 @@ ${list}
 Reply with ONLY the number of the matching concept, or 0 if none is a true synonym.`;
 
     const response = await fetch(
-      'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent',
+      'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent',
       {
         method: 'POST',
         headers: {
@@ -147,7 +147,12 @@ Reply with ONLY the number of the matching concept, or 0 if none is a true synon
         },
         body: JSON.stringify({
           contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: { temperature: 0, maxOutputTokens: 10 },
+          // gemini-2.5-flash is a thinking model — it spends output
+          // budget on internal reasoning before the visible answer.
+          // maxOutputTokens must leave room for both or the response
+          // comes back empty (finishReason MAX_TOKENS). The visible
+          // answer here is just a digit; 1024 is headroom for thinking.
+          generationConfig: { temperature: 0, maxOutputTokens: 1024 },
         }),
       },
     );
