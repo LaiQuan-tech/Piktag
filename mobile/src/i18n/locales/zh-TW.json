@@ -1360,7 +1360,8 @@
     "scanningTitle": "正在識別名片…",
     "scanningSubtitle": "通常需要 5–10 秒",
     "fieldAddress": "地址",
-    "addressPlaceholder": "例：台北市信義區市府路 1 號"
+    "addressPlaceholder": "例：台北市信義區市府路 1 號",
+    "scanningCard": "辨識名片中…（約 3 秒）"
   },
   "followers": {
     "title": "追蹤者",

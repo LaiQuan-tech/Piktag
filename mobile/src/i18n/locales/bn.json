@@ -1281,7 +1281,8 @@
     "scanningTitle": "কার্ড পড়া হচ্ছে…",
     "scanningSubtitle": "সাধারণত ৫–১০ সেকেন্ড সময় লাগে",
     "fieldAddress": "ঠিকানা",
-    "addressPlaceholder": "যেমন ধানমন্ডি, ঢাকা"
+    "addressPlaceholder": "যেমন ধানমন্ডি, ঢাকা",
+    "scanningCard": "কার্ড পড়া হচ্ছে… (প্রায় ৩ সেকেন্ড)"
   },
   "followers": {
     "title": "ফলোয়ার",

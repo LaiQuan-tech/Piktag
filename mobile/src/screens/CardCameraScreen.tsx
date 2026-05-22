@@ -107,10 +107,33 @@ async function cropToGuide(
 
     const ctx = ImageManipulator.manipulate(uri);
     ctx.crop({ originX, originY, width: cropW, height: cropH });
+    // 1024px 對名片 OCR 綽綽有餘 — 名片字級在此解析度仍清晰，
+    // payload 降到原本的 1/3–1/5。Gemini Vision 對更大的圖
+    // 不會更準，只會更慢（上傳 + ingest 兩段都拖）。
+    ctx.resize({ width: 1024 });
     const ref = await ctx.renderAsync();
     const out = await ref.saveAsync({
       base64: true,
-      compress: 0.6,
+      compress: 0.5,
+      format: SaveFormat.JPEG,
+    });
+    return out.base64 ?? null;
+  } catch {
+    return null;
+  }
+}
+
+// crop 失敗時的 fallback —— 仍要把整張縮圖，避免送 1MB+ 的全幅原圖
+// 拖垮上傳與 vision call。1280px 比 cropToGuide 寬一點，因為這是
+// 「整張卡 + 周邊」未裁切的畫面，留多一點解析度給 OCR。
+async function downscaleFullFrame(uri: string): Promise<string | null> {
+  try {
+    const ctx = ImageManipulator.manipulate(uri);
+    ctx.resize({ width: 1280 });
+    const ref = await ctx.renderAsync();
+    const out = await ref.saveAsync({
+      base64: true,
+      compress: 0.5,
       format: SaveFormat.JPEG,
     });
     return out.base64 ?? null;
@@ -170,7 +193,14 @@ export default function CardCameraScreen({ navigation, route }: Props) {
       let finalB64 = fullB64;
       if (photo?.uri && photo.width && photo.height) {
         const cropped = await cropToGuide(photo.uri, photo.width, photo.height);
-        if (cropped) finalB64 = cropped;
+        if (cropped) {
+          finalB64 = cropped;
+        } else {
+          // crop bailed → still downscale; never ship the 1MB+ full
+          // frame. Only fall back to the raw fullB64 if even the
+          // downscale fails.
+          finalB64 = (await downscaleFullFrame(photo.uri)) ?? fullB64;
+        }
       }
       if (!finalB64) {
         Alert.alert(

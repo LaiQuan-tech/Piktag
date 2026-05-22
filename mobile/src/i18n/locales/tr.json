@@ -1281,7 +1281,8 @@
     "scanningTitle": "Kart okunuyor…",
     "scanningSubtitle": "Genellikle 5–10 saniye sürer",
     "fieldAddress": "Adres",
-    "addressPlaceholder": "ör. Bağdat Cad. 1, İstanbul"
+    "addressPlaceholder": "ör. Bağdat Cad. 1, İstanbul",
+    "scanningCard": "Kart okunuyor… (yaklaşık 3 sn)"
   },
   "followers": {
     "title": "Takipçiler",

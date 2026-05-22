@@ -1360,7 +1360,8 @@
     "scanningTitle": "Lettura del biglietto…",
     "scanningSubtitle": "Di solito impiega 5–10 secondi",
     "fieldAddress": "Indirizzo",
-    "addressPlaceholder": "es. Via Roma 1, Milano"
+    "addressPlaceholder": "es. Via Roma 1, Milano",
+    "scanningCard": "Lettura biglietto… (circa 3 s)"
   },
   "followers": {
     "title": "Follower",

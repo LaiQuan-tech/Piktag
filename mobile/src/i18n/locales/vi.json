@@ -1360,7 +1360,8 @@
     "scanningTitle": "Đang đọc danh thiếp…",
     "scanningSubtitle": "Thường mất 5–10 giây",
     "fieldAddress": "Địa chỉ",
-    "addressPlaceholder": "vd. 1 Đồng Khởi, Q.1, TP.HCM"
+    "addressPlaceholder": "vd. 1 Đồng Khởi, Q.1, TP.HCM",
+    "scanningCard": "Đang đọc danh thiếp… (khoảng 3 giây)"
   },
   "followers": {
     "title": "Người theo dõi",

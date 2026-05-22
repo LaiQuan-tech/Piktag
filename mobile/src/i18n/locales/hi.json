@@ -1281,7 +1281,8 @@
     "scanningTitle": "कार्ड पढ़ा जा रहा है…",
     "scanningSubtitle": "आमतौर पर 5–10 सेकंड लगते हैं",
     "fieldAddress": "पता",
-    "addressPlaceholder": "उदा. कनॉट प्लेस, नई दिल्ली"
+    "addressPlaceholder": "उदा. कनॉट प्लेस, नई दिल्ली",
+    "scanningCard": "कार्ड पढ़ा जा रहा है… (लगभग 3 सेकंड)"
   },
   "followers": {
     "title": "फ़ॉलोअर",

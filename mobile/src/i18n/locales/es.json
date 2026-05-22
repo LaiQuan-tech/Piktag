@@ -1281,7 +1281,8 @@
     "scanningTitle": "Leyendo la tarjeta…",
     "scanningSubtitle": "Suele tardar 5–10 segundos",
     "fieldAddress": "Dirección",
-    "addressPlaceholder": "ej. Calle Mayor 1, Madrid"
+    "addressPlaceholder": "ej. Calle Mayor 1, Madrid",
+    "scanningCard": "Leyendo tarjeta… (unos 3 s)"
   },
   "followers": {
     "title": "Seguidores",

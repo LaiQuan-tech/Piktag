@@ -1346,7 +1346,8 @@
     "scanningTitle": "Karte wird gelesen…",
     "scanningSubtitle": "Dauert üblicherweise 5–10 Sekunden",
     "fieldAddress": "Adresse",
-    "addressPlaceholder": "z. B. Hauptstr. 1, Berlin"
+    "addressPlaceholder": "z. B. Hauptstr. 1, Berlin",
+    "scanningCard": "Karte wird gelesen… (ca. 3 Sek.)"
   },
   "followers": {
     "title": "Follower",

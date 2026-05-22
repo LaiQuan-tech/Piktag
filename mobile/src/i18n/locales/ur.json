@@ -1360,7 +1360,8 @@
     "scanningTitle": "کارڈ پڑھا جا رہا ہے…",
     "scanningSubtitle": "عام طور پر 5–10 سیکنڈ لگتے ہیں",
     "fieldAddress": "پتہ",
-    "addressPlaceholder": "مثلاً: شاہراہ فیصل، کراچی"
+    "addressPlaceholder": "مثلاً: شاہراہ فیصل، کراچی",
+    "scanningCard": "کارڈ پڑھا جا رہا ہے… (تقریباً 3 سیکنڈ)"
   },
   "followers": {
     "title": "فالوورز",

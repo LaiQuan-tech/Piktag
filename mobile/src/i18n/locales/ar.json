@@ -1281,7 +1281,8 @@
     "scanningTitle": "يتم قراءة البطاقة…",
     "scanningSubtitle": "يستغرق عادةً 5–10 ثوانٍ",
     "fieldAddress": "العنوان",
-    "addressPlaceholder": "مثل: شارع الملك فهد، الرياض"
+    "addressPlaceholder": "مثل: شارع الملك فهد، الرياض",
+    "scanningCard": "جارٍ قراءة البطاقة… (حوالي 3 ثوانٍ)"
   },
   "followers": {
     "title": "المتابعون",

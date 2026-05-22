@@ -1281,7 +1281,8 @@
     "scanningTitle": "Lecture de la carte…",
     "scanningSubtitle": "Cela prend 5 à 10 secondes",
     "fieldAddress": "Adresse",
-    "addressPlaceholder": "ex. 12 rue de Rivoli, Paris"
+    "addressPlaceholder": "ex. 12 rue de Rivoli, Paris",
+    "scanningCard": "Lecture de la carte… (environ 3 s)"
   },
   "followers": {
     "title": "Abonnés",

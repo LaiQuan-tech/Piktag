@@ -1281,7 +1281,8 @@
     "scanningTitle": "กำลังอ่านนามบัตร…",
     "scanningSubtitle": "ปกติใช้เวลา 5–10 วินาที",
     "fieldAddress": "ที่อยู่",
-    "addressPlaceholder": "เช่น ถ. สุขุมวิท 1 กรุงเทพฯ"
+    "addressPlaceholder": "เช่น ถ. สุขุมวิท 1 กรุงเทพฯ",
+    "scanningCard": "กำลังอ่านนามบัตร… (ประมาณ 3 วินาที)"
   },
   "followers": {
     "title": "ผู้ติดตาม",
