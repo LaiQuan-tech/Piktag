@@ -14,6 +14,7 @@ import {
   runSplashEntryChoreography,
 } from './splashChoreography';
 import { splashStyles } from './splashStyles';
+import { useTheme } from '../context/ThemeContext';
 
 /**
  * v3 launch overlay — frame-for-frame seamless hand-off from native splash.
@@ -79,6 +80,12 @@ export default function SplashOverlay({
   onHidden,
 }: Props) {
   const reduced = useReducedMotion();
+  // The "curtain" anchors the first JS frame to the native splash.
+  // In dark mode the native splash is black (app.json expo-splash-
+  // screen `dark` variant), so the curtain must be black too — a
+  // white curtain there was the dark-mode launch white-flash.
+  const { isDark } = useTheme();
+  const curtainColor = isDark ? '#000000' : '#ffffff';
 
   // ── Master fade ────────────────────────────────────────────────────
   const containerOpacity = useRef(new Animated.Value(reduced ? 0 : 1)).current;
@@ -184,11 +191,15 @@ export default function SplashOverlay({
         style={StyleSheet.absoluteFill}
       />
 
-      {/* White curtain — sits over the gradient and fades out to reveal
-          it. Anchors the first JS frame visually to the native splash. */}
+      {/* Curtain — sits over the gradient and fades out to reveal it.
+          Anchors the first JS frame visually to the native splash
+          (white in light mode, black in dark mode). */}
       <Animated.View
         pointerEvents="none"
-        style={[splashStyles.whiteCurtain, { opacity: whiteCurtain }]}
+        style={[
+          splashStyles.whiteCurtain,
+          { opacity: whiteCurtain, backgroundColor: curtainColor },
+        ]}
       />
 
       {/* Bloom pulse rendered behind the logo. Centered on screen so it
