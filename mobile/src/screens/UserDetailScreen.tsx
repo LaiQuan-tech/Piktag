@@ -1997,13 +1997,16 @@ function makeStyles(c: ColorPalette) {
     fontWeight: '700',
     color: '#FFFFFF',
   },
+  // IG-style filled-gray secondary buttons (c.gray200 = #e5e7eb
+  // light / #363636 dark). c.gray100 was too close to the black
+  // dark-mode page. Matches FriendDetail / ProfileScreen.
   secondaryBtn: {
     flex: 1,
     height: 44,
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: c.gray100,
+    backgroundColor: c.gray200,
   },
   secondaryBtnFixed: {
     paddingHorizontal: 16,
@@ -2011,7 +2014,7 @@ function makeStyles(c: ColorPalette) {
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: c.gray100,
+    backgroundColor: c.gray200,
   },
   secondaryBtnText: {
     fontSize: 14,
@@ -2042,7 +2045,7 @@ function makeStyles(c: ColorPalette) {
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: c.gray100,
+    backgroundColor: c.gray200,
   },
   iconSecondaryBtnActive: {
     backgroundColor: c.piktag50,

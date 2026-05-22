@@ -708,14 +708,13 @@ function makeStyles(c: ColorPalette) {
   },
   // 編輯資訊 is a SECONDARY action — 分享檔案 (solid piktag500) is the
   // one true CTA on this page (sharing your profile = a friend-add
-  // opportunity, the North Star). A purple-bordered edit button read
-  // as a co-primary and competed with it. Neutral gray outline +
-  // neutral text demotes it cleanly without removing the affordance.
+  // opportunity, the North Star). IG-style filled-gray secondary
+  // button (c.gray200 = #e5e7eb light / #363636 dark) — clearly a
+  // button, clearly not the primary. Matches FriendDetail's
+  // secondaryBtn so the app's non-CTA buttons read consistently.
   editButton: {
     flex: 1,
-    backgroundColor: c.background,
-    borderWidth: 1.5,
-    borderColor: c.border,
+    backgroundColor: c.gray200,
     borderRadius: 12,
     paddingVertical: 12,
     alignItems: 'center',
@@ -723,7 +722,7 @@ function makeStyles(c: ColorPalette) {
   editButtonText: {
     fontSize: 15,
     fontWeight: '600',
-    color: c.gray600,
+    color: c.gray900,
   },
 
   // ===== Profile completeness =====

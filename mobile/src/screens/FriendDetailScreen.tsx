@@ -1700,7 +1700,9 @@ function makeStyles(c: ColorPalette) {
     alignItems: 'center',
     paddingHorizontal: 16,
     paddingBottom: 14,
-    backgroundColor: 'rgba(255, 255, 255, 0.97)',
+    // Was a hardcoded rgba(255,255,255,0.97) — stayed a light band
+    // in dark mode (same bug as ConnectionsScreen's header).
+    backgroundColor: c.background,
     borderBottomWidth: 1,
     borderBottomColor: c.gray100,
   },
@@ -1903,13 +1905,17 @@ function makeStyles(c: ColorPalette) {
     fontWeight: '700',
     color: '#FFFFFF',
   },
+  // Non-CTA secondary buttons — IG-style filled gray. c.gray200 is
+  // #e5e7eb in light / #363636 in dark — the latter is exactly IG's
+  // dark secondary-button fill. c.gray100 (#1c1c1e) was too close to
+  // the black page and the buttons read as near-invisible boxes.
   secondaryBtn: {
     flex: 1,
     height: 44,
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: c.gray100,
+    backgroundColor: c.gray200,
   },
   secondaryBtnText: {
     fontSize: 14,
@@ -1922,7 +1928,7 @@ function makeStyles(c: ColorPalette) {
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: c.gray100,
+    backgroundColor: c.gray200,
   },
   iconSecondaryBtnActive: {
     backgroundColor: c.piktag50,
