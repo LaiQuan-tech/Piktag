@@ -42,6 +42,7 @@ import { useTheme } from '../context/ThemeContext';
 import { useLocalContacts } from '../hooks/useLocalContacts';
 import { supabase, supabaseUrl, supabaseAnonKey } from '../lib/supabase';
 import { toBirthdayDate } from '../lib/birthday';
+import { normalizeTagName } from '../lib/normalizeTag';
 import BrandSpinner from '../components/loaders/BrandSpinner';
 import LogoLoader from '../components/loaders/LogoLoader';
 import TagChip from '../components/TagChip';
@@ -296,7 +297,10 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
   }, [contactId, isEdit, update, t]);
 
   const addTag = useCallback(() => {
-    const raw = tagInput.trim().replace(/^#/, '');
+    // Canonical normalizer — same as every other tag-entry surface, so
+    // the string stored on the contact matches the piktag_tags row that
+    // ensureTagsRegistered() registers (concept linking keys on it).
+    const raw = normalizeTagName(tagInput);
     if (!raw) return;
     setTags((prev) => (prev.includes(raw) ? prev : [...prev, raw]));
     setTagInput('');

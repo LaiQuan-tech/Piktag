@@ -13,6 +13,7 @@
 
 import { useState, useCallback, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
+import { ensureTagsRegistered } from '../lib/ensureTags';
 import { useAuth } from './useAuth';
 
 export type LocalContact = {
@@ -139,6 +140,12 @@ export function useLocalContacts() {
           return null;
         }
         setContacts((prev) => [data as LocalContact, ...prev]);
+        // Register the contact's tags in the global tag registry so the
+        // concept linker can semantic-link them (text[] tags have no FK,
+        // so nothing else would). Fire-and-forget — best-effort.
+        if (input.tags && input.tags.length > 0) {
+          void ensureTagsRegistered(input.tags);
+        }
         return data as LocalContact;
       } catch (err) {
         console.warn('[useLocalContacts] add exception:', err);
@@ -161,6 +168,11 @@ export function useLocalContacts() {
         setContacts((prev) =>
           prev.map((c) => (c.id === id ? (data as LocalContact) : c)),
         );
+        // Keep contact tags in the global registry so they get
+        // concept-linked (see add()). Fire-and-forget — best-effort.
+        if (patch.tags && patch.tags.length > 0) {
+          void ensureTagsRegistered(patch.tags);
+        }
         return true;
       } catch {
         return false;
