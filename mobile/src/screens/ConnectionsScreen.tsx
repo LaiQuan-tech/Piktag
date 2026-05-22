@@ -2073,7 +2073,7 @@ function makeStyles(c: ColorPalette) {
     paddingHorizontal: 14,
     paddingVertical: 10,
     borderRadius: 20,
-    backgroundColor: c.gray200,
+    backgroundColor: c.fill,
     borderWidth: 1.5,
     // Visible hairline (was 'transparent' — the chip then had no
     // defined edge against the dark filter sheet in dark mode).

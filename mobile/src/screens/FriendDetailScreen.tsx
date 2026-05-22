@@ -1792,7 +1792,7 @@ function makeStyles(c: ColorPalette) {
     // stats/action buttons down than silently hide data.
   },
   tagChip: {
-    backgroundColor: c.gray200,
+    backgroundColor: c.fill,
     borderRadius: 9999,
     paddingVertical: 8,
     paddingHorizontal: 14,
@@ -1915,7 +1915,7 @@ function makeStyles(c: ColorPalette) {
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: c.gray200,
+    backgroundColor: c.fill,
   },
   secondaryBtnText: {
     fontSize: 14,
@@ -1928,7 +1928,7 @@ function makeStyles(c: ColorPalette) {
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: c.gray200,
+    backgroundColor: c.fill,
   },
   iconSecondaryBtnActive: {
     backgroundColor: c.piktag50,
@@ -2208,7 +2208,7 @@ function makeStyles(c: ColorPalette) {
     width: 52,
     height: 52,
     borderRadius: 26,
-    backgroundColor: c.gray200,
+    backgroundColor: c.fill,
     alignItems: 'center',
     justifyContent: 'center',
   },

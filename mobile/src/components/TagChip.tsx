@@ -124,10 +124,10 @@ function makeStyles(c: ColorPalette) {
     borderColor: 'transparent',
   },
   // Gray toggle-OFF chips (AI suggestion chips + read-only tag
-  // displays) use IG-style filled gray — c.gray200 is #e5e7eb light
-  // / #363636 dark. The old c.gray100 fill sat too close to the
-  // black dark-mode page. Founder, 2026-05-23.
-  chipToggleOff: { backgroundColor: c.gray200, borderColor: c.gray200 },
+  // displays) use the c.fill secondary-surface token — #f3f4f6
+  // light (subtle, not heavy) / #363636 dark (IG-visible on black).
+  // Founder, 2026-05-23.
+  chipToggleOff: { backgroundColor: c.fill, borderColor: c.fill },
   text: { fontSize: 14, fontWeight: '500', color: '#FFFFFF' },
   textToggleOff: { color: c.gray700 },
   });

@@ -77,6 +77,13 @@ const LIGHT = {
   text: '#111827',
   textSecondary: '#6b7280',
   textTertiary: '#9ca3af',
+  // IG-style secondary-surface fill — secondary buttons, social
+  // icon circles, tag chips, link cards. Deliberately asymmetric:
+  // a LIGHT gray in light mode (subtle, doesn't feel heavy) and a
+  // mid gray in dark mode (#363636 = IG's dark secondary, visible
+  // on the black page). gray100/gray200 each only work for ONE
+  // mode, hence this dedicated token.
+  fill: '#f3f4f6',
 };
 
 // ── Dark palette (IG-inspired pure black) ────────────────────────────
@@ -142,6 +149,9 @@ const DARK: typeof LIGHT = {
   text: '#ffffff',
   textSecondary: '#a8a8a8',
   textTertiary: '#8e8e8e',
+  // IG-style secondary-surface fill — see the LIGHT palette note.
+  // #363636 is IG's dark-mode secondary; visible on the black page.
+  fill: '#363636',
 };
 
 // ── Export (default = light, components use useTheme() for dynamic) ────

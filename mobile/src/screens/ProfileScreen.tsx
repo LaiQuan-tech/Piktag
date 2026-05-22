@@ -673,7 +673,7 @@ function makeStyles(c: ColorPalette) {
     marginBottom: 18,
   },
   tagChip: {
-    backgroundColor: c.gray200,
+    backgroundColor: c.fill,
     borderRadius: 9999,
     paddingHorizontal: 14,
     paddingVertical: 8,
@@ -714,7 +714,7 @@ function makeStyles(c: ColorPalette) {
   // secondaryBtn so the app's non-CTA buttons read consistently.
   editButton: {
     flex: 1,
-    backgroundColor: c.gray200,
+    backgroundColor: c.fill,
     borderRadius: 12,
     paddingVertical: 12,
     alignItems: 'center',
@@ -779,7 +779,7 @@ function makeStyles(c: ColorPalette) {
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: c.gray200,
+    backgroundColor: c.fill,
     borderWidth: 1.5,
     borderColor: c.gray200,
     alignItems: 'center',
@@ -867,7 +867,7 @@ function makeStyles(c: ColorPalette) {
   socialCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: c.gray100,
+    backgroundColor: c.fill,
     borderWidth: 1.5,
     borderColor: c.gray200,
     borderRadius: 14,
@@ -879,7 +879,7 @@ function makeStyles(c: ColorPalette) {
     width: 40,
     height: 40,
     borderRadius: 12,
-    backgroundColor: c.gray200,
+    backgroundColor: c.fill,
     alignItems: 'center',
     justifyContent: 'center',
   },
