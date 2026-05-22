@@ -1,6 +1,6 @@
 import React from 'react';
 import Svg, { Circle, Ellipse, G } from 'react-native-svg';
-import { COLORS } from '../constants/theme';
+import { useTheme } from '../context/ThemeContext';
 
 type Props = { size?: number; color?: string; strokeWidth?: number };
 
@@ -14,9 +14,13 @@ type Props = { size?: number; color?: string; strokeWidth?: number };
  */
 export default function AtomIcon({
   size = 16,
-  color = COLORS.piktag600,
+  color: colorProp,
   strokeWidth = 2,
 }: Props) {
+  // Default to the themed brand purple (piktag600: #8800cc light /
+  // #e699ff dark) so the icon stays legible on a dark page.
+  const { colors } = useTheme();
+  const color = colorProp ?? colors.piktag600;
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
       <Circle cx="12" cy="12" r="1.4" fill={color} />

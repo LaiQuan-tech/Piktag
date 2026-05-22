@@ -1667,7 +1667,7 @@ function makeStyles(c: ColorPalette) {
   onThisDayCard: {
     margin: 16,
     marginBottom: 0,
-    backgroundColor: '#f5f3ff',
+    backgroundColor: 'rgba(140, 82, 255, 0.12)',
     borderRadius: 16,
     padding: 14,
     borderWidth: 1,
@@ -1688,7 +1688,7 @@ function makeStyles(c: ColorPalette) {
   reminderCard: {
     margin: 16,
     marginBottom: 0,
-    backgroundColor: '#fdf2f8',
+    backgroundColor: 'rgba(236, 72, 153, 0.12)',
     borderRadius: 16,
     padding: 14,
     borderWidth: 1,
@@ -1855,7 +1855,7 @@ function makeStyles(c: ColorPalette) {
     borderRadius: 26,
   },
   statusAvatarFallback: {
-    backgroundColor: '#E5E7EB',
+    backgroundColor: c.gray200,
     alignItems: 'center',
     justifyContent: 'center',
   },

@@ -3111,7 +3111,7 @@ function makeStyles(c: ColorPalette) {
     fontWeight: '500',
   },
   platformPicker: {
-    backgroundColor: '#F9FAFB',
+    backgroundColor: c.gray100,
     borderRadius: 12,
     padding: 12,
     gap: 4,
@@ -3281,7 +3281,7 @@ function makeStyles(c: ColorPalette) {
     backgroundColor: c.white,
   },
   newLinkForm: {
-    backgroundColor: '#F9FAFB',
+    backgroundColor: c.gray100,
     borderRadius: 12,
     borderWidth: 1,
     borderColor: '#E5E7EB',

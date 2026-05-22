@@ -1,7 +1,7 @@
 import React from 'react';
 import { RefreshControl, type RefreshControlProps } from 'react-native';
 
-import { COLORS } from '../../constants/theme';
+import { useTheme } from '../../context/ThemeContext';
 
 /**
  * Brand-tinted RefreshControl. v1 is intentionally a thin wrapper that
@@ -26,10 +26,13 @@ export type BrandedRefreshControlProps = RefreshControlProps;
 export default function BrandedRefreshControl(
   props: BrandedRefreshControlProps,
 ) {
+  // Themed brand purple — piktag500 is #8c52ff light / #d966ff dark,
+  // so the pull-to-refresh spinner stays on-brand in both modes.
+  const { colors } = useTheme();
   return (
     <RefreshControl
-      tintColor={COLORS.piktag500}
-      colors={[COLORS.piktag500]}
+      tintColor={colors.piktag500}
+      colors={[colors.piktag500]}
       {...props}
     />
   );
