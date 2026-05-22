@@ -1273,6 +1273,8 @@
     "deleteMsg": "Solo se quita de tu lista — nadie más se ve afectado.",
     "scanCardHint": "Haz una foto de la tarjeta: nombre y contacto se rellenan solos. Luego edita o añade tags.",
     "manualEntry": "O escríbelo",
+    "scanRetake": "Volver a tomar",
+    "scanManualBtn": "Escribir a mano",
     "fieldBirthday": "Cumpleaños (opcional)",
     "birthdayPlaceholder": "MM-DD o YYYY-MM-DD",
     "linkPhone": "Teléfono",

@@ -1273,6 +1273,8 @@
     "deleteMsg": "自分のリストから消えるだけで、他の人には影響しません。",
     "scanCardHint": "名刺を撮るだけで名前と連絡先を自動入力。あとから編集やタグ追加もOK。",
     "manualEntry": "手入力する",
+    "scanRetake": "撮り直す",
+    "scanManualBtn": "手入力",
     "fieldBirthday": "誕生日（任意）",
     "birthdayPlaceholder": "MM-DD または YYYY-MM-DD",
     "linkPhone": "電話",

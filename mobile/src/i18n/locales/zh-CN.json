@@ -1338,6 +1338,8 @@
     "deleteMsg": "只会从你的列表移除，不影响其他人。",
     "scanCardHint": "拍一张名片，自动带入姓名和联系方式 —— 之后再改或加标签就好。",
     "manualEntry": "或手动输入",
+    "scanRetake": "重拍",
+    "scanManualBtn": "手动输入",
     "fieldBirthday": "生日（选填）",
     "birthdayPlaceholder": "MM-DD 或 YYYY-MM-DD",
     "linkPhone": "电话",

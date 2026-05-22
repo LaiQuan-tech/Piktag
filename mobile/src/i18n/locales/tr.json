@@ -1273,6 +1273,8 @@
     "deleteMsg": "Yalnızca senin listenden silinir — kimseyi etkilemez.",
     "scanCardHint": "Bir kartvizit çek — ad ve iletişim otomatik dolar. Sonra düzenle ya da etiket ekle.",
     "manualEntry": "Veya elle gir",
+    "scanRetake": "Yeniden çek",
+    "scanManualBtn": "Elle gir",
     "fieldBirthday": "Doğum günü (isteğe bağlı)",
     "birthdayPlaceholder": "AA-GG veya YYYY-AA-GG",
     "linkPhone": "Telefon",

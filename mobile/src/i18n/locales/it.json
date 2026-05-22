@@ -1352,6 +1352,8 @@
     "deleteMsg": "Sparisce solo dal tuo elenco — nessun altro se ne accorge.",
     "scanCardHint": "Scatta una foto al biglietto: nome e contatti si compilano da soli. Poi modifichi o aggiungi tag.",
     "manualEntry": "Oppure inseriscilo",
+    "scanRetake": "Riscatta",
+    "scanManualBtn": "Inserisci a mano",
     "fieldBirthday": "Compleanno (facoltativo)",
     "birthdayPlaceholder": "MM-GG o AAAA-MM-GG",
     "linkPhone": "Telefono",

@@ -1273,6 +1273,8 @@
     "deleteMsg": "내 목록에서만 삭제되고 다른 사람에겐 영향 없어요.",
     "scanCardHint": "명함을 찍으면 이름과 연락처가 자동 입력돼요. 나중에 수정하거나 태그를 더하면 끝.",
     "manualEntry": "직접 입력",
+    "scanRetake": "다시 촬영",
+    "scanManualBtn": "직접 입력",
     "fieldBirthday": "생일 (선택)",
     "birthdayPlaceholder": "MM-DD 또는 YYYY-MM-DD",
     "linkPhone": "전화",

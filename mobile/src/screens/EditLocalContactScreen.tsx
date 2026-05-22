@@ -143,6 +143,9 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
   // the camera auto-opens once on top of it (effect after runScan).
   // The big purple scan banner was removed — fewer taps, less clutter.
   const cameraAutoRef = useRef(false);
+  // Latest-runScan ref so `openCamera` can stay a stable callback
+  // without a circular dep (openCamera ← runScan ← openCamera).
+  const runScanRef = useRef<((b64: string, mime: string) => void) | null>(null);
 
   // ── Avatar (大頭照) state + create-mode stable id ────────────────
   // For an existing contact we use its real id as the storage
@@ -311,6 +314,23 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
   // (via the onCaptured callback param). Kept separate from "open the
   // camera" so the framing-guide capture screen owns the camera/permission
   // and this owns the timeout + prefill.
+  // Open (or re-open) the card camera. `cancelAddOnClose`: on the
+  // first auto-open the camera's X cancels the whole add (pop the
+  // form too); on a re-open after a failed scan, X just closes the
+  // camera and leaves the user on the form (manual-entry escape).
+  const openCamera = useCallback(
+    (cancelAddOnClose: boolean) => {
+      navigation.navigate('CardCamera', {
+        onCaptured: (b64: string, mime: string) => runScanRef.current?.(b64, mime),
+        onManual: () => setManualFocus(true),
+        onClose: () => {
+          if (cancelAddOnClose && navigation.canGoBack()) navigation.goBack();
+        },
+      });
+    },
+    [navigation],
+  );
+
   const runScan = useCallback(async (base64: string, mimeType: string) => {
     // Scanning is a "review prefilled data" path — never autofocus
     // the name field (would pop the keyboard over the results).
@@ -342,6 +362,16 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
           t('auth.onboarding.cardScanFailedMessage', {
             defaultValue: '名片沒有讀取成功，再試一次或手動填寫。',
           }),
+          [
+            {
+              text: t('localContact.scanRetake', { defaultValue: '重拍' }),
+              onPress: () => openCamera(false),
+            },
+            {
+              text: t('localContact.scanManualBtn', { defaultValue: '手動輸入' }),
+              style: 'cancel',
+            },
+          ],
         );
         return;
       }
@@ -354,6 +384,16 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
           t('auth.onboarding.cardScanEmptyMessage', {
             defaultValue: '這張名片看不太清楚 — 換一張清楚的照片，或直接手動填。',
           }),
+          [
+            {
+              text: t('localContact.scanRetake', { defaultValue: '重拍' }),
+              onPress: () => openCamera(false),
+            },
+            {
+              text: t('localContact.scanManualBtn', { defaultValue: '手動輸入' }),
+              style: 'cancel',
+            },
+          ],
         );
         return;
       }
@@ -450,7 +490,11 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
     } finally {
       setScanning(false);
     }
-  }, [t, navigation]);
+  }, [t, navigation, openCamera]);
+
+  // Keep the ref pointing at the latest runScan so `openCamera`'s
+  // stable onCaptured always calls the current closure.
+  runScanRef.current = runScan;
 
   // (handleScanCard — the inline re-scan accelerator — was removed.
   // The only entry into the scan flow is the create-mode auto-open
@@ -470,13 +514,8 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
   useEffect(() => {
     if (isEdit || cameraAutoRef.current) return;
     cameraAutoRef.current = true;
-    navigation.navigate('CardCamera', {
-      onCaptured: runScan,
-      onManual: () => setManualFocus(true),
-      onClose: () => {
-        if (navigation.canGoBack()) navigation.goBack();
-      },
-    });
+    // true = X on the camera cancels the whole add (pops the form).
+    openCamera(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isEdit]);
 

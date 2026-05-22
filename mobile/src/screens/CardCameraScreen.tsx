@@ -351,7 +351,7 @@ export default function CardCameraScreen({ navigation, route }: Props) {
 
 function makeStyles(c: ColorPalette) {
   return StyleSheet.create({
-  container: { flex: 1, backgroundColor: c.black },
+  container: { flex: 1, backgroundColor: '#000000' },
   headerOverlay: {
     position: 'absolute',
     top: 0,

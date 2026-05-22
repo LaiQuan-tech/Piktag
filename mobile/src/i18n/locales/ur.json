@@ -1352,6 +1352,8 @@
     "deleteMsg": "صرف آپ کی فہرست سے ہٹے گا — کسی اور پر فرق نہیں پڑتا۔",
     "scanCardHint": "ایک بزنس کارڈ کی تصویر لیں — نام اور رابطہ خودکار بھر جاتے ہیں۔ بعد میں ایڈٹ یا ٹیگ شامل کریں۔",
     "manualEntry": "یا خود لکھیں",
+    "scanRetake": "دوبارہ لیں",
+    "scanManualBtn": "دستی اندراج",
     "fieldBirthday": "سالگرہ (اختیاری)",
     "birthdayPlaceholder": "MM-DD یا YYYY-MM-DD",
     "linkPhone": "فون",

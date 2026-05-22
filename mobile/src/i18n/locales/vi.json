@@ -1352,6 +1352,8 @@
     "deleteMsg": "Chỉ gỡ khỏi danh sách của bạn — không ai khác bị ảnh hưởng.",
     "scanCardHint": "Chụp một tấm danh thiếp — tên và liên hệ tự điền. Sửa hoặc thêm tag sau cũng được.",
     "manualEntry": "Hoặc tự nhập",
+    "scanRetake": "Chụp lại",
+    "scanManualBtn": "Nhập thủ công",
     "fieldBirthday": "Ngày sinh (không bắt buộc)",
     "birthdayPlaceholder": "MM-DD hoặc YYYY-MM-DD",
     "linkPhone": "Điện thoại",

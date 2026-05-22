@@ -315,7 +315,7 @@ function makeStyles(c: ColorPalette) {
   return StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: c.black,
+    backgroundColor: '#000000',
   },
   headerOverlay: {
     position: 'absolute',

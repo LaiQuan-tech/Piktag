@@ -1349,6 +1349,8 @@
     "deleteMsg": "Only removed from your list — nobody else is affected.",
     "scanCardHint": "Snap a card — name & contacts fill in automatically. Edit or add tags after.",
     "manualEntry": "Or type it in",
+    "scanRetake": "Retake",
+    "scanManualBtn": "Enter manually",
     "fieldBirthday": "Birthday (optional)",
     "birthdayPlaceholder": "MM-DD or YYYY-MM-DD",
     "linkPhone": "Phone",

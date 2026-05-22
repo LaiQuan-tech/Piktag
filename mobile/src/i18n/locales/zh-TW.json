@@ -1352,6 +1352,8 @@
     "deleteMsg": "只會從你的清單移除，不影響其他人。",
     "scanCardHint": "拍一張名片，自動帶入姓名與聯絡方式 —— 再修改或加標籤就好。",
     "manualEntry": "或手動輸入",
+    "scanRetake": "重拍",
+    "scanManualBtn": "手動輸入",
     "fieldBirthday": "生日（選填）",
     "birthdayPlaceholder": "MM-DD 或 YYYY-MM-DD",
     "linkPhone": "電話",
