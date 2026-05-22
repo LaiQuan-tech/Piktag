@@ -2016,7 +2016,7 @@ function makeStyles(c: ColorPalette) {
   },
   // More menu
   moreOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-end' },
-  moreSheet: { backgroundColor: c.white, borderTopLeftRadius: 20, borderTopRightRadius: 20, paddingTop: 16, paddingHorizontal: 20 },
+  moreSheet: { backgroundColor: c.card, borderTopLeftRadius: 20, borderTopRightRadius: 20, paddingTop: 16, paddingHorizontal: 20 },
   moreItem: { flexDirection: 'row', alignItems: 'center', gap: 14, paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: c.gray100 },
   moreItemText: { fontSize: 16, fontWeight: '500', color: c.gray900 },
   moreCancelBtn: { alignItems: 'center', paddingVertical: 16, marginTop: 4 },

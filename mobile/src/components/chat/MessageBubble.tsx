@@ -44,7 +44,7 @@ const MessageBubble = React.memo((props: Props) => {
       <Text
         style={[
           styles.bodyText,
-          { color: isMine ? colors.white : colors.gray900 },
+          { color: isMine ? '#FFFFFF' : colors.gray900 },
         ]}
       >
         {message.body}

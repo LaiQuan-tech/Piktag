@@ -582,7 +582,7 @@ export default function FriendsMapModal({
 
 function makeStyles(c: ColorPalette) {
   return StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
+  container: { flex: 1, backgroundColor: c.background },
   header: {
     flexDirection: 'row',
     alignItems: 'center',

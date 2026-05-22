@@ -1149,7 +1149,7 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
             activeOpacity={0.7}
             onPress={() => setBatchTagModalVisible(true)}
           >
-            <Tag size={20} color={colors.white} />
+            <Tag size={20} color={'#FFFFFF'} />
             <Text style={styles.batchBtnText}>
               {t('connections.batchTagButton', { count: selectedIds.size })}
             </Text>

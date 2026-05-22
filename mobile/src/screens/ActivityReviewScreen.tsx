@@ -504,7 +504,7 @@ export default function ActivityReviewScreen({ navigation, route }: Props) {
         </View>
         <View style={styles.actionRow}>
           <Pressable style={styles.nextActionBtn} onPress={() => swipeAway('right')}>
-            <Check size={20} color={colors.white} />
+            <Check size={20} color={'#FFFFFF'} />
             <Text style={styles.nextActionText}>{t('activityReview.done', { defaultValue: '完成' })}</Text>
           </Pressable>
         </View>

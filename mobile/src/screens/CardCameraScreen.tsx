@@ -233,7 +233,7 @@ export default function CardCameraScreen({ navigation, route }: Props) {
   if (!permission) {
     return (
       <View style={styles.container}>
-        <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor={colors.black} />
+        <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor={'#000000'} />
       </View>
     );
   }
@@ -242,10 +242,10 @@ export default function CardCameraScreen({ navigation, route }: Props) {
   if (!permission.granted) {
     return (
       <View style={styles.container}>
-        <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor={colors.black} />
+        <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor={'#000000'} />
         <View style={[styles.headerOverlay, { paddingTop: insets.top + 12 }]}>
           <TouchableOpacity style={styles.closeButton} onPress={close} activeOpacity={0.6}>
-            <X size={24} color={colors.white} />
+            <X size={24} color={'#FFFFFF'} />
           </TouchableOpacity>
         </View>
         <View style={styles.permissionContainer}>
@@ -281,7 +281,7 @@ export default function CardCameraScreen({ navigation, route }: Props) {
         {/* Close */}
         <View style={[styles.headerOverlay, { paddingTop: insets.top + 12 }]}>
           <TouchableOpacity style={styles.closeButton} onPress={close} activeOpacity={0.6}>
-            <X size={24} color={colors.white} />
+            <X size={24} color={'#FFFFFF'} />
           </TouchableOpacity>
         </View>
 

@@ -160,7 +160,7 @@ function makeStyles(c: ColorPalette) {
     backgroundColor: 'rgba(0,0,0,0.35)',
   },
   sheet: {
-    backgroundColor: c.white,
+    backgroundColor: c.card,
     borderTopLeftRadius: 16,
     borderTopRightRadius: 16,
     paddingBottom: 28,

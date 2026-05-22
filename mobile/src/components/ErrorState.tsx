@@ -98,7 +98,7 @@ export default function ErrorState({
           accessibilityRole="button"
           accessibilityLabel={t('common.retry')}
         >
-          <RotateCw size={16} color={colors.white} strokeWidth={2} />
+          <RotateCw size={16} color={'#FFFFFF'} strokeWidth={2} />
           <Text style={styles.ctaLabel}>{t('common.retry')}</Text>
         </Pressable>
       ) : null}

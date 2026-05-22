@@ -50,7 +50,7 @@ const ChatTabs = React.memo(({ active, onChange, counts }: Props) => {
                 style={[
                   styles.label,
                   {
-                    color: isActive ? colors.white : colors.gray500,
+                    color: isActive ? '#FFFFFF' : colors.gray500,
                     fontWeight: isActive ? '700' : '400',
                   },
                 ]}
@@ -61,7 +61,7 @@ const ChatTabs = React.memo(({ active, onChange, counts }: Props) => {
                 <Text
                   style={[
                     styles.count,
-                    { color: isActive ? colors.white : colors.gray400 },
+                    { color: isActive ? '#FFFFFF' : colors.gray400 },
                   ]}
                 >
                   {`  ·  ${count}`}

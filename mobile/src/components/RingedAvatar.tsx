@@ -206,9 +206,9 @@ function RingedAvatarImpl({
     badge === null ? null : (
       <View style={[styles.badge, badgeStyle]}>
         {badge === 'plus' ? (
-          <Plus size={badgeIconSize} color={colors.white} strokeWidth={3} />
+          <Plus size={badgeIconSize} color={'#FFFFFF'} strokeWidth={3} />
         ) : (
-          <Pencil size={badgeIconSize} color={colors.white} strokeWidth={2.5} />
+          <Pencil size={badgeIconSize} color={'#FFFFFF'} strokeWidth={2.5} />
         )}
       </View>
     );

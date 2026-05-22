@@ -125,7 +125,7 @@ const TagCard = React.memo(function TagCard({ tag, isSelected, onPress, onLongPr
       onLongPress={onLongPress ? () => onLongPress(tag) : undefined}
     >
       <View style={styles.tagCardRow}>
-        <Hash size={14} color={isSelected ? colors.white : colors.piktag500} strokeWidth={2.5} />
+        <Hash size={14} color={isSelected ? '#FFFFFF' : colors.piktag500} strokeWidth={2.5} />
         <Text style={[styles.tagName, isSelected && styles.tagNameHighlighted]} numberOfLines={1}>
           {tag.name}
         </Text>
@@ -142,7 +142,7 @@ const TagCard = React.memo(function TagCard({ tag, isSelected, onPress, onLongPr
           // high-pop highlight" the design system reserves the accent
           // for. Most tags don't render this, so the magenta jump
           // feels like a deliberate signal, not noise.
-          <TrendingUp size={12} color={isSelected ? colors.white : colors.accentPop} />
+          <TrendingUp size={12} color={isSelected ? '#FFFFFF' : colors.accentPop} />
         )}
         <Text style={[styles.tagCount, isSelected && styles.tagCountHighlighted]}>
           {tag.usage_count}{countSuffix}
@@ -1634,7 +1634,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
                         }}
                         hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                       >
-                        <X size={14} color={colors.white} />
+                        <X size={14} color={'#FFFFFF'} />
                       </TouchableOpacity>
                     </View>
                   ))}
@@ -2060,7 +2060,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
             <Text style={styles.floatingClearText}>{t('search.clearAll', { defaultValue: '清除' })}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.floatingSearchBtn} onPress={handleSearchByTags} activeOpacity={0.8}>
-            <Search size={16} color={colors.white} />
+            <Search size={16} color={'#FFFFFF'} />
             <Text style={styles.floatingSearchBtnText}>{t('search.searchBtn', { defaultValue: '搜尋' })}</Text>
           </TouchableOpacity>
         </View>

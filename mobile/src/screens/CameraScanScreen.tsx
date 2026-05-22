@@ -166,7 +166,7 @@ export default function CameraScanScreen({ navigation }: CameraScanScreenProps) 
   if (!permission) {
     return (
       <View style={styles.container}>
-        <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor={colors.black} />
+        <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor={'#000000'} />
       </View>
     );
   }
@@ -175,7 +175,7 @@ export default function CameraScanScreen({ navigation }: CameraScanScreenProps) 
   if (!permission.granted) {
     return (
       <View style={styles.container}>
-        <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor={colors.black} />
+        <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor={'#000000'} />
 
         {/* Close button */}
         <View style={[styles.headerOverlay, { paddingTop: insets.top + 12 }]}>
@@ -184,7 +184,7 @@ export default function CameraScanScreen({ navigation }: CameraScanScreenProps) 
             onPress={() => navigation.canGoBack() ? navigation.goBack() : navigation.navigate("Connections")}
             activeOpacity={0.6}
           >
-            <X size={24} color={colors.white} />
+            <X size={24} color={'#FFFFFF'} />
           </TouchableOpacity>
         </View>
 
@@ -239,7 +239,7 @@ export default function CameraScanScreen({ navigation }: CameraScanScreenProps) 
             onPress={() => navigation.canGoBack() ? navigation.goBack() : navigation.navigate("Connections")}
             activeOpacity={0.6}
           >
-            <X size={24} color={colors.white} />
+            <X size={24} color={'#FFFFFF'} />
           </TouchableOpacity>
         </View>
 

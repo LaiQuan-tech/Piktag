@@ -194,7 +194,7 @@ function makeStyles(c: ColorPalette) {
     left: 0,
     right: 0,
     height: '85%',
-    backgroundColor: c.white,
+    backgroundColor: c.card,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
   },

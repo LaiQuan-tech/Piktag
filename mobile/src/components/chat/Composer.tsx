@@ -70,7 +70,7 @@ const Composer = React.memo(({ onSend, disabled, disabledReason }: Props) => {
         activeOpacity={0.7}
         style={[styles.sendBtn, { opacity: canSend ? 1 : 0.4 }]}
       >
-        <Send size={20} color={colors.white} />
+        <Send size={20} color={'#FFFFFF'} />
       </TouchableOpacity>
     </View>
   );

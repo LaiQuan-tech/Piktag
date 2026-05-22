@@ -161,7 +161,7 @@ export default function RegisterScreen({ navigation }: RegisterScreenProps) {
             ]}>
               <TextInput
                 ref={passwordRef}
-                style={[styles.passwordInput, { color: '#000000' }]}
+                style={[styles.passwordInput, { color: colors.text }]}
                 placeholder={t('auth.register.passwordPlaceholder')}
                 placeholderTextColor={colors.gray400}
                 value={password}
@@ -196,7 +196,7 @@ export default function RegisterScreen({ navigation }: RegisterScreenProps) {
             ]}>
               <TextInput
                 ref={confirmPasswordRef}
-                style={[styles.passwordInput, { color: '#000000' }]}
+                style={[styles.passwordInput, { color: colors.text }]}
                 placeholder={t('auth.register.confirmPasswordPlaceholder')}
                 placeholderTextColor={colors.gray400}
                 value={confirmPassword}
@@ -401,7 +401,7 @@ function makeStyles(c: ColorPalette) {
   birthdayInput: {
     flex: 1,
     fontSize: 15,
-    color: '#000000',
+    color: c.text,
     padding: 0,
   },
   registerButton: {

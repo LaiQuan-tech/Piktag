@@ -294,7 +294,7 @@ export const ConnectionsScreenSkeleton = React.memo(function ConnectionsScreenSk
   const { colors } = useTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   return (
-    <View style={skeletonConnectionsStyles.container}>
+    <View style={[skeletonConnectionsStyles.container, { backgroundColor: colors.background }]}>
       {Array.from({ length: 6 }).map((_, index) => (
         <View key={index} style={skeletonConnectionsStyles.row}>
           {/* Circle avatar */}
@@ -318,7 +318,7 @@ export const ChatListSkeleton = React.memo(function ChatListSkeleton() {
   const { colors } = useTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   return (
-    <View style={skeletonChatListStyles.container}>
+    <View style={[skeletonChatListStyles.container, { backgroundColor: colors.background }]}>
       {Array.from({ length: 6 }).map((_, index) => (
         <View key={index} style={skeletonChatListStyles.row}>
           {/* Avatar */}
@@ -349,7 +349,7 @@ export const UserDetailSkeleton = React.memo(function UserDetailSkeleton() {
   const { colors } = useTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   return (
-    <View style={skeletonUserDetailStyles.container}>
+    <View style={[skeletonUserDetailStyles.container, { backgroundColor: colors.background }]}>
       {/* Hero avatar */}
       <View style={skeletonUserDetailStyles.avatarWrap}>
         <SkeletonBox width={96} height={96} borderRadius={48} />
@@ -405,7 +405,7 @@ export const NotificationsSkeleton = React.memo(function NotificationsSkeleton()
   const { colors } = useTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   return (
-    <View style={skeletonNotificationsStyles.container}>
+    <View style={[skeletonNotificationsStyles.container, { backgroundColor: colors.background }]}>
       {Array.from({ length: 5 }).map((_, index) => (
         <View key={index} style={skeletonNotificationsStyles.row}>
           {/* Sender avatar */}
