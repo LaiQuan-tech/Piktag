@@ -1035,7 +1035,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
           supabase
             .from('piktag_profiles')
             .select('id, username, full_name, avatar_url, is_verified')
-            .or(`username.ilike.%${mainKeyword}%,full_name.ilike.%${mainKeyword}%,headline.ilike.%${mainKeyword}%`)
+            .or(`username.ilike.%${mainKeyword}%,full_name.ilike.%${mainKeyword}%,headline.ilike.%${mainKeyword}%,bio.ilike.%${mainKeyword}%`)
             .limit(20),
           ...tagPromises,
         ]);
@@ -1642,9 +1642,12 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
   // the SEARCHER'S OWN world that the public RPC can't find:
   //   • connection_tags  — viewer's manual tags on a member friend
   //   • local_contacts.tags — viewer's manual tags on a contact
-  //   • local_contacts.name / headline — the contact's own name + title
-  //   • connections.nickname — viewer's custom nickname for a friend
-  // All four sources are owner-scoped by RLS, so this stays private.
+  //   • local_contacts.name / headline / note / met_location
+  //   • connections.nickname / met_location — viewer's custom nickname
+  //     + the place you noted meeting them
+  // All sources are owner-scoped by RLS, so this stays private.
+  // (Bio is also matched, but in performSearch's piktag_profiles
+  // query — bio is public.)
   //
   // Driven by `tags` (set by the debounced performSearch) — that's the
   // committed-search signal. trimmedQuery is read via closure to avoid
@@ -1724,7 +1727,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
             ? supabase
                 .from('piktag_local_contacts')
                 .select('id, name, avatar_url')
-                .or(`name.ilike.%${qSafe}%,headline.ilike.%${qSafe}%`)
+                .or(`name.ilike.%${qSafe}%,headline.ilike.%${qSafe}%,note.ilike.%${qSafe}%,met_location.ilike.%${qSafe}%`)
                 .limit(50)
             : Promise.resolve({ data: [] } as any),
           qSafe.length > 0
@@ -1733,7 +1736,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
                 .select(
                   'nickname, connected_user_id, connected_user:piktag_profiles!connected_user_id(id, username, full_name, avatar_url, is_verified)',
                 )
-                .ilike('nickname', `%${qSafe}%`)
+                .or(`nickname.ilike.%${qSafe}%,met_location.ilike.%${qSafe}%`)
                 .limit(50)
             : Promise.resolve({ data: [] } as any),
         ]);
