@@ -45,6 +45,12 @@ verify_jwt = false
 [functions.notification-anniversary]
 verify_jwt = false
 
+[functions.notification-search-digest]
+# Weekly digest. pg_cron HTTP-POSTs with CRON_SECRET as bearer (opaque,
+# not a JWT) — platform verifier would reject it, so disable here.
+# The function does its own constant-time CRON_SECRET compare.
+verify_jwt = false
+
 # ---------------------------------------------------------------------------
 # Daily cron functions invoked by GitHub Actions (.github/workflows/daily-cron.yml)
 # over HTTPS with CRON_SECRET as the Bearer token. CRON_SECRET is opaque
