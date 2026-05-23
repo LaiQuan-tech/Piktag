@@ -25,21 +25,26 @@ const corsHeaders = {
 const PROMPT = (query: string) => `You are a search-query parser for a social-networking app where users search for people by tags (interests, skills, professions, places, communities, identities). Given a user's natural-language search query in ANY language, extract the CONTENT NOUNS that represent the searcher's intent.
 
 Rules:
-- Output ONLY a JSON array of 1–5 short strings. No surrounding text, no markdown, no code fences.
-- Each string is a content noun in the SAME LANGUAGE as the original query. Do not translate.
+- Output ONLY a JSON array of 1–6 short strings. No surrounding text, no markdown, no code fences.
+- For each content noun, ALSO include 1–2 common SAME-CONCEPT VARIANTS across writing systems / languages, so the substring search can match a friend tagged in a different script:
+  • "日文" → also "日本語", "Japanese"
+  • "工程師" → also "Engineer", "エンジニア"
+  • "fotógrafo" → also "photographer", "攝影師"
+  • "扶輪社" → also "Rotary", "Rotary Club"
+  Only include variants you are confident describe the same concept. If unsure, skip the variant rather than guess.
 - Drop verbs / particles / articles ("looking for", "想找", "在", "の", "を探しています", "Busco", "찾고 있어", "the", "a", "in", "for", "的", "的人", "朋友").
 - Skip generic placeholders: person / people / friend / contact / 朋友 / 人 / 同學 / 同事 / 사람.
-- If unsure, prefer MORE nouns over fewer (better recall — the search layer ranks).
 
 Examples:
-"找在扶輪社的朋友" → ["扶輪社"]
-"想認識會講日文又會攝影的人" → ["日文","攝影"]
-"想找台北附近的設計師" → ["台北","設計師"]
-"looking for a designer in SF" → ["designer","SF"]
-"日本語が話せる人を探しています" → ["日本語"]
-"Busco un fotógrafo en Madrid" → ["fotógrafo","Madrid"]
-"Wer kennt jemanden im Startup-Bereich?" → ["Startup"]
-"누가 일본어 할 수 있어?" → ["일본어"]
+"找在扶輪社的朋友" → ["扶輪社","Rotary","Rotary Club"]
+"我要找會日文的朋友" → ["日文","日本語","Japanese"]
+"想認識會講日文又會攝影的人" → ["日文","日本語","Japanese","攝影","photography"]
+"想找台北附近的設計師" → ["台北","Taipei","設計師","designer"]
+"looking for a designer in SF" → ["designer","設計師","SF","San Francisco"]
+"日本語が話せる人を探しています" → ["日本語","日文","Japanese"]
+"Busco un fotógrafo en Madrid" → ["fotógrafo","photographer","Madrid"]
+"Wer kennt jemanden im Startup-Bereich?" → ["Startup","新創"]
+"누가 일본어 할 수 있어?" → ["일본어","日本語","Japanese"]
 
 Query: "${query.replace(/"/g, '\\"')}"
 
@@ -122,7 +127,7 @@ serve(async (req) => {
             .filter((x: unknown): x is string => typeof x === 'string')
             .map((s) => s.trim())
             .filter((s) => s.length > 0 && s.length < 50)
-            .slice(0, 5);
+            .slice(0, 6);
         }
       } catch {
         // Malformed JSON — fall through to empty result.

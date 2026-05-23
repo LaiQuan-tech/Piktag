@@ -74,7 +74,7 @@ export async function extractSearchIntent(
           .filter((x): x is string => typeof x === 'string')
           .map((s) => s.trim())
           .filter((s) => s.length > 0 && s.length < 50)
-          .slice(0, 5)
+          .slice(0, 6)
       : [];
     rememberCached(cacheKey, keywords);
     return keywords;
