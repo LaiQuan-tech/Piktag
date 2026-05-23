@@ -2854,7 +2854,7 @@ function makeStyles(c: ColorPalette) {
   },
   scrollContent: {
     paddingHorizontal: 20,
-    paddingTop: 24,
+    paddingTop: 16,
     paddingBottom: 100,
   },
   categorySectionLabel: {
