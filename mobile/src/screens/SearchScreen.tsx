@@ -264,7 +264,7 @@ type SearchScreenProps = {
 };
 
 export default function SearchScreen({ navigation }: SearchScreenProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { colors, isDark } = useTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const { user } = useAuth();
@@ -1225,12 +1225,20 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
         // generic spinner to the "AI thinking" variant via llmRecovering.
         let postRecoveryTags = mergedTags;
         let postRecoveryKeywords: string[] = [];
+        // Captured for telemetry below: was the public-query path
+        // empty (and therefore did we enter the LLM recovery path)?
+        const directHit =
+          mergedTags.length > 0 ||
+          finalProfiles.length > 0 ||
+          finalTagUsers.length > 0;
+        let recoveryTriggered = false;
         if (
           seq === searchSeqRef.current &&
           mergedTags.length === 0 &&
           finalProfiles.length === 0 &&
           finalTagUsers.length === 0
         ) {
+          recoveryTriggered = true;
           setLlmRecovering(true);
           try {
             const extracted = await extractSearchIntent(query.trim());
@@ -1287,6 +1295,27 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
 
         // Save to recent searches
         saveRecentSearch(query.trim());
+
+        // Telemetry — fire-and-forget insert so the founder can see
+        // post-launch which queries kept dying (especially "recovery
+        // fired but still nothing" — those feed the alias seed work).
+        // RLS scopes the row to auth.uid(); a 30-day cron prunes.
+        if (user) {
+          void supabase
+            .from('piktag_search_telemetry')
+            .insert({
+              user_id: user.id,
+              query: query.trim(),
+              direct_hit: directHit,
+              recovery_triggered: recoveryTriggered,
+              extracted_keywords:
+                postRecoveryKeywords.length > 0 ? postRecoveryKeywords : null,
+              final_tag_count: postRecoveryTags.length,
+              final_profile_count: finalProfiles.length,
+              final_tag_user_count: finalTagUsers.length,
+              locale: i18n.language || null,
+            });
+        }
       } catch (err) {
         if (seq !== searchSeqRef.current) return;
         console.warn('[SearchScreen] search query failed:', err);
@@ -1299,7 +1328,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
         if (seq === searchSeqRef.current) setLoading(false);
       }
     },
-    [loadPopularTags, saveRecentSearch],
+    [loadPopularTags, saveRecentSearch, user, i18n, t],
   );
 
   // Submit-only search: typing alone never hits the server. The user
