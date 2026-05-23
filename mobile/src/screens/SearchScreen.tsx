@@ -30,6 +30,7 @@ import { useTranslation } from 'react-i18next';
 import { getLocales } from 'expo-localization';
 import { supabase } from '../lib/supabase';
 import { getCache, setCache } from '../lib/dataCache';
+import { stripSearchStopwords, filterLoneStopwordTokens } from '../lib/searchStopwords';
 import { COLORS, type ColorPalette } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../hooks/useAuth';
@@ -977,12 +978,22 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
 
   const performSearch = useCallback(
     async (query: string) => {
-      // Strip # and split by common delimiters (space, comma, 、，)
-      const keywords = query.trim()
-        .replace(/#/g, '')
+      // Strip natural-language scaffolding ("找在扶輪社的朋友" →
+      // "扶輪社") so the substring search has a chance. Idempotent +
+      // falls back to the literal phrase if over-strips. Then split
+      // + filter lone stopword tokens ("找 PM 朋友" → ["PM"]).
+      const cleaned = stripSearchStopwords(query.trim().replace(/#/g, ''));
+      let keywords = cleaned
         .split(/[\s,，、]+/)
         .map(k => k.trim())
         .filter(Boolean);
+      keywords = filterLoneStopwordTokens(keywords);
+      if (keywords.length === 0) {
+        // User typed only stopwords — fall back to the literal phrase
+        // so we at least ilike-search what they typed.
+        const literal = query.trim().replace(/#/g, '');
+        if (literal) keywords = [literal];
+      }
 
       if (keywords.length === 0) {
         setActiveCategory(null);
@@ -1698,10 +1709,15 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
             .filter(Boolean);
         }
 
-        // 2. Strip characters that would break PostgREST's .or() filter
-        //    grammar (comma / paren / percent). Plain Chinese + English
-        //    names — the founder's actual use case — survive untouched.
-        const qSafe = trimmedQuery.replace(/[,()%]/g, '').trim();
+        // 2. Reduce the query to content nouns (same pass performSearch
+        //    uses) so a natural-language query like "找在扶輪社的朋友"
+        //    reduces to "扶輪社" for the name/headline ilike match too.
+        //    Then strip characters that would break PostgREST's .or()
+        //    filter grammar (comma / paren / percent). Plain Chinese
+        //    + English names survive untouched.
+        const qSafe = stripSearchStopwords(trimmedQuery)
+          .replace(/[,()%]/g, '')
+          .trim();
 
         // 3. Run all private-world queries in parallel: 2 tag-based,
         //    2 text-based. The tag-based ones short-circuit when no
