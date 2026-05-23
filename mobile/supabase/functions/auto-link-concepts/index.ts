@@ -210,6 +210,47 @@ serve(async (req) => {
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
+    // ── Row-mutex: prevent overlapping linker runs ─────────────────
+    // With the LLM gray-zone judge added, a backlog-heavy run can
+    // exceed the 5-min cron interval — two concurrent runs would
+    // both SELECT `concept_id IS NULL LIMIT 50` and both INSERT new
+    // singleton concepts (the exact fragmentation bug the linker
+    // exists to fix). The conditional UPDATE below is atomic at the
+    // row level: only one caller wins, the loser sees 0 rows and
+    // bails. 10-min stale window self-heals a crashed run.
+    const STALE_LOCK_MIN = 10;
+    const staleCutoff = new Date(Date.now() - STALE_LOCK_MIN * 60 * 1000).toISOString();
+    const { data: lockClaim, error: lockErr } = await supabase
+      .from('linker_run_lock')
+      .update({ locked_at: new Date().toISOString() })
+      .eq('id', 1)
+      .or(`locked_at.is.null,locked_at.lt.${staleCutoff}`)
+      .select('locked_at');
+    if (lockErr) {
+      console.warn('linker_run_lock claim error (proceeding without lock):', lockErr.message);
+      // Fail OPEN — if the lock table is unreachable for some reason
+      // we'd rather process tags than stop entirely. The race only
+      // matters when two runs ACTUALLY overlap, which itself is rare.
+    } else if (!lockClaim || lockClaim.length === 0) {
+      return new Response(
+        JSON.stringify({ skipped: true, reason: 'another linker run in progress' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+      );
+    }
+    // Always release on exit, success or error.
+    const releaseLock = async () => {
+      try {
+        await supabase
+          .from('linker_run_lock')
+          .update({ locked_at: null })
+          .eq('id', 1);
+      } catch (e) {
+        console.warn('linker_run_lock release failed:', e);
+      }
+    };
+
+    try {
+
     // 1. Find tags without concept_id
     const { data: unlinkedTags, error: fetchError } = await supabase
       .from('piktag_tags')
@@ -474,6 +515,13 @@ serve(async (req) => {
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
+    } finally {
+      // Always release the row-mutex — success, early-return, or
+      // thrown error. JS guarantees finally runs even on a return-in-
+      // try, so the success path also releases before the response
+      // goes out.
+      await releaseLock();
+    }
   } catch (err) {
     console.error('auto-link-concepts error:', err);
     return new Response(
