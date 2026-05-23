@@ -24,6 +24,11 @@ verify_jwt = true
 [functions.suggest-tags]
 verify_jwt = true
 
+[functions.extract-search-intent]
+# Called from SearchScreen's zero-results recovery path. Requires a
+# signed-in user — the platform JWT verifier is the rate-limit gate.
+verify_jwt = true
+
 [functions.notification-recommendation]
 # pg_cron HTTP-POSTs this function with the service-role key as bearer
 # (in sb_secret_* format), which the platform JWT verifier rejects. The

@@ -272,6 +272,8 @@
     "clearAll": "清除全部",
     "recommendedTitle": "你可能想認識",
     "tagsSelected": "個標籤已選",
+    "aiThinking": "正在用 AI 解析…",
+    "aiExtractedLabel": "PikTag 解讀你的意思:",
     "searchBtn": "搜尋",
     "intersectionHint": "交集搜尋：{{count}} 個標籤",
     "noIntersectionResults": "沒有同時擁有這些標籤的人",

@@ -31,7 +31,8 @@ import { getLocales } from 'expo-localization';
 import { supabase } from '../lib/supabase';
 import { getCache, setCache } from '../lib/dataCache';
 import { stripSearchStopwords, filterLoneStopwordTokens } from '../lib/searchStopwords';
-import { COLORS, type ColorPalette } from '../constants/theme';
+import { extractSearchIntent } from '../lib/extractSearchIntent';
+import { COLORS, BORDER_RADIUS, type ColorPalette } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../hooks/useAuth';
 import { useAuthProfile } from '../context/AuthContext';
@@ -360,6 +361,14 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
   // Owner-private by RLS — only the user who set the tags sees them.
   const [searchTaggedFriends, setSearchTaggedFriends] = useState<PiktagProfile[]>([]);
   const [searchTaggedContacts, setSearchTaggedContacts] = useState<TaggedContact[]>([]);
+  // LLM zero-results recovery: when the normal substring search yields
+  // nothing, the edge function `extract-search-intent` asks Gemini for
+  // content nouns hiding inside the user's natural-language query. We
+  // then re-run the tag substring search with those nouns. `Recovering`
+  // drives the "AI thinking" loading state; `ExtractedKeywords` drives
+  // the transparent "PikTag understood you mean:" chip above results.
+  const [llmRecovering, setLlmRecovering] = useState(false);
+  const [llmExtractedKeywords, setLlmExtractedKeywords] = useState<string[]>([]);
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
@@ -470,7 +479,12 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
   // LRU cache of recent search results so a user who types a query,
   // deletes back, and retypes the same thing doesn't re-hit the DB.
   // Capped at 20 entries — on overflow we evict the oldest insert.
-  type SearchCacheEntry = { tags: any[]; profiles: any[]; tagUsers: { tag: Tag; users: any[] }[] };
+  type SearchCacheEntry = {
+    tags: any[];
+    profiles: any[];
+    tagUsers: { tag: Tag; users: any[] }[];
+    extractedKeywords?: string[];
+  };
   const searchCacheRef = useRef<Map<string, SearchCacheEntry>>(new Map());
   const SEARCH_CACHE_MAX = 20;
 
@@ -997,6 +1011,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
 
       if (keywords.length === 0) {
         setActiveCategory(null);
+        setLlmExtractedKeywords([]);
         loadPopularTags();
         return;
       }
@@ -1013,6 +1028,10 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
         setTags(cached.tags);
         setProfiles(cached.profiles);
         setTagUsers(cached.tagUsers);
+        // Restore the AI-extracted keywords chip too, so a repeated
+        // recovery-fed query shows the same "PikTag understood..." line
+        // without paying the LLM again.
+        setLlmExtractedKeywords(cached.extractedKeywords || []);
         saveRecentSearch(query.trim());
         return;
       }
@@ -1023,6 +1042,9 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
       const seq = ++searchSeqRef.current;
       setLoading(true);
       setActiveCategory(null);
+      // Clear any stale AI-extracted-keywords chip from the previous
+      // search; recovery will repopulate this only if it actually fires.
+      setLlmExtractedKeywords([]);
 
       try {
         // Search tags: match ANY keyword
@@ -1192,11 +1214,70 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
           : []);
         setProfiles(finalProfiles);
 
-        // Cache this result set so typing-then-retyping is free.
+        // === Zero-results LLM recovery ===
+        // When the regular substring search + stopword stripping yields
+        // nothing, ask Gemini (via the extract-search-intent edge fn)
+        // for the content nouns inside the user's sentence and re-run
+        // the tag search with them. Covers natural-language queries in
+        // any language the client-side stopword stripper doesn't handle
+        // (ja/ko/th/es/fr/...) plus complex multi-concept en/zh queries.
+        // `loading` stays true through recovery — listData swaps from
+        // generic spinner to the "AI thinking" variant via llmRecovering.
+        let postRecoveryTags = mergedTags;
+        let postRecoveryKeywords: string[] = [];
+        if (
+          seq === searchSeqRef.current &&
+          mergedTags.length === 0 &&
+          finalProfiles.length === 0 &&
+          finalTagUsers.length === 0
+        ) {
+          setLlmRecovering(true);
+          try {
+            const extracted = await extractSearchIntent(query.trim());
+            if (seq === searchSeqRef.current && extracted.length > 0) {
+              const llmResults = await Promise.all(
+                extracted.map((kw) =>
+                  supabase
+                    .from('piktag_tags')
+                    .select('id, name, semantic_type, usage_count, concept_id')
+                    .ilike('name', `%${kw}%`)
+                    .order('usage_count', { ascending: false })
+                    .limit(10),
+                ),
+              );
+              const llmTagMap = new Map<string, any>();
+              for (const r of llmResults) {
+                for (const t of (r.data || [])) {
+                  if (!llmTagMap.has(t.id)) llmTagMap.set(t.id, t);
+                }
+              }
+              const llmTags = [...llmTagMap.values()];
+              if (seq === searchSeqRef.current) {
+                postRecoveryKeywords = extracted;
+                setLlmExtractedKeywords(extracted);
+                if (llmTags.length > 0) {
+                  postRecoveryTags = llmTags;
+                  setTags(llmTags as Tag[]);
+                  // The private-world effect fires off the tags change
+                  // and pulls connection_tags / local_contacts matches.
+                }
+              }
+            }
+          } catch (recErr) {
+            console.warn('[SearchScreen] LLM recovery failed:', recErr);
+          } finally {
+            if (seq === searchSeqRef.current) setLlmRecovering(false);
+          }
+        }
+
+        // Cache this result set so typing-then-retyping is free. We
+        // cache the POST-recovery state — a repeated recovery-fed
+        // query gets the chip + results instantly, no second LLM call.
         const entry: SearchCacheEntry = {
-          tags: mergedTags,
+          tags: postRecoveryTags,
           profiles: finalProfiles,
           tagUsers: finalTagUsers,
+          extractedKeywords: postRecoveryKeywords,
         };
         cache.set(cacheKey, entry);
         if (cache.size > SEARCH_CACHE_MAX) {
@@ -1581,7 +1662,9 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
     | { type: 'recommendedUsers' }
     | { type: 'bootstrapError' }
     | { type: 'intersectionTabs' }
-    | { type: 'searchTabs'; friendsCount: number; exploreCount: number };
+    | { type: 'searchTabs'; friendsCount: number; exploreCount: number }
+    | { type: 'aiThinking' }
+    | { type: 'aiKeywordsChip'; keywords: string[] };
 
   // Merge profile-match + tag-match results into one deduplicated list,
   // then split by friend status. Mirrors the friends/explore split that
@@ -1807,7 +1890,10 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
 
     // 1. Loading
     if (loading || initialLoading) {
-      items.push({ type: 'loading' });
+      // Swap the generic spinner for the "AI thinking" variant when
+      // zero-results recovery is running — the user sees a clear
+      // signal that the system is trying harder, not just hanging.
+      items.push({ type: llmRecovering ? 'aiThinking' : 'loading' });
       return items;
     }
 
@@ -1858,6 +1944,13 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
     // the user sees their network before strangers. Falls through to the
     // explore tab when there are no friend matches.
     if (trimmedQuery !== '') {
+      // AI-recovery transparency: when the LLM extracted content nouns
+      // from a natural-language query, surface them above the results
+      // so the user can see how PikTag understood their sentence (and
+      // course-correct if it's wrong).
+      if (llmExtractedKeywords.length > 0) {
+        items.push({ type: 'aiKeywordsChip', keywords: llmExtractedKeywords });
+      }
       // Tags section — always show when search found matching tags.
       if (tags.length > 0) {
         items.push({ type: 'tagsHeader' });
@@ -1945,6 +2038,8 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
     searchExplore,
     searchTaggedContacts,
     searchTab,
+    llmRecovering,
+    llmExtractedKeywords,
     recommendedUsers,
     bootstrapFailed,
   ]);
@@ -1983,6 +2078,10 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
         return 'intersectionTabs';
       case 'searchTabs':
         return 'searchTabs';
+      case 'aiThinking':
+        return 'aiThinking';
+      case 'aiKeywordsChip':
+        return 'aiKeywordsChip-' + item.keywords.join(',');
       case 'bootstrapError':
         return 'bootstrapError';
       default:
@@ -1997,6 +2096,32 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
           return (
             <View style={styles.loadingContainer}>
               <LogoLoader size={64} />
+            </View>
+          );
+
+        case 'aiThinking':
+          return (
+            <View style={styles.loadingContainer}>
+              <LogoLoader size={64} />
+              <Text style={styles.aiThinkingText}>
+                {t('search.aiThinking', { defaultValue: 'Reading your intent…' })}
+              </Text>
+            </View>
+          );
+
+        case 'aiKeywordsChip':
+          return (
+            <View style={styles.aiChipRow}>
+              <Text style={styles.aiChipLabel}>
+                {t('search.aiExtractedLabel', { defaultValue: 'PikTag understood you mean:' })}
+              </Text>
+              <View style={styles.aiChipKeywordsRow}>
+                {item.keywords.map((kw) => (
+                  <View key={kw} style={styles.aiChipKeyword}>
+                    <Text style={styles.aiChipKeywordText}>#{kw}</Text>
+                  </View>
+                ))}
+              </View>
             </View>
           );
 
@@ -2780,6 +2905,47 @@ function makeStyles(c: ColorPalette) {
   loadingContainer: {
     paddingVertical: 40,
     alignItems: 'center',
+  },
+  // "Reading your intent..." text under the spinner during zero-results
+  // LLM recovery. Sits below the existing LogoLoader so the visual is
+  // familiar but the message tells the user we're trying harder.
+  aiThinkingText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: c.gray500,
+    marginTop: 14,
+    textAlign: 'center',
+  },
+  // "PikTag understood you mean:" chip strip — shown above results when
+  // the LLM-recovery path produced the keywords that ultimately matched.
+  // Transparent surface for the user to course-correct if the model
+  // mis-read their sentence.
+  aiChipRow: {
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    paddingBottom: 8,
+  },
+  aiChipLabel: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: c.gray500,
+    marginBottom: 8,
+  },
+  aiChipKeywordsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+  },
+  aiChipKeyword: {
+    backgroundColor: c.fill,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: BORDER_RADIUS.full,
+  },
+  aiChipKeywordText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: c.piktag500,
   },
   emptyText: {
     fontSize: 14,
