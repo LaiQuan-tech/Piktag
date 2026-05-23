@@ -245,7 +245,7 @@ module.exports = async function handler(req, res) {
 };
 
 function renderProfilePage(profile, biolinks, tags, sid, locale, eventInfo, analyticsSnippet, hasActiveAsk, tribeSize = 0) {
-  const name = escapeHtml(profile.full_name || profile.username || '#piktag User');
+  const name = escapeHtml(profile.full_name || profile.username || '#PikTag User');
   const username = escapeHtml(profile.username || '');
   const headline = profile.headline ? escapeHtml(profile.headline) : '';
   const bio = profile.bio ? escapeHtml(profile.bio) : '';
@@ -254,7 +254,7 @@ function renderProfilePage(profile, biolinks, tags, sid, locale, eventInfo, anal
     `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=f3f4f6&color=6b7280&size=200`;
   const isVerified = profile.is_verified;
   const ogDescription = bio || `@${username} on PikTag`;
-  const pageTitle = `${name} (@${username}) | #piktag`;
+  const pageTitle = `${name} (@${username}) | #PikTag`;
   const pageUrl = `https://pikt.ag/${username}`;
 
   const verifiedBadge = isVerified
@@ -311,7 +311,7 @@ function renderProfilePage(profile, biolinks, tags, sid, locale, eventInfo, anal
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>${pageTitle}</title>
   <meta name="description" content="${escapeHtml(ogDescription)}">
-  <meta name="keywords" content="${escapeHtml(tags.map(t => t.name || t).join(', '))}, #piktag, ${escapeHtml(name)}, networking">
+  <meta name="keywords" content="${escapeHtml(tags.map(t => t.name || t).join(', '))}, #PikTag, ${escapeHtml(name)}, networking">
   <meta name="author" content="${escapeHtml(name)}">
   <meta name="robots" content="index, follow">
   <link rel="canonical" href="${pageUrl}">
@@ -320,7 +320,7 @@ function renderProfilePage(profile, biolinks, tags, sid, locale, eventInfo, anal
   <meta property="og:description" content="${escapeHtml(ogDescription)}">
   <meta property="og:image" content="${escapeHtml(avatarUrl)}">
   <meta property="og:url" content="${pageUrl}">
-  <meta property="og:site_name" content="#piktag">
+  <meta property="og:site_name" content="#PikTag">
   <meta property="profile:username" content="${username}">
   <meta name="twitter:card" content="summary">
   <meta name="twitter:title" content="${pageTitle}">
@@ -450,7 +450,7 @@ function renderProfilePage(profile, biolinks, tags, sid, locale, eventInfo, anal
   <script>
 function handleShare() {
   var url = 'https://pikt.ag/${username}';
-  var title = '${name} (@${username}) | #piktag';
+  var title = '${name} (@${username}) | #PikTag';
   if (navigator.share) {
     navigator.share({ title: title, url: url }).catch(function(){});
   } else {
@@ -485,7 +485,7 @@ function notFoundPage(locale) {
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>${locale.notFoundTitle} | #piktag</title>
+  <title>${locale.notFoundTitle} | #PikTag</title>
   <style>
     *{margin:0;padding:0;box-sizing:border-box}
     body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:${BRAND_BG};display:flex;align-items:center;justify-content:center;min-height:100vh;text-align:center;padding:20px}

@@ -71,8 +71,8 @@ module.exports = async function handler(req, res) {
 };
 
 function renderPage(tagName, usageCount, members, analyticsSnippet) {
-  const title = `#${escapeHtml(tagName)} — 在 #piktag 上的人`;
-  const description = `${usageCount} 人使用 #${escapeHtml(tagName)} 標籤。在 #piktag 認識志同道合的人。`;
+  const title = `#${escapeHtml(tagName)} — 在 #PikTag 上的人`;
+  const description = `${usageCount} 人使用 #${escapeHtml(tagName)} 標籤。在 #PikTag 認識志同道合的人。`;
   const url = `https://pikt.ag/tag/${encodeURIComponent(tagName)}`;
 
   const memberCards = members.map(m => {
@@ -109,7 +109,7 @@ function renderPage(tagName, usageCount, members, analyticsSnippet) {
   <meta property="og:title" content="${title}">
   <meta property="og:description" content="${escapeHtml(description)}">
   <meta property="og:url" content="${url}">
-  <meta property="og:site_name" content="#piktag">
+  <meta property="og:site_name" content="#PikTag">
   <meta name="twitter:card" content="summary">
   <meta name="twitter:title" content="${title}">
   <meta name="twitter:description" content="${escapeHtml(description)}">
@@ -192,7 +192,7 @@ function renderPage(tagName, usageCount, members, analyticsSnippet) {
 
   <div class="bottom-spacer"></div>
   <a class="banner" href="https://pikt.ag/download" target="_blank" rel="noopener noreferrer">
-    <span class="banner-text">下載 #piktag App 認識他們</span>
+    <span class="banner-text">下載 #PikTag App 認識他們</span>
     <span class="banner-arrow">→</span>
   </a>
 </body>
@@ -205,7 +205,7 @@ function notFoundPage(title) {
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>${title || '找不到標籤'} | #piktag</title>
+  <title>${title || '找不到標籤'} | #PikTag</title>
   <style>
     *{margin:0;padding:0;box-sizing:border-box}
     body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:${BRAND_BG};display:flex;align-items:center;justify-content:center;min-height:100vh;text-align:center;padding:20px}
@@ -217,10 +217,10 @@ function notFoundPage(title) {
 </head>
 <body>
   <div>
-    <div class="logo">#piktag</div>
+    <div class="logo">#PikTag</div>
     <h1>找不到這個標籤</h1>
     <p>試試其他標籤或下載 App 探索更多</p>
-    <a href="https://pikt.ag/download">下載 #piktag App</a>
+    <a href="https://pikt.ag/download">下載 #PikTag App</a>
   </div>
 </body>
 </html>`;
