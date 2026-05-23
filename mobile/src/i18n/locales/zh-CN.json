@@ -309,6 +309,8 @@
     "allCategories": "全部",
     "openMap": "地图视图",
     "searchBtn": "搜索",
+    "searchInputLabel": "搜索",
+    "clearSearchLabel": "清除搜索",
     "recommendedTitle": "你可能想认识",
     "tagsSelected": "个标签已选"
   },

@@ -307,6 +307,8 @@
     "allCategories": "ทั้งหมด",
     "openMap": "เปิดแผนที่",
     "searchBtn": "ค้นหา",
+    "searchInputLabel": "ค้นหา",
+    "clearSearchLabel": "ล้างการค้นหา",
     "recommendedTitle": "คนที่อาจอยากรู้จัก",
     "tagsSelected": "แท็กที่เลือก"
   },

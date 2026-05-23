@@ -315,6 +315,8 @@
     "openMap": "Apri mappa",
     "recommendedTitle": "Persone che potresti voler conoscere",
     "searchBtn": "Cerca",
+    "searchInputLabel": "Cerca",
+    "clearSearchLabel": "Cancella ricerca",
     "tagsSelected": "tag selezionati"
   },
   "addTag": {

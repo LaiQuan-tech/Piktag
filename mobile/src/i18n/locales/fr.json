@@ -307,6 +307,8 @@
     "allCategories": "Tout",
     "openMap": "Ouvrir la carte",
     "searchBtn": "Rechercher",
+    "searchInputLabel": "Rechercher",
+    "clearSearchLabel": "Effacer la recherche",
     "recommendedTitle": "Vous voudrez peut-être rencontrer",
     "tagsSelected": "étiquette(s) sélectionnée(s)"
   },

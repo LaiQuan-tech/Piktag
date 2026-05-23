@@ -307,6 +307,8 @@
     "allCategories": "전체",
     "openMap": "지도 보기",
     "searchBtn": "검색",
+    "searchInputLabel": "검색",
+    "clearSearchLabel": "검색 지우기",
     "recommendedTitle": "알아두면 좋은 사람",
     "tagsSelected": "개 태그 선택됨"
   },

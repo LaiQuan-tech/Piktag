@@ -314,6 +314,8 @@
     "allCategories": "All",
     "openMap": "Open map",
     "searchBtn": "Search",
+    "searchInputLabel": "Search",
+    "clearSearchLabel": "Clear search",
     "recommendedTitle": "You might want to meet",
     "tagsSelected": "tag(s) selected",
     "aiThinking": "Reading your intent…",

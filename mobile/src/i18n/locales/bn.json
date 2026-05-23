@@ -307,6 +307,8 @@
     "allCategories": "সব",
     "openMap": "মানচিত্র খুলুন",
     "searchBtn": "খুঁজুন",
+    "searchInputLabel": "অনুসন্ধান",
+    "clearSearchLabel": "অনুসন্ধান মুছুন",
     "recommendedTitle": "যাদের সাথে পরিচিত হতে পারেন",
     "tagsSelected": "ট্যাগ নির্বাচিত"
   },

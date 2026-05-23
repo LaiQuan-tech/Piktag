@@ -307,6 +307,8 @@
     "allCategories": "Semua",
     "openMap": "Buka peta",
     "searchBtn": "Cari",
+    "searchInputLabel": "Cari",
+    "clearSearchLabel": "Hapus pencarian",
     "recommendedTitle": "Mungkin ingin kenal",
     "tagsSelected": "tag dipilih"
   },

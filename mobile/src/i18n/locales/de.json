@@ -309,6 +309,8 @@
     "allCategories": "Alle",
     "openMap": "Karte öffnen",
     "searchBtn": "Suchen",
+    "searchInputLabel": "Suchen",
+    "clearSearchLabel": "Suche löschen",
     "recommendedTitle": "Vielleicht möchtest du kennenlernen",
     "tagsSelected": "Tag(s) ausgewählt"
   },

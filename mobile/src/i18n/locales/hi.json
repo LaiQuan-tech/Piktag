@@ -307,6 +307,8 @@
     "allCategories": "सब",
     "openMap": "मानचित्र खोलें",
     "searchBtn": "खोजें",
+    "searchInputLabel": "खोजें",
+    "clearSearchLabel": "खोज साफ़ करें",
     "recommendedTitle": "जिनसे आप मिलना चाहें",
     "tagsSelected": "टैग चुने"
   },

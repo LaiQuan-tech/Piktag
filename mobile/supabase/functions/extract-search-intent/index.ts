@@ -11,16 +11,28 @@
 //   • API key never enters the app bundle (the existing Gemini calls
 //     in this repo — auto-link-concepts, scan-business-card,
 //     suggest-tags — all live server-side; this matches that pattern).
-//   • Per-user rate limiting via Supabase JWT.
+//   • Per-user rate limiting via Supabase JWT (this file enforces it).
 //   • Single place to swap models / tune the prompt without shipping
 //     a mobile build.
+//
+// Security model:
+//   • Caller MUST present a valid Supabase JWT in Authorization. We
+//     derive identity from the JWT — no client-supplied user_id.
+//   • Each authed user is capped at 30 calls/minute via the
+//     try_consume_extract_intent_quota RPC (atomic single-statement
+//     upsert; see 20260524100000_extract_intent_rate_limit.sql).
+//   • Rate-limit breach → HTTP 429 with empty keywords so the client's
+//     recovery path degrades gracefully (the chip just won't appear).
 
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+const RATE_LIMIT_PER_MINUTE = 30;
 
 const PROMPT = (query: string) => `You are a search-query parser for a social-networking app where users search for people by tags (interests, skills, professions, places, communities, identities). Given a user's natural-language search query in ANY language, extract the CONTENT NOUNS that represent the searcher's intent.
 
@@ -56,6 +68,58 @@ serve(async (req) => {
   }
 
   try {
+    // ── 1. JWT-based identity ────────────────────────────────────
+    // Mirror the delete-user pattern: derive user_id from the JWT,
+    // never trust client-supplied user_id. The anon-key client +
+    // Authorization header forwarding is what validates the token.
+    const authHeader = req.headers.get('authorization') || '';
+    if (!authHeader.toLowerCase().startsWith('bearer ')) {
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized', keywords: [] }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+      );
+    }
+
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const anonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
+    const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+
+    const userClient = createClient(supabaseUrl, anonKey, {
+      global: { headers: { Authorization: authHeader } },
+    });
+    const { data: userData, error: userErr } = await userClient.auth.getUser();
+    if (userErr || !userData?.user) {
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized', keywords: [] }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+      );
+    }
+    const userId = userData.user.id;
+
+    // ── 2. Per-user rate limit ───────────────────────────────────
+    // Atomic claim via RPC — single-statement INSERT…ON CONFLICT keeps
+    // concurrent invocations from racing past the limit. Service-role
+    // client is required to call the SECURITY DEFINER func without
+    // exposing the limit table to the user's JWT.
+    const adminClient = createClient(supabaseUrl, serviceRoleKey, {
+      auth: { autoRefreshToken: false, persistSession: false },
+    });
+    const { data: allowed, error: quotaErr } = await adminClient.rpc(
+      'try_consume_extract_intent_quota',
+      { p_user_id: userId, p_max_per_minute: RATE_LIMIT_PER_MINUTE },
+    );
+    if (quotaErr) {
+      console.warn('extract-search-intent quota RPC failed (fail-open):', quotaErr.message);
+      // Fail open on quota infra failure — the feature degrading is
+      // worse than a brief uncapped window. Logged for observability.
+    } else if (allowed === false) {
+      return new Response(
+        JSON.stringify({ error: 'rate_limited', keywords: [] }),
+        { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+      );
+    }
+
+    // ── 3. Parse + guard the actual query ────────────────────────
     const body = await req.json().catch(() => ({} as { query?: unknown }));
     const query =
       typeof (body as any).query === 'string' ? ((body as any).query as string).trim() : '';

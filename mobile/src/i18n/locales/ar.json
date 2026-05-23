@@ -307,6 +307,8 @@
     "allCategories": "الكل",
     "openMap": "فتح الخريطة",
     "searchBtn": "بحث",
+    "searchInputLabel": "بحث",
+    "clearSearchLabel": "مسح البحث",
     "recommendedTitle": "قد ترغب في التعرّف",
     "tagsSelected": "علامة محددة"
   },

@@ -315,6 +315,8 @@
     "openMap": "Mở bản đồ",
     "recommendedTitle": "Có thể bạn muốn gặp",
     "searchBtn": "Tìm kiếm",
+    "searchInputLabel": "Tìm kiếm",
+    "clearSearchLabel": "Xóa tìm kiếm",
     "tagsSelected": "tag đã chọn"
   },
   "addTag": {

@@ -307,6 +307,8 @@
     "allCategories": "Tudo",
     "openMap": "Abrir mapa",
     "searchBtn": "Pesquisar",
+    "searchInputLabel": "Pesquisar",
+    "clearSearchLabel": "Limpar pesquisa",
     "recommendedTitle": "Você pode querer conhecer",
     "tagsSelected": "tag(s) selecionada(s)"
   },

@@ -33,6 +33,7 @@ import { getCache, setCache } from '../lib/dataCache';
 import { stripSearchStopwords, filterLoneStopwordTokens } from '../lib/searchStopwords';
 import { getSiblingTagIds, getTagNamesByIds } from '../lib/tagSiblings';
 import { extractSearchIntent } from '../lib/extractSearchIntent';
+import { sanitizeQueryForTelemetry } from '../lib/sanitizeTelemetry';
 import { COLORS, BORDER_RADIUS, type ColorPalette } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../hooks/useAuth';
@@ -1306,7 +1307,11 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
             .from('piktag_search_telemetry')
             .insert({
               user_id: user.id,
-              query: query.trim(),
+              // Sanitize before storing — RLS already scopes rows to
+              // auth.uid(), but redacting email/phone-shape strings
+              // means future cross-user "what keeps failing" analysis
+              // can't accidentally surface a user's contact details.
+              query: sanitizeQueryForTelemetry(query),
               direct_hit: directHit,
               recovery_triggered: recoveryTriggered,
               extracted_keywords:
@@ -2589,7 +2594,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
             onBlur={handleBlur}
             returnKeyType="search"
             onSubmitEditing={handleSubmitEditing}
-            accessibilityLabel="搜尋"
+            accessibilityLabel={t('search.searchInputLabel', { defaultValue: '搜尋' })}
             accessibilityRole="search"
           />
           {searchQuery.length > 0 && (
@@ -2598,7 +2603,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
               style={styles.searchClearBtn}
               activeOpacity={0.6}
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-              accessibilityLabel="清除搜尋"
+              accessibilityLabel={t('search.clearSearchLabel', { defaultValue: '清除搜尋' })}
               accessibilityRole="button"
             >
               <X size={16} color={colors.gray400} />

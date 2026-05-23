@@ -307,6 +307,8 @@
     "allCategories": "Todas",
     "openMap": "Abrir mapa",
     "searchBtn": "Buscar",
+    "searchInputLabel": "Buscar",
+    "clearSearchLabel": "Borrar búsqueda",
     "recommendedTitle": "Quizá quieras conocer",
     "tagsSelected": "etiqueta(s) seleccionada(s)"
   },

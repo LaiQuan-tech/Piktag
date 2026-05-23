@@ -307,6 +307,8 @@
     "allCategories": "すべて",
     "openMap": "地図を開く",
     "searchBtn": "検索",
+    "searchInputLabel": "検索",
+    "clearSearchLabel": "検索をクリア",
     "recommendedTitle": "知り合ってみては",
     "tagsSelected": "個のタグを選択中"
   },

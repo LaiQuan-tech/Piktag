@@ -315,6 +315,8 @@
     "openMap": "نقشہ کھولیں",
     "recommendedTitle": "وہ لوگ جن سے آپ ملنا چاہیں گے",
     "searchBtn": "تلاش کریں",
+    "searchInputLabel": "تلاش",
+    "clearSearchLabel": "تلاش صاف کریں",
     "tagsSelected": "ٹیگز منتخب"
   },
   "addTag": {

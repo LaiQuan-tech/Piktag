@@ -307,6 +307,8 @@
     "allCategories": "Все",
     "openMap": "Открыть карту",
     "searchBtn": "Поиск",
+    "searchInputLabel": "Поиск",
+    "clearSearchLabel": "Очистить поиск",
     "recommendedTitle": "Возможно, вам интересно",
     "tagsSelected": "тегов выбрано"
   },

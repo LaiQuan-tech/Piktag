@@ -307,6 +307,8 @@
     "allCategories": "Tümü",
     "openMap": "Haritayı aç",
     "searchBtn": "Ara",
+    "searchInputLabel": "Ara",
+    "clearSearchLabel": "Aramayı temizle",
     "recommendedTitle": "Tanışmak isteyebilirsin",
     "tagsSelected": "etiket seçildi"
   },
