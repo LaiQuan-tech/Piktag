@@ -1358,6 +1358,15 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
         return;
       }
 
+      // Mid-edit invalidates the previous query's AI-recovery chip.
+      // The "PikTag understood: …" line belongs to the LAST submitted
+      // query — leaving it on screen while the user types something
+      // new reads as "AI is interpreting every keystroke" (it isn't).
+      // The chip auto-restores on next submit if performSearch's
+      // cache hit or recovery path repopulates it.
+      setLlmExtractedKeywords([]);
+      setLlmRecovering(false);
+
       // Exit intersection mode when the user starts editing the text
       // box — staying in intersection mode would render a stale chip
       // bar above a query that no longer matches.
@@ -1399,8 +1408,15 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
     [navigation],
   );
 
-  const handleSearchByTags = useCallback(async () => {
-    if (selectedTagIds.length === 0 || !user) return;
+  const handleSearchByTags = useCallback(async (idsOverride?: string[]) => {
+    // idsOverride lets callers pass the freshly-computed id list
+    // synchronously, skipping the round-trip through React state
+    // (which would otherwise force a setTimeout-races-state hack).
+    // The chip-remove handler uses this; the floating search button
+    // omits it and reads selectedTagIds straight from closure.
+    const tagIds = idsOverride ?? selectedTagIds;
+    const tagIdSet = idsOverride ? new Set(idsOverride) : selectedTagIdSet;
+    if (tagIds.length === 0 || !user) return;
     // Resolve a full Tag object for EVERY selected id, in selection
     // order. The live `tags` array usually misses earlier-picked tags
     // (each may have been chosen from its own text search), so fill the
@@ -1409,25 +1425,25 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
     // to single-tag TagDetail.
     const byId = new Map<string, Tag>();
     for (const t of tags) {
-      if (selectedTagIdSet.has(t.id)) byId.set(t.id, t);
+      if (tagIdSet.has(t.id)) byId.set(t.id, t);
     }
-    if (byId.size !== selectedTagIds.length) {
+    if (byId.size !== tagIds.length) {
       const { data } = await supabase
         .from('piktag_tags')
         .select('id, name, semantic_type, usage_count, concept_id')
-        .in('id', selectedTagIds);
+        .in('id', tagIds);
       for (const t of (data || []) as Tag[]) byId.set(t.id, t);
     }
-    const selected = selectedTagIds
+    const selected = tagIds
       .map((id) => byId.get(id))
       .filter((t): t is Tag => !!t);
 
-    if (selectedTagIds.length === 1) {
+    if (tagIds.length === 1) {
       // Always pass the id (always valid); name is best-effort. The old
       // code skipped navigation entirely when the name didn't resolve.
       navigation.navigate('TagDetail', {
-        tagId: selectedTagIds[0],
-        tagName: byId.get(selectedTagIds[0])?.name ?? '',
+        tagId: tagIds[0],
+        tagName: byId.get(tagIds[0])?.name ?? '',
       });
       setSelectedTagIds([]);
       return;
@@ -1457,7 +1473,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
       // Each tag's work is independent — run all tags in parallel
       // (a sequential per-tag loop made a 3-tag search visibly slow).
       const entitySets: Set<string>[] = await Promise.all(
-        selectedTagIds.map(async (tagId) => {
+        tagIds.map(async (tagId) => {
           // Concept-sibling expansion (same concept = same meaning).
           // Names are needed because piktag_local_contacts.tags stores
           // plain name strings, not FKs, so contacts match by name.
@@ -1601,6 +1617,13 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
     setIntersectionFriends([]);
     setIntersectionExplore([]);
     setIntersectionSelectedTags([]);
+    // Wipe the LLM-recovery surface too — without these, pressing X
+    // briefly shows an "AI understood: …" chip floating over the
+    // newly-empty input until the manual-tag effect catches up.
+    setLlmExtractedKeywords([]);
+    setLlmRecovering(false);
+    setSearchTaggedFriends([]);
+    setSearchTaggedContacts([]);
     searchInputRef.current?.blur();
   }, []);
 
@@ -2153,9 +2176,16 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
                             }
                             return;
                           }
-                          // Re-filter results with remaining tags
-                          setSelectedTagIds(remaining.map(t => t.id));
-                          setTimeout(() => handleSearchByTags(), 100);
+                          // Re-filter results with remaining tags. We
+                          // pass the freshly-computed ids directly so
+                          // handleSearchByTags doesn't read stale
+                          // selectedTagIds from React's closure — the
+                          // old setTimeout(…, 100) hack used to bridge
+                          // that gap is now obsolete (and racy if the
+                          // user removed two chips in quick succession).
+                          const remainingIds = remaining.map(t => t.id);
+                          setSelectedTagIds(remainingIds);
+                          void handleSearchByTags(remainingIds);
                         }}
                         hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                       >
@@ -2600,7 +2630,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
           <TouchableOpacity style={styles.floatingClearBtn} onPress={() => setSelectedTagIds([])} activeOpacity={0.7}>
             <Text style={styles.floatingClearText}>{t('search.clearAll', { defaultValue: '清除' })}</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.floatingSearchBtn} onPress={handleSearchByTags} activeOpacity={0.8}>
+          <TouchableOpacity style={styles.floatingSearchBtn} onPress={() => handleSearchByTags()} activeOpacity={0.8}>
             <Search size={16} color={'#FFFFFF'} />
             <Text style={styles.floatingSearchBtnText}>{t('search.searchBtn', { defaultValue: '搜尋' })}</Text>
           </TouchableOpacity>

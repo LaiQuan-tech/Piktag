@@ -60,12 +60,20 @@ export async function extractSearchIntent(
       (r) => ({ ok: true as const, data: r.data, error: r.error }),
       (err) => ({ ok: false as const, error: err }),
     );
-  const timeoutP = new Promise<{ ok: false; error: { timeout: true } }>((resolve) =>
-    setTimeout(() => resolve({ ok: false, error: { timeout: true } }), timeoutMs),
-  );
+  // Hold the timer handle so we can release it the moment invokeP wins
+  // the race — otherwise fast-typing piles up unfired 3s timers in the
+  // background until they each GC themselves.
+  let timeoutHandle: ReturnType<typeof setTimeout> | undefined;
+  const timeoutP = new Promise<{ ok: false; error: { timeout: true } }>((resolve) => {
+    timeoutHandle = setTimeout(
+      () => resolve({ ok: false, error: { timeout: true } }),
+      timeoutMs,
+    );
+  });
 
   try {
     const settled = await Promise.race([invokeP, timeoutP]);
+    if (timeoutHandle !== undefined) clearTimeout(timeoutHandle);
     if (!settled.ok) return [];
     const { data, error } = settled;
     if (error || !data) return [];
@@ -79,6 +87,7 @@ export async function extractSearchIntent(
     rememberCached(cacheKey, keywords);
     return keywords;
   } catch {
+    if (timeoutHandle !== undefined) clearTimeout(timeoutHandle);
     return [];
   }
 }

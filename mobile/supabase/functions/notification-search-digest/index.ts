@@ -145,10 +145,36 @@ serve(async (req) => {
       top_keywords: topKeywords,
     };
 
+    // 5-pre. Pre-flight idempotency check — find which admins ALREADY
+    // received a search_digest in the past 6 days, so cron retries /
+    // accidental double-fires don't double-push the same admin.
+    // Window is 6 days (< the 7-day weekly cadence) so the next legit
+    // weekly run isn't blocked by its predecessor.
+    const idempotencyWindow = new Date(Date.now() - 6 * 86400 * 1000).toISOString();
+    const adminIds = (adminRows as Array<{ user_id: string }>)
+      .map((a) => a.user_id)
+      .filter(Boolean);
+    const { data: alreadySentRows } = await supabase
+      .from('piktag_notifications')
+      .select('user_id')
+      .eq('type', TYPE)
+      .gte('created_at', idempotencyWindow)
+      .in('user_id', adminIds);
+    const alreadySent = new Set(
+      ((alreadySentRows as Array<{ user_id: string }>) || []).map((r) => r.user_id),
+    );
+
     let inserted = 0;
     let pushed = 0;
+    let skipped = 0;
     for (const admin of adminRows as Array<{ user_id: string; push_token: string | null }>) {
       if (!admin.user_id) continue;
+
+      // Skip admins who already got this week's digest.
+      if (alreadySent.has(admin.user_id)) {
+        skipped++;
+        continue;
+      }
 
       // 5a. In-app notification row.
       const { error: insertErr } = await supabase
@@ -195,6 +221,7 @@ serve(async (req) => {
         top_keywords: topKeywords,
         admins_notified: inserted,
         pushes_sent: pushed,
+        admins_skipped_already_sent: skipped,
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
     );
