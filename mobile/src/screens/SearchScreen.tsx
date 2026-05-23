@@ -2926,9 +2926,11 @@ function makeStyles(c: ColorPalette) {
   // Transparent surface for the user to course-correct if the model
   // mis-read their sentence.
   aiChipRow: {
-    paddingHorizontal: 16,
-    paddingTop: 12,
-    paddingBottom: 8,
+    // No paddingTop / paddingHorizontal here — scrollContent already
+    // provides 24px top + 20px horizontal. Adding our own stacked
+    // them and left the chip indented 16px more than the result
+    // cards below.
+    paddingBottom: 12,
   },
   aiChipLabel: {
     fontSize: 13,
