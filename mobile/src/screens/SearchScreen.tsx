@@ -1035,7 +1035,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
           supabase
             .from('piktag_profiles')
             .select('id, username, full_name, avatar_url, is_verified')
-            .or(`username.ilike.%${mainKeyword}%,full_name.ilike.%${mainKeyword}%`)
+            .or(`username.ilike.%${mainKeyword}%,full_name.ilike.%${mainKeyword}%,headline.ilike.%${mainKeyword}%`)
             .limit(20),
           ...tagPromises,
         ]);
@@ -1638,65 +1638,81 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
     );
   }, [trimmedQuery, searchFriends.length, searchExplore.length, searchTaggedContacts.length]);
 
-  // Manual-tag search. Text search (performSearch) only ever queried
-  // piktag_user_tags — public member self-tags — so members you'd
-  // manually tagged (piktag_connection_tags) and tagged local contacts
-  // (piktag_local_contacts) were unfindable by typing the tag word.
-  // This effect runs whenever the matched-tag set changes and pulls the
-  // searcher's OWN manual-tag matches. connection_tags + local_contacts
-  // are owner-scoped by RLS, so manual tags stay private to their owner.
-  // Re-runs on every keystroke (trimmedQuery is a dep) but the matched
-  // `tags` set only changes on a committed search — so guard on a tag-id
-  // signature: skip the 3-query chain when the set is unchanged.
+  // Private-world search — populates the Friends tab with people from
+  // the SEARCHER'S OWN world that the public RPC can't find:
+  //   • connection_tags  — viewer's manual tags on a member friend
+  //   • local_contacts.tags — viewer's manual tags on a contact
+  //   • local_contacts.name / headline — the contact's own name + title
+  //   • connections.nickname — viewer's custom nickname for a friend
+  // All four sources are owner-scoped by RLS, so this stays private.
+  //
+  // Driven by `tags` (set by the debounced performSearch) — that's the
+  // committed-search signal. trimmedQuery is read via closure to avoid
+  // firing the effect on every keystroke; the sig key includes both
+  // so a same-tag-set but different-text query still re-fetches.
   const manualTagSigRef = useRef<string>('');
   useEffect(() => {
-    if (trimmedQuery === '' || intersectionMode || tags.length === 0) {
+    if (trimmedQuery === '' || intersectionMode) {
       setSearchTaggedFriends([]);
       setSearchTaggedContacts([]);
       manualTagSigRef.current = '';
       return;
     }
-    const sig = tags.map((t: any) => t.id).join(',');
+    const sig = trimmedQuery + '|' + tags.map((t: any) => t.id).join(',');
     if (sig === manualTagSigRef.current) return;
     manualTagSigRef.current = sig;
-    // New matched-tag set — drop the previous query's tagged people
-    // immediately so they don't linger on screen during the re-fetch.
+    // New query/tag combo — drop the previous query's results immediately
+    // so they don't linger on screen during the re-fetch.
     setSearchTaggedFriends([]);
     setSearchTaggedContacts([]);
     let cancelled = false;
     (async () => {
       try {
-        const baseTagIds = tags.map((t: any) => t.id).filter(Boolean);
-        if (baseTagIds.length === 0) return;
-        // Concept-sibling expansion — same meaning, different wording.
-        const conceptIds = [
-          ...new Set(tags.map((t: any) => t.concept_id).filter(Boolean)),
-        ];
-        let allTagIds = [...baseTagIds];
-        if (conceptIds.length > 0) {
-          const { data: sib } = await supabase
+        // 1. Resolve concept-sibling tag ids/names (only if any tag matched).
+        let allTagIds: string[] = [];
+        let allTagNames: string[] = [];
+        if (tags.length > 0) {
+          const baseTagIds = tags.map((t: any) => t.id).filter(Boolean);
+          const conceptIds = [
+            ...new Set(tags.map((t: any) => t.concept_id).filter(Boolean)),
+          ];
+          allTagIds = [...baseTagIds];
+          if (conceptIds.length > 0) {
+            const { data: sib } = await supabase
+              .from('piktag_tags')
+              .select('id')
+              .in('concept_id', conceptIds);
+            if (sib && sib.length > 0) {
+              allTagIds = [...new Set([...allTagIds, ...sib.map((s: any) => s.id)])];
+            }
+          }
+          const { data: nameRows } = await supabase
             .from('piktag_tags')
-            .select('id')
-            .in('concept_id', conceptIds);
-          if (sib) allTagIds = [...new Set([...allTagIds, ...sib.map((s: any) => s.id)])];
+            .select('name')
+            .in('id', allTagIds);
+          allTagNames = (nameRows || [])
+            .map((r: any) => r.name)
+            .filter(Boolean);
         }
-        // Sibling tag NAMES — local-contact tags are plain strings.
-        const { data: nameRows } = await supabase
-          .from('piktag_tags')
-          .select('name')
-          .in('id', allTagIds);
-        const allTagNames = (nameRows || [])
-          .map((r: any) => r.name)
-          .filter(Boolean);
 
-        const [ctRes, lcRes] = await Promise.all([
-          supabase
-            .from('piktag_connection_tags')
-            .select(
-              'connection:piktag_connections!connection_id(connected_user_id, connected_user:piktag_profiles!connected_user_id(id, username, full_name, avatar_url, is_verified))',
-            )
-            .in('tag_id', allTagIds)
-            .limit(500),
+        // 2. Strip characters that would break PostgREST's .or() filter
+        //    grammar (comma / paren / percent). Plain Chinese + English
+        //    names — the founder's actual use case — survive untouched.
+        const qSafe = trimmedQuery.replace(/[,()%]/g, '').trim();
+
+        // 3. Run all private-world queries in parallel: 2 tag-based,
+        //    2 text-based. The tag-based ones short-circuit when no
+        //    tag matched the query.
+        const [ctByTagRes, lcByTagRes, lcByTextRes, connByNickRes] = await Promise.all([
+          allTagIds.length > 0
+            ? supabase
+                .from('piktag_connection_tags')
+                .select(
+                  'connection:piktag_connections!connection_id(connected_user_id, connected_user:piktag_profiles!connected_user_id(id, username, full_name, avatar_url, is_verified))',
+                )
+                .in('tag_id', allTagIds)
+                .limit(500)
+            : Promise.resolve({ data: [] } as any),
           allTagNames.length > 0
             ? supabase
                 .from('piktag_local_contacts')
@@ -1704,35 +1720,68 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
                 .overlaps('tags', allTagNames)
                 .limit(200)
             : Promise.resolve({ data: [] } as any),
+          qSafe.length > 0
+            ? supabase
+                .from('piktag_local_contacts')
+                .select('id, name, avatar_url')
+                .or(`name.ilike.%${qSafe}%,headline.ilike.%${qSafe}%`)
+                .limit(50)
+            : Promise.resolve({ data: [] } as any),
+          qSafe.length > 0
+            ? supabase
+                .from('piktag_connections')
+                .select(
+                  'nickname, connected_user_id, connected_user:piktag_profiles!connected_user_id(id, username, full_name, avatar_url, is_verified)',
+                )
+                .ilike('nickname', `%${qSafe}%`)
+                .limit(50)
+            : Promise.resolve({ data: [] } as any),
         ]);
 
         if (cancelled) return;
 
-        const seenF = new Set<string>();
-        const taggedFriends: PiktagProfile[] = [];
-        for (const row of (ctRes.data || []) as any[]) {
-          const p = row.connection?.connected_user;
-          if (p?.id && p.id !== user?.id && !seenF.has(p.id)) {
-            seenF.add(p.id);
-            taggedFriends.push(p as PiktagProfile);
+        // Merge member friends (tag-based + nickname-based). Dedupe by id.
+        const seenFriendIds = new Set<string>();
+        const friends: PiktagProfile[] = [];
+        const pushFriend = (p: any) => {
+          if (p?.id && p.id !== user?.id && !seenFriendIds.has(p.id)) {
+            seenFriendIds.add(p.id);
+            friends.push(p as PiktagProfile);
           }
+        };
+        for (const row of (ctByTagRes.data || []) as any[]) {
+          pushFriend(row.connection?.connected_user);
         }
-        setSearchTaggedFriends(taggedFriends);
-        setSearchTaggedContacts(
-          ((lcRes.data || []) as any[]).map((c) => ({
-            id: c.id,
-            name: c.name,
-            avatar_url: c.avatar_url ?? null,
-          })),
-        );
-      } catch (manualErr) {
-        console.warn('[SearchScreen] manual-tag search failed:', manualErr);
+        for (const row of (connByNickRes.data || []) as any[]) {
+          pushFriend(row.connected_user);
+        }
+        setSearchTaggedFriends(friends);
+
+        // Merge contacts (tag-based + name/headline-based). Dedupe by id.
+        const seenContactIds = new Set<string>();
+        const contacts: TaggedContact[] = [];
+        const pushContact = (c: any) => {
+          if (c?.id && !seenContactIds.has(c.id)) {
+            seenContactIds.add(c.id);
+            contacts.push({ id: c.id, name: c.name, avatar_url: c.avatar_url ?? null });
+          }
+        };
+        for (const c of (lcByTagRes.data || []) as any[]) pushContact(c);
+        for (const c of (lcByTextRes.data || []) as any[]) pushContact(c);
+        setSearchTaggedContacts(contacts);
+      } catch (privateErr) {
+        console.warn('[SearchScreen] private-world search failed:', privateErr);
       }
     })();
     return () => {
       cancelled = true;
     };
-  }, [tags, trimmedQuery, intersectionMode, user]);
+    // trimmedQuery intentionally read via closure (NOT in deps): it
+    // changes per keystroke, but `tags` is the debounced committed-
+    // search signal, so we only want to fetch when performSearch has
+    // settled. The closure always sees the current value at run time.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tags, intersectionMode, user]);
 
   const listData = useMemo<ListItem[]>(() => {
     const items: ListItem[] = [];
