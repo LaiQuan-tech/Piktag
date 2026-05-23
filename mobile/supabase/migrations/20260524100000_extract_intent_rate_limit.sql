@@ -82,14 +82,19 @@ GRANT EXECUTE ON FUNCTION public.try_consume_extract_intent_quota(UUID, INTEGER)
 -- Rows older than 1 hour are useless (window is per-minute). A daily
 -- prune keeps the table size bounded — at scale this is "1 row per
 -- active-in-the-last-day user".
-DO $$
-DECLARE v_jobid bigint;
-BEGIN
-  SELECT jobid INTO v_jobid FROM cron.job WHERE jobname = 'piktag-extract-intent-rate-limit-prune';
-  IF v_jobid IS NOT NULL THEN
-    PERFORM cron.unschedule(v_jobid);
-  END IF;
-END $$;
+--
+-- NOTE: previous migrations in this repo used a DO $$ DECLARE v_jobid
+-- bigint; BEGIN … END $$; pattern to unschedule the prior cron before
+-- re-creating it. That pattern works in psql but the Supabase SQL
+-- Editor (as of 2026-05-24) mis-parsed it in THIS migration, fired
+-- the body as plain SQL, and choked on `SELECT INTO v_jobid` as if it
+-- were trying to create a table. The CTE form below is the same
+-- semantic (unschedule existing by name, then schedule fresh) but
+-- pure-SQL so the editor can't mis-route it.
+WITH existing AS (
+  SELECT jobid FROM cron.job WHERE jobname = 'piktag-extract-intent-rate-limit-prune'
+)
+SELECT cron.unschedule(jobid) FROM existing;
 
 SELECT cron.schedule(
   'piktag-extract-intent-rate-limit-prune',
