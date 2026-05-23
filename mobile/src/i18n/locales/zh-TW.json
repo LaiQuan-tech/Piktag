@@ -274,6 +274,7 @@
     "tagsSelected": "個標籤已選",
     "aiThinking": "正在用 AI 解析…",
     "aiExtractedLabel": "PikTag 解讀你的意思:",
+    "askEmptyStateButton": "📣 發 Ask 幫忙找",
     "searchBtn": "搜尋",
     "intersectionHint": "交集搜尋：{{count}} 個標籤",
     "noIntersectionResults": "沒有同時擁有這些標籤的人",

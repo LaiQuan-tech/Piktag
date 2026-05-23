@@ -317,7 +317,8 @@
     "recommendedTitle": "You might want to meet",
     "tagsSelected": "tag(s) selected",
     "aiThinking": "Reading your intent…",
-    "aiExtractedLabel": "PikTag understood you mean:"
+    "aiExtractedLabel": "PikTag understood you mean:",
+    "askEmptyStateButton": "📣 Post an Ask"
   },
   "addTag": {
     "headerTitle": "Create a Tag",

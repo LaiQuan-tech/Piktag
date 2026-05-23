@@ -2295,32 +2295,34 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
               >
                 {t('search.noProfilesFoundTitle', { query: trimmedQuery })}
               </Text>
-              <Text style={styles.emptyStateHint}>
-                {t('search.tryTagSearchHint')}
-              </Text>
+              {/* "Try a #tag" is redundant when the AI chip is already
+                  shown above — recovery already tried that. Only show
+                  the hint when there was no AI assist. */}
+              {llmExtractedKeywords.length === 0 && (
+                <Text style={styles.emptyStateHint}>
+                  {t('search.tryTagSearchHint')}
+                </Text>
+              )}
               {/* Dead-end search → highest-intent moment to capture a
-                  demand signal. Contextual + understated (one line +
-                  one pill), only when there's a real keyword query —
-                  not a global nag. Seeds the Ask with that query. */}
+                  demand signal. The button label carries its own
+                  motivation now ("📣 發 Ask 幫忙找") so we don't need
+                  a separate explanatory sentence — one element. */}
               {trimmedQuery !== '' && (
-                <>
-                  <Text style={styles.askCtaHint}>
-                    {t('search.askPrompt', {
-                      defaultValue: '人脈裡沒有？貼一個 Ask，讓朋友和二度人脈幫你找。',
+                <TouchableOpacity
+                  style={styles.askCtaButton}
+                  onPress={() => setAskVisible(true)}
+                  activeOpacity={0.85}
+                  accessibilityRole="button"
+                  accessibilityLabel={t('search.askEmptyStateButton', {
+                    defaultValue: '📣 Post an Ask',
+                  })}
+                >
+                  <Text style={styles.askCtaButtonText}>
+                    {t('search.askEmptyStateButton', {
+                      defaultValue: '📣 Post an Ask',
                     })}
                   </Text>
-                  <TouchableOpacity
-                    style={styles.askCtaButton}
-                    onPress={() => setAskVisible(true)}
-                    activeOpacity={0.85}
-                    accessibilityRole="button"
-                    accessibilityLabel={t('ask.newAsk', { defaultValue: '發 Ask' })}
-                  >
-                    <Text style={styles.askCtaButtonText}>
-                      {t('ask.newAsk', { defaultValue: '發 Ask' })}
-                    </Text>
-                  </TouchableOpacity>
-                </>
+                </TouchableOpacity>
               )}
               <TouchableOpacity
                 style={styles.clearRetryButton}
@@ -2491,6 +2493,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
       navigation,
       t,
       trimmedQuery,
+      llmExtractedKeywords,
       handleResetToDefault,
       handleDeleteRecentAt,
       intersectionTab,
