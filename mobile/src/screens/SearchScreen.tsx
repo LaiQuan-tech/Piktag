@@ -2991,17 +2991,10 @@ function makeStyles(c: ColorPalette) {
     color: c.gray700,
     fontWeight: '500',
   },
-  // Ask conversion CTA in the no-results state. Understated: a quiet
-  // accent line + a single pill. Deliberately the only emphasized
-  // element here so it reads as the productive next step, while
-  // "clear and retry" stays the neutral grey secondary below it.
-  askCtaHint: {
-    fontSize: 13,
-    color: c.piktag600,
-    textAlign: 'center',
-    marginTop: 18,
-    lineHeight: 19,
-  },
+  // Ask conversion CTA in the no-results state. Single emphasized
+  // pill (the prompt sentence was folded into the button label in
+  // the empty-state slim refactor) — productive next step. The
+  // "clear and retry" below stays the neutral grey secondary.
   askCtaButton: {
     marginTop: 12,
     paddingVertical: 11,
