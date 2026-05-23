@@ -3019,7 +3019,11 @@ function makeStyles(c: ColorPalette) {
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 10,
-    marginTop: 16,
+    // No marginTop — this row is only ever rendered as the first
+    // list item (the recent-searches "clear" header), so scrollContent's
+    // own paddingTop: 24 already provides the top breathing room.
+    // Stacking added 16 more, leaving the X button floating ~40px
+    // below the search box.
   },
   sectionLabelText: {
     fontSize: 16,
