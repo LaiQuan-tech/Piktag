@@ -31,6 +31,7 @@ import { getLocales } from 'expo-localization';
 import { supabase } from '../lib/supabase';
 import { getCache, setCache } from '../lib/dataCache';
 import { stripSearchStopwords, filterLoneStopwordTokens } from '../lib/searchStopwords';
+import { getSiblingTagIds, getTagNamesByIds } from '../lib/tagSiblings';
 import { extractSearchIntent } from '../lib/extractSearchIntent';
 import { COLORS, BORDER_RADIUS, type ColorPalette } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
@@ -1457,39 +1458,11 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
       // (a sequential per-tag loop made a 3-tag search visibly slow).
       const entitySets: Set<string>[] = await Promise.all(
         selectedTagIds.map(async (tagId) => {
-          // Expand the tag to its concept siblings (same concept = same meaning).
-          let allTagIds = [tagId];
-          try {
-            const { data: tagData } = await supabase
-              .from('piktag_tags')
-              .select('concept_id')
-              .eq('id', tagId)
-              .single();
-            if (tagData?.concept_id) {
-              const { data: siblings } = await supabase
-                .from('piktag_tags')
-                .select('id')
-                .eq('concept_id', tagData.concept_id);
-              // Never let an empty result collapse allTagIds to [] —
-              // .in('tag_id', []) matches nothing and would empty out
-              // the whole intersection.
-              if (siblings && siblings.length > 0) {
-                allTagIds = siblings.map((s: any) => s.id);
-              }
-            }
-          } catch (err) {
-            console.warn('[SearchScreen] sibling tag lookup failed, falling back to single tag:', err);
-          }
-
-          // Sibling tag NAMES — local-contact tags are stored as plain
-          // name strings (piktag_local_contacts.tags is text[]), not FKs.
-          const { data: siblingTagRows } = await supabase
-            .from('piktag_tags')
-            .select('name')
-            .in('id', allTagIds);
-          const siblingNames = (siblingTagRows || [])
-            .map((r: any) => r.name)
-            .filter(Boolean);
+          // Concept-sibling expansion (same concept = same meaning).
+          // Names are needed because piktag_local_contacts.tags stores
+          // plain name strings, not FKs, so contacts match by name.
+          const allTagIds = await getSiblingTagIds(tagId);
+          const siblingNames = await getTagNamesByIds(allTagIds);
 
           const [publicResult, connTagResult, contactResult] = await Promise.all([
             supabase

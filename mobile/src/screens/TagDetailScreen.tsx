@@ -18,6 +18,7 @@ import { useTheme } from '../context/ThemeContext';
 import RingedAvatar from '../components/RingedAvatar';
 import AskListByTag from '../components/ask/AskListByTag';
 import { supabase } from '../lib/supabase';
+import { getSiblingTagIds } from '../lib/tagSiblings';
 import { useAuth } from '../hooks/useAuth';
 
 type TagDetailScreenProps = {
@@ -121,27 +122,6 @@ export default function TagDetailScreen({ navigation, route }: TagDetailScreenPr
 
   const tagId = resolvedTagId;
 
-  // --- Helper: get all sibling tag_ids sharing the same concept ---
-  const getSiblingTagIds = useCallback(async (tid: string): Promise<string[]> => {
-    // Get concept_id for this tag
-    const { data: tagData } = await supabase
-      .from('piktag_tags')
-      .select('concept_id')
-      .eq('id', tid)
-      .single();
-
-    if (!tagData?.concept_id) return [tid];
-
-    // Get all tags with the same concept
-    const { data: siblings } = await supabase
-      .from('piktag_tags')
-      .select('id')
-      .eq('concept_id', tagData.concept_id);
-
-    if (!siblings || siblings.length === 0) return [tid];
-    return [...new Set([tid, ...siblings.map((s: any) => s.id)])];
-  }, []);
-
   // --- Fetch connections with this tag (existing logic) ---
   const fetchTagConnections = useCallback(async () => {
     if (!user || !tagId) return;
@@ -218,7 +198,7 @@ export default function TagDetailScreen({ navigation, route }: TagDetailScreenPr
     } finally {
       setLoading(false);
     }
-  }, [user, tagId, getSiblingTagIds]);
+  }, [user, tagId]);
 
   // --- Fetch all public users with this tag (NEW: explore) ---
   const fetchExploreUsers = useCallback(async () => {
@@ -337,7 +317,7 @@ export default function TagDetailScreen({ navigation, route }: TagDetailScreenPr
     } finally {
       setExploreLoading(false);
     }
-  }, [user, tagId, getSiblingTagIds]);
+  }, [user, tagId]);
 
   // --- Fetch tag metadata (semantic_type, parent) ---
   const fetchTagMeta = useCallback(async () => {
