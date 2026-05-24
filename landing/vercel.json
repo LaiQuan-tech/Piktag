@@ -1,0 +1,46 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+
+  "buildCommand": "npm ci && npm run build",
+  "outputDirectory": "dist",
+
+  "ignoreCommand": "bash -c 'git diff --quiet HEAD^ HEAD -- .'",
+
+  "rewrites": [
+    { "source": "/i/:code",         "destination": "/api/i/:code" },
+    { "source": "/tag/:tagname",    "destination": "/api/tag/:tagname" },
+
+    { "source": "/privacy",         "destination": "/privacy.html" },
+    { "source": "/terms",           "destination": "/terms.html" },
+    { "source": "/child-safety",    "destination": "/child-safety.html" },
+    { "source": "/delete-account",  "destination": "/delete-account.html" },
+    { "source": "/scan",            "destination": "/scan.html" },
+    { "source": "/download",        "destination": "/download.html" },
+
+    { "source": "/contact",         "destination": "/index.html" },
+    { "source": "/reset-password",  "destination": "/index.html" },
+
+    { "source": "/favicon.ico",     "destination": "/logo.png" },
+
+    { "source": "/:username",       "destination": "/api/u/:username" }
+  ],
+
+  "headers": [
+    {
+      "source": "/.well-known/apple-app-site-association",
+      "headers": [
+        { "key": "Content-Type", "value": "application/json" }
+      ]
+    },
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "X-Frame-Options", "value": "DENY" },
+        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
+        { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=()" },
+        { "key": "Content-Security-Policy", "value": "default-src 'self'; img-src 'self' https: data: https://www.facebook.com; script-src 'self' 'unsafe-inline' https://*.posthog.com https://www.googletagmanager.com https://connect.facebook.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://*.supabase.co https://us.i.posthog.com https://*.posthog.com https://*.google-analytics.com https://*.analytics.google.com https://www.google-analytics.com https://www.facebook.com; frame-src https://www.facebook.com; frame-ancestors 'none'" }
+      ]
+    }
+  ]
+}

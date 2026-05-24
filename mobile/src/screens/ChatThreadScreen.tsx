@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
-  ActivityIndicator,
+  ActionSheetIOS,
+  Alert,
   FlatList,
   KeyboardAvoidingView,
   Platform,
@@ -20,10 +21,14 @@ import type { RouteProp } from '@react-navigation/native';
 
 import Composer from '../components/chat/Composer';
 import MessageBubble from '../components/chat/MessageBubble';
-import InitialsAvatar from '../components/InitialsAvatar';
-import { COLORS } from '../constants/theme';
+import RingedAvatar from '../components/RingedAvatar';
+import ErrorState from '../components/ErrorState';
+import BrandSpinner from '../components/loaders/BrandSpinner';
+import { COLORS, type ColorPalette } from '../constants/theme';
+import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../hooks/useAuth';
 import { useChatThread } from '../hooks/useChatThread';
+import { useNetInfoReconnect } from '../hooks/useNetInfoReconnect';
 import { supabase } from '../lib/supabase';
 import type { ThreadMessage } from '../types/chat';
 
@@ -71,8 +76,10 @@ function formatDaySeparator(iso: string): string {
   return d.toLocaleDateString();
 }
 
-export default function ChatThreadScreen({ navigation, route }: Props): JSX.Element {
+export default function ChatThreadScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
+  const { colors, isDark } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const { user } = useAuth();
   const {
     conversationId,
@@ -88,6 +95,7 @@ export default function ChatThreadScreen({ navigation, route }: Props): JSX.Elem
     loadMore,
     sendMessage,
     retry,
+    reload,
     markRead,
     error,
   } = useChatThread(conversationId);
@@ -133,6 +141,120 @@ export default function ChatThreadScreen({ navigation, route }: Props): JSX.Elem
     navigation.navigate('UserDetail', { userId: otherUserId });
   }, [navigation, otherUserId]);
 
+  // Apple Guideline 1.2: long-press a bubble to report or block.
+  const submitReport = useCallback(
+    async (messageId: string, reason: string) => {
+      if (!user) return;
+      try {
+        await supabase.from('piktag_reports').insert({
+          reporter_id: user.id,
+          reported_id: otherUserId,
+          reason,
+          context: { kind: 'chat_message', message_id: messageId, conversation_id: conversationId },
+        } as any);
+        Alert.alert(
+          t('report.success', { defaultValue: 'Reported' }),
+          t('report.confirmDescription', { defaultValue: 'Thanks — our team will review.' }),
+        );
+      } catch (err) {
+        console.warn('report message failed:', err);
+      }
+    },
+    [user, otherUserId, conversationId, t],
+  );
+
+  const blockOtherUser = useCallback(async () => {
+    if (!user) return;
+    // Route through block_user RPC so the cascade matches what
+    // FriendDetail / UserDetail use:
+    //   * upsert piktag_blocks
+    //   * delete bilateral piktag_follows
+    //   * delete bilateral piktag_close_friends
+    //   * delete the blocker's prior notifications produced by
+    //     the blocked user
+    // The earlier direct upsert into piktag_blocks left all those
+    // tables intact, so the blocked party still saw the user in
+    // feeds / could still appear as a close friend, defeating the
+    // privacy contract of "block".
+    const { error } = await supabase.rpc('block_user', { p_blocked_id: otherUserId });
+    if (error) {
+      console.warn('block user failed:', error);
+      Alert.alert(t('common.error'), t('common.unknownError'));
+      return;
+    }
+    Alert.alert(
+      t('userDetail.blockedTitle', { defaultValue: 'Blocked' }),
+      t('userDetail.blockedMessage', { defaultValue: 'You will no longer see this user.' }),
+    );
+    if (navigation.canGoBack()) navigation.goBack();
+  }, [user, otherUserId, navigation, t]);
+
+  const promptReportReason = useCallback(
+    (messageId: string) => {
+      const reasons: Array<{ key: string; label: string }> = [
+        { key: 'spam', label: t('report.reasonSpam', { defaultValue: 'Spam' }) },
+        { key: 'harassment', label: t('report.reasonHarassment', { defaultValue: 'Harassment' }) },
+        { key: 'inappropriate', label: t('report.reasonInappropriate', { defaultValue: 'Inappropriate' }) },
+        { key: 'other', label: t('report.reasonOther', { defaultValue: 'Other' }) },
+      ];
+      const cancelLabel = t('common.cancel', { defaultValue: 'Cancel' });
+      if (Platform.OS === 'ios') {
+        ActionSheetIOS.showActionSheetWithOptions(
+          {
+            title: t('report.confirmTitle', { defaultValue: 'Report' }),
+            options: [...reasons.map((r) => r.label), cancelLabel],
+            cancelButtonIndex: reasons.length,
+          },
+          (idx) => {
+            if (idx >= 0 && idx < reasons.length) void submitReport(messageId, reasons[idx].key);
+          },
+        );
+      } else {
+        Alert.alert(
+          t('report.confirmTitle', { defaultValue: 'Report' }),
+          t('report.confirmDescription', { defaultValue: '' }),
+          [
+            ...reasons.map((r) => ({
+              text: r.label,
+              onPress: () => void submitReport(messageId, r.key),
+            })),
+            { text: cancelLabel, style: 'cancel' as const },
+          ],
+        );
+      }
+    },
+    [submitReport, t],
+  );
+
+  const handleBubbleLongPress = useCallback(
+    (message: ThreadMessage) => {
+      if (!user || message.sender_id === user.id) return;
+      const reportLabel = t('report.reportMessage', { defaultValue: 'Report message' });
+      const blockLabel = t('userDetail.blockUser', { defaultValue: 'Block user' });
+      const cancelLabel = t('common.cancel', { defaultValue: 'Cancel' });
+      if (Platform.OS === 'ios') {
+        ActionSheetIOS.showActionSheetWithOptions(
+          {
+            options: [reportLabel, blockLabel, cancelLabel],
+            destructiveButtonIndex: 1,
+            cancelButtonIndex: 2,
+          },
+          (idx) => {
+            if (idx === 0) promptReportReason(message.id);
+            else if (idx === 1) void blockOtherUser();
+          },
+        );
+      } else {
+        Alert.alert('', '', [
+          { text: reportLabel, onPress: () => promptReportReason(message.id) },
+          { text: blockLabel, style: 'destructive', onPress: () => void blockOtherUser() },
+          { text: cancelLabel, style: 'cancel' },
+        ]);
+      }
+    },
+    [user, promptReportReason, blockOtherUser, t],
+  );
+
   const displayName = useMemo(() => {
     if (otherProfile?.full_name) return otherProfile.full_name;
     if (otherProfile?.username) return `@${otherProfile.username}`;
@@ -164,18 +286,26 @@ export default function ChatThreadScreen({ navigation, route }: Props): JSX.Elem
         !older || !sameLocalDay(currDate, new Date(older.created_at));
 
       const bubble = (
-        <MessageBubble
-          message={item}
-          isMine={isMine}
-          showAvatar={showAvatar}
-          avatarName={avatarName}
-          avatarUrl={avatarUrl}
-          onRetry={
-            isMine && item.status === 'failed' && item.client_nonce
-              ? () => void retry(item.client_nonce as string)
-              : undefined
+        <Pressable
+          onLongPress={() => handleBubbleLongPress(item)}
+          delayLongPress={350}
+          accessibilityHint={
+            !isMine ? t('report.reportMessage', { defaultValue: 'Long press to report' }) : undefined
           }
-        />
+        >
+          <MessageBubble
+            message={item}
+            isMine={isMine}
+            showAvatar={showAvatar}
+            avatarName={avatarName}
+            avatarUrl={avatarUrl}
+            onRetry={
+              isMine && item.status === 'failed' && item.client_nonce
+                ? () => void retry(item.client_nonce as string)
+                : undefined
+            }
+          />
+        </Pressable>
       );
 
       if (!showDaySeparator) return bubble;
@@ -193,7 +323,7 @@ export default function ChatThreadScreen({ navigation, route }: Props): JSX.Elem
         </View>
       );
     },
-    [messages, user, avatarName, avatarUrl, retry],
+    [messages, user, avatarName, avatarUrl, retry, handleBubbleLongPress, t, styles, colors],
   );
 
   const keyExtractor = useCallback((item: ThreadMessage) => item.id, []);
@@ -216,6 +346,17 @@ export default function ChatThreadScreen({ navigation, route }: Props): JSX.Elem
     [error],
   );
 
+  // Auto-retry the page fetch when the network comes back if we
+  // previously errored and don't already have messages cached. Realtime
+  // re-subscription handles the happy case (we recovered with messages
+  // already painted); this branch covers the cold-start-while-offline
+  // failure mode.
+  useNetInfoReconnect(useCallback(() => {
+    if (error && !isBlocked && messages.length === 0) {
+      void reload();
+    }
+  }, [error, isBlocked, messages.length, reload]));
+
   // In an inverted list, the "footer" renders at the TOP — visually
   // above the oldest loaded message — which is the right slot for the
   // "loading older" spinner.
@@ -223,23 +364,35 @@ export default function ChatThreadScreen({ navigation, route }: Props): JSX.Elem
     if (!loadingMore) return null;
     return (
       <View style={styles.loadingMoreWrap}>
-        <ActivityIndicator size="small" color={COLORS.gray400} />
+        <BrandSpinner size={20} />
       </View>
     );
   }, [loadingMore]);
 
   const emptyState = useMemo(
-    () => (
-      <View style={styles.emptyWrap}>
-        <Text style={styles.emptyText}>{t('chat.emptyInbox')}</Text>
-      </View>
-    ),
-    [t],
+    () => {
+      // A non-block error with no messages = fetch failed cold. Surface
+      // the retry CTA. Block errors are handled separately via the
+      // composer being disabled (see Composer's `disabled` prop above).
+      if (error && !isBlocked) {
+        return (
+          <View style={styles.emptyWrap}>
+            <ErrorState onRetry={() => void reload()} />
+          </View>
+        );
+      }
+      return (
+        <View style={styles.emptyWrap}>
+          <Text style={styles.emptyText}>{t('chat.emptyInbox')}</Text>
+        </View>
+      );
+    },
+    [error, isBlocked, reload, t],
   );
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <StatusBar barStyle="dark-content" backgroundColor={COLORS.white} />
+      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor={colors.white} />
 
       <View style={styles.header}>
         <TouchableOpacity
@@ -249,11 +402,16 @@ export default function ChatThreadScreen({ navigation, route }: Props): JSX.Elem
           accessibilityRole="button"
           accessibilityLabel="Back"
         >
-          <ArrowLeft size={24} color={COLORS.gray900} />
+          <ArrowLeft size={24} color={colors.gray900} />
         </TouchableOpacity>
 
         <Pressable style={styles.headerCenter} onPress={handleHeaderPress}>
-          <InitialsAvatar name={avatarName} size={32} />
+          <RingedAvatar
+            name={avatarName}
+            avatarUrl={avatarUrl}
+            size={36}
+            ringStyle="subtle"
+          />
           <Text style={styles.headerTitle} numberOfLines={1}>
             {displayName}
           </Text>
@@ -296,8 +454,9 @@ export default function ChatThreadScreen({ navigation, route }: Props): JSX.Elem
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.white },
+function makeStyles(c: ColorPalette) {
+  return StyleSheet.create({
+  container: { flex: 1, backgroundColor: c.white },
   flex: { flex: 1 },
   header: {
     flexDirection: 'row',
@@ -305,7 +464,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 8,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.gray100,
+    borderBottomColor: c.gray100,
   },
   headerIconBtn: {
     padding: 8,
@@ -324,7 +483,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: COLORS.gray900,
+    color: c.gray900,
     flexShrink: 1,
   },
   listContent: { paddingVertical: 12 },
@@ -338,8 +497,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: 24,
   },
-  emptyText: { fontSize: 15, color: COLORS.gray500, textAlign: 'center' },
+  emptyText: { fontSize: 15, color: c.gray500, textAlign: 'center' },
   loadingMoreWrap: { paddingVertical: 12, alignItems: 'center' },
   daySeparator: { alignItems: 'center', paddingVertical: 8 },
-  daySeparatorText: { fontSize: 12, color: COLORS.gray400, fontWeight: '500' },
-});
+  daySeparatorText: { fontSize: 12, color: c.gray400, fontWeight: '500' },
+  });
+}

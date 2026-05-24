@@ -15,7 +15,7 @@ export default function LoadingSpinner({
     <span
       role="status"
       aria-label="載入中"
-      className={`inline-block animate-spin rounded-full border-2 border-t-transparent border-[#aa00ff] ${sizeMap[size]}`}
+      className={`inline-block animate-spin rounded-full border-2 border-t-transparent border-[#8c52ff] ${sizeMap[size]}`}
     />
   );
 }

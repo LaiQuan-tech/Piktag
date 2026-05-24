@@ -8,29 +8,39 @@ import {
   StyleSheet,
   StatusBar,
   Alert,
-  ActivityIndicator,
   Modal,
   Share,
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { X, Star, Share2, Trash2, ScanLine, Link2, Pencil } from 'lucide-react-native';
+import { X, Share2, Trash2, ScanLine, Link2, Pencil, Plus, RefreshCw, ArrowLeft } from 'lucide-react-native';
+import AtomIcon from '../components/AtomIcon';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import QRCode from 'react-native-qrcode-svg';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '../lib/supabase';
 import LocationPickerModal from '../components/LocationPickerModal';
 import { useAuth } from '../hooks/useAuth';
-import { COLORS } from '../constants/theme';
+import { useRotatingPlaceholder } from '../hooks/useRotatingPlaceholder';
+import { COLORS, type ColorPalette } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
 import { LinearGradient } from 'expo-linear-gradient';
 import { getLocales } from 'expo-localization';
+import {
+  requestForegroundPermissionsAsync,
+  getCurrentPositionAsync,
+  Accuracy,
+  reverseGeocodeAsync,
+} from 'expo-location';
+import { logApiUsage } from '../lib/apiUsage';
+import { normalizeTagName } from '../lib/normalizeTag';
 import { setStringAsync as setClipboardStringAsync } from 'expo-clipboard';
+import PageLoader from '../components/loaders/PageLoader';
+import BrandSpinner from '../components/loaders/BrandSpinner';
+import TagChip from '../components/TagChip';
 import type { TagPreset, ScanSession, PiktagProfile } from '../types';
 
-// ─── Fallback Popular Tags (used if DB fetch fails) ───
-const FALLBACK_POPULAR_TAGS = ['#攝影', '#旅行', '#美食', '#健身', '#音樂', '#工程師'];
 
 type AddTagScreenProps = {
   navigation: any;
@@ -75,11 +85,28 @@ function getQuickDates(): { label: string; date: Date }[] {
 export default function AddTagScreen({ navigation }: AddTagScreenProps) {
   const { t } = useTranslation();
   const { colors, isDark } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
 
+  // Rotating "what's this QR for?" placeholder — same calibrated
+  // hook as SearchScreen's search box, for a consistent
+  // intent-input feel across the app. Cycles occasion examples
+  // (龍洞潛水揪團 / 創業者週末聚會 …) so the user learns by
+  // example what to type. Falls back to the old static line if
+  // the hint array is missing in a locale. Hook is called at
+  // component scope (Rules of Hooks) and read inside renderSetupMode.
+  const contextHints = useMemo(() => {
+    const raw = t('addTag.contextPromptHints', { returnObjects: true });
+    return Array.isArray(raw) && raw.length > 0 ? (raw as string[]) : null;
+  }, [t]);
+  const contextPlaceholder = useRotatingPlaceholder(
+    contextHints,
+    t('addTag.contextPlaceholder', { defaultValue: '例如：週末聚餐、客戶 demo、新書發表會' }),
+  );
+
   // Mode: 'setup' or 'qr'
-  const [mode, setMode] = useState<'setup' | 'qr' | 'event'>('setup');
+  const [mode, setMode] = useState<'setup' | 'qr'>('setup');
 
   // Setup form state
   const [eventDate, setEventDate] = useState('');
@@ -88,11 +115,13 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
   const [recentLocations, setRecentLocations] = useState<string[]>([]);
   const [eventLocation, setEventLocation] = useState('');
   const [showLocationPicker, setShowLocationPicker] = useState(false);
-  const [popularTags, setPopularTags] = useState<string[]>(FALLBACK_POPULAR_TAGS);
   const [eventTags, setEventTags] = useState<string[]>([]);
-  const eventTagSet = useMemo(() => new Set(eventTags), [eventTags]);
-  const popularTagSet = useMemo(() => new Set(popularTags), [popularTags]);
-  const manualTags = useMemo(() => eventTags.filter(t => !popularTagSet.has(t)), [eventTags, popularTagSet]);
+  // Every selected tag (manual input OR an AI-suggestion tap) is the
+  // user's own curation — show them all as removable chips. The old
+  // "熱門標籤 / previously-used" quick-pick row was removed: those
+  // tags belong to a PAST event/context (for a similar context the
+  // host should just reuse that QR), and the row buried the CTA.
+  const manualTags = eventTags;
   const [tagInput, setTagInput] = useState('');
 
   // Save preset
@@ -110,6 +139,47 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
   const [qrUsername, setQrUsername] = useState('');
   const [scanSession, setScanSession] = useState<ScanSession | null>(null);
   const [generating, setGenerating] = useState(false);
+  // (First-QR celebration sheet removed — it interrupted the
+  // just-created-a-QR moment with a modal that duplicated the
+  // share buttons already on the QR screen and re-pitched bio
+  // setup, which onboarding's card-scan path now covers. Same
+  // "一期一會, don't interrupt" call as dropping the Gather-the-
+  // Tribe button. The piktag_first_qr_celebrated_v1 AsyncStorage
+  // flag is intentionally left unread — old installs keep it,
+  // it's harmless, and never writing it again means a future
+  // re-introduction wouldn't mis-fire on existing users.)
+
+  // Task 3 — AI-driven tag suggestions for QR groups.
+  //
+  // Replaces the old date/location pickers with a single freeform
+  // context input + ambient signals (GPS, time, viewer identity).
+  // The user types "週末聚餐" and AI returns 6-10 tag chips that
+  // make sense for the situation. Tap chips to add to eventTags.
+  //
+  // State:
+  //   contextDescription  user's freeform "what is this QR for"
+  //   aiLocation          reverse-geocoded place name (e.g. "Taipei")
+  //   aiSuggestions       AI-returned tag names (without #)
+  //   aiLoading           single-flight flag
+  //   aiContext           cached "what we last sent to AI", used to
+  //                       avoid re-firing for the same prompt
+  const [contextDescription, setContextDescription] = useState('');
+  // aiLocation     = primary place name ("Las Vegas Convention Center")
+  // aiLocationDetail = multi-level joined ("Las Vegas Convention Center,
+  //                    Las Vegas, Nevada, USA") so AI can suggest the
+  //                    city + state + country individually if useful.
+  // popularNearby  = top tags other PikTag hosts have used at this
+  //                  location in the last 90 days — AI grounding so
+  //                  the CES scenario surfaces #CES2026 etc rather
+  //                  than the LLM hallucinating.
+  const [aiLocation, setAiLocation] = useState<string>('');
+  const [aiLocationDetail, setAiLocationDetail] = useState<string>('');
+  const [popularNearby, setPopularNearby] = useState<string[]>([]);
+  const [aiSuggestions, setAiSuggestions] = useState<string[]>([]);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiContext, setAiContext] = useState('');
+  const [viewerBio, setViewerBio] = useState('');
+  const [viewerTagNames, setViewerTagNames] = useState<string[]>([]);
 
   // Presets modal
   const [showPresetsModal, setShowPresetsModal] = useState(false);
@@ -135,7 +205,7 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
       try {
         const { data } = await supabase
           .from('piktag_tag_presets')
-          .select('*')
+          .select('id, user_id, name, location, tags, created_at')
           .eq('user_id', user.id)
           .order('created_at', { ascending: false });
 
@@ -171,8 +241,15 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
           const cached = JSON.parse(val);
           if (cached.url && !qrValue) {
             setQrValue(cached.url);
-            if (cached.date) setEventDate(cached.date);
-            if (cached.location) setEventLocation(cached.location);
+            // NOTE: deliberately NOT restoring cached.date /
+            // cached.location anymore. They're remnants from the
+            // legacy date/location-picker flow — under the new
+            // AI-driven UI the user doesn't see those pickers, so
+            // restoring values from a previous session leaks ghost
+            // tags onto the current QR's display (user reported
+            // "I didn't pick those, why are they here?").
+            // event_tags are kept because the user DID explicitly
+            // tap chips to add them — that's their intent.
             if (cached.tags) setEventTags(cached.tags);
           }
         } catch {}
@@ -182,32 +259,6 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
         if (cancelled || !val) return;
         setRecentLocations(JSON.parse(val));
       });
-      // Fetch user's own most-used tags first, fallback to global popular
-      supabase
-        .from('piktag_user_tags')
-        .select('tag:piktag_tags!tag_id(name)')
-        .eq('user_id', user.id)
-        .eq('is_private', false)
-        .limit(6)
-        .then(({ data }) => {
-          if (cancelled) return;
-          if (data && data.length >= 3) {
-            setPopularTags(data.map((t: any) => `#${t.tag?.name}`).filter(Boolean));
-          } else {
-            // Not enough personal tags, use global popular
-            supabase
-              .from('piktag_tags')
-              .select('name, usage_count')
-              .order('usage_count', { ascending: false })
-              .limit(6)
-              .then(({ data: globalData }) => {
-                if (cancelled) return;
-                if (globalData && globalData.length > 0) {
-                  setPopularTags(globalData.map((t: any) => `#${t.name}`));
-                }
-              });
-          }
-        });
     }
     return () => { cancelled = true; };
   }, [user, loadPresets]);
@@ -235,7 +286,11 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
 
   // ─── Add tag ───
   const handleAddTag = () => {
-    const trimmed = tagInput.trim();
+    // Was `tagInput.trim()` with NO '#' strip → typing "#design"
+    // stored the literal "#design" and rendered "##design", a
+    // distinct broken tag vs the same tag added elsewhere. Use the
+    // shared normalizer so every entry point produces one identity.
+    const trimmed = normalizeTagName(tagInput);
     if (!trimmed) return;
     if (eventTags.includes(trimmed)) {
       Alert.alert(t('addTag.alertTagExists'), t('addTag.alertTagExistsMessage'));
@@ -244,6 +299,249 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
     setEventTags((prev) => [...prev, trimmed]);
     setTagInput('');
   };
+
+  // ─── AI tag suggestions (task 3) ──────────────────────────────
+  //
+  // On mount: load viewer's identity (bio + public tags) and try to
+  // reverse-geocode current GPS to a place name. Both feed AI as
+  // ambient context so the suggestions reflect WHO is making this
+  // QR + WHERE they are.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      if (!user) return;
+      try {
+        const { data: profile } = await supabase
+          .from('piktag_profiles')
+          .select('bio, headline, full_name')
+          .eq('id', user.id)
+          .maybeSingle();
+        if (!cancelled && profile) {
+          setViewerBio(
+            [profile.bio, profile.headline, profile.full_name]
+              .filter(Boolean)
+              .join(' · '),
+          );
+        }
+        const { data: ut } = await supabase
+          .from('piktag_user_tags')
+          .select('piktag_tags(name)')
+          .eq('user_id', user.id)
+          .eq('is_private', false)
+          .limit(10);
+        if (!cancelled && Array.isArray(ut)) {
+          const names = ut
+            .map((row: any) => row?.piktag_tags?.name)
+            .filter(Boolean) as string[];
+          setViewerTagNames(names);
+        }
+      } catch (err) {
+        console.warn('[AddTag] viewer identity fetch failed:', err);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [user]);
+
+  useEffect(() => {
+    // GPS → reverse-geocode → primary place + multi-level joined
+    // string. Fire once on mount; if the user denies permission we
+    // silently fall back to no-location context (AI still works on
+    // bio + description).
+    //
+    // Then with the primary place, fetch popular_tags_near_location
+    // — what other PikTag hosts have used as event_tags in this
+    // area in the last 90 days. These get passed to the AI as
+    // grounding so suggestions stay anchored in real usage instead
+    // of being made up.
+    let cancelled = false;
+    (async () => {
+      try {
+        const { status } = await requestForegroundPermissionsAsync();
+        if (status !== 'granted') return;
+        const pos = await getCurrentPositionAsync({ accuracy: Accuracy.Balanced });
+        const places = await reverseGeocodeAsync({
+          latitude: pos.coords.latitude,
+          longitude: pos.coords.longitude,
+        });
+        if (cancelled) return;
+        const first = places[0];
+        if (!first) return;
+
+        const primary =
+          first.name ||
+          first.district ||
+          first.subregion ||
+          first.city ||
+          first.region ||
+          '';
+
+        // Multi-level: build a deduped, ordered list of levels.
+        // Closest-to-user first, then broadening. Drop duplicates
+        // because reverseGeocode often returns the same string
+        // across multiple fields (e.g. name === city for landmarks).
+        const levels = Array.from(
+          new Set(
+            [
+              first.name,
+              first.district,
+              first.subregion,
+              first.city,
+              first.region,
+              first.country,
+            ].filter((s): s is string => !!s && s.trim().length > 0),
+          ),
+        );
+        const detail = levels.join(', ');
+
+        if (primary) setAiLocation(primary);
+        if (detail) setAiLocationDetail(detail);
+
+        // popular_tags_near_location uses lenient ILIKE matching
+        // against scan_sessions.event_location — won't blow up on
+        // unfamiliar areas (returns empty array if no matches).
+        if (primary) {
+          try {
+            const { data: popData } = await supabase.rpc(
+              'popular_tags_near_location',
+              { p_location: primary, p_limit: 10 },
+            );
+            if (cancelled) return;
+            const popNames = Array.isArray(popData)
+              ? (popData as Array<{ name: string }>)
+                  .map((r) => r.name)
+                  .filter(Boolean)
+              : [];
+            setPopularNearby(popNames);
+          } catch {
+            /* RPC missing or RLS — non-fatal */
+          }
+        }
+      } catch {
+        /* GPS failures are non-fatal — AI just gets less context */
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const loadAiSuggestions = useCallback(async (force = false) => {
+    if (!user) return;
+    // Build context blob. We pass:
+    //   bio       = viewer's identity (bio + headline + name) +
+    //               their existing public tags — so AI knows "who's
+    //               creating this QR"
+    //   name      = the freeform context description (what's the
+    //               situation) + current time hint (今天是週六晚上)
+    //   location  = reverse-geocoded place name
+    //   existingTags = tags already selected on this QR (so AI
+    //               doesn't repeat them)
+    //   lang      = device script auto-detect (matches EditProfile)
+    const desc = contextDescription.trim();
+    const tagsBlob = viewerTagNames.join(', ');
+    const identity = [viewerBio, tagsBlob].filter(Boolean).join(' · ');
+    if (!identity && !desc && !aiLocation) return;
+    // Date only (per user spec — drop hour/minute). Used so AI can
+    // surface season / year / event-of-the-week tags like #Jan2026.
+    const now = new Date();
+    const yyyy = now.getFullYear();
+    const mm = String(now.getMonth() + 1).padStart(2, '0');
+    const dd = String(now.getDate()).padStart(2, '0');
+    const dateOnly = `${yyyy}-${mm}-${dd}`;
+    const contextKey = `${identity}|${desc}|${aiLocationDetail || aiLocation}|${eventTags.join(',')}|${popularNearby.join(',')}|${dateOnly}`;
+    // `force` = explicit "重新推薦" tap — bypass the unchanged-context
+    // cache guard, otherwise the button is a visible no-op (looked
+    // broken). Auto-callers pass nothing and keep the cache.
+    if (!force && contextKey === aiContext && aiSuggestions.length > 0) return;
+    setAiContext(contextKey);
+    setAiLoading(true);
+    try {
+      const userLang = (desc + identity).match(/[一-鿿]/) ? '繁體中文' :
+        (desc + identity).match(/[぀-ヿ]/) ? '日本語' :
+        (desc + identity).match(/[가-힯]/) ? '한국어' :
+        (desc + identity).match(/[฀-๿]/) ? 'ภาษาไทย' : 'the same language as the content';
+      logApiUsage('gemini_generate', { via: 'edge-fn:qr-group' });
+      const { data, error } = await supabase.functions.invoke<{
+        suggestions?: string[];
+      }>('suggest-tags', {
+        body: {
+          bio: identity,
+          name: desc,
+          location: aiLocation,
+          locationDetail: aiLocationDetail,
+          date: dateOnly,
+          popularNearby: popularNearby.join(', '),
+          existingTags: eventTags.join(', '),
+          lang: userLang,
+        },
+      });
+      if (error) {
+        console.warn('[AddTag] AI suggest-tags error:', error.message);
+        setAiSuggestions([]);
+        return;
+      }
+      const raw = Array.isArray(data?.suggestions) ? data!.suggestions : [];
+      const cleaned = Array.from(
+        new Set(
+          raw
+            .map((n) => (typeof n === 'string' ? n.replace(/^#/, '').trim() : ''))
+            .filter(Boolean)
+            .filter((n) => !eventTags.includes(n)),
+        ),
+      ).slice(0, 10);
+
+      // Guaranteed-selectable date + location tags.
+      //
+      // The suggest-tags prompt already ASKS the model for a date
+      // tag and a location tag, but an LLM is probabilistic — for a
+      // hard product requirement ("the chip strip must ALWAYS offer
+      // at least one date tag and at least one location tag") asking
+      // nicely isn't enough. So we synthesise them deterministically
+      // here and merge them to the FRONT, then slice. This makes the
+      // guarantee independent of model compliance.
+      //
+      //   • Date: always available (computed from `now`). Format
+      //     mirrors this screen's existing quick-date chips
+      //     (getQuickDates → "#2026/05/16"), so it reads as the
+      //     same kind of tag, not a foreign format.
+      //   • Location: only when we actually have a GPS-derived
+      //     signal. We deliberately do NOT fabricate a location
+      //     when GPS is denied/unavailable — a wrong location tag
+      //     is worse than none. It auto-appears on the next
+      //     re-fire once aiLocation resolves (it's in the effect
+      //     deps), or when the user taps refresh.
+      const guaranteed: string[] = [`${yyyy}/${mm}/${dd}`];
+      const locRaw = (aiLocation || aiLocationDetail.split(',')[0] || '').trim();
+      const locTag = locRaw.replace(/\s+/g, '');
+      if (locTag) guaranteed.push(locTag);
+
+      const merged = Array.from(new Set([...guaranteed, ...cleaned]))
+        .filter((n) => !eventTags.includes(n))
+        .slice(0, 10);
+      setAiSuggestions(merged);
+    } catch (err) {
+      console.warn('[AddTag] AI suggest-tags exception:', err);
+      setAiSuggestions([]);
+    } finally {
+      setAiLoading(false);
+    }
+  }, [user, contextDescription, aiLocation, aiLocationDetail, popularNearby, viewerBio, viewerTagNames, eventTags, aiContext, aiSuggestions.length]);
+
+  // Auto-fire AI suggestions when context settles. Debounced so
+  // typing in the description input doesn't hammer the edge fn.
+  // popularNearby is in the dep list so the suggestions refresh
+  // once the popular-tags RPC resolves (it may complete after the
+  // initial GPS / identity fetches).
+  useEffect(() => {
+    const id = setTimeout(() => {
+      if (viewerBio || contextDescription.trim() || aiLocation) {
+        loadAiSuggestions();
+      }
+    }, 900);
+    return () => clearTimeout(id);
+  }, [contextDescription, aiLocation, aiLocationDetail, popularNearby, viewerBio, viewerTagNames.length, loadAiSuggestions]);
 
   // ─── Remove tag ───
   const handleRemoveTag = (tag: string) => {
@@ -286,7 +584,7 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
           tags: localPreset.tags,
           created_at: now,
         })
-        .select('*')
+        .select('id')
         .single();
 
       if (data) {
@@ -373,30 +671,73 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
 
       // 2. Try to create a scan session in DB (graceful fallback if table doesn't exist)
       let sessionId = `local_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
-      let sessionData: ScanSession | null = null;
+      // Only the row's `id` is consumed downstream (see the
+      // `.eq('id', sessionData.id)` lookup further down). Typing this
+      // narrowly avoids the historical mismatch where the `.select(...)`
+      // projection diverged from the full `ScanSession` shape and TS
+      // complained about missing fields we never actually used.
+      let sessionData: { id: string } | null = null;
 
       try {
+        // event_date is `date` in Postgres — it accepts a YYYY-MM-DD
+        // string OR null, but NOT "". The new AI-driven flow often
+        // leaves eventDate as an empty string (no explicit date
+        // picker anymore), which previously fired Postgres error
+        // 22007 ("invalid input syntax for type date") and got
+        // silently swallowed → QR appeared to "save" but the row
+        // was never written. Coerce empty → null here.
+        //
+        // event_location is `text` so "" is technically valid, but
+        // we coerce to null for consistency: empty string and "no
+        // location" are semantically the same thing in this flow.
+        const dateForDb = eventDate?.trim() ? eventDate.trim() : null;
+        const locationForDb = eventLocation?.trim() ? eventLocation.trim() : null;
+
         const { data, error } = await supabase
           .from('piktag_scan_sessions')
           .insert({
             host_user_id: user.id,
             preset_id: appliedPresetId,
-            event_date: eventDate,
-            event_location: eventLocation,
+            event_date: dateForDb,
+            event_location: locationForDb,
             event_tags: eventTags,
             qr_code_data: '', // placeholder
             is_active: true,
-            expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+            // Task 2: QRs are persistent groups now. Don't set
+            // expires_at — leaving it NULL means the row never
+            // expires and can be re-shared any time.
+            expires_at: null,
           })
-          .select('*')
+          .select('id')
           .single();
 
         if (!error && data) {
           sessionId = data.id;
-          sessionData = data;
+          sessionData = { id: data.id };
+        } else if (error) {
+          // Surface the failure instead of silently dropping it on the
+          // floor. Old behaviour: insert fails → fall back to a local
+          // sessionId → user sees a "successfully generated" QR but
+          // the row is NEVER written to the DB, so the QR group list
+          // stays empty and the user can't diagnose why.
+          //
+          // We don't block the UX (QR can still be displayed for
+          // immediate share), but a console.warn + Alert tells the
+          // user this QR won't appear in their event-group list and
+          // surfaces the actual Postgres error code so we can debug
+          // RLS / NOT-NULL / missing-column failures.
+          console.warn('[AddTag] scan_session insert failed:', error);
+          Alert.alert(
+            t('addTag.saveWarnTitle', { defaultValue: 'QR 已產生，但無法儲存到 Tag' }),
+            t('addTag.saveWarnMsg', {
+              code: (error as any).code || '?',
+              message: error.message,
+              defaultValue: `這個 QR 可以馬上分享，但不會出現在你的 Tag 清單中。\n\n錯誤代碼：${(error as any).code || '?'}\n${error.message}`,
+            }),
+          );
         }
-      } catch {
-        // DB table may not exist yet — continue with local session ID
+      } catch (err) {
+        console.warn('[AddTag] scan_session insert threw:', err);
       }
 
       // 3. Build QR URL — encode event info as URL params so tags transfer
@@ -425,7 +766,12 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
       // 5. Set state — build a local ScanSession object for display
       setQrValue(qrUrl);
       // Cache QR code for offline use
-      AsyncStorage.setItem('piktag_last_qr', JSON.stringify({ url: qrUrl, date: eventDate, location: eventLocation, tags: eventTags }));
+      // Cache for offline display — only the URL + user-picked tags.
+      // Deliberately NOT caching date/location anymore: they're
+      // implicit DB-side context (used by AI grounding) but the
+      // user never sees a "set date/location" UI, so persisting
+      // them would silently leak ghost tags into the next QR.
+      AsyncStorage.setItem('piktag_last_qr', JSON.stringify({ url: qrUrl, tags: eventTags }));
       setScanSession({
         id: sessionId,
         host_user_id: user.id,
@@ -465,7 +811,7 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
     if (!qrValue) return;
     try {
       await setClipboardStringAsync(qrValue);
-      Alert.alert(t('addTag.alertLinkCopiedTitle') || '已複製', t('addTag.alertLinkCopiedMessage') || '連結已複製到剪貼簿');
+      Alert.alert(t('addTag.alertLinkCopiedTitle', { defaultValue: '已複製' }), t('addTag.alertLinkCopiedMessage', { defaultValue: '連結已複製到剪貼簿' }));
     } catch {
       // no-op
     }
@@ -476,23 +822,29 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
     <>
       {/* Header */}
       <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
-        <Text style={styles.headerTitle}>{t('addTag.headerTitle') || '活動標籤'}</Text>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16, marginLeft: 'auto' }}>
+        {/* Back button — this screen is pushed from QrGroupListScreen,
+            so goBack() returns to the list. Previously the only way
+            to exit was tapping the # tab icon, which felt like a
+            workaround rather than navigation. */}
+        <View style={styles.headerLeftGroup}>
           <TouchableOpacity
-            onPress={() => navigation.navigate('CameraScan')}
+            onPress={() => navigation.goBack()}
             activeOpacity={0.6}
             style={styles.headerSideBtn}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            accessibilityRole="button"
+            accessibilityLabel={t('common.back', { defaultValue: '返回' })}
           >
-            <ScanLine size={24} color={COLORS.gray700} />
+            <ArrowLeft size={24} color={colors.gray900} strokeWidth={2.2} />
           </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => setShowPresetsModal(true)}
-            activeOpacity={0.6}
-            style={styles.headerSideBtn}
-          >
-            <Star size={24} color={COLORS.accent400} />
-          </TouchableOpacity>
+          <Text style={styles.headerTitle}>{t('addTag.headerTitle', { defaultValue: '建立 Tag' })}</Text>
         </View>
+        {/* Scan icon previously lived here — moved to the parent
+            QrGroupListScreen header (the # tab's landing page) where
+            "scan someone else's QR" is a peer action to "create my
+            QR", not a buried sub-feature of this create form.
+            Preset star button also removed for task 2 — QR codes
+            are now persistent groups themselves. */}
       </View>
 
       <ScrollView
@@ -503,137 +855,125 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
         keyboardDismissMode="on-drag"
         automaticallyAdjustKeyboardInsets={Platform.OS === 'ios'}
       >
-        {/* 日期 Section */}
+        {/* Context description — single optional line that
+            describes the situation in natural language. AI uses it
+            as the strongest signal when generating suggestions.
+            "公司週年活動", "週末聚餐", "客戶 demo" 之類。 */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>{t('addTag.dateLabel')}</Text>
+          <Text style={styles.sectionTitle}>
+            {t('addTag.contextLabel', { defaultValue: '這次是什麼場合？' })}
+          </Text>
+          <Text style={styles.hiddenTagHint}>
+            {t('addTag.contextHint', { defaultValue: '一句話描述就好。AI 會根據你說的、時間和地點推薦標籤，幫你記住在這認識的人。' })}
+          </Text>
+          <View style={[styles.inputRow, { marginTop: 4 }]}>
+            <TextInput
+              style={styles.textInput}
+              value={contextDescription}
+              onChangeText={setContextDescription}
+              placeholder={contextPlaceholder}
+              placeholderTextColor={colors.gray400}
+              returnKeyType="done"
+              maxLength={60}
+            />
+          </View>
+        </View>
 
-          {/* Date selector — just [選日期] button + selected date chip */}
-          <View style={styles.quickDateRow}>
-            <TouchableOpacity
-              style={[styles.quickDateBtn, showDatePicker && styles.quickDateBtnActive]}
-              onPress={() => setShowDatePicker(!showDatePicker)}
-              activeOpacity={0.7}
-            >
-              <Text style={[styles.quickDateText, showDatePicker && styles.quickDateTextActive]}>
-                {t('addTag.pickDate')}
+        {/* AI 推薦標籤 Section — auto-fires after GPS resolves +
+            after the context description settles (debounced). Each
+            chip taps onto eventTags and disappears from the
+            suggestion strip. Refresh icon re-rolls. */}
+        <View style={styles.section}>
+          <View style={styles.aiHeaderRow}>
+            <View style={styles.aiHeaderLeft}>
+              {aiLoading ? (
+                <BrandSpinner size={16} />
+              ) : (
+                <AtomIcon size={14} color={colors.piktag600} />
+              )}
+              <Text style={styles.aiHeaderTitle}>
+                {aiLoading
+                  ? `${t('addTag.aiSuggestionsTitle', { defaultValue: 'AI 為你推薦' })}…`
+                  : t('addTag.aiSuggestionsTitle', { defaultValue: 'AI 為你推薦' })}
               </Text>
-            </TouchableOpacity>
-            {eventDate && (
-              <TouchableOpacity
-                style={[styles.quickDateBtn, styles.quickDateBtnActive]}
-                onPress={() => setEventDate('')}
-                activeOpacity={0.7}
-              >
-                <Text style={[styles.quickDateText, styles.quickDateTextActive]}>
-                  #{formatDateDisplay(selectedDateObj)}
-                </Text>
-              </TouchableOpacity>
+            </View>
+            {!aiLoading && (
+              <View style={styles.aiHeaderActions}>
+                {/* "全部加入" button removed — founder: over-confident
+                    in AI; users pick a few, not all; the purple-fill
+                    pill clashed visually with tag chips. The per-chip
+                    tap remains the one accept path. */}
+                <TouchableOpacity
+                  onPress={() => loadAiSuggestions(true)}
+                  activeOpacity={0.7}
+                  hitSlop={8}
+                  style={styles.aiRefreshBtn}
+                  accessibilityRole="button"
+                  accessibilityLabel={t('addTag.aiRegenerate', { defaultValue: '重新推薦' })}
+                >
+                  <RefreshCw size={14} color={colors.piktag600} />
+                </TouchableOpacity>
+              </View>
             )}
           </View>
-
-          {/* Simple month calendar (when expanded) */}
-          {showDatePicker && (
-            <View style={styles.calendarGrid}>
-              {(() => {
-                const year = selectedDateObj.getFullYear();
-                const month = selectedDateObj.getMonth();
-                const firstDay = new Date(year, month, 1).getDay();
-                const daysInMonth = new Date(year, month + 1, 0).getDate();
-                const days: (number | null)[] = Array(firstDay).fill(null);
-                for (let i = 1; i <= daysInMonth; i++) days.push(i);
-
-                return (
-                  <>
-                    <View style={styles.calendarHeader}>
-                      <TouchableOpacity onPress={() => { const d = new Date(selectedDateObj); d.setMonth(d.getMonth() - 1); setSelectedDateObj(d); }}>
-                        <Text style={styles.calendarNav}>{'<'}</Text>
-                      </TouchableOpacity>
-                      <Text style={styles.calendarMonthText}>{year}/{String(month + 1).padStart(2, '0')}</Text>
-                      <TouchableOpacity onPress={() => { const d = new Date(selectedDateObj); d.setMonth(d.getMonth() + 1); setSelectedDateObj(d); }}>
-                        <Text style={styles.calendarNav}>{'>'}</Text>
-                      </TouchableOpacity>
-                    </View>
-                    <View style={styles.calendarWeekRow}>
-                      {['日', '一', '二', '三', '四', '五', '六'].map(d => (
-                        <Text key={d} style={styles.calendarWeekDay}>{d}</Text>
-                      ))}
-                    </View>
-                    <View style={styles.calendarDaysGrid}>
-                      {days.map((day, i) => {
-                        if (!day) return <View key={`empty-${i}`} style={styles.calendarDayCell} />;
-                        const dateStr = formatDate(new Date(year, month, day));
-                        const isToday = dateStr === formatDate(new Date());
-                        const isSelected = dateStr === eventDate;
-                        return (
-                          <TouchableOpacity
-                            key={day}
-                            style={styles.calendarDayCell}
-                            onPress={() => { setEventDate(dateStr); setSelectedDateObj(new Date(year, month, day)); setShowDatePicker(false); }}
-                          >
-                            <View style={[styles.calendarDayInner, isSelected && styles.calendarDayInnerSelected]}>
-                              <Text style={[styles.calendarDayText, isToday && styles.calendarDayToday, isSelected && styles.calendarDayTextSelected]}>{day}</Text>
-                            </View>
-                          </TouchableOpacity>
-                        );
-                      })}
-                    </View>
-                  </>
-                );
-              })()}
-            </View>
-          )}
-        </View>
-
-        {/* 地點 Section */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>{t('addTag.locationLabel')}</Text>
-
-          {/* Select location button + recent location chips (same row) */}
-          <View style={styles.quickDateRow}>
-            <TouchableOpacity
-              style={styles.quickDateBtn}
-              onPress={() => setShowLocationPicker(true)}
-              activeOpacity={0.7}
-            >
-              <Text style={styles.quickDateText}>{t('addTag.selectLocation') || '選地點'}</Text>
-            </TouchableOpacity>
-            {recentLocations.slice(0, 2).map((loc) => (
-                <TouchableOpacity
-                  key={loc}
-                  style={[styles.quickDateBtn, eventLocation === loc && styles.quickDateBtnActive]}
-                  onPress={() => setEventLocation(loc)}
-                  activeOpacity={0.7}
-                >
-                  <Text style={[styles.quickDateText, eventLocation === loc && styles.quickDateTextActive]} numberOfLines={1}>
-                    #{loc}
-                  </Text>
-                  <TouchableOpacity
-                    onPress={() => handleRemoveRecentLocation(loc)}
-                    hitSlop={{ top: 8, bottom: 8, left: 6, right: 8 }}
-                    activeOpacity={0.6}
-                    accessibilityLabel="刪除"
-                    accessibilityRole="button"
-                  >
-                    <X size={12} color={eventLocation === loc ? COLORS.piktag600 : COLORS.gray400} />
-                  </TouchableOpacity>
-                </TouchableOpacity>
+          {aiSuggestions.length > 0 ? (
+            <View style={styles.popularChipsContainer}>
+              {/* Shared TagChip toggle (unselected = gray fill, no
+                  border, no ×). Tap = add to eventTags + drop from
+                  suggestions. Replaces hand-rolled popularChip so
+                  every gray "tap-to-add" pill in the app is one
+                  component (founder rule, kills the 1.5dp border
+                  drift). */}
+              {aiSuggestions.map((s) => (
+                <TagChip
+                  key={s}
+                  label={s}
+                  variant="toggle"
+                  onPress={() => {
+                    setEventTags((prev) => (prev.includes(s) ? prev : [...prev, s]));
+                    setAiSuggestions((prev) => prev.filter((x) => x !== s));
+                  }}
+                />
               ))}
-          </View>
-
+            </View>
+          ) : aiLoading ? null : aiContext.length > 0 ? (
+            // AI actually ran and found nothing — keep this, it's
+            // actionable feedback ("try again or add your own").
+            <Text style={styles.hiddenTagHint}>
+              {t('addTag.aiSuggestionsEmpty', { defaultValue: 'AI 想不到合適的標籤 — 再試一次或自己加。' })}
+            </Text>
+          ) : null
+          /* Pre-input state: render nothing. The old
+             aiSuggestionsHint repeated what the section header
+             ("這次是什麼場合？" + its sub-line) already says — pure
+             redundancy under "AI 為你推薦". The rotating
+             placeholder up top already shows what to type. */}
         </View>
-
-        {/* Location Picker Modal */}
-        <LocationPickerModal
-          visible={showLocationPicker}
-          onClose={() => setShowLocationPicker(false)}
-          onSelect={handleLocationSelected}
-          initialLocation={eventLocation}
-        />
 
         {/* 自訂標籤 Section */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>{t('addTag.customTagsLabel')}</Text>
-          <Text style={styles.hiddenTagHint}>{t('addTag.hiddenTagHint') || '這些標籤僅自己可見，幫助你記住在哪認識'}</Text>
+          <Text style={styles.hiddenTagHint}>{t('addTag.hiddenTagHint', { defaultValue: '這些標籤僅自己可見，幫助你記住在哪認識' })}</Text>
+
+          {/* Chip placement contract: chips ABOVE input — existing
+              items first, the input is the action prompt at the
+              bottom. UX-grounded (Gmail/Notion/GitHub/iOS native
+              all do this), keyboard-friendly (the focused input
+              stays visible while chips remain readable above), and
+              matches EditProfile / EditLocalContact / QrGroup
+              detail. Founder rule across the app. */}
+          {manualTags.length > 0 && (
+            <View style={styles.chipsContainer}>
+              {manualTags.map((tag) => (
+                <TagChip
+                  key={tag}
+                  label={tag}
+                  onRemove={() => handleRemoveTag(tag)}
+                />
+              ))}
+            </View>
+          )}
+
           <View style={styles.tagInputRow}>
             <View style={[styles.inputRow, { flex: 1 }]}>
               <TextInput
@@ -641,79 +981,37 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
                 value={tagInput}
                 onChangeText={setTagInput}
                 placeholder={t('addTag.tagPlaceholder')}
-                placeholderTextColor={COLORS.gray400}
+                placeholderTextColor={colors.gray400}
                 returnKeyType="done"
                 onSubmitEditing={handleAddTag}
               />
             </View>
+            {/* Plus-icon submit — replaces the prior "新增" / "Add" text
+                button. The "+" affordance is what AskStoryRow's create-ask
+                badge and RingedAvatar's Plus badge already use, so this
+                row now reads as the same "create new" action across the
+                app instead of the QR-setup screen looking visually
+                different from everywhere else. Round button, fixed 44×44
+                tap target so it lines up with the input height. */}
             <TouchableOpacity
               style={styles.addTagBtn}
               onPress={handleAddTag}
               activeOpacity={0.8}
+              accessibilityRole="button"
+              accessibilityLabel={t('common.add')}
             >
-              <Text style={styles.addTagBtnText}>{t('common.add')}</Text>
+              <Plus size={22} color="#FFFFFF" strokeWidth={2.5} />
             </TouchableOpacity>
           </View>
-
-          {manualTags.length > 0 && (
-            <View style={styles.chipsContainer}>
-              {manualTags.map((tag) => (
-                <View key={tag} style={styles.tagChip}>
-                  <Text style={styles.tagChipText}>{tag}</Text>
-                  <TouchableOpacity
-                    onPress={() => handleRemoveTag(tag)}
-                    style={styles.chipRemoveBtn}
-                    activeOpacity={0.6}
-                  >
-                    <X size={14} color={COLORS.piktag600} />
-                  </TouchableOpacity>
-                </View>
-              ))}
-            </View>
-          )}
         </View>
 
-        {/* 熱門標籤 Section */}
-        <View style={styles.section}>
-          <View style={styles.popularChipsContainer}>
-            {popularTags.map((tag) => {
-              const isSelected = eventTagSet.has(tag);
-              return (
-                <TouchableOpacity
-                  key={tag}
-                  style={[styles.popularChip, isSelected && styles.popularChipSelected]}
-                  onPress={() => {
-                    if (!isSelected) {
-                      setEventTags((prev) => [...prev, tag]);
-                    } else {
-                      setEventTags((prev) => prev.filter((t) => t !== tag));
-                    }
-                  }}
-                  activeOpacity={0.7}
-                >
-                  <Text style={[styles.popularChipText, isSelected && styles.popularChipTextSelected]}>
-                    {tag}
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
-        </View>
+        {/* 熱門標籤 Section removed: those were the host's tags from
+            PAST events/contexts — for a similar context they should
+            just reuse that QR — and the row pushed the 產生 QR Code
+            CTA below the fold. Less noise, CTA in reach. */}
 
-        {/* 儲存為常用模板 */}
-        <View style={styles.section}>
-          <TouchableOpacity
-            style={styles.outlineButton}
-            onPress={handleSavePreset}
-            activeOpacity={0.7}
-            disabled={savingPreset}
-          >
-            {savingPreset
-              ? <ActivityIndicator size={16} color={COLORS.piktag500} />
-              : <Text style={styles.outlineButtonText}>{t('addTag.saveAsPreset')}</Text>
-            }
-          </TouchableOpacity>
-        </View>
+        {/* 儲存為常用模板 — section removed for task 2 — every QR
+            is already a persistent group; templates are redundant. */}
 
         {/* 產生 QR Code CTA */}
         <View style={styles.section}>
@@ -725,7 +1023,7 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
               style={[styles.primaryButton, generating && { opacity: 0.5 }]}
             >
               {generating ? (
-                <ActivityIndicator size={18} color="#fff" />
+                <BrandSpinner size={20} />
               ) : (
                 <Text style={styles.primaryButtonText}>{t('addTag.generateQrButton')}</Text>
               )}
@@ -744,7 +1042,7 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
       end={{ x: 1, y: 1 }}
       style={styles.qrGradient}
     >
-      <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
+      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor="transparent" translucent />
       {/* Top bar: close (left) + scan / save-preset (right) */}
       <View style={[styles.qrTopBar, { paddingTop: insets.top + 12 }]}>
         <TouchableOpacity onPress={() => setMode('setup')} activeOpacity={0.6} style={styles.qrTopBtn}>
@@ -758,13 +1056,9 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
           >
             <ScanLine size={24} color="#fff" />
           </TouchableOpacity>
-          <TouchableOpacity
-            onPress={handleSavePreset}
-            activeOpacity={0.6}
-            style={styles.qrTopBtn}
-          >
-            <Star size={24} color="#fff" />
-          </TouchableOpacity>
+          {/* QR-mode top-right star button removed — task 2 made
+              QRs into persistent groups themselves, so saving them
+              as "templates" is redundant. */}
         </View>
       </View>
 
@@ -773,17 +1067,17 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
         <View style={styles.qrWhiteCard}>
           <QRCode value={qrValue} size={220} backgroundColor="#fff" />
           <Text style={styles.qrCardUsername}>@{qrUsername}</Text>
-          {(eventDate || eventLocation || eventTags.length > 0) && (
+          {/* QR display tags: only what the user explicitly added
+              via AI-suggestion taps or manual input. event_date /
+              event_location are still populated in the DB row (used
+              by popular_tags_near_location for future AI grounding)
+              but NOT rendered here as separate hashtag lines — the
+              user shouldn't see "ghost" tags they didn't pick. */}
+          {eventTags.length > 0 && (
             <View style={styles.qrEventInfo}>
-              {eventDate ? (
-                <Text style={styles.qrEventInfoLine}>#{eventDate}</Text>
-              ) : null}
-              {eventLocation ? (
-                <Text style={styles.qrEventInfoLine}>#{eventLocation}</Text>
-              ) : null}
-              {eventTags.length > 0 ? (
-                <Text style={styles.qrEventInfoLine}>{eventTags.map(t => '#' + t.replace(/^#/, '')).join('  ')}</Text>
-              ) : null}
+              <Text style={styles.qrEventInfoLine}>
+                {eventTags.map(t => '#' + t.replace(/^#/, '')).join('  ')}
+              </Text>
             </View>
           )}
         </View>
@@ -792,16 +1086,16 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
       {/* Bottom 3 action buttons (share / copy / edit) */}
       <View style={[styles.qrBottomRow, { paddingBottom: insets.bottom + 20 }]}>
         <TouchableOpacity style={styles.qrBottomBtn} onPress={handleShare} activeOpacity={0.7}>
-          <Share2 size={22} color={COLORS.gray900} />
-          <Text style={styles.qrBottomBtnText}>{t('addTag.shareFile') || '分享檔案'}</Text>
+          <Share2 size={22} color={colors.gray900} />
+          <Text style={styles.qrBottomBtnText}>{t('addTag.shareFile', { defaultValue: '分享檔案' })}</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.qrBottomBtn} onPress={handleCopyLink} activeOpacity={0.7}>
-          <Link2 size={22} color={COLORS.gray900} />
-          <Text style={styles.qrBottomBtnText}>{t('addTag.copyLink') || '複製連結'}</Text>
+          <Link2 size={22} color={colors.gray900} />
+          <Text style={styles.qrBottomBtnText}>{t('addTag.copyLink', { defaultValue: '複製連結' })}</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.qrBottomBtn} onPress={() => setMode('setup')} activeOpacity={0.7}>
-          <Pencil size={22} color={COLORS.gray900} />
-          <Text style={styles.qrBottomBtnText}>{t('addTag.editQr') || '編輯QRcode'}</Text>
+          <Pencil size={22} color={colors.gray900} />
+          <Text style={styles.qrBottomBtnText}>{t('addTag.editQr', { defaultValue: '編輯QRcode' })}</Text>
         </TouchableOpacity>
       </View>
     </LinearGradient>
@@ -825,7 +1119,7 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
               activeOpacity={0.6}
               style={styles.headerSideBtn}
             >
-              <X size={24} color={COLORS.gray900} />
+              <X size={24} color={colors.gray900} />
             </TouchableOpacity>
           </View>
 
@@ -836,9 +1130,7 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
           )}
 
           {loadingPresets ? (
-            <View style={styles.loadingContainer}>
-              <ActivityIndicator size="large" color={COLORS.piktag500} />
-            </View>
+            <PageLoader />
           ) : presets.length === 0 ? (
             <View style={styles.emptyContainer}>
               <Text style={styles.emptyText}>{t('addTag.noPresets')}</Text>
@@ -892,7 +1184,7 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
                   </View>
                   <View style={styles.presetItemActions}>
                     {deletingPresetId === preset.id ? (
-                      <ActivityIndicator size={16} color={COLORS.gray400} />
+                      <BrandSpinner size={16} />
                     ) : (
                       <TouchableOpacity
                         style={styles.presetApplyBtn}
@@ -917,104 +1209,31 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
       <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={colors.white} />
       {mode === 'setup' && renderSetupMode()}
       {mode === 'qr' && renderQrMode()}
-      {mode === 'event' && (
-        <View style={styles.eventModeContainer}>
-          <StatusBar barStyle="light-content" backgroundColor="#000000" />
-          {/* Close button */}
-          <TouchableOpacity
-            style={[styles.eventCloseBtn, { top: insets.top + 12 }]}
-            onPress={() => setMode('qr')}
-            activeOpacity={0.7}
-          >
-            <X size={28} color="#FFFFFF" />
-          </TouchableOpacity>
+      {/* mode === 'event' (fullscreen black QR "live mode") was
+          removed — it duplicated mode === 'qr' visually and had
+          no callable entry point in the current UI. The
+          renderQrMode gradient screen is now the canonical
+          "show off my QR" surface. */}
+      {/* Preset modals removed for task 2. The state hooks
+          (showPresetsModal, showPresetNameModal, presets, ...)
+          and handlers (handleSavePreset, handleConfirmSavePreset,
+          loadPresets, etc.) are left as dead code in this file
+          for now to keep the diff focused on UI surfaces — a
+          follow-up cleanup commit can rip them out. */}
 
-          {/* Event info */}
-          <Text style={styles.eventTitle}>
-            {eventLocation || eventDate || 'PikTag'}
-          </Text>
-
-          {/* Large QR Code */}
-          <View style={styles.eventQrWrapper}>
-            <QRCode value={qrValue} size={280} backgroundColor="#FFFFFF" />
-            {(eventDate || eventLocation || eventTags.length > 0) && (
-              <View style={styles.qrEventInfo}>
-                {eventDate ? (
-                  <Text style={styles.qrEventInfoLine}>#{eventDate}</Text>
-                ) : null}
-                {eventLocation ? (
-                  <Text style={styles.qrEventInfoLine}>#{eventLocation}</Text>
-                ) : null}
-                {eventTags.length > 0 ? (
-                  <Text style={styles.qrEventInfoLine}>{eventTags.map(t => '#' + t.replace(/^#/, '')).join('  ')}</Text>
-                ) : null}
-              </View>
-            )}
-          </View>
-
-          <Text style={styles.eventHint}>{t('addTag.eventHint') || '讓朋友掃描加你為好友'}</Text>
-        </View>
-      )}
-      {showPresetsModal && renderPresetsModal()}
-
-
-      {/* Preset Name Input Modal (cross-platform replacement for Alert.prompt) */}
-      <Modal
-        visible={showPresetNameModal}
-        animationType="fade"
-        transparent
-        onRequestClose={() => setShowPresetNameModal(false)}
-      >
-        {/* KAV wraps the centered dialog so when the autoFocus'd TextInput
-            brings up the keyboard, the whole dialog floats up above it
-            instead of being partially covered. */}
-        <KeyboardAvoidingView
-          style={{ flex: 1 }}
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        >
-          <View style={styles.presetNameModalOverlay}>
-            <View style={styles.presetNameModalContainer}>
-              <Text style={styles.presetNameModalTitle}>{t('addTag.saveAsPreset')}</Text>
-              <Text style={styles.presetNameModalSubtitle}>{t('addTag.presetNamePrompt')}</Text>
-              <TextInput
-                style={styles.presetNameModalInput}
-                value={presetNameInput}
-                onChangeText={setPresetNameInput}
-                placeholder={t('addTag.presetNamePlaceholder')}
-                placeholderTextColor={COLORS.gray400}
-                autoFocus
-                returnKeyType="done"
-                onSubmitEditing={handleConfirmSavePreset}
-              />
-              <View style={styles.presetNameModalButtons}>
-                <TouchableOpacity
-                  style={styles.presetNameModalCancelBtn}
-                  onPress={() => setShowPresetNameModal(false)}
-                  activeOpacity={0.7}
-                >
-                  <Text style={styles.presetNameModalCancelText}>{t('common.cancel')}</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.presetNameModalConfirmBtn, !presetNameInput.trim() && styles.buttonDisabled]}
-                  onPress={handleConfirmSavePreset}
-                  activeOpacity={0.8}
-                  disabled={!presetNameInput.trim()}
-                >
-                  <Text style={styles.presetNameModalConfirmText}>{t('common.confirm')}</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          </View>
-        </KeyboardAvoidingView>
-      </Modal>
+      {/* First-QR celebration sheet removed — see the note on the
+          state declaration. The QR screen's own share/copy/edit
+          buttons + the reframed Vibes-tab copy carry the share
+          and profile nudges without a flow-interrupting modal. */}
     </View>
   );
 }
 
-const styles = StyleSheet.create({
+function makeStyles(c: ColorPalette) {
+  return StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.white,
+    backgroundColor: c.white,
   },
 
   // ── Header ──
@@ -1024,18 +1243,23 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 20,
     paddingBottom: 16,
-    backgroundColor: COLORS.white,
+    backgroundColor: c.white,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.gray100,
+    borderBottomColor: c.gray100,
   },
   headerTitle: {
     fontSize: 24,
     fontWeight: '700',
-    color: COLORS.gray900,
+    color: c.gray900,
     lineHeight: 32,
   },
   headerSideBtn: {
     padding: 4,
+  },
+  headerLeftGroup: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
   },
   headerBackBtn: {
     flexDirection: 'row',
@@ -1046,7 +1270,7 @@ const styles = StyleSheet.create({
   headerBackText: {
     fontSize: 16,
     fontWeight: '500',
-    color: COLORS.gray900,
+    color: c.gray900,
   },
 
   // ── Scroll ──
@@ -1069,12 +1293,12 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: COLORS.gray900,
+    color: c.gray900,
     marginBottom: 4,
   },
   hiddenTagHint: {
     fontSize: 12,
-    color: COLORS.gray400,
+    color: c.gray400,
     marginBottom: 12,
   },
 
@@ -1082,7 +1306,9 @@ const styles = StyleSheet.create({
   inputRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: COLORS.gray100,
+    backgroundColor: c.gray100,
+    borderWidth: 1,
+    borderColor: c.gray200,
     borderRadius: 16,
     paddingHorizontal: 16,
     height: 48,
@@ -1090,7 +1316,7 @@ const styles = StyleSheet.create({
   textInput: {
     flex: 1,
     fontSize: 16,
-    color: COLORS.gray900,
+    color: c.gray900,
     padding: 0,
   },
   // Quick date buttons
@@ -1108,32 +1334,32 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     borderRadius: 9999,
     borderWidth: 1.5,
-    borderColor: COLORS.piktag200,
-    backgroundColor: COLORS.white,
+    borderColor: c.piktag200,
+    backgroundColor: c.white,
   },
   quickDateBtnActive: {
-    borderColor: COLORS.piktag500,
-    backgroundColor: COLORS.piktag50,
+    borderColor: c.piktag500,
+    backgroundColor: c.piktag50,
   },
   quickDateText: {
     fontSize: 14,
     fontWeight: '500',
-    color: COLORS.gray600,
+    color: c.gray600,
   },
   quickDateTextActive: {
-    color: COLORS.piktag600,
+    color: c.piktag600,
     fontWeight: '700',
   },
   selectedDateText: {
     fontSize: 15,
     fontWeight: '600',
-    color: COLORS.gray900,
+    color: c.gray900,
     marginBottom: 4,
   },
   // Calendar
   calendarGrid: {
     marginTop: 8,
-    backgroundColor: COLORS.gray50,
+    backgroundColor: c.gray50,
     borderRadius: 12,
     padding: 12,
   },
@@ -1146,13 +1372,13 @@ const styles = StyleSheet.create({
   calendarNav: {
     fontSize: 18,
     fontWeight: '700',
-    color: COLORS.gray600,
+    color: c.gray600,
     paddingHorizontal: 12,
   },
   calendarMonthText: {
     fontSize: 15,
     fontWeight: '700',
-    color: COLORS.gray900,
+    color: c.gray900,
   },
   calendarWeekRow: {
     flexDirection: 'row',
@@ -1163,7 +1389,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontSize: 12,
     fontWeight: '600',
-    color: COLORS.gray400,
+    color: c.gray400,
   },
   calendarDaysGrid: {
     flexDirection: 'row',
@@ -1183,39 +1409,43 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   calendarDayInnerSelected: {
-    backgroundColor: COLORS.piktag500,
+    backgroundColor: c.piktag500,
   },
   calendarDayText: {
     fontSize: 14,
-    color: COLORS.gray700,
+    color: c.gray700,
   },
   calendarDayToday: {
     fontWeight: '700',
-    color: COLORS.piktag600,
+    color: c.piktag600,
   },
   calendarDayTextSelected: {
-    color: COLORS.white,
+    color: '#FFFFFF',
     fontWeight: '700',
   },
 
   // ── Tag input row ──
+  // marginTop 14 = breathing room when chips sit above (the
+  // standardized layout); when there are no chips yet, the hint
+  // text above provides equivalent spacing.
   tagInputRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
+    marginTop: 14,
   },
+  // Square 44×44 icon button — matches the textInput height so the row
+  // reads as a single horizontal control. Width-fixed (not paddingX) so
+  // it doesn't grow when the icon size changes; previously the textual
+  // "新增" version sized itself to the label which made the row jiggle
+  // when locales swapped to longer translations like "Aggiungi" / "추가".
   addTagBtn: {
-    backgroundColor: COLORS.piktag500,
+    backgroundColor: c.piktag500,
     borderRadius: 14,
-    paddingVertical: 12,
-    paddingHorizontal: 18,
+    width: 44,
+    height: 44,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  addTagBtnText: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#FFFFFF',
   },
 
   // ── Chips ──
@@ -1225,23 +1455,44 @@ const styles = StyleSheet.create({
     gap: 10,
     marginTop: 14,
   },
-  tagChip: {
+  // added-tag chip → shared <TagChip/> (one design contract)
+
+  // ── AI suggestions header (task 3) ──
+  aiHeaderRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: COLORS.piktag50,
-    borderRadius: 9999,
-    paddingVertical: 8,
-    paddingLeft: 14,
-    paddingRight: 10,
+    justifyContent: 'space-between',
+    marginBottom: 10,
+  },
+  aiHeaderLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 6,
   },
-  tagChipText: {
+  // Title weight/size + refresh-btn dimensions matched to
+  // EditProfileScreen's ai_headerTitle / ai_refreshBtn so all three
+  // AI-suggest surfaces (AddTag / EditProfile / AskCreateModal) read
+  // as the same component family.
+  aiHeaderTitle: {
     fontSize: 14,
-    fontWeight: '500',
-    color: COLORS.piktag600,
+    fontWeight: '600',
+    color: c.piktag600,
   },
-  chipRemoveBtn: {
-    padding: 2,
+  aiHeaderActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  // (aiAddAllBtn / aiAddAllText removed with the "全部加入" CTA.)
+  aiRefreshBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: c.piktag200,
+    backgroundColor: c.piktag50,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 
   // ── Popular tags ──
@@ -1251,31 +1502,13 @@ const styles = StyleSheet.create({
     gap: 8,
     marginBottom: 16,
   },
-  popularChip: {
-    backgroundColor: COLORS.gray100,
-    borderRadius: 9999,
-    paddingVertical: 8,
-    paddingHorizontal: 14,
-    borderWidth: 1.5,
-    borderColor: 'transparent',
-  },
-  popularChipSelected: {
-    backgroundColor: COLORS.piktag50,
-    borderColor: COLORS.piktag500,
-  },
-  popularChipText: {
-    fontSize: 13,
-    fontWeight: '500',
-    color: COLORS.gray600,
-  },
-  popularChipTextSelected: {
-    color: COLORS.piktag600,
-    fontWeight: '600',
-  },
+  // (popularChip / *Selected / *Text / *TextSelected removed — AI
+  // suggestion chips now render via the shared <TagChip variant=
+  // "toggle">; popularChipsContainer is kept as the wrap.)
 
   // ── Buttons ──
   primaryButton: {
-    backgroundColor: COLORS.piktag500,
+    backgroundColor: c.piktag500,
     borderRadius: 14,
     paddingVertical: 14,
     alignItems: 'center',
@@ -1293,7 +1526,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   eventModeBtn: {
-    backgroundColor: COLORS.piktag500,
+    backgroundColor: c.piktag500,
     borderRadius: 14,
     paddingVertical: 16,
     alignItems: 'center',
@@ -1301,58 +1534,27 @@ const styles = StyleSheet.create({
   eventModeBtnText: {
     fontSize: 16,
     fontWeight: '700',
-    color: COLORS.white,
+    color: '#FFFFFF',
   },
   cameraScanBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 10,
-    backgroundColor: COLORS.piktag50,
+    backgroundColor: c.piktag50,
     borderWidth: 1.5,
-    borderColor: COLORS.piktag500,
+    borderColor: c.piktag500,
     borderRadius: 14,
     paddingVertical: 16,
   },
   cameraScanBtnText: {
     fontSize: 16,
     fontWeight: '600',
-    color: COLORS.piktag600,
-  },
-  // Event mode fullscreen
-  eventModeContainer: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: '#000000',
-    alignItems: 'center',
-    justifyContent: 'center',
-    zIndex: 100,
-  },
-  eventCloseBtn: {
-    position: 'absolute',
-    right: 20,
-    zIndex: 101,
-    padding: 4,
-  },
-  eventTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#FFFFFF',
-    marginBottom: 24,
-    textAlign: 'center',
-  },
-  eventQrWrapper: {
-    padding: 20,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 20,
-    marginBottom: 20,
-  },
-  eventHint: {
-    fontSize: 14,
-    color: 'rgba(255,255,255,0.4)',
+    color: c.piktag600,
   },
   outlineButton: {
     borderWidth: 1.5,
-    borderColor: COLORS.piktag500,
+    borderColor: c.piktag500,
     borderRadius: 14,
     paddingVertical: 16,
     alignItems: 'center',
@@ -1360,7 +1562,7 @@ const styles = StyleSheet.create({
   outlineButtonText: {
     fontSize: 15,
     fontWeight: '600',
-    color: COLORS.piktag600,
+    color: c.piktag600,
   },
   buttonDisabled: {
     opacity: 0.7,
@@ -1375,7 +1577,7 @@ const styles = StyleSheet.create({
   presetCancelBtn: {
     flex: 1,
     borderWidth: 1,
-    borderColor: COLORS.piktag500,
+    borderColor: c.piktag500,
     borderRadius: 14,
     paddingVertical: 12,
     alignItems: 'center',
@@ -1383,11 +1585,11 @@ const styles = StyleSheet.create({
   presetCancelBtnText: {
     fontSize: 15,
     fontWeight: '600',
-    color: COLORS.piktag600,
+    color: c.piktag600,
   },
   presetConfirmBtn: {
     flex: 1,
-    backgroundColor: COLORS.piktag500,
+    backgroundColor: c.piktag500,
     borderRadius: 14,
     paddingVertical: 12,
     alignItems: 'center',
@@ -1475,30 +1677,29 @@ const styles = StyleSheet.create({
   qrBottomBtnText: {
     fontSize: 13,
     fontWeight: '600',
-    color: COLORS.gray900,
+    color: c.gray900,
   },
   // ── Legacy QR mode styles (kept because other modes may reference) ──
   qrBrandTitle: {
     fontSize: 28,
     fontWeight: '800',
-    color: COLORS.gray900,
+    color: c.gray900,
     marginTop: 32,
     marginBottom: 24,
   },
   qrWrapper: {
     padding: 16,
     borderWidth: 2,
-    borderColor: COLORS.piktag500,
+    borderColor: c.piktag500,
     borderRadius: 16,
-    backgroundColor: COLORS.white,
+    backgroundColor: c.white,
     marginBottom: 24,
   },
-  qrEventInfo: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: COLORS.gray700,
-    marginBottom: 16,
-  },
+  // (Duplicate `qrEventInfo` block removed — was a stale text-style
+  // leftover from an earlier refactor when qrEventInfo was a single
+  // <Text>. The actual container style above L1445 was being silently
+  // shadowed by JS's "last key wins" rule, breaking the flex/center
+  // layout of the QR-card event-info row.)
   // ── Modal ──
   modalOverlay: {
     flex: 1,
@@ -1506,7 +1707,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   modalContainer: {
-    backgroundColor: COLORS.white,
+    backgroundColor: c.white,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     paddingHorizontal: 20,
@@ -1523,7 +1724,7 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: COLORS.gray900,
+    color: c.gray900,
   },
   modalScrollView: {
     flex: 1,
@@ -1533,7 +1734,7 @@ const styles = StyleSheet.create({
   presetItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: COLORS.gray50,
+    backgroundColor: c.gray50,
     borderRadius: 16,
     padding: 16,
     marginBottom: 12,
@@ -1545,12 +1746,12 @@ const styles = StyleSheet.create({
   presetItemName: {
     fontSize: 16,
     fontWeight: '700',
-    color: COLORS.gray900,
+    color: c.gray900,
     marginBottom: 4,
   },
   presetItemLocation: {
     fontSize: 14,
-    color: COLORS.gray500,
+    color: c.gray500,
     marginBottom: 8,
   },
   presetTagsPreview: {
@@ -1560,7 +1761,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   presetTagMini: {
-    backgroundColor: COLORS.piktag50,
+    backgroundColor: c.piktag50,
     borderRadius: 9999,
     paddingVertical: 4,
     paddingHorizontal: 10,
@@ -1568,18 +1769,18 @@ const styles = StyleSheet.create({
   presetTagMiniText: {
     fontSize: 12,
     fontWeight: '500',
-    color: COLORS.piktag600,
+    color: c.piktag600,
   },
   presetMoreText: {
     fontSize: 12,
-    color: COLORS.gray400,
+    color: c.gray400,
     fontWeight: '500',
   },
   presetItemActions: {
     justifyContent: 'center',
   },
   presetApplyBtn: {
-    backgroundColor: COLORS.piktag500,
+    backgroundColor: c.piktag500,
     borderRadius: 10,
     paddingVertical: 8,
     paddingHorizontal: 16,
@@ -1604,7 +1805,7 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 14,
-    color: COLORS.gray400,
+    color: c.gray400,
   },
 
   // ── Preset Name Modal ──
@@ -1616,7 +1817,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 40,
   },
   presetNameModalContainer: {
-    backgroundColor: COLORS.white,
+    backgroundColor: c.white,
     borderRadius: 16,
     padding: 24,
     width: '100%',
@@ -1624,23 +1825,23 @@ const styles = StyleSheet.create({
   presetNameModalTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: COLORS.gray900,
+    color: c.gray900,
     marginBottom: 4,
   },
   presetNameModalSubtitle: {
     fontSize: 14,
-    color: COLORS.gray500,
+    color: c.gray500,
     marginBottom: 16,
   },
   presetNameModalInput: {
     borderWidth: 1,
-    borderColor: COLORS.gray200,
+    borderColor: c.gray200,
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 12,
     fontSize: 16,
-    color: COLORS.gray900,
-    backgroundColor: COLORS.gray50,
+    color: c.gray900,
+    backgroundColor: c.gray50,
     marginBottom: 20,
   },
   presetNameModalButtons: {
@@ -1650,7 +1851,7 @@ const styles = StyleSheet.create({
   presetNameModalCancelBtn: {
     flex: 1,
     borderWidth: 1,
-    borderColor: COLORS.gray200,
+    borderColor: c.gray200,
     borderRadius: 12,
     paddingVertical: 12,
     alignItems: 'center',
@@ -1658,11 +1859,11 @@ const styles = StyleSheet.create({
   presetNameModalCancelText: {
     fontSize: 15,
     fontWeight: '600',
-    color: COLORS.gray500,
+    color: c.gray500,
   },
   presetNameModalConfirmBtn: {
     flex: 1,
-    backgroundColor: COLORS.piktag500,
+    backgroundColor: c.piktag500,
     borderRadius: 12,
     paddingVertical: 12,
     alignItems: 'center',
@@ -1670,12 +1871,14 @@ const styles = StyleSheet.create({
   presetNameModalConfirmText: {
     fontSize: 15,
     fontWeight: '700',
-    color: COLORS.white,
+    color: '#FFFFFF',
   },
   presetHintText: {
     fontSize: 13,
-    color: COLORS.gray400,
+    color: c.gray400,
     textAlign: 'center',
     marginBottom: 12,
   },
-});
+  // (First-QR celebration sheet styles removed with the sheet.)
+  });
+}

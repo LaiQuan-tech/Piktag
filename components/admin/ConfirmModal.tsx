@@ -72,7 +72,7 @@ export default function ConfirmModal({
 
   const confirmClass = danger
     ? 'bg-red-600 hover:bg-red-700 text-white border-red-600'
-    : 'bg-[#aa00ff] hover:bg-[#8c52ff] text-white border-[#aa00ff]';
+    : 'bg-[#8c52ff] hover:bg-[#8c52ff] text-white border-[#8c52ff]';
 
   const handleBackdropClick = () => {
     if (!submitting) onClose();
@@ -124,7 +124,7 @@ export default function ConfirmModal({
               onChange={(e) => setTypedValue(e.target.value)}
               placeholder={`請輸入 ${typeToConfirm} 以確認`}
               disabled={submitting}
-              className="w-full px-3 py-2 rounded-md border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#aa00ff] focus:border-transparent disabled:opacity-50"
+              className="w-full px-3 py-2 rounded-md border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#8c52ff] focus:border-transparent disabled:opacity-50"
             />
           </div>
         )}

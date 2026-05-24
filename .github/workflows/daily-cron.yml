@@ -6,25 +6,51 @@ on:
     - cron: '0 19 * * *'  # 每天 UTC 19:00 (台灣 03:00) — 語意標籤歸類
   workflow_dispatch:       # 手動觸發
 
+# CRON_SECRET must be set in:
+# - GitHub Actions repo secrets
+# - Supabase Edge Function secrets (supabase secrets set CRON_SECRET=<value>)
+
 jobs:
-  followup-check:
+  # NOTE: the `birthday-check` job (which POSTed daily-birthday-check)
+  # was REMOVED. That edge fn matched with .eq('birthday','MM/DD'),
+  # but birthdays are stored YYYY-MM-DD (text) / a real DATE column.
+  # After the 2026-05 birthday-format unification it matched ZERO rows
+  # forever and was the contradictory twin of the authoritative path:
+  # the pg_cron fn enqueue_birthday_notifications (migration
+  # 20260428120007, daily 08:00 UTC) is now the SOLE birthday-
+  # notification implementation. Do NOT re-add an edge-fn birthday
+  # cron here — it would silently do nothing and mask monitoring.
+
+  # Lightweight CRM: hidden tags whose name is a YYYY/MM/DD date fire
+  # an anniversary notification on the matching day every year. Same
+  # 09:00 TW morning slot.
+  date-tag-anniversaries:
     runs-on: ubuntu-latest
     if: github.event.schedule == '0 1 * * *' || github.event_name == 'workflow_dispatch'
     steps:
-      - name: Trigger daily-followup-check
+      - name: Trigger daily-date-tag-anniversaries
         run: |
-          curl -s -X POST \
-            "https://kbwfdskulxnhjckdvghj.supabase.co/functions/v1/daily-followup-check" \
-            -H "Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" \
+          curl --fail-with-body --silent --show-error -X POST \
+            "https://kbwfdskulxnhjckdvghj.supabase.co/functions/v1/daily-date-tag-anniversaries" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
             -H "Content-Type: application/json"
 
+  # BACKSTOP ONLY. The authoritative scheduler for auto-link-concepts
+  # is now Supabase pg_cron (migration 20260519010000), which runs at
+  # 18:00 UTC on the DB itself — reliable, unlike GitHub `schedule`
+  # (best-effort; it has silently skipped in this repo before, which
+  # is the whole reason for the pg_cron move). This 19:00 job stays as
+  # defense-in-depth: it covers the window before Vault is seeded, and
+  # otherwise just finds little/nothing to do (the edge function is
+  # idempotent — only concept_id IS NULL tags + concepts missing
+  # embeddings). Do NOT remove it; do NOT treat it as primary.
   auto-link-concepts:
     runs-on: ubuntu-latest
     if: github.event.schedule == '0 19 * * *' || github.event_name == 'workflow_dispatch'
     steps:
       - name: Trigger auto-link-concepts
         run: |
-          curl -s -X POST \
+          curl --fail-with-body --silent --show-error -X POST \
             "https://kbwfdskulxnhjckdvghj.supabase.co/functions/v1/auto-link-concepts" \
-            -H "Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
             -H "Content-Type: application/json"

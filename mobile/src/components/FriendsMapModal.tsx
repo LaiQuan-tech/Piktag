@@ -5,16 +5,19 @@ import {
   TouchableOpacity,
   StyleSheet,
   Modal,
-  ActivityIndicator,
   Platform,
 } from 'react-native';
+import PageLoader from './loaders/PageLoader';
 import { X } from 'lucide-react-native';
 import { requestForegroundPermissionsAsync, getCurrentPositionAsync, Accuracy } from 'expo-location';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import { COLORS } from '../constants/theme';
+import { COLORS, type ColorPalette } from '../constants/theme';
+import { useTheme } from '../context/ThemeContext';
 import { GOOGLE_PLACES_API_KEY } from '../lib/googlePlaces';
 import { logApiUsage } from '../lib/apiUsage';
+import { useAuth } from '../hooks/useAuth';
+import { supabase } from '../lib/supabase';
 
 const isWeb = Platform.OS === 'web';
 
@@ -56,11 +59,24 @@ function buildMapHtml(
   apiKey: string,
   friends: FriendLocation[],
   center: { lat: number; lng: number },
-  self: { lat: number; lng: number } | null,
+  self: {
+    lat: number;
+    lng: number;
+    avatarUrl?: string | null;
+    name?: string | null;
+    username?: string | null;
+  } | null,
+  selfLabel: string,
+  mapLoadFailedMsg: string,
 ): string {
   const friendsJson = JSON.stringify(friends);
   const centerJson = JSON.stringify(center);
   const selfJson = JSON.stringify(self);
+  const selfLabelJson = JSON.stringify(selfLabel);
+  const mapLoadFailedMsgHtml = mapLoadFailedMsg
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
   return `<!DOCTYPE html>
 <html>
 <head>
@@ -77,7 +93,7 @@ function buildMapHtml(
     box-shadow: 0 4px 12px rgba(0,0,0,0.25);
     border: 3px solid #8B5CF6;
   }
-  .avatar-wrap.self { border-color: #10B981; }
+  .avatar-wrap.self { border-color: #8c52ff; }
   .avatar-img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; display: block; }
   .avatar-initials {
     width: 100%; height: 100%; border-radius: 50%;
@@ -103,11 +119,12 @@ function buildMapHtml(
 </head>
 <body>
   <div id="map"></div>
-  <div id="fallback" class="fallback" style="display:none">地圖載入失敗，請檢查網路連線</div>
+  <div id="fallback" class="fallback" style="display:none">${mapLoadFailedMsgHtml}</div>
   <script>
     const FRIENDS = ${friendsJson};
     const CENTER = ${centerJson};
     const SELF = ${selfJson};
+    const SELF_LABEL = ${selfLabelJson};
 
     function postToHost(data) {
       try {
@@ -188,7 +205,14 @@ function buildMapHtml(
 
       const label = document.createElement('div');
       label.className = 'avatar-label';
-      label.textContent = isSelf ? '你' : (item.name || '');
+      // Self-marker label = "你" (locale-aware via SELF_LABEL passed
+      // in from the React side). Friend label = their display name.
+      // The avatar circle's content is now driven by item.avatarUrl /
+      // item.name independently — so SELF can show the user's real
+      // photo (or the first char of their full_name) in the circle
+      // and the literal "你" below, instead of "你" appearing both
+      // places like the original behaviour.
+      label.textContent = isSelf ? SELF_LABEL : (item.name || '');
 
       root.appendChild(wrap);
       root.appendChild(label);
@@ -215,8 +239,17 @@ function buildMapHtml(
           new AdvancedMarkerElement({
             map,
             position: { lat: SELF.lat, lng: SELF.lng },
-            content: buildMarkerContent({ name: '你', avatarUrl: null }, true),
-            title: '你',
+            // Pass the user's real avatar + name to the marker so the
+            // circle shows the user's photo (or first char of their
+            // full_name as a fallback initial). The label below renders
+            // SELF_LABEL ("你" / "You" / locale-equivalent) — different
+            // from what's in the circle, so the user no longer sees
+            // "你" duplicated above and below the avatar.
+            content: buildMarkerContent({
+              name: SELF.name || '',
+              avatarUrl: SELF.avatarUrl || null,
+            }, true),
+            title: SELF_LABEL,
             zIndex: 1000,
           });
         }
@@ -279,11 +312,49 @@ export default function FriendsMapModal({
   onFriendPress,
 }: FriendsMapModalProps) {
   const { t } = useTranslation();
+  const { colors, isDark } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
+  const { user } = useAuth();
   const insets = useSafeAreaInsets();
   const [userCoords, setUserCoords] = useState<{ lat: number; lng: number } | null>(null);
+  // Profile state for the SELF marker. Fetched once when the modal
+  // opens so the user's own pin shows their real avatar in the
+  // circle and the locale-aware "你" label below — instead of the
+  // previous behaviour where both the circle initials AND the label
+  // both rendered "你" (because we were passing `{ name: '你',
+  // avatarUrl: null }` and the initials fallback was "你" too).
+  const [selfProfile, setSelfProfile] = useState<
+    { avatarUrl: string | null; name: string | null; username: string | null } | null
+  >(null);
   const [locating, setLocating] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
+
+  // One-shot profile fetch when the modal becomes visible. Skipped on
+  // re-opens to avoid hammering piktag_profiles for unchanged data.
+  useEffect(() => {
+    if (!visible || !user || selfProfile) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const { data } = await supabase
+          .from('piktag_profiles')
+          .select('avatar_url, full_name, username')
+          .eq('id', user.id)
+          .maybeSingle();
+        if (cancelled || !data) return;
+        setSelfProfile({
+          avatarUrl: data.avatar_url ?? null,
+          name: data.full_name ?? data.username ?? null,
+          username: data.username ?? null,
+        });
+      } catch {
+        // Silent fail — the marker just falls back to a name-less
+        // avatar circle, label still shows "你".
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [visible, user, selfProfile]);
 
   const friendsWithLocation = useMemo(
     () =>
@@ -394,9 +465,32 @@ export default function FriendsMapModal({
     return { lat: 25.033, lng: 121.5654 };
   }, [userCoords, friendsWithLocation]);
 
+  // Combine the geo coords with the freshly fetched profile fields
+  // so the SELF marker can render with a real avatar + initial. We
+  // gate on userCoords because the lat/lng is the only required
+  // piece — profile fields are best-effort decoration.
+  const selfMarker = useMemo(
+    () =>
+      userCoords
+        ? {
+            lat: userCoords.lat,
+            lng: userCoords.lng,
+            avatarUrl: selfProfile?.avatarUrl ?? null,
+            name: selfProfile?.name ?? selfProfile?.username ?? null,
+            username: selfProfile?.username ?? null,
+          }
+        : null,
+    [userCoords, selfProfile],
+  );
+
+  // Locale-aware label below the SELF avatar — "你" / "You" / etc.
+  // Falls back to "你" if the i18n key is missing in any locale.
+  const selfLabel = t('common.you', { defaultValue: '你' }) as string;
+
+  const mapLoadFailedMsg = t('friendsMap.loadFailed') as string;
   const html = useMemo(
-    () => buildMapHtml(GOOGLE_PLACES_API_KEY, friendsWithLocation, center, userCoords),
-    [friendsWithLocation, center, userCoords],
+    () => buildMapHtml(GOOGLE_PLACES_API_KEY, friendsWithLocation, center, selfMarker, selfLabel, mapLoadFailedMsg),
+    [friendsWithLocation, center, selfMarker, selfLabel, mapLoadFailedMsg],
   );
 
   return (
@@ -405,7 +499,7 @@ export default function FriendsMapModal({
         {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity onPress={onClose} style={styles.headerBtn} activeOpacity={0.6}>
-            <X size={22} color={COLORS.gray800} />
+            <X size={22} color={colors.gray800} />
           </TouchableOpacity>
           <View style={styles.headerTitleWrap}>
             <Text style={styles.headerTitle}>{t('friendsMap.title')}</Text>
@@ -436,7 +530,7 @@ export default function FriendsMapModal({
         <View style={styles.mapContainer}>
           {locating && !userCoords && friendsWithLocation.length === 0 ? (
             <View style={styles.loadingContainer}>
-              <ActivityIndicator size="large" color={COLORS.piktag500} />
+              <PageLoader />
             </View>
           ) : isWeb ? (
             // @ts-ignore — iframe is a DOM element, not an RN component
@@ -454,7 +548,7 @@ export default function FriendsMapModal({
               if (!WebView) {
                 return (
                   <View style={styles.loadingContainer}>
-                    <Text style={{ color: COLORS.gray500 }}>{t('friendsMap.loadFailed')}</Text>
+                    <Text style={{ color: colors.gray500 }}>{t('friendsMap.loadFailed')}</Text>
                   </View>
                 );
               }
@@ -486,8 +580,9 @@ export default function FriendsMapModal({
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
+function makeStyles(c: ColorPalette) {
+  return StyleSheet.create({
+  container: { flex: 1, backgroundColor: c.background },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -495,7 +590,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 10,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.gray200,
+    borderBottomColor: c.gray200,
   },
   headerBtn: {
     width: 36,
@@ -504,8 +599,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   headerTitleWrap: { alignItems: 'center' },
-  headerTitle: { fontSize: 16, fontWeight: '700', color: COLORS.gray900 },
-  headerSubtitle: { fontSize: 11, color: COLORS.gray500, marginTop: 1 },
+  headerTitle: { fontSize: 16, fontWeight: '700', color: c.gray900 },
+  headerSubtitle: { fontSize: 11, color: c.gray500, marginTop: 1 },
   mapContainer: { flex: 1, backgroundColor: '#e5e7eb' },
   loadingContainer: {
     flex: 1,
@@ -514,7 +609,7 @@ const styles = StyleSheet.create({
   },
   staleHint: {
     fontSize: 12,
-    color: COLORS.gray500,
+    color: c.gray500,
     textAlign: 'center',
     paddingHorizontal: 20,
     marginTop: 8,
@@ -532,4 +627,5 @@ const styles = StyleSheet.create({
     lineHeight: 17,
     color: '#991B1B',
   },
-});
+  });
+}

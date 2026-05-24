@@ -2,15 +2,34 @@
 // Bold typography · 8-12px radius · Dark mode ready
 
 // ── Light palette ──────────────────────────────────────────────────────
+//
+// Two-purple semantic system:
+//
+//   * piktag500 (#8c52ff)  — PRIMARY. The stable base. Used for solid
+//     buttons, tag chip backgrounds/borders, menu items, focus rings,
+//     wordmark fills, AND as the gradient terminus. International,
+//     calm, the "voice" of the product.
+//
+//   * accentPop (#aa00ff)  — ACCENT. The high-saturation pop. Used
+//     ONLY for moments that should jump the eye: notification dots,
+//     unread badges, live-Ask heartbeat indicators, success burst
+//     animations, "currently active" tag highlights. Never the base
+//     UI color — appearance should feel like punctuation, not body
+//     text. If everything's accentPop, nothing is.
+//
 const LIGHT = {
-  // Brand (Purple — #aa00ff base)
+  // Brand (Purple — #8c52ff base)
   piktag50: '#f5e6ff',
   piktag100: '#e6b3ff',
   piktag200: '#d580ff',
   piktag300: '#c44dff',
   piktag400: '#bf00ff',
-  piktag500: '#aa00ff',
+  piktag500: '#8c52ff',
   piktag600: '#8800cc',
+
+  // Accent — high-pop variant for notification dots / live indicators /
+  // success bursts / current-highlight states. See header comment.
+  accentPop: '#aa00ff',
 
   // Accent (deep purple for contrast on white)
   accent50: '#f0e6ff',
@@ -58,19 +77,40 @@ const LIGHT = {
   text: '#111827',
   textSecondary: '#6b7280',
   textTertiary: '#9ca3af',
+  // IG-style secondary-surface fill — secondary buttons, social
+  // icon circles, tag chips, link cards. Deliberately asymmetric:
+  // a LIGHT gray in light mode (subtle, doesn't feel heavy) and a
+  // mid gray in dark mode (#363636 = IG's dark secondary, visible
+  // on the black page). gray100/gray200 each only work for ONE
+  // mode, hence this dedicated token.
+  fill: '#f3f4f6',
 };
 
 // ── Dark palette (IG-inspired pure black) ────────────────────────────
 // Pure black background, dark gray cards, white text, brand color accents
 const DARK: typeof LIGHT = {
-  // Brand — bright purple for dark backgrounds
+  // Brand. piktag500 AND piktag600 are both the ONE brand purple
+  // #8c52ff — founder picked it to read on BOTH white and black, so
+  // the brand purple does NOT shift between modes (500 was #d966ff,
+  // 600 was #e699ff — dark-only brighter purples that made the build
+  // look off-brand vs. light). piktag500 = solid-purple CTA/chip
+  // fills; piktag600 = purple text (PM@piktag, @username links) —
+  // both now #8c52ff, identical app-wide in both themes.
+  // piktag50–400 stay mode-shifted: functional derivatives
+  // (light-purple tint backgrounds, ramp steps) that need different
+  // values for contrast on a black page.
   piktag50: '#1a0033',
   piktag100: '#2d0059',
   piktag200: '#4a0099',
   piktag300: '#bf00ff',
   piktag400: '#cc33ff',
-  piktag500: '#d966ff',
-  piktag600: '#e699ff',
+  piktag500: '#8c52ff',
+  piktag600: '#8c52ff',
+
+  // Accent — same #aa00ff in dark mode. Pure neon already pops on
+  // black backgrounds; lifting the value further (e.g. to #ff80ff)
+  // would lose the brand voice.
+  accentPop: '#aa00ff',
 
   // Accent (purple) — for dark mode
   accent50: '#1a0033',
@@ -118,6 +158,9 @@ const DARK: typeof LIGHT = {
   text: '#ffffff',
   textSecondary: '#a8a8a8',
   textTertiary: '#8e8e8e',
+  // IG-style secondary-surface fill — see the LIGHT palette note.
+  // #363636 is IG's dark-mode secondary; visible on the black page.
+  fill: '#363636',
 };
 
 // ── Export (default = light, components use useTheme() for dynamic) ────

@@ -1,4 +1,9 @@
 {
+  "app": {
+    "offline": "オフラインです。一部の機能が制限される場合があります。",
+    "backOnline": "オンラインに戻りました",
+    "offlineHint": "一部の機能はネット接続が必要です"
+  },
   "tabs": {
     "home": "ホーム",
     "search": "検索",
@@ -9,19 +14,25 @@
   "locationPicker": {
     "title": "場所を選択",
     "noNearbyPlaces": "近くに場所が見つかりません。検索ボックスに名前を入力して完了を押してください。",
-    "noResults": "一致する場所がありません"
+    "noResults": "一致する場所がありません",
+    "permissionDenied": "位置情報の許可が拒否されました",
+    "permissionDeniedWeb": "位置情報の許可が拒否されました。ブラウザ設定で許可してください。",
+    "errorPrefix": "位置エラー：",
+    "searchPlaceholder": "検索または地名を入力",
+    "gpsOff": "位置情報を取得できません。GPS をオンにしてください。",
+    "requestTimeout": "位置情報の取得がタイムアウトしました。もう一度お試しください。"
   },
   "friendsMap": {
     "title": "友達マップ",
     "friendCount": "{{count}}人の友達がマップ上にいます",
     "noSharedLocations": "位置情報を共有している友達はまだいません",
     "staleHint": "過去24時間以内に位置情報を更新した友達のみ表示しています",
-    "loadFailed": "マップの読み込みに失敗しました。再度お試しください"
+    "loadFailed": "地図の読み込みに失敗しました。ネットワーク接続を確認してください。"
   },
   "hiddenTagEditor": {
     "timeTitle": "出会った時期",
     "locationTitle": "出会った場所",
-    "frequentTitle": "よく使う",
+    "suggestedTitle": "おすすめ",
     "addedTitle": "追加済み",
     "today": "今日",
     "yesterday": "昨日",
@@ -53,7 +64,10 @@
     "noTags": "タグがありません",
     "email": "メール",
     "phone": "電話",
-    "comingSoonTitle": "近日公開"
+    "comingSoonTitle": "近日公開",
+    "checkConnection": "ネット接続を確認してもう一度お試しください",
+    "loadFailed": "読み込みに失敗",
+    "willAutoRetry": "接続が回復したら自動的に読み込みます"
   },
   "auth": {
     "login": {
@@ -62,7 +76,7 @@
       "emailPlaceholder": "メールアドレス",
       "passwordPlaceholder": "パスワード",
       "loginButton": "ログイン",
-      "noAccountPrompt": "アカウントをお持ちでないですか？ ",
+      "noAccountPrompt": "アカウントをお持ちでないですか？",
       "registerLink": "新規登録",
       "forgotPassword": "パスワードをお忘れですか？",
       "alertEnterEmailFirst": "先にメールアドレスを入力してください。パスワードリセットリンクを送信します",
@@ -70,7 +84,10 @@
       "alertResetSentMessage": "パスワードリセットリンクをメールに送信しました",
       "orDivider": "または",
       "continueWithApple": "Appleでサインイン",
-      "continueWithGoogle": "Googleでサインイン"
+      "continueWithGoogle": "Googleでサインイン",
+      "errInvalidCredentials": "メールまたはパスワードが違います。",
+      "errEmailNotConfirmed": "先に確認メールのリンクをタップして認証してからログインしてね。",
+      "errGeneric": "ログインできませんでした。もう一度試してね。"
     },
     "register": {
       "alertEmptyFields": "すべての項目を入力してください",
@@ -84,13 +101,26 @@
       "emailPlaceholder": "メールアドレス",
       "passwordPlaceholder": "パスワード",
       "registerButton": "新規登録",
-      "hasAccountPrompt": "すでにアカウントをお持ちですか？ ",
+      "hasAccountPrompt": "すでにアカウントをお持ちですか？",
       "loginLink": "ログイン",
       "confirmPasswordPlaceholder": "パスワードを確認",
       "alertPasswordMismatch": "パスワードが一致しません",
-      "passwordHint": "パスワードは6文字以上にしてください"
+      "passwordHint": "パスワードは6文字以上にしてください",
+      "birthdayLabel": "誕生日（任意）",
+      "alertVerifyEmailTitle": "メールを確認してください",
+      "alertVerifyEmailMessage": "確認メールを送りました。リンクをタップしてからログインしてね。"
     },
     "onboarding": {
+      "welcome": {
+        "identityTitle": "タグで自分を表現しよう",
+        "identityDesc": "あなたを表すタグを10個まで選択——これがPikTagでのあなたの身分です",
+        "activateTitle": "古い人脈をもう一度",
+        "activateDesc": "誕生日、出会った記念日、共有した思い出があなたに届きます",
+        "discoverTitle": "名前ではなく、必要で人を探す",
+        "discoverDesc": "「写真が撮れる友達がほしい」「近くのデザイナーは？」",
+        "next": "次へ",
+        "getStarted": "はじめる"
+      },
       "defaultTags": [
         "#スタートアップ",
         "#デザイン",
@@ -115,13 +145,57 @@
       "contactResultText": "{{matched}}人の友達が見つかりました",
       "step3Title": "準備完了！始めましょう",
       "step3Description": "アカウントの準備ができました。さあPikTagを使い始めましょう",
+      "quickStart": {
+        "title": "PikTagを始めよう",
+        "subtitle": "この4つをやれば、すぐ使いこなせる",
+        "card1": {
+          "title": "友達を追加",
+          "body": "QRコードをスキャン、連絡先を同期、またはユーザー名で検索"
+        },
+        "card2": {
+          "title": "友達にタグを付ける",
+          "body": "「コーヒー好き」「PM」「クライアント」など。あとからタグで探せる"
+        },
+        "card3": {
+          "title": "タグで人を探す",
+          "body": "検索タブでタグを入力して、同じ興味の人を見つけよう"
+        },
+        "card4": {
+          "title": "Askを投稿",
+          "body": "一文で、ネットワーク全体が助けてくれる"
+        },
+        "cta": "PikTagを始める"
+      },
       "backButton": "戻る",
       "enterPikTag": "PikTagを始める",
       "nextButton": "次へ",
       "facebookLabel": "Facebook",
       "instagramLabel": "Instagram",
       "linkedinLabel": "LinkedIn",
-      "birthdayLabel": "誕生日"
+      "birthdayLabel": "誕生日",
+      "avatarStepTitle": "まずプロフィール写真を",
+      "avatarStepDescription": "友達がすぐあなただと分かるように。あとからいつでも変えられます。",
+      "avatarPickAria": "写真を選ぶ",
+      "avatarTapToPick": "丸をタップして写真を選択",
+      "avatarTapToChange": "写真をタップで変更",
+      "avatarPermissionTitle": "写真ライブラリへのアクセスが必要",
+      "avatarPermissionMessage": "設定で PikTag の写真アクセスを許可してください",
+      "skipStep": "スキップ",
+      "scanCardCta": "名刺をスキャン",
+      "scanCardHint": "名刺があれば撮影 — bio と連絡先を自動入力（任意）",
+      "cardScanFailedTitle": "スキャン失敗",
+      "cardScanFailedMessage": "名刺を読み取れませんでした。もう一度試すか手動で入力してください。",
+      "cardScanEmptyTitle": "検出できません",
+      "cardScanEmptyMessage": "名刺が読みにくいようです。鮮明な写真にするか手入力してください。",
+      "cardConfirmTitle": "名刺情報の確認",
+      "cardConfirmSubtitle": "確認・編集できます — 確定するまで反映されません",
+      "cardFieldName": "名前",
+      "cardFieldBio": "Bio（AI下書き・編集可）",
+      "cardBioPlaceholder": "自己紹介を一言",
+      "cardLinksLabel": "連絡先 / SNS",
+      "cardApplyCta": "適用",
+      "profileCta": "最初の Tag を作成",
+      "saveFailed": "保存できなかった — 接続を確認してもう一度試してね。"
     }
   },
   "connections": {
@@ -162,7 +236,30 @@
     "clearFilter": "フィルタをクリア",
     "noTagsToFilter": "絞り込めるタグがありません",
     "newBadge": "新着",
-    "unreviewedLabel": "未確認"
+    "unreviewedLabel": "未確認",
+    "sortLabel": "並べ替え",
+    "sortByRecent": "追加が新しい順",
+    "sortByAlphabet": "あいうえお順",
+    "sortByAlphabetDesc": "あいうえお順（逆）",
+    "sortByInteraction": "最近のやりとり",
+    "sortByBirthday": "誕生日が近い順",
+    "addContact": "連絡先を追加",
+    "addContactTitle": "連絡先を追加",
+    "addSearchTitle": "PikTag ユーザーを検索",
+    "addSearchDesc": "名前・ユーザー名・タグで探す",
+    "addContactSyncTitle": "連絡先を同期",
+    "addContactSyncDesc": "既に PikTag にいる友達を見つける",
+    "addInviteTitle": "友達を PikTag に招待",
+    "addInviteDesc": "招待リンクをシェア — 登録すると自動的に友達に",
+    "coldStartActionContacts": "連絡先から友達を見つける",
+    "coldStartActionContactsDesc": "PikTag にいる友達を見つけて、まだの人にはタグ付き招待を",
+    "notJoinedBadge": "PikTag 未参加",
+    "coldStartActionManual": "人をメモする",
+    "coldStartActionManualDesc": "相手はアカウント不要 — 参加したらタグとメモが自動でつながる",
+    "addManualA11y": "連絡先を手動で追加",
+    "phonePromptTitle": "電話番号を追加して友達に見つけてもらおう",
+    "phonePromptBody": "友達が連絡先を同期したとき自動でつながります。PikTag 内でのみ使用、公開されません。",
+    "addedFriend": "+ {{name}}"
   },
   "search": {
     "clearAll": "すべてクリア",
@@ -171,6 +268,14 @@
     "intersectionResultCount": "{{count}}人見つかりました",
     "headerTitle": "検索",
     "searchPlaceholder": "タグ、ユーザー名など",
+    "promptHints": [
+      "写真が撮れる友達がほしい",
+      "英語が話せる人を探してる",
+      "{{city}}近くのデザイナーは？",
+      "スタートアップの人いる？",
+      "Web開発できる人を探してる"
+    ],
+    "promptHintCityFallback": "近くのデザイナーは？",
     "categorySectionLabel": "カテゴリで探す",
     "categoryPopular": "人気のタグ",
     "categoryNearby": "近くのメンバー",
@@ -185,6 +290,7 @@
     "profilesSectionLabel": "メンバー",
     "noProfilesFound": "一致するメンバーが見つかりません",
     "noProfilesFoundTitle": "「{{query}}」に一致するメンバーがいません",
+    "askPrompt": "人脈にいない？Ask を投稿しよう — 友だちや友だちの友だちが見つけてくれます。",
     "tryTagSearchHint": "#タグや別のキーワードで検索してみてください",
     "clearAndRetry": "クリアして再試行",
     "resetButton": "リセット",
@@ -198,10 +304,16 @@
     "tagUsersTitle": "このタグを使っている人",
     "viewAllTagUsers": "{{count}}人すべて見る",
     "categoryUncategorized": "その他",
-    "allCategories": "すべて"
+    "allCategories": "すべて",
+    "openMap": "地図を開く",
+    "searchBtn": "検索",
+    "searchInputLabel": "検索",
+    "clearSearchLabel": "検索をクリア",
+    "recommendedTitle": "知り合ってみては",
+    "tagsSelected": "個のタグを選択中"
   },
   "addTag": {
-    "headerTitle": "# つながろう",
+    "headerTitle": "Tag を作成",
     "alertTagExists": "タグが既に存在します",
     "alertTagExistsMessage": "このタグはすでにリストにあります。",
     "alertEnterPresetName": "テンプレート名を入力してください",
@@ -213,18 +325,9 @@
     "alertQrError": "QRコードを生成できません。少し時間をおいてお試しください。",
     "alertDeletePresetTitle": "テンプレートを削除",
     "alertDeletePresetMessage": "「{{name}}」を削除してもよろしいですか？",
-    "dateLabel": "日付タグ",
-    "datePlaceholder": "YYYY/MM/DD",
-    "dateDisplayFallback": "タップして日付を設定",
-    "locationLabel": "場所タグ",
-    "locationPlaceholder": "イベントの場所を入力...",
-    "currentLocation": "現在地",
-    "selectLocation": "場所を選ぶ",
-    "manualInput": "手動入力",
     "locationPermDenied": "位置情報の利用が拒否されました",
     "customTagsLabel": "カスタムタグ",
     "hiddenTagHint": "あなただけが見られます — 出会った場所を覚えるのに役立ちます",
-    "pickDate": "日付を選ぶ",
     "tagPlaceholder": "タグを入力...",
     "addButton": "追加",
     "saveAsPreset": "テンプレートとして保存",
@@ -257,7 +360,21 @@
     "copyLink": "リンクをコピー",
     "editQr": "QRを編集",
     "alertLinkCopiedTitle": "コピーしました",
-    "alertLinkCopiedMessage": "リンクをクリップボードにコピーしました"
+    "alertLinkCopiedMessage": "リンクをクリップボードにコピーしました",
+    "contextLabel": "どんな場面ですか？",
+    "contextHint": "一言でOK。AIがあなたの言葉・時間・場所からタグを提案し、ここで出会った人を思い出せます。",
+    "contextPlaceholder": "例：週末ランチ、顧客デモ、新刊発表会",
+    "aiSuggestionsTitle": "AI からの提案",
+    "aiSuggestionsHint": "場面を一言入れて — AI が場所と身分タグも見て提案します。",
+    "aiSuggestionsEmpty": "AI が合うタグを思いつきませんでした — 再試行か手動追加を。",
+    "aiRegenerate": "再生成",
+    "contextPromptHints": [
+      "ダイビングツアー",
+      "大学の同窓会",
+      "忘年会",
+      "花見の集まり",
+      "友人の結婚式"
+    ]
   },
   "profile": {
     "nameNotSet": "名前未設定",
@@ -266,12 +383,12 @@
     "noBio": "自己紹介がまだありません",
     "noTags": "タグがまだありません",
     "tagFallback": "タグ",
+    "askPromptHint": "+ で Ask を投稿 · 「〜が欲しい」",
     "friendCountSuffix": "友達",
     "shareProfile": "プロフィールをシェア",
     "editProfile": "プロフィールを編集",
     "manageTags": "タグを管理",
     "noContactMethods": "連絡方法がありません",
-    "statusTooltip": "タップしてステータスを設定",
     "contactInfoTitle": "連絡先",
     "phoneLabel": "電話",
     "emailLabel": "メール",
@@ -282,7 +399,11 @@
     "statFriends": "友達",
     "statFollowers": "フォロワー",
     "copyLink": "リンクをコピー",
-    "share": "シェア"
+    "share": "シェア",
+    "statTagsA11y": "自分のタグを見る",
+    "statFriendsA11y": "自分の友達を見る",
+    "statFollowersA11y": "自分のフォロワーを見る",
+    "statTribeA11y": "自分の Tribe 星図を見る"
   },
   "editProfile": {
     "headerTitle": "プロフィール編集",
@@ -305,7 +426,7 @@
     "usernameLabel": "ユーザー名",
     "usernamePlaceholder": "ユーザー名を入力",
     "headlineLabel": "肩書き / 役職",
-    "headlinePlaceholder": "例：Google PM、フリーランスデザイナー",
+    "headlinePlaceholder": "例：テック企業 PM、フリーランスデザイナー",
     "bioLabel": "自己紹介",
     "bioPlaceholder": "自己紹介を入力",
     "phoneLabel": "電話",
@@ -343,7 +464,57 @@
     "selectPlatform": "プラットフォームを選択",
     "linkName": "リンク名",
     "selectCountry": "国を選択",
-    "searchCountry": "国またはコードを検索"
+    "searchCountry": "国またはコードを検索",
+    "invalidImageType": "サポートされていない画像形式です。JPEG、PNG、または WebP を使用してください。",
+    "imageTooLarge": "画像が大きすぎます。最大サイズは 2MB です。",
+    "browseAllPlatformsCta": "もっと見る…",
+    "browseAllPlatforms": "すべてのプラットフォーム",
+    "platformSearchPlaceholder": "プラットフォームを検索…",
+    "platformSearchEmpty": "該当するプラットフォームがありません",
+    "detectedAs": "{{platform}}として検出",
+    "platform": {
+      "phone": "電話",
+      "email": "Email",
+      "website": "ウェブサイト",
+      "blog": "ブログ",
+      "portfolio": "ポートフォリオ",
+      "custom": "カスタムリンク"
+    },
+    "platformCategory": {
+      "communication": "コミュニケーション",
+      "social": "ソーシャル",
+      "video": "動画",
+      "music": "音楽",
+      "professional": "プロフェッショナル",
+      "writing": "ライティング",
+      "business": "ビジネス",
+      "generic": "一般"
+    },
+    "completionInline": "仲間にすぐ見つけてもらおう — あと {{items}}",
+    "missingAvatar": "アイコン",
+    "missingBio": "自己紹介",
+    "missingTags": "3つのタグ",
+    "missingBiolink": "SNSリンク",
+    "welcomeShort": "PikTag へようこそ",
+    "bioPromptHints": [
+      "IT営業。ランニングが息抜き、今年はフルマラソンでサブ4を狙う",
+      "小学校の先生。週末はベランダ菜園、多肉植物を20鉢ほど育ててる",
+      "救急の看護師。勤務後はお菓子作りで癒される、最近ハンドドリップ練習中",
+      "バックエンドエンジニア。最近は料理と陶芸にハマり中、気の強い柴犬と暮らす",
+      "大学の心理学専攻。バンドでギター、最近イラストの仕事も受け始めた"
+    ],
+    "headlinePromptHints": [
+      "PM @ テック企業",
+      "弁護士 @ 法律事務所",
+      "救急看護師 @ 医療センター",
+      "フリーランスのグラフィックデザイナー",
+      "心理学専攻の学生"
+    ],
+    "needLibraryPermissionTitle": "写真ライブラリへのアクセスが必要",
+    "needLibraryPermissionMsg": "設定でアクセスを許可してください",
+    "notSignedIn": "未ログイン",
+    "uploadFailTitle": "アップロード失敗",
+    "tryAgainLater": "後でもう一度お試しください"
   },
   "friendDetail": {
     "reminderBirthday": "誕生日",
@@ -369,6 +540,9 @@
     "metLocationLabel": "場所",
     "metNoteLabel": "メモ",
     "eventTagsLabel": "イベントタグ",
+    "eventTagsSection": "一緒に参加したイベント",
+    "eventTagsExpand": "すべて表示 ({{count}})",
+    "eventTagsCollapse": "折りたたむ",
     "stickyNotesTitle": "メモ",
     "notePlaceholder": "メモを書く...",
     "noteCancel": "キャンセル",
@@ -408,19 +582,24 @@
     "unfollowMessage": "{{name}}のフォローを解除してもよろしいですか？",
     "unfollowConfirm": "フォロー解除",
     "hiddenTagsTitle": "非公開タグ（あなただけが見られる）",
+    "eventTagsTitle": "イベントタグ",
     "hiddenTagPlaceholder": "非公開タグを追加（例：元同僚）",
     "mutualTagsModalTitle": "共通のタグ",
     "mutualFriendsSectionTitle": "共通の友達",
-    "shareIntroMessage": "{{name}}を紹介します — プロフィール：{{url}}"
+    "shareIntroMessage": "{{name}}を紹介します — プロフィール：{{url}}",
+    "tag": "タグ",
+    "recommendMembers": "おすすめのメンバー",
+    "blockConfirmTitle": "この人をブロック？",
+    "blockConfirmMessage": "お互いのフォローが外れ、相手の投稿も見えなくなります。"
   },
   "userDetail": {
     "headerNotFound": "見つかりません",
     "userNotFound": "ユーザーが見つかりません",
-    "mutualFriendsPrefix": "共通の友達: ",
+    "mutualFriendsPrefix": "共通の友達:",
     "mutualFriendsSuffix": "",
-    "mutualTagsPrefix": "共通のタグ: ",
+    "mutualTagsPrefix": "共通のタグ:",
     "mutualTagsSuffix": "",
-    "mutualSeparator": "  |  ",
+    "mutualSeparator": "|",
     "following": "フォロー中",
     "follow": "フォロー",
     "sendMessage": "メッセージ",
@@ -455,7 +634,12 @@
     "pickTagSubtitle": "{{name}}を最もよく表すタグを選んでください",
     "pickTagEmpty": "このユーザーはまだ公開タグがありません",
     "pickTagSave": "保存 ({{count}})",
-    "hiddenTagPlaceholder": "非公開タグを追加..."
+    "hiddenTagPlaceholder": "非公開タグを追加...",
+    "tag": "タグ",
+    "recommendMembers": "おすすめのメンバー",
+    "vibeContextTagsTitle": "この Tag のタグ",
+    "blockConfirmTitle": "この人をブロック？",
+    "blockConfirmMessage": "お互いのフォローが外れ、相手の投稿も見えなくなります。"
   },
   "settings": {
     "headerTitle": "設定",
@@ -504,7 +688,10 @@
     "deactivateMessage": "プロフィールが非表示になります。再度ログインすると有効になります。",
     "deactivateConfirm": "停止する",
     "deleteAccountButton": "アカウントを削除",
-    "alertDeleteAccountNote": "この操作は元に戻せません。アカウントとすべてのデータが永久に削除されます"
+    "alertDeleteAccountNote": "この操作は元に戻せません。アカウントとすべてのデータが永久に削除されます",
+    "analyticsOptIn": "利用状況の分析を送信",
+    "analyticsOptInDescription": "アプリの改善にご協力ください",
+    "attRationale": "PikTag は体験向上のため基本的な分析データを使用し、他アプリ間で追跡することはありません。"
   },
   "contactSync": {
     "headerTitle": "連絡先を同期",
@@ -525,7 +712,23 @@
     "inviteMessage": "やあ{{name}}、PikTagでタグを交換しています！一緒にどう？ https://pikt.ag",
     "batchProgress": "処理中 {{current}}/{{total}}",
     "alertBatchDoneTitle": "インポート完了",
-    "alertBatchDoneMessage": "{{matched}}人の友達を追加しました。{{notOnApp}}件はまだPikTagにいません。"
+    "alertBatchDoneMessage": "{{matched}}人の友達を追加しました。{{notOnApp}}件はまだPikTagにいません。",
+    "sectionOnPiktag": "PikTag利用中 · {{count}}人",
+    "sectionNotOnPiktag": "未参加 · {{count}}人",
+    "summaryHeading": "{{onCount}}人がPikTag利用中 · {{offCount}}人を招待可能",
+    "followAllCta": "PikTagの友達をすべてフォロー ({{count}})",
+    "followBtn": "フォロー",
+    "inviteBtn": "招待",
+    "tagInviteBtn": "タグを付けて招待",
+    "fromContact": "連絡先：{{name}}",
+    "classifyingText": "照合中…",
+    "alertFollowAllTitle": "すべてフォロー",
+    "alertFollowAllMessage": "{{count}}人のPikTagの友達を追加しますか？",
+    "alertFollowAllConfirm": "追加",
+    "alertFollowAllDoneTitle": "完了",
+    "alertFollowAllDoneMessage": "{{count}}人のPikTagの友達を追加しました",
+    "allConnected": "連絡先のPikTagの友達はすべて追加済みです",
+    "openSettings": "設定を開いて許可する"
   },
   "invite": {
     "headerTitle": "友達を招待",
@@ -563,11 +766,11 @@
     "defaultLocation": "現在地",
     "alertPermTitle": "位置情報の許可",
     "alertPermMessage": "この機能には位置情報の許可が必要です",
-    "metAtPrefix": "出会った場所: ",
+    "metAtPrefix": "出会った場所:",
     "metAtSuffix": "",
     "nearbySection": "近くの友達 ({{count}})",
     "metHereSection": "ここで出会った ({{count}})",
-    "emptyText": "近くにつながりが見つかりません"
+    "emptyText": "近くに誰もいません。検索範囲を調整するか、「探索」で新しい友達を見つけましょう"
   },
   "dashboard": {
     "headerTitle": "個人ダッシュボード",
@@ -581,7 +784,7 @@
     "totalLinkClicks": "リンククリック数",
     "totalQrScans": "QRスキャン総数",
     "growthCurveTitle": "つながりの成長",
-    "growthCurveEmpty": "友達のデータがまだありません",
+    "growthCurveEmpty": "友達のデータがまだありません。タグを追加したり、友達を招待して始めましょう",
     "presetScansTitle": "テンプレート別スキャン数",
     "presetScansEmpty": "テンプレートのスキャン記録がありません",
     "scanCountSuffix": "回",
@@ -605,7 +808,73 @@
     "timeYesterday": "昨日",
     "timeDaysAgo": "{{count}}日前",
     "timeWeeksAgo": "{{count}}週間前",
-    "emptyState": "通知はありません"
+    "emptyState": "通知はありません。リマインダーを設定したり、友達の活動をフォローしてみましょう",
+    "types": {
+      "ask_posted": {
+        "title": "",
+        "body": "Askを投稿しました · {{ask_body}}",
+        "push": {
+          "title": "{{username}}",
+          "body": "Askを投稿しました · {{ask_body}}"
+        }
+      },
+      "vibe_shift": {
+        "title": "",
+        "body": "が新しいタグを追加 #{{tag_name}}",
+        "push": {
+          "title": "{{username}}",
+          "body": "が新しいタグを追加 #{{tag_name}}"
+        }
+      },
+      "on_this_day": {
+        "title": "",
+        "body": "タップしてその日の Tag に戻る",
+        "push": {
+          "title": "",
+          "body": "タップしてその日の Tag に戻る"
+        }
+      },
+      "tag_convergence": {
+        "title": "",
+        "body": "話しかけてみよう",
+        "push": {
+          "title": "",
+          "body": "話しかけてみよう"
+        }
+      },
+      "ask_bridge": {
+        "title": "",
+        "body": "タップして紹介をお願い",
+        "push": {
+          "title": "",
+          "body": "タップして紹介をお願い"
+        }
+      },
+      "ask_prompt": {
+        "title": "",
+        "body": "一言で、誰かが助けてくれるかも",
+        "push": {
+          "title": "",
+          "body": "一言で、誰かが助けてくれるかも"
+        }
+      },
+      "reconnect_suggest": {
+        "title": "",
+        "body": "タップして挨拶",
+        "push": {
+          "title": "",
+          "body": "タップして挨拶"
+        }
+      },
+      "tag_combo": {
+        "title": "",
+        "body": "話のきっかけになるかも",
+        "push": {
+          "title": "",
+          "body": "話のきっかけになるかも"
+        }
+      }
+    }
   },
   "scanResult": {
     "headerTitle": "友達追加",
@@ -626,7 +895,11 @@
     "relationClient": "クライアント",
     "alreadyConnectedTitle": "既につながっています",
     "alreadyConnectedMessage": "すでに友達です。",
-    "addFriend": "フォロー"
+    "addFriend": "フォロー",
+    "connectElsewhereTitle": "{{name}} さんと他のアプリでもつながる",
+    "connectElsewhereHint": "タップすると相手のページが開きます。フォロー／追加はあなたが行います。",
+    "selfScanMessage": "これは自分の QR です。自分は追加できません。",
+    "addingFriend": "友達に追加中…"
   },
   "manageTags": {
     "headerTitle": "タグを管理",
@@ -652,6 +925,7 @@
     "pinLimitMessage": "最大{{max}}個のタグをピン留めできます",
     "dragHint": "長押しでピン留め、矢印で並び替え",
     "aiSuggestionsTitle": "AIからのおすすめ",
+    "aiFromBioTitle": "自己紹介をもとに AI が提案",
     "pinTag": "タグをピン留め",
     "unpinTag": "ピン留め解除",
     "publicTagsTitle": "公開タグ",
@@ -663,7 +937,9 @@
     "dragSelectTarget": "入れ替えるタグをタップ",
     "tagLimitTitle": "タグの上限",
     "tagLimitMessage": "最大{{max}}個のタグを追加できます",
-    "aiErrorGeneric": "AIの提案は一時的に利用できません。後ほどお試しください"
+    "aiErrorGeneric": "AIの提案は一時的に利用できません。後ほどお試しください",
+    "nativeHintNoPin": "長押しでドラッグして並び替え",
+    "tagEditHint": "タップで削除（保存前は元に戻せる）· 長押しで並べ替え"
   },
   "activityReview": {
     "noNewFriends": "確認する新しい友達がいません",
@@ -673,7 +949,8 @@
     "hiddenTagPlaceholder": "非公開タグを追加...",
     "swipeHint": "← 左にスワイプでスキップ・右で次へ →",
     "skip": "スキップ",
-    "next": "次へ"
+    "next": "次へ",
+    "done": "完了"
   },
   "tagDetail": {
     "unknownTag": "不明なタグ",
@@ -712,6 +989,7 @@
     "title": "カメラへのアクセス",
     "grantPermission": "許可する",
     "instruction": "カメラをPikTagのQRコードに向けてください",
+    "cardFrameHint": "名刺全体を枠に合わせ、はっきり写してください",
     "invalidQr": "無効なQRコード",
     "invalidQrMessage": "このQRコードは有効なPikTag接続コードではありません。",
     "permissionMessage": "PikTagはQRコードをスキャンして友達とつながるためにカメラへのアクセスが必要です。"
@@ -791,19 +1069,6 @@
     "section11Title": "11. お問い合わせ",
     "section11Body": "PikTag Inc.\nメール: support@pikt.ag"
   },
-  "points": {
-    "balance": "Pコイン",
-    "lifetime": "累計獲得",
-    "inviteReward": "招待報酬",
-    "redeemHint": "Pコインは将来の有料サービスに使えます",
-    "historyTitle": "Pコイン履歴",
-    "reasonInviteAccepted": "友達が招待を受諾",
-    "reasonAdminGrant": "システム報酬",
-    "reasonRedeemed": "使用済み",
-    "emptyHistory": "Pコインの活動履歴がありません",
-    "plusOne": "+1 P",
-    "pointsUnit": "P"
-  },
   "chat": {
     "inbox": "メッセージ",
     "compose": "新規メッセージ",
@@ -833,7 +1098,12 @@
     "userBlocked": "このユーザーにはメッセージを送れません",
     "deliveryFailed": "送信失敗・タップで再試行",
     "unreadBadge": "{{count}}件の未読",
-    "messagesSent": "{{name}}からメッセージが届きました"
+    "messagesSent": "{{name}}からメッセージが届きました",
+    "timeJustNow": "たった今",
+    "timeYesterday": "昨日",
+    "timeMinutesAgo": "{{count}} 分前",
+    "timeHoursAgo": "{{count}} 時間前",
+    "timeDaysAgo": "{{count}} 日前"
   },
   "share": {
     "profileInviteMessage": "{{name}} (PikTag)\n{{url}}\n\nPikTag — 出会った友達一人ひとりにタグを付け、\nQRをスキャンするだけでいつ・どこで会ったかを自動で記録。\n\nPikTagを入手 → https://pikt.ag"
@@ -903,7 +1173,123 @@
     "generating": "タイトル生成中…",
     "minOneTag": "タグを1つ以上選択してください",
     "aiSuggestions": "AI 提案",
-    "yourTags": "あなたのタグ",
-    "noTagsHint": "先にプロフィール→タグ管理でタグを追加してください"
+    "customTagPlaceholder": "カスタムタグを追加",
+    "cardLabel": "助けて",
+    "askingNow": "現在募集中",
+    "yourAskTitle": "現在のAsk",
+    "generateAiTags": "AIでタグ生成",
+    "aiNoSuggestions": "AIから提案がありませんでした。もう一度試すか、自分で入力してください。",
+    "regenerateAiTags": "再生成",
+    "bubblePromptMine": "+ Ask 追加",
+    "aiSuggestionsTitle": "AI からの提案",
+    "aiBodyTooShortHint": "一言で書いてみて — AI がタグを提案します",
+    "aiTapToGenerateHint": "↻ をタップして AI にタグを提案してもらう",
+    "bodyPromptHints": [
+      "週末に一緒に山登りしたい",
+      "Wi-Fi 直せる人いる？急ぎ",
+      "案件探し中、発注ある人いる？",
+      "安い歯医者を教えて",
+      "今週ボードゲーム会、誰か来る？"
+    ],
+    "createSubtitle": "一言でOK — AIがタグを付けて、ぴったりの人（友達の友達も）に届きます。",
+    "createFailed": "Ask を送れなかった — もう一度試してね。",
+    "deleteFailed": "Ask を削除できませんでした"
+  },
+  "errorBoundary": {
+    "title": "問題が発生しました",
+    "message": "アプリで予期しないエラーが発生しました。もう一度お試しください。",
+    "retry": "再試行"
+  },
+  "report": {
+    "reportMessage": "このメッセージを報告",
+    "reportAsk": "この Ask を報告",
+    "reportNotification": "この通知を報告",
+    "hideFromUser": "このユーザーを非表示",
+    "confirmTitle": "報告",
+    "confirmDescription": "理由を選んでください。24時間以内に確認します。",
+    "success": "ご報告ありがとうございます",
+    "reasonSpam": "スパム",
+    "reasonHarassment": "嫌がらせ・いじめ",
+    "reasonInappropriate": "不適切なコンテンツ",
+    "reasonOther": "その他",
+    "noTarget": "この通知には報告できる相手がいません。"
+  },
+  "tabTooltips": {
+    "home": "友達",
+    "search": "検索 / チャット",
+    "addTag": "スキャン / 作成",
+    "notifications": "通知",
+    "profile": "プロフィール",
+    "dismissHint": "どこでもタップで閉じる"
+  },
+  "qrGroup": {
+    "headerTitle": "新しい人と出会う",
+    "detailHeader": "Tag",
+    "create": "新しい Tag を作成",
+    "createFirst": "今の Tag を作成",
+    "emptyTitle": "タグが新しい友達を覚えてくれる",
+    "emptyDesc": "スキャンしてつながると、出会いが自動でメモされる — もう「どこで会ったっけ」はなし。",
+    "untitled": "無題の Tag",
+    "untitledFallback": "Tag · {{date}}",
+    "namePlaceholder": "この Tag に名前をつける",
+    "tagsTitle": "Tag タグ",
+    "tagsEmpty": "タグなし",
+    "tagInputPlaceholder": "新しいタグ",
+    "noTagsYet": "タグなし",
+    "membersTitle": "メンバー（{{count}}）",
+    "memberCount": "{{count}} 名の友達",
+    "membersEmpty": "まだ誰もスキャンしていません — 友達に共有しましょう",
+    "deleteTitle": "この Tag を削除しますか？",
+    "deleteMessage": "「{{name}}」が Tags から削除されます。この QR で既に友達になっている人には影響しません。",
+    "deleteFailedTitle": "削除に失敗しました",
+    "deleteFailedMessage": "この Tag は削除されませんでした。後でもう一度お試しください。続く場合はお問い合わせください。",
+    "emptyScanCta": "または相手の QR をスキャンして追加"
+  },
+  "localContact": {
+    "editTitle": "連絡先を編集",
+    "addTitle": "連絡先を追加",
+    "intro": "まず人をメモ —— 相手は PikTag 未登録でOK。登録したら自動でつながり、タグも引き継がれます。",
+    "fieldName": "名前",
+    "namePlaceholder": "例：ダイビングで会ったアキラ",
+    "fieldPhone": "電話（任意・参加時の自動連携に使用）",
+    "phonePlaceholder": "+81 90 1234 5678",
+    "fieldEmail": "メール（任意）",
+    "emailPlaceholder": "name@example.com",
+    "fieldMetWhere": "どこで会った（任意）",
+    "metWherePlaceholder": "例：大学の同窓会、ダイビング",
+    "fieldNote": "メモ（自分だけ閲覧可）",
+    "notePlaceholder": "この人を思い出せる一言",
+    "fieldTags": "タグ（自分だけ閲覧可）",
+    "tagPlaceholder": "タグを入力…",
+    "save": "保存",
+    "nameRequiredTitle": "名前が必要",
+    "nameRequiredMsg": "後で思い出せるよう、最低限の名前をつけてください。",
+    "saveError": "保存できませんでした。後でもう一度お試しください。",
+    "notFound": "この連絡先が見つかりません —— PikTag に接続済みか削除された可能性があります。",
+    "alreadyMemberTitle": "この人はもう PikTag にいます",
+    "alreadyMemberMsg": "{{name}} はすでに PikTag 会員です —— 連絡先にメモするより、直接つながるのがおすすめ。",
+    "alreadyMemberConnect": "見る／追加",
+    "alreadyMemberFile": "連絡先として保存",
+    "alreadyMemberFallbackWho": "この人",
+    "deleteTitle": "この連絡先を削除？",
+    "deleteMsg": "自分のリストから消えるだけで、他の人には影響しません。",
+    "scanCardHint": "名刺を撮るだけで名前と連絡先を自動入力。あとから編集やタグ追加もOK。",
+    "manualEntry": "手入力する",
+    "scanRetake": "撮り直す",
+    "fieldBirthday": "誕生日（任意）",
+    "birthdayPlaceholder": "MM-DD または YYYY-MM-DD",
+    "linkPhone": "電話",
+    "linkEmail": "メール",
+    "linkAddress": "住所",
+    "scanningTitle": "名刺を読み取り中…",
+    "scanningSubtitle": "通常 5～10 秒かかります",
+    "fieldAddress": "住所",
+    "addressPlaceholder": "例：東京都千代田区丸の内 1-1-1",
+    "scanningCard": "名刺を読み取り中…（約3秒）"
+  },
+  "followers": {
+    "title": "フォロワー",
+    "count": "フォロワー{{count}}人",
+    "empty": "まだフォロワーがいません"
   }
 }

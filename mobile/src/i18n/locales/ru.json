@@ -1,4 +1,9 @@
 {
+  "app": {
+    "offline": "Вы офлайн. Некоторые функции могут быть ограничены.",
+    "backOnline": "Снова онлайн",
+    "offlineHint": "Некоторые функции требуют подключения"
+  },
   "tabs": {
     "home": "Главная",
     "search": "Поиск",
@@ -9,19 +14,25 @@
   "locationPicker": {
     "title": "Выбери место",
     "noNearbyPlaces": "Поблизости ничего не найдено. Введи название в поиск и нажми «Готово».",
-    "noResults": "Совпадений не найдено"
+    "noResults": "Совпадений не найдено",
+    "permissionDenied": "Доступ к местоположению отклонён",
+    "permissionDeniedWeb": "Доступ к местоположению отклонён. Разрешите в настройках браузера.",
+    "errorPrefix": "Ошибка местоположения: ",
+    "searchPlaceholder": "Поиск или название места",
+    "gpsOff": "Не удалось получить местоположение. Проверьте, включён ли GPS.",
+    "requestTimeout": "Время запроса местоположения истекло. Попробуйте ещё раз."
   },
   "friendsMap": {
     "title": "Карта друзей",
     "friendCount": "{{count}} друзей на карте",
     "noSharedLocations": "Пока никто из друзей не делится геолокацией",
     "staleHint": "Показываем только тех, чьё местоположение обновлялось за последние 24 часа",
-    "loadFailed": "Не удалось загрузить карту, попробуй ещё раз"
+    "loadFailed": "Не удалось загрузить карту. Проверьте подключение."
   },
   "hiddenTagEditor": {
     "timeTitle": "Когда вы познакомились",
     "locationTitle": "Где вы познакомились",
-    "frequentTitle": "Часто используемые",
+    "suggestedTitle": "Рекомендуемые",
     "addedTitle": "Добавлено",
     "today": "Сегодня",
     "yesterday": "Вчера",
@@ -53,7 +64,10 @@
     "noTags": "Тегов пока нет",
     "email": "Email",
     "phone": "Телефон",
-    "comingSoonTitle": "Скоро"
+    "comingSoonTitle": "Скоро",
+    "checkConnection": "Проверьте подключение и попробуйте снова",
+    "loadFailed": "Ошибка загрузки",
+    "willAutoRetry": "Повторим автоматически при подключении"
   },
   "auth": {
     "login": {
@@ -62,7 +76,7 @@
       "emailPlaceholder": "Email",
       "passwordPlaceholder": "Пароль",
       "loginButton": "Войти",
-      "noAccountPrompt": "Нет аккаунта? ",
+      "noAccountPrompt": "Нет аккаунта?",
       "registerLink": "Зарегистрироваться",
       "forgotPassword": "Забыл пароль?",
       "alertEnterEmailFirst": "Сначала введи email — мы отправим ссылку для сброса пароля",
@@ -70,7 +84,10 @@
       "alertResetSentMessage": "Ссылка для сброса пароля отправлена тебе на почту",
       "orDivider": "или",
       "continueWithApple": "Войти через Apple",
-      "continueWithGoogle": "Войти через Google"
+      "continueWithGoogle": "Войти через Google",
+      "errInvalidCredentials": "Неверная почта или пароль.",
+      "errEmailNotConfirmed": "Сначала подтвердите почту — нажмите присланную ссылку, затем войдите.",
+      "errGeneric": "Не удалось войти. Попробуйте ещё раз."
     },
     "register": {
       "alertEmptyFields": "Заполни все поля",
@@ -84,13 +101,26 @@
       "emailPlaceholder": "Email",
       "passwordPlaceholder": "Пароль",
       "registerButton": "Зарегистрироваться",
-      "hasAccountPrompt": "Уже есть аккаунт? ",
+      "hasAccountPrompt": "Уже есть аккаунт?",
       "loginLink": "Войти",
       "confirmPasswordPlaceholder": "Подтверди пароль",
       "alertPasswordMismatch": "Пароли не совпадают",
-      "passwordHint": "Пароль должен содержать минимум 6 символов"
+      "passwordHint": "Пароль должен содержать минимум 6 символов",
+      "birthdayLabel": "День рождения (по желанию)",
+      "alertVerifyEmailTitle": "Подтвердите почту",
+      "alertVerifyEmailMessage": "Мы отправили ссылку подтверждения на вашу почту. Нажмите её и войдите снова."
     },
     "onboarding": {
+      "welcome": {
+        "identityTitle": "Опиши себя тегами",
+        "identityDesc": "Выбери 10 тегов, которые отражают тебя — это твоя личность в PikTag",
+        "activateTitle": "Оживи свои старые знакомства",
+        "activateDesc": "Дни рождения, годовщины знакомств и общие воспоминания сами найдут тебя",
+        "discoverTitle": "Ищи по потребности, а не по имени",
+        "discoverDesc": "«Нужен друг-фотограф» · «Дизайнеры поблизости»",
+        "next": "Далее",
+        "getStarted": "Начать"
+      },
       "defaultTags": [
         "#Стартап",
         "#Дизайн",
@@ -115,13 +145,57 @@
       "contactResultText": "Найдено {{matched}} друзей",
       "step3Title": "Всё готово! Можно начинать",
       "step3Description": "Аккаунт готов, начинай пользоваться PikTag",
+      "quickStart": {
+        "title": "Начни с PikTag",
+        "subtitle": "Четыре вещи, чтобы быстро освоиться",
+        "card1": {
+          "title": "Добавь друзей",
+          "body": "Сканируй QR-код, синхронизируй контакты или ищи по нику"
+        },
+        "card2": {
+          "title": "Отмечай друзей тегами",
+          "body": "Например, «любитель кофе», «продакт», «клиент» — потом найдёшь их по тегу"
+        },
+        "card3": {
+          "title": "Ищи людей по тегу",
+          "body": "Введи тег во вкладке поиска и посмотри, кто разделяет твой интерес"
+        },
+        "card4": {
+          "title": "Опубликуй Ask",
+          "body": "Одна фраза — и вся твоя сеть помогает"
+        },
+        "cta": "Начать пользоваться PikTag"
+      },
       "backButton": "Назад",
       "enterPikTag": "Открыть PikTag",
       "nextButton": "Далее",
       "facebookLabel": "Facebook",
       "instagramLabel": "Instagram",
       "linkedinLabel": "LinkedIn",
-      "birthdayLabel": "День рождения"
+      "birthdayLabel": "День рождения",
+      "avatarStepTitle": "Сначала фото",
+      "avatarStepDescription": "Чтобы друзья узнавали тебя сразу — можно сменить в любой момент.",
+      "avatarPickAria": "Выбрать фото",
+      "avatarTapToPick": "Нажми на круг, чтобы выбрать фото",
+      "avatarTapToChange": "Нажми на фото, чтобы сменить",
+      "avatarPermissionTitle": "Нужен доступ к фотогалерее",
+      "avatarPermissionMessage": "Разреши PikTag доступ к фото в Настройках",
+      "skipStep": "Пропустить",
+      "scanCardCta": "Сканировать визитку",
+      "scanCardHint": "Есть визитка? Сфотографируйте — bio и контакты автоматически (необяз.)",
+      "cardScanFailedTitle": "Ошибка сканирования",
+      "cardScanFailedMessage": "Не удалось прочитать визитку. Повторите или введите вручную.",
+      "cardScanEmptyTitle": "Ничего не найдено",
+      "cardScanEmptyMessage": "Визитку плохо видно — сделайте чёткое фото или введите вручную.",
+      "cardConfirmTitle": "Подтвердите данные",
+      "cardConfirmSubtitle": "Проверьте и измените — применится после подтверждения",
+      "cardFieldName": "Имя",
+      "cardFieldBio": "Bio (черновик ИИ, можно править)",
+      "cardBioPlaceholder": "Одна строка о вас",
+      "cardLinksLabel": "Контакты / соцсети",
+      "cardApplyCta": "Применить",
+      "profileCta": "Создать первый Tag",
+      "saveFailed": "Не удалось сохранить — проверьте соединение и повторите."
     }
   },
   "connections": {
@@ -162,7 +236,30 @@
     "clearFilter": "Сбросить фильтр",
     "noTagsToFilter": "Нет тегов для фильтра",
     "newBadge": "Новый",
-    "unreviewedLabel": "к просмотру"
+    "unreviewedLabel": "к просмотру",
+    "sortLabel": "Сортировка",
+    "sortByRecent": "Недавно добавленные",
+    "sortByAlphabet": "По алфавиту (A→Z)",
+    "sortByAlphabetDesc": "По алфавиту (Z→A)",
+    "sortByInteraction": "Недавнее взаимодействие",
+    "sortByBirthday": "Скоро день рождения",
+    "addContact": "Добавить контакт",
+    "addContactTitle": "Добавить контакт",
+    "addSearchTitle": "Найти пользователей PikTag",
+    "addSearchDesc": "По имени, нику или тегу",
+    "addContactSyncTitle": "Синхронизировать контакты",
+    "addContactSyncDesc": "Найди друзей, которые уже здесь",
+    "addInviteTitle": "Пригласи друзей в PikTag",
+    "addInviteDesc": "Поделись ссылкой — друг по умолчанию",
+    "coldStartActionContacts": "Найди друзей из контактов",
+    "coldStartActionContactsDesc": "Найди тех, кто уже здесь — отметь и пригласи остальных",
+    "notJoinedBadge": "Ещё не в PikTag",
+    "coldStartActionManual": "Записать человека",
+    "coldStartActionManualDesc": "Аккаунт не нужен — привяжется к вашим тегам и заметкам при регистрации",
+    "addManualA11y": "Добавить контакт вручную",
+    "phonePromptTitle": "Добавьте телефон, чтобы друзья нашли вас",
+    "phonePromptBody": "Когда друзья синхронизируют контакты, вы автоматически свяжетесь. Используется только в PikTag, никогда не публично.",
+    "addedFriend": "+ {{name}}"
   },
   "search": {
     "clearAll": "Очистить всё",
@@ -171,6 +268,14 @@
     "intersectionResultCount": "Найдено {{count}} людей",
     "headerTitle": "Поиск",
     "searchPlaceholder": "Теги, имена пользователей и т.д.",
+    "promptHints": [
+      "Нужен друг-фотограф",
+      "Ищу того, кто говорит по-английски",
+      "Дизайнеры в {{city}}",
+      "Есть кто-то из стартапов?",
+      "Ищу веб-разработчика"
+    ],
+    "promptHintCityFallback": "Дизайнеры поблизости",
     "categorySectionLabel": "По категориям",
     "categoryPopular": "Популярные теги",
     "categoryNearby": "Рядом",
@@ -185,6 +290,7 @@
     "profilesSectionLabel": "Участники",
     "noProfilesFound": "Подходящих участников не найдено",
     "noProfilesFoundTitle": "Нет результатов по «{{query}}»",
+    "askPrompt": "Нет в вашей сети? Опубликуйте Ask — друзья и друзья друзей помогут найти.",
     "tryTagSearchHint": "Попробуй #тег или другое слово",
     "clearAndRetry": "Очистить и попробовать снова",
     "resetButton": "Сбросить",
@@ -198,10 +304,16 @@
     "tagUsersTitle": "Кто использует этот тег",
     "viewAllTagUsers": "Показать все {{count}}",
     "categoryUncategorized": "Другое",
-    "allCategories": "Все"
+    "allCategories": "Все",
+    "openMap": "Открыть карту",
+    "searchBtn": "Поиск",
+    "searchInputLabel": "Поиск",
+    "clearSearchLabel": "Очистить поиск",
+    "recommendedTitle": "Возможно, вам интересно",
+    "tagsSelected": "тегов выбрано"
   },
   "addTag": {
-    "headerTitle": "# Знакомься",
+    "headerTitle": "Создать Tag",
     "alertTagExists": "Тег уже добавлен",
     "alertTagExistsMessage": "Этот тег уже есть в списке.",
     "alertEnterPresetName": "Введи название шаблона",
@@ -213,18 +325,9 @@
     "alertQrError": "Не удалось создать QR-код, попробуй ещё раз.",
     "alertDeletePresetTitle": "Удалить шаблон",
     "alertDeletePresetMessage": "Точно удалить «{{name}}»?",
-    "dateLabel": "Date Tag",
-    "datePlaceholder": "ГГГГ/ММ/ДД",
-    "dateDisplayFallback": "Нажми, чтобы выбрать дату",
-    "locationLabel": "Location Tag",
-    "locationPlaceholder": "Введи место события...",
-    "currentLocation": "Текущее местоположение",
-    "selectLocation": "Выбрать место",
-    "manualInput": "Ввести вручную",
     "locationPermDenied": "Доступ к геолокации запрещён",
     "customTagsLabel": "Свои теги",
     "hiddenTagHint": "Видно только тебе — поможет вспомнить, где встретились",
-    "pickDate": "Выбрать дату",
     "tagPlaceholder": "Введи тег...",
     "addButton": "Добавить",
     "saveAsPreset": "Сохранить как шаблон",
@@ -257,7 +360,21 @@
     "copyLink": "Скопировать ссылку",
     "editQr": "Изменить QR",
     "alertLinkCopiedTitle": "Скопировано",
-    "alertLinkCopiedMessage": "Ссылка скопирована в буфер обмена"
+    "alertLinkCopiedMessage": "Ссылка скопирована в буфер обмена",
+    "contextLabel": "Что за повод?",
+    "contextHint": "Хватит одной строки. ИИ по вашим словам, времени и месту предложит теги — чтобы вы помнили, с кем здесь познакомились.",
+    "contextPlaceholder": "Напр: бранч на выходных, демо клиенту, презентация книги",
+    "aiSuggestionsTitle": "Подсказки ИИ",
+    "aiSuggestionsHint": "Напиши строку — AI учтёт её + локацию + теги-личность.",
+    "aiSuggestionsEmpty": "AI ничего не нашёл — попробуй снова или добавь сам.",
+    "aiRegenerate": "Перегенерировать",
+    "contextPromptHints": [
+      "Дайвинг-поездка",
+      "Встреча выпускников",
+      "Корпоратив",
+      "Шашлыки на выходных",
+      "Свадьба друга"
+    ]
   },
   "profile": {
     "nameNotSet": "Имя не указано",
@@ -266,12 +383,12 @@
     "noBio": "Описания пока нет",
     "noTags": "Тегов пока нет",
     "tagFallback": "Тег",
+    "askPromptHint": "Нажми + для Ask · «Мне нужен…»",
     "friendCountSuffix": "друзей",
     "shareProfile": "Поделиться профилем",
     "editProfile": "Редактировать профиль",
     "manageTags": "Управление тегами",
     "noContactMethods": "Нет способов связи",
-    "statusTooltip": "Нажми, чтобы установить статус",
     "contactInfoTitle": "Контакты",
     "phoneLabel": "Телефон",
     "emailLabel": "Email",
@@ -282,7 +399,11 @@
     "statFriends": "Друзья",
     "statFollowers": "Подписчики",
     "copyLink": "Скопировать ссылку",
-    "share": "Поделиться"
+    "share": "Поделиться",
+    "statTagsA11y": "Посмотреть мои теги",
+    "statFriendsA11y": "Посмотреть моих друзей",
+    "statFollowersA11y": "Посмотреть моих подписчиков",
+    "statTribeA11y": "Посмотреть моё созвездие Tribe"
   },
   "editProfile": {
     "headerTitle": "Редактирование профиля",
@@ -305,7 +426,7 @@
     "usernameLabel": "Имя пользователя",
     "usernamePlaceholder": "Введи имя пользователя",
     "headlineLabel": "Должность / Роль",
-    "headlinePlaceholder": "например: PM @ Google, фриланс-дизайнер",
+    "headlinePlaceholder": "например: PM @ ИТ-компания, фриланс-дизайнер",
     "bioLabel": "О себе",
     "bioPlaceholder": "Введи описание",
     "phoneLabel": "Телефон",
@@ -343,7 +464,57 @@
     "selectPlatform": "Выбери платформу",
     "linkName": "Название ссылки",
     "selectCountry": "Выбери страну",
-    "searchCountry": "Найди страну или код"
+    "searchCountry": "Найди страну или код",
+    "invalidImageType": "Неподдерживаемый тип изображения. Используйте JPEG, PNG или WebP.",
+    "imageTooLarge": "Изображение слишком большое. Максимальный размер — 2 МБ.",
+    "browseAllPlatformsCta": "Ещё…",
+    "browseAllPlatforms": "Все платформы",
+    "platformSearchPlaceholder": "Поиск платформ…",
+    "platformSearchEmpty": "Ничего не найдено",
+    "detectedAs": "Распознано как {{platform}}",
+    "platform": {
+      "phone": "Телефон",
+      "email": "Email",
+      "website": "Сайт",
+      "blog": "Блог",
+      "portfolio": "Портфолио",
+      "custom": "Своя ссылка"
+    },
+    "platformCategory": {
+      "communication": "Связь",
+      "social": "Соцсети",
+      "video": "Видео",
+      "music": "Музыка",
+      "professional": "Карьера",
+      "writing": "Тексты",
+      "business": "Бизнес",
+      "generic": "Общие"
+    },
+    "completionInline": "Чтобы твои люди тебя нашли — добавь {{items}}",
+    "missingAvatar": "Аватар",
+    "missingBio": "Био",
+    "missingTags": "3 тега",
+    "missingBiolink": "Соцсеть",
+    "welcomeShort": "Добро пожаловать в PikTag",
+    "bioPromptHints": [
+      "Менеджер по продажам в IT; бег — моя разгрузка, цель — марафон из 4 часов",
+      "Учитель начальных классов, огород на балконе, больше 20 суккулентов",
+      "Медбрат скорой, после смен пеку для разгрузки, учусь варить пуровер",
+      "Backend-разработчик, сейчас увлёкся готовкой и керамикой, дома вредная сиба",
+      "Студент-психолог, играю на гитаре в группе, начал брать заказы на иллюстрации"
+    ],
+    "headlinePromptHints": [
+      "PM @ ИТ-компания",
+      "Юрист @ юрфирма",
+      "Медбрат скорой @ медцентр",
+      "Графический дизайнер на фрилансе",
+      "Студент-психолог"
+    ],
+    "needLibraryPermissionTitle": "Требуется доступ к фотобиблиотеке",
+    "needLibraryPermissionMsg": "Разрешите доступ в Настройках",
+    "notSignedIn": "Не выполнен вход",
+    "uploadFailTitle": "Ошибка загрузки",
+    "tryAgainLater": "Повторите попытку позже"
   },
   "friendDetail": {
     "reminderBirthday": "День рождения",
@@ -369,6 +540,9 @@
     "metLocationLabel": "Место",
     "metNoteLabel": "Заметка",
     "eventTagsLabel": "Теги события",
+    "eventTagsSection": "Совместные события",
+    "eventTagsExpand": "Показать все ({{count}})",
+    "eventTagsCollapse": "Свернуть",
     "stickyNotesTitle": "Стикеры",
     "notePlaceholder": "Напиши заметку...",
     "noteCancel": "Отмена",
@@ -408,19 +582,24 @@
     "unfollowMessage": "Точно отписаться от {{name}}?",
     "unfollowConfirm": "Отписаться",
     "hiddenTagsTitle": "Скрытые теги (видны только тебе)",
+    "eventTagsTitle": "Теги события",
     "hiddenTagPlaceholder": "Добавь скрытый тег, например «бывший коллега»",
     "mutualTagsModalTitle": "Общие теги",
     "mutualFriendsSectionTitle": "Общие друзья",
-    "shareIntroMessage": "Знакомься — это {{name}}, вот его профиль: {{url}}"
+    "shareIntroMessage": "Знакомься — это {{name}}, вот его профиль: {{url}}",
+    "tag": "Метка",
+    "recommendMembers": "Рекомендованные",
+    "blockConfirmTitle": "Заблокировать этого человека?",
+    "blockConfirmMessage": "Вы оба отпишетесь и перестанете видеть контент друг друга."
   },
   "userDetail": {
     "headerNotFound": "Не найдено",
     "userNotFound": "Пользователь не найден",
-    "mutualFriendsPrefix": "Общие друзья: ",
+    "mutualFriendsPrefix": "Общие друзья:",
     "mutualFriendsSuffix": "",
-    "mutualTagsPrefix": "Общие теги: ",
+    "mutualTagsPrefix": "Общие теги:",
     "mutualTagsSuffix": "",
-    "mutualSeparator": "  |  ",
+    "mutualSeparator": "|",
     "following": "Вы подписаны",
     "follow": "Подписаться",
     "sendMessage": "Сообщение",
@@ -455,7 +634,12 @@
     "pickTagSubtitle": "Выбери теги, которые лучше описывают {{name}}",
     "pickTagEmpty": "У этого пользователя пока нет публичных тегов",
     "pickTagSave": "Сохранить ({{count}})",
-    "hiddenTagPlaceholder": "Добавь скрытый тег..."
+    "hiddenTagPlaceholder": "Добавь скрытый тег...",
+    "tag": "Метка",
+    "recommendMembers": "Рекомендованные",
+    "vibeContextTagsTitle": "Теги этого Tag",
+    "blockConfirmTitle": "Заблокировать этого человека?",
+    "blockConfirmMessage": "Вы оба отпишетесь и перестанете видеть контент друг друга."
   },
   "settings": {
     "headerTitle": "Настройки",
@@ -504,7 +688,10 @@
     "deactivateMessage": "Профиль будет скрыт. Чтобы вернуться, просто войди снова.",
     "deactivateConfirm": "Деактивировать",
     "deleteAccountButton": "Удалить аккаунт",
-    "alertDeleteAccountNote": "Это действие нельзя отменить. Аккаунт и все данные будут удалены навсегда"
+    "alertDeleteAccountNote": "Это действие нельзя отменить. Аккаунт и все данные будут удалены навсегда",
+    "analyticsOptIn": "Отправлять аналитику использования",
+    "analyticsOptInDescription": "Помогите нам улучшить приложение",
+    "attRationale": "PikTag использует базовую аналитику для улучшения опыта. Мы никогда не отслеживаем вас в других приложениях."
   },
   "contactSync": {
     "headerTitle": "Синхронизация контактов",
@@ -525,7 +712,23 @@
     "inviteMessage": "Привет, {{name}}! Я в PikTag — обмениваемся тегами. Присоединяйся: https://pikt.ag",
     "batchProgress": "Обрабатываем {{current}}/{{total}}",
     "alertBatchDoneTitle": "Импорт завершён",
-    "alertBatchDoneMessage": "Добавлено {{matched}} друзей. {{notOnApp}} контактов ещё не в PikTag."
+    "alertBatchDoneMessage": "Добавлено {{matched}} друзей. {{notOnApp}} контактов ещё не в PikTag.",
+    "sectionOnPiktag": "В PikTag · {{count}}",
+    "sectionNotOnPiktag": "Не в PikTag · {{count}}",
+    "summaryHeading": "{{onCount}} в PikTag · {{offCount}} можно пригласить",
+    "followAllCta": "Подписаться на всех друзей PikTag ({{count}})",
+    "followBtn": "Подписаться",
+    "inviteBtn": "Пригласить",
+    "tagInviteBtn": "Отметить и пригласить",
+    "fromContact": "Контакт: {{name}}",
+    "classifyingText": "Сопоставляем…",
+    "alertFollowAllTitle": "Подписаться на всех",
+    "alertFollowAllMessage": "Добавить всех {{count}} друзей PikTag в свои связи?",
+    "alertFollowAllConfirm": "Добавить",
+    "alertFollowAllDoneTitle": "Готово",
+    "alertFollowAllDoneMessage": "Добавлено {{count}} друзей PikTag",
+    "allConnected": "Все контакты PikTag уже добавлены",
+    "openSettings": "Открыть настройки, чтобы разрешить доступ"
   },
   "invite": {
     "headerTitle": "Пригласить друзей",
@@ -563,11 +766,11 @@
     "defaultLocation": "Текущее местоположение",
     "alertPermTitle": "Доступ к геолокации",
     "alertPermMessage": "Для этой функции нужен доступ к геолокации",
-    "metAtPrefix": "Знакомство в ",
+    "metAtPrefix": "Знакомство в",
     "metAtSuffix": "",
     "nearbySection": "Рядом ({{count}})",
     "metHereSection": "Знакомство здесь ({{count}})",
-    "emptyText": "Поблизости никого не нашлось"
+    "emptyText": "Никого рядом. Измените радиус поиска или загляните в «Обзор», чтобы найти новых друзей"
   },
   "dashboard": {
     "headerTitle": "Личная статистика",
@@ -581,7 +784,7 @@
     "totalLinkClicks": "Клики по ссылкам",
     "totalQrScans": "Всего сканирований QR",
     "growthCurveTitle": "Рост связей",
-    "growthCurveEmpty": "Данных по друзьям пока нет",
+    "growthCurveEmpty": "Пока нет данных о друзьях. Добавь теги или пригласи друзей, чтобы начать",
     "presetScansTitle": "Сканирования по шаблонам",
     "presetScansEmpty": "Записей о сканировании шаблонов нет",
     "scanCountSuffix": "сканирований",
@@ -605,7 +808,73 @@
     "timeYesterday": "Вчера",
     "timeDaysAgo": "{{count}} д назад",
     "timeWeeksAgo": "{{count}} нед назад",
-    "emptyState": "Уведомлений нет"
+    "emptyState": "Уведомлений нет. Настрой напоминания или следи за активностью друзей",
+    "types": {
+      "ask_posted": {
+        "title": "",
+        "body": "опубликовал(а) Ask · {{ask_body}}",
+        "push": {
+          "title": "{{username}}",
+          "body": "опубликовал(а) Ask · {{ask_body}}"
+        }
+      },
+      "vibe_shift": {
+        "title": "",
+        "body": "добавил(а) новый тег #{{tag_name}}",
+        "push": {
+          "title": "{{username}}",
+          "body": "добавил(а) новый тег #{{tag_name}}"
+        }
+      },
+      "on_this_day": {
+        "title": "",
+        "body": "Вернись к тому дню",
+        "push": {
+          "title": "",
+          "body": "Вернись к тому дню"
+        }
+      },
+      "tag_convergence": {
+        "title": "",
+        "body": "Напиши им",
+        "push": {
+          "title": "",
+          "body": "Напиши им"
+        }
+      },
+      "ask_bridge": {
+        "title": "",
+        "body": "Попроси познакомить",
+        "push": {
+          "title": "",
+          "body": "Попроси познакомить"
+        }
+      },
+      "ask_prompt": {
+        "title": "",
+        "body": "Одно сообщение, и кто-то поможет",
+        "push": {
+          "title": "",
+          "body": "Одно сообщение, и кто-то поможет"
+        }
+      },
+      "reconnect_suggest": {
+        "title": "",
+        "body": "Поздоровайся",
+        "push": {
+          "title": "",
+          "body": "Поздоровайся"
+        }
+      },
+      "tag_combo": {
+        "title": "",
+        "body": "Хорошая тема для разговора",
+        "push": {
+          "title": "",
+          "body": "Хорошая тема для разговора"
+        }
+      }
+    }
   },
   "scanResult": {
     "headerTitle": "Добавить друга",
@@ -626,7 +895,11 @@
     "relationClient": "Клиент",
     "alreadyConnectedTitle": "Уже друзья",
     "alreadyConnectedMessage": "Вы уже друзья.",
-    "addFriend": "Подписаться"
+    "addFriend": "Подписаться",
+    "connectElsewhereTitle": "Свяжитесь с {{name}} и здесь",
+    "connectElsewhereHint": "Нажмите, чтобы открыть их страницу в приложении — подписку/добавление делаете вы.",
+    "selfScanMessage": "Это ваш собственный QR — нельзя добавить себя.",
+    "addingFriend": "Добавляем друга…"
   },
   "manageTags": {
     "headerTitle": "Управление тегами",
@@ -652,6 +925,7 @@
     "pinLimitMessage": "Можно закрепить максимум {{max}} тегов",
     "dragHint": "Удерживай для закрепления, стрелки — для сортировки",
     "aiSuggestionsTitle": "Подсказки от ИИ",
+    "aiFromBioTitle": "ИИ-подсказки на основе твоего био",
     "pinTag": "Закрепить тег",
     "unpinTag": "Открепить",
     "publicTagsTitle": "Публичные теги",
@@ -663,7 +937,9 @@
     "dragSelectTarget": "Нажми тег, чтобы поменять местами",
     "tagLimitTitle": "Лимит тегов",
     "tagLimitMessage": "Можно добавить максимум {{max}} тегов",
-    "aiErrorGeneric": "Подсказки ИИ временно недоступны, попробуй позже"
+    "aiErrorGeneric": "Подсказки ИИ временно недоступны, попробуй позже",
+    "nativeHintNoPin": "Удерживай и тяни, чтобы переставить",
+    "tagEditHint": "Нажмите, чтобы удалить (отменяемо до сохранения) · Удерживайте для сортировки"
   },
   "activityReview": {
     "noNewFriends": "Новых друзей для просмотра нет",
@@ -673,7 +949,8 @@
     "hiddenTagPlaceholder": "Добавь скрытый тег...",
     "swipeHint": "← Свайп влево — пропустить · Вправо — далее →",
     "skip": "Пропустить",
-    "next": "Далее"
+    "next": "Далее",
+    "done": "Готово"
   },
   "tagDetail": {
     "unknownTag": "Неизвестный тег",
@@ -712,6 +989,7 @@
     "title": "Доступ к камере",
     "grantPermission": "Разрешить",
     "instruction": "Наведи камеру на QR-код PikTag",
+    "cardFrameHint": "Поместите всю визитку в рамку, чётко",
     "invalidQr": "Неверный QR-код",
     "invalidQrMessage": "Это не QR-код PikTag.",
     "permissionMessage": "PikTag нужен доступ к камере, чтобы сканировать QR-коды и подключать друзей."
@@ -791,19 +1069,6 @@
     "section11Title": "11. Контакты",
     "section11Body": "PikTag Inc.\nEmail: support@pikt.ag"
   },
-  "points": {
-    "balance": "P-монеты",
-    "lifetime": "Всего заработано",
-    "inviteReward": "Награда за приглашение",
-    "redeemHint": "Используй P-монеты для будущих платных услуг",
-    "historyTitle": "История P-монет",
-    "reasonInviteAccepted": "Друг принял приглашение",
-    "reasonAdminGrant": "Награда от системы",
-    "reasonRedeemed": "Использовано",
-    "emptyHistory": "Пока нет операций с P-монетами",
-    "plusOne": "+1 P",
-    "pointsUnit": "P"
-  },
   "chat": {
     "inbox": "Сообщения",
     "compose": "Новое сообщение",
@@ -833,7 +1098,12 @@
     "userBlocked": "Этому пользователю нельзя написать",
     "deliveryFailed": "Не отправлено · Нажми, чтобы повторить",
     "unreadBadge": "{{count}} непрочитано",
-    "messagesSent": "{{name}} написал тебе"
+    "messagesSent": "{{name}} написал тебе",
+    "timeJustNow": "Только что",
+    "timeYesterday": "Вчера",
+    "timeMinutesAgo": "{{count}} мин назад",
+    "timeHoursAgo": "{{count}} ч назад",
+    "timeDaysAgo": "{{count}} дн назад"
   },
   "share": {
     "profileInviteMessage": "{{name}} в PikTag\n{{url}}\n\nPikTag — отмечай тегами каждого, кого встречаешь,\nсканируй QR, чтобы автоматически сохранить когда и где.\n\nСкачай PikTag → https://pikt.ag"
@@ -903,7 +1173,123 @@
     "generating": "Generating title…",
     "minOneTag": "Select at least one tag",
     "aiSuggestions": "Подсказки ИИ",
-    "yourTags": "Твои теги",
-    "noTagsHint": "Сначала добавь теги в Профиль → Управление тегами"
+    "customTagPlaceholder": "Добавить тег",
+    "cardLabel": "Ищу",
+    "askingNow": "Просят сейчас",
+    "yourAskTitle": "Ваш активный Ask",
+    "generateAiTags": "Сгенерировать ИИ-теги",
+    "aiNoSuggestions": "ИИ не нашёл подходящих тегов. Попробуй снова или введи сам.",
+    "regenerateAiTags": "Перегенерировать",
+    "bubblePromptMine": "+ Новый Ask",
+    "aiSuggestionsTitle": "Подсказки ИИ",
+    "aiBodyTooShortHint": "Опишите одной фразой — ИИ предложит теги",
+    "aiTapToGenerateHint": "Нажмите ↻, чтобы ИИ предложил теги",
+    "bodyPromptHints": [
+      "Кто на поход в выходные?",
+      "Нужен тот, кто починит Wi-Fi, срочно",
+      "Ищу подработку — кто-нибудь нанимает?",
+      "Посоветуйте недорогого стоматолога",
+      "Вечер настолок на неделе — кто со мной?"
+    ],
+    "createSubtitle": "Хватит одной строки — ИИ подберёт теги, чтобы это увидели нужные люди (или друзья ваших друзей).",
+    "createFailed": "Ask не отправился — попробуйте ещё раз.",
+    "deleteFailed": "Не удалось удалить ask"
+  },
+  "errorBoundary": {
+    "title": "Что-то пошло не так",
+    "message": "Приложение столкнулось с непредвиденной ошибкой. Попробуйте ещё раз.",
+    "retry": "Повторить"
+  },
+  "report": {
+    "reportMessage": "Пожаловаться на сообщение",
+    "reportAsk": "Пожаловаться на Ask",
+    "reportNotification": "Пожаловаться на уведомление",
+    "hideFromUser": "Скрыть этого пользователя",
+    "confirmTitle": "Жалоба",
+    "confirmDescription": "Выберите причину. Рассмотрим в течение 24 часов.",
+    "success": "Спасибо — мы рассмотрим.",
+    "reasonSpam": "Спам",
+    "reasonHarassment": "Оскорбления",
+    "reasonInappropriate": "Неприемлемый контент",
+    "reasonOther": "Другое",
+    "noTarget": "В этом уведомлении некого пожаловаться."
+  },
+  "tabTooltips": {
+    "home": "Друзья",
+    "search": "Поиск / Чат",
+    "addTag": "Скан / Создать",
+    "notifications": "Уведомл.",
+    "profile": "Твой профиль",
+    "dismissHint": "Нажми, чтобы закрыть"
+  },
+  "qrGroup": {
+    "headerTitle": "Знакомьтесь с новыми людьми",
+    "detailHeader": "Tag",
+    "create": "Создать новый Tag",
+    "createFirst": "Создать Tag сейчас",
+    "emptyTitle": "Пусть теги запомнят новых друзей за вас",
+    "emptyDesc": "После сканирования и добавления встреча отмечается автоматически — больше не забудете, где познакомились.",
+    "untitled": "Tag без названия",
+    "untitledFallback": "Tag · {{date}}",
+    "namePlaceholder": "Назови этот Tag",
+    "tagsTitle": "Теги Tag",
+    "tagsEmpty": "Нет тегов",
+    "tagInputPlaceholder": "Новый тег",
+    "noTagsYet": "Нет тегов",
+    "membersTitle": "Участники ({{count}})",
+    "memberCount": "{{count}} друзей",
+    "membersEmpty": "Никто пока не отсканировал — поделись с друзьями",
+    "deleteTitle": "Удалить этот Tag?",
+    "deleteMessage": "«{{name}}» будет удалён из твоих Tags. На друзей, которые уже добавили тебя через этот QR, это не повлияет.",
+    "deleteFailedTitle": "Не удалось удалить",
+    "deleteFailedMessage": "Этот Tag не был удалён. Повторите попытку позже. Свяжитесь с нами, если повторяется.",
+    "emptyScanCta": "Или отсканируйте их QR, чтобы добавить"
+  },
+  "localContact": {
+    "editTitle": "Изменить контакт",
+    "addTitle": "Новый контакт",
+    "intro": "Запишите человека — аккаунт PikTag пока не нужен. Когда зарегистрируется, всё свяжется само, теги перейдут.",
+    "fieldName": "Имя",
+    "namePlaceholder": "напр. Алекс с дайвинга",
+    "fieldPhone": "Телефон (необяз. — привяжет при регистрации)",
+    "phonePlaceholder": "+7 912 345 67 89",
+    "fieldEmail": "Email (необяз.)",
+    "emailPlaceholder": "name@example.com",
+    "fieldMetWhere": "Где познакомились (необяз.)",
+    "metWherePlaceholder": "напр. встреча выпускников, дайвинг",
+    "fieldNote": "Заметка (видите только вы)",
+    "notePlaceholder": "Одна строка, чтобы вспомнить",
+    "fieldTags": "Теги (видите только вы)",
+    "tagPlaceholder": "Добавить тег…",
+    "save": "Сохранить",
+    "nameRequiredTitle": "Нужно имя",
+    "nameRequiredMsg": "Укажите хотя бы имя, чтобы вспомнить позже.",
+    "saveError": "Не удалось сохранить — попробуйте ещё раз.",
+    "notFound": "Контакт не найден — возможно, он связан с PikTag или удалён.",
+    "alreadyMemberTitle": "Этот человек уже в PikTag",
+    "alreadyMemberMsg": "{{name}} уже в PikTag — лучше связаться напрямую, чем просто сохранить контакт.",
+    "alreadyMemberConnect": "Открыть / добавить",
+    "alreadyMemberFile": "Всё равно сохранить",
+    "alreadyMemberFallbackWho": "Этот человек",
+    "deleteTitle": "Удалить этот контакт?",
+    "deleteMsg": "Удалится только из вашего списка — других не затронет.",
+    "scanCardHint": "Сфотографируй визитку — имя и контакты заполнятся сами. Потом отредактируешь или добавишь теги.",
+    "manualEntry": "Или ввести вручную",
+    "scanRetake": "Переснять",
+    "fieldBirthday": "День рождения (по желанию)",
+    "birthdayPlaceholder": "ММ-ДД или ГГГГ-ММ-ДД",
+    "linkPhone": "Телефон",
+    "linkEmail": "Эл. почта",
+    "linkAddress": "Адрес",
+    "scanningTitle": "Распознаём визитку…",
+    "scanningSubtitle": "Обычно занимает 5–10 секунд",
+    "fieldAddress": "Адрес",
+    "addressPlaceholder": "напр. ул. Тверская 1, Москва",
+    "scanningCard": "Распознавание визитки… (около 3 с)"
+  },
+  "followers": {
+    "title": "Подписчики",
+    "count": "{{count}} подписчиков",
+    "empty": "Пока нет подписчиков"
   }
 }

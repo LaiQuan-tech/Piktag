@@ -14,7 +14,8 @@ import {
 } from 'react-native';
 import { Search, Check } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
-import { COLORS } from '../constants/theme';
+import { COLORS, type ColorPalette } from '../constants/theme';
+import { useTheme } from '../context/ThemeContext';
 import { COUNTRIES, type Country } from '../lib/countryCodes';
 
 const SCREEN_HEIGHT = Dimensions.get('window').height;
@@ -44,6 +45,8 @@ export default function CountryCodePicker({
   selectedIso,
 }: CountryCodePickerProps) {
   const { t } = useTranslation();
+  const { colors, isDark } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const [query, setQuery] = useState('');
   const slideAnim = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
 
@@ -99,7 +102,7 @@ export default function CountryCodePicker({
         </Text>
         <Text style={styles.dial}>{item.dial}</Text>
         {isSelected ? (
-          <Check size={18} color={COLORS.piktag500} style={styles.checkIcon} />
+          <Check size={18} color={colors.piktag500} style={styles.checkIcon} />
         ) : (
           <View style={styles.checkIcon} />
         )}
@@ -130,13 +133,13 @@ export default function CountryCodePicker({
           <Text style={styles.title}>{t('editProfile.selectCountry')}</Text>
 
           <View style={styles.searchRow}>
-            <Search size={16} color={COLORS.gray400} style={styles.searchIcon} />
+            <Search size={16} color={colors.gray400} style={styles.searchIcon} />
             <TextInput
               style={styles.searchInput}
               value={query}
               onChangeText={setQuery}
               placeholder={t('editProfile.searchCountry')}
-              placeholderTextColor={COLORS.gray400}
+              placeholderTextColor={colors.gray400}
               autoCorrect={false}
               autoCapitalize="none"
             />
@@ -161,7 +164,8 @@ export default function CountryCodePicker({
   );
 }
 
-const styles = StyleSheet.create({
+function makeStyles(c: ColorPalette) {
+  return StyleSheet.create({
   overlay: {
     flex: 1,
     justifyContent: 'flex-end',
@@ -171,7 +175,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.4)',
   },
   sheet: {
-    backgroundColor: COLORS.white,
+    backgroundColor: c.white,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     paddingTop: 12,
@@ -185,21 +189,21 @@ const styles = StyleSheet.create({
     width: 40,
     height: 4,
     borderRadius: 2,
-    backgroundColor: COLORS.gray200,
+    backgroundColor: c.gray200,
     alignSelf: 'center',
     marginBottom: 12,
   },
   title: {
     fontSize: 17,
     fontWeight: '700',
-    color: COLORS.gray900,
+    color: c.gray900,
     marginBottom: 12,
   },
   searchRow: {
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1.5,
-    borderColor: COLORS.gray200,
+    borderColor: c.gray200,
     borderRadius: 12,
     paddingHorizontal: 12,
     marginBottom: 12,
@@ -211,7 +215,7 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: 10,
     fontSize: 15,
-    color: COLORS.gray900,
+    color: c.gray900,
   },
   list: {
     flexGrow: 0,
@@ -222,10 +226,10 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 4,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: COLORS.gray100,
+    borderBottomColor: c.gray100,
   },
   rowSelected: {
-    backgroundColor: COLORS.piktag50 ?? 'rgba(170,0,255,0.06)',
+    backgroundColor: c.piktag50 ?? 'rgba(170,0,255,0.06)',
     borderRadius: 8,
   },
   flag: {
@@ -239,11 +243,11 @@ const styles = StyleSheet.create({
   name: {
     flex: 1,
     fontSize: 15,
-    color: COLORS.gray900,
+    color: c.gray900,
   },
   dial: {
     fontSize: 14,
-    color: COLORS.gray500,
+    color: c.gray500,
     marginLeft: 8,
     minWidth: 52,
     textAlign: 'right',
@@ -255,8 +259,9 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     textAlign: 'center',
-    color: COLORS.gray400,
+    color: c.gray400,
     fontSize: 14,
     paddingVertical: 24,
   },
-});
+  });
+}

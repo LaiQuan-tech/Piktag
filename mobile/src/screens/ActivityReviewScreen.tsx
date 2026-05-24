@@ -1,18 +1,19 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import {
   View, Text, Image, TextInput, Pressable, StyleSheet, StatusBar,
-  ActivityIndicator, Dimensions, Alert, KeyboardAvoidingView, Platform,
+  Dimensions, Alert, KeyboardAvoidingView, Platform,
 } from 'react-native';
+import PageLoader from '../components/loaders/PageLoader';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
   useSharedValue, useAnimatedStyle, withSpring, withTiming, runOnJS,
 } from 'react-native-reanimated';
-import { X, Check, Tag, MapPin, Calendar } from 'lucide-react-native';
+import { X, Check, Tag, MapPin, Calendar, Plus } from 'lucide-react-native';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
-import { COLORS } from '../constants/theme';
+import { COLORS, type ColorPalette } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
 import { LinearGradient } from 'expo-linear-gradient';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -41,6 +42,7 @@ type Props = {
 export default function ActivityReviewScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
   const { colors, isDark } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
   const sessionId = route.params?.sessionId;
@@ -64,16 +66,38 @@ export default function ActivityReviewScreen({ navigation, route }: Props) {
     if (!user) return;
     (async () => {
       try {
+        // Match the banner-count filter on ConnectionsScreen exactly:
+        // only show connections that are still WITHIN the 7-day "new"
+        // window. Without this, ConnectionsScreen could say "0 待整理"
+        // (because the count filters by recency) but the list here
+        // still rendered every old unreviewed connection ever, so
+        // tapping in showed a list that didn't match the banner.
+        // Aging out happens silently — connections older than 7 days
+        // never reach this list, so users stop being nagged about
+        // ancient leftovers they were never going to process.
+        const REVIEW_WINDOW_MS = 7 * 86_400_000;
+        const cutoffIso = new Date(Date.now() - REVIEW_WINDOW_MS).toISOString();
+
         let query = supabase
           .from('piktag_connections')
           .select('id, connected_user_id, nickname, met_at, met_location, connected_user:piktag_profiles!connected_user_id(id, username, full_name, avatar_url, bio, is_verified)')
           .eq('user_id', user.id)
           .eq('is_reviewed', false)
+          .gte('created_at', cutoffIso)
           .order('created_at', { ascending: false });
 
         if (sessionId) {
-          query = query.eq('scan_session_id', sessionId);
-          // Also fetch session info
+          // Session-scoped review: keep showing every connection from
+          // this scan session regardless of age — a session is a
+          // bounded "did we tag everyone we met at X?" task, not a
+          // recency feed.
+          query = supabase
+            .from('piktag_connections')
+            .select('id, connected_user_id, nickname, met_at, met_location, connected_user:piktag_profiles!connected_user_id(id, username, full_name, avatar_url, bio, is_verified)')
+            .eq('user_id', user.id)
+            .eq('is_reviewed', false)
+            .eq('scan_session_id', sessionId)
+            .order('created_at', { ascending: false });
           const { data: session } = await supabase
             .from('piktag_scan_sessions')
             .select('event_date, event_location')
@@ -81,18 +105,29 @@ export default function ActivityReviewScreen({ navigation, route }: Props) {
             .single();
           if (session) setSessionInfo({ date: session.event_date, location: session.event_location });
         }
-        // Otherwise: show ALL unreviewed connections regardless of age
-        // (fixes bug where count on main screen would not match detail list)
 
         const { data } = await query.limit(50);
         if (data) {
-          // Fetch existing tags for each connection
           const connIds = data.map((c: any) => c.id);
-          const { data: tagData } = await supabase
-            .from('piktag_connection_tags')
-            .select('connection_id, tag:piktag_tags!tag_id(name)')
-            .in('connection_id', connIds)
-            .eq('is_private', true);
+          const userIds = data.map((c: any) => c.connected_user_id);
+
+          // Run hidden-tags + public-tags fetches in parallel — both
+          // depend on `data` but are independent of each other, so the
+          // previous sequential await chain wasted ~1 RTT every render.
+          const [tagDataResult, publicTagDataResult] = await Promise.all([
+            supabase
+              .from('piktag_connection_tags')
+              .select('connection_id, tag:piktag_tags!tag_id(name)')
+              .in('connection_id', connIds)
+              .eq('is_private', true),
+            supabase
+              .from('piktag_user_tags')
+              .select('user_id, tag:piktag_tags!tag_id(name)')
+              .in('user_id', userIds)
+              .eq('is_private', false),
+          ]);
+          const tagData = tagDataResult.data;
+          const publicTagData = publicTagDataResult.data;
 
           // Hidden tags per connection
           const hiddenTagMap = new Map<string, string[]>();
@@ -105,14 +140,6 @@ export default function ActivityReviewScreen({ navigation, route }: Props) {
               hiddenTagMap.set(ct.connection_id, arr);
             }
           }
-
-          // Fetch public tags for each connected user
-          const userIds = data.map((c: any) => c.connected_user_id);
-          const { data: publicTagData } = await supabase
-            .from('piktag_user_tags')
-            .select('user_id, tag:piktag_tags!tag_id(name)')
-            .in('user_id', userIds)
-            .eq('is_private', false);
 
           const publicTagMap = new Map<string, string[]>();
           if (publicTagData) {
@@ -203,27 +230,61 @@ export default function ActivityReviewScreen({ navigation, route }: Props) {
     setTotalTagsAdded(prev => prev + 1);
     setTagInput('');
 
-    // DB sync in background
+    // DB sync in background. If anything fails we revert the optimistic
+    // chip so the user isn't left with a "ghost tag" that looks applied
+    // but never reached the server. Previously this branch swallowed
+    // errors silently — the chip stayed on the card after a failed
+    // insert, the connection_tags row was missing, and the next time
+    // ActivityReview fetched it the tag would just disappear.
+    const revertOptimistic = () => {
+      setAddedTags(prev => {
+        const next = new Map(prev);
+        const arr = next.get(conn.id) || [];
+        const i = arr.lastIndexOf(rawTag);
+        if (i < 0) return prev;
+        const trimmed = arr.slice();
+        trimmed.splice(i, 1);
+        next.set(conn.id, trimmed);
+        return next;
+      });
+      setTotalTagsAdded(prev => Math.max(0, prev - 1));
+    };
+
     (async () => {
-      let { data: tag } = await supabase.from('piktag_tags').select('id').eq('name', rawTag).maybeSingle();
-      if (!tag) {
-        // Race-safe insert: if another client created the same tag between
-        // our select and insert, recover via the unique-violation path
-        // instead of silently dropping this activity review.
-        const { data: newTag, error: insertErr } = await supabase
-          .from('piktag_tags').insert({ name: rawTag }).select('id').single();
-        if (newTag) {
-          tag = newTag;
-        } else if (insertErr && (insertErr as any).code === '23505') {
-          const { data: raced } = await supabase
-            .from('piktag_tags').select('id').eq('name', rawTag).maybeSingle();
-          tag = raced ?? null;
+      try {
+        let { data: tag } = await supabase.from('piktag_tags').select('id').eq('name', rawTag).maybeSingle();
+        if (!tag) {
+          // Race-safe insert: if another client created the same tag between
+          // our select and insert, recover via the unique-violation path
+          // instead of silently dropping this activity review.
+          const { data: newTag, error: insertErr } = await supabase
+            .from('piktag_tags').insert({ name: rawTag }).select('id').single();
+          if (newTag) {
+            tag = newTag;
+          } else if (insertErr && (insertErr as any).code === '23505') {
+            const { data: raced } = await supabase
+              .from('piktag_tags').select('id').eq('name', rawTag).maybeSingle();
+            tag = raced ?? null;
+          } else if (insertErr) {
+            console.warn('[ActivityReview] tag insert failed:', insertErr.message);
+            revertOptimistic();
+            return;
+          }
         }
-      }
-      if (tag) {
-        await supabase.from('piktag_connection_tags').insert({
-          connection_id: conn.id, tag_id: tag.id, is_private: true,
-        });
+        if (!tag) {
+          revertOptimistic();
+          return;
+        }
+        const { error: connTagErr } = await supabase
+          .from('piktag_connection_tags')
+          .insert({ connection_id: conn.id, tag_id: tag.id, is_private: true });
+        if (connTagErr) {
+          console.warn('[ActivityReview] connection_tags insert failed:', connTagErr.message);
+          revertOptimistic();
+        }
+      } catch (err) {
+        console.warn('[ActivityReview] add tag threw:', err);
+        revertOptimistic();
       }
     })();
   }, [tagInput, currentIndex, connections]);
@@ -285,7 +346,7 @@ export default function ActivityReviewScreen({ navigation, route }: Props) {
     return (
       <View style={[styles.container, { paddingTop: insets.top }]}>
         <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
-        <ActivityIndicator size="large" color={COLORS.piktag500} style={{ flex: 1 }} />
+        <PageLoader />
       </View>
     );
   }
@@ -295,7 +356,7 @@ export default function ActivityReviewScreen({ navigation, route }: Props) {
       <View style={[styles.container, { paddingTop: insets.top }]}>
         <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
         <View style={styles.emptyContainer}>
-          <Text style={styles.emptyTitle}>{t('activityReview.noNewFriends') || '沒有需要整理的新朋友'}</Text>
+          <Text style={styles.emptyTitle}>{t('activityReview.noNewFriends', { defaultValue: '沒有需要整理的新朋友' })}</Text>
           <Pressable onPress={() => navigation.goBack()}>
             <LinearGradient
               colors={['#ff5757', '#c44dff', '#8c52ff']}
@@ -303,7 +364,7 @@ export default function ActivityReviewScreen({ navigation, route }: Props) {
               end={{ x: 1, y: 0.5 }}
               style={styles.doneBtn}
             >
-              <Text style={styles.doneBtnText}>{t('common.done') || '完成'}</Text>
+              <Text style={styles.doneBtnText}>{t('common.done', { defaultValue: '完成' })}</Text>
             </LinearGradient>
           </Pressable>
         </View>
@@ -317,8 +378,8 @@ export default function ActivityReviewScreen({ navigation, route }: Props) {
       <View style={[styles.container, { paddingTop: insets.top }]}>
         <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
         <View style={styles.summaryContainer}>
-          <Check size={64} color={COLORS.piktag500} />
-          <Text style={styles.summaryTitle}>{t('activityReview.summaryTitle') || '整理完成'}</Text>
+          <Check size={64} color={colors.piktag500} />
+          <Text style={styles.summaryTitle}>{t('activityReview.summaryTitle', { defaultValue: '整理完成' })}</Text>
           <Text style={styles.summaryText}>
             {t('activityReview.summaryText', { people: connections.length, tags: totalTagsAdded }) ||
               `已整理 ${connections.length} 位朋友，加了 ${totalTagsAdded} 個標籤`}
@@ -330,7 +391,7 @@ export default function ActivityReviewScreen({ navigation, route }: Props) {
               end={{ x: 1, y: 0.5 }}
               style={styles.doneBtn}
             >
-              <Text style={styles.doneBtnText}>{t('common.done') || '完成'}</Text>
+              <Text style={styles.doneBtnText}>{t('common.done', { defaultValue: '完成' })}</Text>
             </LinearGradient>
           </Pressable>
         </View>
@@ -357,7 +418,7 @@ export default function ActivityReviewScreen({ navigation, route }: Props) {
       {/* Header */}
       <View style={styles.header}>
         <Pressable onPress={() => navigation.goBack()} style={styles.closeBtn}>
-          <X size={24} color={COLORS.gray900} />
+          <X size={24} color={colors.gray900} />
         </Pressable>
         <View style={styles.headerCenter}>
           {sessionInfo && (
@@ -368,7 +429,7 @@ export default function ActivityReviewScreen({ navigation, route }: Props) {
           <Text style={styles.headerCount}>{currentIndex + 1} / {connections.length}</Text>
         </View>
         <Pressable onPress={() => goNext(true)} style={styles.skipBtn}>
-          <Text style={styles.skipText}>{t('activityReview.done') || '完成'}</Text>
+          <Text style={styles.skipText}>{t('activityReview.done', { defaultValue: '完成' })}</Text>
         </Pressable>
       </View>
 
@@ -416,24 +477,35 @@ export default function ActivityReviewScreen({ navigation, route }: Props) {
       {/* Tag input */}
       <View style={[styles.inputBar, { paddingBottom: insets.bottom + 8 }]}>
         <View style={styles.inputRow}>
-          <Tag size={18} color={COLORS.gray400} />
+          <Tag size={18} color={colors.gray400} />
           <TextInput
             style={styles.textInput}
-            placeholder={t('activityReview.hiddenTagPlaceholder') || '加隱藏標籤...'}
-            placeholderTextColor={COLORS.gray400}
+            placeholder={t('activityReview.hiddenTagPlaceholder', { defaultValue: '加隱藏標籤...' })}
+            placeholderTextColor={colors.gray400}
             value={tagInput}
             onChangeText={setTagInput}
             returnKeyType="done"
             onSubmitEditing={handleAddTag}
           />
-          <Pressable style={styles.addBtn} onPress={handleAddTag}>
-            <Text style={styles.addBtnText}>{t('common.add') || '新增'}</Text>
+          {/* Plus-icon submit — same affordance as AddTagScreen,
+              ManageTagsScreen, AskStoryRow, RingedAvatar. Replaces the
+              prior "新增" / "Add" text label so the input row width
+              stays stable across all 15 locales (long forms like
+              "Aggiungi" / "Hinzufügen" used to push the input out
+              of shape on this 44px-tall pill). */}
+          <Pressable
+            style={styles.addBtn}
+            onPress={handleAddTag}
+            accessibilityRole="button"
+            accessibilityLabel={t('common.add', { defaultValue: '新增' })}
+          >
+            <Plus size={18} color="#FFFFFF" strokeWidth={2.5} />
           </Pressable>
         </View>
         <View style={styles.actionRow}>
           <Pressable style={styles.nextActionBtn} onPress={() => swipeAway('right')}>
-            <Check size={20} color={COLORS.white} />
-            <Text style={styles.nextActionText}>{t('activityReview.done') || '完成'}</Text>
+            <Check size={20} color={'#FFFFFF'} />
+            <Text style={styles.nextActionText}>{t('activityReview.done', { defaultValue: '完成' })}</Text>
           </Pressable>
         </View>
       </View>
@@ -441,55 +513,70 @@ export default function ActivityReviewScreen({ navigation, route }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.white },
+function makeStyles(c: ColorPalette) {
+  return StyleSheet.create({
+  container: { flex: 1, backgroundColor: c.white },
   // Header
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 12 },
   closeBtn: { padding: 4 },
   headerCenter: { alignItems: 'center' },
-  headerSubtitle: { fontSize: 13, color: COLORS.gray500 },
-  headerCount: { fontSize: 15, fontWeight: '700', color: COLORS.gray900 },
+  headerSubtitle: { fontSize: 13, color: c.gray500 },
+  headerCount: { fontSize: 15, fontWeight: '700', color: c.gray900 },
   skipBtn: { padding: 4 },
-  skipText: { fontSize: 15, fontWeight: '600', color: COLORS.piktag600 },
+  skipText: { fontSize: 15, fontWeight: '600', color: c.piktag600 },
   // Card
   cardContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 20 },
   card: {
-    width: '100%', backgroundColor: COLORS.white, borderRadius: 20,
-    borderWidth: 1.5, borderColor: COLORS.gray100,
+    width: '100%', backgroundColor: c.white, borderRadius: 20,
+    borderWidth: 1.5, borderColor: c.gray100,
     padding: 24, alignItems: 'center',
     shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.08, shadowRadius: 12, elevation: 4,
   },
-  cardAvatar: { width: 100, height: 100, borderRadius: 50, backgroundColor: COLORS.gray100, marginBottom: 16 },
-  cardName: { fontSize: 22, fontWeight: '700', color: COLORS.gray900, marginBottom: 4 },
-  cardUsername: { fontSize: 15, color: COLORS.gray500, marginBottom: 8 },
-  cardBio: { fontSize: 14, color: COLORS.gray600, textAlign: 'center', lineHeight: 20, marginBottom: 12, paddingHorizontal: 10 },
+  cardAvatar: { width: 100, height: 100, borderRadius: 50, backgroundColor: c.gray100, marginBottom: 16 },
+  cardName: { fontSize: 22, fontWeight: '700', color: c.gray900, marginBottom: 4 },
+  cardUsername: { fontSize: 15, color: c.gray500, marginBottom: 8 },
+  cardBio: { fontSize: 14, color: c.gray600, textAlign: 'center', lineHeight: 20, marginBottom: 12, paddingHorizontal: 10 },
   metRow: { flexDirection: 'row', gap: 12, marginBottom: 12 },
   metItem: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  metText: { fontSize: 13, color: COLORS.gray500 },
+  metText: { fontSize: 13, color: c.gray500 },
   tagChips: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, justifyContent: 'center' },
-  tagChip: { backgroundColor: COLORS.gray100, borderRadius: 9999, paddingVertical: 8, paddingHorizontal: 14, borderWidth: 1.5, borderColor: 'transparent' },
-  tagChipPicked: { backgroundColor: COLORS.piktag50, borderColor: COLORS.piktag500 },
-  tagChipText: { fontSize: 14, fontWeight: '500', color: COLORS.gray600 },
-  tagChipTextPicked: { color: COLORS.piktag600, fontWeight: '700' },
-  hiddenTagChip: { backgroundColor: COLORS.gray50, borderRadius: 9999, paddingVertical: 4, paddingHorizontal: 10, borderWidth: 1, borderColor: COLORS.gray200, borderStyle: 'dashed' as any },
-  hiddenTagChipText: { fontSize: 12, color: COLORS.gray400, fontStyle: 'italic' as any },
+  tagChip: { backgroundColor: c.gray100, borderRadius: 9999, paddingVertical: 8, paddingHorizontal: 14, borderWidth: 1.5, borderColor: 'transparent' },
+  // 已選=piktag500 實心 + 白字 — founder 2026-05-23 contract.
+  tagChipPicked: { backgroundColor: c.piktag500 },
+  tagChipText: { fontSize: 14, fontWeight: '500', color: c.gray600 },
+  tagChipTextPicked: { color: '#FFFFFF', fontWeight: '700' },
+  hiddenTagChip: { backgroundColor: c.gray50, borderRadius: 9999, paddingVertical: 4, paddingHorizontal: 10, borderWidth: 1, borderColor: c.gray200, borderStyle: 'dashed' as any },
+  hiddenTagChipText: { fontSize: 12, color: c.gray400, fontStyle: 'italic' as any },
   // Input
-  inputBar: { paddingHorizontal: 16, paddingTop: 8, borderTopWidth: 1, borderTopColor: COLORS.gray100 },
-  inputRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.gray100, borderRadius: 20, paddingLeft: 14, paddingRight: 4, height: 44, gap: 8 },
-  textInput: { flex: 1, fontSize: 15, color: COLORS.gray900, padding: 0 },
-  addBtn: { backgroundColor: COLORS.piktag500, borderRadius: 16, paddingVertical: 6, paddingHorizontal: 14 },
-  addBtnText: { fontSize: 14, fontWeight: '700', color: '#FFFFFF' },
+  inputBar: { paddingHorizontal: 16, paddingTop: 8, borderTopWidth: 1, borderTopColor: c.gray100 },
+  inputRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: c.gray100, borderWidth: 1, borderColor: c.gray200, borderRadius: 20, paddingLeft: 14, paddingRight: 4, height: 44, gap: 8 },
+  textInput: { flex: 1, fontSize: 15, color: c.gray900, padding: 0 },
+  // Square-rounded 36×36 submit button — borderRadius 10 (not 18=full
+  // 40×40 borderRadius 12 — the unified tag-add button shape used
+  // across EditProfile / ManageTags / HiddenTagEditor / AskCreate.
+  // Earlier was 36×36 borderRadius 10 (subtly off from the rest);
+  // bumped to match so the same affordance reads identically wherever
+  // it appears.
+  addBtn: {
+    backgroundColor: c.piktag500,
+    borderRadius: 12,
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   actionRow: { flexDirection: 'row', gap: 12, marginTop: 10 },
-  skipActionBtn: { flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, paddingVertical: 12, borderRadius: 14, borderWidth: 1.5, borderColor: COLORS.piktag500, backgroundColor: COLORS.piktag50 },
-  skipActionText: { fontSize: 15, fontWeight: '600', color: COLORS.piktag600 },
-  nextActionBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 12, borderRadius: 14, backgroundColor: COLORS.piktag500 },
+  skipActionBtn: { flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, paddingVertical: 12, borderRadius: 14, borderWidth: 1.5, borderColor: c.piktag500, backgroundColor: c.piktag50 },
+  skipActionText: { fontSize: 15, fontWeight: '600', color: c.piktag600 },
+  nextActionBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 12, borderRadius: 14, backgroundColor: c.piktag500 },
   nextActionText: { fontSize: 15, fontWeight: '700', color: '#FFFFFF' },
   // Empty + Summary
   emptyContainer: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 16 },
-  emptyTitle: { fontSize: 18, fontWeight: '600', color: COLORS.gray500 },
+  emptyTitle: { fontSize: 18, fontWeight: '600', color: c.gray500 },
   summaryContainer: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 12 },
-  summaryTitle: { fontSize: 24, fontWeight: '700', color: COLORS.gray900 },
-  summaryText: { fontSize: 16, color: COLORS.gray600 },
-  doneBtn: { backgroundColor: COLORS.piktag500, borderRadius: 14, paddingVertical: 14, paddingHorizontal: 32, marginTop: 8 },
+  summaryTitle: { fontSize: 24, fontWeight: '700', color: c.gray900 },
+  summaryText: { fontSize: 16, color: c.gray600 },
+  doneBtn: { backgroundColor: c.piktag500, borderRadius: 14, paddingVertical: 14, paddingHorizontal: 32, marginTop: 8 },
   doneBtnText: { fontSize: 16, fontWeight: '700', color: '#FFFFFF' },
-});
+  });
+}

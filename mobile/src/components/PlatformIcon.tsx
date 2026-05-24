@@ -4,10 +4,11 @@ import Svg, { Path, Rect, Circle } from 'react-native-svg';
 import {
   Globe, Link, Phone, Mail, MessageSquare, Send, Music, Video,
   Twitch, Github, Twitter, Youtube, ShoppingBag, Podcast,
+  Camera, Hash, Calendar, DollarSign, Heart, Coffee, BookOpen,
+  Briefcase, Palette, AtSign, MessageCircle,
 } from 'lucide-react-native';
-
-// Unified monochrome icon color
-const ICON_COLOR = '#374151'; // gray700
+import { BRAND_PATHS } from './brandPaths';
+import { useTheme } from '../context/ThemeContext';
 
 type Props = {
   platform: string;
@@ -16,30 +17,101 @@ type Props = {
   iconUrl?: string | null; // Favicon URL from DB
 };
 
-// Extended platform → lucide icon mapping for common services
+// Extended platform → lucide icon mapping for the 50-platform
+// catalog. Brand glyphs aren't in lucide, so we substitute the
+// closest semantic icon (e.g. all chat services → MessageCircle,
+// all music → Music) — UI distinguishes them by the platform LABEL
+// next to the icon, not by icon-alone. The dedicated SVG branches
+// below (instagram / facebook / linkedin / line) cover the marquee
+// brands where a recognizable glyph matters most.
 const LUCIDE_MAP: Record<string, any> = {
+  // Social / micro-blogging
   twitter: Twitter,
   x: Twitter,
-  youtube: Youtube,
-  github: Github,
-  twitch: Twitch,
-  telegram: Send,
-  whatsapp: MessageSquare,
-  wechat: MessageSquare,
-  discord: MessageSquare,
-  signal: MessageSquare,
+  threads: AtSign,
+  bluesky: AtSign,
+  mastodon: AtSign,
+  reddit: MessageSquare,
+  pinterest: Hash,
+  snapchat: Camera,
   tiktok: Music,
-  spotify: Music,
-  threads: MessageSquare,
-  medium: Globe,
-  substack: Globe,
-  shopee: ShoppingBag,
-  podcast: Podcast,
+
+  // Video
+  youtube: Youtube,
+  twitch: Twitch,
   vimeo: Video,
+  bilibili: Video,
+  podcast: Podcast,
+
+  // Music
+  spotify: Music,
+  'apple-music': Music,
+  soundcloud: Music,
+  bandcamp: Music,
+  'youtube-music': Music,
+
+  // Chat
+  telegram: Send,
+  whatsapp: MessageCircle,
+  wechat: MessageCircle,
+  kakaotalk: MessageCircle,
+  signal: MessageCircle,
+  messenger: MessageCircle,
+  discord: MessageCircle,
+
+  // Professional
+  github: Github,
+  gitlab: Github,
+  behance: Palette,
+  dribbble: Palette,
+  medium: BookOpen,
+
+  // Writing
+  substack: BookOpen,
+  notion: BookOpen,
+  mirror: BookOpen,
+  hashnode: BookOpen,
+
+  // Business / money
+  calendly: Calendar,
+  cal: Calendar,
+  paypal: DollarSign,
+  stripe: DollarSign,
+  patreon: Heart,
+  kofi: Coffee,
+  buymeacoffee: Coffee,
+
+  // Generic web
+  blog: BookOpen,
+  portfolio: Briefcase,
+
+  // Shopping / misc legacy
+  shopee: ShoppingBag,
 };
 
-export default function PlatformIcon({ platform, size = 24, color = ICON_COLOR, iconUrl }: Props) {
+export default function PlatformIcon({ platform, size = 24, color: colorProp, iconUrl }: Props) {
+  // Icons render monochrome (incl. brand glyphs — deliberate, see
+  // the brandPath comment). The fill must theme: gray700 is #374151
+  // in light, #dbdbdb in dark — a hardcoded #374151 went invisible
+  // on the dark page. Callers can still override via the `color` prop.
+  const { colors } = useTheme();
+  const color = colorProp ?? colors.gray700;
   const key = platform?.toLowerCase();
+
+  // ── Brand SVG path (from simple-icons, CC0-licensed) ──
+  // 42 platforms covered via auto-extracted path data; the brand
+  // glyphs render in monochrome with our gray700 fill so they sit
+  // visually with the rest of the UI rather than blasting brand
+  // colors. Checked BEFORE the legacy custom-svg branches below so
+  // the simple-icons authoritative shapes win when both exist.
+  const brandPath = key ? BRAND_PATHS[key] : undefined;
+  if (brandPath) {
+    return (
+      <Svg width={size} height={size} viewBox="0 0 24 24" fill={color}>
+        <Path d={brandPath} />
+      </Svg>
+    );
+  }
 
   // ── SVG custom icons (major platforms) ──
 

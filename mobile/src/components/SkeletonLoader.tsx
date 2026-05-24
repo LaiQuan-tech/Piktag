@@ -1,13 +1,18 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState, useMemo } from 'react';
 import {
   Animated,
+  Easing,
+  LayoutChangeEvent,
   StyleSheet,
   View,
   ViewStyle,
   DimensionValue,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { COLORS } from '../constants/theme';
+import { useReducedMotion } from 'react-native-reanimated';
+import { COLORS, type ColorPalette } from '../constants/theme';
+import { useTheme } from '../context/ThemeContext';
 
 // ---------------------------------------------------------------------------
 // SkeletonBox
@@ -20,13 +25,32 @@ type SkeletonBoxProps = {
   style?: ViewStyle;
 };
 
+// Default sweep width when the layout pass hasn't reported real width
+// yet (e.g. before first onLayout). Per spec: "doesn't have to be
+// perfect" — this is just a visual fallback. The shimmer itself is a
+// fixed-width band sliding across whatever the box ends up sized to.
+const DEFAULT_SHIMMER_WIDTH = 300;
+// Shimmer band is roughly 60% of the box width — wide enough to feel
+// like a sweep, narrow enough to leave dead space on each end.
+const SHIMMER_BAND_RATIO = 0.6;
+
 export const SkeletonBox = React.memo(function SkeletonBox({
   width,
   height,
   borderRadius = 6,
   style,
 }: SkeletonBoxProps) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const opacity = useRef(new Animated.Value(0.3)).current;
+  const shimmerX = useRef(new Animated.Value(0)).current;
+  const reducedMotion = useReducedMotion();
+  // Measured width drives the shimmer translate range. Falls back to
+  // the default until layout fires — first frame might miss the sweep
+  // but that's invisible in practice.
+  const [measuredWidth, setMeasuredWidth] = useState<number>(
+    typeof width === 'number' ? width : DEFAULT_SHIMMER_WIDTH,
+  );
 
   useEffect(() => {
     // NOTE: Previously used Animated.loop(Animated.sequence([...])) with
@@ -69,19 +93,86 @@ export const SkeletonBox = React.memo(function SkeletonBox({
     };
   }, [opacity]);
 
+  // Shimmer sweep — runs in parallel with the pulse. Same callback-chain
+  // pattern as the pulse to dodge the RN Animated.loop unmount bug.
+  useEffect(() => {
+    if (reducedMotion) return;
+    let mounted = true;
+
+    const sweep = () => {
+      if (!mounted) return;
+      shimmerX.setValue(0);
+      Animated.timing(shimmerX, {
+        toValue: 1,
+        duration: 1800,
+        easing: Easing.linear,
+        useNativeDriver: true,
+      }).start(({ finished }) => {
+        if (mounted && finished) sweep();
+      });
+    };
+
+    sweep();
+
+    return () => {
+      mounted = false;
+      shimmerX.stopAnimation();
+    };
+  }, [reducedMotion, shimmerX]);
+
+  const handleLayout = (event: LayoutChangeEvent) => {
+    const w = event.nativeEvent.layout.width;
+    if (w > 0 && w !== measuredWidth) setMeasuredWidth(w);
+  };
+
+  const bandWidth = Math.max(40, measuredWidth * SHIMMER_BAND_RATIO);
+  // Slide the band from fully off-screen left to fully off-screen right
+  // so the gradient enters and exits cleanly past the rounded corners.
+  const translateX = shimmerX.interpolate({
+    inputRange: [0, 1],
+    outputRange: [-bandWidth, measuredWidth + bandWidth],
+  });
+
   return (
     <Animated.View
+      onLayout={handleLayout}
       style={[
         {
           width,
           height,
           borderRadius,
-          backgroundColor: COLORS.gray200,
+          backgroundColor: colors.gray200,
           opacity,
+          overflow: 'hidden',
         },
         style,
       ]}
-    />
+    >
+      {!reducedMotion ? (
+        <Animated.View
+          pointerEvents="none"
+          style={[
+            StyleSheet.absoluteFill,
+            {
+              transform: [{ translateX }],
+            },
+          ]}
+        >
+          <LinearGradient
+            // Brand-tinted shimmer using piktag100 (#e6b3ff) at low
+            // opacity; transparent on each side gives the soft edge.
+            colors={[
+              'rgba(230, 179, 255, 0)',
+              'rgba(230, 179, 255, 0.3)',
+              'rgba(230, 179, 255, 0)',
+            ]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={{ width: bandWidth, height: '100%' }}
+          />
+        </Animated.View>
+      ) : null}
+    </Animated.View>
   );
 });
 
@@ -92,6 +183,8 @@ export const SkeletonBox = React.memo(function SkeletonBox({
 const TOP_EDGES = ['top'] as const;
 
 export const ProfileScreenSkeleton = React.memo(function ProfileScreenSkeleton() {
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   return (
     <SafeAreaView style={styles.container} edges={TOP_EDGES}>
       {/* Header row */}
@@ -198,8 +291,10 @@ export const ProfileScreenSkeleton = React.memo(function ProfileScreenSkeleton()
 // ---------------------------------------------------------------------------
 
 export const ConnectionsScreenSkeleton = React.memo(function ConnectionsScreenSkeleton() {
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   return (
-    <View style={skeletonConnectionsStyles.container}>
+    <View style={[skeletonConnectionsStyles.container, { backgroundColor: colors.background }]}>
       {Array.from({ length: 6 }).map((_, index) => (
         <View key={index} style={skeletonConnectionsStyles.row}>
           {/* Circle avatar */}
@@ -216,8 +311,208 @@ export const ConnectionsScreenSkeleton = React.memo(function ConnectionsScreenSk
 });
 
 // ---------------------------------------------------------------------------
+// ChatListSkeleton
+// ---------------------------------------------------------------------------
+
+export const ChatListSkeleton = React.memo(function ChatListSkeleton() {
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
+  return (
+    <View style={[skeletonChatListStyles.container, { backgroundColor: colors.background }]}>
+      {Array.from({ length: 6 }).map((_, index) => (
+        <View key={index} style={skeletonChatListStyles.row}>
+          {/* Avatar */}
+          <SkeletonBox width={56} height={56} borderRadius={28} />
+          {/* Middle text block */}
+          <View style={skeletonChatListStyles.textBlock}>
+            <SkeletonBox width="50%" height={16} borderRadius={6} />
+            <SkeletonBox
+              width="70%"
+              height={13}
+              borderRadius={6}
+              style={skeletonChatListStyles.previewBox}
+            />
+          </View>
+          {/* Right timestamp */}
+          <SkeletonBox width={40} height={12} borderRadius={6} />
+        </View>
+      ))}
+    </View>
+  );
+});
+
+// ---------------------------------------------------------------------------
+// UserDetailSkeleton
+// ---------------------------------------------------------------------------
+
+export const UserDetailSkeleton = React.memo(function UserDetailSkeleton() {
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
+  return (
+    <View style={[skeletonUserDetailStyles.container, { backgroundColor: colors.background }]}>
+      {/* Hero avatar */}
+      <View style={skeletonUserDetailStyles.avatarWrap}>
+        <SkeletonBox width={96} height={96} borderRadius={48} />
+      </View>
+
+      {/* Name */}
+      <SkeletonBox
+        width="60%"
+        height={22}
+        borderRadius={6}
+        style={skeletonUserDetailStyles.nameBox}
+      />
+
+      {/* @username */}
+      <SkeletonBox
+        width="40%"
+        height={14}
+        borderRadius={6}
+        style={skeletonUserDetailStyles.usernameBox}
+      />
+
+      {/* Headline */}
+      <SkeletonBox
+        width="80%"
+        height={14}
+        borderRadius={6}
+        style={skeletonUserDetailStyles.headlineBox}
+      />
+
+      {/* Stats row */}
+      <View style={skeletonUserDetailStyles.statsRow}>
+        <SkeletonBox width={60} height={40} borderRadius={6} />
+        <SkeletonBox width={60} height={40} borderRadius={6} />
+        <SkeletonBox width={60} height={40} borderRadius={6} />
+      </View>
+
+      {/* Tag pills row */}
+      <View style={skeletonUserDetailStyles.tagsRow}>
+        <SkeletonBox width={80} height={28} borderRadius={14} />
+        <SkeletonBox width={80} height={28} borderRadius={14} />
+        <SkeletonBox width={80} height={28} borderRadius={14} />
+        <SkeletonBox width={80} height={28} borderRadius={14} />
+      </View>
+    </View>
+  );
+});
+
+// ---------------------------------------------------------------------------
+// NotificationsSkeleton
+// ---------------------------------------------------------------------------
+
+export const NotificationsSkeleton = React.memo(function NotificationsSkeleton() {
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
+  return (
+    <View style={[skeletonNotificationsStyles.container, { backgroundColor: colors.background }]}>
+      {Array.from({ length: 5 }).map((_, index) => (
+        <View key={index} style={skeletonNotificationsStyles.row}>
+          {/* Sender avatar */}
+          <SkeletonBox width={44} height={44} borderRadius={22} />
+          {/* Text block */}
+          <View style={skeletonNotificationsStyles.textBlock}>
+            <SkeletonBox width="70%" height={14} borderRadius={6} />
+            <SkeletonBox
+              width="50%"
+              height={12}
+              borderRadius={6}
+              style={skeletonNotificationsStyles.secondLineBox}
+            />
+          </View>
+          {/* Right timestamp */}
+          <SkeletonBox width={60} height={12} borderRadius={6} />
+        </View>
+      ))}
+    </View>
+  );
+});
+
+// ---------------------------------------------------------------------------
 // Styles
 // ---------------------------------------------------------------------------
+
+const skeletonChatListStyles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#ffffff',
+    paddingHorizontal: 16,
+    paddingTop: 8,
+  },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 10,
+  },
+  textBlock: {
+    flex: 1,
+    marginLeft: 12,
+    marginRight: 12,
+  },
+  previewBox: {
+    marginTop: 6,
+  },
+});
+
+const skeletonUserDetailStyles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#ffffff',
+    paddingHorizontal: 20,
+    paddingTop: 24,
+    alignItems: 'center',
+  },
+  avatarWrap: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 12,
+  },
+  nameBox: {
+    alignSelf: 'center',
+  },
+  usernameBox: {
+    alignSelf: 'center',
+    marginTop: 4,
+  },
+  headlineBox: {
+    alignSelf: 'center',
+    marginTop: 16,
+  },
+  statsRow: {
+    flexDirection: 'row',
+    gap: 16,
+    marginTop: 24,
+  },
+  tagsRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 24,
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+  },
+});
+
+const skeletonNotificationsStyles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#ffffff',
+    paddingHorizontal: 16,
+    paddingTop: 8,
+  },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+  },
+  textBlock: {
+    flex: 1,
+    marginLeft: 8,
+    marginRight: 8,
+  },
+  secondLineBox: {
+    marginTop: 6,
+  },
+});
 
 const skeletonConnectionsStyles = StyleSheet.create({
   container: {
@@ -230,8 +525,11 @@ const skeletonConnectionsStyles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 16,
     height: 107,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f3f4f6',
+    // No row separator — a skeleton is a loading placeholder; the
+    // spaced shimmer blocks already read as "rows". The old
+    // borderBottom (#f3f4f6, hardcoded) was the white separator
+    // line flashing on dark-mode launch. Removed outright so there
+    // is no line to theme-mismatch in either mode.
   },
   textBlock: {
     marginLeft: 14,
@@ -243,10 +541,11 @@ const skeletonConnectionsStyles = StyleSheet.create({
   },
 });
 
-const styles = StyleSheet.create({
+function makeStyles(c: ColorPalette) {
+  return StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.white,
+    backgroundColor: c.white,
   },
   header: {
     flexDirection: 'row',
@@ -255,9 +554,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingBottom: 16,
     paddingTop: 12,
-    backgroundColor: COLORS.white,
+    backgroundColor: c.white,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.gray100,
+    borderBottomColor: c.gray100,
   },
   headerRight: {
     flexDirection: 'row',
@@ -295,4 +594,5 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginTop: 20,
   },
-});
+  });
+}

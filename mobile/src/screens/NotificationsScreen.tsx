@@ -3,23 +3,27 @@ import {
   View,
   Text,
   FlatList,
-  Image,
   TouchableOpacity,
   StyleSheet,
   StatusBar,
-  ActivityIndicator,
   RefreshControl,
+  ActionSheetIOS,
+  Alert,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import { Bell, CheckCheck } from 'lucide-react-native';
-import { COLORS, SPACING } from '../constants/theme';
+import { Bell, MessageCircle } from 'lucide-react-native';
+import { COLORS, SPACING, type ColorPalette } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
 import { supabase } from '../lib/supabase';
+import { routeFromNotification } from '../lib/notificationRouter';
 import { useAuth } from '../hooks/useAuth';
+import { useChatUnread } from '../hooks/useChatUnread';
 import { getCache, setCache, CACHE_KEYS } from '../lib/dataCache';
 import type { Notification } from '../types';
 import { SkeletonBox } from '../components/SkeletonLoader';
+import RingedAvatar from '../components/RingedAvatar';
 
 const NOTIFICATION_ITEM_HEIGHT = 76;
 
@@ -38,15 +42,150 @@ function filterNotifications(
   switch (tab) {
     case 'social':
       return notifications.filter(
-        (n) => n.type === 'follow' || n.type === 'friend' || n.type === 'tag_added' || n.type === 'recommendation' || n.type === 'tag_trending'
+        (n) =>
+          n.type === 'follow' ||
+          n.type === 'friend' ||
+          n.type === 'tag_added' ||
+          n.type === 'recommendation' ||
+          n.type === 'tag_trending' ||
+          n.type === 'ask_posted' ||
+          n.type === 'invite_accepted' ||
+          // P3: Vibe Shift — a friend in one of your Vibes added
+          // a new tag to their profile. Belongs in the social
+          // tab alongside follow/friend/tag_added (all of which
+          // are "someone you know did a thing").
+          n.type === 'vibe_shift' ||
+          // Magic moment #1: a tag you just added is shared by
+          // friends in your network. Social discovery, not a
+          // reminder — same tab as the rest.
+          n.type === 'tag_convergence' ||
+          // Magic moment #3: Bridge Detection — a friend has a
+          // friend who matches your Ask. Social discovery,
+          // action-oriented.
+          n.type === 'ask_bridge' ||
+          // P1: weekly Ask-of-the-day prompt for dormant users.
+          // It's a system prompt, not a "someone you know did a
+          // thing" — but it slots in the social tab because
+          // posting an Ask IS the next social action.
+          n.type === 'ask_prompt' ||
+          // Magic moment #2: "Eva 也標了 #X — 你們很久沒聊了"
+          // weekly reconnect nudge. Social action prompt.
+          n.type === 'reconnect_suggest' ||
+          // Magic moment #4: weekly digest of over-represented
+          // tag combinations in the viewer's network.
+          n.type === 'tag_combo'
       );
     case 'reminders':
       return notifications.filter(
-        (n) => n.type === 'biolink_click' || n.type === 'reminder' || n.type === 'birthday' || n.type === 'anniversary' || n.type === 'contract_expiry'
+        (n) =>
+          n.type === 'biolink_click' ||
+          n.type === 'reminder' ||
+          n.type === 'birthday' ||
+          n.type === 'anniversary' ||
+          // P0 daily-return mechanic: "X 年前的今天 / X 個月前的今天"
+          // Vibe anniversary. Slots into the reminders tab next to
+          // birthday / anniversary — same kind of "time-driven
+          // memory" tone.
+          n.type === 'on_this_day'
       );
     default:
       return notifications;
   }
+}
+
+// Render notification username + body from `type` and `data` instead of
+// trusting the DB-stored body. The triggers were written at different
+// times with hardcoded language strings (`notify_friend` → English,
+// `notify_follow` → English, `notify_ask_posted` → Chinese, …) which
+// surfaces as a mixed-language feed once the user's app locale doesn't
+// match whatever the trigger author chose. Localizing client-side via
+// the `notifications.types.{type}` keys gives every row the user's
+// current locale, regardless of what was persisted at insert time.
+//
+// For unknown types or missing keys we fall back to the DB body so
+// future trigger types (or legacy rows we haven't categorised) still
+// render something readable instead of a raw i18n key.
+function getNotificationDisplay(
+  item: Notification,
+  t: (key: string, options?: any) => string
+): { username: string; body: string } {
+  const data = (item.data || {}) as Record<string, any>;
+  const dataUsername =
+    (typeof data.username === 'string' && data.username) || '';
+
+  const type = item.type;
+
+  // Magic-moment notifications (on_this_day, reconnect_suggest, tag_combo,
+  // tag_convergence, ask_bridge, ask_prompt) are self-directed system
+  // insights without an actor user — `data.username` is intentionally
+  // absent. The SQL enqueue_*_notifications functions store the rich
+  // pre-formatted hook in `title` ("一年前的今天", "Eva 也標了 #咖啡
+  // — 你們很久沒聊了"), which is the actual content worth showing.
+  // Route these through the title field instead of the username+body
+  // template path so the row doesn't render as a blank rectangle.
+  const MAGIC_MOMENT_TYPES = new Set([
+    'on_this_day',
+    'tag_convergence',
+    'ask_bridge',
+    'ask_prompt',
+    'reconnect_suggest',
+    'tag_combo',
+  ]);
+  if (MAGIC_MOMENT_TYPES.has(type) && item.title) {
+    return { username: '', body: item.title };
+  }
+
+  // `ask_body` may be longer than 60 chars in the data payload. The DB
+  // truncates for the stored body but data.ask_body is the full string,
+  // so trim it client-side to keep the row to one line.
+  const truncatedAskBody = (() => {
+    const raw = (typeof data.ask_body === 'string' && data.ask_body) || '';
+    return raw.length <= 60 ? raw : raw.slice(0, 59) + '…';
+  })();
+
+  // {{count}} for recommendation rows means "mutual tag count", which
+  // the trigger persists as `mutual_tag_count`. Coerce both keys so the
+  // {{count}} placeholder doesn't render as 0 for legacy data shapes.
+  const countParam =
+    typeof data.count === 'number'
+      ? data.count
+      : typeof data.mutual_tag_count === 'number'
+        ? data.mutual_tag_count
+        : 0;
+
+  const i18nKey = `notifications.types.${type}.body`;
+  const i18nBody = t(i18nKey, {
+    username: dataUsername,
+    tag_name: data.tag_name ?? '',
+    count: countParam,
+    platform: data.platform ?? '',
+    years: data.years ?? 0,
+    ask_body: truncatedAskBody,
+    // `points` placeholder retired — invite_accepted body no longer
+    // references {{points}} after the Tribe-size pivot. Leaving the
+    // variable in if any historic notification rows still expect it
+    // in their template will just render an empty string instead of
+    // a missing-key error.
+    defaultValue: '',
+  });
+  const i18nFound =
+    !!i18nBody && !i18nBody.startsWith('notifications.types.');
+
+  // Modern notifications: data.username is populated by all current
+  // triggers (notify_follow / notify_friend / notify_tag_added /
+  // notify_ask_posted / …). When we have both a localized body string
+  // and a real username in data, render in the user's locale.
+  if (i18nFound && dataUsername) {
+    return { username: dataUsername, body: i18nBody };
+  }
+
+  // Legacy notifications: pre-trigger rows often baked the actor name
+  // into the body itself (e.g. body='Armand 開始追蹤你', title='新的追蹤者'),
+  // and data.username was either absent or empty. Discarding the body
+  // and only showing data.username (or worse, falling back to the
+  // 'system label' title) loses the actor's name. Render the raw DB
+  // body verbatim and skip the username prefix so we don't double-up.
+  return { username: '', body: item.body || '' };
 }
 
 function formatTimeAgo(dateString: string, t: (key: string, options?: any) => string): string {
@@ -71,21 +210,28 @@ function formatTimeAgo(dateString: string, t: (key: string, options?: any) => st
 type NotificationItemProps = {
   item: Notification;
   onPress: (item: Notification) => void;
+  onLongPress: (item: Notification) => void;
   t: (key: string, options?: any) => string;
 };
 
 const NotificationItem = React.memo(function NotificationItem({
   item,
   onPress,
+  onLongPress,
   t,
 }: NotificationItemProps) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const avatarUrl = item.data?.avatar_url || null;
-  const username = item.data?.username || item.title || '';
-  const body = item.body || '';
+  const { username, body } = getNotificationDisplay(item, t);
 
   const handlePress = useCallback(() => {
     onPress(item);
   }, [onPress, item]);
+
+  const handleLongPress = useCallback(() => {
+    onLongPress(item);
+  }, [onLongPress, item]);
 
   return (
     <TouchableOpacity
@@ -95,12 +241,20 @@ const NotificationItem = React.memo(function NotificationItem({
       ]}
       activeOpacity={0.7}
       onPress={handlePress}
+      onLongPress={handleLongPress}
+      delayLongPress={350}
     >
       {avatarUrl ? (
-        <Image source={{ uri: avatarUrl }} style={styles.avatar} />
+        <RingedAvatar
+          size={47}
+          ringStyle="subtle"
+          name={username}
+          avatarUrl={avatarUrl}
+          style={styles.avatarSpacing}
+        />
       ) : (
         <View style={[styles.avatar, styles.avatarPlaceholder]}>
-          <Bell size={20} color={COLORS.gray400} />
+          <Bell size={20} color={colors.gray400} />
         </View>
       )}
       <View style={styles.notificationContent}>
@@ -128,17 +282,20 @@ const EmptyState = React.memo(function EmptyState({
 }: {
   text: string;
 }) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   return (
     <View style={styles.emptyState}>
-      <Bell size={48} color={COLORS.gray200} />
+      <Bell size={48} color={colors.gray200} />
       <Text style={styles.emptyStateText}>{text}</Text>
     </View>
   );
 });
 
 const NotificationsScreenSkeleton = React.memo(function NotificationsScreenSkeleton() {
+  const { colors } = useTheme();
   return (
-    <View style={{ flex: 1, backgroundColor: COLORS.white }}>
+    <View style={{ flex: 1, backgroundColor: colors.white }}>
       {/* Tab row skeleton */}
       <View style={{ flexDirection: 'row', gap: 8, paddingHorizontal: 20, paddingVertical: 12 }}>
         {[80, 60, 50, 50].map((w, i) => (
@@ -162,12 +319,14 @@ const NotificationsScreenSkeleton = React.memo(function NotificationsScreenSkele
 export default function NotificationsScreen({ navigation }: NotificationsScreenProps) {
   const { t } = useTranslation();
   const { colors, isDark } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const { user } = useAuth();
+  const { total: chatUnread } = useChatUnread();
 
   const TAB_LABELS: Record<NotificationTab, string> = useMemo(
     () => ({
-      social: t('notifications.tabSocial') || '社交',
-      reminders: t('notifications.tabReminders') || '提醒',
+      social: t('notifications.tabSocial', { defaultValue: '社交' }),
+      reminders: t('notifications.tabReminders', { defaultValue: '提醒' }),
     }),
     [t]
   );
@@ -267,26 +426,95 @@ export default function NotificationsScreen({ navigation }: NotificationsScreenP
     }
   }, [fetchNotifications]);
 
-  const handleMarkAllAsRead = useCallback(async () => {
-    if (!user) return;
+  // Apple Guideline 1.2: long-press a notification to report the actor
+  // or the notification itself.
+  const submitNotifReport = useCallback(
+    async (notif: Notification, reason: string) => {
+      if (!user) return;
+      const reportedId = notif.data?.actor_user_id || notif.data?.user_id || null;
+      // System / magic-moment notifications have no actor — inserting
+      // reported_id: null created junk un-actionable reports (and
+      // showed a false "Reported" success even when it failed). Bail
+      // with an explanation instead.
+      if (!reportedId) {
+        Alert.alert(
+          t('common.error', { defaultValue: '錯誤' }),
+          t('report.noTarget', { defaultValue: '這則通知沒有可檢舉的對象。' }),
+        );
+        return;
+      }
+      try {
+        await supabase.from('piktag_reports').insert({
+          reporter_id: user.id,
+          reported_id: reportedId,
+          reason,
+          context: { kind: 'notification', notification_id: notif.id, type: notif.type },
+        } as any);
+        Alert.alert(
+          t('report.success', { defaultValue: 'Reported' }),
+          t('report.confirmDescription', { defaultValue: 'Thanks — our team will review.' }),
+        );
+      } catch (err) {
+        console.warn('report notification failed:', err);
+      }
+    },
+    [user, t],
+  );
 
-    const unreadIds = notifications.filter((n) => !n.is_read).map((n) => n.id);
-    if (unreadIds.length === 0) return;
+  const promptNotifReportReason = useCallback(
+    (notif: Notification) => {
+      const reasons: Array<{ key: string; label: string }> = [
+        { key: 'spam', label: t('report.reasonSpam', { defaultValue: 'Spam' }) },
+        { key: 'harassment', label: t('report.reasonHarassment', { defaultValue: 'Harassment' }) },
+        { key: 'inappropriate', label: t('report.reasonInappropriate', { defaultValue: 'Inappropriate' }) },
+        { key: 'other', label: t('report.reasonOther', { defaultValue: 'Other' }) },
+      ];
+      const cancelLabel = t('common.cancel', { defaultValue: 'Cancel' });
+      if (Platform.OS === 'ios') {
+        ActionSheetIOS.showActionSheetWithOptions(
+          {
+            title: t('report.confirmTitle', { defaultValue: 'Report' }),
+            options: [...reasons.map((r) => r.label), cancelLabel],
+            cancelButtonIndex: reasons.length,
+          },
+          (idx) => {
+            if (idx >= 0 && idx < reasons.length) void submitNotifReport(notif, reasons[idx].key);
+          },
+        );
+      } else {
+        Alert.alert(t('report.confirmTitle', { defaultValue: 'Report' }), t('report.confirmDescription', { defaultValue: '' }), [
+          ...reasons.map((r) => ({ text: r.label, onPress: () => void submitNotifReport(notif, r.key) })),
+          { text: cancelLabel, style: 'cancel' as const },
+        ]);
+      }
+    },
+    [submitNotifReport, t],
+  );
 
-    // Optimistic update
-    setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
-
-    const { error } = await supabase
-      .from('piktag_notifications')
-      .update({ is_read: true })
-      .eq('user_id', user.id)
-      .eq('is_read', false);
-
-    if (error) {
-      console.warn('Failed to mark all as read:', error.message);
-      fetchNotifications();
-    }
-  }, [user, notifications, fetchNotifications]);
+  const handleNotificationLongPress = useCallback(
+    (notif: Notification) => {
+      const reportLabel = t('report.reportNotification', { defaultValue: 'Report this notification' });
+      const cancelLabel = t('common.cancel', { defaultValue: 'Cancel' });
+      if (Platform.OS === 'ios') {
+        ActionSheetIOS.showActionSheetWithOptions(
+          {
+            options: [reportLabel, cancelLabel],
+            destructiveButtonIndex: 0,
+            cancelButtonIndex: 1,
+          },
+          (idx) => {
+            if (idx === 0) promptNotifReportReason(notif);
+          },
+        );
+      } else {
+        Alert.alert('', '', [
+          { text: reportLabel, onPress: () => promptNotifReportReason(notif) },
+          { text: cancelLabel, style: 'cancel' },
+        ]);
+      }
+    },
+    [promptNotifReportReason, t],
+  );
 
   // useMemo for computed values
   const filteredNotifications = useMemo(
@@ -294,35 +522,14 @@ export default function NotificationsScreen({ navigation }: NotificationsScreenP
     [notifications, activeTab]
   );
 
-  const hasUnread = useMemo(
-    () => notifications.some((n) => !n.is_read),
-    [notifications]
-  );
-
-  // Tap a notification → mark as read + navigate to the actor's profile.
-  // The server-side trigger stores username / actor_user_id in data, so we
-  // pass whichever we have to UserDetailScreen's route params.
+  // Tap a notification → mark as read + delegate routing to the shared
+  // notificationRouter helper. The same helper runs from App.tsx for
+  // OS-level push taps, so behaviour stays in lockstep.
   const handleNotificationPress = useCallback(
     async (item: Notification) => {
       handleMarkAsRead(item.id);
-      const userId = item.data?.actor_user_id || item.data?.user_id;
-      const username = item.data?.username;
-      if (!navigation || (!userId && !username)) return;
-      if (userId && user) {
-        try {
-          const { data: conn } = await supabase
-            .from('piktag_connections')
-            .select('id')
-            .eq('user_id', user.id)
-            .eq('connected_user_id', userId)
-            .maybeSingle();
-          if (conn) {
-            navigation.navigate('FriendDetail', { friendId: userId, connectionId: conn.id });
-            return;
-          }
-        } catch {}
-      }
-      navigation.navigate('UserDetail', { userId, username });
+      if (!navigation) return;
+      await routeFromNotification(navigation, item, user?.id);
     },
     [handleMarkAsRead, navigation, user]
   );
@@ -330,9 +537,14 @@ export default function NotificationsScreen({ navigation }: NotificationsScreenP
   // useCallback for renderItem
   const renderNotificationItem = useCallback(
     ({ item }: { item: Notification }) => (
-      <NotificationItem item={item} onPress={handleNotificationPress} t={t} />
+      <NotificationItem
+        item={item}
+        onPress={handleNotificationPress}
+        onLongPress={handleNotificationLongPress}
+        t={t}
+      />
     ),
-    [handleNotificationPress, t]
+    [handleNotificationPress, handleNotificationLongPress, t]
   );
 
   // useCallback for keyExtractor
@@ -351,7 +563,7 @@ export default function NotificationsScreen({ navigation }: NotificationsScreenP
       <RefreshControl
         refreshing={refreshing}
         onRefresh={handleRefresh}
-        tintColor={COLORS.piktag500}
+        tintColor={colors.piktag500}
       />
     ),
     [refreshing, handleRefresh]
@@ -368,15 +580,20 @@ export default function NotificationsScreen({ navigation }: NotificationsScreenP
       {/* Header */}
       <View style={styles.header}>
         <Text style={[styles.headerTitle, { color: colors.text }]}>{t('notifications.headerTitle')}</Text>
-        {hasUnread && (
-          <TouchableOpacity
-            style={styles.markAllButton}
-            onPress={handleMarkAllAsRead}
-            activeOpacity={0.6}
-          >
-            <CheckCheck size={20} color={COLORS.piktag500} />
-          </TouchableOpacity>
-        )}
+        <TouchableOpacity
+          onPress={() => (navigation as any)?.navigate('ChatList')}
+          style={styles.headerChatBtn}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          accessibilityRole="button"
+          accessibilityLabel={t('chat.inbox')}
+        >
+          <MessageCircle size={24} color={colors.gray900} strokeWidth={2} />
+          {chatUnread > 0 ? (
+            <View style={styles.headerChatBadge}>
+              <Text style={styles.headerChatBadgeText}>{chatUnread > 99 ? '99+' : String(chatUnread)}</Text>
+            </View>
+          ) : null}
+        </TouchableOpacity>
       </View>
 
       {/* Tab Switcher */}
@@ -423,10 +640,11 @@ export default function NotificationsScreen({ navigation }: NotificationsScreenP
   );
 }
 
-const styles = StyleSheet.create({
+function makeStyles(c: ColorPalette) {
+  return StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.white,
+    backgroundColor: c.white,
   },
   header: {
     flexDirection: 'row',
@@ -435,22 +653,40 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: SPACING.md,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.gray100,
+    borderBottomColor: c.gray100,
   },
   headerTitle: {
     fontSize: 24,
     fontWeight: '700',
-    color: COLORS.gray900,
+    color: c.gray900,
     lineHeight: 32,
   },
-  markAllButton: {
-    padding: 8,
+  headerChatBtn: {
+    padding: 6,
+    position: 'relative',
+  },
+  headerChatBadge: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    minWidth: 16,
+    height: 16,
+    borderRadius: 8,
+    paddingHorizontal: 4,
+    backgroundColor: c.red500,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  headerChatBadgeText: {
+    color: '#fff',
+    fontSize: 10,
+    fontWeight: '700',
   },
   tabContainer: {
     flexDirection: 'row',
     paddingHorizontal: 20,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.gray100,
+    borderBottomColor: c.gray100,
   },
   tab: {
     paddingVertical: 12,
@@ -460,15 +696,15 @@ const styles = StyleSheet.create({
     borderBottomColor: 'transparent',
   },
   tabActive: {
-    borderBottomColor: COLORS.piktag500,
+    borderBottomColor: c.piktag500,
   },
   tabText: {
     fontSize: 15,
     fontWeight: '500',
-    color: COLORS.gray400,
+    color: c.gray400,
   },
   tabTextActive: {
-    color: COLORS.piktag500,
+    color: c.piktag500,
     fontWeight: '600',
   },
   listContent: {
@@ -481,45 +717,51 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 14,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.gray100,
-    backgroundColor: COLORS.white,
+    borderBottomColor: c.gray100,
+    backgroundColor: c.white,
   },
   notificationItemUnread: {
-    backgroundColor: COLORS.piktag50,
+    backgroundColor: c.piktag50,
   },
   avatar: {
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: COLORS.gray100,
+    backgroundColor: c.gray100,
     marginRight: 12,
   },
   avatarPlaceholder: {
     alignItems: 'center',
     justifyContent: 'center',
   },
+  avatarSpacing: {
+    marginRight: 12,
+  },
   notificationContent: {
     flex: 1,
   },
   notificationText: {
     fontSize: 14,
-    color: COLORS.gray700,
+    color: c.gray700,
     lineHeight: 20,
   },
   notificationUsername: {
     fontWeight: '700',
-    color: COLORS.gray900,
+    color: c.gray900,
   },
   notificationTime: {
     fontSize: 12,
-    color: COLORS.gray400,
+    color: c.gray400,
     marginTop: 4,
   },
   unreadDot: {
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: COLORS.accent500,
+    // accentPop — the unread dot is a primary "notification dot"
+    // surface, exactly the case the design system reserves the
+    // high-saturation accent for.
+    backgroundColor: c.accentPop,
     marginLeft: 8,
     alignSelf: 'center',
   },
@@ -528,16 +770,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingTop: 120,
+    paddingHorizontal: 40,
   },
   emptyStateText: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '600',
-    color: COLORS.gray500,
+    color: c.gray500,
     marginTop: SPACING.lg,
+    textAlign: 'center',
+    lineHeight: 22,
   },
   loadingContainer: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
   },
-});
+  });
+}

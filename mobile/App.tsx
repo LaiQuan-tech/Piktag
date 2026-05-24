@@ -4,24 +4,51 @@ import * as Sentry from '@sentry/react-native';
 import * as Notifications from 'expo-notifications';
 import { StatusBar as ExpoStatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { NavigationContainer, useNavigationContainerRef } from '@react-navigation/native';
+import { NavigationContainer, useNavigationContainerRef, getStateFromPath as defaultGetStateFromPath } from '@react-navigation/native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import './src/i18n'; // Initialize i18n
+import appJson from './app.json';
 import AppNavigator from './src/navigation/AppNavigator';
+import { trackScreen } from './src/lib/analytics';
 import { ThemeProvider } from './src/context/ThemeContext';
 import { AuthProvider } from './src/context/AuthContext';
 import { AppReadyProvider, useAppReady } from './src/context/AppReadyContext';
 import SplashOverlay from './src/components/SplashOverlay';
+import ErrorBoundary from './src/components/ErrorBoundary';
+import OfflineBanner from './src/components/OfflineBanner';
+import { supabase } from './src/lib/supabase';
+import { routeFromNotification } from './src/lib/notificationRouter';
 
-// Sentry DSN is a write-only ingest URL — safe to hardcode and critical
-// to have available even when env vars are misconfigured (if env breaks,
-// we want Sentry to tell us about it).
+// Ensure foreground notifications display the system banner, play sound,
+// and update the badge. Without this, notifications arriving while the
+// app is open are silently dropped on iOS.
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowBanner: true,
+    shouldPlaySound: true,
+    shouldSetBadge: true,
+    // Kept for backward compat with older expo-notifications versions.
+    shouldShowAlert: true,
+  } as any),
+});
+
+// Sentry DSN comes from EXPO_PUBLIC_SENTRY_DSN, substituted into the JS
+// bundle by Metro at bundle time. Keeps the DSN out of source control —
+// although the DSN is a write-only ingest URL, we'd still rather not
+// publish it. CI workflows pass it via job-level env from a GitHub
+// secret of the same name.
 // Initialization itself is deferred to `InteractionManager.runAfterInteractions`
 // in `AppInner` below — running it synchronously at module-eval time
 // added ~200ms to cold start (native crash handlers + transport queue
 // + session tracking setup).
-const SENTRY_DSN =
-  'https://a6f25db2278dc71a2ea41314adc226c0@o4511225670402048.ingest.us.sentry.io/4511227846066176';
+const SENTRY_DSN = process.env.EXPO_PUBLIC_SENTRY_DSN;
+const APP_VERSION = (appJson as any)?.expo?.version ?? '0.0.0';
+const IOS_BUILD = (appJson as any)?.expo?.ios?.buildNumber ?? '';
+const ANDROID_BUILD = (appJson as any)?.expo?.android?.versionCode ?? '';
+const BUILD_ID = Platform.OS === 'ios' ? String(IOS_BUILD) : String(ANDROID_BUILD);
+const SENTRY_RELEASE = BUILD_ID
+  ? `ag.pikt.app@${APP_VERSION}+${BUILD_ID}`
+  : `ag.pikt.app@${APP_VERSION}`;
 
 // expo-linking can crash on web — use safe prefix
 let prefix = '';
@@ -66,6 +93,20 @@ const linking = {
       ScanResult: 'scan-result',
     },
   },
+  // The public-facing invite URL is `pikt.ag/i/{code}` (short, shareable),
+  // but the in-app screen path is `invite/:code`. Rewrite the inbound URL
+  // so React Navigation can route it without us needing to register two
+  // separate screens for the same destination.
+  //
+  // Match captures only the bare code segment so trailing path noise
+  // (e.g. `/i/EA9007/extra`) and query strings/hash fragments survive
+  // intact — without the explicit groups, React Navigation would
+  // otherwise treat `EA9007/extra` as the param value.
+  getStateFromPath: (path: string, options: any) => {
+    const m = path.match(/^\/?i\/([^/?#]+)(.*)$/);
+    const rewritten = m ? `/invite/${m[1]}${m[2]}` : path;
+    return defaultGetStateFromPath(rewritten, options);
+  },
 };
 
 // Readiness gates that must all clear before the splash overlay fades:
@@ -94,9 +135,27 @@ function AppInner() {
         Sentry.init({
           dsn: SENTRY_DSN,
           // Only send errors in production. Dev builds still log to console.
-          enabled: !__DEV__,
+          // Also gate on DSN presence so missing-secret CI builds don't
+          // try to ship events to nowhere.
+          enabled: !__DEV__ && !!SENTRY_DSN,
+          environment: __DEV__ ? 'development' : 'production',
+          release: SENTRY_RELEASE,
           // Sample 20% of transactions for performance monitoring.
           tracesSampleRate: 0.2,
+          // Strip auth secrets from XHR breadcrumbs before they leave
+          // the device. Supabase attaches `Authorization` (user JWT) and
+          // `apikey` (anon key) on every request — neither belongs in
+          // an error report.
+          beforeBreadcrumb(breadcrumb) {
+            if (breadcrumb.category === 'xhr' && breadcrumb.data?.headers) {
+              const h = { ...breadcrumb.data.headers };
+              if (h.authorization) h.authorization = '[Filtered]';
+              if (h.Authorization) h.Authorization = '[Filtered]';
+              if (h.apikey) h.apikey = '[Filtered]';
+              breadcrumb.data.headers = h;
+            }
+            return breadcrumb;
+          },
         });
       } catch (err) {
         // Never let Sentry initialization itself crash the app.
@@ -112,25 +171,81 @@ function AppInner() {
 
   useEffect(() => {
     if (isWeb) return;
-    const handleResponse = (response: Notifications.NotificationResponse) => {
-      const data = response.notification.request.content.data as { type?: string; conversationId?: string };
-      if (data?.type === 'chat' && data?.conversationId) {
-        // Navigate into the specific thread. Go via SearchTab > ChatThread.
-        navigationRef.current?.navigate('Main' as never, {
+
+    // NavigationContainerRef.isReady() returns true once the underlying
+    // navigator has mounted and registered its first route. On COLD
+    // START, the push response listener can fire BEFORE that — the OS
+    // delivers the response while React is still bootstrapping, so
+    // navigationRef.current?.navigate() either no-ops or throws "The
+    // 'navigation' object hasn't been initialized yet". That's the
+    // "sometimes works, sometimes doesn't" follow-push bug. Poll until
+    // ready (max ~5s) before dispatching.
+    const waitForNavReady = async (maxMs = 5000): Promise<boolean> => {
+      const start = Date.now();
+      while (Date.now() - start < maxMs) {
+        if (navigationRef.current?.isReady?.()) return true;
+        await new Promise((r) => setTimeout(r, 50));
+      }
+      return navigationRef.current?.isReady?.() ?? false;
+    };
+
+    const handleResponse = async (response: Notifications.NotificationResponse) => {
+      const data = (response.notification.request.content.data ?? {}) as Record<string, any>;
+      const type: string | undefined = data?.type;
+      // Cold-start path: the push tap happens before the navigator
+      // mounts. Block until isReady() so the navigate call below has a
+      // working ref.
+      const ready = await waitForNavReady();
+      if (!ready) return;
+      const nav = navigationRef.current as any;
+      if (!nav) return;
+
+      // chat type stays special-cased: it nests via SearchTab → ChatThread
+      // so the back button returns to the previous chat-list state instead
+      // of bouncing between RootStack siblings.
+      if (type === 'chat' && data?.conversationId) {
+        nav.navigate('Main', {
           screen: 'SearchTab',
           params: { screen: 'ChatThread', params: { conversationId: data.conversationId } },
-        } as never);
+        });
+        return;
+      }
+
+      // All other types (follow / tag_added / tag_trending / biolink_click /
+      // ask_posted / birthday / anniversary / friend / recommendation / …)
+      // share the same routing logic with the in-app NotificationsScreen
+      // tap handler. Without this branch a `follow` push opened the app
+      // and silently went nowhere — the bug surfaced as "stranger followed
+      // me, notification appeared, tapping does nothing".
+      if (!type) return;
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        await routeFromNotification(nav, { type, data }, session?.user?.id ?? null);
+      } catch {
+        /* navigation is best-effort here; failure means we stay on the
+           current screen, same as before the routing was wired in */
       }
     };
 
     const sub = Notifications.addNotificationResponseReceivedListener(handleResponse);
+
+    // Foreground listener — keeps the default OS banner. We don't act on
+    // the payload here (response listener handles taps); the listener's
+    // mere presence works with `setNotificationHandler` above to surface
+    // the banner while the app is open.
+    const foregroundSub = Notifications.addNotificationReceivedListener((_notification) => {
+      // intentional no-op: handler config drives the banner display.
+    });
 
     // Cold start: check if the app was opened FROM a notification
     Notifications.getLastNotificationResponseAsync().then((response) => {
       if (response) handleResponse(response);
     });
 
-    return () => { sub.remove(); };
+    return () => {
+      sub.remove();
+      foregroundSub.remove();
+    };
   }, [navigationRef, isWeb]);
 
   const content = (
@@ -138,16 +253,42 @@ function AppInner() {
       <AuthProvider>
         <GestureHandlerRootView style={{ flex: 1 }}>
           <SafeAreaProvider>
-            <NavigationContainer ref={navigationRef} linking={linking}>
-              <ExpoStatusBar style="dark" />
-              <AppNavigator />
-              {splashVisible && (
-                <SplashOverlay
-                  ready={isReady}
-                  onHidden={() => setSplashVisible(false)}
-                />
-              )}
-            </NavigationContainer>
+            <ErrorBoundary>
+              <NavigationContainer
+                ref={navigationRef}
+                linking={linking}
+                onReady={() => {
+                  // Capture the very first route once the navigator
+                  // mounts — `onStateChange` only fires on transitions,
+                  // so without this we'd miss the landing screen of
+                  // every session.
+                  const route = navigationRef.getCurrentRoute();
+                  if (route?.name) {
+                    trackScreen(route.name, route.params as Record<string, unknown> | undefined);
+                  }
+                }}
+                onStateChange={() => {
+                  // Fires on every navigation state mutation (push, pop,
+                  // tab switch, modal present). `getCurrentRoute()`
+                  // resolves the deepest active leaf, which is what we
+                  // want for screen-level analytics.
+                  const route = navigationRef.getCurrentRoute();
+                  if (route?.name) {
+                    trackScreen(route.name, route.params as Record<string, unknown> | undefined);
+                  }
+                }}
+              >
+                <ExpoStatusBar style="dark" />
+                <OfflineBanner />
+                <AppNavigator />
+                {splashVisible && (
+                  <SplashOverlay
+                    ready={isReady}
+                    onHidden={() => setSplashVisible(false)}
+                  />
+                )}
+              </NavigationContainer>
+            </ErrorBoundary>
           </SafeAreaProvider>
         </GestureHandlerRootView>
       </AuthProvider>

@@ -18,7 +18,7 @@ export default function Breadcrumb({ items }: BreadcrumbProps): JSX.Element {
                 {item.href && !isLast ? (
                   <Link
                     href={item.href}
-                    className="transition-colors hover:text-[#aa00ff]"
+                    className="transition-colors hover:text-[#8c52ff]"
                   >
                     {item.label}
                   </Link>

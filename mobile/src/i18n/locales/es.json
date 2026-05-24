@@ -1,4 +1,9 @@
 {
+  "app": {
+    "offline": "Estás sin conexión. Algunas funciones pueden estar limitadas.",
+    "backOnline": "De vuelta en línea",
+    "offlineHint": "Algunas funciones requieren conexión"
+  },
   "tabs": {
     "home": "Inicio",
     "search": "Buscar",
@@ -9,19 +14,25 @@
   "locationPicker": {
     "title": "Elegir una ubicación",
     "noNearbyPlaces": "No hay lugares cercanos. Escribe un nombre en el cuadro de búsqueda y pulsa Hecho.",
-    "noResults": "Sin lugares coincidentes"
+    "noResults": "Sin lugares coincidentes",
+    "permissionDenied": "Permiso de ubicación denegado",
+    "permissionDeniedWeb": "Permiso de ubicación denegado. Permite acceso en los ajustes del navegador.",
+    "errorPrefix": "Error de ubicación: ",
+    "searchPlaceholder": "Buscar o escribir un lugar",
+    "gpsOff": "No se puede obtener la ubicación. Comprueba que el GPS esté activado.",
+    "requestTimeout": "Tiempo de espera agotado al obtener la ubicación. Inténtalo de nuevo."
   },
   "friendsMap": {
     "title": "Mapa de amigos",
     "friendCount": "{{count}} amigos en el mapa",
     "noSharedLocations": "Aún no hay amigos compartiendo ubicación",
     "staleHint": "Solo se muestran amigos cuya ubicación se actualizó en las últimas 24 horas",
-    "loadFailed": "Error al cargar el mapa, inténtalo de nuevo"
+    "loadFailed": "Error al cargar el mapa. Comprueba tu conexión."
   },
   "hiddenTagEditor": {
     "timeTitle": "Cuándo se conocieron",
     "locationTitle": "Dónde se conocieron",
-    "frequentTitle": "Usados frecuentemente",
+    "suggestedTitle": "Sugeridos",
     "addedTitle": "Añadidos",
     "today": "Hoy",
     "yesterday": "Ayer",
@@ -53,7 +64,10 @@
     "noTags": "Aún no hay etiquetas",
     "email": "Correo",
     "phone": "Teléfono",
-    "comingSoonTitle": "Próximamente"
+    "comingSoonTitle": "Próximamente",
+    "checkConnection": "Comprueba la conexión y vuelve a intentar",
+    "loadFailed": "Error al cargar",
+    "willAutoRetry": "Reintentaremos automáticamente al reconectar"
   },
   "auth": {
     "login": {
@@ -62,7 +76,7 @@
       "emailPlaceholder": "Correo electrónico",
       "passwordPlaceholder": "Contraseña",
       "loginButton": "Iniciar sesión",
-      "noAccountPrompt": "¿No tienes cuenta? ",
+      "noAccountPrompt": "¿No tienes cuenta?",
       "registerLink": "Regístrate",
       "forgotPassword": "¿Olvidaste tu contraseña?",
       "alertEnterEmailFirst": "Por favor introduce tu correo primero, te enviaremos un enlace para restablecer la contraseña",
@@ -70,7 +84,10 @@
       "alertResetSentMessage": "Se ha enviado un enlace de restablecimiento de contraseña a tu correo",
       "orDivider": "o",
       "continueWithApple": "Iniciar sesión con Apple",
-      "continueWithGoogle": "Iniciar sesión con Google"
+      "continueWithGoogle": "Iniciar sesión con Google",
+      "errInvalidCredentials": "Correo o contraseña incorrectos.",
+      "errEmailNotConfirmed": "Verifica tu correo primero — toca el enlace que enviamos y luego inicia sesión.",
+      "errGeneric": "No se pudo iniciar sesión. Inténtalo de nuevo."
     },
     "register": {
       "alertEmptyFields": "Completa todos los campos",
@@ -84,13 +101,26 @@
       "emailPlaceholder": "Correo electrónico",
       "passwordPlaceholder": "Contraseña",
       "registerButton": "Registrarse",
-      "hasAccountPrompt": "¿Ya tienes cuenta? ",
+      "hasAccountPrompt": "¿Ya tienes cuenta?",
       "loginLink": "Iniciar sesión",
       "confirmPasswordPlaceholder": "Confirmar contraseña",
       "alertPasswordMismatch": "Las contraseñas no coinciden",
-      "passwordHint": "La contraseña debe tener al menos 6 caracteres"
+      "passwordHint": "La contraseña debe tener al menos 6 caracteres",
+      "birthdayLabel": "Cumpleaños (opcional)",
+      "alertVerifyEmailTitle": "Verifica tu correo",
+      "alertVerifyEmailMessage": "Te enviamos un enlace de confirmación. Tócalo y vuelve a iniciar sesión."
     },
     "onboarding": {
+      "welcome": {
+        "identityTitle": "Defínete con etiquetas",
+        "identityDesc": "Elige 10 etiquetas que te representen — esa es tu identidad en PikTag",
+        "activateTitle": "Reactiva tus contactos olvidados",
+        "activateDesc": "Cumpleaños, aniversarios de conocernos y recuerdos compartidos vuelven a ti",
+        "discoverTitle": "Busca por necesidad, no por nombre",
+        "discoverDesc": "\"Necesito un amigo fotógrafo\" · \"Diseñadores cerca de mí\"",
+        "next": "Siguiente",
+        "getStarted": "Empezar"
+      },
       "defaultTags": [
         "#Startup",
         "#Diseño",
@@ -115,13 +145,57 @@
       "contactResultText": "Se encontraron {{matched}} amigos",
       "step3Title": "¡Listo! Empieza a explorar",
       "step3Description": "Tu cuenta está lista, empieza a usar PikTag ahora",
+      "quickStart": {
+        "title": "Empieza con PikTag",
+        "subtitle": "Cuatro cosas para ponerte al día rápido",
+        "card1": {
+          "title": "Añade amigos",
+          "body": "Escanea un código QR, sincroniza contactos o busca por usuario"
+        },
+        "card2": {
+          "title": "Etiqueta a tus amigos",
+          "body": "Como \"amante del café\", \"product manager\", \"cliente\" — y encuéntralos por etiqueta"
+        },
+        "card3": {
+          "title": "Encuentra gente por etiqueta",
+          "body": "Escribe una etiqueta en la búsqueda y descubre quién comparte tu interés"
+        },
+        "card4": {
+          "title": "Publica un Ask",
+          "body": "Una frase, y toda tu red te ayuda"
+        },
+        "cta": "Empezar a usar PikTag"
+      },
       "backButton": "Atrás",
       "enterPikTag": "Empezar a usar PikTag",
       "nextButton": "Siguiente",
       "facebookLabel": "Facebook",
       "instagramLabel": "Instagram",
       "linkedinLabel": "LinkedIn",
-      "birthdayLabel": "Cumpleaños"
+      "birthdayLabel": "Cumpleaños",
+      "avatarStepTitle": "Pon una foto primero",
+      "avatarStepDescription": "Para que tus amigos te reconozcan al instante — la puedes cambiar cuando quieras.",
+      "avatarPickAria": "Elegir foto",
+      "avatarTapToPick": "Toca el círculo para elegir una foto",
+      "avatarTapToChange": "Toca la foto para cambiar",
+      "avatarPermissionTitle": "Se necesita acceso a la galería",
+      "avatarPermissionMessage": "Permite el acceso a fotos en Ajustes",
+      "skipStep": "Saltar",
+      "scanCardCta": "Escanear tarjeta",
+      "scanCardHint": "¿Tienes tarjeta? Fotografíala — bio y contactos automáticos (opcional)",
+      "cardScanFailedTitle": "Error al escanear",
+      "cardScanFailedMessage": "No se pudo leer la tarjeta. Inténtalo de nuevo o rellénalo a mano.",
+      "cardScanEmptyTitle": "Nada detectado",
+      "cardScanEmptyMessage": "La tarjeta no se lee bien — usa una foto más clara o escríbelo.",
+      "cardConfirmTitle": "Confirmar datos",
+      "cardConfirmSubtitle": "Revisa y edita — no se aplica hasta confirmar",
+      "cardFieldName": "Nombre",
+      "cardFieldBio": "Bio (borrador IA, editable)",
+      "cardBioPlaceholder": "Una línea sobre ti",
+      "cardLinksLabel": "Contactos / redes",
+      "cardApplyCta": "Aplicar",
+      "profileCta": "Crear mi primer Tag",
+      "saveFailed": "No se pudo guardar — revisa tu conexión e inténtalo de nuevo."
     }
   },
   "connections": {
@@ -162,7 +236,30 @@
     "clearFilter": "Limpiar filtro",
     "noTagsToFilter": "No hay etiquetas para filtrar",
     "newBadge": "Nuevo",
-    "unreviewedLabel": "por revisar"
+    "unreviewedLabel": "por revisar",
+    "sortLabel": "Ordenar",
+    "sortByRecent": "Agregados recientemente",
+    "sortByAlphabet": "Alfabético (A→Z)",
+    "sortByAlphabetDesc": "Alfabético (Z→A)",
+    "sortByInteraction": "Interacción reciente",
+    "sortByBirthday": "Próximos cumpleaños",
+    "addContact": "Añadir contacto",
+    "addContactTitle": "Añadir un contacto",
+    "addSearchTitle": "Buscar usuarios PikTag",
+    "addSearchDesc": "Por nombre, usuario o etiqueta",
+    "addContactSyncTitle": "Sincroniza tus contactos",
+    "addContactSyncDesc": "Encuentra a tus amigos que ya están aquí",
+    "addInviteTitle": "Invita amigos a PikTag",
+    "addInviteDesc": "Comparte un enlace — se conecta solo cuando se une",
+    "coldStartActionContacts": "Busca amigos en tus contactos",
+    "coldStartActionContactsDesc": "Encuentra a los que ya están — etiqueta e invita a los que no",
+    "notJoinedBadge": "Aún no en PikTag",
+    "coldStartActionManual": "Apunta a alguien",
+    "coldStartActionManualDesc": "No necesita cuenta — se vincula con tus etiquetas y notas al unirse",
+    "addManualA11y": "Añadir contacto manualmente",
+    "phonePromptTitle": "Añade tu teléfono para que amigos te encuentren",
+    "phonePromptBody": "Cuando tus amigos sincronicen contactos, se conectarán automáticamente. Solo usado por PikTag, nunca público.",
+    "addedFriend": "+ {{name}}"
   },
   "search": {
     "clearAll": "Limpiar todo",
@@ -171,6 +268,14 @@
     "intersectionResultCount": "Se encontraron {{count}} personas",
     "headerTitle": "Buscar",
     "searchPlaceholder": "Etiquetas, nombres de usuario, etc.",
+    "promptHints": [
+      "Necesito un amigo fotógrafo",
+      "Busco a alguien que hable inglés",
+      "Diseñadores cerca de {{city}}",
+      "¿Conoces a alguien en startups?",
+      "Busco un desarrollador web"
+    ],
+    "promptHintCityFallback": "Diseñadores cerca de mí",
     "categorySectionLabel": "Explorar por categoría",
     "categoryPopular": "Etiquetas populares",
     "categoryNearby": "Miembros cercanos",
@@ -185,6 +290,7 @@
     "profilesSectionLabel": "Miembros",
     "noProfilesFound": "No se encontraron miembros",
     "noProfilesFoundTitle": "Ningún miembro coincide con \"{{query}}\"",
+    "askPrompt": "¿No está en tu red? Publica un Ask: amigos y amigos de amigos pueden ayudarte a encontrarlo.",
     "tryTagSearchHint": "Prueba con #etiquetas u otra palabra clave",
     "clearAndRetry": "Limpiar y reintentar",
     "resetButton": "Restablecer",
@@ -198,10 +304,16 @@
     "tagUsersTitle": "Personas que usan esta etiqueta",
     "viewAllTagUsers": "Ver los {{count}}",
     "categoryUncategorized": "Otros",
-    "allCategories": "Todas"
+    "allCategories": "Todas",
+    "openMap": "Abrir mapa",
+    "searchBtn": "Buscar",
+    "searchInputLabel": "Buscar",
+    "clearSearchLabel": "Borrar búsqueda",
+    "recommendedTitle": "Quizá quieras conocer",
+    "tagsSelected": "etiqueta(s) seleccionada(s)"
   },
   "addTag": {
-    "headerTitle": "# Conecta",
+    "headerTitle": "Crear un Tag",
     "alertTagExists": "La etiqueta ya existe",
     "alertTagExistsMessage": "Esta etiqueta ya está en la lista.",
     "alertEnterPresetName": "Por favor introduce un nombre de plantilla",
@@ -213,18 +325,9 @@
     "alertQrError": "No se puede generar el código QR, inténtalo más tarde.",
     "alertDeletePresetTitle": "Eliminar plantilla",
     "alertDeletePresetMessage": "¿Seguro que quieres eliminar \"{{name}}\"?",
-    "dateLabel": "Date Tag",
-    "datePlaceholder": "AAAA/MM/DD",
-    "dateDisplayFallback": "Toca para fijar la fecha",
-    "locationLabel": "Location Tag",
-    "locationPlaceholder": "Introduce la ubicación del evento...",
-    "currentLocation": "Ubicación actual",
-    "selectLocation": "Seleccionar ubicación",
-    "manualInput": "Entrada manual",
     "locationPermDenied": "Permiso de ubicación denegado",
     "customTagsLabel": "Etiquetas personalizadas",
     "hiddenTagHint": "Solo visible para ti — te ayuda a recordar dónde se conocieron",
-    "pickDate": "Elegir fecha",
     "tagPlaceholder": "Introduce una etiqueta...",
     "addButton": "Añadir",
     "saveAsPreset": "Guardar como plantilla",
@@ -257,7 +360,21 @@
     "copyLink": "Copiar enlace",
     "editQr": "Editar QR",
     "alertLinkCopiedTitle": "Copiado",
-    "alertLinkCopiedMessage": "Enlace copiado al portapapeles"
+    "alertLinkCopiedMessage": "Enlace copiado al portapapeles",
+    "contextLabel": "¿Cuál es la ocasión?",
+    "contextHint": "Con una línea basta. La IA usa tus palabras, la hora y el lugar para sugerir etiquetas y recordar a quién conociste aquí.",
+    "contextPlaceholder": "Ej: Brunch del finde, demo cliente, lanzamiento de libro",
+    "aiSuggestionsTitle": "Sugerencias de IA",
+    "aiSuggestionsHint": "Escribe una línea — la AI usa esto + tu ubicación + tus tags de identidad.",
+    "aiSuggestionsEmpty": "AI no encontró buenas opciones — vuelve a intentar o agrega tú.",
+    "aiRegenerate": "Regenerar",
+    "contextPromptHints": [
+      "Viaje de buceo",
+      "Reencuentro universitario",
+      "Fiesta de la oficina",
+      "Asado del finde",
+      "La boda de un amigo"
+    ]
   },
   "profile": {
     "nameNotSet": "Nombre no establecido",
@@ -266,12 +383,12 @@
     "noBio": "Aún sin biografía",
     "noTags": "Aún sin etiquetas",
     "tagFallback": "Etiqueta",
+    "askPromptHint": "Toca + para Ask · \"Necesito…\"",
     "friendCountSuffix": "amigos",
     "shareProfile": "Compartir perfil",
     "editProfile": "Editar perfil",
     "manageTags": "Gestionar mis etiquetas",
     "noContactMethods": "Sin métodos de contacto",
-    "statusTooltip": "Toca para fijar tu estado",
     "contactInfoTitle": "Contacto",
     "phoneLabel": "Teléfono",
     "emailLabel": "Correo",
@@ -282,7 +399,11 @@
     "statFriends": "Amigos",
     "statFollowers": "Seguidores",
     "copyLink": "Copiar enlace",
-    "share": "Compartir"
+    "share": "Compartir",
+    "statTagsA11y": "Ver mis etiquetas",
+    "statFriendsA11y": "Ver mis amigos",
+    "statFollowersA11y": "Ver mis seguidores",
+    "statTribeA11y": "Ver mi constelación Tribe"
   },
   "editProfile": {
     "headerTitle": "Editar perfil",
@@ -305,7 +426,7 @@
     "usernameLabel": "Nombre de usuario",
     "usernamePlaceholder": "Introduce nombre de usuario",
     "headlineLabel": "Cargo / Rol",
-    "headlinePlaceholder": "ej. PM en Google, Diseñador freelance",
+    "headlinePlaceholder": "ej. PM en una empresa tech, Diseñador freelance",
     "bioLabel": "Biografía",
     "bioPlaceholder": "Introduce la biografía",
     "phoneLabel": "Teléfono",
@@ -343,7 +464,57 @@
     "selectPlatform": "Seleccionar plataforma",
     "linkName": "Nombre del enlace",
     "selectCountry": "Seleccionar país",
-    "searchCountry": "Buscar país o código"
+    "searchCountry": "Buscar país o código",
+    "invalidImageType": "Tipo de imagen no compatible. Usa JPEG, PNG o WebP.",
+    "imageTooLarge": "La imagen es demasiado grande. Tamaño máximo: 2 MB.",
+    "browseAllPlatformsCta": "Más…",
+    "browseAllPlatforms": "Ver todas las plataformas",
+    "platformSearchPlaceholder": "Buscar plataformas…",
+    "platformSearchEmpty": "Sin coincidencias",
+    "detectedAs": "Detectado como {{platform}}",
+    "platform": {
+      "phone": "Teléfono",
+      "email": "Email",
+      "website": "Sitio web",
+      "blog": "Blog",
+      "portfolio": "Portafolio",
+      "custom": "Enlace personalizado"
+    },
+    "platformCategory": {
+      "communication": "Comunicación",
+      "social": "Social",
+      "video": "Vídeo",
+      "music": "Música",
+      "professional": "Profesional",
+      "writing": "Escritura",
+      "business": "Negocio",
+      "generic": "General"
+    },
+    "completionInline": "Que los tuyos te encuentren ya — añade {{items}}",
+    "missingAvatar": "Foto",
+    "missingBio": "Bio",
+    "missingTags": "3 tags",
+    "missingBiolink": "Enlace social",
+    "welcomeShort": "Bienvenido a PikTag",
+    "bioPromptHints": [
+      "Comercial en tecnología; correr me despeja, busco bajar de 4h en maratón",
+      "Maestra de primaria, huerto en el balcón y más de 20 suculentas",
+      "Enfermero de urgencias, horneo para desconectar, aprendiendo café de filtro",
+      "Ingeniero backend, últimamente cocino y hago cerámica, tengo un Shiba con genio",
+      "Estudiante de psicología, toco la guitarra en una banda y hago ilustración"
+    ],
+    "headlinePromptHints": [
+      "PM @ una empresa tech",
+      "Abogado @ un bufete",
+      "Enfermero de urgencias @ un hospital",
+      "Diseñador gráfico freelance",
+      "Estudiante de psicología"
+    ],
+    "needLibraryPermissionTitle": "Acceso a la fototeca necesario",
+    "needLibraryPermissionMsg": "Permitir acceso en Ajustes",
+    "notSignedIn": "No has iniciado sesión",
+    "uploadFailTitle": "Carga fallida",
+    "tryAgainLater": "Inténtalo de nuevo más tarde"
   },
   "friendDetail": {
     "reminderBirthday": "Cumpleaños",
@@ -369,6 +540,9 @@
     "metLocationLabel": "Lugar",
     "metNoteLabel": "Nota",
     "eventTagsLabel": "Etiquetas del evento",
+    "eventTagsSection": "Eventos juntos",
+    "eventTagsExpand": "Mostrar los {{count}}",
+    "eventTagsCollapse": "Mostrar menos",
     "stickyNotesTitle": "Notas adhesivas",
     "notePlaceholder": "Escribe tu nota...",
     "noteCancel": "Cancelar",
@@ -408,19 +582,24 @@
     "unfollowMessage": "¿Seguro que quieres dejar de seguir a {{name}}?",
     "unfollowConfirm": "Dejar de seguir",
     "hiddenTagsTitle": "Etiquetas ocultas (solo tú las ves)",
+    "eventTagsTitle": "Etiquetas de evento",
     "hiddenTagPlaceholder": "Añadir etiqueta oculta, ej. ex-colega",
     "mutualTagsModalTitle": "Etiquetas en común",
     "mutualFriendsSectionTitle": "Amigos en común",
-    "shareIntroMessage": "Te presento a {{name}} — su perfil: {{url}}"
+    "shareIntroMessage": "Te presento a {{name}} — su perfil: {{url}}",
+    "tag": "Etiqueta",
+    "recommendMembers": "Miembros recomendados",
+    "blockConfirmTitle": "¿Bloquear a esta persona?",
+    "blockConfirmMessage": "Dejaréis de seguiros y de ver el contenido del otro."
   },
   "userDetail": {
     "headerNotFound": "No encontrado",
     "userNotFound": "Usuario no encontrado",
-    "mutualFriendsPrefix": "Amigos en común: ",
+    "mutualFriendsPrefix": "Amigos en común:",
     "mutualFriendsSuffix": "",
-    "mutualTagsPrefix": "Etiquetas en común: ",
+    "mutualTagsPrefix": "Etiquetas en común:",
     "mutualTagsSuffix": "",
-    "mutualSeparator": "  |  ",
+    "mutualSeparator": "|",
     "following": "Siguiendo",
     "follow": "Seguir",
     "sendMessage": "Mensaje",
@@ -455,7 +634,12 @@
     "pickTagSubtitle": "Elige las etiquetas que mejor representen a {{name}}",
     "pickTagEmpty": "Este usuario aún no tiene etiquetas públicas",
     "pickTagSave": "Guardar ({{count}})",
-    "hiddenTagPlaceholder": "Añadir etiqueta oculta..."
+    "hiddenTagPlaceholder": "Añadir etiqueta oculta...",
+    "tag": "Etiqueta",
+    "recommendMembers": "Miembros recomendados",
+    "vibeContextTagsTitle": "Etiquetas de este Tag",
+    "blockConfirmTitle": "¿Bloquear a esta persona?",
+    "blockConfirmMessage": "Dejaréis de seguiros y de ver el contenido del otro."
   },
   "settings": {
     "headerTitle": "Ajustes",
@@ -504,7 +688,10 @@
     "deactivateMessage": "Tu perfil quedará oculto. Puedes reactivarlo iniciando sesión de nuevo.",
     "deactivateConfirm": "Desactivar",
     "deleteAccountButton": "Eliminar cuenta",
-    "alertDeleteAccountNote": "Esta acción no se puede deshacer. Tu cuenta y todos los datos serán eliminados permanentemente"
+    "alertDeleteAccountNote": "Esta acción no se puede deshacer. Tu cuenta y todos los datos serán eliminados permanentemente",
+    "analyticsOptIn": "Enviar análisis de uso",
+    "analyticsOptInDescription": "Ayúdanos a mejorar la app",
+    "attRationale": "PikTag usa análisis básicos para mejorar tu experiencia. Nunca te rastreamos en otras apps."
   },
   "contactSync": {
     "headerTitle": "Sincronizar contactos",
@@ -525,7 +712,23 @@
     "inviteMessage": "¡Hola {{name}}! Estoy usando PikTag para intercambiar etiquetas. Únete: https://pikt.ag",
     "batchProgress": "Procesando {{current}}/{{total}}",
     "alertBatchDoneTitle": "Importación completa",
-    "alertBatchDoneMessage": "Se añadieron {{matched}} amigos. {{notOnApp}} contactos aún no están en PikTag."
+    "alertBatchDoneMessage": "Se añadieron {{matched}} amigos. {{notOnApp}} contactos aún no están en PikTag.",
+    "sectionOnPiktag": "En PikTag · {{count}}",
+    "sectionNotOnPiktag": "No en PikTag · {{count}}",
+    "summaryHeading": "{{onCount}} en PikTag · {{offCount}} para invitar",
+    "followAllCta": "Seguir a todos los amigos de PikTag ({{count}})",
+    "followBtn": "Seguir",
+    "inviteBtn": "Invitar",
+    "tagInviteBtn": "Etiquetar e invitar",
+    "fromContact": "Contacto: {{name}}",
+    "classifyingText": "Comparando…",
+    "alertFollowAllTitle": "Seguir a todos",
+    "alertFollowAllMessage": "¿Añadir a tus conexiones a los {{count}} amigos de PikTag?",
+    "alertFollowAllConfirm": "Añadir",
+    "alertFollowAllDoneTitle": "Listo",
+    "alertFollowAllDoneMessage": "Se añadieron {{count}} amigos de PikTag",
+    "allConnected": "Todos los contactos de PikTag ya están conectados",
+    "openSettings": "Abrir Ajustes para dar acceso"
   },
   "invite": {
     "headerTitle": "Invitar amigos",
@@ -563,11 +766,11 @@
     "defaultLocation": "Ubicación actual",
     "alertPermTitle": "Permiso de ubicación",
     "alertPermMessage": "Se requiere permiso de ubicación para esta función",
-    "metAtPrefix": "Conocido en ",
+    "metAtPrefix": "Conocido en",
     "metAtSuffix": "",
     "nearbySection": "Conexiones cercanas ({{count}})",
     "metHereSection": "Conocidos aquí ({{count}})",
-    "emptyText": "No se encontraron conexiones cerca"
+    "emptyText": "No hay nadie cerca. Ajusta el rango de búsqueda o ve a Explorar para conocer gente"
   },
   "dashboard": {
     "headerTitle": "Panel personal",
@@ -581,7 +784,7 @@
     "totalLinkClicks": "Clics en enlaces",
     "totalQrScans": "Escaneos QR totales",
     "growthCurveTitle": "Crecimiento de conexiones",
-    "growthCurveEmpty": "Aún no hay datos de amigos",
+    "growthCurveEmpty": "Aún sin datos de amigos. Añade etiquetas o invita amigos para empezar",
     "presetScansTitle": "Escaneos por plantilla",
     "presetScansEmpty": "No hay registros de escaneo de plantillas",
     "scanCountSuffix": "escaneos",
@@ -605,7 +808,73 @@
     "timeYesterday": "Ayer",
     "timeDaysAgo": "hace {{count}}d",
     "timeWeeksAgo": "hace {{count}}sem",
-    "emptyState": "Sin notificaciones"
+    "emptyState": "Sin notificaciones. Configura recordatorios o sigue la actividad de tus amigos",
+    "types": {
+      "ask_posted": {
+        "title": "",
+        "body": "publicó un Ask · {{ask_body}}",
+        "push": {
+          "title": "{{username}}",
+          "body": "publicó un Ask · {{ask_body}}"
+        }
+      },
+      "vibe_shift": {
+        "title": "",
+        "body": "añadió la etiqueta #{{tag_name}}",
+        "push": {
+          "title": "{{username}}",
+          "body": "añadió la etiqueta #{{tag_name}}"
+        }
+      },
+      "on_this_day": {
+        "title": "",
+        "body": "Toca para ver quién se unió a este Tag",
+        "push": {
+          "title": "",
+          "body": "Toca para ver quién se unió a este Tag"
+        }
+      },
+      "tag_convergence": {
+        "title": "",
+        "body": "Saluda",
+        "push": {
+          "title": "",
+          "body": "Saluda"
+        }
+      },
+      "ask_bridge": {
+        "title": "",
+        "body": "Pídeles que te presenten",
+        "push": {
+          "title": "",
+          "body": "Pídeles que te presenten"
+        }
+      },
+      "ask_prompt": {
+        "title": "",
+        "body": "Una frase y un amigo podría ayudarte",
+        "push": {
+          "title": "",
+          "body": "Una frase y un amigo podría ayudarte"
+        }
+      },
+      "reconnect_suggest": {
+        "title": "",
+        "body": "Saluda",
+        "push": {
+          "title": "",
+          "body": "Saluda"
+        }
+      },
+      "tag_combo": {
+        "title": "",
+        "body": "Puede ser un buen tema",
+        "push": {
+          "title": "",
+          "body": "Puede ser un buen tema"
+        }
+      }
+    }
   },
   "scanResult": {
     "headerTitle": "Añadir amigo",
@@ -626,7 +895,11 @@
     "relationClient": "Cliente",
     "alreadyConnectedTitle": "Ya conectados",
     "alreadyConnectedMessage": "Ya son amigos.",
-    "addFriend": "Seguir"
+    "addFriend": "Seguir",
+    "connectElsewhereTitle": "Conecta con {{name}} también aquí",
+    "connectElsewhereHint": "Toca para abrir su página en esa app — tú pulsas seguir/añadir.",
+    "selfScanMessage": "Es tu propio QR — no puedes añadirte a ti mismo.",
+    "addingFriend": "Añadiendo amigo…"
   },
   "manageTags": {
     "headerTitle": "Gestionar etiquetas",
@@ -652,6 +925,7 @@
     "pinLimitMessage": "Puedes fijar hasta {{max}} etiquetas",
     "dragHint": "Mantén pulsado para fijar, flechas para reordenar",
     "aiSuggestionsTitle": "Sugerencias de IA para ti",
+    "aiFromBioTitle": "Sugerencias de IA según tu biografía",
     "pinTag": "Fijar etiqueta",
     "unpinTag": "Quitar fijación",
     "publicTagsTitle": "Etiquetas públicas",
@@ -663,7 +937,9 @@
     "dragSelectTarget": "Toca la etiqueta para intercambiar",
     "tagLimitTitle": "Límite de etiquetas",
     "tagLimitMessage": "Puedes añadir hasta {{max}} etiquetas",
-    "aiErrorGeneric": "Las sugerencias de IA no están disponibles temporalmente, inténtalo más tarde"
+    "aiErrorGeneric": "Las sugerencias de IA no están disponibles temporalmente, inténtalo más tarde",
+    "nativeHintNoPin": "Mantén presionado para arrastrar y reordenar",
+    "tagEditHint": "Toca para quitar (reversible hasta guardar) · Mantén pulsado para ordenar"
   },
   "activityReview": {
     "noNewFriends": "No hay amigos nuevos para revisar",
@@ -673,7 +949,8 @@
     "hiddenTagPlaceholder": "Añadir etiqueta oculta...",
     "swipeHint": "← Desliza a la izquierda para omitir · Derecha para siguiente →",
     "skip": "Omitir",
-    "next": "Siguiente"
+    "next": "Siguiente",
+    "done": "Hecho"
   },
   "tagDetail": {
     "unknownTag": "Etiqueta desconocida",
@@ -712,6 +989,7 @@
     "title": "Acceso a cámara",
     "grantPermission": "Conceder permiso",
     "instruction": "Apunta tu cámara a un código QR de PikTag",
+    "cardFrameHint": "Encuadra toda la tarjeta y mantenla nítida",
     "invalidQr": "Código QR no válido",
     "invalidQrMessage": "Este QR no es un código de conexión válido de PikTag.",
     "permissionMessage": "PikTag necesita acceso a la cámara para escanear códigos QR y conectar con amigos."
@@ -791,19 +1069,6 @@
     "section11Title": "11. Contacto",
     "section11Body": "PikTag Inc.\nCorreo: support@pikt.ag"
   },
-  "points": {
-    "balance": "Monedas P",
-    "lifetime": "Total acumulado",
-    "inviteReward": "Recompensa por invitación",
-    "redeemHint": "Usa las monedas P para futuros servicios de pago",
-    "historyTitle": "Historial de monedas P",
-    "reasonInviteAccepted": "Un amigo aceptó la invitación",
-    "reasonAdminGrant": "Recompensa del sistema",
-    "reasonRedeemed": "Canjeado",
-    "emptyHistory": "Aún sin actividad de monedas P",
-    "plusOne": "+1 P",
-    "pointsUnit": "P"
-  },
   "chat": {
     "inbox": "Mensajes",
     "compose": "Nuevo mensaje",
@@ -833,7 +1098,12 @@
     "userBlocked": "No se puede enviar mensaje a este usuario",
     "deliveryFailed": "Error al enviar · Toca para reintentar",
     "unreadBadge": "{{count}} sin leer",
-    "messagesSent": "{{name}} te envió un mensaje"
+    "messagesSent": "{{name}} te envió un mensaje",
+    "timeJustNow": "Ahora mismo",
+    "timeYesterday": "Ayer",
+    "timeMinutesAgo": "hace {{count}} min",
+    "timeHoursAgo": "hace {{count}} h",
+    "timeDaysAgo": "hace {{count}} d"
   },
   "share": {
     "profileInviteMessage": "{{name}} en PikTag\n{{url}}\n\nPikTag — etiqueta a cada amigo que conoces,\nescanea el QR para registrar cuándo y dónde.\n\nObtén PikTag → https://pikt.ag"
@@ -903,7 +1173,123 @@
     "generating": "Generating title…",
     "minOneTag": "Select at least one tag",
     "aiSuggestions": "Sugerencias de IA",
-    "yourTags": "Tus etiquetas",
-    "noTagsHint": "Primero añade etiquetas en Perfil → Gestionar etiquetas"
+    "customTagPlaceholder": "Añadir etiqueta personalizada",
+    "cardLabel": "Buscando",
+    "askingNow": "Solicitando ahora",
+    "yourAskTitle": "Tu Ask actual",
+    "generateAiTags": "Generar etiquetas IA",
+    "aiNoSuggestions": "La IA no encontró etiquetas adecuadas. Inténtalo de nuevo o escribe la tuya.",
+    "regenerateAiTags": "Regenerar",
+    "bubblePromptMine": "+ Nuevo Ask",
+    "aiSuggestionsTitle": "Sugerencias de IA",
+    "aiBodyTooShortHint": "Describe lo que quieres en una frase — la IA sugerirá etiquetas",
+    "aiTapToGenerateHint": "Toca ↻ para que la IA sugiera etiquetas",
+    "bodyPromptHints": [
+      "¿Alguien para una caminata el finde?",
+      "Necesito quien arregle el Wi-Fi, urgente",
+      "Busco trabajo freelance, ¿alguien contrata?",
+      "Recomienden un dentista económico",
+      "Noche de juegos de mesa esta semana, ¿quién se apunta?"
+    ],
+    "createSubtitle": "Con una línea basta — la IA pone las etiquetas para que lo vea la gente indicada (o un amigo de un amigo).",
+    "createFailed": "Tu Ask no se publicó — inténtalo de nuevo.",
+    "deleteFailed": "No se pudo borrar el ask"
+  },
+  "errorBoundary": {
+    "title": "Algo salió mal",
+    "message": "La aplicación encontró un error inesperado. Inténtalo de nuevo.",
+    "retry": "Reintentar"
+  },
+  "report": {
+    "reportMessage": "Denunciar mensaje",
+    "reportAsk": "Denunciar Ask",
+    "reportNotification": "Denunciar esta notificación",
+    "hideFromUser": "Ocultar a este usuario",
+    "confirmTitle": "Denunciar",
+    "confirmDescription": "Selecciona un motivo. Revisaremos en 24 horas.",
+    "success": "Gracias — lo revisaremos.",
+    "reasonSpam": "Spam",
+    "reasonHarassment": "Acoso",
+    "reasonInappropriate": "Contenido inapropiado",
+    "reasonOther": "Otro",
+    "noTarget": "Esta notificación no tiene a quién reportar."
+  },
+  "tabTooltips": {
+    "home": "Amigos",
+    "search": "Buscar / Chat",
+    "addTag": "Escanear / Crear",
+    "notifications": "Avisos",
+    "profile": "Tu perfil",
+    "dismissHint": "Toca para cerrar"
+  },
+  "qrGroup": {
+    "headerTitle": "Conoce gente nueva",
+    "detailHeader": "Tag",
+    "create": "Crear nuevo Tag",
+    "createFirst": "Crear un Tag ahora",
+    "emptyTitle": "Deja que las etiquetas recuerden a tus nuevos amigos",
+    "emptyDesc": "Al escanear y conectar, el encuentro se anota solo en ambos perfiles — nunca más olvides dónde se conocieron.",
+    "untitled": "Tag sin título",
+    "untitledFallback": "Tag · {{date}}",
+    "namePlaceholder": "Ponle nombre a este Tag",
+    "tagsTitle": "Etiquetas del Tag",
+    "tagsEmpty": "Sin etiquetas",
+    "tagInputPlaceholder": "Nueva etiqueta",
+    "noTagsYet": "Sin etiquetas",
+    "membersTitle": "Miembros ({{count}})",
+    "memberCount": "{{count}} amigos",
+    "membersEmpty": "Nadie ha escaneado aún — compártelo",
+    "deleteTitle": "¿Eliminar este Tag?",
+    "deleteMessage": "\"{{name}}\" se eliminará de tus Tags. Los amigos que ya te añadieron con este QR no se ven afectados.",
+    "deleteFailedTitle": "Error al eliminar",
+    "deleteFailedMessage": "Este Tag no se eliminó. Inténtalo más tarde. Si persiste, contáctanos.",
+    "emptyScanCta": "O escanea su QR para conectar"
+  },
+  "localContact": {
+    "editTitle": "Editar contacto",
+    "addTitle": "Nuevo contacto",
+    "intro": "Apunta a la persona — no necesita cuenta de PikTag todavía. Cuando se una, esto se vincula solo y tus etiquetas se conservan.",
+    "fieldName": "Nombre",
+    "namePlaceholder": "ej. Alex del viaje de buceo",
+    "fieldPhone": "Teléfono (opcional — lo vincula al unirse)",
+    "phonePlaceholder": "+34 612 345 678",
+    "fieldEmail": "Email (opcional)",
+    "emailPlaceholder": "name@example.com",
+    "fieldMetWhere": "Dónde se conocieron (opcional)",
+    "metWherePlaceholder": "ej. reencuentro, viaje de buceo",
+    "fieldNote": "Nota (solo tú la ves)",
+    "notePlaceholder": "Una línea para recordarle",
+    "fieldTags": "Etiquetas (solo tú las ves)",
+    "tagPlaceholder": "Añadir etiqueta…",
+    "save": "Guardar",
+    "nameRequiredTitle": "Falta el nombre",
+    "nameRequiredMsg": "Pon al menos un nombre para poder recordarle luego.",
+    "saveError": "No se pudo guardar — inténtalo de nuevo.",
+    "notFound": "No se encuentra este contacto: puede haberse vinculado a PikTag o eliminado.",
+    "alreadyMemberTitle": "Esta persona ya está en PikTag",
+    "alreadyMemberMsg": "{{name}} ya es miembro de PikTag: mejor conectar directamente que solo guardarlo como contacto.",
+    "alreadyMemberConnect": "Ver / añadir",
+    "alreadyMemberFile": "Guardar como contacto",
+    "alreadyMemberFallbackWho": "Esta persona",
+    "deleteTitle": "¿Eliminar este contacto?",
+    "deleteMsg": "Solo se quita de tu lista — nadie más se ve afectado.",
+    "scanCardHint": "Haz una foto de la tarjeta: nombre y contacto se rellenan solos. Luego edita o añade tags.",
+    "manualEntry": "O escríbelo",
+    "scanRetake": "Volver a tomar",
+    "fieldBirthday": "Cumpleaños (opcional)",
+    "birthdayPlaceholder": "MM-DD o YYYY-MM-DD",
+    "linkPhone": "Teléfono",
+    "linkEmail": "Correo",
+    "linkAddress": "Dirección",
+    "scanningTitle": "Leyendo la tarjeta…",
+    "scanningSubtitle": "Suele tardar 5–10 segundos",
+    "fieldAddress": "Dirección",
+    "addressPlaceholder": "ej. Calle Mayor 1, Madrid",
+    "scanningCard": "Leyendo tarjeta… (unos 3 s)"
+  },
+  "followers": {
+    "title": "Seguidores",
+    "count": "{{count}} seguidores",
+    "empty": "Aún no tienes seguidores"
   }
 }

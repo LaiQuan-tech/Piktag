@@ -11,6 +11,12 @@ export type PiktagProfile = {
   full_name: string | null;
   avatar_url: string | null;
   bio: string | null;
+  // Optional one-line tagline shown above the bio on profile screens.
+  // DB column exists but the read sites used to access it without
+  // declaring it on the type, scattering "Property 'headline' does not
+  // exist" errors across ProfileScreen / FriendDetailScreen /
+  // UserDetailScreen.
+  headline?: string | null;
   phone: string | null;
   website: string | null;
   location: string | null;
@@ -21,8 +27,6 @@ export type PiktagProfile = {
   longitude: number | null;
   location_updated_at?: string | null;
   birthday: string | null;
-  p_points?: number;
-  p_points_lifetime?: number;
   created_at: string;
   updated_at: string;
 };
@@ -89,8 +93,11 @@ export type Connection = {
   met_location: string | null;
   birthday: string | null;
   anniversary: string | null;
-  contract_expiry: string | null;
   scan_session_id: string | null;
+  // Set to true once the user has swiped past this connection in the
+  // "整理新朋友" review flow. Drives the per-row "new" pill and the
+  // unreviewedCount banner on ConnectionsScreen (with a 7-day age cap).
+  is_reviewed?: boolean;
   created_at: string;
   updated_at?: string;
   connected_user?: PiktagProfile; // joined

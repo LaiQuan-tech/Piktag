@@ -6,13 +6,13 @@ import {
   TouchableOpacity,
   StyleSheet,
   Alert,
-  ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
 } from 'react-native';
+import BrandSpinner from '../../components/loaders/BrandSpinner';
 import { useTranslation } from 'react-i18next';
-import { Hash, Eye, EyeOff } from 'lucide-react-native';
+import { Eye, EyeOff } from 'lucide-react-native';
 import { supabase } from '../../lib/supabase';
 import { signInWithApple } from '../../lib/appleAuth';
 import { signInWithGoogle } from '../../lib/googleAuth';
@@ -48,10 +48,20 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
       });
 
       if (error) {
-        Alert.alert(t('auth.login.alertLoginFailedTitle'), error.message);
+        // Map raw English Supabase errors to localized, actionable
+        // copy (was dumping e.g. "Invalid login credentials" /
+        // "Email not confirmed" verbatim into an otherwise zh UI,
+        // with no next step for the unconfirmed-email case).
+        const m = error.message || '';
+        const msg = /invalid login credentials/i.test(m)
+          ? t('auth.login.errInvalidCredentials', { defaultValue: '帳號或密碼不正確。' })
+          : /email not confirmed/i.test(m)
+          ? t('auth.login.errEmailNotConfirmed', { defaultValue: '請先到信箱點開確認信完成驗證，再登入。' })
+          : t('auth.login.errGeneric', { defaultValue: '登入失敗，請稍後再試。' });
+        Alert.alert(t('auth.login.alertLoginFailedTitle'), msg);
       }
     } catch (err: any) {
-      Alert.alert(t('common.error'), err.message || t('common.unknownError'));
+      Alert.alert(t('common.error'), t('auth.login.errGeneric', { defaultValue: '登入失敗，請稍後再試。' }));
     } finally {
       setLoading(false);
     }
@@ -65,7 +75,15 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
 
     setResetLoading(true);
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email.trim());
+      // Send the recovery link to our hosted /reset-password page.
+      // Omitting redirectTo falls back to the Supabase project's "Site
+      // URL" — which previously pointed at an unrouted subdomain and
+      // gave users a Vercel 404 when they clicked the email link.
+      // Passing it explicitly here makes the destination independent of
+      // the dashboard config.
+      const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+        redirectTo: 'https://pikt.ag/reset-password',
+      });
       if (error) {
         Alert.alert(t('common.error'), error.message);
       } else {
@@ -84,14 +102,14 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
   const handleApple = async () => {
     setSocialLoading('apple');
     try { await signInWithApple(); }
-    catch (err: any) { if (err.code !== 'ERR_CANCELED') Alert.alert(t('common.error'), err.message); }
+    catch (err: any) { if (err.code !== 'ERR_CANCELED') Alert.alert(t('common.error'), t('auth.login.errGeneric', { defaultValue: '登入失敗，請稍後再試。' })); }
     finally { setSocialLoading(null); }
   };
 
   const handleGoogle = async () => {
     setSocialLoading('google');
     try { await signInWithGoogle(); }
-    catch (err: any) { Alert.alert(t('common.error'), err.message); }
+    catch (err: any) { Alert.alert(t('common.error'), t('auth.login.errGeneric', { defaultValue: '登入失敗，請稍後再試。' })); }
     finally { setSocialLoading(null); }
   };
 
@@ -110,10 +128,11 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
           <Text style={[styles.subtitle, { color: colors.textSecondary }]}>{t('common.brandSlogan')}</Text>
         </View>
 
+
         {/* Form */}
         <View style={styles.formContainer}>
           <TextInput
-            style={[styles.input, { borderColor: colors.border, color: '#111827', backgroundColor: '#f9fafb' }]}
+            style={[styles.input, { borderColor: colors.border, color: colors.text, backgroundColor: colors.backgroundSecondary }]}
             placeholder={t('auth.login.emailPlaceholder')}
             placeholderTextColor={colors.textTertiary}
             value={email}
@@ -125,10 +144,10 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
             onSubmitEditing={() => passwordRef.current?.focus()}
           />
 
-          <View style={[styles.passwordContainer, { borderColor: colors.border, backgroundColor: '#f9fafb' }]}>
+          <View style={[styles.passwordContainer, { borderColor: colors.border, backgroundColor: colors.backgroundSecondary }]}>
             <TextInput
               ref={passwordRef}
-              style={[styles.passwordInput, { color: '#000000' }]}
+              style={[styles.passwordInput, { color: colors.text }]}
               placeholder={t('auth.login.passwordPlaceholder')}
               placeholderTextColor={colors.textTertiary}
               value={password}
@@ -158,7 +177,7 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
             activeOpacity={0.7}
           >
             {resetLoading ? (
-              <ActivityIndicator size="small" color={colors.piktag500} />
+              <BrandSpinner size={16} />
             ) : (
               <Text style={[styles.forgotPasswordText, { color: colors.piktag600 }]}>
                 {t('auth.login.forgotPassword')}
@@ -174,7 +193,7 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
             accessibilityRole="button"
           >
             {loading ? (
-              <ActivityIndicator color="#FFFFFF" />
+              <BrandSpinner size={20} />
             ) : (
               <Text style={styles.loginButtonText}>{t('auth.login.loginButton')}</Text>
             )}
@@ -184,7 +203,7 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
         {/* Divider */}
         <View style={styles.dividerRow}>
           <View style={[styles.dividerLine, { backgroundColor: colors.border }]} />
-          <Text style={[styles.dividerText, { color: colors.textTertiary }]}>{t('auth.login.orDivider') || '或'}</Text>
+          <Text style={[styles.dividerText, { color: colors.textTertiary }]}>{t('auth.login.orDivider', { defaultValue: '或' })}</Text>
           <View style={[styles.dividerLine, { backgroundColor: colors.border }]} />
         </View>
 
@@ -198,11 +217,11 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
               activeOpacity={0.8}
             >
               {socialLoading === 'apple' ? (
-                <ActivityIndicator color={colors.text} />
+                <BrandSpinner size={20} />
               ) : (
                 <>
                   <Text style={[styles.appleIcon, { color: colors.text }]}>{'\uF8FF'}</Text>
-                  <Text style={[styles.socialBtnText, { color: colors.text }]}>{t('auth.login.continueWithApple') || 'Apple 登入'}</Text>
+                  <Text style={[styles.socialBtnText, { color: colors.text }]}>{t('auth.login.continueWithApple', { defaultValue: 'Apple 登入' })}</Text>
                 </>
               )}
             </TouchableOpacity>
@@ -215,11 +234,11 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
             activeOpacity={0.8}
           >
             {socialLoading === 'google' ? (
-              <ActivityIndicator color={colors.text} />
+              <BrandSpinner size={20} />
             ) : (
               <>
                 <Text style={styles.googleIcon}>G</Text>
-                <Text style={[styles.socialBtnText, { color: colors.text }]}>{t('auth.login.continueWithGoogle') || 'Google 登入'}</Text>
+                <Text style={[styles.socialBtnText, { color: colors.text }]}>{t('auth.login.continueWithGoogle', { defaultValue: 'Google 登入' })}</Text>
               </>
             )}
           </TouchableOpacity>

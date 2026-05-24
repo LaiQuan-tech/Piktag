@@ -1,30 +1,49 @@
-import React, { useState, useCallback, useRef } from 'react';
-import { View, Text, Pressable, StyleSheet, LayoutChangeEvent, Platform } from 'react-native';
+import React, { useState, useCallback, useRef, useMemo } from 'react';
+import { View, Text, StyleSheet, LayoutChangeEvent } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withSpring,
   withTiming,
-  withSequence,
   runOnJS,
 } from 'react-native-reanimated';
 import { impactAsync, ImpactFeedbackStyle } from 'expo-haptics';
-import { X, Pin } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
-import { COLORS } from '../constants/theme';
+import { COLORS, type ColorPalette } from '../constants/theme';
+import { useTheme } from '../context/ThemeContext';
+import TagChip from './TagChip';
 
 type ChipItem = {
   id: string;
   label: string;
-  isPinned?: boolean;
+  // isPinned was removed when tag pinning was pulled out as a future
+  // paid feature (commit e11a9d6). Kept the field name out of the
+  // type so callers can't accidentally re-introduce a pin flag here.
 };
 
 type DraggableChipsProps = {
   items: ChipItem[];
   onReorder: (newItems: ChipItem[]) => void;
   onRemove: (item: ChipItem) => void;
-  onDoubleTap?: (item: ChipItem) => void;
+  // Two interaction modes, ONE component (no per-screen chip copy):
+  //
+  //  • 'removable' (default — ManageTagsScreen): the canonical
+  //    "#tag ×" chip. Tap does nothing; the × removes; long-press
+  //    drags to reorder. Byte-for-byte the old behaviour, just
+  //    rendered through the shared <TagChip> now.
+  //
+  //  • 'toggle' (EditProfile "我的標籤"): NO ×. Every chip is ALWAYS
+  //    purple — these ARE the user's selected/owned tags, and the
+  //    colour contract is purple = selected (gray is reserved for
+  //    recommended-but-unselected suggestions elsewhere). A single
+  //    tap removes the tag; that one-tap is safe because removal is
+  //    staged (Phase 1) and fully reversible until 儲存. Long-press
+  //    still drags.
+  chipVariant?: 'removable' | 'toggle';
+  // onDoubleTap was the pin-toggle gesture in the original design;
+  // pinning was pulled (commit e11a9d6). The prop is gone — the tap
+  // gesture now drives the remove model above.
   onDragStateChange?: (isDragging: boolean) => void;
 };
 
@@ -37,12 +56,21 @@ type ChipLayout = {
 
 const SPRING_CONFIG = { damping: 20, stiffness: 300, mass: 0.8 };
 
-export default function DraggableChips({ items, onReorder, onRemove, onDoubleTap, onDragStateChange }: DraggableChipsProps) {
+export default function DraggableChips({
+  items,
+  onReorder,
+  onRemove,
+  chipVariant = 'removable',
+  onDragStateChange,
+}: DraggableChipsProps) {
   const { t } = useTranslation();
+  const { colors, isDark } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const [layouts, setLayouts] = useState<Map<string, ChipLayout>>(new Map());
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const containerRef = useRef<View>(null);
   const containerLayout = useRef({ x: 0, y: 0 });
+  const isToggle = chipVariant === 'toggle';
 
   // Measure container position
   const onContainerLayout = useCallback(() => {
@@ -65,8 +93,6 @@ export default function DraggableChips({ items, onReorder, onRemove, onDoubleTap
   const findTargetId = useCallback((fingerX: number, fingerY: number, excludeId: string): string | null => {
     for (const [id, layout] of layouts) {
       if (id === excludeId) continue;
-      const centerX = layout.x + layout.width / 2;
-      const centerY = layout.y + layout.height / 2;
       // Check if finger is within chip bounds (with some tolerance)
       if (
         fingerX >= layout.x - 4 && fingerX <= layout.x + layout.width + 4 &&
@@ -88,12 +114,23 @@ export default function DraggableChips({ items, onReorder, onRemove, onDoubleTap
     onReorder(newItems);
   }, [items, onReorder]);
 
+  // Tap action — both modes: single tap removes (founder rule:
+  // every chip in the app is tap-to-remove, no × icons anywhere).
+  // In toggle/EditProfile mode the removal is staged (Phase 1) and
+  // reversible until Save; in legacy/ManageTags mode it's immediate.
+  // Medium haptic marks the destructive step.
+  const handleTap = useCallback((item: ChipItem) => {
+    impactAsync(ImpactFeedbackStyle.Medium);
+    onRemove(item);
+  }, [onRemove]);
+
   return (
     <View ref={containerRef} onLayout={onContainerLayout} style={styles.container}>
       {items.map((item) => (
         <DraggableChip
           key={item.id}
           item={item}
+          isToggle={isToggle}
           isDragging={draggingId === item.id}
           onLayout={(e) => onChipLayout(item.id, e)}
           onDragStart={() => { setDraggingId(item.id); onDragStateChange?.(true); }}
@@ -106,7 +143,11 @@ export default function DraggableChips({ items, onReorder, onRemove, onDoubleTap
             if (targetId) handleSwap(item.id, targetId);
           }}
           onRemove={() => onRemove(item)}
-          onDoubleTap={onDoubleTap ? () => onDoubleTap(item) : undefined}
+          // Always wire tap (both modes): chip body = tap-to-remove,
+          // no × icon. GestureDetector owns the tap so a nested
+          // Pressable inside TagChip is unnecessary (and would
+          // race the Pan long-press / Tap gesture composition).
+          onTap={() => handleTap(item)}
         />
       ))}
       {items.length === 0 && (
@@ -120,23 +161,25 @@ export default function DraggableChips({ items, onReorder, onRemove, onDoubleTap
 
 type DraggableChipProps = {
   item: ChipItem;
+  isToggle: boolean;
   isDragging: boolean;
   onLayout: (e: LayoutChangeEvent) => void;
   onDragStart: () => void;
   onDragEnd: () => void;
   onDragMove: (absX: number, absY: number) => void;
   onRemove: () => void;
-  onDoubleTap?: () => void;
+  onTap?: () => void;
 };
 
 function DraggableChip({
-  item, isDragging, onLayout, onDragStart, onDragEnd, onDragMove, onRemove, onDoubleTap,
+  item, isToggle, isDragging, onLayout, onDragStart, onDragEnd, onDragMove, onRemove, onTap,
 }: DraggableChipProps) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const translateX = useSharedValue(0);
   const translateY = useSharedValue(0);
   const scale = useSharedValue(1);
   const zIndex = useSharedValue(0);
-  const lastTapTime = useRef(0);
 
   const panGesture = Gesture.Pan()
     .activateAfterLongPress(300)
@@ -158,23 +201,11 @@ function DraggableChip({
       runOnJS(onDragEnd)();
     });
 
-  const doDoubleTap = useCallback(() => {
-    impactAsync(ImpactFeedbackStyle.Medium);
-    onDoubleTap?.();
-  }, [onDoubleTap]);
-
-  const tapGesture = Gesture.Tap()
-    .onEnd(() => {
-      if (onDoubleTap) {
-        const now = Date.now();
-        if (now - lastTapTime.current < 400) {
-          runOnJS(doDoubleTap)();
-          lastTapTime.current = 0;
-        } else {
-          lastTapTime.current = now;
-        }
-      }
-    });
+  // Single tap → remove (toggle mode only; legacy mode leaves
+  // removal to the × inside the removable TagChip).
+  const tapGesture = Gesture.Tap().onEnd(() => {
+    if (onTap) runOnJS(onTap)();
+  });
 
   const composed = Gesture.Race(panGesture, tapGesture);
 
@@ -191,67 +222,51 @@ function DraggableChip({
 
   return (
     <GestureDetector gesture={composed}>
-      <Animated.View
-        onLayout={onLayout}
-        style={[
-          styles.chip,
-          item.isPinned && styles.chipPinned,
-          animatedStyle,
-        ]}
-      >
-        {item.isPinned && <Pin size={11} color={COLORS.piktag600} fill={COLORS.piktag600} />}
-        <Text style={[styles.chipText, item.isPinned && styles.chipTextPinned]}>
-          {item.label}
-        </Text>
-        <Pressable onPress={onRemove} style={styles.chipX} hitSlop={8}>
-          <X size={14} color={COLORS.gray400} />
-        </Pressable>
+      <Animated.View onLayout={onLayout} style={[styles.chipHost, animatedStyle]}>
+        {isToggle ? (
+          // Toggle (EditProfile): always purple — these ARE the
+          // user's selected tags. Static display; tap handled by
+          // the outer GestureDetector → handleTap → onRemove.
+          <TagChip variant="toggle" label={item.label} selected />
+        ) : (
+          // Removable (ManageTagsScreen): rendered WITHOUT onRemove
+          // so the chip itself is a plain View (no nested Pressable
+          // inside the GestureDetector). The same tapGesture handles
+          // removal — keeps the gesture composition clean.
+          <TagChip variant="removable" label={item.label} />
+        )}
       </Animated.View>
     </GestureDetector>
   );
 }
 
-const styles = StyleSheet.create({
+function makeStyles(c: ColorPalette) {
+  return StyleSheet.create({
+  // No internal paddingHorizontal — callers control the left/right
+  // gutter so this component never DOUBLE-indents when nested in
+  // an already-padded parent (the alignment bug the founder caught:
+  // EditProfile's tag_section is paddingH:20, and 20 here on top
+  // made 我的標籤 chips sit 40px from the screen edge while the
+  // sibling 熱門 chip wrap sat at 20).
   container: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 8,
-    paddingHorizontal: 20,
   },
-  chip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
-    backgroundColor: COLORS.gray100,
-    borderRadius: 20,
-    paddingVertical: 8,
-    paddingLeft: 14,
-    paddingRight: 6,
-    borderWidth: 2,
-    borderColor: 'transparent',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+  // The Animated.View only hosts the drag transform + lift shadow;
+  // ALL chip visuals come from the shared <TagChip> so there is no
+  // per-screen chip styling to drift (founder design contract).
+  chipHost: {
+    alignSelf: 'flex-start',
+    borderRadius: 9999,
+    shadowColor: c.gray900,
+    shadowOffset: { width: 0, height: 3 },
     shadowRadius: 6,
-  },
-  chipPinned: {
-    backgroundColor: '#FFFBEB',
-    borderColor: COLORS.piktag400,
-  },
-  chipText: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: COLORS.gray900,
-  },
-  chipTextPinned: {
-    fontWeight: '700',
-    color: COLORS.piktag600,
-  },
-  chipX: {
-    padding: 4,
   },
   emptyText: {
     fontSize: 14,
-    color: COLORS.gray400,
+    color: c.gray400,
     paddingVertical: 8,
   },
-});
+  });
+}

@@ -26,7 +26,7 @@ export default function EmptyState({
       {action ? (
         <Link
           href={action.href}
-          className="mt-6 inline-flex items-center rounded-md bg-[#aa00ff] px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-[#9200db] focus:outline-none focus:ring-2 focus:ring-[#aa00ff] focus:ring-offset-2"
+          className="mt-6 inline-flex items-center rounded-md bg-[#8c52ff] px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-[#9200db] focus:outline-none focus:ring-2 focus:ring-[#8c52ff] focus:ring-offset-2"
         >
           {action.label}
         </Link>

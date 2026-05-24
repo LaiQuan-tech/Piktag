@@ -1,4 +1,9 @@
 {
+  "app": {
+    "offline": "当前离线",
+    "offlineHint": "部分功能需要网络",
+    "backOnline": "已重新连接"
+  },
   "tabs": {
     "home": "首页",
     "search": "搜索",
@@ -9,19 +14,25 @@
   "locationPicker": {
     "title": "选择地点",
     "noNearbyPlaces": "找不到附近地点，在搜索框直接输入地点名称后按完成即可。",
-    "noResults": "找不到相关地点"
+    "noResults": "找不到相关地点",
+    "permissionDenied": "位置权限被拒绝",
+    "permissionDeniedWeb": "位置权限被拒绝，请在浏览器设置中允许位置访问",
+    "errorPrefix": "位置错误：",
+    "searchPlaceholder": "搜索或直接输入地点名称",
+    "gpsOff": "无法获取位置，请确认 GPS 已开启",
+    "requestTimeout": "位置请求超时，请重试"
   },
   "friendsMap": {
     "title": "好友地图",
     "friendCount": "{{count}} 位好友出现在地图上",
     "noSharedLocations": "目前还没有好友分享位置",
     "staleHint": "仅显示近 24 小时内更新位置的好友",
-    "loadFailed": "地图加载失败，请稍后再试"
+    "loadFailed": "地图加载失败，请检查网络连接"
   },
   "hiddenTagEditor": {
     "timeTitle": "认识时间",
     "locationTitle": "认识地点",
-    "frequentTitle": "常用标签",
+    "suggestedTitle": "推荐标签",
     "addedTitle": "已加入",
     "today": "今天",
     "yesterday": "昨天",
@@ -53,7 +64,11 @@
     "noTags": "尚无标签",
     "email": "E-mail",
     "phone": "电话",
-    "comingSoonTitle": "即将推出"
+    "comingSoonTitle": "即将推出",
+    "loadFailed": "加载失败",
+    "checkConnection": "请检查网络连接后重试",
+    "willAutoRetry": "重新连接后会自动加载",
+    "userNotFound": "找不到这个用户"
   },
   "auth": {
     "login": {
@@ -62,7 +77,7 @@
       "emailPlaceholder": "电子邮件",
       "passwordPlaceholder": "密码",
       "loginButton": "登录",
-      "noAccountPrompt": "还没有账号？ ",
+      "noAccountPrompt": "还没有账号？",
       "registerLink": "立即注册",
       "forgotPassword": "忘记密码？",
       "alertEnterEmailFirst": "请先输入电子邮件，我们会寄送重设密码的链接",
@@ -70,7 +85,10 @@
       "alertResetSentMessage": "重设密码链接已寄到你的邮箱，去收信看看",
       "orDivider": "或",
       "continueWithApple": "Apple 登录",
-      "continueWithGoogle": "Google 登录"
+      "continueWithGoogle": "Google 登录",
+      "errInvalidCredentials": "账号或密码不正确。",
+      "errEmailNotConfirmed": "请先到邮箱点开确认信完成验证，再登录。",
+      "errGeneric": "登录失败，请稍后再试。"
     },
     "register": {
       "alertEmptyFields": "请填写所有字段",
@@ -84,13 +102,26 @@
       "emailPlaceholder": "电子邮件",
       "passwordPlaceholder": "密码",
       "registerButton": "注册",
-      "hasAccountPrompt": "已有账号？ ",
+      "hasAccountPrompt": "已有账号？",
       "loginLink": "登录",
       "confirmPasswordPlaceholder": "确认密码",
       "alertPasswordMismatch": "两次密码输入不一致",
-      "passwordHint": "密码至少需要 6 个字符"
+      "passwordHint": "密码至少需要 6 个字符",
+      "birthdayLabel": "生日（选填）",
+      "alertVerifyEmailTitle": "请先验证 Email",
+      "alertVerifyEmailMessage": "我们寄了一封确认信到你的邮箱，点开信中链接后，再回来登录。"
     },
     "onboarding": {
+      "welcome": {
+        "identityTitle": "用标签告诉大家你是谁",
+        "identityDesc": "选 10 个最能代表你的标签——这就是你在 PikTag 的身份",
+        "activateTitle": "让老朋友活起来",
+        "activateDesc": "生日提醒、认识周年、共同回忆都会主动找上你",
+        "discoverTitle": "用「需求」找人，不是用「名字」",
+        "discoverDesc": "「我需要懂摄影的朋友」「在台北附近的设计师」",
+        "next": "下一步",
+        "getStarted": "开始使用"
+      },
       "defaultTags": [
         "#Startup",
         "#Design",
@@ -115,16 +146,62 @@
       "contactResultText": "已找到 {{matched}} 位朋友",
       "step3Title": "完成！开始探索",
       "step3Description": "你的账号已设置完成，现在可以开始使用 PikTag 了",
+      "quickStart": {
+        "title": "开始使用 PikTag",
+        "subtitle": "这 4 件事让你最快上手",
+        "card1": {
+          "title": "加朋友",
+          "body": "用 QR 扫描、同步通讯录，或搜 username 找朋友"
+        },
+        "card2": {
+          "title": "给朋友加标签",
+          "body": "例如「咖啡控」「北美销售」「客户」，之后用标签找人"
+        },
+        "card3": {
+          "title": "用标签找人",
+          "body": "在搜索页输入标签名称，看谁跟你有相同兴趣"
+        },
+        "card4": {
+          "title": "发 Ask 求助",
+          "body": "一句话，全网络来帮你"
+        },
+        "cta": "开始使用 PikTag"
+      },
       "backButton": "上一步",
       "enterPikTag": "开始使用 PikTag",
       "nextButton": "下一步",
       "facebookLabel": "Facebook",
       "instagramLabel": "Instagram",
       "linkedinLabel": "LinkedIn",
-      "birthdayLabel": "生日"
+      "birthdayLabel": "生日",
+      "welcomeName": "欢迎，{{name}}",
+      "avatarStepTitle": "先放一张头像吧",
+      "avatarStepDescription": "让朋友一眼认出你 — 之后也可以随时更换。",
+      "avatarPickAria": "选择头像",
+      "avatarTapToPick": "点圆圈选一张照片",
+      "avatarTapToChange": "点头像可以更换",
+      "avatarPermissionTitle": "需要相册权限",
+      "avatarPermissionMessage": "请在设置中允许 PikTag 访问相册",
+      "skipStep": "略过",
+      "scanCardCta": "扫名片快速带入",
+      "scanCardHint": "有名片？拍一张，自动带入 bio 和联系方式（选填）",
+      "cardScanFailedTitle": "扫描失败",
+      "cardScanFailedMessage": "名片没有读取成功，再试一次或手动填写。",
+      "cardScanEmptyTitle": "没读到资料",
+      "cardScanEmptyMessage": "这张名片看不太清楚 — 换一张清楚的照片，或直接手动填。",
+      "cardConfirmTitle": "确认名片资料",
+      "cardConfirmSubtitle": "检查一下、可以改 — 确认后才会带入",
+      "cardFieldName": "名字",
+      "cardFieldBio": "Bio（AI 起的草稿，可改）",
+      "cardBioPlaceholder": "一句话介绍你自己",
+      "cardLinksLabel": "联系方式 / 社群",
+      "cardApplyCta": "套用",
+      "profileCta": "建立我的第一个 Tag",
+      "saveFailed": "没存成功，检查一下网络再试一次。"
     }
   },
   "connections": {
+    "addedFriend": "+ {{name}}",
     "friendsLabel": "位朋友",
     "closeFriendsLabel": "位挚友",
     "followUpTitle": "该跟进了",
@@ -162,7 +239,29 @@
     "clearFilter": "清除筛选",
     "noTagsToFilter": "目前没有可筛选的标签",
     "newBadge": "新",
-    "unreviewedLabel": "位待整理"
+    "unreviewedLabel": "位待整理",
+    "sortLabel": "排序",
+    "sortByRecent": "最近加为好友",
+    "sortByAlphabet": "字母 A→Z",
+    "sortByAlphabetDesc": "字母 Z→A",
+    "sortByInteraction": "最近互动",
+    "sortByBirthday": "最近生日",
+    "addContact": "新增联系人",
+    "addContactTitle": "新增联系人",
+    "addSearchTitle": "搜索 PikTag 用户",
+    "addSearchDesc": "用名字、用户名或标签找人",
+    "addContactSyncTitle": "同步通讯录找朋友",
+    "addContactSyncDesc": "找出已在 PikTag 的朋友",
+    "addInviteTitle": "邀请朋友加入 PikTag",
+    "addInviteDesc": "分享邀请链接，他注册后直接成为好友",
+    "coldStartActionContacts": "从通讯录找朋友",
+    "coldStartActionContactsDesc": "找出已在 PikTag 的朋友，没在的也能标签+邀请",
+    "notJoinedBadge": "尚未加入 PikTag",
+    "coldStartActionManual": "手动记下一个人",
+    "coldStartActionManualDesc": "对方还不用是会员 — 加入后自动接上你的标签与备注",
+    "addManualA11y": "手动新增联系人",
+    "phonePromptTitle": "加上手机号码，让朋友找到你",
+    "phonePromptBody": "朋友通讯录同步时会自动加你为好友。仅 PikTag 内使用，永不公开。"
   },
   "search": {
     "clearAll": "清除全部",
@@ -171,6 +270,14 @@
     "intersectionResultCount": "找到 {{count}} 位",
     "headerTitle": "搜索",
     "searchPlaceholder": "标签、会员账号等",
+    "promptHints": [
+      "我需要懂摄影的朋友",
+      "想找会说英文的人",
+      "在{{city}}附近的设计师",
+      "认识谁在做新创？",
+      "找会做网页的朋友"
+    ],
+    "promptHintCityFallback": "在我附近的设计师",
     "categorySectionLabel": "依分类搜索",
     "categoryPopular": "热门标签",
     "categoryNearby": "附近会员",
@@ -185,6 +292,7 @@
     "profilesSectionLabel": "会员",
     "noProfilesFound": "找不到相关会员",
     "noProfilesFoundTitle": "找不到「{{query}}」相关会员",
+    "askPrompt": "人脉里没有？贴一个 Ask，让朋友和二度人脉帮你找。",
     "tryTagSearchHint": "试试搜索 #标签 或换个关键词",
     "clearAndRetry": "清除重新搜索",
     "resetButton": "重置",
@@ -198,10 +306,16 @@
     "tagUsersTitle": "使用此标签的用户",
     "viewAllTagUsers": "查看全部 {{count}} 位",
     "categoryUncategorized": "其他",
-    "allCategories": "全部"
+    "allCategories": "全部",
+    "openMap": "地图视图",
+    "searchBtn": "搜索",
+    "searchInputLabel": "搜索",
+    "clearSearchLabel": "清除搜索",
+    "recommendedTitle": "你可能想认识",
+    "tagsSelected": "个标签已选"
   },
   "addTag": {
-    "headerTitle": "活动标签",
+    "headerTitle": "建立 Tag",
     "alertTagExists": "标签已存在",
     "alertTagExistsMessage": "此标签已在列表中。",
     "alertEnterPresetName": "请输入模板名称",
@@ -213,18 +327,9 @@
     "alertQrError": "QR Code 产不出来，待会重试",
     "alertDeletePresetTitle": "删除模板",
     "alertDeletePresetMessage": "确定要删除「{{name}}」吗？",
-    "dateLabel": "日期标签",
-    "datePlaceholder": "YYYY/MM/DD",
-    "dateDisplayFallback": "点击设置日期",
-    "locationLabel": "地点标签",
-    "locationPlaceholder": "输入活动地点...",
-    "currentLocation": "目前位置",
-    "selectLocation": "选地点",
-    "manualInput": "手动输入",
     "locationPermDenied": "位置权限被拒",
     "customTagsLabel": "自订标签",
     "hiddenTagHint": "这些标签仅自己可见，帮助你记住在哪认识",
-    "pickDate": "选日期",
     "tagPlaceholder": "输入标签...",
     "addButton": "添加",
     "saveAsPreset": "保存为常用模板",
@@ -257,7 +362,21 @@
     "copyLink": "复制链接",
     "editQr": "编辑 QR",
     "alertLinkCopiedTitle": "已复制",
-    "alertLinkCopiedMessage": "链接已复制到剪贴板"
+    "alertLinkCopiedMessage": "链接已复制到剪贴板",
+    "contextLabel": "这次是什么场合？",
+    "contextHint": "一句话描述就好。AI 会根据你说的、时间和地点推荐标签，帮你记住在这认识的人。",
+    "contextPlaceholder": "例如：周末聚餐、客户 demo、新书发表会",
+    "aiSuggestionsTitle": "AI 为你推荐",
+    "aiSuggestionsHint": "输入一句场合描述 — AI 会根据你的话 + 位置 + 你的身份标签推荐。",
+    "aiSuggestionsEmpty": "AI 想不到合适的标签 — 再试一次或自己加。",
+    "aiRegenerate": "重新生成",
+    "contextPromptHints": [
+      "周末潜水团",
+      "爬山徒步约",
+      "大学同学会",
+      "公司年会",
+      "朋友的婚礼"
+    ]
   },
   "profile": {
     "nameNotSet": "未设置姓名",
@@ -266,12 +385,12 @@
     "noBio": "尚无个人简介",
     "noTags": "尚无标签",
     "tagFallback": "标签",
+    "askPromptHint": "点 + 发 Ask · 我需要…",
     "friendCountSuffix": "位朋友",
     "shareProfile": "分享文件",
     "editProfile": "编辑信息",
     "manageTags": "管理我的标签",
     "noContactMethods": "尚无联系方式",
-    "statusTooltip": "点我写便利贴",
     "contactInfoTitle": "联系方式",
     "phoneLabel": "电话",
     "emailLabel": "Email",
@@ -282,7 +401,11 @@
     "statFriends": "朋友",
     "statFollowers": "追踪者",
     "copyLink": "复制链接",
-    "share": "分享"
+    "share": "分享",
+    "statTagsA11y": "查看我的标签",
+    "statFriendsA11y": "查看我的朋友",
+    "statFollowersA11y": "查看我的追踪者",
+    "statTribeA11y": "查看我的 Tribe 星图"
   },
   "editProfile": {
     "headerTitle": "编辑个人信息",
@@ -305,7 +428,7 @@
     "usernameLabel": "用户名称",
     "usernamePlaceholder": "输入用户名称",
     "headlineLabel": "职称 / 身份",
-    "headlinePlaceholder": "例：PM @ Google、自由接案设计师",
+    "headlinePlaceholder": "例：PM @ 科技公司、自由接案设计师",
     "bioLabel": "个人简介",
     "bioPlaceholder": "输入个人简介",
     "phoneLabel": "电话",
@@ -343,7 +466,57 @@
     "selectPlatform": "选择平台",
     "linkName": "链接名称",
     "selectCountry": "选择国家",
-    "searchCountry": "搜索国家或国码"
+    "searchCountry": "搜索国家或国码",
+    "invalidImageType": "不支持的图片格式，请使用 JPEG、PNG 或 WebP。",
+    "imageTooLarge": "图片过大，最大支持 2MB。",
+    "browseAllPlatformsCta": "更多…",
+    "browseAllPlatforms": "浏览所有平台",
+    "platformSearchPlaceholder": "搜索平台…",
+    "platformSearchEmpty": "找不到符合的平台",
+    "detectedAs": "检测为 {{platform}}",
+    "platform": {
+      "phone": "电话",
+      "email": "Email",
+      "website": "个人网站",
+      "blog": "博客",
+      "portfolio": "作品集",
+      "custom": "自定义链接"
+    },
+    "platformCategory": {
+      "communication": "通讯",
+      "social": "社交",
+      "video": "视频",
+      "music": "音乐",
+      "professional": "职业",
+      "writing": "写作出版",
+      "business": "商业支付",
+      "generic": "通用"
+    },
+    "completionInline": "让对的人秒找到你 — 还差 {{items}}",
+    "missingAvatar": "头像",
+    "missingBio": "简介",
+    "missingTags": "3 个标签",
+    "missingBiolink": "社群链接",
+    "welcomeShort": "欢迎来到 PikTag",
+    "bioPromptHints": [
+      "在科技行业跑销售，跑步是我的解压方式，今年想挑战全马破四",
+      "小学老师，周末都在阳台种菜，养了快二十盆多肉植物",
+      "急诊护士，下班靠烤甜点治愈自己，最近在练手冲咖啡",
+      "后端工程师，最近迷上做菜和陶艺，家里有只很凶的柴犬",
+      "大学心理系学生，玩乐队弹吉他，开始接一些插画案子"
+    ],
+    "headlinePromptHints": [
+      "PM @ 科技公司",
+      "律师 @ 律师事务所",
+      "急诊护士 @ 医学中心",
+      "自由接案平面设计师",
+      "心理系学生"
+    ],
+    "needLibraryPermissionTitle": "需要相册权限",
+    "needLibraryPermissionMsg": "请在设置中允许访问相册",
+    "notSignedIn": "未登录",
+    "uploadFailTitle": "上传失败",
+    "tryAgainLater": "请稍后再试"
   },
   "friendDetail": {
     "reminderBirthday": "生日",
@@ -369,6 +542,9 @@
     "metLocationLabel": "地点",
     "metNoteLabel": "备注",
     "eventTagsLabel": "活动标签",
+    "eventTagsSection": "一起参加过",
+    "eventTagsExpand": "展开全部 {{count}} 个",
+    "eventTagsCollapse": "收起",
     "stickyNotesTitle": "便利贴",
     "notePlaceholder": "写下你的便利贴...",
     "noteCancel": "取消",
@@ -408,19 +584,24 @@
     "unfollowMessage": "确定要取消追踪 {{name}} 吗？",
     "unfollowConfirm": "取消追踪",
     "hiddenTagsTitle": "隐藏标签（只有你看得到）",
+    "eventTagsTitle": "活动标签",
     "hiddenTagPlaceholder": "添加隐藏标签，如：前同事",
     "mutualTagsModalTitle": "共同标签",
     "mutualFriendsSectionTitle": "共同朋友",
-    "shareIntroMessage": "我介绍 {{name}} 给你，这是他的资讯：{{url}}"
+    "shareIntroMessage": "我介绍 {{name}} 给你，这是他的资讯：{{url}}",
+    "tag": "标签",
+    "recommendMembers": "推荐会员",
+    "blockConfirmTitle": "屏蔽这个人？",
+    "blockConfirmMessage": "你们会互相取消关注，也不再看到彼此的内容。"
   },
   "userDetail": {
     "headerNotFound": "未找到",
     "userNotFound": "找不到此用户",
-    "mutualFriendsPrefix": "共同朋友 ",
-    "mutualFriendsSuffix": " 位",
-    "mutualTagsPrefix": "共同标签 ",
-    "mutualTagsSuffix": " 个",
-    "mutualSeparator": "  |  ",
+    "mutualFriendsPrefix": "共同朋友",
+    "mutualFriendsSuffix": "位",
+    "mutualTagsPrefix": "共同标签",
+    "mutualTagsSuffix": "个",
+    "mutualSeparator": "|",
     "following": "追踪中",
     "follow": "追踪",
     "sendMessage": "传消息",
@@ -455,7 +636,12 @@
     "pickTagSubtitle": "选择最能代表 {{name}} 的标签，方便你之后找到",
     "pickTagEmpty": "这位用户还没有设置公开标签",
     "pickTagSave": "保存 ({{count}})",
-    "hiddenTagPlaceholder": "添加隐藏标签..."
+    "hiddenTagPlaceholder": "添加隐藏标签...",
+    "tag": "标签",
+    "recommendMembers": "推荐会员",
+    "vibeContextTagsTitle": "这次 Tag 带的标签",
+    "blockConfirmTitle": "屏蔽这个人？",
+    "blockConfirmMessage": "你们会互相取消关注，也不再看到彼此的内容。"
   },
   "settings": {
     "headerTitle": "设置",
@@ -504,7 +690,10 @@
     "deactivateMessage": "停用后你的个人页将隐藏，其他人找不到你。你可以随时重新登录恢复。",
     "deactivateConfirm": "停用",
     "deleteAccountButton": "删除账号",
-    "alertDeleteAccountNote": "此操作无法复原，你的账号和所有资料将被永久删除"
+    "alertDeleteAccountNote": "此操作无法复原，你的账号和所有资料将被永久删除",
+    "analyticsOptIn": "分析数据",
+    "analyticsOptInDescription": "帮助我们改进 App",
+    "attRationale": "PikTag 使用基本分析数据改善体验，从不跨 App 追踪您。"
   },
   "contactSync": {
     "headerTitle": "通讯录同步",
@@ -525,7 +714,23 @@
     "inviteMessage": "{{name}}，我在用 PikTag，一起来交换标签吧！下载：https://pikt.ag",
     "batchProgress": "处理中 {{current}}/{{total}}",
     "alertBatchDoneTitle": "导入完成",
-    "alertBatchDoneMessage": "已加入 {{matched}} 位朋友。其中 {{notOnApp}} 位尚未使用 PikTag。"
+    "alertBatchDoneMessage": "已加入 {{matched}} 位朋友。其中 {{notOnApp}} 位尚未使用 PikTag。",
+    "sectionOnPiktag": "已在 PikTag · {{count}} 位",
+    "sectionNotOnPiktag": "尚未加入 · {{count}} 位",
+    "summaryHeading": "{{onCount}} 位已在 PikTag · {{offCount}} 位可邀请",
+    "followAllCta": "全部关注 PikTag 朋友 ({{count}})",
+    "followBtn": "关注",
+    "inviteBtn": "邀请",
+    "tagInviteBtn": "贴标签并邀请",
+    "fromContact": "通讯录：{{name}}",
+    "classifyingText": "对比中…",
+    "alertFollowAllTitle": "全部关注",
+    "alertFollowAllMessage": "要把 {{count}} 位 PikTag 朋友加入吗？",
+    "alertFollowAllConfirm": "加入",
+    "alertFollowAllDoneTitle": "完成",
+    "alertFollowAllDoneMessage": "已加入 {{count}} 位 PikTag 朋友",
+    "allConnected": "通讯录里的 PikTag 朋友都已加入",
+    "openSettings": "前往设置开启权限"
   },
   "invite": {
     "headerTitle": "邀请好友",
@@ -563,11 +768,11 @@
     "defaultLocation": "目前位置",
     "alertPermTitle": "位置权限",
     "alertPermMessage": "需要位置权限才能使用此功能",
-    "metAtPrefix": "在 ",
-    "metAtSuffix": " 认识",
+    "metAtPrefix": "在",
+    "metAtSuffix": "认识",
     "nearbySection": "附近的人脉（{{count}}）",
     "metHereSection": "在此地点认识的人（{{count}}）",
-    "emptyText": "附近没有找到认识的人"
+    "emptyText": "找不到附近的人，试试调整搜索范围或到「探索」寻找新朋友"
   },
   "dashboard": {
     "headerTitle": "个人仪表板",
@@ -581,7 +786,7 @@
     "totalLinkClicks": "链接点击次数",
     "totalQrScans": "QR 扫码总次数",
     "growthCurveTitle": "人脉成长曲线",
-    "growthCurveEmpty": "尚无好友资料",
+    "growthCurveEmpty": "还没有朋友数据？新增标签或邀请好友来开始",
     "presetScansTitle": "各模板扫码次数",
     "presetScansEmpty": "尚无模板扫码纪录",
     "scanCountSuffix": "次",
@@ -605,7 +810,133 @@
     "timeYesterday": "昨天",
     "timeDaysAgo": "{{count}} 天前",
     "timeWeeksAgo": "{{count}} 周前",
-    "emptyState": "目前没有通知"
+    "emptyState": "目前没有通知。设置提醒或关注朋友动态吧",
+    "types": {
+      "follow": {
+        "title": "",
+        "body": "开始关注你",
+        "push": {
+          "title": "{{username}}",
+          "body": "开始关注你"
+        }
+      },
+      "friend": {
+        "title": "",
+        "body": "你们成为朋友了",
+        "push": {
+          "title": "{{username}}",
+          "body": "你们成为朋友了"
+        }
+      },
+      "tag_added": {
+        "title": "",
+        "body": "把你标记为 #{{tag_name}}",
+        "push": {
+          "title": "{{username}}",
+          "body": "把你标记为 #{{tag_name}}"
+        }
+      },
+      "vibe_shift": {
+        "title": "",
+        "body": "加了新标签 #{{tag_name}}",
+        "push": {
+          "title": "{{username}}",
+          "body": "加了新标签 #{{tag_name}}"
+        }
+      },
+      "recommendation": {
+        "title": "",
+        "body": "你可能认识 {{username}} — {{count}} 个共同标签",
+        "push": {
+          "title": "为你推荐",
+          "body": "你可能认识 {{username}} — {{count}} 个共同标签"
+        }
+      },
+      "tag_trending": {
+        "title": "",
+        "body": "你的标签 #{{tag_name}} 今天爆火了",
+        "push": {
+          "title": "热门标签",
+          "body": "你的标签 #{{tag_name}} 今天爆火了"
+        }
+      },
+      "biolink_click": {
+        "title": "",
+        "body": "点击了你的 {{platform}} 链接"
+      },
+      "birthday": {
+        "title": "",
+        "body": "今天是 {{username}} 的生日",
+        "push": {
+          "title": "生日提醒",
+          "body": "今天是 {{username}} 的生日"
+        }
+      },
+      "anniversary": {
+        "title": "",
+        "body": "{{years}} 年前的今天，你认识了 {{username}}",
+        "push": {
+          "title": "纪念日",
+          "body": "{{years}} 年前的今天，你认识了 {{username}}"
+        }
+      },
+      "ask_posted": {
+        "title": "",
+        "body": "发了 Ask · {{ask_body}}",
+        "push": {
+          "title": "{{username}}",
+          "body": "发了 Ask · {{ask_body}}"
+        }
+      },
+      "on_this_day": {
+        "title": "",
+        "body": "回到那一天，看当时谁加入了这个 Tag",
+        "push": {
+          "title": "",
+          "body": "回到那一天，看当时谁加入了这个 Tag"
+        }
+      },
+      "tag_convergence": {
+        "title": "",
+        "body": "聊起来吧",
+        "push": {
+          "title": "",
+          "body": "聊起来吧"
+        }
+      },
+      "ask_bridge": {
+        "title": "",
+        "body": "可以请朋友介绍看看",
+        "push": {
+          "title": "",
+          "body": "可以请朋友介绍看看"
+        }
+      },
+      "ask_prompt": {
+        "title": "",
+        "body": "一句话让朋友看到——可能就有人能帮你",
+        "push": {
+          "title": "",
+          "body": "一句话让朋友看到——可能就有人能帮你"
+        }
+      },
+      "reconnect_suggest": {
+        "title": "",
+        "body": "点开打声招呼",
+        "push": {
+          "title": "",
+          "body": "点开打声招呼"
+        }
+      },
+      "tag_combo": {
+        "title": "",
+        "body": "可能是值得开的话题",
+        "push": {
+          "title": "",
+          "body": "可能是值得开的话题"
+        }
+      }
+    }
   },
   "scanResult": {
     "headerTitle": "加为好友",
@@ -626,7 +957,11 @@
     "relationClient": "客户",
     "alreadyConnectedTitle": "已连接",
     "alreadyConnectedMessage": "你们已经是朋友了",
-    "addFriend": "关注"
+    "addFriend": "关注",
+    "connectElsewhereTitle": "也在这些地方连上 {{name}}",
+    "connectElsewhereHint": "点一下会打开对方在该 App 的页面，由你按关注／加好友。",
+    "selfScanMessage": "这是你自己的 QR，没办法加自己为好友。",
+    "addingFriend": "加入朋友中…"
   },
   "manageTags": {
     "headerTitle": "标签管理",
@@ -652,6 +987,7 @@
     "pinLimitMessage": "最多只能置顶 {{max}} 个标签",
     "dragHint": "长按可置顶，上下箭头排序",
     "aiSuggestionsTitle": "AI 为你推荐",
+    "aiFromBioTitle": "根据个人简介，AI 为你推荐",
     "pinTag": "置顶标签",
     "unpinTag": "取消置顶",
     "publicTagsTitle": "公开标签",
@@ -663,7 +999,9 @@
     "dragSelectTarget": "点击要交换位置的标签",
     "tagLimitTitle": "标签上限",
     "tagLimitMessage": "最多只能添加 {{max}} 个标签",
-    "aiErrorGeneric": "AI 推荐暂时无法使用，请稍后再试"
+    "aiErrorGeneric": "AI 推荐暂时无法使用，请稍后再试",
+    "nativeHintNoPin": "长按拖曳排序",
+    "tagEditHint": "点一下移除（未保存可恢复）· 长按拖动排序"
   },
   "activityReview": {
     "noNewFriends": "没有需要整理的新朋友",
@@ -673,7 +1011,8 @@
     "hiddenTagPlaceholder": "加隐藏标签...",
     "swipeHint": "滑动整理下一位 →",
     "skip": "跳过",
-    "next": "下一位"
+    "next": "下一位",
+    "done": "完成"
   },
   "tagDetail": {
     "unknownTag": "未知标签",
@@ -712,6 +1051,7 @@
     "title": "相机访问",
     "grantPermission": "授予权限",
     "instruction": "将相机对准 PikTag QR 码",
+    "cardFrameHint": "把整张名片对齐框内、保持清晰",
     "invalidQr": "无效的 QR 码",
     "invalidQrMessage": "这不是有效的 PikTag 连接 QR 码",
     "permissionMessage": "PikTag 需要相机权限以扫描 QR 码并连接朋友"
@@ -788,21 +1128,10 @@
     "section9Body": "PikTag Inc. 对因使用本服务所引起的间接、附带或衍生性损害不承担任何责任。",
     "section10Title": "10. 适用法律",
     "section10Body": "本条款适用中华民国（台湾）法律。",
-    "section11Title": "11. 联系方式",
-    "section11Body": "PikTag Inc.\n电子邮件：support@pikt.ag"
-  },
-  "points": {
-    "balance": "P币余额",
-    "lifetime": "累计 P币",
-    "inviteReward": "邀请奖励",
-    "redeemHint": "未来可抵扣付费服务",
-    "historyTitle": "P币记录",
-    "reasonInviteAccepted": "朋友接受邀请",
-    "reasonAdminGrant": "系统奖励",
-    "reasonRedeemed": "已抵扣",
-    "emptyHistory": "尚无 P币记录",
-    "plusOne": "+1 P币",
-    "pointsUnit": "P币"
+    "section11Title": "11. 内容审核与举报",
+    "section11Body": "我们会在 24 小时内审核不当内容举报。若举报成立，我们有权依本条款移除内容、暂停账号或封锁用户。点击任何用户、消息或贴文上的 ⋯ 菜单即可提出举报。",
+    "section12Title": "12. 联系方式",
+    "section12Body": "PikTag Inc.\n电子邮件：support@pikt.ag"
   },
   "chat": {
     "inbox": "消息",
@@ -833,7 +1162,12 @@
     "userBlocked": "无法给此用户发消息",
     "deliveryFailed": "发送失败 · 轻点重试",
     "unreadBadge": "{{count}} 条未读",
-    "messagesSent": "{{name}} 发来一条消息"
+    "messagesSent": "{{name}} 发来一条消息",
+    "timeJustNow": "刚刚",
+    "timeYesterday": "昨天",
+    "timeMinutesAgo": "{{count}} 分钟前",
+    "timeHoursAgo": "{{count}} 小时前",
+    "timeDaysAgo": "{{count}} 天前"
   },
   "share": {
     "profileInviteMessage": "{{name}} 在 PikTag\n{{url}}\n\nPikTag — 用标签记住每段缘分，\n扫 QR 自动记下相遇时间地点。\n\n还没下载？https://pikt.ag"
@@ -896,6 +1230,8 @@
     "newAsk": "发 Ask",
     "deleteAsk": "删除 Ask",
     "deleteAskConfirm": "确定要删除这则 Ask？",
+    "deleteFailed": "无法删除 Ask",
+    "deleteFailedHint": "这则 Ask 可能已被移除，画面正在刷新。",
     "noAsksYet": "目前没有朋友的 Ask",
     "friendOfFriend": "朋友的朋友",
     "timeLeft": "剩 {{hours}}h",
@@ -903,7 +1239,122 @@
     "generating": "生成标题中…",
     "minOneTag": "至少选一个标签",
     "aiSuggestions": "AI 建议",
-    "yourTags": "你的标签",
-    "noTagsHint": "请先到「我的」→「管理标签」添加标签"
+    "customTagPlaceholder": "输入自定义标签",
+    "cardLabel": "求助中",
+    "askingNow": "正在求助",
+    "yourAskTitle": "你目前的 Ask",
+    "generateAiTags": "AI 生成标签",
+    "aiNoSuggestions": "AI 没有想到合适的标签，再试一次或自己输入",
+    "regenerateAiTags": "重新生成",
+    "bubblePromptMine": "+ 新增 Ask",
+    "aiSuggestionsTitle": "AI 为你推荐",
+    "aiBodyTooShortHint": "写一句话描述你想要什么 — AI 会推荐合适的标签",
+    "aiTapToGenerateHint": "点右上的 ↻ 让 AI 推荐标签",
+    "bodyPromptHints": [
+      "想找人周末一起爬山",
+      "有人会修 Wi-Fi 吗，急",
+      "想接活，有人发包吗",
+      "推荐北京平价牙医",
+      "找桌游搭子，这周约一场"
+    ],
+    "createSubtitle": "一句话就好 — AI 会配上标签，让对的人（或朋友的朋友）看到。",
+    "createFailed": "帖子没送出去，请再试一次。"
+  },
+  "errorBoundary": {
+    "title": "出错了",
+    "message": "应用遇到了意外错误，请再试一次。",
+    "retry": "重试"
+  },
+  "report": {
+    "reportMessage": "举报此消息",
+    "reportAsk": "举报此 Ask",
+    "reportNotification": "举报此通知",
+    "hideFromUser": "不再显示此用户",
+    "confirmTitle": "举报",
+    "confirmDescription": "请选择原因，我们会在 24 小时内审核。",
+    "success": "感谢反馈，我们会尽快处理",
+    "reasonSpam": "垃圾信息",
+    "reasonHarassment": "骚扰或霸凌",
+    "reasonInappropriate": "不当内容",
+    "reasonOther": "其他",
+    "noTarget": "这则通知没有可举报的对象。"
+  },
+  "tabTooltips": {
+    "home": "朋友列表",
+    "search": "找人 / 消息",
+    "addTag": "扫 QR / 创建活动",
+    "notifications": "通知",
+    "profile": "你的个人页",
+    "dismissHint": "点任意处关闭"
+  },
+  "qrGroup": {
+    "headerTitle": "认识新朋友",
+    "detailHeader": "Tag",
+    "create": "创建新 Tag",
+    "createFirst": "建立当下的 Tag",
+    "emptyTitle": "让标签，替你记住新朋友",
+    "emptyDesc": "扫描互加后，系统会自动备注这次相遇，再也不怕忘记在哪见过面。",
+    "untitled": "未命名 Tag",
+    "untitledFallback": "Tag · {{date}}",
+    "namePlaceholder": "帮这个 Tag 取个名字",
+    "tagsTitle": "Tag 标签",
+    "tagsEmpty": "尚无标签",
+    "tagInputPlaceholder": "输入新标签",
+    "noTagsYet": "尚无标签",
+    "membersTitle": "成员（{{count}}）",
+    "memberCount": "{{count}} 位好友",
+    "membersEmpty": "还没有人扫这个 QR — 分享给朋友吧",
+    "deleteTitle": "删除这个 Tag？",
+    "deleteMessage": "「{{name}}」会从你的 Tags 中移除。已经通过这个 QR 加你为好友的人不会受影响。",
+    "deleteFailedTitle": "删除失败",
+    "deleteFailedMessage": "这个 Tag 没有被删除，请稍后再试。若持续发生请联系我们。",
+    "emptyScanCta": "或扫描对方的 QR 加好友"
+  },
+  "localContact": {
+    "editTitle": "编辑联系人",
+    "addTitle": "新增联系人",
+    "intro": "先把人记下来 —— 对方还不用是 PikTag 会员。等他加入，这条会自动接上，你的标签都会跟着过去。",
+    "fieldName": "名字",
+    "namePlaceholder": "例：在三亚潜水认识的阿哲",
+    "fieldPhone": "电话（选填，帮助对方加入后自动接上）",
+    "phonePlaceholder": "+886 912 345 678",
+    "fieldEmail": "Email（选填）",
+    "emailPlaceholder": "name@example.com",
+    "fieldMetWhere": "在哪认识（选填）",
+    "metWherePlaceholder": "例：大学同学会、龙洞潜水",
+    "fieldNote": "备注（只有你看得到）",
+    "notePlaceholder": "帮你记住这个人的一句话",
+    "fieldTags": "标签（只有你看得到）",
+    "tagPlaceholder": "输入标签…",
+    "save": "保存",
+    "nameRequiredTitle": "需要一个名字",
+    "nameRequiredMsg": "至少帮这个人取个名字，方便你之后想起来。",
+    "saveError": "保存失败，请稍后再试。",
+    "notFound": "找不到这个联系人 —— 可能已接上 PikTag 或被删除。",
+    "alreadyMemberTitle": "这个人已经在 PikTag",
+    "alreadyMemberMsg": "{{name}} 已经是 PikTag 会员 —— 直接连上更好，不用只记成联系人。",
+    "alreadyMemberConnect": "查看／加好友",
+    "alreadyMemberFile": "仍记成联系人",
+    "alreadyMemberFallbackWho": "这个人",
+    "deleteTitle": "删除这个联系人？",
+    "deleteMsg": "只会从你的列表移除，不影响其他人。",
+    "scanCardHint": "拍一张名片，自动带入姓名和联系方式 —— 之后再改或加标签就好。",
+    "manualEntry": "或手动输入",
+    "scanRetake": "重拍",
+    "fieldBirthday": "生日（选填）",
+    "birthdayPlaceholder": "MM-DD 或 YYYY-MM-DD",
+    "linkPhone": "电话",
+    "linkEmail": "邮箱",
+    "linkAddress": "地址",
+    "scanningTitle": "正在识别名片…",
+    "scanningSubtitle": "通常需要 5–10 秒",
+    "fieldAddress": "地址",
+    "addressPlaceholder": "例：北京市朝阳区建国路 88 号",
+    "scanningCard": "识别名片中…（约 3 秒）"
+  },
+  "followers": {
+    "title": "追踪者",
+    "count": "{{count}} 位追踪者",
+    "empty": "还没有人追踪"
   }
 }

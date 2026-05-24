@@ -1,4 +1,9 @@
 {
+  "app": {
+    "offline": "আপনি অফলাইন আছেন। কিছু বৈশিষ্ট্য সীমিত হতে পারে।",
+    "backOnline": "আবার অনলাইন",
+    "offlineHint": "কিছু ফিচার ইন্টারনেট দরকার"
+  },
   "tabs": {
     "home": "হোম",
     "search": "খুঁজুন",
@@ -9,19 +14,25 @@
   "locationPicker": {
     "title": "একটি জায়গা বেছে নিন",
     "noNearbyPlaces": "কাছাকাছি কোনো জায়গা পাওয়া যায়নি। সার্চ বক্সে নাম লিখে 'হয়েছে' চাপুন।",
-    "noResults": "মিলে যাওয়া কোনো জায়গা নেই"
+    "noResults": "মিলে যাওয়া কোনো জায়গা নেই",
+    "permissionDenied": "লোকেশন অনুমতি অস্বীকৃত",
+    "permissionDeniedWeb": "লোকেশন অনুমতি অস্বীকৃত. ব্রাউজার সেটিংসে অনুমতি দিন.",
+    "errorPrefix": "লোকেশন ত্রুটি: ",
+    "searchPlaceholder": "জায়গা খুঁজুন বা লিখুন",
+    "gpsOff": "লোকেশন পাওয়া যায়নি. GPS চালু করুন.",
+    "requestTimeout": "লোকেশন রিকোয়েস্ট টাইমআউট। আবার চেষ্টা করুন।"
   },
   "friendsMap": {
     "title": "বন্ধুদের ম্যাপ",
     "friendCount": "ম্যাপে {{count}} জন বন্ধু",
     "noSharedLocations": "এখনও কোনো বন্ধু লোকেশন শেয়ার করছে না",
     "staleHint": "শুধু সেই বন্ধুরা দেখানো হচ্ছে যাদের লোকেশন গত 24 ঘণ্টায় আপডেট হয়েছে",
-    "loadFailed": "ম্যাপ লোড করা যায়নি, আবার চেষ্টা করুন"
+    "loadFailed": "মানচিত্র লোড হয়নি. সংযোগ পরীক্ষা করুন."
   },
   "hiddenTagEditor": {
     "timeTitle": "কখন দেখা হয়েছিল",
     "locationTitle": "কোথায় দেখা হয়েছিল",
-    "frequentTitle": "প্রায়ই ব্যবহৃত",
+    "suggestedTitle": "প্রস্তাবিত",
     "addedTitle": "যোগ করা হয়েছে",
     "today": "আজ",
     "yesterday": "গতকাল",
@@ -53,7 +64,10 @@
     "noTags": "এখনও কোনো ট্যাগ নেই",
     "email": "ইমেইল",
     "phone": "ফোন",
-    "comingSoonTitle": "শীঘ্রই আসছে"
+    "comingSoonTitle": "শীঘ্রই আসছে",
+    "checkConnection": "সংযোগ পরীক্ষা করে আবার চেষ্টা",
+    "loadFailed": "লোড ব্যর্থ",
+    "willAutoRetry": "আবার অনলাইন হলে স্বয়ংক্রিয় চেষ্টা"
   },
   "auth": {
     "login": {
@@ -62,7 +76,7 @@
       "emailPlaceholder": "ইমেইল",
       "passwordPlaceholder": "পাসওয়ার্ড",
       "loginButton": "লগ ইন করুন",
-      "noAccountPrompt": "অ্যাকাউন্ট নেই? ",
+      "noAccountPrompt": "অ্যাকাউন্ট নেই?",
       "registerLink": "সাইন আপ",
       "forgotPassword": "পাসওয়ার্ড ভুলে গেছেন?",
       "alertEnterEmailFirst": "আগে আপনার ইমেইল লিখুন, আমরা পাসওয়ার্ড রিসেট লিংক পাঠাব",
@@ -70,7 +84,10 @@
       "alertResetSentMessage": "পাসওয়ার্ড রিসেট লিংক আপনার ইমেইলে পাঠানো হয়েছে",
       "orDivider": "অথবা",
       "continueWithApple": "Apple দিয়ে সাইন ইন",
-      "continueWithGoogle": "Google দিয়ে সাইন ইন"
+      "continueWithGoogle": "Google দিয়ে সাইন ইন",
+      "errInvalidCredentials": "ইমেল বা পাসওয়ার্ড ভুল।",
+      "errEmailNotConfirmed": "আগে ইমেল যাচাই করুন — পাঠানো লিঙ্কে ট্যাপ করে লগইন করুন।",
+      "errGeneric": "সাইন ইন করা গেল না। আবার চেষ্টা করুন।"
     },
     "register": {
       "alertEmptyFields": "সব ফিল্ড পূরণ করুন",
@@ -84,13 +101,26 @@
       "emailPlaceholder": "ইমেইল",
       "passwordPlaceholder": "পাসওয়ার্ড",
       "registerButton": "সাইন আপ",
-      "hasAccountPrompt": "ইতিমধ্যে অ্যাকাউন্ট আছে? ",
+      "hasAccountPrompt": "ইতিমধ্যে অ্যাকাউন্ট আছে?",
       "loginLink": "লগ ইন",
       "confirmPasswordPlaceholder": "পাসওয়ার্ড নিশ্চিত করুন",
       "alertPasswordMismatch": "পাসওয়ার্ড মিলছে না",
-      "passwordHint": "পাসওয়ার্ড কমপক্ষে 6 অক্ষরের হতে হবে"
+      "passwordHint": "পাসওয়ার্ড কমপক্ষে 6 অক্ষরের হতে হবে",
+      "birthdayLabel": "জন্মদিন (ঐচ্ছিক)",
+      "alertVerifyEmailTitle": "আপনার ইমেল যাচাই করুন",
+      "alertVerifyEmailMessage": "আমরা আপনার ইনবক্সে একটি নিশ্চিতকরণ লিঙ্ক পাঠিয়েছি। ট্যাপ করে আবার লগইন করুন।"
     },
     "onboarding": {
+      "welcome": {
+        "identityTitle": "ট্যাগ দিয়ে নিজেকে চিনিয়ে দিন",
+        "identityDesc": "এমন ১০টি ট্যাগ বেছে নিন যা আপনাকে প্রকাশ করে — এটাই PikTag-এ আপনার পরিচয়",
+        "activateTitle": "পুরোনো সম্পর্ককে আবার জাগিয়ে তুলুন",
+        "activateDesc": "জন্মদিন, পরিচয়ের বার্ষিকী, ভাগাভাগি করা স্মৃতি আপনার কাছে ফিরে আসবে",
+        "discoverTitle": "নাম দিয়ে নয়, প্রয়োজন দিয়ে খুঁজুন",
+        "discoverDesc": "«একজন ফটোগ্রাফার বন্ধু দরকার» · «কাছাকাছি কোনো ডিজাইনার?»",
+        "next": "পরবর্তী",
+        "getStarted": "শুরু করুন"
+      },
       "defaultTags": [
         "#স্টার্টআপ",
         "#ডিজাইন",
@@ -115,13 +145,57 @@
       "contactResultText": "{{matched}} জন বন্ধু পাওয়া গেছে",
       "step3Title": "সব প্রস্তুত! অন্বেষণ শুরু করুন",
       "step3Description": "আপনার অ্যাকাউন্ট প্রস্তুত, এখনই PikTag ব্যবহার শুরু করুন",
+      "quickStart": {
+        "title": "PikTag শুরু করুন",
+        "subtitle": "চারটি কাজ যা আপনাকে দ্রুত গতি দেবে",
+        "card1": {
+          "title": "বন্ধু যোগ করুন",
+          "body": "QR কোড স্ক্যান করুন, পরিচিতি সিঙ্ক করুন, বা ইউজারনেম দিয়ে খুঁজুন"
+        },
+        "card2": {
+          "title": "বন্ধুদের ট্যাগ করুন",
+          "body": "যেমন \"কফি প্রেমী\", \"প্রোডাক্ট ম্যানেজার\", \"ক্লায়েন্ট\" — পরে ট্যাগ দিয়ে খুঁজুন"
+        },
+        "card3": {
+          "title": "ট্যাগ দিয়ে লোক খুঁজুন",
+          "body": "সার্চ ট্যাবে ট্যাগ লিখুন, দেখুন কারা একই আগ্রহ শেয়ার করে"
+        },
+        "card4": {
+          "title": "একটি Ask পোস্ট করুন",
+          "body": "এক বাক্য, পুরো নেটওয়ার্ক আপনাকে সাহায্য করবে"
+        },
+        "cta": "PikTag ব্যবহার শুরু করুন"
+      },
       "backButton": "পিছনে",
       "enterPikTag": "PikTag শুরু করুন",
       "nextButton": "পরবর্তী",
       "facebookLabel": "Facebook",
       "instagramLabel": "Instagram",
       "linkedinLabel": "LinkedIn",
-      "birthdayLabel": "জন্মদিন"
+      "birthdayLabel": "জন্মদিন",
+      "avatarStepTitle": "আগে একটা ছবি দাও",
+      "avatarStepDescription": "বন্ধুরা যেন এক নজরে চিনতে পারে — যেকোনো সময় বদলানো যাবে।",
+      "avatarPickAria": "ছবি বাছো",
+      "avatarTapToPick": "বৃত্তে ট্যাপ করে ছবি বাছো",
+      "avatarTapToChange": "ছবিতে ট্যাপ করে বদলাও",
+      "avatarPermissionTitle": "ফটো লাইব্রেরি অ্যাক্সেস দরকার",
+      "avatarPermissionMessage": "সেটিংসে PikTag-কে ছবি অ্যাক্সেসের অনুমতি দাও",
+      "skipStep": "এড়িয়ে যাও",
+      "scanCardCta": "কার্ড স্ক্যান করুন",
+      "scanCardHint": "কার্ড আছে? ছবি তুলুন — bio ও যোগাযোগ স্বয়ংক্রিয় (ঐচ্ছিক)",
+      "cardScanFailedTitle": "স্ক্যান ব্যর্থ",
+      "cardScanFailedMessage": "কার্ড পড়া যায়নি। আবার চেষ্টা করুন বা নিজে লিখুন।",
+      "cardScanEmptyTitle": "কিছু পাওয়া যায়নি",
+      "cardScanEmptyMessage": "কার্ড স্পষ্ট নয় — পরিষ্কার ছবি দিন বা টাইপ করুন।",
+      "cardConfirmTitle": "কার্ডের তথ্য নিশ্চিত করুন",
+      "cardConfirmSubtitle": "দেখে নিন ও বদলান — নিশ্চিত করলেই প্রয়োগ হবে",
+      "cardFieldName": "নাম",
+      "cardFieldBio": "Bio (AI খসড়া, সম্পাদনযোগ্য)",
+      "cardBioPlaceholder": "নিজের সম্পর্কে এক লাইন",
+      "cardLinksLabel": "যোগাযোগ / সোশ্যাল",
+      "cardApplyCta": "প্রয়োগ করুন",
+      "profileCta": "আমার প্রথম Tag বানাও",
+      "saveFailed": "সেভ হয়নি — সংযোগ দেখে আবার চেষ্টা করুন।"
     }
   },
   "connections": {
@@ -162,7 +236,30 @@
     "clearFilter": "ফিল্টার সাফ করুন",
     "noTagsToFilter": "ফিল্টার করার মতো কোনো ট্যাগ নেই",
     "newBadge": "নতুন",
-    "unreviewedLabel": "রিভিউ বাকি"
+    "unreviewedLabel": "রিভিউ বাকি",
+    "sortLabel": "সাজান",
+    "sortByRecent": "সম্প্রতি যুক্ত",
+    "sortByAlphabet": "বর্ণানুক্রমিক (A→Z)",
+    "sortByAlphabetDesc": "বর্ণানুক্রমিক (Z→A)",
+    "sortByInteraction": "সাম্প্রতিক যোগাযোগ",
+    "sortByBirthday": "আসন্ন জন্মদিন",
+    "addContact": "কন্টাক্ট যোগ করো",
+    "addContactTitle": "একজনকে যোগ করো",
+    "addSearchTitle": "PikTag ইউজার খোঁজো",
+    "addSearchDesc": "নাম, ইউজারনেম বা ট্যাগ দিয়ে",
+    "addContactSyncTitle": "কন্টাক্ট সিঙ্ক করো",
+    "addContactSyncDesc": "PikTag-এ থাকা বন্ধুদের খুঁজে নাও",
+    "addInviteTitle": "বন্ধুদের PikTag-এ ইনভাইট করো",
+    "addInviteDesc": "ইনভাইট লিংক শেয়ার করো — সাইন আপ করলেই বন্ধু হবে",
+    "coldStartActionContacts": "কন্টাক্ট থেকে বন্ধু খোঁজো",
+    "coldStartActionContactsDesc": "যারা PikTag-এ আছে তাদের খোঁজো, বাকিদের ট্যাগ + ইনভাইট",
+    "notJoinedBadge": "এখনও PikTag-এ নেই",
+    "coldStartActionManual": "কাউকে টুকে রাখুন",
+    "coldStartActionManualDesc": "অ্যাকাউন্ট লাগবে না — যোগ দিলে আপনার ট্যাগ ও নোট স্বয়ং লিঙ্ক হবে",
+    "addManualA11y": "ম্যানুয়ালি পরিচিতি যোগ করুন",
+    "phonePromptTitle": "ফোন যোগ করুন যাতে বন্ধুরা পায়",
+    "phonePromptBody": "বন্ধুরা কন্টাক্ট সিঙ্ক করলে স্বয়ংক্রিয় যুক্ত হবে. PikTag-এ ব্যবহৃত, প্রকাশ্য নয়.",
+    "addedFriend": "+ {{name}}"
   },
   "search": {
     "clearAll": "সব সাফ করুন",
@@ -171,6 +268,14 @@
     "intersectionResultCount": "{{count}} জন পাওয়া গেছে",
     "headerTitle": "খুঁজুন",
     "searchPlaceholder": "ট্যাগ, ইউজারনেম ইত্যাদি",
+    "promptHints": [
+      "একজন ফটোগ্রাফার বন্ধু দরকার",
+      "ইংরেজি বলতে পারে এমন কাউকে খুঁজছি",
+      "{{city}}-এ কোনো ডিজাইনার?",
+      "স্টার্টআপে কেউ আছে?",
+      "ওয়েব ডেভেলপার খুঁজছি"
+    ],
+    "promptHintCityFallback": "কাছাকাছি কোনো ডিজাইনার?",
     "categorySectionLabel": "ক্যাটেগরি অনুযায়ী ব্রাউজ করুন",
     "categoryPopular": "জনপ্রিয় ট্যাগ",
     "categoryNearby": "কাছাকাছি সদস্য",
@@ -185,6 +290,7 @@
     "profilesSectionLabel": "সদস্য",
     "noProfilesFound": "মিলে যাওয়া কোনো সদস্য পাওয়া যায়নি",
     "noProfilesFoundTitle": "\"{{query}}\"-এর জন্য কোনো সদস্য পাওয়া যায়নি",
+    "askPrompt": "নেটওয়ার্কে নেই? একটা Ask পোস্ট করুন — বন্ধু ও বন্ধুর বন্ধুরা খুঁজে দিতে পারে।",
     "tryTagSearchHint": "#ট্যাগ অথবা অন্য কীওয়ার্ড চেষ্টা করুন",
     "clearAndRetry": "সাফ করে আবার চেষ্টা",
     "resetButton": "রিসেট",
@@ -198,10 +304,16 @@
     "tagUsersTitle": "যারা এই ট্যাগ ব্যবহার করছেন",
     "viewAllTagUsers": "সব {{count}} দেখুন",
     "categoryUncategorized": "অন্যান্য",
-    "allCategories": "সব"
+    "allCategories": "সব",
+    "openMap": "মানচিত্র খুলুন",
+    "searchBtn": "খুঁজুন",
+    "searchInputLabel": "অনুসন্ধান",
+    "clearSearchLabel": "অনুসন্ধান মুছুন",
+    "recommendedTitle": "যাদের সাথে পরিচিত হতে পারেন",
+    "tagsSelected": "ট্যাগ নির্বাচিত"
   },
   "addTag": {
-    "headerTitle": "# সোশ্যাল হোন",
+    "headerTitle": "Tag তৈরি করুন",
     "alertTagExists": "ট্যাগ ইতিমধ্যে বিদ্যমান",
     "alertTagExistsMessage": "এই ট্যাগ ইতিমধ্যে তালিকায় আছে।",
     "alertEnterPresetName": "টেমপ্লেটের নাম লিখুন",
@@ -213,18 +325,9 @@
     "alertQrError": "QR কোড তৈরি করা যায়নি, আবার চেষ্টা করুন।",
     "alertDeletePresetTitle": "টেমপ্লেট মুছুন",
     "alertDeletePresetMessage": "আপনি কি \"{{name}}\" মুছে ফেলতে নিশ্চিত?",
-    "dateLabel": "Date Tag",
-    "datePlaceholder": "YYYY/MM/DD",
-    "dateDisplayFallback": "তারিখ বাছতে ট্যাপ করুন",
-    "locationLabel": "Location Tag",
-    "locationPlaceholder": "ইভেন্টের জায়গা লিখুন...",
-    "currentLocation": "বর্তমান জায়গা",
-    "selectLocation": "জায়গা বাছুন",
-    "manualInput": "হাতে লিখুন",
     "locationPermDenied": "লোকেশন অনুমতি অস্বীকৃত",
     "customTagsLabel": "কাস্টম ট্যাগ",
     "hiddenTagHint": "শুধু আপনি দেখবেন — কোথায় দেখা হয়েছে তা মনে রাখতে সাহায্য করে",
-    "pickDate": "তারিখ বাছুন",
     "tagPlaceholder": "ট্যাগ লিখুন...",
     "addButton": "যোগ করুন",
     "saveAsPreset": "টেমপ্লেট হিসেবে সংরক্ষণ",
@@ -257,7 +360,21 @@
     "copyLink": "লিংক কপি করুন",
     "editQr": "QR এডিট করুন",
     "alertLinkCopiedTitle": "কপি হয়েছে",
-    "alertLinkCopiedMessage": "লিংক ক্লিপবোর্ডে কপি হয়েছে"
+    "alertLinkCopiedMessage": "লিংক ক্লিপবোর্ডে কপি হয়েছে",
+    "contextLabel": "কোন উপলক্ষ?",
+    "contextHint": "এক লাইনই যথেষ্ট। AI আপনার কথা, সময় ও স্থান দিয়ে ট্যাগ সাজেস্ট করে — যাতে মনে থাকে এখানে কার সাথে দেখা হয়েছিল।",
+    "contextPlaceholder": "যেমন: উইকেন্ড ব্রাঞ্চ, ক্লায়েন্ট ডেমো, বই লঞ্চ",
+    "aiSuggestionsTitle": "AI সাজেশন",
+    "aiSuggestionsHint": "একটা লাইন লেখো — AI সেটার সাথে তোমার লোকেশন আর পরিচয় ট্যাগ দেখবে।",
+    "aiSuggestionsEmpty": "AI কিছু পেলো না — আবার চেষ্টা করো বা নিজে যোগ করো।",
+    "aiRegenerate": "পুনরায় তৈরি",
+    "contextPromptHints": [
+      "ডাইভিং ট্রিপ",
+      "কলেজ রিইউনিয়ন",
+      "অফিস পার্টি",
+      "উইকেন্ড বারবিকিউ",
+      "বন্ধুর বিয়ে"
+    ]
   },
   "profile": {
     "nameNotSet": "নাম সেট করা নেই",
@@ -266,12 +383,12 @@
     "noBio": "এখনও কোনো বায়ো নেই",
     "noTags": "এখনও কোনো ট্যাগ নেই",
     "tagFallback": "ট্যাগ",
+    "askPromptHint": "+ চাপুন Ask পোস্ট করতে · «প্রয়োজন…»",
     "friendCountSuffix": "বন্ধু",
     "shareProfile": "প্রোফাইল শেয়ার করুন",
     "editProfile": "প্রোফাইল এডিট করুন",
     "manageTags": "আমার ট্যাগ পরিচালনা",
     "noContactMethods": "যোগাযোগের কোনো উপায় নেই",
-    "statusTooltip": "স্ট্যাটাস সেট করতে ট্যাপ করুন",
     "contactInfoTitle": "যোগাযোগ",
     "phoneLabel": "ফোন",
     "emailLabel": "ইমেইল",
@@ -282,7 +399,11 @@
     "statFriends": "বন্ধু",
     "statFollowers": "ফলোয়ার",
     "copyLink": "লিংক কপি করুন",
-    "share": "শেয়ার করুন"
+    "share": "শেয়ার করুন",
+    "statTagsA11y": "আমার ট্যাগ দেখুন",
+    "statFriendsA11y": "আমার বন্ধু দেখুন",
+    "statFollowersA11y": "আমার ফলোয়ার দেখুন",
+    "statTribeA11y": "আমার Tribe নক্ষত্রপুঞ্জ দেখুন"
   },
   "editProfile": {
     "headerTitle": "প্রোফাইল এডিট",
@@ -305,7 +426,7 @@
     "usernameLabel": "ইউজারনেম",
     "usernamePlaceholder": "ইউজারনেম লিখুন",
     "headlineLabel": "পদ / ভূমিকা",
-    "headlinePlaceholder": "যেমন: PM @ Google, ফ্রিল্যান্স ডিজাইনার",
+    "headlinePlaceholder": "যেমন: PM @ টেক কোম্পানি, ফ্রিল্যান্স ডিজাইনার",
     "bioLabel": "বায়ো",
     "bioPlaceholder": "বায়ো লিখুন",
     "phoneLabel": "ফোন",
@@ -343,7 +464,57 @@
     "selectPlatform": "প্ল্যাটফর্ম বাছুন",
     "linkName": "লিংকের নাম",
     "selectCountry": "দেশ বাছুন",
-    "searchCountry": "দেশ অথবা কোড খুঁজুন"
+    "searchCountry": "দেশ অথবা কোড খুঁজুন",
+    "invalidImageType": "অসমর্থিত ছবির ধরন। অনুগ্রহ করে JPEG, PNG বা WebP ব্যবহার করুন।",
+    "imageTooLarge": "ছবি খুব বড়। সর্বাধিক আকার 2MB।",
+    "browseAllPlatformsCta": "আরও…",
+    "browseAllPlatforms": "সব প্ল্যাটফর্ম দেখুন",
+    "platformSearchPlaceholder": "প্ল্যাটফর্ম খুঁজুন…",
+    "platformSearchEmpty": "কোনো ফলাফল নেই",
+    "detectedAs": "{{platform}} হিসাবে শনাক্ত",
+    "platform": {
+      "phone": "ফোন",
+      "email": "ইমেল",
+      "website": "ওয়েবসাইট",
+      "blog": "ব্লগ",
+      "portfolio": "পোর্টফোলিও",
+      "custom": "কাস্টম লিঙ্ক"
+    },
+    "platformCategory": {
+      "communication": "যোগাযোগ",
+      "social": "সামাজিক",
+      "video": "ভিডিও",
+      "music": "সঙ্গীত",
+      "professional": "পেশাদার",
+      "writing": "লেখা",
+      "business": "ব্যবসা",
+      "generic": "সাধারণ"
+    },
+    "completionInline": "তোমার লোকেরা যাতে তোমাকে খুঁজে পায় — যোগ করো {{items}}",
+    "missingAvatar": "প্রোফাইল ছবি",
+    "missingBio": "পরিচিতি",
+    "missingTags": "3টি ট্যাগ",
+    "missingBiolink": "সোশ্যাল লিংক",
+    "welcomeShort": "PikTag-এ স্বাগতম",
+    "bioPromptHints": [
+      "টেকে সেলস; দৌড় আমার স্ট্রেস কমায়, এ বছর ম্যারাথন সাব-৪ লক্ষ্য",
+      "প্রাইমারি শিক্ষক, বারান্দায় সবজি ফলাই, ২০+ সাকুলেন্ট",
+      "ইমার্জেন্সি নার্স, শিফট শেষে বেকিং করে রিল্যাক্স, পোর-ওভার শিখছি",
+      "ব্যাকএন্ড ইঞ্জিনিয়ার, এখন রান্না ও মৃৎশিল্পে মজেছি, বাড়িতে দুর্দান্ত শিবা",
+      "সাইকোলজির ছাত্র, ব্যান্ডে গিটার বাজাই, ইলাস্ট্রেশনের কাজও নিচ্ছি"
+    ],
+    "headlinePromptHints": [
+      "PM @ টেক কোম্পানি",
+      "আইনজীবী @ ল ফার্ম",
+      "ইমার্জেন্সি নার্স @ মেডিকেল সেন্টার",
+      "ফ্রিল্যান্স গ্রাফিক ডিজাইনার",
+      "মনোবিজ্ঞানের ছাত্র"
+    ],
+    "needLibraryPermissionTitle": "ফটো লাইব্রেরিতে অ্যাক্সেস দরকার",
+    "needLibraryPermissionMsg": "সেটিংসে অনুমতি দিন",
+    "notSignedIn": "লগ ইন করা হয়নি",
+    "uploadFailTitle": "আপলোড ব্যর্থ",
+    "tryAgainLater": "পরে চেষ্টা করুন"
   },
   "friendDetail": {
     "reminderBirthday": "জন্মদিন",
@@ -369,6 +540,9 @@
     "metLocationLabel": "জায়গা",
     "metNoteLabel": "নোট",
     "eventTagsLabel": "ইভেন্ট ট্যাগ",
+    "eventTagsSection": "একসাথে অংশ নিয়েছিল",
+    "eventTagsExpand": "সব দেখুন ({{count}})",
+    "eventTagsCollapse": "কম দেখান",
     "stickyNotesTitle": "স্টিকি নোট",
     "notePlaceholder": "আপনার নোট লিখুন...",
     "noteCancel": "বাতিল",
@@ -408,19 +582,24 @@
     "unfollowMessage": "আপনি কি {{name}}-কে আনফলো করতে নিশ্চিত?",
     "unfollowConfirm": "আনফলো",
     "hiddenTagsTitle": "লুকানো ট্যাগ (শুধু আপনি দেখতে পান)",
+    "eventTagsTitle": "ইভেন্ট ট্যাগ",
     "hiddenTagPlaceholder": "লুকানো ট্যাগ যোগ করুন, যেমন: পুরোনো সহকর্মী",
     "mutualTagsModalTitle": "শেয়ার করা ট্যাগ",
     "mutualFriendsSectionTitle": "শেয়ার করা বন্ধু",
-    "shareIntroMessage": "আপনাকে {{name}}-এর সাথে পরিচয় করিয়ে দিচ্ছি — এই তার প্রোফাইল: {{url}}"
+    "shareIntroMessage": "আপনাকে {{name}}-এর সাথে পরিচয় করিয়ে দিচ্ছি — এই তার প্রোফাইল: {{url}}",
+    "tag": "ট্যাগ",
+    "recommendMembers": "প্রস্তাবিত সদস্য",
+    "blockConfirmTitle": "এই ব্যক্তিকে ব্লক করবেন?",
+    "blockConfirmMessage": "আপনারা একে অপরকে আনফলো করবেন ও কনটেন্ট দেখতে পাবেন না।"
   },
   "userDetail": {
     "headerNotFound": "পাওয়া যায়নি",
     "userNotFound": "ইউজার পাওয়া যায়নি",
-    "mutualFriendsPrefix": "শেয়ার করা বন্ধু: ",
+    "mutualFriendsPrefix": "শেয়ার করা বন্ধু:",
     "mutualFriendsSuffix": "",
-    "mutualTagsPrefix": "শেয়ার করা ট্যাগ: ",
+    "mutualTagsPrefix": "শেয়ার করা ট্যাগ:",
     "mutualTagsSuffix": "",
-    "mutualSeparator": "  |  ",
+    "mutualSeparator": "|",
     "following": "ফলো করছেন",
     "follow": "ফলো",
     "sendMessage": "মেসেজ",
@@ -455,7 +634,12 @@
     "pickTagSubtitle": "{{name}}-কে সবচেয়ে ভালো বোঝায় এমন ট্যাগ বাছুন",
     "pickTagEmpty": "এই ইউজারের এখনও কোনো পাবলিক ট্যাগ নেই",
     "pickTagSave": "সংরক্ষণ ({{count}})",
-    "hiddenTagPlaceholder": "লুকানো ট্যাগ যোগ করুন..."
+    "hiddenTagPlaceholder": "লুকানো ট্যাগ যোগ করুন...",
+    "tag": "ট্যাগ",
+    "recommendMembers": "প্রস্তাবিত সদস্য",
+    "vibeContextTagsTitle": "এই Tag-এর ট্যাগ",
+    "blockConfirmTitle": "এই ব্যক্তিকে ব্লক করবেন?",
+    "blockConfirmMessage": "আপনারা একে অপরকে আনফলো করবেন ও কনটেন্ট দেখতে পাবেন না।"
   },
   "settings": {
     "headerTitle": "সেটিংস",
@@ -504,7 +688,10 @@
     "deactivateMessage": "আপনার প্রোফাইল লুকিয়ে যাবে। আবার লগ ইন করে পুনরায় সক্রিয় করতে পারবেন।",
     "deactivateConfirm": "নিষ্ক্রিয় করুন",
     "deleteAccountButton": "অ্যাকাউন্ট মুছুন",
-    "alertDeleteAccountNote": "এই কাজ ফিরিয়ে আনা যাবে না। আপনার অ্যাকাউন্ট ও সব ডেটা স্থায়ীভাবে মুছে যাবে"
+    "alertDeleteAccountNote": "এই কাজ ফিরিয়ে আনা যাবে না। আপনার অ্যাকাউন্ট ও সব ডেটা স্থায়ীভাবে মুছে যাবে",
+    "analyticsOptIn": "ব্যবহার বিশ্লেষণ পাঠান",
+    "analyticsOptInDescription": "অ্যাপ উন্নত করতে আমাদের সাহায্য করুন",
+    "attRationale": "PikTag আপনার অভিজ্ঞতা উন্নত করতে মৌলিক বিশ্লেষণ ব্যবহার করে। আমরা কখনই অন্যান্য অ্যাপ জুড়ে আপনাকে ট্র্যাক করি না।"
   },
   "contactSync": {
     "headerTitle": "কন্টাক্ট সিঙ্ক",
@@ -525,7 +712,23 @@
     "inviteMessage": "হাই {{name}}, আমি PikTag-এ ট্যাগ বিনিময় করছি! যোগ দিন: https://pikt.ag",
     "batchProgress": "প্রসেস হচ্ছে {{current}}/{{total}}",
     "alertBatchDoneTitle": "ইম্পোর্ট সম্পন্ন",
-    "alertBatchDoneMessage": "{{matched}} জন বন্ধু যোগ হয়েছে। {{notOnApp}} টি কন্টাক্ট এখনও PikTag-এ নেই।"
+    "alertBatchDoneMessage": "{{matched}} জন বন্ধু যোগ হয়েছে। {{notOnApp}} টি কন্টাক্ট এখনও PikTag-এ নেই।",
+    "sectionOnPiktag": "PikTag-এ আছে · {{count}}",
+    "sectionNotOnPiktag": "PikTag-এ নেই · {{count}}",
+    "summaryHeading": "{{onCount}} জন PikTag-এ · {{offCount}} জনকে আমন্ত্রণ করুন",
+    "followAllCta": "সব PikTag বন্ধুকে অনুসরণ ({{count}})",
+    "followBtn": "অনুসরণ",
+    "inviteBtn": "আমন্ত্রণ",
+    "tagInviteBtn": "ট্যাগ ও আমন্ত্রণ",
+    "fromContact": "কন্টাক্ট: {{name}}",
+    "classifyingText": "মিলিয়ে দেখা হচ্ছে…",
+    "alertFollowAllTitle": "সবাইকে অনুসরণ",
+    "alertFollowAllMessage": "{{count}} জন PikTag বন্ধুকে আপনার কানেকশনে যোগ করবেন?",
+    "alertFollowAllConfirm": "যোগ করুন",
+    "alertFollowAllDoneTitle": "সম্পন্ন",
+    "alertFollowAllDoneMessage": "{{count}} জন PikTag বন্ধু যোগ হয়েছে",
+    "allConnected": "PikTag-এর সব কন্টাক্ট ইতিমধ্যেই যুক্ত আছে",
+    "openSettings": "অনুমতি দিতে সেটিংস খুলুন"
   },
   "invite": {
     "headerTitle": "বন্ধুদের আমন্ত্রণ",
@@ -563,11 +766,11 @@
     "defaultLocation": "বর্তমান জায়গা",
     "alertPermTitle": "লোকেশন অনুমতি",
     "alertPermMessage": "এই ফিচারের জন্য লোকেশন অনুমতি দরকার",
-    "metAtPrefix": "দেখা হয়েছিল ",
+    "metAtPrefix": "দেখা হয়েছিল",
     "metAtSuffix": "-এ",
     "nearbySection": "কাছাকাছি কানেকশন ({{count}})",
     "metHereSection": "এখানে দেখা হয়েছিল ({{count}})",
-    "emptyText": "কাছাকাছি কোনো কানেকশন পাওয়া যায়নি"
+    "emptyText": "কাছাকাছি কেউ নেই। সার্চ রেঞ্জ পরিবর্তন করুন বা নতুন বন্ধু খুঁজতে 'এক্সপ্লোর'-এ যান"
   },
   "dashboard": {
     "headerTitle": "ব্যক্তিগত ড্যাশবোর্ড",
@@ -581,7 +784,7 @@
     "totalLinkClicks": "লিংক ক্লিক",
     "totalQrScans": "মোট QR স্ক্যান",
     "growthCurveTitle": "কানেকশন বৃদ্ধি",
-    "growthCurveEmpty": "এখনও কোনো বন্ধু ডেটা নেই",
+    "growthCurveEmpty": "এখনও কোনো বন্ধুর ডেটা নেই। ট্যাগ যোগ করুন বা বন্ধুদের আমন্ত্রণ জানিয়ে শুরু করুন",
     "presetScansTitle": "টেমপ্লেট অনুযায়ী স্ক্যান",
     "presetScansEmpty": "টেমপ্লেট স্ক্যানের কোনো রেকর্ড নেই",
     "scanCountSuffix": "স্ক্যান",
@@ -605,7 +808,73 @@
     "timeYesterday": "গতকাল",
     "timeDaysAgo": "{{count}} দি আগে",
     "timeWeeksAgo": "{{count}} সপ্তাহ আগে",
-    "emptyState": "কোনো নোটিফিকেশন নেই"
+    "emptyState": "কোনো নোটিফিকেশন নেই। রিমাইন্ডার সেট করুন বা বন্ধুদের কার্যকলাপ ফলো করুন",
+    "types": {
+      "ask_posted": {
+        "title": "",
+        "body": "একটি Ask পোস্ট করেছেন · {{ask_body}}",
+        "push": {
+          "title": "{{username}}",
+          "body": "একটি Ask পোস্ট করেছেন · {{ask_body}}"
+        }
+      },
+      "vibe_shift": {
+        "title": "",
+        "body": "নতুন ট্যাগ যোগ করেছে #{{tag_name}}",
+        "push": {
+          "title": "{{username}}",
+          "body": "নতুন ট্যাগ যোগ করেছে #{{tag_name}}"
+        }
+      },
+      "on_this_day": {
+        "title": "",
+        "body": "সেই দিনের Tag দেখুন",
+        "push": {
+          "title": "",
+          "body": "সেই দিনের Tag দেখুন"
+        }
+      },
+      "tag_convergence": {
+        "title": "",
+        "body": "কথা শুরু করো",
+        "push": {
+          "title": "",
+          "body": "কথা শুরু করো"
+        }
+      },
+      "ask_bridge": {
+        "title": "",
+        "body": "পরিচয় করিয়ে দিতে বলো",
+        "push": {
+          "title": "",
+          "body": "পরিচয় করিয়ে দিতে বলো"
+        }
+      },
+      "ask_prompt": {
+        "title": "",
+        "body": "একটি বাক্য — কোনো বন্ধু সাহায্য করতে পারে",
+        "push": {
+          "title": "",
+          "body": "একটি বাক্য — কোনো বন্ধু সাহায্য করতে পারে"
+        }
+      },
+      "reconnect_suggest": {
+        "title": "",
+        "body": "হাই বলো",
+        "push": {
+          "title": "",
+          "body": "হাই বলো"
+        }
+      },
+      "tag_combo": {
+        "title": "",
+        "body": "ভালো আলোচনার বিষয় হতে পারে",
+        "push": {
+          "title": "",
+          "body": "ভালো আলোচনার বিষয় হতে পারে"
+        }
+      }
+    }
   },
   "scanResult": {
     "headerTitle": "বন্ধু যোগ করুন",
@@ -626,7 +895,11 @@
     "relationClient": "ক্লায়েন্ট",
     "alreadyConnectedTitle": "ইতিমধ্যে যুক্ত",
     "alreadyConnectedMessage": "আপনারা ইতিমধ্যে বন্ধু।",
-    "addFriend": "ফলো"
+    "addFriend": "ফলো",
+    "connectElsewhereTitle": "{{name}}-এর সাথে এখানেও যুক্ত হন",
+    "connectElsewhereHint": "ট্যাপ করলে তাদের পেজ ওই অ্যাপে খুলবে — ফলো/অ্যাড আপনি করুন।",
+    "selfScanMessage": "এটি আপনার নিজের QR — নিজেকে যোগ করা যায় না।",
+    "addingFriend": "বন্ধু যোগ করা হচ্ছে…"
   },
   "manageTags": {
     "headerTitle": "ট্যাগ পরিচালনা",
@@ -652,6 +925,7 @@
     "pinLimitMessage": "আপনি সর্বোচ্চ {{max}} টি ট্যাগ পিন করতে পারেন",
     "dragHint": "পিন করতে দীর্ঘক্ষণ চাপুন, পুনঃক্রমে সাজাতে তীর",
     "aiSuggestionsTitle": "আপনার জন্য AI সাজেশন",
+    "aiFromBioTitle": "আপনার বায়ো অনুযায়ী AI পরামর্শ",
     "pinTag": "ট্যাগ পিন করুন",
     "unpinTag": "আনপিন",
     "publicTagsTitle": "সর্বজনীন ট্যাগ",
@@ -663,7 +937,9 @@
     "dragSelectTarget": "অদলবদল করতে ট্যাগে ট্যাপ করুন",
     "tagLimitTitle": "ট্যাগ সীমা",
     "tagLimitMessage": "আপনি সর্বোচ্চ {{max}} টি ট্যাগ যোগ করতে পারেন",
-    "aiErrorGeneric": "AI সাজেশন সাময়িকভাবে অনুপলব্ধ, পরে আবার চেষ্টা করুন"
+    "aiErrorGeneric": "AI সাজেশন সাময়িকভাবে অনুপলব্ধ, পরে আবার চেষ্টা করুন",
+    "nativeHintNoPin": "লং প্রেস করে টেনে সাজাও",
+    "tagEditHint": "সরাতে ট্যাপ করুন (সেভের আগে ফেরানো যায়) · সাজাতে চেপে ধরে টানুন"
   },
   "activityReview": {
     "noNewFriends": "রিভিউ করার মতো কোনো নতুন বন্ধু নেই",
@@ -673,7 +949,8 @@
     "hiddenTagPlaceholder": "লুকানো ট্যাগ যোগ করুন...",
     "swipeHint": "← এড়াতে বাঁয়ে সোয়াইপ · পরের জন্য ডানে →",
     "skip": "এড়িয়ে যান",
-    "next": "পরবর্তী"
+    "next": "পরবর্তী",
+    "done": "সম্পন্ন"
   },
   "tagDetail": {
     "unknownTag": "অজানা ট্যাগ",
@@ -712,6 +989,7 @@
     "title": "ক্যামেরা অ্যাক্সেস",
     "grantPermission": "অনুমতি দিন",
     "instruction": "ক্যামেরা PikTag QR কোডে রাখুন",
+    "cardFrameHint": "পুরো কার্ড ফ্রেমে রাখুন, স্পষ্ট রাখুন",
     "invalidQr": "অবৈধ QR কোড",
     "invalidQrMessage": "এই QR কোড বৈধ PikTag কানেকশন কোড নয়।",
     "permissionMessage": "QR কোড স্ক্যান করতে এবং বন্ধুদের সাথে যুক্ত হতে PikTag-এর ক্যামেরা অ্যাক্সেস দরকার।"
@@ -791,19 +1069,6 @@
     "section11Title": "11. যোগাযোগ",
     "section11Body": "PikTag Inc.\nইমেইল: support@pikt.ag"
   },
-  "points": {
-    "balance": "P কয়েন",
-    "lifetime": "মোট অর্জিত",
-    "inviteReward": "আমন্ত্রণ পুরস্কার",
-    "redeemHint": "ভবিষ্যতের পেইড সেবার জন্য P কয়েন ব্যবহার করুন",
-    "historyTitle": "P কয়েন ইতিহাস",
-    "reasonInviteAccepted": "বন্ধু আমন্ত্রণ গ্রহণ করেছে",
-    "reasonAdminGrant": "সিস্টেম পুরস্কার",
-    "reasonRedeemed": "রিডিম করা হয়েছে",
-    "emptyHistory": "এখনও কোনো P কয়েন কার্যকলাপ নেই",
-    "plusOne": "+1 P",
-    "pointsUnit": "P"
-  },
   "chat": {
     "inbox": "মেসেজ",
     "compose": "নতুন মেসেজ",
@@ -833,7 +1098,12 @@
     "userBlocked": "এই ইউজারকে মেসেজ পাঠানো যাবে না",
     "deliveryFailed": "পাঠানো ব্যর্থ · আবার চেষ্টা করতে ট্যাপ করুন",
     "unreadBadge": "{{count}} টি অপঠিত",
-    "messagesSent": "{{name}} আপনাকে একটি মেসেজ পাঠিয়েছে"
+    "messagesSent": "{{name}} আপনাকে একটি মেসেজ পাঠিয়েছে",
+    "timeJustNow": "এই মাত্র",
+    "timeYesterday": "গতকাল",
+    "timeMinutesAgo": "{{count}} মিনিট আগে",
+    "timeHoursAgo": "{{count}} ঘণ্টা আগে",
+    "timeDaysAgo": "{{count}} দিন আগে"
   },
   "share": {
     "profileInviteMessage": "{{name}} PikTag-এ\n{{url}}\n\nPikTag — আপনি যাকে দেখা পান তাকে ট্যাগ করুন,\nQR স্ক্যান করুন কখন ও কোথায় তা স্বয়ংক্রিয়ভাবে ক্যাপচার করতে।\n\nPikTag পান → https://pikt.ag"
@@ -903,7 +1173,123 @@
     "generating": "Generating title…",
     "minOneTag": "Select at least one tag",
     "aiSuggestions": "AI পরামর্শ",
-    "yourTags": "আপনার ট্যাগ",
-    "noTagsHint": "প্রথমে প্রোফাইল → ট্যাগ পরিচালনায় ট্যাগ যোগ করুন"
+    "customTagPlaceholder": "কাস্টম ট্যাগ যোগ করুন",
+    "cardLabel": "সাহায্য চাইছি",
+    "askingNow": "এখন চাইছেন",
+    "yourAskTitle": "আপনার বর্তমান Ask",
+    "generateAiTags": "AI ট্যাগ তৈরি করুন",
+    "aiNoSuggestions": "AI উপযুক্ত ট্যাগ খুঁজে পেল না। আবার চেষ্টা করুন বা নিজে লিখুন।",
+    "regenerateAiTags": "পুনরায় তৈরি",
+    "bubblePromptMine": "+ নতুন Ask",
+    "aiSuggestionsTitle": "AI সাজেশন",
+    "aiBodyTooShortHint": "এক বাক্যে লিখুন — AI ট্যাগ সাজেস্ট করবে",
+    "aiTapToGenerateHint": "↻ ট্যাপ করুন, AI ট্যাগ সাজেস্ট করবে",
+    "bodyPromptHints": [
+      "উইকেন্ডে একসাথে হাইকিং করবে কে?",
+      "Wi-Fi ঠিক করার লোক দরকার, জরুরি",
+      "ফ্রিল্যান্স কাজ খুঁজছি — কেউ নিচ্ছেন?",
+      "সস্তা ডেন্টিস্ট সাজেস্ট করুন",
+      "এই সপ্তাহে বোর্ড-গেম নাইট, কে আসছে?"
+    ],
+    "createSubtitle": "এক লাইনই যথেষ্ট — AI ট্যাগ যোগ করে যাতে ঠিক মানুষ (বা বন্ধুর বন্ধু) দেখতে পায়।",
+    "createFailed": "আপনার Ask যায়নি — আবার চেষ্টা করুন।",
+    "deleteFailed": "Ask মুছতে ব্যর্থ"
+  },
+  "errorBoundary": {
+    "title": "কিছু ভুল হয়েছে",
+    "message": "অ্যাপে একটি অপ্রত্যাশিত ত্রুটি ঘটেছে। আবার চেষ্টা করুন।",
+    "retry": "আবার চেষ্টা করুন"
+  },
+  "report": {
+    "reportMessage": "বার্তা রিপোর্ট করুন",
+    "reportAsk": "Ask রিপোর্ট করুন",
+    "reportNotification": "এই বিজ্ঞপ্তি রিপোর্ট করুন",
+    "hideFromUser": "এই ব্যবহারকারীকে লুকান",
+    "confirmTitle": "রিপোর্ট",
+    "confirmDescription": "কারণ বেছে নিন। ২৪ ঘণ্টায় পর্যালোচনা।",
+    "success": "ধন্যবাদ — আমরা পর্যালোচনা করব।",
+    "reasonSpam": "স্প্যাম",
+    "reasonHarassment": "হয়রানি",
+    "reasonInappropriate": "অনুচিত বিষয়বস্তু",
+    "reasonOther": "অন্যান্য",
+    "noTarget": "এই বিজ্ঞপ্তিতে রিপোর্ট করার মতো কেউ নেই।"
+  },
+  "tabTooltips": {
+    "home": "বন্ধুরা",
+    "search": "খুঁজুন / চ্যাট",
+    "addTag": "স্ক্যান / তৈরি",
+    "notifications": "বিজ্ঞপ্তি",
+    "profile": "আপনার প্রোফাইল",
+    "dismissHint": "যেকোনো জায়গায় ট্যাপ"
+  },
+  "qrGroup": {
+    "headerTitle": "নতুন মানুষের সাথে পরিচয়",
+    "detailHeader": "Tag",
+    "create": "নতুন Tag তৈরি করুন",
+    "createFirst": "এখনই Tag বানান",
+    "emptyTitle": "ট্যাগ আপনার নতুন বন্ধুদের মনে রাখুক",
+    "emptyDesc": "স্ক্যান করে যুক্ত হলেই দেখা হওয়ার তথ্য স্বয়ং নোট হয় — আর ভুলবেন না কোথায় দেখা হয়েছিল।",
+    "untitled": "নামহীন Tag",
+    "untitledFallback": "Tag · {{date}}",
+    "namePlaceholder": "এই Tag-এর নাম দিন",
+    "tagsTitle": "Tag ট্যাগ",
+    "tagsEmpty": "কোনো ট্যাগ নেই",
+    "tagInputPlaceholder": "নতুন ট্যাগ",
+    "noTagsYet": "কোনো ট্যাগ নেই",
+    "membersTitle": "সদস্য ({{count}})",
+    "memberCount": "{{count}} জন বন্ধু",
+    "membersEmpty": "এখনো কেউ স্ক্যান করেনি — বন্ধুদের সাথে শেয়ার করো",
+    "deleteTitle": "এই Tag মুছবেন?",
+    "deleteMessage": "\"{{name}}\" আপনার Tags থেকে মুছে যাবে। যারা ইতিমধ্যে এই QR-এর মাধ্যমে যোগ হয়েছে তারা প্রভাবিত হবে না।",
+    "deleteFailedTitle": "মুছে ফেলা ব্যর্থ",
+    "deleteFailedMessage": "এই Tag মুছে ফেলা হয়নি। পরে আবার চেষ্টা করুন। চলতে থাকলে যোগাযোগ করুন।",
+    "emptyScanCta": "অথবা তাদের QR স্ক্যান করে যুক্ত হন"
+  },
+  "localContact": {
+    "editTitle": "পরিচিতি সম্পাদনা",
+    "addTitle": "নতুন পরিচিতি",
+    "intro": "আগে মানুষটিকে টুকে রাখুন — তার এখন PikTag অ্যাকাউন্ট লাগবে না। যোগ দিলে এটি স্বয়ং যুক্ত হয় এবং আপনার ট্যাগ সঙ্গে যায়।",
+    "fieldName": "নাম",
+    "namePlaceholder": "যেমন: ডাইভিংয়ে পরিচিত অ্যালেক্স",
+    "fieldPhone": "ফোন (ঐচ্ছিক — যোগ দিলে লিঙ্ক করে)",
+    "phonePlaceholder": "+880 1xxxxxxxxx",
+    "fieldEmail": "ইমেল (ঐচ্ছিক)",
+    "emailPlaceholder": "name@example.com",
+    "fieldMetWhere": "কোথায় দেখা (ঐচ্ছিক)",
+    "metWherePlaceholder": "যেমন: রিইউনিয়ন, ডাইভিং",
+    "fieldNote": "নোট (শুধু আপনি দেখবেন)",
+    "notePlaceholder": "মনে রাখার এক লাইন",
+    "fieldTags": "ট্যাগ (শুধু আপনি দেখবেন)",
+    "tagPlaceholder": "ট্যাগ দিন…",
+    "save": "সংরক্ষণ",
+    "nameRequiredTitle": "নাম দরকার",
+    "nameRequiredMsg": "পরে মনে রাখতে অন্তত একটি নাম দিন।",
+    "saveError": "সংরক্ষণ হয়নি — আবার চেষ্টা করুন।",
+    "notFound": "এই পরিচিতি পাওয়া যায়নি — হয়তো PikTag-এ যুক্ত হয়েছে বা মুছে গেছে।",
+    "alreadyMemberTitle": "এই ব্যক্তি ইতিমধ্যেই PikTag-এ আছেন",
+    "alreadyMemberMsg": "{{name}} ইতিমধ্যেই PikTag সদস্য — শুধু পরিচিতি সেভ করার চেয়ে সরাসরি যুক্ত হওয়া ভালো।",
+    "alreadyMemberConnect": "দেখুন / যোগ করুন",
+    "alreadyMemberFile": "তবুও পরিচিতি সেভ করুন",
+    "alreadyMemberFallbackWho": "এই ব্যক্তি",
+    "deleteTitle": "এই পরিচিতি মুছবেন?",
+    "deleteMsg": "শুধু আপনার তালিকা থেকে মুছবে — অন্য কেউ প্রভাবিত হবে না।",
+    "scanCardHint": "কার্ডের একটা ছবি তুলুন — নাম আর যোগাযোগ নিজেই বসে যায়। পরে এডিট বা ট্যাগ যোগ করুন।",
+    "manualEntry": "অথবা নিজে লিখুন",
+    "scanRetake": "আবার তুলুন",
+    "fieldBirthday": "জন্মদিন (ঐচ্ছিক)",
+    "birthdayPlaceholder": "MM-DD অথবা YYYY-MM-DD",
+    "linkPhone": "ফোন",
+    "linkEmail": "ইমেইল",
+    "linkAddress": "ঠিকানা",
+    "scanningTitle": "কার্ড পড়া হচ্ছে…",
+    "scanningSubtitle": "সাধারণত ৫–১০ সেকেন্ড সময় লাগে",
+    "fieldAddress": "ঠিকানা",
+    "addressPlaceholder": "যেমন ধানমন্ডি, ঢাকা",
+    "scanningCard": "কার্ড পড়া হচ্ছে… (প্রায় ৩ সেকেন্ড)"
+  },
+  "followers": {
+    "title": "ফলোয়ার",
+    "count": "{{count}} জন ফলোয়ার",
+    "empty": "এখনও কোনো ফলোয়ার নেই"
   }
 }

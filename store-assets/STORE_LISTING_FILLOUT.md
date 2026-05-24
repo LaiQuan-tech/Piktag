@@ -1,118 +1,491 @@
-# Play Store Listing — Fill-in Cheatsheet (zh-TW primary)
+# PikTag v1.0.0 — Store Listing Copy (zh-TW + en)
 
-## App name (≤30 chars)
-PikTag
+Last revised: 2026-05-23 (re-pivot to North America as PRIMARY launch
+market; brand voice unchanged — "Pick. Tag. Connect." / "Pick your
+people" / "Search by need, not by name")
 
-## Short description (≤80 chars)
-用標籤記住每個人。掃 QR code 交換社群資料，用 # 標籤整理人脈，再也不會忘記任何一張臉。
+This document is the **single source of truth** for every store-listing field
+on Apple App Store Connect AND Google Play Console. Paste copy from here when
+filling the listing forms.
+
+Two markets covered with full copy:
+- **en** (North America, PRIMARY launch market — keyword & screenshot
+  effort goes here first)
+- **zh-TW** (Taiwan, secondary launch — full copy ready; ships day 1
+  because it's authored, not because TW is the strategic priority)
+
+The other 17 locales (zh-CN, ja, ko, es, fr, pt, ru, ar, bn, hi, id, th,
+tr, de, it, vi, ur) have full in-app i18n but their Apple/Play listings
+can fall through to en on day 1. See "Per-locale rollout plan" at the
+bottom.
+
+---
+
+## Brand voice cheat sheet
+
+Use these everywhere — same tone as the app's onboarding slides + landing
+page hero. NO marketing-speak ("revolutionary", "ultimate", "cutting-edge").
+
+| Slot | zh-TW | en |
+|------|-------|-----|
+| **Hero slogan** (brand-locked English) | Pick. Tag. Connect. | Pick. Tag. Connect. |
+| **Primary positioning** | 找對的人，從標籤開始 | Pick your people. |
+| **Functional clarity** | 不靠名字，靠標籤 | Search by need, not by name. |
+| **Mission #1** (define yourself) | 用標籤告訴大家你是誰 | Define yourself with tags |
+| **Mission #2** (activate network) | 讓老朋友活起來 | Bring old connections back to life |
+| **Mission #3** (reverse lookup) | 用需求找人，不是用名字 | Find people by what they do |
+
+---
+
+## App name
+
+The single highest-weight ASO field. A pure-brand "PikTag" leaves
+24/30 characters of the highest-weight keyword real estate empty —
+and "PikTag" is a coined word with zero pre-launch search volume.
+Standard ASO pattern is `BrandName — short descriptor`. Apple's name-
+stuffing crackdown only penalises spammy phrase chains; one tasteful
+descriptor is industry-standard and compliant.
+
+**Locked (en, primary): `PikTag — Your Vibe, Your Tribe`** (29 / 30)
+
+Rationale — target is Gen Z in North America. The earlier "Personal
+CRM" candidates would scare them off (CRM = parents' boring sales
+software). "Your Vibe, Your Tribe" is Gen-Z-native language (vibe
+check; #yourtribe), mirrors the brand line "Pick your people", and
+fits the 30-char cap exactly. Note: "tribe" carries some appropriation
+discourse in the US — accepted trade-off for the rhythm.
+
+CRM keyword volume is NOT lost — it goes into the hidden keyword
+field (see Keywords section). Users never see "CRM"; Apple still
+ranks PikTag for personal-CRM searches.
+
+Avoided alternatives, kept here for the audit trail:
+- `PikTag — Personal CRM` (21) — best for search-volume, wrong for Gen Z
+- `PikTag — Find Your People` (24) — clean Gen Z, less rhythm
+- `PikTag — Tag Your Vibe` (22) — drops "tribe" if appropriation
+  concern grows post-launch
+
+**Recommended (zh-TW):**
+- **`PikTag・用標籤管理人脈`** (12 / 30) ← lead. Contains the two
+  highest-intent zh search roots: 標籤 + 人脈.
+- Alternative: `PikTag・標籤人脈・名片管理` (14) — adds 名片管理, the
+  card-scan funnel hook (high zh search volume).
+
+---
+
+## App Store Subtitle (Apple only, ≤30 chars)
+
+| Locale | Copy | Chars |
+|--------|------|-------|
+| en | Pick your people. Tag them. | 27 / 30 |
+| zh-TW | 用標籤找人脈,不靠名字 | 11 / 30 |
+
+> Apple's subtitle appears immediately under the app name in search results
+> and the install page. Treat it as the elevator-pitch line — AND remember
+> Apple indexes the subtitle words for search ranking.
+>
+> The en version keeps "Pick your people." (brand-locked) and adds
+> "Tag them." — short verb-action that complements "Your Vibe, Your
+> Tribe" in the title. Deliberately omits CRM/networking/business —
+> those are scary words for the Gen Z target audience; they sit in
+> the hidden keyword field instead.
+>
+> The zh-TW version trades the warmer brand line for the harder
+> keyword 人脈 + the differentiator phrasing 「不靠名字」.
+
+---
+
+## Promotional text (Apple only, ≤170 chars, updatable without re-review)
+
+| Locale | Copy | Chars |
+|--------|------|-------|
+| zh-TW | 不靠名字找人，靠標籤找人。把朋友標籤化，需要時舊人脈會主動找上你。發 Ask 廣播你的需求，對的人自然出現。 | 53 / 170 |
+| en | Search by need, not by name. Tag your network — old friends and new opportunities find you when it matters. Post an Ask, and the right people surface. | 152 / 170 |
+
+> Apple lets you change this anytime without going through review. Use it
+> for announcements ("New: Ask broadcasts!", "Featured in App Store Korea")
+> after launch.
+
+---
+
+## Short description / Play Store hook (Google Play only, ≤80 chars)
+
+| Locale | Copy | Chars |
+|--------|------|-------|
+| zh-TW | 不靠名字找人，靠標籤找人。把人脈標籤化，舊朋友主動找上你。 | 28 / 80 |
+| en | Tag your network. Search by need, not by name. Old friends reach you. | 70 / 80 |
+
+> Google's short description is the line that appears below the title in
+> Play Store search. Make it specific — generic CRM language will lose
+> against incumbents (LinkedIn, contacts apps).
+
+---
 
 ## Full description (≤4000 chars)
-PikTag 是一款社交 CRM，幫助你記住每一個遇見的人。
 
-# 怎麼用？
-1. 產生你的個人 QR code
-2. 在活動、聚會或任何場合互掃 QR code
-3. 自動交換社群資料（Instagram、LinkedIn 等）
-4. 用自訂 # 標籤整理人脈（#開發者 #台北 #咖啡）
-5. 按標籤、地點或日期搜尋與管理連結
+### zh-TW
+
+```
+PikTag 是一款用標籤連結人脈的社交 CRM。
+不靠名字找人，靠標籤找人。
+
+# 三個核心動作
+
+✦ 用標籤定義自己
+   選 10 個最能代表你的標籤——這就是你在 PikTag 的身份。
+   別人能透過你會的、你愛的找到你。
+
+✦ 讓老朋友活起來
+   生日提醒、認識週年、共同回憶會主動找上你。
+   再也不會遇到「咦這人是誰來著」的尷尬時刻。
+
+✦ 用需求找人
+   「我需要懂攝影的朋友」「在台北附近的設計師」「認識誰在做新創？」
+   PikTag 不是讓你照名字翻通訊錄，是讓你把需求說出來，對的人就出現。
 
 # 主要功能
-- QR Code 交換：掃描即連結
-- 智慧標籤：用 # 標籤整理每一位朋友
-- 社群連結：分享你的 IG、LinkedIn、網站等
-- 好友地圖：看看朋友們在哪裡
-- CRM 提醒：生日、紀念日、合約到期提醒
-- 隱私控制：每個連結都有 4 層可見度
-- 深色模式：護眼設計
-- 15 種語言：繁中、簡中、日文、韓文等
 
-# 為什麼選 PikTag？
-名片會弄丟。手機通訊錄會很亂。PikTag 讓你用情境標記每個人 — 在哪認識、聊了什麼、共同興趣 — 不再失去有意義的人脈。
+📍 標籤即身份
+   AI 從你的 bio 推薦標籤，10 個標籤勝過一頁履歷。
 
-適合：
-- 社交活動與研討會
-- 創業聚會
-- 大學校園生活
-- 專業人脈管理
-- 經常認識新朋友的人
+🔄 Ask 廣播
+   有需求？發一則 Ask，自動 fan-out 給標籤匹配的朋友。
+   24 小時內，最對的人會自然冒出來。
+
+📷 QR Code 互掃
+   見面當下掃一下，社群連結（IG / LinkedIn / 電話）一秒交換。
+
+🗓 智慧 CRM
+   生日提醒、認識週年、共通標籤高亮——讓每段關係有溫度。
+
+🔍 反向搜尋
+   不知道對方叫什麼，但記得他會什麼？輸入需求，PikTag 找出來。
+
+🔒 隱藏標籤
+   私人筆記（「在誠品認識的」「葉家排骨」）只有你看得到。
+
+🌐 19 種語言
+   繁中、簡中、英、日、韓、西、法、葡、俄、阿、孟、印、印尼、泰、土、德、義、越、烏爾都。
+
+# 為什麼 PikTag 不是另一個通訊錄
+
+通訊錄解決「我有他電話嗎？」的問題。
+PikTag 解決「我認識誰會 X？」的問題。
+
+電話本是 1980 年代的工具，標籤是 2026 年的工具。
+
+# 適合誰
+
+· 經常去活動 / 聚會 / 研討會的人
+· 創業圈、投資圈、設計圈、工程圈
+· 大學生、研究生、新鮮人
+· 任何「認識的人比記得住的人多」的人
 
 PikTag 免費使用。部分進階功能未來可能會推出付費方案。
+有問題請聯絡 support@pikt.ag
 
-有問題？聯絡我們 support@pikt.ag
+Pick. Tag. Connect.
+```
+
+字數：672 / 4000 ✓
+
+### en
+
+```
+PikTag tags your people so you can find them by what they do.
+Search by need, not by name. Pick your people.
+
+# Three core moves
+
+✦ Define yourself with tags
+   Pick 10 tags that capture who you are — this is your PikTag identity.
+   Let others find you by what you do, not just what you're called.
+
+✦ Bring old connections back to life
+   Birthdays, meet-anniversaries, and shared memories surface when they
+   matter. No more "wait, who is this person again?" awkwardness.
+
+✦ Find people by what they do
+   "Need a friend who shoots photos." "Designers near me." "Anyone in
+   startups?" PikTag isn't a phone book — it's a discovery layer over
+   your network. Tell it what you need; the right person surfaces.
+
+# Key features
+
+📍 Tags as identity
+   AI suggests tags from your bio. 10 tags say more than a CV.
+
+🔄 Ask broadcasts
+   Got a need? Post an Ask and PikTag fans it out to friends whose tags
+   match. The right person typically surfaces within 24 hours.
+
+📷 QR exchange
+   Meet someone? Scan each other's QR. Instagram, LinkedIn, phone —
+   exchanged in one tap.
+
+🗓 Smart CRM
+   Birthday reminders, meet-anniversaries, mutual-tag highlighting on
+   every friend's profile. Keep relationships warm without lifting a
+   finger.
+
+🔍 Reverse search
+   Don't remember a name but remember what they do? Type the need,
+   PikTag finds the person.
+
+🔒 Hidden tags
+   Private annotations ("met at the Q3 mixer", "great BBQ rec") visible
+   only to you.
+
+🌐 19 languages
+   Traditional & Simplified Chinese, English, Japanese, Korean, Spanish,
+   French, Portuguese, Russian, Arabic, Bengali, Hindi, Indonesian,
+   Thai, Turkish, German, Italian, Vietnamese, Urdu.
+
+# Why PikTag isn't just another contacts app
+
+Contacts apps answer "do I have their phone number?"
+PikTag answers "who do I know that does X?"
+
+Think of it as a personal CRM that doesn't feel like work software —
+built for your tribe, not for a sales pipeline.
+
+The phone book is a 1980s tool. Tags are a 2026 tool.
+
+# Who it's for
+
+· People who go to events, meetups, conferences
+· Founders, investors, designers, engineers
+· Students and recent grads
+· Anyone whose network grew faster than their memory for it
+
+PikTag is free. Some advanced features may move to paid in the future.
+Questions? Email support@pikt.ag
+
+Pick. Tag. Connect.
+```
+
+Char count: 1812 / 4000 ✓
+
+---
+
+## Keywords (Apple only, ≤100 chars, hidden, comma-separated)
+
+Apple's keywords field is **invisible to users** but feeds App Store search.
+Don't repeat words from the title or subtitle — Apple already indexes those
+AND combines roots across slots (title `Personal CRM` + keyword `scanner`
+→ ranks for "personal CRM scanner"). Comma-separated, no spaces after
+commas (saves chars).
+
+### en (PRIMARY — North America launch)
+
+```
+find,friends,meet,people,social,bio,link,hangout,nametag,match,CRM,business,card,scanner,reconnect
+```
+
+(98 / 100 chars ✓)
+
+> Strategic notes — split-audience keyword strategy:
+>
+> The title is brand-vibey ("Your Vibe, Your Tribe") to attract Gen Z;
+> the keyword field is INVISIBLE to users (Apple ranks on it but never
+> shows it), so it can carry both Gen-Z and adult-professional search
+> terms without scaring anyone off.
+>
+> **Gen Z visible-search terms** (the audience scrolling tabs that
+> auto-suggest these):
+> - `find,friends,meet,people,social` — high-volume Gen Z social
+>   discovery searches
+> - `hangout,nametag,match,link,bio` — Gen Z-native vocabulary
+>   (Instagram nametag, Linktree-adjacent bio link, vibe match)
+>
+> **Adult / professional backstop** (search-volume from the
+> personal-CRM crowd; Gen Z never sees these words):
+> - `CRM,business,card,scanner` — Apple combines into "personal CRM",
+>   "business card scanner" (high-volume adult US queries; PikTag's
+>   card-scan feature delivers on the intent)
+> - `reconnect` — US personal-CRM intent term (Dex/Cloze positioning)
+>
+> Title already carries `Vibe`, `Tribe`, `Pick`, `Tag`, `People` —
+> DON'T repeat in this field (Apple combines across slots automatically).
+> Brand slogan `Pick. Tag. Connect.` already covers `connect`.
+
+### zh-TW (Phase-1 launch — copy ready)
+
+```
+名片掃描,名片管理,拓展人脈,人脈經營,通訊錄,聯絡人,認識朋友,社交,商務,活動,聚會,研討會,交流,校友,客戶,同學,商務社交,QR
+```
+
+(68 / 100 chars ✓ — Chinese chars each count 1; room left if you want
+to add more validated terms)
+
+> Strategic notes:
+> - Title already carries 標籤 + 人脈 — DON'T repeat
+> - 名片掃描 / 名片管理 are HIGH-volume zh-TW search terms (the card-scan
+>   funnel hook; competitors like 名片全能王 pull real traffic on these)
+> - Persona-context: 校友 / 同學 / 客戶 / 商務社交 cover the people-you-met
+>   surfaces
+> - QR is left in (lower volume than zh markets used to be, but free)
+
+> **Volume validation pending**: pick a free tool (AppTweak / Mobile
+> Action / Sensor Tower free tier) and validate each candidate against
+> US App Store / TW App Store search volume before final paste. The
+> picks above are intent-based; volume might rank a few differently.
+
+---
 
 ## Category
-**Social** — recommended.
 
-Reasoning: metadata.json declares `"category": "Social Networking"` and the core loop is meeting people, exchanging profiles, and managing contacts. Lifestyle is a weaker fit (too broad); Productivity undersells the social/networking angle. Google Play's closest match to "Social Networking" is the **Social** category. If Social feels too consumer-heavy for your audience of professional networkers, **Communication** is the secondary fallback — but Social is the better positioning for discovery.
+**Primary:** Social Networking (Apple) / Social (Google Play)
 
-## Tags (choose 5)
-Google Play's tag list is curated (not free-form); these are the closest matches from the allowed list based on metadata.json keywords (`社交 / QR code / 標籤 / 人脈 / CRM / 活動 / 名片 / 聚會 / 社群 / 連結`):
+**Secondary** (Apple supports two): Productivity
+
+> Reasoning: PikTag's core loop is meeting + remembering + finding people,
+> which Social Networking captures. Productivity is the natural second
+> because the CRM / tag / reminders dimension differentiates it from pure
+> social apps. Communication is a weaker third option if Productivity isn't
+> available.
+
+---
+
+## Play Store tags (choose 5)
+
+Google Play's tags are curated dropdown values, not free-form. Pick from
+this priority list (drop the bottom ones if dropdown doesn't list them):
 
 1. **Social Networking** — core positioning
-2. **Messaging** — QR scan + profile exchange is a contact-initiation pattern
-3. **Events** — networking events, meetups, conferences
-4. **Contacts** — CRM / address book replacement
-5. **Productivity** — tags, reminders, relationship management
+2. **Productivity** — tags + reminders + relationship management
+3. **Communication** — QR + bio link exchange
+4. **Events** — networking events / meetups / conferences
+5. **Business** — professional networking use case
 
-If any of the above are not in Play Console's dropdown when you get there, fall back to (in priority order): **Lifestyle**, **Business**, **Community**.
+Fallback if any unavailable: Lifestyle, Community, Contacts.
+
+---
 
 ## Contact details
-- Email: support@pikt.ag
-- Phone: (leave blank)
+
+- Support email: support@pikt.ag
+- Privacy email: privacy@pikt.ag
+- Phone: (leave blank — Apple/Google both let you skip)
 - Website: https://pikt.ag
+- Privacy policy URL: https://pikt.ag/privacy
+- Terms URL: https://pikt.ag/terms (optional in Apple, recommended in Play)
 
-## Privacy policy URL
-https://pikt.ag/privacy
+---
 
-## Character counts verification
-- App name: 6 / 30 chars ✓
-- Short description (zh-TW): 49 / 80 chars ✓
-- Full description (zh-TW): 526 / 4000 chars ✓
+## Screenshots — the actual conversion lever
 
-All within limits, no trims needed for zh-TW.
+Text copy gets the listing FOUND. Screenshots get it INSTALLED. Most
+users decide from the first 2 frames (visible above the fold in App
+Store search results without scrolling) without ever reading copy.
+This doc historically covered only copy — that gap is the biggest
+risk to install rate. Treat the screenshot set as as much work as
+all the text above combined.
 
-## English version (for future App Store)
+### Frame-by-frame narrative (en, primary)
 
-### Short (≤80):
-`Tag everyone you meet. Scan QR codes to exchange socials and organize with tags.`
-(80 / 80 chars — exact fit)
+| # | Frame | Headline (over the screenshot) | Why |
+|---|-------|--------------------------------|-----|
+| 1 | **Reverse search in action** — search box showing "designer in SF", results below | "Search by need, not by name." | This IS the differentiator. Lead with it. Not the home feed, not the tag picker — the moment that makes PikTag unlike a contacts app. |
+| 2 | **QR exchange mid-scan** — two phones / one with QR overlay + the resulting profile | "Meet someone. One tap." | The other moment users instantly understand. Captures the high-intent "meet a stranger" use case. |
+| 3 | **AI tag suggestions** — the suggestion chips with one being tapped | "AI knows what you do." | Frames PikTag as smart, not manual. |
+| 4 | **Ask broadcast** — Ask composer + the "matched friends" results | "Post a need. The right people surface." | The serendipity loop made concrete. |
+| 5 | **Friend profile with mutual tags + meet-anniversary** | "Old friends, brought back to life." | The CRM/reactivation use case. |
+| 6 | **Hidden tags / private annotations** | "Notes only you see." | Privacy framing — important for US tech-savvy audience. |
 
-> Note: the original `metadata.json` en.short is 126 chars, which exceeds Play Store's 80-char short description limit. The version above trims "never forget a face" and condenses "connections with hashtags" to "organize with tags" while preserving the three core keywords: **QR codes**, **socials**, **tags**.
->
-> Alternative 79-char variant: `Tag everyone you meet. Scan QR codes, exchange socials, organize with hashtags.`
+Frames 1-2 are non-negotiable; frames 3-6 are the order of importance
+if you have to cut.
 
-### Full (≤4000):
-PikTag is a social CRM that helps you remember everyone you meet.
+### Visual rules
 
-# How It Works
-1. Generate your personal QR code
-2. Scan each other's codes at events, meetups, or anywhere
-3. Automatically exchange social profiles (Instagram, LinkedIn, etc.)
-4. Tag connections with custom hashtags (#developer #taipei #coffee)
-5. Find and manage connections by tag, location, or date
+- **First-frame headline must be readable at 1/3 size** (search-results
+  preview is tiny). Use 36pt+ for the caption.
+- **Use the brand gradient (#ff5757 → #8c52ff)** as the screenshot
+  background or accent — recognition compounds across the set.
+- **No phone bezel chrome.** Modern style is the screenshot floating
+  on a brand-color background with the caption above. Apple's own
+  apps do this.
+- **Caption is in the screenshot, not the metadata.** Apple's
+  per-screenshot caption field is deprecated/ignored.
 
-# Key Features
-- QR Code Exchange: Scan to connect instantly
-- Smart Tags: Organize contacts with hashtags
-- Social Links: Share your Instagram, LinkedIn, website and more
-- Friends Map: See where your connections are
-- CRM Reminders: Birthday, anniversary, and contract expiry alerts
-- Privacy Controls: 4 visibility levels for every link
-- Dark Mode: Easy on the eyes
-- 15 Languages: English, Chinese, Japanese, Korean, and more
+### Sizes to ship
 
-# Why PikTag?
-Business cards get lost. Phone contacts get messy. PikTag lets you tag people with context — where you met, what you talked about, shared interests — so you never lose track of meaningful connections.
+- **iPhone 6.7" (iPhone 14 Pro Max)** — REQUIRED by Apple, used for
+  ALL iPhone sizes if smaller ones aren't supplied. Ship this one
+  first.
+- **iPhone 6.5"** — optional but recommended.
+- **iPhone 5.5"** — only if you care about iPhone 8-era devices.
+- **iPad 12.9"** — required ONLY if you support iPad. PikTag is
+  iPhone-only per app.json — skip iPad screenshots.
+- **Google Play phone** — 16:9 or 9:16, 320–3840px each side.
 
-Perfect for:
-- Networking events & conferences
-- Startup meetups
-- University campus life
-- Professional relationship management
-- Anyone who meets a lot of people
+### Post-launch optimization
 
-PikTag is free to use. Some premium features may be available in the future.
+Apple's **Product Page Optimization (PPO)** lets you A/B-test up to
+3 screenshot variants against the default with real install data.
+Plan your second variant from week 1 — try a different headline on
+frame 1 (e.g. "Personal CRM that searches by need" vs the brand
+slogan) and measure conversion. Cycle every 2-3 weeks.
 
-Questions? Contact us at support@pikt.ag
+**Custom Product Pages (CPP)** let you ship up to 35 alternate
+listings (different first frame + first 3 screenshots + promotional
+text) and drive specific traffic to them via Apple Search Ads or
+campaign URLs. Useful once you start paid acquisition.
 
-(1303 / 4000 chars ✓)
+---
+
+## Per-locale rollout plan
+
+For Apple App Store Connect, every supported language can have its own
+listing (subtitle / description / keywords). For Google Play Console,
+there's a similar localized listing feature.
+
+With **North America as the primary market**, the priority order changes:
+en gets the keyword research, screenshot work, and ASO iteration; other
+locales get listings as cheap-to-launch additions.
+
+**Phase 1 (launch day):** en (primary, full ASO effort) + zh-TW (copy
+already authored — ships at no marginal cost).
+
+**Phase 2 (week 1-2 post-launch):** **es** (US Latino population + LATAM
+spillover — highest-ROI 2nd listing for a North America-led launch),
+then ja, ko, fr, pt — pick based on which Phase-1 locale shows the
+strongest install/conversion signal in App Store Connect analytics.
+
+**Phase 3 (when org capacity allows):** zh-CN, ru, ar, bn, hi, id, th,
+tr, de, it, vi, ur.
+
+For markets without a localized listing, Apple/Play fall through to the
+default (en for Apple, en for Play). The in-app UI is fully localized in
+**all 19 languages**, so users in non-translated-listing markets still
+get a fully-localized app once installed — just not a localized listing.
+
+---
+
+## Quick paste-checklist for App Store Connect
+
+- [ ] App name (en): `PikTag — Your Vibe, Your Tribe`
+- [ ] App name (zh-TW): `PikTag・用標籤管理人脈` (or chosen variant)
+- [ ] Subtitle: paste from "App Store Subtitle" section above
+- [ ] Promotional text: paste from "Promotional text" section above
+- [ ] Description: paste full description for the locale
+- [ ] Keywords: paste keywords string (en only first; others later)
+- [ ] Support URL: `https://pikt.ag`
+- [ ] Marketing URL (optional): `https://pikt.ag`
+- [ ] Privacy policy URL: `https://pikt.ag/privacy`
+- [ ] Primary category: Social Networking
+- [ ] Secondary category: Productivity
+- [ ] Age rating: complete questionnaire (no objectionable content,
+      user-generated content moderated, occasional/mild themes if any)
+
+## Quick paste-checklist for Google Play Console
+
+- [ ] App name (en): `PikTag — Your Vibe, Your Tribe`
+- [ ] App name (zh-TW): `PikTag・用標籤管理人脈` (or chosen variant)
+- [ ] Short description: paste from "Short description" section above
+- [ ] Full description: paste full description for the locale
+- [ ] Category: Social
+- [ ] Tags: pick 5 from "Play Store tags" priority list above
+- [ ] Privacy policy URL: `https://pikt.ag/privacy`
+- [ ] Contact email: `support@pikt.ag`
+- [ ] Website: `https://pikt.ag`

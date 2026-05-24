@@ -1,0 +1,272 @@
+{
+  "nav": {
+    "features": "Tính năng",
+    "crm": "CRM thông minh",
+    "upcoming": "Sắp ra mắt",
+    "comingSoon": "Sắp ra mắt"
+  },
+  "hero": {
+    "badge": "iOS & Android sắp ra mắt",
+    "title1": "Tag hội nhóm của bạn,",
+    "title2": "kết nối linh hồn và tài nguyên.",
+    "description": "PikTag to connect.",
+    "appStore": "App Store",
+    "googlePlay": "Google Play",
+    "comingSoonOn": "Sắp có trên"
+  },
+  "features": {
+    "sectionTitle": "Tính năng cốt lõi, mạnh mẽ bất ngờ",
+    "sectionDesc": "Thay cho danh bạ truyền thống, PikTag xây dựng quanh thẻ ngữ nghĩa, kết hợp Link Bio, mã QR và các mức riêng tư, giúp việc quản lý liên hệ vừa chính xác vừa trực quan.",
+    "tag": {
+      "title": "Sáu loại thẻ ngữ nghĩa",
+      "description": "Hỗ trợ sáu nhóm ngữ nghĩa: Danh tính, Kỹ năng, Sở thích, Mạng xã hội, Thẻ Meta và Quan hệ, giúp bạn gắn nhãn chính xác cho từng kết nối. Kéo để sắp xếp lại và ẩn các thẻ riêng tư."
+    },
+    "linkBio": {
+      "title": "Link Bio & mã QR",
+      "description": "Tạo trang Link Bio cá nhân khoe ảnh đại diện, tiểu sử và thẻ của bạn. Hỗ trợ mã QR dạng URL chuẩn — quét là kết bạn ngay."
+    },
+    "search": {
+      "title": "Tìm kiếm & khám phá",
+      "description": "Tìm thẻ hoặc tài khoản theo từ khóa, khám phá những người có chung thẻ, và tìm ra cộng đồng nghề nghiệp cùng nhóm sở thích của bạn."
+    },
+    "biolinks": {
+      "title": "Liên kết xã hội & mức riêng tư",
+      "description": "Lưu các liên kết xã hội như IG, LinkedIn, và đặt bốn mức riêng tư (Công khai / Bạn bè / Bạn thân / Chỉ mình tôi) để kiểm soát chính xác ai được xem."
+    },
+    "contactSync": {
+      "title": "Đồng bộ danh bạ",
+      "description": "Nhập danh bạ điện thoại chỉ với một chạm, nhanh chóng tìm những người bạn đã dùng PikTag, và dễ dàng dựng mạng lưới của bạn."
+    },
+    "languages": {
+      "title": "Hỗ trợ 15 ngôn ngữ",
+      "description": "Giao diện đa ngôn ngữ tích hợp sẵn 15 thứ tiếng — quản lý kết nối bằng ngôn ngữ bạn thấy thoải mái, dù bạn ở đâu."
+    }
+  },
+  "tags": {
+    "sectionTitle": "Những thẻ kết nối sôi động nhất",
+    "sectionDesc": "Cùng hàng nghìn người dùng khám phá và kết nối với những người có chung thẻ. Tìm ra cộng đồng nghề nghiệp và nhóm sở thích của bạn.",
+    "users": "Người dùng",
+    "thisWeek": "Tuần này",
+    "explore": "Khám phá thẻ",
+    "viewAll": "Xem tất cả thẻ",
+    "engineer": "#KỹSư",
+    "designer": "#Designer",
+    "entrepreneur": "#KhởiNghiệp",
+    "investor": "#NhàĐầuTư",
+    "ntuAlumni": "#CựuSinhViênNTU"
+  },
+  "crm": {
+    "badge": "Giai đoạn 2",
+    "sectionTitle": "Tính năng CRM thông minh & tương tác",
+    "sectionDesc": "Không chỉ lưu liên hệ — PikTag chủ động giúp bạn giữ gìn các mối quan hệ. Với nhắc sinh nhật, thống kê xã hội và thông báo thông minh, bạn sẽ kết nối đúng người vào đúng lúc.",
+    "birthday": {
+      "title": "Nhắc sinh nhật kiểu CRM",
+      "description": "Đặt các ngày quan trọng như sinh nhật cho bạn bè, và nhận thông báo tự động đúng ngày — không bao giờ bỏ lỡ khoảnh khắc quan trọng."
+    },
+    "friends": {
+      "title": "Quản lý tương tác bạn bè",
+      "description": "Xem hồ sơ và thẻ chi tiết của bạn bè, kèm quản lý chặn/bỏ chặn để kiểm soát ranh giới vòng kết nối của bạn."
+    },
+    "stats": {
+      "title": "Bảng thống kê xã hội",
+      "description": "Bảng dữ liệu xã hội cá nhân: tổng số kết nối, thẻ đã dùng, top 5 thẻ dùng nhiều nhất — định lượng sức ảnh hưởng xã hội của bạn."
+    },
+    "notifications": {
+      "title": "Trung tâm thông báo thông minh",
+      "description": "Quản lý mọi thông báo ở một nơi: lời mời kết bạn, nhắc sinh nhật, cập nhật thẻ — tin quan trọng nhìn là thấy."
+    },
+    "notificationCenter": "Trung tâm thông báo",
+    "filterAll": "Tất cả",
+    "filterFriends": "Bạn bè",
+    "filterReminders": "Lời nhắc",
+    "notification1": "Hôm nay là sinh nhật của David Wang, #CựuSinhViênNTU!",
+    "notification1Time": "Vừa xong • Nhắc sinh nhật CRM",
+    "notification2": "Tiểu Hoa đã chấp nhận lời mời kết bạn của bạn!",
+    "notification2Time": "2 giờ trước • Hoạt động bạn bè",
+    "notification3": "Mạng lưới của bạn đã tăng lên 150 người!",
+    "notification3Time": "Hôm qua • Thống kê xã hội"
+  },
+  "advanced": {
+    "badge": "Giai đoạn 3",
+    "sectionTitle": "Sắp ra mắt",
+    "sectionDesc": "Kết hợp định vị và gợi ý thông minh để giúp bạn khám phá những kết nối tiềm năng và giữ cho mạng lưới luôn lớn dần.",
+    "nearby": {
+      "title": "Khám phá người dùng quanh đây",
+      "description": "Khám phá người dùng PikTag và các thẻ đang hot quanh bạn dựa trên vị trí GPS — bắt trend xã hội địa phương và những kết nối tiềm năng."
+    },
+    "onThisDay": {
+      "title": "Ngày này năm xưa",
+      "description": "Tự động nhìn lại bạn đã gặp ai vào ngày này N năm trước — khơi lại kỷ niệm kết nối và giữ mọi mối quan hệ luôn tươi mới."
+    },
+    "recommend": {
+      "title": "Thuật toán gợi ý thông minh",
+      "description": "Dựa trên thẻ, lịch sử tương tác và mạng lưới của bạn, thông minh gợi ý những người bạn có thể muốn quen — mở rộng tầm xã hội của bạn."
+    }
+  },
+  "cta": {
+    "title": "Sẵn sàng nâng tầm mạng lưới của bạn chưa?",
+    "description": "PikTag sắp có mặt trên iOS và Android."
+  },
+  "footer": {
+    "rights": "Bảo lưu mọi quyền.",
+    "privacy": "Chính sách bảo mật",
+    "terms": "Điều khoản dịch vụ",
+    "contact": "Liên hệ"
+  },
+  "app": {
+    "search": "Tìm kiếm"
+  },
+  "privacy": {
+    "title": "Chính sách bảo mật",
+    "lastUpdated": "Cập nhật lần cuối: 2 tháng 4, 2026",
+    "intro": "Chào mừng bạn đến với PikTag. Chúng tôi rất coi trọng quyền riêng tư của bạn. Chính sách bảo mật này giải thích cách chúng tôi thu thập, sử dụng, lưu trữ và bảo vệ dữ liệu cá nhân của bạn khi bạn sử dụng ứng dụng di động PikTag và các dịch vụ liên quan. Khi sử dụng dịch vụ này, bạn đồng ý với các phương thức xử lý dữ liệu được mô tả trong chính sách này.",
+    "section1Title": "1. Thu thập dữ liệu",
+    "section1Intro": "Để cung cấp và cải thiện dịch vụ, chúng tôi có thể thu thập các loại dữ liệu sau:",
+    "section1Items": [
+      "Dữ liệu cá nhân: Thông tin bạn cung cấp khi đăng ký hoặc chỉnh sửa hồ sơ, bao gồm tên, địa chỉ email, ảnh hồ sơ, tiểu sử cá nhân, v.v.",
+      "Thẻ ngữ nghĩa: Sáu loại thẻ ngữ nghĩa bạn tạo hoặc sử dụng (Danh tính, Kỹ năng, Sở thích, Mạng xã hội, Thẻ Meta, Quan hệ), bao gồm tên thẻ, danh mục và tùy chọn sắp xếp.",
+      "Liên kết xã hội: Các liên kết tài khoản mạng xã hội bạn nhập (như Instagram, LinkedIn, Facebook, v.v.) và các mức riêng tư bạn đặt (Công khai, Bạn bè, Bạn thân, Chỉ mình tôi).",
+      "Dữ liệu danh bạ: Khi bạn chọn đồng bộ danh bạ, chúng tôi truy cập danh bạ điện thoại của bạn để đối chiếu với người dùng PikTag đã đăng ký. Chúng tôi không lưu trữ thông tin liên hệ của người dùng chưa đăng ký.",
+      "Dữ liệu vị trí: Khi bạn sử dụng tính năng 'Khám phá người dùng quanh đây', chúng tôi thu thập dữ liệu vị trí GPS của bạn. Dữ liệu này chỉ được thu thập khi bạn chủ động bật tính năng này, và bạn có thể tắt bất cứ lúc nào.",
+      "Dữ liệu sử dụng: Bao gồm tần suất sử dụng ứng dụng, bản ghi tương tác tính năng, truy vấn tìm kiếm và thông tin thiết bị (mẫu thiết bị, phiên bản hệ điều hành, cài đặt ngôn ngữ, v.v.)."
+    ],
+    "section2Title": "2. Cách chúng tôi sử dụng dữ liệu của bạn",
+    "section2Intro": "Dữ liệu chúng tôi thu thập được sử dụng cho các mục đích sau:",
+    "section2Items": [
+      "Để cung cấp, duy trì và cải thiện các tính năng cốt lõi và trải nghiệm dịch vụ của PikTag.",
+      "Để tạo và hiển thị trang cá nhân Link Bio và danh thiếp mã QR của bạn.",
+      "Để thực hiện tìm kiếm thẻ, khám phá người dùng và các thuật toán gợi ý thông minh.",
+      "Để gửi nhắc sinh nhật CRM, thông báo lời mời kết bạn và các thông báo đẩy liên quan khác.",
+      "Để tạo báo cáo thống kê xã hội (tổng số kết nối, thống kê sử dụng thẻ, v.v.).",
+      "Để phát hiện, ngăn chặn và xử lý các vấn đề bảo mật, gian lận hoặc sự cố kỹ thuật.",
+      "Để tuân thủ các luật và quy định hiện hành."
+    ],
+    "section3Title": "3. Lưu trữ & bảo mật dữ liệu",
+    "section3Intro": "Dữ liệu của bạn được lưu trữ trên hạ tầng đám mây do Supabase cung cấp, áp dụng các biện pháp bảo mật theo tiêu chuẩn ngành, bao gồm:",
+    "section3Items": [
+      "Mã hóa Transport Layer Security (TLS) cho toàn bộ quá trình truyền dữ liệu.",
+      "Mã hóa ở mức cơ sở dữ liệu khi lưu trữ.",
+      "Row Level Security (RLS) đảm bảo người dùng chỉ truy cập được dữ liệu của chính mình.",
+      "Kiểm toán bảo mật định kỳ và vá lỗ hổng."
+    ],
+    "section3Note": "Dù chúng tôi áp dụng các biện pháp bảo mật hợp lý, không phương thức truyền tải qua Internet hay lưu trữ điện tử nào có thể đảm bảo an toàn 100%. Chúng tôi sẽ tiếp tục nỗ lực bảo vệ dữ liệu cá nhân của bạn.",
+    "section4Title": "4. Dịch vụ bên thứ ba",
+    "section4Intro": "PikTag tích hợp các dịch vụ bên thứ ba sau, mỗi dịch vụ có chính sách bảo mật riêng:",
+    "section4Apple": "Đăng nhập bằng Apple: Dùng để đăng nhập và xác thực tài khoản trên thiết bị iOS. Apple có thể cung cấp tên và địa chỉ email của bạn (hoặc địa chỉ chuyển tiếp riêng tư của Apple). Để biết chi tiết, vui lòng tham khảo",
+    "section4AppleLink": "Chính sách bảo mật của Apple",
+    "section4Google": "Đăng nhập bằng Google: Dùng để đăng nhập và xác thực tài khoản trên thiết bị Android và web. Google có thể cung cấp tên, địa chỉ email và ảnh hồ sơ của bạn. Để biết chi tiết, vui lòng tham khảo",
+    "section4GoogleLink": "Chính sách bảo mật của Google",
+    "section4Supabase": "Supabase: Dùng cho dịch vụ cơ sở dữ liệu, xác thực và lưu trữ tệp. Để biết chi tiết, vui lòng tham khảo",
+    "section4SupabaseLink": "Chính sách bảo mật của Supabase",
+    "section5Title": "5. Cookie & theo dõi",
+    "section5Intro": "Là một ứng dụng di động, PikTag không trực tiếp sử dụng cookie trình duyệt. Tuy nhiên, chúng tôi có thể dùng các công nghệ sau để cải thiện dịch vụ:",
+    "section5Items": [
+      "Mã định danh thiết bị cho dịch vụ thông báo đẩy.",
+      "Công cụ phân tích để thu thập dữ liệu sử dụng ẩn danh nhằm cải thiện trải nghiệm sản phẩm.",
+      "Local Storage để lưu cache cài đặt và tùy chọn của ứng dụng."
+    ],
+    "section5Note": "Bạn có thể quản lý quyền thông báo và tùy chọn chia sẻ dữ liệu thông qua cài đặt thiết bị của mình.",
+    "section6Title": "6. Quyền của người dùng",
+    "section6Intro": "Theo các luật bảo vệ dữ liệu hiện hành, bạn có các quyền sau:",
+    "section6Items": [
+      "Quyền truy cập: Bạn có thể xem dữ liệu cá nhân, thẻ, liên kết xã hội và danh sách bạn bè của mình trong ứng dụng bất cứ lúc nào.",
+      "Quyền chỉnh sửa: Bạn có thể chỉnh sửa hoặc cập nhật hồ sơ, thẻ, liên kết xã hội và cài đặt riêng tư bất cứ lúc nào.",
+      "Quyền xóa: Bạn có thể xóa từng thẻ, liên kết xã hội, hoặc yêu cầu xóa toàn bộ tài khoản qua 'Cài đặt tài khoản'. Khi tài khoản bị xóa, toàn bộ dữ liệu cá nhân, thẻ, quan hệ bạn bè và dữ liệu liên quan sẽ bị xóa vĩnh viễn. Hành động này không thể hoàn tác.",
+      "Quyền chuyển dữ liệu: Bạn có thể yêu cầu xuất một bản sao dữ liệu cá nhân của mình.",
+      "Quyền rút lại đồng ý: Bạn có thể rút lại đồng ý đối với việc xử lý dữ liệu cụ thể bất cứ lúc nào (như truy cập danh bạ, dữ liệu vị trí, v.v.), dù điều này có thể ảnh hưởng đến việc sử dụng một số tính năng."
+    ],
+    "section6Note": "Để thực hiện các quyền trên, vui lòng liên hệ với chúng tôi qua thông tin liên hệ bên dưới.",
+    "section7Title": "7. Quyền riêng tư của trẻ em",
+    "section7Content": "PikTag dành cho người dùng từ 13 tuổi trở lên (hoặc độ tuổi tối thiểu theo quy định tại khu vực của bạn). Chúng tôi không cố ý thu thập dữ liệu cá nhân của trẻ em dưới 13 tuổi. Nếu phát hiện đã thu thập dữ liệu của trẻ dưới 13 tuổi, chúng tôi sẽ xóa dữ liệu đó ngay. Nếu bạn cho rằng chúng tôi có thể đang lưu giữ dữ liệu của trẻ vị thành niên, vui lòng liên hệ với chúng tôi ngay lập tức.",
+    "section8Title": "8. Cập nhật chính sách bảo mật",
+    "section8Content": "Chúng tôi có thể cập nhật Chính sách bảo mật này theo thời gian để phản ánh các thay đổi dịch vụ hoặc yêu cầu pháp lý. Khi có cập nhật, chúng tôi sẽ thông báo cho bạn về các thay đổi quan trọng qua thông báo trong ứng dụng hoặc email, và cập nhật ngày 'Cập nhật lần cuối' ở đầu trang này. Chúng tôi khuyến nghị bạn xem lại chính sách này định kỳ để nắm rõ cách chúng tôi bảo vệ thông tin của bạn.",
+    "section9Title": "9. Liên hệ",
+    "section9Intro": "Nếu bạn có bất kỳ câu hỏi, ý kiến hay yêu cầu nào về Chính sách bảo mật này, vui lòng liên hệ với chúng tôi qua:",
+    "contactAppName": "Tên ứng dụng: PikTag",
+    "contactEmail": "Email: ",
+    "contactWebsite": "Website: "
+  },
+  "terms": {
+    "title": "Điều khoản dịch vụ",
+    "lastUpdated": "Cập nhật lần cuối: 2 tháng 4, 2026",
+    "section1Title": "1. Mô tả dịch vụ",
+    "section1Content": "PikTag (sau đây gọi là 'Dịch vụ') là một ứng dụng CRM xã hội trên di động do đội ngũ PikTag phát triển và vận hành. Dịch vụ cung cấp các tính năng quản lý thẻ ngữ nghĩa, trao đổi danh thiếp mã QR, trang cá nhân Link Bio, quản lý liên kết xã hội, đồng bộ danh bạ, nhắc CRM thông minh và các tính năng khác nhằm giúp người dùng quản lý và duy trì các kết nối một cách hiệu quả.",
+    "section2Title": "2. Đăng ký & bảo mật tài khoản",
+    "section2Items": [
+      "Bạn phải từ 13 tuổi trở lên (hoặc độ tuổi tối thiểu theo quy định tại khu vực của bạn) mới được sử dụng Dịch vụ này.",
+      "Bạn có thể đăng ký tài khoản qua Đăng nhập bằng Apple hoặc Đăng nhập bằng Google.",
+      "Bạn có trách nhiệm giữ an toàn cho tài khoản của mình và không được chia sẻ với người khác.",
+      "Nếu phát hiện bất kỳ hành vi sử dụng tài khoản trái phép nào, vui lòng thông báo cho chúng tôi ngay lập tức."
+    ],
+    "section3Title": "3. Quy tắc sử dụng",
+    "section3Intro": "Khi sử dụng Dịch vụ này, bạn đồng ý không thực hiện các hành vi sau:",
+    "section3Items": [
+      "Mạo danh người khác hoặc cung cấp thông tin cá nhân sai sự thật.",
+      "Quấy rối, đe dọa, phỉ báng hoặc phân biệt đối xử với người dùng khác.",
+      "Phát tán thư rác, quảng cáo hoặc các hoạt động quảng bá thương mại trái phép.",
+      "Sử dụng Dịch vụ cho bất kỳ hoạt động bất hợp pháp hoặc trái phép nào.",
+      "Cố gắng xâm nhập, dịch ngược hoặc can thiệp vào hoạt động bình thường của Dịch vụ.",
+      "Thu thập tự động hàng loạt dữ liệu cá nhân của người dùng khác."
+    ],
+    "section4Title": "4. Sở hữu trí tuệ",
+    "section4Items": [
+      "Thiết kế, mã nguồn, đồ họa, logo và nội dung khác của ứng dụng PikTag được bảo vệ bởi luật sở hữu trí tuệ.",
+      "Tên 'PikTag' và các logo liên quan là nhãn hiệu của Dịch vụ và không được sử dụng khi chưa được cho phép.",
+      "Người dùng giữ quyền sở hữu đối với toàn bộ nội dung cá nhân họ tải lên nền tảng (như thẻ, tiểu sử, v.v.)."
+    ],
+    "section5Title": "5. Nội dung người dùng",
+    "section5Items": [
+      "Nội dung bạn tạo trên PikTag (bao gồm thẻ ngữ nghĩa, tiểu sử cá nhân, liên kết xã hội, v.v.) thuộc về bạn.",
+      "Bạn cấp cho PikTag quyền sử dụng, hiển thị và xử lý nội dung của bạn trong phạm vi cần thiết để cung cấp Dịch vụ.",
+      "Bạn có trách nhiệm đảm bảo nội dung bạn đăng tải không xâm phạm quyền của bên thứ ba.",
+      "PikTag có quyền gỡ bỏ nội dung vi phạm các Điều khoản này hoặc luật hiện hành."
+    ],
+    "section6Title": "6. Bảo vệ quyền riêng tư",
+    "section6Content": "Quyền riêng tư của bạn rất quan trọng với chúng tôi. Vui lòng tham khảo",
+    "section6Link": "Chính sách bảo mật",
+    "section6Content2": " của chúng tôi để biết cách chúng tôi thu thập, sử dụng và bảo vệ dữ liệu cá nhân của bạn.",
+    "section7Title": "7. Gián đoạn dịch vụ & miễn trừ trách nhiệm",
+    "section7Items": [
+      "PikTag có thể tạm ngừng Dịch vụ do bảo trì, cập nhật hoặc bất khả kháng.",
+      "Chúng tôi không bảo đảm Dịch vụ sẽ không bị gián đoạn hoặc không có lỗi.",
+      "Trong phạm vi tối đa pháp luật cho phép, PikTag không chịu trách nhiệm cho bất kỳ tổn thất nào phát sinh từ việc sử dụng hoặc không thể sử dụng Dịch vụ."
+    ],
+    "section8Title": "8. Sửa đổi điều khoản dịch vụ",
+    "section8Content": "Chúng tôi có quyền sửa đổi các Điều khoản dịch vụ này bất cứ lúc nào. Các điều khoản đã sửa đổi sẽ được công bố trên trang này, và việc bạn tiếp tục sử dụng Dịch vụ đồng nghĩa với việc chấp nhận các điều khoản đã sửa đổi. Đối với các thay đổi quan trọng, chúng tôi sẽ thông báo cho bạn qua thông báo trong ứng dụng hoặc email.",
+    "section9Title": "9. Chấm dứt dịch vụ",
+    "section9Items": [
+      "Bạn có thể xóa tài khoản bất cứ lúc nào thông qua cài đặt ứng dụng.",
+      "PikTag có quyền tạm ngưng hoặc chấm dứt tài khoản của bạn nếu vi phạm các Điều khoản này.",
+      "Sau khi tài khoản bị chấm dứt, dữ liệu cá nhân của bạn sẽ được xử lý theo Chính sách bảo mật."
+    ],
+    "section10Title": "10. Luật áp dụng",
+    "section10Content": "Các Điều khoản dịch vụ này được điều chỉnh theo luật của Trung Hoa Dân Quốc (Đài Loan). Đối với bất kỳ tranh chấp nào phát sinh từ các Điều khoản này, hai bên đồng ý đưa ra xét xử tại Tòa án Quận Đài Bắc, Đài Loan với tư cách tòa sơ thẩm.",
+    "section11Title": "11. Liên hệ",
+    "section11Intro": "Nếu bạn có bất kỳ câu hỏi nào về các Điều khoản dịch vụ này, vui lòng liên hệ với chúng tôi qua:",
+    "contactEmail": "Email: ",
+    "contactWebsite": "Website: "
+  },
+  "contact": {
+    "title": "Liên hệ",
+    "description": "Cảm ơn bạn đã quan tâm đến PikTag! Nếu bạn có bất kỳ câu hỏi, góp ý hay đề xuất hợp tác nào, đừng ngại liên hệ với chúng tôi qua các kênh sau. Chúng tôi sẽ phản hồi bạn sớm nhất có thể.",
+    "emailTitle": "Email",
+    "emailAddress": "support@pikt.ag",
+    "emailDesc": "Chúng tôi sẽ phản hồi yêu cầu của bạn trong vòng 1-2 ngày làm việc.",
+    "faqTitle": "Câu hỏi thường gặp",
+    "faq1Question": "PikTag là gì?",
+    "faq1Answer": "PikTag là một ứng dụng CRM xã hội trên di động giúp bạn quản lý kết nối thông qua thẻ ngữ nghĩa, mã QR và liên kết xã hội. Dù để networking công việc hay giao tiếp hằng ngày, bạn đều dễ dàng nhớ từng người bạn quen.",
+    "faq2Question": "Có những loại thẻ ngữ nghĩa nào?",
+    "faq2Answer": "PikTag hỗ trợ sáu nhóm thẻ ngữ nghĩa: Danh tính, Kỹ năng, Sở thích, Mạng xã hội, Thẻ Meta và Quan hệ. Mỗi nhóm giúp bạn nhận diện và nhớ mọi người từ nhiều góc độ khác nhau.",
+    "faq3Question": "Làm sao để trao đổi danh thiếp bằng mã QR?",
+    "faq3Answer": "Mỗi người dùng có một mã QR riêng. Người khác chỉ cần quét để xem trang cá nhân Link Bio của bạn và gửi lời mời kết bạn. Tương thích với mọi trình quét mã QR chuẩn.",
+    "faq4Question": "PikTag có miễn phí không?",
+    "faq4Answer": "PikTag có gói cơ bản miễn phí gồm các tính năng quản lý liên hệ và gắn thẻ cốt lõi. Các tính năng nâng cao như nhập hàng loạt và phân tích dữ liệu nằm trong gói trả phí. Vui lòng xem trang giá để biết chi tiết.",
+    "socialTitle": "Theo dõi chúng tôi",
+    "socialFacebook": "Facebook",
+    "socialInstagram": "Instagram",
+    "socialLine": "Tài khoản chính thức LINE"
+  },
+  "langSwitcher": {
+    "label": "Ngôn ngữ"
+  }
+}

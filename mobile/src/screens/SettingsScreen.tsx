@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   View,
   Text,
@@ -8,18 +8,19 @@ import {
   StatusBar,
   Alert,
   Switch,
-  ActivityIndicator,
   Modal,
   FlatList,
   Platform,
 } from 'react-native';
+import PageLoader from '../components/loaders/PageLoader';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ArrowLeft, ChevronRight, Check, X } from 'lucide-react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTranslation } from 'react-i18next';
 import { changeLanguageSafe } from '../i18n';
-import { COLORS } from '../constants/theme';
+import { COLORS, type ColorPalette } from '../constants/theme';
 import { supabase, supabaseUrl, supabaseAnonKey } from '../lib/supabase';
+import { setAnalyticsOptIn } from '../lib/analytics';
 import { useAuth } from '../hooks/useAuth';
 import { useTheme } from '../context/ThemeContext';
 import type { PiktagProfile } from '../types';
@@ -40,18 +41,35 @@ type SettingsGroup = {
   items: SettingsItem[];
 };
 
+// Mirrors SUPPORTED_LANGS in src/i18n/index.ts. If you add a new
+// locale there you also need to add the picker label here so users
+// can actually choose it from Settings → Language.
+//
+// Ordered by total speakers (L1+L2, Ethnologue 2023) descending so
+// the most users find their language at or near the top — same
+// ordering as landing/src/i18n/index.ts. Locale auto-detection still
+// pre-selects on first launch; this ordering only matters when the
+// user opens the picker manually.
 const LANGUAGE_OPTIONS: { key: string; label: string }[] = [
-  { key: 'zh-TW', label: '繁體中文' },
-  { key: 'en', label: 'English' },
-  { key: 'zh-CN', label: '简体中文' },
-  { key: 'ja', label: '日本語' },
-  { key: 'es', label: 'Español' },
-  { key: 'fr', label: 'Français' },
-  { key: 'ar', label: 'العربية' },
-  { key: 'hi', label: 'हिन्दी' },
-  { key: 'bn', label: 'বাংলা' },
-  { key: 'pt', label: 'Português' },
-  { key: 'ru', label: 'Русский' },
+  { key: 'en', label: 'English' },                   // ~1.5B
+  { key: 'zh-CN', label: '简体中文' },                // ~1.1B
+  { key: 'hi', label: 'हिन्दी' },                     // ~602M
+  { key: 'es', label: 'Español' },                   // ~548M
+  { key: 'fr', label: 'Français' },                  // ~274M
+  { key: 'ar', label: 'العربية' },                   // ~274M
+  { key: 'bn', label: 'বাংলা' },                     // ~272M
+  { key: 'ru', label: 'Русский' },                   // ~258M
+  { key: 'pt', label: 'Português' },                 // ~257M
+  { key: 'ur', label: 'اردو' },                       // ~232M
+  { key: 'id', label: 'Bahasa Indonesia' },          // ~199M
+  { key: 'de', label: 'Deutsch' },                   // ~135M
+  { key: 'ja', label: '日本語' },                     // ~125M
+  { key: 'tr', label: 'Türkçe' },                    // ~88M
+  { key: 'vi', label: 'Tiếng Việt' },                // ~86M
+  { key: 'ko', label: '한국어' },                     // ~81M
+  { key: 'th', label: 'ไทย' },                       // ~70M
+  { key: 'it', label: 'Italiano' },                  // ~68M
+  { key: 'zh-TW', label: '繁體中文' },                // ~30M
 ];
 
 const APP_VERSION = '1.0.0';
@@ -64,11 +82,22 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
   const [profile, setProfile] = useState<PiktagProfile | null>(null);
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [shareLocation, setShareLocation] = useState(true);
-  const { isDark } = useTheme();
-  const [darkModeEnabled, setDarkModeEnabled] = useState(isDark);
+  // P3: Vibe Shift notifications opt-in. Default ON (the notify_vibe_shift
+  // trigger reads piktag_profiles.vibe_shift_notifications_enabled — when
+  // the column is absent on a legacy row, the trigger's COALESCE defaults
+  // to true; we mirror the same default here in the UI before fetch).
+  const [vibeShiftEnabled, setVibeShiftEnabled] = useState(true);
+  // `isDark` is the live theme state; `setThemeMode` persists the
+  // choice (ThemeContext writes it to AsyncStorage and re-applies on
+  // launch). The dark-mode Switch is driven directly off `isDark` —
+  // no separate local state, no separate storage key, so it can
+  // never drift out of sync with the actual theme.
+  const { isDark, colors, setMode: setThemeMode } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const [currentLanguage, setCurrentLanguage] = useState('zh-TW');
   const [loadingProfile, setLoadingProfile] = useState(true);
   const [languageModalVisible, setLanguageModalVisible] = useState(false);
+  const [analyticsOptIn, setAnalyticsOptInState] = useState(true);
 
   // Load profile and stored preferences on mount
   useEffect(() => {
@@ -84,6 +113,9 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
           if (!error && data) {
             setProfile(data);
             setShareLocation(data.share_location !== false);
+            // Only `false` counts as opt-out; missing column (migration
+            // not yet applied) and `null` both fall back to enabled.
+            setVibeShiftEnabled((data as any).vibe_shift_notifications_enabled !== false);
             const profileLang = data.language || 'zh-TW';
             setCurrentLanguage(profileLang);
             if (i18n.language !== profileLang) {
@@ -93,17 +125,19 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
           }
         }
 
-        const [storedNotifications, storedDarkMode] = await Promise.all([
+        const [storedNotifications, storedAnalytics] = await Promise.all([
           AsyncStorage.getItem('piktag_notifications_enabled'),
-          AsyncStorage.getItem('piktag_dark_mode'),
+          AsyncStorage.getItem('analytics_opt_in'),
         ]);
 
         if (storedNotifications !== null) {
           setNotificationsEnabled(storedNotifications === 'true');
         }
-        if (storedDarkMode !== null) {
-          setDarkModeEnabled(storedDarkMode === 'true');
-        }
+        // Dark mode is NOT read here — ThemeContext owns its own
+        // persistence (piktag_theme_mode) and re-applies on launch.
+        // The Switch reads `isDark` straight from ThemeContext.
+        // Default = opted in. Only an explicit 'false' counts as opt-out.
+        setAnalyticsOptInState(storedAnalytics !== 'false');
       } catch (err) {
         console.warn('Failed to load settings:', err);
       } finally {
@@ -120,15 +154,46 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
     await AsyncStorage.setItem('piktag_notifications_enabled', String(newValue));
   };
 
+  // P3 toggle. Optimistic flip; on DB error revert. 42703 (column
+  // doesn't exist — migration not yet applied) is silently
+  // swallowed so the toggle still feels responsive in the UI.
+  const handleVibeShiftToggle = async () => {
+    if (!user) return;
+    const newValue = !vibeShiftEnabled;
+    setVibeShiftEnabled(newValue);
+    const { error } = await supabase
+      .from('piktag_profiles')
+      .update({ vibe_shift_notifications_enabled: newValue })
+      .eq('id', user.id);
+    if (error) {
+      const isMissingColumn =
+        (error as any).code === '42703' ||
+        /column .*vibe_shift_notifications_enabled/i.test(error.message);
+      if (!isMissingColumn) {
+        console.warn('[Settings] vibe_shift toggle failed:', error);
+        // Revert optimistic state on real errors
+        setVibeShiftEnabled(!newValue);
+      }
+    }
+  };
+
   const handleShareLocationToggle = async () => {
     if (!user) return;
     const newValue = !shareLocation;
     setShareLocation(newValue);
-    // Update DB: if turning off, also clear lat/lng
-    if (newValue) {
-      await supabase.from('piktag_profiles').update({ share_location: true }).eq('id', user.id);
-    } else {
-      await supabase.from('piktag_profiles').update({ share_location: false, latitude: null, longitude: null, location_updated_at: null }).eq('id', user.id);
+    // Update DB: if turning off, also clear lat/lng. MUST verify the
+    // write — a silent failure here is a real location-privacy leak:
+    // the user sees "off" but the server keeps broadcasting their
+    // coordinates. On error, roll the toggle back and tell them.
+    const { error } = newValue
+      ? await supabase.from('piktag_profiles').update({ share_location: true }).eq('id', user.id)
+      : await supabase.from('piktag_profiles').update({ share_location: false, latitude: null, longitude: null, location_updated_at: null }).eq('id', user.id);
+    if (error) {
+      setShareLocation(!newValue); // revert optimistic flip
+      Alert.alert(
+        t('common.error', { defaultValue: '錯誤' }),
+        t('settings.alertPrivacyError', { defaultValue: '更新失敗，請稍後再試。' }),
+      );
     }
   };
 
@@ -158,12 +223,11 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
     }
   };
 
-  const { setMode: setThemeMode } = useTheme();
-
   const handleDarkModeToggle = () => {
-    const newValue = !darkModeEnabled;
-    setDarkModeEnabled(newValue);
-    setThemeMode(newValue ? 'dark' : 'light');
+    // Flip relative to the live theme state. setThemeMode persists +
+    // re-renders every theme-aware screen; the Switch's `value` is
+    // bound to `isDark` so it follows automatically.
+    setThemeMode(isDark ? 'light' : 'dark');
   };
 
   const handleAbout = () => {
@@ -181,7 +245,7 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
 
   const handleLogout = async () => {
     if (Platform.OS === 'web') {
-      const ok = window.confirm(t('settings.alertLogoutMessage') || '確定要登出嗎？');
+      const ok = window.confirm(t('settings.alertLogoutMessage', { defaultValue: '確定要登出嗎？' }));
       if (ok) await doLogout();
     } else {
       Alert.alert(t('settings.alertLogoutTitle'), t('settings.alertLogoutMessage'), [
@@ -218,17 +282,21 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
               // delete auth.users + cascade all piktag_* rows. If we let
               // this fail silently, Apple sign-in would resurrect the
               // account with all the old data attached.
+              // Identity is derived server-side from the JWT (auth.getUser).
+              // We deliberately do NOT send user_id — the function ignores
+              // it on the self-delete branch, and shipping it would only
+              // invite a client tampering with someone else's id.
               const res = await fetch(`${supabaseUrl}/functions/v1/delete-user`, {
                 method: 'POST',
                 headers: {
                   'Content-Type': 'application/json',
                   'Authorization': `Bearer ${token}`,
                 },
-                body: JSON.stringify({ user_id: user.id }),
+                body: JSON.stringify({}),
               });
               if (!res.ok) {
                 const detail = await res.text().catch(() => '');
-                Alert.alert(t('common.error'), (t('settings.alertDeleteError') || '刪除失敗') + ` (${res.status})`);
+                Alert.alert(t('common.error'), (t('settings.alertDeleteError', { defaultValue: '刪除失敗' })) + ` (${res.status})`);
                 console.warn('[DeleteAccount] edge function failed:', res.status, detail);
                 return;
               }
@@ -243,7 +311,7 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
                 t('settings.alertAccountDeletedTitle'),
                 t('settings.alertAccountDeletedMessage'),
                 [{
-                  text: t('common.confirm') || 'OK',
+                  text: t('common.confirm', { defaultValue: 'OK' }),
                   onPress: async () => {
                     await supabase.auth.signOut();
                     // onAuthStateChange → AppNavigator → AuthNavigator
@@ -268,22 +336,53 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
     {
       title: t('settings.groupAccount'),
       items: [
-        { label: t('settings.changePassword') || '修改密碼', onPress: () => {
+        { label: t('settings.changePassword', { defaultValue: '修改密碼' }), onPress: () => {
+          // Detect whether this user has an email-flavoured identity at
+          // all. Apple / Google Sign-In accounts that have NEVER set a
+          // Supabase password show up here without an 'email' identity
+          // (only 'apple' / 'google'). For them, this flow won't
+          // "change" anything — it'll ADD a first-time password and
+          // turn the account into a dual-mode login. The copy adjusts
+          // to set that expectation up front.
+          const identities = (user as any)?.identities;
+          const hasEmailIdentity = Array.isArray(identities)
+            ? identities.some((i: any) => i?.provider === 'email')
+            : true; // unknown shape → fall back to the original copy
+
+          const title = hasEmailIdentity
+            ? (t('settings.changePasswordTitle', { defaultValue: '修改密碼' }))
+            : (t('settings.addPasswordTitle', { defaultValue: '新增密碼' }));
+          const message = hasEmailIdentity
+            ? (t('settings.changePasswordMessage', { defaultValue: '我們會發送密碼重設信到你的 Email' }))
+            : (t('settings.addPasswordMessage', { defaultValue: '你目前用 Apple/Google 登入，沒有 PikTag 密碼。送出後會寄一封信到你的 Email，幫你新增一組密碼，之後也能用 Email + 密碼登入（Apple/Google 登入仍然有效）' }));
+          const cta = hasEmailIdentity
+            ? (t('settings.sendResetEmail', { defaultValue: '發送' }))
+            : (t('settings.sendAddPasswordEmail', { defaultValue: '發送設定信' }));
+
           Alert.alert(
-            t('settings.changePasswordTitle') || '修改密碼',
-            t('settings.changePasswordMessage') || '我們會發送密碼重設信到你的 Email',
+            title,
+            message,
             [
               { text: t('common.cancel'), style: 'cancel' },
-              { text: t('settings.sendResetEmail') || '發送', onPress: async () => {
-                const { error } = await supabase.auth.resetPasswordForEmail(user?.email || '');
-                if (!error) Alert.alert(t('settings.resetEmailSent') || '已發送', t('settings.resetEmailSentMessage') || '請查看你的信箱');
+              { text: cta, onPress: async () => {
+                const { error } = await supabase.auth.resetPasswordForEmail(user?.email || '', {
+                  redirectTo: 'https://pikt.ag/reset-password',
+                });
+                if (!error) {
+                  Alert.alert(t('settings.resetEmailSent', { defaultValue: '已發送' }), t('settings.resetEmailSentMessage', { defaultValue: '請查看你的信箱' }));
+                } else {
+                  // Was silent on error — user waited forever for an
+                  // email that never sent (esp. OAuth-only users).
+                  Alert.alert(
+                    t('common.error', { defaultValue: '錯誤' }),
+                    t('auth.login.errGeneric', { defaultValue: '寄送失敗，請稍後再試。' }),
+                  );
+                }
               }},
             ]
           );
         }},
         { label: t('settings.contactSync'), onPress: () => navigation.navigate('ContactSync') },
-        { label: t('settings.inviteFriends'), onPress: () => navigation.navigate('Invite'), textColor: COLORS.piktag600 },
-        { label: t('settings.redeemInvite') || '兌換邀請碼', onPress: () => navigation.navigate('RedeemInvite') },
         { label: t('settings.socialStats'), onPress: () => navigation.navigate('SocialStats') },
         {
           label: t('settings.notificationSettings'),
@@ -292,20 +391,38 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
             <Switch
               value={notificationsEnabled}
               onValueChange={handleNotificationsToggle}
-              trackColor={{ false: COLORS.gray200, true: COLORS.piktag300 }}
-              thumbColor={notificationsEnabled ? COLORS.piktag500 : COLORS.gray400}
+              trackColor={{ false: colors.gray200, true: colors.piktag300 }}
+              thumbColor={notificationsEnabled ? colors.piktag500 : colors.gray400}
+            />
+          ),
+        },
+        // P3: Vibe Shift opt-out toggle. Sits right after the master
+        // notification toggle so the per-type granularity reads as
+        // a nested refinement of the same setting. Default ON — see
+        // the migration comment for the privacy reasoning.
+        {
+          label: t('settings.vibeShiftNotifications', {
+            defaultValue: '朋友貼新標籤時通知我',
+          }),
+          onPress: handleVibeShiftToggle,
+          rightElement: (
+            <Switch
+              value={vibeShiftEnabled}
+              onValueChange={handleVibeShiftToggle}
+              trackColor={{ false: colors.gray200, true: colors.piktag300 }}
+              thumbColor={vibeShiftEnabled ? colors.piktag500 : colors.gray400}
             />
           ),
         },
         {
-          label: t('settings.shareLocation') || '分享所在地點',
+          label: t('settings.shareLocation', { defaultValue: '分享所在地點' }),
           onPress: handleShareLocationToggle,
           rightElement: (
             <Switch
               value={shareLocation}
               onValueChange={handleShareLocationToggle}
-              trackColor={{ false: COLORS.gray200, true: COLORS.piktag300 }}
-              thumbColor={shareLocation ? COLORS.piktag500 : COLORS.gray400}
+              trackColor={{ false: colors.gray200, true: colors.piktag300 }}
+              thumbColor={shareLocation ? colors.piktag500 : colors.gray400}
             />
           ),
         },
@@ -320,13 +437,27 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
           rightElement: (
             <View style={styles.languageRight}>
               <Text style={styles.languageValue}>{languageLabel}</Text>
-              <ChevronRight size={20} color={COLORS.gray400} />
+              <ChevronRight size={20} color={colors.gray400} />
             </View>
           ),
         },
+        // Dark mode toggle. The Switch is driven directly off `isDark`
+        // from ThemeContext (no local mirror state) so it can't drift.
+        {
+          label: t('settings.darkMode', { defaultValue: '深色模式' }),
+          onPress: handleDarkModeToggle,
+          rightElement: (
+            <Switch
+              value={isDark}
+              onValueChange={handleDarkModeToggle}
+              trackColor={{ false: colors.gray200, true: colors.piktag300 }}
+              thumbColor={isDark ? colors.piktag500 : colors.gray400}
+            />
+          ),
+        },
         { label: t('settings.aboutPiktag'), onPress: handleAbout },
-        { label: t('settings.privacyPolicy') || '隱私權政策', onPress: () => navigation.navigate('PrivacyPolicy') },
-        { label: t('settings.termsOfService') || '服務條款', onPress: () => navigation.navigate('TermsOfService') },
+        { label: t('settings.privacyPolicy', { defaultValue: '隱私權政策' }), onPress: () => navigation.navigate('PrivacyPolicy') },
+        { label: t('settings.termsOfService', { defaultValue: '服務條款' }), onPress: () => navigation.navigate('TermsOfService') },
       ],
     },
   ];
@@ -334,28 +465,28 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
   if (loadingProfile) {
     return (
       <View style={styles.container}>
-        <StatusBar barStyle="dark-content" backgroundColor={COLORS.white} />
+        <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor={colors.white} />
         <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
           <TouchableOpacity
             style={styles.headerBackBtn}
             onPress={() => navigation.canGoBack() ? navigation.goBack() : navigation.navigate("Connections")}
             activeOpacity={0.6}
+            accessibilityRole="button"
+            accessibilityLabel={t('common.back')}
           >
-            <ArrowLeft size={24} color={COLORS.gray900} />
+            <ArrowLeft size={24} color={colors.gray900} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>{t('settings.headerTitle')}</Text>
           <View style={styles.headerSpacer} />
         </View>
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={COLORS.piktag500} />
-        </View>
+        <PageLoader />
       </View>
     );
   }
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor={COLORS.white} />
+      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor={colors.white} />
 
       {/* Header */}
       <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
@@ -363,8 +494,10 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
           style={styles.headerBackBtn}
           onPress={() => navigation.canGoBack() ? navigation.goBack() : navigation.navigate("Connections")}
           activeOpacity={0.6}
+          accessibilityRole="button"
+          accessibilityLabel={t('common.back')}
         >
-          <ArrowLeft size={24} color={COLORS.gray900} />
+          <ArrowLeft size={24} color={colors.gray900} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>{t('settings.headerTitle')}</Text>
         <View style={styles.headerSpacer} />
@@ -398,13 +531,18 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
                     {item.label}
                   </Text>
                   {item.rightElement || (
-                    <ChevronRight size={20} color={COLORS.gray400} />
+                    <ChevronRight size={20} color={colors.gray400} />
                   )}
                 </TouchableOpacity>
               ))}
             </View>
           </View>
         ))}
+
+        {/* UGC report SLA commitment now lives inside Terms of Service
+            (termsOfService.section11). Apple Guideline 1.2 only requires
+            the commitment to be present in-app, not on a specific screen,
+            so consolidating it into Terms keeps the Settings page clean. */}
 
         {/* Logout Button */}
         <TouchableOpacity
@@ -420,16 +558,29 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
           style={styles.deactivateButton}
           onPress={() => {
             Alert.alert(
-              t('settings.deactivateTitle') || '停用帳號',
-              t('settings.deactivateMessage') || '停用後你的個人頁將隱藏，其他人找不到你。你可以隨時重新登入恢復。',
+              t('settings.deactivateTitle', { defaultValue: '停用帳號' }),
+              t('settings.deactivateMessage', { defaultValue: '停用後你的個人頁將隱藏，其他人找不到你。你可以隨時重新登入恢復。' }),
               [
                 { text: t('common.cancel'), style: 'cancel' },
                 {
-                  text: t('settings.deactivateConfirm') || '停用',
+                  text: t('settings.deactivateConfirm', { defaultValue: '停用' }),
                   style: 'destructive',
                   onPress: async () => {
-                    if (!userId) return;
-                    await supabase.from('piktag_profiles').update({ is_public: false }).eq('id', userId);
+                    if (!user?.id) return;
+                    // Verify the hide actually persisted BEFORE signing
+                    // out — otherwise the user is logged out believing
+                    // they're deactivated while the profile stays public.
+                    const { error } = await supabase
+                      .from('piktag_profiles')
+                      .update({ is_public: false })
+                      .eq('id', user.id);
+                    if (error) {
+                      Alert.alert(
+                        t('common.error', { defaultValue: '錯誤' }),
+                        t('settings.alertPrivacyError', { defaultValue: '更新失敗，請稍後再試。' }),
+                      );
+                      return;
+                    }
                     await supabase.auth.signOut();
                   },
                 },
@@ -438,7 +589,7 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
           }}
           activeOpacity={0.7}
         >
-          <Text style={styles.deactivateText}>{t('settings.deactivateButton') || '停用帳號'}</Text>
+          <Text style={styles.deactivateText}>{t('settings.deactivateButton', { defaultValue: '停用帳號' })}</Text>
         </TouchableOpacity>
 
         {/* Delete Account Button */}
@@ -467,7 +618,7 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
                 activeOpacity={0.6}
                 style={styles.langModalCloseBtn}
               >
-                <X size={24} color={COLORS.gray900} />
+                <X size={24} color={colors.gray900} />
               </TouchableOpacity>
             </View>
             <FlatList
@@ -486,7 +637,7 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
                     {item.label}
                   </Text>
                   {currentLanguage === item.key && (
-                    <Check size={20} color={COLORS.piktag500} />
+                    <Check size={20} color={colors.piktag500} />
                   )}
                 </TouchableOpacity>
               )}
@@ -499,28 +650,29 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
   );
 }
 
-const styles = StyleSheet.create({
+function makeStyles(c: ColorPalette) {
+  return StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.white,
+    backgroundColor: c.white,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 20,
     paddingBottom: 16,
-    backgroundColor: COLORS.white,
+    backgroundColor: c.white,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.gray100,
+    borderBottomColor: c.gray100,
   },
   headerBackBtn: {
-    padding: 4,
+    padding: 12,
   },
   headerTitle: {
     flex: 1,
     fontSize: 18,
     fontWeight: '700',
-    color: COLORS.gray900,
+    color: c.gray900,
     textAlign: 'center',
   },
   headerSpacer: {
@@ -538,14 +690,14 @@ const styles = StyleSheet.create({
   groupTitle: {
     fontSize: 14,
     fontWeight: '600',
-    color: COLORS.gray500,
+    color: c.gray500,
     paddingHorizontal: 20,
     marginBottom: 8,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
   groupItems: {
-    backgroundColor: COLORS.white,
+    backgroundColor: c.white,
   },
   settingsItem: {
     flexDirection: 'row',
@@ -556,11 +708,11 @@ const styles = StyleSheet.create({
   },
   settingsItemBorder: {
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.gray100,
+    borderBottomColor: c.gray100,
   },
   settingsItemText: {
     fontSize: 16,
-    color: COLORS.gray900,
+    color: c.gray900,
     fontWeight: '500',
   },
   logoutButton: {
@@ -571,7 +723,7 @@ const styles = StyleSheet.create({
   logoutText: {
     fontSize: 16,
     fontWeight: '600',
-    color: COLORS.red500,
+    color: c.red500,
   },
   deactivateButton: {
     marginHorizontal: 20,
@@ -580,12 +732,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderRadius: 12,
     borderWidth: 1.5,
-    borderColor: COLORS.gray200,
+    borderColor: c.gray200,
   },
   deactivateText: {
     fontSize: 15,
     fontWeight: '600',
-    color: COLORS.gray500,
+    color: c.gray500,
   },
   deleteAccountButton: {
     marginTop: 12,
@@ -595,7 +747,7 @@ const styles = StyleSheet.create({
   deleteAccountText: {
     fontSize: 14,
     fontWeight: '500',
-    color: COLORS.red500,
+    color: c.red500,
   },
   loadingContainer: {
     flex: 1,
@@ -609,7 +761,14 @@ const styles = StyleSheet.create({
   },
   languageValue: {
     fontSize: 14,
-    color: COLORS.gray500,
+    color: c.gray500,
+  },
+  helperText: {
+    fontSize: 12,
+    color: c.gray500,
+    textAlign: 'center',
+    paddingHorizontal: 24,
+    marginTop: 16,
   },
 
   // Language Modal
@@ -619,7 +778,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   langModalContainer: {
-    backgroundColor: COLORS.white,
+    backgroundColor: c.white,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     paddingTop: 20,
@@ -635,7 +794,7 @@ const styles = StyleSheet.create({
   langModalTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: COLORS.gray900,
+    color: c.gray900,
   },
   langModalCloseBtn: {
     padding: 4,
@@ -649,15 +808,16 @@ const styles = StyleSheet.create({
   },
   langOptionText: {
     fontSize: 16,
-    color: COLORS.gray700,
+    color: c.gray700,
     fontWeight: '500',
   },
   langOptionTextActive: {
-    color: COLORS.piktag600,
+    color: c.piktag600,
     fontWeight: '700',
   },
   langOptionSeparator: {
     height: 1,
-    backgroundColor: COLORS.gray100,
+    backgroundColor: c.gray100,
   },
-});
+  });
+}

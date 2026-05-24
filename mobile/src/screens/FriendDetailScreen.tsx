@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useReducer, useMemo, useEffect, useRef } from 'react';
+import React, { useState, useCallback, useReducer, useEffect, useRef, useMemo } from 'react';
 import {
   View,
   Text,
@@ -7,13 +7,13 @@ import {
   StyleSheet,
   StatusBar,
   Linking,
-  ActivityIndicator,
   Alert,
   Modal,
   Platform,
   KeyboardAvoidingView,
 } from 'react-native';
 import { shareProfile } from '../lib/shareProfile';
+import { followUser } from '../lib/followUser';
 import { Image } from 'expo-image';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
@@ -45,21 +45,33 @@ import {
   X,
   AlertTriangle,
   MessageCircle,
-  Hash,
+  UserPlus,
 } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
-import { COLORS } from '../constants/theme';
+import { COLORS, type ColorPalette } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
 import { LinearGradient } from 'expo-linear-gradient';
 import PlatformIcon from '../components/PlatformIcon';
 import InitialsAvatar from '../components/InitialsAvatar';
+import RingedAvatar from '../components/RingedAvatar';
 import OverlappingAvatars from '../components/OverlappingAvatars';
 import HiddenTagEditor from '../components/HiddenTagEditor';
+import ErrorState from '../components/ErrorState';
+import PageLoader from '../components/loaders/PageLoader';
+import BrandSpinner from '../components/loaders/BrandSpinner';
+import { useNetInfoReconnect } from '../hooks/useNetInfoReconnect';
 import { supabase } from '../lib/supabase';
+import { toBirthdayDate } from '../lib/birthday';
 import { useAuth } from '../hooks/useAuth';
+import { useAskFeed } from '../hooks/useAskFeed';
 import type { Connection, PiktagProfile, Biolink } from '../types';
 import { getViewerRelation, filterBiolinksByVisibility } from '../lib/biolinkVisibility';
-import { calculateStrength, getStrengthLabel } from '../lib/connectionStrength';
+
+// How many scan-event tags to show before the "show all" toggle kicks in.
+// Picked so a typical 2-3 event meeting still shows everything inline,
+// but a power-user who's met-via-QR a dozen times doesn't push the rest
+// of the profile off-screen.
+const EVENT_TAGS_COLLAPSED_COUNT = 5;
 
 type ReminderField = 'birthday';
 const REMINDER_LABEL_KEYS: Record<ReminderField, string> = {
@@ -73,8 +85,8 @@ type FriendDetailScreenProps = {
   route: any;
 };
 
-function getBiolinkIcon(type: BiolinkType) {
-  const iconProps = { size: 20, color: COLORS.gray600 };
+function getBiolinkIcon(type: BiolinkType, colors: ColorPalette) {
+  const iconProps = { size: 20, color: colors.gray600 };
   switch (type) {
     case 'instagram':
       return <Instagram {...iconProps} />;
@@ -148,9 +160,29 @@ function friendDataReducer(state: FriendData, action: FriendDataAction): FriendD
 export default function FriendDetailScreen({ navigation, route }: FriendDetailScreenProps) {
   const { t } = useTranslation();
   const { colors, isDark } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
-  const { connectionId, friendId } = route.params || {};
+  // Friend's avatar gradient ring is the visual signal for "this person
+  // has an active Ask right now". useAskFeed already pulls asks from
+  // 1st/2nd-degree connections (which a friend is by definition), so we
+  // can derive this for free without a per-screen extra fetch. Subtle
+  // ring otherwise — same conditional rule as own ProfileScreen, kept
+  // consistent so the same brand-purple gradient means the same thing
+  // wherever it appears.
+  const { asks: askFeedAsks } = useAskFeed();
+  const { connectionId: routeConnectionId, friendId } = route.params || {};
+  // connectionId is state-backed because handleToggleFollow may newly
+  // create a connection (via lib/followUser.ts) and we need to thread
+  // the fresh id into pickTag / hidden-tag flows that key off it. The
+  // route param is just the initial seed.
+  const [connectionId, setConnectionId] = useState<string | undefined>(routeConnectionId);
+  useEffect(() => {
+    if (routeConnectionId && routeConnectionId !== connectionId) {
+      setConnectionId(routeConnectionId);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [routeConnectionId]);
 
   // Analytics: track friend detail page view
   useEffect(() => {
@@ -158,6 +190,9 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
   }, []);
 
   const [loading, setLoading] = useState(true);
+  // True when the initial fetch threw — drives the <ErrorState> render
+  // path. Cleared on every fresh attempt; auto-retried on reconnect.
+  const [loadError, setLoadError] = useState(false);
   const [friendData, dispatchFriendData] = useReducer(friendDataReducer, initialFriendData);
   const { connection, profile, tags, biolinks, mutualFriends, mutualTags, followerCount, scanEventTags } = friendData;
 
@@ -187,6 +222,18 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
   const [mutualTagModalVisible, setMutualTagModalVisible] = useState(false);
   const [mutualFriendProfiles, setMutualFriendProfiles] = useState<any[]>([]);
 
+  // Event-tag collapse: scan-driven event tags have no upper bound (every
+  // shared QR scan adds 1-3 chips), so we cap the collapsed view at 5 and
+  // let the user expand inline. User-tags themselves stay fully visible —
+  // they cap at MAX_TAGS=10 elsewhere, well within comfortable density.
+  const [showAllEventTags, setShowAllEventTags] = useState(false);
+
+  // "Recommended members" — same data shape and render as on UserDetailScreen.
+  // Toggled by the UserPlus icon button next to the 標籤 button.
+  const [similarUsers, setSimilarUsers] = useState<PiktagProfile[]>([]);
+  const [similarMutualFriends, setSimilarMutualFriends] = useState<Map<string, any[]>>(new Map());
+  const [showSimilar, setShowSimilar] = useState(false);
+
   // Hidden tags state (private tags only I can see).
   // Add/remove logic lives in <HiddenTagEditor>; this component only owns the
   // list and refetches via fetchHiddenTags after any change.
@@ -212,8 +259,21 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
 
     try {
       setLoading(true);
+      setLoadError(false);
 
-      // Phase 1: all independent queries in parallel
+      // Fast path: one RPC returns the page-ready slice (profile bits +
+      // tags + mutual count + viewer→friend relation). On success we use
+      // it to short-circuit the two piktag_connections fetches (mutual
+      // count) and the synchronous getViewerRelation() round-trips.
+      // On error we fall back to the legacy multi-query block below.
+      // Mirrors the pattern from TagDetailScreen.fetchExploreUsers.
+      const friendDetailRpc = supabase.rpc('get_friend_detail', { p_friend_id: friendId });
+
+      // Phase 1: independent queries in parallel.
+      // We keep the legacy profile + biolinks + tags + connections queries
+      // (the RPC's profile/tag slice is intentionally trimmed and the rest
+      // of this screen needs the full row shape) — but we drop the two
+      // `piktag_connections` round-trips when the RPC succeeds.
       const [
         connResult,
         profileResult,
@@ -221,6 +281,7 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
         connTagsResult,
         myConnectionsResult,
         friendConnectionsResult,
+        rpcResult,
       ] = await Promise.all([
         // `.maybeSingle()` — an invalid/expired connectionId shouldn't
         // throw, it should just fall through to "no connection found".
@@ -241,21 +302,50 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
           .select('*, tag:piktag_tags!tag_id(*)')
           .eq('user_id', friendId)
           .eq('is_private', false)
-          .limit(500),
-        supabase.from('piktag_connections').select('connected_user_id').eq('user_id', user.id).limit(2000),
-        supabase.from('piktag_connections').select('id, connected_user_id').eq('user_id', friendId).limit(2000),
+          .limit(100),
+        // Legacy fallback inputs for mutual-friends count. Only consumed
+        // when the RPC errors out.
+        supabase.from('piktag_connections').select('connected_user_id').eq('user_id', user.id).limit(100),
+        supabase.from('piktag_connections').select('id, connected_user_id').eq('user_id', friendId).limit(100),
+        friendDetailRpc,
       ]);
 
       const connData = connResult.data;
 
+      // Prefer the RPC's pre-computed slice; fall back to the legacy
+      // client-side intersection if the RPC isn't available or errored.
+      const rpcOk = !rpcResult.error && rpcResult.data && typeof rpcResult.data === 'object';
+      const rpcPayload: any = rpcOk ? rpcResult.data : null;
+      const rpcRelation: 'self' | 'friend' | 'blocked' | 'none' | null =
+        rpcPayload?.relation ?? null;
+
       // Batch all phase-1 state into a single dispatch (1 re-render instead of 8)
       const mutualFriendsCount = (() => {
+        if (rpcOk && typeof rpcPayload?.mutual_friends === 'number') {
+          // Background-fetch mutual friend avatars (we still need IDs for
+          // this — the RPC only returns the count to keep the payload
+          // small). We piggy-back on the friend connection list when
+          // available; otherwise skip the avatar strip on the cold path.
+          if (friendConnectionsResult.data && myConnectionsResult.data) {
+            const myFriendIds = new Set(myConnectionsResult.data.map((c: any) => c.connected_user_id));
+            const mutualIds = friendConnectionsResult.data
+              .filter((c: any) => myFriendIds.has(c.connected_user_id))
+              .map((c: any) => c.connected_user_id);
+            if (mutualIds.length > 0) {
+              supabase
+                .from('piktag_profiles')
+                .select('id, username, full_name, avatar_url')
+                .in('id', mutualIds.slice(0, 20))
+                .then(({ data }) => { if (data) setMutualFriendProfiles(data); });
+            }
+          }
+          return rpcPayload.mutual_friends as number;
+        }
         if (!myConnectionsResult.data || !friendConnectionsResult.data) return 0;
         const myFriendIds = new Set(myConnectionsResult.data.map((c: any) => c.connected_user_id));
         const mutualIds = friendConnectionsResult.data
           .filter((c: any) => myFriendIds.has(c.connected_user_id))
           .map((c: any) => c.connected_user_id);
-        // Fetch mutual friend profiles in background
         if (mutualIds.length > 0) {
           supabase
             .from('piktag_profiles')
@@ -281,7 +371,15 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
           profile: profileResult.data ?? null,
           biolinks: filterBiolinksByVisibility(
             biolinksResult.data ?? [],
-            await getViewerRelation(user?.id, friendId)
+            // Map RPC relation to the visibility tier when available.
+            // 'self' / 'friend' have direct equivalents; 'blocked' / 'none'
+            // collapse to 'stranger'. Close-friend status is computed
+            // separately below, so we treat the RPC result as the floor.
+            rpcRelation
+              ? (rpcRelation === 'self' ? 'self'
+                  : rpcRelation === 'friend' ? 'friend'
+                  : 'stranger')
+              : await getViewerRelation(user?.id, friendId)
           ),
           tags: [], // will be set in phase 2 after pick data is fetched
           mutualFriends: mutualFriendsCount,
@@ -362,7 +460,7 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
               .from('piktag_connections')
               .select('id')
               .eq('connected_user_id', friendId)
-              .limit(2000);
+              .limit(100);
             const connIdsToFriend = (allConnsToFriend || []).map((c: any) => c.id);
 
             if (connIdsToFriend.length > 0) {
@@ -372,7 +470,7 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
                 .in('connection_id', connIdsToFriend)
                 .in('tag_id', friendTagIds)
                 .eq('is_private', false)
-                .limit(5000);
+                .limit(100);
               (allPicks || []).forEach((p: any) => {
                 pickCountMap.set(p.tag_id, (pickCountMap.get(p.tag_id) || 0) + 1);
               });
@@ -440,7 +538,10 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
 
       if (phase2.length > 0) await Promise.all(phase2);
     } catch (err) {
-      if (!signal.aborted) console.error('Error fetching friend data:', err);
+      if (!signal.aborted) {
+        console.error('Error fetching friend data:', err);
+        setLoadError(true);
+      }
     } finally {
       if (!signal.aborted) setLoading(false);
     }
@@ -454,6 +555,15 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
       };
     }, [fetchData])
   );
+
+  // Auto-refetch when the network comes back, but only when the prior
+  // pass actually errored so we don't wastefully refetch already-loaded
+  // friends.
+  useNetInfoReconnect(useCallback(() => {
+    if (loadError) {
+      fetchData();
+    }
+  }, [loadError, fetchData]));
 
   // --- Note CRUD ---
   // Fetch friend's public tags for the pick modal — returns tags array
@@ -560,21 +670,87 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
     prevPickModalVisible.current = pickTagModalVisible;
   }, [pickTagModalVisible, fetchData]);
 
+  // Fetch the "recommended members" list once per friendId. Mirrors
+  // UserDetailScreen's get_similar_users RPC call — same shape, same
+  // section UI. Lazy-fired regardless of showSimilar state so toggling
+  // the button is instant; the RPC is cheap server-side.
+  useEffect(() => {
+    if (!friendId) return;
+    let cancelled = false;
+    (async () => {
+      const { data, error } = await supabase.rpc('get_similar_users', {
+        target_user_id: friendId,
+        max_results: 6,
+      });
+      if (cancelled || error || !data) return;
+      const s = data as any;
+      const users: PiktagProfile[] = Array.isArray(s.users) ? s.users : [];
+      setSimilarUsers(users);
+      const mutualsObj = (s.mutuals || {}) as Record<string, any[]>;
+      const map = new Map<string, any[]>();
+      for (const uid of Object.keys(mutualsObj)) {
+        map.set(uid, mutualsObj[uid] || []);
+      }
+      setSimilarMutualFriends(map);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [friendId]);
+
+  // In-flight + once-per-screen guard: a fast double-tap on a
+  // reason previously inserted duplicate piktag_reports rows
+  // (no unique constraint on reporter+reported).
+  const reportingRef = useRef(false);
   const handleReport = async (reason: string) => {
     if (!user || !friendId) return;
-    await supabase.from('piktag_reports').insert({ reporter_id: user.id, reported_id: friendId, reason });
-    Alert.alert(t('friendDetail.reportedTitle') || '已檢舉', t('friendDetail.reportedMessage') || '感謝你的回報，我們會盡快處理');
+    if (reportingRef.current) return;
+    reportingRef.current = true;
+    try {
+      const { error } = await supabase.from('piktag_reports').insert({ reporter_id: user.id, reported_id: friendId, reason });
+      if (error) {
+        console.warn('report insert failed:', error);
+        Alert.alert(t('common.error'), t('common.unknownError'));
+        reportingRef.current = false; // allow retry on failure
+        return;
+      }
+      Alert.alert(t('friendDetail.reportedTitle', { defaultValue: '已檢舉' }), t('friendDetail.reportedMessage', { defaultValue: '感謝你的回報，我們會盡快處理' }));
+    } catch (e) {
+      reportingRef.current = false;
+    }
   };
 
   const handleToggleCloseFriend = async () => {
     if (!user || !friendId) return;
     if (isCloseFriend) {
-      await supabase.from('piktag_close_friends').delete()
+      const { error } = await supabase.from('piktag_close_friends').delete()
         .eq('user_id', user.id).eq('close_friend_id', friendId);
+      if (error) {
+        console.warn('close_friends delete failed:', error);
+        return;
+      }
       setIsCloseFriend(false);
     } else {
-      await supabase.from('piktag_close_friends')
+      // Make sure the underlying follow + connection exist before
+      // marking someone a close friend. Otherwise the close_friends
+      // row sits alone and the person disappears from the home
+      // Connections list (filtered by `connections ∩ follows`).
+      // followUser() is idempotent so this is safe even when the
+      // viewer is already following.
+      if (!isFollowing) {
+        const { error: followErr } = await followUser(user.id, friendId);
+        if (followErr) {
+          console.warn('close-friend pre-follow failed:', followErr);
+          return;
+        }
+        setIsFollowing(true);
+      }
+      const { error } = await supabase.from('piktag_close_friends')
         .upsert({ user_id: user.id, close_friend_id: friendId }, { onConflict: 'user_id,close_friend_id' });
+      if (error) {
+        console.warn('close_friends upsert failed:', error);
+        return;
+      }
       setIsCloseFriend(true);
     }
   };
@@ -588,8 +764,22 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
         setUnfollowModalVisible(true);
         return;
       } else {
-        await supabase.from('piktag_follows').insert({ follower_id: user.id, following_id: friendId });
+        // followUser() ensures both piktag_follows AND piktag_connections
+        // get the row they need — without the connection row the followed
+        // person disappears from ConnectionsScreen and from Search's
+        // "friends" tab. See lib/followUser.ts for the contract.
+        const { connectionId: connId, error } = await followUser(user.id, friendId);
+        if (error) {
+          console.warn('Follow failed:', error);
+          return;
+        }
         setIsFollowing(true);
+        // Thread the (possibly freshly created) connection id back into
+        // state so the pickTag modal opening below can attach
+        // hidden-tag / picked-public-tag rows against the right FK.
+        if (connId && connId !== connectionId) {
+          setConnectionId(connId);
+        }
 
         // After follow success → show Pick Tag modal only if friend has public tags
         const ftags = await fetchFriendPublicTags();
@@ -615,15 +805,31 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
   const handleConfirmUnfollow = async () => {
     if (!user || !friendId) return;
     setUnfollowModalVisible(false);
-    await supabase.from('piktag_follows').delete().eq('follower_id', user.id).eq('following_id', friendId);
+    const { error } = await supabase.from('piktag_follows').delete().eq('follower_id', user.id).eq('following_id', friendId);
+    if (error) {
+      console.warn('unfollow failed:', error);
+      Alert.alert(t('common.error'), t('common.unknownError'));
+      return;
+    }
     setIsFollowing(false);
+    // Close-friend status was implicitly tied to following — once you
+    // unfollow, the close-friend row is semantically stale ("X is my
+    // close friend but I don't follow them"). Clear both DB row + UI
+    // state so the badge / list elsewhere reflects reality.
+    if (isCloseFriend) {
+      await supabase
+        .from('piktag_close_friends')
+        .delete()
+        .eq('user_id', user.id)
+        .eq('close_friend_id', friendId);
+      setIsCloseFriend(false);
+    }
   };
 
   // Resolves (or creates) a 1:1 conversation with this friend and
-  // navigates to ChatThread. Mirrors the version in UserDetailScreen —
-  // uses the Main → SearchTab → ChatThread nested navigation form
-  // because FriendDetail, like UserDetail, lives in RootStack while
-  // ChatThread is registered inside the SearchTab's SearchStack.
+  // navigates to ChatThread. ChatThread lives in RootStack so a plain
+  // push preserves history (FriendDetail → ChatThread → back returns
+  // to FriendDetail).
   const handleOpenChat = async () => {
     if (!user || !friendId || messageLoading) return;
     setMessageLoading(true);
@@ -647,17 +853,11 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
         typeof data === 'string'
           ? data
           : (data as any)?.id ?? (data as any)?.conversation_id ?? data;
-      (navigation as any).navigate('Main', {
-        screen: 'SearchTab',
-        params: {
-          screen: 'ChatThread',
-          params: {
-            conversationId,
-            otherUserId: friendId,
-            otherDisplayName: profile?.full_name ?? profile?.username ?? '',
-            otherAvatarUrl: profile?.avatar_url,
-          },
-        },
+      (navigation as any).navigate('ChatThread', {
+        conversationId,
+        otherUserId: friendId,
+        otherDisplayName: profile?.full_name ?? profile?.username ?? '',
+        otherAvatarUrl: profile?.avatar_url,
       });
     } catch (err) {
       console.warn('handleOpenChat error:', err);
@@ -689,19 +889,14 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
       return;
     }
 
-    // Validate date format (YYYY-MM-DD or MM-DD)
-    let dateStr = reminderInput.trim();
-    if (/^\d{1,2}-\d{1,2}$/.test(dateStr)) {
-      const [mm, dd] = dateStr.split('-');
-      const month = mm.padStart(2, '0');
-      const day = dd.padStart(2, '0');
-      const m = parseInt(month, 10);
-      const d = parseInt(day, 10);
-      if (m < 1 || m > 12 || d < 1 || d > 31) {
-        Alert.alert(t('common.error'), t('friendDetail.alertInvalidDate'));
-        return;
-      }
-      dateStr = `2000-${month}-${day}`;
+    // piktag_connections.birthday is a DATE column and the live
+    // pg_cron fn (enqueue_birthday_notifications) EXTRACT()s its
+    // month/day. Store a date-castable YYYY-MM-DD (year-less →
+    // 2000-MM-DD). Shared normalizer = same as every other path.
+    const dateStr = toBirthdayDate(reminderInput);
+    if (!dateStr) {
+      Alert.alert(t('common.error'), t('friendDetail.alertInvalidDate'));
+      return;
     }
 
     const { error } = await supabase
@@ -712,9 +907,12 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
     if (error) {
       Alert.alert(t('common.error'), t('friendDetail.alertSaveReminderError'));
     } else {
+      // ReminderField is currently `'birthday'` only — anniversary
+      // support was removed when we trimmed CRM scope to just birthday +
+      // date-tag-anniversaries. The branch is kept this shape (rather
+      // than removed entirely) so re-adding another reminder type
+      // means changing the union, not the control flow.
       if (field === 'birthday') setBirthday(dateStr);
-      if (field === 'anniversary') setAnniversary(dateStr);
-      if (field === 'contract_expiry') setContractExpiry(dateStr);
     }
     setEditingReminder(null);
     setReminderInput('');
@@ -730,43 +928,28 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
 
     if (!error) {
       if (field === 'birthday') setBirthday('');
-      if (field === 'anniversary') setAnniversary('');
-      if (field === 'contract_expiry') setContractExpiry('');
     }
   };
 
   const formatReminderDate = (dateStr: string) => {
     if (!dateStr) return '';
-    try {
-      // Parse date string safely (avoid timezone issues with date-only strings)
-      const parts = dateStr.split('T')[0].split('-');
-      if (parts.length >= 3) {
-        const month = parseInt(parts[1], 10);
-        const day = parseInt(parts[2], 10);
-        return `${month}/${day}`;
-      }
-      return dateStr;
-    } catch {
-      return dateStr;
+    // Birthday is stored as a date / YYYY-MM-DD (year-less →
+    // 2000-MM-DD). Normalize via the shared helper, then show the
+    // year-agnostic M/D. Junk falls through unchanged.
+    const iso = toBirthdayDate(dateStr);
+    if (iso) {
+      const [, mm, dd] = iso.split('-');
+      return `${parseInt(mm, 10)}/${parseInt(dd, 10)}`;
     }
+    return dateStr;
   };
 
-  // Connection strength (must be before any early return)
-  const metDate = connection?.met_at || '';
-  const strengthScore = useMemo(() => {
-    const daysSinceMet = metDate ? Math.floor((Date.now() - new Date(metDate).getTime()) / 86400000) : 0;
-    return calculateStrength({
-      mutualTagCount: mutualTags,
-      daysSinceMet,
-      hasBirthday: !!birthday,
-      hasAnniversary: false,
-      hasContractExpiry: false,
-      isCloseFriend,
-      hiddenTagCount: hiddenTags.length,
-      pickedTagCount: tags.filter(t => t.isPicked).length,
-    });
-  }, [metDate, mutualTags, birthday, isCloseFriend, hiddenTags, tags]);
-  const strengthInfo = getStrengthLabel(strengthScore);
+  // Connection strength tier badge ("新朋友/初識/認識/熟識/密友") was removed
+  // from the username row — too much noise in the profile header for a
+  // signal that ranks a relationship the user already opened on purpose.
+  // The underlying calculateStrength helper in lib/connectionStrength.ts
+  // is left in place in case a future surface (filter, sort, dashboard)
+  // wants to reuse the score without resurrecting the badge UI.
 
   if (loading) {
     return (
@@ -778,14 +961,36 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
             onPress={() => navigation.canGoBack() ? navigation.goBack() : navigation.navigate('Connections')}
             activeOpacity={0.6}
           >
-            <ArrowLeft size={24} color={COLORS.gray900} />
+            <ArrowLeft size={24} color={colors.gray900} />
           </TouchableOpacity>
           <Text style={styles.headerName} numberOfLines={1}>...</Text>
           <View style={styles.headerSpacer} />
         </View>
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={COLORS.piktag500} />
+        <PageLoader />
+      </View>
+    );
+  }
+
+  // Initial fetch threw and we don't have a profile to render. Surface
+  // a retry CTA instead of letting the screen render with empty avatar
+  // / placeholder name — that previously looked like the friend was
+  // somehow malformed when really the network just dropped.
+  if (loadError && !profile) {
+    return (
+      <View style={[styles.container, { backgroundColor: colors.background }]}>
+        <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={colors.white} />
+        <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
+          <TouchableOpacity
+            style={styles.backBtn}
+            onPress={() => navigation.canGoBack() ? navigation.goBack() : navigation.navigate('Connections')}
+            activeOpacity={0.6}
+          >
+            <ArrowLeft size={24} color={colors.gray900} />
+          </TouchableOpacity>
+          <Text style={styles.headerName} numberOfLines={1}> </Text>
+          <View style={styles.headerSpacer} />
         </View>
+        <ErrorState onRetry={fetchData} />
       </View>
     );
   }
@@ -807,7 +1012,7 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
           onPress={() => navigation.canGoBack() ? navigation.goBack() : navigation.navigate('Connections')}
           activeOpacity={0.6}
         >
-          <ArrowLeft size={24} color={COLORS.gray900} />
+          <ArrowLeft size={24} color={colors.gray900} />
         </TouchableOpacity>
         <Text style={styles.headerName} numberOfLines={1}>
           {username}
@@ -817,7 +1022,7 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
           onPress={() => setMoreMenuVisible(true)}
           activeOpacity={0.6}
         >
-          <MoreHorizontal size={24} color={COLORS.gray900} />
+          <MoreHorizontal size={24} color={colors.gray900} />
         </TouchableOpacity>
       </View>
 
@@ -829,23 +1034,30 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
         <View style={styles.profileSection}>
           {/* Avatar + Name/Username */}
           <View style={styles.profileRow}>
-            {avatarUrl ? (
-              <Image source={{ uri: avatarUrl }} style={styles.avatar} cachePolicy="memory-disk" />
-            ) : (
-              <InitialsAvatar name={displayName} size={56} style={styles.avatar} />
-            )}
+            {/* Gradient ring iff this friend has an active Ask in the
+                fetch_ask_feed result. Subtle when not, so the gradient
+                stops being a permanent decoration that everyone has —
+                matches the rule we just applied to ProfileScreen and
+                EditProfileScreen. */}
+            <RingedAvatar
+              size={68}
+              ringStyle={
+                askFeedAsks.some((a) => a.author_id === friendId)
+                  ? 'gradient'
+                  : 'subtle'
+              }
+              name={displayName}
+              avatarUrl={avatarUrl}
+            />
             <View style={styles.nameSection}>
               <View style={styles.nameRow}>
                 <Text style={styles.fullName}>{displayName}</Text>
                 {/* {verified && (
-                  <CheckCircle2 size={16} color={COLORS.blue500} fill={COLORS.blue500} strokeWidth={0} style={{ marginLeft: 4 }} />
+                  <CheckCircle2 size={16} color={colors.blue500} fill={colors.blue500} strokeWidth={0} style={{ marginLeft: 4 }} />
                 )} */}
               </View>
               <View style={styles.usernameRow}>
                 <Text style={styles.usernameText}>@{username}</Text>
-                <View style={[styles.strengthBadge, { backgroundColor: strengthInfo.color + '18' }]}>
-                  <Text style={[styles.strengthText, { color: strengthInfo.color }]}>{strengthInfo.label}</Text>
-                </View>
               </View>
             </View>
           </View>
@@ -856,10 +1068,26 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
           {/* Bio (max 3 lines) */}
           {profile?.bio ? <Text style={styles.bio} numberOfLines={3}>{profile.bio}</Text> : null}
 
-          {/* Tags — user tags + event tags combined */}
-          {(tags.length > 0 || scanEventTags.length > 0) && (
+          {/* Section 1: User tags — friend's self-applied + my picked tags.
+              Mutual tags get a purple-highlighted chip so the social signal
+              ("we share this") is visible at a glance, not hidden behind the
+              stats-row "N 共同標籤" text. `isMutual` is computed during the
+              tag-fetch phase (see fetchFriend → friendTags map). */}
+          {tags.length > 0 && (
             <View style={styles.tagsWrap}>
               {tags.map((tag) => (
+                // Profile-tag display contract (founder, definitive —
+                // re-affirmed 2026-05-23 after a brief reversal): ALL
+                // chips on this page are GRAY, regardless of mutual /
+                // picked / selected state. The only purple element on
+                // this page is reserved for the 標籤 CTA in the action
+                // row above; a wall of purple chips dilutes that CTA.
+                // The user's own tag picks for this friend only affect
+                // the *ordering* of the displayed tags (mutual first)
+                // — they do NOT change the display set, so there's no
+                // semantic "selected" subset to highlight here anyway.
+                // Picker modal selected-state stays purple (different
+                // context: interactive selection feedback).
                 <TouchableOpacity
                   key={tag.tagId}
                   style={styles.tagChip}
@@ -871,26 +1099,75 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
                   </Text>
                 </TouchableOpacity>
               ))}
-              {scanEventTags.map((etag, i) => (
-                <TouchableOpacity
-                  key={`event-${i}`}
-                  style={styles.tagChip}
-                  activeOpacity={0.6}
-                  onPress={() => navigation.navigate('TagDetail', { tagName: etag, initialTab: 'explore' })}
-                >
-                  <Text style={styles.tagChipText}>#{etag}</Text>
-                </TouchableOpacity>
-              ))}
+            </View>
+          )}
+
+          {/* Section 2: Scan-event tags — pulled from the QR scan_session
+              that introduced us. These are episodic ("we met at X event"),
+              not identity, so we visually demote them: smaller chips, lighter
+              background, MapPin icon prefix on the section header. Collapsed
+              past EVENT_TAGS_COLLAPSED_COUNT so a heavy meet-via-QR history
+              doesn't blow out the profile header. */}
+          {scanEventTags.length > 0 && (
+            <View style={styles.eventTagsSection}>
+              <View style={styles.eventTagsTitleRow}>
+                <MapPin size={11} color={colors.gray500} strokeWidth={2.2} />
+                <Text style={styles.eventTagsTitle}>
+                  {t('friendDetail.eventTagsSection')}
+                </Text>
+              </View>
+              <View style={styles.eventTagsWrap}>
+                {(showAllEventTags
+                  ? scanEventTags
+                  : scanEventTags.slice(0, EVENT_TAGS_COLLAPSED_COUNT)
+                ).map((etag, i) => (
+                  <TouchableOpacity
+                    key={`event-${i}`}
+                    style={styles.eventTagChip}
+                    activeOpacity={0.6}
+                    onPress={() => navigation.navigate('TagDetail', { tagName: etag, initialTab: 'explore' })}
+                  >
+                    <Text style={styles.eventTagChipText}>#{etag}</Text>
+                  </TouchableOpacity>
+                ))}
+                {scanEventTags.length > EVENT_TAGS_COLLAPSED_COUNT && (
+                  <TouchableOpacity
+                    onPress={() => setShowAllEventTags((s) => !s)}
+                    activeOpacity={0.6}
+                    style={styles.eventTagsExpander}
+                    accessibilityRole="button"
+                  >
+                    <Text style={styles.eventTagsExpanderText}>
+                      {showAllEventTags
+                        ? t('friendDetail.eventTagsCollapse')
+                        : t('friendDetail.eventTagsExpand', { count: scanEventTags.length })}
+                    </Text>
+                  </TouchableOpacity>
+                )}
+              </View>
             </View>
           )}
 
           {/* Stats — subtle one line */}
+          {/* Stats row order: mutual friends first (carries the visual
+              overlapping-avatars cue, so it earns the lead spot), then
+              mutual tags, then followers. Same order on UserDetail. */}
           <View style={styles.statsLineRow}>
+            <View style={styles.mutualAvatarsStat}>
+              {mutualFriendProfiles.length > 0 && (
+                <OverlappingAvatars users={mutualFriendProfiles} total={mutualFriends} size={24} max={3} />
+              )}
+              <Text style={[styles.statText, mutualFriendProfiles.length > 0 && { marginLeft: 6 }]}>
+                <Text style={styles.statNumber}>{mutualFriends}</Text>
+                <Text style={styles.statLabel}>{t('friendDetail.mutualFriendsLabel')}</Text>
+              </Text>
+            </View>
+            <Text style={styles.statDot}>·</Text>
             {mutualTags > 0 ? (
               <TouchableOpacity onPress={() => setMutualTagModalVisible(true)} activeOpacity={0.6}>
                 <Text style={styles.statTextClickable}>
-                  <Text style={[styles.statNumber, { color: COLORS.piktag600 }]}>{mutualTags}</Text>
-                  <Text style={{ color: COLORS.piktag600 }}>{t('friendDetail.mutualTagsLabel')}</Text>
+                  <Text style={[styles.statNumber, { color: colors.piktag600 }]}>{mutualTags}</Text>
+                  <Text style={{ color: colors.piktag600 }}>{t('friendDetail.mutualTagsLabel')}</Text>
                 </Text>
               </TouchableOpacity>
             ) : (
@@ -900,80 +1177,158 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
               </Text>
             )}
             <Text style={styles.statDot}>·</Text>
-            <View style={styles.mutualAvatarsStat}>
-              {mutualFriendProfiles.length > 0 && (
-                <OverlappingAvatars users={mutualFriendProfiles} total={mutualFriends} size={22} max={3} />
-              )}
-              <Text style={[styles.statText, mutualFriendProfiles.length > 0 && { marginLeft: 6 }]}>
-                <Text style={styles.statNumber}>{mutualFriends}</Text>
-                <Text style={styles.statLabel}>{t('friendDetail.mutualFriendsLabel')}</Text>
+            <TouchableOpacity
+              activeOpacity={0.6}
+              hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
+              onPress={() =>
+                navigation.navigate('Followers', { userId: friendId, displayName })
+              }
+              accessibilityRole="button"
+              accessibilityLabel={t('friendDetail.followersLabel')}
+            >
+              <Text style={styles.statText}>
+                <Text style={styles.statNumber}>{followerCount}</Text>
+                <Text style={styles.statLabel}>{t('friendDetail.followersLabel')}</Text>
               </Text>
-            </View>
-            <Text style={styles.statDot}>·</Text>
-            <Text style={styles.statText}>
-              <Text style={styles.statNumber}>{followerCount}</Text>
-              <Text style={styles.statLabel}>{t('friendDetail.followersLabel')}</Text>
-            </Text>
+            </TouchableOpacity>
           </View>
 
-          {/* Action buttons — IG style: [Follow] [Message] [Tag] */}
+          {/* Action buttons.
+              Visual hierarchy on this screen: 「標籤」 is the ONE
+              primary CTA (piktag500 + white text). Everything else
+              (Follow / Following / Message / +icon) shares the same
+              gray secondary treatment so they're visually flat
+              relative to each other and the user's eye lands on
+              標籤 — the action this whole screen exists for.
+              Reverted from the previous LinearGradient on Follow
+              and the piktag-toned Following pill, both of which
+              were competing with 標籤 for primary attention. */}
           <View style={styles.actionButtonsRow}>
-            {isFollowing ? (
-              <TouchableOpacity
-                style={[styles.followButton, styles.followButtonFollowing]}
-                onPress={handleToggleFollow}
-                activeOpacity={0.8}
-                disabled={followLoading}
-              >
-                {followLoading ? (
-                  <ActivityIndicator size="small" color={COLORS.piktag600} />
-                ) : (
-                  <Text style={styles.followButtonTextFollowing}>
-                    {t('friendDetail.following')}
-                  </Text>
-                )}
-              </TouchableOpacity>
-            ) : (
-              <TouchableOpacity onPress={handleToggleFollow} activeOpacity={0.8} disabled={followLoading} style={{ flex: 1 }}>
-                <LinearGradient
-                  colors={['#ff5757', '#c44dff', '#8c52ff']}
-                  start={{ x: 0, y: 0.5 }}
-                  end={{ x: 1, y: 0.5 }}
-                  style={[styles.followButton, { borderRadius: 12 }]}
-                >
-                  {followLoading ? (
-                    <ActivityIndicator size="small" color="#fff" />
-                  ) : (
-                    <Text style={styles.followButtonTextDefault}>
-                      {t('friendDetail.follow')}
-                    </Text>
-                  )}
-                </LinearGradient>
-              </TouchableOpacity>
-            )}
             <TouchableOpacity
-              style={styles.messageButton}
+              style={styles.secondaryBtn}
+              onPress={handleToggleFollow}
+              activeOpacity={0.7}
+              disabled={followLoading}
+            >
+              {followLoading ? (
+                <BrandSpinner size={20} />
+              ) : (
+                <Text style={styles.secondaryBtnText}>
+                  {isFollowing
+                    ? t('friendDetail.following')
+                    : t('friendDetail.follow')}
+                </Text>
+              )}
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.secondaryBtn}
               onPress={handleOpenChat}
-              activeOpacity={0.8}
+              activeOpacity={0.7}
               disabled={messageLoading}
             >
               {messageLoading ? (
-                <ActivityIndicator size="small" color={COLORS.gray700} />
+                <BrandSpinner size={20} />
               ) : (
-                <Text style={styles.messageButtonText}>{t('friendDetail.sendMessage')}</Text>
+                <Text style={styles.secondaryBtnText}>{t('friendDetail.sendMessage')}</Text>
               )}
             </TouchableOpacity>
             {isFollowing && (
               <TouchableOpacity
-                style={styles.iconButton}
+                style={styles.primaryBtn}
                 activeOpacity={0.7}
                 onPress={openPickTagModal}
+                accessibilityRole="button"
+                accessibilityLabel={t('friendDetail.tag', { defaultValue: '標籤' })}
               >
-                <Hash size={18} color={COLORS.gray700} strokeWidth={2.5} />
+                <Text style={styles.primaryBtnText}>{t('friendDetail.tag', { defaultValue: '標籤' })}</Text>
               </TouchableOpacity>
             )}
+            <TouchableOpacity
+              style={[styles.iconSecondaryBtn, showSimilar && styles.iconSecondaryBtnActive]}
+              activeOpacity={0.7}
+              onPress={() => setShowSimilar(!showSimilar)}
+              accessibilityRole="button"
+              accessibilityLabel={t('friendDetail.recommendMembers', { defaultValue: '推薦會員' })}
+            >
+              <UserPlus size={18} color={showSimilar ? colors.piktag500 : colors.gray700} />
+            </TouchableOpacity>
           </View>
         </View>
+
+        {/* Recommended members — toggled by the UserPlus icon. Same
+            shape as UserDetailScreen's similar-users section so the two
+            screens feel like the same surface. */}
+        {showSimilar && similarUsers.length > 0 && (
+          <View style={styles.similarSection}>
+            <View style={styles.similarHeader}>
+              <Text style={styles.similarTitle}>{t('friendDetail.recommendMembers', { defaultValue: '推薦會員' })}</Text>
+              <TouchableOpacity onPress={() => setShowSimilar(false)} activeOpacity={0.6}>
+                <X size={18} color={colors.gray400} />
+              </TouchableOpacity>
+            </View>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.similarScroll}>
+              {similarUsers.map((u) => {
+                const mutuals = similarMutualFriends.get(u.id) || [];
+                return (
+                  <View key={u.id} style={styles.similarCard}>
+                    <TouchableOpacity
+                      activeOpacity={0.7}
+                      onPress={() => navigation.push('UserDetail', { userId: u.id })}
+                    >
+                      {u.avatar_url ? (
+                        <Image source={{ uri: u.avatar_url }} style={styles.similarAvatar} />
+                      ) : (
+                        <View style={[styles.similarAvatar, styles.similarAvatarFallback]}>
+                          <Text style={styles.similarAvatarInitial}>
+                            {(u.full_name || u.username || '?').charAt(0).toUpperCase()}
+                          </Text>
+                        </View>
+                      )}
+                      <Text style={styles.similarName} numberOfLines={1}>{u.full_name || u.username}</Text>
+                    </TouchableOpacity>
+                    {mutuals.length > 0 && (
+                      <View style={styles.mutualAvatarsRow}>
+                        {mutuals.map((m: any, i: number) => (
+                          <Image
+                            key={m.id}
+                            source={{ uri: m.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(m.full_name || '?')}&size=40` }}
+                            style={[styles.mutualMiniAvatar, { marginLeft: i > 0 ? -8 : 0, zIndex: 3 - i }]}
+                          />
+                        ))}
+                        <Text style={styles.mutualCountText}>
+                          {t('friendDetail.statMutualFriends', { count: mutuals.length }) || `${mutuals.length} 共同好友`}
+                        </Text>
+                      </View>
+                    )}
+                    <TouchableOpacity
+                      style={styles.similarFollowBtn}
+                      activeOpacity={0.8}
+                      onPress={async () => {
+                        if (!user?.id) return;
+                        const { error } = await followUser(user.id, u.id);
+                        if (error) {
+                          console.warn('[FriendDetail] follow similar user failed:', error);
+                          Alert.alert(t('common.error'), t('common.unknownError'));
+                          return;
+                        }
+                        setSimilarUsers((prev) => prev.filter((s) => s.id !== u.id));
+                      }}
+                    >
+                      <LinearGradient
+                        colors={['#ff5757', '#c44dff', '#8c52ff']}
+                        start={{ x: 0, y: 0.5 }}
+                        end={{ x: 1, y: 0.5 }}
+                        style={styles.similarFollowGradient}
+                      >
+                        <Text style={styles.similarFollowText}>{t('friendDetail.follow', { defaultValue: '追蹤' })}</Text>
+                      </LinearGradient>
+                    </TouchableOpacity>
+                  </View>
+                );
+              })}
+            </ScrollView>
+          </View>
+        )}
 
         {/* ===== NEW SECTION: Mutual Friends — FB / IG profile style horizontal avatars ===== */}
         {mutualFriendProfiles.length > 0 && (
@@ -1017,49 +1372,61 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
           </View>
         )}
 
-        {/* ===== SECTION 2: Social Links — IG Highlights style circles ===== */}
-        {biolinks.length > 0 && (
+        {/* ===== Biolinks — matches ProfileScreen layout exactly =====
+            Two intentional differences from the previous impl:
+              1. No section title ("社群連結"). Universal logos communicate
+                 "social links" on their own.
+              2. Icon row no longer shows a text label under each circle
+                 (was rendering "facebook" / phone-number under FB / phone
+                 icons). The brand glyphs already say what they are.
+              3. Both rows now filter by display_mode so a biolink the
+                 user marked as 'icon-only' doesn't also show as a card
+                 (and vice versa) — same rule ProfileScreen uses. Before
+                 this filter, every biolink rendered TWICE.
+        */}
+        {biolinks.filter((bl) => bl.display_mode === 'icon' || bl.display_mode === 'both').length > 0 && (
           <View style={styles.socialSection}>
-            <Text style={styles.sectionTitle}>{t('friendDetail.biolinksTitle')}</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.socialScrollContent}>
-              {biolinks.map((link) => (
-                <TouchableOpacity
-                  key={link.id}
-                  style={styles.socialCircleItem}
-                  onPress={() => handleOpenLink(link.url, link.id)}
-                  activeOpacity={0.7}
-                >
-                  <View style={styles.socialCircleRing}>
-                    <View style={styles.socialCircleInner}>
-                      <PlatformIcon platform={link.platform} size={28} />
+              {biolinks
+                .filter((bl) => bl.display_mode === 'icon' || bl.display_mode === 'both')
+                .map((link) => (
+                  <TouchableOpacity
+                    key={link.id}
+                    style={styles.socialCircleItem}
+                    onPress={() => handleOpenLink(link.url, link.id)}
+                    activeOpacity={0.7}
+                    accessibilityLabel={link.label || link.platform}
+                    accessibilityRole="link"
+                  >
+                    <View style={styles.socialCircleRing}>
+                      <View style={styles.socialCircleInner}>
+                        <PlatformIcon platform={link.platform} size={28} />
+                      </View>
                     </View>
-                  </View>
-                  <Text style={styles.socialCircleLabel} numberOfLines={1}>
-                    {link.label || link.platform}
-                  </Text>
-                </TouchableOpacity>
-              ))}
+                  </TouchableOpacity>
+                ))}
             </ScrollView>
           </View>
         )}
 
-        {/* ===== SECTION 3: Link Bio — Linktree style cards ===== */}
-        {biolinks.length > 0 && (
+        {biolinks.filter((bl) => bl.display_mode === 'card' || bl.display_mode === 'both').length > 0 && (
           <View style={styles.linkBioSection}>
-            {biolinks.map((link) => (
-              <TouchableOpacity
-                key={link.id}
-                style={styles.linkCard}
-                onPress={() => handleOpenLink(link.url, link.id)}
-                activeOpacity={0.7}
-              >
-                <PlatformIcon platform={link.platform} size={22} />
-                <Text style={styles.linkCardText} numberOfLines={1}>
-                  {link.label || link.platform}
-                </Text>
-                <ExternalLink size={16} color={COLORS.gray400} />
-              </TouchableOpacity>
-            ))}
+            {biolinks
+              .filter((bl) => bl.display_mode === 'card' || bl.display_mode === 'both')
+              .map((link) => (
+                <TouchableOpacity
+                  key={link.id}
+                  style={styles.linkCard}
+                  onPress={() => handleOpenLink(link.url, link.id)}
+                  activeOpacity={0.7}
+                >
+                  <PlatformIcon platform={link.platform} size={22} />
+                  <Text style={styles.linkCardText} numberOfLines={1}>
+                    {link.label || link.platform}
+                  </Text>
+                  <ExternalLink size={16} color={colors.gray400} />
+                </TouchableOpacity>
+              ))}
           </View>
         )}
 
@@ -1072,7 +1439,7 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
           <View style={styles.section}>
             <View style={styles.recordCard}>
               <View style={styles.reminderRow}>
-                <Gift size={16} color={COLORS.pink500} />
+                <Gift size={16} color={colors.pink500} />
                 <Text style={styles.recordLabel}>{t('friendDetail.reminderBirthday')}</Text>
                 <Text style={styles.recordValue}>{formatReminderDate(profile.birthday)}</Text>
               </View>
@@ -1228,9 +1595,9 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
               style={styles.moreItem}
               onPress={() => { setMoreMenuVisible(false); handleToggleCloseFriend(); }}
             >
-              <Heart size={20} color={isCloseFriend ? COLORS.piktag600 : COLORS.gray600} fill={isCloseFriend ? COLORS.piktag600 : 'transparent'} />
-              <Text style={[styles.moreItemText, isCloseFriend && { color: COLORS.piktag600 }]}>
-                {isCloseFriend ? (t('friendDetail.closeFriendRemove') || '已設為摯友') : (t('friendDetail.closeFriendAdd') || '設為摯友')}
+              <Heart size={20} color={isCloseFriend ? colors.piktag600 : colors.gray600} fill={isCloseFriend ? colors.piktag600 : 'transparent'} />
+              <Text style={[styles.moreItemText, isCloseFriend && { color: colors.piktag600 }]}>
+                {isCloseFriend ? (t('friendDetail.closeFriendRemove', { defaultValue: '已設為摯友' })) : (t('friendDetail.closeFriendAdd', { defaultValue: '設為摯友' }))}
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
@@ -1250,44 +1617,70 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
                 });
               }}
             >
-              <Share2 size={20} color={COLORS.gray600} />
-              <Text style={styles.moreItemText}>{t('friendDetail.shareProfile') || '分享'}</Text>
+              <Share2 size={20} color={colors.gray600} />
+              <Text style={styles.moreItemText}>{t('friendDetail.shareProfile', { defaultValue: '分享' })}</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.moreItem}
-              onPress={async () => {
+              onPress={() => {
                 setMoreMenuVisible(false);
                 if (!user || !friendId) return;
-                await supabase.from('piktag_blocks')
-                  .upsert({ blocker_id: user.id, blocked_id: friendId }, { onConflict: 'blocker_id,blocked_id' });
-                Alert.alert(t('friendDetail.blockedTitle') || '已封鎖', t('friendDetail.blockedMessage') || '你將不再看到此用戶');
-                if (navigation.canGoBack()) navigation.goBack(); else navigation.navigate('Main', { screen: 'HomeTab' });
+                // Block is destructive (cascades follows/close-friends/
+                // notifications) and was one-tap with no guard. Confirm
+                // before the irreversible-feeling action.
+                Alert.alert(
+                  t('friendDetail.blockConfirmTitle', { defaultValue: '封鎖這個人？' }),
+                  t('friendDetail.blockConfirmMessage', {
+                    defaultValue: '你們會互相取消追蹤，也不再看到彼此的內容。',
+                  }),
+                  [
+                    { text: t('common.cancel', { defaultValue: '取消' }), style: 'cancel' },
+                    {
+                      text: t('friendDetail.blockUser', { defaultValue: '封鎖' }),
+                      style: 'destructive',
+                      onPress: async () => {
+                        // block_user RPC does the full cascade atomically:
+                        // upsert block + delete bilateral follows + delete
+                        // bilateral close-friend rows + delete blocker's
+                        // prior notifications produced by the blocked user.
+                        const { error } = await supabase.rpc('block_user', { p_blocked_id: friendId });
+                        if (error) {
+                          console.warn('[FriendDetail] block_user RPC failed:', error);
+                          Alert.alert(t('common.error'), t('common.unknownError'));
+                          return;
+                        }
+                        Alert.alert(t('friendDetail.blockedTitle', { defaultValue: '已封鎖' }), t('friendDetail.blockedMessage', { defaultValue: '你將不再看到此用戶' }));
+                        if (navigation.canGoBack()) navigation.goBack(); else navigation.navigate('Main', { screen: 'HomeTab' });
+                      },
+                    },
+                  ],
+                );
               }}
             >
               <X size={20} color="#EF4444" />
-              <Text style={[styles.moreItemText, { color: '#EF4444' }]}>{t('friendDetail.blockUser') || '封鎖'}</Text>
+              <Text style={[styles.moreItemText, { color: '#EF4444' }]}>{t('friendDetail.blockUser', { defaultValue: '封鎖' })}</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.moreItem}
               onPress={() => {
                 setMoreMenuVisible(false);
                 Alert.alert(
-                  t('friendDetail.reportTitle') || '檢舉用戶',
-                  t('friendDetail.reportMessage') || '請選擇檢舉原因',
+                  t('friendDetail.reportTitle', { defaultValue: '檢舉用戶' }),
+                  t('friendDetail.reportMessage', { defaultValue: '請選擇檢舉原因' }),
                   [
-                    { text: t('friendDetail.reportSpam') || '垃圾訊息', onPress: () => handleReport('spam') },
-                    { text: t('friendDetail.reportHarassment') || '騷擾', onPress: () => handleReport('harassment') },
-                    { text: t('friendDetail.reportFake') || '假帳號', onPress: () => handleReport('fake_account') },
-                    { text: t('common.cancel') || '取消', style: 'cancel' },
+                    { text: t('friendDetail.reportSpam', { defaultValue: '垃圾訊息' }), onPress: () => handleReport('spam') },
+                    { text: t('friendDetail.reportHarassment', { defaultValue: '騷擾' }), onPress: () => handleReport('harassment') },
+                    { text: t('friendDetail.reportFake', { defaultValue: '假帳號' }), onPress: () => handleReport('fake_account') },
+                    { text: t('common.cancel', { defaultValue: '取消' }), style: 'cancel' },
                   ]
                 );
               }}
             >
-              <AlertTriangle size={20} color={COLORS.gray600} />
-              <Text style={styles.moreItemText}>{t('friendDetail.reportUser') || '檢舉'}</Text>
+              <AlertTriangle size={20} color={colors.gray600} />
+              <Text style={styles.moreItemText}>{t('friendDetail.reportUser', { defaultValue: '檢舉' })}</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.moreCancelBtn} onPress={() => setMoreMenuVisible(false)}>
-              <Text style={styles.moreCancelText}>{t('common.cancel') || '取消'}</Text>
+              <Text style={styles.moreCancelText}>{t('common.cancel', { defaultValue: '取消' })}</Text>
             </TouchableOpacity>
           </View>
         </TouchableOpacity>
@@ -1296,19 +1689,22 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
   );
 }
 
-const styles = StyleSheet.create({
+function makeStyles(c: ColorPalette) {
+  return StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.white,
+    backgroundColor: c.white,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 16,
     paddingBottom: 14,
-    backgroundColor: 'rgba(255, 255, 255, 0.97)',
+    // Was a hardcoded rgba(255,255,255,0.97) — stayed a light band
+    // in dark mode (same bug as ConnectionsScreen's header).
+    backgroundColor: c.background,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.gray100,
+    borderBottomColor: c.gray100,
   },
   backBtn: {
     padding: 4,
@@ -1317,7 +1713,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 18,
     fontWeight: '700',
-    color: COLORS.gray900,
+    color: c.gray900,
     textAlign: 'center',
     marginHorizontal: 12,
   },
@@ -1346,12 +1742,6 @@ const styles = StyleSheet.create({
     gap: 14,
     marginBottom: 10,
   },
-  avatar: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: COLORS.gray100,
-  },
   nameRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -1359,7 +1749,7 @@ const styles = StyleSheet.create({
   fullName: {
     fontSize: 16,
     fontWeight: '700',
-    color: COLORS.gray900,
+    color: c.gray900,
   },
   usernameRow: {
     flexDirection: 'row',
@@ -1368,27 +1758,21 @@ const styles = StyleSheet.create({
   },
   usernameText: {
     fontSize: 14,
-    color: COLORS.gray500,
-  },
-  strengthBadge: {
-    paddingVertical: 2,
-    paddingHorizontal: 8,
-    borderRadius: 8,
-  },
-  strengthText: {
-    fontSize: 11,
-    fontWeight: '700',
+    color: c.gray500,
   },
   headline: {
     fontSize: 14,
     fontWeight: '600',
-    color: COLORS.piktag600,
+    color: c.piktag600,
     marginBottom: 4,
-    paddingHorizontal: 20,
+    // No paddingHorizontal here — the parent profileSection already
+    // owns the 20px horizontal padding. Stacking a second 20px on
+    // headline indented it past the bio/tags column, breaking the
+    // left-edge alignment with ProfileScreen's matching headline.
   },
   bio: {
     fontSize: 14,
-    color: COLORS.gray700,
+    color: c.gray700,
     lineHeight: 21,
     marginBottom: 12,
   },
@@ -1408,25 +1792,79 @@ const styles = StyleSheet.create({
     // stats/action buttons down than silently hide data.
   },
   tagChip: {
-    backgroundColor: COLORS.gray100,
+    backgroundColor: c.fill,
     borderRadius: 9999,
     paddingVertical: 8,
     paddingHorizontal: 14,
     borderWidth: 1.5,
-    borderColor: 'transparent',
+    // Visible hairline so the secondary gray profile tags have a
+    // defined edge on the near-black dark-mode page.
+    borderColor: c.gray200,
   },
-  tagChipPicked: {
-    backgroundColor: COLORS.piktag50,
-    borderColor: COLORS.piktag500,
-  },
+  // Profile-tag chips are gray-only on this page — see the comment
+  // on the render JSX above for why. There used to be a `tagChipMutual`
+  // override (and briefly an unconditional purple version after the
+  // 2026-05-23 "all selected tags purple" sweep); both are removed
+  // because gray is the only state ever rendered here.
   tagChipText: {
     fontSize: 14,
     fontWeight: '500',
-    color: COLORS.gray600,
+    color: c.gray600,
   },
-  tagChipTextPicked: {
-    color: COLORS.piktag600,
-    fontWeight: '700',
+
+  // Event-tag section: visually demoted vs. user tags so the eye lands
+  // on identity tags first. Smaller chip (12/6 vs 14/8), lighter ink, and
+  // a sectioned header with MapPin icon to mark "this is event context,
+  // not who they are."
+  eventTagsSection: {
+    marginBottom: 14,
+  },
+  eventTagsTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginBottom: 8,
+  },
+  eventTagsTitle: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: c.gray500,
+    letterSpacing: 0.4,
+    textTransform: 'uppercase',
+  },
+  eventTagsWrap: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+  },
+  eventTagChip: {
+    backgroundColor: c.gray50,
+    borderRadius: 9999,
+    paddingVertical: 5,
+    paddingHorizontal: 11,
+    borderWidth: 1,
+    borderColor: c.gray100,
+  },
+  eventTagChipText: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: c.gray500,
+  },
+  // "Show all N · Show less" toggle — dashed border distinguishes it
+  // from real tag chips so it doesn't look like a navigable destination.
+  eventTagsExpander: {
+    paddingVertical: 5,
+    paddingHorizontal: 11,
+    borderRadius: 9999,
+    borderWidth: 1,
+    borderColor: c.piktag200,
+    borderStyle: 'dashed',
+    backgroundColor: 'transparent',
+  },
+  eventTagsExpanderText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: c.piktag500,
   },
   nameSection: {
     flex: 1,
@@ -1434,79 +1872,163 @@ const styles = StyleSheet.create({
   },
   statNumber: {
     fontWeight: '700',
-    color: COLORS.gray900,
+    color: c.gray900,
   },
   statLabel: {
-    color: COLORS.gray500,
+    color: c.gray500,
   },
   statDot: {
-    color: COLORS.gray400,
+    color: c.gray400,
   },
   actionButtonsRow: {
     flexDirection: 'row',
     gap: 10,
   },
-  followButton: {
-    flex: 1,
+  // ── Unified action-button design system ─────────────────────────
+  // Two states across both detail screens (Friend / User):
+  //   primaryBtn    — piktag500 fill, white text (ONE per screen)
+  //   secondaryBtn  — gray100 fill, gray900 text (everything else)
+  //   iconSecondaryBtn — square version of secondary (44x44)
+  // Same height / radius / padding so they line up cleanly in a row
+  // and the only visual delta is "this is the action you should
+  // notice" vs. "this is also available".
+  primaryBtn: {
+    paddingHorizontal: 16,
+    height: 44,
     borderRadius: 12,
-    paddingVertical: 12,
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: c.piktag500,
   },
-  followButtonDefault: {
-    backgroundColor: COLORS.piktag500,
-  },
-  followButtonFollowing: {
-    backgroundColor: COLORS.white,
-    borderWidth: 1.5,
-    borderColor: COLORS.piktag500,
-  },
-  followButtonTextDefault: {
-    fontSize: 15,
+  primaryBtnText: {
+    fontSize: 14,
     fontWeight: '700',
     color: '#FFFFFF',
   },
-  followButtonTextFollowing: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: COLORS.gray900,
-  },
-  // Square icon button that sits between "追蹤中" and "標籤". Matches
-  // UserDetailScreen.messageButton visually so the two screens feel
-  // like the same surface when the user hops between them.
-  messageButton: {
+  // Non-CTA secondary buttons — IG-style filled gray. c.gray200 is
+  // #e5e7eb in light / #363636 in dark — the latter is exactly IG's
+  // dark secondary-button fill. c.gray100 (#1c1c1e) was too close to
+  // the black page and the buttons read as near-invisible boxes.
+  secondaryBtn: {
     flex: 1,
+    height: 44,
     borderRadius: 12,
-    paddingVertical: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: COLORS.gray100,
+    backgroundColor: c.fill,
   },
-  messageButtonText: {
+  secondaryBtnText: {
     fontSize: 14,
     fontWeight: '600',
-    color: COLORS.gray900,
+    color: c.gray900,
   },
-  iconButton: {
+  iconSecondaryBtn: {
     width: 44,
     height: 44,
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: COLORS.gray100,
+    backgroundColor: c.fill,
   },
-  // More menu
-  moreOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-end' },
-  moreSheet: { backgroundColor: COLORS.white, borderTopLeftRadius: 20, borderTopRightRadius: 20, paddingTop: 16, paddingHorizontal: 20 },
-  moreItem: { flexDirection: 'row', alignItems: 'center', gap: 14, paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: COLORS.gray100 },
-  moreItemText: { fontSize: 16, fontWeight: '500', color: COLORS.gray900 },
-  moreCancelBtn: { alignItems: 'center', paddingVertical: 16, marginTop: 4 },
-  moreCancelText: { fontSize: 16, fontWeight: '600', color: COLORS.piktag600 },
-  tagButtonText: {
+  iconSecondaryBtnActive: {
+    backgroundColor: c.piktag50,
+  },
+  // Recommended-members section. Cloned from UserDetailScreen so the
+  // two screens share visual vocabulary — same card width, same
+  // mutual-avatars row, same follow CTA.
+  similarSection: {
+    paddingTop: 16,
+    paddingBottom: 8,
+    borderTopWidth: 1,
+    borderTopColor: c.gray100,
+  },
+  similarHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    marginBottom: 12,
+  },
+  similarTitle: {
     fontSize: 15,
+    fontWeight: '700',
+    color: c.gray900,
+  },
+  similarScroll: {
+    paddingHorizontal: 16,
+    gap: 14,
+  },
+  similarCard: {
+    width: 150,
+    backgroundColor: c.white,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: c.gray200,
+    paddingVertical: 16,
+    paddingHorizontal: 12,
+    alignItems: 'center',
+    gap: 6,
+  },
+  similarAvatar: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: c.gray100,
+  },
+  similarAvatarFallback: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  similarAvatarInitial: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: c.gray500,
+  },
+  similarName: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: c.gray900,
+    textAlign: 'center',
+  },
+  mutualAvatarsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginTop: 2,
+  },
+  mutualMiniAvatar: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    borderWidth: 1.5,
+    borderColor: c.background,
+  },
+  mutualCountText: {
+    fontSize: 11,
+    color: c.gray500,
+    marginLeft: 2,
+  },
+  similarFollowBtn: {
+    width: '100%',
+    marginTop: 8,
+  },
+  similarFollowGradient: {
+    borderRadius: 10,
+    paddingVertical: 8,
+    alignItems: 'center',
+  },
+  similarFollowText: {
+    fontSize: 13,
     fontWeight: '700',
     color: '#FFFFFF',
   },
+  // More menu
+  moreOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-end' },
+  moreSheet: { backgroundColor: c.card, borderTopLeftRadius: 20, borderTopRightRadius: 20, paddingTop: 16, paddingHorizontal: 20 },
+  moreItem: { flexDirection: 'row', alignItems: 'center', gap: 14, paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: c.gray100 },
+  moreItemText: { fontSize: 16, fontWeight: '500', color: c.gray900 },
+  moreCancelBtn: { alignItems: 'center', paddingVertical: 16, marginTop: 4 },
+  moreCancelText: { fontSize: 16, fontWeight: '600', color: c.piktag600 },
   actionsRow: {
     flexDirection: 'row',
     paddingHorizontal: 20,
@@ -1518,7 +2040,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: COLORS.piktag500,
+    backgroundColor: c.piktag500,
     borderRadius: 14,
     paddingVertical: 14,
     gap: 8,
@@ -1535,7 +2057,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: COLORS.piktag500,
+    borderColor: c.piktag500,
     borderRadius: 14,
     paddingVertical: 14,
     gap: 8,
@@ -1543,7 +2065,7 @@ const styles = StyleSheet.create({
   outlineButtonText: {
     fontSize: 15,
     fontWeight: '600',
-    color: COLORS.piktag600,
+    color: c.piktag600,
   },
   section: {
     paddingHorizontal: 20,
@@ -1558,7 +2080,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 13,
     fontWeight: '700',
-    color: COLORS.gray500,
+    color: c.gray500,
     textTransform: 'uppercase',
     letterSpacing: 0.8,
     paddingHorizontal: 20,
@@ -1566,7 +2088,7 @@ const styles = StyleSheet.create({
     marginTop: 12,
   },
   recordCard: {
-    backgroundColor: COLORS.gray50,
+    backgroundColor: c.gray50,
     borderRadius: 16,
     padding: 16,
   },
@@ -1578,23 +2100,23 @@ const styles = StyleSheet.create({
   },
   recordLabel: {
     fontSize: 14,
-    color: COLORS.gray500,
+    color: c.gray500,
     width: 70,
   },
   recordValue: {
     flex: 1,
     fontSize: 14,
     fontWeight: '500',
-    color: COLORS.gray900,
+    color: c.gray900,
     lineHeight: 20,
   },
   recordNotes: {
     fontWeight: '400',
-    color: COLORS.gray700,
+    color: c.gray700,
   },
   recordDivider: {
     height: 1,
-    backgroundColor: COLORS.gray200,
+    backgroundColor: c.gray200,
     marginVertical: 10,
   },
   // CRM Reminders
@@ -1613,15 +2135,15 @@ const styles = StyleSheet.create({
   reminderInput: {
     flex: 1,
     fontSize: 14,
-    color: COLORS.gray900,
+    color: c.gray900,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.piktag300,
+    borderBottomColor: c.piktag300,
     paddingVertical: 4,
   },
   reminderSaveBtn: {
     fontSize: 14,
     fontWeight: '600',
-    color: COLORS.piktag600,
+    color: c.piktag600,
   },
   reminderValueRow: {
     flex: 1,
@@ -1630,7 +2152,7 @@ const styles = StyleSheet.create({
   },
   // Biolinks
   biolinksCard: {
-    backgroundColor: COLORS.gray50,
+    backgroundColor: c.gray50,
     borderRadius: 16,
     paddingHorizontal: 16,
     paddingVertical: 4,
@@ -1644,17 +2166,17 @@ const styles = StyleSheet.create({
   biolinkTitle: {
     fontSize: 14,
     fontWeight: '600',
-    color: COLORS.gray900,
+    color: c.gray900,
     width: 80,
   },
   biolinkUrl: {
     flex: 1,
     fontSize: 13,
-    color: COLORS.gray500,
+    color: c.gray500,
   },
   biolinkDivider: {
     height: 1,
-    backgroundColor: COLORS.gray200,
+    backgroundColor: c.gray200,
   },
 
   // Social Section
@@ -1662,7 +2184,7 @@ const styles = StyleSheet.create({
     paddingTop: 8,
     paddingBottom: 16,
     borderTopWidth: 1,
-    borderTopColor: COLORS.gray100,
+    borderTopColor: c.gray100,
   },
   socialScrollContent: {
     paddingHorizontal: 4,
@@ -1677,7 +2199,7 @@ const styles = StyleSheet.create({
     height: 60,
     borderRadius: 30,
     borderWidth: 2,
-    borderColor: COLORS.gray200,
+    borderColor: c.gray200,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 6,
@@ -1686,14 +2208,14 @@ const styles = StyleSheet.create({
     width: 52,
     height: 52,
     borderRadius: 26,
-    backgroundColor: COLORS.gray50,
+    backgroundColor: c.fill,
     alignItems: 'center',
     justifyContent: 'center',
   },
   socialCircleLabel: {
     fontSize: 11,
     fontWeight: '500',
-    color: COLORS.gray700,
+    color: c.gray700,
     textAlign: 'center',
   },
 
@@ -1703,18 +2225,18 @@ const styles = StyleSheet.create({
     paddingBottom: 16,
     paddingHorizontal: 20,
     borderTopWidth: 1,
-    borderTopColor: COLORS.gray100,
+    borderTopColor: c.gray100,
   },
   mutualFriendsSectionTitle: {
     fontSize: 14,
     fontWeight: '600',
-    color: COLORS.gray900,
+    color: c.gray900,
     marginBottom: 12,
   },
   mutualFriendsSectionCount: {
     fontSize: 14,
     fontWeight: '500',
-    color: COLORS.gray500,
+    color: c.gray500,
   },
   mutualFriendsScrollContent: {
     gap: 14,
@@ -1731,19 +2253,19 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   mutualFriendAvatarFallback: {
-    backgroundColor: COLORS.gray200,
+    backgroundColor: c.gray200,
     alignItems: 'center',
     justifyContent: 'center',
   },
   mutualFriendAvatarFallbackText: {
     fontSize: 20,
     fontWeight: '600',
-    color: COLORS.gray600,
+    color: c.gray600,
   },
   mutualFriendName: {
     fontSize: 11,
     fontWeight: '500',
-    color: COLORS.gray700,
+    color: c.gray700,
     textAlign: 'center',
     maxWidth: 64,
   },
@@ -1758,9 +2280,9 @@ const styles = StyleSheet.create({
   linkCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: COLORS.white,
+    backgroundColor: c.gray100,
     borderWidth: 1.5,
-    borderColor: COLORS.gray200,
+    borderColor: c.gray200,
     borderRadius: 16,
     paddingVertical: 16,
     paddingHorizontal: 18,
@@ -1770,7 +2292,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 16,
     fontWeight: '600',
-    color: COLORS.gray900,
+    color: c.gray900,
   },
 
   // Stats line
@@ -1782,7 +2304,7 @@ const styles = StyleSheet.create({
   },
   statText: {
     fontSize: 14,
-    color: COLORS.gray500,
+    color: c.gray500,
   },
   statTextClickable: {
     fontSize: 14,
@@ -1800,7 +2322,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   mutualModalContainer: {
-    backgroundColor: COLORS.white,
+    backgroundColor: c.white,
     borderRadius: 16,
     padding: 24,
     width: 300,
@@ -1809,7 +2331,7 @@ const styles = StyleSheet.create({
   mutualModalTitle: {
     fontSize: 17,
     fontWeight: '700',
-    color: COLORS.gray900,
+    color: c.gray900,
     marginBottom: 16,
   },
   mutualModalTagsWrap: {
@@ -1817,18 +2339,19 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     gap: 10,
   },
+  // "已選=紫色" aesthetic, founder definitive: fill-only, NO border.
+  // The piktag50 tint + piktag600 text is the purple — a piktag500
+  // outline on top is what made it read as "outlined chip" instead.
   mutualModalTag: {
-    backgroundColor: COLORS.piktag50,
+    backgroundColor: c.piktag50,
     borderRadius: 16,
     paddingHorizontal: 14,
     paddingVertical: 8,
-    borderWidth: 1,
-    borderColor: COLORS.piktag500,
   },
   mutualModalTagText: {
     fontSize: 15,
     fontWeight: '600',
-    color: COLORS.piktag600,
+    color: c.piktag600,
   },
 
   // Hidden Tags
@@ -1836,7 +2359,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 16,
     borderTopWidth: 1,
-    borderTopColor: COLORS.gray100,
+    borderTopColor: c.gray100,
   },
   hiddenTagHeader: {
     flexDirection: 'row',
@@ -1846,7 +2369,7 @@ const styles = StyleSheet.create({
   hiddenTagTitle: {
     fontSize: 14,
     fontWeight: '600',
-    color: COLORS.gray500,
+    color: c.gray500,
   },
   hiddenTagsWrap: {
     flexDirection: 'row',
@@ -1857,18 +2380,18 @@ const styles = StyleSheet.create({
   hiddenTagChip: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: COLORS.piktag100,
+    backgroundColor: c.piktag100,
     borderRadius: 16,
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderWidth: 1,
-    borderColor: COLORS.piktag200,
+    borderColor: c.piktag200,
     gap: 4,
   },
   hiddenTagChipText: {
     fontSize: 13,
     fontWeight: '600',
-    color: COLORS.piktag600,
+    color: c.piktag600,
   },
   // Unfollow Modal
   unfollowModalOverlay: {
@@ -1878,7 +2401,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   unfollowModalContainer: {
-    backgroundColor: COLORS.white,
+    backgroundColor: c.white,
     borderRadius: 16,
     padding: 24,
     width: 300,
@@ -1888,12 +2411,12 @@ const styles = StyleSheet.create({
   unfollowModalTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: COLORS.gray900,
+    color: c.gray900,
     marginBottom: 8,
   },
   unfollowModalMessage: {
     fontSize: 15,
-    color: COLORS.gray500,
+    color: c.gray500,
     textAlign: 'center',
     lineHeight: 22,
     marginBottom: 24,
@@ -1906,7 +2429,7 @@ const styles = StyleSheet.create({
   unfollowModalCancelBtn: {
     flex: 1,
     borderWidth: 1.5,
-    borderColor: COLORS.gray200,
+    borderColor: c.gray200,
     borderRadius: 12,
     paddingVertical: 12,
     alignItems: 'center',
@@ -1914,7 +2437,7 @@ const styles = StyleSheet.create({
   unfollowModalCancelText: {
     fontSize: 15,
     fontWeight: '600',
-    color: COLORS.gray700,
+    color: c.gray700,
   },
   unfollowModalConfirmBtn: {
     flex: 1,
@@ -1926,54 +2449,60 @@ const styles = StyleSheet.create({
   unfollowModalConfirmText: {
     fontSize: 15,
     fontWeight: '700',
-    color: COLORS.white,
+    color: '#FFFFFF',
   },
 
   // Pick Tag Modal
+  // Pick-tag picker is now a full-screen takeover, not a bottom-sheet.
+  // The previous bottom-sheet (rgba 0.4 backdrop + 88% max-height) caused
+  // a real bug report: when the picker's content didn't fill 88% of the
+  // screen, the dimmed FriendDetail showed through above AND below the
+  // sheet, so users perceived the picker as "inline content stuck in the
+  // middle of the friend page". Switching to opaque full-screen kills
+  // the perception ambiguity — it's clearly a separate surface now.
   pickModalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.4)',
-    justifyContent: 'flex-end',
+    backgroundColor: c.white,
   },
   pickModalContainer: {
-    backgroundColor: COLORS.white,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    paddingTop: 20,
+    flex: 1,
+    paddingTop: Platform.OS === 'ios' ? 56 : 32,
     paddingHorizontal: 20,
-    paddingBottom: 40,
-    maxHeight: '88%',
+    paddingBottom: 24,
   },
   pickModalHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 6,
+    marginBottom: 12,
+    paddingBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: c.gray100,
   },
   pickModalTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: COLORS.gray900,
+    color: c.gray900,
   },
   pickModalCloseText: {
     fontSize: 15,
     fontWeight: '600',
-    color: COLORS.gray500,
+    color: c.gray500,
   },
   pickModalSaveText: {
     fontSize: 15,
     fontWeight: '700',
-    color: COLORS.piktag500,
+    color: c.piktag500,
   },
   pickModalSubtitle: {
     fontSize: 14,
-    color: COLORS.gray500,
+    color: c.gray500,
     marginBottom: 20,
     lineHeight: 20,
   },
   pickModalEmpty: {
     fontSize: 14,
-    color: COLORS.gray400,
+    color: c.gray400,
     textAlign: 'center',
     paddingVertical: 30,
   },
@@ -1990,32 +2519,33 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderRadius: 9999,
-    backgroundColor: COLORS.gray100,
+    backgroundColor: c.gray100,
     borderWidth: 1.5,
     borderColor: 'transparent',
   },
+  // 已選=piktag500 實心 + 白字 — founder 2026-05-23 contract.
   pickModalTagSelected: {
-    backgroundColor: COLORS.piktag50,
-    borderColor: COLORS.piktag500,
+    backgroundColor: c.piktag500,
   },
   pickModalTagText: {
     fontSize: 14,
     fontWeight: '500',
-    color: COLORS.gray600,
+    color: c.gray600,
   },
   pickModalTagTextSelected: {
-    color: COLORS.piktag600,
+    color: '#FFFFFF',
     fontWeight: '700',
   },
   pickModalDivider: {
     height: 1,
-    backgroundColor: COLORS.gray100,
+    backgroundColor: c.gray100,
     marginVertical: 20,
   },
   pickModalSectionTitle: {
     fontSize: 15,
     fontWeight: '600',
-    color: COLORS.gray500,
+    color: c.gray500,
     marginBottom: 12,
   },
-});
+  });
+}

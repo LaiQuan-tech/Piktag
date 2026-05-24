@@ -5,16 +5,17 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
-  ActivityIndicator,
   Keyboard,
   Alert,
 } from 'react-native';
+import BrandSpinner from './loaders/BrandSpinner';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTranslation } from 'react-i18next';
 import { getLocales } from 'expo-localization';
-import { X } from 'lucide-react-native';
+import { Plus } from 'lucide-react-native';
 import { supabase } from '../lib/supabase';
-import { COLORS } from '../constants/theme';
+import { COLORS, type ColorPalette } from '../constants/theme';
+import { useTheme } from '../context/ThemeContext';
 import LocationPickerModal from './LocationPickerModal';
 
 export type HiddenTag = { id: string; tagId: string; name: string };
@@ -28,6 +29,23 @@ type Props = {
 
 const RECENT_LOCATIONS_KEY = 'piktag_recent_locations';
 const MAX_FREQUENT = 12;
+
+// Sliding window for the "frequency" half of the suggested-tag pool.
+// We only count tags applied to the user's MOST RECENT N connections —
+// older connections age out, so the row tracks the user's CURRENT
+// tagging habit instead of an ever-growing lifetime aggregate.
+//
+// Picked 10 after considering:
+//   * 3-5: too volatile — a single one-off tag dominates the row
+//   * 20+: drifts back into "lifetime" semantics, defeats the purpose
+//   * 10: typical user has ~20-40 tag instances across last 10
+//     connections, which gives a clear count gradient for the
+//     12-chip cap; covers a single conference's worth of contacts
+//     for power users and ~1-2 weeks for daily networkers.
+//
+// Tune by changing this single constant — the rest of the pipeline
+// is window-agnostic.
+const RECENT_CONNECTIONS_WINDOW = 10;
 
 const DATE_LIKE_RE = /^\d{4}/;
 
@@ -49,6 +67,8 @@ function formatDateDisplay(d: Date): string {
 
 export default function HiddenTagEditor({ connectionId, userId, hiddenTags, onTagsChanged }: Props) {
   const { t } = useTranslation();
+  const { colors, isDark } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
 
   const [frequentTags, setFrequentTags] = useState<{ id: string; name: string }[]>([]);
   const [recentLocations, setRecentLocations] = useState<string[]>([]);
@@ -58,39 +78,99 @@ export default function HiddenTagEditor({ connectionId, userId, hiddenTags, onTa
 
   const currentNames = useMemo(() => new Set(hiddenTags.map((h) => h.name)), [hiddenTags]);
 
+  // Build the "推薦標籤" / "Suggested" pool from two intentional sources:
+  //
+  //   (a) 常用標籤 — frequency count of every private tag the viewer has
+  //       applied across all their connections (piktag_connection_tags
+  //       where is_private). Past event-tags from earlier QR sessions
+  //       naturally fall into this bucket because resolve_pending_connections
+  //       writes them as private connection-tags — they ARE "frequently
+  //       used" by definition.
+  //
+  //   (b) 這次QR的活動標籤 — the event_tags array on THIS connection's
+  //       scan_session (if it came from a QR scan). These should already
+  //       overlap with (a) once resolve_pending_connections has run, but
+  //       we explicitly merge them in to:
+  //         * cover the resolve-race window where the connection_tags
+  //           rows haven't been inserted yet when the picker opens
+  //         * give the just-set event tags a +1 count bump so they
+  //           surface to the front of the row alongside genuinely-
+  //           frequent tags
+  //
+  // Date-like names (YYYY/MM/DD) are still excluded — they have a
+  // dedicated 日期標籤 row above. No other tag-name dedupe runs.
   const loadFrequentTags = useCallback(async () => {
     if (!userId) return;
-    const { data: conns, error: connsErr } = await supabase
+    const counts = new Map<string, { id: string; name: string; count: number }>();
+
+    // (a) Frequency from the user's MOST RECENT N connections only.
+    // The .order().limit() bounds the sliding window — see
+    // RECENT_CONNECTIONS_WINDOW comment for why N=10. Without this
+    // cap, "Suggested" eventually becomes a lifetime aggregate of
+    // every tag the user has ever applied, which loses the
+    // "recent / current" feel that makes the row useful.
+    const { data: recentConns, error: connsErr } = await supabase
       .from('piktag_connections')
       .select('id')
-      .eq('user_id', userId);
-    if (connsErr || !conns || conns.length === 0) {
-      setFrequentTags([]);
-      return;
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+      .limit(RECENT_CONNECTIONS_WINDOW);
+    if (!connsErr && recentConns && recentConns.length > 0) {
+      const connIds = recentConns.map((c: any) => c.id);
+      const { data: tagRows, error: tagsErr } = await supabase
+        .from('piktag_connection_tags')
+        .select('tag_id, piktag_tags!inner(id, name)')
+        .eq('is_private', true)
+        .in('connection_id', connIds);
+      if (!tagsErr && tagRows) {
+        for (const row of tagRows as any[]) {
+          const tag = row.piktag_tags;
+          if (!tag?.id || !tag?.name) continue;
+          const existing = counts.get(tag.id);
+          if (existing) existing.count++;
+          else counts.set(tag.id, { id: tag.id, name: tag.name, count: 1 });
+        }
+      }
     }
-    const connIds = conns.map((c: any) => c.id);
 
-    const { data: tagRows, error: tagsErr } = await supabase
-      .from('piktag_connection_tags')
-      .select('tag_id, piktag_tags!inner(id, name)')
-      .eq('is_private', true)
-      .in('connection_id', connIds);
-    if (tagsErr || !tagRows) return;
-
-    const counts = new Map<string, { id: string; name: string; count: number }>();
-    for (const row of tagRows as any[]) {
-      const tag = row.piktag_tags;
-      if (!tag?.id || !tag?.name) continue;
-      const existing = counts.get(tag.id);
-      if (existing) existing.count++;
-      else counts.set(tag.id, { id: tag.id, name: tag.name, count: 1 });
+    // (b) THIS connection's scan-session event tags. Two-step lookup:
+    //     connection.scan_session_id → scan_session.event_tags[] (names)
+    //     → piktag_tags.id by name
+    if (connectionId) {
+      const { data: thisConn } = await supabase
+        .from('piktag_connections')
+        .select('scan_session_id')
+        .eq('id', connectionId)
+        .maybeSingle();
+      const sid = (thisConn as any)?.scan_session_id;
+      if (sid) {
+        const { data: sess } = await supabase
+          .from('piktag_scan_sessions')
+          .select('event_tags')
+          .eq('id', sid)
+          .maybeSingle();
+        const eventTagNames: string[] = (sess as any)?.event_tags ?? [];
+        if (eventTagNames.length > 0) {
+          const { data: tags } = await supabase
+            .from('piktag_tags')
+            .select('id, name')
+            .in('name', eventTagNames);
+          for (const tag of ((tags ?? []) as any[])) {
+            if (!tag?.id || !tag?.name) continue;
+            const existing = counts.get(tag.id);
+            if (existing) existing.count++;
+            else counts.set(tag.id, { id: tag.id, name: tag.name, count: 1 });
+          }
+        }
+      }
     }
+
     const sorted = [...counts.values()]
       .filter((t) => !DATE_LIKE_RE.test(t.name))
       .sort((a, b) => b.count - a.count)
       .slice(0, MAX_FREQUENT);
     setFrequentTags(sorted.map(({ id, name }) => ({ id, name })));
-  }, [userId]);
+  }, [userId, connectionId]);
 
   const loadRecentLocations = useCallback(async () => {
     try {
@@ -240,7 +320,7 @@ export default function HiddenTagEditor({ connectionId, userId, hiddenTags, onTa
   return (
     <View>
       {/* ── 日期 ── */}
-      <Text style={styles.sectionTitle}>{t('addTag.dateLabel') || '日期'}</Text>
+      <Text style={styles.sectionTitle}>{t('addTag.dateLabel', { defaultValue: '日期' })}</Text>
       <View style={styles.chipRow}>
         {dateChips.map((chip) => {
           const isSelected = currentNames.has(chip.value);
@@ -261,7 +341,7 @@ export default function HiddenTagEditor({ connectionId, userId, hiddenTags, onTa
       </View>
 
       {/* ── 地點 ── */}
-      <Text style={styles.sectionTitle}>{t('addTag.locationLabel') || '地點'}</Text>
+      <Text style={styles.sectionTitle}>{t('addTag.locationLabel', { defaultValue: '地點' })}</Text>
       <View style={styles.chipRow}>
         <TouchableOpacity
           style={styles.pickChip}
@@ -269,7 +349,7 @@ export default function HiddenTagEditor({ connectionId, userId, hiddenTags, onTa
           disabled={busy}
           activeOpacity={0.7}
         >
-          <Text style={styles.pickChipText}>{t('addTag.selectLocation') || '選地點'}</Text>
+          <Text style={styles.pickChipText}>{t('addTag.selectLocation', { defaultValue: '選地點' })}</Text>
         </TouchableOpacity>
         {recentLocations.map((loc) => {
           const isSelected = currentNames.has(loc);
@@ -289,10 +369,17 @@ export default function HiddenTagEditor({ connectionId, userId, hiddenTags, onTa
         })}
       </View>
 
-      {/* ── 常用標籤 ── */}
-      {filteredFrequent.length > 0 && (
+      {/* ── 常用標籤 ──
+          Merges the preset frequent tags with whatever the user added
+          via the text input that doesn't match a date / location /
+          frequent preset. Both render as the same toggleable chip
+          (selected = purple background, unselected = grey), so the
+          user has one mental model: "tap a chip to flip it on/off".
+          The previous separate "已加入" row with × buttons was a
+          different pattern for the same action and felt redundant. */}
+      {(filteredFrequent.length > 0 || manualHiddenTags.length > 0) && (
         <>
-          <Text style={styles.sectionTitle}>{t('hiddenTagEditor.frequentTitle')}</Text>
+          <Text style={styles.sectionTitle}>{t('hiddenTagEditor.suggestedTitle')}</Text>
           <View style={styles.chipRow}>
             {filteredFrequent.map((tag) => {
               const isSelected = currentNames.has(tag.name);
@@ -310,54 +397,49 @@ export default function HiddenTagEditor({ connectionId, userId, hiddenTags, onTa
                 </TouchableOpacity>
               );
             })}
-          </View>
-        </>
-      )}
-
-      {/* ── 已加入 (manual-only, not duplicating chips above) ── */}
-      {manualHiddenTags.length > 0 && (
-        <>
-          <Text style={styles.sectionTitle}>{t('hiddenTagEditor.addedTitle')}</Text>
-          <View style={styles.chipRow}>
             {manualHiddenTags.map((ht) => (
-              <View key={ht.id} style={styles.addedChip}>
-                <Text style={styles.addedChipText}>#{ht.name}</Text>
-                <TouchableOpacity
-                  onPress={() => removeHiddenTag(ht.id)}
-                  disabled={busy}
-                  activeOpacity={0.6}
-                  style={styles.addedChipRemove}
-                  hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
-                >
-                  <X size={12} color={COLORS.piktag600} />
-                </TouchableOpacity>
-              </View>
+              <TouchableOpacity
+                key={ht.id}
+                style={[styles.pickChip, styles.pickChipSelected]}
+                onPress={() => removeHiddenTag(ht.id)}
+                disabled={busy}
+                activeOpacity={0.7}
+              >
+                <Text style={[styles.pickChipText, styles.pickChipTextSelected]}>
+                  #{ht.name}
+                </Text>
+              </TouchableOpacity>
             ))}
           </View>
         </>
       )}
 
-      {/* ── 自訂輸入 ── */}
+      {/* ── 自訂輸入 ──
+          The "add" CTA is a + circular button matching AskCreateModal's
+          custom-tag input. Same shape across the app for the same
+          action ("type a tag, tap + to add"). */}
       <View style={styles.inputRow}>
         <TextInput
           style={styles.input}
           value={textValue}
           onChangeText={setTextValue}
           placeholder={t('hiddenTagEditor.otherPlaceholder')}
-          placeholderTextColor={COLORS.gray400}
+          placeholderTextColor={colors.gray400}
           returnKeyType="done"
           onSubmitEditing={handleTextSubmit}
         />
         <TouchableOpacity
-          style={[styles.addBtn, (!textValue.trim() || busy) && { opacity: 0.5 }]}
+          style={styles.addBtn}
           onPress={handleTextSubmit}
           disabled={!textValue.trim() || busy}
           activeOpacity={0.7}
+          accessibilityRole="button"
+          accessibilityLabel={t('common.add', { defaultValue: '新增' })}
         >
           {busy ? (
-            <ActivityIndicator size="small" color={COLORS.white} />
+            <BrandSpinner size={20} />
           ) : (
-            <Text style={styles.addBtnText}>{t('common.add')}</Text>
+            <Plus size={18} color="#fff" strokeWidth={2.5} />
           )}
         </TouchableOpacity>
       </View>
@@ -371,11 +453,12 @@ export default function HiddenTagEditor({ connectionId, userId, hiddenTags, onTa
   );
 }
 
-const styles = StyleSheet.create({
+function makeStyles(c: ColorPalette) {
+  return StyleSheet.create({
   sectionTitle: {
     fontSize: 13,
     fontWeight: '600',
-    color: COLORS.gray600,
+    color: c.gray600,
     marginTop: 14,
     marginBottom: 8,
   },
@@ -391,48 +474,30 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderRadius: 9999,
-    backgroundColor: COLORS.gray100,
+    backgroundColor: c.gray100,
     borderWidth: 1.5,
     borderColor: 'transparent',
   },
+  // 已選=piktag500 實心 + 白字 — founder 2026-05-23 contract.
   pickChipSelected: {
-    backgroundColor: COLORS.piktag50,
-    borderColor: COLORS.piktag500,
+    backgroundColor: c.piktag500,
   },
   pickChipDisabled: {
-    backgroundColor: COLORS.gray100,
-    borderColor: COLORS.gray200,
+    backgroundColor: c.gray100,
+    borderColor: c.gray200,
     opacity: 0.5,
   },
   pickChipText: {
     fontSize: 14,
-    color: COLORS.gray600,
+    color: c.gray600,
     fontWeight: '500',
   },
   pickChipTextSelected: {
-    color: COLORS.piktag600,
+    color: '#FFFFFF',
     fontWeight: '700',
   },
   pickChipTextDisabled: {
-    color: COLORS.gray400,
-  },
-  addedChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingLeft: 14,
-    paddingRight: 10,
-    paddingVertical: 8,
-    borderRadius: 9999,
-    backgroundColor: COLORS.piktag50,
-  },
-  addedChipText: {
-    fontSize: 14,
-    color: COLORS.piktag600,
-    fontWeight: '500',
-  },
-  addedChipRemove: {
-    padding: 2,
+    color: c.gray400,
   },
   inputRow: {
     flexDirection: 'row',
@@ -445,23 +510,26 @@ const styles = StyleSheet.create({
     height: 40,
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: COLORS.gray200,
+    borderColor: c.gray200,
     paddingHorizontal: 12,
     fontSize: 14,
-    color: COLORS.gray900,
-    backgroundColor: COLORS.white,
+    color: c.gray900,
+    backgroundColor: c.white,
   },
+  // Square-rounded 40×40 + button — borderRadius 12 matches the
+  // unified shape used across AddTagScreen / ManageTagsScreen /
+  // ActivityReviewScreen / AskCreateModal. The square-rounded form
+  // reads more clearly as a tap target than a full circle.
   addBtn: {
-    paddingHorizontal: 16,
+    width: 40,
     height: 40,
-    borderRadius: 10,
-    backgroundColor: COLORS.piktag500,
+    borderRadius: 12,
+    backgroundColor: c.piktag500,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  addBtnText: {
-    color: COLORS.white,
-    fontSize: 14,
-    fontWeight: '600',
-  },
-});
+  // addBtnDisabled removed — see EditProfileScreen.tag_addBtn comment
+  // for the rationale. Disabled prop blocks the tap; visual stays full
+  // brand purple so the same + button reads identically across the app.
+  });
+}

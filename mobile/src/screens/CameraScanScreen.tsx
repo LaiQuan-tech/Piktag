@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef, useEffect } from 'react';
+import React, { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import {
   View,
   Text,
@@ -12,12 +12,17 @@ import { CameraView, useCameraPermissions } from 'expo-camera';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { X } from 'lucide-react-native';
-import { COLORS } from '../constants/theme';
+import { COLORS, type ColorPalette } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
+import ScanSuccessStinger from '../components/stingers/ScanSuccessStinger';
 
 type CameraScanScreenProps = {
   navigation: any;
 };
+
+type PendingScanNav =
+  | { route: 'UserDetail'; params: Record<string, unknown> }
+  | { route: 'ScanResult'; params: Record<string, unknown> };
 
 type PiktagQrPayload = {
   type: string;
@@ -36,9 +41,13 @@ const SCAN_FRAME_SIZE = SCREEN_WIDTH * 0.65;
 export default function CameraScanScreen({ navigation }: CameraScanScreenProps) {
   const { t } = useTranslation();
   const { colors, isDark } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const insets = useSafeAreaInsets();
   const [permission, requestPermission] = useCameraPermissions();
   const [scanned, setScanned] = useState(false);
+  const [stingerVisible, setStingerVisible] = useState(false);
+  const [pendingNav, setPendingNav] = useState<PendingScanNav | null>(null);
+  const [stingerFriendName, setStingerFriendName] = useState<string | undefined>(undefined);
   const scanTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -102,29 +111,42 @@ export default function CameraScanScreen({ navigation }: CameraScanScreenProps) 
       // Try new URL format first: https://pikt.ag/{username}?sid=xxx
       const urlResult = parseUrlFormat(result.data);
       if (urlResult) {
-        navigation.navigate('UserDetail', {
-          username: urlResult.username,
-          sid: urlResult.sid,
-          tags: urlResult.tags,
-          date: urlResult.date,
-          loc: urlResult.loc,
+        // The URL format only carries a username — friendName is unknown
+        // until the ScanResult/UserDetail RPC resolves server-side, so
+        // we let the stinger render without a chip.
+        setStingerFriendName(undefined);
+        setPendingNav({
+          route: 'UserDetail',
+          params: {
+            username: urlResult.username,
+            sid: urlResult.sid,
+            tags: urlResult.tags,
+            date: urlResult.date,
+            loc: urlResult.loc,
+          },
         });
-        scanTimeoutRef.current = setTimeout(() => setScanned(false), 3000);
+        setStingerVisible(true);
         return;
       }
 
       // Try old base64 payload format (backward compat)
       const payload = decodeQrValue(result.data);
       if (payload) {
-        navigation.navigate('ScanResult', {
-          sessionId: payload.sid,
-          hostUserId: payload.uid,
-          hostName: payload.name,
-          eventDate: payload.date,
-          eventLocation: payload.loc,
-          hostTags: payload.tags || [],
+        // Old payload embeds the host name directly, so we can show
+        // the chip immediately for a more personal feel.
+        setStingerFriendName(payload.name || undefined);
+        setPendingNav({
+          route: 'ScanResult',
+          params: {
+            sessionId: payload.sid,
+            hostUserId: payload.uid,
+            hostName: payload.name,
+            eventDate: payload.date,
+            eventLocation: payload.loc,
+            hostTags: payload.tags || [],
+          },
         });
-        scanTimeoutRef.current = setTimeout(() => setScanned(false), 3000);
+        setStingerVisible(true);
         return;
       }
 
@@ -144,7 +166,7 @@ export default function CameraScanScreen({ navigation }: CameraScanScreenProps) 
   if (!permission) {
     return (
       <View style={styles.container}>
-        <StatusBar barStyle="light-content" backgroundColor={COLORS.black} />
+        <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor={'#000000'} />
       </View>
     );
   }
@@ -153,7 +175,7 @@ export default function CameraScanScreen({ navigation }: CameraScanScreenProps) 
   if (!permission.granted) {
     return (
       <View style={styles.container}>
-        <StatusBar barStyle="light-content" backgroundColor={COLORS.black} />
+        <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor={'#000000'} />
 
         {/* Close button */}
         <View style={[styles.headerOverlay, { paddingTop: insets.top + 12 }]}>
@@ -162,7 +184,7 @@ export default function CameraScanScreen({ navigation }: CameraScanScreenProps) 
             onPress={() => navigation.canGoBack() ? navigation.goBack() : navigation.navigate("Connections")}
             activeOpacity={0.6}
           >
-            <X size={24} color={COLORS.white} />
+            <X size={24} color={'#FFFFFF'} />
           </TouchableOpacity>
         </View>
 
@@ -192,7 +214,7 @@ export default function CameraScanScreen({ navigation }: CameraScanScreenProps) 
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
+      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor="transparent" translucent />
 
       {/* Full-screen camera */}
       <CameraView
@@ -201,7 +223,11 @@ export default function CameraScanScreen({ navigation }: CameraScanScreenProps) 
         barcodeScannerSettings={{
           barcodeTypes: ['qr'],
         }}
-        onBarcodeScanned={handleBarcodeScanned}
+        // Detach the barcode handler entirely while the stinger is on
+        // screen so the underlying camera can't fire a second decode for
+        // the same QR (or a different one held up to the lens) during
+        // the ~1s celebration window.
+        onBarcodeScanned={stingerVisible ? undefined : handleBarcodeScanned}
       />
 
       {/* Overlay */}
@@ -213,7 +239,7 @@ export default function CameraScanScreen({ navigation }: CameraScanScreenProps) 
             onPress={() => navigation.canGoBack() ? navigation.goBack() : navigation.navigate("Connections")}
             activeOpacity={0.6}
           >
-            <X size={24} color={COLORS.white} />
+            <X size={24} color={'#FFFFFF'} />
           </TouchableOpacity>
         </View>
 
@@ -254,6 +280,30 @@ export default function CameraScanScreen({ navigation }: CameraScanScreenProps) 
           </Text>
         </View>
       </View>
+
+      {/* Hero stinger plays on successful decode, then completes the
+          deferred navigation. Mounted at the screen root (outside the
+          camera overlay) so its full-screen Modal can layer cleanly
+          over the live camera feed. */}
+      <ScanSuccessStinger
+        visible={stingerVisible}
+        friendName={stingerFriendName}
+        onComplete={() => {
+          setStingerVisible(false);
+          const next = pendingNav;
+          setPendingNav(null);
+          setStingerFriendName(undefined);
+          if (next) {
+            // Use replace so the user can't swipe back into the camera
+            // mid-stinger and end up with a stale scan in history.
+            navigation.replace(next.route, next.params);
+          } else {
+            // Decode succeeded but navigation params were dropped (rare,
+            // e.g. mid-completion remount) — re-arm the scanner.
+            setScanned(false);
+          }
+        }}
+      />
     </View>
   );
 }
@@ -261,10 +311,11 @@ export default function CameraScanScreen({ navigation }: CameraScanScreenProps) 
 const CORNER_LENGTH = 24;
 const CORNER_THICKNESS = 3;
 
-const styles = StyleSheet.create({
+function makeStyles(c: ColorPalette) {
+  return StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.black,
+    backgroundColor: '#000000',
   },
   headerOverlay: {
     position: 'absolute',
@@ -292,19 +343,19 @@ const styles = StyleSheet.create({
   permissionTitle: {
     fontSize: 24,
     fontWeight: '700',
-    color: COLORS.white,
+    color: '#FFFFFF',
     marginBottom: 12,
     textAlign: 'center',
   },
   permissionMessage: {
     fontSize: 16,
-    color: COLORS.gray400,
+    color: c.gray400,
     textAlign: 'center',
     lineHeight: 24,
     marginBottom: 32,
   },
   permissionButton: {
-    backgroundColor: COLORS.piktag500,
+    backgroundColor: c.piktag500,
     borderRadius: 14,
     paddingVertical: 16,
     paddingHorizontal: 32,
@@ -342,8 +393,8 @@ const styles = StyleSheet.create({
     left: 0,
     borderTopWidth: CORNER_THICKNESS,
     borderLeftWidth: CORNER_THICKNESS,
-    borderTopColor: COLORS.piktag500,
-    borderLeftColor: COLORS.piktag500,
+    borderTopColor: c.piktag500,
+    borderLeftColor: c.piktag500,
     borderTopLeftRadius: 4,
   },
   cornerTopRight: {
@@ -351,8 +402,8 @@ const styles = StyleSheet.create({
     right: 0,
     borderTopWidth: CORNER_THICKNESS,
     borderRightWidth: CORNER_THICKNESS,
-    borderTopColor: COLORS.piktag500,
-    borderRightColor: COLORS.piktag500,
+    borderTopColor: c.piktag500,
+    borderRightColor: c.piktag500,
     borderTopRightRadius: 4,
   },
   cornerBottomLeft: {
@@ -360,8 +411,8 @@ const styles = StyleSheet.create({
     left: 0,
     borderBottomWidth: CORNER_THICKNESS,
     borderLeftWidth: CORNER_THICKNESS,
-    borderBottomColor: COLORS.piktag500,
-    borderLeftColor: COLORS.piktag500,
+    borderBottomColor: c.piktag500,
+    borderLeftColor: c.piktag500,
     borderBottomLeftRadius: 4,
   },
   cornerBottomRight: {
@@ -369,8 +420,8 @@ const styles = StyleSheet.create({
     right: 0,
     borderBottomWidth: CORNER_THICKNESS,
     borderRightWidth: CORNER_THICKNESS,
-    borderBottomColor: COLORS.piktag500,
-    borderRightColor: COLORS.piktag500,
+    borderBottomColor: c.piktag500,
+    borderRightColor: c.piktag500,
     borderBottomRightRadius: 4,
   },
   instructionContainer: {
@@ -385,10 +436,11 @@ const styles = StyleSheet.create({
   instructionText: {
     fontSize: 16,
     fontWeight: '600',
-    color: COLORS.white,
+    color: '#FFFFFF',
     textAlign: 'center',
     textShadowColor: 'rgba(0, 0, 0, 0.6)',
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 4,
   },
-});
+  });
+}

@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useMemo } from 'react';
 import {
   View,
   Text,
@@ -6,17 +6,20 @@ import {
   TouchableOpacity,
   StyleSheet,
   Alert,
-  ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
 } from 'react-native';
+import BrandSpinner from '../../components/loaders/BrandSpinner';
 import { useTranslation } from 'react-i18next';
-import { Hash, Eye, EyeOff } from 'lucide-react-native';
+import { Eye, EyeOff } from 'lucide-react-native';
 import { supabase } from '../../lib/supabase';
+import { toBirthdayDate } from '../../lib/birthday';
 import { signInWithApple } from '../../lib/appleAuth';
 import { signInWithGoogle } from '../../lib/googleAuth';
-import { COLORS, SPACING, BORDER_RADIUS } from '../../constants/theme';
+import { trackSignupComplete } from '../../lib/analytics';
+import { COLORS, SPACING, BORDER_RADIUS, type ColorPalette } from '../../constants/theme';
+import { useTheme } from '../../context/ThemeContext';
 
 type RegisterScreenProps = {
   navigation: any;
@@ -24,15 +27,23 @@ type RegisterScreenProps = {
 
 export default function RegisterScreen({ navigation }: RegisterScreenProps) {
   const { t } = useTranslation();
+  const { colors, isDark } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  // Birthday is the core of PikTag's CRM — the daily pg_cron fn
+  // surfaces "X 今天生日" reminders to friends. Optional here (also
+  // collected in Onboarding / EditProfile) but capturing at sign-up
+  // gives the highest yield. Stored normalized to YYYY-MM-DD.
+  const [birthday, setBirthday] = useState('');
   const [socialLoading, setSocialLoading] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const passwordRef = useRef<TextInput>(null);
   const confirmPasswordRef = useRef<TextInput>(null);
+  const birthdayRef = useRef<TextInput>(null);
 
   const handleRegister = async () => {
     if (!email.trim() || !password.trim()) {
@@ -66,8 +77,42 @@ export default function RegisterScreen({ navigation }: RegisterScreenProps) {
         return;
       }
 
+      // Persist birthday on the profile if the viewer entered one.
+      // Normalize to YYYY-MM-DD — the live pg_cron fn
+      // (enqueue_birthday_notifications) only counts a profile
+      // birthday matching ^\d{4}-\d{2}-\d{2}$ (then ::date). Was
+      // storing the raw string (latent broken-CRM bug); now shared
+      // with Onboarding via lib/birthday.ts (Onboarding also
+      // collects it so OAuth signups aren't left without one).
+      const normBirthday = toBirthdayDate(birthday);
+      const userId = data.user?.id;
+      // Only writable when we actually have a session (email-confirm
+      // OFF). upsert — not update().eq — so a profile row the signup
+      // trigger hasn't committed yet still gets the birthday instead
+      // of a silent 0-row no-op (data loss with no feedback).
+      if (normBirthday && userId && data.session) {
+        await supabase
+          .from('piktag_profiles')
+          .upsert({ id: userId, birthday: normBirthday }, { onConflict: 'id' })
+          .then(({ error: bdayErr }) => {
+            if (bdayErr) console.warn('Save birthday failed:', bdayErr.message);
+          });
+      }
+
       if (data.session) {
         Alert.alert(t('auth.register.alertSuccessTitle'), t('auth.register.alertSuccessMessage'));
+      } else {
+        // Email confirmation is ON: signUp returns NO session and NO
+        // error. Without this branch the user taps Register and sees
+        // absolutely nothing — a silent dead end on the form. Tell
+        // them to verify, then route to Login.
+        Alert.alert(
+          t('auth.register.alertVerifyEmailTitle', { defaultValue: '請先驗證 Email' }),
+          t('auth.register.alertVerifyEmailMessage', {
+            defaultValue: '我們寄了一封確認信到你的信箱，點開信中連結後，再回來登入。',
+          }),
+        );
+        navigation.navigate('Login');
       }
     } catch (err: any) {
       Alert.alert(t('common.error'), err.message || t('common.unknownError'));
@@ -93,12 +138,13 @@ export default function RegisterScreen({ navigation }: RegisterScreenProps) {
           <Text style={styles.subtitle}>{t('common.brandSlogan')}</Text>
         </View>
 
+
         {/* Form */}
         <View style={styles.formContainer}>
           <TextInput
             style={styles.input}
             placeholder={t('auth.register.emailPlaceholder')}
-            placeholderTextColor={COLORS.gray400}
+            placeholderTextColor={colors.gray400}
             value={email}
             onChangeText={setEmail}
             keyboardType="email-address"
@@ -115,9 +161,9 @@ export default function RegisterScreen({ navigation }: RegisterScreenProps) {
             ]}>
               <TextInput
                 ref={passwordRef}
-                style={[styles.passwordInput, { color: '#000000' }]}
+                style={[styles.passwordInput, { color: colors.text }]}
                 placeholder={t('auth.register.passwordPlaceholder')}
-                placeholderTextColor={COLORS.gray400}
+                placeholderTextColor={colors.gray400}
                 value={password}
                 onChangeText={setPassword}
                 secureTextEntry={!showPassword}
@@ -130,9 +176,9 @@ export default function RegisterScreen({ navigation }: RegisterScreenProps) {
                 activeOpacity={0.6}
               >
                 {showPassword ? (
-                  <EyeOff size={20} color={COLORS.gray500} />
+                  <EyeOff size={20} color={colors.gray500} />
                 ) : (
-                  <Eye size={20} color={COLORS.gray500} />
+                  <Eye size={20} color={colors.gray500} />
                 )}
               </TouchableOpacity>
             </View>
@@ -150,14 +196,14 @@ export default function RegisterScreen({ navigation }: RegisterScreenProps) {
             ]}>
               <TextInput
                 ref={confirmPasswordRef}
-                style={[styles.passwordInput, { color: '#000000' }]}
+                style={[styles.passwordInput, { color: colors.text }]}
                 placeholder={t('auth.register.confirmPasswordPlaceholder')}
-                placeholderTextColor={COLORS.gray400}
+                placeholderTextColor={colors.gray400}
                 value={confirmPassword}
                 onChangeText={setConfirmPassword}
                 secureTextEntry={!showConfirmPassword}
-                returnKeyType="done"
-                onSubmitEditing={handleRegister}
+                returnKeyType="next"
+                onSubmitEditing={() => birthdayRef.current?.focus()}
               />
               <TouchableOpacity
                 style={styles.eyeButton}
@@ -165,9 +211,9 @@ export default function RegisterScreen({ navigation }: RegisterScreenProps) {
                 activeOpacity={0.6}
               >
                 {showConfirmPassword ? (
-                  <EyeOff size={20} color={COLORS.gray500} />
+                  <EyeOff size={20} color={colors.gray500} />
                 ) : (
-                  <Eye size={20} color={COLORS.gray500} />
+                  <Eye size={20} color={colors.gray500} />
                 )}
               </TouchableOpacity>
             </View>
@@ -178,6 +224,27 @@ export default function RegisterScreen({ navigation }: RegisterScreenProps) {
             )}
           </View>
 
+          {/* Birthday — optional but encouraged. Format MM/DD matches the
+              Onboarding screen's input + the daily-birthday-check edge
+              function's exact-string match query. */}
+          <View style={styles.birthdayRow}>
+            <Text style={styles.birthdayLabel}>
+              {t('auth.register.birthdayLabel', { defaultValue: '生日（選填）' })}
+            </Text>
+            <TextInput
+              ref={birthdayRef}
+              style={styles.birthdayInput}
+              placeholder="MM/DD"
+              placeholderTextColor={colors.gray400}
+              value={birthday}
+              onChangeText={setBirthday}
+              keyboardType="numbers-and-punctuation"
+              maxLength={5}
+              returnKeyType="done"
+              onSubmitEditing={handleRegister}
+            />
+          </View>
+
           <TouchableOpacity
             style={[styles.registerButton, loading && styles.registerButtonDisabled]}
             onPress={handleRegister}
@@ -186,7 +253,7 @@ export default function RegisterScreen({ navigation }: RegisterScreenProps) {
             accessibilityRole="button"
           >
             {loading ? (
-              <ActivityIndicator color={COLORS.white} />
+              <BrandSpinner size={20} />
             ) : (
               <Text style={styles.registerButtonText}>{t('auth.register.registerButton')}</Text>
             )}
@@ -196,7 +263,7 @@ export default function RegisterScreen({ navigation }: RegisterScreenProps) {
         {/* Divider */}
         <View style={styles.dividerRow}>
           <View style={styles.dividerLine} />
-          <Text style={styles.dividerText}>{t('auth.login.orDivider') || '或'}</Text>
+          <Text style={styles.dividerText}>{t('auth.login.orDivider', { defaultValue: '或' })}</Text>
           <View style={styles.dividerLine} />
         </View>
 
@@ -208,9 +275,9 @@ export default function RegisterScreen({ navigation }: RegisterScreenProps) {
               try { await signInWithApple(); } catch (err: any) { if (err.code !== 'ERR_CANCELED') Alert.alert(t('common.error'), err.message); }
               setSocialLoading(null);
             }} disabled={!!socialLoading} activeOpacity={0.8}>
-              {socialLoading === 'apple' ? <ActivityIndicator color={COLORS.gray900} /> : <>
+              {socialLoading === 'apple' ? <BrandSpinner size={20} /> : <>
                 <Text style={styles.appleIcon}>{'\uF8FF'}</Text>
-                <Text style={styles.socialBtnText}>{t('auth.login.continueWithApple') || 'Apple 登入'}</Text>
+                <Text style={styles.socialBtnText}>{t('auth.login.continueWithApple', { defaultValue: 'Apple 登入' })}</Text>
               </>}
             </TouchableOpacity>
           )}
@@ -219,9 +286,9 @@ export default function RegisterScreen({ navigation }: RegisterScreenProps) {
             try { await signInWithGoogle(); } catch (err: any) { Alert.alert(t('common.error'), err.message); }
             setSocialLoading(null);
           }} disabled={!!socialLoading} activeOpacity={0.8}>
-            {socialLoading === 'google' ? <ActivityIndicator color={COLORS.gray900} /> : <>
+            {socialLoading === 'google' ? <BrandSpinner size={20} /> : <>
               <Text style={styles.googleIcon}>G</Text>
-              <Text style={styles.socialBtnText}>{t('auth.login.continueWithGoogle') || 'Google 登入'}</Text>
+              <Text style={styles.socialBtnText}>{t('auth.login.continueWithGoogle', { defaultValue: 'Google 登入' })}</Text>
             </>}
           </TouchableOpacity>
         </View>
@@ -243,10 +310,11 @@ export default function RegisterScreen({ navigation }: RegisterScreenProps) {
   );
 }
 
-const styles = StyleSheet.create({
+function makeStyles(c: ColorPalette) {
+  return StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.white,
+    backgroundColor: c.white,
   },
   scrollContent: {
     flexGrow: 1,
@@ -266,11 +334,11 @@ const styles = StyleSheet.create({
   logoText: {
     fontSize: 48,
     fontWeight: 'bold',
-    color: COLORS.piktag500,
+    color: c.piktag500,
   },
   subtitle: {
     fontSize: 16,
-    color: COLORS.gray500,
+    color: c.gray500,
     marginTop: SPACING.sm,
   },
   formContainer: {
@@ -278,28 +346,28 @@ const styles = StyleSheet.create({
   },
   input: {
     borderWidth: 1,
-    borderColor: COLORS.gray200,
+    borderColor: c.gray200,
     borderRadius: BORDER_RADIUS.xl,
     paddingHorizontal: SPACING.xl,
     paddingVertical: 14,
     fontSize: 16,
-    color: COLORS.gray900,
-    backgroundColor: COLORS.white,
+    color: c.gray900,
+    backgroundColor: c.white,
   },
   passwordContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: COLORS.gray200,
+    borderColor: c.gray200,
     borderRadius: BORDER_RADIUS.xl,
-    backgroundColor: COLORS.white,
+    backgroundColor: c.white,
   },
   passwordInput: {
     flex: 1,
     paddingHorizontal: SPACING.xl,
     paddingVertical: 14,
     fontSize: 16,
-    color: COLORS.gray900,
+    color: c.gray900,
   },
   eyeButton: {
     paddingHorizontal: SPACING.lg,
@@ -314,8 +382,30 @@ const styles = StyleSheet.create({
     marginTop: 6,
     marginLeft: SPACING.xl,
   },
+  // Birthday row — labeled inline with the input so users see the field
+  // is optional. Visual matches the password row height for consistency.
+  birthdayRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: c.gray50,
+    borderRadius: BORDER_RADIUS.xl,
+    paddingHorizontal: SPACING.xl,
+    paddingVertical: 14,
+    gap: 12,
+  },
+  birthdayLabel: {
+    fontSize: 15,
+    color: c.gray700,
+    fontWeight: '500',
+  },
+  birthdayInput: {
+    flex: 1,
+    fontSize: 15,
+    color: c.text,
+    padding: 0,
+  },
   registerButton: {
-    backgroundColor: COLORS.piktag500,
+    backgroundColor: c.piktag500,
     borderRadius: BORDER_RADIUS.xl,
     paddingVertical: 16,
     alignItems: 'center',
@@ -326,21 +416,21 @@ const styles = StyleSheet.create({
     opacity: 0.7,
   },
   registerButtonText: {
-    color: COLORS.white,
+    color: '#FFFFFF',
     fontSize: 17,
     fontWeight: 'bold',
   },
   dividerRow: { flexDirection: 'row', alignItems: 'center', marginTop: 28, marginBottom: 20 },
-  dividerLine: { flex: 1, height: 1, backgroundColor: COLORS.gray200 },
-  dividerText: { paddingHorizontal: 14, fontSize: 13, color: COLORS.gray400 },
+  dividerLine: { flex: 1, height: 1, backgroundColor: c.gray200 },
+  dividerText: { paddingHorizontal: 14, fontSize: 13, color: c.gray400 },
   socialContainer: { gap: 10 },
   socialBtn: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10,
-    borderWidth: 1, borderColor: COLORS.gray200, borderRadius: BORDER_RADIUS.xl,
-    paddingVertical: 14, backgroundColor: COLORS.white,
+    borderWidth: 1, borderColor: c.gray200, borderRadius: BORDER_RADIUS.xl,
+    paddingVertical: 14, backgroundColor: c.white,
   },
-  socialBtnText: { fontSize: 16, fontWeight: '600', color: COLORS.gray800 },
-  appleIcon: { fontSize: 20, color: COLORS.gray900 },
+  socialBtnText: { fontSize: 16, fontWeight: '600', color: c.gray800 },
+  appleIcon: { fontSize: 20, color: c.gray900 },
   googleIcon: { fontSize: 18, fontWeight: '700', color: '#4285F4' },
   footer: {
     alignItems: 'center',
@@ -353,10 +443,11 @@ const styles = StyleSheet.create({
   },
   footerText: {
     fontSize: 14,
-    color: COLORS.gray500,
+    color: c.gray500,
   },
   footerLink: {
-    color: COLORS.piktag600,
+    color: c.piktag600,
     fontWeight: '600',
   },
-});
+  });
+}

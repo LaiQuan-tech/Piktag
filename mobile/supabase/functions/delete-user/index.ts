@@ -20,10 +20,15 @@
 // verify the caller's JWT first.
 //
 // Two code paths:
-//   1. Self-delete (mobile app): caller.id must equal body.user_id.
-//   2. Admin-initiated (admin panel): body.admin_action === true AND the
-//      caller's auth email is present in ADMIN_EMAILS_RAW. In this case
-//      the target user_id may be any user.
+//   1. Self-delete (mobile app): identity is ALWAYS derived from the JWT
+//      via auth.getUser(). Any client-supplied body.user_id is ignored
+//      (logged as a warning) — never trusted.
+//   2. Admin-initiated (admin panel): requires the `x-admin-action: true`
+//      header AND a constant-time match between the bearer token and
+//      SUPABASE_SERVICE_ROLE_KEY. Only then may body.user_id target an
+//      arbitrary user. (The legacy email-allowlist path is gone — it
+//      relied on a JWT-authenticated user, but admin tooling that already
+//      holds the service role doesn't need user-scoped auth.)
 
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
@@ -34,9 +39,22 @@ const corsHeaders = {
 };
 
 type DeleteBody = {
+  // Accepted only on the admin-initiated branch. On the self-delete branch
+  // it is IGNORED (and logged) — identity comes from the JWT.
   user_id?: string;
-  admin_action?: boolean;
 };
+
+// Constant-time string compare. Avoids leaking length/prefix info via
+// early-exit timing when validating the service-role bearer.
+function timingSafeEqual(a: string, b: string): boolean {
+  const enc = new TextEncoder();
+  const ab = enc.encode(a);
+  const bb = enc.encode(b);
+  if (ab.length !== bb.length) return false;
+  let diff = 0;
+  for (let i = 0; i < ab.length; i++) diff |= ab[i] ^ bb[i];
+  return diff === 0;
+}
 
 type TableCleanup = {
   table: string;
@@ -78,13 +96,6 @@ function jsonResponse(status: number, body: unknown): Response {
   });
 }
 
-function parseAdminEmails(raw: string | undefined): string[] {
-  return (raw ?? '')
-    .split(',')
-    .map((s) => s.trim().toLowerCase())
-    .filter(Boolean);
-}
-
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
@@ -118,52 +129,65 @@ serve(async (req) => {
     try {
       body = await req.json();
     } catch {
-      return jsonResponse(400, { error: 'Bad Request', detail: 'Body must be valid JSON' });
+      // An empty body is fine for self-delete; default to {}.
+      body = {};
     }
 
-    const requestedUserId = (body.user_id ?? '').trim();
-    if (!requestedUserId) {
-      return jsonResponse(400, { error: 'Bad Request', detail: 'Missing user_id' });
-    }
+    // Admin branch is gated by an explicit header AND a constant-time
+    // compare of the bearer against the service-role key. We do NOT
+    // accept any client-supplied "admin_action" body flag — headers and
+    // a real secret are required.
+    const adminHeader = req.headers.get('x-admin-action') ?? req.headers.get('X-Admin-Action');
+    const adminAction = adminHeader === 'true';
 
-    const adminAction = body.admin_action === true;
+    const bearer = authHeader.slice('bearer '.length).trim();
 
-    // Verify the caller's JWT via a user-scoped client.
-    const userClient = createClient(supabaseUrl, anonKey, {
-      global: { headers: { Authorization: authHeader } },
-    });
-
-    const { data: userData, error: userError } = await userClient.auth.getUser();
-    if (userError || !userData?.user) {
-      return jsonResponse(401, {
-        error: 'Unauthorized',
-        detail: userError?.message ?? 'Invalid JWT',
-      });
-    }
-
-    const caller = userData.user;
-    const callerId = caller.id;
-    const callerEmail = (caller.email ?? '').toLowerCase();
+    let callerId: string;
+    let callerEmail = '';
 
     if (adminAction) {
-      // Admin-initiated delete: caller must be on the allowlist.
-      const adminEmails = parseAdminEmails(Deno.env.get('ADMIN_EMAILS_RAW'));
-      if (!callerEmail || !adminEmails.includes(callerEmail)) {
+      // Service-role-bearing admin tool. Constant-time compare prevents
+      // timing oracles on the secret.
+      if (!timingSafeEqual(bearer, serviceRoleKey)) {
         return jsonResponse(403, {
           error: 'Forbidden',
-          detail: 'Not an admin',
+          detail: 'Admin action requires service-role bearer',
         });
       }
-      // Admin may target any user_id (including their own, though that's odd).
+      const requestedUserId = (body.user_id ?? '').trim();
+      if (!requestedUserId) {
+        return jsonResponse(400, {
+          error: 'Bad Request',
+          detail: 'Admin action requires user_id',
+        });
+      }
+      callerId = requestedUserId;
     } else {
-      // Self-delete: caller must equal target.
-      if (callerId !== requestedUserId) {
-        return jsonResponse(403, {
-          error: 'Forbidden',
-          detail: 'Can only delete own account',
+      // SELF-DELETE: identity is ALWAYS derived from the JWT.
+      // Any client-supplied user_id is logged-and-ignored — never trusted.
+      if (body.user_id !== undefined && body.user_id !== null && String(body.user_id).trim() !== '') {
+        console.warn(
+          'delete-user: ignoring client-supplied user_id on self-delete branch (identity is JWT-derived)',
+        );
+      }
+
+      const userClient = createClient(supabaseUrl, anonKey, {
+        global: { headers: { Authorization: authHeader } },
+      });
+
+      const { data: userData, error: userError } = await userClient.auth.getUser();
+      if (userError || !userData?.user) {
+        return jsonResponse(401, {
+          error: 'Unauthorized',
+          detail: userError?.message ?? 'Invalid JWT',
         });
       }
+
+      callerId = userData.user.id;
+      callerEmail = (userData.user.email ?? '').toLowerCase();
     }
+
+    const requestedUserId = callerId;
 
     // Service-role client: bypasses RLS and can call auth.admin.*.
     const adminClient = createClient(supabaseUrl, serviceRoleKey, {
@@ -199,7 +223,7 @@ serve(async (req) => {
     // failure must not undo the successful delete above.
     if (adminAction) {
       const { error: auditError } = await adminClient.from('admin_audit_log').insert({
-        admin_email: callerEmail,
+        admin_email: callerEmail || 'service-role',
         action: 'delete_user',
         target_type: 'user',
         target_id: userId,

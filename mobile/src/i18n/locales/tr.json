@@ -1,4 +1,9 @@
 {
+  "app": {
+    "offline": "Çevrimdışısınız. Bazı özellikler kısıtlı olabilir.",
+    "backOnline": "Tekrar çevrimiçi",
+    "offlineHint": "Bazı özellikler bağlantı gerektirir"
+  },
   "tabs": {
     "home": "Ana Sayfa",
     "search": "Ara",
@@ -9,19 +14,25 @@
   "locationPicker": {
     "title": "Konum seç",
     "noNearbyPlaces": "Yakınlarda yer bulunamadı. Arama kutusuna bir ad yazın ve Bitti'ye basın.",
-    "noResults": "Eşleşen yer yok"
+    "noResults": "Eşleşen yer yok",
+    "permissionDenied": "Konum izni reddedildi",
+    "permissionDeniedWeb": "Konum izni reddedildi. Tarayıcı ayarlarından izin verin.",
+    "errorPrefix": "Konum hatası: ",
+    "searchPlaceholder": "Yer ara veya yaz",
+    "gpsOff": "Konum alınamadı. GPS'in açık olduğundan emin olun.",
+    "requestTimeout": "Konum isteği zaman aşımına uğradı. Tekrar deneyin."
   },
   "friendsMap": {
     "title": "Arkadaş Haritası",
     "friendCount": "Haritada {{count}} arkadaş",
     "noSharedLocations": "Henüz konum paylaşan arkadaş yok",
     "staleHint": "Yalnızca son 24 saat içinde konumu güncellenen arkadaşlar gösteriliyor",
-    "loadFailed": "Harita yüklenemedi, lütfen tekrar deneyin"
+    "loadFailed": "Harita yüklenemedi. Bağlantınızı kontrol edin."
   },
   "hiddenTagEditor": {
     "timeTitle": "Ne zaman tanıştınız",
     "locationTitle": "Nerede tanıştınız",
-    "frequentTitle": "Sık kullanılanlar",
+    "suggestedTitle": "Önerilenler",
     "addedTitle": "Eklenenler",
     "today": "Bugün",
     "yesterday": "Dün",
@@ -53,7 +64,10 @@
     "noTags": "Henüz etiket yok",
     "email": "E-posta",
     "phone": "Telefon",
-    "comingSoonTitle": "Yakında"
+    "comingSoonTitle": "Yakında",
+    "checkConnection": "Bağlantıyı kontrol edip tekrar deneyin",
+    "loadFailed": "Yüklenemedi",
+    "willAutoRetry": "Yeniden bağlanınca otomatik tekrar deneriz"
   },
   "auth": {
     "login": {
@@ -62,7 +76,7 @@
       "emailPlaceholder": "E-posta",
       "passwordPlaceholder": "Şifre",
       "loginButton": "Giriş Yap",
-      "noAccountPrompt": "Hesabın yok mu? ",
+      "noAccountPrompt": "Hesabın yok mu?",
       "registerLink": "Kayıt Ol",
       "forgotPassword": "Şifremi unuttum?",
       "alertEnterEmailFirst": "Önce e-posta adresini gir, size şifre sıfırlama bağlantısı göndereceğiz",
@@ -70,7 +84,10 @@
       "alertResetSentMessage": "Şifre sıfırlama bağlantısı e-posta adresine gönderildi",
       "orDivider": "veya",
       "continueWithApple": "Apple ile giriş yap",
-      "continueWithGoogle": "Google ile giriş yap"
+      "continueWithGoogle": "Google ile giriş yap",
+      "errInvalidCredentials": "E-posta veya şifre yanlış.",
+      "errEmailNotConfirmed": "Önce e-postanı doğrula — gönderdiğimiz bağlantıya dokun, sonra giriş yap.",
+      "errGeneric": "Giriş yapılamadı. Tekrar dene."
     },
     "register": {
       "alertEmptyFields": "Tüm alanları doldur",
@@ -84,13 +101,26 @@
       "emailPlaceholder": "E-posta",
       "passwordPlaceholder": "Şifre",
       "registerButton": "Kayıt Ol",
-      "hasAccountPrompt": "Zaten hesabın var mı? ",
+      "hasAccountPrompt": "Zaten hesabın var mı?",
       "loginLink": "Giriş Yap",
       "confirmPasswordPlaceholder": "Şifreyi Onayla",
       "alertPasswordMismatch": "Şifreler eşleşmiyor",
-      "passwordHint": "Şifre en az 6 karakter olmalıdır"
+      "passwordHint": "Şifre en az 6 karakter olmalıdır",
+      "birthdayLabel": "Doğum günü (isteğe bağlı)",
+      "alertVerifyEmailTitle": "E-postanı doğrula",
+      "alertVerifyEmailMessage": "Onay bağlantısını e-postana gönderdik. Dokun, sonra tekrar giriş yap."
     },
     "onboarding": {
+      "welcome": {
+        "identityTitle": "Kendini etiketlerle tanımla",
+        "identityDesc": "Seni anlatan 10 etiket seç — PikTag'deki kimliğin bu",
+        "activateTitle": "Eski bağlantılarını tekrar canlandır",
+        "activateDesc": "Doğum günleri, tanışma yıldönümleri ve paylaşılan anılar sana geri döner",
+        "discoverTitle": "İsimle değil, ihtiyaçla ara",
+        "discoverDesc": "\"Fotoğrafçı bir arkadaş arıyorum\" · \"Yakındaki tasarımcılar\"",
+        "next": "Sonraki",
+        "getStarted": "Başla"
+      },
       "defaultTags": [
         "#Girişimcilik",
         "#Tasarım",
@@ -115,13 +145,57 @@
       "contactResultText": "{{matched}} arkadaş bulundu",
       "step3Title": "Hazırsınız! Keşfetmeye başlayın",
       "step3Description": "Hesabın hazır, PikTag'i kullanmaya başla",
+      "quickStart": {
+        "title": "PikTag'e başla",
+        "subtitle": "Hızlıca alışmanı sağlayacak dört şey",
+        "card1": {
+          "title": "Arkadaş ekle",
+          "body": "QR kodu tara, kişileri senkronize et ya da kullanıcı adıyla ara"
+        },
+        "card2": {
+          "title": "Arkadaşlarını etiketle",
+          "body": "\"Kahve sever\", \"product manager\", \"müşteri\" gibi — sonra etiketle bul"
+        },
+        "card3": {
+          "title": "Etikete göre kişi bul",
+          "body": "Arama sekmesine bir etiket yaz, ilgini paylaşan kişileri gör"
+        },
+        "card4": {
+          "title": "Ask paylaş",
+          "body": "Tek cümle, tüm ağın yardım eder"
+        },
+        "cta": "PikTag'i kullanmaya başla"
+      },
       "backButton": "Geri",
       "enterPikTag": "PikTag'e Gir",
       "nextButton": "İleri",
       "facebookLabel": "Facebook",
       "instagramLabel": "Instagram",
       "linkedinLabel": "LinkedIn",
-      "birthdayLabel": "Doğum Günü"
+      "birthdayLabel": "Doğum Günü",
+      "avatarStepTitle": "Önce bir fotoğraf",
+      "avatarStepDescription": "Arkadaşların ilk bakışta tanısın diye — istediğin zaman değiştir.",
+      "avatarPickAria": "Fotoğraf seç",
+      "avatarTapToPick": "Fotoğraf seçmek için daireye dokun",
+      "avatarTapToChange": "Değiştirmek için fotoğrafa dokun",
+      "avatarPermissionTitle": "Fotoğraf galerisine erişim gerekli",
+      "avatarPermissionMessage": "Ayarlardan PikTag'ın fotoğraflara erişimine izin ver",
+      "skipStep": "Atla",
+      "scanCardCta": "Kartvizit tara",
+      "scanCardHint": "Kartın var mı? Çek — bio ve iletişim otomatik (isteğe bağlı)",
+      "cardScanFailedTitle": "Tarama başarısız",
+      "cardScanFailedMessage": "Kart okunamadı. Tekrar dene ya da elle doldur.",
+      "cardScanEmptyTitle": "Hiçbir şey bulunamadı",
+      "cardScanEmptyMessage": "Kart net değil — daha net bir fotoğraf çek ya da elle yaz.",
+      "cardConfirmTitle": "Kart bilgilerini onayla",
+      "cardConfirmSubtitle": "Kontrol et ve düzenle — onaylamadan uygulanmaz",
+      "cardFieldName": "İsim",
+      "cardFieldBio": "Bio (AI taslağı, düzenlenebilir)",
+      "cardBioPlaceholder": "Kendinle ilgili bir satır",
+      "cardLinksLabel": "İletişim / sosyal",
+      "cardApplyCta": "Uygula",
+      "profileCta": "İlk Tag’imi oluştur",
+      "saveFailed": "Kaydedilemedi — bağlantını kontrol edip tekrar dene."
     }
   },
   "connections": {
@@ -162,7 +236,30 @@
     "clearFilter": "Filtreyi Temizle",
     "noTagsToFilter": "Filtrelenecek etiket yok",
     "newBadge": "Yeni",
-    "unreviewedLabel": "incelenecek"
+    "unreviewedLabel": "incelenecek",
+    "sortLabel": "Sırala",
+    "sortByRecent": "Son eklenenler",
+    "sortByAlphabet": "Alfabetik (A→Z)",
+    "sortByAlphabetDesc": "Alfabetik (Z→A)",
+    "sortByInteraction": "Son etkileşim",
+    "sortByBirthday": "Yaklaşan doğum günleri",
+    "addContact": "Kişi ekle",
+    "addContactTitle": "Bir kişi ekle",
+    "addSearchTitle": "PikTag kullanıcıları ara",
+    "addSearchDesc": "İsim, kullanıcı adı veya etikete göre",
+    "addContactSyncTitle": "Rehberini eşitle",
+    "addContactSyncDesc": "PikTag'a kayıtlı arkadaşlarını bul",
+    "addInviteTitle": "Arkadaşlarını PikTag'a davet et",
+    "addInviteDesc": "Davet bağlantısı paylaş — kayıt olunca otomatik arkadaş",
+    "coldStartActionContacts": "Rehberinden arkadaş bul",
+    "coldStartActionContactsDesc": "PikTag'da olanları bul — olmayanları etiketle+davet et",
+    "notJoinedBadge": "Henüz PikTag’te değil",
+    "coldStartActionManual": "Birini not al",
+    "coldStartActionManualDesc": "Hesabı gerekmez — katıldığında etiket ve notlarına otomatik bağlanır",
+    "addManualA11y": "Elle kişi ekle",
+    "phonePromptTitle": "Telefonunu ekle, arkadaşların bulsun",
+    "phonePromptBody": "Arkadaşların kişilerini eşitlerken otomatik bağlanırsın. Sadece PikTag, asla herkese açık olmaz.",
+    "addedFriend": "+ {{name}}"
   },
   "search": {
     "clearAll": "Hepsini temizle",
@@ -171,6 +268,14 @@
     "intersectionResultCount": "{{count}} kişi bulundu",
     "headerTitle": "Ara",
     "searchPlaceholder": "Etiketler, kullanıcı adları vb.",
+    "promptHints": [
+      "Fotoğrafçı bir arkadaş arıyorum",
+      "İngilizce konuşan biri arıyorum",
+      "{{city}}'daki tasarımcılar",
+      "Startup'ta tanıdık var mı?",
+      "Web geliştirici arıyorum"
+    ],
+    "promptHintCityFallback": "Yakındaki tasarımcılar",
     "categorySectionLabel": "Kategoriye göre göz at",
     "categoryPopular": "Popüler Etiketler",
     "categoryNearby": "Yakındaki Üyeler",
@@ -185,6 +290,7 @@
     "profilesSectionLabel": "Üyeler",
     "noProfilesFound": "Eşleşen üye bulunamadı",
     "noProfilesFoundTitle": "\"{{query}}\" ile eşleşen üye bulunamadı",
+    "askPrompt": "Ağında yok mu? Bir Ask paylaş — arkadaşların ve arkadaşlarının arkadaşları bulmana yardımcı olabilir.",
     "tryTagSearchHint": "#etiket aramayı deneyin veya farklı bir kelime kullanın",
     "clearAndRetry": "Temizle ve tekrar dene",
     "resetButton": "Sıfırla",
@@ -198,10 +304,16 @@
     "tagUsersTitle": "Bu etiketi kullanan kişiler",
     "viewAllTagUsers": "Tümünü gör ({{count}})",
     "categoryUncategorized": "Diğer",
-    "allCategories": "Tümü"
+    "allCategories": "Tümü",
+    "openMap": "Haritayı aç",
+    "searchBtn": "Ara",
+    "searchInputLabel": "Ara",
+    "clearSearchLabel": "Aramayı temizle",
+    "recommendedTitle": "Tanışmak isteyebilirsin",
+    "tagsSelected": "etiket seçildi"
   },
   "addTag": {
-    "headerTitle": "# Sosyalleş",
+    "headerTitle": "Tag oluştur",
     "alertTagExists": "Etiket zaten mevcut",
     "alertTagExistsMessage": "Bu etiket zaten listede.",
     "alertEnterPresetName": "bir şablon adı gir",
@@ -213,18 +325,9 @@
     "alertQrError": "QR Code oluşturulamadı, biraz sonra tekrar dene.",
     "alertDeletePresetTitle": "Şablonu Sil",
     "alertDeletePresetMessage": "\"{{name}}\" şablonunu silmek istediğinden emin misin?",
-    "dateLabel": "Date Tag",
-    "datePlaceholder": "YYYY/AA/GG",
-    "dateDisplayFallback": "Tarih ayarlamak için dokunun",
-    "locationLabel": "Location Tag",
-    "locationPlaceholder": "Etkinlik konumunu gir...",
-    "currentLocation": "Mevcut Konum",
-    "selectLocation": "Konum Seç",
-    "manualInput": "Manuel Giriş",
     "locationPermDenied": "Konum izni reddedildi",
     "customTagsLabel": "Özel Etiketler",
     "hiddenTagHint": "Yalnızca size görünür — nerede tanıştığınızı hatırlamanıza yardımcı olur",
-    "pickDate": "Tarih Seç",
     "tagPlaceholder": "Etiket gir...",
     "addButton": "Ekle",
     "saveAsPreset": "Şablon olarak kaydet",
@@ -257,7 +360,21 @@
     "copyLink": "Bağlantıyı kopyala",
     "editQr": "QR düzenle",
     "alertLinkCopiedTitle": "Kopyalandı",
-    "alertLinkCopiedMessage": "Bağlantı panoya kopyalandı"
+    "alertLinkCopiedMessage": "Bağlantı panoya kopyalandı",
+    "contextLabel": "Hangi etkinlik?",
+    "contextHint": "Bir satır yeter. AI; sözlerini, zamanı ve yeri kullanıp etiket önerir — burada kimle tanıştığını hatırlarsın.",
+    "contextPlaceholder": "Örn: Hafta sonu brunch, müşteri demosu, kitap lansmanı",
+    "aiSuggestionsTitle": "AI önerileri",
+    "aiSuggestionsHint": "Bir satır yaz — AI bunu + konumunu + kimlik etiketlerini kullanır.",
+    "aiSuggestionsEmpty": "AI uygun bir şey bulamadı — tekrar dene veya kendin ekle.",
+    "aiRegenerate": "Yeniden oluştur",
+    "contextPromptHints": [
+      "Dalış gezisi",
+      "Üniversite buluşması",
+      "Ofis partisi",
+      "Hafta sonu mangal",
+      "Bir arkadaşın düğünü"
+    ]
   },
   "profile": {
     "nameNotSet": "Ad belirtilmemiş",
@@ -266,12 +383,12 @@
     "noBio": "Henüz biyografi yok",
     "noTags": "Henüz etiket yok",
     "tagFallback": "Etiket",
+    "askPromptHint": "+ ile Ask paylaş · \"Lazım…\"",
     "friendCountSuffix": "arkadaş",
     "shareProfile": "Profili Paylaş",
     "editProfile": "Profili Düzenle",
     "manageTags": "Etiketlerimi Yönet",
     "noContactMethods": "İletişim yöntemi yok",
-    "statusTooltip": "Durum ayarlamak için dokunun",
     "contactInfoTitle": "İletişim",
     "phoneLabel": "Telefon",
     "emailLabel": "E-posta",
@@ -282,7 +399,11 @@
     "statFriends": "Arkadaşlar",
     "statFollowers": "Takipçiler",
     "copyLink": "Bağlantıyı Kopyala",
-    "share": "Paylaş"
+    "share": "Paylaş",
+    "statTagsA11y": "Etiketlerimi gör",
+    "statFriendsA11y": "Arkadaşlarımı gör",
+    "statFollowersA11y": "Takipçilerimi gör",
+    "statTribeA11y": "Tribe takımyıldızımı gör"
   },
   "editProfile": {
     "headerTitle": "Profili Düzenle",
@@ -305,7 +426,7 @@
     "usernameLabel": "Kullanıcı Adı",
     "usernamePlaceholder": "Kullanıcı adını gir",
     "headlineLabel": "Unvan / Rol",
-    "headlinePlaceholder": "örn: PM @ Google, Serbest Tasarımcı",
+    "headlinePlaceholder": "örn: PM @ bir teknoloji şirketi, Serbest Tasarımcı",
     "bioLabel": "Biyografi",
     "bioPlaceholder": "Biyografini gir",
     "phoneLabel": "Telefon",
@@ -343,7 +464,57 @@
     "selectPlatform": "Platform Seçin",
     "linkName": "Bağlantı Adı",
     "selectCountry": "Ülke seç",
-    "searchCountry": "Ülke veya kod ara"
+    "searchCountry": "Ülke veya kod ara",
+    "invalidImageType": "Desteklenmeyen görüntü türü. Lütfen JPEG, PNG veya WebP kullanın.",
+    "imageTooLarge": "Görüntü çok büyük. Maksimum boyut 2 MB.",
+    "browseAllPlatformsCta": "Daha…",
+    "browseAllPlatforms": "Tüm platformlara göz at",
+    "platformSearchPlaceholder": "Platform ara…",
+    "platformSearchEmpty": "Sonuç bulunamadı",
+    "detectedAs": "{{platform}} olarak algılandı",
+    "platform": {
+      "phone": "Telefon",
+      "email": "E-posta",
+      "website": "Web sitesi",
+      "blog": "Blog",
+      "portfolio": "Portföy",
+      "custom": "Özel bağlantı"
+    },
+    "platformCategory": {
+      "communication": "İletişim",
+      "social": "Sosyal",
+      "video": "Video",
+      "music": "Müzik",
+      "professional": "Profesyonel",
+      "writing": "Yazı",
+      "business": "İş",
+      "generic": "Genel"
+    },
+    "completionInline": "Crew'ün seni hızlıca bulsun — şunlar eksik: {{items}}",
+    "missingAvatar": "Avatar",
+    "missingBio": "Bio",
+    "missingTags": "3 etiket",
+    "missingBiolink": "Sosyal bağlantı",
+    "welcomeShort": "PikTag'a hoş geldin",
+    "bioPromptHints": [
+      "Teknolojide satış; koşmak kafa dağıtmam, bu yıl maratonu 4 saatin altına",
+      "İlkokul öğretmeni, balkonda sebze yetiştiriyorum, 20+ sukulent",
+      "Acil hemşiresi, vardiya sonrası pasta yaparım, filtre kahve öğreniyorum",
+      "Backend mühendisi, son dönem yemek ve çömlek merakı, huysuz bir Shiba’m var",
+      "Psikoloji öğrencisi, grupta gitar çalıyorum, illüstrasyon işleri alıyorum"
+    ],
+    "headlinePromptHints": [
+      "PM @ bir teknoloji şirketi",
+      "Avukat @ bir hukuk bürosu",
+      "Acil hemşiresi @ tıp merkezi",
+      "Serbest grafik tasarımcı",
+      "Psikoloji öğrencisi"
+    ],
+    "needLibraryPermissionTitle": "Fotoğraf kitaplığı erişimi gerekli",
+    "needLibraryPermissionMsg": "Ayarlar'dan erişime izin verin",
+    "notSignedIn": "Oturum açılmadı",
+    "uploadFailTitle": "Yükleme başarısız",
+    "tryAgainLater": "Daha sonra tekrar deneyin"
   },
   "friendDetail": {
     "reminderBirthday": "Doğum Günü",
@@ -369,6 +540,9 @@
     "metLocationLabel": "Konum",
     "metNoteLabel": "Not",
     "eventTagsLabel": "Etkinlik Etiketleri",
+    "eventTagsSection": "Birlikte katılınan etkinlikler",
+    "eventTagsExpand": "Tümünü göster ({{count}})",
+    "eventTagsCollapse": "Daha az göster",
     "stickyNotesTitle": "Yapışkan Notlar",
     "notePlaceholder": "Notunuzu yazın...",
     "noteCancel": "İptal",
@@ -408,19 +582,24 @@
     "unfollowMessage": "{{name}} kişisinin takibini bırakmak istediğinden emin misin?",
     "unfollowConfirm": "Takibi Bırak",
     "hiddenTagsTitle": "Gizli Etiketler (yalnızca siz görebilirsin)",
+    "eventTagsTitle": "Etkinlik etiketleri",
     "hiddenTagPlaceholder": "Gizli etiket ekleyin, ör. eski iş arkadaşı",
     "mutualTagsModalTitle": "Ortak Etiketler",
     "mutualFriendsSectionTitle": "Ortak Arkadaşlar",
-    "shareIntroMessage": "Sana {{name}}'ı tanıştırayım — profili: {{url}}"
+    "shareIntroMessage": "Sana {{name}}'ı tanıştırayım — profili: {{url}}",
+    "tag": "Etiket",
+    "recommendMembers": "Önerilen üyeler",
+    "blockConfirmTitle": "Bu kişi engellensin mi?",
+    "blockConfirmMessage": "Birbirinizi takipten çıkarsınız ve içeriklerinizi görmezsiniz."
   },
   "userDetail": {
     "headerNotFound": "Bulunamadı",
     "userNotFound": "Kullanıcı bulunamadı",
-    "mutualFriendsPrefix": "Ortak arkadaşlar: ",
+    "mutualFriendsPrefix": "Ortak arkadaşlar:",
     "mutualFriendsSuffix": "",
-    "mutualTagsPrefix": "Ortak etiketler: ",
+    "mutualTagsPrefix": "Ortak etiketler:",
     "mutualTagsSuffix": "",
-    "mutualSeparator": "  |  ",
+    "mutualSeparator": "|",
     "following": "Takip Ediliyor",
     "follow": "Takip Et",
     "sendMessage": "Mesaj",
@@ -455,7 +634,12 @@
     "pickTagSubtitle": "{{name}} kişisini en iyi temsil eden etiketleri seçin",
     "pickTagEmpty": "Bu kullanıcının henüz herkese açık etiketi yok",
     "pickTagSave": "Kaydet ({{count}})",
-    "hiddenTagPlaceholder": "Gizli etiket ekle..."
+    "hiddenTagPlaceholder": "Gizli etiket ekle...",
+    "tag": "Etiket",
+    "recommendMembers": "Önerilen üyeler",
+    "vibeContextTagsTitle": "Bu Tag’in etiketleri",
+    "blockConfirmTitle": "Bu kişi engellensin mi?",
+    "blockConfirmMessage": "Birbirinizi takipten çıkarsınız ve içeriklerinizi görmezsiniz."
   },
   "settings": {
     "headerTitle": "Ayarlar",
@@ -504,7 +688,10 @@
     "deactivateMessage": "Profiliniz gizlenecek. Tekrar giriş yaparak yeniden etkinleştirebilirsiniz.",
     "deactivateConfirm": "Devre Dışı Bırak",
     "deleteAccountButton": "Hesabı Sil",
-    "alertDeleteAccountNote": "Bu işlem geri alınamaz. Hesabın ve tüm verilerin kalıcı olarak silinecektir"
+    "alertDeleteAccountNote": "Bu işlem geri alınamaz. Hesabın ve tüm verilerin kalıcı olarak silinecektir",
+    "analyticsOptIn": "Kullanım analitiğini gönder",
+    "analyticsOptInDescription": "Uygulamayı geliştirmemize yardım edin",
+    "attRationale": "PikTag deneyiminizi iyileştirmek için temel analizler kullanır. Sizi asla başka uygulamalarda takip etmiyoruz."
   },
   "contactSync": {
     "headerTitle": "Kişi Senkronizasyonu",
@@ -525,7 +712,23 @@
     "inviteMessage": "Selam {{name}}, etiket alışverişi için PikTag kullanıyorum! Sen de gel: https://pikt.ag",
     "batchProgress": "İşleniyor {{current}}/{{total}}",
     "alertBatchDoneTitle": "İçe aktarma tamamlandı",
-    "alertBatchDoneMessage": "{{matched}} arkadaş eklendi. {{notOnApp}} kişi henüz PikTag kullanmıyor."
+    "alertBatchDoneMessage": "{{matched}} arkadaş eklendi. {{notOnApp}} kişi henüz PikTag kullanmıyor.",
+    "sectionOnPiktag": "PikTag'de · {{count}}",
+    "sectionNotOnPiktag": "PikTag'de değil · {{count}}",
+    "summaryHeading": "{{onCount}} PikTag'de · {{offCount}} davet edilebilir",
+    "followAllCta": "Tüm PikTag arkadaşlarını takip et ({{count}})",
+    "followBtn": "Takip Et",
+    "inviteBtn": "Davet Et",
+    "tagInviteBtn": "Etiketle ve davet et",
+    "fromContact": "Kişi: {{name}}",
+    "classifyingText": "Eşleştiriliyor…",
+    "alertFollowAllTitle": "Tümünü takip et",
+    "alertFollowAllMessage": "{{count}} PikTag arkadaşını bağlantılarına eklensin mi?",
+    "alertFollowAllConfirm": "Ekle",
+    "alertFollowAllDoneTitle": "Tamamlandı",
+    "alertFollowAllDoneMessage": "{{count}} PikTag arkadaşı eklendi",
+    "allConnected": "Tüm PikTag kişileri zaten bağlı",
+    "openSettings": "İzin vermek için Ayarlar'ı aç"
   },
   "invite": {
     "headerTitle": "Arkadaş Davet Et",
@@ -563,11 +766,11 @@
     "defaultLocation": "Mevcut Konum",
     "alertPermTitle": "Konum İzni",
     "alertPermMessage": "Bu özellik için konum izni gereklidir",
-    "metAtPrefix": "Tanışma yeri: ",
+    "metAtPrefix": "Tanışma yeri:",
     "metAtSuffix": "",
     "nearbySection": "Yakındaki bağlantılar ({{count}})",
     "metHereSection": "Burada tanışılanlar ({{count}})",
-    "emptyText": "Yakında bağlantı bulunamadı"
+    "emptyText": "Yakında kimse yok. Arama alanını ayarla veya yeni insanlarla tanışmak için Keşfet'e git"
   },
   "dashboard": {
     "headerTitle": "Kişisel Pano",
@@ -581,7 +784,7 @@
     "totalLinkClicks": "Bağlantı Tıklamaları",
     "totalQrScans": "Toplam QR Tarama",
     "growthCurveTitle": "Bağlantı Büyümesi",
-    "growthCurveEmpty": "Henüz arkadaş verisi yok",
+    "growthCurveEmpty": "Henüz arkadaş verisi yok. Etiket ekle veya arkadaşlarını davet et",
     "presetScansTitle": "Şablon Başına Tarama",
     "presetScansEmpty": "Şablon tarama kaydı yok",
     "scanCountSuffix": "tarama",
@@ -605,7 +808,73 @@
     "timeYesterday": "Dün",
     "timeDaysAgo": "{{count}}g önce",
     "timeWeeksAgo": "{{count}}hf önce",
-    "emptyState": "Bildirim yok"
+    "emptyState": "Bildirim yok. Hatırlatıcı ayarla ya da arkadaşlarının etkinliğini takip et",
+    "types": {
+      "ask_posted": {
+        "title": "",
+        "body": "bir Ask yayınladı · {{ask_body}}",
+        "push": {
+          "title": "{{username}}",
+          "body": "bir Ask yayınladı · {{ask_body}}"
+        }
+      },
+      "vibe_shift": {
+        "title": "",
+        "body": "#{{tag_name}} etiketini ekledi",
+        "push": {
+          "title": "{{username}}",
+          "body": "#{{tag_name}} etiketini ekledi"
+        }
+      },
+      "on_this_day": {
+        "title": "",
+        "body": "O ana geri dön",
+        "push": {
+          "title": "",
+          "body": "O ana geri dön"
+        }
+      },
+      "tag_convergence": {
+        "title": "",
+        "body": "Bir merhaba de",
+        "push": {
+          "title": "",
+          "body": "Bir merhaba de"
+        }
+      },
+      "ask_bridge": {
+        "title": "",
+        "body": "Tanıştırılmasını iste",
+        "push": {
+          "title": "",
+          "body": "Tanıştırılmasını iste"
+        }
+      },
+      "ask_prompt": {
+        "title": "",
+        "body": "Bir cümle, biri yardım edebilir",
+        "push": {
+          "title": "",
+          "body": "Bir cümle, biri yardım edebilir"
+        }
+      },
+      "reconnect_suggest": {
+        "title": "",
+        "body": "Selam ver",
+        "push": {
+          "title": "",
+          "body": "Selam ver"
+        }
+      },
+      "tag_combo": {
+        "title": "",
+        "body": "İyi bir sohbet konusu olabilir",
+        "push": {
+          "title": "",
+          "body": "İyi bir sohbet konusu olabilir"
+        }
+      }
+    }
   },
   "scanResult": {
     "headerTitle": "Arkadaş Ekle",
@@ -626,7 +895,11 @@
     "relationClient": "Müşteri",
     "alreadyConnectedTitle": "Zaten Bağlı",
     "alreadyConnectedMessage": "Zaten arkadaşsınız.",
-    "addFriend": "Takip Et"
+    "addFriend": "Takip Et",
+    "connectElsewhereTitle": "{{name}} ile burada da bağlan",
+    "connectElsewhereHint": "Dokun, kişinin sayfası o uygulamada açılır — takip/ekleme sana kalmış.",
+    "selfScanMessage": "Bu senin kendi QR'ın — kendini ekleyemezsin.",
+    "addingFriend": "Arkadaş ekleniyor…"
   },
   "manageTags": {
     "headerTitle": "Etiketleri Yönet",
@@ -652,6 +925,7 @@
     "pinLimitMessage": "En fazla {{max}} etiket sabitleyebilirsiniz",
     "dragHint": "Sabitlemek için uzun basın, sıralamak için okları kullanın",
     "aiSuggestionsTitle": "Sizin için AI önerileri",
+    "aiFromBioTitle": "Bio'na göre AI önerileri",
     "pinTag": "Etiketi sabitle",
     "unpinTag": "Sabitlemeyi kaldır",
     "publicTagsTitle": "Herkese Açık Etiketler",
@@ -663,7 +937,9 @@
     "dragSelectTarget": "Değiştirmek için etikete dokunun",
     "tagLimitTitle": "Etiket limiti",
     "tagLimitMessage": "En fazla {{max}} etiket ekleyebilirsiniz",
-    "aiErrorGeneric": "AI önerileri geçici olarak kullanılamıyor, lütfen daha sonra tekrar deneyin"
+    "aiErrorGeneric": "AI önerileri geçici olarak kullanılamıyor, lütfen daha sonra tekrar deneyin",
+    "nativeHintNoPin": "Sürüklemek için basılı tut",
+    "tagEditHint": "Kaldırmak için dokun (kaydetmeden geri alınır) · Sıralamak için basılı tut"
   },
   "activityReview": {
     "noNewFriends": "İncelenecek yeni arkadaş yok",
@@ -673,7 +949,8 @@
     "hiddenTagPlaceholder": "Gizli etiket ekle...",
     "swipeHint": "← Atlamak için sola · İleri için sağa kaydırın →",
     "skip": "Atla",
-    "next": "Sonraki"
+    "next": "Sonraki",
+    "done": "Bitti"
   },
   "tagDetail": {
     "unknownTag": "Bilinmeyen Etiket",
@@ -712,6 +989,7 @@
     "title": "Kamera Erişimi",
     "grantPermission": "İzin Ver",
     "instruction": "Kameranızı bir PikTag QR koduna doğrultun",
+    "cardFrameHint": "Tüm kartı çerçeveye sığdır, net tut",
     "invalidQr": "Geçersiz QR Kodu",
     "invalidQrMessage": "Bu QR kodu geçerli bir PikTag bağlantı kodu değildir.",
     "permissionMessage": "PikTag, QR kodlarını taramak ve arkadaşlarla bağlantı kurmak için kamera erişimine ihtiyaç duyar."
@@ -791,19 +1069,6 @@
     "section11Title": "11. İletişim",
     "section11Body": "PikTag Inc.\nE-posta: support@pikt.ag"
   },
-  "points": {
-    "balance": "P Jeton Bakiyesi",
-    "lifetime": "Toplam P Jetonu",
-    "inviteReward": "Davet ödülü",
-    "redeemHint": "Gelecekteki ücretli hizmetler için kullanın",
-    "historyTitle": "P Jeton Geçmişi",
-    "reasonInviteAccepted": "Arkadaş daveti kabul etti",
-    "reasonAdminGrant": "Sistem ödülü",
-    "reasonRedeemed": "Kullanıldı",
-    "emptyHistory": "Henüz P Jetonu etkinliği yok",
-    "plusOne": "+1 P",
-    "pointsUnit": "P"
-  },
   "chat": {
     "inbox": "Mesajlar",
     "compose": "Yeni mesaj",
@@ -833,7 +1098,12 @@
     "userBlocked": "Bu kullanıcıya mesaj gönderilemez",
     "deliveryFailed": "Gönderilemedi · Yeniden denemek için dokun",
     "unreadBadge": "{{count}} okunmamış",
-    "messagesSent": "{{name}} sana mesaj gönderdi"
+    "messagesSent": "{{name}} sana mesaj gönderdi",
+    "timeJustNow": "Az önce",
+    "timeYesterday": "Dün",
+    "timeMinutesAgo": "{{count}} dk önce",
+    "timeHoursAgo": "{{count}} sa önce",
+    "timeDaysAgo": "{{count}} g önce"
   },
   "share": {
     "profileInviteMessage": "PikTag'de {{name}}\n{{url}}\n\nPikTag — tanıştığınız her arkadaşı etiketleyin,\nQR tarayarak ne zaman ve nerede tanıştığınızı otomatik kaydedin.\n\nPikTag'i indir → https://pikt.ag"
@@ -903,7 +1173,123 @@
     "generating": "Generating title…",
     "minOneTag": "Select at least one tag",
     "aiSuggestions": "Yapay zeka önerileri",
-    "yourTags": "Etiketleriniz",
-    "noTagsHint": "Önce Profil → Etiketleri Yönet bölümünden etiket ekleyin"
+    "customTagPlaceholder": "Özel etiket ekle",
+    "cardLabel": "Aranıyor",
+    "askingNow": "Şu an arıyor",
+    "yourAskTitle": "Aktif Ask’in",
+    "generateAiTags": "Yapay zeka etiketi üret",
+    "aiNoSuggestions": "Yapay zeka uygun etiket bulamadı. Tekrar dene ya da kendin yaz.",
+    "regenerateAiTags": "Yeniden oluştur",
+    "bubblePromptMine": "+ Yeni Ask",
+    "aiSuggestionsTitle": "AI önerileri",
+    "aiBodyTooShortHint": "Ne istediğini bir cümleyle yaz — AI etiket önerir",
+    "aiTapToGenerateHint": "↻ a dokun, AI etiket önersin",
+    "bodyPromptHints": [
+      "Hafta sonu yürüyüşe gelen var mı?",
+      "Wi-Fi tamir edecek biri lazım, acil",
+      "Freelance iş arıyorum — işe alan var mı?",
+      "Uygun fiyatlı diş hekimi önerin",
+      "Bu hafta masa oyunu gecesi, kim var?"
+    ],
+    "createSubtitle": "Bir satır yeter — AI etiketleri ekler, doğru kişiler (ya da bir arkadaşın arkadaşı) görsün.",
+    "createFailed": "Ask gönderilemedi — tekrar dene.",
+    "deleteFailed": "Ask silinemedi"
+  },
+  "errorBoundary": {
+    "title": "Bir şeyler ters gitti",
+    "message": "Uygulama beklenmeyen bir hatayla karşılaştı. Lütfen tekrar deneyin.",
+    "retry": "Tekrar dene"
+  },
+  "report": {
+    "reportMessage": "Mesajı bildir",
+    "reportAsk": "Ask'ı bildir",
+    "reportNotification": "Bu bildirimi bildir",
+    "hideFromUser": "Bu kullanıcıyı gizle",
+    "confirmTitle": "Bildir",
+    "confirmDescription": "Bir neden seçin. 24 saat içinde inceleyeceğiz.",
+    "success": "Teşekkürler — inceleyeceğiz.",
+    "reasonSpam": "Spam",
+    "reasonHarassment": "Taciz",
+    "reasonInappropriate": "Uygunsuz içerik",
+    "reasonOther": "Diğer",
+    "noTarget": "Bu bildirimde şikayet edilecek kimse yok."
+  },
+  "tabTooltips": {
+    "home": "Arkadaşlar",
+    "search": "Bul / Sohbet",
+    "addTag": "Tara / Oluştur",
+    "notifications": "Bildirim",
+    "profile": "Profilin",
+    "dismissHint": "Kapatmak için dokun"
+  },
+  "qrGroup": {
+    "headerTitle": "Yeni insanlarla tanış",
+    "detailHeader": "Tag",
+    "create": "Yeni Tag oluştur",
+    "createFirst": "Şimdi Tag oluştur",
+    "emptyTitle": "Etiketler yeni arkadaşlarını senin için hatırlasın",
+    "emptyDesc": "Tarayıp bağlandığınızda buluşma iki profile de otomatik not düşülür — nerede tanıştığınızı bir daha unutmazsınız.",
+    "untitled": "İsimsiz Tag",
+    "untitledFallback": "Tag · {{date}}",
+    "namePlaceholder": "Bu Tag'a isim ver",
+    "tagsTitle": "Tag etiketleri",
+    "tagsEmpty": "Etiket yok",
+    "tagInputPlaceholder": "Yeni etiket",
+    "noTagsYet": "Etiket yok",
+    "membersTitle": "Üyeler ({{count}})",
+    "memberCount": "{{count}} arkadaş",
+    "membersEmpty": "Henüz kimse taramadı — arkadaşlarınla paylaş",
+    "deleteTitle": "Bu Tag silinsin mi?",
+    "deleteMessage": "\"{{name}}\" Tags'ından silinecek. Bu QR'la seni zaten eklemiş arkadaşlar etkilenmez.",
+    "deleteFailedTitle": "Silme başarısız",
+    "deleteFailedMessage": "Bu Tag silinmedi. Daha sonra tekrar deneyin. Sürerse bizimle iletişime geçin.",
+    "emptyScanCta": "Ya da bağlanmak için onun QR'ını tara"
+  },
+  "localContact": {
+    "editTitle": "Kişiyi düzenle",
+    "addTitle": "Yeni kişi",
+    "intro": "Önce kişiyi not al — PikTag hesabı şart değil. Katıldığında otomatik bağlanır, etiketlerin onunla gelir.",
+    "fieldName": "İsim",
+    "namePlaceholder": "örn. dalıştan tanıdığın Alex",
+    "fieldPhone": "Telefon (isteğe bağlı — katılınca bağlar)",
+    "phonePlaceholder": "+90 5xx xxx xx xx",
+    "fieldEmail": "E-posta (isteğe bağlı)",
+    "emailPlaceholder": "name@example.com",
+    "fieldMetWhere": "Nerede tanıştınız (isteğe bağlı)",
+    "metWherePlaceholder": "örn. buluşma, dalış gezisi",
+    "fieldNote": "Not (yalnızca sen görürsün)",
+    "notePlaceholder": "Onu hatırlamak için tek satır",
+    "fieldTags": "Etiketler (yalnızca sen görürsün)",
+    "tagPlaceholder": "Etiket ekle…",
+    "save": "Kaydet",
+    "nameRequiredTitle": "İsim gerekli",
+    "nameRequiredMsg": "Sonra hatırlayabilmek için en azından bir isim ver.",
+    "saveError": "Kaydedilemedi — tekrar dene.",
+    "notFound": "Kişi bulunamadı — PikTag'e bağlanmış veya silinmiş olabilir.",
+    "alreadyMemberTitle": "Bu kişi zaten PikTag'de",
+    "alreadyMemberMsg": "{{name}} zaten PikTag üyesi — kişi olarak kaydetmek yerine doğrudan bağlanmak daha iyi.",
+    "alreadyMemberConnect": "Gör / ekle",
+    "alreadyMemberFile": "Yine de kişi olarak",
+    "alreadyMemberFallbackWho": "Bu kişi",
+    "deleteTitle": "Bu kişi silinsin mi?",
+    "deleteMsg": "Yalnızca senin listenden silinir — kimseyi etkilemez.",
+    "scanCardHint": "Bir kartvizit çek — ad ve iletişim otomatik dolar. Sonra düzenle ya da etiket ekle.",
+    "manualEntry": "Veya elle gir",
+    "scanRetake": "Yeniden çek",
+    "fieldBirthday": "Doğum günü (isteğe bağlı)",
+    "birthdayPlaceholder": "AA-GG veya YYYY-AA-GG",
+    "linkPhone": "Telefon",
+    "linkEmail": "E-posta",
+    "linkAddress": "Adres",
+    "scanningTitle": "Kart okunuyor…",
+    "scanningSubtitle": "Genellikle 5–10 saniye sürer",
+    "fieldAddress": "Adres",
+    "addressPlaceholder": "ör. Bağdat Cad. 1, İstanbul",
+    "scanningCard": "Kart okunuyor… (yaklaşık 3 sn)"
+  },
+  "followers": {
+    "title": "Takipçiler",
+    "count": "{{count}} takipçi",
+    "empty": "Henüz takipçi yok"
   }
 }

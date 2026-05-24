@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { COLORS } from '../../constants/theme';
+import { COLORS, type ColorPalette } from '../../constants/theme';
+import { useTheme } from '../../context/ThemeContext';
 import type { InboxTab } from '../../types/chat';
 
 type Props = {
@@ -14,6 +15,8 @@ const TAB_ORDER: InboxTab[] = ['primary', 'requests', 'general'];
 
 const ChatTabs = React.memo(({ active, onChange, counts }: Props) => {
   const { t } = useTranslation();
+  const { colors, isDark } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
 
   return (
     <ScrollView
@@ -39,7 +42,7 @@ const ChatTabs = React.memo(({ active, onChange, counts }: Props) => {
               // Active bg switched from gray900 → piktag500 so the tab
               // indicator matches the rest of the app's accent color
               // (purple). White label stays readable on both.
-              { backgroundColor: isActive ? COLORS.piktag500 : 'transparent' },
+              { backgroundColor: isActive ? colors.piktag500 : 'transparent' },
             ]}
           >
             <View style={styles.tabInner}>
@@ -47,7 +50,7 @@ const ChatTabs = React.memo(({ active, onChange, counts }: Props) => {
                 style={[
                   styles.label,
                   {
-                    color: isActive ? COLORS.white : COLORS.gray500,
+                    color: isActive ? '#FFFFFF' : colors.gray500,
                     fontWeight: isActive ? '700' : '400',
                   },
                 ]}
@@ -58,7 +61,7 @@ const ChatTabs = React.memo(({ active, onChange, counts }: Props) => {
                 <Text
                   style={[
                     styles.count,
-                    { color: isActive ? COLORS.white : COLORS.gray400 },
+                    { color: isActive ? '#FFFFFF' : colors.gray400 },
                   ]}
                 >
                   {`  ·  ${count}`}
@@ -74,7 +77,8 @@ const ChatTabs = React.memo(({ active, onChange, counts }: Props) => {
 
 ChatTabs.displayName = 'ChatTabs';
 
-const styles = StyleSheet.create({
+function makeStyles(c: ColorPalette) {
+  return StyleSheet.create({
   scroll: {
     // Cap vertical growth so the ScrollView only takes the height of
     // its pills (paddingV 12 + tab 12 + label lineHeight ≈ 56). Without
@@ -104,6 +108,7 @@ const styles = StyleSheet.create({
   count: {
     fontSize: 12,
   },
-});
+  });
+}
 
 export default ChatTabs;

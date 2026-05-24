@@ -268,7 +268,7 @@ export default async function UserDetailPage({
                     href={b.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-xs text-[#aa00ff] hover:underline break-all"
+                    className="text-xs text-[#8c52ff] hover:underline break-all"
                   >
                     {b.url}
                   </a>

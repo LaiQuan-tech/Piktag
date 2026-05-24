@@ -2,7 +2,7 @@ const SUPABASE_URL = 'https://kbwfdskulxnhjckdvghj.supabase.co';
 const SUPABASE_ANON_KEY =
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtid2Zkc2t1bHhuaGpja2R2Z2hqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEzOTgwNTAsImV4cCI6MjA4Njk3NDA1MH0.q1wxMahfity_5An5I_PPSoxglJeKHXX6ohYeGvsaIC8';
 
-const BRAND_COLOR = '#aa00ff';
+const BRAND_COLOR = '#8c52ff';
 const BRAND_BG = '#faf5ff';
 
 const PLATFORM_ICONS = {

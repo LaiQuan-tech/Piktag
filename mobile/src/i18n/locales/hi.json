@@ -1,4 +1,9 @@
 {
+  "app": {
+    "offline": "आप ऑफ़लाइन हैं। कुछ सुविधाएँ सीमित हो सकती हैं।",
+    "backOnline": "फिर ऑनलाइन",
+    "offlineHint": "कुछ सुविधाओं को इंटरनेट चाहिए"
+  },
   "tabs": {
     "home": "होम",
     "search": "खोज",
@@ -9,19 +14,25 @@
   "locationPicker": {
     "title": "जगह चुनें",
     "noNearbyPlaces": "आस-पास कोई जगह नहीं मिली। सर्च बॉक्स में नाम लिखें और 'हो गया' दबाएँ।",
-    "noResults": "कोई मेल खाती जगह नहीं"
+    "noResults": "कोई मेल खाती जगह नहीं",
+    "permissionDenied": "स्थान अनुमति अस्वीकृत",
+    "permissionDeniedWeb": "स्थान अनुमति अस्वीकृत. ब्राउज़र सेटिंग्स में अनुमति दें.",
+    "errorPrefix": "स्थान त्रुटि: ",
+    "searchPlaceholder": "स्थान खोजें या लिखें",
+    "gpsOff": "स्थान नहीं मिल पाया. GPS चालू करें.",
+    "requestTimeout": "स्थान अनुरोध समय समाप्त. पुनः प्रयास."
   },
   "friendsMap": {
     "title": "दोस्तों का मैप",
     "friendCount": "मैप पर {{count}} दोस्त",
     "noSharedLocations": "अभी तक कोई दोस्त लोकेशन शेयर नहीं कर रहा",
     "staleHint": "केवल वे दोस्त दिख रहे हैं जिनकी लोकेशन पिछले 24 घंटे में अपडेट हुई है",
-    "loadFailed": "मैप लोड नहीं हो सका, फिर से कोशिश करें"
+    "loadFailed": "मानचित्र लोड नहीं हुआ. कनेक्शन जांचें."
   },
   "hiddenTagEditor": {
     "timeTitle": "आप कब मिले",
     "locationTitle": "आप कहाँ मिले",
-    "frequentTitle": "अक्सर इस्तेमाल",
+    "suggestedTitle": "सुझाए गए",
     "addedTitle": "जोड़ा गया",
     "today": "आज",
     "yesterday": "कल",
@@ -53,7 +64,10 @@
     "noTags": "अभी कोई टैग नहीं",
     "email": "ईमेल",
     "phone": "फ़ोन",
-    "comingSoonTitle": "जल्द आ रहा है"
+    "comingSoonTitle": "जल्द आ रहा है",
+    "checkConnection": "कनेक्शन जाँचें और फिर से प्रयास",
+    "loadFailed": "लोड विफल",
+    "willAutoRetry": "फिर ऑनलाइन होने पर स्वतः पुनः प्रयास"
   },
   "auth": {
     "login": {
@@ -62,7 +76,7 @@
       "emailPlaceholder": "ईमेल",
       "passwordPlaceholder": "पासवर्ड",
       "loginButton": "लॉग इन करें",
-      "noAccountPrompt": "अकाउंट नहीं है? ",
+      "noAccountPrompt": "अकाउंट नहीं है?",
       "registerLink": "साइन अप करें",
       "forgotPassword": "पासवर्ड भूल गए?",
       "alertEnterEmailFirst": "पहले अपना ईमेल डालें, हम पासवर्ड रीसेट लिंक भेजेंगे",
@@ -70,7 +84,10 @@
       "alertResetSentMessage": "पासवर्ड रीसेट लिंक आपके ईमेल पर भेज दिया गया है",
       "orDivider": "या",
       "continueWithApple": "Apple से साइन इन करें",
-      "continueWithGoogle": "Google से साइन इन करें"
+      "continueWithGoogle": "Google से साइन इन करें",
+      "errInvalidCredentials": "ईमेल या पासवर्ड ग़लत है।",
+      "errEmailNotConfirmed": "पहले ईमेल वेरिफ़ाई करें — भेजे गए लिंक पर टैप करें, फिर लॉगिन करें।",
+      "errGeneric": "साइन इन नहीं हो सका। फिर से कोशिश करें।"
     },
     "register": {
       "alertEmptyFields": "सभी फ़ील्ड भरें",
@@ -84,13 +101,26 @@
       "emailPlaceholder": "ईमेल",
       "passwordPlaceholder": "पासवर्ड",
       "registerButton": "साइन अप करें",
-      "hasAccountPrompt": "पहले से अकाउंट है? ",
+      "hasAccountPrompt": "पहले से अकाउंट है?",
       "loginLink": "लॉग इन करें",
       "confirmPasswordPlaceholder": "पासवर्ड की पुष्टि करें",
       "alertPasswordMismatch": "पासवर्ड मेल नहीं खाते",
-      "passwordHint": "पासवर्ड कम से कम 6 अक्षरों का होना चाहिए"
+      "passwordHint": "पासवर्ड कम से कम 6 अक्षरों का होना चाहिए",
+      "birthdayLabel": "जन्मदिन (वैकल्पिक)",
+      "alertVerifyEmailTitle": "अपना ईमेल वेरिफ़ाई करें",
+      "alertVerifyEmailMessage": "हमने आपके इनबॉक्स में पुष्टि लिंक भेजा है। उसे टैप करें, फिर लॉगिन करें।"
     },
     "onboarding": {
+      "welcome": {
+        "identityTitle": "टैग्स से खुद को परिभाषित करें",
+        "identityDesc": "10 टैग्स चुनें जो आपको दर्शाते हैं — यह PikTag पर आपकी पहचान है",
+        "activateTitle": "पुराने कनेक्शन्स को फिर से जिंदा करें",
+        "activateDesc": "जन्मदिन, मुलाकात की वर्षगांठ और साझा यादें खुद आप तक पहुँचेंगी",
+        "discoverTitle": "नाम से नहीं, ज़रूरत से खोजें",
+        "discoverDesc": "«मुझे एक फोटोग्राफर दोस्त चाहिए» · «पास में कोई डिज़ाइनर?»",
+        "next": "आगे",
+        "getStarted": "शुरू करें"
+      },
       "defaultTags": [
         "#स्टार्टअप",
         "#डिज़ाइन",
@@ -115,13 +145,57 @@
       "contactResultText": "{{matched}} दोस्त मिले",
       "step3Title": "सब तैयार! अब शुरू करें",
       "step3Description": "आपका अकाउंट तैयार है, अब PikTag इस्तेमाल करना शुरू करें",
+      "quickStart": {
+        "title": "PikTag के साथ शुरू करें",
+        "subtitle": "ये चार चीज़ें आपको जल्दी से तैयार कर देंगी",
+        "card1": {
+          "title": "दोस्त जोड़ें",
+          "body": "QR कोड स्कैन करें, कॉन्टैक्ट सिंक करें, या यूज़रनेम से खोजें"
+        },
+        "card2": {
+          "title": "दोस्तों को टैग करें",
+          "body": "जैसे \"कॉफ़ी प्रेमी\", \"प्रोडक्ट मैनेजर\", \"क्लाइंट\" — फिर टैग से ढूँढें"
+        },
+        "card3": {
+          "title": "टैग से लोग खोजें",
+          "body": "सर्च टैब में टैग लिखें और देखें कौन आपकी रुचि साझा करता है"
+        },
+        "card4": {
+          "title": "Ask पोस्ट करें",
+          "body": "एक वाक्य, पूरा नेटवर्क मदद करता है"
+        },
+        "cta": "PikTag इस्तेमाल शुरू करें"
+      },
       "backButton": "वापस",
       "enterPikTag": "PikTag शुरू करें",
       "nextButton": "आगे",
       "facebookLabel": "Facebook",
       "instagramLabel": "Instagram",
       "linkedinLabel": "LinkedIn",
-      "birthdayLabel": "जन्मदिन"
+      "birthdayLabel": "जन्मदिन",
+      "avatarStepTitle": "पहले एक फोटो डालें",
+      "avatarStepDescription": "दोस्त एक नज़र में पहचान लें — कभी भी बदल सकते हैं।",
+      "avatarPickAria": "फोटो चुनें",
+      "avatarTapToPick": "सर्कल पर टैप करके फोटो चुनें",
+      "avatarTapToChange": "फोटो टैप करके बदलें",
+      "avatarPermissionTitle": "फोटो लाइब्रेरी ऐक्सेस चाहिए",
+      "avatarPermissionMessage": "सेटिंग्स में PikTag को फोटो ऐक्सेस की अनुमति दें",
+      "skipStep": "छोड़ें",
+      "scanCardCta": "बिज़नेस कार्ड स्कैन करें",
+      "scanCardHint": "कार्ड है? फ़ोटो लें — bio और संपर्क अपने‑आप (वैकल्पिक)",
+      "cardScanFailedTitle": "स्कैन विफल",
+      "cardScanFailedMessage": "कार्ड पढ़ा नहीं गया। फिर से करें या मैन्युअल भरें।",
+      "cardScanEmptyTitle": "कुछ नहीं मिला",
+      "cardScanEmptyMessage": "कार्ड साफ़ नहीं दिखा — स्पष्ट फ़ोटो लें या टाइप करें।",
+      "cardConfirmTitle": "कार्ड विवरण पुष्टि करें",
+      "cardConfirmSubtitle": "जाँचें व बदलें — पुष्टि के बाद ही लागू",
+      "cardFieldName": "नाम",
+      "cardFieldBio": "Bio (AI ड्राफ़्ट, संपादन योग्य)",
+      "cardBioPlaceholder": "अपने बारे में एक पंक्ति",
+      "cardLinksLabel": "संपर्क / सोशल",
+      "cardApplyCta": "लागू करें",
+      "profileCta": "मेरा पहला Tag बनाएँ",
+      "saveFailed": "सेव नहीं हुआ — कनेक्शन जाँचें और फिर से कोशिश करें।"
     }
   },
   "connections": {
@@ -162,7 +236,30 @@
     "clearFilter": "फ़िल्टर हटाएँ",
     "noTagsToFilter": "फ़िल्टर के लिए कोई टैग नहीं",
     "newBadge": "नया",
-    "unreviewedLabel": "समीक्षा बाकी"
+    "unreviewedLabel": "समीक्षा बाकी",
+    "sortLabel": "क्रमबद्ध",
+    "sortByRecent": "हाल में जोड़े गए",
+    "sortByAlphabet": "वर्णक्रम (A→Z)",
+    "sortByAlphabetDesc": "वर्णक्रम (Z→A)",
+    "sortByInteraction": "हाल का संवाद",
+    "sortByBirthday": "आने वाले जन्मदिन",
+    "addContact": "संपर्क जोड़ें",
+    "addContactTitle": "एक संपर्क जोड़ें",
+    "addSearchTitle": "PikTag यूज़र खोजें",
+    "addSearchDesc": "नाम, यूज़रनेम या टैग से",
+    "addContactSyncTitle": "अपने कॉन्टैक्ट सिंक करें",
+    "addContactSyncDesc": "PikTag पर पहले से मौजूद दोस्तों को खोजें",
+    "addInviteTitle": "दोस्तों को PikTag पर बुलाएं",
+    "addInviteDesc": "इन्वाइट लिंक शेयर करें — साइन अप करते ही दोस्त",
+    "coldStartActionContacts": "अपने कॉन्टैक्ट से दोस्त खोजें",
+    "coldStartActionContactsDesc": "PikTag पर मौजूद दोस्तों को खोजें — बाकी को टैग + इन्वाइट",
+    "notJoinedBadge": "अभी PikTag पर नहीं",
+    "coldStartActionManual": "किसी को नोट करें",
+    "coldStartActionManualDesc": "अकाउंट ज़रूरी नहीं — जुड़ने पर आपके टैग व नोट अपने‑आप लिंक",
+    "addManualA11y": "मैन्युअल संपर्क जोड़ें",
+    "phonePromptTitle": "फ़ोन जोड़ें ताकि दोस्त ढूँढ़ें",
+    "phonePromptBody": "जब दोस्त संपर्क सिंक करेंगे, स्वतः जुड़ेंगे. केवल PikTag, कभी सार्वजनिक नहीं.",
+    "addedFriend": "+ {{name}}"
   },
   "search": {
     "clearAll": "सब साफ़ करें",
@@ -171,6 +268,14 @@
     "intersectionResultCount": "{{count}} लोग मिले",
     "headerTitle": "खोज",
     "searchPlaceholder": "टैग, यूज़रनेम वगैरह",
+    "promptHints": [
+      "मुझे एक फोटोग्राफर दोस्त चाहिए",
+      "अंग्रेज़ी बोलने वाला कोई चाहिए",
+      "{{city}} में कोई डिज़ाइनर?",
+      "स्टार्टअप में कोई?",
+      "वेब डेवलपर ढूंढ रहा हूँ"
+    ],
+    "promptHintCityFallback": "पास में कोई डिज़ाइनर?",
     "categorySectionLabel": "श्रेणी से ब्राउज़ करें",
     "categoryPopular": "लोकप्रिय टैग",
     "categoryNearby": "आस-पास के सदस्य",
@@ -185,6 +290,7 @@
     "profilesSectionLabel": "सदस्य",
     "noProfilesFound": "कोई मेल खाता सदस्य नहीं मिला",
     "noProfilesFoundTitle": "\"{{query}}\" के लिए कोई सदस्य नहीं मिला",
+    "askPrompt": "आपके नेटवर्क में नहीं? एक Ask पोस्ट करें — दोस्त और दोस्तों के दोस्त ढूँढने में मदद कर सकते हैं।",
     "tryTagSearchHint": "#टैग या कोई और कीवर्ड आज़माएँ",
     "clearAndRetry": "साफ़ करके फिर कोशिश करें",
     "resetButton": "रीसेट करें",
@@ -198,10 +304,16 @@
     "tagUsersTitle": "इस टैग का इस्तेमाल करने वाले",
     "viewAllTagUsers": "सभी {{count}} देखें",
     "categoryUncategorized": "अन्य",
-    "allCategories": "सब"
+    "allCategories": "सब",
+    "openMap": "मानचित्र खोलें",
+    "searchBtn": "खोजें",
+    "searchInputLabel": "खोजें",
+    "clearSearchLabel": "खोज साफ़ करें",
+    "recommendedTitle": "जिनसे आप मिलना चाहें",
+    "tagsSelected": "टैग चुने"
   },
   "addTag": {
-    "headerTitle": "# सोशल बनें",
+    "headerTitle": "Tag बनाएँ",
     "alertTagExists": "टैग पहले से मौजूद है",
     "alertTagExistsMessage": "यह टैग पहले से सूची में है।",
     "alertEnterPresetName": "कृपया टेम्पलेट का नाम डालें",
@@ -213,18 +325,9 @@
     "alertQrError": "QR कोड बनाया नहीं जा सका, फिर कोशिश करें।",
     "alertDeletePresetTitle": "टेम्पलेट हटाएँ",
     "alertDeletePresetMessage": "क्या आप पक्का \"{{name}}\" हटाना चाहते हैं?",
-    "dateLabel": "Date Tag",
-    "datePlaceholder": "YYYY/MM/DD",
-    "dateDisplayFallback": "तारीख़ चुनने के लिए टैप करें",
-    "locationLabel": "Location Tag",
-    "locationPlaceholder": "इवेंट का स्थान डालें...",
-    "currentLocation": "वर्तमान स्थान",
-    "selectLocation": "स्थान चुनें",
-    "manualInput": "हाथ से डालें",
     "locationPermDenied": "लोकेशन की अनुमति नहीं दी गई",
     "customTagsLabel": "कस्टम टैग",
     "hiddenTagHint": "केवल आपको दिखेगा — याद रखने में मदद करता है कि आप कहाँ मिले",
-    "pickDate": "तारीख़ चुनें",
     "tagPlaceholder": "टैग डालें...",
     "addButton": "जोड़ें",
     "saveAsPreset": "टेम्पलेट के रूप में सहेजें",
@@ -257,7 +360,21 @@
     "copyLink": "लिंक कॉपी करें",
     "editQr": "QR संपादित करें",
     "alertLinkCopiedTitle": "कॉपी हो गया",
-    "alertLinkCopiedMessage": "लिंक क्लिपबोर्ड पर कॉपी हो गया"
+    "alertLinkCopiedMessage": "लिंक क्लिपबोर्ड पर कॉपी हो गया",
+    "contextLabel": "कौन सा मौका है?",
+    "contextHint": "एक लाइन काफी है। AI आपके शब्द, समय और जगह से टैग सुझाता है — ताकि याद रहे यहाँ किससे मिले।",
+    "contextPlaceholder": "जैसे: वीकेंड ब्रंच, क्लाइंट डेमो, बुक लॉन्च",
+    "aiSuggestionsTitle": "AI सुझाव",
+    "aiSuggestionsHint": "एक लाइन लिखें — AI उसके साथ आपकी लोकेशन और टैग देखेगा।",
+    "aiSuggestionsEmpty": "AI को कुछ नहीं मिला — फिर से कोशिश करें या खुद जोड़ें।",
+    "aiRegenerate": "पुनः उत्पन्न",
+    "contextPromptHints": [
+      "डाइविंग ट्रिप",
+      "कॉलेज रीयूनियन",
+      "ऑफिस पार्टी",
+      "वीकेंड बारबेक्यू",
+      "दोस्त की शादी"
+    ]
   },
   "profile": {
     "nameNotSet": "नाम सेट नहीं है",
@@ -266,12 +383,12 @@
     "noBio": "अभी कोई बायो नहीं",
     "noTags": "अभी कोई टैग नहीं",
     "tagFallback": "टैग",
+    "askPromptHint": "+ दबाएं Ask करने के लिए · «चाहिए…»",
     "friendCountSuffix": "दोस्त",
     "shareProfile": "प्रोफ़ाइल शेयर करें",
     "editProfile": "प्रोफ़ाइल संपादित करें",
     "manageTags": "मेरे टैग प्रबंधित करें",
     "noContactMethods": "संपर्क का कोई तरीक़ा नहीं",
-    "statusTooltip": "स्थिति सेट करने के लिए टैप करें",
     "contactInfoTitle": "संपर्क",
     "phoneLabel": "फ़ोन",
     "emailLabel": "ईमेल",
@@ -282,7 +399,11 @@
     "statFriends": "दोस्त",
     "statFollowers": "फ़ॉलोअर",
     "copyLink": "लिंक कॉपी करें",
-    "share": "शेयर करें"
+    "share": "शेयर करें",
+    "statTagsA11y": "मेरे टैग देखें",
+    "statFriendsA11y": "मेरे दोस्त देखें",
+    "statFollowersA11y": "मेरे फ़ॉलोअर देखें",
+    "statTribeA11y": "मेरी Tribe नक्षत्र देखें"
   },
   "editProfile": {
     "headerTitle": "प्रोफ़ाइल संपादित करें",
@@ -305,7 +426,7 @@
     "usernameLabel": "यूज़रनेम",
     "usernamePlaceholder": "यूज़रनेम डालें",
     "headlineLabel": "पद / भूमिका",
-    "headlinePlaceholder": "जैसे: PM @ Google, फ्रीलांस डिज़ाइनर",
+    "headlinePlaceholder": "जैसे: PM @ टेक कंपनी, फ्रीलांस डिज़ाइनर",
     "bioLabel": "बायो",
     "bioPlaceholder": "बायो डालें",
     "phoneLabel": "फ़ोन",
@@ -343,7 +464,57 @@
     "selectPlatform": "प्लेटफ़ॉर्म चुनें",
     "linkName": "लिंक का नाम",
     "selectCountry": "देश चुनें",
-    "searchCountry": "देश या कोड खोजें"
+    "searchCountry": "देश या कोड खोजें",
+    "invalidImageType": "असमर्थित छवि प्रकार। कृपया JPEG, PNG या WebP का उपयोग करें।",
+    "imageTooLarge": "छवि बहुत बड़ी है। अधिकतम आकार 2MB है।",
+    "browseAllPlatformsCta": "और देखें…",
+    "browseAllPlatforms": "सभी प्लेटफ़ॉर्म देखें",
+    "platformSearchPlaceholder": "प्लेटफ़ॉर्म खोजें…",
+    "platformSearchEmpty": "कोई परिणाम नहीं",
+    "detectedAs": "{{platform}} के रूप में पहचाना गया",
+    "platform": {
+      "phone": "फ़ोन",
+      "email": "ईमेल",
+      "website": "वेबसाइट",
+      "blog": "ब्लॉग",
+      "portfolio": "पोर्टफ़ोलियो",
+      "custom": "कस्टम लिंक"
+    },
+    "platformCategory": {
+      "communication": "संचार",
+      "social": "सामाजिक",
+      "video": "वीडियो",
+      "music": "संगीत",
+      "professional": "पेशेवर",
+      "writing": "लेखन",
+      "business": "व्यापार",
+      "generic": "सामान्य"
+    },
+    "completionInline": "तुम्हारे लोग तुम्हें जल्दी ढूंढें — जोड़ो {{items}}",
+    "missingAvatar": "फोटो",
+    "missingBio": "बायो",
+    "missingTags": "3 टैग",
+    "missingBiolink": "सोशल लिंक",
+    "welcomeShort": "PikTag में आपका स्वागत है",
+    "bioPromptHints": [
+      "टेक में सेल्स; दौड़ना मेरा स्ट्रेस-बस्टर, इस साल मैराथन सब-4 का लक्ष्य",
+      "प्राइमरी टीचर, बालकनी में सब्ज़ी उगाती हूँ, 20+ सकुलेंट्स",
+      "इमरजेंसी नर्स, शिफ्ट के बाद बेकिंग से सुकून, पोर-ओवर कॉफ़ी सीख रहा",
+      "बैकएंड इंजीनियर, आजकल खाना बनाना और मिट्टी कला, घर पर तेज़ शिबा",
+      "मनोविज्ञान का छात्र, बैंड में गिटार, अब इलस्ट्रेशन के काम भी ले रहा"
+    ],
+    "headlinePromptHints": [
+      "PM @ टेक कंपनी",
+      "वकील @ लॉ फर्म",
+      "इमरजेंसी नर्स @ मेडिकल सेंटर",
+      "फ्रीलांस ग्राफिक डिज़ाइनर",
+      "मनोविज्ञान का छात्र"
+    ],
+    "needLibraryPermissionTitle": "फ़ोटो लाइब्रेरी एक्सेस चाहिए",
+    "needLibraryPermissionMsg": "सेटिंग्स में अनुमति दें",
+    "notSignedIn": "साइन इन नहीं हैं",
+    "uploadFailTitle": "अपलोड विफल",
+    "tryAgainLater": "कुछ देर बाद पुनः प्रयास"
   },
   "friendDetail": {
     "reminderBirthday": "जन्मदिन",
@@ -369,6 +540,9 @@
     "metLocationLabel": "स्थान",
     "metNoteLabel": "नोट",
     "eventTagsLabel": "इवेंट टैग",
+    "eventTagsSection": "साथ में भाग लिए",
+    "eventTagsExpand": "सभी {{count}} दिखाएं",
+    "eventTagsCollapse": "कम दिखाएं",
     "stickyNotesTitle": "स्टिकी नोट्स",
     "notePlaceholder": "अपना नोट लिखें...",
     "noteCancel": "रद्द करें",
@@ -408,19 +582,24 @@
     "unfollowMessage": "क्या आप पक्का {{name}} को अनफ़ॉलो करना चाहते हैं?",
     "unfollowConfirm": "अनफ़ॉलो",
     "hiddenTagsTitle": "छुपे टैग (केवल आप देख सकते हैं)",
+    "eventTagsTitle": "इवेंट टैग",
     "hiddenTagPlaceholder": "छुपा टैग जोड़ें, जैसे: पूर्व सहकर्मी",
     "mutualTagsModalTitle": "साझा टैग",
     "mutualFriendsSectionTitle": "साझा दोस्त",
-    "shareIntroMessage": "आपको {{name}} से मिलवाता हूँ — यह उनकी प्रोफ़ाइल है: {{url}}"
+    "shareIntroMessage": "आपको {{name}} से मिलवाता हूँ — यह उनकी प्रोफ़ाइल है: {{url}}",
+    "tag": "टैग",
+    "recommendMembers": "अनुशंसित सदस्य",
+    "blockConfirmTitle": "इस व्यक्ति को ब्लॉक करें?",
+    "blockConfirmMessage": "आप दोनों एक-दूसरे को अनफ़ॉलो कर देंगे और सामग्री नहीं दिखेगी।"
   },
   "userDetail": {
     "headerNotFound": "नहीं मिला",
     "userNotFound": "यूज़र नहीं मिला",
-    "mutualFriendsPrefix": "साझा दोस्त: ",
+    "mutualFriendsPrefix": "साझा दोस्त:",
     "mutualFriendsSuffix": "",
-    "mutualTagsPrefix": "साझा टैग: ",
+    "mutualTagsPrefix": "साझा टैग:",
     "mutualTagsSuffix": "",
-    "mutualSeparator": "  |  ",
+    "mutualSeparator": "|",
     "following": "फ़ॉलो कर रहे हैं",
     "follow": "फ़ॉलो",
     "sendMessage": "संदेश",
@@ -455,7 +634,12 @@
     "pickTagSubtitle": "{{name}} को सबसे अच्छे से दर्शाने वाले टैग चुनें",
     "pickTagEmpty": "इस यूज़र के अभी कोई सार्वजनिक टैग नहीं हैं",
     "pickTagSave": "सहेजें ({{count}})",
-    "hiddenTagPlaceholder": "छुपा टैग जोड़ें..."
+    "hiddenTagPlaceholder": "छुपा टैग जोड़ें...",
+    "tag": "टैग",
+    "recommendMembers": "अनुशंसित सदस्य",
+    "vibeContextTagsTitle": "इस Tag के टैग",
+    "blockConfirmTitle": "इस व्यक्ति को ब्लॉक करें?",
+    "blockConfirmMessage": "आप दोनों एक-दूसरे को अनफ़ॉलो कर देंगे और सामग्री नहीं दिखेगी।"
   },
   "settings": {
     "headerTitle": "सेटिंग्स",
@@ -504,7 +688,10 @@
     "deactivateMessage": "आपकी प्रोफ़ाइल छुप जाएगी। आप दोबारा लॉग इन करके इसे फिर से सक्रिय कर सकते हैं।",
     "deactivateConfirm": "निष्क्रिय करें",
     "deleteAccountButton": "अकाउंट हटाएँ",
-    "alertDeleteAccountNote": "यह कार्रवाई पूर्ववत नहीं हो सकती। आपका अकाउंट और सारा डेटा हमेशा के लिए मिट जाएगा"
+    "alertDeleteAccountNote": "यह कार्रवाई पूर्ववत नहीं हो सकती। आपका अकाउंट और सारा डेटा हमेशा के लिए मिट जाएगा",
+    "analyticsOptIn": "उपयोग एनालिटिक्स भेजें",
+    "analyticsOptInDescription": "ऐप को बेहतर बनाने में मदद करें",
+    "attRationale": "PikTag अनुभव को बेहतर बनाने के लिए बुनियादी एनालिटिक्स का उपयोग करता है। हम आपको अन्य ऐप्स में कभी ट्रैक नहीं करते।"
   },
   "contactSync": {
     "headerTitle": "कॉन्टैक्ट सिंक",
@@ -525,7 +712,23 @@
     "inviteMessage": "अरे {{name}}, मैं PikTag पर टैग्स से जुड़ रहा हूँ! साथ जुड़ें: https://pikt.ag",
     "batchProgress": "प्रोसेस हो रहा है {{current}}/{{total}}",
     "alertBatchDoneTitle": "आयात पूरा",
-    "alertBatchDoneMessage": "{{matched}} दोस्त जोड़े। {{notOnApp}} कॉन्टैक्ट अभी PikTag पर नहीं हैं।"
+    "alertBatchDoneMessage": "{{matched}} दोस्त जोड़े। {{notOnApp}} कॉन्टैक्ट अभी PikTag पर नहीं हैं।",
+    "sectionOnPiktag": "PikTag पर · {{count}}",
+    "sectionNotOnPiktag": "PikTag पर नहीं · {{count}}",
+    "summaryHeading": "{{onCount}} PikTag पर · {{offCount}} को आमंत्रित करें",
+    "followAllCta": "सभी PikTag दोस्तों को फ़ॉलो करें ({{count}})",
+    "followBtn": "फ़ॉलो",
+    "inviteBtn": "आमंत्रित",
+    "tagInviteBtn": "टैग करें और बुलाएँ",
+    "fromContact": "कॉन्टैक्ट: {{name}}",
+    "classifyingText": "मिलान हो रहा है…",
+    "alertFollowAllTitle": "सभी को फ़ॉलो करें",
+    "alertFollowAllMessage": "क्या सभी {{count}} PikTag दोस्तों को अपने कनेक्शन में जोड़ें?",
+    "alertFollowAllConfirm": "जोड़ें",
+    "alertFollowAllDoneTitle": "हो गया",
+    "alertFollowAllDoneMessage": "{{count}} PikTag दोस्त जोड़े गए",
+    "allConnected": "PikTag के सभी कॉन्टैक्ट पहले से जुड़े हैं",
+    "openSettings": "अनुमति देने के लिए सेटिंग्स खोलें"
   },
   "invite": {
     "headerTitle": "दोस्तों को आमंत्रित करें",
@@ -563,11 +766,11 @@
     "defaultLocation": "वर्तमान स्थान",
     "alertPermTitle": "लोकेशन अनुमति",
     "alertPermMessage": "इस सुविधा के लिए लोकेशन अनुमति ज़रूरी है",
-    "metAtPrefix": "मिले ",
-    "metAtSuffix": " पर",
+    "metAtPrefix": "मिले",
+    "metAtSuffix": "पर",
     "nearbySection": "आस-पास के कनेक्शन ({{count}})",
     "metHereSection": "यहाँ मिले ({{count}})",
-    "emptyText": "आस-पास कोई कनेक्शन नहीं मिला"
+    "emptyText": "आसपास कोई नहीं। सर्च रेंज बदलें या नए दोस्त खोजने के लिए 'एक्सप्लोर' पर जाएँ"
   },
   "dashboard": {
     "headerTitle": "व्यक्तिगत डैशबोर्ड",
@@ -581,7 +784,7 @@
     "totalLinkClicks": "लिंक क्लिक",
     "totalQrScans": "कुल QR स्कैन",
     "growthCurveTitle": "कनेक्शन वृद्धि",
-    "growthCurveEmpty": "अभी कोई दोस्त डेटा नहीं",
+    "growthCurveEmpty": "अभी कोई दोस्त डेटा नहीं। टैग जोड़ें या दोस्तों को आमंत्रित करके शुरू करें",
     "presetScansTitle": "टेम्पलेट के अनुसार स्कैन",
     "presetScansEmpty": "टेम्पलेट स्कैन का कोई रिकॉर्ड नहीं",
     "scanCountSuffix": "स्कैन",
@@ -605,7 +808,73 @@
     "timeYesterday": "कल",
     "timeDaysAgo": "{{count}} दि पहले",
     "timeWeeksAgo": "{{count}} हफ़्ते पहले",
-    "emptyState": "कोई सूचना नहीं"
+    "emptyState": "कोई सूचना नहीं। रिमाइंडर सेट करें या दोस्तों की गतिविधि फ़ॉलो करें",
+    "types": {
+      "ask_posted": {
+        "title": "",
+        "body": "एक Ask पोस्ट किया · {{ask_body}}",
+        "push": {
+          "title": "{{username}}",
+          "body": "एक Ask पोस्ट किया · {{ask_body}}"
+        }
+      },
+      "vibe_shift": {
+        "title": "",
+        "body": "ने नया टैग #{{tag_name}} जोड़ा",
+        "push": {
+          "title": "{{username}}",
+          "body": "ने नया टैग #{{tag_name}} जोड़ा"
+        }
+      },
+      "on_this_day": {
+        "title": "",
+        "body": "उस दिन की Tag देखें",
+        "push": {
+          "title": "",
+          "body": "उस दिन की Tag देखें"
+        }
+      },
+      "tag_convergence": {
+        "title": "",
+        "body": "बात शुरू करो",
+        "push": {
+          "title": "",
+          "body": "बात शुरू करो"
+        }
+      },
+      "ask_bridge": {
+        "title": "",
+        "body": "परिचय के लिए कहो",
+        "push": {
+          "title": "",
+          "body": "परिचय के लिए कहो"
+        }
+      },
+      "ask_prompt": {
+        "title": "",
+        "body": "एक वाक्य — कोई दोस्त मदद कर सकता है",
+        "push": {
+          "title": "",
+          "body": "एक वाक्य — कोई दोस्त मदद कर सकता है"
+        }
+      },
+      "reconnect_suggest": {
+        "title": "",
+        "body": "हाय कहो",
+        "push": {
+          "title": "",
+          "body": "हाय कहो"
+        }
+      },
+      "tag_combo": {
+        "title": "",
+        "body": "अच्छा विषय हो सकता है",
+        "push": {
+          "title": "",
+          "body": "अच्छा विषय हो सकता है"
+        }
+      }
+    }
   },
   "scanResult": {
     "headerTitle": "दोस्त जोड़ें",
@@ -626,7 +895,11 @@
     "relationClient": "क्लाइंट",
     "alreadyConnectedTitle": "पहले से जुड़े",
     "alreadyConnectedMessage": "आप पहले से दोस्त हैं।",
-    "addFriend": "फ़ॉलो"
+    "addFriend": "फ़ॉलो",
+    "connectElsewhereTitle": "{{name}} से यहाँ भी जुड़ें",
+    "connectElsewhereHint": "टैप करें, उनका पेज उस ऐप में खुलेगा — फ़ॉलो/ऐड आप करें।",
+    "selfScanMessage": "यह आपका अपना QR है — आप ख़ुद को नहीं जोड़ सकते।",
+    "addingFriend": "दोस्त जोड़ा जा रहा है…"
   },
   "manageTags": {
     "headerTitle": "टैग प्रबंधित करें",
@@ -652,6 +925,7 @@
     "pinLimitMessage": "आप अधिकतम {{max}} टैग पिन कर सकते हैं",
     "dragHint": "पिन करने के लिए लंबे समय तक दबाएँ, क्रम बदलने के लिए तीर",
     "aiSuggestionsTitle": "आपके लिए AI सुझाव",
+    "aiFromBioTitle": "आपकी बायो के आधार पर AI सुझाव",
     "pinTag": "टैग पिन करें",
     "unpinTag": "अनपिन",
     "publicTagsTitle": "सार्वजनिक टैग",
@@ -663,7 +937,9 @@
     "dragSelectTarget": "बदलने के लिए टैग पर टैप करें",
     "tagLimitTitle": "टैग सीमा",
     "tagLimitMessage": "आप अधिकतम {{max}} टैग जोड़ सकते हैं",
-    "aiErrorGeneric": "AI सुझाव अस्थायी रूप से उपलब्ध नहीं हैं, बाद में कोशिश करें"
+    "aiErrorGeneric": "AI सुझाव अस्थायी रूप से उपलब्ध नहीं हैं, बाद में कोशिश करें",
+    "nativeHintNoPin": "दबाकर खींचकर क्रम बदलें",
+    "tagEditHint": "हटाने के लिए टैप करें (सेव से पहले वापस संभव) · क्रम बदलने हेतु दबाकर खींचें"
   },
   "activityReview": {
     "noNewFriends": "समीक्षा के लिए कोई नया दोस्त नहीं",
@@ -673,7 +949,8 @@
     "hiddenTagPlaceholder": "छुपा टैग जोड़ें...",
     "swipeHint": "← छोड़ने के लिए बाएँ स्वाइप करें · आगे के लिए दाएँ →",
     "skip": "छोड़ें",
-    "next": "आगे"
+    "next": "आगे",
+    "done": "हो गया"
   },
   "tagDetail": {
     "unknownTag": "अज्ञात टैग",
@@ -712,6 +989,7 @@
     "title": "कैमरा एक्सेस",
     "grantPermission": "अनुमति दें",
     "instruction": "अपना कैमरा PikTag QR कोड पर रखें",
+    "cardFrameHint": "पूरे कार्ड को फ़्रेम में रखें और साफ़ रखें",
     "invalidQr": "अमान्य QR कोड",
     "invalidQrMessage": "यह QR कोड वैध PikTag कनेक्शन कोड नहीं है।",
     "permissionMessage": "QR कोड स्कैन करने और दोस्तों से जुड़ने के लिए PikTag को कैमरा एक्सेस चाहिए।"
@@ -791,19 +1069,6 @@
     "section11Title": "11. संपर्क",
     "section11Body": "PikTag Inc.\nईमेल: support@pikt.ag"
   },
-  "points": {
-    "balance": "P सिक्के",
-    "lifetime": "कुल अर्जित",
-    "inviteReward": "आमंत्रण इनाम",
-    "redeemHint": "भविष्य की सशुल्क सेवाओं के लिए P सिक्के इस्तेमाल करें",
-    "historyTitle": "P सिक्का इतिहास",
-    "reasonInviteAccepted": "दोस्त ने आमंत्रण स्वीकार किया",
-    "reasonAdminGrant": "सिस्टम इनाम",
-    "reasonRedeemed": "रिडीम हुआ",
-    "emptyHistory": "अभी कोई P सिक्का गतिविधि नहीं",
-    "plusOne": "+1 P",
-    "pointsUnit": "P"
-  },
   "chat": {
     "inbox": "संदेश",
     "compose": "नया संदेश",
@@ -833,7 +1098,12 @@
     "userBlocked": "इस यूज़र को संदेश नहीं भेजा जा सकता",
     "deliveryFailed": "भेजने में विफल · फिर कोशिश के लिए टैप करें",
     "unreadBadge": "{{count}} अनपढ़े",
-    "messagesSent": "{{name}} ने आपको संदेश भेजा"
+    "messagesSent": "{{name}} ने आपको संदेश भेजा",
+    "timeJustNow": "अभी",
+    "timeYesterday": "कल",
+    "timeMinutesAgo": "{{count}} मिनट पहले",
+    "timeHoursAgo": "{{count}} घंटे पहले",
+    "timeDaysAgo": "{{count}} दिन पहले"
   },
   "share": {
     "profileInviteMessage": "{{name}} PikTag पर\n{{url}}\n\nPikTag — हर दोस्त को जो आप मिलें टैग करें,\nQR स्कैन करें और कब और कहाँ अपने आप कैप्चर हो जाए।\n\nPikTag पाएँ → https://pikt.ag"
@@ -903,7 +1173,123 @@
     "generating": "Generating title…",
     "minOneTag": "Select at least one tag",
     "aiSuggestions": "AI सुझाव",
-    "yourTags": "आपके टैग",
-    "noTagsHint": "पहले प्रोफाइल → टैग प्रबंधन में टैग जोड़ें"
+    "customTagPlaceholder": "कस्टम टैग जोड़ें",
+    "cardLabel": "मदद चाहिए",
+    "askingNow": "अभी पूछ रहे हैं",
+    "yourAskTitle": "आपका वर्तमान Ask",
+    "generateAiTags": "AI टैग बनाएं",
+    "aiNoSuggestions": "AI को कोई उपयुक्त टैग नहीं मिला। फिर से कोशिश करें या खुद लिखें।",
+    "regenerateAiTags": "पुनः उत्पन्न",
+    "bubblePromptMine": "+ नया Ask",
+    "aiSuggestionsTitle": "AI सुझाव",
+    "aiBodyTooShortHint": "एक वाक्य में बताएं — AI टैग सुझाएगा",
+    "aiTapToGenerateHint": "↻ पर टैप करें ताकि AI टैग सुझा सके",
+    "bodyPromptHints": [
+      "वीकेंड पर साथ ट्रेक करने कौन?",
+      "Wi-Fi ठीक करने वाला चाहिए, अर्जेंट",
+      "फ्रीलांस काम चाहिए — कोई हायर कर रहा है?",
+      "सस्ता डेंटिस्ट सुझाएँ",
+      "इस हफ्ते बोर्ड-गेम नाइट, कौन आ रहा है?"
+    ],
+    "createSubtitle": "एक लाइन काफी है — AI टैग जोड़ता है ताकि सही लोग (या दोस्त का दोस्त) इसे देखें।",
+    "createFailed": "आपका Ask नहीं गया — फिर से कोशिश करें।",
+    "deleteFailed": "Ask हटाना विफल"
+  },
+  "errorBoundary": {
+    "title": "कुछ गड़बड़ हो गई",
+    "message": "ऐप में एक अनपेक्षित त्रुटि हुई। कृपया पुनः प्रयास करें।",
+    "retry": "पुनः प्रयास करें"
+  },
+  "report": {
+    "reportMessage": "संदेश की रिपोर्ट करें",
+    "reportAsk": "Ask की रिपोर्ट करें",
+    "reportNotification": "इस सूचना की रिपोर्ट करें",
+    "hideFromUser": "इस उपयोगकर्ता को छुपाएँ",
+    "confirmTitle": "रिपोर्ट",
+    "confirmDescription": "कारण चुनें। हम 24 घंटे में समीक्षा करेंगे।",
+    "success": "धन्यवाद — हम समीक्षा करेंगे।",
+    "reasonSpam": "स्पैम",
+    "reasonHarassment": "उत्पीड़न",
+    "reasonInappropriate": "अनुचित सामग्री",
+    "reasonOther": "अन्य",
+    "noTarget": "इस सूचना में रिपोर्ट करने के लिए कोई नहीं है।"
+  },
+  "tabTooltips": {
+    "home": "दोस्त",
+    "search": "खोजें / चैट",
+    "addTag": "स्कैन / बनाएँ",
+    "notifications": "सूचनाएँ",
+    "profile": "आपकी प्रोफ़ाइल",
+    "dismissHint": "बंद करने के लिए टैप करें"
+  },
+  "qrGroup": {
+    "headerTitle": "नए लोगों से मिलें",
+    "detailHeader": "Tag",
+    "create": "नया Tag बनाएँ",
+    "createFirst": "अभी Tag बनाएँ",
+    "emptyTitle": "टैग को नए दोस्त याद रखने दें",
+    "emptyDesc": "स्कैन कर जुड़ते ही मुलाक़ात अपने‑आप नोट हो जाती है — अब कभी न भूलें कहाँ मिले थे।",
+    "untitled": "बिना नाम का Tag",
+    "untitledFallback": "Tag · {{date}}",
+    "namePlaceholder": "इस Tag को नाम दें",
+    "tagsTitle": "Tag टैग",
+    "tagsEmpty": "कोई टैग नहीं",
+    "tagInputPlaceholder": "नया टैग",
+    "noTagsYet": "कोई टैग नहीं",
+    "membersTitle": "सदस्य ({{count}})",
+    "memberCount": "{{count}} दोस्त",
+    "membersEmpty": "अभी किसी ने स्कैन नहीं किया — दोस्तों के साथ शेयर करें",
+    "deleteTitle": "यह Tag हटाएँ?",
+    "deleteMessage": "\"{{name}}\" आपके Tags से हटा दिया जाएगा। इस QR से जुड़े मित्र प्रभावित नहीं होंगे।",
+    "deleteFailedTitle": "हटाना विफल",
+    "deleteFailedMessage": "यह Tag हटाया नहीं गया। बाद में पुनः प्रयास करें। बना रहे तो हमसे संपर्क करें।",
+    "emptyScanCta": "या उनका QR स्कैन कर जुड़ें"
+  },
+  "localContact": {
+    "editTitle": "संपर्क संपादित करें",
+    "addTitle": "नया संपर्क",
+    "intro": "पहले व्यक्ति को नोट करें — उन्हें अभी PikTag अकाउंट की ज़रूरत नहीं। जुड़ने पर यह अपने‑आप लिंक हो जाता है और आपके टैग साथ चले जाते हैं।",
+    "fieldName": "नाम",
+    "namePlaceholder": "जैसे: डाइविंग में मिला एलेक्स",
+    "fieldPhone": "फ़ोन (वैकल्पिक — जुड़ने पर लिंक करता है)",
+    "phonePlaceholder": "+91 98765 43210",
+    "fieldEmail": "ईमेल (वैकल्पिक)",
+    "emailPlaceholder": "name@example.com",
+    "fieldMetWhere": "कहाँ मिले (वैकल्पिक)",
+    "metWherePlaceholder": "जैसे: रीयूनियन, डाइविंग",
+    "fieldNote": "नोट (सिर्फ़ आप देख सकते हैं)",
+    "notePlaceholder": "याद रखने के लिए एक लाइन",
+    "fieldTags": "टैग (सिर्फ़ आप देख सकते हैं)",
+    "tagPlaceholder": "टैग जोड़ें…",
+    "save": "सेव",
+    "nameRequiredTitle": "नाम चाहिए",
+    "nameRequiredMsg": "बाद में याद रखने के लिए कम से कम नाम दें।",
+    "saveError": "सेव नहीं हुआ — फिर कोशिश करें।",
+    "notFound": "यह संपर्क नहीं मिला — शायद PikTag से जुड़ गया या हटा दिया गया।",
+    "alreadyMemberTitle": "यह व्यक्ति पहले से PikTag पर है",
+    "alreadyMemberMsg": "{{name}} पहले से PikTag सदस्य हैं — संपर्क सहेजने से बेहतर है सीधे जुड़ें।",
+    "alreadyMemberConnect": "देखें / जोड़ें",
+    "alreadyMemberFile": "फिर भी संपर्क सहेजें",
+    "alreadyMemberFallbackWho": "यह व्यक्ति",
+    "deleteTitle": "यह संपर्क हटाएँ?",
+    "deleteMsg": "सिर्फ़ आपकी सूची से हटेगा — किसी और पर असर नहीं।",
+    "scanCardHint": "कार्ड की एक फोटो लें — नाम और संपर्क अपने आप भर जाते हैं। बाद में बदलें या टैग जोड़ें।",
+    "manualEntry": "या खुद भरें",
+    "scanRetake": "फिर से लें",
+    "fieldBirthday": "जन्मदिन (वैकल्पिक)",
+    "birthdayPlaceholder": "MM-DD या YYYY-MM-DD",
+    "linkPhone": "फ़ोन",
+    "linkEmail": "ईमेल",
+    "linkAddress": "पता",
+    "scanningTitle": "कार्ड पढ़ा जा रहा है…",
+    "scanningSubtitle": "आमतौर पर 5–10 सेकंड लगते हैं",
+    "fieldAddress": "पता",
+    "addressPlaceholder": "उदा. कनॉट प्लेस, नई दिल्ली",
+    "scanningCard": "कार्ड पढ़ा जा रहा है… (लगभग 3 सेकंड)"
+  },
+  "followers": {
+    "title": "फ़ॉलोअर",
+    "count": "{{count}} फ़ॉलोअर",
+    "empty": "अभी कोई फ़ॉलोअर नहीं"
   }
 }

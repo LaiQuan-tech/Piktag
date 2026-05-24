@@ -9,22 +9,17 @@ import {
   StatusBar,
   Linking,
   RefreshControl,
-  Animated,
 } from 'react-native';
-import { Image } from 'expo-image';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   Settings,
-  Gift,
   CheckCircle2,
-  Pencil,
   ExternalLink,
   MessageCircle,
 } from 'lucide-react-native';
 import PlatformIcon from '../components/PlatformIcon';
 import { useTranslation } from 'react-i18next';
-import { COLORS } from '../constants/theme';
+import { COLORS, type ColorPalette } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
 import { useFocusEffect } from '@react-navigation/native';
 import { supabase } from '../lib/supabase';
@@ -32,9 +27,10 @@ import { useAuth } from '../hooks/useAuth';
 import { useAuthProfile } from '../context/AuthContext';
 import { getCache, setCache, CACHE_KEYS } from '../lib/dataCache';
 import QrCodeModal from '../components/QrCodeModal';
-import InitialsAvatar from '../components/InitialsAvatar';
+import RingedAvatar from '../components/RingedAvatar';
+import { AskCreateModal } from '../components/ask/AskStoryRow';
+import { useAskFeed } from '../hooks/useAskFeed';
 import { ProfileScreenSkeleton } from '../components/SkeletonLoader';
-import StatusModal from '../components/StatusModal';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { PiktagProfile, UserTag, Biolink } from '../types';
 
@@ -42,58 +38,24 @@ type ProfileScreenProps = {
   navigation: NativeStackNavigationProp<any>;
 };
 
-// --- Memoized Social Circle Item (IG Highlights style) ---
-const SocialCircle = React.memo(function SocialCircle({
-  biolink,
-  onPress,
-}: {
-  biolink: Biolink;
-  onPress: (url: string) => void;
-}) {
-  return (
-    <TouchableOpacity
-      style={styles.socialCircleItem}
-      activeOpacity={0.7}
-      onPress={() => onPress(biolink.url)}
-    >
-      <View style={styles.socialCircleRing}>
-        <View style={styles.socialCircleInner}>
-          <PlatformIcon platform={biolink.platform} size={28} iconUrl={biolink.icon_url} />
-        </View>
-      </View>
-      <Text style={styles.socialCircleLabel} numberOfLines={1}>
-        {biolink.label || biolink.platform}
-      </Text>
-    </TouchableOpacity>
-  );
-});
+// Each stat is its own (small) tap target — generous hitSlop so the
+// touch area stays comfortable even though the visible text is short.
+const STAT_HITSLOP = { top: 8, bottom: 8, left: 4, right: 4 };
 
-// --- Memoized Linktree-style Link Card ---
-const LinkCard = React.memo(function LinkCard({
-  biolink,
-  onPress,
-}: {
-  biolink: Biolink;
-  onPress: (url: string) => void;
-}) {
-  return (
-    <TouchableOpacity
-      style={styles.linkCard}
-      activeOpacity={0.7}
-      onPress={() => onPress(biolink.url)}
-    >
-      <PlatformIcon platform={biolink.platform} size={22} iconUrl={biolink.icon_url} />
-      <Text style={styles.linkCardText} numberOfLines={1}>
-        {biolink.label || biolink.platform}
-      </Text>
-      <ExternalLink size={16} color={COLORS.gray400} />
-    </TouchableOpacity>
-  );
-});
+// (Removed: `SocialCircle` (IG-Highlights-style) and `LinkCard`
+// (Linktree-style) memoized components — both were defined here but
+// never rendered anywhere in this file, leftover from an earlier
+// biolinks-UI prototype. Their style references (`socialCircleItem`,
+// `socialCircleRing`, `socialCircleInner`, `socialCircleLabel`,
+// `linkCard`, `linkCardText`) were never added to the StyleSheet
+// either, so the components would have rendered un-styled if anyone
+// had wired them up. Delete-and-restore-from-git is cheaper than
+// keeping dead wiring around.)
 
 export default function ProfileScreen({ navigation }: ProfileScreenProps) {
   const { t } = useTranslation();
   const { colors, isDark } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const { user } = useAuth();
   // Read the (already hydrated) profile from AuthContext so we don't
   // re-fetch piktag_profiles on every mount. The local `profile`
@@ -107,13 +69,23 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
   const [biolinks, setBiolinks] = useState<Biolink[]>([]);
   const [followerCount, setFollowerCount] = useState<number>(0);
   const [friendCount, setFriendCount] = useState<number>(0);
+  // Tribe = transitive count of people you invited to PikTag,
+  // either via the redeem_invite_code path or by them scanning
+  // a Vibe QR before signup. Backed by the get_tribe_size RPC
+  // which does a recursive CTE; cached client-side until refresh.
+  const [tribeSize, setTribeSize] = useState<number>(0);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [qrVisible, setQrVisible] = useState(false);
-  const [currentStatus, setCurrentStatus] = useState<string | null>(null);
-  const [statusModalVisible, setStatusModalVisible] = useState(false);
-  const [showTooltip, setShowTooltip] = useState(false);
-  const tooltipOpacity = useRef(new Animated.Value(0)).current;
+
+  // Ask creation entry — the avatar's "+" badge launches the same
+  // AskCreateModal used by AskStoryRow on the Connections tab. Reuses
+  // the existing useAskFeed hook so we share state with whichever
+  // other tab last opened the modal (the modal's existingAsk prop
+  // automatically flips to view/delete mode when there's an active
+  // ask, matching AskStoryRow's behaviour).
+  const { myAsk, refresh: refreshAskFeed } = useAskFeed();
+  const [askModalVisible, setAskModalVisible] = useState(false);
 
   // --- Data fetching ---
 
@@ -161,21 +133,6 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
     if (!error && data) setBiolinks(data as Biolink[]);
   }, [userId]);
 
-  const fetchStatus = useCallback(async () => {
-    if (!userId) return;
-    // `.maybeSingle()` — a user who hasn't set a status has zero rows
-    // here. `.single()` would throw "PGRST116" and spam Sentry.
-    const { data } = await supabase
-      .from('piktag_user_status')
-      .select('text')
-      .eq('user_id', userId)
-      .gt('expires_at', new Date().toISOString())
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .maybeSingle();
-    setCurrentStatus(data?.text ?? null);
-  }, [userId]);
-
   const fetchFollowerCount = useCallback(async () => {
     if (!userId) return;
     const { count, error } = await supabase
@@ -194,13 +151,34 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
     if (!error && count !== null) setFriendCount(count);
   }, [userId]);
 
-  const fetchAllData = useCallback(async () => {
-    await Promise.all([fetchProfile(), fetchUserTags(), fetchBiolinks(), fetchFollowerCount(), fetchFriendCount(), fetchStatus()]);
-  }, [fetchProfile, fetchUserTags, fetchBiolinks, fetchFollowerCount, fetchFriendCount, fetchStatus]);
+  // Tribe size via RPC (recursive CTE over piktag_profiles.invited_by_user_id).
+  // PGRST202 = function not deployed yet (migration tolerance): treat as 0.
+  const fetchTribeSize = useCallback(async () => {
+    if (!userId) return;
+    try {
+      const { data, error } = await supabase.rpc('get_tribe_size', { p_user_id: userId });
+      if (error) {
+        const isMissing =
+          (error as any).code === 'PGRST202' ||
+          /could not find the function|does not exist/i.test(error.message);
+        if (!isMissing) console.warn('[Profile] tribe size fetch failed:', error);
+        setTribeSize(0);
+      } else if (typeof data === 'number') {
+        setTribeSize(data);
+      }
+    } catch (err) {
+      console.warn('[Profile] tribe size threw:', err);
+      setTribeSize(0);
+    }
+  }, [userId]);
 
-  // Persist the six state slices to the in-memory dataCache so that
+  const fetchAllData = useCallback(async () => {
+    await Promise.all([fetchProfile(), fetchUserTags(), fetchBiolinks(), fetchFollowerCount(), fetchFriendCount(), fetchTribeSize()]);
+  }, [fetchProfile, fetchUserTags, fetchBiolinks, fetchFollowerCount, fetchFriendCount, fetchTribeSize]);
+
+  // Persist the five state slices to the in-memory dataCache so that
   // re-entering ProfileScreen within the TTL window paints instantly
-  // instead of waiting for 6 queries. The effect is gated on state
+  // instead of waiting for 5 queries. The effect is gated on state
   // actually being present to avoid caching an intermediate blank.
   useEffect(() => {
     if (!userId) return;
@@ -211,9 +189,8 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
       biolinks,
       followerCount,
       friendCount,
-      currentStatus,
     });
-  }, [userId, profile, userTags, biolinks, followerCount, friendCount, currentStatus]);
+  }, [userId, profile, userTags, biolinks, followerCount, friendCount]);
 
   useEffect(() => {
     let isMounted = true;
@@ -226,7 +203,6 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
         biolinks: Biolink[];
         followerCount: number;
         friendCount: number;
-        currentStatus: string | null;
       }>(CACHE_KEYS.PROFILE);
 
       if (cached) {
@@ -235,7 +211,6 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
         setBiolinks(cached.biolinks);
         setFollowerCount(cached.followerCount);
         setFriendCount(cached.friendCount);
-        setCurrentStatus(cached.currentStatus);
         setLoading(false);
       } else {
         setLoading(true);
@@ -248,28 +223,20 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
     return () => { isMounted = false; };
   }, [fetchAllData]);
 
-  // Tooltip
-  useEffect(() => {
-    AsyncStorage.getItem('status_tooltip_seen').then((seen) => {
-      if (!seen) {
-        setShowTooltip(true);
-        Animated.timing(tooltipOpacity, { toValue: 1, duration: 300, useNativeDriver: true }).start();
-        const timer = setTimeout(() => {
-          Animated.timing(tooltipOpacity, { toValue: 0, duration: 400, useNativeDriver: true }).start(() => setShowTooltip(false));
-          AsyncStorage.setItem('status_tooltip_seen', '1');
-        }, 3000);
-        return () => clearTimeout(timer);
-      }
-    });
-  }, [tooltipOpacity]);
-
   // Refetch on focus
   const lastFocusFetchRef = useRef(0);
   useFocusEffect(
     useCallback(() => {
       // Always refetch on focus to catch edits from EditProfile
       fetchAllData();
-    }, [fetchAllData]),
+      // Also refetch ask feed — each useAskFeed() call has independent
+      // state, so when the user deletes their ask from a different
+      // screen (ConnectionsScreen's AskStoryRow, or the AskCreateModal
+      // there), this screen's myAsk pointer would otherwise stay stale
+      // until the realtime DELETE event lands. Belt-and-suspenders
+      // alongside the realtime listener in the hook itself.
+      refreshAskFeed();
+    }, [fetchAllData, refreshAskFeed]),
   );
 
   const onRefresh = useCallback(async () => {
@@ -288,9 +255,6 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
 
   const activeBiolinks = useMemo(() => biolinks.filter((bl) => bl.is_active), [biolinks]);
 
-  const hasAvatar = !!profile?.avatar_url;
-  const avatarSource = useMemo(() => profile?.avatar_url ? { uri: profile.avatar_url } : null, [profile?.avatar_url]);
-
   const headerTitle = useMemo(() => profile?.full_name || t('profile.nameNotSet'), [profile?.full_name, t]);
   const displayUsername = useMemo(() => profile?.username || t('profile.usernameNotSet'), [profile?.username, t]);
   const displayBio = useMemo(() => profile?.bio || t('profile.noBio'), [profile?.bio, t]);
@@ -308,11 +272,40 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
   const handleOpenQr = useCallback(() => setQrVisible(true), []);
   const handleCloseQr = useCallback(() => setQrVisible(false), []);
   const handleNavigateSettings = useCallback(() => navigation.navigate('Settings'), [navigation]);
-  const handleNavigateInvite = useCallback(() => navigation.navigate('Invite'), [navigation]);
   const handleNavigateEditProfile = useCallback(() => navigation.navigate('EditProfile'), [navigation]);
+  const handleNavigateTribe = useCallback(() => navigation.navigate('TribeConstellation'), [navigation]);
+  // Each profile stat now drills into its OWN destination (was: the
+  // whole row dumped every tap onto the Tribe graph). Tags → tag
+  // manager, Friends → the Home/Connections list, Followers → the
+  // followers list, Tribe → the constellation.
+  const handleNavigateTags = useCallback(() => navigation.navigate('ManageTags'), [navigation]);
+  const handleNavigateFriends = useCallback(
+    () => navigation.navigate('Main', { screen: 'HomeTab' }),
+    [navigation]
+  );
+  const handleNavigateFollowers = useCallback(
+    () =>
+      navigation.navigate('Followers', {
+        userId,
+        displayName: profile?.full_name || profile?.username || '',
+      }),
+    [navigation, userId, profile?.full_name, profile?.username]
+  );
 
   const qrUsername = useMemo(() => profile?.username || '', [profile?.username]);
   const qrFullName = useMemo(() => profile?.full_name || '', [profile?.full_name]);
+  // Public identity tags for the share card (private tags stay off
+  // a QR meant to be shown to others). Capped so the single tag
+  // line doesn't overflow the card; order follows the profile's
+  // own pinned/position sort.
+  const qrTags = useMemo(
+    () =>
+      userTags
+        .filter((ut) => !ut.is_private && !!ut.tag?.name)
+        .slice(0, 6)
+        .map((ut) => ut.tag!.name as string),
+    [userTags],
+  );
 
   // --- Render ---
 
@@ -322,59 +315,76 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={TOP_EDGES}>
       <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={colors.white} />
 
-      {/* Header */}
+      {/* Header
+          Gift icon was removed — the old "earn points, redeem for
+          future paid features" loop was the rare top-right surface
+          that nobody actually used. (The invite-code/redeem gate has
+          since been fully retired — open signup, no codes. Plain
+          "share PikTag with a contact" still exists in ContactSync.)
+          The motivator now lives further down as the Tribe size
+          number — see comment below. */}
       <View style={styles.header}>
         <Text style={[styles.headerTitle, { color: colors.text }]}>{t('profile.pageTitle')}</Text>
         <View style={styles.headerRight}>
-          <TouchableOpacity style={styles.headerIconBtn} activeOpacity={0.6} onPress={handleNavigateInvite} accessibilityLabel={t('settings.inviteFriends') || '邀請好友'} accessibilityRole="button">
-            <Gift size={24} color={COLORS.piktag600} />
-          </TouchableOpacity>
           <TouchableOpacity style={styles.headerIconBtn} activeOpacity={0.6} onPress={handleNavigateSettings} accessibilityLabel="設定" accessibilityRole="button">
-            <Settings size={24} color={COLORS.gray900} />
+            <Settings size={24} color={colors.gray900} />
           </TouchableOpacity>
         </View>
       </View>
 
-      <QrCodeModal visible={qrVisible} onClose={handleCloseQr} username={qrUsername} fullName={qrFullName} />
+      <QrCodeModal visible={qrVisible} onClose={handleCloseQr} username={qrUsername} fullName={qrFullName} tags={qrTags} />
 
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.piktag500} />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.piktag500} />}
       >
         {/* ============ SECTION 1: Personal Info + Tags (Threads style) ============ */}
         <View style={styles.profileSection}>
           {/* Avatar + Name/Username */}
           <View style={styles.profileRow}>
-            <View>
-              <TouchableOpacity onPress={() => setStatusModalVisible(true)} activeOpacity={0.8}>
-                <View style={[styles.avatarWrapper, currentStatus ? styles.avatarRing : null]}>
-                  {hasAvatar ? (
-                    <Image source={avatarSource!} style={styles.avatar} cachePolicy="memory-disk" />
-                  ) : (
-                    <InitialsAvatar name={profile?.full_name || profile?.username || ''} size={56} style={styles.avatar} />
-                  )}
-                </View>
-                <View style={styles.pencilBadge}>
-                  <Pencil size={9} color={COLORS.white} />
-                </View>
-              </TouchableOpacity>
-              {showTooltip && (
-                <Animated.View style={[styles.tooltip, { opacity: tooltipOpacity }]}>
-                  <Text style={styles.tooltipText}>{t('profile.statusTooltip')}</Text>
-                  <View style={styles.tooltipArrow} />
-                </Animated.View>
-              )}
-            </View>
+            {/* "+" on an avatar is reserved for "create new ask" across
+                the app — same affordance as AskStoryRow's my-Ask card.
+                Tapping here opens AskCreateModal; if the viewer already
+                has an active ask the modal switches to view/delete mode
+                automatically. EditProfile is reachable via the "編輯
+                個人檔案" button below the stats row. */}
+            {/* Ring style is the visual signal for "I have an active Ask".
+                When myAsk is null we drop to the subtle 1.5px border so
+                the gradient stops being visual noise that everyone has
+                all the time. The "+" badge stays in both states (it's
+                the affordance for creating an Ask, independent of the
+                current Ask state) — onPress branches to view/delete or
+                create inside AskCreateModal. */}
+            <RingedAvatar
+              size={68}
+              ringStyle={myAsk ? 'gradient' : 'subtle'}
+              badge="plus"
+              name={profile?.full_name || profile?.username || ''}
+              avatarUrl={profile?.avatar_url}
+              onPress={() => setAskModalVisible(true)}
+              accessibilityLabel={t('ask.newAsk', { defaultValue: '新增 Ask' })}
+            />
             <View style={styles.nameSection}>
               <View style={styles.nameRow}>
                 <Text style={styles.displayName}>{headerTitle}</Text>
                 {/* {profile?.is_verified && (
-                  <CheckCircle2 size={16} color={COLORS.blue500} fill={COLORS.blue500} strokeWidth={0} style={{ marginLeft: 4 }} />
+                  <CheckCircle2 size={16} color={colors.blue500} fill={colors.blue500} strokeWidth={0} style={{ marginLeft: 4 }} />
                 )} */}
               </View>
               <Text style={styles.usernameText}>@{displayUsername}</Text>
+              {/* "Tap + to ask · I need…" hint — surfaces the reverse-
+                  lookup affordance that distinguishes PikTag from a
+                  contacts app. Only shown when the user has no active
+                  ask; once they post one, the surrounding UI (Profile
+                  ask card / connections AskFeed) takes over speaking
+                  for the same affordance, so the hint becomes noise. */}
+              {!myAsk && (
+                <Text style={styles.askPromptHint} numberOfLines={1}>
+                  {t('profile.askPromptHint')}
+                </Text>
+              )}
             </View>
           </View>
 
@@ -406,28 +416,67 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
             )}
           </View>
 
-          {/* Stats — one line above buttons */}
-          <Text style={styles.statsLine}>
-            <Text style={styles.statNumber}>{userTags.length}</Text>
-            <Text style={styles.statLabel}>{t('profile.statTags')}</Text>
-            <Text style={styles.statDot}> · </Text>
-            <Text style={styles.statNumber}>{friendCount}</Text>
-            <Text style={styles.statLabel}>{t('profile.statFriends')}</Text>
-            <Text style={styles.statDot}> · </Text>
-            <Text style={styles.statNumber}>{formattedFollowerCount}</Text>
-            <Text style={styles.statLabel}>{t('profile.statFollowers')}</Text>
-          </Text>
-
-          {/* P Points */}
-          <TouchableOpacity
-            onPress={() => navigation.navigate('PointsHistory')}
-            activeOpacity={0.7}
-            style={styles.pPointsRow}
-          >
-            <Text style={styles.pPointsText}>
-              {profile?.p_points ?? 0} {t('points.pointsUnit')}
-            </Text>
-          </TouchableOpacity>
+          {/* Stats — one line above buttons. Tribe size joins
+              tags / friends / followers as the fourth public stat
+              — same visual weight, same row. Tappable: opens the
+              private anonymous Tribe constellation view.
+              "Tribe" replaces the old p_points system. The
+              motivation flips from "earn points → redeem for
+              vague future features" to "visible status number
+              that grows as your invites compound." */}
+          <View style={styles.statsRow}>
+            <TouchableOpacity
+              activeOpacity={0.6}
+              onPress={handleNavigateTags}
+              hitSlop={STAT_HITSLOP}
+              accessibilityRole="button"
+              accessibilityLabel={t('profile.statTagsA11y', { defaultValue: '查看我的標籤' })}
+            >
+              <Text style={styles.statText}>
+                <Text style={styles.statNumber}>{userTags.length}</Text>
+                <Text style={styles.statLabel}>{t('profile.statTags')}</Text>
+              </Text>
+            </TouchableOpacity>
+            <Text style={[styles.statText, styles.statDot]}> · </Text>
+            <TouchableOpacity
+              activeOpacity={0.6}
+              onPress={handleNavigateFriends}
+              hitSlop={STAT_HITSLOP}
+              accessibilityRole="button"
+              accessibilityLabel={t('profile.statFriendsA11y', { defaultValue: '查看我的朋友' })}
+            >
+              <Text style={styles.statText}>
+                <Text style={styles.statNumber}>{friendCount}</Text>
+                <Text style={styles.statLabel}>{t('profile.statFriends')}</Text>
+              </Text>
+            </TouchableOpacity>
+            <Text style={[styles.statText, styles.statDot]}> · </Text>
+            <TouchableOpacity
+              activeOpacity={0.6}
+              onPress={handleNavigateFollowers}
+              hitSlop={STAT_HITSLOP}
+              accessibilityRole="button"
+              accessibilityLabel={t('profile.statFollowersA11y', { defaultValue: '查看我的追蹤者' })}
+            >
+              <Text style={styles.statText}>
+                <Text style={styles.statNumber}>{formattedFollowerCount}</Text>
+                <Text style={styles.statLabel}>{t('profile.statFollowers')}</Text>
+              </Text>
+            </TouchableOpacity>
+            <Text style={[styles.statText, styles.statDot]}> · </Text>
+            <TouchableOpacity
+              activeOpacity={0.6}
+              onPress={handleNavigateTribe}
+              hitSlop={STAT_HITSLOP}
+              accessibilityRole="button"
+              accessibilityLabel={t('profile.statTribeA11y', { defaultValue: '查看 Tribe 星圖' })}
+            >
+              <Text style={styles.statText}>
+                <Text style={styles.statNumber}>{tribeSize}</Text>
+                <Text style={styles.statLabel}>{t('profile.statTribe', { defaultValue: 'Tribe' })}</Text>
+              </Text>
+            </TouchableOpacity>
+          </View>
 
           {/* Action buttons */}
           <View style={styles.actionButtonsRow}>
@@ -474,7 +523,7 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
                 <Text style={styles.socialCardLabel} numberOfLines={1}>
                   {bl.label || bl.platform}
                 </Text>
-                <ExternalLink size={14} color={COLORS.gray300} />
+                <ExternalLink size={14} color={colors.gray300} />
               </TouchableOpacity>
             ))}
           </View>
@@ -482,17 +531,17 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
 
         {activeBiolinks.length === 0 && !profile?.phone && !user?.email && (
           <View style={styles.emptySection}>
-            <MessageCircle size={32} color={COLORS.gray200} />
+            <MessageCircle size={32} color={colors.gray200} />
             <Text style={styles.emptyText}>{t('profile.noContactMethods')}</Text>
           </View>
         )}
       </ScrollView>
 
-      <StatusModal
-        visible={statusModalVisible}
-        onClose={() => setStatusModalVisible(false)}
-        initialText={currentStatus}
-        onStatusUpdated={(text) => setCurrentStatus(text)}
+      <AskCreateModal
+        visible={askModalVisible}
+        onClose={() => setAskModalVisible(false)}
+        existingAsk={myAsk}
+        onCreated={refreshAskFeed}
       />
     </SafeAreaView>
   );
@@ -500,10 +549,11 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
 
 const TOP_EDGES = ['top'] as const;
 
-const styles = StyleSheet.create({
+function makeStyles(c: ColorPalette) {
+  return StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.white,
+    backgroundColor: c.white,
   },
 
   // Header
@@ -514,14 +564,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingBottom: 12,
     paddingTop: 8,
-    backgroundColor: COLORS.white,
+    backgroundColor: c.white,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.gray100,
+    borderBottomColor: c.gray100,
   },
   headerTitle: {
     fontSize: 22,
     fontWeight: '700',
-    color: COLORS.gray900,
+    color: c.gray900,
   },
   headerRight: {
     flexDirection: 'row',
@@ -550,20 +600,6 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     gap: 14,
   },
-  avatarWrapper: {
-    borderRadius: 50,
-    padding: 2,
-  },
-  avatarRing: {
-    borderWidth: 3,
-    borderColor: COLORS.piktag500,
-  },
-  avatar: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: COLORS.gray100,
-  },
   nameSection: {
     flex: 1,
     gap: 2,
@@ -575,52 +611,7 @@ const styles = StyleSheet.create({
   displayName: {
     fontSize: 20,
     fontWeight: '700',
-    color: COLORS.gray900,
-  },
-  pencilBadge: {
-    position: 'absolute',
-    bottom: -1,
-    right: -1,
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    backgroundColor: COLORS.piktag500,
-    borderWidth: 2,
-    borderColor: COLORS.white,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  tooltip: {
-    position: 'absolute',
-    bottom: -38,
-    left: '50%',
-    transform: [{ translateX: -52 }],
-    backgroundColor: COLORS.gray900,
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    width: 104,
-    alignItems: 'center',
-    zIndex: 10,
-  },
-  tooltipText: {
-    color: COLORS.white,
-    fontSize: 11,
-    fontWeight: '500',
-  },
-  tooltipArrow: {
-    position: 'absolute',
-    top: -5,
-    left: '50%',
-    transform: [{ translateX: -5 }],
-    width: 0,
-    height: 0,
-    borderLeftWidth: 5,
-    borderRightWidth: 5,
-    borderBottomWidth: 5,
-    borderLeftColor: 'transparent',
-    borderRightColor: 'transparent',
-    borderBottomColor: COLORS.gray900,
+    color: c.gray900,
   },
   usernameRow: {
     flexDirection: 'row',
@@ -629,41 +620,47 @@ const styles = StyleSheet.create({
   usernameText: {
     fontSize: 14,
     fontWeight: '500',
-    color: COLORS.gray500,
+    color: c.gray500,
   },
-  statsLine: {
-    fontSize: 14,
-    color: COLORS.gray500,
+  // Faint italic caption that hints at the reverse-lookup affordance
+  // sitting on the avatar's `+` badge. Faded enough to read as
+  // "suggestion" rather than "label" — once the user has an active
+  // ask the hint is hidden so it doesn't compete with the real status.
+  askPromptHint: {
+    fontSize: 12,
+    color: c.gray400,
+    marginTop: 3,
+    fontStyle: 'italic',
+  },
+  statsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexWrap: 'wrap',
     marginBottom: 14,
   },
-  pPointsRow: {
-    alignSelf: 'flex-start',
-    marginBottom: 14,
-  },
-  pPointsText: {
-    color: COLORS.piktag600,
+  statText: {
     fontSize: 14,
-    fontWeight: '600',
+    color: c.gray500,
   },
   statNumber: {
     fontWeight: '700',
-    color: COLORS.accent500,
+    color: c.accent500,
   },
   statLabel: {
-    color: COLORS.gray500,
+    color: c.gray500,
   },
   statDot: {
-    color: COLORS.gray400,
+    color: c.gray400,
   },
   headline: {
     fontSize: 14,
     fontWeight: '600',
-    color: COLORS.piktag600,
+    color: c.piktag600,
     marginBottom: 4,
   },
   bio: {
     fontSize: 14,
-    color: COLORS.gray700,
+    color: c.gray700,
     lineHeight: 21,
     marginBottom: 14,
   },
@@ -676,17 +673,20 @@ const styles = StyleSheet.create({
     marginBottom: 18,
   },
   tagChip: {
-    backgroundColor: COLORS.gray100,
+    backgroundColor: c.fill,
     borderRadius: 9999,
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderWidth: 1.5,
-    borderColor: 'transparent',
+    // Visible hairline so the (secondary, gray) profile tags have a
+    // defined edge in dark mode — they sit on a near-black page and
+    // c.gray100 fill alone barely separated.
+    borderColor: c.gray200,
   },
   tagChipText: {
     fontSize: 14,
     fontWeight: '500',
-    color: COLORS.gray600,
+    color: c.gray600,
   },
 
   // Action Buttons
@@ -696,7 +696,7 @@ const styles = StyleSheet.create({
   },
   shareButton: {
     flex: 1,
-    backgroundColor: COLORS.piktag500,
+    backgroundColor: c.piktag500,
     borderRadius: 12,
     paddingVertical: 12,
     alignItems: 'center',
@@ -706,11 +706,15 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#FFFFFF',
   },
+  // 編輯資訊 is a SECONDARY action — 分享檔案 (solid piktag500) is the
+  // one true CTA on this page (sharing your profile = a friend-add
+  // opportunity, the North Star). IG-style filled-gray secondary
+  // button (c.gray200 = #e5e7eb light / #363636 dark) — clearly a
+  // button, clearly not the primary. Matches FriendDetail's
+  // secondaryBtn so the app's non-CTA buttons read consistently.
   editButton: {
     flex: 1,
-    backgroundColor: COLORS.white,
-    borderWidth: 1.5,
-    borderColor: COLORS.piktag200,
+    backgroundColor: c.fill,
     borderRadius: 12,
     paddingVertical: 12,
     alignItems: 'center',
@@ -718,17 +722,17 @@ const styles = StyleSheet.create({
   editButtonText: {
     fontSize: 15,
     fontWeight: '600',
-    color: COLORS.gray700,
+    color: c.gray900,
   },
 
   // ===== Profile completeness =====
   completenessBar: {
     marginTop: 12,
     padding: 12,
-    backgroundColor: COLORS.gray50,
+    backgroundColor: c.gray50,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: COLORS.gray100,
+    borderColor: c.gray100,
   },
   completenessHeader: {
     flexDirection: 'row',
@@ -739,21 +743,21 @@ const styles = StyleSheet.create({
   completenessText: {
     fontSize: 13,
     fontWeight: '700',
-    color: COLORS.gray700,
+    color: c.gray700,
   },
   completenessMissing: {
     fontSize: 12,
-    color: COLORS.piktag600,
+    color: c.piktag600,
   },
   completenessTrack: {
     height: 4,
-    backgroundColor: COLORS.gray200,
+    backgroundColor: c.gray200,
     borderRadius: 2,
     overflow: 'hidden',
   },
   completenessFill: {
     height: 4,
-    backgroundColor: COLORS.piktag500,
+    backgroundColor: c.piktag500,
     borderRadius: 2,
   },
 
@@ -765,7 +769,7 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     paddingHorizontal: 20,
     borderTopWidth: 1,
-    borderTopColor: COLORS.gray100,
+    borderTopColor: c.gray100,
   },
   iconCircle: {
     alignItems: 'center',
@@ -775,9 +779,9 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: COLORS.gray50,
+    backgroundColor: c.fill,
     borderWidth: 1.5,
-    borderColor: COLORS.gray200,
+    borderColor: c.gray200,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -788,7 +792,7 @@ const styles = StyleSheet.create({
     paddingTop: 8,
     paddingBottom: 16,
     borderTopWidth: 1,
-    borderTopColor: COLORS.gray100,
+    borderTopColor: c.gray100,
     gap: 8,
   },
 
@@ -796,7 +800,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 13,
     fontWeight: '700',
-    color: COLORS.gray500,
+    color: c.gray500,
     textTransform: 'uppercase',
     letterSpacing: 0.8,
     paddingHorizontal: 20,
@@ -809,7 +813,7 @@ const styles = StyleSheet.create({
     paddingTop: 8,
     paddingBottom: 16,
     borderTopWidth: 1,
-    borderTopColor: COLORS.gray100,
+    borderTopColor: c.gray100,
   },
   contactGrid: {
     flexDirection: 'row',
@@ -820,9 +824,9 @@ const styles = StyleSheet.create({
   contactCard: {
     flex: 1,
     minWidth: 140,
-    backgroundColor: COLORS.white,
+    backgroundColor: c.white,
     borderWidth: 1.5,
-    borderColor: COLORS.gray100,
+    borderColor: c.gray100,
     borderRadius: 14,
     paddingVertical: 14,
     paddingHorizontal: 14,
@@ -839,14 +843,14 @@ const styles = StyleSheet.create({
   contactLabel: {
     fontSize: 11,
     fontWeight: '600',
-    color: COLORS.gray400,
+    color: c.gray400,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
   contactValue: {
     fontSize: 14,
     fontWeight: '600',
-    color: COLORS.gray900,
+    color: c.gray900,
   },
 
   // ===== Section 3: Social Accounts =====
@@ -854,7 +858,7 @@ const styles = StyleSheet.create({
     paddingTop: 8,
     paddingBottom: 16,
     borderTopWidth: 1,
-    borderTopColor: COLORS.gray100,
+    borderTopColor: c.gray100,
   },
   socialGrid: {
     paddingHorizontal: 20,
@@ -863,9 +867,9 @@ const styles = StyleSheet.create({
   socialCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: COLORS.white,
+    backgroundColor: c.fill,
     borderWidth: 1.5,
-    borderColor: COLORS.gray100,
+    borderColor: c.gray200,
     borderRadius: 14,
     paddingVertical: 14,
     paddingHorizontal: 16,
@@ -875,7 +879,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 12,
-    backgroundColor: COLORS.gray50,
+    backgroundColor: c.fill,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -883,7 +887,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 15,
     fontWeight: '600',
-    color: COLORS.gray900,
+    color: c.gray900,
   },
 
   // ===== Empty state =====
@@ -895,7 +899,8 @@ const styles = StyleSheet.create({
 
   emptyText: {
     fontSize: 14,
-    color: COLORS.gray400,
+    color: c.gray400,
     paddingVertical: 8,
   },
-});
+  });
+}

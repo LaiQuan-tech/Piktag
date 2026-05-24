@@ -1,9 +1,11 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { MoreHorizontal } from 'lucide-react-native';
-import { COLORS } from '../../constants/theme';
+import { COLORS, type ColorPalette } from '../../constants/theme';
+import { useTheme } from '../../context/ThemeContext';
 import type { InboxConversation } from '../../types/chat';
-import InitialsAvatar from '../InitialsAvatar';
+import RingedAvatar from '../RingedAvatar';
 
 type Props = {
   conversation: InboxConversation;
@@ -18,20 +20,21 @@ type Props = {
 };
 
 // Format an ISO timestamp into a short, human-friendly relative label.
-// Falls back to yyyy/MM/dd once the gap exceeds ~1 week.
-function formatRelativeTime(ts: string | null): string {
+// Falls back to yyyy/MM/dd once the gap exceeds ~1 week. Takes the
+// `t` translator so all labels are localized (was hardcoded zh-TW).
+function formatRelativeTime(ts: string | null, t: (k: string, opts?: any) => string): string {
   if (!ts) return '';
   const then = new Date(ts).getTime();
   if (Number.isNaN(then)) return '';
   const diffMs = Date.now() - then;
   const diffMin = Math.floor(diffMs / 60000);
-  if (diffMin < 1) return '剛剛';
-  if (diffMin < 60) return `${diffMin} 分鐘`;
+  if (diffMin < 1) return t('chat.timeJustNow');
+  if (diffMin < 60) return t('chat.timeMinutesAgo', { count: diffMin });
   const diffHr = Math.floor(diffMin / 60);
-  if (diffHr < 24) return `${diffHr} 小時`;
+  if (diffHr < 24) return t('chat.timeHoursAgo', { count: diffHr });
   const diffDay = Math.floor(diffHr / 24);
-  if (diffDay === 1) return '昨天';
-  if (diffDay < 7) return `${diffDay} 天`;
+  if (diffDay === 1) return t('chat.timeYesterday');
+  if (diffDay < 7) return t('chat.timeDaysAgo', { count: diffDay });
   const d = new Date(ts);
   const y = d.getFullYear();
   const m = String(d.getMonth() + 1).padStart(2, '0');
@@ -40,6 +43,9 @@ function formatRelativeTime(ts: string | null): string {
 }
 
 const ConversationRow = React.memo(({ conversation, onPress, onMorePress }: Props) => {
+  const { t } = useTranslation();
+  const { colors, isDark } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const { unread } = conversation;
   const displayName =
     conversation.other_full_name ||
@@ -57,18 +63,13 @@ const ConversationRow = React.memo(({ conversation, onPress, onMorePress }: Prop
         onPress={() => onPress(conversation)}
         style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
       >
-        <View
-          style={[
-            styles.avatarWrap,
-            { borderColor: unread ? COLORS.piktag500 : 'transparent' },
-          ]}
-        >
-          <InitialsAvatar
-            name={avatarSeed}
-            size={56}
-            avatarUrl={conversation.other_avatar_url}
-          />
-        </View>
+        <RingedAvatar
+          name={avatarSeed}
+          size={60}
+          avatarUrl={conversation.other_avatar_url}
+          ringStyle={unread ? 'gradient' : 'subtle'}
+          accessibilityLabel={displayName}
+        />
 
         <View style={styles.middle}>
           <Text
@@ -87,7 +88,7 @@ const ConversationRow = React.memo(({ conversation, onPress, onMorePress }: Prop
             style={[
               styles.preview,
               {
-                color: unread ? COLORS.gray700 : COLORS.gray400,
+                color: unread ? colors.gray700 : colors.gray400,
                 fontWeight: unread ? '600' : '400',
               },
             ]}
@@ -98,7 +99,7 @@ const ConversationRow = React.memo(({ conversation, onPress, onMorePress }: Prop
 
         <View style={styles.right}>
           <Text style={styles.timestamp}>
-            {formatRelativeTime(conversation.last_message_at)}
+            {formatRelativeTime(conversation.last_message_at, t)}
           </Text>
           {unread ? <View style={styles.unreadDot} /> : null}
         </View>
@@ -119,7 +120,7 @@ const ConversationRow = React.memo(({ conversation, onPress, onMorePress }: Prop
           accessibilityRole="button"
           accessibilityLabel="More"
         >
-          <MoreHorizontal size={18} color={COLORS.gray400} />
+          <MoreHorizontal size={18} color={colors.gray400} />
         </Pressable>
       ) : null}
     </View>
@@ -128,7 +129,8 @@ const ConversationRow = React.memo(({ conversation, onPress, onMorePress }: Prop
 
 ConversationRow.displayName = 'ConversationRow';
 
-const styles = StyleSheet.create({
+function makeStyles(c: ColorPalette) {
+  return StyleSheet.create({
   rowContainer: {
     // Lets the ⋯ Pressable be absolutely positioned at the right edge
     // without nesting it inside the row's onPress target.
@@ -144,10 +146,10 @@ const styles = StyleSheet.create({
     // clipped underneath it.
     paddingLeft: 16,
     paddingRight: 44,
-    backgroundColor: COLORS.white,
+    backgroundColor: c.white,
   },
   rowPressed: {
-    backgroundColor: COLORS.gray100,
+    backgroundColor: c.gray100,
   },
   moreBtn: {
     position: 'absolute',
@@ -162,21 +164,13 @@ const styles = StyleSheet.create({
   moreBtnPressed: {
     opacity: 1,
   },
-  avatarWrap: {
-    // Gradient-ring stand-in: solid brand border when unread, transparent otherwise.
-    // 2px padding (vs prior 1px) gives the ring more breathing room and
-    // makes it readable against photo avatars.
-    borderWidth: 2,
-    borderRadius: 32,
-    padding: 2,
-  },
   middle: {
     flex: 1,
     marginLeft: 12,
   },
   name: {
     fontSize: 15,
-    color: COLORS.gray900,
+    color: c.gray900,
   },
   preview: {
     fontSize: 13.5,
@@ -189,17 +183,18 @@ const styles = StyleSheet.create({
   },
   timestamp: {
     fontSize: 12,
-    color: COLORS.gray400,
+    color: c.gray400,
   },
   unreadDot: {
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: COLORS.piktag500,
+    backgroundColor: c.piktag500,
     // Align vertically with the timestamp baseline instead of floating
     // below it — asymmetric spacing felt off-balance in the old layout.
     marginTop: 4,
   },
-});
+  });
+}
 
 export default ConversationRow;

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import {
   View,
   Text,
@@ -8,17 +8,21 @@ import {
   StyleSheet,
   StatusBar,
   Alert,
-  ActivityIndicator,
+  Linking,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { X } from 'lucide-react-native';
-import { COLORS } from '../constants/theme';
+import { COLORS, type ColorPalette } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
 import { LinearGradient } from 'expo-linear-gradient';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
-import type { PiktagProfile } from '../types';
+import PageLoader from '../components/loaders/PageLoader';
+import BrandSpinner from '../components/loaders/BrandSpinner';
+import PlatformIcon from '../components/PlatformIcon';
+import { getPlatformLabel } from '../lib/platforms';
+import type { PiktagProfile, Biolink } from '../types';
 
 type ScanResultParams = {
   sessionId: string;
@@ -39,6 +43,7 @@ type ScanResultScreenProps = {
 export default function ScanResultScreen({ navigation, route }: ScanResultScreenProps) {
   const { t } = useTranslation();
   const { colors, isDark } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
   const {
@@ -51,6 +56,11 @@ export default function ScanResultScreen({ navigation, route }: ScanResultScreen
   } = route.params;
 
   const [hostProfile, setHostProfile] = useState<PiktagProfile | null>(null);
+  // Host's PUBLIC biolinks only. The scanner is, at this instant, a
+  // stranger who just scanned a Tag QR — public is exactly the set
+  // the host chose to expose to anyone. No friends/close/private
+  // ever surfaces here (privacy + App-review safe).
+  const [hostBiolinks, setHostBiolinks] = useState<Biolink[]>([]);
   const [myTags, setMyTags] = useState<string[]>([]);
   const [selectedMyTags, setSelectedMyTags] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
@@ -87,6 +97,24 @@ export default function ScanResultScreen({ navigation, route }: ScanResultScreen
       if (profileData) {
         setHostProfile(profileData);
       }
+
+      // Host's public biolinks → one-tap "also connect on LINE / IG
+      // / WhatsApp / …" deep links. The stored url is already a
+      // full openable link (prefix + handle), so Linking.openURL
+      // lands the user on that person inside the other app where
+      // they tap follow/add themselves (no platform lets a 3rd-party
+      // app do that for them — this is the honest, compliant model).
+      const { data: blData } = await supabase
+        .from('piktag_biolinks')
+        .select('*')
+        .eq('user_id', hostUserId)
+        .eq('visibility', 'public')
+        // Must also be active — a host who toggled a link OFF still
+        // has the row (public visibility) but it must not leak to a
+        // scanner. Matches ProfileScreen's activeBiolinks filter.
+        .eq('is_active', true)
+        .order('position', { ascending: true });
+      if (blData) setHostBiolinks(blData as Biolink[]);
 
       // Fetch my tags
       const { data: myTagsData } = await supabase
@@ -130,8 +158,43 @@ export default function ScanResultScreen({ navigation, route }: ScanResultScreen
     }
   };
 
+  // Open the host's link AND record the tap as a biolink click —
+  // the SAME piktag_biolink_clicks row a profile-screen click
+  // writes. So the host "sees the reaction": it feeds their
+  // Insights (totalBiolinkClicks) and fires the existing
+  // "someone clicked your {{platform}} link" notification. The
+  // scanner is the clicker; fire-and-forget so a tracking hiccup
+  // never blocks the deep link.
+  const openBiolink = (biolinkId: string, url: string) => {
+    if (!url) return;
+    if (user) {
+      supabase
+        .from('piktag_biolink_clicks')
+        .insert({ biolink_id: biolinkId, clicker_user_id: user.id })
+        .then(({ error }) => {
+          if (error) console.warn('Biolink click tracking failed:', error.message);
+        });
+    }
+    Linking.openURL(url).catch(() => {});
+  };
+
+  // Synchronous double-tap guard: `disabled={submitting}` lags
+  // (setState is async-batched), so two fast taps previously raced
+  // past the not-atomic existing-connection check and created
+  // duplicate connections + duplicate tag rows.
+  const confirmingRef = useRef(false);
   const handleConfirm = async () => {
     if (!user) return;
+    // Can't connect to yourself (scanning your own Tag QR).
+    if (hostUserId === user.id) {
+      Alert.alert(
+        t('scanResult.alreadyConnectedTitle', { defaultValue: '無法加自己' }),
+        t('scanResult.selfScanMessage', { defaultValue: '這是你自己的 QR，沒辦法加自己為好友。' }),
+      );
+      return;
+    }
+    if (confirmingRef.current) return;
+    confirmingRef.current = true;
 
     setSubmitting(true);
     try {
@@ -235,7 +298,7 @@ export default function ScanResultScreen({ navigation, route }: ScanResultScreen
       }
 
       // Also create reverse connection for host + attach private tags
-      const { data: reverseConn } = await supabase
+      const { data: reverseConn, error: reverseErr } = await supabase
         .from('piktag_connections')
         .upsert({
           user_id: hostUserId,
@@ -245,6 +308,12 @@ export default function ScanResultScreen({ navigation, route }: ScanResultScreen
           note: eventDate + (eventLocation ? ' · ' + eventLocation : ''),
         }, { onConflict: 'user_id,connected_user_id' })
         .select('id').single();
+      // Was swallowed → an asymmetric friendship (scanner connected,
+      // host not). Non-fatal for the scanner's flow but log it so the
+      // asymmetry is at least observable.
+      if (reverseErr) {
+        console.warn('[ScanResult] reverse connection upsert failed:', reverseErr);
+      }
 
       if (reverseConn && privateTagIds.length > 0) {
         await supabase.from('piktag_connection_tags').insert(
@@ -305,7 +374,14 @@ export default function ScanResultScreen({ navigation, route }: ScanResultScreen
         {
           text: t('scanResult.alertSuccessConfirm'),
           onPress: () => {
-            navigation.navigate('HomeTab');
+            // Go to the person you just added (was dumping the user
+            // on HomeTab — a different tab, no trace of who they
+            // connected with). replace so back returns to the
+            // originating screen, not this now-stale result page.
+            navigation.replace('FriendDetail', {
+              friendId: hostUserId,
+              connectionId: connectionData.id,
+            });
           },
         },
       ]);
@@ -314,6 +390,7 @@ export default function ScanResultScreen({ navigation, route }: ScanResultScreen
       Alert.alert(t('common.error'), t('scanResult.alertUnexpectedError'));
     } finally {
       setSubmitting(false);
+      confirmingRef.current = false;
     }
   };
 
@@ -335,12 +412,10 @@ export default function ScanResultScreen({ navigation, route }: ScanResultScreen
             onPress={() => navigation.canGoBack() ? navigation.goBack() : navigation.navigate("Connections")}
             activeOpacity={0.6}
           >
-            <X size={24} color={COLORS.gray900} />
+            <X size={24} color={colors.gray900} />
           </TouchableOpacity>
         </View>
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={COLORS.piktag500} />
-        </View>
+        <PageLoader heading={t('scanResult.addingFriend', { defaultValue: '加入朋友中…' })} />
       </View>
     );
   }
@@ -357,7 +432,7 @@ export default function ScanResultScreen({ navigation, route }: ScanResultScreen
           onPress={() => navigation.canGoBack() ? navigation.goBack() : navigation.navigate("Connections")}
           activeOpacity={0.6}
         >
-          <X size={24} color={COLORS.gray900} />
+          <X size={24} color={colors.gray900} />
         </TouchableOpacity>
       </View>
 
@@ -377,6 +452,43 @@ export default function ScanResultScreen({ navigation, route }: ScanResultScreen
             <Text style={styles.usernameText}>@{username}</Text>
           ) : null}
         </View>
+
+        {/* Connect elsewhere — host's PUBLIC biolinks as one-tap
+            deep links. Tapping opens that person inside the other
+            app; the user taps follow/add there (no platform allows
+            a 3rd-party app to do it for them). */}
+        {hostBiolinks.length > 0 && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>
+              {t('scanResult.connectElsewhereTitle', {
+                name: displayName,
+                defaultValue: '也在這些地方連上 {{name}}',
+              })}
+            </Text>
+            <Text style={styles.connectHint}>
+              {t('scanResult.connectElsewhereHint', {
+                defaultValue: '點一下會開啟對方在該 App 的頁面，由你按追蹤／加好友。',
+              })}
+            </Text>
+            <View style={styles.chipsContainer}>
+              {hostBiolinks.map((bl) => (
+                <TouchableOpacity
+                  key={bl.id}
+                  style={styles.socialBtn}
+                  activeOpacity={0.7}
+                  onPress={() => openBiolink(bl.id, bl.url)}
+                  accessibilityRole="button"
+                  accessibilityLabel={getPlatformLabel(bl.platform, t)}
+                >
+                  <PlatformIcon platform={bl.platform} size={18} iconUrl={bl.icon_url} />
+                  <Text style={styles.socialBtnText} numberOfLines={1}>
+                    {getPlatformLabel(bl.platform, t)}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+        )}
 
         {/* My Tags Section */}
         {myTags.length > 0 && (
@@ -469,7 +581,7 @@ export default function ScanResultScreen({ navigation, route }: ScanResultScreen
             style={[styles.ctaButton, submitting && styles.ctaButtonDisabled]}
           >
             {submitting ? (
-              <ActivityIndicator size={20} color="#FFFFFF" />
+              <BrandSpinner size={20} />
             ) : (
               <Text style={styles.ctaButtonText}>{t('scanResult.confirmButton')}</Text>
             )}
@@ -480,10 +592,11 @@ export default function ScanResultScreen({ navigation, route }: ScanResultScreen
   );
 }
 
-const styles = StyleSheet.create({
+function makeStyles(c: ColorPalette) {
+  return StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.white,
+    backgroundColor: c.white,
   },
   header: {
     flexDirection: 'row',
@@ -491,14 +604,14 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 20,
     paddingBottom: 16,
-    backgroundColor: COLORS.white,
+    backgroundColor: c.white,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.gray100,
+    borderBottomColor: c.gray100,
   },
   headerTitle: {
     fontSize: 24,
     fontWeight: '700',
-    color: COLORS.gray900,
+    color: c.gray900,
     lineHeight: 32,
   },
   closeBtn: {
@@ -524,19 +637,19 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: COLORS.gray100,
+    backgroundColor: c.gray100,
     borderWidth: 2,
-    borderColor: COLORS.gray100,
+    borderColor: c.gray100,
   },
   fullName: {
     fontSize: 22,
     fontWeight: '700',
-    color: COLORS.gray900,
+    color: c.gray900,
     marginTop: 14,
   },
   usernameText: {
     fontSize: 15,
-    color: COLORS.gray500,
+    color: c.gray500,
     marginTop: 4,
   },
   section: {
@@ -552,15 +665,15 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: COLORS.gray900,
+    color: c.gray900,
   },
   selectAllText: {
     fontSize: 14,
     fontWeight: '600',
-    color: COLORS.gray400,
+    color: c.gray400,
   },
   selectAllTextActive: {
-    color: COLORS.piktag600,
+    color: c.piktag600,
   },
   chipsContainer: {
     flexDirection: 'row',
@@ -573,12 +686,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   chipSelected: {
-    backgroundColor: COLORS.piktag500,
+    backgroundColor: c.piktag500,
     borderWidth: 1,
-    borderColor: COLORS.piktag500,
+    borderColor: c.piktag500,
   },
   chipUnselected: {
-    backgroundColor: COLORS.gray100,
+    backgroundColor: c.gray100,
     borderWidth: 1.5,
     borderColor: 'transparent',
   },
@@ -590,17 +703,39 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
   chipTextUnselected: {
-    color: COLORS.gray600,
+    color: c.gray600,
+  },
+  connectHint: {
+    fontSize: 13,
+    color: c.gray500,
+    marginTop: 6,
+    marginBottom: 14,
+    lineHeight: 18,
+  },
+  socialBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 7,
+    backgroundColor: c.gray100,
+    borderRadius: 9999,
+    paddingVertical: 9,
+    paddingHorizontal: 14,
+  },
+  socialBtnText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: c.gray700,
+    maxWidth: 140,
   },
   ctaContainer: {
     paddingHorizontal: 20,
     paddingTop: 12,
-    backgroundColor: COLORS.white,
+    backgroundColor: c.white,
     borderTopWidth: 1,
-    borderTopColor: COLORS.gray100,
+    borderTopColor: c.gray100,
   },
   ctaButton: {
-    backgroundColor: COLORS.piktag500,
+    backgroundColor: c.piktag500,
     borderRadius: 14,
     paddingVertical: 16,
     alignItems: 'center',
@@ -614,4 +749,5 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#FFFFFF',
   },
-});
+  });
+}

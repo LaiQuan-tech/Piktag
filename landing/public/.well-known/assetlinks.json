@@ -1,0 +1,10 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "ag.pikt.app",
+      "sha256_cert_fingerprints": ["TODO_FILL_IN_FROM_PLAY_CONSOLE_OR_KEYSTORE"]
+    }
+  }
+]

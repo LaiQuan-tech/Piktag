@@ -8,7 +8,6 @@ import {
   StyleSheet,
   StatusBar,
   Linking,
-  ActivityIndicator,
   Alert,
   Modal,
   Platform,
@@ -30,17 +29,24 @@ import {
   MessageCircle,
 } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
-import { COLORS } from '../constants/theme';
+import { COLORS, type ColorPalette } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
 import { LinearGradient } from 'expo-linear-gradient';
 import PlatformIcon from '../components/PlatformIcon';
 import OverlappingAvatars from '../components/OverlappingAvatars';
+import RingedAvatar from '../components/RingedAvatar';
 import HiddenTagEditor from '../components/HiddenTagEditor';
+import ErrorState from '../components/ErrorState';
+import PageLoader from '../components/loaders/PageLoader';
+import BrandSpinner from '../components/loaders/BrandSpinner';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
+import { useAskFeed } from '../hooks/useAskFeed';
+import { useNetInfoReconnect } from '../hooks/useNetInfoReconnect';
 import type { PiktagProfile, Biolink } from '../types';
 import { getViewerRelation, filterBiolinksByVisibility } from '../lib/biolinkVisibility';
 import { shareProfile } from '../lib/shareProfile';
+import { followUser } from '../lib/followUser';
 
 type UserDetailScreenProps = {
   navigation: any;
@@ -50,8 +56,17 @@ type UserDetailScreenProps = {
 export default function UserDetailScreen({ navigation, route }: UserDetailScreenProps) {
   const { t } = useTranslation();
   const { colors, isDark } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const insets = useSafeAreaInsets();
   const { user: authUser } = useAuth();
+  // Same conditional-gradient logic as FriendDetailScreen / ProfileScreen.
+  // useAskFeed only contains asks from 1st/2nd-degree connections, so
+  // strangers (who aren't in the feed) will always render with the
+  // subtle ring here — that's correct: their Ask wouldn't be visible
+  // to this viewer anyway because the fan-out doesn't reach them.
+  // Once they connect (follow / QR scan), the friend's Ask shows up in
+  // the feed on the next refresh and the gradient appears.
+  const { asks: askFeedAsks } = useAskFeed();
   const paramUserId = route.params?.userId;
   const paramUsername = route.params?.username;
   const paramSid = route.params?.sid;
@@ -59,8 +74,35 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
   const paramDate = route.params?.date;
   const paramLoc = route.params?.loc;
 
+  // Vibe context tags — the tags + date + location encoded on the
+  // Vibe's QR URL that brought the viewer here. Surfaced in the
+  // tag picker as a NEW opt-in section. Replaces the old auto-
+  // attach (which was wrong: silently labeling the host as
+  // matching the Vibe's topic was a bug — see the 專利師 example
+  // in commit 4148d72). With this list now visible + tappable,
+  // the scanner can deliberately pick ones that actually describe
+  // the host, instead of getting them all forced on.
+  const vibeContextTags = useMemo(() => {
+    const out: string[] = [];
+    const push = (raw: string | undefined) => {
+      const cleaned = raw?.trim().replace(/^#/, '');
+      if (cleaned && !out.includes(cleaned)) out.push(cleaned);
+    };
+    if (paramTags) {
+      paramTags.split(',').forEach((t: string) => push(t));
+    }
+    push(paramDate);
+    push(paramLoc);
+    return out;
+  }, [paramTags, paramDate, paramLoc]);
+
   const [resolvedUserId, setResolvedUserId] = useState<string | null>(paramUserId || null);
   const [loading, setLoading] = useState(true);
+  // `loadError` separates "fetch threw" from "user genuinely doesn't
+  // exist". Without this both paths landed on the same `!profile`
+  // branch which always rendered "user not found" — misleading when
+  // the real cause was a dropped network call.
+  const [loadError, setLoadError] = useState<boolean>(false);
   const [profile, setProfile] = useState<PiktagProfile | null>(null);
   const [tags, setTags] = useState<string[]>([]);
   const [biolinks, setBiolinks] = useState<Biolink[]>([]);
@@ -96,17 +138,43 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
   const [connectionId, setConnectionId] = useState<string | null>(null);
 
   // Event info for QR-scan flow (shown above the "追蹤" button before adding friend).
-  const [eventInfo, setEventInfo] = useState<{ tags: string[]; date: string; location: string } | null>(null);
 
   // Hidden tags state (private tags only I can see).
   // Add/remove logic lives in <HiddenTagEditor>.
   const [hiddenTags, setHiddenTags] = useState<{ id: string; tagId: string; name: string }[]>([]);
+
 
   // Tracks the inflight fetchData pass so that navigating away (or the
   // target userId changing under us) cancels the stale work before its
   // setState calls land. Prior behavior: a slow network on a prior
   // screen would keep writing into state after we'd moved on.
   const abortRef = useRef<AbortController | null>(null);
+
+  // Reset profile-scoped state synchronously when the target user
+  // changes. React Navigation reuses this screen's component instance
+  // when push'ing UserDetail → UserDetail with different params, so
+  // without this clear the previous user's isFollowing / connectionId /
+  // hiddenTags persist into the new render until fetchData completes
+  // its network round-trip. The visible symptom: the inline
+  // HiddenTagEditor (gated on `isFollowing && connectionId`) flashes
+  // private hidden-tag chips from a friend onto a stranger's profile
+  // for ~200-500ms — exactly the bug reported on @bohan.vc.
+  //
+  // useEffect (not useLayoutEffect) is sufficient because the data
+  // race is against an async fetch, not against another synchronous
+  // render. The cleared values are committed before fetchData's
+  // setState calls land.
+  useEffect(() => {
+    setIsFollowing(false);
+    setConnectionId(null);
+    setHiddenTags([]);
+    setIsCloseFriend(false);
+    setMutualTags(0);
+    setMutualTagList([]);
+    setMutualFriends(0);
+    setMutualFriendProfiles([]);
+    setFollowerCount(0);
+  }, [resolvedUserId, paramUsername]);
 
   const fetchData = useCallback(async () => {
     if (!authUser) return;
@@ -122,16 +190,25 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
     // render the "user not found" state.
     let userId = resolvedUserId;
     if (!userId && paramUsername) {
-      const { data: lookupData } = await supabase
+      const { data: lookupData, error: lookupErr } = await supabase
         .from('piktag_profiles')
         .select('id')
         .eq('username', paramUsername)
         .maybeSingle();
       if (signal.aborted) return;
+      // Distinguish "lookup itself errored" (network / supabase
+      // failure) from "lookup completed and found nothing" (genuine
+      // 404). Only the first should flip the retry-able error state.
+      if (lookupErr) {
+        setLoadError(true);
+        setLoading(false);
+        return;
+      }
       if (lookupData) {
         userId = lookupData.id;
         setResolvedUserId(userId);
       } else {
+        setLoadError(false);
         setLoading(false);
         return;
       }
@@ -140,6 +217,7 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
 
     try {
       setLoading(true);
+      setLoadError(false);
 
       // --- Wave 1: one consolidated RPC instead of 13+ round-trips ---
       //
@@ -149,15 +227,24 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
       // JSON payload. This is what powers the initial paint; the
       // similar-users strip below is fetched separately because it's
       // collapsible / beneath the fold.
-      const { data: detail, error: detailErr } = await supabase.rpc('get_user_detail', {
-        target_user_id: userId,
-        viewer_id: authUser.id,
-      });
+      // Run the main RPC and the viewer-relation fetch in parallel —
+      // they're independent and both gate the initial paint.
+      const [detailResp, relation] = await Promise.all([
+        supabase.rpc('get_user_detail', {
+          target_user_id: userId,
+        }),
+        getViewerRelation(authUser.id, userId),
+      ]);
+      const detail = detailResp.data;
+      const detailErr = detailResp.error;
       if (signal.aborted) return;
 
       if (detailErr || !detail) {
-        // Fall through — profile load failure will render the 404 state.
+        // RPC actually errored — flag this as a retryable load failure
+        // so the screen renders <ErrorState> with a retry button rather
+        // than the misleading "user not found" empty state.
         console.warn('[UserDetail] get_user_detail failed:', detailErr);
+        if (detailErr) setLoadError(true);
       }
 
       const d = (detail as any) || {};
@@ -165,8 +252,6 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
 
       // Biolinks: filter by viewer relation, same as prior direct query.
       if (Array.isArray(d.biolinks)) {
-        const relation = await getViewerRelation(authUser.id, userId);
-        if (signal.aborted) return;
         setBiolinks(filterBiolinksByVisibility(d.biolinks, relation));
       }
 
@@ -174,6 +259,23 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
       // returned by the RPC (no extra round-trip for pick counts).
       const myTagIds = new Set<string>(Array.isArray(d.my_tag_ids) ? d.my_tag_ids : []);
       const pickCounts: Record<string, number> = d.pick_counts || {};
+      // Read picked tags FRESH in this same fetch. The pickedTagIds
+      // state Set is empty on first paint (loadPickedTags resolves
+      // later), which made the "picked first" sort tier wrong until
+      // a subsequent render — FriendDetail computes picks in-fetch
+      // and is correct; mirror that here.
+      let pickedNow = pickedTagIds;
+      if (connectionId) {
+        const { data: pk } = await supabase
+          .from('piktag_connection_tags')
+          .select('tag_id')
+          .eq('connection_id', connectionId)
+          .eq('is_private', false);
+        if (pk) {
+          pickedNow = new Set<string>(pk.map((ct: any) => ct.tag_id));
+          setPickedTagIds(pickedNow);
+        }
+      }
       if (Array.isArray(d.their_tags)) {
         const sorted = d.their_tags
           .filter((ut: any) => ut.tag?.name)
@@ -182,8 +284,8 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
             const aPinned = a.is_pinned ? 1 : 0;
             const bPinned = b.is_pinned ? 1 : 0;
             if (aPinned !== bPinned) return bPinned - aPinned;
-            const aPicked = pickedTagIds.has(a.tag_id) ? 1 : 0;
-            const bPicked = pickedTagIds.has(b.tag_id) ? 1 : 0;
+            const aPicked = pickedNow.has(a.tag_id) ? 1 : 0;
+            const bPicked = pickedNow.has(b.tag_id) ? 1 : 0;
             if (aPicked !== bPicked) return bPicked - aPicked;
             const aPick = Number(pickCounts[a.tag_id] || 0);
             const bPick = Number(pickCounts[b.tag_id] || 0);
@@ -230,13 +332,14 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
         });
       }
 
-      // --- Wave 2: similar-users bundle (RPC) ---
-      // Fires in parallel with no client-side dependency on wave 1's
-      // completion, but we await it so the section populates before we
-      // flip loading=false (keeps the UI from flashing an empty row).
+      // --- Wave 2: similar-users bundle (RPC) + viewer event tags ---
+      // get_viewer_event_tags / eventTags state were removed when the
+      // "viewer's past event vocabulary" picker section was retired —
+      // it overlapped conceptually with the new "這次 Vibe 帶的標籤"
+      // section (paramTags-driven) and risked confusing users about
+      // which list a chip came from.
       const { data: similar, error: similarErr } = await supabase.rpc('get_similar_users', {
         target_user_id: userId,
-        viewer_id: authUser.id,
         max_results: 6,
       });
       if (signal.aborted) return;
@@ -253,11 +356,23 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
         setSimilarMutualFriends(mutualMap);
       }
     } catch (err) {
-      if (!signal.aborted) console.error('Error fetching user data:', err);
+      if (!signal.aborted) {
+        console.error('Error fetching user data:', err);
+        setLoadError(true);
+      }
     } finally {
       if (!signal.aborted) setLoading(false);
     }
   }, [authUser, resolvedUserId, paramUsername]);
+
+  // Auto-retry when connectivity comes back, but only if the previous
+  // attempt failed. Hands the trigger over to fetchData; it does its
+  // own loading-state gating.
+  useNetInfoReconnect(useCallback(() => {
+    if (loadError) {
+      fetchData();
+    }
+  }, [loadError, fetchData]));
 
   useFocusEffect(
     useCallback(() => {
@@ -391,15 +506,29 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
 
       // Scanner → host. Only set the connection metadata on first insert
       // — subsequent QR scans for the same user shouldn't rewrite the
-      // original met_at / note, so we check-first then insert.
+      // original met_at / note, so we check-first then insert. We DO
+      // backfill scan_session_id when it was previously NULL (see
+      // below).
       const { data: existingForward } = await supabase
         .from('piktag_connections')
-        .select('id')
+        .select('id, scan_session_id')
         .eq('user_id', authUser.id)
         .eq('connected_user_id', resolvedUserId)
         .maybeSingle();
 
-      let forwardConnId: string | null = existingForward?.id ?? null;
+      // Forward (scanner → host). Two new-build invariants below:
+      //   1. ALWAYS write scan_session_id on the insert.
+      //   2. If the row already existed without a scan_session_id
+      //      (scanner had already followed/added the host before
+      //      meeting them via this Vibe), backfill it now — first
+      //      Vibe wins, never overwrite an existing attribution.
+      // Without (2), this scenario stays broken: A and B already
+      // are friends, A creates Vibe X, B scans X → no new insert
+      // happens, the existing row has no scan_session_id, so the
+      // host's qr_group_members query never finds B in Vibe X's
+      // member list.
+      let forwardConnId: string | null = (existingForward as any)?.id ?? null;
+      const existingForwardSid = (existingForward as any)?.scan_session_id ?? null;
       if (!forwardConnId) {
         const { data: inserted } = await supabase
           .from('piktag_connections')
@@ -414,17 +543,28 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
           .select('id')
           .single();
         forwardConnId = inserted?.id ?? null;
+      } else if (!existingForwardSid && paramSid) {
+        await supabase
+          .from('piktag_connections')
+          .update({ scan_session_id: paramSid })
+          .eq('id', forwardConnId);
       }
 
-      // Host → scanner (reverse). Same no-clobber pattern.
+      // Host → scanner (reverse). Same no-clobber + backfill logic
+      // — and critically, scan_session_id MUST be set here too. The
+      // host's Vibe member list queries `user_id = host AND
+      // scan_session_id = vibe` and the host's row is the REVERSE
+      // direction, so without this the list is always empty when
+      // a host opens their Vibe.
       const { data: existingReverse } = await supabase
         .from('piktag_connections')
-        .select('id')
+        .select('id, scan_session_id')
         .eq('user_id', resolvedUserId)
         .eq('connected_user_id', authUser.id)
         .maybeSingle();
 
-      let reverseConnId: string | null = existingReverse?.id ?? null;
+      let reverseConnId: string | null = (existingReverse as any)?.id ?? null;
+      const existingReverseSid = (existingReverse as any)?.scan_session_id ?? null;
       if (!reverseConnId) {
         const { data: insertedReverse } = await supabase
           .from('piktag_connections')
@@ -434,23 +574,49 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
             met_at: new Date().toISOString(),
             met_location: eventLocation,
             note,
+            scan_session_id: paramSid || null,
           })
           .select('id')
           .single();
         reverseConnId = insertedReverse?.id ?? null;
+      } else if (!existingReverseSid && paramSid) {
+        await supabase
+          .from('piktag_connections')
+          .update({ scan_session_id: paramSid })
+          .eq('id', reverseConnId);
       }
 
-      // Build the full private-tag set: event tags + date + location.
-      // The old base64 ScanResult flow added these three; the URL flow
-      // used to only add event_tags which is why dates and locations
-      // never showed up as hidden tags when scanning event QR codes.
+      // Build the private-tag set from the Vibe context.
+      //
+      // Crucial directionality: these tags only go on the REVERSE
+      // connection (host's view of the scanner), NEVER the forward
+      // (scanner's view of the host). Reason — illustrated by the
+      // canonical example:
+      //
+      //   I create a Vibe "find a patent attorney" tagged
+      //   #專利師 #商標. The attorney scans my QR. With the old
+      //   both-sides attach, the attorney's view of MY profile
+      //   got #專利師 #商標 silently applied — labeling me as a
+      //   patent attorney even though I'm the one seeking one.
+      //   Every client of the attorney scanning future Vibes
+      //   would compound the same noise on his side.
+      //
+      // The principle that surfaced after the rename to "Vibes":
+      //   Vibe tags describe the kind of PERSON the Vibe is for,
+      //   not the host who created it. They belong on the
+      //   scanner from the host's perspective — that's it.
+      //
+      // Forward-side tagging (scanner's view of host) goes back
+      // to the standard manual path: the scanner can open the
+      // tag picker and add whatever tags they actually want to
+      // remember the host by.
       const tagNames: string[] = [...eventTags];
       if (eventDate.trim()) tagNames.push(eventDate.trim());
       if (eventLocation.trim()) tagNames.push(eventLocation.trim());
 
-      if (tagNames.length > 0) {
+      if (tagNames.length > 0 && reverseConnId) {
         const tagIds = await ensureTagIdsByName(tagNames);
-        await attachTagsToConnections([forwardConnId, reverseConnId], tagIds);
+        await attachTagsToConnections([reverseConnId], tagIds);
       }
 
       // Increment scan count (server-side RPC, best-effort)
@@ -458,14 +624,25 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
 
       if (forwardConnId) setConnectionId(forwardConnId);
 
-      // Auto-follow the host after QR add-friend
-      await supabase
-        .from('piktag_follows')
-        .upsert(
-          { follower_id: authUser.id, following_id: resolvedUserId },
-          { onConflict: 'follower_id,following_id', ignoreDuplicates: true },
-        )
-        .catch(() => {});
+      // Auto-follow the host after QR add-friend.
+      //
+      // Previously chained `.catch(() => {})` directly off the upsert —
+      // PostgrestBuilder is only PromiseLike (has .then, no native .catch),
+      // so that swallow was a type error and didn't actually catch
+      // anything; rejections still bubbled to the outer try/catch and
+      // would surface the QR-add error message even when the upsert was
+      // the only thing that failed. Wrap in its own try/catch so the
+      // success alert is decoupled from auto-follow's best-effort outcome.
+      try {
+        await supabase
+          .from('piktag_follows')
+          .upsert(
+            { follower_id: authUser.id, following_id: resolvedUserId },
+            { onConflict: 'follower_id,following_id', ignoreDuplicates: true },
+          );
+      } catch (followErr) {
+        console.warn('[UserDetail] auto-follow on QR scan failed:', followErr);
+      }
 
       Alert.alert(
         t('scanResult.alertSuccessTitle'),
@@ -511,24 +688,76 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
 
     void (async () => {
       try {
-        const { eventTags, eventDate, eventLocation } = await resolveEventData();
-        const tagNames: string[] = [...eventTags];
-        if (eventDate.trim()) tagNames.push(eventDate.trim());
-        if (eventLocation.trim()) tagNames.push(eventLocation.trim());
-        if (tagNames.length === 0) return;
-
-        const tagIds = await ensureTagIdsByName(tagNames);
-
-        // Find the reverse connection id (host → scanner) so both sides
-        // of the friendship pick up the event context.
+        // ──────────────────────────────────────────────────────
+        // Critical: backfill scan_session_id on BOTH directions.
+        //
+        // Without this, a friend who scans a host's Vibe QR
+        // never appears in the host's Vibe member list — because
+        // the member-list RPC queries
+        //   WHERE user_id = host AND scan_session_id = vibe_id
+        // against the host→scanner (reverse) row, and the row
+        // exists (they're already friends) but its
+        // scan_session_id is NULL (they were added pre-Vibe via
+        // Search/Follow, or a previous Vibe didn't backfill).
+        //
+        // handleToggleFollow's QR branch is `if (!connectionId
+        // && !isFollowing)` — it skips entirely when the friend
+        // already exists. This effect is the only path that
+        // catches the "already-friend scans a NEW Vibe" case.
+        // First Vibe wins — never overwrite an existing
+        // scan_session_id.
         const { data: reverse } = await supabase
           .from('piktag_connections')
-          .select('id')
+          .select('id, scan_session_id')
           .eq('user_id', resolvedUserId)
           .eq('connected_user_id', authUser.id)
           .maybeSingle();
 
-        await attachTagsToConnections([connectionId, reverse?.id ?? null], tagIds);
+        const reverseConnId: string | null = (reverse as any)?.id ?? null;
+        const reverseSid = (reverse as any)?.scan_session_id ?? null;
+
+        // Backfill forward (scanner → host) when missing.
+        const { data: forwardRow } = await supabase
+          .from('piktag_connections')
+          .select('scan_session_id')
+          .eq('id', connectionId)
+          .maybeSingle();
+        if (!(forwardRow as any)?.scan_session_id) {
+          await supabase
+            .from('piktag_connections')
+            .update({ scan_session_id: paramSid })
+            .eq('id', connectionId);
+        }
+
+        // Backfill reverse (host → scanner) when missing.
+        if (reverseConnId && !reverseSid) {
+          await supabase
+            .from('piktag_connections')
+            .update({ scan_session_id: paramSid })
+            .eq('id', reverseConnId);
+        }
+
+        // ──────────────────────────────────────────────────────
+        // Attach the Vibe's tags to ONLY the reverse (host's
+        // view of scanner). Same principle as handleAddFriendFromQr
+        // — Vibe tags describe the kind of person the Vibe is
+        // FOR, not the host who created it. The forward side
+        // (scanner's view of host) is left untouched; the
+        // scanner can manually pick tags via the picker if they
+        // want.
+        const { eventTags, eventDate, eventLocation } = await resolveEventData();
+        const tagNames: string[] = [...eventTags];
+        if (eventDate.trim()) tagNames.push(eventDate.trim());
+        if (eventLocation.trim()) tagNames.push(eventLocation.trim());
+
+        if (tagNames.length > 0 && reverseConnId) {
+          const tagIds = await ensureTagIdsByName(tagNames);
+          await attachTagsToConnections([reverseConnId], tagIds);
+        }
+
+        // Bump the host's scan_count so the Vibe shows the right
+        // total even when the visit was an already-friend re-scan.
+        await supabase.rpc('increment_scan_count', { session_id: paramSid });
       } catch (err) {
         // Silent — this is a best-effort enrichment. The user can still
         // add the tags manually from HiddenTagEditor if it fails.
@@ -566,6 +795,87 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
     const { data } = await supabase.from('piktag_connection_tags').select('tag_id').eq('connection_id', connectionId).eq('is_private', false);
     if (data) setPickedTagIds(new Set(data.map((ct: any) => ct.tag_id)));
   }, [connectionId]);
+
+  // Hidden (private) tag fetcher — declared here, ahead of openPickTagModal,
+  // because openPickTagModal references it both inside the callback body
+  // AND in the useCallback dep array. The dep array is evaluated eagerly
+  // at render time; if fetchHiddenTags were declared later in the body
+  // (as it was originally) the const binding would still be in TDZ at that
+  // point and reading it would throw `ReferenceError: Cannot access
+  // 'fetchHiddenTags' before initialization` on every render. Function
+  // hoisting doesn't apply to `const` arrow declarations.
+  const fetchHiddenTags = useCallback(async () => {
+    if (!connectionId) return;
+    const { data } = await supabase
+      .from('piktag_connection_tags')
+      .select('id, tag_id, piktag_tags!inner(name)')
+      .eq('connection_id', connectionId)
+      .eq('is_private', true);
+    if (data) {
+      setHiddenTags(data.map((ct: any) => ({
+        id: ct.id,
+        tagId: ct.tag_id,
+        name: ct.piktag_tags?.name || '',
+      })));
+    }
+  }, [connectionId]);
+
+  // Toggle a hidden (private) tag by name on the current connection.
+  // Drives the 活動標籤 chip row below — tap to add as a hidden tag,
+  // tap again to remove. Mirrors the same insert/select-on-conflict
+  // dance HiddenTagEditor.applyHiddenTag uses, so behavior is
+  // consistent regardless of which surface the user toggles from.
+  const toggleHiddenTagByName = useCallback(async (rawName: string, knownTagId?: string) => {
+    if (!connectionId) return;
+    const name = rawName.trim().replace(/^#/, '');
+    if (!name) return;
+    const existing = hiddenTags.find(h => h.name === name);
+    try {
+      if (existing) {
+        await supabase.from('piktag_connection_tags').delete().eq('id', existing.id);
+      } else {
+        let tagId = knownTagId;
+        if (!tagId) {
+          const { data: row } = await supabase
+            .from('piktag_tags')
+            .select('id')
+            .eq('name', name)
+            .maybeSingle();
+          if (row?.id) {
+            tagId = row.id;
+          } else {
+            const { data: created, error: insertErr } = await supabase
+              .from('piktag_tags')
+              .insert({ name })
+              .select('id')
+              .single();
+            if (created?.id) {
+              tagId = created.id;
+            } else if (insertErr && (insertErr as any).code === '23505') {
+              // Race-safe: another client beat us to creating the row.
+              const { data: raced } = await supabase
+                .from('piktag_tags')
+                .select('id')
+                .eq('name', name)
+                .maybeSingle();
+              if (!raced?.id) return;
+              tagId = raced.id;
+            } else {
+              return;
+            }
+          }
+        }
+        await supabase.from('piktag_connection_tags').insert({
+          connection_id: connectionId,
+          tag_id: tagId,
+          is_private: true,
+        });
+      }
+      await fetchHiddenTags();
+    } catch (err) {
+      console.warn('[UserDetail] toggleHiddenTagByName failed:', err);
+    }
+  }, [connectionId, hiddenTags, fetchHiddenTags]);
 
   const openPickTagModal = useCallback(async () => {
     await Promise.all([fetchFriendPublicTags(), connectionId ? loadPickedTags() : Promise.resolve(), connectionId ? fetchHiddenTags() : Promise.resolve()]);
@@ -616,56 +926,6 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
     prevPickModalVisible.current = pickTagModalVisible;
   }, [pickTagModalVisible, fetchData]);
 
-  // Fetch session info for display (QR-scan flow) so the event card can render
-  // before the user presses "追蹤". handleAddFriendFromQr does its own fetch as
-  // a fallback at press-time.
-  useEffect(() => {
-    if (!paramSid || paramSid.startsWith('local_')) {
-      // Fall back to URL params if present
-      const tagsFromUrl = paramTags ? paramTags.split(',').map((t: string) => t.trim()).filter(Boolean) : [];
-      if (tagsFromUrl.length > 0 || paramDate || paramLoc) {
-        setEventInfo({ tags: tagsFromUrl, date: paramDate || '', location: paramLoc || '' });
-      }
-      return;
-    }
-    (async () => {
-      const { data } = await supabase
-        .from('piktag_scan_sessions')
-        .select('event_tags, event_date, event_location')
-        .eq('id', paramSid)
-        .maybeSingle();
-      if (data) {
-        setEventInfo({
-          tags: data.event_tags || [],
-          date: data.event_date || '',
-          location: data.event_location || '',
-        });
-      } else {
-        // Fall back to URL params
-        const tagsFromUrl = paramTags ? paramTags.split(',').map((t: string) => t.trim()).filter(Boolean) : [];
-        if (tagsFromUrl.length > 0 || paramDate || paramLoc) {
-          setEventInfo({ tags: tagsFromUrl, date: paramDate || '', location: paramLoc || '' });
-        }
-      }
-    })();
-  }, [paramSid, paramTags, paramDate, paramLoc]);
-
-  // --- Hidden tags (private) ---
-  const fetchHiddenTags = useCallback(async () => {
-    if (!connectionId) return;
-    const { data } = await supabase
-      .from('piktag_connection_tags')
-      .select('id, tag_id, piktag_tags!inner(name)')
-      .eq('connection_id', connectionId)
-      .eq('is_private', true);
-    if (data) {
-      setHiddenTags(data.map((ct: any) => ({
-        id: ct.id,
-        tagId: ct.tag_id,
-        name: ct.piktag_tags?.name || '',
-      })));
-    }
-  }, [connectionId]);
 
   // Keep hiddenTags in sync whenever the connection changes — we show
   // the HiddenTagEditor inline on the profile, so the list needs to be
@@ -681,29 +941,85 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
   const handleConfirmUnfollow = async () => {
     if (!authUser || !resolvedUserId) return;
     setUnfollowModalVisible(false);
-    await supabase.from('piktag_follows').delete().eq('follower_id', authUser.id).eq('following_id', resolvedUserId);
+    const { error } = await supabase.from('piktag_follows').delete().eq('follower_id', authUser.id).eq('following_id', resolvedUserId);
+    if (error) {
+      console.warn('unfollow failed:', error);
+      Alert.alert(t('common.error'), t('common.unknownError'));
+      return;
+    }
     setIsFollowing(false);
+    // Close-friend status was implicitly tied to following — once you
+    // unfollow, the close-friend row is semantically stale ("X is my
+    // close friend but I don't follow them"). Clear both DB row + UI
+    // state so the badge / list elsewhere reflects reality.
+    if (isCloseFriend) {
+      await supabase
+        .from('piktag_close_friends')
+        .delete()
+        .eq('user_id', authUser.id)
+        .eq('close_friend_id', resolvedUserId);
+      setIsCloseFriend(false);
+    }
   };
 
+  // In-flight guard: a fast double-tap on a reason previously
+  // inserted duplicate piktag_reports rows (no unique constraint).
+  const reportingRef = useRef(false);
   const reportUser = async (reason: string) => {
     if (!authUser || !resolvedUserId) return;
-    await supabase.from('piktag_reports').insert({
-      reporter_id: authUser.id,
-      reported_id: resolvedUserId,
-      reason,
-    });
-    Alert.alert(t('userDetail.reportedTitle') || '已檢舉', t('userDetail.reportedMessage') || '感謝你的回報，我們會盡快處理');
+    if (reportingRef.current) return;
+    reportingRef.current = true;
+    try {
+      const { error } = await supabase.from('piktag_reports').insert({
+        reporter_id: authUser.id,
+        reported_id: resolvedUserId,
+        reason,
+      });
+      if (error) {
+        console.warn('report insert failed:', error);
+        Alert.alert(t('common.error'), t('common.unknownError'));
+        reportingRef.current = false; // allow retry on failure
+        return;
+      }
+      Alert.alert(t('userDetail.reportedTitle', { defaultValue: '已檢舉' }), t('userDetail.reportedMessage', { defaultValue: '感謝你的回報，我們會盡快處理' }));
+    } catch (e) {
+      reportingRef.current = false;
+    }
   };
 
   const handleToggleCloseFriend = async () => {
     if (!authUser || !resolvedUserId) return;
     if (isCloseFriend) {
-      await supabase.from('piktag_close_friends').delete()
+      const { error } = await supabase.from('piktag_close_friends').delete()
         .eq('user_id', authUser.id).eq('close_friend_id', resolvedUserId);
+      if (error) {
+        console.warn('close_friends delete failed:', error);
+        return;
+      }
       setIsCloseFriend(false);
     } else {
-      await supabase.from('piktag_close_friends')
+      // Ensure follow + connection exist first — otherwise the
+      // close_friend row sits alone and the user vanishes from
+      // ConnectionsScreen (which filters `connections ∩ follows`).
+      // followUser() is idempotent. Same guard as FriendDetail.
+      if (!isFollowing) {
+        const { connectionId: connId, error: followErr } = await followUser(
+          authUser.id,
+          resolvedUserId,
+        );
+        if (followErr) {
+          console.warn('close-friend pre-follow failed:', followErr);
+          return;
+        }
+        setIsFollowing(true);
+        if (connId && connId !== connectionId) setConnectionId(connId);
+      }
+      const { error } = await supabase.from('piktag_close_friends')
         .upsert({ user_id: authUser.id, close_friend_id: resolvedUserId }, { onConflict: 'user_id,close_friend_id' });
+      if (error) {
+        console.warn('close_friends upsert failed:', error);
+        return;
+      }
       setIsCloseFriend(true);
     }
   };
@@ -728,23 +1044,14 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
         return;
       }
       const conversationId = typeof data === 'string' ? data : (data as any)?.id ?? (data as any)?.conversation_id ?? data;
-      // UserDetail lives in RootStack, but ChatThread lives inside the
-      // SearchTab's nested SearchStack. A bare navigate('ChatThread')
-      // silently fails because the current stack has no screen by that
-      // name — this is why tapping the message icon appeared to do
-      // nothing. Use the Main → SearchTab → ChatThread nested form so
-      // the navigator can walk down into the correct stack.
-      (navigation as any).navigate('Main', {
-        screen: 'SearchTab',
-        params: {
-          screen: 'ChatThread',
-          params: {
-            conversationId,
-            otherUserId: resolvedUserId,
-            otherDisplayName: profile?.full_name ?? profile?.username ?? '',
-            otherAvatarUrl: profile?.avatar_url,
-          },
-        },
+      // ChatThread lives in RootStack alongside UserDetail, so a plain
+      // push keeps the navigation history (TagDetail → UserDetail →
+      // ChatThread → back returns to UserDetail).
+      (navigation as any).navigate('ChatThread', {
+        conversationId,
+        otherUserId: resolvedUserId,
+        otherDisplayName: profile?.full_name ?? profile?.username ?? '',
+        otherAvatarUrl: profile?.avatar_url,
       });
     } catch (err) {
       console.warn('handleOpenChat error:', err);
@@ -772,32 +1079,18 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
         setUnfollowModalVisible(true);
         return;
       } else {
-        // Follow
-        const { error } = await supabase
-          .from('piktag_follows')
-          .insert({
-            follower_id: authUser.id,
-            following_id: resolvedUserId,
-          });
-
+        // Shared helper handles both piktag_follows AND piktag_connections
+        // atomically — see lib/followUser.ts. Returns the connection id
+        // (existing or freshly created) so we can stash it for the
+        // pickTag modal that fires below.
+        const { connectionId: connId, error } = await followUser(authUser.id, resolvedUserId);
         if (error) {
           console.error('Error following:', error);
           return;
         }
         setIsFollowing(true);
-
-        // Create connection if not exists
-        let connId = connectionId;
-        if (!connId) {
-          const { data: newConn } = await supabase
-            .from('piktag_connections')
-            .insert({ user_id: authUser.id, connected_user_id: resolvedUserId, met_at: new Date().toISOString() })
-            .select('id')
-            .single();
-          if (newConn) {
-            connId = newConn.id;
-            setConnectionId(connId);
-          }
+        if (connId && connId !== connectionId) {
+          setConnectionId(connId);
         }
 
         // Show Pick Tag modal if friend has public tags
@@ -827,19 +1120,21 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
             onPress={() => navigation.canGoBack() ? navigation.goBack() : navigation.navigate('Connections')}
             activeOpacity={0.6}
           >
-            <ArrowLeft size={24} color={COLORS.gray900} />
+            <ArrowLeft size={24} color={colors.gray900} />
           </TouchableOpacity>
           <Text style={styles.headerUsername}>...</Text>
           <View style={styles.headerSpacer} />
         </View>
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={COLORS.piktag500} />
-        </View>
+        <PageLoader />
       </View>
     );
   }
 
   if (!profile) {
+    // Two distinct empty cases: (1) the fetch errored and we should
+    // offer retry + reassure the user that we'll auto-retry on
+    // reconnect; (2) the lookup completed and the user genuinely
+    // doesn't exist — keep the existing "not found" copy.
     return (
       <View style={[styles.container, { backgroundColor: colors.background }]}>
         <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={colors.white} />
@@ -849,14 +1144,20 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
             onPress={() => navigation.canGoBack() ? navigation.goBack() : navigation.navigate('Connections')}
             activeOpacity={0.6}
           >
-            <ArrowLeft size={24} color={COLORS.gray900} />
+            <ArrowLeft size={24} color={colors.gray900} />
           </TouchableOpacity>
-          <Text style={styles.headerUsername}>{t('userDetail.headerNotFound')}</Text>
+          <Text style={styles.headerUsername}>
+            {loadError ? '' : t('userDetail.headerNotFound')}
+          </Text>
           <View style={styles.headerSpacer} />
         </View>
-        <View style={styles.loadingContainer}>
-          <Text style={styles.emptyText}>{t('userDetail.userNotFound')}</Text>
-        </View>
+        {loadError ? (
+          <ErrorState onRetry={fetchData} />
+        ) : (
+          <View style={styles.loadingContainer}>
+            <Text style={styles.emptyText}>{t('userDetail.userNotFound')}</Text>
+          </View>
+        )}
       </View>
     );
   }
@@ -864,7 +1165,6 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
   const displayName = profile.full_name || profile.username || 'Unknown';
   const username = profile.username || '';
   const verified = profile.is_verified || false;
-  const avatarUri = profile.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=f3f4f6&color=6b7280`;
   const headline = profile.headline || '';
   const bio = profile.bio || '';
 
@@ -879,7 +1179,7 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
           onPress={() => navigation.canGoBack() ? navigation.goBack() : navigation.navigate("Connections")}
           activeOpacity={0.6}
         >
-          <ArrowLeft size={24} color={COLORS.gray900} />
+          <ArrowLeft size={24} color={colors.gray900} />
         </TouchableOpacity>
         <Text style={styles.headerUsername}>@{username}</Text>
         <TouchableOpacity
@@ -887,7 +1187,7 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
           onPress={() => setMoreMenuVisible(true)}
           activeOpacity={0.6}
         >
-          <MoreHorizontal size={24} color={COLORS.gray900} />
+          <MoreHorizontal size={24} color={colors.gray900} />
         </TouchableOpacity>
       </View>
 
@@ -899,15 +1199,25 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
         {/* Profile Info */}
         <View style={styles.profileSection}>
           <View style={styles.profileRow}>
-            <Image source={{ uri: avatarUri }} style={styles.avatar} />
+            <RingedAvatar
+              size={68}
+              ringStyle={
+                resolvedUserId &&
+                askFeedAsks.some((a) => a.author_id === resolvedUserId)
+                  ? 'gradient'
+                  : 'subtle'
+              }
+              name={displayName}
+              avatarUrl={profile.avatar_url}
+            />
             <View style={styles.nameSection}>
               <View style={styles.nameRow}>
                 <Text style={styles.name}>{displayName}</Text>
                 {/* {verified && (
                   <CheckCircle2
                     size={16}
-                    color={COLORS.blue500}
-                    fill={COLORS.blue500}
+                    color={colors.blue500}
+                    fill={colors.blue500}
                     strokeWidth={0}
                     style={styles.verifiedIcon}
                   />
@@ -942,13 +1252,24 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
             </View>
           )}
 
-          {/* Stats — one line, mutual tags clickable */}
+          {/* Stats row order: mutual friends first (carries the visual
+              overlapping-avatars cue, so it earns the lead spot), then
+              mutual tags, then followers. Same order on FriendDetail. */}
           <View style={styles.statsRow}>
+            <View style={styles.mutualAvatarsStat}>
+              {mutualFriendProfiles.length > 0 && (
+                <OverlappingAvatars users={mutualFriendProfiles} total={mutualFriends} size={24} max={3} />
+              )}
+              <Text style={[styles.statText, mutualFriendProfiles.length > 0 && { marginLeft: 6 }]}>
+                <Text style={styles.statNumber}>{mutualFriends}</Text>{t('userDetail.statMutualFriends')}
+              </Text>
+            </View>
+            <Text style={styles.statDot}>·</Text>
             {mutualTags > 0 ? (
               <TouchableOpacity onPress={() => setMutualTagModalVisible(true)} activeOpacity={0.6}>
                 <Text style={styles.statTextClickable}>
-                  <Text style={[styles.statNumber, { color: COLORS.piktag600 }]}>{mutualTags}</Text>
-                  <Text style={{ color: COLORS.piktag600 }}>{t('userDetail.statMutualTags')}</Text>
+                  <Text style={[styles.statNumber, { color: colors.piktag600 }]}>{mutualTags}</Text>
+                  <Text style={{ color: colors.piktag600 }}>{t('userDetail.statMutualTags')}</Text>
                 </Text>
               </TouchableOpacity>
             ) : (
@@ -957,134 +1278,135 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
               </Text>
             )}
             <Text style={styles.statDot}>·</Text>
-            <View style={styles.mutualAvatarsStat}>
-              {mutualFriendProfiles.length > 0 && (
-                <OverlappingAvatars users={mutualFriendProfiles} total={mutualFriends} size={22} max={3} />
-              )}
-              <Text style={[styles.statText, mutualFriendProfiles.length > 0 && { marginLeft: 6 }]}>
-                <Text style={styles.statNumber}>{mutualFriends}</Text>{t('userDetail.statMutualFriends')}
+            <TouchableOpacity
+              activeOpacity={0.6}
+              hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
+              onPress={() =>
+                resolvedUserId &&
+                navigation.navigate('Followers', {
+                  userId: resolvedUserId,
+                  displayName:
+                    profile?.full_name || profile?.username || paramUsername || '',
+                })
+              }
+              accessibilityRole="button"
+              accessibilityLabel={t('userDetail.statFollowers')}
+            >
+              <Text style={styles.statText}>
+                <Text style={styles.statNumber}>{followerCount}</Text>{t('userDetail.statFollowers')}
               </Text>
-            </View>
-            <Text style={styles.statDot}>·</Text>
-            <Text style={styles.statText}>
-              <Text style={styles.statNumber}>{followerCount}</Text>{t('userDetail.statFollowers')}
-            </Text>
+            </TouchableOpacity>
           </View>
 
-          {/* Event info card (QR scan context) */}
-          {paramSid && eventInfo && (eventInfo.tags.length > 0 || eventInfo.date || eventInfo.location) && (
-            <View style={styles.eventCard}>
-              <Text style={styles.eventCardTitle}>{t('userDetail.eventCardTitle') || '活動資訊'}</Text>
-              {eventInfo.date ? (
-                <Text style={styles.eventCardLine}>#{eventInfo.date}</Text>
-              ) : null}
-              {eventInfo.location ? (
-                <Text style={styles.eventCardLine}>#{eventInfo.location}</Text>
-              ) : null}
-              {eventInfo.tags.length > 0 ? (
-                <View style={styles.eventCardTagsRow}>
-                  {eventInfo.tags.map((tag) => (
-                    <View key={tag} style={styles.eventCardTag}>
-                      <Text style={styles.eventCardTagText}>#{tag.replace(/^#/, '')}</Text>
-                    </View>
-                  ))}
-                </View>
-              ) : null}
-            </View>
-          )}
+          {/* Event-info card (QR scan context) was removed per user
+              feedback: "all tags are attached to a person, not an
+              event". Tags from the originating Vibe were displayed
+              here in a distinct purple-bordered card before, but it
+              created a false hierarchy — a tag on someone's
+              profile should read the same whether it came from a
+              scan context or the person picked it themselves. The
+              tags still flow through to piktag_connection_tags via
+              the post-scan picker; they just don't get a special
+              banner on the profile body anymore. */}
 
-          {/* Action buttons — IG style: [Follow] [Message] [Tag] [Suggest] */}
+          {/* Action buttons.
+              Visual hierarchy on this screen: 「追蹤」 (when the
+              viewer isn't already following) is the ONE primary
+              CTA — getting the user onto your social graph is the
+              moment that matters here. Once they're following the
+              button collapses to a secondary "追蹤中" pill, since
+              the unfollow path is just a maintenance action.
+              Everything else (Message / Tag / +icon) sits on
+              secondary gray. Reverted from the previous LinearGradient
+              follow button + primary tag button, both of which
+              competed with each other for primary attention. */}
           <View style={styles.actionButtonsRow}>
             {isFollowing ? (
               <TouchableOpacity
-                style={[styles.followButton, styles.followButtonFollowing]}
+                style={styles.secondaryBtn}
                 onPress={handleToggleFollow}
-                activeOpacity={0.8}
+                activeOpacity={0.7}
                 disabled={followLoading}
               >
                 {followLoading ? (
-                  <ActivityIndicator size="small" color={COLORS.piktag600} />
+                  <BrandSpinner size={20} />
                 ) : (
-                  <Text style={styles.followButtonTextFollowing}>
+                  <Text style={styles.secondaryBtnText}>
                     {t('userDetail.following')}
                   </Text>
                 )}
               </TouchableOpacity>
             ) : (
-              <TouchableOpacity onPress={handleToggleFollow} activeOpacity={0.8} disabled={followLoading} style={{ flex: 1 }}>
-                <LinearGradient
-                  colors={['#ff5757', '#c44dff', '#8c52ff']}
-                  start={{ x: 0, y: 0.5 }}
-                  end={{ x: 1, y: 0.5 }}
-                  style={[styles.followButton, { borderRadius: 14 }]}
-                >
-                  {followLoading ? (
-                    <ActivityIndicator size="small" color="#fff" />
-                  ) : (
-                    <Text style={styles.followButtonTextDefault}>
-                      {t('userDetail.follow')}
-                    </Text>
-                  )}
-                </LinearGradient>
+              <TouchableOpacity
+                style={styles.primaryFollowBtn}
+                onPress={handleToggleFollow}
+                activeOpacity={0.8}
+                disabled={followLoading}
+              >
+                {followLoading ? (
+                  <BrandSpinner size={20} />
+                ) : (
+                  <Text style={styles.primaryBtnText}>
+                    {t('userDetail.follow')}
+                  </Text>
+                )}
               </TouchableOpacity>
             )}
             {authUser && resolvedUserId && authUser.id !== resolvedUserId && (
               <TouchableOpacity
-                style={styles.messageButton}
+                style={styles.secondaryBtn}
                 onPress={handleOpenChat}
-                activeOpacity={0.8}
+                activeOpacity={0.7}
                 disabled={messageLoading}
               >
                 {messageLoading ? (
-                  <ActivityIndicator size="small" color={COLORS.gray700} />
+                  <BrandSpinner size={20} />
                 ) : (
-                  <Text style={styles.messageButtonText}>{t('userDetail.sendMessage')}</Text>
+                  <Text style={styles.secondaryBtnText}>{t('userDetail.sendMessage')}</Text>
                 )}
               </TouchableOpacity>
             )}
             {isFollowing && (
               <TouchableOpacity
-                style={styles.iconButton}
-                activeOpacity={0.7}
+                style={styles.tagBtnPrimary}
+                activeOpacity={0.85}
                 onPress={openPickTagModal}
+                accessibilityRole="button"
+                accessibilityLabel={t('userDetail.tag', { defaultValue: '標籤' })}
               >
-                <Hash size={18} color={COLORS.gray700} strokeWidth={2.5} />
+                <Text style={styles.tagBtnPrimaryText}>{t('userDetail.tag', { defaultValue: '標籤' })}</Text>
               </TouchableOpacity>
             )}
             <TouchableOpacity
-              style={[styles.iconButton, showSimilar && styles.iconButtonActive]}
+              style={[styles.iconSecondaryBtn, showSimilar && styles.iconSecondaryBtnActive]}
               activeOpacity={0.7}
               onPress={() => setShowSimilar(!showSimilar)}
+              accessibilityRole="button"
+              accessibilityLabel={t('userDetail.recommendMembers', { defaultValue: '推薦會員' })}
             >
-              <UserPlus size={18} color={showSimilar ? COLORS.piktag500 : COLORS.gray700} />
+              <UserPlus size={18} color={showSimilar ? colors.piktag500 : colors.gray700} />
             </TouchableOpacity>
           </View>
         </View>
 
-        {/* Hidden tags editor — inline so users don't have to dig into
-            the Pick Tag modal to see the auto-filled event tags from
-            a QR scan. Only shows once a connection exists. */}
-        {connectionId && authUser && (
-          <View style={styles.inlineHiddenTagSection}>
-            <Text style={styles.inlineHiddenTagTitle}>
-              {t('friendDetail.hiddenTagsTitle') || '隱藏標籤'}
-            </Text>
-            <HiddenTagEditor
-              connectionId={connectionId}
-              userId={authUser.id}
-              hiddenTags={hiddenTags}
-              onTagsChanged={fetchHiddenTags}
-            />
-          </View>
-        )}
+        {/* Inline hidden-tag UI removed — both the event-tag shortcut
+            row and the full HiddenTagEditor used to render here gated
+            on isFollowing && connectionId. Reported: search for a
+            user you follow and their profile body shows the entire
+            tag-editing surface stuffed into the middle of the page,
+            including private "隱藏標籤（只有你看得到）" sections. The
+            editor is still available, but only via the explicit
+            「選擇標籤」 button, which opens the pickModal below
+            (HiddenTagEditor instance there is the single source of
+            truth now). Profile reads cleanly; tag editing is opt-in. */}
 
         {/* Similar Users — IG style "Suggested for you" */}
         {showSimilar && similarUsers.length > 0 && (
           <View style={styles.similarSection}>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, marginBottom: 12 }}>
-              <Text style={styles.similarTitle}>{t('userDetail.similarUsersTitle') || '為你推薦'}</Text>
+              <Text style={styles.similarTitle}>{t('userDetail.similarUsersTitle', { defaultValue: '為你推薦' })}</Text>
               <TouchableOpacity onPress={() => setShowSimilar(false)} activeOpacity={0.6}>
-                <X size={18} color={COLORS.gray400} />
+                <X size={18} color={colors.gray400} />
               </TouchableOpacity>
             </View>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.similarScroll}>
@@ -1125,13 +1447,19 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
                       style={styles.similarFollowBtn}
                       activeOpacity={0.8}
                       onPress={async () => {
-                        try {
-                          await supabase.from('piktag_follows').insert({ follower_id: user?.id, following_id: u.id });
-                          setSimilarUsers(prev => prev.filter(s => s.id !== u.id));
-                        } catch (err) {
-                          console.warn('[UserDetail] follow similar user failed:', err);
+                        // The auth user is destructured as `authUser` at the
+                        // top of this component (we already use `user` as a
+                        // generic loop variable elsewhere). Using `user` here
+                        // resolved to undefined → follower_id was null →
+                        // RLS rejected the insert silently.
+                        if (!authUser?.id) return;
+                        const { error } = await followUser(authUser.id, u.id);
+                        if (error) {
+                          console.warn('[UserDetail] follow similar user failed:', error);
                           Alert.alert(t('common.error'), t('common.unknownError'));
+                          return;
                         }
+                        setSimilarUsers(prev => prev.filter(s => s.id !== u.id));
                       }}
                     >
                       <LinearGradient
@@ -1140,7 +1468,7 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
                         end={{ x: 1, y: 0.5 }}
                         style={styles.similarFollowGradient}
                       >
-                        <Text style={styles.similarFollowText}>{t('userDetail.follow') || '追蹤'}</Text>
+                        <Text style={styles.similarFollowText}>{t('userDetail.follow', { defaultValue: '追蹤' })}</Text>
                       </LinearGradient>
                     </TouchableOpacity>
                   </View>
@@ -1150,10 +1478,12 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
           </View>
         )}
 
-        {/* Social Links — IG Highlights style circles */}
+        {/* Biolinks — matches ProfileScreen layout exactly. Section
+            titles removed (universal logos speak for themselves) and
+            the per-icon text label dropped (FB / phone glyph carries
+            the meaning). See FriendDetailScreen for the same rationale. */}
         {iconBiolinks.length > 0 && (
           <View style={styles.socialSection}>
-            <Text style={styles.sectionTitle}>{t('userDetail.socialLinksTitle')}</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.socialScrollContent}>
               {iconBiolinks.map((link) => (
                 <TouchableOpacity
@@ -1161,25 +1491,22 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
                   style={styles.socialCircleItem}
                   onPress={() => handleOpenLink(link.url)}
                   activeOpacity={0.7}
+                  accessibilityLabel={link.label || link.platform}
+                  accessibilityRole="link"
                 >
                   <View style={styles.socialCircleRing}>
                     <View style={styles.socialCircleInner}>
                       <PlatformIcon platform={link.platform} size={28} />
                     </View>
                   </View>
-                  <Text style={styles.socialCircleLabel} numberOfLines={1}>
-                    {link.label || link.platform}
-                  </Text>
                 </TouchableOpacity>
               ))}
             </ScrollView>
           </View>
         )}
 
-        {/* Link Bio — Linktree style cards */}
         {cardBiolinks.length > 0 && (
           <View style={styles.linkBioSection}>
-            <Text style={styles.sectionTitle}>{t('userDetail.linkBioTitle')}</Text>
             {cardBiolinks.map((link) => (
               <TouchableOpacity
                 key={link.id}
@@ -1191,7 +1518,7 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
                 <Text style={styles.linkCardText} numberOfLines={1}>
                   {link.label || link.platform}
                 </Text>
-                <ExternalLink size={16} color={COLORS.gray400} />
+                <ExternalLink size={16} color={colors.gray400} />
               </TouchableOpacity>
             ))}
           </View>
@@ -1251,8 +1578,55 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
             {/* Divider */}
             <View style={styles.pickModalDivider} />
 
+            {/* This Vibe's own tags — only shown when the viewer
+                arrived via a Vibe QR (paramSid + paramTags/Date/Loc
+                present). Opt-in: each chip is OFF until the user
+                taps it, then becomes a hidden tag on the host. The
+                section deliberately exists separately from the
+                "viewer's past event vocabulary" block below so that
+                "tags that just came from this specific scan" reads
+                as a distinct concept — they're suggestions, not
+                history, not auto-applied. */}
+            {paramSid && vibeContextTags.length > 0 && connectionId && authUser && (
+              <>
+                <Text style={styles.pickModalSectionTitle}>
+                  {t('userDetail.vibeContextTagsTitle', { defaultValue: '這次 Tag 帶的標籤' })}
+                </Text>
+                <Text style={styles.pickModalSectionHint}>
+                  {t('userDetail.vibeContextTagsHint', {
+                    defaultValue: '想貼到他個人頁的點一下（只有你看得到）',
+                  })}
+                </Text>
+                <View style={styles.eventTagsChipRow}>
+                  {vibeContextTags.map((tagName) => {
+                    const selected = hiddenTags.some(h => h.name === tagName);
+                    return (
+                      <TouchableOpacity
+                        key={`vibectx-${tagName}`}
+                        onPress={() => toggleHiddenTagByName(tagName)}
+                        style={[styles.pickModalTag, selected && styles.pickModalTagSelected]}
+                        activeOpacity={0.7}
+                      >
+                        <Text style={[styles.pickModalTagText, selected && styles.pickModalTagTextSelected]}>
+                          #{tagName}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+                <View style={{ height: 14 }} />
+              </>
+            )}
+
+            {/* Past 「活動標籤」 picker section removed — it overlapped
+                with the new 「這次 Vibe 帶的標籤」 section above and
+                risked confusing users about which list a chip came
+                from. Past event vocabulary still survives via the
+                viewer's own piktag_user_tags and can be added via
+                the manual HiddenTagEditor below. */}
+
             {/* Hidden tags section — tap-based editor */}
-            <Text style={styles.pickModalSectionTitle}>{t('friendDetail.hiddenTagsTitle') || '隱藏標籤'}</Text>
+            <Text style={styles.pickModalSectionTitle}>{t('friendDetail.hiddenTagsTitle', { defaultValue: '隱藏標籤' })}</Text>
             {connectionId && authUser && (
               <HiddenTagEditor
                 connectionId={connectionId}
@@ -1343,9 +1717,9 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
                 handleToggleCloseFriend();
               }}
             >
-              <Heart size={20} color={isCloseFriend ? COLORS.piktag600 : COLORS.gray600} fill={isCloseFriend ? COLORS.piktag600 : 'transparent'} />
-              <Text style={[styles.moreItemText, isCloseFriend && { color: COLORS.piktag600 }]}>
-                {isCloseFriend ? (t('userDetail.closeFriendRemove') || '已設為摯友') : (t('userDetail.closeFriendAdd') || '設為摯友')}
+              <Heart size={20} color={isCloseFriend ? colors.piktag600 : colors.gray600} fill={isCloseFriend ? colors.piktag600 : 'transparent'} />
+              <Text style={[styles.moreItemText, isCloseFriend && { color: colors.piktag600 }]}>
+                {isCloseFriend ? (t('userDetail.closeFriendRemove', { defaultValue: '已設為摯友' })) : (t('userDetail.closeFriendAdd', { defaultValue: '設為摯友' }))}
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
@@ -1364,44 +1738,70 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
                 });
               }}
             >
-              <Share2 size={20} color={COLORS.gray600} />
-              <Text style={styles.moreItemText}>{t('userDetail.shareProfile') || '分享'}</Text>
+              <Share2 size={20} color={colors.gray600} />
+              <Text style={styles.moreItemText}>{t('userDetail.shareProfile', { defaultValue: '分享' })}</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.moreItem}
-              onPress={async () => {
+              onPress={() => {
                 setMoreMenuVisible(false);
                 if (!authUser || !resolvedUserId) return;
-                await supabase.from('piktag_blocks')
-                  .upsert({ blocker_id: authUser.id, blocked_id: resolvedUserId }, { onConflict: 'blocker_id,blocked_id' });
-                Alert.alert(t('userDetail.blockedTitle') || '已封鎖', t('userDetail.blockedMessage') || '你將不再看到此用戶');
-                if (navigation.canGoBack()) navigation.goBack(); else navigation.navigate('Main', { screen: 'HomeTab' });
+                // Block is destructive (cascades follows/close-friends/
+                // notifications) and was one-tap with no guard. Confirm
+                // before the irreversible-feeling action.
+                Alert.alert(
+                  t('userDetail.blockConfirmTitle', { defaultValue: '封鎖這個人？' }),
+                  t('userDetail.blockConfirmMessage', {
+                    defaultValue: '你們會互相取消追蹤，也不再看到彼此的內容。',
+                  }),
+                  [
+                    { text: t('common.cancel', { defaultValue: '取消' }), style: 'cancel' },
+                    {
+                      text: t('userDetail.blockUser', { defaultValue: '封鎖' }),
+                      style: 'destructive',
+                      onPress: async () => {
+                        // block_user RPC does the full cascade atomically:
+                        // upsert block + delete bilateral follows + delete
+                        // bilateral close-friend rows + delete blocker's
+                        // prior notifications produced by the blocked user.
+                        const { error } = await supabase.rpc('block_user', { p_blocked_id: resolvedUserId });
+                        if (error) {
+                          console.warn('[UserDetail] block_user RPC failed:', error);
+                          Alert.alert(t('common.error'), t('common.unknownError'));
+                          return;
+                        }
+                        Alert.alert(t('userDetail.blockedTitle', { defaultValue: '已封鎖' }), t('userDetail.blockedMessage', { defaultValue: '你將不再看到此用戶' }));
+                        if (navigation.canGoBack()) navigation.goBack(); else navigation.navigate('Main', { screen: 'HomeTab' });
+                      },
+                    },
+                  ],
+                );
               }}
             >
               <X size={20} color="#EF4444" />
-              <Text style={[styles.moreItemText, { color: '#EF4444' }]}>{t('userDetail.blockUser') || '封鎖'}</Text>
+              <Text style={[styles.moreItemText, { color: '#EF4444' }]}>{t('userDetail.blockUser', { defaultValue: '封鎖' })}</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.moreItem}
               onPress={() => {
                 setMoreMenuVisible(false);
                 Alert.alert(
-                  t('userDetail.reportTitle') || '檢舉用戶',
-                  t('userDetail.reportMessage') || '請選擇檢舉原因',
+                  t('userDetail.reportTitle', { defaultValue: '檢舉用戶' }),
+                  t('userDetail.reportMessage', { defaultValue: '請選擇檢舉原因' }),
                   [
-                    { text: t('userDetail.reportSpam') || '垃圾訊息', onPress: () => reportUser('spam') },
-                    { text: t('userDetail.reportHarassment') || '騷擾', onPress: () => reportUser('harassment') },
-                    { text: t('userDetail.reportFake') || '假帳號', onPress: () => reportUser('fake_account') },
-                    { text: t('common.cancel') || '取消', style: 'cancel' },
+                    { text: t('userDetail.reportSpam', { defaultValue: '垃圾訊息' }), onPress: () => reportUser('spam') },
+                    { text: t('userDetail.reportHarassment', { defaultValue: '騷擾' }), onPress: () => reportUser('harassment') },
+                    { text: t('userDetail.reportFake', { defaultValue: '假帳號' }), onPress: () => reportUser('fake_account') },
+                    { text: t('common.cancel', { defaultValue: '取消' }), style: 'cancel' },
                   ]
                 );
               }}
             >
-              <AlertTriangle size={20} color={COLORS.gray600} />
-              <Text style={styles.moreItemText}>{t('userDetail.reportUser') || '檢舉'}</Text>
+              <AlertTriangle size={20} color={colors.gray600} />
+              <Text style={styles.moreItemText}>{t('userDetail.reportUser', { defaultValue: '檢舉' })}</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.moreCancelBtn} onPress={() => setMoreMenuVisible(false)}>
-              <Text style={styles.moreCancelText}>{t('common.cancel') || '取消'}</Text>
+              <Text style={styles.moreCancelText}>{t('common.cancel', { defaultValue: '取消' })}</Text>
             </TouchableOpacity>
           </View>
         </TouchableOpacity>
@@ -1410,19 +1810,20 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
   );
 }
 
-const styles = StyleSheet.create({
+function makeStyles(c: ColorPalette) {
+  return StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.white,
+    backgroundColor: c.white,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 20,
     paddingBottom: 16,
-    backgroundColor: COLORS.white,
+    backgroundColor: c.white,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.gray100,
+    borderBottomColor: c.gray100,
   },
   headerBackBtn: {
     padding: 4,
@@ -1431,7 +1832,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 18,
     fontWeight: '700',
-    color: COLORS.gray900,
+    color: c.gray900,
     textAlign: 'center',
   },
   headerSpacer: {
@@ -1444,7 +1845,7 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 16,
-    color: COLORS.gray500,
+    color: c.gray500,
   },
   scrollView: {
     flex: 1,
@@ -1462,12 +1863,6 @@ const styles = StyleSheet.create({
     gap: 14,
     marginBottom: 10,
   },
-  avatar: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: COLORS.gray100,
-  },
   nameSection: {
     flex: 1,
     gap: 2,
@@ -1479,7 +1874,7 @@ const styles = StyleSheet.create({
   name: {
     fontSize: 20,
     fontWeight: '700',
-    color: COLORS.gray900,
+    color: c.gray900,
   },
   verifiedIcon: {
     marginLeft: 4,
@@ -1487,18 +1882,22 @@ const styles = StyleSheet.create({
   usernameText: {
     fontSize: 14,
     fontWeight: '500',
-    color: COLORS.gray500,
+    color: c.gray500,
   },
   headline: {
     fontSize: 14,
     fontWeight: '600',
-    color: COLORS.piktag600,
-    textAlign: 'center',
+    color: c.piktag600,
+    // Left-aligned to match bio + tags below it. The parent
+    // profileSection already has paddingHorizontal: 20, so no
+    // extra horizontal padding is needed on this element.
+    // Previously textAlign: 'center' made the headline jump out
+    // of the left-aligned column of the rest of the profile.
     marginTop: 6,
   },
   bio: {
     fontSize: 15,
-    color: COLORS.gray700,
+    color: c.gray700,
     lineHeight: 22,
     marginTop: 16,
   },
@@ -1515,11 +1914,11 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   tagPrimary: {
-    color: COLORS.piktag600,
+    color: c.piktag600,
     fontWeight: '500',
   },
   tagSecondary: {
-    color: COLORS.gray500,
+    color: c.gray500,
   },
   statsRow: {
     flexDirection: 'row',
@@ -1530,11 +1929,11 @@ const styles = StyleSheet.create({
   },
   statText: {
     fontSize: 14,
-    color: COLORS.gray500,
+    color: c.gray500,
   },
   statNumber: {
     fontWeight: '700',
-    color: COLORS.gray900,
+    color: c.gray900,
     marginRight: 2,
   },
   mutualAvatarsStat: {
@@ -1548,20 +1947,20 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   mutualTagChip: {
-    backgroundColor: COLORS.piktag50,
+    backgroundColor: c.piktag50,
     borderRadius: 12,
     paddingHorizontal: 10,
     paddingVertical: 5,
     borderWidth: 1,
-    borderColor: COLORS.piktag300,
+    borderColor: c.piktag300,
   },
   mutualTagChipText: {
     fontSize: 13,
     fontWeight: '600',
-    color: COLORS.piktag600,
+    color: c.piktag600,
   },
   qrAddFriendBtn: {
-    backgroundColor: COLORS.piktag500,
+    backgroundColor: c.piktag500,
     borderRadius: 12,
     paddingVertical: 14,
     alignItems: 'center',
@@ -1571,56 +1970,85 @@ const styles = StyleSheet.create({
   qrAddFriendText: {
     fontSize: 17,
     fontWeight: '700',
-    color: COLORS.white,
-  },
-  followButton: {
-    flex: 1,
-    borderRadius: 12,
-    paddingVertical: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  followButtonDefault: {
-    backgroundColor: COLORS.piktag500,
-  },
-  followButtonFollowing: {
-    backgroundColor: COLORS.piktag50,
-    borderWidth: 2,
-    borderColor: COLORS.piktag500,
-  },
-  followButtonText: {
-    fontSize: 16,
-    fontWeight: '700',
-  },
-  followButtonTextDefault: {
     color: '#FFFFFF',
   },
-  followButtonTextFollowing: {
-    color: COLORS.piktag600,
-  },
-  messageButton: {
+  // ── Unified action-button design system ─────────────────────────
+  // Mirrors FriendDetailScreen — same primary/secondary contract,
+  // different "which slot is primary":
+  //   FriendDetail → 標籤 is primary (already-friend, tagging is the
+  //                  CRM moment).
+  //   UserDetail   → 追蹤 (when not following) is primary; once
+  //                  following, the button collapses to a secondary
+  //                  pill since unfollow is a maintenance action.
+  // Two flex variants since UserDetail's row has 3-4 stretch buttons:
+  // primaryFollowBtn / secondaryBtn use flex:1; secondaryBtnFixed
+  // is the compact paddingHorizontal version used by the standalone
+  // Tag button slot.
+  primaryFollowBtn: {
     flex: 1,
+    height: 44,
     borderRadius: 12,
-    paddingVertical: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: COLORS.gray100,
+    backgroundColor: c.piktag500,
   },
-  messageButtonText: {
+  primaryBtnText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+  // IG-style filled-gray secondary buttons (c.gray200 = #e5e7eb
+  // light / #363636 dark). c.gray100 was too close to the black
+  // dark-mode page. Matches FriendDetail / ProfileScreen.
+  secondaryBtn: {
+    flex: 1,
+    height: 44,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: c.fill,
+  },
+  secondaryBtnFixed: {
+    paddingHorizontal: 16,
+    height: 44,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: c.fill,
+  },
+  secondaryBtnText: {
     fontSize: 14,
     fontWeight: '600',
-    color: COLORS.gray900,
+    color: c.gray900,
   },
-  iconButton: {
+  // 「標籤」is the action that defines PikTag. Other action buttons
+  // (follow / message / add-friend) exist in every social app; the
+  // tag flow is the unique reason a user came here. Give it solid
+  // brand-purple so the eye lands on it first — the rest fall back
+  // to neutral secondary.
+  tagBtnPrimary: {
+    paddingHorizontal: 18,
+    height: 44,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: c.piktag500,
+  },
+  tagBtnPrimaryText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+  iconSecondaryBtn: {
     width: 44,
     height: 44,
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: COLORS.gray100,
+    backgroundColor: c.fill,
   },
-  iconButtonActive: {
-    backgroundColor: COLORS.piktag50,
+  iconSecondaryBtnActive: {
+    backgroundColor: c.piktag50,
   },
   // Tags — flat inline clickable (matching ProfileScreen)
   tagsWrap: {
@@ -1630,7 +2058,7 @@ const styles = StyleSheet.create({
     marginTop: 14,
   },
   tagChip: {
-    backgroundColor: COLORS.gray100,
+    backgroundColor: c.gray100,
     borderRadius: 9999,
     paddingHorizontal: 14,
     paddingVertical: 8,
@@ -1640,13 +2068,13 @@ const styles = StyleSheet.create({
   tagChipText: {
     fontSize: 14,
     fontWeight: '500',
-    color: COLORS.gray600,
+    color: c.gray600,
   },
 
   sectionTitle: {
     fontSize: 13,
     fontWeight: '700',
-    color: COLORS.gray500,
+    color: c.gray500,
     textTransform: 'uppercase',
     letterSpacing: 0.8,
     paddingHorizontal: 20,
@@ -1659,7 +2087,7 @@ const styles = StyleSheet.create({
     paddingTop: 8,
     paddingBottom: 16,
     borderTopWidth: 1,
-    borderTopColor: COLORS.gray100,
+    borderTopColor: c.gray100,
   },
   socialScrollContent: {
     paddingHorizontal: 16,
@@ -1674,7 +2102,7 @@ const styles = StyleSheet.create({
     height: 60,
     borderRadius: 30,
     borderWidth: 2,
-    borderColor: COLORS.gray200,
+    borderColor: c.gray200,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 6,
@@ -1683,14 +2111,14 @@ const styles = StyleSheet.create({
     width: 52,
     height: 52,
     borderRadius: 26,
-    backgroundColor: COLORS.gray50,
+    backgroundColor: c.fill,
     alignItems: 'center',
     justifyContent: 'center',
   },
   socialCircleLabel: {
     fontSize: 11,
     fontWeight: '500',
-    color: COLORS.gray700,
+    color: c.gray700,
     textAlign: 'center',
   },
 
@@ -1700,15 +2128,15 @@ const styles = StyleSheet.create({
     paddingTop: 8,
     paddingBottom: 20,
     borderTopWidth: 1,
-    borderTopColor: COLORS.gray100,
+    borderTopColor: c.gray100,
     gap: 10,
   },
   linkCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: COLORS.white,
+    backgroundColor: c.gray100,
     borderWidth: 1.5,
-    borderColor: COLORS.gray200,
+    borderColor: c.gray200,
     borderRadius: 16,
     paddingVertical: 16,
     paddingHorizontal: 18,
@@ -1718,23 +2146,13 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 16,
     fontWeight: '600',
-    color: COLORS.gray900,
+    color: c.gray900,
   },
 
   actionButtonsRow: {
     flexDirection: 'row',
     gap: 10,
     marginBottom: 4,
-  },
-  tagButton: {
-    flex: 1,
-    backgroundColor: COLORS.white,
-    borderWidth: 1.5,
-    borderColor: COLORS.gray200,
-    borderRadius: 12,
-    paddingVertical: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   headerMoreBtn: { padding: 4 },
   // More menu (bottom sheet style)
@@ -1744,7 +2162,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   moreSheet: {
-    backgroundColor: COLORS.white,
+    backgroundColor: c.white,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     paddingTop: 16,
@@ -1756,12 +2174,12 @@ const styles = StyleSheet.create({
     gap: 14,
     paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.gray100,
+    borderBottomColor: c.gray100,
   },
   moreItemText: {
     fontSize: 16,
     fontWeight: '500',
-    color: COLORS.gray900,
+    color: c.gray900,
   },
   moreCancelBtn: {
     alignItems: 'center',
@@ -1771,42 +2189,33 @@ const styles = StyleSheet.create({
   moreCancelText: {
     fontSize: 16,
     fontWeight: '600',
-    color: COLORS.gray500,
+    color: c.gray500,
   },
   // Similar users section
   similarSection: {
     paddingTop: 16,
     paddingBottom: 8,
     borderTopWidth: 1,
-    borderTopColor: COLORS.gray100,
+    borderTopColor: c.gray100,
   },
   suggestBtn: {
     width: 44,
     height: 44,
     borderRadius: 12,
     borderWidth: 1.5,
-    borderColor: COLORS.gray200,
+    borderColor: c.gray200,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  inlineHiddenTagSection: {
-    paddingHorizontal: 20,
-    paddingTop: 20,
-    paddingBottom: 8,
-    borderTopWidth: 1,
-    borderTopColor: COLORS.gray100,
-    marginTop: 12,
-  },
-  inlineHiddenTagTitle: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: COLORS.gray500,
-    marginBottom: 10,
+  eventTagsChipRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
   },
   similarTitle: {
     fontSize: 15,
     fontWeight: '700',
-    color: COLORS.gray900,
+    color: c.gray900,
   },
   similarScroll: {
     paddingHorizontal: 16,
@@ -1814,10 +2223,10 @@ const styles = StyleSheet.create({
   },
   similarCard: {
     width: 150,
-    backgroundColor: COLORS.white,
+    backgroundColor: c.white,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: COLORS.gray200,
+    borderColor: c.gray200,
     paddingVertical: 16,
     paddingHorizontal: 12,
     alignItems: 'center',
@@ -1827,7 +2236,7 @@ const styles = StyleSheet.create({
     width: 72,
     height: 72,
     borderRadius: 36,
-    backgroundColor: COLORS.gray100,
+    backgroundColor: c.gray100,
   },
   similarAvatarFallback: {
     alignItems: 'center',
@@ -1836,12 +2245,12 @@ const styles = StyleSheet.create({
   similarAvatarInitial: {
     fontSize: 24,
     fontWeight: '700',
-    color: COLORS.gray500,
+    color: c.gray500,
   },
   similarName: {
     fontSize: 14,
     fontWeight: '600',
-    color: COLORS.gray900,
+    color: c.gray900,
     textAlign: 'center',
   },
   mutualAvatarsRow: {
@@ -1855,11 +2264,11 @@ const styles = StyleSheet.create({
     height: 20,
     borderRadius: 10,
     borderWidth: 1.5,
-    borderColor: COLORS.white,
+    borderColor: c.background,
   },
   mutualCountText: {
     fontSize: 11,
-    color: COLORS.gray500,
+    color: c.gray500,
     marginLeft: 2,
   },
   similarFollowBtn: {
@@ -1876,57 +2285,54 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#FFFFFF',
   },
-  tagButtonText: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: COLORS.gray700,
-  },
 
-  // Pick Tag Modal
+  // Pick Tag Modal — full-screen takeover (was bottom-sheet). See
+  // FriendDetailScreen for the rationale: the bottom-sheet's translucent
+  // backdrop made users perceive the picker as inline content embedded
+  // in the host page rather than a separate surface.
   pickModalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.4)',
-    justifyContent: 'flex-end',
+    backgroundColor: c.white,
   },
   pickModalContainer: {
-    backgroundColor: COLORS.white,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    paddingTop: 20,
+    flex: 1,
+    paddingTop: Platform.OS === 'ios' ? 56 : 32,
     paddingHorizontal: 20,
-    paddingBottom: 40,
-    maxHeight: '88%',
+    paddingBottom: 24,
   },
   pickModalHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 6,
+    marginBottom: 12,
+    paddingBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: c.gray100,
   },
   pickModalTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: COLORS.gray900,
+    color: c.gray900,
   },
   pickModalCloseText: {
     fontSize: 15,
     fontWeight: '600',
-    color: COLORS.gray500,
+    color: c.gray500,
   },
   pickModalSaveText: {
     fontSize: 15,
     fontWeight: '700',
-    color: COLORS.piktag500,
+    color: c.piktag500,
   },
   pickModalSubtitle: {
     fontSize: 14,
-    color: COLORS.gray500,
+    color: c.gray500,
     marginBottom: 20,
     lineHeight: 20,
   },
   pickModalEmpty: {
     fontSize: 14,
-    color: COLORS.gray400,
+    color: c.gray400,
     textAlign: 'center',
     paddingVertical: 30,
   },
@@ -1943,32 +2349,42 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 10,
     borderRadius: 20,
-    backgroundColor: COLORS.gray50,
+    backgroundColor: c.gray50,
     borderWidth: 1.5,
-    borderColor: COLORS.gray200,
+    borderColor: c.gray200,
   },
+  // "已選=紫色" aesthetic, founder definitive: fill-only, no border.
+  // 已選=piktag500 實心 + 白字 — founder 2026-05-23 contract.
   pickModalTagSelected: {
-    backgroundColor: COLORS.piktag50,
-    borderColor: COLORS.piktag500,
+    backgroundColor: c.piktag500,
   },
   pickModalTagText: {
     fontSize: 15,
     fontWeight: '500',
-    color: COLORS.gray700,
+    color: c.gray700,
   },
   pickModalTagTextSelected: {
-    color: COLORS.piktag600,
+    color: '#FFFFFF',
     fontWeight: '700',
   },
   pickModalDivider: {
     height: 1,
-    backgroundColor: COLORS.gray100,
+    backgroundColor: c.gray100,
     marginVertical: 16,
   },
   pickModalSectionTitle: {
     fontSize: 14,
     fontWeight: '700',
-    color: COLORS.gray700,
+    color: c.gray700,
+    marginBottom: 6,
+  },
+  // Small one-line explainer that sits between a section title and
+  // its chip strip. Used for the Vibe-context-tags section to make
+  // clear that tapping IS the apply action — they're not pre-
+  // selected and won't get applied silently.
+  pickModalSectionHint: {
+    fontSize: 12,
+    color: c.gray500,
     marginBottom: 10,
   },
   statTextClickable: {
@@ -1976,7 +2392,7 @@ const styles = StyleSheet.create({
   },
   statDot: {
     fontSize: 14,
-    color: COLORS.gray400,
+    color: c.gray400,
   },
 
   // Mutual Tags Modal
@@ -1987,7 +2403,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   mutualModalContainer: {
-    backgroundColor: COLORS.white,
+    backgroundColor: c.white,
     borderRadius: 16,
     padding: 24,
     width: 300,
@@ -1996,7 +2412,7 @@ const styles = StyleSheet.create({
   mutualModalTitle: {
     fontSize: 17,
     fontWeight: '700',
-    color: COLORS.gray900,
+    color: c.gray900,
     marginBottom: 16,
   },
   mutualModalTagsWrap: {
@@ -2005,17 +2421,16 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   mutualModalTag: {
-    backgroundColor: COLORS.piktag50,
+    // 已選=piktag500 實心 + 白字 — founder 2026-05-23 contract.
+    backgroundColor: c.piktag500,
     borderRadius: 16,
     paddingHorizontal: 14,
     paddingVertical: 8,
-    borderWidth: 1,
-    borderColor: COLORS.piktag500,
   },
   mutualModalTagText: {
     fontSize: 15,
     fontWeight: '600',
-    color: COLORS.piktag600,
+    color: '#FFFFFF',
   },
 
   // Unfollow Modal
@@ -2026,7 +2441,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   unfollowModalContainer: {
-    backgroundColor: COLORS.white,
+    backgroundColor: c.white,
     borderRadius: 16,
     padding: 24,
     width: 300,
@@ -2036,12 +2451,12 @@ const styles = StyleSheet.create({
   unfollowModalTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: COLORS.gray900,
+    color: c.gray900,
     marginBottom: 8,
   },
   unfollowModalMessage: {
     fontSize: 15,
-    color: COLORS.gray500,
+    color: c.gray500,
     textAlign: 'center',
     lineHeight: 22,
     marginBottom: 24,
@@ -2054,7 +2469,7 @@ const styles = StyleSheet.create({
   unfollowModalCancelBtn: {
     flex: 1,
     borderWidth: 1.5,
-    borderColor: COLORS.gray200,
+    borderColor: c.gray200,
     borderRadius: 12,
     paddingVertical: 12,
     alignItems: 'center',
@@ -2062,7 +2477,7 @@ const styles = StyleSheet.create({
   unfollowModalCancelText: {
     fontSize: 15,
     fontWeight: '600',
-    color: COLORS.gray700,
+    color: c.gray700,
   },
   unfollowModalConfirmBtn: {
     flex: 1,
@@ -2074,47 +2489,7 @@ const styles = StyleSheet.create({
   unfollowModalConfirmText: {
     fontSize: 15,
     fontWeight: '700',
-    color: COLORS.white,
+    color: '#FFFFFF',
   },
-  eventCard: {
-    marginHorizontal: 20,
-    marginTop: 12,
-    marginBottom: 8,
-    padding: 14,
-    borderRadius: 14,
-    backgroundColor: '#FAF5FF',
-    borderWidth: 1,
-    borderColor: '#E9D5FF',
-    gap: 6,
-  },
-  eventCardTitle: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#7C3AED',
-    marginBottom: 2,
-  },
-  eventCardLine: {
-    fontSize: 13,
-    color: '#4B5563',
-    fontWeight: '500',
-  },
-  eventCardTagsRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 6,
-    marginTop: 4,
-  },
-  eventCardTag: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
-    backgroundColor: '#F3E8FF',
-    borderWidth: 1,
-    borderColor: '#C4B5FD',
-  },
-  eventCardTagText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#7C3AED',
-  },
-});
+  });
+}

@@ -7,19 +7,22 @@ import {
   StyleSheet,
   StatusBar,
   Alert,
-  ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
 } from 'react-native';
+import PageLoader from '../components/loaders/PageLoader';
+import BrandSpinner from '../components/loaders/BrandSpinner';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import { X, Hash, Pin, Sparkles, ArrowLeftRight, AlertTriangle } from 'lucide-react-native';
+import { X, Hash, ArrowLeftRight, AlertTriangle, Plus } from 'lucide-react-native';
+import AtomIcon from '../components/AtomIcon';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from '../lib/supabase';
 import { logApiUsage } from '../lib/apiUsage';
+import { normalizeTagName } from '../lib/normalizeTag';
 import { useAuth } from '../hooks/useAuth';
-import { COLORS } from '../constants/theme';
+import { COLORS, type ColorPalette } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
 // DraggableChips uses react-native-reanimated which crashes on web
 const DraggableChips = Platform.OS !== 'web' ? require('../components/DraggableChips').default : null;
@@ -28,7 +31,9 @@ import type { Tag, UserTag } from '../types';
 
 const MAX_TAGS = 10;
 const MAX_TAG_LENGTH = 30;
-const MAX_PINNED = 1;
+// Tag pinning ("標籤置頂") removed — reserved as a future paid
+// feature. is_pinned column on piktag_user_tags stays in the schema
+// for forward compatibility.
 
 
 type ManageTagsScreenProps = { navigation: NativeStackNavigationProp<any> };
@@ -36,6 +41,7 @@ type ManageTagsScreenProps = { navigation: NativeStackNavigationProp<any> };
 export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) {
   const { t } = useTranslation();
   const { colors, isDark } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
   const [tagInput, setTagInput] = useState('');
@@ -64,10 +70,16 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
   const loadPopularTags = useCallback(async () => {
     const { data, error } = await supabase
       .from('piktag_tags')
-      .select('*')
+      .select('id, name, usage_count, semantic_type')
       .order('usage_count', { ascending: false })
       .limit(12);
-    if (!error && data) setPopularTags(data);
+    // Cast at the Supabase boundary — `.select(...)` narrows to a
+    // structural type (`{ id: any; name: any; ... }[]`) that doesn't
+    // extend `Tag` even though the runtime shape matches. The cast
+    // here is the canonical "trust the SQL projection" pattern;
+    // promoting to `Tag[]` is safe because every column in the select
+    // is also on Tag.
+    if (!error && data) setPopularTags(data as Tag[]);
   }, []);
 
   const loadAiSuggestions = useCallback(async () => {
@@ -88,11 +100,23 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
         } catch {}
       }
 
-      const { data: profile, error: profileError } = await supabase
-        .from('piktag_profiles')
-        .select('bio, full_name, location')
-        .eq('id', user.id)
-        .single();
+      // Run profile + existing-tags fetches in parallel — both feed the
+      // AI prompt and are independent.
+      const [profileResp, existingTagsResp] = await Promise.all([
+        supabase
+          .from('piktag_profiles')
+          .select('bio, full_name, location')
+          .eq('id', user.id)
+          .single(),
+        supabase
+          .from('piktag_user_tags')
+          .select('tag:piktag_tags!tag_id(name)')
+          .eq('user_id', user.id)
+          .eq('is_private', false)
+          .limit(10),
+      ]);
+      const profile = profileResp.data;
+      const profileError = profileResp.error;
       if (profileError) {
         setAiError('無法載入個人資料：' + profileError.message);
         return;
@@ -102,12 +126,7 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
       const nameText = profile?.full_name || '';
       const locationText = profile?.location || '';
 
-      const { data: existingTags } = await supabase
-        .from('piktag_user_tags')
-        .select('tag:piktag_tags!tag_id(name)')
-        .eq('user_id', user.id)
-        .eq('is_private', false)
-        .limit(10);
+      const existingTags = existingTagsResp.data;
       const tagNames = (existingTags || []).map((et: any) => et.tag?.name).filter(Boolean).join(', ');
 
       const context = [bioText, nameText, locationText, tagNames].filter(Boolean).join('\n');
@@ -133,12 +152,12 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
 
       if (error) {
         console.warn('[ManageTagsScreen] Edge Function error:', error.message);
-        setAiError(t('manageTags.aiErrorGeneric') || 'AI 推薦暫時無法使用，稍後再試');
+        setAiError(t('manageTags.aiErrorGeneric', { defaultValue: 'AI 推薦暫時無法使用，稍後再試' }));
         return;
       }
       if (!data || !Array.isArray(data.suggestions) || data.suggestions.length === 0) {
         console.warn('[ManageTagsScreen] AI suggestions empty:', data?.error, data?.detail);
-        setAiError(t('manageTags.aiErrorGeneric') || 'AI 推薦暫時無法使用，稍後再試');
+        setAiError(t('manageTags.aiErrorGeneric', { defaultValue: 'AI 推薦暫時無法使用，稍後再試' }));
         return;
       }
 
@@ -146,7 +165,7 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
       AsyncStorage.setItem(cacheKey, JSON.stringify({ suggestions: data.suggestions, timestamp: Date.now() }));
     } catch (err: any) {
       console.warn('[ManageTagsScreen] loadAiSuggestions:', err);
-      setAiError(t('manageTags.aiErrorGeneric') || 'AI 推薦暫時無法使用，稍後再試');
+      setAiError(t('manageTags.aiErrorGeneric', { defaultValue: 'AI 推薦暫時無法使用，稍後再試' }));
     } finally {
       setAiLoading(false);
     }
@@ -179,8 +198,6 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
     () => aiSuggestions.filter(s => !myTagNames.includes(`#${s}`)),
     [aiSuggestions, myTagNames],
   );
-
-  const pinnedCount = useMemo(() => myTags.filter((t) => (t as any).is_pinned).length, [myTags]);
 
   // ── Helpers ──────────────────────────────────────────────────────────
 
@@ -228,7 +245,7 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
 
   const handleAddTag = useCallback(async () => {
     if (!user) return;
-    const rawName = tagInput.trim().replace(/^#/, '');
+    const rawName = normalizeTagName(tagInput);
     if (!rawName || myTags.length >= MAX_TAGS) return;
     if (myTagNames.includes(`#${rawName}`)) return;
     setMyTags(prev => [...prev, { id: `temp-${Date.now()}`, user_id: user.id, tag_id: '', tag: { id: '', name: rawName } } as any]);
@@ -242,7 +259,10 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
 
   const handleAddPopularTag = useCallback(async (tag: Tag) => {
     if (!user || myTags.length >= MAX_TAGS) return;
-    setMyTags(prev => [...prev, { id: `temp-${Date.now()}`, user_id: user.id, tag_id: tag.id, tag } as any]);
+    // Functional guard: rapid taps on multiple popular chips each
+    // captured a stale myTags.length and could push past MAX_TAGS.
+    // prev is authoritative — the optimistic list can't exceed now.
+    setMyTags(prev => (prev.length >= MAX_TAGS ? prev : [...prev, { id: `temp-${Date.now()}`, user_id: user.id, tag_id: tag.id, tag } as any]));
     try {
       await supabase.from('piktag_user_tags')
         .insert({ user_id: user.id, tag_id: tag.id, position: myTags.length });
@@ -253,7 +273,7 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
 
   const handleAddAiTag = useCallback(async (tagName: string) => {
     if (!user || myTagNames.includes(`#${tagName}`) || myTags.length >= MAX_TAGS) return;
-    setMyTags(prev => [...prev, { id: `temp-${Date.now()}`, user_id: user.id, tag_id: '', tag: { id: '', name: tagName } } as any]);
+    setMyTags(prev => (prev.length >= MAX_TAGS ? prev : [...prev, { id: `temp-${Date.now()}`, user_id: user.id, tag_id: '', tag: { id: '', name: tagName } } as any]));
     setAiSuggestions(prev => prev.filter(s => s !== tagName));
     try {
       const tagId = await findOrCreateTag(tagName);
@@ -261,35 +281,6 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
     } catch { /* ignore */ }
     await loadMyTags();
   }, [user, myTagNames, myTags.length, findOrCreateTag, linkTagToUser, loadMyTags]);
-
-  const handleTogglePin = useCallback(async (userTag: UserTag & { tag?: Tag }) => {
-    if (!user) return;
-    const isPinned = (userTag as any).is_pinned || false;
-    if (!isPinned && pinnedCount >= MAX_PINNED) return;
-    const newPinned = !isPinned;
-    // Optimistic: toggle pin + move to front (pin) or keep position (unpin)
-    let newOrder: typeof myTags;
-    setMyTags(prev => {
-      const updated = prev.map(t => t.id === userTag.id ? { ...t, is_pinned: newPinned } as any : t);
-      if (newPinned) {
-        const tag = updated.find(t => t.id === userTag.id)!;
-        const rest = updated.filter(t => t.id !== userTag.id);
-        newOrder = [tag, ...rest];
-      } else {
-        newOrder = updated;
-      }
-      return newOrder;
-    });
-    // DB: update pin flag + positions (fire and forget)
-    supabase.from('piktag_user_tags').update({ is_pinned: newPinned }).eq('id', userTag.id).then(() => {
-      const order = newPinned
-        ? [userTag, ...myTags.filter(t => t.id !== userTag.id)]
-        : myTags;
-      Promise.all(order.map((tag, i) =>
-        supabase.from('piktag_user_tags').update({ position: i }).eq('id', tag.id)
-      ));
-    });
-  }, [user, pinnedCount, myTags]);
 
   /** Chip reorder — save positions to DB */
   const handleChipReorder = useCallback(async (newItems: { id: string; label: string; isPinned?: boolean }[]) => {
@@ -304,12 +295,6 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
     } catch { await loadMyTags(); }
   }, [myTags, loadMyTags]);
 
-  /** Chip double-tap → toggle pin */
-  const handleChipDoubleTap = useCallback((chipItem: { id: string }) => {
-    const ut = myTags.find(t => t.id === chipItem.id);
-    if (ut) handleTogglePin(ut);
-  }, [myTags, handleTogglePin]);
-
   /** Chip remove */
   const handleChipRemove = useCallback((chipItem: { id: string }) => {
     const ut = myTags.find(t => t.id === chipItem.id);
@@ -320,7 +305,6 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
   const chipItems = useMemo(() => myTags.map(ut => ({
     id: ut.id,
     label: (ut.tag?.name ?? '').startsWith('#') ? ut.tag!.name : `#${ut.tag?.name ?? ''}`,
-    isPinned: (ut as any).is_pinned || false,
   })), [myTags]);
 
   /** Web: tap-to-swap */
@@ -354,16 +338,27 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
       <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
         <Text style={styles.headerTitle}>{t('manageTags.headerTitle')}</Text>
         <Pressable style={styles.doneBtn} onPress={handleGoBack}>
-          <Text style={styles.doneBtnText}>{t('common.done') || '完成'}</Text>
+          <Text style={styles.doneBtnText}>{t('common.done', { defaultValue: '完成' })}</Text>
         </Pressable>
       </View>
 
       {loading ? (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={COLORS.piktag500} />
-        </View>
+        <PageLoader />
       ) : (
-        <View style={styles.flex1}>
+        // KAV moved OUT to wrap both the ScrollView and the bottom input
+        // bar. Previous structure wrapped only the bar with KAV, which
+        // (with behavior='padding') just made the bar's own KAV taller
+        // — the bar itself stayed glued to the bottom of the parent
+        // flex layout and slid off-screen under the keyboard. With KAV
+        // around the entire screen body, padding eats from the
+        // ScrollView's space and the bar floats up cleanly above the
+        // keyboard. keyboardVerticalOffset accounts for the absolute
+        // header (~56dp) so the bar lands just above the keyboard.
+        <KeyboardAvoidingView
+          style={styles.flex1}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 56 : 0}
+        >
           <ScrollView
             style={styles.flex1}
             contentContainerStyle={styles.scrollContent}
@@ -385,57 +380,58 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
                 </Text>
                 {myTags.length >= MAX_TAGS && <AlertTriangle size={13} color="#EF4444" />}
               </View>
-              {myTags.length > 0 && (
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
-                  <Pin size={12} color={COLORS.gray400} />
-                  <Text style={styles.tagCountText}>{pinnedCount}/{MAX_PINNED}</Text>
-                </View>
-              )}
+              {/* Pin count badge removed — pinning is reserved for a
+                  future paid feature. */}
             </View>
 
-            {/* Hint */}
+            {/* Hint — pin gesture removed with the feature. */}
             {myTags.length > 1 && Platform.OS !== 'web' && (
-              <Text style={styles.sortHint}>{t('manageTags.nativeHint') || '長按拖曳排序 · 雙擊置頂'}</Text>
+              <Text style={styles.sortHint}>{t('manageTags.nativeHintNoPin', { defaultValue: '長按拖曳排序' })}</Text>
             )}
 
-            {/* My tags — native: draggable chips / web: tap-to-swap */}
+            {/* My tags — native: draggable chips / web: tap-to-swap.
+                DraggableChips dropped its own paddingHorizontal:20 so
+                it doesn't double-indent inside already-padded parents
+                (the EditProfile alignment bug). Wrap here to preserve
+                this screen's previous indent — its other rows
+                (sortHint, chipsWrap, emptyText) all bake their own
+                paddingH:20, so we match that contract. */}
             {Platform.OS !== 'web' ? (
-              <DraggableChips
-                items={chipItems}
-                onReorder={handleChipReorder}
-                onRemove={handleChipRemove}
-                onDoubleTap={handleChipDoubleTap}
-                onDragStateChange={setIsDragging}
-              />
+              <View style={{ paddingHorizontal: 20 }}>
+                <DraggableChips
+                  items={chipItems}
+                  onReorder={handleChipReorder}
+                  onRemove={handleChipRemove}
+                  onDragStateChange={setIsDragging}
+                />
+              </View>
             ) : (
               <>
                 {selectedTagId && (
                   <View style={styles.swapHintBar}>
-                    <ArrowLeftRight size={14} color={COLORS.piktag600} />
-                    <Text style={styles.swapHintText}>{t('manageTags.dragSelectTarget') || '點選要交換位置的標籤'}</Text>
+                    <ArrowLeftRight size={14} color={colors.piktag600} />
+                    <Text style={styles.swapHintText}>{t('manageTags.dragSelectTarget', { defaultValue: '點選要交換位置的標籤' })}</Text>
                     <Pressable onPress={() => setSelectedTagId(null)}>
-                      <Text style={styles.swapCancel}>{t('common.cancel') || '取消'}</Text>
+                      <Text style={styles.swapCancel}>{t('common.cancel', { defaultValue: '取消' })}</Text>
                     </Pressable>
                   </View>
                 )}
                 <View style={styles.chipsWrap}>
                   {myTags.map((ut) => {
-                    const isPinned = (ut as any).is_pinned;
                     const isSelected = ut.id === selectedTagId;
                     const name = ut.tag?.name ?? '';
                     const dn = name.startsWith('#') ? name : `#${name}`;
                     return (
+                      // No × on chips, app-wide. Web fallback path
+                      // (iOS uses DraggableChips which already moved
+                      // to shared TagChip). Tap = remove via the
+                      // chip body itself.
                       <Pressable
                         key={ut.id}
-                        style={[styles.chip, isPinned && styles.chipPinned, isSelected && styles.chipSelected]}
-                        onPress={() => handleTagTap(ut)}
-                        onLongPress={() => handleTogglePin(ut)}
+                        style={[styles.chip, isSelected && styles.chipSelected]}
+                        onPress={() => handleRemoveTag(ut)}
                       >
-                        {isPinned && <Pin size={11} color={COLORS.piktag600} fill={COLORS.piktag600} />}
-                        <Text style={[styles.chipText, isPinned && styles.chipTextPinned]}>{dn}</Text>
-                        <Pressable onPress={() => handleRemoveTag(ut)} style={styles.chipX}>
-                          <X size={14} color={COLORS.gray400} />
-                        </Pressable>
+                        <Text style={styles.chipText}>{dn}</Text>
                       </Pressable>
                     );
                   })}
@@ -450,13 +446,13 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
             {filteredAiSuggestions.length > 0 && myTags.length < MAX_TAGS && (
               <View style={styles.aiSection}>
                 <View style={styles.aiHeader}>
-                  <Sparkles size={16} color={COLORS.piktag600} />
+                  <AtomIcon size={16} color={colors.piktag600} />
                   <Text style={styles.aiTitle}>{t('manageTags.aiSuggestionsTitle')}</Text>
                 </View>
                 <View style={styles.chipsWrap}>
                   {filteredAiSuggestions.map((s) => (
                     <Pressable key={s} style={styles.aiChip} onPress={() => handleAddAiTag(s)}>
-                      <Text style={styles.aiChipText}>+ #{s}</Text>
+                      <Text style={styles.aiChipText}>#{s}</Text>
                     </Pressable>
                   ))}
                 </View>
@@ -465,16 +461,16 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
             {aiLoading && (
               <View style={styles.aiSection}>
                 <View style={styles.aiHeader}>
-                  <Sparkles size={16} color={COLORS.piktag600} />
+                  <AtomIcon size={16} color={colors.piktag600} />
                   <Text style={styles.aiTitle}>{t('manageTags.aiSuggestionsTitle')}</Text>
                 </View>
-                <ActivityIndicator size="small" color={COLORS.piktag500} style={{ marginTop: 8 }} />
+                <BrandSpinner size={16} style={{ marginTop: 8 }} />
               </View>
             )}
             {!aiLoading && aiError && filteredAiSuggestions.length === 0 && myTags.length < MAX_TAGS && (
               <View style={styles.aiSection}>
                 <View style={styles.aiHeader}>
-                  <Sparkles size={16} color={COLORS.piktag600} />
+                  <AtomIcon size={16} color={colors.piktag600} />
                   <Text style={styles.aiTitle}>{t('manageTags.aiSuggestionsTitle')}</Text>
                 </View>
                 <Text style={styles.aiErrorText}>{aiError}</Text>
@@ -503,7 +499,7 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
                     const dn = tag.name.startsWith('#') ? tag.name : `#${tag.name}`;
                     return (
                       <Pressable key={tag.id} style={styles.popularChip} onPress={() => handleAddPopularTag(tag)}>
-                        <Text style={styles.popularChipText}>+ {dn}</Text>
+                        <Text style={styles.popularChipText}>{dn}</Text>
                       </Pressable>
                     );
                   })}
@@ -514,118 +510,160 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
             <View style={{ height: 20 }} />
           </ScrollView>
 
-          {/* Fixed bottom input */}
-          <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-            <View style={[styles.inputBar, { paddingBottom: insets.bottom + 8 }]}>
-              <View style={styles.inputRow}>
-                <Hash size={18} color={COLORS.gray400} />
-                <TextInput
-                  style={styles.textInput}
-                  placeholder={t('manageTags.tagInputPlaceholder')}
-                  placeholderTextColor={COLORS.gray400}
-                  value={tagInput}
-                  onChangeText={(v) => v.length <= MAX_TAG_LENGTH && setTagInput(v)}
-                  returnKeyType="done"
-                  onSubmitEditing={handleAddTag}
-                  editable={!addingTag}
-                  maxLength={MAX_TAG_LENGTH}
-                />
-                <Text style={styles.charCount}>{tagInput.length}/{MAX_TAG_LENGTH}</Text>
-                <Pressable
-                  style={[styles.addBtn, (!tagInput.trim() || addingTag || myTags.length >= MAX_TAGS) && styles.addBtnDisabled]}
-                  onPress={handleAddTag}
-                >
-                  {addingTag ? <ActivityIndicator size={14} color={COLORS.white} /> : <Text style={styles.addBtnText}>{t('manageTags.addButton')}</Text>}
-                </Pressable>
-              </View>
+          {/* Fixed bottom input — now a sibling of ScrollView under the
+              outer KAV. The KAV's padding (iOS) / height (Android)
+              behavior pushes BOTH children up together, so the bar
+              floats just above the keyboard while the ScrollView
+              shrinks above. */}
+          <View style={[styles.inputBar, { paddingBottom: insets.bottom + 8 }]}>
+            <View style={styles.inputRow}>
+              <Hash size={18} color={colors.gray400} />
+              <TextInput
+                style={styles.textInput}
+                placeholder={t('manageTags.tagInputPlaceholder')}
+                placeholderTextColor={colors.gray400}
+                value={tagInput}
+                onChangeText={(v) => v.length <= MAX_TAG_LENGTH && setTagInput(v)}
+                returnKeyType="done"
+                onSubmitEditing={handleAddTag}
+                editable={!addingTag}
+                maxLength={MAX_TAG_LENGTH}
+              />
+              <Text style={styles.charCount}>{tagInput.length}/{MAX_TAG_LENGTH}</Text>
+              {/* Plus-icon submit — same affordance as AddTagScreen's
+                  custom-tag input and AskStoryRow's create-ask badge.
+                  Replaces the prior "新增" / "Add" text label so the
+                  button width is locale-independent — long
+                  translations ("Aggiungi", "Tambah", "Hinzufügen")
+                  no longer push the input row out of shape. */}
+              <Pressable
+                style={styles.addBtn}
+                onPress={handleAddTag}
+                disabled={!tagInput.trim() || addingTag || myTags.length >= MAX_TAGS}
+                accessibilityRole="button"
+                accessibilityLabel={t('manageTags.addButton')}
+              >
+                {addingTag ? <BrandSpinner size={20} /> : <Plus size={20} color="#FFFFFF" strokeWidth={2.5} />}
+              </Pressable>
             </View>
-          </KeyboardAvoidingView>
-        </View>
+          </View>
+        </KeyboardAvoidingView>
       )}
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.white },
+function makeStyles(c: ColorPalette) {
+  return StyleSheet.create({
+  container: { flex: 1, backgroundColor: c.white },
   flex1: { flex: 1 },
   header: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    paddingHorizontal: 20, paddingBottom: 12, borderBottomWidth: 1, borderBottomColor: COLORS.gray100,
+    paddingHorizontal: 20, paddingBottom: 12, borderBottomWidth: 1, borderBottomColor: c.gray100,
   },
-  headerTitle: { fontSize: 22, fontWeight: '700', color: COLORS.gray900 },
-  doneBtn: { paddingVertical: 6, paddingHorizontal: 14, borderRadius: 16, backgroundColor: COLORS.piktag500 },
+  headerTitle: { fontSize: 22, fontWeight: '700', color: c.gray900 },
+  doneBtn: { paddingVertical: 6, paddingHorizontal: 14, borderRadius: 16, backgroundColor: c.piktag500 },
   doneBtnText: { fontSize: 15, fontWeight: '700', color: '#FFFFFF' },
   loadingContainer: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   scrollContent: { paddingBottom: 20 },
 
   sectionHeader: { paddingHorizontal: 20, paddingTop: 24, paddingBottom: 4 },
-  sectionTitle: { fontSize: 18, fontWeight: '700', color: COLORS.gray900 },
-  sectionSubtitle: { fontSize: 13, color: COLORS.gray500, marginTop: 2 },
+  sectionTitle: { fontSize: 18, fontWeight: '700', color: c.gray900 },
+  sectionSubtitle: { fontSize: 13, color: c.gray500, marginTop: 2 },
 
   tagCountRow: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     paddingHorizontal: 20, paddingTop: 12, paddingBottom: 10,
   },
-  tagCountText: { fontSize: 13, color: COLORS.gray500 },
-  sortHint: { fontSize: 12, color: COLORS.gray400, paddingHorizontal: 20, marginBottom: 6 },
+  tagCountText: { fontSize: 13, color: c.gray500 },
+  sortHint: { fontSize: 12, color: c.gray400, paddingHorizontal: 20, marginBottom: 6 },
 
-  // Web chips
+  // Web chips — already-added tags. Match the FriendDetail
+  // pickModalTagSelected pattern for visual parity with the friend
+  // tag picker: piktag50 fill + 1.5dp piktag500 border + bold
+  // piktag600 text. (The `chipSelected` row below is a transient
+  // "you've tapped this and we're waiting for the swap target" web-
+  // only state — gets a slightly heavier border but the same fill.)
   chipsWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, paddingHorizontal: 20 },
+  // "已選=紫色" aesthetic, founder definitive: fill-only, no border.
+  // Symmetric paddingRight 14 now that × is gone (was 6 for the icon).
   chip: {
     flexDirection: 'row', alignItems: 'center', gap: 5,
-    backgroundColor: COLORS.gray100, borderRadius: 20,
-    paddingVertical: 8, paddingLeft: 14, paddingRight: 6,
-    borderWidth: 2, borderColor: 'transparent',
+    backgroundColor: c.piktag50, borderRadius: 20,
+    paddingVertical: 8, paddingHorizontal: 14,
   },
-  chipPinned: { backgroundColor: '#FFFBEB', borderColor: COLORS.piktag400 },
-  chipSelected: { borderColor: COLORS.piktag500, backgroundColor: COLORS.piktag50 },
-  chipText: { fontSize: 14, fontWeight: '500', color: COLORS.gray900 },
-  chipTextPinned: { fontWeight: '700', color: COLORS.piktag600 },
+  chipSelected: {},
+  chipText: { fontSize: 14, fontWeight: '700', color: c.piktag600 },
   chipX: { padding: 4 },
-  emptyText: { fontSize: 14, color: COLORS.gray400, paddingHorizontal: 20, paddingVertical: 8 },
+  emptyText: { fontSize: 14, color: c.gray400, paddingHorizontal: 20, paddingVertical: 8 },
 
   // Swap hint (web)
   swapHintBar: {
     flexDirection: 'row', alignItems: 'center', gap: 6,
     marginHorizontal: 20, marginBottom: 8, paddingVertical: 8, paddingHorizontal: 12,
-    backgroundColor: COLORS.piktag50, borderRadius: 10, borderWidth: 1, borderColor: COLORS.piktag500,
+    backgroundColor: c.piktag50, borderRadius: 10, borderWidth: 1, borderColor: c.piktag500,
   },
-  swapHintText: { flex: 1, fontSize: 13, color: COLORS.piktag600 },
-  swapCancel: { fontSize: 13, fontWeight: '600', color: COLORS.gray500 },
+  swapHintText: { flex: 1, fontSize: 13, color: c.piktag600 },
+  swapCancel: { fontSize: 13, fontWeight: '600', color: c.gray500 },
 
   // AI
   aiSection: { paddingHorizontal: 20, paddingTop: 24 },
   aiHeader: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 10 },
-  aiTitle: { fontSize: 15, fontWeight: '600', color: COLORS.piktag600 },
+  aiTitle: { fontSize: 15, fontWeight: '600', color: c.piktag600 },
+  // AI suggestion chip — UNSELECTED state. Mirrors FriendDetail
+  // pickModalTag (gray100 fill, transparent border slot reserved at
+  // 1.5dp so dimensions don't jump on press, gray700 text). On tap
+  // the chip is added to "我的標籤" above where it picks up the
+  // selected (purple) treatment — same gray-→-purple visual story
+  // as the friend tag picker.
   aiChip: {
     paddingVertical: 8, paddingHorizontal: 14, borderRadius: 20,
-    backgroundColor: COLORS.piktag50, borderWidth: 1, borderColor: COLORS.piktag500,
+    backgroundColor: c.gray100, borderWidth: 1.5, borderColor: 'transparent',
   },
-  aiChipText: { fontSize: 14, fontWeight: '500', color: COLORS.piktag600 },
-  aiErrorText: { fontSize: 12, color: COLORS.gray500, marginTop: 4, lineHeight: 16 },
+  aiChipText: { fontSize: 14, fontWeight: '500', color: c.gray700 },
+  aiErrorText: { fontSize: 12, color: c.gray500, marginTop: 4, lineHeight: 16 },
   aiRetryBtn: {
     marginTop: 10, alignSelf: 'flex-start',
     paddingVertical: 6, paddingHorizontal: 14, borderRadius: 16,
-    backgroundColor: COLORS.piktag50, borderWidth: 1, borderColor: COLORS.piktag500,
+    backgroundColor: c.piktag50, borderWidth: 1, borderColor: c.piktag500,
   },
-  aiRetryText: { fontSize: 13, fontWeight: '600', color: COLORS.piktag600 },
+  aiRetryText: { fontSize: 13, fontWeight: '600', color: c.piktag600 },
 
-  // Popular
+  // Popular — same UNSELECTED treatment as aiChip. Both are "tap to
+  // add" surfaces, both should read identically at rest.
   popularSection: { paddingHorizontal: 20, paddingTop: 24 },
-  popularTitle: { fontSize: 15, fontWeight: '700', color: COLORS.gray900, marginBottom: 10 },
-  popularChip: { borderWidth: 1, borderColor: COLORS.piktag500, borderRadius: 20, paddingVertical: 8, paddingHorizontal: 14, backgroundColor: COLORS.piktag50 },
-  popularChipText: { fontSize: 14, fontWeight: '500', color: COLORS.piktag600 },
+  popularTitle: { fontSize: 15, fontWeight: '700', color: c.gray900, marginBottom: 10 },
+  popularChip: {
+    borderWidth: 1.5, borderColor: 'transparent', borderRadius: 20,
+    paddingVertical: 8, paddingHorizontal: 14, backgroundColor: c.gray100,
+  },
+  popularChipText: { fontSize: 14, fontWeight: '500', color: c.gray700 },
 
   // Bottom input
-  inputBar: { borderTopWidth: 1, borderTopColor: COLORS.gray100, paddingHorizontal: 16, paddingTop: 8 },
+  inputBar: { borderTopWidth: 1, borderTopColor: c.gray100, paddingHorizontal: 16, paddingTop: 8 },
   inputRow: {
-    flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.gray100,
+    flexDirection: 'row', alignItems: 'center', backgroundColor: c.gray100,
+    borderWidth: 1, borderColor: c.gray200,
     borderRadius: 24, paddingLeft: 14, paddingRight: 4, height: 48, gap: 8,
   },
-  textInput: { flex: 1, fontSize: 16, color: COLORS.gray900, padding: 0 },
-  charCount: { fontSize: 12, color: COLORS.gray400 },
-  addBtn: { backgroundColor: COLORS.piktag500, borderRadius: 20, paddingVertical: 8, paddingHorizontal: 16 },
-  addBtnDisabled: { opacity: 0.4 },
-  addBtnText: { fontSize: 14, fontWeight: '700', color: '#FFFFFF' },
-});
+  textInput: { flex: 1, fontSize: 16, color: c.gray900, padding: 0 },
+  charCount: { fontSize: 12, color: c.gray400 },
+  // Square-rounded 40×40 submit button — borderRadius 12 (not 20=full
+  // circle) matches AddTagScreen's reference custom-tag + button. The
+  // square-rounded shape reads more clearly as "tap to submit" than a
+  // circle, which can register as a status pip. Sits inside the
+  // 48px-tall inputRow (paddingRight: 4 leaves 4px each side).
+  addBtn: {
+    backgroundColor: c.piktag500,
+    borderRadius: 12,
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  // addBtnDisabled removed — button stays full piktag500 even when
+  // input is empty / cap hit. The `disabled` prop on the Pressable
+  // continues to block taps. Matches EditProfileScreen.tag_addBtn and
+  // HiddenTagEditor.addBtn so the + reads the same across the app.
+  });
+}

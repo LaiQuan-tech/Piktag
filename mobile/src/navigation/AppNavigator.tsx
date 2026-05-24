@@ -1,7 +1,9 @@
-import React, { useEffect, useState, useRef } from 'react';
-import { ActivityIndicator, View, StyleSheet, Platform, InteractionManager } from 'react-native';
+import React, { useEffect, useState, useRef, useMemo } from 'react';
+import { Alert, View, StyleSheet, Platform, InteractionManager } from 'react-native';
+import PageLoader from '../components/loaders/PageLoader';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { getFocusedRouteNameFromRoute } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   Home,
@@ -13,7 +15,7 @@ import {
 } from 'lucide-react-native';
 import { Session } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
-import { COLORS } from '../constants/theme';
+import { COLORS, type ColorPalette } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
 import { useAppReady } from '../context/AppReadyContext';
 import { useTranslation } from 'react-i18next';
@@ -25,11 +27,16 @@ import { ChatUnreadProvider, useChatUnread } from '../hooks/useChatUnread';
 import LoginScreen from '../screens/auth/LoginScreen';
 import RegisterScreen from '../screens/auth/RegisterScreen';
 import OnboardingScreen from '../screens/auth/OnboardingScreen';
+import TabTooltipOverlay, { TAB_TOOLTIPS_SEEN_KEY } from '../components/onboarding/TabTooltipOverlay';
 
 // Tab-level screens — eager (loaded on first render of MainTabs)
 import ConnectionsScreen from '../screens/ConnectionsScreen';
 import SearchScreen from '../screens/SearchScreen';
 import AddTagScreen from '../screens/AddTagScreen';
+// Task 2 (QR groups): AddTagTab now lands on QrGroupListScreen
+// instead of AddTagScreen directly. AddTagScreen becomes the
+// "create new group" form, pushed onto the stack from the list.
+import QrGroupListScreen from '../screens/QrGroupListScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import NotificationsScreen from '../screens/NotificationsScreen';
 
@@ -76,19 +83,6 @@ function SearchStackNavigator() {
   return (
     <SearchStack.Navigator screenOptions={{ headerShown: false }}>
       <SearchStack.Screen name="SearchMain" component={SearchScreen} />
-      <SearchStack.Screen
-        name="ChatList"
-        getComponent={() => require('../screens/ChatListScreen').default}
-      />
-      <SearchStack.Screen
-        name="ChatThread"
-        getComponent={() => require('../screens/ChatThreadScreen').default}
-      />
-      <SearchStack.Screen
-        name="ChatCompose"
-        getComponent={() => require('../screens/ChatComposeScreen').default}
-        options={{ presentation: 'modal' }}
-      />
     </SearchStack.Navigator>
   );
 }
@@ -96,7 +90,17 @@ function SearchStackNavigator() {
 function AddTagStackNavigator() {
   return (
     <AddTagStack.Navigator screenOptions={{ headerShown: false }}>
-      <AddTagStack.Screen name="AddTagMain" component={AddTagScreen} />
+      {/* Default landing: persistent QR group list (task 2). Tapping
+          "+" navigates to AddTagCreate (the legacy AddTagScreen
+          repurposed as a creation form); tapping a row navigates to
+          QrGroupDetail. AddTagMain kept as a back-compat alias so
+          any older deep-links still resolve. */}
+      <AddTagStack.Screen name="AddTagMain" component={QrGroupListScreen} />
+      <AddTagStack.Screen name="AddTagCreate" component={AddTagScreen} />
+      <AddTagStack.Screen
+        name="QrGroupDetail"
+        getComponent={() => require('../screens/QrGroupDetailScreen').default}
+      />
     </AddTagStack.Navigator>
   );
 }
@@ -119,24 +123,38 @@ function ProfileStackNavigator() {
 
 function MainTabs() {
   const { colors, isDark } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const { t } = useTranslation();
   const { total: chatUnread } = useChatUnread();
+  // Single source of truth for the tab bar style — referenced both
+  // as the default screenOptions baseline AND inside per-tab options
+  // (AddTagTab below) where we conditionally hide it on inner screens
+  // that need full-bleed real estate (the QR display + group detail).
+  const baseTabBarStyle = {
+    backgroundColor: isDark ? '#000000' : '#FFFFFF',
+    borderTopWidth: isDark ? 0.5 : 1,
+    borderTopColor: isDark ? '#363636' : colors.gray100,
+    paddingBottom: 28,
+    paddingTop: 10,
+    height: 80,
+  } as const;
   return (
+    <View style={{ flex: 1 }}>
     <Tab.Navigator
       detachInactiveScreens={true}
       screenOptions={{
         headerShown: false,
         tabBarShowLabel: false,
-        tabBarStyle: {
-          backgroundColor: isDark ? '#000000' : '#FFFFFF',
-          borderTopWidth: isDark ? 0.5 : 1,
-          borderTopColor: isDark ? '#363636' : COLORS.gray100,
-          paddingBottom: 28,
-          paddingTop: 10,
-          height: 80,
+        tabBarStyle: baseTabBarStyle,
+        tabBarActiveTintColor: isDark ? '#ffffff' : colors.piktag500,
+        tabBarInactiveTintColor: isDark ? '#8e8e8e' : colors.gray400,
+        // Unread chat count badge — accentPop on purpose (high-saturation
+        // pop reserved for moments that should jump the eye, per the
+        // theme's accent vs primary system).
+        tabBarBadgeStyle: {
+          backgroundColor: colors.accentPop,
+          color: '#FFFFFF',
         },
-        tabBarActiveTintColor: isDark ? '#ffffff' : COLORS.piktag500,
-        tabBarInactiveTintColor: isDark ? '#8e8e8e' : COLORS.gray400,
       }}
     >
       <Tab.Screen
@@ -158,7 +176,10 @@ function MainTabs() {
         component={SearchStackNavigator}
         options={{
           tabBarAccessibilityLabel: t('tabs.search'),
-          tabBarBadge: chatUnread > 0 ? chatUnread : undefined,
+          // No tabBarBadge here — moved to NotificationsTab below.
+          // The chat inbox is reached through the bell-tab header's
+          // ChatList button, so an unread count on the magnifying
+          // glass misdirected users to a tab unrelated to messages.
           tabBarIcon: ({ color, focused }) => (
             <Search
               size={24}
@@ -171,15 +192,32 @@ function MainTabs() {
       <Tab.Screen
         name="AddTagTab"
         component={AddTagStackNavigator}
-        options={{
-          tabBarAccessibilityLabel: t('tabs.addTag'),
-          tabBarIcon: ({ color, focused }) => (
-            <Hash
-              size={28}
-              color={color}
-              strokeWidth={focused ? 2.5 : 2}
-            />
-          ),
+        options={({ route }) => {
+          // Hide the tab bar when the user drills into the QR
+          // create form (AddTagCreate) or a saved-group detail
+          // (QrGroupDetail). The default `AddTagMain` list view
+          // still shows the tab bar so the user can navigate
+          // away. Reading the focused child route via
+          // getFocusedRouteNameFromRoute is the official RN
+          // navigation pattern for "hide parent bar on specific
+          // inner screens".
+          const childRoute =
+            getFocusedRouteNameFromRoute(route) ?? 'AddTagMain';
+          const hideBar =
+            childRoute === 'AddTagCreate' || childRoute === 'QrGroupDetail';
+          return {
+            tabBarAccessibilityLabel: t('tabs.addTag'),
+            tabBarStyle: hideBar
+              ? { display: 'none' as const }
+              : baseTabBarStyle,
+            tabBarIcon: ({ color, focused }) => (
+              <Hash
+                size={28}
+                color={color}
+                strokeWidth={focused ? 2.5 : 2}
+              />
+            ),
+          };
         }}
       />
       <Tab.Screen
@@ -187,6 +225,12 @@ function MainTabs() {
         component={NotificationStackNavigator}
         options={{
           tabBarAccessibilityLabel: t('tabs.notifications'),
+          // Chat-unread badge lives on the bell tab, not the
+          // magnifying-glass tab — the messages inbox is reached
+          // through the notifications surface (ChatList button in
+          // its header), so a badge on Search misdirects users
+          // toward a tab that has nothing to do with messages.
+          tabBarBadge: chatUnread > 0 ? chatUnread : undefined,
           tabBarIcon: ({ color, focused }) => (
             <Bell
               size={24}
@@ -211,6 +255,14 @@ function MainTabs() {
         }}
       />
     </Tab.Navigator>
+    {/* First-launch tooltip tour. Self-contained — reads its own
+        AsyncStorage flag (TAB_TOOLTIPS_SEEN_KEY) and renders nothing
+        for users who already saw it. Backfill for pre-existing users
+        happens in decideOnboarding() below: when an old account is
+        detected (already onboarded before this feature shipped), we
+        write the seen flag so the overlay never appears for them. */}
+    <TabTooltipOverlay />
+    </View>
   );
 }
 
@@ -232,6 +284,28 @@ function MainNavigator({ needsOnboarding }: { needsOnboarding: boolean }) {
         <RootStack.Screen name="UserDetail" component={UserDetailScreen} />
         <RootStack.Screen name="TagDetail" component={TagDetailScreen} />
 
+        {/* Chat list + thread + compose all live in RootStack so back-navigation
+            returns to the screen the user came from (e.g. TagDetail →
+            UserDetail → ChatThread → back goes to UserDetail) instead
+            of popping inside the SearchTab to its root. ChatList must
+            sit outside the tab stacks too — otherwise tapping the
+            SearchTab button after a chat session lands on ChatList
+            instead of SearchMain because the inner stack remembers
+            its last screen. */}
+        <RootStack.Screen
+          name="ChatList"
+          getComponent={() => require('../screens/ChatListScreen').default}
+        />
+        <RootStack.Screen
+          name="ChatThread"
+          getComponent={() => require('../screens/ChatThreadScreen').default}
+        />
+        <RootStack.Screen
+          name="ChatCompose"
+          getComponent={() => require('../screens/ChatComposeScreen').default}
+          options={{ presentation: 'modal' }}
+        />
+
         {/* Lazy: secondary screens loaded on first navigation */}
         <RootStack.Screen
           name="EditProfile"
@@ -250,12 +324,16 @@ function MainNavigator({ needsOnboarding }: { needsOnboarding: boolean }) {
           getComponent={() => require('../screens/ContactSyncScreen').default}
         />
         <RootStack.Screen
-          name="Invite"
-          getComponent={() => require('../screens/InviteScreen').default}
-        />
-        <RootStack.Screen
           name="LocationContacts"
           getComponent={() => require('../screens/LocationContactsScreen').default}
+        />
+        <RootStack.Screen
+          name="LocalContactDetail"
+          getComponent={() => require('../screens/LocalContactDetailScreen').default}
+        />
+        <RootStack.Screen
+          name="EditLocalContact"
+          getComponent={() => require('../screens/EditLocalContactScreen').default}
         />
         <RootStack.Screen
           name="SocialStats"
@@ -265,6 +343,12 @@ function MainNavigator({ needsOnboarding }: { needsOnboarding: boolean }) {
           name="CameraScan"
           getComponent={() => require('../screens/CameraScanScreen').default}
         />
+        {/* Custom business-card capture (framing guide → better OCR).
+            Returns the photo via an onCaptured callback param. */}
+        <RootStack.Screen
+          name="CardCamera"
+          getComponent={() => require('../screens/CardCameraScreen').default}
+        />
         <RootStack.Screen
           name="PrivacyPolicy"
           getComponent={() => require('../screens/legal/PrivacyPolicyScreen').default}
@@ -273,20 +357,36 @@ function MainNavigator({ needsOnboarding }: { needsOnboarding: boolean }) {
           name="TermsOfService"
           getComponent={() => require('../screens/legal/TermsOfServiceScreen').default}
         />
+        {/* PointsHistory route removed — the p_points system was
+            retired in the Tribe-size pivot. DB columns (p_points,
+            p_points_lifetime) + piktag_points_ledger table are kept
+            as legacy artifacts (no new writes, no readers) and can
+            be dropped in a separate DB-side cleanup if needed. */}
+        {/* Tribe constellation — private anonymous lineage view,
+            replaces the old points-based motivator. Reached from
+            the Tribe stat in ProfileScreen. */}
         <RootStack.Screen
-          name="PointsHistory"
-          getComponent={() => require('../screens/PointsHistoryScreen').default}
+          name="TribeConstellation"
+          getComponent={() => require('../screens/TribeConstellationScreen').default}
         />
+        {/* Followers list. Reached from the "追蹤者" stat on
+            ProfileScreen / FriendDetail / UserDetail. Params:
+            { userId, displayName? }. */}
         <RootStack.Screen
-          name="RedeemInvite"
-          getComponent={() => require('../screens/RedeemInviteScreen').default}
+          name="Followers"
+          getComponent={() => require('../screens/FollowersScreen').default}
         />
 
         {/* Modal screens */}
         {/* Eager: QR scan result is part of the primary scan flow */}
+        {/* `as any` on the component prop: ScanResultScreen uses a local
+            Props type rather than React Navigation's typed param-list.
+            Strictly typing it would require lifting RootStackParamList
+            into the screen file itself — a larger refactor than this
+            error-cleanup scope warrants. */}
         <RootStack.Screen
           name="ScanResult"
-          component={ScanResultScreen}
+          component={ScanResultScreen as any}
           options={{ presentation: 'modal' }}
         />
         {/* Lazy: one-time review flow */}
@@ -324,9 +424,18 @@ const ONBOARDING_COMPLETED_KEY = 'piktag_onboarding_completed_v1';
 type OnboardingDecision = 'pending' | 'required' | 'skip';
 
 export default function AppNavigator() {
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [onboardingDecision, setOnboardingDecision] = useState<OnboardingDecision>('pending');
+  // Mirror the latest session into a ref so the deep-link capture
+  // closure (registered once on mount) can read fresh auth state
+  // without re-subscribing every time `session` changes.
+  const sessionRef = useRef<Session | null>(null);
+  useEffect(() => {
+    sessionRef.current = session;
+  }, [session]);
   // Pending deep link holds the parsed payload from cold start until a
   // consumer (post-register flow) clears it. Stored in a ref so capture
   // and consume don't race through render cycles.
@@ -351,6 +460,9 @@ export default function AppNavigator() {
         const Linking = await import('expo-linking');
 
         const captureDeepLink = (url: string | null, persist: boolean) => {
+          // (Invite-code deep-link handoff removed — the invite/redeem
+          // gate was retired; open signup, no codes. Only the QR/sid
+          // connect deep link is handled now.)
           const parsed = parseSidFromUrl(url);
           if (!parsed?.sid) return;
           // In-memory first so the auth-resolution path can consume
@@ -420,8 +532,11 @@ export default function AppNavigator() {
       }
 
       // Identify user in PostHog so all events are linked to this account.
+      // Coalesce email to '' so the property is always a string —
+      // PostHog's `identify` properties accept strings/numbers/bools but
+      // not `undefined`, and Supabase's session.user.email is optional.
       posthog.identify(currentSession.user.id, {
-        email: currentSession.user.email,
+        email: currentSession.user.email ?? '',
       });
 
       if (persistedCompleted) {
@@ -492,17 +607,32 @@ export default function AppNavigator() {
 
       if (!isNewUser) {
         setOnboardingDecision('skip');
-        // Backfill the flag so we don't re-check on every launch.
+        // Backfill flags so we don't re-check on every launch AND so old
+        // users (who already finished onboarding before the tab tooltip
+        // tour shipped) never see it. Only write the tooltip flag if it
+        // hasn't been touched, to avoid stomping on a fresh-but-completed
+        // tour from the same device.
         AsyncStorage.setItem(ONBOARDING_COMPLETED_KEY, 'true').catch(() => {});
+        AsyncStorage.getItem(TAB_TOOLTIPS_SEEN_KEY)
+          .then((existing) => {
+            if (existing == null) {
+              AsyncStorage.setItem(TAB_TOOLTIPS_SEEN_KEY, 'true').catch(() => {});
+            }
+          })
+          .catch(() => {});
         return;
       }
 
-      // For new users, check if bio is filled in (legacy indicator of
-      // onboarding completion). Keeps backwards compatibility with
-      // existing users who onboarded before the persisted flag shipped.
+      // For new users, the legacy completion indicator is the profile
+      // NAME — not bio. Onboarding's only guaranteed write is
+      // full_name (bio is written only when the user scanned a card),
+      // so keying detection off bio forced a fully-onboarded user
+      // back through onboarding if the persisted flag was lost within
+      // the 5-min window. full_name is the field that actually maps
+      // to "did onboarding finish".
       const { data, error } = await supabase
         .from('piktag_profiles')
-        .select('bio')
+        .select('full_name')
         .eq('id', userId)
         .single();
 
@@ -514,12 +644,22 @@ export default function AppNavigator() {
         return;
       }
 
-      const bioEmpty = !data?.bio || data.bio.trim() === '';
-      if (bioEmpty) {
+      const nameEmpty = !data?.full_name || data.full_name.trim() === '';
+      if (nameEmpty) {
         setOnboardingDecision('required');
       } else {
+        // Legacy completion path: bio filled but persisted flag never
+        // set. Treat as already onboarded → also suppress tooltip tour
+        // (these users predate the feature).
         setOnboardingDecision('skip');
         AsyncStorage.setItem(ONBOARDING_COMPLETED_KEY, 'true').catch(() => {});
+        AsyncStorage.getItem(TAB_TOOLTIPS_SEEN_KEY)
+          .then((existing) => {
+            if (existing == null) {
+              AsyncStorage.setItem(TAB_TOOLTIPS_SEEN_KEY, 'true').catch(() => {});
+            }
+          })
+          .catch(() => {});
       }
     } catch (err) {
       console.warn('Onboarding check error:', err);
@@ -550,6 +690,25 @@ export default function AppNavigator() {
       pendingDeepLinkRef.current = null;
       await AsyncStorage.removeItem(PENDING_DEEP_LINK_KEY).catch(() => {});
 
+      // Security (M10): require explicit user confirmation before
+      // accepting a deep-link-supplied scan session. A malicious link
+      // could otherwise auto-attach the new user to an unintended
+      // connection at registration time.
+      const confirmed: boolean = await new Promise((resolve) => {
+        Alert.alert(
+          'Confirm connection',
+          pending?.username
+            ? `Connect with @${pending.username} from your invite link?`
+            : 'Accept the connection from your invite link?',
+          [
+            { text: 'Cancel', style: 'cancel', onPress: () => resolve(false) },
+            { text: 'Confirm', onPress: () => resolve(true) },
+          ],
+          { cancelable: true, onDismiss: () => resolve(false) },
+        );
+      });
+      if (!confirmed) return;
+
       const { error } = await supabase.rpc('resolve_pending_connections', {
         p_new_user_id: userId,
         p_scan_session_id: pending.sid,
@@ -566,7 +725,7 @@ export default function AppNavigator() {
   if (loading || onboardingDecision === 'pending') {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={COLORS.piktag500} />
+        <PageLoader />
       </View>
     );
   }
@@ -578,11 +737,13 @@ export default function AppNavigator() {
   );
 }
 
-const styles = StyleSheet.create({
+function makeStyles(c: ColorPalette) {
+  return StyleSheet.create({
   loadingContainer: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: COLORS.white,
+    backgroundColor: c.white,
   },
-});
+  });
+}

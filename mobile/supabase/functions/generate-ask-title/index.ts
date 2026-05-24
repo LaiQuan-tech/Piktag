@@ -88,10 +88,13 @@ serve(async (req) => {
     for (const model of MODEL_FALLBACK_CHAIN) {
       try {
         const upstream = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
+          `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
           {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+              'Content-Type': 'application/json',
+              'x-goog-api-key': apiKey,
+            },
             body: JSON.stringify({
               contents: [{ parts: [{ text: prompt }] }],
             }),
@@ -100,7 +103,8 @@ serve(async (req) => {
 
         if (!upstream.ok) {
           const bodyText = await upstream.text().catch(() => '');
-          lastError = `${model}: HTTP ${upstream.status} ${bodyText.slice(0, 200)}`;
+          console.error(`generate-ask-title upstream error [${model}]: HTTP ${upstream.status}`, bodyText.slice(0, 500));
+          lastError = `${model}: HTTP ${upstream.status}`;
           if (/API_KEY|api key/i.test(bodyText)) break;
           continue;
         }
@@ -116,17 +120,15 @@ serve(async (req) => {
         lastError = `${model}: response did not contain a usable title`;
       } catch (e) {
         const msg = e instanceof Error ? e.message : String(e);
-        lastError = `${model}: fetch threw (${msg})`;
+        console.error(`generate-ask-title fetch threw [${model}]:`, msg);
+        lastError = `${model}: fetch threw`;
       }
     }
 
-    return jsonResponse(502, {
-      error: lastError || 'All Gemini models failed',
-      detail: rawSnippet || undefined,
-    });
+    console.error('generate-ask-title all models failed:', lastError, 'snippet:', rawSnippet);
+    return jsonResponse(503, { error: 'AI service unavailable' });
   } catch (err) {
     console.error('generate-ask-title edge function error:', err);
-    const message = err instanceof Error ? err.message : String(err);
-    return jsonResponse(500, { error: message });
+    return jsonResponse(500, { error: 'Internal error' });
   }
 });

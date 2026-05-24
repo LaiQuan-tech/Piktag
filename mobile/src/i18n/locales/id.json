@@ -1,4 +1,9 @@
 {
+  "app": {
+    "offline": "Anda sedang offline. Beberapa fitur mungkin dibatasi.",
+    "backOnline": "Kembali online",
+    "offlineHint": "Beberapa fitur perlu koneksi"
+  },
   "tabs": {
     "home": "Beranda",
     "search": "Cari",
@@ -9,19 +14,25 @@
   "locationPicker": {
     "title": "Pilih lokasi",
     "noNearbyPlaces": "Tidak ada tempat di sekitar. Ketik nama di kotak pencarian dan tekan Selesai.",
-    "noResults": "Tidak ada tempat yang cocok"
+    "noResults": "Tidak ada tempat yang cocok",
+    "permissionDenied": "Izin lokasi ditolak",
+    "permissionDeniedWeb": "Izin lokasi ditolak. Izinkan di pengaturan browser.",
+    "errorPrefix": "Galat lokasi: ",
+    "searchPlaceholder": "Cari atau ketik nama tempat",
+    "gpsOff": "Tidak bisa mendapatkan lokasi. Pastikan GPS aktif.",
+    "requestTimeout": "Permintaan lokasi habis waktu. Coba lagi."
   },
   "friendsMap": {
     "title": "Peta Teman",
     "friendCount": "{{count}} teman di peta",
     "noSharedLocations": "Belum ada teman yang berbagi lokasi",
     "staleHint": "Hanya menampilkan teman yang lokasinya diperbarui dalam 24 jam terakhir",
-    "loadFailed": "Gagal memuat peta, silakan coba lagi"
+    "loadFailed": "Gagal memuat peta. Periksa koneksi Anda."
   },
   "hiddenTagEditor": {
     "timeTitle": "Kapan bertemu",
     "locationTitle": "Di mana bertemu",
-    "frequentTitle": "Sering digunakan",
+    "suggestedTitle": "Disarankan",
     "addedTitle": "Ditambahkan",
     "today": "Hari ini",
     "yesterday": "Kemarin",
@@ -53,7 +64,10 @@
     "noTags": "Belum ada tag",
     "email": "Email",
     "phone": "Telepon",
-    "comingSoonTitle": "Segera Hadir"
+    "comingSoonTitle": "Segera Hadir",
+    "checkConnection": "Periksa koneksi lalu coba lagi",
+    "loadFailed": "Gagal memuat",
+    "willAutoRetry": "Akan coba lagi otomatis saat tersambung"
   },
   "auth": {
     "login": {
@@ -62,7 +76,7 @@
       "emailPlaceholder": "Email",
       "passwordPlaceholder": "Kata Sandi",
       "loginButton": "Masuk",
-      "noAccountPrompt": "Belum punya akun? ",
+      "noAccountPrompt": "Belum punya akun?",
       "registerLink": "Daftar",
       "forgotPassword": "Lupa kata sandi?",
       "alertEnterEmailFirst": "Masukkan email Anda terlebih dahulu, kami akan mengirim tautan reset kata sandi",
@@ -70,7 +84,10 @@
       "alertResetSentMessage": "Tautan reset kata sandi telah dikirim ke email Anda",
       "orDivider": "atau",
       "continueWithApple": "Masuk dengan Apple",
-      "continueWithGoogle": "Masuk dengan Google"
+      "continueWithGoogle": "Masuk dengan Google",
+      "errInvalidCredentials": "Email atau kata sandi salah.",
+      "errEmailNotConfirmed": "Verifikasi email dulu — ketuk tautan yang kami kirim, lalu login.",
+      "errGeneric": "Gagal masuk. Coba lagi."
     },
     "register": {
       "alertEmptyFields": "Isi semua kolom",
@@ -84,13 +101,26 @@
       "emailPlaceholder": "Email",
       "passwordPlaceholder": "Kata Sandi",
       "registerButton": "Daftar",
-      "hasAccountPrompt": "Sudah punya akun? ",
+      "hasAccountPrompt": "Sudah punya akun?",
       "loginLink": "Masuk",
       "confirmPasswordPlaceholder": "Konfirmasi Kata Sandi",
       "alertPasswordMismatch": "Kata sandi tidak cocok",
-      "passwordHint": "Kata sandi harus minimal 6 karakter"
+      "passwordHint": "Kata sandi harus minimal 6 karakter",
+      "birthdayLabel": "Tanggal lahir (opsional)",
+      "alertVerifyEmailTitle": "Verifikasi email kamu",
+      "alertVerifyEmailMessage": "Kami kirim link konfirmasi ke email kamu. Ketuk, lalu login lagi."
     },
     "onboarding": {
+      "welcome": {
+        "identityTitle": "Definisikan diri dengan tag",
+        "identityDesc": "Pilih 10 tag yang merepresentasikanmu — inilah identitasmu di PikTag",
+        "activateTitle": "Hidupkan kembali koneksi lama",
+        "activateDesc": "Ulang tahun, hari pertemuan, dan kenangan bersama akan datang menemuimu",
+        "discoverTitle": "Cari berdasarkan kebutuhan, bukan nama",
+        "discoverDesc": "\"Butuh teman yang bisa fotografi\" · \"Desainer di dekat sini\"",
+        "next": "Selanjutnya",
+        "getStarted": "Mulai"
+      },
       "defaultTags": [
         "#Startup",
         "#Desain",
@@ -115,13 +145,57 @@
       "contactResultText": "Ditemukan {{matched}} teman",
       "step3Title": "Siap! Mulai jelajahi",
       "step3Description": "Akun kamu sudah siap, mulai gunakan PikTag sekarang",
+      "quickStart": {
+        "title": "Mulai dengan PikTag",
+        "subtitle": "Empat hal yang bikin kamu cepat akrab",
+        "card1": {
+          "title": "Tambahkan teman",
+          "body": "Scan QR, sinkronkan kontak, atau cari lewat username"
+        },
+        "card2": {
+          "title": "Beri tag temanmu",
+          "body": "Seperti \"pencinta kopi\", \"product manager\", \"klien\" — lalu cari mereka lewat tag"
+        },
+        "card3": {
+          "title": "Cari orang lewat tag",
+          "body": "Ketik tag di tab pencarian untuk lihat siapa yang punya minat sama"
+        },
+        "card4": {
+          "title": "Posting Ask",
+          "body": "Satu kalimat, seluruh jaringanmu membantu"
+        },
+        "cta": "Mulai pakai PikTag"
+      },
       "backButton": "Kembali",
       "enterPikTag": "Masuk ke PikTag",
       "nextButton": "Lanjut",
       "facebookLabel": "Facebook",
       "instagramLabel": "Instagram",
       "linkedinLabel": "LinkedIn",
-      "birthdayLabel": "Ulang Tahun"
+      "birthdayLabel": "Ulang Tahun",
+      "avatarStepTitle": "Pasang foto dulu",
+      "avatarStepDescription": "Biar teman langsung kenal — bisa diganti kapan saja.",
+      "avatarPickAria": "Pilih foto",
+      "avatarTapToPick": "Tap lingkaran buat pilih foto",
+      "avatarTapToChange": "Tap foto buat ganti",
+      "avatarPermissionTitle": "Butuh akses galeri",
+      "avatarPermissionMessage": "Izinkan akses foto di Pengaturan",
+      "skipStep": "Lewati",
+      "scanCardCta": "Pindai kartu nama",
+      "scanCardHint": "Punya kartu? Foto saja — bio & kontak otomatis (opsional)",
+      "cardScanFailedTitle": "Pindai gagal",
+      "cardScanFailedMessage": "Kartu tidak terbaca. Coba lagi atau isi manual.",
+      "cardScanEmptyTitle": "Tidak terdeteksi",
+      "cardScanEmptyMessage": "Kartu sulit dibaca — pakai foto lebih jelas atau ketik manual.",
+      "cardConfirmTitle": "Konfirmasi data kartu",
+      "cardConfirmSubtitle": "Periksa & ubah — baru diterapkan setelah konfirmasi",
+      "cardFieldName": "Nama",
+      "cardFieldBio": "Bio (draf AI, bisa diedit)",
+      "cardBioPlaceholder": "Satu baris tentang kamu",
+      "cardLinksLabel": "Kontak / sosial",
+      "cardApplyCta": "Terapkan",
+      "profileCta": "Buat Tag pertamaku",
+      "saveFailed": "Gagal menyimpan — cek koneksi dan coba lagi."
     }
   },
   "connections": {
@@ -162,7 +236,30 @@
     "clearFilter": "Hapus Filter",
     "noTagsToFilter": "Tidak ada tag untuk difilter",
     "newBadge": "Baru",
-    "unreviewedLabel": "untuk ditinjau"
+    "unreviewedLabel": "untuk ditinjau",
+    "sortLabel": "Urutkan",
+    "sortByRecent": "Baru ditambahkan",
+    "sortByAlphabet": "Alfabet (A→Z)",
+    "sortByAlphabetDesc": "Alfabet (Z→A)",
+    "sortByInteraction": "Interaksi terbaru",
+    "sortByBirthday": "Ulang tahun mendatang",
+    "addContact": "Tambah kontak",
+    "addContactTitle": "Tambah kontak",
+    "addSearchTitle": "Cari pengguna PikTag",
+    "addSearchDesc": "Lewat nama, username, atau tag",
+    "addContactSyncTitle": "Sinkron kontakmu",
+    "addContactSyncDesc": "Temuin teman yang udah di PikTag",
+    "addInviteTitle": "Ajak teman ke PikTag",
+    "addInviteDesc": "Share link undangan — auto jadi teman pas dia gabung",
+    "coldStartActionContacts": "Cari teman dari kontakmu",
+    "coldStartActionContactsDesc": "Temuin yang udah di PikTag — tag + invite yang belum",
+    "notJoinedBadge": "Belum di PikTag",
+    "coldStartActionManual": "Catat seseorang",
+    "coldStartActionManualDesc": "Tak perlu akun — otomatis tertaut ke tag & catatanmu saat ia gabung",
+    "addManualA11y": "Tambah kontak manual",
+    "phonePromptTitle": "Tambahkan nomor agar teman bisa menemukan",
+    "phonePromptBody": "Saat teman menyinkronkan kontak, otomatis terhubung. Hanya PikTag, tidak pernah publik.",
+    "addedFriend": "+ {{name}}"
   },
   "search": {
     "clearAll": "Hapus semua",
@@ -171,6 +268,14 @@
     "intersectionResultCount": "Ditemukan {{count}} orang",
     "headerTitle": "Cari",
     "searchPlaceholder": "Tag, nama pengguna, dll.",
+    "promptHints": [
+      "Butuh teman yang bisa fotografi",
+      "Cari yang bisa bahasa Inggris",
+      "Desainer di {{city}}",
+      "Ada yang di startup?",
+      "Cari web developer"
+    ],
+    "promptHintCityFallback": "Desainer di dekat sini",
     "categorySectionLabel": "Telusuri berdasarkan kategori",
     "categoryPopular": "Tag Populer",
     "categoryNearby": "Anggota Terdekat",
@@ -185,6 +290,7 @@
     "profilesSectionLabel": "Anggota",
     "noProfilesFound": "Tidak ada anggota yang cocok",
     "noProfilesFoundTitle": "Tidak ada anggota yang cocok dengan \"{{query}}\"",
+    "askPrompt": "Tidak ada di jaringanmu? Posting Ask — teman dan teman dari teman bisa bantu menemukannya.",
     "tryTagSearchHint": "Coba cari #tag atau kata kunci lain",
     "clearAndRetry": "Hapus dan coba lagi",
     "resetButton": "Atur ulang",
@@ -198,10 +304,16 @@
     "tagUsersTitle": "Orang yang menggunakan tag ini",
     "viewAllTagUsers": "Lihat semua {{count}}",
     "categoryUncategorized": "Lainnya",
-    "allCategories": "Semua"
+    "allCategories": "Semua",
+    "openMap": "Buka peta",
+    "searchBtn": "Cari",
+    "searchInputLabel": "Cari",
+    "clearSearchLabel": "Hapus pencarian",
+    "recommendedTitle": "Mungkin ingin kenal",
+    "tagsSelected": "tag dipilih"
   },
   "addTag": {
-    "headerTitle": "# Bersosialisasi",
+    "headerTitle": "Buat Tag",
     "alertTagExists": "Tag sudah ada",
     "alertTagExistsMessage": "Tag ini sudah ada di daftar.",
     "alertEnterPresetName": "Masukkan nama template",
@@ -213,18 +325,9 @@
     "alertQrError": "Nggak bisa membuat QR Code, coba lagi nanti ya.",
     "alertDeletePresetTitle": "Hapus Template",
     "alertDeletePresetMessage": "Apakah kamu yakin ingin menghapus \"{{name}}\"?",
-    "dateLabel": "Date Tag",
-    "datePlaceholder": "YYYY/MM/DD",
-    "dateDisplayFallback": "Ketuk untuk mengatur tanggal",
-    "locationLabel": "Location Tag",
-    "locationPlaceholder": "Masukkan lokasi acara...",
-    "currentLocation": "Lokasi Saat Ini",
-    "selectLocation": "Pilih Lokasi",
-    "manualInput": "Input Manual",
     "locationPermDenied": "Izin lokasi ditolak",
     "customTagsLabel": "Tag Kustom",
     "hiddenTagHint": "Hanya terlihat oleh Anda — membantu mengingat tempat bertemu",
-    "pickDate": "Pilih Tanggal",
     "tagPlaceholder": "Masukkan tag...",
     "addButton": "Tambah",
     "saveAsPreset": "Simpan sebagai template",
@@ -257,7 +360,21 @@
     "copyLink": "Salin tautan",
     "editQr": "Edit QR",
     "alertLinkCopiedTitle": "Tersalin",
-    "alertLinkCopiedMessage": "Tautan disalin ke clipboard"
+    "alertLinkCopiedMessage": "Tautan disalin ke clipboard",
+    "contextLabel": "Acara apa ini?",
+    "contextHint": "Satu baris cukup. AI pakai katamu, waktu, dan lokasi untuk menyarankan tag — biar kamu ingat siapa yang kamu temui di sini.",
+    "contextPlaceholder": "Misal: brunch akhir pekan, demo klien, peluncuran buku",
+    "aiSuggestionsTitle": "Saran dari AI",
+    "aiSuggestionsHint": "Tulis satu baris — AI pakai itu + lokasi + identity tag-mu.",
+    "aiSuggestionsEmpty": "AI nggak nemu — coba lagi atau tambah sendiri.",
+    "aiRegenerate": "Buat ulang",
+    "contextPromptHints": [
+      "Trip diving",
+      "Reuni kampus",
+      "Acara kantor",
+      "BBQ akhir pekan",
+      "Pernikahan teman"
+    ]
   },
   "profile": {
     "nameNotSet": "Nama belum diatur",
@@ -266,12 +383,12 @@
     "noBio": "Belum ada bio",
     "noTags": "Belum ada tag",
     "tagFallback": "Tag",
+    "askPromptHint": "Tap + untuk Ask · \"Saya butuh…\"",
     "friendCountSuffix": "teman",
     "shareProfile": "Bagikan Profil",
     "editProfile": "Edit Profil",
     "manageTags": "Kelola Tag Saya",
     "noContactMethods": "Tidak ada metode kontak",
-    "statusTooltip": "Ketuk untuk mengatur status",
     "contactInfoTitle": "Kontak",
     "phoneLabel": "Telepon",
     "emailLabel": "Email",
@@ -282,7 +399,11 @@
     "statFriends": "Teman",
     "statFollowers": "Pengikut",
     "copyLink": "Salin Tautan",
-    "share": "Bagikan"
+    "share": "Bagikan",
+    "statTagsA11y": "Lihat tag saya",
+    "statFriendsA11y": "Lihat teman saya",
+    "statFollowersA11y": "Lihat pengikut saya",
+    "statTribeA11y": "Lihat konstelasi Tribe saya"
   },
   "editProfile": {
     "headerTitle": "Edit Profil",
@@ -305,7 +426,7 @@
     "usernameLabel": "Nama Pengguna",
     "usernamePlaceholder": "Masukkan nama pengguna",
     "headlineLabel": "Jabatan / Peran",
-    "headlinePlaceholder": "cth: PM @ Google, Desainer freelance",
+    "headlinePlaceholder": "cth: PM @ perusahaan tech, Desainer freelance",
     "bioLabel": "Bio",
     "bioPlaceholder": "Masukkan bio",
     "phoneLabel": "Telepon",
@@ -343,7 +464,57 @@
     "selectPlatform": "Pilih Platform",
     "linkName": "Nama Tautan",
     "selectCountry": "Pilih negara",
-    "searchCountry": "Cari negara atau kode"
+    "searchCountry": "Cari negara atau kode",
+    "invalidImageType": "Jenis gambar tidak didukung. Gunakan JPEG, PNG, atau WebP.",
+    "imageTooLarge": "Gambar terlalu besar. Ukuran maksimum 2MB.",
+    "browseAllPlatformsCta": "Lainnya…",
+    "browseAllPlatforms": "Telusuri semua platform",
+    "platformSearchPlaceholder": "Cari platform…",
+    "platformSearchEmpty": "Tidak ada hasil",
+    "detectedAs": "Terdeteksi sebagai {{platform}}",
+    "platform": {
+      "phone": "Telepon",
+      "email": "Email",
+      "website": "Situs web",
+      "blog": "Blog",
+      "portfolio": "Portofolio",
+      "custom": "Tautan kustom"
+    },
+    "platformCategory": {
+      "communication": "Komunikasi",
+      "social": "Sosial",
+      "video": "Video",
+      "music": "Musik",
+      "professional": "Profesional",
+      "writing": "Tulisan",
+      "business": "Bisnis",
+      "generic": "Umum"
+    },
+    "completionInline": "Biar circle-mu nemuin kamu cepat — tambahin {{items}}",
+    "missingAvatar": "Foto profil",
+    "missingBio": "Bio",
+    "missingTags": "3 tag",
+    "missingBiolink": "Tautan sosial",
+    "welcomeShort": "Selamat datang di PikTag",
+    "bioPromptHints": [
+      "Sales di tech; lari cara saya melepas penat, target maraton sub-4 tahun ini",
+      "Guru SD, berkebun sayur di balkon, koleksi 20+ sukulen",
+      "Perawat IGD, baking buat rileks habis shift, lagi belajar pour-over",
+      "Backend engineer, lagi suka masak dan keramik, punya Shiba galak",
+      "Mahasiswa psikologi, main gitar di band, mulai terima job ilustrasi"
+    ],
+    "headlinePromptHints": [
+      "PM @ perusahaan tech",
+      "Pengacara @ firma hukum",
+      "Perawat IGD @ pusat medis",
+      "Desainer grafis freelance",
+      "Mahasiswa psikologi"
+    ],
+    "needLibraryPermissionTitle": "Akses pustaka foto diperlukan",
+    "needLibraryPermissionMsg": "Izinkan akses di Pengaturan",
+    "notSignedIn": "Belum masuk",
+    "uploadFailTitle": "Unggah gagal",
+    "tryAgainLater": "Coba lagi nanti"
   },
   "friendDetail": {
     "reminderBirthday": "Ulang Tahun",
@@ -369,6 +540,9 @@
     "metLocationLabel": "Lokasi",
     "metNoteLabel": "Catatan",
     "eventTagsLabel": "Tag Acara",
+    "eventTagsSection": "Acara bersama",
+    "eventTagsExpand": "Tampilkan semua ({{count}})",
+    "eventTagsCollapse": "Tampilkan lebih sedikit",
     "stickyNotesTitle": "Catatan Tempel",
     "notePlaceholder": "Tulis catatan kamu...",
     "noteCancel": "Batal",
@@ -408,19 +582,24 @@
     "unfollowMessage": "Apakah kamu yakin ingin berhenti mengikuti {{name}}?",
     "unfollowConfirm": "Berhenti Mengikuti",
     "hiddenTagsTitle": "Tag Tersembunyi (hanya kamu yang bisa lihat)",
+    "eventTagsTitle": "Tag acara",
     "hiddenTagPlaceholder": "Tambah tag tersembunyi, mis. mantan rekan kerja",
     "mutualTagsModalTitle": "Tag yang Sama",
     "mutualFriendsSectionTitle": "Teman Bersama",
-    "shareIntroMessage": "Kenalkan, ini {{name}} — profilnya: {{url}}"
+    "shareIntroMessage": "Kenalkan, ini {{name}} — profilnya: {{url}}",
+    "tag": "Tag",
+    "recommendMembers": "Anggota direkomendasikan",
+    "blockConfirmTitle": "Blokir orang ini?",
+    "blockConfirmMessage": "Kalian akan saling berhenti mengikuti dan tak lagi melihat konten satu sama lain."
   },
   "userDetail": {
     "headerNotFound": "Tidak Ditemukan",
     "userNotFound": "Pengguna tidak ditemukan",
-    "mutualFriendsPrefix": "Teman yang sama: ",
+    "mutualFriendsPrefix": "Teman yang sama:",
     "mutualFriendsSuffix": "",
-    "mutualTagsPrefix": "Tag yang sama: ",
+    "mutualTagsPrefix": "Tag yang sama:",
     "mutualTagsSuffix": "",
-    "mutualSeparator": "  |  ",
+    "mutualSeparator": "|",
     "following": "Mengikuti",
     "follow": "Ikuti",
     "sendMessage": "Pesan",
@@ -455,7 +634,12 @@
     "pickTagSubtitle": "Pilih tag yang paling mewakili {{name}}",
     "pickTagEmpty": "Pengguna ini belum memiliki tag publik",
     "pickTagSave": "Simpan ({{count}})",
-    "hiddenTagPlaceholder": "Tambahkan tag tersembunyi..."
+    "hiddenTagPlaceholder": "Tambahkan tag tersembunyi...",
+    "tag": "Tag",
+    "recommendMembers": "Anggota direkomendasikan",
+    "vibeContextTagsTitle": "Tag dari Tag ini",
+    "blockConfirmTitle": "Blokir orang ini?",
+    "blockConfirmMessage": "Kalian akan saling berhenti mengikuti dan tak lagi melihat konten satu sama lain."
   },
   "settings": {
     "headerTitle": "Pengaturan",
@@ -504,7 +688,10 @@
     "deactivateMessage": "Profil Anda akan disembunyikan. Anda dapat mengaktifkan kembali dengan masuk lagi.",
     "deactivateConfirm": "Nonaktifkan",
     "deleteAccountButton": "Hapus Akun",
-    "alertDeleteAccountNote": "Tindakan ini nggak bisa dibatalkan. Akun dan semua data kamu akan dihapus secara permanen"
+    "alertDeleteAccountNote": "Tindakan ini nggak bisa dibatalkan. Akun dan semua data kamu akan dihapus secara permanen",
+    "analyticsOptIn": "Kirim analitik penggunaan",
+    "analyticsOptInDescription": "Bantu kami meningkatkan aplikasi",
+    "attRationale": "PikTag menggunakan analitik dasar untuk meningkatkan pengalaman Anda. Kami tidak pernah melacak Anda di aplikasi lain."
   },
   "contactSync": {
     "headerTitle": "Sinkronisasi Kontak",
@@ -525,7 +712,23 @@
     "inviteMessage": "Hai {{name}}, saya pakai PikTag untuk bertukar tag! Gabung yuk: https://pikt.ag",
     "batchProgress": "Memproses {{current}}/{{total}}",
     "alertBatchDoneTitle": "Impor selesai",
-    "alertBatchDoneMessage": "{{matched}} teman ditambahkan. {{notOnApp}} kontak belum menggunakan PikTag."
+    "alertBatchDoneMessage": "{{matched}} teman ditambahkan. {{notOnApp}} kontak belum menggunakan PikTag.",
+    "sectionOnPiktag": "Di PikTag · {{count}}",
+    "sectionNotOnPiktag": "Belum di PikTag · {{count}}",
+    "summaryHeading": "{{onCount}} di PikTag · {{offCount}} untuk diundang",
+    "followAllCta": "Ikuti semua teman PikTag ({{count}})",
+    "followBtn": "Ikuti",
+    "inviteBtn": "Undang",
+    "tagInviteBtn": "Beri tag & undang",
+    "fromContact": "Kontak: {{name}}",
+    "classifyingText": "Mencocokkan…",
+    "alertFollowAllTitle": "Ikuti semua",
+    "alertFollowAllMessage": "Tambahkan semua {{count}} teman PikTag ke koneksimu?",
+    "alertFollowAllConfirm": "Tambah",
+    "alertFollowAllDoneTitle": "Selesai",
+    "alertFollowAllDoneMessage": "{{count}} teman PikTag ditambahkan",
+    "allConnected": "Semua kontak PikTag sudah terhubung",
+    "openSettings": "Buka Pengaturan untuk memberi izin"
   },
   "invite": {
     "headerTitle": "Undang Teman",
@@ -563,11 +766,11 @@
     "defaultLocation": "Lokasi Saat Ini",
     "alertPermTitle": "Izin Lokasi",
     "alertPermMessage": "Izin lokasi diperlukan untuk fitur ini",
-    "metAtPrefix": "Bertemu di ",
+    "metAtPrefix": "Bertemu di",
     "metAtSuffix": "",
     "nearbySection": "Koneksi terdekat ({{count}})",
     "metHereSection": "Bertemu di sini ({{count}})",
-    "emptyText": "Tidak ada koneksi ditemukan di sekitar"
+    "emptyText": "Tidak ada orang di sekitar. Coba sesuaikan jangkauan pencarian atau buka Jelajah untuk bertemu teman baru"
   },
   "dashboard": {
     "headerTitle": "Dasbor Pribadi",
@@ -581,7 +784,7 @@
     "totalLinkClicks": "Klik Tautan",
     "totalQrScans": "Total Pindai QR",
     "growthCurveTitle": "Pertumbuhan Koneksi",
-    "growthCurveEmpty": "Belum ada data teman",
+    "growthCurveEmpty": "Belum ada data teman. Tambahkan tag atau undang teman untuk memulai",
     "presetScansTitle": "Pindai per Template",
     "presetScansEmpty": "Belum ada catatan pindai template",
     "scanCountSuffix": "pindai",
@@ -605,7 +808,73 @@
     "timeYesterday": "Kemarin",
     "timeDaysAgo": "{{count}} hari lalu",
     "timeWeeksAgo": "{{count}} minggu lalu",
-    "emptyState": "Tidak ada notifikasi"
+    "emptyState": "Tidak ada notifikasi. Atur pengingat atau ikuti aktivitas temanmu",
+    "types": {
+      "ask_posted": {
+        "title": "",
+        "body": "memposting Ask · {{ask_body}}",
+        "push": {
+          "title": "{{username}}",
+          "body": "memposting Ask · {{ask_body}}"
+        }
+      },
+      "vibe_shift": {
+        "title": "",
+        "body": "menambahkan tag baru #{{tag_name}}",
+        "push": {
+          "title": "{{username}}",
+          "body": "menambahkan tag baru #{{tag_name}}"
+        }
+      },
+      "on_this_day": {
+        "title": "",
+        "body": "Ketuk untuk kembali ke Tag itu",
+        "push": {
+          "title": "",
+          "body": "Ketuk untuk kembali ke Tag itu"
+        }
+      },
+      "tag_convergence": {
+        "title": "",
+        "body": "Sapa mereka",
+        "push": {
+          "title": "",
+          "body": "Sapa mereka"
+        }
+      },
+      "ask_bridge": {
+        "title": "",
+        "body": "Minta diperkenalkan",
+        "push": {
+          "title": "",
+          "body": "Minta diperkenalkan"
+        }
+      },
+      "ask_prompt": {
+        "title": "",
+        "body": "Satu kalimat, mungkin ada yang bisa bantu",
+        "push": {
+          "title": "",
+          "body": "Satu kalimat, mungkin ada yang bisa bantu"
+        }
+      },
+      "reconnect_suggest": {
+        "title": "",
+        "body": "Sapa mereka",
+        "push": {
+          "title": "",
+          "body": "Sapa mereka"
+        }
+      },
+      "tag_combo": {
+        "title": "",
+        "body": "Bisa jadi topik bagus",
+        "push": {
+          "title": "",
+          "body": "Bisa jadi topik bagus"
+        }
+      }
+    }
   },
   "scanResult": {
     "headerTitle": "Tambah Teman",
@@ -626,7 +895,11 @@
     "relationClient": "Klien",
     "alreadyConnectedTitle": "Sudah Terhubung",
     "alreadyConnectedMessage": "Kalian sudah berteman.",
-    "addFriend": "Ikuti"
+    "addFriend": "Ikuti",
+    "connectElsewhereTitle": "Terhubung dengan {{name}} di sini juga",
+    "connectElsewhereHint": "Ketuk untuk membuka halamannya di app itu — kamu yang follow/tambah.",
+    "selfScanMessage": "Ini QR kamu sendiri — tidak bisa menambahkan diri sendiri.",
+    "addingFriend": "Menambahkan teman…"
   },
   "manageTags": {
     "headerTitle": "Kelola Tag",
@@ -652,6 +925,7 @@
     "pinLimitMessage": "Anda dapat menyematkan hingga {{max}} tag",
     "dragHint": "Tekan lama untuk menyematkan, panah untuk mengurutkan ulang",
     "aiSuggestionsTitle": "Saran AI untuk Anda",
+    "aiFromBioTitle": "Saran AI berdasarkan bio Anda",
     "pinTag": "Sematkan tag",
     "unpinTag": "Lepas sematan",
     "publicTagsTitle": "Tag Publik",
@@ -663,7 +937,9 @@
     "dragSelectTarget": "Ketuk tag untuk ditukar",
     "tagLimitTitle": "Batas tag",
     "tagLimitMessage": "Anda dapat menambahkan hingga {{max}} tag",
-    "aiErrorGeneric": "Saran AI sementara tidak tersedia, coba lagi nanti"
+    "aiErrorGeneric": "Saran AI sementara tidak tersedia, coba lagi nanti",
+    "nativeHintNoPin": "Tekan lama lalu seret untuk mengurutkan",
+    "tagEditHint": "Ketuk untuk menghapus (bisa dibatalkan sebelum disimpan) · Tahan untuk mengurutkan"
   },
   "activityReview": {
     "noNewFriends": "Tidak ada teman baru untuk ditinjau",
@@ -673,7 +949,8 @@
     "hiddenTagPlaceholder": "Tambahkan tag tersembunyi...",
     "swipeHint": "← Geser kiri untuk melewati · Kanan untuk berikutnya →",
     "skip": "Lewati",
-    "next": "Berikutnya"
+    "next": "Berikutnya",
+    "done": "Selesai"
   },
   "tagDetail": {
     "unknownTag": "Tag Tidak Dikenal",
@@ -712,6 +989,7 @@
     "title": "Akses Kamera",
     "grantPermission": "Beri Izin",
     "instruction": "Arahkan kamera Anda ke kode QR PikTag",
+    "cardFrameHint": "Paskan seluruh kartu di bingkai, tetap tajam",
     "invalidQr": "Kode QR Tidak Valid",
     "invalidQrMessage": "Kode QR ini bukan kode koneksi PikTag yang valid.",
     "permissionMessage": "PikTag memerlukan akses kamera untuk memindai kode QR dan terhubung dengan teman."
@@ -791,19 +1069,6 @@
     "section11Title": "11. Kontak",
     "section11Body": "PikTag Inc.\nEmail: support@pikt.ag"
   },
-  "points": {
-    "balance": "Saldo Koin P",
-    "lifetime": "Total Koin P",
-    "inviteReward": "Hadiah undangan",
-    "redeemHint": "Gunakan untuk layanan berbayar di masa mendatang",
-    "historyTitle": "Riwayat Koin P",
-    "reasonInviteAccepted": "Teman menerima undangan",
-    "reasonAdminGrant": "Hadiah sistem",
-    "reasonRedeemed": "Ditukarkan",
-    "emptyHistory": "Belum ada aktivitas Koin P",
-    "plusOne": "+1 P",
-    "pointsUnit": "P"
-  },
   "chat": {
     "inbox": "Pesan",
     "compose": "Pesan baru",
@@ -833,7 +1098,12 @@
     "userBlocked": "Tidak bisa kirim pesan ke pengguna ini",
     "deliveryFailed": "Gagal kirim · Ketuk untuk coba lagi",
     "unreadBadge": "{{count}} belum dibaca",
-    "messagesSent": "{{name}} mengirim pesan"
+    "messagesSent": "{{name}} mengirim pesan",
+    "timeJustNow": "Baru saja",
+    "timeYesterday": "Kemarin",
+    "timeMinutesAgo": "{{count}} mnt lalu",
+    "timeHoursAgo": "{{count}} jam lalu",
+    "timeDaysAgo": "{{count}} hari lalu"
   },
   "share": {
     "profileInviteMessage": "{{name}} di PikTag\n{{url}}\n\nPikTag — tandai setiap teman yang Anda temui,\npindai QR untuk otomatis mencatat kapan & di mana.\n\nDapatkan PikTag → https://pikt.ag"
@@ -903,7 +1173,123 @@
     "generating": "Generating title…",
     "minOneTag": "Select at least one tag",
     "aiSuggestions": "Saran AI",
-    "yourTags": "Tag Anda",
-    "noTagsHint": "Tambahkan tag terlebih dahulu di Profil → Kelola Tag"
+    "customTagPlaceholder": "Tambah tag kustom",
+    "cardLabel": "Mencari",
+    "askingNow": "Sedang mencari",
+    "yourAskTitle": "Ask aktif kamu",
+    "generateAiTags": "Buat tag AI",
+    "aiNoSuggestions": "AI tidak menemukan tag yang cocok. Coba lagi atau tulis sendiri.",
+    "regenerateAiTags": "Buat ulang",
+    "bubblePromptMine": "+ Ask baru",
+    "aiSuggestionsTitle": "Saran dari AI",
+    "aiBodyTooShortHint": "Tulis dalam satu kalimat — AI akan menyarankan tag",
+    "aiTapToGenerateHint": "Ketuk ↻ agar AI menyarankan tag",
+    "bodyPromptHints": [
+      "Ada yang mau hiking akhir pekan?",
+      "Butuh yang bisa benerin Wi-Fi, urgent",
+      "Cari kerja freelance — ada yang hiring?",
+      "Rekomendasi dokter gigi murah",
+      "Main board game minggu ini, siapa ikut?"
+    ],
+    "createSubtitle": "Satu baris cukup — AI menambah tag biar orang yang tepat (atau teman dari teman) melihatnya.",
+    "createFailed": "Ask kamu gagal terkirim — coba lagi.",
+    "deleteFailed": "Tidak bisa hapus ask"
+  },
+  "errorBoundary": {
+    "title": "Terjadi kesalahan",
+    "message": "Aplikasi mengalami kesalahan tak terduga. Silakan coba lagi.",
+    "retry": "Coba lagi"
+  },
+  "report": {
+    "reportMessage": "Laporkan pesan",
+    "reportAsk": "Laporkan Ask",
+    "reportNotification": "Laporkan notifikasi ini",
+    "hideFromUser": "Sembunyikan pengguna ini",
+    "confirmTitle": "Laporkan",
+    "confirmDescription": "Pilih alasan. Ditinjau dalam 24 jam.",
+    "success": "Terima kasih — akan kami tinjau.",
+    "reasonSpam": "Spam",
+    "reasonHarassment": "Pelecehan",
+    "reasonInappropriate": "Konten tidak pantas",
+    "reasonOther": "Lainnya",
+    "noTarget": "Notifikasi ini tak punya objek untuk dilaporkan."
+  },
+  "tabTooltips": {
+    "home": "Teman",
+    "search": "Cari / Chat",
+    "addTag": "Scan / Buat",
+    "notifications": "Notif",
+    "profile": "Profilmu",
+    "dismissHint": "Tap untuk tutup"
+  },
+  "qrGroup": {
+    "headerTitle": "Temui orang baru",
+    "detailHeader": "Tag",
+    "create": "Bikin Tag baru",
+    "createFirst": "Buat Tag sekarang",
+    "emptyTitle": "Biar tag yang mengingat teman barumu",
+    "emptyDesc": "Setelah pindai dan terhubung, pertemuan dicatat otomatis di kedua profil — tak perlu lupa di mana kalian bertemu.",
+    "untitled": "Tag tanpa nama",
+    "untitledFallback": "Tag · {{date}}",
+    "namePlaceholder": "Kasih nama Tag ini",
+    "tagsTitle": "Tag Tag",
+    "tagsEmpty": "Belum ada tag",
+    "tagInputPlaceholder": "Tag baru",
+    "noTagsYet": "Belum ada tag",
+    "membersTitle": "Anggota ({{count}})",
+    "memberCount": "{{count}} teman",
+    "membersEmpty": "Belum ada yang scan — share ke teman dulu",
+    "deleteTitle": "Hapus Tag ini?",
+    "deleteMessage": "\"{{name}}\" akan dihapus dari Tags-mu. Teman yang sudah menambahkanmu lewat QR ini tidak terpengaruh.",
+    "deleteFailedTitle": "Gagal menghapus",
+    "deleteFailedMessage": "Tag ini tidak terhapus. Coba lagi nanti. Hubungi kami jika terus terjadi.",
+    "emptyScanCta": "Atau pindai QR mereka untuk terhubung"
+  },
+  "localContact": {
+    "editTitle": "Edit kontak",
+    "addTitle": "Kontak baru",
+    "intro": "Catat dulu orangnya — dia belum perlu akun PikTag. Saat ia gabung, ini tertaut otomatis dan tag-mu ikut.",
+    "fieldName": "Nama",
+    "namePlaceholder": "mis. Alex dari trip diving",
+    "fieldPhone": "Telepon (opsional — menautkan saat gabung)",
+    "phonePlaceholder": "+62 812 3456 7890",
+    "fieldEmail": "Email (opsional)",
+    "emailPlaceholder": "name@example.com",
+    "fieldMetWhere": "Ketemu di mana (opsional)",
+    "metWherePlaceholder": "mis. reuni, trip diving",
+    "fieldNote": "Catatan (hanya kamu yang lihat)",
+    "notePlaceholder": "Satu baris biar ingat",
+    "fieldTags": "Tag (hanya kamu yang lihat)",
+    "tagPlaceholder": "Tambah tag…",
+    "save": "Simpan",
+    "nameRequiredTitle": "Perlu nama",
+    "nameRequiredMsg": "Beri nama minimal supaya bisa kamu ingat nanti.",
+    "saveError": "Gagal menyimpan — coba lagi.",
+    "notFound": "Kontak tidak ditemukan — mungkin sudah terhubung ke PikTag atau dihapus.",
+    "alreadyMemberTitle": "Orang ini sudah ada di PikTag",
+    "alreadyMemberMsg": "{{name}} sudah jadi anggota PikTag — lebih baik langsung terhubung daripada cuma disimpan.",
+    "alreadyMemberConnect": "Lihat / tambah",
+    "alreadyMemberFile": "Tetap simpan kontak",
+    "alreadyMemberFallbackWho": "Orang ini",
+    "deleteTitle": "Hapus kontak ini?",
+    "deleteMsg": "Hanya hilang dari daftarmu — tak memengaruhi orang lain.",
+    "scanCardHint": "Foto kartu namanya — nama & kontak terisi otomatis. Edit atau tambah tag setelahnya.",
+    "manualEntry": "Atau isi manual",
+    "scanRetake": "Ambil ulang",
+    "fieldBirthday": "Tanggal lahir (opsional)",
+    "birthdayPlaceholder": "MM-DD atau YYYY-MM-DD",
+    "linkPhone": "Telepon",
+    "linkEmail": "Email",
+    "linkAddress": "Alamat",
+    "scanningTitle": "Membaca kartu…",
+    "scanningSubtitle": "Biasanya butuh 5–10 detik",
+    "fieldAddress": "Alamat",
+    "addressPlaceholder": "cth. Jl. Sudirman 1, Jakarta",
+    "scanningCard": "Membaca kartu… (sekitar 3 dtk)"
+  },
+  "followers": {
+    "title": "Pengikut",
+    "count": "{{count}} pengikut",
+    "empty": "Belum ada pengikut"
   }
 }

@@ -1,15 +1,49 @@
 name: iOS TestFlight Build
 
 on:
-  workflow_dispatch:
+  # push to main + concurrency de-dupe + daily backstop + manual.
+  #
+  # History: "build on every push" once blew Apple's per-app DAILY
+  # upload cap (~10+ separate pushes in a few hours → 10+ uploads →
+  # "Upload limit reached"). The fix attempted next — schedule-only,
+  # NO push — backfired badly: GitHub's `schedule` is best-effort
+  # and silently didn't fire for a whole day, so ~18 commits of
+  # fixes never built and TestFlight went stale with NO fallback.
+  #
+  # Correct fix = keep push (reliable, immediate) BUT add a
+  # `concurrency` group with cancel-in-progress: a rapid burst of N
+  # commits cancels the in-flight builds and only the LATEST one
+  # finishes → ~1 upload per burst, not N. That structurally solves
+  # the original cap problem without losing reliable delivery. The
+  # daily cron stays as a pure backstop (if nothing pushed in a day,
+  # still ship the latest); workflow_dispatch for on-demand.
   push:
     branches: [main]
     paths:
       - 'mobile/**'
+      - '!mobile/supabase/**'
+      - '!mobile/scripts/**'
       - '.github/workflows/ios-testflight.yml'
+  schedule:
+    - cron: '30 20 * * *'   # daily UTC 20:30 (TW 04:30) — backstop only
+  workflow_dispatch:          # on-demand manual run
+
+# A burst of commits → cancel older in-flight builds, only the
+# newest uploads. THIS is the real rate-limiter for the Apple cap
+# (not a fragile schedule). queued/running builds for the same ref
+# stream get superseded.
+concurrency:
+  group: ios-testflight
+  cancel-in-progress: true
 
 jobs:
   build-and-upload:
+    # macos-15 is proven good: "Build iOS Archive" succeeds here and
+    # the Xcode-26 gate passes (setup-xcode resolves Xcode 26 on this
+    # image). The earlier "stuck at 574" was NOT a runner/Xcode issue
+    # — it was Apple's per-app daily UPLOAD limit (~10+ builds/day
+    # pushed; App Store Connect throttled: "Upload limit reached,
+    # wait 1 day"). Keep the known-good runner.
     runs-on: macos-15
     timeout-minutes: 60
 
@@ -30,20 +64,49 @@ jobs:
       EXPO_PUBLIC_SUPABASE_URL: ${{ secrets.EXPO_PUBLIC_SUPABASE_URL }}
       EXPO_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.EXPO_PUBLIC_SUPABASE_ANON_KEY }}
       EXPO_PUBLIC_GOOGLE_PLACES_API_KEY: ${{ secrets.EXPO_PUBLIC_GOOGLE_PLACES_API_KEY }}
+      EXPO_PUBLIC_SENTRY_DSN: ${{ secrets.EXPO_PUBLIC_SENTRY_DSN }}
       SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
       SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
       SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
 
     steps:
+      # @v5 = Node 24 action runtime. GitHub force-migrates the
+      # Node-20 runtime on 2026-06-02 and removes it 2026-09-16;
+      # @v4 (Node 20) would break the pipeline after the cutover.
+      # API-compatible bump — node-version below is the BUILD Node
+      # (unrelated to the action's own runtime), left at 22.
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: 22
           cache: npm
           cache-dependency-path: mobile/package-lock.json
+
+      # Apple ITMS-90725: starting 2026-04-28 every iOS submission must be
+      # built with Xcode 26 / iOS 26 SDK. The macos-15 runner image ships
+      # multiple Xcode versions side-by-side; pin the active one explicitly
+      # so the build doesn't silently fall back to whatever xcode-select
+      # points at by default.
+      - name: Select Xcode 26
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+
+      - name: Verify Xcode + SDK version
+        run: |
+          xcodebuild -version
+          xcrun --sdk iphoneos --show-sdk-version
+          # Hard fail if the runner doesn't actually have Xcode 26 — better
+          # to abort now than upload another rejected build.
+          XCODE_MAJOR=$(xcodebuild -version | head -1 | awk '{print $2}' | cut -d. -f1)
+          if [ "$XCODE_MAJOR" -lt 26 ]; then
+            echo "❌ Xcode $XCODE_MAJOR.x is below 26 — App Store will reject this build (ITMS-90725)"
+            echo "   Fix: bump runs-on to a newer macOS runner image, or set xcode-version explicitly"
+            exit 1
+          fi
 
       - name: Install dependencies
         working-directory: mobile
@@ -59,6 +122,7 @@ jobs:
           EXPO_PUBLIC_SUPABASE_URL=${EXPO_PUBLIC_SUPABASE_URL}
           EXPO_PUBLIC_SUPABASE_ANON_KEY=${EXPO_PUBLIC_SUPABASE_ANON_KEY}
           EXPO_PUBLIC_GOOGLE_PLACES_API_KEY=${EXPO_PUBLIC_GOOGLE_PLACES_API_KEY}
+          EXPO_PUBLIC_SENTRY_DSN=${EXPO_PUBLIC_SENTRY_DSN}
           EOF
           # Fail loudly if any required secret is missing. Better to abort
           # now than produce a crashing release build.
@@ -232,6 +296,28 @@ jobs:
             -allowProvisioningUpdates
 
           echo "✅ Upload to App Store Connect / TestFlight completed successfully"
+
+      - name: Upload JS sourcemaps to Sentry
+        # Belt-and-suspenders. The Sentry Xcode build phase already
+        # uploads sourcemaps when SENTRY_AUTH_TOKEN is set, but it can
+        # silently no-op (e.g. SENTRY_DISABLE_AUTO_UPLOAD=true). This
+        # explicit step guarantees a sourcemap exists for every release
+        # so production stack traces in Sentry stay symbolicated.
+        if: ${{ env.SENTRY_AUTH_TOKEN != '' }}
+        working-directory: mobile
+        env:
+          RUN_NUMBER: ${{ github.run_number }}
+        run: |
+          BUILD_NUMBER=$((RUN_NUMBER + 1))
+          VERSION=$(node -e "console.log(require('./app.json').expo.version)")
+          RELEASE="ag.pikt.app@${VERSION}+${BUILD_NUMBER}"
+          mkdir -p dist
+          npx expo export --platform ios --output-dir dist || echo "⚠️ expo export failed — sourcemap upload may be partial"
+          npx @sentry/cli sourcemaps upload \
+            --org "$SENTRY_ORG" \
+            --project "$SENTRY_PROJECT" \
+            --release "$RELEASE" \
+            ./dist || echo "⚠️ sourcemap upload failed — non-fatal"
 
       - name: Cleanup keychain
         if: always()

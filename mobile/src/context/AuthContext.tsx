@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as Sentry from '@sentry/react-native';
 import { supabase } from '../lib/supabase';
 import { setCache, getCache, invalidateCache, CACHE_KEYS } from '../lib/dataCache';
 import type { User, Session } from '@supabase/supabase-js';
@@ -76,8 +77,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setSession(currentSession);
       setUser(currentSession?.user ?? null);
       setLoading(false);
-      if (currentSession?.user?.id) {
+      // Tag every Sentry event with the current user id so error reports
+      // can be triaged per-account. We only send the id — never email or
+      // phone — to keep PII out of crash logs.
+      if (currentSession?.user) {
+        try { Sentry.setUser({ id: currentSession.user.id }); } catch {}
         void fetchProfileFor(currentSession.user.id);
+      } else {
+        try { Sentry.setUser(null); } catch {}
       }
     });
 
@@ -85,9 +92,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setSession(newSession);
       setUser(newSession?.user ?? null);
       setLoading(false);
-      if (newSession?.user?.id) {
+      if (newSession?.user) {
+        try { Sentry.setUser({ id: newSession.user.id }); } catch {}
         void fetchProfileFor(newSession.user.id);
       } else {
+        try { Sentry.setUser(null); } catch {}
         setProfile(null);
         invalidateCache(CACHE_KEYS.PROFILE);
       }

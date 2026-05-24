@@ -7,25 +7,22 @@ import {
   TouchableOpacity,
   StyleSheet,
   StatusBar,
-  ActivityIndicator,
   Modal,
   TextInput,
-  Alert,
   Dimensions,
   KeyboardAvoidingView,
   Platform,
+  Pressable,
 } from 'react-native';
-import { Image } from 'expo-image';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import {
-  MapPin,
+  ArrowDownAZ,
   CheckCircle2,
   X,
   Tag,
   CheckSquare,
   Square,
-  Sparkles,
   UserPlus,
   CalendarHeart,
   Gift,
@@ -33,19 +30,29 @@ import {
   Clock,
   QrCode,
   Hash,
+  ChevronRight,
+  User,
+  Users,
+  Share2,
+  Circle,
+  Plus,
+  Search,
 } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
-import { COLORS } from '../constants/theme';
+import { COLORS, type ColorPalette } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
 import { LinearGradient } from 'expo-linear-gradient';
-import InitialsAvatar from '../components/InitialsAvatar';
+import RingedAvatar from '../components/RingedAvatar';
 import { supabase } from '../lib/supabase';
 import { getCache, setCache, CACHE_KEYS } from '../lib/dataCache';
 import { ConnectionsScreenSkeleton } from '../components/SkeletonLoader';
+import ErrorState from '../components/ErrorState';
 import { useAuth } from '../hooks/useAuth';
+import { useLocalContacts } from '../hooks/useLocalContacts';
 import { useAskFeed } from '../hooks/useAskFeed';
+import { useNetInfoReconnect } from '../hooks/useNetInfoReconnect';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import FriendsMapModal, { type FriendLocation } from '../components/FriendsMapModal';
+import { shouldShowPhonePrompt, dismissPhonePrompt } from '../lib/phonePrompt';
 import AskStoryRow from '../components/ask/AskStoryRow';
 import type { Connection, ConnectionTag } from '../types';
 
@@ -54,11 +61,22 @@ type ConnectionWithTags = Connection & {
   semanticTypes: string[]; // unique semantic types from all tags
 };
 
-type FriendStatus = {
-  userId: string;
-  name: string;
-  avatarUrl: string | null;
-  statusText: string;
+// "new" badge auto-expires after this many days. Without expiry the badge
+// stays forever on every connection the user never opened ActivityReview
+// for, which produces visual noise that doesn't actually map to a real
+// "new" relationship anymore. 7 days matches the rough "if you haven't
+// processed them this week, you probably won't" behavioral pattern.
+//
+// Important: both the badge render AND the unreviewedCount banner count
+// share this filter, so the header number always matches what the list
+// visually shows.
+const NEW_BADGE_MAX_DAYS = 7;
+const NEW_BADGE_MAX_MS = NEW_BADGE_MAX_DAYS * 86_400_000;
+const isWithinNewWindow = (createdAt?: string | null): boolean => {
+  if (!createdAt) return false;
+  const ts = new Date(createdAt).getTime();
+  if (Number.isNaN(ts)) return false;
+  return Date.now() - ts < NEW_BADGE_MAX_MS;
 };
 
 // --- Memoized list item component ---
@@ -66,16 +84,76 @@ type ConnectionItemProps = {
   item: ConnectionWithTags;
   isSelected: boolean;
   selectMode: boolean;
+  // True iff this friend has an active Ask in the viewer's
+  // fetch_ask_feed result. Drives the avatar gradient ring —
+  // same visual convention FriendDetailScreen uses, so the same
+  // brand-purple gradient consistently means "this person is
+  // currently asking for something" across every surface.
+  hasActiveAsk: boolean;
+  // Short preview of the friend's active Ask body. When set,
+  // renders as a subtle chip below the tags row — same idea as
+  // IG story captions: a glanceable hint of WHAT they're asking
+  // for, without forcing a tap-through. Caller is responsible
+  // for truncating to a reasonable length (Map-side, not here).
+  askPreview?: string | null;
   onPress: (item: ConnectionWithTags) => void;
   onLongPress: (item: ConnectionWithTags) => void;
 };
 
-const ConnectionItem = React.memo(({ item, isSelected, selectMode, onPress, onLongPress }: ConnectionItemProps) => {
+const ConnectionItem = React.memo(({ item, isSelected, selectMode, hasActiveAsk, askPreview, onPress, onLongPress }: ConnectionItemProps) => {
+  // Sub-components need their own theme hooks — parent's `styles`
+  // and `colors` are scoped inside its function and not visible here.
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const profile = item.connected_user;
   const displayName = item.nickname || profile?.full_name || profile?.username || 'Unknown';
   const username = profile?.username || '';
   const verified = profile?.is_verified || false;
   const avatarUrl = profile?.avatar_url || null;
+
+  // Manually-added, not-yet-on-PikTag contact. Same outer row +
+  // RingedAvatar(59) + textSection structure as a real connection
+  // so the fixed getItemLayout height still holds — just dimmed,
+  // initials-only, a "尚未加入" badge where @username would be,
+  // no ask gradient, no select checkbox. Tap → edit it.
+  // Not-yet-on-PikTag: a manually-added local contact. Same dim row;
+  // tap → edit it. (The web "scanned + left a name" pending-scan rail
+  // / 絕招一 was removed — it produced name-only, untaggable records
+  // that contradicted the tag-is-memory thesis.)
+  const notJoined = (item as any).__localContact;
+  if (notJoined) {
+    return (
+      <TouchableOpacity
+        style={[styles.connectionItem, styles.connectionItemLocal]}
+        activeOpacity={0.7}
+        onPress={() => onPress(item)}
+        accessibilityLabel={displayName}
+        accessibilityRole="button"
+      >
+        <RingedAvatar size={59} ringStyle="subtle" name={displayName} avatarUrl={null} />
+        <View style={styles.textSection}>
+          <View style={styles.nameRow}>
+            <Text style={styles.name} numberOfLines={1}>{displayName}</Text>
+          </View>
+          <View style={styles.localBadge}>
+            <Text style={styles.localBadgeText}>
+              {/* i18n via t at call site isn't available in this
+                  memo'd component; use a stable literal — every
+                  locale's qrGroup work kept "Tag"/brand English,
+                  and this string is set from the screen below via
+                  the item so it stays translatable. */}
+              {(item as any).__notJoinedLabel || '尚未加入 PikTag'}
+            </Text>
+          </View>
+          {item.tags.length > 0 && (
+            <Text style={styles.tagsLine} numberOfLines={1}>
+              {item.tags.join('  ')}
+            </Text>
+          )}
+        </View>
+      </TouchableOpacity>
+    );
+  }
 
   return (
     <TouchableOpacity
@@ -86,24 +164,39 @@ const ConnectionItem = React.memo(({ item, isSelected, selectMode, onPress, onLo
       accessibilityLabel={displayName}
       accessibilityRole="button"
     >
+      {/* Buzz tint — soft brand-purple wash that fades to clear on
+          the right when this friend has a live Ask. Reads as
+          "this row is alive" without competing with the chip's
+          gradient pill or the avatar's rotating ring. pointerEvents
+          none so taps still land on the parent TouchableOpacity. */}
+      {hasActiveAsk && !isSelected ? (
+        <LinearGradient
+          colors={['rgba(140,82,255,0.07)', 'rgba(140,82,255,0)']}
+          start={{ x: 0, y: 0.5 }}
+          end={{ x: 1, y: 0.5 }}
+          style={StyleSheet.absoluteFill}
+          pointerEvents="none"
+        />
+      ) : null}
       {selectMode && (
         <View style={styles.checkboxContainer}>
           {isSelected ? (
-            <CheckSquare size={22} color={COLORS.piktag600} />
+            <CheckSquare size={22} color={colors.piktag600} />
           ) : (
-            <Square size={22} color={COLORS.gray400} />
+            <Square size={22} color={colors.gray400} />
           )}
         </View>
       )}
-      {avatarUrl ? (
-        <Image source={{ uri: avatarUrl }} style={styles.avatar} cachePolicy="memory-disk" />
-      ) : (
-        <InitialsAvatar name={displayName} size={56} style={styles.avatarInitials} />
-      )}
+      <RingedAvatar
+        size={59}
+        ringStyle={hasActiveAsk ? 'gradient' : 'subtle'}
+        name={displayName}
+        avatarUrl={avatarUrl}
+      />
       <View style={styles.textSection}>
         <View style={styles.nameRow}>
           <Text style={styles.name} numberOfLines={1}>{displayName}</Text>
-          {item.is_reviewed === false && (
+          {item.is_reviewed === false && isWithinNewWindow(item.created_at) && (
             <Text style={styles.newBadgeText}>new</Text>
           )}
         </View>
@@ -112,8 +205,8 @@ const ConnectionItem = React.memo(({ item, isSelected, selectMode, onPress, onLo
           {/* {verified && (
             <CheckCircle2
               size={16}
-              color={COLORS.blue500}
-              fill={COLORS.blue500}
+              color={colors.blue500}
+              fill={colors.blue500}
               strokeWidth={0}
               style={styles.verifiedIcon}
             />
@@ -124,6 +217,26 @@ const ConnectionItem = React.memo(({ item, isSelected, selectMode, onPress, onLo
             {item.tags.join('  ')}
           </Text>
         )}
+        {/* Ask-preview chip — gradient-filled pill that visually
+            echoes the rotating gradient ring on the avatar above.
+            Z-gen "this person is buzzing right now" cue, not a
+            subtle hint. Same gradient colors as the renderQrMode /
+            Vibe hero / QR share screen — single brand-purple
+            language across every "this is alive" surface. Caption
+            style mirrors IG story captions; tap the row to read
+            the full ask on FriendDetail. */}
+        {askPreview ? (
+          <LinearGradient
+            colors={['#ff5757', '#c44dff', '#8c52ff']}
+            start={{ x: 0, y: 0.5 }}
+            end={{ x: 1, y: 0.5 }}
+            style={styles.askPreviewChip}
+          >
+            <Text style={styles.askPreviewText} numberOfLines={1}>
+              {askPreview}
+            </Text>
+          </LinearGradient>
+        ) : null}
       </View>
     </TouchableOpacity>
   );
@@ -136,17 +249,27 @@ type ConnectionsScreenProps = {
 export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps) {
   const { t } = useTranslation();
   const { colors, isDark } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const { user } = useAuth();
+  // Single-player CRM layer: manually-added people who aren't on
+  // PikTag yet (owner-private piktag_local_contacts). They surface
+  // in the SAME list, dimmed + a "尚未加入" badge; when they later
+  // register, the server trigger promotes them into real
+  // connections and they drop out of this (un-promoted) query.
+  const { contacts: localContacts, refresh: refreshLocalContacts } = useLocalContacts();
   const { asks: askFeedItems, myAsk: myActiveAsk, refresh: refreshAsks } = useAskFeed();
 
   const lastFetchRef = React.useRef<number>(0);
 
   const [connections, setConnections] = useState<ConnectionWithTags[]>([]);
   const [loading, setLoading] = useState(true);
+  // Tracks whether the most recent fetch threw without leaving us
+  // anything cached to render. The empty-state branch reads this so a
+  // network failure shows a retry CTA instead of the new-user
+  // onboarding empty state (which previously made offline failures
+  // look like the user had no connections at all).
+  const [loadError, setLoadError] = useState(false);
 
-  // Friend statuses (IG-style stories bar)
-  const [friendStatuses, setFriendStatuses] = useState<FriendStatus[]>([]);
-  const [viewedStatusIds, setViewedStatusIds] = useState<Set<string>>(new Set());
   const [closeFriendCount, setCloseFriendCount] = useState(0);
   const [unreviewedCount, setUnreviewedCount] = useState(0);
 
@@ -156,6 +279,12 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
   const [filterTag, setFilterTag] = useState<string | null>(null);
   const [filterModalVisible, setFilterModalVisible] = useState(false);
 
+  // "+" add-contact action sheet — surfaces the four ways to grow
+  // your connections (search, contact-sync, manual local-contact,
+  // invite). Used to be discoverable only on the empty state's
+  // 4-action card; once the list filled up the entry points
+  // disappeared. This menu restores them at any list size.
+
   // Batch selection state
   const [selectMode, setSelectMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -163,7 +292,12 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
   const [batchTagInput, setBatchTagInput] = useState('');
   const [batchTagLoading, setBatchTagLoading] = useState(false);
 
-  const [mapVisible, setMapVisible] = useState(false);
+  // Sort options. 'recent' = newest connection first (default), 'alphabet'
+  // = nickname/full_name A→Z, 'interaction' = piktag_connections.updated_at
+  // newest first as a proxy for "you touched this connection lately".
+  type SortMode = 'recent' | 'alphabet' | 'alphabet_desc' | 'interaction' | 'birthday';
+  const [sortMode, setSortMode] = useState<SortMode>('recent');
+  const [sortModalVisible, setSortModalVisible] = useState(false);
 
   // FlatList performance: fixed item height for getItemLayout
   // connectionItem: paddingVertical 16*2=32 + borderBottomWidth 1 = 33 overhead
@@ -260,48 +394,42 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
       // Derive the "待整理" badge from the filtered list so the number
       // shown in the header ("1 位待整理") always matches what's
       // actually visible in the list below it.
+      //
+      // Same isWithinNewWindow gate as the per-row "new" pill — keeps the
+      // header count and the visible badges in lock-step. A connection
+      // older than NEW_BADGE_MAX_DAYS that's still unreviewed silently
+      // ages out: the row stops showing "new" and stops counting toward
+      // the banner. ActivityReview can still surface it (it queries
+      // is_reviewed=false directly with no age filter) for the user who
+      // wants to clean up old leftovers.
       setUnreviewedCount(
-        displayedConnections.filter((c: any) => c.is_reviewed === false).length,
+        displayedConnections.filter(
+          (c: any) => c.is_reviewed === false && isWithinNewWindow(c.created_at),
+        ).length,
       );
 
-      const connUserIds = displayedConnections.map((c: any) => c.connected_user_id);
       const connectionIds = displayedConnections.map((c: any) => c.id);
-      const followedConnUserIds = connUserIds;
 
-      // --- Wave 2: MY tags on these connections + statuses in parallel ---
-      // The "tags" row underneath each friend's name in the list (and the
-      // "filter by tag" menu in the header) previously showed each FRIEND's
-      // own self-declared public tags from piktag_user_tags. That was
+      // --- Wave 2: MY tags on these connections ---
+      // The "tags" row underneath each friend's name in the list previously
+      // showed each FRIEND's own self-declared public tags. That was
       // misleading — it reflected how the friend described themselves, not
       // how the current user had categorized them. We now show the CURRENT
       // USER's own tags on each connection (both private hidden tags and
-      // public picked tags), since that matches how people actually organize
-      // their friend list.
-      //
-      // No is_private filter = both hidden and public pick tags are included.
-      const [myTagsRes, statusRes] = await Promise.allSettled([
-        supabase
-          .from('piktag_connection_tags')
-          .select('connection_id, is_private, tag:piktag_tags!tag_id(name)')
-          .in('connection_id', connectionIds)
-          .limit(5000),
-        followedConnUserIds.length > 0
-          ? supabase
-              .from('piktag_user_status')
-              .select('user_id, text')
-              .in('user_id', followedConnUserIds)
-              .gt('expires_at', new Date().toISOString())
-              .order('created_at', { ascending: false })
-          : Promise.resolve({ data: null as any[] | null }),
-      ]);
+      // public picked tags). No is_private filter = both kinds included.
+      const myTagsRes = await supabase
+        .from('piktag_connection_tags')
+        .select('connection_id, is_private, tag:piktag_tags!tag_id(name)')
+        .in('connection_id', connectionIds)
+        .limit(200);
 
       // Build tag map from my-tags-on-connections result.
       // Sort: hidden (private) tags first — these are the most identifying
       // personal notes (e.g. #前同事, #某場活動認識), then public picked tags.
       const tagMap = new Map<string, string[]>();
-      if (myTagsRes.status === 'fulfilled' && myTagsRes.value.data) {
+      if (myTagsRes.data) {
         const grouped = new Map<string, { name: string; isPrivate: boolean }[]>();
-        for (const ct of myTagsRes.value.data as any[]) {
+        for (const ct of myTagsRes.data as any[]) {
           const name = ct.tag?.name;
           if (!name) continue;
           const arr = grouped.get(ct.connection_id) || [];
@@ -326,57 +454,46 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
       }));
       setCache(CACHE_KEYS.CONNECTIONS, merged);
       setConnections(merged);
-
-      // Build friend statuses from status result
-      const statusData =
-        statusRes.status === 'fulfilled' && statusRes.value.data ? statusRes.value.data : null;
-      if (statusData && statusData.length > 0) {
-        // Deduplicate: one status per user (latest)
-        const seenUsers = new Set<string>();
-        const statuses: FriendStatus[] = [];
-        for (const s of statusData) {
-          if (seenUsers.has(s.user_id)) continue;
-          seenUsers.add(s.user_id);
-          const conn = displayedConnections.find((c: any) => c.connected_user_id === s.user_id);
-          const profile = conn?.connected_user as any;
-          if (profile) {
-            statuses.push({
-              userId: s.user_id,
-              name: conn.nickname || profile.full_name || profile.username || '?',
-              avatarUrl: profile.avatar_url || null,
-              statusText: s.text,
-            });
-          }
-        }
-        setFriendStatuses(statuses);
-      } else {
-        setFriendStatuses([]);
-      }
     } catch (err) {
       console.error('Unexpected error fetching connections:', err);
       if (!cached) {
         setConnections([]);
+        setLoadError(true);
       }
+      // If we DID have cache, leave the list as-is and skip the error
+      // surface — the user still sees something meaningful, and the
+      // pull-to-refresh + reconnect retry will pick up the next attempt.
     }
   }, [user, t]);
 
   // --- Optimized: load connections with cooldown ---
-  // Load viewed status IDs from storage
-  useEffect(() => {
-    AsyncStorage.getItem('piktag_viewed_statuses').then(val => {
-      if (val) {
-        try { setViewedStatusIds(new Set(JSON.parse(val))); } catch {}
-      }
-    });
-  }, []);
-
   useFocusEffect(
     useCallback(() => {
       const loadAll = async () => {
         if (!user) return;
+        // Always refresh the Ask feed on focus — independent of the
+        // 30s connection-list cooldown. Reported case: A and B are
+        // friends, A posts an Ask, B receives the push notification,
+        // but B doesn't see the Ask in the rail because B's app is
+        // foregrounded mid-session and the realtime INSERT event
+        // didn't reach this client (e.g. websocket asleep, race with
+        // the push payload). The notification trigger and the feed
+        // RPC look at the same connections rows, so if B got the
+        // notification B *should* see the Ask. A focus refetch
+        // guarantees that without changing the RPC contract.
+        refreshAsks();
+        // Refresh local contacts every focus (independent of the 30s
+        // connection cooldown) — EditLocalContactScreen holds its own
+        // useLocalContacts instance, so a create/edit/delete there
+        // won't reflect here without an explicit refetch on return.
+        refreshLocalContacts();
         const now = Date.now();
         if (now - lastFetchRef.current < 30000 && lastFetchRef.current > 0) return;
         setLoading(true);
+        // Clear stale error before attempting again so the empty-state
+        // doesn't briefly render the previous failure surface while
+        // the new request is in flight.
+        setLoadError(false);
         try {
           await fetchConnections();
         } finally {
@@ -385,19 +502,153 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
         }
       };
       loadAll();
-    }, [fetchConnections])
+    }, [fetchConnections, refreshAsks, refreshLocalContacts])
   );
 
-  // Always newest-first; tag filter applied on top.
+  // Auto-refetch when the network comes back if we previously errored.
+  // Bypass the 30s cooldown — a manual reconnect signal is a strong
+  // hint that the user wants their data right now.
+  useNetInfoReconnect(useCallback(() => {
+    if (loadError) {
+      lastFetchRef.current = 0;
+      setLoadError(false);
+      void fetchConnections();
+    }
+  }, [loadError, fetchConnections]));
+
+  // Sort by user-chosen mode, then apply tag filter on top.
+  // 'recent'      → created_at desc (newest connection first)
+  // 'alphabet'    → display name A→Z, locale-aware (zh stroke / en alpha)
+  // 'interaction' → updated_at desc, fall back to created_at when missing
   const sortedConnections = useMemo(() => {
-    const sorted = [...connections].sort(
-      (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-    );
+    const displayName = (c: ConnectionWithTags) =>
+      c.nickname || c.connected_user?.full_name || c.connected_user?.username || '';
+    const recencyTs = (c: ConnectionWithTags) => {
+      const v = (c as any).updated_at || c.created_at;
+      const ts = new Date(v).getTime();
+      return Number.isFinite(ts) ? ts : 0;
+    };
+
+    // Days until the connection's next birthday (today = 0). Returns
+    // Number.MAX_SAFE_INTEGER for connections without a birthday so
+    // they sort to the bottom of the list. Birthdays are stored as
+    // YYYY-MM-DD or MM-DD; both work because we only use month + day.
+    const daysUntilBirthday = (c: ConnectionWithTags) => {
+      const raw = (c as any).birthday;
+      if (!raw) return Number.MAX_SAFE_INTEGER;
+      const parts = String(raw).split('T')[0].split('-');
+      // Accept "YYYY-MM-DD" (3 parts) or "MM-DD" (2 parts).
+      const month = parts.length === 3
+        ? parseInt(parts[1], 10) - 1
+        : parts.length === 2 ? parseInt(parts[0], 10) - 1 : NaN;
+      const day = parts.length === 3
+        ? parseInt(parts[2], 10)
+        : parts.length === 2 ? parseInt(parts[1], 10) : NaN;
+      if (Number.isNaN(month) || Number.isNaN(day)) return Number.MAX_SAFE_INTEGER;
+      // Range guard: invalid months / days (e.g. "02-30", "13-15", legacy
+      // garbage) silently roll over via Date's auto-correct (Feb 30 →
+      // Mar 2), which produces the wrong sort order. Reject anything
+      // outside the calendar so malformed rows fall to the bottom
+      // instead of pretending to have a real birthday.
+      if (month < 0 || month > 11 || day < 1 || day > 31) {
+        return Number.MAX_SAFE_INTEGER;
+      }
+
+      const now = new Date();
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      let next = new Date(now.getFullYear(), month, day);
+      // Date constructor accepts month=2 day=30 and silently emits
+      // Mar 2 — verify the round-trip kept the inputs intact, otherwise
+      // treat as invalid (e.g. someone whose birthday was stored as
+      // 02-30 from a buggy date picker).
+      if (next.getMonth() !== month || next.getDate() !== day) {
+        return Number.MAX_SAFE_INTEGER;
+      }
+      // If the birthday already passed THIS year, target next year.
+      if (next.getTime() < today.getTime()) {
+        next = new Date(now.getFullYear() + 1, month, day);
+      }
+      return Math.floor((next.getTime() - today.getTime()) / 86_400_000);
+    };
+
+    const sorted = [...connections];
+    if (sortMode === 'alphabet') {
+      sorted.sort((a, b) => displayName(a).localeCompare(displayName(b), undefined, { sensitivity: 'base' }));
+    } else if (sortMode === 'alphabet_desc') {
+      sorted.sort((a, b) => displayName(b).localeCompare(displayName(a), undefined, { sensitivity: 'base' }));
+    } else if (sortMode === 'interaction') {
+      sorted.sort((a, b) => recencyTs(b) - recencyTs(a));
+    } else if (sortMode === 'birthday') {
+      sorted.sort((a, b) => daysUntilBirthday(a) - daysUntilBirthday(b));
+    } else {
+      sorted.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    }
+
+    // Promote friends with an active Ask to the top — same idea as
+    // IG's "story rail" pushing has-story friends ahead, just on the
+    // vertical list instead of the horizontal rail. This is a STATUS
+    // override, not a sort mode: within both groups (has-ask vs not)
+    // the user's chosen sort still wins. ES2019 Array.sort is stable
+    // so the secondary pass cleanly partitions the list without
+    // disturbing the order inside each partition. When an Ask expires
+    // the friend naturally falls back into their normal slot.
+    const askAuthorSet = new Set((askFeedItems || []).map((a) => a.author_id));
+    sorted.sort((a, b) => {
+      const aHas = askAuthorSet.has(a.connected_user_id) ? 1 : 0;
+      const bHas = askAuthorSet.has(b.connected_user_id) ? 1 : 0;
+      return bHas - aHas;
+    });
+
     if (filterTag) {
       return sorted.filter((c) => c.tags.includes(filterTag));
     }
     return sorted;
-  }, [connections, filterTag]);
+  }, [connections, filterTag, sortMode, askFeedItems]);
+
+  // Map un-promoted local contacts into the connection row shape and
+  // append AFTER real connections (keeps the tuned real-connection
+  // sort + ask-promotion untouched; not-yet-joined people group at
+  // the end behind the badge). is_reviewed:true makes them invisible
+  // to all the 待整理 / "new" badge / select logic with zero extra
+  // guards. filterTag applies to their tags too.
+  const notJoinedLabel = t('connections.notJoinedBadge', { defaultValue: '尚未加入 PikTag' });
+  const listData = useMemo(() => {
+    // Local-contact tags are stored as raw names; member connection
+    // tags are "#name" (built at line ~439). Normalize local tags the
+    // SAME way so (a) the list row renders them unmistakably as TAGS —
+    // #商用不動產 etc. — not a 職稱-looking blob (tags are the whole
+    // point of this app), and (b) the tag filter, which compares
+    // against "#name", actually includes matching local contacts
+    // (it silently didn't before).
+    const hashTag = (n: string) => '#' + String(n).replace(/^#+/, '');
+    const mapped = (localContacts || [])
+      .filter(
+        (lc) => !filterTag || (lc.tags ?? []).some((n) => hashTag(n) === filterTag),
+      )
+      .map((lc) => ({
+        id: 'lc:' + lc.id,
+        user_id: '',
+        connected_user_id: '',
+        nickname: lc.name,
+        note: lc.note,
+        met_at: lc.met_at,
+        met_location: lc.met_location,
+        birthday: lc.birthday,
+        anniversary: null,
+        scan_session_id: null,
+        is_reviewed: true,
+        created_at: lc.created_at,
+        connected_user: undefined,
+        tags: (lc.tags ?? []).map(hashTag),
+        semanticTypes: [],
+        __localContact: lc,
+        __notJoinedLabel: notJoinedLabel,
+      })) as any as ConnectionWithTags[];
+
+    return mapped.length
+      ? [...sortedConnections, ...mapped]
+      : sortedConnections;
+  }, [sortedConnections, localContacts, filterTag, notJoinedLabel]);
 
   // All unique semantic types from connections (for filter)
   const allConnectionTags = useMemo(() => {
@@ -413,6 +664,14 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
 
   // --- Optimized: useCallback for handlers ---
   const handleConnectionPress = useCallback((item: ConnectionWithTags) => {
+    const lc = (item as any).__localContact;
+    if (lc) {
+      // Not-yet-on-PikTag manual contact → its profile VIEW (the
+      // contact analog of FriendDetail; 編輯 there opens the form).
+      // Select-mode is N/A for these.
+      navigation.navigate('LocalContactDetail', { contactId: lc.id });
+      return;
+    }
     if (selectMode) {
       setSelectedIds((prev) => {
         const next = new Set(prev);
@@ -429,9 +688,12 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
         friendId: item.connected_user_id,
       });
     }
-  }, [selectMode, navigation]);
+  }, [selectMode, navigation, t]);
 
   const handleConnectionLongPress = useCallback((item: ConnectionWithTags) => {
+    // Local contacts aren't bulk-selectable (batch ops act on real
+    // connections only).
+    if ((item as any).__localContact) return;
     if (!selectMode) {
       setSelectMode(true);
       setSelectedIds(new Set([item.id]));
@@ -444,8 +706,12 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
   }, []);
 
   const selectAll = useCallback(() => {
-    setSelectedIds(new Set(connections.map((c) => c.id)));
-  }, [connections]);
+    // Select what's actually visible — sortedConnections has the
+    // active filterTag applied (and excludes the merged non-member
+    // local contacts). Selecting the raw unfiltered `connections`
+    // meant "全選" picked 200 rows when the user saw 5 filtered.
+    setSelectedIds(new Set(sortedConnections.map((c) => c.id)));
+  }, [sortedConnections]);
 
   const handleBatchTagSubmit = async () => {
     const tagName = batchTagInput.trim().replace(/^#/, '');
@@ -503,47 +769,166 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
     }
   };
 
+  // Per-author lookup table for active Asks. Stores both the
+  // existence flag (drives the avatar gradient ring) and a
+  // truncated body preview (drives the IG-caption-style chip
+  // beneath the tags row). Built once per askFeedItems change so
+  // the per-row render stays O(1).
+  //
+  // Preview length cap: 40 visible characters. Empirically that
+  // fits roughly one line at the row's natural width without
+  // pushing the layout taller, and is long enough to convey
+  // "I'm looking for a frontend engineer" sized intents.
+  const ASK_PREVIEW_LEN = 40;
+  const askPreviewByAuthor = useMemo(() => {
+    const m = new Map<string, string>();
+    for (const a of askFeedItems || []) {
+      if (!a?.author_id || !a?.body) continue;
+      // Collapse whitespace + truncate. ellipsis ASCII to keep
+      // the renderable width tight on iOS Pinyin Mono Dot.
+      const oneLine = a.body.replace(/\s+/g, ' ').trim();
+      const preview =
+        oneLine.length > ASK_PREVIEW_LEN
+          ? oneLine.slice(0, ASK_PREVIEW_LEN).trimEnd() + '…'
+          : oneLine;
+      m.set(a.author_id, preview);
+    }
+    return m;
+  }, [askFeedItems]);
+
   // --- Optimized: useCallback renderItem with memoized ConnectionItem ---
-  const renderItem = useCallback(({ item }: { item: ConnectionWithTags }) => (
-    <ConnectionItem
-      item={item}
-      isSelected={selectedIds.has(item.id)}
-      selectMode={selectMode}
-      onPress={handleConnectionPress}
-      onLongPress={handleConnectionLongPress}
-    />
-  ), [selectedIds, selectMode, handleConnectionPress, handleConnectionLongPress]);
+  const renderItem = useCallback(({ item }: { item: ConnectionWithTags }) => {
+    const preview = askPreviewByAuthor.get(item.connected_user_id) ?? null;
+    return (
+      <ConnectionItem
+        item={item}
+        isSelected={selectedIds.has(item.id)}
+        selectMode={selectMode}
+        hasActiveAsk={preview != null}
+        askPreview={preview}
+        onPress={handleConnectionPress}
+        onLongPress={handleConnectionLongPress}
+      />
+    );
+  }, [selectedIds, selectMode, askPreviewByAuthor, handleConnectionPress, handleConnectionLongPress]);
+
+  // Phone-prompt banner state. Async check (AsyncStorage + Supabase)
+  // so we render the cold-start view first, then upgrade once known.
+  // Declared before renderEmpty since the callback's deps reference it.
+  const [showPhonePrompt, setShowPhonePrompt] = useState(false);
+  useEffect(() => {
+    if (!user?.id) return;
+    let cancelled = false;
+    shouldShowPhonePrompt(user.id)
+      .then((show) => {
+        if (!cancelled) setShowPhonePrompt(show);
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [user?.id]);
+  const handlePhonePromptPress = useCallback(() => {
+    setShowPhonePrompt(false);
+    navigation.navigate('ProfileTab', { screen: 'EditProfile', params: { focusPhone: true } });
+  }, [navigation]);
+  const handlePhonePromptDismiss = useCallback(() => {
+    setShowPhonePrompt(false);
+    dismissPhonePrompt();
+  }, []);
 
   const renderEmpty = useCallback(() => {
     if (loading) return null;
+    // Network failure path. Has to come BEFORE the onboarding empty
+    // state — otherwise users with a dropped connection see a bunch of
+    // CTAs ("scan a QR / sync contacts") that won't actually work.
+    if (loadError) {
+      return (
+        <ErrorState
+          onRetry={() => {
+            setLoadError(false);
+            lastFetchRef.current = 0;
+            void fetchConnections();
+          }}
+        />
+      );
+    }
+    // Cold-start onboarding action list — 4 sequential steps to
+    // give first-batch users (no one in their network yet) a clear
+    // path from "PikTag is empty" to "I have a usable personal CRM
+    // + shareable profile". Replaces the old single-CTA "scan a QR"
+    // empty state which dead-ended for users whose friends weren't
+    // on PikTag yet.
     return (
-      <View style={styles.emptyContainer}>
-        <QrCode size={64} color={COLORS.gray200} style={{ marginBottom: 16 }} />
-        <Text style={styles.emptyTitle}>{t('connections.emptyGuideTitle')}</Text>
-        <Text style={styles.emptyText}>{t('connections.emptyGuideMessage')}</Text>
-        <TouchableOpacity
-          onPress={() => navigation.navigate('AddTagTab', { screen: 'CameraScan' })}
-          activeOpacity={0.8}
-        >
-          <LinearGradient
-            colors={['#ff5757', '#c44dff', '#8c52ff']}
-            start={{ x: 0, y: 0.5 }}
-            end={{ x: 1, y: 0.5 }}
-            style={styles.emptyButton}
-          >
-            <Text style={styles.emptyButtonText}>{t('connections.emptyGuideButton')}</Text>
-          </LinearGradient>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.emptyButton, { backgroundColor: COLORS.piktag50, borderWidth: 1.5, borderColor: COLORS.piktag500, marginTop: 10 }]}
-          onPress={() => navigation.navigate('ProfileTab', { screen: 'ContactSync' })}
-          activeOpacity={0.8}
-        >
-          <Text style={[styles.emptyButtonText, { color: COLORS.piktag600 }]}>{t('connections.syncContactsButton') || '同步通訊錄找朋友'}</Text>
-        </TouchableOpacity>
+      <View style={styles.emptyOnboardingContainer}>
+        <Text style={styles.emptyOnboardingTitle}>
+          {t('connections.coldStartTitle', { defaultValue: '還沒有朋友？' })}
+        </Text>
+        <Text style={styles.emptyOnboardingSubtitle}>
+          {t('connections.coldStartSubtitle', { defaultValue: '從這 4 步開始建立你的 PikTag' })}
+        </Text>
+
+        <View style={styles.emptyActionList}>
+          {[
+            {
+              key: 'profile',
+              icon: User,
+              title: t('connections.coldStartActionProfile', { defaultValue: '完成個人資料' }),
+              desc: t('connections.coldStartActionProfileDesc', { defaultValue: '名字、簡介、標籤、社群連結' }),
+              onPress: () => navigation.navigate('ProfileTab', { screen: 'EditProfile' }),
+            },
+            {
+              // Single-player CRM path, brought back: jot down a
+              // person yourself even with zero PikTag friends yet.
+              // When they later register, the server trigger
+              // promotes the row into a real connection (your
+              // private tags/notes ride along; they never see them).
+              key: 'manual',
+              icon: UserPlus,
+              title: t('connections.coldStartActionManual', { defaultValue: '手動記下一個人' }),
+              desc: t('connections.coldStartActionManualDesc', { defaultValue: '對方還不用是會員 — 加入後自動接上你的標籤與備註' }),
+              onPress: () => navigation.navigate('EditLocalContact'),
+            },
+            {
+              // The social path: resolve phone-book contacts against
+              // PikTag accounts, follow matches, tag-and-invite the
+              // rest.
+              key: 'contacts',
+              icon: Users,
+              title: t('connections.coldStartActionContacts', { defaultValue: '從通訊錄找朋友' }),
+              desc: t('connections.coldStartActionContactsDesc', { defaultValue: '找出已在 PikTag 的朋友，沒在的也能標籤+邀請' }),
+              onPress: () => navigation.navigate('ContactSync'),
+            },
+            {
+              key: 'qr',
+              icon: QrCode,
+              title: t('connections.coldStartActionQr', { defaultValue: '分享你的 QR Code' }),
+              desc: t('connections.coldStartActionQrDesc', { defaultValue: '讓朋友掃一下就追蹤你' }),
+              onPress: () => navigation.navigate('AddTagTab', { screen: 'AddTag' }),
+            },
+          ].map((action) => (
+            <Pressable
+              key={action.key}
+              style={({ pressed }) => [
+                styles.emptyActionCard,
+                pressed && styles.emptyActionCardPressed,
+              ]}
+              onPress={action.onPress}
+            >
+              <View style={styles.emptyActionIconWrap}>
+                <action.icon size={20} color={colors.piktag500} />
+              </View>
+              <View style={styles.emptyActionTextWrap}>
+                <Text style={styles.emptyActionTitle}>{action.title}</Text>
+                <Text style={styles.emptyActionDesc} numberOfLines={2}>
+                  {action.desc}
+                </Text>
+              </View>
+              <ChevronRight size={18} color={colors.gray400} />
+            </Pressable>
+          ))}
+        </View>
       </View>
     );
-  }, [loading, t, navigation]);
+  }, [loading, loadError, fetchConnections, t, navigation]);
 
   // --- Optimized: stable keyExtractor ---
   const keyExtractor = useCallback((item: ConnectionWithTags) => item.id, []);
@@ -555,6 +940,9 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
     supabase.from('piktag_profiles').select('full_name, avatar_url').eq('id', user.id).single()
       .then(({ data }) => { if (data) setMyProfile(data); });
   }, [user]);
+
+  // (Invite-code redeem resume removed — the invite/redeem gate was
+  // retired; open signup, no codes.)
 
   const handleAskPressUser = useCallback((userId: string) => {
     const conn = connections.find(c => c.connected_user_id === userId);
@@ -569,23 +957,52 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
   const listHeader = useMemo(() => {
     if (selectMode) return null;
     return (
-      <AskStoryRow
-        asks={askFeedItems}
-        myAsk={myActiveAsk}
-        myAvatarUrl={myProfile.avatar_url}
-        myName={myProfile.full_name || '?'}
-        onRefresh={refreshAsks}
-        onPressUser={handleAskPressUser}
-      />
+      <>
+        {/* Phone-discovery nudge for users registered via Apple/Google
+            who never supplied a phone. Without it, contact-sync from
+            their friends won't match them — they're invisible. Lives
+            in the list header (not just the cold-start empty state)
+            so active users with friends but no phone still see it. */}
+        {showPhonePrompt && (
+          <Pressable
+            style={styles.phonePromptCard}
+            onPress={handlePhonePromptPress}
+          >
+            <View style={{ flex: 1 }}>
+              <Text style={styles.phonePromptTitle}>
+                {t('connections.phonePromptTitle', { defaultValue: '加上手機號碼，讓朋友找到你' })}
+              </Text>
+              <Text style={styles.phonePromptBody}>
+                {t('connections.phonePromptBody', { defaultValue: '朋友通訊錄同步時會自動加你為好友。只有 PikTag 用得到，永遠不會公開。' })}
+              </Text>
+            </View>
+            <Pressable
+              hitSlop={12}
+              onPress={handlePhonePromptDismiss}
+              style={styles.phonePromptDismiss}
+            >
+              <X size={16} color={colors.gray500} />
+            </Pressable>
+          </Pressable>
+        )}
+        <AskStoryRow
+          asks={askFeedItems}
+          myAsk={myActiveAsk}
+          myAvatarUrl={myProfile.avatar_url}
+          myName={myProfile.full_name || '?'}
+          onRefresh={refreshAsks}
+          onPressUser={handleAskPressUser}
+        />
+      </>
     );
-  }, [askFeedItems, myActiveAsk, myProfile, selectMode, refreshAsks, handleAskPressUser]);
+  }, [askFeedItems, myActiveAsk, myProfile, selectMode, refreshAsks, handleAskPressUser, showPhonePrompt, handlePhonePromptPress, handlePhonePromptDismiss, t, styles, colors]);
 
   // --- Optimized: stable contentContainerStyle ---
   const contentContainerStyle = useMemo(() => [
     styles.listContent,
     connections.length === 0 && styles.listContentEmpty,
     selectMode && { paddingBottom: 160 },
-  ], [connections.length, selectMode]);
+  ], [connections.length, selectMode, styles]);
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
@@ -605,14 +1022,14 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
               activeOpacity={0.6}
               onPress={selectAll}
             >
-              <CheckSquare size={24} color={COLORS.gray600} />
+              <CheckSquare size={24} color={colors.gray600} />
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.headerIconBtn}
               activeOpacity={0.6}
               onPress={exitSelectMode}
             >
-              <X size={24} color={COLORS.gray600} />
+              <X size={24} color={colors.gray600} />
             </TouchableOpacity>
           </View>
         </View>
@@ -621,10 +1038,10 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
           <View style={styles.headerLeft}>
             <Text style={[styles.headerTitle, { color: colors.text }]}>PikTag</Text>
             <View style={styles.headerSubtitleRow}>
-              <Text style={styles.headerSubtitle}>
-                <Text style={styles.headerCount}>{sortedConnections.length}</Text>{' '}{t('connections.friendsLabel') || 'friends'}
+              <Text style={[styles.headerSubtitle, isDark && { color: '#FFFFFF' }]}>
+                <Text style={styles.headerCount}>{sortedConnections.length}</Text>{' '}{t('connections.friendsLabel', { defaultValue: 'friends' })}
                 {closeFriendCount > 0 && (
-                  <Text>{'  ·  '}<Text style={styles.headerCount}>{closeFriendCount}</Text>{' '}{t('connections.closeFriendsLabel') || '摯友'}</Text>
+                  <Text>{'  ·  '}<Text style={styles.headerCount}>{closeFriendCount}</Text>{' '}{t('connections.closeFriendsLabel', { defaultValue: '摯友' })}</Text>
                 )}
               </Text>
               {unreviewedCount > 0 && (
@@ -635,13 +1052,33 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
                   accessibilityRole="link"
                 >
                   <Text style={styles.unreviewedLink}>
-                    {'  ·  '}{unreviewedCount} {t('connections.unreviewedLabel') || '位待整理'} →
+                    {'  ·  '}{unreviewedCount} {t('connections.unreviewedLabel', { defaultValue: '位待整理' })} →
                   </Text>
                 </TouchableOpacity>
               )}
             </View>
           </View>
           <View style={styles.headerRight}>
+            {/* "+" add-contact action sheet was removed after user
+                feedback that the Connections page was too busy at
+                first glance. The same three entry points (search /
+                contact-sync / invite) remain reachable from
+                Settings and the empty-state CTA — they don't need
+                a third surface on this already-tag-and-sort-heavy
+                header. */}
+            {/* Single persistent entry to the manual-add CRM flow
+                (one icon, not the old busy action sheet) so it's
+                reachable once the user already has friends, not
+                only from the cold-start empty state. */}
+            <TouchableOpacity
+              style={styles.headerIconBtn}
+              activeOpacity={0.6}
+              onPress={() => navigation.navigate('EditLocalContact')}
+              accessibilityLabel={t('connections.addManualA11y', { defaultValue: '手動新增聯絡人' })}
+              accessibilityRole="button"
+            >
+              <UserPlus size={24} color={isDark ? '#FFFFFF' : colors.gray600} />
+            </TouchableOpacity>
             <TouchableOpacity
               style={styles.headerIconBtn}
               activeOpacity={0.6}
@@ -649,16 +1086,19 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
               accessibilityLabel="篩選標籤"
               accessibilityRole="button"
             >
-              <Tag size={24} color={filterTag ? COLORS.piktag600 : COLORS.gray600} />
+              <Tag size={24} color={filterTag ? colors.piktag600 : (isDark ? '#FFFFFF' : colors.gray600)} />
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.headerIconBtn}
               activeOpacity={0.6}
-              onPress={() => setMapVisible(true)}
-              accessibilityLabel="地圖檢視"
+              onPress={() => setSortModalVisible(true)}
+              accessibilityLabel={t('connections.sortLabel', { defaultValue: '排序' })}
               accessibilityRole="button"
             >
-              <MapPin size={24} color={COLORS.gray600} />
+              <ArrowDownAZ
+                size={24}
+                color={sortMode !== 'recent' ? colors.piktag600 : (isDark ? '#FFFFFF' : colors.gray600)}
+              />
             </TouchableOpacity>
           </View>
         </View>
@@ -673,7 +1113,7 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
             activeOpacity={0.7}
           >
             <Text style={styles.filterIndicatorText}>{filterTag}</Text>
-            <X size={14} color={COLORS.piktag600} />
+            <X size={14} color={colors.piktag600} />
           </TouchableOpacity>
         </View>
       )}
@@ -682,7 +1122,7 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
         <ConnectionsScreenSkeleton />
       ) : (
         <FlatList
-          data={sortedConnections}
+          data={listData}
           renderItem={renderItem}
           keyExtractor={keyExtractor}
           contentContainerStyle={contentContainerStyle}
@@ -709,7 +1149,7 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
             activeOpacity={0.7}
             onPress={() => setBatchTagModalVisible(true)}
           >
-            <Tag size={20} color={COLORS.white} />
+            <Tag size={20} color={'#FFFFFF'} />
             <Text style={styles.batchBtnText}>
               {t('connections.batchTagButton', { count: selectedIds.size })}
             </Text>
@@ -730,7 +1170,7 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
             <View style={styles.filterModalHeader}>
               <Text style={styles.filterModalTitle}>{t('connections.filterByTag')}</Text>
               <TouchableOpacity onPress={() => setFilterModalVisible(false)} activeOpacity={0.6}>
-                <X size={24} color={COLORS.gray900} />
+                <X size={24} color={colors.gray900} />
               </TouchableOpacity>
             </View>
             {filterTag && (
@@ -768,6 +1208,61 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
         </View>
       </Modal>
 
+      {/* Sort Modal — same shell as the filter modal so the two feel
+          like sibling tools. Three options only: time, alphabet,
+          interaction. */}
+      <Modal
+        visible={sortModalVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setSortModalVisible(false)}
+      >
+        <View style={styles.filterModalOverlay}>
+          <View style={styles.filterModalContainer}>
+            <View style={styles.filterModalHeader}>
+              <Text style={styles.filterModalTitle}>{t('connections.sortLabel', { defaultValue: '排序' })}</Text>
+              <TouchableOpacity onPress={() => setSortModalVisible(false)} activeOpacity={0.6}>
+                <X size={24} color={colors.gray900} />
+              </TouchableOpacity>
+            </View>
+            {(
+              [
+                { key: 'recent', label: t('connections.sortByRecent', { defaultValue: '最近加為好友' }) },
+                { key: 'interaction', label: t('connections.sortByInteraction', { defaultValue: '最近互動' }) },
+                { key: 'birthday', label: t('connections.sortByBirthday', { defaultValue: '最近生日' }) },
+                { key: 'alphabet', label: t('connections.sortByAlphabet', { defaultValue: '字母 A→Z' }) },
+                { key: 'alphabet_desc', label: t('connections.sortByAlphabetDesc', { defaultValue: '字母 Z→A' }) },
+              ] as { key: SortMode; label: string }[]
+            ).map((opt) => (
+              <TouchableOpacity
+                key={opt.key}
+                style={[
+                  styles.sortOptionRow,
+                  sortMode === opt.key && styles.sortOptionRowActive,
+                ]}
+                onPress={() => {
+                  setSortMode(opt.key);
+                  setSortModalVisible(false);
+                }}
+                activeOpacity={0.7}
+              >
+                <Text
+                  style={[
+                    styles.sortOptionText,
+                    sortMode === opt.key && styles.sortOptionTextActive,
+                  ]}
+                >
+                  {opt.label}
+                </Text>
+                {sortMode === opt.key && (
+                  <CheckCircle2 size={18} color={colors.piktag500} />
+                )}
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+      </Modal>
+
       {/* Batch Tag Modal */}
       <Modal
         visible={batchTagModalVisible}
@@ -794,7 +1289,7 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
               <TextInput
                 style={styles.batchTagInput}
                 placeholder={t('connections.batchTagPlaceholder')}
-                placeholderTextColor={COLORS.gray400}
+                placeholderTextColor={colors.gray400}
                 value={batchTagInput}
                 onChangeText={setBatchTagInput}
                 autoFocus
@@ -816,40 +1311,16 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
           </TouchableOpacity>
         </KeyboardAvoidingView>
       </Modal>
-      {/* Friends Map Modal */}
-      <FriendsMapModal
-        visible={mapVisible}
-        onClose={() => setMapVisible(false)}
-        friends={connections
-          .filter(c => {
-            const p = c.connected_user as any;
-            return p?.latitude && p?.longitude && p?.share_location !== false;
-          })
-          .map(c => {
-            const p = c.connected_user as any;
-            return {
-              id: c.connected_user_id,
-              connectionId: c.id,
-              name: c.nickname || p?.full_name || p?.username || '?',
-              avatarUrl: p?.avatar_url || null,
-              latitude: p.latitude,
-              longitude: p.longitude,
-            };
-          })}
-        onFriendPress={(connectionId, friendId) => {
-          setMapVisible(false);
-          navigation.navigate('FriendDetail', { connectionId, friendId });
-        }}
-      />
     </SafeAreaView>
   );
 }
 
-const styles = StyleSheet.create({
+function makeStyles(c: ColorPalette) {
+  return StyleSheet.create({
   // --- Stories bar styles ---
   storiesContainer: {
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.gray200,
+    borderBottomColor: c.gray200,
     paddingVertical: 12,
   },
   storiesScroll: {
@@ -885,14 +1356,14 @@ const styles = StyleSheet.create({
   storyName: {
     fontSize: 11,
     fontWeight: '600',
-    color: COLORS.gray800,
+    color: c.gray800,
     marginTop: 4,
     textAlign: 'center',
     width: 68,
   },
   storyText: {
     fontSize: 10,
-    color: COLORS.gray500,
+    color: c.gray500,
     textAlign: 'center',
     width: 68,
     marginTop: 1,
@@ -900,7 +1371,7 @@ const styles = StyleSheet.create({
   // --- Main styles ---
   container: {
     flex: 1,
-    backgroundColor: COLORS.white,
+    backgroundColor: c.white,
   },
   header: {
     flexDirection: 'row',
@@ -908,9 +1379,13 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 20,
     paddingBottom: 16,
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    // Solid theme background (was a hardcoded rgba(255,255,255,0.9)
+    // — the migration couldn't see a non-COLORS literal, so the
+    // header stayed a light band in dark mode). c.background =
+    // white in light, pure black in dark.
+    backgroundColor: c.background,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.gray100,
+    borderBottomColor: c.gray100,
   },
   headerLeft: {
     flex: 1,
@@ -918,18 +1393,18 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 24,
     fontWeight: '700',
-    color: COLORS.gray900,
+    color: c.gray900,
     lineHeight: 32,
   },
   headerSubtitle: {
     fontSize: 14,
-    color: COLORS.gray500,
+    color: c.gray500,
     marginTop: 2,
     lineHeight: 20,
   },
   headerCount: {
     fontWeight: '700',
-    color: COLORS.accent500,
+    color: c.accent500,
   },
   headerRight: {
     flexDirection: 'row',
@@ -943,9 +1418,9 @@ const styles = StyleSheet.create({
   sortIndicator: {
     paddingHorizontal: 20,
     paddingVertical: 8,
-    backgroundColor: COLORS.piktag50,
+    backgroundColor: c.piktag50,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.piktag100,
+    borderBottomColor: c.piktag100,
   },
   loadingContainer: {
     flex: 1,
@@ -967,19 +1442,19 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: COLORS.gray700,
+    color: c.gray700,
     textAlign: 'center',
     marginBottom: 8,
   },
   emptyText: {
     fontSize: 16,
-    color: COLORS.gray500,
+    color: c.gray500,
     textAlign: 'center',
     lineHeight: 24,
   },
   emptyButton: {
     marginTop: 20,
-    backgroundColor: COLORS.piktag500,
+    backgroundColor: c.piktag500,
     borderRadius: 14,
     paddingVertical: 14,
     paddingHorizontal: 32,
@@ -989,34 +1464,130 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#FFFFFF',
   },
+  // Cold-start onboarding action-list empty state. Replaces the
+  // single-CTA "scan a QR" empty state for users with 0 friends.
+  emptyOnboardingContainer: {
+    paddingHorizontal: 20,
+    paddingTop: 24,
+    paddingBottom: 40,
+  },
+  phonePromptCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: c.piktag50,
+    borderColor: c.piktag500,
+    borderWidth: 1,
+    borderRadius: 12,
+    padding: 14,
+    // 16px horizontal breathing room so the bordered card doesn't
+    // run flush against the screen edge — the friend rows below
+    // are edge-to-edge by design (no outline) but this banner
+    // has a visible border that needs the inset to read as a
+    // card, not a full-bleed bar.
+    marginHorizontal: 16,
+    marginBottom: 20,
+  },
+  phonePromptTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: c.piktag600,
+    marginBottom: 4,
+  },
+  phonePromptBody: {
+    fontSize: 12,
+    lineHeight: 17,
+    color: c.gray700,
+  },
+  phonePromptDismiss: {
+    paddingLeft: 8,
+    alignSelf: 'flex-start',
+  },
+  emptyOnboardingTitle: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: c.gray900,
+    marginBottom: 6,
+  },
+  emptyOnboardingSubtitle: {
+    fontSize: 14,
+    color: c.gray500,
+    marginBottom: 20,
+  },
+  emptyActionList: {
+    gap: 10,
+  },
+  emptyActionCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+    paddingVertical: 16,
+    paddingHorizontal: 14,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: c.gray200,
+    backgroundColor: c.white,
+  },
+  emptyActionCardPressed: {
+    backgroundColor: c.gray50,
+    borderColor: c.piktag200,
+  },
+  emptyActionIconWrap: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: c.piktag50,
+  },
+  emptyActionTextWrap: {
+    flex: 1,
+    minWidth: 0,
+    gap: 2,
+  },
+  emptyActionTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: c.gray900,
+  },
+  emptyActionDesc: {
+    fontSize: 13,
+    color: c.gray500,
+    lineHeight: 18,
+  },
   connectionItem: {
     flexDirection: 'row',
     alignItems: 'flex-start',
     paddingHorizontal: 20,
     paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.gray100,
+    borderBottomColor: c.gray100,
   },
   connectionItemSelected: {
-    backgroundColor: COLORS.piktag50,
+    backgroundColor: c.piktag50,
+  },
+  // Not-yet-on-PikTag manual contact: same row metrics (so the
+  // fixed getItemLayout height is unaffected), just slightly muted.
+  connectionItemLocal: {
+    opacity: 0.78,
+  },
+  localBadge: {
+    alignSelf: 'flex-start',
+    backgroundColor: c.gray100,
+    borderRadius: 6,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    marginTop: 2,
+  },
+  localBadgeText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: c.gray500,
   },
   checkboxContainer: {
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
     paddingTop: 16,
-  },
-  avatar: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    borderWidth: 1,
-    borderColor: COLORS.gray100,
-    backgroundColor: COLORS.gray100,
-  },
-  avatarInitials: {
-    borderWidth: 1,
-    borderColor: COLORS.gray100,
   },
   textSection: {
     flex: 1,
@@ -1031,14 +1602,18 @@ const styles = StyleSheet.create({
   name: {
     fontSize: 18,
     fontWeight: '700',
-    color: COLORS.gray900,
+    color: c.gray900,
     lineHeight: 24,
     flexShrink: 1,
   },
   newBadgeText: {
     fontSize: 10,
-    fontWeight: '600',
-    color: COLORS.piktag600,
+    fontWeight: '700',
+    // accentPop = high-saturation magenta. The "new" pill is exactly
+    // the kind of "currently-highlighted moment" the accent is reserved
+    // for — a temporary visual flag that should jump the eye on a row
+    // amid otherwise-stable primary purple UI.
+    color: c.accentPop,
     letterSpacing: 0.3,
     marginLeft: 2,
   },
@@ -1049,7 +1624,7 @@ const styles = StyleSheet.create({
   },
   username: {
     fontSize: 14,
-    color: COLORS.gray500,
+    color: c.gray500,
     lineHeight: 20,
   },
   verifiedIcon: {
@@ -1057,15 +1632,42 @@ const styles = StyleSheet.create({
   },
   tagsLine: {
     fontSize: 13,
-    color: COLORS.gray400,
+    color: c.gray400,
     lineHeight: 18,
     marginTop: 3,
+  },
+  // Ask-preview chip — gradient-filled, white-text pill. Sits
+  // below the tags row when the friend has a live Ask. Inline-
+  // sized via alignSelf flex-start so the chip wraps tight to
+  // the text width instead of stretching. The gradient + white
+  // text deliberately uses the same red→magenta→deep-purple
+  // sweep as the QR share screen + Vibe hero gradient + the
+  // avatar's rotating ring — single brand-purple vocabulary for
+  // "this surface is alive right now". Stronger visual weight
+  // than the previous soft piktag50 pill because: the user
+  // explicitly asked for Z-gen "buzz" energy, and a friend
+  // ASK is genuinely a high-priority event worth interrupting
+  // the row's neutral rhythm for.
+  askPreviewChip: {
+    alignSelf: 'flex-start',
+    maxWidth: '100%',
+    marginTop: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 10,
+  },
+  askPreviewText: {
+    fontSize: 12,
+    color: '#FFFFFF',
+    fontWeight: '700',
+    lineHeight: 16,
+    letterSpacing: 0.1,
   },
   // On This Day card
   onThisDayCard: {
     margin: 16,
     marginBottom: 0,
-    backgroundColor: '#f5f3ff',
+    backgroundColor: 'rgba(140, 82, 255, 0.12)',
     borderRadius: 16,
     padding: 14,
     borderWidth: 1,
@@ -1081,12 +1683,12 @@ const styles = StyleSheet.create({
   unreviewedLink: {
     fontSize: 14,
     fontWeight: '600',
-    color: COLORS.piktag600,
+    color: c.piktag600,
   },
   reminderCard: {
     margin: 16,
     marginBottom: 0,
-    backgroundColor: '#fdf2f8',
+    backgroundColor: 'rgba(236, 72, 153, 0.12)',
     borderRadius: 16,
     padding: 14,
     borderWidth: 1,
@@ -1095,11 +1697,11 @@ const styles = StyleSheet.create({
   // Recommendation card
   recCard: {
     margin: 16,
-    backgroundColor: COLORS.piktag50,
+    backgroundColor: c.piktag50,
     borderRadius: 16,
     padding: 14,
     borderWidth: 1,
-    borderColor: COLORS.piktag100,
+    borderColor: c.piktag100,
   },
   recHeader: {
     flexDirection: 'row',
@@ -1115,7 +1717,7 @@ const styles = StyleSheet.create({
   recHeaderText: {
     fontSize: 13,
     fontWeight: '600',
-    color: COLORS.piktag600,
+    color: c.piktag600,
   },
   recBody: {
     flexDirection: 'row',
@@ -1125,7 +1727,7 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: COLORS.gray100,
+    backgroundColor: c.gray100,
   },
   recInfo: {
     flex: 1,
@@ -1138,16 +1740,16 @@ const styles = StyleSheet.create({
   recName: {
     fontSize: 16,
     fontWeight: '700',
-    color: COLORS.gray900,
+    color: c.gray900,
   },
   recUsername: {
     fontSize: 13,
-    color: COLORS.gray500,
+    color: c.gray500,
     marginTop: 1,
   },
   recTagCount: {
     fontSize: 12,
-    color: COLORS.piktag600,
+    color: c.piktag600,
     marginTop: 2,
   },
   recAction: {
@@ -1161,15 +1763,15 @@ const styles = StyleSheet.create({
     right: 0,
     paddingHorizontal: 20,
     paddingVertical: 12,
-    backgroundColor: COLORS.white,
+    backgroundColor: c.white,
     borderTopWidth: 1,
-    borderTopColor: COLORS.gray100,
+    borderTopColor: c.gray100,
   },
   batchBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: COLORS.piktag500,
+    backgroundColor: c.piktag500,
     borderRadius: 12,
     paddingVertical: 14,
     gap: 8,
@@ -1177,7 +1779,7 @@ const styles = StyleSheet.create({
   batchBtnText: {
     fontSize: 16,
     fontWeight: '700',
-    color: COLORS.white,
+    color: '#FFFFFF',
   },
   // Shared modal overlay (used by batch-tag modal)
   modalOverlay: {
@@ -1188,12 +1790,12 @@ const styles = StyleSheet.create({
   sortModalTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: COLORS.gray900,
+    color: c.gray900,
     marginBottom: 16,
   },
   // Batch Tag Modal
   batchTagModal: {
-    backgroundColor: COLORS.white,
+    backgroundColor: c.white,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     paddingHorizontal: 20,
@@ -1202,16 +1804,16 @@ const styles = StyleSheet.create({
   },
   batchTagInput: {
     borderWidth: 2,
-    borderColor: COLORS.gray200,
+    borderColor: c.gray200,
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 14,
     fontSize: 16,
-    color: COLORS.gray900,
+    color: c.gray900,
     marginBottom: 16,
   },
   batchTagSubmitBtn: {
-    backgroundColor: COLORS.piktag500,
+    backgroundColor: c.piktag500,
     borderRadius: 12,
     paddingVertical: 14,
     alignItems: 'center',
@@ -1222,13 +1824,15 @@ const styles = StyleSheet.create({
   batchTagSubmitText: {
     fontSize: 16,
     fontWeight: '700',
-    color: COLORS.gray900,
+    color: c.gray900,
   },
   // Friend statuses row
   statusSection: {
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6',
+    // Was a hardcoded #F3F4F6 (gray100 light value) — stayed a light
+    // separator line on the dark friends list. c.gray100 themes it.
+    borderBottomColor: c.gray100,
   },
   statusScrollContent: {
     paddingHorizontal: 16,
@@ -1243,7 +1847,7 @@ const styles = StyleSheet.create({
     height: 60,
     borderRadius: 30,
     borderWidth: 2.5,
-    borderColor: COLORS.piktag400,
+    borderColor: c.piktag400,
     padding: 2,
     marginBottom: 4,
   },
@@ -1253,7 +1857,7 @@ const styles = StyleSheet.create({
     borderRadius: 26,
   },
   statusAvatarFallback: {
-    backgroundColor: '#E5E7EB',
+    backgroundColor: c.gray200,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -1280,10 +1884,10 @@ const styles = StyleSheet.create({
     marginHorizontal: 16,
     marginTop: 12,
     marginBottom: 8,
-    backgroundColor: COLORS.white,
+    backgroundColor: c.white,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: COLORS.gray100,
+    borderColor: c.gray100,
     paddingVertical: 14,
   },
   tagRecScrollContent: {
@@ -1299,20 +1903,20 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: COLORS.gray100,
+    backgroundColor: c.gray100,
     marginBottom: 4,
   },
   tagRecName: {
     fontSize: 13,
     fontWeight: '600',
-    color: COLORS.gray900,
+    color: c.gray900,
     textAlign: 'center',
   },
   tagRecBadge: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 2,
-    backgroundColor: COLORS.piktag50,
+    backgroundColor: c.piktag50,
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 8,
@@ -1320,11 +1924,11 @@ const styles = StyleSheet.create({
   tagRecBadgeText: {
     fontSize: 10,
     fontWeight: '600',
-    color: COLORS.piktag600,
+    color: c.piktag600,
   },
   tagRecTags: {
     fontSize: 10,
-    color: COLORS.gray500,
+    color: c.gray500,
     textAlign: 'center',
   },
 
@@ -1333,17 +1937,81 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    backgroundColor: COLORS.piktag50,
+    backgroundColor: c.piktag50,
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: COLORS.piktag300,
+    borderColor: c.piktag300,
   },
   filterIndicatorText: {
     fontSize: 13,
     fontWeight: '600',
-    color: COLORS.piktag600,
+    color: c.piktag600,
+  },
+
+  // ─── Add-contact action sheet ────────────────────────────────
+  addMenuOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.45)',
+    justifyContent: 'flex-end',
+  },
+  addMenuSheet: {
+    backgroundColor: c.white,
+    borderTopLeftRadius: 22,
+    borderTopRightRadius: 22,
+    paddingTop: 8,
+    paddingHorizontal: 16,
+    // Generous bottom padding so the last row clears iPhone home
+    // indicator on devices with safe area; SafeAreaView at the
+    // screen root already sets the per-device offset, this is
+    // additional buffer below the menu rows.
+    paddingBottom: Platform.OS === 'ios' ? 36 : 20,
+  },
+  addMenuHandle: {
+    alignSelf: 'center',
+    width: 40,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: c.gray200,
+    marginBottom: 12,
+  },
+  addMenuTitle: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: c.gray900,
+    marginBottom: 12,
+    paddingHorizontal: 4,
+  },
+  addMenuRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 14,
+    paddingHorizontal: 4,
+    gap: 12,
+    borderTopWidth: 1,
+    borderTopColor: c.gray100,
+  },
+  addMenuIconWrap: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  addMenuTextWrap: {
+    flex: 1,
+  },
+  addMenuRowTitle: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: c.gray900,
+    marginBottom: 2,
+  },
+  addMenuRowDesc: {
+    fontSize: 12,
+    color: c.gray500,
+    lineHeight: 16,
   },
 
   // Filter Modal
@@ -1353,7 +2021,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   filterModalContainer: {
-    backgroundColor: COLORS.white,
+    backgroundColor: c.white,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     paddingTop: 20,
@@ -1369,7 +2037,7 @@ const styles = StyleSheet.create({
   filterModalTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: COLORS.gray900,
+    color: c.gray900,
   },
   filterClearBtn: {
     alignSelf: 'flex-start',
@@ -1378,22 +2046,22 @@ const styles = StyleSheet.create({
   filterClearText: {
     fontSize: 14,
     fontWeight: '600',
-    color: COLORS.red500,
+    color: c.red500,
   },
   filterEmptyText: {
     fontSize: 14,
-    color: COLORS.gray400,
+    color: c.gray400,
     textAlign: 'center',
     paddingVertical: 24,
   },
   filterSearchInput: {
     borderWidth: 1,
-    borderColor: COLORS.gray200,
+    borderColor: c.gray200,
     borderRadius: 10,
     paddingHorizontal: 14,
     paddingVertical: 10,
     fontSize: 15,
-    color: COLORS.gray900,
+    color: c.gray900,
     marginBottom: 14,
   },
   filterTagsWrap: {
@@ -1405,21 +2073,48 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 10,
     borderRadius: 20,
-    backgroundColor: COLORS.gray100,
+    backgroundColor: c.fill,
     borderWidth: 1.5,
-    borderColor: 'transparent',
+    // Visible hairline (was 'transparent' — the chip then had no
+    // defined edge against the dark filter sheet in dark mode).
+    // The 1.5px width was already reserved so the active-state
+    // border swap stays layout-shift-free.
+    borderColor: c.gray200,
   },
   filterTagChipActive: {
-    backgroundColor: COLORS.piktag50,
-    borderColor: COLORS.piktag500,
+    backgroundColor: c.piktag50,
+    borderColor: c.piktag500,
   },
   filterTagChipText: {
     fontSize: 14,
     fontWeight: '500',
-    color: COLORS.gray700,
+    color: c.gray700,
   },
   filterTagChipTextActive: {
-    color: COLORS.piktag600,
+    color: c.piktag600,
     fontWeight: '700',
   },
-});
+  sortOptionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 14,
+    paddingHorizontal: 4,
+    borderBottomWidth: 1,
+    borderBottomColor: c.gray100,
+  },
+  sortOptionRowActive: {
+    // No background change — the trailing checkmark is enough signal
+    // and matches the filter modal's quiet selection style.
+  },
+  sortOptionText: {
+    fontSize: 15,
+    fontWeight: '500',
+    color: c.gray800,
+  },
+  sortOptionTextActive: {
+    color: c.piktag600,
+    fontWeight: '700',
+  },
+  });
+}

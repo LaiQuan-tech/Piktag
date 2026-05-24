@@ -53,7 +53,7 @@ export default function Sidebar() {
               className={
                 'flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors ' +
                 (active
-                  ? 'bg-[#aa00ff] text-white'
+                  ? 'bg-[#8c52ff] text-white'
                   : 'text-slate-700 hover:bg-slate-100')
               }
             >

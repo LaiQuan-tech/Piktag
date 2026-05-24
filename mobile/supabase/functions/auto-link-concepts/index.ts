@@ -17,16 +17,27 @@ const corsHeaders = {
 };
 
 const SIMILARITY_THRESHOLD = 0.85;
+// Gray-zone floor. Embeddings of the SAME concept across languages
+// (e.g. 扶輪社 ↔ Rotary Club ≈ 0.71, 工程師 ↔ Engineer) land far below
+// SIMILARITY_THRESHOLD, so a pure-embedding linker silently fails the
+// cross-language matching that is PikTag's whole serendipity thesis.
+// Candidates in [GRAY_ZONE_FLOOR, SIMILARITY_THRESHOLD) are NOT linked
+// blindly — they go to an LLM judge that decides true synonymy.
+// Below GRAY_ZONE_FLOOR we don't even ask: too far to be the same.
+const GRAY_ZONE_FLOOR = 0.70;
 const BATCH_SIZE = 50;
 const HIERARCHY_BATCH = 20;
 
 async function generateEmbedding(text: string, apiKey: string): Promise<number[] | null> {
   try {
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-001:embedContent?key=${apiKey}`,
+      'https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-001:embedContent',
       {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'x-goog-api-key': apiKey,
+        },
         body: JSON.stringify({
           model: 'models/gemini-embedding-001',
           content: { parts: [{ text }] },
@@ -34,7 +45,11 @@ async function generateEmbedding(text: string, apiKey: string): Promise<number[]
       }
     );
 
-    if (!response.ok) return null;
+    if (!response.ok) {
+      const bodyText = await response.text().catch(() => '');
+      console.error('auto-link-concepts embedding upstream error: HTTP', response.status, bodyText.slice(0, 500));
+      return null;
+    }
 
     const result = await response.json();
     return result.embedding?.values || null;
@@ -59,18 +74,25 @@ Respond ONLY in JSON array format, no markdown:
 [{"tag":"媽祖","parent":"民間信仰","semantic_type":"interest"},{"tag":"工程師","parent":null,"semantic_type":"career"}]`;
 
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+      'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent',
       {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'x-goog-api-key': apiKey,
+        },
         body: JSON.stringify({
           contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: { temperature: 0.1, maxOutputTokens: 2048 },
+          generationConfig: { temperature: 0.1, maxOutputTokens: 4096 },
         }),
       }
     );
 
-    if (!response.ok) return [];
+    if (!response.ok) {
+      const bodyText = await response.text().catch(() => '');
+      console.error('auto-link-concepts hierarchy upstream error: HTTP', response.status, bodyText.slice(0, 500));
+      return [];
+    }
 
     const result = await response.json();
     const text = result.candidates?.[0]?.content?.parts?.[0]?.text || '';
@@ -83,10 +105,97 @@ Respond ONLY in JSON array format, no markdown:
   }
 }
 
+/**
+ * LLM gray-zone judge. Given a freshly-coined tag and the embedding
+ * candidates that scored in [GRAY_ZONE_FLOOR, SIMILARITY_THRESHOLD) —
+ * too far for blind linking, too close to dismiss — ask Gemini whether
+ * the tag is a TRUE synonym of any candidate concept. This is the path
+ * that recovers cross-language matches (扶輪社 ↔ Rotary Club) which
+ * embeddings alone score at only ~0.71.
+ *
+ * Returns the matched concept_id, or null if none is a true synonym.
+ */
+async function judgeConceptMatch(
+  tagName: string,
+  candidates: { concept_id: string; canonical_name: string; similarity: number }[],
+  apiKey: string,
+): Promise<string | null> {
+  try {
+    const list = candidates
+      .map((c, i) => `${i + 1}. ${c.canonical_name}`)
+      .join('\n');
+    const prompt = `A user of a social-networking app coined the tag "${tagName}".
+Below are existing semantic concepts. Decide whether "${tagName}" denotes the SAME concept as any one of them.
+
+SAME concept = a true synonym, INCLUDING cross-language synonyms:
+  e.g. "工程師" = "Engineer" = "エンジニア"; "扶輪社" = "Rotary Club"; "貓派" = "Cat person".
+NOT the same = a broader/narrower term or a merely-related term:
+  e.g. "軟體工程師" is NOT "工程師" (narrower); "攝影" is NOT "攝影師" (activity vs role).
+
+Concepts:
+${list}
+
+Reply with ONLY the number of the matching concept, or 0 if none is a true synonym.`;
+
+    const response = await fetch(
+      'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-goog-api-key': apiKey,
+        },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          // gemini-2.5-flash is a thinking model — it spends output
+          // budget on internal reasoning before the visible answer.
+          // maxOutputTokens must leave room for both or the response
+          // comes back empty (finishReason MAX_TOKENS). The visible
+          // answer here is just a digit; 1024 is headroom for thinking.
+          generationConfig: { temperature: 0, maxOutputTokens: 1024 },
+        }),
+      },
+    );
+
+    if (!response.ok) {
+      const bodyText = await response.text().catch(() => '');
+      console.error('judgeConceptMatch upstream error: HTTP', response.status, bodyText.slice(0, 300));
+      return null;
+    }
+
+    const result = await response.json();
+    const text = (result.candidates?.[0]?.content?.parts?.[0]?.text || '').trim();
+    // Require the reply to be EXACTLY a number. A loose /\d+/ match would
+    // pick a stray digit out of leaked reasoning (e.g. "Concept 3 ... so
+    // 0" → 3) and mint a FALSE synonym link. Anything not clean is
+    // treated as no-match — conservative: it just mints a new concept.
+    const m = text.match(/^(\d+)$/);
+    const n = m ? parseInt(m[1], 10) : 0;
+    if (n >= 1 && n <= candidates.length) {
+      return candidates[n - 1].concept_id;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
   }
+
+  // Auth gate: require CRON_SECRET via Authorization: Bearer header
+  const expected = Deno.env.get('CRON_SECRET');
+  const provided = req.headers.get('authorization')?.replace(/^Bearer\s+/i, '');
+  if (!expected || !provided) return new Response('Forbidden', { status: 403 });
+  // constant-time compare to avoid timing attack
+  const a = new TextEncoder().encode(expected);
+  const b = new TextEncoder().encode(provided);
+  if (a.length !== b.length) return new Response('Forbidden', { status: 403 });
+  let diff = 0;
+  for (let i = 0; i < a.length; i++) diff |= a[i] ^ b[i];
+  if (diff !== 0) return new Response('Forbidden', { status: 403 });
 
   try {
     const geminiApiKey = Deno.env.get('GEMINI_API_KEY');
@@ -100,6 +209,47 @@ serve(async (req) => {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+    // ── Row-mutex: prevent overlapping linker runs ─────────────────
+    // With the LLM gray-zone judge added, a backlog-heavy run can
+    // exceed the 5-min cron interval — two concurrent runs would
+    // both SELECT `concept_id IS NULL LIMIT 50` and both INSERT new
+    // singleton concepts (the exact fragmentation bug the linker
+    // exists to fix). The conditional UPDATE below is atomic at the
+    // row level: only one caller wins, the loser sees 0 rows and
+    // bails. 10-min stale window self-heals a crashed run.
+    const STALE_LOCK_MIN = 10;
+    const staleCutoff = new Date(Date.now() - STALE_LOCK_MIN * 60 * 1000).toISOString();
+    const { data: lockClaim, error: lockErr } = await supabase
+      .from('linker_run_lock')
+      .update({ locked_at: new Date().toISOString() })
+      .eq('id', 1)
+      .or(`locked_at.is.null,locked_at.lt.${staleCutoff}`)
+      .select('locked_at');
+    if (lockErr) {
+      console.warn('linker_run_lock claim error (proceeding without lock):', lockErr.message);
+      // Fail OPEN — if the lock table is unreachable for some reason
+      // we'd rather process tags than stop entirely. The race only
+      // matters when two runs ACTUALLY overlap, which itself is rare.
+    } else if (!lockClaim || lockClaim.length === 0) {
+      return new Response(
+        JSON.stringify({ skipped: true, reason: 'another linker run in progress' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+      );
+    }
+    // Always release on exit, success or error.
+    const releaseLock = async () => {
+      try {
+        await supabase
+          .from('linker_run_lock')
+          .update({ locked_at: null })
+          .eq('id', 1);
+      } catch (e) {
+        console.warn('linker_run_lock release failed:', e);
+      }
+    };
+
+    try {
 
     // 1. Find tags without concept_id
     const { data: unlinkedTags, error: fetchError } = await supabase
@@ -146,20 +296,96 @@ serve(async (req) => {
     let created = 0;
 
     for (const tag of unlinkedTags) {
-      // 3. Generate embedding for this tag
+      // 3a. Alias-first resolution (deterministic, exact, free).
+      //
+      // The seed migrations (20260328_seed_multilingual_aliases +
+      // _ko_id_th_tr) populated tag_aliases with hundreds of
+      // hand-curated cross-language synonyms — e.g. Project
+      // Management ← PM / 專案管理 / 項目管理 / प्रोजेक्ट प्रबंधन /
+      // Gestión de proyectos / 프로젝트 관리 / … resolve_tag_alias
+      // is an exact, case-insensitive alias→concept_id lookup.
+      //
+      // Until now NOTHING called it: the embedding path below
+      // ignored the curated map entirely, so (a) cross-language
+      // synonyms that don't clear the 0.85 cosine bar never
+      // unified, and (b) every miss MINTED A NEW SINGLETON
+      // concept that shadows the seeded one (that's why
+      // tag_concepts is ~248 when the seed defines ~45).
+      //
+      // Snapping a known alias straight to its seeded concept
+      // fixes both, is exact rather than fuzzy, and skips an
+      // embedding API call. Embedding stays as the fallback ONLY
+      // for tags with no curated alias.
+      try {
+        const { data: aliasConceptId } = await supabase.rpc(
+          'resolve_tag_alias',
+          { input_text: tag.name },
+        );
+        if (aliasConceptId) {
+          await supabase
+            .from('piktag_tags')
+            .update({ concept_id: aliasConceptId })
+            .eq('id', tag.id);
+          // Keep the alias row self-consistent (no-op if it's
+          // already the row that resolved us here).
+          await supabase
+            .from('tag_aliases')
+            .upsert(
+              { alias: tag.name, concept_id: aliasConceptId },
+              { onConflict: 'alias' },
+            );
+          linked++;
+          console.log(
+            `Alias-linked "${tag.name}" → concept ${aliasConceptId} (exact, no embedding)`,
+          );
+          continue;
+        }
+      } catch (e) {
+        // Non-fatal: fall through to the embedding path. A flaky
+        // alias lookup must not stall concept linking.
+        console.warn(`resolve_tag_alias failed for "${tag.name}":`, e);
+      }
+
+      // 3. Generate embedding for this tag (fallback: no curated
+      //    alias matched the tag name).
       const embedding = await generateEmbedding(tag.name, geminiApiKey);
       if (!embedding) continue;
 
-      // 4. Find similar existing concepts
-      const { data: similar } = await supabase.rpc('find_similar_concepts', {
+      // 4. Find candidate concepts down to the gray-zone floor.
+      const { data: candidates } = await supabase.rpc('find_similar_concepts', {
         query_embedding: JSON.stringify(embedding),
-        similarity_threshold: SIMILARITY_THRESHOLD,
-        max_results: 1,
+        similarity_threshold: GRAY_ZONE_FLOOR,
+        max_results: 5,
       });
 
-      if (similar && similar.length > 0) {
+      // Decide the concept match:
+      //  • top similarity ≥ 0.85 → embedding alone is enough (high
+      //    confidence — link directly).
+      //  • 0.70–0.85 gray zone → embeddings cannot bridge cross-language
+      //    synonyms (中文↔English of the SAME concept sits ~0.71), so
+      //    ask the LLM whether any candidate is genuinely the same
+      //    concept before giving up and minting a singleton.
+      //  • no candidate ≥ 0.70 → fall through and create a new concept.
+      let matchedConcept: any = null;
+      if (candidates && candidates.length > 0) {
+        if (candidates[0].similarity >= SIMILARITY_THRESHOLD) {
+          matchedConcept = candidates[0];
+        } else {
+          const judgedId = await judgeConceptMatch(tag.name, candidates, geminiApiKey);
+          if (judgedId) {
+            matchedConcept = candidates.find((c: any) => c.concept_id === judgedId) || null;
+            if (matchedConcept) {
+              console.log(
+                `LLM-confirmed "${tag.name}" ≈ concept "${matchedConcept.canonical_name}" ` +
+                `(embedding only ${Number(matchedConcept.similarity).toFixed(3)})`,
+              );
+            }
+          }
+        }
+      }
+
+      if (matchedConcept) {
         // Match found → link to existing concept
-        const matchedConcept = similar[0];
 
         // Update tag's concept_id
         await supabase
@@ -289,6 +515,13 @@ serve(async (req) => {
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
+    } finally {
+      // Always release the row-mutex — success, early-return, or
+      // thrown error. JS guarantees finally runs even on a return-in-
+      // try, so the success path also releases before the response
+      // goes out.
+      await releaseLock();
+    }
   } catch (err) {
     console.error('auto-link-concepts error:', err);
     return new Response(

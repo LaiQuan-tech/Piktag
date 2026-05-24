@@ -1,8 +1,10 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
-  ActivityIndicator, FlatList, Pressable, StatusBar, StyleSheet,
+  FlatList, Pressable, StatusBar, StyleSheet,
   Text, TextInput, TouchableOpacity, View, type ListRenderItemInfo,
 } from 'react-native';
+import PageLoader from '../components/loaders/PageLoader';
+import BrandSpinner from '../components/loaders/BrandSpinner';
 import { Image } from 'expo-image';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeft, Search } from 'lucide-react-native';
@@ -11,7 +13,8 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RouteProp } from '@react-navigation/native';
 
 import InitialsAvatar from '../components/InitialsAvatar';
-import { COLORS } from '../constants/theme';
+import { COLORS, type ColorPalette } from '../constants/theme';
+import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../lib/supabase';
 
@@ -71,6 +74,8 @@ type SearchRowProps = {
 };
 
 const SearchRow = React.memo(function SearchRow({ item, onPress }: SearchRowProps) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const displayName = item.full_name || item.username || '';
   const handlePress = useCallback(() => onPress(item), [onPress, item]);
   return (
@@ -88,8 +93,10 @@ const SearchRow = React.memo(function SearchRow({ item, onPress }: SearchRowProp
   );
 });
 
-export default function ChatComposeScreen({ navigation, route }: Props): JSX.Element {
+export default function ChatComposeScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
+  const { colors, isDark } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const { user } = useAuth();
   const prefilledUserId = route.params?.prefilledUserId ?? null;
 
@@ -181,7 +188,13 @@ export default function ChatComposeScreen({ navigation, route }: Props): JSX.Ele
         .from('piktag_profiles')
         .select('id, username, full_name, avatar_url, is_public')
         .or(`username.ilike.${pattern},full_name.ilike.${pattern}`)
-        .neq('id', user.id).neq('is_public', false).limit(20);
+        // .neq('is_public', false) excluded NULL-is_public profiles
+        // (PostgREST: NULL != false → NULL → filtered out), so older
+        // accounts that never set the flag were unmessageable. Treat
+        // null as public (the app default everywhere else).
+        .neq('id', user.id)
+        .or('is_public.is.null,is_public.eq.true')
+        .limit(20);
       if (!isMountedRef.current || reqId !== requestIdRef.current) return;
       if (error) {
         console.warn('Compose search failed:', error.message);
@@ -235,11 +248,11 @@ export default function ChatComposeScreen({ navigation, route }: Props): JSX.Ele
         <Text style={styles.emptyText}>—</Text>
       </View>
     );
-  }, [searching, query]);
+  }, [searching, query, styles, colors]);
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <StatusBar barStyle="dark-content" backgroundColor={COLORS.white} />
+      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor={colors.white} />
 
       <View style={styles.header}>
         <TouchableOpacity
@@ -247,7 +260,7 @@ export default function ChatComposeScreen({ navigation, route }: Props): JSX.Ele
           style={styles.headerIconBtn}
           accessibilityRole="button" accessibilityLabel="Back"
         >
-          <ArrowLeft size={24} color={COLORS.gray900} />
+          <ArrowLeft size={24} color={colors.gray900} />
         </TouchableOpacity>
         <View style={styles.headerTitleWrap}>
           <Text style={styles.headerTitle} numberOfLines={1}>{t('chat.compose')}</Text>
@@ -257,13 +270,13 @@ export default function ChatComposeScreen({ navigation, route }: Props): JSX.Ele
 
       <View style={styles.searchRow}>
         <View style={styles.searchBar}>
-          <Search size={18} color={COLORS.gray400} />
+          <Search size={18} color={colors.gray400} />
           <TextInput
             style={styles.searchInput} value={query} onChangeText={handleQueryChange}
-            placeholder={t('chat.composePlaceholder')} placeholderTextColor={COLORS.gray400}
+            placeholder={t('chat.composePlaceholder')} placeholderTextColor={colors.gray400}
             autoCapitalize="none" autoCorrect={false} returnKeyType="search"
           />
-          {searching ? <ActivityIndicator size="small" color={COLORS.gray400} /> : null}
+          {searching ? <BrandSpinner size={20} /> : null}
         </View>
       </View>
 
@@ -279,7 +292,7 @@ export default function ChatComposeScreen({ navigation, route }: Props): JSX.Ele
 
       {creating ? (
         <View style={styles.creatingOverlay} pointerEvents="none">
-          <ActivityIndicator size="large" color={COLORS.piktag500} />
+          <PageLoader />
         </View>
       ) : null}
 
@@ -292,12 +305,13 @@ export default function ChatComposeScreen({ navigation, route }: Props): JSX.Ele
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.white },
+function makeStyles(c: ColorPalette) {
+  return StyleSheet.create({
+  container: { flex: 1, backgroundColor: c.white },
   header: {
     flexDirection: 'row', alignItems: 'center',
     paddingHorizontal: 8, paddingVertical: 8,
-    borderBottomWidth: 1, borderBottomColor: COLORS.gray100,
+    borderBottomWidth: 1, borderBottomColor: c.gray100,
   },
   headerIconBtn: {
     padding: 8, width: 40,
@@ -307,18 +321,18 @@ const styles = StyleSheet.create({
     flex: 1, alignItems: 'center', justifyContent: 'center',
     paddingHorizontal: 8,
   },
-  headerTitle: { fontSize: 16, fontWeight: '700', color: COLORS.gray900 },
+  headerTitle: { fontSize: 16, fontWeight: '700', color: c.gray900 },
   searchRow: {
     paddingHorizontal: 12, paddingVertical: 8,
-    borderBottomWidth: 1, borderBottomColor: COLORS.gray100,
+    borderBottomWidth: 1, borderBottomColor: c.gray100,
   },
   searchBar: {
     flexDirection: 'row', alignItems: 'center', gap: 8,
     paddingHorizontal: 12, paddingVertical: 8,
-    backgroundColor: COLORS.gray100, borderRadius: 20,
+    backgroundColor: c.gray100, borderRadius: 20,
   },
   searchInput: {
-    flex: 1, fontSize: 15, color: COLORS.gray900, paddingVertical: 0,
+    flex: 1, fontSize: 15, color: c.gray900, paddingVertical: 0,
   },
   listContent: { paddingVertical: 4 },
   listContentEmpty: { flexGrow: 1 },
@@ -328,22 +342,23 @@ const styles = StyleSheet.create({
   },
   avatar: {
     width: 44, height: 44, borderRadius: 22,
-    backgroundColor: COLORS.gray100,
+    backgroundColor: c.gray100,
   },
   rowText: { flex: 1, minWidth: 0 },
-  rowName: { fontSize: 15, fontWeight: '600', color: COLORS.gray900 },
-  rowUsername: { fontSize: 13, color: COLORS.gray500, marginTop: 2 },
+  rowName: { fontSize: 15, fontWeight: '600', color: c.gray900 },
+  rowUsername: { fontSize: 13, color: c.gray500, marginTop: 2 },
   emptyWrap: { alignItems: 'center', paddingTop: 48 },
-  emptyText: { fontSize: 15, color: COLORS.gray400 },
+  emptyText: { fontSize: 15, color: c.gray400 },
   creatingOverlay: {
     position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
     alignItems: 'center', justifyContent: 'center',
-    backgroundColor: 'rgba(255,255,255,0.5)',
+    backgroundColor: 'rgba(0,0,0,0.5)',
   },
   toast: {
     position: 'absolute', left: 16, right: 16, bottom: 32,
-    backgroundColor: COLORS.gray900, borderRadius: 12,
+    backgroundColor: c.gray900, borderRadius: 12,
     paddingVertical: 12, paddingHorizontal: 16,
   },
-  toastText: { color: COLORS.white, fontSize: 14, textAlign: 'center' },
-});
+  toastText: { color: '#FFFFFF', fontSize: 14, textAlign: 'center' },
+  });
+}

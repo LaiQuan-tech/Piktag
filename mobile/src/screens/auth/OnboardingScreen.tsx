@@ -1,4 +1,30 @@
-import React, { useState, useRef, useCallback } from 'react';
+// OnboardingScreen.tsx
+//
+// Minimal-friction first-launch flow. Two screens, one of them
+// purely informational (1-card welcome), the other collecting the
+// absolute minimum profile data needed to start using the app:
+//
+//   Step 0 — Welcome card     (no input, single big CTA)
+//   Step 1 — Name + avatar    (avatar optional, name auto-prefilled)
+//
+// After Step 1 the user is dropped DIRECTLY onto the create-event
+// surface (AddTagCreate inside the # tab), not on Home or EditProfile.
+// Reason: the main feature is creating an event-group QR. Routing
+// the user there immediately = main feature in <60s from signup.
+//
+// What we deliberately DROPPED from the older flow:
+//   • 3-card "WelcomeSlides" deck (concept teaching)  → 1 card
+//   • bio + birthday + tag-picker step                → defer to EditProfile
+//   • phone + Facebook/Instagram/LinkedIn step        → defer to EditProfile
+//   • 4-card "QuickStartTour" educational deck        → contextual UX teaches it
+//
+// All those data fields are still reachable post-onboarding via
+// EditProfile and the per-feature empty states — they're just no
+// longer in the cold-start funnel. Profile completion nudges are
+// expected to live in AddTagScreen's first-QR celebration sheet
+// and ProfileScreen banners (separate commits).
+
+import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import {
   View,
   Text,
@@ -6,696 +32,1124 @@ import {
   TouchableOpacity,
   StyleSheet,
   Alert,
-  ActivityIndicator,
   ScrollView,
   KeyboardAvoidingView,
   Platform,
+  Modal,
+  Switch,
+  ActivityIndicator,
 } from 'react-native';
+import BrandSpinner from '../../components/loaders/BrandSpinner';
 import { useTranslation } from 'react-i18next';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { ChevronRight, Camera, QrCode, ScanLine, X } from 'lucide-react-native';
+import { supabase, supabaseUrl, supabaseAnonKey } from '../../lib/supabase';
+import { Image } from 'expo-image';
 import {
-  ChevronLeft,
-  ChevronRight,
-  CheckCircle,
-  Facebook,
-  Instagram,
-  Linkedin,
-  X,
-  Sparkles,
-} from 'lucide-react-native';
-import { supabase, supabaseUrl } from '../../lib/supabase';
-import { COLORS, SPACING, BORDER_RADIUS } from '../../constants/theme';
+  requestMediaLibraryPermissionsAsync,
+  launchImageLibraryAsync,
+} from 'expo-image-picker';
+import { COLORS, SPACING, BORDER_RADIUS, type ColorPalette } from '../../constants/theme';
+import { useTheme } from '../../context/ThemeContext';
+import { PLATFORM_MAP } from '../../lib/platforms';
+import { toBirthdayDate } from '../../lib/birthday';
+import OnboardingCompleteBurst from '../../components/stingers/OnboardingCompleteBurst';
 
-// Must match the key used in AppNavigator. Persisting this flag is the
-// source of truth for "has this user completed onboarding?" — it
-// survives clock skew, bio edits, and the 5-minute "is new user"
-// heuristic the navigator previously relied on exclusively.
+// Must match the key AppNavigator reads in decideOnboarding(). This
+// AsyncStorage flag is the canonical "did this user finish onboarding?"
+// signal — bio emptiness is a legacy fallback only.
 const ONBOARDING_COMPLETED_KEY = 'piktag_onboarding_completed_v1';
 
-type OnboardingScreenProps = {
-  navigation: any;
+const STEP_WELCOME = 0;
+const STEP_PROFILE = 1;
+
+// ─── Business-card scan plumbing ────────────────────────────
+// The edge function returns these fields (all nullable). bio_draft
+// is handled separately (it feeds the bio, not a biolink); the
+// rest are contact handles that map onto piktag_biolinks rows.
+type CardData = {
+  full_name: string | null;
+  job_title: string | null;
+  company: string | null;
+  bio_draft: string | null;
+  phone: string | null;
+  email: string | null;
+  website: string | null;
+  instagram: string | null;
+  facebook: string | null;
+  linkedin: string | null;
+  line: string | null;
 };
 
-type SocialLinkKey = 'facebook' | 'instagram' | 'linkedin';
+// Which CardData keys are contact handles → biolink rows, and the
+// piktag_biolinks.platform key each maps to. Order = display order
+// in the confirmation sheet AND insert position order.
+const BIOLINK_FIELDS: { key: keyof CardData; platform: string }[] = [
+  { key: 'phone', platform: 'phone' },
+  { key: 'email', platform: 'email' },
+  { key: 'website', platform: 'website' },
+  { key: 'instagram', platform: 'instagram' },
+  { key: 'facebook', platform: 'facebook' },
+  { key: 'linkedin', platform: 'linkedin' },
+  { key: 'line', platform: 'line' },
+];
+
+// Turn a raw handle the card gave us into the canonical stored URL,
+// matching how EditProfile builds biolink.url (prefix + handle).
+// The card may print a full URL OR a bare handle — normalise both.
+function buildBiolinkUrl(platform: string, raw: string): string {
+  const v = raw.trim();
+  if (!v) return v;
+  // Already a full link the model passed through verbatim.
+  if (/^https?:\/\//i.test(v)) return v;
+  if (platform === 'phone') {
+    // Keep + and digits only; tel: tolerates spaces but stored
+    // form should be clean.
+    return 'tel:' + v.replace(/[^\d+]/g, '');
+  }
+  if (platform === 'email') {
+    return v.startsWith('mailto:') ? v : 'mailto:' + v;
+  }
+  if (platform === 'website') {
+    return 'https://' + v.replace(/^\/+/, '');
+  }
+  const prefix = PLATFORM_MAP[platform]?.prefix ?? '';
+  // Strip a leading @ for social handles — prefixes already end at
+  // the path root (instagram.com/, linkedin.com/in/, …).
+  return prefix + v.replace(/^@+/, '');
+}
+
+type OnboardingScreenProps = { navigation: any };
 
 export default function OnboardingScreen({ navigation }: OnboardingScreenProps) {
   const { t } = useTranslation();
-  const DEFAULT_TAGS = t('auth.onboarding.defaultTags', { returnObjects: true }) as string[];
-  const [step, setStep] = useState(0);
-  const [bio, setBio] = useState('');
-  const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const [suggestedTags, setSuggestedTags] = useState<string[]>(DEFAULT_TAGS);
-  const [aiLoading, setAiLoading] = useState(false);
-  const [socialLinks, setSocialLinks] = useState<Record<SocialLinkKey, string>>({
-    facebook: '',
-    instagram: '',
-    linkedin: '',
-  });
-  const [editingSocial, setEditingSocial] = useState<SocialLinkKey | null>(null);
-  const [birthday, setBirthday] = useState('');
-  const [loading, setLoading] = useState(false);
-  const aiDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const { colors, isDark } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
 
-  const fetchAiTags = useCallback(async (bioText: string) => {
-    if (!bioText.trim() || bioText.trim().length < 3) {
-      setSuggestedTags(DEFAULT_TAGS);
-      return;
-    }
-    setAiLoading(true);
-    try {
-      const resp = await fetch(`${supabaseUrl}/functions/v1/suggest-tags`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ bio: bioText }),
-      });
-      const data = await resp.json();
-      if (data.tags && data.tags.length > 0) {
-        setSuggestedTags(data.tags.map((t: string) => `#${t}`));
+  const [step, setStep] = useState<number>(STEP_WELCOME);
+  const [displayName, setDisplayName] = useState('');
+  // Self-declared birthday — the engine for "it's X's birthday"
+  // friend notifications (core CRM). Collected here so EVERY signup
+  // path (email + Apple + Google) gets a chance to set it; OAuth
+  // users skip RegisterScreen entirely and would otherwise never
+  // have a birthday. Stored as YYYY-MM-DD (see lib/birthday.ts).
+  const [birthday, setBirthday] = useState('');
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [burstVisible, setBurstVisible] = useState(false);
+  const [burstUserName, setBurstUserName] = useState<string | undefined>(undefined);
+  // Completion navigation used to live ONLY inside the burst's
+  // onComplete callback — if that never fired (animation lib error,
+  // unmount), the user was stranded on the profile screen with the
+  // DB written + flag set but no way forward. finishedRef makes the
+  // nav idempotent; navTimerRef is a safety net that fires it
+  // anyway if onComplete is late/missing.
+  const finishedRef = useRef(false);
+  const navTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // ─── Business-card scan state ─────────────────────────────
+  // `bio` + `pendingBiolinks` are what actually get committed in
+  // handleComplete. They stay empty unless the user scans a card
+  // AND confirms the sheet — so a user who skips the scan has the
+  // exact same minimal name+avatar flow as before (no behaviour
+  // change for the skip path, which is the whole funnel premise).
+  const [bio, setBio] = useState('');
+  const [pendingBiolinks, setPendingBiolinks] = useState<
+    { platform: string; url: string; label: string | null }[]
+  >([]);
+  const [scanning, setScanning] = useState(false);
+  const [scanModalVisible, setScanModalVisible] = useState(false);
+  // Editable working copy of what the scan returned. The user can
+  // fix OCR mistakes here before anything is written.
+  const [editCard, setEditCard] = useState<CardData | null>(null);
+  // Per-biolink include toggles (default on for any detected field).
+  const [includeMap, setIncludeMap] = useState<Record<string, boolean>>({});
+
+  // ─── Smart prefill ──────────────────────────────────────
+  // Goal: most users tap the CTA without ever opening the keyboard.
+  // Priority order for the displayed default name:
+  //   1. Apple / Google sign-in returns user_metadata.full_name
+  //      (Apple only returns it on the VERY FIRST sign-in — must
+  //      capture here while we still have it)
+  //   2. user_metadata.name (some OAuth providers use this key)
+  //   3. piktag_profiles.full_name (if a trigger pre-backfilled it)
+  //   4. Email local-part, title-cased (armand7951 → "Armand7951")
+  //   5. Blank — user types from scratch
+  useEffect(() => {
+    let cancelled = false;
+    const prefill = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user || cancelled) return;
+
+        // 1 + 2: auth metadata
+        const meta = (user.user_metadata || {}) as Record<string, unknown>;
+        const fromMeta =
+          (typeof meta.full_name === 'string' && meta.full_name.trim()) ||
+          (typeof meta.name === 'string' && meta.name.trim()) ||
+          '';
+        if (fromMeta) {
+          if (!cancelled) setDisplayName(fromMeta);
+          return;
+        }
+
+        // 3: existing profile row (and pick up an avatar if one is
+        //    already on file — covers the re-onboarding edge case
+        //    where a user hit "log out" then came back)
+        try {
+          const { data: profile } = await supabase
+            .from('piktag_profiles')
+            .select('full_name, avatar_url')
+            .eq('id', user.id)
+            .single();
+          if (!cancelled && profile?.avatar_url) setAvatarUrl(profile.avatar_url);
+          const profileName = profile?.full_name?.trim();
+          if (!cancelled && profileName) {
+            setDisplayName(profileName);
+            return;
+          }
+        } catch {
+          // ignore — fall through to email prefix
+        }
+
+        // 4: email prefix
+        const prefix = user.email?.split('@')[0];
+        if (prefix && !cancelled) {
+          setDisplayName(prefix.charAt(0).toUpperCase() + prefix.slice(1));
+        }
+      } catch {
+        // swallow — blank input is a fine fallback
       }
-    } catch {
-      // Keep current suggestions on error
-    } finally {
-      setAiLoading(false);
-    }
+    };
+    prefill();
+    return () => { cancelled = true; };
   }, []);
 
-  const handleBioChange = (text: string) => {
-    setBio(text);
-    if (aiDebounceRef.current) clearTimeout(aiDebounceRef.current);
-    aiDebounceRef.current = setTimeout(() => fetchAiTags(text), 600);
-  };
-
-  const totalSteps = 3;
-
-  const toggleTag = (tag: string) => {
-    setSelectedTags((prev) =>
-      prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
-    );
-  };
-
-  const handleComplete = async () => {
-    setLoading(true);
+  // ─── Avatar upload (optional) ───────────────────────────
+  // Same validation + Storage POST as EditProfileScreen so any image
+  // that uploads here also uploads there (consistency = fewer support
+  // tickets about "the picker worked on one screen but not the other").
+  const handlePickAvatar = useCallback(async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        Alert.alert(t('common.error'), t('auth.onboarding.alertUserNotFound'));
+      const { status } = await requestMediaLibraryPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert(
+          t('auth.onboarding.avatarPermissionTitle', { defaultValue: '需要相簿權限' }),
+          t('auth.onboarding.avatarPermissionMessage', { defaultValue: '請在設定中允許 PikTag 存取相簿' }),
+        );
+        return;
+      }
+      const result = await launchImageLibraryAsync({
+        mediaTypes: ['images'],
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.85,
+      });
+      if (result.canceled || !result.assets[0]) return;
+      const asset = result.assets[0];
+
+      const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+      const MAX_FILE_SIZE = 2 * 1024 * 1024;
+      if (!asset.mimeType || !ALLOWED_MIME_TYPES.includes(asset.mimeType)) {
+        Alert.alert(t('common.error'), t('editProfile.invalidImageType', { defaultValue: '不支援的圖片格式' }));
+        return;
+      }
+      if (typeof asset.fileSize === 'number' && asset.fileSize > MAX_FILE_SIZE) {
+        Alert.alert(t('common.error'), t('editProfile.imageTooLarge', { defaultValue: '檔案太大（上限 2MB）' }));
         return;
       }
 
-      // Update profile with bio
-      const { error: profileError } = await supabase
+      setUploadingAvatar(true);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        Alert.alert(t('common.error'), t('auth.onboarding.alertUserNotFound', { defaultValue: '找不到使用者' }));
+        return;
+      }
+      const { data: sessionData } = await supabase.auth.getSession();
+      const accessToken = sessionData?.session?.access_token;
+      if (!accessToken) throw new Error('No session');
+
+      const extFromMime: Record<string, string> = {
+        'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp',
+      };
+      const ext = extFromMime[asset.mimeType];
+      const filePath = `${user.id}/avatar.${ext}`;
+
+      const formData = new FormData();
+      formData.append('file', {
+        uri: asset.uri,
+        name: `avatar.${ext}`,
+        type: asset.mimeType,
+      } as any);
+
+      const uploadRes = await fetch(
+        `${supabaseUrl}/storage/v1/object/avatars/${filePath}`,
+        {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            apikey: supabaseAnonKey,
+            'x-upsert': 'true',
+          },
+          body: formData,
+        },
+      );
+      if (!uploadRes.ok) {
+        const err = await uploadRes.json().catch(() => ({}));
+        throw new Error((err as any).message || 'upload failed');
+      }
+      // Cache-buster so the picker preview renders the new image
+      // even when the old one is still in expo-image's memory cache.
+      const publicUrl = `${supabaseUrl}/storage/v1/object/public/avatars/${filePath}?t=${Date.now()}`;
+      await supabase.from('piktag_profiles').update({ avatar_url: publicUrl }).eq('id', user.id);
+      setAvatarUrl(publicUrl);
+    } catch (err: any) {
+      Alert.alert(t('common.error'), err?.message || t('common.unknownError'));
+    } finally {
+      setUploadingAvatar(false);
+    }
+  }, [t]);
+
+  // ─── Business-card scan ─────────────────────────────────
+  // Optional accelerator on the name screen. Opens the CAMERA to
+  // photograph a physical card (not the library — "掃描名片" means
+  // point-and-shoot the real card) → edge-function vision extract →
+  // editable confirmation sheet. Nothing is written until the user
+  // confirms the sheet; this handler only POPULATES the working copy.
+  // Scan pipeline, fed a captured photo by CardCameraScreen via its
+  // onCaptured callback param. The framing-guide camera owns the
+  // camera + permission; this owns the timeout + confirmation sheet.
+  const runScan = useCallback(async (base64: string, mimeType: string) => {
+    try {
+      setScanning(true);
+      // supabase.functions.invoke has no timeout and RN fetch never
+      // times out: a stalled Gemini fallback chain would otherwise
+      // hang onboarding forever (only Back escapes). Cap it so the
+      // user is never trapped; on timeout we fall into catch and
+      // surface the normal "scan failed, retry or type it" path.
+      const SCAN_TIMEOUT_MS = 30000;
+      const { data, error } = await Promise.race([
+        supabase.functions.invoke('scan-business-card', {
+          body: { image: base64, mimeType },
+        }),
+        new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error('SCAN_TIMEOUT')), SCAN_TIMEOUT_MS),
+        ),
+      ]);
+      if (error) {
+        console.warn('[Onboarding] scan-business-card failed:', error);
+        Alert.alert(
+          t('auth.onboarding.cardScanFailedTitle', { defaultValue: '掃描失敗' }),
+          t('auth.onboarding.cardScanFailedMessage', {
+            defaultValue: '名片沒有讀取成功，再試一次或手動填寫。',
+          }),
+        );
+        return;
+      }
+      const card = ((data as any)?.data ?? null) as CardData | null;
+      const anyField =
+        card &&
+        Object.values(card).some((v) => typeof v === 'string' && v.trim());
+      if (!card || !anyField) {
+        Alert.alert(
+          t('auth.onboarding.cardScanEmptyTitle', { defaultValue: '沒讀到資料' }),
+          t('auth.onboarding.cardScanEmptyMessage', {
+            defaultValue: '這張名片看不太清楚 — 換一張清楚的照片，或直接手動填。',
+          }),
+        );
+        return;
+      }
+      // Default-include any contact field that came back non-null.
+      const nextInclude: Record<string, boolean> = {};
+      for (const f of BIOLINK_FIELDS) {
+        const val = card[f.key];
+        nextInclude[f.key] = typeof val === 'string' && val.trim().length > 0;
+      }
+      setEditCard(card);
+      setIncludeMap(nextInclude);
+      setScanModalVisible(true);
+    } catch (err: any) {
+      const isTimeout = err?.message === 'SCAN_TIMEOUT';
+      Alert.alert(
+        isTimeout
+          ? t('auth.onboarding.cardScanFailedTitle', { defaultValue: '掃描失敗' })
+          : t('common.error'),
+        isTimeout
+          ? t('auth.onboarding.cardScanFailedMessage', {
+              defaultValue: '名片沒有讀取成功，再試一次或手動填寫。',
+            })
+          : err?.message || t('common.unknownError'),
+      );
+    } finally {
+      setScanning(false);
+    }
+  }, [t]);
+
+  // Open the custom framing-guide camera; it returns the photo here.
+  const handleScanCard = useCallback(() => {
+    navigation.navigate('CardCamera', { onCaptured: runScan });
+  }, [navigation, runScan]);
+
+  // Commit the (possibly user-edited) sheet into local state.
+  // Still nothing in the DB — handleComplete does the writes.
+  const handleApplyCard = useCallback(() => {
+    if (!editCard) {
+      setScanModalVisible(false);
+      return;
+    }
+    const name = (editCard.full_name ?? '').trim();
+    if (name) setDisplayName(name);
+    const draft = (editCard.bio_draft ?? '').trim();
+    if (draft) setBio(draft);
+
+    const links: { platform: string; url: string; label: string | null }[] = [];
+    for (const f of BIOLINK_FIELDS) {
+      if (!includeMap[f.key]) continue;
+      const raw = (editCard[f.key] ?? '').toString().trim();
+      if (!raw) continue;
+      links.push({
+        platform: f.platform,
+        url: buildBiolinkUrl(f.platform, raw),
+        label: null,
+      });
+    }
+    setPendingBiolinks(links);
+    setScanModalVisible(false);
+    setEditCard(null);
+  }, [editCard, includeMap]);
+
+  // Post-completion navigation. Extracted out of the burst's
+  // onComplete so a safety timer can also call it: if the burst
+  // animation never fires onComplete, the user is no longer
+  // stranded. finishedRef makes it run exactly once.
+  const finishOnboarding = useCallback(async () => {
+    if (finishedRef.current) return;
+    finishedRef.current = true;
+    if (navTimerRef.current) {
+      clearTimeout(navTimerRef.current);
+      navTimerRef.current = null;
+    }
+    setBurstVisible(false);
+
+    // (Invite-code handoff removed — the invite/redeem gate was
+    // retired; open signup, no codes.)
+
+    // Drop the user on the create-first-event surface.
+    // root → Main → AddTagTab(2) → AddTagCreate(1). Back-gesture
+    // pops AddTagCreate → AddTagMain (the # tab's landing).
+    const mainState = {
+      index: 2,
+      routes: [
+        { name: 'HomeTab' },
+        { name: 'SearchTab' },
+        {
+          name: 'AddTagTab',
+          state: {
+            index: 1,
+            routes: [{ name: 'AddTagMain' }, { name: 'AddTagCreate' }],
+          },
+        },
+        { name: 'NotificationsTab' },
+        { name: 'ProfileTab' },
+      ],
+    };
+    navigation.reset({ index: 0, routes: [{ name: 'Main', state: mainState }] });
+  }, [navigation]);
+
+  // Clear the safety timer if the screen unmounts first.
+  useEffect(() => () => {
+    if (navTimerRef.current) clearTimeout(navTimerRef.current);
+  }, []);
+
+  // ─── Save & finish ──────────────────────────────────────
+  // The ONLY field this commits is `full_name`. Avatar is already
+  // committed by handlePickAvatar at pick time, so we don't re-write
+  // it here. Bio / birthday / tags / biolinks are all deferred —
+  // they get filled later via EditProfile (linked from the first-QR
+  // celebration sheet in AddTagScreen).
+  const handleComplete = useCallback(async () => {
+    const trimmed = displayName.trim();
+    if (!trimmed) {
+      Alert.alert(
+        t('auth.onboarding.nameRequiredTitle', { defaultValue: '需要一個名字' }),
+        t('auth.onboarding.nameRequiredMessage', { defaultValue: '朋友掃 QR 會看到這個名字，至少幫自己取一個吧。' }),
+      );
+      return;
+    }
+    // Birthday is optional, but if they typed something it must be a
+    // real date — a silently-dropped/garbled birthday means the
+    // friend notification (core CRM) never fires. Normalized to the
+    // strict MM/DD the daily-birthday-check cron matches on.
+    const bday = toBirthdayDate(birthday);
+    if (birthday.trim() !== '' && !bday) {
+      Alert.alert(
+        t('common.error', { defaultValue: '錯誤' }),
+        t('friendDetail.alertInvalidDate', { defaultValue: '請輸入正確的日期格式（MM/DD）' }),
+      );
+      return;
+    }
+    setSaving(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        Alert.alert(t('common.error'), t('auth.onboarding.alertUserNotFound', { defaultValue: '找不到使用者' }));
+        return;
+      }
+      // Bio rides along with full_name in the same UPDATE when the
+      // user scanned a card and kept a bio_draft. Empty bio → don't
+      // send the column at all (skip-scan users keep the exact old
+      // behaviour: only full_name is touched).
+      const profilePatch: Record<string, string> = { full_name: trimmed };
+      const trimmedBio = bio.trim();
+      if (trimmedBio) profilePatch.bio = trimmedBio;
+      if (bday) profilePatch.birthday = bday;
+
+      // upsert (not update().eq) so a profile row the signup trigger
+      // hasn't committed yet still gets written — closes the
+      // post-signup race. And the name write is now FATAL: it is the
+      // core deliverable of onboarding ("friends scanning your QR
+      // see this name"). Marking onboarding complete on a failed
+      // name write strands the user with a nameless profile AND no
+      // way back in (the completed flag + age check both say skip).
+      const { error } = await supabase
         .from('piktag_profiles')
-        .update({ bio: bio.trim(), birthday: birthday.trim() || null })
-        .eq('id', user.id);
-
-      if (profileError) {
-        console.warn('Profile update error:', profileError.message);
+        .upsert({ id: user.id, ...profilePatch }, { onConflict: 'id' });
+      if (error) {
+        console.warn('[Onboarding] profile upsert failed:', error.message);
+        Alert.alert(
+          t('common.error', { defaultValue: '錯誤' }),
+          t('auth.onboarding.saveFailed', {
+            defaultValue: '資料沒存成功，請檢查網路後再試一次。',
+          }),
+        );
+        setSaving(false);
+        return;
       }
 
-      // Insert social links as biolinks
-      const linksToInsert = (Object.entries(socialLinks) as [SocialLinkKey, string][])
-        .filter(([, url]) => url.trim() !== '')
-        .map(([platform, url], index) => ({
-          user_id: user.id,
-          platform,
-          url: url.trim(),
-          label: platform.charAt(0).toUpperCase() + platform.slice(1),
-          position: index,
-          is_active: true,
-        }));
-
-      if (linksToInsert.length > 0) {
-        const { error: linksError } = await supabase
-          .from('piktag_biolinks')
-          .insert(linksToInsert);
-
-        if (linksError) {
-          console.warn('Biolinks insert error:', linksError.message);
+      // Biolinks from a confirmed card scan. Best-effort + non-fatal:
+      // a failed biolink insert must never block finishing onboarding
+      // (the user can always re-add links in EditProfile). Insert as
+      // one batch so position order is preserved.
+      if (pendingBiolinks.length > 0) {
+        try {
+          const rows = pendingBiolinks.map((b, i) => ({
+            user_id: user.id,
+            platform: b.platform,
+            url: b.url,
+            label: b.label,
+            position: i,
+            is_active: true,
+            display_mode: 'icon',
+            visibility: 'public',
+          }));
+          const { error: linkErr } = await supabase
+            .from('piktag_biolinks')
+            .insert(rows);
+          if (linkErr) {
+            console.warn('[Onboarding] biolink insert failed:', linkErr.message);
+          }
+        } catch (e) {
+          console.warn('[Onboarding] biolink insert threw:', e);
         }
       }
-
-      // Insert selected tags
-      if (selectedTags.length > 0) {
-        for (let i = 0; i < selectedTags.length; i++) {
-          const tagName = selectedTags[i].replace('#', '');
-
-          // Find or create tag
-          const { data: tagData, error: tagError } = await supabase
-            .from('piktag_tags')
-            .select('id')
-            .eq('name', tagName)
-            .single();
-
-          let tagId: string | undefined;
-
-          if (tagError || !tagData) {
-            const { data: newTag } = await supabase
-              .from('piktag_tags')
-              .insert({ name: tagName, created_by: user.id })
-              .select('id')
-              .single();
-            tagId = newTag?.id;
-          } else {
-            tagId = tagData.id;
-          }
-
-          if (tagId) {
-            await supabase.from('piktag_user_tags').insert({
-              user_id: user.id,
-              tag_id: tagId,
-              position: i,
-            });
-          }
-        }
-      }
-
-      // Persist the onboarding-complete flag BEFORE resetting navigation.
-      // AppNavigator reads this on subsequent launches to decide the
-      // initial route. If we only relied on `bio` emptiness, a user who
-      // completes onboarding but whose bio insert silently failed would
-      // be trapped in the flow forever.
       try {
         await AsyncStorage.setItem(ONBOARDING_COMPLETED_KEY, 'true');
       } catch (err) {
-        // Non-fatal — the legacy bio check still kicks in as a fallback.
-        console.warn('[Onboarding] failed to persist completion flag:', err);
+        console.warn('[Onboarding] flag persist failed:', err);
       }
-
-      // Navigate to main app (replace the navigation stack)
-      navigation.reset({
-        index: 0,
-        routes: [{ name: 'Main' }],
-      });
+      setBurstUserName(trimmed);
+      setBurstVisible(true);
+      // Safety net: if the burst's onComplete never fires (animation
+      // lib error / unmount), navigate anyway after the animation
+      // would have finished. finishedRef keeps it single-shot.
+      navTimerRef.current = setTimeout(() => { finishOnboarding(); }, 4000);
     } catch (err: any) {
       Alert.alert(t('common.error'), err.message || t('common.unknownError'));
     } finally {
-      setLoading(false);
+      setSaving(false);
     }
-  };
+  }, [displayName, bio, birthday, pendingBiolinks, t, finishOnboarding]);
 
-  const goNext = () => {
-    if (step < totalSteps - 1) {
-      setStep(step + 1);
-    } else {
-      handleComplete();
-    }
-  };
-
-  const goBack = () => {
-    if (step > 0) {
-      setStep(step - 1);
-    }
-  };
-
-  const renderProgressIndicator = () => (
-    <View style={styles.progressContainer}>
-      {Array.from({ length: totalSteps }).map((_, i) => (
-        <View
-          key={i}
-          style={[
-            styles.progressDot,
-            i === step && styles.progressDotActive,
-            i < step && styles.progressDotCompleted,
-          ]}
-        />
-      ))}
+  // ─── Render: Step 0 (Welcome card) ──────────────────────
+  const renderWelcome = () => (
+    <View style={styles.welcomeContainer}>
+      <View style={styles.welcomeIconWrap}>
+        <QrCode size={64} color={colors.piktag500} strokeWidth={2.2} />
+      </View>
+      <Text style={styles.welcomeTitle}>
+        {t('auth.onboarding.welcomeTitle', { defaultValue: '一個 QR，加完所有朋友' })}
+      </Text>
+      <Text style={styles.welcomeSubtitle}>
+        {t('auth.onboarding.welcomeSubtitle', { defaultValue: '貼上標籤，下次見面就知道是誰' })}
+      </Text>
+      {/* Brand tagline — small, English, uppercase-letterspaced.
+          Sits under the functional copy so it reads as a signature,
+          not a competing headline. Drives the same idea ("tag now,
+          keep the people later") in 6 words that the longer
+          Chinese above explains. */}
+      <Text style={styles.brandTagline}>
+        {t('auth.onboarding.brandTagline', { defaultValue: 'Tag the Vibe, Keep the Tribe' })}
+      </Text>
+      <View style={{ flex: 1 }} />
+      <TouchableOpacity
+        style={styles.primaryButton}
+        activeOpacity={0.85}
+        onPress={() => setStep(STEP_PROFILE)}
+        accessibilityRole="button"
+      >
+        <Text style={styles.primaryButtonText}>
+          {t('auth.onboarding.welcomeCta', { defaultValue: '開始使用 PikTag' })}
+        </Text>
+        <ChevronRight size={20} color="#FFFFFF" />
+      </TouchableOpacity>
     </View>
   );
 
-  const renderStep1 = () => (
-    <View style={styles.stepContent}>
-      <Text style={styles.stepTitle}>{t('auth.onboarding.step1Title')}</Text>
-      <Text style={styles.stepDescription}>
-        {t('auth.onboarding.step1Description')}
-      </Text>
+  // ─── Render: Step 1 (Name + Avatar) ─────────────────────
+  const renderProfile = () => {
+    const ctaDisabled = saving || !displayName.trim();
+    return (
+      <ScrollView
+        contentContainerStyle={styles.profileContainer}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
+        <Text style={styles.profileTitle}>
+          {t('auth.onboarding.profileTitle', { defaultValue: '你叫什麼名字？' })}
+        </Text>
+        <Text style={styles.profileSubtitle}>
+          {t('auth.onboarding.profileSubtitle', { defaultValue: '朋友掃 QR 會看到這個名字' })}
+        </Text>
 
-      <TextInput
-        style={styles.bioInput}
-        placeholder={t('auth.onboarding.step1BioPlaceholder')}
-        placeholderTextColor={COLORS.gray400}
-        value={bio}
-        onChangeText={handleBioChange}
-        multiline
-        numberOfLines={4}
-        textAlignVertical="top"
-      />
+        {/* Avatar picker — sits ABOVE the name input so the user
+            reads top-down "face → name". Optional: tapping is
+            invitation, not requirement. */}
+        <TouchableOpacity
+          style={styles.avatarPicker}
+          activeOpacity={0.7}
+          onPress={handlePickAvatar}
+          disabled={uploadingAvatar}
+          accessibilityRole="button"
+          accessibilityLabel={t('auth.onboarding.avatarPickA11y', { defaultValue: '選擇頭像' })}
+        >
+          {avatarUrl ? (
+            <Image
+              source={{ uri: avatarUrl }}
+              style={styles.avatarImage}
+              contentFit="cover"
+            />
+          ) : (
+            <View style={styles.avatarPlaceholder}>
+              {uploadingAvatar ? (
+                <BrandSpinner size={32} />
+              ) : (
+                <Camera size={32} color={colors.piktag500} strokeWidth={1.8} />
+              )}
+            </View>
+          )}
+        </TouchableOpacity>
+        <Text style={styles.avatarHint}>
+          {t('auth.onboarding.avatarHint', { defaultValue: '頭像選填（之後可以再加）' })}
+        </Text>
 
-      {/* Birthday */}
-      <View style={styles.birthdayRow}>
-        <Text style={styles.birthdayLabel}>{t('auth.onboarding.birthdayLabel') || '生日'}</Text>
         <TextInput
-          style={styles.birthdayInput}
-          placeholder="MM/DD"
-          placeholderTextColor={COLORS.gray400}
+          style={styles.nameInput}
+          value={displayName}
+          onChangeText={setDisplayName}
+          placeholder={t('auth.onboarding.profileNamePlaceholder', { defaultValue: '你的名字' })}
+          placeholderTextColor={colors.gray400}
+          maxLength={40}
+          autoCapitalize="words"
+          autoCorrect={false}
+          returnKeyType="done"
+          onSubmitEditing={() => {
+            if (!ctaDisabled) handleComplete();
+          }}
+        />
+
+        {/* Birthday — optional but the CRM core (drives the
+            "it's X's birthday" friend notification). Stored MM/DD;
+            placeholder is a universal format token (not localized,
+            matches RegisterScreen). */}
+        <TextInput
+          style={styles.nameInput}
           value={birthday}
           onChangeText={setBirthday}
+          placeholder={t('auth.register.birthdayLabel', { defaultValue: '生日（選填）' }) + '  MM/DD'}
+          placeholderTextColor={colors.gray400}
           keyboardType="numbers-and-punctuation"
-          maxLength={5}
+          autoCapitalize="none"
+          autoCorrect={false}
+          maxLength={10}
+          returnKeyType="done"
         />
-      </View>
 
-      <View style={styles.tagSectionHeader}>
-        <Sparkles size={18} color={COLORS.piktag600} />
-        <Text style={styles.tagSectionTitle}>{t('auth.onboarding.aiTagSectionTitle')}</Text>
-        {aiLoading && <ActivityIndicator size="small" color={COLORS.piktag500} style={{ marginLeft: 8 }} />}
-      </View>
-      <Text style={styles.tagSectionDescription}>
-        {t('auth.onboarding.aiTagSectionDescription')}
-      </Text>
-      <View style={styles.tagsContainer}>
-        {suggestedTags.map((tag) => (
-          <TouchableOpacity
-            key={tag}
-            style={[
-              styles.tagButton,
-              selectedTags.includes(tag) && styles.tagButtonActive,
-            ]}
-            onPress={() => toggleTag(tag)}
-            activeOpacity={0.7}
-          >
-            <Text
-              style={[
-                styles.tagButtonText,
-                selectedTags.includes(tag) && styles.tagButtonTextActive,
-              ]}
-            >
-              {tag}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </View>
-    </View>
-  );
-
-  const socialPlatforms: { key: SocialLinkKey; label: string; icon: React.ReactNode }[] = [
-    {
-      key: 'facebook',
-      label: t('auth.onboarding.facebookLabel'),
-      icon: <Facebook size={20} color={COLORS.gray700} />,
-    },
-    {
-      key: 'instagram',
-      label: t('auth.onboarding.instagramLabel'),
-      icon: <Instagram size={20} color={COLORS.gray700} />,
-    },
-    {
-      key: 'linkedin',
-      label: t('auth.onboarding.linkedinLabel'),
-      icon: <Linkedin size={20} color={COLORS.gray700} />,
-    },
-  ];
-
-  const renderStep2 = () => (
-    <View style={styles.stepContent}>
-      <Text style={styles.stepTitle}>{t('auth.onboarding.step2Title')}</Text>
-      <Text style={styles.stepDescription}>
-        {t('auth.onboarding.step2Description')}
-      </Text>
-
-      <View style={styles.socialLinksContainer}>
-        {socialPlatforms.map(({ key, label, icon }) => (
-          <View key={key} style={styles.socialLinkItem}>
-            <TouchableOpacity
-              style={[
-                styles.socialButton,
-                socialLinks[key] !== '' && styles.socialButtonActive,
-              ]}
-              onPress={() =>
-                setEditingSocial(editingSocial === key ? null : key)
-              }
-              activeOpacity={0.7}
-            >
-              {icon}
-              <Text
-                style={[
-                  styles.socialButtonText,
-                  socialLinks[key] !== '' && styles.socialButtonTextActive,
-                ]}
-              >
-                {label}
+        {/* Optional accelerator. Sits BELOW the name input as a
+            secondary outlined affordance — visually subordinate to
+            the primary CTA so it reads as "or, the fast way",
+            never competing with "just type your name and go".
+            Skipping it leaves the original minimal flow untouched. */}
+        <TouchableOpacity
+          style={styles.scanCardBtn}
+          activeOpacity={0.7}
+          onPress={handleScanCard}
+          disabled={scanning}
+          accessibilityRole="button"
+          accessibilityLabel={t('auth.onboarding.scanCardCta', { defaultValue: '掃名片快速帶入' })}
+        >
+          {scanning ? (
+            // Explicit "reading…" feedback, consistent with
+            // EditLocalContact (reuses localContact.scanningCard —
+            // already in all 19 locales). Light piktag50 button bg,
+            // so a piktag500 indicator stays visible.
+            <>
+              <ActivityIndicator size="small" color={colors.piktag500} />
+              <Text style={styles.scanCardBtnText}>
+                {t('localContact.scanningCard', { defaultValue: '辨識名片中…' })}
               </Text>
-              {socialLinks[key] !== '' && (
-                <CheckCircle size={16} color={COLORS.piktag500} />
-              )}
-            </TouchableOpacity>
+            </>
+          ) : (
+            <>
+              <ScanLine size={18} color={colors.piktag500} strokeWidth={2} />
+              <Text style={styles.scanCardBtnText}>
+                {t('auth.onboarding.scanCardCta', { defaultValue: '掃名片快速帶入' })}
+              </Text>
+            </>
+          )}
+        </TouchableOpacity>
+        <Text style={styles.scanCardHint}>
+          {t('auth.onboarding.scanCardHint', { defaultValue: '有名片？拍一張，自動帶入 bio 和聯絡方式（選填）' })}
+        </Text>
 
-            {editingSocial === key && (
-              <View style={styles.socialInputContainer}>
-                <TextInput
-                  style={styles.socialInput}
-                  placeholder={t('auth.onboarding.socialLinkPlaceholder', { label })}
-                  placeholderTextColor={COLORS.gray400}
-                  value={socialLinks[key]}
-                  onChangeText={(text) =>
-                    setSocialLinks((prev) => ({ ...prev, [key]: text }))
-                  }
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                  keyboardType="url"
-                />
-                <TouchableOpacity
-                  style={styles.socialInputClose}
-                  onPress={() => setEditingSocial(null)}
-                >
-                  <X size={18} color={COLORS.gray500} />
-                </TouchableOpacity>
-              </View>
-            )}
-          </View>
-        ))}
-      </View>
-    </View>
-  );
+        <View style={{ flex: 1, minHeight: 32 }} />
 
-  const renderStep3 = () => (
-    <View style={styles.stepContentCenter}>
-      <View style={styles.successIconContainer}>
-        <CheckCircle size={72} color={COLORS.piktag500} />
-      </View>
-      <Text style={styles.successTitle}>{t('auth.onboarding.step3Title')}</Text>
-      <Text style={styles.successDescription}>
-        {t('auth.onboarding.step3Description')}
-      </Text>
-    </View>
-  );
-
-  const renderCurrentStep = () => {
-    switch (step) {
-      case 0:
-        return renderStep1();
-      case 1:
-        return renderStep2();
-      case 2:
-        return renderStep3();
-      default:
-        return null;
-    }
+        <TouchableOpacity
+          style={[styles.primaryButton, ctaDisabled && styles.primaryButtonDisabled]}
+          activeOpacity={0.85}
+          onPress={handleComplete}
+          disabled={ctaDisabled}
+          accessibilityRole="button"
+        >
+          {saving ? (
+            <BrandSpinner size={20} />
+          ) : (
+            <>
+              <Text style={styles.primaryButtonText}>
+                {t('auth.onboarding.profileCta', { defaultValue: '建立我的第一個 Tag' })}
+              </Text>
+              <ChevronRight size={20} color="#FFFFFF" />
+            </>
+          )}
+        </TouchableOpacity>
+      </ScrollView>
+    );
   };
 
   return (
     <KeyboardAvoidingView
       style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        keyboardShouldPersistTaps="handled"
+      {step === STEP_WELCOME ? renderWelcome() : renderProfile()}
+
+      {/* Celebration burst plays after handleComplete succeeds. Its
+          onComplete then drives the navigation reset — we defer to
+          onComplete so the animation isn't interrupted by tab-stack
+          mounting. */}
+      <OnboardingCompleteBurst
+        visible={burstVisible}
+        userName={burstUserName}
+        onComplete={finishOnboarding}
+      />
+
+      {/* ─── Business-card confirmation sheet ───────────────
+          Everything OCR'd is shown editable BEFORE it touches
+          the profile. Card OCR mangles phone digits / handles;
+          a 5-second review beats junk in the user's permanent
+          profile. Nothing here writes to the DB — "套用" only
+          lifts the values into local state; handleComplete does
+          the actual writes when the user finishes onboarding. */}
+      <Modal
+        visible={scanModalVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setScanModalVisible(false)}
       >
-        {renderProgressIndicator()}
-        {renderCurrentStep()}
-      </ScrollView>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalSheet}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>
+                {t('auth.onboarding.cardConfirmTitle', { defaultValue: '確認名片資料' })}
+              </Text>
+              <TouchableOpacity
+                onPress={() => setScanModalVisible(false)}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                accessibilityRole="button"
+                accessibilityLabel={t('common.close', { defaultValue: '關閉' })}
+              >
+                <X size={22} color={colors.gray500} />
+              </TouchableOpacity>
+            </View>
+            <Text style={styles.modalSubtitle}>
+              {t('auth.onboarding.cardConfirmSubtitle', {
+                defaultValue: '檢查一下、可以改 — 確認後才會帶入',
+              })}
+            </Text>
 
-      {/* Navigation Buttons */}
-      <View style={styles.navigationBar}>
-        {step > 0 ? (
-          <TouchableOpacity
-            style={styles.backButton}
-            onPress={goBack}
-            activeOpacity={0.7}
-          >
-            <ChevronLeft size={20} color={COLORS.gray700} />
-            <Text style={styles.backButtonText}>{t('auth.onboarding.backButton')}</Text>
-          </TouchableOpacity>
-        ) : (
-          <View />
-        )}
+            <ScrollView
+              style={styles.modalScroll}
+              keyboardShouldPersistTaps="handled"
+              showsVerticalScrollIndicator={false}
+            >
+              {/* Name */}
+              <Text style={styles.modalFieldLabel}>
+                {t('auth.onboarding.cardFieldName', { defaultValue: '名字' })}
+              </Text>
+              <TextInput
+                style={styles.modalInput}
+                value={editCard?.full_name ?? ''}
+                onChangeText={(v) =>
+                  setEditCard((c) => (c ? { ...c, full_name: v } : c))
+                }
+                placeholder={t('auth.onboarding.profileNamePlaceholder', { defaultValue: '你的名字' })}
+                placeholderTextColor={colors.gray400}
+                maxLength={40}
+              />
 
-        <TouchableOpacity
-          style={[styles.nextButton, loading && styles.nextButtonDisabled]}
-          onPress={goNext}
-          disabled={loading}
-          activeOpacity={0.8}
-        >
-          {loading ? (
-            <ActivityIndicator color={COLORS.white} size="small" />
-          ) : step === totalSteps - 1 ? (
-            <Text style={styles.nextButtonText}>{t('auth.onboarding.enterPikTag')}</Text>
-          ) : (
-            <>
-              <Text style={styles.nextButtonText}>{t('auth.onboarding.nextButton')}</Text>
-              <ChevronRight size={20} color={COLORS.white} />
-            </>
-          )}
-        </TouchableOpacity>
-      </View>
+              {/* Bio draft */}
+              <Text style={styles.modalFieldLabel}>
+                {t('auth.onboarding.cardFieldBio', { defaultValue: 'Bio（AI 起的草稿，可改）' })}
+              </Text>
+              <TextInput
+                style={[styles.modalInput, styles.modalInputMultiline]}
+                value={editCard?.bio_draft ?? ''}
+                onChangeText={(v) =>
+                  setEditCard((c) => (c ? { ...c, bio_draft: v } : c))
+                }
+                placeholder={t('auth.onboarding.cardBioPlaceholder', {
+                  defaultValue: '一句話介紹你自己',
+                })}
+                placeholderTextColor={colors.gray400}
+                multiline
+                maxLength={160}
+              />
+
+              {/* Detected contact links */}
+              {BIOLINK_FIELDS.some(
+                (f) => (editCard?.[f.key] ?? '').toString().trim(),
+              ) && (
+                <Text style={styles.modalSectionLabel}>
+                  {t('auth.onboarding.cardLinksLabel', { defaultValue: '聯絡方式 / 社群' })}
+                </Text>
+              )}
+              {BIOLINK_FIELDS.map((f) => {
+                const raw = (editCard?.[f.key] ?? '').toString();
+                if (!raw.trim()) return null;
+                const label = PLATFORM_MAP[f.platform]?.label ?? f.platform;
+                const on = !!includeMap[f.key];
+                return (
+                  <View key={f.key} style={styles.modalLinkRow}>
+                    <Switch
+                      value={on}
+                      onValueChange={(val) =>
+                        setIncludeMap((m) => ({ ...m, [f.key]: val }))
+                      }
+                      trackColor={{ false: colors.gray200, true: colors.piktag500 }}
+                    />
+                    <View style={styles.modalLinkBody}>
+                      <Text style={styles.modalLinkPlatform}>{label}</Text>
+                      <TextInput
+                        style={[
+                          styles.modalLinkInput,
+                          !on && styles.modalLinkInputOff,
+                        ]}
+                        value={raw}
+                        editable={on}
+                        onChangeText={(v) =>
+                          setEditCard((c) =>
+                            c ? { ...c, [f.key]: v } : c,
+                          )
+                        }
+                        autoCapitalize="none"
+                        autoCorrect={false}
+                      />
+                    </View>
+                  </View>
+                );
+              })}
+            </ScrollView>
+
+            <TouchableOpacity
+              style={styles.modalApplyBtn}
+              activeOpacity={0.85}
+              onPress={handleApplyCard}
+              accessibilityRole="button"
+            >
+              <Text style={styles.modalApplyBtnText}>
+                {t('auth.onboarding.cardApplyCta', { defaultValue: '套用' })}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </KeyboardAvoidingView>
   );
 }
 
-const styles = StyleSheet.create({
+function makeStyles(c: ColorPalette) {
+  return StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.white,
-  },
-  scrollContent: {
-    flexGrow: 1,
+    backgroundColor: c.white,
     paddingHorizontal: SPACING.xxl,
-    paddingTop: 60,
   },
-  progressContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: 8,
-    marginBottom: 40,
-  },
-  progressDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: COLORS.gray200,
-  },
-  progressDotActive: {
-    width: 28,
-    backgroundColor: COLORS.piktag500,
-    borderRadius: 5,
-  },
-  progressDotCompleted: {
-    backgroundColor: COLORS.piktag300,
-  },
-  stepContent: {
-    flex: 1,
-  },
-  stepContentCenter: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingBottom: 80,
-  },
-  stepTitle: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: COLORS.gray900,
-    marginBottom: SPACING.sm,
-  },
-  stepDescription: {
-    fontSize: 15,
-    color: COLORS.gray500,
-    lineHeight: 22,
-    marginBottom: SPACING.xxl,
-  },
-  bioInput: {
-    borderWidth: 1,
-    borderColor: COLORS.gray200,
-    borderRadius: BORDER_RADIUS.lg,
-    paddingHorizontal: SPACING.lg,
-    paddingVertical: SPACING.md,
-    fontSize: 16,
-    color: COLORS.gray900,
-    backgroundColor: COLORS.white,
-    minHeight: 120,
-    marginBottom: SPACING.lg,
-  },
-  birthdayRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    marginBottom: SPACING.xxl,
-  },
-  birthdayLabel: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: COLORS.gray700,
-  },
-  birthdayInput: {
-    flex: 1,
-    borderWidth: 1,
-    borderColor: COLORS.gray200,
-    borderRadius: BORDER_RADIUS.lg,
-    paddingHorizontal: SPACING.lg,
-    paddingVertical: 10,
-    fontSize: 16,
-    color: COLORS.gray900,
-    backgroundColor: COLORS.white,
-  },
-  tagSectionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    marginBottom: SPACING.xs,
-  },
-  tagSectionTitle: {
-    fontSize: 17,
-    fontWeight: '600',
-    color: COLORS.gray800,
-  },
-  tagSectionDescription: {
-    fontSize: 14,
-    color: COLORS.gray500,
-    marginBottom: SPACING.lg,
-  },
-  tagsContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: SPACING.sm,
-  },
-  tagButton: {
-    paddingHorizontal: SPACING.lg,
-    paddingVertical: SPACING.sm,
-    borderRadius: BORDER_RADIUS.full,
-    borderWidth: 1,
-    borderColor: COLORS.gray200,
-    backgroundColor: COLORS.white,
-  },
-  tagButtonActive: {
-    backgroundColor: COLORS.piktag50,
-    borderColor: COLORS.piktag500,
-  },
-  tagButtonText: {
-    fontSize: 14,
-    color: COLORS.gray600,
-    fontWeight: '500',
-  },
-  tagButtonTextActive: {
-    color: COLORS.piktag600,
-  },
-  socialLinksContainer: {
-    gap: SPACING.md,
-  },
-  socialLinkItem: {
-    gap: SPACING.sm,
-  },
-  socialButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: SPACING.md,
-    paddingHorizontal: SPACING.lg,
-    paddingVertical: 14,
-    borderRadius: BORDER_RADIUS.xl,
-    borderWidth: 1,
-    borderColor: COLORS.gray200,
-    backgroundColor: COLORS.white,
-  },
-  socialButtonActive: {
-    borderColor: COLORS.piktag300,
-    backgroundColor: COLORS.piktag50,
-  },
-  socialButtonText: {
-    flex: 1,
-    fontSize: 16,
-    color: COLORS.gray700,
-    fontWeight: '500',
-  },
-  socialButtonTextActive: {
-    color: COLORS.gray900,
-  },
-  socialInputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: SPACING.sm,
-  },
-  socialInput: {
-    flex: 1,
-    borderWidth: 1,
-    borderColor: COLORS.gray200,
-    borderRadius: BORDER_RADIUS.lg,
-    paddingHorizontal: SPACING.lg,
-    paddingVertical: 12,
-    fontSize: 14,
-    color: COLORS.gray900,
-    backgroundColor: COLORS.gray50,
-  },
-  socialInputClose: {
-    padding: SPACING.sm,
-  },
-  // Contact sync step
-  contactSyncIcon: {
-    marginBottom: SPACING.xl,
-    width: 100, height: 100, borderRadius: 50,
-    backgroundColor: COLORS.piktag50,
-    alignItems: 'center', justifyContent: 'center',
-  },
-  syncBtn: {
-    backgroundColor: COLORS.piktag500, borderRadius: BORDER_RADIUS.lg,
-    paddingVertical: 14, paddingHorizontal: 32, marginTop: SPACING.xl,
-    alignItems: 'center', minWidth: 200,
-  },
-  syncBtnText: { fontSize: 16, fontWeight: '700', color: COLORS.white },
-  skipBtn: { marginTop: SPACING.md, padding: SPACING.sm },
-  skipBtnText: { fontSize: 14, color: COLORS.gray500 },
-  contactResultBox: {
-    flexDirection: 'row', alignItems: 'center', gap: 10,
-    backgroundColor: COLORS.piktag50, borderRadius: BORDER_RADIUS.lg,
-    paddingVertical: 14, paddingHorizontal: 20, marginTop: SPACING.xl,
-    borderWidth: 1, borderColor: COLORS.piktag500,
-  },
-  contactResultText: { fontSize: 15, fontWeight: '600', color: COLORS.piktag600 },
 
-  successIconContainer: {
-    marginBottom: SPACING.xxl,
+  // ── Welcome screen ──
+  welcomeContainer: {
+    flex: 1,
+    alignItems: 'center',
+    paddingTop: 120,
+    paddingBottom: 48,
   },
-  successTitle: {
+  welcomeIconWrap: {
+    width: 128,
+    height: 128,
+    borderRadius: 64,
+    backgroundColor: c.piktag50,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 36,
+  },
+  welcomeTitle: {
     fontSize: 28,
-    fontWeight: 'bold',
-    color: COLORS.gray900,
-    marginBottom: SPACING.sm,
+    fontWeight: '800',
+    color: c.gray900,
     textAlign: 'center',
+    lineHeight: 36,
+    paddingHorizontal: 16,
   },
-  successDescription: {
+  welcomeSubtitle: {
     fontSize: 16,
-    color: COLORS.gray500,
+    color: c.gray500,
     textAlign: 'center',
     lineHeight: 24,
-    paddingHorizontal: SPACING.lg,
+    marginTop: 16,
+    paddingHorizontal: 16,
   },
-  navigationBar: {
+  brandTagline: {
+    fontSize: 11,
+    color: c.piktag500,
+    textAlign: 'center',
+    marginTop: 28,
+    letterSpacing: 1.4,
+    textTransform: 'uppercase',
+    fontWeight: '600',
+  },
+
+  // ── Profile screen ──
+  profileContainer: {
+    flexGrow: 1,
+    paddingTop: 72,
+    paddingBottom: 48,
+  },
+  profileTitle: {
+    fontSize: 24,
+    fontWeight: '800',
+    color: c.gray900,
+    textAlign: 'center',
+  },
+  profileSubtitle: {
+    fontSize: 14,
+    color: c.gray500,
+    textAlign: 'center',
+    marginTop: 8,
+    marginBottom: 32,
+  },
+  avatarPicker: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    alignSelf: 'center',
+    marginBottom: 8,
+    overflow: 'hidden',
+  },
+  avatarImage: { width: '100%', height: '100%' },
+  avatarPlaceholder: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 60,
+    borderWidth: 2,
+    borderStyle: 'dashed',
+    borderColor: c.piktag500,
+    backgroundColor: c.piktag50,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  avatarHint: {
+    fontSize: 12,
+    color: c.gray400,
+    textAlign: 'center',
+    marginBottom: 24,
+  },
+  nameInput: {
+    fontSize: 18,
+    color: c.gray900,
+    backgroundColor: c.gray100,
+    borderWidth: 1,
+    borderColor: c.gray200,
+    borderRadius: BORDER_RADIUS.md,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    textAlign: 'center',
+  },
+
+  // ── Shared primary CTA ──
+  primaryButton: {
     flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: 16,
+    paddingHorizontal: 24,
+    borderRadius: BORDER_RADIUS.lg,
+    backgroundColor: c.piktag500,
+    marginTop: 24,
+  },
+  primaryButtonDisabled: {
+    backgroundColor: c.gray200,
+  },
+  primaryButtonText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+
+  // ── Scan-card affordance (secondary, subordinate to CTA) ──
+  scanCardBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: BORDER_RADIUS.md,
+    borderWidth: 1.5,
+    borderColor: c.piktag500,
+    backgroundColor: c.piktag50,
+    marginTop: 16,
+  },
+  scanCardBtnText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: c.piktag500,
+  },
+  scanCardHint: {
+    fontSize: 12,
+    color: c.gray400,
+    textAlign: 'center',
+    marginTop: 8,
+  },
+
+  // ── Card confirmation sheet ──
+  modalOverlay: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    backgroundColor: 'rgba(0,0,0,0.4)',
+  },
+  modalSheet: {
+    backgroundColor: c.white,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 32,
+    maxHeight: '85%',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: SPACING.xxl,
-    paddingVertical: SPACING.lg,
-    paddingBottom: 34,
-    borderTopWidth: 1,
-    borderTopColor: COLORS.gray100,
-    backgroundColor: COLORS.white,
   },
-  backButton: {
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: c.gray900,
+  },
+  modalSubtitle: {
+    fontSize: 13,
+    color: c.gray500,
+    marginTop: 4,
+    marginBottom: 12,
+  },
+  modalScroll: {
+    flexGrow: 0,
+  },
+  modalFieldLabel: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: c.gray700,
+    marginTop: 14,
+    marginBottom: 6,
+  },
+  modalInput: {
+    fontSize: 15,
+    color: c.gray900,
+    backgroundColor: c.gray100,
+    borderWidth: 1,
+    borderColor: c.gray200,
+    borderRadius: BORDER_RADIUS.md,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+  },
+  modalInputMultiline: {
+    minHeight: 64,
+    textAlignVertical: 'top',
+  },
+  modalSectionLabel: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: c.piktag600,
+    marginTop: 20,
+    marginBottom: 4,
+  },
+  modalLinkRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
-    paddingVertical: SPACING.sm,
-    paddingHorizontal: SPACING.md,
+    gap: 10,
+    marginTop: 12,
   },
-  backButtonText: {
-    fontSize: 16,
-    color: COLORS.gray700,
-    fontWeight: '500',
+  modalLinkBody: {
+    flex: 1,
   },
-  nextButton: {
-    flexDirection: 'row',
+  modalLinkPlatform: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: c.gray500,
+    marginBottom: 4,
+  },
+  modalLinkInput: {
+    fontSize: 14,
+    color: c.gray900,
+    backgroundColor: c.gray50,
+    borderRadius: BORDER_RADIUS.sm,
+    paddingHorizontal: 12,
+    paddingVertical: 9,
+  },
+  modalLinkInputOff: {
+    opacity: 0.4,
+  },
+  modalApplyBtn: {
+    marginTop: 20,
+    paddingVertical: 15,
+    borderRadius: BORDER_RADIUS.lg,
+    backgroundColor: c.piktag500,
     alignItems: 'center',
-    gap: 4,
-    backgroundColor: COLORS.piktag500,
-    paddingVertical: SPACING.md,
-    paddingHorizontal: SPACING.xxl,
-    borderRadius: BORDER_RADIUS.xl,
   },
-  nextButtonDisabled: {
-    opacity: 0.7,
-  },
-  nextButtonText: {
+  modalApplyBtnText: {
     fontSize: 16,
-    color: COLORS.white,
-    fontWeight: 'bold',
+    fontWeight: '700',
+    color: '#FFFFFF',
   },
-});
+  });
+}

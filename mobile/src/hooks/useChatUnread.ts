@@ -46,7 +46,7 @@ type ProviderProps = {
   children: React.ReactNode;
 };
 
-export function ChatUnreadProvider({ children }: ProviderProps): JSX.Element {
+export function ChatUnreadProvider({ children }: ProviderProps) {
   const { user } = useAuth();
   const userId = user?.id ?? null;
 

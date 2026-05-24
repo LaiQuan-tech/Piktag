@@ -1,4 +1,9 @@
 {
+  "app": {
+    "offline": "أنت غير متصل بالإنترنت. قد تكون بعض الميزات محدودة.",
+    "backOnline": "عاد الاتصال",
+    "offlineHint": "بعض الميزات تتطلّب اتصالاً"
+  },
   "tabs": {
     "home": "الرئيسية",
     "search": "بحث",
@@ -9,19 +14,25 @@
   "locationPicker": {
     "title": "اختر موقعًا",
     "noNearbyPlaces": "لا توجد أماكن قريبة. اكتب اسمًا في مربع البحث ثم اضغط تم.",
-    "noResults": "لا توجد أماكن مطابقة"
+    "noResults": "لا توجد أماكن مطابقة",
+    "permissionDenied": "تم رفض إذن الموقع",
+    "permissionDeniedWeb": "تم رفض إذن الموقع. اسمح به من إعدادات المتصفح.",
+    "errorPrefix": "خطأ في الموقع: ",
+    "searchPlaceholder": "ابحث أو اكتب اسم مكان",
+    "gpsOff": "تعذّر الحصول على الموقع. تأكد من تفعيل GPS.",
+    "requestTimeout": "انتهت مهلة طلب الموقع. حاول مرة أخرى."
   },
   "friendsMap": {
     "title": "خريطة الأصدقاء",
     "friendCount": "{{count}} من الأصدقاء على الخريطة",
     "noSharedLocations": "لا يوجد أصدقاء يشاركون موقعهم حتى الآن",
     "staleHint": "يتم عرض الأصدقاء الذين تم تحديث موقعهم خلال آخر 24 ساعة فقط",
-    "loadFailed": "فشل تحميل الخريطة، يرجى المحاولة مرة أخرى"
+    "loadFailed": "فشل تحميل الخريطة. تحقّق من الاتصال."
   },
   "hiddenTagEditor": {
     "timeTitle": "متى التقيتما",
     "locationTitle": "أين التقيتما",
-    "frequentTitle": "الأكثر استخدامًا",
+    "suggestedTitle": "مقترحة",
     "addedTitle": "تمت الإضافة",
     "today": "اليوم",
     "yesterday": "أمس",
@@ -53,7 +64,10 @@
     "noTags": "لا توجد وسوم بعد",
     "email": "البريد الإلكتروني",
     "phone": "الهاتف",
-    "comingSoonTitle": "قريبًا"
+    "comingSoonTitle": "قريبًا",
+    "checkConnection": "تحقّق من الاتصال ثم حاول مجددًا",
+    "loadFailed": "فشل التحميل",
+    "willAutoRetry": "سنحاول تلقائيًا عند عودة الاتصال"
   },
   "auth": {
     "login": {
@@ -62,7 +76,7 @@
       "emailPlaceholder": "البريد الإلكتروني",
       "passwordPlaceholder": "كلمة المرور",
       "loginButton": "تسجيل الدخول",
-      "noAccountPrompt": "ليس لديك حساب؟ ",
+      "noAccountPrompt": "ليس لديك حساب؟",
       "registerLink": "إنشاء حساب",
       "forgotPassword": "هل نسيت كلمة المرور؟",
       "alertEnterEmailFirst": "يرجى إدخال بريدك الإلكتروني أولاً، وسنرسل لك رابط إعادة تعيين كلمة المرور",
@@ -70,7 +84,10 @@
       "alertResetSentMessage": "تم إرسال رابط إعادة تعيين كلمة المرور إلى بريدك الإلكتروني",
       "orDivider": "أو",
       "continueWithApple": "تسجيل الدخول عبر Apple",
-      "continueWithGoogle": "تسجيل الدخول عبر Google"
+      "continueWithGoogle": "تسجيل الدخول عبر Google",
+      "errInvalidCredentials": "البريد أو كلمة المرور غير صحيحة.",
+      "errEmailNotConfirmed": "تحقّق من بريدك أولًا — اضغط الرابط المُرسَل ثم سجّل الدخول.",
+      "errGeneric": "تعذّر تسجيل الدخول. حاول مرة أخرى."
     },
     "register": {
       "alertEmptyFields": "يرجى ملء جميع الحقول",
@@ -84,13 +101,26 @@
       "emailPlaceholder": "البريد الإلكتروني",
       "passwordPlaceholder": "كلمة المرور",
       "registerButton": "إنشاء حساب",
-      "hasAccountPrompt": "لديك حساب بالفعل؟ ",
+      "hasAccountPrompt": "لديك حساب بالفعل؟",
       "loginLink": "تسجيل الدخول",
       "confirmPasswordPlaceholder": "تأكيد كلمة المرور",
       "alertPasswordMismatch": "كلمتا المرور غير متطابقتين",
-      "passwordHint": "يجب أن تتكون كلمة المرور من 6 أحرف على الأقل"
+      "passwordHint": "يجب أن تتكون كلمة المرور من 6 أحرف على الأقل",
+      "birthdayLabel": "تاريخ الميلاد (اختياري)",
+      "alertVerifyEmailTitle": "تحقّق من بريدك",
+      "alertVerifyEmailMessage": "أرسلنا رابط تأكيد إلى بريدك. اضغط عليه ثم عُد لتسجيل الدخول."
     },
     "onboarding": {
+      "welcome": {
+        "identityTitle": "عرّف نفسك بالوسوم",
+        "identityDesc": "اختر 10 وسوم تعبّر عنك — هذه هويتك في PikTag",
+        "activateTitle": "أحيِ معارفك القدامى",
+        "activateDesc": "أعياد الميلاد، ذكرى التعارف، والذكريات المشتركة تأتي إليك",
+        "discoverTitle": "ابحث بالحاجة، لا بالاسم",
+        "discoverDesc": "«أحتاج صديقًا مصورًا» · «مصممون بالقرب مني»",
+        "next": "التالي",
+        "getStarted": "ابدأ"
+      },
       "defaultTags": [
         "#ريادة_أعمال",
         "#تصميم",
@@ -115,13 +145,57 @@
       "contactResultText": "تم العثور على {{matched}} صديقًا",
       "step3Title": "كل شيء جاهز! ابدأ الاستكشاف",
       "step3Description": "حسابك جاهز، ابدأ باستخدام PikTag الآن",
+      "quickStart": {
+        "title": "ابدأ مع PikTag",
+        "subtitle": "أربعة أشياء تجعلك تنطلق بسرعة",
+        "card1": {
+          "title": "أضف أصدقاء",
+          "body": "امسح رمز QR، أو زامن جهات الاتصال، أو ابحث باسم المستخدم"
+        },
+        "card2": {
+          "title": "ضع وسوماً لأصدقائك",
+          "body": "مثل \"محب القهوة\"، \"مدير منتج\"، \"عميل\" — ثم اعثر عليهم بالوسم"
+        },
+        "card3": {
+          "title": "ابحث عن أشخاص بالوسم",
+          "body": "اكتب وسماً في تبويب البحث لترى من يشاركك الاهتمام"
+        },
+        "card4": {
+          "title": "انشر طلب Ask",
+          "body": "جملة واحدة، وشبكتك كلها تساعدك"
+        },
+        "cta": "ابدأ استخدام PikTag"
+      },
       "backButton": "رجوع",
       "enterPikTag": "ابدأ استخدام PikTag",
       "nextButton": "التالي",
       "facebookLabel": "Facebook",
       "instagramLabel": "Instagram",
       "linkedinLabel": "LinkedIn",
-      "birthdayLabel": "تاريخ الميلاد"
+      "birthdayLabel": "تاريخ الميلاد",
+      "avatarStepTitle": "ضع صورة أولاً",
+      "avatarStepDescription": "كي يميزك أصدقاؤك بنظرة واحدة — يمكن تغييرها في أي وقت.",
+      "avatarPickAria": "اختر صورة",
+      "avatarTapToPick": "انقر على الدائرة لاختيار صورة",
+      "avatarTapToChange": "انقر على الصورة للتغيير",
+      "avatarPermissionTitle": "يلزم الوصول إلى مكتبة الصور",
+      "avatarPermissionMessage": "اسمح لـ PikTag بالوصول إلى صورك من الإعدادات",
+      "skipStep": "تخطي",
+      "scanCardCta": "مسح بطاقة العمل",
+      "scanCardHint": "لديك بطاقة؟ صوّرها — تعبئة bio وجهات الاتصال تلقائيًا (اختياري)",
+      "cardScanFailedTitle": "فشل المسح",
+      "cardScanFailedMessage": "تعذّر قراءة البطاقة. حاول مجددًا أو املأ يدويًا.",
+      "cardScanEmptyTitle": "لم يُكتشف شيء",
+      "cardScanEmptyMessage": "البطاقة غير واضحة — استخدم صورة أوضح أو اكتب يدويًا.",
+      "cardConfirmTitle": "تأكيد بيانات البطاقة",
+      "cardConfirmSubtitle": "راجع وعدّل — لن يُطبَّق إلا بعد التأكيد",
+      "cardFieldName": "الاسم",
+      "cardFieldBio": "نبذة (مسودة ذكاء اصطناعي، قابلة للتعديل)",
+      "cardBioPlaceholder": "سطر واحد عنك",
+      "cardLinksLabel": "جهات الاتصال / التواصل",
+      "cardApplyCta": "تطبيق",
+      "profileCta": "أنشئ أول Tag",
+      "saveFailed": "تعذّر الحفظ — تحقّق من اتصالك وحاول مجددًا."
     }
   },
   "connections": {
@@ -162,7 +236,30 @@
     "clearFilter": "مسح التصفية",
     "noTagsToFilter": "لا توجد وسوم متاحة للتصفية",
     "newBadge": "جديد",
-    "unreviewedLabel": "قيد المراجعة"
+    "unreviewedLabel": "قيد المراجعة",
+    "sortLabel": "ترتيب",
+    "sortByRecent": "المضافون مؤخراً",
+    "sortByAlphabet": "أبجدي (أ→ي)",
+    "sortByAlphabetDesc": "أبجدي (ي→أ)",
+    "sortByInteraction": "التفاعل الأخير",
+    "sortByBirthday": "أعياد الميلاد القادمة",
+    "addContact": "إضافة جهة اتصال",
+    "addContactTitle": "إضافة جهة اتصال",
+    "addSearchTitle": "البحث عن مستخدمي PikTag",
+    "addSearchDesc": "بالاسم أو اسم المستخدم أو الوسم",
+    "addContactSyncTitle": "مزامنة جهات الاتصال",
+    "addContactSyncDesc": "ابحث عن الأصدقاء الموجودين على PikTag",
+    "addInviteTitle": "ادعُ أصدقاء إلى PikTag",
+    "addInviteDesc": "شارك رابط دعوة — سيصبح صديقًا تلقائيًا",
+    "coldStartActionContacts": "ابحث عن أصدقاء من جهات اتصالك",
+    "coldStartActionContactsDesc": "ابحث عن الموجودين، ووسم وأدعُ من ليسوا منهم",
+    "notJoinedBadge": "ليس على PikTag بعد",
+    "coldStartActionManual": "دوّن شخصًا",
+    "coldStartActionManualDesc": "لا يحتاج حسابًا — يرتبط بوسومك وملاحظاتك عند انضمامه",
+    "addManualA11y": "إضافة جهة اتصال يدويًا",
+    "phonePromptTitle": "أضف رقمك ليجدك أصدقاؤك",
+    "phonePromptBody": "عند مزامنة جهات اتصال أصدقائك سيتصلون تلقائيًا. يستخدمه PikTag فقط، لن يُنشر.",
+    "addedFriend": "+ {{name}}"
   },
   "search": {
     "clearAll": "مسح الكل",
@@ -171,6 +268,14 @@
     "intersectionResultCount": "تم العثور على {{count}} شخصًا",
     "headerTitle": "بحث",
     "searchPlaceholder": "وسوم، أسماء مستخدمين، إلخ.",
+    "promptHints": [
+      "أحتاج صديقًا مصورًا",
+      "أبحث عن شخص يتحدث الإنجليزية",
+      "مصممون في {{city}}",
+      "هل تعرف أحدًا في الشركات الناشئة؟",
+      "أبحث عن مطور ويب"
+    ],
+    "promptHintCityFallback": "مصممون بالقرب مني",
     "categorySectionLabel": "تصفح حسب الفئة",
     "categoryPopular": "الوسوم الشائعة",
     "categoryNearby": "أعضاء قريبون",
@@ -185,6 +290,7 @@
     "profilesSectionLabel": "الأعضاء",
     "noProfilesFound": "لم يتم العثور على أعضاء مطابقين",
     "noProfilesFoundTitle": "لم يتم العثور على أعضاء لـ \"{{query}}\"",
+    "askPrompt": "لا أحد في شبكتك؟ انشر Ask — أصدقاؤك وأصدقاء أصدقائك يمكنهم المساعدة في العثور عليه.",
     "tryTagSearchHint": "جرّب البحث عن #هاشتاغ أو كلمة أخرى",
     "clearAndRetry": "مسح وحاول مرة أخرى",
     "resetButton": "إعادة تعيين",
@@ -198,10 +304,16 @@
     "tagUsersTitle": "أشخاص يستخدمون هذا الوسم",
     "viewAllTagUsers": "عرض كل {{count}}",
     "categoryUncategorized": "أخرى",
-    "allCategories": "الكل"
+    "allCategories": "الكل",
+    "openMap": "فتح الخريطة",
+    "searchBtn": "بحث",
+    "searchInputLabel": "بحث",
+    "clearSearchLabel": "مسح البحث",
+    "recommendedTitle": "قد ترغب في التعرّف",
+    "tagsSelected": "علامة محددة"
   },
   "addTag": {
-    "headerTitle": "# تواصل اجتماعي",
+    "headerTitle": "إنشاء Tag",
     "alertTagExists": "الوسم موجود بالفعل",
     "alertTagExistsMessage": "هذا الوسم موجود في القائمة بالفعل.",
     "alertEnterPresetName": "يرجى إدخال اسم القالب",
@@ -213,18 +325,9 @@
     "alertQrError": "تعذر إنشاء رمز QR، حاول مرة أخرى بعد قليل.",
     "alertDeletePresetTitle": "حذف القالب",
     "alertDeletePresetMessage": "هل أنت متأكد من رغبتك في حذف \"{{name}}\"؟",
-    "dateLabel": "Date Tag",
-    "datePlaceholder": "YYYY/MM/DD",
-    "dateDisplayFallback": "اضغط لتحديد التاريخ",
-    "locationLabel": "Location Tag",
-    "locationPlaceholder": "أدخل موقع الفعالية...",
-    "currentLocation": "الموقع الحالي",
-    "selectLocation": "اختر موقعًا",
-    "manualInput": "إدخال يدوي",
     "locationPermDenied": "تم رفض إذن الموقع",
     "customTagsLabel": "وسوم مخصصة",
     "hiddenTagHint": "مرئي لك فقط — يساعدك على تذكر مكان اللقاء",
-    "pickDate": "اختر التاريخ",
     "tagPlaceholder": "أدخل الوسم...",
     "addButton": "إضافة",
     "saveAsPreset": "حفظ كقالب",
@@ -257,7 +360,21 @@
     "copyLink": "نسخ الرابط",
     "editQr": "تعديل QR",
     "alertLinkCopiedTitle": "تم النسخ",
-    "alertLinkCopiedMessage": "تم نسخ الرابط إلى الحافظة"
+    "alertLinkCopiedMessage": "تم نسخ الرابط إلى الحافظة",
+    "contextLabel": "ما المناسبة؟",
+    "contextHint": "سطر واحد يكفي. يستخدم الذكاء الاصطناعي كلماتك والوقت والمكان لاقتراح وسوم — لتتذكّر من قابلت هنا.",
+    "contextPlaceholder": "مثال: غداء نهاية الأسبوع، عرض للعميل، إطلاق كتاب",
+    "aiSuggestionsTitle": "اقتراحات الذكاء الاصطناعي",
+    "aiSuggestionsHint": "اكتب جملة — يستخدمها الذكاء الاصطناعي مع موقعك ووسوم هويتك.",
+    "aiSuggestionsEmpty": "لم يجد الذكاء الاصطناعي خياراً مناسباً — جرب مرة أخرى أو أضف يدوياً.",
+    "aiRegenerate": "إعادة التوليد",
+    "contextPromptHints": [
+      "رحلة غوص",
+      "لمّ شمل الجامعة",
+      "حفلة المكتب",
+      "شواء نهاية الأسبوع",
+      "زفاف صديق"
+    ]
   },
   "profile": {
     "nameNotSet": "لم يتم تعيين الاسم",
@@ -266,12 +383,12 @@
     "noBio": "لا توجد نبذة بعد",
     "noTags": "لا توجد وسوم بعد",
     "tagFallback": "وسم",
+    "askPromptHint": "اضغط + لنشر Ask · «أحتاج…»",
     "friendCountSuffix": "أصدقاء",
     "shareProfile": "مشاركة الملف الشخصي",
     "editProfile": "تعديل الملف الشخصي",
     "manageTags": "إدارة وسومي",
     "noContactMethods": "لا توجد وسائل تواصل",
-    "statusTooltip": "اضغط لتعيين الحالة",
     "contactInfoTitle": "التواصل",
     "phoneLabel": "الهاتف",
     "emailLabel": "البريد الإلكتروني",
@@ -282,7 +399,11 @@
     "statFriends": "الأصدقاء",
     "statFollowers": "المتابعون",
     "copyLink": "نسخ الرابط",
-    "share": "مشاركة"
+    "share": "مشاركة",
+    "statTagsA11y": "عرض وسومي",
+    "statFriendsA11y": "عرض أصدقائي",
+    "statFollowersA11y": "عرض متابعيّ",
+    "statTribeA11y": "عرض كوكبة Tribe الخاصة بي"
   },
   "editProfile": {
     "headerTitle": "تعديل الملف الشخصي",
@@ -305,7 +426,7 @@
     "usernameLabel": "اسم المستخدم",
     "usernamePlaceholder": "أدخل اسم المستخدم",
     "headlineLabel": "المسمى الوظيفي",
-    "headlinePlaceholder": "مثال: PM @ Google، مصمم مستقل",
+    "headlinePlaceholder": "مثال: PM @ شركة تقنية، مصمم مستقل",
     "bioLabel": "النبذة التعريفية",
     "bioPlaceholder": "أدخل النبذة",
     "phoneLabel": "الهاتف",
@@ -343,7 +464,57 @@
     "selectPlatform": "اختر منصة",
     "linkName": "اسم الرابط",
     "selectCountry": "اختر دولة",
-    "searchCountry": "ابحث عن دولة أو رمز"
+    "searchCountry": "ابحث عن دولة أو رمز",
+    "invalidImageType": "نوع الصورة غير مدعوم. يرجى استخدام JPEG أو PNG أو WebP.",
+    "imageTooLarge": "حجم الصورة كبير جدًا. الحد الأقصى 2 ميجابايت.",
+    "browseAllPlatformsCta": "المزيد…",
+    "browseAllPlatforms": "تصفح كل المنصات",
+    "platformSearchPlaceholder": "ابحث عن منصة…",
+    "platformSearchEmpty": "لا توجد نتائج",
+    "detectedAs": "تم اكتشافه كـ {{platform}}",
+    "platform": {
+      "phone": "هاتف",
+      "email": "بريد إلكتروني",
+      "website": "موقع",
+      "blog": "مدوّنة",
+      "portfolio": "ملف أعمال",
+      "custom": "رابط مخصص"
+    },
+    "platformCategory": {
+      "communication": "اتصال",
+      "social": "اجتماعي",
+      "video": "فيديو",
+      "music": "موسيقى",
+      "professional": "مهني",
+      "writing": "كتابة",
+      "business": "أعمال",
+      "generic": "عام"
+    },
+    "completionInline": "ليجدك جماعتك بسرعة — أضف {{items}}",
+    "missingAvatar": "الصورة الشخصية",
+    "missingBio": "نبذة",
+    "missingTags": "3 وسوم",
+    "missingBiolink": "رابط اجتماعي",
+    "welcomeShort": "مرحبًا بك في PikTag",
+    "bioPromptHints": [
+      "مندوب مبيعات في التقنية؛ الجري متنفّسي، أسعى لإنهاء الماراثون تحت 4 ساعات",
+      "معلّمة ابتدائي، حديقة خضار في الشرفة وأكثر من 20 نبتة عصارية",
+      "ممرّض طوارئ، أخبز بعد المناوبات للاسترخاء، أتعلّم قهوة التقطير",
+      "مهندس backend، مهتم مؤخراً بالطبخ والخزف، عندي كلب شيبا شرس",
+      "طالب علم نفس، أعزف الغيتار في فرقة، وبدأت أتلقّى أعمال رسم"
+    ],
+    "headlinePromptHints": [
+      "PM @ شركة تقنية",
+      "محامٍ @ مكتب محاماة",
+      "ممرّض طوارئ @ مركز طبي",
+      "مصمم جرافيك مستقل",
+      "طالب علم نفس"
+    ],
+    "needLibraryPermissionTitle": "مطلوب الوصول إلى مكتبة الصور",
+    "needLibraryPermissionMsg": "اسمح بالوصول من الإعدادات",
+    "notSignedIn": "لم يتم تسجيل الدخول",
+    "uploadFailTitle": "فشل التحميل",
+    "tryAgainLater": "حاول لاحقًا"
   },
   "friendDetail": {
     "reminderBirthday": "عيد الميلاد",
@@ -369,6 +540,9 @@
     "metLocationLabel": "الموقع",
     "metNoteLabel": "ملاحظة",
     "eventTagsLabel": "وسوم الفعالية",
+    "eventTagsSection": "فعاليات مشتركة",
+    "eventTagsExpand": "عرض الكل ({{count}})",
+    "eventTagsCollapse": "إخفاء",
     "stickyNotesTitle": "ملاحظات سريعة",
     "notePlaceholder": "اكتب ملاحظتك...",
     "noteCancel": "إلغاء",
@@ -408,19 +582,24 @@
     "unfollowMessage": "هل أنت متأكد من إلغاء متابعة {{name}}؟",
     "unfollowConfirm": "إلغاء المتابعة",
     "hiddenTagsTitle": "وسوم مخفية (مرئية لك فقط)",
+    "eventTagsTitle": "علامات الفعالية",
     "hiddenTagPlaceholder": "أضف وسمًا مخفيًا، مثلاً: زميل سابق",
     "mutualTagsModalTitle": "وسوم مشتركة",
     "mutualFriendsSectionTitle": "الأصدقاء المشتركون",
-    "shareIntroMessage": "أعرّفك على {{name}} — هذا ملفه الشخصي: {{url}}"
+    "shareIntroMessage": "أعرّفك على {{name}} — هذا ملفه الشخصي: {{url}}",
+    "tag": "وسم",
+    "recommendMembers": "أعضاء موصى بهم",
+    "blockConfirmTitle": "حظر هذا الشخص؟",
+    "blockConfirmMessage": "ستلغيان متابعة بعضكما ولن تريا محتوى الآخر."
   },
   "userDetail": {
     "headerNotFound": "غير موجود",
     "userNotFound": "المستخدم غير موجود",
-    "mutualFriendsPrefix": "أصدقاء مشتركون: ",
+    "mutualFriendsPrefix": "أصدقاء مشتركون:",
     "mutualFriendsSuffix": "",
-    "mutualTagsPrefix": "وسوم مشتركة: ",
+    "mutualTagsPrefix": "وسوم مشتركة:",
     "mutualTagsSuffix": "",
-    "mutualSeparator": "  |  ",
+    "mutualSeparator": "|",
     "following": "تتم المتابعة",
     "follow": "متابعة",
     "sendMessage": "رسالة",
@@ -455,7 +634,12 @@
     "pickTagSubtitle": "اختر الوسوم التي تمثل {{name}}",
     "pickTagEmpty": "لا توجد وسوم عامة لهذا المستخدم بعد",
     "pickTagSave": "حفظ ({{count}})",
-    "hiddenTagPlaceholder": "أضف وسمًا مخفيًا..."
+    "hiddenTagPlaceholder": "أضف وسمًا مخفيًا...",
+    "tag": "وسم",
+    "recommendMembers": "أعضاء موصى بهم",
+    "vibeContextTagsTitle": "وسوم هذا الـ Tag",
+    "blockConfirmTitle": "حظر هذا الشخص؟",
+    "blockConfirmMessage": "ستلغيان متابعة بعضكما ولن تريا محتوى الآخر."
   },
   "settings": {
     "headerTitle": "الإعدادات",
@@ -504,7 +688,10 @@
     "deactivateMessage": "سيتم إخفاء ملفك الشخصي. يمكنك إعادة تفعيله بتسجيل الدخول مجددًا.",
     "deactivateConfirm": "تعطيل",
     "deleteAccountButton": "حذف الحساب",
-    "alertDeleteAccountNote": "لا يمكن التراجع عن هذا الإجراء. سيتم حذف حسابك وجميع بياناتك نهائيًا"
+    "alertDeleteAccountNote": "لا يمكن التراجع عن هذا الإجراء. سيتم حذف حسابك وجميع بياناتك نهائيًا",
+    "analyticsOptIn": "إرسال بيانات الاستخدام",
+    "analyticsOptInDescription": "ساعدنا في تحسين التطبيق",
+    "attRationale": "يستخدم PikTag تحليلات أساسية لتحسين تجربتك، ولا يتتبعك مطلقًا عبر التطبيقات الأخرى."
   },
   "contactSync": {
     "headerTitle": "مزامنة جهات الاتصال",
@@ -525,7 +712,23 @@
     "inviteMessage": "مرحبًا {{name}}، أستخدم PikTag لتبادل الوسوم! انضم إليّ: https://pikt.ag",
     "batchProgress": "جارٍ المعالجة {{current}}/{{total}}",
     "alertBatchDoneTitle": "اكتمل الاستيراد",
-    "alertBatchDoneMessage": "تمت إضافة {{matched}} صديقًا. {{notOnApp}} جهة اتصال لا تستخدم PikTag بعد."
+    "alertBatchDoneMessage": "تمت إضافة {{matched}} صديقًا. {{notOnApp}} جهة اتصال لا تستخدم PikTag بعد.",
+    "sectionOnPiktag": "على PikTag · {{count}}",
+    "sectionNotOnPiktag": "ليس على PikTag · {{count}}",
+    "summaryHeading": "{{onCount}} على PikTag · {{offCount}} للدعوة",
+    "followAllCta": "متابعة جميع أصدقاء PikTag ({{count}})",
+    "followBtn": "متابعة",
+    "inviteBtn": "دعوة",
+    "tagInviteBtn": "إضافة وسم ودعوة",
+    "fromContact": "جهة اتصال: {{name}}",
+    "classifyingText": "جارٍ المطابقة…",
+    "alertFollowAllTitle": "متابعة الكل",
+    "alertFollowAllMessage": "هل تريد إضافة كل أصدقاء PikTag الـ {{count}} إلى اتصالاتك؟",
+    "alertFollowAllConfirm": "إضافة",
+    "alertFollowAllDoneTitle": "تم",
+    "alertFollowAllDoneMessage": "تمت إضافة {{count}} من أصدقاء PikTag",
+    "allConnected": "تم بالفعل إضافة جميع جهات اتصال PikTag",
+    "openSettings": "افتح الإعدادات للسماح بالوصول"
   },
   "invite": {
     "headerTitle": "دعوة الأصدقاء",
@@ -563,11 +766,11 @@
     "defaultLocation": "الموقع الحالي",
     "alertPermTitle": "إذن الموقع",
     "alertPermMessage": "إذن الموقع مطلوب لهذه الميزة",
-    "metAtPrefix": "تعرفتم في ",
+    "metAtPrefix": "تعرفتم في",
     "metAtSuffix": "",
     "nearbySection": "علاقات قريبة ({{count}})",
     "metHereSection": "تعرفتم هنا ({{count}})",
-    "emptyText": "لم يتم العثور على علاقات قريبة"
+    "emptyText": "لا أحد بالقرب منك. عدّل نطاق البحث أو اذهب إلى ‘استكشاف’ لمقابلة أصدقاء جدد"
   },
   "dashboard": {
     "headerTitle": "اللوحة الشخصية",
@@ -581,7 +784,7 @@
     "totalLinkClicks": "نقرات الروابط",
     "totalQrScans": "إجمالي عمليات مسح QR",
     "growthCurveTitle": "نمو العلاقات",
-    "growthCurveEmpty": "لا توجد بيانات أصدقاء بعد",
+    "growthCurveEmpty": "لا توجد بيانات أصدقاء بعد. أضف وسوماً أو ادعُ أصدقاء للبدء",
     "presetScansTitle": "عمليات المسح حسب القالب",
     "presetScansEmpty": "لا توجد سجلات مسح للقوالب",
     "scanCountSuffix": "عمليات مسح",
@@ -605,7 +808,73 @@
     "timeYesterday": "أمس",
     "timeDaysAgo": "قبل {{count}} ي",
     "timeWeeksAgo": "قبل {{count}} أ",
-    "emptyState": "لا توجد إشعارات"
+    "emptyState": "لا توجد إشعارات. عيّن تذكيرات أو تابع نشاط أصدقائك",
+    "types": {
+      "ask_posted": {
+        "title": "",
+        "body": "نشر طلباً · {{ask_body}}",
+        "push": {
+          "title": "{{username}}",
+          "body": "نشر طلباً · {{ask_body}}"
+        }
+      },
+      "vibe_shift": {
+        "title": "",
+        "body": "أضاف وسمًا جديدًا #{{tag_name}}",
+        "push": {
+          "title": "{{username}}",
+          "body": "أضاف وسمًا جديدًا #{{tag_name}}"
+        }
+      },
+      "on_this_day": {
+        "title": "",
+        "body": "انقر للعودة إلى ذلك اليوم",
+        "push": {
+          "title": "",
+          "body": "انقر للعودة إلى ذلك اليوم"
+        }
+      },
+      "tag_convergence": {
+        "title": "",
+        "body": "ابدأ المحادثة",
+        "push": {
+          "title": "",
+          "body": "ابدأ المحادثة"
+        }
+      },
+      "ask_bridge": {
+        "title": "",
+        "body": "اطلب التعريف",
+        "push": {
+          "title": "",
+          "body": "اطلب التعريف"
+        }
+      },
+      "ask_prompt": {
+        "title": "",
+        "body": "جملة واحدة، قد يساعدك أحد الأصدقاء",
+        "push": {
+          "title": "",
+          "body": "جملة واحدة، قد يساعدك أحد الأصدقاء"
+        }
+      },
+      "reconnect_suggest": {
+        "title": "",
+        "body": "ألقِ التحية",
+        "push": {
+          "title": "",
+          "body": "ألقِ التحية"
+        }
+      },
+      "tag_combo": {
+        "title": "",
+        "body": "موضوع جيد للحديث",
+        "push": {
+          "title": "",
+          "body": "موضوع جيد للحديث"
+        }
+      }
+    }
   },
   "scanResult": {
     "headerTitle": "إضافة صديق",
@@ -626,7 +895,11 @@
     "relationClient": "عميل",
     "alreadyConnectedTitle": "متصلون بالفعل",
     "alreadyConnectedMessage": "أنتما أصدقاء بالفعل.",
-    "addFriend": "متابعة"
+    "addFriend": "متابعة",
+    "connectElsewhereTitle": "تواصل مع {{name}} هنا أيضًا",
+    "connectElsewhereHint": "اضغط لفتح صفحته في ذلك التطبيق — أنت من يتابع/يضيف.",
+    "selfScanMessage": "هذا رمز QR الخاص بك — لا يمكنك إضافة نفسك.",
+    "addingFriend": "جارٍ إضافة الصديق…"
   },
   "manageTags": {
     "headerTitle": "إدارة الوسوم",
@@ -652,6 +925,7 @@
     "pinLimitMessage": "يمكنك تثبيت {{max}} وسمًا كحد أقصى",
     "dragHint": "اضغط مطولاً للتثبيت، استخدم الأسهم لإعادة الترتيب",
     "aiSuggestionsTitle": "اقتراحات الذكاء الاصطناعي لك",
+    "aiFromBioTitle": "اقتراحات الذكاء الاصطناعي بناءً على سيرتك",
     "pinTag": "تثبيت الوسم",
     "unpinTag": "إلغاء التثبيت",
     "publicTagsTitle": "الوسوم العامة",
@@ -663,7 +937,9 @@
     "dragSelectTarget": "انقر على الوسم للتبديل",
     "tagLimitTitle": "حد الوسوم",
     "tagLimitMessage": "يمكنك إضافة {{max}} وسمًا كحد أقصى",
-    "aiErrorGeneric": "اقتراحات الذكاء الاصطناعي غير متاحة مؤقتًا، يُرجى المحاولة لاحقًا"
+    "aiErrorGeneric": "اقتراحات الذكاء الاصطناعي غير متاحة مؤقتًا، يُرجى المحاولة لاحقًا",
+    "nativeHintNoPin": "اضغط مطولاً واسحب لإعادة الترتيب",
+    "tagEditHint": "انقر للإزالة (يمكن التراجع قبل الحفظ) · اضغط مطولاً لإعادة الترتيب"
   },
   "activityReview": {
     "noNewFriends": "لا يوجد أصدقاء جدد للمراجعة",
@@ -673,7 +949,8 @@
     "hiddenTagPlaceholder": "أضف وسمًا مخفيًا...",
     "swipeHint": "← اسحب لليسار للتخطي · يمين للتالي →",
     "skip": "تخطي",
-    "next": "التالي"
+    "next": "التالي",
+    "done": "تم"
   },
   "tagDetail": {
     "unknownTag": "وسم غير معروف",
@@ -712,6 +989,7 @@
     "title": "الوصول إلى الكاميرا",
     "grantPermission": "منح الإذن",
     "instruction": "وجه الكاميرا نحو رمز QR PikTag",
+    "cardFrameHint": "ضع البطاقة كاملة داخل الإطار وبوضوح",
     "invalidQr": "رمز QR غير صالح",
     "invalidQrMessage": "رمز QR هذا ليس رمز اتصال PikTag صالحًا.",
     "permissionMessage": "يحتاج PikTag إلى الوصول إلى الكاميرا لمسح رموز QR والاتصال بالأصدقاء."
@@ -791,19 +1069,6 @@
     "section11Title": "11. التواصل",
     "section11Body": "PikTag Inc.\nالبريد الإلكتروني: support@pikt.ag"
   },
-  "points": {
-    "balance": "رصيد عملات P",
-    "lifetime": "إجمالي عملات P",
-    "inviteReward": "مكافأة الدعوة",
-    "redeemHint": "استخدم عملات P للخدمات المدفوعة مستقبلاً",
-    "historyTitle": "سجل عملات P",
-    "reasonInviteAccepted": "قبل صديق الدعوة",
-    "reasonAdminGrant": "مكافأة النظام",
-    "reasonRedeemed": "تم الاستبدال",
-    "emptyHistory": "لا توجد أنشطة عملات P بعد",
-    "plusOne": "+1 P",
-    "pointsUnit": "P"
-  },
   "chat": {
     "inbox": "الرسائل",
     "compose": "رسالة جديدة",
@@ -833,7 +1098,12 @@
     "userBlocked": "لا يمكن إرسال رسالة لهذا المستخدم",
     "deliveryFailed": "فشل الإرسال · اضغط لإعادة المحاولة",
     "unreadBadge": "{{count}} غير مقروءة",
-    "messagesSent": "{{name}} أرسل لك رسالة"
+    "messagesSent": "{{name}} أرسل لك رسالة",
+    "timeJustNow": "الآن",
+    "timeYesterday": "أمس",
+    "timeMinutesAgo": "قبل {{count}} د",
+    "timeHoursAgo": "قبل {{count}} س",
+    "timeDaysAgo": "قبل {{count}} ي"
   },
   "share": {
     "profileInviteMessage": "{{name}} على PikTag\n{{url}}\n\nPikTag — وسم كل صديق تقابله،\nامسح QR لتسجيل وقت ومكان اللقاء تلقائيًا.\n\nاحصل على PikTag → https://pikt.ag"
@@ -903,7 +1173,123 @@
     "generating": "Generating title…",
     "minOneTag": "Select at least one tag",
     "aiSuggestions": "اقتراحات الذكاء الاصطناعي",
-    "yourTags": "وسومك",
-    "noTagsHint": "أضف الوسوم أولاً من الملف الشخصي ← إدارة الوسوم"
+    "customTagPlaceholder": "أضف وسماً مخصصاً",
+    "cardLabel": "يبحث عن",
+    "askingNow": "يطلبون الآن",
+    "yourAskTitle": "Ask النشط",
+    "generateAiTags": "توليد وسوم بالذكاء",
+    "aiNoSuggestions": "لم يجد الذكاء الاصطناعي وسومًا مناسبة. حاول مجددًا أو اكتب وسمك بنفسك.",
+    "regenerateAiTags": "إعادة التوليد",
+    "bubblePromptMine": "+ Ask جديد",
+    "aiSuggestionsTitle": "اقتراحات الذكاء الاصطناعي",
+    "aiBodyTooShortHint": "صف ما تريد في جملة واحدة — سيقترح الذكاء الاصطناعي وسومًا",
+    "aiTapToGenerateHint": "انقر ↻ لاقتراح وسوم من الذكاء الاصطناعي",
+    "bodyPromptHints": [
+      "مين معاي لرحلة مشي نهاية الأسبوع؟",
+      "محتاج حد يصلّح الواي فاي، مستعجل",
+      "أبحث عن عمل حر — حد يوظّف؟",
+      "رشّحوا طبيب أسنان بسعر معقول",
+      "ليلة ألعاب طاولة هذا الأسبوع، مين جاي؟"
+    ],
+    "createSubtitle": "سطر واحد يكفي — يضيف الذكاء الاصطناعي الوسوم ليراه الأشخاص المناسبون (أو صديق صديق).",
+    "createFailed": "لم يُرسَل طلبك — حاول مرة أخرى.",
+    "deleteFailed": "تعذّر حذف الـ ask"
+  },
+  "errorBoundary": {
+    "title": "حدث خطأ ما",
+    "message": "واجه التطبيق خطأ غير متوقع. يرجى المحاولة مرة أخرى.",
+    "retry": "إعادة المحاولة"
+  },
+  "report": {
+    "reportMessage": "الإبلاغ عن الرسالة",
+    "reportAsk": "الإبلاغ عن Ask",
+    "reportNotification": "الإبلاغ عن هذا الإشعار",
+    "hideFromUser": "إخفاء هذا المستخدم",
+    "confirmTitle": "إبلاغ",
+    "confirmDescription": "اختر سببًا. سنراجع خلال 24 ساعة.",
+    "success": "شكرًا — سنقوم بالمراجعة.",
+    "reasonSpam": "بريد مزعج",
+    "reasonHarassment": "تحرّش",
+    "reasonInappropriate": "محتوى غير لائق",
+    "reasonOther": "آخر",
+    "noTarget": "هذا الإشعار لا يحتوي على من يُبلَّغ عنه."
+  },
+  "tabTooltips": {
+    "home": "الأصدقاء",
+    "search": "بحث / دردشة",
+    "addTag": "مسح / إنشاء",
+    "notifications": "الإشعارات",
+    "profile": "ملفك",
+    "dismissHint": "انقر للإغلاق"
+  },
+  "qrGroup": {
+    "headerTitle": "قابل أشخاصًا جددًا",
+    "detailHeader": "Tag",
+    "create": "إنشاء Tag جديد",
+    "createFirst": "أنشئ Tag الآن",
+    "emptyTitle": "دع الوسوم تتذكّر أصدقاءك الجدد",
+    "emptyDesc": "بعد المسح والتواصل، يُسجَّل اللقاء تلقائيًا في الملفين — لن تنسى أين التقيتما بعد الآن.",
+    "untitled": "Tag بدون عنوان",
+    "untitledFallback": "Tag · {{date}}",
+    "namePlaceholder": "سمّ هذا Tag",
+    "tagsTitle": "وسوم Tag",
+    "tagsEmpty": "لا توجد وسوم",
+    "tagInputPlaceholder": "وسم جديد",
+    "noTagsYet": "لا توجد وسوم",
+    "membersTitle": "الأعضاء ({{count}})",
+    "memberCount": "{{count}} أصدقاء",
+    "membersEmpty": "لم يقم أحد بمسحه بعد — شاركه مع الأصدقاء",
+    "deleteTitle": "حذف هذا Tag؟",
+    "deleteMessage": "سيُزال \"{{name}}\" من Tags الخاص بك. الأصدقاء الذين أضافوك بالفعل عبر هذا QR لن يتأثروا.",
+    "deleteFailedTitle": "فشل الحذف",
+    "deleteFailedMessage": "لم يتم حذف هذا الـ Tag. حاول لاحقًا. تواصل معنا إذا استمر ذلك.",
+    "emptyScanCta": "أو امسح رمز QR الخاص به للتواصل"
+  },
+  "localContact": {
+    "editTitle": "تعديل جهة الاتصال",
+    "addTitle": "جهة اتصال جديدة",
+    "intro": "دوّن الشخص — لا يحتاج حساب PikTag الآن. عند انضمامه يرتبط هذا تلقائيًا وتنتقل وسومك.",
+    "fieldName": "الاسم",
+    "namePlaceholder": "مثال: أليكس من رحلة الغوص",
+    "fieldPhone": "الهاتف (اختياري — يربطه عند الانضمام)",
+    "phonePlaceholder": "+966 5x xxx xxxx",
+    "fieldEmail": "البريد (اختياري)",
+    "emailPlaceholder": "name@example.com",
+    "fieldMetWhere": "أين التقيتما (اختياري)",
+    "metWherePlaceholder": "مثال: لمّ شمل، رحلة غوص",
+    "fieldNote": "ملاحظة (تراها أنت فقط)",
+    "notePlaceholder": "سطر لتتذكّره",
+    "fieldTags": "وسوم (تراها أنت فقط)",
+    "tagPlaceholder": "أضف وسمًا…",
+    "save": "حفظ",
+    "nameRequiredTitle": "الاسم مطلوب",
+    "nameRequiredMsg": "أعطه اسمًا على الأقل لتتذكّره لاحقًا.",
+    "saveError": "تعذّر الحفظ — حاول مجددًا.",
+    "notFound": "تعذّر العثور على جهة الاتصال — ربما ارتبطت بـ PikTag أو حُذفت.",
+    "alreadyMemberTitle": "هذا الشخص موجود بالفعل على PikTag",
+    "alreadyMemberMsg": "{{name}} عضو في PikTag بالفعل — التواصل مباشرةً أفضل من مجرد حفظه كجهة اتصال.",
+    "alreadyMemberConnect": "عرض / إضافة",
+    "alreadyMemberFile": "احفظه كجهة اتصال",
+    "alreadyMemberFallbackWho": "هذا الشخص",
+    "deleteTitle": "حذف جهة الاتصال؟",
+    "deleteMsg": "يُحذف من قائمتك فقط — لا يتأثر أحد آخر.",
+    "scanCardHint": "صوّر بطاقة عمل — يُملأ الاسم وجهات الاتصال تلقائيًا. عدّل أو أضف وسومًا بعدها.",
+    "manualEntry": "أو أدخلها يدويًا",
+    "scanRetake": "إعادة التصوير",
+    "fieldBirthday": "تاريخ الميلاد (اختياري)",
+    "birthdayPlaceholder": "MM-DD أو YYYY-MM-DD",
+    "linkPhone": "الهاتف",
+    "linkEmail": "البريد الإلكتروني",
+    "linkAddress": "العنوان",
+    "scanningTitle": "يتم قراءة البطاقة…",
+    "scanningSubtitle": "يستغرق عادةً 5–10 ثوانٍ",
+    "fieldAddress": "العنوان",
+    "addressPlaceholder": "مثل: شارع الملك فهد، الرياض",
+    "scanningCard": "جارٍ قراءة البطاقة… (حوالي 3 ثوانٍ)"
+  },
+  "followers": {
+    "title": "المتابعون",
+    "count": "{{count}} متابع",
+    "empty": "لا متابعين بعد"
   }
 }

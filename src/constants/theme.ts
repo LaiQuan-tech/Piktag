@@ -3,13 +3,13 @@
 
 // ── Light palette ──────────────────────────────────────────────────────
 const LIGHT = {
-  // Brand (Purple — #aa00ff base)
+  // Brand (Purple — #8c52ff base)
   piktag50: '#f5e6ff',
   piktag100: '#e6b3ff',
   piktag200: '#d580ff',
   piktag300: '#c44dff',
   piktag400: '#bf00ff',
-  piktag500: '#aa00ff',
+  piktag500: '#8c52ff',
   piktag600: '#8800cc',
 
   // Accent (deep purple for contrast on white)

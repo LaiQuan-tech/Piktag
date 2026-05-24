@@ -1,22 +1,24 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import {
   View,
   Text,
   FlatList,
   ScrollView,
-  Image,
   TouchableOpacity,
   StyleSheet,
   StatusBar,
-  ActivityIndicator,
 } from 'react-native';
+import PageLoader from '../components/loaders/PageLoader';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeft, Hash, CheckCircle2, Users, UserPlus } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
-import { COLORS } from '../constants/theme';
+import { useFocusEffect } from '@react-navigation/native';
+import { COLORS, type ColorPalette } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
-import InitialsAvatar from '../components/InitialsAvatar';
+import RingedAvatar from '../components/RingedAvatar';
+import AskListByTag from '../components/ask/AskListByTag';
 import { supabase } from '../lib/supabase';
+import { getSiblingTagIds } from '../lib/tagSiblings';
 import { useAuth } from '../hooks/useAuth';
 
 type TagDetailScreenProps = {
@@ -49,23 +51,50 @@ type ExploreUser = {
   mutual_tag_count: number;
 };
 
+// A not-yet-on-PikTag local contact the owner manually tagged with
+// this tag. Shows in the 追蹤/connections tab alongside member
+// connections — manual tags (connection_tags + local-contact tags)
+// are owner-private, so this list is searchable only by its owner.
+type TaggedLocalContact = {
+  __localContact: true;
+  id: string;
+  name: string;
+  avatar_url: string | null;
+};
+
+// The connections-tab list holds both: real member connections and
+// manually-tagged local contacts.
+type ConnTabItem = ConnectionWithProfile | TaggedLocalContact;
+
 type TabKey = 'connections' | 'explore';
 
 export default function TagDetailScreen({ navigation, route }: TagDetailScreenProps) {
   const { t } = useTranslation();
   const { colors, isDark } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const { user } = useAuth();
   const paramTagId = route.params?.tagId;
   const tagName = route.params?.tagName;
   const initialTab = route.params?.initialTab as TabKey | undefined;
 
   const [resolvedTagId, setResolvedTagId] = useState<string | null>(paramTagId || null);
-  const [activeTab, setActiveTab] = useState<TabKey>(initialTab || 'explore');
+  // Default tab is "connections" (friends-first) — matches how people
+  // actually look at a tag: "who that I know uses this?". After the
+  // initial fetch lands, if the viewer has zero friends with this tag
+  // we silently flip to 'explore' so the screen isn't useless. Caller
+  // can pin a starting tab via route.params.initialTab to override.
+  const [activeTab, setActiveTab] = useState<TabKey>(initialTab || 'connections');
+  // Tracks whether the user (or initialTab override) has already locked
+  // a tab choice. Prevents the auto-default effect from yanking the
+  // tab out from under them on a slow connections re-fetch.
+  const userPickedTabRef = useRef<boolean>(!!initialTab);
   const [connections, setConnections] = useState<ConnectionWithProfile[]>([]);
+  // Local contacts the owner manually tagged with this tag — merged
+  // into the connections tab below member connections.
+  const [taggedContacts, setTaggedContacts] = useState<TaggedLocalContact[]>([]);
   const [exploreUsers, setExploreUsers] = useState<ExploreUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [exploreLoading, setExploreLoading] = useState(true);
-  const [usageCount, setUsageCount] = useState(0);
   const [totalUserCount, setTotalUserCount] = useState(0);
   const [tagSemanticType, setTagSemanticType] = useState<string | null>(null);
   const [parentTagName, setParentTagName] = useState<string | null>(null);
@@ -76,39 +105,22 @@ export default function TagDetailScreen({ navigation, route }: TagDetailScreenPr
     if (paramTagId) { setResolvedTagId(paramTagId); return; }
     if (!tagName) return;
     const resolve = async () => {
+      // .single() ERRORS (not just empties) when the name has
+      // duplicate rows (legacy mixed-case dupes) — so an existing
+      // tag failed to resolve and the screen dead-ended. limit(1)
+      // tolerates dupes (take the first) and 0 rows (empty array).
       const { data } = await supabase
         .from('piktag_tags')
         .select('id')
         .eq('name', tagName)
-        .single();
-      if (data) setResolvedTagId(data.id);
-      else setLoading(false); // tag not found
+        .limit(1);
+      if (data && data[0]) setResolvedTagId(data[0].id);
+      else setLoading(false); // tag genuinely not found
     };
     resolve();
   }, [paramTagId, tagName]);
 
   const tagId = resolvedTagId;
-
-  // --- Helper: get all sibling tag_ids sharing the same concept ---
-  const getSiblingTagIds = useCallback(async (tid: string): Promise<string[]> => {
-    // Get concept_id for this tag
-    const { data: tagData } = await supabase
-      .from('piktag_tags')
-      .select('concept_id')
-      .eq('id', tid)
-      .single();
-
-    if (!tagData?.concept_id) return [tid];
-
-    // Get all tags with the same concept
-    const { data: siblings } = await supabase
-      .from('piktag_tags')
-      .select('id')
-      .eq('concept_id', tagData.concept_id);
-
-    if (!siblings || siblings.length === 0) return [tid];
-    return [...new Set([tid, ...siblings.map((s: any) => s.id)])];
-  }, []);
 
   // --- Fetch connections with this tag (existing logic) ---
   const fetchTagConnections = useCallback(async () => {
@@ -119,29 +131,59 @@ export default function TagDetailScreen({ navigation, route }: TagDetailScreenPr
       // Get all sibling tag_ids (same concept)
       const allTagIds = await getSiblingTagIds(tagId);
 
-      const { data, error } = await supabase
-        .from('piktag_connection_tags')
-        .select(`
-          connection:piktag_connections!connection_id(
-            id, connected_user_id, nickname, met_at, met_location,
-            connected_user:piktag_profiles!connected_user_id(
-              id, username, full_name, avatar_url, is_verified
+      // Sibling tag NAMES — local-contact tags are stored as plain
+      // name strings (piktag_local_contacts.tags is text[]), not FKs,
+      // so contacts are matched by name, not tag_id.
+      const { data: siblingTagRows } = await supabase
+        .from('piktag_tags')
+        .select('name')
+        .in('id', allTagIds);
+      const siblingNames = (siblingTagRows || [])
+        .map((r: any) => r.name)
+        .filter(Boolean);
+
+      const [{ data, error }, contactsResult] = await Promise.all([
+        supabase
+          .from('piktag_connection_tags')
+          .select(`
+            connection:piktag_connections!connection_id(
+              id, connected_user_id, nickname, met_at, met_location,
+              connected_user:piktag_profiles!connected_user_id(
+                id, username, full_name, avatar_url, is_verified
+              )
             )
-          )
-        `)
-        .in('tag_id', allTagIds)
-        .limit(1000);
+          `)
+          .in('tag_id', allTagIds)
+          .limit(1000),
+        // Manually-tagged local contacts. RLS scopes piktag_local_contacts
+        // to the owner, so this is private to the searching user — the
+        // founder's "manual tags are owner-only searchable" rule holds.
+        siblingNames.length > 0
+          ? supabase
+              .from('piktag_local_contacts')
+              .select('id, name, avatar_url, tags')
+              .overlaps('tags', siblingNames)
+              .limit(500)
+          : Promise.resolve({ data: [], error: null } as any),
+      ]);
+
+      const matchedContacts: TaggedLocalContact[] = (contactsResult.data || [])
+        .map((c: any) => ({
+          __localContact: true as const,
+          id: c.id,
+          name: c.name,
+          avatar_url: c.avatar_url ?? null,
+        }));
+      setTaggedContacts(matchedContacts);
 
       if (error) {
         console.error('Error fetching tag connections:', error);
         setConnections([]);
-        setUsageCount(0);
         return;
       }
 
       if (!data || data.length === 0) {
         setConnections([]);
-        setUsageCount(0);
         return;
       }
 
@@ -150,14 +192,13 @@ export default function TagDetailScreen({ navigation, route }: TagDetailScreenPr
         .filter((conn: any) => conn && conn.connected_user_id);
 
       setConnections(allConnections);
-      setUsageCount(data.length);
     } catch (err) {
       console.error('Unexpected error:', err);
       setConnections([]);
     } finally {
       setLoading(false);
     }
-  }, [user, tagId, getSiblingTagIds]);
+  }, [user, tagId]);
 
   // --- Fetch all public users with this tag (NEW: explore) ---
   const fetchExploreUsers = useCallback(async () => {
@@ -165,10 +206,42 @@ export default function TagDetailScreen({ navigation, route }: TagDetailScreenPr
     try {
       setExploreLoading(true);
 
-      // Get all sibling tag_ids (same concept)
+      // Fast path: a single SQL RPC does the sibling expansion, candidate
+      // dedupe, mutual-tag count and ordering server-side, returning a
+      // page-ready slice. ~5x fewer round-trips and ~10x less wire data
+      // than the legacy 5-step pipeline below.
+      const { data: rpcData, error: rpcError } = await supabase.rpc(
+        'explore_users_for_tag',
+        { p_tag_id: tagId, p_limit: 100 },
+      );
+
+      if (!rpcError && Array.isArray(rpcData)) {
+        const rows = rpcData as Array<{
+          id: string;
+          username: string;
+          full_name: string | null;
+          avatar_url: string | null;
+          is_verified: boolean;
+          mutual_tag_count: number;
+          total_count: number;
+        }>;
+        const result: ExploreUser[] = rows.map((r) => ({
+          id: r.id,
+          username: r.username,
+          full_name: r.full_name,
+          avatar_url: r.avatar_url,
+          is_verified: r.is_verified,
+          mutual_tag_count: r.mutual_tag_count ?? 0,
+        }));
+        setExploreUsers(result);
+        setTotalUserCount(rows[0]?.total_count != null ? Number(rows[0].total_count) : result.length);
+        return;
+      }
+
+      // Fallback (RPC missing or errored): legacy multi-query pipeline.
+      // Keeps the screen working until the migration is applied.
       const allTagIds = await getSiblingTagIds(tagId);
 
-      // 1. Get all public user_ids who have this tag OR same concept (non-private)
       const { data: userTagsData, error: utError } = await supabase
         .from('piktag_user_tags')
         .select('user_id')
@@ -182,42 +255,37 @@ export default function TagDetailScreen({ navigation, route }: TagDetailScreenPr
         return;
       }
 
-      // Exclude self + deduplicate
-      const otherUserIds = [...new Set(
-        userTagsData
-          .map((ut: any) => ut.user_id)
-          .filter((uid: string) => uid !== user.id)
-      )];
+      const otherUserIds = [
+        ...new Set(
+          userTagsData
+            .map((ut: any) => ut.user_id)
+            .filter((uid: string) => uid !== user.id),
+        ),
+      ];
 
       setTotalUserCount(otherUserIds.length);
-
       if (otherUserIds.length === 0) {
         setExploreUsers([]);
         return;
       }
 
-      // 2. Fetch profiles (only public)
       const { data: profilesData, error: pError } = await supabase
         .from('piktag_profiles')
         .select('id, username, full_name, avatar_url, is_verified')
         .in('id', otherUserIds)
         .eq('is_public', true);
-
       if (pError || !profilesData) {
         setExploreUsers([]);
         return;
       }
 
-      // 3. Get current user's tag_ids for mutual count
       const { data: myTags } = await supabase
         .from('piktag_user_tags')
         .select('tag_id')
         .eq('user_id', user.id)
         .limit(500);
-
       const myTagIds = new Set((myTags || []).map((t: any) => t.tag_id));
 
-      // 4. For each explore user, count mutual tags
       const userIds = profilesData.map((p: any) => p.id);
       const { data: theirTags } = await supabase
         .from('piktag_user_tags')
@@ -233,7 +301,6 @@ export default function TagDetailScreen({ navigation, route }: TagDetailScreenPr
         }
       });
 
-      // 5. Build explore user list, sorted by mutual tag count desc
       const result: ExploreUser[] = profilesData.map((p: any) => ({
         id: p.id,
         username: p.username,
@@ -242,7 +309,6 @@ export default function TagDetailScreen({ navigation, route }: TagDetailScreenPr
         is_verified: p.is_verified,
         mutual_tag_count: mutualCountMap.get(p.id) || 0,
       }));
-
       result.sort((a, b) => b.mutual_tag_count - a.mutual_tag_count);
       setExploreUsers(result);
     } catch (err) {
@@ -251,7 +317,7 @@ export default function TagDetailScreen({ navigation, route }: TagDetailScreenPr
     } finally {
       setExploreLoading(false);
     }
-  }, [user, tagId, getSiblingTagIds]);
+  }, [user, tagId]);
 
   // --- Fetch tag metadata (semantic_type, parent) ---
   const fetchTagMeta = useCallback(async () => {
@@ -291,12 +357,68 @@ export default function TagDetailScreen({ navigation, route }: TagDetailScreenPr
     fetchTagMeta();
   }, [fetchTagConnections, fetchExploreUsers, fetchTagMeta]);
 
+  // Refetch connections list on screen focus so a freshly-followed
+  // user (via UserDetail subscreen) appears immediately when the
+  // viewer comes back to the tag page. Without this, the user
+  // followed someone but the "好友" tab still says they're not a
+  // friend until full app reload.
+  useFocusEffect(
+    useCallback(() => {
+      fetchTagConnections();
+    }, [fetchTagConnections]),
+  );
+
+  // Friends-first auto-default: once the connections fetch completes,
+  // if the viewer has nobody tagged here AND they haven't manually
+  // picked a tab yet, slip over to 'explore' so they aren't staring
+  // at "no friends use this tag". If they DO have friends, we stay on
+  // 'connections' (the social-priority view).
+  useEffect(() => {
+    if (loading) return;
+    if (userPickedTabRef.current) return;
+    // Stay on 'connections' if EITHER member connections OR manually-
+    // tagged local contacts exist — both live in that tab now.
+    if (
+      connections.length === 0 &&
+      taggedContacts.length === 0 &&
+      activeTab === 'connections'
+    ) {
+      setActiveTab('explore');
+    }
+  }, [loading, connections.length, taggedContacts.length, activeTab]);
+
   // --- Connection item renderer ---
-  const renderConnectionItem = useCallback(({ item }: { item: ConnectionWithProfile }) => {
+  const renderConnectionItem = useCallback(({ item }: { item: ConnTabItem }) => {
+    // Manually-tagged local contact (not yet on PikTag) → its
+    // read-only detail screen, with the "尚未加入" badge.
+    if ('__localContact' in item) {
+      return (
+        <TouchableOpacity
+          style={styles.userItem}
+          activeOpacity={0.7}
+          onPress={() => navigation.navigate('LocalContactDetail', { contactId: item.id })}
+        >
+          <RingedAvatar
+            size={51}
+            ringStyle="subtle"
+            name={item.name || '?'}
+            avatarUrl={item.avatar_url}
+          />
+          <View style={styles.textSection}>
+            <View style={styles.nameRow}>
+              <Text style={styles.name} numberOfLines={1}>{item.name || '?'}</Text>
+            </View>
+            <Text style={styles.username} numberOfLines={1}>
+              {t('connections.notJoinedBadge', { defaultValue: '尚未加入 PikTag' })}
+            </Text>
+          </View>
+        </TouchableOpacity>
+      );
+    }
+
     const profile = item.connected_user;
     const displayName = item.nickname || profile?.full_name || profile?.username || 'Unknown';
     const username = profile?.username || '';
-    const verified = profile?.is_verified || false;
 
     return (
       <TouchableOpacity
@@ -307,17 +429,15 @@ export default function TagDetailScreen({ navigation, route }: TagDetailScreenPr
           friendId: item.connected_user_id,
         })}
       >
-        {profile?.avatar_url ? (
-          <Image source={{ uri: profile.avatar_url }} style={styles.avatar} />
-        ) : (
-          <InitialsAvatar name={displayName} size={48} style={styles.avatar} />
-        )}
+        <RingedAvatar
+          size={51}
+          ringStyle="subtle"
+          name={displayName}
+          avatarUrl={profile?.avatar_url}
+        />
         <View style={styles.textSection}>
           <View style={styles.nameRow}>
             <Text style={styles.name} numberOfLines={1}>{displayName}</Text>
-            {/* {verified && (
-              <CheckCircle2 size={16} color={COLORS.blue500} fill={COLORS.blue500} strokeWidth={0} style={{ marginLeft: 4 }} />
-            )} */}
           </View>
           {username ? <Text style={styles.username}>@{username}</Text> : null}
           {item.met_location ? (
@@ -326,7 +446,7 @@ export default function TagDetailScreen({ navigation, route }: TagDetailScreenPr
         </View>
       </TouchableOpacity>
     );
-  }, [navigation]);
+  }, [navigation, styles, colors, t]);
 
   // --- Explore user item renderer ---
   const renderExploreItem = useCallback(({ item }: { item: ExploreUser }) => {
@@ -338,22 +458,23 @@ export default function TagDetailScreen({ navigation, route }: TagDetailScreenPr
         activeOpacity={0.7}
         onPress={() => navigation.navigate('UserDetail', { userId: item.id })}
       >
-        {item.avatar_url ? (
-          <Image source={{ uri: item.avatar_url }} style={styles.avatar} />
-        ) : (
-          <InitialsAvatar name={displayName} size={48} style={styles.avatar} />
-        )}
+        <RingedAvatar
+          size={51}
+          ringStyle="subtle"
+          name={displayName}
+          avatarUrl={item.avatar_url}
+        />
         <View style={styles.textSection}>
           <View style={styles.nameRow}>
             <Text style={styles.name} numberOfLines={1}>{displayName}</Text>
             {/* {item.is_verified && (
-              <CheckCircle2 size={16} color={COLORS.blue500} fill={COLORS.blue500} strokeWidth={0} style={{ marginLeft: 4 }} />
+              <CheckCircle2 size={16} color={colors.blue500} fill={colors.blue500} strokeWidth={0} style={{ marginLeft: 4 }} />
             )} */}
           </View>
           {item.username ? <Text style={styles.username}>@{item.username}</Text> : null}
           {item.mutual_tag_count > 0 && (
             <View style={styles.mutualBadge}>
-              <Hash size={12} color={COLORS.piktag600} strokeWidth={2} />
+              <Hash size={12} color={colors.piktag600} strokeWidth={2} />
               <Text style={styles.mutualText}>
                 {t('tagDetail.mutualTags', { count: item.mutual_tag_count })}
               </Text>
@@ -365,18 +486,43 @@ export default function TagDetailScreen({ navigation, route }: TagDetailScreenPr
           activeOpacity={0.7}
           onPress={() => navigation.navigate('UserDetail', { userId: item.id })}
         >
-          <UserPlus size={18} color={COLORS.piktag600} />
+          <UserPlus size={18} color={colors.piktag600} />
         </TouchableOpacity>
       </TouchableOpacity>
     );
-  }, [navigation, t]);
+  }, [navigation, t, styles, colors]);
 
-  const connectionKeyExtractor = useCallback((item: ConnectionWithProfile) => item.id, []);
+  const connectionKeyExtractor = useCallback(
+    (item: ConnTabItem) => ('__localContact' in item ? `c_${item.id}` : item.id),
+    [],
+  );
   const exploreKeyExtractor = useCallback((item: ExploreUser) => item.id, []);
+
+  // Connections tab = member connections + manually-tagged local
+  // contacts (the founder's "manual tags must be searchable" fix).
+  const connectionsData = useMemo<ConnTabItem[]>(
+    () => [...connections, ...taggedContacts],
+    [connections, taggedContacts],
+  );
 
   const isConnectionsTab = activeTab === 'connections';
   const currentLoading = isConnectionsTab ? loading : exploreLoading;
-  const currentData = isConnectionsTab ? connections : exploreUsers;
+  const currentData = isConnectionsTab ? connectionsData : exploreUsers;
+
+  // Active asks tagged with this tag — surfaces "who is currently
+  // asking about #X" above the user list. Auto-hides when there are
+  // none. Same render on both tabs so the discovery moment doesn't
+  // disappear when the user toggles 追蹤 / 探索.
+  const handleAskAuthorPress = useCallback(
+    (userId: string) => {
+      navigation.navigate('UserDetail', { userId });
+    },
+    [navigation],
+  );
+  const asksHeader = useMemo(
+    () => (tagId ? <AskListByTag tagId={tagId} onPressAsk={handleAskAuthorPress} /> : null),
+    [tagId, handleAskAuthorPress],
+  );
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
@@ -389,11 +535,11 @@ export default function TagDetailScreen({ navigation, route }: TagDetailScreenPr
           onPress={() => navigation.canGoBack() ? navigation.goBack() : navigation.navigate('Connections')}
           activeOpacity={0.7}
         >
-          <ArrowLeft size={24} color={COLORS.gray900} />
+          <ArrowLeft size={24} color={colors.gray900} />
         </TouchableOpacity>
         <View style={styles.headerCenter}>
           <View style={styles.tagBadge}>
-            <Hash size={18} color={COLORS.piktag600} strokeWidth={2.5} />
+            <Hash size={18} color={colors.piktag600} strokeWidth={2.5} />
             <Text style={styles.tagTitle}>{tagName || t('tagDetail.unknownTag')}</Text>
           </View>
           {tagSemanticType && (
@@ -413,7 +559,7 @@ export default function TagDetailScreen({ navigation, route }: TagDetailScreenPr
       {/* Related Tags */}
       {relatedTags.length > 0 && (
         <View style={styles.relatedContainer}>
-          <Text style={styles.relatedTitle}>{t('tagDetail.relatedTags') || '相關標籤'}</Text>
+          <Text style={styles.relatedTitle}>{t('tagDetail.relatedTags', { defaultValue: '相關標籤' })}</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingHorizontal: 16 }}>
             {relatedTags.map((rt) => (
               <TouchableOpacity
@@ -437,25 +583,31 @@ export default function TagDetailScreen({ navigation, route }: TagDetailScreenPr
       <View style={styles.tabBar}>
         <TouchableOpacity
           style={[styles.tab, activeTab === 'connections' && styles.tabActive]}
-          onPress={() => setActiveTab('connections')}
+          onPress={() => {
+            userPickedTabRef.current = true;
+            setActiveTab('connections');
+          }}
           activeOpacity={0.7}
         >
-          <Hash size={16} color={activeTab === 'connections' ? COLORS.piktag600 : COLORS.gray500} />
+          <Hash size={16} color={activeTab === 'connections' ? colors.piktag600 : colors.gray500} />
           <Text style={[styles.tabText, activeTab === 'connections' && styles.tabTextActive]}>
             {t('tagDetail.tabConnections')}
           </Text>
-          {usageCount > 0 && (
+          {connectionsData.length > 0 && (
             <View style={styles.tabBadge}>
-              <Text style={styles.tabBadgeText}>{usageCount}</Text>
+              <Text style={styles.tabBadgeText}>{connectionsData.length}</Text>
             </View>
           )}
         </TouchableOpacity>
         <TouchableOpacity
           style={[styles.tab, activeTab === 'explore' && styles.tabActive]}
-          onPress={() => setActiveTab('explore')}
+          onPress={() => {
+            userPickedTabRef.current = true;
+            setActiveTab('explore');
+          }}
           activeOpacity={0.7}
         >
-          <Users size={16} color={activeTab === 'explore' ? COLORS.piktag600 : COLORS.gray500} />
+          <Users size={16} color={activeTab === 'explore' ? colors.piktag600 : colors.gray500} />
           <Text style={[styles.tabText, activeTab === 'explore' && styles.tabTextActive]}>
             {t('tagDetail.tabExplore')}
           </Text>
@@ -469,22 +621,21 @@ export default function TagDetailScreen({ navigation, route }: TagDetailScreenPr
 
       {/* Content */}
       {currentLoading ? (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={COLORS.piktag500} />
-        </View>
+        <PageLoader />
       ) : isConnectionsTab ? (
         <FlatList
-          data={connections}
+          data={connectionsData}
           renderItem={renderConnectionItem}
           keyExtractor={connectionKeyExtractor}
+          ListHeaderComponent={asksHeader}
           contentContainerStyle={[
             styles.listContent,
-            connections.length === 0 && styles.listContentEmpty,
+            connectionsData.length === 0 && styles.listContentEmpty,
           ]}
           showsVerticalScrollIndicator={false}
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
-              <Hash size={48} color={COLORS.gray200} strokeWidth={1.5} />
+              <Hash size={48} color={colors.gray200} strokeWidth={1.5} />
               <Text style={styles.emptyTitle}>{t('tagDetail.emptyTitle')}</Text>
               <Text style={styles.emptyText}>{t('tagDetail.emptyText')}</Text>
             </View>
@@ -498,6 +649,7 @@ export default function TagDetailScreen({ navigation, route }: TagDetailScreenPr
           data={exploreUsers}
           renderItem={renderExploreItem}
           keyExtractor={exploreKeyExtractor}
+          ListHeaderComponent={asksHeader}
           contentContainerStyle={[
             styles.listContent,
             exploreUsers.length === 0 && styles.listContentEmpty,
@@ -505,7 +657,7 @@ export default function TagDetailScreen({ navigation, route }: TagDetailScreenPr
           showsVerticalScrollIndicator={false}
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
-              <Users size={48} color={COLORS.gray200} strokeWidth={1.5} />
+              <Users size={48} color={colors.gray200} strokeWidth={1.5} />
               <Text style={styles.emptyTitle}>{t('tagDetail.exploreEmptyTitle')}</Text>
               <Text style={styles.emptyText}>{t('tagDetail.exploreEmptyText')}</Text>
             </View>
@@ -519,10 +671,11 @@ export default function TagDetailScreen({ navigation, route }: TagDetailScreenPr
   );
 }
 
-const styles = StyleSheet.create({
+function makeStyles(c: ColorPalette) {
+  return StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.white,
+    backgroundColor: c.white,
   },
   header: {
     flexDirection: 'row',
@@ -531,7 +684,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.gray100,
+    borderBottomColor: c.gray100,
   },
   backBtn: {
     width: 40,
@@ -551,19 +704,19 @@ const styles = StyleSheet.create({
   tagTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: COLORS.gray900,
+    color: c.gray900,
   },
   tagSemanticLabel: {
     fontSize: 12,
     fontWeight: '600',
-    color: COLORS.gray500,
+    color: c.gray500,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
     marginTop: 2,
   },
   tagParent: {
     fontSize: 12,
-    color: COLORS.gray400,
+    color: c.gray400,
     marginTop: 2,
   },
 
@@ -571,19 +724,19 @@ const styles = StyleSheet.create({
   relatedContainer: {
     paddingVertical: 10,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.gray200,
+    borderBottomColor: c.gray200,
   },
   relatedTitle: {
     fontSize: 13,
     fontWeight: '600',
-    color: COLORS.gray500,
+    color: c.gray500,
     paddingHorizontal: 16,
     marginBottom: 8,
   },
   relatedChip: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: COLORS.gray100,
+    backgroundColor: c.gray100,
     borderRadius: 9999,
     paddingHorizontal: 12,
     paddingVertical: 6,
@@ -592,16 +745,16 @@ const styles = StyleSheet.create({
   relatedChipText: {
     fontSize: 13,
     fontWeight: '600',
-    color: COLORS.piktag600,
+    color: c.piktag600,
   },
   relatedChipCount: {
     fontSize: 11,
-    color: COLORS.gray400,
+    color: c.gray400,
   },
   tabBar: {
     flexDirection: 'row',
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.gray100,
+    borderBottomColor: c.gray100,
   },
   tab: {
     flex: 1,
@@ -614,18 +767,18 @@ const styles = StyleSheet.create({
     borderBottomColor: 'transparent',
   },
   tabActive: {
-    borderBottomColor: COLORS.piktag500,
+    borderBottomColor: c.piktag500,
   },
   tabText: {
     fontSize: 15,
     fontWeight: '600',
-    color: COLORS.gray500,
+    color: c.gray500,
   },
   tabTextActive: {
-    color: COLORS.piktag600,
+    color: c.piktag600,
   },
   tabBadge: {
-    backgroundColor: COLORS.gray100,
+    backgroundColor: c.gray100,
     borderRadius: 10,
     paddingHorizontal: 8,
     paddingVertical: 2,
@@ -635,7 +788,7 @@ const styles = StyleSheet.create({
   tabBadgeText: {
     fontSize: 12,
     fontWeight: '700',
-    color: COLORS.gray600,
+    color: c.gray600,
   },
 
   // List
@@ -656,15 +809,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 14,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.gray100,
-  },
-  avatar: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    borderWidth: 1,
-    borderColor: COLORS.gray100,
-    backgroundColor: COLORS.gray100,
+    borderBottomColor: c.gray100,
   },
   textSection: {
     flex: 1,
@@ -677,17 +822,17 @@ const styles = StyleSheet.create({
   name: {
     fontSize: 16,
     fontWeight: '600',
-    color: COLORS.gray900,
+    color: c.gray900,
     lineHeight: 22,
   },
   username: {
     fontSize: 13,
-    color: COLORS.gray500,
+    color: c.gray500,
     marginTop: 1,
   },
   metLocation: {
     fontSize: 12,
-    color: COLORS.gray400,
+    color: c.gray400,
     marginTop: 2,
   },
   mutualBadge: {
@@ -695,7 +840,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 3,
     marginTop: 4,
-    backgroundColor: COLORS.piktag50,
+    backgroundColor: c.piktag50,
     alignSelf: 'flex-start',
     paddingHorizontal: 8,
     paddingVertical: 3,
@@ -704,7 +849,7 @@ const styles = StyleSheet.create({
   mutualText: {
     fontSize: 12,
     fontWeight: '600',
-    color: COLORS.piktag600,
+    color: c.piktag600,
   },
   viewProfileBtn: {
     width: 40,
@@ -712,7 +857,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 20,
-    backgroundColor: COLORS.piktag50,
+    backgroundColor: c.piktag50,
   },
 
   // Empty
@@ -726,13 +871,14 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 17,
     fontWeight: '600',
-    color: COLORS.gray700,
+    color: c.gray700,
     marginTop: 8,
   },
   emptyText: {
     fontSize: 14,
-    color: COLORS.gray500,
+    color: c.gray500,
     textAlign: 'center',
     lineHeight: 20,
   },
-});
+  });
+}

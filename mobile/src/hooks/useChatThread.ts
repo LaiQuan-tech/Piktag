@@ -6,6 +6,7 @@ import { supabase } from '../lib/supabase';
 import { useAuth } from './useAuth';
 import type { Message, MessageStatus, ThreadMessage } from '../types/chat';
 import { dequeue, enqueue, peek, type QueuedSend } from '../lib/chatSendQueue';
+import { useNetInfo } from './useNetInfo';
 
 const PAGE_SIZE = 50;
 
@@ -16,6 +17,13 @@ type UseChatThreadReturn = {
   loadMore: () => Promise<void>;
   sendMessage: (body: string) => Promise<void>;
   retry: (nonce: string) => Promise<void>;
+  /**
+   * Re-runs the initial page fetch. Used by `<ErrorState>` retry CTAs
+   * and by callers that want to force a refresh after recovering from
+   * a transient failure. Realtime + reconnect-flush already cover the
+   * happy paths, so this is mainly for the explicit-retry UX.
+   */
+  reload: () => Promise<void>;
   markRead: () => Promise<void>;
   error: string | null;
 };
@@ -53,9 +61,16 @@ export function useChatThread(conversationId: string): UseChatThreadReturn {
   const [loadingMore, setLoadingMore] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
+  const { isConnected } = useNetInfo();
+  const wasConnectedRef = useRef<boolean>(isConnected);
+
   const isMountedRef = useRef<boolean>(true);
   const channelRef = useRef<RealtimeChannel | null>(null);
   const requestIdRef = useRef<number>(0);
+  // Tracks whether the server has more older messages than what we've
+  // already loaded. Initialized true so the first loadMore can probe;
+  // set to false as soon as a fetch returns < PAGE_SIZE rows.
+  const hasMoreRef = useRef<boolean>(true);
   // Latest messages snapshot for callbacks that shouldn't re-create on
   // every state change (realtime handler, flush loop).
   const messagesRef = useRef<ThreadMessage[]>([]);
@@ -89,6 +104,10 @@ export function useChatThread(conversationId: string): UseChatThreadReturn {
       const rows: Message[] = Array.isArray(data) ? (data as Message[]) : [];
       const mapped: ThreadMessage[] = rows.map((m) => ({ ...m, status: 'sent' }));
       setMessages(mapped);
+      // If we got fewer than a full page, there is nothing older — skip
+      // future loadMore probes so the inverted FlatList doesn't show a
+      // dangling "loading older" spinner on brand-new threads.
+      hasMoreRef.current = rows.length >= PAGE_SIZE;
       setError(null);
     } catch (e) {
       if (!isMountedRef.current || reqId !== requestIdRef.current) return;
@@ -103,6 +122,10 @@ export function useChatThread(conversationId: string): UseChatThreadReturn {
   const loadMore = useCallback(async (): Promise<void> => {
     if (!userId || !conversationId) return;
     if (loadingMore) return;
+    // Short-circuit when fetchLatest already proved the server has no
+    // older messages. Without this, FlatList's onEndReached fires on
+    // brand-new threads (1 message) and spins forever.
+    if (!hasMoreRef.current) return;
 
     // Keyset pagination anchored on the oldest *server* message. We
     // skip optimistic rows (status !== 'sent') because their timestamps
@@ -130,6 +153,7 @@ export function useChatThread(conversationId: string): UseChatThreadReturn {
       const rows: Message[] = Array.isArray(data) ? (data as Message[]) : [];
       const older: ThreadMessage[] = rows.map((m) => ({ ...m, status: 'sent' }));
       setMessages((prev) => [...prev, ...older]);
+      if (rows.length < PAGE_SIZE) hasMoreRef.current = false;
     } catch (e) {
       if (!isMountedRef.current) return;
       setError(e instanceof Error ? e.message : 'Failed to load older messages');
@@ -358,9 +382,27 @@ export function useChatThread(conversationId: string): UseChatThreadReturn {
     };
   }, [subscribe, unsubscribe, fetchLatest]);
 
-  // Queued sends are flushed on mount (below) and via manual retry on
-  // failed bubbles. Auto-flush on reconnect would require
-  // @react-native-community/netinfo which isn't in this project yet.
+  // Auto-flush queued sends when network connectivity transitions from
+  // offline to online. Manual retry on failed bubbles still works as a
+  // fallback if the user tapped retry while offline.
+  useEffect(() => {
+    const wasConnected = wasConnectedRef.current;
+    wasConnectedRef.current = isConnected;
+    if (!wasConnected && isConnected) {
+      void flushQueue();
+    }
+  }, [isConnected, flushQueue]);
+
+  // Explicit-retry surface used by the screen-level <ErrorState>.
+  // We clear the in-place error and bounce the loading flag back on
+  // before delegating to fetchLatest so the FlatList swaps from the
+  // error empty-state to a spinner immediately, rather than appearing
+  // frozen between tap and response.
+  const reload = useCallback(async () => {
+    setError(null);
+    setLoading(true);
+    await fetchLatest();
+  }, [fetchLatest]);
 
   return {
     messages,
@@ -369,6 +411,7 @@ export function useChatThread(conversationId: string): UseChatThreadReturn {
     loadMore,
     sendMessage,
     retry,
+    reload,
     markRead,
     error,
   };

@@ -1,16 +1,24 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
-  FlatList,
+  SectionList,
   TouchableOpacity,
+  Pressable,
   StyleSheet,
   StatusBar,
-  ActivityIndicator,
   Alert,
   Platform,
   Share,
+  Modal,
+  TextInput,
+  KeyboardAvoidingView,
+  ScrollView,
+  Linking,
 } from 'react-native';
+import { Image } from 'expo-image';
+import PageLoader from '../components/loaders/PageLoader';
+import BrandSpinner from '../components/loaders/BrandSpinner';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { requestPermissionsAsync, getContactsAsync, Fields, SortTypes } from 'expo-contacts';
@@ -19,16 +27,26 @@ import {
   Users,
   UserPlus,
   Check,
-  Search,
   Phone,
   Mail,
   Send,
+  Hash,
+  X,
+  Plus,
+  Lock,
 } from 'lucide-react-native';
-import { COLORS } from '../constants/theme';
+import { COLORS, type ColorPalette } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
 import { LinearGradient } from 'expo-linear-gradient';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
+import {
+  useLocalContacts,
+  normalizePhone,
+} from '../hooks/useLocalContacts';
+import type { Tag } from '../types';
+
+const MAX_TAGS_PER_CONTACT = 8;
 
 type ContactSyncScreenProps = {
   navigation: any;
@@ -39,36 +57,119 @@ type PhoneContact = {
   name: string;
   phone: string | null;
   email: string | null;
-  imported: boolean;
+};
+
+type MatchInfo = {
+  user_id: string;
+  match_type: 'phone' | 'email';
+  full_name: string | null;
+  username: string | null;
+  avatar_url: string | null;
+};
+
+type SectionVariant = 'on-piktag' | 'not-on-piktag';
+
+type ContactSection = {
+  variant: SectionVariant;
+  title: string;
+  data: PhoneContact[];
 };
 
 export default function ContactSyncScreen({ navigation }: ContactSyncScreenProps) {
   const { t } = useTranslation();
   const { colors, isDark } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
-  const [contacts, setContacts] = useState<PhoneContact[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [permissionDenied, setPermissionDenied] = useState(false);
-  const [importingIds, setImportingIds] = useState<Set<string>>(new Set());
-  const [importedIds, setImportedIds] = useState<Set<string>>(new Set());
-  const [batchProgress, setBatchProgress] = useState<{ current: number; total: number; matched: number } | null>(null);
 
+  const [contacts, setContacts] = useState<PhoneContact[]>([]);
+  const [loadingContacts, setLoadingContacts] = useState(true);
+  const [permissionDenied, setPermissionDenied] = useState(false);
+
+  // Server-classified state. `matches` is contactId → matched profile info
+  // (only contacts that resolve to a PikTag account appear here).
+  // `importedIds` tracks contacts whose matched user is already in the
+  // viewer's piktag_connections (i.e. green ✓ instead of "+追蹤").
+  const [matches, setMatches] = useState<Map<string, MatchInfo>>(new Map());
+  const [importedIds, setImportedIds] = useState<Set<string>>(new Set());
+  const [classifying, setClassifying] = useState(true);
+
+  // Per-row spinner (individual + tap) and bulk-mode progress.
+  const [importingIds, setImportingIds] = useState<Set<string>>(new Set());
+  const [batchProgress, setBatchProgress] = useState<
+    { current: number; total: number } | null
+  >(null);
+
+  // Phase 4: tag + invite for non-PikTag contacts. We piggy-back on
+  // useLocalContacts so a PhoneContact tagged here becomes a row in
+  // piktag_local_contacts, and the AFTER INSERT trigger on profiles
+  // will auto-promote it to a real connection once the invitee signs up.
+  const { contacts: localContacts, add: addLocalContact } = useLocalContacts();
+
+  // Tag-picker modal state. `tagTarget` is the PhoneContact the user
+  // is tagging right now; null means modal is closed.
+  const [tagTarget, setTagTarget] = useState<PhoneContact | null>(null);
+  const [pickedTags, setPickedTags] = useState<string[]>([]);
+  const [customTagInput, setCustomTagInput] = useState('');
+  const [savingTag, setSavingTag] = useState(false);
+
+  // Popular tags — same source EditProfile + LocalContacts use, so the
+  // chip suggestions feel consistent.
+  const [popularTags, setPopularTags] = useState<Tag[]>([]);
+  useEffect(() => {
+    (async () => {
+      const { data } = await supabase
+        .from('piktag_tags')
+        .select('id, name, usage_count, semantic_type')
+        .order('usage_count', { ascending: false })
+        .limit(15);
+      if (data) setPopularTags(data as Tag[]);
+    })();
+  }, []);
+
+  // Build a Set<string> of "phone-or-email keys" for non-PikTag contacts
+  // that already exist as local_contacts. Used to render the "已加入名單"
+  // badge instead of the "標籤+邀請" CTA so the user doesn't double-add.
+  // Key precedence mirrors normalizePhone / lower(email) to match what
+  // useLocalContacts.add() actually wrote, and falls back to the lowercase
+  // name (matching the DB UNIQUE constraint shape).
+  const taggedKeys = useMemo<Set<string>>(() => {
+    const keys = new Set<string>();
+    for (const lc of localContacts) {
+      if (lc.phone_normalized) keys.add(`p:${lc.phone_normalized}`);
+      if (lc.email_lower) keys.add(`e:${lc.email_lower}`);
+      if (lc.name) keys.add(`n:${lc.name.trim().toLowerCase()}`);
+    }
+    return keys;
+  }, [localContacts]);
+
+  const isContactTagged = useCallback(
+    (c: PhoneContact): boolean => {
+      const phoneKey = c.phone ? `p:${normalizePhone(c.phone) ?? ''}` : null;
+      const emailKey = c.email ? `e:${c.email.trim().toLowerCase()}` : null;
+      const nameKey = c.name ? `n:${c.name.trim().toLowerCase()}` : null;
+      if (phoneKey && taggedKeys.has(phoneKey)) return true;
+      if (emailKey && taggedKeys.has(emailKey)) return true;
+      if (nameKey && taggedKeys.has(nameKey)) return true;
+      return false;
+    },
+    [taggedKeys],
+  );
+
+  // ---------------------------------------------------------------------
+  // Load device contacts (after permission). Independent of server state.
+  // ---------------------------------------------------------------------
   const loadContacts = useCallback(async () => {
     try {
       const { status } = await requestPermissionsAsync();
       if (status !== 'granted') {
         setPermissionDenied(true);
-        setLoading(false);
+        setLoadingContacts(false);
         return;
       }
 
       const { data } = await getContactsAsync({
-        fields: [
-          Fields.Name,
-          Fields.PhoneNumbers,
-          Fields.Emails,
-        ],
+        fields: [Fields.Name, Fields.PhoneNumbers, Fields.Emails],
         sort: SortTypes.FirstName,
       });
 
@@ -80,18 +181,16 @@ export default function ContactSyncScreen({ navigation }: ContactSyncScreenProps
             name: c.name || 'Unknown',
             phone: c.phoneNumbers?.[0]?.number || null,
             email: c.emails?.[0]?.email || null,
-            imported: false,
           }));
         setContacts(mapped);
       }
     } catch (err) {
       console.error('Error loading contacts:', err);
-      // On web, expo-contacts is not supported
       if (Platform.OS === 'web') {
         setPermissionDenied(true);
       }
     } finally {
-      setLoading(false);
+      setLoadingContacts(false);
     }
   }, []);
 
@@ -99,84 +198,288 @@ export default function ContactSyncScreen({ navigation }: ContactSyncScreenProps
     loadContacts();
   }, [loadContacts]);
 
+  // ---------------------------------------------------------------------
+  // Classify: in parallel run match RPC + connections query, then derive
+  // matches map and importedIds set. Handles the "I deleted + reinstalled
+  // the app, but the screen still shows people I unfollowed" case because
+  // importedIds is hydrated from the server, not from local state.
+  // ---------------------------------------------------------------------
+  useEffect(() => {
+    if (!user) return;
+    if (loadingContacts) return;
+    if (contacts.length === 0) {
+      setClassifying(false);
+      return;
+    }
+
+    let cancelled = false;
+    (async () => {
+      try {
+        const phones = contacts.map((c) => c.phone ?? '');
+        const emails = contacts.map((c) => c.email ?? '');
+
+        const [matchRes, connRes] = await Promise.all([
+          supabase.rpc('match_contacts_against_profiles', {
+            p_phones: phones,
+            p_emails: emails,
+          }),
+          supabase
+            .from('piktag_connections')
+            .select('connected_user_id')
+            .eq('user_id', user.id),
+        ]);
+
+        if (cancelled) return;
+
+        if (matchRes.error) {
+          console.warn('[ContactSync] RPC error:', matchRes.error.message);
+        }
+
+        const rows = (matchRes.data ?? []) as Array<{
+          input_index: number;
+          matched_user_id: string;
+          match_type: 'phone' | 'email';
+          full_name: string | null;
+          username: string | null;
+          avatar_url: string | null;
+        }>;
+
+        // RPC orders phone matches before email matches; first-write-wins
+        // gives phone priority for a contact whose phone+email both match
+        // different profiles (rare but possible).
+        const nextMatches = new Map<string, MatchInfo>();
+        for (const r of rows) {
+          const c = contacts[r.input_index];
+          if (!c) continue;
+          if (nextMatches.has(c.id)) continue;
+          nextMatches.set(c.id, {
+            user_id: r.matched_user_id,
+            match_type: r.match_type,
+            full_name: r.full_name,
+            username: r.username,
+            avatar_url: r.avatar_url,
+          });
+        }
+
+        const existingConnections = new Set<string>(
+          ((connRes.data ?? []) as Array<{ connected_user_id: string }>).map(
+            (r) => r.connected_user_id,
+          ),
+        );
+
+        const nextImported = new Set<string>();
+        for (const c of contacts) {
+          const m = nextMatches.get(c.id);
+          if (m && existingConnections.has(m.user_id)) {
+            nextImported.add(c.id);
+          }
+        }
+
+        setMatches(nextMatches);
+        setImportedIds(nextImported);
+      } catch (err) {
+        console.warn('[ContactSync] classify failed:', err);
+      } finally {
+        if (!cancelled) setClassifying(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [user, contacts, loadingContacts]);
+
+  // ---------------------------------------------------------------------
+  // Sections derived from contacts + matches. PikTag users come first,
+  // un-followed before already-followed inside that section. Non-PikTag
+  // contacts go in the second section in original (alphabetical) order.
+  // ---------------------------------------------------------------------
+  const sections = useMemo<ContactSection[]>(() => {
+    const onPiktag: PhoneContact[] = [];
+    const notOnPiktag: PhoneContact[] = [];
+    for (const c of contacts) {
+      if (matches.has(c.id)) onPiktag.push(c);
+      else notOnPiktag.push(c);
+    }
+    onPiktag.sort((a, b) => {
+      const ai = importedIds.has(a.id) ? 1 : 0;
+      const bi = importedIds.has(b.id) ? 1 : 0;
+      return ai - bi;
+    });
+    const out: ContactSection[] = [];
+    if (onPiktag.length > 0) {
+      out.push({
+        variant: 'on-piktag',
+        title: t('contactSync.sectionOnPiktag', { count: onPiktag.length }) ||
+          `已在 PikTag · ${onPiktag.length} 位`,
+        data: onPiktag,
+      });
+    }
+    if (notOnPiktag.length > 0) {
+      out.push({
+        variant: 'not-on-piktag',
+        title: t('contactSync.sectionNotOnPiktag', { count: notOnPiktag.length }) ||
+          `尚未加入 · ${notOnPiktag.length} 位`,
+        data: notOnPiktag,
+      });
+    }
+    return out;
+  }, [contacts, matches, importedIds, t]);
+
+  const onPiktagCount = useMemo(
+    () => contacts.reduce((acc, c) => acc + (matches.has(c.id) ? 1 : 0), 0),
+    [contacts, matches],
+  );
+  const notOnPiktagCount = contacts.length - onPiktagCount;
+  const followablePiktagCount = useMemo(() => {
+    let n = 0;
+    for (const c of contacts) {
+      if (matches.has(c.id) && !importedIds.has(c.id)) n++;
+    }
+    return n;
+  }, [contacts, matches, importedIds]);
+
+  // ---------------------------------------------------------------------
+  // Mutations
+  // ---------------------------------------------------------------------
   const handleInvite = async (contact: PhoneContact) => {
     try {
       await Share.share({
-        message: t('contactSync.inviteMessage', { name: contact.name }) ||
+        message:
+          t('contactSync.inviteMessage', { name: contact.name }) ||
           `${contact.name}，我在用 PikTag，一起來交換標籤吧！下載：https://pikt.ag`,
       });
-    } catch { /* cancelled */ }
-  };
-
-  // Silent import: only creates a connection if contact matches a PikTag user.
-  // Returns true if matched+connected, false if not found. Never opens share sheet.
-  //
-  // Uses .maybeSingle() instead of .single() so "no rows" returns null cleanly.
-  // Real errors (RLS denied, network) are logged so they're not masked as
-  // "not found" — a silent failure used to make the feature look broken even
-  // when the real issue was a DB permission.
-  const importContactSilently = async (contact: PhoneContact): Promise<boolean> => {
-    if (!user) return false;
-    try {
-      let matchedUserId: string | null = null;
-
-      if (contact.phone) {
-        const normalizedPhone = contact.phone.replace(/[\s\-()]/g, '');
-        const { data: phoneMatch, error: phoneErr } = await supabase
-          .from('piktag_profiles')
-          .select('id')
-          .eq('phone', normalizedPhone)
-          .maybeSingle();
-        if (phoneErr) console.warn('[ContactSync] phone lookup error:', phoneErr.message);
-        if (phoneMatch) matchedUserId = phoneMatch.id;
-      }
-
-      if (!matchedUserId && contact.email && contact.email.includes('@')) {
-        const prefix = contact.email.split('@')[0];
-        const { data: emailMatch, error: emailErr } = await supabase
-          .from('piktag_profiles')
-          .select('id')
-          .ilike('username', prefix)
-          .maybeSingle();
-        if (emailErr) console.warn('[ContactSync] email lookup error:', emailErr.message);
-        if (emailMatch) matchedUserId = emailMatch.id;
-      }
-
-      if (matchedUserId && matchedUserId !== user.id) {
-        const { error } = await supabase
-          .from('piktag_connections')
-          .upsert(
-            {
-              user_id: user.id,
-              connected_user_id: matchedUserId,
-              nickname: contact.name,
-              note: contact.phone ? `電話: ${contact.phone}` : '',
-            },
-            { onConflict: 'user_id,connected_user_id' }
-          );
-        if (error) {
-          console.warn('[ContactSync] upsert error:', error.message, error.code);
-          return false;
-        }
-        setImportedIds((prev) => new Set(prev).add(contact.id));
-        return true;
-      }
-      return false;
-    } catch (err) {
-      console.warn('[ContactSync] importContactSilently threw:', err);
-      return false;
+    } catch {
+      /* cancelled */
     }
   };
 
-  // Individual '+' button: silent import, but if no match found fall back to
-  // invite sheet so the user can share PikTag with that contact.
-  const handleImportContact = async (contact: PhoneContact) => {
-    if (!user) return;
+  // Phase 4: open the tag-picker modal pre-filled. If the user already
+  // tagged this contact in a previous session, surface a toast-style
+  // alert instead of re-opening (the row's "已加入名單" badge handles
+  // the visible state).
+  const openTagPicker = useCallback((contact: PhoneContact) => {
+    setTagTarget(contact);
+    setPickedTags([]);
+    setCustomTagInput('');
+  }, []);
+
+  const closeTagPicker = useCallback(() => {
+    setTagTarget(null);
+    setPickedTags([]);
+    setCustomTagInput('');
+    setSavingTag(false);
+  }, []);
+
+  const togglePickedTag = useCallback((name: string) => {
+    setPickedTags((prev) => {
+      if (prev.includes(name)) return prev.filter((n) => n !== name);
+      if (prev.length >= MAX_TAGS_PER_CONTACT) return prev;
+      return [...prev, name];
+    });
+  }, []);
+
+  const addCustomTag = useCallback(() => {
+    const raw = customTagInput.trim();
+    if (!raw) return;
+    setPickedTags((prev) => {
+      if (prev.includes(raw)) return prev;
+      if (prev.length >= MAX_TAGS_PER_CONTACT) return prev;
+      return [...prev, raw];
+    });
+    setCustomTagInput('');
+  }, [customTagInput]);
+
+  // Submit handler: write a piktag_local_contacts row with the picked
+  // tags, then immediately open the system Share sheet with a tagged
+  // invite message. Both steps are independent — if the share is
+  // cancelled, the local_contact row still persists (good — user can
+  // re-share from LocalContactsScreen later).
+  const handleSubmitTagAndInvite = useCallback(async () => {
+    if (!tagTarget || pickedTags.length === 0) return;
+    setSavingTag(true);
+    const target = tagTarget;
+    const tags = [...pickedTags];
+
+    const created = await addLocalContact({
+      name: target.name,
+      phone: target.phone,
+      email: target.email,
+      tags,
+    });
+
+    setSavingTag(false);
+
+    if (!created) {
+      Alert.alert(
+        t('contactSync.tagInviteFailedTitle', { defaultValue: '加入名單失敗' }),
+        t('contactSync.tagInviteFailedMessage', { defaultValue: '請稍後再試，或在「聯絡人名單」中手動新增。' }),
+      );
+      return;
+    }
+
+    closeTagPicker();
+
+    // CRITICAL: never put the tag names into the share message.
+    // Tags entered here promote to is_private=true (hidden tags) on
+    // the server — owner-only forever. Users may type sensitive
+    // private notes ("前女友", "欠錢", "黑名單"); leaking those via
+    // SMS to the tagged person would kill app trust. Generic invite
+    // copy only.
+    const message =
+      t('contactSync.tagInviteMessage', { name: target.name }) ||
+      `嗨！我在用 PikTag — 一起來交換標籤吧：\nhttps://pikt.ag/download`;
+    try {
+      await Share.share({ message });
+    } catch {
+      /* cancelled — local_contact row is already saved */
+    }
+  }, [tagTarget, pickedTags, addLocalContact, closeTagPicker, t]);
+
+  const upsertConnection = async (
+    contact: PhoneContact,
+    matchedUserId: string,
+  ): Promise<boolean> => {
+    if (!user) return false;
+    // Route through followUser so BOTH piktag_follows and
+    // piktag_connections get written. ConnectionsScreen renders
+    // `connections ∩ follows`; without the follow row, contact-sync
+    // imports were invisible on the home tab even though the connection
+    // row existed. The dedicated helper centralises the contract.
+    const { followUser } = await import('../lib/followUser');
+    const { error: followErr } = await followUser(user.id, matchedUserId);
+    if (followErr) {
+      console.warn('[ContactSync] followUser error:', followErr.message);
+      // Don't bail yet — the connection may have been created and we
+      // still want to attach nickname/note. Fall through to the upsert.
+    }
+    // Update nickname + note on the connection row (followUser doesn't
+    // know about contact-name metadata; only contact-sync does).
+    const { error } = await supabase.from('piktag_connections').upsert(
+      {
+        user_id: user.id,
+        connected_user_id: matchedUserId,
+        nickname: contact.name,
+        note: contact.phone ? `電話: ${contact.phone}` : '',
+      },
+      { onConflict: 'user_id,connected_user_id' },
+    );
+    if (error) {
+      console.warn('[ContactSync] upsert error:', error.message, error.code);
+      return false;
+    }
+    return true;
+  };
+
+  // Single "+追蹤" tap on the on-piktag section.
+  const handleFollowOne = async (contact: PhoneContact) => {
+    const m = matches.get(contact.id);
+    if (!m) return;
     setImportingIds((prev) => new Set(prev).add(contact.id));
     try {
-      const matched = await importContactSilently(contact);
-      if (!matched) {
-        handleInvite(contact);
+      const ok = await upsertConnection(contact, m.user_id);
+      if (ok) {
+        setImportedIds((prev) => new Set(prev).add(contact.id));
       }
     } finally {
       setImportingIds((prev) => {
@@ -187,211 +490,561 @@ export default function ContactSyncScreen({ navigation }: ContactSyncScreenProps
     }
   };
 
-  // '全部匯入': silent batch. Never opens share sheet during processing.
-  // Shows inline progress, summary alert at end.
-  const handleImportAll = async () => {
-    if (contacts.length === 0 || batchProgress) return;
-    const pending = contacts.filter((c) => !importedIds.has(c.id));
-    if (pending.length === 0) return;
+  // "全部追蹤 PikTag 朋友" — only operates on the on-piktag section
+  // (matched but not-yet-imported). No share-sheet side effects.
+  const handleFollowAllPiktag = async () => {
+    if (!user || batchProgress) return;
+    const targets: Array<{ contact: PhoneContact; userId: string }> = [];
+    for (const c of contacts) {
+      const m = matches.get(c.id);
+      if (m && !importedIds.has(c.id)) {
+        targets.push({ contact: c, userId: m.user_id });
+      }
+    }
+    if (targets.length === 0) return;
 
     Alert.alert(
-      t('contactSync.alertBatchImportTitle'),
-      t('contactSync.alertBatchImportMessage', { count: pending.length }),
+      t('contactSync.alertFollowAllTitle', { defaultValue: '全部追蹤' }),
+      t('contactSync.alertFollowAllMessage', { count: targets.length }) ||
+        `要把 ${targets.length} 位 PikTag 朋友加入嗎？`,
       [
         { text: t('common.cancel'), style: 'cancel' },
         {
-          text: t('contactSync.alertBatchImportConfirm'),
+          text: t('contactSync.alertFollowAllConfirm', { defaultValue: '加入' }),
           onPress: async () => {
-            setBatchProgress({ current: 0, total: pending.length, matched: 0 });
-            let matched = 0;
-            for (let i = 0; i < pending.length; i++) {
-              const ok = await importContactSilently(pending[i]);
-              if (ok) matched++;
-              setBatchProgress({ current: i + 1, total: pending.length, matched });
+            setBatchProgress({ current: 0, total: targets.length });
+            const newImported = new Set(importedIds);
+            let added = 0;
+            const CHUNK = 10;
+            for (let i = 0; i < targets.length; i += CHUNK) {
+              const slice = targets.slice(i, i + CHUNK);
+              const results = await Promise.all(
+                slice.map((t) => upsertConnection(t.contact, t.userId)),
+              );
+              for (let k = 0; k < slice.length; k++) {
+                if (results[k]) {
+                  added++;
+                  newImported.add(slice[k].contact.id);
+                }
+              }
+              setBatchProgress({
+                current: Math.min(i + slice.length, targets.length),
+                total: targets.length,
+              });
             }
+            setImportedIds(newImported);
             setBatchProgress(null);
+
             Alert.alert(
-              t('contactSync.alertBatchDoneTitle') || '匯入完成',
-              t('contactSync.alertBatchDoneMessage', {
-                matched,
-                notOnApp: pending.length - matched,
-              }) || `已加入 ${matched} 位朋友。其中 ${pending.length - matched} 位尚未使用 PikTag。`,
+              t('contactSync.alertFollowAllDoneTitle', { defaultValue: '完成' }),
+              t('contactSync.alertFollowAllDoneMessage', { count: added }) ||
+                `已加入 ${added} 位 PikTag 朋友`,
             );
           },
         },
-      ]
+      ],
     );
   };
 
-  const renderContact = ({ item }: { item: PhoneContact }) => {
-    const isImporting = importingIds.has(item.id);
-    const isImported = importedIds.has(item.id);
-    const initials = item.name
+  // ---------------------------------------------------------------------
+  // Render helpers
+  // ---------------------------------------------------------------------
+  const renderInitialsAvatar = (name: string) => {
+    const initials = name
       .split(' ')
       .map((n) => n[0])
       .join('')
       .slice(0, 2)
       .toUpperCase();
+    return (
+      <View style={styles.contactAvatar}>
+        <Text style={styles.contactInitials}>{initials}</Text>
+      </View>
+    );
+  };
+
+  const renderOnPiktagRow = (item: PhoneContact) => {
+    const m = matches.get(item.id)!;
+    const isImporting = importingIds.has(item.id);
+    const isImported = importedIds.has(item.id);
+
+    const displayName = m.full_name?.trim() || m.username || item.name;
+    const handle = m.username ? `@${m.username}` : null;
+    const showContactSubtitle =
+      item.name &&
+      item.name !== m.full_name &&
+      item.name !== m.username;
 
     return (
       <View style={styles.contactItem}>
-        <View style={styles.contactAvatar}>
-          <Text style={styles.contactInitials}>{initials}</Text>
-        </View>
+        {m.avatar_url ? (
+          <Image
+            source={{ uri: m.avatar_url }}
+            style={styles.contactAvatarImage}
+            contentFit="cover"
+            transition={120}
+          />
+        ) : (
+          renderInitialsAvatar(displayName)
+        )}
         <View style={styles.contactInfo}>
-          <Text style={styles.contactName} numberOfLines={1}>{item.name}</Text>
-          <View style={styles.contactDetails}>
-            {item.phone && (
-              <View style={styles.contactDetailRow}>
-                <Phone size={12} color={COLORS.gray400} />
-                <Text style={styles.contactDetailText}>{item.phone}</Text>
-              </View>
-            )}
-            {item.email && (
-              <View style={styles.contactDetailRow}>
-                <Mail size={12} color={COLORS.gray400} />
-                <Text style={styles.contactDetailText} numberOfLines={1}>{item.email}</Text>
-              </View>
-            )}
+          <View style={styles.nameRow}>
+            <Text style={styles.contactName} numberOfLines={1}>
+              {displayName}
+            </Text>
+            {handle ? (
+              <Text style={styles.handle} numberOfLines={1}>
+                {handle}
+              </Text>
+            ) : null}
           </View>
+          {showContactSubtitle ? (
+            <Text style={styles.contactSubtitle} numberOfLines={1}>
+              {t('contactSync.fromContact', { name: item.name }) ||
+                `通訊錄：${item.name}`}
+            </Text>
+          ) : null}
         </View>
         {isImported ? (
           <View style={styles.importedBadge}>
-            <Check size={16} color={COLORS.piktag600} />
+            <Check size={16} color={colors.piktag600} />
           </View>
         ) : isImporting ? (
-          <ActivityIndicator size="small" color={COLORS.piktag500} />
+          <View style={styles.actionBtn}>
+            <BrandSpinner size={20} />
+          </View>
         ) : (
           <TouchableOpacity
-            style={styles.importBtn}
-            onPress={() => handleImportContact(item)}
+            style={styles.actionBtnPrimary}
+            onPress={() => handleFollowOne(item)}
             activeOpacity={0.7}
+            accessibilityRole="button"
+            accessibilityLabel={t('contactSync.followBtn', { defaultValue: '追蹤' })}
           >
-            <UserPlus size={18} color={COLORS.piktag600} />
+            <UserPlus size={16} color={colors.piktag600} />
+            <Text style={styles.actionBtnText}>
+              {t('contactSync.followBtn', { defaultValue: '追蹤' })}
+            </Text>
           </TouchableOpacity>
         )}
       </View>
     );
   };
 
+  const renderNotOnPiktagRow = (item: PhoneContact) => {
+    const alreadyTagged = isContactTagged(item);
+    return (
+      <View style={styles.contactItem}>
+        {renderInitialsAvatar(item.name)}
+        <View style={styles.contactInfo}>
+          <Text style={styles.contactName} numberOfLines={1}>
+            {item.name}
+          </Text>
+          <View style={styles.contactDetails}>
+            {item.phone ? (
+              <View style={styles.contactDetailRow}>
+                <Phone size={12} color={colors.gray400} />
+                <Text style={styles.contactDetailText}>{item.phone}</Text>
+              </View>
+            ) : null}
+            {item.email ? (
+              <View style={styles.contactDetailRow}>
+                <Mail size={12} color={colors.gray400} />
+                <Text style={styles.contactDetailText} numberOfLines={1}>
+                  {item.email}
+                </Text>
+              </View>
+            ) : null}
+          </View>
+        </View>
+        {alreadyTagged ? (
+          <View style={styles.taggedBadge}>
+            <Check size={14} color={colors.piktag600} />
+            <Text style={styles.taggedBadgeText}>
+              {t('contactSync.taggedBadge', { defaultValue: '已加入名單' })}
+            </Text>
+          </View>
+        ) : (
+          <TouchableOpacity
+            style={styles.actionBtnTagInvite}
+            onPress={() => openTagPicker(item)}
+            activeOpacity={0.85}
+            accessibilityRole="button"
+            accessibilityLabel={
+              t('contactSync.tagInviteBtn', { defaultValue: '貼標籤並邀請' })
+            }
+          >
+            <Hash size={14} color="#FFFFFF" />
+            <Text style={styles.actionBtnTagInviteText}>
+              {t('contactSync.tagInviteBtn', { defaultValue: '貼標籤並邀請' })}
+            </Text>
+          </TouchableOpacity>
+        )}
+      </View>
+    );
+  };
+
+  // ---------------------------------------------------------------------
+  // Body content
+  // ---------------------------------------------------------------------
+  const showLoader = loadingContacts || (contacts.length > 0 && classifying);
+
+  let body: React.ReactNode;
+  if (showLoader) {
+    body = (
+      <PageLoader
+        heading={
+          loadingContacts
+            ? t('contactSync.loadingText')
+            : t('contactSync.classifyingText', { defaultValue: '對比中…' })
+        }
+      />
+    );
+  } else if (permissionDenied) {
+    body = (
+      <View style={styles.emptyContainer}>
+        <Users size={48} color={colors.gray200} />
+        <Text style={styles.emptyTitle}>
+          {t('contactSync.permissionDeniedTitle')}
+        </Text>
+        <Text style={styles.emptyText}>
+          {Platform.OS === 'web'
+            ? t('contactSync.permissionDeniedWeb')
+            : t('contactSync.permissionDeniedNative')}
+        </Text>
+        {Platform.OS !== 'web' && (
+          <TouchableOpacity
+            style={styles.openSettingsBtn}
+            onPress={() => Linking.openSettings().catch(() => {})}
+            activeOpacity={0.8}
+            accessibilityRole="button"
+          >
+            <Text style={styles.openSettingsBtnText}>
+              {t('contactSync.openSettings', { defaultValue: '前往設定開啟權限' })}
+            </Text>
+          </TouchableOpacity>
+        )}
+      </View>
+    );
+  } else if (contacts.length === 0) {
+    body = (
+      <View style={styles.emptyContainer}>
+        <Users size={48} color={colors.gray200} />
+        <Text style={styles.emptyTitle}>{t('contactSync.emptyTitle')}</Text>
+        <Text style={styles.emptyText}>{t('contactSync.emptyText')}</Text>
+      </View>
+    );
+  } else {
+    // Summary card + sticky-section list. Empty PikTag section is hidden;
+    // empty non-PikTag section also hidden (handled in `sections` memo).
+    body = (
+      <SectionList<PhoneContact, ContactSection>
+        sections={sections}
+        keyExtractor={(item) => item.id}
+        stickySectionHeadersEnabled
+        contentContainerStyle={styles.listContent}
+        showsVerticalScrollIndicator={false}
+        ListHeaderComponent={
+          <View style={styles.summaryCard}>
+            <Text style={styles.summaryLine}>
+              {t('contactSync.summaryHeading', {
+                onCount: onPiktagCount,
+                offCount: notOnPiktagCount,
+              }) ||
+                `${onPiktagCount} 位已在 PikTag · ${notOnPiktagCount} 位可邀請`}
+            </Text>
+            {batchProgress ? (
+              <View style={styles.summaryProgress}>
+                <BrandSpinner size={20} />
+                <Text style={styles.summaryProgressText}>
+                  {t('contactSync.batchProgress', {
+                    current: batchProgress.current,
+                    total: batchProgress.total,
+                  }) || `處理中 ${batchProgress.current}/${batchProgress.total}`}
+                </Text>
+              </View>
+            ) : followablePiktagCount > 0 ? (
+              <TouchableOpacity
+                onPress={handleFollowAllPiktag}
+                activeOpacity={0.85}
+              >
+                <LinearGradient
+                  colors={['#ff5757', '#c44dff', '#8c52ff']}
+                  start={{ x: 0, y: 0.5 }}
+                  end={{ x: 1, y: 0.5 }}
+                  style={styles.summaryCta}
+                >
+                  <Text style={styles.summaryCtaText}>
+                    {t('contactSync.followAllCta', {
+                      count: followablePiktagCount,
+                    }) ||
+                      `全部追蹤 PikTag 朋友 (${followablePiktagCount})`}
+                  </Text>
+                </LinearGradient>
+              </TouchableOpacity>
+            ) : onPiktagCount > 0 ? (
+              <View style={[styles.summaryCta, styles.summaryCtaDone]}>
+                <Check size={16} color={colors.piktag600} />
+                <Text
+                  style={[styles.summaryCtaText, styles.summaryCtaDoneText]}
+                >
+                  {t('contactSync.allConnected', { defaultValue: '通訊錄裡的 PikTag 朋友都已加入' })}
+                </Text>
+              </View>
+            ) : null}
+          </View>
+        }
+        renderSectionHeader={({ section }) => (
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionHeaderText}>{section.title}</Text>
+          </View>
+        )}
+        renderItem={({ item, section }) =>
+          section.variant === 'on-piktag'
+            ? renderOnPiktagRow(item)
+            : renderNotOnPiktagRow(item)
+        }
+      />
+    );
+  }
+
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={colors.white} />
+      <StatusBar
+        barStyle={isDark ? 'light-content' : 'dark-content'}
+        backgroundColor={colors.white}
+      />
 
       {/* Header */}
       <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
         <TouchableOpacity
           style={styles.backBtn}
-          onPress={() => navigation.canGoBack() ? navigation.goBack() : navigation.navigate("Connections")}
+          onPress={() =>
+            navigation.canGoBack()
+              ? navigation.goBack()
+              : navigation.navigate('Connections')
+          }
           activeOpacity={0.6}
+          accessibilityRole="button"
+          accessibilityLabel={t('common.back')}
         >
-          <ArrowLeft size={24} color={COLORS.gray900} />
+          <ArrowLeft size={24} color={colors.gray900} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>{t('contactSync.headerTitle')}</Text>
         <View style={styles.headerSpacer} />
       </View>
 
-      {loading ? (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={COLORS.piktag500} />
-          <Text style={styles.loadingText}>{t('contactSync.loadingText')}</Text>
-        </View>
-      ) : permissionDenied ? (
-        <View style={styles.emptyContainer}>
-          <Users size={48} color={COLORS.gray200} />
-          <Text style={styles.emptyTitle}>{t('contactSync.permissionDeniedTitle')}</Text>
-          <Text style={styles.emptyText}>
-            {Platform.OS === 'web'
-              ? t('contactSync.permissionDeniedWeb')
-              : t('contactSync.permissionDeniedNative')}
-          </Text>
-        </View>
-      ) : contacts.length === 0 ? (
-        <View style={styles.emptyContainer}>
-          <Users size={48} color={COLORS.gray200} />
-          <Text style={styles.emptyTitle}>{t('contactSync.emptyTitle')}</Text>
-          <Text style={styles.emptyText}>{t('contactSync.emptyText')}</Text>
-        </View>
-      ) : (
-        <>
-          {/* Import All button / progress */}
-          <View style={styles.importAllBar}>
-            <Text style={styles.contactCountText}>
-              {batchProgress
-                ? t('contactSync.batchProgress', {
-                    current: batchProgress.current,
-                    total: batchProgress.total,
-                  }) || `處理中 ${batchProgress.current}/${batchProgress.total}`
-                : t('contactSync.contactCount', { count: contacts.length })}
-            </Text>
-            {batchProgress ? (
-              <View style={styles.importAllBtn}>
-                <ActivityIndicator size="small" color={COLORS.piktag500} />
-              </View>
-            ) : (
-              <TouchableOpacity onPress={handleImportAll} activeOpacity={0.7}>
-                <LinearGradient
-                  colors={['#ff5757', '#c44dff', '#8c52ff']}
-                  start={{ x: 0, y: 0.5 }}
-                  end={{ x: 1, y: 0.5 }}
-                  style={styles.importAllBtn}
-                >
-                  <Text style={styles.importAllBtnText}>{t('contactSync.importAll')}</Text>
-                </LinearGradient>
-              </TouchableOpacity>
-            )}
-          </View>
+      {body}
 
-          <FlatList
-            data={contacts}
-            renderItem={renderContact}
-            keyExtractor={(item) => item.id}
-            contentContainerStyle={styles.listContent}
-            showsVerticalScrollIndicator={false}
-          />
-        </>
-      )}
+      {/* ----------------------------------------------------------------
+          Phase 4: tag-picker modal for non-PikTag contacts.
+          Submit creates a piktag_local_contacts row (tags pre-attached)
+          and immediately opens the system Share sheet.
+          ---------------------------------------------------------------- */}
+      <Modal
+        visible={tagTarget !== null}
+        transparent
+        animationType="fade"
+        onRequestClose={closeTagPicker}
+      >
+        <Pressable style={styles.tagModalBackdrop} onPress={closeTagPicker}>
+          <Pressable style={styles.tagModalCard} onPress={(e) => e.stopPropagation()}>
+            <KeyboardAvoidingView
+              behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+            >
+              <View style={styles.tagModalHeader}>
+                <View style={{ flex: 1 }}>
+                  <View style={styles.tagModalTitleRow}>
+                    <Lock size={16} color={colors.gray700} />
+                    <Text style={styles.tagModalTitle}>
+                      {t('contactSync.tagModalTitle', { defaultValue: '私人標籤' })}
+                    </Text>
+                  </View>
+                  <Text style={styles.tagModalSubtitle} numberOfLines={1}>
+                    {tagTarget?.name || ''}
+                  </Text>
+                </View>
+                <TouchableOpacity
+                  style={styles.tagModalCloseBtn}
+                  onPress={closeTagPicker}
+                  accessibilityRole="button"
+                  accessibilityLabel={t('common.cancel')}
+                >
+                  <X size={20} color={colors.gray600} />
+                </TouchableOpacity>
+              </View>
+
+              <ScrollView
+                style={styles.tagModalBody}
+                keyboardShouldPersistTaps="handled"
+                showsVerticalScrollIndicator={false}
+              >
+                <View style={styles.tagModalHintRow}>
+                  <Lock size={12} color={colors.gray600} />
+                  <Text style={styles.tagModalHint}>
+                    {t('contactSync.tagModalHint', {
+                      max: MAX_TAGS_PER_CONTACT,
+                      defaultValue: `只有你看得到的私人標籤（最多 {{max}} 個）— 對方註冊 PikTag 後，這些標籤會出現在你的好友頁的「隱藏標籤」區，永遠不會被對方或其他人看到。`,
+                    })}
+                  </Text>
+                </View>
+
+                {/* Picked tags strip */}
+                {pickedTags.length > 0 ? (
+                  <View style={styles.pickedRow}>
+                    {/* No × glyph — whole chip body is the tap-to-
+                        remove target. Founder rule: 全 App 無 × 藥丸. */}
+                    {pickedTags.map((tag) => (
+                      <Pressable
+                        key={`picked-${tag}`}
+                        style={styles.pickedChip}
+                        onPress={() => togglePickedTag(tag)}
+                        accessibilityRole="button"
+                        accessibilityLabel={`Remove ${tag}`}
+                      >
+                        <Text style={styles.pickedChipText}>{tag}</Text>
+                      </Pressable>
+                    ))}
+                  </View>
+                ) : null}
+
+                {/* Custom tag input */}
+                <View style={styles.customTagRow}>
+                  <TextInput
+                    style={styles.customTagInput}
+                    value={customTagInput}
+                    onChangeText={setCustomTagInput}
+                    placeholder={t('contactSync.tagModalCustomPlaceholder', { defaultValue: '自訂標籤' })}
+                    placeholderTextColor={colors.gray400}
+                    onSubmitEditing={addCustomTag}
+                    returnKeyType="done"
+                    maxLength={20}
+                  />
+                  <TouchableOpacity
+                    style={[
+                      styles.customTagAddBtn,
+                      !customTagInput.trim() && styles.customTagAddBtnDisabled,
+                    ]}
+                    onPress={addCustomTag}
+                    disabled={!customTagInput.trim()}
+                    accessibilityRole="button"
+                    accessibilityLabel={t('contactSync.tagModalAddCustom', { defaultValue: '新增' })}
+                  >
+                    <Plus size={18} color={customTagInput.trim() ? '#FFFFFF' : colors.gray400} />
+                  </TouchableOpacity>
+                </View>
+
+                {/* Popular tags chip grid */}
+                {popularTags.length > 0 ? (
+                  <View style={styles.popularSection}>
+                    <Text style={styles.popularLabel}>
+                      {t('contactSync.tagModalPopular', { defaultValue: '熱門標籤' })}
+                    </Text>
+                    <View style={styles.popularGrid}>
+                      {popularTags.map((tag) => {
+                        const selected = pickedTags.includes(tag.name);
+                        return (
+                          <Pressable
+                            key={tag.id}
+                            style={[
+                              styles.popularChip,
+                              selected && styles.popularChipSelected,
+                            ]}
+                            onPress={() => togglePickedTag(tag.name)}
+                            accessibilityRole="button"
+                            accessibilityLabel={tag.name}
+                          >
+                            <Text
+                              style={[
+                                styles.popularChipText,
+                                selected && styles.popularChipTextSelected,
+                              ]}
+                            >
+                              {tag.name}
+                            </Text>
+                          </Pressable>
+                        );
+                      })}
+                    </View>
+                  </View>
+                ) : null}
+              </ScrollView>
+
+              {/* Footer: cancel + submit */}
+              <View style={styles.tagModalFooter}>
+                <TouchableOpacity
+                  style={styles.tagModalCancelBtn}
+                  onPress={closeTagPicker}
+                  disabled={savingTag}
+                  accessibilityRole="button"
+                  accessibilityLabel={t('common.cancel')}
+                >
+                  <Text style={styles.tagModalCancelText}>
+                    {t('common.cancel', { defaultValue: '取消' })}
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[
+                    styles.tagModalSubmitBtn,
+                    (pickedTags.length === 0 || savingTag) &&
+                      styles.tagModalSubmitBtnDisabled,
+                  ]}
+                  onPress={handleSubmitTagAndInvite}
+                  disabled={pickedTags.length === 0 || savingTag}
+                  activeOpacity={0.85}
+                  accessibilityRole="button"
+                  accessibilityLabel={
+                    t('contactSync.tagModalSubmit', { defaultValue: '存私人標籤並邀請' })
+                  }
+                >
+                  {savingTag ? (
+                    <BrandSpinner size={16} />
+                  ) : (
+                    <>
+                      <Send size={14} color="#FFFFFF" />
+                      <Text style={styles.tagModalSubmitText}>
+                        {t('contactSync.tagModalSubmit', { defaultValue: '存私人標籤並邀請' })}
+                      </Text>
+                    </>
+                  )}
+                </TouchableOpacity>
+              </View>
+            </KeyboardAvoidingView>
+          </Pressable>
+        </Pressable>
+      </Modal>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
+function makeStyles(c: ColorPalette) {
+  return StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.white,
+    backgroundColor: c.white,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 16,
     paddingBottom: 14,
-    backgroundColor: COLORS.white,
+    backgroundColor: c.white,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.gray100,
+    borderBottomColor: c.gray100,
   },
   backBtn: {
-    padding: 4,
+    padding: 12,
   },
   headerTitle: {
     flex: 1,
     fontSize: 18,
     fontWeight: '700',
-    color: COLORS.gray900,
+    color: c.gray900,
     textAlign: 'center',
     marginHorizontal: 12,
   },
   headerSpacer: {
     width: 32,
-  },
-  loadingContainer: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 16,
-  },
-  loadingText: {
-    fontSize: 15,
-    color: COLORS.gray500,
   },
   emptyContainer: {
     flex: 1,
@@ -403,40 +1056,88 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: COLORS.gray700,
+    color: c.gray700,
     marginTop: 8,
   },
   emptyText: {
     fontSize: 14,
-    color: COLORS.gray500,
+    color: c.gray500,
     textAlign: 'center',
     lineHeight: 20,
   },
-  importAllBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
+  openSettingsBtn: {
+    marginTop: 20,
+    paddingHorizontal: 22,
     paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.gray100,
+    borderRadius: 9999,
+    backgroundColor: c.piktag500,
   },
-  contactCountText: {
+  openSettingsBtnText: { fontSize: 15, fontWeight: '700', color: '#FFFFFF' },
+
+  // Summary card (above sections)
+  summaryCard: {
+    paddingHorizontal: 20,
+    paddingTop: 16,
+    paddingBottom: 12,
+    backgroundColor: c.white,
+    gap: 10,
+  },
+  summaryLine: {
     fontSize: 14,
-    color: COLORS.gray500,
+    color: c.gray500,
     fontWeight: '500',
   },
-  importAllBtn: {
-    backgroundColor: COLORS.piktag500,
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 8,
+  summaryCta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 18,
+    borderRadius: 10,
+    gap: 8,
   },
-  importAllBtnText: {
-    fontSize: 14,
+  summaryCtaText: {
+    fontSize: 15,
     fontWeight: '700',
     color: '#FFFFFF',
   },
+  summaryCtaDone: {
+    backgroundColor: c.piktag50,
+    borderWidth: 1,
+    borderColor: c.piktag200,
+  },
+  summaryCtaDoneText: {
+    color: c.piktag600,
+  },
+  summaryProgress: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+    paddingVertical: 12,
+  },
+  summaryProgressText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: c.gray700,
+  },
+
+  // Section header
+  sectionHeader: {
+    paddingHorizontal: 20,
+    paddingVertical: 8,
+    backgroundColor: c.gray50 || '#F7F7F8',
+    borderTopWidth: 1,
+    borderBottomWidth: 1,
+    borderColor: c.gray100,
+  },
+  sectionHeaderText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: c.gray600,
+    letterSpacing: 0.2,
+  },
+
   listContent: {
     paddingBottom: 100,
   },
@@ -444,31 +1145,54 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 20,
-    paddingVertical: 14,
+    paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.gray100,
+    borderBottomColor: c.gray100,
+    backgroundColor: c.white,
   },
   contactAvatar: {
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: COLORS.gray100,
+    backgroundColor: c.gray100,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  contactAvatarImage: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: c.gray100,
   },
   contactInitials: {
     fontSize: 16,
     fontWeight: '600',
-    color: COLORS.gray600,
+    color: c.gray600,
   },
   contactInfo: {
     flex: 1,
     marginLeft: 12,
   },
+  nameRow: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    gap: 6,
+  },
   contactName: {
     fontSize: 16,
     fontWeight: '600',
-    color: COLORS.gray900,
+    color: c.gray900,
+    flexShrink: 1,
+  },
+  handle: {
+    fontSize: 13,
+    color: c.gray500,
+    flexShrink: 1,
+  },
+  contactSubtitle: {
+    marginTop: 2,
+    fontSize: 12,
+    color: c.gray500,
   },
   contactDetails: {
     marginTop: 2,
@@ -481,15 +1205,267 @@ const styles = StyleSheet.create({
   },
   contactDetailText: {
     fontSize: 12,
-    color: COLORS.gray500,
+    color: c.gray500,
   },
-  importBtn: {
-    padding: 8,
+
+  // Action buttons
+  actionBtn: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  actionBtnPrimary: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
     borderWidth: 1,
-    borderColor: COLORS.piktag200,
+    borderColor: c.piktag200,
+    borderRadius: 8,
+    backgroundColor: c.piktag50,
+  },
+  actionBtnInvite: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderWidth: 1,
+    borderColor: c.piktag200,
     borderRadius: 8,
   },
-  importedBadge: {
-    padding: 8,
+  actionBtnText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: c.piktag600,
   },
-});
+  importedBadge: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: c.piktag50,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  // Phase 4 — non-PikTag row primary CTA (filled purple, not the
+  // gray-bordered invite chip from before).
+  actionBtnTagInvite: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+    backgroundColor: c.piktag600,
+  },
+  actionBtnTagInviteText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+  taggedBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 8,
+    backgroundColor: c.piktag50,
+    borderWidth: 1,
+    borderColor: c.piktag200,
+  },
+  taggedBadgeText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: c.piktag600,
+  },
+
+  // Phase 4 — tag picker modal
+  tagModalBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.45)',
+    justifyContent: 'flex-end',
+  },
+  tagModalCard: {
+    backgroundColor: c.white,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingTop: 16,
+    paddingBottom: Platform.OS === 'ios' ? 28 : 16,
+    maxHeight: '85%',
+  },
+  tagModalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: c.gray100,
+  },
+  tagModalTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  tagModalTitle: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: c.gray900,
+  },
+  tagModalSubtitle: {
+    fontSize: 13,
+    color: c.gray500,
+    marginTop: 2,
+  },
+  tagModalCloseBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: c.gray100,
+  },
+  tagModalBody: {
+    paddingHorizontal: 20,
+    paddingTop: 16,
+  },
+  tagModalHintRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 6,
+    marginBottom: 14,
+  },
+  tagModalHint: {
+    flex: 1,
+    fontSize: 13,
+    color: c.gray600,
+    lineHeight: 18,
+  },
+  pickedRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginBottom: 14,
+  },
+  // Canonical "已選=紫色 fill-only" — same look as TagChip toggle
+  // selected. Whole chip taps to remove (no × per founder rule).
+  // 已選=piktag500 實心 + 白字 — founder 2026-05-23 contract.
+  pickedChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    backgroundColor: c.piktag500,
+  },
+  pickedChipText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#FFFFFF',
+  },
+  customTagRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 16,
+  },
+  customTagInput: {
+    flex: 1,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: c.gray200,
+    backgroundColor: c.white,
+    fontSize: 14,
+    color: c.gray900,
+  },
+  customTagAddBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: c.piktag600,
+  },
+  customTagAddBtnDisabled: {
+    backgroundColor: c.gray100,
+  },
+  popularSection: {
+    marginBottom: 8,
+  },
+  popularLabel: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: c.gray600,
+    letterSpacing: 0.4,
+    marginBottom: 8,
+    textTransform: 'uppercase',
+  },
+  popularGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  // Canonical TagChip-toggle look: gray100 unselected, piktag50
+  // selected, both fill-only no border. Same family across the app.
+  popularChip: {
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 9999,
+    backgroundColor: c.gray100,
+  },
+  popularChipSelected: {
+    backgroundColor: c.piktag50,
+  },
+  popularChipText: {
+    fontSize: 13,
+    color: c.gray700,
+    fontWeight: '500',
+  },
+  popularChipTextSelected: {
+    color: c.piktag600,
+    fontWeight: '600',
+  },
+  tagModalFooter: {
+    flexDirection: 'row',
+    gap: 10,
+    paddingHorizontal: 20,
+    paddingTop: 14,
+    borderTopWidth: 1,
+    borderTopColor: c.gray100,
+  },
+  tagModalCancelBtn: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: c.gray100,
+  },
+  tagModalCancelText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: c.gray700,
+  },
+  tagModalSubmitBtn: {
+    flex: 2,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: 12,
+    borderRadius: 10,
+    backgroundColor: c.piktag600,
+  },
+  tagModalSubmitBtnDisabled: {
+    opacity: 0.5,
+  },
+  tagModalSubmitText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+  });
+}
