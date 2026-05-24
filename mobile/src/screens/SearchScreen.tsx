@@ -742,6 +742,57 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
         const finalProfiles = !profilesResult.error && profilesResult.data ? profilesResult.data : [];
         setProfiles(finalProfiles);
 
+        // AI fallback: if no results and query looks like a sentence (≥5 chars),
+        // ask AI to extract tag keywords, then search again with those tags.
+        const hasResults = mergedTags.length > 0 || finalProfiles.length > 0 || finalTagUsers.length > 0;
+        if (!hasResults && query.trim().length >= 5 && seq === searchSeqRef.current) {
+          try {
+            const { data: aiData } = await supabase.functions.invoke('suggest-tags', {
+              body: JSON.stringify({ bio: query.trim(), lang: 'the same language as the content' }),
+            });
+            const aiNames: string[] = aiData?.suggestions || [];
+            if (aiNames.length > 0 && seq === searchSeqRef.current) {
+              const { data: aiTags } = await supabase
+                .from('piktag_tags')
+                .select('id, name, semantic_type, usage_count, concept_id')
+                .in('name', aiNames)
+                .order('usage_count', { ascending: false });
+
+              if (aiTags && aiTags.length > 0 && seq === searchSeqRef.current) {
+                setTags(aiTags);
+                // Fetch users for top AI-matched tags
+                const topAiTags = aiTags.slice(0, 3);
+                const aiTagUsers: { tag: Tag; users: any[] }[] = [];
+                for (const tag of topAiTags) {
+                  let allTagIds = [tag.id];
+                  if (tag.concept_id) {
+                    const { data: siblings } = await supabase
+                      .from('piktag_tags').select('id').eq('concept_id', tag.concept_id);
+                    if (siblings) allTagIds = [...new Set([tag.id, ...siblings.map((s: any) => s.id)])];
+                  }
+                  const { data: utData } = await supabase
+                    .from('piktag_user_tags')
+                    .select('user_id, piktag_profiles!inner(id, username, full_name, avatar_url, is_verified, is_public)')
+                    .in('tag_id', allTagIds).eq('is_private', false).limit(10);
+                  if (utData && utData.length > 0) {
+                    const seenIds = new Set<string>();
+                    const users = utData.map((ut: any) => ut.piktag_profiles)
+                      .filter((p: any) => p && p.is_public && p.id !== user?.id && !seenIds.has(p.id) && (seenIds.add(p.id), true));
+                    if (users.length > 0) aiTagUsers.push({ tag, users });
+                  }
+                }
+                if (seq === searchSeqRef.current) {
+                  setTagUsers(aiTagUsers);
+                  mergedTags = aiTags;
+                  finalTagUsers = aiTagUsers;
+                }
+              }
+            }
+          } catch {
+            // AI fallback failed silently — direct search results (empty) stand
+          }
+        }
+
         // Cache this result set so typing-then-retyping is free.
         const entry: SearchCacheEntry = {
           tags: mergedTags,
