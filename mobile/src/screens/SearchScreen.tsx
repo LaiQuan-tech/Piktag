@@ -383,7 +383,14 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
   const selectedTagIdSet = useMemo(() => new Set(selectedTagIds), [selectedTagIds]);
 
   // Smart recommendations
-  const [recommendedUsers, setRecommendedUsers] = useState<PiktagProfile[]>([]);
+  // Removed `recommendedUsers` (2026-05-25): the horizontal "你可能想
+  // 認識" avatar row was generic "people you may know" surface — it
+  // competed with the tag-first home and trained users to skim past
+  // tags. Founder's call: trust tag-search + Ask (the explicit social
+  // mechanisms) rather than algorithmic suggestion. The find_tag_
+  // similar_strangers / search_screen_init RPCs still exist server-
+  // side in case we revive this; the column is just dropped from
+  // payload usage here.
   const [errorToast, setErrorToast] = useState<string | null>(null);
   // Tracks the auto-dismiss timer for the error toast so we can
   // clear it on unmount — otherwise navigating away within the
@@ -775,110 +782,9 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
 
   // ── Load initial data on mount (parallel) ──
 
-  // Load smart recommendations based on shared tags
-  const loadRecommendations = useCallback(async () => {
-    if (!user) return;
-
-    // Magic Moment #5: prefer the server-side tag-similar strangers
-    // RPC over the legacy client-side fan-out. The RPC:
-    //   • restricts candidates to 2nd-degree (friend-of-friend) —
-    //     skips random whole-graph strangers, preserves "you might
-    //     know" semantics
-    //   • respects the per-user discoverable_by_tag_similarity
-    //     opt-out flag
-    //   • does the tag-overlap scoring on the DB side so this
-    //     screen avoids the legacy 3-roundtrip dance
-    //
-    // If the RPC returns at least one row, we're done. If it returns
-    // empty (no 2-hop network yet, or all candidates opted out),
-    // fall through to the legacy logic below so brand-new accounts
-    // with skinny networks still see something.
-    try {
-      const { data: strangers, error: strangersErr } = await supabase.rpc(
-        'find_tag_similar_strangers',
-        { p_limit: 10 },
-      );
-      if (!strangersErr && Array.isArray(strangers) && strangers.length > 0) {
-        // RPC returns columns matching the screen's expectations,
-        // except shaped as a row union — map to PiktagProfile-ish.
-        setRecommendedUsers(
-          strangers.map((s: any) => ({
-            id: s.user_id,
-            username: s.username ?? '',
-            full_name: s.full_name ?? null,
-            avatar_url: s.avatar_url ?? null,
-            bio: null,
-            is_verified: false,
-          })) as PiktagProfile[],
-        );
-        return;
-      }
-    } catch (rpcErr) {
-      console.warn('[SearchScreen] tag-similar strangers RPC failed, falling through:', rpcErr);
-    }
-
-    try {
-      // Get my tag IDs
-      const { data: myTags } = await supabase
-        .from('piktag_user_tags')
-        .select('tag_id')
-        .eq('user_id', user.id)
-        .eq('is_private', false)
-        .limit(50);
-      if (!myTags || myTags.length === 0) return;
-
-      const myTagIds = myTags.map(t => t.tag_id);
-
-      // Get my existing connection user IDs (to exclude)
-      const { data: myConns } = await supabase
-        .from('piktag_connections')
-        .select('connected_user_id')
-        .eq('user_id', user.id)
-        .limit(100);
-      const connUserIds = new Set((myConns || []).map(c => c.connected_user_id));
-      connUserIds.add(user.id); // exclude self
-
-      // Find users who share at least one tag with me
-      const { data: sharedTagUsers } = await supabase
-        .from('piktag_user_tags')
-        .select('user_id, tag_id')
-        .in('tag_id', myTagIds)
-        .eq('is_private', false)
-        .limit(200);
-      if (!sharedTagUsers) return;
-
-      // Count shared tags per user
-      const userSharedCount = new Map<string, number>();
-      for (const ut of sharedTagUsers) {
-        if (connUserIds.has(ut.user_id)) continue; // skip existing friends
-        userSharedCount.set(ut.user_id, (userSharedCount.get(ut.user_id) || 0) + 1);
-      }
-
-      // Sort by most shared tags, take top 10
-      const topUserIds = [...userSharedCount.entries()]
-        .sort((a, b) => b[1] - a[1])
-        .slice(0, 10)
-        .map(([uid]) => uid);
-
-      if (topUserIds.length === 0) return;
-
-      // Fetch profiles
-      const { data: profiles } = await supabase
-        .from('piktag_profiles')
-        .select('id, username, full_name, avatar_url, bio, is_verified')
-        .in('id', topUserIds)
-        .eq('is_public', true);
-
-      if (profiles) {
-        // Sort by shared count
-        profiles.sort((a, b) => (userSharedCount.get(b.id) || 0) - (userSharedCount.get(a.id) || 0));
-        setRecommendedUsers(profiles as PiktagProfile[]);
-      }
-    } catch (err) {
-      // Recommendations are a secondary feature — log but don't block.
-      console.warn('[SearchScreen] loadRecommendations failed:', err);
-    }
-  }, [user]);
+  // loadRecommendations REMOVED 2026-05-25. See state-declaration
+  // comment near top of the component for the rationale (tag-first +
+  // Ask, no algorithmic suggestion surface here).
 
   // Fast path: one RPC returns popular tags, recommended users, and
   // category roll-up in a single round-trip. Falls back to the legacy
@@ -890,24 +796,20 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
       if (error || !data || typeof data !== 'object') return false;
       const payload = data as {
         popular_tags?: any[];
-        recommended_users?: any[];
         recent_categories?: any[];
       };
       const popular = Array.isArray(payload.popular_tags) ? payload.popular_tags : [];
-      const recs = Array.isArray(payload.recommended_users) ? payload.recommended_users : [];
-      if (popular.length === 0 && recs.length === 0) return false;
+      // The RPC still returns recommended_users — we just ignore it.
+      // Field is left in the server contract for a possible revival
+      // (see state-declaration comment).
+      if (popular.length === 0) return false;
 
-      if (popular.length > 0) {
-        setCache(CACHE_KEY_POPULAR_TAGS, popular as Tag[]);
-        setTags(popular as Tag[]);
-        const cats = [
-          ...new Set(popular.map((t: any) => t.semantic_type).filter(Boolean)),
-        ] as string[];
-        setTagCategories(cats);
-      }
-      if (recs.length > 0) {
-        setRecommendedUsers(recs as PiktagProfile[]);
-      }
+      setCache(CACHE_KEY_POPULAR_TAGS, popular as Tag[]);
+      setTags(popular as Tag[]);
+      const cats = [
+        ...new Set(popular.map((t: any) => t.semantic_type).filter(Boolean)),
+      ] as string[];
+      setTagCategories(cats);
       setLoading(false);
       setInitialLoading(false);
       return true;
@@ -937,16 +839,13 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
     // both loaders catch internally so we have to inspect the resulting
     // state ourselves.
     try {
-      await Promise.all([loadPopularTags(), loadRecommendations()]);
-      // If both loaders ran but produced nothing, we still want the
-      // user to see *something* — but only flag bootstrap as failed
-      // when there's literally nothing to render. Empty results from a
-      // brand-new account are legitimate; here we err on the side of
-      // showing the error surface, since on a fresh account the
-      // recommendations RPC would normally return at least a few
-      // suggested users.
+      await loadPopularTags();
+      // If popular tags came back empty, an empty default surface is
+      // still legit (brand-new instance with no tag activity yet) —
+      // bootstrapFailed is only flagged when loadInitialViaRpc threw
+      // a transport error.
     } catch {
-      // Loaders threw outright — definitely a network/server problem.
+      // Loader threw outright — definitely a network/server problem.
     } finally {
       setInitialLoading(false);
     }
@@ -954,7 +853,6 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
     loadInitialViaRpc,
     loadPopularTags,
     loadRecentSearches,
-    loadRecommendations,
   ]);
 
   useEffect(() => {
@@ -1783,7 +1681,6 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
     | { type: 'tagsHomeHeader' }
     | { type: 'tagsEmpty' }
     | { type: 'tagsGrid' }
-    | { type: 'recommendedUsers' }
     | { type: 'bootstrapError' }
     | { type: 'intersectionTabs' }
     | { type: 'searchTabs'; friendsCount: number; exploreCount: number }
@@ -2028,8 +1925,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
       bootstrapFailed &&
       trimmedQuery === '' &&
       !intersectionMode &&
-      tags.length === 0 &&
-      recommendedUsers.length === 0
+      tags.length === 0
     ) {
       items.push({ type: 'bootstrapError' });
       return items;
@@ -2141,9 +2037,6 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
       } else {
         items.push({ type: 'tagsEmpty' });
       }
-      if (recommendedUsers.length > 0) {
-        items.push({ type: 'recommendedUsers' });
-      }
     }
 
     return items;
@@ -2171,7 +2064,6 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
     searchTab,
     llmRecovering,
     llmExtractedKeywords,
-    recommendedUsers,
     bootstrapFailed,
   ]);
 
@@ -2205,8 +2097,6 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
         return 'tagsGrid';
       case 'clearHistoryBtn':
         return 'clearHistoryBtn';
-      case 'recommendedUsers':
-        return 'recommendedUsers';
       case 'intersectionTabs':
         return 'intersectionTabs';
       case 'searchTabs':
@@ -2598,35 +2488,6 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
           );
         }
 
-        case 'recommendedUsers':
-          return (
-            <View style={{ paddingBottom: 16 }}>
-              <Text style={{ fontSize: 16, fontWeight: '700', color: colors.gray900, marginBottom: 10 }}>
-                {t('search.recommendedTitle', { defaultValue: '你可能想認識' })}
-              </Text>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 14 }}>
-                {recommendedUsers.map((u) => (
-                  <TouchableOpacity
-                    key={u.id}
-                    style={{ alignItems: 'center', width: 80 }}
-                    activeOpacity={0.7}
-                    onPress={() => handleProfilePress(u)}
-                  >
-                    <RingedAvatar
-                      size={68}
-                      ringStyle="gradient"
-                      name={u.full_name || u.username || ''}
-                      avatarUrl={u.avatar_url}
-                    />
-                    <Text style={{ fontSize: 12, fontWeight: '500', color: colors.gray700, marginTop: 4, textAlign: 'center' }} numberOfLines={1}>
-                      {u.full_name || u.username || ''}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </ScrollView>
-            </View>
-          );
-
         default:
           return null;
       }
@@ -2639,7 +2500,6 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
       handleLocalContactPress,
       handleTagPress,
       handleTagLongPress,
-      recommendedUsers,
       selectedTagIdSet,
       tags,
       filteredTags,
