@@ -44,6 +44,13 @@ Rules:
   • "fotógrafo" → also "photographer", "攝影師"
   • "扶輪社" → also "Rotary", "Rotary Club"
   Only include variants you are confident describe the same concept. If unsure, skip the variant rather than guess.
+- For CJK compound nouns (中/日/한 multi-character words), ALSO include the single-character semantic root when it carries clear meaning on its own:
+  • "養貓" → also "貓"
+  • "日語" → also "日" (when the noun is about language/Japan)
+  • "攝影師" → also "攝影"
+  • "貓奴" → also "貓"
+  • "創業家" → also "創業"
+  This lets substring search match a friend tagged with a shorter related token (e.g. someone tagged "貓派" or "愛貓" still surfaces for "養貓").
 - Drop verbs / particles / articles ("looking for", "想找", "在", "の", "を探しています", "Busco", "찾고 있어", "the", "a", "in", "for", "的", "的人", "朋友").
 - Skip generic placeholders: person / people / friend / contact / 朋友 / 人 / 同學 / 同事 / 사람.
 
