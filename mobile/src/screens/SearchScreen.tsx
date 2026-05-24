@@ -1268,8 +1268,56 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
                 if (llmTags.length > 0) {
                   postRecoveryTags = llmTags;
                   setTags(llmTags as Tag[]);
-                  // The private-world effect fires off the tags change
-                  // and pulls connection_tags / local_contacts matches.
+                  // Pull users for the recovered tags too. Without
+                  // this, recovery surfaces a "#tag" chip but leaves
+                  // the result list empty — the viewer has to tap the
+                  // chip to drill in. That's a friend-add miss against
+                  // the North Star (the whole point of recovery is to
+                  // bridge "natural-language query" → matching people).
+                  // search_users tokenizes server-side + does the
+                  // alias→concept→tag expansion + filters self/blocks
+                  // (mirrors the non-recovery RPC call at L1123).
+                  try {
+                    const { data: rpcRows, error: rpcErr } = await supabase.rpc(
+                      'search_users',
+                      { p_query: extracted.join(' '), p_limit: 50 },
+                    );
+                    if (
+                      !rpcErr &&
+                      seq === searchSeqRef.current &&
+                      Array.isArray(rpcRows) &&
+                      rpcRows.length > 0
+                    ) {
+                      const seenIds = new Set<string>();
+                      const flat = (rpcRows as any[])
+                        .map((r) => ({
+                          id: r.id,
+                          username: r.username,
+                          full_name: r.full_name,
+                          avatar_url: r.avatar_url,
+                          is_verified: r.is_verified,
+                          is_public: true,
+                        }))
+                        .filter(
+                          (p) =>
+                            p.id !== user?.id &&
+                            !seenIds.has(p.id) &&
+                            (seenIds.add(p.id), true),
+                        );
+                      if (flat.length > 0) {
+                        const recoveredGrouped = [
+                          { tag: llmTags[0] as Tag, users: flat.slice(0, 10) },
+                        ];
+                        setTagUsers(recoveredGrouped);
+                        finalTagUsers = recoveredGrouped;
+                      }
+                    }
+                  } catch (rpcCatchErr) {
+                    console.warn(
+                      '[SearchScreen] recovery search_users RPC failed:',
+                      rpcCatchErr,
+                    );
+                  }
                 }
               }
             }
