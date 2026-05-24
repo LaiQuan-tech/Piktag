@@ -286,6 +286,7 @@
     "categoryRecent": "最近搜索",
     "recentSearchesLabel": "搜索纪录",
     "popularTagsLabel": "热门标签",
+    "tagsHomePrompt": "点任一标签直接找朋友，或用上方搜索框打一句话",
     "nearbyTagsLabel": "附近标签",
     "searchResultsLabel": "搜索结果",
     "noRecentSearches": "还没有搜索纪录",

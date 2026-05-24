@@ -284,6 +284,7 @@
     "categoryRecent": "Недавние запросы",
     "recentSearchesLabel": "Недавние запросы",
     "popularTagsLabel": "Популярные теги",
+    "tagsHomePrompt": "Нажмите на тег, чтобы найти людей, или напишите фразу выше",
     "nearbyTagsLabel": "Теги рядом",
     "searchResultsLabel": "Результаты поиска",
     "noRecentSearches": "Недавних запросов нет",

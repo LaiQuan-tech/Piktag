@@ -284,6 +284,7 @@
     "categoryRecent": "সাম্প্রতিক সার্চ",
     "recentSearchesLabel": "সাম্প্রতিক সার্চ",
     "popularTagsLabel": "জনপ্রিয় ট্যাগ",
+    "tagsHomePrompt": "লোক খুঁজতে যেকোনো ট্যাগে ট্যাপ করুন, বা উপরে একটি বাক্য লিখুন",
     "nearbyTagsLabel": "কাছাকাছি ট্যাগ",
     "searchResultsLabel": "সার্চ ফলাফল",
     "noRecentSearches": "সাম্প্রতিক কোনো সার্চ নেই",

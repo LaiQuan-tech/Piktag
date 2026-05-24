@@ -284,6 +284,7 @@
     "categoryRecent": "Son Aramalar",
     "recentSearchesLabel": "Son Aramalar",
     "popularTagsLabel": "Popüler Etiketler",
+    "tagsHomePrompt": "İnsanları bulmak için bir etikete dokunun, ya da yukarıya bir cümle yazın",
     "nearbyTagsLabel": "Yakın Etiketler",
     "searchResultsLabel": "Arama Sonuçları",
     "noRecentSearches": "Son arama yok",

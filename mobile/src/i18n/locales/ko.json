@@ -284,6 +284,7 @@
     "categoryRecent": "최근 검색",
     "recentSearchesLabel": "최근 검색",
     "popularTagsLabel": "인기 태그",
+    "tagsHomePrompt": "태그를 눌러 사람을 찾거나, 위 검색창에 한 문장을 입력하세요",
     "nearbyTagsLabel": "근처 태그",
     "searchResultsLabel": "검색 결과",
     "noRecentSearches": "최근 검색이 없습니다",

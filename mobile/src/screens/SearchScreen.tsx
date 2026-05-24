@@ -1780,6 +1780,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
     | { type: 'profileItem'; profile: PiktagProfile }
     | { type: 'localContactItem'; contact: TaggedContact }
     | { type: 'tagsHeader' }
+    | { type: 'tagsHomeHeader' }
     | { type: 'tagsEmpty' }
     | { type: 'tagsGrid' }
     | { type: 'recommendedUsers' }
@@ -2126,15 +2127,22 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
         items.push({ type: 'recentItem', query, index });
       });
     } else {
-      // Default unfocused view — popular tags (nearby users + global fallback)
-      // plus recommended users.
-      if (recommendedUsers.length > 0) {
-        items.push({ type: 'recommendedUsers' });
-      }
+      // Default unfocused view — tag-first home.
+      //
+      // Order: header → tag grid → recommended users. Previously
+      // recommended-users came FIRST, which buried tags below an avatar
+      // row and read as a generic "people you may know" surface. The
+      // founder's North Star is tag-first discovery (the brand is
+      // *PikTag*), so tags now lead the home column and the avatar row
+      // moves below — supporting context rather than top billing.
+      items.push({ type: 'tagsHomeHeader' });
       if (tags.length > 0) {
         items.push({ type: 'tagsGrid' });
       } else {
         items.push({ type: 'tagsEmpty' });
+      }
+      if (recommendedUsers.length > 0) {
+        items.push({ type: 'recommendedUsers' });
       }
     }
 
@@ -2189,6 +2197,8 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
         return `contact-${item.contact.id}`;
       case 'tagsHeader':
         return 'tagsHeader';
+      case 'tagsHomeHeader':
+        return 'tagsHomeHeader';
       case 'tagsEmpty':
         return 'tagsEmpty';
       case 'tagsGrid':
@@ -2487,6 +2497,26 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
             <Text style={styles.resultSectionLabel}>
               {t('search.tagsSectionLabel')}
             </Text>
+          );
+
+        case 'tagsHomeHeader':
+          // The visual "招牌" of the search home: a #-prefixed title in
+          // PikTag purple makes the tag-first identity obvious at a
+          // glance, and the subtitle explicitly invites the tap-a-tag
+          // path so users without a search-sentence in mind have a
+          // clear next move.
+          return (
+            <View style={styles.tagsHomeHeader}>
+              <Text style={styles.tagsHomeHeaderTitle}>
+                <Text style={styles.tagsHomeHeaderHash}>#</Text>
+                {t('search.popularTagsLabel')}
+              </Text>
+              <Text style={styles.tagsHomeHeaderSubtitle}>
+                {t('search.tagsHomePrompt', {
+                  defaultValue: '點任一標籤直接找朋友，或用上方搜尋框打一句話',
+                })}
+              </Text>
+            </View>
           );
 
         case 'tagsEmpty':
@@ -3162,6 +3192,29 @@ function makeStyles(c: ColorPalette) {
     color: c.gray500,
     marginBottom: 12,
     marginTop: 4,
+  },
+  // The home-header "招牌" — bigger and bolder than resultSectionLabel
+  // because this is the visual anchor of the entire default search
+  // surface (tag-first branding lives here).
+  tagsHomeHeader: {
+    marginBottom: 16,
+    marginTop: 4,
+  },
+  tagsHomeHeaderTitle: {
+    fontSize: 22,
+    fontWeight: '800',
+    color: c.gray900,
+    letterSpacing: -0.3,
+  },
+  tagsHomeHeaderHash: {
+    color: c.piktag500,
+    fontWeight: '900',
+  },
+  tagsHomeHeaderSubtitle: {
+    fontSize: 13,
+    color: c.gray500,
+    marginTop: 4,
+    lineHeight: 18,
   },
   profilesSection: {
     marginBottom: 20,

@@ -291,6 +291,7 @@
     "categoryRecent": "Recent Searches",
     "recentSearchesLabel": "Recent Searches",
     "popularTagsLabel": "Popular Tags",
+    "tagsHomePrompt": "Tap any tag to find people directly, or describe them in the box above",
     "nearbyTagsLabel": "Nearby Tags",
     "searchResultsLabel": "Search Results",
     "noRecentSearches": "No recent searches",

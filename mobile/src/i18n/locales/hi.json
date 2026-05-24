@@ -284,6 +284,7 @@
     "categoryRecent": "हाल की खोजें",
     "recentSearchesLabel": "हाल की खोजें",
     "popularTagsLabel": "लोकप्रिय टैग",
+    "tagsHomePrompt": "किसी भी टैग पर टैप करके लोग खोजें, या ऊपर एक वाक्य लिखें",
     "nearbyTagsLabel": "आस-पास के टैग",
     "searchResultsLabel": "खोज परिणाम",
     "noRecentSearches": "हाल की कोई खोज नहीं",

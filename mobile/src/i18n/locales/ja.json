@@ -284,6 +284,7 @@
     "categoryRecent": "最近の検索",
     "recentSearchesLabel": "最近の検索",
     "popularTagsLabel": "人気のタグ",
+    "tagsHomePrompt": "タグをタップして人を探す、または上のボックスに一文を入力",
     "nearbyTagsLabel": "近くのタグ",
     "searchResultsLabel": "検索結果",
     "noRecentSearches": "最近の検索はありません",
