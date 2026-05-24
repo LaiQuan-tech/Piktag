@@ -1245,6 +1245,9 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
           try {
             const extracted = await extractSearchIntent(query.trim());
             if (seq === searchSeqRef.current && extracted.length > 0) {
+              // Pass A — direct name match on piktag_tags. Hits when a
+              // Gemini-extracted keyword is itself a substring of (or
+              // contains) a real tag name. Cheap, deterministic.
               const llmResults = await Promise.all(
                 extracted.map((kw) =>
                   supabase
@@ -1260,6 +1263,48 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
                 for (const t of (r.data || [])) {
                   if (!llmTagMap.has(t.id)) llmTagMap.set(t.id, t);
                 }
+              }
+              // Pass B — alias → concept → tag expansion. Required
+              // for semantic bridges where the user's natural-language
+              // query has zero substring overlap with the canonical
+              // tag name (e.g. "賣房子" never substring-matches
+              // "商用不動產", but they share a "real estate" concept
+              // via curated alias). Without this pass the recovery
+              // chip never appears for these queries and the contact
+              // effect downstream can't surface owner-tagged contacts
+              // that share the concept. Aligns the client with what
+              // search_users already does server-side; the cost is one
+              // extra ILIKE per keyword on tag_aliases (gin trgm
+              // indexed) plus one .in(concept_id, …) lookup.
+              try {
+                const aliasResults = await Promise.all(
+                  extracted.map((kw) =>
+                    supabase
+                      .from('tag_aliases')
+                      .select('concept_id')
+                      .ilike('alias', `%${kw}%`)
+                      .limit(10),
+                  ),
+                );
+                const conceptIds = new Set<string>();
+                for (const r of aliasResults) {
+                  for (const a of (r.data || []) as any[]) {
+                    if (a.concept_id) conceptIds.add(a.concept_id);
+                  }
+                }
+                if (conceptIds.size > 0) {
+                  const { data: conceptTags } = await supabase
+                    .from('piktag_tags')
+                    .select('id, name, semantic_type, usage_count, concept_id')
+                    .in('concept_id', [...conceptIds])
+                    .order('usage_count', { ascending: false })
+                    .limit(20);
+                  for (const t of (conceptTags || []) as any[]) {
+                    if (!llmTagMap.has(t.id)) llmTagMap.set(t.id, t);
+                  }
+                }
+              } catch (aliasErr) {
+                console.warn('[SearchScreen] alias→concept expansion failed:', aliasErr);
               }
               const llmTags = [...llmTagMap.values()];
               if (seq === searchSeqRef.current) {
