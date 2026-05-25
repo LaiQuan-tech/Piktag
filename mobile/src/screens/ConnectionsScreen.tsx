@@ -37,6 +37,7 @@ import {
   Circle,
   Plus,
   Search,
+  Megaphone,
 } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { COLORS, type ColorPalette } from '../constants/theme';
@@ -53,7 +54,7 @@ import { useAskFeed } from '../hooks/useAskFeed';
 import { useNetInfoReconnect } from '../hooks/useNetInfoReconnect';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { shouldShowPhonePrompt, dismissPhonePrompt } from '../lib/phonePrompt';
-import AskStoryRow from '../components/ask/AskStoryRow';
+import AskStoryRow, { AskCreateModal } from '../components/ask/AskStoryRow';
 import type { Connection, ConnectionTag } from '../types';
 
 type ConnectionWithTags = Connection & {
@@ -258,6 +259,14 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
   // connections and they drop out of this (un-promoted) query.
   const { contacts: localContacts, refresh: refreshLocalContacts } = useLocalContacts();
   const { asks: askFeedItems, myAsk: myActiveAsk, refresh: refreshAsks } = useAskFeed();
+
+  // Ask create modal visibility — opened from the cold-start
+  // "broadcast an Ask" card so a brand-new user (zero friends) has
+  // a one-tap path to find people through the platform without
+  // needing a network first. AskStoryRow has its OWN modal-trigger
+  // for users with at least some asks; this is the explicit
+  // empty-state-only path.
+  const [askCreateVisible, setAskCreateVisible] = useState(false);
 
   const lastFetchRef = React.useRef<number>(0);
 
@@ -863,7 +872,7 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
           {t('connections.coldStartTitle', { defaultValue: '還沒有朋友？' })}
         </Text>
         <Text style={styles.emptyOnboardingSubtitle}>
-          {t('connections.coldStartSubtitle', { defaultValue: '從這 4 步開始建立你的 PikTag' })}
+          {t('connections.coldStartSubtitle', { defaultValue: '從這 5 步開始建立你的 PikTag' })}
         </Text>
 
         <View style={styles.emptyActionList}>
@@ -903,6 +912,20 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
               title: t('connections.coldStartActionQr', { defaultValue: '分享你的 QR Code' }),
               desc: t('connections.coldStartActionQrDesc', { defaultValue: '讓朋友掃一下就追蹤你' }),
               onPress: () => navigation.navigate('AddTagTab', { screen: 'AddTag' }),
+            },
+            {
+              // The "no network yet?" escape hatch. PikTag's core is
+              // people-discovery-through-network, but day-1 users have
+              // no network — Ask broadcasts to the whole platform and
+              // surfaces friends-of-friends + tag-similar strangers
+              // who can answer. Without this card a cold-start user
+              // sees four CTAs that all assume "you already know
+              // somebody"; Ask is the only one that doesn't.
+              key: 'ask',
+              icon: Megaphone,
+              title: t('connections.coldStartActionAsk', { defaultValue: '發一個 Ask' }),
+              desc: t('connections.coldStartActionAskDesc', { defaultValue: '還沒人脈？廣播你想找的人或事，讓平台幫你連上' }),
+              onPress: () => setAskCreateVisible(true),
             },
           ].map((action) => (
             <Pressable
@@ -1311,6 +1334,17 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
           </TouchableOpacity>
         </KeyboardAvoidingView>
       </Modal>
+
+      {/* Ask creation modal — opened from the cold-start "📣 發一個
+          Ask" action card. Seeded with empty body so it's a fresh
+          compose; existingAsk lets the modal switch to view/edit
+          mode if the user already has an active ask. */}
+      <AskCreateModal
+        visible={askCreateVisible}
+        onClose={() => setAskCreateVisible(false)}
+        existingAsk={myActiveAsk}
+        onCreated={refreshAsks}
+      />
     </SafeAreaView>
   );
 }
