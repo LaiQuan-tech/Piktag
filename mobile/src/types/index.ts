@@ -57,6 +57,14 @@ export type Tag = {
   aliases: string[];
   concept_id: string | null;
   usage_count: number;
+  // Optional because not every SELECT pulls these. Added in
+  // 20260526010000_tag_search_count_ranking.sql:
+  //   • search_count: bumped on each committed search that matches
+  //   • popularity_score: generated stored = usage_count + 2*search_count
+  // SearchScreen orders by popularity_score; other surfaces (ManageTags,
+  // TagDetail, EditProfile) still order by usage_count.
+  search_count?: number;
+  popularity_score?: number;
   created_at: string;
   concept?: TagConcept; // joined
 };

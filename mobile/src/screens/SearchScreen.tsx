@@ -673,22 +673,29 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
 
     // Fallback: global popular tags (original behaviour).
     try {
-      // Fetch more tags, then sort by language affinity + usage
+      // Fetch more tags, then sort by language affinity + popularity.
+      // Ordering by popularity_score (= usage_count + 2*search_count)
+      // surfaces what people actually look for, not just what people
+      // self-attach — the 2026-05-26 ranking change.
       const { data, error } = await supabase
         .from('piktag_tags')
-        .select('id, name, semantic_type, usage_count')
-        .order('usage_count', { ascending: false })
+        .select('id, name, semantic_type, usage_count, popularity_score')
+        .order('popularity_score', { ascending: false })
         .limit(150);
 
       if (!error && data) {
-        // Sort: same language first, then by usage_count
+        // Sort: same language first, then by popularity_score (fall
+        // back to usage_count if popularity_score isn't present on
+        // pre-migration DBs).
         const sorted = [...data].sort((a, b) => {
           const aLang = detectTagLang(a.name);
           const bLang = detectTagLang(b.name);
           const aMatch = aLang === userLang ? 1 : 0;
           const bMatch = bLang === userLang ? 1 : 0;
           if (aMatch !== bMatch) return bMatch - aMatch;
-          return b.usage_count - a.usage_count;
+          const aScore = (a as any).popularity_score ?? a.usage_count ?? 0;
+          const bScore = (b as any).popularity_score ?? b.usage_count ?? 0;
+          return bScore - aScore;
         }).slice(0, 50);
 
         setCache(CACHE_KEY_POPULAR_TAGS, sorted);
@@ -973,13 +980,17 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
       setLlmExtractedKeywords([]);
 
       try {
-        // Search tags: match ANY keyword
+        // Search tags: match ANY keyword. Order by popularity_score
+        // (the blended usage+search rank from 20260526010000) so a
+        // tag people actively search for outranks a tag people just
+        // self-attach to. popularity_score is a generated stored
+        // column that updates atomically on every search-count bump.
         const tagPromises = keywords.map(kw =>
           supabase
             .from('piktag_tags')
-            .select('id, name, semantic_type, usage_count, concept_id')
+            .select('id, name, semantic_type, usage_count, popularity_score, concept_id')
             .ilike('name', `%${kw}%`)
-            .order('usage_count', { ascending: false })
+            .order('popularity_score', { ascending: false })
             .limit(20)
         );
 
@@ -1029,7 +1040,19 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
             if (!tagMap.has(tag.id)) tagMap.set(tag.id, tag);
           }
         }
-        const tagsResult = { data: [...tagMap.values()].sort((a, b) => b.usage_count - a.usage_count) };
+        // Client-side merge sort. Use popularity_score if the DB has
+        // been migrated; fall back to usage_count for pre-migration
+        // safety. This ranks tags the same way the DB ORDER BY did
+        // — necessary because we merged results from N parallel
+        // per-keyword queries, each individually sorted, and a
+        // global re-sort is the only way to get a coherent ranking.
+        const tagsResult = {
+          data: [...tagMap.values()].sort((a, b) => {
+            const aScore = a.popularity_score ?? a.usage_count ?? 0;
+            const bScore = b.popularity_score ?? b.usage_count ?? 0;
+            return bScore - aScore;
+          }),
+        };
 
         // Merge alias results: find tags by concept_id
         let mergedTags = tagsResult.data || [];
@@ -1038,9 +1061,9 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
           if (conceptIds.length > 0) {
             const { data: conceptTags } = await supabase
               .from('piktag_tags')
-              .select('id, name, semantic_type, usage_count, concept_id')
+              .select('id, name, semantic_type, usage_count, popularity_score, concept_id')
               .in('concept_id', conceptIds)
-              .order('usage_count', { ascending: false })
+              .order('popularity_score', { ascending: false })
               .limit(10);
 
             if (conceptTags) {
@@ -1223,9 +1246,9 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
                 extracted.map((kw) =>
                   supabase
                     .from('piktag_tags')
-                    .select('id, name, semantic_type, usage_count, concept_id')
+                    .select('id, name, semantic_type, usage_count, popularity_score, concept_id')
                     .ilike('name', `%${kw}%`)
-                    .order('usage_count', { ascending: false })
+                    .order('popularity_score', { ascending: false })
                     .limit(10),
                 ),
               );
@@ -1279,9 +1302,9 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
                   if (conceptIds.size > 0) {
                     const { data: conceptTags } = await supabase
                       .from('piktag_tags')
-                      .select('id, name, semantic_type, usage_count, concept_id')
+                      .select('id, name, semantic_type, usage_count, popularity_score, concept_id')
                       .in('concept_id', [...conceptIds])
-                      .order('usage_count', { ascending: false })
+                      .order('popularity_score', { ascending: false })
                       .limit(10);
                     for (const t of (conceptTags || []) as any[]) {
                       if (!llmTagMap.has(t.id)) llmTagMap.set(t.id, t);
@@ -1375,6 +1398,20 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
 
         // Save to recent searches
         saveRecentSearch(query.trim());
+
+        // Bump search_count on the top tags this search actually
+        // surfaced so they rise in future result rankings (the
+        // popularity_score blend from 20260526010000). Top 5 only —
+        // a long-tail match buried at position 18 shouldn't gain the
+        // same ranking weight as the chip that was clearly the
+        // intended hit. Fire-and-forget; the RPC is a single
+        // statement so cost is negligible.
+        if (postRecoveryTags.length > 0) {
+          const topIds = postRecoveryTags.slice(0, 5).map((tg) => tg.id).filter(Boolean);
+          if (topIds.length > 0) {
+            void supabase.rpc('bump_tag_search_count', { p_tag_ids: topIds });
+          }
+        }
 
         // Telemetry — fire-and-forget insert so the founder can see
         // post-launch which queries kept dying (especially "recovery
