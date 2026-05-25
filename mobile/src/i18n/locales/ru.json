@@ -351,7 +351,7 @@
     "presetsModalTitle": "Шаблоны",
     "noPresets": "Шаблонов пока нет",
     "applyPreset": "Применить",
-    "shareMessage": "Событие в PikTag\nДата: {{eventDate}}\nМесто: {{eventLocation}}\nТеги: {{tags}}\n\nОтсканируй QR-код, чтобы подключиться!",
+    "shareMessage": "Обменяемся тегами в PikTag ✨\n{{url}}",
     "defaultDisplayName": "Пользователь",
     "presetNamePrompt": "Введи название для этого шаблона",
     "popularTagsSoftTitle": "Теги интересов",
@@ -710,7 +710,7 @@
     "alertBatchImportTitle": "Массовый импорт",
     "alertBatchImportMessage": "Точно импортировать все {{count}} контактов?",
     "alertBatchImportConfirm": "Импортировать",
-    "inviteMessage": "Привет, {{name}}! Я в PikTag — обмениваемся тегами. Присоединяйся: https://pikt.ag",
+    "inviteMessage": "Привет {{name}}, я в PikTag — обмениваемся тегами. Присоединяйся: https://pikt.ag/download",
     "batchProgress": "Обрабатываем {{current}}/{{total}}",
     "alertBatchDoneTitle": "Импорт завершён",
     "alertBatchDoneMessage": "Добавлено {{matched}} друзей. {{notOnApp}} контактов ещё не в PikTag.",
@@ -1107,7 +1107,7 @@
     "timeDaysAgo": "{{count}} дн назад"
   },
   "share": {
-    "profileInviteMessage": "{{name}} в PikTag\n{{url}}\n\nPikTag — отмечай тегами каждого, кого встречаешь,\nсканируй QR, чтобы автоматически сохранить когда и где.\n\nСкачай PikTag → https://pikt.ag"
+    "profileInviteMessage": "{{name}} ждёт тебя в PikTag ✨\n{{url}}"
   },
   "country": {
     "TW": "Тайвань",

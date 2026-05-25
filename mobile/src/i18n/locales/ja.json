@@ -351,7 +351,7 @@
     "presetsModalTitle": "テンプレート",
     "noPresets": "テンプレートはまだありません",
     "applyPreset": "使用",
-    "shareMessage": "PikTag交流イベント\n日時：{{eventDate}}\n場所：{{eventLocation}}\nタグ：{{tags}}\n\nQRコードをスキャンしてつながろう！",
+    "shareMessage": "PikTag でタグ交換しよう ✨\n{{url}}",
     "defaultDisplayName": "ユーザー",
     "presetNamePrompt": "このプリセットの名前を入力",
     "popularTagsSoftTitle": "趣味タグ",
@@ -710,7 +710,7 @@
     "alertBatchImportTitle": "一括インポート",
     "alertBatchImportMessage": "すべての{{count}}件の連絡先をインポートしてもよろしいですか？",
     "alertBatchImportConfirm": "インポート",
-    "inviteMessage": "やあ{{name}}、PikTagでタグを交換しています！一緒にどう？ https://pikt.ag",
+    "inviteMessage": "{{name}}、PikTag で繋がろう！ダウンロード: https://pikt.ag/download",
     "batchProgress": "処理中 {{current}}/{{total}}",
     "alertBatchDoneTitle": "インポート完了",
     "alertBatchDoneMessage": "{{matched}}人の友達を追加しました。{{notOnApp}}件はまだPikTagにいません。",
@@ -1107,7 +1107,7 @@
     "timeDaysAgo": "{{count}} 日前"
   },
   "share": {
-    "profileInviteMessage": "{{name}} (PikTag)\n{{url}}\n\nPikTag — 出会った友達一人ひとりにタグを付け、\nQRをスキャンするだけでいつ・どこで会ったかを自動で記録。\n\nPikTagを入手 → https://pikt.ag"
+    "profileInviteMessage": "{{name}}さんが PikTag であなたを待ってる ✨\n{{url}}"
   },
   "country": {
     "TW": "台湾",

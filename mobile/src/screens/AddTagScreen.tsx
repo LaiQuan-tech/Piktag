@@ -795,10 +795,17 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
   };
 
   // ─── Share QR ───
+  // 2026-05-26 LINE-style copy refresh: dropped the 4-line "PikTag
+  // Social Event / Date / Location / Tags / Scan to join" template
+  // in favor of a single friendly sentence + URL inline. The QR
+  // image + scan landing page already convey the event details;
+  // the share text just needs a tappable hook. URL is interpolated
+  // (not just passed as Share.url) so the link is tappable on
+  // Android too — Share.url is iOS-only.
   const handleShare = async () => {
     try {
       await Share.share({
-        message: t('addTag.shareMessage', { eventDate, eventLocation, tags: eventTags.join(', ') }),
+        message: t('addTag.shareMessage', { url: qrValue }),
         url: Platform.OS === 'ios' ? qrValue : undefined,
       });
     } catch {

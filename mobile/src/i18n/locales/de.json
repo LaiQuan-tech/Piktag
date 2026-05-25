@@ -353,7 +353,7 @@
     "presetsModalTitle": "Vorlagen",
     "noPresets": "Noch keine Vorlagen",
     "applyPreset": "Anwenden",
-    "shareMessage": "PikTag Social Event\nDatum: {{eventDate}}\nOrt: {{eventLocation}}\nTags: {{tags}}\n\nQR-Code scannen, um sich zu verbinden!",
+    "shareMessage": "Tauschen wir Tags auf PikTag ✨\n{{url}}",
     "defaultDisplayName": "Nutzer",
     "presetNamePrompt": "Gib einen Namen für diese Vorlage ein",
     "popularTagsSoftTitle": "Interessen-Tags",
@@ -712,7 +712,7 @@
     "alertBatchImportTitle": "Massen-Import",
     "alertBatchImportMessage": "Bist du sicher, dass du alle {{count}} Kontakte importieren willst?",
     "alertBatchImportConfirm": "Importieren",
-    "inviteMessage": "Hey {{name}}, ich nutze PikTag, um Tags auszutauschen! Mach mit: https://pikt.ag",
+    "inviteMessage": "Hey {{name}}, ich nutze PikTag, um Tags zu tauschen — komm dazu: https://pikt.ag/download",
     "batchProgress": "Wird verarbeitet {{current}}/{{total}}",
     "alertBatchDoneTitle": "Import abgeschlossen",
     "alertBatchDoneMessage": "{{matched}} Freunde hinzugefügt. {{notOnApp}} Kontakte sind noch nicht auf PikTag.",
@@ -1171,7 +1171,7 @@
     "timeDaysAgo": "vor {{count}} Tg."
   },
   "share": {
-    "profileInviteMessage": "{{name}} auf PikTag\n{{url}}\n\nPikTag — tagge jeden Freund, den du triffst,\nQR scannen erfasst automatisch wann & wo.\n\nHol dir PikTag → https://pikt.ag"
+    "profileInviteMessage": "{{name}} wartet auf dich auf PikTag ✨\n{{url}}"
   },
   "country": {
     "TW": "Taiwan",

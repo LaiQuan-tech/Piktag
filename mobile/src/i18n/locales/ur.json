@@ -358,7 +358,7 @@
     "presetsModalTitle": "ٹیمپلیٹس",
     "noPresets": "ابھی کوئی ٹیمپلیٹ نہیں",
     "applyPreset": "استعمال کریں",
-    "shareMessage": "PikTag سماجی ایونٹ\nتاریخ: {{eventDate}}\nمقام: {{eventLocation}}\nٹیگز: {{tags}}\n\nجڑنے کے لیے QR کوڈ اسکین کریں!",
+    "shareMessage": "PikTag پر ٹیگز کا تبادلہ کریں ✨\n{{url}}",
     "defaultDisplayName": "صارف",
     "presetNamePrompt": "اس پری سیٹ کا نام لکھیں",
     "popularTagsSoftTitle": "دلچسپی کے ٹیگز",
@@ -717,7 +717,7 @@
     "alertBatchImportTitle": "اکٹھے درآمد",
     "alertBatchImportMessage": "کیا واقعی سارے {{count}} رابطے درآمد کر دیں؟",
     "alertBatchImportConfirm": "درآمد کریں",
-    "inviteMessage": "ہیلو {{name}}، میں ٹیگز کا تبادلہ کرنے کے لیے PikTag استعمال کر رہا ہوں! میرے ساتھ شامل ہو جائیں: https://pikt.ag",
+    "inviteMessage": "{{name}}، میں PikTag استعمال کر رہا ہوں ٹیگز کے لیے — جوائن کرو: https://pikt.ag/download",
     "batchProgress": "ہو رہا ہے {{current}}/{{total}}",
     "alertBatchDoneTitle": "درآمد مکمل",
     "alertBatchDoneMessage": "{{matched}} دوست شامل ہوئے۔ {{notOnApp}} رابطے ابھی PikTag پر نہیں ہیں۔",
@@ -1185,7 +1185,7 @@
     "timeDaysAgo": "{{count}} دن پہلے"
   },
   "share": {
-    "profileInviteMessage": "{{name}} PikTag پر\n{{url}}\n\nPikTag — ہر اس دوست کو ٹیگ کریں جس سے آپ ملیں،\nکب اور کہاں، خود محفوظ کرنے کے لیے QR اسکین کریں۔\n\nPikTag حاصل کریں → https://pikt.ag"
+    "profileInviteMessage": "{{name}} PikTag پر آپ کا انتظار کر رہے ہیں ✨\n{{url}}"
   },
   "country": {
     "TW": "تائیوان",

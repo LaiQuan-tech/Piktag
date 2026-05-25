@@ -351,7 +351,7 @@
     "presetsModalTitle": "Şablonlar",
     "noPresets": "Henüz şablon yok",
     "applyPreset": "Uygula",
-    "shareMessage": "PikTag Sosyal Etkinlik\nTarih: {{eventDate}}\nKonum: {{eventLocation}}\nEtiketler: {{tags}}\n\nBağlantı kurmak için QR Code'u tarayın!",
+    "shareMessage": "PikTag'da etiket değişelim ✨\n{{url}}",
     "defaultDisplayName": "Kullanıcı",
     "presetNamePrompt": "Bu şablon için bir ad gir",
     "popularTagsSoftTitle": "İlgi Alanı Etiketleri",
@@ -710,7 +710,7 @@
     "alertBatchImportTitle": "Toplu İçe Aktarma",
     "alertBatchImportMessage": "{{count}} kişinin tümünü içe aktarmak istediğinden emin misin?",
     "alertBatchImportConfirm": "İçe Aktar",
-    "inviteMessage": "Selam {{name}}, etiket alışverişi için PikTag kullanıyorum! Sen de gel: https://pikt.ag",
+    "inviteMessage": "Hey {{name}}, PikTag'da etiket değiştiriyorum — sen de katıl: https://pikt.ag/download",
     "batchProgress": "İşleniyor {{current}}/{{total}}",
     "alertBatchDoneTitle": "İçe aktarma tamamlandı",
     "alertBatchDoneMessage": "{{matched}} arkadaş eklendi. {{notOnApp}} kişi henüz PikTag kullanmıyor.",
@@ -1107,7 +1107,7 @@
     "timeDaysAgo": "{{count}} g önce"
   },
   "share": {
-    "profileInviteMessage": "PikTag'de {{name}}\n{{url}}\n\nPikTag — tanıştığınız her arkadaşı etiketleyin,\nQR tarayarak ne zaman ve nerede tanıştığınızı otomatik kaydedin.\n\nPikTag'i indir → https://pikt.ag"
+    "profileInviteMessage": "{{name}} PikTag'da seni bekliyor ✨\n{{url}}"
   },
   "country": {
     "TW": "Tayvan",

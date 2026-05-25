@@ -353,7 +353,7 @@
     "presetsModalTitle": "常用模板",
     "noPresets": "尚无常用模板",
     "applyPreset": "Apply",
-    "shareMessage": "PikTag 社交活动\n日期：{{eventDate}}\n地点：{{eventLocation}}\n标签：{{tags}}\n\n扫描 QR Code 加入连接！",
+    "shareMessage": "来 PikTag 互留标签 ✨\n{{url}}",
     "defaultDisplayName": "用户",
     "presetNamePrompt": "请输入模板名称",
     "popularTagsSoftTitle": "兴趣标签",
@@ -712,7 +712,7 @@
     "alertBatchImportTitle": "批量导入",
     "alertBatchImportMessage": "确定要导入全部 {{count}} 位通讯录联系人吗？",
     "alertBatchImportConfirm": "导入",
-    "inviteMessage": "{{name}}，我在用 PikTag，一起来交换标签吧！下载：https://pikt.ag",
+    "inviteMessage": "{{name}}，我在用 PikTag,一起来交换标签吧!下载:https://pikt.ag/download",
     "batchProgress": "处理中 {{current}}/{{total}}",
     "alertBatchDoneTitle": "导入完成",
     "alertBatchDoneMessage": "已加入 {{matched}} 位朋友。其中 {{notOnApp}} 位尚未使用 PikTag。",
@@ -1171,7 +1171,7 @@
     "timeDaysAgo": "{{count}} 天前"
   },
   "share": {
-    "profileInviteMessage": "{{name}} 在 PikTag\n{{url}}\n\nPikTag — 用标签记住每段缘分，\n扫 QR 自动记下相遇时间地点。\n\n还没下载？https://pikt.ag"
+    "profileInviteMessage": "{{name}} 在 PikTag 等你加好友 ✨\n{{url}}"
   },
   "country": {
     "TW": "台湾",

@@ -351,7 +351,7 @@
     "presetsModalTitle": "เทมเพลต",
     "noPresets": "ยังไม่มีเทมเพลต",
     "applyPreset": "ใช้งาน",
-    "shareMessage": "กิจกรรมสังคม PikTag\nวันที่: {{eventDate}}\nสถานที่: {{eventLocation}}\nแท็ก: {{tags}}\n\nสแกน QR Code เพื่อเชื่อมต่อ!",
+    "shareMessage": "มาแลกแท็กกันบน PikTag ✨\n{{url}}",
     "defaultDisplayName": "ผู้ใช้",
     "presetNamePrompt": "กรอกชื่อสำหรับเทมเพลตนี้",
     "popularTagsSoftTitle": "แท็กความสนใจ",
@@ -710,7 +710,7 @@
     "alertBatchImportTitle": "นำเข้าทั้งหมด",
     "alertBatchImportMessage": "คุณแน่ใจหรือไม่ว่าต้องการนำเข้ารายชื่อทั้งหมด {{count}} รายการ?",
     "alertBatchImportConfirm": "นำเข้า",
-    "inviteMessage": "สวัสดี {{name}} ฉันใช้ PikTag แลกแท็กอยู่! มาร่วมกัน: https://pikt.ag",
+    "inviteMessage": "{{name}}, ฉันใช้ PikTag แลกแท็กกัน — มาเลย: https://pikt.ag/download",
     "batchProgress": "กำลังประมวลผล {{current}}/{{total}}",
     "alertBatchDoneTitle": "นำเข้าเสร็จสิ้น",
     "alertBatchDoneMessage": "เพิ่มเพื่อน {{matched}} คน ผู้ติดต่อ {{notOnApp}} คนยังไม่ได้ใช้ PikTag",
@@ -1107,7 +1107,7 @@
     "timeDaysAgo": "{{count}} วันก่อน"
   },
   "share": {
-    "profileInviteMessage": "{{name}} บน PikTag\n{{url}}\n\nPikTag — แท็กเพื่อนทุกคนที่คุณพบ\nสแกน QR เพื่อบันทึกเวลาและสถานที่อัตโนมัติ\n\nรับ PikTag → https://pikt.ag"
+    "profileInviteMessage": "{{name}} กำลังรอคุณบน PikTag ✨\n{{url}}"
   },
   "country": {
     "TW": "ไต้หวัน",

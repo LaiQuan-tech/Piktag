@@ -351,7 +351,7 @@
     "presetsModalTitle": "Template",
     "noPresets": "Belum ada template",
     "applyPreset": "Terapkan",
-    "shareMessage": "Acara Sosial PikTag\nTanggal: {{eventDate}}\nLokasi: {{eventLocation}}\nTag: {{tags}}\n\nPindai QR Code untuk terhubung!",
+    "shareMessage": "Tukar tag di PikTag yuk ✨\n{{url}}",
     "defaultDisplayName": "Pengguna",
     "presetNamePrompt": "Masukkan nama untuk preset ini",
     "popularTagsSoftTitle": "Tag Minat",
@@ -710,7 +710,7 @@
     "alertBatchImportTitle": "Impor Massal",
     "alertBatchImportMessage": "Apakah kamu yakin ingin mengimpor semua {{count}} kontak?",
     "alertBatchImportConfirm": "Impor",
-    "inviteMessage": "Hai {{name}}, saya pakai PikTag untuk bertukar tag! Gabung yuk: https://pikt.ag",
+    "inviteMessage": "Hai {{name}}, aku pakai PikTag buat tukar tag — gabung yuk: https://pikt.ag/download",
     "batchProgress": "Memproses {{current}}/{{total}}",
     "alertBatchDoneTitle": "Impor selesai",
     "alertBatchDoneMessage": "{{matched}} teman ditambahkan. {{notOnApp}} kontak belum menggunakan PikTag.",
@@ -1107,7 +1107,7 @@
     "timeDaysAgo": "{{count}} hari lalu"
   },
   "share": {
-    "profileInviteMessage": "{{name}} di PikTag\n{{url}}\n\nPikTag — tandai setiap teman yang Anda temui,\npindai QR untuk otomatis mencatat kapan & di mana.\n\nDapatkan PikTag → https://pikt.ag"
+    "profileInviteMessage": "{{name}} menunggu kamu di PikTag ✨\n{{url}}"
   },
   "country": {
     "TW": "Taiwan",

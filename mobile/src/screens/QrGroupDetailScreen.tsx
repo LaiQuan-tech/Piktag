@@ -260,13 +260,17 @@ export default function QrGroupDetailScreen({ navigation, route }: Props) {
   const handleShare = useCallback(async () => {
     if (!group?.qr_code_data) return;
     try {
+      // Wrap the raw qr_code_data URL in the same LINE-style
+      // shareMessage as AddTagScreen so the recipient sees a
+      // friendly invite line + tappable URL rather than a bare
+      // URL with no context.
       await Share.share({
-        message: group.qr_code_data,
+        message: t('addTag.shareMessage', { url: group.qr_code_data }),
       });
     } catch {
       /* user cancelled */
     }
-  }, [group]);
+  }, [group, t]);
 
   const handleCopyLink = useCallback(async () => {
     if (!group?.qr_code_data) return;
