@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Activity, Flag, UserPlus, Users, type LucideIcon } from 'lucide-react';
+import { Activity, Flag, Sparkles, TrendingUp, UserPlus, Users, type LucideIcon } from 'lucide-react';
 import { createAdminClient } from '@/lib/supabase-admin';
 
 // Admin dashboard should always reflect fresh data.
@@ -41,12 +41,14 @@ function StatCard({
   value,
   trend,
   alert = false,
+  suffix,
 }: {
   icon: LucideIcon;
   label: string;
   value: number;
   trend?: string;
   alert?: boolean;
+  suffix?: string;
 }) {
   const valueColor = alert && value > 0 ? 'text-red-600' : 'text-[#8c52ff]';
   const iconWrap = alert && value > 0
@@ -60,7 +62,10 @@ function StatCard({
         </div>
         <span className="text-sm text-slate-600 font-medium">{label}</span>
       </div>
-      <div className={`text-4xl font-bold ${valueColor}`}>{value.toLocaleString('zh-TW')}</div>
+      <div className={`text-4xl font-bold ${valueColor}`}>
+        {value.toLocaleString('zh-TW')}
+        {suffix ? <span className="text-2xl ml-0.5">{suffix}</span> : null}
+      </div>
       {trend ? <p className="mt-2 text-xs text-slate-500">{trend}</p> : null}
     </div>
   );
@@ -115,9 +120,38 @@ export default async function AdminDashboardPage() {
     .order('created_at', { ascending: false })
     .limit(10);
 
+  // 7. 本週魔法時刻 — distinct users whose first outgoing
+  //    piktag_connections row landed in the 7d window. Set-difference
+  //    against the "had any connection before" set; mirrors the
+  //    /api/admin/analytics implementation.
+  const [conn7dRes, connBeforeRes] = await Promise.all([
+    supabase.from('piktag_connections').select('user_id').gte('created_at', sevenDaysAgo),
+    supabase.from('piktag_connections').select('user_id').lt('created_at', sevenDaysAgo),
+  ]);
+
   const totalUsers = totalUsersRes.count ?? 0;
   const newUsersThisWeek = newUsersRes.count ?? 0;
   const pendingReports = pendingReportsRes.count ?? 0;
+
+  // Magic-moment computation (2026-05-27).
+  const beforeSet = new Set<string>();
+  for (const row of (connBeforeRes.data ?? []) as Array<{ user_id: string | null }>) {
+    if (row.user_id) beforeSet.add(row.user_id);
+  }
+  const magicMomentUsers = new Set<string>();
+  for (const row of (conn7dRes.data ?? []) as Array<{ user_id: string | null }>) {
+    if (row.user_id && !beforeSet.has(row.user_id)) {
+      magicMomentUsers.add(row.user_id);
+    }
+  }
+  const magicMomentsThisWeek = magicMomentUsers.size;
+  // Activation = first-friend / new-signups, integer 0–100. The
+  // single KPI most predictive of product-market fit for a
+  // network-based app at cold-start.
+  const activationRatePct =
+    newUsersThisWeek > 0
+      ? Math.round((magicMomentsThisWeek * 100) / newUsersThisWeek)
+      : 0;
 
   const activeUsersThisWeek = activeUsersRes.data
     ? new Set(
@@ -138,7 +172,8 @@ export default async function AdminDashboardPage() {
         <p className="mt-1 text-sm text-slate-500">今天是 {todayLabel}</p>
       </header>
 
-      {/* Stat cards */}
+      {/* Stat cards — top row: aggregate health.
+          Second row: growth pulse (the cold-start vitals). */}
       <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard icon={Users} label="總用戶數" value={totalUsers} />
         <StatCard
@@ -158,6 +193,25 @@ export default async function AdminDashboardPage() {
           label="待處理舉報"
           value={pendingReports}
           alert
+        />
+      </section>
+
+      {/* Growth pulse — the launch-day vitals. Same metrics that
+          fire the real-time admin pushes (新註冊 / 魔法時刻). Full
+          detail on /analytics. */}
+      <section className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <StatCard
+          icon={Sparkles}
+          label="本週魔法時刻"
+          value={magicMomentsThisWeek}
+          trend="本週第一次加好友的用戶數"
+        />
+        <StatCard
+          icon={TrendingUp}
+          label="激活率"
+          value={activationRatePct}
+          suffix="%"
+          trend="新註冊用戶在 7 天內加到第一個好友的比例"
         />
       </section>
 

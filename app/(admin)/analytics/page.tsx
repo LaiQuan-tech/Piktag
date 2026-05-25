@@ -6,7 +6,11 @@ import {
   Flag,
   Link as LinkIcon,
   QrCode,
+  Sparkles,
+  Search,
   Tag,
+  TrendingUp,
+  UserPlus,
   Users,
   type LucideIcon,
 } from 'lucide-react';
@@ -37,16 +41,49 @@ const STAT_DEFS: StatDef[] = [
   { key: 'pending_reports', label: '待處理舉報', icon: Flag, alert: true },
 ];
 
+// Growth-pulse stat definitions (added 2026-05-27). Visually
+// separated below the existing stats — these are the "cold-start
+// vitals" that map 1:1 to the real-time admin push notifications
+// (新註冊 / 魔法時刻) plus weekly digest indicators.
+interface GrowthStatDef {
+  key: keyof Pick<
+    AdminAnalytics,
+    | 'new_signups_last_7d'
+    | 'magic_moments_last_7d'
+    | 'activation_rate_pct_last_7d'
+    | 'search_total_last_7d'
+    | 'search_recovery_pct_last_7d'
+    | 'search_empty_pct_last_7d'
+  >;
+  label: string;
+  icon: LucideIcon;
+  suffix?: string;
+  // good = lower (alert when high). Used for search_recovery_pct /
+  // search_empty_pct where lower % = healthier engine.
+  inverted?: boolean;
+}
+
+const GROWTH_STAT_DEFS: GrowthStatDef[] = [
+  { key: 'new_signups_last_7d', label: '本週新註冊', icon: UserPlus },
+  { key: 'magic_moments_last_7d', label: '本週魔法時刻', icon: Sparkles },
+  { key: 'activation_rate_pct_last_7d', label: '激活率', icon: TrendingUp, suffix: '%' },
+  { key: 'search_total_last_7d', label: '本週搜尋', icon: Search },
+  { key: 'search_recovery_pct_last_7d', label: 'LLM 救援率', icon: Search, suffix: '%', inverted: true },
+  { key: 'search_empty_pct_last_7d', label: '空手率', icon: Search, suffix: '%', inverted: true },
+];
+
 function StatCard({
   icon: Icon,
   label,
   value,
   alert = false,
+  suffix,
 }: {
   icon: LucideIcon;
   label: string;
   value: number;
   alert?: boolean;
+  suffix?: string;
 }) {
   const valueColor = alert && value > 0 ? 'text-red-600' : 'text-[#8c52ff]';
   const iconWrap =
@@ -63,6 +100,7 @@ function StatCard({
       </div>
       <div className={`text-4xl font-bold ${valueColor}`}>
         {value.toLocaleString('zh-TW')}
+        {suffix ? <span className="text-2xl ml-0.5">{suffix}</span> : null}
       </div>
     </div>
   );
@@ -186,6 +224,37 @@ export default function AnalyticsPage() {
                 alert={def.alert}
               />
             ))}
+      </section>
+
+      {/* Growth pulse — the cold-start vitals. Same metrics as the
+          real-time admin push (新註冊 / 魔法時刻) + weekly digest
+          health stats. 「成長指標」label separates this section
+          visually from the all-time aggregates above. */}
+      <section>
+        <h2 className="text-lg font-semibold text-slate-900 mb-3">
+          成長指標 <span className="text-sm font-normal text-slate-500">過去 7 天</span>
+        </h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+          {loading && !data
+            ? GROWTH_STAT_DEFS.map((def) => <StatCardSkeleton key={def.key} />)
+            : GROWTH_STAT_DEFS.map((def) => {
+                const value = data ? data[def.key] : 0;
+                // Inverted metrics (recovery%, empty%) read as ALERT
+                // when above ~30 — that's a noticeable degradation.
+                // Plain metrics (signups, magic moments) stay neutral.
+                const alertOnHigh = !!def.inverted && value >= 30;
+                return (
+                  <StatCard
+                    key={def.key}
+                    icon={def.icon}
+                    label={def.label + (def.suffix ? '' : '')}
+                    value={value}
+                    alert={alertOnHigh}
+                    suffix={def.suffix}
+                  />
+                );
+              })}
+        </div>
       </section>
 
       {/* Signups chart */}

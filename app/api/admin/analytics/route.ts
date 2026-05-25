@@ -80,6 +80,22 @@ export async function GET(): Promise<Response> {
     activeUsersRawRes,
     qrScans7dRes,
     topTagsRes,
+    // ── Growth pulse queries (2026-05-27) ─────────────────────
+    newSignups7dRes,
+    // For magic moments we need the user_ids of everyone whose
+    // FIRST piktag_connections row landed in the 7-day window.
+    // Done client-side by pulling (user_id, created_at) for the
+    // window and de-duping against an earlier-existence check.
+    // Two queries: (a) all connections rows in window with their
+    // user_id, (b) all distinct user_ids that had ANY connection
+    // BEFORE the window. Magic = (a) - (b).
+    connections7dRawRes,
+    connectionsBeforeWindowRawRes,
+    // Search telemetry: total + recovery-fired + all-empty in
+    // window. recovery_pct = recovery/total, empty_pct = empty/total.
+    searchTotal7dRes,
+    searchRecovery7dRes,
+    searchEmpty7dRes,
   ] = await Promise.all([
     supabase
       .from('piktag_profiles')
@@ -114,6 +130,40 @@ export async function GET(): Promise<Response> {
       .select('name, usage_count')
       .order('usage_count', { ascending: false })
       .limit(20),
+    // Growth — new signups in 7d window
+    supabase
+      .from('piktag_profiles')
+      .select('*', { count: 'exact', head: true })
+      .gte('created_at', sevenDaysAgo),
+    // Growth — connections in 7d (for magic moment computation)
+    supabase
+      .from('piktag_connections')
+      .select('user_id')
+      .gte('created_at', sevenDaysAgo),
+    // Growth — distinct user_ids who had any connection BEFORE the
+    // 7d window. Subtracting these from the 7d set gives us "users
+    // whose first ever connection was in the window."
+    supabase
+      .from('piktag_connections')
+      .select('user_id')
+      .lt('created_at', sevenDaysAgo),
+    // Search telemetry health
+    supabase
+      .from('piktag_search_telemetry')
+      .select('*', { count: 'exact', head: true })
+      .gte('created_at', sevenDaysAgo),
+    supabase
+      .from('piktag_search_telemetry')
+      .select('*', { count: 'exact', head: true })
+      .eq('recovery_triggered', true)
+      .gte('created_at', sevenDaysAgo),
+    supabase
+      .from('piktag_search_telemetry')
+      .select('*', { count: 'exact', head: true })
+      .eq('final_tag_count', 0)
+      .eq('final_profile_count', 0)
+      .eq('final_tag_user_count', 0)
+      .gte('created_at', sevenDaysAgo),
   ]);
 
   const totalUsers = countOrZero(totalUsersRes as CountResult, 'total_users');
@@ -157,6 +207,44 @@ export async function GET(): Promise<Response> {
     usage_count: t.usage_count ?? 0,
   }));
 
+  // ── Growth pulse derivations ────────────────────────────────
+  const newSignups7d = countOrZero(newSignups7dRes as CountResult, 'new_signups_last_7d');
+
+  // Magic moments: users whose FIRST outgoing connection landed in
+  // the 7-day window. Computed by set-difference: distinct user_ids
+  // with a row in the window MINUS distinct user_ids with any row
+  // before the window.
+  const window7dUserRows = rowsOrEmpty<{ user_id: string | null }>(
+    connections7dRawRes as RowsResult<{ user_id: string | null }>,
+    'connections_window',
+  );
+  const beforeWindowUserRows = rowsOrEmpty<{ user_id: string | null }>(
+    connectionsBeforeWindowRawRes as RowsResult<{ user_id: string | null }>,
+    'connections_before_window',
+  );
+  const beforeWindowSet = new Set<string>();
+  for (const row of beforeWindowUserRows) {
+    if (row.user_id) beforeWindowSet.add(row.user_id);
+  }
+  const firstTimeInWindow = new Set<string>();
+  for (const row of window7dUserRows) {
+    if (row.user_id && !beforeWindowSet.has(row.user_id)) {
+      firstTimeInWindow.add(row.user_id);
+    }
+  }
+  const magicMoments7d = firstTimeInWindow.size;
+  const activationRate7d =
+    newSignups7d > 0 ? Math.round((magicMoments7d * 100) / newSignups7d) : 0;
+
+  // Search health
+  const searchTotal7d = countOrZero(searchTotal7dRes as CountResult, 'search_total');
+  const searchRecovery7d = countOrZero(searchRecovery7dRes as CountResult, 'search_recovery');
+  const searchEmpty7d = countOrZero(searchEmpty7dRes as CountResult, 'search_empty');
+  const searchRecoveryPct7d =
+    searchTotal7d > 0 ? Math.round((searchRecovery7d * 100) / searchTotal7d) : 0;
+  const searchEmptyPct7d =
+    searchTotal7d > 0 ? Math.round((searchEmpty7d * 100) / searchTotal7d) : 0;
+
   const body: AdminAnalytics = {
     total_users: totalUsers,
     total_active_users: activeUsersLast7d,
@@ -167,6 +255,12 @@ export async function GET(): Promise<Response> {
     active_users_last_7d: activeUsersLast7d,
     qr_scans_last_7d: qrScans7d,
     top_tags: topTags,
+    new_signups_last_7d: newSignups7d,
+    magic_moments_last_7d: magicMoments7d,
+    activation_rate_pct_last_7d: activationRate7d,
+    search_total_last_7d: searchTotal7d,
+    search_recovery_pct_last_7d: searchRecoveryPct7d,
+    search_empty_pct_last_7d: searchEmptyPct7d,
   };
 
   return NextResponse.json(body, {

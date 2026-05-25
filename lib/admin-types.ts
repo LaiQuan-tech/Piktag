@@ -61,6 +61,26 @@ export interface AdminAnalytics {
   active_users_last_7d: number;
   qr_scans_last_7d: number;
   top_tags: Array<{ name: string; usage_count: number }>;
+  // ── Growth pulse (added 2026-05-27) ─────────────────────────
+  // Mirrors the metrics surfaced in the real-time admin push
+  // notifications (notify-admin-growth) and the weekly digest
+  // body — keeps a single source of truth for "is PikTag growing?"
+  // visible without leaving the dashboard.
+  new_signups_last_7d: number;
+  // Distinct users who created their FIRST outgoing piktag_connections
+  // row in the past 7 days. The product-market-fit signal: it's not
+  // just "did they sign up" but "did they actually USE it to add a
+  // human."
+  magic_moments_last_7d: number;
+  // magic_moments / new_signups, integer 0–100. Higher = better
+  // activation funnel from signup → first friend.
+  activation_rate_pct_last_7d: number;
+  // Search-engine health pulled from piktag_search_telemetry.
+  // recovery_pct LOWER is better (fewer LLM fallbacks). empty_pct
+  // LOWER is better (fewer dead-end searches).
+  search_total_last_7d: number;
+  search_recovery_pct_last_7d: number;
+  search_empty_pct_last_7d: number;
 }
 
 export interface AdminAuditLogEntry {
