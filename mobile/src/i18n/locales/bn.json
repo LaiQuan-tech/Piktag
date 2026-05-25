@@ -1282,10 +1282,13 @@
     "linkPhone": "ফোন",
     "linkEmail": "ইমেইল",
     "linkAddress": "ঠিকানা",
+    "linkWebsite": "ওয়েবসাইট",
     "scanningTitle": "কার্ড পড়া হচ্ছে…",
     "scanningSubtitle": "সাধারণত ৫–১০ সেকেন্ড সময় লাগে",
     "fieldAddress": "ঠিকানা",
     "addressPlaceholder": "যেমন ধানমন্ডি, ঢাকা",
+    "fieldWebsite": "ওয়েবসাইট",
+    "websitePlaceholder": "যেমন: example.com",
     "scanningCard": "কার্ড পড়া হচ্ছে… (প্রায় ৩ সেকেন্ড)"
   },
   "followers": {

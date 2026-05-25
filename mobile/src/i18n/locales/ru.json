@@ -1282,10 +1282,13 @@
     "linkPhone": "Телефон",
     "linkEmail": "Эл. почта",
     "linkAddress": "Адрес",
+    "linkWebsite": "Веб-сайт",
     "scanningTitle": "Распознаём визитку…",
     "scanningSubtitle": "Обычно занимает 5–10 секунд",
     "fieldAddress": "Адрес",
     "addressPlaceholder": "напр. ул. Тверская 1, Москва",
+    "fieldWebsite": "Веб-сайт",
+    "websitePlaceholder": "например, example.com",
     "scanningCard": "Распознавание визитки… (около 3 с)"
   },
   "followers": {

@@ -66,6 +66,10 @@ type CardData = {
   // case the edge fn hasn't been redeployed yet → the prefill code
   // is null-safe so this is forward-compatible either way.
   address?: string | null;
+  // `website` was always in the edge fn's extraction schema but
+  // had no column to land in until 20260526000000_local_contact_website.
+  // Now used.
+  website?: string | null;
 };
 
 export default function EditLocalContactScreen({ navigation, route }: Props) {
@@ -121,6 +125,10 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
   // 地址 — mailing/office address. Edge fn returns it from a card
   // scan; tappable in the read view to open the system Maps app.
   const [address, setAddress] = useState(existing?.address ?? '');
+  // 網址 — company website, personal portfolio, Calendly, whatever
+  // the card prints. Edge fn extracts it; tappable in the read view
+  // as a linkCard that opens the URL via Linking.openURL.
+  const [website, setWebsite] = useState(existing?.website ?? '');
   const [tags, setTags] = useState<string[]>(existing?.tags ?? []);
   const [tagInput, setTagInput] = useState('');
   const [saving, setSaving] = useState(false);
@@ -183,6 +191,7 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
       setBirthday(birthdayForInput(existing.birthday));
       setHeadline(existing.headline ?? existing.note ?? '');
       setAddress(existing.address ?? '');
+      setWebsite(existing.website ?? '');
       setTags(existing.tags ?? []);
       setAvatarUrl(existing.avatar_url ?? null);
       setHydrated(true);
@@ -406,6 +415,7 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
       const cardPhone = (card.phone ?? '').trim();
       const cardEmail = (card.email ?? '').trim();
       const cardAddress = (card.address ?? '').trim();
+      const cardWebsite = (card.website ?? '').trim();
       const bioDraft = (card.bio_draft ?? '').trim();
       const cardHeadline = [card.job_title, card.company]
         .filter((s) => s && s.trim())
@@ -418,6 +428,7 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
         if (cardPhone) setPhone((cur) => (cur.trim() ? cur : cardPhone));
         if (cardEmail) setEmail((cur) => (cur.trim() ? cur : cardEmail));
         if (cardAddress) setAddress((cur) => (cur.trim() ? cur : cardAddress));
+        if (cardWebsite) setWebsite((cur) => (cur.trim() ? cur : cardWebsite));
         // Job title + company → the member-aligned 職稱 field.
         if (cardHeadline) setHeadline((cur) => (cur.trim() ? cur : cardHeadline));
         // (bio_draft → AI-tag fuel path removed with the AI section.)
@@ -562,6 +573,7 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
           birthday: birthdayNorm,
           headline: headline.trim() || null,
           address: address.trim() || null,
+          website: website.trim() || null,
           tags,
         });
         if (!ok) throw new Error('update failed');
@@ -573,6 +585,7 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
           birthday: birthdayNorm,
           headline: headline.trim() || null,
           address: address.trim() || null,
+          website: website.trim() || null,
           tags,
           avatar_url: avatarUrl,
         });
@@ -587,7 +600,7 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
     } finally {
       setSaving(false);
     }
-  }, [name, phone, email, birthday, headline, address, tags, avatarUrl, isEdit, contactId, add, update, navigation, t]);
+  }, [name, phone, email, birthday, headline, address, website, tags, avatarUrl, isEdit, contactId, add, update, navigation, t]);
 
   const handleDelete = useCallback(() => {
     if (!contactId) return;
@@ -787,6 +800,23 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
                 placeholderTextColor={colors.gray400}
                 autoCapitalize="none"
                 maxLength={200}
+              />
+            </View>
+
+            <View style={styles.fieldGroup}>
+              <Text style={styles.fieldLabel}>
+                {t('localContact.fieldWebsite', { defaultValue: '網址' })}
+              </Text>
+              <TextInput
+                style={styles.fieldInput}
+                value={website}
+                onChangeText={setWebsite}
+                placeholder={t('localContact.websitePlaceholder', { defaultValue: '例：example.com' })}
+                placeholderTextColor={colors.gray400}
+                autoCapitalize="none"
+                autoCorrect={false}
+                keyboardType="url"
+                maxLength={500}
               />
             </View>
 

@@ -1282,10 +1282,13 @@
     "linkPhone": "โทรศัพท์",
     "linkEmail": "อีเมล",
     "linkAddress": "ที่อยู่",
+    "linkWebsite": "เว็บไซต์",
     "scanningTitle": "กำลังอ่านนามบัตร…",
     "scanningSubtitle": "ปกติใช้เวลา 5–10 วินาที",
     "fieldAddress": "ที่อยู่",
     "addressPlaceholder": "เช่น ถ. สุขุมวิท 1 กรุงเทพฯ",
+    "fieldWebsite": "เว็บไซต์",
+    "websitePlaceholder": "เช่น example.com",
     "scanningCard": "กำลังอ่านนามบัตร… (ประมาณ 3 วินาที)"
   },
   "followers": {

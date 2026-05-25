@@ -1282,10 +1282,13 @@
     "linkPhone": "Telefone",
     "linkEmail": "E-mail",
     "linkAddress": "Endereço",
+    "linkWebsite": "Site",
     "scanningTitle": "Lendo o cartão…",
     "scanningSubtitle": "Geralmente leva de 5 a 10 segundos",
     "fieldAddress": "Endereço",
     "addressPlaceholder": "ex. Av. Paulista 1000, São Paulo",
+    "fieldWebsite": "Site",
+    "websitePlaceholder": "ex. example.com",
     "scanningCard": "Lendo cartão… (cerca de 3 s)"
   },
   "followers": {

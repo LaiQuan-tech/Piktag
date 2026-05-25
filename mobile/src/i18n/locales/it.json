@@ -1361,10 +1361,13 @@
     "linkPhone": "Telefono",
     "linkEmail": "E-mail",
     "linkAddress": "Indirizzo",
+    "linkWebsite": "Sito web",
     "scanningTitle": "Lettura del biglietto…",
     "scanningSubtitle": "Di solito impiega 5–10 secondi",
     "fieldAddress": "Indirizzo",
     "addressPlaceholder": "es. Via Roma 1, Milano",
+    "fieldWebsite": "Sito web",
+    "websitePlaceholder": "es. example.com",
     "scanningCard": "Lettura biglietto… (circa 3 s)"
   },
   "followers": {

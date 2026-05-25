@@ -25,7 +25,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
-import { ArrowLeft, Phone, Mail, MapPin, Gift, ExternalLink } from 'lucide-react-native';
+import { ArrowLeft, Phone, Mail, MapPin, Globe, Gift, ExternalLink } from 'lucide-react-native';
 import { toBirthdayDate } from '../lib/birthday';
 import { COLORS, type ColorPalette } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
@@ -190,7 +190,7 @@ export default function LocalContactDetailScreen({ navigation, route }: Props) {
             (rectangular, gray200 border, icon + label + ExternalLink
             arrow). Tap = tel: / mailto:. Mirrors what a member friend
             with biolinks looks like, 1:1. */}
-        {(existing.phone_normalized || existing.email_lower || existing.address) && (
+        {(existing.phone_normalized || existing.email_lower || existing.address || existing.website) && (
           <View style={styles.linkBioSection}>
             {existing.phone_normalized && (
               <TouchableOpacity
@@ -248,6 +248,28 @@ export default function LocalContactDetailScreen({ navigation, route }: Props) {
                 <MapPin size={22} color={colors.gray900} strokeWidth={2.2} />
                 <Text style={styles.linkCardText} numberOfLines={1}>
                   {t('localContact.linkAddress', { defaultValue: '地址' })}
+                </Text>
+                <ExternalLink size={16} color={colors.gray400} />
+              </TouchableOpacity>
+            )}
+            {existing.website && (
+              <TouchableOpacity
+                style={styles.linkCard}
+                activeOpacity={0.7}
+                onPress={() => {
+                  // Card scans often store bare domains ("acme.com") with
+                  // no scheme — prepend https:// so Linking can open it.
+                  // A pre-existing scheme passes through unchanged.
+                  const raw = existing.website!.trim();
+                  const url = /^[a-z]+:\/\//i.test(raw) ? raw : `https://${raw}`;
+                  Linking.openURL(url).catch(() => {});
+                }}
+                accessibilityLabel={existing.website}
+                accessibilityRole="link"
+              >
+                <Globe size={22} color={colors.gray900} strokeWidth={2.2} />
+                <Text style={styles.linkCardText} numberOfLines={1}>
+                  {t('localContact.linkWebsite', { defaultValue: '網址' })}
                 </Text>
                 <ExternalLink size={16} color={colors.gray400} />
               </TouchableOpacity>

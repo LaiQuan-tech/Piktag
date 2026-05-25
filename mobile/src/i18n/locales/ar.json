@@ -1282,10 +1282,13 @@
     "linkPhone": "الهاتف",
     "linkEmail": "البريد الإلكتروني",
     "linkAddress": "العنوان",
+    "linkWebsite": "الموقع الإلكتروني",
     "scanningTitle": "يتم قراءة البطاقة…",
     "scanningSubtitle": "يستغرق عادةً 5–10 ثوانٍ",
     "fieldAddress": "العنوان",
     "addressPlaceholder": "مثل: شارع الملك فهد، الرياض",
+    "fieldWebsite": "الموقع الإلكتروني",
+    "websitePlaceholder": "مثال: example.com",
     "scanningCard": "جارٍ قراءة البطاقة… (حوالي 3 ثوانٍ)"
   },
   "followers": {

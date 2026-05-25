@@ -1361,10 +1361,13 @@
     "linkPhone": "Phone",
     "linkEmail": "Email",
     "linkAddress": "Address",
+    "linkWebsite": "Website",
     "scanningTitle": "Reading the card…",
     "scanningSubtitle": "Usually takes 5–10 seconds",
     "fieldAddress": "Address",
     "addressPlaceholder": "e.g. 1234 Market St, San Francisco",
+    "fieldWebsite": "Website",
+    "websitePlaceholder": "e.g. example.com",
     "scanningCard": "Reading card… (about 3s)"
   },
   "followers": {

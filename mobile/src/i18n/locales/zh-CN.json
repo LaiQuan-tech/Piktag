@@ -1347,10 +1347,13 @@
     "linkPhone": "电话",
     "linkEmail": "邮箱",
     "linkAddress": "地址",
+    "linkWebsite": "网址",
     "scanningTitle": "正在识别名片…",
     "scanningSubtitle": "通常需要 5–10 秒",
     "fieldAddress": "地址",
     "addressPlaceholder": "例：北京市朝阳区建国路 88 号",
+    "fieldWebsite": "网址",
+    "websitePlaceholder": "例：example.com",
     "scanningCard": "识别名片中…（约 3 秒）"
   },
   "followers": {

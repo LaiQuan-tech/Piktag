@@ -37,6 +37,12 @@ export type LocalContact = {
   // email/job_title) or by manual entry. Migration:
   // 20260523000000_local_contact_address.sql.
   address: string | null;
+  // Website (company URL / personal site / portfolio / Calendly / …).
+  // The scan-business-card edge fn already extracted this; until
+  // 20260526000000_local_contact_website.sql there was no column to
+  // store it so the value was silently dropped. Now it's persisted
+  // and surfaced as a tappable linkCard on the contact detail.
+  website: string | null;
   tags: string[];
   promoted_to_connection_id: string | null;
   promoted_at: string | null;
@@ -55,6 +61,7 @@ export type AddLocalContactInput = {
   note?: string | null;
   birthday?: string | null;
   address?: string | null;
+  website?: string | null;
 };
 
 /**
@@ -132,6 +139,7 @@ export function useLocalContacts() {
             note: input.note ?? null,
             birthday: input.birthday ?? null,
             address: input.address ?? null,
+            website: input.website ?? null,
           })
           .select()
           .single();

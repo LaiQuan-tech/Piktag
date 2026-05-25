@@ -1282,10 +1282,13 @@
     "linkPhone": "Teléfono",
     "linkEmail": "Correo",
     "linkAddress": "Dirección",
+    "linkWebsite": "Sitio web",
     "scanningTitle": "Leyendo la tarjeta…",
     "scanningSubtitle": "Suele tardar 5–10 segundos",
     "fieldAddress": "Dirección",
     "addressPlaceholder": "ej. Calle Mayor 1, Madrid",
+    "fieldWebsite": "Sitio web",
+    "websitePlaceholder": "ej. example.com",
     "scanningCard": "Leyendo tarjeta… (unos 3 s)"
   },
   "followers": {

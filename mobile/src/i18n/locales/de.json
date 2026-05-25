@@ -1347,10 +1347,13 @@
     "linkPhone": "Telefon",
     "linkEmail": "E-Mail",
     "linkAddress": "Adresse",
+    "linkWebsite": "Website",
     "scanningTitle": "Karte wird gelesen…",
     "scanningSubtitle": "Dauert üblicherweise 5–10 Sekunden",
     "fieldAddress": "Adresse",
     "addressPlaceholder": "z. B. Hauptstr. 1, Berlin",
+    "fieldWebsite": "Website",
+    "websitePlaceholder": "z. B. example.com",
     "scanningCard": "Karte wird gelesen… (ca. 3 Sek.)"
   },
   "followers": {

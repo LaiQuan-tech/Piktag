@@ -1361,10 +1361,13 @@
     "linkPhone": "فون",
     "linkEmail": "ای میل",
     "linkAddress": "پتہ",
+    "linkWebsite": "ویب سائٹ",
     "scanningTitle": "کارڈ پڑھا جا رہا ہے…",
     "scanningSubtitle": "عام طور پر 5–10 سیکنڈ لگتے ہیں",
     "fieldAddress": "پتہ",
     "addressPlaceholder": "مثلاً: شاہراہ فیصل، کراچی",
+    "fieldWebsite": "ویب سائٹ",
+    "websitePlaceholder": "مثلاً: example.com",
     "scanningCard": "کارڈ پڑھا جا رہا ہے… (تقریباً 3 سیکنڈ)"
   },
   "followers": {

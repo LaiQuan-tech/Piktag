@@ -1282,10 +1282,13 @@
     "linkPhone": "Telepon",
     "linkEmail": "Email",
     "linkAddress": "Alamat",
+    "linkWebsite": "Situs web",
     "scanningTitle": "Membaca kartu…",
     "scanningSubtitle": "Biasanya butuh 5–10 detik",
     "fieldAddress": "Alamat",
     "addressPlaceholder": "cth. Jl. Sudirman 1, Jakarta",
+    "fieldWebsite": "Situs web",
+    "websitePlaceholder": "mis. example.com",
     "scanningCard": "Membaca kartu… (sekitar 3 dtk)"
   },
   "followers": {
