@@ -932,6 +932,22 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
         // recovery-fed query shows the same "PikTag understood..." line
         // without paying the LLM again.
         setLlmExtractedKeywords(cached.extractedKeywords || []);
+        // Bust the private-world effect's sig guard so it re-fires
+        // for the same query+tag combo. Without this, tapping a recent
+        // search for a query that was previously searched in this
+        // session would restore tags via the cache but the L1829
+        // effect — which actually fetches `searchTaggedFriends` /
+        // `searchTaggedContacts` — would short-circuit on identical
+        // sig, leaving the result list visually empty (chip shown,
+        // no people underneath). Symptom the founder caught: a
+        // recent-search tap for "天上聖母" rendered the #媽祖 chip
+        // but no friend row, while a fresh type of the same query
+        // surfaced the friend. Same applies to the searchTab auto-
+        // select effect — without this reset the tab can stay on
+        // an explore-only bucket when the cached query had only
+        // friend matches.
+        manualTagSigRef.current = '';
+        searchTabAutoQueryRef.current = '';
         saveRecentSearch(query.trim());
         return;
       }
