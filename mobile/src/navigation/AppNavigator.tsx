@@ -623,44 +623,20 @@ export default function AppNavigator() {
         return;
       }
 
-      // For new users, the legacy completion indicator is the profile
-      // NAME — not bio. Onboarding's only guaranteed write is
-      // full_name (bio is written only when the user scanned a card),
-      // so keying detection off bio forced a fully-onboarded user
-      // back through onboarding if the persisted flag was lost within
-      // the 5-min window. full_name is the field that actually maps
-      // to "did onboarding finish".
-      const { data, error } = await supabase
-        .from('piktag_profiles')
-        .select('full_name')
-        .eq('id', userId)
-        .single();
-
-      if (error) {
-        console.warn('Error checking onboarding status:', error.message);
-        // Fail open — don't trap the user behind onboarding if the DB
-        // call fails.
-        setOnboardingDecision('skip');
-        return;
-      }
-
-      const nameEmpty = !data?.full_name || data.full_name.trim() === '';
-      if (nameEmpty) {
-        setOnboardingDecision('required');
-      } else {
-        // Legacy completion path: bio filled but persisted flag never
-        // set. Treat as already onboarded → also suppress tooltip tour
-        // (these users predate the feature).
-        setOnboardingDecision('skip');
-        AsyncStorage.setItem(ONBOARDING_COMPLETED_KEY, 'true').catch(() => {});
-        AsyncStorage.getItem(TAB_TOOLTIPS_SEEN_KEY)
-          .then((existing) => {
-            if (existing == null) {
-              AsyncStorage.setItem(TAB_TOOLTIPS_SEEN_KEY, 'true').catch(() => {});
-            }
-          })
-          .catch(() => {});
-      }
+      // For new users (auth.users.created_at < 5 min), ALWAYS show
+      // onboarding regardless of profile field state. The previous
+      // "name empty?" gate broke for Google/Apple OAuth users —
+      // handle_new_user trigger pre-fills full_name from
+      // raw_user_meta_data.name (which OAuth providers always send),
+      // so EVERY OAuth signup hit this branch as "name not empty →
+      // skip". Result: OAuth users never saw the welcome / first-QR
+      // tutorial, which is the entire cold-start experience.
+      //
+      // The 5-min isNewUser window already constrains this to actual
+      // fresh signups; pre-filled name is signal of provenance, NOT
+      // of onboarding completion. Show the tutorial; let the user's
+      // pre-filled name appear in the form as a head start.
+      setOnboardingDecision('required');
     } catch (err) {
       console.warn('Onboarding check error:', err);
       setOnboardingDecision('skip');
