@@ -37,41 +37,27 @@ No more SQL Editor copy-paste. No more "did this run?" anxiety.
 
 ---
 
-## Known wart: 16 "orphan" legacy files
+## Historical wart (CLEANED 2026-05-26)
 
-There are 16 files with duplicate 8-digit timestamp prefixes (e.g. `20260328_seed_multilingual_aliases.sql` AND `20260328_tag_concepts.sql` — same `20260328` prefix). The CLI's tracking table uses `version text PRIMARY KEY`, so only ONE file per timestamp can be tracked. The other siblings are invisible to CLI tracking forever — they're applied to the DB, just unrecorded.
+There used to be 36 files whose names confused the CLI:
 
-**What this means for `db push`**: every run will see those 16 files and want to "insert them" with `--include-all`. It'll fail with PK collision because the prefix is already tracked.
+- **16 dup-prefix orphans** — e.g. three files all starting with
+  `20260328_…`, but the CLI's `version text PRIMARY KEY` can only track
+  one per prefix. The siblings were invisible to CLI tracking.
+- **11 letter-suffix files** — e.g. `20260428b_*.sql` — rejected by
+  the CLI's filename validator entirely.
+- **9 8-digit primary files** — after the rename, the CLI's
+  longest-prefix matcher started pulling them away from their own
+  tracking rows, leaving the 8-digit remote rows phantom.
 
-**Workaround until cleanup**: just don't use `--include-all`. Plain `npx supabase db push` works correctly because:
-- It excludes files whose timestamp is OLDER than the latest tracked remote
-- The 16 orphans are all from March–May, well before the current latest
-- New migrations (June onwards or later May 2026) get pushed fine
+All renamed to unique 14-digit timestamps. Tracking table backfilled
+via `migration repair`. End state: every migration in
+`supabase/migrations/` has a matching applied row in
+`supabase_migrations.schema_migrations`. `supabase db push --dry-run`
+returns "Remote database is up to date."
 
-**Permanent fix (future cleanup task)**: rename the 16 to unique 14-digit timestamps and `migration repair --status applied <new-ts>` each. ~15 min work but disrupts git history. Defer until someone has a quiet morning.
-
-For reference, the 16 files:
-
-```
-20260328_seed_multilingual_aliases.sql
-20260328_tag_concepts.sql
-20260330_biolinks_display_mode.sql
-20260330_blocks_reports.sql
-20260401_connections_is_reviewed.sql
-20260401_share_location.sql
-20260412_profile_location_updated_at.sql
-20260413_p_points_system.sql
-20260417_tag_presets_rls.sql
-20260421_chat_push_trigger.sql
-20260425_tag_name_unique.sql
-20260425_user_detail_rpc.sql
-20260427_security_rls_blocks_reports.sql
-20260428_explore_users_rpc.sql
-20260429_drop_contract_expiry.sql
-20260508140000_popular_tags_near_location.sql
-```
-
-Plus 11 files with letter-suffix timestamps (e.g. `20260428b_*.sql`) that the CLI rejects entirely (filename pattern mismatch). Same status: applied to DB, invisible to CLI. Future cleanup.
+Going forward, name every new migration `YYYYMMDDHHMMSS_short_name.sql`
+and never reuse a prefix.
 
 ---
 

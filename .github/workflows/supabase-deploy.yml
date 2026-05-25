@@ -1,0 +1,121 @@
+name: Supabase Deploy
+
+# Push to main with changes under mobile/supabase/** triggers this.
+# Two jobs run in parallel:
+#   • deploy-functions — deploys only the edge functions whose files
+#     changed in this commit (uses git diff to detect)
+#   • db-push          — applies any unapplied migration via the CLI
+#
+# Both are idempotent (CLI tracks state; functions re-deploy is harmless)
+# so a re-run never breaks anything. Fail-soft is preferred over hard
+# fail because the mobile app degrades gracefully if a function/RPC
+# isn't ready yet (we built that into every Gemini-backed flow).
+#
+# Secrets required (set under repo Settings → Secrets and variables → Actions):
+#   • SUPABASE_ACCESS_TOKEN — from https://supabase.com/dashboard/account/tokens
+#   • SUPABASE_DB_PASSWORD  — the linked project's DB password
+#
+# Why the path filter exists: every commit that ONLY touches
+# mobile/src/** triggers TestFlight / Play builds (correct), but
+# would also fire this workflow for no useful work. Restricting to
+# supabase/** keeps CI minutes lean.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'mobile/supabase/functions/**'
+      - 'mobile/supabase/migrations/**'
+      - '.github/workflows/supabase-deploy.yml'
+  workflow_dispatch:
+
+# Cancel any older in-flight run of this workflow for the same ref —
+# multiple migration commits in quick succession collapse to "apply
+# the latest", same idea as our TestFlight workflow.
+concurrency:
+  group: supabase-deploy-${{ github.ref }}
+  cancel-in-progress: false  # different from app builds — we WANT
+                              # every commit's migrations to apply
+
+jobs:
+  deploy-functions:
+    name: Deploy edge functions (changed only)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      PROJECT_REF: kbwfdskulxnhjckdvghj
+
+    steps:
+      - name: Checkout (with history for git diff)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2  # need at least HEAD + HEAD~1 for git diff
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Detect changed functions
+        id: changed
+        working-directory: mobile
+        run: |
+          # Compare HEAD against the previous commit. Extract unique
+          # function names from any modified file under
+          # supabase/functions/<name>/**.
+          changed=$(git diff --name-only HEAD~1..HEAD -- 'supabase/functions/*/**' \
+            | awk -F'/' '{print $3}' | sort -u | tr '\n' ' ')
+          echo "Detected changed functions: ${changed:-<none>}"
+          echo "names=$changed" >> "$GITHUB_OUTPUT"
+
+      - name: Deploy each changed function
+        if: steps.changed.outputs.names != ''
+        working-directory: mobile
+        run: |
+          for fn in ${{ steps.changed.outputs.names }}; do
+            echo "── Deploying: $fn"
+            supabase functions deploy "$fn" --project-ref "$PROJECT_REF"
+          done
+
+      - name: Note when no functions changed
+        if: steps.changed.outputs.names == ''
+        run: echo "No edge function changes in this commit — skipping deploy."
+
+  db-push:
+    name: Apply DB migrations
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    # Run in parallel with deploy-functions. They touch independent
+    # surfaces (RPC + table changes vs. edge runtime); ordering doesn't
+    # matter because every edge function checks RPC presence and
+    # fail-softs if missing.
+
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+      PROJECT_REF: kbwfdskulxnhjckdvghj
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Link to project
+        working-directory: mobile
+        run: supabase link --project-ref "$PROJECT_REF"
+
+      - name: Apply pending migrations
+        working-directory: mobile
+        run: |
+          # Plain `db push` excludes already-tracked migrations and
+          # any file older than the latest tracked remote — that's
+          # exactly what we want. The 16 orphan duplicate-prefix
+          # legacy files (documented in supabase/MIGRATIONS.md) are
+          # implicitly skipped by this exclusion.
+          supabase db push

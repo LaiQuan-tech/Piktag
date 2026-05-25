@@ -63,8 +63,53 @@ serve(async (req) => {
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // ── 1. Pull the past-week failure window ──
+    // ── 1a. Rolling 7-day health metrics ──
+    // Three numbers tell the founder if search is getting better or
+    // worse without having to open SQL Editor:
+    //   • totalSearches  — volume
+    //   • recoveryPct    — % of searches that fell back to LLM
+    //                      (lower is better: more direct hits)
+    //   • emptyPct       — % of searches that ended up showing nothing
+    //                      (lower is better: more useful)
+    // Plus 7-day-prior comparison so a regression jumps out.
     const since = new Date(Date.now() - LOOKBACK_DAYS * 86400 * 1000).toISOString();
+    const sincePrev = new Date(Date.now() - 2 * LOOKBACK_DAYS * 86400 * 1000).toISOString();
+
+    async function bucketMetrics(fromISO: string, toISO: string) {
+      const { count: total } = await supabase
+        .from('piktag_search_telemetry')
+        .select('*', { count: 'exact', head: true })
+        .gte('created_at', fromISO)
+        .lt('created_at', toISO);
+      const { count: recovered } = await supabase
+        .from('piktag_search_telemetry')
+        .select('*', { count: 'exact', head: true })
+        .eq('recovery_triggered', true)
+        .gte('created_at', fromISO)
+        .lt('created_at', toISO);
+      const { count: empty } = await supabase
+        .from('piktag_search_telemetry')
+        .select('*', { count: 'exact', head: true })
+        .eq('final_tag_count', 0)
+        .eq('final_profile_count', 0)
+        .eq('final_tag_user_count', 0)
+        .gte('created_at', fromISO)
+        .lt('created_at', toISO);
+      const t = total ?? 0;
+      return {
+        total: t,
+        recoveryPct: t > 0 ? Math.round(((recovered ?? 0) * 100) / t) : 0,
+        emptyPct: t > 0 ? Math.round(((empty ?? 0) * 100) / t) : 0,
+      };
+    }
+
+    const nowISO = new Date().toISOString();
+    const [current, prior] = await Promise.all([
+      bucketMetrics(since, nowISO),
+      bucketMetrics(sincePrev, since),
+    ]);
+
+    // ── 1b. Pull the past-week failure window (actionable signal) ──
     const { data: failures, count, error: failuresErr } = await supabase
       .from('piktag_search_telemetry')
       .select('query, extracted_keywords, locale, created_at', { count: 'exact' })
@@ -85,10 +130,12 @@ serve(async (req) => {
     }
 
     const totalCount = count ?? 0;
-    if (totalCount === 0) {
-      // No failures = no notification. Cron stays cheap on quiet weeks.
+    // Skip only if BOTH there's no search traffic AND no failures —
+    // an active week with zero failures is itself good news worth
+    // pushing ("recoveryPct dropped from 12% to 5% — keep going").
+    if (totalCount === 0 && current.total === 0) {
       return new Response(
-        JSON.stringify({ skipped: true, reason: 'no failures', lookback_days: LOOKBACK_DAYS }),
+        JSON.stringify({ skipped: true, reason: 'no traffic', lookback_days: LOOKBACK_DAYS }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
       );
     }
@@ -111,13 +158,34 @@ serve(async (req) => {
       .map(([kw]) => kw);
 
     // ── 3. Compose notification text ──
+    //
+    // Three-line body:
+    //   1. health line  — "搜尋 N · LLM救援 X% · 空手 Y%"
+    //   2. trend line   — change vs prior 7 days (↓ = improving)
+    //   3. action line  — top failing keywords (the actionable bit)
     const title = '📊 PikTag 搜尋週報';
+
+    const arrow = (cur: number, prev: number) => {
+      if (prev === 0 && cur === 0) return '→';
+      if (prev === 0) return cur > 0 ? '↑' : '→';
+      const delta = cur - prev;
+      if (Math.abs(delta) < 1) return '→';
+      return delta < 0 ? '↓' : '↑';
+    };
+
+    const healthLine =
+      `搜尋 ${current.total}｜LLM救援 ${current.recoveryPct}%｜空手 ${current.emptyPct}%`;
+    const trendLine =
+      prior.total > 0
+        ? `vs 上週：救援${arrow(current.recoveryPct, prior.recoveryPct)}${prior.recoveryPct}% · 空手${arrow(current.emptyPct, prior.emptyPct)}${prior.emptyPct}%`
+        : '';
+
     const keywordsSegment =
       topKeywords.length > 0
-        ? `常被抽到但庫裡沒對應 tag:${topKeywords.join('、')}`
+        ? `缺 tag：${topKeywords.join('、')}`
         : '';
     const body = truncate(
-      `過去 ${LOOKBACK_DAYS} 天有 ${totalCount} 個搜尋走到 AI 還是 0 結果。${keywordsSegment}`,
+      [healthLine, trendLine, keywordsSegment].filter(Boolean).join(' · '),
     );
 
     // ── 4. Find admin recipients ──
@@ -139,10 +207,18 @@ serve(async (req) => {
     }
 
     // ── 5. Insert notification rows + fire pushes ──
+    // The `data` payload rides in both the in-app notification row
+    // (piktag_notifications.data jsonb) and the Expo push (push.data).
+    // Includes the rolling-stats numbers so the mobile app could
+    // later render a richer detail view if needed.
     const data = {
       total_count: totalCount,
       lookback_days: LOOKBACK_DAYS,
       top_keywords: topKeywords,
+      stats: {
+        current,
+        prior,
+      },
     };
 
     // 5-pre. Pre-flight idempotency check — find which admins ALREADY
