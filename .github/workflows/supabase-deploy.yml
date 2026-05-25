@@ -65,7 +65,13 @@ jobs:
           # Compare HEAD against the previous commit. Extract unique
           # function names from any modified file under
           # supabase/functions/<name>/**.
-          changed=$(git diff --name-only HEAD~1..HEAD -- 'supabase/functions/*/**' \
+          #
+          # --relative is REQUIRED here: without it git outputs
+          # repo-root-relative paths (mobile/supabase/functions/<n>/…)
+          # even though cwd is mobile/, so awk -F'/' '{print $3}' would
+          # extract the literal string "functions" instead of <n>.
+          # Burned us once (failed run 26419949958, 2026-05-25).
+          changed=$(git diff --name-only --relative HEAD~1..HEAD -- 'supabase/functions/*/**' \
             | awk -F'/' '{print $3}' | sort -u | tr '\n' ' ')
           echo "Detected changed functions: ${changed:-<none>}"
           echo "names=$changed" >> "$GITHUB_OUTPUT"
