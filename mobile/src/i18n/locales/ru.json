@@ -351,7 +351,7 @@
     "presetsModalTitle": "Шаблоны",
     "noPresets": "Шаблонов пока нет",
     "applyPreset": "Применить",
-    "shareMessage": "Обменяемся тегами в PikTag ✨\n{{url}}",
+    "shareMessage": "Заходи в PikTag — запомним друг друга по тегам\n{{url}}",
     "defaultDisplayName": "Пользователь",
     "presetNamePrompt": "Введи название для этого шаблона",
     "popularTagsSoftTitle": "Теги интересов",
@@ -710,7 +710,7 @@
     "alertBatchImportTitle": "Массовый импорт",
     "alertBatchImportMessage": "Точно импортировать все {{count}} контактов?",
     "alertBatchImportConfirm": "Импортировать",
-    "inviteMessage": "Привет {{name}}, я в PikTag — обмениваемся тегами. Присоединяйся: https://pikt.ag/download",
+    "inviteMessage": "Привет {{name}}, в PikTag запоминаю людей по тегам — присоединяйся: https://pikt.ag/download",
     "batchProgress": "Обрабатываем {{current}}/{{total}}",
     "alertBatchDoneTitle": "Импорт завершён",
     "alertBatchDoneMessage": "Добавлено {{matched}} друзей. {{notOnApp}} контактов ещё не в PikTag.",
@@ -1107,7 +1107,7 @@
     "timeDaysAgo": "{{count}} дн назад"
   },
   "share": {
-    "profileInviteMessage": "{{name}} ждёт тебя в PikTag ✨\n{{url}}"
+    "profileInviteMessage": "{{name}} в PikTag — запомним друг друга по тегам\n{{url}}"
   },
   "country": {
     "TW": "Тайвань",

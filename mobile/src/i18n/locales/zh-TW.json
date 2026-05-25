@@ -361,7 +361,7 @@
     "presetsModalTitle": "常用模板",
     "noPresets": "尚無常用模板",
     "applyPreset": "使用",
-    "shareMessage": "來 PikTag 互留標籤 ✨\n{{url}}",
+    "shareMessage": "來 PikTag，用標籤記住彼此\n{{url}}",
     "defaultDisplayName": "使用者",
     "presetNamePrompt": "請輸入模板名稱",
     "popularTagsSoftTitle": "興趣標籤",
@@ -720,7 +720,7 @@
     "alertBatchImportTitle": "批次匯入",
     "alertBatchImportMessage": "確定要匯入全部 {{count}} 位通訊錄聯絡人嗎？",
     "alertBatchImportConfirm": "匯入",
-    "inviteMessage": "{{name}}，我在用 PikTag，一起來交換標籤吧！下載：https://pikt.ag/download",
+    "inviteMessage": "{{name}}，我在用 PikTag,一起來用標籤記住彼此吧!下載:https://pikt.ag/download",
     "batchProgress": "處理中 {{current}}/{{total}}",
     "alertBatchDoneTitle": "匯入完成",
     "alertBatchDoneMessage": "已加入 {{matched}} 位朋友。其中 {{notOnApp}} 位尚未使用 PikTag。",
@@ -1188,7 +1188,7 @@
     "timeDaysAgo": "{{count}} 天前"
   },
   "share": {
-    "profileInviteMessage": "{{name}} 在 PikTag 等你加好友 ✨\n{{url}}"
+    "profileInviteMessage": "{{name}} 在 PikTag，用標籤記住彼此\n{{url}}"
   },
   "country": {
     "TW": "台灣",

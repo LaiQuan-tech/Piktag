@@ -351,7 +351,7 @@
     "presetsModalTitle": "Modèles",
     "noPresets": "Aucun modèle",
     "applyPreset": "Apply",
-    "shareMessage": "Échangeons nos tags sur PikTag ✨\n{{url}}",
+    "shareMessage": "Rejoins PikTag, souvenons-nous l'un de l'autre avec des tags\n{{url}}",
     "defaultDisplayName": "Utilisateur",
     "presetNamePrompt": "Saisissez un nom pour ce préréglage",
     "popularTagsSoftTitle": "Tags d'intérêt",
@@ -710,7 +710,7 @@
     "alertBatchImportTitle": "Importation en masse",
     "alertBatchImportMessage": "Êtes-vous sûr de vouloir importer les {{count}} contacts ?",
     "alertBatchImportConfirm": "Importer",
-    "inviteMessage": "Hey {{name}}, j'utilise PikTag pour échanger des tags — rejoins-moi : https://pikt.ag/download",
+    "inviteMessage": "Hey {{name}}, j'utilise PikTag pour me souvenir des gens que je rencontre — rejoins-moi : https://pikt.ag/download",
     "batchProgress": "Traitement {{current}}/{{total}}",
     "alertBatchDoneTitle": "Importation terminée",
     "alertBatchDoneMessage": "{{matched}} amis ajoutés. {{notOnApp}} contacts ne sont pas encore sur PikTag.",
@@ -1107,7 +1107,7 @@
     "timeDaysAgo": "il y a {{count}} j"
   },
   "share": {
-    "profileInviteMessage": "{{name}} t'attend sur PikTag ✨\n{{url}}"
+    "profileInviteMessage": "{{name}} est sur PikTag, souvenons-nous l'un de l'autre avec des tags\n{{url}}"
   },
   "country": {
     "TW": "Taïwan",

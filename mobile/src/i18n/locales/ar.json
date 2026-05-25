@@ -351,7 +351,7 @@
     "presetsModalTitle": "القوالب",
     "noPresets": "لا توجد قوالب بعد",
     "applyPreset": "استخدام",
-    "shareMessage": "لنتبادل الوسوم على PikTag ✨\n{{url}}",
+    "shareMessage": "انضم إلى PikTag — لنتذكر بعضنا بالوسوم\n{{url}}",
     "defaultDisplayName": "مستخدم",
     "presetNamePrompt": "أدخل اسمًا لهذا القالب",
     "popularTagsSoftTitle": "وسوم الاهتمامات",
@@ -710,7 +710,7 @@
     "alertBatchImportTitle": "استيراد جماعي",
     "alertBatchImportMessage": "هل أنت متأكد من استيراد كل الـ {{count}} جهة اتصال؟",
     "alertBatchImportConfirm": "استيراد",
-    "inviteMessage": "مرحبًا {{name}}، أستخدم PikTag لتبادل الوسوم — انضم إلي: https://pikt.ag/download",
+    "inviteMessage": "مرحبًا {{name}}، أستخدم PikTag لأتذكر من ألتقي بهم — انضم: https://pikt.ag/download",
     "batchProgress": "جارٍ المعالجة {{current}}/{{total}}",
     "alertBatchDoneTitle": "اكتمل الاستيراد",
     "alertBatchDoneMessage": "تمت إضافة {{matched}} صديقًا. {{notOnApp}} جهة اتصال لا تستخدم PikTag بعد.",
@@ -1107,7 +1107,7 @@
     "timeDaysAgo": "قبل {{count}} ي"
   },
   "share": {
-    "profileInviteMessage": "{{name}} في انتظارك على PikTag ✨\n{{url}}"
+    "profileInviteMessage": "{{name}} على PikTag — لنتذكر بعضنا بالوسوم\n{{url}}"
   },
   "country": {
     "TW": "تايوان",

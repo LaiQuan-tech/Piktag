@@ -358,7 +358,7 @@
     "presetsModalTitle": "ٹیمپلیٹس",
     "noPresets": "ابھی کوئی ٹیمپلیٹ نہیں",
     "applyPreset": "استعمال کریں",
-    "shareMessage": "PikTag پر ٹیگز کا تبادلہ کریں ✨\n{{url}}",
+    "shareMessage": "PikTag میں شامل ہوں — ٹیگز سے ایک دوسرے کو یاد رکھیں\n{{url}}",
     "defaultDisplayName": "صارف",
     "presetNamePrompt": "اس پری سیٹ کا نام لکھیں",
     "popularTagsSoftTitle": "دلچسپی کے ٹیگز",
@@ -717,7 +717,7 @@
     "alertBatchImportTitle": "اکٹھے درآمد",
     "alertBatchImportMessage": "کیا واقعی سارے {{count}} رابطے درآمد کر دیں؟",
     "alertBatchImportConfirm": "درآمد کریں",
-    "inviteMessage": "{{name}}، میں PikTag استعمال کر رہا ہوں ٹیگز کے لیے — جوائن کرو: https://pikt.ag/download",
+    "inviteMessage": "{{name}}، میں PikTag سے لوگوں کو یاد رکھتا ہوں — جوائن کرو: https://pikt.ag/download",
     "batchProgress": "ہو رہا ہے {{current}}/{{total}}",
     "alertBatchDoneTitle": "درآمد مکمل",
     "alertBatchDoneMessage": "{{matched}} دوست شامل ہوئے۔ {{notOnApp}} رابطے ابھی PikTag پر نہیں ہیں۔",
@@ -1185,7 +1185,7 @@
     "timeDaysAgo": "{{count}} دن پہلے"
   },
   "share": {
-    "profileInviteMessage": "{{name}} PikTag پر آپ کا انتظار کر رہے ہیں ✨\n{{url}}"
+    "profileInviteMessage": "{{name}} PikTag پر — ٹیگز سے ایک دوسرے کو یاد رکھیں\n{{url}}"
   },
   "country": {
     "TW": "تائیوان",

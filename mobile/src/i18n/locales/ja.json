@@ -351,7 +351,7 @@
     "presetsModalTitle": "テンプレート",
     "noPresets": "テンプレートはまだありません",
     "applyPreset": "使用",
-    "shareMessage": "PikTag でタグ交換しよう ✨\n{{url}}",
+    "shareMessage": "PikTag に来て — タグでお互いを覚えておこう\n{{url}}",
     "defaultDisplayName": "ユーザー",
     "presetNamePrompt": "このプリセットの名前を入力",
     "popularTagsSoftTitle": "趣味タグ",
@@ -710,7 +710,7 @@
     "alertBatchImportTitle": "一括インポート",
     "alertBatchImportMessage": "すべての{{count}}件の連絡先をインポートしてもよろしいですか？",
     "alertBatchImportConfirm": "インポート",
-    "inviteMessage": "{{name}}、PikTag で繋がろう！ダウンロード: https://pikt.ag/download",
+    "inviteMessage": "{{name}}、PikTag で出会った人を覚えてるんだ — 一緒にやろう: https://pikt.ag/download",
     "batchProgress": "処理中 {{current}}/{{total}}",
     "alertBatchDoneTitle": "インポート完了",
     "alertBatchDoneMessage": "{{matched}}人の友達を追加しました。{{notOnApp}}件はまだPikTagにいません。",
@@ -1107,7 +1107,7 @@
     "timeDaysAgo": "{{count}} 日前"
   },
   "share": {
-    "profileInviteMessage": "{{name}}さんが PikTag であなたを待ってる ✨\n{{url}}"
+    "profileInviteMessage": "{{name}}さんが PikTag に — タグでお互いを覚えておこう\n{{url}}"
   },
   "country": {
     "TW": "台湾",

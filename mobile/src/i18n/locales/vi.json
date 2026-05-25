@@ -358,7 +358,7 @@
     "presetsModalTitle": "Mẫu",
     "noPresets": "Chưa có mẫu nào",
     "applyPreset": "Dùng",
-    "shareMessage": "Trao đổi tag trên PikTag ✨\n{{url}}",
+    "shareMessage": "Vào PikTag đi — dùng tag để nhớ nhau\n{{url}}",
     "defaultDisplayName": "Người dùng",
     "presetNamePrompt": "Nhập tên cho mẫu này",
     "popularTagsSoftTitle": "Tag sở thích",
@@ -717,7 +717,7 @@
     "alertBatchImportTitle": "Nhập hàng loạt",
     "alertBatchImportMessage": "Bạn chắc muốn nhập cả {{count}} liên hệ chứ?",
     "alertBatchImportConfirm": "Nhập",
-    "inviteMessage": "Hey {{name}}, mình dùng PikTag để trao đổi tag — vào nhé: https://pikt.ag/download",
+    "inviteMessage": "Hey {{name}}, mình dùng PikTag để nhớ những người gặp — vào nhé: https://pikt.ag/download",
     "batchProgress": "Đang xử lý {{current}}/{{total}}",
     "alertBatchDoneTitle": "Nhập xong rồi",
     "alertBatchDoneMessage": "Đã thêm {{matched}} người bạn. Còn {{notOnApp}} liên hệ chưa có trên PikTag.",
@@ -1185,7 +1185,7 @@
     "timeDaysAgo": "{{count}} ngày trước"
   },
   "share": {
-    "profileInviteMessage": "{{name}} đang chờ bạn trên PikTag ✨\n{{url}}"
+    "profileInviteMessage": "{{name}} đang ở PikTag — dùng tag để nhớ nhau\n{{url}}"
   },
   "country": {
     "TW": "Đài Loan",

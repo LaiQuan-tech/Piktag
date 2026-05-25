@@ -351,7 +351,7 @@
     "presetsModalTitle": "টেমপ্লেট",
     "noPresets": "এখনও কোনো টেমপ্লেট নেই",
     "applyPreset": "ব্যবহার",
-    "shareMessage": "PikTag-এ ট্যাগ বিনিময় করি ✨\n{{url}}",
+    "shareMessage": "PikTag-এ যোগ দাও — ট্যাগ দিয়ে একে অপরকে মনে রাখি\n{{url}}",
     "defaultDisplayName": "ইউজার",
     "presetNamePrompt": "এই টেমপ্লেটের জন্য একটি নাম লিখুন",
     "popularTagsSoftTitle": "আগ্রহের ট্যাগ",
@@ -710,7 +710,7 @@
     "alertBatchImportTitle": "ব্যাচ ইম্পোর্ট",
     "alertBatchImportMessage": "আপনি কি সব {{count}} টি কন্টাক্ট ইম্পোর্ট করতে নিশ্চিত?",
     "alertBatchImportConfirm": "ইম্পোর্ট",
-    "inviteMessage": "{{name}}, আমি PikTag ব্যবহার করছি ট্যাগ বিনিময়ের জন্য — যোগ দাও: https://pikt.ag/download",
+    "inviteMessage": "{{name}}, আমি PikTag ব্যবহার করি মানুষদের মনে রাখতে — যোগ দাও: https://pikt.ag/download",
     "batchProgress": "প্রসেস হচ্ছে {{current}}/{{total}}",
     "alertBatchDoneTitle": "ইম্পোর্ট সম্পন্ন",
     "alertBatchDoneMessage": "{{matched}} জন বন্ধু যোগ হয়েছে। {{notOnApp}} টি কন্টাক্ট এখনও PikTag-এ নেই।",
@@ -1107,7 +1107,7 @@
     "timeDaysAgo": "{{count}} দিন আগে"
   },
   "share": {
-    "profileInviteMessage": "{{name}} PikTag-এ আপনার জন্য অপেক্ষা করছেন ✨\n{{url}}"
+    "profileInviteMessage": "{{name}} PikTag-এ — ট্যাগ দিয়ে একে অপরকে মনে রাখি\n{{url}}"
   },
   "country": {
     "TW": "তাইওয়ান",

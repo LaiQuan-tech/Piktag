@@ -351,7 +351,7 @@
     "presetsModalTitle": "टेम्पलेट",
     "noPresets": "अभी कोई टेम्पलेट नहीं",
     "applyPreset": "इस्तेमाल करें",
-    "shareMessage": "PikTag पर tags exchange करें ✨\n{{url}}",
+    "shareMessage": "PikTag join करो — tags से एक-दूसरे को याद रखें\n{{url}}",
     "defaultDisplayName": "यूज़र",
     "presetNamePrompt": "इस टेम्पलेट का नाम डालें",
     "popularTagsSoftTitle": "रुचि टैग",
@@ -710,7 +710,7 @@
     "alertBatchImportTitle": "बैच आयात",
     "alertBatchImportMessage": "क्या आप पक्का सभी {{count}} कॉन्टैक्ट आयात करना चाहते हैं?",
     "alertBatchImportConfirm": "आयात करें",
-    "inviteMessage": "{{name}}, मैं PikTag use कर रहा हूँ tags exchange के लिए — join करो: https://pikt.ag/download",
+    "inviteMessage": "{{name}}, मैं PikTag use कर रहा हूँ लोगों को याद रखने के लिए — join करो: https://pikt.ag/download",
     "batchProgress": "प्रोसेस हो रहा है {{current}}/{{total}}",
     "alertBatchDoneTitle": "आयात पूरा",
     "alertBatchDoneMessage": "{{matched}} दोस्त जोड़े। {{notOnApp}} कॉन्टैक्ट अभी PikTag पर नहीं हैं।",
@@ -1107,7 +1107,7 @@
     "timeDaysAgo": "{{count}} दिन पहले"
   },
   "share": {
-    "profileInviteMessage": "{{name}} PikTag पर आपका इंतज़ार कर रहे हैं ✨\n{{url}}"
+    "profileInviteMessage": "{{name}} PikTag पर — tags से एक-दूसरे को याद रखें\n{{url}}"
   },
   "country": {
     "TW": "ताइवान",
