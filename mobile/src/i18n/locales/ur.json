@@ -271,10 +271,10 @@
     "coldStartSubtitle": "چند مراحل میں اپنا PikTag شروع کریں",
     "coldStartActionProfile": "ٹیگز سے خود کو ظاہر کریں",
     "coldStartActionProfileDesc": "آپ کے ٹیگز، آپ کے انداز میں — نام، بائیو، سوشل لنکس",
-    "coldStartActionQr": "اپنا PikTag شیئر کریں",
-    "coldStartActionQrDesc": "ابھی بنا ہوا آپ کو بھیجیں — ایک اسکین کافی ہے",
-    "coldStartActionAsk": "Ask پوسٹ کریں",
-    "coldStartActionAskDesc": "ٹیگز ہوں تو صحیح لوگ آپ کو ڈھونڈ لیں گے"
+    "coldStartActionQr": "QR سے موقع پر ہی جڑیں",
+    "coldStartActionQrDesc": "ایونٹ ٹیگز لگائیں — ایک سکین اور جڑ گئے",
+    "coldStartActionAsk": "AI صحیح لوگوں کو ڈھونڈتا ہے",
+    "coldStartActionAskDesc": "Ask پوسٹ کریں، AI آپ کے نیٹ ورک میں تلاش کرے گا"
   },
   "search": {
     "clearAll": "سب صاف کریں",

@@ -271,10 +271,10 @@
     "coldStartSubtitle": "Start building your PikTag",
     "coldStartActionProfile": "Show yourself with tags",
     "coldStartActionProfileDesc": "Your tags, your way — name, bio, social links",
-    "coldStartActionQr": "Share your PikTag",
-    "coldStartActionQrDesc": "Send the fresh you — one scan to add",
-    "coldStartActionAsk": "Post an Ask",
-    "coldStartActionAskDesc": "Tags help the right people find you"
+    "coldStartActionQr": "Connect with people on site via QR",
+    "coldStartActionQrDesc": "Add event tags — one scan and you're connected",
+    "coldStartActionAsk": "AI finds the right people",
+    "coldStartActionAskDesc": "Post an Ask saying what you want, AI matches your network"
   },
   "search": {
     "clearAll": "Clear all",

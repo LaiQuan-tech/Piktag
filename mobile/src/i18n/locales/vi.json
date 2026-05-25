@@ -271,10 +271,10 @@
     "coldStartSubtitle": "Bắt đầu PikTag trong vài bước",
     "coldStartActionProfile": "Thể hiện mình bằng tag",
     "coldStartActionProfileDesc": "Tag của bạn, theo cách bạn muốn — tên, bio, social",
-    "coldStartActionQr": "Chia sẻ PikTag của bạn",
-    "coldStartActionQrDesc": "Gửi bạn vừa tạo — một lần quét là xong",
-    "coldStartActionAsk": "Đăng một Ask",
-    "coldStartActionAskDesc": "Có tag, người phù hợp sẽ tìm thấy bạn"
+    "coldStartActionQr": "Kết nối tại chỗ qua QR",
+    "coldStartActionQrDesc": "Gắn tag sự kiện — một lần quét là kết nối",
+    "coldStartActionAsk": "AI tìm đúng người cho bạn",
+    "coldStartActionAskDesc": "Đăng Ask nói cần gì, AI tìm trong mạng lưới của bạn"
   },
   "search": {
     "clearAll": "Xoá hết",

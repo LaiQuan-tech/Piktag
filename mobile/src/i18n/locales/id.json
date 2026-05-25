@@ -264,10 +264,10 @@
     "coldStartSubtitle": "Mulai PikTag dalam beberapa langkah",
     "coldStartActionProfile": "Tunjukkan diri lewat tag",
     "coldStartActionProfileDesc": "Tag-mu, ala kamu — nama, bio, social links",
-    "coldStartActionQr": "Bagikan PikTag-mu",
-    "coldStartActionQrDesc": "Kirim kamu yang baru — satu pindai cukup",
-    "coldStartActionAsk": "Posting Ask",
-    "coldStartActionAskDesc": "Ada tag, orang yang tepat akan menemukanmu"
+    "coldStartActionQr": "Terhubung di tempat lewat QR",
+    "coldStartActionQrDesc": "Pasang tag acara — sekali pindai langsung terhubung",
+    "coldStartActionAsk": "AI cari orang yang tepat",
+    "coldStartActionAskDesc": "Posting Ask, AI cari di jaringanmu"
   },
   "search": {
     "clearAll": "Hapus semua",

@@ -271,10 +271,10 @@
     "coldStartSubtitle": "從這幾步開始建立你的 PikTag",
     "coldStartActionProfile": "用標籤介紹我自己",
     "coldStartActionProfileDesc": "我的標籤我自己給 — 名字、簡介、社群連結",
-    "coldStartActionQr": "分享你的 PikTag",
-    "coldStartActionQrDesc": "把剛建好的你，給朋友掃一下",
-    "coldStartActionAsk": "發一個 Ask",
-    "coldStartActionAskDesc": "有標籤，對的人才找得到你"
+    "coldStartActionQr": "用 QR 連上現場的人",
+    "coldStartActionQrDesc": "貼上活動標籤，朋友掃一下就互加",
+    "coldStartActionAsk": "AI 幫你找對的人",
+    "coldStartActionAskDesc": "發個 Ask 說你要什麼，AI 從人脈裡幫你找"
   },
   "search": {
     "clearAll": "清除全部",

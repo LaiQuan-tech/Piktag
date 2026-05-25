@@ -264,10 +264,10 @@
     "coldStartSubtitle": "ابدأ PikTag في خطوات قليلة",
     "coldStartActionProfile": "عرّف عن نفسك بالوسوم",
     "coldStartActionProfileDesc": "وسومك بأسلوبك — اسم، نبذة، روابط التواصل",
-    "coldStartActionQr": "شارك PikTag الخاص بك",
-    "coldStartActionQrDesc": "أرسل النسخة الجديدة منك — مسح واحد يكفي",
-    "coldStartActionAsk": "انشر Ask",
-    "coldStartActionAskDesc": "مع الوسوم، يجدك الأشخاص المناسبون"
+    "coldStartActionQr": "تواصل في الموقع عبر QR",
+    "coldStartActionQrDesc": "أضف وسوم الحدث — مسح واحد وأنتم متصلون",
+    "coldStartActionAsk": "الذكاء الاصطناعي يجد الأشخاص المناسبين",
+    "coldStartActionAskDesc": "انشر Ask، والذكاء الاصطناعي يبحث في شبكتك"
   },
   "search": {
     "clearAll": "مسح الكل",

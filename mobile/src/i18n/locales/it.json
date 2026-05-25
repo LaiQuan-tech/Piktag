@@ -271,10 +271,10 @@
     "coldStartSubtitle": "Inizia il tuo PikTag in pochi passi",
     "coldStartActionProfile": "Mostrati con i tag",
     "coldStartActionProfileDesc": "I tuoi tag, a modo tuo — nome, bio, social",
-    "coldStartActionQr": "Condividi il tuo PikTag",
-    "coldStartActionQrDesc": "Manda il te appena creato — basta una scansione",
-    "coldStartActionAsk": "Pubblica un Ask",
-    "coldStartActionAskDesc": "Con i tag, le persone giuste ti trovano"
+    "coldStartActionQr": "Connettiti sul posto con il QR",
+    "coldStartActionQrDesc": "Aggiungi tag dell'evento — una scansione e siete collegati",
+    "coldStartActionAsk": "L'IA trova le persone giuste",
+    "coldStartActionAskDesc": "Pubblica un Ask, l'IA cerca nella tua rete"
   },
   "search": {
     "clearAll": "Cancella tutto",

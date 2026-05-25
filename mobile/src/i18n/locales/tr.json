@@ -264,10 +264,10 @@
     "coldStartSubtitle": "Birkaç adımda PikTag'ı başlat",
     "coldStartActionProfile": "Etiketlerle kendini göster",
     "coldStartActionProfileDesc": "Senin etiketlerin, senin tarzında — isim, bio, sosyal medya",
-    "coldStartActionQr": "PikTag'ını paylaş",
-    "coldStartActionQrDesc": "Yeni halini gönder — bir tarama yeterli",
-    "coldStartActionAsk": "Bir Ask paylaş",
-    "coldStartActionAskDesc": "Etiketler varsa doğru insanlar seni bulur"
+    "coldStartActionQr": "QR ile yerinde bağlan",
+    "coldStartActionQrDesc": "Etkinlik etiketi ekle — tek taramayla bağlısınız",
+    "coldStartActionAsk": "Doğru insanları yapay zekâ bulur",
+    "coldStartActionAskDesc": "Bir Ask paylaş, yapay zekâ ağında arar"
   },
   "search": {
     "clearAll": "Hepsini temizle",

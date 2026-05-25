@@ -266,10 +266,10 @@
     "coldStartSubtitle": "Starte dein PikTag in ein paar Schritten",
     "coldStartActionProfile": "Zeig dich mit Tags",
     "coldStartActionProfileDesc": "Deine Tags, dein Stil — Name, Bio, Social Links",
-    "coldStartActionQr": "Teile dein PikTag",
-    "coldStartActionQrDesc": "Schick das frische Du — ein Scan reicht",
-    "coldStartActionAsk": "Poste einen Ask",
-    "coldStartActionAskDesc": "Mit Tags finden dich die richtigen Leute"
+    "coldStartActionQr": "Verbinde dich vor Ort per QR",
+    "coldStartActionQrDesc": "Event-Tags drauf — ein Scan und ihr seid verbunden",
+    "coldStartActionAsk": "KI findet die richtigen Leute",
+    "coldStartActionAskDesc": "Poste einen Ask, KI durchsucht dein Netzwerk"
   },
   "search": {
     "clearAll": "Alle löschen",

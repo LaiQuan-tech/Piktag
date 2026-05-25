@@ -264,10 +264,10 @@
     "coldStartSubtitle": "Начни свой PikTag за несколько шагов",
     "coldStartActionProfile": "Покажи себя через теги",
     "coldStartActionProfileDesc": "Твои теги, по-твоему — имя, био, соцсети",
-    "coldStartActionQr": "Поделись своим PikTag",
-    "coldStartActionQrDesc": "Отправь свежего себя — один скан и готово",
-    "coldStartActionAsk": "Опубликуй Ask",
-    "coldStartActionAskDesc": "С тегами тебя находят нужные люди"
+    "coldStartActionQr": "Свяжись на месте через QR",
+    "coldStartActionQrDesc": "Добавь теги события — один скан и вы связаны",
+    "coldStartActionAsk": "ИИ находит нужных людей",
+    "coldStartActionAskDesc": "Опубликуй Ask, ИИ ищет в твоей сети"
   },
   "search": {
     "clearAll": "Очистить всё",
