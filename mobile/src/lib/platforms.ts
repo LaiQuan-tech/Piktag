@@ -134,14 +134,26 @@ export const PLATFORM_MAP: Record<string, Platform> = PLATFORMS.reduce(
  * Quick-pick chip row in the biolink form. ORDER MATTERS — items
  * appear top-to-bottom in the picker.
  *
- * 2026-05-25 rebalance (NA primary market): swapped LINE / YouTube out
- * of the quick-row (they remain one tap away in "Browse all") and
+ * 2026-05-25/26 rebalance (NA primary market): swapped LINE / YouTube
+ * out of the quick-row (they remain one tap away in "Browse all") and
  * promoted NA-mainstream messengers (WhatsApp / Messenger / Telegram /
- * Snapchat) plus Slack (work-channel) and WeChat (large
+ * Snapchat) plus Calendly (the work-cluster slot) and WeChat (large
  * Chinese-diaspora overlap with the NA audience). Phone / Email /
  * Website stay as universal essentials; LinkedIn stays for the
  * professional/CRM angle PikTag leans on; X stays as the NA-mainstream
- * micro-blog. Resulting 12-entry row:
+ * micro-blog.
+ *
+ * Slot 7 — "the work-cluster slot" — went through three iterations on
+ * 2026-05-25/26: Teams (rejected: org-internal identity), then Slack
+ * (rejected for the same reason — `app.slack.com/client/T…` URLs only
+ * work for members of that specific workspace and aren't something
+ * anyone prints on a card), and finally Calendly. Calendly is the only
+ * candidate where the shareable URL (`calendly.com/<user>`) IS a real
+ * portable handle — people DO put it on business cards / email sigs —
+ * AND it fits the "book a meeting with me" follow-up to LinkedIn's
+ * "look me up" surface. Slack/Teams remain accessible via "Browse all"
+ * for the rare power user who actually wants to share a workspace
+ * invite.
  *
  *   1. phone         — universal
  *   2. email         — universal
@@ -149,7 +161,7 @@ export const PLATFORM_MAP: Record<string, Platform> = PLATFORMS.reduce(
  *   4. messenger     — NA messenger #2
  *   5. instagram     — NA social (Meta)
  *   6. linkedin      — NA professional (CRM angle)
- *   7. slack         — NA work cluster (companion to LinkedIn)
+ *   7. calendly      — NA work cluster (companion to LinkedIn)
  *   8. telegram      — NA + intl messenger, tech crowd
  *   9. snapchat      — Gen Z mainstream
  *  10. x             — NA micro-blog
@@ -163,7 +175,7 @@ export const QUICK_PICK_KEYS = [
   'messenger',
   'instagram',
   'linkedin',
-  'slack',
+  'calendly',
   'telegram',
   'snapchat',
   'x',
