@@ -99,10 +99,34 @@ jobs:
         if: steps.changed.outputs.names != ''
         working-directory: mobile
         run: |
+          # Resilient loop: don't let one transient failure (CDN
+          # blip, network hiccup) abort deploys for the remaining
+          # functions. Collect successes + failures, print a summary,
+          # exit non-zero ONLY if anything actually failed — so a
+          # GH `rerun --failed` re-attempts a clean retry of the
+          # whole step, and successes from this run are idempotent.
+          set +e
+          succeeded=""
+          failed=""
           for fn in ${{ steps.changed.outputs.names }}; do
             echo "── Deploying: $fn"
-            supabase functions deploy "$fn" --project-ref "$PROJECT_REF"
+            if supabase functions deploy "$fn" --project-ref "$PROJECT_REF"; then
+              succeeded="$succeeded $fn"
+            else
+              echo "::warning::Deploy failed for $fn — continuing with remaining functions"
+              failed="$failed $fn"
+            fi
           done
+
+          echo ""
+          echo "── Summary ──────────────────────────"
+          echo "Succeeded:${succeeded:- (none)}"
+          echo "Failed:${failed:- (none)}"
+
+          if [ -n "$failed" ]; then
+            echo "::error::One or more functions failed to deploy:$failed"
+            exit 1
+          fi
 
       - name: Note when no functions changed
         if: steps.changed.outputs.names == ''
