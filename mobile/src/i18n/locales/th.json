@@ -710,7 +710,7 @@
     "alertBatchImportTitle": "นำเข้าทั้งหมด",
     "alertBatchImportMessage": "คุณแน่ใจหรือไม่ว่าต้องการนำเข้ารายชื่อทั้งหมด {{count}} รายการ?",
     "alertBatchImportConfirm": "นำเข้า",
-    "inviteMessage": "{{name}} ฉันใช้ PikTag จำคนที่เจอ — มาด้วยกัน: https://pikt.ag/download",
+    "inviteMessage": "{{name}} ฉันใช้ PikTag จำคนที่เจอ — มาด้วยกัน: https://pikt.ag",
     "batchProgress": "กำลังประมวลผล {{current}}/{{total}}",
     "alertBatchDoneTitle": "นำเข้าเสร็จสิ้น",
     "alertBatchDoneMessage": "เพิ่มเพื่อน {{matched}} คน ผู้ติดต่อ {{notOnApp}} คนยังไม่ได้ใช้ PikTag",

@@ -710,7 +710,7 @@
     "alertBatchImportTitle": "Importação em lote",
     "alertBatchImportMessage": "Tem certeza que deseja importar todos os {{count}} contatos?",
     "alertBatchImportConfirm": "Importar",
-    "inviteMessage": "Oi {{name}}, uso PikTag para lembrar das pessoas que conheço — entra: https://pikt.ag/download",
+    "inviteMessage": "Oi {{name}}, uso PikTag para lembrar das pessoas que conheço — entra: https://pikt.ag",
     "batchProgress": "Processando {{current}}/{{total}}",
     "alertBatchDoneTitle": "Importação concluída",
     "alertBatchDoneMessage": "{{matched}} amigos adicionados. {{notOnApp}} contatos ainda não estão no PikTag.",

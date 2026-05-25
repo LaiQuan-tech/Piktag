@@ -710,7 +710,7 @@
     "alertBatchImportTitle": "Toplu İçe Aktarma",
     "alertBatchImportMessage": "{{count}} kişinin tümünü içe aktarmak istediğinden emin misin?",
     "alertBatchImportConfirm": "İçe Aktar",
-    "inviteMessage": "Hey {{name}}, PikTag'da tanıştıklarımı hatırlıyorum — sen de gel: https://pikt.ag/download",
+    "inviteMessage": "Hey {{name}}, PikTag'da tanıştıklarımı hatırlıyorum — sen de gel: https://pikt.ag",
     "batchProgress": "İşleniyor {{current}}/{{total}}",
     "alertBatchDoneTitle": "İçe aktarma tamamlandı",
     "alertBatchDoneMessage": "{{matched}} arkadaş eklendi. {{notOnApp}} kişi henüz PikTag kullanmıyor.",
