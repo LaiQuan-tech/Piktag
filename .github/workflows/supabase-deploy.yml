@@ -28,6 +28,12 @@ on:
       - 'mobile/supabase/migrations/**'
       - '.github/workflows/supabase-deploy.yml'
   workflow_dispatch:
+    inputs:
+      function:
+        description: 'Override: deploy this specific function (skips detector). Leave blank for auto-detect.'
+        required: false
+        type: string
+        default: ''
 
 # Cancel any older in-flight run of this workflow for the same ref —
 # multiple migration commits in quick succession collapse to "apply
@@ -61,7 +67,20 @@ jobs:
       - name: Detect changed functions
         id: changed
         working-directory: mobile
+        env:
+          OVERRIDE_FN: ${{ inputs.function }}
         run: |
+          # Manual override path: workflow_dispatch with `function`
+          # input set → deploy that one regardless of diff. Useful for
+          # backfilling a function that the detector missed (the
+          # 2026-05-25 path-extraction bug left notify-admin-growth
+          # undeployed for ~12h until we noticed).
+          if [ -n "$OVERRIDE_FN" ]; then
+            echo "Manual override — deploying: $OVERRIDE_FN"
+            echo "names=$OVERRIDE_FN" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
           # Compare HEAD against the previous commit. Extract unique
           # function names from any modified file under
           # supabase/functions/<name>/**.
