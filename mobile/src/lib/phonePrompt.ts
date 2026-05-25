@@ -9,10 +9,17 @@
 // though they're active members.
 //
 // `shouldShowPhonePrompt` returns true only when ALL of:
-//   1. User has dismissed the prompt before (one-shot — never re-nag).
+//   1. User has NOT dismissed the prompt before (one-shot — never re-nag).
 //   2. auth.users.phone is NULL.
 //   3. piktag_profiles.phone is NULL.
 //   4. No piktag_biolinks row with platform = 'phone'.
+//   5. User has ≥1 connection OR ≥1 local contact.
+//      (2026-05-26: founder asked to defer the prompt until the user
+//      has seen any value from the app. Asking a brand-new 0-friend
+//      user for their phone reads as "give me data before I've proved
+//      anything." Once they have any signal of intent — added a
+//      friend, jotted down a contact — the prompt becomes a fair
+//      trade: "give phone, get more contact-sync matches.")
 //
 // Source-of-truth check is server-side; we do NOT cache the result —
 // the moment the user adds a phone elsewhere (EditProfile, biolinks,
@@ -55,6 +62,27 @@ export async function shouldShowPhonePrompt(userId: string): Promise<boolean> {
       .eq('platform', 'phone')
       .limit(1);
     if (biolinks && biolinks.length > 0) return false;
+
+    // Activity gate: only show the prompt once the user has done
+    // SOMETHING — a real connection OR a manually-jotted local
+    // contact. Two cheap parallel head:exact-count queries (.limit(1)
+    // is enough since we only care about presence).
+    const [connRes, localRes] = await Promise.all([
+      supabase
+        .from('piktag_connections')
+        .select('id', { count: 'exact', head: true })
+        .eq('user_id', userId)
+        .limit(1),
+      supabase
+        .from('piktag_local_contacts')
+        .select('id', { count: 'exact', head: true })
+        .eq('owner_user_id', userId)
+        .is('promoted_to_connection_id', null)
+        .limit(1),
+    ]);
+    const hasAnyContact =
+      (connRes.count ?? 0) > 0 || (localRes.count ?? 0) > 0;
+    if (!hasAnyContact) return false;
 
     return true;
   } catch {
