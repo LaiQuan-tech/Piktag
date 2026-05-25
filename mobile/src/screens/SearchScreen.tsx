@@ -994,12 +994,26 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
             .limit(20)
         );
 
-        const [aliasResult, profilesResult, biolinkResult, ...tagResults] = await Promise.all([
+        const [aliasResult, localeOverrideResult, profilesResult, biolinkResult, ...tagResults] = await Promise.all([
           // Alias search with first keyword
           supabase
             .from('tag_aliases')
             .select('concept_id, concept:tag_concepts(canonical_name, semantic_type)')
             .ilike('alias', `%${mainKeyword}%`)
+            .limit(10),
+          // Locale-aware alias overrides (20260526020000). Same alias
+          // can route to a different concept depending on the viewer's
+          // locale — the canonical case is zh-TW "聖母" → Mazu, where
+          // global default is Mary. Hits here front-load above name
+          // matches AND default alias matches, so the locale-preferred
+          // concept dominates ranking. Strict locale match — no '*'
+          // fallback, no base-locale collapse — the override list is
+          // small and explicit by design.
+          supabase
+            .from('tag_alias_locale_overrides')
+            .select('concept_id')
+            .ilike('alias', `%${mainKeyword}%`)
+            .eq('locale', i18n.language || '')
             .limit(10),
           // Profile search with first keyword
           supabase
@@ -1054,8 +1068,45 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
           }),
         };
 
-        // Merge alias results: find tags by concept_id
+        // Merge alias results: find tags by concept_id.
+        //
+        // Two passes, in priority order:
+        //   1. Locale-override aliases → tags → UNSHIFT to front of
+        //      mergedTags. The locale-preferred concept (e.g. zh-TW
+        //      聖母 → Mazu) takes ranking precedence over the global
+        //      default that ships in tag_aliases.
+        //   2. Default aliases → tags → APPEND to mergedTags (existing
+        //      behavior). These ride below name matches and any
+        //      override hits.
         let mergedTags = tagsResult.data || [];
+
+        // Pass 1: locale overrides.
+        if (
+          !localeOverrideResult.error &&
+          localeOverrideResult.data &&
+          localeOverrideResult.data.length > 0
+        ) {
+          const overrideConceptIds = (localeOverrideResult.data as any[])
+            .map((a) => a.concept_id)
+            .filter(Boolean);
+          if (overrideConceptIds.length > 0) {
+            const { data: overrideTags } = await supabase
+              .from('piktag_tags')
+              .select('id, name, semantic_type, usage_count, popularity_score, concept_id')
+              .in('concept_id', overrideConceptIds)
+              .order('popularity_score', { ascending: false })
+              .limit(10);
+
+            if (overrideTags && overrideTags.length > 0) {
+              const existingIds = new Set(mergedTags.map((t: any) => t.id));
+              const fresh = overrideTags.filter((t: any) => !existingIds.has(t.id));
+              // Front-load: override concepts beat the default ranking.
+              mergedTags = [...fresh, ...mergedTags];
+            }
+          }
+        }
+
+        // Pass 2: default global aliases.
         if (!aliasResult.error && aliasResult.data && aliasResult.data.length > 0) {
           const conceptIds = aliasResult.data.map((a: any) => a.concept_id).filter(Boolean);
           if (conceptIds.length > 0) {
@@ -1284,21 +1335,39 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
                   (kw) => typeof kw === 'string' && kw.trim().length >= 2,
                 );
                 if (aliasKeywords.length > 0) {
+                  // Parallel: default-alias lookups + locale-override
+                  // lookups. The override hits get tracked separately
+                  // so we can promote their concept tags to the FRONT
+                  // of the LLM-recovery tag list, matching how the
+                  // main-path merge prioritizes them.
                   const aliasResults = await Promise.all(
-                    aliasKeywords.map((kw) =>
+                    aliasKeywords.flatMap((kw) => [
                       supabase
                         .from('tag_aliases')
                         .select('concept_id')
                         .ilike('alias', `%${kw}%`)
                         .limit(10),
-                    ),
+                      supabase
+                        .from('tag_alias_locale_overrides')
+                        .select('concept_id')
+                        .ilike('alias', `%${kw}%`)
+                        .eq('locale', i18n.language || '')
+                        .limit(10),
+                    ]),
                   );
-                  const conceptIds = new Set<string>();
-                  for (const r of aliasResults) {
-                    for (const a of (r.data || []) as any[]) {
-                      if (a.concept_id) conceptIds.add(a.concept_id);
+                  const defaultConceptIds = new Set<string>();
+                  const overrideConceptIds = new Set<string>();
+                  for (let i = 0; i < aliasResults.length; i++) {
+                    const isOverride = i % 2 === 1; // pair pattern from flatMap above
+                    const bucket = isOverride ? overrideConceptIds : defaultConceptIds;
+                    for (const a of (aliasResults[i].data || []) as any[]) {
+                      if (a.concept_id) bucket.add(a.concept_id);
                     }
                   }
+                  const conceptIds = new Set<string>([
+                    ...overrideConceptIds,
+                    ...defaultConceptIds,
+                  ]);
                   if (conceptIds.size > 0) {
                     const { data: conceptTags } = await supabase
                       .from('piktag_tags')
