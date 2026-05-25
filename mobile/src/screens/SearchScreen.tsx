@@ -432,7 +432,14 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
   // session (a freshly-added connection won't show up as "friend" until
   // next mount, but searches happen often enough that the trade-off
   // beats re-querying piktag_connections on every keystroke).
-  const [myFriendIds, setMyFriendIds] = useState<Set<string>>(new Set());
+  // Map of friend user_id → connection_id (NOT a Set anymore). The
+  // connection_id is needed to navigate to FriendDetail (which shows
+  // the searcher's manual/private tags for that friend). Without it,
+  // taps fall through to UserDetail (the public-only view) and the
+  // manual tags become invisible — the bug founder caught 2026-05-26.
+  // .has(userId) still works the same way for the friends-vs-explore
+  // bucket logic; .get(userId) gives us the connection_id at tap time.
+  const [myFriendIds, setMyFriendIds] = useState<Map<string, string>>(new Map());
 
   // Default tab for text-query search results. Mirrors intersectionTab's
   // semantics but lives separately because the two modes' result sets
@@ -521,10 +528,13 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
     if (!user) return;
     const { data } = await supabase
       .from('piktag_connections')
-      .select('connected_user_id')
+      .select('id, connected_user_id')
       .eq('user_id', user.id);
-    const ids = new Set<string>((data ?? []).map((c: any) => c.connected_user_id));
-    setMyFriendIds(ids);
+    const m = new Map<string, string>();
+    for (const c of (data ?? []) as Array<{ id: string; connected_user_id: string }>) {
+      if (c.connected_user_id && c.id) m.set(c.connected_user_id, c.id);
+    }
+    setMyFriendIds(m);
   }, [user]);
 
   useEffect(() => {
@@ -1607,9 +1617,21 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
 
   const handleProfilePress = useCallback(
     (profile: PiktagProfile) => {
+      // If the tapped profile is a friend, route to FriendDetail with
+      // the cached connection_id so the screen can render the
+      // searcher's manual/private tags via piktag_connection_tags.
+      // Non-friends (or stale-cache misses) fall through to UserDetail.
+      const connectionId = myFriendIds.get(profile.id);
+      if (connectionId) {
+        navigation.navigate('FriendDetail', {
+          connectionId,
+          friendId: profile.id,
+        });
+        return;
+      }
       navigation.navigate('UserDetail', { userId: profile.id });
     },
-    [navigation],
+    [navigation, myFriendIds],
   );
 
   const handleLocalContactPress = useCallback(
