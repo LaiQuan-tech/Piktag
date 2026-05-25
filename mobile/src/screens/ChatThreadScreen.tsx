@@ -42,6 +42,7 @@ type ChatThreadParamList = {
     otherAvatarUrl?: string | null;
   };
   UserDetail: { userId: string };
+  FriendDetail: { connectionId: string; friendId: string };
 };
 
 type Props = {
@@ -137,9 +138,30 @@ export default function ChatThreadScreen({ navigation, route }: Props) {
     if (navigation.canGoBack()) navigation.goBack();
   }, [navigation]);
 
-  const handleHeaderPress = useCallback(() => {
+  const handleHeaderPress = useCallback(async () => {
+    // Chats only exist between connected users, so by definition the
+    // tapped header should land in FriendDetail (which renders the
+    // searcher's manual/private tags). Look up the connection_id on
+    // demand — no need to cache, this is a once-per-tap event.
+    // Defensive fall-through to UserDetail covers any edge case
+    // where the connection was severed mid-session.
+    if (user) {
+      const { data: conn } = await supabase
+        .from('piktag_connections')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('connected_user_id', otherUserId)
+        .maybeSingle();
+      if (conn?.id) {
+        navigation.navigate('FriendDetail', {
+          connectionId: conn.id,
+          friendId: otherUserId,
+        });
+        return;
+      }
+    }
     navigation.navigate('UserDetail', { userId: otherUserId });
-  }, [navigation, otherUserId]);
+  }, [navigation, otherUserId, user]);
 
   // Apple Guideline 1.2: long-press a bubble to report or block.
   const submitReport = useCallback(

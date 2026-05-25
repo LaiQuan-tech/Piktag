@@ -100,6 +100,47 @@ export default function TagDetailScreen({ navigation, route }: TagDetailScreenPr
   const [parentTagName, setParentTagName] = useState<string | null>(null);
   const [relatedTags, setRelatedTags] = useState<{ id: string; name: string; usage_count: number }[]>([]);
 
+  // Map of friend user_id → connection_id (mirrors SearchScreen's
+  // pattern from 2026-05-26). Needed so that taps on a profile in the
+  // Explore tab OR on an Ask author route to FriendDetail (with the
+  // searcher's manual tags) when the user is actually a friend, vs.
+  // UserDetail when they're not. Without this, the manual/private tags
+  // disappear from the screen the searcher expects them on.
+  const [myFriendIds, setMyFriendIds] = useState<Map<string, string>>(new Map());
+  useEffect(() => {
+    if (!user) return;
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase
+        .from('piktag_connections')
+        .select('id, connected_user_id')
+        .eq('user_id', user.id);
+      if (cancelled) return;
+      const m = new Map<string, string>();
+      for (const c of (data ?? []) as Array<{ id: string; connected_user_id: string }>) {
+        if (c.connected_user_id && c.id) m.set(c.connected_user_id, c.id);
+      }
+      setMyFriendIds(m);
+    })();
+    return () => { cancelled = true; };
+  }, [user]);
+
+  // Single helper used by all three "tap a profile" entry points in
+  // this screen (Explore row, Explore "view profile" button, Ask
+  // author). Routes friends to FriendDetail (manual tags visible) and
+  // non-friends to UserDetail (public-only view).
+  const navigateToProfile = useCallback(
+    (userId: string) => {
+      const connectionId = myFriendIds.get(userId);
+      if (connectionId) {
+        navigation.navigate('FriendDetail', { connectionId, friendId: userId });
+        return;
+      }
+      navigation.navigate('UserDetail', { userId });
+    },
+    [navigation, myFriendIds],
+  );
+
   // Resolve tagId from tagName if not provided
   useEffect(() => {
     if (paramTagId) { setResolvedTagId(paramTagId); return; }
@@ -456,7 +497,7 @@ export default function TagDetailScreen({ navigation, route }: TagDetailScreenPr
       <TouchableOpacity
         style={styles.userItem}
         activeOpacity={0.7}
-        onPress={() => navigation.navigate('UserDetail', { userId: item.id })}
+        onPress={() => navigateToProfile(item.id)}
       >
         <RingedAvatar
           size={51}
@@ -484,13 +525,13 @@ export default function TagDetailScreen({ navigation, route }: TagDetailScreenPr
         <TouchableOpacity
           style={styles.viewProfileBtn}
           activeOpacity={0.7}
-          onPress={() => navigation.navigate('UserDetail', { userId: item.id })}
+          onPress={() => navigateToProfile(item.id)}
         >
           <UserPlus size={18} color={colors.piktag600} />
         </TouchableOpacity>
       </TouchableOpacity>
     );
-  }, [navigation, t, styles, colors]);
+  }, [navigateToProfile, t, styles, colors]);
 
   const connectionKeyExtractor = useCallback(
     (item: ConnTabItem) => ('__localContact' in item ? `c_${item.id}` : item.id),
@@ -515,9 +556,9 @@ export default function TagDetailScreen({ navigation, route }: TagDetailScreenPr
   // disappear when the user toggles 追蹤 / 探索.
   const handleAskAuthorPress = useCallback(
     (userId: string) => {
-      navigation.navigate('UserDetail', { userId });
+      navigateToProfile(userId);
     },
-    [navigation],
+    [navigateToProfile],
   );
   const asksHeader = useMemo(
     () => (tagId ? <AskListByTag tagId={tagId} onPressAsk={handleAskAuthorPress} /> : null),
