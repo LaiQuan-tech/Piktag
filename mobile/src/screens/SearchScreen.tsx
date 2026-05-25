@@ -442,6 +442,19 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
   // bucket logic; .get(userId) gives us the connection_id at tap time.
   const [myFriendIds, setMyFriendIds] = useState<Map<string, string>>(new Map());
 
+  // Friend-of-friend user_ids (2nd-degree network). Used by the
+  // ranking layer at the end of performSearch to bump search hits
+  // that are reachable through the viewer's network ahead of strangers
+  // with no connection. Fetched via the get_friend_of_friend_ids RPC
+  // (SECURITY DEFINER — see 20260526030000) because RLS on
+  // piktag_connections hides other users' connection rows from the
+  // direct client query.
+  //
+  // Cached as a Set for O(1) membership checks during sort. Refreshed
+  // on screen focus (mirroring myFriendIds) so a newly-added connection
+  // brings its network in within seconds.
+  const [foFIds, setFoFIds] = useState<Set<string>>(new Set());
+
   // Default tab for text-query search results. Mirrors intersectionTab's
   // semantics but lives separately because the two modes' result sets
   // and UI containers are different.
@@ -546,6 +559,34 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
     useCallback(() => {
       fetchMyFriendIds();
     }, [fetchMyFriendIds]),
+  );
+
+  // Fetch the FoF id set via the SECURITY DEFINER RPC. Fails soft —
+  // an error here means search loses the FoF boost but everything
+  // else still works.
+  const fetchFoFIds = useCallback(async () => {
+    if (!user) return;
+    try {
+      const { data, error } = await supabase.rpc('get_friend_of_friend_ids');
+      if (error) {
+        console.warn('[SearchScreen] get_friend_of_friend_ids failed:', error.message);
+        return;
+      }
+      const ids = Array.isArray(data) ? (data as string[]) : [];
+      setFoFIds(new Set(ids));
+    } catch (err) {
+      console.warn('[SearchScreen] get_friend_of_friend_ids threw:', err);
+    }
+  }, [user]);
+
+  useEffect(() => {
+    fetchFoFIds();
+  }, [fetchFoFIds]);
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchFoFIds();
+    }, [fetchFoFIds]),
   );
 
   // ── Data loaders (all wrapped in useCallback) ──
@@ -1454,36 +1495,43 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
           }
         }
 
-        // === Geographic boost: nearby-first re-sort ===
-        // If the viewer has shared their location, batch-fetch the
-        // lat/lon/share_location for every user that ended up in the
-        // result set (profile matches + tag-user groups + recovery-
-        // surfaced people), then bubble anyone within 50 km of the
-        // viewer to the front of their respective list.
+        // === Network + Geographic boost: combined re-sort ===
         //
-        // Why a single batch query (not pre-fetched per result type):
-        //   • search_users RPC doesn't return lat/lon and changing
-        //     its signature would touch multiple migrations
-        //   • One UNIQUE-ID-set query covers all sources uniformly —
-        //     the post-recovery final state, the main-path state,
-        //     biolink-matched profiles, everything.
+        // Two ranking signals stacked on top of popularity_score:
         //
-        // Why 50 km step function (not a continuous decay): pre-
-        // launch we don't have signal on what "boost magnitude"
-        // ranks well; a binary "nearby vs not" is easy to reason
-        // about, easy to debug, and easy to tune later. 50 km
-        // comfortably covers a metropolitan area (greater Taipei is
-        // ~30 km across, LA basin ~70 km — 50 splits sensibly).
+        //   FoF (+2 points) — the user is a friend-of-friend
+        //     (2nd-degree connection). Reachable through the viewer's
+        //     network, which is exactly the "discovery through
+        //     people you trust" angle PikTag leans on. Stronger
+        //     signal than geographic proximity because a friend's
+        //     friend in another city is more useful leverage than a
+        //     stranger nearby.
         //
-        // Privacy: share_location=true is the explicit opt-in flag.
-        // Profiles that haven't opted in don't get distance computed
-        // (they still appear in results, just not boosted).
+        //   Nearby (+1 point) — the user is within 50 km AND has
+        //     opt-in share_location=true. Bubbles up the "designer
+        //     in Taipei" intent. Binary step function (not continuous
+        //     decay) for pre-launch simplicity — easy to debug + tune.
+        //
+        // Combined score per user: 0 (neither) → 1 (nearby) → 2 (FoF)
+        // → 3 (both). Stable sort by score DESC preserves the upstream
+        // popularity ordering within each tier.
+        //
+        // The geographic fetch is conditional on viewer having a
+        // location; the FoF data is already pre-fetched on mount, so
+        // it costs nothing per search.
+        //
+        // Privacy:
+        //   • share_location=true gates ALL distance computation
+        //   • FoF set comes from a SECURITY DEFINER RPC that respects
+        //     blocks (in either direction).
         const NEARBY_KM = 50;
         const viewerLat = authProfile?.latitude;
         const viewerLon = authProfile?.longitude;
+        const hasGeoSignal = viewerLat != null && viewerLon != null;
+        const hasNetworkSignal = foFIds.size > 0;
+
         if (
-          viewerLat != null &&
-          viewerLon != null &&
+          (hasGeoSignal || hasNetworkSignal) &&
           (finalProfiles.length > 0 || finalTagUsers.length > 0) &&
           seq === searchSeqRef.current
         ) {
@@ -1496,48 +1544,61 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
           }
 
           if (userIdSet.size > 0) {
-            try {
-              const { data: locRows } = await supabase
-                .from('piktag_profiles')
-                .select('id, latitude, longitude, share_location')
-                .in('id', [...userIdSet]);
+            const nearbyIds = new Set<string>();
 
-              const nearbyIds = new Set<string>();
-              for (const row of (locRows || []) as Array<{
-                id: string;
-                latitude: number | null;
-                longitude: number | null;
-                share_location: boolean | null;
-              }>) {
-                if (
-                  row.share_location === true &&
-                  haversineKm(viewerLat, viewerLon, row.latitude, row.longitude) <= NEARBY_KM
-                ) {
-                  nearbyIds.add(row.id);
+            // Only run the geo query if viewer has location — saves
+            // a round-trip for users who haven't shared theirs.
+            if (hasGeoSignal) {
+              try {
+                const { data: locRows } = await supabase
+                  .from('piktag_profiles')
+                  .select('id, latitude, longitude, share_location')
+                  .in('id', [...userIdSet]);
+
+                for (const row of (locRows || []) as Array<{
+                  id: string;
+                  latitude: number | null;
+                  longitude: number | null;
+                  share_location: boolean | null;
+                }>) {
+                  if (
+                    row.share_location === true &&
+                    haversineKm(viewerLat, viewerLon, row.latitude, row.longitude) <= NEARBY_KM
+                  ) {
+                    nearbyIds.add(row.id);
+                  }
                 }
+              } catch (geoErr) {
+                // Fail-soft: a flaky location lookup never breaks the
+                // search. nearbyIds stays empty and the FoF boost
+                // continues to apply on its own.
+                console.warn('[SearchScreen] geo boost failed:', geoErr);
               }
+            }
 
-              if (nearbyIds.size > 0 && seq === searchSeqRef.current) {
-                // Stable nearby-first sort. Stable so equal-rank ties
-                // preserve the popularity_score order from upstream.
-                const byNearby = (a: { id: string }, b: { id: string }) =>
-                  Number(nearbyIds.has(b.id)) - Number(nearbyIds.has(a.id));
+            if (
+              (nearbyIds.size > 0 || foFIds.size > 0) &&
+              seq === searchSeqRef.current
+            ) {
+              const scoreOf = (id: string): number => {
+                let s = 0;
+                if (foFIds.has(id)) s += 2;
+                if (nearbyIds.has(id)) s += 1;
+                return s;
+              };
+              const byBoost = (a: { id: string }, b: { id: string }) =>
+                scoreOf(b.id) - scoreOf(a.id);
 
-                const sortedProfiles = [...finalProfiles].sort(byNearby);
-                const sortedTagUsers = finalTagUsers.map((g) => ({
-                  ...g,
-                  users: [...g.users].sort(byNearby),
-                }));
+              const sortedProfiles = [...finalProfiles].sort(byBoost);
+              const sortedTagUsers = finalTagUsers.map((g) => ({
+                ...g,
+                users: [...g.users].sort(byBoost),
+              }));
 
-                finalProfiles = sortedProfiles;
-                finalTagUsers = sortedTagUsers;
-                setProfiles(sortedProfiles);
-                setTagUsers(sortedTagUsers);
-              }
-            } catch (geoErr) {
-              // Fail-soft: a flaky location lookup never breaks the
-              // search — the results stay in their popularity order.
-              console.warn('[SearchScreen] geo boost failed:', geoErr);
+              finalProfiles = sortedProfiles;
+              finalTagUsers = sortedTagUsers;
+              setProfiles(sortedProfiles);
+              setTagUsers(sortedTagUsers);
             }
           }
         }
