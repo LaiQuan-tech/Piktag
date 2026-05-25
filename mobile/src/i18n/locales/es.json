@@ -728,7 +728,7 @@
     "followAllCta": "Seguir a todos los amigos de PikTag ({{count}})",
     "followBtn": "Seguir",
     "inviteBtn": "Invitar",
-    "tagInviteBtn": "Etiquetar e invitar",
+    "tagInviteBtn": "Invitar",
     "fromContact": "Contacto: {{name}}",
     "classifyingText": "Comparando…",
     "alertFollowAllTitle": "Seguir a todos",

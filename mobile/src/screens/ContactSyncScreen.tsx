@@ -418,8 +418,6 @@ export default function ContactSyncScreen({ navigation }: ContactSyncScreenProps
       return;
     }
 
-    closeTagPicker();
-
     // CRITICAL: never put the tag names into the share message.
     // Tags entered here promote to is_private=true (hidden tags) on
     // the server — owner-only forever. Users may type sensitive
@@ -429,11 +427,25 @@ export default function ContactSyncScreen({ navigation }: ContactSyncScreenProps
     const message =
       t('contactSync.tagInviteMessage', { name: target.name }) ||
       `嗨！我在用 PikTag — 一起來交換標籤吧：\nhttps://pikt.ag/download`;
-    try {
-      await Share.share({ message });
-    } catch {
-      /* cancelled — local_contact row is already saved */
-    }
+
+    closeTagPicker();
+
+    // CRITICAL ORDER (founder caught this 2026-05-27): if we call
+    // Share.share() IMMEDIATELY after closeTagPicker(), the React
+    // Native <Modal> is still in its fade-out animation. iOS sees a
+    // present-while-dismissing collision and quietly kills the share
+    // sheet — users saw a 100ms flash and nothing was actually sent.
+    //
+    // Fix: wait one full animation cycle (~350ms covers the default
+    // fade) before invoking Share. By then the picker modal is fully
+    // gone and the share sheet presents cleanly. Slightly extra
+    // perceived latency (think "page transition") is far better than
+    // "the button does nothing."
+    setTimeout(() => {
+      Share.share({ message }).catch(() => {
+        /* cancelled — local_contact row is already saved */
+      });
+    }, 350);
   }, [tagTarget, pickedTags, addLocalContact, closeTagPicker, t]);
 
   const upsertConnection = async (

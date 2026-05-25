@@ -735,7 +735,7 @@
     "followAllCta": "Theo dõi tất cả bạn bè PikTag ({{count}})",
     "followBtn": "Theo dõi",
     "inviteBtn": "Mời",
-    "tagInviteBtn": "Gắn tag & mời",
+    "tagInviteBtn": "Mời",
     "fromContact": "Liên hệ: {{name}}",
     "classifyingText": "Đang đối chiếu…",
     "alertFollowAllTitle": "Theo dõi tất cả",
