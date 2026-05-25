@@ -15,7 +15,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { X, Share2, Trash2, ScanLine, Link2, Pencil, Plus, RefreshCw, ArrowLeft } from 'lucide-react-native';
-import AtomIcon from '../components/AtomIcon';
+import BoltIcon from '../components/BoltIcon';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import QRCode from 'react-native-qrcode-svg';
 import { useTranslation } from 'react-i18next';
@@ -896,7 +896,7 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
               {aiLoading ? (
                 <BrandSpinner size={16} />
               ) : (
-                <AtomIcon size={14} color={colors.piktag600} />
+                <BoltIcon size={14} color={colors.piktag600} />
               )}
               <Text style={styles.aiHeaderTitle}>
                 {aiLoading

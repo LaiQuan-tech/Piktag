@@ -16,7 +16,7 @@ import BrandSpinner from '../components/loaders/BrandSpinner';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { X, Hash, ArrowLeftRight, AlertTriangle, Plus } from 'lucide-react-native';
-import AtomIcon from '../components/AtomIcon';
+import BoltIcon from '../components/BoltIcon';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from '../lib/supabase';
 import { logApiUsage } from '../lib/apiUsage';
@@ -446,7 +446,7 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
             {filteredAiSuggestions.length > 0 && myTags.length < MAX_TAGS && (
               <View style={styles.aiSection}>
                 <View style={styles.aiHeader}>
-                  <AtomIcon size={16} color={colors.piktag600} />
+                  <BoltIcon size={16} color={colors.piktag600} />
                   <Text style={styles.aiTitle}>{t('manageTags.aiSuggestionsTitle')}</Text>
                 </View>
                 <View style={styles.chipsWrap}>
@@ -461,7 +461,7 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
             {aiLoading && (
               <View style={styles.aiSection}>
                 <View style={styles.aiHeader}>
-                  <AtomIcon size={16} color={colors.piktag600} />
+                  <BoltIcon size={16} color={colors.piktag600} />
                   <Text style={styles.aiTitle}>{t('manageTags.aiSuggestionsTitle')}</Text>
                 </View>
                 <BrandSpinner size={16} style={{ marginTop: 8 }} />
@@ -470,7 +470,7 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
             {!aiLoading && aiError && filteredAiSuggestions.length === 0 && myTags.length < MAX_TAGS && (
               <View style={styles.aiSection}>
                 <View style={styles.aiHeader}>
-                  <AtomIcon size={16} color={colors.piktag600} />
+                  <BoltIcon size={16} color={colors.piktag600} />
                   <Text style={styles.aiTitle}>{t('manageTags.aiSuggestionsTitle')}</Text>
                 </View>
                 <Text style={styles.aiErrorText}>{aiError}</Text>

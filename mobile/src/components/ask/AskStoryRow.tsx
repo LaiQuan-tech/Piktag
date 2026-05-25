@@ -20,7 +20,7 @@ import {
 import BrandSpinner from '../loaders/BrandSpinner';
 import { Image } from 'expo-image';
 import { Plus, X, RefreshCw } from 'lucide-react-native';
-import AtomIcon from '../AtomIcon';
+import BoltIcon from '../BoltIcon';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTranslation } from 'react-i18next';
 import InitialsAvatar from '../InitialsAvatar';
@@ -913,7 +913,7 @@ export function AskCreateModal({ visible, onClose, existingAsk, onCreated, seedB
                     {aiLoading ? (
                       <BrandSpinner size={16} />
                     ) : (
-                      <AtomIcon size={14} color={colors.piktag600} />
+                      <BoltIcon size={14} color={colors.piktag600} />
                     )}
                     <Text style={modalStyles.aiHeaderTitle}>
                       {aiLoading

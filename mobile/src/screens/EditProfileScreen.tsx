@@ -16,7 +16,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ArrowLeft, Plus, Pencil, Trash2, X, Hash, EyeOff, Eye, GripVertical, ChevronDown, CheckCircle2, RefreshCw, AlertTriangle, ChevronUp } from 'lucide-react-native';
-import AtomIcon from '../components/AtomIcon';
+import BoltIcon from '../components/BoltIcon';
 import { logApiUsage } from '../lib/apiUsage';
 import RingedAvatar from '../components/RingedAvatar';
 import DraggableFlatList, { RenderItemParams, ScaleDecorator } from 'react-native-draggable-flatlist';
@@ -1581,7 +1581,7 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
                 )}
                 {showMissing && (
                   <View style={styles.completionInlineMissingRow}>
-                    <AtomIcon size={12} color={colors.piktag500} />
+                    <BoltIcon size={12} color={colors.piktag500} />
                     <Text style={styles.completionInlineText}>
                       {t('editProfile.completionInline', {
                         items: missing.join('、'),
@@ -1694,7 +1694,7 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
                       {aiLoading ? (
                         <BrandSpinner size={16} />
                       ) : (
-                        <AtomIcon size={14} color={colors.piktag600} />
+                        <BoltIcon size={14} color={colors.piktag600} />
                       )}
                       <Text style={styles.ai_headerTitle}>
                         {aiLoading
