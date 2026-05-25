@@ -214,6 +214,85 @@ const PopularTagChip = React.memo(function PopularTagChip({
   );
 });
 
+// Memoized row for the biolinks DraggableFlatList. The list is nested
+// inside the screen-wide ScrollView (scrollEnabled={false}) so RN's
+// virtualization can't help — each row stays mounted. Without memoization,
+// EVERY keystroke in the bio / headline / tag input above re-rendered ALL
+// 5+ rows (each with a 5-deep TouchableOpacity tree + 3 lucide icons),
+// which is what made iPhone SE 3rd-gen scrolling visibly jank. Now the
+// row only re-renders when its own `link` / `isActive` actually change.
+type BiolinkRowProps = {
+  link: Biolink;
+  drag: () => void;
+  isActive: boolean;
+  onOpenLink: (url: string) => void;
+  onEdit: (link: Biolink) => void;
+  onDelete: (link: Biolink) => void;
+};
+
+const BiolinkRow = React.memo(function BiolinkRow({
+  link,
+  drag,
+  isActive,
+  onOpenLink,
+  onEdit,
+  onDelete,
+}: BiolinkRowProps) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
+  const displayUrl = useMemo(
+    () => platformStripPrefix(link.url, detectPlatformFromUrl(link.url) ?? link.platform),
+    [link.url, link.platform],
+  );
+  const handlePress = useCallback(() => onOpenLink(link.url), [onOpenLink, link.url]);
+  const handleEdit = useCallback(() => onEdit(link), [onEdit, link]);
+  const handleDelete = useCallback(() => onDelete(link), [onDelete, link]);
+
+  return (
+    <ScaleDecorator>
+      <TouchableOpacity
+        activeOpacity={0.7}
+        onPress={handlePress}
+        onLongPress={drag}
+        disabled={isActive}
+        style={[styles.biolinkItem, isActive && { backgroundColor: colors.gray50, borderRadius: 12 }]}
+      >
+        <TouchableOpacity onPressIn={drag} style={styles.biolinkDragHandle}>
+          <GripVertical size={20} color={colors.gray400} />
+        </TouchableOpacity>
+        <View style={styles.biolinkInfo}>
+          <Text style={styles.biolinkTitle}>
+            {link.label || link.platform}
+          </Text>
+          <Text style={styles.biolinkUrl} numberOfLines={1}>
+            {/* Strip the platform's URL scheme prefix (`tel:`,
+                `mailto:`, `https://`, etc.) for display only — the
+                stored value keeps the scheme so taps on the public
+                profile still dial / open the mail client. */}
+            {displayUrl}
+          </Text>
+        </View>
+        <View style={styles.biolinkActions}>
+          <TouchableOpacity
+            style={styles.biolinkActionBtn}
+            activeOpacity={0.6}
+            onPress={handleEdit}
+          >
+            <Pencil size={18} color={colors.gray500} />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.biolinkActionBtn}
+            onPress={handleDelete}
+            activeOpacity={0.6}
+          >
+            <Trash2 size={18} color={colors.red500} />
+          </TouchableOpacity>
+        </View>
+      </TouchableOpacity>
+    </ScaleDecorator>
+  );
+});
+
 // ── Main screen ──────────────────────────────────────────────────────────────
 
 export default function EditProfileScreen({ navigation, route }: EditProfileScreenProps) {
@@ -713,7 +792,7 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
     return () => clearTimeout(timer);
   }, []);
 
-  const openEditBiolinkModal = (biolink: Biolink) => {
+  const openEditBiolinkModal = useCallback((biolink: Biolink) => {
     const platformKey = detectPlatformKey(biolink.platform, biolink.url);
     // For phone, the editable value lives in phoneCountry/phoneNational; account stays empty.
     const account = platformKey === 'phone' ? '' : stripPlatformPrefix(biolink.url, platformKey);
@@ -738,7 +817,7 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
       resetPhoneFields();
     }
     setBiolinkModalVisible(true);
-  };
+  }, [i18n.language, resetPhoneFields]);
 
   const closeBiolinkModal = () => {
     setBiolinkModalVisible(false);
@@ -765,9 +844,9 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
     setCountryPickerOpen(false);
   };
 
-  const handleOpenLink = (url: string) => {
+  const handleOpenLink = useCallback((url: string) => {
     if (url) Linking.openURL(url).catch(() => {});
-  };
+  }, []);
 
   const getIconUrl = (url: string): string | null => {
     try {
@@ -915,7 +994,7 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
     void runReorderSave();
   }, [runReorderSave]);
 
-  const handleDeleteBiolink = (biolink: Biolink) => {
+  const handleDeleteBiolink = useCallback((biolink: Biolink) => {
     Alert.alert(
       t('editProfile.alertDeleteLinkTitle'),
       t('editProfile.alertDeleteLinkMessage', { name: biolink.label || biolink.platform }),
@@ -940,7 +1019,28 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
         },
       ]
     );
-  };
+  }, [t, fetchBiolinks]);
+
+  // Stable renderItem for the biolinks DraggableFlatList. The list is
+  // nested inside ScrollView so virtualization is disabled — every row
+  // stays mounted. Without this useCallback, every keystroke in the
+  // bio/headline/tag inputs above creates a fresh renderItem identity
+  // and re-renders ALL rows (the BiolinkRow memo can't help). With it,
+  // rows only re-render when their own `link` / `isActive` changes —
+  // which is what fixes the iPhone SE 3rd-gen scroll jank.
+  const renderBiolinkItem = useCallback(
+    ({ item: link, drag, isActive }: RenderItemParams<Biolink>) => (
+      <BiolinkRow
+        link={link}
+        drag={drag}
+        isActive={isActive}
+        onOpenLink={handleOpenLink}
+        onEdit={openEditBiolinkModal}
+        onDelete={handleDeleteBiolink}
+      />
+    ),
+    [handleOpenLink, openEditBiolinkModal, handleDeleteBiolink],
+  );
 
   // --- Tag CRUD (immediate save, not tied to form save) ---
 
@@ -1830,50 +1930,7 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
               keyExtractor={(item) => item.id}
               onDragEnd={handleDragEnd}
               scrollEnabled={false}
-              renderItem={({ item: link, drag, isActive }: RenderItemParams<Biolink>) => (
-                <ScaleDecorator>
-                  <TouchableOpacity
-                    activeOpacity={0.7}
-                    onPress={() => handleOpenLink(link.url)}
-                    onLongPress={drag}
-                    disabled={isActive}
-                    style={[styles.biolinkItem, isActive && { backgroundColor: colors.gray50, borderRadius: 12 }]}
-                  >
-                    <TouchableOpacity onPressIn={drag} style={styles.biolinkDragHandle}>
-                      <GripVertical size={20} color={colors.gray400} />
-                    </TouchableOpacity>
-                    <View style={styles.biolinkInfo}>
-                      <Text style={styles.biolinkTitle}>
-                        {link.label || link.platform}
-                      </Text>
-                      <Text style={styles.biolinkUrl} numberOfLines={1}>
-                        {/* Strip the platform's URL scheme prefix
-                            (`tel:`, `mailto:`, `https://`, etc.) for
-                            display only — the stored value keeps the
-                            scheme so taps on the public profile still
-                            dial / open the mail client. */}
-                        {platformStripPrefix(link.url, detectPlatformFromUrl(link.url) ?? link.platform)}
-                      </Text>
-                    </View>
-                    <View style={styles.biolinkActions}>
-                      <TouchableOpacity
-                        style={styles.biolinkActionBtn}
-                        activeOpacity={0.6}
-                        onPress={() => openEditBiolinkModal(link)}
-                      >
-                        <Pencil size={18} color={colors.gray500} />
-                      </TouchableOpacity>
-                      <TouchableOpacity
-                        style={styles.biolinkActionBtn}
-                        onPress={() => handleDeleteBiolink(link)}
-                        activeOpacity={0.6}
-                      >
-                        <Trash2 size={18} color={colors.red500} />
-                      </TouchableOpacity>
-                    </View>
-                  </TouchableOpacity>
-                </ScaleDecorator>
-              )}
+              renderItem={renderBiolinkItem}
             />
             {/* Platform picker flow */}
             {!showPlatformPicker && !selectedPlatform && (
