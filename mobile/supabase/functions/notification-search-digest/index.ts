@@ -130,15 +130,9 @@ serve(async (req) => {
     }
 
     const totalCount = count ?? 0;
-    // Skip only if BOTH there's no search traffic AND no failures —
-    // an active week with zero failures is itself good news worth
-    // pushing ("recoveryPct dropped from 12% to 5% — keep going").
-    if (totalCount === 0 && current.total === 0) {
-      return new Response(
-        JSON.stringify({ skipped: true, reason: 'no traffic', lookback_days: LOOKBACK_DAYS }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
-      );
-    }
+    // (Growth metrics are pulled AFTER this skip check is decided so
+    // they can also force a push on a "no search but new users joined"
+    // week — see the totalGrowth gate below.)
 
     // ── 2. Aggregate the top recurring extracted keywords ──
     // The actionable signal isn't "X failures" — it's "these
@@ -157,13 +151,53 @@ serve(async (req) => {
       .slice(0, TOP_KEYWORDS_IN_BODY)
       .map(([kw]) => kw);
 
+    // ── 2c. Growth metrics (7-day window) ──
+    // Three numbers added 2026-05-26 alongside search health so the
+    // weekly admin push doubles as a launch-day pulse:
+    //   • newSignups       — fresh piktag_profiles in past 7 days
+    //   • newConnections   — fresh piktag_connections in past 7 days
+    //   • activatedUsers   — distinct signers who created their first
+    //                        outgoing connection in the window (the
+    //                        magic-moment count)
+    async function growthMetrics(fromISO: string) {
+      const { count: newSignups } = await supabase
+        .from('piktag_profiles')
+        .select('*', { count: 'exact', head: true })
+        .gte('created_at', fromISO);
+      const { count: newConnections } = await supabase
+        .from('piktag_connections')
+        .select('*', { count: 'exact', head: true })
+        .gte('created_at', fromISO);
+      return {
+        newSignups: newSignups ?? 0,
+        newConnections: newConnections ?? 0,
+      };
+    }
+    const growth = await growthMetrics(since);
+
+    // Skip only when EVERYTHING is zero — no search activity AND no
+    // growth signal worth reporting. Even a single new signup is
+    // worth pinging on a quiet launch week.
+    if (
+      totalCount === 0 &&
+      current.total === 0 &&
+      growth.newSignups === 0 &&
+      growth.newConnections === 0
+    ) {
+      return new Response(
+        JSON.stringify({ skipped: true, reason: 'no activity', lookback_days: LOOKBACK_DAYS }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+      );
+    }
+
     // ── 3. Compose notification text ──
     //
-    // Three-line body:
-    //   1. health line  — "搜尋 N · LLM救援 X% · 空手 Y%"
-    //   2. trend line   — change vs prior 7 days (↓ = improving)
-    //   3. action line  — top failing keywords (the actionable bit)
-    const title = '📊 PikTag 搜尋週報';
+    // Four lines now (growth + health + trend + action):
+    //   1. growth   — "新增 N 註冊 · M 對好友"
+    //   2. health   — "搜尋 N · LLM救援 X% · 空手 Y%"
+    //   3. trend    — change vs prior 7 days (↓ = improving)
+    //   4. action   — top failing keywords (the actionable bit)
+    const title = '📊 PikTag 週報';
 
     const arrow = (cur: number, prev: number) => {
       if (prev === 0 && cur === 0) return '→';
@@ -173,6 +207,8 @@ serve(async (req) => {
       return delta < 0 ? '↓' : '↑';
     };
 
+    const growthLine =
+      `新增 ${growth.newSignups} 註冊｜${growth.newConnections} 對好友`;
     const healthLine =
       `搜尋 ${current.total}｜LLM救援 ${current.recoveryPct}%｜空手 ${current.emptyPct}%`;
     const trendLine =
@@ -185,7 +221,7 @@ serve(async (req) => {
         ? `缺 tag：${topKeywords.join('、')}`
         : '';
     const body = truncate(
-      [healthLine, trendLine, keywordsSegment].filter(Boolean).join(' · '),
+      [growthLine, healthLine, trendLine, keywordsSegment].filter(Boolean).join(' · '),
     );
 
     // ── 4. Find admin recipients ──
@@ -219,6 +255,7 @@ serve(async (req) => {
         current,
         prior,
       },
+      growth,
     };
 
     // 5-pre. Pre-flight idempotency check — find which admins ALREADY
