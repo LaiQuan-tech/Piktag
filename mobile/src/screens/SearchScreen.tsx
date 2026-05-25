@@ -34,6 +34,7 @@ import { stripSearchStopwords, filterLoneStopwordTokens } from '../lib/searchSto
 import { getSiblingTagIds, getTagNamesByIds } from '../lib/tagSiblings';
 import { extractSearchIntent } from '../lib/extractSearchIntent';
 import { sanitizeQueryForTelemetry } from '../lib/sanitizeTelemetry';
+import { haversineKm } from '../lib/geo';
 import { COLORS, BORDER_RADIUS, type ColorPalette } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../hooks/useAuth';
@@ -1258,7 +1259,10 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
             }
           }
         }
-        const finalProfiles = [...profileMap.values()];
+        // `let` (not `const`) because the geographic-boost block at
+        // the end of this function re-sorts in place — nearby viewers'
+        // search results bubble up after a single batch location query.
+        let finalProfiles = [...profileMap.values()];
         setProfiles(finalProfiles);
 
         // === Zero-results LLM recovery ===
@@ -1447,6 +1451,94 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
             console.warn('[SearchScreen] LLM recovery failed:', recErr);
           } finally {
             if (seq === searchSeqRef.current) setLlmRecovering(false);
+          }
+        }
+
+        // === Geographic boost: nearby-first re-sort ===
+        // If the viewer has shared their location, batch-fetch the
+        // lat/lon/share_location for every user that ended up in the
+        // result set (profile matches + tag-user groups + recovery-
+        // surfaced people), then bubble anyone within 50 km of the
+        // viewer to the front of their respective list.
+        //
+        // Why a single batch query (not pre-fetched per result type):
+        //   • search_users RPC doesn't return lat/lon and changing
+        //     its signature would touch multiple migrations
+        //   • One UNIQUE-ID-set query covers all sources uniformly —
+        //     the post-recovery final state, the main-path state,
+        //     biolink-matched profiles, everything.
+        //
+        // Why 50 km step function (not a continuous decay): pre-
+        // launch we don't have signal on what "boost magnitude"
+        // ranks well; a binary "nearby vs not" is easy to reason
+        // about, easy to debug, and easy to tune later. 50 km
+        // comfortably covers a metropolitan area (greater Taipei is
+        // ~30 km across, LA basin ~70 km — 50 splits sensibly).
+        //
+        // Privacy: share_location=true is the explicit opt-in flag.
+        // Profiles that haven't opted in don't get distance computed
+        // (they still appear in results, just not boosted).
+        const NEARBY_KM = 50;
+        const viewerLat = authProfile?.latitude;
+        const viewerLon = authProfile?.longitude;
+        if (
+          viewerLat != null &&
+          viewerLon != null &&
+          (finalProfiles.length > 0 || finalTagUsers.length > 0) &&
+          seq === searchSeqRef.current
+        ) {
+          const userIdSet = new Set<string>();
+          for (const p of finalProfiles) userIdSet.add(p.id);
+          for (const g of finalTagUsers) {
+            for (const u of g.users) {
+              if (u?.id) userIdSet.add(u.id);
+            }
+          }
+
+          if (userIdSet.size > 0) {
+            try {
+              const { data: locRows } = await supabase
+                .from('piktag_profiles')
+                .select('id, latitude, longitude, share_location')
+                .in('id', [...userIdSet]);
+
+              const nearbyIds = new Set<string>();
+              for (const row of (locRows || []) as Array<{
+                id: string;
+                latitude: number | null;
+                longitude: number | null;
+                share_location: boolean | null;
+              }>) {
+                if (
+                  row.share_location === true &&
+                  haversineKm(viewerLat, viewerLon, row.latitude, row.longitude) <= NEARBY_KM
+                ) {
+                  nearbyIds.add(row.id);
+                }
+              }
+
+              if (nearbyIds.size > 0 && seq === searchSeqRef.current) {
+                // Stable nearby-first sort. Stable so equal-rank ties
+                // preserve the popularity_score order from upstream.
+                const byNearby = (a: { id: string }, b: { id: string }) =>
+                  Number(nearbyIds.has(b.id)) - Number(nearbyIds.has(a.id));
+
+                const sortedProfiles = [...finalProfiles].sort(byNearby);
+                const sortedTagUsers = finalTagUsers.map((g) => ({
+                  ...g,
+                  users: [...g.users].sort(byNearby),
+                }));
+
+                finalProfiles = sortedProfiles;
+                finalTagUsers = sortedTagUsers;
+                setProfiles(sortedProfiles);
+                setTagUsers(sortedTagUsers);
+              }
+            } catch (geoErr) {
+              // Fail-soft: a flaky location lookup never breaks the
+              // search — the results stay in their popularity order.
+              console.warn('[SearchScreen] geo boost failed:', geoErr);
+            }
           }
         }
 
