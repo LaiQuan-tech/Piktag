@@ -261,12 +261,20 @@
     "addContactSyncDesc": "Tìm những người đã có trên PikTag",
     "addInviteTitle": "Mời bạn bè vào PikTag",
     "addInviteDesc": "Gửi link mời — họ tham gia là tự kết nối ngay",
-    "coldStartActionContacts": "Tìm bạn bè từ danh bạ",
-    "coldStartActionContactsDesc": "Tìm những người đã có trên PikTag — gắn tag, còn ai chưa có thì mời vào",
+    "coldStartActionContacts": "Tìm bạn từ danh bạ",
+    "coldStartActionContactsDesc": "Tìm bạn đã có trên PikTag — gắn tag và mời người chưa có",
     "notJoinedBadge": "Chưa có trên PikTag",
-    "coldStartActionManual": "Ghi nhanh một người",
-    "coldStartActionManualDesc": "Họ chưa cần tài khoản — khi họ vào, tag và ghi chú của bạn tự gắn vào",
-    "addManualA11y": "Thêm liên hệ thủ công"
+    "coldStartActionManual": "Ghi chú một người",
+    "coldStartActionManualDesc": "Không cần tài khoản — tags và ghi chú của bạn tự kết nối khi họ tham gia",
+    "addManualA11y": "Thêm liên hệ thủ công",
+    "coldStartTitle": "Chưa có bạn?",
+    "coldStartSubtitle": "Bắt đầu PikTag của bạn trong 5 bước",
+    "coldStartActionProfile": "Hoàn thiện hồ sơ",
+    "coldStartActionProfileDesc": "Tên, bio, tags, social links",
+    "coldStartActionQr": "Chia sẻ QR Code của bạn",
+    "coldStartActionQrDesc": "Bạn bè theo dõi bạn chỉ với một lần quét",
+    "coldStartActionAsk": "Đăng một Ask",
+    "coldStartActionAskDesc": "Chưa có mạng lưới? Cho biết bạn tìm ai hoặc cái gì — chúng tôi sẽ kết nối"
   },
   "search": {
     "clearAll": "Xoá hết",
@@ -1273,7 +1281,8 @@
       "Tối nay chơi board game, ai tham gia không?"
     ],
     "createSubtitle": "Chỉ một dòng — AI tự thêm tag để đúng người (hoặc bạn của bạn) nhìn thấy.",
-    "createFailed": "Ask chưa gửi được — thử lại nhé."
+    "createFailed": "Ask chưa gửi được — thử lại nhé.",
+    "shortPrompt": "Bạn muốn gì?"
   },
   "errorBoundary": {
     "title": "Có gì đó trục trặc",

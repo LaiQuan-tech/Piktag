@@ -255,13 +255,21 @@
     "addInviteTitle": "邀请朋友加入 PikTag",
     "addInviteDesc": "分享邀请链接，他注册后直接成为好友",
     "coldStartActionContacts": "从通讯录找朋友",
-    "coldStartActionContactsDesc": "找出已在 PikTag 的朋友，没在的也能标签+邀请",
+    "coldStartActionContactsDesc": "找出已在 PikTag 的朋友,没在的也能标签+邀请",
     "notJoinedBadge": "尚未加入 PikTag",
     "coldStartActionManual": "手动记下一个人",
     "coldStartActionManualDesc": "对方还不用是会员 — 加入后自动接上你的标签与备注",
     "addManualA11y": "手动新增联系人",
     "phonePromptTitle": "加上手机号码，让朋友找到你",
-    "phonePromptBody": "朋友通讯录同步时会自动加你为好友。仅 PikTag 内使用，永不公开。"
+    "phonePromptBody": "朋友通讯录同步时会自动加你为好友。仅 PikTag 内使用，永不公开。",
+    "coldStartTitle": "还没有朋友?",
+    "coldStartSubtitle": "从这 5 步开始建立你的 PikTag",
+    "coldStartActionProfile": "完成个人资料",
+    "coldStartActionProfileDesc": "名字、简介、标签、社交链接",
+    "coldStartActionQr": "分享你的 QR Code",
+    "coldStartActionQrDesc": "让朋友扫一下就关注你",
+    "coldStartActionAsk": "发一个 Ask",
+    "coldStartActionAskDesc": "还没人脉?广播你想找的人或事,让平台帮你连上"
   },
   "search": {
     "clearAll": "清除全部",
@@ -1259,7 +1267,8 @@
       "找桌游搭子，这周约一场"
     ],
     "createSubtitle": "一句话就好 — AI 会配上标签，让对的人（或朋友的朋友）看到。",
-    "createFailed": "帖子没送出去，请再试一次。"
+    "createFailed": "帖子没送出去，请再试一次。",
+    "shortPrompt": "想要什么?"
   },
   "errorBoundary": {
     "title": "出错了",

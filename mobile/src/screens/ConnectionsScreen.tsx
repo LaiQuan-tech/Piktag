@@ -1465,7 +1465,13 @@ function makeStyles(c: ColorPalette) {
     paddingBottom: 100,
   },
   listContentEmpty: {
-    flex: 1,
+    // `flexGrow: 1` (not `flex: 1`) — flex:1 caps the contentContainer
+    // at viewport height, which made the 5-card cold-start
+    // ListEmptyComponent clip with NO scroll past the 2nd card.
+    // flexGrow allows it to fill the viewport when small AND grow
+    // taller when content overflows (the scroll restores naturally).
+    flexGrow: 1,
+    paddingBottom: 100,
   },
   emptyContainer: {
     flex: 1,

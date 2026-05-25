@@ -261,12 +261,20 @@
     "addContactSyncDesc": "Trova gli amici già su PikTag",
     "addInviteTitle": "Invita amici su PikTag",
     "addInviteDesc": "Condividi un link d'invito — vi collega da solo appena si iscrivono",
-    "coldStartActionContacts": "Trova amici tra i tuoi contatti",
-    "coldStartActionContactsDesc": "Trova gli amici già su PikTag — tagga e invita chi ancora non c'è",
+    "coldStartActionContacts": "Trova amici dai contatti",
+    "coldStartActionContactsDesc": "Trova chi è già su PikTag — tagga e invita gli altri",
     "notJoinedBadge": "Non ancora su PikTag",
-    "coldStartActionManual": "Segnati qualcuno",
-    "coldStartActionManualDesc": "Non serve un account — tag e note si collegano da soli appena si iscrive",
-    "addManualA11y": "Aggiungi un contatto a mano"
+    "coldStartActionManual": "Annota qualcuno",
+    "coldStartActionManualDesc": "Non serve un account — i tuoi tag e note si collegano quando entra",
+    "addManualA11y": "Aggiungi un contatto a mano",
+    "coldStartTitle": "Ancora senza amici?",
+    "coldStartSubtitle": "Inizia il tuo PikTag in 5 passi",
+    "coldStartActionProfile": "Completa il tuo profilo",
+    "coldStartActionProfileDesc": "Nome, bio, tag, social",
+    "coldStartActionQr": "Condividi il tuo QR code",
+    "coldStartActionQrDesc": "Gli amici ti seguono con una scansione",
+    "coldStartActionAsk": "Pubblica un Ask",
+    "coldStartActionAskDesc": "Senza rete? Dì chi o cosa cerchi — ti colleghiamo"
   },
   "search": {
     "clearAll": "Cancella tutto",
@@ -1273,7 +1281,8 @@
       "Serata di giochi da tavolo questa settimana, chi c'è?"
     ],
     "createSubtitle": "Basta una riga — l'AI ci mette i tag, così la vedono le persone giuste (o un amico di un amico).",
-    "createFailed": "Il tuo Ask non è partito — riprova."
+    "createFailed": "Il tuo Ask non è partito — riprova.",
+    "shortPrompt": "Cosa ti serve?"
   },
   "errorBoundary": {
     "title": "Ops, qualcosa non ha funzionato",

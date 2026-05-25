@@ -251,15 +251,23 @@
     "addContactSyncDesc": "Acha quem já está no PikTag",
     "addInviteTitle": "Convida amigos pro PikTag",
     "addInviteDesc": "Compartilha um link — vira amigo automático",
-    "coldStartActionContacts": "Acha amigos nos teus contatos",
-    "coldStartActionContactsDesc": "Acha quem já está no PikTag — pros outros, tag + convite",
+    "coldStartActionContacts": "Encontre amigos nos contatos",
+    "coldStartActionContactsDesc": "Encontre quem já está no PikTag — marque e convide o resto",
     "notJoinedBadge": "Ainda não no PikTag",
     "coldStartActionManual": "Anote alguém",
-    "coldStartActionManualDesc": "Não precisa de conta — vincula suas tags e notas quando entrar",
+    "coldStartActionManualDesc": "Não precisa de conta — suas tags e notas se conectam quando entra",
     "addManualA11y": "Adicionar contato manualmente",
     "phonePromptTitle": "Adicione seu telefone para amigos te encontrarem",
     "phonePromptBody": "Quando amigos sincronizarem contatos, vocês se conectarão automaticamente. Usado só pelo PikTag, nunca público.",
-    "addedFriend": "+ {{name}}"
+    "addedFriend": "+ {{name}}",
+    "coldStartTitle": "Ainda sem amigos?",
+    "coldStartSubtitle": "Comece seu PikTag em 5 passos",
+    "coldStartActionProfile": "Complete seu perfil",
+    "coldStartActionProfileDesc": "Nome, bio, tags, redes sociais",
+    "coldStartActionQr": "Compartilhe seu QR Code",
+    "coldStartActionQrDesc": "Amigos te seguem com um scan",
+    "coldStartActionAsk": "Poste um Ask",
+    "coldStartActionAskDesc": "Sem rede? Conte quem ou o que procura — a gente conecta"
   },
   "search": {
     "clearAll": "Limpar tudo",
@@ -1194,7 +1202,8 @@
     ],
     "createSubtitle": "Uma linha basta — a IA põe as tags para a pessoa certa (ou um amigo de um amigo) ver.",
     "createFailed": "Seu Ask não foi enviado — tente de novo.",
-    "deleteFailed": "Não foi possível apagar o ask"
+    "deleteFailed": "Não foi possível apagar o ask",
+    "shortPrompt": "O que você quer?"
   },
   "errorBoundary": {
     "title": "Algo deu errado",

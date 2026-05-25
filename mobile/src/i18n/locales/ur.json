@@ -261,12 +261,20 @@
     "addContactSyncDesc": "PikTag پر پہلے سے موجود دوست ڈھونڈیں",
     "addInviteTitle": "دوستوں کو PikTag پر بلائیں",
     "addInviteDesc": "دعوتی لنک شیئر کریں — وہ شامل ہوتے ہی خود سے جڑ جاتے ہیں",
-    "coldStartActionContacts": "اپنے رابطوں میں سے دوست ڈھونڈیں",
-    "coldStartActionContactsDesc": "PikTag پر موجود دوست ڈھونڈیں — جو نہیں ہیں انہیں ٹیگ کر کے بلائیں",
+    "coldStartActionContacts": "کنٹیکٹس سے دوست تلاش کریں",
+    "coldStartActionContactsDesc": "PikTag پر موجود دوست تلاش کریں — باقیوں کو ٹیگ اور انوائٹ کریں",
     "notJoinedBadge": "ابھی PikTag پر نہیں",
-    "coldStartActionManual": "کسی کو نوٹ کر لیں",
-    "coldStartActionManualDesc": "انہیں اکاؤنٹ کی ضرورت نہیں — وہ شامل ہوتے ہی آپ کے ٹیگز اور نوٹس خود جڑ جاتے ہیں",
-    "addManualA11y": "رابطہ خود سے شامل کریں"
+    "coldStartActionManual": "کسی کو نوٹ کریں",
+    "coldStartActionManualDesc": "اکاؤنٹ کی ضرورت نہیں — جب وہ شامل ہوں آپ کے ٹیگز اور نوٹس آٹو لنک ہو جائیں گے",
+    "addManualA11y": "رابطہ خود سے شامل کریں",
+    "coldStartTitle": "ابھی تک کوئی دوست نہیں؟",
+    "coldStartSubtitle": "5 قدموں میں اپنا PikTag شروع کریں",
+    "coldStartActionProfile": "اپنی پروفائل مکمل کریں",
+    "coldStartActionProfileDesc": "نام، بائیو، ٹیگز، سوشل لنکس",
+    "coldStartActionQr": "اپنا QR کوڈ شیئر کریں",
+    "coldStartActionQrDesc": "دوست ایک سکین سے فالو کریں گے",
+    "coldStartActionAsk": "Ask پوسٹ کریں",
+    "coldStartActionAskDesc": "ابھی نیٹ ورک نہیں؟ بتائیں کس کو یا کیا تلاش کر رہے ہیں — ہم جوڑ دیں گے"
   },
   "search": {
     "clearAll": "سب صاف کریں",
@@ -1273,7 +1281,8 @@
       "اس ہفتے بورڈ گیم کی شام، کون آ رہا ہے؟"
     ],
     "createSubtitle": "بس ایک سطر — AI ٹیگز لگا دیتا ہے تاکہ صحیح لوگ (یا کسی دوست کا دوست) اسے دیکھ لیں۔",
-    "createFailed": "آپ کا Ask نہیں گیا — دوبارہ کوشش کریں۔"
+    "createFailed": "آپ کا Ask نہیں گیا — دوبارہ کوشش کریں۔",
+    "shortPrompt": "کیا چاہیے؟"
   },
   "errorBoundary": {
     "title": "کچھ گڑبڑ ہو گئی",

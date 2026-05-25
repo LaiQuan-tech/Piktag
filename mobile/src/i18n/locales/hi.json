@@ -251,15 +251,23 @@
     "addContactSyncDesc": "PikTag पर पहले से मौजूद दोस्तों को खोजें",
     "addInviteTitle": "दोस्तों को PikTag पर बुलाएं",
     "addInviteDesc": "इन्वाइट लिंक शेयर करें — साइन अप करते ही दोस्त",
-    "coldStartActionContacts": "अपने कॉन्टैक्ट से दोस्त खोजें",
-    "coldStartActionContactsDesc": "PikTag पर मौजूद दोस्तों को खोजें — बाकी को टैग + इन्वाइट",
+    "coldStartActionContacts": "अपने contacts से दोस्त खोजें",
+    "coldStartActionContactsDesc": "PikTag पर पहले से मौजूद दोस्त खोजें — बाकियों को tag और invite करें",
     "notJoinedBadge": "अभी PikTag पर नहीं",
     "coldStartActionManual": "किसी को नोट करें",
-    "coldStartActionManualDesc": "अकाउंट ज़रूरी नहीं — जुड़ने पर आपके टैग व नोट अपने‑आप लिंक",
+    "coldStartActionManualDesc": "खाते की ज़रूरत नहीं — जब वे जुड़ें, आपके टैग्स और नोट्स ऑटो-लिंक हो जाएंगे",
     "addManualA11y": "मैन्युअल संपर्क जोड़ें",
     "phonePromptTitle": "फ़ोन जोड़ें ताकि दोस्त ढूँढ़ें",
     "phonePromptBody": "जब दोस्त संपर्क सिंक करेंगे, स्वतः जुड़ेंगे. केवल PikTag, कभी सार्वजनिक नहीं.",
-    "addedFriend": "+ {{name}}"
+    "addedFriend": "+ {{name}}",
+    "coldStartTitle": "अभी तक कोई दोस्त नहीं?",
+    "coldStartSubtitle": "5 स्टेप्स में अपना PikTag शुरू करें",
+    "coldStartActionProfile": "अपनी प्रोफाइल पूरी करें",
+    "coldStartActionProfileDesc": "नाम, बायो, टैग्स, सोशल लिंक्स",
+    "coldStartActionQr": "अपना QR code share करें",
+    "coldStartActionQrDesc": "दोस्त एक scan में follow करेंगे",
+    "coldStartActionAsk": "Ask पोस्ट करें",
+    "coldStartActionAskDesc": "अभी network नहीं? बताएं किसे या क्या ढूंढ रहे हैं — हम connect करा देंगे"
   },
   "search": {
     "clearAll": "सब साफ़ करें",
@@ -1194,7 +1202,8 @@
     ],
     "createSubtitle": "एक लाइन काफी है — AI टैग जोड़ता है ताकि सही लोग (या दोस्त का दोस्त) इसे देखें।",
     "createFailed": "आपका Ask नहीं गया — फिर से कोशिश करें।",
-    "deleteFailed": "Ask हटाना विफल"
+    "deleteFailed": "Ask हटाना विफल",
+    "shortPrompt": "क्या चाहिए?"
   },
   "errorBoundary": {
     "title": "कुछ गड़बड़ हो गई",

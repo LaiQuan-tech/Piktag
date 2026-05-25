@@ -251,15 +251,23 @@
     "addContactSyncDesc": "Temuin teman yang udah di PikTag",
     "addInviteTitle": "Ajak teman ke PikTag",
     "addInviteDesc": "Share link undangan — auto jadi teman pas dia gabung",
-    "coldStartActionContacts": "Cari teman dari kontakmu",
-    "coldStartActionContactsDesc": "Temuin yang udah di PikTag — tag + invite yang belum",
+    "coldStartActionContacts": "Cari teman dari kontak",
+    "coldStartActionContactsDesc": "Cari teman yang sudah di PikTag — tag dan undang yang belum",
     "notJoinedBadge": "Belum di PikTag",
     "coldStartActionManual": "Catat seseorang",
-    "coldStartActionManualDesc": "Tak perlu akun — otomatis tertaut ke tag & catatanmu saat ia gabung",
+    "coldStartActionManualDesc": "Tidak perlu akun — tag dan catatanmu otomatis tersambung saat dia bergabung",
     "addManualA11y": "Tambah kontak manual",
     "phonePromptTitle": "Tambahkan nomor agar teman bisa menemukan",
     "phonePromptBody": "Saat teman menyinkronkan kontak, otomatis terhubung. Hanya PikTag, tidak pernah publik.",
-    "addedFriend": "+ {{name}}"
+    "addedFriend": "+ {{name}}",
+    "coldStartTitle": "Belum punya teman?",
+    "coldStartSubtitle": "Mulai PikTag-mu dalam 5 langkah",
+    "coldStartActionProfile": "Lengkapi profilmu",
+    "coldStartActionProfileDesc": "Nama, bio, tag, social link",
+    "coldStartActionQr": "Bagikan QR Code-mu",
+    "coldStartActionQrDesc": "Teman mengikutimu dengan satu pindai",
+    "coldStartActionAsk": "Posting Ask",
+    "coldStartActionAskDesc": "Belum punya jaringan? Beri tahu siapa atau apa yang dicari — kita sambungkan"
   },
   "search": {
     "clearAll": "Hapus semua",
@@ -1194,7 +1202,8 @@
     ],
     "createSubtitle": "Satu baris cukup — AI menambah tag biar orang yang tepat (atau teman dari teman) melihatnya.",
     "createFailed": "Ask kamu gagal terkirim — coba lagi.",
-    "deleteFailed": "Tidak bisa hapus ask"
+    "deleteFailed": "Tidak bisa hapus ask",
+    "shortPrompt": "Mau apa?"
   },
   "errorBoundary": {
     "title": "Terjadi kesalahan",

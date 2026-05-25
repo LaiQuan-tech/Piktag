@@ -251,15 +251,23 @@
     "addContactSyncDesc": "PikTag-এ থাকা বন্ধুদের খুঁজে নাও",
     "addInviteTitle": "বন্ধুদের PikTag-এ ইনভাইট করো",
     "addInviteDesc": "ইনভাইট লিংক শেয়ার করো — সাইন আপ করলেই বন্ধু হবে",
-    "coldStartActionContacts": "কন্টাক্ট থেকে বন্ধু খোঁজো",
-    "coldStartActionContactsDesc": "যারা PikTag-এ আছে তাদের খোঁজো, বাকিদের ট্যাগ + ইনভাইট",
+    "coldStartActionContacts": "কন্টাক্ট থেকে বন্ধু খুঁজুন",
+    "coldStartActionContactsDesc": "PikTag-এ যারা আছে তাদের খুঁজুন — বাকিদের ট্যাগ ও ইনভাইট করুন",
     "notJoinedBadge": "এখনও PikTag-এ নেই",
-    "coldStartActionManual": "কাউকে টুকে রাখুন",
-    "coldStartActionManualDesc": "অ্যাকাউন্ট লাগবে না — যোগ দিলে আপনার ট্যাগ ও নোট স্বয়ং লিঙ্ক হবে",
+    "coldStartActionManual": "কাউকে নোট করুন",
+    "coldStartActionManualDesc": "অ্যাকাউন্ট দরকার নেই — যোগ দিলে আপনার ট্যাগ ও নোট অটো-লিংক হয়",
     "addManualA11y": "ম্যানুয়ালি পরিচিতি যোগ করুন",
     "phonePromptTitle": "ফোন যোগ করুন যাতে বন্ধুরা পায়",
     "phonePromptBody": "বন্ধুরা কন্টাক্ট সিঙ্ক করলে স্বয়ংক্রিয় যুক্ত হবে. PikTag-এ ব্যবহৃত, প্রকাশ্য নয়.",
-    "addedFriend": "+ {{name}}"
+    "addedFriend": "+ {{name}}",
+    "coldStartTitle": "এখনো কোন বন্ধু নেই?",
+    "coldStartSubtitle": "5 ধাপে আপনার PikTag শুরু করুন",
+    "coldStartActionProfile": "প্রোফাইল সম্পূর্ণ করুন",
+    "coldStartActionProfileDesc": "নাম, বায়ো, ট্যাগ, সোশ্যাল লিংক",
+    "coldStartActionQr": "আপনার QR কোড শেয়ার করুন",
+    "coldStartActionQrDesc": "বন্ধুরা এক স্ক্যানে ফলো করবে",
+    "coldStartActionAsk": "Ask পোস্ট করুন",
+    "coldStartActionAskDesc": "এখনো নেটওয়ার্ক নেই? কাকে বা কী খুঁজছেন বলুন — আমরা যোগ করিয়ে দেব"
   },
   "search": {
     "clearAll": "সব সাফ করুন",
@@ -1194,7 +1202,8 @@
     ],
     "createSubtitle": "এক লাইনই যথেষ্ট — AI ট্যাগ যোগ করে যাতে ঠিক মানুষ (বা বন্ধুর বন্ধু) দেখতে পায়।",
     "createFailed": "আপনার Ask যায়নি — আবার চেষ্টা করুন।",
-    "deleteFailed": "Ask মুছতে ব্যর্থ"
+    "deleteFailed": "Ask মুছতে ব্যর্থ",
+    "shortPrompt": "কী চাই?"
   },
   "errorBoundary": {
     "title": "কিছু ভুল হয়েছে",

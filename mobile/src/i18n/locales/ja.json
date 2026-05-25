@@ -251,15 +251,23 @@
     "addContactSyncDesc": "既に PikTag にいる友達を見つける",
     "addInviteTitle": "友達を PikTag に招待",
     "addInviteDesc": "招待リンクをシェア — 登録すると自動的に友達に",
-    "coldStartActionContacts": "連絡先から友達を見つける",
-    "coldStartActionContactsDesc": "PikTag にいる友達を見つけて、まだの人にはタグ付き招待を",
+    "coldStartActionContacts": "連絡先から友達を探す",
+    "coldStartActionContactsDesc": "PikTag にいる友達を見つけて、いない人にもタグ付けと招待",
     "notJoinedBadge": "PikTag 未参加",
-    "coldStartActionManual": "人をメモする",
-    "coldStartActionManualDesc": "相手はアカウント不要 — 参加したらタグとメモが自動でつながる",
+    "coldStartActionManual": "誰かをメモする",
+    "coldStartActionManualDesc": "アカウント不要 — 加入したら自動的にタグとメモが繋がる",
     "addManualA11y": "連絡先を手動で追加",
     "phonePromptTitle": "電話番号を追加して友達に見つけてもらおう",
     "phonePromptBody": "友達が連絡先を同期したとき自動でつながります。PikTag 内でのみ使用、公開されません。",
-    "addedFriend": "+ {{name}}"
+    "addedFriend": "+ {{name}}",
+    "coldStartTitle": "まだ友達がいない?",
+    "coldStartSubtitle": "この 5 ステップで PikTag を始めよう",
+    "coldStartActionProfile": "プロフィールを完成させる",
+    "coldStartActionProfileDesc": "名前、自己紹介、タグ、SNS リンク",
+    "coldStartActionQr": "QR コードをシェア",
+    "coldStartActionQrDesc": "友達がスキャンするだけでフォロー",
+    "coldStartActionAsk": "Ask を投稿",
+    "coldStartActionAskDesc": "まだ人脈がない?探している人や物事を広めて、繋いでもらおう"
   },
   "search": {
     "clearAll": "すべてクリア",
@@ -1194,7 +1202,8 @@
     ],
     "createSubtitle": "一言でOK — AIがタグを付けて、ぴったりの人（友達の友達も）に届きます。",
     "createFailed": "Ask を送れなかった — もう一度試してね。",
-    "deleteFailed": "Ask を削除できませんでした"
+    "deleteFailed": "Ask を削除できませんでした",
+    "shortPrompt": "何が欲しい?"
   },
   "errorBoundary": {
     "title": "問題が発生しました",

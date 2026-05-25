@@ -266,7 +266,15 @@
     "notJoinedBadge": "尚未加入 PikTag",
     "coldStartActionManual": "手動記下一個人",
     "coldStartActionManualDesc": "對方還不用是會員 — 加入後自動接上你的標籤與備註",
-    "addManualA11y": "手動新增聯絡人"
+    "addManualA11y": "手動新增聯絡人",
+    "coldStartTitle": "還沒有朋友？",
+    "coldStartSubtitle": "從這 5 步開始建立你的 PikTag",
+    "coldStartActionProfile": "完成個人資料",
+    "coldStartActionProfileDesc": "名字、簡介、標籤、社群連結",
+    "coldStartActionQr": "分享你的 QR Code",
+    "coldStartActionQrDesc": "讓朋友掃一下就追蹤你",
+    "coldStartActionAsk": "發一個 Ask",
+    "coldStartActionAskDesc": "還沒人脈？廣播你想找的人或事，讓平台幫你連上"
   },
   "search": {
     "clearAll": "清除全部",
@@ -1276,7 +1284,8 @@
       "找桌遊咖，這週揪一場"
     ],
     "createSubtitle": "一句話就好 — AI 會配上標籤，讓對的人（或朋友的朋友）看到。",
-    "createFailed": "貼文沒送出去，請再試一次。"
+    "createFailed": "貼文沒送出去，請再試一次。",
+    "shortPrompt": "想要什麼？"
   },
   "errorBoundary": {
     "title": "發生錯誤",

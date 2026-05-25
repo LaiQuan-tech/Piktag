@@ -254,14 +254,22 @@
     "addContactSyncDesc": "Find Freunde, die schon auf PikTag sind",
     "addInviteTitle": "Freunde zu PikTag einladen",
     "addInviteDesc": "Einladungslink teilen — automatisch verbunden",
-    "coldStartActionContacts": "Freunde aus deinen Kontakten finden",
-    "coldStartActionContactsDesc": "Find Freunde, die schon dabei sind — die anderen taggen + einladen",
+    "coldStartActionContacts": "Freunde aus Kontakten finden",
+    "coldStartActionContactsDesc": "Finde wer schon auf PikTag ist — tagge und lade den Rest ein",
     "notJoinedBadge": "Noch nicht auf PikTag",
     "coldStartActionManual": "Jemanden notieren",
-    "coldStartActionManualDesc": "Kein Konto nötig — verknüpft sich bei Anmeldung mit deinen Tags & Notizen",
+    "coldStartActionManualDesc": "Kein Konto nötig — deine Tags und Notizen verlinken sich, wenn er beitritt",
     "addManualA11y": "Kontakt manuell hinzufügen",
     "phonePromptTitle": "Telefonnummer hinzufügen, damit Freunde dich finden",
-    "phonePromptBody": "Wenn Freunde ihre Kontakte synchronisieren, werdet ihr automatisch verbunden. Nur von PikTag verwendet, niemals öffentlich."
+    "phonePromptBody": "Wenn Freunde ihre Kontakte synchronisieren, werdet ihr automatisch verbunden. Nur von PikTag verwendet, niemals öffentlich.",
+    "coldStartTitle": "Noch keine Freunde?",
+    "coldStartSubtitle": "Starte dein PikTag in 5 Schritten",
+    "coldStartActionProfile": "Profil vervollständigen",
+    "coldStartActionProfileDesc": "Name, Bio, Tags, Social Links",
+    "coldStartActionQr": "Teile deinen QR Code",
+    "coldStartActionQrDesc": "Freunde folgen dir mit einem Scan",
+    "coldStartActionAsk": "Poste einen Ask",
+    "coldStartActionAskDesc": "Kein Netzwerk? Sag wen oder was du suchst — wir verbinden dich"
   },
   "search": {
     "clearAll": "Alle löschen",
@@ -1259,7 +1267,8 @@
       "Brettspielabend diese Woche, wer ist dabei?"
     ],
     "createSubtitle": "Eine Zeile reicht — die KI vergibt die Tags, damit die richtigen Leute (oder ein Freund eines Freundes) es sehen.",
-    "createFailed": "Dein Ask ging nicht raus — versuch es nochmal."
+    "createFailed": "Dein Ask ging nicht raus — versuch es nochmal.",
+    "shortPrompt": "Was brauchst du?"
   },
   "errorBoundary": {
     "title": "Etwas ist schiefgelaufen",

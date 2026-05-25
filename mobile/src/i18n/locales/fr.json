@@ -252,14 +252,22 @@
     "addInviteTitle": "Invite des amis sur PikTag",
     "addInviteDesc": "Partage un lien — devenez amis automatiquement",
     "coldStartActionContacts": "Trouve des amis dans tes contacts",
-    "coldStartActionContactsDesc": "Trouve ceux qui sont déjà là — tag et invite les autres",
+    "coldStartActionContactsDesc": "Trouve ceux déjà sur PikTag — tague et invite les autres",
     "notJoinedBadge": "Pas encore sur PikTag",
-    "coldStartActionManual": "Noter quelqu’un",
-    "coldStartActionManualDesc": "Pas besoin de compte — se relie à vos tags et notes à son inscription",
+    "coldStartActionManual": "Note quelqu'un",
+    "coldStartActionManualDesc": "Pas besoin de compte — tes tags et notes se lient quand il rejoint",
     "addManualA11y": "Ajouter un contact manuellement",
     "phonePromptTitle": "Ajoutez votre téléphone pour que vos amis vous trouvent",
     "phonePromptBody": "Vos amis seront connectés automatiquement à la synchronisation des contacts. Utilisé uniquement par PikTag, jamais public.",
-    "addedFriend": "+ {{name}}"
+    "addedFriend": "+ {{name}}",
+    "coldStartTitle": "Pas encore d'amis ?",
+    "coldStartSubtitle": "Lance ton PikTag en 5 étapes",
+    "coldStartActionProfile": "Complète ton profil",
+    "coldStartActionProfileDesc": "Nom, bio, tags, réseaux sociaux",
+    "coldStartActionQr": "Partage ton QR code",
+    "coldStartActionQrDesc": "Tes amis te suivent en un scan",
+    "coldStartActionAsk": "Publie un Ask",
+    "coldStartActionAskDesc": "Pas de réseau ? Dis qui ou quoi tu cherches — on te connecte"
   },
   "search": {
     "clearAll": "Tout effacer",
@@ -1194,7 +1202,8 @@
     ],
     "createSubtitle": "Une ligne suffit — l'IA ajoute les tags pour que les bonnes personnes (ou un ami d'ami) le voient.",
     "createFailed": "Ton Ask n'est pas passé — réessaie.",
-    "deleteFailed": "Échec de la suppression de l'ask"
+    "deleteFailed": "Échec de la suppression de l'ask",
+    "shortPrompt": "Tu veux quoi ?"
   },
   "errorBoundary": {
     "title": "Une erreur est survenue",

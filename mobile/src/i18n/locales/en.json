@@ -266,7 +266,15 @@
     "notJoinedBadge": "Not on PikTag yet",
     "coldStartActionManual": "Jot someone down",
     "coldStartActionManualDesc": "They don't need an account — auto-links your tags & notes when they join",
-    "addManualA11y": "Add a contact manually"
+    "addManualA11y": "Add a contact manually",
+    "coldStartTitle": "No friends yet?",
+    "coldStartSubtitle": "Start building your PikTag in 5 steps",
+    "coldStartActionProfile": "Complete your profile",
+    "coldStartActionProfileDesc": "Name, bio, tags, social links",
+    "coldStartActionQr": "Share your QR code",
+    "coldStartActionQrDesc": "Friends scan once to follow you",
+    "coldStartActionAsk": "Post an Ask",
+    "coldStartActionAskDesc": "No network yet? Broadcast who or what you're looking for — we'll connect you"
   },
   "search": {
     "clearAll": "Clear all",
@@ -1273,7 +1281,8 @@
       "Board-game night this week, who’s in?"
     ],
     "createSubtitle": "Just one line — AI adds the tags so the right people (or a friend of a friend) see it.",
-    "createFailed": "Your Ask didn't go through — try again."
+    "createFailed": "Your Ask didn't go through — try again.",
+    "shortPrompt": "What do you need?"
   },
   "errorBoundary": {
     "title": "Something went wrong",

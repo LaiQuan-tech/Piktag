@@ -251,15 +251,23 @@
     "addContactSyncDesc": "Encuentra a tus amigos que ya están aquí",
     "addInviteTitle": "Invita amigos a PikTag",
     "addInviteDesc": "Comparte un enlace — se conecta solo cuando se une",
-    "coldStartActionContacts": "Busca amigos en tus contactos",
-    "coldStartActionContactsDesc": "Encuentra a los que ya están — etiqueta e invita a los que no",
+    "coldStartActionContacts": "Encuentra amigos en tus contactos",
+    "coldStartActionContactsDesc": "Encuentra a quienes ya están en PikTag — etiqueta e invita al resto",
     "notJoinedBadge": "Aún no en PikTag",
-    "coldStartActionManual": "Apunta a alguien",
-    "coldStartActionManualDesc": "No necesita cuenta — se vincula con tus etiquetas y notas al unirse",
+    "coldStartActionManual": "Anota a alguien",
+    "coldStartActionManualDesc": "No necesita cuenta — tus tags y notas se vinculan cuando se une",
     "addManualA11y": "Añadir contacto manualmente",
     "phonePromptTitle": "Añade tu teléfono para que amigos te encuentren",
     "phonePromptBody": "Cuando tus amigos sincronicen contactos, se conectarán automáticamente. Solo usado por PikTag, nunca público.",
-    "addedFriend": "+ {{name}}"
+    "addedFriend": "+ {{name}}",
+    "coldStartTitle": "¿Aún sin amigos?",
+    "coldStartSubtitle": "Empieza tu PikTag en 5 pasos",
+    "coldStartActionProfile": "Completa tu perfil",
+    "coldStartActionProfileDesc": "Nombre, bio, tags, redes sociales",
+    "coldStartActionQr": "Comparte tu código QR",
+    "coldStartActionQrDesc": "Tus amigos te siguen con un escaneo",
+    "coldStartActionAsk": "Publica un Ask",
+    "coldStartActionAskDesc": "¿Sin red? Cuenta a quién o qué buscas — te conectamos"
   },
   "search": {
     "clearAll": "Limpiar todo",
@@ -1194,7 +1202,8 @@
     ],
     "createSubtitle": "Con una línea basta — la IA pone las etiquetas para que lo vea la gente indicada (o un amigo de un amigo).",
     "createFailed": "Tu Ask no se publicó — inténtalo de nuevo.",
-    "deleteFailed": "No se pudo borrar el ask"
+    "deleteFailed": "No se pudo borrar el ask",
+    "shortPrompt": "¿Qué necesitas?"
   },
   "errorBoundary": {
     "title": "Algo salió mal",
