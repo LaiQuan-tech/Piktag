@@ -877,55 +877,65 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
 
         <View style={styles.emptyActionList}>
           {[
+            // Order = founder's intended cold-start narrative arc:
+            //   1. profile  — "tags define me, this is who I am"
+            //   2. qr       — "now share that freshly-built me"
+            //   3. ask      — "tags let the right people find me"
+            //   4. manual   — "private tags = respect for friends I want to remember"
+            //   5. contacts — "invite friends to remember each other"
+            // Re-ordered 2026-05-26 per founder review: post-edit
+            // sharing belongs before "find others" CTAs, and the
+            // contact-sync invite (which historically carried
+            // negative "tagging people" framing in zh) sits last as
+            // a soft "invite" rather than aggressive growth move.
             {
               key: 'profile',
               icon: User,
-              title: t('connections.coldStartActionProfile', { defaultValue: '完成個人資料' }),
-              desc: t('connections.coldStartActionProfileDesc', { defaultValue: '名字、簡介、標籤、社群連結' }),
+              title: t('connections.coldStartActionProfile'),
+              desc: t('connections.coldStartActionProfileDesc'),
               onPress: () => navigation.navigate('ProfileTab', { screen: 'EditProfile' }),
             },
             {
-              // Single-player CRM path, brought back: jot down a
-              // person yourself even with zero PikTag friends yet.
-              // When they later register, the server trigger
-              // promotes the row into a real connection (your
-              // private tags/notes ride along; they never see them).
-              key: 'manual',
-              icon: UserPlus,
-              title: t('connections.coldStartActionManual', { defaultValue: '手動記下一個人' }),
-              desc: t('connections.coldStartActionManualDesc', { defaultValue: '對方還不用是會員 — 加入後自動接上你的標籤與備註' }),
-              onPress: () => navigation.navigate('EditLocalContact'),
-            },
-            {
-              // The social path: resolve phone-book contacts against
-              // PikTag accounts, follow matches, tag-and-invite the
-              // rest.
-              key: 'contacts',
-              icon: Users,
-              title: t('connections.coldStartActionContacts', { defaultValue: '從通訊錄找朋友' }),
-              desc: t('connections.coldStartActionContactsDesc', { defaultValue: '找出已在 PikTag 的朋友，沒在的也能標籤+邀請' }),
-              onPress: () => navigation.navigate('ContactSync'),
-            },
-            {
+              // Immediately after editing the profile, share it.
+              // Closes the loop "build self → broadcast self" in
+              // two consecutive cards.
               key: 'qr',
               icon: QrCode,
-              title: t('connections.coldStartActionQr', { defaultValue: '分享你的 QR Code' }),
-              desc: t('connections.coldStartActionQrDesc', { defaultValue: '讓朋友掃一下就追蹤你' }),
+              title: t('connections.coldStartActionQr'),
+              desc: t('connections.coldStartActionQrDesc'),
               onPress: () => navigation.navigate('AddTagTab', { screen: 'AddTag' }),
             },
             {
-              // The "no network yet?" escape hatch. PikTag's core is
-              // people-discovery-through-network, but day-1 users have
-              // no network — Ask broadcasts to the whole platform and
-              // surfaces friends-of-friends + tag-similar strangers
-              // who can answer. Without this card a cold-start user
-              // sees four CTAs that all assume "you already know
-              // somebody"; Ask is the only one that doesn't.
+              // The "no network yet?" escape hatch. Framed as the
+              // payoff of having tags: tagged → findable.
               key: 'ask',
               icon: Megaphone,
-              title: t('connections.coldStartActionAsk', { defaultValue: '發一個 Ask' }),
-              desc: t('connections.coldStartActionAskDesc', { defaultValue: '還沒人脈？廣播你想找的人或事，讓平台幫你連上' }),
+              title: t('connections.coldStartActionAsk'),
+              desc: t('connections.coldStartActionAskDesc'),
               onPress: () => setAskCreateVisible(true),
+            },
+            {
+              // Single-player CRM path: jot down a non-member with
+              // hidden tags. The framing here is "private tags are
+              // a form of respect — remember them well", not the
+              // earlier neutral "manually jot someone down."
+              key: 'manual',
+              icon: UserPlus,
+              title: t('connections.coldStartActionManual'),
+              desc: t('connections.coldStartActionManualDesc'),
+              onPress: () => navigation.navigate('EditLocalContact'),
+            },
+            {
+              // Contact-sync. In zh "貼標籤" carries a negative
+              // load (sounds like labeling people), so the new
+              // copy reframes as "invite friends to share the tool,
+              // remember each other together" — no mention of the
+              // tagging mechanic itself.
+              key: 'contacts',
+              icon: Users,
+              title: t('connections.coldStartActionContacts'),
+              desc: t('connections.coldStartActionContactsDesc'),
+              onPress: () => navigation.navigate('ContactSync'),
             },
           ].map((action) => (
             <Pressable
