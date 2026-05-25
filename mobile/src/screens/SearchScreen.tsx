@@ -1183,38 +1183,52 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
               // query has zero substring overlap with the canonical
               // tag name (e.g. "賣房子" never substring-matches
               // "商用不動產", but they share a "real estate" concept
-              // via curated alias). Without this pass the recovery
-              // chip never appears for these queries and the contact
-              // effect downstream can't surface owner-tagged contacts
-              // that share the concept. Aligns the client with what
-              // search_users already does server-side; the cost is one
-              // extra ILIKE per keyword on tag_aliases (gin trgm
-              // indexed) plus one .in(concept_id, …) lookup.
+              // via curated alias). Aligns the client with what
+              // search_users already does server-side.
+              //
+              // IMPORTANT: only expand keywords of length ≥ 2 chars.
+              // Pass A's single-CJK-char keywords (the "養貓" → also
+              // "貓" trick we ask Gemini for) are intentionally broad
+              // for direct NAME match — ILIKE '%貓%' usefully hits the
+              // short tag 「貓派」. But applied to ALIASES, a single
+              // char ILIKE explodes — for "天上聖母" Gemini also emits
+              // "天 / 聖 / 母", alias ILIKE '%天%' matches dozens of
+              // unrelated aliases (天主教 / 春天 / 母語 / …), each
+              // pointing to a different concept that drags in all its
+              // sibling tags. The launch test surfaced 14 unrelated
+              // chips this way. 2-char floor is the cheapest correct
+              // fix — real CJK content nouns are ≥ 2 chars by language
+              // structure, English/JP keywords already are.
               try {
-                const aliasResults = await Promise.all(
-                  extracted.map((kw) =>
-                    supabase
-                      .from('tag_aliases')
-                      .select('concept_id')
-                      .ilike('alias', `%${kw}%`)
-                      .limit(10),
-                  ),
+                const aliasKeywords = extracted.filter(
+                  (kw) => typeof kw === 'string' && kw.trim().length >= 2,
                 );
-                const conceptIds = new Set<string>();
-                for (const r of aliasResults) {
-                  for (const a of (r.data || []) as any[]) {
-                    if (a.concept_id) conceptIds.add(a.concept_id);
+                if (aliasKeywords.length > 0) {
+                  const aliasResults = await Promise.all(
+                    aliasKeywords.map((kw) =>
+                      supabase
+                        .from('tag_aliases')
+                        .select('concept_id')
+                        .ilike('alias', `%${kw}%`)
+                        .limit(10),
+                    ),
+                  );
+                  const conceptIds = new Set<string>();
+                  for (const r of aliasResults) {
+                    for (const a of (r.data || []) as any[]) {
+                      if (a.concept_id) conceptIds.add(a.concept_id);
+                    }
                   }
-                }
-                if (conceptIds.size > 0) {
-                  const { data: conceptTags } = await supabase
-                    .from('piktag_tags')
-                    .select('id, name, semantic_type, usage_count, concept_id')
-                    .in('concept_id', [...conceptIds])
-                    .order('usage_count', { ascending: false })
-                    .limit(20);
-                  for (const t of (conceptTags || []) as any[]) {
-                    if (!llmTagMap.has(t.id)) llmTagMap.set(t.id, t);
+                  if (conceptIds.size > 0) {
+                    const { data: conceptTags } = await supabase
+                      .from('piktag_tags')
+                      .select('id, name, semantic_type, usage_count, concept_id')
+                      .in('concept_id', [...conceptIds])
+                      .order('usage_count', { ascending: false })
+                      .limit(10);
+                    for (const t of (conceptTags || []) as any[]) {
+                      if (!llmTagMap.has(t.id)) llmTagMap.set(t.id, t);
+                    }
                   }
                 }
               } catch (aliasErr) {
