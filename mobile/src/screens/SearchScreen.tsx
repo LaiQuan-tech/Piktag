@@ -983,7 +983,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
             .limit(20)
         );
 
-        const [aliasResult, profilesResult, ...tagResults] = await Promise.all([
+        const [aliasResult, profilesResult, biolinkResult, ...tagResults] = await Promise.all([
           // Alias search with first keyword
           supabase
             .from('tag_aliases')
@@ -995,6 +995,29 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
             .from('piktag_profiles')
             .select('id, username, full_name, avatar_url, is_verified')
             .or(`username.ilike.%${mainKeyword}%,full_name.ilike.%${mainKeyword}%,headline.ilike.%${mainKeyword}%,bio.ilike.%${mainKeyword}%`)
+            .limit(20),
+          // Biolinks search — surfaces a profile when its handle lives
+          // in a biolink rather than in the username/headline. Catches
+          // the "I know them as @alex_pikt on IG" / "fullwish on LINE"
+          // input pattern that profile-field search alone misses. The
+          // user_id from a biolink hit gets resolved to its profile
+          // via the inner join in one round-trip.
+          //
+          // Privacy: visibility='public' filter is the guard — only
+          // biolinks the owner has explicitly marked public are
+          // searchable. is_active filters out soft-deleted rows.
+          //
+          // Cost note: `url ILIKE` can match domain noise on generic
+          // platform-name queries ("instagram" → every IG biolink).
+          // Watch telemetry; if that turns out to be a real problem,
+          // either blacklist platform domains in stopwords or split
+          // out a derived `handle` column. Premature for now.
+          supabase
+            .from('piktag_biolinks')
+            .select('user_id, piktag_profiles!inner(id, username, full_name, avatar_url, is_verified)')
+            .or(`label.ilike.%${mainKeyword}%,url.ilike.%${mainKeyword}%`)
+            .eq('visibility', 'public')
+            .eq('is_active', true)
             .limit(20),
           ...tagPromises,
         ]);
@@ -1135,9 +1158,33 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
           setTagUsers([]);
         }
 
-        const finalProfiles = (!profilesResult.error && profilesResult.data
-          ? (profilesResult.data as PiktagProfile[])
-          : []);
+        // Merge direct profile hits + biolink-derived profile hits.
+        // Order: direct hits first (stronger signal — name/headline
+        // matches the query verbatim), then biolink hits (handle was
+        // hiding inside a social URL). Self-exclude + dedupe by id.
+        const profileMap = new Map<string, PiktagProfile>();
+        if (!profilesResult.error && profilesResult.data) {
+          for (const p of profilesResult.data as PiktagProfile[]) {
+            if (p && p.id && p.id !== user?.id && !profileMap.has(p.id)) {
+              profileMap.set(p.id, p);
+            }
+          }
+        }
+        if (!biolinkResult.error && biolinkResult.data) {
+          // Supabase types the inner-join column as an array even when
+          // the FK is many-to-one — handle both shapes defensively so
+          // a runtime shape change doesn't silently drop matches.
+          for (const row of biolinkResult.data as any[]) {
+            const joined = row?.piktag_profiles;
+            const p: PiktagProfile | null = Array.isArray(joined)
+              ? (joined[0] ?? null)
+              : (joined ?? null);
+            if (p && p.id && p.id !== user?.id && !profileMap.has(p.id)) {
+              profileMap.set(p.id, p);
+            }
+          }
+        }
+        const finalProfiles = [...profileMap.values()];
         setProfiles(finalProfiles);
 
         // === Zero-results LLM recovery ===
