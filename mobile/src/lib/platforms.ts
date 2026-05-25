@@ -59,12 +59,12 @@ export const PLATFORMS: Platform[] = [
   { key: 'signal',     cat: 'communication', label: 'Signal',     prefix: 'https://signal.me/#p/',             placeholder: 'phone-or-username',        domains: ['signal.me', 'signal.org'] },
   { key: 'messenger',  cat: 'communication', label: 'Messenger',  prefix: 'https://m.me/',                     placeholder: 'username',                 domains: ['m.me', 'messenger.com'] },
   { key: 'discord',    cat: 'communication', label: 'Discord',    prefix: 'https://discord.gg/',               placeholder: 'invite-code',              domains: ['discord.gg', 'discord.com'] },
-  // Microsoft Teams uses an org-tied identity, so the "share my
-  // contact" surface is usually a meeting/profile link rather than a
-  // public username. Empty prefix = paste-mode (same shape as the
-  // generic Website / Substack / Notion entries). Detection still
-  // works via the domains list.
-  { key: 'msteams',    cat: 'communication', label: 'Microsoft Teams', prefix: 'https://',                     placeholder: 'teams.microsoft.com/l/...', domains: ['teams.microsoft.com', 'teams.live.com'] },
+  // Slack identity is workspace-tied — the shareable "my Slack" is
+  // usually a workspace invite URL or a Slack Connect DM link, not a
+  // public username. Empty-ish prefix = paste-mode (same shape as
+  // Website / Substack / Notion). Domain detection covers both the
+  // marketing site (joins) and the app subdomain (Connect DMs).
+  { key: 'slack',      cat: 'communication', label: 'Slack',      prefix: 'https://',                          placeholder: 'workspace.slack.com/...',  domains: ['slack.com', 'app.slack.com'] },
 
   // ── Social (10) ──
   { key: 'instagram',  cat: 'social',        label: 'Instagram',  prefix: 'https://instagram.com/',            placeholder: 'username',                 domains: ['instagram.com', 'instagr.am'] },
@@ -137,7 +137,7 @@ export const PLATFORM_MAP: Record<string, Platform> = PLATFORMS.reduce(
  * 2026-05-25 rebalance (NA primary market): swapped LINE / YouTube out
  * of the quick-row (they remain one tap away in "Browse all") and
  * promoted NA-mainstream messengers (WhatsApp / Messenger / Telegram /
- * Snapchat) plus Microsoft Teams (work-channel) and WeChat (large
+ * Snapchat) plus Slack (work-channel) and WeChat (large
  * Chinese-diaspora overlap with the NA audience). Phone / Email /
  * Website stay as universal essentials; LinkedIn stays for the
  * professional/CRM angle PikTag leans on; X stays as the NA-mainstream
@@ -149,7 +149,7 @@ export const PLATFORM_MAP: Record<string, Platform> = PLATFORMS.reduce(
  *   4. messenger     — NA messenger #2
  *   5. instagram     — NA social (Meta)
  *   6. linkedin      — NA professional (CRM angle)
- *   7. msteams       — NA work cluster (companion to LinkedIn)
+ *   7. slack         — NA work cluster (companion to LinkedIn)
  *   8. telegram      — NA + intl messenger, tech crowd
  *   9. snapchat      — Gen Z mainstream
  *  10. x             — NA micro-blog
@@ -163,7 +163,7 @@ export const QUICK_PICK_KEYS = [
   'messenger',
   'instagram',
   'linkedin',
-  'msteams',
+  'slack',
   'telegram',
   'snapchat',
   'x',
