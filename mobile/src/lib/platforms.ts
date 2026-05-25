@@ -59,6 +59,12 @@ export const PLATFORMS: Platform[] = [
   { key: 'signal',     cat: 'communication', label: 'Signal',     prefix: 'https://signal.me/#p/',             placeholder: 'phone-or-username',        domains: ['signal.me', 'signal.org'] },
   { key: 'messenger',  cat: 'communication', label: 'Messenger',  prefix: 'https://m.me/',                     placeholder: 'username',                 domains: ['m.me', 'messenger.com'] },
   { key: 'discord',    cat: 'communication', label: 'Discord',    prefix: 'https://discord.gg/',               placeholder: 'invite-code',              domains: ['discord.gg', 'discord.com'] },
+  // Microsoft Teams uses an org-tied identity, so the "share my
+  // contact" surface is usually a meeting/profile link rather than a
+  // public username. Empty prefix = paste-mode (same shape as the
+  // generic Website / Substack / Notion entries). Detection still
+  // works via the domains list.
+  { key: 'msteams',    cat: 'communication', label: 'Microsoft Teams', prefix: 'https://',                     placeholder: 'teams.microsoft.com/l/...', domains: ['teams.microsoft.com', 'teams.live.com'] },
 
   // ── Social (10) ──
   { key: 'instagram',  cat: 'social',        label: 'Instagram',  prefix: 'https://instagram.com/',            placeholder: 'username',                 domains: ['instagram.com', 'instagr.am'] },
@@ -125,19 +131,43 @@ export const PLATFORM_MAP: Record<string, Platform> = PLATFORMS.reduce(
 );
 
 /**
- * The 8 platforms that surface as the always-visible quick-pick chip
- * row in the biolink form. Picked for global coverage of the most
- * common contact methods + top-of-mind socials. Anything not here is
- * one tap further away (the "browse all" modal) — fine for long tail.
+ * Quick-pick chip row in the biolink form. ORDER MATTERS — items
+ * appear top-to-bottom in the picker.
+ *
+ * 2026-05-25 rebalance (NA primary market): swapped LINE / YouTube out
+ * of the quick-row (they remain one tap away in "Browse all") and
+ * promoted NA-mainstream messengers (WhatsApp / Messenger / Telegram /
+ * Snapchat) plus Microsoft Teams (work-channel) and WeChat (large
+ * Chinese-diaspora overlap with the NA audience). Phone / Email /
+ * Website stay as universal essentials; LinkedIn stays for the
+ * professional/CRM angle PikTag leans on; X stays as the NA-mainstream
+ * micro-blog. Resulting 12-entry row:
+ *
+ *   1. phone         — universal
+ *   2. email         — universal
+ *   3. whatsapp      — NA messenger #1
+ *   4. messenger     — NA messenger #2
+ *   5. instagram     — NA social (Meta)
+ *   6. linkedin      — NA professional (CRM angle)
+ *   7. msteams       — NA work cluster (companion to LinkedIn)
+ *   8. telegram      — NA + intl messenger, tech crowd
+ *   9. snapchat      — Gen Z mainstream
+ *  10. x             — NA micro-blog
+ *  11. wechat        — Chinese-diaspora coverage
+ *  12. website       — universal essential
  */
 export const QUICK_PICK_KEYS = [
   'phone',
   'email',
+  'whatsapp',
+  'messenger',
   'instagram',
-  'x',
   'linkedin',
-  'line',
-  'youtube',
+  'msteams',
+  'telegram',
+  'snapchat',
+  'x',
+  'wechat',
   'website',
 ] as const;
 

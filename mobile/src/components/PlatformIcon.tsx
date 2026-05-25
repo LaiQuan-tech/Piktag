@@ -58,6 +58,12 @@ const LUCIDE_MAP: Record<string, any> = {
   signal: MessageCircle,
   messenger: MessageCircle,
   discord: MessageCircle,
+  // Microsoft Teams — using MessageSquare to read as a corporate-chat
+  // surface (companion to discord's MessageCircle but visually distinct).
+  // The picker shows the "Microsoft Teams" label next to it so the icon
+  // shape is secondary. Upgrade to a brand-accurate SVG when we re-run
+  // scripts/extract-brand-paths.js with the microsoftteams slug.
+  msteams: MessageSquare,
 
   // Professional
   github: Github,
