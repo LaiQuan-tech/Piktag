@@ -3,7 +3,6 @@ import {
   View,
   Text,
   TextInput,
-  ScrollView,
   TouchableOpacity,
   Pressable,
   StyleSheet,
@@ -19,7 +18,12 @@ import { ArrowLeft, Plus, Pencil, Trash2, X, Hash, EyeOff, Eye, GripVertical, Ch
 import BoltIcon from '../components/BoltIcon';
 import { logApiUsage } from '../lib/apiUsage';
 import RingedAvatar from '../components/RingedAvatar';
-import DraggableFlatList, { RenderItemParams, ScaleDecorator } from 'react-native-draggable-flatlist';
+import {
+  NestableScrollContainer,
+  NestableDraggableFlatList,
+  RenderItemParams,
+  ScaleDecorator,
+} from 'react-native-draggable-flatlist';
 import { requestMediaLibraryPermissionsAsync, launchImageLibraryAsync } from 'expo-image-picker';
 import { useTranslation } from 'react-i18next';
 import i18n from '../i18n';
@@ -214,8 +218,8 @@ const PopularTagChip = React.memo(function PopularTagChip({
   );
 });
 
-// Memoized row for the biolinks DraggableFlatList. The list is nested
-// inside the screen-wide ScrollView (scrollEnabled={false}) so RN's
+// Memoized row for the biolinks NestableDraggableFlatList. The list is
+// nested inside the screen-wide NestableScrollContainer so RN's
 // virtualization can't help — each row stays mounted. Without memoization,
 // EVERY keystroke in the bio / headline / tag input above re-rendered ALL
 // 5+ rows (each with a 5-deep TouchableOpacity tree + 3 lucide icons),
@@ -1021,13 +1025,14 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
     );
   }, [t, fetchBiolinks]);
 
-  // Stable renderItem for the biolinks DraggableFlatList. The list is
-  // nested inside ScrollView so virtualization is disabled — every row
-  // stays mounted. Without this useCallback, every keystroke in the
-  // bio/headline/tag inputs above creates a fresh renderItem identity
-  // and re-renders ALL rows (the BiolinkRow memo can't help). With it,
-  // rows only re-render when their own `link` / `isActive` changes —
-  // which is what fixes the iPhone SE 3rd-gen scroll jank.
+  // Stable renderItem for the biolinks NestableDraggableFlatList. The
+  // list is nested inside NestableScrollContainer so virtualization is
+  // disabled — every row stays mounted. Without this useCallback, every
+  // keystroke in the bio/headline/tag inputs above creates a fresh
+  // renderItem identity and re-renders ALL rows (the BiolinkRow memo
+  // can't help). With it, rows only re-render when their own `link` /
+  // `isActive` changes — which is what fixes the iPhone SE 3rd-gen
+  // scroll jank.
   const renderBiolinkItem = useCallback(
     ({ item: link, drag, isActive }: RenderItemParams<Biolink>) => (
       <BiolinkRow
@@ -1540,7 +1545,15 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
-        <ScrollView
+        {/* NestableScrollContainer is the canonical fix for the
+            DraggableFlatList-inside-ScrollView anti-pattern. Without it
+            the dragged row's absolute-positioned floating clone is
+            measured against the inner (scroll-disabled) list, so its
+            on-screen offset drifts and visually overlaps neighbouring
+            rows during a drag. ScrollView-compatible API — same props,
+            keyboard handling, content container — so this is a drop-in
+            swap for the screen-wide scroll container. */}
+        <NestableScrollContainer
           style={[styles.scrollView, { backgroundColor: colors.background }]}
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
@@ -1925,12 +1938,12 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
             {biolinks.length === 0 && (
               <Text style={styles.emptyText}>{t('editProfile.noSocialLinks')}</Text>
             )}
-            <DraggableFlatList
+            <NestableDraggableFlatList
               data={biolinks}
               keyExtractor={(item) => item.id}
               onDragEnd={handleDragEnd}
-              scrollEnabled={false}
               renderItem={renderBiolinkItem}
+              activationDistance={8}
             />
             {/* Platform picker flow */}
             {!showPlatformPicker && !selectedPlatform && (
@@ -2116,7 +2129,7 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
           </View>
 
           {/* Save Button */}
-        </ScrollView>
+        </NestableScrollContainer>
       </KeyboardAvoidingView>
 
       {/* Biolink Add/Edit Modal */}
