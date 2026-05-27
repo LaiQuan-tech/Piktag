@@ -19,10 +19,13 @@ import BoltIcon from '../components/BoltIcon';
 import { logApiUsage } from '../lib/apiUsage';
 import RingedAvatar from '../components/RingedAvatar';
 import {
-  NestableScrollContainer,
-  NestableDraggableFlatList,
-  RenderItemParams,
-} from 'react-native-draggable-flatlist';
+  ScrollViewContainer,
+  NestedReorderableList,
+  useReorderableDrag,
+  reorderItems,
+  type ReorderableListReorderEvent,
+  type ReorderableListRenderItemInfo,
+} from 'react-native-reorderable-list';
 import { requestMediaLibraryPermissionsAsync, launchImageLibraryAsync } from 'expo-image-picker';
 import { useTranslation } from 'react-i18next';
 import i18n from '../i18n';
@@ -217,17 +220,23 @@ const PopularTagChip = React.memo(function PopularTagChip({
   );
 });
 
-// Memoized row for the biolinks NestableDraggableFlatList. The list is
-// nested inside the screen-wide NestableScrollContainer so RN's
+// Memoized row for the biolinks NestedReorderableList. The list is
+// nested inside the screen-wide ScrollViewContainer so RN's
 // virtualization can't help — each row stays mounted. Without memoization,
 // EVERY keystroke in the bio / headline / tag input above re-rendered ALL
 // 5+ rows (each with a 5-deep TouchableOpacity tree + 3 lucide icons),
 // which is what made iPhone SE 3rd-gen scrolling visibly jank. Now the
-// row only re-renders when its own `link` / `isActive` actually change.
+// row only re-renders when its own `link` actually changes.
+//
+// 2026-05-28: migrated from react-native-draggable-flatlist (v4.0.3,
+// shipped against reanimated 2/3 semantics, kept misreporting the
+// floating-clone position under reanimated 4 → visual row overlap
+// during drag, three failed patches deep). The new library animates
+// the dragged row IN PLACE via transform — there's no separate
+// floating clone whose position can drift — so this entire bug class
+// is eliminated by construction.
 type BiolinkRowProps = {
   link: Biolink;
-  drag: () => void;
-  isActive: boolean;
   onOpenLink: (url: string) => void;
   onEdit: (link: Biolink) => void;
   onDelete: (link: Biolink) => void;
@@ -235,12 +244,15 @@ type BiolinkRowProps = {
 
 const BiolinkRow = React.memo(function BiolinkRow({
   link,
-  drag,
-  isActive,
   onOpenLink,
   onEdit,
   onDelete,
 }: BiolinkRowProps) {
+  // Drag function comes from a hook inside the row (not a renderItem
+  // prop). The list provides it via context — wire it to the long-press
+  // gesture on the whole row + the immediate-press on the grip handle,
+  // same UX shape as before.
+  const drag = useReorderableDrag();
   const { colors } = useTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const displayUrl = useMemo(
@@ -251,27 +263,15 @@ const BiolinkRow = React.memo(function BiolinkRow({
   const handleEdit = useCallback(() => onEdit(link), [onEdit, link]);
   const handleDelete = useCallback(() => onDelete(link), [onDelete, link]);
 
-  // ScaleDecorator removed (was the source of mid-drag visual offset
-  // under reanimated 4): library applied a transform-scale wrapper
-  // around the row that, under reanimated 4's strict worklet model,
-  // computed the dragged-clone's screen-y from the SCALED frame rather
-  // than the original layout frame → clone rendered ~10-30px off from
-  // the finger, visually overlapping neighbouring rows. Without
-  // decorator the row stays at native size during drag, gesture math
-  // is straightforward.
+  // Active-row visual feedback is now handled by the library via its
+  // default cellAnimations (transform scale + opacity on the dragged
+  // row in place). No need for an isActive-driven style override here.
   return (
     <TouchableOpacity
       activeOpacity={0.7}
       onPress={handlePress}
       onLongPress={drag}
-      disabled={isActive}
-      style={[
-        styles.biolinkItem,
-        // Lift the active row visually — keeps the "I'm being dragged"
-        // signal that ScaleDecorator used to provide, without the
-        // transform that broke positioning.
-        isActive && styles.biolinkItemActive,
-      ]}
+      style={styles.biolinkItem}
     >
       <TouchableOpacity onPressIn={drag} style={styles.biolinkDragHandle}>
         <GripVertical size={20} color={colors.gray400} />
@@ -1041,26 +1041,35 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
     );
   }, [t, fetchBiolinks]);
 
-  // Stable renderItem for the biolinks NestableDraggableFlatList. The
-  // list is nested inside NestableScrollContainer so virtualization is
-  // disabled — every row stays mounted. Without this useCallback, every
-  // keystroke in the bio/headline/tag inputs above creates a fresh
-  // renderItem identity and re-renders ALL rows (the BiolinkRow memo
-  // can't help). With it, rows only re-render when their own `link` /
-  // `isActive` changes — which is what fixes the iPhone SE 3rd-gen
-  // scroll jank.
+  // Stable renderItem for the biolinks NestedReorderableList. The list
+  // is nested inside ScrollViewContainer so virtualization is disabled
+  // — every row stays mounted. Without this useCallback, every keystroke
+  // in the bio/headline/tag inputs above creates a fresh renderItem
+  // identity and re-renders ALL rows (the BiolinkRow memo can't help).
+  // With it, rows only re-render when their own `link` changes — which
+  // is what fixes the iPhone SE 3rd-gen scroll jank.
   const renderBiolinkItem = useCallback(
-    ({ item: link, drag, isActive }: RenderItemParams<Biolink>) => (
+    ({ item: link }: ReorderableListRenderItemInfo<Biolink>) => (
       <BiolinkRow
         link={link}
-        drag={drag}
-        isActive={isActive}
         onOpenLink={handleOpenLink}
         onEdit={openEditBiolinkModal}
         onDelete={handleDeleteBiolink}
       />
     ),
     [handleOpenLink, openEditBiolinkModal, handleDeleteBiolink],
+  );
+
+  // Wrap handleDragEnd to translate the new library's onReorder event
+  // shape ({from, to}) into the existing { data: Biolink[] } API that
+  // handleDragEnd already uses (optimistic state update + async save).
+  // The library ships `reorderItems` as the pure index-to-array helper.
+  const handleReorder = useCallback(
+    ({ from, to }: ReorderableListReorderEvent) => {
+      const next = reorderItems(biolinks, from, to);
+      handleDragEnd({ data: next });
+    },
+    [biolinks, handleDragEnd],
   );
 
   // --- Tag CRUD (immediate save, not tied to form save) ---
@@ -1561,15 +1570,14 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
-        {/* NestableScrollContainer is the canonical fix for the
-            DraggableFlatList-inside-ScrollView anti-pattern. Without it
-            the dragged row's absolute-positioned floating clone is
-            measured against the inner (scroll-disabled) list, so its
-            on-screen offset drifts and visually overlaps neighbouring
-            rows during a drag. ScrollView-compatible API — same props,
-            keyboard handling, content container — so this is a drop-in
-            swap for the screen-wide scroll container. */}
-        <NestableScrollContainer
+        {/* ScrollViewContainer is react-native-reorderable-list's
+            outer scroll-view bridge — same role NestableScrollContainer
+            played for the old library: it owns the screen-wide scroll
+            and registers any descendant NestedReorderableList so the
+            two cooperate on gestures + autoscroll without conflicting.
+            ScrollView-compatible API (style, contentContainerStyle,
+            keyboardShouldPersistTaps) — drop-in. */}
+        <ScrollViewContainer
           style={[styles.scrollView, { backgroundColor: colors.background }]}
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
@@ -1954,29 +1962,17 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
             {biolinks.length === 0 && (
               <Text style={styles.emptyText}>{t('editProfile.noSocialLinks')}</Text>
             )}
-            <NestableDraggableFlatList
+            <NestedReorderableList
               data={biolinks}
               keyExtractor={(item) => item.id}
-              onDragEnd={handleDragEnd}
+              onReorder={handleReorder}
               renderItem={renderBiolinkItem}
-              activationDistance={8}
-              // Allow the dragged-row clone to render OUTSIDE the
-              // list's bounds. Without this, when the user drags
-              // toward the top/bottom of the list, the floating
-              // clone gets clipped by the list container — visually
-              // disappears or partially overlaps. With dragItemOverflow
-              // the clone always renders above siblings at the
-              // finger's exact position.
-              dragItemOverflow
-              // Row height is fixed (see biolinkItem style). Telling
-              // the library lets it skip per-row measurement entirely
-              // and use indexed offsets — far more reliable than its
-              // dynamic measurement pass under reanimated 4.
-              getItemLayout={(_, index) => ({
-                length: 68,
-                offset: 68 * index,
-                index,
-              })}
+              // We're inside ScrollViewContainer; the OUTER scroll owns
+              // scrolling, the list itself doesn't scroll independently.
+              scrollable={false}
+              // Snappier than the 200ms default — feels closer to the
+              // iOS native drag-and-drop on Music / Reminders.
+              animationDuration={150}
             />
             {/* Platform picker flow */}
             {!showPlatformPicker && !selectedPlatform && (
@@ -2162,7 +2158,7 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
           </View>
 
           {/* Save Button */}
-        </NestableScrollContainer>
+        </ScrollViewContainer>
       </KeyboardAvoidingView>
 
       {/* Biolink Add/Edit Modal */}
@@ -2715,31 +2711,17 @@ function makeStyles(c: ColorPalette) {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    // Explicit fixed height so draggable-flatlist's offset math has
-    // no per-row variance to drift on. Numbers chosen to match the
-    // previous paddingVertical:14 + content + border, so existing
-    // visual rhythm is preserved.
+    // Fixed row height kept (originally added to defeat the old library's
+    // height-measurement bugs; with the new library it's no longer
+    // structurally required, but keeps the list's visual rhythm
+    // consistent regardless of label length).
     height: 68,
     paddingHorizontal: 0,
     borderBottomWidth: 1,
     borderBottomColor: c.gray100,
-    // backgroundColor needed so the dragged-row clone has an opaque
-    // surface (else the row below shows through during drag).
+    // Opaque so the row animates cleanly without the layer below
+    // bleeding through during the library's lift transform.
     backgroundColor: c.background,
-  },
-  biolinkItemActive: {
-    // Lifted appearance during drag — replaces what ScaleDecorator
-    // used to do, but via shadow + background instead of transform
-    // (which was the broken bit). Looks "picked up" rather than
-    // shrunk-and-floating.
-    backgroundColor: c.gray50,
-    borderRadius: 12,
-    borderBottomWidth: 0,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.12,
-    shadowRadius: 8,
-    elevation: 4,
   },
   biolinkIcon: {
     width: 28,
