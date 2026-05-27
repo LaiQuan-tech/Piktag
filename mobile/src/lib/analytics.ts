@@ -1,4 +1,3 @@
-import { Platform } from 'react-native';
 import PostHog from 'posthog-react-native';
 
 // PostHog product analytics — tracks the core events that map to
@@ -91,28 +90,17 @@ export const setAnalyticsOptIn = (optedIn: boolean): void => {
   }
 };
 
-// Lazily initializes PostHog after first sign-in. On iOS, also requests
-// App Tracking Transparency permission. If the user denies tracking,
-// PostHog is opted out so no events are captured. No-ops on Android
-// (no ATT) and on web. Safe to call multiple times.
-let analyticsInitialized = false;
-export const initAnalytics = async (): Promise<void> => {
-  if (analyticsInitialized) return;
-  analyticsInitialized = true;
-
-  try {
-    if (Platform.OS === 'ios') {
-      const mod = await import('expo-tracking-transparency');
-      const { status } = await mod.requestTrackingPermissionsAsync();
-      if (status !== 'granted') {
-        posthog.optOut();
-        return;
-      }
-    }
-    posthog.optIn();
-  } catch {
-    // expo-tracking-transparency might not be linked on first install.
-    // Fail open and let the user toggle in Settings.
-  }
-};
-// trigger build 1779625507
+// initAnalytics() used to gate PostHog behind iOS ATT
+// (App Tracking Transparency). Removed 2026-05-26 because the
+// gate was dead code — no caller ever invoked it — yet the
+// matching NSUserTrackingUsageDescription string still sat in
+// Info.plist. Apple Review 5.1.2(i) flagged this exact mismatch:
+// "the app does not use App Tracking Transparency to request
+// the user's permission before tracking their activity" while
+// the privacy declaration claimed tracking. PikTag doesn't
+// actually track users across apps/sites — PostHog uses an
+// anonymous device-scoped distinct_id, NOT IDFA — so the correct
+// fix is to drop the ATT path entirely AND scrub the plist
+// string + privacy declaration. PostHog initializes itself at
+// module load (see new PostHog() above) and respects
+// setAnalyticsOptIn() flipped from SettingsScreen.

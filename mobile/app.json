@@ -24,8 +24,7 @@
         "NSPhotoLibraryUsageDescription": "PikTag needs photo library access to update your profile picture",
         "NSPhotoLibraryAddUsageDescription": "PikTag needs photo library access to update your profile picture",
         "NSContactsUsageDescription": "PikTag uses your contacts to help you find friends who are already on PikTag",
-        "NSLocationWhenInUseUsageDescription": "PikTag uses your location to find nearby places",
-        "NSUserTrackingUsageDescription": "PikTag uses analytics to improve the app experience and never tracks you across other apps or websites."
+        "NSLocationWhenInUseUsageDescription": "PikTag uses your location to find nearby places"
       },
       "associatedDomains": [
         "applinks:pikt.ag"
