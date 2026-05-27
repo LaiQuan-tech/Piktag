@@ -1,4 +1,4 @@
--- 20260527_ask_response_tracking.sql
+-- 20260527010000_ask_response_tracking.sql
 --
 -- Ask Response Tracking: measure which Ask → tag combinations actually
 -- produce real interactions (follow, chat, connection). Use this signal

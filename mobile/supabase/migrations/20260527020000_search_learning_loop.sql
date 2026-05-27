@@ -1,4 +1,4 @@
--- 20260527_search_learning_loop.sql
+-- 20260527020000_search_learning_loop.sql
 --
 -- Search Learning Loop: when AI extracts keywords from a natural-language
 -- query and the user actually taps a result, record the mapping as a
