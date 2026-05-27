@@ -54,6 +54,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import PlatformIcon from '../components/PlatformIcon';
 import InitialsAvatar from '../components/InitialsAvatar';
 import RingedAvatar from '../components/RingedAvatar';
+import TagChip from '../components/TagChip';
 import OverlappingAvatars from '../components/OverlappingAvatars';
 import HiddenTagEditor from '../components/HiddenTagEditor';
 import ErrorState from '../components/ErrorState';
@@ -172,6 +173,18 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
   // wherever it appears.
   const { asks: askFeedAsks } = useAskFeed();
   const { connectionId: routeConnectionId, friendId } = route.params || {};
+
+  // Friend's active Ask, surfaced on the profile as a conversation hook —
+  // founder framing (2026-05-27): "重點不是能不能滿足該好友的需求，而是
+  // 創造聯絡的話題". So we render the Ask as ambient context (no CTA,
+  // no respond button), positioned right under the bio so the reading
+  // order goes "who they are (bio) → what they're asking now (ask) →
+  // what they have (tags)". Same askFeedAsks the ring colour already
+  // consumes — zero net fetch.
+  const friendActiveAsk = useMemo(
+    () => askFeedAsks.find((a) => a.author_id === friendId) ?? null,
+    [askFeedAsks, friendId],
+  );
   // connectionId is state-backed because handleToggleFollow may newly
   // create a connection (via lib/followUser.ts) and we need to thread
   // the fresh id into pickTag / hidden-tag flows that key off it. The
@@ -1041,11 +1054,7 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
                 EditProfileScreen. */}
             <RingedAvatar
               size={68}
-              ringStyle={
-                askFeedAsks.some((a) => a.author_id === friendId)
-                  ? 'gradient'
-                  : 'subtle'
-              }
+              ringStyle={friendActiveAsk ? 'gradient' : 'subtle'}
               name={displayName}
               avatarUrl={avatarUrl}
             />
@@ -1067,6 +1076,50 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
 
           {/* Bio (max 3 lines) */}
           {profile?.bio ? <Text style={styles.bio} numberOfLines={3}>{profile.bio}</Text> : null}
+
+          {/* Friend's active Ask — conversation hook, not a CTA. See the
+              friendActiveAsk memo above for the framing. No respond
+              button on purpose: opening this profile and seeing "they're
+              currently looking for X" is meant to seed a real human
+              message, not a transactional response flow. */}
+          {friendActiveAsk ? (
+            <View style={styles.askCard}>
+              <View style={styles.askHeader}>
+                <Text style={styles.askLabel}>{t('ask.askingNow')}</Text>
+                <Text style={styles.askMeta}>
+                  {t('ask.timeLeft', {
+                    hours: Math.max(
+                      0,
+                      Math.round(
+                        (new Date(friendActiveAsk.expires_at).getTime() - Date.now()) /
+                          3600000,
+                      ),
+                    ),
+                  })}
+                </Text>
+              </View>
+              {friendActiveAsk.title ? (
+                <Text style={styles.askTitle} numberOfLines={2}>
+                  {friendActiveAsk.title}
+                </Text>
+              ) : null}
+              <Text style={styles.askBody} numberOfLines={3}>
+                {friendActiveAsk.body}
+              </Text>
+              {friendActiveAsk.ask_tag_names.length > 0 ? (
+                <View style={styles.askTagsRow}>
+                  {friendActiveAsk.ask_tag_names.slice(0, 6).map((tagName) => (
+                    <TagChip
+                      key={tagName}
+                      label={tagName}
+                      variant="toggle"
+                      selected={false}
+                    />
+                  ))}
+                </View>
+              ) : null}
+            </View>
+          ) : null}
 
           {/* Section 1: User tags — friend's self-applied + my picked tags.
               Mutual tags get a purple-highlighted chip so the social signal
@@ -2091,6 +2144,55 @@ function makeStyles(c: ColorPalette) {
     backgroundColor: c.gray50,
     borderRadius: 16,
     padding: 16,
+  },
+  // Friend's-active-Ask card. Soft purple-tinted background to subtly
+  // distinguish from neutral recordCard above — signals "this is live /
+  // happening now", but quietly. Same all-gray-chip contract for the
+  // tags inside (TagChip variant='toggle' selected={false}) so we don't
+  // introduce a purple wall that competes with the screen's CTA row.
+  askCard: {
+    backgroundColor: c.piktag50,
+    borderRadius: 16,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    marginTop: 12,
+  },
+  askHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 6,
+  },
+  askLabel: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: c.piktag600,
+    letterSpacing: 0.4,
+    textTransform: 'uppercase',
+  },
+  askMeta: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: c.gray500,
+  },
+  askTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: c.gray900,
+    lineHeight: 20,
+    marginTop: 2,
+  },
+  askBody: {
+    fontSize: 14,
+    color: c.gray700,
+    lineHeight: 20,
+    marginTop: 4,
+  },
+  askTagsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+    marginTop: 10,
   },
   recordRow: {
     flexDirection: 'row',
