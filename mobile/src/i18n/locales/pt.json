@@ -67,7 +67,10 @@
     "comingSoonTitle": "Em breve",
     "checkConnection": "Verifique a conexão e tente novamente",
     "loadFailed": "Falha ao carregar",
-    "willAutoRetry": "Vamos tentar automaticamente ao reconectar"
+    "willAutoRetry": "Vamos tentar automaticamente ao reconectar",
+    "edit": "編輯",
+    "you": "你",
+    "noResults": "—"
   },
   "auth": {
     "login": {
@@ -195,7 +198,18 @@
       "cardLinksLabel": "Contatos / social",
       "cardApplyCta": "Aplicar",
       "profileCta": "Criar meu primeiro Tag",
-      "saveFailed": "Não foi possível salvar — verifique sua conexão e tente de novo."
+      "saveFailed": "Não foi possível salvar — verifique sua conexão e tente de novo.",
+      "nameRequiredTitle": "需要一個名字",
+      "nameRequiredMessage": "朋友掃 QR 會看到這個名字，至少幫自己取一個吧。",
+      "welcomeTitle": "一個 QR，加完所有朋友",
+      "welcomeSubtitle": "貼上標籤，下次見面就知道是誰",
+      "brandTagline": "Tag the Vibe, Keep the Tribe",
+      "welcomeCta": "開始使用 PikTag",
+      "profileTitle": "你叫什麼名字？",
+      "profileSubtitle": "朋友掃 QR 會看到這個名字",
+      "avatarPickA11y": "選擇頭像",
+      "avatarHint": "頭像選填（之後可以再加）",
+      "profileNamePlaceholder": "你的名字"
     }
   },
   "connections": {
@@ -319,7 +333,10 @@
     "searchInputLabel": "Pesquisar",
     "clearSearchLabel": "Limpar pesquisa",
     "recommendedTitle": "Você pode querer conhecer",
-    "tagsSelected": "tag(s) selecionada(s)"
+    "tagsSelected": "tag(s) selecionada(s)",
+    "aiThinking": "Reading your intent…",
+    "aiExtractedLabel": "PikTag understood you mean:",
+    "askEmptyStateButton": "📣 Post an Ask"
   },
   "addTag": {
     "headerTitle": "Criar um Tag",
@@ -383,7 +400,11 @@
       "Festa da firma",
       "Churrasco do fim de semana",
       "Casamento de um amigo"
-    ]
+    ],
+    "saveWarnTitle": "QR 已產生，但無法儲存到 Tag",
+    "dateLabel": "日期",
+    "locationLabel": "地點",
+    "selectLocation": "選地點"
   },
   "profile": {
     "nameNotSet": "Nome não definido",
@@ -412,7 +433,8 @@
     "statTagsA11y": "Ver minhas tags",
     "statFriendsA11y": "Ver meus amigos",
     "statFollowersA11y": "Ver meus seguidores",
-    "statTribeA11y": "Ver minha constelação Tribe"
+    "statTribeA11y": "View Tribe constellation",
+    "statTribe": "Tribe"
   },
   "editProfile": {
     "headerTitle": "Editar perfil",
@@ -648,7 +670,8 @@
     "recommendMembers": "Membros recomendados",
     "vibeContextTagsTitle": "Tags deste Tag",
     "blockConfirmTitle": "Bloquear esta pessoa?",
-    "blockConfirmMessage": "Vocês deixarão de se seguir e de ver o conteúdo um do outro."
+    "blockConfirmMessage": "Vocês deixarão de se seguir e de ver o conteúdo um do outro.",
+    "vibeContextTagsHint": "想貼到他個人頁的點一下（只有你看得到）"
   },
   "settings": {
     "headerTitle": "Configurações",
@@ -700,7 +723,11 @@
     "alertDeleteAccountNote": "Esta ação não pode ser desfeita. Sua conta e todos os dados serão excluídos permanentemente",
     "analyticsOptIn": "Enviar análises de uso",
     "analyticsOptInDescription": "Ajude-nos a melhorar o app",
-    "attRationale": "O PikTag usa análises básicas para melhorar sua experiência. Nunca rastreamos você em outros apps."
+    "attRationale": "O PikTag usa análises básicas para melhorar sua experiência. Nunca rastreamos você em outros apps.",
+    "addPasswordTitle": "新增密碼",
+    "addPasswordMessage": "你目前用 Apple/Google 登入，沒有 PikTag 密碼。送出後會寄一封信到你的 Email，幫你新增一組密碼，之後也能用 Email + 密碼登入（Apple/Google 登入仍然有效）",
+    "sendAddPasswordEmail": "發送設定信",
+    "vibeShiftNotifications": "朋友貼新標籤時通知我"
   },
   "contactSync": {
     "headerTitle": "Sincronizar contatos",
@@ -737,7 +764,16 @@
     "alertFollowAllDoneTitle": "Concluído",
     "alertFollowAllDoneMessage": "{{count}} amigos PikTag adicionados",
     "allConnected": "Todos os contatos PikTag já estão conectados",
-    "openSettings": "Abrir Ajustes para permitir acesso"
+    "openSettings": "Abrir Ajustes para permitir acesso",
+    "tagInviteFailedTitle": "加入名單失敗",
+    "tagInviteFailedMessage": "請稍後再試，或在「聯絡人名單」中手動新增。",
+    "taggedBadge": "已加入名單",
+    "tagModalTitle": "私人標籤",
+    "tagModalHint": "只有你看得到的私人標籤（最多 {{max}} 個）— 對方註冊 PikTag 後，這些標籤會出現在你的好友頁的「隱藏標籤」區，永遠不會被對方或其他人看到。",
+    "tagModalCustomPlaceholder": "自訂標籤",
+    "tagModalAddCustom": "新增",
+    "tagModalPopular": "熱門標籤",
+    "tagModalSubmit": "存私人標籤並邀請"
   },
   "invite": {
     "headerTitle": "Convidar amigos",
@@ -805,7 +841,9 @@
     "activeLocationsEmpty": "Sem locais ativos este mês",
     "topBiolinksTitle": "Links mais populares",
     "topBiolinksEmpty": "Sem registros de cliques em links",
-    "clickCount": "{{count}} cliques"
+    "clickCount": "{{count}} cliques",
+    "networkCompositionTitle": "人脈組成",
+    "networkCompositionEmpty": "尚無分類資料"
   },
   "notifications": {
     "headerTitle": "Notificações",
@@ -971,7 +1009,8 @@
     "mutualTags": "{{count}} tags em comum",
     "exploreEmptyTitle": "Nenhum usuário encontrado",
     "exploreEmptyText": "Nenhum usuário público usou esta tag ainda",
-    "viewAll": "Ver tudo"
+    "viewAll": "Ver tudo",
+    "relatedTags": "相關標籤"
   },
   "semanticType": {
     "identity": "Identidade",
@@ -1253,7 +1292,11 @@
     "deleteMessage": "\"{{name}}\" será removido dos seus Tags. Amigos que já te adicionaram por este QR não são afetados.",
     "deleteFailedTitle": "Falha ao excluir",
     "deleteFailedMessage": "Este Tag não foi excluído. Tente novamente mais tarde. Fale conosco se persistir.",
-    "emptyScanCta": "Ou escaneie o QR dela para conectar"
+    "emptyScanCta": "Ou escaneie o QR dela para conectar",
+    "scan": "掃描 QR 加好友",
+    "currentVibesTitle": "他們最近在標什麼",
+    "currentVibesHint": "這群人現在共同的標籤 — 點一下看是誰",
+    "membersFilterEmpty": "這個 Tag 中沒有貼這個標籤的人"
   },
   "localContact": {
     "editTitle": "Editar contato",
@@ -1298,11 +1341,20 @@
     "addressPlaceholder": "ex. Av. Paulista 1000, São Paulo",
     "fieldWebsite": "Site",
     "websitePlaceholder": "ex. example.com",
-    "scanningCard": "Lendo cartão… (cerca de 3 s)"
+    "scanningCard": "Lendo cartão… (cerca de 3 s)",
+    "scanCardCta": "掃描名片自動帶入",
+    "avatarUploadFailTitle": "上傳失敗"
   },
   "followers": {
     "title": "Seguidores",
     "count": "{{count}} seguidores",
     "empty": "Ainda sem seguidores"
+  },
+  "tribe": {
+    "title": "Tribe",
+    "subtitle": "{{count}} people joined PikTag because of you",
+    "emptyTitle": "Your Tribe is still 0",
+    "emptyDesc": "Share your event QR or send invite links from Settings — everyone who joins through you will grow in this constellation.",
+    "footnote": "Only you can see your Tribe constellation."
   }
 }

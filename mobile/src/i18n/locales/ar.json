@@ -67,7 +67,10 @@
     "comingSoonTitle": "قريبًا",
     "checkConnection": "تحقّق من الاتصال ثم حاول مجددًا",
     "loadFailed": "فشل التحميل",
-    "willAutoRetry": "سنحاول تلقائيًا عند عودة الاتصال"
+    "willAutoRetry": "سنحاول تلقائيًا عند عودة الاتصال",
+    "edit": "編輯",
+    "you": "你",
+    "noResults": "—"
   },
   "auth": {
     "login": {
@@ -195,7 +198,18 @@
       "cardLinksLabel": "جهات الاتصال / التواصل",
       "cardApplyCta": "تطبيق",
       "profileCta": "أنشئ أول Tag",
-      "saveFailed": "تعذّر الحفظ — تحقّق من اتصالك وحاول مجددًا."
+      "saveFailed": "تعذّر الحفظ — تحقّق من اتصالك وحاول مجددًا.",
+      "nameRequiredTitle": "需要一個名字",
+      "nameRequiredMessage": "朋友掃 QR 會看到這個名字，至少幫自己取一個吧。",
+      "welcomeTitle": "一個 QR，加完所有朋友",
+      "welcomeSubtitle": "貼上標籤，下次見面就知道是誰",
+      "brandTagline": "Tag the Vibe, Keep the Tribe",
+      "welcomeCta": "開始使用 PikTag",
+      "profileTitle": "你叫什麼名字？",
+      "profileSubtitle": "朋友掃 QR 會看到這個名字",
+      "avatarPickA11y": "選擇頭像",
+      "avatarHint": "頭像選填（之後可以再加）",
+      "profileNamePlaceholder": "你的名字"
     }
   },
   "connections": {
@@ -319,7 +333,10 @@
     "searchInputLabel": "بحث",
     "clearSearchLabel": "مسح البحث",
     "recommendedTitle": "قد ترغب في التعرّف",
-    "tagsSelected": "علامة محددة"
+    "tagsSelected": "علامة محددة",
+    "aiThinking": "Reading your intent…",
+    "aiExtractedLabel": "PikTag understood you mean:",
+    "askEmptyStateButton": "📣 Post an Ask"
   },
   "addTag": {
     "headerTitle": "إنشاء Tag",
@@ -383,7 +400,11 @@
       "حفلة المكتب",
       "شواء نهاية الأسبوع",
       "زفاف صديق"
-    ]
+    ],
+    "saveWarnTitle": "QR 已產生，但無法儲存到 Tag",
+    "dateLabel": "日期",
+    "locationLabel": "地點",
+    "selectLocation": "選地點"
   },
   "profile": {
     "nameNotSet": "لم يتم تعيين الاسم",
@@ -412,7 +433,8 @@
     "statTagsA11y": "عرض وسومي",
     "statFriendsA11y": "عرض أصدقائي",
     "statFollowersA11y": "عرض متابعيّ",
-    "statTribeA11y": "عرض كوكبة Tribe الخاصة بي"
+    "statTribeA11y": "View Tribe constellation",
+    "statTribe": "Tribe"
   },
   "editProfile": {
     "headerTitle": "تعديل الملف الشخصي",
@@ -648,7 +670,8 @@
     "recommendMembers": "أعضاء موصى بهم",
     "vibeContextTagsTitle": "وسوم هذا الـ Tag",
     "blockConfirmTitle": "حظر هذا الشخص؟",
-    "blockConfirmMessage": "ستلغيان متابعة بعضكما ولن تريا محتوى الآخر."
+    "blockConfirmMessage": "ستلغيان متابعة بعضكما ولن تريا محتوى الآخر.",
+    "vibeContextTagsHint": "想貼到他個人頁的點一下（只有你看得到）"
   },
   "settings": {
     "headerTitle": "الإعدادات",
@@ -700,7 +723,11 @@
     "alertDeleteAccountNote": "لا يمكن التراجع عن هذا الإجراء. سيتم حذف حسابك وجميع بياناتك نهائيًا",
     "analyticsOptIn": "إرسال بيانات الاستخدام",
     "analyticsOptInDescription": "ساعدنا في تحسين التطبيق",
-    "attRationale": "يستخدم PikTag تحليلات أساسية لتحسين تجربتك، ولا يتتبعك مطلقًا عبر التطبيقات الأخرى."
+    "attRationale": "يستخدم PikTag تحليلات أساسية لتحسين تجربتك، ولا يتتبعك مطلقًا عبر التطبيقات الأخرى.",
+    "addPasswordTitle": "新增密碼",
+    "addPasswordMessage": "你目前用 Apple/Google 登入，沒有 PikTag 密碼。送出後會寄一封信到你的 Email，幫你新增一組密碼，之後也能用 Email + 密碼登入（Apple/Google 登入仍然有效）",
+    "sendAddPasswordEmail": "發送設定信",
+    "vibeShiftNotifications": "朋友貼新標籤時通知我"
   },
   "contactSync": {
     "headerTitle": "مزامنة جهات الاتصال",
@@ -737,7 +764,16 @@
     "alertFollowAllDoneTitle": "تم",
     "alertFollowAllDoneMessage": "تمت إضافة {{count}} من أصدقاء PikTag",
     "allConnected": "تم بالفعل إضافة جميع جهات اتصال PikTag",
-    "openSettings": "افتح الإعدادات للسماح بالوصول"
+    "openSettings": "افتح الإعدادات للسماح بالوصول",
+    "tagInviteFailedTitle": "加入名單失敗",
+    "tagInviteFailedMessage": "請稍後再試，或在「聯絡人名單」中手動新增。",
+    "taggedBadge": "已加入名單",
+    "tagModalTitle": "私人標籤",
+    "tagModalHint": "只有你看得到的私人標籤（最多 {{max}} 個）— 對方註冊 PikTag 後，這些標籤會出現在你的好友頁的「隱藏標籤」區，永遠不會被對方或其他人看到。",
+    "tagModalCustomPlaceholder": "自訂標籤",
+    "tagModalAddCustom": "新增",
+    "tagModalPopular": "熱門標籤",
+    "tagModalSubmit": "存私人標籤並邀請"
   },
   "invite": {
     "headerTitle": "دعوة الأصدقاء",
@@ -805,7 +841,9 @@
     "activeLocationsEmpty": "لا توجد مواقع نشطة هذا الشهر",
     "topBiolinksTitle": "أكثر الروابط شعبية",
     "topBiolinksEmpty": "لا توجد سجلات نقر على الروابط",
-    "clickCount": "{{count}} نقرات"
+    "clickCount": "{{count}} نقرات",
+    "networkCompositionTitle": "人脈組成",
+    "networkCompositionEmpty": "尚無分類資料"
   },
   "notifications": {
     "headerTitle": "الإشعارات",
@@ -971,7 +1009,8 @@
     "mutualTags": "{{count}} وسوم مشتركة",
     "exploreEmptyTitle": "لم يتم العثور على مستخدمين",
     "exploreEmptyText": "لم يستخدم أي مستخدم عام هذا الوسم بعد",
-    "viewAll": "عرض الكل"
+    "viewAll": "عرض الكل",
+    "relatedTags": "相關標籤"
   },
   "semanticType": {
     "identity": "الهوية",
@@ -1253,7 +1292,11 @@
     "deleteMessage": "سيُزال \"{{name}}\" من Tags الخاص بك. الأصدقاء الذين أضافوك بالفعل عبر هذا QR لن يتأثروا.",
     "deleteFailedTitle": "فشل الحذف",
     "deleteFailedMessage": "لم يتم حذف هذا الـ Tag. حاول لاحقًا. تواصل معنا إذا استمر ذلك.",
-    "emptyScanCta": "أو امسح رمز QR الخاص به للتواصل"
+    "emptyScanCta": "أو امسح رمز QR الخاص به للتواصل",
+    "scan": "掃描 QR 加好友",
+    "currentVibesTitle": "他們最近在標什麼",
+    "currentVibesHint": "這群人現在共同的標籤 — 點一下看是誰",
+    "membersFilterEmpty": "這個 Tag 中沒有貼這個標籤的人"
   },
   "localContact": {
     "editTitle": "تعديل جهة الاتصال",
@@ -1298,11 +1341,20 @@
     "addressPlaceholder": "مثل: شارع الملك فهد، الرياض",
     "fieldWebsite": "الموقع الإلكتروني",
     "websitePlaceholder": "مثال: example.com",
-    "scanningCard": "جارٍ قراءة البطاقة… (حوالي 3 ثوانٍ)"
+    "scanningCard": "جارٍ قراءة البطاقة… (حوالي 3 ثوانٍ)",
+    "scanCardCta": "掃描名片自動帶入",
+    "avatarUploadFailTitle": "上傳失敗"
   },
   "followers": {
     "title": "المتابعون",
     "count": "{{count}} متابع",
     "empty": "لا متابعين بعد"
+  },
+  "tribe": {
+    "title": "Tribe",
+    "subtitle": "{{count}} people joined PikTag because of you",
+    "emptyTitle": "Your Tribe is still 0",
+    "emptyDesc": "Share your event QR or send invite links from Settings — everyone who joins through you will grow in this constellation.",
+    "footnote": "Only you can see your Tribe constellation."
   }
 }

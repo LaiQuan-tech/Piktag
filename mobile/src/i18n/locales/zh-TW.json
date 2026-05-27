@@ -68,7 +68,10 @@
     "loadFailed": "載入失敗",
     "checkConnection": "請檢查網路連線後重試",
     "willAutoRetry": "重新連線後會自動載入",
-    "userNotFound": "找不到這個用戶"
+    "userNotFound": "找不到這個用戶",
+    "edit": "編輯",
+    "you": "你",
+    "noResults": "—"
   },
   "auth": {
     "login": {
@@ -202,7 +205,18 @@
       "cardLinksLabel": "聯絡方式 / 社群",
       "cardApplyCta": "套用",
       "profileCta": "建立我的第一個 Tag",
-      "saveFailed": "沒存成功，檢查一下網路再試一次。"
+      "saveFailed": "沒存成功，檢查一下網路再試一次。",
+      "nameRequiredTitle": "需要一個名字",
+      "nameRequiredMessage": "朋友掃 QR 會看到這個名字，至少幫自己取一個吧。",
+      "welcomeTitle": "一個 QR，加完所有朋友",
+      "welcomeSubtitle": "貼上標籤，下次見面就知道是誰",
+      "brandTagline": "Tag the Vibe, Keep the Tribe",
+      "welcomeCta": "開始使用 PikTag",
+      "profileTitle": "你叫什麼名字？",
+      "profileSubtitle": "朋友掃 QR 會看到這個名字",
+      "avatarPickA11y": "選擇頭像",
+      "avatarHint": "頭像選填（之後可以再加）",
+      "profileNamePlaceholder": "你的名字"
     }
   },
   "connections": {
@@ -393,7 +407,11 @@
       "大學同學會",
       "公司尾牙",
       "朋友的婚禮"
-    ]
+    ],
+    "saveWarnTitle": "QR 已產生，但無法儲存到 Tag",
+    "dateLabel": "日期",
+    "locationLabel": "地點",
+    "selectLocation": "選地點"
   },
   "profile": {
     "nameNotSet": "未設定姓名",
@@ -422,7 +440,8 @@
     "statTagsA11y": "查看我的標籤",
     "statFriendsA11y": "查看我的朋友",
     "statFollowersA11y": "查看我的追蹤者",
-    "statTribeA11y": "查看我的 Tribe 星圖"
+    "statTribeA11y": "查看 Tribe 星圖",
+    "statTribe": "Tribe"
   },
   "editProfile": {
     "headerTitle": "編輯個人資訊",
@@ -658,7 +677,8 @@
     "recommendMembers": "推薦會員",
     "vibeContextTagsTitle": "這次 Tag 帶的標籤",
     "blockConfirmTitle": "封鎖這個人？",
-    "blockConfirmMessage": "你們會互相取消追蹤，也不再看到彼此的內容。"
+    "blockConfirmMessage": "你們會互相取消追蹤，也不再看到彼此的內容。",
+    "vibeContextTagsHint": "想貼到他個人頁的點一下（只有你看得到）"
   },
   "settings": {
     "headerTitle": "設定",
@@ -710,7 +730,11 @@
     "alertDeleteAccountNote": "此操作無法復原，你的帳號和所有資料將被永久刪除",
     "analyticsOptIn": "分析數據",
     "analyticsOptInDescription": "幫助我們改善 App",
-    "attRationale": "PikTag 使用基本分析數據改善體驗，從不跨 App 追蹤您。"
+    "attRationale": "PikTag 使用基本分析數據改善體驗，從不跨 App 追蹤您。",
+    "addPasswordTitle": "新增密碼",
+    "addPasswordMessage": "你目前用 Apple/Google 登入，沒有 PikTag 密碼。送出後會寄一封信到你的 Email，幫你新增一組密碼，之後也能用 Email + 密碼登入（Apple/Google 登入仍然有效）",
+    "sendAddPasswordEmail": "發送設定信",
+    "vibeShiftNotifications": "朋友貼新標籤時通知我"
   },
   "contactSync": {
     "headerTitle": "通訊錄同步",
@@ -748,7 +772,15 @@
     "alertFollowAllDoneMessage": "已加入 {{count}} 位 PikTag 朋友",
     "allConnected": "通訊錄裡的 PikTag 朋友都已加入",
     "tagModalHint": "只有你看得到的私人標籤（最多 {{max}} 個）— 對方註冊 PikTag 後，這些標籤會出現在你的好友頁的「隱藏標籤」區，永遠不會被對方或其他人看到。",
-    "openSettings": "前往設定開啟權限"
+    "openSettings": "前往設定開啟權限",
+    "tagInviteFailedTitle": "加入名單失敗",
+    "tagInviteFailedMessage": "請稍後再試，或在「聯絡人名單」中手動新增。",
+    "taggedBadge": "已加入名單",
+    "tagModalTitle": "私人標籤",
+    "tagModalCustomPlaceholder": "自訂標籤",
+    "tagModalAddCustom": "新增",
+    "tagModalPopular": "熱門標籤",
+    "tagModalSubmit": "存私人標籤並邀請"
   },
   "invite": {
     "headerTitle": "邀請好友",
@@ -1335,7 +1367,11 @@
     "deleteMessage": "「{{name}}」會從你的 Tags 中移除。已經透過這個 QR 加你為好友的人不會受影響。",
     "deleteFailedTitle": "刪除失敗",
     "deleteFailedMessage": "這個 Tag 沒有被刪除，請稍後再試。若持續發生請聯絡我們。",
-    "emptyScanCta": "或掃描對方的 QR 加好友"
+    "emptyScanCta": "或掃描對方的 QR 加好友",
+    "scan": "掃描 QR 加好友",
+    "currentVibesTitle": "他們最近在標什麼",
+    "currentVibesHint": "這群人現在共同的標籤 — 點一下看是誰",
+    "membersFilterEmpty": "這個 Tag 中沒有貼這個標籤的人"
   },
   "localContact": {
     "editTitle": "編輯聯絡人",
@@ -1380,11 +1416,20 @@
     "addressPlaceholder": "例：台北市信義區市府路 1 號",
     "fieldWebsite": "網址",
     "websitePlaceholder": "例：example.com",
-    "scanningCard": "辨識名片中…（約 3 秒）"
+    "scanningCard": "辨識名片中…（約 3 秒）",
+    "scanCardCta": "掃描名片自動帶入",
+    "avatarUploadFailTitle": "上傳失敗"
   },
   "followers": {
     "title": "追蹤者",
     "count": "{{count}} 位追蹤者",
     "empty": "還沒有人追蹤"
+  },
+  "tribe": {
+    "title": "Tribe",
+    "subtitle": "{{count}} 個人因為你加入 PikTag",
+    "emptyTitle": "你的 Tribe 還是 0",
+    "emptyDesc": "分享你的活動 QR、或從設定發邀請連結 — 每個透過你加入的人都會長在這張圖裡。",
+    "footnote": "只有你看得到自己的 Tribe 星圖。"
   }
 }
