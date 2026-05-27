@@ -263,25 +263,53 @@ const BiolinkRow = React.memo(function BiolinkRow({
   const handleEdit = useCallback(() => onEdit(link), [onEdit, link]);
   const handleDelete = useCallback(() => onDelete(link), [onDelete, link]);
 
-  // Active-row visual feedback is now handled by the library via its
-  // default cellAnimations (transform scale + opacity on the dragged
-  // row in place). No need for an isActive-driven style override here.
+  // ROOT-CAUSE FIX (2026-05-28, attempt 5 — final):
+  //
+  // The row MUST be a `Pressable`, NOT a `TouchableOpacity`. The
+  // library's PanGesture is attached at the LIST level and configured
+  // as `Gesture.Simultaneous(Native, Pan)` — Pressable cooperates
+  // with that simultaneous gesture (it defers the press decision
+  // until release, so RNGH's PanGesture can claim touchMove events
+  // mid-press), but TouchableOpacity's responder claims the entire
+  // touch and starves the PanGesture of move events. That's why
+  // `dragHandler` was being called via onLongPress (we could see
+  // the library "knew" drag started — log evidence) but the dragged
+  // row never actually followed the finger.
+  //
+  // Verified against the library's canonical example
+  // (node_modules/react-native-reorderable-list/README.md, line 318):
+  //   <Pressable style={...} onLongPress={drag}>
+  // No other gesture wiring on the row — long-press triggers drag,
+  // PanGesture (already armed at the list level) takes over from
+  // there. Confirmed by reading the library's ReorderableListCore.tsx:
+  // panGesture lives on the FlatList, dragHandler just calls
+  // runOnUI(startDrag)(index) to switch the cell into drag mode.
+  //
+  // Grip handle becomes a Pressable too. Its onLongPress is the
+  // primary trigger; we drop the old onPressIn={drag} pattern
+  // because that was the "immediate-press" affordance which
+  // doesn't fit the PanGesture-arms-on-long-press flow (and was
+  // never actually working — the visual feedback was misleading).
   return (
-    <TouchableOpacity
-      activeOpacity={0.7}
+    <Pressable
       onPress={handlePress}
       onLongPress={drag}
-      style={styles.biolinkItem}
+      // Subtle press feedback — opacity dip, matches the previous
+      // TouchableOpacity activeOpacity={0.7} feel without the
+      // responder-monopoly side effect.
+      style={({ pressed }) => [
+        styles.biolinkItem,
+        pressed && { opacity: 0.7 },
+      ]}
     >
-      <TouchableOpacity onPressIn={drag} style={styles.biolinkDragHandle}>
+      <Pressable onLongPress={drag} style={styles.biolinkDragHandle}>
         <GripVertical size={20} color={colors.gray400} />
-      </TouchableOpacity>
+      </Pressable>
       <View style={styles.biolinkInfo}>
         {/* numberOfLines={1} on BOTH lines so the row height is
-            deterministic — pinned at the same pixel count no matter
-            what label / username the user typed. draggable-flatlist's
-            offset math relies on consistent row heights; long labels
-            wrapping to 2 lines would create per-row drift. */}
+            deterministic — pinned at the same pixel count regardless
+            of label / username length. Keeps the list visual rhythm
+            consistent. */}
         <Text style={styles.biolinkTitle} numberOfLines={1}>
           {link.label || link.platform}
         </Text>
@@ -293,6 +321,10 @@ const BiolinkRow = React.memo(function BiolinkRow({
           {displayUrl}
         </Text>
       </View>
+      {/* Edit / delete buttons are leaf interactive widgets — keeping
+          them as TouchableOpacity is fine because they're not in the
+          drag-gesture path (no long-press on them, no responder fight
+          with PanGesture). */}
       <View style={styles.biolinkActions}>
         <TouchableOpacity
           style={styles.biolinkActionBtn}
@@ -309,7 +341,7 @@ const BiolinkRow = React.memo(function BiolinkRow({
           <Trash2 size={18} color={colors.red500} />
         </TouchableOpacity>
       </View>
-    </TouchableOpacity>
+    </Pressable>
   );
 });
 
