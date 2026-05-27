@@ -52,7 +52,7 @@ type AskStoryRowProps = {
   myAvatarUrl: string | null;
   myName: string;
   onRefresh: () => void;
-  onPressUser: (userId: string) => void;
+  onPressUser: (userId: string, askId?: string, authorId?: string) => void;
 };
 
 function hoursLeft(expiresAt: string): number {
@@ -414,7 +414,7 @@ export default function AskStoryRow({ asks, myAsk, myAvatarUrl, myName, onRefres
                 activeOpacity={0.85}
                 onPress={() => {
                   markAskViewed(ask.ask_id);
-                  onPressUser(ask.author_id);
+                  onPressUser(ask.author_id, ask.ask_id, ask.author_id);
                 }}
                 onLongPress={() => handleAskLongPress(ask)}
                 delayLongPress={350}

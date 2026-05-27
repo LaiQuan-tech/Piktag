@@ -977,7 +977,13 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
   // (Invite-code redeem resume removed — the invite/redeem gate was
   // retired; open signup, no codes.)
 
-  const handleAskPressUser = useCallback((userId: string) => {
+  const handleAskPressUser = useCallback((userId: string, askId?: string, authorId?: string) => {
+    // Track Ask view for response analytics
+    if (askId && authorId) {
+      import('../lib/searchLearning').then(({ recordAskResponse }) => {
+        recordAskResponse({ askId, authorId, action: 'view' });
+      }).catch(() => {});
+    }
     const conn = connections.find(c => c.connected_user_id === userId);
     if (conn) {
       navigation.navigate('FriendDetail', { connectionId: conn.id, friendId: userId });
