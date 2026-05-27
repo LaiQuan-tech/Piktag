@@ -77,7 +77,13 @@ i18n
       ur: { translation: ur },
       it: { translation: it },
     },
-    fallbackLng: 'zh-TW',
+    // Fallback is English, not zh-TW. Cold-start audience is global —
+    // a Polish/Swedish/Greek visitor whose locale we don't have a JSON
+    // for should land on English, not 繁體中文 (which would be
+    // unreadable to ~99% of the unmatched set). Mirrors the
+    // server-side profile page's detectLocale() default in
+    // landing/api/_config.js so SPA + share pages stay consistent.
+    fallbackLng: 'en',
     interpolation: {
       escapeValue: false,
     },
