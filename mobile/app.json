@@ -130,8 +130,7 @@
           "contactsPermission": "PikTag uses your contacts to help you find friends."
         }
       ],
-      "expo-web-browser",
-      "expo-tracking-transparency"
+      "expo-web-browser"
     ],
     "updates": {
       "enabled": true,
