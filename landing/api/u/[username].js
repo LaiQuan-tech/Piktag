@@ -236,6 +236,14 @@ module.exports = async function handler(req, res) {
 
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
     res.setHeader('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=3600');
+    // Vary by Accept-Language so Vercel's edge cache keeps a separate
+    // entry per language. Without this, the first visitor's locale
+    // wins for 5 minutes — a Taiwan viewer would seed zh-TW into the
+    // cache, then every German/Vietnamese/English visitor in that
+    // window would also receive the zh-TW render. Caught during the
+    // 2026-05-28 i18n parity audit (curl test with Accept-Language:
+    // de-DE returned 追蹤 instead of Folgen until cache was bypassed).
+    res.setHeader('Vary', 'Accept-Language');
     return res.status(200).send(html);
   } catch (err) {
     console.error('Error rendering profile:', err);

@@ -17,6 +17,9 @@ module.exports = async function handler(req, res) {
 
   res.setHeader('Content-Type', 'text/html; charset=utf-8');
   res.setHeader('Cache-Control', 'public, max-age=0, s-maxage=60');
+  // See landing/api/u/[username].js for the rationale — same edge-cache
+  // i18n-collision bug, same Vary fix.
+  res.setHeader('Vary', 'Accept-Language');
 
   const html = `<!DOCTYPE html>
 <html lang="${locale.htmlLang}">
