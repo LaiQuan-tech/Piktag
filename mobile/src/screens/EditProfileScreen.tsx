@@ -22,7 +22,6 @@ import {
   NestableScrollContainer,
   NestableDraggableFlatList,
   RenderItemParams,
-  ScaleDecorator,
 } from 'react-native-draggable-flatlist';
 import { requestMediaLibraryPermissionsAsync, launchImageLibraryAsync } from 'expo-image-picker';
 import { useTranslation } from 'react-i18next';
@@ -252,48 +251,65 @@ const BiolinkRow = React.memo(function BiolinkRow({
   const handleEdit = useCallback(() => onEdit(link), [onEdit, link]);
   const handleDelete = useCallback(() => onDelete(link), [onDelete, link]);
 
+  // ScaleDecorator removed (was the source of mid-drag visual offset
+  // under reanimated 4): library applied a transform-scale wrapper
+  // around the row that, under reanimated 4's strict worklet model,
+  // computed the dragged-clone's screen-y from the SCALED frame rather
+  // than the original layout frame → clone rendered ~10-30px off from
+  // the finger, visually overlapping neighbouring rows. Without
+  // decorator the row stays at native size during drag, gesture math
+  // is straightforward.
   return (
-    <ScaleDecorator>
-      <TouchableOpacity
-        activeOpacity={0.7}
-        onPress={handlePress}
-        onLongPress={drag}
-        disabled={isActive}
-        style={[styles.biolinkItem, isActive && { backgroundColor: colors.gray50, borderRadius: 12 }]}
-      >
-        <TouchableOpacity onPressIn={drag} style={styles.biolinkDragHandle}>
-          <GripVertical size={20} color={colors.gray400} />
-        </TouchableOpacity>
-        <View style={styles.biolinkInfo}>
-          <Text style={styles.biolinkTitle}>
-            {link.label || link.platform}
-          </Text>
-          <Text style={styles.biolinkUrl} numberOfLines={1}>
-            {/* Strip the platform's URL scheme prefix (`tel:`,
-                `mailto:`, `https://`, etc.) for display only — the
-                stored value keeps the scheme so taps on the public
-                profile still dial / open the mail client. */}
-            {displayUrl}
-          </Text>
-        </View>
-        <View style={styles.biolinkActions}>
-          <TouchableOpacity
-            style={styles.biolinkActionBtn}
-            activeOpacity={0.6}
-            onPress={handleEdit}
-          >
-            <Pencil size={18} color={colors.gray500} />
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.biolinkActionBtn}
-            onPress={handleDelete}
-            activeOpacity={0.6}
-          >
-            <Trash2 size={18} color={colors.red500} />
-          </TouchableOpacity>
-        </View>
+    <TouchableOpacity
+      activeOpacity={0.7}
+      onPress={handlePress}
+      onLongPress={drag}
+      disabled={isActive}
+      style={[
+        styles.biolinkItem,
+        // Lift the active row visually — keeps the "I'm being dragged"
+        // signal that ScaleDecorator used to provide, without the
+        // transform that broke positioning.
+        isActive && styles.biolinkItemActive,
+      ]}
+    >
+      <TouchableOpacity onPressIn={drag} style={styles.biolinkDragHandle}>
+        <GripVertical size={20} color={colors.gray400} />
       </TouchableOpacity>
-    </ScaleDecorator>
+      <View style={styles.biolinkInfo}>
+        {/* numberOfLines={1} on BOTH lines so the row height is
+            deterministic — pinned at the same pixel count no matter
+            what label / username the user typed. draggable-flatlist's
+            offset math relies on consistent row heights; long labels
+            wrapping to 2 lines would create per-row drift. */}
+        <Text style={styles.biolinkTitle} numberOfLines={1}>
+          {link.label || link.platform}
+        </Text>
+        <Text style={styles.biolinkUrl} numberOfLines={1}>
+          {/* Strip the platform's URL scheme prefix (`tel:`,
+              `mailto:`, `https://`, etc.) for display only — the
+              stored value keeps the scheme so taps on the public
+              profile still dial / open the mail client. */}
+          {displayUrl}
+        </Text>
+      </View>
+      <View style={styles.biolinkActions}>
+        <TouchableOpacity
+          style={styles.biolinkActionBtn}
+          activeOpacity={0.6}
+          onPress={handleEdit}
+        >
+          <Pencil size={18} color={colors.gray500} />
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.biolinkActionBtn}
+          onPress={handleDelete}
+          activeOpacity={0.6}
+        >
+          <Trash2 size={18} color={colors.red500} />
+        </TouchableOpacity>
+      </View>
+    </TouchableOpacity>
   );
 });
 
@@ -1944,6 +1960,23 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
               onDragEnd={handleDragEnd}
               renderItem={renderBiolinkItem}
               activationDistance={8}
+              // Allow the dragged-row clone to render OUTSIDE the
+              // list's bounds. Without this, when the user drags
+              // toward the top/bottom of the list, the floating
+              // clone gets clipped by the list container — visually
+              // disappears or partially overlaps. With dragItemOverflow
+              // the clone always renders above siblings at the
+              // finger's exact position.
+              dragItemOverflow
+              // Row height is fixed (see biolinkItem style). Telling
+              // the library lets it skip per-row measurement entirely
+              // and use indexed offsets — far more reliable than its
+              // dynamic measurement pass under reanimated 4.
+              getItemLayout={(_, index) => ({
+                length: 68,
+                offset: 68 * index,
+                index,
+              })}
             />
             {/* Platform picker flow */}
             {!showPlatformPicker && !selectedPlatform && (
@@ -2682,9 +2715,31 @@ function makeStyles(c: ColorPalette) {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: 14,
+    // Explicit fixed height so draggable-flatlist's offset math has
+    // no per-row variance to drift on. Numbers chosen to match the
+    // previous paddingVertical:14 + content + border, so existing
+    // visual rhythm is preserved.
+    height: 68,
+    paddingHorizontal: 0,
     borderBottomWidth: 1,
     borderBottomColor: c.gray100,
+    // backgroundColor needed so the dragged-row clone has an opaque
+    // surface (else the row below shows through during drag).
+    backgroundColor: c.background,
+  },
+  biolinkItemActive: {
+    // Lifted appearance during drag — replaces what ScaleDecorator
+    // used to do, but via shadow + background instead of transform
+    // (which was the broken bit). Looks "picked up" rather than
+    // shrunk-and-floating.
+    backgroundColor: c.gray50,
+    borderRadius: 12,
+    borderBottomWidth: 0,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.12,
+    shadowRadius: 8,
+    elevation: 4,
   },
   biolinkIcon: {
     width: 28,
