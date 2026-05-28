@@ -1044,7 +1044,8 @@
     "exploreEmptyTitle": "لم يتم العثور على مستخدمين",
     "exploreEmptyText": "لم يستخدم أي مستخدم عام هذا الوسم بعد",
     "viewAll": "عرض الكل",
-    "relatedTags": "وسوم ذات صلة"
+    "relatedTags": "وسوم ذات صلة",
+    "endorsedBy": "{{count}} يؤيدون"
   },
   "semanticType": {
     "identity": "الهوية",

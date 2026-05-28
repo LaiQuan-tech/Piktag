@@ -1044,7 +1044,8 @@
     "exploreEmptyTitle": "ไม่พบผู้ใช้",
     "exploreEmptyText": "ยังไม่มีผู้ใช้สาธารณะที่ใช้แท็กนี้",
     "viewAll": "ดูทั้งหมด",
-    "relatedTags": "แท็กที่เกี่ยวข้อง"
+    "relatedTags": "แท็กที่เกี่ยวข้อง",
+    "endorsedBy": "{{count}} คนเห็นด้วย"
   },
   "semanticType": {
     "identity": "ตัวตน",

@@ -1044,7 +1044,8 @@
     "exploreEmptyTitle": "ユーザーが見つかりません",
     "exploreEmptyText": "このタグを使っている公開ユーザーはまだいません",
     "viewAll": "すべて見る",
-    "relatedTags": "関連タグ"
+    "relatedTags": "関連タグ",
+    "endorsedBy": "{{count}} 人が同意"
   },
   "semanticType": {
     "identity": "アイデンティティ",

@@ -1044,7 +1044,8 @@
     "exploreEmptyTitle": "Tidak ada pengguna ditemukan",
     "exploreEmptyText": "Belum ada pengguna publik yang menggunakan tag ini",
     "viewAll": "Lihat Semua",
-    "relatedTags": "Tag terkait"
+    "relatedTags": "Tag terkait",
+    "endorsedBy": "{{count}} setuju"
   },
   "semanticType": {
     "identity": "Identitas",

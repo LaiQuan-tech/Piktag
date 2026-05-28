@@ -1044,7 +1044,8 @@
     "exploreEmptyTitle": "Никого не найдено",
     "exploreEmptyText": "Пока никто из публичных пользователей не использовал этот тег",
     "viewAll": "Показать все",
-    "relatedTags": "Связанные теги"
+    "relatedTags": "Связанные теги",
+    "endorsedBy": "{{count}} подтверждают"
   },
   "semanticType": {
     "identity": "Личность",

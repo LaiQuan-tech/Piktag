@@ -1044,7 +1044,8 @@
     "exploreEmptyTitle": "कोई यूज़र नहीं मिला",
     "exploreEmptyText": "अभी तक किसी सार्वजनिक यूज़र ने इस टैग का इस्तेमाल नहीं किया",
     "viewAll": "सब देखें",
-    "relatedTags": "संबंधित टैग"
+    "relatedTags": "संबंधित टैग",
+    "endorsedBy": "{{count}} सहमत"
   },
   "semanticType": {
     "identity": "पहचान",

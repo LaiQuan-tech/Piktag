@@ -1044,7 +1044,8 @@
     "exploreEmptyTitle": "কোনো ইউজার পাওয়া যায়নি",
     "exploreEmptyText": "এখনও কোনো পাবলিক ইউজার এই ট্যাগ ব্যবহার করেননি",
     "viewAll": "সব দেখুন",
-    "relatedTags": "সম্পর্কিত ট্যাগ"
+    "relatedTags": "সম্পর্কিত ট্যাগ",
+    "endorsedBy": "{{count}} জন সম্মত"
   },
   "semanticType": {
     "identity": "পরিচয়",

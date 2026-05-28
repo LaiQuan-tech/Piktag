@@ -1044,7 +1044,8 @@
     "exploreEmptyTitle": "Nenhum usuário encontrado",
     "exploreEmptyText": "Nenhum usuário público usou esta tag ainda",
     "viewAll": "Ver tudo",
-    "relatedTags": "Tags relacionadas"
+    "relatedTags": "Tags relacionadas",
+    "endorsedBy": "{{count}} apoiam"
   },
   "semanticType": {
     "identity": "Identidade",

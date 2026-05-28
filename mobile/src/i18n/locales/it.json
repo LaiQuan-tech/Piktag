@@ -1089,7 +1089,8 @@
     "exploreEmptyTitle": "Nessun utente trovato",
     "exploreEmptyText": "Ancora nessun utente pubblico ha usato questo tag",
     "viewAll": "Vedi tutti",
-    "relatedTags": "Tag correlati"
+    "relatedTags": "Tag correlati",
+    "endorsedBy": "{{count}} approvano"
   },
   "semanticType": {
     "identity": "Identità",

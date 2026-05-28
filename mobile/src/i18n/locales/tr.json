@@ -1044,7 +1044,8 @@
     "exploreEmptyTitle": "Kullanıcı bulunamadı",
     "exploreEmptyText": "Henüz bu etiketi kullanan herkese açık kullanıcı yok",
     "viewAll": "Tümünü Gör",
-    "relatedTags": "İlgili etiketler"
+    "relatedTags": "İlgili etiketler",
+    "endorsedBy": "{{count}} onaylıyor"
   },
   "semanticType": {
     "identity": "Kimlik",

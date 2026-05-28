@@ -49,6 +49,10 @@ type ExploreUser = {
   avatar_url: string | null;
   is_verified: boolean;
   mutual_tag_count: number;
+  // North-Star principle #2 — number of distinct public taggers who
+  // publicly endorsed this user with the current tag (or its concept
+  // siblings). 0 hides the badge; >0 surfaces "N 人認同" inline.
+  endorser_count: number;
 };
 
 // A not-yet-on-PikTag local contact the owner manually tagged with
@@ -264,6 +268,7 @@ export default function TagDetailScreen({ navigation, route }: TagDetailScreenPr
           avatar_url: string | null;
           is_verified: boolean;
           mutual_tag_count: number;
+          endorser_count?: number;
           total_count: number;
         }>;
         const result: ExploreUser[] = rows.map((r) => ({
@@ -273,6 +278,9 @@ export default function TagDetailScreen({ navigation, route }: TagDetailScreenPr
           avatar_url: r.avatar_url,
           is_verified: r.is_verified,
           mutual_tag_count: r.mutual_tag_count ?? 0,
+          // 0 until the migration applies; rendered conditionally so
+          // the row gracefully hides the badge while CI catches up.
+          endorser_count: r.endorser_count ?? 0,
         }));
         setExploreUsers(result);
         setTotalUserCount(rows[0]?.total_count != null ? Number(rows[0].total_count) : result.length);
@@ -349,6 +357,10 @@ export default function TagDetailScreen({ navigation, route }: TagDetailScreenPr
         avatar_url: p.avatar_url,
         is_verified: p.is_verified,
         mutual_tag_count: mutualCountMap.get(p.id) || 0,
+        // Legacy fallback path doesn't compute endorser_count to keep
+        // the multi-query fallback cheap. RPC is the canonical path —
+        // 0 here just means "missing data, render no badge."
+        endorser_count: 0,
       }));
       result.sort((a, b) => b.mutual_tag_count - a.mutual_tag_count);
       setExploreUsers(result);
@@ -520,6 +532,16 @@ export default function TagDetailScreen({ navigation, route }: TagDetailScreenPr
                 {t('tagDetail.mutualTags', { count: item.mutual_tag_count })}
               </Text>
             </View>
+          )}
+          {/* Endorser count (principle #2). Plain inline text — no
+              ✓ icon (founder rejected: doubles up with #). Gray
+              uniform across all counts (founder: no color tiering
+              yet, "保守一點"). Hidden at 0 so no-signal rows stay
+              clean. */}
+          {item.endorser_count > 0 && (
+            <Text style={styles.endorserText}>
+              {t('tagDetail.endorsedBy', { count: item.endorser_count, defaultValue: '{{count}} 人認同' })}
+            </Text>
           )}
         </View>
         <TouchableOpacity
@@ -891,6 +913,14 @@ function makeStyles(c: ColorPalette) {
     fontSize: 12,
     fontWeight: '600',
     color: c.piktag600,
+  },
+  // Plain inline endorser count — gray uniform, no badge background,
+  // sits below the mutual badge (or directly below username when no
+  // mutual). Quiet by design — "informational, not decorative."
+  endorserText: {
+    fontSize: 12,
+    color: c.gray500,
+    marginTop: 4,
   },
   viewProfileBtn: {
     width: 40,

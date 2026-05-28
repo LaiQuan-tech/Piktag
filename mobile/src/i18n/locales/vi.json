@@ -1089,7 +1089,8 @@
     "exploreEmptyTitle": "Không thấy người dùng nào",
     "exploreEmptyText": "Chưa có ai công khai dùng tag này",
     "viewAll": "Xem hết",
-    "relatedTags": "Tag liên quan"
+    "relatedTags": "Tag liên quan",
+    "endorsedBy": "{{count}} đồng ý"
   },
   "semanticType": {
     "identity": "Danh tính",

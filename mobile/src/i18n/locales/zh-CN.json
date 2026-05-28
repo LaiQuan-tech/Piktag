@@ -1082,7 +1082,8 @@
     "exploreEmptyTitle": "目前没有其他用户",
     "exploreEmptyText": "还没有其他公开用户使用此标签",
     "viewAll": "查看全部",
-    "relatedTags": "相关标签"
+    "relatedTags": "相关标签",
+    "endorsedBy": "{{count}} 人认同"
   },
   "semanticType": {
     "identity": "身份",

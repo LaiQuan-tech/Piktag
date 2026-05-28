@@ -1073,7 +1073,8 @@
     "mutualTags": "{{count}} 個共同標籤",
     "exploreEmptyTitle": "目前沒有其他用戶",
     "exploreEmptyText": "還沒有其他公開用戶使用此標籤",
-    "viewAll": "查看全部"
+    "viewAll": "查看全部",
+    "endorsedBy": "{{count}} 人認同"
   },
   "semanticType": {
     "identity": "身份",

@@ -1089,7 +1089,8 @@
     "exploreEmptyTitle": "کوئی صارف نہیں ملا",
     "exploreEmptyText": "ابھی کسی عوامی صارف نے یہ ٹیگ استعمال نہیں کیا",
     "viewAll": "سب دیکھیں",
-    "relatedTags": "متعلقہ ٹیگز"
+    "relatedTags": "متعلقہ ٹیگز",
+    "endorsedBy": "{{count}} متفق"
   },
   "semanticType": {
     "identity": "شناخت",

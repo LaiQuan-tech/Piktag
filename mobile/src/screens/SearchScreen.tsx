@@ -59,12 +59,16 @@ type CategoryKey = 'popular' | 'nearby' | 'recent';
 type ProfileCardProps = {
   profile: PiktagProfile;
   onPress: (profile: PiktagProfile) => void;
-  t: (key: string) => string;
+  t: (key: string, opts?: any) => string;
 };
 
 const ProfileCard = React.memo(function ProfileCard({ profile, onPress, t }: ProfileCardProps) {
   const { colors } = useTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
+  // Endorser count rides on the search_users RPC payload (principle #2)
+  // as an extra field. PiktagProfile doesn't declare it because it's
+  // only meaningful for search-results rows; read defensively via cast.
+  const endorserCount = (profile as PiktagProfile & { endorser_count?: number }).endorser_count ?? 0;
   const handlePress = useCallback(() => {
     onPress(profile);
   }, [onPress, profile]);
@@ -99,6 +103,14 @@ const ProfileCard = React.memo(function ProfileCard({ profile, onPress, t }: Pro
         {profile.username && (
           <Text style={styles.profileUsername} numberOfLines={1}>
             @{profile.username}
+          </Text>
+        )}
+        {/* Endorser-count inline text (principle #2). Hidden at 0
+            so no-signal rows stay clean. Gray uniform — no color
+            tiering at this stage (founder, 2026-05-29). */}
+        {endorserCount > 0 && (
+          <Text style={styles.profileEndorser} numberOfLines={1}>
+            {t('tagDetail.endorsedBy', { count: endorserCount, defaultValue: '{{count}} 人認同' })}
           </Text>
         )}
       </View>
@@ -1202,6 +1214,12 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
                   avatar_url: r.avatar_url,
                   is_verified: r.is_verified,
                   is_public: true,
+                  // North-Star principle #2 — distinct endorser count
+                  // from the search_users RPC. Carried through as an
+                  // extra field on the PiktagProfile-shaped object;
+                  // ProfileCard reads it via cast. 0 when the
+                  // migration hasn't yet applied → no badge renders.
+                  endorser_count: r.endorser_count ?? 0,
                 }))
                 .filter((p) => p.id !== user?.id && !seenIds.has(p.id) && (seenIds.add(p.id), true));
               if (flat.length > 0) {
@@ -3459,6 +3477,13 @@ function makeStyles(c: ColorPalette) {
   },
   profileUsername: {
     fontSize: 13,
+    color: c.gray500,
+    marginTop: 2,
+  },
+  // Endorser-count inline text (principle #2). Same gray as
+  // profileUsername — informational, no color tier.
+  profileEndorser: {
+    fontSize: 12,
     color: c.gray500,
     marginTop: 2,
   },
