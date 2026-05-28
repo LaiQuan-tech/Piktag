@@ -442,8 +442,7 @@
     "statFriendsA11y": "Xem bạn bè của tôi",
     "statFollowersA11y": "Xem người theo dõi của tôi",
     "statTribeA11y": "View Tribe constellation",
-    "statTribe": "Tribe",
-    "healthMeter": "Sức khỏe tag {{score}}/100"
+    "statTribe": "Tribe"
   },
   "editProfile": {
     "headerTitle": "Sửa hồ sơ",
@@ -715,7 +714,6 @@
     "locationContacts": "Người bạn quen ở đây",
     "socialStats": "Thông tin chi tiết",
     "privacySettings": "Cài đặt riêng tư",
-    "notificationSettings": "Cài đặt thông báo",
     "groupGeneral": "Chung",
     "language": "Ngôn ngữ",
     "darkMode": "Chế độ tối",
@@ -736,7 +734,6 @@
     "addPasswordTitle": "Thêm mật khẩu",
     "addPasswordMessage": "Bạn đang đăng nhập bằng Apple/Google và chưa có mật khẩu PikTag. Chúng tôi sẽ gửi liên kết thiết lập qua email để bạn cũng có thể đăng nhập bằng email + mật khẩu (Apple/Google vẫn dùng được).",
     "sendAddPasswordEmail": "Gửi email thiết lập",
-    "vibeShiftNotifications": "Báo cho tôi khi bạn bè đăng tag mới",
     "groupNotifications": "Thông báo",
     "notifSocial": "Mạng xã hội",
     "notifMatches": "Khớp AI",
@@ -862,7 +859,6 @@
   "notifications": {
     "headerTitle": "Thông báo",
     "tabSocial": "Xã hội",
-    "tabReminders": "Lời nhắc",
     "timeJustNow": "Vừa xong",
     "timeMinutesAgo": "{{count}} phút trước",
     "timeHoursAgo": "{{count}} giờ trước",

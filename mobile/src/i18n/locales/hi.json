@@ -435,8 +435,7 @@
     "statFriendsA11y": "मेरे दोस्त देखें",
     "statFollowersA11y": "मेरे फ़ॉलोअर देखें",
     "statTribeA11y": "View Tribe constellation",
-    "statTribe": "Tribe",
-    "healthMeter": "टैग स्वास्थ्य {{score}}/100"
+    "statTribe": "Tribe"
   },
   "editProfile": {
     "headerTitle": "प्रोफ़ाइल संपादित करें",
@@ -708,7 +707,6 @@
     "locationContacts": "यहाँ आप किसे जानते हैं",
     "socialStats": "अंतर्दृष्टि",
     "privacySettings": "गोपनीयता सेटिंग्स",
-    "notificationSettings": "सूचना सेटिंग्स",
     "groupGeneral": "सामान्य",
     "language": "भाषा",
     "darkMode": "डार्क मोड",
@@ -729,7 +727,6 @@
     "addPasswordTitle": "पासवर्ड जोड़ें",
     "addPasswordMessage": "आप वर्तमान में Apple/Google से साइन इन कर रहे हैं और आपके पास PikTag पासवर्ड नहीं है। हम सेटअप लिंक ईमेल करेंगे ताकि आप ईमेल + पासवर्ड से भी साइन इन कर सकें (Apple/Google काम करता रहेगा)।",
     "sendAddPasswordEmail": "सेटअप ईमेल भेजें",
-    "vibeShiftNotifications": "जब दोस्त नए टैग पोस्ट करें मुझे सूचित करें",
     "groupNotifications": "सूचनाएँ",
     "notifSocial": "सोशल",
     "notifMatches": "AI मेल",
@@ -854,7 +851,6 @@
   "notifications": {
     "headerTitle": "सूचनाएँ",
     "tabSocial": "सोशल",
-    "tabReminders": "रिमाइंडर",
     "timeJustNow": "अभी",
     "timeMinutesAgo": "{{count}} मि पहले",
     "timeHoursAgo": "{{count}} घं पहले",

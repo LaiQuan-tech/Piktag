@@ -435,8 +435,7 @@
     "statFriendsA11y": "ดูเพื่อนของฉัน",
     "statFollowersA11y": "ดูผู้ติดตามของฉัน",
     "statTribeA11y": "View Tribe constellation",
-    "statTribe": "Tribe",
-    "healthMeter": "สุขภาพแท็ก {{score}}/100"
+    "statTribe": "Tribe"
   },
   "editProfile": {
     "headerTitle": "แก้ไขโปรไฟล์",
@@ -708,7 +707,6 @@
     "locationContacts": "คนที่คุณรู้จักที่นี่",
     "socialStats": "ข้อมูลเชิงลึก",
     "privacySettings": "การตั้งค่าความเป็นส่วนตัว",
-    "notificationSettings": "การตั้งค่าการแจ้งเตือน",
     "groupGeneral": "ทั่วไป",
     "language": "ภาษา",
     "darkMode": "โหมดมืด",
@@ -729,7 +727,6 @@
     "addPasswordTitle": "เพิ่มรหัสผ่าน",
     "addPasswordMessage": "คุณกำลังเข้าสู่ระบบด้วย Apple/Google และยังไม่มีรหัสผ่าน PikTag เราจะส่งลิงก์ตั้งค่าไปที่อีเมลเพื่อให้คุณเข้าสู่ระบบด้วยอีเมล + รหัสผ่านได้ด้วย (Apple/Google ยังใช้งานได้)",
     "sendAddPasswordEmail": "ส่งอีเมลตั้งค่า",
-    "vibeShiftNotifications": "แจ้งเมื่อเพื่อนโพสต์แท็กใหม่",
     "groupNotifications": "การแจ้งเตือน",
     "notifSocial": "โซเชียล",
     "notifMatches": "AI จับคู่",
@@ -854,7 +851,6 @@
   "notifications": {
     "headerTitle": "การแจ้งเตือน",
     "tabSocial": "โซเชียล",
-    "tabReminders": "การเตือน",
     "timeJustNow": "เมื่อสักครู่",
     "timeMinutesAgo": "{{count}} นาทีที่แล้ว",
     "timeHoursAgo": "{{count}} ชั่วโมงที่แล้ว",

@@ -435,8 +435,7 @@
     "statFriendsA11y": "Ver meus amigos",
     "statFollowersA11y": "Ver meus seguidores",
     "statTribeA11y": "View Tribe constellation",
-    "statTribe": "Tribe",
-    "healthMeter": "Saúde das tags {{score}}/100"
+    "statTribe": "Tribe"
   },
   "editProfile": {
     "headerTitle": "Editar perfil",
@@ -708,7 +707,6 @@
     "locationContacts": "Quem você conhece aqui",
     "socialStats": "Estatísticas",
     "privacySettings": "Configurações de privacidade",
-    "notificationSettings": "Configurações de notificação",
     "groupGeneral": "Geral",
     "language": "Idioma",
     "darkMode": "Modo escuro",
@@ -729,7 +727,6 @@
     "addPasswordTitle": "Adicionar senha",
     "addPasswordMessage": "Você entra com Apple/Google e não tem senha do PikTag. Vamos enviar um link de configuração por email para você também entrar com email + senha (Apple/Google continua funcionando).",
     "sendAddPasswordEmail": "Enviar email de configuração",
-    "vibeShiftNotifications": "Notifique quando amigos publicarem novas tags",
     "groupNotifications": "Notificações",
     "notifSocial": "Social",
     "notifMatches": "Matches de IA",
@@ -854,7 +851,6 @@
   "notifications": {
     "headerTitle": "Notificações",
     "tabSocial": "Social",
-    "tabReminders": "Lembretes",
     "timeJustNow": "Agora mesmo",
     "timeMinutesAgo": "há {{count}}m",
     "timeHoursAgo": "há {{count}}h",

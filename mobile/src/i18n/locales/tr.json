@@ -435,8 +435,7 @@
     "statFriendsA11y": "Arkadaşlarımı gör",
     "statFollowersA11y": "Takipçilerimi gör",
     "statTribeA11y": "View Tribe constellation",
-    "statTribe": "Tribe",
-    "healthMeter": "Etiket sağlığı {{score}}/100"
+    "statTribe": "Tribe"
   },
   "editProfile": {
     "headerTitle": "Profili Düzenle",
@@ -708,7 +707,6 @@
     "locationContacts": "Burada tanıdıkların",
     "socialStats": "İstatistikler",
     "privacySettings": "Gizlilik Ayarları",
-    "notificationSettings": "Bildirim Ayarları",
     "groupGeneral": "Genel",
     "language": "Dil",
     "darkMode": "Karanlık Mod",
@@ -729,7 +727,6 @@
     "addPasswordTitle": "Şifre ekle",
     "addPasswordMessage": "Şu anda Apple/Google ile giriş yapıyorsun ve PikTag şifren yok. Kurulum bağlantısını e-postana göndereceğiz, böylece e-posta + şifre ile de giriş yapabilirsin (Apple/Google çalışmaya devam eder).",
     "sendAddPasswordEmail": "Kurulum e-postası gönder",
-    "vibeShiftNotifications": "Arkadaşlar yeni etiket paylaştığında bildir",
     "groupNotifications": "Bildirimler",
     "notifSocial": "Sosyal",
     "notifMatches": "AI eşleşmeleri",
@@ -854,7 +851,6 @@
   "notifications": {
     "headerTitle": "Bildirimler",
     "tabSocial": "Sosyal",
-    "tabReminders": "Hatırlatıcılar",
     "timeJustNow": "Az önce",
     "timeMinutesAgo": "{{count}}dk önce",
     "timeHoursAgo": "{{count}}sa önce",

@@ -437,8 +437,7 @@
     "statFriendsA11y": "查看我的朋友",
     "statFollowersA11y": "查看我的追踪者",
     "statTribeA11y": "查看 Tribe 星图",
-    "statTribe": "Tribe",
-    "healthMeter": "标签健康度 {{score}}/100"
+    "statTribe": "Tribe"
   },
   "editProfile": {
     "headerTitle": "编辑个人信息",
@@ -710,7 +709,6 @@
     "locationContacts": "在这地点你认识谁",
     "socialStats": "洞察报告",
     "privacySettings": "公开账号",
-    "notificationSettings": "通知设置",
     "groupGeneral": "一般",
     "language": "语言",
     "darkMode": "深色模式",
@@ -731,7 +729,6 @@
     "addPasswordTitle": "添加密码",
     "addPasswordMessage": "你目前用 Apple/Google 登录，没有 PikTag 密码。送出后会寄一封信到你的 Email，帮你添加一组密码，之后也能用 Email + 密码登录（Apple/Google 登录仍然有效）",
     "sendAddPasswordEmail": "发送设置信",
-    "vibeShiftNotifications": "朋友贴新标签时通知我",
     "groupNotifications": "通知",
     "notifSocial": "社交动态",
     "notifMatches": "AI 配对推荐",
@@ -856,7 +853,6 @@
   "notifications": {
     "headerTitle": "通知",
     "tabSocial": "社交",
-    "tabReminders": "提醒",
     "timeJustNow": "刚刚",
     "timeMinutesAgo": "{{count}} 分钟前",
     "timeHoursAgo": "{{count}} 小时前",

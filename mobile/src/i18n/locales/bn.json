@@ -435,8 +435,7 @@
     "statFriendsA11y": "আমার বন্ধু দেখুন",
     "statFollowersA11y": "আমার ফলোয়ার দেখুন",
     "statTribeA11y": "View Tribe constellation",
-    "statTribe": "Tribe",
-    "healthMeter": "ট্যাগ স্বাস্থ্য {{score}}/100"
+    "statTribe": "Tribe"
   },
   "editProfile": {
     "headerTitle": "প্রোফাইল এডিট",
@@ -708,7 +707,6 @@
     "locationContacts": "এখানে যাদের আপনি চেনেন",
     "socialStats": "অন্তর্দৃষ্টি",
     "privacySettings": "গোপনীয়তা সেটিংস",
-    "notificationSettings": "নোটিফিকেশন সেটিংস",
     "groupGeneral": "সাধারণ",
     "language": "ভাষা",
     "darkMode": "ডার্ক মোড",
@@ -729,7 +727,6 @@
     "addPasswordTitle": "পাসওয়ার্ড যোগ করুন",
     "addPasswordMessage": "আপনি বর্তমানে Apple/Google দিয়ে সাইন ইন করছেন এবং কোনো PikTag পাসওয়ার্ড নেই। আমরা সেটআপ লিঙ্ক ইমেল করব যাতে আপনি ইমেল + পাসওয়ার্ড দিয়েও সাইন ইন করতে পারেন (Apple/Google সাইন ইন কাজ করতে থাকবে)।",
     "sendAddPasswordEmail": "সেটআপ ইমেল পাঠান",
-    "vibeShiftNotifications": "বন্ধুরা নতুন ট্যাগ পোস্ট করলে আমাকে জানান",
     "groupNotifications": "নোটিফিকেশন",
     "notifSocial": "সোশ্যাল",
     "notifMatches": "AI মিল",
@@ -854,7 +851,6 @@
   "notifications": {
     "headerTitle": "নোটিফিকেশন",
     "tabSocial": "সোশ্যাল",
-    "tabReminders": "রিমাইন্ডার",
     "timeJustNow": "এইমাত্র",
     "timeMinutesAgo": "{{count}} মি আগে",
     "timeHoursAgo": "{{count}} ঘ আগে",

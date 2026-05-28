@@ -435,8 +435,7 @@
     "statFriendsA11y": "Посмотреть моих друзей",
     "statFollowersA11y": "Посмотреть моих подписчиков",
     "statTribeA11y": "View Tribe constellation",
-    "statTribe": "Tribe",
-    "healthMeter": "Здоровье тегов {{score}}/100"
+    "statTribe": "Tribe"
   },
   "editProfile": {
     "headerTitle": "Редактирование профиля",
@@ -708,7 +707,6 @@
     "locationContacts": "Кого ты знаешь здесь",
     "socialStats": "Статистика",
     "privacySettings": "Приватность",
-    "notificationSettings": "Уведомления",
     "groupGeneral": "Общие",
     "language": "Язык",
     "darkMode": "Тёмная тема",
@@ -729,7 +727,6 @@
     "addPasswordTitle": "Добавить пароль",
     "addPasswordMessage": "Сейчас вы входите через Apple/Google, и у вас нет пароля PikTag. Мы пришлём ссылку для настройки на почту, чтобы вы могли входить также по email + паролю (вход через Apple/Google продолжит работать).",
     "sendAddPasswordEmail": "Отправить письмо настройки",
-    "vibeShiftNotifications": "Уведомлять о новых тегах друзей",
     "groupNotifications": "Уведомления",
     "notifSocial": "Соцсеть",
     "notifMatches": "ИИ-совпадения",
@@ -854,7 +851,6 @@
   "notifications": {
     "headerTitle": "Уведомления",
     "tabSocial": "Соц",
-    "tabReminders": "Напоминания",
     "timeJustNow": "Только что",
     "timeMinutesAgo": "{{count}} мин назад",
     "timeHoursAgo": "{{count}} ч назад",

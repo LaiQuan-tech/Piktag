@@ -442,8 +442,7 @@
     "statFriendsA11y": "View my friends",
     "statFollowersA11y": "View my followers",
     "statTribeA11y": "View Tribe constellation",
-    "statTribe": "Tribe",
-    "healthMeter": "Tag graph {{score}}/100"
+    "statTribe": "Tribe"
   },
   "editProfile": {
     "headerTitle": "Edit Profile",
@@ -715,7 +714,6 @@
     "locationContacts": "Who you know here",
     "socialStats": "Insights",
     "privacySettings": "Privacy Settings",
-    "notificationSettings": "Notification Settings",
     "groupGeneral": "General",
     "language": "Language",
     "darkMode": "Dark Mode",
@@ -736,7 +734,6 @@
     "addPasswordTitle": "Add password",
     "addPasswordMessage": "You currently sign in with Apple/Google and don't have a PikTag password. We'll email you a setup link so you can also sign in with email + password (Apple/Google sign-in keeps working).",
     "sendAddPasswordEmail": "Send setup email",
-    "vibeShiftNotifications": "Notify me when friends post new tags",
     "groupNotifications": "Notifications",
     "notifSocial": "Social",
     "notifMatches": "AI matches",
@@ -862,7 +859,6 @@
   "notifications": {
     "headerTitle": "Notifications",
     "tabSocial": "Social",
-    "tabReminders": "Reminders",
     "timeJustNow": "Just now",
     "timeMinutesAgo": "{{count}}m ago",
     "timeHoursAgo": "{{count}}h ago",

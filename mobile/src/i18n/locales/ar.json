@@ -435,8 +435,7 @@
     "statFriendsA11y": "عرض أصدقائي",
     "statFollowersA11y": "عرض متابعيّ",
     "statTribeA11y": "View Tribe constellation",
-    "statTribe": "Tribe",
-    "healthMeter": "صحة الوسوم {{score}}/100"
+    "statTribe": "Tribe"
   },
   "editProfile": {
     "headerTitle": "تعديل الملف الشخصي",
@@ -708,7 +707,6 @@
     "locationContacts": "من تعرفهم هنا",
     "socialStats": "الإحصاءات",
     "privacySettings": "إعدادات الخصوصية",
-    "notificationSettings": "إعدادات الإشعارات",
     "groupGeneral": "عام",
     "language": "اللغة",
     "darkMode": "الوضع الداكن",
@@ -729,7 +727,6 @@
     "addPasswordTitle": "إضافة كلمة مرور",
     "addPasswordMessage": "أنت تستخدم تسجيل الدخول عبر Apple/Google ولا توجد كلمة مرور لـ PikTag. سنرسل رابط إعداد إلى بريدك حتى تتمكن من تسجيل الدخول بالبريد + كلمة المرور أيضاً (يستمر Apple/Google في العمل).",
     "sendAddPasswordEmail": "إرسال بريد الإعداد",
-    "vibeShiftNotifications": "أبلغني عند نشر الأصدقاء وسوماً جديدة",
     "groupNotifications": "الإشعارات",
     "notifSocial": "اجتماعي",
     "notifMatches": "تطابقات الذكاء الاصطناعي",
@@ -854,7 +851,6 @@
   "notifications": {
     "headerTitle": "الإشعارات",
     "tabSocial": "اجتماعي",
-    "tabReminders": "التذكيرات",
     "timeJustNow": "الآن",
     "timeMinutesAgo": "قبل {{count}} د",
     "timeHoursAgo": "قبل {{count}} س",

@@ -435,8 +435,7 @@
     "statFriendsA11y": "Lihat teman saya",
     "statFollowersA11y": "Lihat pengikut saya",
     "statTribeA11y": "View Tribe constellation",
-    "statTribe": "Tribe",
-    "healthMeter": "Kesehatan tag {{score}}/100"
+    "statTribe": "Tribe"
   },
   "editProfile": {
     "headerTitle": "Edit Profil",
@@ -708,7 +707,6 @@
     "locationContacts": "Siapa yang kamu kenal di sini",
     "socialStats": "Wawasan",
     "privacySettings": "Pengaturan Privasi",
-    "notificationSettings": "Pengaturan Notifikasi",
     "groupGeneral": "Umum",
     "language": "Bahasa",
     "darkMode": "Mode Gelap",
@@ -729,7 +727,6 @@
     "addPasswordTitle": "Tambah kata sandi",
     "addPasswordMessage": "Saat ini kamu masuk dengan Apple/Google dan belum punya kata sandi PikTag. Kami akan kirim tautan setelan ke email supaya kamu juga bisa masuk pakai email + kata sandi (Apple/Google tetap berfungsi).",
     "sendAddPasswordEmail": "Kirim email setelan",
-    "vibeShiftNotifications": "Beri tahu saat teman memposting tag baru",
     "groupNotifications": "Notifikasi",
     "notifSocial": "Sosial",
     "notifMatches": "Pencocokan AI",
@@ -854,7 +851,6 @@
   "notifications": {
     "headerTitle": "Notifikasi",
     "tabSocial": "Sosial",
-    "tabReminders": "Pengingat",
     "timeJustNow": "Baru saja",
     "timeMinutesAgo": "{{count}} menit lalu",
     "timeHoursAgo": "{{count}} jam lalu",

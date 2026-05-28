@@ -435,8 +435,7 @@
     "statFriendsA11y": "自分の友達を見る",
     "statFollowersA11y": "自分のフォロワーを見る",
     "statTribeA11y": "Tribe 星図を見る",
-    "statTribe": "Tribe",
-    "healthMeter": "タグ健康度 {{score}}/100"
+    "statTribe": "Tribe"
   },
   "editProfile": {
     "headerTitle": "プロフィール編集",
@@ -708,7 +707,6 @@
     "locationContacts": "ここで知り合った人",
     "socialStats": "インサイト",
     "privacySettings": "プライバシー設定",
-    "notificationSettings": "通知設定",
     "groupGeneral": "一般",
     "language": "言語",
     "darkMode": "ダークモード",
@@ -729,7 +727,6 @@
     "addPasswordTitle": "パスワードを追加",
     "addPasswordMessage": "現在 Apple/Google でサインインしており、PikTag のパスワードはありません。設定リンクをメールでお送りするので、メール + パスワードでもサインインできます(Apple/Google でのサインインは引き続き使えます)。",
     "sendAddPasswordEmail": "設定メールを送信",
-    "vibeShiftNotifications": "友だちが新しいタグを投稿したら通知",
     "groupNotifications": "通知",
     "notifSocial": "ソーシャル",
     "notifMatches": "AI マッチング",
@@ -854,7 +851,6 @@
   "notifications": {
     "headerTitle": "通知",
     "tabSocial": "ソーシャル",
-    "tabReminders": "リマインダー",
     "timeJustNow": "たった今",
     "timeMinutesAgo": "{{count}}分前",
     "timeHoursAgo": "{{count}}時間前",
