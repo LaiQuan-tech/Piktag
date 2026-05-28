@@ -20,6 +20,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import QRCode from 'react-native-qrcode-svg';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '../lib/supabase';
+import { recordAiSuggestions, markAiSuggestionAccepted } from '../lib/aiTagLogger';
 import LocationPickerModal from '../components/LocationPickerModal';
 import { useAuth } from '../hooks/useAuth';
 import { useRotatingPlaceholder } from '../hooks/useRotatingPlaceholder';
@@ -176,6 +177,11 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
   const [aiLocationDetail, setAiLocationDetail] = useState<string>('');
   const [popularNearby, setPopularNearby] = useState<string[]>([]);
   const [aiSuggestions, setAiSuggestions] = useState<string[]>([]);
+  // Principle #5 — AI confidence calibration log. Each batch of
+  // suggestions shown to the user gets recorded server-side so we can
+  // later plot position-in-list vs accept rate. Map tag_name → row id
+  // so when the user taps a chip we can flip its accepted flag.
+  const [aiSuggestionIds, setAiSuggestionIds] = useState<Record<string, string>>({});
   const [aiLoading, setAiLoading] = useState(false);
   const [aiContext, setAiContext] = useState('');
   const [viewerBio, setViewerBio] = useState('');
@@ -521,6 +527,24 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
         .filter((n) => !eventTags.includes(n))
         .slice(0, 10);
       setAiSuggestions(merged);
+      // Principle #5: log every shown suggestion for calibration.
+      // Fire-and-forget — never blocks the UI even on RPC failure.
+      // `position_in_list` is preserved by RPC (uses array index),
+      // so the first-listed suggestion gets position 0 = highest
+      // confidence proxy until Gemini returns real confidence.
+      void (async () => {
+        const ids = await recordAiSuggestions('suggest_tags_rpc', merged, {
+          context_description: contextKey.slice(0, 200),
+          location: aiLocation || null,
+        });
+        if (ids.length === merged.length) {
+          const map: Record<string, string> = {};
+          merged.forEach((name, i) => {
+            map[name] = ids[i];
+          });
+          setAiSuggestionIds(map);
+        }
+      })();
     } catch (err) {
       console.warn('[AddTag] AI suggest-tags exception:', err);
       setAiSuggestions([]);
@@ -939,6 +963,11 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
                   onPress={() => {
                     setEventTags((prev) => (prev.includes(s) ? prev : [...prev, s]));
                     setAiSuggestions((prev) => prev.filter((x) => x !== s));
+                    // Principle #5: mark this suggestion accepted in the
+                    // calibration log. Fire-and-forget — the tag is
+                    // already added optimistically; logging is best-effort.
+                    const id = aiSuggestionIds[s];
+                    if (id) void markAiSuggestionAccepted(id);
                   }}
                 />
               ))}
