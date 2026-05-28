@@ -56,8 +56,16 @@ works *against* this, say so honestly (中肯) rather than just complying.
 - **Every change:** `tsc` clean → commit → push. i18n spans **19 locales**
   (`mobile/src/i18n/locales/*.json`) — keep all in sync (JSON round-trip
   into the right block; verify the key landed where intended).
-- **DB migrations** are applied **manually** via Supabase SQL Editor by the
-  founder; make them idempotent. Supabase ref `kbwfdskulxnhjckdvghj`.
+- **DB migrations auto-apply** on push to `main` via
+  `.github/workflows/supabase-deploy.yml` (the `db-push` job runs
+  `supabase db push` against the linked project). DO NOT ask the
+  founder to run SQL by hand — commit, push, watch CI. Files MUST
+  use 14-digit `YYYYMMDDHHMMSS_name.sql` format (one row per file in
+  `supabase_migrations.schema_migrations` keyed on the prefix —
+  duplicate prefixes break the CLI; see 2026-05-27 8-digit incident).
+  Keep migrations idempotent (`IF NOT EXISTS` / `CREATE OR REPLACE` /
+  `ON CONFLICT DO NOTHING`) so CI re-runs and manual edits don't
+  collide. Supabase ref `kbwfdskulxnhjckdvghj`.
 - **Repo layout:** real mobile app = `mobile/`; landing = `landing/`
   (Vercel, `dist` gitignored, rebuilt on push; meta in
   `landing/api/*` + `landing/public/*` + `src/main.tsx`). The top-level
