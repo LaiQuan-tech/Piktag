@@ -223,7 +223,26 @@ serve(async (req) => {
               // Low temperature: this is extraction, not creativity.
               // (bio_draft is the only generative field and one
               // bland sentence is exactly what we want.)
-              generationConfig: { temperature: 0.2 },
+              //
+              // maxOutputTokens cap (2026-05-29): card extraction
+              // never exceeds ~300 tokens of JSON in practice; the
+              // 500 cap prevents the model from running long when
+              // it gets verbose (or accidentally emits trailing
+              // prose despite the prompt). Cuts ~1s off the
+              // slowest decoder end on 2.5-flash.
+              //
+              // thinkingBudget = 0 (2026-05-29): Gemini 2.5's
+              // default "thinking" step is pure overhead for a
+              // pure-extraction task — there's nothing to reason
+              // about, just read the card. Disabling it on the
+              // primary 2.5-flash hop saves ~1-2s. Fallback chain
+              // models (2.0-flash, 1.5-flash) ignore the field
+              // silently — backward-compatible.
+              generationConfig: {
+                temperature: 0.2,
+                maxOutputTokens: 500,
+                thinkingConfig: { thinkingBudget: 0 },
+              },
             }),
           },
         );

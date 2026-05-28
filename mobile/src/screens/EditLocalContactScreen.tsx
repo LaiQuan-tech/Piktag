@@ -45,6 +45,7 @@ import { toBirthdayDate } from '../lib/birthday';
 import { normalizeTagName } from '../lib/normalizeTag';
 import BrandSpinner from '../components/loaders/BrandSpinner';
 import LogoLoader from '../components/loaders/LogoLoader';
+import { SkeletonBox } from '../components/SkeletonLoader';
 import TagChip from '../components/TagChip';
 
 type Props = { navigation: any; route: any };
@@ -911,8 +912,20 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
             <Text style={styles.scanOverlayTitle}>
               {t('localContact.scanningTitle', { defaultValue: '正在識別名片…' })}
             </Text>
+            {/* Shimmer mock-field rows — gives the wait a "we're
+                actively filling things in" texture instead of a
+                static loader. Widths picked to look like alternating
+                label / value lines (short label, longer value).
+                Doesn't shorten the actual scan; cheap perceived-
+                progress feedback. */}
+            <View style={styles.scanShimmerPreview}>
+              <SkeletonBox width="60%" height={12} borderRadius={6} />
+              <SkeletonBox width="85%" height={14} borderRadius={6} />
+              <SkeletonBox width="45%" height={12} borderRadius={6} />
+              <SkeletonBox width="75%" height={14} borderRadius={6} />
+            </View>
             <Text style={styles.scanOverlaySubtitle}>
-              {t('localContact.scanningSubtitle', { defaultValue: '通常需要 5–10 秒' })}
+              {t('localContact.scanningSubtitle', { defaultValue: '通常需要 3–7 秒' })}
             </Text>
           </View>
         </View>
@@ -1050,10 +1063,18 @@ function makeStyles(c: ColorPalette) {
     textAlign: 'center',
   },
   scanOverlaySubtitle: {
-    marginTop: 6,
+    marginTop: 14,
     fontSize: 13,
     color: c.gray500,
     textAlign: 'center',
+  },
+  // Mock-field shimmer rows inside the scan overlay card. Width
+  // fills the card so the bars feel like form lines being filled.
+  scanShimmerPreview: {
+    width: '100%',
+    marginTop: 18,
+    gap: 8,
+    alignItems: 'flex-start',
   },
   });
 }

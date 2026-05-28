@@ -107,14 +107,18 @@ async function cropToGuide(
 
     const ctx = ImageManipulator.manipulate(uri);
     ctx.crop({ originX, originY, width: cropW, height: cropH });
-    // 1024px 對名片 OCR 綽綽有餘 — 名片字級在此解析度仍清晰，
-    // payload 降到原本的 1/3–1/5。Gemini Vision 對更大的圖
-    // 不會更準，只會更慢（上傳 + ingest 兩段都拖）。
-    ctx.resize({ width: 1024 });
+    // 800px on the cropped frame (was 1024). Card OCR proven legible
+    // at this resolution in QA — letters are still sharp at 800 wide
+    // for any normally-printed card, and the upload + Gemini-ingest
+    // saving is ~30%. Combined with compress 0.4 below, the payload
+    // drops to roughly half the previous size. If we see OCR
+    // accuracy regress on edge-case cards (tiny fonts, low contrast)
+    // we'd rather lift this back than trade for accuracy.
+    ctx.resize({ width: 800 });
     const ref = await ctx.renderAsync();
     const out = await ref.saveAsync({
       base64: true,
-      compress: 0.5,
+      compress: 0.4,
       format: SaveFormat.JPEG,
     });
     return out.base64 ?? null;
@@ -123,17 +127,19 @@ async function cropToGuide(
   }
 }
 
-// crop 失敗時的 fallback —— 仍要把整張縮圖，避免送 1MB+ 的全幅原圖
-// 拖垮上傳與 vision call。1280px 比 cropToGuide 寬一點，因為這是
-// 「整張卡 + 周邊」未裁切的畫面，留多一點解析度給 OCR。
+// crop 失敗時的 fallback — 仍要把整張縮圖。1000px (was 1280) keeps
+// a slightly wider canvas than cropToGuide so Gemini has the
+// surrounding context when the framing-guide crop bailed, but
+// shaved from the previous setting in the same speed-vs-accuracy
+// tradeoff as above.
 async function downscaleFullFrame(uri: string): Promise<string | null> {
   try {
     const ctx = ImageManipulator.manipulate(uri);
-    ctx.resize({ width: 1280 });
+    ctx.resize({ width: 1000 });
     const ref = await ctx.renderAsync();
     const out = await ref.saveAsync({
       base64: true,
-      compress: 0.5,
+      compress: 0.4,
       format: SaveFormat.JPEG,
     });
     return out.base64 ?? null;

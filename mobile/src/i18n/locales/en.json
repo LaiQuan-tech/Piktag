@@ -1419,7 +1419,7 @@
     "linkAddress": "Address",
     "linkWebsite": "Website",
     "scanningTitle": "Reading the card…",
-    "scanningSubtitle": "Usually takes 5–10 seconds",
+    "scanningSubtitle": "Usually takes 3–7 seconds",
     "fieldAddress": "Address",
     "addressPlaceholder": "e.g. 1234 Market St, San Francisco",
     "fieldWebsite": "Website",

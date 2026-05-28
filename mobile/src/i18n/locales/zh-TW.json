@@ -1419,7 +1419,7 @@
     "linkAddress": "地址",
     "linkWebsite": "網址",
     "scanningTitle": "正在識別名片…",
-    "scanningSubtitle": "通常需要 5–10 秒",
+    "scanningSubtitle": "通常需要 3–7 秒",
     "fieldAddress": "地址",
     "addressPlaceholder": "例：台北市信義區市府路 1 號",
     "fieldWebsite": "網址",

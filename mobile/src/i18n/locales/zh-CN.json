@@ -1412,7 +1412,7 @@
     "linkAddress": "地址",
     "linkWebsite": "网址",
     "scanningTitle": "正在识别名片…",
-    "scanningSubtitle": "通常需要 5–10 秒",
+    "scanningSubtitle": "通常需要 3–7 秒",
     "fieldAddress": "地址",
     "addressPlaceholder": "例：北京市朝阳区建国路 88 号",
     "fieldWebsite": "网址",
