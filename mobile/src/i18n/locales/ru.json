@@ -948,8 +948,14 @@
       },
       "recommendation": {
         "body": "возможно, вы знаете {{username}} — общих тегов: {{count}}"
+      },
+      "endorsement_request": {
+        "body": "пометил(а) себя как #{{tag_name}} — вы согласны?"
       }
-    }
+    },
+    "endorseBtn": "Подтвердить",
+    "endorseRetry": "Повторить",
+    "endorseDone": "Подтверждено"
   },
   "scanResult": {
     "headerTitle": "Добавить друга",

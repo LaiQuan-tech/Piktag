@@ -948,8 +948,14 @@
       },
       "recommendation": {
         "body": "{{username}} を知っているかも — 共通タグ {{count}} 個"
+      },
+      "endorsement_request": {
+        "body": "自分を #{{tag_name}} とタグ付けしました — あなたも同意しますか？"
       }
-    }
+    },
+    "endorseBtn": "同意",
+    "endorseRetry": "再試行",
+    "endorseDone": "同意済み"
   },
   "scanResult": {
     "headerTitle": "友達追加",

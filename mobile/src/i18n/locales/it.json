@@ -993,8 +993,14 @@
           "title": "",
           "body": "Potrebbe essere un ottimo argomento"
         }
+      },
+      "endorsement_request": {
+        "body": "si è taggato come #{{tag_name}} — sei d'accordo?"
       }
-    }
+    },
+    "endorseBtn": "Approva",
+    "endorseRetry": "Riprova",
+    "endorseDone": "Approvato"
   },
   "scanResult": {
     "headerTitle": "Aggiungi amico",

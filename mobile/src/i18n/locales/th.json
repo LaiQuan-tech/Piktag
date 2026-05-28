@@ -948,8 +948,14 @@
       },
       "recommendation": {
         "body": "คุณอาจรู้จัก {{username}} — แท็กร่วม {{count}} แท็ก"
+      },
+      "endorsement_request": {
+        "body": "แท็กตัวเองว่า #{{tag_name}} — คุณเห็นด้วยไหม?"
       }
-    }
+    },
+    "endorseBtn": "เห็นด้วย",
+    "endorseRetry": "ลองอีกครั้ง",
+    "endorseDone": "เห็นด้วยแล้ว"
   },
   "scanResult": {
     "headerTitle": "เพิ่มเพื่อน",

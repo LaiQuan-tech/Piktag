@@ -948,8 +948,14 @@
       },
       "recommendation": {
         "body": "quizá conozcas a {{username}} — {{count}} tags en común"
+      },
+      "endorsement_request": {
+        "body": "se etiquetó como #{{tag_name}} — ¿estás de acuerdo?"
       }
-    }
+    },
+    "endorseBtn": "Apoyar",
+    "endorseRetry": "Reintentar",
+    "endorseDone": "Apoyado"
   },
   "scanResult": {
     "headerTitle": "Añadir amigo",

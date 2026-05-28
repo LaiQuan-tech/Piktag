@@ -986,8 +986,14 @@
       },
       "invite_accepted": {
         "body": "加入了 PikTag"
+      },
+      "endorsement_request": {
+        "body": "标自己 #{{tag_name}} — 你也认同吗？"
       }
-    }
+    },
+    "endorseBtn": "认同",
+    "endorseRetry": "重试",
+    "endorseDone": "已认同"
   },
   "scanResult": {
     "headerTitle": "加为好友",

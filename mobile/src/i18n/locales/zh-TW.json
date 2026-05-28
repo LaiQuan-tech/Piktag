@@ -977,8 +977,14 @@
           "title": "",
           "body": "可能是值得開的話題"
         }
+      },
+      "endorsement_request": {
+        "body": "標自己 #{{tag_name}} — 你也認同嗎？"
       }
-    }
+    },
+    "endorseBtn": "認同",
+    "endorseRetry": "重試",
+    "endorseDone": "已認同"
   },
   "scanResult": {
     "headerTitle": "加為好友",

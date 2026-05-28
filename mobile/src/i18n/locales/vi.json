@@ -993,8 +993,14 @@
           "title": "",
           "body": "Chủ đề này hay đấy"
         }
+      },
+      "endorsement_request": {
+        "body": "gắn tag bản thân là #{{tag_name}} — bạn đồng ý không?"
       }
-    }
+    },
+    "endorseBtn": "Đồng ý",
+    "endorseRetry": "Thử lại",
+    "endorseDone": "Đã đồng ý"
   },
   "scanResult": {
     "headerTitle": "Thêm bạn",

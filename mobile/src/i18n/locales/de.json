@@ -986,8 +986,14 @@
       },
       "invite_accepted": {
         "body": "ist PikTag beigetreten"
+      },
+      "endorsement_request": {
+        "body": "hat sich als #{{tag_name}} getaggt — stimmst du zu?"
       }
-    }
+    },
+    "endorseBtn": "Bestätigen",
+    "endorseRetry": "Erneut versuchen",
+    "endorseDone": "Bestätigt"
   },
   "scanResult": {
     "headerTitle": "Freund hinzufügen",

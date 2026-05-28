@@ -948,8 +948,14 @@
       },
       "recommendation": {
         "body": "{{username}}님을 알 수도 있어요 — 공통 태그 {{count}}개"
+      },
+      "endorsement_request": {
+        "body": "스스로 #{{tag_name}}(으)로 태그했어요 — 동의하세요?"
       }
-    }
+    },
+    "endorseBtn": "동의",
+    "endorseRetry": "다시 시도",
+    "endorseDone": "동의함"
   },
   "scanResult": {
     "headerTitle": "친구 추가",

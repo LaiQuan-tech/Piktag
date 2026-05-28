@@ -948,8 +948,14 @@
       },
       "recommendation": {
         "body": "tu connais peut-être {{username}} — {{count}} tags en commun"
+      },
+      "endorsement_request": {
+        "body": "s'est tagué comme #{{tag_name}} — d'accord ?"
       }
-    }
+    },
+    "endorseBtn": "J'approuve",
+    "endorseRetry": "Réessayer",
+    "endorseDone": "Approuvé"
   },
   "scanResult": {
     "headerTitle": "Ajouter un ami",
