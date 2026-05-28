@@ -731,7 +731,12 @@
     "addPasswordTitle": "添加密码",
     "addPasswordMessage": "你目前用 Apple/Google 登录，没有 PikTag 密码。送出后会寄一封信到你的 Email，帮你添加一组密码，之后也能用 Email + 密码登录（Apple/Google 登录仍然有效）",
     "sendAddPasswordEmail": "发送设置信",
-    "vibeShiftNotifications": "朋友贴新标签时通知我"
+    "vibeShiftNotifications": "朋友贴新标签时通知我",
+    "groupNotifications": "通知",
+    "notifSocial": "社交动态 — 关注、好友、标签、链接点击、邀请",
+    "notifMatches": "AI 配对推荐 — 你可能认识的人、Ask 配对、重新连结",
+    "notifMemories": "节日与回忆 — 生日、认识周年、旧时光",
+    "notifBadge": "App 图标红点数字"
   },
   "contactSync": {
     "headerTitle": "通讯录同步",

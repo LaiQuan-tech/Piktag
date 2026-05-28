@@ -729,7 +729,12 @@
     "addPasswordTitle": "Добавить пароль",
     "addPasswordMessage": "Сейчас вы входите через Apple/Google, и у вас нет пароля PikTag. Мы пришлём ссылку для настройки на почту, чтобы вы могли входить также по email + паролю (вход через Apple/Google продолжит работать).",
     "sendAddPasswordEmail": "Отправить письмо настройки",
-    "vibeShiftNotifications": "Уведомлять о новых тегах друзей"
+    "vibeShiftNotifications": "Уведомлять о новых тегах друзей",
+    "groupNotifications": "Уведомления",
+    "notifSocial": "Соцсеть — подписки, друзья, теги, клики, приглашения",
+    "notifMatches": "ИИ-совпадения — возможные знакомые, Ask, возобновление связи",
+    "notifMemories": "Воспоминания — дни рождения, годовщины, в этот день",
+    "notifBadge": "Бейдж на иконке"
   },
   "contactSync": {
     "headerTitle": "Синхронизация контактов",

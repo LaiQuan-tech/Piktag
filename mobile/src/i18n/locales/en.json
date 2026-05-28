@@ -736,7 +736,12 @@
     "addPasswordTitle": "Add password",
     "addPasswordMessage": "You currently sign in with Apple/Google and don't have a PikTag password. We'll email you a setup link so you can also sign in with email + password (Apple/Google sign-in keeps working).",
     "sendAddPasswordEmail": "Send setup email",
-    "vibeShiftNotifications": "Notify me when friends post new tags"
+    "vibeShiftNotifications": "Notify me when friends post new tags",
+    "groupNotifications": "Notifications",
+    "notifSocial": "Social — follows, friends, tags, link clicks, invites",
+    "notifMatches": "AI matches — people you might know, Ask matches, reconnect nudges",
+    "notifMemories": "Memories — birthdays, anniversaries, on this day",
+    "notifBadge": "App icon badge"
   },
   "contactSync": {
     "headerTitle": "Contact Sync",

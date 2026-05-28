@@ -736,7 +736,12 @@
     "addPasswordTitle": "پاس ورڈ شامل کریں",
     "addPasswordMessage": "آپ فی الحال Apple/Google سے سائن ان ہیں اور PikTag پاس ورڈ نہیں ہے۔ ہم آپ کو سیٹ اپ لنک ای میل کریں گے تاکہ آپ ای میل + پاس ورڈ سے بھی سائن ان کر سکیں (Apple/Google کام کرتا رہے گا)۔",
     "sendAddPasswordEmail": "سیٹ اپ ای میل بھیجیں",
-    "vibeShiftNotifications": "دوست نئے ٹیگ پوسٹ کریں تو مجھے بتائیں"
+    "vibeShiftNotifications": "دوست نئے ٹیگ پوسٹ کریں تو مجھے بتائیں",
+    "groupNotifications": "اطلاعات",
+    "notifSocial": "سوشل — فالو، دوست، ٹیگز، لنک کلکس، دعوتیں",
+    "notifMatches": "AI میچز — ممکنہ شناسا، Ask میچز، دوبارہ رابطہ",
+    "notifMemories": "یادیں — سالگرہیں، ملاقات کی برسی، آج کے دن",
+    "notifBadge": "ایپ آئیکن بیج"
   },
   "contactSync": {
     "headerTitle": "رابطہ سنک",

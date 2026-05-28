@@ -729,7 +729,12 @@
     "addPasswordTitle": "Şifre ekle",
     "addPasswordMessage": "Şu anda Apple/Google ile giriş yapıyorsun ve PikTag şifren yok. Kurulum bağlantısını e-postana göndereceğiz, böylece e-posta + şifre ile de giriş yapabilirsin (Apple/Google çalışmaya devam eder).",
     "sendAddPasswordEmail": "Kurulum e-postası gönder",
-    "vibeShiftNotifications": "Arkadaşlar yeni etiket paylaştığında bildir"
+    "vibeShiftNotifications": "Arkadaşlar yeni etiket paylaştığında bildir",
+    "groupNotifications": "Bildirimler",
+    "notifSocial": "Sosyal — takipler, arkadaşlar, etiketler, tıklamalar, davetler",
+    "notifMatches": "AI eşleşmeleri — tanıyor olabileceğin kişiler, Ask, yeniden bağlan",
+    "notifMemories": "Anılar — doğum günleri, yıl dönümleri, bugün geçmişte",
+    "notifBadge": "Uygulama simgesi rozeti"
   },
   "contactSync": {
     "headerTitle": "Kişi Senkronizasyonu",

@@ -729,7 +729,12 @@
     "addPasswordTitle": "Tambah kata sandi",
     "addPasswordMessage": "Saat ini kamu masuk dengan Apple/Google dan belum punya kata sandi PikTag. Kami akan kirim tautan setelan ke email supaya kamu juga bisa masuk pakai email + kata sandi (Apple/Google tetap berfungsi).",
     "sendAddPasswordEmail": "Kirim email setelan",
-    "vibeShiftNotifications": "Beri tahu saat teman memposting tag baru"
+    "vibeShiftNotifications": "Beri tahu saat teman memposting tag baru",
+    "groupNotifications": "Notifikasi",
+    "notifSocial": "Sosial — follow, teman, tag, klik tautan, undangan",
+    "notifMatches": "Pencocokan AI — orang yang mungkin kamu kenal, Ask, sambung lagi",
+    "notifMemories": "Kenangan — ulang tahun, peringatan, hari ini di tahun lalu",
+    "notifBadge": "Badge ikon aplikasi"
   },
   "contactSync": {
     "headerTitle": "Sinkronisasi Kontak",

@@ -729,7 +729,12 @@
     "addPasswordTitle": "パスワードを追加",
     "addPasswordMessage": "現在 Apple/Google でサインインしており、PikTag のパスワードはありません。設定リンクをメールでお送りするので、メール + パスワードでもサインインできます(Apple/Google でのサインインは引き続き使えます)。",
     "sendAddPasswordEmail": "設定メールを送信",
-    "vibeShiftNotifications": "友だちが新しいタグを投稿したら通知"
+    "vibeShiftNotifications": "友だちが新しいタグを投稿したら通知",
+    "groupNotifications": "通知",
+    "notifSocial": "ソーシャル — フォロー、友だち、タグ、リンククリック、招待",
+    "notifMatches": "AI マッチング — 知り合いかも、Ask マッチ、再つなぎ提案",
+    "notifMemories": "記念日と思い出 — 誕生日、出会った日、あの日",
+    "notifBadge": "App アイコンのバッジ"
   },
   "contactSync": {
     "headerTitle": "連絡先を同期",

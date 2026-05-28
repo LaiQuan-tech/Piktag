@@ -729,7 +729,12 @@
     "addPasswordTitle": "पासवर्ड जोड़ें",
     "addPasswordMessage": "आप वर्तमान में Apple/Google से साइन इन कर रहे हैं और आपके पास PikTag पासवर्ड नहीं है। हम सेटअप लिंक ईमेल करेंगे ताकि आप ईमेल + पासवर्ड से भी साइन इन कर सकें (Apple/Google काम करता रहेगा)।",
     "sendAddPasswordEmail": "सेटअप ईमेल भेजें",
-    "vibeShiftNotifications": "जब दोस्त नए टैग पोस्ट करें मुझे सूचित करें"
+    "vibeShiftNotifications": "जब दोस्त नए टैग पोस्ट करें मुझे सूचित करें",
+    "groupNotifications": "सूचनाएँ",
+    "notifSocial": "सोशल — फॉलो, दोस्त, टैग, लिंक क्लिक, निमंत्रण",
+    "notifMatches": "AI मेल — हो सकता है आप जानते हों, Ask मेल, फिर से जुड़ें",
+    "notifMemories": "यादें — जन्मदिन, सालगिरह, इस दिन",
+    "notifBadge": "ऐप आइकन बैज"
   },
   "contactSync": {
     "headerTitle": "कॉन्टैक्ट सिंक",

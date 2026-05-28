@@ -81,3 +81,84 @@ export async function registerForPushNotifications(userId: string): Promise<stri
     return null;
   }
 }
+
+// ─── App-icon badge management ────────────────────────────────────
+// Pre-2026-05-30 the badge was never set anywhere — both the server
+// (Expo push payload `badge: undefined`) and the client (no
+// setBadgeCountAsync call) deferred to the other and so nothing
+// happened. We now compute it client-side from piktag_notifications
+// unread count, gated on the user's `notif_badge` preference.
+//
+// Same lazy-import discipline as registerForPushNotifications — the
+// native module is only touched after the JS runtime is stable.
+
+/**
+ * Reflect the user's badge preference on the app icon RIGHT NOW.
+ * - enabled=true  → query unread count and apply it
+ * - enabled=false → force zero
+ *
+ * Call after toggling the Settings switch, or after the user opens
+ * NotificationsScreen and marks rows read.
+ */
+export async function applyBadgePreference(
+  enabled: boolean,
+  userId: string,
+): Promise<void> {
+  try {
+    const Notifications = await import('expo-notifications');
+    if (!enabled) {
+      await Notifications.setBadgeCountAsync(0);
+      return;
+    }
+    const { count, error } = await supabase
+      .from('piktag_notifications')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', userId)
+      .eq('is_read', false);
+    if (error) {
+      console.warn('[badge] unread query failed:', error.message);
+      return;
+    }
+    await Notifications.setBadgeCountAsync(Math.max(0, count ?? 0));
+  } catch (err) {
+    console.warn('[badge] applyBadgePreference threw:', err);
+  }
+}
+
+/**
+ * Read the user's badge preference from DB, then apply. Use at app
+ * launch / auth resolve — caller doesn't need to know the current
+ * preference value, this fn does both reads.
+ */
+export async function refreshBadgeFromServer(userId: string): Promise<void> {
+  try {
+    const { data, error } = await supabase
+      .from('piktag_profiles')
+      .select('notif_badge')
+      .eq('id', userId)
+      .single();
+    if (error) {
+      // Column-missing (42703) → migration not yet applied. Default
+      // ON (matches the DEFAULT we'll set when it lands).
+      const isMissing =
+        (error as any).code === '42703' ||
+        /column .*notif_badge/i.test(error.message);
+      await applyBadgePreference(isMissing, userId);
+      return;
+    }
+    const enabled = (data as any)?.notif_badge !== false;
+    await applyBadgePreference(enabled, userId);
+  } catch (err) {
+    console.warn('[badge] refreshBadgeFromServer threw:', err);
+  }
+}
+
+/** Force-clear the badge. Cheap to call. */
+export async function clearBadge(): Promise<void> {
+  try {
+    const Notifications = await import('expo-notifications');
+    await Notifications.setBadgeCountAsync(0);
+  } catch {
+    /* silent — badge clear is best-effort */
+  }
+}

@@ -729,7 +729,12 @@
     "addPasswordTitle": "Añadir contraseña",
     "addPasswordMessage": "Actualmente entras con Apple/Google y no tienes contraseña de PikTag. Te enviaremos un enlace de configuración por email para que también puedas entrar con email + contraseña (Apple/Google sigue funcionando).",
     "sendAddPasswordEmail": "Enviar email de configuración",
-    "vibeShiftNotifications": "Avísame cuando los amigos publiquen nuevos tags"
+    "vibeShiftNotifications": "Avísame cuando los amigos publiquen nuevos tags",
+    "groupNotifications": "Notificaciones",
+    "notifSocial": "Social — seguidores, amigos, tags, clics, invitaciones",
+    "notifMatches": "Coincidencias IA — gente que podrías conocer, Ask, reconexiones",
+    "notifMemories": "Recuerdos — cumpleaños, aniversarios, en este día",
+    "notifBadge": "Insignia en el ícono"
   },
   "contactSync": {
     "headerTitle": "Sincronizar contactos",

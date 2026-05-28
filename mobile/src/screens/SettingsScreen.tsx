@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   View,
   Text,
@@ -21,6 +21,7 @@ import { changeLanguageSafe } from '../i18n';
 import { COLORS, type ColorPalette } from '../constants/theme';
 import { supabase, supabaseUrl, supabaseAnonKey } from '../lib/supabase';
 import { setAnalyticsOptIn } from '../lib/analytics';
+import { applyBadgePreference } from '../lib/pushNotifications';
 import { useAuth } from '../hooks/useAuth';
 import { useTheme } from '../context/ThemeContext';
 import type { PiktagProfile } from '../types';
@@ -80,13 +81,19 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
   const { t, i18n } = useTranslation();
 
   const [profile, setProfile] = useState<PiktagProfile | null>(null);
-  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [shareLocation, setShareLocation] = useState(true);
-  // P3: Vibe Shift notifications opt-in. Default ON (the notify_vibe_shift
-  // trigger reads piktag_profiles.vibe_shift_notifications_enabled — when
-  // the column is absent on a legacy row, the trigger's COALESCE defaults
-  // to true; we mirror the same default here in the UI before fetch).
-  const [vibeShiftEnabled, setVibeShiftEnabled] = useState(true);
+  // Notification category toggles — 2026-05-30 categorization.
+  // Replaces the old placebo "piktag_notifications_enabled" master
+  // (AsyncStorage-only, gated nothing server-side) and the per-type
+  // vibe_shift toggle (now subsumed under notif_social). Each maps
+  // 1:1 to a column on piktag_profiles; a BEFORE INSERT trigger on
+  // piktag_notifications enforces them DB-side (see migration
+  // 20260530000000). Defaults ON — match the column DEFAULTs so a
+  // pre-fetch UI render reads the same as the server eventually will.
+  const [notifSocial, setNotifSocial] = useState(true);
+  const [notifMatches, setNotifMatches] = useState(true);
+  const [notifMemories, setNotifMemories] = useState(true);
+  const [notifBadge, setNotifBadge] = useState(true);
   // `isDark` is the live theme state; `setThemeMode` persists the
   // choice (ThemeContext writes it to AsyncStorage and re-applies on
   // launch). The dark-mode Switch is driven directly off `isDark` —
@@ -120,9 +127,14 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
           if (!error && data) {
             setProfile(data);
             setShareLocation(data.share_location !== false);
-            // Only `false` counts as opt-out; missing column (migration
-            // not yet applied) and `null` both fall back to enabled.
-            setVibeShiftEnabled((data as any).vibe_shift_notifications_enabled !== false);
+            // Notification categories. Each column defaults true at
+            // the DB, but a row pre-dating the migration won't have
+            // the column populated yet; treat null/undefined as ON
+            // (only explicit false counts as opt-out).
+            setNotifSocial((data as any).notif_social !== false);
+            setNotifMatches((data as any).notif_matches !== false);
+            setNotifMemories((data as any).notif_memories !== false);
+            setNotifBadge((data as any).notif_badge !== false);
             // NOTE: deliberately NOT calling changeLanguageSafe from the
             // DB value here — see the comment at currentLanguage init.
             // The chip mirrors live i18n. If the user previously made an
@@ -131,14 +143,7 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
           }
         }
 
-        const [storedNotifications, storedAnalytics] = await Promise.all([
-          AsyncStorage.getItem('piktag_notifications_enabled'),
-          AsyncStorage.getItem('analytics_opt_in'),
-        ]);
-
-        if (storedNotifications !== null) {
-          setNotificationsEnabled(storedNotifications === 'true');
-        }
+        const storedAnalytics = await AsyncStorage.getItem('analytics_opt_in');
         // Dark mode is NOT read here — ThemeContext owns its own
         // persistence (piktag_theme_mode) and re-applies on launch.
         // The Switch reads `isDark` straight from ThemeContext.
@@ -154,34 +159,54 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
     loadSettings();
   }, [user]);
 
-  const handleNotificationsToggle = async () => {
-    const newValue = !notificationsEnabled;
-    setNotificationsEnabled(newValue);
-    await AsyncStorage.setItem('piktag_notifications_enabled', String(newValue));
-  };
-
-  // P3 toggle. Optimistic flip; on DB error revert. 42703 (column
-  // doesn't exist — migration not yet applied) is silently
-  // swallowed so the toggle still feels responsive in the UI.
-  const handleVibeShiftToggle = async () => {
-    if (!user) return;
-    const newValue = !vibeShiftEnabled;
-    setVibeShiftEnabled(newValue);
-    const { error } = await supabase
-      .from('piktag_profiles')
-      .update({ vibe_shift_notifications_enabled: newValue })
-      .eq('id', user.id);
-    if (error) {
-      const isMissingColumn =
-        (error as any).code === '42703' ||
-        /column .*vibe_shift_notifications_enabled/i.test(error.message);
-      if (!isMissingColumn) {
-        console.warn('[Settings] vibe_shift toggle failed:', error);
-        // Revert optimistic state on real errors
-        setVibeShiftEnabled(!newValue);
+  // Shared notification-category toggle. Optimistic flip → DB write
+  // → revert on real failure. 42703 (column not yet migrated) is
+  // tolerated so a stale binary stays usable. After a successful
+  // write to `notif_badge`, we also push the change through to the
+  // OS badge counter immediately — turning it off clears the badge
+  // without waiting for the next app launch.
+  const updateNotifCategory = useCallback(
+    async (
+      column: 'notif_social' | 'notif_matches' | 'notif_memories' | 'notif_badge',
+      newValue: boolean,
+      setter: (v: boolean) => void,
+      prev: boolean,
+    ) => {
+      if (!user) return;
+      setter(newValue);
+      const { error } = await supabase
+        .from('piktag_profiles')
+        .update({ [column]: newValue })
+        .eq('id', user.id);
+      if (error) {
+        const isMissingColumn =
+          (error as any).code === '42703' ||
+          new RegExp(`column .*${column}`, 'i').test(error.message);
+        if (!isMissingColumn) {
+          console.warn(`[Settings] ${column} toggle failed:`, error);
+          setter(prev);
+          return;
+        }
       }
-    }
-  };
+      if (column === 'notif_badge') {
+        // Reflect the change on the home-screen icon right now.
+        // If turned off → clear. If turned on → recompute from unread.
+        applyBadgePreference(newValue, user.id).catch((err) => {
+          console.warn('[Settings] applyBadgePreference failed:', err);
+        });
+      }
+    },
+    [user],
+  );
+
+  const handleNotifSocialToggle = () =>
+    updateNotifCategory('notif_social', !notifSocial, setNotifSocial, notifSocial);
+  const handleNotifMatchesToggle = () =>
+    updateNotifCategory('notif_matches', !notifMatches, setNotifMatches, notifMatches);
+  const handleNotifMemoriesToggle = () =>
+    updateNotifCategory('notif_memories', !notifMemories, setNotifMemories, notifMemories);
+  const handleNotifBadgeToggle = () =>
+    updateNotifCategory('notif_badge', !notifBadge, setNotifBadge, notifBadge);
 
   const handleShareLocationToggle = async () => {
     if (!user) return;
@@ -391,36 +416,6 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
         { label: t('settings.contactSync'), onPress: () => navigation.navigate('ContactSync') },
         { label: t('settings.socialStats'), onPress: () => navigation.navigate('SocialStats') },
         {
-          label: t('settings.notificationSettings'),
-          onPress: handleNotificationsToggle,
-          rightElement: (
-            <Switch
-              value={notificationsEnabled}
-              onValueChange={handleNotificationsToggle}
-              trackColor={{ false: colors.gray200, true: colors.piktag300 }}
-              thumbColor={notificationsEnabled ? colors.piktag500 : colors.gray400}
-            />
-          ),
-        },
-        // P3: Vibe Shift opt-out toggle. Sits right after the master
-        // notification toggle so the per-type granularity reads as
-        // a nested refinement of the same setting. Default ON — see
-        // the migration comment for the privacy reasoning.
-        {
-          label: t('settings.vibeShiftNotifications', {
-            defaultValue: '朋友貼新標籤時通知我',
-          }),
-          onPress: handleVibeShiftToggle,
-          rightElement: (
-            <Switch
-              value={vibeShiftEnabled}
-              onValueChange={handleVibeShiftToggle}
-              trackColor={{ false: colors.gray200, true: colors.piktag300 }}
-              thumbColor={vibeShiftEnabled ? colors.piktag500 : colors.gray400}
-            />
-          ),
-        },
-        {
           label: t('settings.shareLocation', { defaultValue: '分享所在地點' }),
           onPress: handleShareLocationToggle,
           rightElement: (
@@ -429,6 +424,71 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
               onValueChange={handleShareLocationToggle}
               trackColor={{ false: colors.gray200, true: colors.piktag300 }}
               thumbColor={shareLocation ? colors.piktag500 : colors.gray400}
+            />
+          ),
+        },
+      ],
+    },
+    // Notification category toggles — 2026-05-30 categorization.
+    // Each row maps to a column on piktag_profiles; the server-side
+    // BEFORE INSERT trigger (migration 20260530000000) enforces the
+    // flag for in-app rows. Defaults ON to match column DEFAULTs.
+    {
+      title: t('settings.groupNotifications', { defaultValue: '通知' }),
+      items: [
+        {
+          label: t('settings.notifSocial', {
+            defaultValue: '社交動態 — 追蹤、好友、標籤、連結點擊、邀請',
+          }),
+          onPress: handleNotifSocialToggle,
+          rightElement: (
+            <Switch
+              value={notifSocial}
+              onValueChange={handleNotifSocialToggle}
+              trackColor={{ false: colors.gray200, true: colors.piktag300 }}
+              thumbColor={notifSocial ? colors.piktag500 : colors.gray400}
+            />
+          ),
+        },
+        {
+          label: t('settings.notifMatches', {
+            defaultValue: 'AI 配對推薦 — 你可能認識的人、Ask 配對、重新連結',
+          }),
+          onPress: handleNotifMatchesToggle,
+          rightElement: (
+            <Switch
+              value={notifMatches}
+              onValueChange={handleNotifMatchesToggle}
+              trackColor={{ false: colors.gray200, true: colors.piktag300 }}
+              thumbColor={notifMatches ? colors.piktag500 : colors.gray400}
+            />
+          ),
+        },
+        {
+          label: t('settings.notifMemories', {
+            defaultValue: '節日與回憶 — 生日、認識週年、舊時光',
+          }),
+          onPress: handleNotifMemoriesToggle,
+          rightElement: (
+            <Switch
+              value={notifMemories}
+              onValueChange={handleNotifMemoriesToggle}
+              trackColor={{ false: colors.gray200, true: colors.piktag300 }}
+              thumbColor={notifMemories ? colors.piktag500 : colors.gray400}
+            />
+          ),
+        },
+        {
+          label: t('settings.notifBadge', {
+            defaultValue: 'App 圖示紅點數字',
+          }),
+          onPress: handleNotifBadgeToggle,
+          rightElement: (
+            <Switch
+              value={notifBadge}
+              onValueChange={handleNotifBadgeToggle}
+              trackColor={{ false: colors.gray200, true: colors.piktag300 }}
+              thumbColor={notifBadge ? colors.piktag500 : colors.gray400}
             />
           ),
         },

@@ -736,7 +736,12 @@
     "addPasswordTitle": "Thêm mật khẩu",
     "addPasswordMessage": "Bạn đang đăng nhập bằng Apple/Google và chưa có mật khẩu PikTag. Chúng tôi sẽ gửi liên kết thiết lập qua email để bạn cũng có thể đăng nhập bằng email + mật khẩu (Apple/Google vẫn dùng được).",
     "sendAddPasswordEmail": "Gửi email thiết lập",
-    "vibeShiftNotifications": "Báo cho tôi khi bạn bè đăng tag mới"
+    "vibeShiftNotifications": "Báo cho tôi khi bạn bè đăng tag mới",
+    "groupNotifications": "Thông báo",
+    "notifSocial": "Mạng xã hội — theo dõi, bạn bè, tag, click link, lời mời",
+    "notifMatches": "Khớp AI — người bạn có thể quen, Ask khớp, nối lại",
+    "notifMemories": "Kỷ niệm — sinh nhật, ngày quen nhau, ngày này năm xưa",
+    "notifBadge": "Số đỏ trên biểu tượng app"
   },
   "contactSync": {
     "headerTitle": "Đồng bộ danh bạ",

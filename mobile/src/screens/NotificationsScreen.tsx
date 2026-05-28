@@ -18,6 +18,7 @@ import { COLORS, SPACING, type ColorPalette } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
 import { supabase } from '../lib/supabase';
 import { routeFromNotification } from '../lib/notificationRouter';
+import { refreshBadgeFromServer } from '../lib/pushNotifications';
 import { useAuth } from '../hooks/useAuth';
 import { useChatUnread } from '../hooks/useChatUnread';
 import { getCache, setCache, CACHE_KEYS } from '../lib/dataCache';
@@ -425,7 +426,9 @@ export default function NotificationsScreen({ navigation }: NotificationsScreenP
     fetchNotifications();
   }, [fetchNotifications]);
 
-  // Realtime subscription for new notifications
+  // Realtime subscription for new notifications. Also keeps the app
+  // icon badge fresh — when a new row lands in real-time, recompute
+  // unread count (respecting the user's notif_badge preference).
   useEffect(() => {
     if (!user) return;
 
@@ -442,6 +445,7 @@ export default function NotificationsScreen({ navigation }: NotificationsScreenP
         (payload) => {
           const newNotification = payload.new as Notification;
           setNotifications((prev) => [newNotification, ...prev]);
+          refreshBadgeFromServer(user.id).catch(() => {});
         }
       )
       .subscribe();
@@ -471,8 +475,13 @@ export default function NotificationsScreen({ navigation }: NotificationsScreenP
       console.warn('Failed to mark as read:', error.message);
       // Revert on failure
       fetchNotifications();
+      return;
     }
-  }, [fetchNotifications]);
+    // One row got read → recompute badge so the icon catches up.
+    if (user) {
+      refreshBadgeFromServer(user.id).catch(() => {});
+    }
+  }, [fetchNotifications, user]);
 
   // Apple Guideline 1.2: long-press a notification to report the actor
   // or the notification itself.

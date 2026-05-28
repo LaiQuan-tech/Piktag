@@ -729,7 +729,12 @@
     "addPasswordTitle": "إضافة كلمة مرور",
     "addPasswordMessage": "أنت تستخدم تسجيل الدخول عبر Apple/Google ولا توجد كلمة مرور لـ PikTag. سنرسل رابط إعداد إلى بريدك حتى تتمكن من تسجيل الدخول بالبريد + كلمة المرور أيضاً (يستمر Apple/Google في العمل).",
     "sendAddPasswordEmail": "إرسال بريد الإعداد",
-    "vibeShiftNotifications": "أبلغني عند نشر الأصدقاء وسوماً جديدة"
+    "vibeShiftNotifications": "أبلغني عند نشر الأصدقاء وسوماً جديدة",
+    "groupNotifications": "الإشعارات",
+    "notifSocial": "اجتماعي — متابعات وأصدقاء ووسوم ونقرات ودعوات",
+    "notifMatches": "تطابقات الذكاء الاصطناعي — قد تعرفهم وتطابقات Ask وإعادة التواصل",
+    "notifMemories": "ذكريات — أعياد ميلاد وذكريات اللقاء ومناسبات اليوم",
+    "notifBadge": "شارة أيقونة التطبيق"
   },
   "contactSync": {
     "headerTitle": "مزامنة جهات الاتصال",

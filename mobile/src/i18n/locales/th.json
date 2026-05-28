@@ -729,7 +729,12 @@
     "addPasswordTitle": "เพิ่มรหัสผ่าน",
     "addPasswordMessage": "คุณกำลังเข้าสู่ระบบด้วย Apple/Google และยังไม่มีรหัสผ่าน PikTag เราจะส่งลิงก์ตั้งค่าไปที่อีเมลเพื่อให้คุณเข้าสู่ระบบด้วยอีเมล + รหัสผ่านได้ด้วย (Apple/Google ยังใช้งานได้)",
     "sendAddPasswordEmail": "ส่งอีเมลตั้งค่า",
-    "vibeShiftNotifications": "แจ้งเมื่อเพื่อนโพสต์แท็กใหม่"
+    "vibeShiftNotifications": "แจ้งเมื่อเพื่อนโพสต์แท็กใหม่",
+    "groupNotifications": "การแจ้งเตือน",
+    "notifSocial": "โซเชียล — ติดตาม เพื่อน แท็ก คลิกลิงก์ คำเชิญ",
+    "notifMatches": "AI จับคู่ — คนที่คุณอาจรู้จัก, Ask จับคู่, กลับมาทักทาย",
+    "notifMemories": "ความทรงจำ — วันเกิด ครบรอบ วันนี้เมื่อก่อน",
+    "notifBadge": "จุดแดงบนไอคอนแอป"
   },
   "contactSync": {
     "headerTitle": "ซิงค์รายชื่อ",

@@ -736,7 +736,12 @@
     "addPasswordTitle": "新增密碼",
     "addPasswordMessage": "你目前用 Apple/Google 登入，沒有 PikTag 密碼。送出後會寄一封信到你的 Email，幫你新增一組密碼，之後也能用 Email + 密碼登入（Apple/Google 登入仍然有效）",
     "sendAddPasswordEmail": "發送設定信",
-    "vibeShiftNotifications": "朋友貼新標籤時通知我"
+    "vibeShiftNotifications": "朋友貼新標籤時通知我",
+    "groupNotifications": "通知",
+    "notifSocial": "社交動態 — 追蹤、好友、標籤、連結點擊、邀請",
+    "notifMatches": "AI 配對推薦 — 你可能認識的人、Ask 配對、重新連結",
+    "notifMemories": "節日與回憶 — 生日、認識週年、舊時光",
+    "notifBadge": "App 圖示紅點數字"
   },
   "contactSync": {
     "headerTitle": "通訊錄同步",

@@ -19,7 +19,7 @@ import { COLORS, type ColorPalette } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
 import { useAppReady } from '../context/AppReadyContext';
 import { useTranslation } from 'react-i18next';
-import { registerForPushNotifications } from '../lib/pushNotifications';
+import { registerForPushNotifications, refreshBadgeFromServer } from '../lib/pushNotifications';
 import { posthog } from '../lib/analytics';
 import { ChatUnreadProvider, useChatUnread } from '../hooks/useChatUnread';
 
@@ -553,6 +553,10 @@ export default function AppNavigator() {
       const userId = currentSession.user.id;
       InteractionManager.runAfterInteractions(() => {
         registerForPushNotifications(userId).catch(() => {});
+        // Reflect the user's unread count on the app icon. Gated on
+        // their notif_badge preference — so toggling it off in
+        // Settings persists across launches without further wiring.
+        refreshBadgeFromServer(userId).catch(() => {});
       });
 
       finalize();
