@@ -79,3 +79,25 @@ export async function markAiSuggestionAccepted(id: string): Promise<void> {
     console.warn('[aiTagLogger] markAiSuggestionAccepted threw:', err);
   }
 }
+
+/**
+ * Symmetric dismiss path — North-Star principle #6. Records explicit
+ * rejection so downstream suggestion code can avoid re-proposing the
+ * same tag to the same user. Idempotent on the suggestion row;
+ * also fans out an entry into piktag_tag_removals with
+ * source='ai_dismissed' server-side.
+ */
+export async function markAiSuggestionDismissed(id: string): Promise<void> {
+  if (!id) return;
+  try {
+    const { error } = await supabase.rpc('mark_ai_tag_suggestion_dismissed', { p_id: id });
+    if (error) {
+      const code = (error as { code?: string }).code;
+      if (code !== 'PGRST202') {
+        console.warn('[aiTagLogger] markAiSuggestionDismissed failed:', error.message);
+      }
+    }
+  } catch (err) {
+    console.warn('[aiTagLogger] markAiSuggestionDismissed threw:', err);
+  }
+}
