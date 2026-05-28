@@ -235,7 +235,7 @@ AS $function$
   event_matches AS (
     SELECT DISTINCT c.user_id AS user_id, t.id AS tag_id
     FROM piktag_connections c
-    JOIN piktag_scan_sessions s ON s.id::text = c.scan_session_id
+    JOIN piktag_scan_sessions s ON s.id = c.scan_session_id
     JOIN piktag_tags t ON t.id IN (SELECT id FROM matched_tags)
     WHERE t.name = ANY(s.event_tags)
       AND c.user_id IS DISTINCT FROM auth.uid()
@@ -243,7 +243,7 @@ AS $function$
     UNION
     SELECT DISTINCT c.connected_user_id AS user_id, t.id AS tag_id
     FROM piktag_connections c
-    JOIN piktag_scan_sessions s ON s.id::text = c.scan_session_id
+    JOIN piktag_scan_sessions s ON s.id = c.scan_session_id
     JOIN piktag_tags t ON t.id IN (SELECT id FROM matched_tags)
     WHERE t.name = ANY(s.event_tags)
       AND c.connected_user_id IS DISTINCT FROM auth.uid()
