@@ -85,6 +85,72 @@ kappa-style inter-annotator agreement (social tags have no ground-
 truth), large review pipelines (no human reviewers), strict controlled
 vocabulary at input (would kill the "use your own words" UX advantage).
 
+### Tag ordering — rules vs weights, by surface
+
+Pre-launch decision (founder, 2026-05-29) after shipping principles
+#1–#7. **Rules serve user intent; weights serve algorithm decision.
+They MUST NOT invade each other's surfaces.**
+
+| Surface | Order by | Why |
+|---|---|---|
+| Own profile tag list | rules (`is_pinned` → `position` → `created_at`) | user-curated identity expression |
+| Other person's profile | rules (same) | their identity, viewer should see consistent snapshot — not a per-viewer dynamic re-sort |
+| Search results | **weights** (already shipped: 4-source priority cascade + endorser tiebreaker) | algorithm decision, no user intent to violate |
+| TagDetail explore tab | `mutual_tag_count DESC, endorser_count DESC, id` (shipped) | weighted but mutual-first respects viewer-relevance over pure consensus |
+| Popular tags list | rules (`usage_count` + `search_count`) | cold-start has 0 endorsers, weight component sleeps |
+| AI suggestions (suggest-tags) | model-supplied order, calibration log accruing | post-launch re-rank decision pending data |
+
+### Deferred tag-quality fine-tuning — revisit triggers
+
+Post-launch follow-ups from the 2026-05-29 ordering discussion.
+Don't ship before launch — these all need data the cold-start
+network won't have for weeks. Remember to surface these to the
+founder when the trigger condition lands:
+
+1. **Search RPC coefficient tuning** (principles #1, #2 — `f38a8ac`
+   `d4cbcd1`). Current weights: verified 30 / self 10 / friend 6 /
+   ask 4 / event 3. **Trigger**: ≥3 months post-launch, ≥500
+   completed searches in analytics. **Action**: pull `search_users`
+   result clicks vs ranks; if top-3 conversion ~ position 7-10
+   conversion, weights are noise — re-rank. Honest test: shuffle a
+   small % of queries and compare CTR.
+
+2. **TagDetail / explore sort upgrade to weighted sum** (principle
+   #2 — `e9bef2b`). Current: `mutual_tag_count DESC, endorser_count
+   DESC`. **Trigger**: average `endorser_count` per profile on
+   tag pages ≥ 2 (cold-start = 0, no point tuning until there's
+   spread). **Action**: switch to weighted sum, suggested formula
+   `mutual_tag_count * 5 + endorser_count * 2`. Don't go higher
+   on endorser without observing — gameable.
+
+3. **Popular tags ranking add total-endorser dimension** (principle
+   #2). Currently `usage_count + search_count`. **Trigger**: at
+   least one tag has `total_endorser_count` (sum across all
+   profiles) ≥ 50. **Action**: try `usage_count * 1.0 + search_count
+   * 0.5 + total_endorser_count * 0.3` as a secondary tiebreaker.
+   A/B test if mobile traffic warrants it.
+
+4. **AI suggestion calibration analysis** (principle #5 — `a6ab9c8`).
+   Schema already accumulating in `piktag_ai_tag_suggestions`.
+   **Trigger**: ≥30 days of post-launch data AND ≥1000 logged
+   suggestions. **Action**: SQL query shown in the `a6ab9c8`
+   commit message — bucket by `position_in_list`, compute accept
+   rate per bucket. If positions 0-2 vs 7-10 show flat accept
+   rate, AI ordering is uninformative → upgrade suggest-tags edge
+   fn to return real per-tag confidence, then re-prompt for
+   confidence-aware ranking.
+
+5. **Stale-self-tag refresh via endorsement prompts** (principle #3
+   — `915ed55`). If post-launch monitoring shows profiles with
+   self-tags that have 0 endorsements over months while OTHER
+   tags on the same profile have high endorser counts, the user's
+   self-description is drifting. **Trigger**: at the 1-year mark,
+   pull profiles where `oldest_self_tag_with_zero_endorsers >
+   90 days` AND `other_tags_on_profile_have_endorsements`. **Action**:
+   ramp up endorsement_request cron frequency for these users
+   specifically; do NOT auto-reorder their tags by algorithm —
+   nudge them to refresh, source still > display.
+
 ## How the founder works (keep doing this)
 
 - **中肯 / trust-but-verify.** Give honest, balanced advice; push back with
