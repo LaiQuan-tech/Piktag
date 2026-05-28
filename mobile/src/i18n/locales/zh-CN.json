@@ -735,8 +735,7 @@
     "groupNotifications": "通知",
     "notifSocial": "社交动态",
     "notifMatches": "AI 配对推荐",
-    "notifMemories": "节日与回忆",
-    "notifBadge": "App 图标红点"
+    "notifMemories": "节日与回忆"
   },
   "contactSync": {
     "headerTitle": "通讯录同步",

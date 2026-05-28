@@ -553,9 +553,9 @@ export default function AppNavigator() {
       const userId = currentSession.user.id;
       InteractionManager.runAfterInteractions(() => {
         registerForPushNotifications(userId).catch(() => {});
-        // Reflect the user's unread count on the app icon. Gated on
-        // their notif_badge preference — so toggling it off in
-        // Settings persists across launches without further wiring.
+        // Reflect the user's unread count on the app icon. No
+        // separate badge toggle by design — the badge is the visible
+        // form of "you have unread notifications you opted into".
         refreshBadgeFromServer(userId).catch(() => {});
       });
 

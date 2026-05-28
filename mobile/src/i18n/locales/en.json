@@ -740,8 +740,7 @@
     "groupNotifications": "Notifications",
     "notifSocial": "Social",
     "notifMatches": "AI matches",
-    "notifMemories": "Memories",
-    "notifBadge": "App icon badge"
+    "notifMemories": "Memories"
   },
   "contactSync": {
     "headerTitle": "Contact Sync",

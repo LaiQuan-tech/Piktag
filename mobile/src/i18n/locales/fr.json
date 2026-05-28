@@ -733,8 +733,7 @@
     "groupNotifications": "Notifications",
     "notifSocial": "Social",
     "notifMatches": "Matchs IA",
-    "notifMemories": "Souvenirs",
-    "notifBadge": "Pastille sur l'icône"
+    "notifMemories": "Souvenirs"
   },
   "contactSync": {
     "headerTitle": "Synchroniser les contacts",

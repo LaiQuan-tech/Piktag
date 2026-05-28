@@ -21,7 +21,6 @@ import { changeLanguageSafe } from '../i18n';
 import { COLORS, type ColorPalette } from '../constants/theme';
 import { supabase, supabaseUrl, supabaseAnonKey } from '../lib/supabase';
 import { setAnalyticsOptIn } from '../lib/analytics';
-import { applyBadgePreference } from '../lib/pushNotifications';
 import { useAuth } from '../hooks/useAuth';
 import { useTheme } from '../context/ThemeContext';
 import type { PiktagProfile } from '../types';
@@ -93,7 +92,6 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
   const [notifSocial, setNotifSocial] = useState(true);
   const [notifMatches, setNotifMatches] = useState(true);
   const [notifMemories, setNotifMemories] = useState(true);
-  const [notifBadge, setNotifBadge] = useState(true);
   // `isDark` is the live theme state; `setThemeMode` persists the
   // choice (ThemeContext writes it to AsyncStorage and re-applies on
   // launch). The dark-mode Switch is driven directly off `isDark` —
@@ -134,7 +132,6 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
             setNotifSocial((data as any).notif_social !== false);
             setNotifMatches((data as any).notif_matches !== false);
             setNotifMemories((data as any).notif_memories !== false);
-            setNotifBadge((data as any).notif_badge !== false);
             // NOTE: deliberately NOT calling changeLanguageSafe from the
             // DB value here — see the comment at currentLanguage init.
             // The chip mirrors live i18n. If the user previously made an
@@ -161,13 +158,10 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
 
   // Shared notification-category toggle. Optimistic flip → DB write
   // → revert on real failure. 42703 (column not yet migrated) is
-  // tolerated so a stale binary stays usable. After a successful
-  // write to `notif_badge`, we also push the change through to the
-  // OS badge counter immediately — turning it off clears the badge
-  // without waiting for the next app launch.
+  // tolerated so a stale binary stays usable.
   const updateNotifCategory = useCallback(
     async (
-      column: 'notif_social' | 'notif_matches' | 'notif_memories' | 'notif_badge',
+      column: 'notif_social' | 'notif_matches' | 'notif_memories',
       newValue: boolean,
       setter: (v: boolean) => void,
       prev: boolean,
@@ -185,15 +179,7 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
         if (!isMissingColumn) {
           console.warn(`[Settings] ${column} toggle failed:`, error);
           setter(prev);
-          return;
         }
-      }
-      if (column === 'notif_badge') {
-        // Reflect the change on the home-screen icon right now.
-        // If turned off → clear. If turned on → recompute from unread.
-        applyBadgePreference(newValue, user.id).catch((err) => {
-          console.warn('[Settings] applyBadgePreference failed:', err);
-        });
       }
     },
     [user],
@@ -205,8 +191,6 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
     updateNotifCategory('notif_matches', !notifMatches, setNotifMatches, notifMatches);
   const handleNotifMemoriesToggle = () =>
     updateNotifCategory('notif_memories', !notifMemories, setNotifMemories, notifMemories);
-  const handleNotifBadgeToggle = () =>
-    updateNotifCategory('notif_badge', !notifBadge, setNotifBadge, notifBadge);
 
   const handleShareLocationToggle = async () => {
     if (!user) return;
@@ -469,18 +453,6 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
               onValueChange={handleNotifMemoriesToggle}
               trackColor={{ false: colors.gray200, true: colors.piktag300 }}
               thumbColor={notifMemories ? colors.piktag500 : colors.gray400}
-            />
-          ),
-        },
-        {
-          label: t('settings.notifBadge', { defaultValue: 'App 圖示紅點' }),
-          onPress: handleNotifBadgeToggle,
-          rightElement: (
-            <Switch
-              value={notifBadge}
-              onValueChange={handleNotifBadgeToggle}
-              trackColor={{ false: colors.gray200, true: colors.piktag300 }}
-              thumbColor={notifBadge ? colors.piktag500 : colors.gray400}
             />
           ),
         },

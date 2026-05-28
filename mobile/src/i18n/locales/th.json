@@ -733,8 +733,7 @@
     "groupNotifications": "การแจ้งเตือน",
     "notifSocial": "โซเชียล",
     "notifMatches": "AI จับคู่",
-    "notifMemories": "ความทรงจำ",
-    "notifBadge": "จุดแดงไอคอน"
+    "notifMemories": "ความทรงจำ"
   },
   "contactSync": {
     "headerTitle": "ซิงค์รายชื่อ",

@@ -733,8 +733,7 @@
     "groupNotifications": "Уведомления",
     "notifSocial": "Соцсеть",
     "notifMatches": "ИИ-совпадения",
-    "notifMemories": "Воспоминания",
-    "notifBadge": "Бейдж на иконке"
+    "notifMemories": "Воспоминания"
   },
   "contactSync": {
     "headerTitle": "Синхронизация контактов",

@@ -733,8 +733,7 @@
     "groupNotifications": "通知",
     "notifSocial": "ソーシャル",
     "notifMatches": "AI マッチング",
-    "notifMemories": "記念日と思い出",
-    "notifBadge": "App アイコンのバッジ"
+    "notifMemories": "記念日と思い出"
   },
   "contactSync": {
     "headerTitle": "連絡先を同期",

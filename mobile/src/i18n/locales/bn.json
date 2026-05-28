@@ -733,8 +733,7 @@
     "groupNotifications": "নোটিফিকেশন",
     "notifSocial": "সোশ্যাল",
     "notifMatches": "AI মিল",
-    "notifMemories": "স্মৃতি",
-    "notifBadge": "অ্যাপ আইকন ব্যাজ"
+    "notifMemories": "স্মৃতি"
   },
   "contactSync": {
     "headerTitle": "কন্টাক্ট সিঙ্ক",

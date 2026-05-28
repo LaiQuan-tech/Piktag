@@ -429,7 +429,7 @@ export default function NotificationsScreen({ navigation }: NotificationsScreenP
 
   // Realtime subscription for new notifications. Also keeps the app
   // icon badge fresh — when a new row lands in real-time, recompute
-  // unread count (respecting the user's notif_badge preference).
+  // unread count and apply.
   useEffect(() => {
     if (!user) return;
 

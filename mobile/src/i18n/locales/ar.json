@@ -733,8 +733,7 @@
     "groupNotifications": "الإشعارات",
     "notifSocial": "اجتماعي",
     "notifMatches": "تطابقات الذكاء الاصطناعي",
-    "notifMemories": "ذكريات",
-    "notifBadge": "شارة الأيقونة"
+    "notifMemories": "ذكريات"
   },
   "contactSync": {
     "headerTitle": "مزامنة جهات الاتصال",

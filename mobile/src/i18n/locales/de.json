@@ -735,8 +735,7 @@
     "groupNotifications": "Benachrichtigungen",
     "notifSocial": "Social",
     "notifMatches": "KI-Treffer",
-    "notifMemories": "Erinnerungen",
-    "notifBadge": "App-Icon-Badge"
+    "notifMemories": "Erinnerungen"
   },
   "contactSync": {
     "headerTitle": "Kontakt-Sync",

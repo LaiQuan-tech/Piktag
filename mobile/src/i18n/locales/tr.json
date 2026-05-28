@@ -733,8 +733,7 @@
     "groupNotifications": "Bildirimler",
     "notifSocial": "Sosyal",
     "notifMatches": "AI eşleşmeleri",
-    "notifMemories": "Anılar",
-    "notifBadge": "Simge rozeti"
+    "notifMemories": "Anılar"
   },
   "contactSync": {
     "headerTitle": "Kişi Senkronizasyonu",

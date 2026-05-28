@@ -733,8 +733,7 @@
     "groupNotifications": "Notifikasi",
     "notifSocial": "Sosial",
     "notifMatches": "Pencocokan AI",
-    "notifMemories": "Kenangan",
-    "notifBadge": "Badge ikon"
+    "notifMemories": "Kenangan"
   },
   "contactSync": {
     "headerTitle": "Sinkronisasi Kontak",

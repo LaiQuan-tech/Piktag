@@ -740,8 +740,7 @@
     "groupNotifications": "通知",
     "notifSocial": "社交動態",
     "notifMatches": "AI 配對推薦",
-    "notifMemories": "節日與回憶",
-    "notifBadge": "App 圖示紅點"
+    "notifMemories": "節日與回憶"
   },
   "contactSync": {
     "headerTitle": "通訊錄同步",

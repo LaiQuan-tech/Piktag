@@ -733,8 +733,7 @@
     "groupNotifications": "알림",
     "notifSocial": "소셜",
     "notifMatches": "AI 매칭",
-    "notifMemories": "추억과 기념일",
-    "notifBadge": "앱 아이콘 배지"
+    "notifMemories": "추억과 기념일"
   },
   "contactSync": {
     "headerTitle": "연락처 동기화",
