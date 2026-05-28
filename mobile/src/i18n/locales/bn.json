@@ -68,8 +68,8 @@
     "checkConnection": "সংযোগ পরীক্ষা করে আবার চেষ্টা",
     "loadFailed": "লোড ব্যর্থ",
     "willAutoRetry": "আবার অনলাইন হলে স্বয়ংক্রিয় চেষ্টা",
-    "edit": "編輯",
-    "you": "你",
+    "edit": "সম্পাদনা",
+    "you": "আপনি",
     "noResults": "—"
   },
   "auth": {
@@ -199,17 +199,17 @@
       "cardApplyCta": "প্রয়োগ করুন",
       "profileCta": "আমার প্রথম Tag বানাও",
       "saveFailed": "সেভ হয়নি — সংযোগ দেখে আবার চেষ্টা করুন।",
-      "nameRequiredTitle": "需要一個名字",
-      "nameRequiredMessage": "朋友掃 QR 會看到這個名字，至少幫自己取一個吧。",
-      "welcomeTitle": "一個 QR，加完所有朋友",
-      "welcomeSubtitle": "貼上標籤，下次見面就知道是誰",
+      "nameRequiredTitle": "একটি নাম দিন",
+      "nameRequiredMessage": "বন্ধুরা আপনার QR স্ক্যান করলে এই নামটি দেখবেন। শুরু করতে একটি নাম সেট করুন।",
+      "welcomeTitle": "একটি QR। সবাইকে যোগ করুন।",
+      "welcomeSubtitle": "লোকেদের ট্যাগ করুন যাতে পরের বার চিনতে পারেন।",
       "brandTagline": "Tag the Vibe, Keep the Tribe",
-      "welcomeCta": "開始使用 PikTag",
-      "profileTitle": "你叫什麼名字？",
-      "profileSubtitle": "朋友掃 QR 會看到這個名字",
-      "avatarPickA11y": "選擇頭像",
-      "avatarHint": "頭像選填（之後可以再加）",
-      "profileNamePlaceholder": "你的名字"
+      "welcomeCta": "PikTag শুরু করুন",
+      "profileTitle": "আপনার নাম কী?",
+      "profileSubtitle": "বন্ধুরা আপনার QR স্ক্যান করলে এই নামটি দেখবেন।",
+      "avatarPickA11y": "প্রোফাইল ছবি নির্বাচন করুন",
+      "avatarHint": "ছবি ঐচ্ছিক — পরে যোগ করতে পারবেন।",
+      "profileNamePlaceholder": "আপনার নাম"
     }
   },
   "connections": {
@@ -401,10 +401,10 @@
       "উইকেন্ড বারবিকিউ",
       "বন্ধুর বিয়ে"
     ],
-    "saveWarnTitle": "QR 已產生，但無法儲存到 Tag",
-    "dateLabel": "日期",
-    "locationLabel": "地點",
-    "selectLocation": "選地點"
+    "saveWarnTitle": "QR তৈরি হয়েছে, কিন্তু Tag-এ সংরক্ষণ করা যায়নি",
+    "dateLabel": "তারিখ",
+    "locationLabel": "স্থান",
+    "selectLocation": "স্থান বাছুন"
   },
   "profile": {
     "nameNotSet": "নাম সেট করা নেই",
@@ -671,7 +671,7 @@
     "vibeContextTagsTitle": "এই Tag-এর ট্যাগ",
     "blockConfirmTitle": "এই ব্যক্তিকে ব্লক করবেন?",
     "blockConfirmMessage": "আপনারা একে অপরকে আনফলো করবেন ও কনটেন্ট দেখতে পাবেন না।",
-    "vibeContextTagsHint": "想貼到他個人頁的點一下（只有你看得到）"
+    "vibeContextTagsHint": "তাদের প্রোফাইলে একটি ট্যাগ যুক্ত করতে ট্যাপ করুন (শুধু আপনি দেখতে পাবেন)।"
   },
   "settings": {
     "headerTitle": "সেটিংস",
@@ -724,10 +724,10 @@
     "analyticsOptIn": "ব্যবহার বিশ্লেষণ পাঠান",
     "analyticsOptInDescription": "অ্যাপ উন্নত করতে আমাদের সাহায্য করুন",
     "attRationale": "PikTag আপনার অভিজ্ঞতা উন্নত করতে মৌলিক বিশ্লেষণ ব্যবহার করে। আমরা কখনই অন্যান্য অ্যাপ জুড়ে আপনাকে ট্র্যাক করি না।",
-    "addPasswordTitle": "新增密碼",
-    "addPasswordMessage": "你目前用 Apple/Google 登入，沒有 PikTag 密碼。送出後會寄一封信到你的 Email，幫你新增一組密碼，之後也能用 Email + 密碼登入（Apple/Google 登入仍然有效）",
-    "sendAddPasswordEmail": "發送設定信",
-    "vibeShiftNotifications": "朋友貼新標籤時通知我"
+    "addPasswordTitle": "পাসওয়ার্ড যোগ করুন",
+    "addPasswordMessage": "আপনি বর্তমানে Apple/Google দিয়ে সাইন ইন করছেন এবং কোনো PikTag পাসওয়ার্ড নেই। আমরা সেটআপ লিঙ্ক ইমেল করব যাতে আপনি ইমেল + পাসওয়ার্ড দিয়েও সাইন ইন করতে পারেন (Apple/Google সাইন ইন কাজ করতে থাকবে)।",
+    "sendAddPasswordEmail": "সেটআপ ইমেল পাঠান",
+    "vibeShiftNotifications": "বন্ধুরা নতুন ট্যাগ পোস্ট করলে আমাকে জানান"
   },
   "contactSync": {
     "headerTitle": "কন্টাক্ট সিঙ্ক",
@@ -765,15 +765,15 @@
     "alertFollowAllDoneMessage": "{{count}} জন PikTag বন্ধু যোগ হয়েছে",
     "allConnected": "PikTag-এর সব কন্টাক্ট ইতিমধ্যেই যুক্ত আছে",
     "openSettings": "অনুমতি দিতে সেটিংস খুলুন",
-    "tagInviteFailedTitle": "加入名單失敗",
-    "tagInviteFailedMessage": "請稍後再試，或在「聯絡人名單」中手動新增。",
-    "taggedBadge": "已加入名單",
-    "tagModalTitle": "私人標籤",
-    "tagModalHint": "只有你看得到的私人標籤（最多 {{max}} 個）— 對方註冊 PikTag 後，這些標籤會出現在你的好友頁的「隱藏標籤」區，永遠不會被對方或其他人看到。",
-    "tagModalCustomPlaceholder": "自訂標籤",
-    "tagModalAddCustom": "新增",
-    "tagModalPopular": "熱門標籤",
-    "tagModalSubmit": "存私人標籤並邀請"
+    "tagInviteFailedTitle": "তালিকায় যোগ করা যায়নি",
+    "tagInviteFailedMessage": "আবার চেষ্টা করুন, বা পরিচিতি থেকে ম্যানুয়ালি যোগ করুন।",
+    "taggedBadge": "তালিকায় যোগ করা হয়েছে",
+    "tagModalTitle": "লুকানো ট্যাগ",
+    "tagModalHint": "শুধু আপনি দেখতে পান এমন প্রাইভেট ট্যাগ (সর্বোচ্চ {{max}}) — এই ব্যক্তি PikTag-এ যোগ দিলে এই ট্যাগগুলো আপনার বন্ধুর প্রোফাইলে \"লুকানো ট্যাগ\" বিভাগে দেখাবে, তাদের বা অন্য কারও দৃশ্যমান হবে না।",
+    "tagModalCustomPlaceholder": "কাস্টম ট্যাগ",
+    "tagModalAddCustom": "যোগ করুন",
+    "tagModalPopular": "জনপ্রিয় ট্যাগ",
+    "tagModalSubmit": "ট্যাগ সংরক্ষণ ও আমন্ত্রণ"
   },
   "invite": {
     "headerTitle": "বন্ধুদের আমন্ত্রণ",
@@ -842,8 +842,8 @@
     "topBiolinksTitle": "সবচেয়ে জনপ্রিয় লিংক",
     "topBiolinksEmpty": "লিংক ক্লিকের কোনো রেকর্ড নেই",
     "clickCount": "{{count}} টি ক্লিক",
-    "networkCompositionTitle": "人脈組成",
-    "networkCompositionEmpty": "尚無分類資料"
+    "networkCompositionTitle": "নেটওয়ার্ক গঠন",
+    "networkCompositionEmpty": "এখনো কোনো বিভাগ ডেটা নেই"
   },
   "notifications": {
     "headerTitle": "নোটিফিকেশন",
@@ -1010,7 +1010,7 @@
     "exploreEmptyTitle": "কোনো ইউজার পাওয়া যায়নি",
     "exploreEmptyText": "এখনও কোনো পাবলিক ইউজার এই ট্যাগ ব্যবহার করেননি",
     "viewAll": "সব দেখুন",
-    "relatedTags": "相關標籤"
+    "relatedTags": "সম্পর্কিত ট্যাগ"
   },
   "semanticType": {
     "identity": "পরিচয়",
@@ -1293,10 +1293,10 @@
     "deleteFailedTitle": "মুছে ফেলা ব্যর্থ",
     "deleteFailedMessage": "এই Tag মুছে ফেলা হয়নি। পরে আবার চেষ্টা করুন। চলতে থাকলে যোগাযোগ করুন।",
     "emptyScanCta": "অথবা তাদের QR স্ক্যান করে যুক্ত হন",
-    "scan": "掃描 QR 加好友",
-    "currentVibesTitle": "他們最近在標什麼",
-    "currentVibesHint": "這群人現在共同的標籤 — 點一下看是誰",
-    "membersFilterEmpty": "這個 Tag 中沒有貼這個標籤的人"
+    "scan": "বন্ধু যোগ করতে QR স্ক্যান করুন",
+    "currentVibesTitle": "তারা ইদানীং কী ট্যাগ করছে",
+    "currentVibesHint": "এই গ্রুপ এখন যে ট্যাগগুলো শেয়ার করছে — কে দেখতে ট্যাপ করুন।",
+    "membersFilterEmpty": "এই Tag-এ কেউ এখনো সেই ট্যাগটি দেয়নি।"
   },
   "localContact": {
     "editTitle": "পরিচিতি সম্পাদনা",
@@ -1342,8 +1342,8 @@
     "fieldWebsite": "ওয়েবসাইট",
     "websitePlaceholder": "যেমন: example.com",
     "scanningCard": "কার্ড পড়া হচ্ছে… (প্রায় ৩ সেকেন্ড)",
-    "scanCardCta": "掃描名片自動帶入",
-    "avatarUploadFailTitle": "上傳失敗"
+    "scanCardCta": "অটো-ফিল করতে কার্ড স্ক্যান করুন",
+    "avatarUploadFailTitle": "আপলোড ব্যর্থ"
   },
   "followers": {
     "title": "ফলোয়ার",

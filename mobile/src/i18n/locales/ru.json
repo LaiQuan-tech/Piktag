@@ -68,8 +68,8 @@
     "checkConnection": "Проверьте подключение и попробуйте снова",
     "loadFailed": "Ошибка загрузки",
     "willAutoRetry": "Повторим автоматически при подключении",
-    "edit": "編輯",
-    "you": "你",
+    "edit": "Изменить",
+    "you": "Вы",
     "noResults": "—"
   },
   "auth": {
@@ -199,17 +199,17 @@
       "cardApplyCta": "Применить",
       "profileCta": "Создать первый Tag",
       "saveFailed": "Не удалось сохранить — проверьте соединение и повторите.",
-      "nameRequiredTitle": "需要一個名字",
-      "nameRequiredMessage": "朋友掃 QR 會看到這個名字，至少幫自己取一個吧。",
-      "welcomeTitle": "一個 QR，加完所有朋友",
-      "welcomeSubtitle": "貼上標籤，下次見面就知道是誰",
+      "nameRequiredTitle": "Добавьте имя",
+      "nameRequiredMessage": "Друзья увидят это имя при сканировании вашего QR. Укажите его, чтобы начать.",
+      "welcomeTitle": "Один QR. Добавь всех.",
+      "welcomeSubtitle": "Добавляйте теги к людям, чтобы помнить кто есть кто.",
       "brandTagline": "Tag the Vibe, Keep the Tribe",
-      "welcomeCta": "開始使用 PikTag",
-      "profileTitle": "你叫什麼名字？",
-      "profileSubtitle": "朋友掃 QR 會看到這個名字",
-      "avatarPickA11y": "選擇頭像",
-      "avatarHint": "頭像選填（之後可以再加）",
-      "profileNamePlaceholder": "你的名字"
+      "welcomeCta": "Начать с PikTag",
+      "profileTitle": "Как вас зовут?",
+      "profileSubtitle": "Друзья увидят это имя при сканировании вашего QR.",
+      "avatarPickA11y": "Выберите фото профиля",
+      "avatarHint": "Фото необязательно — можно добавить позже.",
+      "profileNamePlaceholder": "Ваше имя"
     }
   },
   "connections": {
@@ -401,10 +401,10 @@
       "Шашлыки на выходных",
       "Свадьба друга"
     ],
-    "saveWarnTitle": "QR 已產生，但無法儲存到 Tag",
-    "dateLabel": "日期",
-    "locationLabel": "地點",
-    "selectLocation": "選地點"
+    "saveWarnTitle": "QR создан, но не удалось сохранить в Tag",
+    "dateLabel": "Дата",
+    "locationLabel": "Место",
+    "selectLocation": "Выберите место"
   },
   "profile": {
     "nameNotSet": "Имя не указано",
@@ -671,7 +671,7 @@
     "vibeContextTagsTitle": "Теги этого Tag",
     "blockConfirmTitle": "Заблокировать этого человека?",
     "blockConfirmMessage": "Вы оба отпишетесь и перестанете видеть контент друг друга.",
-    "vibeContextTagsHint": "想貼到他個人頁的點一下（只有你看得到）"
+    "vibeContextTagsHint": "Нажмите, чтобы прикрепить тег к их профилю (видно только вам)."
   },
   "settings": {
     "headerTitle": "Настройки",
@@ -724,10 +724,10 @@
     "analyticsOptIn": "Отправлять аналитику использования",
     "analyticsOptInDescription": "Помогите нам улучшить приложение",
     "attRationale": "PikTag использует базовую аналитику для улучшения опыта. Мы никогда не отслеживаем вас в других приложениях.",
-    "addPasswordTitle": "新增密碼",
-    "addPasswordMessage": "你目前用 Apple/Google 登入，沒有 PikTag 密碼。送出後會寄一封信到你的 Email，幫你新增一組密碼，之後也能用 Email + 密碼登入（Apple/Google 登入仍然有效）",
-    "sendAddPasswordEmail": "發送設定信",
-    "vibeShiftNotifications": "朋友貼新標籤時通知我"
+    "addPasswordTitle": "Добавить пароль",
+    "addPasswordMessage": "Сейчас вы входите через Apple/Google, и у вас нет пароля PikTag. Мы пришлём ссылку для настройки на почту, чтобы вы могли входить также по email + паролю (вход через Apple/Google продолжит работать).",
+    "sendAddPasswordEmail": "Отправить письмо настройки",
+    "vibeShiftNotifications": "Уведомлять о новых тегах друзей"
   },
   "contactSync": {
     "headerTitle": "Синхронизация контактов",
@@ -765,15 +765,15 @@
     "alertFollowAllDoneMessage": "Добавлено {{count}} друзей PikTag",
     "allConnected": "Все контакты PikTag уже добавлены",
     "openSettings": "Открыть настройки, чтобы разрешить доступ",
-    "tagInviteFailedTitle": "加入名單失敗",
-    "tagInviteFailedMessage": "請稍後再試，或在「聯絡人名單」中手動新增。",
-    "taggedBadge": "已加入名單",
-    "tagModalTitle": "私人標籤",
-    "tagModalHint": "只有你看得到的私人標籤（最多 {{max}} 個）— 對方註冊 PikTag 後，這些標籤會出現在你的好友頁的「隱藏標籤」區，永遠不會被對方或其他人看到。",
-    "tagModalCustomPlaceholder": "自訂標籤",
-    "tagModalAddCustom": "新增",
-    "tagModalPopular": "熱門標籤",
-    "tagModalSubmit": "存私人標籤並邀請"
+    "tagInviteFailedTitle": "Не удалось добавить в список",
+    "tagInviteFailedMessage": "Попробуйте снова или добавьте вручную из Контактов.",
+    "taggedBadge": "Добавлено в список",
+    "tagModalTitle": "Скрытые теги",
+    "tagModalHint": "Личные теги, видимые только вам (до {{max}}) — когда этот человек присоединится к PikTag, эти теги появятся в их профиле в разделе \"Скрытые теги\", невидимые для них и других.",
+    "tagModalCustomPlaceholder": "Свой тег",
+    "tagModalAddCustom": "Добавить",
+    "tagModalPopular": "Популярные теги",
+    "tagModalSubmit": "Сохранить теги и пригласить"
   },
   "invite": {
     "headerTitle": "Пригласить друзей",
@@ -842,8 +842,8 @@
     "topBiolinksTitle": "Самые популярные ссылки",
     "topBiolinksEmpty": "Записей о кликах по ссылкам нет",
     "clickCount": "{{count}} кликов",
-    "networkCompositionTitle": "人脈組成",
-    "networkCompositionEmpty": "尚無分類資料"
+    "networkCompositionTitle": "Состав сети",
+    "networkCompositionEmpty": "Пока нет данных по категориям"
   },
   "notifications": {
     "headerTitle": "Уведомления",
@@ -1010,7 +1010,7 @@
     "exploreEmptyTitle": "Никого не найдено",
     "exploreEmptyText": "Пока никто из публичных пользователей не использовал этот тег",
     "viewAll": "Показать все",
-    "relatedTags": "相關標籤"
+    "relatedTags": "Связанные теги"
   },
   "semanticType": {
     "identity": "Личность",
@@ -1293,10 +1293,10 @@
     "deleteFailedTitle": "Не удалось удалить",
     "deleteFailedMessage": "Этот Tag не был удалён. Повторите попытку позже. Свяжитесь с нами, если повторяется.",
     "emptyScanCta": "Или отсканируйте их QR, чтобы добавить",
-    "scan": "掃描 QR 加好友",
-    "currentVibesTitle": "他們最近在標什麼",
-    "currentVibesHint": "這群人現在共同的標籤 — 點一下看是誰",
-    "membersFilterEmpty": "這個 Tag 中沒有貼這個標籤的人"
+    "scan": "Сканировать QR, чтобы добавить друзей",
+    "currentVibesTitle": "Что они недавно тегают",
+    "currentVibesHint": "Теги, которыми сейчас делится эта группа — нажмите, чтобы увидеть кто.",
+    "membersFilterEmpty": "В этом Tag пока ни у кого нет этого тега."
   },
   "localContact": {
     "editTitle": "Изменить контакт",
@@ -1342,8 +1342,8 @@
     "fieldWebsite": "Веб-сайт",
     "websitePlaceholder": "например, example.com",
     "scanningCard": "Распознавание визитки… (около 3 с)",
-    "scanCardCta": "掃描名片自動帶入",
-    "avatarUploadFailTitle": "上傳失敗"
+    "scanCardCta": "Сканировать визитку для автозаполнения",
+    "avatarUploadFailTitle": "Не удалось загрузить"
   },
   "followers": {
     "title": "Подписчики",

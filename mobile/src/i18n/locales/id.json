@@ -68,8 +68,8 @@
     "checkConnection": "Periksa koneksi lalu coba lagi",
     "loadFailed": "Gagal memuat",
     "willAutoRetry": "Akan coba lagi otomatis saat tersambung",
-    "edit": "編輯",
-    "you": "你",
+    "edit": "Edit",
+    "you": "Kamu",
     "noResults": "—"
   },
   "auth": {
@@ -199,17 +199,17 @@
       "cardApplyCta": "Terapkan",
       "profileCta": "Buat Tag pertamaku",
       "saveFailed": "Gagal menyimpan — cek koneksi dan coba lagi.",
-      "nameRequiredTitle": "需要一個名字",
-      "nameRequiredMessage": "朋友掃 QR 會看到這個名字，至少幫自己取一個吧。",
-      "welcomeTitle": "一個 QR，加完所有朋友",
-      "welcomeSubtitle": "貼上標籤，下次見面就知道是誰",
+      "nameRequiredTitle": "Tambahkan nama",
+      "nameRequiredMessage": "Teman akan melihat nama ini saat memindai QR-mu. Setel satu untuk mulai.",
+      "welcomeTitle": "Satu QR. Tambahkan semua.",
+      "welcomeSubtitle": "Beri tag orang supaya kamu ingat siapa siapa lain kali.",
       "brandTagline": "Tag the Vibe, Keep the Tribe",
-      "welcomeCta": "開始使用 PikTag",
-      "profileTitle": "你叫什麼名字？",
-      "profileSubtitle": "朋友掃 QR 會看到這個名字",
-      "avatarPickA11y": "選擇頭像",
-      "avatarHint": "頭像選填（之後可以再加）",
-      "profileNamePlaceholder": "你的名字"
+      "welcomeCta": "Mulai dengan PikTag",
+      "profileTitle": "Siapa namamu?",
+      "profileSubtitle": "Teman akan melihat nama ini saat memindai QR-mu.",
+      "avatarPickA11y": "Pilih foto profil",
+      "avatarHint": "Foto opsional — bisa ditambahkan nanti.",
+      "profileNamePlaceholder": "Namamu"
     }
   },
   "connections": {
@@ -401,10 +401,10 @@
       "BBQ akhir pekan",
       "Pernikahan teman"
     ],
-    "saveWarnTitle": "QR 已產生，但無法儲存到 Tag",
-    "dateLabel": "日期",
-    "locationLabel": "地點",
-    "selectLocation": "選地點"
+    "saveWarnTitle": "QR dibuat, tapi gagal disimpan ke Tag",
+    "dateLabel": "Tanggal",
+    "locationLabel": "Tempat",
+    "selectLocation": "Pilih tempat"
   },
   "profile": {
     "nameNotSet": "Nama belum diatur",
@@ -671,7 +671,7 @@
     "vibeContextTagsTitle": "Tag dari Tag ini",
     "blockConfirmTitle": "Blokir orang ini?",
     "blockConfirmMessage": "Kalian akan saling berhenti mengikuti dan tak lagi melihat konten satu sama lain.",
-    "vibeContextTagsHint": "想貼到他個人頁的點一下（只有你看得到）"
+    "vibeContextTagsHint": "Ketuk untuk menambah tag ke profil mereka (hanya kamu yang lihat)."
   },
   "settings": {
     "headerTitle": "Pengaturan",
@@ -724,10 +724,10 @@
     "analyticsOptIn": "Kirim analitik penggunaan",
     "analyticsOptInDescription": "Bantu kami meningkatkan aplikasi",
     "attRationale": "PikTag menggunakan analitik dasar untuk meningkatkan pengalaman Anda. Kami tidak pernah melacak Anda di aplikasi lain.",
-    "addPasswordTitle": "新增密碼",
-    "addPasswordMessage": "你目前用 Apple/Google 登入，沒有 PikTag 密碼。送出後會寄一封信到你的 Email，幫你新增一組密碼，之後也能用 Email + 密碼登入（Apple/Google 登入仍然有效）",
-    "sendAddPasswordEmail": "發送設定信",
-    "vibeShiftNotifications": "朋友貼新標籤時通知我"
+    "addPasswordTitle": "Tambah kata sandi",
+    "addPasswordMessage": "Saat ini kamu masuk dengan Apple/Google dan belum punya kata sandi PikTag. Kami akan kirim tautan setelan ke email supaya kamu juga bisa masuk pakai email + kata sandi (Apple/Google tetap berfungsi).",
+    "sendAddPasswordEmail": "Kirim email setelan",
+    "vibeShiftNotifications": "Beri tahu saat teman memposting tag baru"
   },
   "contactSync": {
     "headerTitle": "Sinkronisasi Kontak",
@@ -765,15 +765,15 @@
     "alertFollowAllDoneMessage": "{{count}} teman PikTag ditambahkan",
     "allConnected": "Semua kontak PikTag sudah terhubung",
     "openSettings": "Buka Pengaturan untuk memberi izin",
-    "tagInviteFailedTitle": "加入名單失敗",
-    "tagInviteFailedMessage": "請稍後再試，或在「聯絡人名單」中手動新增。",
-    "taggedBadge": "已加入名單",
-    "tagModalTitle": "私人標籤",
-    "tagModalHint": "只有你看得到的私人標籤（最多 {{max}} 個）— 對方註冊 PikTag 後，這些標籤會出現在你的好友頁的「隱藏標籤」區，永遠不會被對方或其他人看到。",
-    "tagModalCustomPlaceholder": "自訂標籤",
-    "tagModalAddCustom": "新增",
-    "tagModalPopular": "熱門標籤",
-    "tagModalSubmit": "存私人標籤並邀請"
+    "tagInviteFailedTitle": "Gagal menambahkan ke daftar",
+    "tagInviteFailedMessage": "Coba lagi, atau tambahkan manual dari Kontak.",
+    "taggedBadge": "Ditambahkan ke daftar",
+    "tagModalTitle": "Tag tersembunyi",
+    "tagModalHint": "Tag pribadi yang hanya kamu lihat (hingga {{max}}) — saat orang ini bergabung dengan PikTag, tag ini akan muncul di profil temanmu di bagian \"tag tersembunyi\", tidak terlihat oleh mereka maupun orang lain.",
+    "tagModalCustomPlaceholder": "Tag kustom",
+    "tagModalAddCustom": "Tambah",
+    "tagModalPopular": "Tag populer",
+    "tagModalSubmit": "Simpan tag & undang"
   },
   "invite": {
     "headerTitle": "Undang Teman",
@@ -842,8 +842,8 @@
     "topBiolinksTitle": "Tautan Terpopuler",
     "topBiolinksEmpty": "Belum ada catatan klik tautan",
     "clickCount": "{{count}} klik",
-    "networkCompositionTitle": "人脈組成",
-    "networkCompositionEmpty": "尚無分類資料"
+    "networkCompositionTitle": "Komposisi jaringan",
+    "networkCompositionEmpty": "Belum ada data kategori"
   },
   "notifications": {
     "headerTitle": "Notifikasi",
@@ -1010,7 +1010,7 @@
     "exploreEmptyTitle": "Tidak ada pengguna ditemukan",
     "exploreEmptyText": "Belum ada pengguna publik yang menggunakan tag ini",
     "viewAll": "Lihat Semua",
-    "relatedTags": "相關標籤"
+    "relatedTags": "Tag terkait"
   },
   "semanticType": {
     "identity": "Identitas",
@@ -1293,10 +1293,10 @@
     "deleteFailedTitle": "Gagal menghapus",
     "deleteFailedMessage": "Tag ini tidak terhapus. Coba lagi nanti. Hubungi kami jika terus terjadi.",
     "emptyScanCta": "Atau pindai QR mereka untuk terhubung",
-    "scan": "掃描 QR 加好友",
-    "currentVibesTitle": "他們最近在標什麼",
-    "currentVibesHint": "這群人現在共同的標籤 — 點一下看是誰",
-    "membersFilterEmpty": "這個 Tag 中沒有貼這個標籤的人"
+    "scan": "Pindai QR untuk menambah teman",
+    "currentVibesTitle": "Apa yang mereka tag belakangan",
+    "currentVibesHint": "Tag yang sedang dibagi grup ini — ketuk untuk lihat siapa.",
+    "membersFilterEmpty": "Belum ada yang punya tag itu di Tag ini."
   },
   "localContact": {
     "editTitle": "Edit kontak",
@@ -1342,8 +1342,8 @@
     "fieldWebsite": "Situs web",
     "websitePlaceholder": "mis. example.com",
     "scanningCard": "Membaca kartu… (sekitar 3 dtk)",
-    "scanCardCta": "掃描名片自動帶入",
-    "avatarUploadFailTitle": "上傳失敗"
+    "scanCardCta": "Pindai kartu untuk isi otomatis",
+    "avatarUploadFailTitle": "Gagal mengunggah"
   },
   "followers": {
     "title": "Pengikut",

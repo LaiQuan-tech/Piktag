@@ -69,8 +69,8 @@
     "checkConnection": "اپنا کنکشن دیکھیں اور دوبارہ کوشش کریں",
     "willAutoRetry": "آپ کے دوبارہ آن لائن آتے ہی ہم خود کوشش کر لیں گے",
     "userNotFound": "یہ صارف نہیں ملا",
-    "edit": "編輯",
-    "you": "你",
+    "edit": "ترمیم کریں",
+    "you": "آپ",
     "noResults": "—"
   },
   "auth": {
@@ -206,17 +206,17 @@
       "cardApplyCta": "لاگو کریں",
       "profileCta": "اپنا پہلا ٹیگ بنائیں",
       "saveFailed": "محفوظ نہیں ہوا — کنیکشن چیک کر کے دوبارہ کوشش کریں۔",
-      "nameRequiredTitle": "需要一個名字",
-      "nameRequiredMessage": "朋友掃 QR 會看到這個名字，至少幫自己取一個吧。",
-      "welcomeTitle": "一個 QR，加完所有朋友",
-      "welcomeSubtitle": "貼上標籤，下次見面就知道是誰",
+      "nameRequiredTitle": "نام درج کریں",
+      "nameRequiredMessage": "دوست آپ کا QR اسکین کرنے پر یہ نام دیکھیں گے۔ شروع کرنے کے لیے ایک نام مقرر کریں۔",
+      "welcomeTitle": "ایک QR، سب کو شامل کریں۔",
+      "welcomeSubtitle": "لوگوں کو ٹیگ کریں تاکہ اگلی بار یاد رہے کون کون ہے۔",
       "brandTagline": "Tag the Vibe, Keep the Tribe",
-      "welcomeCta": "開始使用 PikTag",
-      "profileTitle": "你叫什麼名字？",
-      "profileSubtitle": "朋友掃 QR 會看到這個名字",
-      "avatarPickA11y": "選擇頭像",
-      "avatarHint": "頭像選填（之後可以再加）",
-      "profileNamePlaceholder": "你的名字"
+      "welcomeCta": "PikTag کے ساتھ شروع کریں",
+      "profileTitle": "آپ کا نام کیا ہے؟",
+      "profileSubtitle": "دوست آپ کا QR اسکین کرنے پر یہ نام دیکھیں گے۔",
+      "avatarPickA11y": "پروفائل تصویر منتخب کریں",
+      "avatarHint": "تصویر اختیاری ہے — بعد میں شامل کر سکتے ہیں۔",
+      "profileNamePlaceholder": "آپ کا نام"
     }
   },
   "connections": {
@@ -408,10 +408,10 @@
       "ساحل پر باربی کیو",
       "ایک دوست کی شادی"
     ],
-    "saveWarnTitle": "QR 已產生，但無法儲存到 Tag",
-    "dateLabel": "日期",
-    "locationLabel": "地點",
-    "selectLocation": "選地點"
+    "saveWarnTitle": "QR بن گیا، لیکن Tag میں محفوظ نہ ہو سکا",
+    "dateLabel": "تاریخ",
+    "locationLabel": "مقام",
+    "selectLocation": "مقام منتخب کریں"
   },
   "profile": {
     "nameNotSet": "نام نہیں رکھا",
@@ -678,7 +678,7 @@
     "vibeContextTagsTitle": "اس ٹیگ کے ٹیگز",
     "blockConfirmTitle": "اس شخص کو بلاک کریں؟",
     "blockConfirmMessage": "آپ دونوں ایک دوسرے کو اَن فالو کر دیں گے اور مواد نہیں دیکھ سکیں گے۔",
-    "vibeContextTagsHint": "想貼到他個人頁的點一下（只有你看得到）"
+    "vibeContextTagsHint": "ان کے پروفائل پر ٹیگ شامل کرنے کے لیے ٹیپ کریں (صرف آپ کو نظر آئے گا)۔"
   },
   "settings": {
     "headerTitle": "ترتیبات",
@@ -731,10 +731,10 @@
     "analyticsOptIn": "استعمال کے تجزیے بھیجیں",
     "analyticsOptInDescription": "ایپ کو بہتر بنانے میں ہماری مدد کریں",
     "attRationale": "PikTag آپ کے تجربے کو بہتر بنانے کے لیے بنیادی تجزیے استعمال کرتا ہے۔ ہم آپ کو دوسری ایپس میں کبھی ٹریک نہیں کرتے۔",
-    "addPasswordTitle": "新增密碼",
-    "addPasswordMessage": "你目前用 Apple/Google 登入，沒有 PikTag 密碼。送出後會寄一封信到你的 Email，幫你新增一組密碼，之後也能用 Email + 密碼登入（Apple/Google 登入仍然有效）",
-    "sendAddPasswordEmail": "發送設定信",
-    "vibeShiftNotifications": "朋友貼新標籤時通知我"
+    "addPasswordTitle": "پاس ورڈ شامل کریں",
+    "addPasswordMessage": "آپ فی الحال Apple/Google سے سائن ان ہیں اور PikTag پاس ورڈ نہیں ہے۔ ہم آپ کو سیٹ اپ لنک ای میل کریں گے تاکہ آپ ای میل + پاس ورڈ سے بھی سائن ان کر سکیں (Apple/Google کام کرتا رہے گا)۔",
+    "sendAddPasswordEmail": "سیٹ اپ ای میل بھیجیں",
+    "vibeShiftNotifications": "دوست نئے ٹیگ پوسٹ کریں تو مجھے بتائیں"
   },
   "contactSync": {
     "headerTitle": "رابطہ سنک",
@@ -771,16 +771,16 @@
     "alertFollowAllDoneTitle": "ہو گیا",
     "alertFollowAllDoneMessage": "{{count}} PikTag دوست شامل ہوئے",
     "allConnected": "سارے PikTag رابطے پہلے سے جڑے ہوئے ہیں",
-    "tagModalHint": "نجی ٹیگز جو صرف آپ دیکھ سکتے ہیں (زیادہ سے زیادہ {{max}}) — جب یہ شخص PikTag پر شامل ہوگا تو یہ ٹیگز آپ کے دوست کی پروفائل میں \"پوشیدہ ٹیگز\" کے تحت آئیں گے، جو ان سے اور باقی سب سے چھپے رہیں گے۔",
+    "tagModalHint": "صرف آپ کو نظر آنے والے نجی ٹیگز (زیادہ سے زیادہ {{max}}) — جب یہ شخص PikTag میں شامل ہو، تو یہ ٹیگز آپ کے دوست کی پروفائل پر \"چھپے ٹیگز\" حصے میں نظر آئیں گے، ان کو یا کسی اور کو نظر نہیں آئیں گے۔",
     "openSettings": "اجازت دینے کے لیے سیٹنگز کھولیں",
-    "tagInviteFailedTitle": "加入名單失敗",
-    "tagInviteFailedMessage": "請稍後再試，或在「聯絡人名單」中手動新增。",
-    "taggedBadge": "已加入名單",
-    "tagModalTitle": "私人標籤",
-    "tagModalCustomPlaceholder": "自訂標籤",
-    "tagModalAddCustom": "新增",
-    "tagModalPopular": "熱門標籤",
-    "tagModalSubmit": "存私人標籤並邀請"
+    "tagInviteFailedTitle": "فہرست میں شامل نہ ہو سکا",
+    "tagInviteFailedMessage": "دوبارہ کوشش کریں، یا رابطوں سے دستی طور پر شامل کریں۔",
+    "taggedBadge": "فہرست میں شامل",
+    "tagModalTitle": "چھپے ٹیگز",
+    "tagModalCustomPlaceholder": "اپنا ٹیگ",
+    "tagModalAddCustom": "شامل کریں",
+    "tagModalPopular": "مقبول ٹیگز",
+    "tagModalSubmit": "ٹیگ محفوظ کریں اور دعوت دیں"
   },
   "invite": {
     "headerTitle": "دوستوں کو بلائیں",
@@ -1368,10 +1368,10 @@
     "deleteFailedTitle": "حذف نہیں ہوا",
     "deleteFailedMessage": "یہ ٹیگ حذف نہیں ہوا۔ تھوڑی دیر بعد دوبارہ کوشش کریں۔ بار بار ہو تو ہم سے رابطہ کریں۔",
     "emptyScanCta": "یا جڑنے کے لیے ان کا QR اسکین کریں",
-    "scan": "掃描 QR 加好友",
-    "currentVibesTitle": "他們最近在標什麼",
-    "currentVibesHint": "這群人現在共同的標籤 — 點一下看是誰",
-    "membersFilterEmpty": "這個 Tag 中沒有貼這個標籤的人"
+    "scan": "دوست شامل کرنے کے لیے QR اسکین کریں",
+    "currentVibesTitle": "وہ حال ہی میں کیا ٹیگ کر رہے ہیں",
+    "currentVibesHint": "یہ گروپ ابھی جو ٹیگز شیئر کر رہا ہے — کون دیکھنے کے لیے ٹیپ کریں۔",
+    "membersFilterEmpty": "اس Tag میں ابھی کسی پر یہ ٹیگ نہیں ہے۔"
   },
   "localContact": {
     "editTitle": "رابطے میں ترمیم کریں",
@@ -1417,8 +1417,8 @@
     "fieldWebsite": "ویب سائٹ",
     "websitePlaceholder": "مثلاً: example.com",
     "scanningCard": "کارڈ پڑھا جا رہا ہے… (تقریباً 3 سیکنڈ)",
-    "scanCardCta": "掃描名片自動帶入",
-    "avatarUploadFailTitle": "上傳失敗"
+    "scanCardCta": "خودکار بھرنے کے لیے کارڈ اسکین کریں",
+    "avatarUploadFailTitle": "اپ لوڈ ناکام"
   },
   "followers": {
     "title": "فالوورز",

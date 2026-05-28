@@ -68,8 +68,8 @@
     "checkConnection": "تحقّق من الاتصال ثم حاول مجددًا",
     "loadFailed": "فشل التحميل",
     "willAutoRetry": "سنحاول تلقائيًا عند عودة الاتصال",
-    "edit": "編輯",
-    "you": "你",
+    "edit": "تعديل",
+    "you": "أنت",
     "noResults": "—"
   },
   "auth": {
@@ -199,17 +199,17 @@
       "cardApplyCta": "تطبيق",
       "profileCta": "أنشئ أول Tag",
       "saveFailed": "تعذّر الحفظ — تحقّق من اتصالك وحاول مجددًا.",
-      "nameRequiredTitle": "需要一個名字",
-      "nameRequiredMessage": "朋友掃 QR 會看到這個名字，至少幫自己取一個吧。",
-      "welcomeTitle": "一個 QR，加完所有朋友",
-      "welcomeSubtitle": "貼上標籤，下次見面就知道是誰",
+      "nameRequiredTitle": "أضف اسماً",
+      "nameRequiredMessage": "سيرى الأصدقاء هذا الاسم عند مسح رمز QR الخاص بك. أضف اسماً للبدء.",
+      "welcomeTitle": "رمز QR واحد. أضف الجميع.",
+      "welcomeSubtitle": "ضع وسوماً على الأشخاص لتتذكر من هم في المرة القادمة.",
       "brandTagline": "Tag the Vibe, Keep the Tribe",
-      "welcomeCta": "開始使用 PikTag",
-      "profileTitle": "你叫什麼名字？",
-      "profileSubtitle": "朋友掃 QR 會看到這個名字",
-      "avatarPickA11y": "選擇頭像",
-      "avatarHint": "頭像選填（之後可以再加）",
-      "profileNamePlaceholder": "你的名字"
+      "welcomeCta": "ابدأ مع PikTag",
+      "profileTitle": "ما اسمك؟",
+      "profileSubtitle": "سيرى الأصدقاء هذا الاسم عند مسح رمز QR الخاص بك.",
+      "avatarPickA11y": "اختر صورة الملف الشخصي",
+      "avatarHint": "الصورة اختيارية — يمكنك إضافتها لاحقاً.",
+      "profileNamePlaceholder": "اسمك"
     }
   },
   "connections": {
@@ -401,10 +401,10 @@
       "شواء نهاية الأسبوع",
       "زفاف صديق"
     ],
-    "saveWarnTitle": "QR 已產生，但無法儲存到 Tag",
-    "dateLabel": "日期",
-    "locationLabel": "地點",
-    "selectLocation": "選地點"
+    "saveWarnTitle": "تم إنشاء QR، لكن تعذر الحفظ في Tag",
+    "dateLabel": "التاريخ",
+    "locationLabel": "المكان",
+    "selectLocation": "اختر مكاناً"
   },
   "profile": {
     "nameNotSet": "لم يتم تعيين الاسم",
@@ -671,7 +671,7 @@
     "vibeContextTagsTitle": "وسوم هذا الـ Tag",
     "blockConfirmTitle": "حظر هذا الشخص؟",
     "blockConfirmMessage": "ستلغيان متابعة بعضكما ولن تريا محتوى الآخر.",
-    "vibeContextTagsHint": "想貼到他個人頁的點一下（只有你看得到）"
+    "vibeContextTagsHint": "اضغط لإضافة وسم إلى ملفه الشخصي (يظهر لك فقط)."
   },
   "settings": {
     "headerTitle": "الإعدادات",
@@ -724,10 +724,10 @@
     "analyticsOptIn": "إرسال بيانات الاستخدام",
     "analyticsOptInDescription": "ساعدنا في تحسين التطبيق",
     "attRationale": "يستخدم PikTag تحليلات أساسية لتحسين تجربتك، ولا يتتبعك مطلقًا عبر التطبيقات الأخرى.",
-    "addPasswordTitle": "新增密碼",
-    "addPasswordMessage": "你目前用 Apple/Google 登入，沒有 PikTag 密碼。送出後會寄一封信到你的 Email，幫你新增一組密碼，之後也能用 Email + 密碼登入（Apple/Google 登入仍然有效）",
-    "sendAddPasswordEmail": "發送設定信",
-    "vibeShiftNotifications": "朋友貼新標籤時通知我"
+    "addPasswordTitle": "إضافة كلمة مرور",
+    "addPasswordMessage": "أنت تستخدم تسجيل الدخول عبر Apple/Google ولا توجد كلمة مرور لـ PikTag. سنرسل رابط إعداد إلى بريدك حتى تتمكن من تسجيل الدخول بالبريد + كلمة المرور أيضاً (يستمر Apple/Google في العمل).",
+    "sendAddPasswordEmail": "إرسال بريد الإعداد",
+    "vibeShiftNotifications": "أبلغني عند نشر الأصدقاء وسوماً جديدة"
   },
   "contactSync": {
     "headerTitle": "مزامنة جهات الاتصال",
@@ -765,15 +765,15 @@
     "alertFollowAllDoneMessage": "تمت إضافة {{count}} من أصدقاء PikTag",
     "allConnected": "تم بالفعل إضافة جميع جهات اتصال PikTag",
     "openSettings": "افتح الإعدادات للسماح بالوصول",
-    "tagInviteFailedTitle": "加入名單失敗",
-    "tagInviteFailedMessage": "請稍後再試，或在「聯絡人名單」中手動新增。",
-    "taggedBadge": "已加入名單",
-    "tagModalTitle": "私人標籤",
-    "tagModalHint": "只有你看得到的私人標籤（最多 {{max}} 個）— 對方註冊 PikTag 後，這些標籤會出現在你的好友頁的「隱藏標籤」區，永遠不會被對方或其他人看到。",
-    "tagModalCustomPlaceholder": "自訂標籤",
-    "tagModalAddCustom": "新增",
-    "tagModalPopular": "熱門標籤",
-    "tagModalSubmit": "存私人標籤並邀請"
+    "tagInviteFailedTitle": "تعذر الإضافة إلى القائمة",
+    "tagInviteFailedMessage": "حاول مرة أخرى، أو أضفه يدوياً من جهات الاتصال.",
+    "taggedBadge": "تمت الإضافة إلى القائمة",
+    "tagModalTitle": "الوسوم المخفية",
+    "tagModalHint": "وسوم خاصة لا يراها إلا أنت (حتى {{max}}) — عندما ينضم هذا الشخص إلى PikTag، ستظهر هذه الوسوم في ملف صديقك تحت \"الوسوم المخفية\"، غير مرئية له ولا لأي شخص آخر.",
+    "tagModalCustomPlaceholder": "وسم مخصص",
+    "tagModalAddCustom": "إضافة",
+    "tagModalPopular": "الوسوم الشائعة",
+    "tagModalSubmit": "حفظ الوسوم والدعوة"
   },
   "invite": {
     "headerTitle": "دعوة الأصدقاء",
@@ -842,8 +842,8 @@
     "topBiolinksTitle": "أكثر الروابط شعبية",
     "topBiolinksEmpty": "لا توجد سجلات نقر على الروابط",
     "clickCount": "{{count}} نقرات",
-    "networkCompositionTitle": "人脈組成",
-    "networkCompositionEmpty": "尚無分類資料"
+    "networkCompositionTitle": "تكوين الشبكة",
+    "networkCompositionEmpty": "لا توجد بيانات فئة بعد"
   },
   "notifications": {
     "headerTitle": "الإشعارات",
@@ -1010,7 +1010,7 @@
     "exploreEmptyTitle": "لم يتم العثور على مستخدمين",
     "exploreEmptyText": "لم يستخدم أي مستخدم عام هذا الوسم بعد",
     "viewAll": "عرض الكل",
-    "relatedTags": "相關標籤"
+    "relatedTags": "وسوم ذات صلة"
   },
   "semanticType": {
     "identity": "الهوية",
@@ -1293,10 +1293,10 @@
     "deleteFailedTitle": "فشل الحذف",
     "deleteFailedMessage": "لم يتم حذف هذا الـ Tag. حاول لاحقًا. تواصل معنا إذا استمر ذلك.",
     "emptyScanCta": "أو امسح رمز QR الخاص به للتواصل",
-    "scan": "掃描 QR 加好友",
-    "currentVibesTitle": "他們最近在標什麼",
-    "currentVibesHint": "這群人現在共同的標籤 — 點一下看是誰",
-    "membersFilterEmpty": "這個 Tag 中沒有貼這個標籤的人"
+    "scan": "امسح QR لإضافة أصدقاء",
+    "currentVibesTitle": "ما يضعون من وسوم مؤخراً",
+    "currentVibesHint": "الوسوم التي تتشاركها هذه المجموعة الآن — اضغط لرؤية من.",
+    "membersFilterEmpty": "لا أحد في هذا الـ Tag يحمل هذا الوسم بعد."
   },
   "localContact": {
     "editTitle": "تعديل جهة الاتصال",
@@ -1342,8 +1342,8 @@
     "fieldWebsite": "الموقع الإلكتروني",
     "websitePlaceholder": "مثال: example.com",
     "scanningCard": "جارٍ قراءة البطاقة… (حوالي 3 ثوانٍ)",
-    "scanCardCta": "掃描名片自動帶入",
-    "avatarUploadFailTitle": "上傳失敗"
+    "scanCardCta": "امسح بطاقة لملء تلقائي",
+    "avatarUploadFailTitle": "فشل التحميل"
   },
   "followers": {
     "title": "المتابعون",

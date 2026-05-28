@@ -69,8 +69,8 @@
     "checkConnection": "Kiểm tra mạng rồi thử lại nhé",
     "willAutoRetry": "Có mạng lại là tụi mình tự thử lại ngay",
     "userNotFound": "Không tìm thấy người này",
-    "edit": "編輯",
-    "you": "你",
+    "edit": "Chỉnh sửa",
+    "you": "Bạn",
     "noResults": "—"
   },
   "auth": {
@@ -206,17 +206,17 @@
       "cardApplyCta": "Áp dụng",
       "profileCta": "Tạo Tag đầu tiên",
       "saveFailed": "Chưa lưu được — kiểm tra kết nối rồi thử lại.",
-      "nameRequiredTitle": "需要一個名字",
-      "nameRequiredMessage": "朋友掃 QR 會看到這個名字，至少幫自己取一個吧。",
-      "welcomeTitle": "一個 QR，加完所有朋友",
-      "welcomeSubtitle": "貼上標籤，下次見面就知道是誰",
+      "nameRequiredTitle": "Thêm tên",
+      "nameRequiredMessage": "Bạn bè sẽ thấy tên này khi quét QR của bạn. Đặt một tên để bắt đầu.",
+      "welcomeTitle": "Một QR. Thêm tất cả.",
+      "welcomeSubtitle": "Gắn tag cho mọi người để lần sau bạn nhớ ai là ai.",
       "brandTagline": "Tag the Vibe, Keep the Tribe",
-      "welcomeCta": "開始使用 PikTag",
-      "profileTitle": "你叫什麼名字？",
-      "profileSubtitle": "朋友掃 QR 會看到這個名字",
-      "avatarPickA11y": "選擇頭像",
-      "avatarHint": "頭像選填（之後可以再加）",
-      "profileNamePlaceholder": "你的名字"
+      "welcomeCta": "Bắt đầu với PikTag",
+      "profileTitle": "Bạn tên gì?",
+      "profileSubtitle": "Bạn bè sẽ thấy tên này khi quét QR của bạn.",
+      "avatarPickA11y": "Chọn ảnh hồ sơ",
+      "avatarHint": "Ảnh không bắt buộc — có thể thêm sau.",
+      "profileNamePlaceholder": "Tên của bạn"
     }
   },
   "connections": {
@@ -408,10 +408,10 @@
       "Tiệc nướng ngoài biển",
       "Đám cưới của một người bạn"
     ],
-    "saveWarnTitle": "QR 已產生，但無法儲存到 Tag",
-    "dateLabel": "日期",
-    "locationLabel": "地點",
-    "selectLocation": "選地點"
+    "saveWarnTitle": "Đã tạo QR, nhưng không lưu được vào Tag",
+    "dateLabel": "Ngày",
+    "locationLabel": "Địa điểm",
+    "selectLocation": "Chọn địa điểm"
   },
   "profile": {
     "nameNotSet": "Chưa đặt tên",
@@ -678,7 +678,7 @@
     "vibeContextTagsTitle": "Tag từ Tag này",
     "blockConfirmTitle": "Chặn người này?",
     "blockConfirmMessage": "Cả hai sẽ bỏ theo dõi nhau và không còn thấy nội dung của nhau.",
-    "vibeContextTagsHint": "想貼到他個人頁的點一下（只有你看得到）"
+    "vibeContextTagsHint": "Chạm để gắn tag vào hồ sơ họ (chỉ bạn thấy)."
   },
   "settings": {
     "headerTitle": "Cài đặt",
@@ -731,10 +731,10 @@
     "analyticsOptIn": "Gửi phân tích sử dụng",
     "analyticsOptInDescription": "Giúp tụi mình cải thiện ứng dụng",
     "attRationale": "PikTag dùng phân tích cơ bản để cải thiện trải nghiệm của bạn. Tụi mình không bao giờ theo dõi bạn qua các ứng dụng khác.",
-    "addPasswordTitle": "新增密碼",
-    "addPasswordMessage": "你目前用 Apple/Google 登入，沒有 PikTag 密碼。送出後會寄一封信到你的 Email，幫你新增一組密碼，之後也能用 Email + 密碼登入（Apple/Google 登入仍然有效）",
-    "sendAddPasswordEmail": "發送設定信",
-    "vibeShiftNotifications": "朋友貼新標籤時通知我"
+    "addPasswordTitle": "Thêm mật khẩu",
+    "addPasswordMessage": "Bạn đang đăng nhập bằng Apple/Google và chưa có mật khẩu PikTag. Chúng tôi sẽ gửi liên kết thiết lập qua email để bạn cũng có thể đăng nhập bằng email + mật khẩu (Apple/Google vẫn dùng được).",
+    "sendAddPasswordEmail": "Gửi email thiết lập",
+    "vibeShiftNotifications": "Báo cho tôi khi bạn bè đăng tag mới"
   },
   "contactSync": {
     "headerTitle": "Đồng bộ danh bạ",
@@ -771,16 +771,16 @@
     "alertFollowAllDoneTitle": "Xong",
     "alertFollowAllDoneMessage": "Đã thêm {{count}} bạn bè PikTag",
     "allConnected": "Mọi liên hệ PikTag đều đã kết nối rồi",
-    "tagModalHint": "Tag riêng tư chỉ mình bạn thấy (tối đa {{max}}) — khi người này vào PikTag, các tag này sẽ hiện ở mục \"tag ẩn\" trong hồ sơ bạn bè, họ và người khác đều không thấy.",
+    "tagModalHint": "Tag riêng chỉ bạn thấy (tối đa {{max}}) — khi người này tham gia PikTag, các tag này sẽ xuất hiện trong hồ sơ bạn bè ở mục \"tag riêng\", không hiển thị với họ hay bất kỳ ai khác.",
     "openSettings": "Mở Cài đặt để cấp quyền",
-    "tagInviteFailedTitle": "加入名單失敗",
-    "tagInviteFailedMessage": "請稍後再試，或在「聯絡人名單」中手動新增。",
-    "taggedBadge": "已加入名單",
-    "tagModalTitle": "私人標籤",
-    "tagModalCustomPlaceholder": "自訂標籤",
-    "tagModalAddCustom": "新增",
-    "tagModalPopular": "熱門標籤",
-    "tagModalSubmit": "存私人標籤並邀請"
+    "tagInviteFailedTitle": "Không thêm được vào danh sách",
+    "tagInviteFailedMessage": "Hãy thử lại hoặc thêm thủ công từ Danh bạ.",
+    "taggedBadge": "Đã thêm vào danh sách",
+    "tagModalTitle": "Tag riêng",
+    "tagModalCustomPlaceholder": "Tag tùy chỉnh",
+    "tagModalAddCustom": "Thêm",
+    "tagModalPopular": "Tag phổ biến",
+    "tagModalSubmit": "Lưu tag & mời"
   },
   "invite": {
     "headerTitle": "Mời bạn bè",
@@ -1368,10 +1368,10 @@
     "deleteFailedTitle": "Xoá không được",
     "deleteFailedMessage": "Tag này chưa xoá được. Thử lại sau nhé. Nếu cứ bị thế này thì liên hệ tụi mình nha.",
     "emptyScanCta": "Hoặc quét mã QR của họ để kết nối",
-    "scan": "掃描 QR 加好友",
-    "currentVibesTitle": "他們最近在標什麼",
-    "currentVibesHint": "這群人現在共同的標籤 — 點一下看是誰",
-    "membersFilterEmpty": "這個 Tag 中沒有貼這個標籤的人"
+    "scan": "Quét QR để thêm bạn",
+    "currentVibesTitle": "Họ đang gắn tag gì gần đây",
+    "currentVibesHint": "Tag nhóm này đang chia sẻ — chạm để xem là ai.",
+    "membersFilterEmpty": "Chưa ai trong Tag này có tag đó."
   },
   "localContact": {
     "editTitle": "Sửa liên hệ",
@@ -1417,8 +1417,8 @@
     "fieldWebsite": "Trang web",
     "websitePlaceholder": "ví dụ: example.com",
     "scanningCard": "Đang đọc danh thiếp… (khoảng 3 giây)",
-    "scanCardCta": "掃描名片自動帶入",
-    "avatarUploadFailTitle": "上傳失敗"
+    "scanCardCta": "Quét danh thiếp để tự điền",
+    "avatarUploadFailTitle": "Tải lên không thành công"
   },
   "followers": {
     "title": "Người theo dõi",

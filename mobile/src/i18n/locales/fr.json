@@ -68,8 +68,8 @@
     "checkConnection": "Vérifiez votre connexion et réessayez",
     "loadFailed": "Échec du chargement",
     "willAutoRetry": "Nous réessaierons automatiquement à la reconnexion",
-    "edit": "編輯",
-    "you": "你",
+    "edit": "Modifier",
+    "you": "Toi",
     "noResults": "—"
   },
   "auth": {
@@ -199,17 +199,17 @@
       "cardApplyCta": "Appliquer",
       "profileCta": "Créer mon premier Tag",
       "saveFailed": "Échec de l'enregistrement — vérifie ta connexion et réessaie.",
-      "nameRequiredTitle": "需要一個名字",
-      "nameRequiredMessage": "朋友掃 QR 會看到這個名字，至少幫自己取一個吧。",
-      "welcomeTitle": "一個 QR，加完所有朋友",
-      "welcomeSubtitle": "貼上標籤，下次見面就知道是誰",
+      "nameRequiredTitle": "Ajoute un nom",
+      "nameRequiredMessage": "Tes amis verront ce nom en scannant ton QR. Mets-en un pour commencer.",
+      "welcomeTitle": "Un QR. Ajoute tout le monde.",
+      "welcomeSubtitle": "Tague les gens pour te souvenir qui est qui la prochaine fois.",
       "brandTagline": "Tag the Vibe, Keep the Tribe",
-      "welcomeCta": "開始使用 PikTag",
-      "profileTitle": "你叫什麼名字？",
-      "profileSubtitle": "朋友掃 QR 會看到這個名字",
-      "avatarPickA11y": "選擇頭像",
-      "avatarHint": "頭像選填（之後可以再加）",
-      "profileNamePlaceholder": "你的名字"
+      "welcomeCta": "Commencer avec PikTag",
+      "profileTitle": "Comment tu t'appelles ?",
+      "profileSubtitle": "Tes amis verront ce nom en scannant ton QR.",
+      "avatarPickA11y": "Choisis une photo de profil",
+      "avatarHint": "La photo est facultative — tu peux l'ajouter plus tard.",
+      "profileNamePlaceholder": "Ton prénom"
     }
   },
   "connections": {
@@ -401,10 +401,10 @@
       "Apéro entre amis",
       "Le mariage d’un ami"
     ],
-    "saveWarnTitle": "QR 已產生，但無法儲存到 Tag",
-    "dateLabel": "日期",
-    "locationLabel": "地點",
-    "selectLocation": "選地點"
+    "saveWarnTitle": "QR créé, mais impossible d'enregistrer dans le Tag",
+    "dateLabel": "Date",
+    "locationLabel": "Lieu",
+    "selectLocation": "Choisir un lieu"
   },
   "profile": {
     "nameNotSet": "Nom non défini",
@@ -671,7 +671,7 @@
     "vibeContextTagsTitle": "Tags de ce Tag",
     "blockConfirmTitle": "Bloquer cette personne ?",
     "blockConfirmMessage": "Vous ne vous suivrez plus et ne verrez plus le contenu de l'autre.",
-    "vibeContextTagsHint": "想貼到他個人頁的點一下（只有你看得到）"
+    "vibeContextTagsHint": "Appuie pour ajouter un tag à son profil (visible par toi seul)."
   },
   "settings": {
     "headerTitle": "Réglages",
@@ -724,10 +724,10 @@
     "analyticsOptIn": "Envoyer les données d'usage",
     "analyticsOptInDescription": "Aidez-nous à améliorer l'application",
     "attRationale": "PikTag utilise des analyses de base pour améliorer votre expérience. Nous ne vous suivons jamais dans d'autres applications.",
-    "addPasswordTitle": "新增密碼",
-    "addPasswordMessage": "你目前用 Apple/Google 登入，沒有 PikTag 密碼。送出後會寄一封信到你的 Email，幫你新增一組密碼，之後也能用 Email + 密碼登入（Apple/Google 登入仍然有效）",
-    "sendAddPasswordEmail": "發送設定信",
-    "vibeShiftNotifications": "朋友貼新標籤時通知我"
+    "addPasswordTitle": "Ajouter un mot de passe",
+    "addPasswordMessage": "Tu te connectes avec Apple/Google et n'as pas de mot de passe PikTag. On t'enverra un lien de configuration par email pour te connecter aussi avec email + mot de passe (Apple/Google reste actif).",
+    "sendAddPasswordEmail": "Envoyer l'email de configuration",
+    "vibeShiftNotifications": "Préviens-moi quand des amis publient de nouveaux tags"
   },
   "contactSync": {
     "headerTitle": "Synchroniser les contacts",
@@ -765,15 +765,15 @@
     "alertFollowAllDoneMessage": "{{count}} amis PikTag ajoutés",
     "allConnected": "Tous les contacts PikTag sont déjà connectés",
     "openSettings": "Ouvrir les Réglages pour autoriser",
-    "tagInviteFailedTitle": "加入名單失敗",
-    "tagInviteFailedMessage": "請稍後再試，或在「聯絡人名單」中手動新增。",
-    "taggedBadge": "已加入名單",
-    "tagModalTitle": "私人標籤",
-    "tagModalHint": "只有你看得到的私人標籤（最多 {{max}} 個）— 對方註冊 PikTag 後，這些標籤會出現在你的好友頁的「隱藏標籤」區，永遠不會被對方或其他人看到。",
-    "tagModalCustomPlaceholder": "自訂標籤",
-    "tagModalAddCustom": "新增",
-    "tagModalPopular": "熱門標籤",
-    "tagModalSubmit": "存私人標籤並邀請"
+    "tagInviteFailedTitle": "Impossible d'ajouter à la liste",
+    "tagInviteFailedMessage": "Réessaie ou ajoute manuellement depuis les Contacts.",
+    "taggedBadge": "Ajouté à la liste",
+    "tagModalTitle": "Tags cachés",
+    "tagModalHint": "Tags privés visibles uniquement par toi (jusqu'à {{max}}) — quand cette personne rejoindra PikTag, ces tags apparaîtront dans son profil sous \"tags cachés\", invisibles pour elle et pour tout le monde.",
+    "tagModalCustomPlaceholder": "Tag personnalisé",
+    "tagModalAddCustom": "Ajouter",
+    "tagModalPopular": "Tags populaires",
+    "tagModalSubmit": "Enregistrer & inviter"
   },
   "invite": {
     "headerTitle": "Inviter des amis",
@@ -842,8 +842,8 @@
     "topBiolinksTitle": "Liens les plus populaires",
     "topBiolinksEmpty": "Aucun enregistrement de clic",
     "clickCount": "{{count}} clics",
-    "networkCompositionTitle": "人脈組成",
-    "networkCompositionEmpty": "尚無分類資料"
+    "networkCompositionTitle": "Composition du réseau",
+    "networkCompositionEmpty": "Pas encore de données de catégorie"
   },
   "notifications": {
     "headerTitle": "Notifications",
@@ -1010,7 +1010,7 @@
     "exploreEmptyTitle": "Aucun utilisateur trouvé",
     "exploreEmptyText": "Aucun utilisateur public n'a encore utilisé ce tag",
     "viewAll": "Voir tout",
-    "relatedTags": "相關標籤"
+    "relatedTags": "Tags liés"
   },
   "semanticType": {
     "identity": "Identité",
@@ -1293,10 +1293,10 @@
     "deleteFailedTitle": "Échec de la suppression",
     "deleteFailedMessage": "Ce Tag n'a pas été supprimé. Réessayez plus tard. Contactez-nous si cela persiste.",
     "emptyScanCta": "Ou scannez son QR pour connecter",
-    "scan": "掃描 QR 加好友",
-    "currentVibesTitle": "他們最近在標什麼",
-    "currentVibesHint": "這群人現在共同的標籤 — 點一下看是誰",
-    "membersFilterEmpty": "這個 Tag 中沒有貼這個標籤的人"
+    "scan": "Scanner un QR pour ajouter des amis",
+    "currentVibesTitle": "Ce qu'ils taguent récemment",
+    "currentVibesHint": "Tags que ce groupe partage en ce moment — appuie pour voir qui.",
+    "membersFilterEmpty": "Personne dans ce Tag n'a ce tag."
   },
   "localContact": {
     "editTitle": "Modifier le contact",
@@ -1342,8 +1342,8 @@
     "fieldWebsite": "Site web",
     "websitePlaceholder": "ex. example.com",
     "scanningCard": "Lecture de la carte… (environ 3 s)",
-    "scanCardCta": "掃描名片自動帶入",
-    "avatarUploadFailTitle": "上傳失敗"
+    "scanCardCta": "Scanne une carte pour remplir automatiquement",
+    "avatarUploadFailTitle": "Échec du téléversement"
   },
   "followers": {
     "title": "Abonnés",

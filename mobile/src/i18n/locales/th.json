@@ -68,8 +68,8 @@
     "checkConnection": "ตรวจสอบการเชื่อมต่อแล้วลองอีกครั้ง",
     "loadFailed": "โหลดล้มเหลว",
     "willAutoRetry": "จะลองใหม่อัตโนมัติเมื่อกลับมาออนไลน์",
-    "edit": "編輯",
-    "you": "你",
+    "edit": "แก้ไข",
+    "you": "คุณ",
     "noResults": "—"
   },
   "auth": {
@@ -199,17 +199,17 @@
       "cardApplyCta": "ใช้",
       "profileCta": "สร้าง Tag แรกของฉัน",
       "saveFailed": "บันทึกไม่สำเร็จ — เช็กการเชื่อมต่อแล้วลองใหม่",
-      "nameRequiredTitle": "需要一個名字",
-      "nameRequiredMessage": "朋友掃 QR 會看到這個名字，至少幫自己取一個吧。",
-      "welcomeTitle": "一個 QR，加完所有朋友",
-      "welcomeSubtitle": "貼上標籤，下次見面就知道是誰",
+      "nameRequiredTitle": "ใส่ชื่อ",
+      "nameRequiredMessage": "เพื่อนจะเห็นชื่อนี้เมื่อสแกน QR ของคุณ ตั้งชื่อก่อนเริ่มใช้งาน",
+      "welcomeTitle": "QR เดียว เพิ่มทุกคน",
+      "welcomeSubtitle": "แท็กผู้คนเพื่อจำว่าใครเป็นใครในครั้งหน้า",
       "brandTagline": "Tag the Vibe, Keep the Tribe",
-      "welcomeCta": "開始使用 PikTag",
-      "profileTitle": "你叫什麼名字？",
-      "profileSubtitle": "朋友掃 QR 會看到這個名字",
-      "avatarPickA11y": "選擇頭像",
-      "avatarHint": "頭像選填（之後可以再加）",
-      "profileNamePlaceholder": "你的名字"
+      "welcomeCta": "เริ่มใช้ PikTag",
+      "profileTitle": "คุณชื่ออะไร?",
+      "profileSubtitle": "เพื่อนจะเห็นชื่อนี้เมื่อสแกน QR ของคุณ",
+      "avatarPickA11y": "เลือกรูปโปรไฟล์",
+      "avatarHint": "รูปไม่บังคับ — เพิ่มทีหลังได้",
+      "profileNamePlaceholder": "ชื่อของคุณ"
     }
   },
   "connections": {
@@ -401,10 +401,10 @@
       "ปิ้งย่างสุดสัปดาห์",
       "งานแต่งเพื่อน"
     ],
-    "saveWarnTitle": "QR 已產生，但無法儲存到 Tag",
-    "dateLabel": "日期",
-    "locationLabel": "地點",
-    "selectLocation": "選地點"
+    "saveWarnTitle": "สร้าง QR แล้ว แต่บันทึกไป Tag ไม่สำเร็จ",
+    "dateLabel": "วันที่",
+    "locationLabel": "สถานที่",
+    "selectLocation": "เลือกสถานที่"
   },
   "profile": {
     "nameNotSet": "ยังไม่ได้ตั้งชื่อ",
@@ -671,7 +671,7 @@
     "vibeContextTagsTitle": "แท็กของ Tag นี้",
     "blockConfirmTitle": "บล็อกคนนี้?",
     "blockConfirmMessage": "คุณทั้งคู่จะเลิกติดตามกันและไม่เห็นเนื้อหาของกันและกัน",
-    "vibeContextTagsHint": "想貼到他個人頁的點一下（只有你看得到）"
+    "vibeContextTagsHint": "แตะเพื่อแปะแท็กไปที่โปรไฟล์เขา (เห็นเฉพาะคุณ)"
   },
   "settings": {
     "headerTitle": "ตั้งค่า",
@@ -724,10 +724,10 @@
     "analyticsOptIn": "ส่งข้อมูลวิเคราะห์การใช้งาน",
     "analyticsOptInDescription": "ช่วยเราปรับปรุงแอป",
     "attRationale": "PikTag ใช้ข้อมูลวิเคราะห์พื้นฐานเพื่อปรับปรุงประสบการณ์ของคุณ เราไม่เคยติดตามคุณข้ามแอปอื่น",
-    "addPasswordTitle": "新增密碼",
-    "addPasswordMessage": "你目前用 Apple/Google 登入，沒有 PikTag 密碼。送出後會寄一封信到你的 Email，幫你新增一組密碼，之後也能用 Email + 密碼登入（Apple/Google 登入仍然有效）",
-    "sendAddPasswordEmail": "發送設定信",
-    "vibeShiftNotifications": "朋友貼新標籤時通知我"
+    "addPasswordTitle": "เพิ่มรหัสผ่าน",
+    "addPasswordMessage": "คุณกำลังเข้าสู่ระบบด้วย Apple/Google และยังไม่มีรหัสผ่าน PikTag เราจะส่งลิงก์ตั้งค่าไปที่อีเมลเพื่อให้คุณเข้าสู่ระบบด้วยอีเมล + รหัสผ่านได้ด้วย (Apple/Google ยังใช้งานได้)",
+    "sendAddPasswordEmail": "ส่งอีเมลตั้งค่า",
+    "vibeShiftNotifications": "แจ้งเมื่อเพื่อนโพสต์แท็กใหม่"
   },
   "contactSync": {
     "headerTitle": "ซิงค์รายชื่อ",
@@ -765,15 +765,15 @@
     "alertFollowAllDoneMessage": "เพิ่มเพื่อน PikTag {{count}} คนแล้ว",
     "allConnected": "เพื่อน PikTag ในรายชื่อถูกเพิ่มหมดแล้ว",
     "openSettings": "เปิดการตั้งค่าเพื่ออนุญาต",
-    "tagInviteFailedTitle": "加入名單失敗",
-    "tagInviteFailedMessage": "請稍後再試，或在「聯絡人名單」中手動新增。",
-    "taggedBadge": "已加入名單",
-    "tagModalTitle": "私人標籤",
-    "tagModalHint": "只有你看得到的私人標籤（最多 {{max}} 個）— 對方註冊 PikTag 後，這些標籤會出現在你的好友頁的「隱藏標籤」區，永遠不會被對方或其他人看到。",
-    "tagModalCustomPlaceholder": "自訂標籤",
-    "tagModalAddCustom": "新增",
-    "tagModalPopular": "熱門標籤",
-    "tagModalSubmit": "存私人標籤並邀請"
+    "tagInviteFailedTitle": "เพิ่มในรายการไม่สำเร็จ",
+    "tagInviteFailedMessage": "ลองอีกครั้ง หรือเพิ่มเองจากรายชื่อ",
+    "taggedBadge": "เพิ่มในรายการแล้ว",
+    "tagModalTitle": "แท็กที่ซ่อน",
+    "tagModalHint": "แท็กส่วนตัวที่มีแค่คุณเห็น (สูงสุด {{max}}) — เมื่อบุคคลนี้สมัคร PikTag แท็กเหล่านี้จะแสดงในโปรไฟล์ของเพื่อนในส่วน \"แท็กที่ซ่อน\" ไม่มีใครรวมถึงเจ้าตัวจะเห็น",
+    "tagModalCustomPlaceholder": "แท็กกำหนดเอง",
+    "tagModalAddCustom": "เพิ่ม",
+    "tagModalPopular": "แท็กยอดนิยม",
+    "tagModalSubmit": "บันทึกแท็กและเชิญ"
   },
   "invite": {
     "headerTitle": "เชิญเพื่อน",
@@ -842,8 +842,8 @@
     "topBiolinksTitle": "ลิงก์ยอดนิยม",
     "topBiolinksEmpty": "ยังไม่มีบันทึกการคลิกลิงก์",
     "clickCount": "{{count}} คลิก",
-    "networkCompositionTitle": "人脈組成",
-    "networkCompositionEmpty": "尚無分類資料"
+    "networkCompositionTitle": "องค์ประกอบเครือข่าย",
+    "networkCompositionEmpty": "ยังไม่มีข้อมูลหมวดหมู่"
   },
   "notifications": {
     "headerTitle": "การแจ้งเตือน",
@@ -1010,7 +1010,7 @@
     "exploreEmptyTitle": "ไม่พบผู้ใช้",
     "exploreEmptyText": "ยังไม่มีผู้ใช้สาธารณะที่ใช้แท็กนี้",
     "viewAll": "ดูทั้งหมด",
-    "relatedTags": "相關標籤"
+    "relatedTags": "แท็กที่เกี่ยวข้อง"
   },
   "semanticType": {
     "identity": "ตัวตน",
@@ -1293,10 +1293,10 @@
     "deleteFailedTitle": "ลบไม่สำเร็จ",
     "deleteFailedMessage": "Tag นี้ยังไม่ถูกลบ ลองอีกครั้งภายหลัง หากยังเป็นอยู่โปรดติดต่อเรา",
     "emptyScanCta": "หรือสแกน QR ของอีกฝ่ายเพื่อเพิ่ม",
-    "scan": "掃描 QR 加好友",
-    "currentVibesTitle": "他們最近在標什麼",
-    "currentVibesHint": "這群人現在共同的標籤 — 點一下看是誰",
-    "membersFilterEmpty": "這個 Tag 中沒有貼這個標籤的人"
+    "scan": "สแกน QR เพื่อเพิ่มเพื่อน",
+    "currentVibesTitle": "แท็กที่พวกเขาแปะกันช่วงนี้",
+    "currentVibesHint": "แท็กที่กลุ่มนี้แปะร่วมกันอยู่ตอนนี้ — แตะดูว่าใคร",
+    "membersFilterEmpty": "ยังไม่มีใครใน Tag นี้แปะแท็กนั้น"
   },
   "localContact": {
     "editTitle": "แก้ไขรายชื่อ",
@@ -1342,8 +1342,8 @@
     "fieldWebsite": "เว็บไซต์",
     "websitePlaceholder": "เช่น example.com",
     "scanningCard": "กำลังอ่านนามบัตร… (ประมาณ 3 วินาที)",
-    "scanCardCta": "掃描名片自動帶入",
-    "avatarUploadFailTitle": "上傳失敗"
+    "scanCardCta": "สแกนนามบัตรเพื่อกรอกอัตโนมัติ",
+    "avatarUploadFailTitle": "อัปโหลดไม่สำเร็จ"
   },
   "followers": {
     "title": "ผู้ติดตาม",

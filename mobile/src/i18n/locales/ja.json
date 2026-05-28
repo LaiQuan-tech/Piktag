@@ -68,8 +68,8 @@
     "checkConnection": "ネット接続を確認してもう一度お試しください",
     "loadFailed": "読み込みに失敗",
     "willAutoRetry": "接続が回復したら自動的に読み込みます",
-    "edit": "編輯",
-    "you": "你",
+    "edit": "編集",
+    "you": "あなた",
     "noResults": "—"
   },
   "auth": {
@@ -199,17 +199,17 @@
       "cardApplyCta": "適用",
       "profileCta": "最初の Tag を作成",
       "saveFailed": "保存できなかった — 接続を確認してもう一度試してね。",
-      "nameRequiredTitle": "需要一個名字",
-      "nameRequiredMessage": "朋友掃 QR 會看到這個名字，至少幫自己取一個吧。",
-      "welcomeTitle": "一個 QR，加完所有朋友",
-      "welcomeSubtitle": "貼上標籤，下次見面就知道是誰",
+      "nameRequiredTitle": "名前を入力",
+      "nameRequiredMessage": "友だちがQRをスキャンしたときにこの名前が表示されます。まずは名前を設定しましょう。",
+      "welcomeTitle": "QRひとつで全員追加",
+      "welcomeSubtitle": "次に会ったとき思い出せるよう、タグを付けよう。",
       "brandTagline": "Tag the Vibe, Keep the Tribe",
-      "welcomeCta": "開始使用 PikTag",
-      "profileTitle": "你叫什麼名字？",
-      "profileSubtitle": "朋友掃 QR 會看到這個名字",
-      "avatarPickA11y": "選擇頭像",
-      "avatarHint": "頭像選填（之後可以再加）",
-      "profileNamePlaceholder": "你的名字"
+      "welcomeCta": "PikTag をはじめる",
+      "profileTitle": "お名前は?",
+      "profileSubtitle": "友だちがQRをスキャンしたときにこの名前が表示されます。",
+      "avatarPickA11y": "プロフィール写真を選ぶ",
+      "avatarHint": "写真は任意です — あとから追加できます。",
+      "profileNamePlaceholder": "あなたの名前"
     }
   },
   "connections": {
@@ -401,10 +401,10 @@
       "花見の集まり",
       "友人の結婚式"
     ],
-    "saveWarnTitle": "QR 已產生，但無法儲存到 Tag",
-    "dateLabel": "日期",
-    "locationLabel": "地點",
-    "selectLocation": "選地點"
+    "saveWarnTitle": "QRを作成しましたが、Tagに保存できませんでした",
+    "dateLabel": "日付",
+    "locationLabel": "場所",
+    "selectLocation": "場所を選ぶ"
   },
   "profile": {
     "nameNotSet": "名前未設定",
@@ -671,7 +671,7 @@
     "vibeContextTagsTitle": "この Tag のタグ",
     "blockConfirmTitle": "この人をブロック？",
     "blockConfirmMessage": "お互いのフォローが外れ、相手の投稿も見えなくなります。",
-    "vibeContextTagsHint": "想貼到他個人頁的點一下（只有你看得到）"
+    "vibeContextTagsHint": "タップして相手のプロフィールにタグを追加(自分だけに表示)。"
   },
   "settings": {
     "headerTitle": "設定",
@@ -724,10 +724,10 @@
     "analyticsOptIn": "利用状況の分析を送信",
     "analyticsOptInDescription": "アプリの改善にご協力ください",
     "attRationale": "PikTag は体験向上のため基本的な分析データを使用し、他アプリ間で追跡することはありません。",
-    "addPasswordTitle": "新增密碼",
-    "addPasswordMessage": "你目前用 Apple/Google 登入，沒有 PikTag 密碼。送出後會寄一封信到你的 Email，幫你新增一組密碼，之後也能用 Email + 密碼登入（Apple/Google 登入仍然有效）",
-    "sendAddPasswordEmail": "發送設定信",
-    "vibeShiftNotifications": "朋友貼新標籤時通知我"
+    "addPasswordTitle": "パスワードを追加",
+    "addPasswordMessage": "現在 Apple/Google でサインインしており、PikTag のパスワードはありません。設定リンクをメールでお送りするので、メール + パスワードでもサインインできます(Apple/Google でのサインインは引き続き使えます)。",
+    "sendAddPasswordEmail": "設定メールを送信",
+    "vibeShiftNotifications": "友だちが新しいタグを投稿したら通知"
   },
   "contactSync": {
     "headerTitle": "連絡先を同期",
@@ -765,15 +765,15 @@
     "alertFollowAllDoneMessage": "{{count}}人のPikTagの友達を追加しました",
     "allConnected": "連絡先のPikTagの友達はすべて追加済みです",
     "openSettings": "設定を開いて許可する",
-    "tagInviteFailedTitle": "加入名單失敗",
-    "tagInviteFailedMessage": "請稍後再試，或在「聯絡人名單」中手動新增。",
-    "taggedBadge": "已加入名單",
-    "tagModalTitle": "私人標籤",
-    "tagModalHint": "只有你看得到的私人標籤（最多 {{max}} 個）— 對方註冊 PikTag 後，這些標籤會出現在你的好友頁的「隱藏標籤」區，永遠不會被對方或其他人看到。",
-    "tagModalCustomPlaceholder": "自訂標籤",
-    "tagModalAddCustom": "新增",
-    "tagModalPopular": "熱門標籤",
-    "tagModalSubmit": "存私人標籤並邀請"
+    "tagInviteFailedTitle": "リストに追加できませんでした",
+    "tagInviteFailedMessage": "もう一度試すか、連絡先から手動で追加してください。",
+    "taggedBadge": "リストに追加済み",
+    "tagModalTitle": "非公開タグ",
+    "tagModalHint": "あなただけが見られる非公開タグ(最大 {{max}} 個) — この人が PikTag に登録すると、これらのタグは友だちのプロフィールの「非公開タグ」セクションに表示され、相手にも他の誰にも見えません。",
+    "tagModalCustomPlaceholder": "カスタムタグ",
+    "tagModalAddCustom": "追加",
+    "tagModalPopular": "人気のタグ",
+    "tagModalSubmit": "タグを保存して招待"
   },
   "invite": {
     "headerTitle": "友達を招待",
@@ -842,8 +842,8 @@
     "topBiolinksTitle": "人気のリンク",
     "topBiolinksEmpty": "リンククリックの記録がありません",
     "clickCount": "{{count}}回クリック",
-    "networkCompositionTitle": "人脈組成",
-    "networkCompositionEmpty": "尚無分類資料"
+    "networkCompositionTitle": "ネットワーク構成",
+    "networkCompositionEmpty": "カテゴリーデータはまだありません"
   },
   "notifications": {
     "headerTitle": "通知",
@@ -1010,7 +1010,7 @@
     "exploreEmptyTitle": "ユーザーが見つかりません",
     "exploreEmptyText": "このタグを使っている公開ユーザーはまだいません",
     "viewAll": "すべて見る",
-    "relatedTags": "相關標籤"
+    "relatedTags": "関連タグ"
   },
   "semanticType": {
     "identity": "アイデンティティ",
@@ -1293,10 +1293,10 @@
     "deleteFailedTitle": "削除に失敗しました",
     "deleteFailedMessage": "この Tag は削除されませんでした。後でもう一度お試しください。続く場合はお問い合わせください。",
     "emptyScanCta": "または相手の QR をスキャンして追加",
-    "scan": "掃描 QR 加好友",
-    "currentVibesTitle": "他們最近在標什麼",
-    "currentVibesHint": "這群人現在共同的標籤 — 點一下看是誰",
-    "membersFilterEmpty": "這個 Tag 中沒有貼這個標籤的人"
+    "scan": "QRをスキャンして友だち追加",
+    "currentVibesTitle": "最近よく付けているタグ",
+    "currentVibesHint": "このグループが今共有しているタグ — タップして誰か見る。",
+    "membersFilterEmpty": "この Tag にはまだそのタグを付けた人がいません。"
   },
   "localContact": {
     "editTitle": "連絡先を編集",
@@ -1342,8 +1342,8 @@
     "fieldWebsite": "ウェブサイト",
     "websitePlaceholder": "例：example.com",
     "scanningCard": "名刺を読み取り中…（約3秒）",
-    "scanCardCta": "掃描名片自動帶入",
-    "avatarUploadFailTitle": "上傳失敗"
+    "scanCardCta": "名刺をスキャンして自動入力",
+    "avatarUploadFailTitle": "アップロードに失敗しました"
   },
   "followers": {
     "title": "フォロワー",

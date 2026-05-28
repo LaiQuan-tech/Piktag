@@ -68,8 +68,8 @@
     "checkConnection": "Bağlantıyı kontrol edip tekrar deneyin",
     "loadFailed": "Yüklenemedi",
     "willAutoRetry": "Yeniden bağlanınca otomatik tekrar deneriz",
-    "edit": "編輯",
-    "you": "你",
+    "edit": "Düzenle",
+    "you": "Sen",
     "noResults": "—"
   },
   "auth": {
@@ -199,17 +199,17 @@
       "cardApplyCta": "Uygula",
       "profileCta": "İlk Tag’imi oluştur",
       "saveFailed": "Kaydedilemedi — bağlantını kontrol edip tekrar dene.",
-      "nameRequiredTitle": "需要一個名字",
-      "nameRequiredMessage": "朋友掃 QR 會看到這個名字，至少幫自己取一個吧。",
-      "welcomeTitle": "一個 QR，加完所有朋友",
-      "welcomeSubtitle": "貼上標籤，下次見面就知道是誰",
+      "nameRequiredTitle": "Bir ad ekle",
+      "nameRequiredMessage": "Arkadaşların QR'ını taradığında bu adı görecek. Başlamak için bir tane belirle.",
+      "welcomeTitle": "Tek QR. Herkesi ekle.",
+      "welcomeSubtitle": "İnsanları etiketle, bir dahaki sefere kim olduğunu hatırla.",
       "brandTagline": "Tag the Vibe, Keep the Tribe",
-      "welcomeCta": "開始使用 PikTag",
-      "profileTitle": "你叫什麼名字？",
-      "profileSubtitle": "朋友掃 QR 會看到這個名字",
-      "avatarPickA11y": "選擇頭像",
-      "avatarHint": "頭像選填（之後可以再加）",
-      "profileNamePlaceholder": "你的名字"
+      "welcomeCta": "PikTag ile başla",
+      "profileTitle": "Adın ne?",
+      "profileSubtitle": "Arkadaşların QR'ını taradığında bu adı görecek.",
+      "avatarPickA11y": "Profil fotoğrafı seç",
+      "avatarHint": "Fotoğraf isteğe bağlı — sonra ekleyebilirsin.",
+      "profileNamePlaceholder": "Adın"
     }
   },
   "connections": {
@@ -401,10 +401,10 @@
       "Hafta sonu mangal",
       "Bir arkadaşın düğünü"
     ],
-    "saveWarnTitle": "QR 已產生，但無法儲存到 Tag",
-    "dateLabel": "日期",
-    "locationLabel": "地點",
-    "selectLocation": "選地點"
+    "saveWarnTitle": "QR oluşturuldu, ama Tag'e kaydedilemedi",
+    "dateLabel": "Tarih",
+    "locationLabel": "Yer",
+    "selectLocation": "Yer seç"
   },
   "profile": {
     "nameNotSet": "Ad belirtilmemiş",
@@ -671,7 +671,7 @@
     "vibeContextTagsTitle": "Bu Tag’in etiketleri",
     "blockConfirmTitle": "Bu kişi engellensin mi?",
     "blockConfirmMessage": "Birbirinizi takipten çıkarsınız ve içeriklerinizi görmezsiniz.",
-    "vibeContextTagsHint": "想貼到他個人頁的點一下（只有你看得到）"
+    "vibeContextTagsHint": "Profillerine etiket eklemek için dokun (yalnız sen görürsün)."
   },
   "settings": {
     "headerTitle": "Ayarlar",
@@ -724,10 +724,10 @@
     "analyticsOptIn": "Kullanım analitiğini gönder",
     "analyticsOptInDescription": "Uygulamayı geliştirmemize yardım edin",
     "attRationale": "PikTag deneyiminizi iyileştirmek için temel analizler kullanır. Sizi asla başka uygulamalarda takip etmiyoruz.",
-    "addPasswordTitle": "新增密碼",
-    "addPasswordMessage": "你目前用 Apple/Google 登入，沒有 PikTag 密碼。送出後會寄一封信到你的 Email，幫你新增一組密碼，之後也能用 Email + 密碼登入（Apple/Google 登入仍然有效）",
-    "sendAddPasswordEmail": "發送設定信",
-    "vibeShiftNotifications": "朋友貼新標籤時通知我"
+    "addPasswordTitle": "Şifre ekle",
+    "addPasswordMessage": "Şu anda Apple/Google ile giriş yapıyorsun ve PikTag şifren yok. Kurulum bağlantısını e-postana göndereceğiz, böylece e-posta + şifre ile de giriş yapabilirsin (Apple/Google çalışmaya devam eder).",
+    "sendAddPasswordEmail": "Kurulum e-postası gönder",
+    "vibeShiftNotifications": "Arkadaşlar yeni etiket paylaştığında bildir"
   },
   "contactSync": {
     "headerTitle": "Kişi Senkronizasyonu",
@@ -765,15 +765,15 @@
     "alertFollowAllDoneMessage": "{{count}} PikTag arkadaşı eklendi",
     "allConnected": "Tüm PikTag kişileri zaten bağlı",
     "openSettings": "İzin vermek için Ayarlar'ı aç",
-    "tagInviteFailedTitle": "加入名單失敗",
-    "tagInviteFailedMessage": "請稍後再試，或在「聯絡人名單」中手動新增。",
-    "taggedBadge": "已加入名單",
-    "tagModalTitle": "私人標籤",
-    "tagModalHint": "只有你看得到的私人標籤（最多 {{max}} 個）— 對方註冊 PikTag 後，這些標籤會出現在你的好友頁的「隱藏標籤」區，永遠不會被對方或其他人看到。",
-    "tagModalCustomPlaceholder": "自訂標籤",
-    "tagModalAddCustom": "新增",
-    "tagModalPopular": "熱門標籤",
-    "tagModalSubmit": "存私人標籤並邀請"
+    "tagInviteFailedTitle": "Listeye eklenemedi",
+    "tagInviteFailedMessage": "Tekrar dene ya da Kişiler'den elle ekle.",
+    "taggedBadge": "Listeye eklendi",
+    "tagModalTitle": "Gizli etiketler",
+    "tagModalHint": "Sadece senin gördüğün özel etiketler (en fazla {{max}}) — bu kişi PikTag'e katıldığında, bu etiketler arkadaşının profilinde \"gizli etiketler\" bölümünde görünür, ne ona ne de başka kimseye görünmez.",
+    "tagModalCustomPlaceholder": "Özel etiket",
+    "tagModalAddCustom": "Ekle",
+    "tagModalPopular": "Popüler etiketler",
+    "tagModalSubmit": "Etiketleri kaydet & davet et"
   },
   "invite": {
     "headerTitle": "Arkadaş Davet Et",
@@ -842,8 +842,8 @@
     "topBiolinksTitle": "En Popüler Bağlantılar",
     "topBiolinksEmpty": "Bağlantı tıklama kaydı yok",
     "clickCount": "{{count}} tıklama",
-    "networkCompositionTitle": "人脈組成",
-    "networkCompositionEmpty": "尚無分類資料"
+    "networkCompositionTitle": "Ağ kompozisyonu",
+    "networkCompositionEmpty": "Henüz kategori verisi yok"
   },
   "notifications": {
     "headerTitle": "Bildirimler",
@@ -1010,7 +1010,7 @@
     "exploreEmptyTitle": "Kullanıcı bulunamadı",
     "exploreEmptyText": "Henüz bu etiketi kullanan herkese açık kullanıcı yok",
     "viewAll": "Tümünü Gör",
-    "relatedTags": "相關標籤"
+    "relatedTags": "İlgili etiketler"
   },
   "semanticType": {
     "identity": "Kimlik",
@@ -1293,10 +1293,10 @@
     "deleteFailedTitle": "Silme başarısız",
     "deleteFailedMessage": "Bu Tag silinmedi. Daha sonra tekrar deneyin. Sürerse bizimle iletişime geçin.",
     "emptyScanCta": "Ya da bağlanmak için onun QR'ını tara",
-    "scan": "掃描 QR 加好友",
-    "currentVibesTitle": "他們最近在標什麼",
-    "currentVibesHint": "這群人現在共同的標籤 — 點一下看是誰",
-    "membersFilterEmpty": "這個 Tag 中沒有貼這個標籤的人"
+    "scan": "Arkadaş eklemek için QR tara",
+    "currentVibesTitle": "Son zamanlarda neyi etiketliyorlar",
+    "currentVibesHint": "Bu grubun şu an paylaştığı etiketler — kim olduğunu görmek için dokun.",
+    "membersFilterEmpty": "Bu Tag'de henüz bu etiketi taşıyan yok."
   },
   "localContact": {
     "editTitle": "Kişiyi düzenle",
@@ -1342,8 +1342,8 @@
     "fieldWebsite": "Web sitesi",
     "websitePlaceholder": "örn. example.com",
     "scanningCard": "Kart okunuyor… (yaklaşık 3 sn)",
-    "scanCardCta": "掃描名片自動帶入",
-    "avatarUploadFailTitle": "上傳失敗"
+    "scanCardCta": "Otomatik doldurmak için kart tara",
+    "avatarUploadFailTitle": "Yükleme başarısız"
   },
   "followers": {
     "title": "Takipçiler",
