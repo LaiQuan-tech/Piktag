@@ -180,6 +180,30 @@ founder when the trigger condition lands:
   a real breakdown panel + per-component CTA — never as a naked
   score. (Tag-graph health pill, principle #7, removed same day
   it shipped — RPC kept for admin/analytics.)
+- **Match the control to the layer it actually owns.** An in-app
+  toggle should govern in-app behavior; the OS owns OS behavior.
+  Don't try to make one switch control both — the engineering cost
+  scales with surfaces touched, and you usually end up forcing a
+  worse mental model on the user just to keep symmetry. Founder
+  call, 2026-05-30 (notification Phase-2 push gating):
+  - Settings' 3 notification category toggles control the
+    NotificationsScreen feed and the app-icon badge. That's it.
+  - Lock-screen pushes still go out for every type the app sends
+    — even from categories the user "turned off". Reason: the
+    layer-correct switch for "stop interrupting me at all" is the
+    OS-level per-app push permission, not an in-app Settings row.
+  - Concretely: we did NOT wrap each of the ~8-10 trigger /
+    edge-fn `net.http_post` calls with an
+    `is_notification_category_enabled()` check. That would have
+    meant a 100-200-line CREATE OR REPLACE per function, ~10
+    migrations of mechanical SQL with real regression surface, to
+    close a gap that's only observable for users who actively opt
+    out of a category AND then notice the lock-screen vs feed
+    mismatch. Cost-benefit is wrong pre-launch and arguably
+    wrong post-launch too.
+  - Generalize: when a request "make X control Y AND Z," ask
+    whether Y and Z are owned by the same layer. If not, push
+    back honestly rather than build the bridge.
 - **Shared UI = ONE shared component, never per-screen style copies.**
   Per-screen drift (a chip/row/button slightly different on each screen)
   is a recurring defect the founder keeps catching. If a UI element
