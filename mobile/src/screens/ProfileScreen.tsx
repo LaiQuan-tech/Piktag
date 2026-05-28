@@ -74,6 +74,9 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
   // a Vibe QR before signup. Backed by the get_tribe_size RPC
   // which does a recursive CTE; cached client-side until refresh.
   const [tribeSize, setTribeSize] = useState<number>(0);
+  // Tag-graph health — North-Star principle #7. 0-100 score the user
+  // can act on. Init 0 so the row layout doesn't jitter on first paint.
+  const [tagGraphHealth, setTagGraphHealth] = useState<number>(0);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [qrVisible, setQrVisible] = useState(false);
@@ -172,9 +175,32 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
     }
   }, [userId]);
 
+  // Tag-graph health 0-100. Mirrors fetchTribeSize's tolerance pattern
+  // (treat missing RPC as 0). The RPC also returns a component breakdown
+  // we could surface in a tap-to-expand panel later; for first ship we
+  // only consume the headline score.
+  const fetchTagGraphHealth = useCallback(async () => {
+    if (!userId) return;
+    try {
+      const { data, error } = await supabase.rpc('get_tag_graph_health', { p_user_id: userId });
+      if (error) {
+        const isMissing =
+          (error as any).code === 'PGRST202' ||
+          /could not find the function|does not exist/i.test(error.message);
+        if (!isMissing) console.warn('[Profile] tag-graph health fetch failed:', error);
+        setTagGraphHealth(0);
+      } else if (data && typeof (data as any).score === 'number') {
+        setTagGraphHealth((data as any).score);
+      }
+    } catch (err) {
+      console.warn('[Profile] tag-graph health threw:', err);
+      setTagGraphHealth(0);
+    }
+  }, [userId]);
+
   const fetchAllData = useCallback(async () => {
-    await Promise.all([fetchProfile(), fetchUserTags(), fetchBiolinks(), fetchFollowerCount(), fetchFriendCount(), fetchTribeSize()]);
-  }, [fetchProfile, fetchUserTags, fetchBiolinks, fetchFollowerCount, fetchFriendCount, fetchTribeSize]);
+    await Promise.all([fetchProfile(), fetchUserTags(), fetchBiolinks(), fetchFollowerCount(), fetchFriendCount(), fetchTribeSize(), fetchTagGraphHealth()]);
+  }, [fetchProfile, fetchUserTags, fetchBiolinks, fetchFollowerCount, fetchFriendCount, fetchTribeSize, fetchTagGraphHealth]);
 
   // Persist the five state slices to the in-memory dataCache so that
   // re-entering ProfileScreen within the TTL window paints instantly
@@ -478,6 +504,18 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
             </TouchableOpacity>
           </View>
 
+          {/* Tag-graph health (principle #7) — sits as a soft purple pill
+              below the stats row. Subtle by design: at 100/100 it stays
+              quietly informative; below 100 the gap is visible and acts
+              as a self-directed nudge. No tap target yet — first ship
+              just exposes the score, breakdown panel is a follow-up. */}
+          <Text style={styles.healthPill}>
+            {t('profile.healthMeter', {
+              score: tagGraphHealth,
+              defaultValue: '標籤健康度 {{score}}/100',
+            })}
+          </Text>
+
           {/* Action buttons */}
           <View style={styles.actionButtonsRow}>
             <TouchableOpacity style={styles.shareButton} activeOpacity={0.7} onPress={handleOpenQr}>
@@ -651,6 +689,21 @@ function makeStyles(c: ColorPalette) {
   },
   statDot: {
     color: c.gray400,
+  },
+  // Tag-graph health pill (principle #7). Soft purple background so it
+  // signals "PikTag's own quality stat" not a hard CTA. Aligns left to
+  // sit naturally under the stats row.
+  healthPill: {
+    alignSelf: 'flex-start',
+    fontSize: 12,
+    fontWeight: '600',
+    color: c.piktag600,
+    backgroundColor: c.piktag50,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+    marginBottom: 14,
+    overflow: 'hidden',
   },
   headline: {
     fontSize: 14,

@@ -434,7 +434,8 @@
     "statFriendsA11y": "Lihat teman saya",
     "statFollowersA11y": "Lihat pengikut saya",
     "statTribeA11y": "View Tribe constellation",
-    "statTribe": "Tribe"
+    "statTribe": "Tribe",
+    "healthMeter": "Kesehatan tag {{score}}/100"
   },
   "editProfile": {
     "headerTitle": "Edit Profil",

@@ -441,7 +441,8 @@
     "statFriendsA11y": "查看我的朋友",
     "statFollowersA11y": "查看我的追蹤者",
     "statTribeA11y": "查看 Tribe 星圖",
-    "statTribe": "Tribe"
+    "statTribe": "Tribe",
+    "healthMeter": "標籤健康度 {{score}}/100"
   },
   "editProfile": {
     "headerTitle": "編輯個人資訊",

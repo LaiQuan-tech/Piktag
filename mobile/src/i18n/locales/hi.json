@@ -434,7 +434,8 @@
     "statFriendsA11y": "मेरे दोस्त देखें",
     "statFollowersA11y": "मेरे फ़ॉलोअर देखें",
     "statTribeA11y": "View Tribe constellation",
-    "statTribe": "Tribe"
+    "statTribe": "Tribe",
+    "healthMeter": "टैग स्वास्थ्य {{score}}/100"
   },
   "editProfile": {
     "headerTitle": "प्रोफ़ाइल संपादित करें",

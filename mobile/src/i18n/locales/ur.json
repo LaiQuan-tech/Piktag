@@ -441,7 +441,8 @@
     "statFriendsA11y": "میرے دوست دیکھیں",
     "statFollowersA11y": "میرے فالوورز دیکھیں",
     "statTribeA11y": "View Tribe constellation",
-    "statTribe": "Tribe"
+    "statTribe": "Tribe",
+    "healthMeter": "ٹیگ صحت {{score}}/100"
   },
   "editProfile": {
     "headerTitle": "پروفائل میں ترمیم کریں",

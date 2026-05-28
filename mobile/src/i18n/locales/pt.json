@@ -434,7 +434,8 @@
     "statFriendsA11y": "Ver meus amigos",
     "statFollowersA11y": "Ver meus seguidores",
     "statTribeA11y": "View Tribe constellation",
-    "statTribe": "Tribe"
+    "statTribe": "Tribe",
+    "healthMeter": "Saúde das tags {{score}}/100"
   },
   "editProfile": {
     "headerTitle": "Editar perfil",

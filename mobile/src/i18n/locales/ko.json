@@ -434,7 +434,8 @@
     "statFriendsA11y": "내 친구 보기",
     "statFollowersA11y": "내 팔로워 보기",
     "statTribeA11y": "Tribe 별자리 보기",
-    "statTribe": "Tribe"
+    "statTribe": "Tribe",
+    "healthMeter": "태그 건강도 {{score}}/100"
   },
   "editProfile": {
     "headerTitle": "프로필 편집",

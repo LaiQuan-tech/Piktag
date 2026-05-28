@@ -434,7 +434,8 @@
     "statFriendsA11y": "Arkadaşlarımı gör",
     "statFollowersA11y": "Takipçilerimi gör",
     "statTribeA11y": "View Tribe constellation",
-    "statTribe": "Tribe"
+    "statTribe": "Tribe",
+    "healthMeter": "Etiket sağlığı {{score}}/100"
   },
   "editProfile": {
     "headerTitle": "Profili Düzenle",

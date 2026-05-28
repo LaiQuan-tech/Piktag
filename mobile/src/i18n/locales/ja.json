@@ -434,7 +434,8 @@
     "statFriendsA11y": "自分の友達を見る",
     "statFollowersA11y": "自分のフォロワーを見る",
     "statTribeA11y": "Tribe 星図を見る",
-    "statTribe": "Tribe"
+    "statTribe": "Tribe",
+    "healthMeter": "タグ健康度 {{score}}/100"
   },
   "editProfile": {
     "headerTitle": "プロフィール編集",
