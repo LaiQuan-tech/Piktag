@@ -20,7 +20,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import QRCode from 'react-native-qrcode-svg';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '../lib/supabase';
-import { recordAiSuggestions, markAiSuggestionAccepted } from '../lib/aiTagLogger';
+import { recordAiSuggestions, markAiSuggestionAccepted, markAiSuggestionDismissed } from '../lib/aiTagLogger';
 import LocationPickerModal from '../components/LocationPickerModal';
 import { useAuth } from '../hooks/useAuth';
 import { useRotatingPlaceholder } from '../hooks/useRotatingPlaceholder';
@@ -568,8 +568,16 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
   }, [contextDescription, aiLocation, aiLocationDetail, popularNearby, viewerBio, viewerTagNames.length, loadAiSuggestions]);
 
   // ─── Remove tag ───
+  // Principle #6 wire-up: if the removed tag came from an AI
+  // suggestion in THIS session (we still have its suggestion_id
+  // in the aiSuggestionIds map), log the user's accept-then-undo
+  // as an explicit dismissal. Strongest dismiss signal we get —
+  // user tried it, decided no, walked it back. Stronger than
+  // "never accepted" (which could just mean "didn't notice").
   const handleRemoveTag = (tag: string) => {
     setEventTags((prev) => prev.filter((t) => t !== tag));
+    const id = aiSuggestionIds[tag];
+    if (id) void markAiSuggestionDismissed(id);
   };
 
   // ─── Save preset ───
