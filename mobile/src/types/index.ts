@@ -20,7 +20,11 @@ export type PiktagProfile = {
   phone: string | null;
   website: string | null;
   location: string | null;
-  language: string;
+  // 2026-05-30: column DEFAULT 'en' dropped on the server side, so new
+  // signups now persist NULL until the user explicitly picks in
+  // Settings. NEVER read this on the client to drive i18n — boot uses
+  // expo-localization + AsyncStorage cache (src/i18n/index.ts).
+  language: string | null;
   is_verified: boolean;
   is_public: boolean;
   latitude: number | null;
