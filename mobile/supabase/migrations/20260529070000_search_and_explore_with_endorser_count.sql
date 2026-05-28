@@ -27,7 +27,15 @@
 -- tiering yet. Just facts the user can act on.
 
 -- ─── explore_users_for_tag — extended ─────────────────────────────
-CREATE OR REPLACE FUNCTION public.explore_users_for_tag(
+-- The TABLE return shape grows by one column (endorser_count). Postgres
+-- forbids changing a function's return signature via CREATE OR REPLACE
+-- ("cannot change return type of existing function" — SQLSTATE 42P13),
+-- so DROP first then CREATE. Both client call sites (TagDetailScreen
+-- explore tab + post-launch SearchScreen) are SECURITY INVOKER RPC
+-- callers; nothing in the DB references this function (no triggers /
+-- views / other functions wrap it), so DROP w/o CASCADE is safe.
+DROP FUNCTION IF EXISTS public.explore_users_for_tag(uuid, int);
+CREATE FUNCTION public.explore_users_for_tag(
   p_tag_id uuid,
   p_limit  int DEFAULT 100
 )
@@ -128,8 +136,11 @@ GRANT EXECUTE ON FUNCTION public.explore_users_for_tag(uuid, int)
 -- cascade) plus an extra endorser_count int column. Endorser count
 -- is computed across ALL matched_tags (name + alias + sibling),
 -- de-duped on the tagger identity.
-
-CREATE OR REPLACE FUNCTION public.search_users(p_query text, p_limit integer DEFAULT 50)
+--
+-- DROP-then-CREATE for the same reason as explore_users_for_tag
+-- above — the TABLE return shape is widening by one column.
+DROP FUNCTION IF EXISTS public.search_users(text, int);
+CREATE FUNCTION public.search_users(p_query text, p_limit integer DEFAULT 50)
  RETURNS TABLE(
    id                uuid,
    username          text,
