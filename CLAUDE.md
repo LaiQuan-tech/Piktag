@@ -74,11 +74,20 @@ also owner-only and out of algorithm scope.
    = strong anti-endorsement. A search→profile→back-out in <3s = weak
    negative match. Record these; AI shouldn't re-suggest a removed
    tag, search shouldn't keep ranking a repeatedly-rejected match.
-7. **Interest-graph coverage as a user-visible metric.** Each user has
+7. **Interest-graph coverage as an INTERNAL metric.** Each user has
    a "tag-graph health score" combining: has-self-tags / has-friend-
-   tags / has-ask-history / has-event-tags / concept-diversity. Surface
-   it (LinkedIn "Profile strength" analog) so under-tagged users get
-   nudged to enrich — feeds back into #1–#4.
+   tags / has-ask-history / has-event-tags / concept-diversity. **Server-
+   side only — do NOT surface to users as a bare number.** (Pill was
+   shipped briefly 2026-05-29 then removed same day, see "Don't expose
+   context-free scores" below.) RPC `get_tag_graph_health` stays for
+   admin dashboards + post-launch analytics + targeting endorsement-
+   request cron (#3). User-facing nudges go through the organic
+   surfaces each formula component already has:
+     - has_self → EditProfile completion hints
+     - has_friend → endorsement-request cron (server-driven, no nag)
+     - has_ask → AskStoryRow placeholder
+     - has_event → QR / card-scan naturally accrues
+     - distinct_concepts → exposing would cause tag spam, don't.
 
 **Doesn't apply to PikTag** (rejected after honest review): Cohen's
 kappa-style inter-annotator agreement (social tags have no ground-
@@ -159,6 +168,18 @@ founder when the trigger condition lands:
   The founder values honest correction over compliance.
 - **Don't reinvent; match existing patterns/design.** Reuse canonical
   components, RPCs, styles. Deviating "to be clever" is a defect here.
+- **Don't expose context-free scores to users.** A bare number with
+  no actionable breakdown reads as judgment, not feedback —
+  especially when the number is low because of things the user
+  can't directly fix (e.g. "no friends endorsed me" → implicit
+  blame). Founder verbatim, 2026-05-29 after seeing the
+  "標籤健康度 25/100" pill: *"分數低大不了我刪除app，這是最極端
+  悲劇的情況，萬不可以發生"*. Rule: if a metric can't be paired
+  with a one-tap path to improvement that the user controls, keep
+  it server-side. Profile-strength-style meters are OK only with
+  a real breakdown panel + per-component CTA — never as a naked
+  score. (Tag-graph health pill, principle #7, removed same day
+  it shipped — RPC kept for admin/analytics.)
 - **Shared UI = ONE shared component, never per-screen style copies.**
   Per-screen drift (a chip/row/button slightly different on each screen)
   is a recurring defect the founder keeps catching. If a UI element
