@@ -1234,7 +1234,9 @@
     "timeYesterday": "کل",
     "timeMinutesAgo": "{{count}} منٹ پہلے",
     "timeHoursAgo": "{{count}} گھنٹے پہلے",
-    "timeDaysAgo": "{{count}} دن پہلے"
+    "timeDaysAgo": "{{count}} دن پہلے",
+    "icebreakerHeader": "شروع کرنے کے لیے",
+    "icebreakerLoading": "کچھ خاص سوچ رہے ہیں…"
   },
   "share": {
     "profileInviteMessage": "{{name}} PikTag پر — ٹیگز سے ایک دوسرے کو یاد رکھیں\n{{url}}"

@@ -1234,7 +1234,9 @@
     "timeYesterday": "Hôm qua",
     "timeMinutesAgo": "{{count}} phút trước",
     "timeHoursAgo": "{{count}} giờ trước",
-    "timeDaysAgo": "{{count}} ngày trước"
+    "timeDaysAgo": "{{count}} ngày trước",
+    "icebreakerHeader": "Cách bắt đầu",
+    "icebreakerLoading": "Đang nghĩ điều gì đó cụ thể…"
   },
   "share": {
     "profileInviteMessage": "{{name}} đang ở PikTag — dùng tag để nhớ nhau\n{{url}}"

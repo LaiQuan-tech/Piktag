@@ -1187,7 +1187,9 @@
     "timeYesterday": "Dün",
     "timeMinutesAgo": "{{count}} dk önce",
     "timeHoursAgo": "{{count}} sa önce",
-    "timeDaysAgo": "{{count}} g önce"
+    "timeDaysAgo": "{{count}} g önce",
+    "icebreakerHeader": "Sohbete başlamak için",
+    "icebreakerLoading": "Spesifik bir şey düşünüyoruz…"
   },
   "share": {
     "profileInviteMessage": "{{name}} PikTag'da — etiketlerle birbirimizi hatırlayalım\n{{url}}"

@@ -1187,7 +1187,9 @@
     "timeYesterday": "Kemarin",
     "timeMinutesAgo": "{{count}} mnt lalu",
     "timeHoursAgo": "{{count}} jam lalu",
-    "timeDaysAgo": "{{count}} hari lalu"
+    "timeDaysAgo": "{{count}} hari lalu",
+    "icebreakerHeader": "Cara memulai",
+    "icebreakerLoading": "Mencari yang pas…"
   },
   "share": {
     "profileInviteMessage": "{{name}} ada di PikTag — saling ingat lewat tag\n{{url}}"

@@ -1187,7 +1187,9 @@
     "timeYesterday": "어제",
     "timeMinutesAgo": "{{count}}분 전",
     "timeHoursAgo": "{{count}}시간 전",
-    "timeDaysAgo": "{{count}}일 전"
+    "timeDaysAgo": "{{count}}일 전",
+    "icebreakerHeader": "대화 시작하기",
+    "icebreakerLoading": "잘 맞는 인사말을 생각 중…"
   },
   "share": {
     "profileInviteMessage": "{{name}}님이 PikTag에 — 태그로 서로를 기억해요\n{{url}}"

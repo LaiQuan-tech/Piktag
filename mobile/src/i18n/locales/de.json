@@ -1227,7 +1227,9 @@
     "timeYesterday": "Gestern",
     "timeMinutesAgo": "vor {{count}} Min.",
     "timeHoursAgo": "vor {{count}} Std.",
-    "timeDaysAgo": "vor {{count}} Tg."
+    "timeDaysAgo": "vor {{count}} Tg.",
+    "icebreakerHeader": "Gesprächs­einstiege",
+    "icebreakerLoading": "Suche etwas Konkretes…"
   },
   "share": {
     "profileInviteMessage": "{{name}} ist auf PikTag — merken wir uns mit Tags\n{{url}}"

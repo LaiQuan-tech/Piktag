@@ -1187,7 +1187,9 @@
     "timeYesterday": "Вчера",
     "timeMinutesAgo": "{{count}} мин назад",
     "timeHoursAgo": "{{count}} ч назад",
-    "timeDaysAgo": "{{count}} дн назад"
+    "timeDaysAgo": "{{count}} дн назад",
+    "icebreakerHeader": "Как начать",
+    "icebreakerLoading": "Подбираем что-то конкретное…"
   },
   "share": {
     "profileInviteMessage": "{{name}} в PikTag — запомним друг друга по тегам\n{{url}}"

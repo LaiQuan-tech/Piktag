@@ -1187,7 +1187,9 @@
     "timeYesterday": "เมื่อวานนี้",
     "timeMinutesAgo": "{{count}} นาทีที่แล้ว",
     "timeHoursAgo": "{{count}} ชั่วโมงก่อน",
-    "timeDaysAgo": "{{count}} วันก่อน"
+    "timeDaysAgo": "{{count}} วันก่อน",
+    "icebreakerHeader": "วิธีเริ่มคุย",
+    "icebreakerLoading": "กำลังคิดอะไรเฉพาะเจาะจง…"
   },
   "share": {
     "profileInviteMessage": "{{name}} อยู่บน PikTag — ใช้แท็กจำกันไว้\n{{url}}"

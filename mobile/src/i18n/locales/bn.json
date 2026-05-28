@@ -1187,7 +1187,9 @@
     "timeYesterday": "গতকাল",
     "timeMinutesAgo": "{{count}} মিনিট আগে",
     "timeHoursAgo": "{{count}} ঘণ্টা আগে",
-    "timeDaysAgo": "{{count}} দিন আগে"
+    "timeDaysAgo": "{{count}} দিন আগে",
+    "icebreakerHeader": "শুরু করার উপায়",
+    "icebreakerLoading": "নির্দিষ্ট কিছু ভাবছি…"
   },
   "share": {
     "profileInviteMessage": "{{name}} PikTag-এ — ট্যাগ দিয়ে একে অপরকে মনে রাখি\n{{url}}"

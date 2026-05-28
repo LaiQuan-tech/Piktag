@@ -20,7 +20,9 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RouteProp } from '@react-navigation/native';
 
 import Composer from '../components/chat/Composer';
+import IcebreakerSuggestions from '../components/chat/IcebreakerSuggestions';
 import MessageBubble from '../components/chat/MessageBubble';
+import { generateIcebreakers } from '../lib/icebreaker';
 import RingedAvatar from '../components/RingedAvatar';
 import ErrorState from '../components/ErrorState';
 import BrandSpinner from '../components/loaders/BrandSpinner';
@@ -103,6 +105,65 @@ export default function ChatThreadScreen({ navigation, route }: Props) {
 
   const [otherProfile, setOtherProfile] = useState<OtherProfile | null>(null);
   const lastMarkedLenRef = useRef<number>(-1);
+
+  // Optional askId on the route — when ChatThread is opened from an
+  // Ask match flow (Phase 1, post-launch), this anchors the icebreaker
+  // generation. Today (Phase 2 first) the route doesn't pass it and
+  // the icebreaker prompt simply uses the shared tag / met context
+  // path instead.
+  const routeAskId = (route.params as any)?.askId as string | undefined;
+
+  // ── Icebreaker suggestions (North-Star activation engine) ──────
+  // Fires once per mount when we determine the conversation is
+  // either brand new (zero messages loaded) or dormant (>90 days
+  // since last message). We never re-fire on send / receive — the
+  // suggestions are a one-shot opener, not an always-on assistant.
+  const [icebreakers, setIcebreakers] = useState<string[]>([]);
+  const [icebreakerLoading, setIcebreakerLoading] = useState(false);
+  const [icebreakerDismissed, setIcebreakerDismissed] = useState(false);
+  const [composerPrefill, setComposerPrefill] = useState<{ text: string; nonce: number } | null>(null);
+  const icebreakerTriggeredRef = useRef(false);
+
+  useEffect(() => {
+    if (icebreakerTriggeredRef.current) return;
+    if (loading) return;
+    if (!otherUserId) return;
+
+    // Trigger conditions:
+    //   - empty conversation (truly new), OR
+    //   - dormant: most recent message > 90 days ago
+    const lastMsg = messages.length > 0 ? messages[messages.length - 1] : null;
+    const lastMsgAge = lastMsg?.created_at
+      ? (Date.now() - new Date(lastMsg.created_at).getTime()) / (1000 * 60 * 60 * 24)
+      : Infinity;
+    const isEmpty = messages.length === 0;
+    const isDormant = lastMsgAge >= 90;
+
+    if (!(isEmpty || isDormant)) return;
+
+    icebreakerTriggeredRef.current = true;
+    setIcebreakerLoading(true);
+    void (async () => {
+      const out = await generateIcebreakers({
+        recipientId: otherUserId,
+        askId: routeAskId ?? null,
+      });
+      setIcebreakers(out);
+      setIcebreakerLoading(false);
+    })();
+  }, [loading, messages, otherUserId, routeAskId]);
+
+  // Tap an icebreaker chip → drops the text into the Composer for
+  // the user to review + edit + send. We never send automatically;
+  // the human must press send. Bumping nonce on every pick so the
+  // Composer's adoption effect re-fires even if the user picks the
+  // same chip twice in a row.
+  const handlePickIcebreaker = useCallback((text: string) => {
+    setComposerPrefill({ text, nonce: Date.now() });
+  }, []);
+  const handleDismissIcebreakers = useCallback(() => {
+    setIcebreakerDismissed(true);
+  }, []);
 
   // Fetch freshest profile so the header isn't stuck with stale params.
   useEffect(() => {
@@ -466,10 +527,19 @@ export default function ChatThreadScreen({ navigation, route }: Props) {
           removeClippedSubviews
         />
 
+        {!icebreakerDismissed && !isBlocked && (icebreakerLoading || icebreakers.length > 0) ? (
+          <IcebreakerSuggestions
+            suggestions={icebreakers}
+            loading={icebreakerLoading}
+            onPick={handlePickIcebreaker}
+            onDismiss={handleDismissIcebreakers}
+          />
+        ) : null}
         <Composer
           onSend={handleSend}
           disabled={isBlocked}
           disabledReason={isBlocked ? t('chat.userBlocked') : undefined}
+          prefill={composerPrefill}
         />
       </KeyboardAvoidingView>
     </SafeAreaView>

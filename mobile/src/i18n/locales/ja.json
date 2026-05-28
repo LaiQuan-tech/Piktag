@@ -1187,7 +1187,9 @@
     "timeYesterday": "昨日",
     "timeMinutesAgo": "{{count}} 分前",
     "timeHoursAgo": "{{count}} 時間前",
-    "timeDaysAgo": "{{count}} 日前"
+    "timeDaysAgo": "{{count}} 日前",
+    "icebreakerHeader": "会話のきっかけ",
+    "icebreakerLoading": "具体的な話題を考えています…"
   },
   "share": {
     "profileInviteMessage": "{{name}}さんが PikTag に — タグでお互いを覚えておこう\n{{url}}"

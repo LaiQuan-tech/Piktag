@@ -1187,7 +1187,9 @@
     "timeYesterday": "Hier",
     "timeMinutesAgo": "il y a {{count}} min",
     "timeHoursAgo": "il y a {{count}} h",
-    "timeDaysAgo": "il y a {{count}} j"
+    "timeDaysAgo": "il y a {{count}} j",
+    "icebreakerHeader": "Idées pour commencer",
+    "icebreakerLoading": "On cherche un truc précis…"
   },
   "share": {
     "profileInviteMessage": "{{name}} est sur PikTag, souvenons-nous l'un de l'autre avec des tags\n{{url}}"

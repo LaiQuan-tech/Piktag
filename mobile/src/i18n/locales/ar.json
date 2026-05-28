@@ -1187,7 +1187,9 @@
     "timeYesterday": "أمس",
     "timeMinutesAgo": "قبل {{count}} د",
     "timeHoursAgo": "قبل {{count}} س",
-    "timeDaysAgo": "قبل {{count}} ي"
+    "timeDaysAgo": "قبل {{count}} ي",
+    "icebreakerHeader": "كيف تبدأ",
+    "icebreakerLoading": "نفكر في شيء محدد…"
   },
   "share": {
     "profileInviteMessage": "{{name}} على PikTag — لنتذكر بعضنا بالوسوم\n{{url}}"

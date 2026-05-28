@@ -14,14 +14,40 @@ type Props = {
   onSend: (text: string) => Promise<void> | void;
   disabled?: boolean;
   disabledReason?: string;
+  /**
+   * Imperative-ish prefill, used by icebreaker chip taps. Whenever
+   * this changes to a non-empty string AND the current input is
+   * empty (we don't want to nuke half-typed messages), the input
+   * adopts it. Repeat-tapping the same chip should still work, so
+   * the parent passes a fresh `{text, nonce}` shape and we react
+   * to `nonce` changes specifically.
+   */
+  prefill?: { text: string; nonce: number } | null;
 };
 
-const Composer = React.memo(({ onSend, disabled, disabledReason }: Props) => {
+const Composer = React.memo(({ onSend, disabled, disabledReason, prefill }: Props) => {
   const { t } = useTranslation();
   const { colors, isDark } = useTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const [value, setValue] = useState('');
   const [sending, setSending] = useState(false);
+
+  // Adopt incoming prefill text only when (a) it's a fresh nonce vs.
+  // last adoption and (b) the input is currently empty — never trample
+  // an in-progress message.
+  const lastPrefillNonceRef = React.useRef<number | null>(null);
+  React.useEffect(() => {
+    if (!prefill || prefill.nonce == null) return;
+    if (prefill.nonce === lastPrefillNonceRef.current) return;
+    if (value.trim().length > 0) {
+      // Even if we skip the adoption, remember we saw this nonce so
+      // an immediate re-trigger doesn't queue up an unwanted overwrite.
+      lastPrefillNonceRef.current = prefill.nonce;
+      return;
+    }
+    setValue(prefill.text);
+    lastPrefillNonceRef.current = prefill.nonce;
+  }, [prefill, value]);
 
   const trimmed = value.trim();
   const canSend = !disabled && !sending && trimmed.length > 0;

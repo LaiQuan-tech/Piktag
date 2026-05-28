@@ -1234,7 +1234,9 @@
     "timeYesterday": "昨天",
     "timeMinutesAgo": "{{count}} 分鐘前",
     "timeHoursAgo": "{{count}} 小時前",
-    "timeDaysAgo": "{{count}} 天前"
+    "timeDaysAgo": "{{count}} 天前",
+    "icebreakerHeader": "幾個好開頭",
+    "icebreakerLoading": "想一個對得上的開場…"
   },
   "share": {
     "profileInviteMessage": "{{name}} 在 PikTag，用標籤記住彼此\n{{url}}"
