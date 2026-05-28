@@ -982,6 +982,9 @@
           "title": "",
           "body": "可能是值得开的话题"
         }
+      },
+      "invite_accepted": {
+        "body": "加入了 PikTag"
       }
     }
   },

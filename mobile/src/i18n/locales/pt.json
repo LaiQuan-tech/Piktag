@@ -920,6 +920,33 @@
           "title": "",
           "body": "Pode ser um bom assunto"
         }
+      },
+      "follow": {
+        "body": "começou a te seguir"
+      },
+      "friend": {
+        "body": "agora são amigos"
+      },
+      "invite_accepted": {
+        "body": "entrou no PikTag"
+      },
+      "tag_added": {
+        "body": "marcou você como #{{tag_name}}"
+      },
+      "biolink_click": {
+        "body": "clicou no seu link do {{platform}}"
+      },
+      "birthday": {
+        "body": "hoje é aniversário de {{username}}"
+      },
+      "anniversary": {
+        "body": "há {{years}} anos hoje, você conheceu {{username}}"
+      },
+      "tag_trending": {
+        "body": "sua tag #{{tag_name}} está bombando hoje"
+      },
+      "recommendation": {
+        "body": "você pode conhecer {{username}} — {{count}} tags em comum"
       }
     }
   },

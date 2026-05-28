@@ -920,6 +920,33 @@
           "title": "",
           "body": "İyi bir sohbet konusu olabilir"
         }
+      },
+      "follow": {
+        "body": "seni takip etmeye başladı"
+      },
+      "friend": {
+        "body": "artık arkadaşsınız"
+      },
+      "invite_accepted": {
+        "body": "PikTag'e katıldı"
+      },
+      "tag_added": {
+        "body": "seni #{{tag_name}} olarak etiketledi"
+      },
+      "biolink_click": {
+        "body": "{{platform}} bağlantına tıkladı"
+      },
+      "birthday": {
+        "body": "bugün {{username}}'in doğum günü"
+      },
+      "anniversary": {
+        "body": "{{years}} yıl önce bugün {{username}} ile tanıştın"
+      },
+      "tag_trending": {
+        "body": "#{{tag_name}} etiketin bugün trend"
+      },
+      "recommendation": {
+        "body": "belki {{username}}'ı tanıyorsun — {{count}} ortak etiket"
       }
     }
   },

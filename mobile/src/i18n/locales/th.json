@@ -920,6 +920,33 @@
           "title": "",
           "body": "น่าจะเป็นหัวข้อคุยที่ดี"
         }
+      },
+      "follow": {
+        "body": "เริ่มติดตามคุณ"
+      },
+      "friend": {
+        "body": "คุณเป็นเพื่อนกันแล้ว"
+      },
+      "invite_accepted": {
+        "body": "เข้าร่วม PikTag แล้ว"
+      },
+      "tag_added": {
+        "body": "แท็กคุณว่า #{{tag_name}}"
+      },
+      "biolink_click": {
+        "body": "คลิกลิงก์ {{platform}} ของคุณ"
+      },
+      "birthday": {
+        "body": "วันนี้เป็นวันเกิดของ {{username}}"
+      },
+      "anniversary": {
+        "body": "{{years}} ปีก่อนวันนี้ คุณได้พบกับ {{username}}"
+      },
+      "tag_trending": {
+        "body": "แท็ก #{{tag_name}} ของคุณกำลังมาแรงวันนี้"
+      },
+      "recommendation": {
+        "body": "คุณอาจรู้จัก {{username}} — แท็กร่วม {{count}} แท็ก"
       }
     }
   },

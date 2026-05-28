@@ -920,6 +920,33 @@
           "title": "",
           "body": "अच्छा विषय हो सकता है"
         }
+      },
+      "follow": {
+        "body": "आपको फॉलो करना शुरू किया"
+      },
+      "friend": {
+        "body": "अब आप दोस्त हैं"
+      },
+      "invite_accepted": {
+        "body": "PikTag से जुड़ गए"
+      },
+      "tag_added": {
+        "body": "आपको #{{tag_name}} के रूप में टैग किया"
+      },
+      "biolink_click": {
+        "body": "आपके {{platform}} लिंक पर क्लिक किया"
+      },
+      "birthday": {
+        "body": "आज {{username}} का जन्मदिन है"
+      },
+      "anniversary": {
+        "body": "{{years}} साल पहले आज के दिन आप {{username}} से मिले थे"
+      },
+      "tag_trending": {
+        "body": "आपका टैग #{{tag_name}} आज ट्रेंडिंग है"
+      },
+      "recommendation": {
+        "body": "शायद आप {{username}} को जानते हैं — {{count}} सामान्य टैग"
       }
     }
   },

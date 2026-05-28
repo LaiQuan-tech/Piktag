@@ -920,6 +920,33 @@
           "title": "",
           "body": "Bisa jadi topik bagus"
         }
+      },
+      "follow": {
+        "body": "mulai mengikutimu"
+      },
+      "friend": {
+        "body": "sekarang kalian berteman"
+      },
+      "invite_accepted": {
+        "body": "bergabung dengan PikTag"
+      },
+      "tag_added": {
+        "body": "menandaimu sebagai #{{tag_name}}"
+      },
+      "biolink_click": {
+        "body": "mengeklik tautan {{platform}}-mu"
+      },
+      "birthday": {
+        "body": "hari ini ulang tahun {{username}}"
+      },
+      "anniversary": {
+        "body": "{{years}} tahun yang lalu hari ini, kamu bertemu {{username}}"
+      },
+      "tag_trending": {
+        "body": "tag-mu #{{tag_name}} sedang tren hari ini"
+      },
+      "recommendation": {
+        "body": "mungkin kamu kenal {{username}} — {{count}} tag bersama"
       }
     }
   },

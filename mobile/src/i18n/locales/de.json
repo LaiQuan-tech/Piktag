@@ -982,6 +982,9 @@
           "title": "",
           "body": "Vielleicht ein guter Gesprächsanlass"
         }
+      },
+      "invite_accepted": {
+        "body": "ist PikTag beigetreten"
       }
     }
   },

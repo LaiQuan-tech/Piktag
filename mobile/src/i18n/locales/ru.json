@@ -920,6 +920,33 @@
           "title": "",
           "body": "Хорошая тема для разговора"
         }
+      },
+      "follow": {
+        "body": "начал(а) подписку на вас"
+      },
+      "friend": {
+        "body": "вы теперь друзья"
+      },
+      "invite_accepted": {
+        "body": "присоединился(ась) к PikTag"
+      },
+      "tag_added": {
+        "body": "отметил(а) вас как #{{tag_name}}"
+      },
+      "biolink_click": {
+        "body": "перешёл(шла) по вашей ссылке {{platform}}"
+      },
+      "birthday": {
+        "body": "сегодня день рождения у {{username}}"
+      },
+      "anniversary": {
+        "body": "{{years}} лет назад в этот день вы познакомились с {{username}}"
+      },
+      "tag_trending": {
+        "body": "ваш тег #{{tag_name}} сегодня в тренде"
+      },
+      "recommendation": {
+        "body": "возможно, вы знаете {{username}} — общих тегов: {{count}}"
       }
     }
   },

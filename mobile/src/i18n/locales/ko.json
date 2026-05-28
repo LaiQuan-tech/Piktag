@@ -920,6 +920,33 @@
           "title": "",
           "body": "대화 거리가 될지도"
         }
+      },
+      "follow": {
+        "body": "나를 팔로우하기 시작했어요"
+      },
+      "friend": {
+        "body": "이제 친구예요"
+      },
+      "invite_accepted": {
+        "body": "PikTag에 가입했어요"
+      },
+      "tag_added": {
+        "body": "당신을 #{{tag_name}}(으)로 태그했어요"
+      },
+      "biolink_click": {
+        "body": "당신의 {{platform}} 링크를 클릭했어요"
+      },
+      "birthday": {
+        "body": "오늘은 {{username}}님의 생일이에요"
+      },
+      "anniversary": {
+        "body": "{{years}}년 전 오늘, {{username}}님을 만났어요"
+      },
+      "tag_trending": {
+        "body": "당신의 태그 #{{tag_name}}이(가) 오늘 인기 급상승이에요"
+      },
+      "recommendation": {
+        "body": "{{username}}님을 알 수도 있어요 — 공통 태그 {{count}}개"
       }
     }
   },

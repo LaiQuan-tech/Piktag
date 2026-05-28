@@ -920,6 +920,33 @@
           "title": "",
           "body": "موضوع جيد للحديث"
         }
+      },
+      "follow": {
+        "body": "بدأ متابعتك"
+      },
+      "friend": {
+        "body": "أصبحتما صديقين الآن"
+      },
+      "invite_accepted": {
+        "body": "انضم إلى PikTag"
+      },
+      "tag_added": {
+        "body": "وسمك بـ #{{tag_name}}"
+      },
+      "biolink_click": {
+        "body": "نقر على رابط {{platform}} الخاص بك"
+      },
+      "birthday": {
+        "body": "اليوم هو عيد ميلاد {{username}}"
+      },
+      "anniversary": {
+        "body": "قبل {{years}} سنوات في مثل هذا اليوم، تعرفت على {{username}}"
+      },
+      "tag_trending": {
+        "body": "وسمك #{{tag_name}} رائج اليوم"
+      },
+      "recommendation": {
+        "body": "قد تعرف {{username}} — {{count}} وسوم مشتركة"
       }
     }
   },

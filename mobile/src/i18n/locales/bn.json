@@ -920,6 +920,33 @@
           "title": "",
           "body": "ভালো আলোচনার বিষয় হতে পারে"
         }
+      },
+      "follow": {
+        "body": "আপনাকে ফলো করা শুরু করেছেন"
+      },
+      "friend": {
+        "body": "আপনারা এখন বন্ধু"
+      },
+      "invite_accepted": {
+        "body": "PikTag-এ যোগ দিয়েছে"
+      },
+      "tag_added": {
+        "body": "আপনাকে #{{tag_name}} হিসেবে ট্যাগ করেছেন"
+      },
+      "biolink_click": {
+        "body": "আপনার {{platform}} লিঙ্ক ক্লিক করেছেন"
+      },
+      "birthday": {
+        "body": "আজ {{username}} এর জন্মদিন"
+      },
+      "anniversary": {
+        "body": "{{years}} বছর আগে আজকের দিনে আপনি {{username}} এর সাথে পরিচিত হয়েছিলেন"
+      },
+      "tag_trending": {
+        "body": "আপনার ট্যাগ #{{tag_name}} আজ ট্রেন্ডিং"
+      },
+      "recommendation": {
+        "body": "আপনি হয়তো {{username}}-কে চেনেন — {{count}}টি সাধারণ ট্যাগ"
       }
     }
   },

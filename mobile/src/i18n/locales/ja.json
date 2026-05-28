@@ -920,6 +920,33 @@
           "title": "",
           "body": "話のきっかけになるかも"
         }
+      },
+      "follow": {
+        "body": "フォローを始めました"
+      },
+      "friend": {
+        "body": "友だちになりました"
+      },
+      "invite_accepted": {
+        "body": "PikTag に登録しました"
+      },
+      "tag_added": {
+        "body": "あなたを #{{tag_name}} でタグ付けしました"
+      },
+      "biolink_click": {
+        "body": "あなたの {{platform}} リンクをクリックしました"
+      },
+      "birthday": {
+        "body": "今日は {{username}} の誕生日です"
+      },
+      "anniversary": {
+        "body": "{{years}} 年前の今日、{{username}} と出会いました"
+      },
+      "tag_trending": {
+        "body": "あなたのタグ #{{tag_name}} が今日トレンドです"
+      },
+      "recommendation": {
+        "body": "{{username}} を知っているかも — 共通タグ {{count}} 個"
       }
     }
   },
