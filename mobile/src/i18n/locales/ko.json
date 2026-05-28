@@ -1280,7 +1280,13 @@
     "createSubtitle": "한 줄이면 돼요 — AI가 태그를 붙여 딱 맞는 사람(친구의 친구도)에게 닿아요.",
     "createFailed": "Ask를 올리지 못했어요 — 다시 시도해 주세요.",
     "deleteFailed": "Ask 삭제 실패",
-    "shortPrompt": "뭐가 필요해요?"
+    "shortPrompt": "뭐가 필요해요?",
+    "matchSheetTitle": "내 네트워크에서 가장 잘 맞는 사람",
+    "matchSheetSubtitle": "당신이 찾는 것과 태그가 맞는 친구들. 바로 연락하거나, 넘기고 더 넓은 피드에 맡기세요.",
+    "matchSheetEmpty": "친구 중에 딱 맞는 사람이 없네요 — 더 넓은 피드가 이어받을 거예요.",
+    "matchSheetError": "매치를 불러올 수 없었어요 — 당신의 Ask는 피드에 정상적으로 올라가 있어요.",
+    "matchMessageBtn": "메시지",
+    "matchSheetDone": "완료"
   },
   "errorBoundary": {
     "title": "문제가 발생했습니다",

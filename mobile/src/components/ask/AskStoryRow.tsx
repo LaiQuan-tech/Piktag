@@ -32,6 +32,7 @@ import { normalizeTagName as sharedNormalizeTag } from '../../lib/normalizeTag';
 import { useAuth } from '../../hooks/useAuth';
 import { useRotatingPlaceholder } from '../../hooks/useRotatingPlaceholder';
 import type { AskFeedItem, MyActiveAsk } from '../../types/ask';
+import AskMatchSheet from './AskMatchSheet';
 
 const SCREEN_HEIGHT = Dimensions.get('window').height;
 const SCREEN_WIDTH = Dimensions.get('window').width;
@@ -148,6 +149,10 @@ export default function AskStoryRow({ asks, myAsk, myAvatarUrl, myName, onRefres
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const { user } = useAuth();
   const [createVisible, setCreateVisible] = useState(false);
+  // Phase 1: after a successful Ask creation, the modal hands us the
+  // new ask_id; we open the match sheet on top so the user
+  // immediately sees their best 1st-degree candidates. NULL = closed.
+  const [matchSheetAskId, setMatchSheetAskId] = useState<string | null>(null);
   const [hiddenAuthorIds, setHiddenAuthorIds] = useState<Set<string>>(new Set());
 
   // IG-style "viewed" tracking. Tapping an ask marks it viewed; viewed
@@ -455,7 +460,15 @@ export default function AskStoryRow({ asks, myAsk, myAvatarUrl, myName, onRefres
         visible={createVisible}
         onClose={() => setCreateVisible(false)}
         existingAsk={myAsk}
-        onCreated={onRefresh}
+        onCreated={(newAskId) => {
+          onRefresh();
+          if (newAskId) setMatchSheetAskId(newAskId);
+        }}
+      />
+      <AskMatchSheet
+        visible={!!matchSheetAskId}
+        askId={matchSheetAskId}
+        onClose={() => setMatchSheetAskId(null)}
       />
     </>
   );
@@ -467,7 +480,10 @@ type AskCreateModalProps = {
   visible: boolean;
   onClose: () => void;
   existingAsk: MyActiveAsk | null;
-  onCreated: () => void;
+  // North-Star Phase 1: pass the new ask_id back so the caller can
+  // immediately show the direct-match sheet. Optional for backwards
+  // compat with callers that just refresh the feed.
+  onCreated: (askId?: string) => void;
   // Optional pre-fill for the CREATE path only (ignored when
   // existingAsk is set → view mode). Lets callers seed the body from
   // context — e.g. SearchScreen passes the failed query so "couldn't
@@ -724,7 +740,10 @@ export function AskCreateModal({ visible, onClose, existingAsk, onCreated, seedB
         }
       }).catch(() => {});
 
-      onCreated();
+      // Pass the new ask_id so the caller can immediately surface the
+      // 1st-degree match sheet (Phase 1). Falls back gracefully when
+      // the parent's handler ignores the arg.
+      onCreated(askData.id);
       onClose();
     } catch (err) {
       console.warn('Ask create failed:', err);

@@ -1328,7 +1328,13 @@
     ],
     "createSubtitle": "Basta una riga — l'AI ci mette i tag, così la vedono le persone giuste (o un amico di un amico).",
     "createFailed": "Il tuo Ask non è partito — riprova.",
-    "shortPrompt": "Cosa ti serve?"
+    "shortPrompt": "Cosa ti serve?",
+    "matchSheetTitle": "Migliori abbinamenti nella tua rete",
+    "matchSheetSubtitle": "Amici i cui tag corrispondono a ciò che cerchi. Scrivigli, oppure salta e lascia che il feed più ampio li trovi.",
+    "matchSheetEmpty": "Nessun riscontro netto tra gli amici — al resto pensa il feed più ampio.",
+    "matchSheetError": "Impossibile caricare i match — il tuo Ask è comunque attivo nel feed.",
+    "matchMessageBtn": "Messaggio",
+    "matchSheetDone": "Fatto"
   },
   "errorBoundary": {
     "title": "Ops, qualcosa non ha funzionato",

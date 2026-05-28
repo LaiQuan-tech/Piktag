@@ -1280,7 +1280,13 @@
     "createSubtitle": "Satu baris cukup — AI menambah tag biar orang yang tepat (atau teman dari teman) melihatnya.",
     "createFailed": "Ask kamu gagal terkirim — coba lagi.",
     "deleteFailed": "Tidak bisa hapus ask",
-    "shortPrompt": "Mau apa?"
+    "shortPrompt": "Mau apa?",
+    "matchSheetTitle": "Yang paling cocok di jaringanmu",
+    "matchSheetSubtitle": "Teman yang tag-nya cocok dengan yang kamu cari. Hubungi langsung, atau lewati dan biar feed yang lebih luas menemukannya juga.",
+    "matchSheetEmpty": "Tidak ada yang persis cocok di teman — feed yang lebih luas akan menanganinya.",
+    "matchSheetError": "Tidak bisa memuat kecocokan — Ask kamu tetap aktif di feed.",
+    "matchMessageBtn": "Pesan",
+    "matchSheetDone": "Selesai"
   },
   "errorBoundary": {
     "title": "Terjadi kesalahan",

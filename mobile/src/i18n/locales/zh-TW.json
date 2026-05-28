@@ -1328,7 +1328,13 @@
     ],
     "createSubtitle": "一句話就好 — AI 會配上標籤，讓對的人（或朋友的朋友）看到。",
     "createFailed": "貼文沒送出去，請再試一次。",
-    "shortPrompt": "想要什麼？"
+    "shortPrompt": "想要什麼？",
+    "matchSheetTitle": "你的人脈裡最對得上的",
+    "matchSheetSubtitle": "標籤跟你要找的對得上的好友。直接聯絡，或先略過 — 二度人脈也會看到。",
+    "matchSheetEmpty": "好友裡沒有特別對得上的 — 二度人脈會接到。",
+    "matchSheetError": "暫時拿不到 match — 你的 Ask 還是已經發出去了。",
+    "matchMessageBtn": "傳訊",
+    "matchSheetDone": "完成"
   },
   "errorBoundary": {
     "title": "發生錯誤",

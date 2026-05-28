@@ -1328,7 +1328,13 @@
     ],
     "createSubtitle": "Just one line — AI adds the tags so the right people (or a friend of a friend) see it.",
     "createFailed": "Your Ask didn't go through — try again.",
-    "shortPrompt": "What do you need?"
+    "shortPrompt": "What do you need?",
+    "matchSheetTitle": "Best matches in your network",
+    "matchSheetSubtitle": "Friends whose tags line up with what you're looking for. Reach out, or skip and let the wider feed find them too.",
+    "matchSheetEmpty": "No close match in your friends — the wider feed will pick this up.",
+    "matchSheetError": "Couldn't load matches — your Ask is live in the feed regardless.",
+    "matchMessageBtn": "Message",
+    "matchSheetDone": "Done"
   },
   "errorBoundary": {
     "title": "Something went wrong",

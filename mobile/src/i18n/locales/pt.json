@@ -1280,7 +1280,13 @@
     "createSubtitle": "Uma linha basta — a IA põe as tags para a pessoa certa (ou um amigo de um amigo) ver.",
     "createFailed": "Seu Ask não foi enviado — tente de novo.",
     "deleteFailed": "Não foi possível apagar o ask",
-    "shortPrompt": "O que você quer?"
+    "shortPrompt": "O que você quer?",
+    "matchSheetTitle": "Melhores correspondências na sua rede",
+    "matchSheetSubtitle": "Amigos cujas tags batem com o que você procura. Mande mensagem, ou pule e deixe o feed mais amplo achar.",
+    "matchSheetEmpty": "Sem correspondência forte entre seus amigos — o feed mais amplo dá conta.",
+    "matchSheetError": "Não deu para carregar as correspondências — seu Ask está no feed mesmo assim.",
+    "matchMessageBtn": "Mensagem",
+    "matchSheetDone": "Pronto"
   },
   "errorBoundary": {
     "title": "Algo deu errado",
