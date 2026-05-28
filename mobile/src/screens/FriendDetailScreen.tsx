@@ -1957,6 +1957,13 @@ function makeStyles(c: ColorPalette) {
     fontSize: 14,
     fontWeight: '700',
     color: '#FFFFFF',
+    // RN gotcha: alignItems/justifyContent on the parent only centers
+    // the Text element's box. When the label wraps (longer locales —
+    // "Send Message" on a narrow button, or future "Étiqueter" / "ラ
+    // ベル付け"), the wrapped lines default to left-aligned within
+    // that box. Explicit textAlign keeps multi-line button labels
+    // centered too.
+    textAlign: 'center',
   },
   // Non-CTA secondary buttons — IG-style filled gray. c.gray200 is
   // #e5e7eb in light / #363636 in dark — the latter is exactly IG's
@@ -1974,6 +1981,9 @@ function makeStyles(c: ColorPalette) {
     fontSize: 14,
     fontWeight: '600',
     color: c.gray900,
+    // See primaryBtnText — same multi-line center-align fix.
+    // "Send Message" wraps to 2 lines on this narrow button width.
+    textAlign: 'center',
   },
   iconSecondaryBtn: {
     width: 44,
