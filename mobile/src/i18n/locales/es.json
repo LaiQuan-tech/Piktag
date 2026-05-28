@@ -70,7 +70,8 @@
     "willAutoRetry": "Reintentaremos automáticamente al reconectar",
     "edit": "Editar",
     "you": "Tú",
-    "noResults": "—"
+    "noResults": "—",
+    "them": "ellos"
   },
   "auth": {
     "login": {
@@ -1378,7 +1379,17 @@
     "websitePlaceholder": "ej. example.com",
     "scanningCard": "Leyendo tarjeta… (unos 3 s)",
     "scanCardCta": "Escanea una tarjeta para autocompletar",
-    "avatarUploadFailTitle": "Error al subir"
+    "avatarUploadFailTitle": "Error al subir",
+    "shareBtn": "Enviar mi contacto",
+    "shareSheetTitle": "Enviar a {{name}}",
+    "shareChannelEmail": "Correo",
+    "shareChannelSms": "SMS",
+    "shareChannelWhatsapp": "WhatsApp",
+    "shareEmailSubject": "Mi contacto — {{firstName}}",
+    "shareEmailSubjectWithHint": "{{firstName}} de {{hint}} — mi contacto",
+    "shareEmailBody": "Hola {{theirFirst}},\n\nUn placer conocerte. Mi contacto:\n{{url}}\n\n— {{firstName}}",
+    "shareSmsBody": "Hola {{theirFirst}}, un placer conocerte. Mi contacto: {{url}} — {{firstName}}",
+    "shareWhatsappBody": "Hola {{theirFirst}}, un placer conocerte. Mi contacto: {{url}}\n\n— {{firstName}}"
   },
   "followers": {
     "title": "Seguidores",

@@ -71,7 +71,8 @@
     "userNotFound": "找不到這個用戶",
     "edit": "編輯",
     "you": "你",
-    "noResults": "—"
+    "noResults": "—",
+    "them": "對方"
   },
   "auth": {
     "login": {
@@ -1426,7 +1427,17 @@
     "websitePlaceholder": "例：example.com",
     "scanningCard": "辨識名片中…（約 3 秒）",
     "scanCardCta": "掃描名片自動帶入",
-    "avatarUploadFailTitle": "上傳失敗"
+    "avatarUploadFailTitle": "上傳失敗",
+    "shareBtn": "寄我的聯絡資料給他",
+    "shareSheetTitle": "寄給 {{name}}",
+    "shareChannelEmail": "Email",
+    "shareChannelSms": "簡訊",
+    "shareChannelWhatsapp": "WhatsApp",
+    "shareEmailSubject": "{{firstName}} 的聯絡資料",
+    "shareEmailSubjectWithHint": "{{firstName}}（{{hint}}）的聯絡資料",
+    "shareEmailBody": "Hi {{theirFirst}}，\n\n很高興認識你。這是我的聯絡資料：\n{{url}}\n\n— {{firstName}}",
+    "shareSmsBody": "Hi {{theirFirst}}，很高興認識你。我的聯絡資料：{{url}} — {{firstName}}",
+    "shareWhatsappBody": "Hi {{theirFirst}}，很高興認識你。我的聯絡資料：{{url}}\n\n— {{firstName}}"
   },
   "followers": {
     "title": "追蹤者",

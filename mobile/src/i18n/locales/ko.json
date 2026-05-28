@@ -70,7 +70,8 @@
     "willAutoRetry": "다시 연결되면 자동으로 불러올게요",
     "edit": "편집",
     "you": "나",
-    "noResults": "—"
+    "noResults": "—",
+    "them": "상대"
   },
   "auth": {
     "login": {
@@ -1378,7 +1379,17 @@
     "websitePlaceholder": "예: example.com",
     "scanningCard": "명함 인식 중…（약 3초）",
     "scanCardCta": "명함 스캔으로 자동 입력",
-    "avatarUploadFailTitle": "업로드 실패"
+    "avatarUploadFailTitle": "업로드 실패",
+    "shareBtn": "내 연락처 보내기",
+    "shareSheetTitle": "{{name}}님에게 보내기",
+    "shareChannelEmail": "이메일",
+    "shareChannelSms": "문자",
+    "shareChannelWhatsapp": "WhatsApp",
+    "shareEmailSubject": "{{firstName}}의 연락처",
+    "shareEmailSubjectWithHint": "{{hint}}의 {{firstName}} 연락처",
+    "shareEmailBody": "{{theirFirst}}님,\n\n만나서 반가웠습니다. 제 연락처입니다:\n{{url}}\n\n— {{firstName}}",
+    "shareSmsBody": "{{theirFirst}}님, 만나서 반가웠습니다. 연락처: {{url}} — {{firstName}}",
+    "shareWhatsappBody": "{{theirFirst}}님, 만나서 반가웠습니다. 연락처: {{url}}\n\n— {{firstName}}"
   },
   "followers": {
     "title": "팔로워",

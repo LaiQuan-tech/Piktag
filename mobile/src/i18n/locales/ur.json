@@ -71,7 +71,8 @@
     "userNotFound": "یہ صارف نہیں ملا",
     "edit": "ترمیم کریں",
     "you": "آپ",
-    "noResults": "—"
+    "noResults": "—",
+    "them": "انہیں"
   },
   "auth": {
     "login": {
@@ -1426,7 +1427,17 @@
     "websitePlaceholder": "مثلاً: example.com",
     "scanningCard": "کارڈ پڑھا جا رہا ہے… (تقریباً 3 سیکنڈ)",
     "scanCardCta": "خودکار بھرنے کے لیے کارڈ اسکین کریں",
-    "avatarUploadFailTitle": "اپ لوڈ ناکام"
+    "avatarUploadFailTitle": "اپ لوڈ ناکام",
+    "shareBtn": "میرا رابطہ بھیجیں",
+    "shareSheetTitle": "{{name}} کو بھیجیں",
+    "shareChannelEmail": "ای میل",
+    "shareChannelSms": "SMS",
+    "shareChannelWhatsapp": "WhatsApp",
+    "shareEmailSubject": "میرا رابطہ — {{firstName}}",
+    "shareEmailSubjectWithHint": "{{hint}} سے {{firstName}} — میرا رابطہ",
+    "shareEmailBody": "ہیلو {{theirFirst}}،\n\nآپ سے مل کر خوشی ہوئی۔ میرا رابطہ:\n{{url}}\n\n— {{firstName}}",
+    "shareSmsBody": "ہیلو {{theirFirst}}، مل کر خوشی ہوئی۔ میرا رابطہ: {{url}} — {{firstName}}",
+    "shareWhatsappBody": "ہیلو {{theirFirst}}، مل کر خوشی ہوئی۔ میرا رابطہ: {{url}}\n\n— {{firstName}}"
   },
   "followers": {
     "title": "فالوورز",

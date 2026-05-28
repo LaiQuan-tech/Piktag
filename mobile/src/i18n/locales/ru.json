@@ -70,7 +70,8 @@
     "willAutoRetry": "Повторим автоматически при подключении",
     "edit": "Изменить",
     "you": "Вы",
-    "noResults": "—"
+    "noResults": "—",
+    "them": "им"
   },
   "auth": {
     "login": {
@@ -1378,7 +1379,17 @@
     "websitePlaceholder": "например, example.com",
     "scanningCard": "Распознавание визитки… (около 3 с)",
     "scanCardCta": "Сканировать визитку для автозаполнения",
-    "avatarUploadFailTitle": "Не удалось загрузить"
+    "avatarUploadFailTitle": "Не удалось загрузить",
+    "shareBtn": "Отправить мои контакты",
+    "shareSheetTitle": "Отправить {{name}}",
+    "shareChannelEmail": "Email",
+    "shareChannelSms": "SMS",
+    "shareChannelWhatsapp": "WhatsApp",
+    "shareEmailSubject": "Мои контакты — {{firstName}}",
+    "shareEmailSubjectWithHint": "{{firstName}} ({{hint}}) — мои контакты",
+    "shareEmailBody": "Привет, {{theirFirst}}!\n\nРад знакомству. Мои контакты:\n{{url}}\n\n— {{firstName}}",
+    "shareSmsBody": "Привет, {{theirFirst}}, рад знакомству. Мои контакты: {{url}} — {{firstName}}",
+    "shareWhatsappBody": "Привет, {{theirFirst}}, рад знакомству. Мои контакты: {{url}}\n\n— {{firstName}}"
   },
   "followers": {
     "title": "Подписчики",

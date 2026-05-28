@@ -70,7 +70,8 @@
     "willAutoRetry": "Nous réessaierons automatiquement à la reconnexion",
     "edit": "Modifier",
     "you": "Toi",
-    "noResults": "—"
+    "noResults": "—",
+    "them": "lui/elle"
   },
   "auth": {
     "login": {
@@ -1378,7 +1379,17 @@
     "websitePlaceholder": "ex. example.com",
     "scanningCard": "Lecture de la carte… (environ 3 s)",
     "scanCardCta": "Scanne une carte pour remplir automatiquement",
-    "avatarUploadFailTitle": "Échec du téléversement"
+    "avatarUploadFailTitle": "Échec du téléversement",
+    "shareBtn": "Envoyer mes coordonnées",
+    "shareSheetTitle": "Envoyer à {{name}}",
+    "shareChannelEmail": "E-mail",
+    "shareChannelSms": "SMS",
+    "shareChannelWhatsapp": "WhatsApp",
+    "shareEmailSubject": "Mes coordonnées — {{firstName}}",
+    "shareEmailSubjectWithHint": "{{firstName}} de {{hint}} — mes coordonnées",
+    "shareEmailBody": "Salut {{theirFirst}},\n\nRavi de t'avoir rencontré. Mes coordonnées :\n{{url}}\n\n— {{firstName}}",
+    "shareSmsBody": "Salut {{theirFirst}}, ravi de t'avoir rencontré. Mes coordonnées : {{url}} — {{firstName}}",
+    "shareWhatsappBody": "Salut {{theirFirst}}, ravi de t'avoir rencontré. Mes coordonnées : {{url}}\n\n— {{firstName}}"
   },
   "followers": {
     "title": "Abonnés",

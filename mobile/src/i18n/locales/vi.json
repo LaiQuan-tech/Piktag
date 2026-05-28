@@ -71,7 +71,8 @@
     "userNotFound": "Không tìm thấy người này",
     "edit": "Chỉnh sửa",
     "you": "Bạn",
-    "noResults": "—"
+    "noResults": "—",
+    "them": "họ"
   },
   "auth": {
     "login": {
@@ -1426,7 +1427,17 @@
     "websitePlaceholder": "ví dụ: example.com",
     "scanningCard": "Đang đọc danh thiếp… (khoảng 3 giây)",
     "scanCardCta": "Quét danh thiếp để tự điền",
-    "avatarUploadFailTitle": "Tải lên không thành công"
+    "avatarUploadFailTitle": "Tải lên không thành công",
+    "shareBtn": "Gửi liên hệ của tôi",
+    "shareSheetTitle": "Gửi cho {{name}}",
+    "shareChannelEmail": "Email",
+    "shareChannelSms": "Tin nhắn",
+    "shareChannelWhatsapp": "WhatsApp",
+    "shareEmailSubject": "Liên hệ của {{firstName}}",
+    "shareEmailSubjectWithHint": "{{firstName}} từ {{hint}} — liên hệ",
+    "shareEmailBody": "Chào {{theirFirst}},\n\nRất vui được gặp bạn. Liên hệ của tôi:\n{{url}}\n\n— {{firstName}}",
+    "shareSmsBody": "Chào {{theirFirst}}, rất vui được gặp. Liên hệ của tôi: {{url}} — {{firstName}}",
+    "shareWhatsappBody": "Chào {{theirFirst}}, rất vui được gặp. Liên hệ của tôi: {{url}}\n\n— {{firstName}}"
   },
   "followers": {
     "title": "Người theo dõi",

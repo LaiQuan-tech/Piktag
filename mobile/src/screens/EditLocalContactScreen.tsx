@@ -31,6 +31,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
+  ActionSheetIOS,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
@@ -47,6 +48,12 @@ import BrandSpinner from '../components/loaders/BrandSpinner';
 import LogoLoader from '../components/loaders/LogoLoader';
 import { SkeletonBox } from '../components/SkeletonLoader';
 import TagChip from '../components/TagChip';
+import { useAuthProfile } from '../context/AuthContext';
+import {
+  availableChannels,
+  openChannel,
+  type ShareChannel,
+} from '../lib/shareContact';
 
 type Props = { navigation: any; route: any };
 
@@ -79,6 +86,10 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const contactId: string | undefined = route.params?.contactId;
   const { contacts, add, update, remove, loading } = useLocalContacts();
+  // Need own username + name for the "send my contact" share flow.
+  // The share button is only ever shown when the auth profile has
+  // a username (post-onboarding), so missing profile = button hidden.
+  const { profile: myProfile } = useAuthProfile();
 
   const existing = useMemo(
     () => (contactId ? contacts.find((c) => c.id === contactId) ?? null : null),
@@ -878,6 +889,95 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
               fields just spends compute while the pill button reads
               as a tag. Tags here are manual-only.) */}
 
+          {/* "Send my contact" share button — appears above Save when
+              the recipient has at least one reachable channel (email
+              or phone) AND the viewer has a PikTag username. Founder's
+              North-Star play: every saved card is potentially a new
+              user via the recipient → pikt.ag/{me} → download banner
+              → install funnel. Personal email/SMS/WhatsApp from the
+              VIEWER's own client, no server-side spam-list liability. */}
+          {(() => {
+            const channels = availableChannels({
+              recipientEmail: email,
+              recipientPhone: phone,
+              recipientName: name,
+              myFirstName: '',  // unused for channel-availability check
+              myUsername: '',   // unused for channel-availability check
+              tBody: t as any,
+            });
+            const canShare =
+              channels.length > 0 &&
+              !!myProfile?.username &&
+              !!myProfile?.full_name;
+            if (!canShare) return null;
+            const myFirst = (myProfile.full_name ?? '').trim().split(/\s+/)[0] ?? '';
+            const myUsername = myProfile.username ?? '';
+            const onPick = (channel: ShareChannel) => {
+              void openChannel(channel, {
+                recipientEmail: email,
+                recipientPhone: phone,
+                recipientName: name,
+                myFirstName: myFirst,
+                myUsername,
+                eventOrCompanyHint: headline || null,
+                tBody: t as any,
+              });
+            };
+            const onTapShare = () => {
+              if (channels.length === 1) {
+                onPick(channels[0]);
+                return;
+              }
+              const labelFor = (c: ShareChannel) =>
+                c === 'email'
+                  ? t('localContact.shareChannelEmail', { defaultValue: 'Email' })
+                  : c === 'sms'
+                    ? t('localContact.shareChannelSms', { defaultValue: 'Text Message' })
+                    : t('localContact.shareChannelWhatsapp', { defaultValue: 'WhatsApp' });
+              const cancelLabel = t('common.cancel', { defaultValue: 'Cancel' });
+              if (Platform.OS === 'ios') {
+                const options = [...channels.map(labelFor), cancelLabel];
+                ActionSheetIOS.showActionSheetWithOptions(
+                  {
+                    options,
+                    cancelButtonIndex: options.length - 1,
+                    title: t('localContact.shareSheetTitle', {
+                      name: (name || t('common.them', { defaultValue: 'them' })).trim(),
+                      defaultValue: 'Send to {{name}}',
+                    }),
+                  },
+                  (idx) => {
+                    if (idx < 0 || idx >= channels.length) return;
+                    onPick(channels[idx]);
+                  },
+                );
+              } else {
+                Alert.alert(
+                  t('localContact.shareSheetTitle', {
+                    name: name || t('common.them', { defaultValue: 'them' }),
+                    defaultValue: 'Send to {{name}}',
+                  }),
+                  '',
+                  [
+                    ...channels.map((c) => ({ text: labelFor(c), onPress: () => onPick(c) })),
+                    { text: cancelLabel, style: 'cancel' as const },
+                  ],
+                );
+              }
+            };
+            return (
+              <TouchableOpacity
+                style={styles.shareBtn}
+                onPress={onTapShare}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.shareBtnText}>
+                  {t('localContact.shareBtn', { defaultValue: '寄我的聯絡資料給他' })}
+                </Text>
+              </TouchableOpacity>
+            );
+          })()}
+
           <TouchableOpacity
             style={[styles.saveBtn, (saving || !name.trim()) && styles.saveBtnDisabled]}
             onPress={handleSave}
@@ -1013,7 +1113,10 @@ function makeStyles(c: ColorPalette) {
   // / aiChipText styles removed with the scan-accelerator + AI
   // section — per founder, neither belongs on the edit form.)
   saveBtn: {
-    marginTop: 28,
+    // marginTop dropped to 14 (was 28) because the share button now
+    // sits above it with its own marginTop — total spacing tunes
+    // to the same rhythm when the share row is hidden.
+    marginTop: 14,
     paddingVertical: 15,
     borderRadius: 14,
     backgroundColor: c.piktag500,
@@ -1021,6 +1124,18 @@ function makeStyles(c: ColorPalette) {
   },
   saveBtnDisabled: { backgroundColor: c.gray200 },
   saveBtnText: { fontSize: 16, fontWeight: '700', color: '#FFFFFF' },
+  // Share / invite CTA. Secondary visual weight (border, transparent
+  // bg) so it doesn't compete with Save for attention — but visible
+  // enough that users notice it's the growth-loop affordance.
+  shareBtn: {
+    marginTop: 28,
+    paddingVertical: 14,
+    borderRadius: 14,
+    borderWidth: 1.5,
+    borderColor: c.piktag500,
+    alignItems: 'center',
+  },
+  shareBtnText: { fontSize: 15, fontWeight: '700', color: c.piktag600 },
   // Scan overlay — full-screen dim layer with a centered white
   // card carrying the LogoLoader + status text. position:absolute +
   // edge-anchored covers the whole SafeAreaView (form + scroll +

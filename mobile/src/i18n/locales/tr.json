@@ -70,7 +70,8 @@
     "willAutoRetry": "Yeniden bağlanınca otomatik tekrar deneriz",
     "edit": "Düzenle",
     "you": "Sen",
-    "noResults": "—"
+    "noResults": "—",
+    "them": "onlara"
   },
   "auth": {
     "login": {
@@ -1378,7 +1379,17 @@
     "websitePlaceholder": "örn. example.com",
     "scanningCard": "Kart okunuyor… (yaklaşık 3 sn)",
     "scanCardCta": "Otomatik doldurmak için kart tara",
-    "avatarUploadFailTitle": "Yükleme başarısız"
+    "avatarUploadFailTitle": "Yükleme başarısız",
+    "shareBtn": "İletişim bilgilerimi gönder",
+    "shareSheetTitle": "{{name}} kişisine gönder",
+    "shareChannelEmail": "E-posta",
+    "shareChannelSms": "SMS",
+    "shareChannelWhatsapp": "WhatsApp",
+    "shareEmailSubject": "İletişim bilgilerim — {{firstName}}",
+    "shareEmailSubjectWithHint": "{{hint}}'tan {{firstName}} — iletişim bilgilerim",
+    "shareEmailBody": "Selam {{theirFirst}},\n\nTanıştığımıza memnun oldum. İletişim bilgilerim:\n{{url}}\n\n— {{firstName}}",
+    "shareSmsBody": "Selam {{theirFirst}}, tanıştığımıza memnun oldum. İletişim: {{url}} — {{firstName}}",
+    "shareWhatsappBody": "Selam {{theirFirst}}, tanıştığımıza memnun oldum. İletişim: {{url}}\n\n— {{firstName}}"
   },
   "followers": {
     "title": "Takipçiler",

@@ -70,7 +70,8 @@
     "willAutoRetry": "接続が回復したら自動的に読み込みます",
     "edit": "編集",
     "you": "あなた",
-    "noResults": "—"
+    "noResults": "—",
+    "them": "相手"
   },
   "auth": {
     "login": {
@@ -1378,7 +1379,17 @@
     "websitePlaceholder": "例：example.com",
     "scanningCard": "名刺を読み取り中…（約3秒）",
     "scanCardCta": "名刺をスキャンして自動入力",
-    "avatarUploadFailTitle": "アップロードに失敗しました"
+    "avatarUploadFailTitle": "アップロードに失敗しました",
+    "shareBtn": "連絡先を送る",
+    "shareSheetTitle": "{{name}} さんに送る",
+    "shareChannelEmail": "メール",
+    "shareChannelSms": "SMS",
+    "shareChannelWhatsapp": "WhatsApp",
+    "shareEmailSubject": "{{firstName}} の連絡先",
+    "shareEmailSubjectWithHint": "{{hint}} の {{firstName}} の連絡先",
+    "shareEmailBody": "{{theirFirst}} さん、\n\nお会いできてうれしかったです。連絡先です：\n{{url}}\n\n— {{firstName}}",
+    "shareSmsBody": "{{theirFirst}} さん、お会いできてうれしかったです。連絡先：{{url}} — {{firstName}}",
+    "shareWhatsappBody": "{{theirFirst}} さん、お会いできてうれしかったです。連絡先：{{url}}\n\n— {{firstName}}"
   },
   "followers": {
     "title": "フォロワー",

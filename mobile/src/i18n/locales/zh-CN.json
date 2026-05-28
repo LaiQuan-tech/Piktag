@@ -71,7 +71,8 @@
     "userNotFound": "找不到这个用户",
     "edit": "编辑",
     "you": "你",
-    "noResults": "—"
+    "noResults": "—",
+    "them": "对方"
   },
   "auth": {
     "login": {
@@ -1419,7 +1420,17 @@
     "websitePlaceholder": "例：example.com",
     "scanningCard": "识别名片中…（约 3 秒）",
     "scanCardCta": "扫描名片自动带入",
-    "avatarUploadFailTitle": "上传失败"
+    "avatarUploadFailTitle": "上传失败",
+    "shareBtn": "发我的联系方式给他",
+    "shareSheetTitle": "发给 {{name}}",
+    "shareChannelEmail": "Email",
+    "shareChannelSms": "短信",
+    "shareChannelWhatsapp": "WhatsApp",
+    "shareEmailSubject": "{{firstName}} 的联系方式",
+    "shareEmailSubjectWithHint": "{{firstName}}（{{hint}}）的联系方式",
+    "shareEmailBody": "Hi {{theirFirst}}，\n\n很高兴认识你。这是我的联系方式：\n{{url}}\n\n— {{firstName}}",
+    "shareSmsBody": "Hi {{theirFirst}}，很高兴认识你。我的联系方式：{{url}} — {{firstName}}",
+    "shareWhatsappBody": "Hi {{theirFirst}}，很高兴认识你。我的联系方式：{{url}}\n\n— {{firstName}}"
   },
   "followers": {
     "title": "追踪者",

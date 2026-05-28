@@ -70,7 +70,8 @@
     "willAutoRetry": "আবার অনলাইন হলে স্বয়ংক্রিয় চেষ্টা",
     "edit": "সম্পাদনা",
     "you": "আপনি",
-    "noResults": "—"
+    "noResults": "—",
+    "them": "তাদের"
   },
   "auth": {
     "login": {
@@ -1378,7 +1379,17 @@
     "websitePlaceholder": "যেমন: example.com",
     "scanningCard": "কার্ড পড়া হচ্ছে… (প্রায় ৩ সেকেন্ড)",
     "scanCardCta": "অটো-ফিল করতে কার্ড স্ক্যান করুন",
-    "avatarUploadFailTitle": "আপলোড ব্যর্থ"
+    "avatarUploadFailTitle": "আপলোড ব্যর্থ",
+    "shareBtn": "আমার যোগাযোগ পাঠান",
+    "shareSheetTitle": "{{name}} কে পাঠান",
+    "shareChannelEmail": "ইমেইল",
+    "shareChannelSms": "SMS",
+    "shareChannelWhatsapp": "WhatsApp",
+    "shareEmailSubject": "আমার যোগাযোগ — {{firstName}}",
+    "shareEmailSubjectWithHint": "{{hint}} থেকে {{firstName}} — আমার যোগাযোগ",
+    "shareEmailBody": "হাই {{theirFirst}},\n\nআপনার সাথে দেখা করে ভালো লাগল। আমার যোগাযোগ:\n{{url}}\n\n— {{firstName}}",
+    "shareSmsBody": "হাই {{theirFirst}}, দেখা করে ভালো লাগল। আমার যোগাযোগ: {{url}} — {{firstName}}",
+    "shareWhatsappBody": "হাই {{theirFirst}}, দেখা করে ভালো লাগল। আমার যোগাযোগ: {{url}}\n\n— {{firstName}}"
   },
   "followers": {
     "title": "ফলোয়ার",

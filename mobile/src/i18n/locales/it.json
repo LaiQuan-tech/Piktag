@@ -71,7 +71,8 @@
     "userNotFound": "Questo utente non si trova",
     "edit": "Modifica",
     "you": "Tu",
-    "noResults": "—"
+    "noResults": "—",
+    "them": "loro"
   },
   "auth": {
     "login": {
@@ -1426,7 +1427,17 @@
     "websitePlaceholder": "es. example.com",
     "scanningCard": "Lettura biglietto… (circa 3 s)",
     "scanCardCta": "Scansiona un biglietto per riempire automaticamente",
-    "avatarUploadFailTitle": "Caricamento non riuscito"
+    "avatarUploadFailTitle": "Caricamento non riuscito",
+    "shareBtn": "Invia i miei contatti",
+    "shareSheetTitle": "Invia a {{name}}",
+    "shareChannelEmail": "Email",
+    "shareChannelSms": "SMS",
+    "shareChannelWhatsapp": "WhatsApp",
+    "shareEmailSubject": "I miei contatti — {{firstName}}",
+    "shareEmailSubjectWithHint": "{{firstName}} da {{hint}} — i miei contatti",
+    "shareEmailBody": "Ciao {{theirFirst}},\n\nÈ stato un piacere conoscerti. I miei contatti:\n{{url}}\n\n— {{firstName}}",
+    "shareSmsBody": "Ciao {{theirFirst}}, è stato un piacere. I miei contatti: {{url}} — {{firstName}}",
+    "shareWhatsappBody": "Ciao {{theirFirst}}, è stato un piacere. I miei contatti: {{url}}\n\n— {{firstName}}"
   },
   "followers": {
     "title": "Follower",

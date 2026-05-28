@@ -71,7 +71,8 @@
     "userNotFound": "Diesen Nutzer konnten wir nicht finden",
     "edit": "Bearbeiten",
     "you": "Du",
-    "noResults": "—"
+    "noResults": "—",
+    "them": "sie/ihn"
   },
   "auth": {
     "login": {
@@ -1419,7 +1420,17 @@
     "websitePlaceholder": "z. B. example.com",
     "scanningCard": "Karte wird gelesen… (ca. 3 Sek.)",
     "scanCardCta": "Karte scannen für Auto-Ausfüllen",
-    "avatarUploadFailTitle": "Upload fehlgeschlagen"
+    "avatarUploadFailTitle": "Upload fehlgeschlagen",
+    "shareBtn": "Meine Kontaktdaten senden",
+    "shareSheetTitle": "An {{name}} senden",
+    "shareChannelEmail": "E-Mail",
+    "shareChannelSms": "SMS",
+    "shareChannelWhatsapp": "WhatsApp",
+    "shareEmailSubject": "Meine Kontaktdaten — {{firstName}}",
+    "shareEmailSubjectWithHint": "{{firstName}} von {{hint}} — meine Kontaktdaten",
+    "shareEmailBody": "Hi {{theirFirst}},\n\nSchön, dich kennengelernt zu haben. Meine Kontaktdaten:\n{{url}}\n\n— {{firstName}}",
+    "shareSmsBody": "Hi {{theirFirst}}, schön dich kennengelernt zu haben. Kontakt: {{url}} — {{firstName}}",
+    "shareWhatsappBody": "Hi {{theirFirst}}, schön dich kennengelernt zu haben. Mein Kontakt: {{url}}\n\n— {{firstName}}"
   },
   "followers": {
     "title": "Follower",

@@ -70,7 +70,8 @@
     "willAutoRetry": "จะลองใหม่อัตโนมัติเมื่อกลับมาออนไลน์",
     "edit": "แก้ไข",
     "you": "คุณ",
-    "noResults": "—"
+    "noResults": "—",
+    "them": "พวกเขา"
   },
   "auth": {
     "login": {
@@ -1378,7 +1379,17 @@
     "websitePlaceholder": "เช่น example.com",
     "scanningCard": "กำลังอ่านนามบัตร… (ประมาณ 3 วินาที)",
     "scanCardCta": "สแกนนามบัตรเพื่อกรอกอัตโนมัติ",
-    "avatarUploadFailTitle": "อัปโหลดไม่สำเร็จ"
+    "avatarUploadFailTitle": "อัปโหลดไม่สำเร็จ",
+    "shareBtn": "ส่งข้อมูลติดต่อของฉัน",
+    "shareSheetTitle": "ส่งถึง {{name}}",
+    "shareChannelEmail": "อีเมล",
+    "shareChannelSms": "SMS",
+    "shareChannelWhatsapp": "WhatsApp",
+    "shareEmailSubject": "ข้อมูลติดต่อ — {{firstName}}",
+    "shareEmailSubjectWithHint": "{{firstName}} จาก {{hint}} — ข้อมูลติดต่อ",
+    "shareEmailBody": "สวัสดี {{theirFirst}}\n\nยินดีที่ได้พบ ข้อมูลติดต่อของฉัน:\n{{url}}\n\n— {{firstName}}",
+    "shareSmsBody": "สวัสดี {{theirFirst}} ยินดีที่ได้พบ ข้อมูลติดต่อ: {{url}} — {{firstName}}",
+    "shareWhatsappBody": "สวัสดี {{theirFirst}} ยินดีที่ได้พบ ข้อมูลติดต่อ: {{url}}\n\n— {{firstName}}"
   },
   "followers": {
     "title": "ผู้ติดตาม",

@@ -70,7 +70,8 @@
     "willAutoRetry": "Akan coba lagi otomatis saat tersambung",
     "edit": "Edit",
     "you": "Kamu",
-    "noResults": "—"
+    "noResults": "—",
+    "them": "mereka"
   },
   "auth": {
     "login": {
@@ -1378,7 +1379,17 @@
     "websitePlaceholder": "mis. example.com",
     "scanningCard": "Membaca kartu… (sekitar 3 dtk)",
     "scanCardCta": "Pindai kartu untuk isi otomatis",
-    "avatarUploadFailTitle": "Gagal mengunggah"
+    "avatarUploadFailTitle": "Gagal mengunggah",
+    "shareBtn": "Kirim kontak saya",
+    "shareSheetTitle": "Kirim ke {{name}}",
+    "shareChannelEmail": "Email",
+    "shareChannelSms": "SMS",
+    "shareChannelWhatsapp": "WhatsApp",
+    "shareEmailSubject": "Kontak saya — {{firstName}}",
+    "shareEmailSubjectWithHint": "{{firstName}} dari {{hint}} — kontak saya",
+    "shareEmailBody": "Hi {{theirFirst}},\n\nSenang bertemu. Kontak saya:\n{{url}}\n\n— {{firstName}}",
+    "shareSmsBody": "Hi {{theirFirst}}, senang bertemu. Kontak saya: {{url}} — {{firstName}}",
+    "shareWhatsappBody": "Hi {{theirFirst}}, senang bertemu. Kontak saya: {{url}}\n\n— {{firstName}}"
   },
   "followers": {
     "title": "Pengikut",

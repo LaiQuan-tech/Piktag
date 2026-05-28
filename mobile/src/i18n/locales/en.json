@@ -71,7 +71,8 @@
     "userNotFound": "Couldn't find this user",
     "edit": "Edit",
     "you": "You",
-    "noResults": "—"
+    "noResults": "—",
+    "them": "them"
   },
   "auth": {
     "login": {
@@ -1426,7 +1427,17 @@
     "websitePlaceholder": "e.g. example.com",
     "scanningCard": "Reading card… (about 3s)",
     "scanCardCta": "Scan a card to auto-fill",
-    "avatarUploadFailTitle": "Upload failed"
+    "avatarUploadFailTitle": "Upload failed",
+    "shareBtn": "Send my contact",
+    "shareSheetTitle": "Send to {{name}}",
+    "shareChannelEmail": "Email",
+    "shareChannelSms": "Text Message",
+    "shareChannelWhatsapp": "WhatsApp",
+    "shareEmailSubject": "{{firstName}} — my contact",
+    "shareEmailSubjectWithHint": "{{firstName}} from {{hint}} — my contact",
+    "shareEmailBody": "Hey {{theirFirst}},\n\nGreat meeting you. Here's my contact:\n{{url}}\n\n— {{firstName}}",
+    "shareSmsBody": "Hey {{theirFirst}}, great meeting you. My contact: {{url}} — {{firstName}}",
+    "shareWhatsappBody": "Hey {{theirFirst}}, great meeting you. Here's my contact: {{url}}\n\n— {{firstName}}"
   },
   "followers": {
     "title": "Followers",

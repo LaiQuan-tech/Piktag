@@ -70,7 +70,8 @@
     "willAutoRetry": "سنحاول تلقائيًا عند عودة الاتصال",
     "edit": "تعديل",
     "you": "أنت",
-    "noResults": "—"
+    "noResults": "—",
+    "them": "هم"
   },
   "auth": {
     "login": {
@@ -1378,7 +1379,17 @@
     "websitePlaceholder": "مثال: example.com",
     "scanningCard": "جارٍ قراءة البطاقة… (حوالي 3 ثوانٍ)",
     "scanCardCta": "امسح بطاقة لملء تلقائي",
-    "avatarUploadFailTitle": "فشل التحميل"
+    "avatarUploadFailTitle": "فشل التحميل",
+    "shareBtn": "أرسل بياناتي",
+    "shareSheetTitle": "إرسال إلى {{name}}",
+    "shareChannelEmail": "البريد",
+    "shareChannelSms": "رسالة نصية",
+    "shareChannelWhatsapp": "WhatsApp",
+    "shareEmailSubject": "بيانات الاتصال — {{firstName}}",
+    "shareEmailSubjectWithHint": "{{firstName}} من {{hint}} — بيانات الاتصال",
+    "shareEmailBody": "مرحباً {{theirFirst}}،\n\nسعيد بلقائك. بياناتي:\n{{url}}\n\n— {{firstName}}",
+    "shareSmsBody": "مرحبا {{theirFirst}}، سعيد بلقائك. بياناتي: {{url}} — {{firstName}}",
+    "shareWhatsappBody": "مرحبا {{theirFirst}}، سعيد بلقائك. بياناتي: {{url}}\n\n— {{firstName}}"
   },
   "followers": {
     "title": "المتابعون",
