@@ -94,7 +94,14 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
   // never drift out of sync with the actual theme.
   const { isDark, colors, setMode: setThemeMode } = useTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
-  const [currentLanguage, setCurrentLanguage] = useState('zh-TW');
+  // Mirror the LIVE i18n language — NOT what the DB says. The DB column
+  // historically had DEFAULT 'en' set in Studio, which meant every new
+  // signup got 'en' written even if their device was Chinese; the old
+  // version of this screen would then read that and force-flip the
+  // entire app to English the moment the user opened Settings. The DB
+  // value is now a backup we sync TO (in handleLanguageChange), not a
+  // source we sync FROM. Boot logic in src/i18n/index.ts owns truth.
+  const [currentLanguage, setCurrentLanguage] = useState(i18n.language);
   const [loadingProfile, setLoadingProfile] = useState(true);
   const [languageModalVisible, setLanguageModalVisible] = useState(false);
   const [analyticsOptIn, setAnalyticsOptInState] = useState(true);
@@ -116,12 +123,11 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
             // Only `false` counts as opt-out; missing column (migration
             // not yet applied) and `null` both fall back to enabled.
             setVibeShiftEnabled((data as any).vibe_shift_notifications_enabled !== false);
-            const profileLang = data.language || 'zh-TW';
-            setCurrentLanguage(profileLang);
-            if (i18n.language !== profileLang) {
-              // Lazy-loads the locale bundle if not already in memory.
-              await changeLanguageSafe(profileLang);
-            }
+            // NOTE: deliberately NOT calling changeLanguageSafe from the
+            // DB value here — see the comment at currentLanguage init.
+            // The chip mirrors live i18n. If the user previously made an
+            // explicit pick, AsyncStorage already restored it at boot.
+            setCurrentLanguage(i18n.language);
           }
         }
 

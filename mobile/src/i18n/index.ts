@@ -1,6 +1,16 @@
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import { getLocales } from 'expo-localization';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+// AsyncStorage key — set ONLY when the user explicitly picks a language
+// in Settings. Source of truth for "did the user choose, or is this
+// just device-detected fallback?". The DB `piktag_profiles.language`
+// column is a *backup* synced to from Settings, NOT the boot signal
+// (it has had `DEFAULT 'en'` in production which silently overrode
+// device-detected zh-TW on every new signup — see SettingsScreen
+// 2026-05-29 bug fix). DO NOT read DB.language to drive i18n boot.
+const STORAGE_KEY = 'piktag_language';
 
 // Eager-load only the two most common locales at boot:
 //   * zh-TW — default fallback for this app
@@ -87,13 +97,29 @@ export async function loadLocale(lang: string): Promise<void> {
  * Change the active language. Lazy-loads the locale bundle first if needed.
  * Use this instead of calling i18n.changeLanguage() directly so that
  * language switches for non-eager locales actually show translated text.
+ *
+ * @param lang - the requested language code
+ * @param persistAsExplicitChoice - default true. Settings picker passes true
+ *   (= "the user chose this, remember it across launches"). Internal callers
+ *   that just want to align i18n with a server value pass false so we don't
+ *   pollute the explicit-choice signal.
  */
-export async function changeLanguageSafe(lang: string): Promise<void> {
+export async function changeLanguageSafe(
+  lang: string,
+  persistAsExplicitChoice = true,
+): Promise<void> {
   const supported = getSupportedLanguage(lang);
   if (!loadedLocales.has(supported)) {
     await loadLocale(supported);
   }
   await i18n.changeLanguage(supported);
+  if (persistAsExplicitChoice) {
+    try {
+      await AsyncStorage.setItem(STORAGE_KEY, supported);
+    } catch (err) {
+      console.warn('[i18n] Failed to persist explicit language choice', err);
+    }
+  }
 }
 
 // Detect device language synchronously via expo-localization.
@@ -128,5 +154,25 @@ if (initialLang !== 'zh-TW' && initialLang !== 'en') {
       console.warn('[i18n] Initial locale load failed', initialLang, err);
     });
 }
+
+// Then, after device-detection is in place, check AsyncStorage for an
+// explicit prior choice. If present and different from initialLang,
+// upgrade. This survives reinstalls (within app-data lifetime) and
+// crucially does NOT override the user's pick with a stale DB default.
+AsyncStorage.getItem(STORAGE_KEY)
+  .then((stored) => {
+    if (!stored) return;
+    const supported = getSupportedLanguage(stored);
+    if (supported === i18n.language) return;
+    // pass false so we don't re-write the same value we just read
+    changeLanguageSafe(supported, false).catch((err) => {
+      console.warn('[i18n] Failed to restore stored language', err);
+    });
+  })
+  .catch((err) => {
+    // AsyncStorage failing at boot is non-fatal — device-locale init
+    // already gave us a usable language. Just log and move on.
+    console.warn('[i18n] Failed to read stored language', err);
+  });
 
 export default i18n;
