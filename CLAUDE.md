@@ -33,6 +33,58 @@ non-member-onboarding conversion, (c) reduces friction on the
 `scan → tag → connect` and `search-tag → reactivate` loops. If a request
 works *against* this, say so honestly (中肯) rather than just complying.
 
+### Tag-quality principles — the 7 from Google data-labeling, in PikTag terms
+
+Adopted 2026-05-29 after a deep-dive on Google Cloud's data-labeling
+guide. These are the lens through which we evaluate any change to the
+tag system (search ranking, AI suggestion, Ask matching, interest
+graph completeness). Numbered 1–7 so future sessions can think
+"principle #N applies here."
+
+**Tag sources to know.** Public tags come from FOUR distinct surfaces,
+each carrying a *different* signal — algorithm must NOT mix them:
+`self` (user tags themselves), `friend` (peer endorses a member),
+`ask` (tags attached to an Ask — current intent), `event` (QR-context
+tags from where you met). Private/hidden tags are owner-only and
+**never enter the algorithm**. Local-contact tags on non-members are
+also owner-only and out of algorithm scope.
+
+1. **Multi-source provenance weighting.** Same tag from `self` vs
+   `friend` vs `ask` vs `event` carries different reliability and
+   different temporal validity. Algorithm must store source explicitly
+   and weight per-source. (Implemented: `piktag_user_tags.source`.)
+2. **Inter-source agreement = verified.** When self + ≥1 friend both
+   tag the same person with the same concept → that tag earns a
+   "verified" status: higher search weight, ✓ icon in UI, used as the
+   "why this match" explanation.
+3. **Active-learning style endorsement prompts.** App periodically
+   nudges friends to confirm a member's self-tags — converts the
+   passive "wait for friends to tag" loop into an active, low-friction
+   採集 mechanism. Cap to ~1 prompt/month/user so it doesn't get
+   noisy.
+4. **Temporal decay per source.** `self` slow-decay (stable identity),
+   `friend` medium-decay (peer perception evolves), `ask` fast-decay
+   to ~0.2 after the Ask expires (still a historical signal, not zero),
+   `event` no decay (when-met is factual).
+5. **AI-suggestion confidence calibration.** Track high-confidence
+   suggestions' actual accept rate; if 0.9-confidence suggestions only
+   convert at 30%, the model is mis-calibrated — re-rank or re-prompt.
+   Log every suggestion + accept/decline for the calibration curve.
+6. **Negative signals are signals too.** A friend-tag the user REMOVES
+   = strong anti-endorsement. A search→profile→back-out in <3s = weak
+   negative match. Record these; AI shouldn't re-suggest a removed
+   tag, search shouldn't keep ranking a repeatedly-rejected match.
+7. **Interest-graph coverage as a user-visible metric.** Each user has
+   a "tag-graph health score" combining: has-self-tags / has-friend-
+   tags / has-ask-history / has-event-tags / concept-diversity. Surface
+   it (LinkedIn "Profile strength" analog) so under-tagged users get
+   nudged to enrich — feeds back into #1–#4.
+
+**Doesn't apply to PikTag** (rejected after honest review): Cohen's
+kappa-style inter-annotator agreement (social tags have no ground-
+truth), large review pipelines (no human reviewers), strict controlled
+vocabulary at input (would kill the "use your own words" UX advantage).
+
 ## How the founder works (keep doing this)
 
 - **中肯 / trust-but-verify.** Give honest, balanced advice; push back with
