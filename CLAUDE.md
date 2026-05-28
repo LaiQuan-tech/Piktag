@@ -180,6 +180,31 @@ founder when the trigger condition lands:
   a real breakdown panel + per-component CTA — never as a naked
   score. (Tag-graph health pill, principle #7, removed same day
   it shipped — RPC kept for admin/analytics.)
+- **Adding a new notification type — the 3-point checklist.** When
+  shipping a new `piktag_notifications.type` value, three spots
+  MUST land in the same PR or the categorization quietly breaks:
+  1. **`is_notification_category_enabled()`** in
+     `supabase/migrations/20260530000000_notification_category_toggles.sql`
+     (or its successor). Add the type → category mapping. Missing
+     entries fail-open by design (so a forgotten type still
+     delivers in-app) — but it ALSO means a user who opted out of
+     the category will still see your new type, which is the bug.
+  2. **`filterNotifications()`** switch in
+     `src/screens/NotificationsScreen.tsx`. Add the type to the
+     matching tab (`social` / `matches` / `memories`). A missing
+     entry means the row inserts fine but doesn't show in ANY
+     tab — invisible to the user.
+  3. **Type-specific i18n keys** under `notifications.types.<type>`
+     in all 19 locale JSONs if the row's title/body is rendered
+     client-side (the convention for newer types; check by
+     looking at the trigger function — empty title/body strings
+     in the INSERT means client-rendered). NotificationsScreen
+     falls back to the DB body for unknown types, so this is
+     warning-not-error level, but the row will read in whatever
+     language the trigger author hardcoded otherwise.
+  Quick sanity: grep your new type name in those three files
+  before pushing. If it appears fewer than 3 times you've missed
+  one.
 - **Match the control to the layer it actually owns.** An in-app
   toggle should govern in-app behavior; the OS owns OS behavior.
   Don't try to make one switch control both — the engineering cost

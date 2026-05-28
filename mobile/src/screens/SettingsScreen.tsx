@@ -157,8 +157,17 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
   }, [user]);
 
   // Shared notification-category toggle. Optimistic flip → DB write
-  // → revert on real failure. 42703 (column not yet migrated) is
-  // tolerated so a stale binary stays usable.
+  // → revert on real failure. Missing-column errors are tolerated
+  // either direction:
+  //   • Column not yet added (stale binary, migration not landed):
+  //       Postgres returns 42703 + "column does not exist".
+  //   • Column dropped after binary shipped (the inverse — old
+  //     TestFlight build trying to write to a column we removed):
+  //       PostgREST returns PGRST204 + "Could not find the
+  //       'X' column of 'piktag_profiles' in the schema cache".
+  // Both should leave the optimistic flip in place so the toggle
+  // doesn't visibly snap back to the user — the on-screen state is
+  // the user's intent even if the column to persist it is gone.
   const updateNotifCategory = useCallback(
     async (
       column: 'notif_social' | 'notif_matches' | 'notif_memories',
@@ -173,9 +182,16 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
         .update({ [column]: newValue })
         .eq('id', user.id);
       if (error) {
+        const code = (error as any).code;
+        const msg = error.message || '';
+        // Match the column name anywhere in the message — covers
+        // both Postgres "column X does not exist" and PostgREST's
+        // "Could not find the 'X' column …" wording. Codes 42703
+        // and PGRST204 are the same condition from different layers.
         const isMissingColumn =
-          (error as any).code === '42703' ||
-          new RegExp(`column .*${column}`, 'i').test(error.message);
+          code === '42703' ||
+          code === 'PGRST204' ||
+          new RegExp(column, 'i').test(msg);
         if (!isMissingColumn) {
           console.warn(`[Settings] ${column} toggle failed:`, error);
           setter(prev);
