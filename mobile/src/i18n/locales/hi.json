@@ -731,9 +731,9 @@
     "sendAddPasswordEmail": "सेटअप ईमेल भेजें",
     "vibeShiftNotifications": "जब दोस्त नए टैग पोस्ट करें मुझे सूचित करें",
     "groupNotifications": "सूचनाएँ",
-    "notifSocial": "सोशल — फॉलो, दोस्त, टैग, लिंक क्लिक, निमंत्रण",
-    "notifMatches": "AI मेल — हो सकता है आप जानते हों, Ask मेल, फिर से जुड़ें",
-    "notifMemories": "यादें — जन्मदिन, सालगिरह, इस दिन",
+    "notifSocial": "सोशल",
+    "notifMatches": "AI मेल",
+    "notifMemories": "यादें",
     "notifBadge": "ऐप आइकन बैज"
   },
   "contactSync": {
@@ -961,7 +961,9 @@
     },
     "endorseBtn": "सहमत",
     "endorseRetry": "पुनः प्रयास",
-    "endorseDone": "सहमत"
+    "endorseDone": "सहमत",
+    "tabMatches": "मेल",
+    "tabMemories": "यादें"
   },
   "scanResult": {
     "headerTitle": "दोस्त जोड़ें",

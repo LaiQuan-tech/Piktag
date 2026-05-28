@@ -738,9 +738,9 @@
     "sendAddPasswordEmail": "Send setup email",
     "vibeShiftNotifications": "Notify me when friends post new tags",
     "groupNotifications": "Notifications",
-    "notifSocial": "Social — follows, friends, tags, link clicks, invites",
-    "notifMatches": "AI matches — people you might know, Ask matches, reconnect nudges",
-    "notifMemories": "Memories — birthdays, anniversaries, on this day",
+    "notifSocial": "Social",
+    "notifMatches": "AI matches",
+    "notifMemories": "Memories",
     "notifBadge": "App icon badge"
   },
   "contactSync": {
@@ -1006,7 +1006,9 @@
     },
     "endorseBtn": "Endorse",
     "endorseRetry": "Retry",
-    "endorseDone": "Endorsed"
+    "endorseDone": "Endorsed",
+    "tabMatches": "Matches",
+    "tabMemories": "Memories"
   },
   "scanResult": {
     "headerTitle": "Add Friend",

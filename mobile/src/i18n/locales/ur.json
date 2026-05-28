@@ -738,9 +738,9 @@
     "sendAddPasswordEmail": "سیٹ اپ ای میل بھیجیں",
     "vibeShiftNotifications": "دوست نئے ٹیگ پوسٹ کریں تو مجھے بتائیں",
     "groupNotifications": "اطلاعات",
-    "notifSocial": "سوشل — فالو، دوست، ٹیگز، لنک کلکس، دعوتیں",
-    "notifMatches": "AI میچز — ممکنہ شناسا، Ask میچز، دوبارہ رابطہ",
-    "notifMemories": "یادیں — سالگرہیں، ملاقات کی برسی، آج کے دن",
+    "notifSocial": "سوشل",
+    "notifMatches": "AI میچز",
+    "notifMemories": "یادیں",
     "notifBadge": "ایپ آئیکن بیج"
   },
   "contactSync": {
@@ -1006,7 +1006,9 @@
     },
     "endorseBtn": "متفق",
     "endorseRetry": "دوبارہ کوشش",
-    "endorseDone": "متفق ہو گیا"
+    "endorseDone": "متفق ہو گیا",
+    "tabMatches": "میچ",
+    "tabMemories": "یادیں"
   },
   "scanResult": {
     "headerTitle": "دوست شامل کریں",

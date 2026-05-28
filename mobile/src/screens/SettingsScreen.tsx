@@ -437,9 +437,7 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
       title: t('settings.groupNotifications', { defaultValue: '通知' }),
       items: [
         {
-          label: t('settings.notifSocial', {
-            defaultValue: '社交動態 — 追蹤、好友、標籤、連結點擊、邀請',
-          }),
+          label: t('settings.notifSocial', { defaultValue: '社交動態' }),
           onPress: handleNotifSocialToggle,
           rightElement: (
             <Switch
@@ -451,9 +449,7 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
           ),
         },
         {
-          label: t('settings.notifMatches', {
-            defaultValue: 'AI 配對推薦 — 你可能認識的人、Ask 配對、重新連結',
-          }),
+          label: t('settings.notifMatches', { defaultValue: 'AI 配對推薦' }),
           onPress: handleNotifMatchesToggle,
           rightElement: (
             <Switch
@@ -465,9 +461,7 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
           ),
         },
         {
-          label: t('settings.notifMemories', {
-            defaultValue: '節日與回憶 — 生日、認識週年、舊時光',
-          }),
+          label: t('settings.notifMemories', { defaultValue: '節日與回憶' }),
           onPress: handleNotifMemoriesToggle,
           rightElement: (
             <Switch
@@ -479,9 +473,7 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
           ),
         },
         {
-          label: t('settings.notifBadge', {
-            defaultValue: 'App 圖示紅點數字',
-          }),
+          label: t('settings.notifBadge', { defaultValue: 'App 圖示紅點' }),
           onPress: handleNotifBadgeToggle,
           rightElement: (
             <Switch

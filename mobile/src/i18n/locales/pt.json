@@ -731,10 +731,10 @@
     "sendAddPasswordEmail": "Enviar email de configuração",
     "vibeShiftNotifications": "Notifique quando amigos publicarem novas tags",
     "groupNotifications": "Notificações",
-    "notifSocial": "Social — seguidores, amigos, tags, cliques, convites",
-    "notifMatches": "Matches de IA — gente que talvez conheça, Asks, reconexões",
-    "notifMemories": "Lembranças — aniversários, datas que vocês se conheceram, neste dia",
-    "notifBadge": "Selo no ícone do app"
+    "notifSocial": "Social",
+    "notifMatches": "Matches de IA",
+    "notifMemories": "Lembranças",
+    "notifBadge": "Selo no ícone"
   },
   "contactSync": {
     "headerTitle": "Sincronizar contatos",
@@ -961,7 +961,9 @@
     },
     "endorseBtn": "Apoiar",
     "endorseRetry": "Tentar de novo",
-    "endorseDone": "Apoiado"
+    "endorseDone": "Apoiado",
+    "tabMatches": "Matches",
+    "tabMemories": "Lembranças"
   },
   "scanResult": {
     "headerTitle": "Adicionar amigo",

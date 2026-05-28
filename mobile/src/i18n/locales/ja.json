@@ -731,9 +731,9 @@
     "sendAddPasswordEmail": "設定メールを送信",
     "vibeShiftNotifications": "友だちが新しいタグを投稿したら通知",
     "groupNotifications": "通知",
-    "notifSocial": "ソーシャル — フォロー、友だち、タグ、リンククリック、招待",
-    "notifMatches": "AI マッチング — 知り合いかも、Ask マッチ、再つなぎ提案",
-    "notifMemories": "記念日と思い出 — 誕生日、出会った日、あの日",
+    "notifSocial": "ソーシャル",
+    "notifMatches": "AI マッチング",
+    "notifMemories": "記念日と思い出",
     "notifBadge": "App アイコンのバッジ"
   },
   "contactSync": {
@@ -961,7 +961,9 @@
     },
     "endorseBtn": "同意",
     "endorseRetry": "再試行",
-    "endorseDone": "同意済み"
+    "endorseDone": "同意済み",
+    "tabMatches": "マッチ",
+    "tabMemories": "思い出"
   },
   "scanResult": {
     "headerTitle": "友達追加",

@@ -731,10 +731,10 @@
     "sendAddPasswordEmail": "ส่งอีเมลตั้งค่า",
     "vibeShiftNotifications": "แจ้งเมื่อเพื่อนโพสต์แท็กใหม่",
     "groupNotifications": "การแจ้งเตือน",
-    "notifSocial": "โซเชียล — ติดตาม เพื่อน แท็ก คลิกลิงก์ คำเชิญ",
-    "notifMatches": "AI จับคู่ — คนที่คุณอาจรู้จัก, Ask จับคู่, กลับมาทักทาย",
-    "notifMemories": "ความทรงจำ — วันเกิด ครบรอบ วันนี้เมื่อก่อน",
-    "notifBadge": "จุดแดงบนไอคอนแอป"
+    "notifSocial": "โซเชียล",
+    "notifMatches": "AI จับคู่",
+    "notifMemories": "ความทรงจำ",
+    "notifBadge": "จุดแดงไอคอน"
   },
   "contactSync": {
     "headerTitle": "ซิงค์รายชื่อ",
@@ -961,7 +961,9 @@
     },
     "endorseBtn": "เห็นด้วย",
     "endorseRetry": "ลองอีกครั้ง",
-    "endorseDone": "เห็นด้วยแล้ว"
+    "endorseDone": "เห็นด้วยแล้ว",
+    "tabMatches": "จับคู่",
+    "tabMemories": "ความทรงจำ"
   },
   "scanResult": {
     "headerTitle": "เพิ่มเพื่อน",

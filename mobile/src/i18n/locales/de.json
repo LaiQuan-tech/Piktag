@@ -733,9 +733,9 @@
     "sendAddPasswordEmail": "Einrichtungs-E-Mail senden",
     "vibeShiftNotifications": "Benachrichtige mich, wenn Freunde neue Tags posten",
     "groupNotifications": "Benachrichtigungen",
-    "notifSocial": "Social — Follows, Freunde, Tags, Klicks, Einladungen",
-    "notifMatches": "KI-Treffer — Leute, die du kennen könntest, Ask-Treffer, Reconnect",
-    "notifMemories": "Erinnerungen — Geburtstage, Jahrestage, an diesem Tag",
+    "notifSocial": "Social",
+    "notifMatches": "KI-Treffer",
+    "notifMemories": "Erinnerungen",
     "notifBadge": "App-Icon-Badge"
   },
   "contactSync": {
@@ -999,7 +999,9 @@
     },
     "endorseBtn": "Bestätigen",
     "endorseRetry": "Erneut versuchen",
-    "endorseDone": "Bestätigt"
+    "endorseDone": "Bestätigt",
+    "tabMatches": "Treffer",
+    "tabMemories": "Erinnerungen"
   },
   "scanResult": {
     "headerTitle": "Freund hinzufügen",

@@ -731,10 +731,10 @@
     "sendAddPasswordEmail": "إرسال بريد الإعداد",
     "vibeShiftNotifications": "أبلغني عند نشر الأصدقاء وسوماً جديدة",
     "groupNotifications": "الإشعارات",
-    "notifSocial": "اجتماعي — متابعات وأصدقاء ووسوم ونقرات ودعوات",
-    "notifMatches": "تطابقات الذكاء الاصطناعي — قد تعرفهم وتطابقات Ask وإعادة التواصل",
-    "notifMemories": "ذكريات — أعياد ميلاد وذكريات اللقاء ومناسبات اليوم",
-    "notifBadge": "شارة أيقونة التطبيق"
+    "notifSocial": "اجتماعي",
+    "notifMatches": "تطابقات الذكاء الاصطناعي",
+    "notifMemories": "ذكريات",
+    "notifBadge": "شارة الأيقونة"
   },
   "contactSync": {
     "headerTitle": "مزامنة جهات الاتصال",
@@ -961,7 +961,9 @@
     },
     "endorseBtn": "أؤيد",
     "endorseRetry": "إعادة المحاولة",
-    "endorseDone": "تم التأييد"
+    "endorseDone": "تم التأييد",
+    "tabMatches": "تطابقات",
+    "tabMemories": "ذكريات"
   },
   "scanResult": {
     "headerTitle": "إضافة صديق",

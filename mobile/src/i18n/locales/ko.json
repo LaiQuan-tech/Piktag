@@ -731,9 +731,9 @@
     "sendAddPasswordEmail": "설정 이메일 보내기",
     "vibeShiftNotifications": "친구가 새 태그를 올리면 알림",
     "groupNotifications": "알림",
-    "notifSocial": "소셜 — 팔로우, 친구, 태그, 링크 클릭, 초대",
-    "notifMatches": "AI 매칭 — 알 수도 있는 사람, Ask 매치, 다시 연결",
-    "notifMemories": "추억과 기념일 — 생일, 만난 기념일, 그날의 기억",
+    "notifSocial": "소셜",
+    "notifMatches": "AI 매칭",
+    "notifMemories": "추억과 기념일",
     "notifBadge": "앱 아이콘 배지"
   },
   "contactSync": {
@@ -961,7 +961,9 @@
     },
     "endorseBtn": "동의",
     "endorseRetry": "다시 시도",
-    "endorseDone": "동의함"
+    "endorseDone": "동의함",
+    "tabMatches": "매칭",
+    "tabMemories": "추억"
   },
   "scanResult": {
     "headerTitle": "친구 추가",

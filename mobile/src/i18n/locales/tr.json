@@ -731,10 +731,10 @@
     "sendAddPasswordEmail": "Kurulum e-postası gönder",
     "vibeShiftNotifications": "Arkadaşlar yeni etiket paylaştığında bildir",
     "groupNotifications": "Bildirimler",
-    "notifSocial": "Sosyal — takipler, arkadaşlar, etiketler, tıklamalar, davetler",
-    "notifMatches": "AI eşleşmeleri — tanıyor olabileceğin kişiler, Ask, yeniden bağlan",
-    "notifMemories": "Anılar — doğum günleri, yıl dönümleri, bugün geçmişte",
-    "notifBadge": "Uygulama simgesi rozeti"
+    "notifSocial": "Sosyal",
+    "notifMatches": "AI eşleşmeleri",
+    "notifMemories": "Anılar",
+    "notifBadge": "Simge rozeti"
   },
   "contactSync": {
     "headerTitle": "Kişi Senkronizasyonu",
@@ -961,7 +961,9 @@
     },
     "endorseBtn": "Onayla",
     "endorseRetry": "Tekrar dene",
-    "endorseDone": "Onaylandı"
+    "endorseDone": "Onaylandı",
+    "tabMatches": "Eşleşmeler",
+    "tabMemories": "Anılar"
   },
   "scanResult": {
     "headerTitle": "Arkadaş Ekle",

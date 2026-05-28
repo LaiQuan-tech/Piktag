@@ -731,10 +731,10 @@
     "sendAddPasswordEmail": "সেটআপ ইমেল পাঠান",
     "vibeShiftNotifications": "বন্ধুরা নতুন ট্যাগ পোস্ট করলে আমাকে জানান",
     "groupNotifications": "নোটিফিকেশন",
-    "notifSocial": "সোশ্যাল — ফলো, বন্ধু, ট্যাগ, লিঙ্ক ক্লিক, আমন্ত্রণ",
-    "notifMatches": "AI মিল — হয়তো চেনেন, Ask মিল, পুনরায় সংযোগ",
-    "notifMemories": "স্মৃতি — জন্মদিন, পরিচয়ের বার্ষিকী, আজকের দিনে",
-    "notifBadge": "অ্যাপ আইকনে ব্যাজ"
+    "notifSocial": "সোশ্যাল",
+    "notifMatches": "AI মিল",
+    "notifMemories": "স্মৃতি",
+    "notifBadge": "অ্যাপ আইকন ব্যাজ"
   },
   "contactSync": {
     "headerTitle": "কন্টাক্ট সিঙ্ক",
@@ -961,7 +961,9 @@
     },
     "endorseBtn": "সম্মত",
     "endorseRetry": "আবার চেষ্টা",
-    "endorseDone": "সম্মত"
+    "endorseDone": "সম্মত",
+    "tabMatches": "মিল",
+    "tabMemories": "স্মৃতি"
   },
   "scanResult": {
     "headerTitle": "বন্ধু যোগ করুন",

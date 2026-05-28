@@ -731,9 +731,9 @@
     "sendAddPasswordEmail": "Отправить письмо настройки",
     "vibeShiftNotifications": "Уведомлять о новых тегах друзей",
     "groupNotifications": "Уведомления",
-    "notifSocial": "Соцсеть — подписки, друзья, теги, клики, приглашения",
-    "notifMatches": "ИИ-совпадения — возможные знакомые, Ask, возобновление связи",
-    "notifMemories": "Воспоминания — дни рождения, годовщины, в этот день",
+    "notifSocial": "Соцсеть",
+    "notifMatches": "ИИ-совпадения",
+    "notifMemories": "Воспоминания",
     "notifBadge": "Бейдж на иконке"
   },
   "contactSync": {
@@ -854,7 +854,7 @@
   },
   "notifications": {
     "headerTitle": "Уведомления",
-    "tabSocial": "Соцсеть",
+    "tabSocial": "Соц",
     "tabReminders": "Напоминания",
     "timeJustNow": "Только что",
     "timeMinutesAgo": "{{count}} мин назад",
@@ -961,7 +961,9 @@
     },
     "endorseBtn": "Подтвердить",
     "endorseRetry": "Повторить",
-    "endorseDone": "Подтверждено"
+    "endorseDone": "Подтверждено",
+    "tabMatches": "Совпадения",
+    "tabMemories": "Память"
   },
   "scanResult": {
     "headerTitle": "Добавить друга",

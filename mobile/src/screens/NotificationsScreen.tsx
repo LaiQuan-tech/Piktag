@@ -32,9 +32,16 @@ type NotificationsScreenProps = {
   navigation?: any;
 };
 
-type NotificationTab = 'social' | 'reminders';
+// Three tabs, identical to the Settings category split (Settings'
+// notif_social / notif_matches / notif_memories columns). One mental
+// model across "where do I see this notification?" and "where do I
+// turn it off?" beats two slightly-different taxonomies that ship
+// and then drift. Mapping mirrors is_notification_category_enabled()
+// in supabase/migrations/20260530000000_notification_category_toggles.sql
+// — keep both in sync when adding new types.
+type NotificationTab = 'social' | 'matches' | 'memories';
 
-const TAB_KEYS: NotificationTab[] = ['social', 'reminders'];
+const TAB_KEYS: NotificationTab[] = ['social', 'matches', 'memories'];
 
 function filterNotifications(
   notifications: Notification[],
@@ -42,52 +49,45 @@ function filterNotifications(
 ): Notification[] {
   switch (tab) {
     case 'social':
+      // Things people directly involving you did: followed,
+      // friended, tagged your profile, clicked your biolink,
+      // accepted your invite, posted an Ask, tagged something
+      // that propagated (vibe_shift), or had their tag trend.
       return notifications.filter(
         (n) =>
           n.type === 'follow' ||
           n.type === 'friend' ||
           n.type === 'tag_added' ||
-          n.type === 'recommendation' ||
-          n.type === 'tag_trending' ||
-          n.type === 'ask_posted' ||
+          n.type === 'biolink_click' ||
           n.type === 'invite_accepted' ||
-          // P3: Vibe Shift — a friend in one of your Vibes added
-          // a new tag to their profile. Belongs in the social
-          // tab alongside follow/friend/tag_added (all of which
-          // are "someone you know did a thing").
           n.type === 'vibe_shift' ||
-          // Magic moment #1: a tag you just added is shared by
-          // friends in your network. Social discovery, not a
-          // reminder — same tab as the rest.
-          n.type === 'tag_convergence' ||
-          // Magic moment #3: Bridge Detection — a friend has a
-          // friend who matches your Ask. Social discovery,
-          // action-oriented.
-          n.type === 'ask_bridge' ||
-          // P1: weekly Ask-of-the-day prompt for dormant users.
-          // It's a system prompt, not a "someone you know did a
-          // thing" — but it slots in the social tab because
-          // posting an Ask IS the next social action.
-          n.type === 'ask_prompt' ||
-          // Magic moment #2: "Eva 也標了 #X — 你們很久沒聊了"
-          // weekly reconnect nudge. Social action prompt.
-          n.type === 'reconnect_suggest' ||
-          // Magic moment #4: weekly digest of over-represented
-          // tag combinations in the viewer's network.
-          n.type === 'tag_combo'
+          n.type === 'ask_posted' ||
+          n.type === 'tag_trending'
       );
-    case 'reminders':
+    case 'matches':
+      // ★ North-Star tab: AI-driven discovery / re-activation.
+      // "People you might know", convergence, bridge, reconnect
+      // nudges, weekly combo digest — every magic-moment match.
       return notifications.filter(
         (n) =>
-          n.type === 'biolink_click' ||
-          n.type === 'reminder' ||
+          n.type === 'recommendation' ||
+          n.type === 'tag_convergence' ||
+          n.type === 'ask_bridge' ||
+          n.type === 'reconnect_suggest' ||
+          n.type === 'tag_combo'
+      );
+    case 'memories':
+      // Time-based reminders + system prompts that aren't
+      // directly social. Includes the legacy 'reminder' type
+      // for backward compat with any old rows.
+      return notifications.filter(
+        (n) =>
           n.type === 'birthday' ||
           n.type === 'anniversary' ||
-          // P0 daily-return mechanic: "X 年前的今天 / X 個月前的今天"
-          // Vibe anniversary. Slots into the reminders tab next to
-          // birthday / anniversary — same kind of "time-driven
-          // memory" tone.
-          n.type === 'on_this_day'
+          n.type === 'on_this_day' ||
+          n.type === 'ask_prompt' ||
+          n.type === 'endorsement_request' ||
+          n.type === 'reminder'
       );
     default:
       return notifications;
@@ -375,7 +375,8 @@ export default function NotificationsScreen({ navigation }: NotificationsScreenP
   const TAB_LABELS: Record<NotificationTab, string> = useMemo(
     () => ({
       social: t('notifications.tabSocial', { defaultValue: '社交' }),
-      reminders: t('notifications.tabReminders', { defaultValue: '提醒' }),
+      matches: t('notifications.tabMatches', { defaultValue: '配對' }),
+      memories: t('notifications.tabMemories', { defaultValue: '回憶' }),
     }),
     [t]
   );

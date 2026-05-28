@@ -731,9 +731,9 @@
     "sendAddPasswordEmail": "Enviar email de configuración",
     "vibeShiftNotifications": "Avísame cuando los amigos publiquen nuevos tags",
     "groupNotifications": "Notificaciones",
-    "notifSocial": "Social — seguidores, amigos, tags, clics, invitaciones",
-    "notifMatches": "Coincidencias IA — gente que podrías conocer, Ask, reconexiones",
-    "notifMemories": "Recuerdos — cumpleaños, aniversarios, en este día",
+    "notifSocial": "Social",
+    "notifMatches": "Coincidencias IA",
+    "notifMemories": "Recuerdos",
     "notifBadge": "Insignia en el ícono"
   },
   "contactSync": {
@@ -961,7 +961,9 @@
     },
     "endorseBtn": "Apoyar",
     "endorseRetry": "Reintentar",
-    "endorseDone": "Apoyado"
+    "endorseDone": "Apoyado",
+    "tabMatches": "Match",
+    "tabMemories": "Recuerdos"
   },
   "scanResult": {
     "headerTitle": "Añadir amigo",

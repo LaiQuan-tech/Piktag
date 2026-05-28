@@ -738,10 +738,10 @@
     "sendAddPasswordEmail": "Gửi email thiết lập",
     "vibeShiftNotifications": "Báo cho tôi khi bạn bè đăng tag mới",
     "groupNotifications": "Thông báo",
-    "notifSocial": "Mạng xã hội — theo dõi, bạn bè, tag, click link, lời mời",
-    "notifMatches": "Khớp AI — người bạn có thể quen, Ask khớp, nối lại",
-    "notifMemories": "Kỷ niệm — sinh nhật, ngày quen nhau, ngày này năm xưa",
-    "notifBadge": "Số đỏ trên biểu tượng app"
+    "notifSocial": "Mạng xã hội",
+    "notifMatches": "Khớp AI",
+    "notifMemories": "Kỷ niệm",
+    "notifBadge": "Số đỏ icon"
   },
   "contactSync": {
     "headerTitle": "Đồng bộ danh bạ",
@@ -1006,7 +1006,9 @@
     },
     "endorseBtn": "Đồng ý",
     "endorseRetry": "Thử lại",
-    "endorseDone": "Đã đồng ý"
+    "endorseDone": "Đã đồng ý",
+    "tabMatches": "Khớp",
+    "tabMemories": "Kỷ niệm"
   },
   "scanResult": {
     "headerTitle": "Thêm bạn",

@@ -731,10 +731,10 @@
     "sendAddPasswordEmail": "Kirim email setelan",
     "vibeShiftNotifications": "Beri tahu saat teman memposting tag baru",
     "groupNotifications": "Notifikasi",
-    "notifSocial": "Sosial — follow, teman, tag, klik tautan, undangan",
-    "notifMatches": "Pencocokan AI — orang yang mungkin kamu kenal, Ask, sambung lagi",
-    "notifMemories": "Kenangan — ulang tahun, peringatan, hari ini di tahun lalu",
-    "notifBadge": "Badge ikon aplikasi"
+    "notifSocial": "Sosial",
+    "notifMatches": "Pencocokan AI",
+    "notifMemories": "Kenangan",
+    "notifBadge": "Badge ikon"
   },
   "contactSync": {
     "headerTitle": "Sinkronisasi Kontak",
@@ -961,7 +961,9 @@
     },
     "endorseBtn": "Setuju",
     "endorseRetry": "Coba lagi",
-    "endorseDone": "Disetujui"
+    "endorseDone": "Disetujui",
+    "tabMatches": "Cocok",
+    "tabMemories": "Kenangan"
   },
   "scanResult": {
     "headerTitle": "Tambah Teman",
