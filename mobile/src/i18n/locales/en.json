@@ -69,8 +69,8 @@
     "checkConnection": "Check your connection and try again",
     "willAutoRetry": "We'll retry automatically when you're back online",
     "userNotFound": "Couldn't find this user",
-    "edit": "編輯",
-    "you": "你",
+    "edit": "Edit",
+    "you": "You",
     "noResults": "—"
   },
   "auth": {
@@ -206,17 +206,17 @@
       "cardApplyCta": "Apply",
       "profileCta": "Create my first Tag",
       "saveFailed": "Couldn't save — check your connection and try again.",
-      "nameRequiredTitle": "需要一個名字",
-      "nameRequiredMessage": "朋友掃 QR 會看到這個名字，至少幫自己取一個吧。",
-      "welcomeTitle": "一個 QR，加完所有朋友",
-      "welcomeSubtitle": "貼上標籤，下次見面就知道是誰",
+      "nameRequiredTitle": "Add a name",
+      "nameRequiredMessage": "Friends will see this name when they scan your QR. Set one to get started.",
+      "welcomeTitle": "One QR. Add everyone.",
+      "welcomeSubtitle": "Tag people so you remember who's who next time.",
       "brandTagline": "Tag the Vibe, Keep the Tribe",
-      "welcomeCta": "開始使用 PikTag",
-      "profileTitle": "你叫什麼名字？",
-      "profileSubtitle": "朋友掃 QR 會看到這個名字",
-      "avatarPickA11y": "選擇頭像",
-      "avatarHint": "頭像選填（之後可以再加）",
-      "profileNamePlaceholder": "你的名字"
+      "welcomeCta": "Get started with PikTag",
+      "profileTitle": "What's your name?",
+      "profileSubtitle": "Friends will see this name when they scan your QR.",
+      "avatarPickA11y": "Choose profile photo",
+      "avatarHint": "Photo is optional — you can add it later.",
+      "profileNamePlaceholder": "Your name"
     }
   },
   "connections": {
@@ -408,10 +408,10 @@
       "Beach BBQ",
       "A friend’s wedding"
     ],
-    "saveWarnTitle": "QR 已產生，但無法儲存到 Tag",
-    "dateLabel": "日期",
-    "locationLabel": "地點",
-    "selectLocation": "選地點"
+    "saveWarnTitle": "QR created, but couldn't save to Tag",
+    "dateLabel": "Date",
+    "locationLabel": "Place",
+    "selectLocation": "Pick a place"
   },
   "profile": {
     "nameNotSet": "Name not set",
@@ -678,7 +678,7 @@
     "vibeContextTagsTitle": "Tags from this Tag",
     "blockConfirmTitle": "Block this person?",
     "blockConfirmMessage": "You'll both unfollow each other and stop seeing each other's content.",
-    "vibeContextTagsHint": "想貼到他個人頁的點一下（只有你看得到）"
+    "vibeContextTagsHint": "Tap to attach a tag to their profile (only visible to you)."
   },
   "settings": {
     "headerTitle": "Settings",
@@ -731,10 +731,10 @@
     "analyticsOptIn": "Send usage analytics",
     "analyticsOptInDescription": "Help us improve the app",
     "attRationale": "PikTag uses basic analytics to improve your experience. We never track you across other apps.",
-    "addPasswordTitle": "新增密碼",
-    "addPasswordMessage": "你目前用 Apple/Google 登入，沒有 PikTag 密碼。送出後會寄一封信到你的 Email，幫你新增一組密碼，之後也能用 Email + 密碼登入（Apple/Google 登入仍然有效）",
-    "sendAddPasswordEmail": "發送設定信",
-    "vibeShiftNotifications": "朋友貼新標籤時通知我"
+    "addPasswordTitle": "Add password",
+    "addPasswordMessage": "You currently sign in with Apple/Google and don't have a PikTag password. We'll email you a setup link so you can also sign in with email + password (Apple/Google sign-in keeps working).",
+    "sendAddPasswordEmail": "Send setup email",
+    "vibeShiftNotifications": "Notify me when friends post new tags"
   },
   "contactSync": {
     "headerTitle": "Contact Sync",
@@ -773,14 +773,14 @@
     "allConnected": "All PikTag contacts are already connected",
     "tagModalHint": "Private tags only you can see (up to {{max}}) — when this person joins PikTag, these tags will appear in your friend's profile under \"hidden tags\", invisible to them and everyone else.",
     "openSettings": "Open Settings to allow access",
-    "tagInviteFailedTitle": "加入名單失敗",
-    "tagInviteFailedMessage": "請稍後再試，或在「聯絡人名單」中手動新增。",
-    "taggedBadge": "已加入名單",
-    "tagModalTitle": "私人標籤",
-    "tagModalCustomPlaceholder": "自訂標籤",
-    "tagModalAddCustom": "新增",
-    "tagModalPopular": "熱門標籤",
-    "tagModalSubmit": "存私人標籤並邀請"
+    "tagInviteFailedTitle": "Couldn't add to list",
+    "tagInviteFailedMessage": "Please try again, or add them manually from Contacts.",
+    "taggedBadge": "Added to list",
+    "tagModalTitle": "Hidden tags",
+    "tagModalCustomPlaceholder": "Custom tag",
+    "tagModalAddCustom": "Add",
+    "tagModalPopular": "Popular tags",
+    "tagModalSubmit": "Save tags & invite"
   },
   "invite": {
     "headerTitle": "Invite Friends",
@@ -850,8 +850,8 @@
     "topBiolinksTitle": "Most Popular Links",
     "topBiolinksEmpty": "No link click records",
     "clickCount": "{{count}} clicks",
-    "networkCompositionTitle": "人脈組成",
-    "networkCompositionEmpty": "尚無分類資料"
+    "networkCompositionTitle": "Network composition",
+    "networkCompositionEmpty": "No category data yet"
   },
   "notifications": {
     "headerTitle": "Notifications",
@@ -1082,7 +1082,7 @@
     "exploreEmptyTitle": "No users found",
     "exploreEmptyText": "No public users have used this tag yet",
     "viewAll": "View All",
-    "relatedTags": "相關標籤"
+    "relatedTags": "Related tags"
   },
   "semanticType": {
     "identity": "Identity",
@@ -1368,10 +1368,10 @@
     "deleteFailedTitle": "Delete failed",
     "deleteFailedMessage": "This Tag wasn't deleted. Please try again later. Contact us if it keeps happening.",
     "emptyScanCta": "Or scan their QR to connect",
-    "scan": "掃描 QR 加好友",
-    "currentVibesTitle": "他們最近在標什麼",
-    "currentVibesHint": "這群人現在共同的標籤 — 點一下看是誰",
-    "membersFilterEmpty": "這個 Tag 中沒有貼這個標籤的人"
+    "scan": "Scan QR to add friends",
+    "currentVibesTitle": "What they're tagging lately",
+    "currentVibesHint": "Tags this group is sharing right now — tap to see who.",
+    "membersFilterEmpty": "No one in this Tag has that tag yet."
   },
   "localContact": {
     "editTitle": "Edit contact",
@@ -1417,8 +1417,8 @@
     "fieldWebsite": "Website",
     "websitePlaceholder": "e.g. example.com",
     "scanningCard": "Reading card… (about 3s)",
-    "scanCardCta": "掃描名片自動帶入",
-    "avatarUploadFailTitle": "上傳失敗"
+    "scanCardCta": "Scan a card to auto-fill",
+    "avatarUploadFailTitle": "Upload failed"
   },
   "followers": {
     "title": "Followers",
