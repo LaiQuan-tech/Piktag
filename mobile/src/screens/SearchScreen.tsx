@@ -1941,6 +1941,41 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
 
   const handleProfilePress = useCallback(
     (profile: PiktagProfile) => {
+      // Log the click → piktag_search_learnings (Lesson #1 attribution).
+      // Fire-and-forget — never blocks navigation. The row's `converted`
+      // flag gets backfilled to TRUE later inside get_or_create_conversation
+      // if this click leads to a message within 30 min. That feeds the
+      // post-launch p(click) → p(message) calibration the deferred-#1
+      // multi-predictor split needs (CLAUDE.md).
+      if (user?.id) {
+        // Prefer the LLM-extracted keyword when available — it's the
+        // semantic anchor; raw query text often has stopwords / filler.
+        // Falls back to the raw query so we always log something useful.
+        const keyword =
+          (llmExtractedKeywords && llmExtractedKeywords[0]) ||
+          searchQuery.trim() ||
+          '(empty)';
+        const rawQuery = searchQuery.trim() || keyword;
+        void supabase
+          .from('piktag_search_learnings')
+          .insert({
+            query: rawQuery,
+            extracted_keyword: keyword,
+            clicked_user_id: profile.id,
+            searcher_id: user.id,
+          })
+          .then(({ error }) => {
+            if (error) {
+              // 42P01 (table missing) etc. are tolerated — logging is
+              // analytics, not user-visible. Quietly warn for real errors.
+              const code = (error as any).code;
+              if (code !== '42P01' && code !== 'PGRST205') {
+                console.warn('[search] click log failed:', error.message);
+              }
+            }
+          });
+      }
+
       // If the tapped profile is a friend, route to FriendDetail with
       // the cached connection_id so the screen can render the
       // searcher's manual/private tags via piktag_connection_tags.
@@ -1955,7 +1990,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
       }
       navigation.navigate('UserDetail', { userId: profile.id });
     },
-    [navigation, myFriendIds],
+    [navigation, myFriendIds, user, searchQuery, llmExtractedKeywords],
   );
 
   const handleLocalContactPress = useCallback(
