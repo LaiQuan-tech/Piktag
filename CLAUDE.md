@@ -33,6 +33,88 @@ non-member-onboarding conversion, (c) reduces friction on the
 `scan → tag → connect` and `search-tag → reactivate` loops. If a request
 works *against* this, say so honestly (中肯) rather than just complying.
 
+### What we DON'T learn from engagement-driven platforms
+
+After studying Meta's Facebook ranking transparency page on
+2026-05-30, two of their core signals are anti-patterns for
+PikTag — importing them would optimize against our own thesis.
+Lock these so a future session doesn't accidentally adopt them
+while "borrowing best practice" from a Big Tech post-mortem.
+
+1. **Never use dwell time / time-on-profile as a positive signal.**
+   FB / TikTok reward long sessions because their ad business
+   needs eyeballs. PikTag's success has the OPPOSITE shape:
+   search → find the right person → message → leave. A user
+   lingering on a profile usually means "not sure" / "lost" /
+   "stalking" — not "engaged." If anything, dwell-without-action
+   should be a weak NEGATIVE signal (the user looked and didn't
+   message — that's a mismatch worth de-weighting next time).
+
+2. **Never conflate engagement with value.**
+   Meta's transparency page literally says "sharing a post...can
+   be an indication that you found that post to be valuable" —
+   engagement IS their meaningfulness metric. For PikTag this
+   directly contradicts the thesis:
+   - Dormant connections have low recent engagement BY DEFINITION
+     — they're who you're trying to reactivate. Engagement-as-value
+     would bury them.
+   - Cross-language tag matches have small audiences, hence low
+     engagement — they're the unique-to-us product. Engagement-as-
+     value would bury them.
+   - Weak-tie / 2nd-degree discoveries have low overlap, hence low
+     engagement — they're the IG-story serendipity layer.
+     Engagement-as-value would bury them.
+   The right anchor is principle #4 (temporal decay per source) —
+   factual signals (self-claim, when-met) survive even when there's
+   no recent engagement to "validate" them.
+
+What we DO take from Meta's page: principle #6 negative-signal
+collection (hide / snooze / unsubscribe → reduce distribution —
+we already do this with `piktag_tag_removals` + new
+`piktag_match_dismissals` 2026-05-30), and the multi-predictor
+framework (post-launch deferred #1 — split search ranking into
+p(click) / p(message) / p(endorse) once ≥500 events accrue).
+
+### Adding a new ranking surface — the 3-point checklist
+
+PikTag has multiple ranking surfaces (search, TagDetail explore,
+Ask match sheet, recommendation cron, magic moments). Meta only
+ranks one Feed; we have ~6. Easy to drift if not checked.
+
+When you ship a NEW ranking surface (or substantially rework an
+existing one):
+
+1. **Connected vs Recommended — which is this?**
+   - Connected = the user explicitly knows / chose the candidates
+     (1st-degree friends, people you scanned).
+   - Recommended = algorithmic discovery (2nd-degree, shared-tag,
+     concept-match, Ask bridge).
+   If BOTH are shown on the same surface, score them in SEPARATE
+   pipelines and intersperse — do NOT cascade them through one
+   formula (that's the trap where weak-tie 2nd-degree gets crushed
+   by 1st-degree). Existing precedent: Ask Phase 1 sheet
+   (Connected) + Phase 2 story row (Recommended). Both visible,
+   never merged.
+
+2. **Intent-driven or browse-driven — does sectioning help?**
+   - Intent-driven (search box, "find me X"): NO sectioning —
+     the user typed a query, just give them the answer ordered
+     by relevance. A "From your network" / "Discover" split here
+     is noise.
+   - Browse-driven (tag-detail explore, recommendation feed,
+     Ask story row): YES sectioning often helps — the user is
+     exploring, so seeing source-tier breakdown ("3 friends
+     match" / "+12 from your wider network") gives them mental
+     handles. Don't be afraid to label sections.
+
+3. **Which negative signals does this surface respect?**
+   The `piktag_match_dismissals` table is the canonical "viewer
+   X said no to candidate Y on surface Z" log. New surfaces MUST
+   pick a surface name and read this table to avoid showing the
+   same dismissed candidate again. Don't quietly skip this — a
+   "Recommendation" that re-suggests a dismissed person is the
+   single most user-trust-eroding bug in this space.
+
 ### Tag-quality principles — the 7 from Google data-labeling, in PikTag terms
 
 Adopted 2026-05-29 after a deep-dive on Google Cloud's data-labeling
