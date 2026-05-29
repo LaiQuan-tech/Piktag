@@ -1118,7 +1118,7 @@
   },
   "camera": {
     "title": "Quyền dùng camera",
-    "grantPermission": "Cấp quyền",
+    "grantPermission": "Tiếp tục",
     "instruction": "Hướng camera vào mã QR PikTag nhé",
     "cardFrameHint": "Đưa cả tấm danh thiếp vào khung, rõ nét",
     "invalidQr": "Mã QR không hợp lệ",

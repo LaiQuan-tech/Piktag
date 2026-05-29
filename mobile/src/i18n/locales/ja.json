@@ -1073,7 +1073,7 @@
   },
   "camera": {
     "title": "カメラへのアクセス",
-    "grantPermission": "許可する",
+    "grantPermission": "続ける",
     "instruction": "カメラをPikTagのQRコードに向けてください",
     "cardFrameHint": "名刺全体を枠に合わせ、はっきり写してください",
     "invalidQr": "無効なQRコード",

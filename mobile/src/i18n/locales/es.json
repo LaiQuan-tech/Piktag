@@ -1073,7 +1073,7 @@
   },
   "camera": {
     "title": "Acceso a cámara",
-    "grantPermission": "Conceder permiso",
+    "grantPermission": "Continuar",
     "instruction": "Apunta tu cámara a un código QR de PikTag",
     "cardFrameHint": "Encuadra toda la tarjeta y mantenla nítida",
     "invalidQr": "Código QR no válido",

@@ -1073,7 +1073,7 @@
   },
   "camera": {
     "title": "카메라 접근",
-    "grantPermission": "권한 허용",
+    "grantPermission": "계속",
     "instruction": "카메라를 PikTag QR 코드에 맞추세요",
     "cardFrameHint": "명함 전체를 틀에 맞추고 선명하게",
     "invalidQr": "유효하지 않은 QR 코드",

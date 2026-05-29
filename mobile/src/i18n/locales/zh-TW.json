@@ -1102,7 +1102,7 @@
   },
   "camera": {
     "title": "相機存取",
-    "grantPermission": "授予權限",
+    "grantPermission": "繼續",
     "instruction": "將相機對準 PikTag QR 碼",
     "cardFrameHint": "把整張名片對齊框內、保持清晰",
     "invalidQr": "無效的 QR 碼",

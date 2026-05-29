@@ -1073,7 +1073,7 @@
   },
   "camera": {
     "title": "الوصول إلى الكاميرا",
-    "grantPermission": "منح الإذن",
+    "grantPermission": "متابعة",
     "instruction": "وجه الكاميرا نحو رمز QR PikTag",
     "cardFrameHint": "ضع البطاقة كاملة داخل الإطار وبوضوح",
     "invalidQr": "رمز QR غير صالح",

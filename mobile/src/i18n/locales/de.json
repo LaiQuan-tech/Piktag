@@ -1111,7 +1111,7 @@
   },
   "camera": {
     "title": "Kamerazugriff",
-    "grantPermission": "Berechtigung erteilen",
+    "grantPermission": "Weiter",
     "instruction": "Richte deine Kamera auf einen PikTag-QR-Code",
     "cardFrameHint": "Die ganze Karte im Rahmen, scharf halten",
     "invalidQr": "Ungültiger QR-Code",

@@ -1073,7 +1073,7 @@
   },
   "camera": {
     "title": "ক্যামেরা অ্যাক্সেস",
-    "grantPermission": "অনুমতি দিন",
+    "grantPermission": "চালিয়ে যান",
     "instruction": "ক্যামেরা PikTag QR কোডে রাখুন",
     "cardFrameHint": "পুরো কার্ড ফ্রেমে রাখুন, স্পষ্ট রাখুন",
     "invalidQr": "অবৈধ QR কোড",

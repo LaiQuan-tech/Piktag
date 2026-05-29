@@ -1073,7 +1073,7 @@
   },
   "camera": {
     "title": "Kamera Erişimi",
-    "grantPermission": "İzin Ver",
+    "grantPermission": "Devam Et",
     "instruction": "Kameranızı bir PikTag QR koduna doğrultun",
     "cardFrameHint": "Tüm kartı çerçeveye sığdır, net tut",
     "invalidQr": "Geçersiz QR Kodu",

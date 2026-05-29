@@ -1111,7 +1111,7 @@
   },
   "camera": {
     "title": "相机访问",
-    "grantPermission": "授予权限",
+    "grantPermission": "继续",
     "instruction": "将相机对准 PikTag QR 码",
     "cardFrameHint": "把整张名片对齐框内、保持清晰",
     "invalidQr": "无效的 QR 码",

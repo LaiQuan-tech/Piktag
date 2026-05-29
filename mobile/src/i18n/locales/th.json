@@ -1073,7 +1073,7 @@
   },
   "camera": {
     "title": "การเข้าถึงกล้อง",
-    "grantPermission": "อนุญาต",
+    "grantPermission": "ดำเนินการต่อ",
     "instruction": "เล็งกล้องไปที่รหัส QR PikTag",
     "cardFrameHint": "จัดทั้งนามบัตรให้อยู่ในกรอบ ให้คมชัด",
     "invalidQr": "รหัส QR ไม่ถูกต้อง",

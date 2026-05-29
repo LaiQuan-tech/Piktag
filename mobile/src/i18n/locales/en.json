@@ -1118,7 +1118,7 @@
   },
   "camera": {
     "title": "Camera Access",
-    "grantPermission": "Grant Permission",
+    "grantPermission": "Continue",
     "instruction": "Point your camera at a PikTag QR code",
     "cardFrameHint": "Fit the whole card in the frame and keep it sharp",
     "invalidQr": "Invalid QR Code",

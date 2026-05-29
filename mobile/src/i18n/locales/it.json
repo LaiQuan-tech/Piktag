@@ -1118,7 +1118,7 @@
   },
   "camera": {
     "title": "Accesso alla fotocamera",
-    "grantPermission": "Consenti",
+    "grantPermission": "Continua",
     "instruction": "Punta la fotocamera su un codice QR PikTag",
     "cardFrameHint": "Inquadra tutta la card e tienila nitida",
     "invalidQr": "Codice QR non valido",

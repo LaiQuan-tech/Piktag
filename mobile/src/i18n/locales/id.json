@@ -1073,7 +1073,7 @@
   },
   "camera": {
     "title": "Akses Kamera",
-    "grantPermission": "Beri Izin",
+    "grantPermission": "Lanjutkan",
     "instruction": "Arahkan kamera Anda ke kode QR PikTag",
     "cardFrameHint": "Paskan seluruh kartu di bingkai, tetap tajam",
     "invalidQr": "Kode QR Tidak Valid",

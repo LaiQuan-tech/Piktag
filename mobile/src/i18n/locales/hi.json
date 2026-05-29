@@ -1073,7 +1073,7 @@
   },
   "camera": {
     "title": "कैमरा एक्सेस",
-    "grantPermission": "अनुमति दें",
+    "grantPermission": "जारी रखें",
     "instruction": "अपना कैमरा PikTag QR कोड पर रखें",
     "cardFrameHint": "पूरे कार्ड को फ़्रेम में रखें और साफ़ रखें",
     "invalidQr": "अमान्य QR कोड",

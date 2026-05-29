@@ -1073,7 +1073,7 @@
   },
   "camera": {
     "title": "Доступ к камере",
-    "grantPermission": "Разрешить",
+    "grantPermission": "Продолжить",
     "instruction": "Наведи камеру на QR-код PikTag",
     "cardFrameHint": "Поместите всю визитку в рамку, чётко",
     "invalidQr": "Неверный QR-код",
