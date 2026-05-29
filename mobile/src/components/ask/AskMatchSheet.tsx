@@ -16,7 +16,7 @@
  *   - "Skip / Done" exit ALWAYS visible — don't trap users in the
  *     match flow if they want to fall back to the IG-story discovery
  */
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Modal,
   StyleSheet,
@@ -64,12 +64,18 @@ const AskMatchSheet = React.memo(function AskMatchSheet({
   const [loading, setLoading] = useState(false);
   const [errored, setErrored] = useState(false);
   const [openingChatFor, setOpeningChatFor] = useState<string | null>(null);
+  // Track which shown candidates the user actually engaged with so
+  // we don't log them as dismissed on close. Lives in a ref because
+  // the close handler reads it during the same React event tick that
+  // the picker set it — state would be stale.
+  const messagedSetRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
     if (!visible || !askId) return;
     let cancelled = false;
     setLoading(true);
     setErrored(false);
+    messagedSetRef.current = new Set();
     (async () => {
       try {
         const { data, error } = await supabase.rpc('match_ask_to_friends', {
@@ -97,6 +103,33 @@ const AskMatchSheet = React.memo(function AskMatchSheet({
     };
   }, [visible, askId]);
 
+  // Log every shown-but-not-messaged candidate as a dismissal on
+  // surface='ask_match'. Fire-and-forget. The server RPC respects
+  // these so the same friend doesn't get re-suggested on the next
+  // Ask within 60 days (CLAUDE.md "new ranking surface checklist"
+  // bullet #3).
+  const logDismissalsAndClose = useCallback(() => {
+    const messaged = messagedSetRef.current;
+    const dismiss = rows.filter((r) => !messaged.has(r.id));
+    if (dismiss.length > 0) {
+      void supabase
+        .from('piktag_match_dismissals')
+        .upsert(
+          dismiss.map((r) => ({ target_id: r.id, surface: 'ask_match' })),
+          { onConflict: 'viewer_id,target_id,surface' },
+        )
+        .then(({ error }) => {
+          if (error) {
+            const code = (error as any).code;
+            if (code !== '42P01' && code !== 'PGRST205') {
+              console.warn('[AskMatch] dismiss log failed:', error.message);
+            }
+          }
+        });
+    }
+    onClose();
+  }, [rows, onClose]);
+
   // Tap "Message" on a match row → get-or-create the conversation
   // with that friend, then navigate to ChatThread passing askId so
   // the icebreaker generator (Phase 2) pivots to Ask-anchored
@@ -106,6 +139,10 @@ const AskMatchSheet = React.memo(function AskMatchSheet({
     async (row: MatchRow) => {
       if (!askId || openingChatFor) return;
       setOpeningChatFor(row.id);
+      // Mark BEFORE the await so onClose's dismissal sweep won't
+      // log this row even if React batches state and the user
+      // immediately taps Done. Ref mutation is sync.
+      messagedSetRef.current.add(row.id);
       try {
         const { data, error } = await supabase.rpc('get_or_create_conversation', {
           other_user_id: row.id,
@@ -126,14 +163,18 @@ const AskMatchSheet = React.memo(function AskMatchSheet({
           otherAvatarUrl: row.avatar_url,
           askId,  // ← key piece: icebreaker prompt picks up this anchor
         });
-        onClose();
+        // Closing via the dismissal-aware wrapper so the OTHER candidates
+        // (the ones the user didn't message) get logged as dismissed for
+        // this surface. row.id is already in messagedSetRef so it's
+        // correctly excluded from the dismissal sweep.
+        logDismissalsAndClose();
       } catch (err) {
         console.warn('[AskMatch] navigate threw:', err);
       } finally {
         setOpeningChatFor(null);
       }
     },
-    [askId, openingChatFor, navigation, onClose],
+    [askId, openingChatFor, navigation, logDismissalsAndClose],
   );
 
   if (!visible) return null;
@@ -143,7 +184,7 @@ const AskMatchSheet = React.memo(function AskMatchSheet({
       visible={visible}
       animationType="slide"
       transparent
-      onRequestClose={onClose}
+      onRequestClose={logDismissalsAndClose}
     >
       <View style={styles.backdrop}>
         <View style={styles.sheet}>
@@ -152,7 +193,7 @@ const AskMatchSheet = React.memo(function AskMatchSheet({
             <Text style={styles.title}>
               {t('ask.matchSheetTitle', { defaultValue: 'Best matches in your network' })}
             </Text>
-            <TouchableOpacity onPress={onClose} hitSlop={12} activeOpacity={0.6}>
+            <TouchableOpacity onPress={logDismissalsAndClose} hitSlop={12} activeOpacity={0.6}>
               <X size={22} color={colors.gray500} />
             </TouchableOpacity>
           </View>
@@ -216,7 +257,7 @@ const AskMatchSheet = React.memo(function AskMatchSheet({
             </ScrollView>
           )}
 
-          <TouchableOpacity style={styles.doneBtn} onPress={onClose} activeOpacity={0.7}>
+          <TouchableOpacity style={styles.doneBtn} onPress={logDismissalsAndClose} activeOpacity={0.7}>
             <Text style={styles.doneBtnText}>
               {t('ask.matchSheetDone', { defaultValue: 'Done' })}
             </Text>
