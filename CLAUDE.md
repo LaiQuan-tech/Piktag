@@ -441,30 +441,56 @@ founder when the trigger condition lands:
 Founder direction for the next major version. Locked here so the
 design doesn't drift over the next 1-2 months while we ship v1.
 
+**The purpose is privacy-motivated audience segmentation, not
+anonymity.** Founder framing 2026-05-30: *"其實就是不同的人，因為都
+會有些癖好，不能給同事、普通朋友知道"*. Main = "the me my
+coworkers and acquaintances know". Alt = "the me my close hobby
+friends know". Same human, two curated faces. Every design choice
+below flows from this — it's audience curation, not hiding the
+person.
+
 **Tier**: L1 — completely independent accounts. Each alt is its own
 `auth.users` row with its own email/phone (NOT one auth-user with
 multiple profiles — IG's actual model is multi-account on device,
 not multi-persona on account). Switching accounts = real auth swap
 (sign out current, sign in alt via stored Keychain credentials).
 
-**Friend graphs are completely separate.** Alt cannot see main's
-friends; main's friends cannot see alt. No cross-pollination. IG-
-strict. Costs PikTag's "reactivate dormant" North-Star value across
-the boundary — founder accepted that cost as the price of true
-alt feel.
+**Friend graphs are completely separate** at the storage layer — no
+shared `piktag_connections` rows across an alt/main boundary.
 
-**Alt is NOT discoverable by default.** Likely flag:
-`piktag_profiles.is_discoverable boolean DEFAULT true`, with alt
-creation flipping it to false. EVERY ranking RPC must gate on it:
-`search_users`, `match_ask_to_friends`, `explore_users_for_tag`,
-the recommendation cron, `ask_bridge`, `reconnect_suggest`,
-`tag_combo`, `tag_convergence`. When this lands, the "Adding a
-new ranking surface" CLAUDE.md checklist gains a 4th bullet:
-"filter `WHERE p.is_discoverable = true`" (alt can't be a candidate).
+**Asymmetric discovery — alt sees the world, the world doesn't see
+alt.** This is the IG-finsta truth and it's simpler than the strict
+"hard exclude main's friends from alt's results" rule the design
+flirted with earlier. Specifically:
+
+  * EVERY ranking RPC operating on someone OTHER than the alt's
+    owner filters out alt accounts: `search_users`,
+    `match_ask_to_friends`, `explore_users_for_tag`, the
+    recommendation cron, `ask_bridge`, `reconnect_suggest`,
+    `tag_combo`, `tag_convergence`. From the platform's perspective,
+    alt accounts effectively don't exist for anyone but their owner.
+    The "Adding a new ranking surface" CLAUDE.md checklist gains a
+    4th bullet at v2 ship: "filter `WHERE p.is_alt = false`".
+
+  * The alt OWNER, on the other hand, sees the WHOLE platform
+    normally — including main's friends. Founder verbatim 2026-05-30:
+    *"可以看到，但要不要加好友看使用者，我猜IG也是這樣設定"*.
+    Adding / following a main-friend from alt is a deliberate
+    choice with social consequences (they might recognize you), and
+    PikTag does NOT prevent it. The user owns that judgement.
+
+  * Consequence: there's NO need for a "hard cross-account exclude
+    main's friends" filter inside alt's own queries. Single flag,
+    asymmetric semantics — simpler schema, fewer joins, IG-faithful.
 
 **Self-cross-DM is blocked.** Same way IG won't let your main DM
 your finsta. `get_or_create_conversation` adds a reject-if-shared-
-alt-parent check.
+`alt_parent_user_id` check.
+
+**Schema sketch** (for whenever v2 lands — adjust as needed):
+  - `piktag_profiles.is_alt boolean DEFAULT false`
+  - `piktag_profiles.alt_parent_user_id uuid NULL REFERENCES auth.users(id)`
+    (only set when this row is an alt — points at the main).
 
 **Pre-launch invariants that MUST be preserved for v2 to land
 cleanly** — break any of these and v2 becomes a rewrite, not an
