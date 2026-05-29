@@ -509,24 +509,46 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
 
   const fetchProfile = useCallback(async () => {
     if (!userId) return;
+    // `.maybeSingle()` (not `.single()`) — a fresh signup may not yet
+    // have a `piktag_profiles` row if any of three insert paths missed:
+    // (1) the live-DB `handle_new_user` trigger (not in repo migrations,
+    // can mis-fire on email-confirm-OFF flows), (2) RegisterScreen's
+    // birthday upsert (gated on `data.session`, skipped when email
+    // verification is ON), or (3) OnboardingScreen's profile upsert
+    // (skipped by AppNavigator's 5-min `isNewUser` gate when the user
+    // takes >5 min to verify and return). The old `.single()` threw
+    // PGRST116 on zero rows → "讀不到個人資料" dead-end alert. Now we
+    // self-heal: upsert a `{ id }` row and render an empty form so the
+    // user can actually edit. Matches the upsert pattern used in
+    // RegisterScreen / OnboardingScreen.
     const { data, error } = await supabase
       .from('piktag_profiles')
       .select('*')
       .eq('id', userId)
-      .single();
+      .maybeSingle();
     if (error) {
       Alert.alert(t('common.error'), t('editProfile.alertLoadError'));
       return;
     }
-    if (data) {
-      setForm({
-        full_name: data.full_name || '',
-        username: data.username || '',
-        headline: data.headline || '',
-        bio: data.bio || '',
-      });
-      setAvatarUrl(data.avatar_url);
+    if (!data) {
+      const { error: upsertErr } = await supabase
+        .from('piktag_profiles')
+        .upsert({ id: userId }, { onConflict: 'id' });
+      if (upsertErr) {
+        Alert.alert(t('common.error'), t('editProfile.alertLoadError'));
+        return;
+      }
+      setForm({ full_name: '', username: '', headline: '', bio: '' });
+      setAvatarUrl(null);
+      return;
     }
+    setForm({
+      full_name: data.full_name || '',
+      username: data.username || '',
+      headline: data.headline || '',
+      bio: data.bio || '',
+    });
+    setAvatarUrl(data.avatar_url);
   }, [userId, user?.email]);
 
   const handleChangeAvatar = useCallback(async () => {

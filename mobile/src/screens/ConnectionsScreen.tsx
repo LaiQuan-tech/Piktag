@@ -970,7 +970,12 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
   const [myProfile, setMyProfile] = useState<{ full_name: string | null; avatar_url: string | null }>({ full_name: null, avatar_url: null });
   useEffect(() => {
     if (!user) return;
-    supabase.from('piktag_profiles').select('full_name, avatar_url').eq('id', user.id).single()
+    // `.maybeSingle()` — a brand-new account may not have a
+    // `piktag_profiles` row yet (see EditProfileScreen.fetchProfile
+    // comment for the three insert paths that can miss). The old
+    // `.single()` threw PGRST116 instead of returning null, which
+    // surfaced as a console error and left `myProfile` stale.
+    supabase.from('piktag_profiles').select('full_name, avatar_url').eq('id', user.id).maybeSingle()
       .then(({ data }) => { if (data) setMyProfile(data); });
   }, [user]);
 
