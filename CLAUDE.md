@@ -434,6 +434,22 @@ founder when the trigger condition lands:
   like #FFFFFF on a piktag500-saturated CTA where the white is
   *intentionally* fixed regardless of theme).
 
+## Brand voice — locked phrases
+
+- **"PikTag to connect."** is the locked brand verb phrase on landing
+  (sits below the hero title as `hero.description`, paired with the
+  logo in the nav). DO NOT modify, translate, or remove without
+  explicit founder approval. It survives hook-line refactors —
+  when the founder swapped "Tag the Vibe, Keep the Tribe" for
+  "Tag yourself. Find anyone." 2026-05-30, "PikTag to connect."
+  stayed put. Treat the logo + this phrase as the constant brand
+  signature; the hook line is the rotating creative.
+- **"Tag yourself. Find anyone."** is the current hook line
+  (2026-05-30, replacing "Tag the Vibe, Keep the Tribe"). Mobile
+  brandTagline is English-everywhere; landing hero.title1+title2
+  is localized per locale (founder-approved zh-TW: "自己標自己，
+  誰都找得到。"). See commit 107130a for the full 5-surface align.
+
 ## v2 plans — committed direction, not built yet
 
 ### Alt accounts ("小號" — IG-finsta model, decided 2026-05-30)
