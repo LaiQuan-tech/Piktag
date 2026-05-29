@@ -138,12 +138,21 @@ export const PLATFORM_MAP: Record<string, Platform> = PLATFORMS.reduce(
  * out of the quick-row (they remain one tap away in "Browse all") and
  * promoted NA-mainstream messengers (WhatsApp / Messenger / Telegram /
  * Snapchat) plus Calendly (the work-cluster slot) and WeChat (large
- * Chinese-diaspora overlap with the NA audience). Phone / Email /
- * Website stay as universal essentials; LinkedIn stays for the
- * professional/CRM angle PikTag leans on; X stays as the NA-mainstream
- * micro-blog.
+ * Chinese-diaspora overlap with the NA audience).
  *
- * Slot 7 — "the work-cluster slot" — went through three iterations on
+ * 2026-05-30 swap (Messenger → Reddit): Messenger usage in NA among
+ * the 18-30 demographic that PikTag's cold-start targets has been
+ * declining for years — iMessage and WhatsApp absorbed it. Reddit,
+ * meanwhile, has NA daily-active counts above X and is the single
+ * most-important "build in public" channel for the founder's
+ * cold-start strategy (Gemini cold-start audit 2026-05-30). Reddit
+ * was already in the social PLATFORMS catalog; promotion is just a
+ * one-line swap. Placement in slot 9 (not slot 4 where Messenger
+ * sat) puts it inside the social cluster — Reddit is community
+ * discussion, not messaging, so the work-cluster comment below
+ * stays intact.
+ *
+ * Slot 6 — "the work-cluster slot" — went through three iterations on
  * 2026-05-25/26: Teams (rejected: org-internal identity), then Slack
  * (rejected for the same reason — `app.slack.com/client/T…` URLs only
  * work for members of that specific workspace and aren't something
@@ -158,13 +167,13 @@ export const PLATFORM_MAP: Record<string, Platform> = PLATFORMS.reduce(
  *   1. phone         — universal
  *   2. email         — universal
  *   3. whatsapp      — NA messenger #1
- *   4. messenger     — NA messenger #2
- *   5. instagram     — NA social (Meta)
- *   6. linkedin      — NA professional (CRM angle)
- *   7. calendly      — NA work cluster (companion to LinkedIn)
- *   8. telegram      — NA + intl messenger, tech crowd
- *   9. snapchat      — Gen Z mainstream
- *  10. x             — NA micro-blog
+ *   4. instagram     — NA social (Meta)
+ *   5. linkedin      — NA professional (CRM angle)
+ *   6. calendly      — NA work cluster (companion to LinkedIn)
+ *   7. telegram      — NA + intl messenger, tech crowd
+ *   8. x             — NA micro-blog
+ *   9. reddit        — NA community discussion (Gen Z + maker / tech)
+ *  10. snapchat      — Gen Z mainstream
  *  11. wechat        — Chinese-diaspora coverage
  *  12. website       — universal essential
  */
@@ -172,13 +181,13 @@ export const QUICK_PICK_KEYS = [
   'phone',
   'email',
   'whatsapp',
-  'messenger',
   'instagram',
   'linkedin',
   'calendly',
   'telegram',
-  'snapchat',
   'x',
+  'reddit',
+  'snapchat',
   'wechat',
   'website',
 ] as const;
