@@ -5,8 +5,20 @@
 
 ## The line
 
-**PikTag — Tag the Vibe, Keep the Tribe.**
-Scan once, and the people you meet never become dead contacts again.
+**PikTag — Tag yourself. Find anyone.**
+Self-tag asserts who you are; the network indexes everyone you know by
+what they actually do — so you find them later, by anything. New
+friends, old friends, anyone you've already met.
+
+> Replaces the mid-2026 "Tag the Vibe, Keep the Tribe" line. The
+> rebrand has two reasons: (1) "tribe" is a NA-launch landmine in
+> 2026 — it gets quiet eye-rolls and loud Reddit critique in
+> exactly the niches we're hunting. (2) the old line was evocative
+> but didn't describe the product. The new line IS the product
+> loop in four words — self-tag (agency), find anyone (the search
+> payoff). Reactivation drops from headline to consequence:
+> reactivation is what NATURALLY happens when tagged contacts
+> stay findable across time, not a separate feature to sell.
 
 ## The insight
 

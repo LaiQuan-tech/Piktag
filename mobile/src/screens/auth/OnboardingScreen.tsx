@@ -585,11 +585,14 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
       </Text>
       {/* Brand tagline — small, English, uppercase-letterspaced.
           Sits under the functional copy so it reads as a signature,
-          not a competing headline. Drives the same idea ("tag now,
-          keep the people later") in 6 words that the longer
-          Chinese above explains. */}
+          not a competing headline. Drives the product loop —
+          self-tag asserts identity, find anyone discovers the
+          network — in 4 words. Replaces the 2026-mid "Tag the
+          Vibe, Keep the Tribe" line (2026-05-30 — "tribe" was a
+          NA-launch landmine and "vibe/tribe" didn't describe the
+          product). */}
       <Text style={styles.brandTagline}>
-        {t('auth.onboarding.brandTagline', { defaultValue: 'Tag the Vibe, Keep the Tribe' })}
+        {t('auth.onboarding.brandTagline', { defaultValue: 'Tag yourself. Find anyone.' })}
       </Text>
       <View style={{ flex: 1 }} />
       <TouchableOpacity
