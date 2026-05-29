@@ -292,11 +292,11 @@
     "headerTitle": "Buscar",
     "searchPlaceholder": "Tags, nomes de usuário, etc.",
     "promptHints": [
-      "Preciso de um amigo fotógrafo",
-      "Procuro alguém que fale inglês",
-      "Designers em {{city}}",
-      "Alguém em startups?",
-      "Procurando um dev web"
+      "Ex. Preciso de um amigo fotógrafo",
+      "Ex. Procuro alguém que fale inglês",
+      "Ex. Designers em {{city}}",
+      "Ex. Alguém em startups?",
+      "Ex. Procurando um dev web"
     ],
     "promptHintCityFallback": "Designers por perto",
     "categorySectionLabel": "Navegar por categoria",
@@ -396,11 +396,11 @@
     "aiSuggestionsEmpty": "A AI não achou — tenta de novo ou adiciona à mão.",
     "aiRegenerate": "Regenerar",
     "contextPromptHints": [
-      "Mergulho de fim de semana",
-      "Reencontro da facul",
-      "Festa da firma",
-      "Churrasco do fim de semana",
-      "Casamento de um amigo"
+      "Ex. Mergulho de fim de semana",
+      "Ex. Reencontro da facul",
+      "Ex. Festa da firma",
+      "Ex. Churrasco do fim de semana",
+      "Ex. Casamento de um amigo"
     ],
     "saveWarnTitle": "QR criado, mas não foi possível salvar no Tag",
     "dateLabel": "Data",
@@ -529,18 +529,18 @@
     "missingBiolink": "Link social",
     "welcomeShort": "Bem-vindo ao PikTag",
     "bioPromptHints": [
-      "Vendedor de tecnologia; correr me alivia, quero fechar a maratona abaixo de 4h",
-      "Professora primária, horta na varanda e mais de 20 suculentas",
-      "Enfermeiro de emergência, confeito para relaxar, aprendendo café coado",
-      "Engenheiro backend, agora curtindo cozinhar e cerâmica, tenho um Shiba bravo",
-      "Estudante de psicologia, toco violão numa banda e faço ilustração"
+      "Ex. Vendedor de tecnologia; correr me alivia, quero fechar a maratona abaixo de 4h",
+      "Ex. Professora primária, horta na varanda e mais de 20 suculentas",
+      "Ex. Enfermeiro de emergência, confeito para relaxar, aprendendo café coado",
+      "Ex. Engenheiro backend, agora curtindo cozinhar e cerâmica, tenho um Shiba bravo",
+      "Ex. Estudante de psicologia, toco violão numa banda e faço ilustração"
     ],
     "headlinePromptHints": [
-      "PM @ uma empresa de tech",
-      "Advogado @ um escritório",
-      "Enfermeiro de emergência @ um hospital",
-      "Designer gráfico freelance",
-      "Estudante de psicologia"
+      "Ex. PM @ uma empresa de tech",
+      "Ex. Advogado @ um escritório",
+      "Ex. Enfermeiro de emergência @ um hospital",
+      "Ex. Designer gráfico freelance",
+      "Ex. Estudante de psicologia"
     ],
     "needLibraryPermissionTitle": "Acesso à fototeca necessário",
     "needLibraryPermissionMsg": "Permita o acesso nas Definições",
@@ -1273,11 +1273,11 @@
     "aiBodyTooShortHint": "Descreva o que você quer em uma frase — a IA sugerirá tags",
     "aiTapToGenerateHint": "Toque em ↻ para a IA sugerir tags",
     "bodyPromptHints": [
-      "Alguém para uma trilha no fim de semana?",
-      "Preciso de quem conserte o Wi-Fi, urgente",
-      "Procuro freelas — alguém contratando?",
-      "Recomendem um dentista barato",
-      "Noite de jogos de tabuleiro essa semana, quem vem?"
+      "Ex. Alguém para uma trilha no fim de semana?",
+      "Ex. Preciso de quem conserte o Wi-Fi, urgente",
+      "Ex. Procuro freelas — alguém contratando?",
+      "Ex. Recomendem um dentista barato",
+      "Ex. Noite de jogos de tabuleiro essa semana, quem vem?"
     ],
     "createSubtitle": "Uma linha basta — a IA põe as tags para a pessoa certa (ou um amigo de um amigo) ver.",
     "createFailed": "Seu Ask não foi enviado — tente de novo.",

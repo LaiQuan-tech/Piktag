@@ -299,11 +299,11 @@
     "headerTitle": "Cerca",
     "searchPlaceholder": "Tag, nomi utente, ecc.",
     "promptHints": [
-      "Mi serve un amico che fa foto",
-      "Cerco qualcuno che parla spagnolo",
-      "Designer vicino a {{city}}",
-      "Qualcuno nelle startup?",
-      "Cerco uno sviluppatore web"
+      "Es. Mi serve un amico che fa foto",
+      "Es. Cerco qualcuno che parla spagnolo",
+      "Es. Designer vicino a {{city}}",
+      "Es. Qualcuno nelle startup?",
+      "Es. Cerco uno sviluppatore web"
     ],
     "promptHintCityFallback": "Designer qui vicino",
     "categorySectionLabel": "Sfoglia per categoria",
@@ -403,11 +403,11 @@
     "aiSuggestionsEmpty": "L'AI non ha trovato nulla di adatto — riprova o aggiungi i tuoi.",
     "aiRegenerate": "Rigenera",
     "contextPromptHints": [
-      "Gita di immersioni del weekend",
-      "Rimpatriata dell'università",
-      "Festa di Natale in ufficio",
-      "Grigliata in spiaggia",
-      "Matrimonio di un amico"
+      "Es. Gita di immersioni del weekend",
+      "Es. Rimpatriata dell'università",
+      "Es. Festa di Natale in ufficio",
+      "Es. Grigliata in spiaggia",
+      "Es. Matrimonio di un amico"
     ],
     "saveWarnTitle": "QR creato, ma impossibile salvarlo nel Tag",
     "dateLabel": "Data",
@@ -536,18 +536,18 @@
     "missingBiolink": "Link social",
     "welcomeShort": "Benvenuto su PikTag",
     "bioPromptHints": [
-      "Vendite tech — la corsa è il mio reset, punto a una maratona sotto le 4 ore",
-      "Maestra alle elementari, coltivo l'orto sul balcone, oltre 20 piante grasse e non smetto",
-      "Infermiere al pronto soccorso, sforno dolci per staccare dopo i turni, imparo il caffè a filtro",
-      "Sviluppatore backend, ultimamente cucina e ceramica, ho uno Shiba dal carattere forte",
-      "Studio psicologia, suono la chitarra in una band, ho iniziato a prendere lavori di illustrazione"
+      "Es. Vendite tech — la corsa è il mio reset, punto a una maratona sotto le 4 ore",
+      "Es. Maestra alle elementari, coltivo l'orto sul balcone, oltre 20 piante grasse e non smetto",
+      "Es. Infermiere al pronto soccorso, sforno dolci per staccare dopo i turni, imparo il caffè a filtro",
+      "Es. Sviluppatore backend, ultimamente cucina e ceramica, ho uno Shiba dal carattere forte",
+      "Es. Studio psicologia, suono la chitarra in una band, ho iniziato a prendere lavori di illustrazione"
     ],
     "headlinePromptHints": [
-      "PM @ un'azienda tech",
-      "Avvocato @ uno studio legale",
-      "Infermiere @ un centro medico",
-      "Graphic designer freelance",
-      "Studente di psicologia"
+      "Es. PM @ un'azienda tech",
+      "Es. Avvocato @ uno studio legale",
+      "Es. Infermiere @ un centro medico",
+      "Es. Graphic designer freelance",
+      "Es. Studente di psicologia"
     ],
     "needLibraryPermissionTitle": "Accesso alla libreria foto necessario",
     "needLibraryPermissionMsg": "Consenti accesso nelle Impostazioni",
@@ -1322,11 +1322,11 @@
     "aiBodyTooShortHint": "Racconta in una frase cosa vuoi — l'AI ti propone i tag",
     "aiTapToGenerateHint": "Tocca ↻ e lascia che l'AI ti proponga i tag",
     "bodyPromptHints": [
-      "Qualcuno per un'escursione nel weekend?",
-      "Mi serve qualcuno che sistemi il Wi-Fi, urgente",
-      "Cerco lavori da freelance — qualcuno assume?",
-      "Consigliatemi un dentista a prezzi accessibili",
-      "Serata di giochi da tavolo questa settimana, chi c'è?"
+      "Es. Qualcuno per un'escursione nel weekend?",
+      "Es. Mi serve qualcuno che sistemi il Wi-Fi, urgente",
+      "Es. Cerco lavori da freelance — qualcuno assume?",
+      "Es. Consigliatemi un dentista a prezzi accessibili",
+      "Es. Serata di giochi da tavolo questa settimana, chi c'è?"
     ],
     "createSubtitle": "Basta una riga — l'AI ci mette i tag, così la vedono le persone giuste (o un amico di un amico).",
     "createFailed": "Il tuo Ask non è partito — riprova.",

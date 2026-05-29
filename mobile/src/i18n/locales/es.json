@@ -292,11 +292,11 @@
     "headerTitle": "Buscar",
     "searchPlaceholder": "Etiquetas, nombres de usuario, etc.",
     "promptHints": [
-      "Necesito un amigo fotógrafo",
-      "Busco a alguien que hable inglés",
-      "Diseñadores cerca de {{city}}",
-      "¿Conoces a alguien en startups?",
-      "Busco un desarrollador web"
+      "Ej. Necesito un amigo fotógrafo",
+      "Ej. Busco a alguien que hable inglés",
+      "Ej. Diseñadores cerca de {{city}}",
+      "Ej. ¿Conoces a alguien en startups?",
+      "Ej. Busco un desarrollador web"
     ],
     "promptHintCityFallback": "Diseñadores cerca de mí",
     "categorySectionLabel": "Explorar por categoría",
@@ -396,11 +396,11 @@
     "aiSuggestionsEmpty": "AI no encontró buenas opciones — vuelve a intentar o agrega tú.",
     "aiRegenerate": "Regenerar",
     "contextPromptHints": [
-      "Viaje de buceo",
-      "Reencuentro universitario",
-      "Fiesta de la oficina",
-      "Asado del finde",
-      "La boda de un amigo"
+      "Ej. Viaje de buceo",
+      "Ej. Reencuentro universitario",
+      "Ej. Fiesta de la oficina",
+      "Ej. Asado del finde",
+      "Ej. La boda de un amigo"
     ],
     "saveWarnTitle": "QR creado, pero no se pudo guardar en Tag",
     "dateLabel": "Fecha",
@@ -529,18 +529,18 @@
     "missingBiolink": "Enlace social",
     "welcomeShort": "Bienvenido a PikTag",
     "bioPromptHints": [
-      "Comercial en tecnología; correr me despeja, busco bajar de 4h en maratón",
-      "Maestra de primaria, huerto en el balcón y más de 20 suculentas",
-      "Enfermero de urgencias, horneo para desconectar, aprendiendo café de filtro",
-      "Ingeniero backend, últimamente cocino y hago cerámica, tengo un Shiba con genio",
-      "Estudiante de psicología, toco la guitarra en una banda y hago ilustración"
+      "Ej. Comercial en tecnología; correr me despeja, busco bajar de 4h en maratón",
+      "Ej. Maestra de primaria, huerto en el balcón y más de 20 suculentas",
+      "Ej. Enfermero de urgencias, horneo para desconectar, aprendiendo café de filtro",
+      "Ej. Ingeniero backend, últimamente cocino y hago cerámica, tengo un Shiba con genio",
+      "Ej. Estudiante de psicología, toco la guitarra en una banda y hago ilustración"
     ],
     "headlinePromptHints": [
-      "PM @ una empresa tech",
-      "Abogado @ un bufete",
-      "Enfermero de urgencias @ un hospital",
-      "Diseñador gráfico freelance",
-      "Estudiante de psicología"
+      "Ej. PM @ una empresa tech",
+      "Ej. Abogado @ un bufete",
+      "Ej. Enfermero de urgencias @ un hospital",
+      "Ej. Diseñador gráfico freelance",
+      "Ej. Estudiante de psicología"
     ],
     "needLibraryPermissionTitle": "Acceso a la fototeca necesario",
     "needLibraryPermissionMsg": "Permitir acceso en Ajustes",
@@ -1273,11 +1273,11 @@
     "aiBodyTooShortHint": "Describe lo que quieres en una frase — la IA sugerirá etiquetas",
     "aiTapToGenerateHint": "Toca ↻ para que la IA sugiera etiquetas",
     "bodyPromptHints": [
-      "¿Alguien para una caminata el finde?",
-      "Necesito quien arregle el Wi-Fi, urgente",
-      "Busco trabajo freelance, ¿alguien contrata?",
-      "Recomienden un dentista económico",
-      "Noche de juegos de mesa esta semana, ¿quién se apunta?"
+      "Ej. ¿Alguien para una caminata el finde?",
+      "Ej. Necesito quien arregle el Wi-Fi, urgente",
+      "Ej. Busco trabajo freelance, ¿alguien contrata?",
+      "Ej. Recomienden un dentista económico",
+      "Ej. Noche de juegos de mesa esta semana, ¿quién se apunta?"
     ],
     "createSubtitle": "Con una línea basta — la IA pone las etiquetas para que lo vea la gente indicada (o un amigo de un amigo).",
     "createFailed": "Tu Ask no se publicó — inténtalo de nuevo.",

@@ -299,11 +299,11 @@
     "headerTitle": "Tìm kiếm",
     "searchPlaceholder": "Tag, tên người dùng, v.v.",
     "promptHints": [
-      "Cần một người bạn biết chụp ảnh",
-      "Tìm người nói được tiếng Anh",
-      "Nhà thiết kế gần {{city}}",
-      "Có ai đang khởi nghiệp không?",
-      "Tìm một lập trình viên web"
+      "Ví dụ: Cần một người bạn biết chụp ảnh",
+      "Ví dụ: Tìm người nói được tiếng Anh",
+      "Ví dụ: Nhà thiết kế gần {{city}}",
+      "Ví dụ: Có ai đang khởi nghiệp không?",
+      "Ví dụ: Tìm một lập trình viên web"
     ],
     "promptHintCityFallback": "Nhà thiết kế gần tôi",
     "categorySectionLabel": "Xem theo danh mục",
@@ -403,11 +403,11 @@
     "aiSuggestionsEmpty": "AI chưa tìm được tag hợp — thử lại hoặc tự thêm nhé.",
     "aiRegenerate": "Tạo lại",
     "contextPromptHints": [
-      "Chuyến lặn biển cuối tuần",
-      "Họp lớp đại học",
-      "Tiệc cuối năm công ty",
-      "Tiệc nướng ngoài biển",
-      "Đám cưới của một người bạn"
+      "Ví dụ: Chuyến lặn biển cuối tuần",
+      "Ví dụ: Họp lớp đại học",
+      "Ví dụ: Tiệc cuối năm công ty",
+      "Ví dụ: Tiệc nướng ngoài biển",
+      "Ví dụ: Đám cưới của một người bạn"
     ],
     "saveWarnTitle": "Đã tạo QR, nhưng không lưu được vào Tag",
     "dateLabel": "Ngày",
@@ -536,18 +536,18 @@
     "missingBiolink": "Liên kết mạng xã hội",
     "welcomeShort": "Chào mừng đến với PikTag",
     "bioPromptHints": [
-      "Sales công nghệ — chạy bộ là cách mình reset, đang chinh phục marathon dưới 4 giờ",
-      "Giáo viên tiểu học, trồng rau ban công, hơn 20 chậu sen đá và còn tăng",
-      "Y tá cấp cứu, làm bánh để xả stress sau ca trực, đang học pha cà phê pour-over",
-      "Kỹ sư backend, dạo này mê nấu ăn và làm gốm, nuôi một bé Shiba cá tính",
-      "Sinh viên tâm lý, chơi guitar trong ban nhạc, mới bắt đầu nhận vẽ minh hoạ"
+      "Ví dụ: Sales công nghệ — chạy bộ là cách mình reset, đang chinh phục marathon dưới 4 giờ",
+      "Ví dụ: Giáo viên tiểu học, trồng rau ban công, hơn 20 chậu sen đá và còn tăng",
+      "Ví dụ: Y tá cấp cứu, làm bánh để xả stress sau ca trực, đang học pha cà phê pour-over",
+      "Ví dụ: Kỹ sư backend, dạo này mê nấu ăn và làm gốm, nuôi một bé Shiba cá tính",
+      "Ví dụ: Sinh viên tâm lý, chơi guitar trong ban nhạc, mới bắt đầu nhận vẽ minh hoạ"
     ],
     "headlinePromptHints": [
-      "PM @ công ty công nghệ",
-      "Luật sư @ văn phòng luật",
-      "Y tá cấp cứu @ trung tâm y tế",
-      "Nhà thiết kế đồ hoạ tự do",
-      "Sinh viên ngành tâm lý"
+      "Ví dụ: PM @ công ty công nghệ",
+      "Ví dụ: Luật sư @ văn phòng luật",
+      "Ví dụ: Y tá cấp cứu @ trung tâm y tế",
+      "Ví dụ: Nhà thiết kế đồ hoạ tự do",
+      "Ví dụ: Sinh viên ngành tâm lý"
     ],
     "needLibraryPermissionTitle": "Cần quyền truy cập thư viện ảnh",
     "needLibraryPermissionMsg": "Cho phép truy cập trong Cài đặt",
@@ -1322,11 +1322,11 @@
     "aiBodyTooShortHint": "Nói điều bạn muốn trong một câu — AI sẽ gợi ý tag",
     "aiTapToGenerateHint": "Chạm ↻ để AI gợi ý tag",
     "bodyPromptHints": [
-      "Có ai muốn đi leo núi cuối tuần không?",
-      "Cần người sửa Wi-Fi gấp",
-      "Tìm việc freelance — có ai đang tuyển không?",
-      "Giới thiệu giúp nha sĩ giá hợp lý",
-      "Tối nay chơi board game, ai tham gia không?"
+      "Ví dụ: Có ai muốn đi leo núi cuối tuần không?",
+      "Ví dụ: Cần người sửa Wi-Fi gấp",
+      "Ví dụ: Tìm việc freelance — có ai đang tuyển không?",
+      "Ví dụ: Giới thiệu giúp nha sĩ giá hợp lý",
+      "Ví dụ: Tối nay chơi board game, ai tham gia không?"
     ],
     "createSubtitle": "Chỉ một dòng — AI tự thêm tag để đúng người (hoặc bạn của bạn) nhìn thấy.",
     "createFailed": "Ask chưa gửi được — thử lại nhé.",

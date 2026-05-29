@@ -292,11 +292,11 @@
     "headerTitle": "Rechercher",
     "searchPlaceholder": "Tags, noms d'utilisateur, etc.",
     "promptHints": [
-      "Je cherche un ami photographe",
-      "Je cherche quelqu’un qui parle anglais",
-      "Designers près de {{city}}",
-      "Quelqu'un dans une startup ?",
-      "Je cherche un développeur web"
+      "Ex. Je cherche un ami photographe",
+      "Ex. Je cherche quelqu’un qui parle anglais",
+      "Ex. Designers près de {{city}}",
+      "Ex. Quelqu'un dans une startup ?",
+      "Ex. Je cherche un développeur web"
     ],
     "promptHintCityFallback": "Designers près de chez moi",
     "categorySectionLabel": "Parcourir par catégorie",
@@ -396,11 +396,11 @@
     "aiSuggestionsEmpty": "L'IA n'a rien trouvé — réessaye ou ajoute manuellement.",
     "aiRegenerate": "Régénérer",
     "contextPromptHints": [
-      "Sortie plongée",
-      "Retrouvailles de fac",
-      "Pot de bureau",
-      "Apéro entre amis",
-      "Le mariage d’un ami"
+      "Ex. Sortie plongée",
+      "Ex. Retrouvailles de fac",
+      "Ex. Pot de bureau",
+      "Ex. Apéro entre amis",
+      "Ex. Le mariage d’un ami"
     ],
     "saveWarnTitle": "QR créé, mais impossible d'enregistrer dans le Tag",
     "dateLabel": "Date",
@@ -529,18 +529,18 @@
     "missingBiolink": "Lien social",
     "welcomeShort": "Bienvenue sur PikTag",
     "bioPromptHints": [
-      "Commercial dans la tech ; courir me vide la tête, viser sous 4h au marathon",
-      "Prof des écoles, potager sur le balcon, plus de 20 plantes grasses",
-      "Infirmier aux urgences, je pâtisse pour décompresser, café filtre en cours",
-      "Ingénieur backend, à fond cuisine et poterie, un Shiba bien caractériel",
-      "Étudiant en psycho, guitare dans un groupe, je fais aussi de l’illustration"
+      "Ex. Commercial dans la tech ; courir me vide la tête, viser sous 4h au marathon",
+      "Ex. Prof des écoles, potager sur le balcon, plus de 20 plantes grasses",
+      "Ex. Infirmier aux urgences, je pâtisse pour décompresser, café filtre en cours",
+      "Ex. Ingénieur backend, à fond cuisine et poterie, un Shiba bien caractériel",
+      "Ex. Étudiant en psycho, guitare dans un groupe, je fais aussi de l’illustration"
     ],
     "headlinePromptHints": [
-      "PM @ une boîte tech",
-      "Avocat @ un cabinet",
-      "Infirmier urgences @ un hôpital",
-      "Graphiste freelance",
-      "Étudiant en psychologie"
+      "Ex. PM @ une boîte tech",
+      "Ex. Avocat @ un cabinet",
+      "Ex. Infirmier urgences @ un hôpital",
+      "Ex. Graphiste freelance",
+      "Ex. Étudiant en psychologie"
     ],
     "needLibraryPermissionTitle": "Accès à la photothèque requis",
     "needLibraryPermissionMsg": "Autorisez l'accès dans Réglages",
@@ -1273,11 +1273,11 @@
     "aiBodyTooShortHint": "Décrivez ce que vous voulez en une phrase — l'IA suggérera des tags",
     "aiTapToGenerateHint": "Appuyez sur ↻ pour que l'IA suggère des tags",
     "bodyPromptHints": [
-      "Quelqu’un pour une rando ce week-end ?",
-      "Besoin de réparer le Wi-Fi, urgent",
-      "Je cherche des missions freelance, qui recrute ?",
-      "Recommandez un dentiste pas cher",
-      "Soirée jeux de société cette semaine, qui vient ?"
+      "Ex. Quelqu’un pour une rando ce week-end ?",
+      "Ex. Besoin de réparer le Wi-Fi, urgent",
+      "Ex. Je cherche des missions freelance, qui recrute ?",
+      "Ex. Recommandez un dentiste pas cher",
+      "Ex. Soirée jeux de société cette semaine, qui vient ?"
     ],
     "createSubtitle": "Une ligne suffit — l'IA ajoute les tags pour que les bonnes personnes (ou un ami d'ami) le voient.",
     "createFailed": "Ton Ask n'est pas passé — réessaie.",

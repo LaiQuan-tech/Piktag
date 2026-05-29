@@ -294,11 +294,11 @@
     "headerTitle": "Suchen",
     "searchPlaceholder": "Tags, Nutzernamen usw.",
     "promptHints": [
-      "Suche jemanden, der gut fotografiert",
-      "Suche jemanden, der Spanisch spricht",
-      "Designer in {{city}}",
-      "Jemand aus dem Startup-Bereich?",
-      "Suche einen Webentwickler"
+      "z. B. Suche jemanden, der gut fotografiert",
+      "z. B. Suche jemanden, der Spanisch spricht",
+      "z. B. Designer in {{city}}",
+      "z. B. Jemand aus dem Startup-Bereich?",
+      "z. B. Suche einen Webentwickler"
     ],
     "promptHintCityFallback": "Designer in meiner Nähe",
     "categorySectionLabel": "Nach Kategorie stöbern",
@@ -398,11 +398,11 @@
     "aiSuggestionsEmpty": "AI hat nichts Passendes gefunden — nochmal versuchen oder selbst hinzufügen.",
     "aiRegenerate": "Neu erzeugen",
     "contextPromptHints": [
-      "Tauchausflug",
-      "Klassentreffen",
-      "Büro-Weihnachtsfeier",
-      "Grillen am See",
-      "Hochzeit eines Freundes"
+      "z. B. Tauchausflug",
+      "z. B. Klassentreffen",
+      "z. B. Büro-Weihnachtsfeier",
+      "z. B. Grillen am See",
+      "z. B. Hochzeit eines Freundes"
     ],
     "saveWarnTitle": "QR erstellt, aber konnte nicht im Tag gespeichert werden",
     "dateLabel": "Datum",
@@ -531,18 +531,18 @@
     "missingBiolink": "Social Link",
     "welcomeShort": "Willkommen bei PikTag",
     "bioPromptHints": [
-      "Vertrieb in der Tech-Branche; Laufen ist mein Ausgleich, Ziel Marathon unter 4h",
-      "Grundschullehrerin, Balkon-Gemüsebeet, über 20 Sukkulenten",
-      "Notaufnahme-Pfleger, backe zum Abschalten, lerne gerade Filterkaffee",
-      "Backend-Entwickler, zurzeit Kochen und Töpfern, lebe mit einem sturen Shiba",
-      "Psychologie-Student, Gitarre in einer Band, mache jetzt auch Illustration"
+      "z. B. Vertrieb in der Tech-Branche; Laufen ist mein Ausgleich, Ziel Marathon unter 4h",
+      "z. B. Grundschullehrerin, Balkon-Gemüsebeet, über 20 Sukkulenten",
+      "z. B. Notaufnahme-Pfleger, backe zum Abschalten, lerne gerade Filterkaffee",
+      "z. B. Backend-Entwickler, zurzeit Kochen und Töpfern, lebe mit einem sturen Shiba",
+      "z. B. Psychologie-Student, Gitarre in einer Band, mache jetzt auch Illustration"
     ],
     "headlinePromptHints": [
-      "PM @ einem Tech-Unternehmen",
-      "Anwalt @ einer Kanzlei",
-      "Notfallpfleger @ einer Klinik",
-      "Freier Grafikdesigner",
-      "Psychologie-Student"
+      "z. B. PM @ einem Tech-Unternehmen",
+      "z. B. Anwalt @ einer Kanzlei",
+      "z. B. Notfallpfleger @ einer Klinik",
+      "z. B. Freier Grafikdesigner",
+      "z. B. Psychologie-Student"
     ],
     "needLibraryPermissionTitle": "Zugriff auf Fotomediathek erforderlich",
     "needLibraryPermissionMsg": "Zugriff in den Einstellungen erlauben",
@@ -1315,11 +1315,11 @@
     "aiBodyTooShortHint": "Beschreibe in einem Satz, was du suchst — KI schlägt Tags vor",
     "aiTapToGenerateHint": "Tippe auf ↻ damit die KI Tags vorschlägt",
     "bodyPromptHints": [
-      "Wer Lust auf eine Wanderung am Wochenende?",
-      "Brauche jemanden, der WLAN reparieren kann, dringend",
-      "Suche Freelance-Aufträge — wer stellt ein?",
-      "Empfehlt einen günstigen Zahnarzt",
-      "Brettspielabend diese Woche, wer ist dabei?"
+      "z. B. Wer Lust auf eine Wanderung am Wochenende?",
+      "z. B. Brauche jemanden, der WLAN reparieren kann, dringend",
+      "z. B. Suche Freelance-Aufträge — wer stellt ein?",
+      "z. B. Empfehlt einen günstigen Zahnarzt",
+      "z. B. Brettspielabend diese Woche, wer ist dabei?"
     ],
     "createSubtitle": "Eine Zeile reicht — die KI vergibt die Tags, damit die richtigen Leute (oder ein Freund eines Freundes) es sehen.",
     "createFailed": "Dein Ask ging nicht raus — versuch es nochmal.",

@@ -292,11 +292,11 @@
     "headerTitle": "Cari",
     "searchPlaceholder": "Tag, nama pengguna, dll.",
     "promptHints": [
-      "Butuh teman yang bisa fotografi",
-      "Cari yang bisa bahasa Inggris",
-      "Desainer di {{city}}",
-      "Ada yang di startup?",
-      "Cari web developer"
+      "Mis. Butuh teman yang bisa fotografi",
+      "Mis. Cari yang bisa bahasa Inggris",
+      "Mis. Desainer di {{city}}",
+      "Mis. Ada yang di startup?",
+      "Mis. Cari web developer"
     ],
     "promptHintCityFallback": "Desainer di dekat sini",
     "categorySectionLabel": "Telusuri berdasarkan kategori",
@@ -396,11 +396,11 @@
     "aiSuggestionsEmpty": "AI nggak nemu — coba lagi atau tambah sendiri.",
     "aiRegenerate": "Buat ulang",
     "contextPromptHints": [
-      "Trip diving",
-      "Reuni kampus",
-      "Acara kantor",
-      "BBQ akhir pekan",
-      "Pernikahan teman"
+      "Mis. Trip diving",
+      "Mis. Reuni kampus",
+      "Mis. Acara kantor",
+      "Mis. BBQ akhir pekan",
+      "Mis. Pernikahan teman"
     ],
     "saveWarnTitle": "QR dibuat, tapi gagal disimpan ke Tag",
     "dateLabel": "Tanggal",
@@ -529,18 +529,18 @@
     "missingBiolink": "Tautan sosial",
     "welcomeShort": "Selamat datang di PikTag",
     "bioPromptHints": [
-      "Sales di tech; lari cara saya melepas penat, target maraton sub-4 tahun ini",
-      "Guru SD, berkebun sayur di balkon, koleksi 20+ sukulen",
-      "Perawat IGD, baking buat rileks habis shift, lagi belajar pour-over",
-      "Backend engineer, lagi suka masak dan keramik, punya Shiba galak",
-      "Mahasiswa psikologi, main gitar di band, mulai terima job ilustrasi"
+      "Mis. Sales di tech; lari cara saya melepas penat, target maraton sub-4 tahun ini",
+      "Mis. Guru SD, berkebun sayur di balkon, koleksi 20+ sukulen",
+      "Mis. Perawat IGD, baking buat rileks habis shift, lagi belajar pour-over",
+      "Mis. Backend engineer, lagi suka masak dan keramik, punya Shiba galak",
+      "Mis. Mahasiswa psikologi, main gitar di band, mulai terima job ilustrasi"
     ],
     "headlinePromptHints": [
-      "PM @ perusahaan tech",
-      "Pengacara @ firma hukum",
-      "Perawat IGD @ pusat medis",
-      "Desainer grafis freelance",
-      "Mahasiswa psikologi"
+      "Mis. PM @ perusahaan tech",
+      "Mis. Pengacara @ firma hukum",
+      "Mis. Perawat IGD @ pusat medis",
+      "Mis. Desainer grafis freelance",
+      "Mis. Mahasiswa psikologi"
     ],
     "needLibraryPermissionTitle": "Akses pustaka foto diperlukan",
     "needLibraryPermissionMsg": "Izinkan akses di Pengaturan",
@@ -1273,11 +1273,11 @@
     "aiBodyTooShortHint": "Tulis dalam satu kalimat — AI akan menyarankan tag",
     "aiTapToGenerateHint": "Ketuk ↻ agar AI menyarankan tag",
     "bodyPromptHints": [
-      "Ada yang mau hiking akhir pekan?",
-      "Butuh yang bisa benerin Wi-Fi, urgent",
-      "Cari kerja freelance — ada yang hiring?",
-      "Rekomendasi dokter gigi murah",
-      "Main board game minggu ini, siapa ikut?"
+      "Mis. Ada yang mau hiking akhir pekan?",
+      "Mis. Butuh yang bisa benerin Wi-Fi, urgent",
+      "Mis. Cari kerja freelance — ada yang hiring?",
+      "Mis. Rekomendasi dokter gigi murah",
+      "Mis. Main board game minggu ini, siapa ikut?"
     ],
     "createSubtitle": "Satu baris cukup — AI menambah tag biar orang yang tepat (atau teman dari teman) melihatnya.",
     "createFailed": "Ask kamu gagal terkirim — coba lagi.",

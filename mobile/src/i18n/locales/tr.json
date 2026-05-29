@@ -292,11 +292,11 @@
     "headerTitle": "Ara",
     "searchPlaceholder": "Etiketler, kullanıcı adları vb.",
     "promptHints": [
-      "Fotoğrafçı bir arkadaş arıyorum",
-      "İngilizce konuşan biri arıyorum",
-      "{{city}}'daki tasarımcılar",
-      "Startup'ta tanıdık var mı?",
-      "Web geliştirici arıyorum"
+      "Ör. Fotoğrafçı bir arkadaş arıyorum",
+      "Ör. İngilizce konuşan biri arıyorum",
+      "Ör. {{city}}'daki tasarımcılar",
+      "Ör. Startup'ta tanıdık var mı?",
+      "Ör. Web geliştirici arıyorum"
     ],
     "promptHintCityFallback": "Yakındaki tasarımcılar",
     "categorySectionLabel": "Kategoriye göre göz at",
@@ -396,11 +396,11 @@
     "aiSuggestionsEmpty": "AI uygun bir şey bulamadı — tekrar dene veya kendin ekle.",
     "aiRegenerate": "Yeniden oluştur",
     "contextPromptHints": [
-      "Dalış gezisi",
-      "Üniversite buluşması",
-      "Ofis partisi",
-      "Hafta sonu mangal",
-      "Bir arkadaşın düğünü"
+      "Ör. Dalış gezisi",
+      "Ör. Üniversite buluşması",
+      "Ör. Ofis partisi",
+      "Ör. Hafta sonu mangal",
+      "Ör. Bir arkadaşın düğünü"
     ],
     "saveWarnTitle": "QR oluşturuldu, ama Tag'e kaydedilemedi",
     "dateLabel": "Tarih",
@@ -529,18 +529,18 @@
     "missingBiolink": "Sosyal bağlantı",
     "welcomeShort": "PikTag'a hoş geldin",
     "bioPromptHints": [
-      "Teknolojide satış; koşmak kafa dağıtmam, bu yıl maratonu 4 saatin altına",
-      "İlkokul öğretmeni, balkonda sebze yetiştiriyorum, 20+ sukulent",
-      "Acil hemşiresi, vardiya sonrası pasta yaparım, filtre kahve öğreniyorum",
-      "Backend mühendisi, son dönem yemek ve çömlek merakı, huysuz bir Shiba’m var",
-      "Psikoloji öğrencisi, grupta gitar çalıyorum, illüstrasyon işleri alıyorum"
+      "Ör. Teknolojide satış; koşmak kafa dağıtmam, bu yıl maratonu 4 saatin altına",
+      "Ör. İlkokul öğretmeni, balkonda sebze yetiştiriyorum, 20+ sukulent",
+      "Ör. Acil hemşiresi, vardiya sonrası pasta yaparım, filtre kahve öğreniyorum",
+      "Ör. Backend mühendisi, son dönem yemek ve çömlek merakı, huysuz bir Shiba’m var",
+      "Ör. Psikoloji öğrencisi, grupta gitar çalıyorum, illüstrasyon işleri alıyorum"
     ],
     "headlinePromptHints": [
-      "PM @ bir teknoloji şirketi",
-      "Avukat @ bir hukuk bürosu",
-      "Acil hemşiresi @ tıp merkezi",
-      "Serbest grafik tasarımcı",
-      "Psikoloji öğrencisi"
+      "Ör. PM @ bir teknoloji şirketi",
+      "Ör. Avukat @ bir hukuk bürosu",
+      "Ör. Acil hemşiresi @ tıp merkezi",
+      "Ör. Serbest grafik tasarımcı",
+      "Ör. Psikoloji öğrencisi"
     ],
     "needLibraryPermissionTitle": "Fotoğraf kitaplığı erişimi gerekli",
     "needLibraryPermissionMsg": "Ayarlar'dan erişime izin verin",
@@ -1273,11 +1273,11 @@
     "aiBodyTooShortHint": "Ne istediğini bir cümleyle yaz — AI etiket önerir",
     "aiTapToGenerateHint": "↻ a dokun, AI etiket önersin",
     "bodyPromptHints": [
-      "Hafta sonu yürüyüşe gelen var mı?",
-      "Wi-Fi tamir edecek biri lazım, acil",
-      "Freelance iş arıyorum — işe alan var mı?",
-      "Uygun fiyatlı diş hekimi önerin",
-      "Bu hafta masa oyunu gecesi, kim var?"
+      "Ör. Hafta sonu yürüyüşe gelen var mı?",
+      "Ör. Wi-Fi tamir edecek biri lazım, acil",
+      "Ör. Freelance iş arıyorum — işe alan var mı?",
+      "Ör. Uygun fiyatlı diş hekimi önerin",
+      "Ör. Bu hafta masa oyunu gecesi, kim var?"
     ],
     "createSubtitle": "Bir satır yeter — AI etiketleri ekler, doğru kişiler (ya da bir arkadaşın arkadaşı) görsün.",
     "createFailed": "Ask gönderilemedi — tekrar dene.",
