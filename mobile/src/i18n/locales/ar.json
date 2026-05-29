@@ -951,7 +951,7 @@
         "body": "قد تعرف {{username}} — {{count}} وسوم مشتركة"
       },
       "endorsement_request": {
-        "body": "وَسَمَ نفسه بـ #{{tag_name}} — هل توافق؟"
+        "body": "وَسَمَ نفسه بـ #{{tag_name}}"
       }
     },
     "tabMatches": "تطابقات",

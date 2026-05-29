@@ -996,7 +996,7 @@
         }
       },
       "endorsement_request": {
-        "body": "tagged themselves as #{{tag_name}} — do you agree?"
+        "body": "tagged themselves #{{tag_name}}"
       }
     },
     "tabMatches": "Matches",

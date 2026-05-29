@@ -951,7 +951,7 @@
         "body": "शायद आप {{username}} को जानते हैं — {{count}} सामान्य टैग"
       },
       "endorsement_request": {
-        "body": "खुद को #{{tag_name}} के रूप में टैग किया — क्या आप सहमत हैं?"
+        "body": "खुद को #{{tag_name}} के रूप में टैग किया"
       }
     },
     "tabMatches": "मेल",

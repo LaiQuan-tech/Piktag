@@ -996,7 +996,7 @@
         }
       },
       "endorsement_request": {
-        "body": "si è taggato come #{{tag_name}} — sei d'accordo?"
+        "body": "si è taggato come #{{tag_name}}"
       }
     },
     "tabMatches": "Match",

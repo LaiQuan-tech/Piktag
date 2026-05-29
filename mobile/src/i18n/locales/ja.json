@@ -951,7 +951,7 @@
         "body": "{{username}} を知っているかも — 共通タグ {{count}} 個"
       },
       "endorsement_request": {
-        "body": "自分を #{{tag_name}} とタグ付けしました — あなたも同意しますか？"
+        "body": "自分を #{{tag_name}} とタグ付けしました"
       }
     },
     "tabMatches": "マッチ",

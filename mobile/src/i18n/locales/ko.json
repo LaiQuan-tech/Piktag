@@ -951,7 +951,7 @@
         "body": "{{username}}님을 알 수도 있어요 — 공통 태그 {{count}}개"
       },
       "endorsement_request": {
-        "body": "스스로 #{{tag_name}}(으)로 태그했어요 — 동의하세요?"
+        "body": "스스로 #{{tag_name}}(으)로 태그했어요"
       }
     },
     "tabMatches": "매칭",

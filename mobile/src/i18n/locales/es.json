@@ -951,7 +951,7 @@
         "body": "quizá conozcas a {{username}} — {{count}} tags en común"
       },
       "endorsement_request": {
-        "body": "se etiquetó como #{{tag_name}} — ¿estás de acuerdo?"
+        "body": "se etiquetó como #{{tag_name}}"
       }
     },
     "tabMatches": "Match",

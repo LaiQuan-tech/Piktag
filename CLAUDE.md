@@ -79,6 +79,18 @@ something:
   * Viewer adds if they organically agree, ignores if not.
     No "Confirm" button, no "Approve" button, no anywhere.
 
+**Sub-sub-rule: the COPY itself can't be a rubber-stamp ask either.**
+After removing the "認同" button (commit 80a8568) the body still
+read "Armand 自標 #養貓 — 你也認同嗎？" — same anti-pattern in
+sentence form. Founder verbatim, 2026-05-30: *"我覺得這句話根本
+不應該問使用者，這句話是找使用者麻煩"*. The notification body
+states a FACT ("Armand 自標 #養貓"), it does not pose a QUESTION
+("...你也認同嗎？" / "...do you agree?" / "...sei d'accordo?").
+This applies to every locale — when adding push/in-app body text,
+read it back: if it ends in a question mark asking the viewer to
+validate a third party's claim, rewrite. Statement form only.
+(Edited in 20260530070000 across 19 locale JSONs + SQL fallback.)
+
 2. **Never conflate engagement with value.**
    Meta's transparency page literally says "sharing a post...can
    be an indication that you found that post to be valuable" —

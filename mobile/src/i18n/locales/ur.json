@@ -996,7 +996,7 @@
         }
       },
       "endorsement_request": {
-        "body": "خود کو #{{tag_name}} کے طور پر ٹیگ کیا — کیا آپ متفق ہیں؟"
+        "body": "خود کو #{{tag_name}} کے طور پر ٹیگ کیا"
       }
     },
     "tabMatches": "میچ",

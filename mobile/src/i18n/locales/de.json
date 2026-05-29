@@ -989,7 +989,7 @@
         "body": "ist PikTag beigetreten"
       },
       "endorsement_request": {
-        "body": "hat sich als #{{tag_name}} getaggt — stimmst du zu?"
+        "body": "hat sich als #{{tag_name}} getaggt"
       }
     },
     "tabMatches": "Treffer",

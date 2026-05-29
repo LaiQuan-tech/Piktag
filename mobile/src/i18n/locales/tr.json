@@ -951,7 +951,7 @@
         "body": "belki {{username}}'ı tanıyorsun — {{count}} ortak etiket"
       },
       "endorsement_request": {
-        "body": "kendini #{{tag_name}} olarak etiketledi — katılıyor musun?"
+        "body": "kendini #{{tag_name}} olarak etiketledi"
       }
     },
     "tabMatches": "Eşleşmeler",

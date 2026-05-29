@@ -989,7 +989,7 @@
         "body": "加入了 PikTag"
       },
       "endorsement_request": {
-        "body": "标自己 #{{tag_name}} — 你也认同吗？"
+        "body": "标自己 #{{tag_name}}"
       }
     },
     "tabMatches": "配对",

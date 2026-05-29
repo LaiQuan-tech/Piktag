@@ -951,7 +951,7 @@
         "body": "คุณอาจรู้จัก {{username}} — แท็กร่วม {{count}} แท็ก"
       },
       "endorsement_request": {
-        "body": "แท็กตัวเองว่า #{{tag_name}} — คุณเห็นด้วยไหม?"
+        "body": "แท็กตัวเองว่า #{{tag_name}}"
       }
     },
     "tabMatches": "จับคู่",

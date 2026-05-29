@@ -996,7 +996,7 @@
         }
       },
       "endorsement_request": {
-        "body": "gắn tag bản thân là #{{tag_name}} — bạn đồng ý không?"
+        "body": "gắn tag bản thân là #{{tag_name}}"
       }
     },
     "tabMatches": "Khớp",

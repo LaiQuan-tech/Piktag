@@ -951,7 +951,7 @@
         "body": "mungkin kamu kenal {{username}} — {{count}} tag bersama"
       },
       "endorsement_request": {
-        "body": "memberi tag dirinya #{{tag_name}} — kamu setuju?"
+        "body": "memberi tag dirinya #{{tag_name}}"
       }
     },
     "tabMatches": "Cocok",
