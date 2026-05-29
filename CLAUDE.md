@@ -434,4 +434,60 @@ founder when the trigger condition lands:
   like #FFFFFF on a piktag500-saturated CTA where the white is
   *intentionally* fixed regardless of theme).
 
+## v2 plans — committed direction, not built yet
+
+### Alt accounts ("小號" — IG-finsta model, decided 2026-05-30)
+
+Founder direction for the next major version. Locked here so the
+design doesn't drift over the next 1-2 months while we ship v1.
+
+**Tier**: L1 — completely independent accounts. Each alt is its own
+`auth.users` row with its own email/phone (NOT one auth-user with
+multiple profiles — IG's actual model is multi-account on device,
+not multi-persona on account). Switching accounts = real auth swap
+(sign out current, sign in alt via stored Keychain credentials).
+
+**Friend graphs are completely separate.** Alt cannot see main's
+friends; main's friends cannot see alt. No cross-pollination. IG-
+strict. Costs PikTag's "reactivate dormant" North-Star value across
+the boundary — founder accepted that cost as the price of true
+alt feel.
+
+**Alt is NOT discoverable by default.** Likely flag:
+`piktag_profiles.is_discoverable boolean DEFAULT true`, with alt
+creation flipping it to false. EVERY ranking RPC must gate on it:
+`search_users`, `match_ask_to_friends`, `explore_users_for_tag`,
+the recommendation cron, `ask_bridge`, `reconnect_suggest`,
+`tag_combo`, `tag_convergence`. When this lands, the "Adding a
+new ranking surface" CLAUDE.md checklist gains a 4th bullet:
+"filter `WHERE p.is_discoverable = true`" (alt can't be a candidate).
+
+**Self-cross-DM is blocked.** Same way IG won't let your main DM
+your finsta. `get_or_create_conversation` adds a reject-if-shared-
+alt-parent check.
+
+**Pre-launch invariants that MUST be preserved for v2 to land
+cleanly** — break any of these and v2 becomes a rewrite, not an
+extension:
+  1. `piktag_profiles.id = auth.users.id`. Don't decouple. If you
+     add a new "profile owner" concept, it points HERE.
+  2. Push token lives in `piktag_profiles.push_token`, NOT in a
+     separate devices table. Per-account naturally works.
+  3. Any user-specific AsyncStorage key SHOULD be namespaced by
+     user id (e.g. `piktag_<userid>_lang` rather than `piktag_lang`).
+     Pre-launch this is loose — v2 will sweep + namespace; until
+     then, new keys you add: prefer the namespaced form.
+  4. Realtime channel subscriptions must unsub cleanly on auth
+     change (current AppNavigator behavior; don't regress).
+  5. `i18n.language` is global per app install — that one DOESN'T
+     need namespacing. UI language is a device preference, not an
+     account preference; switching accounts should not switch UI
+     language.
+
+**NOT in v2 scope** (revisit in v2.1+ if data justifies):
+  - Cross-account block list inheritance
+  - "Switch to @alt to see X" push notifications across accounts
+  - Shared media library across alts
+  - Same-device biometric / Face ID quick-switch
+
 _(Founder explicitly asked the North Star be remembered — 2026-05.)_
