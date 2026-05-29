@@ -543,14 +543,16 @@ export default function NotificationsScreen({ navigation }: NotificationsScreenP
       if (user) {
         refreshBadgeFromServer(user.id).catch(() => {});
       }
+      // Set both flags. is_dismissed hides the row from future
+      // fetches; is_read makes sure the badge query (which now
+      // filters by is_read=false AND is_dismissed=false) drops
+      // this row even on the migration-not-yet-applied fallback
+      // path. Defense in depth — same intent, two backstops.
       const { error } = await supabase
         .from('piktag_notifications')
-        .update({ is_dismissed: true })
+        .update({ is_dismissed: true, is_read: true })
         .eq('id', notifId);
       if (error) {
-        // 42703 means migration not yet applied — log only, don't
-        // re-show: the user already saw the row vanish, snapping it
-        // back would confuse them.
         const isMissingColumn =
           (error as any).code === '42703' || /is_dismissed/i.test(error.message);
         if (!isMissingColumn) {
@@ -593,7 +595,7 @@ export default function NotificationsScreen({ navigation }: NotificationsScreenP
         });
       void supabase
         .from('piktag_notifications')
-        .update({ is_dismissed: true })
+        .update({ is_dismissed: true, is_read: true })
         .eq('id', notif.id)
         .then(({ error }) => {
           if (error) {

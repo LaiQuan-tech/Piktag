@@ -103,17 +103,54 @@ export async function registerForPushNotifications(userId: string): Promise<stri
  * Compute unread count and set the app-icon badge to match.
  * Call after auth resolves, on each new realtime INSERT, and after
  * marking a row as read. Cheap (single COUNT query, head=true).
+ *
+ * Three filters layered so the badge can never get "stuck":
+ *   - is_read = false   →  user hasn't tapped it
+ *   - is_dismissed = false  →  user hasn't long-pressed → Hide
+ *     (Hide and "Don't suggest" both set is_dismissed; without
+ *     this filter a dismissed-but-unread row keeps the badge
+ *     at 1 forever — @lpfrg's 2026-05-30 report)
+ *   - type IN KNOWN_NOTIFICATION_TYPES  →  the row would
+ *     actually appear in some tab if NotificationsScreen rendered
+ *     it. Legacy / orphan types (e.g. 'contract_expiry' never
+ *     wired into any tab) don't get counted — otherwise they're
+ *     invisible AND keep the badge non-zero, which from the user's
+ *     side reads as a hard bug.
  */
 export async function refreshBadgeFromServer(userId: string): Promise<void> {
   try {
-    const { count, error } = await supabase
+    // Imported lazily-at-call-time to keep this module dependency-
+    // light; the constant module itself is sync.
+    const { KNOWN_NOTIFICATION_TYPES } = await import('./notificationTypes');
+    let { count, error } = await supabase
       .from('piktag_notifications')
       .select('id', { count: 'exact', head: true })
       .eq('user_id', userId)
-      .eq('is_read', false);
+      .eq('is_read', false)
+      .eq('is_dismissed', false)
+      .in('type', KNOWN_NOTIFICATION_TYPES as unknown as string[]);
     if (error) {
-      console.warn('[badge] unread query failed:', error.message);
-      return;
+      // 42703 = `is_dismissed` not yet migrated; fall back to the
+      // narrower query so stale environments still get SOMETHING
+      // closer to the truth than no badge update at all.
+      const isMissing =
+        (error as any).code === '42703' || /is_dismissed/i.test(error.message);
+      if (isMissing) {
+        const fb = await supabase
+          .from('piktag_notifications')
+          .select('id', { count: 'exact', head: true })
+          .eq('user_id', userId)
+          .eq('is_read', false)
+          .in('type', KNOWN_NOTIFICATION_TYPES as unknown as string[]);
+        if (fb.error) {
+          console.warn('[badge] fallback unread query failed:', fb.error.message);
+          return;
+        }
+        count = fb.count;
+      } else {
+        console.warn('[badge] unread query failed:', error.message);
+        return;
+      }
     }
     const Notifications = await import('expo-notifications');
     await Notifications.setBadgeCountAsync(Math.max(0, count ?? 0));
