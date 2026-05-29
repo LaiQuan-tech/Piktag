@@ -954,9 +954,6 @@
         "body": "memberi tag dirinya #{{tag_name}} — kamu setuju?"
       }
     },
-    "endorseBtn": "Setuju",
-    "endorseRetry": "Coba lagi",
-    "endorseDone": "Disetujui",
     "tabMatches": "Cocok",
     "tabMemories": "Kenangan",
     "hideRow": "Sembunyikan notifikasi ini",

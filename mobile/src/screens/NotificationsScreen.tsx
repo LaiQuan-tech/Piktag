@@ -234,29 +234,12 @@ const NotificationItem = React.memo(function NotificationItem({
     onLongPress(item);
   }, [onLongPress, item]);
 
-  // Endorsement-request inline action — principle #3. When the friend
-  // taps 認同, we call endorse_tag_from_notification which inserts the
-  // public connection_tag + marks notification read. Local state gives
-  // immediate visual feedback before the parent refetches.
-  const [endorseState, setEndorseState] = useState<'idle' | 'pending' | 'done' | 'failed'>('idle');
-  const isEndorsementRequest = item.type === 'endorsement_request';
-
-  const handleEndorse = useCallback(async () => {
-    if (endorseState !== 'idle') return;
-    setEndorseState('pending');
-    try {
-      const { data, error } = await supabase.rpc('endorse_tag_from_notification', {
-        p_notification_id: item.id,
-      });
-      if (error || data !== true) {
-        setEndorseState('failed');
-        return;
-      }
-      setEndorseState('done');
-    } catch {
-      setEndorseState('failed');
-    }
-  }, [item.id, endorseState]);
+  // endorsement_request rows used to render an inline "認同" button
+  // here (commit 915ed55, principle #3). Removed 2026-05-30 — see
+  // CLAUDE.md "No rubber-stamp social buttons". Tapping the row now
+  // routes to the friend's FriendDetail where the viewer can tap
+  // their existing add-tag chip flow if they organically agree.
+  // Zero social pressure, zero rubber-stamp signal.
 
   return (
     <TouchableOpacity
@@ -296,31 +279,9 @@ const NotificationItem = React.memo(function NotificationItem({
           <Text style={styles.notificationTime}>
             {formatTimeAgo(item.created_at, t)}
           </Text>
-          {isEndorsementRequest && endorseState !== 'done' ? (
-            <TouchableOpacity
-              onPress={handleEndorse}
-              disabled={endorseState !== 'idle'}
-              activeOpacity={0.7}
-              style={[
-                styles.endorseBtn,
-                endorseState === 'pending' && styles.endorseBtnPending,
-              ]}
-            >
-              <Text style={styles.endorseBtnText}>
-                {endorseState === 'failed'
-                  ? t('notifications.endorseRetry', { defaultValue: '重試' })
-                  : t('notifications.endorseBtn', { defaultValue: '認同' })}
-              </Text>
-            </TouchableOpacity>
-          ) : null}
-          {isEndorsementRequest && endorseState === 'done' ? (
-            <Text style={styles.endorseDone}>
-              {t('notifications.endorseDone', { defaultValue: '已認同' })}
-            </Text>
-          ) : null}
         </View>
       </View>
-      {!item.is_read && endorseState !== 'done' && <View style={styles.unreadDot} />}
+      {!item.is_read && <View style={styles.unreadDot} />}
     </TouchableOpacity>
   );
 });
@@ -965,31 +926,16 @@ function makeStyles(c: ColorPalette) {
     color: c.gray400,
     marginTop: 4,
   },
-  // Endorsement-request inline action (principle #3).
+  // Row footer (timestamp). Used to contain an inline "認同" CTA
+  // for endorsement_request rows; removed 2026-05-30 (CLAUDE.md
+  // "No rubber-stamp social buttons"). Keeping the flex layout so
+  // future passive metadata (e.g. "3 friends also tagged this")
+  // has a place to land on the right side.
   notificationFooterRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     marginTop: 4,
-  },
-  endorseBtn: {
-    backgroundColor: c.piktag500,
-    paddingHorizontal: 14,
-    paddingVertical: 6,
-    borderRadius: 14,
-  },
-  endorseBtnPending: {
-    opacity: 0.6,
-  },
-  endorseBtnText: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: '#FFFFFF',
-  },
-  endorseDone: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: c.piktag600,
   },
   unreadDot: {
     width: 8,

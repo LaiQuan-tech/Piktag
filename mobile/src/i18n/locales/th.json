@@ -954,9 +954,6 @@
         "body": "แท็กตัวเองว่า #{{tag_name}} — คุณเห็นด้วยไหม?"
       }
     },
-    "endorseBtn": "เห็นด้วย",
-    "endorseRetry": "ลองอีกครั้ง",
-    "endorseDone": "เห็นด้วยแล้ว",
     "tabMatches": "จับคู่",
     "tabMemories": "ความทรงจำ",
     "hideRow": "ซ่อนการแจ้งเตือนนี้",

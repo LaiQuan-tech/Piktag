@@ -992,9 +992,6 @@
         "body": "标自己 #{{tag_name}} — 你也认同吗？"
       }
     },
-    "endorseBtn": "认同",
-    "endorseRetry": "重试",
-    "endorseDone": "已认同",
     "tabMatches": "配对",
     "tabMemories": "回忆",
     "hideRow": "隐藏这则通知",

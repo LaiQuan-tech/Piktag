@@ -50,6 +50,35 @@ while "borrowing best practice" from a Big Tech post-mortem.
    should be a weak NEGATIVE signal (the user looked and didn't
    message — that's a mismatch worth de-weighting next time).
 
+**Sub-rule: no rubber-stamp social buttons on notifications.**
+Don't ship "Confirm / Endorse / Approve" CTAs that ask the viewer
+to validate a social claim someone ELSE made. Instances:
+- "Armand 自標 #養貓 — 你也認同嗎？ [認同]" (removed 2026-05-30)
+- Any "Confirm friendship", "Vouch for skill", "Co-sign" pattern.
+
+Why these fail for PikTag specifically:
+  * The button creates social pressure (peer-review under your
+    own name). Tap = rubber-stamp regardless of true belief —
+    principle #5 calibration will catch it as low-quality signal,
+    but cleaner not to manufacture the signal in the first place.
+  * No-tap doesn't mean "I disagree" — usually means "didn't feel
+    like doing the work." We mis-read a non-action as endorsement
+    of the negative.
+  * Active prompting IS the engagement-driven platform pattern
+    we explicitly rejected (see the two anti-patterns above).
+    Principle #3 says "active-learning style endorsement prompts"
+    — but the SURFACE is the friend's FriendDetail tag chips
+    (organic, viewer-initiated), not a button inside a notification.
+
+Correct pattern when you need to nudge a viewer to validate
+something:
+  * Notification surfaces the fact ("Armand 自標 #養貓")
+  * Tap routes to the relevant detail screen
+  * Detail screen shows the suggested tag/claim as a passive chip
+    in the established tap-to-add flow
+  * Viewer adds if they organically agree, ignores if not.
+    No "Confirm" button, no "Approve" button, no anywhere.
+
 2. **Never conflate engagement with value.**
    Meta's transparency page literally says "sharing a post...can
    be an indication that you found that post to be valuable" —

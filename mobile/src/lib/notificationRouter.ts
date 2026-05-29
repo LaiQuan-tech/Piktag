@@ -139,6 +139,12 @@ export async function routeFromNotification(
     data.recommended_user_id,
     data.clicker_user_id,
     data.redeemer_id,
+    // endorsement_request uses target_user_id (the friend whose
+    // self-tag we're nudging the viewer to organically endorse).
+    // Before this entry the field went unread and taps dead-ended
+    // after mark-as-read — relevant after we removed the inline
+    // "認同" button 2026-05-30, since now the tap IS the action.
+    data.target_user_id,
     data.user_id,
   ];
   let userId = userIdCandidates.find(

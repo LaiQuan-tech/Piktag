@@ -999,9 +999,6 @@
         "body": "si è taggato come #{{tag_name}} — sei d'accordo?"
       }
     },
-    "endorseBtn": "Approva",
-    "endorseRetry": "Riprova",
-    "endorseDone": "Approvato",
     "tabMatches": "Match",
     "tabMemories": "Ricordi",
     "hideRow": "Nascondi questa notifica",

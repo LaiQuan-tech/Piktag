@@ -954,9 +954,6 @@
         "body": "kendini #{{tag_name}} olarak etiketledi — katılıyor musun?"
       }
     },
-    "endorseBtn": "Onayla",
-    "endorseRetry": "Tekrar dene",
-    "endorseDone": "Onaylandı",
     "tabMatches": "Eşleşmeler",
     "tabMemories": "Anılar",
     "hideRow": "Bu bildirimi gizle",

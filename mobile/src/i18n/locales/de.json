@@ -992,9 +992,6 @@
         "body": "hat sich als #{{tag_name}} getaggt — stimmst du zu?"
       }
     },
-    "endorseBtn": "Bestätigen",
-    "endorseRetry": "Erneut versuchen",
-    "endorseDone": "Bestätigt",
     "tabMatches": "Treffer",
     "tabMemories": "Erinnerungen",
     "hideRow": "Diese Mitteilung ausblenden",

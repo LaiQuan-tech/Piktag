@@ -954,9 +954,6 @@
         "body": "스스로 #{{tag_name}}(으)로 태그했어요 — 동의하세요?"
       }
     },
-    "endorseBtn": "동의",
-    "endorseRetry": "다시 시도",
-    "endorseDone": "동의함",
     "tabMatches": "매칭",
     "tabMemories": "추억",
     "hideRow": "이 알림 숨기기",

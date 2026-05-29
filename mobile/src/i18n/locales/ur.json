@@ -999,9 +999,6 @@
         "body": "خود کو #{{tag_name}} کے طور پر ٹیگ کیا — کیا آپ متفق ہیں؟"
       }
     },
-    "endorseBtn": "متفق",
-    "endorseRetry": "دوبارہ کوشش",
-    "endorseDone": "متفق ہو گیا",
     "tabMatches": "میچ",
     "tabMemories": "یادیں",
     "hideRow": "یہ اطلاع چھپائیں",

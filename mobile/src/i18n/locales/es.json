@@ -954,9 +954,6 @@
         "body": "se etiquetó como #{{tag_name}} — ¿estás de acuerdo?"
       }
     },
-    "endorseBtn": "Apoyar",
-    "endorseRetry": "Reintentar",
-    "endorseDone": "Apoyado",
     "tabMatches": "Match",
     "tabMemories": "Recuerdos",
     "hideRow": "Ocultar esta notificación",

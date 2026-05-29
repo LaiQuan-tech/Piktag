@@ -954,9 +954,6 @@
         "body": "وَسَمَ نفسه بـ #{{tag_name}} — هل توافق؟"
       }
     },
-    "endorseBtn": "أؤيد",
-    "endorseRetry": "إعادة المحاولة",
-    "endorseDone": "تم التأييد",
     "tabMatches": "تطابقات",
     "tabMemories": "ذكريات",
     "hideRow": "إخفاء هذا الإشعار",

@@ -999,9 +999,6 @@
         "body": "tagged themselves as #{{tag_name}} — do you agree?"
       }
     },
-    "endorseBtn": "Endorse",
-    "endorseRetry": "Retry",
-    "endorseDone": "Endorsed",
     "tabMatches": "Matches",
     "tabMemories": "Memories",
     "hideRow": "Hide this notification",

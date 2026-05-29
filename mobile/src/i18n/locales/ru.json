@@ -954,9 +954,6 @@
         "body": "пометил(а) себя как #{{tag_name}} — вы согласны?"
       }
     },
-    "endorseBtn": "Подтвердить",
-    "endorseRetry": "Повторить",
-    "endorseDone": "Подтверждено",
     "tabMatches": "Совпадения",
     "tabMemories": "Память",
     "hideRow": "Скрыть это уведомление",
