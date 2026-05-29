@@ -958,7 +958,10 @@
     "endorseRetry": "Повторить",
     "endorseDone": "Подтверждено",
     "tabMatches": "Совпадения",
-    "tabMemories": "Память"
+    "tabMemories": "Память",
+    "hideRow": "Скрыть это уведомление",
+    "dontSuggestPerson": "Больше не предлагать {{name}}",
+    "thisPerson": "этого человека"
   },
   "scanResult": {
     "headerTitle": "Добавить друга",

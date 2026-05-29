@@ -958,7 +958,10 @@
     "endorseRetry": "다시 시도",
     "endorseDone": "동의함",
     "tabMatches": "매칭",
-    "tabMemories": "추억"
+    "tabMemories": "추억",
+    "hideRow": "이 알림 숨기기",
+    "dontSuggestPerson": "앞으로 {{name}} 추천 안 함",
+    "thisPerson": "이 사람"
   },
   "scanResult": {
     "headerTitle": "친구 추가",

@@ -996,7 +996,10 @@
     "endorseRetry": "Erneut versuchen",
     "endorseDone": "Bestätigt",
     "tabMatches": "Treffer",
-    "tabMemories": "Erinnerungen"
+    "tabMemories": "Erinnerungen",
+    "hideRow": "Diese Mitteilung ausblenden",
+    "dontSuggestPerson": "{{name}} nicht mehr vorschlagen",
+    "thisPerson": "diese Person"
   },
   "scanResult": {
     "headerTitle": "Freund hinzufügen",

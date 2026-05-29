@@ -1003,7 +1003,10 @@
     "endorseRetry": "Retry",
     "endorseDone": "Endorsed",
     "tabMatches": "Matches",
-    "tabMemories": "Memories"
+    "tabMemories": "Memories",
+    "hideRow": "Hide this notification",
+    "dontSuggestPerson": "Don't suggest {{name}} again",
+    "thisPerson": "this person"
   },
   "scanResult": {
     "headerTitle": "Add Friend",

@@ -958,7 +958,10 @@
     "endorseRetry": "إعادة المحاولة",
     "endorseDone": "تم التأييد",
     "tabMatches": "تطابقات",
-    "tabMemories": "ذكريات"
+    "tabMemories": "ذكريات",
+    "hideRow": "إخفاء هذا الإشعار",
+    "dontSuggestPerson": "لا تقترح {{name}} مرّة أخرى",
+    "thisPerson": "هذا الشخص"
   },
   "scanResult": {
     "headerTitle": "إضافة صديق",

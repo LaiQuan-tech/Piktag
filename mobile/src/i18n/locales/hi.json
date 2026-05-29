@@ -958,7 +958,10 @@
     "endorseRetry": "पुनः प्रयास",
     "endorseDone": "सहमत",
     "tabMatches": "मेल",
-    "tabMemories": "यादें"
+    "tabMemories": "यादें",
+    "hideRow": "यह सूचना छिपाएँ",
+    "dontSuggestPerson": "{{name}} को दोबारा न सुझाएँ",
+    "thisPerson": "इस व्यक्ति"
   },
   "scanResult": {
     "headerTitle": "दोस्त जोड़ें",

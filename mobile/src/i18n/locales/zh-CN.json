@@ -996,7 +996,10 @@
     "endorseRetry": "重试",
     "endorseDone": "已认同",
     "tabMatches": "配对",
-    "tabMemories": "回忆"
+    "tabMemories": "回忆",
+    "hideRow": "隐藏这则通知",
+    "dontSuggestPerson": "以后不要推荐 {{name}}",
+    "thisPerson": "这个人"
   },
   "scanResult": {
     "headerTitle": "加为好友",

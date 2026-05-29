@@ -958,7 +958,10 @@
     "endorseRetry": "আবার চেষ্টা",
     "endorseDone": "সম্মত",
     "tabMatches": "মিল",
-    "tabMemories": "স্মৃতি"
+    "tabMemories": "স্মৃতি",
+    "hideRow": "এই নোটিফিকেশন লুকান",
+    "dontSuggestPerson": "{{name}} কে আর সাজেস্ট করবেন না",
+    "thisPerson": "এই ব্যক্তি"
   },
   "scanResult": {
     "headerTitle": "বন্ধু যোগ করুন",

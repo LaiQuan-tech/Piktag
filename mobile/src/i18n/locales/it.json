@@ -1003,7 +1003,10 @@
     "endorseRetry": "Riprova",
     "endorseDone": "Approvato",
     "tabMatches": "Match",
-    "tabMemories": "Ricordi"
+    "tabMemories": "Ricordi",
+    "hideRow": "Nascondi questa notifica",
+    "dontSuggestPerson": "Non suggerire più {{name}}",
+    "thisPerson": "questa persona"
   },
   "scanResult": {
     "headerTitle": "Aggiungi amico",

@@ -958,7 +958,10 @@
     "endorseRetry": "Tekrar dene",
     "endorseDone": "Onaylandı",
     "tabMatches": "Eşleşmeler",
-    "tabMemories": "Anılar"
+    "tabMemories": "Anılar",
+    "hideRow": "Bu bildirimi gizle",
+    "dontSuggestPerson": "{{name}} bir daha önerme",
+    "thisPerson": "bu kişiyi"
   },
   "scanResult": {
     "headerTitle": "Arkadaş Ekle",

@@ -958,7 +958,10 @@
     "endorseRetry": "Coba lagi",
     "endorseDone": "Disetujui",
     "tabMatches": "Cocok",
-    "tabMemories": "Kenangan"
+    "tabMemories": "Kenangan",
+    "hideRow": "Sembunyikan notifikasi ini",
+    "dontSuggestPerson": "Jangan sarankan {{name}} lagi",
+    "thisPerson": "orang ini"
   },
   "scanResult": {
     "headerTitle": "Tambah Teman",

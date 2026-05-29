@@ -987,7 +987,10 @@
     "endorseRetry": "重試",
     "endorseDone": "已認同",
     "tabMatches": "配對",
-    "tabMemories": "回憶"
+    "tabMemories": "回憶",
+    "hideRow": "隱藏這則通知",
+    "dontSuggestPerson": "以後不要推薦 {{name}}",
+    "thisPerson": "這個人"
   },
   "scanResult": {
     "headerTitle": "加為好友",

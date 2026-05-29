@@ -1003,7 +1003,10 @@
     "endorseRetry": "دوبارہ کوشش",
     "endorseDone": "متفق ہو گیا",
     "tabMatches": "میچ",
-    "tabMemories": "یادیں"
+    "tabMemories": "یادیں",
+    "hideRow": "یہ اطلاع چھپائیں",
+    "dontSuggestPerson": "{{name}} کو دوبارہ تجویز نہ کریں",
+    "thisPerson": "یہ شخص"
   },
   "scanResult": {
     "headerTitle": "دوست شامل کریں",

@@ -958,7 +958,10 @@
     "endorseRetry": "Reintentar",
     "endorseDone": "Apoyado",
     "tabMatches": "Match",
-    "tabMemories": "Recuerdos"
+    "tabMemories": "Recuerdos",
+    "hideRow": "Ocultar esta notificación",
+    "dontSuggestPerson": "No volver a sugerir a {{name}}",
+    "thisPerson": "esta persona"
   },
   "scanResult": {
     "headerTitle": "Añadir amigo",

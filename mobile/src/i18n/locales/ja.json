@@ -958,7 +958,10 @@
     "endorseRetry": "再試行",
     "endorseDone": "同意済み",
     "tabMatches": "マッチ",
-    "tabMemories": "思い出"
+    "tabMemories": "思い出",
+    "hideRow": "この通知を非表示",
+    "dontSuggestPerson": "今後 {{name}} を提案しない",
+    "thisPerson": "この人"
   },
   "scanResult": {
     "headerTitle": "友達追加",

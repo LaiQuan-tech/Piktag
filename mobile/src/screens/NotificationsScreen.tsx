@@ -397,16 +397,39 @@ export default function NotificationsScreen({ navigation }: NotificationsScreenP
       setLoading(true);
     }
 
-    // Always fetch fresh data in the background
+    // Always fetch fresh data in the background. is_dismissed=false
+    // filter mirrors the partial index in migration 20260530060000 —
+    // dismissed rows live forever in the table (analytics / undo
+    // hooks later) but never re-enter the active feed.
     try {
       const { data, error } = await supabase
         .from('piktag_notifications')
         .select('id, user_id, type, title, body, data, is_read, created_at')
         .eq('user_id', user.id)
+        .eq('is_dismissed', false)
         .order('created_at', { ascending: false })
         .limit(50);
 
       if (error) {
+        // 42703 = column not yet migrated on this DB; fall through to
+        // the un-filtered query so a freshly-rolled-back environment
+        // doesn't break the screen.
+        const isMissingColumn =
+          (error as any).code === '42703' ||
+          /is_dismissed/i.test(error.message);
+        if (isMissingColumn) {
+          const fallback = await supabase
+            .from('piktag_notifications')
+            .select('id, user_id, type, title, body, data, is_read, created_at')
+            .eq('user_id', user.id)
+            .order('created_at', { ascending: false })
+            .limit(50);
+          if (!fallback.error && fallback.data) {
+            setCache(CACHE_KEYS.NOTIFICATIONS, fallback.data);
+            setNotifications(fallback.data);
+          }
+          return;
+        }
         console.warn('Failed to fetch notifications:', error.message);
         return;
       }
@@ -549,29 +572,159 @@ export default function NotificationsScreen({ navigation }: NotificationsScreenP
     [submitNotifReport, t],
   );
 
+  // Row-level dismiss — IG model: "I saw this, hide it" without
+  // permanently silencing the underlying recommendation generator.
+  // Optimistic — strip the row from state immediately; persist via
+  // is_dismissed=true so a refresh doesn't bring it back.
+  const handleDismissRow = useCallback(
+    async (notifId: string) => {
+      setNotifications((prev) => prev.filter((n) => n.id !== notifId));
+      if (user) {
+        refreshBadgeFromServer(user.id).catch(() => {});
+      }
+      const { error } = await supabase
+        .from('piktag_notifications')
+        .update({ is_dismissed: true })
+        .eq('id', notifId);
+      if (error) {
+        // 42703 means migration not yet applied — log only, don't
+        // re-show: the user already saw the row vanish, snapping it
+        // back would confuse them.
+        const isMissingColumn =
+          (error as any).code === '42703' || /is_dismissed/i.test(error.message);
+        if (!isMissingColumn) {
+          console.warn('[Notifications] dismiss failed:', error.message);
+        }
+      }
+    },
+    [user],
+  );
+
+  // Person-level dismiss — "don't suggest [name] again". Writes to
+  // piktag_match_dismissals (filters future Recommended-side
+  // surfaces for 60 days) AND drops this row from view. Only
+  // exposed for recommendation / reconnect_suggest where the
+  // notification has a single clear target person (ask_bridge has
+  // multiple bridges, tag_convergence/tag_combo/ask_prompt have no
+  // person — those types skip this menu item entirely).
+  const handleDontSuggestPerson = useCallback(
+    async (notif: Notification, targetId: string, surface: string) => {
+      // Drop the row first for snappy UX.
+      setNotifications((prev) => prev.filter((n) => n.id !== notif.id));
+      if (user) refreshBadgeFromServer(user.id).catch(() => {});
+
+      // Best-effort dual write. Either failure mode degrades to the
+      // other: if match_dismissals fails the row at least stays hidden;
+      // if is_dismissed fails the future-suggestion silence still works.
+      void supabase
+        .from('piktag_match_dismissals')
+        .upsert(
+          [{ target_id: targetId, surface }],
+          { onConflict: 'viewer_id,target_id,surface' },
+        )
+        .then(({ error }) => {
+          if (error) {
+            const code = (error as any).code;
+            if (code !== '42P01' && code !== 'PGRST205') {
+              console.warn('[Notifications] match_dismissal failed:', error.message);
+            }
+          }
+        });
+      void supabase
+        .from('piktag_notifications')
+        .update({ is_dismissed: true })
+        .eq('id', notif.id)
+        .then(({ error }) => {
+          if (error) {
+            const code = (error as any).code;
+            if (code !== '42703') {
+              console.warn('[Notifications] row-dismiss failed:', error.message);
+            }
+          }
+        });
+    },
+    [user],
+  );
+
+  // For person-anchored magic moments only — extract (target_id,
+  // surface) from the notification's data JSONB. Returns null when
+  // the type isn't a person-anchored suggestion, so the long-press
+  // menu can conditionally show / hide the "Don't suggest" option.
+  const personTargetForNotification = useCallback(
+    (notif: Notification): { id: string; name: string; surface: string } | null => {
+      const data = (notif.data ?? {}) as Record<string, any>;
+      if (notif.type === 'recommendation' && typeof data.recommended_user_id === 'string') {
+        return {
+          id: data.recommended_user_id,
+          name: data.username || data.full_name || '',
+          surface: 'recommendation',
+        };
+      }
+      if (notif.type === 'reconnect_suggest' && typeof data.friend_id === 'string') {
+        return {
+          id: data.friend_id,
+          name: data.friend_full_name || data.friend_username || '',
+          surface: 'reconnect_suggest',
+        };
+      }
+      return null;
+    },
+    [],
+  );
+
   const handleNotificationLongPress = useCallback(
     (notif: Notification) => {
+      const hideLabel = t('notifications.hideRow', { defaultValue: 'Hide this notification' });
       const reportLabel = t('report.reportNotification', { defaultValue: 'Report this notification' });
       const cancelLabel = t('common.cancel', { defaultValue: 'Cancel' });
+
+      const person = personTargetForNotification(notif);
+      const dontSuggestLabel = person
+        ? t('notifications.dontSuggestPerson', {
+            name: person.name || t('notifications.thisPerson', { defaultValue: 'this person' }),
+            defaultValue: "Don't suggest {{name}} again",
+          })
+        : null;
+
+      // Order: [Hide, (Don't suggest)?, Report, Cancel]
+      // Hide first because it's the lightest action and the most
+      // common intent. Report last with destructive styling.
+      type Item = { label: string; action: () => void; destructive?: boolean };
+      const items: Item[] = [
+        { label: hideLabel, action: () => void handleDismissRow(notif.id) },
+      ];
+      if (dontSuggestLabel && person) {
+        items.push({
+          label: dontSuggestLabel,
+          action: () => void handleDontSuggestPerson(notif, person.id, person.surface),
+        });
+      }
+      items.push({
+        label: reportLabel,
+        action: () => promptNotifReportReason(notif),
+        destructive: true,
+      });
+
+      const reportIdx = items.findIndex((i) => i.destructive);
       if (Platform.OS === 'ios') {
         ActionSheetIOS.showActionSheetWithOptions(
           {
-            options: [reportLabel, cancelLabel],
-            destructiveButtonIndex: 0,
-            cancelButtonIndex: 1,
+            options: [...items.map((i) => i.label), cancelLabel],
+            destructiveButtonIndex: reportIdx >= 0 ? reportIdx : undefined,
+            cancelButtonIndex: items.length,
           },
           (idx) => {
-            if (idx === 0) promptNotifReportReason(notif);
+            if (idx >= 0 && idx < items.length) items[idx].action();
           },
         );
       } else {
         Alert.alert('', '', [
-          { text: reportLabel, onPress: () => promptNotifReportReason(notif) },
-          { text: cancelLabel, style: 'cancel' },
+          ...items.map((i) => ({ text: i.label, onPress: i.action })),
+          { text: cancelLabel, style: 'cancel' as const },
         ]);
       }
     },
-    [promptNotifReportReason, t],
+    [promptNotifReportReason, t, handleDismissRow, handleDontSuggestPerson, personTargetForNotification],
   );
 
   // useMemo for computed values

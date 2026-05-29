@@ -958,7 +958,10 @@
     "endorseRetry": "ลองอีกครั้ง",
     "endorseDone": "เห็นด้วยแล้ว",
     "tabMatches": "จับคู่",
-    "tabMemories": "ความทรงจำ"
+    "tabMemories": "ความทรงจำ",
+    "hideRow": "ซ่อนการแจ้งเตือนนี้",
+    "dontSuggestPerson": "ไม่ต้องแนะนำ {{name}} อีก",
+    "thisPerson": "คนนี้"
   },
   "scanResult": {
     "headerTitle": "เพิ่มเพื่อน",

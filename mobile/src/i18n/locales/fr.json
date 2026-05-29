@@ -958,7 +958,10 @@
     "endorseRetry": "Réessayer",
     "endorseDone": "Approuvé",
     "tabMatches": "Matchs",
-    "tabMemories": "Souvenirs"
+    "tabMemories": "Souvenirs",
+    "hideRow": "Masquer cette notification",
+    "dontSuggestPerson": "Ne plus suggérer {{name}}",
+    "thisPerson": "cette personne"
   },
   "scanResult": {
     "headerTitle": "Ajouter un ami",
