@@ -333,6 +333,39 @@ founder when the trigger condition lands:
   Quick sanity: grep your new type name in those four files
   before pushing. If it appears fewer than 4 times you've missed
   one.
+- **Notification triggers MUST write a non-empty body. i18n is
+  enrichment, not the load-bearing render path.** Discovered
+  2026-05-30 via @lpfrg's blank vibe_shift rows. The original
+  `notify_vibe_shift` (20260513030000) wrote `title=''` AND
+  `body=''` and relied on the client rendering via
+  `notifications.types.vibe_shift.body`. That i18n key was NEVER
+  added to any of the 19 locale JSONs — net result: rows
+  rendered as empty cards (bell icon + timestamp, nothing else)
+  for two months until a TestFlight screenshot caught it.
+  Three layers had to all fail for the bug to surface, but the
+  root cause was relying on a client template that might not
+  exist.
+
+  Rule: if you're about to write `body, ''` (or `body, NULL`) in
+  an INSERT into `piktag_notifications`, STOP. Either:
+    1. Write a non-empty string (English fallback is fine —
+       modern clients still prefer the localized
+       `notifications.types.<type>.body` when present, falling
+       back to your SQL body when not).
+    2. OR commit the i18n template in all 19 locales in the
+       same PR AND treat the i18n key's existence as a
+       runtime contract (defensive grep before push).
+
+  Default to (1). Locale files are too easy to forget across
+  time — a refactor 6 months from now might rename / move /
+  drop a key without realizing a trigger depended on it. SQL
+  body lives in the same file as the INSERT and is grep-
+  visible at the call site. Closer-to-the-INSERT wins.
+
+  See migration 20260530080000 for the canonical pattern —
+  v_body computed once, written to the INSERT, AND the data
+  jsonb still carries the rich fields for clients that DO have
+  the i18n template.
 - **Match the control to the layer it actually owns.** An in-app
   toggle should govern in-app behavior; the OS owns OS behavior.
   Don't try to make one switch control both — the engineering cost
