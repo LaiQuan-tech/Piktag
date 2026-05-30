@@ -1005,13 +1005,21 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
     }
 
     const iconUrl = getIconUrl(effectiveUrl);
-    // The display name field was removed from the modal — always
-    // derive the label from the platform on save. Previous behaviour
-    // ("user-typed label OR fallback") let stale labels survive a
-    // platform switch, producing the reported "Instagram URL with
-    // title LINE" bug. Now the label is fully a function of the
-    // platform key, computed at save time.
-    const effectiveLabel = getPlatformLabel(platformKey, t);
+    // 2026-05-31: parity-with-inline-add. The display name field
+    // came back FOR CUSTOM ONLY. The original "always derive from
+    // platform" rule fixed a real bug (LINE→IG platform switch
+    // leaving "LINE" as the title) for BRANDED platforms — where
+    // there is no legitimate reason for the user to override
+    // "Instagram"/"X"/"LinkedIn". But for the generic Link entry,
+    // the user-typed label IS the whole point: putting "PikTag" on
+    // a link to pikt.ag is the founder-stated reason custom exists
+    // as a category. Forcing it to "連結" silently on every edit
+    // erased that. So: custom respects biolinkForm.label, every
+    // other platform still derives from the key.
+    const platformDerivedLabel = getPlatformLabel(platformKey, t);
+    const effectiveLabel = platformKey === 'custom'
+      ? (biolinkForm.label.trim() || platformDerivedLabel)
+      : platformDerivedLabel;
 
     setSavingBiolink(true);
     try {
@@ -2442,6 +2450,25 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
                   </View>
                 ) : biolinkForm.platform === 'custom' ? (
                   <>
+                    {/* Name input for custom — restored 2026-05-31
+                        after founder caught the "edit silently
+                        replaced my 'PikTag' name with the generic
+                        '連結'" bug. The 2560 comment below explains
+                        why the field was removed for ALL platforms
+                        originally; the correct narrower fix is to
+                        keep it removed for BRANDED platforms (Insta
+                        / X / LINE — no legit override reason) but
+                        bring it back for custom, which is the entry
+                        whose whole point IS user-named. */}
+                    <TextInput
+                      style={[styles.fieldInput, { marginBottom: 10 }]}
+                      value={biolinkForm.label}
+                      onChangeText={(v) =>
+                        setBiolinkForm((prev) => ({ ...prev, label: v }))
+                      }
+                      placeholder={t('editProfile.linkName')}
+                      placeholderTextColor={colors.gray400}
+                    />
                     <TextInput
                       style={styles.fieldInput}
                       value={biolinkForm.account}
@@ -2698,6 +2725,17 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
           onSelect={(key) => {
             setSelectedPlatform(key);
             setShowPlatformPicker(false);
+            // Mirror the quick-picker's reset on platform change
+            // (line ~2107) — without this, the inline form would
+            // carry the PREVIOUS platform's newLinkLabel into the
+            // new selection. E.g.: user picked Instagram via quick
+            // picker (newLinkLabel="Instagram"), then opened the
+            // browse-all modal and switched to 連結 — the Name
+            // field would have shown "Instagram" instead of being
+            // empty, contributing to the "URL auto-fills the Name"
+            // confusion the founder caught 2026-05-31.
+            setNewLinkAccount('');
+            setNewLinkLabel(key === 'custom' ? '' : getPlatformLabel(key, t));
           }}
         />
       )}
