@@ -840,9 +840,13 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
             : `${prefix}${newLinkAccount.trim()}`;
         }
         if (fullUrl) {
-          const platformDerivedLabel =
-            PLATFORM_LABELS_STATIC[selectedPlatform] ||
-            t(`editProfile.${selectedPlatform === 'website' ? 'personalWebsite' : 'customLink'}`);
+          // getPlatformLabel handles locale translation for the
+          // generic words (phone / email / website / blog / portfolio
+          // / custom) AND falls back to the brand label for the
+          // rest. Replaces the older PLATFORM_LABELS_STATIC + hand-
+          // rolled customLink/personalWebsite fallback which
+          // produced English-only labels for zh-TW users.
+          const platformDerivedLabel = getPlatformLabel(selectedPlatform, t);
           const label = selectedPlatform === 'custom'
             ? (newLinkLabel.trim() || platformDerivedLabel)
             : platformDerivedLabel;
@@ -1007,11 +1011,7 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
     // platform switch, producing the reported "Instagram URL with
     // title LINE" bug. Now the label is fully a function of the
     // platform key, computed at save time.
-    const effectiveLabel =
-      PLATFORM_LABELS_STATIC[platformKey] ||
-      (platformKey === 'website'
-        ? t('editProfile.personalWebsite')
-        : t('editProfile.customLink'));
+    const effectiveLabel = getPlatformLabel(platformKey, t);
 
     setSavingBiolink(true);
     try {
@@ -2146,7 +2146,7 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
                 <View style={styles.newLinkHeader}>
                   <PlatformIcon platform={selectedPlatform} size={24} />
                   <Text style={styles.newLinkPlatformName}>
-                    {PLATFORM_LABELS_STATIC[selectedPlatform] || t(`editProfile.${selectedPlatform === 'website' ? 'personalWebsite' : 'customLink'}`)}
+                    {getPlatformLabel(selectedPlatform, t)}
                   </Text>
                 </View>
                 {selectedPlatform === 'custom' && (
@@ -2256,9 +2256,7 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
                       // modal's "no display name field, derive on
                       // save" rule so both flows produce consistent
                       // labels.
-                      const platformDerivedLabel =
-                        PLATFORM_LABELS_STATIC[selectedPlatform] ||
-                        t(`editProfile.${selectedPlatform === 'website' ? 'personalWebsite' : 'customLink'}`);
+                      const platformDerivedLabel = getPlatformLabel(selectedPlatform, t);
                       const label =
                         selectedPlatform === 'custom'
                           ? (newLinkLabel.trim() || platformDerivedLabel)
