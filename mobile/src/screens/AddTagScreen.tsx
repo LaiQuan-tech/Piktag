@@ -1130,15 +1130,15 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
       {/* Bottom 3 action buttons (share / copy / edit) */}
       <View style={[styles.qrBottomRow, { paddingBottom: insets.bottom + 20 }]}>
         <TouchableOpacity style={styles.qrBottomBtn} onPress={handleShare} activeOpacity={0.7}>
-          <Share2 size={22} color={colors.gray900} />
+          <Share2 size={22} color="#111827" />
           <Text style={styles.qrBottomBtnText}>{t('addTag.shareFile', { defaultValue: '分享檔案' })}</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.qrBottomBtn} onPress={handleCopyLink} activeOpacity={0.7}>
-          <Link2 size={22} color={colors.gray900} />
+          <Link2 size={22} color="#111827" />
           <Text style={styles.qrBottomBtnText}>{t('addTag.copyLink', { defaultValue: '複製連結' })}</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.qrBottomBtn} onPress={() => setMode('setup')} activeOpacity={0.7}>
-          <Pencil size={22} color={colors.gray900} />
+          <Pencil size={22} color="#111827" />
           <Text style={styles.qrBottomBtnText}>{t('addTag.editQr', { defaultValue: '編輯QRcode' })}</Text>
         </TouchableOpacity>
       </View>
@@ -1163,7 +1163,7 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
               activeOpacity={0.6}
               style={styles.headerSideBtn}
             >
-              <X size={24} color={colors.gray900} />
+              <X size={24} color="#111827" />
             </TouchableOpacity>
           </View>
 
@@ -1721,7 +1721,14 @@ function makeStyles(c: ColorPalette) {
   qrBottomBtnText: {
     fontSize: 13,
     fontWeight: '600',
-    color: c.gray900,
+    // Hardcoded #111827 — these buttons sit on a HARDCODED white
+    // background which is itself on the gradient (NOT the page
+    // bg), so the text must be hardcoded dark too. c.gray900 was
+    // theme-aware and flipped to near-white in dark mode, making
+    // the labels invisible. 2026-05-31 fix mirrored from QrCodeModal
+    // (founder caught it there first and called out the recurring
+    // hardcoded-white-bg + theme-aware-fg anti-pattern).
+    color: '#111827',
   },
   // ── Legacy QR mode styles (kept because other modes may reference) ──
   qrBrandTitle: {

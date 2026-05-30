@@ -501,6 +501,20 @@ founder when the trigger condition lands:
   like #FFFFFF on a piktag500-saturated CTA where the white is
   *intentionally* fixed regardless of theme).
 
+  **Inverse trap: hardcoded WHITE bg + theme-aware FG = invisible
+  text in dark mode.** When a surface deliberately keeps a fixed
+  light background (e.g. white pill buttons on a brand gradient
+  that's always vivid), the text/icon colour MUST also be
+  hardcoded (#111827 or similar dark) — NOT `colors.gray900`,
+  which flips near-white on dark theme and disappears against
+  the white. Founder caught this 2026-05-31 ("這是dark mode的
+  經典錯誤... 又錯了") on the personal-QR sheet's Copy/Share
+  pills; the bug was inherited from the activity QR sheet
+  (`AddTagScreen.renderQrMode`) which had the same flaw —
+  fixed both in commit 05d2169's follow-up. Rule of thumb: a
+  hardcoded bg colour pairs with hardcoded fg colours; a
+  theme-aware bg pairs with theme-aware fg. Don't mix.
+
 ## Brand voice — locked phrases
 
 - **"PikTag to connect."** is the locked brand verb phrase on landing

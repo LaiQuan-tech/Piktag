@@ -309,12 +309,22 @@ export default function QrCodeModal({
           <View style={[styles.bottomRow, { paddingBottom: insets.bottom + 20 }]}>
             {!isScanMode ? (
               <>
+                {/* Icon + text colors are HARDCODED dark (#111827)
+                    on purpose — the button bg is hardcoded white
+                    because the pill sits on the gradient, NOT the
+                    page background. Theme-aware colors.gray900
+                    would flip to near-white in dark mode and the
+                    icon/text would disappear on white. Same
+                    pattern as the QrNameCard's @username (uses
+                    hardcoded #c44dff). 2026-05-31 fix after the
+                    founder caught the dark-mode "invisible
+                    buttons" bug. */}
                 <TouchableOpacity
                   style={styles.bottomBtn}
                   onPress={handleCopyLink}
                   activeOpacity={0.7}
                 >
-                  <Copy size={22} color={colors.gray900} />
+                  <Copy size={22} color="#111827" />
                   <Text style={styles.bottomBtnText}>{t('profile.copyLink')}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
@@ -322,7 +332,7 @@ export default function QrCodeModal({
                   onPress={handleShare}
                   activeOpacity={0.7}
                 >
-                  <Share2 size={22} color={colors.gray900} />
+                  <Share2 size={22} color="#111827" />
                   <Text style={styles.bottomBtnText}>{t('profile.share')}</Text>
                 </TouchableOpacity>
               </>
@@ -426,7 +436,10 @@ function makeStyles(c: ColorPalette) {
     bottomBtnText: {
       fontSize: 13,
       fontWeight: '600',
-      color: c.gray900,
+      // Hardcoded dark — see the comment at the call site. Theme-
+      // aware c.gray900 would flip to near-white on dark mode and
+      // disappear against the hardcoded white button background.
+      color: '#111827',
     },
     bottomBtnSpacer: {
       flex: 1,
