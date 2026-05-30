@@ -822,6 +822,61 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
         }
         setPendingRemovals([]);
       }
+      // UX safety net: if the user filled out the inline "new biolink"
+      // form but didn't tap 新增 (the form's own commit button)
+      // before tapping 儲存 (the screen-level save), commit it now
+      // so the data isn't silently discarded. Reported case:
+      // founder picked WhatsApp, typed the number, tapped 儲存,
+      // saw "更新好了", returned to profile — no WhatsApp visible
+      // because the inline form's INSERT was never fired.
+      if (selectedPlatform) {
+        let fullUrl = '';
+        if (selectedPlatform === 'phone') {
+          fullUrl = buildTelUrl(phoneCountry, phoneNational);
+        } else if (newLinkAccount.trim()) {
+          const prefix = PLATFORM_PREFIXES[selectedPlatform] ?? '';
+          fullUrl = selectedPlatform === 'custom'
+            ? newLinkAccount.trim()
+            : `${prefix}${newLinkAccount.trim()}`;
+        }
+        if (fullUrl) {
+          const platformDerivedLabel =
+            PLATFORM_LABELS_STATIC[selectedPlatform] ||
+            t(`editProfile.${selectedPlatform === 'website' ? 'personalWebsite' : 'customLink'}`);
+          const label = selectedPlatform === 'custom'
+            ? (newLinkLabel.trim() || platformDerivedLabel)
+            : platformDerivedLabel;
+          const { data: biolinkData, error: biolinkErr } = await supabase
+            .from('piktag_biolinks')
+            .insert({
+              user_id: userId,
+              platform: selectedPlatform,
+              label,
+              url: fullUrl,
+              is_active: true,
+              position: biolinks.length,
+            })
+            .select()
+            .single();
+          if (biolinkErr) {
+            console.warn('[EditProfile] auto-commit biolink on save failed:', biolinkErr.message, biolinkErr.code);
+            // Non-fatal — profile still saved. Just inform the user
+            // so they can retry the biolink alone.
+            Alert.alert(
+              t('common.error'),
+              t('editProfile.alertBiolinkAddError', {
+                defaultValue: '新增聯絡方式失敗，請稍後再試。',
+              }) + (biolinkErr.message ? `\n(${biolinkErr.message})` : ''),
+            );
+          } else if (biolinkData) {
+            setBiolinks(prev => [...prev, biolinkData]);
+            setSelectedPlatform(null);
+            setNewLinkAccount('');
+            setNewLinkLabel('');
+            resetPhoneFields();
+          }
+        }
+      }
       Alert.alert(t('editProfile.alertSuccessTitle'), t('editProfile.alertSuccessMessage'));
       navigation.canGoBack() ? navigation.goBack() : navigation.navigate("Connections");
     } catch {
