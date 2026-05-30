@@ -1,4 +1,15 @@
--- 20260530080000_vibe_shift_body_and_data.sql
+-- 20260530160000_vibe_shift_body_and_data.sql
+--
+-- Renamed from 20260530080000_vibe_shift_body_and_data.sql on
+-- 2026-05-30 — the Supabase Deploy CI for the original commit
+-- (962bf14, build #35) failed because newer migrations
+-- (090000-150000 from a parallel session) had already been
+-- applied to remote, and the CLI's strict-order check refuses to
+-- insert 080000 when higher-numbered migrations already exist on
+-- remote. Renaming to 160000 makes this the newest pending
+-- migration; content is byte-identical to the rejected 080000
+-- version. CLAUDE.md updated with the lesson — see
+-- "concurrent-session migration ordering" note.
 --
 -- Bug surfaced via @lpfrg's TestFlight screenshot 2026-05-30:
 -- vibe_shift rows render as completely blank (no avatar, no name,

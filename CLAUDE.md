@@ -415,6 +415,27 @@ founder when the trigger condition lands:
   Keep migrations idempotent (`IF NOT EXISTS` / `CREATE OR REPLACE` /
   `ON CONFLICT DO NOTHING`) so CI re-runs and manual edits don't
   collide. Supabase ref `kbwfdskulxnhjckdvghj`.
+
+  **Concurrent-session migration ordering (2026-05-30 incident).** If
+  TWO sessions ship migrations on the same day with overlapping
+  timestamp ranges, the LATER-pushed ones may apply to remote FIRST
+  (CI queueing / cancel-in-progress is per-workflow, not per-session).
+  When the EARLIER-numbered migration's CI then runs, `supabase db
+  push` refuses with: *"Found local migration files to be inserted
+  before the last migration on remote database. Rerun the command
+  with --include-all flag to apply these migrations."* The CLI's
+  strict-order check is deliberate. Two ways out:
+  1. **Rename your migration to a higher timestamp** so it slots
+     AFTER everything currently on remote. Content stays byte-
+     identical. Update the file's leading `-- <filename>` comment
+     to match. This is what we did for `vibe_shift_body_and_data`
+     (`080000` → `160000`).
+  2. Patch the workflow to run with `--include-all`. Riskier (loses
+     the strict-order guard for future drift). Don't.
+  Pre-empt: before writing the timestamp on a new migration, glance
+  at `ls supabase/migrations/ | tail -3` for the actual latest
+  prefix on disk — including any pulled from origin. Don't blindly
+  guess `<today>080000`.
 - **Repo layout:** real mobile app = `mobile/`; landing = `landing/`
   (Vercel, `dist` gitignored, rebuilt on push; meta in
   `landing/api/*` + `landing/public/*` + `src/main.tsx`). The top-level
