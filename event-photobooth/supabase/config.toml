@@ -1,0 +1,5 @@
+# Linked to the `event` project (tekcfwmdtwyrshnmbwva) on lqtechs-projects.
+# This file is the source of truth for the project's Supabase CLI config.
+# Kept minimal — everything else lives in the Supabase dashboard / migrations.
+
+project_id = "tekcfwmdtwyrshnmbwva"

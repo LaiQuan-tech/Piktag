@@ -1,0 +1,13 @@
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.env
+output/
+state.db
+*.log
+.DS_Store
+
+# Personal test photos (LINE-style filenames, kept outside of git)
+S__*.jpg
+S__*.png

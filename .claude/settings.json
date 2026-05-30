@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx supabase status)",
+      "Bash(npx supabase projects list)",
+      "Bash(npx supabase functions list)",
+      "Bash(npx supabase migration list)",
+      "Bash(npx supabase secrets list)",
+      "Bash(npx supabase orgs list)",
+      "Bash(supabase status)",
+      "Bash(supabase projects list)",
+      "Bash(supabase functions list)",
+      "Bash(supabase migration list)",
+      "Bash(supabase secrets list)",
+      "Bash(supabase orgs list)",
+      "Bash(curl -sSI https://tekcfwmdtwyrshnmbwva.supabase.co/*)",
+      "Bash(curl -sS https://tekcfwmdtwyrshnmbwva.supabase.co/storage/v1/object/public/*)",
+      "Bash(npx tsc --noEmit *)"
+    ]
+  }
+}

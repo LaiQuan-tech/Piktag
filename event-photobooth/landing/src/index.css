@@ -1,0 +1,4 @@
+@import "tailwindcss";
+
+/* Disable iOS tap highlight + double-tap zoom on the gallery for a cleaner feel */
+html { -webkit-tap-highlight-color: transparent; }
