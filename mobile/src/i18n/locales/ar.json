@@ -871,7 +871,7 @@
       },
       "vibe_shift": {
         "title": "",
-        "body": "أضاف وسمًا جديدًا #{{tag_name}}",
+        "body": "أضاف #{{tag_name}}",
         "push": {
           "title": "{{username}}",
           "body": "أضاف وسمًا جديدًا #{{tag_name}}"

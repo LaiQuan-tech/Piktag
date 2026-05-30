@@ -871,7 +871,7 @@
       },
       "vibe_shift": {
         "title": "",
-        "body": "добавил(а) новый тег #{{tag_name}}",
+        "body": "добавил(а) #{{tag_name}}",
         "push": {
           "title": "{{username}}",
           "body": "добавил(а) новый тег #{{tag_name}}"

@@ -889,7 +889,7 @@
       },
       "vibe_shift": {
         "title": "",
-        "body": "hat das Tag #{{tag_name}} hinzugefügt",
+        "body": "hat #{{tag_name}} hinzugefügt",
         "push": {
           "title": "{{username}}",
           "body": "hat das Tag #{{tag_name}} hinzugefügt"

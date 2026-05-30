@@ -879,7 +879,7 @@
       },
       "vibe_shift": {
         "title": "",
-        "body": "加了新標籤 #{{tag_name}}",
+        "body": "新增了 #{{tag_name}}",
         "push": {
           "title": "{{username}}",
           "body": "加了新標籤 #{{tag_name}}"

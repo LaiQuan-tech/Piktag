@@ -871,7 +871,7 @@
       },
       "vibe_shift": {
         "title": "",
-        "body": "নতুন ট্যাগ যোগ করেছে #{{tag_name}}",
+        "body": "#{{tag_name}} যোগ করেছে",
         "push": {
           "title": "{{username}}",
           "body": "নতুন ট্যাগ যোগ করেছে #{{tag_name}}"

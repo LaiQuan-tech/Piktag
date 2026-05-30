@@ -871,7 +871,7 @@
       },
       "vibe_shift": {
         "title": "",
-        "body": "#{{tag_name}} etiketini ekledi",
+        "body": "#{{tag_name}} ekledi",
         "push": {
           "title": "{{username}}",
           "body": "#{{tag_name}} etiketini ekledi"

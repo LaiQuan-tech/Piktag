@@ -871,7 +871,7 @@
       },
       "vibe_shift": {
         "title": "",
-        "body": "님이 새 태그 #{{tag_name}} 추가",
+        "body": "#{{tag_name}} 추가했어요",
         "push": {
           "title": "{{username}}",
           "body": "님이 새 태그 #{{tag_name}} 추가"

@@ -871,7 +871,7 @@
       },
       "vibe_shift": {
         "title": "",
-        "body": "が新しいタグを追加 #{{tag_name}}",
+        "body": "#{{tag_name}} を追加",
         "push": {
           "title": "{{username}}",
           "body": "が新しいタグを追加 #{{tag_name}}"

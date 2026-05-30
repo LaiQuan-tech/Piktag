@@ -895,7 +895,7 @@
       },
       "vibe_shift": {
         "title": "",
-        "body": "نے ایک نیا ٹیگ #{{tag_name}} شامل کیا",
+        "body": "#{{tag_name}} شامل کیا",
         "push": {
           "title": "{{username}}",
           "body": "نے ایک نیا ٹیگ #{{tag_name}} شامل کیا"

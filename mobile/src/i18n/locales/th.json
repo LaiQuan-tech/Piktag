@@ -871,7 +871,7 @@
       },
       "vibe_shift": {
         "title": "",
-        "body": "เพิ่มแท็กใหม่ #{{tag_name}}",
+        "body": "เพิ่ม #{{tag_name}}",
         "push": {
           "title": "{{username}}",
           "body": "เพิ่มแท็กใหม่ #{{tag_name}}"

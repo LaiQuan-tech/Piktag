@@ -111,8 +111,14 @@ function getNotificationDisplay(
   t: (key: string, options?: any) => string
 ): { username: string; body: string } {
   const data = (item.data || {}) as Record<string, any>;
+  // Fallback chain — most triggers populate `username`, but
+  // notify_vibe_shift uses `actor_username` (and `actor_avatar_url`
+  // on the avatar). Accept both so historical rows render.
   const dataUsername =
-    (typeof data.username === 'string' && data.username) || '';
+    (typeof data.username === 'string' && data.username) ||
+    (typeof data.actor_username === 'string' && data.actor_username) ||
+    (typeof data.actor_full_name === 'string' && data.actor_full_name) ||
+    '';
 
   const type = item.type;
 
@@ -223,7 +229,13 @@ const NotificationItem = React.memo(function NotificationItem({
 }: NotificationItemProps) {
   const { colors } = useTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
-  const avatarUrl = item.data?.avatar_url || null;
+  // Fall back to actor_avatar_url for triggers that use the
+  // `actor_*` naming convention (notify_vibe_shift, 2026-05-30
+  // bug). Most newer triggers use `avatar_url` directly; vibe_shift
+  // is the lone exception. Same fallback chain applied to
+  // username inside getNotificationDisplay below.
+  const avatarUrl =
+    item.data?.avatar_url || (item.data as any)?.actor_avatar_url || null;
   const { username, body } = getNotificationDisplay(item, t);
 
   const handlePress = useCallback(() => {

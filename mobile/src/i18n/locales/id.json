@@ -871,7 +871,7 @@
       },
       "vibe_shift": {
         "title": "",
-        "body": "menambahkan tag baru #{{tag_name}}",
+        "body": "menambahkan #{{tag_name}}",
         "push": {
           "title": "{{username}}",
           "body": "menambahkan tag baru #{{tag_name}}"
