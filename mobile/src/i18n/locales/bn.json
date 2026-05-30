@@ -282,7 +282,9 @@
     "coldStartActionQr": "QR দিয়ে ঘটনাস্থলেই সংযোগ",
     "coldStartActionQrDesc": "ইভেন্ট ট্যাগ যোগ করুন — এক স্ক্যানেই যুক্ত",
     "coldStartActionAsk": "AI সঠিক লোক খুঁজে দেয়",
-    "coldStartActionAskDesc": "Ask পোস্ট করুন, AI আপনার নেটওয়ার্কে খুঁজবে"
+    "coldStartActionAskDesc": "Ask পোস্ট করুন, AI আপনার নেটওয়ার্কে খুঁজবে",
+    "coldStartSubtitleV2": "একটা বেছে শুরু করুন",
+    "coldStartStartHere": "এখান থেকে শুরু"
   },
   "search": {
     "clearAll": "সব সাফ করুন",
@@ -435,9 +437,7 @@
     "statFriendsA11y": "আমার বন্ধু দেখুন",
     "statFollowersA11y": "আমার ফলোয়ার দেখুন",
     "statTribeA11y": "View Tribe constellation",
-    "statTribe": "Tribe",
-    "qrTabMine": "আমার QR",
-    "qrTabScan": "স্ক্যান"
+    "statTribe": "Tribe"
   },
   "editProfile": {
     "headerTitle": "প্রোফাইল এডিট",

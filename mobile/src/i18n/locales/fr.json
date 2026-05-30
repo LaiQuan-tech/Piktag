@@ -282,7 +282,9 @@
     "coldStartActionQr": "Connecte-toi sur place via QR",
     "coldStartActionQrDesc": "Ajoute des tags d'événement — un scan et c'est fait",
     "coldStartActionAsk": "L'IA trouve les bonnes personnes",
-    "coldStartActionAskDesc": "Publie un Ask, l'IA cherche dans ton réseau"
+    "coldStartActionAskDesc": "Publie un Ask, l'IA cherche dans ton réseau",
+    "coldStartSubtitleV2": "Choisis-en un pour commencer",
+    "coldStartStartHere": "Commence ici"
   },
   "search": {
     "clearAll": "Tout effacer",
@@ -435,9 +437,7 @@
     "statFriendsA11y": "Voir mes amis",
     "statFollowersA11y": "Voir mes abonnés",
     "statTribeA11y": "View Tribe constellation",
-    "statTribe": "Tribe",
-    "qrTabMine": "Mon QR",
-    "qrTabScan": "Scanner"
+    "statTribe": "Tribe"
   },
   "editProfile": {
     "headerTitle": "Modifier le profil",

@@ -284,7 +284,9 @@
     "coldStartActionQr": "用 QR 连上现场的人",
     "coldStartActionQrDesc": "贴上活动标签,朋友扫一下就互加",
     "coldStartActionAsk": "AI 帮你找对的人",
-    "coldStartActionAskDesc": "发个 Ask 说你要什幺,AI 从人脉里帮你找"
+    "coldStartActionAskDesc": "发个 Ask 说你要什幺,AI 从人脉里帮你找",
+    "coldStartSubtitleV2": "挑一个开始就好",
+    "coldStartStartHere": "建议从这开始"
   },
   "search": {
     "clearAll": "清除全部",
@@ -437,9 +439,7 @@
     "statFriendsA11y": "查看我的朋友",
     "statFollowersA11y": "查看我的追踪者",
     "statTribeA11y": "查看 Tribe 星图",
-    "statTribe": "Tribe",
-    "qrTabMine": "我的",
-    "qrTabScan": "扫描"
+    "statTribe": "Tribe"
   },
   "editProfile": {
     "headerTitle": "编辑个人信息",

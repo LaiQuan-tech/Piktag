@@ -289,7 +289,9 @@
     "coldStartActionQr": "Connect with people on site via QR",
     "coldStartActionQrDesc": "Add event tags — one scan and you're connected",
     "coldStartActionAsk": "AI finds the right people",
-    "coldStartActionAskDesc": "Post an Ask saying what you want, AI matches your network"
+    "coldStartActionAskDesc": "Post an Ask saying what you want, AI matches your network",
+    "coldStartSubtitleV2": "Pick one to start",
+    "coldStartStartHere": "Start here"
   },
   "search": {
     "clearAll": "Clear all",
@@ -442,9 +444,7 @@
     "statFriendsA11y": "View my friends",
     "statFollowersA11y": "View my followers",
     "statTribeA11y": "View Tribe constellation",
-    "statTribe": "Tribe",
-    "qrTabMine": "My QR",
-    "qrTabScan": "Scan"
+    "statTribe": "Tribe"
   },
   "editProfile": {
     "headerTitle": "Edit Profile",

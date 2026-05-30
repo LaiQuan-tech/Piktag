@@ -282,7 +282,9 @@
     "coldStartActionQr": "Terhubung di tempat lewat QR",
     "coldStartActionQrDesc": "Pasang tag acara — sekali pindai langsung terhubung",
     "coldStartActionAsk": "AI cari orang yang tepat",
-    "coldStartActionAskDesc": "Posting Ask, AI cari di jaringanmu"
+    "coldStartActionAskDesc": "Posting Ask, AI cari di jaringanmu",
+    "coldStartSubtitleV2": "Pilih satu untuk mulai",
+    "coldStartStartHere": "Mulai di sini"
   },
   "search": {
     "clearAll": "Hapus semua",
@@ -435,9 +437,7 @@
     "statFriendsA11y": "Lihat teman saya",
     "statFollowersA11y": "Lihat pengikut saya",
     "statTribeA11y": "View Tribe constellation",
-    "statTribe": "Tribe",
-    "qrTabMine": "QR-ku",
-    "qrTabScan": "Pindai"
+    "statTribe": "Tribe"
   },
   "editProfile": {
     "headerTitle": "Edit Profil",

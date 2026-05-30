@@ -282,7 +282,9 @@
     "coldStartActionQr": "QR से जगह पर ही connect",
     "coldStartActionQrDesc": "Event tags लगाएं — एक scan में जुड़ गए",
     "coldStartActionAsk": "AI सही लोगों को ढूंढता है",
-    "coldStartActionAskDesc": "Ask पोस्ट करें, AI आपके network में खोजेगा"
+    "coldStartActionAskDesc": "Ask पोस्ट करें, AI आपके network में खोजेगा",
+    "coldStartSubtitleV2": "एक से शुरू करें",
+    "coldStartStartHere": "यहाँ से शुरू करें"
   },
   "search": {
     "clearAll": "सब साफ़ करें",
@@ -435,9 +437,7 @@
     "statFriendsA11y": "मेरे दोस्त देखें",
     "statFollowersA11y": "मेरे फ़ॉलोअर देखें",
     "statTribeA11y": "View Tribe constellation",
-    "statTribe": "Tribe",
-    "qrTabMine": "मेरा QR",
-    "qrTabScan": "स्कैन"
+    "statTribe": "Tribe"
   },
   "editProfile": {
     "headerTitle": "प्रोफ़ाइल संपादित करें",

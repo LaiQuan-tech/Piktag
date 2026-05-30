@@ -282,7 +282,9 @@
     "coldStartActionQr": "เชื่อมต่อในงานด้วย QR",
     "coldStartActionQrDesc": "ใส่แท็กกิจกรรม — สแกนครั้งเดียวเชื่อมกันเลย",
     "coldStartActionAsk": "AI หาคนที่ใช่ให้คุณ",
-    "coldStartActionAskDesc": "โพสต์ Ask บอกว่าต้องการอะไร AI จะค้นจากเครือข่ายของคุณ"
+    "coldStartActionAskDesc": "โพสต์ Ask บอกว่าต้องการอะไร AI จะค้นจากเครือข่ายของคุณ",
+    "coldStartSubtitleV2": "เลือกอันใดก็ได้เริ่มก่อน",
+    "coldStartStartHere": "เริ่มที่นี่"
   },
   "search": {
     "clearAll": "ล้างทั้งหมด",
@@ -435,9 +437,7 @@
     "statFriendsA11y": "ดูเพื่อนของฉัน",
     "statFollowersA11y": "ดูผู้ติดตามของฉัน",
     "statTribeA11y": "View Tribe constellation",
-    "statTribe": "Tribe",
-    "qrTabMine": "QR ฉัน",
-    "qrTabScan": "สแกน"
+    "statTribe": "Tribe"
   },
   "editProfile": {
     "headerTitle": "แก้ไขโปรไฟล์",

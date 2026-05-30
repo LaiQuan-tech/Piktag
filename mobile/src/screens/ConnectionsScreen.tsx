@@ -872,7 +872,14 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
           {t('connections.coldStartTitle', { defaultValue: '還沒有朋友？' })}
         </Text>
         <Text style={styles.emptyOnboardingSubtitle}>
-          {t('connections.coldStartSubtitle', { defaultValue: '從這 5 步開始建立你的 PikTag' })}
+          {/* 2026-05-31: subtitle reframed from "從這 5 步開始建立你的
+              PikTag" (which read as a 5-item checklist and made the
+              founder feel "好累好麻煩") to "選一個開始就好" (pick one,
+              start there). Same 5 cards stay visible but the first is
+              now visually emphasized as the recommended entry and the
+              other 4 are demoted to optional explore-mode — preserves
+              user agency while removing the implicit homework feel. */}
+          {t('connections.coldStartSubtitleV2', { defaultValue: '選一個開始就好' })}
         </Text>
 
         <View style={styles.emptyActionList}>
@@ -937,27 +944,71 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
               desc: t('connections.coldStartActionContactsDesc'),
               onPress: () => navigation.navigate('ContactSync'),
             },
-          ].map((action) => (
-            <Pressable
-              key={action.key}
-              style={({ pressed }) => [
-                styles.emptyActionCard,
-                pressed && styles.emptyActionCardPressed,
-              ]}
-              onPress={action.onPress}
-            >
-              <View style={styles.emptyActionIconWrap}>
-                <action.icon size={20} color={colors.piktag500} />
-              </View>
-              <View style={styles.emptyActionTextWrap}>
-                <Text style={styles.emptyActionTitle}>{action.title}</Text>
-                <Text style={styles.emptyActionDesc} numberOfLines={2}>
-                  {action.desc}
-                </Text>
-              </View>
-              <ChevronRight size={18} color={colors.gray400} />
-            </Pressable>
-          ))}
+          ].map((action, idx) => {
+            // First card (profile) is the recommended entry because
+            // every other surface in PikTag depends on the user having
+            // at least one tag on themselves — search, Ask matching,
+            // recommendation cron, the lot. Visually promoted with a
+            // brand-tinted background + a "建議從這開始" label so the
+            // user's eye lands here first. Cards 2-5 are visually
+            // demoted — same layout, lighter tonal weight — so they
+            // read as "or, also try these" rather than 4 more chores.
+            const isPrimary = idx === 0;
+            return (
+              <Pressable
+                key={action.key}
+                style={({ pressed }) => [
+                  styles.emptyActionCard,
+                  isPrimary && styles.emptyActionCardPrimary,
+                  !isPrimary && styles.emptyActionCardSecondary,
+                  pressed && styles.emptyActionCardPressed,
+                ]}
+                onPress={action.onPress}
+              >
+                <View
+                  style={[
+                    styles.emptyActionIconWrap,
+                    !isPrimary && styles.emptyActionIconWrapSecondary,
+                  ]}
+                >
+                  <action.icon
+                    size={20}
+                    color={isPrimary ? colors.piktag500 : colors.piktag400}
+                  />
+                </View>
+                <View style={styles.emptyActionTextWrap}>
+                  {isPrimary && (
+                    <Text style={styles.emptyActionStartHere}>
+                      {t('connections.coldStartStartHere', {
+                        defaultValue: '建議從這開始',
+                      })}
+                    </Text>
+                  )}
+                  <Text
+                    style={[
+                      styles.emptyActionTitle,
+                      !isPrimary && styles.emptyActionTitleSecondary,
+                    ]}
+                  >
+                    {action.title}
+                  </Text>
+                  <Text
+                    style={[
+                      styles.emptyActionDesc,
+                      !isPrimary && styles.emptyActionDescSecondary,
+                    ]}
+                    numberOfLines={2}
+                  >
+                    {action.desc}
+                  </Text>
+                </View>
+                <ChevronRight
+                  size={18}
+                  color={isPrimary ? colors.gray400 : colors.gray300}
+                />
+              </Pressable>
+            );
+          })}
         </View>
       </View>
     );
@@ -1588,6 +1639,20 @@ function makeStyles(c: ColorPalette) {
     borderColor: c.gray200,
     backgroundColor: c.white,
   },
+  // Primary (the recommended-first card) — brand-tinted background +
+  // piktag200 border instead of the neutral grey, so the eye lands
+  // here before the demoted siblings.
+  emptyActionCardPrimary: {
+    backgroundColor: c.piktag50,
+    borderColor: c.piktag200,
+  },
+  // Secondary (the other 4 "or, also try" cards) — translucent
+  // background and softer border, signalling "optional / explore"
+  // rather than "you have homework."
+  emptyActionCardSecondary: {
+    backgroundColor: c.gray50,
+    borderColor: c.gray100,
+  },
   emptyActionCardPressed: {
     backgroundColor: c.gray50,
     borderColor: c.piktag200,
@@ -1600,20 +1665,43 @@ function makeStyles(c: ColorPalette) {
     justifyContent: 'center',
     backgroundColor: c.piktag50,
   },
+  // Secondary icon wrap drops the brand tint a step so the primary
+  // card's icon visibly leads.
+  emptyActionIconWrapSecondary: {
+    backgroundColor: c.gray100,
+  },
   emptyActionTextWrap: {
     flex: 1,
     minWidth: 0,
     gap: 2,
+  },
+  // Tiny lead-in label that appears on the primary card only —
+  // "建議從這開始" / "Start here". Brand-coloured so it reads as
+  // a contextual hint, not body copy.
+  emptyActionStartHere: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: c.piktag600,
+    letterSpacing: 0.4,
+    textTransform: 'uppercase',
+    marginBottom: 2,
   },
   emptyActionTitle: {
     fontSize: 15,
     fontWeight: '700',
     color: c.gray900,
   },
+  emptyActionTitleSecondary: {
+    fontWeight: '600',
+    color: c.gray700,
+  },
   emptyActionDesc: {
     fontSize: 13,
     color: c.gray500,
     lineHeight: 18,
+  },
+  emptyActionDescSecondary: {
+    color: c.gray400,
   },
   connectionItem: {
     flexDirection: 'row',

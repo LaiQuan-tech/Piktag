@@ -282,7 +282,9 @@
     "coldStartActionQr": "QR ile yerinde bağlan",
     "coldStartActionQrDesc": "Etkinlik etiketi ekle — tek taramayla bağlısınız",
     "coldStartActionAsk": "Doğru insanları yapay zekâ bulur",
-    "coldStartActionAskDesc": "Bir Ask paylaş, yapay zekâ ağında arar"
+    "coldStartActionAskDesc": "Bir Ask paylaş, yapay zekâ ağında arar",
+    "coldStartSubtitleV2": "Birinden başla",
+    "coldStartStartHere": "Buradan başla"
   },
   "search": {
     "clearAll": "Hepsini temizle",
@@ -435,9 +437,7 @@
     "statFriendsA11y": "Arkadaşlarımı gör",
     "statFollowersA11y": "Takipçilerimi gör",
     "statTribeA11y": "View Tribe constellation",
-    "statTribe": "Tribe",
-    "qrTabMine": "QR'ım",
-    "qrTabScan": "Tara"
+    "statTribe": "Tribe"
   },
   "editProfile": {
     "headerTitle": "Profili Düzenle",

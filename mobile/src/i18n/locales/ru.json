@@ -282,7 +282,9 @@
     "coldStartActionQr": "Свяжись на месте через QR",
     "coldStartActionQrDesc": "Добавь теги события — один скан и вы связаны",
     "coldStartActionAsk": "ИИ находит нужных людей",
-    "coldStartActionAskDesc": "Опубликуй Ask, ИИ ищет в твоей сети"
+    "coldStartActionAskDesc": "Опубликуй Ask, ИИ ищет в твоей сети",
+    "coldStartSubtitleV2": "Выберите один, чтобы начать",
+    "coldStartStartHere": "Начни отсюда"
   },
   "search": {
     "clearAll": "Очистить всё",
@@ -435,9 +437,7 @@
     "statFriendsA11y": "Посмотреть моих друзей",
     "statFollowersA11y": "Посмотреть моих подписчиков",
     "statTribeA11y": "View Tribe constellation",
-    "statTribe": "Tribe",
-    "qrTabMine": "Мой QR",
-    "qrTabScan": "Сканировать"
+    "statTribe": "Tribe"
   },
   "editProfile": {
     "headerTitle": "Редактирование профиля",

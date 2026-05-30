@@ -6,10 +6,11 @@ import {
   TouchableOpacity,
   StyleSheet,
   Alert,
+  StatusBar,
   Dimensions,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { X, Copy, Share2 } from 'lucide-react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { X, Share2, Copy, ScanLine, QrCode as QrCodeIcon } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { setStringAsync } from 'expo-clipboard';
 import { useTranslation } from 'react-i18next';
@@ -26,7 +27,7 @@ type QrCodeModalProps = {
   onClose: () => void;
   username: string;
   fullName: string;
-  /** Public identity tags shown inside the My-QR card. */
+  /** Public identity tags shown inside the QR card. */
   tags?: string[];
 };
 
@@ -42,29 +43,27 @@ type PiktagQrPayload = {
 };
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const SCANNER_SIZE = Math.min(SCREEN_WIDTH - 64, 320);
 
-// Personal-profile QR sheet — IG / LINE / Telegram model.
-// 2026-05-30 redesign (founder consistency check): the previous
-// version of this modal was a centered card while the existing
-// full-screen CameraScanScreen had a totally different layout.
-// Same product feature, three different visual languages — the
-// kind of per-surface drift CLAUDE.md "Shared UI = ONE shared
-// component" explicitly warns against.
+// Personal-profile QR sheet — matches AddTagScreen.renderQrMode
+// pattern for consistency with the activity (Tag) QR sheet.
+// 2026-05-31 redesign after founder consistency check: the
+// previous version used a segmented control to flip between
+// "My QR" and "Scan", which read as foreign to the rest of the
+// app. The activity QR sheet has an established pattern — full-
+// bleed gradient, X top-left, ScanLine icon top-right, white
+// card centred, action pills at the bottom — and that's the
+// canonical visual language for "this is a QR-related sheet"
+// in PikTag.
 //
-// New layout matches IG's profile-QR sheet:
-//   * Full-bleed gradient covers the whole screen.
-//   * Top bar: centered segmented tab control (My QR / Scan),
-//     close X to the right.
-//   * Content area fills the middle — QrNameCard at near-card
-//     width when 我的, or a large scanner viewfinder at the same
-//     dimensions when 掃描. Sizes match so the tab swap doesn't
-//     pop / shrink.
-//   * Bottom: Copy / Share pills (My QR mode only).
+// Mode toggle now lives in the top-right icon:
+//   show mode → ScanLine icon (tap = flip to scan)
+//   scan mode → QrCode icon (tap = flip back to My QR)
+// Same shell, in-place swap of the centre card + bottom row.
 //
-// The full-screen CameraScanScreen still exists (tab-bar entry
-// point keeps a dedicated scanner experience), but the SCAN
-// surface inside this modal is now visually identical to it —
-// same gradient, same corner-bracket frame, same hint copy.
+// Founder verbatim 2026-05-31: "你用 Segmented Control ui 很
+// 奇怪... 可以學習我們目前活動 QR code 分享的介面嗎？這樣是
+// 一致性，可能是切換".
 export default function QrCodeModal({
   visible,
   onClose,
@@ -75,6 +74,7 @@ export default function QrCodeModal({
   const { t } = useTranslation();
   const { colors, isDark } = useTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
+  const insets = useSafeAreaInsets();
   const navigation = useNavigation<any>();
   const profileUrl = `${APP_BASE_URL}/${username}`;
 
@@ -199,6 +199,7 @@ export default function QrCodeModal({
   );
 
   const isScanMode = mode === 'scan';
+  const toggleMode = () => setMode(isScanMode ? 'show' : 'scan');
 
   return (
     <Modal
@@ -213,211 +214,157 @@ export default function QrCodeModal({
           colors={['#ff5757', '#c44dff', '#8c52ff']}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
-          style={StyleSheet.absoluteFill}
-        />
-        <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
-          {/* Top bar: tabs centered, close X anchored right.
-              The tabs row sits in the flex flow; the close button
-              is absolute so the tabs read as the visual anchor. */}
-          <View style={styles.topBar}>
-            <View style={styles.tabsRow}>
-              <TouchableOpacity
-                style={[styles.tab, !isScanMode && styles.tabActive]}
-                onPress={() => setMode('show')}
-                activeOpacity={0.7}
-              >
-                <Text
-                  style={[styles.tabText, !isScanMode && styles.tabTextActive]}
-                >
-                  {t('profile.qrTabMine', { defaultValue: 'My QR' })}
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.tab, isScanMode && styles.tabActive]}
-                onPress={() => setMode('scan')}
-                activeOpacity={0.7}
-              >
-                <Text
-                  style={[styles.tabText, isScanMode && styles.tabTextActive]}
-                >
-                  {t('profile.qrTabScan', { defaultValue: 'Scan' })}
-                </Text>
-              </TouchableOpacity>
-            </View>
-            <TouchableOpacity
-              style={styles.closeBtn}
-              onPress={onClose}
-              activeOpacity={0.7}
-              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-            >
-              <X size={26} color="#FFFFFF" />
+          style={styles.gradient}
+        >
+          <StatusBar
+            barStyle={isDark ? 'light-content' : 'dark-content'}
+            backgroundColor="transparent"
+            translucent
+          />
+
+          {/* Top bar — verbatim mirror of AddTagScreen.renderQrMode:
+              X on the left, scan/QR toggle on the right. Same
+              paddingHorizontal, same paddingBottom, same icon sizes
+              (26 / 24) so when both sheets sit next to each other in
+              the user's memory they read as the same visual
+              language. */}
+          <View style={[styles.topBar, { paddingTop: insets.top + 12 }]}>
+            <TouchableOpacity onPress={onClose} activeOpacity={0.6} style={styles.topBtn}>
+              <X size={26} color="#fff" />
+            </TouchableOpacity>
+            <TouchableOpacity onPress={toggleMode} activeOpacity={0.6} style={styles.topBtn}>
+              {isScanMode ? (
+                <QrCodeIcon size={24} color="#fff" />
+              ) : (
+                <ScanLine size={24} color="#fff" />
+              )}
             </TouchableOpacity>
           </View>
 
-          {/* Content area — flex 1 so the QR card or scanner
-              centers vertically between the top bar and the
-              bottom actions. */}
-          <View style={styles.contentArea}>
+          {/* Centre area — white QR card OR scanner viewfinder. The
+              flex:1 vertical centring matches AddTagScreen's
+              qrCardWrap; the inner content swaps. */}
+          <View style={styles.cardWrap}>
             {!isScanMode ? (
-              <View style={styles.cardWrap}>
-                <QrNameCard
-                  qrValue={profileUrl}
-                  handle={username}
-                  name={fullName}
-                  tags={tags}
-                />
+              <QrNameCard
+                qrValue={profileUrl}
+                handle={username}
+                name={fullName}
+                tags={tags}
+              />
+            ) : !permission ? (
+              <View style={styles.scannerBox} />
+            ) : !permission.granted ? (
+              <View style={styles.permissionBox}>
+                <Text style={styles.permissionText}>
+                  {t('camera.permissionMessage', {
+                    defaultValue:
+                      'PikTag needs camera access to scan QR codes and connect with friends.',
+                  })}
+                </Text>
+                <TouchableOpacity
+                  style={styles.permissionBtn}
+                  onPress={requestPermission}
+                  activeOpacity={0.8}
+                >
+                  <Text style={styles.permissionBtnText}>
+                    {t('camera.grantPermission', {
+                      defaultValue: 'Grant Permission',
+                    })}
+                  </Text>
+                </TouchableOpacity>
               </View>
             ) : (
-              <View style={styles.scanWrap}>
-                {!permission ? (
-                  <View style={styles.scannerBox} />
-                ) : !permission.granted ? (
-                  <View style={styles.permissionBox}>
-                    <Text style={styles.permissionText}>
-                      {t('camera.permissionMessage', {
-                        defaultValue:
-                          'PikTag needs camera access to scan QR codes and connect with friends.',
-                      })}
-                    </Text>
-                    <TouchableOpacity
-                      style={styles.permissionBtn}
-                      onPress={requestPermission}
-                      activeOpacity={0.8}
-                    >
-                      <Text style={styles.permissionBtnText}>
-                        {t('camera.grantPermission', {
-                          defaultValue: 'Grant Permission',
-                        })}
-                      </Text>
-                    </TouchableOpacity>
-                  </View>
-                ) : (
-                  <View style={styles.scannerBox}>
-                    <CameraView
-                      style={StyleSheet.absoluteFill}
-                      facing="back"
-                      barcodeScannerSettings={{ barcodeTypes: ['qr'] }}
-                      onBarcodeScanned={
-                        visible && isScanMode && !scanned
-                          ? handleBarcodeScanned
-                          : undefined
-                      }
-                    />
-                    <View style={[styles.corner, styles.cornerTopLeft]} />
-                    <View style={[styles.corner, styles.cornerTopRight]} />
-                    <View style={[styles.corner, styles.cornerBottomLeft]} />
-                    <View style={[styles.corner, styles.cornerBottomRight]} />
-                  </View>
-                )}
+              <>
+                <View style={styles.scannerBox}>
+                  <CameraView
+                    style={StyleSheet.absoluteFill}
+                    facing="back"
+                    barcodeScannerSettings={{ barcodeTypes: ['qr'] }}
+                    onBarcodeScanned={
+                      visible && isScanMode && !scanned
+                        ? handleBarcodeScanned
+                        : undefined
+                    }
+                  />
+                  <View style={[styles.corner, styles.cornerTopLeft]} />
+                  <View style={[styles.corner, styles.cornerTopRight]} />
+                  <View style={[styles.corner, styles.cornerBottomLeft]} />
+                  <View style={[styles.corner, styles.cornerBottomRight]} />
+                </View>
                 <Text style={styles.scanHint}>
                   {t('camera.instruction', {
                     defaultValue: 'Point your camera at a PikTag QR code',
                   })}
                 </Text>
-              </View>
+              </>
             )}
           </View>
 
-          {/* Bottom actions — Copy / Share. Only meaningful in
-              My-QR mode; in Scan mode the scanner doesn't have a
-              "Share what?" affordance, so the row hides. We
-              reserve the same vertical space either way so the
-              modal doesn't visually jump on tab swap. */}
-          <View style={styles.actionsArea}>
-            {!isScanMode && (
-              <View style={styles.actionsRow}>
+          {/* Bottom action pills — verbatim style mirror of
+              AddTagScreen.qrBottomRow / qrBottomBtn (white pill,
+              16-px vertical padding, icon + label centred). Only
+              shows in show mode; reserves the same vertical space
+              in scan mode so the layout doesn't visually jump. */}
+          <View style={[styles.bottomRow, { paddingBottom: insets.bottom + 20 }]}>
+            {!isScanMode ? (
+              <>
                 <TouchableOpacity
-                  style={styles.actionBtn}
+                  style={styles.bottomBtn}
                   onPress={handleCopyLink}
                   activeOpacity={0.7}
                 >
-                  <Copy size={20} color={'#111827'} />
-                  <Text style={styles.actionBtnText}>
-                    {t('profile.copyLink')}
-                  </Text>
+                  <Copy size={22} color={colors.gray900} />
+                  <Text style={styles.bottomBtnText}>{t('profile.copyLink')}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                  style={styles.actionBtn}
+                  style={styles.bottomBtn}
                   onPress={handleShare}
                   activeOpacity={0.7}
                 >
-                  <Share2 size={20} color={'#111827'} />
-                  <Text style={styles.actionBtnText}>
-                    {t('profile.share')}
-                  </Text>
+                  <Share2 size={22} color={colors.gray900} />
+                  <Text style={styles.bottomBtnText}>{t('profile.share')}</Text>
                 </TouchableOpacity>
-              </View>
+              </>
+            ) : (
+              // Empty placeholder keeps the bottom row's reserved
+              // height so the QR card doesn't jump on mode swap.
+              <View style={styles.bottomBtnSpacer} />
             )}
           </View>
-        </SafeAreaView>
+        </LinearGradient>
       </QrModalStinger>
     </Modal>
   );
 }
 
-const CORNER_LENGTH = 32;
+const CORNER_LENGTH = 28;
 const CORNER_THICKNESS = 4;
-const SCANNER_SIZE = SCREEN_WIDTH * 0.78;
 
 function makeStyles(c: ColorPalette) {
   return StyleSheet.create({
-    safe: {
+    gradient: {
       flex: 1,
     },
+    // ── Top bar — mirrors AddTagScreen.qrTopBar / qrTopBtn ──
     topBar: {
-      paddingHorizontal: 20,
-      paddingTop: 12,
       flexDirection: 'row',
       alignItems: 'center',
-      justifyContent: 'center',
-      position: 'relative',
-      height: 56,
+      justifyContent: 'space-between',
+      paddingHorizontal: 16,
+      paddingBottom: 8,
     },
-    tabsRow: {
-      flexDirection: 'row',
-      backgroundColor: 'rgba(255,255,255,0.22)',
-      borderRadius: 999,
-      padding: 4,
-      width: 240,
+    topBtn: {
+      padding: 8,
     },
-    tab: {
-      flex: 1,
-      paddingVertical: 9,
-      borderRadius: 999,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    tabActive: {
-      backgroundColor: '#FFFFFF',
-    },
-    tabText: {
-      fontSize: 14,
-      fontWeight: '700',
-      color: 'rgba(255,255,255,0.85)',
-    },
-    tabTextActive: {
-      color: '#111827',
-    },
-    closeBtn: {
-      position: 'absolute',
-      right: 20,
-      top: 16,
-      padding: 4,
-    },
-    contentArea: {
-      flex: 1,
-      alignItems: 'center',
-      justifyContent: 'center',
-      paddingHorizontal: 24,
-    },
+    // ── Centre wrap — mirrors AddTagScreen.qrCardWrap ──
     cardWrap: {
-      width: '100%',
-      maxWidth: 360,
-    },
-    scanWrap: {
+      flex: 1,
       alignItems: 'center',
-      width: '100%',
+      justifyContent: 'center',
+      paddingHorizontal: 32,
     },
+    // ── Scanner viewfinder (scan mode) ──
     scannerBox: {
       width: SCANNER_SIZE,
       height: SCANNER_SIZE,
@@ -460,34 +407,31 @@ function makeStyles(c: ColorPalette) {
       textAlign: 'center',
       fontWeight: '600',
     },
-    actionsArea: {
-      minHeight: 72,
-      paddingHorizontal: 24,
-      paddingBottom: 8,
-      justifyContent: 'center',
-    },
-    actionsRow: {
+    // ── Bottom row — mirrors AddTagScreen.qrBottomRow / qrBottomBtn ──
+    bottomRow: {
       flexDirection: 'row',
+      paddingHorizontal: 16,
+      paddingTop: 8,
       gap: 10,
-      width: '100%',
-      maxWidth: 360,
-      alignSelf: 'center',
+      minHeight: 90,
     },
-    actionBtn: {
+    bottomBtn: {
       flex: 1,
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'center',
-      backgroundColor: '#FFFFFF',
+      backgroundColor: '#fff',
       borderRadius: 14,
-      paddingVertical: 15,
+      paddingVertical: 16,
+      alignItems: 'center',
       gap: 8,
     },
-    actionBtnText: {
-      fontSize: 14,
-      fontWeight: '700',
-      color: '#111827',
+    bottomBtnText: {
+      fontSize: 13,
+      fontWeight: '600',
+      color: c.gray900,
     },
+    bottomBtnSpacer: {
+      flex: 1,
+    },
+    // ── Scanner corner brackets ──
     corner: {
       position: 'absolute',
       width: CORNER_LENGTH,
@@ -495,29 +439,29 @@ function makeStyles(c: ColorPalette) {
       borderColor: '#FFFFFF',
     },
     cornerTopLeft: {
-      top: 14,
-      left: 14,
+      top: 12,
+      left: 12,
       borderTopWidth: CORNER_THICKNESS,
       borderLeftWidth: CORNER_THICKNESS,
       borderTopLeftRadius: 8,
     },
     cornerTopRight: {
-      top: 14,
-      right: 14,
+      top: 12,
+      right: 12,
       borderTopWidth: CORNER_THICKNESS,
       borderRightWidth: CORNER_THICKNESS,
       borderTopRightRadius: 8,
     },
     cornerBottomLeft: {
-      bottom: 14,
-      left: 14,
+      bottom: 12,
+      left: 12,
       borderBottomWidth: CORNER_THICKNESS,
       borderLeftWidth: CORNER_THICKNESS,
       borderBottomLeftRadius: 8,
     },
     cornerBottomRight: {
-      bottom: 14,
-      right: 14,
+      bottom: 12,
+      right: 12,
       borderBottomWidth: CORNER_THICKNESS,
       borderRightWidth: CORNER_THICKNESS,
       borderBottomRightRadius: 8,

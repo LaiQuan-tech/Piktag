@@ -282,7 +282,9 @@
     "coldStartActionQr": "تواصل في الموقع عبر QR",
     "coldStartActionQrDesc": "أضف وسوم الحدث — مسح واحد وأنتم متصلون",
     "coldStartActionAsk": "الذكاء الاصطناعي يجد الأشخاص المناسبين",
-    "coldStartActionAskDesc": "انشر Ask، والذكاء الاصطناعي يبحث في شبكتك"
+    "coldStartActionAskDesc": "انشر Ask، والذكاء الاصطناعي يبحث في شبكتك",
+    "coldStartSubtitleV2": "اختر واحدًا لتبدأ",
+    "coldStartStartHere": "ابدأ من هنا"
   },
   "search": {
     "clearAll": "مسح الكل",
@@ -435,9 +437,7 @@
     "statFriendsA11y": "عرض أصدقائي",
     "statFollowersA11y": "عرض متابعيّ",
     "statTribeA11y": "View Tribe constellation",
-    "statTribe": "Tribe",
-    "qrTabMine": "رمزي",
-    "qrTabScan": "مسح"
+    "statTribe": "Tribe"
   },
   "editProfile": {
     "headerTitle": "تعديل الملف الشخصي",

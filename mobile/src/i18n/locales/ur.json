@@ -289,7 +289,9 @@
     "coldStartActionQr": "QR سے موقع پر ہی جڑیں",
     "coldStartActionQrDesc": "ایونٹ ٹیگز لگائیں — ایک سکین اور جڑ گئے",
     "coldStartActionAsk": "AI صحیح لوگوں کو ڈھونڈتا ہے",
-    "coldStartActionAskDesc": "Ask پوسٹ کریں، AI آپ کے نیٹ ورک میں تلاش کرے گا"
+    "coldStartActionAskDesc": "Ask پوسٹ کریں، AI آپ کے نیٹ ورک میں تلاش کرے گا",
+    "coldStartSubtitleV2": "کسی ایک سے شروع کریں",
+    "coldStartStartHere": "یہاں سے شروع کریں"
   },
   "search": {
     "clearAll": "سب صاف کریں",
@@ -442,9 +444,7 @@
     "statFriendsA11y": "میرے دوست دیکھیں",
     "statFollowersA11y": "میرے فالوورز دیکھیں",
     "statTribeA11y": "View Tribe constellation",
-    "statTribe": "Tribe",
-    "qrTabMine": "میرا QR",
-    "qrTabScan": "اسکین"
+    "statTribe": "Tribe"
   },
   "editProfile": {
     "headerTitle": "پروفائل میں ترمیم کریں",

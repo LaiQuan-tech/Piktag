@@ -289,7 +289,9 @@
     "coldStartActionQr": "Kết nối tại chỗ qua QR",
     "coldStartActionQrDesc": "Gắn tag sự kiện — một lần quét là kết nối",
     "coldStartActionAsk": "AI tìm đúng người cho bạn",
-    "coldStartActionAskDesc": "Đăng Ask nói cần gì, AI tìm trong mạng lưới của bạn"
+    "coldStartActionAskDesc": "Đăng Ask nói cần gì, AI tìm trong mạng lưới của bạn",
+    "coldStartSubtitleV2": "Chọn một để bắt đầu",
+    "coldStartStartHere": "Bắt đầu ở đây"
   },
   "search": {
     "clearAll": "Xoá hết",
@@ -442,9 +444,7 @@
     "statFriendsA11y": "Xem bạn bè của tôi",
     "statFollowersA11y": "Xem người theo dõi của tôi",
     "statTribeA11y": "View Tribe constellation",
-    "statTribe": "Tribe",
-    "qrTabMine": "QR của tôi",
-    "qrTabScan": "Quét"
+    "statTribe": "Tribe"
   },
   "editProfile": {
     "headerTitle": "Sửa hồ sơ",

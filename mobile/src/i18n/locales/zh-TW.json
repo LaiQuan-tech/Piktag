@@ -289,7 +289,9 @@
     "coldStartActionQr": "用 QR 連上現場的人",
     "coldStartActionQrDesc": "貼上活動標籤，朋友掃一下就互加",
     "coldStartActionAsk": "AI 幫你找對的人",
-    "coldStartActionAskDesc": "發個 Ask 說你要什麼，AI 從人脈裡幫你找"
+    "coldStartActionAskDesc": "發個 Ask 說你要什麼，AI 從人脈裡幫你找",
+    "coldStartSubtitleV2": "選一個開始就好",
+    "coldStartStartHere": "建議從這開始"
   },
   "search": {
     "clearAll": "清除全部",
@@ -442,9 +444,7 @@
     "statFriendsA11y": "查看我的朋友",
     "statFollowersA11y": "查看我的追蹤者",
     "statTribeA11y": "查看 Tribe 星圖",
-    "statTribe": "Tribe",
-    "qrTabMine": "我的",
-    "qrTabScan": "掃描"
+    "statTribe": "Tribe"
   },
   "editProfile": {
     "headerTitle": "編輯個人資訊",
