@@ -553,7 +553,9 @@
     "needLibraryPermissionMsg": "Consenti accesso nelle Impostazioni",
     "notSignedIn": "Non hai effettuato l'accesso",
     "uploadFailTitle": "Caricamento non riuscito",
-    "tryAgainLater": "Riprova più tardi"
+    "tryAgainLater": "Riprova più tardi",
+    "alertBiolinkAddError": "Impossibile aggiungere il metodo di contatto. Riprova più tardi.",
+    "alertBiolinkEmptyAccount": "Inserisci prima il numero o l'account."
   },
   "friendDetail": {
     "reminderBirthday": "Compleanno",

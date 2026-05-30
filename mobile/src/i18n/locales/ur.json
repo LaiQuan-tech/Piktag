@@ -553,7 +553,9 @@
     "needLibraryPermissionMsg": "ترتیبات میں رسائی کی اجازت دیں",
     "notSignedIn": "لاگ ان نہیں ہیں",
     "uploadFailTitle": "اپ لوڈ ناکام",
-    "tryAgainLater": "بعد میں دوبارہ کوشش کریں"
+    "tryAgainLater": "بعد میں دوبارہ کوشش کریں",
+    "alertBiolinkAddError": "رابطہ کا طریقہ شامل نہیں ہو سکا۔ براہ کرم بعد میں دوبارہ کوشش کریں۔",
+    "alertBiolinkEmptyAccount": "براہ کرم پہلے نمبر یا اکاؤنٹ درج کریں۔"
   },
   "friendDetail": {
     "reminderBirthday": "سالگرہ",

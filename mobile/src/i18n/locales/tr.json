@@ -546,7 +546,9 @@
     "needLibraryPermissionMsg": "Ayarlar'dan erişime izin verin",
     "notSignedIn": "Oturum açılmadı",
     "uploadFailTitle": "Yükleme başarısız",
-    "tryAgainLater": "Daha sonra tekrar deneyin"
+    "tryAgainLater": "Daha sonra tekrar deneyin",
+    "alertBiolinkAddError": "İletişim yöntemi eklenemedi. Lütfen daha sonra tekrar deneyin.",
+    "alertBiolinkEmptyAccount": "Lütfen önce numarayı veya hesabı girin."
   },
   "friendDetail": {
     "reminderBirthday": "Doğum Günü",

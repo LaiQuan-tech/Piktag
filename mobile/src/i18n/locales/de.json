@@ -548,7 +548,9 @@
     "needLibraryPermissionMsg": "Zugriff in den Einstellungen erlauben",
     "notSignedIn": "Nicht angemeldet",
     "uploadFailTitle": "Hochladen fehlgeschlagen",
-    "tryAgainLater": "Bitte später erneut versuchen"
+    "tryAgainLater": "Bitte später erneut versuchen",
+    "alertBiolinkAddError": "Fehler beim Hinzufügen der Kontaktmethode. Bitte versuchen Sie es später erneut.",
+    "alertBiolinkEmptyAccount": "Bitte zuerst Nummer oder Konto eingeben."
   },
   "friendDetail": {
     "reminderBirthday": "Geburtstag",

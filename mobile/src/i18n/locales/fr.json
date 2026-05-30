@@ -546,7 +546,9 @@
     "needLibraryPermissionMsg": "Autorisez l'accès dans Réglages",
     "notSignedIn": "Non connecté",
     "uploadFailTitle": "Échec de l'envoi",
-    "tryAgainLater": "Réessayez plus tard"
+    "tryAgainLater": "Réessayez plus tard",
+    "alertBiolinkAddError": "Impossible d'ajouter la méthode de contact. Veuillez réessayer plus tard.",
+    "alertBiolinkEmptyAccount": "Veuillez d'abord entrer le numéro ou le compte."
   },
   "friendDetail": {
     "reminderBirthday": "Anniversaire",

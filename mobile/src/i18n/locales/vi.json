@@ -553,7 +553,9 @@
     "needLibraryPermissionMsg": "Cho phép truy cập trong Cài đặt",
     "notSignedIn": "Chưa đăng nhập",
     "uploadFailTitle": "Tải lên thất bại",
-    "tryAgainLater": "Vui lòng thử lại sau"
+    "tryAgainLater": "Vui lòng thử lại sau",
+    "alertBiolinkAddError": "Không thể thêm phương thức liên lạc. Vui lòng thử lại sau.",
+    "alertBiolinkEmptyAccount": "Vui lòng nhập số hoặc tài khoản trước."
   },
   "friendDetail": {
     "reminderBirthday": "Sinh nhật",

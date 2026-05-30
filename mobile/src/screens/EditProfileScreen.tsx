@@ -2164,8 +2164,29 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
                       let fullUrl: string;
                       if (selectedPlatform === 'phone') {
                         fullUrl = buildTelUrl(phoneCountry, phoneNational);
+                        if (!fullUrl) {
+                          Alert.alert(
+                            t('common.error'),
+                            t('editProfile.alertBiolinkEmptyAccount', {
+                              defaultValue: '請先輸入號碼或帳號。',
+                            }),
+                          );
+                          return;
+                        }
                       } else {
-                        if (!newLinkAccount.trim()) return;
+                        if (!newLinkAccount.trim()) {
+                          // Previously a silent early-return — the
+                          // founder tapped 新增 without typing in the
+                          // account field, nothing appeared on screen,
+                          // assumed the biolink was added but it wasn't.
+                          Alert.alert(
+                            t('common.error'),
+                            t('editProfile.alertBiolinkEmptyAccount', {
+                              defaultValue: '請先輸入號碼或帳號。',
+                            }),
+                          );
+                          return;
+                        }
                         const prefix = PLATFORM_PREFIXES[selectedPlatform] ?? '';
                         fullUrl = selectedPlatform === 'custom'
                           ? newLinkAccount.trim()
@@ -2195,13 +2216,27 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
                         is_active: true,
                         position: biolinks.length,
                       }).select().single();
-                      if (!error && data) {
-                        setBiolinks(prev => [...prev, data]);
-                        setSelectedPlatform(null);
-                        setNewLinkAccount('');
-                        setNewLinkLabel('');
-                        resetPhoneFields();
+                      if (error || !data) {
+                        // Previously the failure path was silent — user
+                        // tapped 新增, nothing happened on screen, the
+                        // biolink never appeared on their profile, and
+                        // they had no way to know why. Audible alert +
+                        // console.warn so the next reproduction surfaces
+                        // the real cause (RLS, constraint, network…).
+                        console.warn('[EditProfile] biolink insert failed:', error?.message, error?.code);
+                        Alert.alert(
+                          t('common.error'),
+                          t('editProfile.alertBiolinkAddError', {
+                            defaultValue: '新增聯絡方式失敗，請稍後再試。',
+                          }) + (error?.message ? `\n(${error.message})` : ''),
+                        );
+                        return;
                       }
+                      setBiolinks(prev => [...prev, data]);
+                      setSelectedPlatform(null);
+                      setNewLinkAccount('');
+                      setNewLinkLabel('');
+                      resetPhoneFields();
                     }}
                   >
                     <Text style={styles.saveBtnText}>{t('common.add', { defaultValue: '新增' })}</Text>

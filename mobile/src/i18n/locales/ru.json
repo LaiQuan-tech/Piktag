@@ -546,7 +546,9 @@
     "needLibraryPermissionMsg": "Разрешите доступ в Настройках",
     "notSignedIn": "Не выполнен вход",
     "uploadFailTitle": "Ошибка загрузки",
-    "tryAgainLater": "Повторите попытку позже"
+    "tryAgainLater": "Повторите попытку позже",
+    "alertBiolinkAddError": "Не удалось добавить способ связи. Повторите попытку позже.",
+    "alertBiolinkEmptyAccount": "Сначала введите номер или аккаунт."
   },
   "friendDetail": {
     "reminderBirthday": "День рождения",

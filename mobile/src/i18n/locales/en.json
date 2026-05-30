@@ -553,7 +553,9 @@
     "needLibraryPermissionMsg": "Allow access in Settings",
     "notSignedIn": "Not signed in",
     "uploadFailTitle": "Upload failed",
-    "tryAgainLater": "Please try again later"
+    "tryAgainLater": "Please try again later",
+    "alertBiolinkAddError": "Couldn't add contact method. Please try again later.",
+    "alertBiolinkEmptyAccount": "Please enter the number or handle first."
   },
   "friendDetail": {
     "reminderBirthday": "Birthday",

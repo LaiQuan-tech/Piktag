@@ -546,7 +546,9 @@
     "needLibraryPermissionMsg": "Izinkan akses di Pengaturan",
     "notSignedIn": "Belum masuk",
     "uploadFailTitle": "Unggah gagal",
-    "tryAgainLater": "Coba lagi nanti"
+    "tryAgainLater": "Coba lagi nanti",
+    "alertBiolinkAddError": "Gagal menambah metode kontak. Silakan coba lagi nanti.",
+    "alertBiolinkEmptyAccount": "Silakan masukkan nomor atau akun terlebih dahulu."
   },
   "friendDetail": {
     "reminderBirthday": "Ulang Tahun",

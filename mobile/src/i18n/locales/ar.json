@@ -546,7 +546,9 @@
     "needLibraryPermissionMsg": "اسمح بالوصول من الإعدادات",
     "notSignedIn": "لم يتم تسجيل الدخول",
     "uploadFailTitle": "فشل التحميل",
-    "tryAgainLater": "حاول لاحقًا"
+    "tryAgainLater": "حاول لاحقًا",
+    "alertBiolinkAddError": "فشل إضافة معلومات الاتصال. يرجى المحاولة مرة أخرى لاحقًا.",
+    "alertBiolinkEmptyAccount": "يرجى إدخال الرقم أو الحساب أولاً."
   },
   "friendDetail": {
     "reminderBirthday": "عيد الميلاد",

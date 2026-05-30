@@ -548,7 +548,9 @@
     "needLibraryPermissionMsg": "请在设置中允许访问相册",
     "notSignedIn": "未登录",
     "uploadFailTitle": "上传失败",
-    "tryAgainLater": "请稍后再试"
+    "tryAgainLater": "请稍后再试",
+    "alertBiolinkAddError": "新增联系方式失败，请稍后再试。",
+    "alertBiolinkEmptyAccount": "请先输入号码或账号。"
   },
   "friendDetail": {
     "reminderBirthday": "生日",

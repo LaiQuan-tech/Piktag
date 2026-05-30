@@ -546,7 +546,9 @@
     "needLibraryPermissionMsg": "सेटिंग्स में अनुमति दें",
     "notSignedIn": "साइन इन नहीं हैं",
     "uploadFailTitle": "अपलोड विफल",
-    "tryAgainLater": "कुछ देर बाद पुनः प्रयास"
+    "tryAgainLater": "कुछ देर बाद पुनः प्रयास",
+    "alertBiolinkAddError": "संपर्क विधि जोड़ने में विफल। कृपया बाद में पुनः प्रयास करें।",
+    "alertBiolinkEmptyAccount": "कृपया पहले नंबर या खाता दर्ज करें।"
   },
   "friendDetail": {
     "reminderBirthday": "जन्मदिन",

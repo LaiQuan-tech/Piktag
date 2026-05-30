@@ -546,7 +546,9 @@
     "needLibraryPermissionMsg": "Permita o acesso nas Definições",
     "notSignedIn": "Não autenticado",
     "uploadFailTitle": "Falha no envio",
-    "tryAgainLater": "Tente novamente mais tarde"
+    "tryAgainLater": "Tente novamente mais tarde",
+    "alertBiolinkAddError": "Não foi possível adicionar o método de contato. Tente novamente mais tarde.",
+    "alertBiolinkEmptyAccount": "Por favor, insira o número ou conta primeiro."
   },
   "friendDetail": {
     "reminderBirthday": "Aniversário",

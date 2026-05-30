@@ -553,7 +553,9 @@
     "needLibraryPermissionMsg": "請在設定中允許存取相簿",
     "notSignedIn": "未登入",
     "uploadFailTitle": "上傳失敗",
-    "tryAgainLater": "請稍後再試"
+    "tryAgainLater": "請稍後再試",
+    "alertBiolinkAddError": "新增聯絡方式失敗，請稍後再試。",
+    "alertBiolinkEmptyAccount": "請先輸入號碼或帳號。"
   },
   "friendDetail": {
     "reminderBirthday": "生日",

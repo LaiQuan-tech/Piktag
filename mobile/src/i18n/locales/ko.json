@@ -546,7 +546,9 @@
     "needLibraryPermissionMsg": "설정에서 접근을 허용해 주세요",
     "notSignedIn": "로그인되지 않음",
     "uploadFailTitle": "업로드 실패",
-    "tryAgainLater": "잠시 후 다시 시도해 주세요"
+    "tryAgainLater": "잠시 후 다시 시도해 주세요",
+    "alertBiolinkAddError": "연락 방법을 추가하지 못했습니다. 나중에 다시 시도해 주세요.",
+    "alertBiolinkEmptyAccount": "번호 또는 계정을 먼저 입력해 주세요."
   },
   "friendDetail": {
     "reminderBirthday": "생일",
