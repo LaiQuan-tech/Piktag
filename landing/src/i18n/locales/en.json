@@ -268,5 +268,129 @@
   },
   "langSwitcher": {
     "label": "Language"
+  },
+  "pitch": {
+    "confidential": "Confidential — investor preview",
+    "hero": {
+      "eyebrow": "Investor Preview · Pre-launch",
+      "title1": "The tag-graph that",
+      "title2": "reactivates dormant connections.",
+      "subtitle": "PikTag is a mobile social CRM where AI-recommended semantic tags become the engine — for finding the right person you already know, and matching new friends across language and wording."
+    },
+    "problem": {
+      "eyebrow": "Problem",
+      "title": "Your contact list is a graveyard.",
+      "pain1Title": "Dormant connections die in silence",
+      "pain1Body": "The person you met two years ago who'd be perfect for this — you can't remember their name, only that they 'do something with dogs'. The contact list can't answer that query.",
+      "pain2Title": "Search by name only",
+      "pain2Body": "Every contacts app indexes by name and number. None index by 'who do I know that's a vet AND runs marathons AND lives in Taipei?'",
+      "pain3Title": "Language walls block matches",
+      "pain3Body": "A Mandarin user looking for '養狗' friends and an English user tagged 'dog owner' should match. Today they don't — because the substring index doesn't speak semantics."
+    },
+    "solution": {
+      "eyebrow": "Solution — the thesis",
+      "title": "AI tag recommendation, in context.",
+      "thesisLead": "The core of PikTag IS AI tag recommendation:",
+      "thesisBody": "in each context (scan, search, ask, profile-edit), recommend the right tags. Everything else serves this. Tags become a semantic graph over people — and a semantic graph is searchable in ways a name index can't be.",
+      "loop1Label": "Reactivation loop",
+      "loop1Title": "Search tag → reactivate dormant connection",
+      "loop1Body": "You type 'dog owner'; PikTag surfaces the friend you tagged #養狗 three years ago and haven't messaged in eighteen months. Cross-language concept matching makes this work regardless of how either of you wrote the tag.",
+      "loop2Label": "Match loop",
+      "loop2Title": "Scan → tag → connect",
+      "loop2Body": "At an event you scan someone's QR. AI suggests tags from the meeting context ({event tags, mutual friends' tags}). You confirm three; you're added with semantic signal already attached. Next person searching '#台大校友' finds you.",
+      "loop2BodyFallback": "At an event you scan someone's QR. AI suggests tags from the meeting context. You confirm three; you're added with semantic signal already attached."
+    },
+    "product": {
+      "eyebrow": "Product",
+      "title": "Five frames, one loop.",
+      "prev": "Previous frame",
+      "next": "Next frame"
+    },
+    "screens": {
+      "connections": {
+        "title": "Connections — the asset",
+        "caption": "Every connection carries its own tag-cloud. Search across all of them at once — that's the unlock."
+      },
+      "friendDetail": {
+        "title": "Friend detail — semantic memory",
+        "caption": "Tags by source (self / friend / event / ask), each with its own decay curve. The page IS the searchable index."
+      },
+      "searchByTag": {
+        "title": "Search by tag — the reactivation moment",
+        "caption": "Query 'dog owner', match #養狗 across language. The dormant connection surfaces."
+      },
+      "notifications": {
+        "title": "Notifications — facts, not asks",
+        "caption": "We surface what happened ('Armand 自標 #養貓'). We don't pose engagement-bait questions. Statement form only."
+      },
+      "stats": {
+        "title": "Stats — the loop closes",
+        "caption": "Connections grown, top tags, reactivation count. A leading indicator that the tag-graph is doing its job."
+      }
+    },
+    "market": {
+      "eyebrow": "Market",
+      "title": "Where the tag-graph compounds.",
+      "tamLabel": "TAM",
+      "tamValue": "$45B",
+      "tamBody": "Global personal CRM + business networking software (Crunchbase-adjacent market sizing, 2025).",
+      "samLabel": "SAM",
+      "samValue": "$8B",
+      "samBody": "Smartphone users in Asia + diaspora who attend ≥1 professional event per quarter — the high-friction friend-add use case.",
+      "somLabel": "SOM (Year 3)",
+      "somValue": "500K MAU",
+      "somBody": "Taiwan beachhead (3M smartphone power-users) + SEA expansion via cross-language tag matching as the wedge."
+    },
+    "model": {
+      "eyebrow": "Business Model",
+      "title": "Tag auction — but not yet.",
+      "lead": "Long-term: an AdWords-style auction where verified businesses bid to sponsor tags + concepts. Quality-Score-gated, second-price. Sponsored placement lives in a SEPARATE pipeline from organic results — never interleaved.",
+      "honestLabel": "Honest framing",
+      "honestBody": "We are not monetizing at launch. The tag-graph must prove itself first — six months of organic users finding right-people via tag-search is the prerequisite for any auction to not feel coercive. Monetization at month 3 kills the only signal that makes monetization at month 24 valuable."
+    },
+    "roadmap": {
+      "eyebrow": "Roadmap",
+      "title": "Thesis → Audience → Monetize.",
+      "v1Status": "Shipping",
+      "v1Title": "v1 — Thesis proof",
+      "v1Body": "Core tag system, six semantic categories, AI suggestions, contact sync, semantic search. Goal: 6 months of organic users finding right-people via tag-search.",
+      "v2Status": "Q4 2026",
+      "v2Title": "v2 — Alt accounts (audience curation)",
+      "v2Body": "IG-finsta model. Each alt is its own auth user; friend graphs separate; asymmetric discovery (alt sees the world, the world doesn't see alt). Privacy-motivated audience segmentation, not anonymity.",
+      "v3Status": "2027+",
+      "v3Title": "v3 — Tag-auction monetization",
+      "v3Body": "Verified-business sponsorship, sponsored placement in a separate pipeline. Quality Score model trained on ≥6 months of impression × click × conversion × dismissal data accruing from day 1 of v1."
+    },
+    "stub": {
+      "warningTitle": "Founder fills before sending",
+      "tractionWarning": "This section is intentionally a visible placeholder. Fill with real numbers before sharing this URL. If you're reading this as a recipient: the founder hasn't completed this section yet.",
+      "teamWarning": "This section is intentionally a visible placeholder. Fill with real team bios before sharing this URL. If you're reading this as a recipient: the founder hasn't completed this section yet.",
+      "askWarning": "This section is intentionally a visible placeholder. Fill with the actual raise amount + use-of-funds before sharing this URL. If you're reading this as a recipient: the founder hasn't completed this section yet."
+    },
+    "traction": {
+      "eyebrow": "Traction",
+      "title": "What we've shipped & who's using it.",
+      "placeholder1": "[TestFlight signups: ___ as of ___]",
+      "placeholder2": "[Active users in past 7 days: ___]",
+      "placeholder3": "[Tags created per user (avg): ___]",
+      "placeholder4": "[Notable design partners / waitlist names: ___]"
+    },
+    "team": {
+      "eyebrow": "Team",
+      "title": "Who's building this.",
+      "placeholder1": "[Founder name, role, prior: ___]",
+      "placeholder2": "[Co-founder / key hire 1: name, role, prior: ___]",
+      "placeholder3": "[Advisor / key hire 2: name, role, prior: ___]"
+    },
+    "ask": {
+      "eyebrow": "The Ask",
+      "title": "What we're raising & what it buys.",
+      "placeholder1": "[Raising: $___ on a ___ structure (SAFE / priced / convertible)]",
+      "placeholder2": "[Runway: ___ months to ___ milestone]",
+      "placeholder3": "[Use of funds: ___% engineering, ___% growth, ___% other]"
+    },
+    "closing": {
+      "contactPrompt": "Questions? Reach the founder directly:"
+    }
   }
 }

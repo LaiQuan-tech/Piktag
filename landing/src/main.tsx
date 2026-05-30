@@ -4,6 +4,7 @@ import {BrowserRouter, Routes, Route, useLocation} from 'react-router-dom';
 import {useTranslation} from 'react-i18next';
 import App from './App.tsx';
 import Contact from './pages/Contact.tsx';
+import Pitch from './pages/Pitch.tsx';
 import ResetPassword from './pages/ResetPassword.tsx';
 import {initAnalytics, trackPageView} from './lib/analytics';
 import './i18n';
@@ -130,6 +131,7 @@ createRoot(document.getElementById('root')!).render(
       <Routes>
         <Route path="/" element={<App />} />
         <Route path="/contact" element={<Contact />} />
+        <Route path="/pitch" element={<Pitch />} />
         <Route path="/reset-password" element={<ResetPassword />} />
       </Routes>
     </BrowserRouter>

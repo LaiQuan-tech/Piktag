@@ -18,6 +18,7 @@
     { "source": "/download",        "destination": "/download.html" },
 
     { "source": "/contact",         "destination": "/index.html" },
+    { "source": "/pitch",           "destination": "/index.html" },
     { "source": "/reset-password",  "destination": "/index.html" },
 
     { "source": "/favicon.ico",     "destination": "/logo.png" },
