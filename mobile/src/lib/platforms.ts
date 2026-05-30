@@ -334,9 +334,23 @@ export function detectPlatformFromUrl(input: string): string | null {
  *   2) Self-healing. If the user edits the URL, the favicon updates
  *      automatically on next render — no stale icon_url drift.
  *
- * Google's proxy was chosen over DuckDuckGo's for reliability +
- * resolution; if privacy becomes a launch concern we can swap to
- * our own proxy without touching any caller.
+ * Provider: DuckDuckGo (switched from Google 2026-05-31 after
+ * founder caught pikt.ag rendering blank). Two reasons for the
+ * swap:
+ *   1. Coverage. Google's s2 proxy returns a near-blank placeholder
+ *      tile (HTTP 200 with empty image bytes) for domains it hasn't
+ *      crawled yet — `.ag` and other niche TLDs tend to fall in
+ *      that bucket. Duck's `ip3` endpoint returns a clean 404 when
+ *      it has nothing, which lets PlatformIcon's `onError` fall
+ *      through to the Link chain icon instead of rendering a
+ *      visually-empty tile.
+ *   2. Crawler diversity. Different services index different parts
+ *      of the long tail. Anecdotally DDG has better coverage of
+ *      newer / smaller domains where Google lags by weeks.
+ * If pikt.ag continues to render blank after this swap, the next
+ * follow-up is to make landing serve a non-transparent favicon
+ * (current /logo.png is gradient # on transparent → washes out at
+ * small sizes regardless of which proxy renders it).
  */
 export function getCustomFaviconUrl(url: string | null | undefined): string | null {
   if (!url) return null;
@@ -347,7 +361,7 @@ export function getCustomFaviconUrl(url: string | null | undefined): string | nu
     const withScheme = /^[a-z]+:/i.test(url) ? url : `https://${url}`;
     const host = new URL(withScheme).hostname;
     if (!host) return null;
-    return `https://www.google.com/s2/favicons?domain=${host}&sz=128`;
+    return `https://icons.duckduckgo.com/ip3/${host}.ico`;
   } catch {
     return null;
   }

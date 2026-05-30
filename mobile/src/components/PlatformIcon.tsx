@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Image, View, StyleSheet } from 'react-native';
 import Svg, { Path, Rect, Circle } from 'react-native-svg';
 import {
@@ -114,13 +114,31 @@ export default function PlatformIcon({ platform, size = 24, color: colorProp, ic
   const color = colorProp ?? colors.gray700;
   const key = platform?.toLowerCase();
 
-  // Resolve the effective favicon URL — explicit DB icon_url wins;
-  // otherwise auto-derive from the biolink URL when the platform is
-  // the generic `custom` ("Link") entry. This is what makes Link the
-  // only PLATFORM whose icon is dynamic (founder's "獨一無二" intent
-  // 2026-05-31). Branded platforms (instagram / linkedin / etc.)
-  // bypass this entirely — their SVG branches below short-circuit.
-  const effectiveIconUrl = iconUrl ?? (key === 'custom' ? getCustomFaviconUrl(url) : null);
+  // Resolve the effective favicon URL.
+  //   - For `custom` ("Link") platform: ALWAYS live-derive from
+  //     the current URL via getCustomFaviconUrl. Why we IGNORE the
+  //     stored icon_url here: legacy rows have Google's s2/favicons
+  //     URL baked in (changed to DuckDuckGo 2026-05-31), and we
+  //     want the switch + any future provider swap to retroactively
+  //     fix existing rows without a backfill. Live-derive also
+  //     means the icon updates if the user re-edits the URL.
+  //   - For other unknown platforms: fall back to the stored
+  //     icon_url if one exists. Branded platforms (instagram / x /
+  //     linkedin / etc.) never reach this — their SVG branches
+  //     above short-circuit.
+  const derivedIconUrl =
+    key === 'custom' ? getCustomFaviconUrl(url) : (iconUrl ?? null);
+
+  // Track whether the favicon Image failed to load. DuckDuckGo
+  // returns a clean 404 for domains it doesn't know — onError will
+  // fire and we fall through to the Link chain icon below, which
+  // looks intentional rather than "blank tile rendered with nothing
+  // in it". Reset when the URL changes so re-edits get a fresh try.
+  const [iconLoadFailed, setIconLoadFailed] = useState(false);
+  useEffect(() => {
+    setIconLoadFailed(false);
+  }, [derivedIconUrl]);
+  const effectiveIconUrl = iconLoadFailed ? null : derivedIconUrl;
 
   // ── Brand SVG path (from simple-icons, CC0-licensed) ──
   // 42 platforms covered via auto-extracted path data; the brand
@@ -203,6 +221,7 @@ export default function PlatformIcon({ platform, size = 24, color: colorProp, ic
         source={{ uri: effectiveIconUrl }}
         style={[styles.faviconImage, { width: size, height: size, borderRadius: size / 4 }]}
         resizeMode="contain"
+        onError={() => setIconLoadFailed(true)}
       />
     );
   }

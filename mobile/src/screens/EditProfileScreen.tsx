@@ -2111,7 +2111,14 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
                       onPress={() => {
                         setSelectedPlatform(key);
                         setShowPlatformPicker(false);
-                        setNewLinkAccount('');
+                        // Prefill `https://` for custom so the user
+                        // doesn't have to remember the scheme — most
+                        // people will paste a host name like pikt.ag,
+                        // and our defensive auto-prepend in
+                        // buildPlatformUrl handles scheme-less input.
+                        // Giving them the scheme up front removes that
+                        // friction entirely (founder ask 2026-05-31).
+                        setNewLinkAccount(key === 'custom' ? 'https://' : '');
                         setNewLinkLabel(key === 'custom' ? '' : label);
                         // Reset the phone-specific state every time the
                         // platform is (re-)selected so the country chip
@@ -2375,7 +2382,19 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
                       <TouchableOpacity
                         key={key}
                         style={[styles.platformChip, active && styles.platformChipActive]}
-                        onPress={() => setBiolinkForm((prev) => ({ ...prev, platform: key }))}
+                        onPress={() =>
+                          setBiolinkForm((prev) => ({
+                            ...prev,
+                            platform: key,
+                            // Prefill `https://` for custom on a
+                            // FRESH switch (account empty) — don't
+                            // clobber an already-typed value.
+                            account:
+                              key === 'custom' && !prev.account
+                                ? 'https://'
+                                : prev.account,
+                          }))
+                        }
                         activeOpacity={0.7}
                       >
                         <PlatformIcon platform={key} size={18} />
@@ -2696,7 +2715,17 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
             visible={platformSearchVisible}
             onClose={() => setPlatformSearchVisible(false)}
             onSelect={(key) => {
-              setBiolinkForm((prev) => ({ ...prev, platform: key }));
+              setBiolinkForm((prev) => ({
+                ...prev,
+                platform: key,
+                // Prefill `https://` for custom unless the user
+                // already typed something — see edit-modal chip
+                // onPress above for the rationale.
+                account:
+                  key === 'custom' && !prev.account
+                    ? 'https://'
+                    : prev.account,
+              }));
               setAutoDetectedPlatform(null);
             }}
           />
@@ -2734,7 +2763,11 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
             // field would have shown "Instagram" instead of being
             // empty, contributing to the "URL auto-fills the Name"
             // confusion the founder caught 2026-05-31.
-            setNewLinkAccount('');
+            // Prefill `https://` for custom so the user starts
+            // mid-URL instead of from an empty box (founder ask
+            // 2026-05-31). Mirrors the quick-picker behaviour at
+            // line ~2120.
+            setNewLinkAccount(key === 'custom' ? 'https://' : '');
             setNewLinkLabel(key === 'custom' ? '' : getPlatformLabel(key, t));
           }}
         />
