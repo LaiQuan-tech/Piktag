@@ -6,7 +6,9 @@ import {
   TouchableOpacity,
   StyleSheet,
   Alert,
+  Dimensions,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { X, Copy, Share2 } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { setStringAsync } from 'expo-clipboard';
@@ -24,14 +26,10 @@ type QrCodeModalProps = {
   onClose: () => void;
   username: string;
   fullName: string;
-  /** Public identity tags (names, no #) shown inside the card —
-      mirrors how the Tag QR card shows its event tags. */
+  /** Public identity tags shown inside the My-QR card. */
   tags?: string[];
 };
 
-// Same payload shape CameraScanScreen decodes. Kept here as a
-// duplicate (small, stable) rather than extracted to a shared lib
-// — refactor when a third caller appears.
 type PiktagQrPayload = {
   type: string;
   v: number;
@@ -43,18 +41,30 @@ type PiktagQrPayload = {
   tags: string[];
 };
 
-// Personal-profile QR sheet — IG / LINE / Telegram model:
-// one sheet, two modes (show my QR vs scan someone else's).
-// 2026-05-30: founder asked for the "翻過來掃別人" affordance
-// that every modern messenger app has. The sheet stays the
-// same physical card; the centre block swaps between QR display
-// and a live camera viewfinder with corner-frame overlay.
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
+
+// Personal-profile QR sheet — IG / LINE / Telegram model.
+// 2026-05-30 redesign (founder consistency check): the previous
+// version of this modal was a centered card while the existing
+// full-screen CameraScanScreen had a totally different layout.
+// Same product feature, three different visual languages — the
+// kind of per-surface drift CLAUDE.md "Shared UI = ONE shared
+// component" explicitly warns against.
 //
-// Styled to match the Tag "present" card (QrGroupDetailScreen
-// renderPresent / AddTagScreen renderQrMode): same red→purple
-// gradient, white QR card, white pill actions. Every "show
-// someone my QR / share me" surface in the app shares one
-// flashy visual language.
+// New layout matches IG's profile-QR sheet:
+//   * Full-bleed gradient covers the whole screen.
+//   * Top bar: centered segmented tab control (My QR / Scan),
+//     close X to the right.
+//   * Content area fills the middle — QrNameCard at near-card
+//     width when 我的, or a large scanner viewfinder at the same
+//     dimensions when 掃描. Sizes match so the tab swap doesn't
+//     pop / shrink.
+//   * Bottom: Copy / Share pills (My QR mode only).
+//
+// The full-screen CameraScanScreen still exists (tab-bar entry
+// point keeps a dedicated scanner experience), but the SCAN
+// surface inside this modal is now visually identical to it —
+// same gradient, same corner-bracket frame, same hint copy.
 export default function QrCodeModal({
   visible,
   onClose,
@@ -68,16 +78,11 @@ export default function QrCodeModal({
   const navigation = useNavigation<any>();
   const profileUrl = `${APP_BASE_URL}/${username}`;
 
-  // 'show' = my QR (default, what tap-to-open lands on).
-  // 'scan' = camera viewfinder, scan someone else's QR.
   const [mode, setMode] = useState<'show' | 'scan'>('show');
   const [permission, requestPermission] = useCameraPermissions();
   const [scanned, setScanned] = useState(false);
   const reArmRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Always re-open in 'show' mode — never trap a returning user
-  // on the scan side. Also reset the scanned latch so the next
-  // open is a fresh decode.
   useEffect(() => {
     if (!visible) {
       setMode('show');
@@ -90,9 +95,6 @@ export default function QrCodeModal({
   }, [visible]);
 
   useEffect(() => {
-    // Switching tabs re-arms the scanner. Without this, after a
-    // failed decode the latch would stay set when the user toggles
-    // away and back.
     if (mode === 'show') {
       setScanned(false);
       if (reArmRef.current) {
@@ -118,9 +120,6 @@ export default function QrCodeModal({
     });
   };
 
-  // Mirror of CameraScanScreen.parseUrlFormat — the canonical
-  // pikt.ag/{username}?sid=… shape. When a third caller appears,
-  // extract to src/lib/qrParser.ts.
   const parseUrlFormat = useCallback((rawValue: string) => {
     try {
       const url = new URL(rawValue);
@@ -140,8 +139,6 @@ export default function QrCodeModal({
     return null;
   }, []);
 
-  // Mirror of CameraScanScreen.decodeQrValue — the legacy base64
-  // payload shape. Same caveat re: extraction.
   const decodeQrValue = useCallback((rawValue: string): PiktagQrPayload | null => {
     try {
       const decoded = decodeURIComponent(escape(atob(rawValue)));
@@ -159,14 +156,9 @@ export default function QrCodeModal({
       if (scanned) return;
       setScanned(true);
 
-      // URL format wins; falls through to legacy base64; invalid
-      // → alert + 3s re-arm so the user can retry without
-      // re-opening the modal.
       const urlResult = parseUrlFormat(result.data);
       if (urlResult) {
         onClose();
-        // Tiny delay so the modal's close animation completes
-        // before the next screen pushes — avoids a visual jolt.
         setTimeout(() => {
           navigation.navigate('UserDetail', {
             username: urlResult.username,
@@ -211,31 +203,23 @@ export default function QrCodeModal({
   return (
     <Modal
       visible={visible}
-      transparent
-      animationType="fade"
+      transparent={false}
+      animationType="slide"
+      presentationStyle="overFullScreen"
       onRequestClose={onClose}
     >
       <QrModalStinger visible={visible}>
-        <View style={styles.overlay}>
-          <LinearGradient
-            colors={['#ff5757', '#c44dff', '#8c52ff']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.card}
-          >
-            <TouchableOpacity
-              style={styles.closeBtn}
-              onPress={onClose}
-              activeOpacity={0.7}
-              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-            >
-              <X size={24} color="#FFFFFF" />
-            </TouchableOpacity>
-
-            {/* IG-style segmented tab control. Two pill buttons,
-                the active one filled white, the inactive translucent.
-                Sits at the top of the gradient card, above the
-                content swap. */}
+        <LinearGradient
+          colors={['#ff5757', '#c44dff', '#8c52ff']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={StyleSheet.absoluteFill}
+        />
+        <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
+          {/* Top bar: tabs centered, close X anchored right.
+              The tabs row sits in the flex flow; the close button
+              is absolute so the tabs read as the visual anchor. */}
+          <View style={styles.topBar}>
             <View style={styles.tabsRow}>
               <TouchableOpacity
                 style={[styles.tab, !isScanMode && styles.tabActive]}
@@ -260,45 +244,33 @@ export default function QrCodeModal({
                 </Text>
               </TouchableOpacity>
             </View>
+            <TouchableOpacity
+              style={styles.closeBtn}
+              onPress={onClose}
+              activeOpacity={0.7}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+              <X size={26} color="#FFFFFF" />
+            </TouchableOpacity>
+          </View>
 
+          {/* Content area — flex 1 so the QR card or scanner
+              centers vertically between the top bar and the
+              bottom actions. */}
+          <View style={styles.contentArea}>
             {!isScanMode ? (
-              <>
-                <View style={styles.cardWrap}>
-                  <QrNameCard
-                    qrValue={profileUrl}
-                    handle={username}
-                    name={fullName}
-                    tags={tags}
-                  />
-                </View>
-
-                <View style={styles.actionsRow}>
-                  <TouchableOpacity
-                    style={styles.actionBtn}
-                    onPress={handleCopyLink}
-                    activeOpacity={0.7}
-                  >
-                    <Copy size={20} color={'#111827'} />
-                    <Text style={styles.actionBtnText}>
-                      {t('profile.copyLink')}
-                    </Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={styles.actionBtn}
-                    onPress={handleShare}
-                    activeOpacity={0.7}
-                  >
-                    <Share2 size={20} color={'#111827'} />
-                    <Text style={styles.actionBtnText}>
-                      {t('profile.share')}
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-              </>
+              <View style={styles.cardWrap}>
+                <QrNameCard
+                  qrValue={profileUrl}
+                  handle={username}
+                  name={fullName}
+                  tags={tags}
+                />
+              </View>
             ) : (
               <View style={styles.scanWrap}>
                 {!permission ? (
-                  <View style={styles.scanPlaceholder} />
+                  <View style={styles.scannerBox} />
                 ) : !permission.granted ? (
                   <View style={styles.permissionBox}>
                     <Text style={styles.permissionText}>
@@ -320,7 +292,7 @@ export default function QrCodeModal({
                     </TouchableOpacity>
                   </View>
                 ) : (
-                  <View style={styles.cameraBox}>
+                  <View style={styles.scannerBox}>
                     <CameraView
                       style={StyleSheet.absoluteFill}
                       facing="back"
@@ -331,9 +303,6 @@ export default function QrCodeModal({
                           : undefined
                       }
                     />
-                    {/* Corner-bracket frame — softer than the full-
-                        screen scanner's because the viewfinder here
-                        is smaller. */}
                     <View style={[styles.corner, styles.cornerTopLeft]} />
                     <View style={[styles.corner, styles.cornerTopRight]} />
                     <View style={[styles.corner, styles.cornerBottomLeft]} />
@@ -347,52 +316,69 @@ export default function QrCodeModal({
                 </Text>
               </View>
             )}
-          </LinearGradient>
-        </View>
+          </View>
+
+          {/* Bottom actions — Copy / Share. Only meaningful in
+              My-QR mode; in Scan mode the scanner doesn't have a
+              "Share what?" affordance, so the row hides. We
+              reserve the same vertical space either way so the
+              modal doesn't visually jump on tab swap. */}
+          <View style={styles.actionsArea}>
+            {!isScanMode && (
+              <View style={styles.actionsRow}>
+                <TouchableOpacity
+                  style={styles.actionBtn}
+                  onPress={handleCopyLink}
+                  activeOpacity={0.7}
+                >
+                  <Copy size={20} color={'#111827'} />
+                  <Text style={styles.actionBtnText}>
+                    {t('profile.copyLink')}
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.actionBtn}
+                  onPress={handleShare}
+                  activeOpacity={0.7}
+                >
+                  <Share2 size={20} color={'#111827'} />
+                  <Text style={styles.actionBtnText}>
+                    {t('profile.share')}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            )}
+          </View>
+        </SafeAreaView>
       </QrModalStinger>
     </Modal>
   );
 }
 
-const CORNER_LENGTH = 22;
-const CORNER_THICKNESS = 3;
+const CORNER_LENGTH = 32;
+const CORNER_THICKNESS = 4;
+const SCANNER_SIZE = SCREEN_WIDTH * 0.78;
 
 function makeStyles(c: ColorPalette) {
   return StyleSheet.create({
-    overlay: {
+    safe: {
       flex: 1,
-      backgroundColor: 'rgba(0,0,0,0.5)',
+    },
+    topBar: {
+      paddingHorizontal: 20,
+      paddingTop: 12,
+      flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'center',
-      padding: 24,
+      position: 'relative',
+      height: 56,
     },
-    card: {
-      borderRadius: 24,
-      paddingTop: 32,
-      paddingBottom: 24,
-      paddingHorizontal: 28,
-      alignItems: 'center',
-      width: '100%',
-      maxWidth: 360,
-      overflow: 'hidden',
-    },
-    closeBtn: {
-      position: 'absolute',
-      top: 14,
-      right: 14,
-      padding: 4,
-      zIndex: 1,
-    },
-    // Tab row sits above the content, padding-tight to the close-X
-    // sightline. Translucent track holds two equal pill cells; the
-    // active one fills with white.
     tabsRow: {
       flexDirection: 'row',
-      backgroundColor: 'rgba(255,255,255,0.18)',
+      backgroundColor: 'rgba(255,255,255,0.22)',
       borderRadius: 999,
       padding: 4,
-      marginTop: 14,
-      width: '100%',
+      width: 240,
     },
     tab: {
       flex: 1,
@@ -412,14 +398,80 @@ function makeStyles(c: ColorPalette) {
     tabTextActive: {
       color: '#111827',
     },
+    closeBtn: {
+      position: 'absolute',
+      right: 20,
+      top: 16,
+      padding: 4,
+    },
+    contentArea: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingHorizontal: 24,
+    },
     cardWrap: {
-      marginTop: 18,
-      marginBottom: 22,
+      width: '100%',
+      maxWidth: 360,
+    },
+    scanWrap: {
+      alignItems: 'center',
+      width: '100%',
+    },
+    scannerBox: {
+      width: SCANNER_SIZE,
+      height: SCANNER_SIZE,
+      borderRadius: 24,
+      overflow: 'hidden',
+      backgroundColor: '#000000',
+      position: 'relative',
+    },
+    permissionBox: {
+      width: SCANNER_SIZE,
+      height: SCANNER_SIZE,
+      borderRadius: 24,
+      backgroundColor: 'rgba(255,255,255,0.95)',
+      padding: 28,
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 16,
+    },
+    permissionText: {
+      fontSize: 14,
+      lineHeight: 21,
+      color: '#374151',
+      textAlign: 'center',
+    },
+    permissionBtn: {
+      backgroundColor: '#111827',
+      borderRadius: 14,
+      paddingHorizontal: 22,
+      paddingVertical: 12,
+    },
+    permissionBtnText: {
+      color: '#FFFFFF',
+      fontSize: 14,
+      fontWeight: '700',
+    },
+    scanHint: {
+      marginTop: 22,
+      fontSize: 14,
+      color: 'rgba(255,255,255,0.95)',
+      textAlign: 'center',
+      fontWeight: '600',
+    },
+    actionsArea: {
+      minHeight: 72,
+      paddingHorizontal: 24,
+      paddingBottom: 8,
+      justifyContent: 'center',
     },
     actionsRow: {
       flexDirection: 'row',
       gap: 10,
       width: '100%',
+      maxWidth: 360,
+      alignSelf: 'center',
     },
     actionBtn: {
       flex: 1,
@@ -436,63 +488,6 @@ function makeStyles(c: ColorPalette) {
       fontWeight: '700',
       color: '#111827',
     },
-    // Scan mode — preserves the same vertical space the QR card
-    // takes up in show mode so the gradient sheet doesn't pop /
-    // shrink between tab swaps.
-    scanWrap: {
-      width: '100%',
-      marginTop: 18,
-      alignItems: 'center',
-    },
-    cameraBox: {
-      width: '100%',
-      aspectRatio: 1,
-      borderRadius: 16,
-      overflow: 'hidden',
-      backgroundColor: '#000000',
-      position: 'relative',
-    },
-    scanPlaceholder: {
-      width: '100%',
-      aspectRatio: 1,
-      borderRadius: 16,
-      backgroundColor: 'rgba(0,0,0,0.25)',
-    },
-    permissionBox: {
-      width: '100%',
-      aspectRatio: 1,
-      borderRadius: 16,
-      backgroundColor: 'rgba(255,255,255,0.95)',
-      padding: 22,
-      alignItems: 'center',
-      justifyContent: 'center',
-      gap: 14,
-    },
-    permissionText: {
-      fontSize: 13,
-      lineHeight: 19,
-      color: '#374151',
-      textAlign: 'center',
-    },
-    permissionBtn: {
-      backgroundColor: '#111827',
-      borderRadius: 12,
-      paddingHorizontal: 18,
-      paddingVertical: 10,
-    },
-    permissionBtnText: {
-      color: '#FFFFFF',
-      fontSize: 13,
-      fontWeight: '700',
-    },
-    scanHint: {
-      marginTop: 14,
-      marginBottom: 4,
-      fontSize: 12,
-      color: 'rgba(255,255,255,0.9)',
-      textAlign: 'center',
-      fontWeight: '600',
-    },
     corner: {
       position: 'absolute',
       width: CORNER_LENGTH,
@@ -500,32 +495,32 @@ function makeStyles(c: ColorPalette) {
       borderColor: '#FFFFFF',
     },
     cornerTopLeft: {
-      top: 10,
-      left: 10,
+      top: 14,
+      left: 14,
       borderTopWidth: CORNER_THICKNESS,
       borderLeftWidth: CORNER_THICKNESS,
-      borderTopLeftRadius: 6,
+      borderTopLeftRadius: 8,
     },
     cornerTopRight: {
-      top: 10,
-      right: 10,
+      top: 14,
+      right: 14,
       borderTopWidth: CORNER_THICKNESS,
       borderRightWidth: CORNER_THICKNESS,
-      borderTopRightRadius: 6,
+      borderTopRightRadius: 8,
     },
     cornerBottomLeft: {
-      bottom: 10,
-      left: 10,
+      bottom: 14,
+      left: 14,
       borderBottomWidth: CORNER_THICKNESS,
       borderLeftWidth: CORNER_THICKNESS,
-      borderBottomLeftRadius: 6,
+      borderBottomLeftRadius: 8,
     },
     cornerBottomRight: {
-      bottom: 10,
-      right: 10,
+      bottom: 14,
+      right: 14,
       borderBottomWidth: CORNER_THICKNESS,
       borderRightWidth: CORNER_THICKNESS,
-      borderBottomRightRadius: 6,
+      borderBottomRightRadius: 8,
     },
   });
 }
