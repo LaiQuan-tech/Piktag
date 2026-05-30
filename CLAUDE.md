@@ -420,8 +420,21 @@ founder when the trigger condition lands:
   `landing/api/*` + `landing/public/*` + `src/main.tsx`). The top-level
   `/src` is a STALE DUPLICATE — ignore it. Repo `LaiQuan-tech/Piktag`.
 - **iOS TestFlight** builds on push to `mobile/**` (excl. supabase/scripts);
-  `concurrency: cancel-in-progress` collapses bursts. Apple's per-app daily
-  upload cap is real → batch mobile commits; a hit is a soft 24h wait.
+  `concurrency: cancel-in-progress` collapses bursts. Two Apple-side
+  gotchas to know — both bite specifically when you ship many builds
+  in a day; both surface as the same generic `exit code 70`:
+  1. **Per-app daily upload cap** — a soft 24h wait after hitting it.
+     Pre-empt by batching mobile commits.
+  2. **Version-train closure** — Apple closes a `CFBundleShortVersionString`
+     "train" (e.g. `1.0.0`) for new submissions after enough builds
+     accumulate on it. The error message is explicit: `Invalid
+     Pre-Release Train. The train version 'X.Y.Z' is closed for new
+     build submissions`. Fix: bump `expo.version` in `app.json` to a
+     higher number (e.g. `1.0.0` → `1.0.1`). This opens a new train.
+     buildNumber auto-increments per push and is separate.
+  Diagnose at the build log step "Export and Upload to TestFlight" —
+  whichever of (1) or (2) is in the log tells you which to do.
+  Founder hit (2) on 2026-05-30 after the 40-commit refactor day.
 - **Dark mode is shipped.** Settings → toggle. Canonical pattern for
   any new theme-aware code (founder, 2026-05-23, after three full
   waves of mechanical migration across 80+ files):
