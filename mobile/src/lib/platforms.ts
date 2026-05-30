@@ -45,6 +45,15 @@ export type Platform = {
    *  mailto:) and the generic web platforms (website / blog / etc.,
    *  which never auto-detect — any URL would match). */
   domains: string[];
+  /** When true, the entry stays in PLATFORMS for legacy-row
+   *  rendering (so a user who saved `platform='website'` six months
+   *  ago still gets the right icon / label) but is HIDDEN from the
+   *  picker. Founder 2026-05-31 called out that website / blog /
+   *  portfolio / custom are "all the same thing — a link the user
+   *  needs to name themselves" and we shouldn't show four redundant
+   *  options. Only `custom` (relabeled as "Link") survives in the
+   *  picker. */
+  legacy?: boolean;
 };
 
 export const PLATFORMS: Platform[] = [
@@ -114,11 +123,15 @@ export const PLATFORMS: Platform[] = [
   { key: 'buymeacoffee', cat: 'business',    label: 'Buy Me a Coffee', prefix: 'https://buymeacoffee.com/',    placeholder: 'username',                 domains: ['buymeacoffee.com'] },
   { key: 'stripe',     cat: 'business',      label: 'Stripe',     prefix: 'https://buy.stripe.com/',           placeholder: 'payment-link',             domains: ['stripe.com'] },
 
-  // ── Generic (4) ──
-  { key: 'website',    cat: 'generic',       label: 'Website',    prefix: 'https://',                          placeholder: 'yourdomain.com',           domains: [] },
-  { key: 'blog',       cat: 'generic',       label: 'Blog',       prefix: 'https://',                          placeholder: 'blog.yourdomain.com',      domains: [] },
-  { key: 'portfolio',  cat: 'generic',       label: 'Portfolio',  prefix: 'https://',                          placeholder: 'portfolio.yourdomain.com', domains: [] },
-  { key: 'custom',     cat: 'generic',       label: 'Custom',     prefix: '',                                  placeholder: 'https://...',              domains: [] },
+  // ── Generic — single "Link" entry after the 2026-05-31 consolidation ──
+  // website / blog / portfolio kept here ONLY for backward-compat:
+  // existing piktag_biolinks rows with these platform keys still render
+  // with the right icon + label. New users only see `custom` in the
+  // picker (relabeled to "Link" / "連結" via the i18n override).
+  { key: 'website',    cat: 'generic',       label: 'Website',    prefix: 'https://',                          placeholder: 'yourdomain.com',           domains: [], legacy: true },
+  { key: 'blog',       cat: 'generic',       label: 'Blog',       prefix: 'https://',                          placeholder: 'blog.yourdomain.com',      domains: [], legacy: true },
+  { key: 'portfolio',  cat: 'generic',       label: 'Portfolio',  prefix: 'https://',                          placeholder: 'portfolio.yourdomain.com', domains: [], legacy: true },
+  { key: 'custom',     cat: 'generic',       label: 'Link',       prefix: '',                                  placeholder: 'yourdomain.com',           domains: [] },
 ];
 
 /** O(1) lookup by key. */
@@ -189,7 +202,13 @@ export const QUICK_PICK_KEYS = [
   'reddit',
   'snapchat',
   'wechat',
-  'website',
+  // 'custom' replaced 'website' here on 2026-05-31 — the founder
+  // observed that website / blog / portfolio / custom were "all
+  // saying the same thing, a link the user needs to name". One
+  // generic Link entry is the truth. Marked website / blog /
+  // portfolio as `legacy: true` above so existing rows keep
+  // rendering correctly.
+  'custom',
 ] as const;
 
 // Generic ('個人網站 / 部落格 / 作品集 / 自訂連結') leads the search-
@@ -314,7 +333,19 @@ export function buildPlatformUrl(key: string, account: string): string {
   const trimmed = account.trim();
   if (!trimmed) return '';
   const p = PLATFORM_MAP[key];
-  if (!p || key === 'custom') return trimmed;
+  // 'custom' needs scheme-aware handling — historically the user was
+  // expected to type a full URL including `https://`, but in practice
+  // most paste / type bare domains like "mysite.com" and the resulting
+  // Linking.openURL silently fails on iOS (no scheme → no handler).
+  // Fix 2026-05-31: auto-prepend https:// when the value doesn't
+  // already start with a scheme. ProfileScreen.handleOpenBiolink also
+  // wraps existing legacy rows defensively, so this is the canonical
+  // save-side fix.
+  if (key === 'custom') {
+    if (/^[a-z]+:/i.test(trimmed)) return trimmed;
+    return `https://${trimmed}`;
+  }
+  if (!p) return trimmed;
   // If the user pasted something that already starts with the prefix
   // (or with any scheme), don't double-prefix.
   if (trimmed.startsWith(p.prefix)) return trimmed;

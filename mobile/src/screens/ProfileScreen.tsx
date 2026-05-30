@@ -18,6 +18,7 @@ import {
   MessageCircle,
 } from 'lucide-react-native';
 import PlatformIcon from '../components/PlatformIcon';
+import { getPlatformLabel } from '../lib/platforms';
 import { useTranslation } from 'react-i18next';
 import { COLORS, type ColorPalette } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
@@ -265,7 +266,16 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
   // --- Callbacks ---
 
   const handleOpenBiolink = useCallback((url: string) => {
-    if (url) Linking.openURL(url).catch(() => {});
+    if (!url) return;
+    // Defensive scheme prepend — covers legacy `custom` biolink
+    // rows saved before buildPlatformUrl learned to auto-prepend
+    // https:// (2026-05-31 fix). Without this, tapping a bare-
+    // domain biolink looks completely dead — iOS Linking.openURL
+    // silently refuses URLs without a scheme. Founder verbatim
+    // "圖片並排最右邊，根本沒有網址可以前往，這簡直是我們產品
+    // 存在的基本價值都做不到".
+    const safeUrl = /^[a-z]+:/i.test(url) ? url : `https://${url}`;
+    Linking.openURL(safeUrl).catch(() => {});
   }, []);
 
   const handleTagPress = useCallback((tagId: string, tagName: string) => {
@@ -542,7 +552,13 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
                   <PlatformIcon platform={bl.platform} size={24} iconUrl={bl.icon_url} />
                 </View>
                 <Text style={styles.socialCardLabel} numberOfLines={1}>
-                  {bl.label || bl.platform}
+                  {/* Fall back to the LOCALIZED platform label,
+                      not the raw key. Without this, a zh-TW user
+                      saw "Phone / Email / Website" in English
+                      because bl.platform is the persisted lowercase
+                      key, not the display string. Founder caught
+                      this on 2026-05-31. */}
+                  {bl.label || getPlatformLabel(bl.platform, t)}
                 </Text>
                 <ExternalLink size={14} color={colors.gray300} />
               </TouchableOpacity>

@@ -61,16 +61,23 @@ export default function PlatformSearchModal({ visible, onClose, onSelect }: Prop
 
   const sections: SectionData[] = useMemo(() => {
     const q = query.trim().toLowerCase();
+    // Hide legacy entries (website / blog / portfolio) from the
+    // picker — they remain in PLATFORMS so existing biolink rows
+    // with those keys still render with the right icon + label,
+    // but new users only see the single `custom` (labelled "Link"
+    // / "連結") entry in the generic category. 2026-05-31 founder
+    // consolidation.
+    const pickable = PLATFORMS.filter((p) => !p.legacy);
     // Filter against label, key, and category — match anywhere in
     // the string. Empty query shows everything.
     const filtered = q
-      ? PLATFORMS.filter(
+      ? pickable.filter(
           (p) =>
             p.label.toLowerCase().includes(q) ||
             p.key.toLowerCase().includes(q) ||
             p.cat.toLowerCase().includes(q),
         )
-      : PLATFORMS;
+      : pickable;
 
     // Group by category in the canonical CATEGORIES order so search
     // results stay grouped (not just a flat list) — easier to scan
