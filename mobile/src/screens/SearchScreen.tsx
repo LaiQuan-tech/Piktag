@@ -2317,6 +2317,116 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tags, intersectionMode, user]);
 
+  // ── Impression log → piktag_search_impressions ────────────────
+  //
+  // v3 Quality-Score primitive (CLAUDE.md "v3 vision — Tag-auction
+  // monetization", pre-launch must-ship #1). Logs every (searcher,
+  // target_user, rank_position) tuple that actually rendered. Pairs
+  // with the existing click log (piktag_search_learnings) so post-
+  // launch we can compute CTR per (concept, target, rank) — without
+  // impressions a click in position 1 vs position 7 are indistinguishable.
+  //
+  // Fire-and-forget — analytics must NEVER break the search UX.
+  // Wrapped in try/catch; failures get a console.warn and continue.
+  //
+  // Debounce/dedupe via a signature ref: (mode|tab|query|concept|ids)
+  // hashes the displayed result set. Scroll-back / re-render with the
+  // same set is a no-op; a NEW search or tab-switch re-logs. A 3-second
+  // floor on identical-signature re-logs handles late wave merges.
+  const impressionSigRef = useRef<{ sig: string; at: number }>({ sig: '', at: 0 });
+  useEffect(() => {
+    if (!user?.id) return;
+    if (loading || initialLoading) return;
+    if (trimmedQuery === '' && !intersectionMode) return;
+    // Build the displayed-profile list IN RENDER ORDER. Rank position is
+    // 0-indexed against the FULL displayed list (incl. contact rows that
+    // we skip when logging — preserves the "what the user actually saw"
+    // semantic without polluting the table with non-member rows). Mirrors
+    // the listData branches above so the rank matches what FlatList renders.
+    const ordered: { profile: PiktagProfile; rank: number }[] = [];
+    let rankCursor = 0;
+    if (intersectionMode) {
+      if (intersectionTab === 'friends') {
+        for (const p of intersectionFriends) {
+          ordered.push({ profile: p, rank: rankCursor++ });
+        }
+        rankCursor += intersectionContacts.length; // contacts occupy positions but aren't logged
+      } else {
+        for (const p of intersectionExplore) {
+          ordered.push({ profile: p, rank: rankCursor++ });
+        }
+      }
+    } else if (trimmedQuery !== '') {
+      if (searchTab === 'friends') {
+        for (const p of searchFriends) {
+          ordered.push({ profile: p, rank: rankCursor++ });
+        }
+        rankCursor += searchTaggedContacts.length;
+      } else {
+        for (const p of searchExplore) {
+          ordered.push({ profile: p, rank: rankCursor++ });
+        }
+      }
+    }
+    if (ordered.length === 0) return;
+    // Top matched concept feeds the per-concept CTR rollup later. NULL
+    // when the query matched on name/headline/bio only (no tag concept).
+    const conceptId: string | null = ((tags[0] as any)?.concept_id) ?? null;
+    const queryText = (trimmedQuery || (intersectionSelectedTags[0]?.name ?? '')).trim();
+    if (queryText === '') return;
+    const ids = ordered.map((o) => o.profile.id).join(',');
+    const mode = intersectionMode ? 'intx' : 'text';
+    const tab = intersectionMode ? intersectionTab : searchTab;
+    const sig = `${mode}|${tab}|${queryText}|${conceptId ?? ''}|${ids}`;
+    const now = Date.now();
+    if (
+      sig === impressionSigRef.current.sig &&
+      now - impressionSigRef.current.at < 3000
+    ) {
+      return;
+    }
+    impressionSigRef.current = { sig, at: now };
+    const rows = ordered.map(({ profile, rank }) => ({
+      searcher_id: user.id,
+      target_user_id: profile.id,
+      concept_id: conceptId,
+      query_text: queryText,
+      rank_position: rank,
+      surface: 'search',
+    }));
+    try {
+      void supabase
+        .from('piktag_search_impressions')
+        .insert(rows)
+        .then(({ error }) => {
+          if (error) {
+            const code = (error as any).code;
+            if (code !== '42P01' && code !== 'PGRST205') {
+              console.warn('[SearchScreen] impression log failed:', error.message);
+            }
+          }
+        });
+    } catch (err) {
+      console.warn('[SearchScreen] impression log failed:', err);
+    }
+  }, [
+    user,
+    loading,
+    initialLoading,
+    trimmedQuery,
+    intersectionMode,
+    intersectionTab,
+    intersectionFriends,
+    intersectionExplore,
+    intersectionContacts.length,
+    intersectionSelectedTags,
+    searchTab,
+    searchFriends,
+    searchExplore,
+    searchTaggedContacts.length,
+    tags,
+  ]);
+
   const listData = useMemo<ListItem[]>(() => {
     const items: ListItem[] = [];
 
