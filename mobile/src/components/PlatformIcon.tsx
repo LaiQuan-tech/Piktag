@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Image, View, StyleSheet } from 'react-native';
+import { Image, View } from 'react-native';
 import Svg, { Path, Rect, Circle } from 'react-native-svg';
 import {
   Globe, Link, Phone, Mail, MessageSquare, Send, Music, Video,
@@ -219,7 +219,17 @@ export default function PlatformIcon({ platform, size = 24, color: colorProp, ic
     return (
       <Image
         source={{ uri: effectiveIconUrl }}
-        style={[styles.faviconImage, { width: size, height: size, borderRadius: size / 4 }]}
+        style={{
+          // Tile background must theme — favicons (incl. pikt.ag's
+          // gradient # on transparent) carry alpha, so a hardcoded
+          // light tile lights up like a flashlight on a dark UI.
+          // gray50 is #f9fafb in light, #0a0a0a in dark — the
+          // gradient pops against either. (Founder caught 2026-05-31.)
+          backgroundColor: colors.gray50,
+          width: size,
+          height: size,
+          borderRadius: size / 4,
+        }}
         resizeMode="contain"
         onError={() => setIconLoadFailed(true)}
       />
@@ -229,9 +239,3 @@ export default function PlatformIcon({ platform, size = 24, color: colorProp, ic
   // ── Default: generic link icon ──
   return <Link size={size} color={color} />;
 }
-
-const styles = StyleSheet.create({
-  faviconImage: {
-    backgroundColor: '#f9fafb',
-  },
-});
