@@ -480,7 +480,7 @@ export default function ScanResultScreen({ navigation, route }: ScanResultScreen
                   accessibilityRole="button"
                   accessibilityLabel={getPlatformLabel(bl.platform, t)}
                 >
-                  <PlatformIcon platform={bl.platform} size={18} iconUrl={bl.icon_url} />
+                  <PlatformIcon platform={bl.platform} size={18} iconUrl={bl.icon_url} url={bl.url} />
                   <Text style={styles.socialBtnText} numberOfLines={1}>
                     {getPlatformLabel(bl.platform, t)}
                   </Text>

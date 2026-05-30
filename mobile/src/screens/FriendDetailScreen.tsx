@@ -52,6 +52,7 @@ import { COLORS, type ColorPalette } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
 import { LinearGradient } from 'expo-linear-gradient';
 import PlatformIcon from '../components/PlatformIcon';
+import { getPlatformLabel } from '../lib/platforms';
 import InitialsAvatar from '../components/InitialsAvatar';
 import RingedAvatar from '../components/RingedAvatar';
 import TagChip from '../components/TagChip';
@@ -1453,7 +1454,7 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
                   >
                     <View style={styles.socialCircleRing}>
                       <View style={styles.socialCircleInner}>
-                        <PlatformIcon platform={link.platform} size={28} />
+                        <PlatformIcon platform={link.platform} size={28} iconUrl={link.icon_url} url={link.url} />
                       </View>
                     </View>
                   </TouchableOpacity>
@@ -1473,9 +1474,12 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
                   onPress={() => handleOpenLink(link.url, link.id)}
                   activeOpacity={0.7}
                 >
-                  <PlatformIcon platform={link.platform} size={22} />
+                  <PlatformIcon platform={link.platform} size={22} iconUrl={link.icon_url} url={link.url} />
                   <Text style={styles.linkCardText} numberOfLines={1}>
-                    {link.label || link.platform}
+                    {/* Localized fallback — see ProfileScreen for the
+                        same fix. Raw link.platform showed English on
+                        zh-TW devices. */}
+                    {link.label || getPlatformLabel(link.platform, t)}
                   </Text>
                   <ExternalLink size={16} color={colors.gray400} />
                 </TouchableOpacity>

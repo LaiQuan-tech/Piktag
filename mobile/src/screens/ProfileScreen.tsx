@@ -531,7 +531,7 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
                 onPress={() => handleOpenBiolink(bl.url)}
               >
                 <View style={styles.iconCircleInner}>
-                  <PlatformIcon platform={bl.platform} size={22} iconUrl={bl.icon_url} />
+                  <PlatformIcon platform={bl.platform} size={22} iconUrl={bl.icon_url} url={bl.url} />
                 </View>
               </TouchableOpacity>
             ))}
@@ -549,7 +549,7 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
                 onPress={() => handleOpenBiolink(bl.url)}
               >
                 <View style={styles.socialCardIcon}>
-                  <PlatformIcon platform={bl.platform} size={24} iconUrl={bl.icon_url} />
+                  <PlatformIcon platform={bl.platform} size={24} iconUrl={bl.icon_url} url={bl.url} />
                 </View>
                 <Text style={styles.socialCardLabel} numberOfLines={1}>
                   {/* Fall back to the LOCALIZED platform label,

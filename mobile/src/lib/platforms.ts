@@ -314,6 +314,46 @@ export function detectPlatformFromUrl(input: string): string | null {
 }
 
 /**
+ * Auto-favicon helper for the `custom` ("Link") biolink platform —
+ * 2026-05-31 enhancement, founder ask: "Favorites Icon 要不要讓他
+ * 自動顯示，不是自訂，而且系統直接抓".
+ *
+ * Returns Google's s2/favicons proxy URL at 128px for the given
+ * link's hostname, or null when the URL can't be parsed. The
+ * platform catalog stays the source of truth for branded platforms
+ * (Instagram / X / LinkedIn / etc. keep their official SVGs); this
+ * helper exists ONLY to enrich the generic `custom` entry so a user
+ * who picks "連結 / Link" and pastes pikt.ag automatically gets the
+ * PikTag # favicon instead of the generic chain icon — making `link`
+ * the only PLATFORM in the catalog with a dynamic, site-specific
+ * icon, which is the founder's "unique existence" intent.
+ *
+ * Render-time computed (NOT stored). Two design wins:
+ *   1) Zero migration. Every existing custom biolink row gets a
+ *      favicon immediately, no backfill.
+ *   2) Self-healing. If the user edits the URL, the favicon updates
+ *      automatically on next render — no stale icon_url drift.
+ *
+ * Google's proxy was chosen over DuckDuckGo's for reliability +
+ * resolution; if privacy becomes a launch concern we can swap to
+ * our own proxy without touching any caller.
+ */
+export function getCustomFaviconUrl(url: string | null | undefined): string | null {
+  if (!url) return null;
+  try {
+    // buildPlatformUrl auto-prepends https:// on save, but legacy
+    // rows + render-time paste-paths may still be scheme-less.
+    // Mirror that defensive prepend here.
+    const withScheme = /^[a-z]+:/i.test(url) ? url : `https://${url}`;
+    const host = new URL(withScheme).hostname;
+    if (!host) return null;
+    return `https://www.google.com/s2/favicons?domain=${host}&sz=128`;
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Strip the platform's known prefix from a stored URL — used when
  * editing an existing biolink to repopulate the bare-account input.
  * Falls back to the URL as-is for `custom` and unknown platforms.

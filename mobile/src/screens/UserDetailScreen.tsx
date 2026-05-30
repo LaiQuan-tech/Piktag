@@ -33,6 +33,7 @@ import { COLORS, type ColorPalette } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
 import { LinearGradient } from 'expo-linear-gradient';
 import PlatformIcon from '../components/PlatformIcon';
+import { getPlatformLabel } from '../lib/platforms';
 import OverlappingAvatars from '../components/OverlappingAvatars';
 import RingedAvatar from '../components/RingedAvatar';
 import HiddenTagEditor from '../components/HiddenTagEditor';
@@ -1496,7 +1497,7 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
                 >
                   <View style={styles.socialCircleRing}>
                     <View style={styles.socialCircleInner}>
-                      <PlatformIcon platform={link.platform} size={28} />
+                      <PlatformIcon platform={link.platform} size={28} iconUrl={link.icon_url} url={link.url} />
                     </View>
                   </View>
                 </TouchableOpacity>
@@ -1514,9 +1515,11 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
                 onPress={() => handleOpenLink(link.url)}
                 activeOpacity={0.7}
               >
-                <PlatformIcon platform={link.platform} size={22} />
+                <PlatformIcon platform={link.platform} size={22} iconUrl={link.icon_url} url={link.url} />
                 <Text style={styles.linkCardText} numberOfLines={1}>
-                  {link.label || link.platform}
+                  {/* Localized fallback — same fix as ProfileScreen
+                      / FriendDetail. */}
+                  {link.label || getPlatformLabel(link.platform, t)}
                 </Text>
                 <ExternalLink size={16} color={colors.gray400} />
               </TouchableOpacity>

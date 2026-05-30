@@ -9,12 +9,22 @@ import {
 } from 'lucide-react-native';
 import { BRAND_PATHS } from './brandPaths';
 import { useTheme } from '../context/ThemeContext';
+import { getCustomFaviconUrl } from '../lib/platforms';
 
 type Props = {
   platform: string;
   size?: number;
   color?: string;
-  iconUrl?: string | null; // Favicon URL from DB
+  /** Explicit favicon URL stored on the biolink (DB column
+   *  `icon_url`). Wins over the auto-fetch path below — left in for
+   *  a future "user uploaded their own icon" affordance. */
+  iconUrl?: string | null;
+  /** The biolink's URL — passed in so the component can derive an
+   *  auto-favicon for the generic `custom` ("Link") platform. Only
+   *  consulted when (a) platform === 'custom' AND (b) no iconUrl
+   *  was explicitly provided. Branded platforms (instagram / x /
+   *  linkedin / etc.) ignore this and render their own SVG. */
+  url?: string | null;
 };
 
 // Extended platform → lucide icon mapping for the 50-platform
@@ -95,7 +105,7 @@ const LUCIDE_MAP: Record<string, any> = {
   shopee: ShoppingBag,
 };
 
-export default function PlatformIcon({ platform, size = 24, color: colorProp, iconUrl }: Props) {
+export default function PlatformIcon({ platform, size = 24, color: colorProp, iconUrl, url }: Props) {
   // Icons render monochrome (incl. brand glyphs — deliberate, see
   // the brandPath comment). The fill must theme: gray700 is #374151
   // in light, #dbdbdb in dark — a hardcoded #374151 went invisible
@@ -103,6 +113,14 @@ export default function PlatformIcon({ platform, size = 24, color: colorProp, ic
   const { colors } = useTheme();
   const color = colorProp ?? colors.gray700;
   const key = platform?.toLowerCase();
+
+  // Resolve the effective favicon URL — explicit DB icon_url wins;
+  // otherwise auto-derive from the biolink URL when the platform is
+  // the generic `custom` ("Link") entry. This is what makes Link the
+  // only PLATFORM whose icon is dynamic (founder's "獨一無二" intent
+  // 2026-05-31). Branded platforms (instagram / linkedin / etc.)
+  // bypass this entirely — their SVG branches below short-circuit.
+  const effectiveIconUrl = iconUrl ?? (key === 'custom' ? getCustomFaviconUrl(url) : null);
 
   // ── Brand SVG path (from simple-icons, CC0-licensed) ──
   // 42 platforms covered via auto-extracted path data; the brand
@@ -179,10 +197,10 @@ export default function PlatformIcon({ platform, size = 24, color: colorProp, ic
 
   // ── Favicon fallback (from DB icon_url or auto-generated) ──
 
-  if (iconUrl) {
+  if (effectiveIconUrl) {
     return (
       <Image
-        source={{ uri: iconUrl }}
+        source={{ uri: effectiveIconUrl }}
         style={[styles.faviconImage, { width: size, height: size, borderRadius: size / 4 }]}
         resizeMode="contain"
       />
