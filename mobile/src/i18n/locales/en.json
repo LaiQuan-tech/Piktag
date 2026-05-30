@@ -442,7 +442,9 @@
     "statFriendsA11y": "View my friends",
     "statFollowersA11y": "View my followers",
     "statTribeA11y": "View Tribe constellation",
-    "statTribe": "Tribe"
+    "statTribe": "Tribe",
+    "qrTabMine": "My QR",
+    "qrTabScan": "Scan"
   },
   "editProfile": {
     "headerTitle": "Edit Profile",

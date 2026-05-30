@@ -435,7 +435,9 @@
     "statFriendsA11y": "عرض أصدقائي",
     "statFollowersA11y": "عرض متابعيّ",
     "statTribeA11y": "View Tribe constellation",
-    "statTribe": "Tribe"
+    "statTribe": "Tribe",
+    "qrTabMine": "رمزي",
+    "qrTabScan": "مسح"
   },
   "editProfile": {
     "headerTitle": "تعديل الملف الشخصي",

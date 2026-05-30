@@ -435,7 +435,9 @@
     "statFriendsA11y": "Arkadaşlarımı gör",
     "statFollowersA11y": "Takipçilerimi gör",
     "statTribeA11y": "View Tribe constellation",
-    "statTribe": "Tribe"
+    "statTribe": "Tribe",
+    "qrTabMine": "QR'ım",
+    "qrTabScan": "Tara"
   },
   "editProfile": {
     "headerTitle": "Profili Düzenle",

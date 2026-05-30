@@ -437,7 +437,9 @@
     "statFriendsA11y": "查看我的朋友",
     "statFollowersA11y": "查看我的追踪者",
     "statTribeA11y": "查看 Tribe 星图",
-    "statTribe": "Tribe"
+    "statTribe": "Tribe",
+    "qrTabMine": "我的",
+    "qrTabScan": "扫描"
   },
   "editProfile": {
     "headerTitle": "编辑个人信息",

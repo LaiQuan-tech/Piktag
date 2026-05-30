@@ -442,7 +442,9 @@
     "statFriendsA11y": "Xem bạn bè của tôi",
     "statFollowersA11y": "Xem người theo dõi của tôi",
     "statTribeA11y": "View Tribe constellation",
-    "statTribe": "Tribe"
+    "statTribe": "Tribe",
+    "qrTabMine": "QR của tôi",
+    "qrTabScan": "Quét"
   },
   "editProfile": {
     "headerTitle": "Sửa hồ sơ",

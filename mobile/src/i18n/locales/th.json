@@ -435,7 +435,9 @@
     "statFriendsA11y": "ดูเพื่อนของฉัน",
     "statFollowersA11y": "ดูผู้ติดตามของฉัน",
     "statTribeA11y": "View Tribe constellation",
-    "statTribe": "Tribe"
+    "statTribe": "Tribe",
+    "qrTabMine": "QR ฉัน",
+    "qrTabScan": "สแกน"
   },
   "editProfile": {
     "headerTitle": "แก้ไขโปรไฟล์",

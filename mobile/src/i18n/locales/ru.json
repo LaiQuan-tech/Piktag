@@ -435,7 +435,9 @@
     "statFriendsA11y": "Посмотреть моих друзей",
     "statFollowersA11y": "Посмотреть моих подписчиков",
     "statTribeA11y": "View Tribe constellation",
-    "statTribe": "Tribe"
+    "statTribe": "Tribe",
+    "qrTabMine": "Мой QR",
+    "qrTabScan": "Сканировать"
   },
   "editProfile": {
     "headerTitle": "Редактирование профиля",
