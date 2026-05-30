@@ -532,4 +532,175 @@ extension:
   - Shared media library across alts
   - Same-device biometric / Face ID quick-switch
 
+## v3 vision — Tag-auction monetization ("Google for tags", not built)
+
+Founder direction confirmed 2026-05-30: long-term monetization model
+is an AdWords-style auction where businesses / verified users bid to
+sponsor tags + concepts. When the sponsored tag is searched / matched
+/ Ask-bridged, sponsors get priority placement. Revenue model: CPC /
+CPM second-price auction with Quality Score gating.
+
+**This section locks the principles + pre-launch primitives so a
+future session doesn't accidentally land monetization that kills the
+North Star.** No bid storage, no Ad Rank, no advertiser dashboard, no
+billing rails exist today. None should be built pre-launch.
+
+### The load-bearing principle: Sponsored ≠ Organic, NEVER interleave
+
+The architecturally biggest risk isn't that monetization fails to
+land — it's that monetization succeeds prematurely and silently
+kills the thesis. Google Search 2010-2020 is the cautionary tale:
+ads cannibalized organic, top of page became 4 sponsored / 2
+organic, "find what you're looking for" decayed into "find what
+advertisers pay for." Google could afford the decay (they were
+already a verb). PikTag cannot — the dormant-connection
+reactivation thesis structurally CANNOT compete with paid CTR in
+a single ranking formula:
+
+  - Dormant connections have near-zero recent engagement BY
+    DEFINITION (they're who you're trying to reactivate). An
+    engagement-weighted auction buries them.
+  - Cross-language matches have small audiences (the unique-to-us
+    product). An auction buries them too.
+
+Therefore: **Sponsored placement MUST live in a SEPARATE pipeline
+from organic results.** Different ranking function, different
+storage, different render. Sponsored renders in its OWN section
+ABOVE or BELOW organic results — never interleaved into the
+organic ranking. This extends the existing "Connected vs
+Recommended — separate pipelines" rule (see "Adding a new ranking
+surface" §1) to Organic vs Sponsored. Lock this BEFORE bid storage
+exists.
+
+### Pre-launch must-ship primitives (the "data accrual" set)
+
+Quality Score (Google's secret sauce that makes ad ranking honest)
+requires 3-6 months of impressions × clicks × conversions ×
+dismissals accruing per (concept_id, target_user) tuple. **Without
+this data, the eventual Q4-2026 auction launch will land with no
+Quality Score model and just `bid × verified_flag`** — the death
+trap that turns search into spam.
+
+Ship these BEFORE launch so the accrual starts day 1:
+
+  1. **`piktag_search_impressions` table + SearchScreen instrumentation.**
+     Columns: query, searcher_id, concept_id, target_user_id,
+     rank_position, surface, shown_at. Batch INSERT after results
+     render. ~80 lines + one migration. **CTR depends on impression
+     counts, not just clicks.** A click in position 1 vs position 7
+     are wildly different signals; without impressions, you can't
+     tell them apart. (Current `piktag_search_learnings` from
+     `20260527020000` logs clicks only.)
+  2. **Wire `piktag_match_dismissals` + `piktag_tag_removals` into
+     `search_users` ranking.** ~30 lines of SQL — one `NOT EXISTS`
+     predicate. Currently enforced ONLY in `match_ask_to_friends`
+     (`20260530050000`) and `enqueue_recommendation_notifications`
+     (`20260530120000`); `search_users` ignores them. Sponsored
+     placement that re-surfaces a dismissed candidate is the SINGLE
+     most trust-eroding bug possible — this insurance must be in
+     place BEFORE bid storage exists.
+  3. **Synchronous alias-first resolver on tag insert.** Extract the
+     resolve-alias-then-create logic from `auto-link-concepts` step
+     3a into an RPC, call from a BEFORE INSERT trigger on
+     `piktag_tags`. Closes the 5-min `concept_id IS NULL` window for
+     ~80% of new tags (those that hit a known alias). The remaining
+     20% (unknown new tags needing embedding) still wait for the
+     5-min linker cron. Concept GC (deduping embedding-similar
+     concepts >0.85) and `concept_id NOT NULL` constraint can wait
+     until Q3 2026.
+
+### Top 5 architectural changes BEFORE first paid sponsorship
+
+In rough dependency order:
+
+  1. **Concept identity unimpeachable.** Synchronous alias resolver
+     (above) + concept GC (merge embedding-similar concepts >0.85,
+     re-point `piktag_tags.concept_id` + `tag_aliases.concept_id` +
+     `piktag_search_learnings`) + `piktag_tags.concept_id NOT NULL`
+     constraint. Current state: linker admits ~248 concept fragments
+     vs ~45 hand-seeded; not auction-safe.
+  2. **Impression log live and accruing** (must-ship #1 above).
+  3. **Rolled-up `concept_user_quality` materialized view** —
+     daily refresh of (concept_id, user_id, impressions, clicks,
+     conversions, removals, dismissals, ai_dismissed, CTR, conv_rate,
+     neg_rate, quality_score). The four negative-signal tables today
+     (`piktag_search_learnings`, `piktag_tag_removals`,
+     `piktag_match_dismissals`, `piktag_ai_tag_suggestions`) need a
+     single composable view before Quality Score can read them.
+  4. **Negative signals into `search_users` ranking** (must-ship #2 above).
+  5. **Advertiser identity model decision.** Three options, only one
+     should ship:
+       (a) Self-sponsorship only (any user bids to boost their own
+           profile). Minimal schema. **Rejected** — invites
+           #lawyer-bidding-wars on personal identity, rent-seeking
+           on names.
+       (b) **`piktag_business_profiles`** parallel to
+           `piktag_profiles` — a new entity owned by a verified
+           user, distinct from personal profile. **Recommended.**
+           Aligns with Apple/Google ad-disclosure norms, future-
+           proofs v2 alt-account (alts can't run ads, mains can,
+           business is a third entity).
+       (c) Verified-only sponsorship — conflates "PikTag verified
+           the human" with "approved advertiser". **Rejected** —
+           two meanings on one flag is technical debt waiting.
+     Recommend (b). Schema can wait until pre-launch + 3 months;
+     decision should be locked NOW.
+
+### Defer (do NOT pre-build)
+
+All Tier 1.5+ items pre-launch — building these now is the
+architecture-astronaut trap:
+  - Bid storage / Ad Rank formula / auction RPC
+  - Quality Score model (needs ≥500 events to train)
+  - Advertiser self-serve dashboard
+  - Billing rails (Stripe / IAP / RevenueCat for advertisers)
+  - Geographic / language targeting layer
+  - Pacing / budget enforcement
+  - Brand-safety / forbidden-concept blocklist
+  - Second-price auction settlement, programmatic bidding, marketplace dynamics
+
+### The honest pushback (中肯, 2026-05-30 founder reminder)
+
+Google could ship AdWords because PageRank had already won the web.
+**PikTag has not yet won the tag-graph.** Every pre-launch
+architectural decision should ask: *"does this make the tag-graph
+more accurate, more trusted, more reactivation-fuel?"* If yes,
+ship. If "this is groundwork for monetization," **defer.**
+
+The thesis must prove itself first — 6 months of organic users
+finding right-people via tag-search is the prerequisite for any
+auction to not feel coercive. **Monetization at month 3 will kill
+the only signal that makes monetization at month 24 actually
+valuable.**
+
+### Infra: do we need Railway / Render / Fly / etc. for this?
+
+**No, not pre-launch and probably not pre-traction either.** The
+current stack already covers the auction MVP cleanly:
+  - **Supabase (Postgres + Edge Functions + Auth + Realtime)** —
+    handles bid storage (new tables), auction RPC (SQL function),
+    Quality Score materialized view, Stripe webhook handler (Edge
+    Function), per-rank impression logging (Postgres batch INSERT).
+  - **Vercel** — advertiser dashboard is just a Next.js app
+    querying Supabase like the landing page already does.
+  - **GitHub Actions** — already wires CI builds + Supabase deploy.
+
+A separate PaaS (Railway / Render / Fly.io) only becomes useful
+LATER, and only for these specific workloads — never wholesale:
+  - Real-time auction sub-100ms latency at high concurrency if
+    Supabase Edge Function cold-start budget hurts checkout flows
+  - ML model serving for Quality Score IF the model becomes neural
+    (initially it's a SQL aggregate)
+  - High-throughput impression queue worker IF Postgres batch INSERT
+    rate becomes a write-amplification problem (won't pre-launch)
+  - Long-running Stripe reconciliation jobs that exceed Edge
+    Function timeouts
+
+None of these bite pre-launch. Premature infrastructure complexity
+is a worse trap than premature monetization — every added service
+is +1 deploy pipeline, +1 secret to rotate, +1 monitoring surface,
++1 oncall page. Decline until something forces you off Supabase.
+Document the migration trigger condition ("if X breaks Y, then we
+add Z") rather than building Z speculatively.
+
 _(Founder explicitly asked the North Star be remembered — 2026-05.)_
