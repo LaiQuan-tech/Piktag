@@ -2093,6 +2093,13 @@ function makeStyles(c: ColorPalette) {
     borderTopColor: c.gray100,
   },
   socialScrollContent: {
+    // Mirror FriendDetailScreen's icon row layout (founder ask
+    // 2026-05-31: unify own-profile / friend / non-friend icon row
+    // alignment to all-centered). flexGrow + justifyContent: 'center'
+    // means short lists center, long lists scroll left-aligned.
+    flexGrow: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
     paddingHorizontal: 16,
     gap: 16,
   },

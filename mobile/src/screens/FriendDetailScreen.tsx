@@ -2303,7 +2303,17 @@ function makeStyles(c: ColorPalette) {
     borderTopColor: c.gray100,
   },
   socialScrollContent: {
-    paddingHorizontal: 4,
+    // Center the icon row when it fits the viewport, fall back to
+    // left-align + scroll when it overflows. Same behavior as
+    // ProfileScreen.iconRowContent — founder ask 2026-05-31:
+    // 「好友的社交連結圖示顯示是靠左，但使用者個人的是置中，可以
+    // 統一都置中嗎」. flexGrow stretches the contentContainer to
+    // viewport width so justifyContent: 'center' can take effect on
+    // short lists; overflow auto-aligns to start and scrolls.
+    flexGrow: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 16,
     gap: 16,
   },
   socialCircleItem: {
