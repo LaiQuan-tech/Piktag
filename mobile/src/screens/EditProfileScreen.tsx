@@ -33,6 +33,7 @@ import { COLORS, type ColorPalette } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
 import { LinearGradient } from 'expo-linear-gradient';
 import PlatformIcon from '../components/PlatformIcon';
+import SectionTitle from '../components/SectionTitle';
 import CountryCodePicker from '../components/CountryCodePicker';
 import { supabase, supabaseUrl, supabaseAnonKey } from '../lib/supabase';
 import {
@@ -1930,7 +1931,7 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
             )}
 
             <View style={styles.tag_sectionHeader}>
-              <Text style={styles.sectionTitle}>{t('manageTags.myTagsTitle')}</Text>
+              <SectionTitle variant="form" style={{ marginBottom: 14 }}>{t('manageTags.myTagsTitle')}</SectionTitle>
               <View style={styles.tag_countRow}>
                 <View style={styles.tag_countItem}>
                   <Text
@@ -2094,7 +2095,7 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
           {/* Biolinks Section */}
           <View style={styles.biolinksSection}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-              <Text style={styles.sectionTitle}>{t('editProfile.socialLinksTitle')}</Text>
+              <SectionTitle variant="form" style={{ marginBottom: 14 }}>{t('editProfile.socialLinksTitle')}</SectionTitle>
               {reorderSaving && (
                 <BrandSpinner size={16} />
               )}
@@ -2982,12 +2983,8 @@ function makeStyles(c: ColorPalette) {
     paddingHorizontal: 20,
     paddingTop: 28,
   },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: c.gray900,
-    marginBottom: 14,
-  },
+  // (sectionTitle moved into shared SectionTitle, variant="form".
+  // marginBottom:14 override applied per call site. task #38.)
   emptyText: {
     fontSize: 14,
     color: c.gray400,

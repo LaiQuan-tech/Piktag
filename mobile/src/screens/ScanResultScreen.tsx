@@ -21,6 +21,7 @@ import { useAuth } from '../hooks/useAuth';
 import PageLoader from '../components/loaders/PageLoader';
 import BrandSpinner from '../components/loaders/BrandSpinner';
 import PlatformIcon from '../components/PlatformIcon';
+import SectionTitle from '../components/SectionTitle';
 import { getPlatformLabel } from '../lib/platforms';
 import type { PiktagProfile, Biolink } from '../types';
 
@@ -459,12 +460,12 @@ export default function ScanResultScreen({ navigation, route }: ScanResultScreen
             a 3rd-party app to do it for them). */}
         {hostBiolinks.length > 0 && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>
+            <SectionTitle variant="form">
               {t('scanResult.connectElsewhereTitle', {
                 name: displayName,
                 defaultValue: '也在這些地方連上 {{name}}',
               })}
-            </Text>
+            </SectionTitle>
             <Text style={styles.connectHint}>
               {t('scanResult.connectElsewhereHint', {
                 defaultValue: '點一下會開啟對方在該 App 的頁面，由你按追蹤／加好友。',
@@ -494,7 +495,7 @@ export default function ScanResultScreen({ navigation, route }: ScanResultScreen
         {myTags.length > 0 && (
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>{t('scanResult.myTagsTitle')}</Text>
+              <SectionTitle variant="form">{t('scanResult.myTagsTitle')}</SectionTitle>
               <TouchableOpacity
                 onPress={toggleSelectAllMyTags}
                 activeOpacity={0.7}
@@ -538,7 +539,7 @@ export default function ScanResultScreen({ navigation, route }: ScanResultScreen
         )}
         {/* Relation Type Section */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>{t('scanResult.relationTitle')}</Text>
+          <SectionTitle variant="form">{t('scanResult.relationTitle')}</SectionTitle>
           <View style={styles.chipsContainer}>
             {RELATION_PRESETS.map((rel) => {
               const isSelected = selectedRelation === rel.key;
@@ -662,11 +663,7 @@ function makeStyles(c: ColorPalette) {
     justifyContent: 'space-between',
     marginBottom: 14,
   },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: c.gray900,
-  },
+  // (sectionTitle moved into shared SectionTitle, variant="form". task #38.)
   selectAllText: {
     fontSize: 14,
     fontWeight: '600',

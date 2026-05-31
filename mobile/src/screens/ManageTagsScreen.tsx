@@ -17,6 +17,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { X, Hash, ArrowLeftRight, AlertTriangle, Plus } from 'lucide-react-native';
 import BoltIcon from '../components/BoltIcon';
+import SectionTitle from '../components/SectionTitle';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from '../lib/supabase';
 import { logApiUsage } from '../lib/apiUsage';
@@ -368,7 +369,7 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
           >
             {/* Section header */}
             <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>{t('manageTags.publicTagsTitle')}</Text>
+              <SectionTitle variant="form" style={{ marginBottom: 0 }}>{t('manageTags.publicTagsTitle')}</SectionTitle>
               <Text style={styles.sectionSubtitle}>{t('manageTags.publicTagsSubtitle')}</Text>
             </View>
 
@@ -568,7 +569,9 @@ function makeStyles(c: ColorPalette) {
   scrollContent: { paddingBottom: 20 },
 
   sectionHeader: { paddingHorizontal: 20, paddingTop: 24, paddingBottom: 4 },
-  sectionTitle: { fontSize: 18, fontWeight: '700', color: c.gray900 },
+  // (sectionTitle moved into shared SectionTitle, variant="form".
+  // Was 18px — normalized to the form-family's 16px via the
+  // migration. task #38.)
   sectionSubtitle: { fontSize: 13, color: c.gray500, marginTop: 2 },
 
   tagCountRow: {

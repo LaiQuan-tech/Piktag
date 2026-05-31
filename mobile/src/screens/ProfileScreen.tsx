@@ -17,6 +17,7 @@ import {
   MessageCircle,
 } from 'lucide-react-native';
 import BiolinkSocialSection from '../components/BiolinkSocialSection';
+import { StatsRow, StatDot } from '../components/StatsLine';
 import { useTranslation } from 'react-i18next';
 import { COLORS, type ColorPalette } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
@@ -435,7 +436,7 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
               motivation flips from "earn points → redeem for
               vague future features" to "visible status number
               that grows as your invites compound." */}
-          <View style={styles.statsRow}>
+          <StatsRow>
             <TouchableOpacity
               activeOpacity={0.6}
               onPress={handleNavigateTags}
@@ -448,7 +449,7 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
                 <Text style={styles.statLabel}>{t('profile.statTags')}</Text>
               </Text>
             </TouchableOpacity>
-            <Text style={[styles.statText, styles.statDot]}> · </Text>
+            <StatDot />
             <TouchableOpacity
               activeOpacity={0.6}
               onPress={handleNavigateFriends}
@@ -461,7 +462,7 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
                 <Text style={styles.statLabel}>{t('profile.statFriends')}</Text>
               </Text>
             </TouchableOpacity>
-            <Text style={[styles.statText, styles.statDot]}> · </Text>
+            <StatDot />
             <TouchableOpacity
               activeOpacity={0.6}
               onPress={handleNavigateFollowers}
@@ -474,7 +475,7 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
                 <Text style={styles.statLabel}>{t('profile.statFollowers')}</Text>
               </Text>
             </TouchableOpacity>
-            <Text style={[styles.statText, styles.statDot]}> · </Text>
+            <StatDot />
             <TouchableOpacity
               activeOpacity={0.6}
               onPress={handleNavigateTribe}
@@ -487,7 +488,7 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
                 <Text style={styles.statLabel}>{t('profile.statTribe', { defaultValue: 'Tribe' })}</Text>
               </Text>
             </TouchableOpacity>
-          </View>
+          </StatsRow>
 
           {/* Tag-graph health pill REMOVED 2026-05-29 — founder
               decision after the TestFlight screenshot showed
@@ -631,12 +632,9 @@ function makeStyles(c: ColorPalette) {
     marginTop: 3,
     fontStyle: 'italic',
   },
-  statsRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flexWrap: 'wrap',
-    marginBottom: 14,
-  },
+  // (statsRow + statDot moved into the shared StatsLine component.
+  // statText / statNumber / statLabel kept — they style the per-stat
+  // text rendering which legitimately varies per screen. task #38.)
   statText: {
     fontSize: 14,
     color: c.gray500,
@@ -647,9 +645,6 @@ function makeStyles(c: ColorPalette) {
   },
   statLabel: {
     color: c.gray500,
-  },
-  statDot: {
-    color: c.gray400,
   },
   // (healthPill style dropped 2026-05-29 — see the inline removal
   // comment in the JSX above.)
@@ -762,17 +757,9 @@ function makeStyles(c: ColorPalette) {
     borderRadius: 2,
   },
 
-  // ===== Section: Shared =====
-  sectionTitle: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: c.gray500,
-    textTransform: 'uppercase',
-    letterSpacing: 0.8,
-    paddingHorizontal: 20,
-    marginBottom: 12,
-    marginTop: 12,
-  },
+  // (sectionTitle was defined here but never used in JSX — dead style
+  // removed. The shared SectionTitle component is the canonical
+  // source if a section title is added back. task #38.)
 
   // ===== Section 2: Contact Info =====
   contactSection: {

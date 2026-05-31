@@ -38,6 +38,7 @@ import { useTranslation } from 'react-i18next';
 import { ArrowLeft, Plus, Trash2 } from 'lucide-react-native';
 import { requestMediaLibraryPermissionsAsync, launchImageLibraryAsync } from 'expo-image-picker';
 import ProfileIdentityHeader from '../components/ProfileIdentityHeader';
+import SectionTitle from '../components/SectionTitle';
 import { COLORS, type ColorPalette } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
 import { useLocalContacts } from '../hooks/useLocalContacts';
@@ -849,9 +850,9 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
             </View>
           </View>
 
-          <Text style={styles.sectionTitle}>
+          <SectionTitle variant="detail" style={{ marginTop: 24, marginBottom: 10, paddingHorizontal: 0 }}>
             {t('localContact.fieldTags', { defaultValue: '標籤（只有你看得到）' })}
-          </Text>
+          </SectionTitle>
           {tags.length > 0 && (
             <View style={styles.tagWrap}>
               {tags.map((tg) => (
@@ -1051,18 +1052,11 @@ function makeStyles(c: ColorPalette) {
   headerBtn: { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
   headerTitle: { flex: 1, textAlign: 'center', fontSize: 17, fontWeight: '700', color: c.gray900 },
   scroll: { padding: 20, paddingBottom: 48 },
-  // Section caption — mirrors FriendDetailScreen.sectionTitle tokens
-  // (13/700, gray500, uppercase, +letterSpacing) so a contact's
-  // sections read like a member friend's profile, not a form.
-  sectionTitle: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: c.gray500,
-    textTransform: 'uppercase',
-    letterSpacing: 0.8,
-    marginTop: 24,
-    marginBottom: 10,
-  },
+  // (sectionTitle moved into shared SectionTitle component, task #38.
+  // The marginTop:24 + marginBottom:10 override lives at the call
+  // site to keep this screen's tighter rhythm — this screen has a
+  // form-like layout where the section caption sits very close to
+  // its content below.)
   // (infoCard / infoRow / infoInput / infoDivider removed — the
   // "Excel table" lumped layout is gone; each field is now its own
   // labeled iOS form input below.)

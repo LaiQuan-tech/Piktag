@@ -31,6 +31,7 @@ import { useTranslation } from 'react-i18next';
 import { ArrowLeft, Share2, Plus, X, Hash, Edit3, ScanLine, Link2, Pencil } from 'lucide-react-native';
 import BoltIcon from '../components/BoltIcon';
 import TagChip from '../components/TagChip';
+import SectionTitle from '../components/SectionTitle';
 import { setStringAsync as setClipboardStringAsync } from 'expo-clipboard';
 // react-native-qrcode-svg is the same lib AddTagScreen uses. Import
 // inline so the bundle only pulls it on this screen too.
@@ -521,9 +522,9 @@ export default function QrGroupDetailScreen({ navigation, route }: Props) {
 
         {/* Tag editor. */}
         <View style={styles.tagSection}>
-          <Text style={styles.sectionTitle}>
+          <SectionTitle variant="detail" style={{ marginBottom: 10, paddingHorizontal: 0 }}>
             {t('qrGroup.tagsTitle', { defaultValue: 'Tag 標籤' })}
-          </Text>
+          </SectionTitle>
           <View style={styles.tagChipsRow}>
             {/* Shared TagChip (no × glyph, whole pill = tap to remove,
                 fill-only purple). Founder contract: no per-screen chip
@@ -651,12 +652,12 @@ export default function QrGroupDetailScreen({ navigation, route }: Props) {
             return (
               <>
                 <View style={styles.memberHeaderRow}>
-                  <Text style={styles.sectionTitle}>
+                  <SectionTitle variant="detail" style={{ marginBottom: 10, paddingHorizontal: 0 }}>
                     {t('qrGroup.membersTitle', {
                       count: filteredMembers.length,
                       defaultValue: `成員（${filteredMembers.length}）`,
                     })}
-                  </Text>
+                  </SectionTitle>
                   {filterEntry != null ? (
                     <TouchableOpacity
                       onPress={() => setSelectedFilterTag(null)}
@@ -803,7 +804,9 @@ function makeStyles(c: ColorPalette) {
 
 
   tagSection: { paddingHorizontal: 20, paddingTop: 16, paddingBottom: 8 },
-  sectionTitle: { fontSize: 13, fontWeight: '700', color: c.gray600, marginBottom: 10, textTransform: 'uppercase', letterSpacing: 0.3 },
+  // (sectionTitle moved into shared SectionTitle. Drift fixed in the
+  // migration: was gray600 + letterSpacing:0.3, now gray500 +
+  // letterSpacing:0.8 from variant="detail" defaults. task #38.)
   tagChipsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 10 },
   // (tagChip / tagChipText removed — chip rendering now via the
   // shared <TagChip>; no per-screen chip styles allowed.)

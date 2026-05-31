@@ -32,6 +32,7 @@ import { COLORS, type ColorPalette } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
 import { LinearGradient } from 'expo-linear-gradient';
 import BiolinkSocialSection from '../components/BiolinkSocialSection';
+import { StatsRow, StatDot } from '../components/StatsLine';
 import OverlappingAvatars from '../components/OverlappingAvatars';
 import RingedAvatar from '../components/RingedAvatar';
 import HiddenTagEditor from '../components/HiddenTagEditor';
@@ -1249,8 +1250,13 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
 
           {/* Stats row order: mutual friends first (carries the visual
               overlapping-avatars cue, so it earns the lead spot), then
-              mutual tags, then followers. Same order on FriendDetail. */}
-          <View style={styles.statsRow}>
+              mutual tags, then followers. Same order on FriendDetail.
+              Uses shared StatsRow + StatDot (task #38). marginTop: 14
+              + marginBottom: 4 preserved on the wrapping component
+              via the `style` override — this screen lays its stats
+              between the bio and the action button row with tighter
+              bottom rhythm than the shared default. */}
+          <StatsRow style={{ marginTop: 14, marginBottom: 4 }}>
             <View style={styles.mutualAvatarsStat}>
               {mutualFriendProfiles.length > 0 && (
                 <OverlappingAvatars users={mutualFriendProfiles} total={mutualFriends} size={24} max={3} />
@@ -1259,7 +1265,7 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
                 <Text style={styles.statNumber}>{mutualFriends}</Text>{t('userDetail.statMutualFriends')}
               </Text>
             </View>
-            <Text style={styles.statDot}>·</Text>
+            <StatDot />
             {mutualTags > 0 ? (
               <TouchableOpacity onPress={() => setMutualTagModalVisible(true)} activeOpacity={0.6}>
                 <Text style={styles.statTextClickable}>
@@ -1272,7 +1278,7 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
                 <Text style={styles.statNumber}>{mutualTags}</Text>{t('userDetail.statMutualTags')}
               </Text>
             )}
-            <Text style={styles.statDot}>·</Text>
+            <StatDot />
             <TouchableOpacity
               activeOpacity={0.6}
               hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
@@ -1291,7 +1297,7 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
                 <Text style={styles.statNumber}>{followerCount}</Text>{t('userDetail.statFollowers')}
               </Text>
             </TouchableOpacity>
-          </View>
+          </StatsRow>
 
           {/* Event-info card (QR scan context) was removed per user
               feedback: "all tags are attached to a person, not an
@@ -1878,13 +1884,9 @@ function makeStyles(c: ColorPalette) {
   tagSecondary: {
     color: c.gray500,
   },
-  statsRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 16,
-    marginTop: 14,
-    marginBottom: 4,
-  },
+  // (statsRow moved into shared StatsLine; the marginTop:14 +
+  // marginBottom:4 overrides moved to the call site's `style` prop.
+  // task #38.)
   statText: {
     fontSize: 14,
     color: c.gray500,
@@ -2029,16 +2031,8 @@ function makeStyles(c: ColorPalette) {
     color: c.gray600,
   },
 
-  sectionTitle: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: c.gray500,
-    textTransform: 'uppercase',
-    letterSpacing: 0.8,
-    paddingHorizontal: 20,
-    marginBottom: 12,
-    marginTop: 12,
-  },
+  // (sectionTitle was defined but never used in JSX — dead style
+  // removed. Use shared SectionTitle component if added back. task #38.)
 
   actionButtonsRow: {
     flexDirection: 'row',
@@ -2281,10 +2275,7 @@ function makeStyles(c: ColorPalette) {
   statTextClickable: {
     fontSize: 14,
   },
-  statDot: {
-    fontSize: 14,
-    color: c.gray400,
-  },
+  // (statDot moved into shared StatsLine, task #38.)
 
   // Mutual Tags Modal
   mutualModalOverlay: {

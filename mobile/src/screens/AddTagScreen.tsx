@@ -18,6 +18,7 @@ import { X, Share2, Trash2, ScanLine, Link2, Pencil, Plus, RefreshCw, ArrowLeft 
 import BoltIcon from '../components/BoltIcon';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import QrShareBody from '../components/QrShareBody';
+import SectionTitle from '../components/SectionTitle';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '../lib/supabase';
 import { recordAiSuggestions, markAiSuggestionAccepted, markAiSuggestionDismissed } from '../lib/aiTagLogger';
@@ -899,9 +900,9 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
             as the strongest signal when generating suggestions.
             "公司週年活動", "週末聚餐", "客戶 demo" 之類。 */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>
+          <SectionTitle variant="form" style={{ marginBottom: 4 }}>
             {t('addTag.contextLabel', { defaultValue: '這次是什麼場合？' })}
-          </Text>
+          </SectionTitle>
           <Text style={styles.hiddenTagHint}>
             {t('addTag.contextHint', { defaultValue: '一句話描述就好。AI 會根據你說的、時間和地點推薦標籤，幫你記住在這認識的人。' })}
           </Text>
@@ -996,7 +997,7 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
 
         {/* 自訂標籤 Section */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>{t('addTag.customTagsLabel')}</Text>
+          <SectionTitle variant="form" style={{ marginBottom: 4 }}>{t('addTag.customTagsLabel')}</SectionTitle>
           <Text style={styles.hiddenTagHint}>{t('addTag.hiddenTagHint', { defaultValue: '這些標籤僅自己可見，幫助你記住在哪認識' })}</Text>
 
           {/* Chip placement contract: chips ABOVE input — existing
@@ -1330,12 +1331,8 @@ function makeStyles(c: ColorPalette) {
     paddingHorizontal: 20,
     paddingTop: 24,
   },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: c.gray900,
-    marginBottom: 4,
-  },
+  // (sectionTitle moved into shared SectionTitle, variant="form".
+  // marginBottom:4 applied per call site. task #38.)
   hiddenTagHint: {
     fontSize: 12,
     color: c.gray400,

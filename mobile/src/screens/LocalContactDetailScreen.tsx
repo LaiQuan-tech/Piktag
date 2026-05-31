@@ -31,6 +31,7 @@ import { COLORS, type ColorPalette } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
 import { useLocalContacts } from '../hooks/useLocalContacts';
 import ProfileIdentityHeader from '../components/ProfileIdentityHeader';
+import RecordCard from '../components/RecordCard';
 import TagChip from '../components/TagChip';
 import BrandSpinner from '../components/loaders/BrandSpinner';
 
@@ -277,17 +278,19 @@ export default function LocalContactDetailScreen({ navigation, route }: Props) {
           </View>
         )}
 
-        {/* Birthday → FriendDetail's recordCard pattern (filled bg,
-            pink Gift icon, label + value). Static row, not tappable. */}
+        {/* Birthday → shared RecordCard (task #38 follow-up).
+            FriendDetailScreen renders the same pattern with the
+            same component now. View wrapper just provides the
+            16px top margin from the preceding section since this
+            screen doesn't wrap in a styles.section like FriendDetail
+            does. */}
         {birthdayDisplay && (
-          <View style={styles.recordCard}>
-            <View style={styles.reminderRow}>
-              <Gift size={16} color={colors.pink500} />
-              <Text style={styles.recordLabel}>
-                {t('friendDetail.reminderBirthday', { defaultValue: '生日' })}
-              </Text>
-              <Text style={styles.recordValue}>{birthdayDisplay}</Text>
-            </View>
+          <View style={{ marginTop: 16 }}>
+            <RecordCard
+              icon={<Gift size={16} color={colors.pink500} />}
+              label={t('friendDetail.reminderBirthday', { defaultValue: '生日' })}
+              value={birthdayDisplay}
+            />
           </View>
         )}
       </ScrollView>
@@ -379,30 +382,7 @@ function makeStyles(c: ColorPalette) {
     fontWeight: '600',
     color: c.gray900,
   },
-  // Birthday → FriendDetail's recordCard pattern.
-  recordCard: {
-    backgroundColor: c.gray50,
-    borderRadius: 16,
-    padding: 16,
-    marginTop: 16,
-  },
-  reminderRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    paddingVertical: 6,
-  },
-  recordLabel: {
-    fontSize: 14,
-    color: c.gray500,
-    width: 70,
-  },
-  recordValue: {
-    flex: 1,
-    fontSize: 14,
-    fontWeight: '500',
-    color: c.gray900,
-    lineHeight: 20,
-  },
+  // (recordCard / reminderRow / recordLabel / recordValue moved
+  // into the shared RecordCard component — task #38 follow-up.)
   });
 }

@@ -25,6 +25,7 @@ import { COLORS, type ColorPalette } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
+import SectionTitle from '../components/SectionTitle';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const CHART_WIDTH = SCREEN_WIDTH - 40; // 20px padding each side
@@ -451,10 +452,10 @@ export default function SocialStatsScreen({ navigation }: SocialStatsScreenProps
     </View>
   );
 
-  // ─── Section Title ───
-  const SectionTitle = ({ title }: { title: string }) => (
-    <Text style={styles.sectionTitle}>{title}</Text>
-  );
+  // (Local SectionTitle helper removed — uses the shared
+  // components/SectionTitle component imported at file scope.
+  // Callers below pass children directly instead of a `title` prop.
+  // task #38.)
 
   // ─── Empty State ───
   const EmptyState = ({ text }: { text: string }) => (
@@ -537,7 +538,7 @@ export default function SocialStatsScreen({ navigation }: SocialStatsScreenProps
 
           {/* ── Growth Curve ── */}
           <View style={styles.sectionContainer}>
-            <SectionTitle title={t('dashboard.growthCurveTitle')} />
+            <SectionTitle variant="form" style={{ marginBottom: 14 }}>{t('dashboard.growthCurveTitle')}</SectionTitle>
             {data.growthCurve.length >= 2 ? (
               renderLineChart(data.growthCurve)
             ) : (
@@ -547,7 +548,7 @@ export default function SocialStatsScreen({ navigation }: SocialStatsScreenProps
 
           {/* ── Preset Scans ── */}
           <View style={styles.sectionContainer}>
-            <SectionTitle title={t('dashboard.presetScansTitle')} />
+            <SectionTitle variant="form" style={{ marginBottom: 14 }}>{t('dashboard.presetScansTitle')}</SectionTitle>
             {data.presetScans.length > 0 ? (
               renderBarRow(
                 data.presetScans.map((p) => ({ label: p.name, value: p.totalScans })),
@@ -562,7 +563,7 @@ export default function SocialStatsScreen({ navigation }: SocialStatsScreenProps
 
           {/* ── Network Composition (Semantic Breakdown) ── */}
           <View style={styles.sectionContainer}>
-            <SectionTitle title={t('dashboard.networkCompositionTitle', { defaultValue: '人脈組成' })} />
+            <SectionTitle variant="form" style={{ marginBottom: 14 }}>{t('dashboard.networkCompositionTitle', { defaultValue: '人脈組成' })}</SectionTitle>
             {data.semanticBreakdown.length > 0 ? (
               <View>
                 {/* Simple horizontal bar breakdown */}
@@ -614,7 +615,7 @@ export default function SocialStatsScreen({ navigation }: SocialStatsScreenProps
 
           {/* ── Top 5 Tags ── */}
           <View style={styles.sectionContainer}>
-            <SectionTitle title={t('dashboard.topTagsTitle')} />
+            <SectionTitle variant="form" style={{ marginBottom: 14 }}>{t('dashboard.topTagsTitle')}</SectionTitle>
             {data.topTags.length > 0 ? (
               renderBarRow(
                 data.topTags.map((tag) => ({ label: `#${tag.name}`, value: tag.count })),
@@ -628,7 +629,7 @@ export default function SocialStatsScreen({ navigation }: SocialStatsScreenProps
 
           {/* ── Top 5 Locations ── */}
           <View style={styles.sectionContainer}>
-            <SectionTitle title={t('dashboard.topLocationsTitle')} />
+            <SectionTitle variant="form" style={{ marginBottom: 14 }}>{t('dashboard.topLocationsTitle')}</SectionTitle>
             {data.topLocations.length > 0 ? (
               renderBarRow(
                 data.topLocations.map((loc) => ({ label: loc.location, value: loc.count })),
@@ -642,7 +643,7 @@ export default function SocialStatsScreen({ navigation }: SocialStatsScreenProps
 
           {/* ── Active Locations This Month ── */}
           <View style={styles.sectionContainer}>
-            <SectionTitle title={t('dashboard.activeLocationsTitle')} />
+            <SectionTitle variant="form" style={{ marginBottom: 14 }}>{t('dashboard.activeLocationsTitle')}</SectionTitle>
             {data.activeLocationsThisMonth.length > 0 ? (
               <View style={styles.chipRow}>
                 {data.activeLocationsThisMonth.map((loc) => (
@@ -660,7 +661,7 @@ export default function SocialStatsScreen({ navigation }: SocialStatsScreenProps
 
           {/* ── Top Biolinks ── */}
           <View style={styles.sectionContainer}>
-            <SectionTitle title={t('dashboard.topBiolinksTitle')} />
+            <SectionTitle variant="form" style={{ marginBottom: 14 }}>{t('dashboard.topBiolinksTitle')}</SectionTitle>
             {data.topBiolinks.length > 0 ? (
               <>
                 {data.topBiolinks.map((link, index) => (
@@ -810,12 +811,8 @@ function makeStyles(c: ColorPalette) {
     fontSize: 13,
     color: c.gray600,
   },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: c.gray900,
-    marginBottom: 14,
-  },
+  // (sectionTitle moved into shared SectionTitle, variant="form".
+  // marginBottom:14 applied per call site. task #38.)
   emptyText: {
     fontSize: 14,
     color: c.gray400,

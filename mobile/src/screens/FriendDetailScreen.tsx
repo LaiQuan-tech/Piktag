@@ -51,6 +51,8 @@ import { COLORS, type ColorPalette } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
 import { LinearGradient } from 'expo-linear-gradient';
 import BiolinkSocialSection from '../components/BiolinkSocialSection';
+import RecordCard from '../components/RecordCard';
+import { StatsRow, StatDot } from '../components/StatsLine';
 import InitialsAvatar from '../components/InitialsAvatar';
 import RingedAvatar from '../components/RingedAvatar';
 import TagChip from '../components/TagChip';
@@ -1203,8 +1205,9 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
           {/* Stats — subtle one line */}
           {/* Stats row order: mutual friends first (carries the visual
               overlapping-avatars cue, so it earns the lead spot), then
-              mutual tags, then followers. Same order on UserDetail. */}
-          <View style={styles.statsLineRow}>
+              mutual tags, then followers. Same order on UserDetail.
+              Uses shared StatsRow + StatDot (task #38). */}
+          <StatsRow>
             <View style={styles.mutualAvatarsStat}>
               {mutualFriendProfiles.length > 0 && (
                 <OverlappingAvatars users={mutualFriendProfiles} total={mutualFriends} size={24} max={3} />
@@ -1214,7 +1217,7 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
                 <Text style={styles.statLabel}>{t('friendDetail.mutualFriendsLabel')}</Text>
               </Text>
             </View>
-            <Text style={styles.statDot}>·</Text>
+            <StatDot />
             {mutualTags > 0 ? (
               <TouchableOpacity onPress={() => setMutualTagModalVisible(true)} activeOpacity={0.6}>
                 <Text style={styles.statTextClickable}>
@@ -1228,7 +1231,7 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
                 <Text style={styles.statLabel}>{t('friendDetail.mutualTagsLabel')}</Text>
               </Text>
             )}
-            <Text style={styles.statDot}>·</Text>
+            <StatDot />
             <TouchableOpacity
               activeOpacity={0.6}
               hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
@@ -1243,7 +1246,7 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
                 <Text style={styles.statLabel}>{t('friendDetail.followersLabel')}</Text>
               </Text>
             </TouchableOpacity>
-          </View>
+          </StatsRow>
 
           {/* Action buttons.
               Visual hierarchy on this screen: 「標籤」 is the ONE
@@ -1439,16 +1442,15 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
 
         {/* Event tags moved to tags section above bio */}
 
-        {/* Birthday — read from profile (set during registration) */}
+        {/* Birthday — read from profile (set during registration).
+            Shared RecordCard component (task #38 follow-up). */}
         {profile?.birthday && (
           <View style={styles.section}>
-            <View style={styles.recordCard}>
-              <View style={styles.reminderRow}>
-                <Gift size={16} color={colors.pink500} />
-                <Text style={styles.recordLabel}>{t('friendDetail.reminderBirthday')}</Text>
-                <Text style={styles.recordValue}>{formatReminderDate(profile.birthday)}</Text>
-              </View>
-            </View>
+            <RecordCard
+              icon={<Gift size={16} color={colors.pink500} />}
+              label={t('friendDetail.reminderBirthday')}
+              value={formatReminderDate(profile.birthday)}
+            />
           </View>
         )}
       </ScrollView>
@@ -1882,9 +1884,7 @@ function makeStyles(c: ColorPalette) {
   statLabel: {
     color: c.gray500,
   },
-  statDot: {
-    color: c.gray400,
-  },
+  // (statDot moved into shared StatsLine, task #38.)
   actionButtonsRow: {
     flexDirection: 'row',
     gap: 10,
@@ -2092,21 +2092,11 @@ function makeStyles(c: ColorPalette) {
     justifyContent: 'space-between',
     marginBottom: 12,
   },
-  sectionTitle: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: c.gray500,
-    textTransform: 'uppercase',
-    letterSpacing: 0.8,
-    paddingHorizontal: 20,
-    marginBottom: 12,
-    marginTop: 12,
-  },
-  recordCard: {
-    backgroundColor: c.gray50,
-    borderRadius: 16,
-    padding: 16,
-  },
+  // (sectionTitle was defined but never used in JSX — dead style
+  // removed. Use shared SectionTitle component if added back. task #38.)
+  // (recordCard / recordRow / recordLabel / recordValue / recordNotes
+  // / recordDivider / reminderRow moved into the shared RecordCard
+  // component — task #38 follow-up 2026-05-31.)
   // Friend's-active-Ask card. Soft purple-tinted background to subtly
   // distinguish from neutral recordCard above — signals "this is live /
   // happening now", but quietly. Same all-gray-chip contract for the
@@ -2156,40 +2146,7 @@ function makeStyles(c: ColorPalette) {
     gap: 6,
     marginTop: 10,
   },
-  recordRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: 10,
-    paddingVertical: 4,
-  },
-  recordLabel: {
-    fontSize: 14,
-    color: c.gray500,
-    width: 70,
-  },
-  recordValue: {
-    flex: 1,
-    fontSize: 14,
-    fontWeight: '500',
-    color: c.gray900,
-    lineHeight: 20,
-  },
-  recordNotes: {
-    fontWeight: '400',
-    color: c.gray700,
-  },
-  recordDivider: {
-    height: 1,
-    backgroundColor: c.gray200,
-    marginVertical: 10,
-  },
   // CRM Reminders
-  reminderRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    paddingVertical: 6,
-  },
   reminderEditRow: {
     flex: 1,
     flexDirection: 'row',
@@ -2294,13 +2251,7 @@ function makeStyles(c: ColorPalette) {
     maxWidth: 64,
   },
 
-  // Stats line
-  statsLineRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    marginBottom: 14,
-  },
+  // (statsLineRow moved into shared StatsLine, task #38.)
   statText: {
     fontSize: 14,
     color: c.gray500,
