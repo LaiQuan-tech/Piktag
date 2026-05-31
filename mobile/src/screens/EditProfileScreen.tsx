@@ -424,7 +424,10 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
     platform: 'email',
     account: '',
     label: '',
-    display_mode: 'card',
+    // 'both' = icon row + card row. Default-to-max-visibility,
+    // founder 2026-05-31 (mirrors DB column default in
+    // 20260531000000_biolinks_default_display_mode_both.sql).
+    display_mode: 'both',
     visibility: 'public',
   });
   const [savingBiolink, setSavingBiolink] = useState(false);
@@ -898,7 +901,8 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
       platform: initialPlatform,
       account: '',
       label: '',
-      display_mode: 'card',
+      // Default-to-max-visibility — see file-scope initializer.
+      display_mode: 'both',
       visibility: 'public',
     });
     resetPhoneFields();
@@ -934,7 +938,9 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
       platform: platformKey,
       account,
       label: biolink.label || '',
-      display_mode: biolink.display_mode || 'card',
+      // Fallback for legacy NULL rows — pick the new default ('both')
+      // so unset values respect the 2026-05-31 policy on read too.
+      display_mode: biolink.display_mode || 'both',
       visibility: biolink.visibility || 'public',
     });
     // Pre-fill the phone-specific fields when editing a phone biolink so
@@ -959,7 +965,8 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
       platform: 'email',
       account: '',
       label: '',
-      display_mode: 'card',
+      // Default-to-max-visibility — see file-scope initializer.
+      display_mode: 'both',
       visibility: 'public',
     });
     resetPhoneFields();
