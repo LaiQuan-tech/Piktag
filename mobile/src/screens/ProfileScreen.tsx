@@ -521,8 +521,21 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
         </View>
 
         {/* ============ SECTION 2: Icon 並排區 (display_mode = 'icon') ============ */}
+        {/* Horizontal-scroll when count exceeds the viewport. Founder
+            caught icons getting clipped on both edges 2026-05-31 once
+            the display_mode default flipped to 'both' (which surfaces
+            every link in this row). `contentContainerStyle`'s
+            `justifyContent: 'center'` only centers when the content
+            width fits — overflow auto-aligns to flex-start and
+            scrolls. So short lists still look centered, long lists
+            become swipeable without a layout switch. */}
         {activeBiolinks.filter(bl => bl.display_mode === 'icon' || bl.display_mode === 'both').length > 0 && (
-          <View style={styles.iconRow}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            style={styles.iconRowScroll}
+            contentContainerStyle={styles.iconRowContent}
+          >
             {activeBiolinks.filter(bl => bl.display_mode === 'icon' || bl.display_mode === 'both').map((bl) => (
               <TouchableOpacity
                 key={bl.id}
@@ -535,7 +548,7 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
                 </View>
               </TouchableOpacity>
             ))}
-          </View>
+          </ScrollView>
         )}
 
         {/* ============ SECTION 3: 清單按鈕區 (display_mode = 'card') ============ */}
@@ -800,15 +813,25 @@ function makeStyles(c: ColorPalette) {
     borderRadius: 2,
   },
 
-  // ===== Icon row (display_mode = 'icon') =====
-  iconRow: {
+  // ===== Icon row (display_mode = 'icon' / 'both') =====
+  // Outer ScrollView owns the borderTop (so the divider spans the
+  // full screen width even when the inner content is scrollable).
+  // Inner contentContainerStyle owns the row layout. flexGrow makes
+  // the content stretch to viewport width when short, so
+  // justifyContent: 'center' can center fewer-than-fits icons; when
+  // content overflows, it auto-aligns to start and scrolls.
+  iconRowScroll: {
+    borderTopWidth: 1,
+    borderTopColor: c.gray100,
+  },
+  iconRowContent: {
+    flexGrow: 1,
     flexDirection: 'row',
     justifyContent: 'center',
+    alignItems: 'center',
     gap: 16,
     paddingVertical: 16,
     paddingHorizontal: 20,
-    borderTopWidth: 1,
-    borderTopColor: c.gray100,
   },
   iconCircle: {
     alignItems: 'center',
