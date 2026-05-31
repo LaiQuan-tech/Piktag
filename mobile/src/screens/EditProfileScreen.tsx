@@ -2368,18 +2368,32 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
             </View>
 
             <View style={styles.modalBody}>
-              {/* Platform picker — 8 quick-pick chips + "browse all"
-                  for the long tail. Replaced the horizontal-scroll
-                  chip rail of every preset, which forced users to
-                  swipe through 50 chips to find anything past the
-                  popular ones. Selected chip uses the same
-                  piktag50/piktag500 selected treatment as the rest
-                  of the app's chip pickers (FriendDetail pickModal,
-                  ManageTags). The currently-selected platform shows
-                  as a quick-pick chip even when it's not in the
-                  default 8 — picked-from-search non-quick-pick
-                  platforms surface as a "current" pill so the user
-                  can still see what's selected at a glance. */}
+              {/* Platform picker is ADD-MODE ONLY. Founder direction
+                  2026-05-31 *"我們應該讓使用者一次做一件事情，搞定、
+                  儲存，在下一件事情，事情混在一起，就跟大便一樣"*.
+                  In edit mode, exposing the picker caused a real bug:
+                  user taps a different platform chip → biolinkForm
+                  .platform changes → URL prefix label updates → but
+                  biolinkForm.account (the bare-handle / URL body) does
+                  NOT clear, so the save composes `<new-prefix> +
+                  <old-account>` which is garbage (the screenshot
+                  showed `https://snapchat.com/add/https://yahoo.com`).
+                  Right fix: lock the platform on edit. To switch
+                  platforms, delete and re-add — one job at a time.
+                  The static readout below tells the user which
+                  platform they're editing without giving them the
+                  trap-door to switch mid-flight. */}
+              {editingBiolink ? (
+                <View style={styles.fieldGroup}>
+                  <Text style={styles.fieldLabel}>{t('editProfile.platformLabel')}</Text>
+                  <View style={styles.platformReadout}>
+                    <PlatformIcon platform={biolinkForm.platform} size={20} />
+                    <Text style={styles.platformReadoutText}>
+                      {getPlatformLabel(biolinkForm.platform, t)}
+                    </Text>
+                  </View>
+                </View>
+              ) : (
               <View style={styles.fieldGroup}>
                 <Text style={styles.fieldLabel}>{t('editProfile.platformLabel')}</Text>
                 <View style={styles.platformQuickRow}>
@@ -2443,6 +2457,7 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
                   </TouchableOpacity>
                 </View>
               </View>
+              )}
 
               <View style={styles.fieldGroup}>
                 <Text style={styles.fieldLabel}>
@@ -2625,37 +2640,37 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
                   /etc all want the platform name as the title; the rare
                   "two IG accounts, label them differently" case can be
                   handled by the URL itself differentiating the cards. */}
-              {/* Display Mode Toggle */}
+              {/* Display Mode Toggle — order matches the visibility
+                  row below it: LEFT = widest exposure, RIGHT =
+                  narrowest. Founder direction 2026-05-31: visibility
+                  is 公開 / 朋友 / 摯友 / 自己 (audience shrinks
+                  left→right), display mode should mirror that with
+                  全部顯示 / 圖示並排 / 清單卡片 (surface shrinks
+                  left→right). Two consistent left-to-right axes give
+                  the user a single "more on the left, less on the
+                  right" mental model. Bonus: 'both' is also the new
+                  default (20260531000000 migration), so the active
+                  pill starts on the LEFT — matching the visibility
+                  row's default ('public' is also leftmost). */}
               <View style={styles.fieldGroup}>
                 <Text style={styles.fieldLabel}>{t('editProfile.displayModeLabel', { defaultValue: '顯示方式' })}</Text>
                 <View style={styles.displayModeRow}>
-                  <TouchableOpacity
-                    style={[styles.displayModeBtn, biolinkForm.display_mode === 'icon' && styles.displayModeBtnActive]}
-                    onPress={() => setBiolinkForm(prev => ({ ...prev, display_mode: 'icon' }))}
-                    activeOpacity={0.7}
-                  >
-                    <Text style={[styles.displayModeBtnText, biolinkForm.display_mode === 'icon' && styles.displayModeBtnTextActive]}>
-                      {t('editProfile.displayModeIcon', { defaultValue: '圖示並排' })}
-                    </Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={[styles.displayModeBtn, biolinkForm.display_mode === 'card' && styles.displayModeBtnActive]}
-                    onPress={() => setBiolinkForm(prev => ({ ...prev, display_mode: 'card' }))}
-                    activeOpacity={0.7}
-                  >
-                    <Text style={[styles.displayModeBtnText, biolinkForm.display_mode === 'card' && styles.displayModeBtnTextActive]}>
-                      {t('editProfile.displayModeCard', { defaultValue: '清單卡片' })}
-                    </Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={[styles.displayModeBtn, biolinkForm.display_mode === 'both' && styles.displayModeBtnActive]}
-                    onPress={() => setBiolinkForm(prev => ({ ...prev, display_mode: 'both' }))}
-                    activeOpacity={0.7}
-                  >
-                    <Text style={[styles.displayModeBtnText, biolinkForm.display_mode === 'both' && styles.displayModeBtnTextActive]}>
-                      {t('editProfile.displayModeBoth', { defaultValue: '全部顯示' })}
-                    </Text>
-                  </TouchableOpacity>
+                  {([
+                    { key: 'both', label: t('editProfile.displayModeBoth', { defaultValue: '全部顯示' }) },
+                    { key: 'icon', label: t('editProfile.displayModeIcon', { defaultValue: '圖示並排' }) },
+                    { key: 'card', label: t('editProfile.displayModeCard', { defaultValue: '清單卡片' }) },
+                  ] as const).map((opt) => (
+                    <TouchableOpacity
+                      key={opt.key}
+                      style={[styles.displayModeBtn, biolinkForm.display_mode === opt.key && styles.displayModeBtnActive]}
+                      onPress={() => setBiolinkForm(prev => ({ ...prev, display_mode: opt.key }))}
+                      activeOpacity={0.7}
+                    >
+                      <Text style={[styles.displayModeBtnText, biolinkForm.display_mode === opt.key && styles.displayModeBtnTextActive]}>
+                        {opt.label}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
                 </View>
               </View>
 
@@ -3488,6 +3503,26 @@ function makeStyles(c: ColorPalette) {
     flexWrap: 'wrap',
     gap: 8,
     paddingVertical: 4,
+  },
+  // Read-only platform readout shown ONLY in edit mode (in place of
+  // the picker grid above). Same fieldLabel + fieldGroup wrapper as
+  // every other modal field, so it visually slots into the form
+  // without looking like a special-case island. Subtle gray100 tile
+  // signals "this is fixed for this entry, you can't change it
+  // here". 一次做一件事情 (founder 2026-05-31).
+  platformReadout: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 10,
+    backgroundColor: c.gray100,
+  },
+  platformReadoutText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: c.gray900,
   },
   // "More…" / Browse-all chip — visually subdued (no border, gray
   // text) so it doesn't compete with the real platform chips, but
