@@ -17,7 +17,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { X, Share2, Trash2, ScanLine, Link2, Pencil, Plus, RefreshCw, ArrowLeft } from 'lucide-react-native';
 import BoltIcon from '../components/BoltIcon';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import QRCode from 'react-native-qrcode-svg';
+import QrShareBody from '../components/QrShareBody';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '../lib/supabase';
 import { recordAiSuggestions, markAiSuggestionAccepted, markAiSuggestionDismissed } from '../lib/aiTagLogger';
@@ -1106,42 +1106,38 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
         </View>
       </View>
 
-      {/* Center white card with QR code + username */}
-      <View style={styles.qrCardWrap}>
-        <View style={styles.qrWhiteCard}>
-          <QRCode value={qrValue} size={220} backgroundColor="#fff" />
-          <Text style={styles.qrCardUsername}>@{qrUsername}</Text>
-          {/* QR display tags: only what the user explicitly added
-              via AI-suggestion taps or manual input. event_date /
-              event_location are still populated in the DB row (used
-              by popular_tags_near_location for future AI grounding)
-              but NOT rendered here as separate hashtag lines — the
-              user shouldn't see "ghost" tags they didn't pick. */}
-          {eventTags.length > 0 && (
-            <View style={styles.qrEventInfo}>
-              <Text style={styles.qrEventInfoLine}>
-                {eventTags.map(t => '#' + t.replace(/^#/, '')).join('  ')}
-              </Text>
-            </View>
-          )}
-        </View>
-      </View>
-
-      {/* Bottom 3 action buttons (share / copy / edit) */}
-      <View style={[styles.qrBottomRow, { paddingBottom: insets.bottom + 20 }]}>
-        <TouchableOpacity style={styles.qrBottomBtn} onPress={handleShare} activeOpacity={0.7}>
-          <Share2 size={22} color="#111827" />
-          <Text style={styles.qrBottomBtnText}>{t('addTag.shareFile', { defaultValue: '分享檔案' })}</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.qrBottomBtn} onPress={handleCopyLink} activeOpacity={0.7}>
-          <Link2 size={22} color="#111827" />
-          <Text style={styles.qrBottomBtnText}>{t('addTag.copyLink', { defaultValue: '複製連結' })}</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.qrBottomBtn} onPress={() => setMode('setup')} activeOpacity={0.7}>
-          <Pencil size={22} color="#111827" />
-          <Text style={styles.qrBottomBtnText}>{t('addTag.editQr', { defaultValue: '編輯QRcode' })}</Text>
-        </TouchableOpacity>
-      </View>
+      {/* Shared body (card + bottom pill row). Same component as
+          QrCodeModal + QrGroupDetailScreen, so all three sheets stay
+          pixel-identical. (task #38 follow-up 2026-05-31 — founder
+          ask 「這二個外型類似，但邊寬又不同，可以有一致性嗎」.)
+          name={presetName || undefined} surfaces the activity name
+          when the user applied a saved preset (matches
+          QrGroupDetail's behaviour); empty during a fresh ad-hoc
+          create, which correctly skips the name line. */}
+      <QrShareBody
+        qrValue={qrValue}
+        handle={qrUsername}
+        name={presetName || undefined}
+        tags={eventTags}
+        actions={[
+          {
+            icon: <Share2 size={22} color="#111827" />,
+            label: t('addTag.shareFile', { defaultValue: '分享檔案' }),
+            onPress: handleShare,
+          },
+          {
+            icon: <Link2 size={22} color="#111827" />,
+            label: t('addTag.copyLink', { defaultValue: '複製連結' }),
+            onPress: handleCopyLink,
+          },
+          {
+            icon: <Pencil size={22} color="#111827" />,
+            label: t('addTag.editQr', { defaultValue: '編輯QRcode' }),
+            onPress: () => setMode('setup'),
+          },
+        ]}
+        bottomInset={insets.bottom}
+      />
     </LinearGradient>
   );
 
@@ -1663,73 +1659,11 @@ function makeStyles(c: ColorPalette) {
     alignItems: 'center',
     gap: 8,
   },
-  qrCardWrap: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 32,
-  },
-  qrWhiteCard: {
-    backgroundColor: '#fff',
-    borderRadius: 24,
-    paddingHorizontal: 28,
-    paddingTop: 28,
-    paddingBottom: 20,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.15,
-    shadowRadius: 24,
-    elevation: 10,
-  },
-  qrCardUsername: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#c44dff',
-    marginTop: 16,
-    letterSpacing: 0.5,
-  },
-  qrEventInfo: {
-    marginTop: 12,
-    paddingTop: 12,
-    borderTopWidth: 1,
-    borderTopColor: '#F3F4F6',
-    alignItems: 'center',
-    gap: 4,
-    width: '100%',
-  },
-  qrEventInfoLine: {
-    fontSize: 13,
-    color: '#4B5563',
-    fontWeight: '500',
-    textAlign: 'center',
-  },
-  qrBottomRow: {
-    flexDirection: 'row',
-    paddingHorizontal: 16,
-    paddingTop: 8,
-    gap: 10,
-  },
-  qrBottomBtn: {
-    flex: 1,
-    backgroundColor: '#fff',
-    borderRadius: 14,
-    paddingVertical: 16,
-    alignItems: 'center',
-    gap: 8,
-  },
-  qrBottomBtnText: {
-    fontSize: 13,
-    fontWeight: '600',
-    // Hardcoded #111827 — these buttons sit on a HARDCODED white
-    // background which is itself on the gradient (NOT the page
-    // bg), so the text must be hardcoded dark too. c.gray900 was
-    // theme-aware and flipped to near-white in dark mode, making
-    // the labels invisible. 2026-05-31 fix mirrored from QrCodeModal
-    // (founder caught it there first and called out the recurring
-    // hardcoded-white-bg + theme-aware-fg anti-pattern).
-    color: '#111827',
-  },
+  // (qrCardWrap / qrWhiteCard / qrCardUsername / qrEventInfo /
+  // qrEventInfoLine / qrBottomRow / qrBottomBtn / qrBottomBtnText
+  // all moved into the shared QrShareBody component — single source
+  // of truth for the QR-share inner layout, matching QrCodeModal +
+  // QrGroupDetailScreen exactly. 2026-05-31 task #38 follow-up.)
   // ── Legacy QR mode styles (kept because other modes may reference) ──
   qrBrandTitle: {
     fontSize: 28,

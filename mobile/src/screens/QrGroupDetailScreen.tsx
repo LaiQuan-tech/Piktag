@@ -42,7 +42,7 @@ import { useTheme } from '../context/ThemeContext';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
 import RingedAvatar from '../components/RingedAvatar';
-import QrNameCard from '../components/QrNameCard';
+import QrShareBody from '../components/QrShareBody';
 
 type Member = {
   connection_id: string;
@@ -369,37 +369,34 @@ export default function QrGroupDetailScreen({ navigation, route }: Props) {
           </TouchableOpacity>
         </View>
 
-        <View style={styles.presentCardWrap}>
-          {/* Shared white name-card (also used by the profile share
-              modal) — keeps both surfaces pixel-identical. */}
-          <QrNameCard
-            qrValue={group.qr_code_data}
-            handle={qrUsername}
-            name={presentName}
-            tags={group.event_tags}
-          />
-        </View>
-
-        <View style={[styles.presentBottomRow, { paddingBottom: insets.bottom + 20 }]}>
-          <TouchableOpacity style={styles.presentBottomBtn} onPress={handleShare} activeOpacity={0.7}>
-            <Share2 size={22} color={'#111827'} />
-            <Text style={styles.presentBottomBtnText}>
-              {t('addTag.shareFile', { defaultValue: '分享檔案' })}
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.presentBottomBtn} onPress={handleCopyLink} activeOpacity={0.7}>
-            <Link2 size={22} color={'#111827'} />
-            <Text style={styles.presentBottomBtnText}>
-              {t('addTag.copyLink', { defaultValue: '複製連結' })}
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.presentBottomBtn} onPress={() => setMode('edit')} activeOpacity={0.7}>
-            <Pencil size={22} color={'#111827'} />
-            <Text style={styles.presentBottomBtnText}>
-              {t('addTag.editQr', { defaultValue: '編輯 QR' })}
-            </Text>
-          </TouchableOpacity>
-        </View>
+        {/* Shared body: card (uses QrNameCard) + bottom pill row.
+            Single source of truth so the activity-QR + personal-QR
+            sheets can't drift apart visually. (task #38 follow-up
+            2026-05-31.) */}
+        <QrShareBody
+          qrValue={group.qr_code_data}
+          handle={qrUsername}
+          name={presentName}
+          tags={group.event_tags}
+          actions={[
+            {
+              icon: <Share2 size={22} color={'#111827'} />,
+              label: t('addTag.shareFile', { defaultValue: '分享檔案' }),
+              onPress: handleShare,
+            },
+            {
+              icon: <Link2 size={22} color={'#111827'} />,
+              label: t('addTag.copyLink', { defaultValue: '複製連結' }),
+              onPress: handleCopyLink,
+            },
+            {
+              icon: <Pencil size={22} color={'#111827'} />,
+              label: t('addTag.editQr', { defaultValue: '編輯 QR' }),
+              onPress: () => setMode('edit'),
+            },
+          ]}
+          bottomInset={insets.bottom}
+        />
       </LinearGradient>
     );
   };
@@ -716,34 +713,11 @@ function makeStyles(c: ColorPalette) {
     paddingBottom: 8,
   },
   presentTopBtn: { padding: 8 },
-  presentCardWrap: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 32,
-  },
-  // (presentWhiteCard / presentUsername / presentName /
-  // presentTagsWrap / presentTagsLine moved into the shared
-  // QrNameCard component — single source of truth for the card.)
-  presentBottomRow: {
-    flexDirection: 'row',
-    paddingHorizontal: 16,
-    paddingTop: 8,
-    gap: 10,
-  },
-  presentBottomBtn: {
-    flex: 1,
-    backgroundColor: '#fff',
-    borderRadius: 14,
-    paddingVertical: 16,
-    alignItems: 'center',
-    gap: 8,
-  },
-  presentBottomBtnText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#111827',
-  },
+  // (presentCardWrap / presentBottomRow / presentBottomBtn /
+  // presentBottomBtnText all moved into the shared QrShareBody
+  // component — single source of truth for the QR-share inner
+  // layout, including the card centring + the pill row.
+  // 2026-05-31 task #38 follow-up.)
 
   header: {
     flexDirection: 'row',

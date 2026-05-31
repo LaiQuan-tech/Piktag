@@ -20,7 +20,7 @@ import { COLORS, type ColorPalette } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
 import { APP_BASE_URL, shareProfile } from '../lib/shareProfile';
 import QrModalStinger from './stingers/QrModalStinger';
-import QrNameCard from './QrNameCard';
+import QrShareBody from './QrShareBody';
 
 type QrCodeModalProps = {
   visible: boolean;
@@ -241,107 +241,95 @@ export default function QrCodeModal({
             </TouchableOpacity>
           </View>
 
-          {/* Centre area — white QR card OR scanner viewfinder. The
-              flex:1 vertical centring matches AddTagScreen's
-              qrCardWrap; the inner content swaps. */}
-          <View style={styles.cardWrap}>
-            {!isScanMode ? (
-              <QrNameCard
-                qrValue={profileUrl}
-                handle={username}
-                name={fullName}
-                tags={tags}
-              />
-            ) : !permission ? (
-              <View style={styles.scannerBox} />
-            ) : !permission.granted ? (
-              <View style={styles.permissionBox}>
-                <Text style={styles.permissionText}>
-                  {t('camera.permissionMessage', {
-                    defaultValue:
-                      'PikTag needs camera access to scan QR codes and connect with friends.',
-                  })}
-                </Text>
-                <TouchableOpacity
-                  style={styles.permissionBtn}
-                  onPress={requestPermission}
-                  activeOpacity={0.8}
-                >
-                  <Text style={styles.permissionBtnText}>
-                    {t('camera.grantPermission', {
-                      defaultValue: 'Grant Permission',
-                    })}
-                  </Text>
-                </TouchableOpacity>
+          {/* Show mode = the SHARED QrShareBody (card + bottom action
+              pills). Scan mode keeps its own inline scaffolding because
+              it needs the scanner inside cardWrap and a spacer in the
+              bottom row with `minHeight: 90` to reserve the same
+              vertical space as the pill row (so the layout doesn't
+              visually jump when toggling mode). */}
+          {!isScanMode ? (
+            <QrShareBody
+              qrValue={profileUrl}
+              handle={username}
+              name={fullName}
+              tags={tags}
+              actions={[
+                {
+                  icon: <Copy size={22} color="#111827" />,
+                  label: t('profile.copyLink'),
+                  onPress: handleCopyLink,
+                },
+                {
+                  icon: <Share2 size={22} color="#111827" />,
+                  label: t('profile.share'),
+                  onPress: handleShare,
+                },
+              ]}
+              bottomInset={insets.bottom}
+            />
+          ) : (
+            <>
+              <View style={styles.cardWrap}>
+                {!permission ? (
+                  <View style={styles.scannerBox} />
+                ) : !permission.granted ? (
+                  <View style={styles.permissionBox}>
+                    <Text style={styles.permissionText}>
+                      {t('camera.permissionMessage', {
+                        defaultValue:
+                          'PikTag needs camera access to scan QR codes and connect with friends.',
+                      })}
+                    </Text>
+                    <TouchableOpacity
+                      style={styles.permissionBtn}
+                      onPress={requestPermission}
+                      activeOpacity={0.8}
+                    >
+                      <Text style={styles.permissionBtnText}>
+                        {t('camera.grantPermission', {
+                          defaultValue: 'Grant Permission',
+                        })}
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                ) : (
+                  <>
+                    <View style={styles.scannerBox}>
+                      <CameraView
+                        style={StyleSheet.absoluteFill}
+                        facing="back"
+                        barcodeScannerSettings={{ barcodeTypes: ['qr'] }}
+                        onBarcodeScanned={
+                          visible && isScanMode && !scanned
+                            ? handleBarcodeScanned
+                            : undefined
+                        }
+                      />
+                      <View style={[styles.corner, styles.cornerTopLeft]} />
+                      <View style={[styles.corner, styles.cornerTopRight]} />
+                      <View style={[styles.corner, styles.cornerBottomLeft]} />
+                      <View style={[styles.corner, styles.cornerBottomRight]} />
+                    </View>
+                    <Text style={styles.scanHint}>
+                      {t('camera.instruction', {
+                        defaultValue: 'Point your camera at a PikTag QR code',
+                      })}
+                    </Text>
+                  </>
+                )}
               </View>
-            ) : (
-              <>
-                <View style={styles.scannerBox}>
-                  <CameraView
-                    style={StyleSheet.absoluteFill}
-                    facing="back"
-                    barcodeScannerSettings={{ barcodeTypes: ['qr'] }}
-                    onBarcodeScanned={
-                      visible && isScanMode && !scanned
-                        ? handleBarcodeScanned
-                        : undefined
-                    }
-                  />
-                  <View style={[styles.corner, styles.cornerTopLeft]} />
-                  <View style={[styles.corner, styles.cornerTopRight]} />
-                  <View style={[styles.corner, styles.cornerBottomLeft]} />
-                  <View style={[styles.corner, styles.cornerBottomRight]} />
-                </View>
-                <Text style={styles.scanHint}>
-                  {t('camera.instruction', {
-                    defaultValue: 'Point your camera at a PikTag QR code',
-                  })}
-                </Text>
-              </>
-            )}
-          </View>
-
-          {/* Bottom action pills — verbatim style mirror of
-              AddTagScreen.qrBottomRow / qrBottomBtn (white pill,
-              16-px vertical padding, icon + label centred). Only
-              shows in show mode; reserves the same vertical space
-              in scan mode so the layout doesn't visually jump. */}
-          <View style={[styles.bottomRow, { paddingBottom: insets.bottom + 20 }]}>
-            {!isScanMode ? (
-              <>
-                {/* Icon + text colors are HARDCODED dark (#111827)
-                    on purpose — the button bg is hardcoded white
-                    because the pill sits on the gradient, NOT the
-                    page background. Theme-aware colors.gray900
-                    would flip to near-white in dark mode and the
-                    icon/text would disappear on white. Same
-                    pattern as the QrNameCard's @username (uses
-                    hardcoded #c44dff). 2026-05-31 fix after the
-                    founder caught the dark-mode "invisible
-                    buttons" bug. */}
-                <TouchableOpacity
-                  style={styles.bottomBtn}
-                  onPress={handleCopyLink}
-                  activeOpacity={0.7}
-                >
-                  <Copy size={22} color="#111827" />
-                  <Text style={styles.bottomBtnText}>{t('profile.copyLink')}</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.bottomBtn}
-                  onPress={handleShare}
-                  activeOpacity={0.7}
-                >
-                  <Share2 size={22} color="#111827" />
-                  <Text style={styles.bottomBtnText}>{t('profile.share')}</Text>
-                </TouchableOpacity>
-              </>
-            ) : (
-              // Empty placeholder keeps the bottom row's reserved
-              // height so the QR card doesn't jump on mode swap.
-              <View style={styles.bottomBtnSpacer} />
-            )}
-          </View>
+              {/* Scan-mode bottom spacer. minHeight:90 ≈ the natural
+                  height of a pill row so the cardWrap (flex:1) gets
+                  the same available space in both modes. Without it
+                  the QR card would jump on toggle. */}
+              <View
+                style={[
+                  styles.scanModeBottomSpacer,
+                  { paddingBottom: insets.bottom + 20 },
+                ]}
+              />
+            </>
+          )}
         </LinearGradient>
       </QrModalStinger>
     </Modal>
@@ -417,32 +405,16 @@ function makeStyles(c: ColorPalette) {
       textAlign: 'center',
       fontWeight: '600',
     },
-    // ── Bottom row — mirrors AddTagScreen.qrBottomRow / qrBottomBtn ──
-    bottomRow: {
-      flexDirection: 'row',
-      paddingHorizontal: 16,
-      paddingTop: 8,
-      gap: 10,
+    // ── Scan-mode bottom spacer ──
+    // The show-mode bottom row (pill buttons) lives in QrShareBody.
+    // In scan mode we render this empty spacer instead so the
+    // cardWrap (flex:1) gets the same available vertical space and
+    // the QR card / scannerBox stay vertically pinned at the same
+    // position across mode switches. The 90px is approximate but
+    // matches the natural pill-row height closely enough that the
+    // visual jump is imperceptible.
+    scanModeBottomSpacer: {
       minHeight: 90,
-    },
-    bottomBtn: {
-      flex: 1,
-      backgroundColor: '#fff',
-      borderRadius: 14,
-      paddingVertical: 16,
-      alignItems: 'center',
-      gap: 8,
-    },
-    bottomBtnText: {
-      fontSize: 13,
-      fontWeight: '600',
-      // Hardcoded dark — see the comment at the call site. Theme-
-      // aware c.gray900 would flip to near-white on dark mode and
-      // disappear against the hardcoded white button background.
-      color: '#111827',
-    },
-    bottomBtnSpacer: {
-      flex: 1,
     },
     // ── Scanner corner brackets ──
     corner: {
