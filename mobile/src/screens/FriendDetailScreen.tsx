@@ -39,7 +39,6 @@ import {
   Heart,
   Clock,
   Bell,
-  ExternalLink,
   Share2,
   MoreHorizontal,
   X,
@@ -51,8 +50,7 @@ import { useTranslation } from 'react-i18next';
 import { COLORS, type ColorPalette } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
 import { LinearGradient } from 'expo-linear-gradient';
-import PlatformIcon from '../components/PlatformIcon';
-import { getPlatformLabel } from '../lib/platforms';
+import BiolinkSocialSection from '../components/BiolinkSocialSection';
 import InitialsAvatar from '../components/InitialsAvatar';
 import RingedAvatar from '../components/RingedAvatar';
 import TagChip from '../components/TagChip';
@@ -1426,66 +1424,16 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
           </View>
         )}
 
-        {/* ===== Biolinks — matches ProfileScreen layout exactly =====
-            Two intentional differences from the previous impl:
-              1. No section title ("社群連結"). Universal logos communicate
-                 "social links" on their own.
-              2. Icon row no longer shows a text label under each circle
-                 (was rendering "facebook" / phone-number under FB / phone
-                 icons). The brand glyphs already say what they are.
-              3. Both rows now filter by display_mode so a biolink the
-                 user marked as 'icon-only' doesn't also show as a card
-                 (and vice versa) — same rule ProfileScreen uses. Before
-                 this filter, every biolink rendered TWICE.
-        */}
-        {biolinks.filter((bl) => bl.display_mode === 'icon' || bl.display_mode === 'both').length > 0 && (
-          <View style={styles.socialSection}>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.socialScrollContent}>
-              {biolinks
-                .filter((bl) => bl.display_mode === 'icon' || bl.display_mode === 'both')
-                .map((link) => (
-                  <TouchableOpacity
-                    key={link.id}
-                    style={styles.socialCircleItem}
-                    onPress={() => handleOpenLink(link.url, link.id)}
-                    activeOpacity={0.7}
-                    accessibilityLabel={link.label || link.platform}
-                    accessibilityRole="link"
-                  >
-                    <View style={styles.socialCircleRing}>
-                      <View style={styles.socialCircleInner}>
-                        <PlatformIcon platform={link.platform} size={28} iconUrl={link.icon_url} url={link.url} />
-                      </View>
-                    </View>
-                  </TouchableOpacity>
-                ))}
-            </ScrollView>
-          </View>
-        )}
-
-        {biolinks.filter((bl) => bl.display_mode === 'card' || bl.display_mode === 'both').length > 0 && (
-          <View style={styles.linkBioSection}>
-            {biolinks
-              .filter((bl) => bl.display_mode === 'card' || bl.display_mode === 'both')
-              .map((link) => (
-                <TouchableOpacity
-                  key={link.id}
-                  style={styles.linkCard}
-                  onPress={() => handleOpenLink(link.url, link.id)}
-                  activeOpacity={0.7}
-                >
-                  <PlatformIcon platform={link.platform} size={22} iconUrl={link.icon_url} url={link.url} />
-                  <Text style={styles.linkCardText} numberOfLines={1}>
-                    {/* Localized fallback — see ProfileScreen for the
-                        same fix. Raw link.platform showed English on
-                        zh-TW devices. */}
-                    {link.label || getPlatformLabel(link.platform, t)}
-                  </Text>
-                  <ExternalLink size={16} color={colors.gray400} />
-                </TouchableOpacity>
-              ))}
-          </View>
-        )}
+        {/* Social biolinks (icon row + card section). Migrated to the
+            shared BiolinkSocialSection component 2026-05-31 (task #38).
+            Visual variant 'highlight' preserves the IG-Highlights
+            look (60px ring + 52px inner, gray100-bg cards) used on
+            other-people profiles. */}
+        <BiolinkSocialSection
+          biolinks={biolinks}
+          onPress={(link) => handleOpenLink(link.url, link.id)}
+          variant="highlight"
+        />
 
         {/* ===== SECTION 4: CRM & Management (below the fold) ===== */}
 
@@ -2295,56 +2243,6 @@ function makeStyles(c: ColorPalette) {
     backgroundColor: c.gray200,
   },
 
-  // Social Section
-  socialSection: {
-    paddingTop: 8,
-    paddingBottom: 16,
-    borderTopWidth: 1,
-    borderTopColor: c.gray100,
-  },
-  socialScrollContent: {
-    // Center the icon row when it fits the viewport, fall back to
-    // left-align + scroll when it overflows. Same behavior as
-    // ProfileScreen.iconRowContent — founder ask 2026-05-31:
-    // 「好友的社交連結圖示顯示是靠左，但使用者個人的是置中，可以
-    // 統一都置中嗎」. flexGrow stretches the contentContainer to
-    // viewport width so justifyContent: 'center' can take effect on
-    // short lists; overflow auto-aligns to start and scrolls.
-    flexGrow: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    gap: 16,
-  },
-  socialCircleItem: {
-    alignItems: 'center',
-    width: 68,
-  },
-  socialCircleRing: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    borderWidth: 2,
-    borderColor: c.gray200,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 6,
-  },
-  socialCircleInner: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
-    backgroundColor: c.fill,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  socialCircleLabel: {
-    fontSize: 11,
-    fontWeight: '500',
-    color: c.gray700,
-    textAlign: 'center',
-  },
-
   // Mutual Friends Section (FB/IG style horizontal avatars)
   mutualFriendsSection: {
     paddingTop: 12,
@@ -2394,31 +2292,6 @@ function makeStyles(c: ColorPalette) {
     color: c.gray700,
     textAlign: 'center',
     maxWidth: 64,
-  },
-
-  // Link Bio (Linktree style)
-  linkBioSection: {
-    paddingHorizontal: 20,
-    paddingTop: 8,
-    paddingBottom: 12,
-    gap: 10,
-  },
-  linkCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: c.gray100,
-    borderWidth: 1.5,
-    borderColor: c.gray200,
-    borderRadius: 16,
-    paddingVertical: 16,
-    paddingHorizontal: 18,
-    gap: 12,
-  },
-  linkCardText: {
-    flex: 1,
-    fontSize: 16,
-    fontWeight: '600',
-    color: c.gray900,
   },
 
   // Stats line

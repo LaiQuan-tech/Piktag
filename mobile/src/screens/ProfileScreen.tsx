@@ -14,11 +14,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   Settings,
   CheckCircle2,
-  ExternalLink,
   MessageCircle,
 } from 'lucide-react-native';
-import PlatformIcon from '../components/PlatformIcon';
-import { getPlatformLabel } from '../lib/platforms';
+import BiolinkSocialSection from '../components/BiolinkSocialSection';
 import { useTranslation } from 'react-i18next';
 import { COLORS, type ColorPalette } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
@@ -520,64 +518,15 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
           </View>
         </View>
 
-        {/* ============ SECTION 2: Icon 並排區 (display_mode = 'icon') ============ */}
-        {/* Horizontal-scroll when count exceeds the viewport. Founder
-            caught icons getting clipped on both edges 2026-05-31 once
-            the display_mode default flipped to 'both' (which surfaces
-            every link in this row). `contentContainerStyle`'s
-            `justifyContent: 'center'` only centers when the content
-            width fits — overflow auto-aligns to flex-start and
-            scrolls. So short lists still look centered, long lists
-            become swipeable without a layout switch. */}
-        {activeBiolinks.filter(bl => bl.display_mode === 'icon' || bl.display_mode === 'both').length > 0 && (
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            style={styles.iconRowScroll}
-            contentContainerStyle={styles.iconRowContent}
-          >
-            {activeBiolinks.filter(bl => bl.display_mode === 'icon' || bl.display_mode === 'both').map((bl) => (
-              <TouchableOpacity
-                key={bl.id}
-                style={styles.iconCircle}
-                activeOpacity={0.7}
-                onPress={() => handleOpenBiolink(bl.url)}
-              >
-                <View style={styles.iconCircleInner}>
-                  <PlatformIcon platform={bl.platform} size={22} iconUrl={bl.icon_url} url={bl.url} />
-                </View>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-        )}
-
-        {/* ============ SECTION 3: 清單按鈕區 (display_mode = 'card') ============ */}
-        {activeBiolinks.filter(bl => bl.display_mode === 'card' || bl.display_mode === 'both').length > 0 && (
-          <View style={styles.cardSection}>
-            {activeBiolinks.filter(bl => bl.display_mode === 'card' || bl.display_mode === 'both').map((bl) => (
-              <TouchableOpacity
-                key={bl.id}
-                style={styles.socialCard}
-                activeOpacity={0.7}
-                onPress={() => handleOpenBiolink(bl.url)}
-              >
-                <View style={styles.socialCardIcon}>
-                  <PlatformIcon platform={bl.platform} size={24} iconUrl={bl.icon_url} url={bl.url} />
-                </View>
-                <Text style={styles.socialCardLabel} numberOfLines={1}>
-                  {/* Fall back to the LOCALIZED platform label,
-                      not the raw key. Without this, a zh-TW user
-                      saw "Phone / Email / Website" in English
-                      because bl.platform is the persisted lowercase
-                      key, not the display string. Founder caught
-                      this on 2026-05-31. */}
-                  {bl.label || getPlatformLabel(bl.platform, t)}
-                </Text>
-                <ExternalLink size={14} color={colors.gray300} />
-              </TouchableOpacity>
-            ))}
-          </View>
-        )}
+        {/* Social biolinks (icon row + card section). Migrated to the
+            shared BiolinkSocialSection component 2026-05-31 (task #38).
+            Visual variant 'compact' preserves the spartan own-profile
+            look (48px circles, no ring, fill-bg cards). */}
+        <BiolinkSocialSection
+          biolinks={activeBiolinks}
+          onPress={(bl) => handleOpenBiolink(bl.url)}
+          variant="compact"
+        />
 
         {activeBiolinks.length === 0 && !profile?.phone && !user?.email && (
           <View style={styles.emptySection}>
@@ -813,51 +762,6 @@ function makeStyles(c: ColorPalette) {
     borderRadius: 2,
   },
 
-  // ===== Icon row (display_mode = 'icon' / 'both') =====
-  // Outer ScrollView owns the borderTop (so the divider spans the
-  // full screen width even when the inner content is scrollable).
-  // Inner contentContainerStyle owns the row layout. flexGrow makes
-  // the content stretch to viewport width when short, so
-  // justifyContent: 'center' can center fewer-than-fits icons; when
-  // content overflows, it auto-aligns to start and scrolls.
-  iconRowScroll: {
-    borderTopWidth: 1,
-    borderTopColor: c.gray100,
-  },
-  iconRowContent: {
-    flexGrow: 1,
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: 16,
-    paddingVertical: 16,
-    paddingHorizontal: 20,
-  },
-  iconCircle: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  iconCircleInner: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: c.fill,
-    borderWidth: 1.5,
-    borderColor: c.gray200,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-
-  // ===== Card section (display_mode = 'card') =====
-  cardSection: {
-    paddingHorizontal: 20,
-    paddingTop: 8,
-    paddingBottom: 16,
-    borderTopWidth: 1,
-    borderTopColor: c.gray100,
-    gap: 8,
-  },
-
   // ===== Section: Shared =====
   sectionTitle: {
     fontSize: 13,
@@ -911,43 +815,6 @@ function makeStyles(c: ColorPalette) {
   },
   contactValue: {
     fontSize: 14,
-    fontWeight: '600',
-    color: c.gray900,
-  },
-
-  // ===== Section 3: Social Accounts =====
-  socialSection: {
-    paddingTop: 8,
-    paddingBottom: 16,
-    borderTopWidth: 1,
-    borderTopColor: c.gray100,
-  },
-  socialGrid: {
-    paddingHorizontal: 20,
-    gap: 8,
-  },
-  socialCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: c.fill,
-    borderWidth: 1.5,
-    borderColor: c.gray200,
-    borderRadius: 14,
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-    gap: 12,
-  },
-  socialCardIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
-    backgroundColor: c.fill,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  socialCardLabel: {
-    flex: 1,
-    fontSize: 15,
     fontWeight: '600',
     color: c.gray900,
   },

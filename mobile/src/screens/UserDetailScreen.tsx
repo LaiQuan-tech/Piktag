@@ -19,7 +19,6 @@ import {
   ArrowLeft,
   CheckCircle2,
   Link as LinkIcon,
-  ExternalLink,
   Share2,
   MoreHorizontal,
   Heart,
@@ -32,8 +31,7 @@ import { useTranslation } from 'react-i18next';
 import { COLORS, type ColorPalette } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
 import { LinearGradient } from 'expo-linear-gradient';
-import PlatformIcon from '../components/PlatformIcon';
-import { getPlatformLabel } from '../lib/platforms';
+import BiolinkSocialSection from '../components/BiolinkSocialSection';
 import OverlappingAvatars from '../components/OverlappingAvatars';
 import RingedAvatar from '../components/RingedAvatar';
 import HiddenTagEditor from '../components/HiddenTagEditor';
@@ -107,14 +105,10 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
   const [profile, setProfile] = useState<PiktagProfile | null>(null);
   const [tags, setTags] = useState<string[]>([]);
   const [biolinks, setBiolinks] = useState<Biolink[]>([]);
-  const iconBiolinks = useMemo(
-    () => biolinks.filter(bl => bl.display_mode === 'icon' || bl.display_mode === 'both'),
-    [biolinks]
-  );
-  const cardBiolinks = useMemo(
-    () => biolinks.filter(bl => bl.display_mode === 'card' || bl.display_mode === 'both'),
-    [biolinks]
-  );
+  // The display_mode filtering moved into BiolinkSocialSection
+  // (task #38). Kept biolinks state at this scope because other
+  // sections (counts, completeness checks elsewhere on the page)
+  // still rely on the full list.
   const [mutualFriends, setMutualFriends] = useState(0);
   const [mutualFriendProfiles, setMutualFriendProfiles] = useState<any[]>([]);
   const [mutualTags, setMutualTags] = useState(0);
@@ -1479,53 +1473,14 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
           </View>
         )}
 
-        {/* Biolinks — matches ProfileScreen layout exactly. Section
-            titles removed (universal logos speak for themselves) and
-            the per-icon text label dropped (FB / phone glyph carries
-            the meaning). See FriendDetailScreen for the same rationale. */}
-        {iconBiolinks.length > 0 && (
-          <View style={styles.socialSection}>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.socialScrollContent}>
-              {iconBiolinks.map((link) => (
-                <TouchableOpacity
-                  key={link.id}
-                  style={styles.socialCircleItem}
-                  onPress={() => handleOpenLink(link.url)}
-                  activeOpacity={0.7}
-                  accessibilityLabel={link.label || link.platform}
-                  accessibilityRole="link"
-                >
-                  <View style={styles.socialCircleRing}>
-                    <View style={styles.socialCircleInner}>
-                      <PlatformIcon platform={link.platform} size={28} iconUrl={link.icon_url} url={link.url} />
-                    </View>
-                  </View>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-          </View>
-        )}
-
-        {cardBiolinks.length > 0 && (
-          <View style={styles.linkBioSection}>
-            {cardBiolinks.map((link) => (
-              <TouchableOpacity
-                key={link.id}
-                style={styles.linkCard}
-                onPress={() => handleOpenLink(link.url)}
-                activeOpacity={0.7}
-              >
-                <PlatformIcon platform={link.platform} size={22} iconUrl={link.icon_url} url={link.url} />
-                <Text style={styles.linkCardText} numberOfLines={1}>
-                  {/* Localized fallback — same fix as ProfileScreen
-                      / FriendDetail. */}
-                  {link.label || getPlatformLabel(link.platform, t)}
-                </Text>
-                <ExternalLink size={16} color={colors.gray400} />
-              </TouchableOpacity>
-            ))}
-          </View>
-        )}
+        {/* Social biolinks (icon row + card section). Migrated to the
+            shared BiolinkSocialSection component 2026-05-31 (task #38).
+            Visual variant 'highlight' matches FriendDetailScreen. */}
+        <BiolinkSocialSection
+          biolinks={biolinks}
+          onPress={(link) => handleOpenLink(link.url)}
+          variant="highlight"
+        />
 
         {/* All Tags Section removed — tags now shown inline in profile section */}
       </ScrollView>
@@ -2083,80 +2038,6 @@ function makeStyles(c: ColorPalette) {
     paddingHorizontal: 20,
     marginBottom: 12,
     marginTop: 12,
-  },
-
-  // Social Circles (IG Highlights style)
-  socialSection: {
-    paddingTop: 8,
-    paddingBottom: 16,
-    borderTopWidth: 1,
-    borderTopColor: c.gray100,
-  },
-  socialScrollContent: {
-    // Mirror FriendDetailScreen's icon row layout (founder ask
-    // 2026-05-31: unify own-profile / friend / non-friend icon row
-    // alignment to all-centered). flexGrow + justifyContent: 'center'
-    // means short lists center, long lists scroll left-aligned.
-    flexGrow: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    gap: 16,
-  },
-  socialCircleItem: {
-    alignItems: 'center',
-    width: 68,
-  },
-  socialCircleRing: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    borderWidth: 2,
-    borderColor: c.gray200,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 6,
-  },
-  socialCircleInner: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
-    backgroundColor: c.fill,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  socialCircleLabel: {
-    fontSize: 11,
-    fontWeight: '500',
-    color: c.gray700,
-    textAlign: 'center',
-  },
-
-  // Link Bio (Linktree style)
-  linkBioSection: {
-    paddingHorizontal: 20,
-    paddingTop: 8,
-    paddingBottom: 20,
-    borderTopWidth: 1,
-    borderTopColor: c.gray100,
-    gap: 10,
-  },
-  linkCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: c.gray100,
-    borderWidth: 1.5,
-    borderColor: c.gray200,
-    borderRadius: 16,
-    paddingVertical: 16,
-    paddingHorizontal: 18,
-    gap: 12,
-  },
-  linkCardText: {
-    flex: 1,
-    fontSize: 16,
-    fontWeight: '600',
-    color: c.gray900,
   },
 
   actionButtonsRow: {
