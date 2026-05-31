@@ -1011,6 +1011,22 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
       return;
     }
 
+    // For custom Link, the URL field is prefilled with `https://` to
+    // save the user keystrokes. If they tap Save without adding a
+    // host (string is literally `https://` or `http://`), the row
+    // would land in the DB as a dead link that opens a blank tab.
+    // Reject before insert — same alert as missing-required so the
+    // user is just nudged to type a host.
+    if (platformKey === 'custom') {
+      try {
+        const host = new URL(effectiveUrl).hostname;
+        if (!host) throw new Error('no host');
+      } catch {
+        Alert.alert(t('editProfile.alertHintTitle'), t('editProfile.alertFillRequired'));
+        return;
+      }
+    }
+
     const iconUrl = getIconUrl(effectiveUrl);
     // 2026-05-31: parity-with-inline-add. The display name field
     // came back FOR CUSTOM ONLY. The original "always derive from
@@ -2270,6 +2286,26 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
                           : `${prefix}${newLinkAccount.trim()}`;
                       }
                       if (!fullUrl) return;
+                      // For custom Link, reject scheme-only URLs
+                      // (`https://` / `http://`). The URL field is
+                      // prefilled with `https://`, so a user who
+                      // taps Add without typing a host would
+                      // otherwise create a dead biolink. Mirrors the
+                      // same guard in handleSaveBiolink.
+                      if (selectedPlatform === 'custom') {
+                        try {
+                          const host = new URL(fullUrl).hostname;
+                          if (!host) throw new Error('no host');
+                        } catch {
+                          Alert.alert(
+                            t('common.error'),
+                            t('editProfile.alertBiolinkEmptyAccount', {
+                              defaultValue: '請先輸入號碼或帳號。',
+                            }),
+                          );
+                          return;
+                        }
+                      }
                       // Custom can still have a user-typed label (the
                       // legacy form's only text input for naming) —
                       // the open-text URL has no platform brand name
@@ -2521,6 +2557,19 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
                         // is on `custom` deliberately), just surface
                         // the option below the input as a tap-to-
                         // apply chip.
+                        //
+                        // SKIP in edit mode — the platform is locked
+                        // (see platformReadout block above). Surfacing
+                        // the detect chip there would either be a
+                        // dead-end (user can tap nothing) or, worse,
+                        // a trap door that lets the chip's onPress
+                        // mutate the supposedly-locked platform and
+                        // recreate the snapchat+yahoo Frankenstein
+                        // URL bug. Honor the lock from the source.
+                        if (editingBiolink) {
+                          setAutoDetectedPlatform(null);
+                          return;
+                        }
                         const detected = detectPlatformFromUrl(v);
                         setAutoDetectedPlatform(
                           detected && detected !== 'custom' ? detected : null,
@@ -2574,6 +2623,13 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
                         value={biolinkForm.account}
                         onChangeText={(v) => {
                           setBiolinkForm((prev) => ({ ...prev, account: v }));
+                          // SKIP in edit mode — platform is locked
+                          // (see custom branch comment above for the
+                          // same rationale).
+                          if (editingBiolink) {
+                            setAutoDetectedPlatform(null);
+                            return;
+                          }
                           // If the user pasted a FULL URL belonging
                           // to a different platform than the current
                           // chip, surface that as a tap-to-switch
