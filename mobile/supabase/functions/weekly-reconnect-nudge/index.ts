@@ -88,6 +88,11 @@ serve(async (req) => {
             user_id: row.user_id,
             type: 'reconnect_suggest',
             title,
+            // English fallback body — clients prefer
+            // `notifications.types.reconnect_suggest.body`; this is
+            // what shows when the locale template isn't present.
+            // CLAUDE.md "non-empty body" rule (2026-05-30 vibe_shift).
+            body: `Reconnect with ${friendName} — you share ${row.shared_tag_names?.length ?? 0} tag${(row.shared_tag_names?.length ?? 0) === 1 ? '' : 's'}.`,
             ref_type: 'user',
             ref_id: row.friend_id,
             data: {

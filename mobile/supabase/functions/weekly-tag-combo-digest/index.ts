@@ -87,6 +87,11 @@ serve(async (req) => {
             user_id: row.user_id,
             type: 'tag_combo',
             title,
+            // English fallback body — clients prefer
+            // `notifications.types.tag_combo.body`; this shows when
+            // the locale template isn't present. CLAUDE.md "non-empty
+            // body" rule (2026-05-30 vibe_shift incident).
+            body: `${row.match_count} ${row.match_count === 1 ? 'person matches' : 'people match'} #${row.tag_a_name} + #${row.tag_b_name} in your network.`,
             ref_type: 'tag_pair',
             ref_id: refKey,
             data: {

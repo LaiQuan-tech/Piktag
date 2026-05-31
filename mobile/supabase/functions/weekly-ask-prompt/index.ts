@@ -73,6 +73,16 @@ serve(async (req) => {
           user_id: row.user_id,
           type: 'ask_prompt',
           title: '今天想要什麼？發一個 Ask 讓朋友看到',
+          // English fallback body — modern clients prefer the
+          // locale `notifications.types.ask_prompt.body` template;
+          // this string is what renders when that key doesn't exist
+          // or hasn't yet been added. CLAUDE.md rule (2026-05-30
+          // vibe_shift incident): "if you're about to write body:
+          // '', STOP. Either write a non-empty string OR commit the
+          // i18n template in all 19 locales in the same PR." Default
+          // to the former — keeps the row legible if the template
+          // is ever renamed/moved/dropped.
+          body: 'Post a quick Ask — your friends can help.',
           data: { source: 'weekly-prompt' },
         });
       if (!insertErr) inserted++;

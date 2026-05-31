@@ -111,6 +111,13 @@ serve(async (req) => {
             user_id: row.host_user_id,
             type: 'on_this_day',
             title,
+            // English fallback body — clients prefer
+            // `notifications.types.on_this_day.body`; this string
+            // shows when that key isn't present. See CLAUDE.md
+            // "non-empty body" rule (2026-05-30 vibe_shift incident).
+            body: row.vibe_name
+              ? `Remember "${row.vibe_name}" with ${row.member_count} people?`
+              : `Remember meeting ${row.member_count} people?`,
             ref_type: 'scan_session',
             ref_id: row.scan_session_id,
             data: {
