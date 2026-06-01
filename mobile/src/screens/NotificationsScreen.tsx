@@ -143,19 +143,21 @@ function getNotificationDisplay(
     return { username: '', body: item.title };
   }
 
-  // tag_trending consolidated rows (post-2026-05-31 migration
-  // 20260531010000) carry `data.tag_count` > 1 when the user has
-  // multiple trending tags rolled up into a single row. The legacy
-  // per-locale templates only interpolate one `tag_name`, so for
-  // multi-tag rows fall through to the server body (which is a
-  // pre-rendered English sentence listing all tags). Pluralised
-  // per-locale templates can land as a post-launch follow-up;
-  // this gets the row legible TODAY.
-  if (type === 'tag_trending') {
-    const tagCount = typeof data.tag_count === 'number' ? data.tag_count : 1;
-    if (tagCount > 1) {
-      return { username: '', body: item.body ?? '' };
-    }
+  // Consolidated multi-target rows (post-2026-05-31 restraint pass).
+  // When the server rolls multiple items into a single row for a user
+  // — tag_trending with `tag_count > 1`, recommendation with
+  // `candidate_count > 1` — the legacy per-locale templates only
+  // interpolate the primary item's fields. For these rows the
+  // pre-rendered English server body is the most accurate render
+  // until per-locale pluralised templates land in a follow-up.
+  const consolidationCount =
+    type === 'tag_trending'
+      ? (typeof data.tag_count === 'number' ? data.tag_count : 1)
+      : type === 'recommendation'
+        ? (typeof data.candidate_count === 'number' ? data.candidate_count : 1)
+        : 1;
+  if (consolidationCount > 1) {
+    return { username: '', body: item.body ?? '' };
   }
 
   // `ask_body` may be longer than 60 chars in the data payload. The DB
