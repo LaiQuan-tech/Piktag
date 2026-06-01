@@ -29,7 +29,12 @@ const EXPO_PUSH_URL = 'https://exp.host/--/api/v2/push/send';
 // Lookback window for "newly-inserted" rows after the SQL helper runs.
 // Generous enough to absorb clock skew and helper runtime; small enough to avoid
 // re-pushing yesterday's notifications on a manual re-run.
-const LOOKBACK_SECONDS = 120;
+// Aligned to 300s on 2026-06-01 to match notification-recommendation/index.ts
+// — previously 120s here, which could race if a future scale-up made the
+// enqueue helper take >2 min and rows inserted early in that run fell outside
+// the window. Tag-trending consolidation (1 row/user/day) keeps the per-cron
+// row count bounded, so 300s is comfortable headroom either way.
+const LOOKBACK_SECONDS = 300;
 const MAX_BODY_CHARS = 200;
 
 function timingSafeEqual(a: string, b: string): boolean {
