@@ -143,6 +143,21 @@ function getNotificationDisplay(
     return { username: '', body: item.title };
   }
 
+  // tag_trending consolidated rows (post-2026-05-31 migration
+  // 20260531010000) carry `data.tag_count` > 1 when the user has
+  // multiple trending tags rolled up into a single row. The legacy
+  // per-locale templates only interpolate one `tag_name`, so for
+  // multi-tag rows fall through to the server body (which is a
+  // pre-rendered English sentence listing all tags). Pluralised
+  // per-locale templates can land as a post-launch follow-up;
+  // this gets the row legible TODAY.
+  if (type === 'tag_trending') {
+    const tagCount = typeof data.tag_count === 'number' ? data.tag_count : 1;
+    if (tagCount > 1) {
+      return { username: '', body: item.body ?? '' };
+    }
+  }
+
   // `ask_body` may be longer than 60 chars in the data payload. The DB
   // truncates for the stored body but data.ask_body is the full string,
   // so trim it client-side to keep the row to one line.

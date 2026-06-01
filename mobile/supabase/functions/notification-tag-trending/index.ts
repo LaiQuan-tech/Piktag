@@ -133,19 +133,28 @@ serve(async (req) => {
     }
 
     // 4. Fire pushes mirroring send-chat-push payload shape.
+    // The 2026-05-31 consolidation migration guarantees max one row
+    // per user per day, so the old rank=1 push gate became redundant
+    // — every row in `candidates` is already the user's daily roll-up.
     for (const row of candidates) {
       try {
         const data = (row.data ?? {}) as Record<string, unknown>;
-        // Defensive rank gate: only push for rank-1 trending tag per user.
-        const rank = typeof data.rank === 'number' ? data.rank : Number(data.rank ?? 0);
-        if (rank && rank !== 1) continue;
 
         const profile = tokenByUser.get(row.user_id);
         const token = profile?.push_token;
         if (!token) continue;
 
         const tagName = typeof data.tag_name === 'string' ? data.tag_name : '';
-        const pushTitle = tagName ? `#${tagName}` : 'PikTag';
+        const tagCount = typeof data.tag_count === 'number'
+          ? data.tag_count
+          : Number(data.tag_count ?? 1);
+        // Push title shapes itself to the count: single = the tag,
+        // multi = a punchy "N tags trending" summary that doesn't
+        // pretend only one trended. Server `body` carries the full
+        // list either way.
+        const pushTitle = tagCount > 1
+          ? `🔥 ${tagCount} tags trending`
+          : tagName ? `#${tagName}` : 'PikTag';
         const pushBody = truncate(row.body ?? `your tag is trending today`);
 
         const resp = await fetch(EXPO_PUSH_URL, {
