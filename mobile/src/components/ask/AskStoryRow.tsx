@@ -32,7 +32,15 @@ import { normalizeTagName as sharedNormalizeTag } from '../../lib/normalizeTag';
 import { useAuth } from '../../hooks/useAuth';
 import { useRotatingPlaceholder } from '../../hooks/useRotatingPlaceholder';
 import type { AskFeedItem, MyActiveAsk } from '../../types/ask';
-import AskMatchSheet from './AskMatchSheet';
+// AskMatchSheet removed 2026-05-31 — founder direction
+// 「ask 發佈時的說明，這頁其實可不要，前一頁也有說明，再來就太多了」.
+// The AskCreateModal subtitle already tells the user that matching
+// happens; surfacing a second sheet right after publish was redundant
+// (and especially jarring when the match list was empty — the user
+// just gets a wall of explanation text twice). Match candidates still
+// flow via the `ask_match` notification + the 2nd-degree story row,
+// so removing this surface doesn't drop the North Star moment, just
+// the eager-modal version of it.
 
 const SCREEN_HEIGHT = Dimensions.get('window').height;
 const SCREEN_WIDTH = Dimensions.get('window').width;
@@ -149,10 +157,8 @@ export default function AskStoryRow({ asks, myAsk, myAvatarUrl, myName, onRefres
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const { user } = useAuth();
   const [createVisible, setCreateVisible] = useState(false);
-  // Phase 1: after a successful Ask creation, the modal hands us the
-  // new ask_id; we open the match sheet on top so the user
-  // immediately sees their best 1st-degree candidates. NULL = closed.
-  const [matchSheetAskId, setMatchSheetAskId] = useState<string | null>(null);
+  // (matchSheetAskId state dropped — see AskMatchSheet removal note
+  // at the import block above.)
   const [hiddenAuthorIds, setHiddenAuthorIds] = useState<Set<string>>(new Set());
 
   // IG-style "viewed" tracking. Tapping an ask marks it viewed; viewed
@@ -460,15 +466,11 @@ export default function AskStoryRow({ asks, myAsk, myAvatarUrl, myName, onRefres
         visible={createVisible}
         onClose={() => setCreateVisible(false)}
         existingAsk={myAsk}
-        onCreated={(newAskId) => {
+        onCreated={() => {
+          // Just refresh the row. The post-publish match sheet was
+          // removed 2026-05-31 — see import-block comment.
           onRefresh();
-          if (newAskId) setMatchSheetAskId(newAskId);
         }}
-      />
-      <AskMatchSheet
-        visible={!!matchSheetAskId}
-        askId={matchSheetAskId}
-        onClose={() => setMatchSheetAskId(null)}
       />
     </>
   );
