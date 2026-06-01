@@ -1286,13 +1286,7 @@
     "createSubtitle": "Con una línea basta — la IA pone las etiquetas para que lo vea la gente indicada (o un amigo de un amigo).",
     "createFailed": "Tu Ask no se publicó — inténtalo de nuevo.",
     "deleteFailed": "No se pudo borrar el ask",
-    "shortPrompt": "¿Qué necesitas?",
-    "matchSheetTitle": "Mejores coincidencias en tu red",
-    "matchSheetSubtitle": "Amigos cuyas tags coinciden con lo que buscas. Contáctalos, o sáltatelo y deja que el feed amplio los encuentre también.",
-    "matchSheetEmpty": "Ninguna coincidencia cercana entre tus amigos — el feed más amplio se encargará.",
-    "matchSheetError": "No se pudieron cargar las coincidencias — tu Ask está activo en el feed igual.",
-    "matchMessageBtn": "Mensaje",
-    "matchSheetDone": "Listo"
+    "shortPrompt": "¿Qué necesitas?"
   },
   "errorBoundary": {
     "title": "Algo salió mal",

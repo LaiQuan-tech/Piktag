@@ -1334,13 +1334,7 @@
     ],
     "createSubtitle": "Chỉ một dòng — AI tự thêm tag để đúng người (hoặc bạn của bạn) nhìn thấy.",
     "createFailed": "Ask chưa gửi được — thử lại nhé.",
-    "shortPrompt": "Bạn muốn gì?",
-    "matchSheetTitle": "Phù hợp nhất trong mạng lưới",
-    "matchSheetSubtitle": "Bạn bè có tag khớp với điều bạn đang tìm. Liên hệ ngay, hoặc bỏ qua để dòng tin rộng hơn cũng tìm thấy họ.",
-    "matchSheetEmpty": "Không có ai khớp rõ trong bạn bè — dòng tin rộng hơn sẽ lo.",
-    "matchSheetError": "Không tải được kết quả — nhưng Ask của bạn vẫn đang lên feed.",
-    "matchMessageBtn": "Nhắn",
-    "matchSheetDone": "Xong"
+    "shortPrompt": "Bạn muốn gì?"
   },
   "errorBoundary": {
     "title": "Có gì đó trục trặc",

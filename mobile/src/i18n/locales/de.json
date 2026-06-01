@@ -1327,13 +1327,7 @@
     ],
     "createSubtitle": "Eine Zeile reicht — die KI vergibt die Tags, damit die richtigen Leute (oder ein Freund eines Freundes) es sehen.",
     "createFailed": "Dein Ask ging nicht raus — versuch es nochmal.",
-    "shortPrompt": "Was brauchst du?",
-    "matchSheetTitle": "Beste Treffer in deinem Netzwerk",
-    "matchSheetSubtitle": "Freunde, deren Tags zu dem passen, was du suchst. Schreib sie an, oder überspring's und überlass es dem weiteren Feed.",
-    "matchSheetEmpty": "Kein enger Treffer unter deinen Freunden — der weitere Feed übernimmt.",
-    "matchSheetError": "Treffer konnten nicht geladen werden — dein Ask ist trotzdem im Feed live.",
-    "matchMessageBtn": "Nachricht",
-    "matchSheetDone": "Fertig"
+    "shortPrompt": "Was brauchst du?"
   },
   "errorBoundary": {
     "title": "Etwas ist schiefgelaufen",

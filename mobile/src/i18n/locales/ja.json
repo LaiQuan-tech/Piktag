@@ -1286,13 +1286,7 @@
     "createSubtitle": "一言でOK — AIがタグを付けて、ぴったりの人（友達の友達も）に届きます。",
     "createFailed": "Ask を送れなかった — もう一度試してね。",
     "deleteFailed": "Ask を削除できませんでした",
-    "shortPrompt": "何が欲しい?",
-    "matchSheetTitle": "あなたの人脈で一番合う人",
-    "matchSheetSubtitle": "あなたが探していることとタグが合う友だち。直接連絡しても、スキップして広いフィードに任せてもOK。",
-    "matchSheetEmpty": "友だちの中には強く合う人がいません — 広いフィードに任せましょう。",
-    "matchSheetError": "マッチを読み込めませんでした — Ask は問題なく投稿されています。",
-    "matchMessageBtn": "メッセージ",
-    "matchSheetDone": "完了"
+    "shortPrompt": "何が欲しい?"
   },
   "errorBoundary": {
     "title": "問題が発生しました",

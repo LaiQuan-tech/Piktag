@@ -1327,13 +1327,7 @@
     ],
     "createSubtitle": "一句话就好 — AI 会配上标签，让对的人（或朋友的朋友）看到。",
     "createFailed": "帖子没送出去，请再试一次。",
-    "shortPrompt": "想要什幺?",
-    "matchSheetTitle": "你的人脉里最匹配的",
-    "matchSheetSubtitle": "标签和你要找的对得上的好友。直接联系，或先略过 — 二度人脉也会看到。",
-    "matchSheetEmpty": "好友里没有特别对得上的 — 二度人脉会接到。",
-    "matchSheetError": "暂时拿不到 match — 你的 Ask 还是已经发出去了。",
-    "matchMessageBtn": "发消息",
-    "matchSheetDone": "完成"
+    "shortPrompt": "想要什幺?"
   },
   "errorBoundary": {
     "title": "出错了",

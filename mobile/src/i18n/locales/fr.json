@@ -1286,13 +1286,7 @@
     "createSubtitle": "Une ligne suffit — l'IA ajoute les tags pour que les bonnes personnes (ou un ami d'ami) le voient.",
     "createFailed": "Ton Ask n'est pas passé — réessaie.",
     "deleteFailed": "Échec de la suppression de l'ask",
-    "shortPrompt": "Tu veux quoi ?",
-    "matchSheetTitle": "Les meilleurs profils dans ton réseau",
-    "matchSheetSubtitle": "Amis dont les tags collent à ce que tu cherches. Contacte-les, ou passe et laisse le feed élargi s'en charger.",
-    "matchSheetEmpty": "Pas de match net parmi tes amis — le feed élargi prendra le relais.",
-    "matchSheetError": "Impossible de charger les matchs — ton Ask est en ligne dans le feed quand même.",
-    "matchMessageBtn": "Message",
-    "matchSheetDone": "OK"
+    "shortPrompt": "Tu veux quoi ?"
   },
   "errorBoundary": {
     "title": "Une erreur est survenue",

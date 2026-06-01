@@ -1661,27 +1661,9 @@ function makeStyles(c: ColorPalette) {
   // all moved into the shared QrShareBody component — single source
   // of truth for the QR-share inner layout, matching QrCodeModal +
   // QrGroupDetailScreen exactly. 2026-05-31 task #38 follow-up.)
-  // ── Legacy QR mode styles (kept because other modes may reference) ──
-  qrBrandTitle: {
-    fontSize: 28,
-    fontWeight: '800',
-    color: c.gray900,
-    marginTop: 32,
-    marginBottom: 24,
-  },
-  qrWrapper: {
-    padding: 16,
-    borderWidth: 2,
-    borderColor: c.piktag500,
-    borderRadius: 16,
-    backgroundColor: c.white,
-    marginBottom: 24,
-  },
-  // (Duplicate `qrEventInfo` block removed — was a stale text-style
-  // leftover from an earlier refactor when qrEventInfo was a single
-  // <Text>. The actual container style above L1445 was being silently
-  // shadowed by JS's "last key wins" rule, breaking the flex/center
-  // layout of the QR-card event-info row.)
+  // (qrBrandTitle + qrWrapper "kept because other modes may reference"
+  // were verified dead 2026-05-31 — no other mode references them.
+  // Removed in the tech-debt sweep.)
   // ── Modal ──
   modalOverlay: {
     flex: 1,

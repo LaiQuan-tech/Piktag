@@ -1286,13 +1286,7 @@
     "createSubtitle": "Bir satır yeter — AI etiketleri ekler, doğru kişiler (ya da bir arkadaşın arkadaşı) görsün.",
     "createFailed": "Ask gönderilemedi — tekrar dene.",
     "deleteFailed": "Ask silinemedi",
-    "shortPrompt": "Ne lazım?",
-    "matchSheetTitle": "Ağındaki en uygun kişiler",
-    "matchSheetSubtitle": "Etiketleri aradığınla örtüşen arkadaşlar. İletişime geç, ya da atla; geniş akış da onları bulacak.",
-    "matchSheetEmpty": "Arkadaşların arasında tam uyan yok — geniş akış üstlenir.",
-    "matchSheetError": "Eşleşmeler yüklenemedi — Ask'iniz yine de akışta aktif.",
-    "matchMessageBtn": "Mesaj",
-    "matchSheetDone": "Tamam"
+    "shortPrompt": "Ne lazım?"
   },
   "errorBoundary": {
     "title": "Bir şeyler ters gitti",
