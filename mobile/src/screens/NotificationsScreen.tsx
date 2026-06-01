@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
+  Image,
   FlatList,
   TouchableOpacity,
   StyleSheet,
@@ -13,7 +14,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import { Bell, MessageCircle } from 'lucide-react-native';
+import { MessageCircle } from 'lucide-react-native';
 import { COLORS, SPACING, type ColorPalette } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
 import { supabase } from '../lib/supabase';
@@ -273,8 +274,19 @@ const NotificationItem = React.memo(function NotificationItem({
           style={styles.avatarSpacing}
         />
       ) : (
+        // System-originated notifications (no actor avatar — e.g.
+        // vibe_shift, on_this_day, weekly digests) render the PikTag
+        // brand glyph instead of a generic bell. Founder direction
+        // 2026-05-31「增加品牌印象」— every place we'd otherwise show
+        // a neutral icon is a place to reinforce the brand. Gradient
+        // bg on the asset itself, so it pops against both light and
+        // dark mode without theme-aware mucking.
         <View style={[styles.avatar, styles.avatarPlaceholder]}>
-          <Bell size={20} color={colors.gray400} />
+          <Image
+            source={require('../../assets/logo-icon.png')}
+            style={styles.systemNotifLogo}
+            resizeMode="contain"
+          />
         </View>
       )}
       <View style={styles.notificationContent}>
@@ -308,7 +320,14 @@ const EmptyState = React.memo(function EmptyState({
   const styles = useMemo(() => makeStyles(colors), [colors]);
   return (
     <View style={styles.emptyState}>
-      <Bell size={48} color={colors.gray200} />
+      {/* Empty state also gets the brand glyph (softened via opacity
+          so it reads as "quiet, nothing here yet" not "logo splash").
+          Same brand-reinforcement intent as the per-row placeholder. */}
+      <Image
+        source={require('../../assets/logo-icon.png')}
+        style={styles.emptyStateLogo}
+        resizeMode="contain"
+      />
       <Text style={styles.emptyStateText}>{text}</Text>
     </View>
   );
@@ -920,6 +939,12 @@ function makeStyles(c: ColorPalette) {
     alignItems: 'center',
     justifyContent: 'center',
   },
+  // Brand glyph inside the avatar placeholder. ~24px on a 44px tile
+  // matches the visual weight of an avatar inside the same circle.
+  systemNotifLogo: {
+    width: 24,
+    height: 24,
+  },
   avatarSpacing: {
     marginRight: 12,
   },
@@ -968,6 +993,14 @@ function makeStyles(c: ColorPalette) {
     justifyContent: 'center',
     paddingTop: 120,
     paddingHorizontal: 40,
+  },
+  // Large quiet brand glyph above the empty-state text. Opacity 0.35
+  // softens it so it reads as a watermark rather than a logo-splash,
+  // which would feel like an ad in the empty state.
+  emptyStateLogo: {
+    width: 56,
+    height: 56,
+    opacity: 0.35,
   },
   emptyStateText: {
     fontSize: 16,
