@@ -22,14 +22,16 @@ import {
   StyleSheet,
   Linking,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import { ArrowLeft, Phone, Mail, MapPin, Globe, Gift, ExternalLink } from 'lucide-react-native';
 import { toBirthdayDate } from '../lib/birthday';
 import { COLORS, type ColorPalette } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
+import { useAuthProfile } from '../context/AuthContext';
 import { useLocalContacts } from '../hooks/useLocalContacts';
+import { availableChannels } from '../lib/shareContact';
 import ProfileIdentityHeader from '../components/ProfileIdentityHeader';
 import RecordCard from '../components/RecordCard';
 import LocalContactShareButton from '../components/LocalContactShareButton';
@@ -42,8 +44,10 @@ export default function LocalContactDetailScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
   const { colors, isDark } = useTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
+  const insets = useSafeAreaInsets();
   const contactId: string | undefined = route.params?.contactId;
   const { contacts, loading, refresh } = useLocalContacts();
+  const { profile: myProfile } = useAuthProfile();
 
   // Refetch every focus so returning from the 編輯 form shows the
   // updated data (EditLocalContact holds its own useLocalContacts
@@ -131,6 +135,24 @@ export default function LocalContactDetailScreen({ navigation, route }: Props) {
     );
   }
 
+  // Footer-visibility predicate. Mirrors LocalContactShareButton's
+  // internal `canShare` check so we can hide the footer SHELL (the
+  // top-border + padding wrapper) when the button itself would
+  // render null — otherwise an unreachable contact would show an
+  // empty bar with a divider, which looks broken. Cheap recompute
+  // every render; the inputs are all already in scope.
+  const canShareFooter =
+    availableChannels({
+      recipientEmail: existing.email_lower ?? '',
+      recipientPhone: existing.phone_normalized ?? '',
+      recipientName: existing.name ?? '',
+      myFirstName: '',
+      myUsername: '',
+      tBody: t as any,
+    }).length > 0 &&
+    !!myProfile?.username &&
+    !!myProfile?.full_name;
+
   // Birthday → "M/D" (year-agnostic) — mirrors FriendDetail's
   // inline formatReminderDate so the contact recordCard reads
   // identically to a member's birthday card.
@@ -156,6 +178,7 @@ export default function LocalContactDetailScreen({ navigation, route }: Props) {
       {Header}
 
       <ScrollView
+        style={styles.scrollOuter}
         contentContainerStyle={styles.scroll}
         showsVerticalScrollIndicator={false}
       >
@@ -295,13 +318,35 @@ export default function LocalContactDetailScreen({ navigation, route }: Props) {
           </View>
         )}
 
-        {/* "Send my PikTag handle to this contact" — the North Star
-            install-funnel CTA, available on BOTH edit and read views
-            (founder ask 2026-06-03 — was only on edit). The component
-            renders nothing when the recipient has no reachable channel
-            or the viewer hasn't completed their own profile yet, so the
-            JSX is unconditional here. */}
-        <View style={{ marginTop: 24, paddingHorizontal: 20 }}>
+      </ScrollView>
+
+      {/* "Send my PikTag handle to this contact" — the North Star
+          install-funnel CTA. 2026-06-03 founder ask:
+            1. Move to screen bottom (small-hand thumb reach).
+            2. Visually separate from contact info (top border).
+            3. Card width matches the contact info cards above.
+          Pulled OUT of the ScrollView into a fixed footer so it
+          always sits at the bottom regardless of how short or long
+          the contact's data is. paddingHorizontal:20 matches the
+          ScrollView content's horizontal padding, so the share
+          button's width is identical to the linkCard rows above —
+          fixing the earlier 40px-narrower mismatch (the inline
+          version had ScrollView padding 20 + wrapper padding 20 →
+          double-inset). The top border is the same 1px gray100 as
+          the header's bottom border, so the surface reads as two
+          stacked sections rather than one continuous scroll. The
+          component itself renders nothing when the recipient has no
+          reachable channel or the viewer hasn't completed their own
+          profile yet — when that happens the footer just becomes a
+          short empty bar with the border, which is acceptable
+          (rare; the standard case is a phone-or-email present). */}
+      {canShareFooter && (
+        <View
+          style={[
+            styles.footer,
+            { paddingBottom: 16 + Math.max(insets.bottom, 0) },
+          ]}
+        >
           <LocalContactShareButton
             recipientEmail={existing.email_lower}
             recipientPhone={existing.phone_normalized}
@@ -309,7 +354,7 @@ export default function LocalContactDetailScreen({ navigation, route }: Props) {
             eventOrCompanyHint={existing.headline ?? null}
           />
         </View>
-      </ScrollView>
+      )}
     </SafeAreaView>
   );
 }
@@ -358,6 +403,12 @@ function makeStyles(c: ColorPalette) {
     textAlign: 'center',
     lineHeight: 21,
   },
+  // flex:1 on the scrollview outer so it claims the remaining space
+  // between Header and the new fixed Footer (otherwise it'd collapse
+  // to its content height and leave the footer floating in the
+  // middle of the screen on tall contacts, or unreachable below the
+  // fold on short ones).
+  scrollOuter: { flex: 1 },
   scroll: { padding: 20, paddingBottom: 48 },
   // Tags row immediately under the identity block — same place
   // FriendDetail puts them (after headline/bio, before everything
@@ -400,5 +451,17 @@ function makeStyles(c: ColorPalette) {
   },
   // (recordCard / reminderRow / recordLabel / recordValue moved
   // into the shared RecordCard component — task #38 follow-up.)
+  // Footer wraps the share CTA. paddingHorizontal:20 matches the
+  // ScrollView's content padding so the share button is the SAME
+  // width as the contact-info cards above. The thin top border
+  // visually separates the action from the scrollable content (no
+  // shadow — that would feel like a modal sheet, not a footer).
+  footer: {
+    paddingHorizontal: 20,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: c.gray100,
+    backgroundColor: c.white,
+  },
   });
 }

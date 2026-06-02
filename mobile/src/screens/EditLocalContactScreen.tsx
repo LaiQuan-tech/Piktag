@@ -46,7 +46,6 @@ import { toBirthdayDate } from '../lib/birthday';
 import { normalizeTagName } from '../lib/normalizeTag';
 import BrandSpinner from '../components/loaders/BrandSpinner';
 import LogoLoader from '../components/loaders/LogoLoader';
-import { SkeletonBox } from '../components/SkeletonLoader';
 import TagChip from '../components/TagChip';
 // useAuthProfile import dropped — the share-button component owns
 // its own viewer-profile lookup now.
@@ -940,21 +939,13 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
             <Text style={styles.scanOverlayTitle}>
               {t('localContact.scanningTitle', { defaultValue: '正在識別名片…' })}
             </Text>
-            {/* Shimmer mock-field rows — gives the wait a "we're
-                actively filling things in" texture instead of a
-                static loader. Widths picked to look like alternating
-                label / value lines (short label, longer value).
-                Doesn't shorten the actual scan; cheap perceived-
-                progress feedback. */}
-            <View style={styles.scanShimmerPreview}>
-              <SkeletonBox width="60%" height={12} borderRadius={6} />
-              <SkeletonBox width="85%" height={14} borderRadius={6} />
-              <SkeletonBox width="45%" height={12} borderRadius={6} />
-              <SkeletonBox width="75%" height={14} borderRadius={6} />
-            </View>
-            <Text style={styles.scanOverlaySubtitle}>
-              {t('localContact.scanningSubtitle', { defaultValue: '通常需要 3–7 秒' })}
-            </Text>
+            {/* 2026-06-03 speed pass: stripped the shimmer mock-field
+                rows AND the "通常需要 3–7 秒" hint. They were
+                perceived-progress filler from when scan took ~7s.
+                Path A + base64 lazy-encode brought the happy path
+                well under that — promising "this might take 7s"
+                while it actually finishes in ~1-2s undersells the
+                speed. Brand logo + status text is enough now. */}
           </View>
         </View>
       )}
@@ -1089,19 +1080,7 @@ function makeStyles(c: ColorPalette) {
     color: c.gray900,
     textAlign: 'center',
   },
-  scanOverlaySubtitle: {
-    marginTop: 14,
-    fontSize: 13,
-    color: c.gray500,
-    textAlign: 'center',
-  },
-  // Mock-field shimmer rows inside the scan overlay card. Width
-  // fills the card so the bars feel like form lines being filled.
-  scanShimmerPreview: {
-    width: '100%',
-    marginTop: 18,
-    gap: 8,
-    alignItems: 'flex-start',
-  },
+  // (scanOverlaySubtitle + scanShimmerPreview removed 2026-06-03
+  // alongside the "3–7秒" hint — see overlay render comment.)
   });
 }
