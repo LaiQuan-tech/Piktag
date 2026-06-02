@@ -427,6 +427,35 @@ founder when the trigger condition lands:
   the "尚未加入 PikTag" not-joined row in ConnectionsScreen (local
   contacts + pending scans). Before building any chip/row/pill, check
   if one of these (or an existing component) already covers it.
+- **Know the CTA of every screen — and protect its visual weight.**
+  Each screen has ONE primary action that earns its existence; the
+  rest of the layout serves that action. Treating the CTA as just
+  "one more button in the scroll" is how it gets buried, narrowed,
+  or out-shouted by a feature added later. When founder identifies
+  a screen's CTA verbatim, lock it here so future sessions don't
+  drift. Known locks (extend as new screens get a founder-identified
+  CTA):
+    - **LocalContactDetailScreen — CTA = "寄我的聯絡資料給他".**
+      The North-Star install-funnel action: a saved non-member
+      becomes a member via viewer → recipient → pikt.ag/{viewer} →
+      install. Must sit pinned at screen bottom (small-hand thumb
+      reach), visually separated from contact-info content (top
+      border), and at FULL contact-info width (the inline-in-
+      ScrollView version was 40px narrower from double-inset —
+      don't regress). NEVER move it back into the scroll, never
+      add a competing button next to it, never make it secondary
+      to "編輯". Founder 2026-06-03: *"寄我的聯絡資料給他就是
+      那頁的 CTA"*.
+    - **EditLocalContactScreen — CTA = "儲存" (save).**
+      A form screen's CTA is the commit. The scan accelerator was
+      the primary CTA briefly and was demoted on purpose — re-scan
+      from inside the edit form is a logic error (founder rule
+      "scan-accelerator removed from edit"). Don't re-promote.
+  Pattern when adding ANY new button to a screen with a known CTA:
+  the new button MUST visually defer (secondary outline, smaller,
+  or further from the thumb arc). If you can't add it without
+  competing for primary-CTA weight, you don't add it — you redesign
+  the surface or push the request back.
 - **Every change:** `tsc` clean → commit → push. i18n spans **19 locales**
   (`mobile/src/i18n/locales/*.json`) — keep all in sync (JSON round-trip
   into the right block; verify the key landed where intended).
