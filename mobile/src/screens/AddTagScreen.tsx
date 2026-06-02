@@ -14,7 +14,7 @@ import {
   Platform,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { X, Share2, Trash2, ScanLine, Link2, Pencil, Plus, RefreshCw, ArrowLeft } from 'lucide-react-native';
+import { X, Share2, Trash2, ScanLine, Copy, Pencil, Plus, RefreshCw, ArrowLeft } from 'lucide-react-native';
 import BoltIcon from '../components/BoltIcon';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import QrShareBody from '../components/QrShareBody';
@@ -1127,7 +1127,10 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
             onPress: handleShare,
           },
           {
-            icon: <Link2 size={22} color="#111827" />,
+            // Copy icon aligns with QrCodeModal + QrGroupDetail —
+            // single glyph across all 3 QR-share sheets. Founder
+            // caught the drift 2026-06-03.
+            icon: <Copy size={22} color="#111827" />,
             label: t('addTag.copyLink', { defaultValue: '複製連結' }),
             onPress: handleCopyLink,
           },

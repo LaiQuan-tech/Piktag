@@ -133,12 +133,21 @@ export default function BiolinkSocialSection({
                 />
               </View>
               <Text style={styles.linkCardLabel} numberOfLines={1}>
-                {/* Localized fallback — raw bl.platform is the
-                    persisted lowercase key, NOT the display string.
-                    Without this, zh-TW users saw "Phone / Email /
-                    Website" in English. Founder caught the drift on
-                    2026-05-31. */}
-                {bl.label || getPlatformLabel(bl.platform, t)}
+                {/* Locale-derive for branded platforms (mirrors the
+                    save-side rule in EditProfileScreen.handleSaveBiolink).
+                    `bl.label` was persisted with whatever locale's
+                    getPlatformLabel was active at save time — a phone
+                    saved on a zh-TW device stores "電話", and a later
+                    en viewer would see Chinese verbatim if we trusted
+                    that label. Only `custom` (the user-named "Link"
+                    entry) keeps the stored label, since that label IS
+                    the whole point (e.g. "PikTag" pointing at pikt.ag).
+                    Founder caught the EN-viewer regression 2026-06-03;
+                    the 2026-05-31 partial fix here used `bl.label ||
+                    derived` which only helped when label was null. */}
+                {bl.platform === 'custom'
+                  ? (bl.label || getPlatformLabel(bl.platform, t))
+                  : getPlatformLabel(bl.platform, t)}
               </Text>
               <ExternalLink size={variant === 'compact' ? 14 : 16} color={colors.gray400} />
             </TouchableOpacity>

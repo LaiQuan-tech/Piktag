@@ -255,6 +255,14 @@ const BiolinkRow = React.memo(function BiolinkRow({
   // same UX shape as before.
   const drag = useReorderableDrag();
   const { colors } = useTheme();
+  // BiolinkRow is a file-scope React.memo sub-component — it CAN'T
+  // capture the parent EditProfileScreen's `t` from closure. Its own
+  // useTranslation hook re-runs on locale change and forces the
+  // memoised row to re-render with the new language (proven by the
+  // founder's 2026-06-03 catch: English Edit Profile showed Chinese
+  // "電話" because the row was rendering link.label verbatim instead
+  // of locale-deriving via getPlatformLabel).
+  const { t } = useTranslation();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const displayUrl = useMemo(
     () => platformStripPrefix(link.url, detectPlatformFromUrl(link.url) ?? link.platform),
@@ -312,7 +320,19 @@ const BiolinkRow = React.memo(function BiolinkRow({
             of label / username length. Keeps the list visual rhythm
             consistent. */}
         <Text style={styles.biolinkTitle} numberOfLines={1}>
-          {link.label || link.platform}
+          {/* Locale-derive the title from the platform key for all
+              BRANDED platforms — `link.label` was persisted with
+              whatever locale's getPlatformLabel was active at save
+              time (zh-TW save stored "電話" / "電子郵件"; rendering
+              that to an en user surfaces the Chinese verbatim). The
+              fix mirrors the save-side rule in handleSaveBiolink:
+              only `custom` (the user-named "Link" entry) keeps the
+              stored label; every other platform derives. Existing
+              rows heal transparently. Founder caught 2026-06-03 —
+              English Edit Profile showed 電話 for Phone. */}
+          {link.platform === 'custom'
+            ? (link.label || getPlatformLabel(link.platform, t))
+            : getPlatformLabel(link.platform, t)}
         </Text>
         <Text style={styles.biolinkUrl} numberOfLines={1}>
           {/* Strip the platform's URL scheme prefix (`tel:`,
@@ -1158,7 +1178,14 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
   const handleDeleteBiolink = useCallback((biolink: Biolink) => {
     Alert.alert(
       t('editProfile.alertDeleteLinkTitle'),
-      t('editProfile.alertDeleteLinkMessage', { name: biolink.label || biolink.platform }),
+      // Same locale-derive rule as the row title — see BiolinkRow
+      // comment. Without this the en delete confirmation says
+      // "Delete 電話?" for a Chinese-saved phone biolink.
+      t('editProfile.alertDeleteLinkMessage', {
+        name: biolink.platform === 'custom'
+          ? (biolink.label || getPlatformLabel(biolink.platform, t))
+          : getPlatformLabel(biolink.platform, t),
+      }),
       [
         { text: t('common.cancel'), style: 'cancel' },
         {

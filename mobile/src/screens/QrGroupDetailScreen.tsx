@@ -28,7 +28,7 @@ import {
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
-import { ArrowLeft, Share2, Plus, X, Hash, Edit3, ScanLine, Link2, Pencil } from 'lucide-react-native';
+import { ArrowLeft, Share2, Plus, X, Hash, Edit3, ScanLine, Copy, Pencil } from 'lucide-react-native';
 import BoltIcon from '../components/BoltIcon';
 import TagChip from '../components/TagChip';
 import SectionTitle from '../components/SectionTitle';
@@ -386,7 +386,11 @@ export default function QrGroupDetailScreen({ navigation, route }: Props) {
               onPress: handleShare,
             },
             {
-              icon: <Link2 size={22} color={'#111827'} />,
+              // Copy icon (universal clipboard glyph) aligns with
+              // QrCodeModal's personal-share sheet; previously this
+              // used Link2 (chain icon) — founder caught the drift
+              // 2026-06-03 across the two QR sheets.
+              icon: <Copy size={22} color={'#111827'} />,
               label: t('addTag.copyLink', { defaultValue: '複製連結' }),
               onPress: handleCopyLink,
             },
