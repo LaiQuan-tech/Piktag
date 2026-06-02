@@ -32,6 +32,7 @@ import { useTheme } from '../context/ThemeContext';
 import { useLocalContacts } from '../hooks/useLocalContacts';
 import ProfileIdentityHeader from '../components/ProfileIdentityHeader';
 import RecordCard from '../components/RecordCard';
+import LocalContactShareButton from '../components/LocalContactShareButton';
 import TagChip from '../components/TagChip';
 import BrandSpinner from '../components/loaders/BrandSpinner';
 
@@ -293,6 +294,21 @@ export default function LocalContactDetailScreen({ navigation, route }: Props) {
             />
           </View>
         )}
+
+        {/* "Send my PikTag handle to this contact" — the North Star
+            install-funnel CTA, available on BOTH edit and read views
+            (founder ask 2026-06-03 — was only on edit). The component
+            renders nothing when the recipient has no reachable channel
+            or the viewer hasn't completed their own profile yet, so the
+            JSX is unconditional here. */}
+        <View style={{ marginTop: 24, paddingHorizontal: 20 }}>
+          <LocalContactShareButton
+            recipientEmail={existing.email_lower}
+            recipientPhone={existing.phone_normalized}
+            recipientName={existing.name}
+            eventOrCompanyHint={existing.headline ?? null}
+          />
+        </View>
       </ScrollView>
     </SafeAreaView>
   );
