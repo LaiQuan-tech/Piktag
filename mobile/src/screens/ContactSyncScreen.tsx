@@ -215,34 +215,55 @@ export default function ContactSyncScreen({ navigation }: ContactSyncScreenProps
     let cancelled = false;
     (async () => {
       try {
-        const phones = contacts.map((c) => c.phone ?? '');
-        const emails = contacts.map((c) => c.email ?? '');
+        // match_contacts_against_profiles hard-caps at 2000 entries
+        // per call and RAISES on overflow. PikTag's target user is
+        // exactly the heavy networker (Rotary, business-card
+        // collectors) whose address book routinely tops 2000 — so a
+        // single call used to ERROR for them, get swallowed as a
+        // console.warn, and silently show "no PikTag friends found"
+        // even when many contacts ARE members. That reads as a broken
+        // app to precisely the people we most want. Chunk to 1000
+        // (headroom under the 2000 cap) and offset each chunk's
+        // input_index back to the GLOBAL `contacts` index so the
+        // `contacts[r.input_index]` mapping below is unchanged. A
+        // single failed chunk is skipped, not fatal — the rest still
+        // contribute matches. 2026-06-03 (4.8 core-flow audit).
+        const CHUNK = 1000;
+        const connPromise = supabase
+          .from('piktag_connections')
+          .select('connected_user_id')
+          .eq('user_id', user.id);
 
-        const [matchRes, connRes] = await Promise.all([
-          supabase.rpc('match_contacts_against_profiles', {
-            p_phones: phones,
-            p_emails: emails,
-          }),
-          supabase
-            .from('piktag_connections')
-            .select('connected_user_id')
-            .eq('user_id', user.id),
-        ]);
-
-        if (cancelled) return;
-
-        if (matchRes.error) {
-          console.warn('[ContactSync] RPC error:', matchRes.error.message);
-        }
-
-        const rows = (matchRes.data ?? []) as Array<{
+        type MatchRow = {
           input_index: number;
           matched_user_id: string;
           match_type: 'phone' | 'email';
           full_name: string | null;
           username: string | null;
           avatar_url: string | null;
-        }>;
+        };
+        const rows: MatchRow[] = [];
+        for (let start = 0; start < contacts.length; start += CHUNK) {
+          if (cancelled) return;
+          const slice = contacts.slice(start, start + CHUNK);
+          const { data, error } = await supabase.rpc(
+            'match_contacts_against_profiles',
+            {
+              p_phones: slice.map((c) => c.phone ?? ''),
+              p_emails: slice.map((c) => c.email ?? ''),
+            },
+          );
+          if (error) {
+            console.warn('[ContactSync] match RPC chunk error:', error.message);
+            continue;
+          }
+          for (const r of (data ?? []) as MatchRow[]) {
+            rows.push({ ...r, input_index: r.input_index + start });
+          }
+        }
+
+        const connRes = await connPromise;
+        if (cancelled) return;
 
         // RPC orders phone matches before email matches; first-write-wins
         // gives phone priority for a contact whose phone+email both match
