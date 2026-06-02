@@ -51,6 +51,7 @@ import TagChip from '../components/TagChip';
 // useAuthProfile import dropped — the share-button component owns
 // its own viewer-profile lookup now.
 import LocalContactShareButton from '../components/LocalContactShareButton';
+import { scanCard } from '../lib/scanCard';
 
 type Props = { navigation: any; route: any };
 
@@ -162,7 +163,7 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
   const cameraAutoRef = useRef(false);
   // Latest-runScan ref so `openCamera` can stay a stable callback
   // without a circular dep (openCamera ← runScan ← openCamera).
-  const runScanRef = useRef<((b64: string, mime: string) => void) | null>(null);
+  const runScanRef = useRef<((b64: string, mime: string, uri?: string) => void) | null>(null);
 
   // ── Avatar (大頭照) state + create-mode stable id ────────────────
   // For an existing contact we use its real id as the storage
@@ -342,7 +343,8 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
   const openCamera = useCallback(
     (cancelAddOnClose: boolean) => {
       navigation.navigate('CardCamera', {
-        onCaptured: (b64: string, mime: string) => runScanRef.current?.(b64, mime),
+        onCaptured: (b64: string, mime: string, uri?: string) =>
+          runScanRef.current?.(b64, mime, uri),
         onManual: () => setManualFocus(true),
         onClose: () => {
           if (cancelAddOnClose && navigation.canGoBack()) navigation.goBack();
@@ -352,7 +354,7 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
     [navigation],
   );
 
-  const runScan = useCallback(async (base64: string, mimeType: string) => {
+  const runScan = useCallback(async (base64: string, mimeType: string, uri?: string) => {
     // Scanning is a "review prefilled data" path — never autofocus
     // the name field (would pop the keyboard over the results).
     setManualFocus(false);
@@ -368,10 +370,13 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
       // into catch and surface the normal "scan failed, retry or type
       // it" path.
       const SCAN_TIMEOUT_MS = 30000;
+      // scanCard runs on-device OCR first (fast) and falls back to the
+      // multimodal image call automatically; returns the same
+      // { data, error } shape as the raw invoke, so everything below
+      // is unchanged. uri may be undefined (older capture path) — then
+      // scanCard just goes straight to the image path.
       const { data, error } = await Promise.race([
-        supabase.functions.invoke('scan-business-card', {
-          body: { image: base64, mimeType },
-        }),
+        scanCard({ uri, base64, mimeType }),
         new Promise<never>((_, reject) =>
           setTimeout(() => reject(new Error('SCAN_TIMEOUT')), SCAN_TIMEOUT_MS),
         ),

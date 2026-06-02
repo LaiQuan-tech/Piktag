@@ -84,9 +84,12 @@ const CARD_RESPONSE_SCHEMA = {
 const MAX_B64_LEN = 6 * 1024 * 1024;
 
 type ScanBody = {
-  image?: string; // base64, no data: prefix
+  image?: string; // base64, no data: prefix (image / multimodal mode)
   mimeType?: string; // image/jpeg | image/png | image/webp
   lang?: string; // bio_draft language hint, e.g. "繁體中文"
+  text?: string; // on-device-OCR raw text (text mode — Path A). When
+                 // present, the image is ignored and the model only
+                 // structures this text (no multimodal prefill = fast).
 };
 
 type CardData = {
@@ -201,21 +204,47 @@ serve(async (req) => {
     const image = (body.image ?? '').trim();
     const mimeType = (body.mimeType ?? 'image/jpeg').trim();
     const lang = (body.lang ?? '繁體中文').trim().slice(0, 50);
+    // Path A (2026-06-03): the client may run on-device OCR and send
+    // the raw recognised TEXT instead of the image. Text-only
+    // structuring skips the expensive multimodal image-token prefill
+    // entirely, so it's far faster. `text` present → text mode;
+    // otherwise the legacy image (multimodal) mode. Cap the text so a
+    // malformed client can't blow the prompt up.
+    const ocrText = (body.text ?? '').trim().slice(0, 8000);
+    const isTextMode = ocrText.length > 0;
 
-    if (!image) {
-      return jsonResponse(400, { error: 'Missing image (base64)' });
+    if (!isTextMode) {
+      // Image-mode input validation (unchanged). Text mode has no
+      // image to validate.
+      if (!image) {
+        return jsonResponse(400, { error: 'Missing image (base64) or text' });
+      }
+      if (image.length > MAX_B64_LEN) {
+        return jsonResponse(413, { error: 'Image too large' });
+      }
+      if (!/^image\/(jpe?g|png|webp)$/i.test(mimeType)) {
+        return jsonResponse(400, { error: 'Unsupported mimeType' });
+      }
     }
-    if (image.length > MAX_B64_LEN) {
-      return jsonResponse(413, { error: 'Image too large' });
-    }
-    if (!/^image\/(jpe?g|png|webp)$/i.test(mimeType)) {
-      return jsonResponse(400, { error: 'Unsupported mimeType' });
-    }
+
+    // Intro line differs by mode; the SHAPE + rules below are shared
+    // verbatim so both paths return the identical JSON contract.
+    const introLines = isTextMode
+      ? [
+          `Below is the raw text recognised by on-device OCR from a`,
+          `photo of a physical business card. The lines may be out of`,
+          `reading order and may contain OCR noise; use judgement.`,
+          `Extract the cardholder's details and return ONLY a single`,
+          `JSON object, no prose, no markdown fences.`,
+        ]
+      : [
+          `You are reading a photo of a physical business card.`,
+          `Extract the cardholder's details and return ONLY a single JSON`,
+          `object, no prose, no markdown fences.`,
+        ];
 
     const prompt = [
-      `You are reading a photo of a physical business card.`,
-      `Extract the cardholder's details and return ONLY a single JSON`,
-      `object, no prose, no markdown fences.`,
+      ...introLines,
       ``,
       `Shape (use null — the JSON null, not the string — for anything`,
       `not clearly on the card; never guess):`,
@@ -246,6 +275,12 @@ serve(async (req) => {
       `account part (instagram.com/foobar → "foobar"). If a field`,
       `isn't on the card, null. Do not invent plausible-looking`,
       `handles from the person's name.`,
+      // Text mode: append the OCR dump as the final block so the model
+      // has the source text to structure. Image mode sends the photo
+      // as an inline_data part instead (see `parts` below).
+      ...(isTextMode
+        ? ['', `--- OCR TEXT START ---`, ocrText, `--- OCR TEXT END ---`]
+        : []),
     ].join('\n');
 
     let lastError = '';
@@ -288,10 +323,14 @@ serve(async (req) => {
             body: JSON.stringify({
               contents: [
                 {
-                  parts: [
-                    { inline_data: { mime_type: mimeType, data: image } },
-                    { text: prompt },
-                  ],
+                  // Text mode: prompt only (the OCR text is embedded in
+                  // the prompt). Image mode: inline image + prompt.
+                  parts: isTextMode
+                    ? [{ text: prompt }]
+                    : [
+                        { inline_data: { mime_type: mimeType, data: image } },
+                        { text: prompt },
+                      ],
                 },
               ],
               generationConfig,

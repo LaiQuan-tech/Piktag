@@ -66,11 +66,13 @@ const CORNER_THICKNESS = 3;
 // (orientation mismatch, degenerate rect, manipulate failure) so the
 // caller falls back to the full frame — a wrong crop that clips the
 // card is worse than no crop, so this fails safe.
+type CaptureOut = { uri: string; base64: string };
+
 async function cropToGuide(
   uri: string,
   pw: number,
   ph: number,
-): Promise<string | null> {
+): Promise<CaptureOut | null> {
   try {
     const portraitScreen = SCREEN_HEIGHT >= SCREEN_WIDTH;
     const portraitPhoto = ph >= pw;
@@ -121,7 +123,11 @@ async function cropToGuide(
       compress: 0.4,
       format: SaveFormat.JPEG,
     });
-    return out.base64 ?? null;
+    if (!out.base64) return null;
+    // Return BOTH the file uri (for on-device OCR — ML Kit needs a
+    // file path, not base64) and the base64 (for the multimodal
+    // fallback upload). 2026-06-03 Path A.
+    return { uri: out.uri, base64: out.base64 };
   } catch {
     return null;
   }
@@ -132,7 +138,7 @@ async function cropToGuide(
 // surrounding context when the framing-guide crop bailed, but
 // shaved from the previous setting in the same speed-vs-accuracy
 // tradeoff as above.
-async function downscaleFullFrame(uri: string): Promise<string | null> {
+async function downscaleFullFrame(uri: string): Promise<CaptureOut | null> {
   try {
     const ctx = ImageManipulator.manipulate(uri);
     ctx.resize({ width: 1000 });
@@ -142,7 +148,8 @@ async function downscaleFullFrame(uri: string): Promise<string | null> {
       compress: 0.4,
       format: SaveFormat.JPEG,
     });
-    return out.base64 ?? null;
+    if (!out.base64) return null;
+    return { uri: out.uri, base64: out.base64 };
   } catch {
     return null;
   }
@@ -160,8 +167,13 @@ export default function CardCameraScreen({ navigation, route }: Props) {
   // can fire two takePictureAsync before `capturing` state flushes.
   const busyRef = useRef(false);
 
-  const onCaptured: ((b64: string, mime: string) => void) | undefined =
-    route.params?.onCaptured;
+  // `uri` (3rd arg, 2026-06-03 Path A) is the captured frame's local
+  // file path — passed so the scan pipeline can run on-device OCR.
+  // Optional + additive: callers that ignore it still work (multimodal
+  // fallback uses base64).
+  const onCaptured:
+    | ((b64: string, mime: string, uri?: string) => void)
+    | undefined = route.params?.onCaptured;
   const onManual: (() => void) | undefined = route.params?.onManual;
   // Caller-supplied X/close handler. The auto-opened create-contact
   // flow passes one that ALSO pops EditLocalContact → back to 好友頁
@@ -196,16 +208,29 @@ export default function CardCameraScreen({ navigation, route }: Props) {
       const fullB64 = photo?.base64 ?? null;
       // Phase 2: crop to the framing guide. Falls back to the full
       // frame on any uncertainty so it never does worse than Phase 1.
+      // finalUri tracks the same image's file path for on-device OCR;
+      // it stays in sync with finalB64 (both come from the same
+      // saveAsync output). When only the raw full frame is available
+      // (both manipulator passes failed) finalUri = photo.uri.
       let finalB64 = fullB64;
+      let finalUri: string | undefined = photo?.uri;
       if (photo?.uri && photo.width && photo.height) {
         const cropped = await cropToGuide(photo.uri, photo.width, photo.height);
         if (cropped) {
-          finalB64 = cropped;
+          finalB64 = cropped.base64;
+          finalUri = cropped.uri;
         } else {
           // crop bailed → still downscale; never ship the 1MB+ full
           // frame. Only fall back to the raw fullB64 if even the
           // downscale fails.
-          finalB64 = (await downscaleFullFrame(photo.uri)) ?? fullB64;
+          const down = await downscaleFullFrame(photo.uri);
+          if (down) {
+            finalB64 = down.base64;
+            finalUri = down.uri;
+          } else {
+            finalB64 = fullB64;
+            finalUri = photo.uri;
+          }
         }
       }
       if (!finalB64) {
@@ -223,7 +248,7 @@ export default function CardCameraScreen({ navigation, route }: Props) {
       // the camera. goBack first so the caller is focused when its
       // scan spinner / alerts show.
       navigation.goBack();
-      onCaptured?.(finalB64, 'image/jpeg');
+      onCaptured?.(finalB64, 'image/jpeg', finalUri);
     } catch (err: any) {
       Alert.alert(
         t('common.error', { defaultValue: '錯誤' }),

@@ -44,6 +44,7 @@ import { useTranslation } from 'react-i18next';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ChevronRight, Camera, QrCode, ScanLine, X } from 'lucide-react-native';
 import { supabase, supabaseUrl, supabaseAnonKey } from '../../lib/supabase';
+import { scanCard } from '../../lib/scanCard';
 import { Image } from 'expo-image';
 import {
   requestMediaLibraryPermissionsAsync,
@@ -320,19 +321,15 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
   // Scan pipeline, fed a captured photo by CardCameraScreen via its
   // onCaptured callback param. The framing-guide camera owns the
   // camera + permission; this owns the timeout + confirmation sheet.
-  const runScan = useCallback(async (base64: string, mimeType: string) => {
+  const runScan = useCallback(async (base64: string, mimeType: string, uri?: string) => {
     try {
       setScanning(true);
-      // supabase.functions.invoke has no timeout and RN fetch never
-      // times out: a stalled Gemini fallback chain would otherwise
-      // hang onboarding forever (only Back escapes). Cap it so the
-      // user is never trapped; on timeout we fall into catch and
-      // surface the normal "scan failed, retry or type it" path.
+      // scanCard runs on-device OCR first (fast) and auto-falls back
+      // to the multimodal image call; same { data, error } shape as
+      // the raw invoke. uri may be undefined → straight to image path.
       const SCAN_TIMEOUT_MS = 30000;
       const { data, error } = await Promise.race([
-        supabase.functions.invoke('scan-business-card', {
-          body: { image: base64, mimeType },
-        }),
+        scanCard({ uri, base64, mimeType }),
         new Promise<never>((_, reject) =>
           setTimeout(() => reject(new Error('SCAN_TIMEOUT')), SCAN_TIMEOUT_MS),
         ),
