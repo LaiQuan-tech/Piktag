@@ -521,12 +521,21 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
 
         {/* Social biolinks (icon row + card section). Migrated to the
             shared BiolinkSocialSection component 2026-05-31 (task #38).
-            Visual variant 'compact' preserves the spartan own-profile
-            look (48px circles, no ring, fill-bg cards). */}
+            Unified to variant="highlight" on 2026-06-03 — founder
+            asked for visual consistency with FriendDetail/UserDetail
+            ("好友資訊頁跟使用者個人資訊頁，社交連結...設計卻有一點
+            不同，像是大小，可以一致嗎"). Reasoning: own-profile is
+            also a share surface (QR, deep-link views), so North
+            Star "every friend-add moment" applies symmetrically.
+            IG-Highlights treatment (60px ring + 52px inner, icon 28)
+            wins as the canonical because it reads as tappable across
+            both contexts. The 'compact' branch remains in
+            BiolinkSocialSection.tsx as dead-but-reversible code in
+            case the founder pivots back. */}
         <BiolinkSocialSection
           biolinks={activeBiolinks}
           onPress={(bl) => handleOpenBiolink(bl.url)}
-          variant="compact"
+          variant="highlight"
         />
 
         {activeBiolinks.length === 0 && !profile?.phone && !user?.email && (
