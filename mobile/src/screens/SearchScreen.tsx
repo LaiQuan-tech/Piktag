@@ -664,14 +664,26 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
     const deviceLocale = getLocales()?.[0]?.languageCode || 'zh';
     const userLang = deviceLocale;
 
-    // STRATEGY: prefer tags that are popular among NEARBY users. If we can
-    // get enough tags from the ~50km radius, those are way more relevant than
-    // the global top-150. If nearby returns nothing or too little (no GPS,
-    // no neighbors, RLS, etc.), fall back to the global popular set so the
-    // tab is never empty.
-    //
-    // This replaces what used to be two separate tabs (熱門標籤 + 附近標籤)
-    // — same name, smarter content.
+    // STRATEGY (reworked 2026-06-03, founder): NEARBY-FIRST, then GLOBAL
+    // BACKFILL. Tags popular among users within ~50km lead the list;
+    // the global popular set fills the REST of the screen only when
+    // nearby doesn't produce enough. The previous logic was
+    // all-or-nothing — it showed nearby-only IF it found ≥5, otherwise
+    // DISCARDED the nearby tags and went pure-global. Pre-launch the
+    // network is cold, so almost every region has <5 nearby
+    // self-taggers → everyone hit the pure-global branch → everyone
+    // (any locale) saw the English-dominant most-members tags. Wrong
+    // UX: a Taiwan user should see Taiwan-relevant trending tags first.
+    // Now even 1-2 local tags lead, with global backfilling — and as a
+    // region's network grows, nearby naturally crowds global out.
+    const TARGET = 50;
+
+    // ── 1. NEARBY tags (geographic primacy). Best-effort → [] on any
+    //    miss (no GPS, no neighbours, RLS). usage_count is kept as the
+    //    TRUE global value from piktag_tags (NOT overwritten with the
+    //    local count) so the trending-growth math below isn't skewed;
+    //    the LOCAL count drives the ordering via the pre-map sort only.
+    let nearbyTags: Tag[] = [];
     try {
       const location = await getUserLocation();
       if (location) {
@@ -684,21 +696,9 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
           .limit(500);
         if (nearbyProfiles && nearbyProfiles.length > 0) {
           const nearbyIds = nearbyProfiles.map((p: any) => p.id);
-          // Query SELF-DECLARED public tags of nearby users directly. This
-          // replaces the previous 3-hop path that went through piktag_connections
-          // → piktag_connection_tags, which had two problems:
-          //   1. Semantic: it was counting "tags these nearby users put on
-          //      THEIR friends", not "tags these nearby users claim for
-          //      themselves" — weird composition for a discovery feature.
-          //   2. Privacy: piktag_connection_tags stores private hidden tags
-          //      side-by-side with public pick tags; the old query had no
-          //      is_private filter, so if RLS ever loosened it could leak
-          //      other users' hidden tags into the nearby popular set.
-          //
-          // The new query aligns with loadRecommendations + the trending
-          // detection below — all three now consume piktag_user_tags with
-          // is_private=false, so discovery is consistently about self-declared
-          // public identity markers.
+          // SELF-DECLARED public tags of nearby users (is_private=false)
+          // — discovery is about self-claimed public identity markers,
+          // consistent with loadRecommendations + the trending pass.
           const { data: tagData } = await supabase
             .from('piktag_user_tags')
             .select('tag:piktag_tags!tag_id(id, name, semantic_type, usage_count)')
@@ -712,64 +712,62 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
               if (tItem && !tagMap[tItem.id]) tagMap[tItem.id] = { tag: tItem, count: 0 };
               if (tItem) tagMap[tItem.id].count++;
             }
-            const nearbySorted = Object.values(tagMap)
+            nearbyTags = Object.values(tagMap)
               .sort((a, b) => b.count - a.count)
-              .slice(0, 50)
-              .map((item) => ({ ...item.tag, usage_count: item.count }));
-            // Only commit if we got a meaningful number — otherwise the
-            // trickle would feel weirder than the global default.
-            if (nearbySorted.length >= 5) {
-              setCache(CACHE_KEY_POPULAR_TAGS, nearbySorted);
-              setTags(nearbySorted);
-              const cats = [...new Set(nearbySorted.map((t: any) => t.semantic_type).filter(Boolean))] as string[];
-              setTagCategories(cats);
-              setTrendingTagIds(new Set()); // trending only meaningful in global view
-              setLoading(false);
-              setInitialLoading(false);
-              return;
-            }
+              .slice(0, TARGET)
+              .map((item) => item.tag as Tag);
           }
         }
       }
     } catch (err) {
-      console.warn('[SearchScreen] nearby-first popular tags failed, falling back:', err);
+      console.warn('[SearchScreen] nearby popular tags failed:', err);
     }
 
-    // Fallback: global popular tags (original behaviour).
+    // ── 2. GLOBAL BACKFILL — only fetched if nearby didn't already
+    //    fill the screen. Language-affinity sort so even the backfill
+    //    is locale-biased (same-language tags before English) rather
+    //    than pure most-members. Merge keeps nearby FIRST, then appends
+    //    global tags not already present, up to TARGET.
+    let merged: Tag[] = nearbyTags.slice(0, TARGET);
     try {
-      // Fetch more tags, then sort by language affinity + popularity.
-      // Ordering by popularity_score (= usage_count + 2*search_count)
-      // surfaces what people actually look for, not just what people
-      // self-attach — the 2026-05-26 ranking change.
-      const { data, error } = await supabase
-        .from('piktag_tags')
-        .select('id, name, semantic_type, usage_count, popularity_score')
-        .order('popularity_score', { ascending: false })
-        .limit(150);
+      if (merged.length < TARGET) {
+        const { data, error } = await supabase
+          .from('piktag_tags')
+          .select('id, name, semantic_type, usage_count, popularity_score')
+          .order('popularity_score', { ascending: false })
+          .limit(150);
+        if (!error && data) {
+          const globalSorted = [...data].sort((a, b) => {
+            const aMatch = detectTagLang(a.name) === userLang ? 1 : 0;
+            const bMatch = detectTagLang(b.name) === userLang ? 1 : 0;
+            if (aMatch !== bMatch) return bMatch - aMatch;
+            const aScore = (a as any).popularity_score ?? a.usage_count ?? 0;
+            const bScore = (b as any).popularity_score ?? b.usage_count ?? 0;
+            return bScore - aScore;
+          });
+          const seen = new Set(merged.map((t) => t.id));
+          for (const g of globalSorted) {
+            if (merged.length >= TARGET) break;
+            if (!seen.has(g.id)) {
+              merged.push(g as Tag);
+              seen.add(g.id);
+            }
+          }
+        }
+      }
 
-      if (!error && data) {
-        // Sort: same language first, then by popularity_score (fall
-        // back to usage_count if popularity_score isn't present on
-        // pre-migration DBs).
-        const sorted = [...data].sort((a, b) => {
-          const aLang = detectTagLang(a.name);
-          const bLang = detectTagLang(b.name);
-          const aMatch = aLang === userLang ? 1 : 0;
-          const bMatch = bLang === userLang ? 1 : 0;
-          if (aMatch !== bMatch) return bMatch - aMatch;
-          const aScore = (a as any).popularity_score ?? a.usage_count ?? 0;
-          const bScore = (b as any).popularity_score ?? b.usage_count ?? 0;
-          return bScore - aScore;
-        }).slice(0, 50);
-
-        setCache(CACHE_KEY_POPULAR_TAGS, sorted);
-        setTags(sorted as Tag[]);
-        const cats = [...new Set(sorted.map((t: any) => t.semantic_type).filter(Boolean))] as string[];
+      // ── 3. Commit + trending (common to both nearby-only and merged).
+      if (merged.length > 0) {
+        setCache(CACHE_KEY_POPULAR_TAGS, merged);
+        setTags(merged);
+        const cats = [...new Set(merged.map((t: any) => t.semantic_type).filter(Boolean))] as string[];
         setTagCategories(cats);
 
-        // Calculate trending: count user_tags created in last 7 days per tag
+        // Trending: 7-day growth over the FINAL merged set's ids. Runs
+        // on the merged list (incl. nearby) now, not global-only — a
+        // locally-led tag that's also globally surging earns its badge.
         const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
-        const tagIds = data.map((t: any) => t.id);
+        const tagIds = merged.map((t) => t.id);
         const { data: recentData } = await supabase
           .from('piktag_user_tags')
           .select('tag_id')
@@ -778,20 +776,16 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
           .limit(3000);
 
         if (recentData && recentData.length > 0) {
-          // Count recent additions per tag
           const recentCounts = new Map<string, number>();
           for (const r of recentData) {
             recentCounts.set(r.tag_id, (recentCounts.get(r.tag_id) || 0) + 1);
           }
-          // Tag is trending if recent growth >= 3 new users in 7 days,
-          // or recent growth is >= 20% of total usage
           const trending = new Set<string>();
-          for (const tag of data) {
+          for (const tag of merged) {
             const recent = recentCounts.get(tag.id) || 0;
-            const growthRate = tag.usage_count > 0 ? recent / tag.usage_count : 0;
-            if (recent >= 3 || growthRate >= 0.2) {
-              trending.add(tag.id);
-            }
+            const uc = (tag as any).usage_count ?? 0;
+            const growthRate = uc > 0 ? recent / uc : 0;
+            if (recent >= 3 || growthRate >= 0.2) trending.add(tag.id);
           }
           setTrendingTagIds(trending);
         } else {
@@ -799,7 +793,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
         }
       }
     } catch (err) {
-      console.warn('[SearchScreen] loadPopularTags fell all the way through — both nearby and global paths failed:', err);
+      console.warn('[SearchScreen] loadPopularTags global/merge failed:', err);
     } finally {
       if (isMountedRef.current) {
         setLoading(false);
