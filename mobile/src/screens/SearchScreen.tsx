@@ -490,7 +490,16 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
       const { data } = await supabase
         .from('piktag_connections')
         .select(
-          'id, connected_user_id, nickname, connected_user:piktag_profiles!connected_user_id(id, full_name, username, avatar_url, latitude, longitude, share_location)',
+          // `location_updated_at` MUST be in this select — the map's
+          // `isLocationFresh()` gate (24h staleness check in
+          // FriendsMapModal) silently drops every friend without it,
+          // surfacing as "目前還沒有好友分享位置" even when friends
+          // genuinely share. Founder caught the bug 2026-06-03 — the
+          // map only showed self. SettingsScreen.tsx + LocationContacts
+          // .tsx both write `location_updated_at` on every coord
+          // update, so the field is real DB-side; we just weren't
+          // reading it here.
+          'id, connected_user_id, nickname, connected_user:piktag_profiles!connected_user_id(id, full_name, username, avatar_url, latitude, longitude, location_updated_at, share_location)',
         )
         .eq('user_id', user.id);
       if (cancelled || !data) return;
@@ -506,6 +515,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
           avatarUrl: p.avatar_url || null,
           latitude: p.latitude,
           longitude: p.longitude,
+          location_updated_at: p.location_updated_at ?? null,
         });
       }
       setMapFriends(friends);
