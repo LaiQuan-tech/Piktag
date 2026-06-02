@@ -291,6 +291,31 @@ founder when the trigger condition lands:
   The founder values honest correction over compliance.
 - **Don't reinvent; match existing patterns/design.** Reuse canonical
   components, RPCs, styles. Deviating "to be clever" is a defect here.
+- **Commodity features must feel instant — speed is a STRATEGIC red
+  line, not a nice-to-have.** Founder, 2026-06-03, on card scan:
+  *"我會選Path A是因為市面上已有太多掃描名片的app，我們不夠快，就會
+  被誤認為爛app"*. For any feature that already exists in mature
+  competitor apps (business-card scan being the canonical example —
+  CamCard / 名片全能王 etc. have anchored users to "tap → result
+  almost instantly"), the bar is NOT "faster than our last version"
+  — it's "fast enough that nobody mistakes us for a bad app." That's
+  a PERCEIVED-speed bar, not a stopwatch one. Implications that bind
+  future sessions:
+    * Never trade scan/commodity-flow latency for a feature on the
+      CRITICAL path. The card-scan path was deliberately moved to
+      on-device OCR → text-only structuring (Path A, commit fe42911)
+      and `gemini-2.0-flash` primary; do NOT regress it — e.g. don't
+      put bio_draft generation (or any generative/creative step) back
+      into the synchronous scan call. Generation belongs off the
+      critical path (lazy / async).
+    * When actual latency can't go lower, buy PERCEIVED speed:
+      optimistic UI, progressive field reveal (show the photo +
+      skeleton immediately, fill fields as OCR→structuring returns),
+      never a dead spinner. iOS Live Text is the reference — it isn't
+      truly instant, it just always shows progress.
+    * Applies to every commodity surface, not just scan: QR generate/
+      scan, contact import, search-as-you-type. If a competitor does
+      it instantly, "works but slow" reads as "broken" here.
 - **Don't expose context-free scores to users.** A bare number with
   no actionable breakdown reads as judgment, not feedback —
   especially when the number is low because of things the user
