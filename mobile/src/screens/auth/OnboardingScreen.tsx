@@ -537,7 +537,18 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
             label: b.label,
             position: i,
             is_active: true,
-            display_mode: 'icon',
+            // 'both' (icon row + card) to match every other biolink
+            // creation path and the DB column default
+            // (20260531000000). Was hardcoded 'icon' here, which meant
+            // a user who scanned their card during onboarding saw
+            // their links render ONLY as compact icons — never as
+            // cards — until they manually edited one (which upgraded
+            // it to 'both'). That's exactly the per-surface drift the
+            // founder unified away from; onboarding shouldn't be the
+            // one place that starts links half-shown. (4.8 onboarding
+            // audit 2026-06-03; reverses the earlier "leave as icon"
+            // deferral now that display_mode is unified to 'both'.)
+            display_mode: 'both',
             visibility: 'public',
           }));
           const { error: linkErr } = await supabase
