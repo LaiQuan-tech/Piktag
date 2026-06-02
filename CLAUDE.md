@@ -431,10 +431,28 @@ founder when the trigger condition lands:
   Each screen has ONE primary action that earns its existence; the
   rest of the layout serves that action. Treating the CTA as just
   "one more button in the scroll" is how it gets buried, narrowed,
-  or out-shouted by a feature added later. When founder identifies
-  a screen's CTA verbatim, lock it here so future sessions don't
-  drift. Known locks (extend as new screens get a founder-identified
-  CTA):
+  or out-shouted by a feature added later.
+
+  **Visual contract for a primary CTA (locked):**
+    - Solid `piktag500` fill, `#FFFFFF` text, `borderRadius: 14`,
+      `paddingVertical: 15`, `fontWeight: '700'`, `fontSize: 16`.
+    - Matches the canonical `saveBtn` token used across
+      EditLocalContact / EditProfile / etc. Don't reinvent.
+    - Secondary actions are outlined (`borderWidth: 1.5`,
+      `borderColor: piktag500`, `color: piktag600`, transparent
+      bg). Hierarchy MUST be readable across the room — if you
+      can't tell which is primary from a glance, the visual tier
+      is wrong.
+    - When the same shared component is used as primary on screen A
+      and secondary on screen B (the LocalContactShareButton case),
+      add a `variant: 'primary' | 'secondary'` prop, default to
+      `'secondary'` to keep unaudited call-sites safe, and have
+      callers pass `'primary'` explicitly on the screen where the
+      button IS the locked CTA.
+
+  When founder identifies a screen's CTA verbatim, lock it here so
+  future sessions don't drift. Known locks (extend as new screens
+  get a founder-identified CTA):
     - **LocalContactDetailScreen — CTA = "寄我的聯絡資料給他".**
       The North-Star install-funnel action: a saved non-member
       becomes a member via viewer → recipient → pikt.ag/{viewer} →

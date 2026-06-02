@@ -58,6 +58,24 @@ type Props = {
   /** Optional outer-style override — useful when the caller's
    *  container has its own marginTop / marginBottom rhythm. */
   style?: ViewStyle;
+  /**
+   * Visual tier — pick by the HOST screen's CTA hierarchy
+   * (CLAUDE.md "Know the CTA of every screen" lock):
+   *   - 'primary'   = solid piktag500 + white text. Use when this
+   *                   button IS the page's primary CTA.
+   *                   LocalContactDetailScreen → 'primary' (founder
+   *                   verbatim 2026-06-03: "寄我的聯絡資料給他就是
+   *                   那頁的 CTA").
+   *   - 'secondary' = outlined piktag500 + piktag600 text. Use when
+   *                   the page has a DIFFERENT primary CTA the
+   *                   share button must defer to.
+   *                   EditLocalContactScreen → 'secondary' (儲存 is
+   *                   the page's primary; share button must not
+   *                   compete with it).
+   * Defaults to 'secondary' so existing call-sites that haven't been
+   * audited stay visually correct (the original treatment).
+   */
+  variant?: 'primary' | 'secondary';
 };
 
 export default function LocalContactShareButton({
@@ -66,11 +84,13 @@ export default function LocalContactShareButton({
   recipientName,
   eventOrCompanyHint = null,
   style,
+  variant = 'secondary',
 }: Props) {
   const { t } = useTranslation();
   const { profile: myProfile } = useAuthProfile();
   const { colors } = useTheme();
   const styles = React.useMemo(() => makeStyles(colors), [colors]);
+  const isPrimary = variant === 'primary';
 
   const channels = availableChannels({
     recipientEmail: recipientEmail ?? '',
@@ -146,11 +166,11 @@ export default function LocalContactShareButton({
 
   return (
     <TouchableOpacity
-      style={[styles.btn, style]}
+      style={[styles.btn, isPrimary && styles.btnPrimary, style]}
       onPress={onTapShare}
       activeOpacity={0.7}
     >
-      <Text style={styles.btnText}>
+      <Text style={[styles.btnText, isPrimary && styles.btnTextPrimary]}>
         {t('localContact.shareBtn', { defaultValue: '寄我的聯絡資料給他' })}
       </Text>
     </TouchableOpacity>
@@ -159,9 +179,11 @@ export default function LocalContactShareButton({
 
 function makeStyles(c: ColorPalette) {
   return StyleSheet.create({
-    // Outlined purple pill — secondary CTA below primary save. The
-    // outlined treatment signals "optional friendly action" rather
-    // than competing with the screen's primary CTA.
+    // Base = outlined purple pill (secondary tier). Used when the
+    // host page has a DIFFERENT primary CTA the share must defer to
+    // — e.g. EditLocalContact, where 儲存 is primary. Outlined
+    // treatment signals "optional friendly action" without competing
+    // for the eye.
     btn: {
       borderWidth: 1.5,
       borderColor: c.piktag500,
@@ -169,11 +191,29 @@ function makeStyles(c: ColorPalette) {
       paddingVertical: 14,
       alignItems: 'center',
       justifyContent: 'center',
+      // backgroundColor stays unset so the outline reads against
+      // either the screen bg or a footer card.
     },
     btnText: {
       fontSize: 15,
       fontWeight: '700',
       color: c.piktag600,
+    },
+    // Primary tier override — matches the canonical primary CTA
+    // pattern (EditLocalContact.saveBtn / EditProfile save / etc.):
+    // solid piktag500 fill, white text, slightly larger padding so
+    // the button reads as the page's anchor action. Applied via
+    // StyleSheet array on top of `btn`, so only the deltas live
+    // here (border stays from base but the solid fill visually
+    // covers it; no need to zero borderWidth — saves a re-layout).
+    btnPrimary: {
+      backgroundColor: c.piktag500,
+      borderColor: c.piktag500, // keep visual edge consistent
+      paddingVertical: 15,
+    },
+    btnTextPrimary: {
+      fontSize: 16,
+      color: '#FFFFFF',
     },
   });
 }

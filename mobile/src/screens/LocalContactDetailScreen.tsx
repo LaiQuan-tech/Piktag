@@ -348,6 +348,14 @@ export default function LocalContactDetailScreen({ navigation, route }: Props) {
           ]}
         >
           <LocalContactShareButton
+            // This is the page's PRIMARY CTA (CLAUDE.md "Know the
+            // CTA of every screen" — LocalContactDetail's locked
+            // CTA = "寄我的聯絡資料給他", founder 2026-06-03).
+            // Solid piktag500 + white text, matches every other
+            // primary CTA in the app. EditLocalContact uses the
+            // default 'secondary' tier instead, since 儲存 owns
+            // primary there.
+            variant="primary"
             recipientEmail={existing.email_lower}
             recipientPhone={existing.phone_normalized}
             recipientName={existing.name}
