@@ -2071,10 +2071,39 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
   const tagCountSuffix = useMemo(() => t('search.tagCountSuffix'), [t]);
 
   // Filtered tags by selected category
-  const filteredTags = useMemo(() => {
-    if (!selectedTagCategory) return tags.slice(0, 20);
-    return tags.filter((t) => t.semantic_type === selectedTagCategory).slice(0, 20);
+  // IG-search-style progressive reveal of the popular-tags grid.
+  // ~20 tags fill the first screen (the search bar eats the top), so
+  // we render `popularVisibleCount` (init 20) and grow it by a page
+  // on scroll-to-end (see the FlatList onEndReached). The full pool
+  // (up to 50, nearby-first + global backfill) is already in `tags`,
+  // so each reveal is INSTANT — no extra query, no spinner. Founder
+  // 2026-06-03; matches the "commodity surfaces must feel instant"
+  // principle (no network on scroll). 2026-06-03.
+  const POPULAR_PAGE = 20;
+  const [popularVisibleCount, setPopularVisibleCount] = useState(POPULAR_PAGE);
+  // Re-window from the first page whenever the popular set reloads or
+  // the category filter changes — a fresh list should start at 20.
+  useEffect(() => {
+    setPopularVisibleCount(POPULAR_PAGE);
   }, [tags, selectedTagCategory]);
+
+  const filteredTags = useMemo(() => {
+    const base = selectedTagCategory
+      ? tags.filter((t) => t.semantic_type === selectedTagCategory)
+      : tags;
+    return base.slice(0, popularVisibleCount);
+  }, [tags, selectedTagCategory, popularVisibleCount]);
+
+  // Reveal the next page of popular tags when the user scrolls to the
+  // end of the home (no-query) grid. Pure in-memory reveal from the
+  // already-loaded `tags` pool — instant. No-op in query / intersection
+  // modes (those render their own result lists, not filteredTags).
+  const handleListEndReached = useCallback(() => {
+    if (trimmedQuery !== '' || intersectionMode) return;
+    setPopularVisibleCount((c) =>
+      c < tags.length ? Math.min(c + POPULAR_PAGE, tags.length) : c,
+    );
+  }, [trimmedQuery, intersectionMode, tags.length]);
 
   // ── FlatList data and renderers ──
 
@@ -3132,6 +3161,8 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
         maxToRenderPerBatch={10}
         windowSize={7}
         initialNumToRender={8}
+        onEndReached={handleListEndReached}
+        onEndReachedThreshold={0.5}
       />
 
       {/* Floating search button when tags are selected */}
