@@ -135,7 +135,12 @@ export default function App() {
             transition={{ duration: 0.7, delay: 0.3 }}
             className="flex flex-col sm:flex-row gap-4"
           >
-            <button className="group flex items-center justify-center gap-2 bg-white text-neutral-900 px-8 py-4 rounded-2xl font-medium hover:bg-white/90 transition-all hover:scale-[1.02] active:scale-[0.98]">
+            <a
+              href="https://apps.apple.com/app/id6761379641"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group flex items-center justify-center gap-2 bg-white text-neutral-900 px-8 py-4 rounded-2xl font-medium hover:bg-white/90 transition-all hover:scale-[1.02] active:scale-[0.98]"
+            >
               <Apple className="w-5 h-5" />
               <div className="text-left">
                 <div className="text-[10px] opacity-60 leading-none mb-1">
@@ -143,8 +148,13 @@ export default function App() {
                 </div>
                 <div className="text-sm leading-none">{t('hero.appStore')}</div>
               </div>
-            </button>
-            <button className="group relative flex items-center justify-center gap-2 bg-gradient-to-r from-accent-red to-accent-purple text-white px-8 py-4 rounded-2xl font-medium transition-all hover:scale-[1.02] active:scale-[0.98] shadow-[0_0_40px_rgba(140,82,255,0.35)] hover:shadow-[0_0_60px_rgba(140,82,255,0.5)]">
+            </a>
+            <a
+              href="#"
+              onClick={(e) => e.preventDefault()}
+              aria-disabled="true"
+              className="group relative flex items-center justify-center gap-2 bg-gradient-to-r from-accent-red to-accent-purple text-white px-8 py-4 rounded-2xl font-medium transition-all hover:scale-[1.02] active:scale-[0.98] shadow-[0_0_40px_rgba(140,82,255,0.35)] hover:shadow-[0_0_60px_rgba(140,82,255,0.5)] opacity-60"
+            >
               <Play className="w-5 h-5" />
               <div className="text-left">
                 <div className="text-[10px] opacity-70 leading-none mb-1">
@@ -152,7 +162,7 @@ export default function App() {
                 </div>
                 <div className="text-sm leading-none">{t('hero.googlePlay')}</div>
               </div>
-            </button>
+            </a>
           </motion.div>
         </div>
       </main>
