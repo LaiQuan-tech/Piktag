@@ -1110,11 +1110,17 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
               {friendActiveAsk.ask_tag_names.length > 0 ? (
                 <View style={styles.askTagsRow}>
                   {friendActiveAsk.ask_tag_names.slice(0, 6).map((tagName) => (
+                    // selected={true} → piktag500 fill + white text
+                    // (canonical TagChip "selected" treatment per
+                    // CLAUDE.md). Distinguishes the Ask's matching
+                    // criteria from the friend's identity tags row
+                    // below — see the askCard style comment for
+                    // the founder's 2026-06-03 reversal rationale.
                     <TagChip
                       key={tagName}
                       label={tagName}
                       variant="toggle"
-                      selected={false}
+                      selected={true}
                     />
                   ))}
                 </View>
@@ -2097,17 +2103,27 @@ function makeStyles(c: ColorPalette) {
   // (recordCard / recordRow / recordLabel / recordValue / recordNotes
   // / recordDivider / reminderRow moved into the shared RecordCard
   // component — task #38 follow-up 2026-05-31.)
-  // Friend's-active-Ask card. Soft purple-tinted background to subtly
-  // distinguish from neutral recordCard above — signals "this is live /
-  // happening now", but quietly. Same all-gray-chip contract for the
-  // tags inside (TagChip variant='toggle' selected={false}) so we don't
-  // introduce a purple wall that competes with the screen's CTA row.
+  // Friend's-active-Ask card. Soft purple-tinted background to
+  // signal "this is live / happening now". marginBottom: 12 added
+  // 2026-06-03 — without it the Ask card sat flush against the
+  // friend's tag-row below (founder caught the missing gap).
+  //
+  // The previous comment here pinned the Ask-card's internal tags
+  // to the gray chip variant for "no purple wall" reasons. That
+  // rule still applies to the FRIEND'S TAGS section below this
+  // card (10+ chips, would dilute the 標籤 CTA if all purple) —
+  // but the founder reversed it specifically for THIS card's
+  // tags 2026-06-03: those tags ARE the Ask's matching criteria,
+  // distinct from the friend's identity tags, and rendering them
+  // purple inside the already-purple card makes that role clear.
+  // Max 6 tags by slice — no "wall" risk inside this scope.
   askCard: {
     backgroundColor: c.piktag50,
     borderRadius: 16,
     paddingVertical: 14,
     paddingHorizontal: 16,
     marginTop: 12,
+    marginBottom: 12,
   },
   askHeader: {
     flexDirection: 'row',

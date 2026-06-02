@@ -1267,7 +1267,7 @@
     "aiSuggestions": "Подсказки ИИ",
     "customTagPlaceholder": "Добавить тег",
     "cardLabel": "Ищу",
-    "askingNow": "Просят сейчас",
+    "askingNow": "Active Ask",
     "yourAskTitle": "Ваш активный Ask",
     "generateAiTags": "Сгенерировать ИИ-теги",
     "aiNoSuggestions": "ИИ не нашёл подходящих тегов. Попробуй снова или введи сам.",

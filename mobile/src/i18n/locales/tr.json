@@ -1267,7 +1267,7 @@
     "aiSuggestions": "Yapay zeka önerileri",
     "customTagPlaceholder": "Özel etiket ekle",
     "cardLabel": "Aranıyor",
-    "askingNow": "Şu an arıyor",
+    "askingNow": "Active Ask",
     "yourAskTitle": "Aktif Ask’in",
     "generateAiTags": "Yapay zeka etiketi üret",
     "aiNoSuggestions": "Yapay zeka uygun etiket bulamadı. Tekrar dene ya da kendin yaz.",
