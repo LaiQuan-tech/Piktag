@@ -25,6 +25,7 @@ import { COLORS, type ColorPalette } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
+import { getPlatformLabel } from '../lib/platforms';
 import SectionTitle from '../components/SectionTitle';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
@@ -670,8 +671,20 @@ export default function SocialStatsScreen({ navigation }: SocialStatsScreenProps
                       <Text style={styles.biolinkRankText}>{index + 1}</Text>
                     </View>
                     <View style={styles.biolinkInfo}>
-                      <Text style={styles.biolinkPlatform}>{link.platform}</Text>
-                      {link.label ? <Text style={styles.biolinkLabel} numberOfLines={1}>{link.label}</Text> : null}
+                      {/* Locale-derive the platform name — was rendering
+                          the raw lowercase key ("phone" / "instagram")
+                          AND falling back to whatever locale `label`
+                          was persisted in (a "電話" stored from zh-TW
+                          showed Chinese on en views). Same save-side
+                          rule as EditProfile / BiolinkSocialSection:
+                          only `custom` (the user-named "Link" entry)
+                          surfaces the stored label as a subtitle —
+                          for that case the label IS the whole point
+                          (e.g. "PikTag" pointing at pikt.ag). */}
+                      <Text style={styles.biolinkPlatform}>{getPlatformLabel(link.platform, t)}</Text>
+                      {link.platform === 'custom' && link.label ? (
+                        <Text style={styles.biolinkLabel} numberOfLines={1}>{link.label}</Text>
+                      ) : null}
                     </View>
                     <Text style={styles.biolinkClicks}>
                       {t('dashboard.clickCount', { count: link.clickCount })}
