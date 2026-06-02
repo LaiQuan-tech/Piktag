@@ -163,7 +163,7 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
   const cameraAutoRef = useRef(false);
   // Latest-runScan ref so `openCamera` can stay a stable callback
   // without a circular dep (openCamera ← runScan ← openCamera).
-  const runScanRef = useRef<((b64: string, mime: string, uri?: string) => void) | null>(null);
+  const runScanRef = useRef<((uri: string, mime: string) => void) | null>(null);
 
   // ── Avatar (大頭照) state + create-mode stable id ────────────────
   // For an existing contact we use its real id as the storage
@@ -343,8 +343,8 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
   const openCamera = useCallback(
     (cancelAddOnClose: boolean) => {
       navigation.navigate('CardCamera', {
-        onCaptured: (b64: string, mime: string, uri?: string) =>
-          runScanRef.current?.(b64, mime, uri),
+        onCaptured: (uri: string, mime: string) =>
+          runScanRef.current?.(uri, mime),
         onManual: () => setManualFocus(true),
         onClose: () => {
           if (cancelAddOnClose && navigation.canGoBack()) navigation.goBack();
@@ -354,7 +354,7 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
     [navigation],
   );
 
-  const runScan = useCallback(async (base64: string, mimeType: string, uri?: string) => {
+  const runScan = useCallback(async (uri: string, mimeType: string) => {
     // Scanning is a "review prefilled data" path — never autofocus
     // the name field (would pop the keyboard over the results).
     setManualFocus(false);
@@ -373,10 +373,10 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
       // scanCard runs on-device OCR first (fast) and falls back to the
       // multimodal image call automatically; returns the same
       // { data, error } shape as the raw invoke, so everything below
-      // is unchanged. uri may be undefined (older capture path) — then
-      // scanCard just goes straight to the image path.
+      // is unchanged. 2026-06-03 speed pass: uri-only input — base64
+      // is lazy-encoded inside scanCard only when the fallback fires.
       const { data, error } = await Promise.race([
-        scanCard({ uri, base64, mimeType }),
+        scanCard({ uri, mimeType }),
         new Promise<never>((_, reject) =>
           setTimeout(() => reject(new Error('SCAN_TIMEOUT')), SCAN_TIMEOUT_MS),
         ),

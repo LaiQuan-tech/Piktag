@@ -321,15 +321,16 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
   // Scan pipeline, fed a captured photo by CardCameraScreen via its
   // onCaptured callback param. The framing-guide camera owns the
   // camera + permission; this owns the timeout + confirmation sheet.
-  const runScan = useCallback(async (base64: string, mimeType: string, uri?: string) => {
+  const runScan = useCallback(async (uri: string, mimeType: string) => {
     try {
       setScanning(true);
       // scanCard runs on-device OCR first (fast) and auto-falls back
       // to the multimodal image call; same { data, error } shape as
-      // the raw invoke. uri may be undefined → straight to image path.
+      // the raw invoke. 2026-06-03 speed pass: uri-only input — base64
+      // is lazy-encoded inside scanCard only when the fallback fires.
       const SCAN_TIMEOUT_MS = 30000;
       const { data, error } = await Promise.race([
-        scanCard({ uri, base64, mimeType }),
+        scanCard({ uri, mimeType }),
         new Promise<never>((_, reject) =>
           setTimeout(() => reject(new Error('SCAN_TIMEOUT')), SCAN_TIMEOUT_MS),
         ),

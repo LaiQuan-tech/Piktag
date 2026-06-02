@@ -22,6 +22,13 @@
 // too thin or the text-structuring yields no usable field — a weak
 // OCR never produces a worse result than the image path would have.
 //
+// 2026-06-03 speed pass: input is now URI-only — base64 is LAZILY
+// encoded inside scanCard ONLY when the multimodal fallback fires
+// (~5% of scans). Removed a 400-800ms-on-iOS base64 encode from the
+// JS thread on the happy path. The re-encode inside loadBase64 is
+// wasteful, but it only ever runs on the rare fallback path where
+// we're about to pay multimodal latency anyway.
+//
 // Drop-in: returns the SAME `{ data, error }` shape that
 // supabase.functions.invoke('scan-business-card', …) returns, so the
 // callers' existing `(data as any)?.data` extraction is unchanged.
@@ -29,6 +36,7 @@
 import TextRecognition, {
   TextRecognitionScript,
 } from '@react-native-ml-kit/text-recognition';
+import { ImageManipulator, SaveFormat } from 'expo-image-manipulator';
 import { supabase } from './supabase';
 
 // Below this many recognised chars we treat OCR as "failed" and let
@@ -45,10 +53,10 @@ const MIN_OCR_CHARS = 10;
 const OCR_ENABLED = true;
 
 export type ScanCardInput = {
-  /** Local file URI of the captured frame (for on-device OCR). */
-  uri?: string;
-  /** base64 of the same frame (for the multimodal fallback upload). */
-  base64: string;
+  /** Local file URI of the captured frame. Required — both the OCR
+   *  fast path (ML Kit reads from a file path) and the lazy base64
+   *  encode for the multimodal fallback consume it. */
+  uri: string;
   mimeType: string;
   /** bio_draft language hint; omitted → edge fn defaults to 繁體中文. */
   lang?: string;
@@ -112,6 +120,36 @@ async function tryOcr(uri: string): Promise<string | null> {
   }
 }
 
+/**
+ * Lazy base64 encode for the multimodal fallback path. Re-encodes
+ * the file via ImageManipulator (no expo-file-system dependency
+ * needed — we reuse a library that's already installed). Returns
+ * null on any failure so the outer scanCard surfaces a clean
+ * "scan failed" rather than a half-formed invoke.
+ *
+ * Wasteful on paper (decode-then-encode the JPEG we already wrote)
+ * but only ever runs on the ~5% fallback path where we're about to
+ * pay multimodal-vision latency anyway — the encode cost is in the
+ * noise relative to the model call.
+ */
+async function loadBase64(uri: string): Promise<string | null> {
+  try {
+    const ctx = ImageManipulator.manipulate(uri);
+    const ref = await ctx.renderAsync();
+    // compress 1.0 → no further quality loss; the file is already
+    // compressed at 0.4 from CardCameraScreen's saveAsync. JPEG to
+    // match the source mime.
+    const out = await ref.saveAsync({
+      base64: true,
+      compress: 1.0,
+      format: SaveFormat.JPEG,
+    });
+    return out.base64 ?? null;
+  } catch {
+    return null;
+  }
+}
+
 function hasUsableField(invokeData: any): boolean {
   const card = invokeData?.data ?? null;
   return (
@@ -121,10 +159,10 @@ function hasUsableField(invokeData: any): boolean {
 }
 
 export async function scanCard(input: ScanCardInput): Promise<ScanCardResult> {
-  const { uri, base64, mimeType, lang } = input;
+  const { uri, mimeType, lang } = input;
 
   // ── Fast path: on-device OCR → text-only structuring ──
-  if (OCR_ENABLED && uri) {
+  if (OCR_ENABLED) {
     const text = await tryOcr(uri);
     if (text && text.length >= MIN_OCR_CHARS) {
       try {
@@ -145,6 +183,16 @@ export async function scanCard(input: ScanCardInput): Promise<ScanCardResult> {
   }
 
   // ── Fallback: multimodal image (the pre-Path-A behaviour) ──
+  // Lazy-encode base64 ONLY now, when the fallback is actually
+  // firing. Saves the encode cost on the happy path.
+  const base64 = await loadBase64(uri);
+  if (!base64) {
+    return {
+      data: null,
+      error: { message: 'failed_to_read_image' },
+      source: null,
+    };
+  }
   const { data, error } = await supabase.functions.invoke(
     'scan-business-card',
     { body: { image: base64, mimeType, ...(lang ? { lang } : {}) } },
