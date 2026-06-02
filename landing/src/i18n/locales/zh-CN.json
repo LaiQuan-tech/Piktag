@@ -6,13 +6,14 @@
     "comingSoon": "即将推出"
   },
   "hero": {
-    "badge": "iOS & Android 即将上线",
+    "badge": "iOS 已上线 · Android 即将推出",
     "title1": "自己标自己，",
     "title2": "谁都找得到。",
     "description": "PikTag to connect.",
     "appStore": "App Store",
     "googlePlay": "Google Play",
-    "comingSoonOn": "Coming Soon on"
+    "comingSoonOn": "Coming Soon on",
+    "downloadOn": "下载于"
   },
   "features": {
     "sectionTitle": "基础功能，强大无比",
@@ -105,7 +106,7 @@
   },
   "cta": {
     "title": "准备好升级你的人脉网络了吗？",
-    "description": "PikTag 即将登陆 iOS 与 Android 平台。"
+    "description": "PikTag iOS 版本已上线，Android 版本即将推出。"
   },
   "footer": {
     "rights": "All rights reserved.",

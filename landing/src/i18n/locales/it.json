@@ -6,13 +6,14 @@
     "comingSoon": "In arrivo"
   },
   "hero": {
-    "badge": "iOS e Android in arrivo",
+    "badge": "App iOS disponibile · Android in arrivo",
     "title1": "Tagga te stesso.",
     "title2": "Trova chiunque.",
     "description": "PikTag to connect.",
     "appStore": "App Store",
     "googlePlay": "Google Play",
-    "comingSoonOn": "In arrivo su"
+    "comingSoonOn": "In arrivo su",
+    "downloadOn": "Scarica su"
   },
   "features": {
     "sectionTitle": "Funzioni essenziali, una potenza incredibile",
@@ -105,7 +106,7 @@
   },
   "cta": {
     "title": "Pronto a far crescere la tua rete?",
-    "description": "PikTag arriva presto su iOS e Android."
+    "description": "PikTag è ora disponibile su iOS. Android in arrivo."
   },
   "footer": {
     "rights": "Tutti i diritti riservati.",

@@ -6,13 +6,14 @@
     "comingSoon": "جلد آ رہا ہے"
   },
   "hero": {
-    "badge": "iOS اور Android پر جلد آ رہا ہے",
+    "badge": "iOS ایپ اب دستیاب ہے · Android جلد آ رہا ہے",
     "title1": "خود کو ٹیگ کریں۔",
     "title2": "کسی کو بھی ڈھونڈیں۔",
     "description": "PikTag to connect.",
     "appStore": "App Store",
     "googlePlay": "Google Play",
-    "comingSoonOn": "جلد آ رہا ہے"
+    "comingSoonOn": "جلد آ رہا ہے",
+    "downloadOn": "ڈاؤن لوڈ کریں"
   },
   "features": {
     "sectionTitle": "بنیادی خصوصیات، حیرت انگیز طاقتور",
@@ -105,7 +106,7 @@
   },
   "cta": {
     "title": "اپنا نیٹ ورک اگلے لیول پر لے جانے کے لیے تیار ہیں؟",
-    "description": "PikTag جلد iOS اور Android پر آ رہا ہے۔"
+    "description": "PikTag اب iOS پر دستیاب ہے۔ Android جلد آ رہا ہے۔"
   },
   "footer": {
     "rights": "جملہ حقوق محفوظ ہیں۔",

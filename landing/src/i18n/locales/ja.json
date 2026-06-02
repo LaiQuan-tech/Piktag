@@ -6,13 +6,14 @@
     "comingSoon": "近日公開"
   },
   "hero": {
-    "badge": "iOS & Android 近日公開",
+    "badge": "iOS版アプリ配信中・Android版近日公開",
     "title1": "自分にタグ。",
     "title2": "誰でも探せる。",
     "description": "PikTag to connect.",
     "appStore": "App Store",
     "googlePlay": "Google Play",
-    "comingSoonOn": "近日公開："
+    "comingSoonOn": "近日公開：",
+    "downloadOn": "ダウンロード："
   },
   "features": {
     "sectionTitle": "コア機能、圧倒的なパワー",
@@ -105,7 +106,7 @@
   },
   "cta": {
     "title": "ネットワークをレベルアップしませんか？",
-    "description": "PikTagはiOSとAndroidに近日公開予定です。"
+    "description": "PikTagはiOS版を配信中です。Android版は近日公開予定です。"
   },
   "footer": {
     "rights": "All rights reserved.",

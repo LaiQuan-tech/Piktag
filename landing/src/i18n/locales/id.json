@@ -6,13 +6,14 @@
     "comingSoon": "Segera Hadir"
   },
   "hero": {
-    "badge": "iOS & Android Segera Hadir",
+    "badge": "Aplikasi iOS tersedia · Android segera hadir",
     "title1": "Tag dirimu.",
     "title2": "Temukan siapa saja.",
     "description": "PikTag to connect.",
     "appStore": "App Store",
     "googlePlay": "Google Play",
-    "comingSoonOn": "Coming Soon on"
+    "comingSoonOn": "Coming Soon on",
+    "downloadOn": "Unduh di"
   },
   "features": {
     "sectionTitle": "Fitur Dasar, Sangat Powerful",
@@ -105,7 +106,7 @@
   },
   "cta": {
     "title": "Siap untuk meningkatkan jaringan Anda?",
-    "description": "PikTag akan segera hadir di platform iOS dan Android."
+    "description": "PikTag kini tersedia di iOS. Android segera hadir."
   },
   "footer": {
     "rights": "All rights reserved.",

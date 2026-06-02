@@ -6,13 +6,14 @@
     "comingSoon": "即將推出"
   },
   "hero": {
-    "badge": "iOS & Android 即將上線",
+    "badge": "iOS 已上架 · Android 即將推出",
     "title1": "自己標自己，",
     "title2": "誰都找得到。",
     "description": "PikTag to connect.",
     "appStore": "App Store",
     "googlePlay": "Google Play",
-    "comingSoonOn": "Coming Soon on"
+    "comingSoonOn": "Coming Soon on",
+    "downloadOn": "下載於"
   },
   "features": {
     "sectionTitle": "基礎功能，強大無比",
@@ -105,7 +106,7 @@
   },
   "cta": {
     "title": "準備好升級你的人脈網絡了嗎？",
-    "description": "PikTag 即將登陸 iOS 與 Android 平台。"
+    "description": "PikTag iOS 版本上架了。Android 版本即將推出。"
   },
   "footer": {
     "rights": "All rights reserved.",
@@ -274,8 +275,7 @@
     "hero": {
       "eyebrow": "投資人預覽 · 上線前",
       "title1": "標籤圖譜，",
-      "title2": "讓沉睡的人脈活化。"
-      ,
+      "title2": "讓沉睡的人脈活化。",
       "subtitle": "PikTag 是一款行動社交 CRM，AI 推薦的語意標籤是引擎——讓你找到你已經認識的對的人，也讓新朋友跨越語言與用字精準媒合。"
     },
     "problem": {

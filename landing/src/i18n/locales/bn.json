@@ -6,13 +6,14 @@
     "comingSoon": "শীঘ্রই আসছে"
   },
   "hero": {
-    "badge": "iOS ও Android-এ শীঘ্রই আসছে",
+    "badge": "iOS অ্যাপ এখন উপলব্ধ · Android শীঘ্রই আসছে",
     "title1": "নিজেকে ট্যাগ করো.",
     "title2": "যাকে চাই, খুঁজে পাও.",
     "description": "PikTag to connect.",
     "appStore": "App Store",
     "googlePlay": "Google Play",
-    "comingSoonOn": "শীঘ্রই আসছে"
+    "comingSoonOn": "শীঘ্রই আসছে",
+    "downloadOn": "ডাউনলোড করুন"
   },
   "features": {
     "sectionTitle": "মূল বৈশিষ্ট্যসমূহ, অবিশ্বাস্যভাবে শক্তিশালী",
@@ -105,7 +106,7 @@
   },
   "cta": {
     "title": "আপনার নেটওয়ার্ক উন্নত করতে প্রস্তুত?",
-    "description": "PikTag শীঘ্রই iOS ও Android-এ আসছে।"
+    "description": "PikTag এখন iOS-এ উপলব্ধ। Android শীঘ্রই আসছে।"
   },
   "footer": {
     "rights": "সর্বস্বত্ব সংরক্ষিত।",

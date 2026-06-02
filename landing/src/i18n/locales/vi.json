@@ -6,13 +6,14 @@
     "comingSoon": "Sắp ra mắt"
   },
   "hero": {
-    "badge": "iOS & Android sắp ra mắt",
+    "badge": "Ứng dụng iOS đã có mặt · Android sắp ra mắt",
     "title1": "Tự gắn tag.",
     "title2": "Tìm bất kỳ ai.",
     "description": "PikTag to connect.",
     "appStore": "App Store",
     "googlePlay": "Google Play",
-    "comingSoonOn": "Sắp có trên"
+    "comingSoonOn": "Sắp có trên",
+    "downloadOn": "Tải về trên"
   },
   "features": {
     "sectionTitle": "Tính năng cốt lõi, mạnh mẽ bất ngờ",
@@ -105,7 +106,7 @@
   },
   "cta": {
     "title": "Sẵn sàng nâng tầm mạng lưới của bạn chưa?",
-    "description": "PikTag sắp có mặt trên iOS và Android."
+    "description": "PikTag đã có mặt trên iOS. Android sắp ra mắt."
   },
   "footer": {
     "rights": "Bảo lưu mọi quyền.",

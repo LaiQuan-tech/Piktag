@@ -6,13 +6,14 @@
     "comingSoon": "Demnächst"
   },
   "hero": {
-    "badge": "iOS & Android demnächst",
+    "badge": "iOS-App jetzt verfügbar · Android demnächst",
     "title1": "Tagge dich selbst.",
     "title2": "Find jeden.",
     "description": "PikTag to connect.",
     "appStore": "App Store",
     "googlePlay": "Google Play",
-    "comingSoonOn": "Demnächst auf"
+    "comingSoonOn": "Demnächst auf",
+    "downloadOn": "Laden im"
   },
   "features": {
     "sectionTitle": "Kernfunktionen, die wirklich was draufhaben",
@@ -105,7 +106,7 @@
   },
   "cta": {
     "title": "Bereit, dein Netzwerk auf das nächste Level zu bringen?",
-    "description": "PikTag kommt bald für iOS und Android."
+    "description": "PikTag ist jetzt für iOS verfügbar. Android folgt bald."
   },
   "footer": {
     "rights": "Alle Rechte vorbehalten.",

@@ -6,13 +6,14 @@
     "comingSoon": "Próximamente"
   },
   "hero": {
-    "badge": "iOS y Android próximamente",
+    "badge": "App de iOS disponible ya · Android próximamente",
     "title1": "Etiquétate.",
     "title2": "Encuentra a cualquiera.",
     "description": "PikTag to connect.",
     "appStore": "App Store",
     "googlePlay": "Google Play",
-    "comingSoonOn": "Próximamente en"
+    "comingSoonOn": "Próximamente en",
+    "downloadOn": "Descarga en"
   },
   "features": {
     "sectionTitle": "Funciones Principales, Increíblemente Poderosas",
@@ -105,7 +106,7 @@
   },
   "cta": {
     "title": "¿Listo para Llevar tu Red al Siguiente Nivel?",
-    "description": "PikTag llegará pronto a iOS y Android."
+    "description": "PikTag ya está disponible en iOS. Android próximamente."
   },
   "footer": {
     "rights": "Todos los derechos reservados.",
