@@ -943,7 +943,14 @@ function makeStyles(c: ColorPalette) {
     backgroundColor: c.white,
   },
   notificationItemUnread: {
-    backgroundColor: c.piktag50,
+    // Was c.piktag50 (light purple tint) — founder asked 2026-06-03
+    // for a "淺灰色" mirror of ConnectionsScreen's has-active-Ask row
+    // wash: 「這樣比較低調，不會膩」. c.gray50 is the subtlest
+    // neutral (#f9fafb light / #0a0a0a dark). The visible unread dot
+    // on the right still carries the "this is unread" signal — the
+    // row-bg tint is secondary, so leaning fully low-key is the
+    // right trade.
+    backgroundColor: c.gray50,
   },
   avatar: {
     width: 44,
