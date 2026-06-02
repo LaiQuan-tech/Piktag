@@ -144,7 +144,7 @@ export default function App() {
               <Apple className="w-5 h-5" />
               <div className="text-left">
                 <div className="text-[10px] opacity-60 leading-none mb-1">
-                  {t('hero.comingSoonOn')}
+                  {t('hero.downloadOn')}
                 </div>
                 <div className="text-sm leading-none">{t('hero.appStore')}</div>
               </div>
