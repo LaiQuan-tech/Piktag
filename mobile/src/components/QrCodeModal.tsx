@@ -260,8 +260,13 @@ export default function QrCodeModal({
                   onPress: handleCopyLink,
                 },
                 {
+                  // Label unified to "分享檔案" across every QR-share
+                  // sheet (was "分享" here) — same i18n key as the
+                  // activity/group sheets so all 19 locales render
+                  // identical text. Founder consistency call 2026-06-03:
+                  // left = 複製連結, right = 分享檔案, everywhere.
                   icon: <Share2 size={22} color="#111827" />,
-                  label: t('profile.share'),
+                  label: t('addTag.shareFile', { defaultValue: '分享檔案' }),
                   onPress: handleShare,
                 },
               ]}

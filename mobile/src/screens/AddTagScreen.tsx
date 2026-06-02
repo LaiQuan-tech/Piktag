@@ -1122,17 +1122,16 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
         tags={eventTags}
         actions={[
           {
-            icon: <Share2 size={22} color="#111827" />,
-            label: t('addTag.shareFile', { defaultValue: '分享檔案' }),
-            onPress: handleShare,
-          },
-          {
-            // Copy icon aligns with QrCodeModal + QrGroupDetail —
-            // single glyph across all 3 QR-share sheets. Founder
-            // caught the drift 2026-06-03.
+            // Order unified 2026-06-03: 複製連結 LEFT, 分享檔案 next,
+            // 編輯 last — copy-before-share, same as every QR sheet.
             icon: <Copy size={22} color="#111827" />,
             label: t('addTag.copyLink', { defaultValue: '複製連結' }),
             onPress: handleCopyLink,
+          },
+          {
+            icon: <Share2 size={22} color="#111827" />,
+            label: t('addTag.shareFile', { defaultValue: '分享檔案' }),
+            onPress: handleShare,
           },
           {
             icon: <Pencil size={22} color="#111827" />,

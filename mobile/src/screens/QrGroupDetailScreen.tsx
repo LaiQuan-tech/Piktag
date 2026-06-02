@@ -381,18 +381,18 @@ export default function QrGroupDetailScreen({ navigation, route }: Props) {
           tags={group.event_tags}
           actions={[
             {
-              icon: <Share2 size={22} color={'#111827'} />,
-              label: t('addTag.shareFile', { defaultValue: '分享檔案' }),
-              onPress: handleShare,
-            },
-            {
-              // Copy icon (universal clipboard glyph) aligns with
-              // QrCodeModal's personal-share sheet; previously this
-              // used Link2 (chain icon) — founder caught the drift
-              // 2026-06-03 across the two QR sheets.
+              // Order unified 2026-06-03: 複製連結 LEFT, 分享檔案
+              // next, 編輯 last — same copy-before-share order as the
+              // personal QR sheet (QrCodeModal). Copy icon = universal
+              // clipboard glyph, matches QrCodeModal.
               icon: <Copy size={22} color={'#111827'} />,
               label: t('addTag.copyLink', { defaultValue: '複製連結' }),
               onPress: handleCopyLink,
+            },
+            {
+              icon: <Share2 size={22} color={'#111827'} />,
+              label: t('addTag.shareFile', { defaultValue: '分享檔案' }),
+              onPress: handleShare,
             },
             {
               icon: <Pencil size={22} color={'#111827'} />,
