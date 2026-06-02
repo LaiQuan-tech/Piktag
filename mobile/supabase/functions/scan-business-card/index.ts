@@ -27,7 +27,57 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-const MODEL_FALLBACK_CHAIN = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash'] as const;
+// Model order — 2026-06-03 latency rework (founder: "掃描名片要約
+// 10秒，操作體驗太差"). gemini-2.0-flash is now PRIMARY, ahead of
+// 2.5-flash. Reasoning: a business card is printed text → OCR +
+// light structuring, with ZERO reasoning needed. The previous
+// primary (2.5-flash) is the heavier model whose edge is its
+// "thinking" step — but we already set thinkingBudget:0 (nothing to
+// reason about on a card), which neutralises 2.5's only advantage
+// while we still pay its higher base latency. 2.0-flash extracts
+// card fields just as accurately (incl. Traditional-Chinese OCR)
+// and returns materially faster. 2.5-flash stays as the immediate
+// accuracy fallback if 2.0 errors; 1.5-flash is the last resort.
+// Watch piktag api-usage logs to confirm the per-model latency
+// delta in prod and re-tune if 2.0 ever regresses on accuracy.
+const MODEL_FALLBACK_CHAIN = ['gemini-2.0-flash', 'gemini-2.5-flash', 'gemini-1.5-flash'] as const;
+
+// Native structured-output schema (Gemini OpenAPI subset). Paired
+// with responseMimeType:'application/json' below, this forces the
+// model to emit a bare JSON object in this exact shape — no markdown
+// fences, no leading prose. Two wins:
+//   1. Speed: zero output tokens wasted on ``` fences / "Here is the
+//      JSON:" preambles → shorter decode.
+//   2. Reliability: the parse is deterministic, so extractCardObject
+//      no longer occasionally fails and forces a FALLBACK hop — and a
+//      fallback hop is a whole extra multimodal Gemini call (several
+//      seconds). Killing even occasional fallbacks cuts tail latency
+//      hard. All fields nullable so the model can still emit JSON
+//      null for anything not printed on the card (never guess).
+const CARD_RESPONSE_SCHEMA = {
+  type: 'object',
+  properties: {
+    full_name: { type: 'string', nullable: true },
+    job_title: { type: 'string', nullable: true },
+    company:   { type: 'string', nullable: true },
+    bio_draft: { type: 'string', nullable: true },
+    phone:     { type: 'string', nullable: true },
+    email:     { type: 'string', nullable: true },
+    address:   { type: 'string', nullable: true },
+    website:   { type: 'string', nullable: true },
+    instagram: { type: 'string', nullable: true },
+    facebook:  { type: 'string', nullable: true },
+    linkedin:  { type: 'string', nullable: true },
+    line:      { type: 'string', nullable: true },
+  },
+  // Stable field order out of the model — purely cosmetic for the
+  // logs, but free.
+  propertyOrdering: [
+    'full_name', 'job_title', 'company', 'bio_draft', 'phone',
+    'email', 'address', 'website', 'instagram', 'facebook',
+    'linkedin', 'line',
+  ],
+} as const;
 
 // Roughly 6MB of base64 ≈ 4.5MB raw — generous for a card photo,
 // guards against someone POSTing a huge payload.
@@ -203,6 +253,30 @@ serve(async (req) => {
 
     for (const model of MODEL_FALLBACK_CHAIN) {
       try {
+        // Per-model generationConfig.
+        //   - responseMimeType + responseSchema: native JSON mode (see
+        //     CARD_RESPONSE_SCHEMA). Supported on all three flash
+        //     models in the chain.
+        //   - temperature 0.2: extraction, not creativity.
+        //   - maxOutputTokens 500: card JSON is ~300 tokens; the cap
+        //     stops a verbose tail.
+        //   - thinkingConfig: ONLY for 2.5 models. 2.5's default
+        //     "thinking" step is pure overhead for OCR, so we zero it.
+        //     2.0-flash / 1.5-flash have NO thinking feature and can
+        //     reject the field with a 400 — which, now that 2.0-flash
+        //     is PRIMARY, would fail every scan and force a fallback
+        //     to 2.5 on every single card (slower than before the
+        //     rework!). Gating it to 2.5 removes that landmine.
+        const generationConfig: Record<string, unknown> = {
+          temperature: 0.2,
+          maxOutputTokens: 500,
+          responseMimeType: 'application/json',
+          responseSchema: CARD_RESPONSE_SCHEMA,
+        };
+        if (model.startsWith('gemini-2.5')) {
+          generationConfig.thinkingConfig = { thinkingBudget: 0 };
+        }
+
         const upstream = await fetch(
           `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
           {
@@ -220,29 +294,7 @@ serve(async (req) => {
                   ],
                 },
               ],
-              // Low temperature: this is extraction, not creativity.
-              // (bio_draft is the only generative field and one
-              // bland sentence is exactly what we want.)
-              //
-              // maxOutputTokens cap (2026-05-29): card extraction
-              // never exceeds ~300 tokens of JSON in practice; the
-              // 500 cap prevents the model from running long when
-              // it gets verbose (or accidentally emits trailing
-              // prose despite the prompt). Cuts ~1s off the
-              // slowest decoder end on 2.5-flash.
-              //
-              // thinkingBudget = 0 (2026-05-29): Gemini 2.5's
-              // default "thinking" step is pure overhead for a
-              // pure-extraction task — there's nothing to reason
-              // about, just read the card. Disabling it on the
-              // primary 2.5-flash hop saves ~1-2s. Fallback chain
-              // models (2.0-flash, 1.5-flash) ignore the field
-              // silently — backward-compatible.
-              generationConfig: {
-                temperature: 0.2,
-                maxOutputTokens: 500,
-                thinkingConfig: { thinkingBudget: 0 },
-              },
+              generationConfig,
             }),
           },
         );
