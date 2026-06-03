@@ -445,9 +445,15 @@ export default function ContactSyncScreen({ navigation }: ContactSyncScreenProps
     // private notes ("前女友", "欠錢", "黑名單"); leaking those via
     // SMS to the tagged person would kill app trust. Generic invite
     // copy only.
-    const message =
-      t('contactSync.tagInviteMessage', { name: target.name }) ||
-      `嗨！我在用 PikTag — 一起來交換標籤吧：\nhttps://pikt.ag/download`;
+    // 2026-06-03 fix: was t('contactSync.tagInviteMessage') — a key
+    // that exists in NO locale, so i18next returned the raw key string
+    // "contactSync.tagInviteMessage" (truthy → the `||` Chinese
+    // fallback never fired) and the SHARE BODY was the literal key in
+    // all 19 locales. This is the North-Star invite path. Reuse
+    // contactSync.inviteMessage (present in all 19, LINE-style copy
+    // with {{name}} interpolation — task #65). The privacy note above
+    // still holds: this generic copy carries NO tag names.
+    const message = t('contactSync.inviteMessage', { name: target.name });
 
     closeTagPicker();
 

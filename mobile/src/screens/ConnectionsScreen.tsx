@@ -910,7 +910,15 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
               icon: QrCode,
               title: t('connections.coldStartActionQr'),
               desc: t('connections.coldStartActionQrDesc'),
-              onPress: () => navigation.navigate('AddTagTab', { screen: 'AddTag' }),
+              // 2026-06-03 fix: target was 'AddTag' — a screen that
+              // doesn't exist (AddTagStack registers AddTagMain /
+              // AddTagCreate / QrGroupDetail; 'AddTag' was the old
+              // name dropped when QR groups shipped). The nested
+              // navigate silently failed to land, so this cold-start
+              // QR card dead-tapped. 'AddTagCreate' is the activity-QR
+              // create form (matches OnboardingScreen's canonical
+              // post-onboarding target).
+              onPress: () => navigation.navigate('AddTagTab', { screen: 'AddTagCreate' }),
             },
             {
               // The "no network yet?" escape hatch. Framed as the
@@ -1012,7 +1020,13 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
         </View>
       </View>
     );
-  }, [loading, loadError, fetchConnections, t, navigation]);
+    // 2026-06-03 fix: added styles + colors to deps. This callback
+    // builds themed JSX (styles.emptyOnboarding*, colors.piktag500
+    // etc.) but omitted them, so a theme toggle while viewing the
+    // cold-start empty state froze the cards on the launch theme
+    // (the sibling listHeader already lists them — this one was
+    // missed). Both are fresh objects per theme switch.
+  }, [loading, loadError, fetchConnections, t, navigation, styles, colors]);
 
   // --- Optimized: stable keyExtractor ---
   const keyExtractor = useCallback((item: ConnectionWithTags) => item.id, []);

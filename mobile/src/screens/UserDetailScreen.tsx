@@ -1440,7 +1440,11 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
                             style={[styles.mutualMiniAvatar, { marginLeft: i > 0 ? -8 : 0, zIndex: 3 - i }]}
                           />
                         ))}
-                        <Text style={styles.mutualCountText}>{mutuals.length} 共同好友</Text>
+                        {/* 2026-06-03 fix: was hardcoded "共同好友" (Chinese
+                            in every locale). Reuse userDetail.statMutualFriends
+                            (present in all 19), prefixed with the count.
+                            Matches FriendDetail's similar-users card. */}
+                        <Text style={styles.mutualCountText} numberOfLines={1}>{`${mutuals.length} ${t('userDetail.statMutualFriends')}`}</Text>
                       </View>
                     )}
                     {/* Follow button */}

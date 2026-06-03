@@ -3726,7 +3726,10 @@ function makeStyles(c: ColorPalette) {
     backgroundColor: c.gray100,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    // 2026-06-03 fix: was hardcoded '#E5E7EB' (light gray) on a
+    // theme-aware bg → too-light outline in dark mode. Matches the
+    // adjacent bioLinkInput which uses the theme token.
+    borderColor: c.gray200 ?? '#E5E7EB',
     padding: 14,
     gap: 12,
   },

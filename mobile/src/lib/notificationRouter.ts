@@ -71,7 +71,21 @@ export async function routeFromNotification(
   // press actually lands on the Vibe's member list. data carries
   // scan_session_id (added by the daily-on-this-day edge function).
   if (type === 'on_this_day' && typeof data.scan_session_id === 'string') {
-    navigation.navigate('QrGroupDetail', { groupId: data.scan_session_id });
+    // 2026-06-03 fix: QrGroupDetail is registered ONLY inside the
+    // AddTagStack (nested under AddTagTab) — NOT at RootStack level
+    // like TagDetail / FriendDetail / UserDetail (see this file's
+    // header note + AppNavigator). A bare navigate('QrGroupDetail')
+    // from the root nav ref can't resolve it, so the on_this_day tap
+    // dead-ended — the "tap to revisit who joined that day" CTA did
+    // nothing. Use the explicit nested form, matching the chat / ask
+    // handlers below which already nest via 'Main' → tab → child.
+    navigation.navigate('Main', {
+      screen: 'AddTagTab',
+      params: {
+        screen: 'QrGroupDetail',
+        params: { groupId: data.scan_session_id },
+      },
+    });
     return;
   }
 

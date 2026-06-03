@@ -1356,8 +1356,15 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
                             style={[styles.mutualMiniAvatar, { marginLeft: i > 0 ? -8 : 0, zIndex: 3 - i }]}
                           />
                         ))}
-                        <Text style={styles.mutualCountText}>
-                          {t('friendDetail.statMutualFriends', { count: mutuals.length }) || `${mutuals.length} 共同好友`}
+                        <Text style={styles.mutualCountText} numberOfLines={1}>
+                          {/* 2026-06-03 fix: was t('friendDetail.statMutualFriends')
+                              — a key that exists in NO locale, so i18next returned
+                              the raw key string "friendDetail.statMutualFriends"
+                              (truthy → the `|| 共同好友` fallback never fired) and
+                              users saw the literal key in all 19 locales. Reuse
+                              friendDetail.mutualFriendsLabel (present in all 19),
+                              prefixed with the count. Matches UserDetail's card. */}
+                          {`${mutuals.length} ${t('friendDetail.mutualFriendsLabel')}`}
                         </Text>
                       </View>
                     )}

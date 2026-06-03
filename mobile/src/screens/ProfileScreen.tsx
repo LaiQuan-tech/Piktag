@@ -338,7 +338,7 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
       <View style={styles.header}>
         <Text style={[styles.headerTitle, { color: colors.text }]}>{t('profile.pageTitle')}</Text>
         <View style={styles.headerRight}>
-          <TouchableOpacity style={styles.headerIconBtn} activeOpacity={0.6} onPress={handleNavigateSettings} accessibilityLabel="設定" accessibilityRole="button">
+          <TouchableOpacity style={styles.headerIconBtn} activeOpacity={0.6} onPress={handleNavigateSettings} accessibilityLabel={t('settings.headerTitle', { defaultValue: '設定' })} accessibilityRole="button">
             <Settings size={24} color={colors.gray900} />
           </TouchableOpacity>
         </View>
@@ -513,7 +513,7 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
             <TouchableOpacity style={styles.shareButton} activeOpacity={0.7} onPress={handleOpenQr}>
               <Text style={styles.shareButtonText}>{t('profile.shareProfile')}</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.editButton} activeOpacity={0.7} onPress={handleNavigateEditProfile} accessibilityLabel="編輯個人檔案" accessibilityRole="button">
+            <TouchableOpacity style={styles.editButton} activeOpacity={0.7} onPress={handleNavigateEditProfile} accessibilityLabel={t('profile.editProfile', { defaultValue: '編輯個人檔案' })} accessibilityRole="button">
               <Text style={styles.editButtonText}>{t('profile.editProfile')}</Text>
             </TouchableOpacity>
           </View>
