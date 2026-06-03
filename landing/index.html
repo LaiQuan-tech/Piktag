@@ -16,7 +16,14 @@
     <meta property="og:title" content="PikTag — Tag yourself. Find anyone." />
     <meta property="og:description" content="Tag yourself. Find anyone you know — by what they actually do." />
     <meta property="og:type" content="website" />
-    <meta name="twitter:card" content="summary_large_image" />
+    <!-- 2026-06-03: "summary" (not summary_large_image) — we share as a
+         TEXT + LINK card by design (no OG image asset). summary_large_image
+         would reserve a big image area and render it broken/empty without a
+         twitter:image. og:title + og:description above already give FB / LINE
+         a clean text unfurl; this keeps X/Twitter compact-text too. If a
+         designed share image is added later, switch this back to
+         summary_large_image and add og:image + twitter:image. -->
+    <meta name="twitter:card" content="summary" />
     <meta name="twitter:title" content="PikTag — Tag yourself. Find anyone." />
     <meta name="twitter:description" content="Tag yourself. Find anyone you know — by what they actually do." />
     <title>PikTag — Tag yourself. Find anyone.</title>
