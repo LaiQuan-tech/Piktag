@@ -95,6 +95,11 @@ function LocalizedDocumentMeta() {
 
     document.title = title;
     document.documentElement.setAttribute('lang', i18n.language);
+    // 2026-06-03 fix: ar + ur are shipped locales but `dir` was never
+    // set, so Arabic/Urdu rendered left-aligned LTR (wrong alignment,
+    // mirrored layout). Set the document direction from the language.
+    const isRtl = i18n.language === 'ar' || i18n.language === 'ur';
+    document.documentElement.setAttribute('dir', isRtl ? 'rtl' : 'ltr');
 
     const setMeta = (selector: string, attr: string, value: string) => {
       let el = document.head.querySelector<HTMLMetaElement>(selector);

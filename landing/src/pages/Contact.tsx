@@ -129,12 +129,19 @@ export default function Contact() {
         <div className="max-w-4xl mx-auto px-6 py-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-neutral-500">
           <span>&copy; {new Date().getFullYear()} PikTag</span>
           <nav className="flex items-center gap-6">
-            <Link to="/privacy" className="hover:text-neutral-800 transition-colors">
+            {/* 2026-06-03 fix: was <Link to="/privacy"> / <Link to="/terms">.
+                react-router intercepts the click, but main.tsx registers only
+                /, /contact, /reset-password (no /privacy, /terms, no catch-all),
+                so these rendered a BLANK screen. /privacy + /terms are static
+                HTML served via vercel.json rewrites, which only fire on a real
+                browser navigation — so use plain <a href>, matching App.tsx's
+                homepage footer (which already does this correctly). */}
+            <a href="/privacy" className="hover:text-neutral-800 transition-colors">
               {t('footer.privacy')}
-            </Link>
-            <Link to="/terms" className="hover:text-neutral-800 transition-colors">
+            </a>
+            <a href="/terms" className="hover:text-neutral-800 transition-colors">
               {t('footer.terms')}
-            </Link>
+            </a>
           </nav>
         </div>
       </footer>
