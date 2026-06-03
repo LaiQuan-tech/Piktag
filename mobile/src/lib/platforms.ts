@@ -308,10 +308,18 @@ export const CATEGORIES: PlatformCategory[] = [
 /**
  * Translate a generic-noun platform via i18n; brand-name platforms
  * fall back to their verbatim label so the i18n table stays small.
- * Per spec "品牌名不翻，通用詞翻" — only the 6 generic keys here
- * have translation overrides.
+ * Per spec "品牌名不翻，通用詞翻" — the 6 generic keys, PLUS two
+ * China-origin brands (wechat / alipay) whose brand name in Chinese
+ * markets IS the Chinese script (微信 / 支付寶·支付宝) while the
+ * romanized form (WeChat / Alipay) is the brand everywhere else.
+ * Founder 2026-06-04: "讓中文用戶看到支付寶、微信，英文當然就是
+ * Alipay、WeChat". Only zh-TW (支付寶) + zh-CN (支付宝) carry the
+ * override key; every other locale's lookup misses → verbatim label.
+ * Display surfaces all derive via getPlatformLabel with the VIEWER's
+ * locale (non-custom platforms ignore the saved bl.label), so this
+ * is viewer-correct no matter who saved the link.
  */
-const TRANSLATABLE_KEYS = new Set(['phone', 'email', 'website', 'blog', 'portfolio', 'custom']);
+const TRANSLATABLE_KEYS = new Set(['phone', 'email', 'website', 'blog', 'portfolio', 'custom', 'wechat', 'alipay']);
 
 export function getPlatformLabel(
   key: string,

@@ -514,7 +514,9 @@
       "website": "个人网站",
       "blog": "博客",
       "portfolio": "作品集",
-      "custom": "链接"
+      "custom": "链接",
+      "alipay": "支付宝",
+      "wechat": "微信"
     },
     "platformCategory": {
       "communication": "通讯",
