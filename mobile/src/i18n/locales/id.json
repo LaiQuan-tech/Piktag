@@ -1027,7 +1027,9 @@
     "tagLimitMessage": "Anda dapat menambahkan hingga {{max}} tag",
     "aiErrorGeneric": "Saran AI sementara tidak tersedia, coba lagi nanti",
     "nativeHintNoPin": "Tekan lama lalu seret untuk mengurutkan",
-    "tagEditHint": "Ketuk untuk menghapus (bisa dibatalkan sebelum disimpan) · Tahan untuk mengurutkan"
+    "tagEditHint": "Ketuk untuk menghapus (bisa dibatalkan sebelum disimpan) · Tahan untuk mengurutkan",
+    "aiErrorNoContext": "Isi bio, nama, atau tambahkan beberapa tag dulu agar AI bisa memberi saran.",
+    "aiErrorLoadProfile": "Tidak dapat memuat profilmu: {{error}}"
   },
   "activityReview": {
     "noNewFriends": "Tidak ada teman baru untuk ditinjau",
@@ -1156,8 +1158,10 @@
     "section9Body": "PikTag Inc. tidak bertanggung jawab atas kerugian tidak langsung, insidental, atau konsekuensial yang timbul dari penggunaan layanan.",
     "section10Title": "10. Hukum yang Berlaku",
     "section10Body": "Ketentuan ini tunduk pada hukum Republik Tiongkok (Taiwan).",
-    "section11Title": "11. Kontak",
-    "section11Body": "PikTag Inc.\nEmail: support@pikt.ag"
+    "section11Title": "11. Moderasi Konten & Laporan",
+    "section11Body": "Kami meninjau laporan konten yang tidak pantas dalam waktu 24 jam. Jika sebuah laporan terbukti, kami dapat menghapus konten, menangguhkan akun, atau memblokir pengguna — atas kebijakan kami dan sesuai dengan ketentuan ini. Ketuk menu ⋯ pada pengguna, pesan, atau postingan mana pun untuk mengirim laporan.",
+    "section12Title": "12. Kontak",
+    "section12Body": "PikTag Inc.\nEmail: support@pikt.ag"
   },
   "chat": {
     "inbox": "Pesan",

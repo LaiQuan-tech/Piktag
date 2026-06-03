@@ -1027,7 +1027,9 @@
     "tagLimitMessage": "최대 {{max}}개의 태그를 추가할 수 있습니다",
     "aiErrorGeneric": "AI 추천을 일시적으로 사용할 수 없습니다. 나중에 다시 시도하세요",
     "nativeHintNoPin": "길게 눌러 드래그해 정렬하기",
-    "tagEditHint": "탭하면 삭제(저장 전 되돌리기 가능) · 길게 눌러 정렬"
+    "tagEditHint": "탭하면 삭제(저장 전 되돌리기 가능) · 길게 눌러 정렬",
+    "aiErrorNoContext": "AI가 추천할 수 있도록 먼저 소개·이름을 입력하거나 태그를 몇 개 추가해 주세요.",
+    "aiErrorLoadProfile": "프로필을 불러오지 못했습니다: {{error}}"
   },
   "activityReview": {
     "noNewFriends": "검토할 새 친구가 없습니다",
@@ -1156,8 +1158,10 @@
     "section9Body": "PikTag Inc.는 서비스 사용으로 인한 간접적, 부수적 또는 결과적 손해에 대해 책임지지 않습니다.",
     "section10Title": "10. 준거법",
     "section10Body": "본 약관은 중화민국(대만)의 법률에 따릅니다.",
-    "section11Title": "11. 문의",
-    "section11Body": "PikTag Inc.\n이메일: support@pikt.ag"
+    "section11Title": "11. 콘텐츠 관리 및 신고",
+    "section11Body": "부적절한 콘텐츠 신고는 24시간 이내에 검토합니다. 신고가 사실로 확인되면 당사의 재량에 따라 본 약관에 의거하여 콘텐츠를 삭제하거나 계정을 정지하거나 사용자를 차단할 수 있습니다. 사용자, 메시지 또는 게시물의 ⋯ 메뉴를 눌러 신고할 수 있습니다.",
+    "section12Title": "12. 문의",
+    "section12Body": "PikTag Inc.\n이메일: support@pikt.ag"
   },
   "chat": {
     "inbox": "메시지",

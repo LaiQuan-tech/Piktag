@@ -1027,7 +1027,9 @@
     "tagLimitMessage": "Puedes añadir hasta {{max}} etiquetas",
     "aiErrorGeneric": "Las sugerencias de IA no están disponibles temporalmente, inténtalo más tarde",
     "nativeHintNoPin": "Mantén presionado para arrastrar y reordenar",
-    "tagEditHint": "Toca para quitar (reversible hasta guardar) · Mantén pulsado para ordenar"
+    "tagEditHint": "Toca para quitar (reversible hasta guardar) · Mantén pulsado para ordenar",
+    "aiErrorNoContext": "Completa tu biografía, nombre o añade algunas etiquetas para que la IA pueda darte sugerencias.",
+    "aiErrorLoadProfile": "No se pudo cargar tu perfil: {{error}}"
   },
   "activityReview": {
     "noNewFriends": "No hay amigos nuevos para revisar",
@@ -1156,8 +1158,10 @@
     "section9Body": "PikTag Inc. no será responsable de daños indirectos, incidentales o consecuentes derivados de tu uso del servicio.",
     "section10Title": "10. Ley aplicable",
     "section10Body": "Estos términos se rigen por las leyes de la República de China (Taiwán).",
-    "section11Title": "11. Contacto",
-    "section11Body": "PikTag Inc.\nCorreo: support@pikt.ag"
+    "section11Title": "11. Moderación de contenido y denuncias",
+    "section11Body": "Revisamos las denuncias de contenido objetable en un plazo de 24 horas. Cuando una denuncia se confirma, podemos eliminar el contenido, suspender cuentas o bloquear usuarios, a nuestra discreción y conforme a estos términos. Toca el menú ⋯ en cualquier usuario, mensaje o publicación para presentar una denuncia.",
+    "section12Title": "12. Contacto",
+    "section12Body": "PikTag Inc.\nCorreo: support@pikt.ag"
   },
   "chat": {
     "inbox": "Mensajes",

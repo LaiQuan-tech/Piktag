@@ -1072,7 +1072,9 @@
     "tagLimitMessage": "You can add up to {{max}} tags",
     "aiErrorGeneric": "AI suggestions are temporarily unavailable, please try again later",
     "nativeHintNoPin": "Long press to drag and reorder",
-    "tagEditHint": "Tap to remove (undoable until saved) · Long-press to reorder"
+    "tagEditHint": "Tap to remove (undoable until saved) · Long-press to reorder",
+    "aiErrorNoContext": "Fill in your bio, name, or add a few tags first so AI can make suggestions.",
+    "aiErrorLoadProfile": "Couldn't load your profile: {{error}}"
   },
   "activityReview": {
     "noNewFriends": "No new friends to review",

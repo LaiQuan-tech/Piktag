@@ -119,7 +119,13 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
       const profile = profileResp.data;
       const profileError = profileResp.error;
       if (profileError) {
-        setAiError('無法載入個人資料：' + profileError.message);
+        // 2026-06-03: was hardcoded Chinese (shown in every locale).
+        setAiError(
+          t('manageTags.aiErrorLoadProfile', {
+            error: profileError.message,
+            defaultValue: '無法載入個人資料：{{error}}',
+          }),
+        );
         return;
       }
 
@@ -133,7 +139,12 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
       const context = [bioText, nameText, locationText, tagNames].filter(Boolean).join('\n');
       if (!context.trim()) {
         setAiSuggestions([]);
-        setAiError('請先填寫個人簡介、姓名或新增幾個標籤，AI 才能給你建議');
+        // 2026-06-03: was hardcoded Chinese (shown in every locale).
+        setAiError(
+          t('manageTags.aiErrorNoContext', {
+            defaultValue: '請先填寫個人簡介、姓名或新增幾個標籤，AI 才能給你建議',
+          }),
+        );
         return;
       }
 

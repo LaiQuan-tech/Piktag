@@ -1072,7 +1072,9 @@
     "tagLimitMessage": "Bạn thêm được tối đa {{max}} tag thôi",
     "aiErrorGeneric": "Gợi ý AI đang tạm nghỉ, thử lại sau nhé",
     "nativeHintNoPin": "Nhấn giữ rồi kéo để sắp xếp lại",
-    "tagEditHint": "Chạm để xoá (hoàn tác được trước khi lưu) · Giữ để sắp xếp"
+    "tagEditHint": "Chạm để xoá (hoàn tác được trước khi lưu) · Giữ để sắp xếp",
+    "aiErrorNoContext": "Hãy điền tiểu sử, tên hoặc thêm vài thẻ trước để AI có thể đưa ra gợi ý.",
+    "aiErrorLoadProfile": "Không thể tải hồ sơ của bạn: {{error}}"
   },
   "activityReview": {
     "noNewFriends": "Chưa có bạn mới nào để xem lại",
