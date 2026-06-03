@@ -188,7 +188,26 @@ export const PLATFORM_MAP: Record<string, Platform> = PLATFORMS.reduce(
  *   9. reddit        — NA community discussion (Gen Z + maker / tech)
  *  10. snapchat      — Gen Z mainstream
  *  11. wechat        — Chinese-diaspora coverage
- *  12. website       — universal essential
+ *  12. paypal        — money-flow handle (see 2026-06-04 note below)
+ *  13. custom        — universal "name-your-own-link" essential
+ *
+ * 2026-06-04 (founder): added PayPal as the FIRST money-flow option in
+ * the quick-pick. Rationale — connection is a layered exchange:
+ * messaging → social → MONEY. The biolink surface already covered the
+ * first two heavily (10 messengers + 10 socials) but the only
+ * business-category entry that ever reached the high-traffic quick-pick
+ * was Calendly, which is SCHEDULING, not 金流. So a first-time user had
+ * no signal that PikTag even has a payment-link category. PayPal is the
+ * most universal personal money-handle (paypal.me/<user>) and fits the
+ * NA-tuned quick-pick. Added as slot 12 (before the generic Link), NOT
+ * a swap — the 11 identity/social slots above are each individually
+ * justified, and one payment chip among 12 signals the capability
+ * without making the form feel transactional. NOTE: this is the user's
+ * OWN payment link (biolink completeness), NOT PikTag monetization —
+ * the v3 "defer monetization" rule is unaffected. Taiwan caveat: there
+ * is no TW-local payment rail (LINE Pay / 街口) in the catalog yet, so
+ * for a TW-first user PayPal is only a partial answer — revisit if/when
+ * TW becomes the primary market (would need a new catalog platform).
  */
 export const QUICK_PICK_KEYS = [
   'phone',
@@ -202,6 +221,9 @@ export const QUICK_PICK_KEYS = [
   'reddit',
   'snapchat',
   'wechat',
+  // Money-flow slot — the "exchange" layer after messaging + social.
+  // See the 2026-06-04 note above for the full rationale.
+  'paypal',
   // 'custom' replaced 'website' here on 2026-05-31 — the founder
   // observed that website / blog / portfolio / custom were "all
   // saying the same thing, a link the user needs to name". One

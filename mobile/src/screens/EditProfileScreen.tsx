@@ -2495,8 +2495,8 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
                     );
                   })}
                   {/* If the active platform isn't in the quick-pick
-                      8 (user picked from "browse all"), surface it
-                      as an additional always-visible chip so they
+                      set (user picked it from "browse all"), surface
+                      it as an additional always-visible chip so they
                       see what they currently have selected. */}
                   {biolinkForm.platform &&
                     !(QUICK_PICK_KEYS as readonly string[]).includes(biolinkForm.platform) && (
