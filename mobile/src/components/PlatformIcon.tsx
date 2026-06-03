@@ -93,6 +93,7 @@ const LUCIDE_MAP: Record<string, any> = {
   cal: Calendar,
   paypal: DollarSign,
   stripe: DollarSign,
+  alipay: DollarSign,
   patreon: Heart,
   kofi: Coffee,
   buymeacoffee: Coffee,

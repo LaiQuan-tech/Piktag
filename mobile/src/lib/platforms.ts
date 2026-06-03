@@ -122,6 +122,19 @@ export const PLATFORMS: Platform[] = [
   { key: 'kofi',       cat: 'business',      label: 'Ko-fi',      prefix: 'https://ko-fi.com/',                placeholder: 'username',                 domains: ['ko-fi.com'] },
   { key: 'buymeacoffee', cat: 'business',    label: 'Buy Me a Coffee', prefix: 'https://buymeacoffee.com/',    placeholder: 'username',                 domains: ['buymeacoffee.com'] },
   { key: 'stripe',     cat: 'business',      label: 'Stripe',     prefix: 'https://buy.stripe.com/',           placeholder: 'payment-link',             domains: ['stripe.com'] },
+  // Alipay — paste-mode (prefix 'https://', like Slack / Substack):
+  // a personal Alipay 收款碼 has NO username handle (unlike paypal.me);
+  // the user generates a personal collection link in Alipay whose
+  // underlying URL is a token form `https://qr.alipay.com/<code>`, and
+  // pastes that whole link. Mainland-China / Chinese-diaspora rail
+  // (the money-flow companion to WeChat) — surfaced via the CJK
+  // quick-pick variants below, NOT the NA default. Added 2026-06-04.
+  // (LINE Pay was evaluated the same day and REJECTED: its personal
+  // receive flow is a QR *image* with no shareable public URL — it
+  // cannot be a tappable biolink. The LINE friend link `line.me`,
+  // already in the communication category, is the real "pay me via
+  // LINE" path: add on LINE → transfer in-app.)
+  { key: 'alipay',     cat: 'business',      label: 'Alipay',     prefix: 'https://',                          placeholder: 'qr.alipay.com/...',        domains: ['alipay.com', 'qr.alipay.com', 'render.alipay.com'] },
 
   // ── Generic — single "Link" entry after the 2026-05-31 consolidation ──
   // website / blog / portfolio kept here ONLY for backward-compat:
@@ -232,6 +245,47 @@ export const QUICK_PICK_KEYS = [
   // rendering correctly.
   'custom',
 ] as const;
+
+// ── Locale-aware quick-pick (founder 2026-06-04: "依不同市場排序
+// 當然是最好") ───────────────────────────────────────────────────
+// QUICK_PICK_KEYS above is the NA / DEFAULT order. Its WhatsApp-first
+// lead is correct not just for NA but for most of the world —
+// LatAm, Europe, India, MENA, SEA are all WhatsApp-dominant — so
+// every non-CJK locale intentionally falls through to it.
+//
+// The ONLY markets where the default is actively WRONG are East Asia,
+// where the dominant messenger differs hard:
+//   • zh-TW  — LINE dominates (WhatsApp ~unused). + WeChat / Alipay
+//              for cross-strait + diaspora commerce.
+//   • zh-CN  — WeChat + Alipay dominate. LINE is BLOCKED in mainland,
+//              so it MUST NOT lead here (the one place LINE is wrong).
+//   • ja     — LINE dominates; X is unusually large in Japan.
+//   • ko     — KakaoTalk dominates.
+// Taiwan is NOT the primary acquisition market (founder) — these are
+// correctness tweaks layered on the NA baseline, not a re-priori­tisation.
+// Alipay (paste-mode, added above) is the money-flow rail surfaced for
+// the Chinese-market variants. LINE Pay is deliberately NOT here — see
+// the Alipay platform comment for why (QR image, no shareable URL).
+const QUICK_PICK_BY_LANG: Record<string, readonly string[]> = {
+  'zh-TW': ['phone', 'email', 'line', 'instagram', 'threads', 'x', 'facebook', 'linkedin', 'wechat', 'alipay', 'paypal', 'custom'],
+  'zh-CN': ['phone', 'email', 'wechat', 'alipay', 'bilibili', 'instagram', 'x', 'linkedin', 'telegram', 'paypal', 'custom'],
+  ja:      ['phone', 'email', 'line', 'x', 'instagram', 'youtube', 'linkedin', 'telegram', 'paypal', 'custom'],
+  ko:      ['phone', 'email', 'kakaotalk', 'instagram', 'x', 'youtube', 'linkedin', 'telegram', 'paypal', 'custom'],
+};
+
+/**
+ * The quick-pick chip order for a given UI language. Exact locale
+ * match first (zh-TW / zh-CN are distinct), then base-language
+ * fallback (e.g. 'ja-JP' → 'ja'), else the NA default. Pass
+ * `i18n.language`. Pure + cheap — safe to call inline in render.
+ */
+export function getQuickPickKeys(lang: string | undefined): readonly string[] {
+  if (!lang) return QUICK_PICK_KEYS;
+  if (QUICK_PICK_BY_LANG[lang]) return QUICK_PICK_BY_LANG[lang];
+  const base = lang.split('-')[0];
+  if (QUICK_PICK_BY_LANG[base]) return QUICK_PICK_BY_LANG[base];
+  return QUICK_PICK_KEYS;
+}
 
 // Generic ('個人網站 / 部落格 / 作品集 / 自訂連結') leads the search-
 // modal section list because they cover ~60% of "I just want to add

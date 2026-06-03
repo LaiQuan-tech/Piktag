@@ -52,7 +52,7 @@ import TagChip from '../components/TagChip';
 import type { Biolink, Tag, UserTag } from '../types';
 import {
   PLATFORM_MAP,
-  QUICK_PICK_KEYS,
+  getQuickPickKeys,
   detectPlatformFromUrl,
   stripPlatformPrefix as platformStripPrefix,
   buildPlatformUrl as platformBuildUrl,
@@ -100,7 +100,9 @@ const PLATFORM_PREFIXES: Record<string, string> = Object.fromEntries(
 const PLATFORM_PLACEHOLDER_KEYS: Record<string, string> = Object.fromEntries(
   Object.entries(PLATFORM_MAP).map(([k, p]) => [k, p.placeholder]),
 );
-const PRESET_PLATFORM_KEYS = QUICK_PICK_KEYS as readonly string[];
+// (PRESET_PLATFORM_KEYS removed 2026-06-04 — it was dead code, and
+// the quick-pick is now locale-aware via getQuickPickKeys(i18n.language)
+// computed in render.)
 const stripPlatformPrefix = platformStripPrefix;
 const buildPlatformUrl = platformBuildUrl;
 
@@ -2153,7 +2155,7 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
             {showPlatformPicker && !selectedPlatform && (
               <View style={styles.platformPicker}>
                 <Text style={styles.pickerTitle}>{t('editProfile.selectPlatform')}</Text>
-                {(QUICK_PICK_KEYS as readonly string[]).map((key) => {
+                {getQuickPickKeys(i18n.language).map((key) => {
                   const label = getPlatformLabel(key, t);
                   return (
                     <TouchableOpacity
@@ -2461,7 +2463,7 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
               <View style={styles.fieldGroup}>
                 <Text style={styles.fieldLabel}>{t('editProfile.platformLabel')}</Text>
                 <View style={styles.platformQuickRow}>
-                  {(QUICK_PICK_KEYS as readonly string[]).map((key) => {
+                  {getQuickPickKeys(i18n.language).map((key) => {
                     const active = biolinkForm.platform === key;
                     return (
                       <TouchableOpacity
@@ -2499,7 +2501,7 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
                       it as an additional always-visible chip so they
                       see what they currently have selected. */}
                   {biolinkForm.platform &&
-                    !(QUICK_PICK_KEYS as readonly string[]).includes(biolinkForm.platform) && (
+                    !getQuickPickKeys(i18n.language).includes(biolinkForm.platform) && (
                       <View style={[styles.platformChip, styles.platformChipActive]}>
                         <PlatformIcon platform={biolinkForm.platform} size={18} />
                         <Text style={[styles.platformChipText, styles.platformChipTextActive]}>

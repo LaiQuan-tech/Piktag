@@ -474,27 +474,34 @@ founder when the trigger condition lands:
   or further from the thumb arc). If you can't add it without
   competing for primary-CTA weight, you don't add it — you redesign
   the surface or push the request back.
-- **Biolink quick-pick is intentionally NA-first — do NOT "fix" it.**
-  `QUICK_PICK_KEYS` in `mobile/src/lib/platforms.ts` is the chip row
-  a user sees first when adding a link. It is deliberately tuned for a
-  **North-America cold-start audience** (the Reddit build-in-public
-  launch bet): WhatsApp/Reddit/Snapchat/Calendly are in; LINE and
-  YouTube were swapped OUT (they stay one tap away in "Browse all").
-  Founder reaffirmed 2026-06-04: *"維持 NA 取向"*. This means:
-    - **LINE's absence from the quick-pick is NOT a bug.** Don't
-      re-flag it in audits, don't "restore" it because Taiwan uses
-      LINE. The app is locale-aware almost everywhere else (card-scan
-      Chinese-first, search geo-boost, locale concept routing) — the
-      quick-pick is the one surface that is intentionally a single
-      global NA order, because the *acquisition channel* is NA, even
-      though the *capability* (Chinese OCR etc.) is global.
-    - PayPal (added 2026-06-04 as the money-flow slot) fits this NA
-      frame — it's the most universal NA/intl personal payment handle.
-    - **Deferred until/unless TW becomes the primary acquisition
-      channel:** making the quick-pick locale-aware (LINE-first for
-      zh/ja/ko), and adding a TW-local payment rail (LINE Pay / 街口)
-      to the catalog. Both are parked decisions, not oversights —
-      revisit only on a market-strategy change from the founder.
+- **Biolink quick-pick is locale-aware — NA default + CJK variants.**
+  The chip row a user sees first when adding a link lives in
+  `mobile/src/lib/platforms.ts`. Use `getQuickPickKeys(i18n.language)`,
+  NOT the raw `QUICK_PICK_KEYS` array (that const is only the NA /
+  default order now). Founder direction 2026-06-04: *"依不同市場排序
+  當然是最好,台灣不是主戰場"*. The model:
+    - **`QUICK_PICK_KEYS` = NA / default.** WhatsApp/Reddit/Snapchat-
+      led. This is correct not just for NA but for most of the world
+      (LatAm, Europe, India, MENA, SEA are all WhatsApp-dominant), so
+      every non-CJK locale falls through to it ON PURPOSE.
+    - **`QUICK_PICK_BY_LANG` = East-Asia overrides** (zh-TW, zh-CN,
+      ja, ko) — the only markets where the default is actively wrong:
+      LINE leads in TW/JP, KakaoTalk in KR, WeChat+Alipay in mainland.
+      **LINE must NOT lead in zh-CN** (blocked in mainland). So
+      "LINE's absence from the NA quick-pick" is correct, AND "LINE
+      leads the zh-TW/ja quick-pick" is correct — don't flag either.
+    - **Payment rails:** PayPal (NA/intl, username handle, in the NA
+      default) + Alipay (mainland/diaspora, paste-mode token link, in
+      the CJK variants). Both are the USER's own link (biolink
+      completeness, NOT PikTag monetization → v3 defer-monetization
+      rule unaffected).
+    - **LINE Pay was evaluated 2026-06-04 and REJECTED — do not add
+      it.** Its personal receive flow is a QR *image* with no
+      shareable public URL (verified), so it cannot be a tappable
+      biolink; Japan also terminated LINE Pay. The real "pay me via
+      LINE" path is the existing `line.me` friend link → transfer
+      in-app. If a future session is asked to "add LINE Pay", point
+      here.
 - **Every change:** `tsc` clean → commit → push. i18n spans **19 locales**
   (`mobile/src/i18n/locales/*.json`) — keep all in sync (JSON round-trip
   into the right block; verify the key landed where intended).
