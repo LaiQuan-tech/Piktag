@@ -36,6 +36,7 @@ import PlatformIcon from '../components/PlatformIcon';
 import SectionTitle from '../components/SectionTitle';
 import CountryCodePicker from '../components/CountryCodePicker';
 import { supabase, supabaseUrl, supabaseAnonKey } from '../lib/supabase';
+import { ilikeEscape } from '../lib/normalizeTag';
 import {
   type Country,
   buildTelUrl,
@@ -1317,11 +1318,16 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
     try {
       // 1. Check if tag exists. maybeSingle() avoids the PGRST116 "no rows"
       // false-positive error that .single() produces on brand-new tags.
+      // ilike (not eq) so a row stored as "PikTag" matches lookup "Piktag"
+      // — piktag_tags carries a UNIQUE INDEX on lower(name), so a case-
+      // sensitive eq misses the existing row, the INSERT below then hits
+      // the lower() index → 23505, and the founder sees "標籤加不了" for
+      // any tag whose stored case differs from what they typed.
       let tagId: string;
       const { data: existingTag, error: findError } = await supabase
         .from('piktag_tags')
         .select('id')
-        .eq('name', rawName)
+        .ilike('name', ilikeEscape(rawName))
         .maybeSingle();
 
       if (findError) {
@@ -1343,10 +1349,14 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
         if (newTag) {
           tagId = newTag.id;
         } else if (createError && (createError as any).code === '23505') {
+          // 23505 here means we lost a race OR our case differs from the
+          // stored name (UNIQUE INDEX is on lower(name)). The re-select
+          // MUST be case-insensitive or we'll false-negative on the case-
+          // variant path and surface "標籤加不了" for an existing tag.
           const { data: raced } = await supabase
             .from('piktag_tags')
             .select('id')
-            .eq('name', rawName)
+            .ilike('name', ilikeEscape(rawName))
             .maybeSingle();
           if (!raced) {
             Alert.alert(t('common.error'), t('manageTags.alertAddError'));

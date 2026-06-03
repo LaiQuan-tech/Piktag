@@ -21,7 +21,7 @@
 // no corruption, and a later edit re-attempts it.
 
 import { supabase } from './supabase';
-import { normalizeTagName } from './normalizeTag';
+import { normalizeTagName, ilikeEscape } from './normalizeTag';
 
 /**
  * Make sure every given tag name exists in piktag_tags (the global tag
@@ -35,15 +35,21 @@ export async function ensureTagsRegistered(rawNames: string[]): Promise<void> {
   ];
   if (names.length === 0) return;
   try {
-    // Which of these already exist? (Case-sensitive match — a
-    // case-variant that slips through just hits the 23505 guard below.)
-    const { data: existing } = await supabase
-      .from('piktag_tags')
-      .select('name')
-      .in('name', names);
-    const have = new Set(
-      (existing || []).map((r: any) => String(r.name).toLowerCase()),
-    );
+    // Which of these already exist? piktag_tags has UNIQUE INDEX on
+    // lower(name), so case-variant lookups MUST be case-insensitive or we
+    // double-INSERT and waste a 23505 round-trip per variant. PostgREST
+    // .in() is case-sensitive with no lower()-on-column option, so we
+    // probe per-name with .ilike. Typical caller hands us ≤ ~10 names
+    // (per local-contact save), so the N-query path is fine.
+    const have = new Set<string>();
+    for (const n of names) {
+      const { data } = await supabase
+        .from('piktag_tags')
+        .select('name')
+        .ilike('name', ilikeEscape(n))
+        .maybeSingle();
+      if (data) have.add(n.toLowerCase());
+    }
     const missing = names.filter((n) => !have.has(n.toLowerCase()));
     // Insert one at a time: a single duplicate (23505 — lost a race, or
     // a lower(name) case-variant already exists) must not abort the rest.

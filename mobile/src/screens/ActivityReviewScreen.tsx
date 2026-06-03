@@ -12,6 +12,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { X, Check, Tag, MapPin, Calendar, Plus } from 'lucide-react-native';
 import { supabase } from '../lib/supabase';
+import { ilikeEscape } from '../lib/normalizeTag';
 import { useAuth } from '../hooks/useAuth';
 import { COLORS, type ColorPalette } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
@@ -192,8 +193,10 @@ export default function ActivityReviewScreen({ navigation, route }: Props) {
       return next;
     });
 
-    // Save to DB: find tag id → upsert/delete connection_tag
-    let { data: tag } = await supabase.from('piktag_tags').select('id').eq('name', tagName).maybeSingle();
+    // Save to DB: find tag id → upsert/delete connection_tag.
+    // ilike (case-insensitive) because piktag_tags.name has UNIQUE INDEX
+    // on lower(name) — eq would miss a row whose stored case differs.
+    let { data: tag } = await supabase.from('piktag_tags').select('id').ilike('name', ilikeEscape(tagName)).maybeSingle();
     if (tag) {
       if (isNowPicked) {
         // Get current max position for this connection
@@ -252,7 +255,11 @@ export default function ActivityReviewScreen({ navigation, route }: Props) {
 
     (async () => {
       try {
-        let { data: tag } = await supabase.from('piktag_tags').select('id').eq('name', rawTag).maybeSingle();
+        // ilike: case-insensitive lookup matches the lower(name) UNIQUE INDEX.
+        // eq would false-negative when stored case differs from typed case
+        // (e.g. row="PikTag", input="Piktag") → INSERT below 23505s →
+        // optimistic chip silently reverts.
+        let { data: tag } = await supabase.from('piktag_tags').select('id').ilike('name', ilikeEscape(rawTag)).maybeSingle();
         if (!tag) {
           // Race-safe insert: if another client created the same tag between
           // our select and insert, recover via the unique-violation path
@@ -263,7 +270,7 @@ export default function ActivityReviewScreen({ navigation, route }: Props) {
             tag = newTag;
           } else if (insertErr && (insertErr as any).code === '23505') {
             const { data: raced } = await supabase
-              .from('piktag_tags').select('id').eq('name', rawTag).maybeSingle();
+              .from('piktag_tags').select('id').ilike('name', ilikeEscape(rawTag)).maybeSingle();
             tag = raced ?? null;
           } else if (insertErr) {
             console.warn('[ActivityReview] tag insert failed:', insertErr.message);

@@ -28,7 +28,7 @@ import OverlappingAvatars from '../OverlappingAvatars';
 import { COLORS, type ColorPalette } from '../../constants/theme';
 import { useTheme } from '../../context/ThemeContext';
 import { supabase } from '../../lib/supabase';
-import { normalizeTagName as sharedNormalizeTag } from '../../lib/normalizeTag';
+import { normalizeTagName as sharedNormalizeTag, ilikeEscape } from '../../lib/normalizeTag';
 import { useAuth } from '../../hooks/useAuth';
 import { useRotatingPlaceholder } from '../../hooks/useRotatingPlaceholder';
 import type { AskFeedItem, MyActiveAsk } from '../../types/ask';
@@ -510,8 +510,13 @@ function normalizeTagName(raw: string): string | null {
 // ManageTagsScreen.findOrCreateTag — handles the select-then-insert race
 // where two clients create the same tag concurrently (Postgres 23505).
 async function findOrCreateTagByName(name: string): Promise<string | null> {
+  // ilike (case-insensitive): piktag_tags has UNIQUE INDEX on lower(name).
+  // eq would miss a row whose stored case differs from `name`, the INSERT
+  // below would then 23505 on the lower() index, and the fallback
+  // re-select (also case-sensitive in the bug version) would return null
+  // → the Ask silently drops this tag. See normalizeTag.ts:ilikeEscape.
   let { data: tag } = await supabase
-    .from('piktag_tags').select('id').eq('name', name).maybeSingle();
+    .from('piktag_tags').select('id').ilike('name', ilikeEscape(name)).maybeSingle();
   if (!tag) {
     const { data: newTag, error: insertErr } = await supabase
       .from('piktag_tags').insert({ name }).select('id').single();
@@ -519,7 +524,7 @@ async function findOrCreateTagByName(name: string): Promise<string | null> {
       tag = newTag;
     } else if (insertErr && (insertErr as any).code === '23505') {
       const { data: raced } = await supabase
-        .from('piktag_tags').select('id').eq('name', name).maybeSingle();
+        .from('piktag_tags').select('id').ilike('name', ilikeEscape(name)).maybeSingle();
       tag = raced ?? null;
     }
   }

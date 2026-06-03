@@ -21,7 +21,7 @@ import SectionTitle from '../components/SectionTitle';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from '../lib/supabase';
 import { logApiUsage } from '../lib/apiUsage';
-import { normalizeTagName } from '../lib/normalizeTag';
+import { normalizeTagName, ilikeEscape } from '../lib/normalizeTag';
 import { useAuth } from '../hooks/useAuth';
 import { COLORS, type ColorPalette } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
@@ -214,19 +214,26 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
   // ── Helpers ──────────────────────────────────────────────────────────
 
   const findOrCreateTag = useCallback(async (name: string): Promise<string | null> => {
+    // ilike (not eq) so a row stored as "PikTag" matches lookup "Piktag" —
+    // piktag_tags has UNIQUE INDEX on lower(name), so a case-sensitive eq
+    // here misses the existing row, the INSERT then hits the lower() index
+    // → 23505, and the 23505 fallback re-select (also case-sensitive)
+    // false-negatives → caller sees "標籤加不了" for any tag whose stored
+    // case differs from what the user typed.
     let { data: tag } = await supabase
-      .from('piktag_tags').select('id').eq('name', name).maybeSingle();
+      .from('piktag_tags').select('id').ilike('name', ilikeEscape(name)).maybeSingle();
     if (!tag) {
       // Guard against the select-then-insert race: if another client just
       // created this tag, the insert hits the unique index (Postgres error
-      // 23505). Re-select to grab the winner's id.
+      // 23505). Re-select to grab the winner's id — also case-insensitive
+      // because the UNIQUE INDEX is on lower(name), not name.
       const { data: newTag, error: insertErr } = await supabase
         .from('piktag_tags').insert({ name }).select('id').single();
       if (newTag) {
         tag = newTag;
       } else if (insertErr && (insertErr as any).code === '23505') {
         const { data: raced } = await supabase
-          .from('piktag_tags').select('id').eq('name', name).maybeSingle();
+          .from('piktag_tags').select('id').ilike('name', ilikeEscape(name)).maybeSingle();
         tag = raced ?? null;
       }
     }

@@ -17,6 +17,7 @@ import { COLORS, type ColorPalette } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
 import { LinearGradient } from 'expo-linear-gradient';
 import { supabase } from '../lib/supabase';
+import { ilikeEscape } from '../lib/normalizeTag';
 import { useAuth } from '../hooks/useAuth';
 import PageLoader from '../components/loaders/PageLoader';
 import BrandSpinner from '../components/loaders/BrandSpinner';
@@ -204,16 +205,23 @@ export default function ScanResultScreen({ navigation, route }: ScanResultScreen
       // won — look the row back up instead of surfacing the error.
       const findOrCreateTag = async (tagName: string): Promise<string | null> => {
         const rawName = tagName.startsWith('#') ? tagName.slice(1) : tagName;
+        // ilike (case-insensitive): piktag_tags has UNIQUE INDEX on
+        // lower(name). A case-sensitive eq misses an existing row whose
+        // stored case differs from rawName, the subsequent INSERT then
+        // hits the lower() index → 23505, the fallback re-select (also
+        // case-sensitive) likewise returns null → caller drops the tag.
         const { data: existing } = await supabase
-          .from('piktag_tags').select('id').eq('name', rawName).maybeSingle();
+          .from('piktag_tags').select('id').ilike('name', ilikeEscape(rawName)).maybeSingle();
         if (existing) return existing.id;
         const { data: created, error: createErr } = await supabase
           .from('piktag_tags').insert({ name: rawName }).select('id').single();
         if (created) return created.id;
-        // 23505 = unique_violation: another request created it first.
+        // 23505 = unique_violation: another request created it first OR
+        // our case differs from the stored name (UNIQUE INDEX on
+        // lower(name)). Re-select case-insensitively for both cases.
         if (createErr && (createErr as any).code === '23505') {
           const { data: raced } = await supabase
-            .from('piktag_tags').select('id').eq('name', rawName).maybeSingle();
+            .from('piktag_tags').select('id').ilike('name', ilikeEscape(rawName)).maybeSingle();
           return raced?.id || null;
         }
         return null;
