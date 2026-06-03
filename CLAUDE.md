@@ -474,6 +474,27 @@ founder when the trigger condition lands:
   or further from the thumb arc). If you can't add it without
   competing for primary-CTA weight, you don't add it — you redesign
   the surface or push the request back.
+- **Biolink quick-pick is intentionally NA-first — do NOT "fix" it.**
+  `QUICK_PICK_KEYS` in `mobile/src/lib/platforms.ts` is the chip row
+  a user sees first when adding a link. It is deliberately tuned for a
+  **North-America cold-start audience** (the Reddit build-in-public
+  launch bet): WhatsApp/Reddit/Snapchat/Calendly are in; LINE and
+  YouTube were swapped OUT (they stay one tap away in "Browse all").
+  Founder reaffirmed 2026-06-04: *"維持 NA 取向"*. This means:
+    - **LINE's absence from the quick-pick is NOT a bug.** Don't
+      re-flag it in audits, don't "restore" it because Taiwan uses
+      LINE. The app is locale-aware almost everywhere else (card-scan
+      Chinese-first, search geo-boost, locale concept routing) — the
+      quick-pick is the one surface that is intentionally a single
+      global NA order, because the *acquisition channel* is NA, even
+      though the *capability* (Chinese OCR etc.) is global.
+    - PayPal (added 2026-06-04 as the money-flow slot) fits this NA
+      frame — it's the most universal NA/intl personal payment handle.
+    - **Deferred until/unless TW becomes the primary acquisition
+      channel:** making the quick-pick locale-aware (LINE-first for
+      zh/ja/ko), and adding a TW-local payment rail (LINE Pay / 街口)
+      to the catalog. Both are parked decisions, not oversights —
+      revisit only on a market-strategy change from the founder.
 - **Every change:** `tsc` clean → commit → push. i18n spans **19 locales**
   (`mobile/src/i18n/locales/*.json`) — keep all in sync (JSON round-trip
   into the right block; verify the key landed where intended).
