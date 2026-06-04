@@ -219,7 +219,21 @@
       "usernameCheckError": "Impossible de vérifier maintenant — réessayez",
       "usernameWhy": "C'est le lien de votre carte : pikt.ag/votrenom",
       "usernameRequiredTitle": "Choisissez un nom d'utilisateur",
-      "usernameRequiredMessage": "Votre nom d'utilisateur est le lien de votre carte pikt.ag/vous — choisissez-en un disponible."
+      "usernameRequiredMessage": "Votre nom d'utilisateur est le lien de votre carte pikt.ag/vous — choisissez-en un disponible.",
+      "next": "Suivant",
+      "tagsTitle": "Qui êtes-vous ?",
+      "tagsSubtitle": "Quelques tags pour que les bonnes personnes vous trouvent",
+      "headlinePlaceholder": "Titre (facultatif, ex. : Designer produit)",
+      "bioPlaceholder": "Présentez-vous en une ligne",
+      "tagsSectionLabel": "Mes tags",
+      "tagPurpose": "Les tags permettent aux bonnes personnes de vous trouver et vous mettent en relation avec de nouveaux amis.",
+      "aiThinking": "L'IA réfléchit…",
+      "aiMore": "Suggérer plus",
+      "aiSuggest": "Laisser l'IA suggérer des tags",
+      "aiPickHint": "👇 Touchez les tags à ajouter",
+      "tagInputPlaceholder": "Saisissez un tag, ex. : photographie",
+      "tagsGateHint": "Choisissez au moins 3 tags pour continuer",
+      "bioGateHint": "Écrivez une présentation en une ligne pour continuer"
     }
   },
   "connections": {

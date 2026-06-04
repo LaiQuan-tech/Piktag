@@ -226,7 +226,21 @@
       "usernameCheckError": "暫時無法檢查，稍後再試",
       "usernameWhy": "這是你的名片網址：pikt.ag/你的帳號",
       "usernameRequiredTitle": "幫帳號取個名字",
-      "usernameRequiredMessage": "帳號是你的名片網址 pikt.ag/你的帳號，先選一個可用的吧。"
+      "usernameRequiredMessage": "帳號是你的名片網址 pikt.ag/你的帳號，先選一個可用的吧。",
+      "next": "下一步",
+      "tagsTitle": "你是誰？",
+      "tagsSubtitle": "幾個標籤，讓對的人找到你",
+      "headlinePlaceholder": "職稱（選填，例：產品設計師）",
+      "bioPlaceholder": "一句話介紹你自己",
+      "tagsSectionLabel": "我的標籤",
+      "tagPurpose": "標籤讓對的人搜尋得到你，也幫你配對新朋友。",
+      "aiThinking": "AI 想標籤中…",
+      "aiMore": "再推薦一些",
+      "aiSuggest": "讓 AI 推薦標籤",
+      "aiPickHint": "👇 點選想加入的標籤",
+      "tagInputPlaceholder": "輸入標籤，例：攝影",
+      "tagsGateHint": "至少選 3 個標籤再繼續",
+      "bioGateHint": "寫一句自我介紹再繼續"
     }
   },
   "connections": {

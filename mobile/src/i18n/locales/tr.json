@@ -219,7 +219,21 @@
       "usernameCheckError": "Şu anda kontrol edilemiyor — tekrar dene",
       "usernameWhy": "Bu senin kart bağlantın: pikt.ag/adın",
       "usernameRequiredTitle": "Bir kullanıcı adı seç",
-      "usernameRequiredMessage": "Kullanıcı adın kart bağlantın pikt.ag/sen — kullanılabilir birini seç."
+      "usernameRequiredMessage": "Kullanıcı adın kart bağlantın pikt.ag/sen — kullanılabilir birini seç.",
+      "next": "İleri",
+      "tagsTitle": "Sen kimsin?",
+      "tagsSubtitle": "Doğru kişilerin seni bulması için birkaç etiket",
+      "headlinePlaceholder": "Unvan (isteğe bağlı, örn.: Ürün Tasarımcısı)",
+      "bioPlaceholder": "Kendini bir satırda tanıt",
+      "tagsSectionLabel": "Etiketlerim",
+      "tagPurpose": "Etiketler doğru kişilerin seni bulmasını sağlar ve seni yeni arkadaşlarla eşleştirir.",
+      "aiThinking": "Yapay zekâ düşünüyor…",
+      "aiMore": "Daha fazla öner",
+      "aiSuggest": "Yapay zekâ etiket önersin",
+      "aiPickHint": "👇 Eklemek istediğin etiketlere dokun",
+      "tagInputPlaceholder": "Etiket yaz, örn.: fotoğrafçılık",
+      "tagsGateHint": "Devam etmek için en az 3 etiket seç",
+      "bioGateHint": "Devam etmek için kısa bir tanıtım yaz"
     }
   },
   "connections": {

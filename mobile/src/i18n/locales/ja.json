@@ -219,7 +219,21 @@
       "usernameCheckError": "今は確認できません。あとでもう一度お試しください",
       "usernameWhy": "あなたの名刺URL：pikt.ag/ユーザー名",
       "usernameRequiredTitle": "ユーザー名を決めましょう",
-      "usernameRequiredMessage": "ユーザー名はあなたの名刺URL pikt.ag/you です。使えるものを選んでください。"
+      "usernameRequiredMessage": "ユーザー名はあなたの名刺URL pikt.ag/you です。使えるものを選んでください。",
+      "next": "次へ",
+      "tagsTitle": "あなたは何者？",
+      "tagsSubtitle": "タグをいくつか。ぴったりの人に見つけてもらおう",
+      "headlinePlaceholder": "肩書き（任意・例：プロダクトデザイナー）",
+      "bioPlaceholder": "ひとことで自己紹介",
+      "tagsSectionLabel": "マイタグ",
+      "tagPurpose": "タグであなたが見つけてもらえて、新しい友だちとマッチします。",
+      "aiThinking": "AI が考え中…",
+      "aiMore": "もっと提案",
+      "aiSuggest": "AI にタグを提案してもらう",
+      "aiPickHint": "👇 追加したいタグをタップ",
+      "tagInputPlaceholder": "タグを入力（例：写真）",
+      "tagsGateHint": "続けるにはタグを3つ以上選んでください",
+      "bioGateHint": "続けるにはひとこと自己紹介を書いてください"
     }
   },
   "connections": {

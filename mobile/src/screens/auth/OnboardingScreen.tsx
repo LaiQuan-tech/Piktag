@@ -42,9 +42,12 @@ import {
 import BrandSpinner from '../../components/loaders/BrandSpinner';
 import { useTranslation } from 'react-i18next';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { ChevronRight, Camera, QrCode, ScanLine, X } from 'lucide-react-native';
+import { ChevronRight, ChevronLeft, Camera, QrCode, ScanLine, X, Sparkles, Plus } from 'lucide-react-native';
 import { supabase, supabaseUrl, supabaseAnonKey } from '../../lib/supabase';
 import { scanCard } from '../../lib/scanCard';
+import { normalizeTagName } from '../../lib/normalizeTag';
+import { addUserTagByName } from '../../lib/userTags';
+import TagChip from '../../components/TagChip';
 import { Image } from 'expo-image';
 import {
   requestMediaLibraryPermissionsAsync,
@@ -62,7 +65,11 @@ import OnboardingCompleteBurst from '../../components/stingers/OnboardingComplet
 const ONBOARDING_COMPLETED_KEY = 'piktag_onboarding_completed_v1';
 
 const STEP_WELCOME = 0;
-const STEP_PROFILE = 1;
+const STEP_PROFILE = 1; // identity: avatar + name + username
+const STEP_TAGS = 2;    // 你是誰: headline + bio + tags
+// (STEP_LINKS = 3 lands with Step 3.)
+const MAX_ONB_TAGS = 10;
+const MIN_ONB_TAGS = 3; // gate: tags are the engine — require a few
 
 // ─── Business-card scan plumbing ────────────────────────────
 // The edge function returns these fields (all nullable). bio_draft
@@ -165,6 +172,20 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
   // response landing after the user kept typing (stale-write race).
   const usernameCheckSeq = useRef(0);
   const usernameInputRef = useRef<TextInput>(null);
+
+  // ─── Step 2 (你是誰): headline + bio + tags ──────────────────
+  // headline = 職稱 (optional). bio lives in the existing `bio` state
+  // (shared with the card-scan prefill). Tags persist IMMEDIATELY on
+  // add (piktag_user_tags), mirroring ManageTags — so going back or
+  // abandoning keeps them, and the ≥3 gate reads the live list.
+  const [headline, setHeadline] = useState('');
+  const [selectedTags, setSelectedTags] = useState<
+    { key: string; name: string; tagId?: string }[]
+  >([]);
+  const [tagInput, setTagInput] = useState('');
+  const [aiSuggestions, setAiSuggestions] = useState<string[]>([]);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiTried, setAiTried] = useState(false);
   // Self-declared birthday — the engine for "it's X's birthday"
   // friend notifications (core CRM). Collected here so EVERY signup
   // path (email + Apple + Google) gets a chance to set it; OAuth
@@ -294,6 +315,116 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
     }, 400);
     return () => clearTimeout(handle);
   }, [username]);
+
+  // ─── Step 1 → Step 2 advance ────────────────────────────
+  // Upsert {id, full_name, username} BEFORE entering the tag step so
+  // the piktag_profiles row exists (piktag_user_tags inserts in Step 2
+  // may FK to it) and the identity is saved early (resilient to
+  // abandon). The CTA is already gated on name + available username.
+  const goToTags = useCallback(async () => {
+    const trimmed = displayName.trim();
+    const uname = username.trim();
+    if (!trimmed || !uname || usernameStatus !== 'available') return;
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        await supabase
+          .from('piktag_profiles')
+          .upsert({ id: user.id, full_name: trimmed, username: uname }, { onConflict: 'id' });
+      }
+    } catch (e) {
+      console.warn('[Onboarding] identity pre-save failed:', e);
+      // Non-fatal — handleComplete upserts again at the end. Proceed.
+    }
+    setStep(STEP_TAGS);
+  }, [displayName, username, usernameStatus]);
+
+  // ─── Step 2: tags (immediate-persist) ───────────────────
+  const addTagLocal = useCallback(async (rawName: string) => {
+    const norm = normalizeTagName(rawName);
+    if (!norm) return;
+    if (selectedTags.length >= MAX_ONB_TAGS) return;
+    if (selectedTags.some((tg) => tg.name.toLowerCase() === norm.toLowerCase())) return;
+    const key = `t-${Date.now()}-${norm}`;
+    const position = selectedTags.length;
+    // Optimistic add; drop from AI suggestions if it came from there.
+    setSelectedTags((prev) => [...prev, { key, name: norm }]);
+    setAiSuggestions((prev) => prev.filter((s) => s.toLowerCase() !== norm.toLowerCase()));
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const tagId = await addUserTagByName(user.id, norm, position);
+        if (tagId) {
+          setSelectedTags((prev) =>
+            prev.map((tg) => (tg.key === key ? { ...tg, tagId } : tg)),
+          );
+        }
+      }
+    } catch (e) {
+      console.warn('[Onboarding] tag add failed:', e);
+    }
+  }, [selectedTags]);
+
+  const handleAddTypedTag = useCallback(() => {
+    const v = tagInput.trim();
+    if (!v) return;
+    void addTagLocal(v);
+    setTagInput('');
+  }, [tagInput, addTagLocal]);
+
+  const removeTagLocal = useCallback(async (key: string) => {
+    const tg = selectedTags.find((x) => x.key === key);
+    setSelectedTags((prev) => prev.filter((x) => x.key !== key));
+    if (!tg?.tagId) return; // never resolved → nothing in DB yet
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        await supabase
+          .from('piktag_user_tags')
+          .delete()
+          .eq('user_id', user.id)
+          .eq('tag_id', tg.tagId);
+        await supabase.rpc('decrement_tag_usage', { tag_id: tg.tagId });
+      }
+    } catch (e) {
+      console.warn('[Onboarding] tag remove failed:', e);
+    }
+  }, [selectedTags]);
+
+  // AI tag suggestions — explicit button (clear intent: "suggestions
+  // to PICK", not "already applied"). Uses the in-memory bio + name
+  // (no DB round-trip needed).
+  const loadAiSuggestions = useCallback(async () => {
+    setAiTried(true);
+    setAiLoading(true);
+    try {
+      const ctx = `${bio} ${displayName}`;
+      const lang = /[一-鿿]/.test(ctx) ? '繁體中文' :
+        /[぀-ヿ]/.test(ctx) ? '日本語' :
+        /[가-힯]/.test(ctx) ? '한국어' :
+        /[฀-๿]/.test(ctx) ? 'ภาษาไทย' : 'the same language as the content';
+      const { data, error } = await supabase.functions.invoke<{ suggestions?: string[] }>(
+        'suggest-tags',
+        {
+          body: {
+            bio: bio.trim(),
+            name: displayName.trim(),
+            location: '',
+            existingTags: selectedTags.map((tg) => tg.name).join(', '),
+            lang,
+          },
+        },
+      );
+      if (!error && Array.isArray(data?.suggestions)) {
+        const taken = new Set(selectedTags.map((tg) => tg.name.toLowerCase()));
+        setAiSuggestions(data.suggestions.filter((s) => s && !taken.has(s.toLowerCase())));
+      }
+    } catch (e) {
+      console.warn('[Onboarding] suggest-tags failed:', e);
+    } finally {
+      setAiLoading(false);
+    }
+  }, [bio, displayName, selectedTags]);
 
   // ─── Avatar upload (optional) ───────────────────────────
   // Same validation + Storage POST as EditProfileScreen so any image
@@ -582,6 +713,8 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
       const profilePatch: Record<string, string> = { full_name: trimmed, username: uname };
       const trimmedBio = bio.trim();
       if (trimmedBio) profilePatch.bio = trimmedBio;
+      const trimmedHeadline = headline.trim();
+      if (trimmedHeadline) profilePatch.headline = trimmedHeadline;
       if (bday) profilePatch.birthday = bday;
 
       // upsert (not update().eq) so a profile row the signup trigger
@@ -659,7 +792,7 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
     } finally {
       setSaving(false);
     }
-  }, [displayName, username, usernameStatus, bio, birthday, pendingBiolinks, t, finishOnboarding]);
+  }, [displayName, username, usernameStatus, bio, headline, birthday, pendingBiolinks, t, finishOnboarding]);
 
   // ─── Render: Step 0 (Welcome card) ──────────────────────
   const renderWelcome = () => (
@@ -820,22 +953,8 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
           )}
         </View>
 
-        {/* Birthday — optional but the CRM core (drives the
-            "it's X's birthday" friend notification). Stored MM/DD;
-            placeholder is a universal format token (not localized,
-            matches RegisterScreen). */}
-        <TextInput
-          style={styles.nameInput}
-          value={birthday}
-          onChangeText={setBirthday}
-          placeholder={t('auth.register.birthdayLabel', { defaultValue: '生日（選填）' }) + '  MM/DD'}
-          placeholderTextColor={colors.gray400}
-          keyboardType="numbers-and-punctuation"
-          autoCapitalize="none"
-          autoCorrect={false}
-          maxLength={10}
-          returnKeyType="done"
-        />
+        {/* (Birthday moved to Step 2 — Step 1 is identity only:
+            avatar + name + username.) */}
 
         {/* Optional accelerator. Sits BELOW the name input as a
             secondary outlined affordance — visually subordinate to
@@ -879,6 +998,202 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
         <TouchableOpacity
           style={[styles.primaryButton, ctaDisabled && styles.primaryButtonDisabled]}
           activeOpacity={0.85}
+          onPress={goToTags}
+          disabled={ctaDisabled}
+          accessibilityRole="button"
+        >
+          <Text style={styles.primaryButtonText}>
+            {t('auth.onboarding.next', { defaultValue: '下一步' })}
+          </Text>
+          <ChevronRight size={20} color="#FFFFFF" />
+        </TouchableOpacity>
+      </ScrollView>
+    );
+  };
+
+  // ─── Render: Step 2 (你是誰 — headline + bio + tags) ─────
+  const renderTags = () => {
+    const tagsStepValid = selectedTags.length >= MIN_ONB_TAGS && bio.trim().length > 0;
+    const ctaDisabled = saving || !tagsStepValid;
+    return (
+      <ScrollView
+        contentContainerStyle={styles.profileContainer}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Back to identity */}
+        <TouchableOpacity
+          style={styles.backBtn}
+          onPress={() => setStep(STEP_PROFILE)}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          accessibilityRole="button"
+          accessibilityLabel={t('common.back', { defaultValue: '返回' })}
+        >
+          <ChevronLeft size={26} color={colors.gray700} />
+        </TouchableOpacity>
+
+        <Text style={styles.profileTitle}>
+          {t('auth.onboarding.tagsTitle', { defaultValue: '你是誰？' })}
+        </Text>
+        <Text style={styles.profileSubtitle}>
+          {t('auth.onboarding.tagsSubtitle', { defaultValue: '幾個標籤，讓對的人找到你' })}
+        </Text>
+
+        {/* Headline (職稱) — optional */}
+        <TextInput
+          style={styles.nameInput}
+          value={headline}
+          onChangeText={setHeadline}
+          placeholder={t('auth.onboarding.headlinePlaceholder', { defaultValue: '職稱（選填，例：產品設計師）' })}
+          placeholderTextColor={colors.gray400}
+          maxLength={50}
+          returnKeyType="next"
+        />
+
+        {/* Bio — required (feeds AI tag suggestions + matching) */}
+        <TextInput
+          style={[styles.nameInput, styles.bioInput]}
+          value={bio}
+          onChangeText={setBio}
+          placeholder={t('auth.onboarding.bioPlaceholder', { defaultValue: '一句話介紹你自己' })}
+          placeholderTextColor={colors.gray400}
+          multiline
+          maxLength={80}
+          textAlignVertical="top"
+        />
+
+        {/* ── Tags ── */}
+        <View style={styles.tagsSectionHeader}>
+          <Text style={styles.sectionLabel}>
+            {t('auth.onboarding.tagsSectionLabel', { defaultValue: '我的標籤' })}
+          </Text>
+          <Text style={styles.tagCount}>
+            {t('manageTags.tagCount', { count: selectedTags.length, max: MAX_ONB_TAGS })}
+          </Text>
+        </View>
+        {/* Why tags exist — the founder's explicit ask: explain that
+            tags are for matching / meeting the right people. */}
+        <Text style={styles.tagPurpose}>
+          {t('auth.onboarding.tagPurpose', {
+            defaultValue: '標籤讓對的人搜尋得到你，也幫你配對新朋友。',
+          })}
+        </Text>
+
+        {/* AI suggestions — explicit "推薦 → 點選加入" so users don't
+            think the gray chips are already applied. */}
+        <TouchableOpacity
+          style={styles.scanCardBtn}
+          activeOpacity={0.7}
+          onPress={loadAiSuggestions}
+          disabled={aiLoading}
+          accessibilityRole="button"
+        >
+          {aiLoading ? (
+            <>
+              <ActivityIndicator size="small" color={colors.piktag500} />
+              <Text style={styles.scanCardBtnText}>
+                {t('auth.onboarding.aiThinking', { defaultValue: 'AI 想標籤中…' })}
+              </Text>
+            </>
+          ) : (
+            <>
+              <Sparkles size={18} color={colors.piktag500} strokeWidth={2} />
+              <Text style={styles.scanCardBtnText}>
+                {aiTried
+                  ? t('auth.onboarding.aiMore', { defaultValue: '再推薦一些' })
+                  : t('auth.onboarding.aiSuggest', { defaultValue: '讓 AI 推薦標籤' })}
+              </Text>
+            </>
+          )}
+        </TouchableOpacity>
+
+        {aiSuggestions.length > 0 && (
+          <>
+            <Text style={styles.aiPickLabel}>
+              {t('auth.onboarding.aiPickHint', { defaultValue: '👇 點選想加入的標籤' })}
+            </Text>
+            <View style={styles.chipsWrap}>
+              {aiSuggestions.map((s) => (
+                <TagChip
+                  key={`ai-${s}`}
+                  label={s}
+                  variant="toggle"
+                  onPress={() => addTagLocal(s)}
+                />
+              ))}
+            </View>
+          </>
+        )}
+
+        {/* Type your own */}
+        <View style={styles.tagInputRow}>
+          <TextInput
+            style={styles.tagInputField}
+            value={tagInput}
+            onChangeText={setTagInput}
+            placeholder={t('auth.onboarding.tagInputPlaceholder', { defaultValue: '輸入標籤，例：攝影' })}
+            placeholderTextColor={colors.gray400}
+            maxLength={30}
+            autoCapitalize="none"
+            returnKeyType="done"
+            onSubmitEditing={handleAddTypedTag}
+          />
+          <TouchableOpacity
+            style={[styles.tagAddBtn, !tagInput.trim() && styles.tagAddBtnDisabled]}
+            onPress={handleAddTypedTag}
+            disabled={!tagInput.trim()}
+            accessibilityRole="button"
+            accessibilityLabel={t('manageTags.addTag', { defaultValue: '新增標籤' })}
+          >
+            <Plus size={20} color="#FFFFFF" strokeWidth={2.4} />
+          </TouchableOpacity>
+        </View>
+
+        {/* Selected tags — purple, tap to remove */}
+        {selectedTags.length > 0 && (
+          <View style={styles.chipsWrap}>
+            {selectedTags.map((tg) => (
+              <TagChip
+                key={tg.key}
+                label={tg.name}
+                variant="toggle"
+                selected
+                onPress={() => removeTagLocal(tg.key)}
+              />
+            ))}
+          </View>
+        )}
+
+        {/* Birthday — moved from Step 1 (optional, CRM core). */}
+        <TextInput
+          style={styles.nameInput}
+          value={birthday}
+          onChangeText={setBirthday}
+          placeholder={t('auth.register.birthdayLabel', { defaultValue: '生日（選填）' }) + '  MM/DD'}
+          placeholderTextColor={colors.gray400}
+          keyboardType="numbers-and-punctuation"
+          autoCapitalize="none"
+          autoCorrect={false}
+          maxLength={10}
+          returnKeyType="done"
+        />
+
+        <View style={{ flex: 1, minHeight: 24 }} />
+
+        {!tagsStepValid && (
+          <Text style={styles.gateHint}>
+            {selectedTags.length < MIN_ONB_TAGS
+              ? t('auth.onboarding.tagsGateHint', {
+                  count: MIN_ONB_TAGS,
+                  defaultValue: '至少選 3 個標籤再繼續',
+                })
+              : t('auth.onboarding.bioGateHint', { defaultValue: '寫一句自我介紹再繼續' })}
+          </Text>
+        )}
+
+        <TouchableOpacity
+          style={[styles.primaryButton, ctaDisabled && styles.primaryButtonDisabled]}
+          activeOpacity={0.85}
           onPress={handleComplete}
           disabled={ctaDisabled}
           accessibilityRole="button"
@@ -903,7 +1218,11 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
-      {step === STEP_WELCOME ? renderWelcome() : renderProfile()}
+      {step === STEP_WELCOME
+        ? renderWelcome()
+        : step === STEP_PROFILE
+          ? renderProfile()
+          : renderTags()}
 
       {/* Celebration burst plays after handleComplete succeeds. Its
           onComplete then drives the navigation reset — we defer to
@@ -1169,6 +1488,89 @@ function makeStyles(c: ColorPalette) {
   usernameStatusText: {
     fontSize: 13,
     textAlign: 'center',
+  },
+
+  // ── Step 2 (你是誰) ──
+  backBtn: {
+    position: 'absolute',
+    top: 20,
+    left: 8,
+    zIndex: 10,
+    padding: 8,
+  },
+  bioInput: {
+    minHeight: 64,
+    textAlign: 'left',
+    paddingTop: 12,
+  },
+  tagsSectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 22,
+    marginBottom: 4,
+  },
+  sectionLabel: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: c.gray900,
+  },
+  tagCount: {
+    fontSize: 13,
+    color: c.gray400,
+  },
+  tagPurpose: {
+    fontSize: 13,
+    color: c.gray500,
+    lineHeight: 18,
+    marginBottom: 12,
+  },
+  aiPickLabel: {
+    fontSize: 13,
+    color: c.piktag600,
+    fontWeight: '600',
+    marginTop: 12,
+    marginBottom: 6,
+  },
+  chipsWrap: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginTop: 8,
+  },
+  tagInputRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginTop: 14,
+  },
+  tagInputField: {
+    flex: 1,
+    fontSize: 16,
+    color: c.gray900,
+    backgroundColor: c.gray100,
+    borderWidth: 1,
+    borderColor: c.gray200,
+    borderRadius: BORDER_RADIUS.md,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+  },
+  tagAddBtn: {
+    width: 46,
+    height: 46,
+    borderRadius: BORDER_RADIUS.md,
+    backgroundColor: c.piktag500,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  tagAddBtnDisabled: {
+    backgroundColor: c.gray200,
+  },
+  gateHint: {
+    fontSize: 13,
+    color: c.gray500,
+    textAlign: 'center',
+    marginBottom: 10,
   },
 
   // ── Shared primary CTA ──

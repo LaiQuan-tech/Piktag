@@ -219,7 +219,21 @@
       "usernameCheckError": "ตอนนี้ตรวจสอบไม่ได้ — ลองใหม่อีกครั้ง",
       "usernameWhy": "นี่คือลิงก์นามบัตรของคุณ: pikt.ag/ชื่อคุณ",
       "usernameRequiredTitle": "ตั้งชื่อผู้ใช้",
-      "usernameRequiredMessage": "ชื่อผู้ใช้คือลิงก์นามบัตรของคุณ pikt.ag/คุณ — เลือกชื่อที่ว่างก่อนนะ"
+      "usernameRequiredMessage": "ชื่อผู้ใช้คือลิงก์นามบัตรของคุณ pikt.ag/คุณ — เลือกชื่อที่ว่างก่อนนะ",
+      "next": "ถัดไป",
+      "tagsTitle": "คุณคือใคร?",
+      "tagsSubtitle": "แท็กสองสามอันให้คนที่ใช่เจอคุณ",
+      "headlinePlaceholder": "ตำแหน่ง (ไม่บังคับ เช่น นักออกแบบผลิตภัณฑ์)",
+      "bioPlaceholder": "แนะนำตัวสั้น ๆ หนึ่งบรรทัด",
+      "tagsSectionLabel": "แท็กของฉัน",
+      "tagPurpose": "แท็กช่วยให้คนที่ใช่เจอคุณ และจับคู่คุณกับเพื่อนใหม่",
+      "aiThinking": "AI กำลังคิด…",
+      "aiMore": "แนะนำเพิ่ม",
+      "aiSuggest": "ให้ AI แนะนำแท็ก",
+      "aiPickHint": "👇 แตะแท็กที่อยากเพิ่ม",
+      "tagInputPlaceholder": "พิมพ์แท็ก เช่น ถ่ายภาพ",
+      "tagsGateHint": "เลือกอย่างน้อย 3 แท็กเพื่อไปต่อ",
+      "bioGateHint": "เขียนแนะนำตัวสั้น ๆ เพื่อไปต่อ"
     }
   },
   "connections": {

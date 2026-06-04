@@ -221,7 +221,21 @@
       "usernameCheckError": "Prüfung gerade nicht möglich — bitte erneut versuchen",
       "usernameWhy": "Das ist dein Karten-Link: pikt.ag/deinname",
       "usernameRequiredTitle": "Wähle einen Benutzernamen",
-      "usernameRequiredMessage": "Dein Benutzername ist dein Karten-Link pikt.ag/du — wähle einen verfügbaren."
+      "usernameRequiredMessage": "Dein Benutzername ist dein Karten-Link pikt.ag/du — wähle einen verfügbaren.",
+      "next": "Weiter",
+      "tagsTitle": "Wer bist du?",
+      "tagsSubtitle": "Ein paar Tags, damit die richtigen Leute dich finden",
+      "headlinePlaceholder": "Titel (optional, z. B. Produktdesigner)",
+      "bioPlaceholder": "Stell dich in einer Zeile vor",
+      "tagsSectionLabel": "Meine Tags",
+      "tagPurpose": "Tags sorgen dafür, dass die richtigen Leute dich finden — und bringen dich mit neuen Freunden zusammen.",
+      "aiThinking": "KI denkt nach…",
+      "aiMore": "Mehr vorschlagen",
+      "aiSuggest": "KI Tags vorschlagen lassen",
+      "aiPickHint": "👇 Tippe die Tags an, die du hinzufügen willst",
+      "tagInputPlaceholder": "Tag eingeben, z. B. Fotografie",
+      "tagsGateHint": "Wähle mindestens 3 Tags, um fortzufahren",
+      "bioGateHint": "Schreib eine kurze Vorstellung, um fortzufahren"
     }
   },
   "connections": {

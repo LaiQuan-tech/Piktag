@@ -226,7 +226,21 @@
       "usernameCheckError": "ابھی جانچ ممکن نہیں — دوبارہ کوشش کریں",
       "usernameWhy": "یہ آپ کا کارڈ لنک ہے: pikt.ag/آپکانام",
       "usernameRequiredTitle": "یوزرنیم منتخب کریں",
-      "usernameRequiredMessage": "آپ کا یوزرنیم آپ کا کارڈ لنک pikt.ag/you ہے — کوئی دستیاب منتخب کریں۔"
+      "usernameRequiredMessage": "آپ کا یوزرنیم آپ کا کارڈ لنک pikt.ag/you ہے — کوئی دستیاب منتخب کریں۔",
+      "next": "آگے",
+      "tagsTitle": "آپ کون ہیں؟",
+      "tagsSubtitle": "چند ٹیگ تاکہ صحیح لوگ آپ کو ڈھونڈ سکیں",
+      "headlinePlaceholder": "عہدہ (اختیاری، مثلاً: پروڈکٹ ڈیزائنر)",
+      "bioPlaceholder": "ایک سطر میں اپنا تعارف کرائیں",
+      "tagsSectionLabel": "میرے ٹیگ",
+      "tagPurpose": "ٹیگ صحیح لوگوں کو آپ تک پہنچاتے ہیں اور نئے دوستوں سے ملاتے ہیں۔",
+      "aiThinking": "AI سوچ رہا ہے…",
+      "aiMore": "مزید تجاویز",
+      "aiSuggest": "AI سے ٹیگ تجویز کرائیں",
+      "aiPickHint": "👇 شامل کرنے کے لیے ٹیگ پر ٹیپ کریں",
+      "tagInputPlaceholder": "ٹیگ لکھیں، مثلاً: فوٹوگرافی",
+      "tagsGateHint": "جاری رکھنے کے لیے کم از کم 3 ٹیگ منتخب کریں",
+      "bioGateHint": "جاری رکھنے کے لیے ایک سطر کا تعارف لکھیں"
     }
   },
   "connections": {

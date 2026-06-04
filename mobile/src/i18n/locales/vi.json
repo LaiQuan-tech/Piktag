@@ -226,7 +226,21 @@
       "usernameCheckError": "Hiện không kiểm tra được — thử lại nhé",
       "usernameWhy": "Đây là liên kết danh thiếp của bạn: pikt.ag/tênbạn",
       "usernameRequiredTitle": "Chọn một tên người dùng",
-      "usernameRequiredMessage": "Tên người dùng là liên kết danh thiếp pikt.ag/bạn — hãy chọn một tên còn trống."
+      "usernameRequiredMessage": "Tên người dùng là liên kết danh thiếp pikt.ag/bạn — hãy chọn một tên còn trống.",
+      "next": "Tiếp tục",
+      "tagsTitle": "Bạn là ai?",
+      "tagsSubtitle": "Vài thẻ để đúng người tìm thấy bạn",
+      "headlinePlaceholder": "Chức danh (tùy chọn, vd: Nhà thiết kế sản phẩm)",
+      "bioPlaceholder": "Giới thiệu bản thân trong một dòng",
+      "tagsSectionLabel": "Thẻ của tôi",
+      "tagPurpose": "Thẻ giúp đúng người tìm thấy bạn và kết nối bạn với bạn mới.",
+      "aiThinking": "AI đang nghĩ…",
+      "aiMore": "Gợi ý thêm",
+      "aiSuggest": "Để AI gợi ý thẻ",
+      "aiPickHint": "👇 Chạm vào thẻ bạn muốn thêm",
+      "tagInputPlaceholder": "Nhập thẻ, vd: nhiếp ảnh",
+      "tagsGateHint": "Chọn ít nhất 3 thẻ để tiếp tục",
+      "bioGateHint": "Viết một dòng giới thiệu để tiếp tục"
     }
   },
   "connections": {

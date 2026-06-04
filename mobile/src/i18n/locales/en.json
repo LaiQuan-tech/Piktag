@@ -226,7 +226,21 @@
       "usernameCheckError": "Can't check right now — try again",
       "usernameWhy": "This is your card link: pikt.ag/yourname",
       "usernameRequiredTitle": "Pick a username",
-      "usernameRequiredMessage": "Your username is your card link pikt.ag/you — pick an available one first."
+      "usernameRequiredMessage": "Your username is your card link pikt.ag/you — pick an available one first.",
+      "next": "Next",
+      "tagsTitle": "Who are you?",
+      "tagsSubtitle": "A few tags so the right people find you",
+      "headlinePlaceholder": "Title (optional, e.g. Product Designer)",
+      "bioPlaceholder": "Introduce yourself in one line",
+      "tagsSectionLabel": "My tags",
+      "tagPurpose": "Tags let the right people find you — and match you with new friends.",
+      "aiThinking": "AI is thinking…",
+      "aiMore": "Suggest more",
+      "aiSuggest": "Let AI suggest tags",
+      "aiPickHint": "👇 Tap the tags you want to add",
+      "tagInputPlaceholder": "Type a tag, e.g. photography",
+      "tagsGateHint": "Pick at least 3 tags to continue",
+      "bioGateHint": "Write a one-line intro to continue"
     }
   },
   "connections": {
