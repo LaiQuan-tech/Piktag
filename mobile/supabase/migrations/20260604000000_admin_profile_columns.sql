@@ -44,14 +44,12 @@ ALTER TABLE public.piktag_profiles
   ADD COLUMN IF NOT EXISTS is_active boolean NOT NULL DEFAULT true,
   ADD COLUMN IF NOT EXISTS p_points integer NOT NULL DEFAULT 0;
 
+-- 2026-06-05 fix: COMMENT ON COLUMN takes a SINGLE string literal — the
+-- previous `'...' || '...'` concatenation is a syntax error (SQLSTATE
+-- 42601) that failed this migration in CI and blocked the whole queue
+-- (incl. 20260605010000) for ~10h. Collapsed each into one literal.
 COMMENT ON COLUMN public.piktag_profiles.is_active IS
-  'Soft-deactivation flag flipped only by admin actions ' ||
-  '(/api/admin/users/[id]/deactivate, /api/admin/reports/[id]/block). ' ||
-  'TRUE = normal user; FALSE = banned / disabled. App-side filtering ' ||
-  'against this column is a follow-up (search_users etc. currently ' ||
-  'ignore it — fine pre-launch with zero deactivated accounts).';
+  'Soft-deactivation flag flipped only by admin actions (/api/admin/users/[id]/deactivate, /api/admin/reports/[id]/block). TRUE = normal user; FALSE = banned / disabled. App-side filtering against this column is a follow-up (search_users etc. currently ignore it — fine pre-launch with zero deactivated accounts).';
 
 COMMENT ON COLUMN public.piktag_profiles.p_points IS
-  'User-facing point balance. Read-only on the admin panel today; v3 ' ||
-  'monetization opens write paths later. Defaults 0 so the column is ' ||
-  'always renderable in admin UI.';
+  'User-facing point balance. Read-only on the admin panel today; v3 monetization opens write paths later. Defaults 0 so the column is always renderable in admin UI.';
