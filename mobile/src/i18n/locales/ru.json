@@ -210,7 +210,16 @@
       "profileSubtitle": "Друзья увидят это имя при сканировании вашего QR.",
       "avatarPickA11y": "Выберите фото профиля",
       "avatarHint": "Фото необязательно — можно добавить позже.",
-      "profileNamePlaceholder": "Ваше имя"
+      "profileNamePlaceholder": "Ваше имя",
+      "avatarHintRecommend": "Добавьте фото — друзьям проще вас узнать (необязательно)",
+      "usernameChecking": "Проверка…",
+      "usernameAvailable": "✓ Доступно",
+      "usernameTaken": "Это имя пользователя уже занято",
+      "usernameInvalid": "3–30 символов: строчные буквы, цифры, _ и .",
+      "usernameCheckError": "Сейчас не удаётся проверить — попробуйте ещё раз",
+      "usernameWhy": "Это ссылка на вашу карточку: pikt.ag/имя",
+      "usernameRequiredTitle": "Выберите имя пользователя",
+      "usernameRequiredMessage": "Имя пользователя — это ссылка на вашу карточку pikt.ag/вы. Выберите свободное."
     }
   },
   "connections": {

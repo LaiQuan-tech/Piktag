@@ -212,7 +212,16 @@
       "profileSubtitle": "朋友扫 QR 会看到这个名字",
       "avatarPickA11y": "选择头像",
       "avatarHint": "头像选填（之后可以再加）",
-      "profileNamePlaceholder": "你的名字"
+      "profileNamePlaceholder": "你的名字",
+      "avatarHintRecommend": "建议放一张照片 — 朋友更容易认出你（可跳过）",
+      "usernameChecking": "检查中…",
+      "usernameAvailable": "✓ 可使用",
+      "usernameTaken": "这个账号已被使用",
+      "usernameInvalid": "3–30 字，限小写英文、数字、_ 与 .",
+      "usernameCheckError": "暂时无法检查，稍后再试",
+      "usernameWhy": "这是你的名片网址：pikt.ag/你的账号",
+      "usernameRequiredTitle": "帮账号取个名字",
+      "usernameRequiredMessage": "账号是你的名片网址 pikt.ag/你的账号，先选一个可用的吧。"
     }
   },
   "connections": {

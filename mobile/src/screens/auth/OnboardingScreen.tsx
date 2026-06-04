@@ -120,6 +120,28 @@ function buildBiolinkUrl(platform: string, raw: string): string {
   return prefix + v.replace(/^@+/, '');
 }
 
+// ─── Username (帳號) helpers ────────────────────────────────
+// The handle lives in the public URL pikt.ag/{username}, so keep it
+// URL-safe: lowercase, [a-z0-9_.] only. normalizeUsername cleans as
+// the user types (auto-lowercase, strip stray chars) so they can't
+// even enter an invalid character. isUsernameFormatValid is the gate
+// the live RPC check runs behind (no point pinging the server for a
+// malformed handle).
+const USERNAME_MIN = 3;
+const USERNAME_MAX = 30;
+function normalizeUsername(raw: string): string {
+  return (raw || '')
+    .toLowerCase()
+    .replace(/[^a-z0-9_.]/g, '')
+    .slice(0, USERNAME_MAX);
+}
+function isUsernameFormatValid(u: string): boolean {
+  if (u.length < USERNAME_MIN || u.length > USERNAME_MAX) return false;
+  // no leading/trailing dot (pikt.ag/.x or pikt.ag/x. read badly)
+  if (u.startsWith('.') || u.endsWith('.')) return false;
+  return /^[a-z0-9_.]+$/.test(u);
+}
+
 type OnboardingScreenProps = { navigation: any };
 
 export default function OnboardingScreen({ navigation }: OnboardingScreenProps) {
@@ -129,6 +151,20 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
 
   const [step, setStep] = useState<number>(STEP_WELCOME);
   const [displayName, setDisplayName] = useState('');
+  // ─── Username (帳號) — the pikt.ag/{username} handle ──────────
+  // 2026-06-05: onboarding now lets the user SET their handle (it was
+  // auto-generated + only editable in EditProfile, which the testers
+  // never found). Prefilled with the current auto-generated value;
+  // live-checked via the check_username_available RPC (case-insensitive,
+  // excludes self, rejects reserved route names). usernameStatus drives
+  // the inline ✓/✗ indicator AND gates the CTA.
+  const [username, setUsername] = useState('');
+  type UsernameStatus = 'idle' | 'invalid' | 'checking' | 'available' | 'taken' | 'error';
+  const [usernameStatus, setUsernameStatus] = useState<UsernameStatus>('idle');
+  // The value the live-check last RESOLVED for — guards against a slow
+  // response landing after the user kept typing (stale-write race).
+  const usernameCheckSeq = useRef(0);
+  const usernameInputRef = useRef<TextInput>(null);
   // Self-declared birthday — the engine for "it's X's birthday"
   // friend notifications (core CRM). Collected here so EVERY signup
   // path (email + Apple + Google) gets a chance to set it; OAuth
@@ -201,10 +237,17 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
         try {
           const { data: profile } = await supabase
             .from('piktag_profiles')
-            .select('full_name, avatar_url')
+            .select('full_name, avatar_url, username')
             .eq('id', user.id)
             .single();
           if (!cancelled && profile?.avatar_url) setAvatarUrl(profile.avatar_url);
+          // Prefill the current (auto-generated) username so the user
+          // can keep or customise it. It's their own → RPC excludes
+          // self → starts as 'available' (CTA enabled by default).
+          if (!cancelled && profile?.username) {
+            setUsername(profile.username);
+            setUsernameStatus('available');
+          }
           const profileName = profile?.full_name?.trim();
           if (!cancelled && profileName) {
             setDisplayName(profileName);
@@ -226,6 +269,31 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
     prefill();
     return () => { cancelled = true; };
   }, []);
+
+  // ─── Live username availability ─────────────────────────
+  // Format-validate locally first (no point pinging the server for a
+  // malformed handle), then debounce 400ms and call the RPC. The seq
+  // guard drops a slow response that resolves after a newer keystroke.
+  useEffect(() => {
+    const u = username.trim();
+    if (!u) { setUsernameStatus('idle'); return; }
+    if (!isUsernameFormatValid(u)) { setUsernameStatus('invalid'); return; }
+    setUsernameStatus('checking');
+    const seq = ++usernameCheckSeq.current;
+    const handle = setTimeout(async () => {
+      try {
+        const { data, error } = await supabase.rpc('check_username_available', {
+          p_username: u,
+        });
+        if (seq !== usernameCheckSeq.current) return; // superseded
+        if (error) { setUsernameStatus('error'); return; }
+        setUsernameStatus(data ? 'available' : 'taken');
+      } catch {
+        if (seq === usernameCheckSeq.current) setUsernameStatus('error');
+      }
+    }, 400);
+    return () => clearTimeout(handle);
+  }, [username]);
 
   // ─── Avatar upload (optional) ───────────────────────────
   // Same validation + Storage POST as EditProfileScreen so any image
@@ -475,6 +543,19 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
       );
       return;
     }
+    // Username gate — must be a confirmed-available handle. The CTA is
+    // already disabled unless usernameStatus === 'available', but guard
+    // here too (onSubmitEditing can reach this path).
+    const uname = username.trim();
+    if (!uname || usernameStatus !== 'available') {
+      Alert.alert(
+        t('auth.onboarding.usernameRequiredTitle', { defaultValue: '幫帳號取個名字' }),
+        t('auth.onboarding.usernameRequiredMessage', {
+          defaultValue: '帳號是你的名片網址 pikt.ag/你的帳號，先選一個可用的吧。',
+        }),
+      );
+      return;
+    }
     // Birthday is optional, but if they typed something it must be a
     // real date — a silently-dropped/garbled birthday means the
     // friend notification (core CRM) never fires. Normalized to the
@@ -498,7 +579,7 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
       // user scanned a card and kept a bio_draft. Empty bio → don't
       // send the column at all (skip-scan users keep the exact old
       // behaviour: only full_name is touched).
-      const profilePatch: Record<string, string> = { full_name: trimmed };
+      const profilePatch: Record<string, string> = { full_name: trimmed, username: uname };
       const trimmedBio = bio.trim();
       if (trimmedBio) profilePatch.bio = trimmedBio;
       if (bday) profilePatch.birthday = bday;
@@ -578,7 +659,7 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
     } finally {
       setSaving(false);
     }
-  }, [displayName, bio, birthday, pendingBiolinks, t, finishOnboarding]);
+  }, [displayName, username, usernameStatus, bio, birthday, pendingBiolinks, t, finishOnboarding]);
 
   // ─── Render: Step 0 (Welcome card) ──────────────────────
   const renderWelcome = () => (
@@ -620,7 +701,7 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
 
   // ─── Render: Step 1 (Name + Avatar) ─────────────────────
   const renderProfile = () => {
-    const ctaDisabled = saving || !displayName.trim();
+    const ctaDisabled = saving || !displayName.trim() || usernameStatus !== 'available';
     return (
       <ScrollView
         contentContainerStyle={styles.profileContainer}
@@ -662,7 +743,9 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
           )}
         </TouchableOpacity>
         <Text style={styles.avatarHint}>
-          {t('auth.onboarding.avatarHint', { defaultValue: '頭像選填（之後可以再加）' })}
+          {t('auth.onboarding.avatarHintRecommend', {
+            defaultValue: '建議放一張照片 — 朋友更容易認出你（可跳過）',
+          })}
         </Text>
 
         <TextInput
@@ -674,11 +757,68 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
           maxLength={40}
           autoCapitalize="words"
           autoCorrect={false}
-          returnKeyType="done"
-          onSubmitEditing={() => {
-            if (!ctaDisabled) handleComplete();
-          }}
+          returnKeyType="next"
+          onSubmitEditing={() => usernameInputRef.current?.focus()}
         />
+
+        {/* Username (帳號) — the public pikt.ag/{username} handle.
+            Auto-lowercased + char-filtered on input; live-checked
+            against the RPC. The status line below doubles as the
+            "why" explanation when idle. */}
+        <TextInput
+          ref={usernameInputRef}
+          style={styles.nameInput}
+          value={username}
+          onChangeText={(v) => setUsername(normalizeUsername(v))}
+          placeholder={t('editProfile.usernamePlaceholder', { defaultValue: '你的帳號' })}
+          placeholderTextColor={colors.gray400}
+          maxLength={USERNAME_MAX}
+          autoCapitalize="none"
+          autoCorrect={false}
+          returnKeyType="done"
+        />
+        {/* Status / why-this line. */}
+        <View style={styles.usernameStatusRow}>
+          {usernameStatus === 'checking' && (
+            <>
+              <ActivityIndicator size="small" color={colors.gray400} />
+              <Text style={[styles.usernameStatusText, { color: colors.gray500 }]}>
+                {t('auth.onboarding.usernameChecking', { defaultValue: '檢查中…' })}
+              </Text>
+            </>
+          )}
+          {usernameStatus === 'available' && (
+            <Text style={[styles.usernameStatusText, { color: colors.green500 }]}>
+              {t('auth.onboarding.usernameAvailable', { defaultValue: '✓ 可使用' })}
+            </Text>
+          )}
+          {usernameStatus === 'taken' && (
+            <Text style={[styles.usernameStatusText, { color: colors.red500 }]}>
+              {t('auth.onboarding.usernameTaken', { defaultValue: '這個帳號已被使用' })}
+            </Text>
+          )}
+          {usernameStatus === 'invalid' && (
+            <Text style={[styles.usernameStatusText, { color: colors.gray500 }]}>
+              {t('auth.onboarding.usernameInvalid', {
+                defaultValue: '3–30 字，限小寫英文、數字、_ 與 .',
+              })}
+            </Text>
+          )}
+          {usernameStatus === 'error' && (
+            <Text style={[styles.usernameStatusText, { color: colors.gray500 }]}>
+              {t('auth.onboarding.usernameCheckError', {
+                defaultValue: '暫時無法檢查，稍後再試',
+              })}
+            </Text>
+          )}
+          {(usernameStatus === 'idle') && (
+            <Text style={[styles.usernameStatusText, { color: colors.gray500 }]}>
+              {t('auth.onboarding.usernameWhy', {
+                defaultValue: '這是你的名片網址：pikt.ag/你的帳號',
+              })}
+            </Text>
+          )}
+        </View>
 
         {/* Birthday — optional but the CRM core (drives the
             "it's X's birthday" friend notification). Stored MM/DD;
@@ -1013,6 +1153,21 @@ function makeStyles(c: ColorPalette) {
     borderRadius: BORDER_RADIUS.md,
     paddingHorizontal: 16,
     paddingVertical: 14,
+    textAlign: 'center',
+    marginTop: 12,
+  },
+  // Username live-status / why-this line under the 帳號 input.
+  usernameStatusRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    marginTop: 8,
+    minHeight: 18,
+    paddingHorizontal: 8,
+  },
+  usernameStatusText: {
+    fontSize: 13,
     textAlign: 'center',
   },
 

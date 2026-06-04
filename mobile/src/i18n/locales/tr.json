@@ -210,7 +210,16 @@
       "profileSubtitle": "Arkadaşların QR'ını taradığında bu adı görecek.",
       "avatarPickA11y": "Profil fotoğrafı seç",
       "avatarHint": "Fotoğraf isteğe bağlı — sonra ekleyebilirsin.",
-      "profileNamePlaceholder": "Adın"
+      "profileNamePlaceholder": "Adın",
+      "avatarHintRecommend": "Bir fotoğraf ekle — arkadaşların seni daha kolay tanır (isteğe bağlı)",
+      "usernameChecking": "Kontrol ediliyor…",
+      "usernameAvailable": "✓ Kullanılabilir",
+      "usernameTaken": "Bu kullanıcı adı alınmış",
+      "usernameInvalid": "3–30 karakter: küçük harf, rakam, _ ve .",
+      "usernameCheckError": "Şu anda kontrol edilemiyor — tekrar dene",
+      "usernameWhy": "Bu senin kart bağlantın: pikt.ag/adın",
+      "usernameRequiredTitle": "Bir kullanıcı adı seç",
+      "usernameRequiredMessage": "Kullanıcı adın kart bağlantın pikt.ag/sen — kullanılabilir birini seç."
     }
   },
   "connections": {

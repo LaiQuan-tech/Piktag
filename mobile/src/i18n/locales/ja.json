@@ -210,7 +210,16 @@
       "profileSubtitle": "友だちがQRをスキャンしたときにこの名前が表示されます。",
       "avatarPickA11y": "プロフィール写真を選ぶ",
       "avatarHint": "写真は任意です — あとから追加できます。",
-      "profileNamePlaceholder": "あなたの名前"
+      "profileNamePlaceholder": "あなたの名前",
+      "avatarHintRecommend": "写真を追加 — 友だちが見つけやすくなります（任意）",
+      "usernameChecking": "確認中…",
+      "usernameAvailable": "✓ 使用できます",
+      "usernameTaken": "このユーザー名は使われています",
+      "usernameInvalid": "3〜30文字：小文字英字・数字・_・.",
+      "usernameCheckError": "今は確認できません。あとでもう一度お試しください",
+      "usernameWhy": "あなたの名刺URL：pikt.ag/ユーザー名",
+      "usernameRequiredTitle": "ユーザー名を決めましょう",
+      "usernameRequiredMessage": "ユーザー名はあなたの名刺URL pikt.ag/you です。使えるものを選んでください。"
     }
   },
   "connections": {

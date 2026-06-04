@@ -217,7 +217,16 @@
       "profileSubtitle": "Bạn bè sẽ thấy tên này khi quét QR của bạn.",
       "avatarPickA11y": "Chọn ảnh hồ sơ",
       "avatarHint": "Ảnh không bắt buộc — có thể thêm sau.",
-      "profileNamePlaceholder": "Tên của bạn"
+      "profileNamePlaceholder": "Tên của bạn",
+      "avatarHintRecommend": "Thêm ảnh — bạn bè dễ nhận ra bạn hơn (tùy chọn)",
+      "usernameChecking": "Đang kiểm tra…",
+      "usernameAvailable": "✓ Có thể dùng",
+      "usernameTaken": "Tên người dùng này đã có người dùng",
+      "usernameInvalid": "3–30 ký tự: chữ thường, số, _ và .",
+      "usernameCheckError": "Hiện không kiểm tra được — thử lại nhé",
+      "usernameWhy": "Đây là liên kết danh thiếp của bạn: pikt.ag/tênbạn",
+      "usernameRequiredTitle": "Chọn một tên người dùng",
+      "usernameRequiredMessage": "Tên người dùng là liên kết danh thiếp pikt.ag/bạn — hãy chọn một tên còn trống."
     }
   },
   "connections": {

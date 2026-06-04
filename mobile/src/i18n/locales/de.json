@@ -212,7 +212,16 @@
       "profileSubtitle": "Freunde sehen diesen Namen, wenn sie deinen QR-Code scannen.",
       "avatarPickA11y": "Profilbild auswählen",
       "avatarHint": "Foto ist optional — du kannst es später hinzufügen.",
-      "profileNamePlaceholder": "Dein Name"
+      "profileNamePlaceholder": "Dein Name",
+      "avatarHintRecommend": "Füge ein Foto hinzu — Freunde erkennen dich schneller (optional)",
+      "usernameChecking": "Wird geprüft…",
+      "usernameAvailable": "✓ Verfügbar",
+      "usernameTaken": "Dieser Benutzername ist vergeben",
+      "usernameInvalid": "3–30 Zeichen: Kleinbuchstaben, Zahlen, _ und .",
+      "usernameCheckError": "Prüfung gerade nicht möglich — bitte erneut versuchen",
+      "usernameWhy": "Das ist dein Karten-Link: pikt.ag/deinname",
+      "usernameRequiredTitle": "Wähle einen Benutzernamen",
+      "usernameRequiredMessage": "Dein Benutzername ist dein Karten-Link pikt.ag/du — wähle einen verfügbaren."
     }
   },
   "connections": {

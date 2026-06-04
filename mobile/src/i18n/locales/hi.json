@@ -210,7 +210,16 @@
       "profileSubtitle": "दोस्त आपका QR स्कैन करने पर यह नाम देखेंगे।",
       "avatarPickA11y": "प्रोफ़ाइल फ़ोटो चुनें",
       "avatarHint": "फ़ोटो वैकल्पिक है — बाद में जोड़ सकते हैं।",
-      "profileNamePlaceholder": "आपका नाम"
+      "profileNamePlaceholder": "आपका नाम",
+      "avatarHintRecommend": "एक फ़ोटो जोड़ें — दोस्त आपको जल्दी पहचानेंगे (वैकल्पिक)",
+      "usernameChecking": "जाँच हो रही है…",
+      "usernameAvailable": "✓ उपलब्ध",
+      "usernameTaken": "यह यूज़रनेम पहले से इस्तेमाल में है",
+      "usernameInvalid": "3–30 अक्षर: छोटे अक्षर, अंक, _ और .",
+      "usernameCheckError": "अभी जाँच नहीं हो पा रही — फिर कोशिश करें",
+      "usernameWhy": "यह आपका कार्ड लिंक है: pikt.ag/आपकानाम",
+      "usernameRequiredTitle": "यूज़रनेम चुनें",
+      "usernameRequiredMessage": "आपका यूज़रनेम आपका कार्ड लिंक pikt.ag/you है — कोई उपलब्ध चुनें।"
     }
   },
   "connections": {

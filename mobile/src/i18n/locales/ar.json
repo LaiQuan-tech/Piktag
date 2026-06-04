@@ -210,7 +210,16 @@
       "profileSubtitle": "سيرى الأصدقاء هذا الاسم عند مسح رمز QR الخاص بك.",
       "avatarPickA11y": "اختر صورة الملف الشخصي",
       "avatarHint": "الصورة اختيارية — يمكنك إضافتها لاحقاً.",
-      "profileNamePlaceholder": "اسمك"
+      "profileNamePlaceholder": "اسمك",
+      "avatarHintRecommend": "أضف صورة — يتعرّف عليك أصدقاؤك بسهولة (اختياري)",
+      "usernameChecking": "جارٍ التحقق…",
+      "usernameAvailable": "✓ متاح",
+      "usernameTaken": "اسم المستخدم هذا مستخدَم بالفعل",
+      "usernameInvalid": "3–30 حرفًا: أحرف صغيرة وأرقام و _ و .",
+      "usernameCheckError": "تعذّر التحقق الآن — حاول مرة أخرى",
+      "usernameWhy": "هذا رابط بطاقتك: pikt.ag/اسمك",
+      "usernameRequiredTitle": "اختر اسم مستخدم",
+      "usernameRequiredMessage": "اسم المستخدم هو رابط بطاقتك pikt.ag/أنت — اختر اسمًا متاحًا."
     }
   },
   "connections": {

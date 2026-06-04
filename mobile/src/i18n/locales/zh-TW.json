@@ -217,7 +217,16 @@
       "profileSubtitle": "朋友掃 QR 會看到這個名字",
       "avatarPickA11y": "選擇頭像",
       "avatarHint": "頭像選填（之後可以再加）",
-      "profileNamePlaceholder": "你的名字"
+      "profileNamePlaceholder": "你的名字",
+      "avatarHintRecommend": "建議放一張照片 — 朋友更容易認出你（可跳過）",
+      "usernameChecking": "檢查中…",
+      "usernameAvailable": "✓ 可使用",
+      "usernameTaken": "這個帳號已被使用",
+      "usernameInvalid": "3–30 字，限小寫英文、數字、_ 與 .",
+      "usernameCheckError": "暫時無法檢查，稍後再試",
+      "usernameWhy": "這是你的名片網址：pikt.ag/你的帳號",
+      "usernameRequiredTitle": "幫帳號取個名字",
+      "usernameRequiredMessage": "帳號是你的名片網址 pikt.ag/你的帳號，先選一個可用的吧。"
     }
   },
   "connections": {

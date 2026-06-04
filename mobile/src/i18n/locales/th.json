@@ -210,7 +210,16 @@
       "profileSubtitle": "เพื่อนจะเห็นชื่อนี้เมื่อสแกน QR ของคุณ",
       "avatarPickA11y": "เลือกรูปโปรไฟล์",
       "avatarHint": "รูปไม่บังคับ — เพิ่มทีหลังได้",
-      "profileNamePlaceholder": "ชื่อของคุณ"
+      "profileNamePlaceholder": "ชื่อของคุณ",
+      "avatarHintRecommend": "เพิ่มรูป — เพื่อนจำคุณได้ง่ายขึ้น (ไม่บังคับ)",
+      "usernameChecking": "กำลังตรวจสอบ…",
+      "usernameAvailable": "✓ ใช้ได้",
+      "usernameTaken": "ชื่อผู้ใช้นี้มีคนใช้แล้ว",
+      "usernameInvalid": "3–30 ตัว: ตัวพิมพ์เล็ก ตัวเลข _ และ .",
+      "usernameCheckError": "ตอนนี้ตรวจสอบไม่ได้ — ลองใหม่อีกครั้ง",
+      "usernameWhy": "นี่คือลิงก์นามบัตรของคุณ: pikt.ag/ชื่อคุณ",
+      "usernameRequiredTitle": "ตั้งชื่อผู้ใช้",
+      "usernameRequiredMessage": "ชื่อผู้ใช้คือลิงก์นามบัตรของคุณ pikt.ag/คุณ — เลือกชื่อที่ว่างก่อนนะ"
     }
   },
   "connections": {

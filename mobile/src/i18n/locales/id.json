@@ -210,7 +210,16 @@
       "profileSubtitle": "Teman akan melihat nama ini saat memindai QR-mu.",
       "avatarPickA11y": "Pilih foto profil",
       "avatarHint": "Foto opsional — bisa ditambahkan nanti.",
-      "profileNamePlaceholder": "Namamu"
+      "profileNamePlaceholder": "Namamu",
+      "avatarHintRecommend": "Tambahkan foto — teman lebih mudah mengenalimu (opsional)",
+      "usernameChecking": "Memeriksa…",
+      "usernameAvailable": "✓ Tersedia",
+      "usernameTaken": "Nama pengguna ini sudah dipakai",
+      "usernameInvalid": "3–30 karakter: huruf kecil, angka, _ dan .",
+      "usernameCheckError": "Tidak bisa memeriksa sekarang — coba lagi",
+      "usernameWhy": "Ini link kartumu: pikt.ag/namamu",
+      "usernameRequiredTitle": "Pilih nama pengguna",
+      "usernameRequiredMessage": "Nama penggunamu adalah link kartumu pikt.ag/kamu — pilih yang tersedia."
     }
   },
   "connections": {

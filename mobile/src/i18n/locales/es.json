@@ -210,7 +210,16 @@
       "profileSubtitle": "Tus amigos verán este nombre al escanear tu QR.",
       "avatarPickA11y": "Elige foto de perfil",
       "avatarHint": "La foto es opcional — puedes añadirla luego.",
-      "profileNamePlaceholder": "Tu nombre"
+      "profileNamePlaceholder": "Tu nombre",
+      "avatarHintRecommend": "Añade una foto — tus amigos te reconocerán antes (opcional)",
+      "usernameChecking": "Comprobando…",
+      "usernameAvailable": "✓ Disponible",
+      "usernameTaken": "Este nombre de usuario ya está en uso",
+      "usernameInvalid": "3–30 caracteres: minúsculas, números, _ y .",
+      "usernameCheckError": "No se puede comprobar ahora — inténtalo de nuevo",
+      "usernameWhy": "Este es el enlace de tu tarjeta: pikt.ag/tunombre",
+      "usernameRequiredTitle": "Elige un nombre de usuario",
+      "usernameRequiredMessage": "Tu nombre de usuario es el enlace de tu tarjeta pikt.ag/tú — elige uno disponible."
     }
   },
   "connections": {
