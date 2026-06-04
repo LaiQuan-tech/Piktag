@@ -313,7 +313,11 @@
     "coldStartActionAsk": "AI 帮你找对的人",
     "coldStartActionAskDesc": "发个 Ask 说你要什幺,AI 从人脉里帮你找",
     "coldStartSubtitleV2": "挑一个开始就好",
-    "coldStartStartHere": "建议从这开始"
+    "coldStartStartHere": "建议从这开始",
+    "addFromContacts": "从通讯录找朋友",
+    "addManual": "手动记一个联系人",
+    "addPersonTitle": "加人",
+    "addPersonA11y": "加人"
   },
   "search": {
     "clearAll": "清除全部",

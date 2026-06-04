@@ -13,6 +13,8 @@ import {
   KeyboardAvoidingView,
   Platform,
   Pressable,
+  Alert,
+  ActionSheetIOS,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
@@ -839,6 +841,34 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
     setShowPhonePrompt(false);
     navigation.navigate('ProfileTab', { screen: 'EditProfile', params: { focusPhone: true } });
   }, [navigation]);
+
+  // "+person" header icon → a 2-option menu. 2026-06-04 (home card #5,
+  // 化整為零): the contact-sync feature had NO persistent entry — it was
+  // only reachable from the cold-start "好東西分享給好朋友" card. Once
+  // that card is removed, ContactSync would be orphaned. Making the
+  // always-visible "+person" icon a hub (find from contacts / add
+  // manually) gives it a permanent home on the friends page.
+  const openAddPersonMenu = useCallback(() => {
+    const fromContacts = t('connections.addFromContacts', { defaultValue: '從通訊錄找朋友' });
+    const manual = t('connections.addManual', { defaultValue: '手動記一個聯絡人' });
+    const cancel = t('common.cancel', { defaultValue: '取消' });
+    const title = t('connections.addPersonTitle', { defaultValue: '加人' });
+    if (Platform.OS === 'ios') {
+      ActionSheetIOS.showActionSheetWithOptions(
+        { options: [fromContacts, manual, cancel], cancelButtonIndex: 2, title },
+        (idx) => {
+          if (idx === 0) navigation.navigate('ContactSync');
+          else if (idx === 1) navigation.navigate('EditLocalContact');
+        },
+      );
+    } else {
+      Alert.alert(title, undefined, [
+        { text: fromContacts, onPress: () => navigation.navigate('ContactSync') },
+        { text: manual, onPress: () => navigation.navigate('EditLocalContact') },
+        { text: cancel, style: 'cancel' },
+      ]);
+    }
+  }, [t, navigation]);
   const handlePhonePromptDismiss = useCallback(() => {
     setShowPhonePrompt(false);
     dismissPhonePrompt();
@@ -1182,8 +1212,8 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
             <TouchableOpacity
               style={styles.headerIconBtn}
               activeOpacity={0.6}
-              onPress={() => navigation.navigate('EditLocalContact')}
-              accessibilityLabel={t('connections.addManualA11y', { defaultValue: '手動新增聯絡人' })}
+              onPress={openAddPersonMenu}
+              accessibilityLabel={t('connections.addPersonA11y', { defaultValue: '加人' })}
               accessibilityRole="button"
             >
               <UserPlus size={24} color={isDark ? '#FFFFFF' : colors.gray600} />

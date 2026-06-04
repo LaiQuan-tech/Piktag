@@ -318,7 +318,11 @@
     "coldStartActionAsk": "AI finds the right people",
     "coldStartActionAskDesc": "Post an Ask saying what you want, AI matches your network",
     "coldStartSubtitleV2": "Pick one to start",
-    "coldStartStartHere": "Start here"
+    "coldStartStartHere": "Start here",
+    "addFromContacts": "Find friends from contacts",
+    "addManual": "Add a contact manually",
+    "addPersonTitle": "Add people",
+    "addPersonA11y": "Add people"
   },
   "search": {
     "clearAll": "Clear all",

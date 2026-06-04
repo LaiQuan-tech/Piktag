@@ -311,7 +311,11 @@
     "coldStartActionAsk": "AI সঠিক লোক খুঁজে দেয়",
     "coldStartActionAskDesc": "Ask পোস্ট করুন, AI আপনার নেটওয়ার্কে খুঁজবে",
     "coldStartSubtitleV2": "একটা বেছে শুরু করুন",
-    "coldStartStartHere": "এখান থেকে শুরু"
+    "coldStartStartHere": "এখান থেকে শুরু",
+    "addFromContacts": "কন্টাক্ট থেকে বন্ধু খুঁজুন",
+    "addManual": "হাতে কন্টাক্ট যোগ করুন",
+    "addPersonTitle": "মানুষ যোগ করুন",
+    "addPersonA11y": "মানুষ যোগ করুন"
   },
   "search": {
     "clearAll": "সব সাফ করুন",

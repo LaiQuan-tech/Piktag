@@ -311,7 +311,11 @@
     "coldStartActionAsk": "L'IA trouve les bonnes personnes",
     "coldStartActionAskDesc": "Publie un Ask, l'IA cherche dans ton réseau",
     "coldStartSubtitleV2": "Choisis-en un pour commencer",
-    "coldStartStartHere": "Commence ici"
+    "coldStartStartHere": "Commence ici",
+    "addFromContacts": "Trouver des amis dans vos contacts",
+    "addManual": "Ajouter un contact manuellement",
+    "addPersonTitle": "Ajouter des personnes",
+    "addPersonA11y": "Ajouter des personnes"
   },
   "search": {
     "clearAll": "Tout effacer",

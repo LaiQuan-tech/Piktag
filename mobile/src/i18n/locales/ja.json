@@ -311,7 +311,11 @@
     "coldStartActionAsk": "AI が合う人を見つける",
     "coldStartActionAskDesc": "Ask を投稿、AI があなたの人脈から探してくれる",
     "coldStartSubtitleV2": "どれか一つから",
-    "coldStartStartHere": "まずはここから"
+    "coldStartStartHere": "まずはここから",
+    "addFromContacts": "連絡先から友だちを探す",
+    "addManual": "連絡先を手動で追加",
+    "addPersonTitle": "人を追加",
+    "addPersonA11y": "人を追加"
   },
   "search": {
     "clearAll": "すべてクリア",

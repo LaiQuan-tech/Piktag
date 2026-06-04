@@ -311,7 +311,11 @@
     "coldStartActionAsk": "AI หาคนที่ใช่ให้คุณ",
     "coldStartActionAskDesc": "โพสต์ Ask บอกว่าต้องการอะไร AI จะค้นจากเครือข่ายของคุณ",
     "coldStartSubtitleV2": "เลือกอันใดก็ได้เริ่มก่อน",
-    "coldStartStartHere": "เริ่มที่นี่"
+    "coldStartStartHere": "เริ่มที่นี่",
+    "addFromContacts": "หาเพื่อนจากรายชื่อติดต่อ",
+    "addManual": "เพิ่มผู้ติดต่อด้วยตนเอง",
+    "addPersonTitle": "เพิ่มคน",
+    "addPersonA11y": "เพิ่มคน"
   },
   "search": {
     "clearAll": "ล้างทั้งหมด",

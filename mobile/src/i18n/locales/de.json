@@ -313,7 +313,11 @@
     "coldStartActionAsk": "KI findet die richtigen Leute",
     "coldStartActionAskDesc": "Poste einen Ask, KI durchsucht dein Netzwerk",
     "coldStartSubtitleV2": "Wähl einen, um zu starten",
-    "coldStartStartHere": "Hier starten"
+    "coldStartStartHere": "Hier starten",
+    "addFromContacts": "Freunde aus Kontakten finden",
+    "addManual": "Kontakt manuell hinzufügen",
+    "addPersonTitle": "Personen hinzufügen",
+    "addPersonA11y": "Personen hinzufügen"
   },
   "search": {
     "clearAll": "Alle löschen",

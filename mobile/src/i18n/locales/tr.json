@@ -311,7 +311,11 @@
     "coldStartActionAsk": "Doğru insanları yapay zekâ bulur",
     "coldStartActionAskDesc": "Bir Ask paylaş, yapay zekâ ağında arar",
     "coldStartSubtitleV2": "Birinden başla",
-    "coldStartStartHere": "Buradan başla"
+    "coldStartStartHere": "Buradan başla",
+    "addFromContacts": "Kişilerden arkadaş bul",
+    "addManual": "Kişiyi elle ekle",
+    "addPersonTitle": "Kişi ekle",
+    "addPersonA11y": "Kişi ekle"
   },
   "search": {
     "clearAll": "Hepsini temizle",

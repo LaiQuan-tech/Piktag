@@ -311,7 +311,11 @@
     "coldStartActionAsk": "ИИ находит нужных людей",
     "coldStartActionAskDesc": "Опубликуй Ask, ИИ ищет в твоей сети",
     "coldStartSubtitleV2": "Выберите один, чтобы начать",
-    "coldStartStartHere": "Начни отсюда"
+    "coldStartStartHere": "Начни отсюда",
+    "addFromContacts": "Найти друзей из контактов",
+    "addManual": "Добавить контакт вручную",
+    "addPersonTitle": "Добавить людей",
+    "addPersonA11y": "Добавить людей"
   },
   "search": {
     "clearAll": "Очистить всё",

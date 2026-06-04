@@ -318,7 +318,11 @@
     "coldStartActionAsk": "AI 幫你找對的人",
     "coldStartActionAskDesc": "發個 Ask 說你要什麼，AI 從人脈裡幫你找",
     "coldStartSubtitleV2": "選一個開始就好",
-    "coldStartStartHere": "建議從這開始"
+    "coldStartStartHere": "建議從這開始",
+    "addFromContacts": "從通訊錄找朋友",
+    "addManual": "手動記一個聯絡人",
+    "addPersonTitle": "加人",
+    "addPersonA11y": "加人"
   },
   "search": {
     "clearAll": "清除全部",

@@ -311,7 +311,11 @@
     "coldStartActionAsk": "AI가 맞는 사람을 찾아드려요",
     "coldStartActionAskDesc": "Ask로 원하는 것을 말하면, AI가 네트워크에서 찾아요",
     "coldStartSubtitleV2": "하나 골라서 시작해",
-    "coldStartStartHere": "여기부터 시작"
+    "coldStartStartHere": "여기부터 시작",
+    "addFromContacts": "연락처에서 친구 찾기",
+    "addManual": "연락처 직접 추가",
+    "addPersonTitle": "사람 추가",
+    "addPersonA11y": "사람 추가"
   },
   "search": {
     "clearAll": "모두 지우기",

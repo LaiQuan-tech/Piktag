@@ -311,7 +311,11 @@
     "coldStartActionAsk": "الذكاء الاصطناعي يجد الأشخاص المناسبين",
     "coldStartActionAskDesc": "انشر Ask، والذكاء الاصطناعي يبحث في شبكتك",
     "coldStartSubtitleV2": "اختر واحدًا لتبدأ",
-    "coldStartStartHere": "ابدأ من هنا"
+    "coldStartStartHere": "ابدأ من هنا",
+    "addFromContacts": "ابحث عن أصدقاء من جهات الاتصال",
+    "addManual": "أضف جهة اتصال يدويًا",
+    "addPersonTitle": "إضافة أشخاص",
+    "addPersonA11y": "إضافة أشخاص"
   },
   "search": {
     "clearAll": "مسح الكل",

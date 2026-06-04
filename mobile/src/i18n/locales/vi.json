@@ -318,7 +318,11 @@
     "coldStartActionAsk": "AI tìm đúng người cho bạn",
     "coldStartActionAskDesc": "Đăng Ask nói cần gì, AI tìm trong mạng lưới của bạn",
     "coldStartSubtitleV2": "Chọn một để bắt đầu",
-    "coldStartStartHere": "Bắt đầu ở đây"
+    "coldStartStartHere": "Bắt đầu ở đây",
+    "addFromContacts": "Tìm bạn từ danh bạ",
+    "addManual": "Thêm liên hệ thủ công",
+    "addPersonTitle": "Thêm người",
+    "addPersonA11y": "Thêm người"
   },
   "search": {
     "clearAll": "Xoá hết",

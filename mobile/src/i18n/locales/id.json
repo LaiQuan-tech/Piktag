@@ -311,7 +311,11 @@
     "coldStartActionAsk": "AI cari orang yang tepat",
     "coldStartActionAskDesc": "Posting Ask, AI cari di jaringanmu",
     "coldStartSubtitleV2": "Pilih satu untuk mulai",
-    "coldStartStartHere": "Mulai di sini"
+    "coldStartStartHere": "Mulai di sini",
+    "addFromContacts": "Cari teman dari kontak",
+    "addManual": "Tambah kontak manual",
+    "addPersonTitle": "Tambah orang",
+    "addPersonA11y": "Tambah orang"
   },
   "search": {
     "clearAll": "Hapus semua",

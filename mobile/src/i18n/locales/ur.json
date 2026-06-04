@@ -318,7 +318,11 @@
     "coldStartActionAsk": "AI صحیح لوگوں کو ڈھونڈتا ہے",
     "coldStartActionAskDesc": "Ask پوسٹ کریں، AI آپ کے نیٹ ورک میں تلاش کرے گا",
     "coldStartSubtitleV2": "کسی ایک سے شروع کریں",
-    "coldStartStartHere": "یہاں سے شروع کریں"
+    "coldStartStartHere": "یہاں سے شروع کریں",
+    "addFromContacts": "رابطوں سے دوست تلاش کریں",
+    "addManual": "دستی طور پر رابطہ شامل کریں",
+    "addPersonTitle": "لوگ شامل کریں",
+    "addPersonA11y": "لوگ شامل کریں"
   },
   "search": {
     "clearAll": "سب صاف کریں",
