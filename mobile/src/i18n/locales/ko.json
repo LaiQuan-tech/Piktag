@@ -233,7 +233,11 @@
       "aiPickHint": "👇 추가할 태그를 탭하세요",
       "tagInputPlaceholder": "태그 입력 (예: 사진)",
       "tagsGateHint": "계속하려면 태그를 3개 이상 선택하세요",
-      "bioGateHint": "계속하려면 한 줄 자기소개를 써주세요"
+      "bioGateHint": "계속하려면 한 줄 자기소개를 써주세요",
+      "linksTitle": "내 디지털 명함",
+      "linksSubtitle": "연락처와 SNS를 추가하세요 — 한 번 스캔으로 당신을 다 담아요",
+      "linksGateHint": "{{count}}개만 더 (명함에는 연락처나 SNS가 최소 3개 필요)",
+      "finishCta": "완료 — PikTag 시작하기"
     }
   },
   "connections": {

@@ -55,7 +55,13 @@ import {
 } from 'expo-image-picker';
 import { COLORS, SPACING, BORDER_RADIUS, type ColorPalette } from '../../constants/theme';
 import { useTheme } from '../../context/ThemeContext';
-import { PLATFORM_MAP } from '../../lib/platforms';
+import {
+  PLATFORM_MAP,
+  getQuickPickKeys,
+  getPlatformLabel,
+  buildPlatformUrl,
+} from '../../lib/platforms';
+import PlatformIcon from '../../components/PlatformIcon';
 import { toBirthdayDate } from '../../lib/birthday';
 import OnboardingCompleteBurst from '../../components/stingers/OnboardingCompleteBurst';
 
@@ -67,9 +73,10 @@ const ONBOARDING_COMPLETED_KEY = 'piktag_onboarding_completed_v1';
 const STEP_WELCOME = 0;
 const STEP_PROFILE = 1; // identity: avatar + name + username
 const STEP_TAGS = 2;    // 你是誰: headline + bio + tags
-// (STEP_LINKS = 3 lands with Step 3.)
+const STEP_LINKS = 3;   // 電子名片: social/contact links
 const MAX_ONB_TAGS = 10;
 const MIN_ONB_TAGS = 3; // gate: tags are the engine — require a few
+const MIN_ONB_LINKS = 3; // gate: ≥3 links (phone/email count) — 電子名片
 
 // ─── Business-card scan plumbing ────────────────────────────
 // The edge function returns these fields (all nullable). bio_draft
@@ -152,7 +159,7 @@ function isUsernameFormatValid(u: string): boolean {
 type OnboardingScreenProps = { navigation: any };
 
 export default function OnboardingScreen({ navigation }: OnboardingScreenProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { colors, isDark } = useTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
 
@@ -186,6 +193,14 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
   const [aiSuggestions, setAiSuggestions] = useState<string[]>([]);
   const [aiLoading, setAiLoading] = useState(false);
   const [aiTried, setAiTried] = useState(false);
+
+  // ─── Step 3 (電子名片): link picker ──────────────────────────
+  // The biolinks themselves live in `pendingBiolinks` (shared with the
+  // card-scan path — a scanned card's links count toward the ≥3 gate).
+  // linkPlatform/linkInput drive the "pick a platform → type handle →
+  // add" mini-flow using the locale-aware quick-pick.
+  const [linkPlatform, setLinkPlatform] = useState<string | null>(null);
+  const [linkInput, setLinkInput] = useState('');
   // Self-declared birthday — the engine for "it's X's birthday"
   // friend notifications (core CRM). Collected here so EVERY signup
   // path (email + Apple + Google) gets a chance to set it; OAuth
@@ -425,6 +440,39 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
       setAiLoading(false);
     }
   }, [bio, displayName, selectedTags]);
+
+  // ─── Step 2 → Step 3 advance ────────────────────────────
+  const goToLinks = useCallback(() => {
+    if (selectedTags.length < MIN_ONB_TAGS || !bio.trim()) return;
+    setStep(STEP_LINKS);
+  }, [selectedTags.length, bio]);
+
+  // ─── Step 3: link picker (stages into pendingBiolinks) ──
+  const selectLinkPlatform = useCallback((key: string) => {
+    setLinkPlatform(key);
+    // Prefill https:// for the generic "custom" link so the user
+    // doesn't fight the scheme (mirrors EditProfile).
+    setLinkInput(key === 'custom' ? 'https://' : '');
+  }, []);
+
+  const addLink = useCallback(() => {
+    if (!linkPlatform) return;
+    const raw = linkInput.trim();
+    if (!raw || raw === 'https://') return;
+    const url = buildPlatformUrl(linkPlatform, raw);
+    if (!url) return;
+    setPendingBiolinks((prev) => {
+      // dedupe by platform+url
+      if (prev.some((b) => b.platform === linkPlatform && b.url === url)) return prev;
+      return [...prev, { platform: linkPlatform!, url, label: null }];
+    });
+    setLinkInput('');
+    setLinkPlatform(null);
+  }, [linkPlatform, linkInput]);
+
+  const removeLink = useCallback((index: number) => {
+    setPendingBiolinks((prev) => prev.filter((_, i) => i !== index));
+  }, []);
 
   // ─── Avatar upload (optional) ───────────────────────────
   // Same validation + Storage POST as EditProfileScreen so any image
@@ -1194,6 +1242,133 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
         <TouchableOpacity
           style={[styles.primaryButton, ctaDisabled && styles.primaryButtonDisabled]}
           activeOpacity={0.85}
+          onPress={goToLinks}
+          disabled={ctaDisabled}
+          accessibilityRole="button"
+        >
+          <Text style={styles.primaryButtonText}>
+            {t('auth.onboarding.next', { defaultValue: '下一步' })}
+          </Text>
+          <ChevronRight size={20} color="#FFFFFF" />
+        </TouchableOpacity>
+      </ScrollView>
+    );
+  };
+
+  // ─── Render: Step 3 (電子名片 — links) ──────────────────
+  const renderLinks = () => {
+    const linksValid = pendingBiolinks.length >= MIN_ONB_LINKS;
+    const ctaDisabled = saving || !linksValid;
+    const quickKeys = getQuickPickKeys(i18n.language);
+    return (
+      <ScrollView
+        contentContainerStyle={styles.profileContainer}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
+        <TouchableOpacity
+          style={styles.backBtn}
+          onPress={() => setStep(STEP_TAGS)}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          accessibilityRole="button"
+          accessibilityLabel={t('common.back', { defaultValue: '返回' })}
+        >
+          <ChevronLeft size={26} color={colors.gray700} />
+        </TouchableOpacity>
+
+        <Text style={styles.profileTitle}>
+          {t('auth.onboarding.linksTitle', { defaultValue: '你的電子名片' })}
+        </Text>
+        <Text style={styles.profileSubtitle}>
+          {t('auth.onboarding.linksSubtitle', {
+            defaultValue: '留下聯絡方式與社群，別人掃一下就完整收藏你',
+          })}
+        </Text>
+
+        {/* Platform quick-pick (locale-aware). Tap → reveals input. */}
+        <View style={styles.platformChipsWrap}>
+          {quickKeys.map((key) => {
+            const active = linkPlatform === key;
+            return (
+              <TouchableOpacity
+                key={key}
+                style={[styles.platformChip, active && styles.platformChipActive]}
+                onPress={() => selectLinkPlatform(key)}
+                activeOpacity={0.7}
+              >
+                <PlatformIcon platform={key} size={18} />
+                <Text style={[styles.platformChipText, active && styles.platformChipTextActive]}>
+                  {getPlatformLabel(key, t)}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+
+        {/* Input for the selected platform */}
+        {linkPlatform && (
+          <View style={styles.tagInputRow}>
+            <TextInput
+              style={styles.tagInputField}
+              value={linkInput}
+              onChangeText={setLinkInput}
+              placeholder={PLATFORM_MAP[linkPlatform]?.placeholder ?? ''}
+              placeholderTextColor={colors.gray400}
+              autoCapitalize="none"
+              autoCorrect={false}
+              keyboardType={linkPlatform === 'phone' ? 'phone-pad' : 'default'}
+              returnKeyType="done"
+              onSubmitEditing={addLink}
+              autoFocus
+            />
+            <TouchableOpacity
+              style={[styles.tagAddBtn, !linkInput.trim() && styles.tagAddBtnDisabled]}
+              onPress={addLink}
+              disabled={!linkInput.trim()}
+              accessibilityRole="button"
+              accessibilityLabel={t('manageTags.addTag', { defaultValue: '新增' })}
+            >
+              <Plus size={20} color="#FFFFFF" strokeWidth={2.4} />
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {/* Added links */}
+        {pendingBiolinks.length > 0 && (
+          <View style={styles.linksList}>
+            {pendingBiolinks.map((b, i) => (
+              <View key={`${b.platform}-${i}`} style={styles.linkRow}>
+                <PlatformIcon platform={b.platform} size={20} />
+                <Text style={styles.linkRowText} numberOfLines={1}>
+                  {getPlatformLabel(b.platform, t)}
+                </Text>
+                <TouchableOpacity
+                  onPress={() => removeLink(i)}
+                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                  accessibilityRole="button"
+                  accessibilityLabel={t('common.remove', { defaultValue: '移除' })}
+                >
+                  <X size={18} color={colors.gray400} />
+                </TouchableOpacity>
+              </View>
+            ))}
+          </View>
+        )}
+
+        <View style={{ flex: 1, minHeight: 24 }} />
+
+        {!linksValid && (
+          <Text style={styles.gateHint}>
+            {t('auth.onboarding.linksGateHint', {
+              count: Math.max(0, MIN_ONB_LINKS - pendingBiolinks.length),
+              defaultValue: '再加 {{count}} 個就好（電子名片至少 3 個聯絡方式或社群）',
+            })}
+          </Text>
+        )}
+
+        <TouchableOpacity
+          style={[styles.primaryButton, ctaDisabled && styles.primaryButtonDisabled]}
+          activeOpacity={0.85}
           onPress={handleComplete}
           disabled={ctaDisabled}
           accessibilityRole="button"
@@ -1203,7 +1378,7 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
           ) : (
             <>
               <Text style={styles.primaryButtonText}>
-                {t('auth.onboarding.profileCta', { defaultValue: '建立我的第一個 Tag' })}
+                {t('auth.onboarding.finishCta', { defaultValue: '完成，開始用 PikTag' })}
               </Text>
               <ChevronRight size={20} color="#FFFFFF" />
             </>
@@ -1222,7 +1397,9 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
         ? renderWelcome()
         : step === STEP_PROFILE
           ? renderProfile()
-          : renderTags()}
+          : step === STEP_TAGS
+            ? renderTags()
+            : renderLinks()}
 
       {/* Celebration burst plays after handleComplete succeeds. Its
           onComplete then drives the navigation reset — we defer to
@@ -1571,6 +1748,58 @@ function makeStyles(c: ColorPalette) {
     color: c.gray500,
     textAlign: 'center',
     marginBottom: 10,
+  },
+
+  // ── Step 3 (電子名片) link picker ──
+  platformChipsWrap: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginTop: 20,
+  },
+  platformChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 9999,
+    borderWidth: 1,
+    borderColor: c.gray200,
+    backgroundColor: c.gray100,
+  },
+  platformChipActive: {
+    borderColor: c.piktag500,
+    backgroundColor: c.piktag50,
+  },
+  platformChipText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: c.gray700,
+  },
+  platformChipTextActive: {
+    color: c.piktag600,
+  },
+  linksList: {
+    marginTop: 16,
+    gap: 8,
+  },
+  linkRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    backgroundColor: c.gray100,
+    borderWidth: 1,
+    borderColor: c.gray200,
+    borderRadius: BORDER_RADIUS.md,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+  },
+  linkRowText: {
+    flex: 1,
+    fontSize: 15,
+    fontWeight: '600',
+    color: c.gray900,
   },
 
   // ── Shared primary CTA ──

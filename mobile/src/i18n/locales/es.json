@@ -233,7 +233,11 @@
       "aiPickHint": "👇 Toca las etiquetas que quieras añadir",
       "tagInputPlaceholder": "Escribe una etiqueta, ej.: fotografía",
       "tagsGateHint": "Elige al menos 3 etiquetas para continuar",
-      "bioGateHint": "Escribe una breve presentación para continuar"
+      "bioGateHint": "Escribe una breve presentación para continuar",
+      "linksTitle": "Tu tarjeta digital",
+      "linksSubtitle": "Añade contactos y redes — un escaneo y te tienen completo",
+      "linksGateHint": "Añade {{count}} más (una tarjeta necesita al menos 3 contactos o redes)",
+      "finishCta": "Listo — empieza a usar PikTag"
     }
   },
   "connections": {

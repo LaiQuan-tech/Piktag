@@ -233,7 +233,11 @@
       "aiPickHint": "👇 Ketuk tag yang ingin ditambahkan",
       "tagInputPlaceholder": "Ketik tag, mis.: fotografi",
       "tagsGateHint": "Pilih minimal 3 tag untuk lanjut",
-      "bioGateHint": "Tulis perkenalan singkat untuk lanjut"
+      "bioGateHint": "Tulis perkenalan singkat untuk lanjut",
+      "linksTitle": "Kartu digitalmu",
+      "linksSubtitle": "Tambahkan kontak dan sosial — sekali pindai, kamu lengkap",
+      "linksGateHint": "Tambah {{count}} lagi (kartu butuh minimal 3 kontak atau sosial)",
+      "finishCta": "Selesai — mulai pakai PikTag"
     }
   },
   "connections": {

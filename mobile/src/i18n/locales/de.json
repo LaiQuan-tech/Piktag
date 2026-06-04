@@ -235,7 +235,11 @@
       "aiPickHint": "👇 Tippe die Tags an, die du hinzufügen willst",
       "tagInputPlaceholder": "Tag eingeben, z. B. Fotografie",
       "tagsGateHint": "Wähle mindestens 3 Tags, um fortzufahren",
-      "bioGateHint": "Schreib eine kurze Vorstellung, um fortzufahren"
+      "bioGateHint": "Schreib eine kurze Vorstellung, um fortzufahren",
+      "linksTitle": "Deine digitale Karte",
+      "linksSubtitle": "Füge Kontakte und Socials hinzu — ein Scan und du bist komplett da",
+      "linksGateHint": "Füge noch {{count}} hinzu (eine Karte braucht mindestens 3 Kontakte oder Socials)",
+      "finishCta": "Fertig — leg mit PikTag los"
     }
   },
   "connections": {

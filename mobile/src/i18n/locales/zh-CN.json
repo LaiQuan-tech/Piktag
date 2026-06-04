@@ -235,7 +235,11 @@
       "aiPickHint": "👇 点选想加入的标签",
       "tagInputPlaceholder": "输入标签，例：摄影",
       "tagsGateHint": "至少选 3 个标签再继续",
-      "bioGateHint": "写一句自我介绍再继续"
+      "bioGateHint": "写一句自我介绍再继续",
+      "linksTitle": "你的电子名片",
+      "linksSubtitle": "留下联系方式与社群，别人扫一下就完整收藏你",
+      "linksGateHint": "再加 {{count}} 个就好（电子名片至少 3 个联系方式或社群）",
+      "finishCta": "完成，开始用 PikTag"
     }
   },
   "connections": {

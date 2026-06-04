@@ -240,7 +240,11 @@
       "aiPickHint": "👇 Chạm vào thẻ bạn muốn thêm",
       "tagInputPlaceholder": "Nhập thẻ, vd: nhiếp ảnh",
       "tagsGateHint": "Chọn ít nhất 3 thẻ để tiếp tục",
-      "bioGateHint": "Viết một dòng giới thiệu để tiếp tục"
+      "bioGateHint": "Viết một dòng giới thiệu để tiếp tục",
+      "linksTitle": "Danh thiếp số của bạn",
+      "linksSubtitle": "Thêm liên hệ và mạng xã hội — quét một lần là có đủ bạn",
+      "linksGateHint": "Thêm {{count}} nữa (danh thiếp cần ít nhất 3 liên hệ hoặc mạng xã hội)",
+      "finishCta": "Xong — bắt đầu dùng PikTag"
     }
   },
   "connections": {

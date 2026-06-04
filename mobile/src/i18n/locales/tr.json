@@ -233,7 +233,11 @@
       "aiPickHint": "👇 Eklemek istediğin etiketlere dokun",
       "tagInputPlaceholder": "Etiket yaz, örn.: fotoğrafçılık",
       "tagsGateHint": "Devam etmek için en az 3 etiket seç",
-      "bioGateHint": "Devam etmek için kısa bir tanıtım yaz"
+      "bioGateHint": "Devam etmek için kısa bir tanıtım yaz",
+      "linksTitle": "Dijital kartvizitin",
+      "linksSubtitle": "Kişileri ve sosyalleri ekle — tek taramayla seni tümüyle alsınlar",
+      "linksGateHint": "{{count}} tane daha ekle (bir kartvizit en az 3 kişi veya sosyal ister)",
+      "finishCta": "Bitti — PikTag'i kullanmaya başla"
     }
   },
   "connections": {
