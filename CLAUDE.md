@@ -505,6 +505,16 @@ founder when the trigger condition lands:
 - **Every change:** `tsc` clean → commit → push. i18n spans **19 locales**
   (`mobile/src/i18n/locales/*.json`) — keep all in sync (JSON round-trip
   into the right block; verify the key landed where intended).
+- **In-house translations are FINAL — don't keep flagging native review.**
+  All 19 locales are authored in-house, every PR. The founder has no
+  native-speaker review resources and accepts the in-house translations
+  as shipped (verbatim 2026-06-05: *"待母語者覆核，你就正常翻譯吧"*;
+  earlier *"我沒資源找母語者，這是我要承擔的"*). So: translate carefully
+  (especially ar / ur / hi / bn / th — RTL + Indic, easy to get subtly
+  wrong) but DON'T append a "ar/ur/hi/bn/th pending native review"
+  caveat to every turn or compile forwarding lists unasked. Ship the
+  19, move on. Only surface a specific string if YOU have real doubt
+  about its correctness.
 - **DB migrations auto-apply** on push to `main` via
   `.github/workflows/supabase-deploy.yml` (the `db-push` job runs
   `supabase db push` against the linked project). DO NOT ask the
