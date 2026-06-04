@@ -497,9 +497,9 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
   >([]);
   const [isTagPrivate, setIsTagPrivate] = useState(false);
   const [tagsLoading, setTagsLoading] = useState(false);
-  // Drag / pin state — ported from ManageTagsScreen so this screen
-  // is now the single home for tag editing.
-  const [isDragging, setIsDragging] = useState(false);
+  // (isDragging state removed 2026-06-04 — tag drag-reorder disabled
+  // pre-launch, decision A; it was only ever set by DraggableChips,
+  // never read.)
   // Colour contract (corrected): a 我的標籤 chip is ALWAYS purple
   // because it IS selected/owned. Gray is reserved for
   // recommended-but-unselected suggestions. Removal = a single tap
@@ -1995,10 +1995,10 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
                 because removal is staged (Phase 1) and reversible
                 until 儲存. Reorder = long-press drag. Native only
                 (web fallback is a non-product path). Shown ≥1 tag. */}
-            {userTags.length > 0 && Platform.OS !== 'web' && (
+            {userTags.length > 0 && (
               <Text style={styles.tag_sortHint}>
                 {t('manageTags.tagEditHint', {
-                  defaultValue: '點一下即可移除（儲存前都可復原）· 長按可拖曳排序',
+                  defaultValue: '點一下即可移除（儲存前都可復原）',
                 })}
               </Text>
             )}
@@ -2009,27 +2009,25 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
                 TagChip, tap = remove (non-product path, kept only so
                 the screen compiles under Platform.OS === 'web'). */}
             {userTags.length > 0 ? (
-              Platform.OS !== 'web' && DraggableChips ? (
-                <DraggableChips
-                  items={chipItems}
-                  chipVariant="toggle"
-                  onReorder={handleChipReorder}
-                  onRemove={(item: { id: string }) => handleChipRemove(item)}
-                  onDragStateChange={(d: boolean) => setIsDragging(d)}
-                />
-              ) : (
-                <View style={styles.tag_chipsContainer}>
-                  {visibleUserTags.map((ut) => (
-                    <TagChip
-                      key={ut.id}
-                      variant="toggle"
-                      label={getTagDisplayName(ut)}
-                      selected
-                      onPress={() => handleRemoveTag(ut)}
-                    />
-                  ))}
-                </View>
-              )
+              // 2026-06-04: tag drag-reorder DISABLED pre-launch
+              // (founder decision A). The hand-rolled DraggableChips
+              // long-press reorder had a transform-jump bug that needs
+              // on-device testing to fix; tag ORDER matters far less
+              // than tag SELECTION pre-launch, so we ship the static
+              // tap-to-remove chips (the former web-fallback path) on
+              // ALL platforms. DraggableChips.tsx + chipItems /
+              // handleChipReorder stay parked for a post-launch revisit.
+              <View style={styles.tag_chipsContainer}>
+                {visibleUserTags.map((ut) => (
+                  <TagChip
+                    key={ut.id}
+                    variant="toggle"
+                    label={getTagDisplayName(ut)}
+                    selected
+                    onPress={() => handleRemoveTag(ut)}
+                  />
+                ))}
+              </View>
             ) : (
               <Text style={styles.tag_emptyText}>
                 {t('manageTags.noTagsYet', { defaultValue: '還沒有標籤' })}

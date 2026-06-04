@@ -1058,7 +1058,7 @@
     "tagLimitMessage": "最多只能新增 {{max}} 個標籤",
     "aiErrorGeneric": "AI 推薦暫時無法使用，稍後再試",
     "nativeHintNoPin": "長按拖曳排序",
-    "tagEditHint": "點一下移除（未儲存可復原）· 長按拖曳排序",
+    "tagEditHint": "點一下移除（未儲存可復原）",
     "aiErrorNoContext": "請先填寫個人簡介、姓名或新增幾個標籤，AI 才能給你建議",
     "aiErrorLoadProfile": "無法載入個人資料：{{error}}"
   },

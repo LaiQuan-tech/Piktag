@@ -1027,7 +1027,7 @@
     "tagLimitMessage": "Anda dapat menambahkan hingga {{max}} tag",
     "aiErrorGeneric": "Saran AI sementara tidak tersedia, coba lagi nanti",
     "nativeHintNoPin": "Tekan lama lalu seret untuk mengurutkan",
-    "tagEditHint": "Ketuk untuk menghapus (bisa dibatalkan sebelum disimpan) · Tahan untuk mengurutkan",
+    "tagEditHint": "Ketuk untuk menghapus (bisa dibatalkan sebelum disimpan)",
     "aiErrorNoContext": "Isi bio, nama, atau tambahkan beberapa tag dulu agar AI bisa memberi saran.",
     "aiErrorLoadProfile": "Tidak dapat memuat profilmu: {{error}}"
   },

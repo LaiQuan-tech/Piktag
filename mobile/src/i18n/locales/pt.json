@@ -1027,7 +1027,7 @@
     "tagLimitMessage": "Você pode adicionar até {{max}} tags",
     "aiErrorGeneric": "Sugestões da IA temporariamente indisponíveis, tente mais tarde",
     "nativeHintNoPin": "Pressione e arraste para reordenar",
-    "tagEditHint": "Toque para remover (reversível até salvar) · Pressione e segure para reordenar",
+    "tagEditHint": "Toque para remover (reversível até salvar)",
     "aiErrorNoContext": "Preencha sua bio, nome ou adicione algumas tags para que a IA possa dar sugestões.",
     "aiErrorLoadProfile": "Não foi possível carregar seu perfil: {{error}}"
   },

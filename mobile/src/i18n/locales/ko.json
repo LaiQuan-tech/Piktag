@@ -1027,7 +1027,7 @@
     "tagLimitMessage": "최대 {{max}}개의 태그를 추가할 수 있습니다",
     "aiErrorGeneric": "AI 추천을 일시적으로 사용할 수 없습니다. 나중에 다시 시도하세요",
     "nativeHintNoPin": "길게 눌러 드래그해 정렬하기",
-    "tagEditHint": "탭하면 삭제(저장 전 되돌리기 가능) · 길게 눌러 정렬",
+    "tagEditHint": "탭하면 삭제(저장 전 되돌리기 가능)",
     "aiErrorNoContext": "AI가 추천할 수 있도록 먼저 소개·이름을 입력하거나 태그를 몇 개 추가해 주세요.",
     "aiErrorLoadProfile": "프로필을 불러오지 못했습니다: {{error}}"
   },
