@@ -1356,7 +1356,8 @@
     ],
     "createSubtitle": "Eine Zeile reicht — die KI vergibt die Tags, damit die richtigen Leute (oder ein Freund eines Freundes) es sehen.",
     "createFailed": "Dein Ask ging nicht raus — versuch es nochmal.",
-    "shortPrompt": "Was brauchst du?"
+    "shortPrompt": "Was brauchst du?",
+    "rowIntro": "Stell einen Ask — die KI findet die richtigen Leute in deinem Netzwerk (auch Freunde von Freunden)."
   },
   "errorBoundary": {
     "title": "Etwas ist schiefgelaufen",

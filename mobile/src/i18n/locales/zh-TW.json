@@ -1365,7 +1365,8 @@
     ],
     "createSubtitle": "一句話就好 — AI 會配上標籤，讓對的人（或朋友的朋友）看到。",
     "createFailed": "貼文沒送出去，請再試一次。",
-    "shortPrompt": "想要什麼？"
+    "shortPrompt": "想要什麼？",
+    "rowIntro": "發個 Ask，AI 從人脈裡（連朋友的朋友）幫你找對的人。"
   },
   "errorBoundary": {
     "title": "發生錯誤",

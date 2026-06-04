@@ -1317,7 +1317,8 @@
     "createSubtitle": "一言でOK — AIがタグを付けて、ぴったりの人（友達の友達も）に届きます。",
     "createFailed": "Ask を送れなかった — もう一度試してね。",
     "deleteFailed": "Ask を削除できませんでした",
-    "shortPrompt": "何が欲しい?"
+    "shortPrompt": "何が欲しい?",
+    "rowIntro": "Ask を投稿すると、AI が人脈（友だちの友だちまで）から最適な人を見つけます。"
   },
   "errorBoundary": {
     "title": "問題が発生しました",

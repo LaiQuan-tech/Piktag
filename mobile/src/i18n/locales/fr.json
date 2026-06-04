@@ -1317,7 +1317,8 @@
     "createSubtitle": "Une ligne suffit — l'IA ajoute les tags pour que les bonnes personnes (ou un ami d'ami) le voient.",
     "createFailed": "Ton Ask n'est pas passé — réessaie.",
     "deleteFailed": "Échec de la suppression de l'ask",
-    "shortPrompt": "Tu veux quoi ?"
+    "shortPrompt": "Tu veux quoi ?",
+    "rowIntro": "Publiez un Ask — l'IA trouve les bonnes personnes dans votre réseau (et les amis d'amis)."
   },
   "errorBoundary": {
     "title": "Une erreur est survenue",

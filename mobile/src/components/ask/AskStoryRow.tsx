@@ -346,6 +346,20 @@ export default function AskStoryRow({ asks, myAsk, myAvatarUrl, myName, onRefres
   return (
     <>
       <View style={styles.container}>
+        {/* In-context explainer — shown only when the viewer has NO
+            active Ask (the "they haven't used this yet" moment).
+            Card #3 of the home cold-start ("AI 幫你找對的人") moves
+            here: the "+ Ask / 想要什麼？" bubble alone is too terse for
+            a first-timer to grasp the value, so a one-line caption
+            states it. Hidden once they have an active Ask (the rail
+            then speaks for itself) so returning users aren't nagged. */}
+        {!myAsk && (
+          <Text style={styles.rowIntro}>
+            {t('ask.rowIntro', {
+              defaultValue: '發個 Ask，AI 從人脈裡（連朋友的朋友）幫你找對的人。',
+            })}
+          </Text>
+        )}
         {/* ── IG-Stories style circle rail ────────────────────────
             The previous "Apple-Music two-row card carousel" took
             ~200pt of vertical space and felt like a sub-screen on
@@ -1077,6 +1091,14 @@ function makeStyles(c: ColorPalette) {
     borderBottomWidth: 1,
     borderBottomColor: c.gray200,
     paddingVertical: 12,
+  },
+  // In-context Ask explainer (shown when the viewer has no active Ask).
+  rowIntro: {
+    fontSize: 13,
+    color: c.gray500,
+    lineHeight: 18,
+    paddingHorizontal: 16,
+    marginBottom: 10,
   },
 
   // ── IG-Stories circle rail (current render) ────────────────

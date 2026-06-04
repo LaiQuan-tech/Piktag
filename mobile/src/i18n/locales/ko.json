@@ -1317,7 +1317,8 @@
     "createSubtitle": "한 줄이면 돼요 — AI가 태그를 붙여 딱 맞는 사람(친구의 친구도)에게 닿아요.",
     "createFailed": "Ask를 올리지 못했어요 — 다시 시도해 주세요.",
     "deleteFailed": "Ask 삭제 실패",
-    "shortPrompt": "뭐가 필요해요?"
+    "shortPrompt": "뭐가 필요해요?",
+    "rowIntro": "Ask를 올리면 AI가 인맥(친구의 친구까지)에서 딱 맞는 사람을 찾아줘요."
   },
   "errorBoundary": {
     "title": "문제가 발생했습니다",

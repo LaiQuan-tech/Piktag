@@ -1363,7 +1363,8 @@
     ],
     "createSubtitle": "Just one line — AI adds the tags so the right people (or a friend of a friend) see it.",
     "createFailed": "Your Ask didn't go through — try again.",
-    "shortPrompt": "What do you need?"
+    "shortPrompt": "What do you need?",
+    "rowIntro": "Post an Ask — AI finds the right people from your network (and friends of friends)."
   },
   "errorBoundary": {
     "title": "Something went wrong",

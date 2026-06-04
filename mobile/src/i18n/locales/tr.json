@@ -1317,7 +1317,8 @@
     "createSubtitle": "Bir satır yeter — AI etiketleri ekler, doğru kişiler (ya da bir arkadaşın arkadaşı) görsün.",
     "createFailed": "Ask gönderilemedi — tekrar dene.",
     "deleteFailed": "Ask silinemedi",
-    "shortPrompt": "Ne lazım?"
+    "shortPrompt": "Ne lazım?",
+    "rowIntro": "Bir Ask paylaş — yapay zekâ ağındaki (ve arkadaşlarının arkadaşları arasından) doğru kişileri bulur."
   },
   "errorBoundary": {
     "title": "Bir şeyler ters gitti",

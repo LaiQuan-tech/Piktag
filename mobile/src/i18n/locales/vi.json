@@ -1363,7 +1363,8 @@
     ],
     "createSubtitle": "Chỉ một dòng — AI tự thêm tag để đúng người (hoặc bạn của bạn) nhìn thấy.",
     "createFailed": "Ask chưa gửi được — thử lại nhé.",
-    "shortPrompt": "Bạn muốn gì?"
+    "shortPrompt": "Bạn muốn gì?",
+    "rowIntro": "Đăng một Ask — AI tìm đúng người trong mạng lưới của bạn (và bạn của bạn bè)."
   },
   "errorBoundary": {
     "title": "Có gì đó trục trặc",

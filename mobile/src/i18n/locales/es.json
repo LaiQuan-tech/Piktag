@@ -1317,7 +1317,8 @@
     "createSubtitle": "Con una línea basta — la IA pone las etiquetas para que lo vea la gente indicada (o un amigo de un amigo).",
     "createFailed": "Tu Ask no se publicó — inténtalo de nuevo.",
     "deleteFailed": "No se pudo borrar el ask",
-    "shortPrompt": "¿Qué necesitas?"
+    "shortPrompt": "¿Qué necesitas?",
+    "rowIntro": "Publica un Ask — la IA encuentra a las personas adecuadas en tu red (y amigos de amigos)."
   },
   "errorBoundary": {
     "title": "Algo salió mal",

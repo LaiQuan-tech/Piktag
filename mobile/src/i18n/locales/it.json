@@ -1363,7 +1363,8 @@
     ],
     "createSubtitle": "Basta una riga — l'AI ci mette i tag, così la vedono le persone giuste (o un amico di un amico).",
     "createFailed": "Il tuo Ask non è partito — riprova.",
-    "shortPrompt": "Cosa ti serve?"
+    "shortPrompt": "Cosa ti serve?",
+    "rowIntro": "Pubblica un Ask — l'IA trova le persone giuste nella tua rete (e amici di amici)."
   },
   "errorBoundary": {
     "title": "Ops, qualcosa non ha funzionato",
