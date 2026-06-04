@@ -843,6 +843,36 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
   }, [displayName, username, usernameStatus, bio, headline, birthday, pendingBiolinks, t, finishOnboarding]);
 
   // ─── Render: Step 0 (Welcome card) ──────────────────────
+  // Step header: back chevron (or balancing spacer) + a centered
+  // 3-segment progress bar. `current` is 1-based (identity=1, tags=2,
+  // links=3); the welcome splash isn't counted. Segments up to and
+  // including `current` are filled.
+  const renderStepHeader = (current: number, onBack?: () => void) => (
+    <View style={styles.stepHeader}>
+      <View style={styles.stepHeaderSide}>
+        {onBack && (
+          <TouchableOpacity
+            onPress={onBack}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            accessibilityRole="button"
+            accessibilityLabel={t('common.back', { defaultValue: '返回' })}
+          >
+            <ChevronLeft size={26} color={colors.gray700} />
+          </TouchableOpacity>
+        )}
+      </View>
+      <View style={styles.progressRow}>
+        {[1, 2, 3].map((n) => (
+          <View
+            key={n}
+            style={[styles.progressSeg, n <= current && styles.progressSegActive]}
+          />
+        ))}
+      </View>
+      <View style={styles.stepHeaderSide} />
+    </View>
+  );
+
   const renderWelcome = () => (
     <View style={styles.welcomeContainer}>
       <View style={styles.welcomeIconWrap}>
@@ -889,6 +919,7 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
+        {renderStepHeader(1)}
         <Text style={styles.profileTitle}>
           {t('auth.onboarding.profileTitle', { defaultValue: '你叫什麼名字？' })}
         </Text>
@@ -1069,16 +1100,7 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        {/* Back to identity */}
-        <TouchableOpacity
-          style={styles.backBtn}
-          onPress={() => setStep(STEP_PROFILE)}
-          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-          accessibilityRole="button"
-          accessibilityLabel={t('common.back', { defaultValue: '返回' })}
-        >
-          <ChevronLeft size={26} color={colors.gray700} />
-        </TouchableOpacity>
+        {renderStepHeader(2, () => setStep(STEP_PROFILE))}
 
         <Text style={styles.profileTitle}>
           {t('auth.onboarding.tagsTitle', { defaultValue: '你是誰？' })}
@@ -1266,15 +1288,7 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        <TouchableOpacity
-          style={styles.backBtn}
-          onPress={() => setStep(STEP_TAGS)}
-          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-          accessibilityRole="button"
-          accessibilityLabel={t('common.back', { defaultValue: '返回' })}
-        >
-          <ChevronLeft size={26} color={colors.gray700} />
-        </TouchableOpacity>
+        {renderStepHeader(3, () => setStep(STEP_TAGS))}
 
         <Text style={styles.profileTitle}>
           {t('auth.onboarding.linksTitle', { defaultValue: '你的電子名片' })}
@@ -1667,13 +1681,30 @@ function makeStyles(c: ColorPalette) {
     textAlign: 'center',
   },
 
-  // ── Step 2 (你是誰) ──
-  backBtn: {
-    position: 'absolute',
-    top: 20,
-    left: 8,
-    zIndex: 10,
-    padding: 8,
+  // ── Step header (back + 3-segment progress) ──
+  stepHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 24,
+  },
+  stepHeaderSide: {
+    width: 36,
+    alignItems: 'flex-start',
+    justifyContent: 'center',
+  },
+  progressRow: {
+    flexDirection: 'row',
+    gap: 6,
+  },
+  progressSeg: {
+    width: 28,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: c.gray200,
+  },
+  progressSegActive: {
+    backgroundColor: c.piktag500,
   },
   bioInput: {
     minHeight: 64,
