@@ -653,7 +653,8 @@
     "tag": "Tag",
     "recommendMembers": "Anggota direkomendasikan",
     "blockConfirmTitle": "Blokir orang ini?",
-    "blockConfirmMessage": "Kalian akan saling berhenti mengikuti dan tak lagi melihat konten satu sama lain."
+    "blockConfirmMessage": "Kalian akan saling berhenti mengikuti dan tak lagi melihat konten satu sama lain.",
+    "hiddenTagsDesc": "Tag pribadi yang hanya kamu lihat — catat bagaimana kalian berkenalan atau apa yang dibahas, agar kamu ingat setiap teman."
   },
   "userDetail": {
     "headerNotFound": "Tidak Ditemukan",

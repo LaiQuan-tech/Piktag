@@ -653,7 +653,8 @@
     "tag": "タグ",
     "recommendMembers": "おすすめのメンバー",
     "blockConfirmTitle": "この人をブロック？",
-    "blockConfirmMessage": "お互いのフォローが外れ、相手の投稿も見えなくなります。"
+    "blockConfirmMessage": "お互いのフォローが外れ、相手の投稿も見えなくなります。",
+    "hiddenTagsDesc": "あなただけが見える非公開タグ —— どこで出会ったか、何を話したかをメモして、一人ひとりを覚えておけます。"
   },
   "userDetail": {
     "headerNotFound": "見つかりません",

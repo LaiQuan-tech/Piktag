@@ -662,7 +662,8 @@
     "tag": "標籤",
     "recommendMembers": "推薦會員",
     "blockConfirmTitle": "封鎖這個人？",
-    "blockConfirmMessage": "你們會互相取消追蹤，也不再看到彼此的內容。"
+    "blockConfirmMessage": "你們會互相取消追蹤，也不再看到彼此的內容。",
+    "hiddenTagsDesc": "只有你看得到的私人標籤 —— 記下怎麼認識、聊過什麼，幫你好好記住每個朋友。"
   },
   "userDetail": {
     "headerNotFound": "找不到",

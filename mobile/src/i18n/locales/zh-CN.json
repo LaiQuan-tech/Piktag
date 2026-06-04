@@ -657,7 +657,8 @@
     "tag": "标签",
     "recommendMembers": "推荐会员",
     "blockConfirmTitle": "屏蔽这个人？",
-    "blockConfirmMessage": "你们会互相取消关注，也不再看到彼此的内容。"
+    "blockConfirmMessage": "你们会互相取消关注，也不再看到彼此的内容。",
+    "hiddenTagsDesc": "只有你看得到的私人标签 —— 记下怎么认识、聊过什么，帮你好好记住每个朋友。"
   },
   "userDetail": {
     "headerNotFound": "未找到",

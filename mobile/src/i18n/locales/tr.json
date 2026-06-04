@@ -653,7 +653,8 @@
     "tag": "Etiket",
     "recommendMembers": "Önerilen üyeler",
     "blockConfirmTitle": "Bu kişi engellensin mi?",
-    "blockConfirmMessage": "Birbirinizi takipten çıkarsınız ve içeriklerinizi görmezsiniz."
+    "blockConfirmMessage": "Birbirinizi takipten çıkarsınız ve içeriklerinizi görmezsiniz.",
+    "hiddenTagsDesc": "Yalnızca senin görebildiğin özel etiketler — nasıl tanıştığınızı veya ne konuştuğunuzu not et, her arkadaşını hatırla."
   },
   "userDetail": {
     "headerNotFound": "Bulunamadı",

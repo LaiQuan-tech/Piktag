@@ -655,7 +655,8 @@
     "tag": "Tag",
     "recommendMembers": "Empfohlene Mitglieder",
     "blockConfirmTitle": "Diese Person blockieren?",
-    "blockConfirmMessage": "Ihr folgt euch nicht mehr und seht eure Inhalte nicht mehr."
+    "blockConfirmMessage": "Ihr folgt euch nicht mehr und seht eure Inhalte nicht mehr.",
+    "hiddenTagsDesc": "Private Tags, die nur du siehst — notiere, wie ihr euch kennengelernt habt oder worüber ihr gesprochen habt, um dich an jeden Freund zu erinnern."
   },
   "userDetail": {
     "headerNotFound": "Nicht gefunden",

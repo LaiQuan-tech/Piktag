@@ -1592,6 +1592,19 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
             {/* Hidden tags section — tap-based editor with time / location /
                 frequently-used chips to reduce keyboard friction */}
             <Text style={styles.pickModalSectionTitle}>{t('friendDetail.hiddenTagsTitle')}</Text>
+            {/* In-context explainer (home cold-start card #4, 化整為零):
+                the "隱藏標籤" title says it's private but not what it's
+                FOR. A first-timer doesn't know why they'd add one.
+                Shown only when this friend has no hidden tags yet, so
+                returning users who already get it aren't nagged. */}
+            {hiddenTags.length === 0 && (
+              <Text style={styles.pickModalSectionDesc}>
+                {t('friendDetail.hiddenTagsDesc', {
+                  defaultValue:
+                    '只有你看得到的私人標籤 —— 記下怎麼認識、聊過什麼，幫你好好記住每個朋友。',
+                })}
+              </Text>
+            )}
             {connectionId && user && (
               <HiddenTagEditor
                 connectionId={connectionId}
@@ -2519,6 +2532,17 @@ function makeStyles(c: ColorPalette) {
     fontWeight: '600',
     color: c.gray500,
     marginBottom: 12,
+  },
+  // In-context explainer under the hidden-tags section title (shown
+  // only when the friend has no hidden tags yet). The title's
+  // marginBottom:12 sits above this; pull it up so the desc reads as
+  // a subtitle of the title, then space before the editor.
+  pickModalSectionDesc: {
+    fontSize: 13,
+    color: c.gray400,
+    lineHeight: 18,
+    marginTop: -6,
+    marginBottom: 14,
   },
   });
 }

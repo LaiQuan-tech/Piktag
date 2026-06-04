@@ -660,7 +660,8 @@
     "tag": "Tag",
     "recommendMembers": "Recommended members",
     "blockConfirmTitle": "Block this person?",
-    "blockConfirmMessage": "You'll both unfollow each other and stop seeing each other's content."
+    "blockConfirmMessage": "You'll both unfollow each other and stop seeing each other's content.",
+    "hiddenTagsDesc": "Private tags only you can see — jot down how you met or what you talked about, so you remember every friend."
   },
   "userDetail": {
     "headerNotFound": "Not Found",

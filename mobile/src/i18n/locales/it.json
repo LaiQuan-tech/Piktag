@@ -660,7 +660,8 @@
     "tag": "Tag",
     "recommendMembers": "Membri consigliati",
     "blockConfirmTitle": "Bloccare questa persona?",
-    "blockConfirmMessage": "Smetterete di seguirvi e non vedrete più i contenuti dell'altro."
+    "blockConfirmMessage": "Smetterete di seguirvi e non vedrete più i contenuti dell'altro.",
+    "hiddenTagsDesc": "Tag privati che vedi solo tu — annota come vi siete conosciuti o di cosa avete parlato per ricordare ogni amico."
   },
   "userDetail": {
     "headerNotFound": "Non trovato",

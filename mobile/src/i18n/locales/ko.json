@@ -653,7 +653,8 @@
     "tag": "태그",
     "recommendMembers": "추천 회원",
     "blockConfirmTitle": "이 사람을 차단할까요?",
-    "blockConfirmMessage": "서로 팔로우가 해제되고 상대 콘텐츠도 안 보여요."
+    "blockConfirmMessage": "서로 팔로우가 해제되고 상대 콘텐츠도 안 보여요.",
+    "hiddenTagsDesc": "나만 볼 수 있는 비공개 태그 —— 어떻게 만났는지, 무슨 얘기를 했는지 적어두고 친구 한 명 한 명을 기억하세요."
   },
   "userDetail": {
     "headerNotFound": "찾을 수 없음",

@@ -660,7 +660,8 @@
     "tag": "Gắn tag",
     "recommendMembers": "Có thể bạn quen",
     "blockConfirmTitle": "Chặn người này?",
-    "blockConfirmMessage": "Cả hai sẽ bỏ theo dõi nhau và không còn thấy nội dung của nhau."
+    "blockConfirmMessage": "Cả hai sẽ bỏ theo dõi nhau và không còn thấy nội dung của nhau.",
+    "hiddenTagsDesc": "Thẻ riêng tư chỉ bạn thấy — ghi lại cách bạn quen nhau hay đã nói chuyện gì, để nhớ từng người bạn."
   },
   "userDetail": {
     "headerNotFound": "Không tìm thấy",

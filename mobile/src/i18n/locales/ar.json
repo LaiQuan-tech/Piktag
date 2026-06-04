@@ -653,7 +653,8 @@
     "tag": "وسم",
     "recommendMembers": "أعضاء موصى بهم",
     "blockConfirmTitle": "حظر هذا الشخص؟",
-    "blockConfirmMessage": "ستلغيان متابعة بعضكما ولن تريا محتوى الآخر."
+    "blockConfirmMessage": "ستلغيان متابعة بعضكما ولن تريا محتوى الآخر.",
+    "hiddenTagsDesc": "وسوم خاصة تراها أنت فقط — دوّن كيف تعارفتما أو عمّ تحدثتما لتتذكّر كل صديق."
   },
   "userDetail": {
     "headerNotFound": "غير موجود",
