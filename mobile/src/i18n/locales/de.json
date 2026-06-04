@@ -814,7 +814,11 @@
     "tagModalCustomPlaceholder": "Eigener Tag",
     "tagModalAddCustom": "Hinzufügen",
     "tagModalPopular": "Beliebte Tags",
-    "tagModalSubmit": "Tags speichern & einladen"
+    "tagModalSubmit": "Tags speichern & einladen",
+    "introTitle": "Sieh, wer schon bei PikTag ist",
+    "introDesc": "Folge mit einem Tipp Freunden, die schon dabei sind — und lade die anderen ein.",
+    "introPrivacy": "Deine Kontakte werden nur zum Abgleich genutzt — nur PikTag sieht sie, nie öffentlich, nie hochgeladen.",
+    "introCta": "Loslegen"
   },
   "invite": {
     "headerTitle": "Freunde einladen",

@@ -812,7 +812,11 @@
     "tagModalCustomPlaceholder": "맞춤 태그",
     "tagModalAddCustom": "추가",
     "tagModalPopular": "인기 태그",
-    "tagModalSubmit": "태그 저장 후 초대"
+    "tagModalSubmit": "태그 저장 후 초대",
+    "introTitle": "연락처 중에 누가 이미 PikTag에 있는지 확인하세요",
+    "introDesc": "이미 가입한 친구는 한 번에 팔로우하고, 아직인 친구는 초대하세요.",
+    "introPrivacy": "연락처는 매칭에만 사용돼요 —— PikTag만 사용하며, 공개하거나 업로드하지 않아요.",
+    "introCta": "시작하기"
   },
   "invite": {
     "headerTitle": "친구 초대",

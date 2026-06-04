@@ -812,7 +812,11 @@
     "tagModalCustomPlaceholder": "カスタムタグ",
     "tagModalAddCustom": "追加",
     "tagModalPopular": "人気のタグ",
-    "tagModalSubmit": "タグを保存して招待"
+    "tagModalSubmit": "タグを保存して招待",
+    "introTitle": "連絡先の中で、誰がもう PikTag にいるか見てみよう",
+    "introDesc": "すでに参加した友だちはワンタップでフォロー、まだの友だちは招待できます。",
+    "introPrivacy": "連絡先は照合のみに使用 —— PikTag だけが利用し、公開やアップロードは一切ありません。",
+    "introCta": "はじめる"
   },
   "invite": {
     "headerTitle": "友達を招待",

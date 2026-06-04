@@ -812,7 +812,11 @@
     "tagModalCustomPlaceholder": "Tag personalizada",
     "tagModalAddCustom": "Adicionar",
     "tagModalPopular": "Tags populares",
-    "tagModalSubmit": "Salvar tags e convidar"
+    "tagModalSubmit": "Salvar tags e convidar",
+    "introTitle": "Veja quem já está no PikTag",
+    "introDesc": "Siga com um toque os amigos que já entraram e convide os que ainda não.",
+    "introPrivacy": "Seus contatos são usados só para encontrar correspondências — só o PikTag os vê, nunca públicos, nunca enviados.",
+    "introCta": "Começar"
   },
   "invite": {
     "headerTitle": "Convidar amigos",

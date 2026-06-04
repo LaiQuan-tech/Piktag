@@ -812,7 +812,11 @@
     "tagModalCustomPlaceholder": "कस्टम टैग",
     "tagModalAddCustom": "जोड़ें",
     "tagModalPopular": "लोकप्रिय टैग",
-    "tagModalSubmit": "टैग सहेजें और आमंत्रित करें"
+    "tagModalSubmit": "टैग सहेजें और आमंत्रित करें",
+    "introTitle": "देखें कि कौन पहले से PikTag पर है",
+    "introDesc": "जो दोस्त पहले से जुड़े हैं उन्हें एक टैप में फ़ॉलो करें — और बाकी को न्योता दें।",
+    "introPrivacy": "आपके संपर्क सिर्फ़ मिलान के लिए इस्तेमाल होते हैं — केवल PikTag देखता है, कभी सार्वजनिक या अपलोड नहीं।",
+    "introCta": "शुरू करें"
   },
   "invite": {
     "headerTitle": "दोस्तों को आमंत्रित करें",

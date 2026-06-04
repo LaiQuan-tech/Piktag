@@ -816,7 +816,11 @@
     "tagModalCustomPlaceholder": "自订标签",
     "tagModalAddCustom": "添加",
     "tagModalPopular": "热门标签",
-    "tagModalSubmit": "存私人标签并邀请"
+    "tagModalSubmit": "存私人标签并邀请",
+    "introTitle": "看看通讯录里，谁已经在 PikTag",
+    "introDesc": "一键追踪已经加入的朋友，还没加入的也能一键邀请。",
+    "introPrivacy": "通讯录只用来比对 —— 只有 PikTag 用得到，永远不会公开或上传。",
+    "introCta": "开始"
   },
   "invite": {
     "headerTitle": "邀请好友",

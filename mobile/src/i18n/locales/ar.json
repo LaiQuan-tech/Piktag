@@ -812,7 +812,11 @@
     "tagModalCustomPlaceholder": "وسم مخصص",
     "tagModalAddCustom": "إضافة",
     "tagModalPopular": "الوسوم الشائعة",
-    "tagModalSubmit": "حفظ الوسوم والدعوة"
+    "tagModalSubmit": "حفظ الوسوم والدعوة",
+    "introTitle": "اعرف مَن هو بالفعل على PikTag",
+    "introDesc": "تابِع بنقرة واحدة الأصدقاء الموجودين بالفعل، وادعُ الآخرين.",
+    "introPrivacy": "تُستخدم جهات اتصالك للمطابقة فقط — يراها PikTag وحده، ولا تُنشر أو تُرفع أبدًا.",
+    "introCta": "ابدأ"
   },
   "invite": {
     "headerTitle": "دعوة الأصدقاء",

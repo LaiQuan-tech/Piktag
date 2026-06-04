@@ -819,7 +819,11 @@
     "tagModalCustomPlaceholder": "Tag tùy chỉnh",
     "tagModalAddCustom": "Thêm",
     "tagModalPopular": "Tag phổ biến",
-    "tagModalSubmit": "Lưu tag & mời"
+    "tagModalSubmit": "Lưu tag & mời",
+    "introTitle": "Xem ai đã có trên PikTag",
+    "introDesc": "Theo dõi bạn bè đã tham gia chỉ với một chạm, và mời những người chưa.",
+    "introPrivacy": "Danh bạ chỉ dùng để đối chiếu — chỉ PikTag thấy, không bao giờ công khai hay tải lên.",
+    "introCta": "Bắt đầu"
   },
   "invite": {
     "headerTitle": "Mời bạn bè",

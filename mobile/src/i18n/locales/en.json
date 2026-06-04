@@ -819,7 +819,11 @@
     "tagModalCustomPlaceholder": "Custom tag",
     "tagModalAddCustom": "Add",
     "tagModalPopular": "Popular tags",
-    "tagModalSubmit": "Save tags & invite"
+    "tagModalSubmit": "Save tags & invite",
+    "introTitle": "See who's already on PikTag",
+    "introDesc": "Follow friends who already joined with one tap — and invite the ones who haven't.",
+    "introPrivacy": "Your contacts are only used to match — only PikTag sees them, never public, never uploaded.",
+    "introCta": "Get started"
   },
   "invite": {
     "headerTitle": "Invite Friends",

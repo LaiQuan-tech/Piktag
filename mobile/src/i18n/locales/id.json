@@ -812,7 +812,11 @@
     "tagModalCustomPlaceholder": "Tag kustom",
     "tagModalAddCustom": "Tambah",
     "tagModalPopular": "Tag populer",
-    "tagModalSubmit": "Simpan tag & undang"
+    "tagModalSubmit": "Simpan tag & undang",
+    "introTitle": "Lihat siapa yang sudah ada di PikTag",
+    "introDesc": "Ikuti teman yang sudah bergabung sekali ketuk, dan undang yang belum.",
+    "introPrivacy": "Kontakmu hanya dipakai untuk mencocokkan — hanya PikTag yang melihatnya, tak pernah publik, tak pernah diunggah.",
+    "introCta": "Mulai"
   },
   "invite": {
     "headerTitle": "Undang Teman",

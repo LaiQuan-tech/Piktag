@@ -819,7 +819,11 @@
     "tagModalCustomPlaceholder": "اپنا ٹیگ",
     "tagModalAddCustom": "شامل کریں",
     "tagModalPopular": "مقبول ٹیگز",
-    "tagModalSubmit": "ٹیگ محفوظ کریں اور دعوت دیں"
+    "tagModalSubmit": "ٹیگ محفوظ کریں اور دعوت دیں",
+    "introTitle": "دیکھیں کون پہلے سے PikTag پر ہے",
+    "introDesc": "جو دوست پہلے سے شامل ہیں انہیں ایک ٹیپ میں فالو کریں — اور باقیوں کو دعوت دیں۔",
+    "introPrivacy": "آپ کے رابطے صرف ملاپ کے لیے استعمال ہوتے ہیں — صرف PikTag دیکھتا ہے، کبھی عوامی یا اپ لوڈ نہیں۔",
+    "introCta": "شروع کریں"
   },
   "invite": {
     "headerTitle": "دوستوں کو بلائیں",

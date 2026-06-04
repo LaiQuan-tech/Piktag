@@ -812,7 +812,11 @@
     "tagModalCustomPlaceholder": "Tag personalizado",
     "tagModalAddCustom": "Añadir",
     "tagModalPopular": "Tags populares",
-    "tagModalSubmit": "Guardar tags e invitar"
+    "tagModalSubmit": "Guardar tags e invitar",
+    "introTitle": "Mira quién ya está en PikTag",
+    "introDesc": "Sigue con un toque a los amigos que ya se unieron e invita a los que no.",
+    "introPrivacy": "Tus contactos solo se usan para encontrar coincidencias: solo PikTag los ve, nunca son públicos ni se suben.",
+    "introCta": "Empezar"
   },
   "invite": {
     "headerTitle": "Invitar amigos",

@@ -821,7 +821,11 @@
     "tagModalCustomPlaceholder": "自訂標籤",
     "tagModalAddCustom": "新增",
     "tagModalPopular": "熱門標籤",
-    "tagModalSubmit": "存私人標籤並邀請"
+    "tagModalSubmit": "存私人標籤並邀請",
+    "introTitle": "看看通訊錄裡，誰已經在 PikTag",
+    "introDesc": "一鍵追蹤已經加入的朋友，還沒加入的也能一鍵邀請。",
+    "introPrivacy": "通訊錄只用來比對 —— 只有 PikTag 用得到，永遠不會公開或上傳。",
+    "introCta": "開始"
   },
   "invite": {
     "headerTitle": "邀請好友",

@@ -812,7 +812,11 @@
     "tagModalCustomPlaceholder": "কাস্টম ট্যাগ",
     "tagModalAddCustom": "যোগ করুন",
     "tagModalPopular": "জনপ্রিয় ট্যাগ",
-    "tagModalSubmit": "ট্যাগ সংরক্ষণ ও আমন্ত্রণ"
+    "tagModalSubmit": "ট্যাগ সংরক্ষণ ও আমন্ত্রণ",
+    "introTitle": "দেখুন কে ইতিমধ্যে PikTag-এ আছে",
+    "introDesc": "যারা ইতিমধ্যে যোগ দিয়েছে তাদের এক ট্যাপে ফলো করুন — বাকিদের আমন্ত্রণ জানান।",
+    "introPrivacy": "আপনার কন্টাক্ট শুধু মেলানোর জন্য ব্যবহৃত হয় — শুধু PikTag দেখে, কখনো প্রকাশ্য বা আপলোড নয়।",
+    "introCta": "শুরু করুন"
   },
   "invite": {
     "headerTitle": "বন্ধুদের আমন্ত্রণ",

@@ -21,7 +21,7 @@ import PageLoader from '../components/loaders/PageLoader';
 import BrandSpinner from '../components/loaders/BrandSpinner';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import { requestPermissionsAsync, getContactsAsync, Fields, SortTypes } from 'expo-contacts';
+import { requestPermissionsAsync, getPermissionsAsync, getContactsAsync, Fields, SortTypes } from 'expo-contacts';
 import {
   ArrowLeft,
   Users,
@@ -85,6 +85,12 @@ export default function ContactSyncScreen({ navigation }: ContactSyncScreenProps
   const [contacts, setContacts] = useState<PhoneContact[]>([]);
   const [loadingContacts, setLoadingContacts] = useState(true);
   const [permissionDenied, setPermissionDenied] = useState(false);
+  // Pre-permission soft-ask (home card #5, part B). 'checking' while we
+  // read the current OS permission; 'intro' shows the value+privacy
+  // explainer with a 開始 button (only when not yet granted) so we never
+  // fire the OS contacts prompt cold; 'go' = proceed to load. Returning
+  // users who already granted skip straight to 'go'.
+  const [introPhase, setIntroPhase] = useState<'checking' | 'intro' | 'go'>('checking');
 
   // Server-classified state. `matches` is contactId → matched profile info
   // (only contacts that resolve to a PikTag account appear here).
@@ -194,7 +200,34 @@ export default function ContactSyncScreen({ navigation }: ContactSyncScreenProps
     }
   }, []);
 
+  // On mount: read the current permission WITHOUT prompting. If already
+  // granted, go straight in; otherwise show the intro (soft ask) first.
   useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const { status } = await getPermissionsAsync();
+        if (cancelled) return;
+        if (status === 'granted') {
+          setIntroPhase('go');
+          loadContacts();
+        } else {
+          setIntroPhase('intro');
+          setLoadingContacts(false);
+        }
+      } catch {
+        if (cancelled) return;
+        setIntroPhase('intro');
+        setLoadingContacts(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [loadContacts]);
+
+  // 開始 — the soft-ask CTA. Now fire the real OS permission request.
+  const handleStartSync = useCallback(() => {
+    setIntroPhase('go');
+    setLoadingContacts(true);
     loadContacts();
   }, [loadContacts]);
 
@@ -729,7 +762,44 @@ export default function ContactSyncScreen({ navigation }: ContactSyncScreenProps
   const showLoader = loadingContacts || (contacts.length > 0 && classifying);
 
   let body: React.ReactNode;
-  if (showLoader) {
+  if (introPhase === 'intro') {
+    // Pre-permission soft ask: explain WHY + the privacy promise BEFORE
+    // the OS contacts prompt. Lifts grant rates and earns trust.
+    body = (
+      <View style={styles.introContainer}>
+        <View style={styles.introIconWrap}>
+          <Users size={44} color={colors.piktag500} />
+        </View>
+        <Text style={styles.introTitle}>
+          {t('contactSync.introTitle', { defaultValue: '看看通訊錄裡，誰已經在 PikTag' })}
+        </Text>
+        <Text style={styles.introDesc}>
+          {t('contactSync.introDesc', {
+            defaultValue: '一鍵追蹤已經加入的朋友，還沒加入的也能一鍵邀請。',
+          })}
+        </Text>
+        <View style={styles.introPrivacyRow}>
+          <Lock size={16} color={colors.gray500} />
+          <Text style={styles.introPrivacyText}>
+            {t('contactSync.introPrivacy', {
+              defaultValue: '通訊錄只用來比對 —— 只有 PikTag 用得到，永遠不會公開或上傳。',
+            })}
+          </Text>
+        </View>
+        <View style={{ flex: 1, minHeight: 24 }} />
+        <TouchableOpacity
+          style={styles.introCta}
+          onPress={handleStartSync}
+          activeOpacity={0.85}
+          accessibilityRole="button"
+        >
+          <Text style={styles.introCtaText}>
+            {t('contactSync.introCta', { defaultValue: '開始' })}
+          </Text>
+        </TouchableOpacity>
+      </View>
+    );
+  } else if (showLoader) {
     body = (
       <PageLoader
         heading={
@@ -1112,6 +1182,59 @@ function makeStyles(c: ColorPalette) {
     backgroundColor: c.piktag500,
   },
   openSettingsBtnText: { fontSize: 15, fontWeight: '700', color: '#FFFFFF' },
+
+  // ── Pre-permission soft-ask intro ──
+  introContainer: {
+    flex: 1,
+    alignItems: 'center',
+    paddingHorizontal: 32,
+    paddingTop: 56,
+    paddingBottom: 32,
+  },
+  introIconWrap: {
+    width: 88,
+    height: 88,
+    borderRadius: 44,
+    backgroundColor: c.piktag50,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 24,
+  },
+  introTitle: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: c.gray900,
+    textAlign: 'center',
+    lineHeight: 30,
+  },
+  introDesc: {
+    fontSize: 15,
+    color: c.gray600,
+    textAlign: 'center',
+    lineHeight: 22,
+    marginTop: 12,
+  },
+  introPrivacyRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 8,
+    marginTop: 24,
+    paddingHorizontal: 4,
+  },
+  introPrivacyText: {
+    flex: 1,
+    fontSize: 13,
+    color: c.gray500,
+    lineHeight: 19,
+  },
+  introCta: {
+    width: '100%',
+    paddingVertical: 15,
+    borderRadius: 14,
+    backgroundColor: c.piktag500,
+    alignItems: 'center',
+  },
+  introCtaText: { fontSize: 16, fontWeight: '700', color: '#FFFFFF' },
 
   // Summary card (above sections)
   summaryCard: {

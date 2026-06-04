@@ -812,7 +812,11 @@
     "tagModalCustomPlaceholder": "Özel etiket",
     "tagModalAddCustom": "Ekle",
     "tagModalPopular": "Popüler etiketler",
-    "tagModalSubmit": "Etiketleri kaydet & davet et"
+    "tagModalSubmit": "Etiketleri kaydet & davet et",
+    "introTitle": "Kim zaten PikTag'te, gör",
+    "introDesc": "Zaten katılan arkadaşlarını tek dokunuşla takip et, katılmayanları davet et.",
+    "introPrivacy": "Kişilerin yalnızca eşleştirme için kullanılır — sadece PikTag görür, asla herkese açık olmaz, asla yüklenmez.",
+    "introCta": "Başla"
   },
   "invite": {
     "headerTitle": "Arkadaş Davet Et",

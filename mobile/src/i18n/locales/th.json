@@ -812,7 +812,11 @@
     "tagModalCustomPlaceholder": "แท็กกำหนดเอง",
     "tagModalAddCustom": "เพิ่ม",
     "tagModalPopular": "แท็กยอดนิยม",
-    "tagModalSubmit": "บันทึกแท็กและเชิญ"
+    "tagModalSubmit": "บันทึกแท็กและเชิญ",
+    "introTitle": "ดูว่าใครในรายชื่อติดต่ออยู่บน PikTag แล้วบ้าง",
+    "introDesc": "กดติดตามเพื่อนที่เข้าร่วมแล้วในแตะเดียว และเชิญคนที่ยังไม่ได้เข้าร่วม",
+    "introPrivacy": "รายชื่อติดต่อใช้เพื่อจับคู่เท่านั้น —— มีแค่ PikTag ที่ใช้ ไม่เปิดเผยและไม่อัปโหลด",
+    "introCta": "เริ่ม"
   },
   "invite": {
     "headerTitle": "เชิญเพื่อน",
