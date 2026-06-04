@@ -775,7 +775,10 @@
     "groupNotifications": "通知",
     "notifSocial": "社交動態",
     "notifMatches": "AI 配對推薦",
-    "notifMemories": "節日與回憶"
+    "notifMemories": "節日與回憶",
+    "locationPermissionTitle": "需要定位權限",
+    "locationPermissionMessage": "要在地圖上分享位置給朋友，請允許 PikTag 取用定位。",
+    "locationFetchFailed": "抓不到目前位置，請稍後再試。"
   },
   "contactSync": {
     "headerTitle": "通訊錄同步",

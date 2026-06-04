@@ -766,7 +766,10 @@
     "groupNotifications": "सूचनाएँ",
     "notifSocial": "सोशल",
     "notifMatches": "AI मेल",
-    "notifMemories": "यादें"
+    "notifMemories": "यादें",
+    "locationPermissionTitle": "स्थान अनुमति चाहिए",
+    "locationPermissionMessage": "मानचित्र पर दोस्तों के साथ अपना स्थान साझा करने के लिए PikTag को स्थान उपयोग की अनुमति दें।",
+    "locationFetchFailed": "आपका मौजूदा स्थान नहीं मिल सका — फिर कोशिश करें।"
   },
   "contactSync": {
     "headerTitle": "कॉन्टैक्ट सिंक",

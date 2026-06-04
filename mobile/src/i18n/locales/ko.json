@@ -766,7 +766,10 @@
     "groupNotifications": "알림",
     "notifSocial": "소셜",
     "notifMatches": "AI 매칭",
-    "notifMemories": "추억과 기념일"
+    "notifMemories": "추억과 기념일",
+    "locationPermissionTitle": "위치 권한이 필요해요",
+    "locationPermissionMessage": "지도에서 친구에게 위치를 공유하려면 PikTag의 위치 사용을 허용하세요.",
+    "locationFetchFailed": "현재 위치를 가져오지 못했어요. 다시 시도해 주세요."
   },
   "contactSync": {
     "headerTitle": "연락처 동기화",

@@ -766,7 +766,10 @@
     "groupNotifications": "Notifications",
     "notifSocial": "Social",
     "notifMatches": "Matchs IA",
-    "notifMemories": "Souvenirs"
+    "notifMemories": "Souvenirs",
+    "locationPermissionTitle": "Autorisation de localisation requise",
+    "locationPermissionMessage": "Pour partager votre position avec vos amis sur la carte, autorisez PikTag à utiliser votre localisation.",
+    "locationFetchFailed": "Impossible d'obtenir votre position actuelle — réessayez."
   },
   "contactSync": {
     "headerTitle": "Synchroniser les contacts",

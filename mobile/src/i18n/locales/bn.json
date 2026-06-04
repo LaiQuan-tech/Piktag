@@ -766,7 +766,10 @@
     "groupNotifications": "নোটিফিকেশন",
     "notifSocial": "সোশ্যাল",
     "notifMatches": "AI মিল",
-    "notifMemories": "স্মৃতি"
+    "notifMemories": "স্মৃতি",
+    "locationPermissionTitle": "লোকেশন অনুমতি প্রয়োজন",
+    "locationPermissionMessage": "মানচিত্রে বন্ধুদের সাথে আপনার লোকেশন শেয়ার করতে, PikTag-কে লোকেশন ব্যবহারের অনুমতি দিন।",
+    "locationFetchFailed": "আপনার বর্তমান লোকেশন পাওয়া যায়নি — আবার চেষ্টা করুন।"
   },
   "contactSync": {
     "headerTitle": "কন্টাক্ট সিঙ্ক",

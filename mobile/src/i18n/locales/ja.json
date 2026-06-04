@@ -766,7 +766,10 @@
     "groupNotifications": "通知",
     "notifSocial": "ソーシャル",
     "notifMatches": "AI マッチング",
-    "notifMemories": "記念日と思い出"
+    "notifMemories": "記念日と思い出",
+    "locationPermissionTitle": "位置情報の許可が必要",
+    "locationPermissionMessage": "地図で友だちに位置を共有するには、PikTag に位置情報の利用を許可してください。",
+    "locationFetchFailed": "現在地を取得できませんでした。あとでもう一度お試しください。"
   },
   "contactSync": {
     "headerTitle": "連絡先を同期",

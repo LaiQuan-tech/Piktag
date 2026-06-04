@@ -773,7 +773,10 @@
     "groupNotifications": "Thông báo",
     "notifSocial": "Mạng xã hội",
     "notifMatches": "Khớp AI",
-    "notifMemories": "Kỷ niệm"
+    "notifMemories": "Kỷ niệm",
+    "locationPermissionTitle": "Cần quyền vị trí",
+    "locationPermissionMessage": "Để chia sẻ vị trí với bạn bè trên bản đồ, hãy cho phép PikTag dùng vị trí của bạn.",
+    "locationFetchFailed": "Không lấy được vị trí hiện tại của bạn — thử lại nhé."
   },
   "contactSync": {
     "headerTitle": "Đồng bộ danh bạ",

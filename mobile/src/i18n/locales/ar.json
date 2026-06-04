@@ -766,7 +766,10 @@
     "groupNotifications": "الإشعارات",
     "notifSocial": "اجتماعي",
     "notifMatches": "تطابقات الذكاء الاصطناعي",
-    "notifMemories": "ذكريات"
+    "notifMemories": "ذكريات",
+    "locationPermissionTitle": "يلزم إذن الموقع",
+    "locationPermissionMessage": "لمشاركة موقعك مع الأصدقاء على الخريطة، اسمح لـ PikTag باستخدام موقعك.",
+    "locationFetchFailed": "تعذّر الحصول على موقعك الحالي — حاول مرة أخرى."
   },
   "contactSync": {
     "headerTitle": "مزامنة جهات الاتصال",

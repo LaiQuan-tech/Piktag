@@ -766,7 +766,10 @@
     "groupNotifications": "การแจ้งเตือน",
     "notifSocial": "โซเชียล",
     "notifMatches": "AI จับคู่",
-    "notifMemories": "ความทรงจำ"
+    "notifMemories": "ความทรงจำ",
+    "locationPermissionTitle": "ต้องการสิทธิ์ตำแหน่ง",
+    "locationPermissionMessage": "หากต้องการแชร์ตำแหน่งให้เพื่อนบนแผนที่ โปรดอนุญาตให้ PikTag ใช้ตำแหน่ง",
+    "locationFetchFailed": "ไม่สามารถดึงตำแหน่งปัจจุบันของคุณได้ — ลองใหม่อีกครั้ง"
   },
   "contactSync": {
     "headerTitle": "ซิงค์รายชื่อ",

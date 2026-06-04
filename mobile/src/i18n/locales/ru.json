@@ -766,7 +766,10 @@
     "groupNotifications": "Уведомления",
     "notifSocial": "Соцсеть",
     "notifMatches": "ИИ-совпадения",
-    "notifMemories": "Воспоминания"
+    "notifMemories": "Воспоминания",
+    "locationPermissionTitle": "Нужно разрешение на геолокацию",
+    "locationPermissionMessage": "Чтобы делиться местоположением с друзьями на карте, разрешите PikTag доступ к геолокации.",
+    "locationFetchFailed": "Не удалось определить текущее местоположение — попробуйте ещё раз."
   },
   "contactSync": {
     "headerTitle": "Синхронизация контактов",

@@ -773,7 +773,10 @@
     "groupNotifications": "Notifications",
     "notifSocial": "Social",
     "notifMatches": "AI matches",
-    "notifMemories": "Memories"
+    "notifMemories": "Memories",
+    "locationPermissionTitle": "Location permission needed",
+    "locationPermissionMessage": "To share your location with friends on the map, allow PikTag to use your location.",
+    "locationFetchFailed": "Couldn't get your current location — try again."
   },
   "contactSync": {
     "headerTitle": "Contact Sync",

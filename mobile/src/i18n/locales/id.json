@@ -766,7 +766,10 @@
     "groupNotifications": "Notifikasi",
     "notifSocial": "Sosial",
     "notifMatches": "Pencocokan AI",
-    "notifMemories": "Kenangan"
+    "notifMemories": "Kenangan",
+    "locationPermissionTitle": "Perlu izin lokasi",
+    "locationPermissionMessage": "Untuk membagikan lokasimu ke teman di peta, izinkan PikTag mengakses lokasi.",
+    "locationFetchFailed": "Tidak bisa mendapatkan lokasimu saat ini — coba lagi."
   },
   "contactSync": {
     "headerTitle": "Sinkronisasi Kontak",

@@ -18,6 +18,11 @@ import { ArrowLeft, ChevronRight, Check, X } from 'lucide-react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTranslation } from 'react-i18next';
 import { changeLanguageSafe } from '../i18n';
+import {
+  requestForegroundPermissionsAsync,
+  getCurrentPositionAsync,
+  Accuracy,
+} from 'expo-location';
 import { COLORS, type ColorPalette } from '../constants/theme';
 import { supabase, supabaseUrl, supabaseAnonKey } from '../lib/supabase';
 import { setAnalyticsOptIn } from '../lib/analytics';
@@ -212,15 +217,68 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
     if (!user) return;
     const newValue = !shareLocation;
     setShareLocation(newValue);
-    // Update DB: if turning off, also clear lat/lng. MUST verify the
-    // write — a silent failure here is a real location-privacy leak:
-    // the user sees "off" but the server keeps broadcasting their
-    // coordinates. On error, roll the toggle back and tell them.
-    const { error } = newValue
-      ? await supabase.from('piktag_profiles').update({ share_location: true }).eq('id', user.id)
-      : await supabase.from('piktag_profiles').update({ share_location: false, latitude: null, longitude: null, location_updated_at: null }).eq('id', user.id);
+
+    if (newValue) {
+      // Turning ON. 2026-06-05 BUG FIX: the old ON path wrote ONLY
+      // share_location:true and never captured coordinates, so
+      // latitude/longitude stayed null — the friends map's
+      // `if (!p.latitude || !p.longitude) continue` then silently
+      // dropped EVERY friend, surfacing as "map shows only me". The
+      // 2026-06-03 fix only patched the READ side (select); the WRITE
+      // side never stored coords. Now we capture the device's current
+      // position and write it alongside the flag, so friends actually
+      // appear. (Locations still go stale after 24h with no auto-
+      // refresh — a separate follow-up.)
+      try {
+        const { status } = await requestForegroundPermissionsAsync();
+        if (status !== 'granted') {
+          setShareLocation(false); // can't share without permission
+          Alert.alert(
+            t('settings.locationPermissionTitle', { defaultValue: '需要定位權限' }),
+            t('settings.locationPermissionMessage', {
+              defaultValue: '要在地圖上分享位置給朋友，請允許 PikTag 取用定位。',
+            }),
+          );
+          return;
+        }
+        const pos = await getCurrentPositionAsync({ accuracy: Accuracy.Balanced });
+        const { error } = await supabase
+          .from('piktag_profiles')
+          .update({
+            share_location: true,
+            latitude: pos.coords.latitude,
+            longitude: pos.coords.longitude,
+            location_updated_at: new Date().toISOString(),
+          })
+          .eq('id', user.id);
+        if (error) {
+          setShareLocation(false);
+          Alert.alert(
+            t('common.error', { defaultValue: '錯誤' }),
+            t('settings.alertPrivacyError', { defaultValue: '更新失敗，請稍後再試。' }),
+          );
+        }
+      } catch {
+        setShareLocation(false);
+        Alert.alert(
+          t('common.error', { defaultValue: '錯誤' }),
+          t('settings.locationFetchFailed', {
+            defaultValue: '抓不到目前位置，請稍後再試。',
+          }),
+        );
+      }
+      return;
+    }
+
+    // Turning OFF — clear coords. MUST verify the write: a silent
+    // failure here is a real privacy leak (user sees "off" but the
+    // server keeps broadcasting coords). On error, roll back + alert.
+    const { error } = await supabase
+      .from('piktag_profiles')
+      .update({ share_location: false, latitude: null, longitude: null, location_updated_at: null })
+      .eq('id', user.id);
     if (error) {
-      setShareLocation(!newValue); // revert optimistic flip
+      setShareLocation(true); // revert optimistic flip
       Alert.alert(
         t('common.error', { defaultValue: '錯誤' }),
         t('settings.alertPrivacyError', { defaultValue: '更新失敗，請稍後再試。' }),
