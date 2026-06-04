@@ -1470,7 +1470,8 @@
     "shareEmailSubjectWithHint": "{{firstName}}（{{hint}}）的联系方式",
     "shareEmailBody": "Hi {{theirFirst}}，\n\n很高兴认识你。这是我的联系方式：\n{{url}}\n\n— {{firstName}}",
     "shareSmsBody": "Hi {{theirFirst}}，很高兴认识你。我的联系方式：{{url}} — {{firstName}}",
-    "shareWhatsappBody": "Hi {{theirFirst}}，很高兴认识你。我的联系方式：{{url}}\n\n— {{firstName}}"
+    "shareWhatsappBody": "Hi {{theirFirst}}，很高兴认识你。我的联系方式：{{url}}\n\n— {{firstName}}",
+    "tagsDesc": "记下怎么认识、聊过什么、要记得的事，帮你好好记住这个人。"
   },
   "followers": {
     "title": "追踪者",

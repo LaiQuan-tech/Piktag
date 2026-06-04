@@ -1475,7 +1475,8 @@
     "shareEmailSubjectWithHint": "{{firstName}} da {{hint}} — i miei contatti",
     "shareEmailBody": "Ciao {{theirFirst}},\n\nÈ stato un piacere conoscerti. I miei contatti:\n{{url}}\n\n— {{firstName}}",
     "shareSmsBody": "Ciao {{theirFirst}}, è stato un piacere. I miei contatti: {{url}} — {{firstName}}",
-    "shareWhatsappBody": "Ciao {{theirFirst}}, è stato un piacere. I miei contatti: {{url}}\n\n— {{firstName}}"
+    "shareWhatsappBody": "Ciao {{theirFirst}}, è stato un piacere. I miei contatti: {{url}}\n\n— {{firstName}}",
+    "tagsDesc": "Annota come vi siete conosciuti, di cosa avete parlato e cosa ricordare — per non dimenticare questa persona."
   },
   "followers": {
     "title": "Follower",

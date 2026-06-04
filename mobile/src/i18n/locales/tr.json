@@ -1429,7 +1429,8 @@
     "shareEmailSubjectWithHint": "{{hint}}'tan {{firstName}} — iletişim bilgilerim",
     "shareEmailBody": "Selam {{theirFirst}},\n\nTanıştığımıza memnun oldum. İletişim bilgilerim:\n{{url}}\n\n— {{firstName}}",
     "shareSmsBody": "Selam {{theirFirst}}, tanıştığımıza memnun oldum. İletişim: {{url}} — {{firstName}}",
-    "shareWhatsappBody": "Selam {{theirFirst}}, tanıştığımıza memnun oldum. İletişim: {{url}}\n\n— {{firstName}}"
+    "shareWhatsappBody": "Selam {{theirFirst}}, tanıştığımıza memnun oldum. İletişim: {{url}}\n\n— {{firstName}}",
+    "tagsDesc": "Nasıl tanıştığınızı, ne konuştuğunuzu ve hatırlanacakları not et — bu kişiyi asla unutma."
   },
   "followers": {
     "title": "Takipçiler",

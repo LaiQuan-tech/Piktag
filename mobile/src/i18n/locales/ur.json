@@ -1475,7 +1475,8 @@
     "shareEmailSubjectWithHint": "{{hint}} سے {{firstName}} — میرا رابطہ",
     "shareEmailBody": "ہیلو {{theirFirst}}،\n\nآپ سے مل کر خوشی ہوئی۔ میرا رابطہ:\n{{url}}\n\n— {{firstName}}",
     "shareSmsBody": "ہیلو {{theirFirst}}، مل کر خوشی ہوئی۔ میرا رابطہ: {{url}} — {{firstName}}",
-    "shareWhatsappBody": "ہیلو {{theirFirst}}، مل کر خوشی ہوئی۔ میرا رابطہ: {{url}}\n\n— {{firstName}}"
+    "shareWhatsappBody": "ہیلو {{theirFirst}}، مل کر خوشی ہوئی۔ میرا رابطہ: {{url}}\n\n— {{firstName}}",
+    "tagsDesc": "لکھیں کہ کیسے ملے، کس بارے میں بات ہوئی اور کیا یاد رکھنا ہے — تاکہ اس شخص کو کبھی نہ بھولیں۔"
   },
   "followers": {
     "title": "فالوورز",

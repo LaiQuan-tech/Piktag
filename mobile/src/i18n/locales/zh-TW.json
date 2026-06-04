@@ -1477,7 +1477,8 @@
     "shareEmailSubjectWithHint": "{{firstName}}（{{hint}}）的聯絡資料",
     "shareEmailBody": "Hi {{theirFirst}}，\n\n很高興認識你。這是我的聯絡資料：\n{{url}}\n\n— {{firstName}}",
     "shareSmsBody": "Hi {{theirFirst}}，很高興認識你。我的聯絡資料：{{url}} — {{firstName}}",
-    "shareWhatsappBody": "Hi {{theirFirst}}，很高興認識你。我的聯絡資料：{{url}}\n\n— {{firstName}}"
+    "shareWhatsappBody": "Hi {{theirFirst}}，很高興認識你。我的聯絡資料：{{url}}\n\n— {{firstName}}",
+    "tagsDesc": "記下怎麼認識、聊過什麼、要記得的事，幫你好好記住這個人。"
   },
   "followers": {
     "title": "追蹤者",

@@ -1429,7 +1429,8 @@
     "shareEmailSubjectWithHint": "{{firstName}} ({{hint}}) — мои контакты",
     "shareEmailBody": "Привет, {{theirFirst}}!\n\nРад знакомству. Мои контакты:\n{{url}}\n\n— {{firstName}}",
     "shareSmsBody": "Привет, {{theirFirst}}, рад знакомству. Мои контакты: {{url}} — {{firstName}}",
-    "shareWhatsappBody": "Привет, {{theirFirst}}, рад знакомству. Мои контакты: {{url}}\n\n— {{firstName}}"
+    "shareWhatsappBody": "Привет, {{theirFirst}}, рад знакомству. Мои контакты: {{url}}\n\n— {{firstName}}",
+    "tagsDesc": "Запишите, как познакомились, о чём говорили и что запомнить — чтобы не забыть этого человека."
   },
   "followers": {
     "title": "Подписчики",

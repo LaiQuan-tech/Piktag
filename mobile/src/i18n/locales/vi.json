@@ -1475,7 +1475,8 @@
     "shareEmailSubjectWithHint": "{{firstName}} từ {{hint}} — liên hệ",
     "shareEmailBody": "Chào {{theirFirst}},\n\nRất vui được gặp bạn. Liên hệ của tôi:\n{{url}}\n\n— {{firstName}}",
     "shareSmsBody": "Chào {{theirFirst}}, rất vui được gặp. Liên hệ của tôi: {{url}} — {{firstName}}",
-    "shareWhatsappBody": "Chào {{theirFirst}}, rất vui được gặp. Liên hệ của tôi: {{url}}\n\n— {{firstName}}"
+    "shareWhatsappBody": "Chào {{theirFirst}}, rất vui được gặp. Liên hệ của tôi: {{url}}\n\n— {{firstName}}",
+    "tagsDesc": "Ghi lại cách bạn quen nhau, đã nói chuyện gì, điều cần nhớ — để không bao giờ quên người này."
   },
   "followers": {
     "title": "Người theo dõi",

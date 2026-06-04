@@ -1429,7 +1429,8 @@
     "shareEmailSubjectWithHint": "{{firstName}} من {{hint}} — بيانات الاتصال",
     "shareEmailBody": "مرحباً {{theirFirst}}،\n\nسعيد بلقائك. بياناتي:\n{{url}}\n\n— {{firstName}}",
     "shareSmsBody": "مرحبا {{theirFirst}}، سعيد بلقائك. بياناتي: {{url}} — {{firstName}}",
-    "shareWhatsappBody": "مرحبا {{theirFirst}}، سعيد بلقائك. بياناتي: {{url}}\n\n— {{firstName}}"
+    "shareWhatsappBody": "مرحبا {{theirFirst}}، سعيد بلقائك. بياناتي: {{url}}\n\n— {{firstName}}",
+    "tagsDesc": "دوّن كيف تعارفتما وعمّ تحدثتما وما يجب تذكّره — حتى لا تنسى هذا الشخص."
   },
   "followers": {
     "title": "المتابعون",

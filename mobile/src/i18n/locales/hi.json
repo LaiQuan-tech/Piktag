@@ -1429,7 +1429,8 @@
     "shareEmailSubjectWithHint": "{{hint}} से {{firstName}} — मेरा संपर्क",
     "shareEmailBody": "नमस्ते {{theirFirst}},\n\nआपसे मिलकर अच्छा लगा। मेरा संपर्क:\n{{url}}\n\n— {{firstName}}",
     "shareSmsBody": "नमस्ते {{theirFirst}}, मिलकर अच्छा लगा। मेरा संपर्क: {{url}} — {{firstName}}",
-    "shareWhatsappBody": "नमस्ते {{theirFirst}}, मिलकर अच्छा लगा। मेरा संपर्क: {{url}}\n\n— {{firstName}}"
+    "shareWhatsappBody": "नमस्ते {{theirFirst}}, मिलकर अच्छा लगा। मेरा संपर्क: {{url}}\n\n— {{firstName}}",
+    "tagsDesc": "लिखें कि कैसे मिले, क्या बात हुई और क्या याद रखना है — ताकि इस व्यक्ति को कभी न भूलें।"
   },
   "followers": {
     "title": "फ़ॉलोअर",

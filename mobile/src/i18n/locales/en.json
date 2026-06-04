@@ -1475,7 +1475,8 @@
     "shareEmailSubjectWithHint": "{{firstName}} from {{hint}} — my contact",
     "shareEmailBody": "Hey {{theirFirst}},\n\nGreat meeting you. Here's my contact:\n{{url}}\n\n— {{firstName}}",
     "shareSmsBody": "Hey {{theirFirst}}, great meeting you. My contact: {{url}} — {{firstName}}",
-    "shareWhatsappBody": "Hey {{theirFirst}}, great meeting you. Here's my contact: {{url}}\n\n— {{firstName}}"
+    "shareWhatsappBody": "Hey {{theirFirst}}, great meeting you. Here's my contact: {{url}}\n\n— {{firstName}}",
+    "tagsDesc": "Jot down how you met, what you talked about, things to remember — so you never forget this person."
   },
   "followers": {
     "title": "Followers",

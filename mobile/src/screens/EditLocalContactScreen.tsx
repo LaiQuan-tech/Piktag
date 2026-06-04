@@ -852,6 +852,17 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
           <SectionTitle variant="detail" style={{ marginTop: 24, marginBottom: 10, paddingHorizontal: 0 }}>
             {t('localContact.fieldTags', { defaultValue: '標籤（只有你看得到）' })}
           </SectionTitle>
+          {/* In-context explainer (home cold-start card #4, 化整為零):
+              the title says these tags are private but not what they're
+              FOR. Shown only before the first tag so a new user knows
+              why to add one; hidden once they have tags. */}
+          {tags.length === 0 && (
+            <Text style={styles.tagsDesc}>
+              {t('localContact.tagsDesc', {
+                defaultValue: '記下怎麼認識、聊過什麼、要記得的事，幫你好好記住這個人。',
+              })}
+            </Text>
+          )}
           {tags.length > 0 && (
             <View style={styles.tagWrap}>
               {tags.map((tg) => (
@@ -1009,6 +1020,9 @@ function makeStyles(c: ColorPalette) {
     marginBottom: 2,
   },
   tagWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 10 },
+  // In-context explainer under the tags title (shown before the first
+  // tag) — home card #4 on the local-contact surface.
+  tagsDesc: { fontSize: 13, color: c.gray500, lineHeight: 18, marginTop: -2, marginBottom: 12 },
   // added-tag chip → shared <TagChip/> (one design contract)
   tagInputRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   tagAddBtn: {

@@ -1429,7 +1429,8 @@
     "shareEmailSubjectWithHint": "{{firstName}} de {{hint}} — mes coordonnées",
     "shareEmailBody": "Salut {{theirFirst}},\n\nRavi de t'avoir rencontré. Mes coordonnées :\n{{url}}\n\n— {{firstName}}",
     "shareSmsBody": "Salut {{theirFirst}}, ravi de t'avoir rencontré. Mes coordonnées : {{url}} — {{firstName}}",
-    "shareWhatsappBody": "Salut {{theirFirst}}, ravi de t'avoir rencontré. Mes coordonnées : {{url}}\n\n— {{firstName}}"
+    "shareWhatsappBody": "Salut {{theirFirst}}, ravi de t'avoir rencontré. Mes coordonnées : {{url}}\n\n— {{firstName}}",
+    "tagsDesc": "Notez comment vous vous êtes rencontrés, de quoi vous avez parlé et ce dont vous voulez vous souvenir — pour ne jamais oublier cette personne."
   },
   "followers": {
     "title": "Abonnés",

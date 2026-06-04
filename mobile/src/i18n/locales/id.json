@@ -1429,7 +1429,8 @@
     "shareEmailSubjectWithHint": "{{firstName}} dari {{hint}} — kontak saya",
     "shareEmailBody": "Hi {{theirFirst}},\n\nSenang bertemu. Kontak saya:\n{{url}}\n\n— {{firstName}}",
     "shareSmsBody": "Hi {{theirFirst}}, senang bertemu. Kontak saya: {{url}} — {{firstName}}",
-    "shareWhatsappBody": "Hi {{theirFirst}}, senang bertemu. Kontak saya: {{url}}\n\n— {{firstName}}"
+    "shareWhatsappBody": "Hi {{theirFirst}}, senang bertemu. Kontak saya: {{url}}\n\n— {{firstName}}",
+    "tagsDesc": "Catat bagaimana kalian berkenalan, apa yang dibahas, dan hal yang perlu diingat — agar tak melupakan orang ini."
   },
   "followers": {
     "title": "Pengikut",

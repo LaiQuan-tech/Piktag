@@ -1429,7 +1429,8 @@
     "shareEmailSubjectWithHint": "{{hint}}의 {{firstName}} 연락처",
     "shareEmailBody": "{{theirFirst}}님,\n\n만나서 반가웠습니다. 제 연락처입니다:\n{{url}}\n\n— {{firstName}}",
     "shareSmsBody": "{{theirFirst}}님, 만나서 반가웠습니다. 연락처: {{url}} — {{firstName}}",
-    "shareWhatsappBody": "{{theirFirst}}님, 만나서 반가웠습니다. 연락처: {{url}}\n\n— {{firstName}}"
+    "shareWhatsappBody": "{{theirFirst}}님, 만나서 반가웠습니다. 연락처: {{url}}\n\n— {{firstName}}",
+    "tagsDesc": "어떻게 만났는지, 무슨 얘기를 했는지, 기억할 점을 적어두고 이 사람을 잘 기억하세요."
   },
   "followers": {
     "title": "팔로워",
