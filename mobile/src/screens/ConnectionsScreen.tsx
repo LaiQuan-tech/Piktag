@@ -33,13 +33,11 @@ import {
   QrCode,
   Hash,
   ChevronRight,
-  User,
   Users,
   Share2,
   Circle,
   Plus,
   Search,
-  Megaphone,
 } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { COLORS, type ColorPalette } from '../constants/theme';
@@ -56,7 +54,7 @@ import { useAskFeed } from '../hooks/useAskFeed';
 import { useNetInfoReconnect } from '../hooks/useNetInfoReconnect';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { shouldShowPhonePrompt, dismissPhonePrompt } from '../lib/phonePrompt';
-import AskStoryRow, { AskCreateModal } from '../components/ask/AskStoryRow';
+import AskStoryRow from '../components/ask/AskStoryRow';
 import type { Connection, ConnectionTag } from '../types';
 
 type ConnectionWithTags = Connection & {
@@ -268,7 +266,8 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
   // needing a network first. AskStoryRow has its OWN modal-trigger
   // for users with at least some asks; this is the explicit
   // empty-state-only path.
-  const [askCreateVisible, setAskCreateVisible] = useState(false);
+  // (askCreateVisible removed 2026-06-04 — cold-start Ask card cut;
+  // the AskStoryRow owns Ask creation now.)
 
   const lastFetchRef = React.useRef<number>(0);
 
@@ -902,80 +901,35 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
           {t('connections.coldStartTitle', { defaultValue: '還沒有朋友？' })}
         </Text>
         <Text style={styles.emptyOnboardingSubtitle}>
-          {/* 2026-05-31: subtitle reframed from "從這 5 步開始建立你的
-              PikTag" (which read as a 5-item checklist and made the
-              founder feel "好累好麻煩") to "選一個開始就好" (pick one,
-              start there). Same 5 cards stay visible but the first is
-              now visually emphasized as the recommended entry and the
-              other 4 are demoted to optional explore-mode — preserves
-              user agency while removing the implicit homework feel. */}
+          {/* "選一個開始就好" (pick one, start there) — kept after the
+              2026-06-04 化整為零 cut to 2 cards (QR primary + contacts).
+              The QR card is the emphasized recommended entry; contacts
+              is the secondary "or also" option. */}
           {t('connections.coldStartSubtitleV2', { defaultValue: '選一個開始就好' })}
         </Text>
 
         <View style={styles.emptyActionList}>
           {[
-            // Order = founder's intended cold-start narrative arc:
-            //   1. profile  — "tags define me, this is who I am"
-            //   2. qr       — "now share that freshly-built me"
-            //   3. ask      — "tags let the right people find me"
-            //   4. manual   — "private tags = respect for friends I want to remember"
-            //   5. contacts — "invite friends to remember each other"
-            // Re-ordered 2026-05-26 per founder review: post-edit
-            // sharing belongs before "find others" CTAs, and the
-            // contact-sync invite (which historically carried
-            // negative "tagging people" framing in zh) sits last as
-            // a soft "invite" rather than aggressive growth move.
+            // 2026-06-04 (化整為零 home cleanup): cut from 5 cards to 2.
+            // The other three now live at their natural homes —
+            //   • profile → the 3-step onboarding wizard already built it
+            //   • ask     → the AskStoryRow above this empty state (with
+            //               its own in-context explainer)
+            //   • manual  → the header "+person" menu (從通訊錄 / 手動)
+            // …so the cold-start leads with the two highest-value
+            // first-friend actions (founder: 以 QR / 找人為主):
+            //   1. qr       — connect with people in person (the thesis)
+            //   2. contacts — find friends already on PikTag
             {
-              key: 'profile',
-              icon: User,
-              title: t('connections.coldStartActionProfile'),
-              desc: t('connections.coldStartActionProfileDesc'),
-              onPress: () => navigation.navigate('ProfileTab', { screen: 'EditProfile' }),
-            },
-            {
-              // Immediately after editing the profile, share it.
-              // Closes the loop "build self → broadcast self" in
-              // two consecutive cards.
               key: 'qr',
               icon: QrCode,
               title: t('connections.coldStartActionQr'),
               desc: t('connections.coldStartActionQrDesc'),
-              // 2026-06-03 fix: target was 'AddTag' — a screen that
-              // doesn't exist (AddTagStack registers AddTagMain /
-              // AddTagCreate / QrGroupDetail; 'AddTag' was the old
-              // name dropped when QR groups shipped). The nested
-              // navigate silently failed to land, so this cold-start
-              // QR card dead-tapped. 'AddTagCreate' is the activity-QR
-              // create form (matches OnboardingScreen's canonical
-              // post-onboarding target).
+              // AddTagCreate is the activity-QR create form (matches
+              // OnboardingScreen's canonical post-onboarding target).
               onPress: () => navigation.navigate('AddTagTab', { screen: 'AddTagCreate' }),
             },
             {
-              // The "no network yet?" escape hatch. Framed as the
-              // payoff of having tags: tagged → findable.
-              key: 'ask',
-              icon: Megaphone,
-              title: t('connections.coldStartActionAsk'),
-              desc: t('connections.coldStartActionAskDesc'),
-              onPress: () => setAskCreateVisible(true),
-            },
-            {
-              // Single-player CRM path: jot down a non-member with
-              // hidden tags. The framing here is "private tags are
-              // a form of respect — remember them well", not the
-              // earlier neutral "manually jot someone down."
-              key: 'manual',
-              icon: UserPlus,
-              title: t('connections.coldStartActionManual'),
-              desc: t('connections.coldStartActionManualDesc'),
-              onPress: () => navigation.navigate('EditLocalContact'),
-            },
-            {
-              // Contact-sync. In zh "貼標籤" carries a negative
-              // load (sounds like labeling people), so the new
-              // copy reframes as "invite friends to share the tool,
-              // remember each other together" — no mention of the
-              // tagging mechanic itself.
               key: 'contacts',
               icon: Users,
               title: t('connections.coldStartActionContacts'),
@@ -1451,16 +1405,10 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
         </KeyboardAvoidingView>
       </Modal>
 
-      {/* Ask creation modal — opened from the cold-start "📣 發一個
-          Ask" action card. Seeded with empty body so it's a fresh
-          compose; existingAsk lets the modal switch to view/edit
-          mode if the user already has an active ask. */}
-      <AskCreateModal
-        visible={askCreateVisible}
-        onClose={() => setAskCreateVisible(false)}
-        existingAsk={myActiveAsk}
-        onCreated={refreshAsks}
-      />
+      {/* (Cold-start Ask modal removed 2026-06-04 — the ask card was
+          cut from the empty state; the AskStoryRow above owns its own
+          AskCreateModal, so this duplicate instance is no longer
+          needed.) */}
     </SafeAreaView>
   );
 }
