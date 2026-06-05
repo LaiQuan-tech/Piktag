@@ -795,9 +795,16 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
       // see this name"). Marking onboarding complete on a failed
       // name write strands the user with a nameless profile AND no
       // way back in (the completed flag + age check both say skip).
+      // onboarding_completed = true is set HERE and ONLY here — the
+      // single point where the whole wizard has actually been walked
+      // (name/username from step 1, bio/headline/tags from step 2,
+      // links from step 3 all written by now). A user who bails after
+      // step 1 has username+full_name on their profile but NOT this
+      // flag, so the gate correctly re-prompts them. (boolean, so it
+      // can't ride along in the string-typed profilePatch.)
       const { error } = await supabase
         .from('piktag_profiles')
-        .upsert({ id: user.id, ...profilePatch }, { onConflict: 'id' });
+        .upsert({ id: user.id, ...profilePatch, onboarding_completed: true }, { onConflict: 'id' });
       if (error) {
         console.warn('[Onboarding] profile upsert failed:', error.message);
         Alert.alert(

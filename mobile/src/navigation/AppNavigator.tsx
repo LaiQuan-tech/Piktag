@@ -590,10 +590,11 @@ export default function AppNavigator() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Per-ACCOUNT onboarding gate, keyed on the SERVER profile — not a
-  // device-global flag and not auth.users.created_at. The wizard shows
-  // until the account has actually completed it (username + full_name
-  // present = the wizard's mandatory step-1 outputs).
+  // Per-ACCOUNT onboarding gate, keyed on the SERVER flag
+  // piktag_profiles.onboarding_completed — not a device-global flag and
+  // not auth.users.created_at. That column is set TRUE only at the
+  // wizard's true completion point (handleComplete), so it's immune to
+  // the "username+full_name written at end of step 1" false-positive.
   //
   // Why this shape (founder real-device test, 2026-06-05 — "精靈全部
   // 沒發生" on fresh accounts):
@@ -617,7 +618,7 @@ export default function AppNavigator() {
 
       const { data: prof, error } = await supabase
         .from('piktag_profiles')
-        .select('username, full_name')
+        .select('onboarding_completed')
         .eq('id', userId)
         .maybeSingle();
 
@@ -628,7 +629,10 @@ export default function AppNavigator() {
         return;
       }
 
-      const complete = !!prof && !!prof.username && !!prof.full_name;
+      // Explicit server flag, set ONLY at full wizard completion
+      // (handleComplete). Null row (fresh signup) or false (interrupted,
+      // incl. bailed-after-step-1) → not complete → show the wizard.
+      const complete = !!prof && prof.onboarding_completed === true;
       if (complete) {
         // Cache the per-account result so later launches skip the query,
         // and mark the new-user tab-tooltip tour seen (existing/complete
