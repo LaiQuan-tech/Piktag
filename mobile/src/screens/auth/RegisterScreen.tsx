@@ -15,6 +15,7 @@ import { useTranslation } from 'react-i18next';
 import { Eye, EyeOff } from 'lucide-react-native';
 import { supabase } from '../../lib/supabase';
 import { toBirthdayDate } from '../../lib/birthday';
+import BirthdayInput from '../../components/BirthdayInput';
 import { signInWithApple } from '../../lib/appleAuth';
 import { signInWithGoogle } from '../../lib/googleAuth';
 import { trackSignupComplete } from '../../lib/analytics';
@@ -43,7 +44,6 @@ export default function RegisterScreen({ navigation }: RegisterScreenProps) {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const passwordRef = useRef<TextInput>(null);
   const confirmPasswordRef = useRef<TextInput>(null);
-  const birthdayRef = useRef<TextInput>(null);
 
   const handleRegister = async () => {
     if (!email.trim() || !password.trim()) {
@@ -205,8 +205,7 @@ export default function RegisterScreen({ navigation }: RegisterScreenProps) {
                 value={confirmPassword}
                 onChangeText={setConfirmPassword}
                 secureTextEntry={!showConfirmPassword}
-                returnKeyType="next"
-                onSubmitEditing={() => birthdayRef.current?.focus()}
+                returnKeyType="done"
               />
               <TouchableOpacity
                 style={styles.eyeButton}
@@ -234,17 +233,10 @@ export default function RegisterScreen({ navigation }: RegisterScreenProps) {
             <Text style={styles.birthdayLabel}>
               {t('auth.register.birthdayLabel', { defaultValue: '生日（選填）' })}
             </Text>
-            <TextInput
-              ref={birthdayRef}
-              style={styles.birthdayInput}
-              placeholder="MM/DD"
-              placeholderTextColor={colors.gray400}
+            <BirthdayInput
               value={birthday}
-              onChangeText={setBirthday}
-              keyboardType="numbers-and-punctuation"
-              maxLength={5}
-              returnKeyType="done"
-              onSubmitEditing={handleRegister}
+              onChange={setBirthday}
+              style={styles.birthdayInput}
             />
           </View>
 

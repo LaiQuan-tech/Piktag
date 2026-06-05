@@ -45,6 +45,8 @@ import {
 } from '../lib/countryCodes';
 import { useAuth } from '../hooks/useAuth';
 import { useRotatingPlaceholder } from '../hooks/useRotatingPlaceholder';
+import { toBirthdayDate } from '../lib/birthday';
+import BirthdayInput from '../components/BirthdayInput';
 import { useAskFeed } from '../hooks/useAskFeed';
 import PageLoader from '../components/loaders/PageLoader';
 import BrandSpinner from '../components/loaders/BrandSpinner';
@@ -117,6 +119,7 @@ type FormData = {
   username: string;
   headline: string;
   bio: string;
+  birthday: string;
 };
 
 type BiolinkFormData = {
@@ -419,6 +422,7 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
     username: '',
     headline: '',
     bio: '',
+    birthday: '',
   });
   const [biolinks, setBiolinks] = useState<Biolink[]>([]);
   const [loading, setLoading] = useState(true);
@@ -565,7 +569,7 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
         Alert.alert(t('common.error'), t('editProfile.alertLoadError'));
         return;
       }
-      setForm({ full_name: '', username: '', headline: '', bio: '' });
+      setForm({ full_name: '', username: '', headline: '', bio: '', birthday: '' });
       setAvatarUrl(null);
       return;
     }
@@ -574,6 +578,7 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
       username: data.username || '',
       headline: data.headline || '',
       bio: data.bio || '',
+      birthday: data.birthday || '',
     });
     setAvatarUrl(data.avatar_url);
   }, [userId, user?.email]);
@@ -830,6 +835,7 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
           username: form.username.trim() || null,
           headline: form.headline.trim() || null,
           bio: form.bio.trim() || null,
+          birthday: toBirthdayDate(form.birthday),
           updated_at: new Date().toISOString(),
         })
         .eq('id', userId);
@@ -1839,6 +1845,20 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
                 numberOfLines={2}
                 textAlignVertical="top"
                 maxLength={80}
+              />
+            </View>
+
+            {/* Birthday — masked MM/DD (no year), locale-ordered. Drives
+                the birthday-reminder CRM; editable here (was previously
+                only settable at signup / onboarding). */}
+            <View style={styles.fieldGroup}>
+              <Text style={styles.fieldLabel}>
+                {t('auth.register.birthdayLabel', { defaultValue: '生日（選填）' })}
+              </Text>
+              <BirthdayInput
+                value={form.birthday}
+                onChange={(v) => updateField('birthday', v)}
+                style={styles.fieldInput}
               />
             </View>
 

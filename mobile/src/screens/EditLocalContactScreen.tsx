@@ -43,6 +43,7 @@ import { useTheme } from '../context/ThemeContext';
 import { useLocalContacts } from '../hooks/useLocalContacts';
 import { supabase, supabaseUrl, supabaseAnonKey } from '../lib/supabase';
 import { toBirthdayDate } from '../lib/birthday';
+import BirthdayInput from '../components/BirthdayInput';
 import { normalizeTagName } from '../lib/normalizeTag';
 import BrandSpinner from '../components/loaders/BrandSpinner';
 import LogoLoader from '../components/loaders/LogoLoader';
@@ -846,15 +847,10 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
               <Text style={styles.fieldLabel}>
                 {t('friendDetail.reminderBirthday', { defaultValue: '生日' })}
               </Text>
-              <TextInput
-                style={styles.fieldInput}
+              <BirthdayInput
                 value={birthday}
-                onChangeText={setBirthday}
-                placeholder={t('localContact.birthdayPlaceholder', { defaultValue: 'MM-DD 或 YYYY-MM-DD' })}
-                placeholderTextColor={colors.gray400}
-                keyboardType="numbers-and-punctuation"
-                autoCapitalize="none"
-                maxLength={10}
+                onChange={setBirthday}
+                style={styles.fieldInput}
               />
             </View>
           </View>
