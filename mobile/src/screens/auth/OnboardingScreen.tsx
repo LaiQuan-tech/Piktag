@@ -1450,26 +1450,33 @@ function makeStyles(c: ColorPalette) {
     gap: 8,
     marginTop: 8,
   },
+  // alignItems:'stretch' so the "+" button matches whatever height the
+  // input resolves to — keeps the row internally aligned now that the
+  // input shares nameInput's metrics.
   tagInputRow: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'stretch',
     gap: 8,
     marginTop: 14,
   },
+  // Same metrics as nameInput (fontSize 18 / padV 14 / padH 16) so every
+  // single-line field in the wizard — 職稱 / 生日 / 輸入標籤 / 連結 —
+  // renders at the SAME row height (founder, 2026-06-05).
   tagInputField: {
     flex: 1,
-    fontSize: 16,
+    fontSize: 18,
     color: c.gray900,
     backgroundColor: c.gray100,
     borderWidth: 1,
     borderColor: c.gray200,
     borderRadius: BORDER_RADIUS.md,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
   },
+  // No fixed height — stretches to the input's height via the row's
+  // alignItems:'stretch'.
   tagAddBtn: {
     width: 46,
-    height: 46,
     borderRadius: BORDER_RADIUS.md,
     backgroundColor: c.piktag500,
     alignItems: 'center',
