@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Platform, StyleSheet, InteractionManager } from 'react-native';
+import { View, Platform, StyleSheet, InteractionManager, AppState } from 'react-native';
 import * as Sentry from '@sentry/react-native';
 import * as Notifications from 'expo-notifications';
 import { StatusBar as ExpoStatusBar } from 'expo-status-bar';
@@ -18,6 +18,7 @@ import ErrorBoundary from './src/components/ErrorBoundary';
 import OfflineBanner from './src/components/OfflineBanner';
 import { supabase } from './src/lib/supabase';
 import { routeFromNotification } from './src/lib/notificationRouter';
+import { refreshSharedLocationIfNeeded } from './src/lib/sharedLocation';
 
 // Ensure foreground notifications display the system banner, play sound,
 // and update the badge. Without this, notifications arriving while the
@@ -168,6 +169,20 @@ function AppInner() {
       }
     };
   }, []);
+
+  // Keep a location-sharing user's coords fresh so they don't fall off
+  // friends' maps after the 24h staleness gate. Refreshes on cold start
+  // and every time the app returns to the foreground — best-effort,
+  // throttled, and only if location permission is already granted (the
+  // helper never prompts). 2026-06-05.
+  useEffect(() => {
+    if (isWeb) return;
+    refreshSharedLocationIfNeeded();
+    const sub = AppState.addEventListener('change', (next) => {
+      if (next === 'active') refreshSharedLocationIfNeeded();
+    });
+    return () => sub.remove();
+  }, [isWeb]);
 
   useEffect(() => {
     if (isWeb) return;
