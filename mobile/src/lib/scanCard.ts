@@ -58,8 +58,6 @@ export type ScanCardInput = {
    *  encode for the multimodal fallback consume it. */
   uri: string;
   mimeType: string;
-  /** bio_draft language hint; omitted → edge fn defaults to 繁體中文. */
-  lang?: string;
 };
 
 export type ScanCardResult = {
@@ -159,7 +157,7 @@ function hasUsableField(invokeData: any): boolean {
 }
 
 export async function scanCard(input: ScanCardInput): Promise<ScanCardResult> {
-  const { uri, mimeType, lang } = input;
+  const { uri, mimeType } = input;
 
   // ── Fast path: on-device OCR → text-only structuring ──
   if (OCR_ENABLED) {
@@ -168,7 +166,7 @@ export async function scanCard(input: ScanCardInput): Promise<ScanCardResult> {
       try {
         const { data, error } = await supabase.functions.invoke(
           'scan-business-card',
-          { body: { text, ...(lang ? { lang } : {}) } },
+          { body: { text } },
         );
         if (!error && hasUsableField(data)) {
           return { data, error: null, source: 'ocr' };
@@ -195,7 +193,7 @@ export async function scanCard(input: ScanCardInput): Promise<ScanCardResult> {
   }
   const { data, error } = await supabase.functions.invoke(
     'scan-business-card',
-    { body: { image: base64, mimeType, ...(lang ? { lang } : {}) } },
+    { body: { image: base64, mimeType } },
   );
   return { data, error, source: error ? null : 'image' };
 }
