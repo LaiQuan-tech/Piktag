@@ -519,8 +519,24 @@ export default function AppNavigator() {
   useEffect(() => {
     let isMounted = true;
 
+    // Anti-brick watchdog. The launch gate (loading || onboardingDecision
+    // === 'pending') MUST always resolve. Both getSession() and the
+    // onboarding profile check touch the network, and RN fetch never
+    // times out — a stalled token refresh / query would otherwise pin the
+    // splash loader FOREVER (the founder's real-device brick, 2026-06-05).
+    // Backstop: if we're still unresolved after 7s, force the gate open
+    // (fail-open to Main). decideOnboarding's own 4s query timeout
+    // normally resolves first; this only catches a hang BEFORE that
+    // (e.g. getSession itself stalling).
+    const watchdog = setTimeout(() => {
+      if (!isMounted) return;
+      setLoading(false);
+      setOnboardingDecision((d) => (d === 'pending' ? 'skip' : d));
+    }, 7000);
+
     const finalize = () => {
       if (!isMounted) return;
+      clearTimeout(watchdog);
       setLoading(false);
       // Signal splash that auth/onboarding decision has landed.
       markReady('auth');
@@ -602,6 +618,7 @@ export default function AppNavigator() {
 
     return () => {
       isMounted = false;
+      clearTimeout(watchdog);
       subscription.unsubscribe();
     };
     // markReady identity is stable from AppReadyContext; we intentionally
@@ -635,12 +652,27 @@ export default function AppNavigator() {
         return;
       }
 
-      const { data: prof, error } = await supabase
-        .from('piktag_profiles')
-        .select('onboarding_completed')
-        .eq('id', userId)
-        .maybeSingle();
+      // Bound the query with a timeout. It sits on the launch / sign-in
+      // gate, and RN fetch never times out — a stalled query (e.g. a
+      // token refresh holding the auth lock) would otherwise pin the
+      // splash loader FOREVER (the founder's real-device brick, 2026-06-05).
+      // On timeout, fail-OPEN to 'skip' so the gate always resolves: the
+      // app launches and the profile is still finishable in EditProfile.
+      const TIMED_OUT = Symbol('timeout');
+      const raced: any = await Promise.race([
+        supabase
+          .from('piktag_profiles')
+          .select('onboarding_completed')
+          .eq('id', userId)
+          .maybeSingle(),
+        new Promise((resolve) => setTimeout(() => resolve(TIMED_OUT), 4000)),
+      ]);
+      if (raced === TIMED_OUT) {
+        setOnboardingDecision('skip');
+        return;
+      }
 
+      const { data: prof, error } = raced;
       if (error) {
         // Fail-OPEN: never trap a real user in the wizard over a
         // transient query error — they can finish in EditProfile.
