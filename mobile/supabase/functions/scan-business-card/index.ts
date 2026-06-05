@@ -54,13 +54,22 @@ const MODEL_FALLBACK_CHAIN = ['gemini-2.0-flash', 'gemini-2.5-flash', 'gemini-1.
 //      seconds). Killing even occasional fallbacks cuts tail latency
 //      hard. All fields nullable so the model can still emit JSON
 //      null for anything not printed on the card (never guess).
+// bio_draft was REMOVED from the scan call 2026-06-05 (founder: shave
+// another second). It was the ONLY generative/creative field — the model
+// had to COMPOSE a first-person sentence, which is far slower per token
+// than EXTRACTING the printed fields, and it sat on the critical scan
+// path (CLAUDE.md locks "generation belongs off the critical path"). It
+// was also dead: no client consumed it after the AI-tag-fuel path and
+// the onboarding scan were removed. With responseSchema constraining the
+// output, dropping it from the schema means the decoder can't spend any
+// time on it. If a generated bio is ever wanted, do it lazily/async in a
+// SEPARATE call — never here.
 const CARD_RESPONSE_SCHEMA = {
   type: 'object',
   properties: {
     full_name: { type: 'string', nullable: true },
     job_title: { type: 'string', nullable: true },
     company:   { type: 'string', nullable: true },
-    bio_draft: { type: 'string', nullable: true },
     phone:     { type: 'string', nullable: true },
     email:     { type: 'string', nullable: true },
     address:   { type: 'string', nullable: true },
@@ -73,7 +82,7 @@ const CARD_RESPONSE_SCHEMA = {
   // Stable field order out of the model — purely cosmetic for the
   // logs, but free.
   propertyOrdering: [
-    'full_name', 'job_title', 'company', 'bio_draft', 'phone',
+    'full_name', 'job_title', 'company', 'phone',
     'email', 'address', 'website', 'instagram', 'facebook',
     'linkedin', 'line',
   ],
@@ -96,7 +105,6 @@ type CardData = {
   full_name: string | null;
   job_title: string | null;
   company: string | null;
-  bio_draft: string | null;
   phone: string | null;
   email: string | null;
   // Mailing/office address as printed on the card — often present
@@ -114,7 +122,6 @@ const EMPTY: CardData = {
   full_name: null,
   job_title: null,
   company: null,
-  bio_draft: null,
   phone: null,
   email: null,
   address: null,
@@ -163,7 +170,6 @@ function extractCardObject(text: string): CardData | null {
       full_name: pick('full_name'),
       job_title: pick('job_title'),
       company: pick('company'),
-      bio_draft: pick('bio_draft'),
       phone: pick('phone'),
       email: pick('email'),
       address: pick('address'),
@@ -203,7 +209,6 @@ serve(async (req) => {
 
     const image = (body.image ?? '').trim();
     const mimeType = (body.mimeType ?? 'image/jpeg').trim();
-    const lang = (body.lang ?? '繁體中文').trim().slice(0, 50);
     // Path A (2026-06-03): the client may run on-device OCR and send
     // the raw recognised TEXT instead of the image. Text-only
     // structuring skips the expensive multimodal image-token prefill
@@ -252,7 +257,6 @@ serve(async (req) => {
       `  "full_name": string|null,   // person's name, not the company`,
       `  "job_title": string|null,   // e.g. "資深產品經理"`,
       `  "company":   string|null,`,
-      `  "bio_draft": string|null,   // see rule below`,
       `  "phone":     string|null,   // digits + country code if shown, e.g. "+886 912 345 678"`,
       `  "email":     string|null,`,
       `  "address":   string|null,   // mailing/office address EXACTLY as printed (single line ok); null if unclear`,
@@ -262,14 +266,6 @@ serve(async (req) => {
       `  "linkedin":  string|null,   // the /in/ vanity slug only`,
       `  "line":      string|null    // LINE ID only`,
       `}`,
-      ``,
-      `bio_draft rule: write ONE natural first-person-neutral`,
-      `sentence in ${lang} that a person with this job_title at this`,
-      `company would plausibly use as a social bio. Keep it under 60`,
-      `characters, no company-confidential claims, no emojis. If`,
-      `job_title AND company are both null, set bio_draft to null.`,
-      `Example: job_title "智慧財產權律師" company "理慈" →`,
-      `"專注智慧財產權的律師，喜歡把複雜的事講清楚".`,
       ``,
       `Social handles: if the card prints a full URL, return only the`,
       `account part (instagram.com/foobar → "foobar"). If a field`,
@@ -293,8 +289,8 @@ serve(async (req) => {
         //     CARD_RESPONSE_SCHEMA). Supported on all three flash
         //     models in the chain.
         //   - temperature 0.2: extraction, not creativity.
-        //   - maxOutputTokens 500: card JSON is ~300 tokens; the cap
-        //     stops a verbose tail.
+        //   - maxOutputTokens 300: with bio_draft gone the JSON is ~200
+        //     extraction-only tokens; the cap just stops a verbose tail.
         //   - thinkingConfig: ONLY for 2.5 models. 2.5's default
         //     "thinking" step is pure overhead for OCR, so we zero it.
         //     2.0-flash / 1.5-flash have NO thinking feature and can
@@ -304,7 +300,7 @@ serve(async (req) => {
         //     rework!). Gating it to 2.5 removes that landmine.
         const generationConfig: Record<string, unknown> = {
           temperature: 0.2,
-          maxOutputTokens: 500,
+          maxOutputTokens: 300,
           responseMimeType: 'application/json',
           responseSchema: CARD_RESPONSE_SCHEMA,
         };

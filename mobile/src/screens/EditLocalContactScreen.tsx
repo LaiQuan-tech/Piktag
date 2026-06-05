@@ -60,13 +60,13 @@ type Props = { navigation: any; route: any };
 // relevant to a private local contact. The function returns more
 // (website/instagram/…) but a local contact has no biolinks. The
 // scanned job title / company map to the member-aligned 職稱
-// (headline) field; bio_draft has no contact field of its own so it
-// only feeds the AI tag context (not silently stored anywhere).
+// (headline) field. (bio_draft was dropped from the scan call
+// 2026-06-05 — it was a generative step on the critical path that no
+// client consumed; see the edge function header.)
 type CardData = {
   full_name: string | null;
   job_title: string | null;
   company: string | null;
-  bio_draft: string | null;
   phone: string | null;
   email: string | null;
   // Edge fn started returning address on 2026-05-23. Optional in
@@ -430,7 +430,6 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
       const cardEmail = (card.email ?? '').trim();
       const cardAddress = (card.address ?? '').trim();
       const cardWebsite = (card.website ?? '').trim();
-      const bioDraft = (card.bio_draft ?? '').trim();
       const cardHeadline = [card.job_title, card.company]
         .filter((s) => s && s.trim())
         .join(' @ ')
@@ -445,7 +444,6 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
         if (cardWebsite) setWebsite((cur) => (cur.trim() ? cur : cardWebsite));
         // Job title + company → the member-aligned 職稱 field.
         if (cardHeadline) setHeadline((cur) => (cur.trim() ? cur : cardHeadline));
-        // (bio_draft → AI-tag fuel path removed with the AI section.)
       };
 
       // Is the scanned person ALREADY a PikTag member? Match the
