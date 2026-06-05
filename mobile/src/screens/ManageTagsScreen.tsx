@@ -403,36 +403,22 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
                   future paid feature. */}
             </View>
 
-            {/* Reorder hint removed 2026-06-04 — drag-reorder disabled
-                pre-launch (founder decision A); this screen is now
-                add/remove only on native too. */}
+            {/* Reorder hint — drag re-enabled 2026-06-05 after the
+                DraggableChips reorder-on-drop fix (founder device-tests). */}
+            {myTags.length > 1 && Platform.OS !== 'web' && (
+              <Text style={styles.sortHint}>{t('manageTags.nativeHintNoPin', { defaultValue: '長按拖曳排序' })}</Text>
+            )}
 
-            {/* My tags — tap-to-remove chips. 2026-06-04: the native
-                DraggableChips drag-reorder was DISABLED pre-launch
-                (decision A — transform-jump bug that needs on-device
-                testing). Native now renders the SAME static tap-to-
-                remove chips as the web path below (minus the
-                tap-to-swap reorder, which is also gone). chipItems /
-                handleChipReorder stay parked for a post-launch
-                revisit. */}
-            {Platform.OS !== 'web' ? (
-              <View style={styles.chipsWrap}>
-                {myTags.map((ut) => {
-                  const name = ut.tag?.name ?? '';
-                  const dn = name.startsWith('#') ? name : `#${name}`;
-                  return (
-                    <Pressable
-                      key={ut.id}
-                      style={styles.chip}
-                      onPress={() => handleRemoveTag(ut)}
-                    >
-                      <Text style={styles.chipText}>{dn}</Text>
-                    </Pressable>
-                  );
-                })}
-                {myTags.length === 0 && (
-                  <Text style={styles.emptyText}>{t('manageTags.noTagsYet')}</Text>
-                )}
+            {/* My tags — native: draggable chips (long-press = drag-
+                reorder, tap = remove) / web: tap-to-swap. */}
+            {Platform.OS !== 'web' && DraggableChips ? (
+              <View style={{ paddingHorizontal: 20 }}>
+                <DraggableChips
+                  items={chipItems}
+                  onReorder={handleChipReorder}
+                  onRemove={handleChipRemove}
+                  onDragStateChange={setIsDragging}
+                />
               </View>
             ) : (
               <>

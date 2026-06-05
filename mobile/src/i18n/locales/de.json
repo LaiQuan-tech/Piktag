@@ -1104,7 +1104,7 @@
     "tagLimitMessage": "Du kannst bis zu {{max}} Tags hinzufügen",
     "aiErrorGeneric": "KI-Vorschläge sind vorübergehend nicht verfügbar, bitte versuche es später erneut",
     "nativeHintNoPin": "Lang drücken zum Ziehen und Sortieren",
-    "tagEditHint": "Tippen zum Entfernen (bis Speichern widerrufbar)",
+    "tagEditHint": "Tippen zum Entfernen (bis Speichern widerrufbar) · Lange drücken zum Sortieren",
     "aiErrorNoContext": "Füll zuerst deine Bio oder deinen Namen aus oder füge ein paar Tags hinzu, damit die KI Vorschläge machen kann.",
     "aiErrorLoadProfile": "Dein Profil konnte nicht geladen werden: {{error}}"
   },

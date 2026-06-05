@@ -104,14 +104,27 @@ export default function DraggableChips({
     return null;
   }, [layouts]);
 
-  // Swap items
-  const handleSwap = useCallback((fromId: string, toId: string) => {
+  // 2026-06-05 fix — reorder ONCE on drop, not every pan frame.
+  // The old design called a swap on every onDragMove frame: that
+  // mutated `items` mid-gesture, so the dragged chip's base layout
+  // slot moved while its transform stayed relative to the START slot,
+  // and the chip visibly jumped off the finger (the "拖曳壞掉" bug,
+  // founder). Now the list stays STABLE during the drag (the chip
+  // tracks the finger cleanly), we just remember which chip the finger
+  // is currently over, and apply a single move-from→to-index reorder
+  // when the finger lifts.
+  const dragTargetRef = useRef<string | null>(null);
+  const commitReorder = useCallback((fromId: string) => {
+    const toId = dragTargetRef.current;
+    dragTargetRef.current = null;
+    if (!toId || toId === fromId) return;
     const fromIdx = items.findIndex(i => i.id === fromId);
     const toIdx = items.findIndex(i => i.id === toId);
     if (fromIdx === -1 || toIdx === -1 || fromIdx === toIdx) return;
-    const newItems = [...items];
-    [newItems[fromIdx], newItems[toIdx]] = [newItems[toIdx], newItems[fromIdx]];
-    onReorder(newItems);
+    const next = [...items];
+    const [moved] = next.splice(fromIdx, 1);
+    next.splice(toIdx, 0, moved);
+    onReorder(next);
   }, [items, onReorder]);
 
   // Tap action — both modes: single tap removes (founder rule:
@@ -134,13 +147,18 @@ export default function DraggableChips({
           isDragging={draggingId === item.id}
           onLayout={(e) => onChipLayout(item.id, e)}
           onDragStart={() => { setDraggingId(item.id); onDragStateChange?.(true); }}
-          onDragEnd={() => { setDraggingId(null); onDragStateChange?.(false); }}
+          onDragEnd={() => {
+            setDraggingId(null);
+            onDragStateChange?.(false);
+            commitReorder(item.id); // single reorder on lift
+          }}
           onDragMove={(absX, absY) => {
-            // Convert absolute to container-relative
+            // Just RECORD the chip the finger is over — don't reorder
+            // mid-drag (that caused the jump bug). The reorder happens
+            // once in onDragEnd.
             const relX = absX - containerLayout.current.x;
             const relY = absY - containerLayout.current.y;
-            const targetId = findTargetId(relX, relY, item.id);
-            if (targetId) handleSwap(item.id, targetId);
+            dragTargetRef.current = findTargetId(relX, relY, item.id);
           }}
           onRemove={() => onRemove(item)}
           // Always wire tap (both modes): chip body = tap-to-remove,
@@ -194,8 +212,13 @@ function DraggableChip({
       runOnJS(onDragMove)(e.absoluteX, e.absoluteY);
     })
     .onEnd(() => {
-      translateX.value = withSpring(0, SPRING_CONFIG);
-      translateY.value = withSpring(0, SPRING_CONFIG);
+      // Snap translate to 0 immediately (not a spring): onDragEnd
+      // reorders the list so this chip's base slot becomes ~where the
+      // finger released, making translate:0 land it cleanly in the new
+      // slot. A spring-back would start from an overshot position and
+      // wobble. Scale/zIndex still ease back.
+      translateX.value = 0;
+      translateY.value = 0;
       scale.value = withSpring(1, SPRING_CONFIG);
       zIndex.value = 0;
       runOnJS(onDragEnd)();

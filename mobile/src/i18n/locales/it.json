@@ -1111,7 +1111,7 @@
     "tagLimitMessage": "Puoi aggiungere fino a {{max}} tag",
     "aiErrorGeneric": "I suggerimenti AI non sono disponibili adesso, riprova più tardi",
     "nativeHintNoPin": "Tieni premuto per trascinare e riordinare",
-    "tagEditHint": "Tocca per rimuovere (annullabile fino al salvataggio)",
+    "tagEditHint": "Tocca per rimuovere (annullabile fino al salvataggio) · Tieni premuto per riordinare",
     "aiErrorNoContext": "Compila prima la tua bio, il nome o aggiungi qualche tag così l'IA può darti suggerimenti.",
     "aiErrorLoadProfile": "Impossibile caricare il tuo profilo: {{error}}"
   },
