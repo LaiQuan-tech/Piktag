@@ -71,7 +71,10 @@
     "edit": "Editar",
     "you": "Você",
     "noResults": "—",
-    "them": "eles"
+    "them": "eles",
+    "clear": "Limpar",
+    "month": "Mês",
+    "day": "Dia"
   },
   "auth": {
     "login": {

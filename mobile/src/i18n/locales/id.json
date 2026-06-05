@@ -71,7 +71,10 @@
     "edit": "Edit",
     "you": "Kamu",
     "noResults": "—",
-    "them": "mereka"
+    "them": "mereka",
+    "clear": "Hapus",
+    "month": "Bulan",
+    "day": "Hari"
   },
   "auth": {
     "login": {

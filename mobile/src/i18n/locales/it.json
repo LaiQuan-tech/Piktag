@@ -72,7 +72,10 @@
     "edit": "Modifica",
     "you": "Tu",
     "noResults": "—",
-    "them": "loro"
+    "them": "loro",
+    "clear": "Cancella",
+    "month": "Mese",
+    "day": "Giorno"
   },
   "auth": {
     "login": {

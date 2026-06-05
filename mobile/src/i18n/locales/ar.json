@@ -71,7 +71,10 @@
     "edit": "تعديل",
     "you": "أنت",
     "noResults": "—",
-    "them": "هم"
+    "them": "هم",
+    "clear": "مسح",
+    "month": "الشهر",
+    "day": "اليوم"
   },
   "auth": {
     "login": {

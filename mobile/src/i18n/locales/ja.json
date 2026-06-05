@@ -71,7 +71,10 @@
     "edit": "編集",
     "you": "あなた",
     "noResults": "—",
-    "them": "相手"
+    "them": "相手",
+    "clear": "クリア",
+    "month": "月",
+    "day": "日"
   },
   "auth": {
     "login": {

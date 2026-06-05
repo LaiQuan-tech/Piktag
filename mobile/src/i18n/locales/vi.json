@@ -72,7 +72,10 @@
     "edit": "Chỉnh sửa",
     "you": "Bạn",
     "noResults": "—",
-    "them": "họ"
+    "them": "họ",
+    "clear": "Xóa",
+    "month": "Tháng",
+    "day": "Ngày"
   },
   "auth": {
     "login": {

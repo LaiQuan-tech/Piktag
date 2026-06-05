@@ -45,6 +45,7 @@ import { supabase, supabaseUrl, supabaseAnonKey } from '../../lib/supabase';
 import { normalizeTagName } from '../../lib/normalizeTag';
 import { addUserTagByName } from '../../lib/userTags';
 import TagChip from '../../components/TagChip';
+import BirthdayWheel from '../../components/BirthdayWheel';
 import { Image } from 'expo-image';
 import {
   requestMediaLibraryPermissionsAsync,
@@ -1080,18 +1081,13 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
           </View>
         )}
 
-        {/* Birthday — moved from Step 1 (optional, CRM core). */}
-        <TextInput
-          style={styles.nameInput}
+        {/* Birthday — optional (CRM core). Month + day WHEEL (no year)
+            instead of free-typing MM/DD: zero format errors, faster, no
+            birth-year/age disclosure. Founder, 2026-06-05. */}
+        <BirthdayWheel
           value={birthday}
-          onChangeText={setBirthday}
-          placeholder={t('auth.register.birthdayLabel', { defaultValue: '生日（選填）' }) + '  MM/DD'}
-          placeholderTextColor={colors.gray400}
-          keyboardType="numbers-and-punctuation"
-          autoCapitalize="none"
-          autoCorrect={false}
-          maxLength={10}
-          returnKeyType="done"
+          onChange={setBirthday}
+          boxStyle={styles.nameInput}
         />
 
         <View style={{ flex: 1, minHeight: 24 }} />

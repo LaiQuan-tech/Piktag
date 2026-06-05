@@ -71,7 +71,10 @@
     "edit": "Düzenle",
     "you": "Sen",
     "noResults": "—",
-    "them": "onlara"
+    "them": "onlara",
+    "clear": "Temizle",
+    "month": "Ay",
+    "day": "Gün"
   },
   "auth": {
     "login": {

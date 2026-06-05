@@ -71,7 +71,10 @@
     "edit": "Modifier",
     "you": "Toi",
     "noResults": "—",
-    "them": "lui/elle"
+    "them": "lui/elle",
+    "clear": "Effacer",
+    "month": "Mois",
+    "day": "Jour"
   },
   "auth": {
     "login": {

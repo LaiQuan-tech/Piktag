@@ -71,7 +71,10 @@
     "edit": "편집",
     "you": "나",
     "noResults": "—",
-    "them": "상대"
+    "them": "상대",
+    "clear": "지우기",
+    "month": "월",
+    "day": "일"
   },
   "auth": {
     "login": {

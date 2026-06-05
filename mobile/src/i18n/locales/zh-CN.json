@@ -72,7 +72,10 @@
     "edit": "编辑",
     "you": "你",
     "noResults": "—",
-    "them": "对方"
+    "them": "对方",
+    "clear": "清除",
+    "month": "月",
+    "day": "日"
   },
   "auth": {
     "login": {

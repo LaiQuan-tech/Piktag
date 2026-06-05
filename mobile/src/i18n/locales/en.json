@@ -72,7 +72,10 @@
     "edit": "Edit",
     "you": "You",
     "noResults": "—",
-    "them": "them"
+    "them": "them",
+    "clear": "Clear",
+    "month": "Month",
+    "day": "Day"
   },
   "auth": {
     "login": {
