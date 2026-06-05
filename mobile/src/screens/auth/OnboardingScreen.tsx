@@ -44,7 +44,6 @@ import { ChevronRight, ChevronLeft, Camera, X, Sparkles, Plus } from 'lucide-rea
 import { supabase, supabaseUrl, supabaseAnonKey } from '../../lib/supabase';
 import { normalizeTagName } from '../../lib/normalizeTag';
 import { addUserTagByName } from '../../lib/userTags';
-import { useRotatingPlaceholder } from '../../hooks/useRotatingPlaceholder';
 import TagChip from '../../components/TagChip';
 import { Image } from 'expo-image';
 import {
@@ -155,18 +154,28 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
     const raw = t('editProfile.headlinePromptHints', { returnObjects: true });
     return Array.isArray(raw) && raw.length > 0 ? (raw as string[]) : null;
   }, [t]);
-  const headlinePlaceholder = useRotatingPlaceholder(
-    headlineHints,
-    t('auth.onboarding.headlinePlaceholder', { defaultValue: '例：產品設計師' }),
-  );
   const bioHints = useMemo(() => {
     const raw = t('editProfile.bioPromptHints', { returnObjects: true });
     return Array.isArray(raw) && raw.length > 0 ? (raw as string[]) : null;
   }, [t]);
-  const bioPlaceholder = useRotatingPlaceholder(
-    bioHints,
-    t('auth.onboarding.bioPlaceholder', { defaultValue: '一句話介紹你自己' }),
-  );
+  // ONE shared index + ONE timer drives BOTH carousels so they advance
+  // IN SYNC at the SAME rhythm (founder, 2026-06-05: 節奏也要一樣). The
+  // shared useRotatingPlaceholder hook times each prompt by its own
+  // length (3500ms + 130ms/char), so the short 職稱 and the long bio
+  // rotate at different speeds and drift apart — exactly the
+  // inconsistency to avoid. Both hint arrays are 5 items → one index
+  // maps to both. Fixed 4.5s dwell ≈ comfortable for the longer bio.
+  const [exampleIdx, setExampleIdx] = useState(0);
+  useEffect(() => {
+    const id = setInterval(() => setExampleIdx((i) => i + 1), 4500);
+    return () => clearInterval(id);
+  }, []);
+  const headlinePlaceholder = headlineHints
+    ? headlineHints[exampleIdx % headlineHints.length]
+    : t('auth.onboarding.headlinePlaceholder', { defaultValue: '例：產品設計師' });
+  const bioPlaceholder = bioHints
+    ? bioHints[exampleIdx % bioHints.length]
+    : t('auth.onboarding.bioPlaceholder', { defaultValue: '一句話介紹你自己' });
 
   // ─── Step 3 (電子名片): link picker ──────────────────────────
   // The biolinks themselves live in `pendingBiolinks` (shared with the
@@ -1334,7 +1343,9 @@ function makeStyles(c: ColorPalette) {
     borderRadius: BORDER_RADIUS.md,
     paddingHorizontal: 16,
     paddingVertical: 14,
-    textAlign: 'center',
+    // Left-aligned (no textAlign:center) so every field's text +
+    // placeholder lines up consistently with the left-aligned tag /
+    // link inputs (founder, 2026-06-05: 統一靠左).
     marginTop: 12,
   },
   // Field label (e.g. "你的 PikTag 帳號") — left-aligned so the 帳號
