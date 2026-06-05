@@ -179,6 +179,10 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
   // response landing after the user kept typing (stale-write race).
   const usernameCheckSeq = useRef(0);
   const usernameInputRef = useRef<TextInput>(null);
+  // Keys of tags removed BEFORE their optimistic insert resolved — so
+  // addTagLocal can undo the DB write instead of leaving an orphan row
+  // (add-then-remove within the network round-trip). 2026-06-05.
+  const removedTagKeysRef = useRef<Set<string>>(new Set());
 
   // ─── Step 2 (你是誰): headline + bio + tags ──────────────────
   // headline = 職稱 (optional). bio lives in the existing `bio` state
@@ -370,9 +374,23 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
       if (user) {
         const tagId = await addUserTagByName(user.id, norm, position);
         if (tagId) {
-          setSelectedTags((prev) =>
-            prev.map((tg) => (tg.key === key ? { ...tg, tagId } : tg)),
-          );
+          // If the user removed this chip while the insert was still
+          // in flight, removeTagLocal couldn't delete (no tagId yet) and
+          // marked the key. Undo the now-completed insert instead of
+          // leaving an invisible orphan row.
+          if (removedTagKeysRef.current.has(key)) {
+            removedTagKeysRef.current.delete(key);
+            await supabase
+              .from('piktag_user_tags')
+              .delete()
+              .eq('user_id', user.id)
+              .eq('tag_id', tagId);
+            await supabase.rpc('decrement_tag_usage', { tag_id: tagId });
+          } else {
+            setSelectedTags((prev) =>
+              prev.map((tg) => (tg.key === key ? { ...tg, tagId } : tg)),
+            );
+          }
         }
       }
     } catch (e) {
@@ -390,7 +408,12 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
   const removeTagLocal = useCallback(async (key: string) => {
     const tg = selectedTags.find((x) => x.key === key);
     setSelectedTags((prev) => prev.filter((x) => x.key !== key));
-    if (!tg?.tagId) return; // never resolved → nothing in DB yet
+    if (!tg?.tagId) {
+      // Insert still in flight — mark the key so addTagLocal undoes the
+      // write once it resolves (otherwise an orphan row would persist).
+      removedTagKeysRef.current.add(key);
+      return;
+    }
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {

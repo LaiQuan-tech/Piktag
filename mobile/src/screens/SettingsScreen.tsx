@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import {
   View,
   Text,
@@ -86,6 +86,15 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
 
   const [profile, setProfile] = useState<PiktagProfile | null>(null);
   const [shareLocation, setShareLocation] = useState(true);
+  // Re-entrancy guard for the share-location toggle. The ON path awaits
+  // a multi-second GPS fetch; without this a second tap (e.g. user taps
+  // OFF because nothing seems to happen) races the in-flight ON write —
+  // OFF writes share_location:false, then the slow ON write resolves
+  // and overwrites with true+coords → UI shows OFF but the server keeps
+  // broadcasting (a privacy leak). The ref blocks re-entry; the state
+  // disables the Switch while busy. (2026-06-05 bug-review fix.)
+  const locationToggleBusyRef = useRef(false);
+  const [locationToggleBusy, setLocationToggleBusy] = useState(false);
   // Notification category toggles — 2026-05-30 categorization.
   // Replaces the old placebo "piktag_notifications_enabled" master
   // (AsyncStorage-only, gated nothing server-side) and the per-type
@@ -214,22 +223,21 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
     updateNotifCategory('notif_memories', !notifMemories, setNotifMemories, notifMemories);
 
   const handleShareLocationToggle = async () => {
-    if (!user) return;
+    // Re-entrancy guard — see locationToggleBusyRef declaration. A
+    // second toggle is ignored until the first write fully settles, so
+    // a rapid OFF can't race a slow ON write (the privacy-leak path).
+    if (!user || locationToggleBusyRef.current) return;
+    locationToggleBusyRef.current = true;
+    setLocationToggleBusy(true);
     const newValue = !shareLocation;
     setShareLocation(newValue);
-
-    if (newValue) {
-      // Turning ON. 2026-06-05 BUG FIX: the old ON path wrote ONLY
-      // share_location:true and never captured coordinates, so
-      // latitude/longitude stayed null — the friends map's
-      // `if (!p.latitude || !p.longitude) continue` then silently
-      // dropped EVERY friend, surfacing as "map shows only me". The
-      // 2026-06-03 fix only patched the READ side (select); the WRITE
-      // side never stored coords. Now we capture the device's current
-      // position and write it alongside the flag, so friends actually
-      // appear. (Locations still go stale after 24h with no auto-
-      // refresh — a separate follow-up.)
-      try {
+    try {
+      if (newValue) {
+        // Turning ON. Capture the device's current position and write
+        // it alongside the flag (the bare-flag ON path left lat/lng
+        // null → the friends map dropped everyone, "only me" bug,
+        // 2026-06-05). Locations still go stale after 24h — refreshed
+        // on app open by lib/sharedLocation.ts.
         const { status } = await requestForegroundPermissionsAsync();
         if (status !== 'granted') {
           setShareLocation(false); // can't share without permission
@@ -258,31 +266,34 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
             t('settings.alertPrivacyError', { defaultValue: '更新失敗，請稍後再試。' }),
           );
         }
-      } catch {
-        setShareLocation(false);
-        Alert.alert(
-          t('common.error', { defaultValue: '錯誤' }),
-          t('settings.locationFetchFailed', {
-            defaultValue: '抓不到目前位置，請稍後再試。',
-          }),
-        );
+      } else {
+        // Turning OFF — clear coords. A silent failure here is a real
+        // privacy leak (user sees "off" but server keeps broadcasting),
+        // so verify the write and roll back on error.
+        const { error } = await supabase
+          .from('piktag_profiles')
+          .update({ share_location: false, latitude: null, longitude: null, location_updated_at: null })
+          .eq('id', user.id);
+        if (error) {
+          setShareLocation(true); // revert optimistic flip
+          Alert.alert(
+            t('common.error', { defaultValue: '錯誤' }),
+            t('settings.alertPrivacyError', { defaultValue: '更新失敗，請稍後再試。' }),
+          );
+        }
       }
-      return;
-    }
-
-    // Turning OFF — clear coords. MUST verify the write: a silent
-    // failure here is a real privacy leak (user sees "off" but the
-    // server keeps broadcasting coords). On error, roll back + alert.
-    const { error } = await supabase
-      .from('piktag_profiles')
-      .update({ share_location: false, latitude: null, longitude: null, location_updated_at: null })
-      .eq('id', user.id);
-    if (error) {
-      setShareLocation(true); // revert optimistic flip
+    } catch {
+      // GPS / permission threw (ON path). Revert to the pre-toggle state.
+      setShareLocation(!newValue);
       Alert.alert(
         t('common.error', { defaultValue: '錯誤' }),
-        t('settings.alertPrivacyError', { defaultValue: '更新失敗，請稍後再試。' }),
+        newValue
+          ? t('settings.locationFetchFailed', { defaultValue: '抓不到目前位置，請稍後再試。' })
+          : t('settings.alertPrivacyError', { defaultValue: '更新失敗，請稍後再試。' }),
       );
+    } finally {
+      locationToggleBusyRef.current = false;
+      setLocationToggleBusy(false);
     }
   };
 
@@ -475,11 +486,12 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
         { label: t('settings.socialStats'), onPress: () => navigation.navigate('SocialStats') },
         {
           label: t('settings.shareLocation', { defaultValue: '分享所在地點' }),
-          onPress: handleShareLocationToggle,
+          onPress: locationToggleBusy ? undefined : handleShareLocationToggle,
           rightElement: (
             <Switch
               value={shareLocation}
               onValueChange={handleShareLocationToggle}
+              disabled={locationToggleBusy}
               trackColor={{ false: colors.gray200, true: colors.piktag300 }}
               thumbColor={shareLocation ? colors.piktag500 : colors.gray400}
             />
