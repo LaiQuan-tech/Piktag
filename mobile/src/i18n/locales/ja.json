@@ -244,7 +244,8 @@
       "usernameLabel": "あなたの PikTag アカウント",
       "headlineLabel": "肩書き（任意）",
       "bioLabel": "ひとことで自己紹介"
-    }
+    },
+    "invalidEmail": "有効なメールアドレスを入力してください"
   },
   "connections": {
     "friendsLabel": "友達",

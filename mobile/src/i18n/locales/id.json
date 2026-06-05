@@ -244,7 +244,8 @@
       "usernameLabel": "Nama pengguna PikTag kamu",
       "headlineLabel": "Jabatan (opsional)",
       "bioLabel": "Satu kalimat tentang kamu"
-    }
+    },
+    "invalidEmail": "Masukkan alamat email yang valid"
   },
   "connections": {
     "friendsLabel": "teman",

@@ -251,7 +251,8 @@
       "usernameLabel": "Il tuo username PikTag",
       "headlineLabel": "Ruolo (facoltativo)",
       "bioLabel": "Una riga su di te"
-    }
+    },
+    "invalidEmail": "Inserisci un'email valida"
   },
   "connections": {
     "addedFriend": "+ {{name}}",

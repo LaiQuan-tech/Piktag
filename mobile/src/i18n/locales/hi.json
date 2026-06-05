@@ -244,7 +244,8 @@
       "usernameLabel": "आपका PikTag यूज़रनेम",
       "headlineLabel": "पद (वैकल्पिक)",
       "bioLabel": "अपने बारे में एक पंक्ति"
-    }
+    },
+    "invalidEmail": "एक मान्य ईमेल पता दर्ज करें"
   },
   "connections": {
     "friendsLabel": "दोस्त",

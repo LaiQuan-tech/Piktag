@@ -244,7 +244,8 @@
       "usernameLabel": "Ваш ник в PikTag",
       "headlineLabel": "Должность (необязательно)",
       "bioLabel": "Одна строка о себе"
-    }
+    },
+    "invalidEmail": "Введите действительный адрес эл. почты"
   },
   "connections": {
     "friendsLabel": "друзья",

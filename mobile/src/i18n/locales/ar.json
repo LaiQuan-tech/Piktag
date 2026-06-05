@@ -244,7 +244,8 @@
       "usernameLabel": "اسم المستخدم الخاص بك في PikTag",
       "headlineLabel": "المسمى الوظيفي (اختياري)",
       "bioLabel": "سطر واحد عنك"
-    }
+    },
+    "invalidEmail": "أدخل عنوان بريد إلكتروني صالحًا"
   },
   "connections": {
     "friendsLabel": "أصدقاء",

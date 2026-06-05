@@ -246,7 +246,8 @@
       "usernameLabel": "Dein PikTag-Benutzername",
       "headlineLabel": "Position (optional)",
       "bioLabel": "Ein Satz über dich"
-    }
+    },
+    "invalidEmail": "Gib eine gültige E-Mail-Adresse ein"
   },
   "connections": {
     "addedFriend": "+ {{name}}",

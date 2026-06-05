@@ -251,7 +251,8 @@
       "usernameLabel": "Your PikTag handle",
       "headlineLabel": "Title (optional)",
       "bioLabel": "One line about you"
-    }
+    },
+    "invalidEmail": "Enter a valid email address"
   },
   "connections": {
     "addedFriend": "+ {{name}}",

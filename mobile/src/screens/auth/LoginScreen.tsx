@@ -14,6 +14,7 @@ import BrandSpinner from '../../components/loaders/BrandSpinner';
 import { useTranslation } from 'react-i18next';
 import { Eye, EyeOff } from 'lucide-react-native';
 import { supabase } from '../../lib/supabase';
+import { isValidEmail } from '../../lib/validateEmail';
 import { signInWithApple } from '../../lib/appleAuth';
 import { signInWithGoogle } from '../../lib/googleAuth';
 import { SPACING, BORDER_RADIUS, TYPOGRAPHY } from '../../constants/theme';
@@ -27,6 +28,7 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
   const { t } = useTranslation();
   const { colors, isDark } = useTheme();
   const [email, setEmail] = useState('');
+  const [emailTouched, setEmailTouched] = useState(false);
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -113,6 +115,9 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
     finally { setSocialLoading(null); }
   };
 
+  const emailValid = isValidEmail(email);
+  const showEmailError = emailTouched && email.length > 0 && !emailValid;
+
   return (
     <KeyboardAvoidingView
       style={[styles.container, { backgroundColor: colors.background }]}
@@ -132,17 +137,23 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
         {/* Form */}
         <View style={styles.formContainer}>
           <TextInput
-            style={[styles.input, { borderColor: colors.border, color: colors.text, backgroundColor: colors.backgroundSecondary }]}
+            style={[styles.input, { borderColor: showEmailError ? colors.red500 : colors.border, color: colors.text, backgroundColor: colors.backgroundSecondary }]}
             placeholder={t('auth.login.emailPlaceholder')}
             placeholderTextColor={colors.textTertiary}
             value={email}
             onChangeText={setEmail}
+            onBlur={() => setEmailTouched(true)}
             keyboardType="email-address"
             autoCapitalize="none"
             autoCorrect={false}
             returnKeyType="next"
             onSubmitEditing={() => passwordRef.current?.focus()}
           />
+          {showEmailError && (
+            <Text style={{ color: colors.red500, fontSize: 13, marginTop: 6, marginLeft: 4 }}>
+              {t('auth.invalidEmail', { defaultValue: '請輸入有效的 email 地址' })}
+            </Text>
+          )}
 
           <View style={[styles.passwordContainer, { borderColor: colors.border, backgroundColor: colors.backgroundSecondary }]}>
             <TextInput
@@ -186,9 +197,9 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[styles.loginButton, { backgroundColor: colors.piktag500 }, loading && styles.loginButtonDisabled]}
+            style={[styles.loginButton, { backgroundColor: colors.piktag500 }, (loading || !emailValid) && styles.loginButtonDisabled]}
             onPress={handleLogin}
-            disabled={loading}
+            disabled={loading || !emailValid}
             activeOpacity={0.8}
             accessibilityRole="button"
           >

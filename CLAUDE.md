@@ -304,6 +304,23 @@ founder when the trigger condition lands:
        exactly the "聽不懂" failure to avoid.
 - **Don't reinvent; match existing patterns/design.** Reuse canonical
   components, RPCs, styles. Deviating "to be clever" is a defect here.
+- **Input防呆 — prevent-or-feedback, NEVER silently drop.** Founder,
+  2026-06-05, after the BirthdayInput review. The root failure to avoid:
+  a field validates the input but then *silently discards* an invalid
+  value (the user thinks they filled it; nothing saved, no warning). So
+  any field that can be entered wrong must do ONE of two things:
+    1. **Prevent the invalid value at entry** (smart mask / normalize-on-
+       type), so the stored value is *always* valid. Models:
+       `normalizeUsername` (帳號), `normalizeTagName` (標籤),
+       `BirthdayInput`'s `consumePart` mask (生日: auto-zero-pads, clamps
+       month≤12 / day≤daysInMonth, locale-orders MM/DD vs DD/MM).
+    2. **Give immediate, explicit feedback** when it can't be masked
+       (free-but-checkable values). Model: email (`isValidEmail` in
+       `lib/validateEmail.ts`) → inline red hint on blur + gate the
+       submit button. Used in Register + Login.
+  Free text with no "wrong" state (name / bio / headline / address) needs
+  neither — just trim + maxLength. When adding ANY new input, decide
+  which bucket it's in; the one thing that's a defect is silent-drop.
 - **Commodity features must feel instant — speed is a STRATEGIC red
   line, not a nice-to-have.** Founder, 2026-06-03, on card scan:
   *"我會選Path A是因為市面上已有太多掃描名片的app，我們不夠快，就會

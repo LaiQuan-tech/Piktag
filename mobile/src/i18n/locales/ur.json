@@ -251,7 +251,8 @@
       "usernameLabel": "آپ کا PikTag یوزرنیم",
       "headlineLabel": "عہدہ (اختیاری)",
       "bioLabel": "اپنے بارے میں ایک سطر"
-    }
+    },
+    "invalidEmail": "ایک درست ای میل ایڈریس درج کریں"
   },
   "connections": {
     "addedFriend": "+ {{name}}",

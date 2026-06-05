@@ -244,7 +244,8 @@
       "usernameLabel": "ชื่อผู้ใช้ PikTag ของคุณ",
       "headlineLabel": "ตำแหน่ง (ไม่บังคับ)",
       "bioLabel": "แนะนำตัวสั้นๆ หนึ่งบรรทัด"
-    }
+    },
+    "invalidEmail": "กรอกอีเมลที่ถูกต้อง"
   },
   "connections": {
     "friendsLabel": "เพื่อน",

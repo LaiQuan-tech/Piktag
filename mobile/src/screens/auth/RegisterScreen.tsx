@@ -16,6 +16,7 @@ import { Eye, EyeOff } from 'lucide-react-native';
 import { supabase } from '../../lib/supabase';
 import { toBirthdayDate } from '../../lib/birthday';
 import BirthdayInput from '../../components/BirthdayInput';
+import { isValidEmail } from '../../lib/validateEmail';
 import { signInWithApple } from '../../lib/appleAuth';
 import { signInWithGoogle } from '../../lib/googleAuth';
 import { trackSignupComplete } from '../../lib/analytics';
@@ -31,6 +32,7 @@ export default function RegisterScreen({ navigation }: RegisterScreenProps) {
   const { colors, isDark } = useTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const [email, setEmail] = useState('');
+  const [emailTouched, setEmailTouched] = useState(false);
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   // Birthday is the core of PikTag's CRM — the daily pg_cron fn
@@ -48,6 +50,12 @@ export default function RegisterScreen({ navigation }: RegisterScreenProps) {
   const handleRegister = async () => {
     if (!email.trim() || !password.trim()) {
       Alert.alert(t('common.error'), t('auth.register.alertEmptyFields'));
+      return;
+    }
+
+    if (!isValidEmail(email)) {
+      setEmailTouched(true);
+      Alert.alert(t('common.error'), t('auth.invalidEmail', { defaultValue: '請輸入有效的 email 地址' }));
       return;
     }
 
@@ -125,6 +133,11 @@ export default function RegisterScreen({ navigation }: RegisterScreenProps) {
   };
 
   const passwordsMatch = confirmPassword.length === 0 || password === confirmPassword;
+  const emailValid = isValidEmail(email);
+  // Show the email error only once the user has left the field (or
+  // pressed register) AND typed something — never flash "invalid" while
+  // they're mid-typing the first characters.
+  const showEmailError = emailTouched && email.length > 0 && !emailValid;
 
   return (
     <KeyboardAvoidingView
@@ -145,17 +158,23 @@ export default function RegisterScreen({ navigation }: RegisterScreenProps) {
         {/* Form */}
         <View style={styles.formContainer}>
           <TextInput
-            style={styles.input}
+            style={[styles.input, showEmailError && styles.inputError]}
             placeholder={t('auth.register.emailPlaceholder')}
             placeholderTextColor={colors.gray400}
             value={email}
             onChangeText={setEmail}
+            onBlur={() => setEmailTouched(true)}
             keyboardType="email-address"
             autoCapitalize="none"
             autoCorrect={false}
             returnKeyType="next"
             onSubmitEditing={() => passwordRef.current?.focus()}
           />
+          {showEmailError && (
+            <Text style={styles.errorHint}>
+              {t('auth.invalidEmail', { defaultValue: '請輸入有效的 email 地址' })}
+            </Text>
+          )}
 
           <View>
             <View style={[
@@ -241,9 +260,9 @@ export default function RegisterScreen({ navigation }: RegisterScreenProps) {
           </View>
 
           <TouchableOpacity
-            style={[styles.registerButton, loading && styles.registerButtonDisabled]}
+            style={[styles.registerButton, (loading || !emailValid) && styles.registerButtonDisabled]}
             onPress={handleRegister}
-            disabled={loading}
+            disabled={loading || !emailValid}
             activeOpacity={0.8}
             accessibilityRole="button"
           >

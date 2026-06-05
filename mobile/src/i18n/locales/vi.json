@@ -251,7 +251,8 @@
       "usernameLabel": "Tên người dùng PikTag của bạn",
       "headlineLabel": "Chức danh (không bắt buộc)",
       "bioLabel": "Một câu giới thiệu bản thân"
-    }
+    },
+    "invalidEmail": "Nhập địa chỉ email hợp lệ"
   },
   "connections": {
     "addedFriend": "+ {{name}}",

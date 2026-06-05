@@ -244,7 +244,8 @@
       "usernameLabel": "আপনার PikTag ইউজারনেম",
       "headlineLabel": "পদবি (ঐচ্ছিক)",
       "bioLabel": "নিজের সম্পর্কে এক লাইন"
-    }
+    },
+    "invalidEmail": "একটি বৈধ ইমেল ঠিকানা লিখুন"
   },
   "connections": {
     "friendsLabel": "বন্ধু",

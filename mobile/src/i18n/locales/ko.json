@@ -244,7 +244,8 @@
       "usernameLabel": "내 PikTag 아이디",
       "headlineLabel": "직함 (선택)",
       "bioLabel": "한 줄 자기소개"
-    }
+    },
+    "invalidEmail": "유효한 이메일 주소를 입력하세요"
   },
   "connections": {
     "friendsLabel": "친구",

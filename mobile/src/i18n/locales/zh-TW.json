@@ -251,7 +251,8 @@
       "usernameLabel": "你的 PikTag 帳號",
       "headlineLabel": "職稱（選填）",
       "bioLabel": "一句話介紹自己"
-    }
+    },
+    "invalidEmail": "請輸入有效的 email 地址"
   },
   "connections": {
     "addedFriend": "+ {{name}}",

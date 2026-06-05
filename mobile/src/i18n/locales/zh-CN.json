@@ -246,7 +246,8 @@
       "usernameLabel": "你的 PikTag 账号",
       "headlineLabel": "职称（选填）",
       "bioLabel": "一句话介绍自己"
-    }
+    },
+    "invalidEmail": "请输入有效的 email 地址"
   },
   "connections": {
     "addedFriend": "+ {{name}}",
