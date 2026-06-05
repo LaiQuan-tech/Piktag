@@ -55,14 +55,30 @@ type Event =
       username: string | null;
       friend_name: string | null;
       friend_username: string | null;
+    }
+  | {
+      // Generic admin telemetry alert. Title/body are composed by the
+      // CALLER (a DB cron with the numbers in hand) and passed through —
+      // no subject user. Used by the linker-health / concept-graph crons.
+      event: 'admin_alert';
+      title: string;
+      body: string;
+      type?: string;
     };
 
 function composeBody(payload: Event): { title: string; body: string; type: string } {
+  if (payload.event === 'admin_alert') {
+    return {
+      type: payload.type?.trim() || 'admin_alert',
+      title: payload.title || 'PikTag',
+      body: payload.body || '',
+    };
+  }
   if (payload.event === 'signup') {
     const who = payload.name?.trim() || (payload.username ? `@${payload.username}` : '新用戶');
     return {
       type: 'admin_growth_signup',
-      title: '🎉 PikTag 新註冊',
+      title: 'PikTag 新註冊',
       body: `${who} 加入了`,
     };
   }
@@ -73,7 +89,7 @@ function composeBody(payload: Event): { title: string; body: string; type: strin
     (payload.friend_username ? `@${payload.friend_username}` : '朋友');
   return {
     type: 'admin_growth_magic_moment',
-    title: '✨ 第一個好友',
+    title: '第一個好友',
     body: `${me} 加了 ${friend}`,
   };
 }
@@ -92,13 +108,19 @@ serve(async (req) => {
 
   try {
     const payload = (await req.json().catch(() => null)) as Event | null;
-    if (!payload || (payload.event !== 'signup' && payload.event !== 'magic_moment')) {
+    if (
+      !payload ||
+      (payload.event !== 'signup' &&
+        payload.event !== 'magic_moment' &&
+        payload.event !== 'admin_alert')
+    ) {
       return new Response(
         JSON.stringify({ error: 'bad request', detail: 'missing or invalid event' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
       );
     }
-    if (!payload.user_id) {
+    // signup / magic_moment carry a subject user; admin_alert does not.
+    if (payload.event !== 'admin_alert' && !payload.user_id) {
       return new Response(
         JSON.stringify({ error: 'bad request', detail: 'missing user_id' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
