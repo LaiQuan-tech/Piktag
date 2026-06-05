@@ -4,7 +4,7 @@
     "slug": "piktag",
     "owner": "piktag",
     "scheme": "piktag",
-    "version": "1.0.3",
+    "version": "1.0.4",
     "runtimeVersion": {
       "policy": "appVersion"
     },
