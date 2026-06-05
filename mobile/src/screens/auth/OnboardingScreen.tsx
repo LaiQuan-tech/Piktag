@@ -40,7 +40,7 @@ import {
 import BrandSpinner from '../../components/loaders/BrandSpinner';
 import { useTranslation } from 'react-i18next';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { ChevronRight, ChevronLeft, Camera, QrCode, X, Sparkles, Plus } from 'lucide-react-native';
+import { ChevronRight, ChevronLeft, Camera, X, Sparkles, Plus } from 'lucide-react-native';
 import { supabase, supabaseUrl, supabaseAnonKey } from '../../lib/supabase';
 import { normalizeTagName } from '../../lib/normalizeTag';
 import { addUserTagByName } from '../../lib/userTags';
@@ -67,7 +67,9 @@ import OnboardingCompleteBurst from '../../components/stingers/OnboardingComplet
 // signal — bio emptiness is a legacy fallback only.
 const ONBOARDING_COMPLETED_KEY = 'piktag_onboarding_completed_v1';
 
-const STEP_WELCOME = 0;
+// Onboarding opens on STEP_PROFILE — the welcome interstitial (step 0)
+// was removed 2026-06-05. Numbering kept (profile=1) so the 3-segment
+// progress bar maps 1:1 to the three real steps.
 const STEP_PROFILE = 1; // identity: avatar + name + username
 const STEP_TAGS = 2;    // 你是誰: headline + bio + tags
 const STEP_LINKS = 3;   // 電子名片: social/contact links
@@ -104,7 +106,11 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
   const { colors, isDark } = useTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
 
-  const [step, setStep] = useState<number>(STEP_WELCOME);
+  // Onboarding opens DIRECTLY on the identity form (step 1). The old
+  // marketing-hero welcome interstitial ("一個 QR，加完所有朋友 → 開始使用
+  // PikTag") was removed 2026-06-05 — the founder wants register →
+  // straight into the 精靈, no splash page in between.
+  const [step, setStep] = useState<number>(STEP_PROFILE);
   const [displayName, setDisplayName] = useState('');
   // ─── Username (帳號) — the pikt.ag/{username} handle ──────────
   // 2026-06-05: onboarding now lets the user SET their handle (it was
@@ -227,14 +233,16 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
             return;
           }
         } catch {
-          // ignore — fall through to email prefix
+          // ignore — leave the name blank
         }
 
-        // 4: email prefix
-        const prefix = user.email?.split('@')[0];
-        if (prefix && !cancelled) {
-          setDisplayName(prefix.charAt(0).toUpperCase() + prefix.slice(1));
-        }
+        // No email-prefix fallback: deriving a DISPLAY NAME from the
+        // email local-part produces junk like "Piktag.tester02" that
+        // looks identical to the auto-generated username right below it
+        // (the "looks like two accounts" confusion the founder caught
+        // 2026-06-05). A real name only ever comes from OAuth metadata
+        // or an existing profile row (handled above); an email signup
+        // just types their name into the blank field.
       } catch {
         // swallow — blank input is a fine fallback
       }
@@ -736,43 +744,6 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
     </View>
   );
 
-  const renderWelcome = () => (
-    <View style={styles.welcomeContainer}>
-      <View style={styles.welcomeIconWrap}>
-        <QrCode size={64} color={colors.piktag500} strokeWidth={2.2} />
-      </View>
-      <Text style={styles.welcomeTitle}>
-        {t('auth.onboarding.welcomeTitle', { defaultValue: '一個 QR，加完所有朋友' })}
-      </Text>
-      <Text style={styles.welcomeSubtitle}>
-        {t('auth.onboarding.welcomeSubtitle', { defaultValue: '貼上標籤，下次見面就知道是誰' })}
-      </Text>
-      {/* Brand tagline — small, English, uppercase-letterspaced.
-          Sits under the functional copy so it reads as a signature,
-          not a competing headline. Drives the product loop —
-          self-tag asserts identity, find anyone discovers the
-          network — in 4 words. Replaces the 2026-mid "Tag the
-          Vibe, Keep the Tribe" line (2026-05-30 — "tribe" was a
-          NA-launch landmine and "vibe/tribe" didn't describe the
-          product). */}
-      <Text style={styles.brandTagline}>
-        {t('auth.onboarding.brandTagline', { defaultValue: 'Tag yourself. Find anyone.' })}
-      </Text>
-      <View style={{ flex: 1 }} />
-      <TouchableOpacity
-        style={styles.primaryButton}
-        activeOpacity={0.85}
-        onPress={() => setStep(STEP_PROFILE)}
-        accessibilityRole="button"
-      >
-        <Text style={styles.primaryButtonText}>
-          {t('auth.onboarding.welcomeCta', { defaultValue: '開始使用 PikTag' })}
-        </Text>
-        <ChevronRight size={20} color="#FFFFFF" />
-      </TouchableOpacity>
-    </View>
-  );
-
   // ─── Render: Step 1 (Name + Avatar) ─────────────────────
   const renderProfile = () => {
     const ctaDisabled = saving || !displayName.trim() || usernameStatus !== 'available';
@@ -836,22 +807,30 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
           onSubmitEditing={() => usernameInputRef.current?.focus()}
         />
 
-        {/* Username (帳號) — the public pikt.ag/{username} handle.
-            Auto-lowercased + char-filtered on input; live-checked
-            against the RPC. The status line below doubles as the
-            "why" explanation when idle. */}
-        <TextInput
-          ref={usernameInputRef}
-          style={styles.nameInput}
-          value={username}
-          onChangeText={(v) => setUsername(normalizeUsername(v))}
-          placeholder={t('editProfile.usernamePlaceholder', { defaultValue: '你的帳號' })}
-          placeholderTextColor={colors.gray400}
-          maxLength={USERNAME_MAX}
-          autoCapitalize="none"
-          autoCorrect={false}
-          returnKeyType="done"
-        />
+        {/* Username (帳號) — a clearly SEPARATE thing from the name
+            above. Labelled + rendered as the public profile URL
+            "pikt.ag/<handle>" with an inline prefix, so it can never be
+            misread as a second name field (the "looks like two accounts"
+            confusion the founder caught 2026-06-05). Auto-lowercased +
+            char-filtered on input; live-checked against the RPC. */}
+        <Text style={styles.fieldLabel}>
+          {t('auth.onboarding.usernameLabel', { defaultValue: '你的 PikTag 帳號' })}
+        </Text>
+        <View style={styles.usernameField}>
+          <Text style={styles.usernamePrefix}>pikt.ag/</Text>
+          <TextInput
+            ref={usernameInputRef}
+            style={styles.usernameInput}
+            value={username}
+            onChangeText={(v) => setUsername(normalizeUsername(v))}
+            placeholder={t('editProfile.usernamePlaceholder', { defaultValue: '你的帳號' })}
+            placeholderTextColor={colors.gray400}
+            maxLength={USERNAME_MAX}
+            autoCapitalize="none"
+            autoCorrect={false}
+            returnKeyType="done"
+          />
+        </View>
         {/* Status / why-this line. */}
         <View style={styles.usernameStatusRow}>
           {usernameStatus === 'checking' && (
@@ -1236,13 +1215,11 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
-      {step === STEP_WELCOME
-        ? renderWelcome()
-        : step === STEP_PROFILE
-          ? renderProfile()
-          : step === STEP_TAGS
-            ? renderTags()
-            : renderLinks()}
+      {step === STEP_PROFILE
+        ? renderProfile()
+        : step === STEP_TAGS
+          ? renderTags()
+          : renderLinks()}
 
       {/* Celebration burst plays after handleComplete succeeds. Its
           onComplete then drives the navigation reset — we defer to
@@ -1268,47 +1245,7 @@ function makeStyles(c: ColorPalette) {
     paddingHorizontal: SPACING.xxl,
   },
 
-  // ── Welcome screen ──
-  welcomeContainer: {
-    flex: 1,
-    alignItems: 'center',
-    paddingTop: 120,
-    paddingBottom: 48,
-  },
-  welcomeIconWrap: {
-    width: 128,
-    height: 128,
-    borderRadius: 64,
-    backgroundColor: c.piktag50,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 36,
-  },
-  welcomeTitle: {
-    fontSize: 28,
-    fontWeight: '800',
-    color: c.gray900,
-    textAlign: 'center',
-    lineHeight: 36,
-    paddingHorizontal: 16,
-  },
-  welcomeSubtitle: {
-    fontSize: 16,
-    color: c.gray500,
-    textAlign: 'center',
-    lineHeight: 24,
-    marginTop: 16,
-    paddingHorizontal: 16,
-  },
-  brandTagline: {
-    fontSize: 11,
-    color: c.piktag500,
-    textAlign: 'center',
-    marginTop: 28,
-    letterSpacing: 1.4,
-    textTransform: 'uppercase',
-    fontWeight: '600',
-  },
+  // (Welcome-screen styles removed 2026-06-05 with the welcome interstitial.)
 
   // ── Profile screen ──
   profileContainer: {
@@ -1366,6 +1303,39 @@ function makeStyles(c: ColorPalette) {
     paddingVertical: 14,
     textAlign: 'center',
     marginTop: 12,
+  },
+  // Field label (e.g. "你的 PikTag 帳號") — left-aligned so the 帳號
+  // section reads as a distinct, explained field, never a second name.
+  fieldLabel: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: c.gray600,
+    alignSelf: 'stretch',
+    marginTop: 18,
+    marginBottom: 6,
+  },
+  // Username box: same chrome as nameInput but a row with a fixed
+  // "pikt.ag/" prefix so it unmistakably reads as the profile URL.
+  usernameField: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'stretch',
+    backgroundColor: c.gray100,
+    borderWidth: 1,
+    borderColor: c.gray200,
+    borderRadius: BORDER_RADIUS.md,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+  },
+  usernamePrefix: {
+    fontSize: 18,
+    color: c.gray400,
+  },
+  usernameInput: {
+    flex: 1,
+    fontSize: 18,
+    color: c.gray900,
+    padding: 0,
   },
   // Username live-status / why-this line under the 帳號 input.
   usernameStatusRow: {

@@ -237,7 +237,8 @@
       "linksTitle": "بطاقتك الرقمية",
       "linksSubtitle": "أضف وسائل التواصل وحساباتك — مسحة واحدة ويحصلون عليك كاملًا",
       "linksGateHint": "أضف {{count}} أخرى (البطاقة تحتاج 3 وسائل تواصل أو حسابات على الأقل)",
-      "finishCta": "تمّ — ابدأ استخدام PikTag"
+      "finishCta": "تمّ — ابدأ استخدام PikTag",
+      "usernameLabel": "اسم المستخدم الخاص بك في PikTag"
     }
   },
   "connections": {

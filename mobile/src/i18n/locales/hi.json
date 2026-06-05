@@ -237,7 +237,8 @@
       "linksTitle": "आपका डिजिटल कार्ड",
       "linksSubtitle": "संपर्क और सोशल जोड़ें — एक स्कैन और पूरा आप उनके पास",
       "linksGateHint": "{{count}} और जोड़ें (कार्ड के लिए कम से कम 3 संपर्क या सोशल चाहिए)",
-      "finishCta": "हो गया — PikTag इस्तेमाल शुरू करें"
+      "finishCta": "हो गया — PikTag इस्तेमाल शुरू करें",
+      "usernameLabel": "आपका PikTag यूज़रनेम"
     }
   },
   "connections": {

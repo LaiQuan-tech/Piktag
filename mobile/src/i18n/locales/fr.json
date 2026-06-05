@@ -237,7 +237,8 @@
       "linksTitle": "Votre carte numérique",
       "linksSubtitle": "Ajoutez contacts et réseaux — un scan et on vous a en entier",
       "linksGateHint": "Ajoutez-en {{count}} de plus (une carte a besoin d'au moins 3 contacts ou réseaux)",
-      "finishCta": "Terminé — commencez à utiliser PikTag"
+      "finishCta": "Terminé — commencez à utiliser PikTag",
+      "usernameLabel": "Votre identifiant PikTag"
     }
   },
   "connections": {

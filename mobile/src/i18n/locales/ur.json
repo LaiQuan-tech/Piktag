@@ -244,7 +244,8 @@
       "linksTitle": "آپ کا ڈیجیٹل کارڈ",
       "linksSubtitle": "رابطے اور سوشل شامل کریں — ایک اسکین اور پورے آپ ان کے پاس",
       "linksGateHint": "{{count}} اور شامل کریں (کارڈ کے لیے کم از کم 3 رابطے یا سوشل درکار)",
-      "finishCta": "ہو گیا — PikTag استعمال شروع کریں"
+      "finishCta": "ہو گیا — PikTag استعمال شروع کریں",
+      "usernameLabel": "آپ کا PikTag یوزرنیم"
     }
   },
   "connections": {
