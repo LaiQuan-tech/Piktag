@@ -40,7 +40,17 @@ const corsHeaders = {
 // accuracy fallback if 2.0 errors; 1.5-flash is the last resort.
 // Watch piktag api-usage logs to confirm the per-model latency
 // delta in prod and re-tune if 2.0 ever regresses on accuracy.
-const MODEL_FALLBACK_CHAIN = ['gemini-2.0-flash', 'gemini-2.5-flash', 'gemini-1.5-flash'] as const;
+// 2026-06-05 latency pass 2 (founder: shave more — scan speed is the
+// breakthrough). Now that the call is pure EXTRACTION (bio_draft's
+// generation removed) and the input is already on-device-OCR'd TEXT,
+// there is nothing to reason about — so the LIGHTEST model wins.
+// gemini-2.0-flash-lite is materially faster + cheaper than 2.0-flash
+// and handles "structure this OCR text into JSON" fine. 2.0-flash stays
+// as the IMMEDIATE accuracy fallback (the chain + hasUsableField +
+// multimodal escalation are the safety net), so a flash-lite miss never
+// ships a worse result. VALIDATE accuracy on real cards; reverting is
+// a one-line chain edit.
+const MODEL_FALLBACK_CHAIN = ['gemini-2.0-flash-lite', 'gemini-2.0-flash', 'gemini-2.5-flash', 'gemini-1.5-flash'] as const;
 
 // Native structured-output schema (Gemini OpenAPI subset). Paired
 // with responseMimeType:'application/json' below, this forces the
@@ -95,10 +105,13 @@ const MAX_B64_LEN = 6 * 1024 * 1024;
 type ScanBody = {
   image?: string; // base64, no data: prefix (image / multimodal mode)
   mimeType?: string; // image/jpeg | image/png | image/webp
-  lang?: string; // bio_draft language hint, e.g. "繁體中文"
+  lang?: string; // INERT since bio_draft removed — clients may still send it;
+                 // accepted and ignored. Kept for backward-compat with old builds.
   text?: string; // on-device-OCR raw text (text mode — Path A). When
                  // present, the image is ignored and the model only
                  // structures this text (no multimodal prefill = fast).
+  warmup?: boolean; // pg_cron keep-warm ping — short-circuits before any
+                    // Gemini call, just keeps the isolate hot (no model cost).
 };
 
 type CardData = {
@@ -207,6 +220,15 @@ serve(async (req) => {
       return jsonResponse(400, { error: 'Body must be valid JSON' });
     }
 
+    // Keep-warm ping (pg_cron) — return IMMEDIATELY, before any Gemini
+    // work, so a periodic ping keeps the Deno isolate hot. Real scans
+    // then skip the cold-start spin-up (most impactful at low pre-launch
+    // traffic, when the function would otherwise be cold for every scan).
+    // ~zero cost: no model call.
+    if (body.warmup) {
+      return jsonResponse(200, { ok: true, warm: true });
+    }
+
     const image = (body.image ?? '').trim();
     const mimeType = (body.mimeType ?? 'image/jpeg').trim();
     // Path A (2026-06-03): the client may run on-device OCR and send
@@ -293,11 +315,11 @@ serve(async (req) => {
         //     extraction-only tokens; the cap just stops a verbose tail.
         //   - thinkingConfig: ONLY for 2.5 models. 2.5's default
         //     "thinking" step is pure overhead for OCR, so we zero it.
-        //     2.0-flash / 1.5-flash have NO thinking feature and can
-        //     reject the field with a 400 — which, now that 2.0-flash
-        //     is PRIMARY, would fail every scan and force a fallback
-        //     to 2.5 on every single card (slower than before the
-        //     rework!). Gating it to 2.5 removes that landmine.
+        //     2.0-flash-lite / 2.0-flash / 1.5-flash have NO thinking
+        //     feature and can reject the field with a 400 — which, now
+        //     that 2.0-flash-lite is PRIMARY, would fail every scan and
+        //     force a fallback to 2.5 on every single card (slower than
+        //     before the rework!). Gating it to 2.5 removes that landmine.
         const generationConfig: Record<string, unknown> = {
           temperature: 0.2,
           maxOutputTokens: 300,
