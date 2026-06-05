@@ -268,7 +268,12 @@ const styles = StyleSheet.create({
   scrollContent: { flexGrow: 1, justifyContent: 'center', paddingHorizontal: SPACING.xxl },
   logoContainer: { alignItems: 'center', marginBottom: 48 },
   logoRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: SPACING.sm },
-  logoText: { ...TYPOGRAPHY.display, fontSize: 44 },
+  // lineHeight MUST be set explicitly: spreading TYPOGRAPHY.display
+  // pulls in its lineHeight:40 (sized for fontSize 34), but we bump
+  // fontSize to 44 — a 40px line box clips the 44px glyphs, slicing the
+  // top of the letters (the "i" dot showed as a half-dot, founder
+  // 2026-06-05). 54 ≈ fontSize × 1.22 → clears ascenders cleanly.
+  logoText: { ...TYPOGRAPHY.display, fontSize: 44, lineHeight: 54 },
   subtitle: { ...TYPOGRAPHY.body, marginTop: SPACING.sm },
   formContainer: { gap: SPACING.lg },
   input: {
