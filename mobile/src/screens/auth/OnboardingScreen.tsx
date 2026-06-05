@@ -220,13 +220,14 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
             .eq('id', user.id)
             .single();
           if (!cancelled && profile?.avatar_url) setAvatarUrl(profile.avatar_url);
-          // Prefill the current (auto-generated) username so the user
-          // can keep or customise it. It's their own → RPC excludes
-          // self → starts as 'available' (CTA enabled by default).
-          if (!cancelled && profile?.username) {
-            setUsername(profile.username);
-            setUsernameStatus('available');
-          }
+          // Do NOT prefill the username. The signup trigger seeds an
+          // auto-generated handle, but showing it pre-filled reads as
+          // "here's an account we assigned you" — wrong for a real
+          // product (founder, 2026-06-05: 這是開放給使用者用的產品,
+          // 你預設什麼). The user picks their own from an empty field;
+          // their choice overwrites the seed at goToTags. (Avatar IS
+          // restored above — that's the user's own uploaded photo, not
+          // a system-assigned default.)
           const profileName = profile?.full_name?.trim();
           if (!cancelled && profileName) {
             setDisplayName(profileName);
