@@ -34,7 +34,7 @@ function consumePart(digits: string, max: number): { part: string; used: number 
   if (d0 * 10 > max) return { part: '0' + digits[0], used: 1 }; // single high digit -> 0d
   if (digits.length === 1) return { part: digits[0], used: 1 }; // valid tens-prefix, wait
   const two = parseInt(digits.slice(0, 2), 10);
-  if (two < 1) return { part: '0' + digits[0], used: 1 };       // "00" -> treat 1st as ones
+  if (two < 1) return { part: digits[0], used: 1 };             // "00" -> stay on single "0", wait (month/day min is 01, never 00)
   if (two > max) return { part: '0' + digits[0], used: 1 };     // e.g. month 1+5=15 -> "01", push 5
   return { part: String(two).padStart(2, '0'), used: 2 };
 }
