@@ -372,7 +372,6 @@ const BiolinkRow = React.memo(function BiolinkRow({
 // ── Main screen ──────────────────────────────────────────────────────────────
 
 export default function EditProfileScreen({ navigation, route }: EditProfileScreenProps) {
-  const fromOnboarding = !!route?.params?.fromOnboarding;
   const focusPhone = !!route?.params?.focusPhone;
   const { t } = useTranslation();
   const { colors, isDark } = useTheme();
@@ -1765,53 +1764,11 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
           keyboardShouldPersistTaps="handled"
           scrollEnabled={!isDragging}
         >
-          {/* Profile completion nudge — earlier iteration was a heavy
-              card with a progress bar, 4-row checklist, and a big
-              purple share-now CTA at 100%. User feedback: the card
-              looms over the avatar and feels oppressive ("看了會很
-              討厭，有壓迫感"). Replaced with a single soft gray line
-              listing what's still missing — same information density,
-              fraction of the visual weight, no demand on the user.
-              At 100% the line silently disappears (no replacement
-              CTA, no celebratory banner, just empty space). */}
-          {(() => {
-            const missing: string[] = [];
-            if (!avatarUrl) {
-              missing.push(t('editProfile.missingAvatar', { defaultValue: '大頭照' }));
-            }
-            if (form.bio.trim().length < 10) {
-              missing.push(t('editProfile.missingBio', { defaultValue: '簡介' }));
-            }
-            if (userTags.length < 3) {
-              missing.push(t('editProfile.missingTags', { defaultValue: '3 個標籤' }));
-            }
-            if (biolinks.length < 1) {
-              missing.push(t('editProfile.missingBiolink', { defaultValue: '社群連結' }));
-            }
-            const showWelcome = fromOnboarding;
-            const showMissing = missing.length > 0;
-            if (!showWelcome && !showMissing) return null;
-            return (
-              <View style={styles.completionInlineRow}>
-                {showWelcome && (
-                  <Text style={styles.completionWelcomeInline}>
-                    {t('editProfile.welcomeShort', { defaultValue: '歡迎到 PikTag' })}
-                  </Text>
-                )}
-                {showMissing && (
-                  <View style={styles.completionInlineMissingRow}>
-                    <BoltIcon size={12} color={colors.piktag500} />
-                    <Text style={styles.completionInlineText}>
-                      {t('editProfile.completionInline', {
-                        items: missing.join('、'),
-                        defaultValue: '讓對的人秒找到你 — 差 {{items}}',
-                      })}
-                    </Text>
-                  </View>
-                )}
-              </View>
-            );
-          })()}
+          {/* (Profile-completion nudge removed 2026-06-05 — the gated
+              onboarding wizard now guarantees a complete profile
+              (name / username / ≥3 tags / ≥3 links) for every new
+              account, so the "讓對的人秒找到你 — 差 X" missing-items
+              line + the onboarding welcome are redundant here. Founder.) */}
 
           {/* Avatar Section */}
           <View style={styles.avatarSection}>
@@ -2935,40 +2892,7 @@ function makeStyles(c: ColorPalette) {
   scrollContent: {
     paddingBottom: 100,
   },
-  // ── Profile completion nudge ─────────────────────────────────────
-  // Single soft line above the avatar that lists what's still missing
-  // ("還差: 大頭照、簡介"). No card, no border, no progress bar — the
-  // earlier card design felt oppressive sitting above the avatar.
-  // Just enough text to remind, never enough to demand.
-  completionInlineRow: {
-    paddingHorizontal: 24,
-    paddingTop: 18,
-    paddingBottom: 4,
-    alignItems: 'center',
-    gap: 4,
-  },
-  completionWelcomeInline: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: c.gray700,
-    textAlign: 'center',
-  },
-  completionInlineMissingRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 5,
-    paddingHorizontal: 8,
-    flexWrap: 'wrap',
-  },
-  completionInlineText: {
-    fontSize: 12,
-    color: c.gray600,
-    textAlign: 'center',
-    lineHeight: 17,
-    fontWeight: '500',
-    flexShrink: 1,
-  },
+  // (Profile-completion-nudge styles removed 2026-06-05 with the banner.)
   loadingContainer: {
     flex: 1,
     alignItems: 'center',

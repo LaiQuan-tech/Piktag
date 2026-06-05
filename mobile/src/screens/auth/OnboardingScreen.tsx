@@ -577,21 +577,17 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
     // (Invite-code handoff removed — the invite/redeem gate was
     // retired; open signup, no codes.)
 
-    // Drop the user on the create-first-event surface.
-    // root → Main → AddTagTab(2) → AddTagCreate(1). Back-gesture
-    // pops AddTagCreate → AddTagMain (the # tab's landing).
+    // Land on HOME, not the QR-creation surface. Dropping a brand-new
+    // user straight into "create a QR code" right after the wizard read
+    // as too abrupt (founder, 2026-06-05: 精靈完不用直接進入建立 QR
+    // code，太突兀). Home's cold-start cards guide the next step (QR /
+    // contacts) at the user's own pace.
     const mainState = {
-      index: 2,
+      index: 0,
       routes: [
         { name: 'HomeTab' },
         { name: 'SearchTab' },
-        {
-          name: 'AddTagTab',
-          state: {
-            index: 1,
-            routes: [{ name: 'AddTagMain' }, { name: 'AddTagCreate' }],
-          },
-        },
+        { name: 'AddTagTab' },
         { name: 'NotificationsTab' },
         { name: 'ProfileTab' },
       ],

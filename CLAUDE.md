@@ -289,6 +289,19 @@ founder when the trigger condition lands:
   reasoning when something is wrong or disproportionate. Verify claims
   (incl. your own and agents') against the actual code/DB before asserting.
   The founder values honest correction over compliance.
+- **NO emoji. Anywhere. Ever.** Founder, 2026-06-05 (visibly annoyed —
+  *"不要emoji，你是聽不懂嗎？"*). This applies to BOTH:
+    1. **User-facing app/web/edge content** — strings, components,
+       notification copy, placeholders, labels. There was a whole
+       `chore(strip-emoji)` pass (commit `b292714`); don't reintroduce
+       any. Use lucide icon components when an icon is genuinely needed,
+       never an emoji glyph. (The ⚡ BoltIcon in EditProfile's
+       completion banner was a stray that slipped the strip pass —
+       removed with the banner 2026-06-05.)
+    2. **Chat replies to the founder** — no 👍 ✅ ⚠️ 🤖 etc. in
+       responses either. Plain text only. The founder reads emoji as
+       noise/unprofessional; repeatedly using them after being told is
+       exactly the "聽不懂" failure to avoid.
 - **Don't reinvent; match existing patterns/design.** Reuse canonical
   components, RPCs, styles. Deviating "to be clever" is a defect here.
 - **Commodity features must feel instant — speed is a STRATEGIC red
