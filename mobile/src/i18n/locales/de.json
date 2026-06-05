@@ -1033,6 +1033,10 @@
       },
       "endorsement_request": {
         "body": "hat sich als #{{tag_name}} getaggt"
+      },
+      "contact_sync_nudge": {
+        "title": "Freunde aus deinen Kontakten finden",
+        "body": "Sieh, welche Kontakte schon bei PikTag sind – mit einem Tippen verbinden."
       }
     },
     "tabMatches": "Treffer",

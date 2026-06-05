@@ -995,6 +995,10 @@
       },
       "endorsement_request": {
         "body": "自分を #{{tag_name}} とタグ付けしました"
+      },
+      "contact_sync_nudge": {
+        "title": "連絡先から友だちを探す",
+        "body": "連絡先の中で PikTag を使っている人をチェック。ワンタップでつながろう。"
       }
     },
     "tabMatches": "マッチ",

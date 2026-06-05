@@ -1026,6 +1026,10 @@
       },
       "endorsement_request": {
         "body": "標自己 #{{tag_name}}"
+      },
+      "contact_sync_nudge": {
+        "title": "從通訊錄找朋友",
+        "body": "看看哪些聯絡人已經在 PikTag 上，一鍵加好友。"
       }
     },
     "tabMatches": "配對",

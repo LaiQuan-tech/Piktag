@@ -995,6 +995,10 @@
       },
       "endorsement_request": {
         "body": "se etiquetó como #{{tag_name}}"
+      },
+      "contact_sync_nudge": {
+        "title": "Encuentra amigos en tus contactos",
+        "body": "Mira qué contactos ya están en PikTag y conéctate con un toque."
       }
     },
     "tabMatches": "Match",

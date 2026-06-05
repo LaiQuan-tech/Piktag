@@ -63,7 +63,8 @@ function filterNotifications(
           n.type === 'invite_accepted' ||
           n.type === 'vibe_shift' ||
           n.type === 'ask_posted' ||
-          n.type === 'tag_trending'
+          n.type === 'tag_trending' ||
+          n.type === 'contact_sync_nudge'
       );
     case 'matches':
       // ★ North-Star tab: AI-driven discovery / re-activation.
@@ -141,6 +142,18 @@ function getNotificationDisplay(
   ]);
   if (MAGIC_MOMENT_TYPES.has(type) && item.title) {
     return { username: '', body: item.title };
+  }
+
+  // Self-directed growth nudge — no actor, no username. Render the
+  // localized body from the i18n template, falling back to the
+  // non-empty English SQL body for legacy clients.
+  if (type === 'contact_sync_nudge') {
+    return {
+      username: '',
+      body: t('notifications.types.contact_sync_nudge.body', {
+        defaultValue: item.body || '',
+      }),
+    };
   }
 
   // Consolidated multi-target rows (post-2026-05-31 restraint pass).

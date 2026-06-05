@@ -995,6 +995,10 @@
       },
       "endorsement_request": {
         "body": "وَسَمَ نفسه بـ #{{tag_name}}"
+      },
+      "contact_sync_nudge": {
+        "title": "اعثر على أصدقاء من جهات اتصالك",
+        "body": "اطّلع على جهات الاتصال الموجودة على PikTag وتواصل معهم بنقرة واحدة."
       }
     },
     "tabMatches": "تطابقات",

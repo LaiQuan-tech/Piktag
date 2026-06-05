@@ -50,6 +50,15 @@ export async function routeFromNotification(
   const data = (notification.data ?? {}) as Record<string, any>;
   const type = notification.type;
 
+  // 0. Self-directed growth nudge: "find friends from your contacts".
+  // No actor / target user — just open ContactSyncScreen (registered at
+  // RootStack level, so this resolves from both the in-app tap and the
+  // App.tsx push-tap call site).
+  if (type === 'contact_sync_nudge') {
+    navigation.navigate('ContactSync');
+    return;
+  }
+
   // 1. Tag-centric.
   const tagId: string | undefined = data.tag_id;
   const tagName: string | undefined = data.tag_name;

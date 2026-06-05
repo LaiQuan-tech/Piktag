@@ -1040,6 +1040,10 @@
       },
       "endorsement_request": {
         "body": "gắn tag bản thân là #{{tag_name}}"
+      },
+      "contact_sync_nudge": {
+        "title": "Tìm bạn từ danh bạ",
+        "body": "Xem những liên hệ nào đã có trên PikTag — kết nối chỉ với một chạm."
       }
     },
     "tabMatches": "Khớp",

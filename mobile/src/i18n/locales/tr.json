@@ -995,6 +995,10 @@
       },
       "endorsement_request": {
         "body": "kendini #{{tag_name}} olarak etiketledi"
+      },
+      "contact_sync_nudge": {
+        "title": "Kişilerinden arkadaş bul",
+        "body": "Hangi kişilerinin PikTag’de olduğunu gör, tek dokunuşla bağlan."
       }
     },
     "tabMatches": "Eşleşmeler",

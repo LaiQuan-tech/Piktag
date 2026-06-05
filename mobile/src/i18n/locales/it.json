@@ -1040,6 +1040,10 @@
       },
       "endorsement_request": {
         "body": "si è taggato come #{{tag_name}}"
+      },
+      "contact_sync_nudge": {
+        "title": "Trova amici dalla rubrica",
+        "body": "Scopri quali contatti sono già su PikTag e connettiti con un tocco."
       }
     },
     "tabMatches": "Match",

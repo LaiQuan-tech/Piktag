@@ -995,6 +995,10 @@
       },
       "endorsement_request": {
         "body": "memberi tag dirinya #{{tag_name}}"
+      },
+      "contact_sync_nudge": {
+        "title": "Temukan teman dari kontak",
+        "body": "Lihat kontak mana yang sudah ada di PikTag — terhubung dengan satu ketukan."
       }
     },
     "tabMatches": "Cocok",

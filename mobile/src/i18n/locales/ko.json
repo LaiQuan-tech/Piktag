@@ -995,6 +995,10 @@
       },
       "endorsement_request": {
         "body": "스스로 #{{tag_name}}(으)로 태그했어요"
+      },
+      "contact_sync_nudge": {
+        "title": "연락처에서 친구 찾기",
+        "body": "연락처 중 이미 PikTag를 쓰는 사람을 확인하고 한 번에 친구를 맺어요."
       }
     },
     "tabMatches": "매칭",

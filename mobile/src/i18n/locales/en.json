@@ -1040,6 +1040,10 @@
       },
       "endorsement_request": {
         "body": "tagged themselves #{{tag_name}}"
+      },
+      "contact_sync_nudge": {
+        "title": "Find friends from your contacts",
+        "body": "See which of your contacts are already on PikTag — connect in one tap."
       }
     },
     "tabMatches": "Matches",

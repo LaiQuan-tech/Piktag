@@ -32,6 +32,7 @@ export const KNOWN_NOTIFICATION_TYPES = [
   'vibe_shift',
   'ask_posted',
   'tag_trending',
+  'contact_sync_nudge', // growth nudge: find friends from your contacts
   // matches (AI / discovery)
   'recommendation',
   'tag_convergence',

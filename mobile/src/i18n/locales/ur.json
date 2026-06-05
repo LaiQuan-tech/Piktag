@@ -1040,6 +1040,10 @@
       },
       "endorsement_request": {
         "body": "خود کو #{{tag_name}} کے طور پر ٹیگ کیا"
+      },
+      "contact_sync_nudge": {
+        "title": "اپنے رابطوں سے دوست تلاش کریں",
+        "body": "دیکھیں آپ کے کون سے رابطے پہلے سے PikTag پر ہیں — ایک ٹیپ میں جُڑیں۔"
       }
     },
     "tabMatches": "میچ",
