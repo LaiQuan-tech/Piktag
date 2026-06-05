@@ -245,7 +245,9 @@
       "linksSubtitle": "Thêm liên hệ và mạng xã hội — quét một lần là có đủ bạn",
       "linksGateHint": "Thêm {{count}} nữa (danh thiếp cần ít nhất 3 liên hệ hoặc mạng xã hội)",
       "finishCta": "Xong — bắt đầu dùng PikTag",
-      "usernameLabel": "Tên người dùng PikTag của bạn"
+      "usernameLabel": "Tên người dùng PikTag của bạn",
+      "headlineLabel": "Chức danh (không bắt buộc)",
+      "bioLabel": "Một câu giới thiệu bản thân"
     }
   },
   "connections": {

@@ -240,7 +240,9 @@
       "linksSubtitle": "留下联系方式与社群，别人扫一下就完整收藏你",
       "linksGateHint": "再加 {{count}} 个就好（电子名片至少 3 个联系方式或社群）",
       "finishCta": "完成，开始用 PikTag",
-      "usernameLabel": "你的 PikTag 账号"
+      "usernameLabel": "你的 PikTag 账号",
+      "headlineLabel": "职称（选填）",
+      "bioLabel": "一句话介绍自己"
     }
   },
   "connections": {

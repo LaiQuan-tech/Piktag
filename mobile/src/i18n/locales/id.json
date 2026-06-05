@@ -238,7 +238,9 @@
       "linksSubtitle": "Tambahkan kontak dan sosial — sekali pindai, kamu lengkap",
       "linksGateHint": "Tambah {{count}} lagi (kartu butuh minimal 3 kontak atau sosial)",
       "finishCta": "Selesai — mulai pakai PikTag",
-      "usernameLabel": "Nama pengguna PikTag kamu"
+      "usernameLabel": "Nama pengguna PikTag kamu",
+      "headlineLabel": "Jabatan (opsional)",
+      "bioLabel": "Satu kalimat tentang kamu"
     }
   },
   "connections": {

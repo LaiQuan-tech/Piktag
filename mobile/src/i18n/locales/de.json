@@ -240,7 +240,9 @@
       "linksSubtitle": "Füge Kontakte und Socials hinzu — ein Scan und du bist komplett da",
       "linksGateHint": "Füge noch {{count}} hinzu (eine Karte braucht mindestens 3 Kontakte oder Socials)",
       "finishCta": "Fertig — leg mit PikTag los",
-      "usernameLabel": "Dein PikTag-Benutzername"
+      "usernameLabel": "Dein PikTag-Benutzername",
+      "headlineLabel": "Position (optional)",
+      "bioLabel": "Ein Satz über dich"
     }
   },
   "connections": {

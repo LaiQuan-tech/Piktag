@@ -245,7 +245,9 @@
       "linksSubtitle": "Add contacts and socials — one scan and people have all of you",
       "linksGateHint": "Add {{count}} more (a card needs at least 3 contacts or socials)",
       "finishCta": "Done — start using PikTag",
-      "usernameLabel": "Your PikTag handle"
+      "usernameLabel": "Your PikTag handle",
+      "headlineLabel": "Title (optional)",
+      "bioLabel": "One line about you"
     }
   },
   "connections": {

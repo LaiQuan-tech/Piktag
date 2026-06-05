@@ -238,7 +238,9 @@
       "linksSubtitle": "যোগাযোগ ও সোশ্যাল যোগ করুন — এক স্ক্যানেই পুরো আপনি",
       "linksGateHint": "আরও {{count}}টি যোগ করুন (কার্ডে অন্তত ৩টি যোগাযোগ বা সোশ্যাল দরকার)",
       "finishCta": "হয়ে গেছে — PikTag ব্যবহার শুরু করুন",
-      "usernameLabel": "আপনার PikTag ইউজারনেম"
+      "usernameLabel": "আপনার PikTag ইউজারনেম",
+      "headlineLabel": "পদবি (ঐচ্ছিক)",
+      "bioLabel": "নিজের সম্পর্কে এক লাইন"
     }
   },
   "connections": {

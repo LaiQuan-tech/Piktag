@@ -245,7 +245,9 @@
       "linksSubtitle": "Aggiungi contatti e social — una scansione e ti hanno tutto",
       "linksGateHint": "Aggiungine altri {{count}} (una carta richiede almeno 3 contatti o social)",
       "finishCta": "Fatto — inizia a usare PikTag",
-      "usernameLabel": "Il tuo username PikTag"
+      "usernameLabel": "Il tuo username PikTag",
+      "headlineLabel": "Ruolo (facoltativo)",
+      "bioLabel": "Una riga su di te"
     }
   },
   "connections": {

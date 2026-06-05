@@ -238,7 +238,9 @@
       "linksSubtitle": "संपर्क और सोशल जोड़ें — एक स्कैन और पूरा आप उनके पास",
       "linksGateHint": "{{count}} और जोड़ें (कार्ड के लिए कम से कम 3 संपर्क या सोशल चाहिए)",
       "finishCta": "हो गया — PikTag इस्तेमाल शुरू करें",
-      "usernameLabel": "आपका PikTag यूज़रनेम"
+      "usernameLabel": "आपका PikTag यूज़रनेम",
+      "headlineLabel": "पद (वैकल्पिक)",
+      "bioLabel": "अपने बारे में एक पंक्ति"
     }
   },
   "connections": {

@@ -44,6 +44,7 @@ import { ChevronRight, ChevronLeft, Camera, X, Sparkles, Plus } from 'lucide-rea
 import { supabase, supabaseUrl, supabaseAnonKey } from '../../lib/supabase';
 import { normalizeTagName } from '../../lib/normalizeTag';
 import { addUserTagByName } from '../../lib/userTags';
+import { useRotatingPlaceholder } from '../../hooks/useRotatingPlaceholder';
 import TagChip from '../../components/TagChip';
 import { Image } from 'expo-image';
 import {
@@ -144,6 +145,28 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
   const [aiSuggestions, setAiSuggestions] = useState<string[]>([]);
   const [aiLoading, setAiLoading] = useState(false);
   const [aiTried, setAiTried] = useState(false);
+
+  // Rotating placeholder hints for 職稱 + bio — the SAME 5-example
+  // carousels EditProfile uses (editProfile.headlinePromptHints /
+  // bioPromptHints). Restored into the wizard's step 2 so a user
+  // staring at a blank field sees concrete examples cycle through
+  // (founder, 2026-06-05: the 五個預設輪播 went missing in the wizard).
+  const headlineHints = useMemo(() => {
+    const raw = t('editProfile.headlinePromptHints', { returnObjects: true });
+    return Array.isArray(raw) && raw.length > 0 ? (raw as string[]) : null;
+  }, [t]);
+  const headlinePlaceholder = useRotatingPlaceholder(
+    headlineHints,
+    t('auth.onboarding.headlinePlaceholder', { defaultValue: '例：產品設計師' }),
+  );
+  const bioHints = useMemo(() => {
+    const raw = t('editProfile.bioPromptHints', { returnObjects: true });
+    return Array.isArray(raw) && raw.length > 0 ? (raw as string[]) : null;
+  }, [t]);
+  const bioPlaceholder = useRotatingPlaceholder(
+    bioHints,
+    t('auth.onboarding.bioPlaceholder', { defaultValue: '一句話介紹你自己' }),
+  );
 
   // ─── Step 3 (電子名片): link picker ──────────────────────────
   // The biolinks themselves live in `pendingBiolinks` (shared with the
@@ -918,23 +941,32 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
           {t('auth.onboarding.tagsSubtitle', { defaultValue: '幾個標籤，讓對的人找到你' })}
         </Text>
 
-        {/* Headline (職稱) — optional */}
+        {/* Headline (職稱) — optional. Label keeps the field identity +
+            the 選填 marker; the placeholder is the rotating 5-example
+            carousel (shared with EditProfile). */}
+        <Text style={styles.fieldLabel}>
+          {t('auth.onboarding.headlineLabel', { defaultValue: '職稱（選填）' })}
+        </Text>
         <TextInput
           style={styles.nameInput}
           value={headline}
           onChangeText={setHeadline}
-          placeholder={t('auth.onboarding.headlinePlaceholder', { defaultValue: '職稱（選填，例：產品設計師）' })}
+          placeholder={headlinePlaceholder}
           placeholderTextColor={colors.gray400}
           maxLength={50}
           returnKeyType="next"
         />
 
-        {/* Bio — required (feeds AI tag suggestions + matching) */}
+        {/* Bio — required (feeds AI tag suggestions + matching).
+            Rotating 5-example placeholder. */}
+        <Text style={styles.fieldLabel}>
+          {t('auth.onboarding.bioLabel', { defaultValue: '一句話介紹自己' })}
+        </Text>
         <TextInput
           style={[styles.nameInput, styles.bioInput]}
           value={bio}
           onChangeText={setBio}
-          placeholder={t('auth.onboarding.bioPlaceholder', { defaultValue: '一句話介紹你自己' })}
+          placeholder={bioPlaceholder}
           placeholderTextColor={colors.gray400}
           multiline
           maxLength={80}

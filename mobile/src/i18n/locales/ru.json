@@ -238,7 +238,9 @@
       "linksSubtitle": "Добавьте контакты и соцсети — один скан, и вы весь тут",
       "linksGateHint": "Добавьте ещё {{count}} (визитке нужно минимум 3 контакта или соцсети)",
       "finishCta": "Готово — начните пользоваться PikTag",
-      "usernameLabel": "Ваш ник в PikTag"
+      "usernameLabel": "Ваш ник в PikTag",
+      "headlineLabel": "Должность (необязательно)",
+      "bioLabel": "Одна строка о себе"
     }
   },
   "connections": {

@@ -238,7 +238,9 @@
       "linksSubtitle": "連絡先とSNSを追加 — スキャンひとつであなたのすべてが伝わる",
       "linksGateHint": "あと {{count}} 個（名刺には連絡先かSNSが3つ以上必要）",
       "finishCta": "完了 — PikTag を始める",
-      "usernameLabel": "あなたの PikTag アカウント"
+      "usernameLabel": "あなたの PikTag アカウント",
+      "headlineLabel": "肩書き（任意）",
+      "bioLabel": "ひとことで自己紹介"
     }
   },
   "connections": {

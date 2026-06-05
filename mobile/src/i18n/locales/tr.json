@@ -238,7 +238,9 @@
       "linksSubtitle": "Kişileri ve sosyalleri ekle — tek taramayla seni tümüyle alsınlar",
       "linksGateHint": "{{count}} tane daha ekle (bir kartvizit en az 3 kişi veya sosyal ister)",
       "finishCta": "Bitti — PikTag'i kullanmaya başla",
-      "usernameLabel": "PikTag kullanıcı adın"
+      "usernameLabel": "PikTag kullanıcı adın",
+      "headlineLabel": "Unvan (isteğe bağlı)",
+      "bioLabel": "Kendini bir cümleyle anlat"
     }
   },
   "connections": {

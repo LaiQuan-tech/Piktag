@@ -238,7 +238,9 @@
       "linksSubtitle": "Adicione contatos e redes — um escaneamento e te têm por completo",
       "linksGateHint": "Adicione mais {{count}} (um cartão precisa de pelo menos 3 contatos ou redes)",
       "finishCta": "Pronto — comece a usar o PikTag",
-      "usernameLabel": "Seu nome de usuário no PikTag"
+      "usernameLabel": "Seu nome de usuário no PikTag",
+      "headlineLabel": "Cargo (opcional)",
+      "bioLabel": "Uma linha sobre você"
     }
   },
   "connections": {

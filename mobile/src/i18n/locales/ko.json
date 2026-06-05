@@ -238,7 +238,9 @@
       "linksSubtitle": "연락처와 SNS를 추가하세요 — 한 번 스캔으로 당신을 다 담아요",
       "linksGateHint": "{{count}}개만 더 (명함에는 연락처나 SNS가 최소 3개 필요)",
       "finishCta": "완료 — PikTag 시작하기",
-      "usernameLabel": "내 PikTag 아이디"
+      "usernameLabel": "내 PikTag 아이디",
+      "headlineLabel": "직함 (선택)",
+      "bioLabel": "한 줄 자기소개"
     }
   },
   "connections": {

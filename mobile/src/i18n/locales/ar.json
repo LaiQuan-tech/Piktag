@@ -238,7 +238,9 @@
       "linksSubtitle": "أضف وسائل التواصل وحساباتك — مسحة واحدة ويحصلون عليك كاملًا",
       "linksGateHint": "أضف {{count}} أخرى (البطاقة تحتاج 3 وسائل تواصل أو حسابات على الأقل)",
       "finishCta": "تمّ — ابدأ استخدام PikTag",
-      "usernameLabel": "اسم المستخدم الخاص بك في PikTag"
+      "usernameLabel": "اسم المستخدم الخاص بك في PikTag",
+      "headlineLabel": "المسمى الوظيفي (اختياري)",
+      "bioLabel": "سطر واحد عنك"
     }
   },
   "connections": {
