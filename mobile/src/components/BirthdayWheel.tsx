@@ -3,6 +3,7 @@ import {
   View,
   Text,
   TouchableOpacity,
+  Pressable,
   Modal,
   StyleSheet,
   Platform,
@@ -115,8 +116,14 @@ export default function BirthdayWheel({ value, onChange, boxStyle, placeholder }
       </TouchableOpacity>
 
       <Modal visible={open} transparent animationType="slide" onRequestClose={() => setOpen(false)}>
-        <TouchableOpacity style={styles.overlay} activeOpacity={1} onPress={() => setOpen(false)}>
-          <TouchableOpacity activeOpacity={1} style={styles.sheet}>
+        <View style={styles.overlay}>
+          {/* Backdrop is a SEPARATE sibling layer behind the sheet —
+              tapping the dimmed area closes. The sheet/pickers are NOT
+              wrapped in any touchable, so the native wheel scrolls
+              freely (a TouchableOpacity around a Picker can swallow the
+              pan gesture and freeze the wheel). */}
+          <Pressable style={StyleSheet.absoluteFill} onPress={() => setOpen(false)} />
+          <View style={styles.sheet}>
             <View style={styles.sheetHeader}>
               <TouchableOpacity onPress={clear} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
                 <Text style={styles.clearBtn}>{t('common.clear', { defaultValue: '清除' })}</Text>
@@ -156,8 +163,8 @@ export default function BirthdayWheel({ value, onChange, boxStyle, placeholder }
                 ))}
               </Picker>
             </View>
-          </TouchableOpacity>
-        </TouchableOpacity>
+          </View>
+        </View>
       </Modal>
     </>
   );
