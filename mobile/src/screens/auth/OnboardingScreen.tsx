@@ -35,16 +35,13 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
-  Modal,
-  Switch,
   ActivityIndicator,
 } from 'react-native';
 import BrandSpinner from '../../components/loaders/BrandSpinner';
 import { useTranslation } from 'react-i18next';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { ChevronRight, ChevronLeft, Camera, QrCode, ScanLine, X, Sparkles, Plus } from 'lucide-react-native';
+import { ChevronRight, ChevronLeft, Camera, QrCode, X, Sparkles, Plus } from 'lucide-react-native';
 import { supabase, supabaseUrl, supabaseAnonKey } from '../../lib/supabase';
-import { scanCard } from '../../lib/scanCard';
 import { normalizeTagName } from '../../lib/normalizeTag';
 import { addUserTagByName } from '../../lib/userTags';
 import TagChip from '../../components/TagChip';
@@ -77,62 +74,6 @@ const STEP_LINKS = 3;   // 電子名片: social/contact links
 const MAX_ONB_TAGS = 10;
 const MIN_ONB_TAGS = 3; // gate: tags are the engine — require a few
 const MIN_ONB_LINKS = 3; // gate: ≥3 links (phone/email count) — 電子名片
-
-// ─── Business-card scan plumbing ────────────────────────────
-// The edge function returns these fields (all nullable). bio_draft
-// is handled separately (it feeds the bio, not a biolink); the
-// rest are contact handles that map onto piktag_biolinks rows.
-type CardData = {
-  full_name: string | null;
-  job_title: string | null;
-  company: string | null;
-  bio_draft: string | null;
-  phone: string | null;
-  email: string | null;
-  website: string | null;
-  instagram: string | null;
-  facebook: string | null;
-  linkedin: string | null;
-  line: string | null;
-};
-
-// Which CardData keys are contact handles → biolink rows, and the
-// piktag_biolinks.platform key each maps to. Order = display order
-// in the confirmation sheet AND insert position order.
-const BIOLINK_FIELDS: { key: keyof CardData; platform: string }[] = [
-  { key: 'phone', platform: 'phone' },
-  { key: 'email', platform: 'email' },
-  { key: 'website', platform: 'website' },
-  { key: 'instagram', platform: 'instagram' },
-  { key: 'facebook', platform: 'facebook' },
-  { key: 'linkedin', platform: 'linkedin' },
-  { key: 'line', platform: 'line' },
-];
-
-// Turn a raw handle the card gave us into the canonical stored URL,
-// matching how EditProfile builds biolink.url (prefix + handle).
-// The card may print a full URL OR a bare handle — normalise both.
-function buildBiolinkUrl(platform: string, raw: string): string {
-  const v = raw.trim();
-  if (!v) return v;
-  // Already a full link the model passed through verbatim.
-  if (/^https?:\/\//i.test(v)) return v;
-  if (platform === 'phone') {
-    // Keep + and digits only; tel: tolerates spaces but stored
-    // form should be clean.
-    return 'tel:' + v.replace(/[^\d+]/g, '');
-  }
-  if (platform === 'email') {
-    return v.startsWith('mailto:') ? v : 'mailto:' + v;
-  }
-  if (platform === 'website') {
-    return 'https://' + v.replace(/^\/+/, '');
-  }
-  const prefix = PLATFORM_MAP[platform]?.prefix ?? '';
-  // Strip a leading @ for social handles — prefixes already end at
-  // the path root (instagram.com/, linkedin.com/in/, …).
-  return prefix + v.replace(/^@+/, '');
-}
 
 // ─── Username (帳號) helpers ────────────────────────────────
 // The handle lives in the public URL pikt.ag/{username}, so keep it
@@ -225,23 +166,15 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
   const finishedRef = useRef(false);
   const navTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // ─── Business-card scan state ─────────────────────────────
-  // `bio` + `pendingBiolinks` are what actually get committed in
-  // handleComplete. They stay empty unless the user scans a card
-  // AND confirms the sheet — so a user who skips the scan has the
-  // exact same minimal name+avatar flow as before (no behaviour
-  // change for the skip path, which is the whole funnel premise).
+  // `bio` (step 2) + `pendingBiolinks` (step 3 link picker) are what
+  // get committed in handleComplete. The wizard is a strictly linear,
+  // type-only funnel (founder, 2026-06-05 "線性走完，不要有其他分支"):
+  // no card-scan accelerator / no camera detour — the user fills every
+  // step by hand, the only skippable field is the avatar.
   const [bio, setBio] = useState('');
   const [pendingBiolinks, setPendingBiolinks] = useState<
     { platform: string; url: string; label: string | null }[]
   >([]);
-  const [scanning, setScanning] = useState(false);
-  const [scanModalVisible, setScanModalVisible] = useState(false);
-  // Editable working copy of what the scan returned. The user can
-  // fix OCR mistakes here before anything is written.
-  const [editCard, setEditCard] = useState<CardData | null>(null);
-  // Per-biolink include toggles (default on for any detected field).
-  const [includeMap, setIncludeMap] = useState<Record<string, boolean>>({});
 
   // ─── Smart prefill ──────────────────────────────────────
   // Goal: most users tap the CTA without ever opening the keyboard.
@@ -582,110 +515,10 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
     }
   }, [t]);
 
-  // ─── Business-card scan ─────────────────────────────────
-  // Optional accelerator on the name screen. Opens the CAMERA to
-  // photograph a physical card (not the library — "掃描名片" means
-  // point-and-shoot the real card) → edge-function vision extract →
-  // editable confirmation sheet. Nothing is written until the user
-  // confirms the sheet; this handler only POPULATES the working copy.
-  // Scan pipeline, fed a captured photo by CardCameraScreen via its
-  // onCaptured callback param. The framing-guide camera owns the
-  // camera + permission; this owns the timeout + confirmation sheet.
-  const runScan = useCallback(async (uri: string, mimeType: string) => {
-    try {
-      setScanning(true);
-      // scanCard runs on-device OCR first (fast) and auto-falls back
-      // to the multimodal image call; same { data, error } shape as
-      // the raw invoke. 2026-06-03 speed pass: uri-only input — base64
-      // is lazy-encoded inside scanCard only when the fallback fires.
-      const SCAN_TIMEOUT_MS = 30000;
-      const { data, error } = await Promise.race([
-        scanCard({ uri, mimeType }),
-        new Promise<never>((_, reject) =>
-          setTimeout(() => reject(new Error('SCAN_TIMEOUT')), SCAN_TIMEOUT_MS),
-        ),
-      ]);
-      if (error) {
-        console.warn('[Onboarding] scan-business-card failed:', error);
-        Alert.alert(
-          t('auth.onboarding.cardScanFailedTitle', { defaultValue: '掃描失敗' }),
-          t('auth.onboarding.cardScanFailedMessage', {
-            defaultValue: '名片沒有讀取成功，再試一次或手動填寫。',
-          }),
-        );
-        return;
-      }
-      const card = ((data as any)?.data ?? null) as CardData | null;
-      const anyField =
-        card &&
-        Object.values(card).some((v) => typeof v === 'string' && v.trim());
-      if (!card || !anyField) {
-        Alert.alert(
-          t('auth.onboarding.cardScanEmptyTitle', { defaultValue: '沒讀到資料' }),
-          t('auth.onboarding.cardScanEmptyMessage', {
-            defaultValue: '這張名片看不太清楚 — 換一張清楚的照片，或直接手動填。',
-          }),
-        );
-        return;
-      }
-      // Default-include any contact field that came back non-null.
-      const nextInclude: Record<string, boolean> = {};
-      for (const f of BIOLINK_FIELDS) {
-        const val = card[f.key];
-        nextInclude[f.key] = typeof val === 'string' && val.trim().length > 0;
-      }
-      setEditCard(card);
-      setIncludeMap(nextInclude);
-      setScanModalVisible(true);
-    } catch (err: any) {
-      const isTimeout = err?.message === 'SCAN_TIMEOUT';
-      Alert.alert(
-        isTimeout
-          ? t('auth.onboarding.cardScanFailedTitle', { defaultValue: '掃描失敗' })
-          : t('common.error'),
-        isTimeout
-          ? t('auth.onboarding.cardScanFailedMessage', {
-              defaultValue: '名片沒有讀取成功，再試一次或手動填寫。',
-            })
-          : err?.message || t('common.unknownError'),
-      );
-    } finally {
-      setScanning(false);
-    }
-  }, [t]);
-
-  // Open the custom framing-guide camera; it returns the photo here.
-  const handleScanCard = useCallback(() => {
-    navigation.navigate('CardCamera', { onCaptured: runScan });
-  }, [navigation, runScan]);
-
-  // Commit the (possibly user-edited) sheet into local state.
-  // Still nothing in the DB — handleComplete does the writes.
-  const handleApplyCard = useCallback(() => {
-    if (!editCard) {
-      setScanModalVisible(false);
-      return;
-    }
-    const name = (editCard.full_name ?? '').trim();
-    if (name) setDisplayName(name);
-    const draft = (editCard.bio_draft ?? '').trim();
-    if (draft) setBio(draft);
-
-    const links: { platform: string; url: string; label: string | null }[] = [];
-    for (const f of BIOLINK_FIELDS) {
-      if (!includeMap[f.key]) continue;
-      const raw = (editCard[f.key] ?? '').toString().trim();
-      if (!raw) continue;
-      links.push({
-        platform: f.platform,
-        url: buildBiolinkUrl(f.platform, raw),
-        label: null,
-      });
-    }
-    setPendingBiolinks(links);
-    setScanModalVisible(false);
-    setEditCard(null);
-  }, [editCard, includeMap]);
+  // (Card-scan accelerator removed 2026-06-05 — the wizard is a strictly
+  // linear, type-only funnel with no camera detour. The CardCamera
+  // screen still serves the friends-page "+人" scan flow; it just isn't
+  // wired into onboarding anymore.)
 
   // Post-completion navigation. Extracted out of the burst's
   // onComplete so a safety timer can also call it: if the burst
@@ -777,10 +610,8 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
         Alert.alert(t('common.error'), t('auth.onboarding.alertUserNotFound', { defaultValue: '找不到使用者' }));
         return;
       }
-      // Bio rides along with full_name in the same UPDATE when the
-      // user scanned a card and kept a bio_draft. Empty bio → don't
-      // send the column at all (skip-scan users keep the exact old
-      // behaviour: only full_name is touched).
+      // Bio (typed in step 2) rides along with full_name in the same
+      // upsert. Empty bio → don't send the column at all.
       const profilePatch: Record<string, string> = { full_name: trimmed, username: uname };
       const trimmedBio = bio.trim();
       if (trimmedBio) profilePatch.bio = trimmedBio;
@@ -817,10 +648,10 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
         return;
       }
 
-      // Biolinks from a confirmed card scan. Best-effort + non-fatal:
-      // a failed biolink insert must never block finishing onboarding
-      // (the user can always re-add links in EditProfile). Insert as
-      // one batch so position order is preserved.
+      // Biolinks added in step 3 (the link picker). Best-effort +
+      // non-fatal: a failed biolink insert must never block finishing
+      // onboarding (the user can always re-add links in EditProfile).
+      // Insert as one batch so position order is preserved.
       if (pendingBiolinks.length > 0) {
         try {
           const rows = pendingBiolinks.map((b, i) => ({
@@ -831,16 +662,11 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
             position: i,
             is_active: true,
             // 'both' (icon row + card) to match every other biolink
-            // creation path and the DB column default
-            // (20260531000000). Was hardcoded 'icon' here, which meant
-            // a user who scanned their card during onboarding saw
-            // their links render ONLY as compact icons — never as
-            // cards — until they manually edited one (which upgraded
-            // it to 'both'). That's exactly the per-surface drift the
-            // founder unified away from; onboarding shouldn't be the
-            // one place that starts links half-shown. (4.8 onboarding
-            // audit 2026-06-03; reverses the earlier "leave as icon"
-            // deferral now that display_mode is unified to 'both'.)
+            // creation path and the DB column default (20260531000000).
+            // Was hardcoded 'icon' here once, which made onboarding the
+            // one place that started links half-shown (icons only, never
+            // cards) until manually edited — exactly the per-surface
+            // drift the founder unified away from. Keep it 'both'.
             display_mode: 'both',
             visibility: 'public',
           }));
@@ -1072,42 +898,8 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
         {/* (Birthday moved to Step 2 — Step 1 is identity only:
             avatar + name + username.) */}
 
-        {/* Optional accelerator. Sits BELOW the name input as a
-            secondary outlined affordance — visually subordinate to
-            the primary CTA so it reads as "or, the fast way",
-            never competing with "just type your name and go".
-            Skipping it leaves the original minimal flow untouched. */}
-        <TouchableOpacity
-          style={styles.scanCardBtn}
-          activeOpacity={0.7}
-          onPress={handleScanCard}
-          disabled={scanning}
-          accessibilityRole="button"
-          accessibilityLabel={t('auth.onboarding.scanCardCta', { defaultValue: '掃名片快速帶入' })}
-        >
-          {scanning ? (
-            // Explicit "reading…" feedback, consistent with
-            // EditLocalContact (reuses localContact.scanningCard —
-            // already in all 19 locales). Light piktag50 button bg,
-            // so a piktag500 indicator stays visible.
-            <>
-              <ActivityIndicator size="small" color={colors.piktag500} />
-              <Text style={styles.scanCardBtnText}>
-                {t('localContact.scanningCard', { defaultValue: '辨識名片中…' })}
-              </Text>
-            </>
-          ) : (
-            <>
-              <ScanLine size={18} color={colors.piktag500} strokeWidth={2} />
-              <Text style={styles.scanCardBtnText}>
-                {t('auth.onboarding.scanCardCta', { defaultValue: '掃名片快速帶入' })}
-              </Text>
-            </>
-          )}
-        </TouchableOpacity>
-        <Text style={styles.scanCardHint}>
-          {t('auth.onboarding.scanCardHint', { defaultValue: '有名片？拍一張，自動帶入 bio 和聯絡方式（選填）' })}
-        </Text>
+        {/* (Card-scan accelerator removed 2026-06-05 — strictly linear,
+            type-only first step: avatar + name + username, nothing else.) */}
 
         <View style={{ flex: 1, minHeight: 32 }} />
 
@@ -1462,136 +1254,8 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
         onComplete={finishOnboarding}
       />
 
-      {/* ─── Business-card confirmation sheet ───────────────
-          Everything OCR'd is shown editable BEFORE it touches
-          the profile. Card OCR mangles phone digits / handles;
-          a 5-second review beats junk in the user's permanent
-          profile. Nothing here writes to the DB — "套用" only
-          lifts the values into local state; handleComplete does
-          the actual writes when the user finishes onboarding. */}
-      <Modal
-        visible={scanModalVisible}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setScanModalVisible(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalSheet}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>
-                {t('auth.onboarding.cardConfirmTitle', { defaultValue: '確認名片資料' })}
-              </Text>
-              <TouchableOpacity
-                onPress={() => setScanModalVisible(false)}
-                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                accessibilityRole="button"
-                accessibilityLabel={t('common.close', { defaultValue: '關閉' })}
-              >
-                <X size={22} color={colors.gray500} />
-              </TouchableOpacity>
-            </View>
-            <Text style={styles.modalSubtitle}>
-              {t('auth.onboarding.cardConfirmSubtitle', {
-                defaultValue: '檢查一下、可以改 — 確認後才會帶入',
-              })}
-            </Text>
-
-            <ScrollView
-              style={styles.modalScroll}
-              keyboardShouldPersistTaps="handled"
-              showsVerticalScrollIndicator={false}
-            >
-              {/* Name */}
-              <Text style={styles.modalFieldLabel}>
-                {t('auth.onboarding.cardFieldName', { defaultValue: '名字' })}
-              </Text>
-              <TextInput
-                style={styles.modalInput}
-                value={editCard?.full_name ?? ''}
-                onChangeText={(v) =>
-                  setEditCard((c) => (c ? { ...c, full_name: v } : c))
-                }
-                placeholder={t('auth.onboarding.profileNamePlaceholder', { defaultValue: '你的名字' })}
-                placeholderTextColor={colors.gray400}
-                maxLength={40}
-              />
-
-              {/* Bio draft */}
-              <Text style={styles.modalFieldLabel}>
-                {t('auth.onboarding.cardFieldBio', { defaultValue: 'Bio（AI 起的草稿，可改）' })}
-              </Text>
-              <TextInput
-                style={[styles.modalInput, styles.modalInputMultiline]}
-                value={editCard?.bio_draft ?? ''}
-                onChangeText={(v) =>
-                  setEditCard((c) => (c ? { ...c, bio_draft: v } : c))
-                }
-                placeholder={t('auth.onboarding.cardBioPlaceholder', {
-                  defaultValue: '一句話介紹你自己',
-                })}
-                placeholderTextColor={colors.gray400}
-                multiline
-                maxLength={160}
-              />
-
-              {/* Detected contact links */}
-              {BIOLINK_FIELDS.some(
-                (f) => (editCard?.[f.key] ?? '').toString().trim(),
-              ) && (
-                <Text style={styles.modalSectionLabel}>
-                  {t('auth.onboarding.cardLinksLabel', { defaultValue: '聯絡方式 / 社群' })}
-                </Text>
-              )}
-              {BIOLINK_FIELDS.map((f) => {
-                const raw = (editCard?.[f.key] ?? '').toString();
-                if (!raw.trim()) return null;
-                const label = PLATFORM_MAP[f.platform]?.label ?? f.platform;
-                const on = !!includeMap[f.key];
-                return (
-                  <View key={f.key} style={styles.modalLinkRow}>
-                    <Switch
-                      value={on}
-                      onValueChange={(val) =>
-                        setIncludeMap((m) => ({ ...m, [f.key]: val }))
-                      }
-                      trackColor={{ false: colors.gray200, true: colors.piktag500 }}
-                    />
-                    <View style={styles.modalLinkBody}>
-                      <Text style={styles.modalLinkPlatform}>{label}</Text>
-                      <TextInput
-                        style={[
-                          styles.modalLinkInput,
-                          !on && styles.modalLinkInputOff,
-                        ]}
-                        value={raw}
-                        editable={on}
-                        onChangeText={(v) =>
-                          setEditCard((c) =>
-                            c ? { ...c, [f.key]: v } : c,
-                          )
-                        }
-                        autoCapitalize="none"
-                        autoCorrect={false}
-                      />
-                    </View>
-                  </View>
-                );
-              })}
-            </ScrollView>
-
-            <TouchableOpacity
-              style={styles.modalApplyBtn}
-              activeOpacity={0.85}
-              onPress={handleApplyCard}
-              accessibilityRole="button"
-            >
-              <Text style={styles.modalApplyBtnText}>
-                {t('auth.onboarding.cardApplyCta', { defaultValue: '套用' })}
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
+      {/* (Business-card confirmation sheet removed 2026-06-05 — no
+          card-scan accelerator in the linear onboarding funnel.) */}
     </KeyboardAvoidingView>
   );
 }
@@ -1909,113 +1573,6 @@ function makeStyles(c: ColorPalette) {
     fontSize: 14,
     fontWeight: '600',
     color: c.piktag500,
-  },
-  scanCardHint: {
-    fontSize: 12,
-    color: c.gray400,
-    textAlign: 'center',
-    marginTop: 8,
-  },
-
-  // ── Card confirmation sheet ──
-  modalOverlay: {
-    flex: 1,
-    justifyContent: 'flex-end',
-    backgroundColor: 'rgba(0,0,0,0.4)',
-  },
-  modalSheet: {
-    backgroundColor: c.white,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    paddingHorizontal: 20,
-    paddingTop: 20,
-    paddingBottom: 32,
-    maxHeight: '85%',
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: '800',
-    color: c.gray900,
-  },
-  modalSubtitle: {
-    fontSize: 13,
-    color: c.gray500,
-    marginTop: 4,
-    marginBottom: 12,
-  },
-  modalScroll: {
-    flexGrow: 0,
-  },
-  modalFieldLabel: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: c.gray700,
-    marginTop: 14,
-    marginBottom: 6,
-  },
-  modalInput: {
-    fontSize: 15,
-    color: c.gray900,
-    backgroundColor: c.gray100,
-    borderWidth: 1,
-    borderColor: c.gray200,
-    borderRadius: BORDER_RADIUS.md,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-  },
-  modalInputMultiline: {
-    minHeight: 64,
-    textAlignVertical: 'top',
-  },
-  modalSectionLabel: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: c.piktag600,
-    marginTop: 20,
-    marginBottom: 4,
-  },
-  modalLinkRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    marginTop: 12,
-  },
-  modalLinkBody: {
-    flex: 1,
-  },
-  modalLinkPlatform: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: c.gray500,
-    marginBottom: 4,
-  },
-  modalLinkInput: {
-    fontSize: 14,
-    color: c.gray900,
-    backgroundColor: c.gray50,
-    borderRadius: BORDER_RADIUS.sm,
-    paddingHorizontal: 12,
-    paddingVertical: 9,
-  },
-  modalLinkInputOff: {
-    opacity: 0.4,
-  },
-  modalApplyBtn: {
-    marginTop: 20,
-    paddingVertical: 15,
-    borderRadius: BORDER_RADIUS.lg,
-    backgroundColor: c.piktag500,
-    alignItems: 'center',
-  },
-  modalApplyBtnText: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#FFFFFF',
   },
   });
 }

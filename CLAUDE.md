@@ -502,6 +502,36 @@ founder when the trigger condition lands:
       LINE" path is the existing `line.me` friend link → transfer
       in-app. If a future session is asked to "add LINE Pay", point
       here.
+- **Onboarding is a strictly linear, gated, type-only funnel — no
+  branches.** Founder, 2026-06-05: *"註冊後直接去精靈，線性走完，不要有
+  其他分支"*. The contract (lock it; don't let a future session add a
+  "shortcut"):
+    - **Register → straight into the wizard.** No "註冊成功" interstitial
+      alert, no detour to Login. A brand-new account (no
+      `piktag_profiles.onboarding_completed`) routes to the wizard via
+      `AppNavigator.decideOnboarding`. New-account splash→wizard must
+      have NO flash of the empty home (set `onboardingDecision='pending'`
+      before the async check).
+    - **Step 1 → 2 → 3, forward-gated, to completion.** Each step's
+      next/finish is disabled until its requirement is met (identity
+      filled / ≥3 tags / ≥3 links). The ONLY exit is finishing
+      (`navigation.reset` → Main).
+    - **No escape hatches**: no "skip all", no back-to-login, no
+      close-to-home, no mid-wizard navigation to another screen.
+    - **The ONLY skippable thing is the avatar field** (not the wizard).
+    - **No card-scan accelerator in onboarding** (removed 2026-06-05).
+      It was a camera detour + confirm-modal branch off the linear
+      flow. The wizard is hand-typed only. (CardCamera still serves the
+      friends-page "+人" scan — just not onboarding.) Inline helpers that
+      DON'T leave the screen are fine (e.g. the AI tag-suggest button on
+      step 2 — tap → gray chips appear in place; that's not a branch).
+    - **`onboarding_completed` is the gate's source of truth**, set TRUE
+      only at `handleComplete` (the true end). A user who bails after
+      step 1 has username+full_name but NOT this flag → correctly
+      re-prompted. Don't infer completion from profile-field presence.
+    - The launch gate must **never block on the network** — the
+      onboarding profile check is timeout-bounded + has a watchdog
+      (a stalled query once bricked the splash; see AppNavigator).
 - **Every change:** `tsc` clean → commit → push. i18n spans **19 locales**
   (`mobile/src/i18n/locales/*.json`) — keep all in sync (JSON round-trip
   into the right block; verify the key landed where intended).
