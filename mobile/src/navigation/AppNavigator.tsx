@@ -447,6 +447,12 @@ export default function AppNavigator() {
   useEffect(() => {
     sessionRef.current = session;
   }, [session]);
+  // The user id we last ran the onboarding decision for. Guards the
+  // auth-state listener so we ONLY re-decide on a genuine sign-in /
+  // account switch (user id changes) — never on a token refresh, which
+  // also fires onAuthStateChange and would otherwise re-flash the
+  // loader + re-query every hour.
+  const decidedForUserRef = useRef<string | null>(null);
   // Pending deep link holds the parsed payload from cold start until a
   // consumer (post-register flow) clears it. Stored in a ref so capture
   // and consume don't race through render cycles.
@@ -544,6 +550,7 @@ export default function AppNavigator() {
         email: currentSession.user.email ?? '',
       });
 
+      decidedForUserRef.current = currentSession.user.id;
       await decideOnboarding(currentSession.user.id);
 
       // Defer push notification registration until after the first
@@ -569,10 +576,22 @@ export default function AppNavigator() {
         if (!isMounted) return;
         setSession(newSession);
         if (newSession?.user) {
-          await decideOnboarding(newSession.user.id);
-          // Resolve pending connections for newly registered users.
-          resolvePendingDeepLink(newSession.user.id, newSession.user.created_at);
+          const uid = newSession.user.id;
+          // Only act on a genuine sign-in / account switch (user id
+          // changed) — skip token refreshes (same user) so we don't
+          // re-flash the loader or re-query every hour.
+          if (decidedForUserRef.current !== uid) {
+            decidedForUserRef.current = uid;
+            // Show the loader (not Main) WHILE we decide, so a fresh
+            // registration goes splash → wizard with NO flash of the
+            // empty home in between ("新帳號一註冊就走精靈", founder).
+            setOnboardingDecision('pending');
+            await decideOnboarding(uid);
+            // Resolve pending connections for newly registered users.
+            resolvePendingDeepLink(uid, newSession.user.created_at);
+          }
         } else {
+          decidedForUserRef.current = null;
           setOnboardingDecision('skip');
         }
         // Auth-state changes after initial load should never re-open

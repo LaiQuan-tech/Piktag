@@ -99,9 +99,7 @@ export default function RegisterScreen({ navigation }: RegisterScreenProps) {
           });
       }
 
-      if (data.session) {
-        Alert.alert(t('auth.register.alertSuccessTitle'), t('auth.register.alertSuccessMessage'));
-      } else {
+      if (!data.session) {
         // Email confirmation is ON: signUp returns NO session and NO
         // error. Without this branch the user taps Register and sees
         // absolutely nothing — a silent dead end on the form. Tell
@@ -114,6 +112,11 @@ export default function RegisterScreen({ navigation }: RegisterScreenProps) {
         );
         navigation.navigate('Login');
       }
+      // else: signed in immediately (email-confirm OFF) — do NOT pop a
+      // "註冊成功" alert. The onboarding wizard is the very next screen
+      // (AppNavigator.onAuthStateChange → 'required' for the brand-new,
+      // not-yet-completed account); a blocking alert would just race
+      // that transition. 新帳號一註冊就直接走精靈 (founder, 2026-06-05).
     } catch (err: any) {
       Alert.alert(t('common.error'), err.message || t('common.unknownError'));
     } finally {
