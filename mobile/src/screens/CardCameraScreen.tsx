@@ -192,18 +192,34 @@ export default function CardCameraScreen({ navigation, route }: Props) {
   // goBack = return to wherever the camera was opened from.
   const onClose: (() => void) | undefined = route.params?.onClose;
 
-  const close = useCallback(() => {
-    // goBack first (pop the camera) so the caller screen is focused
-    // when onClose runs — mirrors the capture path's ordering.
-    if (navigation.canGoBack()) navigation.goBack();
-    onClose?.();
-  }, [navigation, onClose]);
+  // Entry mode (2026-06-05): the "+人" icon now opens THIS camera
+  // FIRST — "點 icon → 直接鏡頭", with no EditLocalContact form flashing
+  // in between (that two-transition stutter was the "還要點選項/不如
+  // 預期" the founder caught). In entry mode the camera OWNS the
+  // handoff: a capture (or 手動輸入) REPLACES itself with
+  // EditLocalContact — so Back from the form lands on 好友頁 and never
+  // re-opens the camera — and X pops straight back to 好友頁. Callback
+  // mode (onCaptured / onManual / onClose supplied by a parent) is
+  // unchanged and still drives the retry-from-form + onboarding entries.
+  const forNewContact: boolean = route.params?.forNewContact === true;
 
-  // "或手動輸入" — bail to the form (caller focuses the name field).
+  const close = useCallback(() => {
+    // goBack pops the camera. Entry mode → straight back to 好友頁;
+    // callback mode → focus the caller first, then run its onClose
+    // (which may cancel the whole add).
+    if (navigation.canGoBack()) navigation.goBack();
+    if (!forNewContact) onClose?.();
+  }, [navigation, onClose, forNewContact]);
+
+  // "或手動輸入" — go to the form to type it (no scan).
   const goManual = useCallback(() => {
+    if (forNewContact) {
+      navigation.replace('EditLocalContact', { startManual: true });
+      return;
+    }
     onManual?.();
     if (navigation.canGoBack()) navigation.goBack();
-  }, [navigation, onManual]);
+  }, [navigation, onManual, forNewContact]);
 
   const handleShutter = useCallback(async () => {
     if (busyRef.current || !cameraRef.current) return;
@@ -243,9 +259,19 @@ export default function CardCameraScreen({ navigation, route }: Props) {
         setCapturing(false);
         return;
       }
-      // Hand the frame back to the caller's scan pipeline, then leave
-      // the camera. goBack first so the caller is focused when its
-      // scan spinner / alerts show.
+      if (forNewContact) {
+        // Entry mode: swap the camera for the prefill form (Back from
+        // the form → 好友頁, not back to the camera). EditLocalContact
+        // runs the scan / OCR on mount from these params.
+        navigation.replace('EditLocalContact', {
+          scanUri: finalUri,
+          scanMime: 'image/jpeg',
+        });
+        return;
+      }
+      // Callback mode: hand the frame back to the caller's scan
+      // pipeline, then leave the camera. goBack first so the caller is
+      // focused when its scan spinner / alerts show.
       navigation.goBack();
       onCaptured?.(finalUri, 'image/jpeg');
     } catch (err: any) {
@@ -257,7 +283,7 @@ export default function CardCameraScreen({ navigation, route }: Props) {
       busyRef.current = false;
       setCapturing(false);
     }
-  }, [navigation, onCaptured, t]);
+  }, [navigation, onCaptured, t, forNewContact]);
 
   // Permission still resolving
   if (!permission) {

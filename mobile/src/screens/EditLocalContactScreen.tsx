@@ -528,21 +528,31 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
   // effect below; once the form is up, the user manually edits, no
   // mid-flow re-scan path.)
 
-  // Create mode: auto-open the camera ONCE, on top of the (empty)
-  // form. ref guard = strictly once → no reopen loop. Dismissal:
-  //   • capture        → runScan, stay on the form
-  //   • "或手動輸入"   → form with the name field focused
-  //   • X (close)      → cancel the WHOLE add → back to 好友頁.
-  // For X we pop THIS screen too: the camera pops itself first, then
-  // onClose runs here (this screen now focused) and goBack pops the
-  // form → 好友頁. Mirrors the capture path's goBack-then-callback
-  // ordering; the ref guard stops the effect re-firing meanwhile.
-  // Edit mode never auto-opens.
+  // Create-mode entry now comes FROM the CardCamera screen: the "+人"
+  // icon opens the camera FIRST ("點 icon → 直接鏡頭"), and the camera
+  // REPLACES itself with this form, handing off via route params. On
+  // mount we act on the handoff ONCE (ref guard → no reopen loop):
+  //   • { scanUri }     → a card was shot → run the scan / prefill now
+  //   • { startManual } → user tapped 手動輸入 → focus the name field
+  //   • neither         → defensive fallback (create reached WITHOUT
+  //                       going through the camera, e.g. a future direct
+  //                       navigate): open the camera, mirroring the old
+  //                       auto-open so no create path is stranded on a
+  //                       blank form. (true = X cancels the whole add.)
+  // Edit mode ({ contactId }) never scans / opens the camera.
   useEffect(() => {
     if (isEdit || cameraAutoRef.current) return;
     cameraAutoRef.current = true;
-    // true = X on the camera cancels the whole add (pops the form).
-    openCamera(true);
+    const scanUri: string | undefined = route.params?.scanUri;
+    const scanMime: string | undefined = route.params?.scanMime;
+    const startManual: boolean = route.params?.startManual === true;
+    if (scanUri) {
+      runScanRef.current?.(scanUri, scanMime || 'image/jpeg');
+    } else if (startManual) {
+      setManualFocus(true);
+    } else {
+      openCamera(true);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isEdit]);
 

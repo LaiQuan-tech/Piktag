@@ -344,7 +344,11 @@ function MainNavigator({ needsOnboarding }: { needsOnboarding: boolean }) {
           getComponent={() => require('../screens/CameraScanScreen').default}
         />
         {/* Custom business-card capture (framing guide → better OCR).
-            Returns the photo via an onCaptured callback param. */}
+            Two modes: (1) entry mode { forNewContact:true } — the "+人"
+            icon opens this FIRST and it REPLACES itself with
+            EditLocalContact on capture / 手動輸入; (2) callback mode
+            { onCaptured,... } — retry-from-form + onboarding hand the
+            photo back to the caller's scan pipeline. */}
         <RootStack.Screen
           name="CardCamera"
           getComponent={() => require('../screens/CardCameraScreen').default}

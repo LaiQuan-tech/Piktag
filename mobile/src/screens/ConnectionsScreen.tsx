@@ -1135,18 +1135,20 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
                 Settings and the empty-state CTA — they don't need
                 a third surface on this already-tag-and-sort-heavy
                 header. */}
-            {/* +person → STRAIGHT to the manual-add CRM flow (the
-                business-card scan auto-opens in EditLocalContact create
-                mode). No intermediate menu: this is the highest-frequency
-                "add a contact / scan a card" action and must stay a
-                2-tap path (+person → shutter) — a commodity-speed red
-                line. The 2-option menu that briefly lived here added a
-                third tap and was reverted 2026-06-05. */}
+            {/* +person → STRAIGHT to the card camera. Founder model
+                (2026-06-05): "拍照就是點選 icon 就要看到鏡頭" — tapping
+                this opens the live viewfinder immediately, ONE
+                transition, no EditLocalContact form flashing in between.
+                The camera owns the handoff: shutter → prefilled form,
+                "手動輸入" → blank form, X → back here. This is the
+                highest-frequency commodity flow and the perceived-speed
+                red line lives here — keep it icon→鏡頭, never route it
+                through a menu or an intermediate screen again. */}
             <TouchableOpacity
               style={styles.headerIconBtn}
               activeOpacity={0.6}
-              onPress={() => navigation.navigate('EditLocalContact')}
-              accessibilityLabel={t('connections.addManualA11y', { defaultValue: '手動記一個聯絡人' })}
+              onPress={() => navigation.navigate('CardCamera', { forNewContact: true })}
+              accessibilityLabel={t('connections.addContact', { defaultValue: '新增聯絡人' })}
               accessibilityRole="button"
             >
               <UserPlus size={24} color={isDark ? '#FFFFFF' : colors.gray600} />
