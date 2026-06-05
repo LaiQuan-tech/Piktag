@@ -22,6 +22,23 @@ function daysInMonth(m: number): number {
   return 31;
 }
 
+// Smart-mask防呆: consume 1-2 digits for ONE part (month or day) with
+// a max, returning the cleaned part + how many digits it used. A leading
+// digit too big to be a tens digit (e.g. "5" for a max-31 day, "2" for a
+// max-12 month) auto-zero-pads to "05"/"02" and completes; a value out of
+// range never forms. This makes an INVALID date impossible to type, so
+// no error UI is needed (and it works in any parent layout).
+function consumePart(digits: string, max: number): { part: string; used: number } {
+  if (digits.length === 0) return { part: '', used: 0 };
+  const d0 = parseInt(digits[0], 10);
+  if (d0 * 10 > max) return { part: '0' + digits[0], used: 1 }; // single high digit -> 0d
+  if (digits.length === 1) return { part: digits[0], used: 1 }; // valid tens-prefix, wait
+  const two = parseInt(digits.slice(0, 2), 10);
+  if (two < 1) return { part: '0' + digits[0], used: 1 };       // "00" -> treat 1st as ones
+  if (two > max) return { part: '0' + digits[0], used: 1 };     // e.g. month 1+5=15 -> "01", push 5
+  return { part: String(two).padStart(2, '0'), used: 2 };
+}
+
 // Parse any stored/canonical birthday into month-first {month, day},
 // reusing the ONE normalizer so every accepted shape (MM/DD, 2000-MM-DD,
 // YYYY-MM-DD, MMDD, ...) is handled identically.
@@ -85,18 +102,37 @@ export default function BirthdayInput({ value, onChange, style, placeholderTextC
   }, [value, dayFirst]);
 
   const handleChange = (raw: string) => {
-    const digits = raw.replace(/\D/g, '').slice(0, 4);
-    setText(digits.length > 2 ? `${digits.slice(0, 2)}/${digits.slice(2)}` : digits);
+    const ds = raw.replace(/\D/g, '').slice(0, 8);
+    const firstMax = dayFirst ? 31 : 12;
+    const secondMax = dayFirst ? 12 : 31;
+
+    const r1 = consumePart(ds, firstMax);
+    let firstPart = r1.part;
+    let secondPart = '';
+    if (firstPart.length === 2) {
+      secondPart = consumePart(ds.slice(r1.used), secondMax).part;
+    }
+
+    // Both parts complete → clamp the day to the chosen month's length
+    // (e.g. 02/31 -> 02/29, 04/31 -> 04/30) so the date is always real.
+    if (firstPart.length === 2 && secondPart.length === 2) {
+      const month = dayFirst ? parseInt(secondPart, 10) : parseInt(firstPart, 10);
+      let day = dayFirst ? parseInt(firstPart, 10) : parseInt(secondPart, 10);
+      if (day > daysInMonth(month)) {
+        day = daysInMonth(month);
+        if (dayFirst) firstPart = String(day).padStart(2, '0');
+        else secondPart = String(day).padStart(2, '0');
+      }
+    }
+
+    // Slash only once a second digit exists, so backspacing past it works.
+    setText(firstPart.length === 2 && secondPart.length > 0 ? `${firstPart}/${secondPart}` : firstPart);
 
     let canonical = '';
-    if (digits.length === 4) {
-      const a = parseInt(digits.slice(0, 2), 10);
-      const b = parseInt(digits.slice(2), 10);
-      const month = dayFirst ? b : a;
-      const day = dayFirst ? a : b;
-      if (month >= 1 && month <= 12 && day >= 1 && day <= daysInMonth(month)) {
-        canonical = `${String(month).padStart(2, '0')}/${String(day).padStart(2, '0')}`;
-      }
+    if (firstPart.length === 2 && secondPart.length === 2) {
+      const month = dayFirst ? secondPart : firstPart;
+      const day = dayFirst ? firstPart : secondPart;
+      canonical = `${month}/${day}`; // always valid by construction
     }
     lastEmitted.current = canonical;
     onChange(canonical);
