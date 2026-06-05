@@ -46,6 +46,7 @@ import { normalizeTagName } from '../../lib/normalizeTag';
 import { addUserTagByName } from '../../lib/userTags';
 import TagChip from '../../components/TagChip';
 import BirthdayInput from '../../components/BirthdayInput';
+import { sanitizePhone } from '../../lib/sanitizePhone';
 import { Image } from 'expo-image';
 import {
   requestMediaLibraryPermissionsAsync,
@@ -1169,7 +1170,7 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
             <TextInput
               style={styles.tagInputField}
               value={linkInput}
-              onChangeText={setLinkInput}
+              onChangeText={(v) => setLinkInput(linkPlatform === 'phone' ? sanitizePhone(v) : v)}
               placeholder={PLATFORM_MAP[linkPlatform]?.placeholder ?? ''}
               placeholderTextColor={colors.gray400}
               autoCapitalize="none"

@@ -44,6 +44,7 @@ import { useLocalContacts } from '../hooks/useLocalContacts';
 import { supabase, supabaseUrl, supabaseAnonKey } from '../lib/supabase';
 import { toBirthdayDate } from '../lib/birthday';
 import BirthdayInput from '../components/BirthdayInput';
+import { sanitizePhone } from '../lib/sanitizePhone';
 import { normalizeTagName } from '../lib/normalizeTag';
 import BrandSpinner from '../components/loaders/BrandSpinner';
 import LogoLoader from '../components/loaders/LogoLoader';
@@ -785,7 +786,7 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
               <TextInput
                 style={styles.fieldInput}
                 value={phone}
-                onChangeText={setPhone}
+                onChangeText={(v) => setPhone(sanitizePhone(v))}
                 placeholder={t('localContact.phonePlaceholder', { defaultValue: '+886 912 345 678' })}
                 placeholderTextColor={colors.gray400}
                 keyboardType="phone-pad"
