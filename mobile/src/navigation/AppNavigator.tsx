@@ -257,9 +257,9 @@ function MainTabs() {
     </Tab.Navigator>
     {/* First-launch tooltip tour. Self-contained — reads its own
         AsyncStorage flag (TAB_TOOLTIPS_SEEN_KEY) and renders nothing
-        for users who already saw it. Backfill for pre-existing users
-        happens in decideOnboarding() below: when an old account is
-        detected (already onboarded before this feature shipped), we
+        for users who already saw it. Backfill for already-onboarded
+        users happens in decideOnboarding() below: when an account with
+        a COMPLETE profile is detected (already past the wizard), we
         write the seen flag so the overlay never appears for them. */}
     <TabTooltipOverlay />
     </View>
@@ -420,6 +420,13 @@ function parseSidFromUrl(url: string | null): { username?: string; sid?: string 
 
 const PENDING_DEEP_LINK_KEY = 'piktag_pending_deep_link';
 const ONBOARDING_COMPLETED_KEY = 'piktag_onboarding_completed_v1';
+// Per-account cache key. The bare ONBOARDING_COMPLETED_KEY was a
+// DEVICE-GLOBAL flag, so onboarding-completion leaked across accounts
+// on the same device: once ANY account finished (or an old account
+// backfilled the flag), EVERY later account on that phone skipped the
+// wizard — the "精靈全部沒發生" bug the founder hit on a real device.
+// Namespacing by user id scopes completion to the account it belongs to.
+const onboardingFlagKey = (userId: string) => `${ONBOARDING_COMPLETED_KEY}_${userId}`;
 
 // Decision for whether to include the Onboarding screen in the root
 // stack. `pending` = auth/onboarding check hasn't resolved yet (hold
@@ -518,12 +525,6 @@ export default function AppNavigator() {
     // prevents the flash of Main-then-Onboarding that happens when the
     // onboarding check races the navigator mount.
     const hydrate = async () => {
-      let persistedCompleted = false;
-      try {
-        const raw = await AsyncStorage.getItem(ONBOARDING_COMPLETED_KEY);
-        persistedCompleted = raw === 'true';
-      } catch {}
-
       const { data: { session: currentSession } } = await supabase.auth.getSession();
       if (!isMounted) return;
       setSession(currentSession);
@@ -543,13 +544,7 @@ export default function AppNavigator() {
         email: currentSession.user.email ?? '',
       });
 
-      if (persistedCompleted) {
-        // Persisted flag is the source of truth — bio check only runs
-        // when nothing is stored (first launch post-upgrade / reinstall).
-        setOnboardingDecision('skip');
-      } else {
-        await decideOnboarding(currentSession.user.id, currentSession.user.created_at);
-      }
+      await decideOnboarding(currentSession.user.id);
 
       // Defer push notification registration until after the first
       // frame paints — frees the JS thread during the critical
@@ -574,15 +569,7 @@ export default function AppNavigator() {
         if (!isMounted) return;
         setSession(newSession);
         if (newSession?.user) {
-          let persistedCompleted = false;
-          try {
-            persistedCompleted = (await AsyncStorage.getItem(ONBOARDING_COMPLETED_KEY)) === 'true';
-          } catch {}
-          if (persistedCompleted) {
-            setOnboardingDecision('skip');
-          } else {
-            await decideOnboarding(newSession.user.id, newSession.user.created_at);
-          }
+          await decideOnboarding(newSession.user.id);
           // Resolve pending connections for newly registered users.
           resolvePendingDeepLink(newSession.user.id, newSession.user.created_at);
         } else {
@@ -603,24 +590,50 @@ export default function AppNavigator() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const decideOnboarding = async (userId: string, userCreatedAt: string) => {
+  // Per-ACCOUNT onboarding gate, keyed on the SERVER profile — not a
+  // device-global flag and not auth.users.created_at. The wizard shows
+  // until the account has actually completed it (username + full_name
+  // present = the wizard's mandatory step-1 outputs).
+  //
+  // Why this shape (founder real-device test, 2026-06-05 — "精靈全部
+  // 沒發生" on fresh accounts):
+  //   • The old source-of-truth was a DEVICE-GLOBAL AsyncStorage flag,
+  //     so once any account on the phone finished — or an OLD account
+  //     hit the >5min backfill — EVERY later account skipped the wizard.
+  //   • The fallback gate "created_at < 5 min" also stranded a new user
+  //     who got interrupted >5 min mid-flow with an incomplete profile.
+  // Completeness-on-the-profile fixes both: per-account, survives
+  // interruption, and is testable (any incomplete account shows it).
+  // The namespaced AsyncStorage key is now only a fast-path cache so a
+  // returning, already-complete account skips the profile round-trip.
+  const decideOnboarding = async (userId: string) => {
     try {
-      // Only truly new accounts (< 5min old) are onboarding candidates.
-      // Older accounts without a persisted flag are considered already
-      // onboarded — forcing them through the flow again would be worse
-      // UX than letting them through.
-      const createdAt = new Date(userCreatedAt);
-      const diffMs = Date.now() - createdAt.getTime();
-      const isNewUser = diffMs < 5 * 60 * 1000;
-
-      if (!isNewUser) {
+      const cacheKey = onboardingFlagKey(userId);
+      const cached = await AsyncStorage.getItem(cacheKey).catch(() => null);
+      if (cached === 'true') {
         setOnboardingDecision('skip');
-        // Backfill flags so we don't re-check on every launch AND so old
-        // users (who already finished onboarding before the tab tooltip
-        // tour shipped) never see it. Only write the tooltip flag if it
-        // hasn't been touched, to avoid stomping on a fresh-but-completed
-        // tour from the same device.
-        AsyncStorage.setItem(ONBOARDING_COMPLETED_KEY, 'true').catch(() => {});
+        return;
+      }
+
+      const { data: prof, error } = await supabase
+        .from('piktag_profiles')
+        .select('username, full_name')
+        .eq('id', userId)
+        .maybeSingle();
+
+      if (error) {
+        // Fail-OPEN: never trap a real user in the wizard over a
+        // transient query error — they can finish in EditProfile.
+        setOnboardingDecision('skip');
+        return;
+      }
+
+      const complete = !!prof && !!prof.username && !!prof.full_name;
+      if (complete) {
+        // Cache the per-account result so later launches skip the query,
+        // and mark the new-user tab-tooltip tour seen (existing/complete
+        // accounts shouldn't get the first-run tour).
+        AsyncStorage.setItem(cacheKey, 'true').catch(() => {});
         AsyncStorage.getItem(TAB_TOOLTIPS_SEEN_KEY)
           .then((existing) => {
             if (existing == null) {
@@ -628,23 +641,12 @@ export default function AppNavigator() {
             }
           })
           .catch(() => {});
-        return;
+        setOnboardingDecision('skip');
+      } else {
+        // Null profile (fresh signup) or missing username/full_name
+        // (interrupted) → the wizard hasn't been completed. Show it.
+        setOnboardingDecision('required');
       }
-
-      // For new users (auth.users.created_at < 5 min), ALWAYS show
-      // onboarding regardless of profile field state. The previous
-      // "name empty?" gate broke for Google/Apple OAuth users —
-      // handle_new_user trigger pre-fills full_name from
-      // raw_user_meta_data.name (which OAuth providers always send),
-      // so EVERY OAuth signup hit this branch as "name not empty →
-      // skip". Result: OAuth users never saw the welcome / first-QR
-      // tutorial, which is the entire cold-start experience.
-      //
-      // The 5-min isNewUser window already constrains this to actual
-      // fresh signups; pre-filled name is signal of provenance, NOT
-      // of onboarding completion. Show the tutorial; let the user's
-      // pre-filled name appear in the form as a head start.
-      setOnboardingDecision('required');
     } catch (err) {
       console.warn('Onboarding check error:', err);
       setOnboardingDecision('skip');

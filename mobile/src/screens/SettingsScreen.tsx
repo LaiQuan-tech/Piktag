@@ -25,6 +25,7 @@ import {
 } from 'expo-location';
 import { COLORS, type ColorPalette } from '../constants/theme';
 import { supabase, supabaseUrl, supabaseAnonKey } from '../lib/supabase';
+import * as SecureStore from 'expo-secure-store';
 import { setAnalyticsOptIn } from '../lib/analytics';
 import { useAuth } from '../hooks/useAuth';
 import { useTheme } from '../context/ThemeContext';
@@ -335,11 +336,33 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
   };
 
   const doLogout = async () => {
+    // Reliable logout even on a flaky network. auth-js `_signOut` POSTs
+    // /logout BEFORE clearing local storage (for EVERY scope), and RN
+    // fetch never times out — so a stalled call hangs (or a non-4xx
+    // network error early-returns) BEFORE `_removeSession()`, leaving the
+    // session in place and never emitting SIGNED_OUT. The button then
+    // looks dead — exactly what the founder hit on a real device
+    // (2026-06-05). Bound the call; on timeout/error, hard-clear the
+    // persisted SecureStore session so the app can't auto-restore it.
     try {
-      await supabase.auth.signOut();
+      await Promise.race([
+        supabase.auth.signOut({ scope: 'local' }),
+        new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('LOGOUT_TIMEOUT')), 3000),
+        ),
+      ]);
     } catch {
-      // If signOut API fails, force clear local session
-      await supabase.auth.signOut({ scope: 'local' });
+      // Force-remove the persisted session (SecureStore key =
+      // sb-<project-ref>-auth-token, the supabase-js default). Best
+      // effort — a relaunch then lands on the auth stack regardless.
+      try {
+        const ref = supabaseUrl.replace(/^https?:\/\//, '').split('.')[0];
+        await SecureStore.deleteItemAsync(`sb-${ref}-auth-token`);
+      } catch {}
+      // Fire-and-forget a second local sign-out to emit SIGNED_OUT and
+      // flip AppNavigator to the auth stack live (if it can't, the
+      // SecureStore clear above guarantees logout on next launch).
+      supabase.auth.signOut({ scope: 'local' }).catch(() => {});
     }
   };
 

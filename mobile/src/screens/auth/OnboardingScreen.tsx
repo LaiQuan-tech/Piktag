@@ -848,7 +848,14 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
         }
       }
       try {
-        await AsyncStorage.setItem(ONBOARDING_COMPLETED_KEY, 'true');
+        // Per-ACCOUNT cache key (namespaced by user id) — the old bare
+        // key was device-global and leaked completion across accounts on
+        // the same device, so every later account skipped the wizard.
+        // Mirrors AppNavigator.onboardingFlagKey().
+        const { data: { user: completedUser } } = await supabase.auth.getUser();
+        if (completedUser) {
+          await AsyncStorage.setItem(`${ONBOARDING_COMPLETED_KEY}_${completedUser.id}`, 'true');
+        }
       } catch (err) {
         console.warn('[Onboarding] flag persist failed:', err);
       }
