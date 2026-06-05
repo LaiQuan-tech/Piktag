@@ -1,9 +1,33 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
+import { createClient } from 'npm:@supabase/supabase-js@2';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+// Principle #6: never re-suggest a tag the user has explicitly removed.
+// We fetch the caller's own removed-tag names (via get_my_removed_tag_names,
+// scoped to auth.uid()) and DETERMINISTICALLY filter the model's output — an
+// LLM "don't suggest X" instruction is unreliable. NEVER throws: any failure
+// returns an empty set so suggestions are never blocked by this guard.
+async function getRemovedTagNames(req: Request): Promise<Set<string>> {
+  try {
+    const authHeader = req.headers.get('Authorization') ?? '';
+    const url = Deno.env.get('SUPABASE_URL');
+    const anon = Deno.env.get('SUPABASE_ANON_KEY');
+    if (!authHeader || !url || !anon) return new Set();
+    const sb = createClient(url, anon, {
+      global: { headers: { Authorization: authHeader } },
+      auth: { persistSession: false },
+    });
+    const { data, error } = await sb.rpc('get_my_removed_tag_names');
+    if (error || !Array.isArray(data)) return new Set();
+    return new Set((data as string[]).map((s) => s.toLowerCase()));
+  } catch {
+    return new Set();
+  }
+}
 
 const MODEL_FALLBACK_CHAIN = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash'] as const;
 
@@ -151,6 +175,11 @@ serve(async (req) => {
     let lastError = '';
     let rawSnippet = '';
 
+    // Kick off the removed-tags lookup IN PARALLEL with the Gemini call so
+    // the principle-#6 filter adds no latency on the happy path (the query
+    // always resolves well before the model does).
+    const removedPromise = getRemovedTagNames(req);
+
     for (const model of MODEL_FALLBACK_CHAIN) {
       try {
         const upstream = await fetch(
@@ -181,7 +210,13 @@ serve(async (req) => {
 
         const suggestions = extractStringArray(text);
         if (suggestions && suggestions.length > 0) {
-          return jsonResponse(200, { suggestions });
+          // Principle #6: drop anything the user has explicitly removed.
+          const removed = await removedPromise;
+          const filtered =
+            removed.size > 0
+              ? suggestions.filter((s) => !removed.has(s.toLowerCase()))
+              : suggestions;
+          return jsonResponse(200, { suggestions: filtered });
         }
         lastError = `${model}: response did not contain a usable JSON array`;
       } catch (e) {
