@@ -21,6 +21,7 @@ import SectionTitle from '../components/SectionTitle';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from '../lib/supabase';
 import { logApiUsage } from '../lib/apiUsage';
+import { recordAiSuggestions, markAiSuggestionAccepted } from '../lib/aiTagLogger';
 import { normalizeTagName, ilikeEscape } from '../lib/normalizeTag';
 import { useAuth } from '../hooks/useAuth';
 import { COLORS, type ColorPalette } from '../constants/theme';
@@ -53,6 +54,8 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
   const [isDragging, setIsDragging] = useState(false);
   const [selectedTagId, setSelectedTagId] = useState<string | null>(null); // web only
   const [aiSuggestions, setAiSuggestions] = useState<string[]>([]);
+  // tag_name -> piktag_ai_tag_suggestions.id, for accept logging (#5).
+  const [aiSuggestionIds, setAiSuggestionIds] = useState<Record<string, string>>({});
   const [aiLoading, setAiLoading] = useState(false);
   const [aiError, setAiError] = useState<string | null>(null);
 
@@ -175,6 +178,17 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
 
       setAiSuggestions(data.suggestions);
       AsyncStorage.setItem(cacheKey, JSON.stringify({ suggestions: data.suggestions, timestamp: Date.now() }));
+      // Principle #5: log shown suggestions for calibration (fresh fetch
+      // only — the cache-hit path was already recorded on first fetch).
+      void (async () => {
+        const fresh = data.suggestions!;
+        const ids = await recordAiSuggestions('bio_extract', fresh, { surface: 'manage_tags' });
+        if (ids.length === fresh.length) {
+          const map: Record<string, string> = {};
+          fresh.forEach((name, i) => { map[name] = ids[i]; });
+          setAiSuggestionIds((prev) => ({ ...prev, ...map }));
+        }
+      })();
     } catch (err: any) {
       console.warn('[ManageTagsScreen] loadAiSuggestions:', err);
       setAiError(t('manageTags.aiErrorGeneric', { defaultValue: 'AI 推薦暫時無法使用，稍後再試' }));
@@ -292,6 +306,9 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
 
   const handleAddAiTag = useCallback(async (tagName: string) => {
     if (!user || myTagNames.includes(`#${tagName}`) || myTags.length >= MAX_TAGS) return;
+    // Principle #5: log the accept.
+    const sid = aiSuggestionIds[tagName];
+    if (sid) void markAiSuggestionAccepted(sid);
     setMyTags(prev => (prev.length >= MAX_TAGS ? prev : [...prev, { id: `temp-${Date.now()}`, user_id: user.id, tag_id: '', tag: { id: '', name: tagName } } as any]));
     setAiSuggestions(prev => prev.filter(s => s !== tagName));
     try {
@@ -299,7 +316,7 @@ export default function ManageTagsScreen({ navigation }: ManageTagsScreenProps) 
       if (tagId) await linkTagToUser(tagId);
     } catch { /* ignore */ }
     await loadMyTags();
-  }, [user, myTagNames, myTags.length, findOrCreateTag, linkTagToUser, loadMyTags]);
+  }, [user, myTagNames, myTags.length, findOrCreateTag, linkTagToUser, loadMyTags, aiSuggestionIds]);
 
   /** Chip reorder — save positions to DB */
   const handleChipReorder = useCallback(async (newItems: { id: string; label: string; isPinned?: boolean }[]) => {

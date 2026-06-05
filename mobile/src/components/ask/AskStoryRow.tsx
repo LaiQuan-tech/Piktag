@@ -29,6 +29,7 @@ import { COLORS, type ColorPalette } from '../../constants/theme';
 import { useTheme } from '../../context/ThemeContext';
 import { supabase } from '../../lib/supabase';
 import { normalizeTagName as sharedNormalizeTag, ilikeEscape } from '../../lib/normalizeTag';
+import { recordAiSuggestions, markAiSuggestionAccepted } from '../../lib/aiTagLogger';
 import { useAuth } from '../../hooks/useAuth';
 import { useRotatingPlaceholder } from '../../hooks/useRotatingPlaceholder';
 import type { AskFeedItem, MyActiveAsk } from '../../types/ask';
@@ -572,6 +573,8 @@ export function AskCreateModal({ visible, onClose, existingAsk, onCreated, seedB
   // that don't exist in piktag_tags yet, and users can also add custom names.
   // We only resolve to ids on submit (via findOrCreateTagByName).
   const [aiNames, setAiNames] = useState<string[]>([]);
+  // tag_name -> piktag_ai_tag_suggestions.id, for accept logging (#5).
+  const [aiSuggestionIds, setAiSuggestionIds] = useState<Record<string, string>>({});
   const [customNames, setCustomNames] = useState<string[]>([]);
   const [selectedNames, setSelectedNames] = useState<Set<string>>(new Set());
   const [customInput, setCustomInput] = useState('');
@@ -633,6 +636,16 @@ export function AskCreateModal({ visible, onClose, existingAsk, onCreated, seedB
         ),
       ).slice(0, AI_SUGGESTION_CAP);
       setAiNames(normalized);
+      // Principle #5: log shown suggestions for calibration (ask_create
+      // surface — was previously dark). Fire-and-forget.
+      void (async () => {
+        const sugIds = await recordAiSuggestions('suggest_tags_rpc', normalized, { surface: 'ask_create' });
+        if (sugIds.length === normalized.length) {
+          const map: Record<string, string> = {};
+          normalized.forEach((name, i) => { map[name] = sugIds[i]; });
+          setAiSuggestionIds((prev) => ({ ...prev, ...map }));
+        }
+      })();
       // Empty-result feedback. The edge function can succeed (200) but
       // return no suggestions — short prompts, ambiguous content, or
       // an LLM hiccup. Without this flag the UI just silently stayed
@@ -752,6 +765,13 @@ export function AskCreateModal({ visible, onClose, existingAsk, onCreated, seedB
         throw tagErr;
       }
 
+      // Principle #5: an AI-suggested tag kept selected through submit is
+      // an accept (ask uses keep-selected semantics, not tap-to-add).
+      for (const n of namesToResolve) {
+        const sid = aiSuggestionIds[n];
+        if (sid) void markAiSuggestionAccepted(sid);
+      }
+
       // AI title generation (async, non-blocking)
       supabase.functions.invoke('generate-ask-title', {
         body: JSON.stringify({ body: body.trim(), tags: namesToResolve }),
@@ -779,7 +799,7 @@ export function AskCreateModal({ visible, onClose, existingAsk, onCreated, seedB
     } finally {
       setSaving(false);
     }
-  }, [user, body, selectedNames, existingAsk, onCreated, onClose, t]);
+  }, [user, body, selectedNames, existingAsk, onCreated, onClose, t, aiSuggestionIds]);
 
   const handleDelete = useCallback(async () => {
     if (!existingAsk) return;

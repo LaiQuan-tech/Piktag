@@ -44,6 +44,7 @@ import { ChevronRight, ChevronLeft, Camera, X, Sparkles, Plus } from 'lucide-rea
 import { supabase, supabaseUrl, supabaseAnonKey } from '../../lib/supabase';
 import { normalizeTagName } from '../../lib/normalizeTag';
 import { addUserTagByName } from '../../lib/userTags';
+import { recordAiSuggestions, markAiSuggestionAccepted } from '../../lib/aiTagLogger';
 import TagChip from '../../components/TagChip';
 import BirthdayInput from '../../components/BirthdayInput';
 import { sanitizePhone } from '../../lib/sanitizePhone';
@@ -144,6 +145,8 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
   >([]);
   const [tagInput, setTagInput] = useState('');
   const [aiSuggestions, setAiSuggestions] = useState<string[]>([]);
+  // tag_name -> piktag_ai_tag_suggestions.id, for accept logging (#5).
+  const [aiSuggestionIds, setAiSuggestionIds] = useState<Record<string, string>>({});
   const [aiLoading, setAiLoading] = useState(false);
   const [aiTried, setAiTried] = useState(false);
 
@@ -340,6 +343,9 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
     if (!norm) return;
     if (selectedTags.length >= MAX_ONB_TAGS) return;
     if (selectedTags.some((tg) => tg.name.toLowerCase() === norm.toLowerCase())) return;
+    // Principle #5: if this came from an AI suggestion, log the accept.
+    const sid = aiSuggestionIds[rawName] ?? aiSuggestionIds[norm];
+    if (sid) void markAiSuggestionAccepted(sid);
     const key = `t-${Date.now()}-${norm}`;
     const position = selectedTags.length;
     // Optimistic add; drop from AI suggestions if it came from there.
@@ -372,7 +378,7 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
     } catch (e) {
       console.warn('[Onboarding] tag add failed:', e);
     }
-  }, [selectedTags]);
+  }, [selectedTags, aiSuggestionIds]);
 
   const handleAddTypedTag = useCallback(() => {
     const v = tagInput.trim();
@@ -431,7 +437,18 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
       );
       if (!error && Array.isArray(data?.suggestions)) {
         const taken = new Set(selectedTags.map((tg) => tg.name.toLowerCase()));
-        setAiSuggestions(data.suggestions.filter((s) => s && !taken.has(s.toLowerCase())));
+        const filtered = data.suggestions.filter((s) => s && !taken.has(s.toLowerCase()));
+        setAiSuggestions(filtered);
+        // Principle #5: log shown suggestions for calibration. Onboarding
+        // is the engine's FIRST fill — was previously dark. Fire-and-forget.
+        void (async () => {
+          const ids = await recordAiSuggestions('bio_extract', filtered, { surface: 'onboarding' });
+          if (ids.length === filtered.length) {
+            const map: Record<string, string> = {};
+            filtered.forEach((name, i) => { map[name] = ids[i]; });
+            setAiSuggestionIds((prev) => ({ ...prev, ...map }));
+          }
+        })();
       }
     } catch (e) {
       console.warn('[Onboarding] suggest-tags failed:', e);

@@ -17,6 +17,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ArrowLeft, Plus, Pencil, Trash2, X, Hash, EyeOff, Eye, GripVertical, ChevronDown, CheckCircle2, RefreshCw, AlertTriangle, ChevronUp } from 'lucide-react-native';
 import BoltIcon from '../components/BoltIcon';
 import { logApiUsage } from '../lib/apiUsage';
+import { recordAiSuggestions, markAiSuggestionAccepted } from '../lib/aiTagLogger';
 import RingedAvatar from '../components/RingedAvatar';
 import {
   ScrollViewContainer,
@@ -521,6 +522,8 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
   // navigate to ManageTagsScreen → wait for auto-load" two-page flow
   // with a single inline action on the same screen.
   const [aiSuggestions, setAiSuggestions] = useState<string[]>([]);
+  // tag_name -> piktag_ai_tag_suggestions.id, for accept logging (#5).
+  const [aiSuggestionIds, setAiSuggestionIds] = useState<Record<string, string>>({});
   const [aiLoading, setAiLoading] = useState(false);
   const [aiTriedAndEmpty, setAiTriedAndEmpty] = useState(false);
   // Debounce timer for auto-triggered AI suggestions on bio /
@@ -1497,6 +1500,15 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
         (n) => !userTagNames.includes(`#${n}`)
       );
       setAiSuggestions(filtered);
+      // Principle #5: log shown bio-derived suggestions for calibration.
+      void (async () => {
+        const ids = await recordAiSuggestions('bio_extract', filtered, { surface: 'edit_profile' });
+        if (ids.length === filtered.length) {
+          const map: Record<string, string> = {};
+          filtered.forEach((name, i) => { map[name] = ids[i]; });
+          setAiSuggestionIds((prev) => ({ ...prev, ...map }));
+        }
+      })();
       if (filtered.length === 0) {
         setAiTriedAndEmpty(true);
       }
@@ -1511,6 +1523,9 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
 
   const handleAddAiSuggestion = useCallback(
     async (name: string) => {
+      // Principle #5: log the accept before the optimistic remove.
+      const sid = aiSuggestionIds[name];
+      if (sid) void markAiSuggestionAccepted(sid);
       // Optimistic remove from suggestions so the chip disappears
       // immediately on tap. handleAddTag does its own dedupe + RLS
       // checks; on failure the next render will rebuild suggestions
@@ -1522,7 +1537,7 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
     // handleAddTag depends on tagInput, but the override path doesn't
     // touch it; deps still need the function reference to stay
     // aligned with React's exhaustive-deps rule.
-    [handleAddTag],
+    [handleAddTag, aiSuggestionIds],
   );
 
   // STAGED: removing only hides the tag (no DB write). The real
