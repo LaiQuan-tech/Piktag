@@ -13,8 +13,6 @@ import {
   KeyboardAvoidingView,
   Platform,
   Pressable,
-  Alert,
-  ActionSheetIOS,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
@@ -841,33 +839,11 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
     navigation.navigate('ProfileTab', { screen: 'EditProfile', params: { focusPhone: true } });
   }, [navigation]);
 
-  // "+person" header icon → a 2-option menu. 2026-06-04 (home card #5,
-  // 化整為零): the contact-sync feature had NO persistent entry — it was
-  // only reachable from the cold-start "好東西分享給好朋友" card. Once
-  // that card is removed, ContactSync would be orphaned. Making the
-  // always-visible "+person" icon a hub (find from contacts / add
-  // manually) gives it a permanent home on the friends page.
-  const openAddPersonMenu = useCallback(() => {
-    const fromContacts = t('connections.addFromContacts', { defaultValue: '從通訊錄找朋友' });
-    const manual = t('connections.addManual', { defaultValue: '手動記一個聯絡人' });
-    const cancel = t('common.cancel', { defaultValue: '取消' });
-    const title = t('connections.addPersonTitle', { defaultValue: '加人' });
-    if (Platform.OS === 'ios') {
-      ActionSheetIOS.showActionSheetWithOptions(
-        { options: [fromContacts, manual, cancel], cancelButtonIndex: 2, title },
-        (idx) => {
-          if (idx === 0) navigation.navigate('ContactSync');
-          else if (idx === 1) navigation.navigate('EditLocalContact');
-        },
-      );
-    } else {
-      Alert.alert(title, undefined, [
-        { text: fromContacts, onPress: () => navigation.navigate('ContactSync') },
-        { text: manual, onPress: () => navigation.navigate('EditLocalContact') },
-        { text: cancel, style: 'cancel' },
-      ]);
-    }
-  }, [t, navigation]);
+  // (openAddPersonMenu reverted 2026-06-05 — the 2-option menu added a
+  // tap to the highest-frequency "+person → add contact (scan)" flow,
+  // a commodity-speed regression the founder caught. The +person icon
+  // goes STRAIGHT to EditLocalContact / the scan again. ContactSync
+  // needs a different home — TBD with the founder.)
   const handlePhonePromptDismiss = useCallback(() => {
     setShowPhonePrompt(false);
     dismissPhonePrompt();
@@ -1159,15 +1135,18 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
                 Settings and the empty-state CTA — they don't need
                 a third surface on this already-tag-and-sort-heavy
                 header. */}
-            {/* Single persistent entry to the manual-add CRM flow
-                (one icon, not the old busy action sheet) so it's
-                reachable once the user already has friends, not
-                only from the cold-start empty state. */}
+            {/* +person → STRAIGHT to the manual-add CRM flow (the
+                business-card scan auto-opens in EditLocalContact create
+                mode). No intermediate menu: this is the highest-frequency
+                "add a contact / scan a card" action and must stay a
+                2-tap path (+person → shutter) — a commodity-speed red
+                line. The 2-option menu that briefly lived here added a
+                third tap and was reverted 2026-06-05. */}
             <TouchableOpacity
               style={styles.headerIconBtn}
               activeOpacity={0.6}
-              onPress={openAddPersonMenu}
-              accessibilityLabel={t('connections.addPersonA11y', { defaultValue: '加人' })}
+              onPress={() => navigation.navigate('EditLocalContact')}
+              accessibilityLabel={t('connections.addManualA11y', { defaultValue: '手動記一個聯絡人' })}
               accessibilityRole="button"
             >
               <UserPlus size={24} color={isDark ? '#FFFFFF' : colors.gray600} />
