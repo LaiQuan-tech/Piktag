@@ -56,7 +56,11 @@ RETURNS TABLE (
 LANGUAGE sql
 STABLE
 SECURITY DEFINER
-SET search_path = public
+-- `extensions` MUST be on the search_path: pgvector (the `<=>` cosine
+-- operator + the `vector` type) is installed in the extensions schema on
+-- Supabase, so a bare `search_path = public` makes `embedding <=> embedding`
+-- fail with 42883 (operator does not exist). This was the CI break.
+SET search_path = public, extensions
 AS $$
   SELECT
     (SELECT count(*) FROM public.tag_concepts),
@@ -97,7 +101,9 @@ RETURNS TABLE (
 LANGUAGE sql
 STABLE
 SECURITY DEFINER
-SET search_path = public
+-- `extensions` on the path so the pgvector `<=>` operator resolves
+-- (see the companion note above — this was the 42883 CI break).
+SET search_path = public, extensions
 AS $$
   WITH stats AS (
     SELECT
