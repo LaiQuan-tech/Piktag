@@ -20,6 +20,7 @@
     { "source": "/contact",         "destination": "/index.html" },
     { "source": "/pitch",           "destination": "/index.html" },
     { "source": "/reset-password",  "destination": "/index.html" },
+    { "source": "/admin",           "destination": "/index.html" },
 
     { "source": "/favicon.ico",     "destination": "/logo.png" },
 

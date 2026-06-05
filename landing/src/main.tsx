@@ -6,6 +6,7 @@ import App from './App.tsx';
 import Contact from './pages/Contact.tsx';
 import Pitch from './pages/Pitch.tsx';
 import ResetPassword from './pages/ResetPassword.tsx';
+import Admin from './pages/Admin.tsx';
 import {initAnalytics, trackPageView} from './lib/analytics';
 import './i18n';
 import './index.css';
@@ -138,6 +139,7 @@ createRoot(document.getElementById('root')!).render(
         <Route path="/contact" element={<Contact />} />
         <Route path="/pitch" element={<Pitch />} />
         <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/admin" element={<Admin />} />
       </Routes>
     </BrowserRouter>
   </StrictMode>,
