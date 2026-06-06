@@ -193,28 +193,36 @@ serve(async (req) => {
       `Existing tags on this group (do NOT repeat): ${existingTags || '(none)'}`,
     ];
 
-    // FAST path (card-scan contact tagging): a lean, PERSON-focused prompt.
-    // The event-mix above doesn't fit here (that caller passes only bio +
-    // name, no date/location), and a shorter prompt asking for fewer tags
-    // means the model emits fewer tokens and returns sooner — and the tags
-    // are person-appropriate, not forced date/location ones.
     const fast = body.fast === true;
+
+    // PERSON/PROFILE prompt vs the EVENT-mix prompt above.
+    // Selection is driven by the PRESENCE OF EVENT SIGNALS, NOT the `fast`
+    // flag — founder 2026-06-07 bug: card scans returned ZERO tags because
+    // (older) callers without `fast` fell through to the event-mix prompt,
+    // which hunts for date/location/event tags a person card simply doesn't
+    // have, so the model produced nothing. Any input WITHOUT event signals
+    // (card scan, EditProfile, ManageTags) is person/bio tagging and MUST
+    // use the person prompt, which mandates at least one tag. Only AddTag's
+    // event-QR flow passes date/location/popularNearby → event prompt.
+    const hasEventSignals = !!(date || location || locationDetail || popularNearby);
+    // Card scan (fast) wants a few precise tags; profile curation (non-fast)
+    // wants a richer set to pick from — but BOTH must never be empty.
+    const personCount = fast ? '1 to 3' : '3 to 8';
     const personPromptParts: string[] = [
-      `Suggest hashtag tags describing this PERSON, for a private contact note.`,
-      `Return ONLY a JSON array of 1 to 3 short hashtag strings (without the # prefix), nothing else.`,
-      `ALWAYS return at least ONE tag and at most three — NEVER an empty array. Give the strongest 1-3; don't pad with weak filler just to hit three, but always provide your best tag(s) even for a sparse card.`,
+      `Suggest hashtag tags that describe this person from their title, role, field, company, or interests.`,
+      `Return ONLY a JSON array of ${personCount} short hashtag strings (without the # prefix), nothing else.`,
+      `ALWAYS return at least ONE tag — NEVER an empty array. Prefer the strongest, specific tags; don't pad with weak filler, but always provide your best tag(s) even for a sparse input.`,
       `Keywords MUST be written in ${lang}. Only use English for internationally recognized terms (PM, AI, CEO, UX, IoT).`,
-      `Base them on the person's role / field / company / title from the card. Short (1-3 words / kanji clusters), specific, scannable. No vague catch-alls (#nice, #person, #friend).`,
+      `Short (1-3 words / kanji clusters), specific, scannable. No vague catch-alls (#nice, #person, #friend).`,
       `Do NOT repeat tags already noted: ${existingTags || '(none)'}`,
       ``,
       `─── Context ───`,
-      // Founder 2026-06-07: card scan must ALWAYS yield ≥1 tag. Feed BOTH
-      // the name AND the title/company so even a sparse card (e.g. no clean
-      // headline extracted) still has something to work from.
+      // Feed BOTH the name and the title/bio so even a sparse card (e.g. no
+      // clean headline extracted) still has something to work from.
       `Name: ${name || '(none)'}`,
-      `Job title / company / card text: ${bio || '(none)'}`,
+      `Title / company / bio / card text: ${bio || '(none)'}`,
     ];
-    const prompt = (fast ? personPromptParts : promptParts).join('\n');
+    const prompt = (hasEventSignals ? promptParts : personPromptParts).join('\n');
 
     let lastError = '';
     let rawSnippet = '';
