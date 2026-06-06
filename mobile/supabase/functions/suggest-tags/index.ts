@@ -46,6 +46,9 @@ type SuggestBody = {
   // model, a lean person-focused prompt, fewer + capped tokens. Other
   // callers (event-QR mix, EditProfile, ManageTags, Ask) omit it.
   fast?: boolean;
+  // pg_cron keep-warm ping — short-circuits before any Gemini work, just
+  // keeps the Deno isolate hot (no model cost).
+  warmup?: boolean;
   // Optional richer context for the QR-group creation flow (task 3
   // follow-up). All optional and backward-compatible — old callers
   // (EditProfile auto-suggest, ManageTags AI fire) just don't pass
@@ -111,6 +114,13 @@ serve(async (req) => {
       body = await req.json();
     } catch {
       return jsonResponse(400, { error: 'Body must be valid JSON' });
+    }
+
+    // pg_cron keep-warm ping (founder 2026-06-07): short-circuit BEFORE any
+    // Gemini work — just keeps the Deno isolate hot so a real card-scan tag
+    // request doesn't pay a cold start. ~zero cost (no model call).
+    if (body.warmup) {
+      return jsonResponse(200, { ok: true, warm: true });
     }
 
     const MAX_INPUT = 500;
@@ -199,8 +209,11 @@ serve(async (req) => {
       `Do NOT repeat tags already noted: ${existingTags || '(none)'}`,
       ``,
       `─── Context ───`,
-      `Name / title: ${name || '(none)'}`,
-      `Bio / card text: ${bio || '(none)'}`,
+      // Person NAME deliberately omitted (founder 2026-06-07): a name is
+      // weak tag fodder — tags come from the role/field/company in the
+      // headline, not from "陳大文". A card with only a name and no
+      // headline correctly yields [] rather than invented tags.
+      `Job title / headline / card text: ${bio || '(none)'}`,
     ];
     const prompt = (fast ? personPromptParts : promptParts).join('\n');
 
