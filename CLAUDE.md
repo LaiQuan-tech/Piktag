@@ -302,6 +302,13 @@ founder when the trigger condition lands:
        responses either. Plain text only. The founder reads emoji as
        noise/unprofessional; repeatedly using them after being told is
        exactly the "聽不懂" failure to avoid.
+    Sweep history: 2026-06-07 found + removed 👇 (onboarding aiPickHint),
+    📣 (search askEmptyStateButton), ✓ (onboarding usernameAvailable) across
+    19 locales + tsx defaultValues. **Two deliberate KEEPs — do NOT strip:**
+    (a) the 50 country-flag emoji in the phone country-code picker
+    (`mobile/src/lib/countryCodes.ts`) — founder call 2026-06-07, they're
+    functional country identifiers with no lucide equivalent; (b) functional
+    arrows like "A→Z" sort labels and swipe-hint ← → — typography, not emoji.
 - **Don't reinvent; match existing patterns/design.** Reuse canonical
   components, RPCs, styles. Deviating "to be clever" is a defect here.
 - **Input防呆 — prevent-or-feedback, NEVER silently drop.** Founder,
@@ -608,8 +615,15 @@ founder when the trigger condition lands:
   guess `<today>080000`.
 - **Repo layout:** real mobile app = `mobile/`; landing = `landing/`
   (Vercel, `dist` gitignored, rebuilt on push; meta in
-  `landing/api/*` + `landing/public/*` + `src/main.tsx`). The top-level
-  `/src` is a STALE DUPLICATE — ignore it. Repo `LaiQuan-tech/Piktag`.
+  `landing/api/*` + `landing/public/*` + `src/main.tsx`). **The repo ROOT
+  is the live `piktag-admin` Next.js 16 app** — `app/(admin)/*` (dashboard,
+  users, reports, analytics, audit-log, mission-control, tags),
+  `app/api/admin/*`, `components/admin/*`, `lib/supabase-admin.ts`
+  (service-role), `middleware.ts` (ADMIN_EMAILS gate). Deploys to
+  `piktag-admin.vercel.app` + `admin.pikt.ag`. Do NOT treat the root as
+  stale (a 2026-06-07 session nearly re-built a dashboard that already
+  existed): only the top-level `/src` (old RN web bundle) is the stale
+  duplicate. Repo `LaiQuan-tech/Piktag`.
 - **iOS TestFlight** builds on push to `mobile/**` (excl. supabase/scripts);
   `concurrency: cancel-in-progress` collapses bursts. Two Apple-side
   gotchas to know — both bite specifically when you ship many builds
@@ -684,6 +698,95 @@ founder when the trigger condition lands:
   fixed both in commit 05d2169's follow-up. Rule of thumb: a
   hardcoded bg colour pairs with hardcoded fg colours; a
   theme-aware bg pairs with theme-aware fg. Don't mix.
+
+## Infra & ops — admin backend, auth emails, DNS (set 2026-06-07)
+
+- **Ops/营运 data lives in the admin backend, NEVER the user app.** Founder
+  verbatim: *"app 別做不關使用者的事情"* + *"所有營運的資料,你要顯示都顯示
+  在後台"*. So:
+    - The user app must NOT push internal telemetry. We REMOVED the
+      concept-health digest, the linker-stall alert, AND the growth-pulse
+      pushes (new-signup / first-friend triggers `notify_admin_new_signup`
+      / `notify_admin_first_connection` were dropped). The
+      `notify-admin-growth` edge fn + its `admin_alert` event are now
+      dormant/unused — don't revive into the app.
+    - Anything ops-facing goes in the **piktag-admin** Next.js app
+      (`admin.pikt.ag`). Concept-graph health + GC merge candidates render
+      on its **Tags page** (`app/(admin)/tags/page.tsx`) via read-only RPCs
+      `admin_concept_graph_health()` + `admin_report_concept_merge_candidates()`
+      (service-role; SECURITY DEFINER; 20260605060000).
+- **Supabase Auth config is managed AS CODE**, not in the dashboard:
+  `.github/workflows/supabase-auth-config.yml` PATCHes the Management API
+  (`/v1/projects/<ref>/config/auth`) on push to `mobile/supabase/auth/**`.
+  It sets `site_url`, **read-merge-writes** `uri_allow_list` (so existing
+  OAuth/deep-link redirect URLs are never clobbered), the recovery email
+  subject + template, and SMTP (when `SMTP_*` secrets exist). **NEVER use
+  `supabase config push`** — it's declarative and would reset the
+  dashboard-only Apple/Google OAuth providers.
+- **Password reset uses the token_hash flow, NOT the PKCE ConfirmationURL.**
+  Mobile is `flowType:'pkce'`, so a `{{ .ConfirmationURL }}` link
+  (`/auth/v1/verify?token=pkce_…`) needs the code_verifier stored in the
+  app's SecureStore — opening it in any browser fails ("invalid/expired")
+  100% of the time. Fix: the recovery email links to
+  `https://pikt.ag/reset-password?token_hash={{ .TokenHash }}&type=recovery`
+  and `landing/src/pages/ResetPassword.tsx` calls
+  `verifyOtp({type:'recovery', token_hash})` **at submit** (so email
+  link-scanners can't pre-burn the one-time token). `recovery-email.html`
+  is **English-only** (founder call — Supabase sends one template to all
+  users regardless of app language; per-locale emails would need a custom
+  edge-fn send pipeline, out of scope).
+- **Branded sender via Resend custom SMTP** — `noreply@pikt.ag`, "PikTag".
+  Secrets in GitHub Actions: `SMTP_HOST=smtp.resend.com`, `SMTP_PORT=587`,
+  `SMTP_USER=resend`, `SMTP_PASS=<resend api key>`, `SMTP_SENDER_NAME=PikTag`,
+  `SMTP_ADMIN_EMAIL=noreply@pikt.ag`. pikt.ag is verified in Resend (DKIM/
+  SPF/MX/DMARC records live at Dynadot).
+- **DNS facts.** `pikt.ag` is registered at **Dynadot**; DNS hosted on
+  Dynadot's nameservers (`ns1/ns2.dyna-ns.net`) — **NOT** Vercel
+  (`vercel domains inspect` shows the intended-NS ✘). So subdomain/email
+  records (admin A 76.76.21.21, Resend DKIM/SPF/MX/DMARC on
+  `resend._domainkey` + `send` + `_dmarc`) must be added **by hand in the
+  Dynadot DNS panel** — browser automation of Dynadot does NOT work (its
+  page never reaches `document_idle`, so every screenshot/read times out).
+  Vercel CLI is authed as `lqtech2026`; the Vercel apex + a `*` wildcard
+  ALIAS exist in Vercel's zone but are dormant until NS points at Vercel.
+- **CI gotcha — pgvector `<=>` + search_path.** A `LANGUAGE sql` function
+  using the `<=>` cosine operator MUST `SET search_path = public,
+  extensions` (pgvector lives in `extensions`). A bare `search_path =
+  public` throws 42883 at CREATE time, and because it's validated eagerly
+  it FAILS the whole migration → `supabase db push` stops there and every
+  later migration silently never applies. (This blocked the entire
+  060000→140000 stack for hours on 2026-06-06.) plpgsql bodies are
+  late-bound and don't hit this.
+
+## Matching surfaces — concept-awareness (audited 2026-06-06)
+
+Cross-language 媒合 only works if a surface expands query/tags through
+`concept_id` siblings. Audited all of them; made these concept-aware
+(were literal `tag_id = tag_id`, so 養貓 never matched cat/ねこ there):
+`notify_tag_convergence` (the real-time "N friends also tagged #X" moment),
+`find_reconnect_suggestions`, `find_tag_combinations` — all now key by
+`COALESCE(concept_id::text,'tag:'||id)` with `concept_id IS NOT NULL`
+gating (unlinked tags still exact-match → no regression). Already
+concept-aware: `search_users`, `match_ask_to_friends`,
+`explore_users_for_tag`, the recommendation cron, `notify_ask_bridges`,
+`fetch_ask_feed`. **Left literal on purpose:** `find_tag_similar_strangers`
+(no longer called — the search redesign removed the recommendedUsers
+surface; don't "fix" dead code). The "你可能認識" notification already
+exists = the daily recommendation cron (`enqueue_recommendation_notifications`,
+type `recommendation`, "你可能認識 X — N 個共同標籤") — don't build a
+duplicate.
+
+## Concept GC — measured, deferred (2026-06-07)
+
+The feared "248 fragments" did NOT materialise — the sync alias-resolver
+trigger (20260530150000) + seed expansion (20260605050000: pets incl. the
+North-Star `#養貓`, + high-freq interests/careers, cross-language) kept it
+clean. The admin Tags page showed only **2 merge candidates ≥0.85, both
+0-tag singletons** (創新↔創新產品, 插畫↔插畫家). Decision: do NOT run a
+destructive GC merge yet — 0-tag means zero matching impact, and
+創新↔創新產品 is arguably a wrong merge. Re-check post-launch when real
+tags accrue; only merge "high-similarity + both sides have real tags". The
+read-only inventory RPCs stay for monitoring (admin Tags page).
 
 ## Brand voice — locked phrases
 
