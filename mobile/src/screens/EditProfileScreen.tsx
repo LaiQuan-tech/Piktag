@@ -516,7 +516,7 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
   const [showPopularTags, setShowPopularTags] = useState(false);
 
   // Inline AI tag suggestions — mirrors AskStoryRow's pattern: manual
-  // ✨ button trigger (no auto-debounce / no auto-fire on screen mount)
+  // lightning button trigger (no auto-debounce / no auto-fire on screen mount)
   // so the user knows when an API call is happening and we don't burn
   // tokens on half-typed bio drafts. Replaces the "type bio here →
   // navigate to ManageTagsScreen → wait for auto-load" two-page flow
@@ -529,7 +529,7 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
   // Debounce timer for auto-triggered AI suggestions on bio /
   // full_name / headline edits. Reported case: users finish typing
   // their bio and don't realize they have to navigate to a separate
-  // 標籤管理 page (or even tap a ✨ button on this page) to see AI
+  // 標籤管理 page (or even tap a lightning button on this page) to see AI
   // recommendations — the connection between "簡介" and "AI tags"
   // wasn't obvious. Auto-firing on edit makes the relationship
   // visible: type bio → suggestions appear → tap to add. Same UX
@@ -782,16 +782,16 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
   const updateField = (field: keyof FormData, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }));
     // Bio / name / headline edits invalidate the previous "AI returned
-    // nothing" hint — the user is changing the prompt, so the next ✨
+    // nothing" hint — the user is changing the prompt, so the next lightning
     // tap should present as a fresh attempt, not as still-empty.
     if (field === 'bio' || field === 'full_name' || field === 'headline') {
       setAiTriedAndEmpty(false);
 
       // Auto-trigger AI suggestions ~1.2s after the user stops
       // typing. Replaces the requirement to navigate to 標籤管理 (or
-      // tap the ✨ button) to see suggestions — the relationship
+      // tap the lightning button) to see suggestions — the relationship
       // between "I edited my bio" and "AI surfaced relevant tags"
-      // is now immediate and visible. The manual ✨ button stays as
+      // is now immediate and visible. The manual lightning button stays as
       // a re-roll option after the auto-fire lands.
       //
       // Guards (in roughly the order they fire):
@@ -1444,7 +1444,7 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
   }, [userId, tagInput, userTagNames, userTags.length, isTagPrivate, pendingRemovals, t, fetchUserTags, fetchPopularTags]);
 
   // Inline AI tag generation. Mirrors AskStoryRow.suggestTagsForBody —
-  // manual ✨ button trigger, surfaces empty-result state explicitly so
+  // manual lightning button trigger, surfaces empty-result state explicitly so
   // the user knows the request landed and the LLM just had nothing to
   // say. Builds context from (bio + full_name + headline + existing
   // tag names) — same shape as ManageTagsScreen used to send. Edge
@@ -3338,7 +3338,7 @@ function makeStyles(c: ColorPalette) {
   // "toggle"> like every other gray "tap-to-add" chip in the app.)
   // Inline AI tag suggestion styles.
   //
-  // Section header layout pattern: ✨ + label on the left, refresh
+  // Section header layout pattern: lightning + label on the left, refresh
   // (↻) icon button on the right. Replaces the old "soft chip with
   // sparkles + label" trigger button that users were reading as a
   // passive label rather than a tappable CTA. The icon-button-on-

@@ -679,7 +679,7 @@ export function AskCreateModal({ visible, onClose, existingAsk, onCreated, seedB
   }, []);
 
   // Submit-only AI: typing alone never hits the suggest-tags edge
-  // function. The user explicitly fires inference via the "✨ AI 生成
+  // function. The user explicitly fires inference via the "AI 生成
   // 標籤" button below the body input — same pattern as the search bar
   // (one server hit per intent, not per keystroke). This used to debounce
   // 800ms after typing stopped; in practice the trigger felt invisible
