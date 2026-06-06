@@ -351,10 +351,13 @@ founder when the trigger condition lands:
       reads as "broken app." But ChatGPT-era AI trained them that
       *recommendations* take a beat — so AI tag suggestions are allowed to
       lag. The pattern: scan → show the recognised fields IMMEDIATELY →
-      fire `suggest-tags` async → the ≤3 gray opt-in tag chips pop in a
-      second or two later. NEVER block the field reveal on the suggestion
-      call. (This is how the 3 AI tags dropped in the Path-A speed pass
-      come back — async on EditLocalContact, source `card_scan`, not on
+      fire `suggest-tags` async → the ≤3 tag picks pop in a second or
+      two later, PRE-SELECTED into the tag list (opt-out — see the
+      "AI-tag default state is asymmetric" rule below; founder
+      2026-06-07 reversed the original gray opt-in here). NEVER block the
+      field reveal on the suggestion call. (This is how the 3 AI tags
+      dropped in the Path-A speed pass come back — async on
+      EditLocalContact, source `card_scan`, not on
       the critical path.)
     * When actual latency can't go lower, buy PERCEIVED speed:
       optimistic UI, progressive field reveal (show the photo +
@@ -471,10 +474,35 @@ founder when the trigger condition lands:
   component is the fix. Canonical shared elements so far:
   `components/TagChip.tsx` (the removable "#tag ×" chip — used by
   EditLocalContact / AddTag / EditProfile "我的標籤"); the AI-suggestion
-  chip pattern (gray pill, no "+", purple press-flash, cap 3, opt-in);
-  the "尚未加入 PikTag" not-joined row in ConnectionsScreen (local
+  chip pattern (gray pill, no "+", purple press-flash, cap 3); the
+  "尚未加入 PikTag" not-joined row in ConnectionsScreen (local
   contacts + pending scans). Before building any chip/row/pill, check
   if one of these (or an existing component) already covers it.
+- **AI-suggestion cue = `components/BoltIcon.tsx` (lucide `Zap`,
+  lightning), EVERYWHERE.** Founder, 2026-06-07. The lightning — NOT
+  Sparkles, NOT an emoji — is the app-wide "this came from AI" symbol.
+  Every AI-recommendation surface uses it: AddTag "AI 為你推薦",
+  QrGroupDetail, ManageTags, EditProfile, AskStoryRow, the card-scan
+  result note, and onboarding step-2 (the last `Sparkles` holdout was
+  aligned to BoltIcon same day). Don't reintroduce Sparkles or a bare
+  glyph for "AI"; reuse BoltIcon. It doubles as a speed/instant cue,
+  which is on-brand.
+- **AI-tag default state is asymmetric by surface — opt-OUT mid-event,
+  opt-IN pre-event.** Founder, 2026-06-07. NOT a bug, NOT to be
+  "made consistent":
+    - **Card scan (EditLocalContactScreen) = PRE-SELECTED (opt-out).**
+      A scan happens mid-event; speed wins. The ≤3 picks (capped like
+      Ask) drop straight into `tags` as selected purple chips; the user
+      removes any wrong one. A BoltIcon note ("AI 根據名片為你加上了
+      標籤，不要的點掉就好") sits above so the auto-add never feels
+      non-consensual. Calibration (principle #5) logs accept at SAVE
+      for picks that SURVIVED (removed = soft decline) — keeps the
+      accept signal honest despite default-selection.
+    - **Event tags (AddTagScreen "建立 Tag") = OPT-IN (gray, tap-to-add),
+      and recommends MORE than 3.** It's configured pre-event, no time
+      pressure, so the user curates from a wider set. Leave it opt-in.
+  The lens: opt-out only where a few high-precision picks meet real
+  time pressure; opt-in where the user is planning at leisure.
 - **Know the CTA of every screen — and protect its visual weight.**
   Each screen has ONE primary action that earns its existence; the
   rest of the layout serves that action. Treating the CTA as just
