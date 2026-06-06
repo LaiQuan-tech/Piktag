@@ -34,7 +34,13 @@ const MODEL_FALLBACK_CHAIN = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.
 // result page felt a beat slow) lead with flash-lite, far quicker than
 // 2.5-flash and plenty for "suggest a few tags from a bio". Same
 // fallbacks so a flash-lite hiccup still degrades gracefully.
-const FAST_MODEL_CHAIN = ['gemini-2.0-flash-lite', 'gemini-2.0-flash', 'gemini-1.5-flash'] as const;
+// MUST include gemini-2.5-flash as a fallback: verified 2026-06-07 that
+// flash-lite / 2.0-flash / 1.5-flash were all failing for this project's
+// key (everything that "works" silently falls through to 2.5-flash). The
+// fast chain originally lacked 2.5-flash, so when the faster models failed
+// it had no working fallback → 503 on every card scan. Keep the fast models
+// first (speed when they work), 2.5-flash before 1.5-flash as the safety net.
+const FAST_MODEL_CHAIN = ['gemini-2.0-flash-lite', 'gemini-2.0-flash', 'gemini-2.5-flash', 'gemini-1.5-flash'] as const;
 
 type SuggestBody = {
   bio?: string;
