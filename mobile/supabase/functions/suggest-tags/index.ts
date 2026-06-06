@@ -82,11 +82,10 @@ function extractStringArray(text: string): string[] | null {
       .filter((v: unknown): v is string => typeof v === 'string' && v.trim().length > 0)
       .map((v) => v.replace(/^#/, '').trim())
       .slice(0, 10);
-    // Return the array even when empty — a valid `[]` means "model found
-    // nothing to suggest", which callers may want to treat as a clean
-    // result rather than a parse failure. `null` is reserved for
-    // genuinely unparseable / non-array output.
-    return strings;
+    // Empty array → null so the loop retries the next model. The card-scan
+    // path must yield at least one tag (founder 2026-06-07), so an empty
+    // response is "try harder", not a clean result.
+    return strings.length > 0 ? strings : null;
   } catch {
     return null;
   }
@@ -203,17 +202,17 @@ serve(async (req) => {
     const personPromptParts: string[] = [
       `Suggest hashtag tags describing this PERSON, for a private contact note.`,
       `Return ONLY a JSON array of 1 to 3 short hashtag strings (without the # prefix), nothing else.`,
-      `Quality over quantity: include ONLY tags that genuinely fit. Return 1 or 2 if that's all that fits; if truly nothing fits, return an empty array []. NEVER invent or pad with filler to reach a count — a weak tag is worse than none.`,
+      `ALWAYS return at least ONE tag and at most three — NEVER an empty array. Give the strongest 1-3; don't pad with weak filler just to hit three, but always provide your best tag(s) even for a sparse card.`,
       `Keywords MUST be written in ${lang}. Only use English for internationally recognized terms (PM, AI, CEO, UX, IoT).`,
-      `Base them on the person's role / field / company / interests from the card. Short (1-3 words / kanji clusters), specific, scannable. No vague catch-alls (#nice, #person, #friend).`,
+      `Base them on the person's role / field / company / title from the card. Short (1-3 words / kanji clusters), specific, scannable. No vague catch-alls (#nice, #person, #friend).`,
       `Do NOT repeat tags already noted: ${existingTags || '(none)'}`,
       ``,
       `─── Context ───`,
-      // Person NAME deliberately omitted (founder 2026-06-07): a name is
-      // weak tag fodder — tags come from the role/field/company in the
-      // headline, not from "陳大文". A card with only a name and no
-      // headline correctly yields [] rather than invented tags.
-      `Job title / headline / card text: ${bio || '(none)'}`,
+      // Founder 2026-06-07: card scan must ALWAYS yield ≥1 tag. Feed BOTH
+      // the name AND the title/company so even a sparse card (e.g. no clean
+      // headline extracted) still has something to work from.
+      `Name: ${name || '(none)'}`,
+      `Job title / company / card text: ${bio || '(none)'}`,
     ];
     const prompt = (fast ? personPromptParts : promptParts).join('\n');
 
@@ -262,13 +261,10 @@ serve(async (req) => {
         rawSnippet = text.slice(0, 300);
 
         const suggestions = extractStringArray(text);
-        // FAST path: a VALID array is terminal even when EMPTY — the model
-        // said "only these few fit" / "nothing fits", and we honor that
-        // (founder 2026-06-07: don't force 3, padding wastes compute and
-        // filler tags aren't accurate). NORMAL path keeps requiring ≥1, so
-        // an empty result there still retries the next model (unchanged).
-        const accept = fast ? suggestions !== null : (suggestions !== null && suggestions.length > 0);
-        if (accept && suggestions) {
+        // Require at least one tag (founder 2026-06-07: card scan must yield
+        // 1-3, never 0). An empty/unparseable response falls through to the
+        // next model in the chain rather than returning nothing.
+        if (suggestions && suggestions.length > 0) {
           // Principle #6: drop anything the user has explicitly removed.
           const removed = await removedPromise;
           const filtered =
