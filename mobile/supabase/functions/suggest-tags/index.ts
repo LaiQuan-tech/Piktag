@@ -245,13 +245,11 @@ serve(async (req) => {
             },
             body: JSON.stringify({
               contents: [{ parts: [{ text: prompt }] }],
-              // Cap output ONLY on the fast path (flash-lite, no "thinking"
-              // tokens): 256 is ample for 3-5 short tags and trims latency.
-              // The normal path leads with gemini-2.5-flash, whose
-              // maxOutputTokens budget is shared with thinking tokens — a
-              // tight cap there could truncate the think+respond and break
-              // the event-QR JSON, so it stays UNcapped (prior behavior).
-              ...(fast ? { generationConfig: { maxOutputTokens: 256 } } : {}),
+              // NO maxOutputTokens cap. A 256 cap on the fast path returned
+              // 503 on EVERY model (verified 2026-06-07 via direct calls:
+              // fast=true → 503, fast=false → 200 with good tags). Likely a
+              // truncated/empty completion → unparseable JSON → all models
+              // exhausted. The win from capping was marginal anyway; drop it.
             }),
           }
         );
