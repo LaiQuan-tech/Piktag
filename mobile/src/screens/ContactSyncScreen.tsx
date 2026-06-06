@@ -1267,9 +1267,13 @@ function makeStyles(c: ColorPalette) {
   // piktag50 pill that looked like a tappable light-purple button. The
   // actionable "全部追蹤" version above is the gradient signature; once
   // everyone's added there's nothing to do, so this reads as a calm,
-  // muted "✓ all added" confirmation — no pill, no purple.
+  // muted "✓ all added" confirmation — no pill, no purple, and LEFT-aligned
+  // (flush with the summary heading above), not centered.
   summaryCtaDone: {
     backgroundColor: 'transparent',
+    justifyContent: 'flex-start',
+    paddingHorizontal: 0,
+    paddingVertical: 2,
   },
   summaryCtaDoneText: {
     color: c.gray500,
