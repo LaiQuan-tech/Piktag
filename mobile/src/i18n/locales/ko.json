@@ -74,7 +74,8 @@
     "them": "상대",
     "clear": "지우기",
     "month": "월",
-    "day": "일"
+    "day": "일",
+    "userNotFound": "이 사용자를 찾을 수 없어요"
   },
   "auth": {
     "login": {
@@ -243,7 +244,13 @@
       "finishCta": "완료 — PikTag 시작하기",
       "usernameLabel": "내 PikTag 아이디",
       "headlineLabel": "직함 (선택)",
-      "bioLabel": "한 줄 자기소개"
+      "bioLabel": "한 줄 자기소개",
+      "welcomeName": "환영합니다, {{name}}님",
+      "phoneSectionTitle": "전화번호 (선택)",
+      "phoneSectionHint": "친구가 연락처 동기화로 당신을 찾을 수 있도록 — 공개되지 않고 전화에도 쓰이지 않아요.",
+      "phonePlaceholder": "010 1234 5678",
+      "phoneInvalidTitle": "전화번호 형식을 인식할 수 없어요",
+      "phoneInvalidMessage": "\"{{value}}\"을(를) 인식하지 못해 건너뛰었어요. 나중에 프로필에서 추가할 수 있어요."
     },
     "invalidEmail": "유효한 이메일 주소를 입력하세요"
   },
@@ -550,7 +557,9 @@
       "website": "웹사이트",
       "blog": "블로그",
       "portfolio": "포트폴리오",
-      "custom": "링크"
+      "custom": "링크",
+      "alipay": "Alipay",
+      "wechat": "WeChat"
     },
     "platformCategory": {
       "communication": "메시징",
@@ -842,7 +851,8 @@
     "generateButton": "초대 코드 생성",
     "inviteRecordHeader": "초대 기록",
     "usedBadge": "사용됨",
-    "noInvites": "초대 기록이 없습니다"
+    "noInvites": "초대 기록이 없습니다",
+    "acceptedSummary": "{{count}}명 참여"
   },
   "redeemInvite": {
     "headerTitle": "초대 코드 사용",
@@ -975,31 +985,68 @@
         }
       },
       "follow": {
-        "body": "나를 팔로우하기 시작했어요"
+        "body": "나를 팔로우하기 시작했어요",
+        "title": "",
+        "push": {
+          "title": "{{username}}",
+          "body": "당신을 팔로우하기 시작했어요"
+        }
       },
       "friend": {
-        "body": "이제 친구예요"
+        "body": "이제 친구예요",
+        "title": "",
+        "push": {
+          "title": "{{username}}",
+          "body": "이제 친구가 되었어요"
+        }
       },
       "invite_accepted": {
-        "body": "PikTag에 가입했어요"
+        "body": "PikTag에 가입했어요",
+        "title": "초대가 수락되었어요"
       },
       "tag_added": {
-        "body": "당신을 #{{tag_name}}(으)로 태그했어요"
+        "body": "당신을 #{{tag_name}}(으)로 태그했어요",
+        "title": "",
+        "push": {
+          "title": "{{username}}",
+          "body": "당신을 #{{tag_name}}(으)로 태그했어요"
+        }
       },
       "biolink_click": {
-        "body": "당신의 {{platform}} 링크를 클릭했어요"
+        "body": "당신의 {{platform}} 링크를 클릭했어요",
+        "title": ""
       },
       "birthday": {
-        "body": "오늘은 {{username}}님의 생일이에요"
+        "body": "오늘은 {{username}}님의 생일이에요",
+        "title": "",
+        "push": {
+          "title": "생일 알림",
+          "body": "오늘은 {{username}}님의 생일이에요"
+        }
       },
       "anniversary": {
-        "body": "{{years}}년 전 오늘, {{username}}님을 만났어요"
+        "body": "{{years}}년 전 오늘, {{username}}님을 만났어요",
+        "title": "",
+        "push": {
+          "title": "기념일",
+          "body": "{{years}}년 전 오늘 {{username}}님을 만났어요"
+        }
       },
       "tag_trending": {
-        "body": "당신의 태그 #{{tag_name}}이(가) 오늘 인기 급상승이에요"
+        "body": "당신의 태그 #{{tag_name}}이(가) 오늘 인기 급상승이에요",
+        "title": "",
+        "push": {
+          "title": "인기 급상승",
+          "body": "당신의 태그 #{{tag_name}}이(가) 오늘 인기예요"
+        }
       },
       "recommendation": {
-        "body": "{{username}}님을 알 수도 있어요 — 공통 태그 {{count}}개"
+        "body": "{{username}}님을 알 수도 있어요 — 공통 태그 {{count}}개",
+        "title": "",
+        "push": {
+          "title": "추천",
+          "body": "{{username}}님을 알 수도 있어요 — 공통 태그 {{count}}개"
+        }
       },
       "endorsement_request": {
         "body": "스스로 #{{tag_name}}(으)로 태그했어요"
@@ -1315,14 +1362,14 @@
     "deleteAskConfirm": "이 Ask를 삭제하시겠어요?",
     "noAsksYet": "아직 친구의 Ask가 없어요",
     "friendOfFriend": "친구의 친구",
-    "timeLeft": "{{hours}}h left",
-    "expired": "Expired",
+    "timeLeft": "{{hours}}시간 남음",
+    "expired": "만료됨",
     "generating": "제목 생성 중…",
     "minOneTag": "태그를 1개 이상 선택하세요",
     "aiSuggestions": "AI 추천",
     "customTagPlaceholder": "커스텀 태그 추가",
     "cardLabel": "도움 요청",
-    "askingNow": "Active Ask",
+    "askingNow": "요청 중",
     "yourAskTitle": "현재 Ask",
     "generateAiTags": "AI 태그 생성",
     "aiNoSuggestions": "AI가 적절한 태그를 찾지 못했어요. 다시 시도하거나 직접 입력하세요.",
@@ -1342,7 +1389,8 @@
     "createFailed": "Ask를 올리지 못했어요 — 다시 시도해 주세요.",
     "deleteFailed": "Ask 삭제 실패",
     "shortPrompt": "뭐가 필요해요?",
-    "rowIntro": "Ask를 올리면 AI가 인맥(친구의 친구까지)에서 딱 맞는 사람을 찾아줘요."
+    "rowIntro": "Ask를 올리면 AI가 인맥(친구의 친구까지)에서 딱 맞는 사람을 찾아줘요.",
+    "deleteFailedHint": "이 요청은 이미 삭제되었을 수 있어요. 새로고침 중입니다."
   },
   "errorBoundary": {
     "title": "문제가 발생했습니다",

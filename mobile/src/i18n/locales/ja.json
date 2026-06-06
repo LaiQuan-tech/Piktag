@@ -74,7 +74,8 @@
     "them": "相手",
     "clear": "クリア",
     "month": "月",
-    "day": "日"
+    "day": "日",
+    "userNotFound": "このユーザーが見つかりません"
   },
   "auth": {
     "login": {
@@ -243,7 +244,13 @@
       "finishCta": "完了 — PikTag を始める",
       "usernameLabel": "あなたの PikTag アカウント",
       "headlineLabel": "肩書き（任意）",
-      "bioLabel": "ひとことで自己紹介"
+      "bioLabel": "ひとことで自己紹介",
+      "welcomeName": "ようこそ、{{name}} さん",
+      "phoneSectionTitle": "電話番号（任意）",
+      "phoneSectionHint": "連絡先の同期で友だちが見つけられるように — 公開されず、電話にも使いません。",
+      "phonePlaceholder": "090 1234 5678",
+      "phoneInvalidTitle": "電話番号の形式が認識できません",
+      "phoneInvalidMessage": "「{{value}}」を認識できませんでした — スキップしました。後でプロフィールから追加できます。"
     },
     "invalidEmail": "有効なメールアドレスを入力してください"
   },
@@ -550,7 +557,9 @@
       "website": "ウェブサイト",
       "blog": "ブログ",
       "portfolio": "ポートフォリオ",
-      "custom": "リンク"
+      "custom": "リンク",
+      "alipay": "Alipay",
+      "wechat": "WeChat"
     },
     "platformCategory": {
       "communication": "コミュニケーション",
@@ -842,7 +851,8 @@
     "generateButton": "招待コードを生成",
     "inviteRecordHeader": "招待履歴",
     "usedBadge": "使用済み",
-    "noInvites": "招待履歴がありません"
+    "noInvites": "招待履歴がありません",
+    "acceptedSummary": "{{count}} 人が参加"
   },
   "redeemInvite": {
     "headerTitle": "招待を使う",
@@ -975,31 +985,68 @@
         }
       },
       "follow": {
-        "body": "フォローを始めました"
+        "body": "フォローを始めました",
+        "title": "",
+        "push": {
+          "title": "{{username}}",
+          "body": "あなたをフォローしました"
+        }
       },
       "friend": {
-        "body": "友だちになりました"
+        "body": "友だちになりました",
+        "title": "",
+        "push": {
+          "title": "{{username}}",
+          "body": "友だちになりました"
+        }
       },
       "invite_accepted": {
-        "body": "PikTag に登録しました"
+        "body": "PikTag に登録しました",
+        "title": "招待が承認されました"
       },
       "tag_added": {
-        "body": "あなたを #{{tag_name}} でタグ付けしました"
+        "body": "あなたを #{{tag_name}} でタグ付けしました",
+        "title": "",
+        "push": {
+          "title": "{{username}}",
+          "body": "あなたを #{{tag_name}} とタグ付けしました"
+        }
       },
       "biolink_click": {
-        "body": "あなたの {{platform}} リンクをクリックしました"
+        "body": "あなたの {{platform}} リンクをクリックしました",
+        "title": ""
       },
       "birthday": {
-        "body": "今日は {{username}} の誕生日です"
+        "body": "今日は {{username}} の誕生日です",
+        "title": "",
+        "push": {
+          "title": "誕生日のお知らせ",
+          "body": "今日は {{username}} の誕生日です"
+        }
       },
       "anniversary": {
-        "body": "{{years}} 年前の今日、{{username}} と出会いました"
+        "body": "{{years}} 年前の今日、{{username}} と出会いました",
+        "title": "",
+        "push": {
+          "title": "記念日",
+          "body": "{{years}}年前の今日、{{username}} と出会いました"
+        }
       },
       "tag_trending": {
-        "body": "あなたのタグ #{{tag_name}} が今日トレンドです"
+        "body": "あなたのタグ #{{tag_name}} が今日トレンドです",
+        "title": "",
+        "push": {
+          "title": "トレンド",
+          "body": "あなたのタグ #{{tag_name}} が今日トレンドです"
+        }
       },
       "recommendation": {
-        "body": "{{username}} を知っているかも — 共通タグ {{count}} 個"
+        "body": "{{username}} を知っているかも — 共通タグ {{count}} 個",
+        "title": "",
+        "push": {
+          "title": "あなたへのおすすめ",
+          "body": "{{username}} と知り合いかも — 共通タグ {{count}} 個"
+        }
       },
       "endorsement_request": {
         "body": "自分を #{{tag_name}} とタグ付けしました"
@@ -1315,14 +1362,14 @@
     "deleteAskConfirm": "この Ask を削除しますか？",
     "noAsksYet": "まだ友達の Ask はありません",
     "friendOfFriend": "友達の友達",
-    "timeLeft": "{{hours}}h left",
-    "expired": "Expired",
+    "timeLeft": "残り{{hours}}時間",
+    "expired": "期限切れ",
     "generating": "タイトル生成中…",
     "minOneTag": "タグを1つ以上選択してください",
     "aiSuggestions": "AI 提案",
     "customTagPlaceholder": "カスタムタグを追加",
     "cardLabel": "助けて",
-    "askingNow": "Active Ask",
+    "askingNow": "募集中",
     "yourAskTitle": "現在のAsk",
     "generateAiTags": "AIでタグ生成",
     "aiNoSuggestions": "AIから提案がありませんでした。もう一度試すか、自分で入力してください。",
@@ -1342,7 +1389,8 @@
     "createFailed": "Ask を送れなかった — もう一度試してね。",
     "deleteFailed": "Ask を削除できませんでした",
     "shortPrompt": "何が欲しい?",
-    "rowIntro": "Ask を投稿すると、AI が人脈（友だちの友だちまで）から最適な人を見つけます。"
+    "rowIntro": "Ask を投稿すると、AI が人脈（友だちの友だちまで）から最適な人を見つけます。",
+    "deleteFailedHint": "このAskはすでに削除された可能性があります。更新します。"
   },
   "errorBoundary": {
     "title": "問題が発生しました",

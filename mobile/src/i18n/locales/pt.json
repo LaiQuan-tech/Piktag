@@ -74,7 +74,8 @@
     "them": "eles",
     "clear": "Limpar",
     "month": "Mês",
-    "day": "Dia"
+    "day": "Dia",
+    "userNotFound": "Não foi possível encontrar este usuário"
   },
   "auth": {
     "login": {
@@ -243,7 +244,13 @@
       "finishCta": "Pronto — comece a usar o PikTag",
       "usernameLabel": "Seu nome de usuário no PikTag",
       "headlineLabel": "Cargo (opcional)",
-      "bioLabel": "Uma linha sobre você"
+      "bioLabel": "Uma linha sobre você",
+      "welcomeName": "Bem-vindo, {{name}}",
+      "phoneSectionTitle": "Número de telefone (opcional)",
+      "phoneSectionHint": "Para amigos te encontrarem ao sincronizar contatos — nunca fica público nem é usado para ligar.",
+      "phonePlaceholder": "+55 11 91234 5678",
+      "phoneInvalidTitle": "Formato de telefone não reconhecido",
+      "phoneInvalidMessage": "Não foi possível interpretar \"{{value}}\" — ignorado. Você pode adicioná-lo depois no perfil."
     },
     "invalidEmail": "Insira um e-mail válido"
   },
@@ -550,7 +557,9 @@
       "website": "Site",
       "blog": "Blog",
       "portfolio": "Portfólio",
-      "custom": "Link"
+      "custom": "Link",
+      "alipay": "Alipay",
+      "wechat": "WeChat"
     },
     "platformCategory": {
       "communication": "Comunicação",
@@ -842,7 +851,8 @@
     "generateButton": "Gerar código de convite",
     "inviteRecordHeader": "Histórico de convites",
     "usedBadge": "Usado",
-    "noInvites": "Sem histórico de convites"
+    "noInvites": "Sem histórico de convites",
+    "acceptedSummary": "{{count}} entraram"
   },
   "redeemInvite": {
     "headerTitle": "Resgatar convite",
@@ -975,31 +985,68 @@
         }
       },
       "follow": {
-        "body": "começou a te seguir"
+        "body": "começou a te seguir",
+        "title": "",
+        "push": {
+          "title": "{{username}}",
+          "body": "começou a te seguir"
+        }
       },
       "friend": {
-        "body": "agora são amigos"
+        "body": "agora são amigos",
+        "title": "",
+        "push": {
+          "title": "{{username}}",
+          "body": "agora vocês são amigos"
+        }
       },
       "invite_accepted": {
-        "body": "entrou no PikTag"
+        "body": "entrou no PikTag",
+        "title": "Seu convite foi aceito"
       },
       "tag_added": {
-        "body": "marcou você como #{{tag_name}}"
+        "body": "marcou você como #{{tag_name}}",
+        "title": "",
+        "push": {
+          "title": "{{username}}",
+          "body": "marcou você como #{{tag_name}}"
+        }
       },
       "biolink_click": {
-        "body": "clicou no seu link do {{platform}}"
+        "body": "clicou no seu link do {{platform}}",
+        "title": ""
       },
       "birthday": {
-        "body": "hoje é aniversário de {{username}}"
+        "body": "hoje é aniversário de {{username}}",
+        "title": "",
+        "push": {
+          "title": "Lembrete de aniversário",
+          "body": "hoje é aniversário de {{username}}"
+        }
       },
       "anniversary": {
-        "body": "há {{years}} anos hoje, você conheceu {{username}}"
+        "body": "há {{years}} anos hoje, você conheceu {{username}}",
+        "title": "",
+        "push": {
+          "title": "Aniversário",
+          "body": "Há {{years}} anos você conheceu {{username}}"
+        }
       },
       "tag_trending": {
-        "body": "sua tag #{{tag_name}} está bombando hoje"
+        "body": "sua tag #{{tag_name}} está bombando hoje",
+        "title": "",
+        "push": {
+          "title": "Em alta",
+          "body": "sua tag #{{tag_name}} está em alta hoje"
+        }
       },
       "recommendation": {
-        "body": "você pode conhecer {{username}} — {{count}} tags em comum"
+        "body": "você pode conhecer {{username}} — {{count}} tags em comum",
+        "title": "",
+        "push": {
+          "title": "Sugerido para você",
+          "body": "talvez você conheça {{username}} — {{count}} tags em comum"
+        }
       },
       "endorsement_request": {
         "body": "se marcou como #{{tag_name}}"
@@ -1315,14 +1362,14 @@
     "deleteAskConfirm": "Are you sure you want to delete this ask?",
     "noAsksYet": "No asks from your network yet",
     "friendOfFriend": "Friend of friend",
-    "timeLeft": "{{hours}}h left",
-    "expired": "Expired",
+    "timeLeft": "faltam {{hours}} h",
+    "expired": "Expirado",
     "generating": "Generating title…",
     "minOneTag": "Select at least one tag",
     "aiSuggestions": "Sugestões de IA",
     "customTagPlaceholder": "Adicionar tag personalizada",
     "cardLabel": "Pedindo ajuda",
-    "askingNow": "Active Ask",
+    "askingNow": "Pedido ativo",
     "yourAskTitle": "Seu Ask atual",
     "generateAiTags": "Gerar tags com IA",
     "aiNoSuggestions": "A IA não encontrou tags adequadas. Tente novamente ou digite a sua.",
@@ -1342,7 +1389,8 @@
     "createFailed": "Seu Ask não foi enviado — tente de novo.",
     "deleteFailed": "Não foi possível apagar o ask",
     "shortPrompt": "O que você quer?",
-    "rowIntro": "Publique um Ask — a IA encontra as pessoas certas na sua rede (e amigos de amigos)."
+    "rowIntro": "Publique um Ask — a IA encontra as pessoas certas na sua rede (e amigos de amigos).",
+    "deleteFailedHint": "Este pedido pode já ter sido removido. Atualizando."
   },
   "errorBoundary": {
     "title": "Algo deu errado",

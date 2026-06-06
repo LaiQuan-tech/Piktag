@@ -557,7 +557,9 @@
       "website": "ویب سائٹ",
       "blog": "بلاگ",
       "portfolio": "پورٹ فولیو",
-      "custom": "لنک"
+      "custom": "لنک",
+      "alipay": "Alipay",
+      "wechat": "WeChat"
     },
     "platformCategory": {
       "communication": "رابطہ",
@@ -1362,14 +1364,14 @@
     "deleteFailedHint": "شاید ask پہلے ہی ہٹ چکا ہے۔ ریفریش کر رہے ہیں۔",
     "noAsksYet": "ابھی آپ کے نیٹ ورک سے کوئی asks نہیں",
     "friendOfFriend": "دوست کا دوست",
-    "timeLeft": "{{hours}}h left",
-    "expired": "Expired",
+    "timeLeft": "{{hours}} گھنٹے باقی",
+    "expired": "ختم شدہ",
     "generating": "عنوان بن رہا ہے…",
     "minOneTag": "کم از کم ایک ٹیگ چنیں",
     "aiSuggestions": "AI تجاویز",
     "customTagPlaceholder": "اپنا ٹیگ شامل کریں",
     "cardLabel": "تلاش ہے",
-    "askingNow": "Active Ask",
+    "askingNow": "فعال درخواست",
     "yourAskTitle": "آپ کا فعال Ask",
     "generateAiTags": "AI ٹیگز بنائیں",
     "aiNoSuggestions": "AI کو کوئی موزوں نہیں ملا۔ دوبارہ کوشش کریں یا اپنا لکھیں۔",

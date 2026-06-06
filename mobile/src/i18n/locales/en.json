@@ -557,7 +557,9 @@
       "website": "Website",
       "blog": "Blog",
       "portfolio": "Portfolio",
-      "custom": "Link"
+      "custom": "Link",
+      "alipay": "Alipay",
+      "wechat": "WeChat"
     },
     "platformCategory": {
       "communication": "Communication",

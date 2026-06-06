@@ -245,7 +245,12 @@
       "finishCta": "完成，开始用 PikTag",
       "usernameLabel": "你的 PikTag 账号",
       "headlineLabel": "职称（选填）",
-      "bioLabel": "一句话介绍自己"
+      "bioLabel": "一句话介绍自己",
+      "phoneSectionTitle": "手机号码（选填）",
+      "phoneSectionHint": "让朋友的通讯录能找到你 — 永远不会公开，也不会用来打给你。",
+      "phonePlaceholder": "13800138000",
+      "phoneInvalidTitle": "电话格式无效",
+      "phoneInvalidMessage": "无法识别「{{value}}」，已略过。可稍后到个人资料补上。"
     },
     "invalidEmail": "请输入有效的 email 地址"
   },
@@ -846,7 +851,8 @@
     "generateButton": "产生邀请码",
     "inviteRecordHeader": "邀请纪录",
     "usedBadge": "已使用",
-    "noInvites": "尚无邀请纪录"
+    "noInvites": "尚无邀请纪录",
+    "acceptedSummary": "{{count}} 人已加入"
   },
   "redeemInvite": {
     "headerTitle": "兑换邀请码",
@@ -1039,7 +1045,8 @@
         }
       },
       "invite_accepted": {
-        "body": "加入了 PikTag"
+        "body": "加入了 PikTag",
+        "title": "你的邀请被接受了"
       },
       "endorsement_request": {
         "body": "标自己 #{{tag_name}}"
@@ -1357,14 +1364,14 @@
     "deleteFailedHint": "这则 Ask 可能已被移除，画面正在刷新。",
     "noAsksYet": "目前没有朋友的 Ask",
     "friendOfFriend": "朋友的朋友",
-    "timeLeft": "{{hours}}h left",
-    "expired": "Expired",
+    "timeLeft": "剩 {{hours}} 小时",
+    "expired": "已过期",
     "generating": "生成标题中…",
     "minOneTag": "至少选一个标签",
     "aiSuggestions": "AI 建议",
     "customTagPlaceholder": "输入自定义标签",
     "cardLabel": "求助中",
-    "askingNow": "Active Ask",
+    "askingNow": "募集中",
     "yourAskTitle": "你目前的 Ask",
     "generateAiTags": "AI 生成标签",
     "aiNoSuggestions": "AI 没有想到合适的标签，再试一次或自己输入",

@@ -74,7 +74,8 @@
     "them": "พวกเขา",
     "clear": "ล้าง",
     "month": "เดือน",
-    "day": "วัน"
+    "day": "วัน",
+    "userNotFound": "ไม่พบผู้ใช้นี้"
   },
   "auth": {
     "login": {
@@ -243,7 +244,13 @@
       "finishCta": "เสร็จแล้ว — เริ่มใช้ PikTag",
       "usernameLabel": "ชื่อผู้ใช้ PikTag ของคุณ",
       "headlineLabel": "ตำแหน่ง (ไม่บังคับ)",
-      "bioLabel": "แนะนำตัวสั้นๆ หนึ่งบรรทัด"
+      "bioLabel": "แนะนำตัวสั้นๆ หนึ่งบรรทัด",
+      "welcomeName": "ยินดีต้อนรับ {{name}}",
+      "phoneSectionTitle": "หมายเลขโทรศัพท์ (ไม่บังคับ)",
+      "phoneSectionHint": "เพื่อให้เพื่อนเจอคุณผ่านการซิงก์รายชื่อ — ไม่เปิดเผยและไม่ใช้โทรหาคุณ",
+      "phonePlaceholder": "+66 81 234 5678",
+      "phoneInvalidTitle": "ไม่รู้จักรูปแบบเบอร์โทร",
+      "phoneInvalidMessage": "อ่าน \"{{value}}\" ไม่ได้ — ข้ามไปก่อน เพิ่มภายหลังในโปรไฟล์ได้"
     },
     "invalidEmail": "กรอกอีเมลที่ถูกต้อง"
   },
@@ -550,7 +557,9 @@
       "website": "เว็บไซต์",
       "blog": "บล็อก",
       "portfolio": "พอร์ตโฟลิโอ",
-      "custom": "ลิงก์"
+      "custom": "ลิงก์",
+      "alipay": "Alipay",
+      "wechat": "WeChat"
     },
     "platformCategory": {
       "communication": "การสื่อสาร",
@@ -842,7 +851,8 @@
     "generateButton": "สร้างรหัสเชิญ",
     "inviteRecordHeader": "ประวัติการเชิญ",
     "usedBadge": "ใช้แล้ว",
-    "noInvites": "ไม่มีประวัติการเชิญ"
+    "noInvites": "ไม่มีประวัติการเชิญ",
+    "acceptedSummary": "{{count}} คนเข้าร่วม"
   },
   "redeemInvite": {
     "headerTitle": "ใช้รหัสเชิญ",
@@ -975,31 +985,68 @@
         }
       },
       "follow": {
-        "body": "เริ่มติดตามคุณ"
+        "body": "เริ่มติดตามคุณ",
+        "title": "",
+        "push": {
+          "title": "{{username}}",
+          "body": "เริ่มติดตามคุณแล้ว"
+        }
       },
       "friend": {
-        "body": "คุณเป็นเพื่อนกันแล้ว"
+        "body": "คุณเป็นเพื่อนกันแล้ว",
+        "title": "",
+        "push": {
+          "title": "{{username}}",
+          "body": "ตอนนี้คุณเป็นเพื่อนกันแล้ว"
+        }
       },
       "invite_accepted": {
-        "body": "เข้าร่วม PikTag แล้ว"
+        "body": "เข้าร่วม PikTag แล้ว",
+        "title": "คำเชิญของคุณถูกตอบรับแล้ว"
       },
       "tag_added": {
-        "body": "แท็กคุณว่า #{{tag_name}}"
+        "body": "แท็กคุณว่า #{{tag_name}}",
+        "title": "",
+        "push": {
+          "title": "{{username}}",
+          "body": "แท็กคุณว่า #{{tag_name}}"
+        }
       },
       "biolink_click": {
-        "body": "คลิกลิงก์ {{platform}} ของคุณ"
+        "body": "คลิกลิงก์ {{platform}} ของคุณ",
+        "title": ""
       },
       "birthday": {
-        "body": "วันนี้เป็นวันเกิดของ {{username}}"
+        "body": "วันนี้เป็นวันเกิดของ {{username}}",
+        "title": "",
+        "push": {
+          "title": "เตือนวันเกิด",
+          "body": "วันนี้เป็นวันเกิดของ {{username}}"
+        }
       },
       "anniversary": {
-        "body": "{{years}} ปีก่อนวันนี้ คุณได้พบกับ {{username}}"
+        "body": "{{years}} ปีก่อนวันนี้ คุณได้พบกับ {{username}}",
+        "title": "",
+        "push": {
+          "title": "ครบรอบ",
+          "body": "{{years}} ปีก่อนวันนี้ คุณได้รู้จัก {{username}}"
+        }
       },
       "tag_trending": {
-        "body": "แท็ก #{{tag_name}} ของคุณกำลังมาแรงวันนี้"
+        "body": "แท็ก #{{tag_name}} ของคุณกำลังมาแรงวันนี้",
+        "title": "",
+        "push": {
+          "title": "กำลังมาแรง",
+          "body": "แท็ก #{{tag_name}} ของคุณกำลังมาแรงวันนี้"
+        }
       },
       "recommendation": {
-        "body": "คุณอาจรู้จัก {{username}} — แท็กร่วม {{count}} แท็ก"
+        "body": "คุณอาจรู้จัก {{username}} — แท็กร่วม {{count}} แท็ก",
+        "title": "",
+        "push": {
+          "title": "แนะนำสำหรับคุณ",
+          "body": "คุณอาจรู้จัก {{username}} — แท็กร่วม {{count}} รายการ"
+        }
       },
       "endorsement_request": {
         "body": "แท็กตัวเองว่า #{{tag_name}}"
@@ -1315,14 +1362,14 @@
     "deleteAskConfirm": "Are you sure you want to delete this ask?",
     "noAsksYet": "No asks from your network yet",
     "friendOfFriend": "Friend of friend",
-    "timeLeft": "{{hours}}h left",
-    "expired": "Expired",
+    "timeLeft": "เหลือ {{hours}} ชม.",
+    "expired": "หมดเวลา",
     "generating": "Generating title…",
     "minOneTag": "Select at least one tag",
     "aiSuggestions": "คำแนะนำจาก AI",
     "customTagPlaceholder": "เพิ่มแท็กของคุณ",
     "cardLabel": "กำลังหา",
-    "askingNow": "Active Ask",
+    "askingNow": "กำลังเปิดรับ",
     "yourAskTitle": "Ask ของคุณ",
     "generateAiTags": "สร้างแท็กด้วย AI",
     "aiNoSuggestions": "AI ไม่พบแท็กที่เหมาะสม ลองใหม่หรือพิมพ์เอง",
@@ -1342,7 +1389,8 @@
     "createFailed": "โพสต์ Ask ไม่สำเร็จ — ลองใหม่อีกครั้ง",
     "deleteFailed": "ลบ ask ไม่สำเร็จ",
     "shortPrompt": "ต้องการอะไร?",
-    "rowIntro": "โพสต์ Ask แล้ว AI จะหาคนที่ใช่จากเครือข่ายของคุณ (รวมถึงเพื่อนของเพื่อน)"
+    "rowIntro": "โพสต์ Ask แล้ว AI จะหาคนที่ใช่จากเครือข่ายของคุณ (รวมถึงเพื่อนของเพื่อน)",
+    "deleteFailedHint": "คำขอนี้อาจถูกลบไปแล้ว กำลังรีเฟรช"
   },
   "errorBoundary": {
     "title": "เกิดข้อผิดพลาด",

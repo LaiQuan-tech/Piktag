@@ -74,7 +74,8 @@
     "them": "उन्हें",
     "clear": "हटाएँ",
     "month": "महीना",
-    "day": "दिन"
+    "day": "दिन",
+    "userNotFound": "यह उपयोगकर्ता नहीं मिला"
   },
   "auth": {
     "login": {
@@ -243,7 +244,13 @@
       "finishCta": "हो गया — PikTag इस्तेमाल शुरू करें",
       "usernameLabel": "आपका PikTag यूज़रनेम",
       "headlineLabel": "पद (वैकल्पिक)",
-      "bioLabel": "अपने बारे में एक पंक्ति"
+      "bioLabel": "अपने बारे में एक पंक्ति",
+      "welcomeName": "स्वागत है, {{name}}",
+      "phoneSectionTitle": "फ़ोन नंबर (वैकल्पिक)",
+      "phoneSectionHint": "ताकि दोस्त contact sync से आपको ढूँढ सकें — कभी सार्वजनिक नहीं, कॉल के लिए भी इस्तेमाल नहीं होता।",
+      "phonePlaceholder": "+91 98765 43210",
+      "phoneInvalidTitle": "फ़ोन प्रारूप पहचाना नहीं गया",
+      "phoneInvalidMessage": "«{{value}}» पढ़ा नहीं जा सका — छोड़ दिया। बाद में प्रोफ़ाइल से जोड़ सकते हैं।"
     },
     "invalidEmail": "एक मान्य ईमेल पता दर्ज करें"
   },
@@ -550,7 +557,9 @@
       "website": "वेबसाइट",
       "blog": "ब्लॉग",
       "portfolio": "पोर्टफ़ोलियो",
-      "custom": "लिंक"
+      "custom": "लिंक",
+      "alipay": "Alipay",
+      "wechat": "WeChat"
     },
     "platformCategory": {
       "communication": "संचार",
@@ -842,7 +851,8 @@
     "generateButton": "आमंत्रण कोड बनाएँ",
     "inviteRecordHeader": "आमंत्रण इतिहास",
     "usedBadge": "इस्तेमाल हुआ",
-    "noInvites": "कोई आमंत्रण इतिहास नहीं"
+    "noInvites": "कोई आमंत्रण इतिहास नहीं",
+    "acceptedSummary": "{{count}} शामिल हुए"
   },
   "redeemInvite": {
     "headerTitle": "आमंत्रण रिडीम करें",
@@ -975,31 +985,68 @@
         }
       },
       "follow": {
-        "body": "आपको फॉलो करना शुरू किया"
+        "body": "आपको फॉलो करना शुरू किया",
+        "title": "",
+        "push": {
+          "title": "{{username}}",
+          "body": "आपको फ़ॉलो करना शुरू किया"
+        }
       },
       "friend": {
-        "body": "अब आप दोस्त हैं"
+        "body": "अब आप दोस्त हैं",
+        "title": "",
+        "push": {
+          "title": "{{username}}",
+          "body": "अब आप दोस्त हैं"
+        }
       },
       "invite_accepted": {
-        "body": "PikTag से जुड़ गए"
+        "body": "PikTag से जुड़ गए",
+        "title": "आपका निमंत्रण स्वीकार कर लिया गया"
       },
       "tag_added": {
-        "body": "आपको #{{tag_name}} के रूप में टैग किया"
+        "body": "आपको #{{tag_name}} के रूप में टैग किया",
+        "title": "",
+        "push": {
+          "title": "{{username}}",
+          "body": "आपको #{{tag_name}} टैग किया"
+        }
       },
       "biolink_click": {
-        "body": "आपके {{platform}} लिंक पर क्लिक किया"
+        "body": "आपके {{platform}} लिंक पर क्लिक किया",
+        "title": ""
       },
       "birthday": {
-        "body": "आज {{username}} का जन्मदिन है"
+        "body": "आज {{username}} का जन्मदिन है",
+        "title": "",
+        "push": {
+          "title": "जन्मदिन की याद",
+          "body": "आज {{username}} का जन्मदिन है"
+        }
       },
       "anniversary": {
-        "body": "{{years}} साल पहले आज के दिन आप {{username}} से मिले थे"
+        "body": "{{years}} साल पहले आज के दिन आप {{username}} से मिले थे",
+        "title": "",
+        "push": {
+          "title": "वर्षगाँठ",
+          "body": "{{years}} साल पहले आज आप {{username}} से मिले थे"
+        }
       },
       "tag_trending": {
-        "body": "आपका टैग #{{tag_name}} आज ट्रेंडिंग है"
+        "body": "आपका टैग #{{tag_name}} आज ट्रेंडिंग है",
+        "title": "",
+        "push": {
+          "title": "ट्रेंडिंग",
+          "body": "आपका टैग #{{tag_name}} आज ट्रेंड कर रहा है"
+        }
       },
       "recommendation": {
-        "body": "शायद आप {{username}} को जानते हैं — {{count}} सामान्य टैग"
+        "body": "शायद आप {{username}} को जानते हैं — {{count}} सामान्य टैग",
+        "title": "",
+        "push": {
+          "title": "आपके लिए सुझाव",
+          "body": "शायद आप {{username}} को जानते हों — {{count}} समान टैग"
+        }
       },
       "endorsement_request": {
         "body": "खुद को #{{tag_name}} के रूप में टैग किया"
@@ -1315,14 +1362,14 @@
     "deleteAskConfirm": "Are you sure you want to delete this ask?",
     "noAsksYet": "No asks from your network yet",
     "friendOfFriend": "Friend of friend",
-    "timeLeft": "{{hours}}h left",
-    "expired": "Expired",
+    "timeLeft": "{{hours}} घंटे बचे",
+    "expired": "समाप्त",
     "generating": "Generating title…",
     "minOneTag": "Select at least one tag",
     "aiSuggestions": "AI सुझाव",
     "customTagPlaceholder": "कस्टम टैग जोड़ें",
     "cardLabel": "मदद चाहिए",
-    "askingNow": "Active Ask",
+    "askingNow": "सक्रिय अनुरोध",
     "yourAskTitle": "आपका वर्तमान Ask",
     "generateAiTags": "AI टैग बनाएं",
     "aiNoSuggestions": "AI को कोई उपयुक्त टैग नहीं मिला। फिर से कोशिश करें या खुद लिखें।",
@@ -1342,7 +1389,8 @@
     "createFailed": "आपका Ask नहीं गया — फिर से कोशिश करें।",
     "deleteFailed": "Ask हटाना विफल",
     "shortPrompt": "क्या चाहिए?",
-    "rowIntro": "एक Ask पोस्ट करें — AI आपके नेटवर्क (और दोस्तों के दोस्तों) से सही लोग ढूँढता है।"
+    "rowIntro": "एक Ask पोस्ट करें — AI आपके नेटवर्क (और दोस्तों के दोस्तों) से सही लोग ढूँढता है।",
+    "deleteFailedHint": "शायद यह अनुरोध पहले ही हटा दिया गया है। रिफ़्रेश हो रहा है।"
   },
   "errorBoundary": {
     "title": "कुछ गड़बड़ हो गई",

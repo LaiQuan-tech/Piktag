@@ -245,7 +245,12 @@
       "finishCta": "Fertig — leg mit PikTag los",
       "usernameLabel": "Dein PikTag-Benutzername",
       "headlineLabel": "Position (optional)",
-      "bioLabel": "Ein Satz über dich"
+      "bioLabel": "Ein Satz über dich",
+      "phoneSectionTitle": "Telefonnummer (optional)",
+      "phoneSectionHint": "Damit Freunde dich über die Kontaktsynchronisierung finden — wird nie veröffentlicht und nie für Anrufe genutzt.",
+      "phonePlaceholder": "+49 151 23456789",
+      "phoneInvalidTitle": "Telefonformat nicht erkannt",
+      "phoneInvalidMessage": "„{{value}}“ konnte nicht erkannt werden — übersprungen. Du kannst es später im Profil ergänzen."
     },
     "invalidEmail": "Gib eine gültige E-Mail-Adresse ein"
   },
@@ -552,7 +557,9 @@
       "website": "Website",
       "blog": "Blog",
       "portfolio": "Portfolio",
-      "custom": "Link"
+      "custom": "Link",
+      "alipay": "Alipay",
+      "wechat": "WeChat"
     },
     "platformCategory": {
       "communication": "Kommunikation",
@@ -844,7 +851,8 @@
     "generateButton": "Einladungscode erzeugen",
     "inviteRecordHeader": "Einladungsverlauf",
     "usedBadge": "Genutzt",
-    "noInvites": "Kein Einladungsverlauf"
+    "noInvites": "Kein Einladungsverlauf",
+    "acceptedSummary": "{{count}} beigetreten"
   },
   "redeemInvite": {
     "headerTitle": "Einladung einlösen",
@@ -1037,7 +1045,8 @@
         }
       },
       "invite_accepted": {
-        "body": "ist PikTag beigetreten"
+        "body": "ist PikTag beigetreten",
+        "title": "Deine Einladung wurde angenommen"
       },
       "endorsement_request": {
         "body": "hat sich als #{{tag_name}} getaggt"
@@ -1355,14 +1364,14 @@
     "deleteFailedHint": "Das Ask wurde möglicherweise schon entfernt. Wird aktualisiert.",
     "noAsksYet": "Noch keine Asks aus deinem Netzwerk",
     "friendOfFriend": "Freund eines Freundes",
-    "timeLeft": "{{hours}}h left",
-    "expired": "Expired",
+    "timeLeft": "noch {{hours}} Std.",
+    "expired": "Abgelaufen",
     "generating": "Titel wird erzeugt…",
     "minOneTag": "Mindestens ein Tag auswählen",
     "aiSuggestions": "KI-Vorschläge",
     "customTagPlaceholder": "Eigenes Tag hinzufügen",
     "cardLabel": "Sucht",
-    "askingNow": "Active Ask",
+    "askingNow": "Aktive Anfrage",
     "yourAskTitle": "Dein aktives Ask",
     "generateAiTags": "KI-Tags erzeugen",
     "aiNoSuggestions": "KI konnte nichts Passendes finden. Versuch es nochmal oder tippe deine eigenen ein.",

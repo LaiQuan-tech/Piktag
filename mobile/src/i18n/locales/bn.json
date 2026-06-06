@@ -74,7 +74,8 @@
     "them": "তাদের",
     "clear": "মুছুন",
     "month": "মাস",
-    "day": "দিন"
+    "day": "দিন",
+    "userNotFound": "এই ব্যবহারকারীকে খুঁজে পাওয়া যায়নি"
   },
   "auth": {
     "login": {
@@ -243,7 +244,13 @@
       "finishCta": "হয়ে গেছে — PikTag ব্যবহার শুরু করুন",
       "usernameLabel": "আপনার PikTag ইউজারনেম",
       "headlineLabel": "পদবি (ঐচ্ছিক)",
-      "bioLabel": "নিজের সম্পর্কে এক লাইন"
+      "bioLabel": "নিজের সম্পর্কে এক লাইন",
+      "welcomeName": "স্বাগতম, {{name}}",
+      "phoneSectionTitle": "ফোন নম্বর (ঐচ্ছিক)",
+      "phoneSectionHint": "যাতে বন্ধুরা পরিচিতি সিঙ্কের মাধ্যমে আপনাকে খুঁজে পায় — কখনও প্রকাশ্য নয়, কল করতেও ব্যবহৃত হয় না।",
+      "phonePlaceholder": "+880 1812 345678",
+      "phoneInvalidTitle": "ফোন ফরম্যাট শনাক্ত করা যায়নি",
+      "phoneInvalidMessage": "«{{value}}» বোঝা যায়নি — বাদ দেওয়া হলো। পরে প্রোফাইল থেকে যোগ করতে পারেন।"
     },
     "invalidEmail": "একটি বৈধ ইমেল ঠিকানা লিখুন"
   },
@@ -550,7 +557,9 @@
       "website": "ওয়েবসাইট",
       "blog": "ব্লগ",
       "portfolio": "পোর্টফোলিও",
-      "custom": "লিঙ্ক"
+      "custom": "লিঙ্ক",
+      "alipay": "Alipay",
+      "wechat": "WeChat"
     },
     "platformCategory": {
       "communication": "যোগাযোগ",
@@ -842,7 +851,8 @@
     "generateButton": "আমন্ত্রণ কোড তৈরি করুন",
     "inviteRecordHeader": "আমন্ত্রণ ইতিহাস",
     "usedBadge": "ব্যবহৃত",
-    "noInvites": "কোনো আমন্ত্রণ ইতিহাস নেই"
+    "noInvites": "কোনো আমন্ত্রণ ইতিহাস নেই",
+    "acceptedSummary": "{{count}} জন যোগ দিয়েছেন"
   },
   "redeemInvite": {
     "headerTitle": "আমন্ত্রণ রিডিম",
@@ -975,31 +985,68 @@
         }
       },
       "follow": {
-        "body": "আপনাকে ফলো করা শুরু করেছেন"
+        "body": "আপনাকে ফলো করা শুরু করেছেন",
+        "title": "",
+        "push": {
+          "title": "{{username}}",
+          "body": "আপনাকে ফলো করা শুরু করেছেন"
+        }
       },
       "friend": {
-        "body": "আপনারা এখন বন্ধু"
+        "body": "আপনারা এখন বন্ধু",
+        "title": "",
+        "push": {
+          "title": "{{username}}",
+          "body": "আপনারা এখন বন্ধু"
+        }
       },
       "invite_accepted": {
-        "body": "PikTag-এ যোগ দিয়েছে"
+        "body": "PikTag-এ যোগ দিয়েছে",
+        "title": "আপনার আমন্ত্রণ গৃহীত হয়েছে"
       },
       "tag_added": {
-        "body": "আপনাকে #{{tag_name}} হিসেবে ট্যাগ করেছেন"
+        "body": "আপনাকে #{{tag_name}} হিসেবে ট্যাগ করেছেন",
+        "title": "",
+        "push": {
+          "title": "{{username}}",
+          "body": "আপনাকে #{{tag_name}} হিসেবে ট্যাগ করেছেন"
+        }
       },
       "biolink_click": {
-        "body": "আপনার {{platform}} লিঙ্ক ক্লিক করেছেন"
+        "body": "আপনার {{platform}} লিঙ্ক ক্লিক করেছেন",
+        "title": ""
       },
       "birthday": {
-        "body": "আজ {{username}} এর জন্মদিন"
+        "body": "আজ {{username}} এর জন্মদিন",
+        "title": "",
+        "push": {
+          "title": "জন্মদিনের রিমাইন্ডার",
+          "body": "আজ {{username}}-এর জন্মদিন"
+        }
       },
       "anniversary": {
-        "body": "{{years}} বছর আগে আজকের দিনে আপনি {{username}} এর সাথে পরিচিত হয়েছিলেন"
+        "body": "{{years}} বছর আগে আজকের দিনে আপনি {{username}} এর সাথে পরিচিত হয়েছিলেন",
+        "title": "",
+        "push": {
+          "title": "বার্ষিকী",
+          "body": "{{years}} বছর আগে আজকের দিনে আপনি {{username}}-এর সাথে পরিচিত হয়েছিলেন"
+        }
       },
       "tag_trending": {
-        "body": "আপনার ট্যাগ #{{tag_name}} আজ ট্রেন্ডিং"
+        "body": "আপনার ট্যাগ #{{tag_name}} আজ ট্রেন্ডিং",
+        "title": "",
+        "push": {
+          "title": "ট্রেন্ডিং",
+          "body": "আপনার ট্যাগ #{{tag_name}} আজ ট্রেন্ডিং"
+        }
       },
       "recommendation": {
-        "body": "আপনি হয়তো {{username}}-কে চেনেন — {{count}}টি সাধারণ ট্যাগ"
+        "body": "আপনি হয়তো {{username}}-কে চেনেন — {{count}}টি সাধারণ ট্যাগ",
+        "title": "",
+        "push": {
+          "title": "আপনার জন্য প্রস্তাবিত",
+          "body": "আপনি হয়তো {{username}}-কে চেনেন — {{count}} টি অভিন্ন ট্যাগ"
+        }
       },
       "endorsement_request": {
         "body": "নিজেকে #{{tag_name}} হিসেবে ট্যাগ করেছেন"
@@ -1315,14 +1362,14 @@
     "deleteAskConfirm": "Are you sure you want to delete this ask?",
     "noAsksYet": "No asks from your network yet",
     "friendOfFriend": "Friend of friend",
-    "timeLeft": "{{hours}}h left",
-    "expired": "Expired",
+    "timeLeft": "{{hours}} ঘণ্টা বাকি",
+    "expired": "মেয়াদ শেষ",
     "generating": "Generating title…",
     "minOneTag": "Select at least one tag",
     "aiSuggestions": "AI পরামর্শ",
     "customTagPlaceholder": "কাস্টম ট্যাগ যোগ করুন",
     "cardLabel": "সাহায্য চাইছি",
-    "askingNow": "Active Ask",
+    "askingNow": "সক্রিয় অনুরোধ",
     "yourAskTitle": "আপনার বর্তমান Ask",
     "generateAiTags": "AI ট্যাগ তৈরি করুন",
     "aiNoSuggestions": "AI উপযুক্ত ট্যাগ খুঁজে পেল না। আবার চেষ্টা করুন বা নিজে লিখুন।",
@@ -1342,7 +1389,8 @@
     "createFailed": "আপনার Ask যায়নি — আবার চেষ্টা করুন।",
     "deleteFailed": "Ask মুছতে ব্যর্থ",
     "shortPrompt": "কী চাই?",
-    "rowIntro": "একটি Ask পোস্ট করুন — AI আপনার নেটওয়ার্ক (এমনকি বন্ধুর বন্ধু) থেকে সঠিক মানুষ খুঁজে দেয়।"
+    "rowIntro": "একটি Ask পোস্ট করুন — AI আপনার নেটওয়ার্ক (এমনকি বন্ধুর বন্ধু) থেকে সঠিক মানুষ খুঁজে দেয়।",
+    "deleteFailedHint": "এই অনুরোধটি হয়তো ইতিমধ্যে মুছে ফেলা হয়েছে। রিফ্রেশ করা হচ্ছে।"
   },
   "errorBoundary": {
     "title": "কিছু ভুল হয়েছে",

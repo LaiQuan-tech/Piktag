@@ -557,7 +557,9 @@
       "website": "Sito web",
       "blog": "Blog",
       "portfolio": "Portfolio",
-      "custom": "Link"
+      "custom": "Link",
+      "alipay": "Alipay",
+      "wechat": "WeChat"
     },
     "platformCategory": {
       "communication": "Comunicazione",
@@ -1362,14 +1364,14 @@
     "deleteFailedHint": "Forse era già stata rimossa. Aggiorniamo.",
     "noAsksYet": "Ancora nessuna richiesta dalla tua rete",
     "friendOfFriend": "Amico di un amico",
-    "timeLeft": "{{hours}}h left",
-    "expired": "Expired",
+    "timeLeft": "{{hours}} h rimaste",
+    "expired": "Scaduto",
     "generating": "Creo il titolo…",
     "minOneTag": "Scegli almeno un tag",
     "aiSuggestions": "Suggerimenti AI",
     "customTagPlaceholder": "Aggiungi un tag tuo",
     "cardLabel": "Cerca",
-    "askingNow": "Active Ask",
+    "askingNow": "Richiesta attiva",
     "yourAskTitle": "La tua Richiesta attiva",
     "generateAiTags": "Crea tag con l'AI",
     "aiNoSuggestions": "L'AI non ha trovato nulla di adatto. Riprova o scrivi i tuoi.",

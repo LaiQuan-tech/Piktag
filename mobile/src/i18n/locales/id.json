@@ -74,7 +74,8 @@
     "them": "mereka",
     "clear": "Hapus",
     "month": "Bulan",
-    "day": "Hari"
+    "day": "Hari",
+    "userNotFound": "Pengguna ini tidak ditemukan"
   },
   "auth": {
     "login": {
@@ -243,7 +244,13 @@
       "finishCta": "Selesai — mulai pakai PikTag",
       "usernameLabel": "Nama pengguna PikTag kamu",
       "headlineLabel": "Jabatan (opsional)",
-      "bioLabel": "Satu kalimat tentang kamu"
+      "bioLabel": "Satu kalimat tentang kamu",
+      "welcomeName": "Selamat datang, {{name}}",
+      "phoneSectionTitle": "Nomor telepon (opsional)",
+      "phoneSectionHint": "Agar teman menemukanmu lewat sinkronisasi kontak — tidak pernah dipublikasikan, tidak dipakai menelepon.",
+      "phonePlaceholder": "+62 812 3456 7890",
+      "phoneInvalidTitle": "Format telepon tidak dikenali",
+      "phoneInvalidMessage": "Tidak bisa membaca \"{{value}}\" — dilewati. Bisa ditambahkan nanti dari profil."
     },
     "invalidEmail": "Masukkan alamat email yang valid"
   },
@@ -550,7 +557,9 @@
       "website": "Situs web",
       "blog": "Blog",
       "portfolio": "Portofolio",
-      "custom": "Tautan"
+      "custom": "Tautan",
+      "alipay": "Alipay",
+      "wechat": "WeChat"
     },
     "platformCategory": {
       "communication": "Komunikasi",
@@ -842,7 +851,8 @@
     "generateButton": "Buat Kode Undangan",
     "inviteRecordHeader": "Riwayat Undangan",
     "usedBadge": "Terpakai",
-    "noInvites": "Tidak ada riwayat undangan"
+    "noInvites": "Tidak ada riwayat undangan",
+    "acceptedSummary": "{{count}} bergabung"
   },
   "redeemInvite": {
     "headerTitle": "Tukar Undangan",
@@ -975,31 +985,68 @@
         }
       },
       "follow": {
-        "body": "mulai mengikutimu"
+        "body": "mulai mengikutimu",
+        "title": "",
+        "push": {
+          "title": "{{username}}",
+          "body": "mulai mengikutimu"
+        }
       },
       "friend": {
-        "body": "sekarang kalian berteman"
+        "body": "sekarang kalian berteman",
+        "title": "",
+        "push": {
+          "title": "{{username}}",
+          "body": "kalian sekarang berteman"
+        }
       },
       "invite_accepted": {
-        "body": "bergabung dengan PikTag"
+        "body": "bergabung dengan PikTag",
+        "title": "Undanganmu diterima"
       },
       "tag_added": {
-        "body": "menandaimu sebagai #{{tag_name}}"
+        "body": "menandaimu sebagai #{{tag_name}}",
+        "title": "",
+        "push": {
+          "title": "{{username}}",
+          "body": "menandaimu sebagai #{{tag_name}}"
+        }
       },
       "biolink_click": {
-        "body": "mengeklik tautan {{platform}}-mu"
+        "body": "mengeklik tautan {{platform}}-mu",
+        "title": ""
       },
       "birthday": {
-        "body": "hari ini ulang tahun {{username}}"
+        "body": "hari ini ulang tahun {{username}}",
+        "title": "",
+        "push": {
+          "title": "Pengingat ulang tahun",
+          "body": "hari ini ulang tahun {{username}}"
+        }
       },
       "anniversary": {
-        "body": "{{years}} tahun yang lalu hari ini, kamu bertemu {{username}}"
+        "body": "{{years}} tahun yang lalu hari ini, kamu bertemu {{username}}",
+        "title": "",
+        "push": {
+          "title": "Anniversary",
+          "body": "{{years}} tahun lalu hari ini kamu bertemu {{username}}"
+        }
       },
       "tag_trending": {
-        "body": "tag-mu #{{tag_name}} sedang tren hari ini"
+        "body": "tag-mu #{{tag_name}} sedang tren hari ini",
+        "title": "",
+        "push": {
+          "title": "Sedang tren",
+          "body": "tag #{{tag_name}} kamu sedang tren hari ini"
+        }
       },
       "recommendation": {
-        "body": "mungkin kamu kenal {{username}} — {{count}} tag bersama"
+        "body": "mungkin kamu kenal {{username}} — {{count}} tag bersama",
+        "title": "",
+        "push": {
+          "title": "Disarankan untukmu",
+          "body": "kamu mungkin kenal {{username}} — {{count}} tag yang sama"
+        }
       },
       "endorsement_request": {
         "body": "memberi tag dirinya #{{tag_name}}"
@@ -1342,7 +1389,8 @@
     "createFailed": "Ask kamu gagal terkirim — coba lagi.",
     "deleteFailed": "Tidak bisa hapus ask",
     "shortPrompt": "Mau apa?",
-    "rowIntro": "Posting Ask — AI mencari orang yang tepat dari jaringanmu (dan teman dari teman)."
+    "rowIntro": "Posting Ask — AI mencari orang yang tepat dari jaringanmu (dan teman dari teman).",
+    "deleteFailedHint": "Permintaan ini mungkin sudah dihapus. Menyegarkan."
   },
   "errorBoundary": {
     "title": "Terjadi kesalahan",

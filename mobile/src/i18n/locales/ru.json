@@ -74,7 +74,8 @@
     "them": "им",
     "clear": "Очистить",
     "month": "Месяц",
-    "day": "День"
+    "day": "День",
+    "userNotFound": "Не удалось найти этого пользователя"
   },
   "auth": {
     "login": {
@@ -243,7 +244,13 @@
       "finishCta": "Готово — начните пользоваться PikTag",
       "usernameLabel": "Ваш ник в PikTag",
       "headlineLabel": "Должность (необязательно)",
-      "bioLabel": "Одна строка о себе"
+      "bioLabel": "Одна строка о себе",
+      "welcomeName": "Добро пожаловать, {{name}}",
+      "phoneSectionTitle": "Номер телефона (необязательно)",
+      "phoneSectionHint": "Чтобы друзья находили тебя через синхронизацию контактов — никогда не публикуется и не используется для звонков.",
+      "phonePlaceholder": "+7 912 345 67 89",
+      "phoneInvalidTitle": "Формат номера не распознан",
+      "phoneInvalidMessage": "Не удалось распознать «{{value}}» — пропущено. Можно добавить позже в профиле."
     },
     "invalidEmail": "Введите действительный адрес эл. почты"
   },
@@ -550,7 +557,9 @@
       "website": "Сайт",
       "blog": "Блог",
       "portfolio": "Портфолио",
-      "custom": "Ссылка"
+      "custom": "Ссылка",
+      "alipay": "Alipay",
+      "wechat": "WeChat"
     },
     "platformCategory": {
       "communication": "Связь",
@@ -842,7 +851,8 @@
     "generateButton": "Создать инвайт-код",
     "inviteRecordHeader": "История приглашений",
     "usedBadge": "Использовано",
-    "noInvites": "История приглашений пуста"
+    "noInvites": "История приглашений пуста",
+    "acceptedSummary": "{{count}} присоединились"
   },
   "redeemInvite": {
     "headerTitle": "Активировать инвайт",
@@ -975,31 +985,68 @@
         }
       },
       "follow": {
-        "body": "начал(а) подписку на вас"
+        "body": "начал(а) подписку на вас",
+        "title": "",
+        "push": {
+          "title": "{{username}}",
+          "body": "подписался на вас"
+        }
       },
       "friend": {
-        "body": "вы теперь друзья"
+        "body": "вы теперь друзья",
+        "title": "",
+        "push": {
+          "title": "{{username}}",
+          "body": "теперь вы друзья"
+        }
       },
       "invite_accepted": {
-        "body": "присоединился(ась) к PikTag"
+        "body": "присоединился(ась) к PikTag",
+        "title": "Ваше приглашение принято"
       },
       "tag_added": {
-        "body": "отметил(а) вас как #{{tag_name}}"
+        "body": "отметил(а) вас как #{{tag_name}}",
+        "title": "",
+        "push": {
+          "title": "{{username}}",
+          "body": "отметил вас как #{{tag_name}}"
+        }
       },
       "biolink_click": {
-        "body": "перешёл(шла) по вашей ссылке {{platform}}"
+        "body": "перешёл(шла) по вашей ссылке {{platform}}",
+        "title": ""
       },
       "birthday": {
-        "body": "сегодня день рождения у {{username}}"
+        "body": "сегодня день рождения у {{username}}",
+        "title": "",
+        "push": {
+          "title": "Напоминание о дне рождения",
+          "body": "сегодня день рождения у {{username}}"
+        }
       },
       "anniversary": {
-        "body": "{{years}} лет назад в этот день вы познакомились с {{username}}"
+        "body": "{{years}} лет назад в этот день вы познакомились с {{username}}",
+        "title": "",
+        "push": {
+          "title": "Годовщина",
+          "body": "{{years}} лет назад в этот день вы познакомились с {{username}}"
+        }
       },
       "tag_trending": {
-        "body": "ваш тег #{{tag_name}} сегодня в тренде"
+        "body": "ваш тег #{{tag_name}} сегодня в тренде",
+        "title": "",
+        "push": {
+          "title": "В тренде",
+          "body": "ваш тег #{{tag_name}} в тренде сегодня"
+        }
       },
       "recommendation": {
-        "body": "возможно, вы знаете {{username}} — общих тегов: {{count}}"
+        "body": "возможно, вы знаете {{username}} — общих тегов: {{count}}",
+        "title": "",
+        "push": {
+          "title": "Рекомендуем",
+          "body": "возможно, вы знаете {{username}} — {{count}} общих тегов"
+        }
       },
       "endorsement_request": {
         "body": "пометил(а) себя как #{{tag_name}}"
@@ -1315,14 +1362,14 @@
     "deleteAskConfirm": "Are you sure you want to delete this ask?",
     "noAsksYet": "No asks from your network yet",
     "friendOfFriend": "Friend of friend",
-    "timeLeft": "{{hours}}h left",
-    "expired": "Expired",
+    "timeLeft": "осталось {{hours}} ч",
+    "expired": "Истёк",
     "generating": "Generating title…",
     "minOneTag": "Select at least one tag",
     "aiSuggestions": "Подсказки ИИ",
     "customTagPlaceholder": "Добавить тег",
     "cardLabel": "Ищу",
-    "askingNow": "Active Ask",
+    "askingNow": "Активный запрос",
     "yourAskTitle": "Ваш активный Ask",
     "generateAiTags": "Сгенерировать ИИ-теги",
     "aiNoSuggestions": "ИИ не нашёл подходящих тегов. Попробуй снова или введи сам.",
@@ -1342,7 +1389,8 @@
     "createFailed": "Ask не отправился — попробуйте ещё раз.",
     "deleteFailed": "Не удалось удалить ask",
     "shortPrompt": "Что тебе нужно?",
-    "rowIntro": "Опубликуйте Ask — ИИ найдёт нужных людей в вашей сети (и друзей друзей)."
+    "rowIntro": "Опубликуйте Ask — ИИ найдёт нужных людей в вашей сети (и друзей друзей).",
+    "deleteFailedHint": "Возможно, этот запрос уже удалён. Обновляем."
   },
   "errorBoundary": {
     "title": "Что-то пошло не так",
