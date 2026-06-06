@@ -50,7 +50,15 @@ const corsHeaders = {
 // multimodal escalation are the safety net), so a flash-lite miss never
 // ships a worse result. VALIDATE accuracy on real cards; reverting is
 // a one-line chain edit.
-const MODEL_FALLBACK_CHAIN = ['gemini-2.0-flash-lite', 'gemini-2.0-flash', 'gemini-2.5-flash', 'gemini-1.5-flash'] as const;
+// 2026-06-07: Google RETIRED gemini-2.0-flash-lite / 2.0-flash / 1.5-flash
+// (all 404 "no longer available" — verified via direct probe). The old chain
+// led with those, so EVERY scan burned 2 dead 404 round-trips before falling
+// to gemini-2.5-flash — pure latency on the critical recognition path. Now
+// only the live 2.5 models: 2.5-flash PRIMARY (the accuracy we've been
+// running on all along, since the dead ids always fell through to it), with
+// 2.5-flash-lite as a faster fallback. (gemini-2.5-flash-lite primary is an
+// option for more speed but is an untested accuracy gamble on recognition.)
+const MODEL_FALLBACK_CHAIN = ['gemini-2.5-flash', 'gemini-2.5-flash-lite'] as const;
 
 // Native structured-output schema (Gemini OpenAPI subset). Paired
 // with responseMimeType:'application/json' below, this forces the

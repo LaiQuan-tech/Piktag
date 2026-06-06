@@ -29,18 +29,21 @@ async function getRemovedTagNames(req: Request): Promise<Set<string>> {
   }
 }
 
-const MODEL_FALLBACK_CHAIN = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash'] as const;
+// 2026-06-07: gemini-2.0-flash* / 1.5-flash were RETIRED by Google (404 "no
+// longer available" — verified via direct probe). Only gemini-2.5-flash and
+// gemini-2.5-flash-lite are live. Normal/event path: 2.5-flash first (quality
+// for the date/location/event mix), lite as fallback.
+const MODEL_FALLBACK_CHAIN = ['gemini-2.5-flash', 'gemini-2.5-flash-lite'] as const;
 // `fast` callers (card-scan contact tagging — founder 2026-06-07: the
 // result page felt a beat slow) lead with flash-lite, far quicker than
 // 2.5-flash and plenty for "suggest a few tags from a bio". Same
 // fallbacks so a flash-lite hiccup still degrades gracefully.
-// MUST include gemini-2.5-flash as a fallback: verified 2026-06-07 that
-// flash-lite / 2.0-flash / 1.5-flash were all failing for this project's
-// key (everything that "works" silently falls through to 2.5-flash). The
-// fast chain originally lacked 2.5-flash, so when the faster models failed
-// it had no working fallback → 503 on every card scan. Keep the fast models
-// first (speed when they work), 2.5-flash before 1.5-flash as the safety net.
-const FAST_MODEL_CHAIN = ['gemini-2.0-flash-lite', 'gemini-2.0-flash', 'gemini-2.5-flash', 'gemini-1.5-flash'] as const;
+// `fast` callers (card-scan contact tagging) lead with gemini-2.5-flash-lite
+// — the live, genuinely fast/cheap 2.5 model (the old gemini-2.0-flash-lite
+// is RETIRED → 404). gemini-2.5-flash is the quality fallback. THIS is what
+// finally delivers real flash-lite-class speed (the 2.0-flash-lite chain was
+// dead and silently fell through to 2.5-flash).
+const FAST_MODEL_CHAIN = ['gemini-2.5-flash-lite', 'gemini-2.5-flash'] as const;
 
 type SuggestBody = {
   bio?: string;
@@ -55,8 +58,6 @@ type SuggestBody = {
   // pg_cron keep-warm ping — short-circuits before any Gemini work, just
   // keeps the Deno isolate hot (no model cost).
   warmup?: boolean;
-  // TEMP: per-model availability probe (remove after diagnosis).
-  diag?: boolean;
   // Optional richer context for the QR-group creation flow (task 3
   // follow-up). All optional and backward-compatible — old callers
   // (EditProfile auto-suggest, ManageTags AI fire) just don't pass
@@ -128,35 +129,6 @@ serve(async (req) => {
     // request doesn't pay a cold start. ~zero cost (no model call).
     if (body.warmup) {
       return jsonResponse(200, { ok: true, warm: true });
-    }
-
-    // TEMP diagnostic (founder 2026-06-07): which Gemini models does this
-    // project's key actually serve? Probes each candidate and returns the
-    // HTTP status + a short error snippet. REMOVE after diagnosis.
-    if (body.diag === true) {
-      const candidates = [
-        'gemini-2.0-flash-lite', 'gemini-2.0-flash', 'gemini-2.5-flash',
-        'gemini-1.5-flash', 'gemini-2.5-flash-lite', 'gemini-flash-latest',
-        'gemini-2.0-flash-001', 'gemini-2.5-flash-preview-05-20',
-      ];
-      const results: unknown[] = [];
-      for (const m of candidates) {
-        try {
-          const r = await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent`,
-            {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
-              body: JSON.stringify({ contents: [{ parts: [{ text: 'Reply with: ok' }] }] }),
-            },
-          );
-          const txt = await r.text().catch(() => '');
-          results.push({ model: m, status: r.status, ok: r.ok, snippet: txt.slice(0, 140) });
-        } catch (e) {
-          results.push({ model: m, error: e instanceof Error ? e.message : String(e) });
-        }
-      }
-      return jsonResponse(200, { diag: results });
     }
 
     const MAX_INPUT = 500;

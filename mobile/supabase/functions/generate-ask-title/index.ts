@@ -5,7 +5,9 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-const MODEL_FALLBACK_CHAIN = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash'] as const;
+// 2026-06-07: gemini-2.0-flash / 1.5-flash were RETIRED by Google (404).
+// Only the live 2.5 models remain.
+const MODEL_FALLBACK_CHAIN = ['gemini-2.5-flash', 'gemini-2.5-flash-lite'] as const;
 
 type GenerateTitleBody = {
   body: string;
