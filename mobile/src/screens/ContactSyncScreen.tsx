@@ -893,7 +893,7 @@ export default function ContactSyncScreen({ navigation }: ContactSyncScreenProps
               </TouchableOpacity>
             ) : onPiktagCount > 0 ? (
               <View style={[styles.summaryCta, styles.summaryCtaDone]}>
-                <Check size={16} color={colors.piktag600} />
+                <Check size={16} color={colors.gray400} />
                 <Text
                   style={[styles.summaryCtaText, styles.summaryCtaDoneText]}
                 >
@@ -1263,13 +1263,17 @@ function makeStyles(c: ColorPalette) {
     fontWeight: '700',
     color: '#FFFFFF',
   },
+  // DONE state — NOT a button (no onPress). Founder 2026-06-07: it was a
+  // piktag50 pill that looked like a tappable light-purple button. The
+  // actionable "全部追蹤" version above is the gradient signature; once
+  // everyone's added there's nothing to do, so this reads as a calm,
+  // muted "✓ all added" confirmation — no pill, no purple.
   summaryCtaDone: {
-    backgroundColor: c.piktag50,
-    borderWidth: 1,
-    borderColor: c.piktag200,
+    backgroundColor: 'transparent',
   },
   summaryCtaDoneText: {
-    color: c.piktag600,
+    color: c.gray500,
+    fontWeight: '600',
   },
   summaryProgress: {
     flexDirection: 'row',
