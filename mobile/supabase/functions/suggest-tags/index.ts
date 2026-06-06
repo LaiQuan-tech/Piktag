@@ -30,6 +30,11 @@ async function getRemovedTagNames(req: Request): Promise<Set<string>> {
 }
 
 const MODEL_FALLBACK_CHAIN = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash'] as const;
+// `fast` callers (card-scan contact tagging — founder 2026-06-07: the
+// result page felt a beat slow) lead with flash-lite, far quicker than
+// 2.5-flash and plenty for "suggest a few tags from a bio". Same
+// fallbacks so a flash-lite hiccup still degrades gracefully.
+const FAST_MODEL_CHAIN = ['gemini-2.0-flash-lite', 'gemini-2.0-flash', 'gemini-1.5-flash'] as const;
 
 type SuggestBody = {
   bio?: string;
@@ -37,6 +42,10 @@ type SuggestBody = {
   location?: string;
   existingTags?: string;
   lang?: string;
+  // `true` = latency-optimized path (card-scan contact tagging): flash-lite
+  // model, a lean person-focused prompt, fewer + capped tokens. Other
+  // callers (event-QR mix, EditProfile, ManageTags, Ask) omit it.
+  fast?: boolean;
   // Optional richer context for the QR-group creation flow (task 3
   // follow-up). All optional and backward-compatible — old callers
   // (EditProfile auto-suggest, ManageTags AI fire) just don't pass
@@ -170,7 +179,25 @@ serve(async (req) => {
       `Popular nearby (real tags from other PikTag users in this area): ${popularNearby || '(none)'}`,
       `Existing tags on this group (do NOT repeat): ${existingTags || '(none)'}`,
     ];
-    const prompt = promptParts.join('\n');
+
+    // FAST path (card-scan contact tagging): a lean, PERSON-focused prompt.
+    // The event-mix above doesn't fit here (that caller passes only bio +
+    // name, no date/location), and a shorter prompt asking for fewer tags
+    // means the model emits fewer tokens and returns sooner — and the tags
+    // are person-appropriate, not forced date/location ones.
+    const fast = body.fast === true;
+    const personPromptParts: string[] = [
+      `Suggest hashtag tags describing this PERSON, for a private contact note.`,
+      `Return ONLY a JSON array of 3-5 short hashtag strings (without the # prefix), nothing else.`,
+      `Keywords MUST be written in ${lang}. Only use English for internationally recognized terms (PM, AI, CEO, UX, IoT).`,
+      `Base them on the person's role / field / company / interests from the card. Short (1-3 words / kanji clusters), specific, scannable. No vague catch-alls (#nice, #person, #friend).`,
+      `Do NOT repeat tags already noted: ${existingTags || '(none)'}`,
+      ``,
+      `─── Context ───`,
+      `Name / title: ${name || '(none)'}`,
+      `Bio / card text: ${bio || '(none)'}`,
+    ];
+    const prompt = (fast ? personPromptParts : promptParts).join('\n');
 
     let lastError = '';
     let rawSnippet = '';
@@ -180,7 +207,8 @@ serve(async (req) => {
     // always resolves well before the model does).
     const removedPromise = getRemovedTagNames(req);
 
-    for (const model of MODEL_FALLBACK_CHAIN) {
+    const chain = fast ? FAST_MODEL_CHAIN : MODEL_FALLBACK_CHAIN;
+    for (const model of chain) {
       try {
         const upstream = await fetch(
           `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
@@ -192,6 +220,10 @@ serve(async (req) => {
             },
             body: JSON.stringify({
               contents: [{ parts: [{ text: prompt }] }],
+              // Cap output — nobody needs more than ~10 short tags, and
+              // fewer generated tokens = a faster response. Tighter on the
+              // fast path (3-5 person tags).
+              generationConfig: { maxOutputTokens: fast ? 256 : 512 },
             }),
           }
         );

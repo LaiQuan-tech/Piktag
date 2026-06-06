@@ -365,7 +365,10 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
           : 'the same language as the content';
         const { data, error } = await supabase.functions.invoke<{ suggestions?: string[] }>(
           'suggest-tags',
-          { body: { bio, name: nm, existingTags: tags.join(', '), lang } },
+          // fast: flash-lite + lean person-prompt + capped tokens — a card
+          // scan is mid-event, so the suggestion should land quickly
+          // (founder 2026-06-07: the result page felt a beat slow).
+          { body: { bio, name: nm, existingTags: tags.join(', '), lang, fast: true } },
         );
         if (!error && Array.isArray(data?.suggestions)) {
           const taken = new Set(tags.map((x) => x.toLowerCase()));
