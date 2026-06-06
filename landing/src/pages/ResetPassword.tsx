@@ -1,23 +1,27 @@
 // ResetPassword
 //
-// Lands here from the Supabase password-reset email. The link looks like
-//   https://pikt.ag/reset-password#access_token=…&refresh_token=…&type=recovery
-// and supabase-js's `detectSessionInUrl` consumes the hash on mount,
-// turning the recovery token into a usable session. From that session we
-// can call `auth.updateUser({ password })` to actually change the password.
+// Lands here from the PikTag password-reset email. The link is now:
+//   https://pikt.ag/reset-password?token_hash=<hash>&type=recovery
 //
-// Three render states:
-//   1. Verifying — waiting for supabase-js to ingest the URL hash and
-//      tell us via `onAuthStateChange('PASSWORD_RECOVERY')` that the
-//      link was valid.
-//   2. Form — recovery confirmed; show new-password + confirm fields.
-//   3. Done — password updated; tell the user to open the app.
+// WHY token_hash (not the old #access_token hash or a PKCE ?code):
+//   The mobile app uses flowType:'pkce'. A PKCE recovery link needs the
+//   code_verifier that supabase-js stored ON THE DEVICE that requested the
+//   reset (the app's SecureStore). Opening the link in ANY browser — even
+//   the same phone's browser — has no verifier, so the session could never
+//   be established and the page showed "invalid or has expired" 100% of the
+//   time for app-initiated resets. token_hash + verifyOtp is a server-side
+//   one-time-token verification that needs NO verifier, so it works on any
+//   device.
 //
-// We don't auto-redirect anywhere afterwards because most users open
-// the link on the device they're reading email on (often desktop) and
-// the actual app login happens on their phone. Showing a clear "open
-// the PikTag app and sign in with your new password" beats a redirect
-// that leads to a screen they can't do anything useful on.
+// WHY we verify at SUBMIT, not on load:
+//   Email security scanners (Gmail etc.) pre-fetch links. If we consumed the
+//   one-time token on page load, a scanner would burn it before the user
+//   clicked. So the page just shows the form; the token is spent only when
+//   the user actually submits a new password.
+//
+// Backward-compat: older emails (implicit #access_token) still work — if no
+// token_hash is present we fall back to detecting a session supabase-js may
+// have ingested from the URL hash.
 
 import { useEffect, useState, type FormEvent } from 'react';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
@@ -25,42 +29,49 @@ import { supabase, isSupabaseConfigured } from '../lib/supabase';
 type Status = 'verifying' | 'ready' | 'updating' | 'done' | 'invalid' | 'config-missing';
 
 export default function ResetPassword() {
-  const [status, setStatus] = useState<Status>(
-    isSupabaseConfigured ? 'verifying' : 'config-missing',
+  const params = new URLSearchParams(
+    typeof window !== 'undefined' ? window.location.search : '',
   );
+  const tokenHash = params.get('token_hash');
+  const otpType = (params.get('type') || 'recovery') as 'recovery';
+
+  const [status, setStatus] = useState<Status>(
+    !isSupabaseConfigured ? 'config-missing' : tokenHash ? 'ready' : 'verifying',
+  );
+  // Whether a recovery session is already established (implicit-hash path, or
+  // after a successful verifyOtp). When true, submit goes straight to update.
+  const [verified, setVerified] = useState(false);
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!isSupabaseConfigured) return;
+    // token_hash path is verified at submit — nothing to detect on load.
+    if (!isSupabaseConfigured || tokenHash) return;
 
-    // Subscribe BEFORE asking for the session — the PASSWORD_RECOVERY
-    // event fires synchronously after supabase-js parses the URL hash
-    // on first mount, and we want to catch it instead of racing the
-    // initial getSession call below.
+    // Backward-compat: older implicit links carry #access_token, which
+    // supabase-js consumes on mount, emitting PASSWORD_RECOVERY + a session.
     const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'PASSWORD_RECOVERY' && session) {
+        setVerified(true);
         setStatus('ready');
       }
     });
-
-    // Fallback path: some Supabase flows (PKCE/code in query string)
-    // don't emit PASSWORD_RECOVERY but still create a session. After a
-    // short tick, accept any present session as "we can update password".
     const fallback = setTimeout(async () => {
       const { data } = await supabase.auth.getSession();
-      setStatus((cur) => {
-        if (cur !== 'verifying') return cur;
-        return data.session ? 'ready' : 'invalid';
-      });
+      if (data.session) {
+        setVerified(true);
+        setStatus((c) => (c === 'verifying' ? 'ready' : c));
+      } else {
+        setStatus((c) => (c === 'verifying' ? 'invalid' : c));
+      }
     }, 1500);
 
     return () => {
       sub.subscription.unsubscribe();
       clearTimeout(fallback);
     };
-  }, []);
+  }, [tokenHash]);
 
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -74,6 +85,25 @@ export default function ResetPassword() {
       return;
     }
     setStatus('updating');
+
+    // Spend the one-time recovery token NOW (token_hash flow). No PKCE
+    // verifier needed → works on any device; consumed only on submit →
+    // link-scanners can't pre-burn it.
+    if (tokenHash && !verified) {
+      const { error: vErr } = await supabase.auth.verifyOtp({
+        type: otpType,
+        token_hash: tokenHash,
+      });
+      if (vErr) {
+        setError(
+          'This reset link is invalid or has expired. Please request a new one from the PikTag app.',
+        );
+        setStatus('ready');
+        return;
+      }
+      setVerified(true);
+    }
+
     const { error: updateErr } = await supabase.auth.updateUser({ password });
     if (updateErr) {
       setError(updateErr.message);
@@ -141,9 +171,7 @@ export default function ResetPassword() {
               />
             </label>
 
-            {error && (
-              <div className="text-rose-300 text-sm">{error}</div>
-            )}
+            {error && <div className="text-rose-300 text-sm">{error}</div>}
 
             <button
               type="submit"
@@ -165,7 +193,7 @@ export default function ResetPassword() {
               href="https://pikt.ag"
               className="block text-center text-white/70 hover:text-white text-sm"
             >
-              ← Back to PikTag
+              Back to PikTag
             </a>
           </div>
         )}

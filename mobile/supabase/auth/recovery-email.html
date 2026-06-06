@@ -3,9 +3,15 @@
   Applied to the remote project by .github/workflows/supabase-auth-config.yml
   (Management API: mailer_templates_recovery_content).
 
-  {{ .ConfirmationURL }} is Supabase's action link — it verifies the
-  recovery token then redirects to the app's redirectTo
-  (https://pikt.ag/reset-password, allowlisted by the same workflow).
+  The link uses the TOKEN-HASH flow:
+    https://pikt.ag/reset-password?token_hash={{ .TokenHash }}&type=recovery
+  NOT {{ .ConfirmationURL }} (which produces a /auth/v1/verify?token=pkce_...
+  link). The app is flowType:'pkce', so a PKCE recovery link needs the
+  code_verifier stored on the requesting device — opening it in a browser
+  has no verifier and always failed ("invalid/expired"). token_hash +
+  verifyOtp on the web page needs no verifier → works on any device. The
+  web page (landing /reset-password) spends the one-time token only on
+  submit, so email link-scanners can't pre-burn it.
 
   Email-client-safe: table layout + inline styles only, no external CSS.
   Branded so the recipient sees "PikTag", not a raw Supabase address.
@@ -30,7 +36,7 @@
             <table cellpadding="0" cellspacing="0" role="presentation" style="margin:0 0 24px;">
               <tr>
                 <td style="border-radius:14px;background:#8c52ff;">
-                  <a href="{{ .ConfirmationURL }}" target="_blank"
+                  <a href="https://pikt.ag/reset-password?token_hash={{ .TokenHash }}&type=recovery" target="_blank"
                      style="display:inline-block;padding:14px 32px;font-size:16px;font-weight:700;color:#ffffff;text-decoration:none;border-radius:14px;">
                     重設密碼 · Reset password
                   </a>
@@ -42,7 +48,7 @@
               <span style="color:#9ca3af;">If the button doesn't work, paste this link into your browser:</span>
             </p>
             <p style="margin:0 0 24px;font-size:12px;word-break:break-all;">
-              <a href="{{ .ConfirmationURL }}" target="_blank" style="color:#8c52ff;text-decoration:underline;">{{ .ConfirmationURL }}</a>
+              <a href="https://pikt.ag/reset-password?token_hash={{ .TokenHash }}&type=recovery" target="_blank" style="color:#8c52ff;text-decoration:underline;">https://pikt.ag/reset-password?token_hash={{ .TokenHash }}&type=recovery</a>
             </p>
             <p style="margin:0;font-size:13px;line-height:1.6;color:#9ca3af;border-top:1px solid #f3f4f6;padding-top:16px;">
               不是你本人要求的？忽略這封信即可，你的密碼不會變動。<br/>
