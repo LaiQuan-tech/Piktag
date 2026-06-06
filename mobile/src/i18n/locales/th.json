@@ -216,7 +216,7 @@
       "profileNamePlaceholder": "ชื่อของคุณ",
       "avatarHintRecommend": "เพิ่มรูป — เพื่อนจำคุณได้ง่ายขึ้น (ไม่บังคับ)",
       "usernameChecking": "กำลังตรวจสอบ…",
-      "usernameAvailable": "✓ ใช้ได้",
+      "usernameAvailable": "ใช้ได้",
       "usernameTaken": "ชื่อผู้ใช้นี้มีคนใช้แล้ว",
       "usernameInvalid": "3–30 ตัว: ตัวพิมพ์เล็ก ตัวเลข _ และ .",
       "usernameCheckError": "ตอนนี้ตรวจสอบไม่ได้ — ลองใหม่อีกครั้ง",
@@ -233,7 +233,7 @@
       "aiThinking": "AI กำลังคิด…",
       "aiMore": "แนะนำเพิ่ม",
       "aiSuggest": "ให้ AI แนะนำแท็ก",
-      "aiPickHint": "👇 แตะแท็กที่อยากเพิ่ม",
+      "aiPickHint": "แตะแท็กที่อยากเพิ่ม",
       "tagInputPlaceholder": "พิมพ์แท็ก เช่น ถ่ายภาพ",
       "tagsGateHint": "เลือกอย่างน้อย 3 แท็กเพื่อไปต่อ",
       "bioGateHint": "เขียนแนะนำตัวสั้น ๆ เพื่อไปต่อ",
@@ -377,7 +377,7 @@
     "tagsSelected": "แท็กที่เลือก",
     "aiThinking": "Reading your intent…",
     "aiExtractedLabel": "PikTag understood you mean:",
-    "askEmptyStateButton": "📣 Post an Ask"
+    "askEmptyStateButton": "Post an Ask"
   },
   "addTag": {
     "headerTitle": "สร้าง Tag",

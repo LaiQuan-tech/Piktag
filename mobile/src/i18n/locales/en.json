@@ -223,7 +223,7 @@
       "profileNamePlaceholder": "Your name",
       "avatarHintRecommend": "Add a photo — friends recognize you faster (optional)",
       "usernameChecking": "Checking…",
-      "usernameAvailable": "✓ Available",
+      "usernameAvailable": "Available",
       "usernameTaken": "This username is taken",
       "usernameInvalid": "3–30 chars: lowercase letters, numbers, _ and .",
       "usernameCheckError": "Can't check right now — try again",
@@ -240,7 +240,7 @@
       "aiThinking": "AI is thinking…",
       "aiMore": "Suggest more",
       "aiSuggest": "Let AI suggest tags",
-      "aiPickHint": "👇 Tap the tags you want to add",
+      "aiPickHint": "Tap the tags you want to add",
       "tagInputPlaceholder": "Type a tag, e.g. photography",
       "tagsGateHint": "Pick at least 3 tags to continue",
       "bioGateHint": "Write a one-line intro to continue",
@@ -384,7 +384,7 @@
     "tagsSelected": "tag(s) selected",
     "aiThinking": "Reading your intent…",
     "aiExtractedLabel": "PikTag understood you mean:",
-    "askEmptyStateButton": "📣 Post an Ask"
+    "askEmptyStateButton": "Post an Ask"
   },
   "addTag": {
     "headerTitle": "Create a Tag",

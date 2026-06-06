@@ -216,7 +216,7 @@
       "profileNamePlaceholder": "Namamu",
       "avatarHintRecommend": "Tambahkan foto — teman lebih mudah mengenalimu (opsional)",
       "usernameChecking": "Memeriksa…",
-      "usernameAvailable": "✓ Tersedia",
+      "usernameAvailable": "Tersedia",
       "usernameTaken": "Nama pengguna ini sudah dipakai",
       "usernameInvalid": "3–30 karakter: huruf kecil, angka, _ dan .",
       "usernameCheckError": "Tidak bisa memeriksa sekarang — coba lagi",
@@ -233,7 +233,7 @@
       "aiThinking": "AI sedang berpikir…",
       "aiMore": "Sarankan lagi",
       "aiSuggest": "Biarkan AI menyarankan tag",
-      "aiPickHint": "👇 Ketuk tag yang ingin ditambahkan",
+      "aiPickHint": "Ketuk tag yang ingin ditambahkan",
       "tagInputPlaceholder": "Ketik tag, mis.: fotografi",
       "tagsGateHint": "Pilih minimal 3 tag untuk lanjut",
       "bioGateHint": "Tulis perkenalan singkat untuk lanjut",
@@ -377,7 +377,7 @@
     "tagsSelected": "tag dipilih",
     "aiThinking": "Reading your intent…",
     "aiExtractedLabel": "PikTag understood you mean:",
-    "askEmptyStateButton": "📣 Post an Ask"
+    "askEmptyStateButton": "Post an Ask"
   },
   "addTag": {
     "headerTitle": "Buat Tag",

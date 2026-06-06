@@ -223,7 +223,7 @@
       "profileNamePlaceholder": "آپ کا نام",
       "avatarHintRecommend": "ایک تصویر شامل کریں — دوست آپ کو آسانی سے پہچان لیں گے (اختیاری)",
       "usernameChecking": "جانچ ہو رہی ہے…",
-      "usernameAvailable": "✓ دستیاب",
+      "usernameAvailable": "دستیاب",
       "usernameTaken": "یہ یوزرنیم پہلے سے استعمال میں ہے",
       "usernameInvalid": "3–30 حروف: چھوٹے حروف، اعداد، _ اور .",
       "usernameCheckError": "ابھی جانچ ممکن نہیں — دوبارہ کوشش کریں",
@@ -240,7 +240,7 @@
       "aiThinking": "AI سوچ رہا ہے…",
       "aiMore": "مزید تجاویز",
       "aiSuggest": "AI سے ٹیگ تجویز کرائیں",
-      "aiPickHint": "👇 شامل کرنے کے لیے ٹیگ پر ٹیپ کریں",
+      "aiPickHint": "شامل کرنے کے لیے ٹیگ پر ٹیپ کریں",
       "tagInputPlaceholder": "ٹیگ لکھیں، مثلاً: فوٹوگرافی",
       "tagsGateHint": "جاری رکھنے کے لیے کم از کم 3 ٹیگ منتخب کریں",
       "bioGateHint": "جاری رکھنے کے لیے ایک سطر کا تعارف لکھیں",
@@ -384,7 +384,7 @@
     "tagsSelected": "ٹیگز منتخب",
     "aiThinking": "Reading your intent…",
     "aiExtractedLabel": "PikTag understood you mean:",
-    "askEmptyStateButton": "📣 Post an Ask"
+    "askEmptyStateButton": "Post an Ask"
   },
   "addTag": {
     "headerTitle": "ٹیگ بنائیں",

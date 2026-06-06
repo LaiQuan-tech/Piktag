@@ -216,7 +216,7 @@
       "profileNamePlaceholder": "Adın",
       "avatarHintRecommend": "Bir fotoğraf ekle — arkadaşların seni daha kolay tanır (isteğe bağlı)",
       "usernameChecking": "Kontrol ediliyor…",
-      "usernameAvailable": "✓ Kullanılabilir",
+      "usernameAvailable": "Kullanılabilir",
       "usernameTaken": "Bu kullanıcı adı alınmış",
       "usernameInvalid": "3–30 karakter: küçük harf, rakam, _ ve .",
       "usernameCheckError": "Şu anda kontrol edilemiyor — tekrar dene",
@@ -233,7 +233,7 @@
       "aiThinking": "Yapay zekâ düşünüyor…",
       "aiMore": "Daha fazla öner",
       "aiSuggest": "Yapay zekâ etiket önersin",
-      "aiPickHint": "👇 Eklemek istediğin etiketlere dokun",
+      "aiPickHint": "Eklemek istediğin etiketlere dokun",
       "tagInputPlaceholder": "Etiket yaz, örn.: fotoğrafçılık",
       "tagsGateHint": "Devam etmek için en az 3 etiket seç",
       "bioGateHint": "Devam etmek için kısa bir tanıtım yaz",
@@ -377,7 +377,7 @@
     "tagsSelected": "etiket seçildi",
     "aiThinking": "Reading your intent…",
     "aiExtractedLabel": "PikTag understood you mean:",
-    "askEmptyStateButton": "📣 Post an Ask"
+    "askEmptyStateButton": "Post an Ask"
   },
   "addTag": {
     "headerTitle": "Tag oluştur",

@@ -2887,7 +2887,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
               )}
               {/* Dead-end search → highest-intent moment to capture a
                   demand signal. The button label carries its own
-                  motivation now ("📣 發 Ask 幫忙找") so we don't need
+                  motivation now ("發 Ask 幫忙找") so we don't need
                   a separate explanatory sentence — one element. */}
               {trimmedQuery !== '' && (
                 <TouchableOpacity
@@ -2896,12 +2896,12 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
                   activeOpacity={0.85}
                   accessibilityRole="button"
                   accessibilityLabel={t('search.askEmptyStateButton', {
-                    defaultValue: '📣 Post an Ask',
+                    defaultValue: 'Post an Ask',
                   })}
                 >
                   <Text style={styles.askCtaButtonText}>
                     {t('search.askEmptyStateButton', {
-                      defaultValue: '📣 Post an Ask',
+                      defaultValue: 'Post an Ask',
                     })}
                   </Text>
                 </TouchableOpacity>

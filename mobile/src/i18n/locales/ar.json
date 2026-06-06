@@ -216,7 +216,7 @@
       "profileNamePlaceholder": "اسمك",
       "avatarHintRecommend": "أضف صورة — يتعرّف عليك أصدقاؤك بسهولة (اختياري)",
       "usernameChecking": "جارٍ التحقق…",
-      "usernameAvailable": "✓ متاح",
+      "usernameAvailable": "متاح",
       "usernameTaken": "اسم المستخدم هذا مستخدَم بالفعل",
       "usernameInvalid": "3–30 حرفًا: أحرف صغيرة وأرقام و _ و .",
       "usernameCheckError": "تعذّر التحقق الآن — حاول مرة أخرى",
@@ -233,7 +233,7 @@
       "aiThinking": "الذكاء الاصطناعي يفكّر…",
       "aiMore": "اقترح المزيد",
       "aiSuggest": "دع الذكاء الاصطناعي يقترح وسومًا",
-      "aiPickHint": "👇 اضغط على الوسوم التي تريد إضافتها",
+      "aiPickHint": "اضغط على الوسوم التي تريد إضافتها",
       "tagInputPlaceholder": "اكتب وسمًا، مثل: التصوير",
       "tagsGateHint": "اختر 3 وسوم على الأقل للمتابعة",
       "bioGateHint": "اكتب تعريفًا قصيرًا للمتابعة",
@@ -377,7 +377,7 @@
     "tagsSelected": "علامة محددة",
     "aiThinking": "Reading your intent…",
     "aiExtractedLabel": "PikTag understood you mean:",
-    "askEmptyStateButton": "📣 Post an Ask"
+    "askEmptyStateButton": "Post an Ask"
   },
   "addTag": {
     "headerTitle": "إنشاء Tag",

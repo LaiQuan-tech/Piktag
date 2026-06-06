@@ -216,7 +216,7 @@
       "profileNamePlaceholder": "আপনার নাম",
       "avatarHintRecommend": "একটি ছবি যোগ করুন — বন্ধুরা সহজে চিনবে (ঐচ্ছিক)",
       "usernameChecking": "যাচাই হচ্ছে…",
-      "usernameAvailable": "✓ ব্যবহারযোগ্য",
+      "usernameAvailable": "ব্যবহারযোগ্য",
       "usernameTaken": "এই ইউজারনেমটি ব্যবহৃত হয়েছে",
       "usernameInvalid": "3–30 অক্ষর: ছোট হাতের অক্ষর, সংখ্যা, _ এবং .",
       "usernameCheckError": "এখন যাচাই করা যাচ্ছে না — আবার চেষ্টা করুন",
@@ -233,7 +233,7 @@
       "aiThinking": "AI ভাবছে…",
       "aiMore": "আরও সাজেস্ট করুন",
       "aiSuggest": "AI দিয়ে ট্যাগ সাজেস্ট করান",
-      "aiPickHint": "👇 যোগ করতে চাওয়া ট্যাগে ট্যাপ করুন",
+      "aiPickHint": "যোগ করতে চাওয়া ট্যাগে ট্যাপ করুন",
       "tagInputPlaceholder": "ট্যাগ লিখুন, যেমন: ফটোগ্রাফি",
       "tagsGateHint": "চালিয়ে যেতে অন্তত ৩টি ট্যাগ বেছে নিন",
       "bioGateHint": "চালিয়ে যেতে এক লাইনের পরিচয় লিখুন",
@@ -377,7 +377,7 @@
     "tagsSelected": "ট্যাগ নির্বাচিত",
     "aiThinking": "Reading your intent…",
     "aiExtractedLabel": "PikTag understood you mean:",
-    "askEmptyStateButton": "📣 Post an Ask"
+    "askEmptyStateButton": "Post an Ask"
   },
   "addTag": {
     "headerTitle": "Tag তৈরি করুন",

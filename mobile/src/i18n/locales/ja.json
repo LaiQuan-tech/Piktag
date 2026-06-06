@@ -216,7 +216,7 @@
       "profileNamePlaceholder": "あなたの名前",
       "avatarHintRecommend": "写真を追加 — 友だちが見つけやすくなります（任意）",
       "usernameChecking": "確認中…",
-      "usernameAvailable": "✓ 使用できます",
+      "usernameAvailable": "使用できます",
       "usernameTaken": "このユーザー名は使われています",
       "usernameInvalid": "3〜30文字：小文字英字・数字・_・.",
       "usernameCheckError": "今は確認できません。あとでもう一度お試しください",
@@ -233,7 +233,7 @@
       "aiThinking": "AI が考え中…",
       "aiMore": "もっと提案",
       "aiSuggest": "AI にタグを提案してもらう",
-      "aiPickHint": "👇 追加したいタグをタップ",
+      "aiPickHint": "追加したいタグをタップ",
       "tagInputPlaceholder": "タグを入力（例：写真）",
       "tagsGateHint": "続けるにはタグを3つ以上選んでください",
       "bioGateHint": "続けるにはひとこと自己紹介を書いてください",
@@ -377,7 +377,7 @@
     "tagsSelected": "個のタグを選択中",
     "aiThinking": "Reading your intent…",
     "aiExtractedLabel": "PikTag understood you mean:",
-    "askEmptyStateButton": "📣 Post an Ask"
+    "askEmptyStateButton": "Post an Ask"
   },
   "addTag": {
     "headerTitle": "Tag を作成",

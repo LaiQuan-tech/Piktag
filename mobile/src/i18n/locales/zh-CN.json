@@ -218,7 +218,7 @@
       "profileNamePlaceholder": "你的名字",
       "avatarHintRecommend": "建议放一张照片 — 朋友更容易认出你（可跳过）",
       "usernameChecking": "检查中…",
-      "usernameAvailable": "✓ 可使用",
+      "usernameAvailable": "可使用",
       "usernameTaken": "这个账号已被使用",
       "usernameInvalid": "3–30 字，限小写英文、数字、_ 与 .",
       "usernameCheckError": "暂时无法检查，稍后再试",
@@ -235,7 +235,7 @@
       "aiThinking": "AI 想标签中…",
       "aiMore": "再推荐一些",
       "aiSuggest": "让 AI 推荐标签",
-      "aiPickHint": "👇 点选想加入的标签",
+      "aiPickHint": "点选想加入的标签",
       "tagInputPlaceholder": "输入标签，例：摄影",
       "tagsGateHint": "至少选 3 个标签再继续",
       "bioGateHint": "写一句自我介绍再继续",
@@ -379,7 +379,7 @@
     "tagsSelected": "个标签已选",
     "aiThinking": "Reading your intent…",
     "aiExtractedLabel": "PikTag understood you mean:",
-    "askEmptyStateButton": "📣 Post an Ask"
+    "askEmptyStateButton": "Post an Ask"
   },
   "addTag": {
     "headerTitle": "创建 Tag",

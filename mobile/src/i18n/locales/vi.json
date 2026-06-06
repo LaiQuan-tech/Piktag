@@ -223,7 +223,7 @@
       "profileNamePlaceholder": "Tên của bạn",
       "avatarHintRecommend": "Thêm ảnh — bạn bè dễ nhận ra bạn hơn (tùy chọn)",
       "usernameChecking": "Đang kiểm tra…",
-      "usernameAvailable": "✓ Có thể dùng",
+      "usernameAvailable": "Có thể dùng",
       "usernameTaken": "Tên người dùng này đã có người dùng",
       "usernameInvalid": "3–30 ký tự: chữ thường, số, _ và .",
       "usernameCheckError": "Hiện không kiểm tra được — thử lại nhé",
@@ -240,7 +240,7 @@
       "aiThinking": "AI đang nghĩ…",
       "aiMore": "Gợi ý thêm",
       "aiSuggest": "Để AI gợi ý thẻ",
-      "aiPickHint": "👇 Chạm vào thẻ bạn muốn thêm",
+      "aiPickHint": "Chạm vào thẻ bạn muốn thêm",
       "tagInputPlaceholder": "Nhập thẻ, vd: nhiếp ảnh",
       "tagsGateHint": "Chọn ít nhất 3 thẻ để tiếp tục",
       "bioGateHint": "Viết một dòng giới thiệu để tiếp tục",
@@ -384,7 +384,7 @@
     "tagsSelected": "tag đã chọn",
     "aiThinking": "Reading your intent…",
     "aiExtractedLabel": "PikTag understood you mean:",
-    "askEmptyStateButton": "📣 Post an Ask"
+    "askEmptyStateButton": "Post an Ask"
   },
   "addTag": {
     "headerTitle": "Tạo một Tag",

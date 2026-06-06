@@ -891,7 +891,7 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
           )}
           {usernameStatus === 'available' && (
             <Text style={[styles.usernameStatusText, { color: colors.green500 }]}>
-              {t('auth.onboarding.usernameAvailable', { defaultValue: '✓ 可使用' })}
+              {t('auth.onboarding.usernameAvailable', { defaultValue: '可使用' })}
             </Text>
           )}
           {usernameStatus === 'taken' && (
@@ -1045,7 +1045,7 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
         {aiSuggestions.length > 0 && (
           <>
             <Text style={styles.aiPickLabel}>
-              {t('auth.onboarding.aiPickHint', { defaultValue: '👇 點選想加入的標籤' })}
+              {t('auth.onboarding.aiPickHint', { defaultValue: '點選想加入的標籤' })}
             </Text>
             <View style={styles.chipsWrap}>
               {aiSuggestions.map((s) => (

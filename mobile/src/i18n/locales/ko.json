@@ -216,7 +216,7 @@
       "profileNamePlaceholder": "이름",
       "avatarHintRecommend": "사진을 추가하면 친구가 더 쉽게 알아봐요 (선택)",
       "usernameChecking": "확인 중…",
-      "usernameAvailable": "✓ 사용 가능",
+      "usernameAvailable": "사용 가능",
       "usernameTaken": "이미 사용 중인 아이디예요",
       "usernameInvalid": "3~30자: 소문자, 숫자, _, .",
       "usernameCheckError": "지금은 확인할 수 없어요. 다시 시도해 주세요",
@@ -233,7 +233,7 @@
       "aiThinking": "AI가 생각 중…",
       "aiMore": "더 추천받기",
       "aiSuggest": "AI에게 태그 추천받기",
-      "aiPickHint": "👇 추가할 태그를 탭하세요",
+      "aiPickHint": "추가할 태그를 탭하세요",
       "tagInputPlaceholder": "태그 입력 (예: 사진)",
       "tagsGateHint": "계속하려면 태그를 3개 이상 선택하세요",
       "bioGateHint": "계속하려면 한 줄 자기소개를 써주세요",
@@ -377,7 +377,7 @@
     "tagsSelected": "개 태그 선택됨",
     "aiThinking": "Reading your intent…",
     "aiExtractedLabel": "PikTag understood you mean:",
-    "askEmptyStateButton": "📣 Post an Ask"
+    "askEmptyStateButton": "Post an Ask"
   },
   "addTag": {
     "headerTitle": "Tag 만들기",

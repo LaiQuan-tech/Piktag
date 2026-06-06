@@ -216,7 +216,7 @@
       "profileNamePlaceholder": "Ton prénom",
       "avatarHintRecommend": "Ajoutez une photo — vos amis vous reconnaîtront plus vite (facultatif)",
       "usernameChecking": "Vérification…",
-      "usernameAvailable": "✓ Disponible",
+      "usernameAvailable": "Disponible",
       "usernameTaken": "Ce nom d'utilisateur est déjà pris",
       "usernameInvalid": "3–30 caractères : minuscules, chiffres, _ et .",
       "usernameCheckError": "Impossible de vérifier maintenant — réessayez",
@@ -233,7 +233,7 @@
       "aiThinking": "L'IA réfléchit…",
       "aiMore": "Suggérer plus",
       "aiSuggest": "Laisser l'IA suggérer des tags",
-      "aiPickHint": "👇 Touchez les tags à ajouter",
+      "aiPickHint": "Touchez les tags à ajouter",
       "tagInputPlaceholder": "Saisissez un tag, ex. : photographie",
       "tagsGateHint": "Choisissez au moins 3 tags pour continuer",
       "bioGateHint": "Écrivez une présentation en une ligne pour continuer",
@@ -377,7 +377,7 @@
     "tagsSelected": "étiquette(s) sélectionnée(s)",
     "aiThinking": "Reading your intent…",
     "aiExtractedLabel": "PikTag understood you mean:",
-    "askEmptyStateButton": "📣 Post an Ask"
+    "askEmptyStateButton": "Post an Ask"
   },
   "addTag": {
     "headerTitle": "Créer un Tag",

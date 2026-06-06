@@ -218,7 +218,7 @@
       "profileNamePlaceholder": "Dein Name",
       "avatarHintRecommend": "Füge ein Foto hinzu — Freunde erkennen dich schneller (optional)",
       "usernameChecking": "Wird geprüft…",
-      "usernameAvailable": "✓ Verfügbar",
+      "usernameAvailable": "Verfügbar",
       "usernameTaken": "Dieser Benutzername ist vergeben",
       "usernameInvalid": "3–30 Zeichen: Kleinbuchstaben, Zahlen, _ und .",
       "usernameCheckError": "Prüfung gerade nicht möglich — bitte erneut versuchen",
@@ -235,7 +235,7 @@
       "aiThinking": "KI denkt nach…",
       "aiMore": "Mehr vorschlagen",
       "aiSuggest": "KI Tags vorschlagen lassen",
-      "aiPickHint": "👇 Tippe die Tags an, die du hinzufügen willst",
+      "aiPickHint": "Tippe die Tags an, die du hinzufügen willst",
       "tagInputPlaceholder": "Tag eingeben, z. B. Fotografie",
       "tagsGateHint": "Wähle mindestens 3 Tags, um fortzufahren",
       "bioGateHint": "Schreib eine kurze Vorstellung, um fortzufahren",
@@ -379,7 +379,7 @@
     "tagsSelected": "Tag(s) ausgewählt",
     "aiThinking": "Reading your intent…",
     "aiExtractedLabel": "PikTag understood you mean:",
-    "askEmptyStateButton": "📣 Post an Ask"
+    "askEmptyStateButton": "Post an Ask"
   },
   "addTag": {
     "headerTitle": "Vibe erstellen",
