@@ -157,7 +157,7 @@
         "subtitle": "Quatre choses pour être opérationnel rapidement",
         "card1": {
           "title": "Ajouter des amis",
-          "body": "Scannez un QR code, synchronisez vos contacts ou cherchez par nom d'utilisateur"
+          "body": "Scannez un QR Code, synchronisez vos contacts ou cherchez par nom d'utilisateur"
         },
         "card2": {
           "title": "Étiquetez vos amis",
@@ -204,13 +204,13 @@
       "profileCta": "Créer mon premier Tag",
       "saveFailed": "Échec de l'enregistrement — vérifie ta connexion et réessaie.",
       "nameRequiredTitle": "Ajoute un nom",
-      "nameRequiredMessage": "Tes amis verront ce nom en scannant ton QR. Mets-en un pour commencer.",
-      "welcomeTitle": "Un QR. Ajoute tout le monde.",
+      "nameRequiredMessage": "Tes amis verront ce nom en scannant ton QR Code. Mets-en un pour commencer.",
+      "welcomeTitle": "Un QR Code. Ajoute tout le monde.",
       "welcomeSubtitle": "Tague les gens pour te souvenir qui est qui la prochaine fois.",
       "brandTagline": "Tag yourself. Find anyone.",
       "welcomeCta": "Commencer avec PikTag",
       "profileTitle": "Comment tu t'appelles ?",
-      "profileSubtitle": "Tes amis verront ce nom en scannant ton QR.",
+      "profileSubtitle": "Tes amis verront ce nom en scannant ton QR Code.",
       "avatarPickA11y": "Choisis une photo de profil",
       "avatarHint": "La photo est facultative — tu peux l'ajouter plus tard.",
       "profileNamePlaceholder": "Ton prénom",
@@ -317,7 +317,7 @@
     "coldStartActionQrDesc": "Ajoute des tags d'événement — un scan et c'est fait",
     "coldStartActionAsk": "L'IA trouve les bonnes personnes",
     "coldStartActionAskDesc": "Publie un Ask, l'IA cherche dans ton réseau",
-    "coldStartSubtitleV2": "Choisis-en un pour commencer",
+    "coldStartSubtitleV2": "Ajoute tes amis depuis tes contacts",
     "coldStartStartHere": "Commence ici",
     "addFromContacts": "Trouver des amis dans vos contacts",
     "addManual": "Ajouter un contact manuellement",
@@ -425,7 +425,7 @@
     "longPressToDelete": "Appui long pour supprimer un modèle",
     "shareFile": "Partager",
     "copyLink": "Copier le lien",
-    "editQr": "Modifier le QR",
+    "editQr": "Modifier le QR Code",
     "alertLinkCopiedTitle": "Copié",
     "alertLinkCopiedMessage": "Lien copié dans le presse-papiers",
     "contextLabel": "Quelle est l'occasion ?",
@@ -442,7 +442,7 @@
       "Ex. Apéro entre amis",
       "Ex. Le mariage d’un ami"
     ],
-    "saveWarnTitle": "QR créé, mais impossible d'enregistrer dans le Tag",
+    "saveWarnTitle": "QR Code créé, mais impossible d'enregistrer dans le Tag",
     "dateLabel": "Date",
     "locationLabel": "Lieu",
     "selectLocation": "Choisir un lieu"
@@ -1036,7 +1036,7 @@
     "addFriend": "Suivre",
     "connectElsewhereTitle": "Connecte-toi aussi avec {{name}} ici",
     "connectElsewhereHint": "Touche pour ouvrir sa page dans l'app — c'est toi qui suis/ajoutes.",
-    "selfScanMessage": "C'est ton propre QR — tu ne peux pas t'ajouter toi-même.",
+    "selfScanMessage": "C'est ton propre QR Code — tu ne peux pas t'ajouter toi-même.",
     "addingFriend": "Ajout de l'ami…"
   },
   "manageTags": {
@@ -1376,7 +1376,7 @@
     "create": "Créer un nouveau Tag",
     "createFirst": "Créer un Tag maintenant",
     "emptyTitle": "Le moyen le plus rapide de se connecter en personne",
-    "emptyDesc": "Ajoutez des tags du moment et laissez les gens scanner votre QR pour s'ajouter instantanément — PikTag se souvient même d'où vous vous êtes rencontrés.",
+    "emptyDesc": "Ajoutez des tags du moment et laissez les gens scanner votre QR Code pour s'ajouter instantanément — PikTag se souvient même d'où vous vous êtes rencontrés.",
     "untitled": "Tag sans titre",
     "untitledFallback": "Tag · {{date}}",
     "namePlaceholder": "Donne un nom à ce Tag",
@@ -1388,11 +1388,11 @@
     "memberCount": "{{count}} amis",
     "membersEmpty": "Personne n'a encore scanné — partage-le",
     "deleteTitle": "Supprimer ce Tag ?",
-    "deleteMessage": "« {{name}} » sera retiré de tes Tags. Les amis qui t'ont déjà ajouté via ce QR ne sont pas affectés.",
+    "deleteMessage": "« {{name}} » sera retiré de tes Tags. Les amis qui t'ont déjà ajouté via ce QR Code ne sont pas affectés.",
     "deleteFailedTitle": "Échec de la suppression",
     "deleteFailedMessage": "Ce Tag n'a pas été supprimé. Réessayez plus tard. Contactez-nous si cela persiste.",
-    "emptyScanCta": "Ou scannez son QR pour connecter",
-    "scan": "Scanner un QR pour ajouter des amis",
+    "emptyScanCta": "Ou scannez son QR Code pour connecter",
+    "scan": "Scanner un QR Code pour ajouter des amis",
     "currentVibesTitle": "Ce qu'ils taguent récemment",
     "currentVibesHint": "Tags que ce groupe partage en ce moment — appuie pour voir qui.",
     "membersFilterEmpty": "Personne dans ce Tag n'a ce tag."

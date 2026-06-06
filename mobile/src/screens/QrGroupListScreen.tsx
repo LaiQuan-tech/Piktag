@@ -180,7 +180,7 @@ export default function QrGroupListScreen({ navigation }: Props) {
         t('qrGroup.deleteTitle', { defaultValue: '刪除這個 Tag？' }),
         t('qrGroup.deleteMessage', {
           name: displayName,
-          defaultValue: `「${displayName}」會從你的 Tags 中移除。已經透過這個 QR 加你為好友的人不會受影響。`,
+          defaultValue: `「${displayName}」會從你的 Tags 中移除。已經透過這個 QR 碼加你為好友的人不會受影響。`,
         }),
         [
           { text: t('common.cancel', { defaultValue: '取消' }), style: 'cancel' },
@@ -424,7 +424,7 @@ export default function QrGroupListScreen({ navigation }: Props) {
               activeOpacity={0.7}
               onPress={handleOpenScanner}
               accessibilityRole="button"
-              accessibilityLabel={t('qrGroup.scan', { defaultValue: '掃描 QR 加好友' })}
+              accessibilityLabel={t('qrGroup.scan', { defaultValue: '掃描 QR 碼加好友' })}
 
             >
               <ScanLine size={24} color={colors.gray600} />

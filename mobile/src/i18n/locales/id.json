@@ -157,7 +157,7 @@
         "subtitle": "Empat hal yang bikin kamu cepat akrab",
         "card1": {
           "title": "Tambahkan teman",
-          "body": "Scan QR, sinkronkan kontak, atau cari lewat username"
+          "body": "Scan kode QR, sinkronkan kontak, atau cari lewat username"
         },
         "card2": {
           "title": "Beri tag temanmu",
@@ -204,13 +204,13 @@
       "profileCta": "Buat Tag pertamaku",
       "saveFailed": "Gagal menyimpan — cek koneksi dan coba lagi.",
       "nameRequiredTitle": "Tambahkan nama",
-      "nameRequiredMessage": "Teman akan melihat nama ini saat memindai QR-mu. Setel satu untuk mulai.",
-      "welcomeTitle": "Satu QR. Tambahkan semua.",
+      "nameRequiredMessage": "Teman akan melihat nama ini saat memindai kode QR-mu. Setel satu untuk mulai.",
+      "welcomeTitle": "Satu kode QR. Tambahkan semua.",
       "welcomeSubtitle": "Beri tag orang supaya kamu ingat siapa siapa lain kali.",
       "brandTagline": "Tag yourself. Find anyone.",
       "welcomeCta": "Mulai dengan PikTag",
       "profileTitle": "Siapa namamu?",
-      "profileSubtitle": "Teman akan melihat nama ini saat memindai QR-mu.",
+      "profileSubtitle": "Teman akan melihat nama ini saat memindai kode QR-mu.",
       "avatarPickA11y": "Pilih foto profil",
       "avatarHint": "Foto opsional — bisa ditambahkan nanti.",
       "profileNamePlaceholder": "Namamu",
@@ -317,7 +317,7 @@
     "coldStartActionQrDesc": "Pasang tag acara — sekali pindai langsung terhubung",
     "coldStartActionAsk": "AI cari orang yang tepat",
     "coldStartActionAskDesc": "Posting Ask, AI cari di jaringanmu",
-    "coldStartSubtitleV2": "Pilih satu untuk mulai",
+    "coldStartSubtitleV2": "Tambahkan teman dari kontakmu",
     "coldStartStartHere": "Mulai di sini",
     "addFromContacts": "Cari teman dari kontak",
     "addManual": "Tambah kontak manual",
@@ -425,7 +425,7 @@
     "longPressToDelete": "Tekan lama untuk menghapus preset",
     "shareFile": "Bagikan",
     "copyLink": "Salin tautan",
-    "editQr": "Edit QR",
+    "editQr": "Edit kode QR",
     "alertLinkCopiedTitle": "Tersalin",
     "alertLinkCopiedMessage": "Tautan disalin ke clipboard",
     "contextLabel": "Acara apa ini?",
@@ -442,7 +442,7 @@
       "Mis. BBQ akhir pekan",
       "Mis. Pernikahan teman"
     ],
-    "saveWarnTitle": "QR dibuat, tapi gagal disimpan ke Tag",
+    "saveWarnTitle": "Kode QR dibuat, tapi gagal disimpan ke Tag",
     "dateLabel": "Tanggal",
     "locationLabel": "Tempat",
     "selectLocation": "Pilih tempat"
@@ -1036,7 +1036,7 @@
     "addFriend": "Ikuti",
     "connectElsewhereTitle": "Terhubung dengan {{name}} di sini juga",
     "connectElsewhereHint": "Ketuk untuk membuka halamannya di app itu — kamu yang follow/tambah.",
-    "selfScanMessage": "Ini QR kamu sendiri — tidak bisa menambahkan diri sendiri.",
+    "selfScanMessage": "Ini kode QR kamu sendiri — tidak bisa menambahkan diri sendiri.",
     "addingFriend": "Menambahkan teman…"
   },
   "manageTags": {
@@ -1376,7 +1376,7 @@
     "create": "Bikin Tag baru",
     "createFirst": "Buat Tag sekarang",
     "emptyTitle": "Cara tercepat menambah teman langsung",
-    "emptyDesc": "Tambahkan tag momen dan biarkan orang memindai QR-mu untuk saling menambahkan seketika — PikTag bahkan mengingat di mana kalian bertemu.",
+    "emptyDesc": "Tambahkan tag momen dan biarkan orang memindai kode QR-mu untuk saling menambahkan seketika — PikTag bahkan mengingat di mana kalian bertemu.",
     "untitled": "Tag tanpa nama",
     "untitledFallback": "Tag · {{date}}",
     "namePlaceholder": "Kasih nama Tag ini",
@@ -1388,11 +1388,11 @@
     "memberCount": "{{count}} teman",
     "membersEmpty": "Belum ada yang scan — share ke teman dulu",
     "deleteTitle": "Hapus Tag ini?",
-    "deleteMessage": "\"{{name}}\" akan dihapus dari Tags-mu. Teman yang sudah menambahkanmu lewat QR ini tidak terpengaruh.",
+    "deleteMessage": "\"{{name}}\" akan dihapus dari Tags-mu. Teman yang sudah menambahkanmu lewat kode QR ini tidak terpengaruh.",
     "deleteFailedTitle": "Gagal menghapus",
     "deleteFailedMessage": "Tag ini tidak terhapus. Coba lagi nanti. Hubungi kami jika terus terjadi.",
-    "emptyScanCta": "Atau pindai QR mereka untuk terhubung",
-    "scan": "Pindai QR untuk menambah teman",
+    "emptyScanCta": "Atau pindai kode QR mereka untuk terhubung",
+    "scan": "Pindai kode QR untuk menambah teman",
     "currentVibesTitle": "Apa yang mereka tag belakangan",
     "currentVibesHint": "Tag yang sedang dibagi grup ini — ketuk untuk lihat siapa.",
     "membersFilterEmpty": "Belum ada yang punya tag itu di Tag ini."

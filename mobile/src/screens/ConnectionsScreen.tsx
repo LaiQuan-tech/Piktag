@@ -28,7 +28,6 @@ import {
   Gift,
   Heart,
   Clock,
-  QrCode,
   Hash,
   ChevronRight,
   Users,
@@ -877,34 +876,28 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
           {t('connections.coldStartTitle', { defaultValue: '還沒有朋友？' })}
         </Text>
         <Text style={styles.emptyOnboardingSubtitle}>
-          {/* "選一個開始就好" (pick one, start there) — kept after the
-              2026-06-04 化整為零 cut to 2 cards (QR primary + contacts).
-              The QR card is the emphasized recommended entry; contacts
-              is the secondary "or also" option. */}
-          {t('connections.coldStartSubtitleV2', { defaultValue: '選一個開始就好' })}
+          {/* 2026-06-07: the emphasised QR card was removed (QR guidance
+              now lives ONLY in the # tab), so the cold-start has a single
+              contacts funnel — "選一個開始" (pick one) no longer fits.
+              The subtitle now points at that one action: find people you
+              already know. */}
+          {t('connections.coldStartSubtitleV2', { defaultValue: '把通訊錄裡的朋友加進來' })}
         </Text>
 
         <View style={styles.emptyActionList}>
           {[
-            // 2026-06-04 (化整為零 home cleanup): cut from 5 cards to 2.
-            // The other three now live at their natural homes —
+            // 2026-06-07: QR guidance lives ONLY in the QR (#) tab now
+            // (founder: "qr code 的引導用 Qr code tab 的就好…不要再
+            // 好友 tab 用相 banner 一樣的卡牌"). The emphasised purple
+            // "建議從這開始 / 用 QR 連上現場的人" card was a SECOND QR
+            // teaching surface competing with QrGroupListScreen — gone.
+            // The other first-friend actions live at their natural homes:
+            //   • qr      → the # tab (QrGroupListScreen) owns it
             //   • profile → the 3-step onboarding wizard already built it
-            //   • ask     → the AskStoryRow above this empty state (with
-            //               its own in-context explainer)
+            //   • ask     → the AskStoryRow above this empty state
             //   • manual  → the header "+person" menu (從通訊錄 / 手動)
-            // …so the cold-start leads with the two highest-value
-            // first-friend actions (founder: 以 QR / 找人為主):
-            //   1. qr       — connect with people in person (the thesis)
-            //   2. contacts — find friends already on PikTag
-            {
-              key: 'qr',
-              icon: QrCode,
-              title: t('connections.coldStartActionQr'),
-              desc: t('connections.coldStartActionQrDesc'),
-              // AddTagCreate is the activity-QR create form (matches
-              // OnboardingScreen's canonical post-onboarding target).
-              onPress: () => navigation.navigate('AddTagTab', { screen: 'AddTagCreate' }),
-            },
+            // …so the Friends-tab cold-start keeps the ONE non-QR
+            // first-friend funnel: find people you already know.
             {
               key: 'contacts',
               icon: Users,
@@ -912,7 +905,7 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
               desc: t('connections.coldStartActionContactsDesc'),
               onPress: () => navigation.navigate('ContactSync'),
             },
-          ].map((action, idx) => {
+          ].map((action, idx, arr) => {
             // First card (profile) is the recommended entry because
             // every other surface in PikTag depends on the user having
             // at least one tag on themselves — search, Ask matching,
@@ -927,7 +920,12 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
                 key={action.key}
                 style={({ pressed }) => [
                   styles.emptyActionCard,
-                  isPrimary && styles.emptyActionCardPrimary,
+                  // The purple "banner" tint (emptyActionCardPrimary) only
+                  // applies when ≥2 cards need a recommended-first anchor.
+                  // The lone contacts card renders as a clean NEUTRAL card
+                  // (white bg, brand-tinted icon) — founder asked the
+                  // Friends tab not to carry a banner-like card.
+                  isPrimary && arr.length > 1 && styles.emptyActionCardPrimary,
                   !isPrimary && styles.emptyActionCardSecondary,
                   pressed && styles.emptyActionCardPressed,
                 ]}
@@ -945,7 +943,10 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
                   />
                 </View>
                 <View style={styles.emptyActionTextWrap}>
-                  {isPrimary && (
+                  {/* "建議從這開始" only makes sense when there's a CHOICE
+                      among ≥2 cards. With the single contacts funnel it
+                      would read as redundant, so it's gated on arr.length. */}
+                  {isPrimary && arr.length > 1 && (
                     <Text style={styles.emptyActionStartHere}>
                       {t('connections.coldStartStartHere', {
                         defaultValue: '建議從這開始',

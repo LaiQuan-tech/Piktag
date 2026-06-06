@@ -158,7 +158,7 @@
         "subtitle": "这 4 件事让你最快上手",
         "card1": {
           "title": "加朋友",
-          "body": "用 QR 扫描、同步通讯录，或搜 username 找朋友"
+          "body": "用 QR 码扫描、同步通讯录，或搜 username 找朋友"
         },
         "card2": {
           "title": "给朋友加标签",
@@ -206,13 +206,13 @@
       "profileCta": "创建我的第一个 Tag",
       "saveFailed": "没存成功，检查一下网络再试一次。",
       "nameRequiredTitle": "需要一个名字",
-      "nameRequiredMessage": "朋友扫 QR 会看到这个名字，至少帮自己取一个吧。",
-      "welcomeTitle": "一个 QR，加完所有朋友",
+      "nameRequiredMessage": "朋友扫 QR 码会看到这个名字，至少帮自己取一个吧。",
+      "welcomeTitle": "一个 QR 码，加完所有朋友",
       "welcomeSubtitle": "粘贴标签，下次见面就知道是谁",
       "brandTagline": "Tag yourself. Find anyone.",
       "welcomeCta": "开始使用 PikTag",
       "profileTitle": "你叫什么名字？",
-      "profileSubtitle": "朋友扫 QR 会看到这个名字",
+      "profileSubtitle": "朋友扫 QR 码会看到这个名字",
       "avatarPickA11y": "选择头像",
       "avatarHint": "头像选填（之后可以再加）",
       "profileNamePlaceholder": "你的名字",
@@ -319,7 +319,7 @@
     "coldStartActionQrDesc": "贴上活动标签,朋友扫一下就互加",
     "coldStartActionAsk": "AI 帮你找对的人",
     "coldStartActionAskDesc": "发个 Ask 说你要什幺,AI 从人脉里帮你找",
-    "coldStartSubtitleV2": "挑一个开始就好",
+    "coldStartSubtitleV2": "把通讯录里的朋友加进来",
     "coldStartStartHere": "建议从这开始",
     "addFromContacts": "从通讯录找朋友",
     "addManual": "手动记一个联系人",
@@ -427,7 +427,7 @@
     "longPressToDelete": "长按可删除模板",
     "shareFile": "分享档案",
     "copyLink": "复制链接",
-    "editQr": "编辑 QR",
+    "editQr": "编辑 QR 码",
     "alertLinkCopiedTitle": "已复制",
     "alertLinkCopiedMessage": "链接已复制到剪贴板",
     "contextLabel": "这次是什幺场合？",
@@ -444,7 +444,7 @@
       "例：公司年会",
       "例：朋友的婚礼"
     ],
-    "saveWarnTitle": "QR 已产生，但无法保存到 Tag",
+    "saveWarnTitle": "QR 码已产生，但无法保存到 Tag",
     "dateLabel": "日期",
     "locationLabel": "地点",
     "selectLocation": "选地点"
@@ -1076,7 +1076,7 @@
     "addFriend": "关注",
     "connectElsewhereTitle": "也在这些地方连上 {{name}}",
     "connectElsewhereHint": "点一下会打开对方在该 App 的页面，由你按关注／加好友。",
-    "selfScanMessage": "这是你自己的 QR，没办法加自己为好友。",
+    "selfScanMessage": "这是你自己的 QR 码，没办法加自己为好友。",
     "addingFriend": "加入朋友中…"
   },
   "manageTags": {
@@ -1406,7 +1406,7 @@
   "tabTooltips": {
     "home": "朋友列表",
     "search": "找人 / 消息",
-    "addTag": "扫 QR / 创建活动",
+    "addTag": "扫 QR 码 / 创建活动",
     "notifications": "通知",
     "profile": "你的个人页",
     "dismissHint": "点任意处关闭"
@@ -1417,7 +1417,7 @@
     "create": "创建新 Tag",
     "createFirst": "创建当下的 Tag",
     "emptyTitle": "现场加好友，最快的方式",
-    "emptyDesc": "贴上当下的活动标签，现场的人扫你的 QR 就互相加好友 —— PikTag 还会自动记住你们在哪相遇。",
+    "emptyDesc": "贴上当下的活动标签，现场的人扫你的 QR 码就互相加好友 —— PikTag 还会自动记住你们在哪相遇。",
     "untitled": "未命名 Tag",
     "untitledFallback": "Tag · {{date}}",
     "namePlaceholder": "帮这个 Tag 取个名字",
@@ -1427,13 +1427,13 @@
     "noTagsYet": "尚无标签",
     "membersTitle": "成员（{{count}}）",
     "memberCount": "{{count}} 位好友",
-    "membersEmpty": "还没有人扫这个 QR — 分享给朋友吧",
+    "membersEmpty": "还没有人扫这个 QR 码 — 分享给朋友吧",
     "deleteTitle": "删除这个 Tag？",
-    "deleteMessage": "「{{name}}」会从你的 Tags 中移除。已经通过这个 QR 加你为好友的人不会受影响。",
+    "deleteMessage": "「{{name}}」会从你的 Tags 中移除。已经通过这个 QR 码加你为好友的人不会受影响。",
     "deleteFailedTitle": "删除失败",
     "deleteFailedMessage": "这个 Tag 没有被删除，请稍后再试。若持续发生请联系我们。",
-    "emptyScanCta": "或扫描对方的 QR 加好友",
-    "scan": "扫描 QR 加好友",
+    "emptyScanCta": "或扫描对方的 QR 码加好友",
+    "scan": "扫描 QR 码加好友",
     "currentVibesTitle": "他们最近在标什幺",
     "currentVibesHint": "这群人现在共同的标签 — 点一下看是谁",
     "membersFilterEmpty": "这个 Tag 中没有贴这个标签的人"
