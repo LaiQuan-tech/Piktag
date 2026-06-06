@@ -51,14 +51,13 @@ const corsHeaders = {
 // ships a worse result. VALIDATE accuracy on real cards; reverting is
 // a one-line chain edit.
 // 2026-06-07: Google RETIRED gemini-2.0-flash-lite / 2.0-flash / 1.5-flash
-// (all 404 "no longer available" — verified via direct probe). The old chain
-// led with those, so EVERY scan burned 2 dead 404 round-trips before falling
-// to gemini-2.5-flash — pure latency on the critical recognition path. Now
-// only the live 2.5 models: 2.5-flash PRIMARY (the accuracy we've been
-// running on all along, since the dead ids always fell through to it), with
-// 2.5-flash-lite as a faster fallback. (gemini-2.5-flash-lite primary is an
-// option for more speed but is an untested accuracy gamble on recognition.)
-const MODEL_FALLBACK_CHAIN = ['gemini-2.5-flash', 'gemini-2.5-flash-lite'] as const;
+// (all 404 — verified via direct probe), so only the live 2.5 models remain.
+// gemini-2.5-flash-lite is PRIMARY for SPEED — founder call: "we're scanning
+// a business card, not a slide deck", so the lite model is plenty for
+// OCR-text → structured fields (it's bounded by responseSchema +
+// thinkingBudget:0, a deterministic extraction task). gemini-2.5-flash is the
+// quality fallback if lite fails / returns nothing on a hard card.
+const MODEL_FALLBACK_CHAIN = ['gemini-2.5-flash-lite', 'gemini-2.5-flash'] as const;
 
 // Native structured-output schema (Gemini OpenAPI subset). Paired
 // with responseMimeType:'application/json' below, this forces the
