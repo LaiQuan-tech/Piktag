@@ -459,6 +459,16 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
     {
       title: t('settings.groupAccount'),
       items: [
+        // Founder 2026-06-07: lead with VALUE features, not credential
+        // admin. 通訊錄同步 is how a user first FEELS the app's worth
+        // (+ the North-Star friend-add funnel); 洞察報告 is the payoff
+        // that depends on that synced data. 修改密碼 is rarely-touched
+        // account utility, so it drops below them (the destructive
+        // 登出 / 停用 / 刪除 already live separately at the page bottom).
+        // Opening Settings on 修改密碼 mis-signals "this is a password
+        // app"; opening on 通訊錄同步 says "this connects you".
+        { label: t('settings.contactSync'), onPress: () => navigation.navigate('ContactSync') },
+        { label: t('settings.socialStats'), onPress: () => navigation.navigate('SocialStats') },
         { label: t('settings.changePassword', { defaultValue: '修改密碼' }), onPress: () => {
           // Detect whether this user has an email-flavoured identity at
           // all. Apple / Google Sign-In accounts that have NEVER set a
@@ -505,8 +515,6 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
             ]
           );
         }},
-        { label: t('settings.contactSync'), onPress: () => navigation.navigate('ContactSync') },
-        { label: t('settings.socialStats'), onPress: () => navigation.navigate('SocialStats') },
         {
           label: t('settings.shareLocation', { defaultValue: '分享所在地點' }),
           onPress: locationToggleBusy ? undefined : handleShareLocationToggle,
