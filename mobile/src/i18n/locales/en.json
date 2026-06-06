@@ -1500,7 +1500,9 @@
     "shareEmailBody": "Hey {{theirFirst}},\n\nGreat meeting you. Here's my contact:\n{{url}}\n\n— {{firstName}}",
     "shareSmsBody": "Hey {{theirFirst}}, great meeting you. My contact: {{url}} — {{firstName}}",
     "shareWhatsappBody": "Hey {{theirFirst}}, great meeting you. Here's my contact: {{url}}\n\n— {{firstName}}",
-    "tagsDesc": "Jot down how you met, what you talked about, things to remember — so you never forget this person."
+    "tagsDesc": "Jot down how you met, what you talked about, things to remember — so you never forget this person.",
+    "aiPreselectLoading": "AI is picking tags from the card…",
+    "aiPreselectNote": "AI added these from the card — tap any you don't want to remove it"
   },
   "followers": {
     "title": "Followers",

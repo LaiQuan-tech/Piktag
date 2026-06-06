@@ -1454,7 +1454,9 @@
     "shareEmailBody": "Salut {{theirFirst}},\n\nRavi de t'avoir rencontré. Mes coordonnées :\n{{url}}\n\n— {{firstName}}",
     "shareSmsBody": "Salut {{theirFirst}}, ravi de t'avoir rencontré. Mes coordonnées : {{url}} — {{firstName}}",
     "shareWhatsappBody": "Salut {{theirFirst}}, ravi de t'avoir rencontré. Mes coordonnées : {{url}}\n\n— {{firstName}}",
-    "tagsDesc": "Notez comment vous vous êtes rencontrés, de quoi vous avez parlé et ce dont vous voulez vous souvenir — pour ne jamais oublier cette personne."
+    "tagsDesc": "Notez comment vous vous êtes rencontrés, de quoi vous avez parlé et ce dont vous voulez vous souvenir — pour ne jamais oublier cette personne.",
+    "aiPreselectLoading": "L'IA choisit des tags depuis la carte…",
+    "aiPreselectNote": "L'IA a ajouté ces tags depuis la carte — touche ceux dont tu ne veux pas pour les retirer"
   },
   "followers": {
     "title": "Abonnés",

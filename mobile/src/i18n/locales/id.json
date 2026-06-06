@@ -1454,7 +1454,9 @@
     "shareEmailBody": "Hi {{theirFirst}},\n\nSenang bertemu. Kontak saya:\n{{url}}\n\n— {{firstName}}",
     "shareSmsBody": "Hi {{theirFirst}}, senang bertemu. Kontak saya: {{url}} — {{firstName}}",
     "shareWhatsappBody": "Hi {{theirFirst}}, senang bertemu. Kontak saya: {{url}}\n\n— {{firstName}}",
-    "tagsDesc": "Catat bagaimana kalian berkenalan, apa yang dibahas, dan hal yang perlu diingat — agar tak melupakan orang ini."
+    "tagsDesc": "Catat bagaimana kalian berkenalan, apa yang dibahas, dan hal yang perlu diingat — agar tak melupakan orang ini.",
+    "aiPreselectLoading": "AI sedang memilih tag dari kartu…",
+    "aiPreselectNote": "AI menambahkan tag ini dari kartu — ketuk yang tak kamu mau untuk menghapus"
   },
   "followers": {
     "title": "Pengikut",

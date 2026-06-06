@@ -1454,7 +1454,9 @@
     "shareEmailBody": "{{theirFirst}} さん、\n\nお会いできてうれしかったです。連絡先です：\n{{url}}\n\n— {{firstName}}",
     "shareSmsBody": "{{theirFirst}} さん、お会いできてうれしかったです。連絡先：{{url}} — {{firstName}}",
     "shareWhatsappBody": "{{theirFirst}} さん、お会いできてうれしかったです。連絡先：{{url}}\n\n— {{firstName}}",
-    "tagsDesc": "どこで出会ったか、何を話したか、覚えておきたいことをメモ —— この人をしっかり覚えておけます。"
+    "tagsDesc": "どこで出会ったか、何を話したか、覚えておきたいことをメモ —— この人をしっかり覚えておけます。",
+    "aiPreselectLoading": "AI が名刺からタグを選んでいます…",
+    "aiPreselectNote": "AI が名刺からタグを付けました。不要なものはタップで外せます"
   },
   "followers": {
     "title": "フォロワー",

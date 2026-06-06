@@ -1500,7 +1500,9 @@
     "shareEmailBody": "Chào {{theirFirst}},\n\nRất vui được gặp bạn. Liên hệ của tôi:\n{{url}}\n\n— {{firstName}}",
     "shareSmsBody": "Chào {{theirFirst}}, rất vui được gặp. Liên hệ của tôi: {{url}} — {{firstName}}",
     "shareWhatsappBody": "Chào {{theirFirst}}, rất vui được gặp. Liên hệ của tôi: {{url}}\n\n— {{firstName}}",
-    "tagsDesc": "Ghi lại cách bạn quen nhau, đã nói chuyện gì, điều cần nhớ — để không bao giờ quên người này."
+    "tagsDesc": "Ghi lại cách bạn quen nhau, đã nói chuyện gì, điều cần nhớ — để không bao giờ quên người này.",
+    "aiPreselectLoading": "AI đang chọn thẻ từ danh thiếp…",
+    "aiPreselectNote": "AI đã thêm các thẻ này từ danh thiếp — chạm vào thẻ bạn không muốn để bỏ"
   },
   "followers": {
     "title": "Người theo dõi",

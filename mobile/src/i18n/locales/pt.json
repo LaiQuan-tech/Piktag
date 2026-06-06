@@ -1454,7 +1454,9 @@
     "shareEmailBody": "Olá {{theirFirst}},\n\nFoi um prazer te conhecer. Meu contato:\n{{url}}\n\n— {{firstName}}",
     "shareSmsBody": "Olá {{theirFirst}}, foi um prazer te conhecer. Meu contato: {{url}} — {{firstName}}",
     "shareWhatsappBody": "Olá {{theirFirst}}, foi um prazer te conhecer. Meu contato: {{url}}\n\n— {{firstName}}",
-    "tagsDesc": "Anote como se conheceram, sobre o que conversaram e o que lembrar — para nunca esquecer essa pessoa."
+    "tagsDesc": "Anote como se conheceram, sobre o que conversaram e o que lembrar — para nunca esquecer essa pessoa.",
+    "aiPreselectLoading": "A IA está escolhendo tags do cartão…",
+    "aiPreselectNote": "A IA adicionou estas tags do cartão — toque nas que não quiser para remover"
   },
   "followers": {
     "title": "Seguidores",

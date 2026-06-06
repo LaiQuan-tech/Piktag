@@ -1493,7 +1493,9 @@
     "shareEmailBody": "Hi {{theirFirst}},\n\nSchön, dich kennengelernt zu haben. Meine Kontaktdaten:\n{{url}}\n\n— {{firstName}}",
     "shareSmsBody": "Hi {{theirFirst}}, schön dich kennengelernt zu haben. Kontakt: {{url}} — {{firstName}}",
     "shareWhatsappBody": "Hi {{theirFirst}}, schön dich kennengelernt zu haben. Mein Kontakt: {{url}}\n\n— {{firstName}}",
-    "tagsDesc": "Notiere, wie ihr euch kennengelernt habt, worüber ihr gesprochen habt und was du dir merken willst — damit du diese Person nie vergisst."
+    "tagsDesc": "Notiere, wie ihr euch kennengelernt habt, worüber ihr gesprochen habt und was du dir merken willst — damit du diese Person nie vergisst.",
+    "aiPreselectLoading": "Die KI wählt Tags von der Karte aus…",
+    "aiPreselectNote": "Die KI hat diese Tags von der Karte hinzugefügt — tippe an, was du nicht willst, um es zu entfernen"
   },
   "followers": {
     "title": "Follower",

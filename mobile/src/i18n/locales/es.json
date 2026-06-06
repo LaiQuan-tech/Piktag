@@ -1454,7 +1454,9 @@
     "shareEmailBody": "Hola {{theirFirst}},\n\nUn placer conocerte. Mi contacto:\n{{url}}\n\n— {{firstName}}",
     "shareSmsBody": "Hola {{theirFirst}}, un placer conocerte. Mi contacto: {{url}} — {{firstName}}",
     "shareWhatsappBody": "Hola {{theirFirst}}, un placer conocerte. Mi contacto: {{url}}\n\n— {{firstName}}",
-    "tagsDesc": "Anota cómo se conocieron, de qué hablaron y qué recordar — para no olvidar a esta persona."
+    "tagsDesc": "Anota cómo se conocieron, de qué hablaron y qué recordar — para no olvidar a esta persona.",
+    "aiPreselectLoading": "La IA está eligiendo etiquetas de la tarjeta…",
+    "aiPreselectNote": "La IA añadió estas etiquetas de la tarjeta — toca las que no quieras para quitarlas"
   },
   "followers": {
     "title": "Seguidores",

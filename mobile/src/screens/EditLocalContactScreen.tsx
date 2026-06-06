@@ -38,6 +38,7 @@ import { ArrowLeft, Plus, Trash2 } from 'lucide-react-native';
 import { requestMediaLibraryPermissionsAsync, launchImageLibraryAsync } from 'expo-image-picker';
 import ProfileIdentityHeader from '../components/ProfileIdentityHeader';
 import SectionTitle from '../components/SectionTitle';
+import BoltIcon from '../components/BoltIcon';
 import { COLORS, type ColorPalette } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
 import { useLocalContacts } from '../hooks/useLocalContacts';
@@ -145,8 +146,19 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
   // AI tag recommendations for a SCANNED contact. Fired async AFTER the
   // scan fills the fields (recognition shows instantly; these pop in a
   // beat later — founder 2026-06-07: users accept recommendation latency
-  // but not recognition latency). Gray opt-in chips, cap 3.
-  const [aiSuggestions, setAiSuggestions] = useState<string[]>([]);
+  // but not recognition latency). Cap 3, and PRE-SELECTED by default
+  // (added straight into `tags`) — founder 2026-06-07: a card scan
+  // happens mid-event, so trust the (few, accurate) picks and default-
+  // select them to cut taps; the user just removes any wrong one. This
+  // is the OPPOSITE of the event-tag screen (AddTag), where suggestions
+  // are pre-event, plentiful, and stay opt-in.
+  //   • aiAddedTags    — the normalized names AI pre-added to `tags`,
+  //                      so the "AI added these" note knows when to show
+  //                      and which chips originated from AI.
+  //   • aiSuggestionIds — name → calibration row id; on SAVE the ones
+  //                      still in `tags` are marked accepted (survived =
+  //                      accepted; removed = a soft decline).
+  const [aiAddedTags, setAiAddedTags] = useState<string[]>([]);
   const [aiSuggestionIds, setAiSuggestionIds] = useState<Record<string, string>>({});
   const [aiLoading, setAiLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -357,22 +369,38 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
         );
         if (!error && Array.isArray(data?.suggestions)) {
           const taken = new Set(tags.map((x) => x.toLowerCase()));
-          const filtered = data.suggestions
-            .map((s) => (typeof s === 'string' ? s.replace(/^#/, '').trim() : ''))
+          // Normalize to the SAME form we store in `tags`, so pre-add,
+          // the "is this an AI tag" check, and accept-on-save all key on
+          // an identical string.
+          const normed = data.suggestions
+            .map((s) => (typeof s === 'string' ? normalizeTagName(s) : ''))
             .filter((s) => s && !taken.has(s.toLowerCase()))
+            // de-dupe within the batch (the model can echo a concept twice)
+            .filter((s, i, a) => a.indexOf(s) === i)
             .slice(0, 3);
-          setAiSuggestions(filtered);
-          // Principle #5 calibration — surface 'card_scan'.
-          void (async () => {
-            const ids = await recordAiSuggestions('card_scan', filtered, {
-              surface: 'local_contact_scan',
+          if (normed.length) {
+            // PRE-SELECT: drop them straight into the contact's tags so
+            // they're saved by default. The user removes any wrong one
+            // (tap the purple chip). Founder 2026-06-07.
+            setTags((prev) => {
+              const have = new Set(prev.map((x) => x.toLowerCase()));
+              return [...prev, ...normed.filter((n) => !have.has(n.toLowerCase()))];
             });
-            if (ids.length === filtered.length) {
-              const map: Record<string, string> = {};
-              filtered.forEach((n, i) => { map[n] = ids[i]; });
-              setAiSuggestionIds((prev) => ({ ...prev, ...map }));
-            }
-          })();
+            setAiAddedTags(normed);
+            // Principle #5 calibration — surface 'card_scan'. Record the
+            // suggestion now; acceptance is logged at SAVE for the ones
+            // that survived (see handleSave).
+            void (async () => {
+              const ids = await recordAiSuggestions('card_scan', normed, {
+                surface: 'local_contact_scan',
+              });
+              if (ids.length === normed.length) {
+                const map: Record<string, string> = {};
+                normed.forEach((n, i) => { map[n] = ids[i]; });
+                setAiSuggestionIds((prev) => ({ ...prev, ...map }));
+              }
+            })();
+          }
         }
       } catch (e) {
         console.warn('[LocalContact] scan AI suggest failed:', e);
@@ -381,20 +409,6 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
       }
     },
     [tags],
-  );
-
-  // Tap a gray AI-suggestion chip → add to the contact's tags (+ log the
-  // accept, + drop it from the suggestion row).
-  const addSuggestedTag = useCallback(
-    (name: string) => {
-      const raw = normalizeTagName(name);
-      if (!raw) return;
-      const sid = aiSuggestionIds[name] ?? aiSuggestionIds[raw];
-      if (sid) void markAiSuggestionAccepted(sid);
-      setTags((prev) => (prev.includes(raw) ? prev : [...prev, raw]));
-      setAiSuggestions((prev) => prev.filter((s) => s !== name));
-    },
-    [aiSuggestionIds],
   );
 
   // Open the CAMERA to photograph a physical business card (not the
@@ -688,6 +702,14 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
         });
         if (!created) throw new Error('add failed');
       }
+      // Principle #5 calibration: a pre-selected AI tag that SURVIVED to
+      // save = accepted; one the user removed is left unmarked (a soft
+      // decline). Keying on the saved `tags` keeps the accept signal
+      // honest even though the picks were default-selected.
+      tags.forEach((tg) => {
+        const sid = aiSuggestionIds[tg];
+        if (sid) void markAiSuggestionAccepted(sid);
+      });
       navigation.goBack();
     } catch (err: any) {
       Alert.alert(
@@ -697,7 +719,7 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
     } finally {
       setSaving(false);
     }
-  }, [name, phone, email, birthday, headline, address, website, tags, avatarUrl, isEdit, contactId, add, update, navigation, t]);
+  }, [name, phone, email, birthday, headline, address, website, tags, avatarUrl, isEdit, contactId, add, update, navigation, t, aiSuggestionIds]);
 
   const handleDelete = useCallback(() => {
     if (!contactId) return;
@@ -932,17 +954,41 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
           <SectionTitle variant="detail" style={{ marginTop: 24, marginBottom: 10, paddingHorizontal: 0 }}>
             {t('localContact.fieldTags', { defaultValue: '標籤（只有你看得到）' })}
           </SectionTitle>
-          {/* In-context explainer (home cold-start card #4, 化整為零):
-              the title says these tags are private but not what they're
-              FOR. Shown only before the first tag so a new user knows
-              why to add one; hidden once they have tags. */}
-          {tags.length === 0 && (
+          {/* Three lead-in states, in priority order:
+              1. AI is still fetching its picks (only before any land).
+              2. AI pre-selected its picks INTO the tag list below
+                 (founder 2026-06-07) — this note tells the user those
+                 chips came from the card scan and are theirs to drop.
+                 Without it, 3 auto-added tags would feel like the app
+                 acting without consent. BoltIcon = the app-wide "from
+                 AI" cue (matches AddTag / QrGroupDetail / Ask).
+              3. Plain manual entry, no tags yet → the generic "what are
+                 these for" explainer. */}
+          {aiLoading && aiAddedTags.length === 0 ? (
+            <View style={styles.aiNoteRow}>
+              <BoltIcon size={14} color={colors.piktag600} />
+              <Text style={styles.aiNoteText}>
+                {t('localContact.aiPreselectLoading', {
+                  defaultValue: 'AI 正在根據名片挑標籤…',
+                })}
+              </Text>
+            </View>
+          ) : aiAddedTags.some((n) => tags.includes(n)) ? (
+            <View style={styles.aiNoteRow}>
+              <BoltIcon size={14} color={colors.piktag600} />
+              <Text style={styles.aiNoteText}>
+                {t('localContact.aiPreselectNote', {
+                  defaultValue: 'AI 根據名片為你加上了標籤，不要的點掉就好',
+                })}
+              </Text>
+            </View>
+          ) : tags.length === 0 ? (
             <Text style={styles.tagsDesc}>
               {t('localContact.tagsDesc', {
                 defaultValue: '記下怎麼認識、聊過什麼、要記得的事，幫你好好記住這個人。',
               })}
             </Text>
-          )}
+          ) : null}
           {tags.length > 0 && (
             <View style={styles.tagWrap}>
               {tags.map((tg) => (
@@ -975,32 +1021,6 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
             </TouchableOpacity>
           </View>
 
-          {/* AI tag recommendations from the scanned card — fired ASYNC
-              after recognition fills the fields (founder 2026-06-07:
-              recognition must be instant, recommendation may lag). Gray
-              opt-in chips, tap to add. Appears only after a scan with
-              usable context; manual entry shows nothing. */}
-          {(aiLoading || aiSuggestions.length > 0) && (
-            <View style={styles.aiSuggestBlock}>
-              <Text style={styles.aiSuggestLabel}>
-                {aiLoading && aiSuggestions.length === 0
-                  ? t('localContact.aiSuggestLoading', { defaultValue: 'AI 想推薦標籤中…' })
-                  : t('localContact.aiSuggestLabel', { defaultValue: 'AI 推薦標籤（點選加入）' })}
-              </Text>
-              {aiSuggestions.length > 0 && (
-                <View style={styles.tagWrap}>
-                  {aiSuggestions.map((s) => (
-                    <TagChip
-                      key={`ai-${s}`}
-                      label={s}
-                      variant="toggle"
-                      onPress={() => addSuggestedTag(s)}
-                    />
-                  ))}
-                </View>
-              )}
-            </View>
-          )}
 
           {/* "Send my PikTag handle to this contact" — extracted to
               the shared LocalContactShareButton component 2026-06-03
@@ -1127,8 +1147,11 @@ function makeStyles(c: ColorPalette) {
   tagsDesc: { fontSize: 13, color: c.gray500, lineHeight: 18, marginTop: -2, marginBottom: 12 },
   // added-tag chip → shared <TagChip/> (one design contract)
   tagInputRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  aiSuggestBlock: { marginTop: 14 },
-  aiSuggestLabel: { fontSize: 13, fontWeight: '600', color: c.piktag600, marginBottom: 8 },
+  // "AI 根據名片為你加上了標籤…" note — BoltIcon + text on one row,
+  // sits where the generic explainer would, above the (pre-selected)
+  // tag chips.
+  aiNoteRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: -2, marginBottom: 12 },
+  aiNoteText: { flex: 1, fontSize: 13, fontWeight: '600', color: c.piktag600, lineHeight: 18 },
   tagAddBtn: {
     width: 44,
     height: 44,
