@@ -379,6 +379,33 @@ founder when the trigger condition lands:
   a real breakdown panel + per-component CTA — never as a naked
   score. (Tag-graph health pill, principle #7, removed same day
   it shipped — RPC kept for admin/analytics.)
+- **Account-deletion contract (privacy / "delete must mean delete").**
+  Verified 2026-06-07 after a tester reported "刪除帳號後用同 email 重新
+  註冊，資料都回來". Two load-bearing facts:
+  1. **A user's OWN data is removed by CASCADE, not by the
+     `delete-user` CLEANUPS list.** Every `piktag_*` table FKs
+     `auth.users(id) ON DELETE CASCADE` (or `SET NULL` for
+     attribution-only cols like `biolink_clicks.clicker_user_id`), so
+     `auth.admin.deleteUser` wipes it all. The CLEANUPS array in
+     `delete-user` is redundant defense-in-depth. **Therefore: any NEW
+     table that stores user data MUST declare its user FK `ON DELETE
+     CASCADE` to `auth.users`** — that, not the CLEANUPS list, is what
+     actually deletes it. (Don't rely on remembering to extend
+     CLEANUPS.)
+  2. **The resurrection vector is OTHER users' rows, not yours.**
+     `piktag_local_contacts` (owner = someone else) match you by
+     email/phone and were promoted to a connection;
+     `promoted_to_connection_id` is `ON DELETE SET NULL`, so deleting
+     your connection RE-ARMS them, and re-registering the same
+     email/phone re-fires `promote_local_contacts_for_profile` →
+     recreates the connection + follow + re-applies their tags. Fix
+     (founder call): `delete-user` SCRUBS the deleted user's
+     email/phone out of others' local contacts (by email + by the
+     promoted-connection link) BEFORE the cleanup loop, so they can
+     never auto-re-match. The card (name/note/tags) survives as a
+     manual entry. **If you add ANY new email/phone-keyed re-link
+     surface, it must respect the same scrub** or the resurrection
+     returns.
 - **Adding a new notification type — the 4-point checklist.** When
   shipping a new `piktag_notifications.type` value, four spots
   MUST land in the same PR or the categorization quietly breaks:

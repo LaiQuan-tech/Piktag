@@ -197,6 +197,60 @@ serve(async (req) => {
     const userId = requestedUserId;
     const warnings: string[] = [];
 
+    // ── Resurrection guard (founder 2026-06-07) ──────────────────────────
+    // This user's OWN data is cascade-removed by auth.admin.deleteUser
+    // (every piktag_* table FKs auth.users ON DELETE CASCADE), so it's gone.
+    // BUT *other* users' local-contact records of this user (owner = them,
+    // matched to this user by email/phone) are THEIR rows — they don't
+    // cascade. Left alone, the promoted_to_connection_id FK (ON DELETE SET
+    // NULL) re-arms them the moment this user's connections are deleted, and
+    // re-registering with the same email/phone re-promotes them — resurrecting
+    // the social graph + others' tags ("刪除後資料又回來"). Per GDPR erasure +
+    // founder's call, scrub this user's email/phone OUT of others' local
+    // contacts so they can never auto-re-match; the card (name/note/tags)
+    // survives as a now-manual entry. MUST run BEFORE the CLEANUPS loop
+    // deletes the connections the link-based scrub relies on.
+    try {
+      // Resolve this user's email (works for BOTH self- and admin-delete).
+      let targetEmail = callerEmail;
+      if (!targetEmail) {
+        const { data: tu } = await adminClient.auth.admin.getUserById(userId);
+        targetEmail = (tu?.user?.email ?? '').toLowerCase();
+      }
+      // Connections others hold WITH this user — local contacts were promoted
+      // to exactly these, so matching on them catches phone-keyed contacts
+      // too (format-independent), not just email-keyed ones.
+      const { data: conns } = await adminClient
+        .from('piktag_connections')
+        .select('id')
+        .eq('connected_user_id', userId);
+      const connIds = (conns ?? []).map((c: { id: string }) => c.id);
+
+      const scrub = { email_lower: null, phone_normalized: null };
+      if (connIds.length > 0) {
+        const { error } = await adminClient
+          .from('piktag_local_contacts')
+          .update(scrub)
+          .neq('owner_user_id', userId)
+          .in('promoted_to_connection_id', connIds);
+        if (error) warnings.push(`local_contacts scrub (by connection): ${error.message}`);
+      }
+      if (targetEmail) {
+        const { error } = await adminClient
+          .from('piktag_local_contacts')
+          .update(scrub)
+          .neq('owner_user_id', userId)
+          .eq('email_lower', targetEmail);
+        if (error) warnings.push(`local_contacts scrub (by email): ${error.message}`);
+      }
+    } catch (e) {
+      // Never block the delete on the scrub — auth.users removal is critical.
+      console.warn(
+        'delete-user resurrection-guard scrub failed:',
+        e instanceof Error ? e.message : String(e),
+      );
+    }
+
     for (const { table, column } of CLEANUPS) {
       const { error } = await adminClient.from(table).delete().eq(column, userId);
       if (error) {
