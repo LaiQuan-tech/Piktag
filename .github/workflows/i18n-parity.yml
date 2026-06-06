@@ -1,0 +1,30 @@
+name: i18n Parity
+
+# Fails (red X) when the 19 locale JSONs drift — i.e. a key exists in
+# some locales but not all. Missing keys make i18next fall back to en,
+# which is how English leaked into Chinese/other UIs (founder 2026-06-07).
+# This is a STANDALONE guard: it does NOT block the TestFlight build
+# workflow (the app degrades gracefully via fallback) — it's an early,
+# visible alert so drift is caught before it reaches a device.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'mobile/src/i18n/locales/**'
+      - 'mobile/scripts/check-i18n-parity.mjs'
+      - '.github/workflows/i18n-parity.yml'
+  pull_request:
+    paths:
+      - 'mobile/src/i18n/locales/**'
+  workflow_dispatch:
+
+jobs:
+  parity:
+    name: Locale key parity
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v6
+      - name: Check 19-locale key parity
+        run: node mobile/scripts/check-i18n-parity.mjs
