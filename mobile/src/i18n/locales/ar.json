@@ -75,7 +75,8 @@
     "clear": "مسح",
     "month": "الشهر",
     "day": "اليوم",
-    "userNotFound": "تعذّر العثور على هذا المستخدم"
+    "userNotFound": "تعذّر العثور على هذا المستخدم",
+    "remove": "إزالة"
   },
   "auth": {
     "login": {
@@ -452,7 +453,8 @@
     "saveWarnTitle": "تم إنشاء رمز QR، لكن تعذر الحفظ في Tag",
     "dateLabel": "التاريخ",
     "locationLabel": "المكان",
-    "selectLocation": "اختر مكاناً"
+    "selectLocation": "اختر مكاناً",
+    "saveWarnMsg": "يمكن مشاركة رمز QR هذا الآن، لكنه لن يظهر في قائمة Tag لديك.\n\nرمز الخطأ: {{code}}\n{{message}}"
   },
   "profile": {
     "nameNotSet": "لم يتم تعيين الاسم",
@@ -1127,7 +1129,8 @@
     "nativeHintNoPin": "اضغط مطولاً واسحب لإعادة الترتيب",
     "tagEditHint": "انقر للإزالة (يمكن التراجع قبل الحفظ) · اضغط مطولاً لإعادة الترتيب",
     "aiErrorNoContext": "أدخل نبذتك أو اسمك أو أضف بعض الوسوم أولًا حتى يتمكن الذكاء الاصطناعي من تقديم اقتراحات.",
-    "aiErrorLoadProfile": "تعذّر تحميل ملفك الشخصي: {{error}}"
+    "aiErrorLoadProfile": "تعذّر تحميل ملفك الشخصي: {{error}}",
+    "addTag": "إضافة وسم"
   },
   "activityReview": {
     "noNewFriends": "لا يوجد أصدقاء جدد للمراجعة",
@@ -1444,7 +1447,8 @@
     "scan": "امسح رمز QR لإضافة أصدقاء",
     "currentVibesTitle": "ما يضعون من وسوم مؤخراً",
     "currentVibesHint": "الوسوم التي تتشاركها هذه المجموعة الآن — اضغط لرؤية من.",
-    "membersFilterEmpty": "لا أحد في هذا الـ Tag يحمل هذا الوسم بعد."
+    "membersFilterEmpty": "لا أحد في هذا الـ Tag يحمل هذا الوسم بعد.",
+    "currentVibesCount": "{{count}} شخص"
   },
   "localContact": {
     "aiSuggestLabel": "وسوم مقترحة بالذكاء الاصطناعي (انقر للإضافة)",

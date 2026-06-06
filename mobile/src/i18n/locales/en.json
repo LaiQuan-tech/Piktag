@@ -75,7 +75,8 @@
     "them": "them",
     "clear": "Clear",
     "month": "Month",
-    "day": "Day"
+    "day": "Day",
+    "remove": "Remove"
   },
   "auth": {
     "login": {
@@ -452,7 +453,8 @@
     "saveWarnTitle": "QR Code created, but couldn't save to Tag",
     "dateLabel": "Date",
     "locationLabel": "Place",
-    "selectLocation": "Pick a place"
+    "selectLocation": "Pick a place",
+    "saveWarnMsg": "This QR Code can be shared right now, but it won't appear in your Tag list.\n\nError code: {{code}}\n{{message}}"
   },
   "profile": {
     "nameNotSet": "Name not set",
@@ -1127,7 +1129,8 @@
     "nativeHintNoPin": "Long press to drag and reorder",
     "tagEditHint": "Tap to remove (undoable until saved) · Long-press to reorder",
     "aiErrorNoContext": "Fill in your bio, name, or add a few tags first so AI can make suggestions.",
-    "aiErrorLoadProfile": "Couldn't load your profile: {{error}}"
+    "aiErrorLoadProfile": "Couldn't load your profile: {{error}}",
+    "addTag": "Add tag"
   },
   "activityReview": {
     "noNewFriends": "No new friends to review",
@@ -1444,7 +1447,8 @@
     "scan": "Scan QR Code to add friends",
     "currentVibesTitle": "What they're tagging lately",
     "currentVibesHint": "Tags this group is sharing right now — tap to see who.",
-    "membersFilterEmpty": "No one in this Tag has that tag yet."
+    "membersFilterEmpty": "No one in this Tag has that tag yet.",
+    "currentVibesCount": "{{count}} people"
   },
   "localContact": {
     "aiSuggestLabel": "AI suggested tags (tap to add)",

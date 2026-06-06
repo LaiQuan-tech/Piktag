@@ -75,7 +75,8 @@
     "them": "họ",
     "clear": "Xóa",
     "month": "Tháng",
-    "day": "Ngày"
+    "day": "Ngày",
+    "remove": "Xóa"
   },
   "auth": {
     "login": {
@@ -452,7 +453,8 @@
     "saveWarnTitle": "Đã tạo mã QR, nhưng không lưu được vào Tag",
     "dateLabel": "Ngày",
     "locationLabel": "Địa điểm",
-    "selectLocation": "Chọn địa điểm"
+    "selectLocation": "Chọn địa điểm",
+    "saveWarnMsg": "Mã QR này có thể chia sẻ ngay, nhưng sẽ không xuất hiện trong danh sách Tag của bạn.\n\nMã lỗi: {{code}}\n{{message}}"
   },
   "profile": {
     "nameNotSet": "Chưa đặt tên",
@@ -1127,7 +1129,8 @@
     "nativeHintNoPin": "Nhấn giữ rồi kéo để sắp xếp lại",
     "tagEditHint": "Chạm để xoá (hoàn tác được trước khi lưu) · Giữ để sắp xếp",
     "aiErrorNoContext": "Hãy điền tiểu sử, tên hoặc thêm vài thẻ trước để AI có thể đưa ra gợi ý.",
-    "aiErrorLoadProfile": "Không thể tải hồ sơ của bạn: {{error}}"
+    "aiErrorLoadProfile": "Không thể tải hồ sơ của bạn: {{error}}",
+    "addTag": "Thêm thẻ"
   },
   "activityReview": {
     "noNewFriends": "Chưa có bạn mới nào để xem lại",
@@ -1444,7 +1447,8 @@
     "scan": "Quét mã QR để thêm bạn",
     "currentVibesTitle": "Họ đang gắn tag gì gần đây",
     "currentVibesHint": "Tag nhóm này đang chia sẻ — chạm để xem là ai.",
-    "membersFilterEmpty": "Chưa ai trong Tag này có tag đó."
+    "membersFilterEmpty": "Chưa ai trong Tag này có tag đó.",
+    "currentVibesCount": "{{count}} người"
   },
   "localContact": {
     "aiSuggestLabel": "Thẻ do AI gợi ý (chạm để thêm)",

@@ -75,7 +75,8 @@
     "them": "sie/ihn",
     "clear": "Löschen",
     "month": "Monat",
-    "day": "Tag"
+    "day": "Tag",
+    "remove": "Entfernen"
   },
   "auth": {
     "login": {
@@ -452,7 +453,8 @@
     "saveWarnTitle": "QR-Code erstellt, aber konnte nicht im Tag gespeichert werden",
     "dateLabel": "Datum",
     "locationLabel": "Ort",
-    "selectLocation": "Ort wählen"
+    "selectLocation": "Ort wählen",
+    "saveWarnMsg": "Dieser QR-Code ist sofort teilbar, erscheint aber nicht in deiner Tag-Liste.\n\nFehlercode: {{code}}\n{{message}}"
   },
   "profile": {
     "nameNotSet": "Name nicht festgelegt",
@@ -1127,7 +1129,8 @@
     "nativeHintNoPin": "Lang drücken zum Ziehen und Sortieren",
     "tagEditHint": "Tippen zum Entfernen (bis Speichern widerrufbar) · Lange drücken zum Sortieren",
     "aiErrorNoContext": "Füll zuerst deine Bio oder deinen Namen aus oder füge ein paar Tags hinzu, damit die KI Vorschläge machen kann.",
-    "aiErrorLoadProfile": "Dein Profil konnte nicht geladen werden: {{error}}"
+    "aiErrorLoadProfile": "Dein Profil konnte nicht geladen werden: {{error}}",
+    "addTag": "Tag hinzufügen"
   },
   "activityReview": {
     "noNewFriends": "Keine neuen Freunde zum Durchsehen",
@@ -1444,7 +1447,8 @@
     "scan": "QR-Code scannen, um Freunde hinzuzufügen",
     "currentVibesTitle": "Was sie kürzlich taggen",
     "currentVibesHint": "Tags, die diese Gruppe gerade teilt — tippe, um zu sehen wer.",
-    "membersFilterEmpty": "Niemand in diesem Tag hat diesen Tag noch."
+    "membersFilterEmpty": "Niemand in diesem Tag hat diesen Tag noch.",
+    "currentVibesCount": "{{count}} Personen"
   },
   "localContact": {
     "aiSuggestLabel": "KI-Tag-Vorschläge (zum Hinzufügen tippen)",

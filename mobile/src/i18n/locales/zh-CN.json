@@ -75,7 +75,8 @@
     "them": "对方",
     "clear": "清除",
     "month": "月",
-    "day": "日"
+    "day": "日",
+    "remove": "移除"
   },
   "auth": {
     "login": {
@@ -452,7 +453,8 @@
     "saveWarnTitle": "QR 码已产生，但无法保存到 Tag",
     "dateLabel": "日期",
     "locationLabel": "地点",
-    "selectLocation": "选地点"
+    "selectLocation": "选地点",
+    "saveWarnMsg": "这个 QR 码可以马上分享，但不会出现在你的 Tag 清单中。\n\n错误代码：{{code}}\n{{message}}"
   },
   "profile": {
     "nameNotSet": "未设置姓名",
@@ -1127,7 +1129,8 @@
     "nativeHintNoPin": "长按拖曳排序",
     "tagEditHint": "点一下移除（未保存可恢复）· 长按拖动排序",
     "aiErrorNoContext": "请先填写个人简介、姓名或添加几个标签，AI 才能给你建议",
-    "aiErrorLoadProfile": "无法加载个人资料：{{error}}"
+    "aiErrorLoadProfile": "无法加载个人资料：{{error}}",
+    "addTag": "新增标签"
   },
   "activityReview": {
     "noNewFriends": "没有需要整理的新朋友",
@@ -1444,7 +1447,8 @@
     "scan": "扫描 QR 码加好友",
     "currentVibesTitle": "他们最近在标什幺",
     "currentVibesHint": "这群人现在共同的标签 — 点一下看是谁",
-    "membersFilterEmpty": "这个 Tag 中没有贴这个标签的人"
+    "membersFilterEmpty": "这个 Tag 中没有贴这个标签的人",
+    "currentVibesCount": "{{count}} 人"
   },
   "localContact": {
     "aiSuggestLabel": "AI 推荐标签（点选加入）",

@@ -75,7 +75,8 @@
     "them": "對方",
     "clear": "清除",
     "month": "月",
-    "day": "日"
+    "day": "日",
+    "remove": "移除"
   },
   "auth": {
     "login": {
@@ -452,7 +453,8 @@
     "saveWarnTitle": "QR 碼已產生，但無法儲存到 Tag",
     "dateLabel": "日期",
     "locationLabel": "地點",
-    "selectLocation": "選地點"
+    "selectLocation": "選地點",
+    "saveWarnMsg": "這個 QR 碼可以馬上分享，但不會出現在你的 Tag 清單中。\n\n錯誤代碼：{{code}}\n{{message}}"
   },
   "profile": {
     "nameNotSet": "未設定姓名",
@@ -1111,7 +1113,8 @@
     "nativeHintNoPin": "長按拖曳排序",
     "tagEditHint": "點一下移除（未儲存可復原）· 長按拖曳排序",
     "aiErrorNoContext": "請先填寫個人簡介、姓名或新增幾個標籤，AI 才能給你建議",
-    "aiErrorLoadProfile": "無法載入個人資料：{{error}}"
+    "aiErrorLoadProfile": "無法載入個人資料：{{error}}",
+    "addTag": "新增標籤"
   },
   "activityReview": {
     "noNewFriends": "沒有需要整理的新朋友",
@@ -1444,7 +1447,8 @@
     "scan": "掃描 QR 碼加好友",
     "currentVibesTitle": "他們最近在標什麼",
     "currentVibesHint": "這群人現在共同的標籤 — 點一下看是誰",
-    "membersFilterEmpty": "這個 Tag 中沒有貼這個標籤的人"
+    "membersFilterEmpty": "這個 Tag 中沒有貼這個標籤的人",
+    "currentVibesCount": "{{count}} 人"
   },
   "localContact": {
     "aiSuggestLabel": "AI 推薦標籤（點選加入）",

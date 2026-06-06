@@ -75,7 +75,8 @@
     "them": "انہیں",
     "clear": "صاف کریں",
     "month": "مہینہ",
-    "day": "دن"
+    "day": "دن",
+    "remove": "ہٹائیں"
   },
   "auth": {
     "login": {
@@ -452,7 +453,8 @@
     "saveWarnTitle": "QR کوڈ بن گیا، لیکن Tag میں محفوظ نہ ہو سکا",
     "dateLabel": "تاریخ",
     "locationLabel": "مقام",
-    "selectLocation": "مقام منتخب کریں"
+    "selectLocation": "مقام منتخب کریں",
+    "saveWarnMsg": "یہ QR کوڈ ابھی شیئر ہو سکتا ہے، لیکن آپ کی Tag فہرست میں نظر نہیں آئے گا۔\n\nایرر کوڈ: {{code}}\n{{message}}"
   },
   "profile": {
     "nameNotSet": "نام نہیں رکھا",
@@ -1127,7 +1129,8 @@
     "nativeHintNoPin": "ترتیب بدلنے کے لیے دیر تک دبا کر کھینچیں",
     "tagEditHint": "ہٹانے کے لیے ٹیپ کریں (محفوظ سے پہلے واپسی ممکن) · ترتیب کے لیے دبا کر کھینچیں",
     "aiErrorNoContext": "AI تجاویز دے سکے، اس کے لیے پہلے اپنا بایو، نام بھریں یا چند ٹیگ شامل کریں۔",
-    "aiErrorLoadProfile": "آپ کی پروفائل لوڈ نہیں ہو سکی: {{error}}"
+    "aiErrorLoadProfile": "آپ کی پروفائل لوڈ نہیں ہو سکی: {{error}}",
+    "addTag": "ٹیگ شامل کریں"
   },
   "activityReview": {
     "noNewFriends": "دیکھنے کے لیے کوئی نیا دوست نہیں",
@@ -1444,7 +1447,8 @@
     "scan": "دوست شامل کرنے کے لیے QR کوڈ اسکین کریں",
     "currentVibesTitle": "وہ حال ہی میں کیا ٹیگ کر رہے ہیں",
     "currentVibesHint": "یہ گروپ ابھی جو ٹیگز شیئر کر رہا ہے — کون دیکھنے کے لیے ٹیپ کریں۔",
-    "membersFilterEmpty": "اس Tag میں ابھی کسی پر یہ ٹیگ نہیں ہے۔"
+    "membersFilterEmpty": "اس Tag میں ابھی کسی پر یہ ٹیگ نہیں ہے۔",
+    "currentVibesCount": "{{count}} لوگ"
   },
   "localContact": {
     "aiSuggestLabel": "AI تجویز کردہ ٹیگز (شامل کرنے کے لیے ٹیپ کریں)",

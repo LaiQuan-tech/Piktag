@@ -75,7 +75,8 @@
     "clear": "Effacer",
     "month": "Mois",
     "day": "Jour",
-    "userNotFound": "Impossible de trouver cet utilisateur"
+    "userNotFound": "Impossible de trouver cet utilisateur",
+    "remove": "Retirer"
   },
   "auth": {
     "login": {
@@ -452,7 +453,8 @@
     "saveWarnTitle": "QR Code créé, mais impossible d'enregistrer dans le Tag",
     "dateLabel": "Date",
     "locationLabel": "Lieu",
-    "selectLocation": "Choisir un lieu"
+    "selectLocation": "Choisir un lieu",
+    "saveWarnMsg": "Ce QR Code est partageable maintenant, mais n'apparaîtra pas dans ta liste de Tags.\n\nCode d'erreur : {{code}}\n{{message}}"
   },
   "profile": {
     "nameNotSet": "Nom non défini",
@@ -1127,7 +1129,8 @@
     "nativeHintNoPin": "Maintiens et glisse pour réorganiser",
     "tagEditHint": "Touchez pour retirer (annulable avant d'enregistrer) · Appui long pour réordonner",
     "aiErrorNoContext": "Renseignez d'abord votre bio, votre nom ou ajoutez quelques tags pour que l'IA puisse faire des suggestions.",
-    "aiErrorLoadProfile": "Impossible de charger votre profil : {{error}}"
+    "aiErrorLoadProfile": "Impossible de charger votre profil : {{error}}",
+    "addTag": "Ajouter un tag"
   },
   "activityReview": {
     "noNewFriends": "Aucun nouvel ami à examiner",
@@ -1444,7 +1447,8 @@
     "scan": "Scanner un QR Code pour ajouter des amis",
     "currentVibesTitle": "Ce qu'ils taguent récemment",
     "currentVibesHint": "Tags que ce groupe partage en ce moment — appuie pour voir qui.",
-    "membersFilterEmpty": "Personne dans ce Tag n'a ce tag."
+    "membersFilterEmpty": "Personne dans ce Tag n'a ce tag.",
+    "currentVibesCount": "{{count}} personnes"
   },
   "localContact": {
     "aiSuggestLabel": "Tags suggérés par l’IA (touchez pour ajouter)",

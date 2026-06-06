@@ -75,7 +75,8 @@
     "clear": "Temizle",
     "month": "Ay",
     "day": "Gün",
-    "userNotFound": "Bu kullanıcı bulunamadı"
+    "userNotFound": "Bu kullanıcı bulunamadı",
+    "remove": "Kaldır"
   },
   "auth": {
     "login": {
@@ -452,7 +453,8 @@
     "saveWarnTitle": "QR kodu oluşturuldu, ama Tag'e kaydedilemedi",
     "dateLabel": "Tarih",
     "locationLabel": "Yer",
-    "selectLocation": "Yer seç"
+    "selectLocation": "Yer seç",
+    "saveWarnMsg": "Bu QR kodu hemen paylaşılabilir ama Tag listende görünmez.\n\nHata kodu: {{code}}\n{{message}}"
   },
   "profile": {
     "nameNotSet": "Ad belirtilmemiş",
@@ -1127,7 +1129,8 @@
     "nativeHintNoPin": "Sürüklemek için basılı tut",
     "tagEditHint": "Kaldırmak için dokun (kaydetmeden geri alınır) · Sıralamak için basılı tut",
     "aiErrorNoContext": "Yapay zekânın öneri sunabilmesi için önce biyografini, adını doldur veya birkaç etiket ekle.",
-    "aiErrorLoadProfile": "Profilin yüklenemedi: {{error}}"
+    "aiErrorLoadProfile": "Profilin yüklenemedi: {{error}}",
+    "addTag": "Etiket ekle"
   },
   "activityReview": {
     "noNewFriends": "İncelenecek yeni arkadaş yok",
@@ -1444,7 +1447,8 @@
     "scan": "Arkadaş eklemek için QR kodunu tara",
     "currentVibesTitle": "Son zamanlarda neyi etiketliyorlar",
     "currentVibesHint": "Bu grubun şu an paylaştığı etiketler — kim olduğunu görmek için dokun.",
-    "membersFilterEmpty": "Bu Tag'de henüz bu etiketi taşıyan yok."
+    "membersFilterEmpty": "Bu Tag'de henüz bu etiketi taşıyan yok.",
+    "currentVibesCount": "{{count}} kişi"
   },
   "localContact": {
     "aiSuggestLabel": "AI önerilen etiketler (eklemek için dokun)",

@@ -75,7 +75,8 @@
     "clear": "মুছুন",
     "month": "মাস",
     "day": "দিন",
-    "userNotFound": "এই ব্যবহারকারীকে খুঁজে পাওয়া যায়নি"
+    "userNotFound": "এই ব্যবহারকারীকে খুঁজে পাওয়া যায়নি",
+    "remove": "সরান"
   },
   "auth": {
     "login": {
@@ -452,7 +453,8 @@
     "saveWarnTitle": "QR কোড তৈরি হয়েছে, কিন্তু Tag-এ সংরক্ষণ করা যায়নি",
     "dateLabel": "তারিখ",
     "locationLabel": "স্থান",
-    "selectLocation": "স্থান বাছুন"
+    "selectLocation": "স্থান বাছুন",
+    "saveWarnMsg": "এই QR কোড এখনই শেয়ার করা যাবে, কিন্তু আপনার Tag তালিকায় দেখাবে না।\n\nত্রুটি কোড: {{code}}\n{{message}}"
   },
   "profile": {
     "nameNotSet": "নাম সেট করা নেই",
@@ -1127,7 +1129,8 @@
     "nativeHintNoPin": "লং প্রেস করে টেনে সাজাও",
     "tagEditHint": "সরাতে ট্যাপ করুন (সেভের আগে ফেরানো যায়) · সাজাতে চেপে ধরে টানুন",
     "aiErrorNoContext": "AI যেন পরামর্শ দিতে পারে, সেজন্য আগে আপনার বায়ো, নাম পূরণ করুন বা কয়েকটি ট্যাগ যোগ করুন।",
-    "aiErrorLoadProfile": "আপনার প্রোফাইল লোড করা যায়নি: {{error}}"
+    "aiErrorLoadProfile": "আপনার প্রোফাইল লোড করা যায়নি: {{error}}",
+    "addTag": "ট্যাগ যোগ করুন"
   },
   "activityReview": {
     "noNewFriends": "রিভিউ করার মতো কোনো নতুন বন্ধু নেই",
@@ -1444,7 +1447,8 @@
     "scan": "বন্ধু যোগ করতে QR কোড স্ক্যান করুন",
     "currentVibesTitle": "তারা ইদানীং কী ট্যাগ করছে",
     "currentVibesHint": "এই গ্রুপ এখন যে ট্যাগগুলো শেয়ার করছে — কে দেখতে ট্যাপ করুন।",
-    "membersFilterEmpty": "এই Tag-এ কেউ এখনো সেই ট্যাগটি দেয়নি।"
+    "membersFilterEmpty": "এই Tag-এ কেউ এখনো সেই ট্যাগটি দেয়নি।",
+    "currentVibesCount": "{{count}} জন"
   },
   "localContact": {
     "aiSuggestLabel": "AI সুপারিশকৃত ট্যাগ (যোগ করতে ট্যাপ করুন)",

@@ -75,7 +75,8 @@
     "clear": "クリア",
     "month": "月",
     "day": "日",
-    "userNotFound": "このユーザーが見つかりません"
+    "userNotFound": "このユーザーが見つかりません",
+    "remove": "削除"
   },
   "auth": {
     "login": {
@@ -452,7 +453,8 @@
     "saveWarnTitle": "QRコードを作成しましたが、Tagに保存できませんでした",
     "dateLabel": "日付",
     "locationLabel": "場所",
-    "selectLocation": "場所を選ぶ"
+    "selectLocation": "場所を選ぶ",
+    "saveWarnMsg": "このQRコードはすぐ共有できますが、Tag一覧には表示されません。\n\nエラーコード：{{code}}\n{{message}}"
   },
   "profile": {
     "nameNotSet": "名前未設定",
@@ -1127,7 +1129,8 @@
     "nativeHintNoPin": "長押しでドラッグして並び替え",
     "tagEditHint": "タップで削除（保存前は元に戻せる）· 長押しで並べ替え",
     "aiErrorNoContext": "AI が提案できるよう、まずプロフィール・名前を入力するか、タグをいくつか追加してください。",
-    "aiErrorLoadProfile": "プロフィールを読み込めませんでした：{{error}}"
+    "aiErrorLoadProfile": "プロフィールを読み込めませんでした：{{error}}",
+    "addTag": "タグを追加"
   },
   "activityReview": {
     "noNewFriends": "確認する新しい友達がいません",
@@ -1444,7 +1447,8 @@
     "scan": "QRコードをスキャンして友だち追加",
     "currentVibesTitle": "最近よく付けているタグ",
     "currentVibesHint": "このグループが今共有しているタグ — タップして誰か見る。",
-    "membersFilterEmpty": "この Tag にはまだそのタグを付けた人がいません。"
+    "membersFilterEmpty": "この Tag にはまだそのタグを付けた人がいません。",
+    "currentVibesCount": "{{count}}人"
   },
   "localContact": {
     "aiSuggestLabel": "AI のおすすめタグ（タップで追加）",

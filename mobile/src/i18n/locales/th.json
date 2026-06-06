@@ -75,7 +75,8 @@
     "clear": "ล้าง",
     "month": "เดือน",
     "day": "วัน",
-    "userNotFound": "ไม่พบผู้ใช้นี้"
+    "userNotFound": "ไม่พบผู้ใช้นี้",
+    "remove": "ลบ"
   },
   "auth": {
     "login": {
@@ -452,7 +453,8 @@
     "saveWarnTitle": "สร้าง รหัส QR แล้ว แต่บันทึกไป Tag ไม่สำเร็จ",
     "dateLabel": "วันที่",
     "locationLabel": "สถานที่",
-    "selectLocation": "เลือกสถานที่"
+    "selectLocation": "เลือกสถานที่",
+    "saveWarnMsg": "QR โค้ดนี้แชร์ได้ทันที แต่จะไม่แสดงในรายการ Tag ของคุณ\n\nรหัสข้อผิดพลาด: {{code}}\n{{message}}"
   },
   "profile": {
     "nameNotSet": "ยังไม่ได้ตั้งชื่อ",
@@ -1127,7 +1129,8 @@
     "nativeHintNoPin": "กดค้างแล้วลากเพื่อจัดเรียง",
     "tagEditHint": "แตะเพื่อลบ (ย้อนได้ก่อนบันทึก) · กดค้างเพื่อจัดเรียง",
     "aiErrorNoContext": "กรอกประวัติ ชื่อ หรือเพิ่มแท็กสองสามรายการก่อน เพื่อให้ AI แนะนำได้",
-    "aiErrorLoadProfile": "ไม่สามารถโหลดโปรไฟล์ของคุณ: {{error}}"
+    "aiErrorLoadProfile": "ไม่สามารถโหลดโปรไฟล์ของคุณ: {{error}}",
+    "addTag": "เพิ่มแท็ก"
   },
   "activityReview": {
     "noNewFriends": "ไม่มีเพื่อนใหม่ให้ตรวจสอบ",
@@ -1444,7 +1447,8 @@
     "scan": "สแกน รหัส QR เพื่อเพิ่มเพื่อน",
     "currentVibesTitle": "แท็กที่พวกเขาแปะกันช่วงนี้",
     "currentVibesHint": "แท็กที่กลุ่มนี้แปะร่วมกันอยู่ตอนนี้ — แตะดูว่าใคร",
-    "membersFilterEmpty": "ยังไม่มีใครใน Tag นี้แปะแท็กนั้น"
+    "membersFilterEmpty": "ยังไม่มีใครใน Tag นี้แปะแท็กนั้น",
+    "currentVibesCount": "{{count}} คน"
   },
   "localContact": {
     "aiSuggestLabel": "แท็กที่ AI แนะนำ (แตะเพื่อเพิ่ม)",

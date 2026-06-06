@@ -75,7 +75,8 @@
     "clear": "Hapus",
     "month": "Bulan",
     "day": "Hari",
-    "userNotFound": "Pengguna ini tidak ditemukan"
+    "userNotFound": "Pengguna ini tidak ditemukan",
+    "remove": "Hapus"
   },
   "auth": {
     "login": {
@@ -452,7 +453,8 @@
     "saveWarnTitle": "Kode QR dibuat, tapi gagal disimpan ke Tag",
     "dateLabel": "Tanggal",
     "locationLabel": "Tempat",
-    "selectLocation": "Pilih tempat"
+    "selectLocation": "Pilih tempat",
+    "saveWarnMsg": "QR Code ini bisa langsung dibagikan, tapi tidak akan muncul di daftar Tag-mu.\n\nKode error: {{code}}\n{{message}}"
   },
   "profile": {
     "nameNotSet": "Nama belum diatur",
@@ -1127,7 +1129,8 @@
     "nativeHintNoPin": "Tekan lama lalu seret untuk mengurutkan",
     "tagEditHint": "Ketuk untuk menghapus (bisa dibatalkan sebelum disimpan) · Tahan untuk mengurutkan",
     "aiErrorNoContext": "Isi bio, nama, atau tambahkan beberapa tag dulu agar AI bisa memberi saran.",
-    "aiErrorLoadProfile": "Tidak dapat memuat profilmu: {{error}}"
+    "aiErrorLoadProfile": "Tidak dapat memuat profilmu: {{error}}",
+    "addTag": "Tambah tag"
   },
   "activityReview": {
     "noNewFriends": "Tidak ada teman baru untuk ditinjau",
@@ -1444,7 +1447,8 @@
     "scan": "Pindai kode QR untuk menambah teman",
     "currentVibesTitle": "Apa yang mereka tag belakangan",
     "currentVibesHint": "Tag yang sedang dibagi grup ini — ketuk untuk lihat siapa.",
-    "membersFilterEmpty": "Belum ada yang punya tag itu di Tag ini."
+    "membersFilterEmpty": "Belum ada yang punya tag itu di Tag ini.",
+    "currentVibesCount": "{{count}} orang"
   },
   "localContact": {
     "aiSuggestLabel": "Tag saran AI (ketuk untuk menambah)",

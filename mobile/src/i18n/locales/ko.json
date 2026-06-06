@@ -75,7 +75,8 @@
     "clear": "지우기",
     "month": "월",
     "day": "일",
-    "userNotFound": "이 사용자를 찾을 수 없어요"
+    "userNotFound": "이 사용자를 찾을 수 없어요",
+    "remove": "제거"
   },
   "auth": {
     "login": {
@@ -452,7 +453,8 @@
     "saveWarnTitle": "QR 코드를 만들었지만 Tag에 저장하지 못했습니다",
     "dateLabel": "날짜",
     "locationLabel": "장소",
-    "selectLocation": "장소 선택"
+    "selectLocation": "장소 선택",
+    "saveWarnMsg": "이 QR 코드는 바로 공유할 수 있지만 Tag 목록에는 나타나지 않아요.\n\n오류 코드: {{code}}\n{{message}}"
   },
   "profile": {
     "nameNotSet": "이름 미설정",
@@ -1127,7 +1129,8 @@
     "nativeHintNoPin": "길게 눌러 드래그해 정렬하기",
     "tagEditHint": "탭하면 삭제(저장 전 되돌리기 가능) · 길게 눌러 정렬",
     "aiErrorNoContext": "AI가 추천할 수 있도록 먼저 소개·이름을 입력하거나 태그를 몇 개 추가해 주세요.",
-    "aiErrorLoadProfile": "프로필을 불러오지 못했습니다: {{error}}"
+    "aiErrorLoadProfile": "프로필을 불러오지 못했습니다: {{error}}",
+    "addTag": "태그 추가"
   },
   "activityReview": {
     "noNewFriends": "검토할 새 친구가 없습니다",
@@ -1444,7 +1447,8 @@
     "scan": "QR 코드 스캔으로 친구 추가",
     "currentVibesTitle": "요즘 자주 다는 태그",
     "currentVibesHint": "이 그룹이 지금 공유 중인 태그 — 탭하면 누가 보이나요.",
-    "membersFilterEmpty": "이 Tag에는 아직 그 태그가 붙은 사람이 없어요."
+    "membersFilterEmpty": "이 Tag에는 아직 그 태그가 붙은 사람이 없어요.",
+    "currentVibesCount": "{{count}}명"
   },
   "localContact": {
     "aiSuggestLabel": "AI 추천 태그 (탭하여 추가)",
