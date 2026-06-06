@@ -55,6 +55,8 @@ type SuggestBody = {
   // pg_cron keep-warm ping — short-circuits before any Gemini work, just
   // keeps the Deno isolate hot (no model cost).
   warmup?: boolean;
+  // TEMP: per-model availability probe (remove after diagnosis).
+  diag?: boolean;
   // Optional richer context for the QR-group creation flow (task 3
   // follow-up). All optional and backward-compatible — old callers
   // (EditProfile auto-suggest, ManageTags AI fire) just don't pass
@@ -126,6 +128,35 @@ serve(async (req) => {
     // request doesn't pay a cold start. ~zero cost (no model call).
     if (body.warmup) {
       return jsonResponse(200, { ok: true, warm: true });
+    }
+
+    // TEMP diagnostic (founder 2026-06-07): which Gemini models does this
+    // project's key actually serve? Probes each candidate and returns the
+    // HTTP status + a short error snippet. REMOVE after diagnosis.
+    if (body.diag === true) {
+      const candidates = [
+        'gemini-2.0-flash-lite', 'gemini-2.0-flash', 'gemini-2.5-flash',
+        'gemini-1.5-flash', 'gemini-2.5-flash-lite', 'gemini-flash-latest',
+        'gemini-2.0-flash-001', 'gemini-2.5-flash-preview-05-20',
+      ];
+      const results: unknown[] = [];
+      for (const m of candidates) {
+        try {
+          const r = await fetch(
+            `https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent`,
+            {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
+              body: JSON.stringify({ contents: [{ parts: [{ text: 'Reply with: ok' }] }] }),
+            },
+          );
+          const txt = await r.text().catch(() => '');
+          results.push({ model: m, status: r.status, ok: r.ok, snippet: txt.slice(0, 140) });
+        } catch (e) {
+          results.push({ model: m, error: e instanceof Error ? e.message : String(e) });
+        }
+      }
+      return jsonResponse(200, { diag: results });
     }
 
     const MAX_INPUT = 500;
