@@ -1444,6 +1444,8 @@
     "membersFilterEmpty": "Nessuno in questo Tag ha ancora quel tag."
   },
   "localContact": {
+    "aiSuggestLabel": "Tag suggeriti dall’IA (tocca per aggiungere)",
+    "aiSuggestLoading": "Ricerca tag in corso…",
     "editTitle": "Modifica contatto",
     "addTitle": "Nuovo contatto",
     "intro": "Segnati la persona — non le serve ancora un account PikTag. Quando si iscrive, si collega da sola e i tuoi tag la seguono.",

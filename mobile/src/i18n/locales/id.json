@@ -1398,6 +1398,8 @@
     "membersFilterEmpty": "Belum ada yang punya tag itu di Tag ini."
   },
   "localContact": {
+    "aiSuggestLabel": "Tag saran AI (ketuk untuk menambah)",
+    "aiSuggestLoading": "Mencari saran tag…",
     "editTitle": "Edit kontak",
     "addTitle": "Kontak baru",
     "intro": "Catat dulu orangnya — dia belum perlu akun PikTag. Saat ia gabung, ini tertaut otomatis dan tag-mu ikut.",

@@ -1398,6 +1398,8 @@
     "membersFilterEmpty": "Nadie en este Tag tiene ese tag aún."
   },
   "localContact": {
+    "aiSuggestLabel": "Etiquetas sugeridas por IA (toca para añadir)",
+    "aiSuggestLoading": "Buscando etiquetas…",
     "editTitle": "Editar contacto",
     "addTitle": "Nuevo contacto",
     "intro": "Apunta a la persona — no necesita cuenta de PikTag todavía. Cuando se una, esto se vincula solo y tus etiquetas se conservan.",

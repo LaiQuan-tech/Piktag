@@ -1439,6 +1439,8 @@
     "membersFilterEmpty": "这个 Tag 中没有贴这个标签的人"
   },
   "localContact": {
+    "aiSuggestLabel": "AI 推荐标签（点选加入）",
+    "aiSuggestLoading": "AI 正在推荐标签…",
     "editTitle": "编辑联系人",
     "addTitle": "添加联系人",
     "intro": "先把人记下来 —— 对方还不用是 PikTag 会员。等他加入，这条会自动接上，你的标签都会跟着过去。",

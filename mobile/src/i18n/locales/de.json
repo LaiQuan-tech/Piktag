@@ -1437,6 +1437,8 @@
     "membersFilterEmpty": "Niemand in diesem Tag hat diesen Tag noch."
   },
   "localContact": {
+    "aiSuggestLabel": "KI-Tag-Vorschläge (zum Hinzufügen tippen)",
+    "aiSuggestLoading": "Tag-Vorschläge werden gesucht…",
     "editTitle": "Kontakt bearbeiten",
     "addTitle": "Neuer Kontakt",
     "intro": "Notiere die Person — sie braucht noch kein PikTag-Konto. Bei Anmeldung verknüpft sich das automatisch, deine Tags kommen mit.",

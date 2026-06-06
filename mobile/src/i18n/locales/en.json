@@ -1444,6 +1444,8 @@
     "membersFilterEmpty": "No one in this Tag has that tag yet."
   },
   "localContact": {
+    "aiSuggestLabel": "AI suggested tags (tap to add)",
+    "aiSuggestLoading": "Finding tag suggestions…",
     "editTitle": "Edit contact",
     "addTitle": "New contact",
     "intro": "Jot the person down — they don't need a PikTag account yet. When they join, this links up automatically and your tags carry over.",

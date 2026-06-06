@@ -1398,6 +1398,8 @@
     "membersFilterEmpty": "Bu Tag'de henüz bu etiketi taşıyan yok."
   },
   "localContact": {
+    "aiSuggestLabel": "AI önerilen etiketler (eklemek için dokun)",
+    "aiSuggestLoading": "Etiketler öneriliyor…",
     "editTitle": "Kişiyi düzenle",
     "addTitle": "Yeni kişi",
     "intro": "Önce kişiyi not al — PikTag hesabı şart değil. Katıldığında otomatik bağlanır, etiketlerin onunla gelir.",

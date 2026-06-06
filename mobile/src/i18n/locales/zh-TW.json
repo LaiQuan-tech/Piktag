@@ -1446,6 +1446,8 @@
     "membersFilterEmpty": "這個 Tag 中沒有貼這個標籤的人"
   },
   "localContact": {
+    "aiSuggestLabel": "AI 推薦標籤（點選加入）",
+    "aiSuggestLoading": "AI 想推薦標籤中…",
     "editTitle": "編輯聯絡人",
     "addTitle": "新增聯絡人",
     "intro": "先把人記下來 —— 對方還不用是 PikTag 會員。等他加入，這筆會自動接上，你的標籤都會跟著過去。",

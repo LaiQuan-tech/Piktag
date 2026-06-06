@@ -1398,6 +1398,8 @@
     "membersFilterEmpty": "이 Tag에는 아직 그 태그가 붙은 사람이 없어요."
   },
   "localContact": {
+    "aiSuggestLabel": "AI 추천 태그 (탭하여 추가)",
+    "aiSuggestLoading": "태그 추천 중…",
     "editTitle": "연락처 편집",
     "addTitle": "연락처 추가",
     "intro": "먼저 사람을 메모하세요 —— 상대는 아직 PikTag 회원이 아니어도 돼요. 가입하면 자동으로 연결되고 태그도 따라갑니다.",

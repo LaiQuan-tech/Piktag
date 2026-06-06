@@ -1444,6 +1444,8 @@
     "membersFilterEmpty": "Chưa ai trong Tag này có tag đó."
   },
   "localContact": {
+    "aiSuggestLabel": "Thẻ do AI gợi ý (chạm để thêm)",
+    "aiSuggestLoading": "Đang tìm thẻ gợi ý…",
     "editTitle": "Sửa liên hệ",
     "addTitle": "Liên hệ mới",
     "intro": "Ghi nhanh người này lại — họ chưa cần tài khoản PikTag. Khi họ vào, mọi thứ tự liên kết, tag của bạn vẫn còn nguyên.",

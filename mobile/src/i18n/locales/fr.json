@@ -1398,6 +1398,8 @@
     "membersFilterEmpty": "Personne dans ce Tag n'a ce tag."
   },
   "localContact": {
+    "aiSuggestLabel": "Tags suggérés par l’IA (touchez pour ajouter)",
+    "aiSuggestLoading": "Recherche de tags…",
     "editTitle": "Modifier le contact",
     "addTitle": "Nouveau contact",
     "intro": "Notez la personne — pas besoin de compte PikTag pour l’instant. À son inscription, tout se relie et vos tags suivent.",

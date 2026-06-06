@@ -1398,6 +1398,8 @@
     "membersFilterEmpty": "この Tag にはまだそのタグを付けた人がいません。"
   },
   "localContact": {
+    "aiSuggestLabel": "AI のおすすめタグ（タップで追加）",
+    "aiSuggestLoading": "タグを考え中…",
     "editTitle": "連絡先を編集",
     "addTitle": "連絡先を追加",
     "intro": "まず人をメモ —— 相手は PikTag 未登録でOK。登録したら自動でつながり、タグも引き継がれます。",

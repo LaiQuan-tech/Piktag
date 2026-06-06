@@ -345,6 +345,17 @@ founder when the trigger condition lands:
       put bio_draft generation (or any generative/creative step) back
       into the synchronous scan call. Generation belongs off the
       critical path (lazy / async).
+    * **Recognition latency is intolerable; recommendation latency is
+      fine.** Founder, 2026-06-07: competitor scanners trained users that
+      scan→result is INSTANT, so any wait on *recognition* (OCR→fields)
+      reads as "broken app." But ChatGPT-era AI trained them that
+      *recommendations* take a beat — so AI tag suggestions are allowed to
+      lag. The pattern: scan → show the recognised fields IMMEDIATELY →
+      fire `suggest-tags` async → the ≤3 gray opt-in tag chips pop in a
+      second or two later. NEVER block the field reveal on the suggestion
+      call. (This is how the 3 AI tags dropped in the Path-A speed pass
+      come back — async on EditLocalContact, source `card_scan`, not on
+      the critical path.)
     * When actual latency can't go lower, buy PERCEIVED speed:
       optimistic UI, progressive field reveal (show the photo +
       skeleton immediately, fill fields as OCR→structuring returns),

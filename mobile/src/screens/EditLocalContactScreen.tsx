@@ -53,6 +53,7 @@ import TagChip from '../components/TagChip';
 // its own viewer-profile lookup now.
 import LocalContactShareButton from '../components/LocalContactShareButton';
 import { scanCard } from '../lib/scanCard';
+import { recordAiSuggestions, markAiSuggestionAccepted } from '../lib/aiTagLogger';
 
 type Props = { navigation: any; route: any };
 
@@ -141,6 +142,13 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
   const [website, setWebsite] = useState(existing?.website ?? '');
   const [tags, setTags] = useState<string[]>(existing?.tags ?? []);
   const [tagInput, setTagInput] = useState('');
+  // AI tag recommendations for a SCANNED contact. Fired async AFTER the
+  // scan fills the fields (recognition shows instantly; these pop in a
+  // beat later — founder 2026-06-07: users accept recommendation latency
+  // but not recognition latency). Gray opt-in chips, cap 3.
+  const [aiSuggestions, setAiSuggestions] = useState<string[]>([]);
+  const [aiSuggestionIds, setAiSuggestionIds] = useState<Record<string, string>>({});
+  const [aiLoading, setAiLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   // `scanning` is set true for the full duration of the
   // scan-business-card upstream call (~7s in prod). Drives a full-
@@ -325,6 +333,70 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
     setTagInput('');
   }, [tagInput]);
 
+  // Async AI tag recommendations from the scanned card context. Off the
+  // critical path: the scan already revealed the fields; this just pops in
+  // ≤3 gray opt-in chips a beat later. Fire-and-forget; never blocks.
+  const loadScanAiSuggestions = useCallback(
+    async (bio: string, nm: string) => {
+      const ctx = `${bio} ${nm}`.trim();
+      if (!ctx) return;
+      setAiLoading(true);
+      try {
+        const lang = /[一-鿿]/.test(ctx)
+          ? '繁體中文'
+          : /[぀-ヿ]/.test(ctx)
+          ? '日本語'
+          : /[가-힯]/.test(ctx)
+          ? '한국어'
+          : /[฀-๿]/.test(ctx)
+          ? 'ภาษาไทย'
+          : 'the same language as the content';
+        const { data, error } = await supabase.functions.invoke<{ suggestions?: string[] }>(
+          'suggest-tags',
+          { body: { bio, name: nm, existingTags: tags.join(', '), lang } },
+        );
+        if (!error && Array.isArray(data?.suggestions)) {
+          const taken = new Set(tags.map((x) => x.toLowerCase()));
+          const filtered = data.suggestions
+            .map((s) => (typeof s === 'string' ? s.replace(/^#/, '').trim() : ''))
+            .filter((s) => s && !taken.has(s.toLowerCase()))
+            .slice(0, 3);
+          setAiSuggestions(filtered);
+          // Principle #5 calibration — surface 'card_scan'.
+          void (async () => {
+            const ids = await recordAiSuggestions('card_scan', filtered, {
+              surface: 'local_contact_scan',
+            });
+            if (ids.length === filtered.length) {
+              const map: Record<string, string> = {};
+              filtered.forEach((n, i) => { map[n] = ids[i]; });
+              setAiSuggestionIds((prev) => ({ ...prev, ...map }));
+            }
+          })();
+        }
+      } catch (e) {
+        console.warn('[LocalContact] scan AI suggest failed:', e);
+      } finally {
+        setAiLoading(false);
+      }
+    },
+    [tags],
+  );
+
+  // Tap a gray AI-suggestion chip → add to the contact's tags (+ log the
+  // accept, + drop it from the suggestion row).
+  const addSuggestedTag = useCallback(
+    (name: string) => {
+      const raw = normalizeTagName(name);
+      if (!raw) return;
+      const sid = aiSuggestionIds[name] ?? aiSuggestionIds[raw];
+      if (sid) void markAiSuggestionAccepted(sid);
+      setTags((prev) => (prev.includes(raw) ? prev : [...prev, raw]));
+      setAiSuggestions((prev) => prev.filter((s) => s !== name));
+    },
+    [aiSuggestionIds],
+  );
+
   // Open the CAMERA to photograph a physical business card (not the
   // photo library — "掃描名片" means point-and-shoot at the real
   // card). → scan-business-card vision extract → pre-fill the form.
@@ -444,6 +516,9 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
         if (cardWebsite) setWebsite((cur) => (cur.trim() ? cur : cardWebsite));
         // Job title + company → the member-aligned 職稱 field.
         if (cardHeadline) setHeadline((cur) => (cur.trim() ? cur : cardHeadline));
+        // Recognition is on screen NOW → fire AI tag recs ASYNC. Off the
+        // critical path: chips pop in a beat later, never block the reveal.
+        void loadScanAiSuggestions(cardHeadline, cardName);
       };
 
       // Is the scanned person ALREADY a PikTag member? Match the
@@ -517,7 +592,7 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
     } finally {
       setScanning(false);
     }
-  }, [t, navigation, openCamera]);
+  }, [t, navigation, openCamera, loadScanAiSuggestions]);
 
   // Keep the ref pointing at the latest runScan so `openCamera`'s
   // stable onCaptured always calls the current closure.
@@ -900,10 +975,32 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
             </TouchableOpacity>
           </View>
 
-          {/* (AI 建議標籤 section removed — there's no scanned-card
-              fuel in the edit form, and AI based on manually-typed
-              fields just spends compute while the pill button reads
-              as a tag. Tags here are manual-only.) */}
+          {/* AI tag recommendations from the scanned card — fired ASYNC
+              after recognition fills the fields (founder 2026-06-07:
+              recognition must be instant, recommendation may lag). Gray
+              opt-in chips, tap to add. Appears only after a scan with
+              usable context; manual entry shows nothing. */}
+          {(aiLoading || aiSuggestions.length > 0) && (
+            <View style={styles.aiSuggestBlock}>
+              <Text style={styles.aiSuggestLabel}>
+                {aiLoading && aiSuggestions.length === 0
+                  ? t('localContact.aiSuggestLoading', { defaultValue: 'AI 想推薦標籤中…' })
+                  : t('localContact.aiSuggestLabel', { defaultValue: 'AI 推薦標籤（點選加入）' })}
+              </Text>
+              {aiSuggestions.length > 0 && (
+                <View style={styles.tagWrap}>
+                  {aiSuggestions.map((s) => (
+                    <TagChip
+                      key={`ai-${s}`}
+                      label={s}
+                      variant="toggle"
+                      onPress={() => addSuggestedTag(s)}
+                    />
+                  ))}
+                </View>
+              )}
+            </View>
+          )}
 
           {/* "Send my PikTag handle to this contact" — extracted to
               the shared LocalContactShareButton component 2026-06-03
@@ -1030,6 +1127,8 @@ function makeStyles(c: ColorPalette) {
   tagsDesc: { fontSize: 13, color: c.gray500, lineHeight: 18, marginTop: -2, marginBottom: 12 },
   // added-tag chip → shared <TagChip/> (one design contract)
   tagInputRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  aiSuggestBlock: { marginTop: 14 },
+  aiSuggestLabel: { fontSize: 13, fontWeight: '600', color: c.piktag600, marginBottom: 8 },
   tagAddBtn: {
     width: 44,
     height: 44,
