@@ -776,7 +776,8 @@
     "notifMemories": "ความทรงจำ",
     "locationPermissionTitle": "ต้องการสิทธิ์ตำแหน่ง",
     "locationPermissionMessage": "หากต้องการแชร์ตำแหน่งให้เพื่อนบนแผนที่ โปรดอนุญาตให้ PikTag ใช้ตำแหน่ง",
-    "locationFetchFailed": "ไม่สามารถดึงตำแหน่งปัจจุบันของคุณได้ — ลองใหม่อีกครั้ง"
+    "locationFetchFailed": "ไม่สามารถดึงตำแหน่งปัจจุบันของคุณได้ — ลองใหม่อีกครั้ง",
+    "groupNetwork": "เครือข่าย"
   },
   "contactSync": {
     "headerTitle": "ซิงค์รายชื่อ",

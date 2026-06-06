@@ -783,7 +783,8 @@
     "notifMemories": "یادیں",
     "locationPermissionTitle": "مقام کی اجازت درکار ہے",
     "locationPermissionMessage": "نقشے پر دوستوں کے ساتھ اپنا مقام شیئر کرنے کے لیے، PikTag کو مقام استعمال کرنے کی اجازت دیں۔",
-    "locationFetchFailed": "آپ کا موجودہ مقام حاصل نہیں ہو سکا — دوبارہ کوشش کریں۔"
+    "locationFetchFailed": "آپ کا موجودہ مقام حاصل نہیں ہو سکا — دوبارہ کوشش کریں۔",
+    "groupNetwork": "نیٹ ورک"
   },
   "contactSync": {
     "headerTitle": "رابطہ سنک",

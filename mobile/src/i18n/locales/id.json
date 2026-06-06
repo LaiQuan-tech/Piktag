@@ -776,7 +776,8 @@
     "notifMemories": "Kenangan",
     "locationPermissionTitle": "Perlu izin lokasi",
     "locationPermissionMessage": "Untuk membagikan lokasimu ke teman di peta, izinkan PikTag mengakses lokasi.",
-    "locationFetchFailed": "Tidak bisa mendapatkan lokasimu saat ini — coba lagi."
+    "locationFetchFailed": "Tidak bisa mendapatkan lokasimu saat ini — coba lagi.",
+    "groupNetwork": "Jaringan"
   },
   "contactSync": {
     "headerTitle": "Sinkronisasi Kontak",

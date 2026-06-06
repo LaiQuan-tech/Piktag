@@ -776,7 +776,8 @@
     "notifMemories": "Anılar",
     "locationPermissionTitle": "Konum izni gerekli",
     "locationPermissionMessage": "Konumunu haritada arkadaşlarınla paylaşmak için PikTag'in konumunu kullanmasına izin ver.",
-    "locationFetchFailed": "Mevcut konumun alınamadı — tekrar dene."
+    "locationFetchFailed": "Mevcut konumun alınamadı — tekrar dene.",
+    "groupNetwork": "Bağlantılar"
   },
   "contactSync": {
     "headerTitle": "Kişi Senkronizasyonu",

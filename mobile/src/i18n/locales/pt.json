@@ -776,7 +776,8 @@
     "notifMemories": "Lembranças",
     "locationPermissionTitle": "Permissão de localização necessária",
     "locationPermissionMessage": "Para compartilhar sua localização com amigos no mapa, permita que o PikTag use sua localização.",
-    "locationFetchFailed": "Não foi possível obter sua localização atual — tente de novo."
+    "locationFetchFailed": "Não foi possível obter sua localização atual — tente de novo.",
+    "groupNetwork": "Conexões"
   },
   "contactSync": {
     "headerTitle": "Sincronizar contatos",

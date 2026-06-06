@@ -776,7 +776,8 @@
     "notifMemories": "ذكريات",
     "locationPermissionTitle": "يلزم إذن الموقع",
     "locationPermissionMessage": "لمشاركة موقعك مع الأصدقاء على الخريطة، اسمح لـ PikTag باستخدام موقعك.",
-    "locationFetchFailed": "تعذّر الحصول على موقعك الحالي — حاول مرة أخرى."
+    "locationFetchFailed": "تعذّر الحصول على موقعك الحالي — حاول مرة أخرى.",
+    "groupNetwork": "شبكتك"
   },
   "contactSync": {
     "headerTitle": "مزامنة جهات الاتصال",

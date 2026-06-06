@@ -457,18 +457,23 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
 
   const settingsGroups: SettingsGroup[] = [
     {
-      title: t('settings.groupAccount'),
+      // Founder 2026-06-07 (Depth B): the VALUE features lead in their
+      // OWN section — 通訊錄同步 is how a user first FEELS the app's worth
+      // (+ the North-Star friend-add funnel); 洞察報告 is the payoff that
+      // depends on that synced data. Opening Settings here (not on
+      // 修改密碼) signals "this connects you", not "this is a password
+      // app". 帳號 below is now credential / account-privacy only.
+      title: t('settings.groupNetwork', { defaultValue: '人脈' }),
       items: [
-        // Founder 2026-06-07: lead with VALUE features, not credential
-        // admin. 通訊錄同步 is how a user first FEELS the app's worth
-        // (+ the North-Star friend-add funnel); 洞察報告 is the payoff
-        // that depends on that synced data. 修改密碼 is rarely-touched
-        // account utility, so it drops below them (the destructive
-        // 登出 / 停用 / 刪除 already live separately at the page bottom).
-        // Opening Settings on 修改密碼 mis-signals "this is a password
-        // app"; opening on 通訊錄同步 says "this connects you".
         { label: t('settings.contactSync'), onPress: () => navigation.navigate('ContactSync') },
         { label: t('settings.socialStats'), onPress: () => navigation.navigate('SocialStats') },
+      ],
+    },
+    {
+      // Credential + account-level privacy only (修改密碼 + 分享所在地點).
+      // Destructive 登出 / 停用 / 刪除 stay separate at the page bottom.
+      title: t('settings.groupAccount'),
+      items: [
         { label: t('settings.changePassword', { defaultValue: '修改密碼' }), onPress: () => {
           // Detect whether this user has an email-flavoured identity at
           // all. Apple / Google Sign-In accounts that have NEVER set a

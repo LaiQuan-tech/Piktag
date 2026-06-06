@@ -780,7 +780,8 @@
     "notifMemories": "节日与回忆",
     "locationPermissionTitle": "需要定位权限",
     "locationPermissionMessage": "要在地图上分享位置给朋友，请允许 PikTag 使用定位。",
-    "locationFetchFailed": "获取不到当前位置，请稍后再试。"
+    "locationFetchFailed": "获取不到当前位置，请稍后再试。",
+    "groupNetwork": "人脉"
   },
   "contactSync": {
     "headerTitle": "通讯录同步",

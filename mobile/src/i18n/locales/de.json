@@ -778,7 +778,8 @@
     "notifMemories": "Erinnerungen",
     "locationPermissionTitle": "Standortberechtigung erforderlich",
     "locationPermissionMessage": "Um deinen Standort mit Freunden auf der Karte zu teilen, erlaube PikTag die Standortnutzung.",
-    "locationFetchFailed": "Aktueller Standort konnte nicht ermittelt werden — bitte erneut versuchen."
+    "locationFetchFailed": "Aktueller Standort konnte nicht ermittelt werden — bitte erneut versuchen.",
+    "groupNetwork": "Netzwerk"
   },
   "contactSync": {
     "headerTitle": "Kontakt-Sync",

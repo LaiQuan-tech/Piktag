@@ -783,7 +783,8 @@
     "notifMemories": "Ricordi",
     "locationPermissionTitle": "Serve l'autorizzazione alla posizione",
     "locationPermissionMessage": "Per condividere la tua posizione con gli amici sulla mappa, consenti a PikTag di usare la posizione.",
-    "locationFetchFailed": "Impossibile ottenere la posizione attuale — riprova."
+    "locationFetchFailed": "Impossibile ottenere la posizione attuale — riprova.",
+    "groupNetwork": "Connessioni"
   },
   "contactSync": {
     "headerTitle": "Sincronizza contatti",
