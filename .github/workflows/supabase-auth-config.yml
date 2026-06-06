@@ -1,0 +1,106 @@
+name: Supabase Auth Config
+
+# Keeps the remote project's Auth URL + email config correct as code,
+# fixing the two password-reset problems the founder reported (2026-06-06):
+#   1. "倒去錯誤連結" — the reset link landed nowhere because
+#      https://pikt.ag/reset-password was not in the redirect allow-list,
+#      so Supabase ignored the app's redirectTo and fell back to Site URL.
+#   2. unbranded "Supabase Auth" sender + content — branded recovery
+#      subject + HTML template (and optional custom SMTP for the From
+#      address) make the email read as PikTag.
+#
+# WHY the Management API and NOT `supabase config push`:
+#   config push is DECLARATIVE — it would reset every auth setting NOT in
+#   config.toml, including the Apple/Google OAuth providers (which live in
+#   the dashboard, not the repo). That would break social login. The
+#   Management API PATCH is a PARTIAL update, and we additionally
+#   READ-MERGE-WRITE uri_allow_list so existing OAuth callback URLs are
+#   preserved, never clobbered.
+#
+# Secrets (Settings → Secrets and variables → Actions):
+#   • SUPABASE_ACCESS_TOKEN — already set (personal token, mgmt scope)
+#   • Optional, for the branded From address (until set, the sender stays
+#     the Supabase default — link + content are still fixed):
+#       SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS,
+#       SMTP_SENDER_NAME, SMTP_ADMIN_EMAIL
+#     (Resend is the easy choice — smtp.resend.com:587, user "resend",
+#      pass = the Resend API key.)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'mobile/supabase/auth/**'
+      - '.github/workflows/supabase-auth-config.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: supabase-auth-config-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  sync-auth-config:
+    name: Sync Auth URL + email config
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      PROJECT_REF: kbwfdskulxnhjckdvghj
+      SMTP_HOST: ${{ secrets.SMTP_HOST }}
+      SMTP_PORT: ${{ secrets.SMTP_PORT }}
+      SMTP_USER: ${{ secrets.SMTP_USER }}
+      SMTP_PASS: ${{ secrets.SMTP_PASS }}
+      SMTP_SENDER_NAME: ${{ secrets.SMTP_SENDER_NAME }}
+      SMTP_ADMIN_EMAIL: ${{ secrets.SMTP_ADMIN_EMAIL }}
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Patch auth config (read-merge-write)
+        run: |
+          set -euo pipefail
+          API="https://api.supabase.com/v1/projects/${PROJECT_REF}/config/auth"
+          AUTH="Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}"
+
+          # 1. Read current config — we MERGE the allow-list so existing
+          #    OAuth / deep-link redirect URLs are never dropped.
+          current="$(curl -sf -H "$AUTH" "$API")"
+          cur_allow="$(echo "$current" | jq -r '.uri_allow_list // ""')"
+
+          # 2. Ensure the reset page + app deep-link scheme are allow-listed.
+          required="https://pikt.ag/reset-password,https://pikt.ag/**,piktag://**"
+          merged="$(printf '%s,%s' "$cur_allow" "$required" \
+            | tr ',' '\n' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//' \
+            | grep -v '^$' | sort -u | paste -sd, -)"
+          echo "Merged uri_allow_list: $merged"
+
+          # 3. Branded recovery email (subject + HTML body).
+          subject="重設你的 PikTag 密碼 · Reset your PikTag password"
+          content="$(cat mobile/supabase/auth/recovery-email.html)"
+
+          # 4. Base payload — partial PATCH, only these fields change.
+          payload="$(jq -n \
+            --arg site "https://pikt.ag" \
+            --arg allow "$merged" \
+            --arg subj "$subject" \
+            --arg body "$content" \
+            '{site_url:$site, uri_allow_list:$allow, mailer_subjects_recovery:$subj, mailer_templates_recovery_content:$body}')"
+
+          # 5. Branded From address via custom SMTP — only if secrets exist.
+          if [ -n "${SMTP_HOST:-}" ] && [ -n "${SMTP_PASS:-}" ]; then
+            payload="$(echo "$payload" | jq \
+              --arg host "$SMTP_HOST" \
+              --arg port "${SMTP_PORT:-587}" \
+              --arg user "${SMTP_USER:-}" \
+              --arg pass "$SMTP_PASS" \
+              --arg sname "${SMTP_SENDER_NAME:-PikTag}" \
+              --arg admin "${SMTP_ADMIN_EMAIL:-}" \
+              '. + {smtp_host:$host, smtp_port:$port, smtp_user:$user, smtp_pass:$pass, smtp_sender_name:$sname, smtp_admin_email:$admin}')"
+            echo "SMTP: branded sender configured ($SMTP_HOST)"
+          else
+            echo "SMTP: secrets not set — From address stays the Supabase default (link + content still fixed). Add SMTP_* secrets to brand the sender."
+          fi
+
+          # 6. Apply.
+          curl -sf -X PATCH -H "$AUTH" -H "Content-Type: application/json" \
+            -d "$payload" "$API" > /dev/null
+          echo "Auth config synced: site_url + uri_allow_list (merged) + branded recovery email."
