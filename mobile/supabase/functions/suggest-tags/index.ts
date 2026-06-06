@@ -79,7 +79,11 @@ function extractStringArray(text: string): string[] | null {
       .filter((v: unknown): v is string => typeof v === 'string' && v.trim().length > 0)
       .map((v) => v.replace(/^#/, '').trim())
       .slice(0, 10);
-    return strings.length > 0 ? strings : null;
+    // Return the array even when empty — a valid `[]` means "model found
+    // nothing to suggest", which callers may want to treat as a clean
+    // result rather than a parse failure. `null` is reserved for
+    // genuinely unparseable / non-array output.
+    return strings;
   } catch {
     return null;
   }
@@ -188,7 +192,8 @@ serve(async (req) => {
     const fast = body.fast === true;
     const personPromptParts: string[] = [
       `Suggest hashtag tags describing this PERSON, for a private contact note.`,
-      `Return ONLY a JSON array of 3-5 short hashtag strings (without the # prefix), nothing else.`,
+      `Return ONLY a JSON array of 1 to 3 short hashtag strings (without the # prefix), nothing else.`,
+      `Quality over quantity: include ONLY tags that genuinely fit. Return 1 or 2 if that's all that fits; if truly nothing fits, return an empty array []. NEVER invent or pad with filler to reach a count — a weak tag is worse than none.`,
       `Keywords MUST be written in ${lang}. Only use English for internationally recognized terms (PM, AI, CEO, UX, IoT).`,
       `Base them on the person's role / field / company / interests from the card. Short (1-3 words / kanji clusters), specific, scannable. No vague catch-alls (#nice, #person, #friend).`,
       `Do NOT repeat tags already noted: ${existingTags || '(none)'}`,
@@ -244,7 +249,13 @@ serve(async (req) => {
         rawSnippet = text.slice(0, 300);
 
         const suggestions = extractStringArray(text);
-        if (suggestions && suggestions.length > 0) {
+        // FAST path: a VALID array is terminal even when EMPTY — the model
+        // said "only these few fit" / "nothing fits", and we honor that
+        // (founder 2026-06-07: don't force 3, padding wastes compute and
+        // filler tags aren't accurate). NORMAL path keeps requiring ≥1, so
+        // an empty result there still retries the next model (unchanged).
+        const accept = fast ? suggestions !== null : (suggestions !== null && suggestions.length > 0);
+        if (accept && suggestions) {
           // Principle #6: drop anything the user has explicitly removed.
           const removed = await removedPromise;
           const filtered =
