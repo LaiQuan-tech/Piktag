@@ -526,6 +526,36 @@ founder when the trigger condition lands:
       callers pass `'primary'` explicitly on the screen where the
       button IS the locked CTA.
 
+  **3-tier button system + the gradient "signature" rule (locked,
+  founder 2026-06-07).** The key reframe: **the brand gradient is NOT
+  "a second/stronger CTA" — it is the colour of the "招牌 / signature"
+  action**, the thing that IS PikTag's magic. Two SOLID-purple buttons
+  on one screen is the confusing case (which is the CTA?); a solid
+  commit + a gradient signature reads as two DIFFERENT ROLES and is
+  fine. The tiers:
+    1. **GRADIENT `['#ff5757','#c44dff','#8c52ff']` = signature action.**
+       AI tag recommendation, generate-my-QR — the product's wow. White
+       text/icon. AT MOST ONE per screen. Owned by the shared
+       `components/GradientButton.tsx` (fixed brand colours, theme-
+       agnostic — same doctrine as the splash/QR-sheet gradient). If the
+       signature action is ALSO the page's only commit (產生 QR Code —
+       no separate save), gradient IS the CTA. If the page has a mundane
+       commit too (儲存 / 下一步 / 完成), that stays tier 2 and the
+       gradient marks the signature feature.
+    2. **SOLID `piktag500` + white = standard commit/continue** (the
+       locked `saveBtn` token above). 儲存 / 下一步 / 完成 / 送出.
+    3. **Outlined `piktag500` = secondary / optional.**
+    - **The light-purple `piktag50`-fill button tier is RETIRED.**
+      Anything that was a signature action (the old AI-suggest pills)
+      moves up to tier 1 gradient. Don't reintroduce a `piktag50`-bg
+      button.
+    - Current tier-1 sites: AddTag 產生 QR Code; onboarding step-2
+      「讓 AI 推薦標籤 / 再推薦一些」. NEVER let a screen show two
+      gradients — before adding one, check the screen has no other
+      GradientButton. (The AI sections on AddTag / EditProfile / Ask /
+      ManageTags are *headers* — BoltIcon label + small refresh — NOT
+      buttons, so they correctly stay as-is, not gradient.)
+
   When founder identifies a screen's CTA verbatim, lock it here so
   future sessions don't drift. Known locks (extend as new screens
   get a founder-identified CTA):

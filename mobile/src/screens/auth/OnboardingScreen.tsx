@@ -42,6 +42,7 @@ import { useTranslation } from 'react-i18next';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ChevronRight, ChevronLeft, Camera, X, Plus } from 'lucide-react-native';
 import BoltIcon from '../../components/BoltIcon';
+import GradientButton from '../../components/GradientButton';
 import { supabase, supabaseUrl, supabaseAnonKey } from '../../lib/supabase';
 import { normalizeTagName } from '../../lib/normalizeTag';
 import { addUserTagByName } from '../../lib/userTags';
@@ -1015,37 +1016,26 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
           })}
         </Text>
 
-        {/* AI suggestions — explicit "推薦 → 點選加入" so users don't
-            think the gray chips are already applied. */}
-        <TouchableOpacity
-          style={styles.scanCardBtn}
-          activeOpacity={0.7}
+        {/* AI tag recommendation = PikTag's SIGNATURE feature, and the
+            user's first encounter with it. Tier-1 GRADIENT (founder
+            2026-06-07): a DIFFERENT role from the solid-piktag500 "完成"
+            commit at the footer, so the page never shows two same-looking
+            CTAs — gradient says "this is the PikTag magic", solid says
+            "finish". White BoltIcon (the app-wide "from AI" cue, aligned
+            from Sparkles) on the gradient. The old light-purple
+            scanCardBtn tier is retired. */}
+        <GradientButton
+          label={
+            aiTried
+              ? t('auth.onboarding.aiMore', { defaultValue: '再推薦一些' })
+              : t('auth.onboarding.aiSuggest', { defaultValue: '讓 AI 推薦標籤' })
+          }
           onPress={loadAiSuggestions}
-          disabled={aiLoading}
-          accessibilityRole="button"
-        >
-          {aiLoading ? (
-            <>
-              <ActivityIndicator size="small" color={colors.piktag500} />
-              <Text style={styles.scanCardBtnText}>
-                {t('auth.onboarding.aiThinking', { defaultValue: 'AI 想標籤中…' })}
-              </Text>
-            </>
-          ) : (
-            <>
-              {/* BoltIcon (lightning) is the app-wide "from AI" cue —
-                  aligned here from Sparkles 2026-06-07 so every AI
-                  surface (AddTag / QrGroupDetail / EditLocalContact /
-                  Ask / onboarding) shares one symbol. */}
-              <BoltIcon size={18} color={colors.piktag500} strokeWidth={2} />
-              <Text style={styles.scanCardBtnText}>
-                {aiTried
-                  ? t('auth.onboarding.aiMore', { defaultValue: '再推薦一些' })
-                  : t('auth.onboarding.aiSuggest', { defaultValue: '讓 AI 推薦標籤' })}
-              </Text>
-            </>
-          )}
-        </TouchableOpacity>
+          loading={aiLoading}
+          loadingLabel={t('auth.onboarding.aiThinking', { defaultValue: 'AI 想標籤中…' })}
+          icon={<BoltIcon size={18} color="#FFFFFF" strokeWidth={2} />}
+          style={{ marginTop: 16 }}
+        />
 
         {aiSuggestions.length > 0 && (
           <>
@@ -1593,24 +1583,8 @@ function makeStyles(c: ColorPalette) {
     color: '#FFFFFF',
   },
 
-  // ── Scan-card affordance (secondary, subordinate to CTA) ──
-  scanCardBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: BORDER_RADIUS.md,
-    borderWidth: 1.5,
-    borderColor: c.piktag500,
-    backgroundColor: c.piktag50,
-    marginTop: 16,
-  },
-  scanCardBtnText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: c.piktag500,
-  },
+  // (scanCardBtn / scanCardBtnText removed 2026-06-07 — the AI-suggest
+  //  button is now the shared tier-1 GradientButton, not a light-purple
+  //  pill.)
   });
 }

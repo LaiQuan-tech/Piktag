@@ -16,6 +16,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { X, Share2, Trash2, ScanLine, Copy, Pencil, Plus, RefreshCw, ArrowLeft } from 'lucide-react-native';
 import BoltIcon from '../components/BoltIcon';
+import GradientButton from '../components/GradientButton';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import QrShareBody from '../components/QrShareBody';
 import SectionTitle from '../components/SectionTitle';
@@ -1058,22 +1059,15 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
         {/* 儲存為常用模板 — section removed for task 2 — every QR
             is already a persistent group; templates are redundant. */}
 
-        {/* 產生 QR Code CTA */}
+        {/* 產生 QR Code — tier-1 SIGNATURE action (generate-my-QR IS
+            PikTag's magic) + this page's commit, so it's the gradient.
+            Shared GradientButton (was an inline LinearGradient copy). */}
         <View style={styles.section}>
-          <TouchableOpacity onPress={handleGenerateQr} activeOpacity={0.8} disabled={generating}>
-            <LinearGradient
-              colors={['#ff5757', '#c44dff', '#8c52ff']}
-              start={{ x: 0, y: 0.5 }}
-              end={{ x: 1, y: 0.5 }}
-              style={[styles.primaryButton, generating && { opacity: 0.5 }]}
-            >
-              {generating ? (
-                <BrandSpinner size={20} />
-              ) : (
-                <Text style={styles.primaryButtonText}>{t('addTag.generateQrButton')}</Text>
-              )}
-            </LinearGradient>
-          </TouchableOpacity>
+          <GradientButton
+            label={t('addTag.generateQrButton')}
+            onPress={handleGenerateQr}
+            loading={generating}
+          />
         </View>
       </ScrollView>
     </>
@@ -1546,17 +1540,8 @@ function makeStyles(c: ColorPalette) {
   // "toggle">; popularChipsContainer is kept as the wrap.)
 
   // ── Buttons ──
-  primaryButton: {
-    backgroundColor: c.piktag500,
-    borderRadius: 14,
-    paddingVertical: 14,
-    alignItems: 'center',
-  },
-  primaryButtonText: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#FFFFFF',
-  },
+  // (primaryButton / primaryButtonText removed 2026-06-07 — 產生 QR Code
+  //  is now the shared tier-1 GradientButton.)
   // Event mode button
   qrActionButtons: {
     width: '100%',
