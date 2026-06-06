@@ -1,5 +1,8 @@
 name: Supabase Auth Config
 
+# 2026-06-07: SMTP_* secrets now set (Resend, pikt.ag verified) — this
+# re-run applies the branded custom SMTP sender (noreply@pikt.ag, PikTag).
+
 # Keeps the remote project's Auth URL + email config correct as code,
 # fixing the two password-reset problems the founder reported (2026-06-06):
 #   1. "倒去錯誤連結" — the reset link landed nowhere because
