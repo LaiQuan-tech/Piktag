@@ -40,7 +40,8 @@ import {
 import BrandSpinner from '../../components/loaders/BrandSpinner';
 import { useTranslation } from 'react-i18next';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { ChevronRight, ChevronLeft, Camera, X, Sparkles, Plus } from 'lucide-react-native';
+import { ChevronRight, ChevronLeft, Camera, X, Plus } from 'lucide-react-native';
+import BoltIcon from '../../components/BoltIcon';
 import { supabase, supabaseUrl, supabaseAnonKey } from '../../lib/supabase';
 import { normalizeTagName } from '../../lib/normalizeTag';
 import { addUserTagByName } from '../../lib/userTags';
@@ -1032,7 +1033,11 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
             </>
           ) : (
             <>
-              <Sparkles size={18} color={colors.piktag500} strokeWidth={2} />
+              {/* BoltIcon (lightning) is the app-wide "from AI" cue —
+                  aligned here from Sparkles 2026-06-07 so every AI
+                  surface (AddTag / QrGroupDetail / EditLocalContact /
+                  Ask / onboarding) shares one symbol. */}
+              <BoltIcon size={18} color={colors.piktag500} strokeWidth={2} />
               <Text style={styles.scanCardBtnText}>
                 {aiTried
                   ? t('auth.onboarding.aiMore', { defaultValue: '再推薦一些' })
