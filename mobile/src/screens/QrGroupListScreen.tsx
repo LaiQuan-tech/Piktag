@@ -355,12 +355,17 @@ export default function QrGroupListScreen({ navigation }: Props) {
           <QrCode size={36} color={colors.piktag500} />
         </View>
         <Text style={styles.emptyTitle}>
-          {t('qrGroup.emptyTitle', { defaultValue: '讓標籤，替你記住新朋友' })}
+          {t('qrGroup.emptyTitle', { defaultValue: '別讓新朋友，加了就忘' })}
         </Text>
         <Text style={styles.emptyDesc}>
+          {/* Founder 2026-06-07: the old copy said "活動標籤" — internal
+              jargon a first-time user has never heard. Lead instead with
+              the universal pain everyone already feels: meet someone,
+              record nothing, forget them fast. The mechanic (scan QR →
+              auto-remember context) is the fix, stated plainly. */}
           {t('qrGroup.emptyDesc', {
             defaultValue:
-              '掃描互加後，系統會自動備註這次相遇，再也不怕忘記在哪見過面。',
+              '見面互掃 QR 碼就加好友，PikTag 會自動記住你們在哪、在什麼場合認識 —— 以後翻聯絡人，不會再想不起這人是誰。',
           })}
         </Text>
         <TouchableOpacity
