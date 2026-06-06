@@ -1,4 +1,4 @@
-import { Tags, Sparkles, Hash } from 'lucide-react';
+import { Tags, Sparkles, Hash, Link2Off, AlertTriangle, GitMerge } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { createAdminClient } from '@/lib/supabase-admin';
 
@@ -12,6 +12,30 @@ interface TagRow {
   usage_count: number | null;
   semantic_type: string | null;
   created_at: string;
+}
+
+// admin_concept_graph_health() — one-row summary (read-only RPC, 20260605060000).
+interface ConceptHealth {
+  total_concepts?: number;
+  with_embedding?: number;
+  without_embedding?: number;
+  single_alias_concepts?: number;
+  zero_tag_concepts?: number;
+  total_aliases?: number;
+  unlinked_tags?: number;
+}
+
+// admin_report_concept_merge_candidates() — keeper-vs-fragment pairs.
+interface MergeCandidate {
+  similarity: number;
+  a_name: string;
+  a_aliases: number;
+  a_tags: number;
+  a_usage: number;
+  b_name: string;
+  b_aliases: number;
+  b_tags: number;
+  b_usage: number;
 }
 
 function formatRelative(value: string | null | undefined): string {
@@ -81,10 +105,24 @@ export default async function AdminTagsPage() {
     .order('usage_count', { ascending: false })
     .limit(50);
 
+  // 5. Concept-graph health + GC merge candidates (read-only RPCs,
+  //    service-role-granted — see 20260605060000). This is where the GC
+  //    merge-decision numbers live — in the backend, off the user app.
+  const healthRes = await supabase.rpc('admin_concept_graph_health');
+  const mergeRes = await supabase.rpc('admin_report_concept_merge_candidates', {
+    p_threshold: 0.85,
+    p_limit: 50,
+  });
+
   const totalTags = totalTagsRes.count ?? 0;
   const totalConcepts = totalConceptsRes.count ?? 0;
   const totalAliases = totalAliasesRes.count ?? 0;
   const topTags: TagRow[] = (topTagsRes.data ?? []) as TagRow[];
+  const health: ConceptHealth =
+    ((Array.isArray(healthRes.data) ? healthRes.data[0] : healthRes.data) as
+      | ConceptHealth
+      | null) ?? {};
+  const mergeCandidates: MergeCandidate[] = (mergeRes.data ?? []) as MergeCandidate[];
 
   return (
     <div className="space-y-8">
@@ -100,6 +138,17 @@ export default async function AdminTagsPage() {
         <StatCard icon={Tags} label="總標籤數" value={totalTags} />
         <StatCard icon={Sparkles} label="語意概念數" value={totalConcepts} />
         <StatCard icon={Hash} label="別名數" value={totalAliases} />
+      </section>
+
+      {/* Concept-graph health — the GC-relevant numbers, off the user app */}
+      <section>
+        <h2 className="text-lg font-semibold text-slate-900 mb-3">概念圖健康</h2>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          <StatCard icon={Link2Off} label="未連結標籤" value={health.unlinked_tags ?? 0} />
+          <StatCard icon={AlertTriangle} label="疑似碎片（單一別名）" value={health.single_alias_concepts ?? 0} />
+          <StatCard icon={Sparkles} label="無向量概念" value={health.without_embedding ?? 0} />
+          <StatCard icon={Tags} label="零標籤概念" value={health.zero_tag_concepts ?? 0} />
+        </div>
       </section>
 
       {/* Top 50 tags table */}
@@ -156,9 +205,58 @@ export default async function AdminTagsPage() {
         )}
       </section>
 
-      {/* Phase 2 note */}
+      {/* GC merge candidates — the concept-fragment decision data */}
+      <section className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
+        <div className="px-6 py-4 border-b border-slate-100 flex items-center gap-3">
+          <GitMerge className="w-5 h-5 text-[#8c52ff]" />
+          <div>
+            <h2 className="text-lg font-semibold text-slate-900">
+              可合併概念對（相似度 ≥ 0.85）
+            </h2>
+            <p className="text-xs text-slate-500 mt-0.5">
+              {mergeCandidates.length} 組。保留方＝別名較多者，碎片方建議併入。括號為（別名數／標籤數）
+            </p>
+          </div>
+        </div>
+        {mergeCandidates.length === 0 ? (
+          <div className="px-6 py-16 text-center text-sm text-slate-400">
+            沒有碎片，概念圖乾淨。
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="bg-slate-50 border-b border-slate-100">
+                <tr className="text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+                  <th className="px-4 py-3 w-24">相似度</th>
+                  <th className="px-4 py-3">保留</th>
+                  <th className="px-4 py-3">碎片（建議併入保留方）</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {mergeCandidates.map((c, idx) => (
+                  <tr key={idx} className="hover:bg-slate-50/60 transition-colors">
+                    <td className="px-4 py-3 whitespace-nowrap font-mono text-slate-600">
+                      {Number(c.similarity).toFixed(3)}
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      <span className="font-medium text-slate-900">{c.a_name}</span>
+                      <span className="text-slate-400"> （{c.a_aliases}／{c.a_tags}）</span>
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      <span className="font-medium text-slate-700">{c.b_name}</span>
+                      <span className="text-slate-400"> （{c.b_aliases}／{c.b_tags}）</span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
+
+      {/* Phase-2 note */}
       <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
-        💡 未來功能：合併重複語意概念、標籤審核、垃圾標籤封鎖 — 見 Phase 2 計畫
+        合併動作（把碎片併入保留方、重指 tags／aliases）尚未自動執行 — 看過上表確認後再跑保守、有紀錄的合併。標籤審核、垃圾標籤封鎖見 Phase 2。
       </div>
     </div>
   );
