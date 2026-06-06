@@ -15,7 +15,10 @@
 
   Email-client-safe: table layout + inline styles only, no external CSS.
   Branded so the recipient sees "PikTag", not a raw Supabase address.
-  Bilingual EN + 繁中 (single-template system email serving 19 locales).
+  English-only (founder call 2026-06-07): Supabase sends one template to all
+  users regardless of app language, so the bilingual mix read as clutter —
+  plain English is the cleaner single-template choice. Per-locale emails
+  would need a custom edge-function send pipeline (out of scope).
 -->
 <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="background:#0a0612;padding:32px 0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;">
   <tr>
@@ -28,31 +31,28 @@
         </tr>
         <tr>
           <td style="padding:32px;">
-            <h1 style="margin:0 0 8px;font-size:20px;font-weight:700;color:#111827;">重設你的密碼</h1>
+            <h1 style="margin:0 0 8px;font-size:20px;font-weight:700;color:#111827;">Reset your password</h1>
             <p style="margin:0 0 24px;font-size:15px;line-height:1.6;color:#4b5563;">
-              我們收到你重設 PikTag 密碼的要求。點下方按鈕設定新密碼。<br/>
-              <span style="color:#9ca3af;">We received a request to reset your PikTag password. Tap the button to set a new one.</span>
+              We received a request to reset your PikTag password. Tap the button below to set a new one.
             </p>
             <table cellpadding="0" cellspacing="0" role="presentation" style="margin:0 0 24px;">
               <tr>
                 <td style="border-radius:14px;background:#8c52ff;">
                   <a href="https://pikt.ag/reset-password?token_hash={{ .TokenHash }}&type=recovery" target="_blank"
                      style="display:inline-block;padding:14px 32px;font-size:16px;font-weight:700;color:#ffffff;text-decoration:none;border-radius:14px;">
-                    重設密碼 · Reset password
+                    Reset password
                   </a>
                 </td>
               </tr>
             </table>
             <p style="margin:0 0 8px;font-size:13px;line-height:1.6;color:#9ca3af;">
-              按鈕沒反應的話，複製這個連結到瀏覽器：<br/>
-              <span style="color:#9ca3af;">If the button doesn't work, paste this link into your browser:</span>
+              If the button doesn't work, paste this link into your browser:
             </p>
             <p style="margin:0 0 24px;font-size:12px;word-break:break-all;">
               <a href="https://pikt.ag/reset-password?token_hash={{ .TokenHash }}&type=recovery" target="_blank" style="color:#8c52ff;text-decoration:underline;">https://pikt.ag/reset-password?token_hash={{ .TokenHash }}&type=recovery</a>
             </p>
             <p style="margin:0;font-size:13px;line-height:1.6;color:#9ca3af;border-top:1px solid #f3f4f6;padding-top:16px;">
-              不是你本人要求的？忽略這封信即可，你的密碼不會變動。<br/>
-              <span>Didn't request this? You can safely ignore this email — your password won't change.</span>
+              Didn't request this? You can safely ignore this email — your password won't change.
             </p>
           </td>
         </tr>

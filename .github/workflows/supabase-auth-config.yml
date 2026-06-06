@@ -77,7 +77,7 @@ jobs:
           echo "Merged uri_allow_list: $merged"
 
           # 3. Branded recovery email (subject + HTML body).
-          subject="重設你的 PikTag 密碼 · Reset your PikTag password"
+          subject="Reset your PikTag password"
           content="$(cat mobile/supabase/auth/recovery-email.html)"
 
           # 4. Base payload — partial PATCH, only these fields change.
