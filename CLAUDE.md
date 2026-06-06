@@ -853,6 +853,25 @@ founder when the trigger condition lands:
   later migration silently never applies. (This blocked the entire
   060000→140000 stack for hours on 2026-06-06.) plpgsql bodies are
   late-bound and don't hit this.
+- **Gemini model ids — ONLY the 2.5 family is live (verified 2026-06-07
+  by direct probe of the project key).** Google RETIRED
+  `gemini-2.0-flash`, `gemini-2.0-flash-lite`, `gemini-2.0-flash-001`,
+  `gemini-1.5-flash`, `gemini-1.5-pro`, and the dated 2.5 previews — they
+  return **404 "no longer available"**. The ONLY live chat models for this
+  key are **`gemini-2.5-flash`** (quality) and **`gemini-2.5-flash-lite`**
+  (the fast/cheap one — use it where speed matters: card-scan tagging,
+  scan OCR-structuring). `gemini-flash-latest` also resolves but points at
+  a thinking model (slower) — avoid. Embeddings stay `gemini-embedding-001`.
+  Why this bit hard: every edge-fn model chain led with now-dead ids, so
+  calls silently fell through to whatever live model was deeper in the
+  chain — and suggest-tags' `fast` chain had NO live model at all →
+  **503 on every card scan** (the "0 AI tags" bug, 2026-06-07). Two rules:
+  (1) NEVER put a non-2.5 model id in a chain. (2) For 2.5 models, set
+  `generationConfig.thinkingConfig.thinkingBudget = 0` on latency-
+  sensitive calls (2.5 has thinking on by default; scan-business-card
+  already does `if (model.startsWith('gemini-2.5'))`). When Google ships
+  the next generation, re-probe before adding ids (a quick `{diag:true}`-
+  style per-model status loop, then remove it).
 
 ## Matching surfaces — concept-awareness (audited 2026-06-06)
 
