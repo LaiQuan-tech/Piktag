@@ -76,6 +76,10 @@ jobs:
           # "build 87" in Play Console while devices upgrade to 88 and get
           # confused when auditing which build is actually live.
           echo "VERSION_CODE=$VERSION_CODE" >> "$GITHUB_ENV"
+          # Real versionName (expo.version) for the releaseName label — was
+          # a stale hardcoded "1.0.0" while the app shipped 1.0.4.
+          APP_VERSION=$(node -e "console.log(require('./app.json').expo.version)")
+          echo "APP_VERSION=$APP_VERSION" >> "$GITHUB_ENV"
 
       - name: Generate native Android project
         working-directory: mobile
@@ -163,12 +167,14 @@ jobs:
           packageName: ag.pikt.app
           releaseFiles: mobile/android/app/build/outputs/bundle/release/*.aab
           track: internal
-          # `draft` — AAB uploads and appears in Play Console as a draft
-          # release. A human must click "Review release → Start rollout"
-          # once. After the app's FIRST live rollout on any track, we can
-          # flip this back to `completed` for fully automatic publishing.
-          # `completed` fails with "Precondition check failed" on apps
-          # that haven't had a human-approved first rollout.
-          status: draft
-          releaseName: "1.0.0 (build ${{ env.VERSION_CODE }})"
+          # `completed` = auto-rollout to 100% of the internal track, no
+          # manual "Start rollout" click — this is why Android testers were
+          # stuck on old versions (every build sat as a `draft`). The app
+          # has already had its first human-approved rollout (testers have
+          # it installed), so the "Precondition check failed" that forced
+          # `draft` no longer applies. If a future run DOES fail on that
+          # precondition, do ONE manual rollout in Play Console, then this
+          # stays automatic.
+          status: completed
+          releaseName: "${{ env.APP_VERSION }} (build ${{ env.VERSION_CODE }})"
           whatsNewDirectory: mobile/whatsnew
