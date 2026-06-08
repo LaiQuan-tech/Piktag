@@ -8,6 +8,12 @@
 
   "redirects": [
     {
+      "source": "/",
+      "has": [{ "type": "host", "value": "www.pikt.ag" }],
+      "destination": "https://pikt.ag/",
+      "permanent": true
+    },
+    {
       "source": "/:path*",
       "has": [{ "type": "host", "value": "www.pikt.ag" }],
       "destination": "https://pikt.ag/:path*",
