@@ -1152,7 +1152,7 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
                   key={tag.tagId}
                   style={styles.tagChip}
                   activeOpacity={0.6}
-                  onPress={() => navigation.navigate('TagDetail', { tagId: tag.tagId, tagName: tag.name, initialTab: 'explore' })}
+                  onPress={() => navigation.navigate('TagDetail', { tagId: tag.tagId, tagName: tag.name })}
                 >
                   <Text style={styles.tagChipText}>
                     #{tag.name}
@@ -1185,7 +1185,7 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
                     key={`event-${i}`}
                     style={styles.eventTagChip}
                     activeOpacity={0.6}
-                    onPress={() => navigation.navigate('TagDetail', { tagName: etag, initialTab: 'explore' })}
+                    onPress={() => navigation.navigate('TagDetail', { tagName: etag })}
                   >
                     <Text style={styles.eventTagChipText}>#{etag}</Text>
                   </TouchableOpacity>
@@ -1490,7 +1490,7 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
                   activeOpacity={0.7}
                   onPress={() => {
                     setMutualTagModalVisible(false);
-                    navigation.navigate('TagDetail', { tagId: tag.id, tagName: tag.name, initialTab: 'explore' });
+                    navigation.navigate('TagDetail', { tagId: tag.id, tagName: tag.name });
                   }}
                 >
                   <Text style={styles.mutualModalTagText}>#{tag.name}</Text>

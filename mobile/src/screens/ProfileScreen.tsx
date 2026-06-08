@@ -278,7 +278,7 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
   }, []);
 
   const handleTagPress = useCallback((tagId: string, tagName: string) => {
-    navigation.navigate('TagDetail', { tagId, tagName, initialTab: 'explore' });
+    navigation.navigate('TagDetail', { tagId, tagName });
   }, [navigation]);
 
   const handleOpenQr = useCallback(() => setQrVisible(true), []);

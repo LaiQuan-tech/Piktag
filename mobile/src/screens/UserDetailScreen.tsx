@@ -1239,7 +1239,7 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
                   activeOpacity={0.6}
                   onPress={() => {
                     // Navigate to tag detail - need to find tag id first
-                    navigation.navigate('TagDetail', { tagName: tag.replace('#', ''), initialTab: 'explore' });
+                    navigation.navigate('TagDetail', { tagName: tag.replace('#', '') });
                   }}
                 >
                   <Text style={styles.tagChipText}>{tag}</Text>
@@ -1631,7 +1631,7 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
                   activeOpacity={0.7}
                   onPress={() => {
                     setMutualTagModalVisible(false);
-                    navigation.navigate('TagDetail', { tagId: tag.id, tagName: tag.name, initialTab: 'explore' });
+                    navigation.navigate('TagDetail', { tagId: tag.id, tagName: tag.name });
                   }}
                 >
                   <Text style={styles.mutualModalTagText}>#{tag.name}</Text>

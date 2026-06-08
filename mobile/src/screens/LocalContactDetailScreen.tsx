@@ -199,14 +199,19 @@ export default function LocalContactDetailScreen({ navigation, route }: Props) {
         {existing.tags.length > 0 && (
           <View style={styles.tagWrap}>
             {existing.tags.map((tg) => (
-              // Shared TagChip, read-only: toggle variant + NOT
-              // selected = gray pill, no ×, not pressable. Profile
-              // pages (this + FriendDetail) render ALL chips gray
-              // by design — purple is reserved for tag-edit CTAs.
-              // Briefly turned purple by the 2026-05-23 sweep then
-              // reverted same day after the founder caught the
-              // regression on FriendDetail.
-              <TagChip key={tg} label={tg} variant="toggle" />
+              // Shared TagChip, toggle variant = gray pill, no ×.
+              // Profile pages (this + FriendDetail) render ALL chips
+              // gray by design — purple is reserved for tag-edit CTAs.
+              // Tappable → TagDetail (by name; local-contact tags are
+              // plain strings, no tagId) so the owner can jump from a
+              // contact's tag to who-else-has-it, exactly like a
+              // friend's profile. No initialTab → friends-first.
+              <TagChip
+                key={tg}
+                label={tg}
+                variant="toggle"
+                onPress={() => navigation.navigate('TagDetail', { tagName: tg })}
+              />
             ))}
           </View>
         )}
