@@ -42,6 +42,7 @@ import { useTheme } from '../context/ThemeContext';
 import { LinearGradient } from 'expo-linear-gradient';
 import RingedAvatar from '../components/RingedAvatar';
 import { supabase } from '../lib/supabase';
+import { ilikeEscape } from '../lib/normalizeTag';
 import { getCache, setCache, CACHE_KEYS } from '../lib/dataCache';
 import { ConnectionsScreenSkeleton } from '../components/SkeletonLoader';
 import ErrorState from '../components/ErrorState';
@@ -727,15 +728,17 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
     setBatchTagLoading(true);
     try {
       let tagId: string;
-      // `.maybeSingle()` — a new tag name that nobody has used before
-      // is a normal case here, not an error. `.single()` was throwing
-      // and falling through to the "create tag" branch by accident;
-      // the explicit null check is cleaner.
-      const { data: existingTag } = await supabase
+      // Case-insensitive (ilike + escape wildcards) — a tagName typed here
+      // can differ in case from the stored piktag_tags row; a case-sensitive
+      // .eq would MISS it, fall into the INSERT branch, then violate the
+      // UNIQUE(lower(name)) index → 23505 → "標籤加不了". See normalizeTag.ts.
+      // `.limit(1)` (not maybeSingle) tolerates legacy mixed-case dupe rows.
+      const { data: lookup } = await supabase
         .from('piktag_tags')
         .select('id')
-        .eq('name', tagName)
-        .maybeSingle();
+        .ilike('name', ilikeEscape(tagName))
+        .limit(1);
+      const existingTag = lookup && lookup[0];
 
       if (existingTag) {
         tagId = existingTag.id;
@@ -746,10 +749,29 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
           .select('id')
           .single();
         if (createErr || !newTag) {
-          console.error('Error creating tag:', createErr);
-          return;
+          // A dupe race (another insert of the same lower(name) landed
+          // first) surfaces as 23505 on the UNIQUE(lower(name)) index.
+          // Re-select case-insensitively and use that row rather than
+          // dead-ending the batch-tag with an error.
+          if (createErr?.code === '23505') {
+            const { data: raced } = await supabase
+              .from('piktag_tags')
+              .select('id')
+              .ilike('name', ilikeEscape(tagName))
+              .limit(1);
+            if (raced && raced[0]) {
+              tagId = raced[0].id;
+            } else {
+              console.error('Error creating tag:', createErr);
+              return;
+            }
+          } else {
+            console.error('Error creating tag:', createErr);
+            return;
+          }
+        } else {
+          tagId = newTag.id;
         }
-        tagId = newTag.id;
       }
 
       const rows = Array.from(selectedIds).map((connectionId) => ({
