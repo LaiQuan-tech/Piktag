@@ -6,6 +6,15 @@
 
   "ignoreCommand": "bash -c 'git diff --quiet HEAD^ HEAD -- .'",
 
+  "redirects": [
+    {
+      "source": "/:path*",
+      "has": [{ "type": "host", "value": "www.pikt.ag" }],
+      "destination": "https://pikt.ag/:path*",
+      "permanent": true
+    }
+  ],
+
   "rewrites": [
     { "source": "/i/:code",         "destination": "/api/i/:code" },
     { "source": "/tag/:tagname",    "destination": "/api/tag/:tagname" },
