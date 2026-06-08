@@ -338,11 +338,13 @@ export default function ScanResultScreen({ navigation, route }: ScanResultScreen
         const { data: existingRelTag } = await supabase
           .from('piktag_tags')
           .select('id')
-          .eq('name', relationTagName)
-          .maybeSingle();
+          // Case-insensitive (see normalizeTag.ts "標籤加不了" footgun):
+          // a .eq would miss a case-variant row → wrong INSERT → 23505.
+          .ilike('name', ilikeEscape(relationTagName))
+          .limit(1);
 
-        if (existingRelTag) {
-          relationTagId = existingRelTag.id;
+        if (existingRelTag && existingRelTag[0]) {
+          relationTagId = existingRelTag[0].id;
         } else {
           const { data: newRelTag, error: relErr } = await supabase
             .from('piktag_tags')
@@ -355,9 +357,9 @@ export default function ScanResultScreen({ navigation, route }: ScanResultScreen
             const { data: raced } = await supabase
               .from('piktag_tags')
               .select('id')
-              .eq('name', relationTagName)
-              .maybeSingle();
-            relationTagId = raced?.id || null;
+              .ilike('name', ilikeEscape(relationTagName))
+              .limit(1);
+            relationTagId = raced?.[0]?.id || null;
           } else {
             relationTagId = null;
           }

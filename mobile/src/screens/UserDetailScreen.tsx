@@ -40,6 +40,7 @@ import ErrorState from '../components/ErrorState';
 import PageLoader from '../components/loaders/PageLoader';
 import BrandSpinner from '../components/loaders/BrandSpinner';
 import { supabase } from '../lib/supabase';
+import { ilikeEscape } from '../lib/normalizeTag';
 import { useAuth } from '../hooks/useAuth';
 import { useAskFeed } from '../hooks/useAskFeed';
 import { useNetInfoReconnect } from '../hooks/useNetInfoReconnect';
@@ -441,10 +442,12 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
         const { data: existing } = await supabase
           .from('piktag_tags')
           .select('id')
-          .eq('name', clean)
-          .maybeSingle();
-        if (existing?.id) {
-          ids.push(existing.id);
+          // Case-insensitive resolve (normalizeTag.ts footgun): a .eq would
+          // miss a case-variant row → spurious INSERT → 23505.
+          .ilike('name', ilikeEscape(clean))
+          .limit(1);
+        if (existing?.[0]?.id) {
+          ids.push(existing[0].id);
           continue;
         }
         const { data: created } = await supabase
@@ -835,10 +838,10 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
           const { data: row } = await supabase
             .from('piktag_tags')
             .select('id')
-            .eq('name', name)
-            .maybeSingle();
-          if (row?.id) {
-            tagId = row.id;
+            .ilike('name', ilikeEscape(name))
+            .limit(1);
+          if (row?.[0]?.id) {
+            tagId = row[0].id;
           } else {
             const { data: created, error: insertErr } = await supabase
               .from('piktag_tags')
@@ -852,10 +855,10 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
               const { data: raced } = await supabase
                 .from('piktag_tags')
                 .select('id')
-                .eq('name', name)
-                .maybeSingle();
-              if (!raced?.id) return;
-              tagId = raced.id;
+                .ilike('name', ilikeEscape(name))
+                .limit(1);
+              if (!raced?.[0]?.id) return;
+              tagId = raced[0].id;
             } else {
               return;
             }

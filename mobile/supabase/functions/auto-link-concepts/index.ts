@@ -467,12 +467,19 @@ serve(async (req) => {
         const tag = orphanTags.find(t => t.name === result.tag);
         if (!tag) continue;
 
-        // Find or create parent tag
-        let { data: parentTag } = await supabase
+        // Find or create parent tag. Case-insensitive lookup (ilike +
+        // escaped wildcards): a case-sensitive .eq misses a case-variant
+        // row → spurious INSERT → 23505 on UNIQUE(lower(name)) → the parent
+        // concept never links → orphan fragment (hurts cross-language
+        // matching). Inline escape — Deno edge fn can't import the mobile
+        // normalizeTag lib. .limit(1) tolerates legacy mixed-case dupes.
+        const parentLike = result.parent.replace(/[\\_%]/g, '\\$&');
+        const { data: parentRows } = await supabase
           .from('piktag_tags')
           .select('id')
-          .eq('name', result.parent)
-          .maybeSingle();
+          .ilike('name', parentLike)
+          .limit(1);
+        let parentTag = parentRows && parentRows[0] ? parentRows[0] : null;
 
         if (!parentTag) {
           // Create parent tag

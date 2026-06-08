@@ -14,6 +14,7 @@ import { useTranslation } from 'react-i18next';
 import { getLocales } from 'expo-localization';
 import { Plus } from 'lucide-react-native';
 import { supabase } from '../lib/supabase';
+import { ilikeEscape } from '../lib/normalizeTag';
 import { COLORS, type ColorPalette } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
 import LocationPickerModal from './LocationPickerModal';
@@ -202,10 +203,12 @@ export default function HiddenTagEditor({ connectionId, userId, hiddenTags, onTa
       const { data: existing } = await supabase
         .from('piktag_tags')
         .select('id')
-        .eq('name', name)
-        .maybeSingle();
-      if (existing) {
-        tagId = existing.id;
+        // Case-insensitive resolve (normalizeTag.ts footgun): a .eq would
+        // miss a case-variant row → spurious INSERT → 23505.
+        .ilike('name', ilikeEscape(name))
+        .limit(1);
+      if (existing && existing[0]) {
+        tagId = existing[0].id;
       } else {
         // Race-safe insert: concurrent clients can both take the `!existing`
         // branch. The unique index on piktag_tags.name will reject the
@@ -222,10 +225,10 @@ export default function HiddenTagEditor({ connectionId, userId, hiddenTags, onTa
           const { data: raced } = await supabase
             .from('piktag_tags')
             .select('id')
-            .eq('name', name)
-            .maybeSingle();
-          if (!raced) return;
-          tagId = raced.id;
+            .ilike('name', ilikeEscape(name))
+            .limit(1);
+          if (!raced || !raced[0]) return;
+          tagId = raced[0].id;
         } else {
           return;
         }
