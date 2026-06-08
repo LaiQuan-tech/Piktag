@@ -31,6 +31,7 @@ import { getLocales } from 'expo-localization';
 import { supabase } from '../lib/supabase';
 import { getCache, setCache } from '../lib/dataCache';
 import { stripSearchStopwords, filterLoneStopwordTokens } from '../lib/searchStopwords';
+import { ilikeEscape } from '../lib/normalizeTag';
 import { getSiblingTagIds, getTagNamesByIds } from '../lib/tagSiblings';
 import { extractSearchIntent } from '../lib/extractSearchIntent';
 import { sanitizeQueryForTelemetry } from '../lib/sanitizeTelemetry';
@@ -2267,6 +2268,53 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
           .replace(/[,()%]/g, '')
           .trim();
 
+        // 2b. Resolve the typed query to a tag id DIRECTLY (case-insensitive)
+        //     + concept siblings, independent of the debounced performSearch.
+        //     A tag you only applied privately (low usage) may not surface
+        //     into `tags`, leaving allTagIds empty and the friend
+        //     (connection_tags) path dead. This guarantees it resolves.
+        if (qSafe) {
+          const { data: directTags } = await supabase
+            .from('piktag_tags')
+            .select('id, concept_id')
+            .ilike('name', ilikeEscape(qSafe))
+            .limit(5);
+          const directIds = (directTags || []).map((d: any) => d.id).filter(Boolean);
+          if (directIds.length > 0) {
+            allTagIds = [...new Set([...allTagIds, ...directIds])];
+            const directConcepts = [
+              ...new Set((directTags || []).map((d: any) => d.concept_id).filter(Boolean)),
+            ];
+            if (directConcepts.length > 0) {
+              const { data: sib2 } = await supabase
+                .from('piktag_tags')
+                .select('id')
+                .in('concept_id', directConcepts);
+              if (sib2) allTagIds = [...new Set([...allTagIds, ...sib2.map((s: any) => s.id)])];
+            }
+            const { data: nameRows2 } = await supabase
+              .from('piktag_tags')
+              .select('name')
+              .in('id', allTagIds);
+            allTagNames = [
+              ...new Set([
+                ...allTagNames,
+                ...((nameRows2 || []).map((r: any) => r.name).filter(Boolean)),
+              ]),
+            ];
+          }
+        }
+
+        // The local-contact tag match keys off NAMES (its `tags` is a
+        // text[] of plain strings, no FK to piktag_tags). Include the RAW
+        // typed query so a tag that exists ONLY on a local contact — with
+        // no global piktag_tags row at all — is still found. This is the
+        // core "I tagged a contact, search must find them" case (founder
+        // 2026-06-09); without it such a tag was completely unsearchable.
+        const lcTagMatch = [
+          ...new Set([...allTagNames, ...(qSafe ? [qSafe] : [])]),
+        ];
+
         // 3. Run all private-world queries in parallel: 2 tag-based,
         //    2 text-based. The tag-based ones short-circuit when no
         //    tag matched the query.
@@ -2280,11 +2328,11 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
                 .in('tag_id', allTagIds)
                 .limit(500)
             : Promise.resolve({ data: [] } as any),
-          allTagNames.length > 0
+          lcTagMatch.length > 0
             ? supabase
                 .from('piktag_local_contacts')
                 .select('id, name, avatar_url')
-                .overlaps('tags', allTagNames)
+                .overlaps('tags', lcTagMatch)
                 .limit(200)
             : Promise.resolve({ data: [] } as any),
           qSafe.length > 0
