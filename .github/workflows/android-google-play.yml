@@ -18,6 +18,16 @@ on:
       - '!mobile/scripts/**'
       - '.github/workflows/android-google-play.yml'
 
+# Collapse bursts: rapid mobile pushes otherwise run concurrent builds that
+# each open a Google Play "edit"; one committing deletes the others →
+# "This Edit has been deleted." failures (2026-06-09). cancel-in-progress
+# keeps only the latest push's build — which is also the one we want shipped
+# (later commits on the same branch include the earlier ones). Mirrors the
+# iOS workflow. Abandoned Play edits auto-expire, so cancelling is safe.
+concurrency:
+  group: android-google-play-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build-and-upload:
     runs-on: ubuntu-latest
