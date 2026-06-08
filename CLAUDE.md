@@ -283,6 +283,27 @@ founder when the trigger condition lands:
    specifically; do NOT auto-reorder their tags by algorithm —
    nudge them to refresh, source still > display.
 
+6. **AI tag-suggestion dimension diversity in EditProfile** (founder
+   2026-06-09, deferred from the search-category discussion — **founder
+   explicitly asked to be reminded at the right time, so SURFACE this when
+   the trigger lands**). Context: the browse category filter (興趣/身份/個性
+   by `semantic_type`) was gated behind volume (`11ac503`) because slicing a
+   cold-start tag list into sub-buckets is noise. The MORE valuable use of
+   the dimension concept: when a user's self-tags are lopsided (all 興趣, no
+   身份/個性), have the AI tag suggester recommend the MISSING dimensions in
+   EditProfile / onboarding — organic, **NOT a score** (the tag-graph-health
+   pill is the anti-pattern; see "Don't expose context-free scores"). **Why
+   deferred, not a quick tweak**: suggest-tags' "person" prompt is SHARED by
+   EditProfile AND card-scan; blanket-adding "include personality / span
+   dimensions" would force bad personality tags onto business-card scans
+   (you can't infer 個性 from a card) — and card-scan tag quality/latency is
+   a STRATEGIC red line. Doing it right needs a `context:'self_profile'`
+   flag → a dimension-diverse prompt VARIANT that leaves the card-scan path
+   untouched, + an edge-fn redeploy + AI-output testing. Also depends on
+   `semantic_type` classification being reliable (shaky at cold-start).
+   **Trigger**: post-launch, once `semantic_type` is stable AND users are
+   actively building profiles.
+
 ## How the founder works (keep doing this)
 
 - **中肯 / trust-but-verify.** Give honest, balanced advice; push back with
