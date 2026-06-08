@@ -19,6 +19,7 @@ import RingedAvatar from '../components/RingedAvatar';
 import AskListByTag from '../components/ask/AskListByTag';
 import { supabase } from '../lib/supabase';
 import { getSiblingTagIds } from '../lib/tagSiblings';
+import { ilikeEscape } from '../lib/normalizeTag';
 import { useAuth } from '../hooks/useAuth';
 
 type TagDetailScreenProps = {
@@ -157,7 +158,11 @@ export default function TagDetailScreen({ navigation, route }: TagDetailScreenPr
       const { data } = await supabase
         .from('piktag_tags')
         .select('id')
-        .eq('name', tagName)
+        // Case-insensitive (ilike + escape wildcards) — a tagName from a
+        // local-contact chip / event tag can differ in case from the stored
+        // piktag_tags row; a case-sensitive .eq would MISS it and dead-end
+        // the screen. See normalizeTag.ts (the "標籤加不了" footgun).
+        .ilike('name', ilikeEscape(tagName))
         .limit(1);
       if (data && data[0]) setResolvedTagId(data[0].id);
       else setLoading(false); // tag genuinely not found
