@@ -81,12 +81,15 @@ jobs:
           content="$(cat mobile/supabase/auth/recovery-email.html)"
 
           # 4. Base payload — partial PATCH, only these fields change.
+          #    password_hibp_enabled: reject passwords found in HaveIBeenPwned
+          #    breaches at signup / password-change (Security Advisor warning
+          #    "Leaked Password Protection Disabled", founder 2026-06-08).
           payload="$(jq -n \
             --arg site "https://pikt.ag" \
             --arg allow "$merged" \
             --arg subj "$subject" \
             --arg body "$content" \
-            '{site_url:$site, uri_allow_list:$allow, mailer_subjects_recovery:$subj, mailer_templates_recovery_content:$body}')"
+            '{site_url:$site, uri_allow_list:$allow, mailer_subjects_recovery:$subj, mailer_templates_recovery_content:$body, password_hibp_enabled:true}')"
 
           # 5. Branded From address via custom SMTP — only if secrets exist.
           if [ -n "${SMTP_HOST:-}" ] && [ -n "${SMTP_PASS:-}" ]; then
