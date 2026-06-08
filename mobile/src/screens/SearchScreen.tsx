@@ -53,6 +53,25 @@ const MAX_RECENT_SEARCHES = 10;
 const CACHE_KEY_POPULAR_TAGS = 'search_popular_tags';
 const CACHE_KEY_SEARCH_QUERY = 'search_last_query';
 
+// The browse-mode category filter (興趣/身份/個性, by semantic_type) only
+// earns its place once there's real volume — slicing a cold-start list of a
+// handful of tags into sub-buckets is noise, and exposes AI mis-classification
+// (founder 2026-06-09). Surface a category only when it has ≥ this many tags,
+// and only show the row at all when ≥2 categories qualify (1 == "全部", which
+// is pointless). Self-activates as the tag pool grows — no future code change.
+const MIN_TAGS_PER_CATEGORY = 6;
+function qualifyingTagCategories(tagList: any[]): string[] {
+  const counts = new Map<string, number>();
+  for (const tg of tagList || []) {
+    const st = tg?.semantic_type;
+    if (st) counts.set(st, (counts.get(st) || 0) + 1);
+  }
+  const qualifying = [...counts.entries()]
+    .filter(([, n]) => n >= MIN_TAGS_PER_CATEGORY)
+    .map(([k]) => k);
+  return qualifying.length >= 2 ? qualifying : [];
+}
+
 type CategoryKey = 'popular' | 'nearby' | 'recent';
 
 // ── Memoized list item components ──
@@ -653,7 +672,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
     const cached = getCache<Tag[]>(CACHE_KEY_POPULAR_TAGS);
     if (cached) {
       setTags(cached);
-      const cats = [...new Set(cached.map((t: any) => t.semantic_type).filter(Boolean))] as string[];
+      const cats = qualifyingTagCategories(cached);
       setTagCategories(cats);
       setLoading(false);
       setInitialLoading(false);
@@ -761,7 +780,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
       if (merged.length > 0) {
         setCache(CACHE_KEY_POPULAR_TAGS, merged);
         setTags(merged);
-        const cats = [...new Set(merged.map((t: any) => t.semantic_type).filter(Boolean))] as string[];
+        const cats = qualifyingTagCategories(merged);
         setTagCategories(cats);
 
         // Trending: 7-day growth over the FINAL merged set's ids. Runs
@@ -882,9 +901,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
 
       setCache(CACHE_KEY_POPULAR_TAGS, popular as Tag[]);
       setTags(popular as Tag[]);
-      const cats = [
-        ...new Set(popular.map((t: any) => t.semantic_type).filter(Boolean)),
-      ] as string[];
+      const cats = qualifyingTagCategories(popular as any[]);
       setTagCategories(cats);
       setLoading(false);
       setInitialLoading(false);
