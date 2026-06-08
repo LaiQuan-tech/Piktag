@@ -2318,7 +2318,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
         // 3. Run all private-world queries in parallel: 2 tag-based,
         //    2 text-based. The tag-based ones short-circuit when no
         //    tag matched the query.
-        const [ctByTagRes, lcByTagRes, lcByTextRes, connByNickRes] = await Promise.all([
+        const [ctByTagRes, lcByTagRes, lcByTextRes, connByNickRes, lcByTagCiRes] = await Promise.all([
           allTagIds.length > 0
             ? supabase
                 .from('piktag_connection_tags')
@@ -2350,6 +2350,15 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
                 )
                 .or(`nickname.ilike.%${qSafe}%,met_location.ilike.%${qSafe}%`)
                 .limit(50)
+            : Promise.resolve({ data: [] } as any),
+          // Case-insensitive contact-tag match (English case-variants):
+          // overlaps() above is case-SENSITIVE, so this RPC (lower()=lower()
+          // server-side) catches "remittance" vs a stored "Remittance".
+          // Additive — if the RPC isn't deployed yet supabase-js returns the
+          // error in `data:null` (it doesn't throw), so the overlaps result
+          // still stands. No regression.
+          lcTagMatch.length > 0
+            ? supabase.rpc('search_owner_contacts_by_tag', { p_terms: lcTagMatch, p_limit: 200 })
             : Promise.resolve({ data: [] } as any),
         ]);
 
@@ -2383,6 +2392,8 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
         };
         for (const c of (lcByTagRes.data || []) as any[]) pushContact(c);
         for (const c of (lcByTextRes.data || []) as any[]) pushContact(c);
+        // Case-insensitive RPC matches (may overlap lcByTagRes — pushContact dedupes).
+        for (const c of (lcByTagCiRes?.data || []) as any[]) pushContact(c);
         setSearchTaggedContacts(contacts);
       } catch (privateErr) {
         console.warn('[SearchScreen] private-world search failed:', privateErr);
