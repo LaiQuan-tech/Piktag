@@ -926,14 +926,21 @@ read-only inventory RPCs stay for monitoring (admin Tags page).
 
 ## Brand voice — locked phrases
 
-- **"PikTag to connect."** is the locked brand verb phrase on landing
-  (sits below the hero title as `hero.description`, paired with the
-  logo in the nav). DO NOT modify, translate, or remove without
-  explicit founder approval. It survives hook-line refactors —
-  when the founder swapped "Tag the Vibe, Keep the Tribe" for
-  "Tag yourself. Find anyone." 2026-05-30, "PikTag to connect."
-  stayed put. Treat the logo + this phrase as the constant brand
-  signature; the hook line is the rotating creative.
+- **"Pick. Tag. Connect."** is the locked brand signature (founder
+  approved 2026-06-09, replacing the prior **"PikTag to connect."**
+  which was a grammatically-awkward subjectless fragment). Three clean
+  imperatives that ALSO spell the brand phonetically (PikTag = Pick +
+  Tag) and name the product flow. **English-everywhere — do NOT
+  translate** (the Pick/Tag wordplay only works in English) and do NOT
+  modify without explicit founder approval. It's the constant brand
+  signature paired with the logo; the hook line is the rotating
+  creative (it survived the "Tag the Vibe, Keep the Tribe" →
+  "Tag yourself. Find anyone." swap). Lives IDENTICALLY across every
+  surface — landing `hero.description` (all 19 locale JSONs carry the
+  same English string, NOT localized), mobile SplashOverlay +
+  QrGroupList header, and landing/public scan.html + download.html;
+  when you touch one, touch all. (History: "PikTag to connect." was the
+  locked signature 2026-05-30 → 2026-06-09.)
 - **"Tag yourself. Find anyone."** is the current hook line
   (2026-05-30, replacing "Tag the Vibe, Keep the Tribe"). Mobile
   brandTagline is English-everywhere; landing hero.title1+title2

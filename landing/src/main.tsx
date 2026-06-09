@@ -67,7 +67,7 @@ function RouteTracker() {
  * Title format is `PikTag — {localized slogan}`. The slogan is
  * `hero.title1 + hero.title2`, which IS localized per locale (the
  * keyword-bearing value prop — kept for non-brand / non-English
- * search discoverability; the unified brand verb "PikTag to connect."
+ * search discoverability; the unified brand signature "Pick. Tag. Connect."
  * lives in the visible hero subtitle via `hero.description`, so the
  * title doesn't need to also carry it). The slogan is tightened for
  * the title slot: trailing sentence punctuation stripped and a single

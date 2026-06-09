@@ -412,15 +412,16 @@ export default function QrGroupListScreen({ navigation }: Props) {
                 connect." — hard-coded English in EVERY locale,
                 deliberately NOT wrapped in t() (the old
                 qrGroup.headerSubtitle i18n key was removed). Same
-                doctrine as SplashOverlay: the brand name is used as
-                a VERB so it occupies mindshare ("Google it" /
-                "DM me"); localising it would dilute the global
-                identity. Same line as the splash screen and the
-                website hero subtitle — one signature across every
-                surface. Translators: please don't re-add an i18n
-                key here. */}
+                doctrine as SplashOverlay: "Pick. Tag. Connect." is the
+                locked brand signature — three imperatives that also
+                spell the name phonetically (PikTag = Pick + Tag) and
+                name the flow. Localising it would dilute the global
+                identity AND lose the Pick/Tag wordplay (English-only).
+                Same line as the splash screen and the website hero
+                subtitle — one signature across every surface.
+                Translators: please don't re-add an i18n key here. */}
             <Text style={styles.headerSubtitle}>
-              PikTag to connect.
+              Pick. Tag. Connect.
             </Text>
           </View>
           <View style={styles.headerActions}>
