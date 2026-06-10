@@ -392,7 +392,10 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
           text: t('settings.alertDeleteAccountConfirm'),
           style: 'destructive',
           onPress: async () => {
-            if (!user) return;
+            // No `if (!user) return` guard here: identity comes from the
+            // session token below, and a silent return on a transiently-null
+            // hook value is exactly the 防呆 "silent drop" defect — the user
+            // taps confirm and NOTHING happens. The !token branch alerts.
             try {
               const { data: { session } } = await supabase.auth.getSession();
               const token = session?.access_token;
@@ -409,11 +412,24 @@ export default function SettingsScreen({ navigation }: SettingsScreenProps) {
               // We deliberately do NOT send user_id — the function ignores
               // it on the self-delete branch, and shipping it would only
               // invite a client tampering with someone else's id.
+              //
+              // `apikey` header is REQUIRED: this is the app's only raw
+              // fetch to functions/v1 (everything else goes through
+              // supabase.functions.invoke, which adds apikey+Authorization
+              // automatically). With the new-style publishable anon key the
+              // gateway rejects requests without `apikey` BEFORE they reach
+              // the function — which is why delete silently failed for
+              // Android/Google testers (zero hits in function logs) while
+              // every invoke()-based feature worked. The account then
+              // survived, Google sign-in returned the SAME account
+              // (onboarding_completed=true), and the wizard "never showed".
+              // One missing header, both symptoms (2026-06-10).
               const res = await fetch(`${supabaseUrl}/functions/v1/delete-user`, {
                 method: 'POST',
                 headers: {
                   'Content-Type': 'application/json',
                   'Authorization': `Bearer ${token}`,
+                  'apikey': supabaseAnonKey,
                 },
                 body: JSON.stringify({}),
               });

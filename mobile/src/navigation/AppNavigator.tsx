@@ -567,7 +567,7 @@ export default function AppNavigator() {
       });
 
       decidedForUserRef.current = currentSession.user.id;
-      await decideOnboarding(currentSession.user.id);
+      await decideOnboarding(currentSession.user.id, currentSession.user.created_at);
 
       // Defer push notification registration until after the first
       // frame paints — frees the JS thread during the critical
@@ -602,7 +602,7 @@ export default function AppNavigator() {
             // registration goes splash → wizard with NO flash of the
             // empty home in between ("新帳號一註冊就走精靈", founder).
             setOnboardingDecision('pending');
-            await decideOnboarding(uid);
+            await decideOnboarding(uid, newSession.user.created_at);
             // Resolve pending connections for newly registered users.
             resolvePendingDeepLink(uid, newSession.user.created_at);
           }
@@ -643,7 +643,18 @@ export default function AppNavigator() {
   // interruption, and is testable (any incomplete account shows it).
   // The namespaced AsyncStorage key is now only a fast-path cache so a
   // returning, already-complete account skips the profile round-trip.
-  const decideOnboarding = async (userId: string) => {
+  const decideOnboarding = async (userId: string, createdAt?: string) => {
+    // Fail-open vs fail-closed is AGE-DEPENDENT. For an ESTABLISHED account
+    // a transient query failure must never trap them in the wizard → 'skip'.
+    // But for a BRAND-NEW account (created minutes ago — e.g. a fresh Google
+    // sign-up on a slow Android network, where the post-OAuth token refresh
+    // can hold the auth lock past the 4s timeout) failing open SKIPS the
+    // sacred linear wizard entirely — the founder's "新帳號沒看到精靈"
+    // report. A fresh account belongs IN the wizard, so for them we fail
+    // closed → 'required'.
+    const isFreshAccount = !!createdAt &&
+      Date.now() - new Date(createdAt).getTime() < 10 * 60 * 1000;
+    const failDecision = isFreshAccount ? 'required' as const : 'skip' as const;
     try {
       const cacheKey = onboardingFlagKey(userId);
       const cached = await AsyncStorage.getItem(cacheKey).catch(() => null);
@@ -668,15 +679,16 @@ export default function AppNavigator() {
         new Promise((resolve) => setTimeout(() => resolve(TIMED_OUT), 4000)),
       ]);
       if (raced === TIMED_OUT) {
-        setOnboardingDecision('skip');
+        setOnboardingDecision(failDecision);
         return;
       }
 
       const { data: prof, error } = raced;
       if (error) {
-        // Fail-OPEN: never trap a real user in the wizard over a
-        // transient query error — they can finish in EditProfile.
-        setOnboardingDecision('skip');
+        // Established account: fail-OPEN — never trap a real user in the
+        // wizard over a transient query error (finishable in EditProfile).
+        // Fresh account: fail-CLOSED into the wizard (see above).
+        setOnboardingDecision(failDecision);
         return;
       }
 
@@ -704,7 +716,7 @@ export default function AppNavigator() {
       }
     } catch (err) {
       console.warn('Onboarding check error:', err);
-      setOnboardingDecision('skip');
+      setOnboardingDecision(failDecision);
     }
   };
 
