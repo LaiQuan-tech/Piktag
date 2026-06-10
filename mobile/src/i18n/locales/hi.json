@@ -251,7 +251,11 @@
       "phoneSectionHint": "ताकि दोस्त contact sync से आपको ढूँढ सकें — कभी सार्वजनिक नहीं, कॉल के लिए भी इस्तेमाल नहीं होता।",
       "phonePlaceholder": "+91 98765 43210",
       "phoneInvalidTitle": "फ़ोन प्रारूप पहचाना नहीं गया",
-      "phoneInvalidMessage": "«{{value}}» पढ़ा नहीं जा सका — छोड़ दिया। बाद में प्रोफ़ाइल से जोड़ सकते हैं।"
+      "phoneInvalidMessage": "«{{value}}» पढ़ा नहीं जा सका — छोड़ दिया। बाद में प्रोफ़ाइल से जोड़ सकते हैं।",
+      "payoffTitle": "तैयार!",
+      "payoffSubtitle": "स्कैन करने पर लोग आपको ऐसा देखेंगे",
+      "payoffHint": "अगली बार किसी से मिलें तो उन्हें यह स्कैन करने दें — तुरंत जुड़ जाएँगे",
+      "payoffCta": "PikTag इस्तेमाल शुरू करें"
     },
     "invalidEmail": "एक मान्य ईमेल पता दर्ज करें"
   },
@@ -330,7 +334,10 @@
     "addFromContacts": "संपर्कों से दोस्त खोजें",
     "addManual": "मैन्युअल रूप से संपर्क जोड़ें",
     "addPersonTitle": "लोग जोड़ें",
-    "addPersonA11y": "लोग जोड़ें"
+    "addPersonA11y": "लोग जोड़ें",
+    "coldStartActionScanDesc": "एक-दूसरे को स्कैन करें — 30 सेकंड में कार्ड का आदान-प्रदान",
+    "coldStartActionSearch": "टैग से लोग खोजें",
+    "coldStartActionSearchDesc": "#मार्केटिंग या #डिज़ाइनर आज़माएँ — देखें कौन मिलता है"
   },
   "search": {
     "clearAll": "सब साफ़ करें",

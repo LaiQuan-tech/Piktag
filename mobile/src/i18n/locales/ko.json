@@ -251,7 +251,11 @@
       "phoneSectionHint": "친구가 연락처 동기화로 당신을 찾을 수 있도록 — 공개되지 않고 전화에도 쓰이지 않아요.",
       "phonePlaceholder": "010 1234 5678",
       "phoneInvalidTitle": "전화번호 형식을 인식할 수 없어요",
-      "phoneInvalidMessage": "\"{{value}}\"을(를) 인식하지 못해 건너뛰었어요. 나중에 프로필에서 추가할 수 있어요."
+      "phoneInvalidMessage": "\"{{value}}\"을(를) 인식하지 못해 건너뛰었어요. 나중에 프로필에서 추가할 수 있어요.",
+      "payoffTitle": "완료!",
+      "payoffSubtitle": "상대가 스캔하면 이렇게 보여요",
+      "payoffHint": "다음에 누군가를 만나면 이걸 스캔하게 하세요. 바로 친구가 됩니다",
+      "payoffCta": "PikTag 시작하기"
     },
     "invalidEmail": "유효한 이메일 주소를 입력하세요"
   },
@@ -330,7 +334,10 @@
     "addFromContacts": "연락처에서 친구 찾기",
     "addManual": "연락처 직접 추가",
     "addPersonTitle": "사람 추가",
-    "addPersonA11y": "사람 추가"
+    "addPersonA11y": "사람 추가",
+    "coldStartActionScanDesc": "서로 스캔하면 30초 만에 명함 교환",
+    "coldStartActionSearch": "태그로 사람 찾기",
+    "coldStartActionSearchDesc": "예: #마케팅 #디자이너 — 누가 나오는지 보세요"
   },
   "search": {
     "clearAll": "모두 지우기",

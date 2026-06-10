@@ -251,7 +251,11 @@
       "phoneSectionHint": "ليتمكن الأصدقاء من إيجادك عبر مزامنة جهات الاتصال — لن يُنشر أبدًا ولن يُستخدم للاتصال بك.",
       "phonePlaceholder": "+20 100 123 4567",
       "phoneInvalidTitle": "تنسيق الهاتف غير معروف",
-      "phoneInvalidMessage": "تعذّر تحليل «{{value}}» — تم التخطّي. يمكنك إضافته لاحقًا من ملفك الشخصي."
+      "phoneInvalidMessage": "تعذّر تحليل «{{value}}» — تم التخطّي. يمكنك إضافته لاحقًا من ملفك الشخصي.",
+      "payoffTitle": "اكتمل!",
+      "payoffSubtitle": "هكذا يراك الآخرون عند مسح رمزك",
+      "payoffHint": "في لقائك القادم، دع الطرف الآخر يمسح هذا الرمز لتتواصلا فورًا",
+      "payoffCta": "ابدأ استخدام PikTag"
     },
     "invalidEmail": "أدخل عنوان بريد إلكتروني صالحًا"
   },
@@ -330,7 +334,10 @@
     "addFromContacts": "ابحث عن أصدقاء من جهات الاتصال",
     "addManual": "أضف جهة اتصال يدويًا",
     "addPersonTitle": "إضافة أشخاص",
-    "addPersonA11y": "إضافة أشخاص"
+    "addPersonA11y": "إضافة أشخاص",
+    "coldStartActionScanDesc": "امسحا رمزيكما — تبادل البطاقات في 30 ثانية",
+    "coldStartActionSearch": "ابحث عن الأشخاص بالوسوم",
+    "coldStartActionSearchDesc": "جرّب #تسويق أو #مصمم — وانظر من يظهر"
   },
   "search": {
     "clearAll": "مسح الكل",

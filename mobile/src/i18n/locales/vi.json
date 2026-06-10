@@ -251,7 +251,11 @@
       "finishCta": "Xong — bắt đầu dùng PikTag",
       "usernameLabel": "Tên người dùng PikTag của bạn",
       "headlineLabel": "Chức danh (không bắt buộc)",
-      "bioLabel": "Một câu giới thiệu bản thân"
+      "bioLabel": "Một câu giới thiệu bản thân",
+      "payoffTitle": "Xong!",
+      "payoffSubtitle": "Đây là những gì người khác thấy khi quét bạn",
+      "payoffHint": "Lần tới gặp ai đó, hãy để họ quét mã này — kết nối ngay lập tức",
+      "payoffCta": "Bắt đầu dùng PikTag"
     },
     "invalidEmail": "Nhập địa chỉ email hợp lệ"
   },
@@ -330,7 +334,10 @@
     "addFromContacts": "Tìm bạn từ danh bạ",
     "addManual": "Thêm liên hệ thủ công",
     "addPersonTitle": "Thêm người",
-    "addPersonA11y": "Thêm người"
+    "addPersonA11y": "Thêm người",
+    "coldStartActionScanDesc": "Quét lẫn nhau — trao đổi danh thiếp trong 30 giây",
+    "coldStartActionSearch": "Tìm người theo thẻ tag",
+    "coldStartActionSearchDesc": "Thử #marketing hoặc #thietke — xem ai xuất hiện"
   },
   "search": {
     "clearAll": "Xoá hết",

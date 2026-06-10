@@ -251,7 +251,11 @@
       "phoneSectionHint": "Para que tus amigos te encuentren al sincronizar contactos — nunca se hace público ni se usa para llamarte.",
       "phonePlaceholder": "+34 612 345 678",
       "phoneInvalidTitle": "Formato de teléfono no reconocido",
-      "phoneInvalidMessage": "No se pudo interpretar «{{value}}» — omitido. Puedes añadirlo luego desde tu perfil."
+      "phoneInvalidMessage": "No se pudo interpretar «{{value}}» — omitido. Puedes añadirlo luego desde tu perfil.",
+      "payoffTitle": "¡Listo!",
+      "payoffSubtitle": "Así te ven cuando te escanean",
+      "payoffHint": "La próxima vez que conozcas a alguien, pídele que escanee esto: conectan al instante",
+      "payoffCta": "Empezar a usar PikTag"
     },
     "invalidEmail": "Introduce un correo electrónico válido"
   },
@@ -330,7 +334,10 @@
     "addFromContacts": "Buscar amigos en tus contactos",
     "addManual": "Añadir un contacto manualmente",
     "addPersonTitle": "Añadir personas",
-    "addPersonA11y": "Añadir personas"
+    "addPersonA11y": "Añadir personas",
+    "coldStartActionScanDesc": "Escanéense mutuamente: intercambio de tarjetas en 30 segundos",
+    "coldStartActionSearch": "Buscar gente por tag",
+    "coldStartActionSearchDesc": "Prueba #marketing o #diseñador: mira quién aparece"
   },
   "search": {
     "clearAll": "Limpiar todo",

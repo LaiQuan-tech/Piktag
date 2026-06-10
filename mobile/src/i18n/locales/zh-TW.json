@@ -251,7 +251,11 @@
       "finishCta": "完成，開始用 PikTag",
       "usernameLabel": "你的 PikTag 帳號",
       "headlineLabel": "職稱（選填）",
-      "bioLabel": "一句話介紹自己"
+      "bioLabel": "一句話介紹自己",
+      "payoffTitle": "完成！",
+      "payoffSubtitle": "這就是別人掃到你的樣子",
+      "payoffHint": "下次見面，請對方掃這裡，立刻互加好友",
+      "payoffCta": "開始使用 PikTag"
     },
     "invalidEmail": "請輸入有效的 email 地址"
   },
@@ -330,7 +334,10 @@
     "addFromContacts": "從通訊錄找朋友",
     "addManual": "手動記一個聯絡人",
     "addPersonTitle": "加人",
-    "addPersonA11y": "加人"
+    "addPersonA11y": "加人",
+    "coldStartActionScanDesc": "和現場的人互掃，30 秒交換名片",
+    "coldStartActionSearch": "用標籤搜一個人",
+    "coldStartActionSearchDesc": "例如 #行銷 #設計師，看看誰會出現"
   },
   "search": {
     "clearAll": "清除全部",

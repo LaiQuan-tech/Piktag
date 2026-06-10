@@ -251,7 +251,11 @@
       "phoneSectionHint": "連絡先の同期で友だちが見つけられるように — 公開されず、電話にも使いません。",
       "phonePlaceholder": "090 1234 5678",
       "phoneInvalidTitle": "電話番号の形式が認識できません",
-      "phoneInvalidMessage": "「{{value}}」を認識できませんでした — スキップしました。後でプロフィールから追加できます。"
+      "phoneInvalidMessage": "「{{value}}」を認識できませんでした — スキップしました。後でプロフィールから追加できます。",
+      "payoffTitle": "完了！",
+      "payoffSubtitle": "相手にはあなたがこう見えます",
+      "payoffHint": "次に誰かと会ったら、これをスキャンしてもらえば、その場でつながれます",
+      "payoffCta": "PikTag をはじめる"
     },
     "invalidEmail": "有効なメールアドレスを入力してください"
   },
@@ -330,7 +334,10 @@
     "addFromContacts": "連絡先から友だちを探す",
     "addManual": "連絡先を手動で追加",
     "addPersonTitle": "人を追加",
-    "addPersonA11y": "人を追加"
+    "addPersonA11y": "人を追加",
+    "coldStartActionScanDesc": "その場でお互いにスキャン。30秒で名刺交換",
+    "coldStartActionSearch": "タグで人を探す",
+    "coldStartActionSearchDesc": "例：#マーケ #デザイナー — 誰が出てくるか試してみて"
   },
   "search": {
     "clearAll": "すべてクリア",

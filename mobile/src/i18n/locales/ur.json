@@ -251,7 +251,11 @@
       "finishCta": "ہو گیا — PikTag استعمال شروع کریں",
       "usernameLabel": "آپ کا PikTag یوزرنیم",
       "headlineLabel": "عہدہ (اختیاری)",
-      "bioLabel": "اپنے بارے میں ایک سطر"
+      "bioLabel": "اپنے بارے میں ایک سطر",
+      "payoffTitle": "تیار!",
+      "payoffSubtitle": "اسکین کرنے پر لوگ آپ کو ایسے دیکھیں گے",
+      "payoffHint": "اگلی بار کسی سے ملیں تو انہیں یہ اسکین کرنے دیں — فوراً جڑ جائیں گے",
+      "payoffCta": "PikTag استعمال شروع کریں"
     },
     "invalidEmail": "ایک درست ای میل ایڈریس درج کریں"
   },
@@ -330,7 +334,10 @@
     "addFromContacts": "رابطوں سے دوست تلاش کریں",
     "addManual": "دستی طور پر رابطہ شامل کریں",
     "addPersonTitle": "لوگ شامل کریں",
-    "addPersonA11y": "لوگ شامل کریں"
+    "addPersonA11y": "لوگ شامل کریں",
+    "coldStartActionScanDesc": "ایک دوسرے کو اسکین کریں — 30 سیکنڈ میں کارڈ کا تبادلہ",
+    "coldStartActionSearch": "ٹیگ سے لوگ تلاش کریں",
+    "coldStartActionSearchDesc": "#مارکیٹنگ یا #ڈیزائنر آزمائیں — دیکھیں کون آتا ہے"
   },
   "search": {
     "clearAll": "سب صاف کریں",

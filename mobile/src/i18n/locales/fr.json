@@ -251,7 +251,11 @@
       "phoneSectionHint": "Pour que tes amis te trouvent via la synchro des contacts — jamais rendu public, jamais utilisé pour t'appeler.",
       "phonePlaceholder": "+33 6 12 34 56 78",
       "phoneInvalidTitle": "Format de téléphone non reconnu",
-      "phoneInvalidMessage": "Impossible de lire « {{value}} » — ignoré. Tu pourras l'ajouter plus tard depuis ton profil."
+      "phoneInvalidMessage": "Impossible de lire « {{value}} » — ignoré. Tu pourras l'ajouter plus tard depuis ton profil.",
+      "payoffTitle": "C’est prêt !",
+      "payoffSubtitle": "Voici ce que les autres voient en te scannant",
+      "payoffHint": "À ta prochaine rencontre, fais scanner ce code — vous êtes connectés instantanément",
+      "payoffCta": "Commencer avec PikTag"
     },
     "invalidEmail": "Saisis une adresse e-mail valide"
   },
@@ -330,7 +334,10 @@
     "addFromContacts": "Trouver des amis dans vos contacts",
     "addManual": "Ajouter un contact manuellement",
     "addPersonTitle": "Ajouter des personnes",
-    "addPersonA11y": "Ajouter des personnes"
+    "addPersonA11y": "Ajouter des personnes",
+    "coldStartActionScanDesc": "Scannez-vous mutuellement — échange de cartes en 30 secondes",
+    "coldStartActionSearch": "Chercher des gens par tag",
+    "coldStartActionSearchDesc": "Essaie #marketing ou #designer — vois qui apparaît"
   },
   "search": {
     "clearAll": "Tout effacer",

@@ -251,7 +251,11 @@
       "phoneSectionHint": "Arkadaşların kişi senkronuyla seni bulabilsin diye — asla herkese açık olmaz, seni aramak için kullanılmaz.",
       "phonePlaceholder": "+90 532 123 45 67",
       "phoneInvalidTitle": "Telefon biçimi tanınmadı",
-      "phoneInvalidMessage": "\"{{value}}\" çözümlenemedi — atlandı. Daha sonra profilinden ekleyebilirsin."
+      "phoneInvalidMessage": "\"{{value}}\" çözümlenemedi — atlandı. Daha sonra profilinden ekleyebilirsin.",
+      "payoffTitle": "Hazırsın!",
+      "payoffSubtitle": "Seni tarayanlar bunu görür",
+      "payoffHint": "Bir dahaki karşılaşmada bunu taratman yeterli — anında bağlanırsınız",
+      "payoffCta": "PikTag’i kullanmaya başla"
     },
     "invalidEmail": "Geçerli bir e-posta adresi girin"
   },
@@ -330,7 +334,10 @@
     "addFromContacts": "Kişilerden arkadaş bul",
     "addManual": "Kişiyi elle ekle",
     "addPersonTitle": "Kişi ekle",
-    "addPersonA11y": "Kişi ekle"
+    "addPersonA11y": "Kişi ekle",
+    "coldStartActionScanDesc": "Birbirinizi tarayın — 30 saniyede kartvizit takası",
+    "coldStartActionSearch": "Etiketle insan ara",
+    "coldStartActionSearchDesc": "#pazarlama ya da #tasarımcı dene — kim çıkacak bak"
   },
   "search": {
     "clearAll": "Hepsini temizle",

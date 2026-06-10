@@ -251,7 +251,11 @@
       "phoneSectionHint": "เพื่อให้เพื่อนเจอคุณผ่านการซิงก์รายชื่อ — ไม่เปิดเผยและไม่ใช้โทรหาคุณ",
       "phonePlaceholder": "+66 81 234 5678",
       "phoneInvalidTitle": "ไม่รู้จักรูปแบบเบอร์โทร",
-      "phoneInvalidMessage": "อ่าน \"{{value}}\" ไม่ได้ — ข้ามไปก่อน เพิ่มภายหลังในโปรไฟล์ได้"
+      "phoneInvalidMessage": "อ่าน \"{{value}}\" ไม่ได้ — ข้ามไปก่อน เพิ่มภายหลังในโปรไฟล์ได้",
+      "payoffTitle": "เสร็จแล้ว!",
+      "payoffSubtitle": "นี่คือสิ่งที่คนอื่นเห็นเมื่อสแกนคุณ",
+      "payoffHint": "ครั้งหน้าที่เจอใคร ให้เขาสแกนตรงนี้ แล้วเชื่อมต่อกันได้ทันที",
+      "payoffCta": "เริ่มใช้ PikTag"
     },
     "invalidEmail": "กรอกอีเมลที่ถูกต้อง"
   },
@@ -330,7 +334,10 @@
     "addFromContacts": "หาเพื่อนจากรายชื่อติดต่อ",
     "addManual": "เพิ่มผู้ติดต่อด้วยตนเอง",
     "addPersonTitle": "เพิ่มคน",
-    "addPersonA11y": "เพิ่มคน"
+    "addPersonA11y": "เพิ่มคน",
+    "coldStartActionScanDesc": "สแกนกันและกัน แลกนามบัตรใน 30 วินาที",
+    "coldStartActionSearch": "ค้นหาคนด้วยแท็ก",
+    "coldStartActionSearchDesc": "ลอง #การตลาด หรือ #นักออกแบบ ดูว่าใครโผล่มา"
   },
   "search": {
     "clearAll": "ล้างทั้งหมด",

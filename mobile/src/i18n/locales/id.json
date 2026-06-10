@@ -251,7 +251,11 @@
       "phoneSectionHint": "Agar teman menemukanmu lewat sinkronisasi kontak — tidak pernah dipublikasikan, tidak dipakai menelepon.",
       "phonePlaceholder": "+62 812 3456 7890",
       "phoneInvalidTitle": "Format telepon tidak dikenali",
-      "phoneInvalidMessage": "Tidak bisa membaca \"{{value}}\" — dilewati. Bisa ditambahkan nanti dari profil."
+      "phoneInvalidMessage": "Tidak bisa membaca \"{{value}}\" — dilewati. Bisa ditambahkan nanti dari profil.",
+      "payoffTitle": "Selesai!",
+      "payoffSubtitle": "Seperti inilah kamu saat dipindai",
+      "payoffHint": "Saat bertemu seseorang, minta mereka memindai ini — langsung terhubung",
+      "payoffCta": "Mulai gunakan PikTag"
     },
     "invalidEmail": "Masukkan alamat email yang valid"
   },
@@ -330,7 +334,10 @@
     "addFromContacts": "Cari teman dari kontak",
     "addManual": "Tambah kontak manual",
     "addPersonTitle": "Tambah orang",
-    "addPersonA11y": "Tambah orang"
+    "addPersonA11y": "Tambah orang",
+    "coldStartActionScanDesc": "Saling pindai — tukar kartu dalam 30 detik",
+    "coldStartActionSearch": "Cari orang lewat tag",
+    "coldStartActionSearchDesc": "Coba #marketing atau #desainer — lihat siapa yang muncul"
   },
   "search": {
     "clearAll": "Hapus semua",

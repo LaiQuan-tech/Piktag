@@ -251,7 +251,11 @@
       "phoneSectionHint": "让朋友的通讯录能找到你 — 永远不会公开，也不会用来打给你。",
       "phonePlaceholder": "13800138000",
       "phoneInvalidTitle": "电话格式无效",
-      "phoneInvalidMessage": "无法识别「{{value}}」，已略过。可稍后到个人资料补上。"
+      "phoneInvalidMessage": "无法识别「{{value}}」，已略过。可稍后到个人资料补上。",
+      "payoffTitle": "完成！",
+      "payoffSubtitle": "这就是别人扫到你的样子",
+      "payoffHint": "下次见面，请对方扫这里，立刻互加好友",
+      "payoffCta": "开始使用 PikTag"
     },
     "invalidEmail": "请输入有效的 email 地址"
   },
@@ -330,7 +334,10 @@
     "addFromContacts": "从通讯录找朋友",
     "addManual": "手动记一个联系人",
     "addPersonTitle": "加人",
-    "addPersonA11y": "加人"
+    "addPersonA11y": "加人",
+    "coldStartActionScanDesc": "和现场的人互扫，30 秒交换名片",
+    "coldStartActionSearch": "用标签搜一个人",
+    "coldStartActionSearchDesc": "例如 #营销 #设计师，看看谁会出现"
   },
   "search": {
     "clearAll": "清除全部",

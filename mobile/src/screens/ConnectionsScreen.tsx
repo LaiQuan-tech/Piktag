@@ -35,6 +35,7 @@ import {
   Circle,
   Plus,
   Search,
+  QrCode,
 } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { COLORS, type ColorPalette } from '../constants/theme';
@@ -898,28 +899,36 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
           {t('connections.coldStartTitle', { defaultValue: '還沒有朋友？' })}
         </Text>
         <Text style={styles.emptyOnboardingSubtitle}>
-          {/* 2026-06-07: the emphasised QR card was removed (QR guidance
-              now lives ONLY in the # tab), so the cold-start has a single
-              contacts funnel — "選一個開始" (pick one) no longer fits.
-              The subtitle now points at that one action: find people you
-              already know. */}
-          {t('connections.coldStartSubtitleV2', { defaultValue: '把通訊錄裡的朋友加進來' })}
+          {/* 2026-06-10: multi-step subtitle again — the cold-start now
+              teaches the LOOP with three neutral action rows. */}
+          {t('connections.coldStartSubtitle', { defaultValue: '從這幾步開始建立你的 PikTag' })}
         </Text>
 
         <View style={styles.emptyActionList}>
+          {/* 2026-06-10 (founder, "測試者不知道怎麼用"): the cold-start
+              teaches the LOOP, not just the list — three action rows in
+              priority order: scan (the live mutual-add moment) → tag
+              search (the thesis) → contacts import. Deliberately NO
+              purple primary tint and NO 建議從這開始 label: the
+              2026-06-07 rule stands — the Friends tab carries no
+              banner-like card; these are plain nav rows, and the # tab
+              still OWNS the QR teaching (row 1 just routes there).
+              Order conveys priority. */}
           {[
-            // 2026-06-07: QR guidance lives ONLY in the QR (#) tab now
-            // (founder: "qr code 的引導用 Qr code tab 的就好…不要再
-            // 好友 tab 用相 banner 一樣的卡牌"). The emphasised purple
-            // "建議從這開始 / 用 QR 連上現場的人" card was a SECOND QR
-            // teaching surface competing with QrGroupListScreen — gone.
-            // The other first-friend actions live at their natural homes:
-            //   • qr      → the # tab (QrGroupListScreen) owns it
-            //   • profile → the 3-step onboarding wizard already built it
-            //   • ask     → the AskStoryRow above this empty state
-            //   • manual  → the header "+person" menu (從通訊錄 / 手動)
-            // …so the Friends-tab cold-start keeps the ONE non-QR
-            // first-friend funnel: find people you already know.
+            {
+              key: 'scan',
+              icon: QrCode,
+              title: t('connections.coldStartActionQr', { defaultValue: '用 QR 連上現場的人' }),
+              desc: t('connections.coldStartActionScanDesc', { defaultValue: '和現場的人互掃，30 秒交換名片' }),
+              onPress: () => navigation.navigate('AddTagTab'),
+            },
+            {
+              key: 'search',
+              icon: Search,
+              title: t('connections.coldStartActionSearch', { defaultValue: '用標籤搜一個人' }),
+              desc: t('connections.coldStartActionSearchDesc', { defaultValue: '例如 #行銷 #設計師，看看誰會出現' }),
+              onPress: () => navigation.navigate('SearchTab'),
+            },
             {
               key: 'contacts',
               icon: Users,
@@ -927,79 +936,27 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
               desc: t('connections.coldStartActionContactsDesc'),
               onPress: () => navigation.navigate('ContactSync'),
             },
-          ].map((action, idx, arr) => {
-            // First card (profile) is the recommended entry because
-            // every other surface in PikTag depends on the user having
-            // at least one tag on themselves — search, Ask matching,
-            // recommendation cron, the lot. Visually promoted with a
-            // brand-tinted background + a "建議從這開始" label so the
-            // user's eye lands here first. Cards 2-5 are visually
-            // demoted — same layout, lighter tonal weight — so they
-            // read as "or, also try these" rather than 4 more chores.
-            const isPrimary = idx === 0;
-            return (
-              <Pressable
-                key={action.key}
-                style={({ pressed }) => [
-                  styles.emptyActionCard,
-                  // The purple "banner" tint (emptyActionCardPrimary) only
-                  // applies when ≥2 cards need a recommended-first anchor.
-                  // The lone contacts card renders as a clean NEUTRAL card
-                  // (white bg, brand-tinted icon) — founder asked the
-                  // Friends tab not to carry a banner-like card.
-                  isPrimary && arr.length > 1 && styles.emptyActionCardPrimary,
-                  !isPrimary && styles.emptyActionCardSecondary,
-                  pressed && styles.emptyActionCardPressed,
-                ]}
-                onPress={action.onPress}
-              >
-                <View
-                  style={[
-                    styles.emptyActionIconWrap,
-                    !isPrimary && styles.emptyActionIconWrapSecondary,
-                  ]}
-                >
-                  <action.icon
-                    size={20}
-                    color={isPrimary ? colors.piktag500 : colors.piktag400}
-                  />
-                </View>
-                <View style={styles.emptyActionTextWrap}>
-                  {/* "建議從這開始" only makes sense when there's a CHOICE
-                      among ≥2 cards. With the single contacts funnel it
-                      would read as redundant, so it's gated on arr.length. */}
-                  {isPrimary && arr.length > 1 && (
-                    <Text style={styles.emptyActionStartHere}>
-                      {t('connections.coldStartStartHere', {
-                        defaultValue: '建議從這開始',
-                      })}
-                    </Text>
-                  )}
-                  <Text
-                    style={[
-                      styles.emptyActionTitle,
-                      !isPrimary && styles.emptyActionTitleSecondary,
-                    ]}
-                  >
-                    {action.title}
-                  </Text>
-                  <Text
-                    style={[
-                      styles.emptyActionDesc,
-                      !isPrimary && styles.emptyActionDescSecondary,
-                    ]}
-                    numberOfLines={2}
-                  >
-                    {action.desc}
-                  </Text>
-                </View>
-                <ChevronRight
-                  size={18}
-                  color={isPrimary ? colors.gray400 : colors.gray300}
-                />
-              </Pressable>
-            );
-          })}
+          ].map((action) => (
+            <Pressable
+              key={action.key}
+              style={({ pressed }) => [
+                styles.emptyActionCard,
+                pressed && styles.emptyActionCardPressed,
+              ]}
+              onPress={action.onPress}
+            >
+              <View style={styles.emptyActionIconWrap}>
+                <action.icon size={20} color={colors.piktag500} />
+              </View>
+              <View style={styles.emptyActionTextWrap}>
+                <Text style={styles.emptyActionTitle}>{action.title}</Text>
+                <Text style={styles.emptyActionDesc} numberOfLines={2}>
+                  {action.desc}
+                </Text>
+              </View>
+              <ChevronRight size={18} color={colors.gray400} />
+            </Pressable>
+          ))}
         </View>
       </View>
     );

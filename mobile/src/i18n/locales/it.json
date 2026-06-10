@@ -251,7 +251,11 @@
       "finishCta": "Fatto — inizia a usare PikTag",
       "usernameLabel": "Il tuo username PikTag",
       "headlineLabel": "Ruolo (facoltativo)",
-      "bioLabel": "Una riga su di te"
+      "bioLabel": "Una riga su di te",
+      "payoffTitle": "Fatto!",
+      "payoffSubtitle": "Ecco come ti vedono quando ti scansionano",
+      "payoffHint": "Al prossimo incontro, fallo scansionare: sarete subito collegati",
+      "payoffCta": "Inizia a usare PikTag"
     },
     "invalidEmail": "Inserisci un'email valida"
   },
@@ -330,7 +334,10 @@
     "addFromContacts": "Trova amici dai contatti",
     "addManual": "Aggiungi un contatto manualmente",
     "addPersonTitle": "Aggiungi persone",
-    "addPersonA11y": "Aggiungi persone"
+    "addPersonA11y": "Aggiungi persone",
+    "coldStartActionScanDesc": "Scansionatevi a vicenda: scambio di contatti in 30 secondi",
+    "coldStartActionSearch": "Cerca persone per tag",
+    "coldStartActionSearchDesc": "Prova #marketing o #designer: guarda chi compare"
   },
   "search": {
     "clearAll": "Cancella tutto",

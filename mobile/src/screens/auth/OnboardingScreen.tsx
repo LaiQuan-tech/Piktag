@@ -48,6 +48,8 @@ import { normalizeTagName } from '../../lib/normalizeTag';
 import { addUserTagByName } from '../../lib/userTags';
 import { recordAiSuggestions, markAiSuggestionAccepted } from '../../lib/aiTagLogger';
 import TagChip from '../../components/TagChip';
+import QrNameCard from '../../components/QrNameCard';
+import { LinearGradient } from 'expo-linear-gradient';
 import BirthdayInput from '../../components/BirthdayInput';
 import { sanitizePhone } from '../../lib/sanitizePhone';
 import { Image } from 'expo-image';
@@ -78,6 +80,11 @@ const ONBOARDING_COMPLETED_KEY = 'piktag_onboarding_completed_v1';
 const STEP_PROFILE = 1; // identity: avatar + name + username
 const STEP_TAGS = 2;    // 你是誰: headline + bio + tags
 const STEP_LINKS = 3;   // 電子名片: social/contact links
+const STEP_DONE = 4;    // payoff: 你的名片+QR — teaches the mutual-scan
+                        // gesture BEFORE landing on the (empty) home.
+                        // Terminal screen, not a branch: the server flag
+                        // is already TRUE when it shows (founder 2026-06-10,
+                        // "測試者不知道怎麼用" — wizard taught setup, never usage).
 const MAX_ONB_TAGS = 10;
 const MIN_ONB_TAGS = 3; // gate: tags are the engine — require a few
 const MIN_ONB_LINKS = 3; // gate: ≥3 links (phone/email count) — 電子名片
@@ -771,11 +778,13 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
         console.warn('[Onboarding] flag persist failed:', err);
       }
       setBurstUserName(trimmed);
+      // Land on the payoff step (你的名片+QR) with the burst playing over
+      // it. Leaving for Main is now an EXPLICIT user action (payoff CTA →
+      // finishOnboarding) — no auto-nav timer. Safe even if the app dies
+      // here: onboarding_completed is already TRUE, so the next launch
+      // goes straight to Main.
+      setStep(STEP_DONE);
       setBurstVisible(true);
-      // Safety net: if the burst's onComplete never fires (animation
-      // lib error / unmount), navigate anyway after the animation
-      // would have finished. finishedRef keeps it single-shot.
-      navTimerRef.current = setTimeout(() => { finishOnboarding(); }, 4000);
     } catch (err: any) {
       Alert.alert(t('common.error'), err.message || t('common.unknownError'));
     } finally {
@@ -1300,6 +1309,53 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
     );
   };
 
+  // ─── Render: payoff (STEP_DONE) ──────────────────────────
+  // The bridge from "I filled a form" to "this is my card — people scan
+  // it and we're connected". Reuses the shared QrNameCard on the locked
+  // brand gradient (same doctrine as QrCodeModal / QrGroupDetail: fixed
+  // colours, theme-agnostic). ONE button (tier-2 solid commit — the QR
+  // card itself is the wow; no gradient button next to a gradient sheet).
+  const renderDone = () => (
+    <ScrollView
+      contentContainerStyle={styles.doneScroll}
+      showsVerticalScrollIndicator={false}
+    >
+      <Text style={styles.doneTitle}>
+        {t('auth.onboarding.payoffTitle', { defaultValue: '完成！' })}
+      </Text>
+      <Text style={styles.doneSubtitle}>
+        {t('auth.onboarding.payoffSubtitle', { defaultValue: '這就是別人掃到你的樣子' })}
+      </Text>
+      <LinearGradient
+        colors={['#ff5757', '#c44dff', '#8c52ff']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.doneGradient}
+      >
+        <QrNameCard
+          qrValue={`https://pikt.ag/${username.trim()}`}
+          handle={username.trim()}
+          name={displayName.trim()}
+          tags={selectedTags.map((tg) => tg.name)}
+        />
+      </LinearGradient>
+      <Text style={styles.doneHint}>
+        {t('auth.onboarding.payoffHint', {
+          defaultValue: '下次見面，請對方掃這裡，立刻互加好友',
+        })}
+      </Text>
+      <TouchableOpacity
+        style={styles.doneCta}
+        onPress={finishOnboarding}
+        activeOpacity={0.85}
+      >
+        <Text style={styles.doneCtaText}>
+          {t('auth.onboarding.payoffCta', { defaultValue: '開始使用 PikTag' })}
+        </Text>
+      </TouchableOpacity>
+    </ScrollView>
+  );
+
   return (
     <KeyboardAvoidingView
       style={styles.container}
@@ -1309,16 +1365,17 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
         ? renderProfile()
         : step === STEP_TAGS
           ? renderTags()
-          : renderLinks()}
+          : step === STEP_LINKS
+            ? renderLinks()
+            : renderDone()}
 
-      {/* Celebration burst plays after handleComplete succeeds. Its
-          onComplete then drives the navigation reset — we defer to
-          onComplete so the animation isn't interrupted by tab-stack
-          mounting. */}
+      {/* Celebration burst plays over the payoff step after handleComplete
+          succeeds. It no longer drives navigation — the payoff CTA does —
+          so on animation end we just hide it. */}
       <OnboardingCompleteBurst
         visible={burstVisible}
         userName={burstUserName}
-        onComplete={finishOnboarding}
+        onComplete={() => setBurstVisible(false)}
       />
 
       {/* (Business-card confirmation sheet removed 2026-06-05 — no
@@ -1336,6 +1393,52 @@ function makeStyles(c: ColorPalette) {
   },
 
   // (Welcome-screen styles removed 2026-06-05 with the welcome interstitial.)
+
+  // ── Payoff (STEP_DONE) ──
+  doneScroll: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    paddingVertical: SPACING.xxl,
+  },
+  doneTitle: {
+    fontSize: 28,
+    fontWeight: '800',
+    color: c.gray900,
+    textAlign: 'center',
+  },
+  doneSubtitle: {
+    fontSize: 15,
+    color: c.gray600,
+    textAlign: 'center',
+    marginTop: 8,
+    marginBottom: 20,
+  },
+  doneGradient: {
+    borderRadius: 24,
+    padding: 20,
+    alignSelf: 'stretch',
+  },
+  doneHint: {
+    fontSize: 13,
+    color: c.gray500,
+    textAlign: 'center',
+    marginTop: 16,
+    lineHeight: 19,
+  },
+  // Locked tier-2 commit CTA (saveBtn token): solid piktag500, white
+  // text intentionally fixed regardless of theme.
+  doneCta: {
+    backgroundColor: c.piktag500,
+    borderRadius: 14,
+    paddingVertical: 15,
+    alignItems: 'center',
+    marginTop: 20,
+  },
+  doneCtaText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '700',
+  },
 
   // ── Profile screen ──
   profileContainer: {

@@ -27,7 +27,6 @@ import { ChatUnreadProvider, useChatUnread } from '../hooks/useChatUnread';
 import LoginScreen from '../screens/auth/LoginScreen';
 import RegisterScreen from '../screens/auth/RegisterScreen';
 import OnboardingScreen from '../screens/auth/OnboardingScreen';
-import TabTooltipOverlay, { TAB_TOOLTIPS_SEEN_KEY } from '../components/onboarding/TabTooltipOverlay';
 
 // Tab-level screens — eager (loaded on first render of MainTabs)
 import ConnectionsScreen from '../screens/ConnectionsScreen';
@@ -255,13 +254,11 @@ function MainTabs() {
         }}
       />
     </Tab.Navigator>
-    {/* First-launch tooltip tour. Self-contained — reads its own
-        AsyncStorage flag (TAB_TOOLTIPS_SEEN_KEY) and renders nothing
-        for users who already saw it. Backfill for already-onboarded
-        users happens in decideOnboarding() below: when an account with
-        a COMPLETE profile is detected (already past the wizard), we
-        write the seen flag so the overlay never appears for them. */}
-    <TabTooltipOverlay />
+    {/* TabTooltipOverlay removed 2026-06-10 (founder — testers still saw
+        it; a823b87 shipped QuickStartTour + this overlay together, fbc6299
+        removed only the tour and this sibling survived). Five labels that
+        vanish on one tap teach nothing; the wizard payoff step now owns
+        first-use education. */}
     </View>
   );
 }
@@ -697,17 +694,9 @@ export default function AppNavigator() {
       // incl. bailed-after-step-1) → not complete → show the wizard.
       const complete = !!prof && prof.onboarding_completed === true;
       if (complete) {
-        // Cache the per-account result so later launches skip the query,
-        // and mark the new-user tab-tooltip tour seen (existing/complete
-        // accounts shouldn't get the first-run tour).
+        // Cache the per-account result so later launches skip the query.
+        // (Tab-tooltip backfill removed with the overlay, 2026-06-10.)
         AsyncStorage.setItem(cacheKey, 'true').catch(() => {});
-        AsyncStorage.getItem(TAB_TOOLTIPS_SEEN_KEY)
-          .then((existing) => {
-            if (existing == null) {
-              AsyncStorage.setItem(TAB_TOOLTIPS_SEEN_KEY, 'true').catch(() => {});
-            }
-          })
-          .catch(() => {});
         setOnboardingDecision('skip');
       } else {
         // Null profile (fresh signup) or missing username/full_name

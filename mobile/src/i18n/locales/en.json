@@ -251,7 +251,11 @@
       "finishCta": "Done — start using PikTag",
       "usernameLabel": "Your PikTag handle",
       "headlineLabel": "Title (optional)",
-      "bioLabel": "One line about you"
+      "bioLabel": "One line about you",
+      "payoffTitle": "All set!",
+      "payoffSubtitle": "This is what people see when they scan you",
+      "payoffHint": "Next time you meet someone, have them scan this — you are connected instantly",
+      "payoffCta": "Start using PikTag"
     },
     "invalidEmail": "Enter a valid email address"
   },
@@ -330,7 +334,10 @@
     "addFromContacts": "Find friends from contacts",
     "addManual": "Add a contact manually",
     "addPersonTitle": "Add people",
-    "addPersonA11y": "Add people"
+    "addPersonA11y": "Add people",
+    "coldStartActionScanDesc": "Scan each other — swap cards in 30 seconds",
+    "coldStartActionSearch": "Search people by tag",
+    "coldStartActionSearchDesc": "Try #marketing or #designer — see who shows up"
   },
   "search": {
     "clearAll": "Clear all",

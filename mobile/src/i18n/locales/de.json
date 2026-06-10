@@ -251,7 +251,11 @@
       "phoneSectionHint": "Damit Freunde dich über die Kontaktsynchronisierung finden — wird nie veröffentlicht und nie für Anrufe genutzt.",
       "phonePlaceholder": "+49 151 23456789",
       "phoneInvalidTitle": "Telefonformat nicht erkannt",
-      "phoneInvalidMessage": "„{{value}}“ konnte nicht erkannt werden — übersprungen. Du kannst es später im Profil ergänzen."
+      "phoneInvalidMessage": "„{{value}}“ konnte nicht erkannt werden — übersprungen. Du kannst es später im Profil ergänzen.",
+      "payoffTitle": "Fertig!",
+      "payoffSubtitle": "So sehen dich andere beim Scannen",
+      "payoffHint": "Lass dein Gegenüber das beim nächsten Treffen scannen — ihr seid sofort verbunden",
+      "payoffCta": "PikTag starten"
     },
     "invalidEmail": "Gib eine gültige E-Mail-Adresse ein"
   },
@@ -330,7 +334,10 @@
     "addFromContacts": "Freunde aus Kontakten finden",
     "addManual": "Kontakt manuell hinzufügen",
     "addPersonTitle": "Personen hinzufügen",
-    "addPersonA11y": "Personen hinzufügen"
+    "addPersonA11y": "Personen hinzufügen",
+    "coldStartActionScanDesc": "Gegenseitig scannen — Kontakte in 30 Sekunden tauschen",
+    "coldStartActionSearch": "Leute per Tag suchen",
+    "coldStartActionSearchDesc": "Probiere #marketing oder #designer — wer taucht auf?"
   },
   "search": {
     "clearAll": "Alle löschen",
