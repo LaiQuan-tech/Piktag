@@ -117,6 +117,13 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
   // straight into the 精靈, no splash page in between.
   const [step, setStep] = useState<number>(STEP_PROFILE);
   const [displayName, setDisplayName] = useState('');
+  // True when the display name came from OAuth (Apple / Google) — the
+  // identity provider already gave us the user's name via the
+  // Authentication Services framework, so we MUST NOT show another
+  // "what's your name?" input (Apple Guideline 4 Sign-In rejection,
+  // 1.0.5 build 891, 2026-06-10). The name is written silently to the
+  // profile; the step 1 UI shows only the handle picker + avatar.
+  const [nameFromOAuth, setNameFromOAuth] = useState(false);
   // ─── Username (帳號) — the pikt.ag/{username} handle ──────────
   // 2026-06-05: onboarding now lets the user SET their handle (it was
   // auto-generated + only editable in EditProfile, which the testers
@@ -245,7 +252,15 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
           (typeof meta.name === 'string' && meta.name.trim()) ||
           '';
         if (fromMeta) {
-          if (!cancelled) setDisplayName(fromMeta);
+          if (!cancelled) {
+            setDisplayName(fromMeta);
+            // OAuth provider supplied the name — flag it so we DON'T re-ask.
+            // Required by Apple Guideline 4 Sign in with Apple (1.0.5 build
+            // 891 rejection 2026-06-10): the Authentication Services
+            // framework already provides `credential.fullName`, so the app
+            // must not show a subsequent name-entry screen.
+            setNameFromOAuth(true);
+          }
           return;
         }
 
@@ -270,6 +285,11 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
           const profileName = profile?.full_name?.trim();
           if (!cancelled && profileName) {
             setDisplayName(profileName);
+            // The trigger / appleAuth wrote this — treat as OAuth-supplied
+            // (covers the re-onboarding edge case where an Apple user
+            // bailed mid-wizard and came back; we must NOT re-ask their
+            // name on the second pass either).
+            setNameFromOAuth(true);
             return;
           }
         } catch {
@@ -796,7 +816,13 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
 
   // ─── Render: Step 1 (Name + Avatar) ─────────────────────
   const renderProfile = () => {
-    const ctaDisabled = saving || !displayName.trim() || usernameStatus !== 'available';
+    // Apple Guideline 4 Sign-In: if the name came from OAuth, we cannot
+    // require it again on this screen. Gate the CTA only on username
+    // availability in that case (the name is already in `displayName`
+    // from prefill — it just isn't shown / re-asked).
+    const ctaDisabled = saving
+      || (!nameFromOAuth && !displayName.trim())
+      || usernameStatus !== 'available';
     return (
       <ScrollView
         contentContainerStyle={styles.profileContainer}
@@ -805,10 +831,18 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
       >
         {renderStepHeader(1)}
         <Text style={styles.profileTitle}>
-          {t('auth.onboarding.profileTitle', { defaultValue: '你叫什麼名字？' })}
+          {nameFromOAuth
+            ? t('auth.onboarding.profileTitleHandle', {
+                defaultValue: '設定你的 PikTag 帳號',
+              })
+            : t('auth.onboarding.profileTitle', { defaultValue: '你叫什麼名字？' })}
         </Text>
         <Text style={styles.profileSubtitle}>
-          {t('auth.onboarding.profileSubtitle', { defaultValue: '朋友掃 QR 會看到這個名字' })}
+          {nameFromOAuth
+            ? t('auth.onboarding.profileSubtitleHandle', {
+                defaultValue: '朋友透過 pikt.ag/{你的帳號} 找到你',
+              })
+            : t('auth.onboarding.profileSubtitle', { defaultValue: '朋友掃 QR 會看到這個名字' })}
         </Text>
 
         {/* Avatar picker — sits ABOVE the name input so the user
@@ -844,18 +878,25 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
           })}
         </Text>
 
-        <TextInput
-          style={styles.nameInput}
-          value={displayName}
-          onChangeText={setDisplayName}
-          placeholder={t('auth.onboarding.profileNamePlaceholder', { defaultValue: '你的名字' })}
-          placeholderTextColor={colors.gray400}
-          maxLength={40}
-          autoCapitalize="words"
-          autoCorrect={false}
-          returnKeyType="next"
-          onSubmitEditing={() => usernameInputRef.current?.focus()}
-        />
+        {/* Name input — only for email signup (Apple/Google users had
+            their name returned by the OAuth provider, see prefill effect).
+            Apple Guideline 4: do NOT show this input to Apple-Sign-In
+            users; the name from `credential.fullName` is silently written
+            to the profile already. 1.0.5 build 891 rejection 2026-06-10. */}
+        {!nameFromOAuth && (
+          <TextInput
+            style={styles.nameInput}
+            value={displayName}
+            onChangeText={setDisplayName}
+            placeholder={t('auth.onboarding.profileNamePlaceholder', { defaultValue: '你的名字' })}
+            placeholderTextColor={colors.gray400}
+            maxLength={40}
+            autoCapitalize="words"
+            autoCorrect={false}
+            returnKeyType="next"
+            onSubmitEditing={() => usernameInputRef.current?.focus()}
+          />
+        )}
 
         {/* Username (帳號) — a clearly SEPARATE thing from the name
             above. Labelled + rendered as the public profile URL
