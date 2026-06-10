@@ -2106,11 +2106,20 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
   }, [tags, selectedTagCategory]);
 
   const filteredTags = useMemo(() => {
-    const base = selectedTagCategory
-      ? tags.filter((t) => t.semantic_type === selectedTagCategory)
+    // Only honor the selected category while it still QUALIFIES (is in
+    // tagCategories, the volume-gated chip list). Otherwise a refresh that
+    // drops the pool below the gate hides the chip row while the stale
+    // selection keeps silently filtering the list — a near-empty grid with
+    // no visible chip to clear it. Row hidden ⇒ list unfiltered, always.
+    const activeCategory =
+      selectedTagCategory && tagCategories.includes(selectedTagCategory)
+        ? selectedTagCategory
+        : null;
+    const base = activeCategory
+      ? tags.filter((t) => t.semantic_type === activeCategory)
       : tags;
     return base.slice(0, popularVisibleCount);
-  }, [tags, selectedTagCategory, popularVisibleCount]);
+  }, [tags, selectedTagCategory, tagCategories, popularVisibleCount]);
 
   // Reveal the next page of popular tags when the user scrolls to the
   // end of the home (no-query) grid. Pure in-memory reveal from the
