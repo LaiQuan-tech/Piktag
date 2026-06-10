@@ -1,5 +1,12 @@
 # PikTag — Store Listing Copy (zh-TW + en)
 
+> **CANONICAL COPY IS NOW `STORE_LISTING_FINAL.md`** (Tier A — explicit
+> "The Devil Wears Prada / Miranda" hook, founder-approved 2026-06-09, all 17
+> App-Store locales). The en/zh-TW full descriptions BELOW are the superseded
+> Tier-B version, kept for reference; the App-name / Subtitle / Promo /
+> Keywords / ASO notes here remain valid. Paste descriptions from
+> STORE_LISTING_FINAL.md.
+
 Last revised: **2026-06-08** — Devil-whisper positioning repositioning. Tier B
 (middle-strength metaphor) ships across ASC + Play Console: app is reframed
 as "the person standing behind you who remembers every name — and tells you
@@ -27,7 +34,7 @@ it does NOT replace them. Hook + brand verb stay; the metaphor enriches the
 | Slot | zh-TW | en |
 |---|---|---|
 | **Hook (locked)** | 自己標自己，誰都找得到。 | Tag yourself. Find anyone. |
-| **Brand verb (locked)** | PikTag to connect. | PikTag to connect. |
+| **Brand verb (locked)** | Pick. Tag. Connect. | Pick. Tag. Connect. |
 | **Positioning metaphor (new 2026-06-08)** | 像站在你身後替你記名字、推薦該認識誰的助理 | Like the person in your ear remembering every name and telling you who you should know next |
 | **Functional clarity** | 不靠名字，靠標籤 | Search by need, not by name |
 | **Recall axis** | 想不起名字 → 標籤搜得到 | Forgot the name → tag finds them |
@@ -167,7 +174,7 @@ PikTag 解決「我認識誰會 X？」的問題。
 PikTag 免費使用。有問題請聯絡 support@pikt.ag
 
 自己標自己，誰都找得到。
-PikTag to connect.
+Pick. Tag. Connect.
 ```
 
 ### en (2267 / 4000)
@@ -248,7 +255,7 @@ Who it's for
 PikTag is free. Questions? Email support@pikt.ag
 
 Tag yourself. Find anyone.
-PikTag to connect.
+Pick. Tag. Connect.
 ```
 
 ---
@@ -371,7 +378,7 @@ Applied (Tier B = middle-strength metaphor):
   core moves + Key features" structure + new "Why PikTag isn't another
   contacts app" closing paragraph that doubles down on the metaphor
 - Locked phrases preserved: `Tag yourself. Find anyone.` (en hook) /
-  `自己標自己，誰都找得到。` (zh-TW hook) / `PikTag to connect.` (brand verb)
+  `自己標自己，誰都找得到。` (zh-TW hook) / `Pick. Tag. Connect.` (brand verb)
 - Marketing screenshot captions: deliberately NOT touched this round
 - Apple keywords: deliberately NOT touched this round
 

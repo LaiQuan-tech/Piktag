@@ -301,4 +301,4 @@ the layout constants. Same `CARDS` config works.
 - `~/.claude/CLAUDE.md` — global rules (no emoji, 2000 px image limit,
   繁中 reply preference, never resize native-res screenshots).
 - `mobile/CLAUDE.md` — PikTag working memory (brand voice, North Star,
-  locked phrases like "Tag yourself. Find anyone." / "PikTag to connect.").
+  locked phrases like "Tag yourself. Find anyone." / "Pick. Tag. Connect.").

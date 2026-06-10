@@ -1,5 +1,10 @@
 # PikTag — Per-Locale Store Listing Copy
 
+> **SUPERSEDED by `STORE_LISTING_FINAL.md`** (2026-06-09): full localized
+> Descriptions + Promo + Subtitle + Keywords now exist for all 17 App-Store
+> locales there (Tier A). The Subtitle/Keyword tables below remain a valid
+> quick reference. ur/bn are intentionally absent (no App Store locale).
+
 Last revised: 2026-04-30
 
 This file contains the **highest-leverage** store-listing strings for the
