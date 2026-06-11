@@ -196,7 +196,7 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
     : t('auth.onboarding.headlinePlaceholder', { defaultValue: '例：產品設計師' });
   const bioPlaceholder = bioHints
     ? bioHints[exampleIdx % bioHints.length]
-    : t('auth.onboarding.bioPlaceholder', { defaultValue: '一句話介紹你自己' });
+    : t('auth.onboarding.bioPlaceholder', { defaultValue: '例：在銀行上班，假日都在爬山' });
 
   // ─── Step 3 (電子名片): link picker ──────────────────────────
   // The biolinks themselves live in `pendingBiolinks` (shared with the
@@ -1011,10 +1011,13 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
         {renderStepHeader(2, () => setStep(STEP_PROFILE))}
 
         <Text style={styles.profileTitle}>
-          {t('auth.onboarding.tagsTitle', { defaultValue: '你是誰？' })}
+          {/* 2026-06-10 (founder, Zuckerberg-standard copy pass): don't ask
+              users to DEFINE themselves (philosophy) — ask them to imagine
+              being SEARCHED for (concrete social scenario). */}
+          {t('auth.onboarding.tagsTitle', { defaultValue: '讓別人搜得到你' })}
         </Text>
         <Text style={styles.profileSubtitle}>
-          {t('auth.onboarding.tagsSubtitle', { defaultValue: '幾個標籤，讓對的人找到你' })}
+          {t('auth.onboarding.tagsSubtitle', { defaultValue: '朋友需要「你這種人」的時候，會搜什麼詞？' })}
         </Text>
 
         {/* Headline (職稱) — optional. Label keeps the field identity +
@@ -1062,7 +1065,8 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
             tags are for matching / meeting the right people. */}
         <Text style={styles.tagPurpose}>
           {t('auth.onboarding.tagPurpose', {
-            defaultValue: '標籤讓對的人搜尋得到你，也幫你配對新朋友。',
+            defaultValue:
+              '把那些詞加上就對了：工作（#會計師）、興趣（#攝影）、正在做的事（#找工作）。之後有人搜這些詞，出現的就是你。',
           })}
         </Text>
 
@@ -1162,7 +1166,7 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
             {selectedTags.length < MIN_ONB_TAGS
               ? t('auth.onboarding.tagsGateHint', {
                   count: MIN_ONB_TAGS,
-                  defaultValue: '至少選 3 個標籤再繼續',
+                  defaultValue: '至少 {{count}} 個——標籤越多，越容易被找到',
                 })
               : t('auth.onboarding.bioGateHint', { defaultValue: '寫一句自我介紹再繼續' })}
           </Text>
@@ -1282,7 +1286,7 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
           <Text style={styles.gateHint}>
             {t('auth.onboarding.linksGateHint', {
               count: Math.max(0, MIN_ONB_LINKS - pendingBiolinks.length),
-              defaultValue: '再加 {{count}} 個就好（電子名片至少 3 個聯絡方式或社群）',
+              defaultValue: '再加 {{count}} 個——別人掃到你，才有辦法聯絡你',
             })}
           </Text>
         )}
