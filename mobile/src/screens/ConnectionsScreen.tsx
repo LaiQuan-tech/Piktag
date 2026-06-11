@@ -48,6 +48,7 @@ import { getCache, setCache, CACHE_KEYS } from '../lib/dataCache';
 import { ConnectionsScreenSkeleton } from '../components/SkeletonLoader';
 import ErrorState from '../components/ErrorState';
 import { useAuth } from '../hooks/useAuth';
+import { useAuthProfile } from '../context/AuthContext';
 import { useLocalContacts } from '../hooks/useLocalContacts';
 import { useAskFeed } from '../hooks/useAskFeed';
 import { useNetInfoReconnect } from '../hooks/useNetInfoReconnect';
@@ -971,18 +972,18 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
   // --- Optimized: stable keyExtractor ---
   const keyExtractor = useCallback((item: ConnectionWithTags) => item.id, []);
 
-  // Fetch my own profile for Ask story row
-  const [myProfile, setMyProfile] = useState<{ full_name: string | null; avatar_url: string | null }>({ full_name: null, avatar_url: null });
-  useEffect(() => {
-    if (!user) return;
-    // `.maybeSingle()` — a brand-new account may not have a
-    // `piktag_profiles` row yet (see EditProfileScreen.fetchProfile
-    // comment for the three insert paths that can miss). The old
-    // `.single()` threw PGRST116 instead of returning null, which
-    // surfaced as a console error and left `myProfile` stale.
-    supabase.from('piktag_profiles').select('full_name, avatar_url').eq('id', user.id).maybeSingle()
-      .then(({ data }) => { if (data) setMyProfile(data); });
-  }, [user]);
+  // My own profile for the Ask story row. Sourced from AuthContext —
+  // the central cache fetches piktag_profiles ONCE at login, so we
+  // no longer pay a per-mount round-trip here. Shape downstream:
+  // { full_name, avatar_url } — both nullable, same as before.
+  const { profile: authProfile } = useAuthProfile();
+  const myProfile = useMemo(
+    () => ({
+      full_name: authProfile?.full_name ?? null,
+      avatar_url: authProfile?.avatar_url ?? null,
+    }),
+    [authProfile?.full_name, authProfile?.avatar_url],
+  );
 
   // (Invite-code redeem resume removed — the invite/redeem gate was
   // retired; open signup, no codes.)

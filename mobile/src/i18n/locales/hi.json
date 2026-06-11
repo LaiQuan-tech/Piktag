@@ -256,7 +256,8 @@
       "payoffSubtitle": "स्कैन करने पर लोग आपको ऐसा देखेंगे",
       "payoffHint": "अगली बार किसी से मिलें तो उन्हें यह स्कैन करने दें — तुरंत जुड़ जाएँगे",
       "payoffCta": "PikTag इस्तेमाल शुरू करें",
-      "birthdayGateHint": "अपना जन्मदिन भरें ताकि दोस्तों को रिमाइंडर मिले"
+      "birthdayGateHint": "अपना जन्मदिन भरें ताकि दोस्तों को रिमाइंडर मिले",
+      "addLinkInvalid": "पहले एक मान्य लिंक डालें"
     },
     "invalidEmail": "एक मान्य ईमेल पता दर्ज करें"
   },
@@ -1533,5 +1534,12 @@
     "emptyTitle": "Your Tribe is still 0",
     "emptyDesc": "Share your event QR or send invite links from Settings — everyone who joins through you will grow in this constellation.",
     "footnote": "Only you can see your Tribe constellation."
+  },
+  "appNav": {
+    "confirmInviteTitle": "कनेक्शन की पुष्टि करें",
+    "confirmInviteBody": "अपने इनवाइट लिंक से @{{name}} से जुड़ें?",
+    "confirmInviteBodyAnon": "इनवाइट लिंक से कनेक्शन स्वीकार करें?",
+    "confirmInviteAccept": "जुड़ें",
+    "confirmInviteCancel": "रद्द करें"
   }
 }

@@ -46,6 +46,7 @@ import { useAskFeed } from '../hooks/useAskFeed';
 import { useNetInfoReconnect } from '../hooks/useNetInfoReconnect';
 import type { PiktagProfile, Biolink } from '../types';
 import { getViewerRelation, filterBiolinksByVisibility } from '../lib/biolinkVisibility';
+import { isSafeBiolinkUrl } from '../lib/platforms';
 import { shareProfile } from '../lib/shareProfile';
 import { followUser } from '../lib/followUser';
 
@@ -1106,7 +1107,10 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
   };
 
   const handleOpenLink = (url: string) => {
-    if (url) Linking.openURL(url).catch(() => {});
+    // Scheme allowlist gate — silent no-op for old/bad rows whose
+    // scheme is outside the allowlist (`javascript:` / `intent:` etc.).
+    if (!url || !isSafeBiolinkUrl(url)) return;
+    Linking.openURL(url).catch(() => {});
   };
 
   if (loading) {

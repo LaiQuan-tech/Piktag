@@ -580,8 +580,17 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
   // search. Without the focus refetch, the cache stayed stale until
   // a full app reload — users reported "I followed them but search
   // still says they're not my friend".
+  //
+  // 30s cooldown mirrors ConnectionsScreen — useFocusEffect fires on
+  // every back-nav from a sub-screen, and the friend set changes
+  // rarely; without the cooldown a quick tab-flip re-runs the full
+  // SELECT every time, hammers the API on flaky networks.
+  const lastFriendsFetchAt = useRef<number>(0);
   const fetchMyFriendIds = useCallback(async () => {
     if (!user) return;
+    const now = Date.now();
+    if (now - lastFriendsFetchAt.current < 30_000) return;
+    lastFriendsFetchAt.current = now;
     const { data } = await supabase
       .from('piktag_connections')
       .select('id, connected_user_id')
@@ -605,9 +614,15 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
 
   // Fetch the FoF id set via the SECURITY DEFINER RPC. Fails soft —
   // an error here means search loses the FoF boost but everything
-  // else still works.
+  // else still works. Same 30s cooldown as fetchMyFriendIds: FoF
+  // membership is a slow-moving derived set, no need to re-query on
+  // every focus.
+  const lastFoFFetchAt = useRef<number>(0);
   const fetchFoFIds = useCallback(async () => {
     if (!user) return;
+    const now = Date.now();
+    if (now - lastFoFFetchAt.current < 30_000) return;
+    lastFoFFetchAt.current = now;
     try {
       const { data, error } = await supabase.rpc('get_friend_of_friend_ids');
       if (error) {
@@ -637,7 +652,14 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
     try {
       const stored = await AsyncStorage.getItem(RECENT_SEARCHES_KEY);
       if (stored) {
-        setRecentSearches(JSON.parse(stored));
+        // Defensive parse: a corrupted/wrong-shape AsyncStorage value
+        // (older app version, manual edit, hot-reload swap) would
+        // otherwise set recentSearches to a non-array and crash
+        // every .map / .filter render downstream.
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed)) {
+          setRecentSearches(parsed.filter((s) => typeof s === 'string'));
+        }
       }
     } catch {}
   }, []);
@@ -1048,6 +1070,14 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
       // Use first keyword for main search (profiles + aliases)
       const mainKeyword = keywords[0];
 
+      // Strip PostgREST .or() grammar chars (comma / paren / percent)
+      // before interpolation. Same escape the local-contact branch
+      // (below) does to its qSafe — a stray comma in mainKeyword
+      // (e.g. a paste like "alex, designer") otherwise terminates
+      // the .or() filter list and 400s the whole request. Mirrors
+      // the protective pattern at line ~2294 (`qSafe.replace(...)`).
+      const orSafe = mainKeyword.replace(/[,()%]/g, '');
+
       const seq = ++searchSeqRef.current;
       setLoading(true);
       setActiveCategory(null);
@@ -1095,7 +1125,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
           supabase
             .from('piktag_profiles')
             .select('id, username, full_name, avatar_url, is_verified')
-            .or(`username.ilike.%${mainKeyword}%,full_name.ilike.%${mainKeyword}%,headline.ilike.%${mainKeyword}%,bio.ilike.%${mainKeyword}%`)
+            .or(`username.ilike.%${orSafe}%,full_name.ilike.%${orSafe}%,headline.ilike.%${orSafe}%,bio.ilike.%${orSafe}%`)
             .limit(20),
           // Biolinks search — surfaces a profile when its handle lives
           // in a biolink rather than in the username/headline. Catches
@@ -1116,7 +1146,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
           supabase
             .from('piktag_biolinks')
             .select('user_id, piktag_profiles!inner(id, username, full_name, avatar_url, is_verified)')
-            .or(`label.ilike.%${mainKeyword}%,url.ilike.%${mainKeyword}%`)
+            .or(`label.ilike.%${orSafe}%,url.ilike.%${orSafe}%`)
             .eq('visibility', 'public')
             .eq('is_active', true)
             .limit(20),

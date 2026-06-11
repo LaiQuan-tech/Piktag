@@ -538,62 +538,66 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
         void loadScanAiSuggestions(cardHeadline, cardName);
       };
 
+      // PRE-FILL FIRST. Founder rule: "Recognition latency is intolerable;
+      // recommendation latency is fine." OCR already came back successfully —
+      // the form MUST populate immediately. We used to await the member-match
+      // RPC here, which serialized a non-critical lookup behind the visible
+      // result; that's gone now.
+      applyPrefill();
+
       // Is the scanned person ALREADY a PikTag member? Match the
       // scanned phone/email against profiles via the SAME canonical
       // RPC ContactSync uses. If so, filing a private local contact is
       // the wrong outcome (it would never auto-link — the promote
-      // trigger only fires on NEW registration) — offer to connect to
-      // the real member instead. FAIL-OPEN: any lookup error must not
-      // block the scan; just fall through to the normal prefill.
-      let member:
-        | { matched_user_id: string; full_name: string | null; username: string | null }
-        | null = null;
+      // trigger only fires on NEW registration) — surface a non-blocking
+      // alert AFTER the form is already filled, so the user can choose
+      // to jump to the real profile. FAIL-OPEN: any lookup error is
+      // silently swallowed — the form is already populated.
       if (cardPhone || cardEmail) {
-        try {
-          const { data: matches, error: matchErr } = await supabase.rpc(
-            'match_contacts_against_profiles',
-            {
-              p_phones: cardPhone ? [cardPhone] : [],
-              p_emails: cardEmail ? [cardEmail] : [],
-            },
-          );
-          if (!matchErr && Array.isArray(matches) && matches.length > 0) {
-            member = matches[0] as any;
+        void (async () => {
+          try {
+            const { data: matches, error: matchErr } = await supabase.rpc(
+              'match_contacts_against_profiles',
+              {
+                p_phones: cardPhone ? [cardPhone] : [],
+                p_emails: cardEmail ? [cardEmail] : [],
+              },
+            );
+            if (matchErr || !Array.isArray(matches) || matches.length === 0) return;
+            const member = matches[0] as {
+              matched_user_id: string;
+              full_name: string | null;
+              username: string | null;
+            };
+            if (!member?.matched_user_id) return;
+            const who =
+              (member.full_name && member.full_name.trim()) ||
+              (member.username ? `@${member.username}` : cardName) ||
+              t('localContact.alreadyMemberFallbackWho', { defaultValue: '這個人' });
+            Alert.alert(
+              t('localContact.alreadyMemberTitle', { defaultValue: '這個人已經在 PikTag' }),
+              t('localContact.alreadyMemberMsg', {
+                name: who,
+                defaultValue:
+                  `${who} 已經是 PikTag 會員 —— 直接連上更好，不用只記成聯絡人。`,
+              }),
+              [
+                {
+                  text: t('localContact.alreadyMemberFile', { defaultValue: '仍記成聯絡人' }),
+                  style: 'cancel',
+                },
+                {
+                  text: t('localContact.alreadyMemberConnect', { defaultValue: '查看／加好友' }),
+                  onPress: () =>
+                    navigation.replace('UserDetail', { userId: member.matched_user_id }),
+                },
+              ],
+            );
+          } catch (e) {
+            console.warn('[LocalContact] member match failed:', e);
           }
-        } catch (e) {
-          console.warn('[LocalContact] member match failed:', e);
-        }
+        })();
       }
-
-      if (member?.matched_user_id) {
-        const who =
-          (member.full_name && member.full_name.trim()) ||
-          (member.username ? `@${member.username}` : cardName) ||
-          t('localContact.alreadyMemberFallbackWho', { defaultValue: '這個人' });
-        Alert.alert(
-          t('localContact.alreadyMemberTitle', { defaultValue: '這個人已經在 PikTag' }),
-          t('localContact.alreadyMemberMsg', {
-            name: who,
-            defaultValue:
-              `${who} 已經是 PikTag 會員 —— 直接連上更好，不用只記成聯絡人。`,
-          }),
-          [
-            {
-              text: t('localContact.alreadyMemberFile', { defaultValue: '仍記成聯絡人' }),
-              style: 'cancel',
-              onPress: applyPrefill,
-            },
-            {
-              text: t('localContact.alreadyMemberConnect', { defaultValue: '查看／加好友' }),
-              onPress: () =>
-                navigation.replace('UserDetail', { userId: member!.matched_user_id }),
-            },
-          ],
-        );
-        return;
-      }
-
-      applyPrefill();
     } catch (err: any) {
       const isTimeout = err?.message === 'SCAN_TIMEOUT';
       Alert.alert(

@@ -256,7 +256,8 @@
       "payoffSubtitle": "স্ক্যান করলে অন্যরা আপনাকে এভাবে দেখবে",
       "payoffHint": "পরের বার কারও সাথে দেখা হলে এটি স্ক্যান করতে দিন — সাথে সাথে যুক্ত হবেন",
       "payoffCta": "PikTag ব্যবহার শুরু করুন",
-      "birthdayGateHint": "জন্মদিন দিন যাতে বন্ধুরা রিমাইন্ডার পায়"
+      "birthdayGateHint": "জন্মদিন দিন যাতে বন্ধুরা রিমাইন্ডার পায়",
+      "addLinkInvalid": "আগে একটি বৈধ লিঙ্ক দিন"
     },
     "invalidEmail": "একটি বৈধ ইমেল ঠিকানা লিখুন"
   },
@@ -1533,5 +1534,12 @@
     "emptyTitle": "Your Tribe is still 0",
     "emptyDesc": "Share your event QR or send invite links from Settings — everyone who joins through you will grow in this constellation.",
     "footnote": "Only you can see your Tribe constellation."
+  },
+  "appNav": {
+    "confirmInviteTitle": "কানেকশন নিশ্চিত করুন",
+    "confirmInviteBody": "আপনার ইনভাইট লিঙ্ক থেকে @{{name}}-এর সাথে কানেক্ট হবেন?",
+    "confirmInviteBodyAnon": "ইনভাইট লিঙ্ক থেকে কানেকশন গ্রহণ করবেন?",
+    "confirmInviteAccept": "কানেক্ট",
+    "confirmInviteCancel": "বাতিল"
   }
 }

@@ -256,7 +256,8 @@
       "payoffSubtitle": "Así te ven cuando te escanean",
       "payoffHint": "La próxima vez que conozcas a alguien, pídele que escanee esto: conectan al instante",
       "payoffCta": "Empezar a usar PikTag",
-      "birthdayGateHint": "Añade tu cumpleaños para que tus amigos reciban el recordatorio"
+      "birthdayGateHint": "Añade tu cumpleaños para que tus amigos reciban el recordatorio",
+      "addLinkInvalid": "Añade un enlace válido primero"
     },
     "invalidEmail": "Introduce un correo electrónico válido"
   },
@@ -1533,5 +1534,12 @@
     "emptyTitle": "Your Tribe is still 0",
     "emptyDesc": "Share your event QR or send invite links from Settings — everyone who joins through you will grow in this constellation.",
     "footnote": "Only you can see your Tribe constellation."
+  },
+  "appNav": {
+    "confirmInviteTitle": "Confirmar conexión",
+    "confirmInviteBody": "¿Conectar con @{{name}} desde tu enlace de invitación?",
+    "confirmInviteBodyAnon": "¿Aceptar la conexión desde tu enlace de invitación?",
+    "confirmInviteAccept": "Conectar",
+    "confirmInviteCancel": "Cancelar"
   }
 }

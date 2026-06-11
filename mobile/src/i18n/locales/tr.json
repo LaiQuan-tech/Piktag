@@ -256,7 +256,8 @@
       "payoffSubtitle": "Seni tarayanlar bunu görür",
       "payoffHint": "Bir dahaki karşılaşmada bunu taratman yeterli — anında bağlanırsınız",
       "payoffCta": "PikTag’i kullanmaya başla",
-      "birthdayGateHint": "Doğum gününü ekle ki arkadaşların hatırlatma alsın"
+      "birthdayGateHint": "Doğum gününü ekle ki arkadaşların hatırlatma alsın",
+      "addLinkInvalid": "Önce geçerli bir bağlantı gir"
     },
     "invalidEmail": "Geçerli bir e-posta adresi girin"
   },
@@ -1533,5 +1534,12 @@
     "emptyTitle": "Your Tribe is still 0",
     "emptyDesc": "Share your event QR or send invite links from Settings — everyone who joins through you will grow in this constellation.",
     "footnote": "Only you can see your Tribe constellation."
+  },
+  "appNav": {
+    "confirmInviteTitle": "Bağlantıyı onayla",
+    "confirmInviteBody": "Davet bağlantısından @{{name}} ile bağlan?",
+    "confirmInviteBodyAnon": "Davet bağlantısından bağlantıyı kabul et?",
+    "confirmInviteAccept": "Bağlan",
+    "confirmInviteCancel": "İptal"
   }
 }

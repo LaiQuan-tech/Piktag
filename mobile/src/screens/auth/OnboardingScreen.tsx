@@ -205,6 +205,11 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
   // add" mini-flow using the locale-aware quick-pick.
   const [linkPlatform, setLinkPlatform] = useState<string | null>(null);
   const [linkInput, setLinkInput] = useState('');
+  // Inline feedback for Add taps on invalid input. addLink used to
+  // silently return on empty / "https://" / unparsable values — that
+  // is the "silent drop" anti-pattern (CLAUDE.md prevent-or-feedback
+  // rule). Surfaces a red hint below the field; cleared on next edit.
+  const [addLinkError, setAddLinkError] = useState<string | null>(null);
   // Self-declared birthday — the engine for "it's X's birthday"
   // friend notifications (core CRM). Collected here so OAuth signups
   // (Apple/Google skip RegisterScreen) still get asked — but ONLY when
@@ -512,9 +517,23 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
   const addLink = useCallback(() => {
     if (!linkPlatform) return;
     const raw = linkInput.trim();
-    if (!raw || raw === 'https://') return;
+    // prevent-or-feedback: empty / scheme-only / unparsable input was
+    // silently dropped before. Surface an explicit hint instead so the
+    // user knows why nothing was added.
+    if (!raw || raw === 'https://') {
+      setAddLinkError(
+        t('auth.onboarding.addLinkInvalid', { defaultValue: 'Add a real link first' }),
+      );
+      return;
+    }
     const url = buildPlatformUrl(linkPlatform, raw);
-    if (!url) return;
+    if (!url) {
+      setAddLinkError(
+        t('auth.onboarding.addLinkInvalid', { defaultValue: 'Add a real link first' }),
+      );
+      return;
+    }
+    setAddLinkError(null);
     setPendingBiolinks((prev) => {
       // dedupe by platform+url
       if (prev.some((b) => b.platform === linkPlatform && b.url === url)) return prev;
@@ -522,7 +541,7 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
     });
     setLinkInput('');
     setLinkPlatform(null);
-  }, [linkPlatform, linkInput]);
+  }, [linkPlatform, linkInput, t]);
 
   const removeLink = useCallback((index: number) => {
     setPendingBiolinks((prev) => prev.filter((_, i) => i !== index));
@@ -1253,30 +1272,40 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
 
         {/* Input for the selected platform */}
         {linkPlatform && (
-          <View style={styles.tagInputRow}>
-            <TextInput
-              style={styles.tagInputField}
-              value={linkInput}
-              onChangeText={(v) => setLinkInput(linkPlatform === 'phone' ? sanitizePhone(v) : v)}
-              placeholder={PLATFORM_MAP[linkPlatform]?.placeholder ?? ''}
-              placeholderTextColor={colors.gray400}
-              autoCapitalize="none"
-              autoCorrect={false}
-              keyboardType={linkPlatform === 'phone' ? 'phone-pad' : 'default'}
-              returnKeyType="done"
-              onSubmitEditing={addLink}
-              autoFocus
-            />
-            <TouchableOpacity
-              style={[styles.tagAddBtn, !linkInput.trim() && styles.tagAddBtnDisabled]}
-              onPress={addLink}
-              disabled={!linkInput.trim()}
-              accessibilityRole="button"
-              accessibilityLabel={t('manageTags.addTag', { defaultValue: '新增' })}
-            >
-              <Plus size={20} color="#FFFFFF" strokeWidth={2.4} />
-            </TouchableOpacity>
-          </View>
+          <>
+            <View style={styles.tagInputRow}>
+              <TextInput
+                style={styles.tagInputField}
+                value={linkInput}
+                onChangeText={(v) => {
+                  setLinkInput(linkPlatform === 'phone' ? sanitizePhone(v) : v);
+                  // Clear stale error the moment the user edits — keeps the
+                  // hint from lingering after they've started fixing it.
+                  if (addLinkError) setAddLinkError(null);
+                }}
+                placeholder={PLATFORM_MAP[linkPlatform]?.placeholder ?? ''}
+                placeholderTextColor={colors.gray400}
+                autoCapitalize="none"
+                autoCorrect={false}
+                keyboardType={linkPlatform === 'phone' ? 'phone-pad' : 'default'}
+                returnKeyType="done"
+                onSubmitEditing={addLink}
+                autoFocus
+              />
+              <TouchableOpacity
+                style={[styles.tagAddBtn, !linkInput.trim() && styles.tagAddBtnDisabled]}
+                onPress={addLink}
+                disabled={!linkInput.trim()}
+                accessibilityRole="button"
+                accessibilityLabel={t('manageTags.addTag', { defaultValue: '新增' })}
+              >
+                <Plus size={20} color="#FFFFFF" strokeWidth={2.4} />
+              </TouchableOpacity>
+            </View>
+            {addLinkError && (
+              <Text style={styles.addLinkErrorText}>{addLinkError}</Text>
+            )}
+          </>
         )}
 
         {/* Added links */}
@@ -1677,6 +1706,12 @@ function makeStyles(c: ColorPalette) {
     color: c.gray500,
     textAlign: 'center',
     marginBottom: 10,
+  },
+  addLinkErrorText: {
+    fontSize: 13,
+    color: c.red500,
+    marginTop: 6,
+    marginLeft: 4,
   },
 
   // ── Step 3 (電子名片) link picker ──

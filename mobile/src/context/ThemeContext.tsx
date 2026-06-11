@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { useColorScheme } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { COLORS, COLORS_DARK, type ColorPalette } from '../constants/theme';
@@ -49,8 +49,17 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const isDark = mode === 'system' ? systemScheme === 'dark' : mode === 'dark';
   const colors = isDark ? COLORS_DARK : COLORS;
 
+  // Memoize the context value so consumers using useTheme() don't
+  // re-render on every ThemeProvider render — only when one of the
+  // four fields actually changes. setMode is stable via useCallback
+  // above; colors flips object identity only on isDark change.
+  const value = useMemo(
+    () => ({ colors, isDark, mode, setMode }),
+    [colors, isDark, mode, setMode]
+  );
+
   return (
-    <ThemeContext.Provider value={{ colors, isDark, mode, setMode }}>
+    <ThemeContext.Provider value={value}>
       {children}
     </ThemeContext.Provider>
   );

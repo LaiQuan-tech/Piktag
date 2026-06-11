@@ -256,7 +256,8 @@
       "payoffSubtitle": "这就是别人扫到你的样子",
       "payoffHint": "下次见面，请对方扫这里，立刻互加好友",
       "payoffCta": "开始使用 PikTag",
-      "birthdayGateHint": "填一下生日，朋友才收得到你的生日提醒"
+      "birthdayGateHint": "填一下生日，朋友才收得到你的生日提醒",
+      "addLinkInvalid": "先输入有效链接"
     },
     "invalidEmail": "请输入有效的 email 地址"
   },
@@ -1533,5 +1534,12 @@
     "emptyTitle": "你的 Tribe 还是 0",
     "emptyDesc": "分享你的活动 QR、或从设置发邀请链接 — 每个通过你加入的人都会长在这张图里。",
     "footnote": "只有你看得到自己的 Tribe 星图。"
+  },
+  "appNav": {
+    "confirmInviteTitle": "确认人脉",
+    "confirmInviteBody": "通过邀请链接与 @{{name}} 建立人脉吗？",
+    "confirmInviteBodyAnon": "通过邀请链接接受这个人脉吗？",
+    "confirmInviteAccept": "加入",
+    "confirmInviteCancel": "取消"
   }
 }

@@ -60,6 +60,10 @@ export const PLATFORMS: Platform[] = [
   // ── Communication (10) ──
   { key: 'phone',      cat: 'communication', label: 'Phone',      prefix: 'tel:',                              placeholder: '+1 234 567 8900',          domains: [] },
   { key: 'email',      cat: 'communication', label: 'Email',      prefix: 'mailto:',                           placeholder: 'you@example.com',          domains: [] },
+  // WhatsApp wa.me REQUIRES bare digits — `+`, spaces, dashes break
+  // the URL. normalizeBiolinkInput strips everything but digits before
+  // we hit buildPlatformUrl, so a user-typed "+886 912-345-678" still
+  // resolves to https://wa.me/886912345678.
   { key: 'whatsapp',   cat: 'communication', label: 'WhatsApp',   prefix: 'https://wa.me/',                    placeholder: '12345678900',              domains: ['wa.me', 'whatsapp.com'] },
   { key: 'telegram',   cat: 'communication', label: 'Telegram',   prefix: 'https://t.me/',                     placeholder: 'username',                 domains: ['t.me', 'telegram.me', 'telegram.org'] },
   // Placeholders avoid English grammar words ("your-…") — a zh-UI user
@@ -75,11 +79,29 @@ export const PLATFORMS: Platform[] = [
   // LINE branch in buildPlatformUrl strips any leading `~` the user
   // happened to type so we never double-tilde.
   { key: 'line',       cat: 'communication', label: 'LINE',       prefix: 'https://line.me/ti/p/~',            placeholder: 'LINE ID',                  domains: ['line.me', 'lin.ee'] },
-  { key: 'wechat',     cat: 'communication', label: 'WeChat',     prefix: 'weixin://dl/chat?',                 placeholder: 'WeChat ID',                domains: ['weixin.qq.com'] },
-  { key: 'kakaotalk',  cat: 'communication', label: 'KakaoTalk',  prefix: 'https://open.kakao.com/o/',         placeholder: 'profile-link',             domains: ['kakao.com', 'open.kakao.com'] },
+  // WeChat: `weixin://dl/chat?<id>` doesn't actually add friends (audit
+  // 2026-06-12 — the scheme opens WeChat but no add-friend prompt
+  // fires for a bare ID). Switched to paste-mode `https://` so users
+  // paste their personal QR-page URL (or pay URL). Legacy rows saved
+  // with the old `weixin://` prefix continue to open via the
+  // `/^[a-z]+:/i` scheme check in buildPlatformUrl.
+  { key: 'wechat',     cat: 'communication', label: 'WeChat',     prefix: 'https://',                          placeholder: 'WeChat QR / pay URL',      domains: ['weixin.qq.com'] },
+  // KakaoTalk: paste-mode. A typed bare handle no longer auto-prefixes
+  // (open.kakao.com/o/<handle> only works for the EXACT openchat URL
+  // the user generated, not an arbitrary username) — placeholder
+  // updated so users know to paste the full link.
+  { key: 'kakaotalk',  cat: 'communication', label: 'KakaoTalk',  prefix: 'https://',                          placeholder: 'open.kakao.com/o/...',     domains: ['kakao.com', 'open.kakao.com'] },
+  // Signal: dual-mode. normalizeBiolinkInput detects phone vs username
+  // and the signal branch in buildPlatformUrl picks the right prefix
+  // (`signal.me/#p/<digits>` for phones, `signal.me/<username>` for
+  // the new username form).
   { key: 'signal',     cat: 'communication', label: 'Signal',     prefix: 'https://signal.me/#p/',             placeholder: 'phone-or-username',        domains: ['signal.me', 'signal.org'] },
   { key: 'messenger',  cat: 'communication', label: 'Messenger',  prefix: 'https://m.me/',                     placeholder: 'username',                 domains: ['m.me', 'messenger.com'] },
-  { key: 'discord',    cat: 'communication', label: 'Discord',    prefix: 'https://discord.gg/',               placeholder: 'invite-code',              domains: ['discord.gg', 'discord.com'] },
+  // Discord: `discord.gg/<x>` is server INVITES, not user profiles —
+  // a single-handle prefix sent users to the wrong place. Paste-mode
+  // covers both shapes: a profile URL (`discord.com/users/<snowflake>`)
+  // or a server invite the user is comfortable sharing.
+  { key: 'discord',    cat: 'communication', label: 'Discord',    prefix: 'https://',                          placeholder: 'discord.com/users/123... or invite link', domains: ['discord.gg', 'discord.com'] },
   // Slack identity is workspace-tied — the shareable "my Slack" is
   // usually a workspace invite URL or a Slack Connect DM link, not a
   // public username. Empty-ish prefix = paste-mode (same shape as
@@ -97,7 +119,14 @@ export const PLATFORMS: Platform[] = [
   { key: 'snapchat',   cat: 'social',        label: 'Snapchat',   prefix: 'https://snapchat.com/add/',         placeholder: 'username',                 domains: ['snapchat.com'] },
   { key: 'reddit',     cat: 'social',        label: 'Reddit',     prefix: 'https://reddit.com/u/',             placeholder: 'username',                 domains: ['reddit.com'] },
   { key: 'pinterest',  cat: 'social',        label: 'Pinterest',  prefix: 'https://pinterest.com/',            placeholder: 'username',                 domains: ['pinterest.com'] },
-  { key: 'mastodon',   cat: 'social',        label: 'Mastodon',   prefix: 'https://mastodon.social/@',         placeholder: 'username',                 domains: ['mastodon.social', 'mas.to'] },
+  // Mastodon is federated — there's no single canonical instance, so a
+  // bare-handle prefix (`https://mastodon.social/@<user>`) is wrong for
+  // every user not on mastodon.social. Switched to paste-mode: users
+  // paste their full profile URL (e.g. `https://hachyderm.io/@you`).
+  // Domains list expanded to the top-10 popular instances so
+  // detectPlatformFromUrl still classifies them correctly. Adding more
+  // instances over time is safe — explicit list, lowest-magic.
+  { key: 'mastodon',   cat: 'social',        label: 'Mastodon',   prefix: 'https://',                          placeholder: 'mastodon.social/@you',     domains: ['mastodon.social', 'mas.to', 'fosstodon.org', 'hachyderm.io', 'infosec.exchange', 'mstdn.jp', 'pawoo.net', 'mstdn.social', 'mastodon.online', 'techhub.social'] },
 
   // ── Video (4) ──
   { key: 'youtube',    cat: 'video',         label: 'YouTube',    prefix: 'https://youtube.com/@',             placeholder: 'channel-name',             domains: ['youtube.com', 'youtu.be'] },
@@ -403,6 +432,12 @@ export function detectPlatformFromUrl(input: string): string | null {
   }
   if (!host) return null;
 
+  // Explicit early-return: `music.youtube.com` ends with `.youtube.com`,
+  // so a naive domain loop would classify it as `youtube` (which
+  // appears before `youtube-music` in PLATFORMS). Match the music
+  // host first.
+  if (host === 'music.youtube.com') return 'youtube-music';
+
   for (const p of PLATFORMS) {
     if (!p.domains.length) continue;
     for (const d of p.domains) {
@@ -480,12 +515,119 @@ export function stripPlatformPrefix(url: string, key: string): string {
 }
 
 /**
+ * Per-platform input normalization. Invoked from buildPlatformUrl
+ * BEFORE the prefix-concat path, so a user who types "+886 912-345-678"
+ * into WhatsApp or "@johnsmith" into Instagram still gets a valid URL.
+ *
+ * Each platform has its own quirks — wa.me rejects `+`/spaces/dashes,
+ * tiktok.com/@@user is a 404, reddit's u/-prefix is doubled if we
+ * keep `https://reddit.com/u/u/<name>` — so the normalization rules
+ * are per-key, not a blanket strip.
+ *
+ * Pure + cheap; no scheme detection here (that stays in the build
+ * path's `/^[a-z]+:/i` short-circuit).
+ */
+function normalizeBiolinkInput(key: string, input: string): string {
+  const v = input.trim();
+  if (!v) return v;
+  // Don't touch anything that already looks like a URL — the build
+  // path handles scheme/prefix passthrough.
+  if (/^[a-z]+:/i.test(v)) return v;
+
+  switch (key) {
+    case 'whatsapp':
+      // wa.me wants bare digits only. Strip `+`, spaces, dashes,
+      // parens, anything non-digit.
+      return v.replace(/\D+/g, '');
+    case 'signal': {
+      // Phone-shape (digits + `+`/spaces/dashes/parens, no letters) →
+      // strip to digits. Otherwise treat as username and leave a
+      // leading `@` stripped (the new Signal username form is bare).
+      const looksLikePhone = /^[+\d\s().-]+$/.test(v);
+      if (looksLikePhone) return v.replace(/\D+/g, '');
+      return v.replace(/^@+/, '');
+    }
+    case 'tiktok':
+    case 'threads':
+    case 'medium':
+    case 'instagram':
+    case 'x':
+    case 'facebook':
+    case 'youtube':
+    case 'youtube-music':
+    case 'telegram':
+      // Strip leading `@` (and `@@@` etc.) — the prefix already
+      // carries the `@` where needed.
+      return v.replace(/^@+/, '');
+    case 'reddit':
+      // Strip leading `@`, `u/`, `/u/` — the prefix is `…/u/` already.
+      return v.replace(/^@+/, '').replace(/^\/?u\//i, '');
+    default:
+      return v;
+  }
+}
+
+/**
+ * Allowlist of URL schemes the mobile biolink-open code is willing to
+ * hand to `Linking.openURL`. Apple/Google reviewers may flag arbitrary
+ * scheme handlers (`javascript:`, `intent:`, `itms-services:` etc.)
+ * as a security risk, and a stored row with a hostile scheme is a real
+ * vector even if our build path never emits one.
+ *
+ * Mobile biolink opens MUST gate on this — call sites:
+ *   ProfileScreen.handleOpenBiolink
+ *   FriendDetailScreen.handleOpenLink
+ *   UserDetailScreen.handleOpenLink
+ *   ScanResultScreen.openBiolink
+ *
+ * Allowed:
+ *   * Standard web/contact: https, http, mailto, tel, sms
+ *   * In-platform schemes we actually emit / accept:
+ *       - `line:` (legacy LINE rows + LINE app deep-link form)
+ *       - `whatsapp:` (legacy WhatsApp rows)
+ *       - `weixin:` (legacy WeChat rows pre-2026-06-12 paste-mode flip)
+ *       - `signal:` (legacy Signal rows)
+ */
+export function isSafeBiolinkUrl(url: string): boolean {
+  if (!url) return false;
+  const v = url.trim();
+  if (!v) return false;
+  const m = v.match(/^([a-z][a-z0-9+.-]*):/i);
+  // No scheme = not safe to hand to Linking.openURL. The save path
+  // auto-prepends https://, so any row that reaches here without a
+  // scheme is malformed.
+  if (!m) return false;
+  const scheme = m[1].toLowerCase();
+  return (
+    scheme === 'https' ||
+    scheme === 'http' ||
+    scheme === 'mailto' ||
+    scheme === 'tel' ||
+    scheme === 'sms' ||
+    scheme === 'line' ||
+    scheme === 'whatsapp' ||
+    scheme === 'weixin' ||
+    scheme === 'signal'
+  );
+}
+
+/**
  * Compose a full URL from (platformKey, account). For `custom` the
  * account IS the full URL. For other platforms, prepend the prefix
  * unless the user already typed a full URL that includes it.
+ *
+ * Returns '' if the final URL fails the isSafeBiolinkUrl allowlist —
+ * the callers already treat empty as no-op, so this is a fail-closed
+ * guard against a hostile prefix sneaking in via a misconfigured
+ * catalog entry or a paste that's effectively a `javascript:` URL.
  */
 export function buildPlatformUrl(key: string, account: string): string {
-  const trimmed = account.trim();
+  const trimmedRaw = account.trim();
+  if (!trimmedRaw) return '';
+  // Per-platform normalization happens BEFORE prefix-concat — so a
+  // `@johnsmith` typed into Instagram becomes `johnsmith` before we
+  // prepend `https://instagram.com/`, not after.
+  const trimmed = normalizeBiolinkInput(key, trimmedRaw);
   if (!trimmed) return '';
   const p = PLATFORM_MAP[key];
   // 'custom' needs scheme-aware handling — historically the user was
@@ -497,23 +639,51 @@ export function buildPlatformUrl(key: string, account: string): string {
   // wraps existing legacy rows defensively, so this is the canonical
   // save-side fix.
   if (key === 'custom') {
-    if (/^[a-z]+:/i.test(trimmed)) return trimmed;
-    return `https://${trimmed}`;
+    const out = /^[a-z]+:/i.test(trimmed) ? trimmed : `https://${trimmed}`;
+    return isSafeBiolinkUrl(out) ? out : '';
   }
-  if (!p) return trimmed;
+  if (!p) {
+    return isSafeBiolinkUrl(trimmed) ? trimmed : '';
+  }
   // LINE: the prefix already carries the `~` marker for public IDs;
   // strip any leading `~` the user typed so we don't end up with
   // `https://line.me/ti/p/~~handle`. A pasted MID URL
   // (`https://line.me/ti/p/u…`) still works via the scheme branch.
   if (key === 'line') {
     const bare = trimmed.replace(/^~+/, '');
-    if (bare.startsWith(p.prefix)) return bare;
-    if (/^[a-z]+:/i.test(bare)) return bare;
-    return `${p.prefix}${bare}`;
+    let out: string;
+    if (bare.startsWith(p.prefix)) out = bare;
+    else if (/^[a-z]+:/i.test(bare)) out = bare;
+    else out = `${p.prefix}${bare}`;
+    return isSafeBiolinkUrl(out) ? out : '';
+  }
+  // Signal: phone vs username branches use DIFFERENT prefixes (the
+  // catalog prefix `signal.me/#p/` is the phone form; the username
+  // form is bare `signal.me/`). Detection mirrors normalizeBiolinkInput.
+  if (key === 'signal') {
+    if (/^[a-z]+:/i.test(trimmed)) {
+      return isSafeBiolinkUrl(trimmed) ? trimmed : '';
+    }
+    // After normalization a phone is digits-only; anything else is a
+    // username candidate. (normalizeBiolinkInput already stripped
+    // formatting, so `\D` here would only be true for usernames.)
+    const isPhone = /^\d+$/.test(trimmed);
+    const prefix = isPhone ? 'https://signal.me/#p/' : 'https://signal.me/';
+    const out = `${prefix}${trimmed}`;
+    return isSafeBiolinkUrl(out) ? out : '';
+  }
+  // YouTube channel-ID form (`UC` + 22 url-safe chars) — the `@`
+  // prefix in the catalog is for handles, not channel IDs, so when
+  // the user pastes a raw channel ID we override the target.
+  if (key === 'youtube' && /^UC[A-Za-z0-9_-]{22}$/.test(trimmed)) {
+    const out = `https://youtube.com/channel/${trimmed}`;
+    return isSafeBiolinkUrl(out) ? out : '';
   }
   // If the user pasted something that already starts with the prefix
   // (or with any scheme), don't double-prefix.
-  if (trimmed.startsWith(p.prefix)) return trimmed;
-  if (/^[a-z]+:/i.test(trimmed)) return trimmed;
-  return `${p.prefix}${trimmed}`;
+  let out: string;
+  if (trimmed.startsWith(p.prefix)) out = trimmed;
+  else if (/^[a-z]+:/i.test(trimmed)) out = trimmed;
+  else out = `${p.prefix}${trimmed}`;
+  return isSafeBiolinkUrl(out) ? out : '';
 }

@@ -26,6 +26,7 @@ import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
 import { useAuthProfile } from '../context/AuthContext';
 import { getCache, setCache, CACHE_KEYS } from '../lib/dataCache';
+import { isSafeBiolinkUrl } from '../lib/platforms';
 import QrCodeModal from '../components/QrCodeModal';
 import RingedAvatar from '../components/RingedAvatar';
 import { AskCreateModal } from '../components/ask/AskStoryRow';
@@ -274,6 +275,11 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
     // "圖片並排最右邊，根本沒有網址可以前往，這簡直是我們產品
     // 存在的基本價值都做不到".
     const safeUrl = /^[a-z]+:/i.test(url) ? url : `https://${url}`;
+    // Scheme allowlist gate — saved rows the user already trusted, but
+    // an old/bad row could carry a hostile scheme (`javascript:`,
+    // `intent:`, etc.). Silent no-op on fail: these aren't user-facing
+    // typo errors, they're stale data — no alert needed.
+    if (!isSafeBiolinkUrl(safeUrl)) return;
     Linking.openURL(safeUrl).catch(() => {});
   }, []);
 

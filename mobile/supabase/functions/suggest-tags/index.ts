@@ -126,9 +126,50 @@ serve(async (req) => {
 
     // pg_cron keep-warm ping (founder 2026-06-07): short-circuit BEFORE any
     // Gemini work — just keeps the Deno isolate hot so a real card-scan tag
-    // request doesn't pay a cold start. ~zero cost (no model call).
+    // request doesn't pay a cold start. ~zero cost (no model call). Stays
+    // ABOVE the JWT + rate-limit guard so the unauthenticated cron ping
+    // can still warm the isolate (no model spend either way).
     if (body.warmup) {
       return jsonResponse(200, { ok: true, warm: true });
+    }
+
+    // ── JWT-based identity + per-user rate limit ───────────────────
+    // Mirrors extract-search-intent. Derive user_id from the JWT, then
+    // call the atomic-claim RPC (60/min default — see migration
+    // 20260611110000_ai_quota_rpcs.sql). Rate-limit breach → 429.
+    // Quota infra failure → fail open (the model call going through is
+    // less bad than blocking AI tags on a transient DB hiccup).
+    const authHeader = req.headers.get('authorization') || '';
+    if (!authHeader.toLowerCase().startsWith('bearer ')) {
+      return jsonResponse(401, { error: 'Unauthorized' });
+    }
+    const supabaseUrl = Deno.env.get('SUPABASE_URL');
+    const anonKey = Deno.env.get('SUPABASE_ANON_KEY');
+    const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+    if (!supabaseUrl || !anonKey || !serviceRoleKey) {
+      return jsonResponse(500, { error: 'Supabase env not configured' });
+    }
+    const userClient = createClient(supabaseUrl, anonKey, {
+      global: { headers: { Authorization: authHeader } },
+      auth: { persistSession: false },
+    });
+    const { data: userData, error: userErr } = await userClient.auth.getUser();
+    if (userErr || !userData?.user) {
+      return jsonResponse(401, { error: 'Unauthorized' });
+    }
+    const userId = userData.user.id;
+
+    const adminClient = createClient(supabaseUrl, serviceRoleKey, {
+      auth: { autoRefreshToken: false, persistSession: false },
+    });
+    const { data: allowed, error: quotaErr } = await adminClient.rpc(
+      'try_consume_suggest_tags_quota',
+      { p_user_id: userId },
+    );
+    if (quotaErr) {
+      console.warn('suggest-tags quota RPC failed (fail-open):', quotaErr.message);
+    } else if (allowed === false) {
+      return jsonResponse(429, { error: 'rate_limited' });
     }
 
     const MAX_INPUT = 500;

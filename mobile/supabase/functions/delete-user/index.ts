@@ -211,11 +211,30 @@ serve(async (req) => {
     // survives as a now-manual entry. MUST run BEFORE the CLEANUPS loop
     // deletes the connections the link-based scrub relies on.
     try {
-      // Resolve this user's email (works for BOTH self- and admin-delete).
+      // Resolve this user's email AND phone (works for BOTH self- and
+      // admin-delete). Both are needed because piktag_local_contacts can
+      // be keyed by EITHER — and the scrub-by-connection path only catches
+      // ALREADY-promoted rows, leaving still-unpromoted local contacts
+      // (the same email/phone, owner_user_id != userId, promoted_to_
+      // connection_id NULL) free to re-fire promote_local_contacts_for_
+      // profile when the user re-registers with the same identifier.
       let targetEmail = callerEmail;
-      if (!targetEmail) {
+      let targetPhone = '';
+      try {
         const { data: tu } = await adminClient.auth.admin.getUserById(userId);
-        targetEmail = (tu?.user?.email ?? '').toLowerCase();
+        if (!targetEmail) {
+          targetEmail = (tu?.user?.email ?? '').toLowerCase();
+        }
+        // auth.users.phone is E.164 ("+886912345678") when populated via
+        // OTP / Twilio. Mirror the client-side normalizePhone strip — keep
+        // digits and the leading "+" — so the comparison matches whatever
+        // libphonenumber wrote into piktag_local_contacts.phone_normalized.
+        targetPhone = (tu?.user?.phone ?? '').replace(/[^\d+]/g, '');
+      } catch (e) {
+        console.warn(
+          'delete-user: getUserById for phone/email resolve failed:',
+          e instanceof Error ? e.message : String(e),
+        );
       }
       // Connections others hold WITH this user — local contacts were promoted
       // to exactly these, so matching on them catches phone-keyed contacts
@@ -242,6 +261,17 @@ serve(async (req) => {
           .neq('owner_user_id', userId)
           .eq('email_lower', targetEmail);
         if (error) warnings.push(`local_contacts scrub (by email): ${error.message}`);
+      }
+      if (targetPhone) {
+        // Closes the phone-keyed resurrection vector — without this, a
+        // SIM-based / Apple-relay-without-email account whose local-contact
+        // counterparty matched ONLY by phone would re-promote on re-register.
+        const { error } = await adminClient
+          .from('piktag_local_contacts')
+          .update(scrub)
+          .neq('owner_user_id', userId)
+          .eq('phone_normalized', targetPhone);
+        if (error) warnings.push(`local_contacts scrub (by phone): ${error.message}`);
       }
     } catch (e) {
       // Never block the delete on the scrub — auth.users removal is critical.

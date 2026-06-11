@@ -68,6 +68,7 @@ import { useAuth } from '../hooks/useAuth';
 import { useAskFeed } from '../hooks/useAskFeed';
 import type { Connection, PiktagProfile, Biolink } from '../types';
 import { getViewerRelation, filterBiolinksByVisibility } from '../lib/biolinkVisibility';
+import { isSafeBiolinkUrl } from '../lib/platforms';
 
 // How many scan-event tags to show before the "show all" toggle kicks in.
 // Picked so a typical 2-3 event meeting still shows everything inline,
@@ -881,6 +882,11 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
   };
 
   const handleOpenLink = async (url: string, biolinkId: string) => {
+    // Scheme allowlist gate — silent no-op for old/bad rows that carry
+    // a scheme outside the allowlist (`javascript:` / `intent:` etc.).
+    // Also short-circuits the click-tracking insert so we don't credit
+    // a "click" on a URL we refused to open.
+    if (!isSafeBiolinkUrl(url)) return;
     // Track click
     if (user) {
       supabase

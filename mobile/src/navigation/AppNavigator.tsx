@@ -433,6 +433,7 @@ type OnboardingDecision = 'pending' | 'required' | 'skip';
 
 export default function AppNavigator() {
   const { colors } = useTheme();
+  const { t } = useTranslation();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
@@ -738,13 +739,25 @@ export default function AppNavigator() {
       // connection at registration time.
       const confirmed: boolean = await new Promise((resolve) => {
         Alert.alert(
-          'Confirm connection',
+          t('appNav.confirmInviteTitle', { defaultValue: 'Confirm connection' }),
           pending?.username
-            ? `Connect with @${pending.username} from your invite link?`
-            : 'Accept the connection from your invite link?',
+            ? t('appNav.confirmInviteBody', {
+                name: pending.username,
+                defaultValue: `Connect with @${pending.username} from your invite link?`,
+              })
+            : t('appNav.confirmInviteBodyAnon', {
+                defaultValue: 'Accept the connection from your invite link?',
+              }),
           [
-            { text: 'Cancel', style: 'cancel', onPress: () => resolve(false) },
-            { text: 'Confirm', onPress: () => resolve(true) },
+            {
+              text: t('appNav.confirmInviteCancel', { defaultValue: 'Cancel' }),
+              style: 'cancel',
+              onPress: () => resolve(false),
+            },
+            {
+              text: t('appNav.confirmInviteAccept', { defaultValue: 'Connect' }),
+              onPress: () => resolve(true),
+            },
           ],
           { cancelable: true, onDismiss: () => resolve(false) },
         );

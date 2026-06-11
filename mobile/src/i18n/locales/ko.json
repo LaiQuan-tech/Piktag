@@ -256,7 +256,8 @@
       "payoffSubtitle": "상대가 스캔하면 이렇게 보여요",
       "payoffHint": "다음에 누군가를 만나면 이걸 스캔하게 하세요. 바로 친구가 됩니다",
       "payoffCta": "PikTag 시작하기",
-      "birthdayGateHint": "생일을 입력하면 친구들이 생일 알림을 받아요"
+      "birthdayGateHint": "생일을 입력하면 친구들이 생일 알림을 받아요",
+      "addLinkInvalid": "먼저 올바른 링크를 입력하세요"
     },
     "invalidEmail": "유효한 이메일 주소를 입력하세요"
   },
@@ -1533,5 +1534,12 @@
     "emptyTitle": "아직 Tribe가 0이에요",
     "emptyDesc": "이벤트 QR을 공유하거나 설정에서 초대 링크를 보내세요 — 당신을 통해 가입한 사람들이 이 별자리에 나타납니다.",
     "footnote": "자신의 Tribe 별자리는 본인만 볼 수 있어요."
+  },
+  "appNav": {
+    "confirmInviteTitle": "연결 확인",
+    "confirmInviteBody": "초대 링크로 @{{name}} 님과 연결할까요?",
+    "confirmInviteBodyAnon": "초대 링크 연결을 수락할까요?",
+    "confirmInviteAccept": "연결",
+    "confirmInviteCancel": "취소"
   }
 }

@@ -256,7 +256,8 @@
       "payoffSubtitle": "這就是別人掃到你的樣子",
       "payoffHint": "下次見面，請對方掃這裡，立刻互加好友",
       "payoffCta": "開始使用 PikTag",
-      "birthdayGateHint": "填一下生日，朋友才收得到你的生日提醒"
+      "birthdayGateHint": "填一下生日，朋友才收得到你的生日提醒",
+      "addLinkInvalid": "請先輸入有效連結"
     },
     "invalidEmail": "請輸入有效的 email 地址"
   },
@@ -1533,5 +1534,12 @@
     "emptyTitle": "你的 Tribe 還是 0",
     "emptyDesc": "分享你的活動 QR、或從設定發邀請連結 — 每個透過你加入的人都會長在這張圖裡。",
     "footnote": "只有你看得到自己的 Tribe 星圖。"
+  },
+  "appNav": {
+    "confirmInviteTitle": "確認加入人脈",
+    "confirmInviteBody": "要透過邀請連結加入 @{{name}} 嗎？",
+    "confirmInviteBodyAnon": "要透過邀請連結加入這個人脈嗎？",
+    "confirmInviteAccept": "加入",
+    "confirmInviteCancel": "取消"
   }
 }

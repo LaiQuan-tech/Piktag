@@ -256,7 +256,8 @@
       "payoffSubtitle": "Seperti inilah kamu saat dipindai",
       "payoffHint": "Saat bertemu seseorang, minta mereka memindai ini — langsung terhubung",
       "payoffCta": "Mulai gunakan PikTag",
-      "birthdayGateHint": "Isi tanggal lahirmu agar teman dapat pengingatnya"
+      "birthdayGateHint": "Isi tanggal lahirmu agar teman dapat pengingatnya",
+      "addLinkInvalid": "Masukkan tautan yang valid dulu"
     },
     "invalidEmail": "Masukkan alamat email yang valid"
   },
@@ -1533,5 +1534,12 @@
     "emptyTitle": "Your Tribe is still 0",
     "emptyDesc": "Share your event QR or send invite links from Settings — everyone who joins through you will grow in this constellation.",
     "footnote": "Only you can see your Tribe constellation."
+  },
+  "appNav": {
+    "confirmInviteTitle": "Konfirmasi koneksi",
+    "confirmInviteBody": "Terhubung dengan @{{name}} dari tautan undanganmu?",
+    "confirmInviteBodyAnon": "Terima koneksi dari tautan undangan?",
+    "confirmInviteAccept": "Hubungkan",
+    "confirmInviteCancel": "Batal"
   }
 }

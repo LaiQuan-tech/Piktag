@@ -256,7 +256,8 @@
       "payoffSubtitle": "Đây là những gì người khác thấy khi quét bạn",
       "payoffHint": "Lần tới gặp ai đó, hãy để họ quét mã này — kết nối ngay lập tức",
       "payoffCta": "Bắt đầu dùng PikTag",
-      "birthdayGateHint": "Thêm ngày sinh để bạn bè nhận được lời nhắc sinh nhật"
+      "birthdayGateHint": "Thêm ngày sinh để bạn bè nhận được lời nhắc sinh nhật",
+      "addLinkInvalid": "Hãy nhập một liên kết hợp lệ trước"
     },
     "invalidEmail": "Nhập địa chỉ email hợp lệ"
   },
@@ -1533,5 +1534,12 @@
     "emptyTitle": "Your Tribe is still 0",
     "emptyDesc": "Share your event QR or send invite links from Settings — everyone who joins through you will grow in this constellation.",
     "footnote": "Only you can see your Tribe constellation."
+  },
+  "appNav": {
+    "confirmInviteTitle": "Xác nhận kết nối",
+    "confirmInviteBody": "Kết nối với @{{name}} từ liên kết mời của bạn?",
+    "confirmInviteBodyAnon": "Chấp nhận kết nối từ liên kết mời?",
+    "confirmInviteAccept": "Kết nối",
+    "confirmInviteCancel": "Hủy"
   }
 }

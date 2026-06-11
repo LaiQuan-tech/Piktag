@@ -21,6 +21,7 @@
 // screen, so "best effort, null when unsure" beats hallucinating.
 
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
+import { createClient } from 'npm:@supabase/supabase-js@2';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -105,9 +106,11 @@ const CARD_RESPONSE_SCHEMA = {
   ],
 } as const;
 
-// Roughly 6MB of base64 ≈ 4.5MB raw — generous for a card photo,
-// guards against someone POSTing a huge payload.
-const MAX_B64_LEN = 6 * 1024 * 1024;
+// ~1.5 MB of base64 ≈ 1.1 MB raw — on-device JPEG compression already
+// produces <800 KB for legit card photos, so this is comfortably above
+// real traffic AND ~4× tighter than the original 6 MB cap. Smaller cap =
+// smaller attacker payload + faster reject at the edge.
+const MAX_B64_LEN = 1_500_000;
 
 type ScanBody = {
   image?: string; // base64, no data: prefix (image / multimodal mode)
@@ -231,9 +234,50 @@ serve(async (req) => {
     // work, so a periodic ping keeps the Deno isolate hot. Real scans
     // then skip the cold-start spin-up (most impactful at low pre-launch
     // traffic, when the function would otherwise be cold for every scan).
-    // ~zero cost: no model call.
+    // ~zero cost: no model call. Stays ABOVE the JWT + rate-limit guard
+    // so the unauthenticated cron ping can still warm the isolate.
     if (body.warmup) {
       return jsonResponse(200, { ok: true, warm: true });
+    }
+
+    // ── JWT-based identity + per-user rate limit ───────────────────
+    // Mirrors extract-search-intent / suggest-tags. Derive user_id from
+    // the JWT, then call the atomic-claim RPC (30/min default — see
+    // migration 20260611110000_ai_quota_rpcs.sql). Multimodal Gemini
+    // calls are the most expensive endpoint in the app; capping here is
+    // load-bearing. Rate-limit breach → 429. Quota infra failure → fail
+    // open (a transient DB hiccup shouldn't break legitimate scans).
+    const authHeader = req.headers.get('authorization') || '';
+    if (!authHeader.toLowerCase().startsWith('bearer ')) {
+      return jsonResponse(401, { error: 'Unauthorized' });
+    }
+    const supabaseUrl = Deno.env.get('SUPABASE_URL');
+    const anonKey = Deno.env.get('SUPABASE_ANON_KEY');
+    const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+    if (!supabaseUrl || !anonKey || !serviceRoleKey) {
+      return jsonResponse(500, { error: 'Supabase env not configured' });
+    }
+    const userClient = createClient(supabaseUrl, anonKey, {
+      global: { headers: { Authorization: authHeader } },
+      auth: { persistSession: false },
+    });
+    const { data: userData, error: userErr } = await userClient.auth.getUser();
+    if (userErr || !userData?.user) {
+      return jsonResponse(401, { error: 'Unauthorized' });
+    }
+    const userId = userData.user.id;
+
+    const adminClient = createClient(supabaseUrl, serviceRoleKey, {
+      auth: { autoRefreshToken: false, persistSession: false },
+    });
+    const { data: allowed, error: quotaErr } = await adminClient.rpc(
+      'try_consume_scan_card_quota',
+      { p_user_id: userId },
+    );
+    if (quotaErr) {
+      console.warn('scan-business-card quota RPC failed (fail-open):', quotaErr.message);
+    } else if (allowed === false) {
+      return jsonResponse(429, { error: 'rate_limited' });
     }
 
     const image = (body.image ?? '').trim();

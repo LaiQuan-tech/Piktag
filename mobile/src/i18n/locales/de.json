@@ -256,7 +256,8 @@
       "payoffSubtitle": "So sehen dich andere beim Scannen",
       "payoffHint": "Lass dein Gegenüber das beim nächsten Treffen scannen — ihr seid sofort verbunden",
       "payoffCta": "PikTag starten",
-      "birthdayGateHint": "Gib deinen Geburtstag ein, damit Freunde eine Erinnerung bekommen"
+      "birthdayGateHint": "Gib deinen Geburtstag ein, damit Freunde eine Erinnerung bekommen",
+      "addLinkInvalid": "Gib zuerst einen gültigen Link ein"
     },
     "invalidEmail": "Gib eine gültige E-Mail-Adresse ein"
   },
@@ -1533,5 +1534,12 @@
     "emptyTitle": "Your Tribe is still 0",
     "emptyDesc": "Share your event QR or send invite links from Settings — everyone who joins through you will grow in this constellation.",
     "footnote": "Only you can see your Tribe constellation."
+  },
+  "appNav": {
+    "confirmInviteTitle": "Verbindung bestätigen",
+    "confirmInviteBody": "Mit @{{name}} über deinen Einladungslink verbinden?",
+    "confirmInviteBodyAnon": "Verbindung aus dem Einladungslink annehmen?",
+    "confirmInviteAccept": "Verbinden",
+    "confirmInviteCancel": "Abbrechen"
   }
 }

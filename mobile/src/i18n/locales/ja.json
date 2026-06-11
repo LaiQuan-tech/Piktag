@@ -256,7 +256,8 @@
       "payoffSubtitle": "相手にはあなたがこう見えます",
       "payoffHint": "次に誰かと会ったら、これをスキャンしてもらえば、その場でつながれます",
       "payoffCta": "PikTag をはじめる",
-      "birthdayGateHint": "誕生日を入れると、友達にお祝いの通知が届きます"
+      "birthdayGateHint": "誕生日を入れると、友達にお祝いの通知が届きます",
+      "addLinkInvalid": "先に有効なリンクを入力してください"
     },
     "invalidEmail": "有効なメールアドレスを入力してください"
   },
@@ -1533,5 +1534,12 @@
     "emptyTitle": "あなたの Tribe はまだ 0",
     "emptyDesc": "イベント QR を共有するか、設定から招待リンクを送信 — あなたを通じて参加した人がこの星図に表示されます。",
     "footnote": "自分の Tribe 星図は自分だけが見られます。"
+  },
+  "appNav": {
+    "confirmInviteTitle": "つながりを確認",
+    "confirmInviteBody": "招待リンクから @{{name}} とつながりますか？",
+    "confirmInviteBodyAnon": "招待リンクからのつながりを受け入れますか？",
+    "confirmInviteAccept": "つながる",
+    "confirmInviteCancel": "キャンセル"
   }
 }

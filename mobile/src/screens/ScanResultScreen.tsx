@@ -23,7 +23,7 @@ import PageLoader from '../components/loaders/PageLoader';
 import BrandSpinner from '../components/loaders/BrandSpinner';
 import PlatformIcon from '../components/PlatformIcon';
 import SectionTitle from '../components/SectionTitle';
-import { getPlatformLabel } from '../lib/platforms';
+import { getPlatformLabel, isSafeBiolinkUrl } from '../lib/platforms';
 import type { PiktagProfile, Biolink } from '../types';
 
 type ScanResultParams = {
@@ -169,6 +169,11 @@ export default function ScanResultScreen({ navigation, route }: ScanResultScreen
   // never blocks the deep link.
   const openBiolink = (biolinkId: string, url: string) => {
     if (!url) return;
+    // Scheme allowlist gate — silent no-op for old/bad rows whose
+    // scheme is outside the allowlist. Also short-circuits click
+    // tracking so we don't credit a "click" on a URL we refused to
+    // open.
+    if (!isSafeBiolinkUrl(url)) return;
     if (user) {
       supabase
         .from('piktag_biolink_clicks')

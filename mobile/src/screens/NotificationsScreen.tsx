@@ -478,8 +478,13 @@ export default function NotificationsScreen({ navigation }: NotificationsScreenP
   useEffect(() => {
     if (!user) return;
 
+    // Per-user channel name. A constant 'notifications' name leaked
+    // across account switches (the prior subscription stayed live on
+    // the old user.id filter); namespacing by user.id forces a fresh
+    // channel per identity so removeChannel on the old handle wipes
+    // only the old user's subscription.
     const channel = supabase
-      .channel('notifications')
+      .channel(`notifications-${user.id}`)
       .on(
         'postgres_changes',
         {
