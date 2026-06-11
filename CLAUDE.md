@@ -156,6 +156,13 @@ existing one):
    "Recommendation" that re-suggests a dismissed person is the
    single most user-trust-eroding bug in this space.
 
+4. **Exclude non-person accounts.** Every ranking/matching/counting
+   surface MUST filter `piktag_profiles.is_official = true` (helper:
+   `is_official_user(uuid)`). Everyone auto-friends @piktag (2026-06-12),
+   so a missed filter = FoF explosion + phantom mutual friends + the bot
+   ranking as a person. 23 functions swept in 20260612010000 — copy one
+   of those predicates. (v2 alt accounts will add `is_alt = false` here.)
+
 ### Tag-quality principles — the 7 from Google data-labeling, in PikTag terms
 
 Adopted 2026-05-29 after a deep-dive on Google Cloud's data-labeling
@@ -911,6 +918,23 @@ surface; don't "fix" dead code). The "你可能認識" notification already
 exists = the daily recommendation cron (`enqueue_recommendation_notifications`,
 type `recommendation`, "你可能認識 X — N 個共同標籤") — don't build a
 duplicate.
+
+## Official account @piktag (2026-06-12)
+
+Fixed UUID `00000000-0000-4000-a000-000000000001`, `is_official = true`,
+never logs in. Every user auto-friends it at wizard completion
+(trg_add_official_friend) + full backfill — it replaces the Friends-page
+teaching cards (one quiet ListFooter hint line remains). Design facts:
+connections BOTH directions (notify_friend handshake) but follow ONE way
+(user→official; keeps notify_mutual_follow silent); the one
+"成為好友" notification per user is deliberate (demos the bell tab);
+official is excluded EVERYWHERE as candidate AND as broadcast actor
+(20260612010000 sweep — see ranking-surface checklist #4). Its Asks /
+tag-adds do NOT notify; official announcements would be a new deliberate
+feature, not a side effect. Avatar still needs uploading (founder).
+Content lives in normal piktag_* rows — edit via admin/SQL anytime.
+`find_tag_similar_strangers` is dead code and was left unswept — add the
+two-hop is_official predicates if ever revived.
 
 ## Concept GC — measured, deferred (2026-06-07)
 
