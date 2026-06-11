@@ -255,7 +255,8 @@
       "payoffTitle": "完成！",
       "payoffSubtitle": "这就是别人扫到你的样子",
       "payoffHint": "下次见面，请对方扫这里，立刻互加好友",
-      "payoffCta": "开始使用 PikTag"
+      "payoffCta": "开始使用 PikTag",
+      "birthdayGateHint": "填一下生日，朋友才收得到你的生日提醒"
     },
     "invalidEmail": "请输入有效的 email 地址"
   },

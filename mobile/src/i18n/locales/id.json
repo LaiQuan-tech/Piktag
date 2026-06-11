@@ -181,7 +181,7 @@
       "facebookLabel": "Facebook",
       "instagramLabel": "Instagram",
       "linkedinLabel": "LinkedIn",
-      "birthdayLabel": "Ulang Tahun",
+      "birthdayLabel": "Tanggal lahir",
       "avatarStepTitle": "Pasang foto dulu",
       "avatarStepDescription": "Biar teman langsung kenal — bisa diganti kapan saja.",
       "avatarPickAria": "Pilih foto",
@@ -255,7 +255,8 @@
       "payoffTitle": "Selesai!",
       "payoffSubtitle": "Seperti inilah kamu saat dipindai",
       "payoffHint": "Saat bertemu seseorang, minta mereka memindai ini — langsung terhubung",
-      "payoffCta": "Mulai gunakan PikTag"
+      "payoffCta": "Mulai gunakan PikTag",
+      "birthdayGateHint": "Isi tanggal lahirmu agar teman dapat pengingatnya"
     },
     "invalidEmail": "Masukkan alamat email yang valid"
   },

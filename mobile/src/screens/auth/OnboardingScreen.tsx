@@ -492,10 +492,14 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
   }, [bio, displayName, selectedTags]);
 
   // ─── Step 2 → Step 3 advance ────────────────────────────
+  // Birthday is REQUIRED here (founder 2026-06-11) — it's the engine for
+  // the birthday-reminder CRM. Only enforced when the field is actually
+  // shown (!hasBirthday); accounts that already have one skip it.
   const goToLinks = useCallback(() => {
     if (selectedTags.length < MIN_ONB_TAGS || !bio.trim()) return;
+    if (!hasBirthday && !toBirthdayDate(birthday)) return;
     setStep(STEP_LINKS);
-  }, [selectedTags.length, bio]);
+  }, [selectedTags.length, bio, hasBirthday, birthday]);
 
   // ─── Step 3: link picker (stages into pendingBiolinks) ──
   const selectLinkPlatform = useCallback((key: string) => {
@@ -1005,7 +1009,11 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
 
   // ─── Render: Step 2 (你是誰 — headline + bio + tags) ─────
   const renderTags = () => {
-    const tagsStepValid = selectedTags.length >= MIN_ONB_TAGS && bio.trim().length > 0;
+    // Birthday required when shown (founder 2026-06-11). hasBirthday
+    // short-circuits for accounts that already have one (field hidden).
+    const birthdayValid = hasBirthday || !!toBirthdayDate(birthday);
+    const tagsStepValid =
+      selectedTags.length >= MIN_ONB_TAGS && bio.trim().length > 0 && birthdayValid;
     const ctaDisabled = saving || !tagsStepValid;
     return (
       <ScrollView
@@ -1160,7 +1168,7 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
         {!hasBirthday && (
           <>
             <Text style={styles.fieldLabel}>
-              {t('auth.register.birthdayLabel', { defaultValue: '生日（選填）' })}
+              {t('auth.onboarding.birthdayLabel', { defaultValue: '生日' })}
             </Text>
             <BirthdayInput
               value={birthday}
@@ -1179,7 +1187,9 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
                   count: MIN_ONB_TAGS,
                   defaultValue: '至少 {{count}} 個——標籤越多，越容易被找到',
                 })
-              : t('auth.onboarding.bioGateHint', { defaultValue: '寫一句自我介紹再繼續' })}
+              : !bio.trim()
+                ? t('auth.onboarding.bioGateHint', { defaultValue: '寫一句自我介紹再繼續' })
+                : t('auth.onboarding.birthdayGateHint', { defaultValue: '填一下生日，朋友才收得到你的生日提醒' })}
           </Text>
         )}
 

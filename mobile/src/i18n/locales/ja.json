@@ -255,7 +255,8 @@
       "payoffTitle": "完了！",
       "payoffSubtitle": "相手にはあなたがこう見えます",
       "payoffHint": "次に誰かと会ったら、これをスキャンしてもらえば、その場でつながれます",
-      "payoffCta": "PikTag をはじめる"
+      "payoffCta": "PikTag をはじめる",
+      "birthdayGateHint": "誕生日を入れると、友達にお祝いの通知が届きます"
     },
     "invalidEmail": "有効なメールアドレスを入力してください"
   },

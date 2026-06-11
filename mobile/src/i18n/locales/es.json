@@ -255,7 +255,8 @@
       "payoffTitle": "¡Listo!",
       "payoffSubtitle": "Así te ven cuando te escanean",
       "payoffHint": "La próxima vez que conozcas a alguien, pídele que escanee esto: conectan al instante",
-      "payoffCta": "Empezar a usar PikTag"
+      "payoffCta": "Empezar a usar PikTag",
+      "birthdayGateHint": "Añade tu cumpleaños para que tus amigos reciban el recordatorio"
     },
     "invalidEmail": "Introduce un correo electrónico válido"
   },

@@ -255,7 +255,8 @@
       "payoffTitle": "Fatto!",
       "payoffSubtitle": "Ecco come ti vedono quando ti scansionano",
       "payoffHint": "Al prossimo incontro, fallo scansionare: sarete subito collegati",
-      "payoffCta": "Inizia a usare PikTag"
+      "payoffCta": "Inizia a usare PikTag",
+      "birthdayGateHint": "Aggiungi il compleanno così gli amici ricevono il promemoria"
     },
     "invalidEmail": "Inserisci un'email valida"
   },

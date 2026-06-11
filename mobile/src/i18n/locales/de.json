@@ -255,7 +255,8 @@
       "payoffTitle": "Fertig!",
       "payoffSubtitle": "So sehen dich andere beim Scannen",
       "payoffHint": "Lass dein Gegenüber das beim nächsten Treffen scannen — ihr seid sofort verbunden",
-      "payoffCta": "PikTag starten"
+      "payoffCta": "PikTag starten",
+      "birthdayGateHint": "Gib deinen Geburtstag ein, damit Freunde eine Erinnerung bekommen"
     },
     "invalidEmail": "Gib eine gültige E-Mail-Adresse ein"
   },

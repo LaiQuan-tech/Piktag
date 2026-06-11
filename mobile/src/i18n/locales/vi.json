@@ -255,7 +255,8 @@
       "payoffTitle": "Xong!",
       "payoffSubtitle": "Đây là những gì người khác thấy khi quét bạn",
       "payoffHint": "Lần tới gặp ai đó, hãy để họ quét mã này — kết nối ngay lập tức",
-      "payoffCta": "Bắt đầu dùng PikTag"
+      "payoffCta": "Bắt đầu dùng PikTag",
+      "birthdayGateHint": "Thêm ngày sinh để bạn bè nhận được lời nhắc sinh nhật"
     },
     "invalidEmail": "Nhập địa chỉ email hợp lệ"
   },

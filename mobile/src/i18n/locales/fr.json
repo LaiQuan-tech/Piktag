@@ -255,7 +255,8 @@
       "payoffTitle": "C’est prêt !",
       "payoffSubtitle": "Voici ce que les autres voient en te scannant",
       "payoffHint": "À ta prochaine rencontre, fais scanner ce code — vous êtes connectés instantanément",
-      "payoffCta": "Commencer avec PikTag"
+      "payoffCta": "Commencer avec PikTag",
+      "birthdayGateHint": "Ajoute ta date d’anniversaire pour que tes amis soient prévenus"
     },
     "invalidEmail": "Saisis une adresse e-mail valide"
   },

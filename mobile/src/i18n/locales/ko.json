@@ -255,7 +255,8 @@
       "payoffTitle": "완료!",
       "payoffSubtitle": "상대가 스캔하면 이렇게 보여요",
       "payoffHint": "다음에 누군가를 만나면 이걸 스캔하게 하세요. 바로 친구가 됩니다",
-      "payoffCta": "PikTag 시작하기"
+      "payoffCta": "PikTag 시작하기",
+      "birthdayGateHint": "생일을 입력하면 친구들이 생일 알림을 받아요"
     },
     "invalidEmail": "유효한 이메일 주소를 입력하세요"
   },
