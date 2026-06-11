@@ -206,11 +206,14 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
   const [linkPlatform, setLinkPlatform] = useState<string | null>(null);
   const [linkInput, setLinkInput] = useState('');
   // Self-declared birthday — the engine for "it's X's birthday"
-  // friend notifications (core CRM). Collected here so EVERY signup
-  // path (email + Apple + Google) gets a chance to set it; OAuth
-  // users skip RegisterScreen entirely and would otherwise never
-  // have a birthday. Stored as YYYY-MM-DD (see lib/birthday.ts).
+  // friend notifications (core CRM). Collected here so OAuth signups
+  // (Apple/Google skip RegisterScreen) still get asked — but ONLY when
+  // the profile doesn't already have one: email signups enter it on
+  // RegisterScreen, and re-asking read as a bug (founder real-device
+  // test 2026-06-11, "註冊已經輸入一次生日"). hasBirthday is hydrated
+  // from the existing-profile load below and hides the field.
   const [birthday, setBirthday] = useState('');
+  const [hasBirthday, setHasBirthday] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -277,10 +280,12 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
         try {
           const { data: profile } = await supabase
             .from('piktag_profiles')
-            .select('full_name, avatar_url, username')
+            .select('full_name, avatar_url, username, birthday')
             .eq('id', user.id)
             .single();
           if (!cancelled && profile?.avatar_url) setAvatarUrl(profile.avatar_url);
+          // Email signups set a birthday on RegisterScreen — don't ask twice.
+          if (!cancelled && (profile as any)?.birthday) setHasBirthday(true);
           // Do NOT prefill the username. The signup trigger seeds an
           // auto-generated handle, but showing it pre-filled reads as
           // "here's an account we assigned you" — wrong for a real
@@ -1148,16 +1153,22 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
           </View>
         )}
 
-        {/* Birthday — optional (CRM core). Masked MM/DD input (no year),
-            locale-ordered. Founder, 2026-06-05. */}
-        <Text style={styles.fieldLabel}>
-          {t('auth.register.birthdayLabel', { defaultValue: '生日（選填）' })}
-        </Text>
-        <BirthdayInput
-          value={birthday}
-          onChange={setBirthday}
-          style={styles.nameInput}
-        />
+        {/* Birthday — optional (CRM core), but ONLY for accounts that
+            don't already have one (OAuth signups skip RegisterScreen;
+            email signups entered it there — never ask twice. Founder
+            2026-06-11). Masked MM/DD input, locale-ordered. */}
+        {!hasBirthday && (
+          <>
+            <Text style={styles.fieldLabel}>
+              {t('auth.register.birthdayLabel', { defaultValue: '生日（選填）' })}
+            </Text>
+            <BirthdayInput
+              value={birthday}
+              onChange={setBirthday}
+              style={styles.nameInput}
+            />
+          </>
+        )}
 
         <View style={{ flex: 1, minHeight: 24 }} />
 

@@ -20,6 +20,12 @@
       },
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
+        "CFBundleDevelopmentRegion": "en",
+        "CFBundleAllowMixedLocalizations": true,
+        "CFBundleLocalizations": [
+          "en", "zh-Hant", "zh-Hans", "ja", "ko", "de", "fr", "es", "pt",
+          "it", "ru", "tr", "id", "vi", "th", "ar", "hi", "bn", "ur"
+        ],
         "NSCameraUsageDescription": "PikTag needs camera access to scan QR codes and business cards.",
         "NSPhotoLibraryUsageDescription": "PikTag needs photo library access to update your profile picture",
         "NSPhotoLibraryAddUsageDescription": "PikTag needs photo library access to update your profile picture",

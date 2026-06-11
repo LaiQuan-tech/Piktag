@@ -62,8 +62,12 @@ export const PLATFORMS: Platform[] = [
   { key: 'email',      cat: 'communication', label: 'Email',      prefix: 'mailto:',                           placeholder: 'you@example.com',          domains: [] },
   { key: 'whatsapp',   cat: 'communication', label: 'WhatsApp',   prefix: 'https://wa.me/',                    placeholder: '12345678900',              domains: ['wa.me', 'whatsapp.com'] },
   { key: 'telegram',   cat: 'communication', label: 'Telegram',   prefix: 'https://t.me/',                     placeholder: 'username',                 domains: ['t.me', 'telegram.me', 'telegram.org'] },
-  { key: 'line',       cat: 'communication', label: 'LINE',       prefix: 'https://line.me/ti/p/',             placeholder: 'your-line-id',             domains: ['line.me', 'lin.ee'] },
-  { key: 'wechat',     cat: 'communication', label: 'WeChat',     prefix: 'weixin://dl/chat?',                 placeholder: 'your-wechat-id',           domains: ['weixin.qq.com'] },
+  // Placeholders avoid English grammar words ("your-…") — a zh-UI user
+  // reading "your-line-id" can't tell if it's literal (founder 2026-06-11).
+  // "LINE ID" / "WeChat ID" are how those handles are referred to in every
+  // market, CJK included.
+  { key: 'line',       cat: 'communication', label: 'LINE',       prefix: 'https://line.me/ti/p/',             placeholder: 'LINE ID',                  domains: ['line.me', 'lin.ee'] },
+  { key: 'wechat',     cat: 'communication', label: 'WeChat',     prefix: 'weixin://dl/chat?',                 placeholder: 'WeChat ID',                domains: ['weixin.qq.com'] },
   { key: 'kakaotalk',  cat: 'communication', label: 'KakaoTalk',  prefix: 'https://open.kakao.com/o/',         placeholder: 'profile-link',             domains: ['kakao.com', 'open.kakao.com'] },
   { key: 'signal',     cat: 'communication', label: 'Signal',     prefix: 'https://signal.me/#p/',             placeholder: 'phone-or-username',        domains: ['signal.me', 'signal.org'] },
   { key: 'messenger',  cat: 'communication', label: 'Messenger',  prefix: 'https://m.me/',                     placeholder: 'username',                 domains: ['m.me', 'messenger.com'] },

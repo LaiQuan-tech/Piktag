@@ -1,5 +1,5 @@
 /**
- * IcebreakerSuggestions — horizontal scroller of 1-3 first-message
+ * IcebreakerSuggestions — a VERTICAL stack of 1-3 first-message
  * options that sits just above the Composer when:
  *   - the conversation is empty (new chat) OR
  *   - the conversation is dormant (no message in 90+ days)
@@ -7,18 +7,16 @@
  * Founder design constraint (2026-05-29): "must NOT feel AI." So:
  *   - no "AI 建議" label anywhere
  *   - no sparkle icon, no robot
- *   - the chips just appear inline, like iMessage's quick-reply row
  *   - tap → text drops into Composer, user can edit, send is manual
- *   - dismiss arrow (top-right) when user wants to silence it
+ *   - dismiss × (top-right) when user wants to silence it
  *
- * Visual: cards in a horizontal ScrollView; each card a short
- * paraphrase of the suggested message. Multiline is fine — keeps
- * the per-card content readable rather than cramming into one
- * truncated line.
+ * 2026-06-11 (founder, real-device + App Store screenshot review): the
+ * old horizontal swipe row showed ~1.5 truncated cards and hid the rest
+ * behind a gesture — the user couldn't COMPARE the three options. Now a
+ * plain vertical list: all options fully visible, full text, no swipe.
  */
 import React, { useMemo } from 'react';
 import {
-  ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -72,24 +70,18 @@ const IcebreakerSuggestions = React.memo(function IcebreakerSuggestions({
           </Text>
         </View>
       ) : (
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.scrollContent}
-        >
-          {suggestions.map((s, i) => (
+        <View style={styles.list}>
+          {suggestions.slice(0, 3).map((s, i) => (
             <TouchableOpacity
               key={`${i}-${s.slice(0, 20)}`}
-              style={styles.chip}
+              style={styles.option}
               onPress={() => onPick(s)}
               activeOpacity={0.7}
             >
-              <Text style={styles.chipText} numberOfLines={4}>
-                {s}
-              </Text>
+              <Text style={styles.optionText}>{s}</Text>
             </TouchableOpacity>
           ))}
-        </ScrollView>
+        </View>
       )}
     </View>
   );
@@ -130,19 +122,18 @@ function makeStyles(c: ColorPalette) {
       fontSize: 13,
       color: c.gray500,
     },
-    scrollContent: {
+    list: {
       paddingHorizontal: 12,
       gap: 8,
       paddingBottom: 6,
     },
-    chip: {
-      maxWidth: 280,
+    option: {
       backgroundColor: c.piktag50,
       borderRadius: 14,
       paddingHorizontal: 14,
       paddingVertical: 10,
     },
-    chipText: {
+    optionText: {
       fontSize: 14,
       lineHeight: 19,
       color: c.gray900,
