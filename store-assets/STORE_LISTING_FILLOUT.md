@@ -35,7 +35,7 @@ it does NOT replace them. Hook + brand verb stay; the metaphor enriches the
 |---|---|---|
 | **Hook (locked)** | 自己標自己，誰都找得到。 | Tag yourself. Find anyone. |
 | **Brand verb (locked)** | Pick. Tag. Connect. | Pick. Tag. Connect. |
-| **Positioning metaphor (new 2026-06-08)** | 像站在你身後替你記名字、推薦該認識誰的助理 | Like the person in your ear remembering every name and telling you who you should know next |
+| **Positioning metaphor (new 2026-06-08)** | 像隨身帶著一位替你記名字、推薦該認識誰的助理 | Like an assistant in your ear remembering every name and telling you who you should know next |
 | **Functional clarity** | 不靠名字，靠標籤 | Search by need, not by name |
 | **Recall axis** | 想不起名字 → 標籤搜得到 | Forgot the name → tag finds them |
 | **Recommend axis** | 該認識的下一個 → AI 替你選 | Next one to meet → AI surfaces them |
@@ -271,8 +271,8 @@ specific (bugs, perf, feature changes).
 1.0.5 — Same app, sharper story.
 
 We refreshed the App Store description to better explain what PikTag does
-for you: like having someone in your ear who remembers every name, and
-tells you who you should know next.
+for you: like having an assistant in your ear who remembers every name,
+and tells you who you should know next.
 
 No new features in this build — those are in 1.0.4. This is a copy refresh.
 ```
@@ -282,8 +282,8 @@ No new features in this build — those are in 1.0.4. This is a copy refresh.
 ```
 1.0.5 — 同樣的 App，更清楚的故事。
 
-我們更新了 App Store 上的介紹，讓你更直觀知道 PikTag 在做什麼：就像有個人
-站在你身後，替你記住每個名字，還會告訴你下一個該認識誰。
+我們更新了 App Store 上的介紹，讓你更直觀知道 PikTag 在做什麼：就像隨身帶著
+一位助理，悄悄提醒你每個名字，還會告訴你下一個該認識誰。
 
 這版沒有新功能，純粹是文案翻新（新功能在 1.0.4 已上）。
 ```
