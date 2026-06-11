@@ -5,9 +5,13 @@ Canvas: 2064 × 2752 (iPad Pro 13" M4 portrait, ASC slot).
 Reuses the same iPhone marketing source PNG inside a centered phone
 mockup, on a wider purple→pink gradient canvas with title above.
 """
+import os
 import sys
 from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont, ImageFilter
+
+# SS_LANG=zh (default) or en — mirrors build_screenshot.py.
+LANG = os.environ.get("SS_LANG", "zh")
 
 # ── iPad canvas ────────────────────────────────────────────────────────
 W, H = 2064, 2752
@@ -67,6 +71,8 @@ def draw_text_centered(draw, text, font, y, color):
 def wrap_title(title):
     if "，" in title and len(title) > 9:
         return title.split("，", 1)
+    if ", " in title and len(title) > 18:
+        return [p.strip() for p in title.split(", ", 1)]
     return [title]
 
 
@@ -175,16 +181,20 @@ _SPARKLES = [
 _G_WHITE = ((255, 255, 255), (240, 230, 255))
 _G_PINK = ((255, 235, 250), (240, 220, 255))
 
+_CHIP_FAST = "3 秒就好" if LANG == "zh" else "3 seconds flat"
+_CHIP_AI = "AI 自動加標籤" if LANG == "zh" else "AI adds the tags"
+
 CARD_EXTRAS = {
-    1: {
+    1: {"sparkles": _SPARKLES, "chips": []},
+    2: {"sparkles": _SPARKLES, "chips": []},
+    # Chips only on the card-scan card (now #3 after the story reorder).
+    3: {
         "sparkles": _SPARKLES,
         "chips": [
-            (380, 1080, "3 秒就好", "", _G_WHITE),
-            (1690, 1900, "AI 自動加標籤", "", _G_PINK),
+            (380, 1080, _CHIP_FAST, "", _G_WHITE),
+            (1690, 1900, _CHIP_AI, "", _G_PINK),
         ],
     },
-    2: {"sparkles": _SPARKLES, "chips": []},
-    3: {"sparkles": _SPARKLES, "chips": []},
     4: {"sparkles": _SPARKLES, "chips": []},
     5: {"sparkles": _SPARKLES, "chips": []},
     6: {"sparkles": _SPARKLES, "chips": []},
@@ -216,14 +226,26 @@ def build(title, subtitle, app_screenshot_path, out_path, extras=None):
     print(f"Wrote: {out_path}")
 
 
-CARDS = [
-    ("拍張名片，標籤幫你記住", "3 秒掃描建檔，幫你想起對方是誰", "01-cardscan.png"),
-    ("誰看過你，數據都記得", "點擊、觀看、停留 — 業務型人脈儀表板", "02-stats.png"),
-    ("不用想話題，AI 給你 3 個", "根據對方標籤，推薦最對的破冰話題", "03-ai.png"),
-    ("定義我自己，貴人找到你", "一張電子名片，分享給對的人", "04-profile.png"),
-    ("一場活動一個碼，朋友自動分類", "不同場合不同 QR，認識誰自動歸位", "05-qr.png"),
-    ("附近跟你同標籤的人，一目了然", "地圖打開，看見和你頻率相同的人", "06-map.png"),
-]
+# Order + captions mirror build_screenshot.py (the 2026-06-11 story order).
+CARDS_BY_LANG = {
+    "zh": [
+        ("讓別人搜得到你", "朋友需要你這種人時，搜標籤就找到你", "04-profile.png"),
+        ("見面掃一下，朋友自動歸檔", "一場活動一個 QR，認識誰都記得住", "05-qr.png"),
+        ("拍張名片，3 秒記住一個人", "自動建檔、自動加標籤，想得起他是誰", "01-cardscan.png"),
+        ("不知道怎麼開口，AI 給你 3 句", "從你們的共同點，接回上次停下的話題", "03-ai.png"),
+        ("附近誰跟你同頻，地圖看得見", "同標籤的朋友，就在你身邊", "06-map.png"),
+        ("你的人脈，看得見的成長", "誰掃了你、誰點了你，一張表全記得", "02-stats.png"),
+    ],
+    "en": [
+        ("Let people find you", "The right people find you by your tags", "04-profile.png"),
+        ("One scan, friends filed", "One QR per event — friends auto-organized", "05-qr.png"),
+        ("Scan a card, remember them", "Auto-saved with tags in 3 seconds", "01-cardscan.png"),
+        ("AI breaks the ice, 3 openers ready", "Personalized from what you two share", "03-ai.png"),
+        ("Your people, on a map", "Nearby friends who share your tags", "06-map.png"),
+        ("Your circle, in numbers", "Who scanned you, who tapped you", "02-stats.png"),
+    ],
+}
+CARDS = CARDS_BY_LANG[LANG]
 
 
 def main():
@@ -232,8 +254,9 @@ def main():
         sys.exit(1)
     idx = int(sys.argv[1]) - 1
     title, subtitle, default_src = CARDS[idx]
-    source = f"screenshots-6.9/{default_src}"
-    out_dir = Path(__file__).parent / "screenshots-ipad-marketing"
+    src_dir = "screenshots-6.9" if LANG == "zh" else "screenshots-6.9-en"
+    source = f"{src_dir}/{default_src}"
+    out_dir = Path(__file__).parent / ("screenshots-ipad-marketing" + ("" if LANG == "zh" else "-en"))
     out_dir.mkdir(exist_ok=True)
     out_path = out_dir / f"{idx+1:02d}-marketing.png"
     here = Path(__file__).parent

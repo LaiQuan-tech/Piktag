@@ -7,9 +7,15 @@ real app screenshot below.
 
 Output: 1320×2868 PNG per card (iPhone 17 Pro Max / 6.9" ASC slot).
 """
+import os
 import sys
 from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont, ImageFilter
+
+# SS_LANG=zh (default) or en. en reads app screenshots from
+# screenshots-6.9-en/ (app UI switched to English) and writes to
+# screenshots-6.9-marketing-en/ — NA is the primary market.
+LANG = os.environ.get("SS_LANG", "zh")
 
 # ── Canvas / brand ─────────────────────────────────────────────────────
 W, H = 1320, 2868
@@ -77,9 +83,12 @@ def draw_text_centered(
 
 
 def wrap_title(title: str) -> list:
-    """If title is short (≤ 9 zh chars), one line; else split on comma."""
+    """Short titles stay one line; longer ones split at the comma
+    (full-width for zh, half-width for en)."""
     if "，" in title and len(title) > 9:
         return title.split("，", 1)
+    if ", " in title and len(title) > 18:
+        return [p.strip() for p in title.split(", ", 1)]
     return [title]
 
 
@@ -265,17 +274,21 @@ _SPARKLES = [
 _G_WHITE = ((255, 255, 255), (240, 230, 255))  # white→pale-purple
 _G_PINK = ((255, 235, 250), (240, 220, 255))   # pink→pale-purple
 
+_CHIP_FAST = "3 秒就好" if LANG == "zh" else "3 seconds flat"
+_CHIP_AI = "AI 自動加標籤" if LANG == "zh" else "AI adds the tags"
+
 CARD_EXTRAS = {
-    1: {
+    1: {"sparkles": _SPARKLES, "chips": []},
+    2: {"sparkles": _SPARKLES, "chips": []},
+    # Chips only on the card-scan card (now #3 after the 2026-06-11
+    # story reorder) per founder.
+    3: {
         "sparkles": _SPARKLES,
         "chips": [
-            (220, 1120, "3 秒就好", "", _G_WHITE),
-            (1100, 1900, "AI 自動加標籤", "", _G_PINK),
+            (220, 1120, _CHIP_FAST, "", _G_WHITE),
+            (1100, 1900, _CHIP_AI, "", _G_PINK),
         ],
     },
-    # #2-6 use sparkles only — chips only on #1 (拍照名片) per founder
-    2: {"sparkles": _SPARKLES, "chips": []},
-    3: {"sparkles": _SPARKLES, "chips": []},
     4: {"sparkles": _SPARKLES, "chips": []},
     5: {"sparkles": _SPARKLES, "chips": []},
     6: {"sparkles": _SPARKLES, "chips": []},
@@ -284,7 +297,7 @@ CARD_EXTRAS = {
 
 def build(
     title: str, subtitle: str, app_screenshot_path: str, out_path: str,
-    extras: dict | None = None
+    extras=None
 ) -> None:
     bg = gradient_bg().convert("RGBA")
     draw = ImageDraw.Draw(bg)
@@ -320,14 +333,29 @@ def build(
 
 
 # ── 6-card config ──────────────────────────────────────────────────────
-CARDS = [
-    ("拍張名片，標籤幫你記住", "3 秒掃描建檔，幫你想起對方是誰", "01-cardscan.png"),
-    ("誰看過你，數據都記得", "點擊、觀看、停留 — 業務型人脈儀表板", "02-stats.png"),
-    ("不用想話題，AI 給你 3 個", "根據對方標籤，推薦最對的破冰話題", "03-ai.png"),
-    ("定義我自己，貴人找到你", "一張電子名片，分享給對的人", "04-profile.png"),
-    ("一場活動一個碼，朋友自動分類", "不同場合不同 QR，認識誰自動歸位", "05-qr.png"),
-    ("附近跟你同標籤的人，一目了然", "地圖打開，看見和你頻率相同的人", "06-map.png"),
-]
+# Order = the locked story (2026-06-11 Zuckerberg-standard pass): be found
+# → meet (QR) → meet (card) → reconnect (AI) → discover (map) → grow
+# (stats). Captions are scenarios, not feature names — same voice as the
+# wizard + store description ("讓別人搜得到你" mirrors the wizard title).
+CARDS_BY_LANG = {
+    "zh": [
+        ("讓別人搜得到你", "朋友需要你這種人時，搜標籤就找到你", "04-profile.png"),
+        ("見面掃一下，朋友自動歸檔", "一場活動一個 QR，認識誰都記得住", "05-qr.png"),
+        ("拍張名片，3 秒記住一個人", "自動建檔、自動加標籤，想得起他是誰", "01-cardscan.png"),
+        ("不知道怎麼開口，AI 給你 3 句", "從你們的共同點，接回上次停下的話題", "03-ai.png"),
+        ("附近誰跟你同頻，地圖看得見", "同標籤的朋友，就在你身邊", "06-map.png"),
+        ("你的人脈，看得見的成長", "誰掃了你、誰點了你，一張表全記得", "02-stats.png"),
+    ],
+    "en": [
+        ("Let people find you", "The right people find you by your tags", "04-profile.png"),
+        ("One scan, friends filed", "One QR per event — friends auto-organized", "05-qr.png"),
+        ("Scan a card, remember them", "Auto-saved with tags in 3 seconds", "01-cardscan.png"),
+        ("AI breaks the ice, 3 openers ready", "Personalized from what you two share", "03-ai.png"),
+        ("Your people, on a map", "Nearby friends who share your tags", "06-map.png"),
+        ("Your circle, in numbers", "Who scanned you, who tapped you", "02-stats.png"),
+    ],
+}
+CARDS = CARDS_BY_LANG[LANG]
 
 
 def main() -> None:
@@ -339,8 +367,10 @@ def main() -> None:
         print(f"index must be 1..{len(CARDS)}")
         sys.exit(1)
     title, subtitle, default_src = CARDS[idx]
-    source = sys.argv[2] if len(sys.argv) > 2 else f"screenshots-6.9/{default_src}"
-    out = Path(__file__).parent / "screenshots-6.9-marketing"
+    src_dir = "screenshots-6.9" if LANG == "zh" else "screenshots-6.9-en"
+    source = sys.argv[2] if len(sys.argv) > 2 else f"{src_dir}/{default_src}"
+    out_name = "screenshots-6.9-marketing" + ("" if LANG == "zh" else "-en")
+    out = Path(__file__).parent / out_name
     out.mkdir(exist_ok=True)
     out_path = out / f"{idx+1:02d}-marketing.png"
     here = Path(__file__).parent
