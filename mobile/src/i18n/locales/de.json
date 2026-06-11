@@ -392,7 +392,10 @@
     "tagsSelected": "Tag(s) ausgewählt",
     "aiThinking": "Reading your intent…",
     "aiExtractedLabel": "PikTag understood you mean:",
-    "askEmptyStateButton": "Post an Ask"
+    "askEmptyStateButton": "Ask posten",
+    "deadEndTitle": "Noch niemand für „{{concept}}\" in deinem Netzwerk",
+    "deadEndAskHint": "Stell ein Ask — Freunde finden die Person für dich",
+    "tabEmptyShort": "Noch keine Treffer in diesem Tab"
   },
   "addTag": {
     "headerTitle": "Vibe erstellen",

@@ -392,7 +392,10 @@
     "tagsSelected": "ٹیگز منتخب",
     "aiThinking": "Reading your intent…",
     "aiExtractedLabel": "PikTag understood you mean:",
-    "askEmptyStateButton": "Post an Ask"
+    "askEmptyStateButton": "Ask پوسٹ کریں",
+    "deadEndTitle": "آپ کے نیٹ ورک میں ابھی «{{concept}}» کے لیے کوئی نہیں",
+    "deadEndAskHint": "ایک Ask پوسٹ کریں — دوست آپ کے لیے ڈھونڈ لیں گے",
+    "tabEmptyShort": "اس ٹیب میں ابھی کوئی مماثل نہیں"
   },
   "addTag": {
     "headerTitle": "ٹیگ بنائیں",

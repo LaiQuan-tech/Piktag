@@ -345,7 +345,7 @@
     "tagsSelected": "個標籤已選",
     "aiThinking": "正在用 AI 解析…",
     "aiExtractedLabel": "PikTag 解讀你的意思:",
-    "askEmptyStateButton": "發 Ask 幫忙找",
+    "askEmptyStateButton": "發 Ask",
     "searchInputLabel": "搜尋",
     "clearSearchLabel": "清除搜尋",
     "searchBtn": "搜尋",
@@ -392,7 +392,10 @@
     "viewAllTagUsers": "查看全部 {{count}} 位",
     "categoryUncategorized": "其他",
     "allCategories": "全部",
-    "openMap": "地圖檢視"
+    "openMap": "地圖檢視",
+    "deadEndTitle": "你的人脈裡還沒有「{{concept}}」的人",
+    "deadEndAskHint": "發個 Ask，讓朋友幫你找到他",
+    "tabEmptyShort": "這個分頁還沒有相符的人"
   },
   "addTag": {
     "headerTitle": "建立 Tag",

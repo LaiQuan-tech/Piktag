@@ -392,7 +392,10 @@
     "tagsSelected": "ট্যাগ নির্বাচিত",
     "aiThinking": "Reading your intent…",
     "aiExtractedLabel": "PikTag understood you mean:",
-    "askEmptyStateButton": "Post an Ask"
+    "askEmptyStateButton": "Ask পোস্ট করুন",
+    "deadEndTitle": "আপনার নেটওয়ার্কে এখনও \"{{concept}}\" এর কেউ নেই",
+    "deadEndAskHint": "একটি Ask পোস্ট করুন — বন্ধুরা খুঁজে দেবে",
+    "tabEmptyShort": "এই ট্যাবে এখনও কোনো মিল নেই"
   },
   "addTag": {
     "headerTitle": "Tag তৈরি করুন",

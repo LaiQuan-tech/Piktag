@@ -392,7 +392,10 @@
     "tagsSelected": "etiqueta(s) seleccionada(s)",
     "aiThinking": "Reading your intent…",
     "aiExtractedLabel": "PikTag understood you mean:",
-    "askEmptyStateButton": "Post an Ask"
+    "askEmptyStateButton": "Publicar un Ask",
+    "deadEndTitle": "Nadie para «{{concept}}» en tu red todavía",
+    "deadEndAskHint": "Publica un Ask y deja que tus amigos lo encuentren",
+    "tabEmptyShort": "Aún no hay coincidencias en esta pestaña"
   },
   "addTag": {
     "headerTitle": "Crear un Tag",

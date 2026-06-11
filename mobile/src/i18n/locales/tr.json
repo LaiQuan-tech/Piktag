@@ -392,7 +392,10 @@
     "tagsSelected": "etiket seçildi",
     "aiThinking": "Reading your intent…",
     "aiExtractedLabel": "PikTag understood you mean:",
-    "askEmptyStateButton": "Post an Ask"
+    "askEmptyStateButton": "Ask paylaş",
+    "deadEndTitle": "Ağında henüz \"{{concept}}\" için kimse yok",
+    "deadEndAskHint": "Bir Ask paylaş — arkadaşların senin için bulsun",
+    "tabEmptyShort": "Bu sekmede henüz eşleşme yok"
   },
   "addTag": {
     "headerTitle": "Tag oluştur",

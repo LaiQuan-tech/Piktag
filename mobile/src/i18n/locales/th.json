@@ -392,7 +392,10 @@
     "tagsSelected": "แท็กที่เลือก",
     "aiThinking": "Reading your intent…",
     "aiExtractedLabel": "PikTag understood you mean:",
-    "askEmptyStateButton": "Post an Ask"
+    "askEmptyStateButton": "โพสต์ Ask",
+    "deadEndTitle": "เครือข่ายของคุณยังไม่มีคนเรื่อง \"{{concept}}\"",
+    "deadEndAskHint": "โพสต์ Ask แล้วให้เพื่อนช่วยหาให้",
+    "tabEmptyShort": "แท็บนี้ยังไม่มีคนที่ตรงกัน"
   },
   "addTag": {
     "headerTitle": "สร้าง Tag",

@@ -392,7 +392,10 @@
     "tagsSelected": "тегов выбрано",
     "aiThinking": "Reading your intent…",
     "aiExtractedLabel": "PikTag understood you mean:",
-    "askEmptyStateButton": "Post an Ask"
+    "askEmptyStateButton": "Опубликовать Ask",
+    "deadEndTitle": "В вашей сети пока нет «{{concept}}»",
+    "deadEndAskHint": "Опубликуйте Ask — друзья найдут нужного человека",
+    "tabEmptyShort": "В этой вкладке пока нет совпадений"
   },
   "addTag": {
     "headerTitle": "Создать Tag",

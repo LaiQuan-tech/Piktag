@@ -392,7 +392,10 @@
     "tagsSelected": "個のタグを選択中",
     "aiThinking": "Reading your intent…",
     "aiExtractedLabel": "PikTag understood you mean:",
-    "askEmptyStateButton": "Post an Ask"
+    "askEmptyStateButton": "Ask を投稿",
+    "deadEndTitle": "人脈にはまだ「{{concept}}」の人がいません",
+    "deadEndAskHint": "Ask を投稿して、友達に探してもらおう",
+    "tabEmptyShort": "このタブにはまだ該当者がいません"
   },
   "addTag": {
     "headerTitle": "Tag を作成",

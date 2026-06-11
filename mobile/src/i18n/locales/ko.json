@@ -392,7 +392,10 @@
     "tagsSelected": "개 태그 선택됨",
     "aiThinking": "Reading your intent…",
     "aiExtractedLabel": "PikTag understood you mean:",
-    "askEmptyStateButton": "Post an Ask"
+    "askEmptyStateButton": "Ask 올리기",
+    "deadEndTitle": "아직 인맥에 \"{{concept}}\" 인 사람이 없어요",
+    "deadEndAskHint": "Ask를 올리면 친구들이 찾아줘요",
+    "tabEmptyShort": "이 탭에는 아직 해당하는 사람이 없어요"
   },
   "addTag": {
     "headerTitle": "Tag 만들기",

@@ -392,7 +392,10 @@
     "tagsSelected": "tag dipilih",
     "aiThinking": "Reading your intent…",
     "aiExtractedLabel": "PikTag understood you mean:",
-    "askEmptyStateButton": "Post an Ask"
+    "askEmptyStateButton": "Posting Ask",
+    "deadEndTitle": "Belum ada \"{{concept}}\" di jaringanmu",
+    "deadEndAskHint": "Posting Ask — biar teman yang menemukannya",
+    "tabEmptyShort": "Belum ada yang cocok di tab ini"
   },
   "addTag": {
     "headerTitle": "Buat Tag",

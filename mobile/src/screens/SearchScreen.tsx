@@ -2145,7 +2145,7 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
     | { type: 'recentItem'; query: string; index: number }
     | { type: 'clearHistoryBtn' }
     | { type: 'profilesHeader' }
-    | { type: 'profilesEmpty' }
+    | { type: 'profilesEmpty'; isDeadEnd?: boolean; conceptLabel?: string }
     | { type: 'profileItem'; profile: PiktagProfile }
     | { type: 'localContactItem'; contact: TaggedContact }
     | { type: 'tagsHeader' }
@@ -2603,11 +2603,28 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
     // the user sees their network before strangers. Falls through to the
     // explore tab when there are no friend matches.
     if (trimmedQuery !== '') {
+      // Friends tab also holds the searcher's manually-tagged local
+      // contacts, so they count toward the friends total + tab badge.
+      const friendsCount = searchFriends.length + searchTaggedContacts.length;
+      const totalCount = friendsCount + searchExplore.length;
+      // A TOTAL dead end = no people AND no tags matched anywhere. Only
+      // then do we collapse the page to the clean 3-element empty state
+      // (concept-in-title → one Ask CTA). The concept the user searched
+      // for, folded INTO that title: the AI-extracted tag (#日文) when
+      // present, else the raw query.
+      const isDeadEnd = totalCount === 0 && tags.length === 0;
+      const conceptLabel = llmExtractedKeywords.length > 0
+        ? `#${llmExtractedKeywords[0]}`
+        : trimmedQuery;
+
       // AI-recovery transparency: when the LLM extracted content nouns
-      // from a natural-language query, surface them above the results
-      // so the user can see how PikTag understood their sentence (and
-      // course-correct if it's wrong).
-      if (llmExtractedKeywords.length > 0) {
+      // from a natural-language query, surface them above the results so
+      // the user can see how PikTag understood their sentence (and
+      // course-correct if it's wrong). SUPPRESSED on a dead end — the
+      // concept is folded into the empty-state title there, so showing
+      // the chip too would say the same thing twice (founder 2026-06-11,
+      // "太雜").
+      if (llmExtractedKeywords.length > 0 && !isDeadEnd) {
         items.push({ type: 'aiKeywordsChip', keywords: llmExtractedKeywords });
       }
       // Tags section — always show when search found matching tags.
@@ -2616,10 +2633,6 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
         items.push({ type: 'tagsGrid' });
       }
 
-      // Friends tab also holds the searcher's manually-tagged local
-      // contacts, so they count toward the friends total + tab badge.
-      const friendsCount = searchFriends.length + searchTaggedContacts.length;
-      const totalCount = friendsCount + searchExplore.length;
       if (totalCount > 0) {
         items.push({
           type: 'searchTabs',
@@ -2652,7 +2665,9 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
         // here, so a query that found tags but zero people read as
         // success (no "no members matched" feedback). Always surface
         // it — the tags grid above + this make the result honest.
-        items.push({ type: 'profilesEmpty' });
+        // isDeadEnd carries the concept into the title + drops the
+        // standalone chip / hint / clear (clean 3-element layout).
+        items.push({ type: 'profilesEmpty', isDeadEnd, conceptLabel });
       }
     } else if (isFocused && recentSearches.length > 0) {
       // IG-style: recent searches only appear when the user taps the input.
@@ -2952,56 +2967,57 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
             </Text>
           );
 
-        case 'profilesEmpty':
+        case 'profilesEmpty': {
+          // Tab-level empty (this tab has none but the OTHER tab / tags
+          // do): one quiet line, nothing else. The standalone concept
+          // chip still sits above explaining the query — no Ask here
+          // (there ARE results, just not in this tab) and no clear
+          // button (the search box × already does that).
+          if (!item.isDeadEnd) {
+            return (
+              <View style={styles.emptyStateContainer}>
+                <Text style={styles.emptyStateTitle} numberOfLines={2}>
+                  {t('search.tabEmptyShort', { defaultValue: '這個分頁還沒有相符的人' })}
+                </Text>
+              </View>
+            );
+          }
+          // TRUE dead end → the North-Star moment: the user just spoke a
+          // NEED out loud. Three elements only (founder 2026-06-11 "太雜"):
+          //   1. title with the concept folded in ("你的人脈裡還沒有「#日文」的人")
+          //   2. one motivating subtitle
+          //   3. one CTA — 發 Ask
+          // The "PikTag 解讀…" chip, the "試試 #標籤" hint and the
+          // "清除重新搜尋" button (a dup of the box ×) are all gone.
           return (
             <View style={styles.emptyStateContainer}>
-              <Text
-                style={styles.emptyStateTitle}
-                numberOfLines={2}
-                ellipsizeMode="tail"
-              >
-                {t('search.noProfilesFoundTitle', { query: trimmedQuery })}
+              <Text style={styles.emptyStateTitle} numberOfLines={3}>
+                {t('search.deadEndTitle', {
+                  concept: item.conceptLabel ?? trimmedQuery,
+                  defaultValue: '你的人脈裡還沒有「{{concept}}」的人',
+                })}
               </Text>
-              {/* "Try a #tag" is redundant when the AI chip is already
-                  shown above — recovery already tried that. Only show
-                  the hint when there was no AI assist. */}
-              {llmExtractedKeywords.length === 0 && (
-                <Text style={styles.emptyStateHint}>
-                  {t('search.tryTagSearchHint')}
-                </Text>
-              )}
-              {/* Dead-end search → highest-intent moment to capture a
-                  demand signal. The button label carries its own
-                  motivation now ("發 Ask 幫忙找") so we don't need
-                  a separate explanatory sentence — one element. */}
-              {trimmedQuery !== '' && (
-                <TouchableOpacity
-                  style={styles.askCtaButton}
-                  onPress={() => setAskVisible(true)}
-                  activeOpacity={0.85}
-                  accessibilityRole="button"
-                  accessibilityLabel={t('search.askEmptyStateButton', {
-                    defaultValue: 'Post an Ask',
-                  })}
-                >
-                  <Text style={styles.askCtaButtonText}>
-                    {t('search.askEmptyStateButton', {
-                      defaultValue: 'Post an Ask',
-                    })}
-                  </Text>
-                </TouchableOpacity>
-              )}
+              <Text style={styles.emptyStateHint}>
+                {t('search.deadEndAskHint', {
+                  defaultValue: '發個 Ask，讓朋友幫你找到他',
+                })}
+              </Text>
               <TouchableOpacity
-                style={styles.clearRetryButton}
-                onPress={handleResetToDefault}
-                activeOpacity={0.7}
+                style={styles.askCtaButton}
+                onPress={() => setAskVisible(true)}
+                activeOpacity={0.85}
+                accessibilityRole="button"
+                accessibilityLabel={t('search.askEmptyStateButton', {
+                  defaultValue: 'Post an Ask',
+                })}
               >
-                <Text style={styles.clearRetryButtonText}>
-                  {t('search.clearAndRetry')}
+                <Text style={styles.askCtaButtonText}>
+                  {t('search.askEmptyStateButton', { defaultValue: 'Post an Ask' })}
                 </Text>
               </TouchableOpacity>
             </View>
           );
+        }
 
         case 'profileItem':
           return (

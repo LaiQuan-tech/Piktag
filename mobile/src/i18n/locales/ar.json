@@ -392,7 +392,10 @@
     "tagsSelected": "علامة محددة",
     "aiThinking": "Reading your intent…",
     "aiExtractedLabel": "PikTag understood you mean:",
-    "askEmptyStateButton": "Post an Ask"
+    "askEmptyStateButton": "انشر Ask",
+    "deadEndTitle": "لا أحد في شبكتك بخصوص «{{concept}}» بعد",
+    "deadEndAskHint": "انشر Ask — ودع أصدقاءك يجدونه لك",
+    "tabEmptyShort": "لا توجد نتائج في هذا التبويب بعد"
   },
   "addTag": {
     "headerTitle": "إنشاء Tag",

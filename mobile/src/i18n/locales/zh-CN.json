@@ -392,7 +392,10 @@
     "tagsSelected": "个标签已选",
     "aiThinking": "Reading your intent…",
     "aiExtractedLabel": "PikTag understood you mean:",
-    "askEmptyStateButton": "Post an Ask"
+    "askEmptyStateButton": "发 Ask",
+    "deadEndTitle": "你的人脉里还没有「{{concept}}」的人",
+    "deadEndAskHint": "发个 Ask，让朋友帮你找到他",
+    "tabEmptyShort": "这个分页还没有相符的人"
   },
   "addTag": {
     "headerTitle": "创建 Tag",
