@@ -313,7 +313,10 @@ export const QUICK_PICK_KEYS = [
 // the mainland CN variant only. LINE Pay is deliberately NOT here — see
 // the Alipay platform comment for why (QR image, no shareable URL).
 const QUICK_PICK_BY_LANG: Record<string, readonly string[]> = {
-  'zh-TW': ['phone', 'email', 'line', 'instagram', 'threads', 'x', 'facebook', 'linkedin', 'wechat', 'paypal', 'custom'],
+  // Alipay removed 2026-06-11 (TW doesn't use it); YouTube fills the slot
+  // (founder 2026-06-12 「換一個其他的」 — high TW penetration, ja/ko rows
+  // already carry it).
+  'zh-TW': ['phone', 'email', 'line', 'instagram', 'threads', 'x', 'facebook', 'linkedin', 'youtube', 'wechat', 'paypal', 'custom'],
   'zh-CN': ['phone', 'email', 'wechat', 'alipay', 'bilibili', 'instagram', 'x', 'linkedin', 'telegram', 'paypal', 'custom'],
   ja:      ['phone', 'email', 'line', 'x', 'instagram', 'youtube', 'linkedin', 'telegram', 'paypal', 'custom'],
   ko:      ['phone', 'email', 'kakaotalk', 'instagram', 'x', 'youtube', 'linkedin', 'telegram', 'paypal', 'custom'],
