@@ -40,7 +40,7 @@ editable later without review) · **Keywords** (≤100, hidden, comma-separated)
 
 SUBTITLE (30/30): Remembers names. Finds people.
 
-PROMOTIONAL TEXT (149/170): Like having someone in your ear who remembers every name, every context — and quietly tells you who you should know next. PikTag, your social memory.
+PROMOTIONAL TEXT (154/170): Like having an assistant in your ear who remembers every name, every context — and quietly tells you who you should know next. PikTag, your social memory.
 
 KEYWORDS: networking,CRM,tags,QR,contacts,reconnect,memory,business card,scanner,events,startup,investor,designer,community
 
@@ -48,7 +48,7 @@ DESCRIPTION:
 Tag yourself. Find anyone.
 Remember everyone you meet. Find the right one when you need them.
 
-In The Devil Wears Prada, Miranda Priestly crosses a room full of important people and greets every one of them by name. Her secret isn't a flawless memory — it's the two assistants at her side, quietly whispering who's who as each guest approaches.
+In The Devil Wears Prada, Miranda crosses a room full of important people and greets every one of them by name. Her secret isn't a flawless memory — it's the two assistants at her side, quietly whispering who's who as each guest approaches.
 
 Most of us don't have two assistants.
 
@@ -122,7 +122,7 @@ Pick. Tag. Connect.
 
 SUBTITLE (11/30): 替你記名字，替你選人脈
 
-PROMOTIONAL TEXT (62/170): 就像有個人站在你身後，替你記住每個名字、每段關係——還會告訴你下一個該認識誰。PikTag 用標籤幫你想起，幫你推薦。
+PROMOTIONAL TEXT (50/170): 像隨身帶著一位助理，悄悄提醒你每個名字、每段關係——還有下一個該認識誰。PikTag，你的社交記憶。
 
 KEYWORDS: 人脈,標籤,社交,通訊錄,名片,掃描,QR,人脈管理,CRM,創業,投資人,設計師,活動,聚會,破冰,重新聯絡
 
@@ -130,7 +130,7 @@ DESCRIPTION:
 Tag yourself. Find anyone.
 記住每一個你見過的人，在需要的那一刻，找到對的那一個。
 
-在《穿著Prada的惡魔》裡，Miranda Priestly 穿過一整間都是重要人物的房間，每一個都能直接叫出名字打招呼。她的祕訣不是過目不忘，而是身旁那兩位助理——每當有客人走近，就在她耳邊輕聲提醒誰是誰。
+在《穿著Prada的惡魔》裡，Miranda 穿過一整間都是重要人物的房間，每一個都能直接叫出名字打招呼。她的祕訣不是過目不忘，而是身旁那兩位助理——每當有客人走近，就在她耳邊輕聲提醒誰是誰。
 
 我們大多數人，沒有兩個助理。
 
@@ -204,7 +204,7 @@ Pick. Tag. Connect.
 
 SUBTITLE (8/30): 记住名字，找对的人
 
-PROMOTIONAL TEXT (49/170): 像耳边有人随时为你低声提醒：每个名字、每段背景，还有下一个你该认识的人。PikTag，你的社交记忆。
+PROMOTIONAL TEXT (54/170): 像随身带着一位助理，在耳边低声提醒：每个名字、每段背景，还有下一个你该认识的人。PikTag，你的社交记忆。
 
 KEYWORDS: 人脉,标签,社交,通讯录,名片,扫描,QR,人脉管理,CRM,创业,投资人,设计师,活动,聚会,破冰
 
@@ -212,7 +212,7 @@ DESCRIPTION:
 Tag yourself. Find anyone.
 记住你遇见的每一个人，在需要的时候找到对的那一个。
 
-在《穿普拉达的女王》里，米兰达·普里斯特利穿过满屋子的重要人物，能叫出每一个人的名字。她的秘密不是过目不忘的记忆力，而是身边的两位助理——每位宾客走近时，都在她耳边悄悄提醒对方是谁。
+在《穿普拉达的女王》里，米兰达穿过满屋子的重要人物，能叫出每一个人的名字。她的秘密不是过目不忘的记忆力，而是身边的两位助理——每位宾客走近时，都在她耳边悄悄提醒对方是谁。
 
 我们大多数人没有两位助理。
 
@@ -286,7 +286,7 @@ Pick. Tag. Connect.
 
 SUBTITLE (12/30): 名前を覚え、人を見つける
 
-PROMOTIONAL TEXT (62/170): 耳元で誰かがそっと教えてくれるように。すべての名前と背景、そして次に出会うべき人を。PikTagは、あなたのソーシャルメモリー。
+PROMOTIONAL TEXT (68/170): 耳元でアシスタントがそっと教えてくれるように。すべての名前と背景、そして次に出会うべき人を。PikTagは、あなたのソーシャルメモリー。
 
 KEYWORDS: 人脈,名刺,連絡先,タグ,人脈管理,名刺管理,スキャン,QR,CRM,起業,スタートアップ,投資家,デザイナー,交流会,イベント,人脈作り,出会い
 
@@ -294,7 +294,7 @@ DESCRIPTION:
 Tag yourself. Find anyone.
 出会った人を、全員覚えておく。必要なときに、ぴったりの人を見つけ出す。
 
-映画「プラダを着た悪魔」で、ミランダ・プリーストリーは重要人物だらけの会場を歩きながら、一人ひとりを名前で迎えます。その秘密は完璧な記憶力ではなく、両脇に控えるふたりのアシスタント。ゲストが近づくたびに、相手が誰なのかをそっと耳打ちしてくれるのです。
+映画「プラダを着た悪魔」で、ミランダは重要人物だらけの会場を歩きながら、一人ひとりを名前で迎えます。その秘密は完璧な記憶力ではなく、両脇に控えるふたりのアシスタント。ゲストが近づくたびに、相手が誰なのかをそっと耳打ちしてくれるのです。
 
 私たちのほとんどに、ふたりのアシスタントはいません。
 
@@ -368,7 +368,7 @@ Pick. Tag. Connect.
 
 SUBTITLE (14/30): 이름을 기억하고 사람을 찾다
 
-PROMOTIONAL TEXT (56/170): 귀에 대고 속삭여 주는 사람처럼. 모든 이름과 맥락, 그리고 다음에 알아야 할 사람까지. PikTag, 당신의 소셜 메모리.
+PROMOTIONAL TEXT (69/170): 귀에 대고 속삭여 주는 비서처럼. 모든 이름과 맥락, 그리고 다음에 알아야 할 사람까지. PikTag, 당신의 소셜 메모리.
 
 KEYWORDS: 인맥,명함,연락처,태그,인맥관리,명함관리,스캔,QR,CRM,창업,스타트업,투자자,디자이너,네트워킹,행사,모임,인맥쌓기,소셜
 
@@ -376,7 +376,7 @@ DESCRIPTION:
 Tag yourself. Find anyone.
 만나는 모든 사람을 기억하세요. 필요한 순간, 딱 맞는 사람을 찾으세요.
 
-영화 「악마는 프라다를 입는다」에서 미란다 프리슬리는 거물들로 가득한 행사장을 가로지르며 한 사람 한 사람의 이름을 부르며 인사합니다. 그 비결은 완벽한 기억력이 아니라, 양옆에 선 두 명의 비서. 손님이 다가올 때마다 누가 누구인지 조용히 귀띔해 주죠.
+영화 「악마는 프라다를 입는다」에서 미란다는 거물들로 가득한 행사장을 가로지르며 한 사람 한 사람의 이름을 부르며 인사합니다. 그 비결은 완벽한 기억력이 아니라, 양옆에 선 두 명의 비서. 손님이 다가올 때마다 누가 누구인지 조용히 귀띔해 주죠.
 
 우리 대부분에게는 비서 두 명이 없습니다.
 
@@ -450,7 +450,7 @@ Pick. Tag. Connect.
 
 SUBTITLE (26/30): Namen merken. Leute finden.
 
-PROMOTIONAL TEXT (167/170): Wie jemand an deinem Ohr, der jeden Namen und jeden Kontext kennt – und dir leise verrät, wen du als Nächstes treffen solltest. PikTag, dein soziales Gedächtnis.
+PROMOTIONAL TEXT (162/170): Wie ein Assistent an deinem Ohr, der jeden Namen und Kontext kennt – und dir leise verrät, wen du als Nächstes treffen solltest. PikTag, dein soziales Gedächtnis.
 
 KEYWORDS: networking,kontakte,tags,visitenkarte,scanner,QR,CRM,messe,event,gründer,startup,designer,community
 
@@ -458,7 +458,7 @@ DESCRIPTION:
 Tag yourself. Find anyone.
 Merk dir alle, die du triffst. Finde die richtige Person genau dann, wenn du sie brauchst.
 
-In „Der Teufel trägt Prada“ durchquert Miranda Priestly einen Saal voller wichtiger Leute und begrüßt jeden Einzelnen mit Namen. Ihr Geheimnis ist kein perfektes Gedächtnis – es sind die zwei Assistentinnen an ihrer Seite, die ihr leise zuflüstern, wer wer ist, sobald sich ein Gast nähert.
+In „Der Teufel trägt Prada“ durchquert Miranda einen Saal voller wichtiger Leute und begrüßt jeden Einzelnen mit Namen. Ihr Geheimnis ist kein perfektes Gedächtnis – es sind die zwei Assistentinnen an ihrer Seite, die ihr leise zuflüstern, wer wer ist, sobald sich ein Gast nähert.
 
 Die meisten von uns haben keine zwei Assistentinnen.
 
@@ -532,7 +532,7 @@ Pick. Tag. Connect.
 
 SUBTITLE (26/30): Retenir les noms, trouver.
 
-PROMOTIONAL TEXT (146/170): Comme une voix à votre oreille qui retient chaque nom, chaque contexte – et vous souffle qui rencontrer ensuite. PikTag, votre mémoire sociale.
+PROMOTIONAL TEXT (147/170): Comme un assistant à votre oreille qui retient chaque nom, chaque contexte – et vous souffle qui rencontrer ensuite. PikTag, votre mémoire sociale.
 
 KEYWORDS: networking,contacts,tags,carte de visite,scan,QR,CRM,événement,salon,startup,designer,créateur
 
@@ -540,7 +540,7 @@ DESCRIPTION:
 Tag yourself. Find anyone.
 Souvenez-vous de toutes les personnes que vous rencontrez. Retrouvez la bonne personne au moment où vous en avez besoin.
 
-Dans « Le Diable s’habille en Prada », Miranda Priestly traverse une salle pleine de gens importants et salue chacun d’eux par son nom. Son secret n’est pas une mémoire infaillible — ce sont les deux assistantes à ses côtés, qui lui soufflent discrètement qui est qui à mesure que les invités s’avancent.
+Dans « Le Diable s’habille en Prada », Miranda traverse une salle pleine de gens importants et salue chacun d’eux par son nom. Son secret n’est pas une mémoire infaillible — ce sont les deux assistantes à ses côtés, qui lui soufflent discrètement qui est qui à mesure que les invités s’avancent.
 
 La plupart d’entre nous n’ont pas deux assistantes.
 
@@ -614,7 +614,7 @@ Pick. Tag. Connect.
 
 SUBTITLE (30/30): Recuerda nombres. Halla gente.
 
-PROMOTIONAL TEXT (140/170): Como alguien a tu oído que recuerda cada nombre y cada contexto, y te dice en voz baja a quién deberías conocer. PikTag, tu memoria social.
+PROMOTIONAL TEXT (142/170): Como un asistente al oído que recuerda cada nombre y cada contexto, y te dice en voz baja a quién deberías conocer. PikTag, tu memoria social.
 
 KEYWORDS: networking,contactos,tags,tarjeta de visita,escáner,QR,CRM,eventos,congreso,startup,diseñador
 
@@ -622,7 +622,7 @@ DESCRIPTION:
 Tag yourself. Find anyone.
 Recuerda a todas las personas que conoces. Encuentra a la persona indicada justo cuando la necesitas.
 
-En «El diablo viste de Prada», Miranda Priestly cruza un salón lleno de gente importante y saluda a cada persona por su nombre. Su secreto no es una memoria perfecta: son las dos asistentes a su lado, que le susurran discretamente quién es quién a medida que se acerca cada invitado.
+En «El diablo viste de Prada», Miranda cruza un salón lleno de gente importante y saluda a cada persona por su nombre. Su secreto no es una memoria perfecta: son las dos asistentes a su lado, que le susurran discretamente quién es quién a medida que se acerca cada invitado.
 
 La mayoría de nosotros no tenemos dos asistentes.
 
@@ -696,7 +696,7 @@ Pick. Tag. Connect.
 
 SUBTITLE (28/30): Lembra nomes. Acha pessoas.
 
-PROMOTIONAL TEXT (146/170): Como ter alguém ao seu ouvido que lembra cada nome, cada contexto — e sussurra quem você deveria conhecer a seguir. PikTag, a sua memória social.
+PROMOTIONAL TEXT (152/170): Como ter um assistente ao seu ouvido que lembra cada nome, cada contexto — e sussurra quem você deveria conhecer a seguir. PikTag, a sua memória social.
 
 KEYWORDS: rede,contatos,networking,tags,agenda,reconectar,memória,QR,cartão,scanner,IA,amigos,eventos,negócios,startup
 
@@ -704,7 +704,7 @@ DESCRIPTION:
 Tag yourself. Find anyone.
 Lembre-se de todo mundo que você conhece. E encontre a pessoa certa na hora em que precisar.
 
-Em O Diabo Veste Prada, Miranda Priestly atravessa um salão cheio de gente importante e cumprimenta cada pessoa pelo nome. O segredo dela não é uma memória perfeita — são as duas assistentes ao seu lado, sussurrando discretamente quem é quem à medida que cada convidado se aproxima.
+Em O Diabo Veste Prada, Miranda atravessa um salão cheio de gente importante e cumprimenta cada pessoa pelo nome. O segredo dela não é uma memória perfeita — são as duas assistentes ao seu lado, sussurrando discretamente quem é quem à medida que cada convidado se aproxima.
 
 A maioria de nós não tem duas assistentes.
 
@@ -778,7 +778,7 @@ Pick. Tag. Connect.
 
 SUBTITLE (28/30): Ricorda i nomi. Trova tutti.
 
-PROMOTIONAL TEXT (149/170): Come avere qualcuno all'orecchio che ricorda ogni nome, ogni contesto — e ti sussurra chi dovresti conoscere dopo. PikTag, la tua memoria sociale.
+PROMOTIONAL TEXT (151/170): Come avere un assistente all'orecchio che ricorda ogni nome, ogni contesto — e ti sussurra chi dovresti conoscere dopo. PikTag, la tua memoria sociale.
 
 KEYWORDS: rete,contatti,networking,tag,rubrica,riconnetti,memoria,QR,biglietto,scanner,IA,amici,eventi,lavoro,startup
 
@@ -786,7 +786,7 @@ DESCRIPTION:
 Tag yourself. Find anyone.
 Ricorda tutte le persone che incontri. E trova quella giusta quando ti serve.
 
-Ne Il diavolo veste Prada, Miranda Priestly attraversa una sala piena di persone importanti e saluta ognuna per nome. Il suo segreto non è una memoria infallibile — sono le due assistenti al suo fianco, che le suggeriscono sottovoce chi è chi a ogni ospite che si avvicina.
+Ne Il diavolo veste Prada, Miranda attraversa una sala piena di persone importanti e saluta ognuna per nome. Il suo segreto non è una memoria infallibile — sono le due assistenti al suo fianco, che le suggeriscono sottovoce chi è chi a ogni ospite che si avvicina.
 
 La maggior parte di noi non ha due assistenti.
 
@@ -860,7 +860,7 @@ Pick. Tag. Connect.
 
 SUBTITLE (28/30): Помнит имена. Находит людей.
 
-PROMOTIONAL TEXT (141/170): Как будто кто-то шепчет вам на ухо каждое имя и контекст — и подсказывает, с кем стоит познакомиться дальше. PikTag — ваша социальная память.
+PROMOTIONAL TEXT (151/170): Как будто личный ассистент шепчет вам на ухо каждое имя и контекст — и подсказывает, с кем стоит познакомиться дальше. PikTag — ваша социальная память.
 
 KEYWORDS: контакты,нетворкинг,теги,связи,знакомства,память,QR,визитка,сканер,ИИ,друзья,события,бизнес,стартап,поиск
 
@@ -868,7 +868,7 @@ DESCRIPTION:
 Tag yourself. Find anyone.
 Помните всех, с кем знакомитесь. И находите нужного человека именно тогда, когда он нужен.
 
-В фильме «Дьявол носит Prada» Миранда Пристли проходит через зал, полный важных людей, и приветствует каждого по имени. Её секрет — не безупречная память, а две ассистентки рядом, которые тихо подсказывают ей, кто есть кто, пока гости подходят один за другим.
+В фильме «Дьявол носит Prada» Миранда проходит через зал, полный важных людей, и приветствует каждого по имени. Её секрет — не безупречная память, а две ассистентки рядом, которые тихо подсказывают ей, кто есть кто, пока гости подходят один за другим.
 
 У большинства из нас нет двух ассистентов.
 
@@ -942,7 +942,7 @@ Pick. Tag. Connect.
 
 SUBTITLE (28/30): İsmi unutsan da insanı bul
 
-PROMOTIONAL TEXT (157/170): Her ismi, her detayı hatırlayan biri kulağına fısıldıyor gibi düşün; sırada kimi tanıman gerektiğini de sessizce söyler. PikTag, senin sosyal hafızan.
+PROMOTIONAL TEXT (157/170): Her ismi, her detayı hatırlayan bir asistan kulağına fısıldıyor gibi düşün; sırada kimi tanıman gerektiğini de sessizce söyler. PikTag, senin sosyal hafızan.
 
 KEYWORDS: rehber,kişi,bağlantı,etiket,networking,kartvizit,tarayıcı,QR,buz kırıcı,iletişim,hatırlatıcı,sosyal,ağ,tanış
 
@@ -950,7 +950,7 @@ DESCRIPTION:
 Tag yourself. Find anyone.
 Tanıştığın herkesi hatırla. İhtiyacın olduğunda doğru kişiyi bul.
 
-Şeytan Marka Giyer'de Miranda Priestly, önemli insanlarla dolu bir salonu baştan başa geçer ve her birini adıyla selamlar. Sırrı kusursuz bir hafıza değil — yanındaki iki asistanın, her konuk yaklaştıkça kimin kim olduğunu usulca fısıldaması.
+Şeytan Marka Giyer'de Miranda, önemli insanlarla dolu bir salonu baştan başa geçer ve her birini adıyla selamlar. Sırrı kusursuz bir hafıza değil — yanındaki iki asistanın, her konuk yaklaştıkça kimin kim olduğunu usulca fısıldaması.
 
 Çoğumuzun iki asistanı yok.
 
@@ -1024,7 +1024,7 @@ Pick. Tag. Connect.
 
 SUBTITLE (29/30): Ingat orang, temukan siapa pun
 
-PROMOTIONAL TEXT (155/170): Bayangkan ada yang membisiki tiap nama dan konteks di telingamu, sekaligus diam-diam memberi tahu siapa yang sebaiknya kamu kenal. PikTag, memori sosialmu.
+PROMOTIONAL TEXT (162/170): Bayangkan seorang asisten membisiki tiap nama dan konteks di telingamu, sekaligus diam-diam memberi tahu siapa yang sebaiknya kamu kenal. PikTag, memori sosialmu.
 
 KEYWORDS: kontak,koneksi,tag,jaringan,networking,kartu nama,pemindai,QR,pembuka obrolan,relasi,pengingat,sosial,temukan
 
@@ -1032,7 +1032,7 @@ DESCRIPTION:
 Tag yourself. Find anyone.
 Ingat semua orang yang kamu temui. Temukan orang yang tepat saat kamu membutuhkannya.
 
-Dalam The Devil Wears Prada, Miranda Priestly melintasi ruangan yang penuh orang penting dan menyapa mereka satu per satu dengan namanya. Rahasianya bukan ingatan yang sempurna — melainkan dua asisten di sisinya, yang diam-diam membisikkan siapa orangnya setiap kali ada tamu mendekat.
+Dalam The Devil Wears Prada, Miranda melintasi ruangan yang penuh orang penting dan menyapa mereka satu per satu dengan namanya. Rahasianya bukan ingatan yang sempurna — melainkan dua asisten di sisinya, yang diam-diam membisikkan siapa orangnya setiap kali ada tamu mendekat.
 
 Kebanyakan dari kita tidak punya dua asisten.
 
@@ -1106,7 +1106,7 @@ Pick. Tag. Connect.
 
 SUBTITLE (24/30): Nhớ tên, tìm đúng người
 
-PROMOTIONAL TEXT (130/170): Như có người luôn nhắc bên tai mọi cái tên, mọi bối cảnh, và lặng lẽ mách bạn nên quen ai tiếp theo. PikTag, bộ nhớ xã hội của bạn.
+PROMOTIONAL TEXT (136/170): Như có một trợ lý luôn nhắc bên tai mọi cái tên, mọi bối cảnh, và lặng lẽ mách bạn nên quen ai tiếp theo. PikTag, bộ nhớ xã hội của bạn.
 
 KEYWORDS: danh bạ,liên hệ,kết nối,thẻ tag,networking,danh thiếp,quét,QR,mở lời,mối quan hệ,nhắc nhở,xã hội,mạng lưới
 
@@ -1114,7 +1114,7 @@ DESCRIPTION:
 Tag yourself. Find anyone.
 Nhớ mọi người bạn từng gặp. Tìm đúng người khi bạn cần.
 
-Trong Yêu Nữ Hàng Hiệu, Miranda Priestly đi qua một căn phòng đầy những nhân vật quan trọng và chào từng người bằng tên. Bí mật của bà không phải là trí nhớ hoàn hảo — mà là hai trợ lý bên cạnh, lặng lẽ thì thầm ai là ai mỗi khi có khách tiến đến.
+Trong Yêu Nữ Hàng Hiệu, Miranda đi qua một căn phòng đầy những nhân vật quan trọng và chào từng người bằng tên. Bí mật của bà không phải là trí nhớ hoàn hảo — mà là hai trợ lý bên cạnh, lặng lẽ thì thầm ai là ai mỗi khi có khách tiến đến.
 
 Phần lớn chúng ta không có hai trợ lý.
 
@@ -1188,7 +1188,7 @@ Pick. Tag. Connect.
 
 SUBTITLE (18/30): จำชื่อได้ ค้นหาคนเจอ
 
-PROMOTIONAL TEXT (133/170): เหมือนมีคนคอยกระซิบข้างหู ที่จำได้ทุกชื่อ ทุกบริบท แล้วบอกคุณเงียบ ๆ ว่าคนต่อไปที่ควรรู้จักคือใคร PikTag คือความทรงจำทางสังคมของคุณ
+PROMOTIONAL TEXT (136/170): เหมือนมีผู้ช่วยคอยกระซิบข้างหู ที่จำได้ทุกชื่อ ทุกบริบท แล้วบอกคุณเงียบ ๆ ว่าคนต่อไปที่ควรรู้จักคือใคร PikTag คือความทรงจำทางสังคมของคุณ
 
 KEYWORDS: เครือข่าย,คอนแทค,นามบัตร,แท็ก,รู้จักคน,คอนเนคชั่น,หาคน,สแกนนามบัตร,QR,เพื่อน,ธุรกิจ,สตาร์ทอัพ,จำชื่อ,ความสัมพันธ์
 
@@ -1196,7 +1196,7 @@ DESCRIPTION:
 Tag yourself. Find anyone.
 จดจำทุกคนที่คุณพบ แล้วหาคนที่ใช่ได้ในวันที่คุณต้องการ
 
-ในหนัง "นางมารร้ายกับนางแบบ" มิแรนด้า พรีสต์ลีย์ เดินผ่านห้องที่เต็มไปด้วยคนสำคัญ และทักทายทุกคนด้วยชื่อ ความลับของเธอไม่ใช่ความจำที่ไร้ที่ติ — แต่คือผู้ช่วยสองคนที่อยู่ข้างกาย คอยกระซิบบอกเบา ๆ ว่าใครเป็นใครทุกครั้งที่แขกเดินเข้ามา
+ในหนัง "นางมารร้ายกับนางแบบ" มิแรนด้า เดินผ่านห้องที่เต็มไปด้วยคนสำคัญ และทักทายทุกคนด้วยชื่อ ความลับของเธอไม่ใช่ความจำที่ไร้ที่ติ — แต่คือผู้ช่วยสองคนที่อยู่ข้างกาย คอยกระซิบบอกเบา ๆ ว่าใครเป็นใครทุกครั้งที่แขกเดินเข้ามา
 
 พวกเราส่วนใหญ่ไม่มีผู้ช่วยสองคน
 
@@ -1270,7 +1270,7 @@ Pick. Tag. Connect.
 
 SUBTITLE (24/30): يتذكّر الأسماء ويجد الناس
 
-PROMOTIONAL TEXT (110/170): كأنّ أحدهم يهمس في أذنك، يتذكّر كل اسم وكل سياق، ويخبرك بهدوء بمن يجدر بك معرفته تاليًا. PikTag، ذاكرتك الاجتماعية.
+PROMOTIONAL TEXT (124/170): كأنّ مساعدًا شخصيًا يهمس في أذنك، يتذكّر كل اسم وكل سياق، ويخبرك بهدوء بمن يجدر بك معرفته تاليًا. PikTag، ذاكرتك الاجتماعية.
 
 KEYWORDS: تواصل,شبكة علاقات,جهات اتصال,وسوم,بطاقة عمل,ماسح بطاقات,QR,معارف,أعمال,شركات ناشئة,أصدقاء
 
@@ -1278,7 +1278,7 @@ DESCRIPTION:
 Tag yourself. Find anyone.
 تذكَّر كل من تلتقي به. واعثر على الشخص المناسب لحظة حاجتك إليه.
 
-في فيلم «الشيطان يرتدي برادا»، تعبر ميراندا بريستلي قاعة مليئة بالشخصيات المهمة وتحيّي كل واحد منهم باسمه. سرّها ليس ذاكرة خارقة — بل مساعدتاها الواقفتان إلى جانبها، تهمسان لها بهدوء من يكون كل ضيف قبل أن يقترب.
+في فيلم «الشيطان يرتدي برادا»، تعبر ميراندا قاعة مليئة بالشخصيات المهمة وتحيّي كل واحد منهم باسمه. سرّها ليس ذاكرة خارقة — بل مساعدتاها الواقفتان إلى جانبها، تهمسان لها بهدوء من يكون كل ضيف قبل أن يقترب.
 
 معظمنا لا يملك مساعدَين اثنين.
 
@@ -1352,7 +1352,7 @@ Pick. Tag. Connect.
 
 SUBTITLE (17/30): नाम याद, लोग हाज़िर
 
-PROMOTIONAL TEXT (126/170): जैसे कोई आपके कान में हर नाम और हर संदर्भ याद रखकर चुपके से बताए कि अगला कौन है जिसे आपको जानना चाहिए। PikTag, आपकी सामाजिक स्मृति।
+PROMOTIONAL TEXT (137/170): जैसे कोई सहायक आपके कान में हर नाम और हर संदर्भ याद रखकर चुपके से बताए कि अगला कौन है जिसे आपको जानना चाहिए। PikTag, आपकी सामाजिक स्मृति।
 
 KEYWORDS: नेटवर्क,संपर्क,बिज़नेस कार्ड,टैग,लोग खोजें,कनेक्शन,कार्ड स्कैनर,QR,दोस्त,व्यवसाय,स्टार्टअप,रिश्ते,मिलना
 
@@ -1360,7 +1360,7 @@ DESCRIPTION:
 Tag yourself. Find anyone.
 हर मिलने वाले को याद रखिए। और ज़रूरत के वक़्त सही इंसान को ढूंढ निकालिए।
 
-"द डेविल वेअर्स प्राडा" में मिरांडा प्रीस्टली बड़े-बड़े लोगों से भरे कमरे से गुज़रती हैं और हर एक से नाम लेकर मिलती हैं। उनका राज़ कोई कमाल की याददाश्त नहीं — बल्कि साथ चल रही दो असिस्टेंट हैं, जो हर मेहमान के पास आते ही धीरे से बता देती हैं कि कौन कौन है।
+"द डेविल वेअर्स प्राडा" में मिरांडा बड़े-बड़े लोगों से भरे कमरे से गुज़रती हैं और हर एक से नाम लेकर मिलती हैं। उनका राज़ कोई कमाल की याददाश्त नहीं — बल्कि साथ चल रही दो असिस्टेंट हैं, जो हर मेहमान के पास आते ही धीरे से बता देती हैं कि कौन कौन है।
 
 हममें से ज़्यादातर के पास दो असिस्टेंट नहीं होतीं।
 

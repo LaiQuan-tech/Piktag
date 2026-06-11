@@ -81,8 +81,8 @@ normal store-listing review (~2-7 days).
 
 | Locale | Copy | Chars |
 |---|---|---|
-| zh-TW | `就像有個人站在你身後，替你記住每個名字、每段關係——還會告訴你下一個該認識誰。PikTag 用標籤幫你想起，幫你推薦。` | 62 / 170 |
-| en | `Like having someone in your ear who remembers every name, every context — and quietly tells you who you should know next. PikTag, your social memory.` | 149 / 170 |
+| zh-TW | `像隨身帶著一位助理，悄悄提醒你每個名字、每段關係——還有下一個該認識誰。PikTag，你的社交記憶。` | 50 / 170 |
+| en | `Like having an assistant in your ear who remembers every name, every context — and quietly tells you who you should know next. PikTag, your social memory.` | 154 / 170 |
 
 > Apple lets you change Promotional Text anytime via a per-locale modal,
 > WITHOUT going through review. Use it for announcements ("Featured in App
@@ -95,8 +95,8 @@ normal store-listing review (~2-7 days).
 
 | Locale | Copy | Chars |
 |---|---|---|
-| zh-TW | `站在你身後的那個人，替你記名字、替你選人脈。標籤一搜，對的人出現。` | 33 / 80 |
-| en | `Like a whisper in your ear: remembers the names you forgot, finds the next one.` | 79 / 80 |
+| zh-TW | `替你記名字、替你挑人脈的隨身助理。標籤一搜，對的人出現。` | 28 / 80 |
+| en | `An assistant in your ear: remembers names you forgot, finds the next one.` | 73 / 80 |
 
 > Google's short description appears below the title in Play Store search.
 > It's the line that earns the install-page tap, so we lead with the
