@@ -66,7 +66,15 @@ export const PLATFORMS: Platform[] = [
   // reading "your-line-id" can't tell if it's literal (founder 2026-06-11).
   // "LINE ID" / "WeChat ID" are how those handles are referred to in every
   // market, CJK included.
-  { key: 'line',       cat: 'communication', label: 'LINE',       prefix: 'https://line.me/ti/p/',             placeholder: 'LINE ID',                  domains: ['line.me', 'lin.ee'] },
+  // LINE add-friend URL uses `~` to mark the suffix as a public LINE
+  // ID (founder-visible handle); without it, LINE interprets the
+  // suffix as a MID (internal hash like `u…`) and refuses with
+  // "無法加入好友。請確認網址是否正確。" Bug fix 2026-06-11: prefix
+  // was `https://line.me/ti/p/` (no tilde), so every bare-handle save
+  // produced a broken URL. The new prefix includes the tilde; the
+  // LINE branch in buildPlatformUrl strips any leading `~` the user
+  // happened to type so we never double-tilde.
+  { key: 'line',       cat: 'communication', label: 'LINE',       prefix: 'https://line.me/ti/p/~',            placeholder: 'LINE ID',                  domains: ['line.me', 'lin.ee'] },
   { key: 'wechat',     cat: 'communication', label: 'WeChat',     prefix: 'weixin://dl/chat?',                 placeholder: 'WeChat ID',                domains: ['weixin.qq.com'] },
   { key: 'kakaotalk',  cat: 'communication', label: 'KakaoTalk',  prefix: 'https://open.kakao.com/o/',         placeholder: 'profile-link',             domains: ['kakao.com', 'open.kakao.com'] },
   { key: 'signal',     cat: 'communication', label: 'Signal',     prefix: 'https://signal.me/#p/',             placeholder: 'phone-or-username',        domains: ['signal.me', 'signal.org'] },
@@ -259,8 +267,13 @@ export const QUICK_PICK_KEYS = [
 //
 // The ONLY markets where the default is actively WRONG are East Asia,
 // where the dominant messenger differs hard:
-//   • zh-TW  — LINE dominates (WhatsApp ~unused). + WeChat / Alipay
-//              for cross-strait + diaspora commerce.
+//   • zh-TW  — LINE dominates (WhatsApp ~unused). + WeChat for the
+//              small cross-strait / diaspora overlap. Alipay is NOT
+//              surfaced here — Taiwan transacts in NT$, the cross-strait
+//              business overlap is small enough that a TW user can find
+//              Alipay via "Browse all" if they actually need it. (Founder
+//              2026-06-11 — removing onboarding noise that doesn't reflect
+//              TW reality.)
 //   • zh-CN  — WeChat + Alipay dominate. LINE is BLOCKED in mainland,
 //              so it MUST NOT lead here (the one place LINE is wrong).
 //   • ja     — LINE dominates; X is unusually large in Japan.
@@ -268,10 +281,10 @@ export const QUICK_PICK_KEYS = [
 // Taiwan is NOT the primary acquisition market (founder) — these are
 // correctness tweaks layered on the NA baseline, not a re-priori­tisation.
 // Alipay (paste-mode, added above) is the money-flow rail surfaced for
-// the Chinese-market variants. LINE Pay is deliberately NOT here — see
+// the mainland CN variant only. LINE Pay is deliberately NOT here — see
 // the Alipay platform comment for why (QR image, no shareable URL).
 const QUICK_PICK_BY_LANG: Record<string, readonly string[]> = {
-  'zh-TW': ['phone', 'email', 'line', 'instagram', 'threads', 'x', 'facebook', 'linkedin', 'wechat', 'alipay', 'paypal', 'custom'],
+  'zh-TW': ['phone', 'email', 'line', 'instagram', 'threads', 'x', 'facebook', 'linkedin', 'wechat', 'paypal', 'custom'],
   'zh-CN': ['phone', 'email', 'wechat', 'alipay', 'bilibili', 'instagram', 'x', 'linkedin', 'telegram', 'paypal', 'custom'],
   ja:      ['phone', 'email', 'line', 'x', 'instagram', 'youtube', 'linkedin', 'telegram', 'paypal', 'custom'],
   ko:      ['phone', 'email', 'kakaotalk', 'instagram', 'x', 'youtube', 'linkedin', 'telegram', 'paypal', 'custom'],
@@ -488,6 +501,16 @@ export function buildPlatformUrl(key: string, account: string): string {
     return `https://${trimmed}`;
   }
   if (!p) return trimmed;
+  // LINE: the prefix already carries the `~` marker for public IDs;
+  // strip any leading `~` the user typed so we don't end up with
+  // `https://line.me/ti/p/~~handle`. A pasted MID URL
+  // (`https://line.me/ti/p/u…`) still works via the scheme branch.
+  if (key === 'line') {
+    const bare = trimmed.replace(/^~+/, '');
+    if (bare.startsWith(p.prefix)) return bare;
+    if (/^[a-z]+:/i.test(bare)) return bare;
+    return `${p.prefix}${bare}`;
+  }
   // If the user pasted something that already starts with the prefix
   // (or with any scheme), don't double-prefix.
   if (trimmed.startsWith(p.prefix)) return trimmed;
