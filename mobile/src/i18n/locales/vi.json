@@ -339,7 +339,8 @@
     "addPersonA11y": "Thêm người",
     "coldStartActionScanDesc": "Quét lẫn nhau — trao đổi danh thiếp trong 30 giây",
     "coldStartActionSearch": "Tìm người theo thẻ tag",
-    "coldStartActionSearchDesc": "Thử #marketing hoặc #thietke — xem ai xuất hiện"
+    "coldStartActionSearchDesc": "Thử #marketing hoặc #thietke — xem ai xuất hiện",
+    "firstFriendHint": "Quét QR với người xung quanh, hoặc thêm bạn bè từ danh bạ"
   },
   "search": {
     "clearAll": "Xoá hết",

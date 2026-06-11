@@ -339,7 +339,8 @@
     "addPersonA11y": "Personen hinzufügen",
     "coldStartActionScanDesc": "Gegenseitig scannen — Kontakte in 30 Sekunden tauschen",
     "coldStartActionSearch": "Leute per Tag suchen",
-    "coldStartActionSearchDesc": "Probiere #marketing oder #designer — wer taucht auf?"
+    "coldStartActionSearchDesc": "Probiere #marketing oder #designer — wer taucht auf?",
+    "firstFriendHint": "Scannt euch gegenseitig per QR oder füge Freunde aus deinen Kontakten hinzu"
   },
   "search": {
     "clearAll": "Alle löschen",

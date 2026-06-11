@@ -339,7 +339,8 @@
     "addPersonA11y": "Ajouter des personnes",
     "coldStartActionScanDesc": "Scannez-vous mutuellement — échange de cartes en 30 secondes",
     "coldStartActionSearch": "Chercher des gens par tag",
-    "coldStartActionSearchDesc": "Essaie #marketing ou #designer — vois qui apparaît"
+    "coldStartActionSearchDesc": "Essaie #marketing ou #designer — vois qui apparaît",
+    "firstFriendHint": "Scannez-vous en QR avec les gens autour de vous, ou ajoutez des amis depuis vos contacts"
   },
   "search": {
     "clearAll": "Tout effacer",

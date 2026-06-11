@@ -339,7 +339,8 @@
     "addPersonA11y": "Aggiungi persone",
     "coldStartActionScanDesc": "Scansionatevi a vicenda: scambio di contatti in 30 secondi",
     "coldStartActionSearch": "Cerca persone per tag",
-    "coldStartActionSearchDesc": "Prova #marketing o #designer: guarda chi compare"
+    "coldStartActionSearchDesc": "Prova #marketing o #designer: guarda chi compare",
+    "firstFriendHint": "Scansiona il QR con chi ti sta intorno o aggiungi amici dai contatti"
   },
   "search": {
     "clearAll": "Cancella tutto",

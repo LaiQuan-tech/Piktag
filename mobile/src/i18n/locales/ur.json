@@ -339,7 +339,8 @@
     "addPersonA11y": "لوگ شامل کریں",
     "coldStartActionScanDesc": "ایک دوسرے کو اسکین کریں — 30 سیکنڈ میں کارڈ کا تبادلہ",
     "coldStartActionSearch": "ٹیگ سے لوگ تلاش کریں",
-    "coldStartActionSearchDesc": "#مارکیٹنگ یا #ڈیزائنر آزمائیں — دیکھیں کون آتا ہے"
+    "coldStartActionSearchDesc": "#مارکیٹنگ یا #ڈیزائنر آزمائیں — دیکھیں کون آتا ہے",
+    "firstFriendHint": "آس پاس کے لوگوں کے ساتھ QR اسکین کریں، یا رابطوں سے دوست شامل کریں"
   },
   "search": {
     "clearAll": "سب صاف کریں",

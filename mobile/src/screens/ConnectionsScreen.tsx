@@ -1184,6 +1184,19 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
           showsVerticalScrollIndicator={false}
           ListHeaderComponent={listHeader}
           ListEmptyComponent={renderEmpty}
+          ListFooterComponent={
+            // One quiet line while the list holds only the auto-added
+            // official account (founder 2026-06-12: the official friend
+            // replaces the teaching cards; this hint is the only guidance
+            // left — no banner, no card).
+            !loading && connections.length === 1 ? (
+              <Text style={styles.firstFriendHint}>
+                {t('connections.firstFriendHint', {
+                  defaultValue: '跟身邊的人互掃 QR，或從通訊錄把朋友加進來',
+                })}
+              </Text>
+            ) : null
+          }
           initialNumToRender={10}
           maxToRenderPerBatch={10}
           windowSize={5}
@@ -1644,6 +1657,16 @@ function makeStyles(c: ColorPalette) {
     fontSize: 15,
     fontWeight: '700',
     color: c.gray900,
+  },
+  // One-line guidance under the list while it only holds the official
+  // account — quiet text, deliberately NOT a card/banner (2026-06-07 rule).
+  firstFriendHint: {
+    fontSize: 13,
+    color: c.gray400,
+    textAlign: 'center',
+    paddingHorizontal: 32,
+    paddingVertical: 18,
+    lineHeight: 19,
   },
   emptyActionTitleSecondary: {
     fontWeight: '600',

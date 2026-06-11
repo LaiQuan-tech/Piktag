@@ -339,7 +339,8 @@
     "addPersonA11y": "Kişi ekle",
     "coldStartActionScanDesc": "Birbirinizi tarayın — 30 saniyede kartvizit takası",
     "coldStartActionSearch": "Etiketle insan ara",
-    "coldStartActionSearchDesc": "#pazarlama ya da #tasarımcı dene — kim çıkacak bak"
+    "coldStartActionSearchDesc": "#pazarlama ya da #tasarımcı dene — kim çıkacak bak",
+    "firstFriendHint": "Yanındakilerle QR taratın ya da rehberinden arkadaş ekle"
   },
   "search": {
     "clearAll": "Hepsini temizle",

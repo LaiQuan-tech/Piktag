@@ -339,7 +339,8 @@
     "addPersonA11y": "เพิ่มคน",
     "coldStartActionScanDesc": "สแกนกันและกัน แลกนามบัตรใน 30 วินาที",
     "coldStartActionSearch": "ค้นหาคนด้วยแท็ก",
-    "coldStartActionSearchDesc": "ลอง #การตลาด หรือ #นักออกแบบ ดูว่าใครโผล่มา"
+    "coldStartActionSearchDesc": "ลอง #การตลาด หรือ #นักออกแบบ ดูว่าใครโผล่มา",
+    "firstFriendHint": "สแกน QR กับคนรอบตัว หรือเพิ่มเพื่อนจากรายชื่อผู้ติดต่อ"
   },
   "search": {
     "clearAll": "ล้างทั้งหมด",

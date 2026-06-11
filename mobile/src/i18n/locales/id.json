@@ -339,7 +339,8 @@
     "addPersonA11y": "Tambah orang",
     "coldStartActionScanDesc": "Saling pindai — tukar kartu dalam 30 detik",
     "coldStartActionSearch": "Cari orang lewat tag",
-    "coldStartActionSearchDesc": "Coba #marketing atau #desainer — lihat siapa yang muncul"
+    "coldStartActionSearchDesc": "Coba #marketing atau #desainer — lihat siapa yang muncul",
+    "firstFriendHint": "Pindai QR dengan orang di sekitarmu, atau tambah teman dari kontak"
   },
   "search": {
     "clearAll": "Hapus semua",

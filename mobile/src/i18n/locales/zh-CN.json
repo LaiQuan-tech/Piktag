@@ -339,7 +339,8 @@
     "addPersonA11y": "加人",
     "coldStartActionScanDesc": "和现场的人互扫，30 秒交换名片",
     "coldStartActionSearch": "用标签搜一个人",
-    "coldStartActionSearchDesc": "例如 #营销 #设计师，看看谁会出现"
+    "coldStartActionSearchDesc": "例如 #营销 #设计师，看看谁会出现",
+    "firstFriendHint": "和身边的人互扫 QR，或从通讯录把朋友加进来"
   },
   "search": {
     "clearAll": "清除全部",

@@ -339,7 +339,8 @@
     "addPersonA11y": "إضافة أشخاص",
     "coldStartActionScanDesc": "امسحا رمزيكما — تبادل البطاقات في 30 ثانية",
     "coldStartActionSearch": "ابحث عن الأشخاص بالوسوم",
-    "coldStartActionSearchDesc": "جرّب #تسويق أو #مصمم — وانظر من يظهر"
+    "coldStartActionSearchDesc": "جرّب #تسويق أو #مصمم — وانظر من يظهر",
+    "firstFriendHint": "امسح رمز QR مع من حولك، أو أضف أصدقاء من جهات الاتصال"
   },
   "search": {
     "clearAll": "مسح الكل",
