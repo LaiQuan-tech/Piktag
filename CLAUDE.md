@@ -926,6 +926,14 @@ read-only inventory RPCs stay for monitoring (admin Tags page).
 
 ## Brand voice — locked phrases
 
+- **Primary market is NORTH AMERICA, not Taiwan** (founder 2026-06-11,
+  reinforcing the 2026-06-04 quick-pick call "台灣不是主戰場"). Concretely
+  for COPY: in-copy examples (cities, names, scenarios) localize PER
+  MARKET — the EN master uses US examples (Seattle, not Taipei); only the
+  zh-TW locale keeps 台北. Never export Taiwan-centric examples into other
+  locales' copy (store listing, landing, app strings). The reader must
+  feel "this is about MY life", and the default reader is North American.
+
 - **"Pick. Tag. Connect."** is the locked brand signature (founder
   approved 2026-06-09, replacing the prior **"PikTag to connect."**
   which was a grammatically-awkward subjectless fragment). Three clean

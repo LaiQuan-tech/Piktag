@@ -19,6 +19,11 @@ Rules baked into every locale below:
 - `PikTag`, `Ask`, `QR` are left as-is. The film title is localized to each
   market's official release title.
 - No emoji anywhere.
+- **Example city localizes per market** (founder 2026-06-11: primary market
+  is NORTH AMERICA, not Taiwan): en=Seattle, zh-TW=台北 (only TW keeps it),
+  zh-CN=上海, ja=東京, ko=서울, de=Berlin, fr=Paris, es=Madrid, pt=São Paulo,
+  it=Milano, ru=Москва, tr=İstanbul, id=Jakarta, vi=Sài Gòn, th=กรุงเทพฯ,
+  ar=دبي, hi=मुंबई. Never export Taipei into non-TW locales.
 - **ur (Urdu) + bn (Bengali) are NOT here** — App Store Connect has no listing
   localization for them, so they fall through to en. The **17 locales** below
   are the App-Store-supported set.
@@ -51,7 +56,7 @@ You have PikTag.
 
 Ever met someone who clearly knows you, but you can't remember their name?
 You remember they're a designer.
-They live in Taipei.
+They live in Seattle.
 They have two cats.
 But their name? Gone.
 
@@ -215,7 +220,7 @@ Tag yourself. Find anyone.
 
 有没有遇到过这种情况：对方显然认识你，你却怎么也想不起他的名字？
 你记得他是设计师。
-住在台北。
+住在上海。
 养了两只猫。
 可名字呢？完全想不起来。
 
@@ -297,7 +302,7 @@ Tag yourself. Find anyone.
 
 相手は明らかにこちらを知っているのに、名前がどうしても思い出せない——そんな経験はありませんか？
 デザイナーだったことは覚えている。
-台北に住んでいる。
+東京に住んでいる。
 猫を2匹飼っている。
 でも名前は？　出てこない。
 
@@ -379,7 +384,7 @@ Tag yourself. Find anyone.
 
 상대는 분명 나를 아는데, 이름이 도무지 떠오르지 않았던 적 있나요?
 디자이너라는 건 기억나요.
-타이베이에 살고요.
+서울에 살고요.
 고양이를 두 마리 키우죠.
 그런데 이름은? 사라졌어요.
 
@@ -461,7 +466,7 @@ Du hast PikTag.
 
 Schon mal jemanden getroffen, der dich eindeutig kennt – aber dir fällt der Name einfach nicht ein?
 Du weißt noch: arbeitet im Design.
-Lebt in Taipei.
+Lebt in Berlin.
 Hat zwei Katzen.
 Aber der Name? Weg.
 
@@ -543,7 +548,7 @@ Vous avez PikTag.
 
 Vous avez déjà croisé quelqu’un qui vous connaît visiblement, sans réussir à retrouver son nom ?
 Vous vous souvenez qu’il est designer.
-Qu’il vit à Taipei.
+Qu’il vit à Paris.
 Qu’il a deux chats.
 Mais son nom ? Envolé.
 
@@ -625,7 +630,7 @@ Tú tienes PikTag.
 
 ¿Alguna vez te has encontrado con alguien que claramente te conoce, pero no logras recordar su nombre?
 Recuerdas que se dedica al diseño.
-Que vive en Taipei.
+Que vive en Madrid.
 Que tiene dos gatos.
 ¿Pero su nombre? Borrado.
 
@@ -707,7 +712,7 @@ Você tem o PikTag.
 
 Já encontrou alguém que claramente conhece você, mas cujo nome você não consegue lembrar?
 Você lembra que a pessoa é designer.
-Que mora em Taipei.
+Que mora em São Paulo.
 Que tem dois gatos.
 Mas o nome? Sumiu.
 
@@ -789,7 +794,7 @@ Tu hai PikTag.
 
 Ti è mai capitato di incontrare qualcuno che chiaramente ti conosce, ma il cui nome proprio non ti viene in mente?
 Ricordi che fa il designer.
-Che vive a Taipei.
+Che vive a Milano.
 Che ha due gatti.
 Ma il nome? Sparito.
 
@@ -871,7 +876,7 @@ Tag yourself. Find anyone.
 
 Знакомо: человек явно вас знает, а вы никак не можете вспомнить его имя?
 Вы помните, что он дизайнер.
-Что живёт в Тайбэе.
+Что живёт в Москве.
 Что у него два кота.
 А имя? Вылетело из головы.
 
@@ -953,7 +958,7 @@ Senin PikTag'in var.
 
 Seni gayet iyi tanıyan biriyle karşılaştın ama adını bir türlü hatırlayamadın mı hiç?
 Tasarımcı olduğunu hatırlıyorsun.
-Taipei'de yaşıyor.
+İstanbul'da yaşıyor.
 İki kedisi var.
 Peki ya adı? Uçup gitmiş.
 
@@ -1035,7 +1040,7 @@ Kamu punya PikTag.
 
 Pernah ketemu orang yang jelas-jelas mengenalmu, tapi kamu lupa namanya?
 Kamu ingat dia seorang desainer.
-Dia tinggal di Taipei.
+Dia tinggal di Jakarta.
 Dia punya dua kucing.
 Tapi namanya? Hilang begitu saja.
 
@@ -1117,7 +1122,7 @@ Bạn có PikTag.
 
 Đã bao giờ bạn gặp một người rõ ràng rất quen bạn, mà bạn lại không nhớ nổi tên họ?
 Bạn nhớ họ là nhà thiết kế.
-Họ sống ở Taipei.
+Họ sống ở Sài Gòn.
 Họ nuôi hai con mèo.
 Còn cái tên? Quên sạch.
 
@@ -1199,7 +1204,7 @@ Tag yourself. Find anyone.
 
 เคยไหม เจอคนที่จำคุณได้แม่น แต่คุณนึกชื่อเขาไม่ออก?
 คุณจำได้ว่าเขาเป็นดีไซเนอร์
-อยู่ไทเป
+อยู่กรุงเทพฯ
 เลี้ยงแมวสองตัว
 แต่ชื่อล่ะ? หายไปเลย
 
@@ -1281,7 +1286,7 @@ Tag yourself. Find anyone.
 
 هل صادفت يومًا شخصًا يعرفك جيدًا، وأنت لا تتذكر اسمه؟
 تتذكر أنه مصمم.
-يعيش في تايبيه.
+يعيش في دبي.
 لديه قطتان.
 أما اسمه؟ تبخّر.
 
@@ -1363,7 +1368,7 @@ Tag yourself. Find anyone.
 
 कभी ऐसा हुआ है कि कोई आपको अच्छी तरह जानता हो, पर आपको उसका नाम याद न आए?
 आपको याद है कि वह डिज़ाइनर है।
-ताइपे में रहता है।
+मुंबई में रहता है।
 उसके पास दो बिल्लियाँ हैं।
 पर नाम? ग़ायब।
 
