@@ -12,6 +12,8 @@ Design notes:
 
 from __future__ import annotations
 
+import subprocess
+import sys
 import time
 import traceback
 from pathlib import Path
@@ -33,6 +35,13 @@ IMAGE_EXTS = {".jpg", ".jpeg", ".png", ".heic", ".heif", ".webp"}
 STABLE_POLL_SEC = 0.25
 STABLE_CONFIRMS = 3
 MAX_WAIT_SEC = 20
+
+# Hard cap on how long we wait for the thermal printer to finish a receipt.
+# python-escpos / pyusb don't expose a clean timeout — if the printer is
+# beeping (out of paper, cover open, firmware confused), USB writes can
+# block indefinitely and stall the whole pipeline. We wrap the print in a
+# daemon thread and move on if it hasn't returned in this many seconds.
+PRINT_TIMEOUT_SEC = 20
 
 
 class InboxHandler(FileSystemEventHandler):
@@ -141,14 +150,13 @@ class InboxHandler(FileSystemEventHandler):
 
         # Print is the LAST step the guest waits on — do it right before the
         # "done" log so the receipt comes out at the same moment the URL is live.
-        if self.printer is not None:
-            try:
-                pr = self.printer.print_receipt(code)
-                print(f"[{display_code}]   printed in {pr.duration_ms} ms")
-            except Exception as e:
-                # Print failure shouldn't kill the whole pipeline — photo's
-                # already in cloud, operator can re-print from terminal.
-                print(f"[{display_code}]   print FAILED ({type(e).__name__}: {e}) — re-run manually")
+        # Wrapped in a timeout: a beeping printer (out of paper / cover open) can
+        # block USB writes indefinitely and would otherwise stall the entire pipeline.
+        no_print_flag = Path.home() / "PhotoBooth" / ".no_print"
+        if no_print_flag.exists():
+            print(f"[{display_code}]   print skipped (.no_print flag active)")
+        elif self.printer is not None:
+            self._try_print_with_timeout(code, display_code)
         else:
             print(f"[{display_code}]   print skipped (no printer config)")
 
@@ -157,6 +165,41 @@ class InboxHandler(FileSystemEventHandler):
 
         if self.on_ready is not None:
             self.on_ready(code, url, output_dir)
+
+    def _try_print_with_timeout(self, code: str, display_code: str):
+        """Run the print as a subprocess. If it hangs (paper / cover / firmware /
+        wedged USB), subprocess.run kills it cleanly via SIGKILL and the OS
+        reliably reclaims all USB resources — unlike a Python thread, which
+        can't be force-killed and would leak the USB handle every timeout."""
+        project_root = Path(__file__).resolve().parent.parent
+        python = project_root / ".venv" / "bin" / "python"
+        helper = project_root / "scripts" / "print_one.py"
+        if not python.exists():
+            python = Path(sys.executable)  # fall back to current interpreter
+
+        try:
+            result = subprocess.run(
+                [str(python), str(helper), code],
+                timeout=PRINT_TIMEOUT_SEC,
+                capture_output=True,
+                text=True,
+            )
+        except subprocess.TimeoutExpired:
+            print(
+                f"[{display_code}]   print TIMED OUT after {PRINT_TIMEOUT_SEC}s — "
+                f"subprocess killed, USB freed. Check paper / cover / power. "
+                f"Reprint manually: test_printer.py --real --code {code}"
+            )
+            return
+
+        if result.returncode == 0:
+            # stdout looks like "OK 1869ms"
+            print(f"[{display_code}]   printed ({result.stdout.strip()})")
+        else:
+            # stderr has the traceback / error message
+            err = (result.stderr or result.stdout).strip().splitlines()
+            tail = err[-1] if err else "(no error message)"
+            print(f"[{display_code}]   print FAILED rc={result.returncode}: {tail}")
 
     def _move_to(self, src: Path, dst_dir: Path, prefix: Optional[str] = None):
         dst_dir.mkdir(parents=True, exist_ok=True)

@@ -12,10 +12,13 @@ import sys
 from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont, ImageFilter
 
-# SS_LANG=zh (default) or en. en reads app screenshots from
-# screenshots-6.9-en/ (app UI switched to English) and writes to
-# screenshots-6.9-marketing-en/ — NA is the primary market.
-LANG = os.environ.get("SS_LANG", "zh")
+# SS_LANG = one of the 17 caption locales (default zh-TW). zh-TW reads the
+# Chinese app screenshots from screenshots-6.9/ and writes to
+# screenshots-6.9-marketing/; every other locale reads the ENGLISH app-
+# screen set (screenshots-6.9-en/, NA primary market) and writes to
+# screenshots-6.9-marketing-<locale>/. Captions live in captions.py.
+LANG = os.environ.get("SS_LANG", "zh-TW")
+from captions import CARDS_BY_LANG, CHIP_BY_LANG  # noqa: E402
 
 # ── Canvas / brand ─────────────────────────────────────────────────────
 W, H = 1320, 2868
@@ -83,8 +86,12 @@ def draw_text_centered(
 
 
 def wrap_title(title: str) -> list:
-    """Short titles stay one line; longer ones split at the comma
-    (full-width for zh, half-width for en)."""
+    """Split the title into visual lines. An explicit '\\n' in the caption
+    forces the break (used by the localized captions); otherwise fall back
+    to splitting on a full-width / half-width comma for the en/zh authored
+    titles."""
+    if "\n" in title:
+        return title.split("\n")
     if "，" in title and len(title) > 9:
         return title.split("，", 1)
     if ", " in title and len(title) > 18:
@@ -274,24 +281,23 @@ _SPARKLES = [
 _G_WHITE = ((255, 255, 255), (240, 230, 255))  # white→pale-purple
 _G_PINK = ((255, 235, 250), (240, 220, 255))   # pink→pale-purple
 
-_CHIP_FAST = "3 秒就好" if LANG == "zh" else "3 seconds flat"
-_CHIP_AI = "AI 自動加標籤" if LANG == "zh" else "AI adds the tags"
+_CHIP_FAST, _CHIP_AI = CHIP_BY_LANG[LANG]
 
 CARD_EXTRAS = {
-    1: {"sparkles": _SPARKLES, "chips": []},
-    2: {"sparkles": _SPARKLES, "chips": []},
+    1: {"sparkles": [], "chips": []},
+    2: {"sparkles": [], "chips": []},
     # Chips only on the card-scan card (now #3 after the 2026-06-11
     # story reorder) per founder.
     3: {
-        "sparkles": _SPARKLES,
+        "sparkles": [],
         "chips": [
             (220, 1120, _CHIP_FAST, "", _G_WHITE),
             (1100, 1900, _CHIP_AI, "", _G_PINK),
         ],
     },
-    4: {"sparkles": _SPARKLES, "chips": []},
-    5: {"sparkles": _SPARKLES, "chips": []},
-    6: {"sparkles": _SPARKLES, "chips": []},
+    4: {"sparkles": [], "chips": []},
+    5: {"sparkles": [], "chips": []},
+    6: {"sparkles": [], "chips": []},
 }
 
 
@@ -335,41 +341,25 @@ def build(
 # ── 6-card config ──────────────────────────────────────────────────────
 # Order = the locked story (2026-06-11 Zuckerberg-standard pass): be found
 # → meet (QR) → meet (card) → reconnect (AI) → discover (map) → grow
-# (stats). Captions are scenarios, not feature names — same voice as the
-# wizard + store description ("讓別人搜得到你" mirrors the wizard title).
-CARDS_BY_LANG = {
-    "zh": [
-        ("讓別人搜得到你", "朋友需要你這種人時，搜標籤就找到你", "04-profile.png"),
-        ("見面掃一下，朋友自動歸檔", "一場活動一個 QR，認識誰都記得住", "05-qr.png"),
-        ("拍張名片，3 秒記住一個人", "自動建檔、自動加標籤，想得起他是誰", "01-cardscan.png"),
-        ("不知道怎麼開口，AI 給你 3 句", "從你們的共同點，接回上次停下的話題", "03-ai.png"),
-        ("附近誰跟你同頻，地圖看得見", "同標籤的朋友，就在你身邊", "06-map.png"),
-        ("你的人脈，看得見的成長", "誰掃了你、誰點了你，一張表全記得", "02-stats.png"),
-    ],
-    "en": [
-        ("Let people find you", "The right people find you by your tags", "04-profile.png"),
-        ("One scan, friends filed", "One QR per event — friends auto-organized", "05-qr.png"),
-        ("Scan a card, remember them", "Auto-saved with tags in 3 seconds", "01-cardscan.png"),
-        ("AI breaks the ice, 3 openers ready", "Personalized from what you two share", "03-ai.png"),
-        ("Your people, on a map", "Nearby friends who share your tags", "06-map.png"),
-        ("Your circle, in numbers", "Who scanned you, who tapped you", "02-stats.png"),
-    ],
-}
+# (stats). Captions (17 locales) live in captions.py.
 CARDS = CARDS_BY_LANG[LANG]
 
 
 def main() -> None:
     if len(sys.argv) < 2:
-        print("Usage: build_screenshot.py <index 1-6> [source-app.png]")
+        print("Usage: SS_LANG=<locale> build_screenshot.py <index 1-6> [source-app.png]")
         sys.exit(1)
     idx = int(sys.argv[1]) - 1
     if not (0 <= idx < len(CARDS)):
         print(f"index must be 1..{len(CARDS)}")
         sys.exit(1)
     title, subtitle, default_src = CARDS[idx]
-    src_dir = "screenshots-6.9" if LANG == "zh" else "screenshots-6.9-en"
+    # zh-TW uses the Chinese app captures; every other locale reuses the
+    # one English app-screen set (founder 2026-06-12: localize captions,
+    # one app-screen set).
+    src_dir = "screenshots-6.9" if LANG == "zh-TW" else "screenshots-6.9-en"
     source = sys.argv[2] if len(sys.argv) > 2 else f"{src_dir}/{default_src}"
-    out_name = "screenshots-6.9-marketing" + ("" if LANG == "zh" else "-en")
+    out_name = "screenshots-6.9-marketing" if LANG == "zh-TW" else f"screenshots-6.9-marketing-{LANG}"
     out = Path(__file__).parent / out_name
     out.mkdir(exist_ok=True)
     out_path = out / f"{idx+1:02d}-marketing.png"

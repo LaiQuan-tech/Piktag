@@ -9,11 +9,12 @@ from __future__ import annotations
 import os
 import time
 from dataclasses import dataclass
+from datetime import date
 from pathlib import Path
 from typing import Sequence
 
 import onnxruntime as ort
-from PIL import Image, ImageOps
+from PIL import Image, ImageDraw, ImageFilter, ImageFont, ImageOps
 from rembg import new_session, remove
 
 
@@ -55,6 +56,37 @@ CUTOUT_HEIGHT_RATIO = 0.92
 # Watermark: width as fraction of canvas, margin from edges in px
 WATERMARK_WIDTH_RATIO = 0.12
 WATERMARK_MARGIN_PX = 40
+
+# Event title overlay — rendered ON TOP of the cutout (in front of the person)
+# at bottom-center. Three lines: title / subtitle / today's date. White text +
+# soft drop shadow + thin black stroke = legible against any background.
+TITLE_LINE_1 = "2026 Rotary International Convention in Taipei"
+TITLE_LINE_2 = "House of Friendship"
+TITLE_LINE_1_FONT_SIZE = 60      # main title
+TITLE_LINE_2_FONT_SIZE = 38      # subtitle
+TITLE_DATE_FONT_SIZE = 32        # today's date
+TITLE_BOTTOM_MARGIN_PX = 60      # from canvas bottom up to the date line
+TITLE_LINE_GAP_PX = 12
+TITLE_SHADOW_OFFSET = 5
+TITLE_SHADOW_BLUR_RADIUS = 6
+TITLE_SHADOW_ALPHA = 200         # 0-255; higher = darker shadow
+TITLE_STROKE_WIDTH = 2           # crisp 1-2 px outline for edge contrast
+
+# Font selection — bold preferred for the main title, regular for subtitle.
+# Tries macOS first, then Linux fonts. Falls back to PIL's default (small)
+# if nothing found, which is ugly enough that it'd prompt manual fix.
+TITLE_BOLD_FONT_CANDIDATES = [
+    "/System/Library/Fonts/Supplemental/Arial Bold.ttf",
+    "/Library/Fonts/Arial Bold.ttf",
+    "/System/Library/Fonts/HelveticaNeue.ttc",  # tries index 8 = Bold
+    "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
+]
+TITLE_REGULAR_FONT_CANDIDATES = [
+    "/System/Library/Fonts/Supplemental/Arial.ttf",
+    "/Library/Fonts/Arial.ttf",
+    "/System/Library/Fonts/HelveticaNeue.ttc",  # index 0 = Regular
+    "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+]
 
 
 @dataclass
@@ -150,11 +182,9 @@ class Processor:
         # Third arg = alpha mask. Without it, you get black halos around hair.
         canvas.paste(cutout_resized, (x, y), cutout_resized)
 
-        # Watermark in bottom-right corner
-        wm = self._scaled_watermark(canvas.width)
-        wm_x = canvas.width - wm.width - WATERMARK_MARGIN_PX
-        wm_y = canvas.height - wm.height - WATERMARK_MARGIN_PX
-        canvas.paste(wm, (wm_x, wm_y), wm)
+        # Title at bottom-center — drawn AFTER the cutout so it sits in front
+        # of the person rather than getting hidden by their legs/feet.
+        _draw_title_overlay(canvas)
 
         return canvas
 
@@ -163,3 +193,96 @@ class Processor:
         ratio = target_w / self.watermark.width
         target_h = int(self.watermark.height * ratio)
         return self.watermark.resize((target_w, target_h), Image.LANCZOS)
+
+
+def _load_title_font(size: int, bold: bool) -> ImageFont.FreeTypeFont | ImageFont.ImageFont:
+    """Load the first available font. For HelveticaNeue.ttc, picks the right
+    style by index (bold=8, regular=0)."""
+    candidates = TITLE_BOLD_FONT_CANDIDATES if bold else TITLE_REGULAR_FONT_CANDIDATES
+    for path in candidates:
+        if not Path(path).exists():
+            continue
+        try:
+            if path.endswith("HelveticaNeue.ttc"):
+                return ImageFont.truetype(path, size, index=8 if bold else 0)
+            return ImageFont.truetype(path, size)
+        except (OSError, IOError):
+            continue
+    return ImageFont.load_default()
+
+
+def _measure(text: str, font) -> tuple[int, int, tuple[int, int, int, int]]:
+    """Return (width, height, bbox) for `text` rendered with `font`."""
+    img = Image.new("L", (1, 1))
+    draw = ImageDraw.Draw(img)
+    bbox = draw.textbbox((0, 0), text, font=font)
+    return (bbox[2] - bbox[0], bbox[3] - bbox[1], bbox)
+
+
+def _draw_text_with_shadow(
+    canvas: Image.Image,
+    text: str,
+    font,
+    y_pos: int,
+):
+    """Draw `text` horizontally centered at `y_pos` with soft drop shadow
+    and white fill + thin black stroke. Mutates `canvas` in place."""
+    text_w, _, bbox = _measure(text, font)
+    x_pos = (canvas.width - text_w) // 2 - bbox[0]
+
+    # 1) Soft drop shadow on a separate RGBA layer (so we can blur it).
+    shadow_layer = Image.new("RGBA", canvas.size, (0, 0, 0, 0))
+    ImageDraw.Draw(shadow_layer).text(
+        (x_pos + TITLE_SHADOW_OFFSET, y_pos + TITLE_SHADOW_OFFSET),
+        text,
+        font=font,
+        fill=(0, 0, 0, TITLE_SHADOW_ALPHA),
+    )
+    shadow_layer = shadow_layer.filter(ImageFilter.GaussianBlur(TITLE_SHADOW_BLUR_RADIUS))
+    canvas.paste(shadow_layer, (0, 0), shadow_layer)
+
+    # 2) White text + crisp black stroke (helps against busy/light backgrounds).
+    ImageDraw.Draw(canvas).text(
+        (x_pos, y_pos),
+        text,
+        font=font,
+        fill=(255, 255, 255),
+        stroke_width=TITLE_STROKE_WIDTH,
+        stroke_fill=(0, 0, 0),
+    )
+
+
+def _format_event_date(d: date) -> str:
+    """Format date as 'June. 13th, 2026' — full month name + period, day with
+    English ordinal suffix, comma, year."""
+    day = d.day
+    if 10 <= day % 100 <= 20:
+        suffix = "th"
+    else:
+        suffix = {1: "st", 2: "nd", 3: "rd"}.get(day % 10, "th")
+    return f"{d.strftime('%B')}. {day}{suffix}, {d.year}"
+
+
+def _draw_title_overlay(canvas: Image.Image):
+    """Render the three-line event title (title / subtitle / today's date)
+    centered at the bottom of the canvas. Date auto-updates per process run."""
+    font_main = _load_title_font(TITLE_LINE_1_FONT_SIZE, bold=True)
+    font_sub = _load_title_font(TITLE_LINE_2_FONT_SIZE, bold=False)
+    font_date = _load_title_font(TITLE_DATE_FONT_SIZE, bold=False)
+
+    date_str = _format_event_date(date.today())
+
+    _, h1, _ = _measure(TITLE_LINE_1, font_main)
+    _, h2, _ = _measure(TITLE_LINE_2, font_sub)
+    _, h3, _ = _measure(date_str, font_date)
+
+    # Stack height (3 lines + 2 gaps). Place so the bottom of the date line
+    # sits at canvas.height - TITLE_BOTTOM_MARGIN_PX.
+    total_h = h1 + TITLE_LINE_GAP_PX + h2 + TITLE_LINE_GAP_PX + h3
+    y = canvas.height - TITLE_BOTTOM_MARGIN_PX - total_h
+
+    _draw_text_with_shadow(canvas, TITLE_LINE_1, font_main, y)
+    y += h1 + TITLE_LINE_GAP_PX
+    _draw_text_with_shadow(canvas, TITLE_LINE_2, font_sub, y)
+    y += h2 + TITLE_LINE_GAP_PX
+    _draw_text_with_shadow(canvas, date_str, font_date, y)

@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import Home from './pages/Home'
 import Gallery from './pages/Gallery'
+import Timeline from './pages/Timeline'
 import NotFound from './pages/NotFound'
 import './index.css'
 
@@ -18,6 +19,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Home />} />
+        <Route path="/admin" element={<Timeline />} />
         <Route path="/:code" element={<Gallery />} />
         <Route path="/rotary" element={<Home />} />
         <Route path="/rotary/:code" element={<Gallery />} />

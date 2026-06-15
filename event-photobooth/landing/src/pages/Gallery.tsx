@@ -30,15 +30,9 @@ export default function Gallery() {
 
   return (
     <div className="min-h-screen bg-white text-neutral-900">
-      <header className="pt-10 pb-10 px-6 text-center">
-        <img
-          src="/logo.png"
-          alt="Rotary Taipei 2026"
-          className="h-12 w-auto mx-auto mb-7"
-          loading="eager"
-        />
+      <header className="pt-12 pb-10 px-6 text-center">
         <h1 className="text-xl font-medium leading-snug tracking-wide">
-          2026 Taipei Rotary<br />International Convention
+          2026 Rotary International<br />Convention in Taipei
         </h1>
         <p className="mt-2 text-sm text-neutral-500 tracking-wide">
           House of Friendship

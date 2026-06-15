@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.piktag.event-photobooth.watcher</string>
+
+  <!-- The actual command. Absolute python path is the venv interpreter so
+       launchd doesn't depend on the shell's PATH being right. -u flag
+       turns off Python's stdout buffering so the log is live. -->
+  <key>ProgramArguments</key>
+  <array>
+    <string>@PROJECT_DIR@/.venv/bin/python</string>
+    <string>-u</string>
+    <string>@PROJECT_DIR@/scripts/watch.py</string>
+  </array>
+
+  <!-- cwd for the python process. Without this, relative paths in the
+       project would break under launchd (cwd defaults to /). -->
+  <key>WorkingDirectory</key>
+  <string>@PROJECT_DIR@</string>
+
+  <!-- launchd doesn't load ~/.zshrc, so set PATH explicitly. Homebrew is
+       under /opt/homebrew on Apple Silicon — required so pyusb finds
+       libusb at runtime. -->
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>PATH</key>
+    <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+    <key>HOME</key>
+    <string>@HOME@</string>
+    <!-- pyusb finds the dylib via this on Apple Silicon -->
+    <key>DYLD_FALLBACK_LIBRARY_PATH</key>
+    <string>/opt/homebrew/lib:/usr/local/lib</string>
+  </dict>
+
+  <!-- Start as soon as launchd loads the plist (so install = running). -->
+  <key>RunAtLoad</key>
+  <true/>
+
+  <!-- Restart whenever the process exits for any reason (crash, kill,
+       network blip, etc.). With Crashed=true alone, normal exits won't
+       restart — but our watcher should NEVER exit normally during the
+       event, so always-restart is the right policy. -->
+  <key>KeepAlive</key>
+  <true/>
+
+  <!-- "Interactive" gets full CPU priority. We initially used "Background"
+       to be polite to the desktop, but that throttled BiRefNet from 13s
+       to 120s per photo on M2 — unacceptable for a live event. -->
+  <key>ProcessType</key>
+  <string>Interactive</string>
+
+  <!-- Live log file. tail -f to watch in real time. -->
+  <key>StandardOutPath</key>
+  <string>@HOME@/PhotoBooth/logs/watcher.log</string>
+  <key>StandardErrorPath</key>
+  <string>@HOME@/PhotoBooth/logs/watcher.err.log</string>
+
+  <!-- Cap CPU/IO at "user-initiated" so it doesn't fight UI apps for
+       resources. The bg-removal pass is CPU-heavy; without this it could
+       briefly make the desktop feel sluggish during processing. -->
+  <key>ThrottleInterval</key>
+  <integer>10</integer>
+</dict>
+</plist>

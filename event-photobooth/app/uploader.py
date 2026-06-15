@@ -21,6 +21,12 @@ from supabase import Client, create_client
 
 from .config import SupabaseConfig
 
+# Per-file retry policy for transient network failures (ConnectError, read/write
+# timeouts, "Connection reset by peer"). At the event we'd rather wait 7 seconds
+# than fail the whole pipeline + miss the print. Backoff: 0.5s, 1s, 2s, 4s.
+UPLOAD_MAX_ATTEMPTS = 4
+UPLOAD_BACKOFF_BASE_SEC = 0.5
+
 
 @dataclass
 class UploadResult:
@@ -66,17 +72,7 @@ class SupabaseUploader:
         for idx, f in enumerate(files, start=1):
             key = f"{self.cfg.org}/{code}/{idx}.jpg"
             data = f.read_bytes()
-            # `upsert=false` so we never accidentally overwrite a guest's photo
-            # if a code somehow collides. Treats collision as a hard error.
-            storage.upload(
-                path=key,
-                file=data,
-                file_options={
-                    "content-type": "image/jpeg",
-                    "cache-control": "public, max-age=2592000, immutable",
-                    "upsert": "false",
-                },
-            )
+            self._upload_one_with_retry(storage, key, data)
             keys.append(key)
             public_urls.append(self.public_url_for(code, idx))
             total_bytes += len(data)
@@ -89,6 +85,53 @@ class SupabaseUploader:
             bytes_uploaded=total_bytes,
             duration_ms=duration_ms,
         )
+
+    def _upload_one_with_retry(self, storage, key: str, data: bytes):
+        """Upload one object, retrying transient network errors with exponential
+        backoff. Permanent errors (auth, quota, bucket missing) surface immediately
+        so we don't waste time retrying something that will never work."""
+        import time as _time
+        last_err: Optional[Exception] = None
+        for attempt in range(1, UPLOAD_MAX_ATTEMPTS + 1):
+            try:
+                storage.upload(
+                    path=key,
+                    file=data,
+                    file_options={
+                        "content-type": "image/jpeg",
+                        "cache-control": "public, max-age=2592000, immutable",
+                        "upsert": "false",
+                    },
+                )
+                return
+            except Exception as e:
+                last_err = e
+                msg = str(e).lower()
+                cls = type(e).__name__
+                # Only retry transient/network failures. Anything else (401, 409,
+                # bucket-not-found, etc.) will keep failing forever — bail fast.
+                transient = (
+                    "timeout" in msg
+                    or "timed out" in msg
+                    or "connection reset" in msg
+                    or "connection aborted" in msg
+                    or "server disconnected" in msg
+                    or "disconnected" in msg
+                    or "connect" in cls.lower()
+                    or "timeout" in cls.lower()
+                    or "remoteprotocol" in cls.lower()
+                    or "protocol" in cls.lower()
+                )
+                if not transient or attempt == UPLOAD_MAX_ATTEMPTS:
+                    raise
+                wait = UPLOAD_BACKOFF_BASE_SEC * (2 ** (attempt - 1))
+                print(
+                    f"  upload retry {attempt}/{UPLOAD_MAX_ATTEMPTS} "
+                    f"after {cls} on {key} — waiting {wait:.1f}s"
+                )
+                _time.sleep(wait)
+        if last_err is not None:
+            raise last_err
 
     def public_url_for(self, code: str, index: int) -> str:
         """Return the canonical public URL for a stored photo.

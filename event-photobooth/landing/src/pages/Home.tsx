@@ -22,14 +22,8 @@ export default function Home() {
     <div className="min-h-screen bg-white text-neutral-900 flex flex-col">
       <main className="flex-1 flex items-center justify-center px-8 py-12">
         <div className="w-full max-w-xs">
-          <img
-            src="/logo.png"
-            alt="Rotary Taipei 2026"
-            className="h-12 w-auto mx-auto mb-7"
-            loading="eager"
-          />
           <h1 className="text-xl font-medium leading-snug tracking-wide text-center">
-            2026 Taipei Rotary<br />International Convention
+            2026 Rotary International<br />Convention in Taipei
           </h1>
           <p className="mt-2 text-sm text-neutral-500 tracking-wide text-center mb-10">
             House of Friendship

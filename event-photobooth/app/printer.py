@@ -83,33 +83,39 @@ def _load_font(size: int) -> ImageFont.FreeTypeFont | ImageFont.ImageFont:
     return ImageFont.load_default()
 
 
+def _build_qr(data: str, box_size: int) -> Image.Image:
+    qr = qrcode.QRCode(
+        version=None,
+        error_correction=ERROR_CORRECT_M,
+        box_size=box_size,
+        border=QR_BORDER,
+    )
+    qr.add_data(data)
+    qr.make(fit=True)
+    return qr.make_image(fill_color="black", back_color="white").convert("L")
+
+
 def render_receipt(code: str, domain: str = "rotary.pikt.ag") -> Image.Image:
     """Render the receipt to a 1-bit PIL Image ready for ESC/POS printing.
 
     Pure function — no I/O, no printer. Used by both the dry-run preview and
     the actual print path so what-you-see-is-what-you-print.
+
+    Layout:
+        [Photo QR]
+        K4Q8-M2P3
+        rotary.pikt.ag/...
     """
     display_code = display(code)
     short_url = url_for(code, domain=domain).replace("https://", "")
 
-    # Build QR
-    qr = qrcode.QRCode(
-        version=None,
-        error_correction=ERROR_CORRECT_M,
-        box_size=QR_BOX_SIZE,
-        border=QR_BORDER,
-    )
-    qr.add_data(url_for(code, domain=domain))
-    qr.make(fit=True)
-    qr_img = qr.make_image(fill_color="black", back_color="white").convert("L")
-
-    # Center the QR horizontally; never exceed print width
+    qr_img = _build_qr(url_for(code, domain=domain), QR_BOX_SIZE)
     qr_w = min(qr_img.width, PRINT_WIDTH_DOTS - 16)
     qr_img.thumbnail((qr_w, qr_w), Image.LANCZOS)
 
-    # Measure text heights so we know total canvas height
     code_font = _load_font(CODE_FONT_SIZE)
     url_font = _load_font(URL_FONT_SIZE)
+
     _, code_h = _text_size(display_code, code_font)
     _, url_h = _text_size(short_url, url_font)
 
@@ -127,18 +133,13 @@ def render_receipt(code: str, domain: str = "rotary.pikt.ag") -> Image.Image:
     draw = ImageDraw.Draw(canvas)
 
     y = TOP_MARGIN
-
-    # QR centered
-    qr_x = (PRINT_WIDTH_DOTS - qr_img.width) // 2
-    canvas.paste(qr_img, (qr_x, y))
+    canvas.paste(qr_img, ((PRINT_WIDTH_DOTS - qr_img.width) // 2, y))
     y += qr_img.height + QR_TO_CODE_GAP
 
-    # 8-char code centered, bold mono
     code_w, _ = _text_size(display_code, code_font)
     draw.text(((PRINT_WIDTH_DOTS - code_w) // 2, y), display_code, font=code_font, fill=0)
     y += code_h + CODE_TO_URL_GAP
 
-    # URL centered, smaller
     url_w, _ = _text_size(short_url, url_font)
     draw.text(((PRINT_WIDTH_DOTS - url_w) // 2, y), short_url, font=url_font, fill=0)
 
@@ -154,36 +155,62 @@ def _text_size(text: str, font) -> tuple[int, int]:
 
 
 class Printer:
-    """Wraps python-escpos for our specific receipt layout."""
+    """Wraps python-escpos for our specific receipt layout.
+
+    Opens a fresh USB connection on every print rather than caching, because
+    a power-cycled printer gets a new USB address — a cached handle from the
+    previous boot becomes invalid and every subsequent print fails with
+    "No such device" until the watcher restarts. Fresh-open is robust to:
+    printer reboot, USB cable unplug/replug, sleep/wake cycles.
+
+    Cost: ~10-50 ms per print to enumerate USB. Trivial vs print itself."""
 
     def __init__(self, cfg: PrinterConfig, domain: str = "rotary.pikt.ag"):
         self.cfg = cfg
         self.domain = domain
-        self._escpos = None  # lazy — don't open USB until first print
-
-    def _open(self):
-        if self._escpos is not None:
-            return self._escpos
-        # Imported lazily so a missing libusb / pyusb doesn't crash dry-run
-        from escpos.printer import Usb
-        self._escpos = Usb(
-            idVendor=self.cfg.vendor_id,
-            idProduct=self.cfg.product_id,
-            in_ep=self.cfg.in_ep,
-            out_ep=self.cfg.out_ep,
-        )
-        return self._escpos
 
     def print_receipt(self, code: str) -> PrintResult:
         """Render and print a receipt for `code`. Synchronous, ~1-2s on V58-H."""
         t0 = time.perf_counter()
         bitmap = render_receipt(code, domain=self.domain)
-        printer = self._open()
-        # impl="bitImageColumn" is the most widely supported ESC/POS image mode;
-        # python-escpos picks a sensible default if we don't specify. Stick with
-        # default until we observe real-printer issues.
-        printer.image(bitmap, center=False, impl="bitImageRaster")
-        printer.cut()
+
+        # Imported lazily so a missing libusb / pyusb doesn't crash dry-run callers
+        from escpos.printer import Usb
+        import usb.core
+
+        # Send a USB-level reset BEFORE python-escpos claims the device.
+        # If a previous print attempt left the device in an iffy state
+        # (claim-but-no-release, half-buffered ESC/POS, firmware confused
+        # after a power cycle), this returns it to known-good before we
+        # try to talk to it again. Swallow errors — if reset fails the
+        # subsequent Usb() open will surface the real problem.
+        try:
+            raw = usb.core.find(
+                idVendor=self.cfg.vendor_id,
+                idProduct=self.cfg.product_id,
+            )
+            if raw is not None:
+                raw.reset()
+        except Exception:
+            pass
+
+        printer = Usb(
+            idVendor=self.cfg.vendor_id,
+            idProduct=self.cfg.product_id,
+            in_ep=self.cfg.in_ep,
+            out_ep=self.cfg.out_ep,
+        )
+        try:
+            printer.image(bitmap, center=False, impl="bitImageRaster")
+            printer.cut()
+        finally:
+            # Release the USB interface so the next print can re-enumerate
+            # cleanly. Swallow errors here — we already got the data out.
+            try:
+                printer.close()
+            except Exception:
+                pass
+
         duration_ms = int((time.perf_counter() - t0) * 1000)
         return PrintResult(
             code=code,
@@ -193,12 +220,9 @@ class Printer:
         )
 
     def close(self):
-        if self._escpos is not None:
-            try:
-                self._escpos.close()
-            except Exception:
-                pass
-            self._escpos = None
+        # Kept for API compatibility — connections are now opened/closed per
+        # print_receipt() call, so there's nothing to clean up here.
+        pass
 
 
 def dry_run(code: str, output_path: Path, domain: str = "rotary.pikt.ag") -> PrintResult:
