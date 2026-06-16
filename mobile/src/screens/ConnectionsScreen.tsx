@@ -115,7 +115,8 @@ const ConnectionItem = React.memo(({ item, isSelected, selectMode, hasActiveAsk,
   // Manually-added, not-yet-on-PikTag contact. Same outer row +
   // RingedAvatar(59) + textSection structure as a real connection
   // so the fixed getItemLayout height still holds — just dimmed,
-  // initials-only, a "尚未加入" badge where @username would be,
+  // showing the contact's uploaded avatar (or initials when none),
+  // a "尚未加入" badge where @username would be,
   // no ask gradient, no select checkbox. Tap → edit it.
   // Not-yet-on-PikTag: a manually-added local contact. Same dim row;
   // tap → edit it. (The web "scanned + left a name" pending-scan rail
@@ -131,7 +132,7 @@ const ConnectionItem = React.memo(({ item, isSelected, selectMode, hasActiveAsk,
         accessibilityLabel={displayName}
         accessibilityRole="button"
       >
-        <RingedAvatar size={59} ringStyle="subtle" name={displayName} avatarUrl={null} />
+        <RingedAvatar size={59} ringStyle="subtle" name={displayName} avatarUrl={notJoined.avatar_url ?? null} />
         <View style={styles.textSection}>
           <View style={styles.nameRow}>
             <Text style={styles.name} numberOfLines={1}>{displayName}</Text>
