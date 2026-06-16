@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import * as Sentry from '@sentry/react-native';
 import {
   View,
   Text,
@@ -661,8 +662,22 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
       );
 
       if (!uploadRes.ok) {
-        const err = await uploadRes.json();
-        throw new Error(err.message || '上傳失敗');
+        // Read the body ONCE (the Response stream is single-use) and report
+        // status + body to Sentry so an upload-RLS / storage failure is
+        // diagnosable from the dashboard instead of just an opaque alert.
+        const bodyText = await uploadRes.text();
+        Sentry.captureException(new Error('avatar upload failed'), {
+          extra: { status: uploadRes.status, body: bodyText, filePath },
+        });
+        // Sentry only ships in production (App.tsx); log for dev builds too.
+        console.warn('[EditProfileScreen] avatar upload failed', uploadRes.status, bodyText);
+        let message = bodyText;
+        try {
+          message = JSON.parse(bodyText).message || bodyText;
+        } catch {
+          // bodyText was not JSON; fall back to the raw text.
+        }
+        throw new Error(message || '上傳失敗');
       }
 
       const publicUrl = `${supabaseUrl}/storage/v1/object/public/avatars/${filePath}?t=${Date.now()}`;

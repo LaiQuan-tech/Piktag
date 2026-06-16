@@ -25,6 +25,7 @@
 // and ProfileScreen banners (separate commits).
 
 import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react';
+import * as Sentry from '@sentry/react-native';
 import {
   View,
   Text,
@@ -617,8 +618,22 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
         },
       );
       if (!uploadRes.ok) {
-        const err = await uploadRes.json().catch(() => ({}));
-        throw new Error((err as any).message || 'upload failed');
+        // Read the body ONCE (the Response stream is single-use) and report
+        // status + body to Sentry so an upload-RLS / storage failure is
+        // diagnosable from the dashboard instead of just an opaque alert.
+        const bodyText = await uploadRes.text();
+        Sentry.captureException(new Error('avatar upload failed'), {
+          extra: { status: uploadRes.status, body: bodyText, filePath },
+        });
+        // Sentry only ships in production (App.tsx); log for dev builds too.
+        console.warn('[OnboardingScreen] avatar upload failed', uploadRes.status, bodyText);
+        let message = bodyText;
+        try {
+          message = JSON.parse(bodyText).message || bodyText;
+        } catch {
+          // bodyText was not JSON; fall back to the raw text.
+        }
+        throw new Error(message || 'upload failed');
       }
       // Cache-buster so the picker preview renders the new image
       // even when the old one is still in expo-image's memory cache.

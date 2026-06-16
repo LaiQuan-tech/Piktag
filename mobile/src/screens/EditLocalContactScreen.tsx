@@ -19,6 +19,7 @@
 //                        cache; falls back gracefully if missing)
 
 import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
+import * as Sentry from '@sentry/react-native';
 import {
   View,
   Text,
@@ -308,8 +309,22 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
         },
       );
       if (!uploadRes.ok) {
-        const err = await uploadRes.json().catch(() => ({}));
-        throw new Error((err as any).message || '上傳失敗');
+        // Read the body ONCE (the Response stream is single-use) and report
+        // status + body to Sentry so an upload-RLS / storage failure is
+        // diagnosable from the dashboard instead of just an opaque alert.
+        const bodyText = await uploadRes.text();
+        Sentry.captureException(new Error('avatar upload failed'), {
+          extra: { status: uploadRes.status, body: bodyText, filePath },
+        });
+        // Sentry only ships in production (App.tsx); log for dev builds too.
+        console.warn('[EditLocalContactScreen] avatar upload failed', uploadRes.status, bodyText);
+        let message = bodyText;
+        try {
+          message = JSON.parse(bodyText).message || bodyText;
+        } catch {
+          // bodyText was not JSON; fall back to the raw text.
+        }
+        throw new Error(message || '上傳失敗');
       }
 
       // Cache-buster so React Native Image reloads the new file
