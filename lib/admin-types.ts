@@ -81,6 +81,15 @@ export interface AdminAnalytics {
   search_total_last_7d: number;
   search_recovery_pct_last_7d: number;
   search_empty_pct_last_7d: number;
+  // Prior 7-day window (days 8–14 ago) recovery/empty %, so the dashboard
+  // can show the same vs-last-week trend the retired weekly push used to.
+  // 0 when there was no prior-window search activity.
+  search_recovery_pct_prior_7d: number;
+  search_empty_pct_prior_7d: number;
+  // Top recurring keywords from searches where the LLM recovery fired but
+  // the result set was still empty — the actionable "which tags are missing"
+  // signal that used to live in the retired weekly digest body.
+  failed_search_keywords_last_7d: Array<{ keyword: string; frequency: number }>;
 }
 
 export interface AdminAuditLogEntry {

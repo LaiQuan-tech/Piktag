@@ -69,6 +69,7 @@ export async function GET(): Promise<Response> {
   const supabase = createAdminClient();
   const now = new Date();
   const sevenDaysAgo = new Date(now.getTime() - 7 * DAY_MS).toISOString();
+  const fourteenDaysAgo = new Date(now.getTime() - 14 * DAY_MS).toISOString();
   const thirtyDaysAgo = new Date(now.getTime() - 30 * DAY_MS).toISOString();
 
   const [
@@ -96,6 +97,12 @@ export async function GET(): Promise<Response> {
     searchTotal7dRes,
     searchRecovery7dRes,
     searchEmpty7dRes,
+    // Prior 7-day window (days 8–14 ago) for the vs-last-week trend.
+    searchTotalPrior7dRes,
+    searchRecoveryPrior7dRes,
+    searchEmptyPrior7dRes,
+    // Recovery-fired-but-still-empty rows → aggregate top failing keywords.
+    searchFailedKeywords7dRes,
   ] = await Promise.all([
     supabase
       .from('piktag_profiles')
@@ -164,6 +171,38 @@ export async function GET(): Promise<Response> {
       .eq('final_profile_count', 0)
       .eq('final_tag_user_count', 0)
       .gte('created_at', sevenDaysAgo),
+    // Prior window (days 8–14): total / recovery / empty for the trend.
+    supabase
+      .from('piktag_search_telemetry')
+      .select('*', { count: 'exact', head: true })
+      .gte('created_at', fourteenDaysAgo)
+      .lt('created_at', sevenDaysAgo),
+    supabase
+      .from('piktag_search_telemetry')
+      .select('*', { count: 'exact', head: true })
+      .eq('recovery_triggered', true)
+      .gte('created_at', fourteenDaysAgo)
+      .lt('created_at', sevenDaysAgo),
+    supabase
+      .from('piktag_search_telemetry')
+      .select('*', { count: 'exact', head: true })
+      .eq('final_tag_count', 0)
+      .eq('final_profile_count', 0)
+      .eq('final_tag_user_count', 0)
+      .gte('created_at', fourteenDaysAgo)
+      .lt('created_at', sevenDaysAgo),
+    // Recovery fired (Gemini extracted keywords) but still no match → the
+    // actionable "missing tag" rows. Pull keywords to aggregate in JS.
+    supabase
+      .from('piktag_search_telemetry')
+      .select('extracted_keywords')
+      .eq('recovery_triggered', true)
+      .eq('final_tag_count', 0)
+      .eq('final_profile_count', 0)
+      .eq('final_tag_user_count', 0)
+      .gte('created_at', sevenDaysAgo)
+      .order('created_at', { ascending: false })
+      .limit(200),
   ]);
 
   const totalUsers = countOrZero(totalUsersRes as CountResult, 'total_users');
@@ -245,6 +284,36 @@ export async function GET(): Promise<Response> {
   const searchEmptyPct7d =
     searchTotal7d > 0 ? Math.round((searchEmpty7d * 100) / searchTotal7d) : 0;
 
+  // Prior-window (days 8–14) recovery/empty % for the vs-last-week trend.
+  const searchTotalPrior7d = countOrZero(searchTotalPrior7dRes as CountResult, 'search_total_prior');
+  const searchRecoveryPrior7d = countOrZero(searchRecoveryPrior7dRes as CountResult, 'search_recovery_prior');
+  const searchEmptyPrior7d = countOrZero(searchEmptyPrior7dRes as CountResult, 'search_empty_prior');
+  const searchRecoveryPctPrior7d =
+    searchTotalPrior7d > 0 ? Math.round((searchRecoveryPrior7d * 100) / searchTotalPrior7d) : 0;
+  const searchEmptyPctPrior7d =
+    searchTotalPrior7d > 0 ? Math.round((searchEmptyPrior7d * 100) / searchTotalPrior7d) : 0;
+
+  // Top recurring keywords from recovery-fired-but-still-empty searches —
+  // the actionable "missing tag" signal (same aggregation the retired
+  // weekly digest used). Aggregate the extracted_keywords arrays in JS.
+  const failedKwRows = rowsOrEmpty<{ extracted_keywords: string[] | null }>(
+    searchFailedKeywords7dRes as RowsResult<{ extracted_keywords: string[] | null }>,
+    'failed_search_keywords',
+  );
+  const failedKwCounts = new Map<string, number>();
+  for (const row of failedKwRows) {
+    for (const kw of row.extracted_keywords ?? []) {
+      if (typeof kw === 'string' && kw.trim()) {
+        const k = kw.trim();
+        failedKwCounts.set(k, (failedKwCounts.get(k) ?? 0) + 1);
+      }
+    }
+  }
+  const failedSearchKeywords = [...failedKwCounts.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 15)
+    .map(([keyword, frequency]) => ({ keyword, frequency }));
+
   const body: AdminAnalytics = {
     total_users: totalUsers,
     total_active_users: activeUsersLast7d,
@@ -261,6 +330,9 @@ export async function GET(): Promise<Response> {
     search_total_last_7d: searchTotal7d,
     search_recovery_pct_last_7d: searchRecoveryPct7d,
     search_empty_pct_last_7d: searchEmptyPct7d,
+    search_recovery_pct_prior_7d: searchRecoveryPctPrior7d,
+    search_empty_pct_prior_7d: searchEmptyPctPrior7d,
+    failed_search_keywords_last_7d: failedSearchKeywords,
   };
 
   return NextResponse.json(body, {

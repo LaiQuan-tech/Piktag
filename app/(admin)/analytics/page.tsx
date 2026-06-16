@@ -155,6 +155,47 @@ function TopTagsList({ tags }: { tags: AdminAnalytics['top_tags'] }) {
   );
 }
 
+function FailedKeywordsList({
+  keywords,
+}: {
+  keywords: AdminAnalytics['failed_search_keywords_last_7d'];
+}) {
+  const items = keywords.slice(0, 15);
+  if (items.length === 0) {
+    return (
+      <div className="px-6 py-12 text-center text-sm text-slate-400">
+        過去 7 天沒有失敗搜尋
+      </div>
+    );
+  }
+  const max = Math.max(...items.map((k) => k.frequency), 1);
+  return (
+    <ul className="divide-y divide-slate-100">
+      {items.map((kw) => {
+        const pct = Math.max(4, Math.round((kw.frequency / max) * 100));
+        return (
+          <li key={kw.keyword} className="px-6 py-3">
+            <div className="flex items-center justify-between gap-3 mb-1.5">
+              <span className="text-sm font-medium text-slate-900 truncate">
+                {kw.keyword}
+              </span>
+              <span className="text-xs text-slate-500 whitespace-nowrap">
+                {kw.frequency.toLocaleString('zh-TW')} 次
+              </span>
+            </div>
+            <div className="h-2 w-full rounded-full bg-slate-100 overflow-hidden">
+              <div
+                className="h-full rounded-full bg-red-400"
+                style={{ width: `${pct}%` }}
+              />
+            </div>
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
+
 export default function AnalyticsPage() {
   const [data, setData] = useState<AdminAnalytics | null>(null);
   const [loading, setLoading] = useState(true);
@@ -315,6 +356,41 @@ export default function AnalyticsPage() {
             </p>
           </div>
         </div>
+      </section>
+
+      {/* Search-failure keywords — the actionable "missing tag" signal that
+          used to live in the weekly admin push (now retired). Each row is a
+          query where the LLM recovery fired but nothing matched → a candidate
+          for a new tag / alias. */}
+      <section className="bg-white rounded-xl shadow-sm border border-slate-100">
+        <div className="px-6 py-4 border-b border-slate-100">
+          <h2 className="text-lg font-semibold text-slate-900">
+            搜尋失敗關鍵字{' '}
+            <span className="text-sm font-normal text-slate-500">過去 7 天</span>
+          </h2>
+          <p className="text-xs text-slate-500 mt-0.5">
+            LLM 解析後仍無結果的查詢 — 每個都是該補的 tag 候選
+            {data ? (
+              <span className="ml-1 text-slate-400">
+                · 救援率 vs 上週 {data.search_recovery_pct_prior_7d}% →{' '}
+                {data.search_recovery_pct_last_7d}% · 空手率{' '}
+                {data.search_empty_pct_prior_7d}% → {data.search_empty_pct_last_7d}%
+              </span>
+            ) : null}
+          </p>
+        </div>
+        {loading && !data ? (
+          <div className="px-6 py-6 space-y-3">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} className="animate-pulse">
+                <div className="h-3 w-24 bg-slate-100 rounded mb-2" />
+                <div className="h-2 w-full bg-slate-100 rounded-full" />
+              </div>
+            ))}
+          </div>
+        ) : (
+          <FailedKeywordsList keywords={data?.failed_search_keywords_last_7d ?? []} />
+        )}
       </section>
     </div>
   );
