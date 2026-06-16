@@ -1097,7 +1097,17 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
               {unreviewedCount > 0 && (
                 <TouchableOpacity
                   activeOpacity={0.6}
-                  onPress={() => navigation.navigate('ActivityReview')}
+                  onPress={() => {
+                    // Reviewing flips is_reviewed in the DB, but the 30s
+                    // focus cooldown (loadAll) would otherwise skip the
+                    // refetch on return and leave this banner stuck at its
+                    // pre-review number (e.g. "1 位待整理" after the user
+                    // already cleared everyone). Reset the cooldown so the
+                    // focus effect always re-derives unreviewedCount when
+                    // the user comes back from ActivityReview.
+                    lastFetchRef.current = 0;
+                    navigation.navigate('ActivityReview');
+                  }}
                   accessibilityLabel={`${unreviewedCount} 位待整理`}
                   accessibilityRole="link"
                 >
