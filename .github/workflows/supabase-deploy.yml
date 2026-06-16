@@ -91,9 +91,23 @@ jobs:
           # extract the literal string "functions" instead of <n>.
           # Burned us once (failed run 26419949958, 2026-05-25).
           changed=$(git diff --name-only --relative HEAD~1..HEAD -- 'supabase/functions/*/**' \
-            | awk -F'/' '{print $3}' | sort -u | tr '\n' ' ')
-          echo "Detected changed functions: ${changed:-<none>}"
-          echo "names=$changed" >> "$GITHUB_OUTPUT"
+            | awk -F'/' '{print $3}' | sort -u)
+          # Drop any names whose directory no longer exists. A DELETED
+          # function can't be `functions deploy`d (no local source), so a
+          # removal commit would otherwise fail this step. The orphaned
+          # remote copy is unreachable once its cron/trigger are gone; clean
+          # it up out-of-band with `supabase functions delete <name>`.
+          kept=""
+          for fn in $changed; do
+            if [ -d "supabase/functions/$fn" ]; then
+              kept="$kept $fn"
+            else
+              echo "Skipping deleted function: $fn"
+            fi
+          done
+          kept=$(echo $kept | xargs || true)
+          echo "Detected changed functions: ${kept:-<none>}"
+          echo "names=$kept" >> "$GITHUB_OUTPUT"
 
       - name: Deploy each changed function
         if: steps.changed.outputs.names != ''
