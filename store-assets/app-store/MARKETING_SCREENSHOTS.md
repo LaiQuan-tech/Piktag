@@ -334,3 +334,27 @@ the layout constants. Same `CARDS` config works.
   繁中 reply preference, never resize native-res screenshots).
 - `mobile/CLAUDE.md` — PikTag working memory (brand voice, North Star,
   locked phrases like "Tag yourself. Find anyone." / "Pick. Tag. Connect.").
+
+## Rev 3 (2026-06-12) — 17 locales, reconstructed screens, dual renderer
+
+- **Captions**: all 17 App-Store locales live in `captions.py`
+  (`CARDS_BY_LANG` + `CHIP_BY_LANG`), shared by both build scripts. `\n`
+  in a title forces a 2-line break.
+- **App-screen set**: zh-TW uses the Chinese captures (`screenshots-6.9/`);
+  every other locale reuses ONE English set (`screenshots-6.9-en/`) —
+  founder call: localize captions, one app-screen set (NA primary). Cards
+  3/4/6 (card-scan, AI chat, stats) are faithful HTML reconstructions
+  (the live simulator captures were a black viewfinder / empty chat /
+  all-zero dashboard); cards 1/2 (profile, QR) reconstructed in English;
+  card 5 (map) is the real map with an English header overlay.
+- **Two renderers**:
+  - `build_screenshot.py` / `build_screenshot_ipad.py` (PIL) — Latin /
+    CJK / Cyrillic (13 locales). `SS_LANG=<locale>`.
+  - `compose_chrome.py` (headless Chrome) — ko / ar / th / hi only,
+    because Hiragino lacks those glyphs AND PIL does no complex-text
+    shaping (Arabic joining+RTL, Thai marks, Devanagari conjuncts).
+    `compose_chrome.py <lang> <iphone|ipad> <1-6>`.
+- No sparkles (founder 2026-06-12). Card-scan demo data is fully
+  fictional (example.com, 555-01XX). Outputs:
+  `screenshots-6.9-marketing-<locale>/` (iPhone 6.9") +
+  `screenshots-ipad-marketing-<locale>/` (iPad); zh-TW omits the suffix.
