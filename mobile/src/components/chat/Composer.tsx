@@ -2,6 +2,8 @@ import { Send } from 'lucide-react-native';
 import React, { useCallback, useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
+  Keyboard,
+  Platform,
   StyleSheet,
   TextInput,
   TouchableOpacity,
@@ -23,14 +25,38 @@ type Props = {
    * to `nonce` changes specifically.
    */
   prefill?: { text: string; nonce: number } | null;
+  /**
+   * Device bottom safe-area inset (system nav bar height) from the host
+   * screen. Reserved below the row while the keyboard is CLOSED so the
+   * input + send button clear the Android 3-button / gesture nav bar
+   * under edge-to-edge; collapses to 0 while the keyboard is OPEN (the
+   * keyboard already occupies that space) so the bar sits flush with no
+   * gap. Defaults to 0 → unchanged behavior for any caller that omits it.
+   */
+  bottomInset?: number;
 };
 
-const Composer = React.memo(({ onSend, disabled, disabledReason, prefill }: Props) => {
+const Composer = React.memo(({ onSend, disabled, disabledReason, prefill, bottomInset = 0 }: Props) => {
   const { t } = useTranslation();
   const { colors, isDark } = useTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const [value, setValue] = useState('');
   const [sending, setSending] = useState(false);
+  // Reserve the bottom safe-area inset under the row only while the
+  // keyboard is HIDDEN — when it's up the keyboard occupies that space,
+  // so adding the inset would leave a gap above the keyboard (notably
+  // the iOS home-indicator gap). Toggle on keyboard show/hide.
+  const [keyboardShown, setKeyboardShown] = useState(false);
+  React.useEffect(() => {
+    const showEvt = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
+    const hideEvt = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
+    const showSub = Keyboard.addListener(showEvt, () => setKeyboardShown(true));
+    const hideSub = Keyboard.addListener(hideEvt, () => setKeyboardShown(false));
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, []);
 
   // Adopt incoming prefill text only when (a) it's a fresh nonce vs.
   // last adoption and (b) the input is currently empty — never trample
@@ -79,7 +105,7 @@ const Composer = React.memo(({ onSend, disabled, disabledReason, prefill }: Prop
     : t('chat.messagePlaceholder');
 
   return (
-    <View style={styles.row}>
+    <View style={[styles.row, { paddingBottom: 8 + (keyboardShown ? 0 : bottomInset) }]}>
       <TextInput
         style={styles.input}
         value={value}

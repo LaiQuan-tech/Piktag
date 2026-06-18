@@ -13,7 +13,7 @@ import {
   View,
   type ListRenderItemInfo,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ArrowLeft } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -82,6 +82,7 @@ function formatDaySeparator(iso: string): string {
 export default function ChatThreadScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
   const { colors, isDark } = useTheme();
+  const insets = useSafeAreaInsets();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const { user } = useAuth();
   const {
@@ -540,6 +541,7 @@ export default function ChatThreadScreen({ navigation, route }: Props) {
           disabled={isBlocked}
           disabledReason={isBlocked ? t('chat.userBlocked') : undefined}
           prefill={composerPrefill}
+          bottomInset={insets.bottom}
         />
       </KeyboardAvoidingView>
     </SafeAreaView>
