@@ -69,16 +69,11 @@ const linking = {
           HomeTab: {
             screens: {
               Connections: 'connections',
-              FriendDetail: 'friend/:id',
-              UserDetail: {
-                path: ':username',
-              },
             },
           },
           AddTagTab: {
             screens: {
               AddTagMain: 'add',
-              CameraScan: 'scan',
             },
           },
           ProfileTab: {
@@ -88,10 +83,24 @@ const linking = {
           },
         },
       },
+      // Root-level screens. These MUST live here (siblings of Main), NOT
+      // nested under a tab, because they are registered on RootStack (see
+      // MainNavigator) — not inside HomeTab/AddTagTab. A linking config that
+      // nested UserDetail/FriendDetail under Main→HomeTab built a navigation
+      // state whose leaf didn't exist in the real tree, so React Navigation
+      // fell back to HomeTab's default route (Connections) and a
+      // `pikt.ag/<username>` profile deep link silently landed on the home
+      // screen. Keep this block in sync with RootStack's screen names.
+      FriendDetail: 'friend/:id',
+      CameraScan: 'scan',
       RedeemInvite: {
         path: 'invite/:code',
       },
       ScanResult: 'scan-result',
+      // Single-segment username catch-all for the pikt.ag/<username> profile
+      // QR deep link. MUST be LAST so the static paths above (and Main's
+      // nested 'connections' / 'add' / 'profile') are matched first.
+      UserDetail: ':username',
     },
   },
   // The public-facing invite URL is `pikt.ag/i/{code}` (short, shareable),
