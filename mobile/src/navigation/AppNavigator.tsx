@@ -5,6 +5,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { getFocusedRouteNameFromRoute } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   Home,
   Search,
@@ -125,6 +126,20 @@ function MainTabs() {
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const { t } = useTranslation();
   const { total: chatUnread } = useChatUnread();
+  const insets = useSafeAreaInsets();
+  // edgeToEdgeEnabled (app.json) + targetSdk 35 make the app draw UNDER the
+  // Android system nav bar, so this bottom-pinned tab bar MUST reserve the
+  // device's REAL bottom inset or the icon row sits under the 3-button /
+  // gesture nav and the OS captures the taps (the founder's "點不到按鈕"
+  // report). insets.bottom is ~0 on full-gesture devices and ~24-48dp on
+  // 3-button / tall OEM nav bars; a 12px floor keeps breathing room when the
+  // inset is 0, and Math.max guards the brief first-frame 0 before native
+  // insets resolve (canonical pattern: LocalContactDetailScreen footer). The
+  // icon/touch row stays a fixed 52px (paddingTop 10 + ~42 icon area) so
+  // proportions are identical across devices — only the reserved bottom space
+  // varies. Replaces the old hardcoded paddingBottom:28 / height:80, which was
+  // too short on 3-button nav bars.
+  const bottomInset = Math.max(insets.bottom, 12);
   // Single source of truth for the tab bar style — referenced both
   // as the default screenOptions baseline AND inside per-tab options
   // (AddTagTab below) where we conditionally hide it on inner screens
@@ -133,9 +148,9 @@ function MainTabs() {
     backgroundColor: isDark ? '#000000' : '#FFFFFF',
     borderTopWidth: isDark ? 0.5 : 1,
     borderTopColor: isDark ? '#363636' : colors.gray100,
-    paddingBottom: 28,
+    paddingBottom: bottomInset,
     paddingTop: 10,
-    height: 80,
+    height: 52 + bottomInset,
   } as const;
   return (
     <View style={{ flex: 1 }}>
