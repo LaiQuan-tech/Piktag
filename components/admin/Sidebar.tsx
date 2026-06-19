@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
@@ -10,6 +11,7 @@ import {
   Tag,
   ScrollText,
   Gauge,
+  CalendarDays,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -25,6 +27,7 @@ const NAV_ITEMS: NavItem[] = [
   { href: '/reports', label: '舉報', icon: Flag },
   { href: '/analytics', label: '數據', icon: BarChart3 },
   { href: '/tags', label: '標籤', icon: Tag },
+  { href: '/marketing-plan', label: '發文規劃', icon: CalendarDays },
   { href: '/audit-log', label: '操作紀錄', icon: ScrollText },
   { href: '/mission-control', label: '開發看板', icon: Gauge },
 ];
@@ -40,7 +43,7 @@ export default function Sidebar() {
   return (
     <aside className="sticky top-0 left-0 h-screen w-64 bg-white border-r border-slate-200 flex flex-col">
       <div className="h-14 flex items-center gap-2 px-4 border-b border-slate-200">
-        <img src="/logo.png" alt="PikTag" className="w-8 h-8" />
+        <Image src="/logo.png" alt="PikTag" width={32} height={32} className="h-8 w-8" />
         <span className="font-semibold text-slate-900">PikTag Admin</span>
       </div>
       <nav className="flex-1 p-3 space-y-1">
