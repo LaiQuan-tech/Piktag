@@ -40,6 +40,21 @@ type WeekPlan = {
   cards: PlanCard[];
 };
 
+type CalendarPost = {
+  day: string;
+  date: string;
+  week: string;
+  focus: string;
+  posts: Array<{
+    time: string;
+    platform: Platform;
+    title: string;
+    format: string;
+    status: '待製作' | '排程中' | '已發佈' | '觀察中';
+    metric: string;
+  }>;
+};
+
 const positioning = [
   'PikTag = 你的社交記憶助理，不是另一個 CRM。',
   '忘記名字沒關係，只要記得他是誰、會什麼、在哪認識，PikTag 幫你找回來。',
@@ -264,6 +279,92 @@ const kpis = [
   '產品 activation：24 小時內完成 3 個 self-tags + 1 個 connection/contact。',
 ];
 
+const calendarPosts: CalendarPost[] = [
+  {
+    day: '週一',
+    date: 'Day 1',
+    week: 'Week 1',
+    focus: '社交失憶痛點',
+    posts: [
+      { time: '12:30', platform: 'IG', title: '你不是忘記他，你只是忘記名字', format: 'Reel', status: '待製作', metric: '目標：3 秒留存 ≥ 45% / Shares ≥ 20' },
+      { time: '20:30', platform: 'Threads', title: '人類不是用名字記人', format: '短文', status: '待製作', metric: '目標：Replies ≥ 10 / Reposts ≥ 5' },
+    ],
+  },
+  {
+    day: '週二',
+    date: 'Day 2',
+    week: 'Week 1',
+    focus: '通訊錄壞掉了',
+    posts: [
+      { time: '12:30', platform: 'IG', title: '你的通訊錄壞掉了', format: 'Carousel', status: '待製作', metric: '目標：Saves ≥ 30 / Shares ≥ 15' },
+      { time: '20:30', platform: 'Threads', title: '通訊錄是 1980 年代工具', format: '短文', status: '待製作', metric: '目標：Replies ≥ 8 / Profile clicks ≥ 20' },
+    ],
+  },
+  {
+    day: '週三',
+    date: 'Day 3',
+    week: 'Week 1',
+    focus: '活動後遺忘',
+    posts: [
+      { time: '12:30', platform: 'IG', title: '活動後加 20 個 IG，三天後全忘', format: 'Reel', status: '待製作', metric: '目標：Shares ≥ 25 / Saves ≥ 20' },
+      { time: '20:30', platform: 'Threads', title: '加 IG 不等於建立人脈', format: '短文', status: '待製作', metric: '目標：Quotes ≥ 3 / Replies ≥ 10' },
+    ],
+  },
+  {
+    day: '週四',
+    date: 'Day 4',
+    week: 'Week 2',
+    focus: 'Tag yourself',
+    posts: [
+      { time: '12:30', platform: 'IG', title: '如果別人要找你，他會搜什麼？', format: 'Reel', status: '待製作', metric: '目標：留言 tags ≥ 15 / Saves ≥ 20' },
+      { time: '20:30', platform: 'Threads', title: 'LinkedIn / IG / 通訊錄 / PikTag', format: '對比短文', status: '待製作', metric: '目標：Reposts ≥ 8 / Replies ≥ 12' },
+    ],
+  },
+  {
+    day: '週五',
+    date: 'Day 5',
+    week: 'Week 2',
+    focus: 'Search by need',
+    posts: [
+      { time: '12:30', platform: 'IG', title: '不要搜尋名字，搜尋你需要什麼', format: 'Reel', status: '待製作', metric: '目標：Link clicks ≥ 30 / Saves ≥ 20' },
+      { time: '20:30', platform: 'Threads', title: 'PikTag 不追求停留時間', format: '產品哲學', status: '待製作', metric: '目標：Quotes ≥ 5 / Reposts ≥ 8' },
+    ],
+  },
+  {
+    day: '週六',
+    date: 'Day 6',
+    week: 'Week 3',
+    focus: '創業者 / 活動咖場景',
+    posts: [
+      { time: '11:00', platform: 'IG', title: '創業者如何用 PikTag', format: 'Carousel', status: '待製作', metric: '目標：Saves ≥ 30 / Founder replies ≥ 5' },
+      { time: '20:30', platform: 'Threads', title: '活動結束後你怎麼記住人？', format: '互動投票', status: '待製作', metric: '目標：Replies ≥ 20 / Poll comments ≥ 10' },
+    ],
+  },
+  {
+    day: '週日',
+    date: 'Day 7',
+    week: 'Week 4',
+    focus: '#My10Tags Challenge',
+    posts: [
+      { time: '11:00', platform: 'IG + Threads', title: '#My10Tags Challenge 啟動', format: 'Campaign', status: '待製作', metric: '目標：UGC mentions ≥ 10 / Story shares ≥ 15' },
+      { time: '21:00', platform: '營運', title: '本週復盤與下週 backlog', format: 'Review', status: '待製作', metric: '填入實際：Top post / CTR / activation' },
+    ],
+  },
+];
+
+const statusStyle: Record<CalendarPost['posts'][number]['status'], string> = {
+  待製作: 'bg-slate-100 text-slate-700 ring-slate-200',
+  排程中: 'bg-amber-50 text-amber-700 ring-amber-100',
+  已發佈: 'bg-emerald-50 text-emerald-700 ring-emerald-100',
+  觀察中: 'bg-blue-50 text-blue-700 ring-blue-100',
+};
+
+const performanceSummary = [
+  { label: '本週排程貼文', value: '14', hint: 'IG 7 / Threads 6 / Review 1' },
+  { label: '主攻指標', value: 'Saves', hint: 'Carousel 看收藏，Reel 看分享' },
+  { label: '產品轉換', value: '3 tags + 1 connection', hint: '社群導流後的 activation' },
+];
+
 const platformStyle: Record<Platform, string> = {
   IG: 'bg-pink-50 text-pink-700 ring-pink-100',
   Threads: 'bg-slate-100 text-slate-700 ring-slate-200',
@@ -316,6 +417,74 @@ function PlanCardView({ card }: { card: PlanCard }) {
         </div>
       ) : null}
     </article>
+  );
+}
+
+function PublishingCalendar() {
+  return (
+    <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+      <div className="mb-5 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+        <div>
+          <div className="mb-2 flex items-center gap-3">
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-[#8c52ff] to-[#ff5757] text-white shadow-sm">
+              <CalendarDays className="h-5 w-5" />
+            </div>
+            <div>
+              <h2 className="text-2xl font-bold text-slate-950">發文行事曆</h2>
+              <p className="text-sm text-slate-500">用週曆方式看每天要發什麼，並直接對照目標 / 實際成效。</p>
+            </div>
+          </div>
+        </div>
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+          {performanceSummary.map((item) => (
+            <div key={item.label} className="rounded-2xl bg-slate-50 px-4 py-3">
+              <p className="text-xs font-semibold text-slate-500">{item.label}</p>
+              <p className="mt-1 text-sm font-bold text-slate-950">{item.value}</p>
+              <p className="mt-1 text-xs text-slate-500">{item.hint}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 gap-3 xl:grid-cols-7">
+        {calendarPosts.map((day) => (
+          <article key={day.date} className="flex min-h-[360px] flex-col rounded-2xl border border-slate-200 bg-slate-50 p-3">
+            <div className="mb-3 rounded-xl bg-white p-3 shadow-sm">
+              <div className="flex items-start justify-between gap-2">
+                <div>
+                  <p className="text-xs font-semibold text-[#8c52ff]">{day.week}</p>
+                  <h3 className="mt-1 text-lg font-bold text-slate-950">{day.day}</h3>
+                </div>
+                <span className="rounded-full bg-slate-100 px-2 py-1 text-xs font-semibold text-slate-600">{day.date}</span>
+              </div>
+              <p className="mt-2 text-xs font-semibold text-slate-600">主題：{day.focus}</p>
+            </div>
+
+            <div className="flex flex-1 flex-col gap-3">
+              {day.posts.map((post) => (
+                <div key={`${day.date}-${post.time}-${post.title}`} className="rounded-2xl bg-white p-3 shadow-sm ring-1 ring-slate-100">
+                  <div className="mb-2 flex flex-wrap items-center gap-2">
+                    <span className="rounded-full bg-slate-950 px-2 py-1 text-[11px] font-bold text-white">{post.time}</span>
+                    <PlatformBadge platform={post.platform} />
+                    <span className={`rounded-full px-2 py-1 text-[11px] font-semibold ring-1 ${statusStyle[post.status]}`}>
+                      {post.status}
+                    </span>
+                  </div>
+                  <h4 className="text-sm font-bold leading-5 text-slate-950">{post.title}</h4>
+                  <p className="mt-1 text-xs font-semibold text-[#8c52ff]">{post.format}</p>
+                  <div className="mt-3 rounded-xl bg-[#faf5ff] px-3 py-2 text-xs leading-5 text-slate-700">
+                    {post.metric}
+                  </div>
+                  <div className="mt-2 rounded-xl border border-dashed border-slate-200 px-3 py-2 text-xs text-slate-500">
+                    實際成效：待填入
+                  </div>
+                </div>
+              ))}
+            </div>
+          </article>
+        ))}
+      </div>
+    </section>
   );
 }
 
@@ -395,6 +564,8 @@ export default function MarketingPlanPage() {
           </div>
         ))}
       </section>
+
+      <PublishingCalendar />
 
       {weekPlans.map((week) => {
         const Icon = week.icon;
