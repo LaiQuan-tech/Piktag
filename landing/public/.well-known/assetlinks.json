@@ -4,7 +4,10 @@
     "target": {
       "namespace": "android_app",
       "package_name": "ag.pikt.app",
-      "sha256_cert_fingerprints": ["TODO_FILL_IN_FROM_PLAY_CONSOLE_OR_KEYSTORE"]
+      "sha256_cert_fingerprints": [
+        "F5:B5:A5:6F:78:A2:10:6C:E2:15:0B:B1:F5:6E:F6:A3:78:C7:88:1E:EA:8D:36:F6:27:1B:94:30:5F:94:ED:00",
+        "EF:A1:C9:D2:F4:B7:3F:7D:FA:B7:26:A1:47:D2:8A:A4:C9:0F:10:0D:7A:6E:98:24:0F:65:8A:49:4F:21:AF:9A"
+      ]
     }
   }
 ]
