@@ -1,14 +1,15 @@
 import {
   BarChart3,
+  BookOpenText,
   CalendarDays,
   CheckCircle2,
-  Clapperboard,
   FileText,
   Flame,
   Hash,
   Instagram,
+  Lightbulb,
   MessageCircle,
-  Search,
+  Rocket,
   Sparkles,
   Target,
   Users,
@@ -18,474 +19,181 @@ import {
 
 export const dynamic = 'force-dynamic';
 
-type Platform = 'IG' | 'Threads' | 'IG + Threads' | 'Partnership' | '素材' | '成效追蹤' | '產品漏斗' | '營運';
+type Platform = 'Threads' | 'IG' | 'IG + Threads' | '營運';
 type Priority = 'P0' | 'P1';
+type Status = '待製作' | '已發佈' | '排程中' | '觀察中';
 
-type PlanCard = {
+type ContentPillar = {
   title: string;
-  platform: Platform;
-  priority: Priority;
-  format: string;
-  hook: string;
-  bullets: string[];
-  cta?: string;
-};
-
-type WeekPlan = {
-  id: string;
-  title: string;
+  ratio: string;
   goal: string;
+  examples: string[];
   icon: LucideIcon;
-  accent: string;
-  cards: PlanCard[];
 };
 
-type CalendarPost = {
+type SeriesPost = {
+  ep: string;
+  title: string;
+  angle: string;
+  cta: string;
+  status: Status;
+};
+
+type CalendarItem = {
   day: string;
-  date: string;
-  week: string;
   focus: string;
   posts: Array<{
     time: string;
     platform: Platform;
     title: string;
     format: string;
-    status: '待製作' | '排程中' | '已發佈' | '觀察中';
+    priority: Priority;
+    status: Status;
     metric: string;
   }>;
 };
 
 const positioning = [
-  'PikTag = 你的社交記憶助理，不是另一個 CRM。',
-  '忘記名字沒關係，只要記得他是誰、會什麼、在哪認識，PikTag 幫你找回來。',
-  '所有內容都導向 tag → search → connect，而不是滑更久。',
+  '主定位：兩個 PM 的 AI 造物日記。',
+  '核心故事：兩個非傳統工程背景的 PM，用 AI 從 0 做出 PikTag。',
+  '內容承諾：公開記錄 AI 開發、產品判斷、踩坑、prompt、上線歷程，讓讀者一邊學 AI，一邊認識 PikTag。',
+  '產品角色：PikTag 是我們用 AI 做出來的「社交記憶層」，不是另一個通訊錄或 CRM。',
 ];
 
-const targetAudiences = [
-  {
-    title: '創業者 / 新創圈 / 投資圈',
-    text: '常跑活動，需要快速找到設計師、工程師、投資人、會計師。',
-  },
-  {
-    title: '活動咖 / 社群經營者',
-    text: '一場活動認識 10–30 人，最怕三天後只剩大頭貼。',
-  },
-  {
-    title: '創作者 / 設計師 / 自由工作者',
-    text: '需要被需求找到，不只靠職稱，而靠標籤身份。',
-  },
+const voiceRules = [
+  '真實：可以寫卡住、重做、吵架、AI 寫錯，不要只寫成功。',
+  '可學習：每篇至少帶走一個 AI / PM / 產品方法。',
+  '不裝懂：用「我們今天發現」「我們原本以為」「結果 AI 做錯了」取代官方公告。',
+  '少硬賣：先讓大家追故事，再讓大家自然想試 PikTag。',
 ];
 
-const slogans = [
-  '忘記名字，也找得到人。',
-  '不用名字找人，用需求找人。',
-  '你不是記性差，是通訊錄太笨。',
-  'Tag yourself. Find anyone.',
-  'Pick. Tag. Connect.',
+const bios = [
+  '兩個 PM 的 AI 造物日記。\n我們正在用 AI 做出 PikTag：你的社交記憶層。\npikt.ag｜Tag yourself. Find anyone.',
+  '兩個 PM 用 AI 從 0 做 PikTag。\n記錄 AI 開發、產品思考、踩坑與上線過程。\npikt.ag',
+  '跟著兩個 PM 學 AI 做產品。\n從 0 開發 PikTag，記錄 prompt、踩坑、產品決策。\npikt.ag',
 ];
 
-const weekPlans: WeekPlan[] = [
+const pillars: ContentPillar[] = [
   {
-    id: 'week-1',
-    title: 'Week 1｜教育市場：社交失憶痛點',
-    goal: '先打痛點，不先打功能，讓受眾知道「原來我需要這個」。',
-    icon: Flame,
-    accent: 'from-rose-500 to-[#8c52ff]',
-    cards: [
-      {
-        title: '你不是忘記他，你只是忘記名字',
-        platform: 'IG',
-        priority: 'P0',
-        format: 'Reel 15–30 秒',
-        hook: '活動現場有人走來：「欸，好久不見！」主角腦袋空白。',
-        bullets: ['主角記得：設計師 / 台北 / 養貓', '打開 PikTag 搜尋 #設計師 #台北 #養貓', '找到對方，化解尷尬'],
-        cta: '你最近一次忘記別人名字是什麼時候？',
-      },
-      {
-        title: '你的通訊錄壞掉了',
-        platform: 'IG',
-        priority: 'P0',
-        format: 'Carousel 7 頁',
-        hook: '通訊錄只記得名字和電話，但人類記人靠的是上下文。',
-        bullets: ['他會什麼', '在哪認識', '聊過什麼', 'PikTag 用標籤管理人脈'],
-        cta: '存起來，傳給活動後常忘記人的朋友。',
-      },
-      {
-        title: '人類不是用名字記人',
-        platform: 'Threads',
-        priority: 'P0',
-        format: '短文',
-        hook: '我們其實不是忘記人，只是忘記名字。',
-        bullets: ['但我們記得他是設計師、住台北、養貓', '所以通訊錄用名字搜尋，本來就是錯的', '人類記人，是靠標籤'],
-      },
-      {
-        title: '活動後加 20 個 IG，三天後全忘',
-        platform: 'IG',
-        priority: 'P0',
-        format: 'Reel',
-        hook: '加 IG 不是人脈管理，記得對方是誰才是。',
-        bullets: ['活動現場瘋狂加 IG / LinkedIn', '三天後只剩頭像，不知道誰是誰', 'PikTag QR 交換時保留活動與話題標籤'],
-      },
-    ],
-  },
-  {
-    id: 'week-2',
-    title: 'Week 2｜功能展示：Tag / Search / QR / Ask',
-    goal: '把共鳴轉成「我想試」，用短 demo 讓人看懂產品 loop。',
+    title: 'AI 開發日記',
+    ratio: '40%',
+    goal: '吸引 AI 學習者、PM、創業者，建立「追連載」的理由。',
+    examples: ['今天用 AI 做了什麼', 'AI 哪裡很強 / 哪裡會亂來', '怎麼跟 Claude / Cursor / Codex 協作', '非工程師如何驗收 AI 寫的程式'],
     icon: Zap,
-    accent: 'from-[#8c52ff] to-[#aa00ff]',
-    cards: [
-      {
-        title: 'Tag yourself｜如果別人要找你，他會搜什麼？',
-        platform: 'IG',
-        priority: 'P0',
-        format: 'Reel',
-        hook: '你的 10 個標籤，比履歷更像你。',
-        bullets: ['展示 #創業者 #AI工具 #設計思考 #台北', 'PikTag AI 從 bio 推薦 tags', '完成 profile'],
-        cta: '留言你的 3 個標籤。',
-      },
-      {
-        title: 'Search by need｜不要搜尋名字，搜尋你需要什麼',
-        platform: 'IG',
-        priority: 'P0',
-        format: 'Reel',
-        hook: '「我需要懂攝影的朋友」→ PikTag 找出 tagged people。',
-        bullets: ['輸入需求', '點開 profile 看共同標籤', 'AI icebreaker 建議開場'],
-      },
-      {
-        title: 'QR 交換｜不只是加好友，是保存上下文',
-        platform: 'IG',
-        priority: 'P0',
-        format: 'Reel',
-        hook: 'QR 不是交換聯絡方式而已，是交換可被記住的上下文。',
-        bullets: ['活動現場互掃 PikTag QR', '交換 IG / LinkedIn / phone', '加 private tag：#2026AI聚會 #聊過短影音'],
-      },
-      {
-        title: 'PikTag 不追求停留時間',
-        platform: 'Threads',
-        priority: 'P1',
-        format: '產品哲學短文',
-        hook: 'PikTag 不想讓你滑更久，而是更快找到對的人。',
-        bullets: ['search → find the right person → message → leave', '這才是人脈工具該有的形狀'],
-      },
-    ],
   },
   {
-    id: 'week-3',
-    title: 'Week 3｜場景化：創業者、活動咖、創作者',
-    goal: '找第一批真正會用的人，把產品放進具體場景。',
+    title: '產品思考',
+    ratio: '25%',
+    goal: '讓讀者理解 PikTag 為什麼存在，而不是只看到功能。',
+    examples: ['為什麼人脈需要 tags', '為什麼通訊錄不好用', '社交記憶是什麼', '活動後關係為什麼會斷掉'],
+    icon: Lightbulb,
+  },
+  {
+    title: '創辦人故事',
+    ratio: '20%',
+    goal: '建立真實感，讓使用者先認識人，再認識產品。',
+    examples: ['兩個 PM 為什麼開始', '決策分歧與熬夜修 bug', '第一次看到 App 跑起來', '第一次覺得真的有人需要'],
     icon: Users,
-    accent: 'from-indigo-500 to-purple-500',
-    cards: [
-      {
-        title: '創業者如何用 PikTag',
-        platform: 'IG',
-        priority: 'P0',
-        format: 'Carousel',
-        hook: '創業者不缺名片，缺「需要時找得到誰」。',
-        bullets: ['找設計師 / 工程師 / 投資人 / 會計師', '用 tags 定義你的 network', '用 Ask 廣播需求'],
-        cta: '下次 Demo Day 前，先準備你的 PikTag QR。',
-      },
-      {
-        title: '活動咖如何用 PikTag',
-        platform: 'IG',
-        priority: 'P0',
-        format: 'Carousel',
-        hook: '一場活動認識 20 人，真正記住幾個？',
-        bullets: ['加 IG 不等於人脈管理', '掃 QR 時保留上下文', '活動後用 tag 找回'],
-      },
-      {
-        title: '創作者 / 自由工作者如何被找到',
-        platform: 'IG',
-        priority: 'P1',
-        format: 'Carousel',
-        hook: '不要只寫 Designer，讓需求用標籤找到你。',
-        bullets: ['#品牌設計 #AI工具 #插畫', '你的 tags 是更實用的個人 SEO', 'Tag yourself = 讓需求找到你'],
-      },
-      {
-        title: '找 10 個活動主辦 / 社群合作',
-        platform: 'Partnership',
-        priority: 'P1',
-        format: '合作清單',
-        hook: '拿到第一批真實場景與截圖。',
-        bullets: ['列出 10 個創業 / AI / 設計社群', '私訊主辦提供 PikTag QR', '活動後產出案例貼文'],
-      },
-    ],
   },
   {
-    id: 'week-4',
-    title: 'Week 4｜UGC：#My10Tags Challenge',
-    goal: '讓用戶自己教育市場，形成 tag identity 的社群語言。',
-    icon: Hash,
-    accent: 'from-fuchsia-500 to-rose-500',
-    cards: [
-      {
-        title: '#My10Tags Challenge 活動企劃',
-        platform: 'IG + Threads',
-        priority: 'P0',
-        format: 'Campaign',
-        hook: '如果只能用 10 個標籤定義你，你會選哪 10 個？',
-        bullets: ['用 10 個 tags 介紹自己', '不准只寫職稱', '標記 PikTag 並提名 3 位朋友'],
-      },
-      {
-        title: 'My 10 Tags Story 模板',
-        platform: 'IG',
-        priority: 'P0',
-        format: 'Story Template',
-        hook: '截圖填寫，標記 @piktag。',
-        bullets: ['紫色品牌底', '保留 10 個空格', '中英版本各一'],
-      },
-      {
-        title: 'Challenge 啟動貼文',
-        platform: 'Threads',
-        priority: 'P0',
-        format: '短文互動',
-        hook: '用 10 個標籤介紹你自己。不准用職稱。',
-        bullets: ['示範 #創業者 #AI工具 #產品設計 #台北', '引導留言接龍', 'Hashtag：#My10Tags'],
-      },
-      {
-        title: '收集並轉發前 20 位用戶 tags',
-        platform: 'IG + Threads',
-        priority: 'P1',
-        format: 'UGC Ops',
-        hook: '把早期用戶變成內容素材。',
-        bullets: ['每天查看 tag / mention', '轉發高質感 Story', '挑 5 位做成 PikTag People carousel'],
-      },
-    ],
+    title: 'AI 知識教學',
+    ratio: '15%',
+    goal: '提供收藏價值，讓讀者把帳號當成 AI 做產品筆記。',
+    examples: ['PM 如何寫 prompt', '如何讓 AI 不亂改', '怎麼拆 MVP 給 AI', '怎麼建立 AI 開發 SOP'],
+    icon: BookOpenText,
   },
 ];
 
-const assets = [
+const seriesPosts: SeriesPost[] = [
+  { ep: 'EP.01', title: '我們是兩個 PM，正在用 AI 做 PikTag', angle: '人設開場 + 為什麼做社交記憶產品', cta: '如果你也常在活動後忘記人，留言「我需要」。', status: '已發佈' },
+  { ep: 'EP.02', title: '為什麼我們不想做另一個通訊錄', angle: '通訊錄只存資料，但人靠情境記憶', cta: '你最常靠什麼線索想起一個人？', status: '待製作' },
+  { ep: 'EP.03', title: 'AI 開發第一課：先描述問題，不要先寫 code', angle: 'AI 會放大定義能力，也會放大混亂', cta: '存起來，下次開發前先問這 5 題。', status: '待製作' },
+  { ep: 'EP.04', title: '兩個 PM 不會傳統寫 code，要怎麼驗收 AI？', angle: 'PM 驗收 AI code 的流程：規格、畫面、測試、邊界條件', cta: '想看我們的 AI 驗收清單可以留言。', status: '待製作' },
+  { ep: 'EP.05', title: '為什麼 PikTag 的核心不是聯絡人，而是 tags', angle: '人不是被姓名記住，而是被情境與能力記住', cta: '用三個 tags 介紹你自己。', status: '待製作' },
+  { ep: 'EP.06', title: 'AI 幫我們省了時間，但沒有幫我們省思考', angle: 'AI 是加速器，不是產品判斷的替代品', cta: '你覺得 AI 最該省下哪一段工作？', status: '待製作' },
+  { ep: 'EP.07', title: '第一次看到 PikTag 跑起來的瞬間', angle: '從抽象想法到可操作產品的情緒故事', cta: '想參與 beta 的人可以留言。', status: '待製作' },
+  { ep: 'EP.08', title: '用 AI 做產品，最重要的不是 prompt，是判斷力', angle: 'prompt 是操作，判斷力才是方向盤', cta: '分享給正在用 AI 做產品的朋友。', status: '待製作' },
+  { ep: 'EP.09', title: '我們怎麼把一個功能拆給 AI 做', angle: '從 user flow → data → UI state → edge case', cta: '留言想看哪個功能的拆解。', status: '待製作' },
+  { ep: 'EP.10', title: 'PikTag beta：我們想找第一批真的會用的人', angle: '從故事轉 beta 招募', cta: '常跑活動、常認識新朋友的人，留言「beta」。', status: '待製作' },
+];
+
+const firstPost = `《兩個 PM 用 AI 做 PikTag》EP.01\n\n我們是兩個 PM，不是傳統工程團隊。\n\n但我們正在用 AI 從 0 做一個產品：PikTag。\n\n它想解決一個很小但很真實的問題：\n你在活動、聚會、會議中認識很多人，\n但幾週後，你常常忘了對方是誰、當時聊了什麼。\n\n所以我們想做一個「社交記憶層」。\n\n不是另一個通訊錄。\n不是另一個 CRM。\n\n而是一個可以用 tags 幫你記住人、找回關係、重新開口的工具。\n\n這個帳號會記錄我們用 AI 做產品的完整過程：\n\n1. 我們怎麼把想法拆成 MVP\n2. 怎麼用 AI 寫 code / 改 UI / 修 bug\n3. AI 哪裡幫了大忙，哪裡又很會亂來\n4. 兩個 PM 怎麼判斷產品方向\n5. PikTag 怎麼一步一步被做出來\n\n我們想把這段歷程公開寫下來。\n\n如果你也想學 AI 做產品，\n或你也常在活動後忘記誰是誰，\n歡迎一起看我們把 PikTag 做出來。\n\nTag yourself. Find anyone.`;
+
+const calendar: CalendarItem[] = [
   {
-    icon: Clapperboard,
-    title: '15 秒 App Demo 影片',
-    text: 'QR 交換、Tag yourself、Search by need、Ask broadcast；9:16、1080x1920、無聲也能看懂。',
+    day: 'Day 1',
+    focus: '人設開場：兩個 PM 的 AI 造物日記',
+    posts: [
+      { time: '20:30', platform: 'Threads', title: 'EP.01｜我們是兩個 PM，正在用 AI 做 PikTag', format: '連載長文', priority: 'P0', status: '已發佈', metric: '目標：Replies ≥ 10 / Reposts ≥ 5 / Profile clicks ≥ 20' },
+      { time: '隔日 12:30', platform: 'IG', title: '兩個 PM 用 AI 做 PikTag', format: 'Carousel 7 頁', priority: 'P0', status: '待製作', metric: '目標：Saves ≥ 30 / Shares ≥ 15' },
+    ],
   },
   {
-    icon: FileText,
-    title: 'Carousel 品牌模板 5 套',
-    text: '痛點教育、功能拆解、場景案例、平台對比、UGC Challenge。',
+    day: 'Day 2',
+    focus: '產品問題：不是通訊錄，是社交記憶',
+    posts: [
+      { time: '12:30', platform: 'Threads', title: 'PikTag 想解決的不是通訊錄問題', format: '產品洞察短文', priority: 'P0', status: '待製作', metric: '目標：Replies ≥ 8 / Saves-like reposts ≥ 5' },
+      { time: '20:30', platform: 'IG', title: '你的通訊錄壞掉了', format: 'Carousel', priority: 'P0', status: '待製作', metric: '目標：Saves ≥ 30 / Shares ≥ 15' },
+    ],
   },
   {
-    icon: Sparkles,
-    title: 'Miranda / 社交記憶助理概念影片',
-    text: '借用「耳邊助理」情境，不直接使用電影素材，避免版權問題。',
+    day: 'Day 3',
+    focus: 'AI 開發第一課',
+    posts: [
+      { time: '12:30', platform: 'Threads', title: '不要一開始就叫 AI 寫 code', format: '教學短文', priority: 'P0', status: '待製作', metric: '目標：Reposts ≥ 8 / Replies ≥ 10' },
+      { time: '20:30', platform: 'Threads', title: 'AI 不會替你定義產品', format: '金句短文', priority: 'P1', status: '待製作', metric: '目標：Quotes ≥ 3' },
+    ],
+  },
+  {
+    day: 'Day 4',
+    focus: 'Tags 產品哲學',
+    posts: [
+      { time: '12:30', platform: 'Threads', title: '為什麼是 tags？', format: '產品洞察', priority: 'P0', status: '待製作', metric: '目標：留言自己的 3 tags ≥ 15' },
+      { time: '20:30', platform: 'IG', title: '用三個 tags 介紹你自己', format: 'Story / Carousel', priority: 'P1', status: '待製作', metric: '目標：Story replies ≥ 10' },
+    ],
+  },
+  {
+    day: 'Day 5',
+    focus: 'PM + AI 的優勢',
+    posts: [
+      { time: '12:30', platform: 'Threads', title: 'AI 負責加速，PM 負責判斷', format: '觀點短文', priority: 'P0', status: '待製作', metric: '目標：Reposts ≥ 8 / Replies ≥ 10' },
+      { time: '20:30', platform: 'IG + Threads', title: '本週學到的 5 個 AI 產品開發教訓', format: '週回顧', priority: 'P1', status: '待製作', metric: '目標：Saves ≥ 20 / Replies ≥ 8' },
+    ],
   },
 ];
 
 const kpis = [
-  'IG：Reels 3 秒留存率、Saves / Shares、Story replies、Link in bio CTR。',
-  'Threads：Replies、Reposts、Quotes、是否有人主動貼自己的 tags。',
-  '產品 activation：24 小時內完成 3 個 self-tags + 1 個 connection/contact。',
+  'Threads：Replies、Reposts、Quotes、Profile clicks，尤其追蹤是否有人主動說「想看下一篇」。',
+  'IG：Carousel saves / shares、Reels 3 秒留存、Story replies、Link in bio CTR。',
+  '產品轉換：導流後是否完成 3 個 self-tags + 1 個 connection/contact。',
+  '品牌資產：是否讓 PikTag 和「兩個 PM 用 AI 做產品」形成穩定聯想。',
 ];
 
-const calendarPosts: CalendarPost[] = [
-  {
-    day: '週一',
-    date: 'Day 1',
-    week: 'Week 1',
-    focus: '社交失憶痛點',
-    posts: [
-      { time: '12:30', platform: 'IG', title: '你不是忘記他，你只是忘記名字', format: 'Reel', status: '待製作', metric: '目標：3 秒留存 ≥ 45% / Shares ≥ 20' },
-      { time: '20:30', platform: 'Threads', title: '人類不是用名字記人', format: '短文', status: '待製作', metric: '目標：Replies ≥ 10 / Reposts ≥ 5' },
-    ],
-  },
-  {
-    day: '週二',
-    date: 'Day 2',
-    week: 'Week 1',
-    focus: '通訊錄壞掉了',
-    posts: [
-      { time: '12:30', platform: 'IG', title: '你的通訊錄壞掉了', format: 'Carousel', status: '待製作', metric: '目標：Saves ≥ 30 / Shares ≥ 15' },
-      { time: '20:30', platform: 'Threads', title: '通訊錄是 1980 年代工具', format: '短文', status: '待製作', metric: '目標：Replies ≥ 8 / Profile clicks ≥ 20' },
-    ],
-  },
-  {
-    day: '週三',
-    date: 'Day 3',
-    week: 'Week 1',
-    focus: '活動後遺忘',
-    posts: [
-      { time: '12:30', platform: 'IG', title: '活動後加 20 個 IG，三天後全忘', format: 'Reel', status: '待製作', metric: '目標：Shares ≥ 25 / Saves ≥ 20' },
-      { time: '20:30', platform: 'Threads', title: '加 IG 不等於建立人脈', format: '短文', status: '待製作', metric: '目標：Quotes ≥ 3 / Replies ≥ 10' },
-    ],
-  },
-  {
-    day: '週四',
-    date: 'Day 4',
-    week: 'Week 2',
-    focus: 'Tag yourself',
-    posts: [
-      { time: '12:30', platform: 'IG', title: '如果別人要找你，他會搜什麼？', format: 'Reel', status: '待製作', metric: '目標：留言 tags ≥ 15 / Saves ≥ 20' },
-      { time: '20:30', platform: 'Threads', title: 'LinkedIn / IG / 通訊錄 / PikTag', format: '對比短文', status: '待製作', metric: '目標：Reposts ≥ 8 / Replies ≥ 12' },
-    ],
-  },
-  {
-    day: '週五',
-    date: 'Day 5',
-    week: 'Week 2',
-    focus: 'Search by need',
-    posts: [
-      { time: '12:30', platform: 'IG', title: '不要搜尋名字，搜尋你需要什麼', format: 'Reel', status: '待製作', metric: '目標：Link clicks ≥ 30 / Saves ≥ 20' },
-      { time: '20:30', platform: 'Threads', title: 'PikTag 不追求停留時間', format: '產品哲學', status: '待製作', metric: '目標：Quotes ≥ 5 / Reposts ≥ 8' },
-    ],
-  },
-  {
-    day: '週六',
-    date: 'Day 6',
-    week: 'Week 3',
-    focus: '創業者 / 活動咖場景',
-    posts: [
-      { time: '11:00', platform: 'IG', title: '創業者如何用 PikTag', format: 'Carousel', status: '待製作', metric: '目標：Saves ≥ 30 / Founder replies ≥ 5' },
-      { time: '20:30', platform: 'Threads', title: '活動結束後你怎麼記住人？', format: '互動投票', status: '待製作', metric: '目標：Replies ≥ 20 / Poll comments ≥ 10' },
-    ],
-  },
-  {
-    day: '週日',
-    date: 'Day 7',
-    week: 'Week 4',
-    focus: '#My10Tags Challenge',
-    posts: [
-      { time: '11:00', platform: 'IG + Threads', title: '#My10Tags Challenge 啟動', format: 'Campaign', status: '待製作', metric: '目標：UGC mentions ≥ 10 / Story shares ≥ 15' },
-      { time: '21:00', platform: '營運', title: '本週復盤與下週 backlog', format: 'Review', status: '待製作', metric: '填入實際：Top post / CTR / activation' },
-    ],
-  },
-];
-
-const statusStyle: Record<CalendarPost['posts'][number]['status'], string> = {
+const statusStyle: Record<Status, string> = {
   待製作: 'bg-slate-100 text-slate-700 ring-slate-200',
   排程中: 'bg-amber-50 text-amber-700 ring-amber-100',
   已發佈: 'bg-emerald-50 text-emerald-700 ring-emerald-100',
   觀察中: 'bg-blue-50 text-blue-700 ring-blue-100',
 };
 
-const performanceSummary = [
-  { label: '本週排程貼文', value: '14', hint: 'IG 7 / Threads 6 / Review 1' },
-  { label: '主攻指標', value: 'Saves', hint: 'Carousel 看收藏，Reel 看分享' },
-  { label: '產品轉換', value: '3 tags + 1 connection', hint: '社群導流後的 activation' },
-];
-
 const platformStyle: Record<Platform, string> = {
-  IG: 'bg-pink-50 text-pink-700 ring-pink-100',
   Threads: 'bg-slate-100 text-slate-700 ring-slate-200',
+  IG: 'bg-pink-50 text-pink-700 ring-pink-100',
   'IG + Threads': 'bg-violet-50 text-violet-700 ring-violet-100',
-  Partnership: 'bg-amber-50 text-amber-700 ring-amber-100',
-  素材: 'bg-cyan-50 text-cyan-700 ring-cyan-100',
-  成效追蹤: 'bg-emerald-50 text-emerald-700 ring-emerald-100',
-  產品漏斗: 'bg-blue-50 text-blue-700 ring-blue-100',
   營運: 'bg-orange-50 text-orange-700 ring-orange-100',
 };
 
 function PlatformBadge({ platform }: { platform: Platform }) {
-  return (
-    <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ${platformStyle[platform]}`}>
-      {platform}
-    </span>
-  );
+  return <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ${platformStyle[platform]}`}>{platform}</span>;
+}
+
+function StatusBadge({ status }: { status: Status }) {
+  return <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ${statusStyle[status]}`}>{status}</span>;
 }
 
 function PriorityBadge({ priority }: { priority: Priority }) {
-  const cls = priority === 'P0'
-    ? 'bg-red-50 text-red-700 ring-red-100'
-    : 'bg-slate-50 text-slate-600 ring-slate-200';
+  const cls = priority === 'P0' ? 'bg-red-50 text-red-700 ring-red-100' : 'bg-slate-50 text-slate-600 ring-slate-200';
   return <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ${cls}`}>{priority}</span>;
-}
-
-function PlanCardView({ card }: { card: PlanCard }) {
-  return (
-    <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
-      <div className="mb-4 flex flex-wrap items-center gap-2">
-        <PlatformBadge platform={card.platform} />
-        <PriorityBadge priority={card.priority} />
-        <span className="rounded-full bg-[#faf5ff] px-2.5 py-1 text-xs font-semibold text-[#8c52ff] ring-1 ring-purple-100">
-          {card.format}
-        </span>
-      </div>
-      <h3 className="text-base font-bold text-slate-950">{card.title}</h3>
-      <p className="mt-2 text-sm font-medium leading-6 text-slate-700">{card.hook}</p>
-      <ul className="mt-4 space-y-2 text-sm text-slate-600">
-        {card.bullets.map((bullet) => (
-          <li key={bullet} className="flex gap-2">
-            <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-[#8c52ff]" />
-            <span>{bullet}</span>
-          </li>
-        ))}
-      </ul>
-      {card.cta ? (
-        <div className="mt-4 rounded-xl bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-700">
-          CTA：{card.cta}
-        </div>
-      ) : null}
-    </article>
-  );
-}
-
-function PublishingCalendar() {
-  return (
-    <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
-      <div className="mb-5 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-        <div>
-          <div className="mb-2 flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-[#8c52ff] to-[#ff5757] text-white shadow-sm">
-              <CalendarDays className="h-5 w-5" />
-            </div>
-            <div>
-              <h2 className="text-2xl font-bold text-slate-950">發文行事曆</h2>
-              <p className="text-sm text-slate-500">用週曆方式看每天要發什麼，並直接對照目標 / 實際成效。</p>
-            </div>
-          </div>
-        </div>
-        <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
-          {performanceSummary.map((item) => (
-            <div key={item.label} className="rounded-2xl bg-slate-50 px-4 py-3">
-              <p className="text-xs font-semibold text-slate-500">{item.label}</p>
-              <p className="mt-1 text-sm font-bold text-slate-950">{item.value}</p>
-              <p className="mt-1 text-xs text-slate-500">{item.hint}</p>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 gap-3 xl:grid-cols-7">
-        {calendarPosts.map((day) => (
-          <article key={day.date} className="flex min-h-[360px] flex-col rounded-2xl border border-slate-200 bg-slate-50 p-3">
-            <div className="mb-3 rounded-xl bg-white p-3 shadow-sm">
-              <div className="flex items-start justify-between gap-2">
-                <div>
-                  <p className="text-xs font-semibold text-[#8c52ff]">{day.week}</p>
-                  <h3 className="mt-1 text-lg font-bold text-slate-950">{day.day}</h3>
-                </div>
-                <span className="rounded-full bg-slate-100 px-2 py-1 text-xs font-semibold text-slate-600">{day.date}</span>
-              </div>
-              <p className="mt-2 text-xs font-semibold text-slate-600">主題：{day.focus}</p>
-            </div>
-
-            <div className="flex flex-1 flex-col gap-3">
-              {day.posts.map((post) => (
-                <div key={`${day.date}-${post.time}-${post.title}`} className="rounded-2xl bg-white p-3 shadow-sm ring-1 ring-slate-100">
-                  <div className="mb-2 flex flex-wrap items-center gap-2">
-                    <span className="rounded-full bg-slate-950 px-2 py-1 text-[11px] font-bold text-white">{post.time}</span>
-                    <PlatformBadge platform={post.platform} />
-                    <span className={`rounded-full px-2 py-1 text-[11px] font-semibold ring-1 ${statusStyle[post.status]}`}>
-                      {post.status}
-                    </span>
-                  </div>
-                  <h4 className="text-sm font-bold leading-5 text-slate-950">{post.title}</h4>
-                  <p className="mt-1 text-xs font-semibold text-[#8c52ff]">{post.format}</p>
-                  <div className="mt-3 rounded-xl bg-[#faf5ff] px-3 py-2 text-xs leading-5 text-slate-700">
-                    {post.metric}
-                  </div>
-                  <div className="mt-2 rounded-xl border border-dashed border-slate-200 px-3 py-2 text-xs text-slate-500">
-                    實際成效：待填入
-                  </div>
-                </div>
-              ))}
-            </div>
-          </article>
-        ))}
-      </div>
-    </section>
-  );
 }
 
 export default function MarketingPlanPage() {
@@ -495,20 +203,18 @@ export default function MarketingPlanPage() {
         <div className="relative p-8 sm:p-10">
           <div className="absolute right-0 top-0 h-56 w-56 rounded-full bg-[#aa00ff]/30 blur-3xl" />
           <div className="absolute bottom-0 right-36 h-40 w-40 rounded-full bg-[#ff5757]/20 blur-3xl" />
-          <div className="relative max-w-4xl">
+          <div className="relative max-w-5xl">
             <div className="mb-5 inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-sm font-semibold text-purple-100 ring-1 ring-white/15">
-              <CalendarDays className="h-4 w-4" />
-              PikTag Marketing Command Center
+              <Sparkles className="h-4 w-4" />
+              PikTag Founder Story Engine
             </div>
-            <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">IG + Threads 發文規劃</h1>
-            <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-300 sm:text-base">
-              用卡片方式整理 4 週內容節奏、平台分工、腳本 hook、CTA、素材與 KPI，方便每天打開後台就知道下一篇要發什麼。
+            <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">兩個 PM 的 AI 造物日記</h1>
+            <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-300 sm:text-base">
+              Threads 主打創辦人故事與 AI 開發歷程；IG 主打視覺化、Carousel、Demo 與 beta 導流。核心不是硬賣 App，而是讓大家追著看兩個 PM 如何用 AI 把 PikTag 做出來。
             </p>
             <div className="mt-6 flex flex-wrap gap-2">
-              {slogans.map((slogan) => (
-                <span key={slogan} className="rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-white ring-1 ring-white/10">
-                  {slogan}
-                </span>
+              {['#AI產品實驗者', '#兩個PM創業', '#BuildingInPublic', '#AI開發日記', '#社交記憶產品'].map((tag) => (
+                <span key={tag} className="rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-white ring-1 ring-white/10">{tag}</span>
               ))}
             </div>
           </div>
@@ -518,18 +224,16 @@ export default function MarketingPlanPage() {
       <section className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm lg:col-span-2">
           <div className="mb-4 flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#faf5ff] text-[#8c52ff]">
-              <Target className="h-5 w-5" />
-            </div>
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#faf5ff] text-[#8c52ff]"><Target className="h-5 w-5" /></div>
             <div>
-              <h2 className="text-lg font-bold text-slate-950">核心定位</h2>
-              <p className="text-xs text-slate-500">所有貼文都要回到這三句</p>
+              <h2 className="text-lg font-bold text-slate-950">人設定位</h2>
+              <p className="text-xs text-slate-500">所有內容都要回到這四句</p>
             </div>
           </div>
           <ul className="space-y-3">
             {positioning.map((item) => (
               <li key={item} className="flex gap-3 rounded-xl bg-slate-50 px-4 py-3 text-sm font-medium text-slate-700">
-                <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-[#8c52ff]" />
+                <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-[#8c52ff]" />
                 {item}
               </li>
             ))}
@@ -538,89 +242,152 @@ export default function MarketingPlanPage() {
 
         <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
           <div className="mb-4 flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#faf5ff] text-[#8c52ff]">
-              <Instagram className="h-5 w-5" />
-            </div>
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#faf5ff] text-[#8c52ff]"><Instagram className="h-5 w-5" /></div>
             <div>
               <h2 className="text-lg font-bold text-slate-950">平台分工</h2>
-              <p className="text-xs text-slate-500">IG 視覺化，Threads 觀點化</p>
+              <p className="text-xs text-slate-500">IG 視覺化，Threads 故事化</p>
             </div>
           </div>
-          <div className="space-y-3 text-sm text-slate-700">
-            <p><strong>IG：</strong>Reels、Carousel、Demo、UGC 模板，負責讓人一眼看懂並想下載。</p>
-            <p><strong>Threads：</strong>創辦人觀點、產品哲學、痛點短文，負責共鳴與討論。</p>
+          <div className="space-y-3 text-sm leading-6 text-slate-700">
+            <p><strong>Threads：</strong>創辦人日記、AI 開發過程、產品判斷、踩坑、連載。</p>
+            <p><strong>IG：</strong>Carousel、Reels、Story 模板、Demo 截圖，把觀點視覺化並導流。</p>
           </div>
         </div>
       </section>
 
-      <section className="grid grid-cols-1 gap-4 md:grid-cols-3">
-        {targetAudiences.map((audience) => (
-          <div key={audience.title} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-[#faf5ff] text-[#8c52ff]">
-              <Users className="h-5 w-5" />
-            </div>
-            <h3 className="font-bold text-slate-950">{audience.title}</h3>
-            <p className="mt-2 text-sm leading-6 text-slate-600">{audience.text}</p>
+      <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div className="mb-5 flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#faf5ff] text-[#8c52ff]"><MessageCircle className="h-5 w-5" /></div>
+          <div>
+            <h2 className="text-lg font-bold text-slate-950">帳號語氣規則</h2>
+            <p className="text-xs text-slate-500">避免官方公告，維持真實連載感</p>
           </div>
-        ))}
+        </div>
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-4">
+          {voiceRules.map((rule) => (
+            <div key={rule} className="rounded-xl bg-slate-50 p-4 text-sm font-semibold leading-6 text-slate-700">{rule}</div>
+          ))}
+        </div>
       </section>
 
-      <PublishingCalendar />
+      <section className="grid grid-cols-1 gap-4 lg:grid-cols-4">
+        {pillars.map((pillar) => {
+          const Icon = pillar.icon;
+          return (
+            <article key={pillar.title} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+              <div className="mb-3 flex items-center justify-between">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#faf5ff] text-[#8c52ff]"><Icon className="h-5 w-5" /></div>
+                <span className="rounded-full bg-slate-950 px-3 py-1 text-xs font-bold text-white">{pillar.ratio}</span>
+              </div>
+              <h3 className="font-bold text-slate-950">{pillar.title}</h3>
+              <p className="mt-2 text-sm leading-6 text-slate-600">{pillar.goal}</p>
+              <ul className="mt-4 space-y-2 text-sm text-slate-600">
+                {pillar.examples.map((example) => (
+                  <li key={example} className="flex gap-2"><CheckCircle2 className="mt-1 h-4 w-4 shrink-0 text-[#8c52ff]" />{example}</li>
+                ))}
+              </ul>
+            </article>
+          );
+        })}
+      </section>
 
-      {weekPlans.map((week) => {
-        const Icon = week.icon;
-        return (
-          <section key={week.id} className="space-y-4">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+      <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+        <div className="mb-5 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+          <div>
+            <div className="mb-2 flex items-center gap-3">
+              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-[#8c52ff] to-[#ff5757] text-white shadow-sm"><CalendarDays className="h-5 w-5" /></div>
               <div>
-                <div className="mb-2 flex items-center gap-3">
-                  <div className={`flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br ${week.accent} text-white shadow-sm`}>
-                    <Icon className="h-5 w-5" />
-                  </div>
-                  <h2 className="text-2xl font-bold text-slate-950">{week.title}</h2>
-                </div>
-                <p className="max-w-3xl text-sm text-slate-600">{week.goal}</p>
+                <h2 className="text-2xl font-bold text-slate-950">前 5 天發文節奏</h2>
+                <p className="text-sm text-slate-500">先建立人設與故事，再轉產品理解與互動。</p>
               </div>
             </div>
-            <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
-              {week.cards.map((card) => (
-                <PlanCardView key={`${week.id}-${card.title}`} card={card} />
-              ))}
-            </div>
-          </section>
-        );
-      })}
+          </div>
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+            <div className="rounded-2xl bg-slate-50 px-4 py-3"><p className="text-xs font-semibold text-slate-500">發文頻率</p><p className="mt-1 text-sm font-bold text-slate-950">每天 2–3 則</p></div>
+            <div className="rounded-2xl bg-slate-50 px-4 py-3"><p className="text-xs font-semibold text-slate-500">主戰場</p><p className="mt-1 text-sm font-bold text-slate-950">Threads 連載</p></div>
+            <div className="rounded-2xl bg-slate-50 px-4 py-3"><p className="text-xs font-semibold text-slate-500">下一步</p><p className="mt-1 text-sm font-bold text-slate-950">Beta 招募</p></div>
+          </div>
+        </div>
+        <div className="grid grid-cols-1 gap-3 xl:grid-cols-5">
+          {calendar.map((day) => (
+            <article key={day.day} className="flex min-h-[360px] flex-col rounded-2xl border border-slate-200 bg-slate-50 p-3">
+              <div className="mb-3 rounded-xl bg-white p-3 shadow-sm">
+                <p className="text-xs font-semibold text-[#8c52ff]">{day.day}</p>
+                <h3 className="mt-1 text-sm font-bold leading-5 text-slate-950">{day.focus}</h3>
+              </div>
+              <div className="flex flex-1 flex-col gap-3">
+                {day.posts.map((post) => (
+                  <div key={`${day.day}-${post.time}-${post.title}`} className="rounded-2xl bg-white p-3 shadow-sm ring-1 ring-slate-100">
+                    <div className="mb-2 flex flex-wrap items-center gap-2">
+                      <span className="rounded-full bg-slate-950 px-2 py-1 text-[11px] font-bold text-white">{post.time}</span>
+                      <PlatformBadge platform={post.platform} />
+                      <PriorityBadge priority={post.priority} />
+                      <StatusBadge status={post.status} />
+                    </div>
+                    <h4 className="text-sm font-bold leading-5 text-slate-950">{post.title}</h4>
+                    <p className="mt-1 text-xs font-semibold text-[#8c52ff]">{post.format}</p>
+                    <div className="mt-3 rounded-xl bg-[#faf5ff] px-3 py-2 text-xs leading-5 text-slate-700">{post.metric}</div>
+                  </div>
+                ))}
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div className="mb-5 flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#faf5ff] text-[#8c52ff]"><FileText className="h-5 w-5" /></div>
+          <div>
+            <h2 className="text-lg font-bold text-slate-950">《兩個 PM 用 AI 做 PikTag》前 10 篇連載</h2>
+            <p className="text-xs text-slate-500">Threads 長文主線；每篇都包含故事、AI/產品洞察與 CTA。</p>
+          </div>
+        </div>
+        <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
+          {seriesPosts.map((post) => (
+            <article key={post.ep} className="rounded-2xl border border-slate-100 bg-slate-50 p-4">
+              <div className="mb-2 flex flex-wrap items-center gap-2">
+                <span className="rounded-full bg-slate-950 px-2.5 py-1 text-xs font-bold text-white">{post.ep}</span>
+                <StatusBadge status={post.status} />
+              </div>
+              <h3 className="font-bold text-slate-950">{post.title}</h3>
+              <p className="mt-2 text-sm leading-6 text-slate-600">角度：{post.angle}</p>
+              <p className="mt-2 rounded-xl bg-white px-3 py-2 text-xs font-semibold text-slate-700">CTA：{post.cta}</p>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="rounded-2xl border border-emerald-200 bg-emerald-50 p-6 shadow-sm">
+        <div className="mb-4 flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white text-emerald-700"><Rocket className="h-5 w-5" /></div>
+          <div>
+            <h2 className="text-lg font-bold text-emerald-950">第一篇 Threads 文案</h2>
+            <p className="text-xs text-emerald-700">狀態：已放入發佈流程；發佈後追蹤 replies / reposts / profile clicks。</p>
+          </div>
+        </div>
+        <pre className="whitespace-pre-wrap rounded-2xl bg-white p-5 text-sm leading-7 text-slate-800 ring-1 ring-emerald-100">{firstPost}</pre>
+      </section>
 
       <section className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm lg:col-span-2">
           <div className="mb-5 flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#faf5ff] text-[#8c52ff]">
-              <Clapperboard className="h-5 w-5" />
-            </div>
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#faf5ff] text-[#8c52ff]"><Hash className="h-5 w-5" /></div>
             <div>
-              <h2 className="text-lg font-bold text-slate-950">素材製作</h2>
-              <p className="text-xs text-slate-500">先做會重複使用的素材</p>
+              <h2 className="text-lg font-bold text-slate-950">Threads Bio 備選</h2>
+              <p className="text-xs text-slate-500">優先使用第一版，其他可 A/B test。</p>
             </div>
           </div>
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-            {assets.map((asset) => {
-              const Icon = asset.icon;
-              return (
-                <div key={asset.title} className="rounded-2xl bg-slate-50 p-4">
-                  <Icon className="h-5 w-5 text-[#8c52ff]" />
-                  <h3 className="mt-3 font-bold text-slate-950">{asset.title}</h3>
-                  <p className="mt-2 text-sm leading-6 text-slate-600">{asset.text}</p>
-                </div>
-              );
-            })}
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+            {bios.map((bio, index) => (
+              <pre key={bio} className="whitespace-pre-wrap rounded-2xl bg-slate-50 p-4 text-sm leading-6 text-slate-700">版本 {index + 1}\n\n{bio}</pre>
+            ))}
           </div>
         </div>
 
         <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
           <div className="mb-5 flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#faf5ff] text-[#8c52ff]">
-              <BarChart3 className="h-5 w-5" />
-            </div>
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#faf5ff] text-[#8c52ff]"><BarChart3 className="h-5 w-5" /></div>
             <div>
               <h2 className="text-lg font-bold text-slate-950">KPI</h2>
               <p className="text-xs text-slate-500">不是只看追蹤數</p>
@@ -628,10 +395,7 @@ export default function MarketingPlanPage() {
           </div>
           <ul className="space-y-3">
             {kpis.map((kpi) => (
-              <li key={kpi} className="flex gap-2 text-sm leading-6 text-slate-700">
-                <CheckCircle2 className="mt-1 h-4 w-4 shrink-0 text-[#8c52ff]" />
-                {kpi}
-              </li>
+              <li key={kpi} className="flex gap-2 text-sm leading-6 text-slate-700"><CheckCircle2 className="mt-1 h-4 w-4 shrink-0 text-[#8c52ff]" />{kpi}</li>
             ))}
           </ul>
         </div>
@@ -639,26 +403,15 @@ export default function MarketingPlanPage() {
 
       <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
         <div className="flex items-start gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#faf5ff] text-[#8c52ff]">
-            <Search className="h-5 w-5" />
-          </div>
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#faf5ff] text-[#8c52ff]"><Flame className="h-5 w-5" /></div>
           <div>
             <h2 className="text-lg font-bold text-slate-950">每週復盤問題</h2>
             <p className="mt-1 text-sm text-slate-500">每週用這 5 題決定下週內容 backlog。</p>
           </div>
         </div>
         <div className="mt-5 grid grid-cols-1 gap-3 md:grid-cols-5">
-          {[
-            '哪種痛點內容 saves / shares 最高？',
-            '哪種 CTA 帶來最多 tag replies？',
-            '哪個受眾最有反應？',
-            '導流後是否完成 self-tags？',
-            '有沒有真實故事可做 case study？',
-          ].map((question) => (
-            <div key={question} className="rounded-xl bg-slate-50 p-4 text-sm font-semibold leading-6 text-slate-700">
-              <MessageCircle className="mb-3 h-5 w-5 text-[#8c52ff]" />
-              {question}
-            </div>
+          {['哪篇讓最多人留言「想看下一篇」？', 'AI 教學內容有沒有被收藏 / 轉發？', '讀者對「兩個 PM」人設是否有共鳴？', '哪個產品痛點最能導流 PikTag？', '是否有人主動詢問 beta / 試用？'].map((question) => (
+            <div key={question} className="rounded-xl bg-slate-50 p-4 text-sm font-semibold leading-6 text-slate-700">{question}</div>
           ))}
         </div>
       </section>
