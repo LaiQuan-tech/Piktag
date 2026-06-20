@@ -131,6 +131,12 @@
       "expo-image-picker",
       "expo-apple-authentication",
       [
+        "@react-native-google-signin/google-signin",
+        {
+          "iosUrlScheme": "com.googleusercontent.apps.57945731882-qjbeia7tu8sh3d79a5s8o7t1g37lsrdt"
+        }
+      ],
+      [
         "expo-contacts",
         {
           "contactsPermission": "PikTag uses your contacts to help you find friends."
