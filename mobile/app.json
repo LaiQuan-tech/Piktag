@@ -98,7 +98,12 @@
         "expo-build-properties",
         {
           "ios": {
-            "deploymentTarget": "15.5"
+            "deploymentTarget": "15.5",
+            "extraPods": [
+              { "name": "GoogleUtilities", "modular_headers": true },
+              { "name": "AppCheckCore", "modular_headers": true },
+              { "name": "RecaptchaInterop", "modular_headers": true }
+            ]
           },
           "android": {
             "targetSdkVersion": 35,
