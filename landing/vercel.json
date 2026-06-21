@@ -26,9 +26,9 @@
     { "source": "/scan",            "destination": "/scan.html" },
     { "source": "/download",        "destination": "/download.html" },
 
-    { "source": "/contact",         "destination": "/index.html" },
-    { "source": "/pitch",           "destination": "/index.html" },
-    { "source": "/reset-password",  "destination": "/index.html" },
+    { "source": "/contact",         "destination": "/app.html" },
+    { "source": "/pitch",           "destination": "/app.html" },
+    { "source": "/reset-password",  "destination": "/app.html" },
 
     { "source": "/favicon.ico",     "destination": "/logo.png" },
 

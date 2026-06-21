@@ -81,9 +81,11 @@ module.exports = async function handler(req, res) {
     const title = TITLE_BY_LANG[lang] || DEFAULT_TITLE;
 
     // Fetch the SPA shell (with Vite's hashed asset tags) from the
-    // statically-served /index.html. Only "/" is rewritten to this fn;
-    // /index.html stays static, so this round-trip keeps asset hrefs correct.
-    const r = await fetch('https://' + req.headers.host + '/index.html');
+    // statically-served /app.html. The build renames index.html → app.html
+    // (scripts/rename-shell.mjs) precisely so "/" has NO static file and the
+    // vercel.json "/" → /api/home rewrite actually fires; /app.html stays
+    // static, so this round-trip keeps the Vite asset hrefs correct.
+    const r = await fetch('https://' + req.headers.host + '/app.html');
     const shell = await r.text();
 
     let html;
