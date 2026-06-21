@@ -125,6 +125,8 @@ export default function SocialAnalyticsPage() {
   const [platform, setPlatform] = useState<SocialPlatform | 'all'>('all');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [syncing, setSyncing] = useState(false);
+  const [syncMessage, setSyncMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
   const [metricForm, setMetricForm] = useState<MetricFormState>(EMPTY_METRICS);
@@ -225,6 +227,48 @@ export default function SocialAnalyticsPage() {
     }
   };
 
+  const syncOfficialApi = async () => {
+    setSyncing(true);
+    setError(null);
+    setSyncMessage(null);
+    try {
+      const res = await fetch('/api/admin/social-posts/sync', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ platform }),
+      });
+      const json = (await res.json().catch(() => ({}))) as {
+        results?: Array<{
+          platform: SocialPlatform;
+          status: string;
+          imported_posts: number;
+          updated_posts: number;
+          metric_snapshots: number;
+          missing_credentials?: string[];
+          errors?: string[];
+        }>;
+        error?: string;
+      };
+      if (!res.ok && !json.results) throw new Error(json.error ?? `HTTP ${res.status}`);
+      const results = json.results ?? [];
+      const missing = results.flatMap((item) => item.missing_credentials ?? []);
+      const imported = results.reduce((sum, item) => sum + item.imported_posts, 0);
+      const updated = results.reduce((sum, item) => sum + item.updated_posts, 0);
+      const snapshots = results.reduce((sum, item) => sum + item.metric_snapshots, 0);
+      if (missing.length) {
+        setSyncMessage(`缺少官方 API env：${[...new Set(missing)].join(', ')}。已保留手動補數據模式。`);
+      } else {
+        setSyncMessage(`同步完成：新增 ${imported} 則、更新 ${updated} 則、寫入 ${snapshots} 筆 metrics snapshot。`);
+      }
+      await load();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : '官方 API 同步失敗');
+    } finally {
+      setSyncing(false);
+    }
+  };
+
   const summary = data?.summary;
 
   return (
@@ -237,18 +281,34 @@ export default function SocialAnalyticsPage() {
             追蹤 IG / Threads 每則貼文曝光、互動與轉換；API 未接上前可手動補數據。
           </p>
         </div>
-        <button
-          onClick={() => void load()}
-          className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50"
-        >
-          <RefreshCw className="h-4 w-4" />
-          重新整理
-        </button>
+        <div className="flex flex-wrap gap-2">
+          <button
+            onClick={() => void syncOfficialApi()}
+            disabled={syncing}
+            className="inline-flex items-center gap-2 rounded-lg bg-slate-950 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-slate-800 disabled:opacity-60"
+          >
+            <RefreshCw className={`h-4 w-4 ${syncing ? 'animate-spin' : ''}`} />
+            {syncing ? '同步中...' : '同步官方 API'}
+          </button>
+          <button
+            onClick={() => void load()}
+            className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50"
+          >
+            <RefreshCw className="h-4 w-4" />
+            重新整理
+          </button>
+        </div>
       </div>
 
       {error ? (
         <div className="rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-700">
           {error}
+        </div>
+      ) : null}
+
+      {syncMessage ? (
+        <div className="rounded-xl border border-violet-100 bg-violet-50 px-4 py-3 text-sm text-violet-700">
+          {syncMessage}
         </div>
       ) : null}
 
