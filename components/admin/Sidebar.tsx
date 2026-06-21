@@ -12,6 +12,7 @@ import {
   ScrollText,
   Gauge,
   CalendarDays,
+  Megaphone,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -26,6 +27,7 @@ const NAV_ITEMS: NavItem[] = [
   { href: '/users', label: '用戶', icon: Users },
   { href: '/reports', label: '舉報', icon: Flag },
   { href: '/analytics', label: '數據', icon: BarChart3 },
+  { href: '/social-analytics', label: '社群成效', icon: Megaphone },
   { href: '/tags', label: '標籤', icon: Tag },
   { href: '/marketing-plan', label: '發文規劃', icon: CalendarDays },
   { href: '/audit-log', label: '操作紀錄', icon: ScrollText },

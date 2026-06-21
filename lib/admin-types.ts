@@ -102,6 +102,76 @@ export interface AdminAuditLogEntry {
   created_at: string;
 }
 
+export type SocialPlatform = 'instagram' | 'threads';
+export type SocialPostStatus = 'draft' | 'scheduled' | 'published' | 'failed';
+export type SocialContentType = 'thread' | 'image' | 'carousel' | 'reel' | 'story' | 'other';
+export type SocialContentPillar =
+  | 'ai_building'
+  | 'product_thinking'
+  | 'founder_story'
+  | 'tutorial'
+  | 'launch_update'
+  | 'community_question'
+  | 'other';
+
+export interface SocialPostMetrics {
+  id?: string;
+  post_id?: string;
+  captured_at?: string;
+  impressions: number;
+  reach: number;
+  views: number;
+  likes: number;
+  comments: number;
+  replies: number;
+  shares: number;
+  reposts: number;
+  saves: number;
+  profile_visits: number;
+  follows: number;
+  link_clicks: number;
+  engagement_rate?: number;
+  content_score?: number;
+  total_engagements?: number;
+  raw_metrics?: Record<string, unknown> | null;
+}
+
+export interface SocialPost {
+  id: string;
+  platform: SocialPlatform;
+  handle: string;
+  external_post_id: string | null;
+  post_url: string | null;
+  content: string;
+  content_preview: string;
+  content_type: SocialContentType;
+  content_pillar: SocialContentPillar;
+  campaign: string | null;
+  hook: string | null;
+  cta: string | null;
+  status: SocialPostStatus;
+  published_at: string | null;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string | null;
+  latest_metrics: SocialPostMetrics | null;
+}
+
+export interface SocialAnalyticsSummary {
+  total_posts: number;
+  total_impressions: number;
+  total_views: number;
+  total_engagements: number;
+  average_engagement_rate: number;
+  top_exposure_post: SocialPost | null;
+  top_engagement_post: SocialPost | null;
+  top_conversion_post: SocialPost | null;
+}
+
+export interface SocialPostsResponse extends PaginatedResponse<SocialPost> {
+  summary: SocialAnalyticsSummary;
+}
+
 export interface PaginatedResponse<T> {
   items: T[];
   total: number;
