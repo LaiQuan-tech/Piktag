@@ -1,12 +1,16 @@
-const { SUPABASE_URL, SUPABASE_ANON_KEY, BRAND_COLOR, BRAND_ACCENT, BRAND_BG, BRAND_GRADIENT, escapeHtml, trackShareLinkViewed, buildAnalyticsSnippet } = require('../_config');
+const { SUPABASE_URL, SUPABASE_ANON_KEY, BRAND_COLOR, BRAND_ACCENT, BRAND_BG, BRAND_GRADIENT, escapeHtml, resolveLocale, trackShareLinkViewed, buildAnalyticsSnippet } = require('../_config');
 
 module.exports = async function handler(req, res) {
   const { tagname } = req.query;
   const tagStr = Array.isArray(tagname) ? tagname[0] : tagname;
+  // resolveLocale honors ?lang= then Accept-Language → en (mirrors u/i).
+  // tagname is a path param, not a query key, so no collision with ?lang.
+  const locale = resolveLocale(req);
 
   if (!tagStr) {
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
-    return res.status(404).send(notFoundPage('找不到標籤'));
+    res.setHeader('Vary', 'Accept-Language');
+    return res.status(404).send(notFoundPage(locale));
   }
 
   const cleanTag = tagStr.replace(/^#/, '');
@@ -36,7 +40,8 @@ module.exports = async function handler(req, res) {
     // Tag doesn't exist at all → 404 (same as the old empty-tags branch)
     if (!data || !data.tag_name) {
       res.setHeader('Content-Type', 'text/html; charset=utf-8');
-      return res.status(404).send(notFoundPage(`#${escapeHtml(cleanTag)}`));
+      res.setHeader('Vary', 'Accept-Language');
+      return res.status(404).send(notFoundPage(locale));
     }
 
     const members = (data.members || []).map(p => ({
@@ -59,20 +64,35 @@ module.exports = async function handler(req, res) {
       data.usage_count || members.length,
       members,
       buildAnalyticsSnippet('tag', cleanTag),
+      locale,
     );
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
     res.setHeader('Cache-Control', 's-maxage=300, stale-while-revalidate=600');
+    // Vary by Accept-Language so Vercel's edge cache keeps a separate
+    // entry per language. Without it the first visitor's locale wins for
+    // s-maxage=300 — a Taiwan viewer would seed zh-TW, then every other
+    // visitor in that window also gets the zh-TW render. (Same fix as
+    // u/[username].js / i/[code].js.)
+    res.setHeader('Vary', 'Accept-Language');
     return res.status(200).send(html);
   } catch (err) {
     console.error('Tag page error:', err);
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
-    return res.status(500).send(notFoundPage('發生錯誤'));
+    res.setHeader('Vary', 'Accept-Language');
+    return res.status(500).send(notFoundPage(locale, locale.tagPageError));
   }
 };
 
-function renderPage(tagName, usageCount, members, analyticsSnippet) {
-  const title = `#${escapeHtml(tagName)} — 在 #PikTag 上的人`;
-  const description = `${usageCount} 人使用 #${escapeHtml(tagName)} 標籤。在 #PikTag 認識志同道合的人。`;
+function renderPage(tagName, usageCount, members, analyticsSnippet, locale) {
+  // Tag name + counts are USER DATA — never translated. Only the fixed
+  // label fragments come from the locale (interpolated via {count}/{tag}).
+  const title = `#${escapeHtml(tagName)} — ${locale.tagPageTitleSuffix}`;
+  // split/join (not String.replace) so a tag name containing a "$" pattern
+  // ($&, $1, $$, ...) is inserted literally rather than interpreted as a
+  // replacement token. Tag names are user data and "$" is legal in them.
+  const description = locale.tagPageDescription
+    .split('{count}').join(String(usageCount))
+    .split('{tag}').join(escapeHtml(tagName));
   const url = `https://pikt.ag/tag/${encodeURIComponent(tagName)}`;
 
   const memberCards = members.map(m => {
@@ -93,11 +113,11 @@ function renderPage(tagName, usageCount, members, analyticsSnippet) {
   }).join('');
 
   const emptyState = members.length === 0
-    ? '<div class="empty">還沒有人使用這個標籤，成為第一個！</div>'
+    ? `<div class="empty">${locale.tagPageEmpty}</div>`
     : '';
 
   return `<!DOCTYPE html>
-<html lang="zh-TW">
+<html lang="${locale.htmlLang}">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -178,10 +198,10 @@ function renderPage(tagName, usageCount, members, analyticsSnippet) {
       <div class="header-left">
         <div class="tag-info">
           <div class="tag-title">#${escapeHtml(tagName)}</div>
-          <div class="tag-count">${usageCount} 人</div>
+          <div class="tag-count">${usageCount} ${locale.tagPageCountUnit}</div>
         </div>
       </div>
-      <a href="https://pikt.ag/download" class="header-cta" target="_blank" rel="noopener noreferrer">下載 App</a>
+      <a href="https://pikt.ag/download" class="header-cta" target="_blank" rel="noopener noreferrer">${locale.tagPageDownloadApp}</a>
     </div>
   </div>
 
@@ -192,20 +212,20 @@ function renderPage(tagName, usageCount, members, analyticsSnippet) {
 
   <div class="bottom-spacer"></div>
   <a class="banner" href="https://pikt.ag/download" target="_blank" rel="noopener noreferrer">
-    <span class="banner-text">下載 #PikTag App 認識他們</span>
+    <span class="banner-text">${locale.tagPageBanner}</span>
     <span class="banner-arrow">→</span>
   </a>
 </body>
 </html>`;
 }
 
-function notFoundPage(title) {
+function notFoundPage(locale, title) {
   return `<!DOCTYPE html>
-<html lang="zh-TW">
+<html lang="${locale.htmlLang}">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>${title || '找不到標籤'} | #PikTag</title>
+  <title>${title || locale.tagPageNotFoundTitle} | #PikTag</title>
   <style>
     *{margin:0;padding:0;box-sizing:border-box}
     body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:${BRAND_BG};display:flex;align-items:center;justify-content:center;min-height:100vh;text-align:center;padding:20px}
@@ -218,9 +238,9 @@ function notFoundPage(title) {
 <body>
   <div>
     <div class="logo">#PikTag</div>
-    <h1>找不到這個標籤</h1>
-    <p>試試其他標籤或下載 App 探索更多</p>
-    <a href="https://pikt.ag/download">下載 #PikTag App</a>
+    <h1>${locale.tagPageNotFoundHeading}</h1>
+    <p>${locale.tagPageNotFoundText}</p>
+    <a href="https://pikt.ag/download">${locale.tagPageNotFoundLink}</a>
   </div>
 </body>
 </html>`;
