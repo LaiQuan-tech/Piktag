@@ -44,6 +44,7 @@ import {
   useLocalContacts,
   normalizePhone,
 } from '../hooks/useLocalContacts';
+import { appendLang } from '../lib/shareProfile';
 import type { Tag } from '../types';
 
 const MAX_TAGS_PER_CONTACT = 8;
@@ -76,11 +77,17 @@ type ContactSection = {
 };
 
 export default function ContactSyncScreen({ navigation }: ContactSyncScreenProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { colors, isDark } = useTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
+
+  // The download CTA URL was moved OUT of the contactSync.inviteMessage
+  // i18n strings (it was hardcoded https://pikt.ag in all 19 locales) so
+  // the sharer's UI language rides along as ?lang=<code> for the web
+  // share card. Built once here, interpolated via the {{url}} placeholder.
+  const downloadUrl = useMemo(() => appendLang('https://pikt.ag'), [i18n.language]);
 
   const [contacts, setContacts] = useState<PhoneContact[]>([]);
   const [loadingContacts, setLoadingContacts] = useState(true);
@@ -400,8 +407,8 @@ export default function ContactSyncScreen({ navigation }: ContactSyncScreenProps
     try {
       await Share.share({
         message:
-          t('contactSync.inviteMessage', { name: contact.name }) ||
-          `${contact.name}，我在用 PikTag，一起來交換標籤吧！下載：https://pikt.ag`,
+          t('contactSync.inviteMessage', { name: contact.name, url: downloadUrl }) ||
+          `${contact.name}，我在用 PikTag，一起來交換標籤吧！下載：${downloadUrl}`,
       });
     } catch {
       /* cancelled */
@@ -486,7 +493,7 @@ export default function ContactSyncScreen({ navigation }: ContactSyncScreenProps
     // contactSync.inviteMessage (present in all 19, LINE-style copy
     // with {{name}} interpolation — task #65). The privacy note above
     // still holds: this generic copy carries NO tag names.
-    const message = t('contactSync.inviteMessage', { name: target.name });
+    const message = t('contactSync.inviteMessage', { name: target.name, url: downloadUrl });
 
     closeTagPicker();
 
@@ -506,7 +513,7 @@ export default function ContactSyncScreen({ navigation }: ContactSyncScreenProps
         /* cancelled — local_contact row is already saved */
       });
     }, 350);
-  }, [tagTarget, pickedTags, addLocalContact, closeTagPicker, t]);
+  }, [tagTarget, pickedTags, addLocalContact, closeTagPicker, t, downloadUrl]);
 
   const upsertConnection = async (
     contact: PhoneContact,

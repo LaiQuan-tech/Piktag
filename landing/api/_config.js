@@ -287,6 +287,39 @@ function detectLocale(req) {
   }
 }
 
+// resolveLocale — like detectLocale, but lets an explicit ?lang=<code>
+// query param win over the Accept-Language header. Used by the share/home
+// fns so a shared link can pin its card language regardless of the
+// crawler's Accept-Language. Precedence: ?lang (recognized) → detectLocale
+// (Accept-Language → en). Returns the SAME translation-object shape as
+// detectLocale (with .htmlLang). Normalization mirrors detectLocale
+// exactly: case-insensitive, zh-tw/zh-hk→zh-TW, zh-cn/zh-sg→zh-CN,
+// exact TRANSLATIONS-key match, base-language match, bare 'zh'→zh-TW.
+// detectLocale itself is intentionally left untouched.
+function resolveLocale(req) {
+  try {
+    const raw = req && req.query ? req.query.lang : undefined;
+    const langParam = Array.isArray(raw) ? raw[0] : raw;
+    if (langParam) {
+      const code = String(langParam).trim().toLowerCase();
+      if (code) {
+        if (code === 'zh-tw' || code === 'zh-hk') return TRANSLATIONS['zh-TW'];
+        if (code === 'zh-cn' || code === 'zh-sg') return TRANSLATIONS['zh-CN'];
+        // Exact TRANSLATIONS-key match (case-insensitive). Keys are
+        // lowercase ('en','ja') or 'zh-TW'/'zh-CN' — compare lowercased.
+        for (const key of Object.keys(TRANSLATIONS)) {
+          if (key.toLowerCase() === code) return TRANSLATIONS[key];
+        }
+        // Base language match (e.g. 'en-us' → 'en').
+        const base = code.split('-')[0];
+        if (TRANSLATIONS[base]) return TRANSLATIONS[base];
+        if (base === 'zh') return TRANSLATIONS['zh-TW'];
+      }
+    }
+  } catch { /* fall through to Accept-Language */ }
+  return detectLocale(req);
+}
+
 // ─────────────────────────────────────────────────────────
 // Analytics — share-link visit tracking
 // ─────────────────────────────────────────────────────────
@@ -417,6 +450,7 @@ module.exports = {
   escapeHtml,
   TRANSLATIONS,
   detectLocale,
+  resolveLocale,
   trackShareLinkViewed,
   buildAnalyticsSnippet,
 };

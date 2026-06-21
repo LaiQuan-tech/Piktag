@@ -53,6 +53,7 @@ import QrNameCard from '../../components/QrNameCard';
 import { LinearGradient } from 'expo-linear-gradient';
 import BirthdayInput from '../../components/BirthdayInput';
 import { sanitizePhone } from '../../lib/sanitizePhone';
+import { buildProfileUrl } from '../../lib/shareProfile';
 import { Image } from 'expo-image';
 import {
   requestMediaLibraryPermissionsAsync,
@@ -1402,7 +1403,7 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
         style={styles.doneGradient}
       >
         <QrNameCard
-          qrValue={`https://pikt.ag/${username.trim()}`}
+          qrValue={buildProfileUrl(username.trim())}
           handle={username.trim()}
           name={displayName.trim()}
           tags={selectedTags.map((tg) => tg.name)}

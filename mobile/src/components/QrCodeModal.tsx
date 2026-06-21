@@ -18,7 +18,7 @@ import { CameraView, useCameraPermissions } from 'expo-camera';
 import { useNavigation } from '@react-navigation/native';
 import { COLORS, type ColorPalette } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
-import { APP_BASE_URL, shareProfile } from '../lib/shareProfile';
+import { buildProfileUrl, shareProfile } from '../lib/shareProfile';
 import QrModalStinger from './stingers/QrModalStinger';
 import QrShareBody from './QrShareBody';
 
@@ -76,7 +76,7 @@ export default function QrCodeModal({
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<any>();
-  const profileUrl = `${APP_BASE_URL}/${username}`;
+  const profileUrl = buildProfileUrl(username);
 
   const [mode, setMode] = useState<'show' | 'scan'>('show');
   const [permission, requestPermission] = useCameraPermissions();

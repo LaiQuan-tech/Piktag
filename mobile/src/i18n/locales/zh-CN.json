@@ -819,7 +819,7 @@
     "alertBatchImportTitle": "批量导入",
     "alertBatchImportMessage": "确定要导入全部 {{count}} 位通讯录联系人吗？",
     "alertBatchImportConfirm": "导入",
-    "inviteMessage": "{{name}},我在用 PikTag,一起来用标签记住彼此吧!下载:https://pikt.ag",
+    "inviteMessage": "{{name}},我在用 PikTag,一起来用标签记住彼此吧!下载:{{url}}",
     "batchProgress": "处理中 {{current}}/{{total}}",
     "alertBatchDoneTitle": "导入完成",
     "alertBatchDoneMessage": "已加入 {{matched}} 位朋友。其中 {{notOnApp}} 位尚未使用 PikTag。",

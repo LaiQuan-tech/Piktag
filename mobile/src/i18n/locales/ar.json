@@ -819,7 +819,7 @@
     "alertBatchImportTitle": "استيراد جماعي",
     "alertBatchImportMessage": "هل أنت متأكد من استيراد كل الـ {{count}} جهة اتصال؟",
     "alertBatchImportConfirm": "استيراد",
-    "inviteMessage": "مرحبًا {{name}}، أستخدم PikTag لأتذكر من ألتقي بهم — انضم: https://pikt.ag",
+    "inviteMessage": "مرحبًا {{name}}، أستخدم PikTag لأتذكر من ألتقي بهم — انضم: {{url}}",
     "batchProgress": "جارٍ المعالجة {{current}}/{{total}}",
     "alertBatchDoneTitle": "اكتمل الاستيراد",
     "alertBatchDoneMessage": "تمت إضافة {{matched}} صديقًا. {{notOnApp}} جهة اتصال لا تستخدم PikTag بعد.",

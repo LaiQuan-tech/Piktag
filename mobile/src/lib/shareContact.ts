@@ -23,6 +23,7 @@
  *     conditionally available based on what the OCR extracted.
  */
 import { Linking, Platform } from 'react-native';
+import { appendLang } from './shareProfile';
 
 export type ShareChannel = 'email' | 'sms' | 'whatsapp';
 
@@ -76,9 +77,9 @@ function firstNameOf(full: string | null | undefined): string {
   return trimmed.split(/\s+/)[0] ?? trimmed;
 }
 
-/** Build the shared URL with a referral tag for analytics. */
+/** Build the shared URL with a referral tag for analytics + the sharer's locale. */
 function buildShareUrl(username: string): string {
-  return `https://pikt.ag/${username}?ref=card_invite`;
+  return appendLang(`https://pikt.ag/${username}?ref=card_invite`);
 }
 
 /**

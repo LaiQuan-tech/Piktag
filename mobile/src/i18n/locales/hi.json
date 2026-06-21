@@ -819,7 +819,7 @@
     "alertBatchImportTitle": "बैच आयात",
     "alertBatchImportMessage": "क्या आप पक्का सभी {{count}} कॉन्टैक्ट आयात करना चाहते हैं?",
     "alertBatchImportConfirm": "आयात करें",
-    "inviteMessage": "{{name}}, मैं PikTag use कर रहा हूँ लोगों को याद रखने के लिए — join करो: https://pikt.ag",
+    "inviteMessage": "{{name}}, मैं PikTag use कर रहा हूँ लोगों को याद रखने के लिए — join करो: {{url}}",
     "batchProgress": "प्रोसेस हो रहा है {{current}}/{{total}}",
     "alertBatchDoneTitle": "आयात पूरा",
     "alertBatchDoneMessage": "{{matched}} दोस्त जोड़े। {{notOnApp}} कॉन्टैक्ट अभी PikTag पर नहीं हैं।",

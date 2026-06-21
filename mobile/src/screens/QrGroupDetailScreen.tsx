@@ -44,6 +44,7 @@ import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
 import RingedAvatar from '../components/RingedAvatar';
 import QrShareBody from '../components/QrShareBody';
+import { appendLang } from '../lib/shareProfile';
 
 type Member = {
   connection_id: string;
@@ -106,6 +107,16 @@ export default function QrGroupDetailScreen({ navigation, route }: Props) {
   // members whose current tags include this one. Tapping the
   // already-selected tag clears the filter.
   const [selectedFilterTag, setSelectedFilterTag] = useState<string | null>(null);
+
+  // The stored qr_code_data is annotated with the sharer's UI language
+  // at READ time only — we never mutate the persisted DB row (a group
+  // can be shared by users in different languages over its lifetime, and
+  // an older row may carry no lang at all). appendLang is idempotent, so
+  // a row already created lang-tagged (via AddTagScreen) won't double up.
+  const qrShareUrl = useMemo(
+    () => (group?.qr_code_data ? appendLang(group.qr_code_data) : ''),
+    [group?.qr_code_data],
+  );
 
   const fetchGroup = useCallback(async () => {
     if (!user || !groupId) return;
@@ -259,24 +270,24 @@ export default function QrGroupDetailScreen({ navigation, route }: Props) {
   );
 
   const handleShare = useCallback(async () => {
-    if (!group?.qr_code_data) return;
+    if (!qrShareUrl) return;
     try {
       // Wrap the raw qr_code_data URL in the same LINE-style
       // shareMessage as AddTagScreen so the recipient sees a
       // friendly invite line + tappable URL rather than a bare
       // URL with no context.
       await Share.share({
-        message: t('addTag.shareMessage', { url: group.qr_code_data }),
+        message: t('addTag.shareMessage', { url: qrShareUrl }),
       });
     } catch {
       /* user cancelled */
     }
-  }, [group, t]);
+  }, [qrShareUrl, t]);
 
   const handleCopyLink = useCallback(async () => {
-    if (!group?.qr_code_data) return;
+    if (!qrShareUrl) return;
     try {
-      await setClipboardStringAsync(group.qr_code_data);
+      await setClipboardStringAsync(qrShareUrl);
       Alert.alert(
         t('addTag.alertLinkCopiedTitle', { defaultValue: '已複製' }),
         t('addTag.alertLinkCopiedMessage', { defaultValue: '連結已複製到剪貼簿' }),
@@ -284,7 +295,7 @@ export default function QrGroupDetailScreen({ navigation, route }: Props) {
     } catch {
       /* no-op */
     }
-  }, [group, t]);
+  }, [qrShareUrl, t]);
 
   // P1 "Gather the Tribe" button was removed per user feedback:
   // "真實人生其實這群人可能互不認識，只是都跟發 QRcode 的使用者
@@ -375,7 +386,7 @@ export default function QrGroupDetailScreen({ navigation, route }: Props) {
             sheets can't drift apart visually. (task #38 follow-up
             2026-05-31.) */}
         <QrShareBody
-          qrValue={group.qr_code_data}
+          qrValue={qrShareUrl}
           handle={qrUsername}
           name={presentName}
           tags={group.event_tags}
@@ -511,7 +522,7 @@ export default function QrGroupDetailScreen({ navigation, route }: Props) {
               without the gradient. */}
           <View style={styles.heroQrWrap}>
             {group.qr_code_data ? (
-              <QRCode value={group.qr_code_data} size={220} color={'#000000'} backgroundColor="#FFFFFF" />
+              <QRCode value={qrShareUrl} size={220} color={'#000000'} backgroundColor="#FFFFFF" />
             ) : null}
           </View>
 

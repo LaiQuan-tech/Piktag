@@ -38,6 +38,7 @@ import {
 } from 'expo-location';
 import { logApiUsage } from '../lib/apiUsage';
 import { normalizeTagName } from '../lib/normalizeTag';
+import { appendLang } from '../lib/shareProfile';
 import { setStringAsync as setClipboardStringAsync } from 'expo-clipboard';
 import PageLoader from '../components/loaders/PageLoader';
 import BrandSpinner from '../components/loaders/BrandSpinner';
@@ -783,7 +784,7 @@ export default function AddTagScreen({ navigation }: AddTagScreenProps) {
       if (eventTags.length > 0) params.set('tags', eventTags.join(','));
       if (eventDate) params.set('date', eventDate);
       if (eventLocation) params.set('loc', eventLocation);
-      const qrUrl = `https://pikt.ag/${username}?${params.toString()}`;
+      const qrUrl = appendLang(`https://pikt.ag/${username}?${params.toString()}`);
 
       // 4. Update session in DB if it was created
       if (sessionData) {

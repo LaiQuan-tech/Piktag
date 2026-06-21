@@ -819,7 +819,7 @@
     "alertBatchImportTitle": "اکٹھے درآمد",
     "alertBatchImportMessage": "کیا واقعی سارے {{count}} رابطے درآمد کر دیں؟",
     "alertBatchImportConfirm": "درآمد کریں",
-    "inviteMessage": "{{name}}، میں PikTag سے لوگوں کو یاد رکھتا ہوں — جوائن کرو: https://pikt.ag",
+    "inviteMessage": "{{name}}، میں PikTag سے لوگوں کو یاد رکھتا ہوں — جوائن کرو: {{url}}",
     "batchProgress": "ہو رہا ہے {{current}}/{{total}}",
     "alertBatchDoneTitle": "درآمد مکمل",
     "alertBatchDoneMessage": "{{matched}} دوست شامل ہوئے۔ {{notOnApp}} رابطے ابھی PikTag پر نہیں ہیں۔",

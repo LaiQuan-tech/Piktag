@@ -819,7 +819,7 @@
     "alertBatchImportTitle": "Nhập hàng loạt",
     "alertBatchImportMessage": "Bạn chắc muốn nhập cả {{count}} liên hệ chứ?",
     "alertBatchImportConfirm": "Nhập",
-    "inviteMessage": "Hey {{name}}, mình dùng PikTag để nhớ những người gặp — vào nhé: https://pikt.ag",
+    "inviteMessage": "Hey {{name}}, mình dùng PikTag để nhớ những người gặp — vào nhé: {{url}}",
     "batchProgress": "Đang xử lý {{current}}/{{total}}",
     "alertBatchDoneTitle": "Nhập xong rồi",
     "alertBatchDoneMessage": "Đã thêm {{matched}} người bạn. Còn {{notOnApp}} liên hệ chưa có trên PikTag.",

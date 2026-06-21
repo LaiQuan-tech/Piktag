@@ -819,7 +819,7 @@
     "alertBatchImportTitle": "Массовый импорт",
     "alertBatchImportMessage": "Точно импортировать все {{count}} контактов?",
     "alertBatchImportConfirm": "Импортировать",
-    "inviteMessage": "Привет {{name}}, в PikTag запоминаю людей по тегам — присоединяйся: https://pikt.ag",
+    "inviteMessage": "Привет {{name}}, в PikTag запоминаю людей по тегам — присоединяйся: {{url}}",
     "batchProgress": "Обрабатываем {{current}}/{{total}}",
     "alertBatchDoneTitle": "Импорт завершён",
     "alertBatchDoneMessage": "Добавлено {{matched}} друзей. {{notOnApp}} контактов ещё не в PikTag.",

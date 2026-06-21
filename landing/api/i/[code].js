@@ -1,10 +1,10 @@
-const { BRAND_COLOR, BRAND_ACCENT, BRAND_DARK, BRAND_BG, BRAND_GRADIENT, escapeHtml, detectLocale, trackShareLinkViewed, buildAnalyticsSnippet } = require('../_config');
+const { BRAND_COLOR, BRAND_ACCENT, BRAND_DARK, BRAND_BG, BRAND_GRADIENT, escapeHtml, resolveLocale, trackShareLinkViewed, buildAnalyticsSnippet } = require('../_config');
 
 module.exports = async function handler(req, res) {
   const { code } = req.query;
   const codeStr = Array.isArray(code) ? code[0] : code;
   const safeCode = escapeHtml((codeStr || '').toUpperCase());
-  const locale = detectLocale(req);
+  const locale = resolveLocale(req);
 
   const ua = (req.headers['user-agent'] || '').toLowerCase();
   const isIos = /iphone|ipad|ipod/.test(ua);

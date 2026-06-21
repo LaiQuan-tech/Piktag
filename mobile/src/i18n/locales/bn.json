@@ -819,7 +819,7 @@
     "alertBatchImportTitle": "ব্যাচ ইম্পোর্ট",
     "alertBatchImportMessage": "আপনি কি সব {{count}} টি কন্টাক্ট ইম্পোর্ট করতে নিশ্চিত?",
     "alertBatchImportConfirm": "ইম্পোর্ট",
-    "inviteMessage": "{{name}}, আমি PikTag ব্যবহার করি মানুষদের মনে রাখতে — যোগ দাও: https://pikt.ag",
+    "inviteMessage": "{{name}}, আমি PikTag ব্যবহার করি মানুষদের মনে রাখতে — যোগ দাও: {{url}}",
     "batchProgress": "প্রসেস হচ্ছে {{current}}/{{total}}",
     "alertBatchDoneTitle": "ইম্পোর্ট সম্পন্ন",
     "alertBatchDoneMessage": "{{matched}} জন বন্ধু যোগ হয়েছে। {{notOnApp}} টি কন্টাক্ট এখনও PikTag-এ নেই।",

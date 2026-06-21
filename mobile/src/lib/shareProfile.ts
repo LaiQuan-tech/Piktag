@@ -1,7 +1,44 @@
 import { Platform, Share, type ShareContent } from 'react-native';
 import type { TFunction } from 'i18next';
+import i18n from '../i18n';
 
 export const APP_BASE_URL = 'https://pikt.ag';
+
+/**
+ * Append the sharer's UI language as `?lang=<code>` to any outgoing
+ * pikt.ag URL so the web share card / landing page renders in that
+ * language. This is the SINGLE source of the query-string logic — every
+ * share/QR/invite/download URL the app emits must route through here.
+ *
+ * Contract (shared with the landing/web half):
+ *   - Query param name is `lang`.
+ *   - The value is the bare i18n.language code (19 valid codes:
+ *     en, zh-TW, zh-CN, ja, ko, es, fr, pt, ru, ar, hi, id, th, tr,
+ *     bn, de, it, vi, ur). It is zh-TW, NOT zh-Hant.
+ *   - Server precedence: ?lang=<valid> → Accept-Language → en.
+ *
+ * @param url  The pikt.ag URL to annotate.
+ * @param lang Defaults to the active UI language (`i18n.language`).
+ *             If falsy, the url is returned unchanged.
+ */
+export function appendLang(url: string, lang: string = i18n.language): string {
+  if (!lang) return url;
+  // Idempotent: a URL that already carries a `lang` param (e.g. an
+  // event QR persisted to the DB already lang-tagged at creation, then
+  // re-rendered here) must not get a second one.
+  if (/[?&]lang=/.test(url)) return url;
+  const separator = url.includes('?') ? '&' : '?';
+  return `${url}${separator}lang=${lang}`;
+}
+
+/**
+ * Canonical builder for a plain profile-URL share site. Centralises
+ * `${APP_BASE_URL}/${username}` + the lang annotation so every caller
+ * emits an identical, locale-tagged profile link.
+ */
+export function buildProfileUrl(username: string): string {
+  return appendLang(`${APP_BASE_URL}/${username}`);
+}
 
 type BuildArgs = {
   /**
@@ -40,7 +77,7 @@ export function buildShareProfilePayload({
   username,
   t,
 }: BuildArgs): ShareContent {
-  const profileUrl = `${APP_BASE_URL}/${username}`;
+  const profileUrl = buildProfileUrl(username);
   const message = t('share.profileInviteMessage', {
     name,
     url: profileUrl,

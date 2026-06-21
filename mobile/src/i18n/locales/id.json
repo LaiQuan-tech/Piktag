@@ -819,7 +819,7 @@
     "alertBatchImportTitle": "Impor Massal",
     "alertBatchImportMessage": "Apakah kamu yakin ingin mengimpor semua {{count}} kontak?",
     "alertBatchImportConfirm": "Impor",
-    "inviteMessage": "Hai {{name}}, aku pakai PikTag biar ingat orang-orang yang kutemui — gabung: https://pikt.ag",
+    "inviteMessage": "Hai {{name}}, aku pakai PikTag biar ingat orang-orang yang kutemui — gabung: {{url}}",
     "batchProgress": "Memproses {{current}}/{{total}}",
     "alertBatchDoneTitle": "Impor selesai",
     "alertBatchDoneMessage": "{{matched}} teman ditambahkan. {{notOnApp}} kontak belum menggunakan PikTag.",

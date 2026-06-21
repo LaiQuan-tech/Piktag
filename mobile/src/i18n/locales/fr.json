@@ -819,7 +819,7 @@
     "alertBatchImportTitle": "Importation en masse",
     "alertBatchImportMessage": "Êtes-vous sûr de vouloir importer les {{count}} contacts ?",
     "alertBatchImportConfirm": "Importer",
-    "inviteMessage": "Hey {{name}}, j'utilise PikTag pour me souvenir des gens que je rencontre — rejoins-moi : https://pikt.ag",
+    "inviteMessage": "Hey {{name}}, j'utilise PikTag pour me souvenir des gens que je rencontre — rejoins-moi : {{url}}",
     "batchProgress": "Traitement {{current}}/{{total}}",
     "alertBatchDoneTitle": "Importation terminée",
     "alertBatchDoneMessage": "{{matched}} amis ajoutés. {{notOnApp}} contacts ne sont pas encore sur PikTag.",

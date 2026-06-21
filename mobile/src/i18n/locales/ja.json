@@ -819,7 +819,7 @@
     "alertBatchImportTitle": "一括インポート",
     "alertBatchImportMessage": "すべての{{count}}件の連絡先をインポートしてもよろしいですか？",
     "alertBatchImportConfirm": "インポート",
-    "inviteMessage": "{{name}}、PikTag で出会った人を覚えてるんだ — 一緒にやろう: https://pikt.ag",
+    "inviteMessage": "{{name}}、PikTag で出会った人を覚えてるんだ — 一緒にやろう: {{url}}",
     "batchProgress": "処理中 {{current}}/{{total}}",
     "alertBatchDoneTitle": "インポート完了",
     "alertBatchDoneMessage": "{{matched}}人の友達を追加しました。{{notOnApp}}件はまだPikTagにいません。",

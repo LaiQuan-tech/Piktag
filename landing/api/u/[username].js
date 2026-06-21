@@ -1,4 +1,4 @@
-const { SUPABASE_URL, SUPABASE_ANON_KEY, BRAND_COLOR, BRAND_ACCENT, BRAND_DARK, BRAND_BG, BRAND_GRADIENT, escapeHtml, detectLocale, trackShareLinkViewed, buildAnalyticsSnippet } = require('../_config');
+const { SUPABASE_URL, SUPABASE_ANON_KEY, BRAND_COLOR, BRAND_ACCENT, BRAND_DARK, BRAND_BG, BRAND_GRADIENT, escapeHtml, resolveLocale, trackShareLinkViewed, buildAnalyticsSnippet } = require('../_config');
 
 const PLATFORM_ICONS = {
   instagram: '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>',
@@ -34,7 +34,7 @@ module.exports = async function handler(req, res) {
   const tagsStr = Array.isArray(req.query.tags) ? req.query.tags[0] : (req.query.tags || '');
   const dateStr = Array.isArray(req.query.date) ? req.query.date[0] : (req.query.date || '');
   const locStr = Array.isArray(req.query.loc) ? req.query.loc[0] : (req.query.loc || '');
-  const locale = detectLocale(req);
+  const locale = resolveLocale(req);
 
   if (!usernameStr) {
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
