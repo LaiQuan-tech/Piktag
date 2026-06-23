@@ -1397,7 +1397,7 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
       }
 
       // 3. Calculate next position
-      const nextPosition = userTags.length;
+      const nextPosition = visibleUserTags.length;
 
       // 4. Link tag to user
       const { error: linkError } = await supabase
@@ -1456,7 +1456,7 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
     } finally {
       setAddingTag(false);
     }
-  }, [userId, tagInput, userTagNames, userTags.length, isTagPrivate, pendingRemovals, t, fetchUserTags, fetchPopularTags]);
+  }, [userId, tagInput, userTagNames, visibleUserTags.length, isTagPrivate, pendingRemovals, t, fetchUserTags, fetchPopularTags]);
 
   // Inline AI tag generation. Mirrors AskStoryRow.suggestTagsForBody —
   // manual lightning button trigger, surfaces empty-result state explicitly so
@@ -1623,7 +1623,7 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
 
       setAddingTag(true);
       try {
-        const nextPosition = userTags.length;
+        const nextPosition = visibleUserTags.length;
 
         const { error: linkError } = await supabase
           .from('piktag_user_tags')
@@ -1665,7 +1665,7 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
         setAddingTag(false);
       }
     },
-    [userId, userTagNames, userTags.length, pendingRemovals, t, fetchUserTags, fetchPopularTags],
+    [userId, userTagNames, visibleUserTags.length, pendingRemovals, t, fetchUserTags, fetchPopularTags],
   );
 
   const toggleTagPrivacy = useCallback(() => {
@@ -1912,7 +1912,7 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
                 Auto-fires shortly after the user pauses typing bio /
                 name / headline; ↻ re-rolls. Hidden when bio is empty
                 or tags hit the 10 cap. */}
-            {form.bio.trim().length > 0 && userTags.length < 10 && (
+            {form.bio.trim().length > 0 && visibleUserTags.length < 10 && (
               <View style={styles.ai_inlineSection}>
                 {(aiLoading || aiSuggestions.length > 0 || aiTriedAndEmpty) && (
                   <View style={styles.ai_headerRow}>
@@ -1985,12 +1985,12 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
                   <Text
                     style={[
                       styles.tag_countText,
-                      userTags.length >= MAX_TAGS && styles.tag_countTextLimit,
+                      visibleUserTags.length >= MAX_TAGS && styles.tag_countTextLimit,
                     ]}
                   >
-                    {t('manageTags.tagCount', { count: userTags.length, max: MAX_TAGS })}
+                    {t('manageTags.tagCount', { count: visibleUserTags.length, max: MAX_TAGS })}
                   </Text>
-                  {userTags.length >= MAX_TAGS && (
+                  {visibleUserTags.length >= MAX_TAGS && (
                     <AlertTriangle size={13} color={colors.red500} />
                   )}
                 </View>
@@ -2004,7 +2004,7 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
                 because removal is staged (Phase 1) and reversible
                 until 儲存. Reorder = long-press drag. Native only
                 (web fallback is a non-product path). Shown ≥1 tag. */}
-            {userTags.length > 0 && Platform.OS !== 'web' && (
+            {visibleUserTags.length > 0 && Platform.OS !== 'web' && (
               <Text style={styles.tag_sortHint}>
                 {t('manageTags.tagEditHint', {
                   defaultValue: '點一下即可移除（儲存前都可復原）· 長按可拖曳排序',
@@ -2018,7 +2018,7 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
                 DraggableChips reorder-on-drop fix (the founder will
                 device-test). Web fallback: same purple toggle TagChip,
                 tap = remove (non-product path). */}
-            {userTags.length > 0 ? (
+            {visibleUserTags.length > 0 ? (
               Platform.OS !== 'web' && DraggableChips ? (
                 <DraggableChips
                   items={chipItems}
@@ -2050,7 +2050,7 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
                 ManageTagsScreen, now part of this section so users
                 stay on a single page. # icon prefix + textinput +
                 circular plus button. */}
-            {userTags.length < MAX_TAGS && (
+            {visibleUserTags.length < MAX_TAGS && (
               <View style={styles.tag_addRow}>
                 {/* Bordered input pill with the Hash prefix + char counter
                     inside, exactly like before — but the + button is now
@@ -2099,7 +2099,7 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
                 browse tap to expand. Replaces the gradient
                 「管理全部標籤」CTA that used to navigate to a
                 separate ManageTagsScreen. */}
-            {userTags.length < MAX_TAGS && popularTags.length > 0 && (
+            {visibleUserTags.length < MAX_TAGS && popularTags.length > 0 && (
               <View style={styles.tag_popularSection}>
                 <Pressable
                   style={styles.tag_popularToggle}

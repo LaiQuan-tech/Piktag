@@ -146,7 +146,21 @@ export default function DraggableChips({
           isToggle={isToggle}
           isDragging={draggingId === item.id}
           onLayout={(e) => onChipLayout(item.id, e)}
-          onDragStart={() => { setDraggingId(item.id); onDragStateChange?.(true); }}
+          onDragStart={() => {
+            // Re-measure the container at drag START. EditProfile is a long
+            // ScrollView and the tags section sits mid-page, so the once-on-
+            // mount measureInWindow is stale by the time the user scrolls
+            // down and drags — findTargetId would then compute a wrong
+            // window-Y and the drop never finds a target → silent no-reorder
+            // (the "拖不動" bug; the reorder-on-drop rewrite in 1464c914
+            // didn't touch this measurement). Per-chip layouts are relative
+            // to the container, so they don't need re-measuring.
+            containerRef.current?.measureInWindow((x, y) => {
+              containerLayout.current = { x, y };
+            });
+            setDraggingId(item.id);
+            onDragStateChange?.(true);
+          }}
           onDragEnd={() => {
             setDraggingId(null);
             onDragStateChange?.(false);
