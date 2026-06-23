@@ -52,8 +52,9 @@ import TagChip from '../../components/TagChip';
 import QrNameCard from '../../components/QrNameCard';
 import { LinearGradient } from 'expo-linear-gradient';
 import BirthdayInput from '../../components/BirthdayInput';
-import { sanitizePhone } from '../../lib/sanitizePhone';
 import { buildProfileUrl } from '../../lib/shareProfile';
+import PhoneNumberInput from '../../components/PhoneNumberInput';
+import { type Country, buildTelUrl, getDefaultCountry } from '../../lib/countryCodes';
 import { Image } from 'expo-image';
 import {
   requestMediaLibraryPermissionsAsync,
@@ -207,6 +208,14 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
   // add" mini-flow using the locale-aware quick-pick.
   const [linkPlatform, setLinkPlatform] = useState<string | null>(null);
   const [linkInput, setLinkInput] = useState('');
+  // Phone uses a dedicated (country, national) pair + the shared
+  // PhoneNumberInput (country-code dropdown), same as EditProfile, so
+  // onboarding stores clean E.164 tel: URLs via buildTelUrl (not the raw
+  // typed string buildPlatformUrl('phone', …) used to keep).
+  const [phoneCountry, setPhoneCountry] = useState<Country>(() =>
+    getDefaultCountry(i18n.language),
+  );
+  const [phoneNational, setPhoneNational] = useState('');
   // Inline feedback for Add taps on invalid input. addLink used to
   // silently return on empty / "https://" / unparsable values — that
   // is the "silent drop" anti-pattern (CLAUDE.md prevent-or-feedback
@@ -514,21 +523,35 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
     // Prefill https:// for the generic "custom" link so the user
     // doesn't fight the scheme (mirrors EditProfile).
     setLinkInput(key === 'custom' ? 'https://' : '');
-  }, []);
+    // Reset the phone pair to the locale default each time phone is
+    // (re-)selected — mirrors EditProfile's resetPhoneFields.
+    if (key === 'phone') {
+      setPhoneCountry(getDefaultCountry(i18n.language));
+      setPhoneNational('');
+    }
+  }, [i18n.language]);
 
   const addLink = useCallback(() => {
     if (!linkPlatform) return;
-    const raw = linkInput.trim();
-    // prevent-or-feedback: empty / scheme-only / unparsable input was
-    // silently dropped before. Surface an explicit hint instead so the
-    // user knows why nothing was added.
-    if (!raw || raw === 'https://') {
-      setAddLinkError(
-        t('auth.onboarding.addLinkInvalid', { defaultValue: 'Add a real link first' }),
-      );
-      return;
+    let url: string;
+    if (linkPlatform === 'phone') {
+      // Phone: synthesise the canonical tel: URL from (country, national)
+      // via the SAME buildTelUrl EditProfile uses, so onboarding stores
+      // clean E.164 (tel:+886…) instead of the raw-typed string.
+      url = buildTelUrl(phoneCountry, phoneNational);
+    } else {
+      const raw = linkInput.trim();
+      // prevent-or-feedback: empty / scheme-only / unparsable input was
+      // silently dropped before. Surface an explicit hint instead so the
+      // user knows why nothing was added.
+      if (!raw || raw === 'https://') {
+        setAddLinkError(
+          t('auth.onboarding.addLinkInvalid', { defaultValue: 'Add a real link first' }),
+        );
+        return;
+      }
+      url = buildPlatformUrl(linkPlatform, raw);
     }
-    const url = buildPlatformUrl(linkPlatform, raw);
     if (!url) {
       setAddLinkError(
         t('auth.onboarding.addLinkInvalid', { defaultValue: 'Add a real link first' }),
@@ -542,8 +565,9 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
       return [...prev, { platform: linkPlatform!, url, label: null }];
     });
     setLinkInput('');
+    setPhoneNational('');
     setLinkPlatform(null);
-  }, [linkPlatform, linkInput, t]);
+  }, [linkPlatform, linkInput, phoneCountry, phoneNational, t]);
 
   const removeLink = useCallback((index: number) => {
     setPendingBiolinks((prev) => prev.filter((_, i) => i !== index));
@@ -1290,28 +1314,51 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
         {linkPlatform && (
           <>
             <View style={styles.tagInputRow}>
-              <TextInput
-                style={styles.tagInputField}
-                value={linkInput}
-                onChangeText={(v) => {
-                  setLinkInput(linkPlatform === 'phone' ? sanitizePhone(v) : v);
-                  // Clear stale error the moment the user edits — keeps the
-                  // hint from lingering after they've started fixing it.
-                  if (addLinkError) setAddLinkError(null);
-                }}
-                placeholder={PLATFORM_MAP[linkPlatform]?.placeholder ?? ''}
-                placeholderTextColor={colors.gray400}
-                autoCapitalize="none"
-                autoCorrect={false}
-                keyboardType={linkPlatform === 'phone' ? 'phone-pad' : 'default'}
-                returnKeyType="done"
-                onSubmitEditing={addLink}
-                autoFocus
-              />
+              {linkPlatform === 'phone' ? (
+                // Phone uses the shared country-code dropdown + national
+                // field — same component AND stored format (tel:+886…) as
+                // EditProfile, so the two screens no longer drift.
+                <View style={{ flex: 1 }}>
+                  <PhoneNumberInput
+                    country={phoneCountry}
+                    national={phoneNational}
+                    onChangeCountry={setPhoneCountry}
+                    onChangeNational={(v) => {
+                      setPhoneNational(v);
+                      if (addLinkError) setAddLinkError(null);
+                    }}
+                    onSubmitEditing={addLink}
+                    autoFocus
+                  />
+                </View>
+              ) : (
+                <TextInput
+                  style={styles.tagInputField}
+                  value={linkInput}
+                  onChangeText={(v) => {
+                    setLinkInput(v);
+                    // Clear stale error the moment the user edits — keeps the
+                    // hint from lingering after they've started fixing it.
+                    if (addLinkError) setAddLinkError(null);
+                  }}
+                  placeholder={PLATFORM_MAP[linkPlatform]?.placeholder ?? ''}
+                  placeholderTextColor={colors.gray400}
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  keyboardType="default"
+                  returnKeyType="done"
+                  onSubmitEditing={addLink}
+                  autoFocus
+                />
+              )}
               <TouchableOpacity
-                style={[styles.tagAddBtn, !linkInput.trim() && styles.tagAddBtnDisabled]}
+                style={[
+                  styles.tagAddBtn,
+                  (linkPlatform === 'phone' ? !phoneNational.trim() : !linkInput.trim()) &&
+                    styles.tagAddBtnDisabled,
+                ]}
                 onPress={addLink}
-                disabled={!linkInput.trim()}
+                disabled={linkPlatform === 'phone' ? !phoneNational.trim() : !linkInput.trim()}
                 accessibilityRole="button"
                 accessibilityLabel={t('manageTags.addTag', { defaultValue: '新增' })}
               >

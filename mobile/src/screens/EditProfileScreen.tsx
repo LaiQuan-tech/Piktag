@@ -36,7 +36,7 @@ import { useTheme } from '../context/ThemeContext';
 import { LinearGradient } from 'expo-linear-gradient';
 import PlatformIcon from '../components/PlatformIcon';
 import SectionTitle from '../components/SectionTitle';
-import CountryCodePicker from '../components/CountryCodePicker';
+import PhoneNumberInput from '../components/PhoneNumberInput';
 import { supabase, supabaseUrl, supabaseAnonKey } from '../lib/supabase';
 import { ilikeEscape } from '../lib/normalizeTag';
 import {
@@ -477,7 +477,6 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
     getDefaultCountry(i18n.language),
   );
   const [phoneNational, setPhoneNational] = useState<string>('');
-  const [countryPickerOpen, setCountryPickerOpen] = useState(false);
 
   // Reset the phone-specific fields back to the locale default. Called
   // when the user cancels a form, successfully saves, or switches the
@@ -1029,7 +1028,8 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
     // Closing them here when the parent dismisses guarantees no
     // orphan overlays survive.
     setPlatformSearchVisible(false);
-    setCountryPickerOpen(false);
+    // (The phone country picker is now self-contained in PhoneNumberInput
+    // and unmounts with this modal, so there's no orphan overlay to close.)
   };
 
   const handleOpenLink = useCallback((url: string) => {
@@ -2249,27 +2249,13 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
                     number) row. Every other platform keeps the legacy
                     prefix + account input flow. */}
                 {selectedPlatform === 'phone' ? (
-                  <View style={styles.phoneRow}>
-                    <TouchableOpacity
-                      style={styles.countryChip}
-                      onPress={() => setCountryPickerOpen(true)}
-                      activeOpacity={0.7}
-                    >
-                      <Text style={styles.countryFlag}>{phoneCountry.flag}</Text>
-                      <Text style={styles.countryDial}>{phoneCountry.dial}</Text>
-                      <ChevronDown size={14} color={colors.gray500} />
-                    </TouchableOpacity>
-                    <TextInput
-                      style={styles.phoneInput}
-                      value={phoneNational}
-                      onChangeText={(v) => setPhoneNational(v.replace(/\D/g, ''))}
-                      placeholder={t('editProfile.phonePlaceholder')}
-                      placeholderTextColor={colors.gray400}
-                      keyboardType="phone-pad"
-                      maxLength={15}
-                      autoFocus
-                    />
-                  </View>
+                  <PhoneNumberInput
+                    country={phoneCountry}
+                    national={phoneNational}
+                    onChangeCountry={setPhoneCountry}
+                    onChangeNational={setPhoneNational}
+                    autoFocus
+                  />
                 ) : (
                   <View style={styles.prefixInputRow}>
                     {PLATFORM_PREFIXES[selectedPlatform] ? (
@@ -2552,29 +2538,16 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
                     : t('editProfile.urlLabel')}
                 </Text>
                 {biolinkForm.platform === 'phone' ? (
-                  // Phone gets the country-code chip + national-number
-                  // input. The actual `tel:` URL is synthesised at save
-                  // time from (phoneCountry, phoneNational).
-                  <View style={styles.phoneRow}>
-                    <TouchableOpacity
-                      style={styles.countryChip}
-                      onPress={() => setCountryPickerOpen(true)}
-                      activeOpacity={0.7}
-                    >
-                      <Text style={styles.countryFlag}>{phoneCountry.flag}</Text>
-                      <Text style={styles.countryDial}>{phoneCountry.dial}</Text>
-                      <ChevronDown size={14} color={colors.gray500} />
-                    </TouchableOpacity>
-                    <TextInput
-                      style={styles.phoneInput}
-                      value={phoneNational}
-                      onChangeText={(v) => setPhoneNational(v.replace(/\D/g, ''))}
-                      placeholder={t('editProfile.phonePlaceholder')}
-                      placeholderTextColor={colors.gray400}
-                      keyboardType="phone-pad"
-                      maxLength={15}
-                    />
-                  </View>
+                  // Phone gets the country-code chip + national-number input
+                  // (shared PhoneNumberInput). The actual `tel:` URL is
+                  // synthesised at save time from (phoneCountry, phoneNational)
+                  // via buildTelUrl.
+                  <PhoneNumberInput
+                    country={phoneCountry}
+                    national={phoneNational}
+                    onChangeCountry={setPhoneCountry}
+                    onChangeNational={setPhoneNational}
+                  />
                 ) : biolinkForm.platform === 'custom' ? (
                   <>
                     {/* Name input for custom — restored 2026-05-31
@@ -2859,15 +2832,6 @@ export default function EditProfileScreen({ navigation, route }: EditProfileScre
           />
         )}
       </Modal>
-
-      {/* Country-code picker — rendered at the root so it overlays
-          every other modal and the inline link form alike. */}
-      <CountryCodePicker
-        visible={countryPickerOpen}
-        onClose={() => setCountryPickerOpen(false)}
-        onSelect={(c) => setPhoneCountry(c)}
-        selectedIso={phoneCountry.iso}
-      />
 
       {/* Browse-all search for the LEGACY inline-add path only — the
           biolink-edit-modal path uses the dedicated instance mounted
@@ -3676,41 +3640,6 @@ function makeStyles(c: ColorPalette) {
     padding: 0,
   },
   // Phone-specific row: [🇹🇼 +886 ▾] [ national number ... ]
-  phoneRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  countryChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 10,
-    paddingVertical: 10,
-    borderWidth: 1,
-    borderColor: c.gray200 ?? '#E5E7EB',
-    borderRadius: 8,
-    backgroundColor: c.white,
-  },
-  countryFlag: {
-    fontSize: 18,
-  },
-  countryDial: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: c.gray900,
-  },
-  phoneInput: {
-    flex: 1,
-    fontSize: 14,
-    color: c.gray900,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    borderWidth: 1,
-    borderColor: c.gray200 ?? '#E5E7EB',
-    borderRadius: 8,
-    backgroundColor: c.white,
-  },
   newLinkForm: {
     backgroundColor: c.gray100,
     borderRadius: 12,
