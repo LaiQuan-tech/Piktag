@@ -46,7 +46,14 @@ import { useLocalContacts } from '../hooks/useLocalContacts';
 import { supabase, supabaseUrl, supabaseAnonKey } from '../lib/supabase';
 import { toBirthdayDate } from '../lib/birthday';
 import BirthdayInput from '../components/BirthdayInput';
-import { sanitizePhone } from '../lib/sanitizePhone';
+import PhoneNumberInput from '../components/PhoneNumberInput';
+import {
+  type Country,
+  buildTelUrl,
+  getDefaultCountry,
+  splitTelUrl,
+} from '../lib/countryCodes';
+import i18n from '../i18n';
 import { normalizeTagName } from '../lib/normalizeTag';
 import BrandSpinner from '../components/loaders/BrandSpinner';
 import LogoLoader from '../components/loaders/LogoLoader';
@@ -99,7 +106,21 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
   const isEdit = !!contactId;
 
   const [name, setName] = useState(existing?.name ?? '');
-  const [phone, setPhone] = useState(existing?.phone_normalized ?? '');
+  // Phone uses the shared (country, national) pair + <PhoneNumberInput>,
+  // exactly like EditProfile / onboarding, so all three phone-entry
+  // surfaces share one component and the stored format can't drift. Seed
+  // the country + national from the stored phone_normalized via
+  // splitTelUrl; fall back to the locale default country when the stored
+  // value carries no recognisable dial code (legacy bare numbers / empty).
+  // NOTE: phone_normalized is a BARE E.164 string ("+886912345678"), NOT a
+  // tel: URL — LocalContactDetail prepends tel: at dial time — so on save
+  // we strip the scheme off buildTelUrl's output (see `phoneStored`).
+  const [phoneCountry, setPhoneCountry] = useState<Country>(
+    () => splitTelUrl(existing?.phone_normalized).country ?? getDefaultCountry(i18n.language),
+  );
+  const [phoneNational, setPhoneNational] = useState<string>(
+    () => splitTelUrl(existing?.phone_normalized).national,
+  );
   const [email, setEmail] = useState(existing?.email_lower ?? '');
   // The local-contact fields are aligned 1:1 with a member's profile
   // identity fields: name / 職稱(headline) / phone / email / birthday
@@ -217,7 +238,9 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
   useEffect(() => {
     if (contactId && existing && !hydrated) {
       setName(existing.name ?? '');
-      setPhone(existing.phone_normalized ?? '');
+      const phoneSeed = splitTelUrl(existing.phone_normalized);
+      setPhoneCountry(phoneSeed.country ?? getDefaultCountry(i18n.language));
+      setPhoneNational(phoneSeed.national);
       setEmail(existing.email_lower ?? '');
       setBirthday(birthdayForInput(existing.birthday));
       setHeadline(existing.headline ?? existing.note ?? '');
@@ -228,6 +251,18 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
       setHydrated(true);
     }
   }, [contactId, existing, hydrated]);
+
+  // Canonical phone value derived from the (country, national) pair —
+  // the BARE E.164 string (no `tel:` scheme) we both persist to
+  // phone_normalized AND hand to the share button (which builds sms:/
+  // wa.me itself). buildTelUrl strips the trunk-0 + non-digits, so this
+  // matches useLocalContacts.normalizePhone's output and the ContactSync
+  // dedup key (so promotion + dedupe still compare equal). Empty string
+  // when no number is entered → the share flow hides SMS/WhatsApp.
+  const phoneStored = useMemo(() => {
+    const tel = buildTelUrl(phoneCountry, phoneNational);
+    return tel ? tel.replace(/^tel:/, '') : '';
+  }, [phoneCountry, phoneNational]);
 
   // Pick a photo from the library and upload to the `avatars`
   // bucket. Mirrors EditProfile's pattern (same MIME + size limits,
@@ -542,7 +577,19 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
       // Default path: prefill the form for review/edit.
       const applyPrefill = () => {
         if (cardName) setName((cur) => (cur.trim() ? cur : cardName));
-        if (cardPhone) setPhone((cur) => (cur.trim() ? cur : cardPhone));
+        // Parse the scanned number into (country, national) for the shared
+        // picker. Only fill when the user hasn't typed a national number
+        // yet (mirrors the no-overwrite guard the other fields use); adopt
+        // the scanned country when the number carries a recognisable dial
+        // code, else keep the current/locale-default country.
+        if (cardPhone) {
+          const scanned = splitTelUrl(cardPhone);
+          setPhoneNational((cur) => {
+            if (cur.trim()) return cur;
+            if (scanned.country) setPhoneCountry(scanned.country);
+            return scanned.national.replace(/\D/g, '');
+          });
+        }
         if (cardEmail) setEmail((cur) => (cur.trim() ? cur : cardEmail));
         if (cardAddress) setAddress((cur) => (cur.trim() ? cur : cardAddress));
         if (cardWebsite) setWebsite((cur) => (cur.trim() ? cur : cardWebsite));
@@ -698,10 +745,11 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
       if (isEdit && contactId) {
         const ok = await update(contactId, {
           name: trimmed,
-          // useLocalContacts.normalizePhone runs on add(); on update
-          // we store what the user typed (still consistent — the
-          // promotion trigger normalizes both sides the same way).
-          phone_normalized: phone.trim() || null,
+          // Bare E.164 synthesised from the (country, national) picker
+          // pair (see `phoneStored`). Stored scheme-less to match the
+          // create path's normalizePhone output + the dial/dedup/promote
+          // consumers — the old "store the raw typed text" path is gone.
+          phone_normalized: phoneStored || null,
           email_lower: email.trim().toLowerCase() || null,
           birthday: birthdayNorm,
           headline: headline.trim() || null,
@@ -713,7 +761,9 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
       } else {
         const created = await add({
           name: trimmed,
-          phone: phone.trim() || null,
+          // Bare E.164 from the picker pair; add() runs it back through
+          // normalizePhone (a no-op for an already-`+`-prefixed value).
+          phone: phoneStored || null,
           email: email.trim() || null,
           birthday: birthdayNorm,
           headline: headline.trim() || null,
@@ -741,7 +791,7 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
     } finally {
       setSaving(false);
     }
-  }, [name, phone, email, birthday, headline, address, website, tags, avatarUrl, isEdit, contactId, add, update, navigation, t, aiSuggestionIds]);
+  }, [name, phoneStored, email, birthday, headline, address, website, tags, avatarUrl, isEdit, contactId, add, update, navigation, t, aiSuggestionIds]);
 
   const handleDelete = useCallback(() => {
     if (!contactId) return;
@@ -900,15 +950,16 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
               <Text style={styles.fieldLabel}>
                 {t('localContact.linkPhone', { defaultValue: '電話' })}
               </Text>
-              <TextInput
-                style={styles.fieldInput}
-                value={phone}
-                onChangeText={(v) => setPhone(sanitizePhone(v))}
-                placeholder={t('localContact.phonePlaceholder', { defaultValue: '+886 912 345 678' })}
-                placeholderTextColor={colors.gray400}
-                keyboardType="phone-pad"
-                autoCapitalize="none"
-                maxLength={24}
+              {/* Shared phone field — country-code chip + national number.
+                  The bare E.164 phone_normalized is synthesised from this
+                  (country, national) pair at save via buildTelUrl
+                  (`phoneStored`), so this surface can't drift from
+                  EditProfile / onboarding. */}
+              <PhoneNumberInput
+                country={phoneCountry}
+                national={phoneNational}
+                onChangeCountry={setPhoneCountry}
+                onChangeNational={setPhoneNational}
               />
             </View>
 
@@ -1054,7 +1105,7 @@ export default function EditLocalContactScreen({ navigation, route }: Props) {
               that the inline JSX had. */}
           <LocalContactShareButton
             recipientEmail={email}
-            recipientPhone={phone}
+            recipientPhone={phoneStored}
             recipientName={name}
             eventOrCompanyHint={headline || null}
             style={{ marginTop: 28 }}
