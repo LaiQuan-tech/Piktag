@@ -71,11 +71,9 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
   const [biolinks, setBiolinks] = useState<Biolink[]>([]);
   const [followerCount, setFollowerCount] = useState<number>(0);
   const [friendCount, setFriendCount] = useState<number>(0);
-  // Tribe = transitive count of people you invited to PikTag,
-  // either via the redeem_invite_code path or by them scanning
-  // a Vibe QR before signup. Backed by the get_tribe_size RPC
-  // which does a recursive CTE; cached client-side until refresh.
-  const [tribeSize, setTribeSize] = useState<number>(0);
+  // (Tribe invite-lineage size removed 2026-06-25 — the invite-code system
+  //  is retired, so it was a dead PikTag-vanity number. The "how my people
+  //  connect" view now lives on the Friends-page friend count → NetworkGraph.)
   // (tag-graph health state removed 2026-05-29 — see the comment
   // where the pill used to render. RPC stays; client-side fetching
   // it was only for the pill, so we drop the network call too.)
@@ -156,30 +154,9 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
     if (!error && count !== null) setFriendCount(count);
   }, [userId]);
 
-  // Tribe size via RPC (recursive CTE over piktag_profiles.invited_by_user_id).
-  // PGRST202 = function not deployed yet (migration tolerance): treat as 0.
-  const fetchTribeSize = useCallback(async () => {
-    if (!userId) return;
-    try {
-      const { data, error } = await supabase.rpc('get_tribe_size', { p_user_id: userId });
-      if (error) {
-        const isMissing =
-          (error as any).code === 'PGRST202' ||
-          /could not find the function|does not exist/i.test(error.message);
-        if (!isMissing) console.warn('[Profile] tribe size fetch failed:', error);
-        setTribeSize(0);
-      } else if (typeof data === 'number') {
-        setTribeSize(data);
-      }
-    } catch (err) {
-      console.warn('[Profile] tribe size threw:', err);
-      setTribeSize(0);
-    }
-  }, [userId]);
-
   const fetchAllData = useCallback(async () => {
-    await Promise.all([fetchProfile(), fetchUserTags(), fetchBiolinks(), fetchFollowerCount(), fetchFriendCount(), fetchTribeSize()]);
-  }, [fetchProfile, fetchUserTags, fetchBiolinks, fetchFollowerCount, fetchFriendCount, fetchTribeSize]);
+    await Promise.all([fetchProfile(), fetchUserTags(), fetchBiolinks(), fetchFollowerCount(), fetchFriendCount()]);
+  }, [fetchProfile, fetchUserTags, fetchBiolinks, fetchFollowerCount, fetchFriendCount]);
 
   // Persist the five state slices to the in-memory dataCache so that
   // re-entering ProfileScreen within the TTL window paints instantly
@@ -296,7 +273,6 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
   // both are "a QR I generate/show". QrGroupList lives in RootStack.
   const handleNavigateEventQr = useCallback(() => navigation.navigate('QrGroupList'), [navigation]);
   const handleNavigateEditProfile = useCallback(() => navigation.navigate('EditProfile'), [navigation]);
-  const handleNavigateTribe = useCallback(() => navigation.navigate('TribeConstellation'), [navigation]);
   // Each profile stat now drills into its OWN destination (was: the
   // whole row dumped every tap onto the Tribe graph). Tags → tag
   // manager, Friends → the Home/Connections list, Followers → the
@@ -487,19 +463,6 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
               <Text style={styles.statText}>
                 <Text style={styles.statNumber}>{formattedFollowerCount}</Text>
                 <Text style={styles.statLabel}>{t('profile.statFollowers')}</Text>
-              </Text>
-            </TouchableOpacity>
-            <StatDot />
-            <TouchableOpacity
-              activeOpacity={0.6}
-              onPress={handleNavigateTribe}
-              hitSlop={STAT_HITSLOP}
-              accessibilityRole="button"
-              accessibilityLabel={t('profile.statTribeA11y', { defaultValue: '查看 Tribe 星圖' })}
-            >
-              <Text style={styles.statText}>
-                <Text style={styles.statNumber}>{tribeSize}</Text>
-                <Text style={styles.statLabel}>{t('profile.statTribe', { defaultValue: 'Tribe' })}</Text>
               </Text>
             </TouchableOpacity>
           </StatsRow>

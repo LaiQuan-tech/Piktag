@@ -359,12 +359,12 @@ function MainNavigator({ needsOnboarding }: { needsOnboarding: boolean }) {
             p_points_lifetime) + piktag_points_ledger table are kept
             as legacy artifacts (no new writes, no readers) and can
             be dropped in a separate DB-side cleanup if needed. */}
-        {/* Tribe constellation — private anonymous lineage view,
-            replaces the old points-based motivator. Reached from
-            the Tribe stat in ProfileScreen. */}
+        {/* Network graph — how the viewer's OWN friends interconnect, plus
+            anonymous "you may know" bridges (2026-06-25, replaces the retired
+            invite-lineage Tribe). Reached from the Friends-page friend count. */}
         <RootStack.Screen
-          name="TribeConstellation"
-          getComponent={() => require('../screens/TribeConstellationScreen').default}
+          name="NetworkGraph"
+          getComponent={() => require('../screens/NetworkGraphScreen').default}
         />
         {/* Followers list. Reached from the "追蹤者" stat on
             ProfileScreen / FriendDetail / UserDetail. Params:

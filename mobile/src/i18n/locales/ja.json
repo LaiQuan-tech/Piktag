@@ -1548,5 +1548,17 @@
     "confirmInviteBodyAnon": "招待リンクからのつながりを受け入れますか？",
     "confirmInviteAccept": "つながる",
     "confirmInviteCancel": "キャンセル"
+  },
+  "network": {
+    "title": "あなたの人脈",
+    "subtitle": "友達 {{n}} 人 — つながりを見てみよう",
+    "openLabel": "人脈図を見る",
+    "emptyTitle": "人脈図はこれから",
+    "emptyDesc": "友達をもう少し追加すると、彼らがどうつながっているか、知り合いかもしれない人が表示されます。",
+    "legendFriend": "友達",
+    "legendBridge": "知り合いかも",
+    "bridgeHeader": "知り合いかもしれない人",
+    "bridgeMutual": "友達 {{n}} 人が知っています",
+    "footnote": "人脈図はあなただけが見られます。"
   }
 }

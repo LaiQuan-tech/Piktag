@@ -1548,5 +1548,17 @@
     "confirmInviteBodyAnon": "Chấp nhận kết nối từ liên kết mời?",
     "confirmInviteAccept": "Kết nối",
     "confirmInviteCancel": "Hủy"
+  },
+  "network": {
+    "title": "Mạng lưới của bạn",
+    "subtitle": "{{n}} bạn bè — xem họ kết nối thế nào",
+    "openLabel": "Xem mạng lưới của bạn",
+    "emptyTitle": "Bản đồ mạng lưới đang chờ bạn",
+    "emptyDesc": "Thêm vài người bạn nữa, đây sẽ hiển thị cách họ kết nối với nhau — và những người bạn có thể biết.",
+    "legendFriend": "Bạn bè của bạn",
+    "legendBridge": "Có thể bạn biết",
+    "bridgeHeader": "Những người bạn có thể biết",
+    "bridgeMutual": "{{n}} bạn bè quen họ",
+    "footnote": "Chỉ bạn mới thấy mạng lưới của mình."
   }
 }

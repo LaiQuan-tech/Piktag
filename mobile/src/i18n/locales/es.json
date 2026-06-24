@@ -1548,5 +1548,17 @@
     "confirmInviteBodyAnon": "¿Aceptar la conexión desde tu enlace de invitación?",
     "confirmInviteAccept": "Conectar",
     "confirmInviteCancel": "Cancelar"
+  },
+  "network": {
+    "title": "Tu red",
+    "subtitle": "{{n}} amigos — mira cómo se conectan",
+    "openLabel": "Ver tu red",
+    "emptyTitle": "Tu mapa de red te espera",
+    "emptyDesc": "Agrega algunos amigos y verás cómo se conectan entre sí, además de personas que quizá conozcas.",
+    "legendFriend": "Tus amigos",
+    "legendBridge": "Quizá conozcas",
+    "bridgeHeader": "Personas que quizá conozcas",
+    "bridgeMutual": "{{n}} amigos los conocen",
+    "footnote": "Solo tú ves tu propia red."
   }
 }

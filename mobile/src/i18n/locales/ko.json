@@ -1548,5 +1548,17 @@
     "confirmInviteBodyAnon": "초대 링크 연결을 수락할까요?",
     "confirmInviteAccept": "연결",
     "confirmInviteCancel": "취소"
+  },
+  "network": {
+    "title": "내 인맥",
+    "subtitle": "친구 {{n}}명 — 어떻게 연결됐는지 보기",
+    "openLabel": "인맥 지도 보기",
+    "emptyTitle": "인맥 지도가 기다려요",
+    "emptyDesc": "친구를 몇 명 더 추가하면 서로 어떻게 연결돼 있는지, 알 수도 있는 사람을 보여줍니다.",
+    "legendFriend": "내 친구",
+    "legendBridge": "알 수도 있음",
+    "bridgeHeader": "알 수도 있는 사람",
+    "bridgeMutual": "친구 {{n}}명이 알아요",
+    "footnote": "내 인맥은 나만 볼 수 있어요."
   }
 }

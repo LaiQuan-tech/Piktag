@@ -1548,5 +1548,17 @@
     "confirmInviteBodyAnon": "Davet bağlantısından bağlantıyı kabul et?",
     "confirmInviteAccept": "Bağlan",
     "confirmInviteCancel": "İptal"
+  },
+  "network": {
+    "title": "Ağın",
+    "subtitle": "{{n}} arkadaş — nasıl bağlandıklarını gör",
+    "openLabel": "Ağını gör",
+    "emptyTitle": "Ağ haritan seni bekliyor",
+    "emptyDesc": "Birkaç arkadaş daha ekle; burada birbirleriyle nasıl bağlandıkları ve tanıyor olabileceğin kişiler görünecek.",
+    "legendFriend": "Arkadaşların",
+    "legendBridge": "Tanıyor olabilirsin",
+    "bridgeHeader": "Tanıyor olabileceğin kişiler",
+    "bridgeMutual": "{{n}} arkadaş tanıyor",
+    "footnote": "Ağını yalnızca sen görebilirsin."
   }
 }

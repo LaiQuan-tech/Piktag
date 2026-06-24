@@ -1091,12 +1091,23 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
           <View style={styles.headerLeft}>
             <Text style={[styles.headerTitle, { color: colors.text }]}>PikTag</Text>
             <View style={styles.headerSubtitleRow}>
-              <Text style={[styles.headerSubtitle, isDark && { color: '#FFFFFF' }]}>
-                <Text style={styles.headerCount}>{sortedConnections.length}</Text>{' '}{t('connections.friendsLabel', { defaultValue: 'friends' })}
-                {closeFriendCount > 0 && (
-                  <Text>{'  ·  '}<Text style={styles.headerCount}>{closeFriendCount}</Text>{' '}{t('connections.closeFriendsLabel', { defaultValue: '摯友' })}</Text>
-                )}
-              </Text>
+              {/* The friend count is the entry to the network graph (founder
+                  2026-06-25: tap the count → see how your people connect). */}
+              <TouchableOpacity
+                style={styles.networkLink}
+                activeOpacity={0.6}
+                onPress={() => navigation.navigate('NetworkGraph')}
+                accessibilityRole="button"
+                accessibilityLabel={t('network.openLabel', { defaultValue: '查看人脈圖' })}
+              >
+                <Text style={[styles.headerSubtitle, isDark && { color: '#FFFFFF' }]}>
+                  <Text style={styles.headerCount}>{sortedConnections.length}</Text>{' '}{t('connections.friendsLabel', { defaultValue: 'friends' })}
+                  {closeFriendCount > 0 && (
+                    <Text>{'  ·  '}<Text style={styles.headerCount}>{closeFriendCount}</Text>{' '}{t('connections.closeFriendsLabel', { defaultValue: '摯友' })}</Text>
+                  )}
+                </Text>
+                <ChevronRight size={14} color={isDark ? '#FFFFFF' : colors.gray400} />
+              </TouchableOpacity>
               {unreviewedCount > 0 && (
                 <TouchableOpacity
                   activeOpacity={0.6}
@@ -1819,6 +1830,11 @@ function makeStyles(c: ColorPalette) {
     alignItems: 'center',
     flexWrap: 'wrap',
     marginTop: 2,
+  },
+  networkLink: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
   },
   unreviewedLink: {
     fontSize: 14,

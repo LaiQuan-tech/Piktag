@@ -1548,5 +1548,17 @@
     "confirmInviteBodyAnon": "要透過邀請連結加入這個人脈嗎？",
     "confirmInviteAccept": "加入",
     "confirmInviteCancel": "取消"
+  },
+  "network": {
+    "title": "你的人脈",
+    "subtitle": "{{n}} 位好友，看看他們如何連結",
+    "openLabel": "查看人脈圖",
+    "emptyTitle": "人脈圖還在等你",
+    "emptyDesc": "多加幾個好友，這裡就會顯示他們如何彼此連結，還有你可能認識的人。",
+    "legendFriend": "你的好友",
+    "legendBridge": "你可能認識",
+    "bridgeHeader": "你可能認識",
+    "bridgeMutual": "{{n}} 位好友認識",
+    "footnote": "只有你看得到自己的人脈圖。"
   }
 }

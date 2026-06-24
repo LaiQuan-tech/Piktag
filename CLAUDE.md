@@ -1082,6 +1082,34 @@ deferred. So: QR stays auto (silent), card is a single tap. If a future
 session is asked again for "auto card, no tap", the answer is vision-camera
 or nothing — don't reintroduce the capture loop.
 
+## Network graph replaced the invite-lineage Tribe (2026-06-25)
+
+Founder: the old "Tribe" (TribeConstellation + `get_tribe_lineage`/
+`get_tribe_size`) drew the **invite tree** — who you brought to PikTag — but
+the invite-code system is RETIRED (open signup), so it was a near-empty,
+PikTag-vanity number nobody cares about. Replaced with **`NetworkGraphScreen`**:
+a force-directed graph of how the viewer's OWN friends interconnect, reached
+by tapping the **friend count** on the Friends-page header (was a Profile
+"Tribe" stat — that stat + `fetchTribeSize` were removed; the friend graph is
+about the network, not Profile vanity).
+
+- RPC **`get_friend_graph()`** (20260625000000, SECURITY DEFINER, auth.uid()-
+  guarded): returns `friends` (the caller's friends, identity shown — they're
+  the caller's own), `edges` (friend↔friend pairs = cluster structure),
+  `bridges` (2nd-degree people connecting ≥2 of your friends, NOT yet your
+  friend), `bridge_edges`.
+- **Bridges are anonymized** — the RPC returns only `{id, mutual_count}`, NO
+  name/avatar; the graph renders faceless hollow dots. A deliberate TAP routes
+  to `UserDetail` (the reveal + connect, under that screen's privacy checks) —
+  the North-Star friend-add payoff. is_public-only so a tap always lands on a
+  viewable profile.
+- Honors the ranking-surface checklist: excludes @piktag (#4, else it's a
+  universal hub), reads `piktag_match_dismissals` (#3 — never re-surface a
+  dismissed person, even anonymized), friends vs bridges shown as visually
+  distinct tiers (#1, not cascaded). The old `get_tribe_*` RPCs are left in
+  the DB (harmless, no caller) — don't be confused that nothing calls them.
+- Route renamed `TribeConstellation` → `NetworkGraph`; old screen file deleted.
+
 ## v2 plans — committed direction, not built yet
 
 ### Alt accounts ("小號" — IG-finsta model, decided 2026-05-30)

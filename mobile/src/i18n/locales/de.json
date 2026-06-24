@@ -1548,5 +1548,17 @@
     "confirmInviteBodyAnon": "Verbindung aus dem Einladungslink annehmen?",
     "confirmInviteAccept": "Verbinden",
     "confirmInviteCancel": "Abbrechen"
+  },
+  "network": {
+    "title": "Dein Netzwerk",
+    "subtitle": "{{n}} Freunde — sieh, wie sie verbunden sind",
+    "openLabel": "Netzwerk ansehen",
+    "emptyTitle": "Deine Netzwerkkarte wartet",
+    "emptyDesc": "Füge ein paar Freunde hinzu, dann siehst du, wie sie verbunden sind — und wen du kennen könntest.",
+    "legendFriend": "Deine Freunde",
+    "legendBridge": "Kennst du vielleicht",
+    "bridgeHeader": "Personen, die du kennen könntest",
+    "bridgeMutual": "{{n}} Freunde kennen sie",
+    "footnote": "Nur du siehst dein eigenes Netzwerk."
   }
 }

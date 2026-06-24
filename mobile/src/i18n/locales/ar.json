@@ -1548,5 +1548,17 @@
     "confirmInviteBodyAnon": "قبول التواصل من رابط الدعوة؟",
     "confirmInviteAccept": "تواصل",
     "confirmInviteCancel": "إلغاء"
+  },
+  "network": {
+    "title": "شبكتك",
+    "subtitle": "{{n}} صديقًا — شاهد كيف يترابطون",
+    "openLabel": "عرض شبكتك",
+    "emptyTitle": "خريطة شبكتك بانتظارك",
+    "emptyDesc": "أضف بضعة أصدقاء وسيظهر هنا كيف يترابطون معًا — إضافة إلى أشخاص قد تعرفهم.",
+    "legendFriend": "أصدقاؤك",
+    "legendBridge": "قد تعرفهم",
+    "bridgeHeader": "أشخاص قد تعرفهم",
+    "bridgeMutual": "{{n}} من أصدقائك يعرفونه",
+    "footnote": "أنت وحدك من يرى شبكتك."
   }
 }
