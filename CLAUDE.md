@@ -717,6 +717,24 @@ founder when the trigger condition lands:
   `ON CONFLICT DO NOTHING`) so CI re-runs and manual edits don't
   collide. Supabase ref `kbwfdskulxnhjckdvghj`.
 
+  **The ONLY deployed migrations dir is `mobile/supabase/migrations/`.**
+  The deploy workflow runs `db push` with `working-directory: mobile`, and
+  its path trigger is `mobile/supabase/**` — so ANY DB migration MUST live
+  in `mobile/supabase/migrations/`. The repo ALSO has a root
+  `./supabase/migrations/` (and stray `Piktag/mobile/...` copies) — those
+  are NOT deployed by any workflow; a migration dropped only there is
+  silently never applied. This caused the 2026-06-24 drift: the
+  `20260621*` social_analytics migrations were committed to the root dir
+  only, so remote's history recorded them (applied out-of-band) while the
+  workflow's `mobile/` dir lacked the files → `db push` errored "Remote
+  migration versions not found in local migrations directory" and blocked
+  every later migration. Fix (`44f63eb`): vendor the files INTO
+  `mobile/supabase/migrations/` so the CLI's view matches remote. Rule:
+  new migration → `mobile/supabase/migrations/`, full stop. If you ever
+  see the "not found in local" error, the culprit is a version in remote's
+  `schema_migrations` with no matching file under `mobile/` — add/restore
+  the file there (don't `migration repair` blind; that just hides it).
+
   **Concurrent-session migration ordering (2026-05-30 incident).** If
   TWO sessions ship migrations on the same day with overlapping
   timestamp ranges, the LATER-pushed ones may apply to remote FIRST
