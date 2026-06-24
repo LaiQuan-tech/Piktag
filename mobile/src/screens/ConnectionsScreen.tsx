@@ -23,7 +23,6 @@ import {
   Tag,
   CheckSquare,
   Square,
-  UserPlus,
   CalendarHeart,
   Gift,
   Heart,
@@ -1139,10 +1138,11 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
                 highest-frequency commodity flow and the perceived-speed
                 red line lives here — keep it icon→鏡頭, never route it
                 through a menu or an intermediate screen again. */}
-            {/* +人 now opens the UNIFIED scanner (founder 2026-06-24): point
-                at a QR → connect, or at a business card → auto-OCR (no
-                shutter), with a flip to "show my QR". Replaces the old
-                straight-to-CardCamera open. */}
+            {/* "+" opens the UNIFIED scanner (founder 2026-06-24/25): point
+                at a QR → connect, or tap 拍名片 → OCR a card, with a flip to
+                "show my QR". Plain "+" (was UserPlus) = the friend-add CTA;
+                keep it a one-tap straight-to-camera open (perceived-speed
+                red line) — never route it through a menu. */}
             <TouchableOpacity
               style={styles.headerIconBtn}
               activeOpacity={0.6}
@@ -1150,24 +1150,13 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
               accessibilityLabel={t('connections.addContact', { defaultValue: '新增聯絡人' })}
               accessibilityRole="button"
             >
-              <UserPlus size={24} color={isDark ? '#FFFFFF' : colors.gray600} />
+              <Plus size={24} color={isDark ? '#FFFFFF' : colors.gray600} />
             </TouchableOpacity>
-            {/* 建立活動 QR — the event-group QR tool, demoted from its own
-                bottom tab (2026-06-24, founder: tab was ignored) to this
-                header entry. Still reachable for the conference/meetup
-                use case; no longer eating prime tab real estate. */}
-            <TouchableOpacity
-              style={styles.headerIconBtn}
-              activeOpacity={0.6}
-              onPress={() => navigation.navigate('QrGroupList')}
-              accessibilityLabel={t('connections.createEventQr', { defaultValue: '建立活動 QR' })}
-              accessibilityRole="button"
-            >
-              <QrCode size={24} color={isDark ? '#FFFFFF' : colors.gray600} />
-            </TouchableOpacity>
-            {/* Tag-filter header icon removed 2026-06-24 (founder: 右上角
-                icon 太多). The filter was the least-used of the four; the
-                header keeps add-contact / create-event-QR / sort. */}
+            {/* 建立活動 QR moved OFF this header (founder 2026-06-25: a QR
+                icon next to the scan CTA was too heavy + read ambiguously).
+                It now lives on the Profile tab, next to the personal QR —
+                both are "a QR I generate/show". This header stays focused on
+                the North-Star friend-add: scan ("+") + sort. */}
             <TouchableOpacity
               style={styles.headerIconBtn}
               activeOpacity={0.6}

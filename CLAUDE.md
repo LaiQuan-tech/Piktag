@@ -1005,8 +1005,12 @@ Approved after honest evaluation; **SHIPPED 2026-06-24** (plan below kept
 as as-built reference). Tab order is now Home / Search / **Chat**
 (MessageCircle) / Notifications / Profile. Event-QR (QrGroupList /
 AddTagCreate / QrGroupDetail) lives in RootStack as full-screen pushes,
-reached from the ConnectionsScreen header QrCode icon ("建立活動 QR") +
-on_this_day deep links. Chat-unread badge moved to ChatTab; bell-header
+reached from the **Profile-tab header QrCode icon** ("建立活動 QR", next to
+Settings) + on_this_day deep links. (Was the ConnectionsScreen/Friends header
+QrCode icon until 2026-06-25 — founder felt a QR icon next to the scan CTA
+was too heavy; moved it to Profile, beside the personal QR, since both are
+"a QR I generate/show". The Friends header is now just "+" (scan→connect,
+the North-Star friend-add) + sort; "+" was UserPlus, now a plain Plus.) Chat-unread badge moved to ChatTab; bell-header
 ChatList button removed; ChatListScreen hides its back arrow when it's the
 tab root; cold-start "互掃 QR" card now routes to CameraScan (scan a
 person's QR). "Strengthen chat" (features) is still separate — not done.
