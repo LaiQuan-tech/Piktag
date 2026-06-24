@@ -5,17 +5,22 @@
 //   * PlatformSearchModal — categorized list + search filter
 //   * PlatformIcon — icon lookup
 //
-// Catalog curation (founder 2026-06-24: 少就是多). The full ~50-platform
-// catalog stays DEFINED here (so any already-saved link keeps its icon +
-// label), but the picker now shows a tight, high-value set of 23 —
-// everything else is `legacy: true` (defined-but-hidden, see the flag doc
-// below). The 23 = every platform any locale's quick-pick references
-// (must stay visible) + the three majors no quick-pick lists but people
-// expect first-class (TikTok / GitHub / Spotify). The long tail (Signal,
-// Discord, Behance, Patreon, Substack, …) is reachable via the generic
-// "Link" entry — one less-is-more list beats a 50-row scroll. Earlier note
-// (still true): 8 was too few — nobody saves a Custom link as a substitute
-// for X / TikTok / WhatsApp, so the majors keep dedicated entries.
+// Catalog curation (founder 2026-06-24: 少就是多, optimise for NA habits
+// but keep regional exceptions like LINE). The full ~50-platform catalog
+// stays DEFINED here (so any already-saved link keeps its icon + label),
+// but the picker shows a tight set of 25 — everything else is
+// `legacy: true` (defined-but-hidden, see the flag doc below). The 25 =
+//   • every platform any locale's quick-pick references (must stay visible)
+//   • the NA-mainstream majors no quick-pick lists (TikTok / GitHub /
+//     Spotify / Discord / Twitch)
+//   • the deliberate REGIONAL exceptions (LINE TW/JP, WeChat + Bilibili +
+//     Alipay CN, KakaoTalk KR) — kept even though they're not NA, so the
+//     CJK markets aren't second-class.
+// The long tail (Signal, Slack, Behance, Patreon, Substack, Mastodon, …)
+// is reachable via the generic "Link" entry — one less-is-more list beats
+// a 50-row scroll. Earlier note (still true): 8 was too few — nobody saves
+// a Custom link as a substitute for X / TikTok / WhatsApp, so the majors
+// keep dedicated entries.
 //
 // Brand names stay verbatim per product spec; only generic words
 // (Phone / Email / Website / Blog / Portfolio / Custom) are
@@ -107,7 +112,7 @@ export const PLATFORMS: Platform[] = [
   // a single-handle prefix sent users to the wrong place. Paste-mode
   // covers both shapes: a profile URL (`discord.com/users/<snowflake>`)
   // or a server invite the user is comfortable sharing.
-  { key: 'discord',    cat: 'communication', label: 'Discord',    prefix: 'https://',                          placeholder: 'discord.com/users/123... or invite link', domains: ['discord.gg', 'discord.com'] , legacy: true },
+  { key: 'discord',    cat: 'communication', label: 'Discord',    prefix: 'https://',                          placeholder: 'discord.com/users/123... or invite link', domains: ['discord.gg', 'discord.com']  },
   // Slack identity is workspace-tied — the shareable "my Slack" is
   // usually a workspace invite URL or a Slack Connect DM link, not a
   // public username. Empty-ish prefix = paste-mode (same shape as
@@ -136,7 +141,7 @@ export const PLATFORMS: Platform[] = [
 
   // ── Video (4) ──
   { key: 'youtube',    cat: 'video',         label: 'YouTube',    prefix: 'https://youtube.com/@',             placeholder: 'channel-name',             domains: ['youtube.com', 'youtu.be'] },
-  { key: 'twitch',     cat: 'video',         label: 'Twitch',     prefix: 'https://twitch.tv/',                placeholder: 'username',                 domains: ['twitch.tv'] , legacy: true },
+  { key: 'twitch',     cat: 'video',         label: 'Twitch',     prefix: 'https://twitch.tv/',                placeholder: 'username',                 domains: ['twitch.tv']  },
   { key: 'vimeo',      cat: 'video',         label: 'Vimeo',      prefix: 'https://vimeo.com/',                placeholder: 'username',                 domains: ['vimeo.com'] , legacy: true },
   { key: 'bilibili',   cat: 'video',         label: 'Bilibili',   prefix: 'https://space.bilibili.com/',       placeholder: 'user-id',                  domains: ['bilibili.com', 'b23.tv'] },
 
