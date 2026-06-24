@@ -1200,7 +1200,11 @@
     "cardFrameHint": "Fit the whole card in the frame and keep it sharp",
     "invalidQr": "Invalid QR Code",
     "invalidQrMessage": "This QR code is not a valid PikTag connection code.",
-    "permissionMessage": "PikTag needs camera access to scan QR codes and connect with friends."
+    "permissionMessage": "PikTag needs camera access to scan QR codes and connect with friends.",
+    "scanOrCardHint": "Point at a QR code or business card",
+    "showQrHint": "Let them scan this to connect instantly",
+    "showMyQr": "Show my QR",
+    "manualCardScan": "Snap a card"
   },
   "privacyPolicy": {
     "headerTitle": "Privacy Policy",

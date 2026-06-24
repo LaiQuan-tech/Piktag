@@ -1200,7 +1200,11 @@
     "cardFrameHint": "پورا کارڈ فریم میں رکھیں اور واضح رکھیں",
     "invalidQr": "غلط QR کوڈ",
     "invalidQrMessage": "یہ QR کوڈ درست PikTag کنکشن کوڈ نہیں ہے۔",
-    "permissionMessage": "PikTag کو QR کوڈز اسکین کرنے اور دوستوں سے جڑنے کے لیے کیمرے تک رسائی چاہیے۔"
+    "permissionMessage": "PikTag کو QR کوڈز اسکین کرنے اور دوستوں سے جڑنے کے لیے کیمرے تک رسائی چاہیے۔",
+    "scanOrCardHint": "QR کوڈ یا کارڈ کی طرف کیمرہ کریں",
+    "showQrHint": "انہیں اسکین کرنے دیں، فوراً جڑیں",
+    "showMyQr": "میرا QR دکھائیں",
+    "manualCardScan": "کارڈ کی تصویر لیں"
   },
   "privacyPolicy": {
     "headerTitle": "رازداری کی پالیسی",

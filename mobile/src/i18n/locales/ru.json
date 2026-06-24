@@ -1200,7 +1200,11 @@
     "cardFrameHint": "Поместите всю визитку в рамку, чётко",
     "invalidQr": "Неверный QR-код",
     "invalidQrMessage": "Это не QR-код PikTag.",
-    "permissionMessage": "PikTag нужен доступ к камере, чтобы сканировать QR-коды и подключать друзей."
+    "permissionMessage": "PikTag нужен доступ к камере, чтобы сканировать QR-коды и подключать друзей.",
+    "scanOrCardHint": "Наведите на QR-код или визитку",
+    "showQrHint": "Дайте отсканировать — и вы на связи",
+    "showMyQr": "Показать мой QR",
+    "manualCardScan": "Снять визитку"
   },
   "privacyPolicy": {
     "headerTitle": "Политика конфиденциальности",

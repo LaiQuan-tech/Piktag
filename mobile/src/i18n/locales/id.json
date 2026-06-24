@@ -1200,7 +1200,11 @@
     "cardFrameHint": "Paskan seluruh kartu di bingkai, tetap tajam",
     "invalidQr": "Kode QR Tidak Valid",
     "invalidQrMessage": "Kode QR ini bukan kode koneksi PikTag yang valid.",
-    "permissionMessage": "PikTag memerlukan akses kamera untuk memindai kode QR dan terhubung dengan teman."
+    "permissionMessage": "PikTag memerlukan akses kamera untuk memindai kode QR dan terhubung dengan teman.",
+    "scanOrCardHint": "Arahkan ke QR code atau kartu nama",
+    "showQrHint": "Minta dipindai untuk langsung terhubung",
+    "showMyQr": "Tampilkan QR saya",
+    "manualCardScan": "Foto kartu nama"
   },
   "privacyPolicy": {
     "headerTitle": "Kebijakan Privasi",

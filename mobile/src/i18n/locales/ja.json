@@ -1200,7 +1200,11 @@
     "cardFrameHint": "名刺全体を枠に合わせ、はっきり写してください",
     "invalidQr": "無効なQRコード",
     "invalidQrMessage": "このQRコードは有効なPikTag接続コードではありません。",
-    "permissionMessage": "PikTagはQRコードをスキャンして友達とつながるためにカメラへのアクセスが必要です。"
+    "permissionMessage": "PikTagはQRコードをスキャンして友達とつながるためにカメラへのアクセスが必要です。",
+    "scanOrCardHint": "QR コードか名刺を写すと自動で読み取り",
+    "showQrHint": "相手にこれをスキャンしてもらえば、すぐつながれます",
+    "showMyQr": "自分の QR を表示",
+    "manualCardScan": "名刺を撮る"
   },
   "privacyPolicy": {
     "headerTitle": "プライバシーポリシー",

@@ -1184,7 +1184,11 @@
     "cardFrameHint": "把整張名片對齊框內、保持清晰",
     "invalidQr": "無效的 QR 碼",
     "invalidQrMessage": "這不是有效的 PikTag 連結 QR 碼",
-    "permissionMessage": "PikTag 需要相機權限以掃描 QR 碼並連結朋友"
+    "permissionMessage": "PikTag 需要相機權限以掃描 QR 碼並連結朋友",
+    "scanOrCardHint": "對準 QR 碼或名片，自動辨識",
+    "showQrHint": "讓對方掃這個 QR，立刻互加好友",
+    "showMyQr": "顯示我的 QR",
+    "manualCardScan": "手動拍名片"
   },
   "privacyPolicy": {
     "headerTitle": "隱私權政策",

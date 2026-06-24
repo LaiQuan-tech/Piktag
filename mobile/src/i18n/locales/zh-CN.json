@@ -1200,7 +1200,11 @@
     "cardFrameHint": "把整张名片对齐框内、保持清晰",
     "invalidQr": "无效的 QR 码",
     "invalidQrMessage": "这不是有效的 PikTag 连接 QR 码",
-    "permissionMessage": "PikTag 需要相机权限以扫描 QR 码并连接朋友"
+    "permissionMessage": "PikTag 需要相机权限以扫描 QR 码并连接朋友",
+    "scanOrCardHint": "对准 QR 码或名片，自动辨识",
+    "showQrHint": "让对方扫这个 QR，立刻互加好友",
+    "showMyQr": "显示我的 QR",
+    "manualCardScan": "手动拍名片"
   },
   "privacyPolicy": {
     "headerTitle": "隐私权政策",

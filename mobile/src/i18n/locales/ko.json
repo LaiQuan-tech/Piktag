@@ -1200,7 +1200,11 @@
     "cardFrameHint": "명함 전체를 틀에 맞추고 선명하게",
     "invalidQr": "유효하지 않은 QR 코드",
     "invalidQrMessage": "이 QR 코드는 유효한 PikTag 연결 코드가 아닙니다.",
-    "permissionMessage": "PikTag는 QR 코드를 스캔하고 친구와 연결하기 위해 카메라 접근이 필요합니다."
+    "permissionMessage": "PikTag는 QR 코드를 스캔하고 친구와 연결하기 위해 카메라 접근이 필요합니다.",
+    "scanOrCardHint": "QR 코드나 명함을 비추면 자동 인식",
+    "showQrHint": "상대가 스캔하면 바로 친구가 돼요",
+    "showMyQr": "내 QR 보기",
+    "manualCardScan": "명함 촬영"
   },
   "privacyPolicy": {
     "headerTitle": "개인정보 처리방침",

@@ -1200,7 +1200,11 @@
     "cardFrameHint": "จัดทั้งนามบัตรให้อยู่ในกรอบ ให้คมชัด",
     "invalidQr": "รหัส QR ไม่ถูกต้อง",
     "invalidQrMessage": "รหัส QR นี้ไม่ใช่รหัสเชื่อมต่อ PikTag ที่ถูกต้อง",
-    "permissionMessage": "PikTag ต้องการเข้าถึงกล้องเพื่อสแกนรหัส QR และเชื่อมต่อกับเพื่อน"
+    "permissionMessage": "PikTag ต้องการเข้าถึงกล้องเพื่อสแกนรหัส QR และเชื่อมต่อกับเพื่อน",
+    "scanOrCardHint": "เล็งไปที่ QR หรือนามบัตร ระบบอ่านอัตโนมัติ",
+    "showQrHint": "ให้อีกฝ่ายสแกน เชื่อมต่อทันที",
+    "showMyQr": "แสดง QR ของฉัน",
+    "manualCardScan": "ถ่ายนามบัตร"
   },
   "privacyPolicy": {
     "headerTitle": "นโยบายความเป็นส่วนตัว",

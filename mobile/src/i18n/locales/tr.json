@@ -1200,7 +1200,11 @@
     "cardFrameHint": "Tüm kartı çerçeveye sığdır, net tut",
     "invalidQr": "Geçersiz QR Kodu",
     "invalidQrMessage": "Bu QR kodu geçerli bir PikTag bağlantı kodu değildir.",
-    "permissionMessage": "PikTag, QR kodlarını taramak ve arkadaşlarla bağlantı kurmak için kamera erişimine ihtiyaç duyar."
+    "permissionMessage": "PikTag, QR kodlarını taramak ve arkadaşlarla bağlantı kurmak için kamera erişimine ihtiyaç duyar.",
+    "scanOrCardHint": "QR koda ya da kartvizite doğrult",
+    "showQrHint": "Taratın, anında bağlanın",
+    "showMyQr": "QR’mi göster",
+    "manualCardScan": "Kartviziti çek"
   },
   "privacyPolicy": {
     "headerTitle": "Gizlilik Politikası",

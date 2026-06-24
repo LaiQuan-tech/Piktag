@@ -1200,7 +1200,11 @@
     "cardFrameHint": "Die ganze Karte im Rahmen, scharf halten",
     "invalidQr": "Ungültiger QR-Code",
     "invalidQrMessage": "Dieser QR-Code ist kein gültiger PikTag-Verbindungscode.",
-    "permissionMessage": "PikTag braucht Kamerazugriff, um QR-Codes zu scannen und sich mit Freunden zu verbinden."
+    "permissionMessage": "PikTag braucht Kamerazugriff, um QR-Codes zu scannen und sich mit Freunden zu verbinden.",
+    "scanOrCardHint": "Auf QR-Code oder Visitenkarte richten",
+    "showQrHint": "Lass es scannen — sofort verbunden",
+    "showMyQr": "Meinen QR zeigen",
+    "manualCardScan": "Karte fotografieren"
   },
   "privacyPolicy": {
     "headerTitle": "Datenschutzrichtlinie",

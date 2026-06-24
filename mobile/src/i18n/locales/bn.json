@@ -1200,7 +1200,11 @@
     "cardFrameHint": "পুরো কার্ড ফ্রেমে রাখুন, স্পষ্ট রাখুন",
     "invalidQr": "অবৈধ QR কোড",
     "invalidQrMessage": "এই QR কোড বৈধ PikTag কানেকশন কোড নয়।",
-    "permissionMessage": "QR কোড স্ক্যান করতে এবং বন্ধুদের সাথে যুক্ত হতে PikTag-এর ক্যামেরা অ্যাক্সেস দরকার।"
+    "permissionMessage": "QR কোড স্ক্যান করতে এবং বন্ধুদের সাথে যুক্ত হতে PikTag-এর ক্যামেরা অ্যাক্সেস দরকার।",
+    "scanOrCardHint": "QR কোড বা ভিজিটিং কার্ডে ক্যামেরা তাক করুন",
+    "showQrHint": "এটি স্ক্যান করিয়ে সঙ্গে সঙ্গে যুক্ত হন",
+    "showMyQr": "আমার QR দেখান",
+    "manualCardScan": "কার্ডের ছবি তুলুন"
   },
   "privacyPolicy": {
     "headerTitle": "গোপনীয়তা নীতি",

@@ -1139,10 +1139,14 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
                 highest-frequency commodity flow and the perceived-speed
                 red line lives here — keep it icon→鏡頭, never route it
                 through a menu or an intermediate screen again. */}
+            {/* +人 now opens the UNIFIED scanner (founder 2026-06-24): point
+                at a QR → connect, or at a business card → auto-OCR (no
+                shutter), with a flip to "show my QR". Replaces the old
+                straight-to-CardCamera open. */}
             <TouchableOpacity
               style={styles.headerIconBtn}
               activeOpacity={0.6}
-              onPress={() => navigation.navigate('CardCamera', { forNewContact: true })}
+              onPress={() => navigation.navigate('CameraScan')}
               accessibilityLabel={t('connections.addContact', { defaultValue: '新增聯絡人' })}
               accessibilityRole="button"
             >
