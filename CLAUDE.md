@@ -979,6 +979,54 @@ read-only inventory RPCs stay for monitoring (admin Tags page).
   is localized per locale (founder-approved zh-TW: "自己標自己，
   誰都找得到。"). See commit 107130a for the full 5-surface align.
 
+## Near-term approved nav change — Chat tab replaces event-QR tab (2026-06-24, IN FLIGHT)
+
+Founder feedback 2026-06-24: the **活動 QR (event-group QR) tab is
+unpopular/ignored**; **chat should be promoted** into that bottom-tab slot.
+Approved after honest evaluation. NOT yet built/committed — resume from
+this plan.
+
+Why sound: chat is the reactivation-loop endpoint (search→find→message; AI
+icebreaker→reconnect — the North-Star activation engine) but is buried
+under the bell-tab header's ChatList button. Event-QR is a rarely-used
+*creation* tool eating a prime tab slot. **中肯 caveat: demote event-QR,
+do NOT delete it** — "ignored" is likely a cold-start artifact (testers
+aren't at live events) and the App Store copy explicitly sells the
+conference/meetup case. Note the `#` tab is the EVENT-group QR creator, NOT
+the personal 互掃 QR (that's on Profile) — so removing the tab doesn't
+touch the North-Star friend-add loop.
+
+Plan (file-level, verified against code 2026-06-24):
+- `AppNavigator.tsx`: rename `AddTagTab`→`ChatTab`, component = new
+  `ChatStackNavigator` (root ChatListScreen). Icon `Hash`→`MessageCircle`,
+  a11y `tabs.chat`. Move `tabBarBadge: chatUnread` off NotificationsTab
+  (~line 232) onto ChatTab. Delete `AddTagStackNavigator` + `AddTagStack`
+  const + the getFocusedRouteNameFromRoute tab-bar-hide logic.
+- Move event-QR's 3 screens (`AddTagMain`=QrGroupListScreen,
+  `AddTagCreate`=AddTagScreen, `QrGroupDetail`) into **RootStack** as
+  full-screen pushes (like FriendDetail) — no tab bar, no hide-logic,
+  notificationRouter navigates them directly.
+- `ChatThread`/`ChatCompose` stay in RootStack (cross-origin back-nav from
+  profiles preserved). ChatListScreen becomes ChatTab root — **hide its
+  ArrowLeft back button when `!navigation.canGoBack()`** (header ~382,
+  handleBack ~276) so it reads as a root.
+- Reroute: `ConnectionsScreen.tsx:925` cold-start "互掃 QR" card → PERSONAL
+  QR share (not the event tab — fix it right); `OnboardingScreen.tsx:681`
+  reset list `AddTagTab`→`ChatTab` (still lands index 0 = HomeTab);
+  `notificationRouter.ts:84-94` QrGroupDetail deep-link → new RootStack
+  location; `NotificationsScreen.tsx:824` bell-header `navigate('ChatList')`
+  → remove (redundant once Chat is a tab).
+- New event-QR entry: ConnectionsScreen header "+" area gets a
+  "建立活動 QR" item → navigate to QrGroupList.
+- i18n: add `tabs.chat` ×19; keep `tabs.addTag` for QrGroupList header a11y.
+- Verify: tsc; chat tab opens; thread push+back works from BOTH a profile
+  AND the inbox; badge correct; event-QR reachable+creatable; no dangling
+  `AddTagTab`.
+
+Separate, do NOT do blind: founder also said "strengthen chat" — that's
+FEATURES, distinct from this (prominence). Get the specific asks first; the
+"strengthen" may just be "couldn't find it."
+
 ## v2 plans — committed direction, not built yet
 
 ### Alt accounts ("小號" — IG-finsta model, decided 2026-05-30)
