@@ -1161,15 +1161,9 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
             >
               <QrCode size={24} color={isDark ? '#FFFFFF' : colors.gray600} />
             </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.headerIconBtn}
-              activeOpacity={0.6}
-              onPress={() => setFilterModalVisible(true)}
-              accessibilityLabel="篩選標籤"
-              accessibilityRole="button"
-            >
-              <Tag size={24} color={filterTag ? colors.piktag600 : (isDark ? '#FFFFFF' : colors.gray600)} />
-            </TouchableOpacity>
+            {/* Tag-filter header icon removed 2026-06-24 (founder: 右上角
+                icon 太多). The filter was the least-used of the four; the
+                header keeps add-contact / create-event-QR / sort. */}
             <TouchableOpacity
               style={styles.headerIconBtn}
               activeOpacity={0.6}

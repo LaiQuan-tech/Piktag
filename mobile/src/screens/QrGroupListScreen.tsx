@@ -41,6 +41,7 @@ import {
   Trash2,
   GripVertical,
   ScanLine,
+  ArrowLeft,
 } from 'lucide-react-native';
 import DraggableFlatList, {
   RenderItemParams,
@@ -396,6 +397,22 @@ export default function QrGroupListScreen({ navigation }: Props) {
         <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor={colors.white} />
 
         <View style={styles.header}>
+          <View style={styles.headerLeft}>
+            {/* Back arrow — QrGroupList is now a full-screen RootStack push
+                (event-QR demoted from the tab 2026-06-24), so it needs a way
+                back to where it was opened from (the Home header QR icon).
+                Gated on canGoBack so it stays clean if ever shown as a root. */}
+            {navigation.canGoBack() && (
+              <TouchableOpacity
+                onPress={() => navigation.goBack()}
+                style={styles.headerBackBtn}
+                activeOpacity={0.7}
+                accessibilityRole="button"
+                accessibilityLabel={t('common.back', { defaultValue: '返回' })}
+              >
+                <ArrowLeft size={24} color={colors.gray900} />
+              </TouchableOpacity>
+            )}
           <View style={styles.headerTitleWrap}>
             <Text style={styles.headerTitle}>
               {t('qrGroup.headerTitle', { defaultValue: '認識新朋友' })}
@@ -423,6 +440,7 @@ export default function QrGroupListScreen({ navigation }: Props) {
             <Text style={styles.headerSubtitle}>
               Pick. Tag. Connect.
             </Text>
+          </View>
           </View>
           <View style={styles.headerActions}>
             {/* Scan someone else's QR. Sibling action to "+ create my QR" —
@@ -496,6 +514,16 @@ function makeStyles(c: ColorPalette) {
   // underneath in a smaller gray weight. The two-line stack lets
   // English-unaware users learn the term WITHOUT making "Vibes"
   // itself any less prominent.
+  headerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexShrink: 1,
+    gap: 8,
+  },
+  headerBackBtn: {
+    padding: 4,
+    marginLeft: -4,
+  },
   headerTitleWrap: {
     flexShrink: 1,
   },
