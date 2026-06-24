@@ -166,9 +166,16 @@ export const PLATFORMS: Platform[] = [
   { key: 'mirror',     cat: 'writing',       label: 'Mirror',     prefix: 'https://mirror.xyz/',               placeholder: 'name.eth',                 domains: ['mirror.xyz'] , legacy: true },
   { key: 'hashnode',   cat: 'writing',       label: 'Hashnode',   prefix: 'https://',                          placeholder: 'name.hashnode.dev',        domains: ['hashnode.com', 'hashnode.dev'] , legacy: true },
 
-  // ── Business (7) ──
+  // ── Business (9) ──
   { key: 'calendly',   cat: 'business',      label: 'Calendly',   prefix: 'https://calendly.com/',             placeholder: 'username',                 domains: ['calendly.com'] },
   { key: 'cal',        cat: 'business',      label: 'Cal.com',    prefix: 'https://cal.com/',                  placeholder: 'username',                 domains: ['cal.com'] , legacy: true },
+  // NA P2P payment (founder 2026-06-24: NA uses Venmo / Cash App, not
+  // PayPal). Venmo is US-only, Cash App US/UK — so they're the NA money
+  // lead, while PayPal STAYS as the INTERNATIONAL exception (kept visible +
+  // the money slot in the CJK quick-picks, since Venmo/Cash App don't work
+  // in TW/JP/KR/EU). Same "keep the regional exception" logic as LINE.
+  { key: 'venmo',      cat: 'business',      label: 'Venmo',      prefix: 'https://venmo.com/u/',              placeholder: 'username',                 domains: ['venmo.com'] },
+  { key: 'cashapp',    cat: 'business',      label: 'Cash App',   prefix: 'https://cash.app/$',                placeholder: 'cashtag',                  domains: ['cash.app'] },
   { key: 'paypal',     cat: 'business',      label: 'PayPal',     prefix: 'https://paypal.me/',                placeholder: 'username',                 domains: ['paypal.me', 'paypal.com'] },
   { key: 'patreon',    cat: 'business',      label: 'Patreon',    prefix: 'https://patreon.com/',              placeholder: 'username',                 domains: ['patreon.com'] , legacy: true },
   { key: 'kofi',       cat: 'business',      label: 'Ko-fi',      prefix: 'https://ko-fi.com/',                placeholder: 'username',                 domains: ['ko-fi.com'] , legacy: true },
@@ -287,8 +294,10 @@ export const QUICK_PICK_KEYS = [
   'snapchat',
   'wechat',
   // Money-flow slot — the "exchange" layer after messaging + social.
-  // See the 2026-06-04 note above for the full rationale.
-  'paypal',
+  // NA lead is Venmo (founder 2026-06-24: NA uses Venmo / Cash App, not
+  // PayPal). Cash App is available in browse-all; PayPal stays the money
+  // slot in the CJK quick-picks below (international exception).
+  'venmo',
   // 'custom' replaced 'website' here on 2026-05-31 — the founder
   // observed that website / blog / portfolio / custom were "all
   // saying the same thing, a link the user needs to name". One

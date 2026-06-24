@@ -92,6 +92,8 @@ const LUCIDE_MAP: Record<string, any> = {
   calendly: Calendar,
   cal: Calendar,
   paypal: DollarSign,
+  venmo: DollarSign,
+  cashapp: DollarSign,
   stripe: DollarSign,
   alipay: DollarSign,
   patreon: Heart,
