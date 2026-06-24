@@ -466,7 +466,12 @@ function makeStyles(c: ColorPalette) {
   },
   overlayDark: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.55)',
+    // Light dim, not a hard mask. This is a UNIFIED scanner — the square
+    // corners read as a QR aim-hint, but a heavy mask boxed in the card
+    // use-case (a card is landscape, not square — founder 2026-06-25 "正方
+    // 形怪怪的"). A faint dim keeps the center subtly focused while leaving
+    // room to frame a whole business card.
+    backgroundColor: 'rgba(0, 0, 0, 0.25)',
   },
   middleRow: {
     flexDirection: 'row',
