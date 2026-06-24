@@ -1201,7 +1201,7 @@
     "invalidQr": "رمز QR غير صالح",
     "invalidQrMessage": "رمز QR هذا ليس رمز اتصال PikTag صالحًا.",
     "permissionMessage": "يحتاج PikTag إلى الوصول إلى الكاميرا لمسح رموز QR والاتصال بالأصدقاء.",
-    "scanOrCardHint": "وجّه نحو رمز QR أو بطاقة عمل",
+    "scanOrCardHint": "وجّه نحو رمز QR للتواصل — أو التقط بطاقة عمل بالأسفل",
     "showQrHint": "دعهم يمسحونه لتتواصلوا فورًا",
     "showMyQr": "عرض رمز QR الخاص بي",
     "manualCardScan": "التقط البطاقة"

@@ -1201,7 +1201,7 @@
     "invalidQr": "Kode QR Tidak Valid",
     "invalidQrMessage": "Kode QR ini bukan kode koneksi PikTag yang valid.",
     "permissionMessage": "PikTag memerlukan akses kamera untuk memindai kode QR dan terhubung dengan teman.",
-    "scanOrCardHint": "Arahkan ke QR code atau kartu nama",
+    "scanOrCardHint": "Arahkan ke QR untuk terhubung, atau foto kartu nama di bawah",
     "showQrHint": "Minta dipindai untuk langsung terhubung",
     "showMyQr": "Tampilkan QR saya",
     "manualCardScan": "Foto kartu nama"

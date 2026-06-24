@@ -1034,6 +1034,32 @@ Separate, do NOT do blind: founder also said "strengthen chat" — that's
 FEATURES, distinct from this (prominence). Get the specific asks first; the
 "strengthen" may just be "couldn't find it."
 
+## Unified scanner (`CameraScanScreen`) — QR auto + card one-tap (2026-06-25)
+
+One screen does BOTH "scan a person" paths (founder unified card-scan +
+QR-scan into a single screen, like the personal-QR share sheet — can scan,
+or flip top-right to BE scanned). The split, and WHY it's split this way:
+
+- **QR → continuous + automatic.** Barcode scanning makes NO sound; point
+  at a PikTag QR → instant connect, zero taps. This is the magic path.
+- **Card → ONE deliberate "拍名片" tap = ONE capture** → `EditLocalContact`
+  runs the full, unchanged `scanCard` pipeline on mount (recognition red
+  line untouched). One normal shutter click, like any photo.
+
+**LOCK — do NOT rebuild the shutter-less auto-detect loop.** The original
+2026-06-24 build did exactly what the founder asked ("不要快門，自動辨識"):
+a loop that silently `takePictureAsync` every ~1.3s + on-device OCR to
+decide QR-vs-card. KILLED 2026-06-25 — `takePictureAsync` fires the iOS
+shutter SOUND every call (legally mandated + unmuteable in JP/KR & some
+regions), so the loop machine-guns "click click click" (founder: "很吵").
+`animateShutter={false}` silences the *animation*, NOT the sound. expo-camera
+cannot OCR the live preview, so ANY auto-detect needs repeated captures =
+repeated sound. The ONLY truly-silent live-OCR path is a camera-engine swap
+to **react-native-vision-camera frame processors** — a big native change,
+deferred. So: QR stays auto (silent), card is a single tap. If a future
+session is asked again for "auto card, no tap", the answer is vision-camera
+or nothing — don't reintroduce the capture loop.
+
 ## v2 plans — committed direction, not built yet
 
 ### Alt accounts ("小號" — IG-finsta model, decided 2026-05-30)

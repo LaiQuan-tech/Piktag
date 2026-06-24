@@ -1201,7 +1201,7 @@
     "invalidQr": "غلط QR کوڈ",
     "invalidQrMessage": "یہ QR کوڈ درست PikTag کنکشن کوڈ نہیں ہے۔",
     "permissionMessage": "PikTag کو QR کوڈز اسکین کرنے اور دوستوں سے جڑنے کے لیے کیمرے تک رسائی چاہیے۔",
-    "scanOrCardHint": "QR کوڈ یا کارڈ کی طرف کیمرہ کریں",
+    "scanOrCardHint": "جڑنے کے لیے QR کی طرف کیمرہ کریں — یا نیچے سے کارڈ کی تصویر لیں",
     "showQrHint": "انہیں اسکین کرنے دیں، فوراً جڑیں",
     "showMyQr": "میرا QR دکھائیں",
     "manualCardScan": "کارڈ کی تصویر لیں"

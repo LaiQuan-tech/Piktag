@@ -1201,7 +1201,7 @@
     "invalidQr": "Неверный QR-код",
     "invalidQrMessage": "Это не QR-код PikTag.",
     "permissionMessage": "PikTag нужен доступ к камере, чтобы сканировать QR-коды и подключать друзей.",
-    "scanOrCardHint": "Наведите на QR-код или визитку",
+    "scanOrCardHint": "Наведите на QR-код для связи — или снимите визитку ниже",
     "showQrHint": "Дайте отсканировать — и вы на связи",
     "showMyQr": "Показать мой QR",
     "manualCardScan": "Снять визитку"

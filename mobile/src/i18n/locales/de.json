@@ -1201,7 +1201,7 @@
     "invalidQr": "Ungültiger QR-Code",
     "invalidQrMessage": "Dieser QR-Code ist kein gültiger PikTag-Verbindungscode.",
     "permissionMessage": "PikTag braucht Kamerazugriff, um QR-Codes zu scannen und sich mit Freunden zu verbinden.",
-    "scanOrCardHint": "Auf QR-Code oder Visitenkarte richten",
+    "scanOrCardHint": "Auf QR-Code richten zum Verbinden — oder unten eine Karte fotografieren",
     "showQrHint": "Lass es scannen — sofort verbunden",
     "showMyQr": "Meinen QR zeigen",
     "manualCardScan": "Karte fotografieren"

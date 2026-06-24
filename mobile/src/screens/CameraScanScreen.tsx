@@ -14,7 +14,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { X, QrCode as QrCodeIcon, ScanLine, CreditCard } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import TextRecognition from '@react-native-ml-kit/text-recognition';
 import { COLORS, type ColorPalette } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
 import { supabase } from '../lib/supabase';
@@ -43,28 +42,21 @@ type PiktagQrPayload = {
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const SCAN_FRAME_SIZE = SCREEN_WIDTH * 0.65;
 
-// ── Card auto-detect tuning (founder 2026-06-24: no shutter — point at a
-// QR OR a business card and the app figures out which). expo-camera can't
-// OCR the live preview, so we periodically take a silent low-res frame and
-// run ON-DEVICE OCR (free, no Gemini) purely to DETECT a card. Only when it
-// clears the confidence gate do we hand the frame to EditLocalContact,
-// which runs the full (unchanged) scanCard pipeline — so the recognition
-// red line is untouched. ──────────────────────────────────────────────────
-const AUTO_OCR_INTERVAL_MS = 1300;   // gap between silent detection frames
-const CARD_MIN_CHARS = 24;           // total recognised text to even consider
-const MANUAL_FALLBACK_AFTER = 3;     // misses before surfacing the 拍名片 button
-const EMAIL_RE = /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i;
-const PHONE_RE = /(?:\+?\d[\d\s().-]{6,}\d)/;
-
-/** Confidence gate: a real card almost always has an email or a phone
- *  number, plus a few text lines. Requiring one of those + multi-line text
- *  keeps us from OCR-ing random scenery into a junk contact. */
-function looksLikeCard(fullText: string, blockCount: number): boolean {
-  const text = (fullText || '').trim();
-  if (text.length < CARD_MIN_CHARS) return false;
-  const hasContact = EMAIL_RE.test(text) || PHONE_RE.test(text);
-  return hasContact && blockCount >= 2;
-}
+// ── Scanner strategy (founder 2026-06-24/25) ───────────────────────────────
+// ORIGINAL plan was a shutter-less auto-detect loop: silently snap a frame
+// every ~1.3s and OCR it to decide QR-vs-card. KILLED — `takePictureAsync`
+// fires the iOS shutter SOUND every time (legally mandated + unmuteable in
+// JP/KR and some regions), so an auto-capture loop machine-guns "click click
+// click". Truly silent live OCR would need a camera-engine swap
+// (react-native-vision-camera frame processors); not worth it pre-launch.
+//
+// New split, both on ONE screen, both silent-or-single-click:
+//   • QR  → continuous, automatic. Barcode scanning makes NO sound. Point at
+//           a PikTag QR and it connects instantly, zero taps.
+//   • CARD → ONE deliberate "拍名片" tap = ONE capture (one normal shutter
+//           click, like any camera photo) → EditLocalContact runs the full,
+//           unchanged scanCard pipeline. A framed single shot is also better
+//           quality than random auto-snaps (the recognition red line).
 
 export default function CameraScanScreen({ navigation }: CameraScanScreenProps) {
   const { t } = useTranslation();
@@ -83,11 +75,9 @@ export default function CameraScanScreen({ navigation }: CameraScanScreenProps) 
   const [stingerFriendName, setStingerFriendName] = useState<string | undefined>(undefined);
   const scanTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // ── Card auto-detect state ──
-  const autoTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const ocrBusyRef = useRef(false);
+  // ── Card-capture state ──
   const lockedRef = useRef(false); // true once we've committed to a QR or card
-  const [missCount, setMissCount] = useState(0);
+  const [capturing, setCapturing] = useState(false); // single card shot in flight
 
   // ── "Show my QR" data (lazy-fetched the first time the user flips) ──
   const [myQr, setMyQr] = useState<{ username: string; name: string; tags: string[] } | null>(null);
@@ -95,7 +85,6 @@ export default function CameraScanScreen({ navigation }: CameraScanScreenProps) 
   useEffect(() => {
     return () => {
       if (scanTimeoutRef.current) clearTimeout(scanTimeoutRef.current);
-      if (autoTimerRef.current) clearTimeout(autoTimerRef.current);
     };
   }, []);
 
@@ -140,10 +129,6 @@ export default function CameraScanScreen({ navigation }: CameraScanScreenProps) 
         clearTimeout(scanTimeoutRef.current);
         scanTimeoutRef.current = null;
       }
-      if (autoTimerRef.current) {
-        clearTimeout(autoTimerRef.current);
-        autoTimerRef.current = null;
-      }
 
       const urlResult = parseUrlFormat(result.data);
       if (urlResult) {
@@ -179,80 +164,31 @@ export default function CameraScanScreen({ navigation }: CameraScanScreenProps) 
     [scanned, decodeQrValue, parseUrlFormat],
   );
 
-  // ─── Card auto-detect loop (silent capture → on-device OCR → gate) ────
-  const handoffCard = useCallback((uri: string) => {
-    if (lockedRef.current) return;
-    lockedRef.current = true;
-    if (autoTimerRef.current) {
-      clearTimeout(autoTimerRef.current);
-      autoTimerRef.current = null;
-    }
-    // Entry mode: replace the camera with the prefill form (Back from the
-    // form → wherever the scanner was opened from, not the camera).
-    // EditLocalContact runs the full scanCard pipeline on mount.
-    navigation.replace('EditLocalContact', { scanUri: uri, scanMime: 'image/jpeg' });
-  }, [navigation]);
-
-  const runAutoTick = useCallback(async () => {
-    if (lockedRef.current || ocrBusyRef.current || !cameraRef.current) {
-      autoTimerRef.current = setTimeout(runAutoTick, AUTO_OCR_INTERVAL_MS);
-      return;
-    }
-    ocrBusyRef.current = true;
+  // ─── Card: ONE deliberate capture on tap (no auto-loop → no shutter spam) ──
+  const handleCaptureCard = useCallback(async () => {
+    if (lockedRef.current || capturing || !cameraRef.current) return;
+    lockedRef.current = true;       // blocks the QR handler during capture
+    setCapturing(true);
     try {
-      const photo = await cameraRef.current.takePictureAsync({
-        quality: 0.5,
-        skipProcessing: true,
-      });
-      if (photo?.uri && !lockedRef.current) {
-        const ocr = await TextRecognition.recognize(photo.uri);
-        const fullText = ocr?.text ?? '';
-        const blockCount = ocr?.blocks?.length ?? 0;
-        if (looksLikeCard(fullText, blockCount)) {
-          handoffCard(photo.uri);
-          return; // locked; no re-schedule
-        }
-        setMissCount((n) => n + 1);
+      // A single, framed shot — quality over the throwaway 0.5 we used for
+      // detection (this is the real image scanCard will OCR). One shutter
+      // click here is normal/expected, unlike the killed auto-loop.
+      const photo = await cameraRef.current.takePictureAsync({ quality: 0.6 });
+      if (photo?.uri) {
+        // Replace the camera with the prefill form (Back from the form →
+        // wherever the scanner was opened from). EditLocalContact runs the
+        // full, unchanged scanCard pipeline on mount.
+        navigation.replace('EditLocalContact', { scanUri: photo.uri, scanMime: 'image/jpeg' });
+        return; // screen is unmounting; leave locked
       }
+      // Capture returned nothing — re-arm so the user can retry.
+      lockedRef.current = false;
+      setCapturing(false);
     } catch {
-      // Never let a capture/OCR hiccup kill the loop — just try the next tick.
-    } finally {
-      ocrBusyRef.current = false;
+      lockedRef.current = false;
+      setCapturing(false);
     }
-    if (!lockedRef.current) {
-      autoTimerRef.current = setTimeout(runAutoTick, AUTO_OCR_INTERVAL_MS);
-    }
-  }, [handoffCard]);
-
-  // Start/stop the auto-detect loop with the scan mode + permission.
-  useEffect(() => {
-    const active = mode === 'scan' && permission?.granted && !stingerVisible;
-    if (active && !autoTimerRef.current && !lockedRef.current) {
-      autoTimerRef.current = setTimeout(runAutoTick, AUTO_OCR_INTERVAL_MS);
-    }
-    if (!active && autoTimerRef.current) {
-      clearTimeout(autoTimerRef.current);
-      autoTimerRef.current = null;
-    }
-    return () => {
-      if (autoTimerRef.current) {
-        clearTimeout(autoTimerRef.current);
-        autoTimerRef.current = null;
-      }
-    };
-  }, [mode, permission?.granted, stingerVisible, runAutoTick]);
-
-  // Manual fallback — the proven, deliberate-shutter CardCamera (tuned
-  // crop + OCR). Surfaced after a few auto-misses so the user is never
-  // stuck if auto-detect can't lock the card.
-  const openManualCardScan = useCallback(() => {
-    if (autoTimerRef.current) {
-      clearTimeout(autoTimerRef.current);
-      autoTimerRef.current = null;
-    }
-    lockedRef.current = true;
-    navigation.replace('CardCamera', { forNewContact: true });
-  }, [navigation]);
+  }, [navigation, capturing]);
 
   // ─── Show-my-QR mode: lazy-load the viewer's handle + tags ────────────
   const flipToShow = useCallback(async () => {
@@ -412,29 +348,32 @@ export default function CameraScanScreen({ navigation }: CameraScanScreenProps) 
           <View style={styles.overlayDark} />
         </View>
 
-        {/* Instruction — tells the user it does BOTH */}
+        {/* Instruction — QR is automatic; the card is one tap below */}
         <View style={styles.instructionContainer}>
           <Text style={styles.instructionText}>
             {t('camera.scanOrCardHint', {
-              defaultValue: '對準 QR 碼或名片，自動辨識',
+              defaultValue: '對準 QR 碼自動連結，或點下方拍名片',
             })}
           </Text>
-          {/* Unobtrusive manual fallback — only after auto-detect has
-              missed a few times, so the user is never stuck. Routes to the
-              proven deliberate-shutter card camera. */}
-          {missCount >= MANUAL_FALLBACK_AFTER && (
-            <TouchableOpacity
-              style={styles.manualBtn}
-              onPress={openManualCardScan}
-              activeOpacity={0.7}
-              accessibilityRole="button"
-            >
-              <CreditCard size={16} color={'#FFFFFF'} />
-              <Text style={styles.manualBtnText}>
-                {t('camera.manualCardScan', { defaultValue: '手動拍名片' })}
-              </Text>
-            </TouchableOpacity>
-          )}
+          {/* Card path — one deliberate tap = one capture (no shutter spam).
+              Always visible so the user knows cards are supported. */}
+          <TouchableOpacity
+            style={[styles.manualBtn, capturing && styles.manualBtnBusy]}
+            onPress={handleCaptureCard}
+            disabled={capturing}
+            activeOpacity={0.7}
+            accessibilityRole="button"
+            accessibilityLabel={t('camera.manualCardScan', { defaultValue: '拍名片' })}
+          >
+            {capturing ? (
+              <ActivityIndicator size="small" color={'#FFFFFF'} />
+            ) : (
+              <CreditCard size={18} color={'#FFFFFF'} />
+            )}
+            <Text style={styles.manualBtnText}>
+              {t('camera.manualCardScan', { defaultValue: '拍名片' })}
+            </Text>
+          </TouchableOpacity>
         </View>
       </View>
 
@@ -597,21 +536,28 @@ function makeStyles(c: ColorPalette) {
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 4,
   },
+  // Primary card affordance now (QR is automatic, so this is the only
+  // button on the scan view) — frosted pill, clearly tappable.
   manualBtn: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     gap: 8,
     marginTop: 18,
-    paddingVertical: 10,
-    paddingHorizontal: 18,
-    borderRadius: 22,
-    backgroundColor: 'rgba(0,0,0,0.45)',
+    minWidth: 150,
+    paddingVertical: 12,
+    paddingHorizontal: 22,
+    borderRadius: 24,
+    backgroundColor: 'rgba(0,0,0,0.55)',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.35)',
+    borderColor: 'rgba(255,255,255,0.5)',
+  },
+  manualBtnBusy: {
+    opacity: 0.6,
   },
   manualBtnText: {
-    fontSize: 14,
-    fontWeight: '600',
+    fontSize: 15,
+    fontWeight: '700',
     color: '#FFFFFF',
   },
   // ── Show-my-QR view ──
