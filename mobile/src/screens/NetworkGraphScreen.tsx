@@ -1,27 +1,28 @@
 // NetworkGraphScreen.tsx
 //
 // "Your network" — a force-directed graph of how the user's OWN friends
-// interconnect (replaces the retired invite-lineage Tribe constellation,
-// which was built on the dead invite-code system and showed a PikTag-vanity
-// "who you dragged in" tree). Founder 2026-06-25: users care about how their
-// people connect to each other, not how big a referral tree they grew.
+// interconnect (replaces the retired invite-lineage Tribe constellation).
+// Founder 2026-06-25: users care about how their people connect to each
+// other, not how big a referral tree they grew.
 //
 // Two node kinds (data from get_friend_graph()):
-//   • Friend node (filled purple)  = one of the viewer's friends. Identity IS
-//     shown (a short name label) — they're the viewer's own friends. Sized by
-//     intra-network degree (a friend who links many of your other friends is
-//     bigger/more central). Tap → FriendDetail.
-//   • Bridge node (hollow gray)    = a 2nd-degree person who connects >=2 of
-//     your friends but you don't know yet — the "you may know" connector.
-//     ANONYMOUS in the graph (no name/avatar — privacy). A deliberate tap
-//     reveals them on UserDetail (which shows mutual-friend count + a connect
-//     action under its own privacy checks). The North-Star friend-add payoff.
+//   • Friend node  = one of the viewer's friends. Identity IS shown — avatar
+//     (or a purple initial chip when none) + a short name. Sized by intra-
+//     network degree (a friend who links many of your other friends is bigger
+//     / more central). Tap → FriendDetail.
+//   • Bridge node  = a 2nd-degree person who connects >=2 of your friends but
+//     you don't know yet. ANONYMOUS in the graph (hollow dot, no name/avatar
+//     — privacy). A deliberate tap reveals them on UserDetail (mutual-friend
+//     count + connect, under that screen's privacy checks). The friend-add
+//     payoff. Also surfaced as the "you may know" strip below.
 //
-// Edges: friend↔friend (solid purple) reveal clusters; bridge↔friend (dashed
-// gray) show what the connector links. @piktag official is excluded server-
-// side so it isn't a universal hub. Render is pure react-native-svg; the
-// layout is a Fruchterman-Reingold simulation computed ONCE in useMemo
-// (no running animation loop — stable static positions).
+// Interaction: pinch to zoom, drag to pan (gesture-handler + reanimated).
+// Node taps still work — Pan has a minDistance so a stationary tap passes
+// through to the SVG node. Render is pure react-native-svg; the layout is a
+// Fruchterman-Reingold simulation computed ONCE in useMemo (no running loop).
+//
+// Empty state (0 friends): an encouraging "add friends" page — the graph only
+// becomes interesting once the network has people in it.
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
@@ -35,9 +36,11 @@ import {
   ScrollView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import Reanimated, { useSharedValue, useAnimatedStyle } from 'react-native-reanimated';
 import { useTranslation } from 'react-i18next';
-import { ArrowLeft, ChevronRight, Users } from 'lucide-react-native';
-import Svg, { Circle, Line, G, Text as SvgText } from 'react-native-svg';
+import { ArrowLeft, ChevronRight, Users, UserPlus } from 'lucide-react-native';
+import Svg, { Circle, Line, G, Text as SvgText, Image as SvgImage, ClipPath, Defs } from 'react-native-svg';
 import { type ColorPalette } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
 import { supabase } from '../lib/supabase';
@@ -61,15 +64,20 @@ type GraphData = {
 type Props = { navigation: any };
 
 type LaidNode = {
+  i: number;
   id: string;
   type: 'friend' | 'bridge';
   x: number;
   y: number;
   r: number;
   label?: string;
+  avatar?: string | null;
+  initial?: string;
 };
 
 const EMPTY: GraphData = { friends: [], edges: [], bridges: [], bridge_edges: [] };
+const MIN_ZOOM = 1;
+const MAX_ZOOM = 4;
 
 export default function NetworkGraphScreen({ navigation }: Props) {
   const { t } = useTranslation();
@@ -84,8 +92,6 @@ export default function NetworkGraphScreen({ navigation }: Props) {
     if (!user) return;
     setLoading(true);
     try {
-      // auth.uid()-guarded server-side — no args. PGRST202 = not deployed
-      // yet → silent empty state (same pattern as the old tribe screen).
       const { data: res, error } = await supabase.rpc('get_friend_graph');
       if (error) {
         const isMissing =
@@ -112,47 +118,44 @@ export default function NetworkGraphScreen({ navigation }: Props) {
 
   // ─── Force-directed layout (Fruchterman-Reingold, run once) ──────────
   const { nodes, friendLines, bridgeLines, size } = useMemo(() => {
-    const canvas = Math.min(Dimensions.get('window').width - 24, 380);
-    const pad = 36;
+    const canvas = Math.min(Dimensions.get('window').width - 24, 360);
+    const pad = 40;
     const maxDeg = data.friends.reduce((m, f) => Math.max(m, f.deg), 0);
 
     const laid: LaidNode[] = [
-      ...data.friends.map((f) => ({
+      ...data.friends.map((f, idx) => ({
+        i: idx,
         id: f.id,
         type: 'friend' as const,
-        x: 0,
-        y: 0,
+        x: 0, y: 0,
         r: friendRadius(f.deg, maxDeg),
         label: shortName(f),
+        avatar: f.avatar_url,
+        initial: initialOf(f),
       })),
-      ...data.bridges.map((b) => ({
+      ...data.bridges.map((b, idx) => ({
+        i: data.friends.length + idx,
         id: b.id,
         type: 'bridge' as const,
-        x: 0,
-        y: 0,
-        r: 6,
+        x: 0, y: 0,
+        r: 7,
       })),
     ];
 
     const n = laid.length;
-    if (n === 0) {
-      return { nodes: [] as LaidNode[], friendLines: [], bridgeLines: [], size: canvas };
-    }
+    if (n === 0) return { nodes: [] as LaidNode[], friendLines: [], bridgeLines: [], size: canvas };
 
     const indexOf = new Map<string, number>();
     laid.forEach((nd, i) => indexOf.set(nd.id, i));
 
-    // Edge index pairs (only edges whose endpoints are both present).
     const fEdges: [number, number][] = [];
     for (const [a, b] of data.edges) {
-      const ia = indexOf.get(a);
-      const ib = indexOf.get(b);
+      const ia = indexOf.get(a); const ib = indexOf.get(b);
       if (ia !== undefined && ib !== undefined) fEdges.push([ia, ib]);
     }
     const bEdges: [number, number][] = [];
     for (const [bid, fid] of data.bridge_edges) {
-      const ib = indexOf.get(bid);
-      const iff = indexOf.get(fid);
+      const ib = indexOf.get(bid); const iff = indexOf.get(fid);
       if (ib !== undefined && iff !== undefined) bEdges.push([ib, iff]);
     }
 
@@ -160,25 +163,22 @@ export default function NetworkGraphScreen({ navigation }: Props) {
     const cy = canvas / 2;
     const px = new Array<number>(n);
     const py = new Array<number>(n);
-    // Deterministic seed on a circle (no Math.random → stable across renders).
     for (let i = 0; i < n; i++) {
       const a = (i / n) * Math.PI * 2;
       px[i] = cx + Math.cos(a) * canvas * 0.3;
       py[i] = cy + Math.sin(a) * canvas * 0.3;
     }
 
-    const area = canvas * canvas;
-    const k = 0.72 * Math.sqrt(area / n); // ideal edge length
+    const k = 0.72 * Math.sqrt((canvas * canvas) / n);
     const allEdges = [...fEdges, ...bEdges];
     const ITER = 150;
     let temp = canvas * 0.14;
     const cool = temp / (ITER + 1);
-
     const dx = new Array<number>(n);
     const dy = new Array<number>(n);
+
     for (let it = 0; it < ITER; it++) {
       for (let i = 0; i < n; i++) { dx[i] = 0; dy[i] = 0; }
-      // Repulsion between every pair.
       for (let i = 0; i < n; i++) {
         for (let j = i + 1; j < n; j++) {
           let vx = px[i] - px[j];
@@ -190,7 +190,6 @@ export default function NetworkGraphScreen({ navigation }: Props) {
           dx[j] -= vx * f; dy[j] -= vy * f;
         }
       }
-      // Attraction along edges.
       for (const [a, b] of allEdges) {
         let vx = px[a] - px[b];
         let vy = py[a] - py[b];
@@ -200,12 +199,10 @@ export default function NetworkGraphScreen({ navigation }: Props) {
         dx[a] -= vx * f; dy[a] -= vy * f;
         dx[b] += vx * f; dy[b] += vy * f;
       }
-      // Mild gravity toward center (keeps disconnected nodes from drifting off).
       for (let i = 0; i < n; i++) {
         dx[i] += (cx - px[i]) * 0.025;
         dy[i] += (cy - py[i]) * 0.025;
       }
-      // Apply, capped by temperature, clamped to the canvas.
       for (let i = 0; i < n; i++) {
         const dl = Math.sqrt(dx[i] * dx[i] + dy[i] * dy[i]) || 0.01;
         px[i] += (dx[i] / dl) * Math.min(dl, temp);
@@ -217,16 +214,44 @@ export default function NetworkGraphScreen({ navigation }: Props) {
     }
 
     laid.forEach((nd, i) => { nd.x = px[i]; nd.y = py[i]; });
-
-    const fLines = fEdges.map(([a, b]) => ({
-      x1: px[a], y1: py[a], x2: px[b], y2: py[b],
-    }));
-    const bLines = bEdges.map(([a, b]) => ({
-      x1: px[a], y1: py[a], x2: px[b], y2: py[b],
-    }));
-
+    const fLines = fEdges.map(([a, b]) => ({ x1: px[a], y1: py[a], x2: px[b], y2: py[b] }));
+    const bLines = bEdges.map(([a, b]) => ({ x1: px[a], y1: py[a], x2: px[b], y2: py[b] }));
     return { nodes: laid, friendLines: fLines, bridgeLines: bLines, size: canvas };
   }, [data]);
+
+  // ─── Pinch-zoom + pan ────────────────────────────────────────────────
+  const scale = useSharedValue(1);
+  const savedScale = useSharedValue(1);
+  const tx = useSharedValue(0);
+  const ty = useSharedValue(0);
+  const savedTx = useSharedValue(0);
+  const savedTy = useSharedValue(0);
+
+  const pinch = Gesture.Pinch()
+    .onUpdate((e) => {
+      scale.value = Math.min(Math.max(savedScale.value * e.scale, MIN_ZOOM), MAX_ZOOM);
+    })
+    .onEnd(() => {
+      savedScale.value = scale.value;
+      if (scale.value <= MIN_ZOOM + 0.01) {
+        // Snap pan back to center when fully zoomed out.
+        tx.value = 0; ty.value = 0; savedTx.value = 0; savedTy.value = 0;
+      }
+    });
+  const pan = Gesture.Pan()
+    .minDistance(8) // a stationary tap falls through to the SVG node onPress
+    .onUpdate((e) => {
+      tx.value = savedTx.value + e.translationX;
+      ty.value = savedTy.value + e.translationY;
+    })
+    .onEnd(() => {
+      savedTx.value = tx.value;
+      savedTy.value = ty.value;
+    });
+  const composed = Gesture.Simultaneous(pinch, pan);
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: tx.value }, { translateY: ty.value }, { scale: scale.value }],
+  }));
 
   const onFriendTap = useCallback(
     (id: string) => navigation.navigate('FriendDetail', { friendId: id }),
@@ -264,93 +289,138 @@ export default function NetworkGraphScreen({ navigation }: Props) {
           <ActivityIndicator size="small" color={colors.piktag500} />
         </View>
       ) : !hasGraph ? (
+        // ── Cold-start: encourage adding the first friends ──
         <View style={styles.center}>
           <View style={styles.emptyWrap}>
-            <Users size={40} color={colors.gray300} />
+            <View style={styles.emptyIcon}>
+              <Users size={40} color={colors.piktag500} />
+            </View>
             <Text style={styles.emptyTitle}>{t('network.emptyTitle', { defaultValue: '人脈圖還在等你' })}</Text>
             <Text style={styles.emptyDesc}>
               {t('network.emptyDesc', {
                 defaultValue: '多加幾個好友，這裡就會顯示他們如何彼此連結，還有你可能認識的人。',
               })}
             </Text>
+            <TouchableOpacity
+              style={styles.emptyCta}
+              activeOpacity={0.85}
+              onPress={() => navigation.navigate('CameraScan')}
+              accessibilityRole="button"
+            >
+              <UserPlus size={18} color="#FFFFFF" />
+              <Text style={styles.emptyCtaText}>{t('network.emptyCta', { defaultValue: '加好友' })}</Text>
+            </TouchableOpacity>
           </View>
         </View>
       ) : (
-        <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-          <View style={styles.graphWrap}>
-            <Svg width={size} height={size}>
-              {/* Friend↔friend edges — solid, the cluster structure. */}
-              {friendLines.map((ln, i) => (
-                <Line key={`f-${i}`} x1={ln.x1} y1={ln.y1} x2={ln.x2} y2={ln.y2}
-                  stroke={colors.piktag400} strokeWidth={1.2} opacity={0.45} />
-              ))}
-              {/* Bridge↔friend edges — dashed, the "you may know" links. */}
-              {bridgeLines.map((ln, i) => (
-                <Line key={`b-${i}`} x1={ln.x1} y1={ln.y1} x2={ln.x2} y2={ln.y2}
-                  stroke={colors.gray400} strokeWidth={1} strokeDasharray="3,3" opacity={0.5} />
-              ))}
-              {/* Nodes (drawn over edges). Each wrapped in a G with onPress +
-                  an invisible hit circle so small dots stay tappable. */}
-              {nodes.map((nd) => (
-                <G key={nd.id} onPress={() => (nd.type === 'friend' ? onFriendTap(nd.id) : onBridgeTap(nd.id))}>
-                  <Circle cx={nd.x} cy={nd.y} r={Math.max(nd.r + 9, 16)} fill="#000000" fillOpacity={0} />
-                  {nd.type === 'friend' ? (
-                    <>
-                      <Circle cx={nd.x} cy={nd.y} r={nd.r} fill={colors.piktag500} opacity={0.9} />
-                      {nd.label ? (
-                        <SvgText x={nd.x} y={nd.y + nd.r + 10} fill={colors.gray600}
-                          fontSize={8.5} fontWeight="600" textAnchor="middle">
-                          {nd.label}
-                        </SvgText>
-                      ) : null}
-                    </>
-                  ) : (
-                    // Anonymous bridge — hollow ring, no label, never identifying.
-                    <Circle cx={nd.x} cy={nd.y} r={nd.r} fill={colors.background}
-                      stroke={colors.gray400} strokeWidth={1.6} strokeDasharray="2,2" />
+        <View style={styles.body}>
+          {/* Zoomable / pannable graph. overflow:hidden clips the zoomed SVG. */}
+          <GestureDetector gesture={composed}>
+            <Reanimated.View style={[styles.graphBox, animatedStyle]}>
+              <Svg width={size} height={size}>
+                <Defs>
+                  {nodes.map((nd) =>
+                    nd.type === 'friend' && nd.avatar ? (
+                      <ClipPath key={`clip-${nd.i}`} id={`clip-${nd.i}`}>
+                        <Circle cx={nd.x} cy={nd.y} r={nd.r} />
+                      </ClipPath>
+                    ) : null,
                   )}
-                </G>
-              ))}
-            </Svg>
-          </View>
+                </Defs>
 
-          {/* Legend */}
-          <View style={styles.legendRow}>
-            <View style={styles.legendItem}>
-              <View style={styles.legendFriendDot} />
-              <Text style={styles.legendText}>{t('network.legendFriend', { defaultValue: '你的好友' })}</Text>
-            </View>
-            <View style={styles.legendItem}>
-              <View style={styles.legendBridgeDot} />
-              <Text style={styles.legendText}>{t('network.legendBridge', { defaultValue: '你可能認識' })}</Text>
-            </View>
-          </View>
-
-          {/* "You may know" — the actionable bridge surface. Anonymous chips;
-              a deliberate tap reveals the person on UserDetail. */}
-          {data.bridges.length > 0 && (
-            <View style={styles.bridgeSection}>
-              <Text style={styles.bridgeHeader}>{t('network.bridgeHeader', { defaultValue: '你可能認識' })}</Text>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.bridgeStrip}>
-                {data.bridges.map((b) => (
-                  <TouchableOpacity key={b.id} style={styles.bridgeCard} activeOpacity={0.7} onPress={() => onBridgeTap(b.id)}>
-                    <View style={styles.bridgeAvatar}>
-                      <Users size={20} color={colors.gray400} />
-                    </View>
-                    <Text style={styles.bridgeCardText} numberOfLines={2}>
-                      {t('network.bridgeMutual', { n: b.mutual_count, defaultValue: `${b.mutual_count} 位好友認識` })}
-                    </Text>
-                    <ChevronRight size={14} color={colors.gray400} />
-                  </TouchableOpacity>
+                {/* Edges (behind nodes) */}
+                {friendLines.map((ln, i) => (
+                  <Line key={`f-${i}`} x1={ln.x1} y1={ln.y1} x2={ln.x2} y2={ln.y2}
+                    stroke={colors.piktag400} strokeWidth={1.2} opacity={0.45} />
                 ))}
-              </ScrollView>
-            </View>
-          )}
+                {bridgeLines.map((ln, i) => (
+                  <Line key={`b-${i}`} x1={ln.x1} y1={ln.y1} x2={ln.x2} y2={ln.y2}
+                    stroke={colors.gray400} strokeWidth={1} strokeDasharray="3,3" opacity={0.5} />
+                ))}
 
-          <Text style={styles.footnote}>
-            {t('network.footnote', { defaultValue: '只有你看得到自己的人脈圖。' })}
-          </Text>
-        </ScrollView>
+                {/* Nodes */}
+                {nodes.map((nd) => (
+                  <G key={nd.id} onPress={() => (nd.type === 'friend' ? onFriendTap(nd.id) : onBridgeTap(nd.id))}>
+                    {/* invisible hit target so small dots stay tappable */}
+                    <Circle cx={nd.x} cy={nd.y} r={Math.max(nd.r + 9, 18)} fill="#000000" fillOpacity={0} />
+                    {nd.type === 'friend' ? (
+                      <>
+                        {nd.avatar ? (
+                          <>
+                            <SvgImage
+                              x={nd.x - nd.r}
+                              y={nd.y - nd.r}
+                              width={nd.r * 2}
+                              height={nd.r * 2}
+                              href={{ uri: nd.avatar }}
+                              preserveAspectRatio="xMidYMid slice"
+                              clipPath={`url(#clip-${nd.i})`}
+                            />
+                            <Circle cx={nd.x} cy={nd.y} r={nd.r} fill="none" stroke={colors.piktag500} strokeWidth={1.5} />
+                          </>
+                        ) : (
+                          <>
+                            <Circle cx={nd.x} cy={nd.y} r={nd.r} fill={colors.piktag500} opacity={0.9} />
+                            <SvgText x={nd.x} y={nd.y + nd.r * 0.38} fill="#FFFFFF"
+                              fontSize={nd.r} fontWeight="700" textAnchor="middle">
+                              {nd.initial}
+                            </SvgText>
+                          </>
+                        )}
+                        {nd.label ? (
+                          <SvgText x={nd.x} y={nd.y + nd.r + 11} fill={colors.gray600}
+                            fontSize={9} fontWeight="600" textAnchor="middle">
+                            {nd.label}
+                          </SvgText>
+                        ) : null}
+                      </>
+                    ) : (
+                      // Anonymous bridge — hollow ring, never identifying.
+                      <Circle cx={nd.x} cy={nd.y} r={nd.r} fill={colors.background}
+                        stroke={colors.gray400} strokeWidth={1.6} strokeDasharray="2,2" />
+                    )}
+                  </G>
+                ))}
+              </Svg>
+            </Reanimated.View>
+          </GestureDetector>
+
+          {/* Legend + (if any) the actionable "you may know" strip */}
+          <View style={styles.belowGraph}>
+            <View style={styles.legendRow}>
+              <View style={styles.legendItem}>
+                <View style={styles.legendFriendDot} />
+                <Text style={styles.legendText}>{t('network.legendFriend', { defaultValue: '你的好友' })}</Text>
+              </View>
+              <View style={styles.legendItem}>
+                <View style={styles.legendBridgeDot} />
+                <Text style={styles.legendText}>{t('network.legendBridge', { defaultValue: '你可能認識' })}</Text>
+              </View>
+              <Text style={styles.zoomHint}>{t('network.zoomHint', { defaultValue: '雙指縮放 · 拖曳移動' })}</Text>
+            </View>
+
+            {data.bridges.length > 0 && (
+              <View style={styles.bridgeSection}>
+                <Text style={styles.bridgeHeader}>{t('network.bridgeHeader', { defaultValue: '你可能認識' })}</Text>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.bridgeStrip}>
+                  {data.bridges.map((b) => (
+                    <TouchableOpacity key={b.id} style={styles.bridgeCard} activeOpacity={0.7} onPress={() => onBridgeTap(b.id)}>
+                      <View style={styles.bridgeAvatar}>
+                        <Users size={20} color={colors.gray400} />
+                      </View>
+                      <Text style={styles.bridgeCardText} numberOfLines={2}>
+                        {t('network.bridgeMutual', { n: b.mutual_count, defaultValue: `${b.mutual_count} 位好友認識` })}
+                      </Text>
+                      <ChevronRight size={14} color={colors.gray400} />
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              </View>
+            )}
+
+            <Text style={styles.footnote}>{t('network.footnote', { defaultValue: '只有你看得到自己的人脈圖。' })}</Text>
+          </View>
+        </View>
       )}
     </SafeAreaView>
   );
@@ -358,13 +428,17 @@ export default function NetworkGraphScreen({ navigation }: Props) {
 
 // ─── Helpers ───────────────────────────────────────────────────────────
 function friendRadius(deg: number, maxDeg: number): number {
-  const t = maxDeg > 0 ? deg / maxDeg : 0;
-  return 6 + 7 * Math.sqrt(t); // 6 (isolated) .. 13 (most central)
+  const tt = maxDeg > 0 ? deg / maxDeg : 0;
+  return 13 + 6 * Math.sqrt(tt); // 13 (isolated) .. 19 (most central) — big enough for an avatar
 }
 function shortName(f: FriendNode): string {
   const base = (f.full_name || f.username || '').trim();
   const first = base.split(/\s+/)[0] || base;
   return first.length > 8 ? `${first.slice(0, 8)}…` : first;
+}
+function initialOf(f: FriendNode): string {
+  const base = (f.full_name || f.username || '?').trim();
+  return (base[0] || '?').toUpperCase();
 }
 
 function makeStyles(c: ColorPalette) {
@@ -385,14 +459,33 @@ function makeStyles(c: ColorPalette) {
     headerSubtitle: { fontSize: 12, color: c.gray500, marginTop: 2 },
 
     center: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 16 },
-    scrollContent: { alignItems: 'center', paddingBottom: 28 },
-    graphWrap: { alignItems: 'center', justifyContent: 'center', paddingTop: 12 },
+    body: { flex: 1 },
+    // Clips the zoomed/panned graph so it can't spill into the legend.
+    graphBox: { flex: 1, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
+    belowGraph: { paddingTop: 4 },
 
-    emptyWrap: { alignItems: 'center', paddingHorizontal: 32, gap: 10 },
-    emptyTitle: { fontSize: 18, fontWeight: '700', color: c.gray900, marginTop: 4 },
-    emptyDesc: { fontSize: 13, color: c.gray500, textAlign: 'center', lineHeight: 19 },
+    emptyWrap: { alignItems: 'center', paddingHorizontal: 36, gap: 12 },
+    emptyIcon: {
+      width: 84, height: 84, borderRadius: 42,
+      alignItems: 'center', justifyContent: 'center',
+      backgroundColor: c.piktag50,
+      marginBottom: 4,
+    },
+    emptyTitle: { fontSize: 19, fontWeight: '800', color: c.gray900 },
+    emptyDesc: { fontSize: 14, color: c.gray500, textAlign: 'center', lineHeight: 20 },
+    emptyCta: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+      marginTop: 8,
+      backgroundColor: c.piktag500,
+      borderRadius: 14,
+      paddingVertical: 14,
+      paddingHorizontal: 28,
+    },
+    emptyCtaText: { fontSize: 16, fontWeight: '700', color: '#FFFFFF' },
 
-    legendRow: { flexDirection: 'row', gap: 22, marginTop: 6, marginBottom: 4 },
+    legendRow: { flexDirection: 'row', alignItems: 'center', gap: 18, paddingHorizontal: 16, marginBottom: 2 },
     legendItem: { flexDirection: 'row', alignItems: 'center', gap: 6 },
     legendFriendDot: { width: 12, height: 12, borderRadius: 6, backgroundColor: c.piktag500 },
     legendBridgeDot: {
@@ -400,27 +493,21 @@ function makeStyles(c: ColorPalette) {
       borderWidth: 1.6, borderColor: c.gray400, borderStyle: 'dashed', backgroundColor: 'transparent',
     },
     legendText: { fontSize: 12, color: c.gray600 },
+    zoomHint: { marginLeft: 'auto', fontSize: 11, color: c.gray400 },
 
-    bridgeSection: { alignSelf: 'stretch', marginTop: 18 },
+    bridgeSection: { marginTop: 14 },
     bridgeHeader: { fontSize: 14, fontWeight: '700', color: c.gray900, paddingHorizontal: 16, marginBottom: 10 },
     bridgeStrip: { paddingHorizontal: 16, gap: 10 },
     bridgeCard: {
-      width: 150,
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 8,
-      paddingVertical: 10,
-      paddingHorizontal: 12,
-      borderRadius: 14,
-      backgroundColor: c.fill,
+      width: 150, flexDirection: 'row', alignItems: 'center', gap: 8,
+      paddingVertical: 10, paddingHorizontal: 12, borderRadius: 14, backgroundColor: c.fill,
     },
     bridgeAvatar: {
-      width: 36, height: 36, borderRadius: 18,
-      alignItems: 'center', justifyContent: 'center',
+      width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center',
       borderWidth: 1.4, borderColor: c.gray300, borderStyle: 'dashed', backgroundColor: 'transparent',
     },
     bridgeCardText: { flex: 1, fontSize: 12, fontWeight: '600', color: c.gray700 },
 
-    footnote: { fontSize: 11, color: c.gray400, textAlign: 'center', paddingHorizontal: 24, marginTop: 22 },
+    footnote: { fontSize: 11, color: c.gray400, textAlign: 'center', paddingHorizontal: 24, marginTop: 16, marginBottom: 8 },
   });
 }

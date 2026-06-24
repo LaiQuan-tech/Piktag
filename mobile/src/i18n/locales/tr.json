@@ -1559,6 +1559,8 @@
     "legendBridge": "Tanıyor olabilirsin",
     "bridgeHeader": "Tanıyor olabileceğin kişiler",
     "bridgeMutual": "{{n}} arkadaş tanıyor",
-    "footnote": "Ağını yalnızca sen görebilirsin."
+    "footnote": "Ağını yalnızca sen görebilirsin.",
+    "emptyCta": "Arkadaş ekle",
+    "zoomHint": "Yakınlaştırmak için sıkıştır · sürükle"
   }
 }

@@ -1559,6 +1559,8 @@
     "legendBridge": "Mungkin kamu kenal",
     "bridgeHeader": "Orang yang mungkin kamu kenal",
     "bridgeMutual": "{{n}} teman mengenalnya",
-    "footnote": "Hanya kamu yang bisa melihat jaringanmu."
+    "footnote": "Hanya kamu yang bisa melihat jaringanmu.",
+    "emptyCta": "Tambah teman",
+    "zoomHint": "Cubit untuk zoom · seret untuk geser"
   }
 }

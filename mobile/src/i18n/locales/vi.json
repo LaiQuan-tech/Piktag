@@ -1559,6 +1559,8 @@
     "legendBridge": "Có thể bạn biết",
     "bridgeHeader": "Những người bạn có thể biết",
     "bridgeMutual": "{{n}} bạn bè quen họ",
-    "footnote": "Chỉ bạn mới thấy mạng lưới của mình."
+    "footnote": "Chỉ bạn mới thấy mạng lưới của mình.",
+    "emptyCta": "Thêm bạn bè",
+    "zoomHint": "Chụm để thu phóng · kéo để di chuyển"
   }
 }

@@ -1559,6 +1559,8 @@
     "legendBridge": "知り合いかも",
     "bridgeHeader": "知り合いかもしれない人",
     "bridgeMutual": "友達 {{n}} 人が知っています",
-    "footnote": "人脈図はあなただけが見られます。"
+    "footnote": "人脈図はあなただけが見られます。",
+    "emptyCta": "友達を追加",
+    "zoomHint": "ピンチで拡大 · ドラッグで移動"
   }
 }

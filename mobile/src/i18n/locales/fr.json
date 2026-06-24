@@ -1559,6 +1559,8 @@
     "legendBridge": "Tu connais peut-être",
     "bridgeHeader": "Personnes que tu pourrais connaître",
     "bridgeMutual": "{{n}} amis les connaissent",
-    "footnote": "Toi seul vois ton réseau."
+    "footnote": "Toi seul vois ton réseau.",
+    "emptyCta": "Ajouter des amis",
+    "zoomHint": "Pincez pour zoomer · glissez pour déplacer"
   }
 }
