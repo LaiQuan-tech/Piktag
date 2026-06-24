@@ -5,11 +5,17 @@
 //   * PlatformSearchModal — categorized list + search filter
 //   * PlatformIcon — icon lookup
 //
-// Why 50 platforms (and the structure here): 8 was too few for a
-// global app — nobody saves a "Custom" link as a substitute for X /
-// TikTok / WhatsApp. 50 covers the long-tail of what people actually
-// link to without bloating the catalog past the point a search box
-// can browse comfortably.
+// Catalog curation (founder 2026-06-24: 少就是多). The full ~50-platform
+// catalog stays DEFINED here (so any already-saved link keeps its icon +
+// label), but the picker now shows a tight, high-value set of 23 —
+// everything else is `legacy: true` (defined-but-hidden, see the flag doc
+// below). The 23 = every platform any locale's quick-pick references
+// (must stay visible) + the three majors no quick-pick lists but people
+// expect first-class (TikTok / GitHub / Spotify). The long tail (Signal,
+// Discord, Behance, Patreon, Substack, …) is reachable via the generic
+// "Link" entry — one less-is-more list beats a 50-row scroll. Earlier note
+// (still true): 8 was too few — nobody saves a Custom link as a substitute
+// for X / TikTok / WhatsApp, so the majors keep dedicated entries.
 //
 // Brand names stay verbatim per product spec; only generic words
 // (Phone / Email / Website / Blog / Portfolio / Custom) are
@@ -95,30 +101,30 @@ export const PLATFORMS: Platform[] = [
   // and the signal branch in buildPlatformUrl picks the right prefix
   // (`signal.me/#p/<digits>` for phones, `signal.me/<username>` for
   // the new username form).
-  { key: 'signal',     cat: 'communication', label: 'Signal',     prefix: 'https://signal.me/#p/',             placeholder: 'phone-or-username',        domains: ['signal.me', 'signal.org'] },
-  { key: 'messenger',  cat: 'communication', label: 'Messenger',  prefix: 'https://m.me/',                     placeholder: 'username',                 domains: ['m.me', 'messenger.com'] },
+  { key: 'signal',     cat: 'communication', label: 'Signal',     prefix: 'https://signal.me/#p/',             placeholder: 'phone-or-username',        domains: ['signal.me', 'signal.org'] , legacy: true },
+  { key: 'messenger',  cat: 'communication', label: 'Messenger',  prefix: 'https://m.me/',                     placeholder: 'username',                 domains: ['m.me', 'messenger.com'] , legacy: true },
   // Discord: `discord.gg/<x>` is server INVITES, not user profiles —
   // a single-handle prefix sent users to the wrong place. Paste-mode
   // covers both shapes: a profile URL (`discord.com/users/<snowflake>`)
   // or a server invite the user is comfortable sharing.
-  { key: 'discord',    cat: 'communication', label: 'Discord',    prefix: 'https://',                          placeholder: 'discord.com/users/123... or invite link', domains: ['discord.gg', 'discord.com'] },
+  { key: 'discord',    cat: 'communication', label: 'Discord',    prefix: 'https://',                          placeholder: 'discord.com/users/123... or invite link', domains: ['discord.gg', 'discord.com'] , legacy: true },
   // Slack identity is workspace-tied — the shareable "my Slack" is
   // usually a workspace invite URL or a Slack Connect DM link, not a
   // public username. Empty-ish prefix = paste-mode (same shape as
   // Website / Substack / Notion). Domain detection covers both the
   // marketing site (joins) and the app subdomain (Connect DMs).
-  { key: 'slack',      cat: 'communication', label: 'Slack',      prefix: 'https://',                          placeholder: 'workspace.slack.com/...',  domains: ['slack.com', 'app.slack.com'] },
+  { key: 'slack',      cat: 'communication', label: 'Slack',      prefix: 'https://',                          placeholder: 'workspace.slack.com/...',  domains: ['slack.com', 'app.slack.com'] , legacy: true },
 
   // ── Social (10) ──
   { key: 'instagram',  cat: 'social',        label: 'Instagram',  prefix: 'https://instagram.com/',            placeholder: 'username',                 domains: ['instagram.com', 'instagr.am'] },
   { key: 'x',          cat: 'social',        label: 'X',          prefix: 'https://x.com/',                    placeholder: 'username',                 domains: ['x.com', 'twitter.com'] },
   { key: 'tiktok',     cat: 'social',        label: 'TikTok',     prefix: 'https://tiktok.com/@',              placeholder: 'username',                 domains: ['tiktok.com'] },
   { key: 'threads',    cat: 'social',        label: 'Threads',    prefix: 'https://threads.net/@',             placeholder: 'username',                 domains: ['threads.net'] },
-  { key: 'bluesky',    cat: 'social',        label: 'Bluesky',    prefix: 'https://bsky.app/profile/',         placeholder: 'name.bsky.social',         domains: ['bsky.app'] },
+  { key: 'bluesky',    cat: 'social',        label: 'Bluesky',    prefix: 'https://bsky.app/profile/',         placeholder: 'name.bsky.social',         domains: ['bsky.app'] , legacy: true },
   { key: 'facebook',   cat: 'social',        label: 'Facebook',   prefix: 'https://facebook.com/',             placeholder: 'username',                 domains: ['facebook.com', 'fb.com'] },
   { key: 'snapchat',   cat: 'social',        label: 'Snapchat',   prefix: 'https://snapchat.com/add/',         placeholder: 'username',                 domains: ['snapchat.com'] },
   { key: 'reddit',     cat: 'social',        label: 'Reddit',     prefix: 'https://reddit.com/u/',             placeholder: 'username',                 domains: ['reddit.com'] },
-  { key: 'pinterest',  cat: 'social',        label: 'Pinterest',  prefix: 'https://pinterest.com/',            placeholder: 'username',                 domains: ['pinterest.com'] },
+  { key: 'pinterest',  cat: 'social',        label: 'Pinterest',  prefix: 'https://pinterest.com/',            placeholder: 'username',                 domains: ['pinterest.com'] , legacy: true },
   // Mastodon is federated — there's no single canonical instance, so a
   // bare-handle prefix (`https://mastodon.social/@<user>`) is wrong for
   // every user not on mastodon.social. Switched to paste-mode: users
@@ -126,43 +132,43 @@ export const PLATFORMS: Platform[] = [
   // Domains list expanded to the top-10 popular instances so
   // detectPlatformFromUrl still classifies them correctly. Adding more
   // instances over time is safe — explicit list, lowest-magic.
-  { key: 'mastodon',   cat: 'social',        label: 'Mastodon',   prefix: 'https://',                          placeholder: 'mastodon.social/@you',     domains: ['mastodon.social', 'mas.to', 'fosstodon.org', 'hachyderm.io', 'infosec.exchange', 'mstdn.jp', 'pawoo.net', 'mstdn.social', 'mastodon.online', 'techhub.social'] },
+  { key: 'mastodon',   cat: 'social',        label: 'Mastodon',   prefix: 'https://',                          placeholder: 'mastodon.social/@you',     domains: ['mastodon.social', 'mas.to', 'fosstodon.org', 'hachyderm.io', 'infosec.exchange', 'mstdn.jp', 'pawoo.net', 'mstdn.social', 'mastodon.online', 'techhub.social'] , legacy: true },
 
   // ── Video (4) ──
   { key: 'youtube',    cat: 'video',         label: 'YouTube',    prefix: 'https://youtube.com/@',             placeholder: 'channel-name',             domains: ['youtube.com', 'youtu.be'] },
-  { key: 'twitch',     cat: 'video',         label: 'Twitch',     prefix: 'https://twitch.tv/',                placeholder: 'username',                 domains: ['twitch.tv'] },
-  { key: 'vimeo',      cat: 'video',         label: 'Vimeo',      prefix: 'https://vimeo.com/',                placeholder: 'username',                 domains: ['vimeo.com'] },
+  { key: 'twitch',     cat: 'video',         label: 'Twitch',     prefix: 'https://twitch.tv/',                placeholder: 'username',                 domains: ['twitch.tv'] , legacy: true },
+  { key: 'vimeo',      cat: 'video',         label: 'Vimeo',      prefix: 'https://vimeo.com/',                placeholder: 'username',                 domains: ['vimeo.com'] , legacy: true },
   { key: 'bilibili',   cat: 'video',         label: 'Bilibili',   prefix: 'https://space.bilibili.com/',       placeholder: 'user-id',                  domains: ['bilibili.com', 'b23.tv'] },
 
   // ── Music (5) ──
   { key: 'spotify',    cat: 'music',         label: 'Spotify',    prefix: 'https://open.spotify.com/user/',    placeholder: 'user-id',                  domains: ['spotify.com', 'open.spotify.com'] },
-  { key: 'apple-music', cat: 'music',        label: 'Apple Music', prefix: 'https://music.apple.com/profile/', placeholder: 'profile-id',              domains: ['music.apple.com'] },
-  { key: 'soundcloud', cat: 'music',         label: 'SoundCloud', prefix: 'https://soundcloud.com/',           placeholder: 'username',                 domains: ['soundcloud.com'] },
-  { key: 'bandcamp',   cat: 'music',         label: 'Bandcamp',   prefix: 'https://bandcamp.com/',             placeholder: 'username',                 domains: ['bandcamp.com'] },
-  { key: 'youtube-music', cat: 'music',      label: 'YouTube Music', prefix: 'https://music.youtube.com/channel/', placeholder: 'channel-id',          domains: ['music.youtube.com'] },
+  { key: 'apple-music', cat: 'music',        label: 'Apple Music', prefix: 'https://music.apple.com/profile/', placeholder: 'profile-id',              domains: ['music.apple.com'] , legacy: true },
+  { key: 'soundcloud', cat: 'music',         label: 'SoundCloud', prefix: 'https://soundcloud.com/',           placeholder: 'username',                 domains: ['soundcloud.com'] , legacy: true },
+  { key: 'bandcamp',   cat: 'music',         label: 'Bandcamp',   prefix: 'https://bandcamp.com/',             placeholder: 'username',                 domains: ['bandcamp.com'] , legacy: true },
+  { key: 'youtube-music', cat: 'music',      label: 'YouTube Music', prefix: 'https://music.youtube.com/channel/', placeholder: 'channel-id',          domains: ['music.youtube.com'] , legacy: true },
 
   // ── Professional (6) ──
   { key: 'linkedin',   cat: 'professional',  label: 'LinkedIn',   prefix: 'https://linkedin.com/in/',          placeholder: 'username',                 domains: ['linkedin.com'] },
   { key: 'github',     cat: 'professional',  label: 'GitHub',     prefix: 'https://github.com/',               placeholder: 'username',                 domains: ['github.com'] },
-  { key: 'gitlab',     cat: 'professional',  label: 'GitLab',     prefix: 'https://gitlab.com/',               placeholder: 'username',                 domains: ['gitlab.com'] },
-  { key: 'behance',    cat: 'professional',  label: 'Behance',    prefix: 'https://behance.net/',              placeholder: 'username',                 domains: ['behance.net'] },
-  { key: 'dribbble',   cat: 'professional',  label: 'Dribbble',   prefix: 'https://dribbble.com/',             placeholder: 'username',                 domains: ['dribbble.com'] },
-  { key: 'medium',     cat: 'professional',  label: 'Medium',     prefix: 'https://medium.com/@',              placeholder: 'username',                 domains: ['medium.com'] },
+  { key: 'gitlab',     cat: 'professional',  label: 'GitLab',     prefix: 'https://gitlab.com/',               placeholder: 'username',                 domains: ['gitlab.com'] , legacy: true },
+  { key: 'behance',    cat: 'professional',  label: 'Behance',    prefix: 'https://behance.net/',              placeholder: 'username',                 domains: ['behance.net'] , legacy: true },
+  { key: 'dribbble',   cat: 'professional',  label: 'Dribbble',   prefix: 'https://dribbble.com/',             placeholder: 'username',                 domains: ['dribbble.com'] , legacy: true },
+  { key: 'medium',     cat: 'professional',  label: 'Medium',     prefix: 'https://medium.com/@',              placeholder: 'username',                 domains: ['medium.com'] , legacy: true },
 
   // ── Writing (4) ──
-  { key: 'substack',   cat: 'writing',       label: 'Substack',   prefix: 'https://',                          placeholder: 'name.substack.com',        domains: ['substack.com'] },
-  { key: 'notion',     cat: 'writing',       label: 'Notion',     prefix: 'https://',                          placeholder: 'name.notion.site',         domains: ['notion.site', 'notion.so'] },
-  { key: 'mirror',     cat: 'writing',       label: 'Mirror',     prefix: 'https://mirror.xyz/',               placeholder: 'name.eth',                 domains: ['mirror.xyz'] },
-  { key: 'hashnode',   cat: 'writing',       label: 'Hashnode',   prefix: 'https://',                          placeholder: 'name.hashnode.dev',        domains: ['hashnode.com', 'hashnode.dev'] },
+  { key: 'substack',   cat: 'writing',       label: 'Substack',   prefix: 'https://',                          placeholder: 'name.substack.com',        domains: ['substack.com'] , legacy: true },
+  { key: 'notion',     cat: 'writing',       label: 'Notion',     prefix: 'https://',                          placeholder: 'name.notion.site',         domains: ['notion.site', 'notion.so'] , legacy: true },
+  { key: 'mirror',     cat: 'writing',       label: 'Mirror',     prefix: 'https://mirror.xyz/',               placeholder: 'name.eth',                 domains: ['mirror.xyz'] , legacy: true },
+  { key: 'hashnode',   cat: 'writing',       label: 'Hashnode',   prefix: 'https://',                          placeholder: 'name.hashnode.dev',        domains: ['hashnode.com', 'hashnode.dev'] , legacy: true },
 
   // ── Business (7) ──
   { key: 'calendly',   cat: 'business',      label: 'Calendly',   prefix: 'https://calendly.com/',             placeholder: 'username',                 domains: ['calendly.com'] },
-  { key: 'cal',        cat: 'business',      label: 'Cal.com',    prefix: 'https://cal.com/',                  placeholder: 'username',                 domains: ['cal.com'] },
+  { key: 'cal',        cat: 'business',      label: 'Cal.com',    prefix: 'https://cal.com/',                  placeholder: 'username',                 domains: ['cal.com'] , legacy: true },
   { key: 'paypal',     cat: 'business',      label: 'PayPal',     prefix: 'https://paypal.me/',                placeholder: 'username',                 domains: ['paypal.me', 'paypal.com'] },
-  { key: 'patreon',    cat: 'business',      label: 'Patreon',    prefix: 'https://patreon.com/',              placeholder: 'username',                 domains: ['patreon.com'] },
-  { key: 'kofi',       cat: 'business',      label: 'Ko-fi',      prefix: 'https://ko-fi.com/',                placeholder: 'username',                 domains: ['ko-fi.com'] },
-  { key: 'buymeacoffee', cat: 'business',    label: 'Buy Me a Coffee', prefix: 'https://buymeacoffee.com/',    placeholder: 'username',                 domains: ['buymeacoffee.com'] },
-  { key: 'stripe',     cat: 'business',      label: 'Stripe',     prefix: 'https://buy.stripe.com/',           placeholder: 'payment-link',             domains: ['stripe.com'] },
+  { key: 'patreon',    cat: 'business',      label: 'Patreon',    prefix: 'https://patreon.com/',              placeholder: 'username',                 domains: ['patreon.com'] , legacy: true },
+  { key: 'kofi',       cat: 'business',      label: 'Ko-fi',      prefix: 'https://ko-fi.com/',                placeholder: 'username',                 domains: ['ko-fi.com'] , legacy: true },
+  { key: 'buymeacoffee', cat: 'business',    label: 'Buy Me a Coffee', prefix: 'https://buymeacoffee.com/',    placeholder: 'username',                 domains: ['buymeacoffee.com'] , legacy: true },
+  { key: 'stripe',     cat: 'business',      label: 'Stripe',     prefix: 'https://buy.stripe.com/',           placeholder: 'payment-link',             domains: ['stripe.com'] , legacy: true },
   // Alipay — paste-mode (prefix 'https://', like Slack / Substack):
   // a personal Alipay 收款碼 has NO username handle (unlike paypal.me);
   // the user generates a personal collection link in Alipay whose
