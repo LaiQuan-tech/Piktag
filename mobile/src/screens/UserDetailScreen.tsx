@@ -1106,10 +1106,26 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
     }
   };
 
-  const handleOpenLink = (url: string) => {
+  const handleOpenLink = (url: string, biolinkId: string) => {
     // Scheme allowlist gate — silent no-op for old/bad rows whose
     // scheme is outside the allowlist (`javascript:` / `intent:` etc.).
+    // Also short-circuits the click-tracking insert so we don't credit
+    // a click on a URL we refused to open.
     if (!url || !isSafeBiolinkUrl(url)) return;
+    // Track the click. This is a NON-friend / scanned / public profile
+    // view, so source='user_detail' — the strategically valuable
+    // install-funnel "a stranger tapped your link" signal that wasn't
+    // being recorded before. The notify_biolink_click trigger records it
+    // for stats but does NOT notify the owner for this source (only
+    // friend-profile clicks notify).
+    if (authUser) {
+      supabase
+        .from('piktag_biolink_clicks')
+        .insert({ biolink_id: biolinkId, clicker_user_id: authUser.id, source: 'user_detail' })
+        .then(({ error }) => {
+          if (error) console.warn('Biolink click tracking failed:', error.message);
+        });
+    }
     Linking.openURL(url).catch(() => {});
   };
 
@@ -1495,7 +1511,7 @@ export default function UserDetailScreen({ navigation, route }: UserDetailScreen
             Visual variant 'highlight' matches FriendDetailScreen. */}
         <BiolinkSocialSection
           biolinks={biolinks}
-          onPress={(link) => handleOpenLink(link.url)}
+          onPress={(link) => handleOpenLink(link.url, link.id)}
           variant="highlight"
         />
 

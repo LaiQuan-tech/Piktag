@@ -891,7 +891,11 @@ export default function FriendDetailScreen({ navigation, route }: FriendDetailSc
     if (user) {
       supabase
         .from('piktag_biolink_clicks')
-        .insert({ biolink_id: biolinkId, clicker_user_id: user.id })
+        // source='friend_detail' → friend-profile click, so the
+        // notify_biolink_click trigger DOES notify the owner (existing
+        // behaviour). Stranger/public clicks (UserDetailScreen) use
+        // 'user_detail' and are recorded silently.
+        .insert({ biolink_id: biolinkId, clicker_user_id: user.id, source: 'friend_detail' })
         .then(({ error }) => {
           if (error) console.warn('Biolink click tracking failed:', error.message);
         });
