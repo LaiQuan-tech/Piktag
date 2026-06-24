@@ -979,12 +979,19 @@ read-only inventory RPCs stay for monitoring (admin Tags page).
   is localized per locale (founder-approved zh-TW: "自己標自己，
   誰都找得到。"). See commit 107130a for the full 5-surface align.
 
-## Near-term approved nav change — Chat tab replaces event-QR tab (2026-06-24, IN FLIGHT)
+## Nav change — Chat tab replaced event-QR tab (2026-06-24, SHIPPED)
 
 Founder feedback 2026-06-24: the **活動 QR (event-group QR) tab is
 unpopular/ignored**; **chat should be promoted** into that bottom-tab slot.
-Approved after honest evaluation. NOT yet built/committed — resume from
-this plan.
+Approved after honest evaluation; **SHIPPED 2026-06-24** (plan below kept
+as as-built reference). Tab order is now Home / Search / **Chat**
+(MessageCircle) / Notifications / Profile. Event-QR (QrGroupList /
+AddTagCreate / QrGroupDetail) lives in RootStack as full-screen pushes,
+reached from the ConnectionsScreen header QrCode icon ("建立活動 QR") +
+on_this_day deep links. Chat-unread badge moved to ChatTab; bell-header
+ChatList button removed; ChatListScreen hides its back arrow when it's the
+tab root; cold-start "互掃 QR" card now routes to CameraScan (scan a
+person's QR). "Strengthen chat" (features) is still separate — not done.
 
 Why sound: chat is the reactivation-loop endpoint (search→find→message; AI
 icebreaker→reconnect — the North-Star activation engine) but is buried

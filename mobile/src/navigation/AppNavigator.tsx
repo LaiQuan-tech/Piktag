@@ -3,14 +3,13 @@ import { Alert, View, StyleSheet, Platform, InteractionManager } from 'react-nat
 import PageLoader from '../components/loaders/PageLoader';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { getFocusedRouteNameFromRoute } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   Home,
   Search,
   QrCode,
-  Hash,
+  MessageCircle,
   Bell,
   User,
 } from 'lucide-react-native';
@@ -57,7 +56,7 @@ import ScanResultScreen from '../screens/ScanResultScreen';
 const AuthStack = createNativeStackNavigator();
 const HomeStack = createNativeStackNavigator();
 const SearchStack = createNativeStackNavigator();
-const AddTagStack = createNativeStackNavigator();
+const ChatStack = createNativeStackNavigator();
 const NotificationStack = createNativeStackNavigator();
 const ProfileStack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -87,21 +86,19 @@ function SearchStackNavigator() {
   );
 }
 
-function AddTagStackNavigator() {
+function ChatStackNavigator() {
   return (
-    <AddTagStack.Navigator screenOptions={{ headerShown: false }}>
-      {/* Default landing: persistent QR group list (task 2). Tapping
-          "+" navigates to AddTagCreate (the legacy AddTagScreen
-          repurposed as a creation form); tapping a row navigates to
-          QrGroupDetail. AddTagMain kept as a back-compat alias so
-          any older deep-links still resolve. */}
-      <AddTagStack.Screen name="AddTagMain" component={QrGroupListScreen} />
-      <AddTagStack.Screen name="AddTagCreate" component={AddTagScreen} />
-      <AddTagStack.Screen
-        name="QrGroupDetail"
-        getComponent={() => require('../screens/QrGroupDetailScreen').default}
+    <ChatStack.Navigator screenOptions={{ headerShown: false }}>
+      {/* Chat inbox is the tab root (founder 2026-06-24 — chat promoted
+          to a first-class tab, replacing the event-QR tab). Threads +
+          compose live in RootStack (full-screen, no tab bar) so opening
+          a chat from a profile returns to that profile; opening one from
+          here returns to the inbox. */}
+      <ChatStack.Screen
+        name="ChatList"
+        getComponent={() => require('../screens/ChatListScreen').default}
       />
-    </AddTagStack.Navigator>
+    </ChatStack.Navigator>
   );
 }
 
@@ -204,34 +201,22 @@ function MainTabs() {
         }}
       />
       <Tab.Screen
-        name="AddTagTab"
-        component={AddTagStackNavigator}
-        options={({ route }) => {
-          // Hide the tab bar when the user drills into the QR
-          // create form (AddTagCreate) or a saved-group detail
-          // (QrGroupDetail). The default `AddTagMain` list view
-          // still shows the tab bar so the user can navigate
-          // away. Reading the focused child route via
-          // getFocusedRouteNameFromRoute is the official RN
-          // navigation pattern for "hide parent bar on specific
-          // inner screens".
-          const childRoute =
-            getFocusedRouteNameFromRoute(route) ?? 'AddTagMain';
-          const hideBar =
-            childRoute === 'AddTagCreate' || childRoute === 'QrGroupDetail';
-          return {
-            tabBarAccessibilityLabel: t('tabs.addTag'),
-            tabBarStyle: hideBar
-              ? { display: 'none' as const }
-              : baseTabBarStyle,
-            tabBarIcon: ({ color, focused }) => (
-              <Hash
-                size={28}
-                color={color}
-                strokeWidth={focused ? 2.5 : 2}
-              />
-            ),
-          };
+        name="ChatTab"
+        component={ChatStackNavigator}
+        options={{
+          tabBarAccessibilityLabel: t('tabs.chat'),
+          // Chat is the reactivation-loop endpoint (search→message,
+          // icebreaker→reconnect). Promoted from the bell-tab header to a
+          // first-class tab 2026-06-24, taking the slot the unpopular
+          // event-QR tab held. The unread badge lives here now.
+          tabBarBadge: chatUnread > 0 ? chatUnread : undefined,
+          tabBarIcon: ({ color, focused }) => (
+            <MessageCircle
+              size={26}
+              color={color}
+              strokeWidth={focused ? 2.5 : 2}
+            />
+          ),
         }}
       />
       <Tab.Screen
@@ -239,12 +224,6 @@ function MainTabs() {
         component={NotificationStackNavigator}
         options={{
           tabBarAccessibilityLabel: t('tabs.notifications'),
-          // Chat-unread badge lives on the bell tab, not the
-          // magnifying-glass tab — the messages inbox is reached
-          // through the notifications surface (ChatList button in
-          // its header), so a badge on Search misdirects users
-          // toward a tab that has nothing to do with messages.
-          tabBarBadge: chatUnread > 0 ? chatUnread : undefined,
           tabBarIcon: ({ color, focused }) => (
             <Bell
               size={24}
@@ -296,18 +275,20 @@ function MainNavigator({ needsOnboarding }: { needsOnboarding: boolean }) {
         <RootStack.Screen name="UserDetail" component={UserDetailScreen} />
         <RootStack.Screen name="TagDetail" component={TagDetailScreen} />
 
-        {/* Chat list + thread + compose all live in RootStack so back-navigation
-            returns to the screen the user came from (e.g. TagDetail →
-            UserDetail → ChatThread → back goes to UserDetail) instead
-            of popping inside the SearchTab to its root. ChatList must
-            sit outside the tab stacks too — otherwise tapping the
-            SearchTab button after a chat session lands on ChatList
-            instead of SearchMain because the inner stack remembers
-            its last screen. */}
+        {/* Event-group QR (demoted from the # tab 2026-06-24): full-screen
+            pushes reached from the Home header QR button + on_this_day
+            deep links. Kept, not deleted — the conference/meetup case the
+            store copy sells. */}
+        <RootStack.Screen name="QrGroupList" component={QrGroupListScreen} />
+        <RootStack.Screen name="AddTagCreate" component={AddTagScreen} />
         <RootStack.Screen
-          name="ChatList"
-          getComponent={() => require('../screens/ChatListScreen').default}
+          name="QrGroupDetail"
+          getComponent={() => require('../screens/QrGroupDetailScreen').default}
         />
+
+        {/* Chat thread + compose live in RootStack so back-navigation
+            returns to the origin (TagDetail → UserDetail → ChatThread →
+            back → UserDetail). The inbox (ChatList) is the ChatTab root. */}
         <RootStack.Screen
           name="ChatThread"
           getComponent={() => require('../screens/ChatThreadScreen').default}

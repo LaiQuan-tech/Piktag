@@ -9,7 +9,8 @@
     "search": "搜尋",
     "addTag": "新增標籤",
     "notifications": "通知",
-    "profile": "個人"
+    "profile": "個人",
+    "chat": "聊天"
   },
   "locationPicker": {
     "title": "選擇地點",
@@ -340,7 +341,8 @@
     "coldStartActionScanDesc": "和現場的人互掃，30 秒交換名片",
     "coldStartActionSearch": "用標籤搜一個人",
     "coldStartActionSearchDesc": "例如 #行銷 #設計師，看看誰會出現",
-    "firstFriendHint": "跟身邊的人互掃 QR，或從通訊錄把朋友加進來"
+    "firstFriendHint": "跟身邊的人互掃 QR，或從通訊錄把朋友加進來",
+    "createEventQr": "建立活動 QR"
   },
   "search": {
     "clearAll": "清除全部",

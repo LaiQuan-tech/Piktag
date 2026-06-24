@@ -85,16 +85,10 @@ export async function routeFromNotification(
     // like TagDetail / FriendDetail / UserDetail (see this file's
     // header note + AppNavigator). A bare navigate('QrGroupDetail')
     // from the root nav ref can't resolve it, so the on_this_day tap
-    // dead-ended — the "tap to revisit who joined that day" CTA did
-    // nothing. Use the explicit nested form, matching the chat / ask
-    // handlers below which already nest via 'Main' → tab → child.
-    navigation.navigate('Main', {
-      screen: 'AddTagTab',
-      params: {
-        screen: 'QrGroupDetail',
-        params: { groupId: data.scan_session_id },
-      },
-    });
+    // dead-ended. As of 2026-06-24 QrGroupDetail is a RootStack screen
+    // (the event-QR tab was replaced by Chat; event-QR demoted to
+    // full-screen pushes), so a direct root-level navigate resolves it.
+    navigation.navigate('QrGroupDetail', { groupId: data.scan_session_id });
     return;
   }
 

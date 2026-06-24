@@ -819,21 +819,9 @@ export default function NotificationsScreen({ navigation }: NotificationsScreenP
 
       {/* Header */}
       <View style={styles.header}>
+        {/* Chat moved to its own bottom tab (2026-06-24) — the redundant
+            bell-header chat shortcut was removed. */}
         <Text style={[styles.headerTitle, { color: colors.text }]}>{t('notifications.headerTitle')}</Text>
-        <TouchableOpacity
-          onPress={() => (navigation as any)?.navigate('ChatList')}
-          style={styles.headerChatBtn}
-          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-          accessibilityRole="button"
-          accessibilityLabel={t('chat.inbox')}
-        >
-          <MessageCircle size={24} color={colors.gray900} strokeWidth={2} />
-          {chatUnread > 0 ? (
-            <View style={styles.headerChatBadge}>
-              <Text style={styles.headerChatBadgeText}>{chatUnread > 99 ? '99+' : String(chatUnread)}</Text>
-            </View>
-          ) : null}
-        </TouchableOpacity>
       </View>
 
       {/* Tab Switcher */}

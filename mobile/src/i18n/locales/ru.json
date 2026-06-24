@@ -9,7 +9,8 @@
     "search": "Поиск",
     "addTag": "Добавить тег",
     "notifications": "Уведомления",
-    "profile": "Профиль"
+    "profile": "Профиль",
+    "chat": "Чат"
   },
   "locationPicker": {
     "title": "Выбери место",
@@ -340,7 +341,8 @@
     "coldStartActionScanDesc": "Отсканируйте друг друга — обмен визитками за 30 секунд",
     "coldStartActionSearch": "Искать людей по тегам",
     "coldStartActionSearchDesc": "Попробуйте #маркетинг или #дизайнер — посмотрите, кто найдётся",
-    "firstFriendHint": "Отсканируйте QR с теми, кто рядом, или добавьте друзей из контактов"
+    "firstFriendHint": "Отсканируйте QR с теми, кто рядом, или добавьте друзей из контактов",
+    "createEventQr": "Создать QR мероприятия"
   },
   "search": {
     "clearAll": "Очистить всё",

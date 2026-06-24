@@ -9,7 +9,8 @@
     "search": "Buscar",
     "addTag": "Añadir etiqueta",
     "notifications": "Notificaciones",
-    "profile": "Perfil"
+    "profile": "Perfil",
+    "chat": "Chat"
   },
   "locationPicker": {
     "title": "Elegir una ubicación",
@@ -340,7 +341,8 @@
     "coldStartActionScanDesc": "Escanéense mutuamente: intercambio de tarjetas en 30 segundos",
     "coldStartActionSearch": "Buscar gente por tag",
     "coldStartActionSearchDesc": "Prueba #marketing o #diseñador: mira quién aparece",
-    "firstFriendHint": "Escanea el QR con la gente a tu alrededor o añade amigos desde tus contactos"
+    "firstFriendHint": "Escanea el QR con la gente a tu alrededor o añade amigos desde tus contactos",
+    "createEventQr": "Crear QR de evento"
   },
   "search": {
     "clearAll": "Limpiar todo",

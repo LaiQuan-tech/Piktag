@@ -9,7 +9,8 @@
     "search": "検索",
     "addTag": "タグ追加",
     "notifications": "通知",
-    "profile": "プロフィール"
+    "profile": "プロフィール",
+    "chat": "チャット"
   },
   "locationPicker": {
     "title": "場所を選択",
@@ -340,7 +341,8 @@
     "coldStartActionScanDesc": "その場でお互いにスキャン。30秒で名刺交換",
     "coldStartActionSearch": "タグで人を探す",
     "coldStartActionSearchDesc": "例：#マーケ #デザイナー — 誰が出てくるか試してみて",
-    "firstFriendHint": "まわりの人と QR を見せ合うか、連絡先から友達を追加しましょう"
+    "firstFriendHint": "まわりの人と QR を見せ合うか、連絡先から友達を追加しましょう",
+    "createEventQr": "イベント QR を作成"
   },
   "search": {
     "clearAll": "すべてクリア",

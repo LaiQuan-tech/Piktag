@@ -9,7 +9,8 @@
     "search": "खोज",
     "addTag": "टैग जोड़ें",
     "notifications": "सूचनाएँ",
-    "profile": "प्रोफ़ाइल"
+    "profile": "प्रोफ़ाइल",
+    "chat": "चैट"
   },
   "locationPicker": {
     "title": "जगह चुनें",
@@ -340,7 +341,8 @@
     "coldStartActionScanDesc": "एक-दूसरे को स्कैन करें — 30 सेकंड में कार्ड का आदान-प्रदान",
     "coldStartActionSearch": "टैग से लोग खोजें",
     "coldStartActionSearchDesc": "#मार्केटिंग या #डिज़ाइनर आज़माएँ — देखें कौन मिलता है",
-    "firstFriendHint": "आसपास के लोगों के साथ QR स्कैन करें, या कॉन्टैक्ट्स से दोस्त जोड़ें"
+    "firstFriendHint": "आसपास के लोगों के साथ QR स्कैन करें, या कॉन्टैक्ट्स से दोस्त जोड़ें",
+    "createEventQr": "इवेंट QR बनाएं"
   },
   "search": {
     "clearAll": "सब साफ़ करें",

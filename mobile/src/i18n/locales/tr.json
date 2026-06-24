@@ -9,7 +9,8 @@
     "search": "Ara",
     "addTag": "Etiket Ekle",
     "notifications": "Bildirimler",
-    "profile": "Profil"
+    "profile": "Profil",
+    "chat": "Sohbet"
   },
   "locationPicker": {
     "title": "Konum seç",
@@ -340,7 +341,8 @@
     "coldStartActionScanDesc": "Birbirinizi tarayın — 30 saniyede kartvizit takası",
     "coldStartActionSearch": "Etiketle insan ara",
     "coldStartActionSearchDesc": "#pazarlama ya da #tasarımcı dene — kim çıkacak bak",
-    "firstFriendHint": "Yanındakilerle QR taratın ya da rehberinden arkadaş ekle"
+    "firstFriendHint": "Yanındakilerle QR taratın ya da rehberinden arkadaş ekle",
+    "createEventQr": "Etkinlik QR’si oluştur"
   },
   "search": {
     "clearAll": "Hepsini temizle",

@@ -9,7 +9,8 @@
     "search": "Suchen",
     "addTag": "Tag",
     "notifications": "Mitteilungen",
-    "profile": "Profil"
+    "profile": "Profil",
+    "chat": "Chat"
   },
   "locationPicker": {
     "title": "Ort wählen",
@@ -340,7 +341,8 @@
     "coldStartActionScanDesc": "Gegenseitig scannen — Kontakte in 30 Sekunden tauschen",
     "coldStartActionSearch": "Leute per Tag suchen",
     "coldStartActionSearchDesc": "Probiere #marketing oder #designer — wer taucht auf?",
-    "firstFriendHint": "Scannt euch gegenseitig per QR oder füge Freunde aus deinen Kontakten hinzu"
+    "firstFriendHint": "Scannt euch gegenseitig per QR oder füge Freunde aus deinen Kontakten hinzu",
+    "createEventQr": "Event-QR erstellen"
   },
   "search": {
     "clearAll": "Alle löschen",

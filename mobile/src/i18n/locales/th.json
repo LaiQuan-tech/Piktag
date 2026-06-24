@@ -9,7 +9,8 @@
     "search": "ค้นหา",
     "addTag": "เพิ่มแท็ก",
     "notifications": "การแจ้งเตือน",
-    "profile": "โปรไฟล์"
+    "profile": "โปรไฟล์",
+    "chat": "แชท"
   },
   "locationPicker": {
     "title": "เลือกสถานที่",
@@ -340,7 +341,8 @@
     "coldStartActionScanDesc": "สแกนกันและกัน แลกนามบัตรใน 30 วินาที",
     "coldStartActionSearch": "ค้นหาคนด้วยแท็ก",
     "coldStartActionSearchDesc": "ลอง #การตลาด หรือ #นักออกแบบ ดูว่าใครโผล่มา",
-    "firstFriendHint": "สแกน QR กับคนรอบตัว หรือเพิ่มเพื่อนจากรายชื่อผู้ติดต่อ"
+    "firstFriendHint": "สแกน QR กับคนรอบตัว หรือเพิ่มเพื่อนจากรายชื่อผู้ติดต่อ",
+    "createEventQr": "สร้าง QR กิจกรรม"
   },
   "search": {
     "clearAll": "ล้างทั้งหมด",

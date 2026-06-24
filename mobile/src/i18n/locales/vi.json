@@ -9,7 +9,8 @@
     "search": "Tìm kiếm",
     "addTag": "Thêm Tag",
     "notifications": "Thông báo",
-    "profile": "Hồ sơ"
+    "profile": "Hồ sơ",
+    "chat": "Trò chuyện"
   },
   "locationPicker": {
     "title": "Chọn địa điểm",
@@ -340,7 +341,8 @@
     "coldStartActionScanDesc": "Quét lẫn nhau — trao đổi danh thiếp trong 30 giây",
     "coldStartActionSearch": "Tìm người theo thẻ tag",
     "coldStartActionSearchDesc": "Thử #marketing hoặc #thietke — xem ai xuất hiện",
-    "firstFriendHint": "Quét QR với người xung quanh, hoặc thêm bạn bè từ danh bạ"
+    "firstFriendHint": "Quét QR với người xung quanh, hoặc thêm bạn bè từ danh bạ",
+    "createEventQr": "Tạo QR sự kiện"
   },
   "search": {
     "clearAll": "Xoá hết",

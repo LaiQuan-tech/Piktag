@@ -9,7 +9,8 @@
     "search": "Cari",
     "addTag": "Tambah Tag",
     "notifications": "Notifikasi",
-    "profile": "Profil"
+    "profile": "Profil",
+    "chat": "Chat"
   },
   "locationPicker": {
     "title": "Pilih lokasi",
@@ -340,7 +341,8 @@
     "coldStartActionScanDesc": "Saling pindai — tukar kartu dalam 30 detik",
     "coldStartActionSearch": "Cari orang lewat tag",
     "coldStartActionSearchDesc": "Coba #marketing atau #desainer — lihat siapa yang muncul",
-    "firstFriendHint": "Pindai QR dengan orang di sekitarmu, atau tambah teman dari kontak"
+    "firstFriendHint": "Pindai QR dengan orang di sekitarmu, atau tambah teman dari kontak",
+    "createEventQr": "Buat QR acara"
   },
   "search": {
     "clearAll": "Hapus semua",

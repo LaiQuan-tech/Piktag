@@ -9,7 +9,8 @@
     "search": "بحث",
     "addTag": "إضافة وسم",
     "notifications": "الإشعارات",
-    "profile": "الملف الشخصي"
+    "profile": "الملف الشخصي",
+    "chat": "الدردشة"
   },
   "locationPicker": {
     "title": "اختر موقعًا",
@@ -340,7 +341,8 @@
     "coldStartActionScanDesc": "امسحا رمزيكما — تبادل البطاقات في 30 ثانية",
     "coldStartActionSearch": "ابحث عن الأشخاص بالوسوم",
     "coldStartActionSearchDesc": "جرّب #تسويق أو #مصمم — وانظر من يظهر",
-    "firstFriendHint": "امسح رمز QR مع من حولك، أو أضف أصدقاء من جهات الاتصال"
+    "firstFriendHint": "امسح رمز QR مع من حولك، أو أضف أصدقاء من جهات الاتصال",
+    "createEventQr": "إنشاء QR للفعالية"
   },
   "search": {
     "clearAll": "مسح الكل",

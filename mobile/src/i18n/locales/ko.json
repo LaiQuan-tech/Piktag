@@ -9,7 +9,8 @@
     "search": "검색",
     "addTag": "태그 추가",
     "notifications": "알림",
-    "profile": "프로필"
+    "profile": "프로필",
+    "chat": "채팅"
   },
   "locationPicker": {
     "title": "장소 선택",
@@ -340,7 +341,8 @@
     "coldStartActionScanDesc": "서로 스캔하면 30초 만에 명함 교환",
     "coldStartActionSearch": "태그로 사람 찾기",
     "coldStartActionSearchDesc": "예: #마케팅 #디자이너 — 누가 나오는지 보세요",
-    "firstFriendHint": "주변 사람과 QR을 스캔하거나 연락처에서 친구를 추가하세요"
+    "firstFriendHint": "주변 사람과 QR을 스캔하거나 연락처에서 친구를 추가하세요",
+    "createEventQr": "이벤트 QR 만들기"
   },
   "search": {
     "clearAll": "모두 지우기",

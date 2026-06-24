@@ -9,7 +9,8 @@
     "search": "খুঁজুন",
     "addTag": "ট্যাগ যোগ করুন",
     "notifications": "নোটিফিকেশন",
-    "profile": "প্রোফাইল"
+    "profile": "প্রোফাইল",
+    "chat": "চ্যাট"
   },
   "locationPicker": {
     "title": "একটি জায়গা বেছে নিন",
@@ -340,7 +341,8 @@
     "coldStartActionScanDesc": "একে অপরকে স্ক্যান করুন — ৩০ সেকেন্ডে কার্ড বিনিময়",
     "coldStartActionSearch": "ট্যাগ দিয়ে মানুষ খুঁজুন",
     "coldStartActionSearchDesc": "#মার্কেটিং বা #ডিজাইনার লিখে দেখুন — কে আসে",
-    "firstFriendHint": "আশেপাশের মানুষের সাথে QR স্ক্যান করুন, বা কন্টাক্ট থেকে বন্ধু যোগ করুন"
+    "firstFriendHint": "আশেপাশের মানুষের সাথে QR স্ক্যান করুন, বা কন্টাক্ট থেকে বন্ধু যোগ করুন",
+    "createEventQr": "ইভেন্ট QR তৈরি করুন"
   },
   "search": {
     "clearAll": "সব সাফ করুন",

@@ -9,7 +9,8 @@
     "search": "تلاش",
     "addTag": "ٹیگ شامل کریں",
     "notifications": "اطلاعات",
-    "profile": "پروفائل"
+    "profile": "پروفائل",
+    "chat": "چیٹ"
   },
   "locationPicker": {
     "title": "جگہ چنیں",
@@ -340,7 +341,8 @@
     "coldStartActionScanDesc": "ایک دوسرے کو اسکین کریں — 30 سیکنڈ میں کارڈ کا تبادلہ",
     "coldStartActionSearch": "ٹیگ سے لوگ تلاش کریں",
     "coldStartActionSearchDesc": "#مارکیٹنگ یا #ڈیزائنر آزمائیں — دیکھیں کون آتا ہے",
-    "firstFriendHint": "آس پاس کے لوگوں کے ساتھ QR اسکین کریں، یا رابطوں سے دوست شامل کریں"
+    "firstFriendHint": "آس پاس کے لوگوں کے ساتھ QR اسکین کریں، یا رابطوں سے دوست شامل کریں",
+    "createEventQr": "ایونٹ QR بنائیں"
   },
   "search": {
     "clearAll": "سب صاف کریں",

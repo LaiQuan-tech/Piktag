@@ -703,7 +703,7 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
       routes: [
         { name: 'HomeTab' },
         { name: 'SearchTab' },
-        { name: 'AddTagTab' },
+        { name: 'ChatTab' },
         { name: 'NotificationsTab' },
         { name: 'ProfileTab' },
       ],

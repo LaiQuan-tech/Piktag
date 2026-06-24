@@ -9,7 +9,8 @@
     "search": "Search",
     "addTag": "Add Tag",
     "notifications": "Notifications",
-    "profile": "Profile"
+    "profile": "Profile",
+    "chat": "Chat"
   },
   "locationPicker": {
     "title": "Pick a location",
@@ -340,7 +341,8 @@
     "coldStartActionScanDesc": "Scan each other — swap cards in 30 seconds",
     "coldStartActionSearch": "Search people by tag",
     "coldStartActionSearchDesc": "Try #marketing or #designer — see who shows up",
-    "firstFriendHint": "Scan QR with people around you, or add friends from your contacts"
+    "firstFriendHint": "Scan QR with people around you, or add friends from your contacts",
+    "createEventQr": "Create event QR"
   },
   "search": {
     "clearAll": "Clear all",

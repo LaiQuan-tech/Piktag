@@ -922,7 +922,10 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
               icon: QrCode,
               title: t('connections.coldStartActionQr', { defaultValue: '用 QR 連上現場的人' }),
               desc: t('connections.coldStartActionScanDesc', { defaultValue: '和現場的人互掃，30 秒交換名片' }),
-              onPress: () => navigation.navigate('AddTagTab'),
+              // 2026-06-24: was navigate('AddTagTab') (the retired event-QR
+              // tab). 互掃 is the PERSONAL-QR loop — scan the other person's
+              // PikTag QR to connect. Route to the QR scanner.
+              onPress: () => navigation.navigate('CameraScan'),
             },
             {
               key: 'search',
@@ -1144,6 +1147,19 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
               accessibilityRole="button"
             >
               <UserPlus size={24} color={isDark ? '#FFFFFF' : colors.gray600} />
+            </TouchableOpacity>
+            {/* 建立活動 QR — the event-group QR tool, demoted from its own
+                bottom tab (2026-06-24, founder: tab was ignored) to this
+                header entry. Still reachable for the conference/meetup
+                use case; no longer eating prime tab real estate. */}
+            <TouchableOpacity
+              style={styles.headerIconBtn}
+              activeOpacity={0.6}
+              onPress={() => navigation.navigate('QrGroupList')}
+              accessibilityLabel={t('connections.createEventQr', { defaultValue: '建立活動 QR' })}
+              accessibilityRole="button"
+            >
+              <QrCode size={24} color={isDark ? '#FFFFFF' : colors.gray600} />
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.headerIconBtn}

@@ -9,7 +9,8 @@
     "search": "Cerca",
     "addTag": "Aggiungi Tag",
     "notifications": "Notifiche",
-    "profile": "Profilo"
+    "profile": "Profilo",
+    "chat": "Chat"
   },
   "locationPicker": {
     "title": "Scegli un luogo",
@@ -340,7 +341,8 @@
     "coldStartActionScanDesc": "Scansionatevi a vicenda: scambio di contatti in 30 secondi",
     "coldStartActionSearch": "Cerca persone per tag",
     "coldStartActionSearchDesc": "Prova #marketing o #designer: guarda chi compare",
-    "firstFriendHint": "Scansiona il QR con chi ti sta intorno o aggiungi amici dai contatti"
+    "firstFriendHint": "Scansiona il QR con chi ti sta intorno o aggiungi amici dai contatti",
+    "createEventQr": "Crea QR evento"
   },
   "search": {
     "clearAll": "Cancella tutto",
