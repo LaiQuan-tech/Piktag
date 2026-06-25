@@ -178,12 +178,25 @@ export default function NetworkGraphScreen({ navigation }: Props) {
       temp = Math.max(temp - cool, canvas * 0.01);
     }
 
-    // Overlap-resolution pass — GUARANTEES nodes never clump (the bug the 3D
-    // build had): push any too-close pair apart by their labelled footprint.
-    for (let it = 0; it < 80; it++) {
+    // Center + fit inside the canvas with padding for labels.
+    let mnx = Infinity, mny = Infinity, mxx = -Infinity, mxy = -Infinity;
+    for (let i = 0; i < n; i++) { mnx = Math.min(mnx, px[i]); mny = Math.min(mny, py[i]); mxx = Math.max(mxx, px[i]); mxy = Math.max(mxy, py[i]); }
+    const w = Math.max(mxx - mnx, 1), h = Math.max(mxy - mny, 1);
+    const fit = Math.min((canvas - 2 * pad) / w, (canvas - 2 * pad) / h, 1.6);
+    const ox = (mnx + mxx) / 2, oy = (mny + mxy) / 2;
+    for (let i = 0; i < n; i++) {
+      px[i] = cx + (px[i] - ox) * fit;
+      py[i] = cy + (py[i] - oy) * fit;
+    }
+
+    // Overlap resolution runs AFTER the fit, on FINAL screen coords, so the
+    // scale can never re-collapse the spacing — GUARANTEES no clumping (the
+    // 3D build's bug). Clamp to the canvas so a push can't shove a node off.
+    const lo = pad, hi = canvas - pad;
+    for (let it = 0; it < 90; it++) {
       for (let i = 0; i < n; i++) {
         for (let j = i + 1; j < n; j++) {
-          const minSep = laid[i].r + laid[j].r + 26;
+          const minSep = laid[i].r + laid[j].r + 28;
           let vx = px[i] - px[j], vy = py[i] - py[j];
           let d = Math.sqrt(vx * vx + vy * vy) || 0.01;
           if (d < minSep) {
@@ -194,17 +207,10 @@ export default function NetworkGraphScreen({ navigation }: Props) {
           }
         }
       }
-    }
-
-    // Center + fit inside the canvas with padding for labels.
-    let mnx = Infinity, mny = Infinity, mxx = -Infinity, mxy = -Infinity;
-    for (let i = 0; i < n; i++) { mnx = Math.min(mnx, px[i]); mny = Math.min(mny, py[i]); mxx = Math.max(mxx, px[i]); mxy = Math.max(mxy, py[i]); }
-    const w = Math.max(mxx - mnx, 1), h = Math.max(mxy - mny, 1);
-    const fit = Math.min((canvas - 2 * pad) / w, (canvas - 2 * pad) / h, 1.4);
-    const ox = (mnx + mxx) / 2, oy = (mny + mxy) / 2;
-    for (let i = 0; i < n; i++) {
-      px[i] = cx + (px[i] - ox) * fit;
-      py[i] = cy + (py[i] - oy) * fit;
+      for (let i = 0; i < n; i++) {
+        px[i] = Math.max(lo, Math.min(hi, px[i]));
+        py[i] = Math.max(lo, Math.min(hi, py[i]));
+      }
     }
     laid.forEach((nd, i) => { nd.x = px[i]; nd.y = py[i]; });
 
