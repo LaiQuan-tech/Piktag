@@ -177,6 +177,7 @@ function MainTabs() {
             <Home
               size={24}
               color={color}
+              fill={focused ? color : 'none'}
               strokeWidth={focused ? 2.5 : 2}
             />
           ),
@@ -195,6 +196,7 @@ function MainTabs() {
             <Search
               size={24}
               color={color}
+              fill={focused ? color : 'none'}
               strokeWidth={focused ? 2.5 : 2}
             />
           ),
@@ -212,8 +214,9 @@ function MainTabs() {
           tabBarBadge: chatUnread > 0 ? chatUnread : undefined,
           tabBarIcon: ({ color, focused }) => (
             <MessageCircle
-              size={26}
+              size={24}
               color={color}
+              fill={focused ? color : 'none'}
               strokeWidth={focused ? 2.5 : 2}
             />
           ),
@@ -228,6 +231,7 @@ function MainTabs() {
             <Bell
               size={24}
               color={color}
+              fill={focused ? color : 'none'}
               strokeWidth={focused ? 2.5 : 2}
             />
           ),
@@ -242,6 +246,7 @@ function MainTabs() {
             <User
               size={24}
               color={color}
+              fill={focused ? color : 'none'}
               strokeWidth={focused ? 2.5 : 2}
             />
           ),
