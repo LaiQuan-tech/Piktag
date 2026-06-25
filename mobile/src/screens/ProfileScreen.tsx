@@ -15,7 +15,7 @@ import {
   Settings,
   CheckCircle2,
   MessageCircle,
-  QrCode,
+  Hash,
 } from 'lucide-react-native';
 import BiolinkSocialSection from '../components/BiolinkSocialSection';
 import { StatsRow, StatDot } from '../components/StatsLine';
@@ -326,7 +326,7 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
         <Text style={[styles.headerTitle, { color: colors.text }]}>{t('profile.pageTitle')}</Text>
         <View style={styles.headerRight}>
           <TouchableOpacity style={styles.headerIconBtn} activeOpacity={0.6} onPress={handleNavigateEventQr} accessibilityLabel={t('connections.createEventQr', { defaultValue: '建立活動 QR' })} accessibilityRole="button">
-            <QrCode size={24} color={colors.gray900} />
+            <Hash size={24} color={colors.gray900} />
           </TouchableOpacity>
           <TouchableOpacity style={styles.headerIconBtn} activeOpacity={0.6} onPress={handleNavigateSettings} accessibilityLabel={t('settings.headerTitle', { defaultValue: '設定' })} accessibilityRole="button">
             <Settings size={24} color={colors.gray900} />
