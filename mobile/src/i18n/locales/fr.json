@@ -1201,7 +1201,7 @@
     "invalidQr": "QR Code non valide",
     "invalidQrMessage": "Ce QR n'est pas un code de connexion PikTag valide.",
     "permissionMessage": "PikTag a besoin d'accéder à l'appareil photo pour scanner les QR Codes et se connecter avec des amis.",
-    "scanOrCardHint": "Visez un QR code pour vous connecter — ou photographiez une carte ci-dessous",
+    "scanOrCardHint": "Visez un QR code pour vous connecter — ou touchez le bouton ci-dessous pour scanner une carte",
     "showQrHint": "Faites-le scanner pour vous connecter aussitôt",
     "showMyQr": "Afficher mon QR",
     "manualCardScan": "Photographier la carte"

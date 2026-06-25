@@ -348,31 +348,36 @@ export default function CameraScanScreen({ navigation }: CameraScanScreenProps) 
           <View style={styles.overlayDark} />
         </View>
 
-        {/* Instruction — QR is automatic; the card is one tap below */}
+        {/* Instruction — QR is automatic; the shutter below captures a card.
+            The hint carries the explanation, so the shutter needs no label
+            (founder 2026-06-26). */}
         <View style={styles.instructionContainer}>
           <Text style={styles.instructionText}>
             {t('camera.scanOrCardHint', {
-              defaultValue: '對準 QR 碼自動連結，或點下方拍名片',
+              defaultValue: '對準 QR 碼自動連結，或點下方按鈕辨識名片',
             })}
           </Text>
-          {/* Card capture = a camera SHUTTER (founder 2026-06-26): a labeled
-              pill read as a generic button; a round shutter matches the
-              universal "tap to take a photo" mental model. QR stays automatic,
-              so this shutter's only job is to capture a card. */}
-          <Text style={styles.shutterLabel}>
-            {t('camera.manualCardScan', { defaultValue: '拍名片' })}
-          </Text>
+          {/* Camera shutter, with a brand-gradient ring (founder 2026-06-26:
+              more brand colour on the scanner). White centre keeps it reading
+              as a shutter; the gradient ring is the PikTag signature. */}
           <TouchableOpacity
-            style={[styles.shutterOuter, capturing && styles.shutterBusy]}
+            style={capturing && styles.shutterBusy}
             onPress={handleCaptureCard}
             disabled={capturing}
             activeOpacity={0.8}
             accessibilityRole="button"
             accessibilityLabel={t('camera.manualCardScan', { defaultValue: '拍名片' })}
           >
-            <View style={styles.shutterInner}>
-              {capturing ? <ActivityIndicator size="small" color={'#111827'} /> : null}
-            </View>
+            <LinearGradient
+              colors={['#ff5757', '#c44dff', '#8c52ff']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.shutterRing}
+            >
+              <View style={styles.shutterInner}>
+                {capturing ? <ActivityIndicator size="small" color={'#111827'} /> : null}
+              </View>
+            </LinearGradient>
           </TouchableOpacity>
         </View>
       </View>
@@ -544,23 +549,13 @@ function makeStyles(c: ColorPalette) {
   // Camera shutter for the card-capture action (QR is automatic, so this is
   // the only manual control). iOS-style: white ring + white inner circle with
   // a dark gap, so it reads as "take a photo".
-  shutterLabel: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#FFFFFF',
-    marginTop: 18,
-    marginBottom: 14,
-    textShadowColor: 'rgba(0, 0, 0, 0.6)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 4,
-  },
-  shutterOuter: {
-    width: 74,
-    height: 74,
-    borderRadius: 37,
-    borderWidth: 4,
-    borderColor: '#FFFFFF',
-    backgroundColor: 'transparent',
+  // Brand-gradient ring (fills the round); the white inner circle sits on top,
+  // leaving a gradient ring — a PikTag-signature take on the camera shutter.
+  shutterRing: {
+    width: 78,
+    height: 78,
+    borderRadius: 39,
+    marginTop: 24,
     alignItems: 'center',
     justifyContent: 'center',
   },

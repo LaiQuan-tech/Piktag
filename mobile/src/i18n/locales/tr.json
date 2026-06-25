@@ -1201,7 +1201,7 @@
     "invalidQr": "Geçersiz QR Kodu",
     "invalidQrMessage": "Bu QR kodu geçerli bir PikTag bağlantı kodu değildir.",
     "permissionMessage": "PikTag, QR kodlarını taramak ve arkadaşlarla bağlantı kurmak için kamera erişimine ihtiyaç duyar.",
-    "scanOrCardHint": "Bağlanmak için QR koda doğrult — ya da aşağıdan kartvizit çek",
+    "scanOrCardHint": "Bağlanmak için QR koda doğrult — ya da aşağıdaki düğmeye dokunup kartviziti tara",
     "showQrHint": "Taratın, anında bağlanın",
     "showMyQr": "QR’mi göster",
     "manualCardScan": "Kartviziti çek"

@@ -467,16 +467,20 @@ function GraphEdge({
     const az = -edge.ax * st + edge.az * ct;
     const bz = -edge.bx * st + edge.bz * ct;
     const dn = depthR > 0 ? ((az + bz) / 2) / depthR : 0;
-    const base = edge.kind === 'friend' ? 0.45 : 0.5;
-    const opacity = (1 - ((dn + 1) / 2) * 0.45) * iv * base;
+    // Edges are the WHOLE POINT — they show the relationships, so keep them
+    // bold (founder 2026-06-26: "needs lines, even prominent"). High base
+    // opacity + gentle depth fade so even far edges read clearly.
+    const base = edge.kind === 'friend' ? 0.95 : 0.7;
+    const opacity = (1 - ((dn + 1) / 2) * 0.28) * iv * base;
     return { x1: ax, y1: ay, x2: bx, y2: by, opacity };
   });
   return (
     <AnimatedLine
       animatedProps={aProps}
-      stroke={edge.kind === 'friend' ? colors.piktag400 : colors.gray400}
-      strokeWidth={edge.kind === 'friend' ? 1.2 : 1}
-      strokeDasharray={edge.kind === 'bridge' ? '3,3' : undefined}
+      stroke={edge.kind === 'friend' ? colors.piktag500 : colors.gray400}
+      strokeWidth={edge.kind === 'friend' ? 3.2 : 2}
+      strokeLinecap="round"
+      strokeDasharray={edge.kind === 'bridge' ? '4,5' : undefined}
     />
   );
 }

@@ -1201,7 +1201,7 @@
     "invalidQr": "無効なQRコード",
     "invalidQrMessage": "このQRコードは有効なPikTag接続コードではありません。",
     "permissionMessage": "PikTagはQRコードをスキャンして友達とつながるためにカメラへのアクセスが必要です。",
-    "scanOrCardHint": "QR コードで自動連結、または下のボタンで名刺を撮影",
+    "scanOrCardHint": "QR コードで自動連結、または下のボタンで名刺を読み取り",
     "showQrHint": "相手にこれをスキャンしてもらえば、すぐつながれます",
     "showMyQr": "自分の QR を表示",
     "manualCardScan": "名刺を撮る"

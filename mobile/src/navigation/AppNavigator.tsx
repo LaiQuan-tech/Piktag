@@ -217,7 +217,10 @@ function MainTabs() {
           tabBarBadge: chatUnread > 0 ? chatUnread : undefined,
           tabBarIcon: ({ color, focused }) => (
             <MessageCircle
-              size={24}
+              // Optical balance (founder 2026-06-26): a filled speech-bubble
+              // reads heavier than the other glyphs, so 22 looks equal to the
+              // others' 24 — same apparent size, not the same number.
+              size={22}
               color={color}
               fill={focused ? color : 'none'}
               strokeWidth={focused ? 2.5 : 2}

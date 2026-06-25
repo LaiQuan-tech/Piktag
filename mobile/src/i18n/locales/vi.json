@@ -1201,7 +1201,7 @@
     "invalidQr": "Mã QR không hợp lệ",
     "invalidQrMessage": "Mã QR này không phải mã kết nối PikTag hợp lệ.",
     "permissionMessage": "PikTag cần dùng camera để quét mã QR và kết nối với bạn bè.",
-    "scanOrCardHint": "Hướng vào mã QR để kết nối, hoặc chụp danh thiếp bên dưới",
+    "scanOrCardHint": "Hướng vào mã QR để kết nối, hoặc chạm nút bên dưới để nhận diện danh thiếp",
     "showQrHint": "Để họ quét và kết nối ngay",
     "showMyQr": "Hiện QR của tôi",
     "manualCardScan": "Chụp danh thiếp"

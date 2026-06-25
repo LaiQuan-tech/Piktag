@@ -444,7 +444,17 @@ export default function ActivityReviewScreen({ navigation, route }: Props) {
       <View style={styles.cardContainer}>
         <GestureDetector gesture={panGesture}>
           <Animated.View style={[styles.card, cardStyle]}>
-            <Image source={{ uri: avatarUri }} style={styles.cardAvatar} />
+            {/* Brand-gradient avatar ring (founder 2026-06-26: more brand
+                colour on the review card) — same RingedAvatar signature used
+                across the app. */}
+            <LinearGradient
+              colors={['#ff5757', '#c44dff', '#8c52ff']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.avatarRing}
+            >
+              <Image source={{ uri: avatarUri }} style={styles.cardAvatar} />
+            </LinearGradient>
             <Text style={styles.cardName}>{name}</Text>
             {profile?.username && <Text style={styles.cardUsername}>@{profile.username}</Text>}
             {profile?.bio && <Text style={styles.cardBio} numberOfLines={2}>{profile.bio}</Text>}
@@ -539,7 +549,8 @@ function makeStyles(c: ColorPalette) {
     padding: 24, alignItems: 'center',
     shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.08, shadowRadius: 12, elevation: 4,
   },
-  cardAvatar: { width: 100, height: 100, borderRadius: 50, backgroundColor: c.gray100, marginBottom: 16 },
+  avatarRing: { width: 116, height: 116, borderRadius: 58, alignItems: 'center', justifyContent: 'center', marginBottom: 16 },
+  cardAvatar: { width: 100, height: 100, borderRadius: 50, backgroundColor: c.gray100, borderWidth: 3, borderColor: c.white },
   cardName: { fontSize: 22, fontWeight: '700', color: c.gray900, marginBottom: 4 },
   cardUsername: { fontSize: 15, color: c.gray500, marginBottom: 8 },
   cardBio: { fontSize: 14, color: c.gray600, textAlign: 'center', lineHeight: 20, marginBottom: 12, paddingHorizontal: 10 },
