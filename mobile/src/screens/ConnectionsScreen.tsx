@@ -3,6 +3,7 @@ import {
   View,
   Text,
   FlatList,
+  RefreshControl,
   ScrollView,
   TouchableOpacity,
   StyleSheet,
@@ -514,6 +515,23 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
       loadAll();
     }, [fetchConnections, refreshAsks, refreshLocalContacts])
   );
+
+  // Pull-to-refresh (founder 2026-06-26: the Friends list lacked the
+  // yank-down-to-refresh gesture every contact list trains users to expect).
+  // Bypasses the 30s cooldown — an explicit pull is a "give me data now" intent.
+  const [refreshing, setRefreshing] = useState(false);
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    lastFetchRef.current = 0;
+    refreshAsks();
+    refreshLocalContacts();
+    try {
+      await fetchConnections();
+    } finally {
+      setRefreshing(false);
+      lastFetchRef.current = Date.now();
+    }
+  }, [fetchConnections, refreshAsks, refreshLocalContacts]);
 
   // Auto-refetch when the network comes back if we previously errored.
   // Bypass the 30s cooldown — a manual reconnect signal is a strong
@@ -1207,6 +1225,9 @@ export default function ConnectionsScreen({ navigation }: ConnectionsScreenProps
           keyExtractor={keyExtractor}
           contentContainerStyle={contentContainerStyle}
           showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.piktag500} />
+          }
           ListHeaderComponent={listHeader}
           ListEmptyComponent={renderEmpty}
           ListFooterComponent={

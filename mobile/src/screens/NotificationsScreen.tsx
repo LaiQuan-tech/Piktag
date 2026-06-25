@@ -14,7 +14,8 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import { MessageCircle } from 'lucide-react-native';
+import { MessageCircle, Trash2 } from 'lucide-react-native';
+import { Swipeable } from 'react-native-gesture-handler';
 import { COLORS, SPACING, type ColorPalette } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
 import { supabase } from '../lib/supabase';
@@ -249,6 +250,7 @@ type NotificationItemProps = {
   item: Notification;
   onPress: (item: Notification) => void;
   onLongPress: (item: Notification) => void;
+  onDismiss: (id: string) => void;
   t: (key: string, options?: any) => string;
 };
 
@@ -256,6 +258,7 @@ const NotificationItem = React.memo(function NotificationItem({
   item,
   onPress,
   onLongPress,
+  onDismiss,
   t,
 }: NotificationItemProps) {
   const { colors } = useTheme();
@@ -277,6 +280,24 @@ const NotificationItem = React.memo(function NotificationItem({
     onLongPress(item);
   }, [onLongPress, item]);
 
+  // iOS muscle memory: swipe a notification left to clear it (founder
+  // 2026-06-26). Reuses the existing dismiss path (is_dismissed + optimistic
+  // row removal) — same as the long-press "hide" action.
+  const renderRightActions = useCallback(
+    () => (
+      <TouchableOpacity
+        style={styles.swipeDismiss}
+        onPress={() => onDismiss(item.id)}
+        activeOpacity={0.85}
+        accessibilityRole="button"
+        accessibilityLabel={t('notifications.hideRow', { defaultValue: 'Hide this notification' })}
+      >
+        <Trash2 size={22} color="#FFFFFF" />
+      </TouchableOpacity>
+    ),
+    [onDismiss, item.id, styles.swipeDismiss, t],
+  );
+
   // endorsement_request rows used to render an inline "認同" button
   // here (commit 915ed55, principle #3). Removed 2026-05-30 — see
   // CLAUDE.md "No rubber-stamp social buttons". Tapping the row now
@@ -285,6 +306,7 @@ const NotificationItem = React.memo(function NotificationItem({
   // Zero social pressure, zero rubber-stamp signal.
 
   return (
+    <Swipeable renderRightActions={renderRightActions} overshootRight={false} rightThreshold={40}>
     <TouchableOpacity
       style={[
         styles.notificationItem,
@@ -337,6 +359,7 @@ const NotificationItem = React.memo(function NotificationItem({
       </View>
       {!item.is_read && <View style={styles.unreadDot} />}
     </TouchableOpacity>
+    </Swipeable>
   );
 });
 
@@ -781,10 +804,11 @@ export default function NotificationsScreen({ navigation }: NotificationsScreenP
         item={item}
         onPress={handleNotificationPress}
         onLongPress={handleNotificationLongPress}
+        onDismiss={handleDismissRow}
         t={t}
       />
     ),
-    [handleNotificationPress, handleNotificationLongPress, t]
+    [handleNotificationPress, handleNotificationLongPress, handleDismissRow, t]
   );
 
   // useCallback for keyExtractor
@@ -947,6 +971,14 @@ function makeStyles(c: ColorPalette) {
     borderBottomWidth: 1,
     borderBottomColor: c.gray100,
     backgroundColor: c.white,
+  },
+  // Right-swipe "clear" action. Destructive red is theme-fixed (red reads as
+  // destructive in both light + dark, like every native swipe-to-delete).
+  swipeDismiss: {
+    width: 76,
+    backgroundColor: '#ef4444',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   notificationItemUnread: {
     // Was c.piktag50 (light purple tint) — founder asked 2026-06-03

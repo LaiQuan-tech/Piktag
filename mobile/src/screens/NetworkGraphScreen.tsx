@@ -40,7 +40,7 @@ import Reanimated, {
   useAnimatedStyle,
   useAnimatedProps,
   withTiming,
-  withRepeat,
+  useFrameCallback,
   Easing,
   cancelAnimation,
   type SharedValue,
@@ -233,6 +233,10 @@ export default function NetworkGraphScreen({ navigation }: Props) {
   // ─── Animation drivers (rotation + intro) — UI thread ────────────────
   const spin = useSharedValue(0);
   const intro = useSharedValue(0);
+  // Auto-rotation PAUSES while the user touches the graph (founder 2026-06-26:
+  // don't make them tap a moving target), resumes on release. Driven by a
+  // frame callback so pause/resume is exact (no withRepeat continuation math).
+  const paused = useSharedValue(false);
   // pinch-zoom + pan (outer container)
   const scale = useSharedValue(1);
   const savedScale = useSharedValue(1);
@@ -245,23 +249,35 @@ export default function NetworkGraphScreen({ navigation }: Props) {
 
   useEffect(() => {
     if (!hasGraph) return;
-    spin.value = 0;
-    spin.value = withRepeat(withTiming(Math.PI * 2, { duration: SPIN_MS, easing: Easing.linear }), -1, false);
     intro.value = 0;
     intro.value = withTiming(1, { duration: INTRO_MS, easing: Easing.out(Easing.cubic) });
-    return () => { cancelAnimation(spin); cancelAnimation(intro); };
-  }, [hasGraph, spin, intro]);
+    return () => { cancelAnimation(intro); };
+  }, [hasGraph, intro]);
+
+  // Continuous rotation, except while paused (finger on the graph). Advance by
+  // real elapsed time so the speed is frame-rate independent; wrap at 2π.
+  useFrameCallback((frame) => {
+    if (paused.value) return;
+    const dt = frame.timeSincePreviousFrame ?? 16;
+    spin.value = (spin.value + ((Math.PI * 2) / SPIN_MS) * dt) % (Math.PI * 2);
+  });
 
   const pinch = Gesture.Pinch()
+    .onBegin(() => { paused.value = true; })
     .onUpdate((e) => { scale.value = Math.min(Math.max(savedScale.value * e.scale, MIN_ZOOM), MAX_ZOOM); })
     .onEnd(() => {
       savedScale.value = scale.value;
       if (scale.value <= MIN_ZOOM + 0.01) { tx.value = 0; ty.value = 0; savedTx.value = 0; savedTy.value = 0; }
-    });
+    })
+    .onFinalize(() => { paused.value = false; });
   const pan = Gesture.Pan()
     .minDistance(8)
+    // onBegin fires on finger-DOWN (before the 8px activation), so the graph
+    // freezes the instant you touch it — even for a stationary tap on a node.
+    .onBegin(() => { paused.value = true; })
     .onUpdate((e) => { tx.value = savedTx.value + e.translationX; ty.value = savedTy.value + e.translationY; })
-    .onEnd(() => { savedTx.value = tx.value; savedTy.value = ty.value; });
+    .onEnd(() => { savedTx.value = tx.value; savedTy.value = ty.value; })
+    .onFinalize(() => { paused.value = false; });
   const composed = Gesture.Simultaneous(pinch, pan);
   const containerStyle = useAnimatedStyle(() => ({
     transform: [{ translateX: tx.value }, { translateY: ty.value }, { scale: scale.value }],
