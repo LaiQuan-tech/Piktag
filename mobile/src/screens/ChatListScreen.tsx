@@ -2,7 +2,6 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Alert,
   FlatList,
-  Pressable,
   RefreshControl,
   StatusBar,
   StyleSheet,
@@ -12,7 +11,7 @@ import {
   type ListRenderItemInfo,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ArrowLeft, SquarePen } from 'lucide-react-native';
+import { SquarePen } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
@@ -273,10 +272,6 @@ export default function ChatListScreen({ navigation }: Props) {
     });
   }, [conversations]);
 
-  const handleBack = useCallback(() => {
-    if (navigation.canGoBack()) navigation.goBack();
-  }, [navigation]);
-
   const handleCompose = useCallback(() => {
     navigation.navigate('ChatCompose');
   }, [navigation]);
@@ -383,29 +378,18 @@ export default function ChatListScreen({ navigation }: Props) {
       <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor={colors.white} />
 
       <View style={styles.header}>
-        {/* As of 2026-06-24 ChatList is the Chat TAB root (not only a
-            pushed screen). On the tab root there's nowhere to go back to,
-            so hide the arrow + disable the tap — but keep the fixed-width
-            slot so the title stays positioned. When opened as a push
-            (legacy paths), canGoBack() is true and the arrow shows. */}
-        <TouchableOpacity
-          onPress={handleBack}
-          disabled={!navigation.canGoBack()}
-          activeOpacity={0.6}
-          style={styles.headerIconBtn}
-          accessibilityRole="button"
-          accessibilityLabel="Back"
-        >
-          {navigation.canGoBack() ? (
-            <ArrowLeft size={24} color={colors.gray900} />
-          ) : null}
-        </TouchableOpacity>
+        {/* ChatList is ALWAYS the Chat TAB root — nothing pushes it
+            (founder 2026-06-26: a back arrow on the chat tab is wrong, and
+            tapping it popped to splash because canGoBack() is true via the
+            PARENT RootStack). Never show a back arrow; just a fixed-width
+            spacer keeps the title centred, and the title isn't tappable. */}
+        <View style={styles.headerIconBtn} />
 
-        <Pressable style={styles.headerTitleWrap} onPress={handleBack}>
+        <View style={styles.headerTitleWrap}>
           <Text style={styles.headerTitle} numberOfLines={1}>
             {headerTitle}
           </Text>
-        </Pressable>
+        </View>
 
         <TouchableOpacity
           onPress={handleCompose}
