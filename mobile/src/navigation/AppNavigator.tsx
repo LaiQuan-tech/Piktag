@@ -193,10 +193,13 @@ function MainTabs() {
           // ChatList button, so an unread count on the magnifying
           // glass misdirected users to a tab unrelated to messages.
           tabBarIcon: ({ color, focused }) => (
+            // Search is the exception (founder 2026-06-26): a filled magnifier
+            // reads as a lollipop, so keep it outline even when active — the
+            // active state shows via colour + the bolder stroke only.
             <Search
               size={24}
               color={color}
-              fill={focused ? color : 'none'}
+              fill="none"
               strokeWidth={focused ? 2.5 : 2}
             />
           ),
