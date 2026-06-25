@@ -1110,6 +1110,32 @@ about the network, not Profile vanity).
   the DB (harmless, no caller) — don't be confused that nothing calls them.
 - Route renamed `TribeConstellation` → `NetworkGraph`; old screen file deleted.
 
+## Network graph 3D — pseudo-3D, NOT a 3D engine (2026-06-26)
+
+`NetworkGraphScreen` proved popular, so the founder wanted a 3D upgrade
+("3D 旋轉 + 從外部進入核心"). Chosen approach = **甲: pseudo-3D, stay native**
+(rejected real-3D-via-WebView `3d-force-graph` and native react-three-fiber as
+over-engineering pre-launch). Locked so a future session doesn't "upgrade" it
+to a heavy 3D engine without cause:
+- Force layout runs in **3D** (x,y,z); each node is projected to 2D per frame
+  with a slow auto-rotation about the vertical axis, driven by a reanimated
+  `spin` shared value on the **UI thread** (`withRepeat` 0→2π, seamless because
+  cos/sin are periodic). Depth → scale + opacity (near = bigger/brighter).
+- Intro "fly-in from outside to core" = an `intro` shared value (0→1,
+  Easing.out) that radially **expands** node positions at t=0 (×1.7) and
+  converges to ×1, with opacity fade-in.
+- Avatars under the animated transform are circle-clipped with a SINGLE
+  `<ClipPath clipPathUnits="objectBoundingBox">` (relative to each image's
+  bbox → transform-independent; do NOT go back to absolute-coord clipPaths,
+  they break under the per-node transform).
+- Per-node `<AnimatedG animatedProps>` (transform + opacity) + per-edge
+  `<AnimatedLine>` — all projection math in worklets, no JS per-frame setState
+  (that path is janky with ~70 SVG nodes + avatars; don't reintroduce it).
+- Pinch/pan stay on the OUTER container; rotation is on the inner nodes.
+- Perf: node count is capped (≤60 friends + ≤12 bridges). If a low-end device
+  drops frames, the knobs are rotation duration / element count — NOT switching
+  to a 3D engine. Validate on-device (can't be previewed here).
+
 ## v2 plans — committed direction, not built yet
 
 ### Alt accounts ("小號" — IG-finsta model, decided 2026-05-30)
