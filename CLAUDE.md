@@ -1110,31 +1110,29 @@ about the network, not Profile vanity).
   the DB (harmless, no caller) — don't be confused that nothing calls them.
 - Route renamed `TribeConstellation` → `NetworkGraph`; old screen file deleted.
 
-## Network graph 3D — pseudo-3D, NOT a 3D engine (2026-06-26)
+## Network graph is 2D — pseudo-3D was tried and REVERTED (2026-06-26)
 
-`NetworkGraphScreen` proved popular, so the founder wanted a 3D upgrade
-("3D 旋轉 + 從外部進入核心"). Chosen approach = **甲: pseudo-3D, stay native**
-(rejected real-3D-via-WebView `3d-force-graph` and native react-three-fiber as
-over-engineering pre-launch). Locked so a future session doesn't "upgrade" it
-to a heavy 3D engine without cause:
-- Force layout runs in **3D** (x,y,z); each node is projected to 2D per frame
-  with a slow auto-rotation about the vertical axis, driven by a reanimated
-  `spin` shared value on the **UI thread** (`withRepeat` 0→2π, seamless because
-  cos/sin are periodic). Depth → scale + opacity (near = bigger/brighter).
-- Intro "fly-in from outside to core" = an `intro` shared value (0→1,
-  Easing.out) that radially **expands** node positions at t=0 (×1.7) and
-  converges to ×1, with opacity fade-in.
-- Avatars under the animated transform are circle-clipped with a SINGLE
-  `<ClipPath clipPathUnits="objectBoundingBox">` (relative to each image's
-  bbox → transform-independent; do NOT go back to absolute-coord clipPaths,
-  they break under the per-node transform).
-- Per-node `<AnimatedG animatedProps>` (transform + opacity) + per-edge
-  `<AnimatedLine>` — all projection math in worklets, no JS per-frame setState
-  (that path is janky with ~70 SVG nodes + avatars; don't reintroduce it).
-- Pinch/pan stay on the OUTER container; rotation is on the inner nodes.
-- Perf: node count is capped (≤60 friends + ≤12 bridges). If a low-end device
-  drops frames, the knobs are rotation duration / element count — NOT switching
-  to a 3D engine. Validate on-device (can't be previewed here).
+`NetworkGraphScreen` proved popular; the founder wanted a 3D upgrade and we
+shipped a native pseudo-3D build (3D force layout projected per-frame with a
+reanimated auto-rotation; per-node `<AnimatedG transform>` + per-edge
+`<AnimatedLine>`). **On real sparse data it BROKE the core and was reverted
+same day** — do NOT rebuild it:
+- **`<AnimatedLine>` with animated x1/y1/x2/y2 didn't render** in rn-svg → the
+  edges (the whole point — they show the relationships) vanished. Bumping
+  stroke/opacity didn't help because they weren't drawing at all.
+- The **3D projection clumped nodes** on top of each other (two friends at
+  different z projecting to the same screen point), so even edges that drew
+  were 0-length and invisible.
+The current build is **robust 2D**: static `<Line>` edges (always draw —
+bright piktag500, width 3 for friends; gray dashed for bridges), an explicit
+**overlap-resolution pass** in the force layout so nodes never clump, avatars
+via absolute-coord `<ClipPath>` (fine now that positions are static), bridges =
+gray dot + person silhouette, pinch/zoom/pan on the container, and a gentle
+container-level fly-in (`intro` 0→1 drives opacity + a slight scale-up). No
+rotation, no AnimatedLine, no per-node AnimatedG.
+If the founder wants real 3D rotation later, the path is the **WebView
+`3d-force-graph`** option (option 乙) — a purpose-built engine that handles
+edges + rotation correctly — NOT another native pseudo-3D attempt.
 
 ## v2 plans — committed direction, not built yet
 
