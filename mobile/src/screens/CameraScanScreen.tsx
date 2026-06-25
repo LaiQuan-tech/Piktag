@@ -12,7 +12,7 @@ import {
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import { X, QrCode as QrCodeIcon, ScanLine, CreditCard } from 'lucide-react-native';
+import { X, QrCode as QrCodeIcon, ScanLine } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { COLORS, type ColorPalette } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
@@ -355,24 +355,24 @@ export default function CameraScanScreen({ navigation }: CameraScanScreenProps) 
               defaultValue: '對準 QR 碼自動連結，或點下方拍名片',
             })}
           </Text>
-          {/* Card path — one deliberate tap = one capture (no shutter spam).
-              Always visible so the user knows cards are supported. */}
+          {/* Card capture = a camera SHUTTER (founder 2026-06-26): a labeled
+              pill read as a generic button; a round shutter matches the
+              universal "tap to take a photo" mental model. QR stays automatic,
+              so this shutter's only job is to capture a card. */}
+          <Text style={styles.shutterLabel}>
+            {t('camera.manualCardScan', { defaultValue: '拍名片' })}
+          </Text>
           <TouchableOpacity
-            style={[styles.manualBtn, capturing && styles.manualBtnBusy]}
+            style={[styles.shutterOuter, capturing && styles.shutterBusy]}
             onPress={handleCaptureCard}
             disabled={capturing}
-            activeOpacity={0.7}
+            activeOpacity={0.8}
             accessibilityRole="button"
             accessibilityLabel={t('camera.manualCardScan', { defaultValue: '拍名片' })}
           >
-            {capturing ? (
-              <ActivityIndicator size="small" color={'#FFFFFF'} />
-            ) : (
-              <CreditCard size={18} color={'#FFFFFF'} />
-            )}
-            <Text style={styles.manualBtnText}>
-              {t('camera.manualCardScan', { defaultValue: '拍名片' })}
-            </Text>
+            <View style={styles.shutterInner}>
+              {capturing ? <ActivityIndicator size="small" color={'#111827'} /> : null}
+            </View>
           </TouchableOpacity>
         </View>
       </View>
@@ -528,7 +528,7 @@ function makeStyles(c: ColorPalette) {
     bottom: 0,
     left: 0,
     right: 0,
-    paddingBottom: 100,
+    paddingBottom: 64,
     alignItems: 'center',
     backgroundColor: 'transparent',
   },
@@ -541,29 +541,39 @@ function makeStyles(c: ColorPalette) {
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 4,
   },
-  // Primary card affordance now (QR is automatic, so this is the only
-  // button on the scan view) — frosted pill, clearly tappable.
-  manualBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    marginTop: 18,
-    minWidth: 150,
-    paddingVertical: 12,
-    paddingHorizontal: 22,
-    borderRadius: 24,
-    backgroundColor: 'rgba(0,0,0,0.55)',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.5)',
-  },
-  manualBtnBusy: {
-    opacity: 0.6,
-  },
-  manualBtnText: {
-    fontSize: 15,
+  // Camera shutter for the card-capture action (QR is automatic, so this is
+  // the only manual control). iOS-style: white ring + white inner circle with
+  // a dark gap, so it reads as "take a photo".
+  shutterLabel: {
+    fontSize: 14,
     fontWeight: '700',
     color: '#FFFFFF',
+    marginTop: 18,
+    marginBottom: 14,
+    textShadowColor: 'rgba(0, 0, 0, 0.6)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 4,
+  },
+  shutterOuter: {
+    width: 74,
+    height: 74,
+    borderRadius: 37,
+    borderWidth: 4,
+    borderColor: '#FFFFFF',
+    backgroundColor: 'transparent',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  shutterInner: {
+    width: 58,
+    height: 58,
+    borderRadius: 29,
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  shutterBusy: {
+    opacity: 0.55,
   },
   // ── Show-my-QR view ──
   showCenter: {
