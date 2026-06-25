@@ -138,7 +138,7 @@ export default function NetworkGraphScreen({ navigation }: Props) {
         id: b.id,
         type: 'bridge' as const,
         x: 0, y: 0,
-        r: 7,
+        r: 11, // a touch bigger so the "?" inside reads clearly
       })),
     ];
 
@@ -375,9 +375,14 @@ export default function NetworkGraphScreen({ navigation }: Props) {
                         ) : null}
                       </>
                     ) : (
-                      // Anonymous bridge — hollow ring, never identifying.
-                      <Circle cx={nd.x} cy={nd.y} r={nd.r} fill={colors.background}
-                        stroke={colors.gray400} strokeWidth={1.6} strokeDasharray="2,2" />
+                      // Anonymous bridge — solid muted dot + "?" (you MIGHT know
+                      // them). Mirrors the friend fallback (purple + initial):
+                      // gray + "?" = a person whose identity is hidden until tap.
+                      <>
+                        <Circle cx={nd.x} cy={nd.y} r={nd.r} fill={colors.gray500} opacity={0.92} />
+                        <SvgText x={nd.x} y={nd.y + nd.r * 0.36} fill="#FFFFFF"
+                          fontSize={nd.r * 1.15} fontWeight="700" textAnchor="middle">?</SvgText>
+                      </>
                     )}
                   </G>
                 ))}
@@ -393,7 +398,9 @@ export default function NetworkGraphScreen({ navigation }: Props) {
                 <Text style={styles.legendText}>{t('network.legendFriend', { defaultValue: '你的好友' })}</Text>
               </View>
               <View style={styles.legendItem}>
-                <View style={styles.legendBridgeDot} />
+                <View style={styles.legendBridgeDot}>
+                  <Text style={styles.legendBridgeQ}>?</Text>
+                </View>
                 <Text style={styles.legendText}>{t('network.legendBridge', { defaultValue: '你可能認識' })}</Text>
               </View>
               <Text style={styles.zoomHint}>{t('network.zoomHint', { defaultValue: '雙指縮放 · 拖曳移動' })}</Text>
@@ -489,9 +496,10 @@ function makeStyles(c: ColorPalette) {
     legendItem: { flexDirection: 'row', alignItems: 'center', gap: 6 },
     legendFriendDot: { width: 12, height: 12, borderRadius: 6, backgroundColor: c.piktag500 },
     legendBridgeDot: {
-      width: 12, height: 12, borderRadius: 6,
-      borderWidth: 1.6, borderColor: c.gray400, borderStyle: 'dashed', backgroundColor: 'transparent',
+      width: 16, height: 16, borderRadius: 8,
+      backgroundColor: c.gray500, alignItems: 'center', justifyContent: 'center',
     },
+    legendBridgeQ: { fontSize: 10, fontWeight: '700', color: '#FFFFFF', lineHeight: 12 },
     legendText: { fontSize: 12, color: c.gray600 },
     zoomHint: { marginLeft: 'auto', fontSize: 11, color: c.gray400 },
 
