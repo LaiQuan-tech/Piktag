@@ -40,7 +40,11 @@ type PiktagQrPayload = {
 };
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
-const SCAN_FRAME_SIZE = SCREEN_WIDTH * 0.65;
+// Bigger frame (founder 2026-06-26): a small square forced you to hold a card
+// far from the phone to fit it in — awkward, and fewer card pixels for OCR. A
+// large frame lets the card fill the view at a natural distance. (The frame is
+// only a visual guide; capture is the full camera image regardless.)
+const SCAN_FRAME_SIZE = SCREEN_WIDTH * 0.82;
 
 // ── Scanner strategy (founder 2026-06-24/25) ───────────────────────────────
 // ORIGINAL plan was a shutter-less auto-detect loop: silently snap a frame
@@ -402,8 +406,8 @@ export default function CameraScanScreen({ navigation }: CameraScanScreenProps) 
   );
 }
 
-const CORNER_LENGTH = 24;
-const CORNER_THICKNESS = 3;
+const CORNER_LENGTH = 34;
+const CORNER_THICKNESS = 4;
 
 function makeStyles(c: ColorPalette) {
   return StyleSheet.create({
