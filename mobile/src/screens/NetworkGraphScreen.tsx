@@ -46,8 +46,8 @@ import Reanimated, {
   type SharedValue,
 } from 'react-native-reanimated';
 import { useTranslation } from 'react-i18next';
-import { ArrowLeft, ChevronRight, Users, UserPlus } from 'lucide-react-native';
-import Svg, { Circle, Line, G, Text as SvgText, Image as SvgImage, ClipPath } from 'react-native-svg';
+import { ArrowLeft, ChevronRight, Users, UserPlus, User } from 'lucide-react-native';
+import Svg, { Circle, Line, G, Text as SvgText, Image as SvgImage, ClipPath, Path } from 'react-native-svg';
 import { type ColorPalette } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
 import { supabase } from '../lib/supabase';
@@ -356,7 +356,7 @@ export default function NetworkGraphScreen({ navigation }: Props) {
               </View>
               <View style={styles.legendItem}>
                 <View style={styles.legendBridgeDot}>
-                  <Text style={styles.legendBridgeQ}>?</Text>
+                  <User size={11} color="#FFFFFF" />
                 </View>
                 <Text style={styles.legendText}>{t('network.legendBridge', { defaultValue: '你可能認識' })}</Text>
               </View>
@@ -441,8 +441,15 @@ function GraphNode({
         </>
       ) : (
         <>
+          {/* Anonymous bridge — gray dot + a faceless PERSON silhouette (not a
+              "?": that read as negative/doubt; a person you may know is a
+              POSITIVE discovery — founder 2026-06-26). Matches the strip below. */}
           <Circle cx={0} cy={0} r={r} fill={colors.gray500} opacity={0.92} />
-          <SvgText x={0} y={r * 0.36} fill="#FFFFFF" fontSize={r * 1.15} fontWeight="700" textAnchor="middle">?</SvgText>
+          <Circle cx={0} cy={-r * 0.24} r={r * 0.3} fill="#FFFFFF" />
+          <Path
+            d={`M ${-r * 0.46} ${r * 0.52} C ${-r * 0.46} ${r * 0.05}, ${r * 0.46} ${r * 0.05}, ${r * 0.46} ${r * 0.52} Z`}
+            fill="#FFFFFF"
+          />
         </>
       )}
     </AnimatedG>
@@ -528,7 +535,6 @@ function makeStyles(c: ColorPalette) {
     legendItem: { flexDirection: 'row', alignItems: 'center', gap: 6 },
     legendFriendDot: { width: 12, height: 12, borderRadius: 6, backgroundColor: c.piktag500 },
     legendBridgeDot: { width: 16, height: 16, borderRadius: 8, backgroundColor: c.gray500, alignItems: 'center', justifyContent: 'center' },
-    legendBridgeQ: { fontSize: 10, fontWeight: '700', color: '#FFFFFF', lineHeight: 12 },
     legendText: { fontSize: 12, color: c.gray600 },
     zoomHint: { marginLeft: 'auto', fontSize: 11, color: c.gray400 },
 
