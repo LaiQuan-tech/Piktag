@@ -63,12 +63,6 @@ function bucket(c: InboxConversation, meId: string): InboxTab {
   return 'general';
 }
 
-type HeaderProfile = {
-  username: string | null;
-  full_name: string | null;
-  avatar_url: string | null;
-};
-
 export default function ChatListScreen({ navigation }: Props) {
   const { t } = useTranslation();
   const { colors, isDark } = useTheme();
@@ -78,7 +72,6 @@ export default function ChatListScreen({ navigation }: Props) {
 
   const [activeTab, setActiveTab] = useState<InboxTab>('primary');
   const [refreshing, setRefreshing] = useState<boolean>(false);
-  const [headerProfile, setHeaderProfile] = useState<HeaderProfile | null>(null);
   // Local-only inbox filter. Intentionally operates on the already-loaded
   // `conversations` array — we never hit the network, so typing stays
   // instant even on large inboxes.
@@ -98,35 +91,6 @@ export default function ChatListScreen({ navigation }: Props) {
     Record<string, InboxTab | null>
   >({});
 
-  // Pull the viewer's own username for the header. Not in the auth
-  // object, so one extra query on mount. Cached implicitly for the
-  // life of the screen.
-  useEffect(() => {
-    let cancelled = false;
-    if (!user) return;
-    (async () => {
-      try {
-        const { data, error } = await supabase
-          .from('piktag_profiles')
-          .select('username, full_name, avatar_url')
-          .eq('id', user.id)
-          .single();
-        if (cancelled) return;
-        if (!error && data) {
-          setHeaderProfile({
-            username: (data as HeaderProfile).username ?? null,
-            full_name: (data as HeaderProfile).full_name ?? null,
-            avatar_url: (data as HeaderProfile).avatar_url ?? null,
-          });
-        }
-      } catch {
-        // Non-fatal — header falls back to placeholder below.
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [user]);
 
   // Merge the server-side folder_override with any in-flight
   // optimistic override (a move the user just triggered but the RPC
@@ -316,11 +280,10 @@ export default function ChatListScreen({ navigation }: Props) {
     [],
   );
 
-  const headerTitle = useMemo(() => {
-    if (headerProfile?.username) return `@${headerProfile.username}`;
-    if (headerProfile?.full_name) return headerProfile.full_name;
-    return t('chat.inbox');
-  }, [headerProfile, t, styles, colors]);
+  // Left-aligned category label, consistent with the other tab roots
+  // (Profile 個人 / Notifications / Search) — founder 2026-06-26 wanted the
+  // chat header to match, not show a centered @handle.
+  const headerTitle = t('tabs.chat', { defaultValue: '聊天' });
 
   const refreshControl = useMemo(
     () => (
@@ -378,13 +341,11 @@ export default function ChatListScreen({ navigation }: Props) {
       <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor={colors.white} />
 
       <View style={styles.header}>
-        {/* ChatList is ALWAYS the Chat TAB root — nothing pushes it
-            (founder 2026-06-26: a back arrow on the chat tab is wrong, and
-            tapping it popped to splash because canGoBack() is true via the
-            PARENT RootStack). Never show a back arrow; just a fixed-width
-            spacer keeps the title centred, and the title isn't tappable. */}
-        <View style={styles.headerIconBtn} />
-
+        {/* ChatList is ALWAYS the Chat TAB root — nothing pushes it, so no
+            back arrow (founder 2026-06-26: an arrow on a tab root is wrong, and
+            tapping it popped to splash via the parent RootStack). Title is
+            LEFT-aligned to match the other tab roots (Profile 個人 /
+            Notifications / Search), with compose on the right. */}
         <View style={styles.headerTitleWrap}>
           <Text style={styles.headerTitle} numberOfLines={1}>
             {headerTitle}
@@ -453,7 +414,7 @@ function makeStyles(c: ColorPalette) {
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 8,
+    paddingHorizontal: 16,
     paddingVertical: 8,
     borderBottomWidth: 1,
     borderBottomColor: c.gray100,
@@ -464,14 +425,14 @@ function makeStyles(c: ColorPalette) {
     alignItems: 'center',
     justifyContent: 'center',
   },
+  // Left-aligned, matching Profile / Notifications / Search tab roots.
   headerTitleWrap: {
     flex: 1,
-    alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 8,
+    paddingLeft: 4,
   },
   headerTitle: {
-    fontSize: 16,
+    fontSize: 22,
     fontWeight: '700',
     color: c.gray900,
   },
